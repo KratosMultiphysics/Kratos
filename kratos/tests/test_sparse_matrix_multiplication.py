@@ -24,8 +24,8 @@ class TestSparseMatrixSum(KratosUnittest.TestCase):
 
         # from scipy.io import mmread
 
-        print('Reading matrix file ', GetFilePath(file_name), file=sys.stderr)
-        print('Reading matrix file ', GetFilePath(file_name), file=sys.stdout)
+        # print('Reading matrix file ', GetFilePath(file_name), file=sys.stderr)
+        # print('Reading matrix file ', GetFilePath(file_name), file=sys.stdout)
 
         # try:
 
@@ -38,10 +38,12 @@ class TestSparseMatrixSum(KratosUnittest.TestCase):
 
         #     raise e
 
-        A = KratosMultiphysics.CompressedMatrix()
-        B = KratosMultiphysics.CompressedMatrix()
-        KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath(file_name),A)
-        KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath(file_name),B)
+        KratosMultiphysics.TestMatrixRead()
+
+        # A = KratosMultiphysics.CompressedMatrix()
+        # B = KratosMultiphysics.CompressedMatrix()
+        # KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath(file_name),A)
+        # KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath(file_name),B)
 
         # A_python = io.mmread(GetFilePath(file_name))
         # A_python.toarray()

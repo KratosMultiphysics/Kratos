@@ -64,10 +64,16 @@ inline bool ReadMatrixMarketMatrixEntry(FILE *f, int& I, int& J, std::complex<do
     return i == 4;
 }
 
+void TestMatrixRead() {
+    const char * harcoded_path = "D:\\a\\Kratos\\Kratos\\kratos\\tests\\test_files\\matrix.mm";
+    FILE *f = fopen(harcoded_path, "r");
+    fclose(f);
+}
+
 template <typename CompressedMatrixType> inline bool ReadMatrixMarketMatrix(const char *FileName, CompressedMatrixType &M)
 {
     const char * harcoded_path = "D:\\a\\Kratos\\Kratos\\kratos\\tests\\test_files\\matrix.mm";
-    
+
     std::cout << "Reading Matrix Market Matrix: " << FileName << std::endl;
 
     typedef typename CompressedMatrixType::value_type ValueType;
@@ -75,243 +81,243 @@ template <typename CompressedMatrixType> inline bool ReadMatrixMarketMatrix(cons
     // Open MM file for reading
     FILE *f = fopen(harcoded_path, "r");
 
-    if (f == NULL)
-    {
-        printf("ReadMatrixMarketMatrix(): unable to open %s.\n", FileName);
-        return false;
-    } else {
-        printf("Able to open but something is wrong\n");
-    }
+    // if (f == NULL)
+    // {
+    //     printf("ReadMatrixMarketMatrix(): unable to open %s.\n", FileName);
+    //     return false;
+    // } else {
+    //     printf("Able to open but something is wrong\n");
+    // }
 
-    // Process MM file header
-    MM_typecode mm_code;
+    // // Process MM file header
+    // MM_typecode mm_code;
 
-    printf("Reading banner...\n");
+    // printf("Reading banner...\n");
 
-    if (mm_read_banner(f, &mm_code) != 0)
-    {
-        printf("ReadMatrixMarketMatrix(): unable to read MatrixMarket banner.\n");
-        fclose(f);
-        return false;
-    }
+    // if (mm_read_banner(f, &mm_code) != 0)
+    // {
+    //     printf("ReadMatrixMarketMatrix(): unable to read MatrixMarket banner.\n");
+    //     fclose(f);
+    //     return false;
+    // }
 
-    printf("Testing valid...\n");
+    // printf("Testing valid...\n");
 
-    if (!mm_is_valid(mm_code))
-    {
-        printf("ReadMatrixMarketMatrix(): invalid MatrixMarket banner.\n");
-        fclose(f);
-        return false;
-    }
+    // if (!mm_is_valid(mm_code))
+    // {
+    //     printf("ReadMatrixMarketMatrix(): invalid MatrixMarket banner.\n");
+    //     fclose(f);
+    //     return false;
+    // }
 
-    printf("Testing coordinate...\n");
+    // printf("Testing coordinate...\n");
 
-    // Check for supported types of MM file
-    if (!(mm_is_coordinate(mm_code) && mm_is_sparse(mm_code)))
-    {
-        printf("ReadMatrixMarketMatrix(): unsupported MatrixMarket type, \"%s\".\n",  mm_typecode_to_str(mm_code));
-        fclose(f);
-        return false;
-    }
+    // // Check for supported types of MM file
+    // if (!(mm_is_coordinate(mm_code) && mm_is_sparse(mm_code)))
+    // {
+    //     printf("ReadMatrixMarketMatrix(): unsupported MatrixMarket type, \"%s\".\n",  mm_typecode_to_str(mm_code));
+    //     fclose(f);
+    //     return false;
+    // }
 
-    // Read MM dimensions and NNZ
-    int size1, size2, nnz;
+    // // Read MM dimensions and NNZ
+    // int size1, size2, nnz;
 
-    printf("Reading Matrix...\n");
+    // printf("Reading Matrix...\n");
 
-    if (mm_read_mtx_crd_size(f, &size1, &size2, &nnz) != 0)
-    {
-        printf("ReadMatrixMarketMatrix(): cannot read dimensions and NNZ.\n");
-        fclose(f);
-        return false;
-    }
+    // if (mm_read_mtx_crd_size(f, &size1, &size2, &nnz) != 0)
+    // {
+    //     printf("ReadMatrixMarketMatrix(): cannot read dimensions and NNZ.\n");
+    //     fclose(f);
+    //     return false;
+    // }
 
-    // Allocate temporary arrays
-    int *I = new int[nnz];
-    int *J = new int[nnz];
-    ValueType *V = new ValueType[nnz];
+    // // Allocate temporary arrays
+    // int *I = new int[nnz];
+    // int *J = new int[nnz];
+    // ValueType *V = new ValueType[nnz];
 
-    printf("Testing correct...\n");
+    // printf("Testing correct...\n");
 
-    // Check if matrix type matches MM file
-    if (!IsCorrectType<ValueType>(mm_code))
-    {
-        printf("ReadMatrixMarketMatrix(): MatrixMarket type, \"%s\" does not match provided matrix type.\n",  mm_typecode_to_str(mm_code));
-        fclose(f);
-        return false;
-    }
+    // // Check if matrix type matches MM file
+    // if (!IsCorrectType<ValueType>(mm_code))
+    // {
+    //     printf("ReadMatrixMarketMatrix(): MatrixMarket type, \"%s\" does not match provided matrix type.\n",  mm_typecode_to_str(mm_code));
+    //     fclose(f);
+    //     return false;
+    // }
 
-    // Read MM file
+    // // Read MM file
 
-    printf("Testing pattern...\n");
+    // printf("Testing pattern...\n");
 
-    // Pattern file, only non-zero structure
-    if (mm_is_pattern(mm_code))
-        for (int i = 0; i < nnz; i++)
-        {
-            if (fscanf(f, "%d %d", &I[i], &J[i]) != 2)
-            {
-                printf("ReadMatrixMarketMatrix(): invalid data.\n");
-                fclose(f);
+    // // Pattern file, only non-zero structure
+    // if (mm_is_pattern(mm_code))
+    //     for (int i = 0; i < nnz; i++)
+    //     {
+    //         if (fscanf(f, "%d %d", &I[i], &J[i]) != 2)
+    //         {
+    //             printf("ReadMatrixMarketMatrix(): invalid data.\n");
+    //             fclose(f);
 
-                delete[] I;
-                delete[] J;
-                delete[] V;
+    //             delete[] I;
+    //             delete[] J;
+    //             delete[] V;
 
-                return false;
-            }
+    //             return false;
+    //         }
 
-            // Adjust to 0-based
-            I[i]--;
-            J[i]--;
+    //         // Adjust to 0-based
+    //         I[i]--;
+    //         J[i]--;
 
-            // Set all values to 1.00
-            V[i] = 1.00;
-        }
-    else
-        for (int i = 0; i < nnz; i++)
-        {
-            if (! ReadMatrixMarketMatrixEntry(f, I[i], J[i], V[i]))
-            {
-                printf("ReadMatrixMarketMatrix(): invalid data.\n");
-                fclose(f);
+    //         // Set all values to 1.00
+    //         V[i] = 1.00;
+    //     }
+    // else
+    //     for (int i = 0; i < nnz; i++)
+    //     {
+    //         if (! ReadMatrixMarketMatrixEntry(f, I[i], J[i], V[i]))
+    //         {
+    //             printf("ReadMatrixMarketMatrix(): invalid data.\n");
+    //             fclose(f);
 
-                delete[] I;
-                delete[] J;
-                delete[] V;
+    //             delete[] I;
+    //             delete[] J;
+    //             delete[] V;
 
-                return false;
-            }
+    //             return false;
+    //         }
 
-            // Adjust to 0-based
-            I[i]--;
-            J[i]--;
-        }
+    //         // Adjust to 0-based
+    //         I[i]--;
+    //         J[i]--;
+    //     }
 
-    printf("Closing file...\n");
+    // printf("Closing file...\n");
 
-    fclose(f);
+    // fclose(f);
 
-    // Second stage
-    int *nz = new int[size1];
+    // // Second stage
+    // int *nz = new int[size1];
 
-    for (int i = 0; i < size1; i++)
-        nz[i] = 0;
+    // for (int i = 0; i < size1; i++)
+    //     nz[i] = 0;
 
-    // Count non-zeros on each line
-    if (mm_is_symmetric(mm_code))
-        for (int i = 0; i < nnz; i++)
-        {
-            if (I[i] == J[i])
-                nz[I[i]]++;
-            else
-            {
-                nz[I[i]]++;
-                nz[J[i]]++;
-            }
-        }
-    else
-        for (int i = 0; i < nnz; i++)
-            nz[I[i]]++;
+    // // Count non-zeros on each line
+    // if (mm_is_symmetric(mm_code))
+    //     for (int i = 0; i < nnz; i++)
+    //     {
+    //         if (I[i] == J[i])
+    //             nz[I[i]]++;
+    //         else
+    //         {
+    //             nz[I[i]]++;
+    //             nz[J[i]]++;
+    //         }
+    //     }
+    // else
+    //     for (int i = 0; i < nnz; i++)
+    //         nz[I[i]]++;
 
-    // Find out total number of non-zeros
-    int nnz2;
+    // // Find out total number of non-zeros
+    // int nnz2;
 
-    if (mm_is_symmetric(mm_code))
-    {
-        int diagonals = 0;
+    // if (mm_is_symmetric(mm_code))
+    // {
+    //     int diagonals = 0;
 
-        for (int i = 0; i < nnz; i++)
-            if (I[i] == J[i])
-                diagonals++;
+    //     for (int i = 0; i < nnz; i++)
+    //         if (I[i] == J[i])
+    //             diagonals++;
 
-        nnz2 = diagonals + 2 * (nnz - diagonals);
-    }
-    else
-        nnz2 = nnz;
+    //     nnz2 = diagonals + 2 * (nnz - diagonals);
+    // }
+    // else
+    //     nnz2 = nnz;
 
-    // Fill in an almost-CSR data structure
-    int *filled = new int[size1];
-    int *indices = new int[size1];
-    int *columns = new int[nnz2];
-    ValueType *values = new ValueType[nnz2];
+    // // Fill in an almost-CSR data structure
+    // int *filled = new int[size1];
+    // int *indices = new int[size1];
+    // int *columns = new int[nnz2];
+    // ValueType *values = new ValueType[nnz2];
 
-    indices[0] = 0;
-    for (int i = 1; i < size1; i++)
-        indices[i] = indices[i - 1] + nz[i - 1];
+    // indices[0] = 0;
+    // for (int i = 1; i < size1; i++)
+    //     indices[i] = indices[i - 1] + nz[i - 1];
 
-    for (int i = 0; i < size1; i++)
-        filled[i] = 0;
+    // for (int i = 0; i < size1; i++)
+    //     filled[i] = 0;
 
-    if (mm_is_symmetric(mm_code))
-        for (int i = 0; i < nnz; i++)
-            if (I[i] == J[i])
-            {
-                int index;
+    // if (mm_is_symmetric(mm_code))
+    //     for (int i = 0; i < nnz; i++)
+    //         if (I[i] == J[i])
+    //         {
+    //             int index;
 
-                index = indices[I[i]] + filled[I[i]];
-                columns[index] = J[i];
-                values[index] = V[i];
-                filled[I[i]]++;
-            }
-            else
-            {
-                int index;
+    //             index = indices[I[i]] + filled[I[i]];
+    //             columns[index] = J[i];
+    //             values[index] = V[i];
+    //             filled[I[i]]++;
+    //         }
+    //         else
+    //         {
+    //             int index;
 
-                index = indices[I[i]] + filled[I[i]];
-                columns[index] = J[i];
-                values[index] = V[i];
-                filled[I[i]]++;
+    //             index = indices[I[i]] + filled[I[i]];
+    //             columns[index] = J[i];
+    //             values[index] = V[i];
+    //             filled[I[i]]++;
 
-                index = indices[J[i]] + filled[J[i]];
-                columns[index] = I[i];
-                values[index] = V[i];
-                filled[J[i]]++;
-            }
-    else
-        for (int i = 0; i < nnz; i++)
-        {
-            int index;
+    //             index = indices[J[i]] + filled[J[i]];
+    //             columns[index] = I[i];
+    //             values[index] = V[i];
+    //             filled[J[i]]++;
+    //         }
+    // else
+    //     for (int i = 0; i < nnz; i++)
+    //     {
+    //         int index;
 
-            index = indices[I[i]] + filled[I[i]];
-            columns[index] = J[i];
-            values[index] = V[i];
-            filled[I[i]]++;
-        }
+    //         index = indices[I[i]] + filled[I[i]];
+    //         columns[index] = J[i];
+    //         values[index] = V[i];
+    //         filled[I[i]]++;
+    //     }
 
-    // Create the matrix
-    CompressedMatrixType *m = new CompressedMatrixType(size1, size2, nnz2);
+    // // Create the matrix
+    // CompressedMatrixType *m = new CompressedMatrixType(size1, size2, nnz2);
 
-    int k = 0;
+    // int k = 0;
 
-    for (int i = 0; i < size1; i++)
-        for (int j = 0; j < nz[i]; j++)
-            (*m)(i, columns[indices[i] + j]) = values[k++];
+    // for (int i = 0; i < size1; i++)
+    //     for (int j = 0; j < nz[i]; j++)
+    //         (*m)(i, columns[indices[i] + j]) = values[k++];
 
-    std::cout << "-M Size: " << M.size1() << " " << M.size2() << std::endl;
-    std::cout << "-m Size: " << m->size1() << " " << m->size2() << std::endl;
+    // std::cout << "-M Size: " << M.size1() << " " << M.size2() << std::endl;
+    // std::cout << "-m Size: " << m->size1() << " " << m->size2() << std::endl;
 
-    M.resize(m->size1(), m->size2(), false);
+    // M.resize(m->size1(), m->size2(), false);
 
-    std::cout << "+M Size: " << M.size1() << " " << M.size2() << std::endl;
-    std::cout << "+m Size: " << m->size1() << " " << m->size2() << std::endl;
+    // std::cout << "+M Size: " << M.size1() << " " << M.size2() << std::endl;
+    // std::cout << "+m Size: " << m->size1() << " " << m->size2() << std::endl;
 
 
-    M = *m;
+    // M = *m;
 
-    delete[] I;
-    delete[] J;
-    delete[] V;
+    // delete[] I;
+    // delete[] J;
+    // delete[] V;
 
-    delete[] filled;
-    delete[] indices;
-    delete[] columns;
-    delete[] values;
-    delete[] nz;
+    // delete[] filled;
+    // delete[] indices;
+    // delete[] columns;
+    // delete[] values;
+    // delete[] nz;
 
-    delete m;
+    // delete m;
 
-    return true;
+    // return true;
 }
 
 inline void SetMatrixMarketValueTypeCode(MM_typecode& mm_code, const double& value)
