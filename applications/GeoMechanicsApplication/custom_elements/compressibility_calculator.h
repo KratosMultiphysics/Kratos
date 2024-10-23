@@ -33,7 +33,7 @@ public:
                       std::function<const std::vector<RetentionLaw::Pointer>&()> rRetentionLaws,
                       std::function<const Matrix&()>                             rNContainer,
                       std::function<Vector()>                        rIntegrationCoefficients,
-                      std::function<const double()>                  DtPressureCoefficient,
+                      std::function<double()>                        DtPressureCoefficient,
                       std::function<Vector(const Variable<double>&)> rNodalValuesOfDtWaterPressure)
             : mGetElementProperties(std::move(rElementProperties)),
               mGetRetentionLaws(std::move(rRetentionLaws)),
@@ -76,7 +76,7 @@ public:
         std::function<const std::vector<RetentionLaw::Pointer>&()> mGetRetentionLaws;
         std::function<const Matrix&()>                             mGetNContainer;
         std::function<Vector()>                                    mGetIntegrationCoefficients;
-        std::function<const double()>                              mGetDtPressureCoefficient;
+        std::function<double()>                                    mGetDtPressureCoefficient;
         std::function<Vector(const Variable<double>&)>             mGetNodalValues;
     };
 
