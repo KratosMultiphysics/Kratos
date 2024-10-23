@@ -35,15 +35,17 @@ std::pair<Matrix, Vector> PermeabilityCalculator::CalculateLeftAndRightHandSide(
 
 Matrix PermeabilityCalculator::CalculatePermeabilityMatrix() const
 {
-    RetentionLaw::Parameters    retention_parameters(mInputProvider.GetElementProperties());
-    BoundedMatrix<double, 1, 1> constitutive_matrix;
-    const auto&                 r_properties = mInputProvider.GetElementProperties();
-    GeoElementUtilities::FillPermeabilityMatrix(constitutive_matrix, r_properties);
+    RetentionLaw::Parameters retention_parameters(mInputProvider.GetElementProperties());
+    const auto&              r_properties = mInputProvider.GetElementProperties();
+
     auto r_integration_coefficients = mInputProvider.GetIntegrationCoefficients();
 
     auto       shape_function_gradients = mInputProvider.GetShapeFunctionGradients();
-    const auto dimension                = shape_function_gradients[0].size1();
-    auto       result                   = Matrix{ZeroMatrix{dimension, dimension}};
+    const auto local_dimension          = shape_function_gradients[0].size2();
+    Matrix constitutive_matrix = GeoElementUtilities::FillPermeabilityMatrix(r_properties, local_dimension);
+
+    const auto number_of_nodes = shape_function_gradients[0].size1();
+    auto       result          = Matrix{ZeroMatrix{number_of_nodes, number_of_nodes}};
     for (unsigned int integration_point_index = 0;
          integration_point_index < r_integration_coefficients.size(); ++integration_point_index) {
         const double relative_permeability =

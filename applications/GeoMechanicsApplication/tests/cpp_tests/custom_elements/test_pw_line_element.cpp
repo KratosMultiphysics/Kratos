@@ -63,18 +63,6 @@ TransientPwLineElement<2, 2> TransientPwLineElementWithPWDofs(Model& rModel, con
     return TransientPwLineElementWithPWDofs(rProperties, p_geometry);
 }
 
-TransientPwLineElement<2, 2> TransientPwLineElementWithoutPWDofs(Model& rModel, const Properties::Pointer& rProperties)
-{
-    auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration1(rModel);
-
-    PointerVector<Node> nodes;
-    nodes.push_back(r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0));
-    nodes.push_back(r_model_part.CreateNewNode(2, 1.0, 1.0, 0.0));
-    const auto p_geometry = std::make_shared<Line2D2<Node>>(nodes);
-    return TransientPwLineElement<2, 2>{
-        1, p_geometry, rProperties, {CalculationContribution::Permeability, CalculationContribution::Compressibility}};
-}
-
 } // namespace
 
 namespace Kratos::Testing
