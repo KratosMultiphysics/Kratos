@@ -28,7 +28,8 @@ Vector CompressibilityCalculator::RHSContribution() { return {}; }
 std::pair<Matrix, Vector> CompressibilityCalculator::CalculateLeftAndRightHandSide()
 {
     auto compressibility_matrix = CalculateCompressibilityMatrix();
-    return {compressibility_matrix * mInputProvider.GetDtPressureCoefficient(), -prod(compressibility_matrix, mInputProvider.GetNodalValues(DT_WATER_PRESSURE))};
+    return {compressibility_matrix * mInputProvider.GetDtPressureCoefficient(),
+            -prod(compressibility_matrix, mInputProvider.GetNodalValues(DT_WATER_PRESSURE))};
 }
 
 Matrix CompressibilityCalculator::CalculateCompressibilityMatrix() const

@@ -88,6 +88,7 @@
 #include "custom_elements/U_Pw_small_strain_link_interface_element.hpp"
 #include "custom_elements/U_Pw_updated_lagrangian_FIC_element.hpp"
 #include "custom_elements/U_Pw_updated_lagrangian_element.hpp"
+#include "custom_elements/calculation_contribution.h"
 #include "custom_elements/drained_U_Pw_small_strain_element.hpp"
 #include "custom_elements/line_interface_element.h"
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"

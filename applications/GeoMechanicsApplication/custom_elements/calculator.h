@@ -21,8 +21,8 @@ class Calculator
 public:
     virtual ~Calculator() = default;
 
-    virtual Matrix LHSContribution() = 0;
-    virtual Vector RHSContribution() = 0;
+    virtual Matrix                    LHSContribution()               = 0;
+    virtual Vector                    RHSContribution()               = 0;
     virtual std::pair<Matrix, Vector> CalculateLeftAndRightHandSide() = 0;
 };
 

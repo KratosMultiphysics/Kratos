@@ -67,7 +67,7 @@ public:
 
     PermeabilityCalculator(InputProvider rInputProvider);
 
-    Matrix LHSContribution() override;
+    Matrix                    LHSContribution() override;
     Vector                    RHSContribution() override;
     std::pair<Matrix, Vector> CalculateLeftAndRightHandSide() override;
 

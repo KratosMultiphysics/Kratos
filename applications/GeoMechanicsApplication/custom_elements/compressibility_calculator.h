@@ -82,8 +82,9 @@ public:
 
     explicit CompressibilityCalculator(InputProvider rInputProvider);
 
-    Matrix LHSContribution() override;
-    Vector RHSContribution() override;std::pair<Matrix, Vector> CalculateLeftAndRightHandSide() override;
+    Matrix                    LHSContribution() override;
+    Vector                    RHSContribution() override;
+    std::pair<Matrix, Vector> CalculateLeftAndRightHandSide() override;
 
 private:
     [[nodiscard]] Matrix CalculateCompressibilityMatrix() const;

@@ -10,6 +10,7 @@
 //  Main authors:    Richard Faasse
 //
 
+#include "custom_elements/calculation_contribution.h"
 #include "custom_elements/transient_Pw_line_element.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
@@ -114,7 +115,8 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElementCanCreateInstanceWithNodeInput, 
     // Create method with a node input will fail.
     const auto p_geometry = std::make_shared<Line2D2<Node>>(CreateNodesUnder45DegreeAngle());
     const TransientPwLineElement<2, 2> element(
-        0, p_geometry, p_properties, {CalculationContribution::Permeability, CalculationContribution::Compressibility});
+        0, p_geometry, p_properties,
+        {CalculationContribution::Permeability, CalculationContribution::Compressibility});
 
     // Act
     const auto p_created_element = element.Create(1, nodes, p_properties);

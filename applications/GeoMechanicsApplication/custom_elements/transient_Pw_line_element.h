@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include "calculation_contribution.h"
 #include "compressibility_calculator.h"
 #include "custom_retention/retention_law_factory.h"
 #include "custom_utilities/dof_utilities.h"
@@ -25,7 +26,6 @@
 
 namespace Kratos
 {
-enum CalculationContribution { Permeability, Compressibility };
 
 template <unsigned int TDim, unsigned int TNumNodes>
 class KRATOS_API(GEO_MECHANICS_APPLICATION) TransientPwLineElement : public Element
@@ -35,16 +35,16 @@ public:
 
     explicit TransientPwLineElement(IndexType NewId = 0) : Element(NewId) {}
 
-    TransientPwLineElement(IndexType                        NewId,
-                           const GeometryType::Pointer&     pGeometry,
+    TransientPwLineElement(IndexType                                   NewId,
+                           const GeometryType::Pointer&                pGeometry,
                            const std::vector<CalculationContribution>& rContributions)
         : Element(NewId, pGeometry), mContributions(rContributions)
     {
     }
 
-    TransientPwLineElement(IndexType                        NewId,
-                           const GeometryType::Pointer&     pGeometry,
-                           const PropertiesType::Pointer    pProperties,
+    TransientPwLineElement(IndexType                                   NewId,
+                           const GeometryType::Pointer&                pGeometry,
+                           const PropertiesType::Pointer               pProperties,
                            const std::vector<CalculationContribution>& rContributions)
         : Element(NewId, pGeometry, pProperties), mContributions(rContributions)
     {
@@ -117,7 +117,8 @@ public:
         KRATOS_CATCH("")
     }
 
-    std::unique_ptr<Calculator> CreateCalculator(CalculationContribution contribution, const ProcessInfo& rCurrentProcessInfo)
+    std::unique_ptr<Calculator> CreateCalculator(CalculationContribution contribution,
+                                                 const ProcessInfo&      rCurrentProcessInfo)
     {
         switch (contribution) {
         case CalculationContribution::Permeability:
