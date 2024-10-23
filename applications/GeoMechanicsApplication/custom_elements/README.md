@@ -30,8 +30,10 @@ and $H$ the permeability matrix. $f_u$ are forces on boundary and body and $f_p$
 
 # Pw Elements
 The governing equations in matrix form for the Pw elements are:
+```math
+C \dot{p} + H p = f_p
+```
 
-$$ C \dot{p} + H p = f_p $$
 where the degree of freedom is water pressure $p_w$, their time gradient of pressure. $C$ the compressibility matrix and $H$ the permeability matrix.
 
 
