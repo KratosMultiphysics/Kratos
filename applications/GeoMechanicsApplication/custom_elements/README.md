@@ -24,9 +24,9 @@ p \end{bmatrix} =
 \begin{bmatrix} f_u \\
 f_p \end{bmatrix} $$
 
-where the degrees of freedom are displacement $u$ and water pressure $p_w$, their time derivatives velocity $\dot{u} and time gradient of pressure $\dot{p}$ and double time derivatives acceleration $\ddot{u}$ and $\ddot{p}$.
+where the degrees of freedom are displacement $u$ and water pressure $p_w$, their time derivatives velocity $\dot{u}$ and time gradient of pressure $\dot{p}$ and double time derivatives acceleration $\ddot{u}$ and $\ddot{p}$.
 $M$ is the mass matrix, $D$ the damping matrix, $Q$ the coupling matrix, $C$ the compressibility matrix, $K$ the stiffness matrix
-and $H$ the permeability matrix. $f_u$ are forces on boundary and body amd $f_p$ are fluxes on boundary and body.
+and $H$ the permeability matrix. $f_u$ are forces on boundary and body and $f_p$ are fluxes on boundary and body.
 
 # Pw Elements
 The governing equations in matrix form for the Pw elements are:
