@@ -42,8 +42,6 @@ public:
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeneralUPwDiffOrderCondition);
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     GeneralUPwDiffOrderCondition() : GeneralUPwDiffOrderCondition(0, nullptr, nullptr){};
 
     GeneralUPwDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry)
@@ -56,8 +54,6 @@ public:
     {
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     Condition::Pointer Create(IndexType               NewId,
                               NodesArrayType const&   ThisNodes,
                               PropertiesType::Pointer pProperties) const override;
@@ -65,8 +61,6 @@ public:
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     void GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo&) const override;
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
                               VectorType&        rRightHandSideVector,
@@ -78,7 +72,7 @@ public:
 
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    std::string Info() const override;
 
 protected:
     struct ConditionVariables {
@@ -98,8 +92,6 @@ protected:
 
     // Member Variables
     Geometry<Node>::Pointer mpPressureGeometry;
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void CalculateAll(MatrixType&        rLeftHandSideMatrix,
                       VectorType&        rRightHandSideVector,
@@ -122,8 +114,6 @@ protected:
     void CalculateAndAddRHS(VectorType& rRightHandSideVector, ConditionVariables& rVariables);
 
     virtual void CalculateAndAddConditionForce(VectorType& rRightHandSideVector, ConditionVariables& rVariables);
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
     [[nodiscard]] DofsVectorType GetDofs() const;

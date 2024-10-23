@@ -28,7 +28,6 @@ Condition::Pointer UPwNormalFaceLoadCondition<TDim, TNumNodes>::Create(IndexType
         new UPwNormalFaceLoadCondition(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwNormalFaceLoadCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rRightHandSideVector,
                                                                const ProcessInfo& CurrentProcessInfo)
@@ -117,6 +116,12 @@ double UPwNormalFaceLoadCondition<TDim, TNumNodes>::CalculateIntegrationCoeffici
     const IndexType PointNumber, const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const
 {
     return IntegrationPoints[PointNumber].Weight();
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+std::string UPwNormalFaceLoadCondition<TDim, TNumNodes>::Info() const
+{
+    return "UPwNormalFaceLoadCondition";
 }
 
 template class UPwNormalFaceLoadCondition<2, 2>;
