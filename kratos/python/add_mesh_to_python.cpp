@@ -99,14 +99,6 @@ NodeType::Pointer GetNodeFromCondition( Condition& dummy, unsigned int index )
     return( dummy.GetGeometry().pGetPoint(index) );
 }
 
-void ConditionCalculateLocalSystemStandard( Condition& dummy,
-                                                Matrix& rLeftHandSideMatrix,
-                                                Vector& rRightHandSideVector,
-                                                const ProcessInfo& rCurrentProcessInfo)
-{
-    dummy.CalculateLocalSystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
-}
-
 py::list GetNodesFromCondition( Condition& dummy )
 {
     pybind11::list nodes_list;
@@ -271,6 +263,15 @@ void EntityCalculateLocalSystem(
     const ProcessInfo& rCurrentProcessInfo)
 {
     dummy.CalculateLocalSystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
+}
+
+template <class TEntityType>
+void EntityCalculateLeftHandSide(
+    TEntityType &dummy,
+    Matrix &rLeftHandSideMatrix,
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    dummy.CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
 }
 
 template<class TEntityType>
@@ -490,6 +491,7 @@ void  AddMeshToPython(pybind11::module& m)
     .def("CalculateMassMatrix", &EntityCalculateMassMatrix<Element>)
     .def("CalculateDampingMatrix", &EntityCalculateDampingMatrix<Element>)
     .def("CalculateLocalSystem", &EntityCalculateLocalSystem<Element>)
+    .def("CalculateLeftHandSide", &EntityCalculateLeftHandSide<Element>)
     .def("CalculateRightHandSide", &EntityCalculateRightHandSide<Element>)
     .def("CalculateFirstDerivativesLHS", &EntityCalculateFirstDerivativesLHS<Element>)
     .def("CalculateSecondDerivativesLHS", &EntityCalculateSecondDerivativesLHS<Element>)
@@ -500,7 +502,6 @@ void  AddMeshToPython(pybind11::module& m)
     .def("GetSecondDerivativesVector", &EntityGetSecondDerivativesVector2<Element>)
     .def("CalculateSensitivityMatrix", &EntityCalculateSensitivityMatrix<Element, double>)
     .def("CalculateSensitivityMatrix", &EntityCalculateSensitivityMatrix<Element, array_1d<double,3>>)
-
 //     .def(VariableIndexingPython<Element, Variable<int> >())
 //     .def(VariableIndexingPython<Element, Variable<double> >())
 //     .def(VariableIndexingPython<Element, Variable<array_1d<double, 3> > >())
@@ -657,6 +658,7 @@ void  AddMeshToPython(pybind11::module& m)
     .def("CalculateMassMatrix", &EntityCalculateMassMatrix<Condition>)
     .def("CalculateDampingMatrix", &EntityCalculateDampingMatrix<Condition>)
     .def("CalculateLocalSystem", &EntityCalculateLocalSystem<Condition>)
+    .def("CalculateLeftHandSide", &EntityCalculateLeftHandSide<Condition>)
     .def("CalculateRightHandSide", &EntityCalculateRightHandSide<Condition>)
     .def("CalculateFirstDerivativesLHS", &EntityCalculateFirstDerivativesLHS<Condition>)
     .def("CalculateSecondDerivativesLHS", &EntityCalculateSecondDerivativesLHS<Condition>)

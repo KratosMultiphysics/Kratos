@@ -20,6 +20,8 @@
 namespace Kratos
 {
 
+class Properties;
+
 class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoThermalLaw
 {
 public:

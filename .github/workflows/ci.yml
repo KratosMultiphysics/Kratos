@@ -306,6 +306,7 @@ jobs:
       KRATOS_BUILD_TYPE: Custom
       KRATOS_CI_CHANGED_FILES: ${{needs.changed-files.outputs.files}}
       KRATOS_CI_APPLICATIONS: ".github/workflows/ci_apps_centos.json"
+      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
 
     container:
       image: kratosmultiphysics/kratos-image-ci-centos7:latest

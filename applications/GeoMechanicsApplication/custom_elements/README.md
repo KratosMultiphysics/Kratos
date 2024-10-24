@@ -10,6 +10,43 @@ $$ u_{x,1}, u_{y,1}, u_{x,2}, u_{y,2}, \dots, u_{x,6}, u_{y,6}, p_1, p_2, p_3 $$
 
 where the directions of the displacements are denoted by a suffix (here either $x$ or $y$), and the node number is also added as a suffix. Note that in this case, there are only three pore water pressure DOFs (due to the diff order nature of the element). For a non-diff order quadratic element the above list of DOFs is appended by $p_4$, $p_5$, and $p_6$.
 
+The governing equations for the U-Pw continuum elements in matrix form are:
+
+$$ \begin{bmatrix} M & 0 \\
+0 & 0 \end{bmatrix} \begin{bmatrix} \ddot{u} \\
+\ddot{p} \end{bmatrix}  +
+\begin{bmatrix} D & 0 \\
+Q^T & C \end{bmatrix} \begin{bmatrix} \dot{u} \\
+\dot{p} \end{bmatrix}  +
+\begin{bmatrix} K & -Q \\
+0 & H \end{bmatrix} \begin{bmatrix} u \\
+p \end{bmatrix} =
+\begin{bmatrix} f_u \\
+f_p \end{bmatrix} $$
+
+where the degrees of freedom are displacement $u$ and water pressure $p_w$, their time derivatives velocity $\dot{u}$ and time gradient of pressure $\dot{p}$ and double time derivatives acceleration $\ddot{u}$ and $\ddot{p}$.
+$M$ is the mass matrix, $D$ the damping matrix, $Q$ the coupling matrix, $C$ the compressibility matrix, $K$ the stiffness matrix
+and $H$ the permeability matrix. $f_u$ are forces on boundary and body and $f_p$ are fluxes on boundary and body.
+
+# Pw Elements
+The governing equations in matrix form for the Pw elements are:
+```math
+C \dot{p} + H p = f_p
+```
+
+where the degree of freedom is water pressure $p_w$, their time gradient of pressure. $C$ the compressibility matrix and $H$ the permeability matrix.
+
+
+## Steady State Pw Line Piping Element
+To function together with the geo_mechanics_newton_raphson_erosion_process_strategy, a line Pw element with
+permeability $k$ depending on the erosion pipe opening PIPE_HEIGHT $a$ is available. Steady state, so the $\dot{p}$ term is omitted from the above equation.
+
+$$k = \frac{a^3}{12}$$
+
+$$ H = \int (\nabla N)^T k \nabla N dV $$
+
+
+
 # Transient Thermal Element
 
 ## Introduction

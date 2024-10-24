@@ -180,6 +180,7 @@ namespace Kratos
 		                                       double       equiv_young,
 		                                       double       equiv_shear,
 		                                       double       indentation,
+		                                       double       indentation_particle,
 		                                       double       calculation_area,
 		                                       double&      acumulated_damage,
 		                                       SphericContinuumParticle* element1,

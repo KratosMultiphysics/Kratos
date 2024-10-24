@@ -36,8 +36,6 @@ public:
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AxisymmetricLineNormalFluidFlux2DDiffOrderCondition);
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     // Default constructor
     AxisymmetricLineNormalFluidFlux2DDiffOrderCondition();
 
@@ -49,24 +47,18 @@ public:
                                                         GeometryType::Pointer   pGeometry,
                                                         PropertiesType::Pointer pProperties);
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     Condition::Pointer Create(IndexType               NewId,
                               NodesArrayType const&   ThisNodes,
                               PropertiesType::Pointer pProperties) const override;
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    std::string Info() const override;
 
 protected:
     // Member Variables
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     double CalculateIntegrationCoefficient(const IndexType                    PointNumber,
                                            const GeometryType::JacobiansType& JContainer,
                                            const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const override;
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
     // Serialization

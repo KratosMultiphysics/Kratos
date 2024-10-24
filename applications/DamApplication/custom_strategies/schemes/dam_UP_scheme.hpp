@@ -68,24 +68,6 @@ public:
     {
         KRATOS_TRY
 
-        //check for variables keys (verify that the variables are correctly initialized)
-        if(DISPLACEMENT.Key() == 0)
-            KRATOS_THROW_ERROR( std::invalid_argument,"DISPLACEMENT has Key zero! (check if the application is correctly registered", "" )
-        if(VELOCITY.Key() == 0)
-            KRATOS_THROW_ERROR( std::invalid_argument,"VELOCITY has Key zero! (check if the application is correctly registered", "" )
-        if(ACCELERATION.Key() == 0)
-            KRATOS_THROW_ERROR( std::invalid_argument,"ACCELERATION has Key zero! (check if the application is correctly registered", "" )
-        if(PRESSURE.Key() == 0)
-            KRATOS_THROW_ERROR( std::invalid_argument, "PRESSURE has Key zero! (check if the application is correctly registered", "" )
-        if(Dt_PRESSURE.Key() == 0)
-            KRATOS_THROW_ERROR( std::invalid_argument, "Dt_PRESSURE has Key zero! (check if the application is correctly registered", "" )
-        if(Dt2_PRESSURE.Key() == 0)
-            KRATOS_THROW_ERROR( std::invalid_argument, "Dt2_PRESSURE has Key zero! (check if the application is correctly registered", "" )
-        if ( VELOCITY_PRESSURE_COEFFICIENT.Key() == 0 )
-            KRATOS_THROW_ERROR( std::invalid_argument, "VELOCITY_PRESSURE_COEFFICIENT has Key zero! (check if the application is correctly registered", "" )
-        if ( ACCELERATION_PRESSURE_COEFFICIENT.Key() == 0 )
-            KRATOS_THROW_ERROR( std::invalid_argument, "ACCELERATION_PRESSURE_COEFFICIENT has Key zero! (check if the application is correctly registered", "" )
-
         //check that variables are correctly allocated
         for(ModelPart::NodesContainerType::iterator it=r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); it++)
         {

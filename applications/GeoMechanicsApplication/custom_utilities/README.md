@@ -54,9 +54,9 @@ File transport_equation_utilities.hpp includes
 ### Mass Matrix (M)
 
 The mathematical definition is:
-$$M = \int_\Omega N_{u}^T \rho N_u d\Omega$$
+$$M = \int_\Omega \rho N_{u}^T N_u d\Omega$$
 
-Where $\Omega$ is the domain, $N_u$ is the displacement shape function and $\rho$ is the density matrix that holds density for all directions.
+Where $\Omega$ is the domain, $N_u$ is the displacement shape function and $\rho$ is the density.
 
 ### Stiffness Matrix (K)
 
