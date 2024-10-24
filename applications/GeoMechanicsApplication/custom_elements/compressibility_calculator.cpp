@@ -43,22 +43,22 @@ Matrix CompressibilityCalculator::LHSContribution(const Matrix& rCompressibility
 
 std::pair<Matrix, Vector> CompressibilityCalculator::CalculateLeftAndRightHandSide()
 {
-    auto compressibility_matrix = CalculateCompressibilityMatrix();
+    const auto compressibility_matrix = CalculateCompressibilityMatrix();
     return {(LHSContribution(compressibility_matrix)), (RHSContribution(compressibility_matrix))};
 }
 
 Matrix CompressibilityCalculator::CalculateCompressibilityMatrix() const
 {
-    const auto& r_N_container              = mInputProvider.GetNContainer();
-    const auto& r_integration_coefficients = mInputProvider.GetIntegrationCoefficients();
+    const auto& r_N_container            = mInputProvider.GetNContainer();
+    const auto& integration_coefficients = mInputProvider.GetIntegrationCoefficients();
     auto        result = Matrix{ZeroMatrix{r_N_container.size2(), r_N_container.size2()}};
     for (unsigned int integration_point_index = 0;
-         integration_point_index < r_integration_coefficients.size(); ++integration_point_index) {
+         integration_point_index < integration_coefficients.size(); ++integration_point_index) {
         const auto   N = Vector{row(r_N_container, integration_point_index)};
-        const double BiotModulusInverse =
+        const double biot_modulus_inverse =
             CalculateBiotModulusInverse(mInputProvider.GetRetentionLaws()[integration_point_index]);
         result += GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
-            N, BiotModulusInverse, r_integration_coefficients[integration_point_index]);
+            N, biot_modulus_inverse, integration_coefficients[integration_point_index]);
     }
     return result;
 }
