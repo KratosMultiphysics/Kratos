@@ -119,8 +119,6 @@ protected:
                                       std::vector<double>&    rValues,
                                       const ProcessInfo&      rCurrentProcessInfo) override;
 
-    double CalculateParticleDiameter(const PropertiesType& Prop);
-
     double pipe_initialised = false;
 
 private:
