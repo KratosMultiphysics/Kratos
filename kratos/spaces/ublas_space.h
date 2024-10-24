@@ -710,15 +710,9 @@ public:
     {
         const std::size_t system_size = rA.size1();
 
-    #ifdef KRATOS_DEBUG
-        auto& Avalues = rA.value_data();
-    #else
-        const auto& Avalues = rA.value_data();
-    #endif
-        const auto& Arow_indices = rA.index1_data();
-    #ifdef KRATOS_DEBUG
-        const auto& Acol_indices = rA.index2_data();
-    #endif
+        auto& r_Avalues = rA.value_data();
+        const auto& r_Arow_indices = rA.index1_data();
+        const auto& r_Acol_indices = rA.index2_data();
 
         // Define  zero value tolerance
         const double zero_tolerance = std::numeric_limits<double>::epsilon();
@@ -730,31 +724,28 @@ public:
         IndexPartition(system_size).for_each([&](std::size_t Index){
             bool empty = true;
 
-            const std::size_t col_begin = Arow_indices[Index];
-            const std::size_t col_end = Arow_indices[Index + 1];
+            const std::size_t col_begin = r_Arow_indices[Index];
+            const std::size_t col_end = r_Arow_indices[Index + 1];
 
             for (std::size_t j = col_begin; j < col_end; ++j) {
-                if(std::abs(Avalues[j]) > zero_tolerance) {
+                if(std::abs(r_Avalues[j]) > zero_tolerance) {
                     empty = false;
                     break;
                 }
             }
 
             if(empty) {
+                const auto pos = std::lower_bound(&r_Acol_indices[col_begin], &r_Acol_indices[col_end], Index);
+                if (pos != &r_Acol_indices[col_end]) { // It was found
+                    r_Avalues[pos - &r_Acol_indices[col_begin]] = scale_factor;
             #ifdef KRATOS_DEBUG
-                // Check that Index Index term exists
-                for (std::size_t j = col_begin; j < col_end; ++j) {
-                    if (Acol_indices[j] == Index) {
-                        Avalues[j] = scale_factor;
-                        rb[Index] = 0.0;
-                        break;
-                    }
+                } else {
+                    KRATOS_ERROR << "Diagonal term (" << Index << ", " << Index << ") is not defined in the system matrix" << std::endl;
                 }
-                KRATOS_ERROR << "Diagonal term (" << Index << ", " << Index << ") is not defined in the system matrix" << std::endl;
             #else
-                rA(Index, Index) = scale_factor;
-                rb[Index] = 0.0;
+                }
             #endif
+                rb[Index] = 0.0;
             }
         });
 
