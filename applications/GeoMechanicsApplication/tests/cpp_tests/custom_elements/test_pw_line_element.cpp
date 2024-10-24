@@ -109,9 +109,11 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElementReturnsTheExpectedLeftHandSideAn
     element.CalculateLeftHandSide(actual_isolated_left_hand_side, process_info);
 
     // Assert
-    auto expected_left_hand_side = Matrix{2, 2, 0.0006423358000298597};
-    expected_left_hand_side <<= -0.00099588919125952972, 0.00046555910441502474,
-        0.00046555910441502474, -0.00099588919125952972;
+    // clang-format off
+    auto expected_left_hand_side = Matrix{2, 2};
+    expected_left_hand_side <<= -0.00099588919125952972,  0.00046555910441502474,
+                                 0.00046555910441502474, -0.00099588919125952972;
+    // clang-format on
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_isolated_left_hand_side, expected_left_hand_side,
                                        Defaults::relative_tolerance)
