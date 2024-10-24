@@ -52,6 +52,11 @@ public:
     using PointsArrayType = typename GeometryType::PointsArrayType;
 
     using ModifiedShapeFunctionsFactoryType = std::function<ModifiedShapeFunctions::UniquePointer(const GeometryType::Pointer, const Vector&)>;
+    struct NodeConditionDataStruct
+    {
+        NodeType Node;                 // Condition normal
+        double CornerNode; // Gauss point shape functions values
+    };
 
     ///@}
     ///@name Static Operations
@@ -116,18 +121,49 @@ public:
      * @param  rDistancesVariable Variable name of the inlet distance.
      */
     static void SetInletFreeSurface(ModelPart &rModelPart, const Flags &rSkinFlag, const Variable<double> &rDistanceVariable);
-     
 
+    /**
+     * @brief For all elements that are completly air the gravity is turned off.
+     * @param  rModelPart FluidModelPart
+     */
+    static void TurnOffGravityOnAirElements(ModelPart &rModelPart);
+
+    /**
+     * @brief Fixing the velocity to  corner nodes in the skin modelpart.
+     * @param  rModelPart FluidModelPart
+     * @param  MaximumAngle Minimum angle for considering corner.
+     */
+
+    static void FixCornerNodeVelocity(
+        ModelPart &rModelPart,
+        const double MaximumAngle);
+
+    /**
+     * @brief The maximum water depth at the inlet is adjusted based on the maximum depth within the entire domain. 
+     * If the water depth at the inlet is less than the maximum depth across the domain, the inlet water depth is adjusted to match its maximum depth.
+     * @param  rModelPart Inlet Model Part
+
+     */
+    static bool MaximumWaterDepthChange(const ModelPart &rModelPart);
+    /**
+     * @brief  Calculate the artificial viscosity which is proportional to the maximum velocity gradient
+     * @param  rModelPart Fluid Model Part
+     * @param  LimiterCoefficient a coefficient to limit the maximum artificial viscosity
+     *
+
+     */
+    static void CalculateArtificialViscosity(
+        ModelPart &rModelPart,
+        const double LimiterCoefficient);
     ///@}
 
-private :
-
+private:
     struct EdgeDataContainer
     {
         NodeType::Pointer pNodeI = nullptr;
         NodeType::Pointer pNodeJ = nullptr;
         SizeType NumberOfRepetitions = 0;
-    };
+        };
 
-}; // namespace Kratos
+    }; // namespace Kratos
 }
