@@ -22,7 +22,7 @@ namespace
 
 using namespace Kratos;
 
-ModelPart& CreateModelPartWithWaterPressureVariableAndVolumeAcceleration1(Model& rModel)
+ModelPart& CreateModelPartWithSolutionStepVariables(Model& rModel)
 {
     auto& r_result = rModel.CreateModelPart("Main");
     r_result.AddNodalSolutionStepVariable(WATER_PRESSURE);
@@ -47,7 +47,7 @@ TransientPwLineElement<2, 2> TransientPwLineElementWithPWDofs(const Properties::
 
 TransientPwLineElement<2, 2> TransientPwLineElementWithPWDofs(Model& rModel, const Properties::Pointer& rProperties)
 {
-    auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration1(rModel);
+    auto& r_model_part = CreateModelPartWithSolutionStepVariables(rModel);
 
     PointerVector<Node> nodes;
     nodes.push_back(r_model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
