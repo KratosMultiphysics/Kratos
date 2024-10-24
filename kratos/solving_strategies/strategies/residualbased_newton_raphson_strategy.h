@@ -692,6 +692,10 @@ class ResidualBasedNewtonRaphsonStrategy
             if (p_scheme->ConditionsAreInitialized() == false)
                 p_scheme->InitializeConditions(BaseType::GetModelPart());
 
+            //Initialize The MasterSlaveConstraints - OPERATIONS TO BE DONE ONCE
+            if (p_scheme->MasterSlaveConstraintsAreInitialized() == false)
+                p_scheme->InitializeMasterSlaveConstraints(BaseType::GetModelPart());
+
             //initialisation of the convergence criteria
             if (p_convergence_criteria->IsInitialized() == false)
                 p_convergence_criteria->Initialize(BaseType::GetModelPart());
