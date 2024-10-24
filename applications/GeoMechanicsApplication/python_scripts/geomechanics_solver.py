@@ -543,10 +543,8 @@ class GeoMechanicalSolver(PythonSolver):
             solving_strategy = GeoMechanicsApplication.GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic(
                                                                                          self.computing_model_part,
                                                                                          new_scheme,
-                                                                                         self.linear_solver,
                                                                                          self.convergence_criterion,
                                                                                          new_builder_and_solver,
-                                                                                         self.strategy_params,
                                                                                          max_iters,
                                                                                          compute_reactions,
                                                                                          move_mesh_flag)

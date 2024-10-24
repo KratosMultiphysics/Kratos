@@ -140,8 +140,8 @@ void AddCustomStrategiesToPython(pybind11::module& m)
     py::class_<GeoMechanicNewtonRaphsonStrategyLinearElasticDynamicType,
                typename GeoMechanicNewtonRaphsonStrategyLinearElasticDynamicType::Pointer, BaseSolvingStrategyType>(
         m, "GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic")
-        .def(py::init<ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
-                      BuilderAndSolverType::Pointer, Parameters&, int, bool, bool>());
+        .def(py::init<ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer,
+                      BuilderAndSolverType::Pointer, int, bool, bool>());
 
     using ResidualBasedBlockBuilderAndSolverWithMassAndDampingType =
         ResidualBasedBlockBuilderAndSolverWithMassAndDamping<SparseSpaceType, LocalSpaceType, LinearSolverType>;

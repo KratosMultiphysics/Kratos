@@ -62,7 +62,7 @@ namespace Kratos
 /**
  * @class GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic
  * @ingroup KratosGeomechanicsApplication
- * @brief This is Newton Raphson strategy especially for Dynamic linear elastic systems. Within this strategy, the Newmark scheme is incorporated
+ * @brief This is Newton Raphson strategy especially for Dynamic linear elastic systems.
  * @details This strategy iterates until the convergence is achieved (or the maximum number of iterations is surpassed) using a Newton Raphson algorithm
  * @author Aron Noordam
  */
@@ -102,12 +102,8 @@ public:
      * Default constructor
      * @param rModelPart The model part of the problem
      * @param pScheme The integration scheme
-     * @param pNewLinearSolver The linear solver employed
      * @param pNewConvergenceCriteria The convergence criteria employed
      * @param pNewBuilderAndSolver The builder and solver
-     * @param rParameters The parameters for the strategy
-     * @param Beta The Newmark Beta parameter
-     * @param Gamma The Newmark Gamma parameter
      * @param MaxIterations The maximum number of non-linear iterations to be considered when solving the problem
      * @param CalculateReactions The flag for the reaction calculation
      * @param MoveMeshFlag The flag that allows to move the mesh
@@ -115,17 +111,14 @@ public:
     explicit GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic(
         ModelPart&                                 rModelPart,
         typename TSchemeType::Pointer              pScheme,
-        typename TLinearSolver::Pointer            pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
         typename TBuilderAndSolverType::Pointer    pNewBuilderAndSolver,
-        Parameters&                                rParameters,
         int                                        MaxIterations      = 30,
         bool                                       CalculateReactions = false,
         bool                                       MoveMeshFlag       = false)
         : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(
               rModelPart, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, false, MoveMeshFlag)
     {
-        // new constructor
     }
 
     /**
@@ -133,8 +126,7 @@ public:
      */
     void Initialize() override
     {
-        KRATOS_TRY;
-
+        KRATOS_TRY
         BaseType::Initialize();
 
         // Note that FindNeighbourElementsOfConditionsProcess and DeactivateConditionsOnInactiveElements are required to be perfomed before initializing the System and State
@@ -151,28 +143,19 @@ public:
             // initialize the system matrices and the initial second derivative
             this->InititalizeSystemAndState();
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     void Predict() override
     {
         KRATOS_TRY
-        // OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
-        // if the operations needed were already performed this does nothing
-        if (BaseType::mInitializeWasPerformed == false) this->Initialize();
 
-        TSystemMatrixType& rA  = *BaseType::mpA;
-        TSystemVectorType& rDx = *BaseType::mpDx;
-        TSystemVectorType& rb  = *BaseType::mpb;
+        BaseType::GetScheme()->Predict(BaseType::GetModelPart(), BaseType::GetBuilderAndSolver()->GetDofSet(), *BaseType::mpA, *BaseType::mpDx, *BaseType::mpb);
 
-        DofsArrayType& r_dof_set = BaseType::GetBuilderAndSolver()->GetDofSet();
-
-        BaseType::GetScheme()->Predict(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
-
-        // Note that constraints are not applied in this predict, nor is an update performed
+        // Note that constraints are not applied in this predict, nor is an update performed, constrains are added in the builder and solver
 
         // Move the mesh if needed
-        if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
+        if (BaseType::MoveMeshFlag()) BaseType::MoveMesh();
 
         KRATOS_CATCH("")
     }
@@ -205,13 +188,7 @@ public:
         unsigned int iteration_number                      = 1;
         r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
 
-        // only initialize conditions, not that this cannot be put in the scheme, as the scheme is required to InitializeNonLinearIteration both elements and conditions
-        const auto& r_current_process_info = r_model_part.GetProcessInfo();
-        block_for_each(r_model_part.Conditions(), [&r_current_process_info](Condition& r_condition) {
-            if (r_condition.IsActive()) {
-                r_condition.InitializeNonLinearIteration(r_current_process_info);
-            }
-        });
+        p_scheme->InitializeNonLinIteration(r_model_part, rA, rDx, rb);
 
         BaseType::mpConvergenceCriteria->InitializeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
         bool is_converged =
@@ -221,7 +198,6 @@ public:
         TSparseSpace::SetToZero(rb);
 
         p_builder_and_solver->BuildRHSAndSolve(p_scheme, r_model_part, rA, rDx, rb);
-
         // Debugging info
         BaseType::EchoInfo(iteration_number);
 
@@ -469,8 +445,18 @@ private:
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = BaseType::GetBuilderAndSolver();
 
         this->InitializeSolutionStep();
+
+        // Initialize non linear iteration for elements here, as the scheme only initializes conditions.
+        const auto& r_current_process_info = r_model_part.GetProcessInfo();
+        block_for_each(r_model_part.Elements(), [&r_current_process_info](Element& r_element) {
+            if (r_element.IsActive()) {
+                r_element.InitializeNonLinearIteration(r_current_process_info);
+            }
+        });
+
         p_scheme->InitializeNonLinIteration(r_model_part, rA, rDx, rb);
         p_builder_and_solver->Build(p_scheme, r_model_part, rA, rb);
+
         this->FinalizeSolutionStep();
         BaseType::mStiffnessMatrixIsBuilt = true;
     }

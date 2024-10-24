@@ -19,9 +19,6 @@
 #include <unordered_set>
 
 /* External includes */
-#ifdef KRATOS_SMP_OPENMP
-#include <omp.h>
-#endif
 
 /* Project includes */
 #include "custom_utilities/sparse_system_utilities.h"
@@ -37,6 +34,7 @@
 #include "utilities/sparse_matrix_multiplication_utility.h"
 #include "utilities/timer.h"
 #include "utilities/variable_utils.h"
+//#include "includes/file_serializer.h"
 
 namespace Kratos
 {
@@ -135,6 +133,15 @@ public:
     ///@}
     ///@name Operations
     ///@{
+    /// 
+    /// 
+    //void Clear() override { 
+    //    
+    //    // save external force vector for restart, before clearing
+    //    this->save(FileSerializer(mRestartFileName));
+
+    //    BaseType::Clear();
+    //}
 
     void InitializeSolutionStep(ModelPart& rModelPart, TSystemMatrixType& rA, TSystemVectorType& rDx, TSystemVectorType& rb) override
     {
@@ -143,8 +150,15 @@ public:
         mPreviousOutOfBalanceVector = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
         mCurrentOutOfBalanceVector  = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
 
-        if (mPreviousExternalForceVector.size() == 0) {
-            mPreviousExternalForceVector = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
+        if (mPreviousExternalForceVector.empty()) {
+
+            // copy external force vector if this is a restart
+            if (rModelPart.GetProcessInfo()[STEP] > 1)
+            {
+                TSparseSpace::Copy(mCurrentExternalForceVector, mPreviousExternalForceVector); 
+            } else {
+                mPreviousExternalForceVector = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
+            }
         }
     }
 
@@ -160,7 +174,7 @@ public:
         TSystemVectorType dummy_rDx(rA.size1(), 0.0);
 
         // apply constraints
-        if (rModelPart.MasterSlaveConstraints().size() != 0) {
+        if (!rModelPart.MasterSlaveConstraints().empty()) {
             const auto timer_constraints = BuiltinTimer();
             Timer::Start("ApplyConstraints");
             BaseType::ApplyConstraints(pScheme, rModelPart, rA, rb);
@@ -198,10 +212,9 @@ public:
             BaseType::mpLinearSystemSolver->PerformSolutionStep(rA, dummy_rDx, rb);
             mUsePerformSolutionStep = true;
         } catch (const Kratos::Exception& e) {
-            std::string error_message = e.what();
-
+            
             // if PerformSolutionStep is not implemented, the following error is thrown, in this case, use Solve
-            if (error_message.find("Error: Calling linear solver base class") != std::string::npos) {
+            if (std::string error_message = e.what(); error_message.find("Error: Calling linear solver base class") != std::string::npos) {
                 mUsePerformSolutionStep = false;
             }
             // Re-throw the exception if it's not the specific error we're looking for
@@ -268,7 +281,7 @@ public:
         const auto timer = BuiltinTimer();
         Timer::Start("Solve");
 
-        if (rModelPart.MasterSlaveConstraints().size() != 0) {
+        if (!rModelPart.MasterSlaveConstraints().empty()) {
             TSystemVectorType Dxmodified(rb.size());
 
             // Initialize the vector
@@ -357,7 +370,7 @@ public:
         this->BuildRHSNoDirichlet(pScheme, rModelPart, b);
 
         // NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
-        block_for_each(BaseType::mDofSet, [b](Dof<double>& rDof) {
+        block_for_each(BaseType::mDofSet, [&b](Dof<double>& rDof) {
             const std::size_t i = rDof.EquationId();
 
             rDof.GetSolutionStepReactionValue() = -b[i];
@@ -379,14 +392,11 @@ public:
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
      * @return The default parameters
      */
-    Parameters GetDefaultParameters() const override
+    [[nodiscard]] Parameters GetDefaultParameters() const override
     {
         auto default_parameters = Parameters(R"(
         {
-            "name"                                 : "block_builder_and_solver_linear_elastic_dynamic",
-            "block_builder"                        : true,
-            "diagonal_values_for_dirichlet_dofs"   : "use_max_diagonal",
-            "silent_warnings"                      : false
+            "name"                                : "block_builder_and_solver_linear_elastic_dynamic"
         })");
 
         // Getting base class default parameters
@@ -414,7 +424,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
+    [[nodiscard]] std::string Info() const override
     {
         return "ResidualBasedBlockBuilderAndSolverLinearElasticDynamic";
     }
@@ -424,6 +434,19 @@ public:
     ///@{
 
     ///@}
+    //friend class FileSerializer;
+
+    //void save(FileSerializer& rSerializer) const
+    //{
+    //    rSerializer.save("PreviousExternalForceVector", mPreviousExternalForceVector);
+    //}
+
+    //void load(FileSerializer& rSerializer)
+    //{
+    //    std::cout << "Load external force vector test " << std::endl;
+    //    rSerializer.load("PreviousExternalForceVector", mPreviousExternalForceVector);
+    //}
+
 
 private:
     TSystemMatrixType mMassMatrix;
@@ -440,6 +463,8 @@ private:
     bool   mCopyExternalForceVector = false;
     bool   mUsePerformSolutionStep  = false;
 
+    //const std::string mRestartFileName = "restart_linear_elastic_builder_and_solver";
+
     void BuildRHSNoDirichlet(typename TSchemeType::Pointer pScheme, ModelPart& rModelPart, TSystemVectorType& rb)
     {
         // getting the array of the conditions
@@ -451,9 +476,9 @@ private:
         const auto& r_current_process_info = rModelPart.GetProcessInfo();
         block_for_each(r_conditions, [&r_current_process_info, this](Condition& r_condition) {
             LocalSystemVectorType           local_external_force = LocalSystemVectorType(0);
-            Condition::EquationIdVectorType equation_ids;
-
+            
             if (r_condition.IsActive()) {
+                Condition::EquationIdVectorType equation_ids;
                 r_condition.CalculateRightHandSide(local_external_force, r_current_process_info);
                 r_condition.EquationIdVector(equation_ids, r_current_process_info);
 
@@ -468,7 +493,8 @@ private:
 
         // Add constraint to the out of balance force before mass and damping components are added, since the mass and damping components are
         // already constraint by the constraint mass and damping matrix.
-        if (rModelPart.MasterSlaveConstraints().size() != 0) {
+        if (!rModelPart.MasterSlaveConstraints().empty()) {
+
             Timer::Start("ApplyRHSConstraints");
             BaseType::ApplyRHSConstraints(pScheme, rModelPart, mCurrentOutOfBalanceVector);
             Timer::Stop("ApplyRHSConstraints");
@@ -480,23 +506,25 @@ private:
         TSparseSpace::ScaleAndAdd(1.0, mCurrentOutOfBalanceVector, -1.0, mPreviousOutOfBalanceVector, rb);
     }
 
-    void CalculateGlobalMatrices(const ElementsArrayType& rElements, TSystemMatrixType& rA, ModelPart& rModelPart)
+    template <typename TElementOrConditionArrayType>
+    void CalculateGlobalMatrices(const TElementOrConditionArrayType& rEntities, TSystemMatrixType& rA, ModelPart& rModelPart)
     {
         const auto& r_current_process_info = rModelPart.GetProcessInfo();
 
-        block_for_each(rElements, [&r_current_process_info, &rA, this](Element& r_element) {
+        block_for_each(rEntities, [&r_current_process_info, &rA, this](auto& r_entity) {
             LocalSystemMatrixType lhs_contribution(0, 0);
             LocalSystemMatrixType mass_contribution(0, 0);
             LocalSystemMatrixType damping_contribution(0, 0);
 
-            std::vector<std::size_t> equation_ids;
+            
+            if (r_entity.IsActive()) {
+                std::vector<std::size_t> equation_ids;
 
-            if (r_element.IsActive()) {
-                r_element.CalculateLeftHandSide(lhs_contribution, r_current_process_info);
-                r_element.CalculateMassMatrix(mass_contribution, r_current_process_info);
-                r_element.CalculateDampingMatrix(damping_contribution, r_current_process_info);
+                r_entity.CalculateLeftHandSide(lhs_contribution, r_current_process_info);
+                r_entity.CalculateMassMatrix(mass_contribution, r_current_process_info);
+                r_entity.CalculateDampingMatrix(damping_contribution, r_current_process_info);
 
-                r_element.EquationIdVector(equation_ids, r_current_process_info);
+                r_entity.EquationIdVector(equation_ids, r_current_process_info);
 
                 if (mass_contribution.size1() != 0) {
                     BaseType::AssembleLHS(mMassMatrix, mass_contribution, equation_ids);
@@ -505,63 +533,20 @@ private:
                     BaseType::AssembleLHS(mDampingMatrix, damping_contribution, equation_ids);
                 }
 
-                // Assemble the elemental contribution
+                // Assemble the entity contribution
                 BaseType::AssembleLHS(rA, lhs_contribution, equation_ids);
             }
         });
     }
 
-    void CalculateGlobalMatrices(const ConditionsArrayType& rConditions, TSystemMatrixType& rA, ModelPart& rModelPart)
-    {
-        const auto& r_current_process_info = rModelPart.GetProcessInfo();
 
-        block_for_each(rConditions, [&r_current_process_info, &rA, this](Condition& r_condition) {
-            LocalSystemMatrixType lhs_contribution(0, 0);
-            LocalSystemMatrixType mass_contribution(0, 0);
-            LocalSystemMatrixType damping_contribution(0, 0);
-
-            std::vector<std::size_t> equation_ids;
-
-            if (r_condition.IsActive()) {
-                r_condition.CalculateLeftHandSide(lhs_contribution, r_current_process_info);
-                r_condition.CalculateMassMatrix(mass_contribution, r_current_process_info);
-                r_condition.CalculateDampingMatrix(damping_contribution, r_current_process_info);
-
-                r_condition.EquationIdVector(equation_ids, r_current_process_info);
-
-                if (mass_contribution.size1() != 0) {
-                    BaseType::AssembleLHS(mMassMatrix, mass_contribution, equation_ids);
-                }
-                if (damping_contribution.size1() != 0) {
-                    BaseType::AssembleLHS(mDampingMatrix, damping_contribution, equation_ids);
-                }
-
-                // Assemble the elemental contribution
-                BaseType::AssembleLHS(rA, lhs_contribution, equation_ids);
-            }
-        });
-    }
 
     void AddDynamicsToLhs(TSystemMatrixType& rA, const ModelPart& rModelPart)
     {
         const double delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
 
-        double*       a_values = rA.value_data().begin();
-        const double* m_values = mMassMatrix.value_data().begin();
-        const double* c_values = mDampingMatrix.value_data().begin();
-
-        // add mass and damping contribution to LHS sparse matrix
-        // mass contribution: 1.0 / (mBeta * delta_time * delta_time) * M
-        // damping contribution: mGamma / (mBeta * delta_time) * C
-        for (std::size_t i = 0; i < rA.size1(); i++) {
-            const std::size_t col_begin = rA.index1_data()[i];
-            const std::size_t col_end   = rA.index1_data()[i + 1];
-
-            for (std::size_t j = col_begin; j < col_end; ++j) {
-                a_values[j] += (1.0 / (mBeta * delta_time * delta_time)) * m_values[j];
-                a_values[j] += (mGamma / (mBeta * delta_time)) * c_values[j];
-            }
-        }
+        rA += 1.0 / (mBeta * delta_time * delta_time) * mMassMatrix;
+        rA += mGamma / (mBeta * delta_time) * mDampingMatrix;
     }
 
     void CalculateInitialSecondDerivative(ModelPart&                    rModelPart,
@@ -595,7 +580,7 @@ private:
         TSparseSpace::UnaliasedAdd(initial_force_vector, -1.0, damping_contribution);
 
         // apply constraint to initial force vector, as the mMassmatrix is also constrained
-        if (rModelPart.MasterSlaveConstraints().size() != 0) {
+        if (!rModelPart.MasterSlaveConstraints().empty()) {
             Timer::Start("ApplyRHSConstraints");
             BaseType::ApplyRHSConstraints(pScheme, rModelPart, initial_force_vector);
             Timer::Stop("ApplyRHSConstraints");
@@ -604,20 +589,19 @@ private:
         // add dirichlet conditions to initial_force_vector
         this->ApplyDirichletConditionsRhs(initial_force_vector);
 
-        if (rModelPart.MasterSlaveConstraints().size() != 0) {
-            TSystemVectorType Dxmodified(initial_force_vector.size());
+        if (!rModelPart.MasterSlaveConstraints().empty()) {
+            TSystemVectorType second_derivative_vector_modified(initial_force_vector.size());
 
             // Initialize the vector
-            TSparseSpace::SetToZero(Dxmodified);
-            BaseType::mpLinearSystemSolver->Solve(mMassMatrix, second_derivative_vector, initial_force_vector);
+            TSparseSpace::SetToZero(second_derivative_vector_modified);
+            BaseType::mpLinearSystemSolver->Solve(mMassMatrix, second_derivative_vector_modified,
+                                                  initial_force_vector);
 
             // recover solution of the original problem
-            TSparseSpace::Mult(BaseType::mT, Dxmodified, second_derivative_vector);
+            TSparseSpace::Mult(BaseType::mT, second_derivative_vector_modified, second_derivative_vector);
         } else {
             BaseType::mpLinearSystemSolver->Solve(mMassMatrix, second_derivative_vector, initial_force_vector);
         }
-
-        BaseType::mpLinearSystemSolver->Solve(mMassMatrix, second_derivative_vector, initial_force_vector);
 
         Geo::SparseSystemUtilities::SetUFirstAndSecondDerivativeVector(
             first_derivative_vector, second_derivative_vector, rModelPart);

@@ -54,6 +54,16 @@ public:
         KRATOS_CATCH("")
     }
 
+    void InitializeNonLinIteration(ModelPart& rModelPart, TSystemMatrixType&, TSystemVectorType&, TSystemVectorType&) override
+    {
+        KRATOS_TRY
+
+        // only initialize non linear iteration conditions
+        this->BlockForEachActiveCondition(rModelPart, &Condition::InitializeNonLinearIteration);
+
+        KRATOS_CATCH("")
+    }
+
     void FinalizeSolutionStep(ModelPart& rModelPart, TSystemMatrixType&, TSystemVectorType&, TSystemVectorType&) override
     {
         KRATOS_TRY
@@ -83,7 +93,8 @@ public:
     {
         KRATOS_TRY
 
-        // only update derivatives, solution step is updated in the strategy
+        // only update derivatives, solution step is updated in the strategy.
+        // Note that this workflow of only updating the derivatives is specific for this scheme.
         TSystemVectorType first_derivative_vector;
         TSystemVectorType second_derivative_vector;
 

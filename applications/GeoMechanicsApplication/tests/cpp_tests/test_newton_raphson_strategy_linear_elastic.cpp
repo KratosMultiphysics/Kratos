@@ -118,11 +118,10 @@ public:
                 pLinearSolver, 0.25, 0.5, CalculateInitialSecondDerivative);
         auto pConvergenceCriteria = std::make_shared<DisplacementCriteria<SparseSpaceType, LocalSpaceType>>(
             RelativeTolerance, AbsoluteTolerance);
-        auto dummy_parameters = Parameters();
 
         return GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic<SparseSpaceType, LocalSpaceType, LinearSolverType>(
-            rModelPart, pScheme, pLinearSolver, pConvergenceCriteria, pBuilderAndSolver,
-            dummy_parameters, 30, false, false);
+            rModelPart, pScheme, pConvergenceCriteria, pBuilderAndSolver,
+            30, false, false);
     }
 
 private:
