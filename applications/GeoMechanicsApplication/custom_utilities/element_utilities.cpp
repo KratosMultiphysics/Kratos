@@ -80,6 +80,8 @@ Matrix GeoElementUtilities::FillPermeabilityMatrix(const Element::PropertiesType
         FillPermeabilityMatrix(result_3d, Prop);
         return result_3d;
     }
+
+    KRATOS_ERROR << "Dimension " << Dimension << " is not supported" << std::endl;
 }
 
 void GeoElementUtilities::InvertMatrix2(BoundedMatrix<double, 2, 2>&       rInvertedMatrix,
