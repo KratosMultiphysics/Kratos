@@ -120,5 +120,9 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElementReturnsTheExpectedLeftHandSideAn
     auto expected_right_hand_side = Vector{2};
     expected_right_hand_side <<= 6.43131, -6.42813;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
+
+    Vector actual_isolated_right_hand_side;
+    element.CalculateRightHandSide(actual_isolated_right_hand_side, process_info);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_isolated_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
 } // namespace Kratos::Testing

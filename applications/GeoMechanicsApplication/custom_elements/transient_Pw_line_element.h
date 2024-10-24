@@ -109,7 +109,7 @@ public:
         KRATOS_TRY
 
         rRightHandSideVector = CalculateFluidBodyVector();
-        rLeftHandSideMatrix = ZeroMatrix{TNumNodes, TNumNodes};
+        rLeftHandSideMatrix  = ZeroMatrix{TNumNodes, TNumNodes};
 
         for (const auto& rContribution : mContributions) {
             const auto calculator = CreateCalculator(rContribution, rCurrentProcessInfo);
@@ -119,6 +119,16 @@ public:
         }
 
         KRATOS_CATCH("")
+    }
+
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override
+    {
+        rRightHandSideVector = CalculateFluidBodyVector();
+
+        for (const auto& rContribution : mContributions) {
+            const auto calculator = CreateCalculator(rContribution, rCurrentProcessInfo);
+            rRightHandSideVector += calculator->RHSContribution();
+        }
     }
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override

@@ -83,6 +83,7 @@ private:
     InputProvider mInputProvider;
 
     [[nodiscard]] Matrix CalculatePermeabilityMatrix() const;
+    [[nodiscard]] Vector RHSContribution(const Matrix& rPermeabilityMatrix) const;
 };
 
 } // namespace Kratos

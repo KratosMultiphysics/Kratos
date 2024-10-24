@@ -25,12 +25,20 @@ PermeabilityCalculator::PermeabilityCalculator(InputProvider InputProvider)
 
 Matrix PermeabilityCalculator::LHSContribution() { return {}; }
 
-Vector PermeabilityCalculator::RHSContribution() { return {}; }
+Vector PermeabilityCalculator::RHSContribution()
+{
+    return RHSContribution(CalculatePermeabilityMatrix());
+}
 
 std::pair<Matrix, Vector> PermeabilityCalculator::CalculateLeftAndRightHandSide()
 {
     const auto permeability_matrix = CalculatePermeabilityMatrix();
-    return {permeability_matrix, -prod(permeability_matrix, mInputProvider.GetNodalValues(WATER_PRESSURE))};
+    return {permeability_matrix, (RHSContribution(permeability_matrix))};
+}
+
+Vector PermeabilityCalculator::RHSContribution(const Matrix& rPermeabilityMatrix) const
+{
+    return -prod(rPermeabilityMatrix, mInputProvider.GetNodalValues(WATER_PRESSURE));
 }
 
 Matrix PermeabilityCalculator::CalculatePermeabilityMatrix() const
