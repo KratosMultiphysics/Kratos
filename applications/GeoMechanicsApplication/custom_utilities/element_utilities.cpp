@@ -12,6 +12,8 @@
 
 #include "element_utilities.hpp"
 
+#include <cstddef>
+
 namespace Kratos
 {
 
