@@ -737,7 +737,7 @@ public:
             if(empty) {
                 const auto pos = std::lower_bound(&r_Acol_indices[col_begin], &r_Acol_indices[col_end], Index);
                 if (pos != &r_Acol_indices[col_end]) { // It was found
-                    r_Avalues[pos - &r_Acol_indices[col_begin]] = scale_factor;
+                    r_Avalues[pos - &r_Acol_indices[0]] = scale_factor;
             #ifdef KRATOS_DEBUG
                 } else {
                     KRATOS_ERROR << "Diagonal term (" << Index << ", " << Index << ") is not defined in the system matrix" << std::endl;
