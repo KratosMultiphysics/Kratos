@@ -349,10 +349,10 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
 
     // AssignUniqueModelPartCollectionTagUtility
     py::class_<AssignUniqueModelPartCollectionTagUtility, typename AssignUniqueModelPartCollectionTagUtility::Pointer>(m, "AssignUniqueModelPartCollectionTagUtility")
-        .def(py::init<ModelPart&>())
+        .def(py::init<>())
         .def("DebugAssignUniqueModelPartCollectionTag",&AssignUniqueModelPartCollectionTagUtility::DebugAssignUniqueModelPartCollectionTag)
-        .def("GetRecursiveSubModelPartNames",&AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPartNames)
-        .def("GetRecursiveSubModelPart",&AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart)
+        .def("GetRecursiveSubModelPartNames",[](ModelPart& rThisModelPart, std::string Prefix){AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPartNames(rThisModelPart, Prefix);})
+        .def("GetRecursiveSubModelPart",[](ModelPart& rThisModelPart, const std::string rFullName){ AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart(rThisModelPart, rFullName);})
         ;
 
     // Merge variable list utility

@@ -537,7 +537,7 @@ void ModelPartIO::ReadMesh(MeshType & rThisMesh)
     KRATOS_ERROR << "ModelPartIO does not implement this method." << std::endl;
 }
 
-void ModelPartIO::WriteMesh(MeshType & rThisMesh)
+void ModelPartIO::WriteMesh(const MeshType & rThisMesh)
 {
     WriteProperties(rThisMesh.Properties());
     WriteNodes(rThisMesh.Nodes());
@@ -618,7 +618,7 @@ void ModelPartIO::ReadModelPart(ModelPart & rThisModelPart)
     KRATOS_CATCH("")
 }
 
-void ModelPartIO::WriteModelPart(ModelPart& rThisModelPart)
+void ModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
 {
     KRATOS_ERROR_IF_NOT(mOptions.Is(IO::WRITE) || mOptions.Is(IO::APPEND)) << "ModelPartIO needs to be created in write or append mode to write a ModelPart!" << std::endl;
 
@@ -2027,7 +2027,7 @@ void ModelPartIO::ReadNodalDataBlock(ModelPart& rThisModelPart)
     KRATOS_CATCH("")
 }
 
-void ModelPartIO::WriteNodalDataBlock(ModelPart& rThisModelPart)
+void ModelPartIO::WriteNodalDataBlock(const ModelPart& rThisModelPart)
 {
     KRATOS_TRY
 
@@ -2064,7 +2064,7 @@ void ModelPartIO::WriteNodalDataBlock(ModelPart& rThisModelPart)
     }
 
     // Writing variables
-    VariablesList& r_this_variables = rThisModelPart.GetNodalSolutionStepVariablesList();
+    const VariablesList & r_this_variables = rThisModelPart.GetNodalSolutionStepVariablesList();
     std::string variable_name;
 
     // FIXME: Maybe there is a better way (I get confused with to much KratosComponents)
@@ -3443,7 +3443,7 @@ void ModelPartIO::ReadSubModelPartBlock(ModelPart& rMainModelPart, ModelPart& rP
 }
 
 void ModelPartIO::WriteSubModelPartBlock(
-    ModelPart& rMainModelPart,
+    const ModelPart& rMainModelPart,
     const std::string& InitialTabulation) {
 
     KRATOS_TRY;
@@ -3453,7 +3453,7 @@ void ModelPartIO::WriteSubModelPartBlock(
     for (unsigned int i_sub = 0; i_sub < sub_model_part_names.size(); i_sub++) {
 
         const std::string sub_model_part_name = sub_model_part_names[i_sub];
-        ModelPart& r_sub_model_part = rMainModelPart.GetSubModelPart(sub_model_part_name);
+        const ModelPart& r_sub_model_part = rMainModelPart.GetSubModelPart(sub_model_part_name);
 
         (*mpStream) << InitialTabulation << "Begin SubModelPart\t" << sub_model_part_name << std::endl;
 
@@ -3475,7 +3475,7 @@ void ModelPartIO::WriteSubModelPartBlock(
 
         // Submodelpart nodes section
         (*mpStream) << InitialTabulation << "\tBegin SubModelPartNodes" << std::endl;
-        NodesContainerType& rThisNodes = r_sub_model_part.Nodes();
+        const NodesContainerType& rThisNodes = r_sub_model_part.Nodes();
         auto numNodes = rThisNodes.end() - rThisNodes.begin();
         for(unsigned int i = 0; i < numNodes; i++) {
             auto itNode = rThisNodes.begin() + i;
@@ -3485,7 +3485,7 @@ void ModelPartIO::WriteSubModelPartBlock(
 
         // Submodelpart elements section
         (*mpStream) << InitialTabulation << "\tBegin SubModelPartElements" << std::endl;
-        ElementsContainerType& rThisElements = r_sub_model_part.Elements();
+        const ElementsContainerType& rThisElements = r_sub_model_part.Elements();
         auto num_elements = rThisElements.end() - rThisElements.begin();
         for(unsigned int i = 0; i < num_elements; i++) {
             auto itElem = rThisElements.begin() + i;
@@ -3495,7 +3495,7 @@ void ModelPartIO::WriteSubModelPartBlock(
 
         // Submodelpart conditions section
         (*mpStream) << InitialTabulation << "\tBegin SubModelPartConditions" << std::endl;
-        ConditionsContainerType& rThisConditions= r_sub_model_part.Conditions();
+        const ConditionsContainerType& rThisConditions= r_sub_model_part.Conditions();
         auto numConditions = rThisConditions.end() - rThisConditions.begin();
         for(unsigned int i = 0; i < numConditions; i++) {
             auto itCond = rThisConditions.begin() + i;
