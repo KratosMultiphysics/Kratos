@@ -108,19 +108,7 @@ public:
     {
         KRATOS_TRY
 
-        Vector det_J_container;
-        GetGeometry().DeterminantOfJacobian(det_J_container, this->GetIntegrationMethod());
-        GeometryType::ShapeFunctionsGradientsType dN_dX_container =
-            GetGeometry().ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
-        std::transform(dN_dX_container.begin(), dN_dX_container.end(), det_J_container.begin(),
-                       dN_dX_container.begin(), std::divides<>());
-        const Matrix& r_N_container = GetGeometry().ShapeFunctionsValues(GetIntegrationMethod());
-
-        const auto integration_coefficients = CalculateIntegrationCoefficients(det_J_container);
-
-        rRightHandSideVector =
-            CalculateFluidBodyVector(r_N_container, dN_dX_container, integration_coefficients);
-
+        rRightHandSideVector = CalculateFluidBodyVector();
         rLeftHandSideMatrix = ZeroMatrix{TNumNodes, TNumNodes};
 
         for (const auto& rContribution : mContributions) {
@@ -166,7 +154,7 @@ public:
     }
 
 private:
-    std::vector<RetentionLaw::Pointer> mRetentionLawVector;
+    std::vector<RetentionLaw::Pointer>   mRetentionLawVector;
     std::vector<CalculationContribution> mContributions;
 
     void CheckDomainSize() const
@@ -256,10 +244,18 @@ private:
         return result;
     }
 
-    array_1d<double, TNumNodes> CalculateFluidBodyVector(const Matrix& rNContainer,
-                                                         const GeometryType::ShapeFunctionsGradientsType& rShapeFunctionGradients,
-                                                         const Vector& rIntegrationCoefficients) const
+    array_1d<double, TNumNodes> CalculateFluidBodyVector() const
     {
+        Vector det_J_container;
+        GetGeometry().DeterminantOfJacobian(det_J_container, this->GetIntegrationMethod());
+        GeometryType::ShapeFunctionsGradientsType shape_function_gradients =
+            GetGeometry().ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
+        std::transform(shape_function_gradients.begin(), shape_function_gradients.end(),
+                       det_J_container.begin(), shape_function_gradients.begin(), std::divides<>());
+        const Matrix& N_container = GetGeometry().ShapeFunctionsValues(GetIntegrationMethod());
+
+        const auto integration_coefficients = CalculateIntegrationCoefficients(det_J_container);
+
         const std::size_t number_integration_points =
             GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
         GeometryType::JacobiansType J_container;
@@ -286,26 +282,26 @@ private:
              ++integration_point_index) {
             array_1d<double, TDim> body_acceleration;
             GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
-                body_acceleration, rNContainer, volume_acceleration, integration_point_index);
+                body_acceleration, N_container, volume_acceleration, integration_point_index);
 
             array_1d<double, TDim> tangent_vector = column(J_container[integration_point_index], 0);
             tangent_vector /= norm_2(tangent_vector);
 
             array_1d<double, 1> projected_gravity = ZeroVector(1);
             projected_gravity(0) = MathUtils<double>::Dot(tangent_vector, body_acceleration);
-            const auto N         = Vector{row(rNContainer, integration_point_index)};
+            const auto N         = Vector{row(N_container, integration_point_index)};
             double     RelativePermeability =
                 mRetentionLawVector[integration_point_index]->CalculateRelativePermeability(RetentionParameters);
             fluid_body_vector +=
                 r_properties[DENSITY_WATER] * RelativePermeability *
-                prod(prod(rShapeFunctionGradients[integration_point_index], constitutive_matrix), projected_gravity) *
-                rIntegrationCoefficients[integration_point_index] / r_properties[DYNAMIC_VISCOSITY];
+                prod(prod(shape_function_gradients[integration_point_index], constitutive_matrix), projected_gravity) *
+                integration_coefficients[integration_point_index] / r_properties[DYNAMIC_VISCOSITY];
         }
         return fluid_body_vector;
     }
 
-        std::unique_ptr<Calculator> CreateCalculator(const CalculationContribution& rContribution,
-                                                 const ProcessInfo&      rCurrentProcessInfo)
+    std::unique_ptr<Calculator> CreateCalculator(const CalculationContribution& rContribution,
+                                                 const ProcessInfo&             rCurrentProcessInfo)
     {
         switch (rContribution) {
         case CalculationContribution::Permeability:
@@ -398,7 +394,10 @@ private:
         rSerializer.save("RetentionlawVector", mRetentionLawVector);
     }
 
-    void load(Serializer& rSerializer) override{KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)}
+    void load(Serializer& rSerializer) override
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
+    }
 };
 
 } // namespace Kratos

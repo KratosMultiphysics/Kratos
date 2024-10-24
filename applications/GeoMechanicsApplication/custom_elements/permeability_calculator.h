@@ -40,14 +40,20 @@ public:
         {
         }
 
-        [[nodiscard]] const Properties& GetElementProperties() const { return mGetElementProperties(); }
+        [[nodiscard]] const Properties& GetElementProperties() const
+        {
+            return mGetElementProperties();
+        }
 
         [[nodiscard]] const std::vector<RetentionLaw::Pointer>& GetRetentionLaws() const
         {
             return mGetRetentionLaws();
         }
 
-        [[nodiscard]] Vector GetIntegrationCoefficients() const { return mGetIntegrationCoefficients(); }
+        [[nodiscard]] Vector GetIntegrationCoefficients() const
+        {
+            return mGetIntegrationCoefficients();
+        }
 
         [[nodiscard]] Vector GetNodalValues(const Variable<double>& rVariable) const
         {
