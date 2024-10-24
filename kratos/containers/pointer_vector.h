@@ -2,14 +2,14 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+//                   Multi-Physics 
 //
-//  License:		 BSD License
+//  License:		 BSD License 
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
-//
+//                    
 //
 
 
@@ -154,6 +154,14 @@ public:
         return mData[i];
     }
 
+    bool operator==( const PointerVector& r ) const // nothrow
+    {
+        if( size() != r.size() )
+            return false;
+        else
+            return std::equal(mData.begin(), mData.end(), r.mData.begin(), this->EqualKeyTo());
+    }
+
     ///@}
     ///@name Operations
     ///@{
@@ -270,7 +278,7 @@ public:
     }
 
     template<class... Args>
-    void emplace_back(Args&&... args)
+    void emplace_back(Args&&... args) 
     {
         mData.emplace_back(std::forward<Args>(args)...);
     }
@@ -512,4 +520,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_POINTER_VECTOR_SET_H_INCLUDED  defined
+#endif // KRATOS_POINTER_VECTOR_SET_H_INCLUDED  defined 
