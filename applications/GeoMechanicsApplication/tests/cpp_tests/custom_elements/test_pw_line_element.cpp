@@ -124,5 +124,9 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElementReturnsTheExpectedLeftHandSideAn
     Vector actual_isolated_right_hand_side;
     element.CalculateRightHandSide(actual_isolated_right_hand_side, process_info);
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_isolated_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
+
+    Matrix actual_isolated_left_hand_side;
+    element.CalculateLeftHandSide(actual_isolated_left_hand_side, process_info);
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_isolated_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 }
 } // namespace Kratos::Testing

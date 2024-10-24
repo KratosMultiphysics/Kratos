@@ -131,6 +131,16 @@ public:
         }
     }
 
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo &rCurrentProcessInfo) override
+    {
+        rLeftHandSideMatrix  = ZeroMatrix{TNumNodes, TNumNodes};
+
+        for (const auto& rContribution : mContributions) {
+            const auto calculator = CreateCalculator(rContribution, rCurrentProcessInfo);
+            rLeftHandSideMatrix += calculator->LHSContribution();
+        }
+    }
+
     GeometryData::IntegrationMethod GetIntegrationMethod() const override
     {
         switch (TNumNodes) {

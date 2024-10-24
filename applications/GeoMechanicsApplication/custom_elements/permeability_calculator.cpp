@@ -23,7 +23,7 @@ PermeabilityCalculator::PermeabilityCalculator(InputProvider InputProvider)
 {
 }
 
-Matrix PermeabilityCalculator::LHSContribution() { return {}; }
+Matrix PermeabilityCalculator::LHSContribution() { return CalculatePermeabilityMatrix(); }
 
 Vector PermeabilityCalculator::RHSContribution()
 {
