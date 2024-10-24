@@ -11,6 +11,17 @@ from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition i
 from KratosMultiphysics.RomApplication.rom_nn_interface import NN_ROM_Interface
 
 
+import psutil
+import dask
+import os
+from dask.distributed import Client, LocalCluster
+import gc
+import dask.array as da
+from dask_ml.decomposition import TruncatedSVD
+import sqlite3
+import zarr
+import sklearn
+
 class RomManager(object):
 
     def __init__(self,project_parameters_name="ProjectParameters.json", general_rom_manager_parameters=None, CustomizeSimulation=None, 
@@ -575,7 +586,7 @@ class RomManager(object):
                 del model
                 del simulation
                 del SnapshotsMatrix
-                import gc
+                
                 gc.collect()
 
 
@@ -635,6 +646,7 @@ class RomManager(object):
                 self.data_base.delete_if_in_database("ROM", mu)
                 self.data_base.delete_if_in_database("ROM_q", mu)
                 self.data_base.delete_if_in_database("QoI_ROM", mu)
+                self.data_base.delete_if_in_database("ResidualsProjected", mu)
             in_database, _ = self.data_base.check_if_in_database("ROM", mu)
             if not in_database:
                 parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
@@ -657,11 +669,15 @@ class RomManager(object):
                 SnapshotsMatrix = BasisOutputProcess._GetSnapshotsMatrix() #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
                 self.data_base.add_to_database("ROM", mu, SnapshotsMatrix )
 
+                ResidualProjected = simulation.GetHROM_utility()._GetResidualsProjectedMatrix() #TODO flush intermediately the residuals projected to cope with large models.
+                self.data_base.add_to_database("ResidualsProjected", mu, ResidualProjected )
+
                 simulation.Clear()
                 del model
                 del simulation
                 del SnapshotsMatrix
-                import gc
+                del ResidualProjected
+                
                 gc.collect()
 
         self.GenerateDatabaseSummary()
@@ -720,10 +736,10 @@ class RomManager(object):
         if not in_database_elems and not in_database_weights:
             with open(self.project_parameters_name,'r') as parameter_file:
                 parameters = KratosMultiphysics.Parameters(parameter_file.read())
-            # simulation = None
+            simulation = None
             for mu in mu_train:
-                in_database, _ = self.data_base.check_if_in_database("ResidualsProjected", mu)
-                if not in_database:
+                in_database_residuals, _ =  self.data_base.check_if_in_database("ResidualsProjected", mu)
+                if not in_database_residuals:
                     parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
                     parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
                     parameters_copy = self._StoreNoResults(parameters_copy)
@@ -740,12 +756,84 @@ class RomManager(object):
                     del model
                     del simulation
                     del ResidualProjected
-                    import gc
+                    
                     gc.collect()
 
-            RedidualsSnapshotsMatrix = self.data_base.get_snapshots_matrix_from_database(mu_train, table_name="ResidualsProjected")
-            u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(RedidualsSnapshotsMatrix,
-            self.general_rom_manager_parameters["HROM"]["element_selection_svd_truncation_tolerance"].GetDouble()) #TODO load basis for residuals projected. Can we truncate it only, not compute the whole SVD but only return the respective number of singular vectors?
+            rows = np.load(f'{self.general_rom_manager_parameters["ROM"]["rom_basis_output_folder"].GetString()}/RightBasisMatrix.npy').shape[0]
+            columns = np.load(f'{self.general_rom_manager_parameters["ROM"]["rom_basis_output_folder"].GetString()}/RightBasisMatrix.npy').shape[1]
+
+            memory_info = psutil.virtual_memory()
+            available_memory_gb = memory_info.available / (1024 ** 3)
+
+            if rows*columns**2*8*1e-9 > available_memory_gb:
+                input('Using dask')
+
+                dask.config.set({'temporary-directory': '/home/marco-kratos-pc'})
+                dask.config.set({'distributed.worker.memory.target': 0.6,  # Comienza a "spillar" al 60% del uso de memoria
+                                'distributed.worker.memory.spill': 0.7,   # Empieza a volcar al disco al 70%
+                                'distributed.worker.memory.pause': 0.8,   # Pausar nuevas tareas al 80%
+                                'distributed.worker.memory.terminate': 0.9}) # Terminar al 90% para evitar crash
+
+                # Configuración del clúster
+                # cluster = LocalCluster(
+                #     n_workers=8,             # Un trabajador por cada núcleo
+                #     threads_per_worker=1,    # Un hilo por trabajador
+                #     memory_limit='2GB',       # Límite de memoria por trabajador
+                #     local_directory=os.getcwd()
+                # )
+                # client = Client(cluster)
+
+                if not os.path.exists('ResidualsSnapshotsMatrix.zarr'):
+                    # Crear un grupo Zarr para almacenar la matriz
+                    zarr_store = zarr.open('ResidualsSnapshotsMatrix.zarr', mode='w', shape=(rows, columns * len(mu_train)), chunks=(1000, 100), dtype='float64')
+                    # Conectar con la base de datos y cargar los fragmentos incrementales en Zarr
+                    with sqlite3.connect(self.data_base.database_name) as conn:
+                        cursor = conn.cursor()
+                        for i, mu in enumerate(mu_train):
+                            hash_mu, _ = self.data_base.get_hashed_file_name_for_table("ResidualsProjected", mu)
+                            cursor.execute(f"SELECT file_name FROM ResidualsProjected WHERE file_name = ?", (hash_mu,))
+                            result = cursor.fetchone()
+                            if result:
+                                file_name = result[0]
+                                # Cargar el archivo .npy correspondiente y escribir el fragmento en el archivo Zarr
+                                zarr_store[:, i * columns:(i + 1) * columns] = np.load(self.data_base.npys_directory / (file_name + '.npy'))
+
+                # Leer la matriz Zarr como un arreglo Dask y realizar SVD
+                dask_array = da.from_zarr('ResidualsSnapshotsMatrix.zarr')
+                # Persistir el arreglo Dask para mantener los datos en la memoria distribuida
+                dask_array = dask_array.persist()
+
+                input('Pre svd')
+
+                # Realizar la descomposición SVD
+                svd = TruncatedSVD(n_components=5, algorithm="randomized", n_iter=5, random_state=42)
+                u = svd.fit_transform(dask_array)
+
+                del dask_array
+                gc.collect()
+
+                input(u.shape)
+
+                # Persistir el resultado final
+                u = u.compute()
+
+                # Cerrar el cliente y el clúster cuando hayas terminado
+                # client.close()
+                # cluster.close()
+
+            else:
+                RedidualsSnapshotsMatrix = self.data_base.get_snapshots_matrix_from_database(mu_train, table_name="ResidualsProjected")
+
+                # u,_,_ = sklearn.utils.extmath.randomized_svd(RedidualsSnapshotsMatrix, 700)
+                                 
+                # u,_,_ = np.linalg.svd(RedidualsSnapshotsMatrix,full_matrices=False)
+
+                u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(RedidualsSnapshotsMatrix,
+                self.general_rom_manager_parameters["HROM"]["element_selection_svd_truncation_tolerance"].GetDouble())
+
+                del RedidualsSnapshotsMatrix
+                gc.collect()
+
             # if simulation is None:
             HROM_utility = self.InitializeDummySimulationForHromTrainingUtility()
             # else:
@@ -811,7 +899,7 @@ class RomManager(object):
                 del model
                 del simulation
                 del SnapshotsMatrix
-                import gc
+                
                 gc.collect()
 
         self.GenerateDatabaseSummary()
@@ -855,7 +943,7 @@ class RomManager(object):
                 del model
                 del simulation
                 del SnapshotsMatrix
-                import gc
+                
                 gc.collect()
 
         self.GenerateDatabaseSummary()
@@ -882,7 +970,7 @@ class RomManager(object):
             simulation.Clear()
             del model
             del simulation
-            import gc
+            
             gc.collect()
 
     def _LaunchRunROM(self, mu_run, nn_rom_interface=None):
@@ -907,7 +995,7 @@ class RomManager(object):
             simulation.Clear()
             del model
             del simulation
-            import gc
+            
             gc.collect()
 
 
@@ -936,7 +1024,7 @@ class RomManager(object):
             simulation.Clear()
             del model
             del simulation
-            import gc
+            
             gc.collect()
 
 
@@ -964,7 +1052,7 @@ class RomManager(object):
             simulation.Clear()
             del model
             del simulation
-            import gc
+            
             gc.collect()
 
     def _LaunchTrainNeuralNetwork(self, mu_train, mu_validation):
@@ -1056,7 +1144,7 @@ class RomManager(object):
             self._AddHromParametersToRomParameters(f)
             if simulation_to_run=='GalerkinROM':
                 f['projection_strategy']="galerkin"
-                f['train_hrom']=False
+                f['train_hrom']=True
                 f['run_hrom']=False
                 f["rom_settings"]['rom_bns_settings'] = self._SetGalerkinBnSParameters()
             elif simulation_to_run=='trainHROMGalerkin':
@@ -1069,7 +1157,7 @@ class RomManager(object):
                 f['run_hrom']=True
                 f["rom_settings"]['rom_bns_settings'] = self._SetGalerkinBnSParameters()
             elif simulation_to_run == 'lspg':
-                f['train_hrom'] = False
+                f['train_hrom'] = True
                 f['run_hrom'] = False
                 f['projection_strategy'] = "lspg"
                 f["rom_settings"]['rom_bns_settings'] = self._SetLSPGBnSParameters()

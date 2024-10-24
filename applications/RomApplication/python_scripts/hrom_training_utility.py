@@ -29,7 +29,7 @@ class HRomTrainingUtility(object):
         # Create the HROM element selector
         element_selection_type = settings["element_selection_type"].GetString()
         if element_selection_type == "empirical_cubature":
-            self.hyper_reduction_element_selector = EmpiricalCubatureMethod()
+            self.hyper_reduction_element_selector = EmpiricalCubatureMethod(Plotting=True)
             self.element_selection_svd_truncation_tolerance = settings["element_selection_svd_truncation_tolerance"].GetDouble()
         else:
             err_msg = "\'{}\' HROM \'element_selection_type\' is not supported.".format(element_selection_type)

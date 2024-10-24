@@ -240,7 +240,8 @@ class EmpiricalCubatureMethod():
             plt.title('Element Selection Error Evolution')
             plt.xlabel('Number of elements')
             plt.ylabel('Error %')
-            plt.show()
+            plt.savefig("EmpiricalCubaturePlot.pdf",)
+            # plt.show()
 
     def _UpdateWeightsInverse(self, A,Aast,a,xold):
         """
