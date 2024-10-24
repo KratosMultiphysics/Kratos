@@ -432,6 +432,8 @@ public:
         KRATOS_TRY
 
         rCurrentElement.CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
+        KRATOS_WATCH("RHS Contribution");
+        KRATOS_WATCH(RHS_Contribution);
 
         rCurrentElement.EquationIdVector(EquationId,rCurrentProcessInfo);
 

@@ -30,6 +30,10 @@ void UPlPgGasDischargeCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRigh
 {    
     double DischargeScalar = this->GetGeometry()[0].FastGetSolutionStepValue( GAS_DISCHARGE );
     rRightHandSideVector[TDim+1] = DischargeScalar;
+    KRATOS_WATCH("Inside discharge condition");
+    KRATOS_WATCH(DischargeScalar);
+    KRATOS_WATCH(rRightHandSideVector);
+
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
