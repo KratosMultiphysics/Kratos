@@ -45,6 +45,10 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(ConnectivityPreserveModeler);
 
+    using GeometryElementMapType = std::unordered_map<GeometryData::KratosGeometryType, const Element&>;
+
+    using GeometryConditionMapType = std::unordered_map<GeometryData::KratosGeometryType, const Condition&>;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -133,6 +137,22 @@ public:
 
     /// Generate a copy of rOriginModelPart in rDestinationModelPart.
     /** This function fills rDestinationModelPart using data obtained from
+     *  rOriginModelPart. The entities of rDestinationModelPart part use the
+     *  same connectivity (and id) as in rOriginModelPart and their type is
+     *  determined according to the corresponding geometry of the entity.
+     *  Note that both ModelParts will share the same nodes, as well as
+     *  ProcessInfo and tables. SubModelParts and, in MPI, communicator data
+     *  will be replicated in DestinationModelPart.
+     *  @param rOriginModelPart The source ModelPart.
+     *  @param rDestinationModelPart The ModelPart to be filled by this function
+     */
+    virtual void GenerateModelPart(
+        ModelPart& OriginModelPart,
+        ModelPart& DestinationModelPart
+    );
+
+    /// Generate a copy of rOriginModelPart in rDestinationModelPart.
+    /** This function fills rDestinationModelPart using data obtained from
      *  rOriginModelPart. It is equivalent to one of the GenerateModelPart
      *  functions, depending on whether an element and/or a condition
      *  have been defined in the Parameters during construction.
@@ -176,6 +196,11 @@ private:
         const Condition& rReferenceBoundaryCondition
     ) const;
 
+    void DuplicateEntities(
+        ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart
+    ) const;
+
     void DuplicateCommunicatorData(
         ModelPart& rOriginModelPart,
         ModelPart& rDestinationModelPart
@@ -185,6 +210,10 @@ private:
         ModelPart& rOriginModelPart,
         ModelPart& rDestinationModelPart
     ) const;
+
+    GeometryElementMapType SetGeometryElementMap() const;
+
+    GeometryConditionMapType SetGeometryConditionMap() const;
 
     ///@}
     ///@name Private members

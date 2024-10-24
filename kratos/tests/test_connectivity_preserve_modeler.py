@@ -287,5 +287,48 @@ class TestConnectivityPreserveModeler(KratosUnittest.TestCase):
         self.assertEqual(len(model_part1.Conditions) , len(created_model_part.Conditions))
         self.assertEqual(len(model_part1.Elements) , len(created_model_part.Elements))
 
+    def test_setup_with_default_entities(self):
+        current_model = KratosMultiphysics.Model()
+        model_part1 = current_model.CreateModelPart("Main")
+        model_part1.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+
+        model_part1.CreateNewNode(1,0.0,0.1,0.2)
+        model_part1.CreateNewNode(2,2.0,0.1,0.2)
+        model_part1.CreateNewNode(3,1.0,1.1,0.2)
+        model_part1.CreateNewNode(4,2.0,3.1,10.2)
+
+        sub1 = model_part1.CreateSubModelPart("sub1")
+        sub2 = model_part1.CreateSubModelPart("sub2")
+        subsub1 = sub1.CreateSubModelPart("subsub1")
+        subsub1.AddNodes([1,2])
+        sub2.AddNodes([3])
+
+        model_part1.CreateNewElement("Element2D3N", 1, [1,2,3], model_part1.GetProperties()[1])
+        model_part1.CreateNewElement("Element2D3N", 2, [1,2,4], model_part1.GetProperties()[1])
+        model_part1.CreateNewElement("Element3D4N", 3, [1,2,4,3], model_part1.GetProperties()[1])
+        model_part1.CreateNewElement("SurfaceElement3D4N", 4, [1,2,4,3], model_part1.GetProperties()[1])
+
+        model_part1.CreateNewCondition("LineCondition2D2N", 2, [2,4], model_part1.GetProperties()[1])
+        model_part1.CreateNewCondition("LineCondition3D2N", 3, [3,4], model_part1.GetProperties()[1])
+        model_part1.CreateNewCondition("SurfaceCondition3D3N", 4, [1,2,4], model_part1.GetProperties()[1])
+        sub1.AddConditions([2])
+        sub2.AddConditions([3,4])
+
+        new_model_part = current_model.CreateModelPart("Other")
+        new_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+
+        modeler = KratosMultiphysics.ConnectivityPreserveModeler().Create(
+            current_model,
+            KratosMultiphysics.Parameters('''{
+                "origin_model_part_name": "Main",
+                "destination_model_part_name": "Other"
+            }''')
+        )
+        modeler.SetupModelPart()
+
+        self.assertEqual(len(model_part1.Nodes) , len(new_model_part.Nodes))
+        self.assertEqual(len(model_part1.Conditions) , len(new_model_part.Conditions))
+        self.assertEqual(len(model_part1.Elements) , len(new_model_part.Elements))
+
 if __name__ == '__main__':
     KratosUnittest.main()
