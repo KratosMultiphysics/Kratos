@@ -61,6 +61,8 @@ public:
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
+    std::string Info() const override;
+
 protected:
     struct NormalFluxFICVariables {
         double DtPressureCoefficient;
@@ -108,7 +110,6 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
     }
-
 }; // class UPwNormalFluxFICCondition.
 
 } // namespace Kratos.

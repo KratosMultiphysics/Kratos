@@ -365,30 +365,6 @@ public:
         KRATOS_CATCH("")
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    // bool IsConverged() override
-    // {
-    //     KRATOS_TRY
-    //     KRATOS_INFO("Arc-Length:IsConverged()") << std::endl;
-
-    //     bool IsConverged = true;
-
-    //     // Note: Initialize() needs to be called beforehand
-
-    //     this->InitializeSolutionStep();
-
-    //     this->Predict();
-
-    //     // Solve the problem with constant load
-    //     IsConverged = this->CheckConvergence();
-
-    //     this->FinalizeSolutionStep();
-
-    //     return IsConverged;
-
-    //     KRATOS_CATCH("")
-    // }
-
     virtual void UpdateLoads()
     {
         KRATOS_TRY

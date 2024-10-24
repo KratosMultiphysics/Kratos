@@ -27,8 +27,6 @@ Condition::Pointer UPwNormalFluxCondition<TDim, TNumNodes>::Create(IndexType    
     return Condition::Pointer(new UPwNormalFluxCondition(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(VectorType&        rRightHandSideVector,
                                                            const ProcessInfo& CurrentProcessInfo)
@@ -74,9 +72,6 @@ void UPwNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(VectorType&        rR
     }
 }
 
-//----------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------
-
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwNormalFluxCondition<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRightHandSideVector,
                                                                  NormalFluxVariables& rVariables)
@@ -84,6 +79,12 @@ void UPwNormalFluxCondition<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRi
     noalias(rVariables.PVector) = -rVariables.NormalFlux * rVariables.Np * rVariables.IntegrationCoefficient;
 
     GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, rVariables.PVector);
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+std::string UPwNormalFluxCondition<TDim, TNumNodes>::Info() const
+{
+    return "UPwNormalFluxCondition";
 }
 
 template class UPwNormalFluxCondition<2, 2>;
