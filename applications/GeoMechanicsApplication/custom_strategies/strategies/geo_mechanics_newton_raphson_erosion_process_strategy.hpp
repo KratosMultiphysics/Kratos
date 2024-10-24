@@ -22,6 +22,7 @@
 #include "boost/range/adaptor/filtered.hpp"
 #include "custom_elements/steady_state_Pw_piping_element.hpp"
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_strategy.hpp"
+#include "custom_utilities/transport_equation_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 
 #include <chrono>
@@ -255,21 +256,6 @@ private:
     }
 
     /// <summary>
-    /// Calculates the pipe particle diameter according to the modified Sellmeijer rule if selected.
-    /// Else the pipe particle diameter is equal to the d70.
-    /// </summary>
-    /// <param name="Prop"></param>
-    /// <returns></returns>
-    double CalculateParticleDiameter(const PropertiesType& Prop)
-    {
-        double diameter;
-
-        if (Prop[PIPE_MODIFIED_D]) diameter = 2.08e-4 * pow((Prop[PIPE_D_70] / 2.08e-4), 0.4);
-        else diameter = Prop[PIPE_D_70];
-        return diameter;
-    }
-
-    /// <summary>
     /// Calculates the maximum pipe height which the algorithm will allow
     /// </summary>
     /// <param name="pipe_elements"> vector of all pipe elements</param>
@@ -282,8 +268,8 @@ private:
         // loop over all elements
         for (Element* pipe_element : pipe_elements) {
             // calculate pipe particle diameter of pipe element
-            PropertiesType prop              = pipe_element->GetProperties();
-            double         particle_diameter = this->CalculateParticleDiameter(prop);
+            PropertiesType prop = pipe_element->GetProperties();
+            double particle_diameter = GeoTransportEquationUtilities::CalculateParticleDiameter(prop);
 
             // get maximum pipe particle diameter of all pipe elements
             if (particle_diameter > max_diameter) {
