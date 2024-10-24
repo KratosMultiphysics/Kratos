@@ -72,6 +72,12 @@ else()
   set(CMAKE_INSTALL_RPATH "$ORIGIN/../libs")
 endif()
 
+# If no inlining policy disable by default
+option(KRATOS_FORCE_INLINING "KRATOS_FORCE_INLINING defines if the compiler enforces the inlining. Default setting is OFF" OFF)
+if(${KRATOS_FORCE_INLINING})
+   add_definitions( -DKRATOS_FORCE_INLINING )
+endif(${KRATOS_FORCE_INLINING})
+
 # If no test policy enable by default
 option(KRATOS_BUILD_TESTING "KRATOS_BUILD_TESTING defines if the C++ tests are compiled. These increase compilation time, but if not set only python tests can be executed. Default setting is ON" ON)
 
