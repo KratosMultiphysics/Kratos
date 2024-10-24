@@ -22,14 +22,6 @@ namespace
 
 using namespace Kratos;
 
-PointerVector<Node> CreateNodesUnder45DegreeAngle()
-{
-    PointerVector<Node> result;
-    result.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
-    result.push_back(Kratos::make_intrusive<Node>(2, 1.0, 1.0, 0.0));
-    return result;
-}
-
 ModelPart& CreateModelPartWithWaterPressureVariableAndVolumeAcceleration1(Model& rModel)
 {
     auto& r_result = rModel.CreateModelPart("Main");
@@ -111,22 +103,22 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElementReturnsTheExpectedLeftHandSideAn
     element.Initialize(process_info);
     element.CalculateLocalSystem(actual_left_hand_side, actual_right_hand_side, process_info);
 
+    Vector actual_isolated_right_hand_side;
+    element.CalculateRightHandSide(actual_isolated_right_hand_side, process_info);
+    Matrix actual_isolated_left_hand_side;
+    element.CalculateLeftHandSide(actual_isolated_left_hand_side, process_info);
+
     // Assert
     auto expected_left_hand_side = Matrix{2, 2, 0.0006423358000298597};
     expected_left_hand_side <<= -0.00099588919125952972, 0.00046555910441502474,
         0.00046555910441502474, -0.00099588919125952972;
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_isolated_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 
     auto expected_right_hand_side = Vector{2};
     expected_right_hand_side <<= 6.43131, -6.42813;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
-
-    Vector actual_isolated_right_hand_side;
-    element.CalculateRightHandSide(actual_isolated_right_hand_side, process_info);
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_isolated_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
-
-    Matrix actual_isolated_left_hand_side;
-    element.CalculateLeftHandSide(actual_isolated_left_hand_side, process_info);
-    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_isolated_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 }
+
 } // namespace Kratos::Testing
