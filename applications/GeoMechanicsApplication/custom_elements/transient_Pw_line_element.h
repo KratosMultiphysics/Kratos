@@ -124,17 +124,15 @@ public:
     void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override
     {
         rRightHandSideVector = CalculateFluidBodyVector();
-
         for (const auto& rContribution : mContributions) {
             const auto calculator = CreateCalculator(rContribution, rCurrentProcessInfo);
             rRightHandSideVector += calculator->RHSContribution();
         }
     }
 
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo &rCurrentProcessInfo) override
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override
     {
-        rLeftHandSideMatrix  = ZeroMatrix{TNumNodes, TNumNodes};
-
+        rLeftHandSideMatrix = ZeroMatrix{TNumNodes, TNumNodes};
         for (const auto& rContribution : mContributions) {
             const auto calculator = CreateCalculator(rContribution, rCurrentProcessInfo);
             rLeftHandSideMatrix += calculator->LHSContribution();
