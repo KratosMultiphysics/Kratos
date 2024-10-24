@@ -270,12 +270,13 @@ private:
             return result;
         }
 
-        auto begin1         = points.ptr_begin();
-        auto begin2         = begin1 + number_of_midline_nodes;
-        auto make_mid_point = [](auto pPoint1, auto pPoint2) {
+        auto begin_of_first_side  = points.ptr_begin();
+        auto begin_of_second_side = begin_of_first_side + number_of_midline_nodes;
+        auto make_mid_point       = [](auto pPoint1, auto pPoint2) {
             return make_intrusive<Node>(pPoint1->Id(), Point{(*pPoint1 + *pPoint2) / 2});
         };
-        std::transform(begin1, begin2, begin2, result.ptr_begin(), make_mid_point);
+        std::transform(begin_of_first_side, begin_of_second_side, begin_of_second_side,
+                       result.ptr_begin(), make_mid_point);
         return result;
     }
 
