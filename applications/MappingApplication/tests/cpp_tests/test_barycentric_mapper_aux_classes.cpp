@@ -17,19 +17,19 @@
 #include "geometries/line_2d_2.h"
 #include "geometries/triangle_3d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
-#include "testing/testing.h"
-#include "custom_mappers/barycentric_mapper.h"
 #include "includes/stream_serializer.h"
-#include "custom_utilities/mapper_utilities.h"
 #include "mapping_application_variables.h"
+
+// Application includes
+#include "custom_utilities/mapper_utilities.h"
+#include "custom_mappers/barycentric_mapper.h"
+#include "tests/cpp_tests/mapping_fast_suite.h"
 
 namespace Kratos::Testing {
 
 typedef typename MapperLocalSystem::MatrixType MatrixType;
 typedef typename MapperLocalSystem::EquationIdVectorType EquationIdVectorType;
 typedef Kratos::shared_ptr<MapperInterfaceInfo> MapperInterfaceInfoPointerType;
-
-typedef Node NodeType;
 
 KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_BasicTests, KratosMappingApplicationSerialTestSuite)
 {
@@ -58,9 +58,9 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_simple_line_interpolation, Kr
 
     BarycentricInterfaceInfo barycentric_info(coords, source_local_sys_idx, 0, BarycentricInterpolationType::LINE);
 
-    auto node_1(Kratos::make_intrusive<NodeType>(1,  3.3, 0.0, 0.0)); // third closest (not used)
-    auto node_2(Kratos::make_intrusive<NodeType>(3,  1.0, 0.1, -0.2)); // second closest
-    auto node_3(Kratos::make_intrusive<NodeType>(15, 0.3, 0.0, 0.0)); // closest
+    auto node_1(Kratos::make_intrusive<Node>(1,  3.3, 0.0, 0.0)); // third closest (not used)
+    auto node_2(Kratos::make_intrusive<Node>(3,  1.0, 0.1, -0.2)); // second closest
+    auto node_3(Kratos::make_intrusive<Node>(15, 0.3, 0.0, 0.0)); // closest
 
     InterfaceObject::Pointer interface_node_1(Kratos::make_shared<InterfaceNode>(node_1.get()));
     InterfaceObject::Pointer interface_node_2(Kratos::make_shared<InterfaceNode>(node_2.get()));
@@ -92,7 +92,7 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_line_only_one_point, KratosMa
 
     BarycentricInterfaceInfo barycentric_info(coords, source_local_sys_idx, 0, BarycentricInterpolationType::LINE);
 
-    auto node_1(Kratos::make_intrusive<NodeType>(1,  3.3, 0.0, 0.0));
+    auto node_1(Kratos::make_intrusive<Node>(1,  3.3, 0.0, 0.0));
 
     InterfaceObject::Pointer interface_node_1(Kratos::make_shared<InterfaceNode>(node_1.get()));
 
@@ -119,10 +119,10 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_line_duplicated_point, Kratos
 
     BarycentricInterfaceInfo barycentric_info(coords, source_local_sys_idx, 0, BarycentricInterpolationType::LINE);
 
-    auto node_1(Kratos::make_intrusive<NodeType>(1,  3.3, 0.0, 0.0)); // third closest (not used)
-    auto node_2(Kratos::make_intrusive<NodeType>(3,  1.0, 0.1, -0.2)); // second closest
-    auto node_3(Kratos::make_intrusive<NodeType>(15, 0.3, 0.0, 0.0)); // closest
-    auto node_4(Kratos::make_intrusive<NodeType>(16, 0.3, 0.0, 0.0)); // closest (but not used bcs duplicate)
+    auto node_1(Kratos::make_intrusive<Node>(1,  3.3, 0.0, 0.0)); // third closest (not used)
+    auto node_2(Kratos::make_intrusive<Node>(3,  1.0, 0.1, -0.2)); // second closest
+    auto node_3(Kratos::make_intrusive<Node>(15, 0.3, 0.0, 0.0)); // closest
+    auto node_4(Kratos::make_intrusive<Node>(16, 0.3, 0.0, 0.0)); // closest (but not used bcs duplicate)
 
     InterfaceObject::Pointer interface_node_1(Kratos::make_shared<InterfaceNode>(node_1.get()));
     InterfaceObject::Pointer interface_node_2(Kratos::make_shared<InterfaceNode>(node_2.get()));
@@ -157,9 +157,9 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_Serialization, KratosMappingA
 
     BarycentricInterfaceInfo barycentric_info(coords, source_local_sys_idx, 0, BarycentricInterpolationType::LINE);
 
-    auto node_1(Kratos::make_intrusive<NodeType>(1,  3.3, 0.0, 0.0)); // third closest (not used)
-    auto node_2(Kratos::make_intrusive<NodeType>(3,  1.0, 0.1, -0.2)); // second closest
-    auto node_3(Kratos::make_intrusive<NodeType>(15, 0.3, 0.0, 0.0)); // closest
+    auto node_1(Kratos::make_intrusive<Node>(1,  3.3, 0.0, 0.0)); // third closest (not used)
+    auto node_2(Kratos::make_intrusive<Node>(3,  1.0, 0.1, -0.2)); // second closest
+    auto node_3(Kratos::make_intrusive<Node>(15, 0.3, 0.0, 0.0)); // closest
 
     InterfaceObject::Pointer interface_node_1(Kratos::make_shared<InterfaceNode>(node_1.get()));
     InterfaceObject::Pointer interface_node_2(Kratos::make_shared<InterfaceNode>(node_2.get()));
@@ -198,15 +198,15 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_Serialization, KratosMappingA
 KRATOS_TEST_CASE_IN_SUITE(BarycentricLocalSystem_simple_line_interpolation, KratosMappingApplicationSerialTestSuite)
 {
     Point coords(0.4, 0.0, 0.0);
-    auto node_orig(Kratos::make_intrusive<NodeType>(1, coords[0], coords[1], coords[2]));
+    auto node_orig(Kratos::make_intrusive<Node>(1, coords[0], coords[1], coords[2]));
     node_orig->SetValue(INTERFACE_EQUATION_ID, 8);
 
     std::size_t source_local_sys_idx = 123;
 
     MapperInterfaceInfoPointerType p_interface_info(Kratos::make_shared<BarycentricInterfaceInfo>(coords, source_local_sys_idx, 0, BarycentricInterpolationType::LINE));
 
-    auto node_1(Kratos::make_intrusive<NodeType>(3,  1.0, 0.0, 0.0)); // second closest
-    auto node_2(Kratos::make_intrusive<NodeType>(15, 0.0, 0.0, 0.0)); // closest
+    auto node_1(Kratos::make_intrusive<Node>(3,  1.0, 0.0, 0.0)); // second closest
+    auto node_2(Kratos::make_intrusive<Node>(15, 0.0, 0.0, 0.0)); // closest
 
     InterfaceObject::Pointer interface_node_1(Kratos::make_shared<InterfaceNode>(node_1.get()));
     InterfaceObject::Pointer interface_node_2(Kratos::make_shared<InterfaceNode>(node_2.get()));
@@ -270,10 +270,10 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_simple_triangle_interpolation
 
     BarycentricInterfaceInfo barycentric_info(coords, source_local_sys_idx, 0, BarycentricInterpolationType::TRIANGLE);
 
-    auto node_1(Kratos::make_intrusive<NodeType>(1,  0.0, 0.0, 0.0));
-    auto node_2(Kratos::make_intrusive<NodeType>(3,  1.0, 0.0, 0.0));
-    auto node_3(Kratos::make_intrusive<NodeType>(15, 0.0, 1.0, 0.0));
-    auto node_4(Kratos::make_intrusive<NodeType>(18, 1.0, 1.0, 0.0));
+    auto node_1(Kratos::make_intrusive<Node>(1,  0.0, 0.0, 0.0));
+    auto node_2(Kratos::make_intrusive<Node>(3,  1.0, 0.0, 0.0));
+    auto node_3(Kratos::make_intrusive<Node>(15, 0.0, 1.0, 0.0));
+    auto node_4(Kratos::make_intrusive<Node>(18, 1.0, 1.0, 0.0));
 
     InterfaceObject::Pointer interface_node_1(Kratos::make_shared<InterfaceNode>(node_1.get()));
     InterfaceObject::Pointer interface_node_2(Kratos::make_shared<InterfaceNode>(node_2.get()));
@@ -320,13 +320,13 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_triangle_collinear_nodes_inte
 
     BarycentricInterfaceInfo barycentric_info(coords, source_local_sys_idx, 0, BarycentricInterpolationType::TRIANGLE);
 
-    auto node_1(Kratos::make_intrusive<NodeType>(1,  0.0, 0.0, 0.0));
-    auto node_2(Kratos::make_intrusive<NodeType>(3,  1.0, 0.0, 0.0)); // this is closer than the next one but collinear and hence forbidden
-    auto node_3(Kratos::make_intrusive<NodeType>(15, 0.0, 1.1, 0.0));
-    auto node_4(Kratos::make_intrusive<NodeType>(18, 1.0, 1.0, 0.0));
-    auto node_5(Kratos::make_intrusive<NodeType>(21, 0.7, 0.0, 0.0));
-    auto node_6(Kratos::make_intrusive<NodeType>(22, 0.5, 0.0, 0.0));
-    auto node_7(Kratos::make_intrusive<NodeType>(23, 0.75, 0.0, 0.0));
+    auto node_1(Kratos::make_intrusive<Node>(1,  0.0, 0.0, 0.0));
+    auto node_2(Kratos::make_intrusive<Node>(3,  1.0, 0.0, 0.0)); // this is closer than the next one but collinear and hence forbidden
+    auto node_3(Kratos::make_intrusive<Node>(15, 0.0, 1.1, 0.0));
+    auto node_4(Kratos::make_intrusive<Node>(18, 1.0, 1.0, 0.0));
+    auto node_5(Kratos::make_intrusive<Node>(21, 0.7, 0.0, 0.0));
+    auto node_6(Kratos::make_intrusive<Node>(22, 0.5, 0.0, 0.0));
+    auto node_7(Kratos::make_intrusive<Node>(23, 0.75, 0.0, 0.0));
 
     InterfaceObject::Pointer interface_node_1(Kratos::make_shared<InterfaceNode>(node_1.get()));
     InterfaceObject::Pointer interface_node_2(Kratos::make_shared<InterfaceNode>(node_2.get()));
@@ -382,9 +382,9 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_triangle_only_collinear_nodes
 
     BarycentricInterfaceInfo barycentric_info(coords, source_local_sys_idx, 0, BarycentricInterpolationType::TRIANGLE);
 
-    auto node_1(Kratos::make_intrusive<NodeType>(1,  0.0, 0.0, 0.0));
-    auto node_2(Kratos::make_intrusive<NodeType>(3,  1.0, 0.0, 0.0)); // this should NOT be saved since it is collinear!
-    auto node_3(Kratos::make_intrusive<NodeType>(22, 0.5, 0.0, 0.0));
+    auto node_1(Kratos::make_intrusive<Node>(1,  0.0, 0.0, 0.0));
+    auto node_2(Kratos::make_intrusive<Node>(3,  1.0, 0.0, 0.0)); // this should NOT be saved since it is collinear!
+    auto node_3(Kratos::make_intrusive<Node>(22, 0.5, 0.0, 0.0));
 
     InterfaceObject::Pointer interface_node_1(Kratos::make_shared<InterfaceNode>(node_1.get()));
     InterfaceObject::Pointer interface_node_2(Kratos::make_shared<InterfaceNode>(node_2.get()));
@@ -428,10 +428,10 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_simple_tetra_interpolation, K
 
     BarycentricInterfaceInfo barycentric_info(coords, source_local_sys_idx, 0, BarycentricInterpolationType::TETRAHEDRA);
 
-    auto node_1(Kratos::make_intrusive<NodeType>(1,  0.0, 0.0, 0.0));
-    auto node_2(Kratos::make_intrusive<NodeType>(3,  1.0, 0.0, 0.0));
-    auto node_3(Kratos::make_intrusive<NodeType>(15, 0.0, 1.0, 0.0));
-    auto node_4(Kratos::make_intrusive<NodeType>(18, 0.0, 0.0, 1.1));
+    auto node_1(Kratos::make_intrusive<Node>(1,  0.0, 0.0, 0.0));
+    auto node_2(Kratos::make_intrusive<Node>(3,  1.0, 0.0, 0.0));
+    auto node_3(Kratos::make_intrusive<Node>(15, 0.0, 1.0, 0.0));
+    auto node_4(Kratos::make_intrusive<Node>(18, 0.0, 0.0, 1.1));
 
     InterfaceObject::Pointer interface_node_1(Kratos::make_shared<InterfaceNode>(node_1.get()));
     InterfaceObject::Pointer interface_node_2(Kratos::make_shared<InterfaceNode>(node_2.get()));
