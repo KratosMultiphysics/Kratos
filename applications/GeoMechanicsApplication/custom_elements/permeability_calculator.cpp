@@ -40,9 +40,10 @@ Matrix PermeabilityCalculator::CalculatePermeabilityMatrix() const
 
     auto r_integration_coefficients = mInputProvider.GetIntegrationCoefficients();
 
-    auto       shape_function_gradients = mInputProvider.GetShapeFunctionGradients();
-    const auto local_dimension          = shape_function_gradients[0].size2();
-    Matrix constitutive_matrix = GeoElementUtilities::FillPermeabilityMatrix(r_properties, local_dimension);
+    auto         shape_function_gradients = mInputProvider.GetShapeFunctionGradients();
+    const auto   local_dimension          = shape_function_gradients[0].size2();
+    const Matrix constitutive_matrix =
+        GeoElementUtilities::FillPermeabilityMatrix(r_properties, local_dimension);
 
     const auto number_of_nodes = shape_function_gradients[0].size1();
     auto       result          = Matrix{ZeroMatrix{number_of_nodes, number_of_nodes}};
@@ -50,7 +51,7 @@ Matrix PermeabilityCalculator::CalculatePermeabilityMatrix() const
          integration_point_index < r_integration_coefficients.size(); ++integration_point_index) {
         const double relative_permeability =
             mInputProvider.GetRetentionLaws()[integration_point_index]->CalculateRelativePermeability(retention_parameters);
-        double dynamic_viscosity_inverse = 1.0 / r_properties[DYNAMIC_VISCOSITY];
+        const double dynamic_viscosity_inverse = 1.0 / r_properties[DYNAMIC_VISCOSITY];
         result += GeoTransportEquationUtilities::CalculatePermeabilityMatrix(
             shape_function_gradients[integration_point_index], dynamic_viscosity_inverse, constitutive_matrix,
             relative_permeability, r_integration_coefficients[integration_point_index]);

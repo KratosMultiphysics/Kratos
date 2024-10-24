@@ -86,6 +86,22 @@ public:
         }
     }
 
+    void InitializeSolutionStep(const ProcessInfo&) override
+    {
+        RetentionLaw::Parameters RetentionParameters(this->GetProperties());
+        for (const auto& retention_law : mRetentionLawVector) {
+            retention_law->InitializeSolutionStep(RetentionParameters);
+        }
+    }
+
+    void FinalizeSolutionStep(const ProcessInfo&) override
+    {
+        RetentionLaw::Parameters RetentionParameters(this->GetProperties());
+        for (const auto& retention_law : mRetentionLawVector) {
+            retention_law->FinalizeSolutionStep(RetentionParameters);
+        }
+    }
+
     void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
                               VectorType&        rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo) override
@@ -107,95 +123,14 @@ public:
 
         rLeftHandSideMatrix = ZeroMatrix{TNumNodes, TNumNodes};
 
-        for (auto contribution : mContributions) {
-            auto calculator = CreateCalculator(contribution, rCurrentProcessInfo);
+        for (const auto& rContribution : mContributions) {
+            const auto calculator = CreateCalculator(rContribution, rCurrentProcessInfo);
             const auto [LHSContribution, RHSContribution] = calculator->CalculateLeftAndRightHandSide();
             rLeftHandSideMatrix += LHSContribution;
             rRightHandSideVector += RHSContribution;
         }
 
         KRATOS_CATCH("")
-    }
-
-    std::unique_ptr<Calculator> CreateCalculator(CalculationContribution contribution,
-                                                 const ProcessInfo&      rCurrentProcessInfo)
-    {
-        switch (contribution) {
-        case CalculationContribution::Permeability:
-            return std::make_unique<PermeabilityCalculator>(CreatePermeabilityInputProvider());
-        case CalculationContribution::Compressibility:
-            return std::make_unique<CompressibilityCalculator>(CreateCompressibilityInputProvider(rCurrentProcessInfo));
-        default:
-            KRATOS_ERROR << "Unknown contribution: " << contribution << std::endl;
-        }
-    }
-
-    CompressibilityCalculator::InputProvider CreateCompressibilityInputProvider(const ProcessInfo& rCurrentProcessInfo)
-    {
-        return CompressibilityCalculator::InputProvider(
-            GetPropertiesLambda(), GetRetentionLawsLambda(), GetNContainerLambda(),
-            GetIntegrationCoefficientsLambda(), GetDtPressureCoefficientLambda(rCurrentProcessInfo),
-            GetNodalVariableLambda());
-    }
-
-    PermeabilityCalculator::InputProvider CreatePermeabilityInputProvider()
-    {
-        return PermeabilityCalculator::InputProvider(
-            GetPropertiesLambda(), GetRetentionLawsLambda(), GetIntegrationCoefficientsLambda(),
-            GetNodalVariableLambda(), GetShapeFunctionLocalGradientsLambda());
-    }
-
-    auto GetPropertiesLambda()
-    {
-        return [this]() -> const Properties& { return GetProperties(); };
-    }
-
-    auto GetRetentionLawsLambda()
-    {
-        return [this]() -> const std::vector<RetentionLaw::Pointer>& { return mRetentionLawVector; };
-    }
-
-    auto GetNContainerLambda()
-    {
-        return [this]() -> const Matrix& {
-            return GetGeometry().ShapeFunctionsValues(GetIntegrationMethod());
-        };
-    }
-
-    auto GetIntegrationCoefficientsLambda()
-    {
-        return [this]() -> Vector {
-            Vector det_J_container;
-            GetGeometry().DeterminantOfJacobian(det_J_container, this->GetIntegrationMethod());
-            return CalculateIntegrationCoefficients(det_J_container);
-        };
-    }
-
-    auto GetDtPressureCoefficientLambda(const ProcessInfo& rCurrentProcessInfo)
-    {
-        return [&rCurrentProcessInfo]() -> double {
-            return rCurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
-        };
-    }
-
-    auto GetNodalVariableLambda()
-    {
-        return
-            [this](const Variable<double>& variable) -> Vector { return GetNodalValuesOf(variable); };
-    }
-
-    auto GetShapeFunctionLocalGradientsLambda()
-    {
-        return [this]() -> GeometryType::ShapeFunctionsGradientsType {
-            Vector det_J_container;
-            GetGeometry().DeterminantOfJacobian(det_J_container, this->GetIntegrationMethod());
-            GeometryType::ShapeFunctionsGradientsType dN_dX_container =
-                GetGeometry().ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
-            std::transform(dN_dX_container.begin(), dN_dX_container.end(), det_J_container.begin(),
-                           dN_dX_container.begin(), std::divides<>());
-
-            return dN_dX_container;
-        };
     }
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override
@@ -232,6 +167,7 @@ public:
 
 private:
     std::vector<RetentionLaw::Pointer> mRetentionLawVector;
+    std::vector<CalculationContribution> mContributions;
 
     void CheckDomainSize() const
     {
@@ -320,22 +256,6 @@ private:
         return result;
     }
 
-    void InitializeSolutionStep(const ProcessInfo&) override
-    {
-        RetentionLaw::Parameters RetentionParameters(this->GetProperties());
-        for (const auto& retention_law : mRetentionLawVector) {
-            retention_law->InitializeSolutionStep(RetentionParameters);
-        }
-    }
-
-    void FinalizeSolutionStep(const ProcessInfo&) override
-    {
-        RetentionLaw::Parameters RetentionParameters(this->GetProperties());
-        for (const auto& retention_law : mRetentionLawVector) {
-            retention_law->FinalizeSolutionStep(RetentionParameters);
-        }
-    }
-
     array_1d<double, TNumNodes> CalculateFluidBodyVector(const Matrix& rNContainer,
                                                          const GeometryType::ShapeFunctionsGradientsType& rShapeFunctionGradients,
                                                          const Vector& rIntegrationCoefficients) const
@@ -384,6 +304,87 @@ private:
         return fluid_body_vector;
     }
 
+        std::unique_ptr<Calculator> CreateCalculator(const CalculationContribution& rContribution,
+                                                 const ProcessInfo&      rCurrentProcessInfo)
+    {
+        switch (rContribution) {
+        case CalculationContribution::Permeability:
+            return std::make_unique<PermeabilityCalculator>(CreatePermeabilityInputProvider());
+        case CalculationContribution::Compressibility:
+            return std::make_unique<CompressibilityCalculator>(CreateCompressibilityInputProvider(rCurrentProcessInfo));
+        default:
+            KRATOS_ERROR << "Unknown contribution: " << rContribution << std::endl;
+        }
+    }
+
+    CompressibilityCalculator::InputProvider CreateCompressibilityInputProvider(const ProcessInfo& rCurrentProcessInfo)
+    {
+        return CompressibilityCalculator::InputProvider(
+            GetPropertiesLambda(), GetRetentionLawsLambda(), GetNContainerLambda(),
+            GetIntegrationCoefficientsLambda(), GetDtPressureCoefficientLambda(rCurrentProcessInfo),
+            GetNodalVariableLambda());
+    }
+
+    PermeabilityCalculator::InputProvider CreatePermeabilityInputProvider()
+    {
+        return PermeabilityCalculator::InputProvider(
+            GetPropertiesLambda(), GetRetentionLawsLambda(), GetIntegrationCoefficientsLambda(),
+            GetNodalVariableLambda(), GetShapeFunctionLocalGradientsLambda());
+    }
+
+    auto GetPropertiesLambda()
+    {
+        return [this]() -> const Properties& { return GetProperties(); };
+    }
+
+    auto GetRetentionLawsLambda()
+    {
+        return [this]() -> const std::vector<RetentionLaw::Pointer>& { return mRetentionLawVector; };
+    }
+
+    auto GetNContainerLambda()
+    {
+        return [this]() -> const Matrix& {
+            return GetGeometry().ShapeFunctionsValues(GetIntegrationMethod());
+        };
+    }
+
+    auto GetIntegrationCoefficientsLambda()
+    {
+        return [this]() -> Vector {
+            Vector det_J_container;
+            GetGeometry().DeterminantOfJacobian(det_J_container, this->GetIntegrationMethod());
+            return CalculateIntegrationCoefficients(det_J_container);
+        };
+    }
+
+    static auto GetDtPressureCoefficientLambda(const ProcessInfo& rCurrentProcessInfo)
+    {
+        return [&rCurrentProcessInfo]() -> double {
+            return rCurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
+        };
+    }
+
+    auto GetNodalVariableLambda() const
+    {
+        return
+            [this](const Variable<double>& variable) -> Vector { return GetNodalValuesOf(variable); };
+    }
+
+    auto GetShapeFunctionLocalGradientsLambda()
+    {
+        return [this]() -> GeometryType::ShapeFunctionsGradientsType {
+            Vector det_J_container;
+            GetGeometry().DeterminantOfJacobian(det_J_container, this->GetIntegrationMethod());
+            GeometryType::ShapeFunctionsGradientsType dN_dX_container =
+                GetGeometry().ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
+            std::transform(dN_dX_container.begin(), dN_dX_container.end(), det_J_container.begin(),
+                           dN_dX_container.begin(), std::divides<>());
+
+            return dN_dX_container;
+        };
+    }
+
     [[nodiscard]] DofsVectorType GetDofs() const
     {
         return Geo::DofUtilities::ExtractDofsFromNodes(GetGeometry(), WATER_PRESSURE);
@@ -398,8 +399,6 @@ private:
     }
 
     void load(Serializer& rSerializer) override{KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)}
-
-    std::vector<CalculationContribution> mContributions = {Permeability, Compressibility};
 };
 
 } // namespace Kratos

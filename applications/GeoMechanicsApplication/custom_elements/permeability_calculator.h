@@ -16,6 +16,8 @@
 
 #include <custom_retention/retention_law.h>
 
+#include <utility>
+
 namespace Kratos
 {
 
@@ -30,29 +32,29 @@ public:
                       std::function<Vector()>                        rIntegrationCoefficients,
                       std::function<Vector(const Variable<double>&)> rNodalValuesOfDtWaterPressure,
                       std::function<Geometry<Node>::ShapeFunctionsGradientsType()> rShapeFunctionGradients)
-            : mGetElementProperties(rElementProperties),
-              mGetRetentionLaws(rRetentionLaws),
-              mGetIntegrationCoefficients(rIntegrationCoefficients),
-              mGetNodalValues(rNodalValuesOfDtWaterPressure),
-              mGetShapeFunctionGradients(rShapeFunctionGradients)
+            : mGetElementProperties(std::move(rElementProperties)),
+              mGetRetentionLaws(std::move(rRetentionLaws)),
+              mGetIntegrationCoefficients(std::move(rIntegrationCoefficients)),
+              mGetNodalValues(std::move(rNodalValuesOfDtWaterPressure)),
+              mGetShapeFunctionGradients(std::move(rShapeFunctionGradients))
         {
         }
 
-        const Properties& GetElementProperties() const { return mGetElementProperties(); }
+        [[nodiscard]] const Properties& GetElementProperties() const { return mGetElementProperties(); }
 
-        const std::vector<RetentionLaw::Pointer>& GetRetentionLaws() const
+        [[nodiscard]] const std::vector<RetentionLaw::Pointer>& GetRetentionLaws() const
         {
             return mGetRetentionLaws();
         }
 
-        Vector GetIntegrationCoefficients() const { return mGetIntegrationCoefficients(); }
+        [[nodiscard]] Vector GetIntegrationCoefficients() const { return mGetIntegrationCoefficients(); }
 
-        Vector GetNodalValues(const Variable<double>& rVariable) const
+        [[nodiscard]] Vector GetNodalValues(const Variable<double>& rVariable) const
         {
             return mGetNodalValues(rVariable);
         }
 
-        Geometry<Node>::ShapeFunctionsGradientsType GetShapeFunctionGradients() const
+        [[nodiscard]] Geometry<Node>::ShapeFunctionsGradientsType GetShapeFunctionGradients() const
         {
             return mGetShapeFunctionGradients();
         }
@@ -65,7 +67,7 @@ public:
         std::function<Geometry<Node>::ShapeFunctionsGradientsType()> mGetShapeFunctionGradients;
     };
 
-    PermeabilityCalculator(InputProvider rInputProvider);
+    explicit PermeabilityCalculator(InputProvider InputProvider);
 
     Matrix                    LHSContribution() override;
     Vector                    RHSContribution() override;
@@ -74,7 +76,7 @@ public:
 private:
     InputProvider mInputProvider;
 
-    Matrix CalculatePermeabilityMatrix() const;
+    [[nodiscard]] Matrix CalculatePermeabilityMatrix() const;
 };
 
 } // namespace Kratos

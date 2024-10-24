@@ -14,6 +14,7 @@
 #include "custom_elements/transient_Pw_line_element.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
+
 #include <boost/numeric/ublas/assignment.hpp>
 
 namespace
@@ -73,7 +74,6 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElementReturnsTheExpectedLeftHandSideAn
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto       process_info = ProcessInfo{};
     const auto p_properties = std::make_shared<Properties>();
     p_properties->SetValue(YOUNG_MODULUS, 1.000000e+07);
     p_properties->SetValue(POISSON_RATIO, 0.000000e+00);
@@ -91,6 +91,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElementReturnsTheExpectedLeftHandSideAn
     p_properties->SetValue(CROSS_AREA, 1.0);
     p_properties->SetValue(IGNORE_UNDRAINED, false);
 
+    auto process_info                     = ProcessInfo{};
     process_info[DT_PRESSURE_COEFFICIENT] = 1.5;
 
     Model model;
@@ -99,7 +100,6 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElementReturnsTheExpectedLeftHandSideAn
         array_1d<double, 3>{0.0, -10.0, 0.0};
     element.GetGeometry()[1].FastGetSolutionStepValue(VOLUME_ACCELERATION) =
         array_1d<double, 3>{0.0, -10.0, 0.0};
-    // Create a head gradient of -10.
     element.GetGeometry()[0].FastGetSolutionStepValue(WATER_PRESSURE)    = 10.0;
     element.GetGeometry()[1].FastGetSolutionStepValue(WATER_PRESSURE)    = 0.0;
     element.GetGeometry()[0].FastGetSolutionStepValue(DT_WATER_PRESSURE) = 4.0;
