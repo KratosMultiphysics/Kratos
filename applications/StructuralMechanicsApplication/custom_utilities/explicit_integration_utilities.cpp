@@ -17,6 +17,7 @@
 // Project includes
 #include "geometries/point.h"
 #include "custom_utilities/explicit_integration_utilities.h"
+#include "utilities/parallel_utilities.h"
 #include "structural_mechanics_application_variables.h"
 
 namespace Kratos
@@ -205,6 +206,24 @@ double InnerCalculateDeltaTime(
     return stable_delta_time;
 
     KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void ComputeLumpingFactors(
+    ModelPart& rModelPart,
+    const LumpingMethods LumpingMethod
+    )
+{
+    const ElementsArrayType& r_elements_array = rModelPart.Elements();
+    block_for_each(r_elements_array, [&LumpingMethod](Element& rElem) {
+        const auto& r_geom = rElem.GetGeometry();
+        const SizeType number_of_nodes = r_geom.size();
+        Vector lumping_factors(number_of_nodes);
+        lumping_factors = r_geom.LumpingFactors( lumping_factors, LumpingMethod );
+        rElem.SetValue(LUMPING_FACTORS, lumping_factors);
+    });
 }
 
 } // namespace ExplicitIntegrationUtilities

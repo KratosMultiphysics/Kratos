@@ -45,6 +45,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
 
     // ExplicitIntegrationUtilities
     m.def("CalculateDeltaTime",&ExplicitIntegrationUtilities::CalculateDeltaTime);
+    m.def("ComputeLumpingFactors",&ExplicitIntegrationUtilities::ComputeLumpingFactors);
 
     py::class_<ProjectVectorOnSurfaceUtility>(m,"ProjectVectorOnSurfaceUtility")
         .def_static("Execute",&ProjectVectorOnSurfaceUtility::Execute);
