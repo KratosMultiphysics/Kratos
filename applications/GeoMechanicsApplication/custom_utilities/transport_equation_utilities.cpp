@@ -17,12 +17,9 @@ namespace Kratos
 
 double GeoTransportEquationUtilities::CalculateParticleDiameter(const Properties& rProperties)
 {
-    double diameter;
-
-    if (rProperties[PIPE_MODIFIED_D])
-        diameter = 2.08e-4 * pow((rProperties[PIPE_D_70] / 2.08e-4), 0.4);
-    else diameter = rProperties[PIPE_D_70];
-    return diameter;
+    return rProperties.Has(PIPE_MODIFIED_D) && rProperties[PIPE_MODIFIED_D]
+               ? 2.08e-4 * std::pow((rProperties[PIPE_D_70] / 2.08e-4), 0.4)
+               : rProperties[PIPE_D_70];
 }
 
 } // namespace Kratos
