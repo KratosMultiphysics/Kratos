@@ -47,11 +47,9 @@ public:
     using DofsArrayType            = typename BaseType::DofsArrayType;
     using TSystemMatrixType        = typename BaseType::TSystemMatrixType;
     using TSystemVectorType        = typename BaseType::TSystemVectorType;
-    using filtered_elements =
-        typename boost::range_detail::filtered_range<std::function<bool(Element*)>, std::vector<Element*>>;
-    using PropertiesType = Properties;
-    using NodeType       = Node;
-    using GeometryType   = Geometry<NodeType>;
+    using PropertiesType           = Properties;
+    using NodeType                 = Node;
+    using GeometryType             = Geometry<NodeType>;
 
     GeoMechanicsNewtonRaphsonErosionProcessStrategy(ModelPart&                    model_part,
                                                     typename TSchemeType::Pointer pScheme,
@@ -88,7 +86,17 @@ public:
 
         // get piping elements
         std::vector<Element*> PipeElements = GetPipingElements();
-        unsigned int          n_el         = PipeElements.size(); // number of piping elements
+
+        auto piping_interface_elements = std::vector<SteadyStatePwPipingElement<2, 4>*>{};
+        std::transform(
+            PipeElements.begin(), PipeElements.end(), std::back_inserter(piping_interface_elements),
+            [](auto p_element) { return dynamic_cast<SteadyStatePwPipingElement<2, 4>*>(p_element); });
+        KRATOS_DEBUG_ERROR_IF(std::any_of(piping_interface_elements.begin(),
+                                          piping_interface_elements.end(), [](auto p_element) {
+            return p_element == nullptr;
+        })) << "Not all open piping elements could be downcast to SteadyStatePwPipingElement<2, 4>*\n";
+
+        unsigned int n_el = PipeElements.size(); // number of piping elements
 
         // get initially open pipe elements
         unsigned int openPipeElements = this->InitialiseNumActivePipeElements(PipeElements);
@@ -116,7 +124,7 @@ public:
             std::function<bool(Element*)> filter = [](Element* i) {
                 return i->Has(PIPE_ACTIVE) && i->GetValue(PIPE_ACTIVE);
             };
-            filtered_elements OpenPipeElements = PipeElements | boost::adaptors::filtered(filter);
+            auto OpenPipeElements = piping_interface_elements | boost::adaptors::filtered(filter);
             KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0)
                 << "Number of Open Pipe Elements: " << boost::size(OpenPipeElements) << std::endl;
 
@@ -311,7 +319,8 @@ private:
         return GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::SolveSolutionStep();
     }
 
-    bool check_pipe_equilibrium(const filtered_elements& open_pipe_elements, double amax, unsigned int mPipingIterations)
+    template <typename FilteredElementType>
+    bool check_pipe_equilibrium(const FilteredElementType& open_pipe_elements, double amax, unsigned int mPipingIterations)
     {
         bool         equilibrium = false;
         bool         converged   = true;
@@ -339,16 +348,12 @@ private:
                 // Update depth of open piping Elements
                 equilibrium = true;
                 for (auto OpenPipeElement : open_pipe_elements) {
-                    auto pElement = dynamic_cast<SteadyStatePwPipingElement<2, 4>*>(OpenPipeElement);
-                    KRATOS_DEBUG_ERROR_IF_NOT(pElement)
-                        << "Can't cast pointer to SteadyStatePwPipingElement<2, 4>*\n";
-
                     // get open pipe element geometry and properties
                     auto& Geom = OpenPipeElement->GetGeometry();
                     auto& prop = OpenPipeElement->GetProperties();
 
                     // calculate equilibrium pipe height and get current pipe height
-                    double eq_height = pElement->CalculateEquilibriumPipeHeight(
+                    double eq_height = OpenPipeElement->CalculateEquilibriumPipeHeight(
                         prop, Geom, OpenPipeElement->GetValue(PIPE_ELEMENT_LENGTH));
                     double current_height = OpenPipeElement->GetValue(PIPE_HEIGHT);
 
@@ -425,7 +430,8 @@ private:
     /// <param name="open_pipe_elements"> open pipe elements</param>
     /// <param name="grow"> boolean to check if pipe grows</param>
     /// <returns></returns>
-    void save_or_reset_pipe_heights(const filtered_elements& open_pipe_elements, bool grow)
+    template <typename FilteredElementType>
+    void save_or_reset_pipe_heights(const FilteredElementType& open_pipe_elements, bool grow)
     {
         for (auto p_element : open_pipe_elements) {
             if (grow) {
