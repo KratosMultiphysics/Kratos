@@ -73,6 +73,7 @@ endif()
 set( KRATOS_LINEARSOLVERS_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/linear_solvers_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_factories/dense_linear_solver_factory.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_solvers/amgcl_raw_solver.cpp
 )
 
 # Sources for the Python module
@@ -89,6 +90,18 @@ target_link_libraries( KratosLinearSolversCore PUBLIC KratosCore )
 set_target_properties( KratosLinearSolversCore PROPERTIES COMPILE_DEFINITIONS "LINEARSOLVERS_APPLICATION=EXPORT,API")
 
 target_include_directories(KratosLinearSolversCore SYSTEM PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${KRATOS_LINEAR_SOLVERS_APPLICATION_LIB_INC})
+
+if (${AMGCL_GPGPU} MATCHES ON)
+    if ("${AMGCL_GPGPU_BACKEND}" STREQUAL "OpenCL" AND TARGET VexCL::OpenCL)
+        target_link_libraries(KratosLinearSolversCore PUBLIC VexCL::OpenCL)
+        add_definitions(-DAMGCL_GPGPU)
+    elseif ("${AMGCL_GPGPU_BACKEND}" STREQUAL "CUDA" AND TARGET VexCL::CUDA)
+        target_link_libraries(KratosLinearSolversCore PUBLIC VexCL::CUDA)
+        add_definitions(-DAMGCL_GPGPU)
+    else()
+        message(WARNING "AMGCL GPGPU backend not found")
+    endif()
+endif()
 
 ## LinearSolversApplication python module
 pybind11_add_module( KratosLinearSolversApplication MODULE THIN_LTO ${KRATOS_LINEARSOLVERS_APPLICATION_PYTHON_INTERFACE} )
