@@ -311,7 +311,7 @@ private:
         return GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::SolveSolutionStep();
     }
 
-    bool check_pipe_equilibrium(filtered_elements open_pipe_elements, double amax, unsigned int mPipingIterations)
+    bool check_pipe_equilibrium(const filtered_elements& open_pipe_elements, double amax, unsigned int mPipingIterations)
     {
         bool         equilibrium = false;
         bool         converged   = true;
@@ -339,7 +339,9 @@ private:
                 // Update depth of open piping Elements
                 equilibrium = true;
                 for (auto OpenPipeElement : open_pipe_elements) {
-                    auto pElement = static_cast<SteadyStatePwPipingElement<2, 4>*>(OpenPipeElement);
+                    auto pElement = dynamic_cast<SteadyStatePwPipingElement<2, 4>*>(OpenPipeElement);
+                    KRATOS_DEBUG_ERROR_IF_NOT(pElement)
+                        << "Can't cast pointer to SteadyStatePwPipingElement<2, 4>*\n";
 
                     // get open pipe element geometry and properties
                     auto& Geom = OpenPipeElement->GetGeometry();
@@ -423,13 +425,13 @@ private:
     /// <param name="open_pipe_elements"> open pipe elements</param>
     /// <param name="grow"> boolean to check if pipe grows</param>
     /// <returns></returns>
-    void save_or_reset_pipe_heights(filtered_elements open_pipe_elements, bool grow)
+    void save_or_reset_pipe_heights(const filtered_elements& open_pipe_elements, bool grow)
     {
-        for (Element* OpenPipeElement : open_pipe_elements) {
+        for (auto p_element : open_pipe_elements) {
             if (grow) {
-                OpenPipeElement->SetValue(PREV_PIPE_HEIGHT, OpenPipeElement->GetValue(PIPE_HEIGHT));
+                p_element->SetValue(PREV_PIPE_HEIGHT, p_element->GetValue(PIPE_HEIGHT));
             } else {
-                OpenPipeElement->SetValue(PIPE_HEIGHT, OpenPipeElement->GetValue(PREV_PIPE_HEIGHT));
+                p_element->SetValue(PIPE_HEIGHT, p_element->GetValue(PREV_PIPE_HEIGHT));
             }
         }
     }
