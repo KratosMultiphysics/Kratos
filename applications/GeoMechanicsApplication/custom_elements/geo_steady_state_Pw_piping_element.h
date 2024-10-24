@@ -51,6 +51,23 @@ public:
         return make_intrusive<GeoSteadyStatePwPipingElement>(NewId, pGeometry, pProperties);
     }
 
+    void Initialize(const ProcessInfo&)
+    {
+        // all these except the PIPE_ELEMENT_LENGTH seem to be in the erosion_process_strategy only. Why do this --> used in output for D flow
+        if (!this->pipe_initialised) {
+            this->SetValue(PIPE_ELEMENT_LENGTH, CalculateLength(this->GetGeometry()));
+            this->pipe_initialised = true;
+            this->SetValue(PIPE_EROSION, false);
+
+            // initialise pipe height with a small value
+            double smallPipeHeight = 1e-10;
+            this->SetValue(PIPE_HEIGHT, smallPipeHeight);
+            this->SetValue(PREV_PIPE_HEIGHT, smallPipeHeight);
+            this->SetValue(DIFF_PIPE_HEIGHT, 0);
+            this->SetValue(PIPE_ACTIVE, false);
+        }
+    }
+
     void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const override
     {
         rElementalDofList = GetDofs();
@@ -109,6 +126,27 @@ public:
         return 0;
     }
 
+    double CalculateEquilibriumPipeHeight(const PropertiesType& Prop, const GeometryType& Geom, double pipe_length)
+    {
+        // calculate head gradient over element
+        double dhdx = CalculateHeadGradient(Prop, Geom);
+        // return infinite when dhdx is 0
+        if (dhdx < std::numeric_limits<double>::epsilon()) return 1e10;
+
+        // calculate particle diameter
+        double particle_d = CalculateParticleDiameter(Prop);
+
+        // todo calculate slope of pipe, currently pipe is assumed to be horizontal
+        const double pipeSlope = 0;
+
+        const double theta = Prop[PIPE_THETA];
+        return Prop[PIPE_MODEL_FACTOR] * (Globals::Pi / 3.0) * particle_d *
+               (Prop[DENSITY_SOLID] / Prop[DENSITY_WATER] - 1.) * Prop[PIPE_ETA] *
+               (std::sin(MathUtils<>::DegreesToRadians(theta + pipeSlope)) /
+                std::cos(MathUtils<>::DegreesToRadians(theta))) /
+               dhdx;
+    }
+
 private:
     void CheckDomainSize() const
     {
@@ -164,10 +202,36 @@ private:
         }
     }
 
+    double CalculateLength(const GeometryType& Geom)
+    {
+        // currently length is only calculated in x direction, to be changed for inclined pipes
+        return std::abs(Geom.GetPoint(1)[0] - Geom.GetPoint(0)[0]);
+    }
+
+    double CalculateParticleDiameter(const PropertiesType& Prop)
+    {
+        if (Prop[PIPE_MODIFIED_D]) return 2.08e-4 * pow((Prop[PIPE_D_70] / 2.08e-4), 0.4);
+        return Prop[PIPE_D_70];
+    }
+
     static void AddContributionsToLhsMatrix(MatrixType& rLeftHandSideMatrix,
                                             const BoundedMatrix<double, TNumNodes, TNumNodes>& rPermeabilityMatrix)
     {
         rLeftHandSideMatrix = rPermeabilityMatrix;
+    }
+
+    double CalculateHeadGradient(const PropertiesType& Prop, const GeometryType& Geom)
+    {
+        const auto nodalHeads = GeoElementUtilities::CalculateNodalHydraulicHeadFromWaterPressures(Geom, Prop);
+        // beware, repeated code to get dN_dX_container
+        Vector det_J_container;
+        GetGeometry().DeterminantOfJacobian(det_J_container, this->GetIntegrationMethod());
+        GeometryType::ShapeFunctionsGradientsType dN_dX_container =
+            GetGeometry().ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
+        std::transform(dN_dX_container.begin(), dN_dX_container.end(), det_J_container.begin(),
+                       dN_dX_container.begin(), std::divides<>());
+        const auto integration_point_head_gradients = dN_dX_container * nodalHeads;
+        return averaged integration_point_head_gradients;
     }
 
     void AddContributionsToRhsVector(VectorType& rRightHandSideVector,
@@ -187,8 +251,8 @@ private:
         // all governed by PIPE_HEIGHT and element length so without CROSS_AREA
         std::transform(r_integration_points.begin(), r_integration_points.end(), rDetJContainer.begin(),
                        result.begin(), [](const auto& rIntegrationPoint, const auto& rDetJ) {
-            return rIntegrationPoint.Weight() * rDetJ;
-        });
+                           return rIntegrationPoint.Weight() * rDetJ;
+                       });
         return result;
     }
 
@@ -222,7 +286,8 @@ private:
     {
         auto        result     = array_1d<double, TNumNodes>{};
         const auto& r_geometry = GetGeometry();
-        std::transform(r_geometry.begin(), r_geometry.end(), result.begin(), [&rNodalVariable](const auto& node) {
+        std::transform(r_geometry.begin(), r_geometry.end(), result.begin(),
+                       [&rNodalVariable](const auto& node) {
             return node.FastGetSolutionStepValue(rNodalVariable);
         });
         return result;

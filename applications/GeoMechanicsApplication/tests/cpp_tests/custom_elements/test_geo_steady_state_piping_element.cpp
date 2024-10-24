@@ -48,7 +48,6 @@ ModelPart& CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(Model& 
     auto& r_result = rModel.CreateModelPart("Main");
     r_result.AddNodalSolutionStepVariable(WATER_PRESSURE);
     r_result.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
-
     return r_result;
 }
 

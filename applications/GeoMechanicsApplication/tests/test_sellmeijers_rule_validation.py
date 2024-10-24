@@ -144,6 +144,7 @@ class TestSellmeijersRuleValidation(KratosUnittest.TestCase):
          ('7.34', 3.00E-04, 1.157E-10, 1.68, 2, 9, 'test_compare_sellmeijer/HeightAquiferD30L30.gid'),
          ('7.35', 3.00E-04, 1.157E-10, 3.24, 3.7, 22.5, 'test_compare_sellmeijer/HeightAquiferD30L60.gid'),
          ('7.36', 3.00E-04, 1.157E-10, 4.61, 5.3, 27, 'test_compare_sellmeijer/HeightAquiferD30L90.gid')])
+
     def test_sellmeijers_rule_height(self, name, d70, kappa, Hc, Hn, length_n, test_name_gid):
         file_path = test_helper.get_file_path(os.path.join('./', test_name_gid))
         os.chdir(file_path)

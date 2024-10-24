@@ -20,7 +20,7 @@
 
 // Application includes
 #include "boost/range/adaptor/filtered.hpp"
-#include "custom_elements/steady_state_Pw_piping_element.hpp"
+#include "custom_elements/geo_steady_state_Pw_piping_element.h"
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_strategy.hpp"
 #include "geo_mechanics_application_variables.h"
 
@@ -353,7 +353,7 @@ private:
                 // Update depth of open piping Elements
                 equilibrium = true;
                 for (auto OpenPipeElement : open_pipe_elements) {
-                    auto pElement = static_cast<SteadyStatePwPipingElement<2, 4>*>(OpenPipeElement);
+                    auto pElement = static_cast<GeoSteadyStatePwPipingElement<2, 2>*>(OpenPipeElement);
 
                     // get open pipe element geometry and properties
                     auto& Geom = OpenPipeElement->GetGeometry();
