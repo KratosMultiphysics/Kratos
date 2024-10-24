@@ -35,40 +35,37 @@ void BaseSolidElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 
     // Initialization should not be done again in a restart!
     if (!rCurrentProcessInfo[IS_RESTARTED]) {
-        if(this->UseGeometryIntegrationMethod()) {
-            if( GetProperties().Has(INTEGRATION_ORDER) ) {
-                const SizeType integration_order = GetProperties()[INTEGRATION_ORDER];
-                switch ( integration_order )
-                {
-                case 1:
-                    mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
-                    break;
-                case 2:
-                    mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
-                    break;
-                case 3:
-                    mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
-                    break;
-                case 4:
-                    mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_4;
-                    break;
-                case 5:
-                    mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5;
-                    break;
-                default:
-                    KRATOS_WARNING("BaseSolidElement") << "Integration order " << integration_order << " is not available, using default integration order for the geometry" << std::endl;
-                    mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
-                }
-            } else {
+        if( GetProperties().Has(INTEGRATION_ORDER) ) {
+            const SizeType integration_order = GetProperties()[INTEGRATION_ORDER];
+            switch ( integration_order )
+            {
+            case 1:
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
+                break;
+            case 2:
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
+                break;
+            case 3:
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
+                break;
+            case 4:
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_4;
+                break;
+            case 5:
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5;
+                break;
+            default:
+                KRATOS_WARNING("BaseSolidElement") << "Integration order " << integration_order << " is not available, using default integration order for the geometry" << std::endl;
                 mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
             }
+        } else {
+            mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
         }
 
-        const auto& integration_points = this->IntegrationPoints(mThisIntegrationMethod);
-
-        //Constitutive Law initialisation
-        if ( mConstitutiveLawVector.size() != integration_points.size() )
-            mConstitutiveLawVector.resize(integration_points.size());
+        // Constitutive Law initialisation
+        const SizeType integration_points_size = this->IntegrationPoints().size();
+        if ( mConstitutiveLawVector.size() != integration_points_size )
+            mConstitutiveLawVector.resize(integration_points_size);
 
         InitializeMaterial();
 
@@ -118,14 +115,14 @@ void BaseSolidElement::InitializeSolutionStep( const ProcessInfo& rCurrentProces
         const auto& N_values = this->ShapeFunctionsValues(mThisIntegrationMethod);
 
         // Reading integration points
-        const GeometryType::IntegrationPointsArrayType& integration_points = this->IntegrationPoints();
+        const GeometryType::IntegrationPointsArrayType& r_integration_points = this->IntegrationPoints();
 
         for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
             // Compute element kinematics B, F, DN_DX ...
             CalculateKinematicVariables(this_kinematic_variables, point_number, mThisIntegrationMethod);
 
             // Compute constitutive law variables
-            SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points);
+            SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, r_integration_points);
 
             // Rotate to local axes strain/F
             if (is_rotated)
@@ -208,14 +205,14 @@ void BaseSolidElement::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessI
         const auto& N_values = this->ShapeFunctionsValues(mThisIntegrationMethod);
 
         // Reading integration points
-        const GeometryType::IntegrationPointsArrayType& integration_points = this->IntegrationPoints(mThisIntegrationMethod);
+        const GeometryType::IntegrationPointsArrayType& r_integration_points = this->IntegrationPoints();
 
         for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
             // Compute element kinematics B, F, DN_DX ...
             CalculateKinematicVariables(this_kinematic_variables, point_number, mThisIntegrationMethod);
 
             // Compute constitutive law variables
-            SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points);
+            SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, r_integration_points);
 
             // Rotate to local axes strain/F
             if (is_rotated)
@@ -626,16 +623,14 @@ void BaseSolidElement::CalculateMassMatrix(
 
         Matrix J0(dimension, dimension);
 
-        const IntegrationMethod integration_method = UseGeometryIntegrationMethod() ? IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geom) : mThisIntegrationMethod ;
-        const GeometryType::IntegrationPointsArrayType& integration_points = this->IntegrationPoints( integration_method );
+        const IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geom);
+        const GeometryType::IntegrationPointsArrayType& r_integration_points = this->IntegrationPoints(integration_method);
         const Matrix& Ncontainer = this->ShapeFunctionsValues(integration_method);
 
-        for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
-            GeometryUtils::JacobianOnInitialConfiguration(
-                r_geom, integration_points[point_number], J0);
+        for ( IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number ) {
+            GeometryUtils::JacobianOnInitialConfiguration(r_geom, r_integration_points[point_number], J0);
             const double detJ0 = MathUtils<double>::Det(J0);
-            const double integration_weight =
-                GetIntegrationWeight(integration_points, point_number, detJ0) * thickness;
+            const double integration_weight = GetIntegrationWeight(r_integration_points, point_number, detJ0) * thickness;
             const Vector& rN = row(Ncontainer,point_number);
 
             for ( IndexType i = 0; i < number_of_nodes; ++i ) {
@@ -823,12 +818,8 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 
             // calculate the determinatn of the Jacobian in the current configuration
             Vector detJ(number_of_integration_points);
-            if (UseGeometryIntegrationMethod()){
-                detJ = r_geometry.DeterminantOfJacobian(detJ);
-            } else {
-                for (IndexType point_number = 0; point_number < number_of_integration_points; ++point_number) {
-                   detJ[point_number] = r_geometry.DeterminantOfJacobian(integration_points[point_number]);
-                }
+            for (IndexType point_number = 0; point_number < number_of_integration_points; ++point_number) {
+                detJ[point_number] = r_geometry.DeterminantOfJacobian(integration_points[point_number]);
             }
 
             // If strain has to be computed inside of the constitutive law with PK2
@@ -1489,19 +1480,14 @@ void BaseSolidElement::CalculateShapeGradientOfMassMatrix(MatrixType& rMassMatri
     const double density = StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
     const double thickness = (dimension == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
 
-    const IntegrationMethod integration_method = this->UseGeometryIntegrationMethod() ? IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geom) : mThisIntegrationMethod;
+    const IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geom);
     const Matrix& Ncontainer = this->ShapeFunctionsValues(integration_method);
     Matrix J0(dimension, dimension), DN_DX0_deriv;
     const auto& integration_points = this->IntegrationPoints(integration_method);
     for (unsigned point_number = 0; point_number < integration_points.size(); ++point_number) {
         Matrix DN_De;
-        GeometryUtils::JacobianOnInitialConfiguration(
-            r_geom, integration_points[point_number], J0);
-        if(UseGeometryIntegrationMethod()) {
-            DN_De = r_geom.ShapeFunctionsLocalGradients(integration_method)[point_number];
-        } else {
-            r_geom.ShapeFunctionsLocalGradients(DN_De, integration_points[point_number]);
-        }
+        GeometryUtils::JacobianOnInitialConfiguration(r_geom, integration_points[point_number], J0);
+        r_geom.ShapeFunctionsLocalGradients(DN_De, integration_points[point_number]);
         GeometricalSensitivityUtility geometrical_sensitivity(J0, DN_De);
         double detJ0_deriv;
         geometrical_sensitivity.CalculateSensitivity(Deriv, detJ0_deriv, DN_DX0_deriv);
@@ -1736,22 +1722,12 @@ double BaseSolidElement::CalculateDerivativesOnReferenceConfiguration(
 {
     const GeometryType& r_geom = GetGeometry();
     double detJ0;
-    if (UseGeometryIntegrationMethod()) {
-        GeometryUtils::JacobianOnInitialConfiguration(
-            r_geom,
-            this->IntegrationPoints(ThisIntegrationMethod)[PointNumber], rJ0);
-        MathUtils<double>::InvertMatrix(rJ0, rInvJ0, detJ0);
-        const Matrix& rDN_De =
-            GetGeometry().ShapeFunctionsLocalGradients(ThisIntegrationMethod)[PointNumber];
-        GeometryUtils::ShapeFunctionsGradients(rDN_De, rInvJ0, rDN_DX);
-    } else {
-        const auto& integration_points =  this->IntegrationPoints();
-        GeometryUtils::JacobianOnInitialConfiguration(r_geom, integration_points[PointNumber],rJ0);
-        MathUtils<double>::InvertMatrix(rJ0, rInvJ0, detJ0);
-        Matrix DN_De;
-        GetGeometry().ShapeFunctionsLocalGradients(DN_De, integration_points[PointNumber]);
-        GeometryUtils::ShapeFunctionsGradients(DN_De, rInvJ0, rDN_DX);
-    }
+    const auto& r_integration_points =  this->IntegrationPoints();
+    GeometryUtils::JacobianOnInitialConfiguration(r_geom, r_integration_points[PointNumber],rJ0);
+    MathUtils<double>::InvertMatrix(rJ0, rInvJ0, detJ0);
+    Matrix DN_De;
+    GetGeometry().ShapeFunctionsLocalGradients(DN_De, r_integration_points[PointNumber]);
+    GeometryUtils::ShapeFunctionsGradients(DN_De, rInvJ0, rDN_DX);
     return detJ0;
 }
 
@@ -1767,19 +1743,12 @@ double BaseSolidElement::CalculateDerivativesOnCurrentConfiguration(
     ) const
 {
     double detJ;
-    if (UseGeometryIntegrationMethod()) {
-        rJ = GetGeometry().Jacobian( rJ, PointNumber, ThisIntegrationMethod );
-        const Matrix& DN_De = GetGeometry().ShapeFunctionsLocalGradients(ThisIntegrationMethod)[PointNumber];
-        MathUtils<double>::InvertMatrix( rJ, rInvJ, detJ );
-        GeometryUtils::ShapeFunctionsGradients(DN_De, rInvJ, rDN_DX);
-    } else{
-        const auto& integration_points =  this->IntegrationPoints();
-        rJ = GetGeometry().Jacobian( rJ, integration_points[PointNumber] );
-        Matrix DN_De;
-        GetGeometry().ShapeFunctionsLocalGradients(DN_De, integration_points[PointNumber]);
-        MathUtils<double>::InvertMatrix( rJ, rInvJ, detJ );
-        GeometryUtils::ShapeFunctionsGradients(DN_De, rInvJ, rDN_DX);
-    }
+    const auto& r_integration_points =  this->IntegrationPoints();
+    rJ = GetGeometry().Jacobian( rJ, r_integration_points[PointNumber] );
+    Matrix DN_De;
+    GetGeometry().ShapeFunctionsLocalGradients(DN_De, r_integration_points[PointNumber]);
+    MathUtils<double>::InvertMatrix( rJ, rInvJ, detJ );
+    GeometryUtils::ShapeFunctionsGradients(DN_De, rInvJ, rDN_DX);
     return detJ;
 }
 
@@ -1890,8 +1859,6 @@ void BaseSolidElement::CalculateLumpedMassVector(
     ) const
 {
     KRATOS_TRY;
-
-    KRATOS_ERROR_IF_NOT(UseGeometryIntegrationMethod()) << "CalculateLumpedMassVector not implemented for element-based integration in base class" << std::endl;
 
     const auto& r_geom = GetGeometry();
     const auto& r_prop = GetProperties();
