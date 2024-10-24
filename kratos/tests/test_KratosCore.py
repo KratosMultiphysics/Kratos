@@ -71,6 +71,8 @@ import test_integration_points
 import test_mls_shape_functions_utility
 import test_model_part_combination_utilities
 import test_force_and_torque_utils
+import test_kernel
+import test_cad_tessellation_modeler
 import test_print_info_in_file
 import test_sparse_matrices
 import test_rbf_shape_functions_utility
@@ -190,6 +192,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_mls_shape_functions_utility.TestMLSShapeFunctionsUtility]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part_combination_utilities.TestModelPartCombinationUtilities]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_force_and_torque_utils.TestForceAndTorqueUtils]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_kernel.TestKernel]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_cad_tessellation_modeler.TestCadTessellationModeler]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sparse_matrices.TestSparseMatrixInterface]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_generic_find_elemental_neighbours_process.TestGenericFindElementalNeighboursProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_graph_utilities.TestGraphUtilities]))
