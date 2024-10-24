@@ -710,8 +710,15 @@ public:
     {
         const std::size_t system_size = rA.size1();
 
+    #ifdef KRATOS_DEBUG
+        auto& Avalues = rA.value_data();
+    #else
         const auto& Avalues = rA.value_data();
+    #endif
         const auto& Arow_indices = rA.index1_data();
+    #ifdef KRATOS_DEBUG
+        const auto& Acol_indices = rA.index2_data();
+    #endif
 
         // Define  zero value tolerance
         const double zero_tolerance = std::numeric_limits<double>::epsilon();
@@ -734,8 +741,20 @@ public:
             }
 
             if(empty) {
+            #ifdef KRATOS_DEBUG
+                // Check that Index Index term exists
+                for (std::size_t j = col_begin; j < col_end; ++j) {
+                    if (Acol_indices[j] == Index) {
+                        Avalues[j] = scale_factor;
+                        rb[Index] = 0.0;
+                        break;
+                    }
+                }
+                KRATOS_ERROR << "Diagonal term (" << Index << ", " << Index << ") is not defined in the system matrix" << std::endl;
+            #else
                 rA(Index, Index) = scale_factor;
                 rb[Index] = 0.0;
+            #endif
             }
         });
 
