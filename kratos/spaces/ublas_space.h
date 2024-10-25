@@ -740,20 +740,21 @@ public:
             }
 
             if(empty) {
-                const auto it_Acol_indices_row_begin = r_Acol_indices.begin() + col_begin;
-                const auto it_Acol_indices_row_end = r_Acol_indices.begin() + col_end;
-                const auto pos = std::lower_bound(it_Acol_indices_row_begin, it_Acol_indices_row_end, Index);
-                if (pos != it_Acol_indices_row_end) { // It was found
-                    r_Avalues[pos - it_Acol_indices_begin] = scale_factor;
+                const auto it_Acol_indices_row_begin = it_Acol_indices_begin + col_begin;
+                const auto it_Acol_indices_row_end = it_Acol_indices_begin + col_end;
+
+                const auto lower = std::lower_bound(it_Acol_indices_row_begin, it_Acol_indices_row_end, Index);
+                const auto upper = std::upper_bound(it_Acol_indices_row_begin, it_Acol_indices_row_end, Index);
+
+                if (lower != upper) { // Index was found
+                    r_Avalues[std::distance(it_Acol_indices_begin, lower)] = scale_factor;
+                } else {
             #ifdef KRATOS_DEBUG
-                } else {
                     KRATOS_ERROR << "Diagonal term (" << Index << ", " << Index << ") is not defined in the system matrix" << std::endl;
-                }
             #else
-                } else {
                     KRATOS_WARNING("UblasSpace") << "Diagonal term (" << Index << ", " << Index << ") is not defined in the system matrix" << std::endl;
-                }
             #endif
+                }
                 rb[Index] = 0.0;
             }
         });
