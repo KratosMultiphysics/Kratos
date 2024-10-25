@@ -139,7 +139,7 @@ public:
             KRATOS_ERROR_IF_NOT(converged) << "Groundwater flow calculation failed to converge." << std::endl;
         }
 
-        BaseClassFinalizeSolutionStep();
+        this->BaseClassFinalizeSolutionStep();
     }
 
     /**
