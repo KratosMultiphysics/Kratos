@@ -749,11 +749,8 @@ public:
                 if (lower != upper) { // Index was found
                     r_Avalues[std::distance(it_Acol_indices_begin, lower)] = scale_factor;
                 } else {
-            #ifdef KRATOS_DEBUG
-                    KRATOS_ERROR << "Diagonal term (" << Index << ", " << Index << ") is not defined in the system matrix" << std::endl;
-            #else
+                    KRATOS_DEBUG_ERROR << "Diagonal term (" << Index << ", " << Index << ") is not defined in the system matrix" << std::endl;
                     KRATOS_WARNING("UblasSpace") << "Diagonal term (" << Index << ", " << Index << ") is not defined in the system matrix" << std::endl;
-            #endif
                 }
                 rb[Index] = 0.0;
             }
