@@ -1485,7 +1485,6 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddFluidBodyFlow(VectorType& rR
     const GeometryType& r_geom      = GetGeometry();
     const SizeType      dimension   = r_geom.WorkingSpaceDimension();
     const SizeType      num_U_nodes = r_geom.PointsNumber();
-    const SizeType      num_P_nodes = mpPressureGeometry->PointsNumber();
 
     Vector body_acceleration = ZeroVector(dimension);
 
@@ -1501,10 +1500,6 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddFluidBodyFlow(VectorType& rR
     GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, fluid_body_flow);
     KRATOS_INFO("SmallStrainUPwDiffOrderElement::CalculateAndAddFluidBodyFlow      ") << "dQ  = " << fluid_body_flow << std::endl;
 
-    //for (SizeType i = 0; i < num_P_nodes; ++i) {
-    //    rRightHandSideVector[num_U_nodes * dimension + i] +=
-    //        inner_prod(row(grad_Np_T_perm, i), body_acceleration);
-    //}
     KRATOS_INFO("SmallStrainUPwDiffOrderElement::CalculateAndAddFluidBodyFlow      ") << "RHS = " << rRightHandSideVector << std::endl;
 
     KRATOS_CATCH("")
