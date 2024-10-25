@@ -717,7 +717,7 @@ public:
         const auto& r_Acol_indices = rA.index2_data();
 
         // Define the iterators
-        const auto& it_Acol_indices_begin = r_Acol_indices.begin();
+        const auto it_Acol_indices_begin = r_Acol_indices.begin();
 
         // Define  zero value tolerance
         const double zero_tolerance = std::numeric_limits<double>::epsilon();
