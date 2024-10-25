@@ -122,32 +122,6 @@ protected:
     /// Member Variables
     std::vector<ModelPart*> mSubModelPartList; /// List of every SubModelPart associated to an external load
     std::vector<std::string> mVariableNames; /// Name of the nodal variable associated to every SubModelPart
-
-    double CalculateReferenceDofsNorm(DofsArrayType& rDofSet)
-    {
-        double ReferenceDofsNorm = 0.0;
-
-        int                          NumThreads = ParallelUtilities::GetNumThreads();
-        OpenMPUtils::PartitionVector DofSetPartition;
-        OpenMPUtils::DivideInPartitions(rDofSet.size(), NumThreads, DofSetPartition);
-
-#pragma omp parallel reduction(+ : ReferenceDofsNorm)
-        {
-            int k = OpenMPUtils::ThisThread();
-
-            typename DofsArrayType::iterator DofsBegin = rDofSet.begin() + DofSetPartition[k];
-            typename DofsArrayType::iterator DofsEnd   = rDofSet.begin() + DofSetPartition[k + 1];
-
-            for (typename DofsArrayType::iterator itDof = DofsBegin; itDof != DofsEnd; ++itDof) {
-                if (itDof->IsFree()) {
-                    const double& temp = itDof->GetSolutionStepValue();
-                    ReferenceDofsNorm += temp * temp;
-                }
-            }
-        }
-
-        return sqrt(ReferenceDofsNorm);
-    }
 }; // Class GeoMechanicsNewtonRaphsonStrategy
 
 } // namespace Kratos
