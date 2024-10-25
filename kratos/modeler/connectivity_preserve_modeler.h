@@ -196,11 +196,6 @@ private:
         const Condition& rReferenceBoundaryCondition
     ) const;
 
-    void DuplicateEntities(
-        ModelPart& rOriginModelPart,
-        ModelPart& rDestinationModelPart
-    ) const;
-
     void DuplicateCommunicatorData(
         ModelPart& rOriginModelPart,
         ModelPart& rDestinationModelPart
