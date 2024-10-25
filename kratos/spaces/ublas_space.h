@@ -740,8 +740,8 @@ public:
             }
 
             if(empty) {
-                const auto& it_Acol_indices_row_begin = r_Acol_indices.begin() + col_begin;
-                const auto& it_Acol_indices_row_end = r_Acol_indices.begin() + col_end;
+                const auto it_Acol_indices_row_begin = r_Acol_indices.begin() + col_begin;
+                const auto it_Acol_indices_row_end = r_Acol_indices.begin() + col_end;
                 const auto pos = std::lower_bound(it_Acol_indices_row_begin, it_Acol_indices_row_end, Index);
                 if (pos != it_Acol_indices_row_end) { // It was found
                     r_Avalues[pos - it_Acol_indices_begin] = scale_factor;
