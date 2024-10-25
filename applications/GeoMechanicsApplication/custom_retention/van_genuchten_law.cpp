@@ -133,7 +133,6 @@ double& VanGenuchtenLaw::CalculateValue(RetentionLaw::Parameters& rParameterValu
     return rValue;
 }
 
-//------------------------- RETENSION LAW GENERAL FEATURES ----------------------------------------
 void VanGenuchtenLaw::InitializeMaterial(const Properties&   rMaterialProperties,
                                          const GeometryType& rElementGeometry,
                                          const Vector&       rShapeFunctionsValues)

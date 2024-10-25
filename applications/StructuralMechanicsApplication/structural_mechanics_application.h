@@ -59,6 +59,10 @@
 #include "custom_elements/shell_thin_element_3D3N.hpp"
 #include "custom_elements/shell_thick_element_3D3N.hpp"
 
+
+/* Adding the bushing element */
+#include "custom_elements/bushing_element.h"
+
 /* Adding the spring damper element */
 #include "custom_elements/spring_damper_element.hpp"
 
@@ -414,6 +418,9 @@ private:
     const AxisymUpdatedLagrangian mAxisymUpdatedLagrangian2D6N;
     const AxisymUpdatedLagrangian mAxisymUpdatedLagrangian2D8N;
     const AxisymUpdatedLagrangian mAxisymUpdatedLagrangian2D9N;
+
+    // Adding the bushing element
+    const BushingElement mBushingElement3D2N;    
 
     // Adding the spring damper element
     const SpringDamperElement<2> mSpringDamperElement2D;
