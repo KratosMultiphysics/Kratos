@@ -93,9 +93,8 @@ Geometry<Node>::Pointer CreateQuadrilateral2D4N(
 
 KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer SetupPipingStrategy(Model& rModel)
 {
-    using SparseSpaceType  = UblasSpace<double, CompressedMatrix, Vector>;
-    using LocalSpaceType   = UblasSpace<double, Matrix, Vector>;
-    using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType>;
+    using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
+    using LocalSpaceType  = UblasSpace<double, Matrix, Vector>;
 
     auto& r_model_part = rModel.CreateModelPart("ModelPart", 1);
     r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
