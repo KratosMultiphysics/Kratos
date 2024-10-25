@@ -50,8 +50,6 @@ public:
     using GrandMotherType::mpDx; // Delta x of iteration i
     using GrandMotherType::mpScheme;
     using GrandMotherType::mReformDofSetAtEachStep;
-    using MotherType::mSubModelPartList;
-    using MotherType::mVariableNames;
 
     GeoMechanicsRammArcLengthStrategy(ModelPart&                      model_part,
                                       typename TSchemeType::Pointer   pScheme,
@@ -75,6 +73,22 @@ public:
               ReformDofSetAtEachStep,
               MoveMeshFlag)
     {
+        // Set Load SubModelParts and Variable names
+        if (rParameters["loads_sub_model_part_list"].size() > 0) {
+            mSubModelPartList.resize(rParameters["loads_sub_model_part_list"].size());
+            mVariableNames.resize(rParameters["loads_variable_list"].size());
+
+            if (mSubModelPartList.size() != mVariableNames.size())
+                KRATOS_ERROR << "For each SubModelPart there must be a corresponding nodal Variable"
+                             << std::endl;
+
+            for (unsigned int i = 0; i < mVariableNames.size(); ++i) {
+                mSubModelPartList[i] =
+                    &(model_part.GetSubModelPart(rParameters["loads_sub_model_part_list"][i].GetString()));
+                mVariableNames[i] = rParameters["loads_variable_list"][i].GetString();
+            }
+        }
+
         mDesiredIterations = rParameters["desired_iterations"].GetInt();
         mMaxRadiusFactor   = rParameters["max_radius_factor"].GetDouble();
         mMinRadiusFactor   = rParameters["min_radius_factor"].GetDouble();
@@ -561,6 +575,9 @@ private:
 
         return sqrt(ReferenceDofsNorm);
     }
+
+    std::vector<ModelPart*> mSubModelPartList; // List of every SubModelPart associated to an external load
+    std::vector<std::string> mVariableNames; // Name of the nodal variable associated to every SubModelPart
 }; // Class GeoMechanicsRammArcLengthStrategy
 
 } // namespace Kratos
