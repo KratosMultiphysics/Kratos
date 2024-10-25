@@ -503,7 +503,6 @@ class GeoMechanicalSolver(PythonSolver):
             self.strategy_params.AddValue("max_piping_iterations", self.settings["max_piping_iterations"])
             solving_strategy = GeoMechanicsApplication.GeoMechanicsNewtonRaphsonErosionProcessStrategy(self.computing_model_part,
                                                                                                        self.scheme,
-                                                                                                       self.linear_solver,
                                                                                                        self.convergence_criterion,
                                                                                                        builder_and_solver,
                                                                                                        self.strategy_params,

@@ -54,7 +54,6 @@ public:
 
     GeoMechanicsNewtonRaphsonErosionProcessStrategy(ModelPart&                    model_part,
                                                     typename TSchemeType::Pointer pScheme,
-                                                    typename TLinearSolver::Pointer,
                                                     typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
                                                     typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
                                                     Parameters& rParameters,
