@@ -61,7 +61,7 @@ private:
     ModelPart& mModelPart;
 };
 
-const array_1d<double, 3> GravityArray{0, 9.81, 0};
+const array_1d<double, 3> GravitationalForce{0, 9.81, 0};
 
 Node::Pointer CreateNodeWithFastSolutionStepValues(ModelPart& rModelPart, int Id, double X, double Y, double WaterPressure)
 {
@@ -71,7 +71,7 @@ Node::Pointer CreateNodeWithFastSolutionStepValues(ModelPart& rModelPart, int Id
     p_node->SetLock();
 
     p_node->FastGetSolutionStepValue(WATER_PRESSURE)      = WaterPressure;
-    p_node->FastGetSolutionStepValue(VOLUME_ACCELERATION) = GravityArray;
+    p_node->FastGetSolutionStepValue(VOLUME_ACCELERATION) = GravitationalForce;
 
     p_node->UnSetLock();
 
