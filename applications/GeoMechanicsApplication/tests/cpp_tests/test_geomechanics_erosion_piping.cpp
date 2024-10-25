@@ -7,7 +7,7 @@
 //
 //  License:         geo_mechanics_application/license.txt
 //
-//  Main authors:    Aron Noordam
+//  Main authors:    Gennady Markelov
 //
 
 #include <string>
@@ -26,23 +26,30 @@ namespace Kratos
 {
 template <class TSparseSpace, class TDenseSpace, class TLinearSolver>
 class MockGeoMechanicsNewtonRaphsonErosionProcessStrategy
-    : public GeoMechanicsNewtonRaphsonErosionProcessStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+    : public GeoMechanicsNewtonRaphsonErosionProcessStrategy<
+        TSparseSpace, TDenseSpace, TLinearSolver>
 {
 public:
     using BaseType = ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>;
     using TConvergenceCriteriaType = ConvergenceCriteria<TSparseSpace, TDenseSpace>;
-    using TBuilderAndSolverType    = typename BaseType::TBuilderAndSolverType;
-    using TSchemeType              = typename BaseType::TSchemeType;
+    using TBuilderAndSolverType = typename BaseType::TBuilderAndSolverType;
+    using TSchemeType = typename BaseType::TSchemeType;
 
     MockGeoMechanicsNewtonRaphsonErosionProcessStrategy(ModelPart&                    model_part,
                                                         typename TSchemeType::Pointer pScheme,
-                                                        typename TLinearSolver::Pointer pNewLinearSolver,
-                                                        typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
-                                                        typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
+                                                        typename TLinearSolver::Pointer
+                                                        pNewLinearSolver,
+                                                        typename TConvergenceCriteriaType::Pointer
+                                                        pNewConvergenceCriteria,
+                                                        typename TBuilderAndSolverType::Pointer
+                                                        pNewBuilderAndSolver,
                                                         Parameters& rParameters)
         : GeoMechanicsNewtonRaphsonErosionProcessStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(
-              model_part, pScheme, pNewLinearSolver, pNewConvergenceCriteria, pNewBuilderAndSolver, rParameters),
-          mModelPart(model_part){};
+              model_part, pScheme, pNewLinearSolver, pNewConvergenceCriteria, pNewBuilderAndSolver,
+              rParameters),
+          mModelPart(model_part)
+    {
+    };
 
 private:
     bool Recalculate() override
@@ -57,13 +64,19 @@ private:
         return true;
     }
 
-    void       BaseClassFinalizeSolutionStep() override{};
+    void BaseClassFinalizeSolutionStep() override
+    {
+    };
     ModelPart& mModelPart;
 };
 
 const array_1d<double, 3> GravityArray{0, 9.81, 0};
 
-Node::Pointer CreateNodeWithFastSolutionStepValues(ModelPart& rModelPart, int Id, double X, double Y, double WaterPressure)
+Node::Pointer CreateNodeWithFastSolutionStepValues(ModelPart& rModelPart,
+                                                   int        Id,
+                                                   double     X,
+                                                   double     Y,
+                                                   double     WaterPressure)
 {
     constexpr double z      = 0.0;
     auto             p_node = rModelPart.CreateNewNode(Id, X, Y, z);
@@ -79,7 +92,15 @@ Node::Pointer CreateNodeWithFastSolutionStepValues(ModelPart& rModelPart, int Id
 }
 
 Geometry<Node>::Pointer CreateQuadrilateral2D4N(
-    ModelPart& rModelPart, int Id1, int Id2, int Id3, int Id4, double Xmin, double Xmax, double WaterPressureLeft, double WaterPressureRight)
+    ModelPart& rModelPart,
+    int        Id1,
+    int        Id2,
+    int        Id3,
+    int        Id4,
+    double     Xmin,
+    double     Xmax,
+    double     WaterPressureLeft,
+    double     WaterPressureRight)
 {
     constexpr double y_min = -0.1;
     constexpr double y_max = 0.1;
@@ -91,7 +112,8 @@ Geometry<Node>::Pointer CreateQuadrilateral2D4N(
         CreateNodeWithFastSolutionStepValues(rModelPart, Id4, Xmin, y_max, WaterPressureLeft));
 }
 
-KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer SetupPipingStrategy(Model& rModel)
+KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer
+SetupPipingStrategy(Model& rModel)
 {
     using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
     using LocalSpaceType  = UblasSpace<double, Matrix, Vector>;
@@ -153,13 +175,16 @@ KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer Setu
     const auto p_scheme =
         Kratos::make_shared<BackwardEulerQuasistaticPwScheme<SparseSpaceType, LocalSpaceType>>();
     const auto p_builder_and_solver =
-        Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<SparseSpaceType, LocalSpaceType, KratosExecute::LinearSolverType>>(
+        Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<
+            SparseSpaceType, LocalSpaceType, KratosExecute::LinearSolverType>>(
             p_solver);
     const KratosExecute::ConvergenceVariableListType convergence_settings{};
-    const auto p_criteria = std::make_shared<KratosExecute::MixedGenericCriteriaType>(convergence_settings);
+    const auto p_criteria = std::make_shared<KratosExecute::MixedGenericCriteriaType>(
+        convergence_settings);
 
     auto p_solving_strategy =
-        Kratos::make_unique<MockGeoMechanicsNewtonRaphsonErosionProcessStrategy<SparseSpaceType, LocalSpaceType, KratosExecute::LinearSolverType>>(
+        Kratos::make_unique<MockGeoMechanicsNewtonRaphsonErosionProcessStrategy<
+            SparseSpaceType, LocalSpaceType, KratosExecute::LinearSolverType>>(
             r_model_part, p_scheme, p_solver, p_criteria, p_builder_and_solver, p_parameters);
 
     return p_solving_strategy;
