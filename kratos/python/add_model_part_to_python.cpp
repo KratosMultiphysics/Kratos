@@ -962,7 +962,8 @@ void AddModelPartToPython(pybind11::module& m)
         .def("AddMasterSlaveConstraints", AddMasterSlaveConstraintsByIds)
         .def("CreateNewMasterSlaveConstraint", CreateNewMasterSlaveConstraint1, py::return_value_policy::reference_internal)
         .def("CreateNewMasterSlaveConstraint", CreateNewMasterSlaveConstraint2, py::return_value_policy::reference_internal)
-        .def("__str__", PrintObject<ModelPart>);
+        .def("__str__", PrintObject<ModelPart>)
+        ;
 }
 
 } // namespace Kratos::Python.
