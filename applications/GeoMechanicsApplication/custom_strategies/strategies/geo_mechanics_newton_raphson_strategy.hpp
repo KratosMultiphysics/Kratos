@@ -52,16 +52,15 @@ public:
      * @brief Default constructor
      * @param rModelPart The model part of the problem
      * @param pScheme The integration scheme
-     * @param pNewLinearSolver The linear solver employed
      * @param pNewConvergenceCriteria The convergence criteria employed
      * @param MaxIterations The maximum number of iterations
      * @param CalculateReactions The flag for the reaction calculation
      * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
      * @param MoveMeshFlag The flag that allows to move the mesh
      */
-    GeoMechanicsNewtonRaphsonStrategy(ModelPart&                      model_part,
-                                      typename TSchemeType::Pointer   pScheme,
-                                      typename TLinearSolver::Pointer pNewLinearSolver,
+    GeoMechanicsNewtonRaphsonStrategy(ModelPart&                    model_part,
+                                      typename TSchemeType::Pointer pScheme,
+                                      typename TLinearSolver::Pointer,
                                       typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
                                       typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
                                       Parameters&                             rParameters,
@@ -70,15 +69,7 @@ public:
                                       bool ReformDofSetAtEachStep                           = false,
                                       bool MoveMeshFlag                                     = false)
         : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(
-              model_part,
-              pScheme,
-              /*pNewLinearSolver,*/
-              pNewConvergenceCriteria,
-              pNewBuilderAndSolver,
-              MaxIterations,
-              CalculateReactions,
-              ReformDofSetAtEachStep,
-              MoveMeshFlag)
+              model_part, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
     {
         // only include validation with c++11 since raw_literals do not exist in c++03
         Parameters default_parameters(R"(

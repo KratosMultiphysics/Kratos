@@ -578,6 +578,7 @@ private:
 
     std::vector<ModelPart*> mSubModelPartList; // List of every SubModelPart associated to an external load
     std::vector<std::string> mVariableNames; // Name of the nodal variable associated to every SubModelPart
+
 }; // Class GeoMechanicsRammArcLengthStrategy
 
 } // namespace Kratos
