@@ -121,7 +121,7 @@ void AddCustomStrategiesToPython(pybind11::module& m)
 
     py::class_<GeoMechanicsRammArcLengthStrategyType, typename GeoMechanicsRammArcLengthStrategyType::Pointer, BaseSolvingStrategyType>(
         m, "GeoMechanicsRammArcLengthStrategy")
-        .def(py::init<ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
+        .def(py::init<ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer,
                       BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool>())
         .def("UpdateLoads", &GeoMechanicsRammArcLengthStrategyType::UpdateLoads);
 

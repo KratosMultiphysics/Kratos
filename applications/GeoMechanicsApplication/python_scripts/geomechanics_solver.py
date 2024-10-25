@@ -544,7 +544,6 @@ class GeoMechanicalSolver(PythonSolver):
             self.strategy_params.AddValue("loads_variable_list",self.settings["loads_variable_list"])
             solving_strategy = GeoMechanicsApplication.GeoMechanicsRammArcLengthStrategy(self.computing_model_part,
                                                                                          self.scheme,
-                                                                                         self.linear_solver,
                                                                                          self.convergence_criterion,
                                                                                          builder_and_solver,
                                                                                          self.strategy_params,
