@@ -750,6 +750,8 @@ public:
                     KRATOS_ERROR << "Diagonal term (" << Index << ", " << Index << ") is not defined in the system matrix" << std::endl;
                 }
             #else
+                } else {
+                    KRATOS_WARNING("UblasSpace") << "Diagonal term (" << Index << ", " << Index << ") is not defined in the system matrix" << std::endl;
                 }
             #endif
                 rb[Index] = 0.0;
