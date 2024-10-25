@@ -708,11 +708,16 @@ public:
         const SCALING_DIAGONAL ScalingDiagonal = SCALING_DIAGONAL::NO_SCALING
         )
     {
+        // The system size
         const std::size_t system_size = rA.size1();
 
+        // The matrix data
         auto& r_Avalues = rA.value_data();
         const auto& r_Arow_indices = rA.index1_data();
         const auto& r_Acol_indices = rA.index2_data();
+
+        // Define the iterators
+        const auto& it_Acol_indices_begin = r_Acol_indices.begin();
 
         // Define  zero value tolerance
         const double zero_tolerance = std::numeric_limits<double>::epsilon();
@@ -735,9 +740,11 @@ public:
             }
 
             if(empty) {
-                const auto pos = std::lower_bound(&r_Acol_indices[col_begin], &r_Acol_indices[col_end], Index);
-                if (pos != &r_Acol_indices[col_end]) { // It was found
-                    r_Avalues[pos - &r_Acol_indices[0]] = scale_factor;
+                const auto& it_Acol_indices_row_begin = r_Acol_indices.begin() + col_begin;
+                const auto& it_Acol_indices_row_end = r_Acol_indices.begin() + col_end;
+                const auto pos = std::lower_bound(it_Acol_indices_row_begin, it_Acol_indices_row_end, Index);
+                if (pos != it_Acol_indices_row_end) { // It was found
+                    r_Avalues[pos - it_Acol_indices_begin] = scale_factor;
             #ifdef KRATOS_DEBUG
                 } else {
                     KRATOS_ERROR << "Diagonal term (" << Index << ", " << Index << ") is not defined in the system matrix" << std::endl;
