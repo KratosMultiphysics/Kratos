@@ -31,6 +31,9 @@ else:
 from KratosMultiphysics.python_solver import PythonSolver
 from KratosMultiphysics import auxiliary_solver_utilities
 
+# Importing kratos utilites
+from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
+
 def CreateSolver(model, custom_settings):
     return ConvectionDiffusionSolver(model, custom_settings)
 
@@ -86,6 +89,8 @@ class ConvectionDiffusionSolver(PythonSolver):
                 raise Exception('Please specify a "domain_size" >= 0!')
             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
             self.solver_imports_model_part = True
+
+        self._skip_element_and_conditions_replacement = False #TODO: Remove once we remove the I/O from the solver
 
         KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Construction finished")
 
@@ -262,14 +267,18 @@ class ConvectionDiffusionSolver(PythonSolver):
     def PrepareModelPart(self):
         assign_neighbour_elements = self.settings["assign_neighbour_elements_to_conditions"].GetBool()
         if not self.is_restarted():
+            ## Replace default elements and conditions
+            use_input_model_part = self.settings["model_import_settings"]["input_type"].GetString() == "use_input_model_part"
+            if not use_input_model_part:
+                IssueDeprecationWarning("::[ConvectionDiffusionSolver]:: ", "Solver-based import model part mechanism is deprecated. Please update to modeler-based one.")
+                KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part,self._get_element_condition_replace_settings()).Execute()
+
             # Import material properties
             materials_imported = self.import_materials()
             if materials_imported:
                 KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Materials were successfully imported.")
             else:
                 KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Materials were not imported.")
-
-            KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part,self._get_element_condition_replace_settings()).Execute()
 
             tmoc = KratosMultiphysics.TetrahedralMeshOrientationCheck
             throw_errors = False
@@ -760,7 +769,7 @@ class ConvectionDiffusionSolver(PythonSolver):
 
     def _GetConvectionDiffusionSettings(self):
         if not hasattr(self, '_convection_diffusion_settings'):
-            self._convection_diffusion_settings = self._CreateConvectionDiffusionSettings(self)
+            self._convection_diffusion_settings = self._CreateConvectionDiffusionSettings()
         return self._convection_diffusion_settings
 
     def _CreateConvectionDiffusionSettings(self):

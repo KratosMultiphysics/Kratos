@@ -119,8 +119,6 @@ void ConnectivityPreserveModeler::GenerateModelPart(
 
     this->CopyCommonData(rOriginModelPart, rDestinationModelPart);
 
-    this->DuplicateEntities(rOriginModelPart, rDestinationModelPart);
-
     this->DuplicateCommunicatorData(rOriginModelPart,rDestinationModelPart);
 
     this->DuplicateSubModelParts(rOriginModelPart, rDestinationModelPart);
@@ -161,7 +159,6 @@ void ConnectivityPreserveModeler::SetupModelPart()
             r_destination_model_part,
             KratosComponents<Condition>::Get(condition_name));
     } else {
-        KRATOS_INFO("ConnectivityPreserveModeler") << "Generating destination model part with default Kratos elements and conditions." << std::endl;
         GenerateModelPart(r_origin_model_part, r_destination_model_part);
     }
 }
@@ -285,40 +282,6 @@ void ConnectivityPreserveModeler::DuplicateConditions(
     rDestinationModelPart.AddConditions(temp_conditions.begin(), temp_conditions.end());
 }
 
-void ConnectivityPreserveModeler::DuplicateEntities(
-    ModelPart& rOriginModelPart,
-    ModelPart& rDestinationModelPart) const
-{
-    // Set the geometries to entities maps
-    const auto& r_elems_map = SetGeometryElementMap();
-    const auto& r_conds_map = SetGeometryConditionMap();
-
-    // Generate the elements
-    ModelPart::ElementsContainerType temp_elements;
-    temp_elements.reserve(rOriginModelPart.NumberOfElements());
-    temp_elements.reserve(rOriginModelPart.NumberOfElements());
-    for (auto it_elem = rOriginModelPart.ElementsBegin(); it_elem != rOriginModelPart.ElementsEnd(); ++it_elem) {
-        // Create the new element reusing the geometry of the old one (to save memory)
-        const auto& r_ref_elem = r_elems_map.at(it_elem->GetGeometry().GetGeometryType());
-        auto p_element = r_ref_elem.Create(it_elem->Id(), it_elem->pGetGeometry(), it_elem->pGetProperties());
-        // Add the new element to the temporary container
-        temp_elements.push_back(p_element);
-    }
-    rDestinationModelPart.AddElements(temp_elements.begin(), temp_elements.end());
-
-    // Generate the conditions
-    ModelPart::ConditionsContainerType temp_conditions;
-    temp_conditions.reserve(rOriginModelPart.NumberOfConditions());
-    for (auto it_cond = rOriginModelPart.ConditionsBegin(); it_cond != rOriginModelPart.ConditionsEnd(); ++it_cond) {
-        // Create the new condition reusing the geometry of the old one (to save memory)
-        const auto& r_ref_cond = r_conds_map.at(it_cond->GetGeometry().GetGeometryType());
-        Condition::Pointer p_condition = r_ref_cond.Create(it_cond->Id(), it_cond->pGetGeometry(), it_cond->pGetProperties());
-        // Add the new condition to the temporary container
-        temp_conditions.push_back(p_condition);
-    }
-    rDestinationModelPart.AddConditions(temp_conditions.begin(), temp_conditions.end());
-}
-
 void ConnectivityPreserveModeler::DuplicateCommunicatorData(
     ModelPart& rOriginModelPart,
     ModelPart& rDestinationModelPart) const
@@ -398,66 +361,21 @@ ModelPart& rDestinationModelPart) const
             destination_part.AddConditions(ids, 0);
         }
 
+        // Execute only if there are geometries in the destination
+        if (rDestinationModelPart.NumberOfGeometries() > 0) {
+            ids.reserve(i_part->NumberOfGeometries());
+            for (const auto& r_geom : i_part->Geometries()) {
+                ids.push_back(r_geom.Id());
+            }
+            destination_part.AddGeometries(ids);
+        }
+
         // Duplicate the Communicator for this SubModelPart
         this->DuplicateCommunicatorData(*i_part, destination_part);
 
         // Recursively call this function to duplicate any child SubModelParts
         this->DuplicateSubModelParts(*i_part, destination_part);
     }
-}
-
-ConnectivityPreserveModeler::GeometryElementMapType ConnectivityPreserveModeler::SetGeometryElementMap() const
-{
-    GeometryElementMapType geom_elem_map = {
-        {GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4, KratosComponents<Element>::Get("Element2D4N")},
-        {GeometryData::KratosGeometryType::Kratos_Quadrilateral2D8, KratosComponents<Element>::Get("Element2D8N")},
-        {GeometryData::KratosGeometryType::Kratos_Quadrilateral2D9, KratosComponents<Element>::Get("Element2D9N")},
-        {GeometryData::KratosGeometryType::Kratos_Triangle2D3, KratosComponents<Element>::Get("Element2D3N")},
-        {GeometryData::KratosGeometryType::Kratos_Triangle2D6, KratosComponents<Element>::Get("Element2D6N")},
-        {GeometryData::KratosGeometryType::Kratos_Hexahedra3D8, KratosComponents<Element>::Get("Element3D8N")},
-        {GeometryData::KratosGeometryType::Kratos_Hexahedra3D20, KratosComponents<Element>::Get("Element3D20N")},
-        {GeometryData::KratosGeometryType::Kratos_Hexahedra3D20, KratosComponents<Element>::Get("Element3D27N")},
-        {GeometryData::KratosGeometryType::Kratos_Prism3D6, KratosComponents<Element>::Get("Element3D6N")},
-        {GeometryData::KratosGeometryType::Kratos_Prism3D15, KratosComponents<Element>::Get("Element3D15N")},
-        {GeometryData::KratosGeometryType::Kratos_Pyramid3D5, KratosComponents<Element>::Get("Element3D5N")},
-        {GeometryData::KratosGeometryType::Kratos_Pyramid3D13, KratosComponents<Element>::Get("Element3D13N")},
-        {GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10, KratosComponents<Element>::Get("Element3D10N")},
-        {GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4, KratosComponents<Element>::Get("Element3D4N")},
-        {GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4, KratosComponents<Element>::Get("SurfaceElement3D4N")},
-        {GeometryData::KratosGeometryType::Kratos_Quadrilateral3D8, KratosComponents<Element>::Get("SurfaceElement3D8N")},
-        {GeometryData::KratosGeometryType::Kratos_Quadrilateral3D9, KratosComponents<Element>::Get("SurfaceElement3D9N")},
-        {GeometryData::KratosGeometryType::Kratos_Triangle3D3, KratosComponents<Element>::Get("SurfaceElement3D3N")},
-        {GeometryData::KratosGeometryType::Kratos_Triangle3D6, KratosComponents<Element>::Get("SurfaceElement3D6N")},
-        {GeometryData::KratosGeometryType::Kratos_Line2D2, KratosComponents<Element>::Get("LineElement2D2N")},
-        {GeometryData::KratosGeometryType::Kratos_Line2D3, KratosComponents<Element>::Get("LineElement2D3N")},
-        {GeometryData::KratosGeometryType::Kratos_Line3D2, KratosComponents<Element>::Get("LineElement3D2N")},
-        {GeometryData::KratosGeometryType::Kratos_Line3D3, KratosComponents<Element>::Get("LineElement3D3N")},
-        {GeometryData::KratosGeometryType::Kratos_Point2D, KratosComponents<Element>::Get("PointElement2D1N")},
-        {GeometryData::KratosGeometryType::Kratos_Point3D, KratosComponents<Element>::Get("PointElement3D1N")},
-    };
-
-        return geom_elem_map;
-}
-
-ConnectivityPreserveModeler::GeometryConditionMapType ConnectivityPreserveModeler::SetGeometryConditionMap() const
-{
-    GeometryConditionMapType geom_cond_map = {
-        {GeometryData::KratosGeometryType::Kratos_Line2D2, KratosComponents<Condition>::Get("LineCondition2D2N")},
-        {GeometryData::KratosGeometryType::Kratos_Line2D3, KratosComponents<Condition>::Get("LineCondition2D3N")},
-        {GeometryData::KratosGeometryType::Kratos_Line3D2, KratosComponents<Condition>::Get("LineCondition3D2N")},
-        {GeometryData::KratosGeometryType::Kratos_Line3D3, KratosComponents<Condition>::Get("LineCondition3D3N")},
-        {GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4, KratosComponents<Condition>::Get("SurfaceCondition3D4N")},
-        {GeometryData::KratosGeometryType::Kratos_Quadrilateral3D8, KratosComponents<Condition>::Get("SurfaceCondition3D8N")},
-        {GeometryData::KratosGeometryType::Kratos_Quadrilateral3D9, KratosComponents<Condition>::Get("SurfaceCondition3D9N")},
-        {GeometryData::KratosGeometryType::Kratos_Triangle3D3, KratosComponents<Condition>::Get("SurfaceCondition3D3N")},
-        {GeometryData::KratosGeometryType::Kratos_Triangle3D6, KratosComponents<Condition>::Get("SurfaceCondition3D6N")},
-        {GeometryData::KratosGeometryType::Kratos_Point2D, KratosComponents<Condition>::Get("PointCondition2D1N")},
-        {GeometryData::KratosGeometryType::Kratos_Point3D, KratosComponents<Condition>::Get("PointCondition3D1N")},
-        {GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4, KratosComponents<Condition>::Get("PrismCondition2D4N")},
-        {GeometryData::KratosGeometryType::Kratos_Prism3D6, KratosComponents<Condition>::Get("PrismCondition3D6N")},
-    };
-
-    return geom_cond_map;
 }
 
 }

@@ -26,9 +26,9 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/define_registry.h"
 #include "includes/model_part.h"
 #include "modeler/modeler.h"
-
 
 namespace Kratos
 {
@@ -45,9 +45,9 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(ConnectivityPreserveModeler);
 
-    using GeometryElementMapType = std::unordered_map<GeometryData::KratosGeometryType, const Element&>;
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Modelers.KratosMultiphysics", Modeler, ConnectivityPreserveModeler)
 
-    using GeometryConditionMapType = std::unordered_map<GeometryData::KratosGeometryType, const Condition&>;
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Modelers.All", Modeler, ConnectivityPreserveModeler)
 
     ///@}
     ///@name Life Cycle
@@ -137,12 +137,12 @@ public:
 
     /// Generate a copy of rOriginModelPart in rDestinationModelPart.
     /** This function fills rDestinationModelPart using data obtained from
-     *  rOriginModelPart. The entities of rDestinationModelPart part use the
-     *  same connectivity (and id) as in rOriginModelPart and their type is
-     *  determined according to the corresponding geometry of the entity.
-     *  Note that both ModelParts will share the same nodes, as well as
-     *  ProcessInfo and tables. SubModelParts and, in MPI, communicator data
-     *  will be replicated in DestinationModelPart.
+     *  rOriginModelPart. The geometries of the rDestinationModelPart use
+     *  the same connectivity (and id) as in rOriginModelPart and their type
+     *  is determined according to the corresponding geometry of the entity.
+     *  Note that both ModelParts will share the same nodes, geometries, as
+     *  well as ProcessInfo and tables. SubModelParts and, in MPI, communicator
+     *  data will be replicated in DestinationModelPart.
      *  @param rOriginModelPart The source ModelPart.
      *  @param rDestinationModelPart The ModelPart to be filled by this function
      */
@@ -210,10 +210,6 @@ private:
         ModelPart& rOriginModelPart,
         ModelPart& rDestinationModelPart
     ) const;
-
-    GeometryElementMapType SetGeometryElementMap() const;
-
-    GeometryConditionMapType SetGeometryConditionMap() const;
 
     ///@}
     ///@name Private members
