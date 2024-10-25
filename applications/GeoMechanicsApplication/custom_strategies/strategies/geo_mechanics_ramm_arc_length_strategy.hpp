@@ -51,9 +51,9 @@ public:
     using GrandMotherType::mpScheme;
     using GrandMotherType::mReformDofSetAtEachStep;
 
-    GeoMechanicsRammArcLengthStrategy(ModelPart&                      model_part,
-                                      typename TSchemeType::Pointer   pScheme,
-                                      typename TLinearSolver::Pointer pNewLinearSolver,
+    GeoMechanicsRammArcLengthStrategy(ModelPart&                    model_part,
+                                      typename TSchemeType::Pointer pScheme,
+                                      typename TLinearSolver::Pointer,
                                       typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
                                       typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
                                       Parameters&                             rParameters,
@@ -62,16 +62,7 @@ public:
                                       bool ReformDofSetAtEachStep                           = false,
                                       bool MoveMeshFlag                                     = false)
         : GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(
-              model_part,
-              pScheme,
-              pNewLinearSolver,
-              pNewConvergenceCriteria,
-              pNewBuilderAndSolver,
-              rParameters,
-              MaxIterations,
-              CalculateReactions,
-              ReformDofSetAtEachStep,
-              MoveMeshFlag)
+              model_part, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, rParameters, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
     {
         // Set Load SubModelParts and Variable names
         if (rParameters["loads_sub_model_part_list"].size() > 0) {

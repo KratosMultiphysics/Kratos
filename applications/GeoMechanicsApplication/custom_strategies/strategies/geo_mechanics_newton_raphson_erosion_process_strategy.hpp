@@ -54,7 +54,7 @@ public:
 
     GeoMechanicsNewtonRaphsonErosionProcessStrategy(ModelPart&                    model_part,
                                                     typename TSchemeType::Pointer pScheme,
-                                                    typename TLinearSolver::Pointer pNewLinearSolver,
+                                                    typename TLinearSolver::Pointer,
                                                     typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
                                                     typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
                                                     Parameters& rParameters,
@@ -63,16 +63,7 @@ public:
                                                     bool        ReformDofSetAtEachStep = false,
                                                     bool        MoveMeshFlag           = false)
         : GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(
-              model_part,
-              pScheme,
-              pNewLinearSolver,
-              pNewConvergenceCriteria,
-              pNewBuilderAndSolver,
-              rParameters,
-              MaxIterations,
-              CalculateReactions,
-              ReformDofSetAtEachStep,
-              MoveMeshFlag)
+              model_part, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, rParameters, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
     {
         rank              = model_part.GetCommunicator().MyPID();
         mPipingIterations = rParameters["max_piping_iterations"].GetInt();

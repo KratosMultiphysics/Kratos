@@ -110,7 +110,7 @@ void AddCustomStrategiesToPython(pybind11::module& m)
 
     py::class_<GeoMechanicsNewtonRaphsonStrategyType, typename GeoMechanicsNewtonRaphsonStrategyType::Pointer, BaseSolvingStrategyType>(
         m, "GeoMechanicsNewtonRaphsonStrategy")
-        .def(py::init<ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
+        .def(py::init<ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer,
                       BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool>());
 
     py::class_<GeoMechanicsNewtonRaphsonErosionProcessStrategyType,
