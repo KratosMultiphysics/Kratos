@@ -327,7 +327,7 @@ private:
         case CalculationContribution::Compressibility:
             return std::make_unique<CompressibilityCalculator>(CreateCompressibilityInputProvider(rCurrentProcessInfo));
         default:
-            KRATOS_ERROR << "Unknown contribution: " << rContribution << std::endl;
+            KRATOS_ERROR << "Unknown contribution" << std::endl;
         }
     }
 
@@ -374,9 +374,7 @@ private:
 
     static auto GetDtPressureCoefficientLambda(const ProcessInfo& rCurrentProcessInfo)
     {
-        return [&rCurrentProcessInfo]() -> double {
-            return rCurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
-        };
+        return [&rCurrentProcessInfo]() { return rCurrentProcessInfo[DT_PRESSURE_COEFFICIENT]; };
     }
 
     auto GetNodalVariableLambda() const
@@ -387,7 +385,7 @@ private:
 
     auto GetShapeFunctionLocalGradientsLambda()
     {
-        return [this]() -> GeometryType::ShapeFunctionsGradientsType {
+        return [this]() {
             Vector det_J_container;
             GetGeometry().DeterminantOfJacobian(det_J_container, this->GetIntegrationMethod());
             GeometryType::ShapeFunctionsGradientsType dN_dX_container =

@@ -14,6 +14,6 @@
 namespace Kratos
 {
 
-enum CalculationContribution { Permeability, Compressibility };
+enum class CalculationContribution { Permeability, Compressibility };
 
 }
