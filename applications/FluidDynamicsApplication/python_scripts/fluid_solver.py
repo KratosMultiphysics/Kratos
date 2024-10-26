@@ -45,7 +45,7 @@ class FluidSolver(PythonSolver):
         self.element_name = None
         self.condition_name = None
         self.min_buffer_size = 3
-        self._skip_element_and_conditions_replacement = False #TODO: Remove once we remove the I/O from the solver
+        self._enforce_element_and_conditions_replacement = False #TODO: Remove once we remove the I/O from the solver
 
         # Either retrieve the model part from the model or create a new one
         model_part_name = self.settings["model_part_name"].GetString()
@@ -89,16 +89,14 @@ class FluidSolver(PythonSolver):
 
     def PrepareModelPart(self):
         if not self.is_restarted():
-            ## Replace default elements and conditions
-            use_input_model_part = self.settings["model_import_settings"]["input_type"].GetString() == "use_input_model_part"
-            if not (use_input_model_part and self._skip_element_and_conditions_replacement):
-                self._ReplaceElementsAndConditions()
-
             ## Set fluid properties from materials json file
             materials_imported = self._SetPhysicalProperties()
             if not materials_imported:
                 KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, "Material properties have not been imported. Check \'material_import_settings\' in your ProjectParameters.json.")
-
+            ## Replace default elements and conditions
+            use_input_model_part = self.settings["model_import_settings"]["input_type"].GetString() == "use_input_model_part"
+            if not (use_input_model_part and self._enforce_element_and_conditions_replacement):
+                self._ReplaceElementsAndConditions()
             ## Set and fill buffer
             self._SetAndFillBuffer()
 

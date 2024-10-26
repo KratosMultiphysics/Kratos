@@ -12,9 +12,6 @@ from KratosMultiphysics.FSIApplication import convergence_accelerator_factory
 # Importing the base class
 from KratosMultiphysics.python_solver import PythonSolver
 
-# Importing kratos utilites
-from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
-
 def CreateSolver(main_model_part, custom_settings):
     return ConjugateHeatTransferSolver(main_model_part, custom_settings)
 
@@ -169,32 +166,25 @@ class ConjugateHeatTransferSolver(PythonSolver):
         # Import the fluid domain in the fluid dynamics solver
         self.fluid_solver.ImportModelPart()
 
-        # Create the fluid thermal model part entities
-        # Note that this is supposed to be already done by the modelers call in the stage
-        fluid_thermal_n_elems = self.fluid_thermal_solver.main_model_part.NumberOfElements()
-        fluid_thermal_n_conds = self.fluid_thermal_solver.main_model_part.NumberOfConditions()
-        if (fluid_thermal_n_elems == 0 and fluid_thermal_n_conds == 0):
-            # Keep this for backwards compatibility
-            IssueDeprecationWarning("ConjugateHeatTransferSolver","Fluid thermal model part should be created by the analysis stage modelers.")
+        # In order to consider the buoyancy effects, the nodes in the fluid model part must
+        # be shared with the nodes in the fluid thermal model part. To do that, we use the modeler
+        # Save the convection diffusion settings
+        convection_diffusion_settings = self.fluid_thermal_solver.main_model_part.ProcessInfo.GetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS)
 
-            # In order to consider the buoyancy effects, the nodes in the fluid model part must
-            # be shared with the nodes in the fluid thermal model part. To do that, we use the modeler
-            # Here the fluid model part is cloned to be thermal model part so that the nodes are shared
-            modeler = KratosMultiphysics.ConnectivityPreserveModeler()
-            if(self.domain_size == 2):
-                modeler.GenerateModelPart(self.fluid_solver.main_model_part,
-                                        self.fluid_thermal_solver.main_model_part,
-                                        "Element2D3N",
-                                        "LineCondition2D2N")
-            else:
-                modeler.GenerateModelPart(self.fluid_solver.main_model_part,
-                                        self.fluid_thermal_solver.main_model_part,
-                                        "Element3D4N",
-                                        "SurfaceCondition3D3N")
+        # Here the fluid model part is cloned to be thermal model part so that the nodes are shared
+        modeler = KratosMultiphysics.ConnectivityPreserveModeler()
+        if(self.domain_size == 2):
+            modeler.GenerateModelPart(self.fluid_solver.main_model_part,
+                                      self.fluid_thermal_solver.main_model_part,
+                                      "Element2D3N",
+                                      "LineCondition2D2N")
+        else:
+            modeler.GenerateModelPart(self.fluid_solver.main_model_part,
+                                      self.fluid_thermal_solver.main_model_part,
+                                      "Element3D4N",
+                                      "SurfaceCondition3D3N")
 
-        # Set the saved convection diffusion settings to the fluid thermal model part ProcessInfo
-        # Note that the ProcessInfo ones are overwritten when calling the connectivity preserve modeller
-        convection_diffusion_settings = self.fluid_thermal_solver._GetConvectionDiffusionSettings()
+        # Set the saved convection diffusion settings to the new thermal model part
         self.fluid_thermal_solver.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, convection_diffusion_settings)
 
         # Confirm that the buffer size in the shared nodes is the maximum required one
