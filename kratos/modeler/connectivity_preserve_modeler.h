@@ -135,8 +135,9 @@ public:
         const Condition& rReferenceCondition
     );
 
-    /// Generate a copy of rOriginModelPart in rDestinationModelPart.
-    /** This function fills rDestinationModelPart using data obtained from
+    /**
+     * @briefGenerate a copy of rOriginModelPart in rDestinationModelPart.
+     * @details This function fills rDestinationModelPart using data obtained from
      *  rOriginModelPart. The geometries of the rDestinationModelPart use
      *  the same connectivity (and id) as in rOriginModelPart and their type
      *  is determined according to the corresponding geometry of the entity.
