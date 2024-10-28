@@ -35,7 +35,7 @@ add_app ${KRATOS_APP_DIR}/LinearSolversApplication;
 add_app ${KRATOS_APP_DIR}/ConstitutiveLawsApplication;
 # add_app ${KRATOS_APP_DIR}/FemToDemApplication;
 # add_app ${KRATOS_APP_DIR}/PfemFluidDynamicsApplication;
-add_app ${KRATOS_APP_DIR}/DelaunayMeshingApplication;
+# add_app ${KRATOS_APP_DIR}/DelaunayMeshingApplication;
 add_app ${KRATOS_APP_DIR}/MeshingApplication;
 add_app ${KRATOS_APP_DIR}/DemStructuresCouplingApplication;
 add_app ${KRATOS_APP_DIR}/MeshMovingApplication;
