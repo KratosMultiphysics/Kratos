@@ -129,11 +129,11 @@ class DamageDetectionResponse(ResponseFunction):
             self.adjoint_analysis._GetSolver().GetComputingModelPart().ProcessInfo[KratosDT.TEST_ANALYSIS_NAME] = exec_policy.GetName()
             self.adjoint_analysis._GetSolver().GetComputingModelPart().ProcessInfo[Kratos.STEP] = self.optimization_problem.GetStep()
             self.adjoint_analysis.RunSolutionLoop()
-            sensitivities = self.adjoint_analysis.GetSensitivities()
 
             for physical_variable, collective_expression in physical_variable_collective_expressions.items():
                 sensitivity_variable = Kratos.KratosGlobals.GetVariable(f"{physical_variable.Name()}_SENSITIVITY")
                 for container_expression in collective_expression.GetContainerExpressions():
+                    sensitivities = self.adjoint_analysis.GetSensitivities(container_expression.GetModelPart())
                     container_expression.SetExpression((container_expression.GetExpression() - sensitivities[sensitivity_variable].GetExpression() * test_case_weight))
                     container_expression.SetExpression(Kratos.Expression.Utils.Collapse(container_expression).GetExpression())
 
