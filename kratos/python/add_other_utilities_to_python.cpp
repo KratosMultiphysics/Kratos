@@ -879,27 +879,67 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
 
     py::class_<CreateQuadraturePointsUtility<NodeType>>(m, "CreateQuadraturePointsUtility")
         .def("CreateQuadraturePoint", [](
-        GeometryType& GeometryParent,
-        SizeType WorkingSpaceDimension, SizeType LocalSpaceDimension
-        ,std::vector<std::array<double,4>>& rIntegrationPoints
+        GeometryType& Geometry,
+        SizeType WorkingSpaceDimension, 
+        SizeType LocalSpaceDimension,
+        std::array<double,4>& rIntegrationPoint,
+        Vector cp_indices,
+        Matrix N_subdiv,
+        Matrix dN_dxi_subdiv,
+        Matrix dN_deta_subdiv
         // PointsArrayType rPoints        
         // GeometriesArrayType& rResultGeometries
         ) 
         {
-            const auto default_method = GeometryParent.GetDefaultIntegrationMethod();
+
+            auto GeometryParent = Geometry.pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX);
+
+            const auto default_method = GeometryParent->GetDefaultIntegrationMethod();
 
             // IntegrationPointsContainerType integration_points;
             // ShapeFunctionsValuesContainerType shape_function_values;
             // ShapeFunctionsLocalGradientsContainerType shape_function_gradients;
-
-            IntegrationPoint<3> point_tmp(rIntegrationPoints[0][0],rIntegrationPoints[0][1],rIntegrationPoints[0][2],rIntegrationPoints[0][3]);
-
-            int num_nonzero_cps = 2;
-            Matrix N(1, num_nonzero_cps);
-            DenseVector<Matrix> shape_function_derivatives(2);
-
-            PointsArrayType nonzero_control_points(num_nonzero_cps);
             
+            IntegrationPoint<3> point_tmp(rIntegrationPoint[0],rIntegrationPoint[1],rIntegrationPoint[2],rIntegrationPoint[3]);
+            // std::cout << "point_tmp: " << point_tmp << std::endl;
+            // Define number of nonzero control points from the input
+            int num_nonzero_cps = cp_indices.size(); //
+
+            // Matrix sizes must be change in this case
+            // For a one element case, the matrix should be 1 x number of control points
+            Matrix N(1, num_nonzero_cps); //
+            Matrix dN_dxi(1, num_nonzero_cps); //
+            Matrix dN_deta(1, num_nonzero_cps); //
+            Matrix dN(num_nonzero_cps,2); 
+            for(int i=0; i<num_nonzero_cps; i++)
+            {
+                N(0,i) = N_subdiv(0,i);
+                dN_dxi(0,i) = dN_dxi_subdiv(0,i);
+                dN_deta(0,i) = dN_deta_subdiv(0,i);
+
+                dN(i,0) = dN_dxi_subdiv(0,i);
+                dN(i,1) = dN_deta_subdiv(0,i);
+            }
+            DenseVector<Matrix> shape_function_derivatives(2); //
+
+            // shape_function_derivatives(0) = dN_dxi;
+            // shape_function_derivatives(1) = dN_deta;
+
+            shape_function_derivatives(0) = dN;
+            
+            // std::cout << "N: " << N << std::endl;
+            // std::cout << "shape function derivatives 1: " << shape_function_derivatives(0) << std::endl;
+            // std::cout << "shape function derivatives 2: " << shape_function_derivatives(1) << std::endl;
+
+
+            /// Get List of Control Points
+            PointsArrayType nonzero_control_points(num_nonzero_cps);
+            for (int j = 0; j < num_nonzero_cps; j++) {
+                nonzero_control_points(j) = GeometryParent->pGetPoint(cp_indices[j]);
+            }
+
+            // std::cout << "nonzero_control_points: " << nonzero_control_points << std::endl;
+
             GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
                 default_method, 
                 point_tmp,
@@ -913,7 +953,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
             //     shape_function_gradients);
 
             // return(CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePoint(WorkingSpaceDimension, LocalSpaceDimension, data_container, nonzero_control_points)); 
-            return(CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePoint(WorkingSpaceDimension, LocalSpaceDimension, data_container, nonzero_control_points, &GeometryParent)); 
+            return(CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePoint(WorkingSpaceDimension, LocalSpaceDimension, data_container, nonzero_control_points, &Geometry)); //nonzero_control_points
             })
         ;
 
