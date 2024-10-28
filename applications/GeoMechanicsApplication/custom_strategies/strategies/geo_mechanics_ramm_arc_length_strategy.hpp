@@ -19,6 +19,9 @@
 // Application includes
 #include "geo_mechanics_application_variables.h"
 
+#include <boost/numeric/ublas/vector_expression.hpp>
+#include <boost/range/adaptor/filtered.hpp>
+
 namespace Kratos
 {
 
@@ -542,28 +545,14 @@ protected:
 private:
     double CalculateReferenceDofsNorm(DofsArrayType& rDofSet)
     {
-        double ReferenceDofsNorm = 0.0;
+        auto is_free_dof = [](const auto& rDof) { return rDof.IsFree(); };
+        auto free_dofs   = rDofSet | boost::adaptors::filtered(is_free_dof);
 
-        int                          NumThreads = ParallelUtilities::GetNumThreads();
-        OpenMPUtils::PartitionVector DofSetPartition;
-        OpenMPUtils::DivideInPartitions(rDofSet.size(), NumThreads, DofSetPartition);
+        auto free_dof_values = Vector{boost::size(free_dofs)};
+        auto get_dof_value   = [](const auto& rDof) { return rDof.GetSolutionStepValue(); };
+        std::transform(std::begin(free_dofs), std::end(free_dofs), free_dof_values.begin(), get_dof_value);
 
-#pragma omp parallel reduction(+ : ReferenceDofsNorm)
-        {
-            int k = OpenMPUtils::ThisThread();
-
-            typename DofsArrayType::iterator DofsBegin = rDofSet.begin() + DofSetPartition[k];
-            typename DofsArrayType::iterator DofsEnd   = rDofSet.begin() + DofSetPartition[k + 1];
-
-            for (typename DofsArrayType::iterator itDof = DofsBegin; itDof != DofsEnd; ++itDof) {
-                if (itDof->IsFree()) {
-                    const double& temp = itDof->GetSolutionStepValue();
-                    ReferenceDofsNorm += temp * temp;
-                }
-            }
-        }
-
-        return sqrt(ReferenceDofsNorm);
+        return norm_2(free_dof_values);
     }
 
     std::vector<ModelPart*> mSubModelPartList; // List of every SubModelPart associated to an external load
