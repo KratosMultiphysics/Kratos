@@ -318,20 +318,20 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
             # Add more specific settings for point-based sbm utility
             settings.AddEmptyValue("skin_model_part_name").SetString("Skin")
 
-            #TODO remove?
-            #settings.AddEmptyValue("active_side_of_skin").SetString("positive")
-            #settings.AddEmptyValue("cross_boundary_neighbors").SetBool(False)
-
             # Store names and interface utilities for all skin model parts
-            skin_model_part_names = ["Cylinder", "VerticalPlate1", "VerticalPlate2", "VerticalPlate3"]  # ["Cylinder", "VerticalPlate1", "VerticalPlate2", "VerticalPlate3"]
+            skin_model_part_names = ["Skin"]
+            #skin_model_part_names = ["Cylinder", "VerticalPlate1", "VerticalPlate2", "VerticalPlate3"]  # ["Cylinder", "VerticalPlate1", "VerticalPlate2", "VerticalPlate3"]
             sbm_interface_utilities = []
 
             # Create an interface utility for all skin model parts
             for skin_model_part_name in skin_model_part_names:
                 # Adapt settings
                 settings["skin_model_part_name"].SetString(skin_model_part_name)
-                if skin_model_part_name == "Cylinder" and settings["use_tessellated_boundary"].GetBool() == True:
-                    settings.AddEmptyValue("enclosed_area").SetString("negative")  #TODO "find_enclosed_areas" instead --> flood fill
+                if skin_model_part_name == "Cylinder":
+                    #TODO NEXT new "find_enclosed_volumes" process instead
+                    # to determine enclosed volumes bound by inactive elements and set p=0 for one node if no node's pressure is fixed yet
+                    settings.AddEmptyValue("enclosed_area").SetString("negative")
+                    #settings.AddEmptyValue("enclosed_area").SetString("none")
                 else:
                     settings.AddEmptyValue("enclosed_area").SetString("none")
 
@@ -355,13 +355,14 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
             # Deactivate BOUNDARY elements and nodes which are surrounded by deactivated elements
             sbm_interface_utilities[0].DeactivateElementsAndNodes()
 
-            # TODO flood fill to determine enclosed areas bound by inactive elements and set p=0 for one node on the inside
-
             # Add Kratos conditions for points at the boundary based on extension operators
             # NOTE that same boundary sub model part is being used here for all skin model parts and their utilities to add conditions
             for i_skin, sbm_interface_utility in enumerate(sbm_interface_utilities):
                 sbm_interface_utility.AddSkinIntegrationPointConditions()
                 KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Integration point conditions added for skin model part " + skin_model_part_names[i_skin] + ".")
+
+            # Search for enclosed volumes and fix the pressure of one node if it has not been fixed yet
+            #sbm_interface_utilities[0].FixEnclosedVolumesPressure()
 
         elif self.level_set_type == "discontinuous":
             # Calculate the required neighbors

@@ -141,6 +141,8 @@ public:
 
     void AddSkinIntegrationPointConditions();
 
+    void FixEnclosedVolumesPressure();
+
     ///@}
     ///@name Access
     ///@{
@@ -199,14 +201,13 @@ protected:
 
     const Condition* mpConditionPrototype;
 
-    //TODO replace with
-    //bool mFindEnclosedVolumes = true;
+    bool mFindEnclosedVolumes = false;
     bool mPositiveSideIsActive = true;
     bool mNegativeSideIsActive = true;
     bool mPositiveSideIsEnclosed = false;
     bool mNegativeSideIsEnclosed = false;
 
-    bool mCrossBoundaryNeighbors = true;
+    bool mCrossBoundaryNeighbors = false;
     bool mUseTessellatedBoundary = true;
 
     /// @brief Protected empty constructor for derived classes
@@ -255,6 +256,13 @@ protected:
         AverageSkinToElementsMapType& rAvgSkinMap,
         NodesCloudMapType& rExtensionOperatorMap
     );
+
+    /*void SetLateralSupportCloud(
+        const NodeType::Pointer& rOtherSideNodes,
+        const array_1d<double,3>& rAvgSkinPosition,
+        const array_1d<double,3>& rAvgSkinNormal,
+        PointerVector<NodeType>& rCloudNodes,
+        Matrix& rCloudCoordinates);*/
 
     /**
      * @brief Set the support cloud for the same side of the boundary of which the first nodes nodes are given.
