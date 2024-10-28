@@ -28,8 +28,6 @@ Condition::Pointer PwNormalFluxCondition<TDim, TNumNodes>::Create(IndexType     
     return Condition::Pointer(new PwNormalFluxCondition(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 template <unsigned int TDim, unsigned int TNumNodes>
 void PwNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(VectorType&        rRightHandSideVector,
                                                           const ProcessInfo& CurrentProcessInfo)
@@ -75,9 +73,6 @@ void PwNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(VectorType&        rRi
     }
 }
 
-//----------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------
-
 template <unsigned int TDim, unsigned int TNumNodes>
 void PwNormalFluxCondition<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRightHandSideVector,
                                                                 NormalFluxVariables& rVariables)
@@ -85,6 +80,12 @@ void PwNormalFluxCondition<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRig
     noalias(rVariables.PVector) = -rVariables.NormalFlux * rVariables.Np * rVariables.IntegrationCoefficient;
 
     rRightHandSideVector += rVariables.PVector;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+std::string PwNormalFluxCondition<TDim, TNumNodes>::Info() const
+{
+    return "PwNormalFluxCondition";
 }
 
 template class PwNormalFluxCondition<2, 2>;

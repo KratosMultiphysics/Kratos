@@ -41,7 +41,7 @@ namespace Internals
 ///@{
 
 /// A class representing points in a mesh.
-class PointsData
+class KRATOS_API(HDF5_APPLICATION) PointsData
 {
 public:
     ///@name Type Definitions

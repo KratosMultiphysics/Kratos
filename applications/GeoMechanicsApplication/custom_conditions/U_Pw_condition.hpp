@@ -37,8 +37,6 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwCondition : public Condition
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UPwCondition);
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     UPwCondition() : UPwCondition(0, nullptr, nullptr) {}
 
     UPwCondition(IndexType NewId, GeometryType::Pointer pGeometry)
@@ -53,8 +51,6 @@ public:
 
     ~UPwCondition() override = default;
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     Condition::Pointer Create(IndexType               NewId,
                               NodesArrayType const&   ThisNodes,
                               PropertiesType::Pointer pProperties) const override;
@@ -65,19 +61,15 @@ public:
 
     void SetIntegrationMethod(IntegrationMethod method) { mThisIntegrationMethod = method; }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
                               VectorType&        rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    std::string Info() const override;
 
 protected:
     virtual void CalculateAll(MatrixType&        rLeftHandSideMatrix,
@@ -87,8 +79,6 @@ protected:
     virtual void CalculateRHS(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 
     [[nodiscard]] DofsVectorType GetDofs() const;
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
     GeometryData::IntegrationMethod mThisIntegrationMethod{Condition::GetIntegrationMethod()};
@@ -106,7 +96,6 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
     }
-
 }; // class UPwCondition.
 
 } // namespace Kratos.

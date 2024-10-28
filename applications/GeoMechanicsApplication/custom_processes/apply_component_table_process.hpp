@@ -15,6 +15,7 @@
 
 #include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
+#include "includes/model_part.h"
 #include "includes/table.h"
 #include "processes/process.h"
 

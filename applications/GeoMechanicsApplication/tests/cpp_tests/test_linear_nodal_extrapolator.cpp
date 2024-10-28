@@ -11,17 +11,18 @@
 //
 
 #include "custom_utilities/linear_nodal_extrapolator.h"
+#include "geo_mechanics_fast_suite.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/quadrilateral_2d_8.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/triangle_2d_6.h"
-#include "geo_mechanics_fast_suite.h"
 #include <boost/numeric/ublas/assignment.hpp>
 
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2D3NTriangle, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2D3NTriangle,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Kratos::Triangle2D3<Node> geometry(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0),
                                        Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0),
@@ -43,7 +44,8 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2
     KRATOS_EXPECT_MATRIX_NEAR(extrapolation_matrix, expected_extrapolation_matrix, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2D6NTriangle, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2D6NTriangle,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Kratos::Triangle2D6<Node> geometry(
         Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0), Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0),
@@ -69,7 +71,8 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2
     KRATOS_EXPECT_MATRIX_NEAR(extrapolation_matrix, expected_extrapolation_matrix, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2D4NQuadrilateral, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2D4NQuadrilateral,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Kratos::Quadrilateral2D4<Node> geometry(
         Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0), Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0),
@@ -92,7 +95,8 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2
     KRATOS_EXPECT_MATRIX_NEAR(extrapolation_matrix, expected_extrapolation_matrix, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2D8NQuadrilateral, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2D8NQuadrilateral,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Kratos::Quadrilateral2D8<Node> geometry(
         Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0), Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0),
