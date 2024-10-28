@@ -122,7 +122,7 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     this->FillFromHistoricalNodalData(Pressure,PRESSURE,r_geometry);
     this->FillFromHistoricalNodalData(NodalDensity, DENSITY, r_geometry);
     this->FillFromHistoricalNodalData(NodalDynamicViscosity, DYNAMIC_VISCOSITY, r_geometry);
-    this->FillFromHistoricalNodalData(Acceleration, FRACTIONAL_ACCELERATION, r_geometry);
+    this->FillFromHistoricalNodalData(Acceleration, FRACTIONAL_ACCELERATION, r_geometry,1);
     this->FillFromProperties(SmagorinskyConstant, C_SMAGORINSKY, r_properties);
     this->FillFromProperties(LinearDarcyCoefficient, LIN_DARCY_COEF, r_properties);
     this->FillFromProperties(NonLinearDarcyCoefficient, NONLIN_DARCY_COEF, r_properties);
