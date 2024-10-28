@@ -217,7 +217,7 @@ public:
                                            const double InitialThreshold,
                                            double& rRelaxationFactor)
     {       
-        rRelaxationFactor = -0.05276 * ((UniaxialStress + UniaxialResidualStress) / InitialThreshold) + 0.487;
+        rRelaxationFactor = (rRelaxationFactor > 1.0) ? 1.0 : (-0.05276 * ((UniaxialStress + UniaxialResidualStress) / (InitialThreshold)) + 0.487);
         // rRelaxationFactor = (InitialThreshold - UniaxialStress) / UniaxialResidualStress;  // Relaxation factor proposed by Gustafsson et al. in High cycle fatigue life estimation of punched and trimmed specimens considering residual stress and surface roughness
     }
 
@@ -252,13 +252,14 @@ public:
         const Vector& r_fatigue_coefficients = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS];
 
         // Reduction factors applied to the fatigue limit
-        double const k_residual_stress = 1 - (UniaxialResidualStress / UltimateStress); // Goodman mean stress correction
-        // double const k_residual_stress = 1 - std::pow((UniaxialResidualStress / UltimateStress), 2.0); // Gerber mean stress correction
+        double k_residual_stress = (!UniaxialResidualStress) ? 1.0 : (1 - ((UniaxialResidualStress + (0.5 + 0.5 * ReversionFactor) * MaxStress) / UltimateStress)) * std::abs((0.5 - 0.5 * ReversionFactor)); // Goodman mean stress correction
+        // double const k_residual_stress = 1 - std::pow(((UniaxialResidualStress + (0.5 + 0.5 * ReversionFactor) * MaxStress) / UltimateStress), 2.0); // Gerber mean stress correction
         double const k_roughness = (!rElementGeometry.Has(SURFACE_ROUGHNESS)) ? 1.0 : 1 - rElementGeometry.GetValue(MATERIAL_PARAMETER_C1)
                      * std::log10(rElementGeometry.GetValue(SURFACE_ROUGHNESS)) * std::log10((2 * UltimateStress) / rElementGeometry.GetValue(MATERIAL_PARAMETER_C2));
 
         //These variables have been defined following the model described by S. Oller et al. in A continuum mechanics model for mechanical fatigue analysis (2005), equation 13 on page 184.
-        const double Se = k_residual_stress * k_roughness * (r_fatigue_coefficients[0] * UltimateStress);
+        // const double Se = k_residual_stress * k_roughness * (r_fatigue_coefficients[0] * UltimateStress);
+        const double Se = r_fatigue_coefficients[0] * UltimateStress;
         const double STHR1 = r_fatigue_coefficients[1];
         const double STHR2 = r_fatigue_coefficients[2];
         const double ALFAF = r_fatigue_coefficients[3];
@@ -274,6 +275,8 @@ public:
             rSth = Se + (UltimateStress - Se) * std::pow((0.5 + 0.5 / (ReversionFactor)), STHR2);
 			rAlphat = ALFAF - (0.5 + 0.5 / (ReversionFactor)) * AUXR2;
         }
+
+        rSth *= k_residual_stress * k_roughness;
 
         const double square_betaf = std::pow(BETAF, 2.0);
 
