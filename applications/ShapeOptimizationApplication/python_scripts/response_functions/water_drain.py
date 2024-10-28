@@ -111,9 +111,7 @@ class WaterDrainResponseFunction(ResponseFunctionInterface):
         self.value = None
 
     def InitializeSolutionStep(self):
-
         self.response_function_utility.InitializeSolutionStep()
-
 
     def CalculateValue(self):
         Logger.PrintInfo("WaterDrainResponse", "Starting calculation of response value:", self.identifier)

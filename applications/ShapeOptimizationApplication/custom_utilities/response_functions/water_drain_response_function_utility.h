@@ -155,8 +155,6 @@ private:
 
 	void SearchLowPoints();
 
-	double CalculateConditionValue(const Condition& rFace);
-
 	///@}
 	///@name Static Member Variables
 	///@{
