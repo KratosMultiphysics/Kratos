@@ -248,6 +248,11 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         else:
             self.reference_T_after_laser = self.project_parameters["problem_data"]["reference_T_after_laser"].GetDouble()
 
+        if not self.project_parameters["problem_data"].Has("print_debug_info"):
+            self.print_debug_info = False
+        else:
+            self.print_debug_info = self.project_parameters["problem_data"]["print_debug_info"].GetBool()
+
         self.analytical_ablated_volume_in_n_pulses = 0.0
 
         #self.sigma = 0.5 * self.R_far

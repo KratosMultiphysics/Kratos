@@ -61,7 +61,7 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
 
             y1 = y0 - l * np.sin(theta_1 - theta_2)
 
-            incident_angle = 0 #theta_1 # TODO
+            incident_angle = theta_1
             delta_temp = self.TemperatureVariationDueToLaser(y1, l, incident_angle)
 
             old_temp = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
@@ -152,32 +152,33 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
 
     def RemoveElementsByAblation(self):
 
-        '''initial_system_energy = self.MonitorEnergy()
-        print("\n\nEnergy before laser:", initial_system_energy)'''
+        if self.print_debug_info:
+            initial_system_energy = self.MonitorEnergy()
+            print("\n\nEnergy before laser:", initial_system_energy)
 
         if not self.consider_material_refraction:
             self.ImposeTemperatureIncreaseDueToLaser()
         else:
             self.ImposeTemperatureIncreaseDueToLaserWithRefraction()
 
-        '''expected_energy_after_laser = initial_system_energy + self.Q
-        initial_system_energy = self.MonitorEnergy()
-        print("Expected energy after laser:", expected_energy_after_laser)
-        print("Actual energy after laser:", initial_system_energy)'''
+        if self.print_debug_info:
+            print("self.Q:", self.Q)
+            expected_energy_after_laser = initial_system_energy + self.Q
+            system_energy = self.MonitorEnergy()
+            print("Expected energy after laser:", expected_energy_after_laser)
+            print("Actual energy after laser:", system_energy)
+            relative_error = 100.0 * (system_energy - expected_energy_after_laser) / expected_energy_after_laser
+            print("Relative error in energy (%):", relative_error, "\n\n")
 
         self.RemoveElementsUsingEnergyPerVolumeThreshold()
 
-        '''initial_system_energy = self.MonitorEnergy()
-        print("Energy after ablation:", initial_system_energy)'''
-
-        decomp_vol = self.MonitorDecomposedVolume()
-        print("Actual volume loss due to laser:",  decomp_vol)
-
-        self.analytical_ablated_volume_in_n_pulses += self.ComputePulseVolume()
-        print("Expected volume loss due to laser:", self.analytical_ablated_volume_in_n_pulses, "\n")
-
-        relative_error = 100.0 * (decomp_vol - self.analytical_ablated_volume_in_n_pulses) / self.analytical_ablated_volume_in_n_pulses
-        print("Relative error in volume (%):", relative_error, "\n\n")
+        if self.print_debug_info:
+            decomp_vol = self.MonitorDecomposedVolume()
+            print("Actual volume loss due to laser:",  decomp_vol)
+            self.analytical_ablated_volume_in_n_pulses += self.ComputePulseVolume()
+            print("Expected volume loss due to laser:", self.analytical_ablated_volume_in_n_pulses, "\n")
+            relative_error = 100.0 * (decomp_vol - self.analytical_ablated_volume_in_n_pulses) / self.analytical_ablated_volume_in_n_pulses
+            print("Relative error in volume (%):", relative_error, "\n\n")
 
     def ResidualHeatStage(self):
         pass
