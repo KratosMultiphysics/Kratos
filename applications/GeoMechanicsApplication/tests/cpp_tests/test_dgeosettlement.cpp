@@ -43,10 +43,10 @@ const std::string parameter_json_settings = R"(
 
 int RunStage(KratosGeoSettlement& rSettlement)
 {
-    return rSettlement.RunStage(
-        "", "", [](const char*) { /* kept empty as a stub method */ },
-        [](const double) { /* kept empty as a stub method */ },
-        [](const char*) { /* kept empty as a stub method */ }, []() { return false; });
+    return rSettlement.RunStage("", "", [](const char*) { /* kept empty as a stub method */ },
+                                [](const double) { /* kept empty as a stub method */ },
+                                [](const char*) { /* kept empty as a stub method */ },
+                                []() { return false; });
 }
 
 void ExpectNumberOfReadCallsIsEqualToOne(const KratosGeoSettlement& rSettlement)
