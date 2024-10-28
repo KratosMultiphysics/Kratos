@@ -136,7 +136,7 @@ public:
     );
 
     /**
-     * @briefGenerate a copy of rOriginModelPart in rDestinationModelPart.
+     * @brief Generate a copy of rOriginModelPart in rDestinationModelPart.
      * @details This function fills rDestinationModelPart using data obtained from
      *  rOriginModelPart. The geometries of the rDestinationModelPart use
      *  the same connectivity (and id) as in rOriginModelPart and their type
