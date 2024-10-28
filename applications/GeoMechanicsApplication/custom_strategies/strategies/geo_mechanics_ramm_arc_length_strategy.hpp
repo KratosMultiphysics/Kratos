@@ -313,7 +313,7 @@ public:
             else if (mRadius < mMinRadiusFactor * mRadius_0) mRadius = mMinRadiusFactor * mRadius_0;
 
             // Update Norm of x
-            mNormxEquilibrium = this->CalculateReferenceDofsNorm(rDofSet);
+            mNormxEquilibrium = CalculateReferenceDofsNorm(rDofSet);
         } else {
             std::cout << "************ NO CONVERGENCE: restoring equilibrium path ************" << std::endl;
 
@@ -543,7 +543,7 @@ protected:
     }
 
 private:
-    double CalculateReferenceDofsNorm(DofsArrayType& rDofSet)
+    static double CalculateReferenceDofsNorm(DofsArrayType& rDofSet)
     {
         auto is_free_dof = [](const auto& rDof) { return rDof.IsFree(); };
         auto free_dofs   = rDofSet | boost::adaptors::filtered(is_free_dof);
