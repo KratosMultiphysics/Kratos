@@ -177,21 +177,35 @@ double GeometryUtils::PointDistanceToTriangle3D(
     const Point& rPoint
     )
 {
-    const array_1d<double, 3> e0 = rTrianglePoint2 - rTrianglePoint1;
-    const array_1d<double, 3> e1 = rTrianglePoint3 - rTrianglePoint1;
-    const array_1d<double, 3> dd = rTrianglePoint1 - rPoint;
+    // Compute the differences component-wise for e0
+    const double e0_0 = rTrianglePoint2[0] - rTrianglePoint1[0];
+    const double e0_1 = rTrianglePoint2[1] - rTrianglePoint1[1];
+    const double e0_2 = rTrianglePoint2[2] - rTrianglePoint1[2];
 
-    const double a = inner_prod(e0, e0);
-    const double b = inner_prod(e0, e1);
-    const double c = inner_prod(e1, e1);
-    const double d = inner_prod(e0, dd);
-    const double e = inner_prod(e1, dd);
-    const double f = inner_prod(dd, dd);
+    // Compute the differences component-wise for e1
+    const double e1_0 = rTrianglePoint3[0] - rTrianglePoint1[0];
+    const double e1_1 = rTrianglePoint3[1] - rTrianglePoint1[1];
+    const double e1_2 = rTrianglePoint3[2] - rTrianglePoint1[2];
 
+    // Compute the differences component-wise for dd
+    const double dd_0 = rTrianglePoint1[0] - rPoint[0];
+    const double dd_1 = rTrianglePoint1[1] - rPoint[1];
+    const double dd_2 = rTrianglePoint1[2] - rPoint[2];
+
+    // Compute the inner products explicitly
+    const double a = e0_0 * e0_0 + e0_1 * e0_1 + e0_2 * e0_2;
+    const double b = e0_0 * e1_0 + e0_1 * e1_1 + e0_2 * e1_2;
+    const double c = e1_0 * e1_0 + e1_1 * e1_1 + e1_2 * e1_2;
+    const double d = e0_0 * dd_0 + e0_1 * dd_1 + e0_2 * dd_2;
+    const double e = e1_0 * dd_0 + e1_1 * dd_1 + e1_2 * dd_2;
+    const double f = dd_0 * dd_0 + dd_1 * dd_1 + dd_2 * dd_2;
+
+    // Compute the determinant
     const double det = a*c-b*b;
     double s = b*e-c*d;
     double t = b*d-a*e;
 
+    // Initialize the square distance
     double square_distance = 0.0;
 
     if ( s + t <= det ) {

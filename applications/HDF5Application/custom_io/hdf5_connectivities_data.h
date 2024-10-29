@@ -43,7 +43,7 @@ namespace Internals
 /**
  * Acts as the intermediary between the HDF5 file and the Kratos elements and conditions.
  */
-class ConnectivitiesData
+class KRATOS_API(HDF5_APPLICATION) ConnectivitiesData
 {
 public:
     ///@name Type Definitions
