@@ -63,10 +63,7 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
 
             incident_angle = theta_1
             delta_temp = self.TemperatureVariationDueToLaser(y1, l, incident_angle)
-
             old_temp = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
-            if self.adjust_T_field_after_ablation:
-                old_temp = self.reference_T_after_laser
             new_temp = old_temp + delta_temp
             node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, new_temp)
             node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, new_temp)
@@ -108,8 +105,6 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
             z = node.X - distance_to_surface
             delta_temp = self.TemperatureVariationDueToLaser(radius, z)
             old_temp = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
-            if self.adjust_T_field_after_ablation:
-                old_temp = self.reference_T_after_laser
             new_temp = old_temp + delta_temp
             node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, new_temp)
             node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, new_temp)
@@ -142,7 +137,7 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
         F_p = self.F_p
         omega_0 = self.omega_0
         import math
-        q_energy_per_volume = (1.0 / delta_pen) * F_p * math.exp(- 2.0 * (radius / omega_0)**2) * math.exp(- z / delta_pen) * math.cos(incidence_angle)
+        q_energy_per_volume = (1.0 / delta_pen) * F_p * math.exp(- 2.0 * (radius / omega_0)**2) * math.exp(- z / delta_pen) #* math.cos(incidence_angle)
         delta_temp = q_energy_per_volume / (self.rho * self.cp)            
         return delta_temp
 
@@ -152,31 +147,13 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
 
     def RemoveElementsByAblation(self):
 
-        if self.print_debug_info:
-            initial_system_energy = self.MonitorEnergy()
-            print("\n\nEnergy before laser:", initial_system_energy)
-
-        if not self.consider_material_refraction:
-            self.ImposeTemperatureIncreaseDueToLaser()
-        else:
-            self.ImposeTemperatureIncreaseDueToLaserWithRefraction()
-
-        if self.print_debug_info:
-            print("self.Q:", self.Q)
-            expected_energy_after_laser = initial_system_energy + self.Q
-            system_energy = self.MonitorEnergy()
-            print("Expected energy after laser:", expected_energy_after_laser)
-            print("Actual energy after laser:", system_energy)
-            relative_error = 100.0 * (system_energy - expected_energy_after_laser) / expected_energy_after_laser
-            print("Relative error in energy (%):", relative_error, "\n\n")
-
         self.RemoveElementsUsingEnergyPerVolumeThreshold()
 
         if self.print_debug_info:
             decomp_vol = self.MonitorDecomposedVolume()
-            print("Actual volume loss due to laser:",  decomp_vol)
+            print("Actual volume loss due to laser:",  decomp_vol, "mm3")
             self.analytical_ablated_volume_in_n_pulses += self.ComputePulseVolume()
-            print("Expected volume loss due to laser:", self.analytical_ablated_volume_in_n_pulses, "\n")
+            print("Expected volume loss due to laser:", self.analytical_ablated_volume_in_n_pulses, "mm3\n")
             relative_error = 100.0 * (decomp_vol - self.analytical_ablated_volume_in_n_pulses) / self.analytical_ablated_volume_in_n_pulses
             print("Relative error in volume (%):", relative_error, "\n\n")
 

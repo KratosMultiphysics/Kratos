@@ -37,6 +37,19 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         if self.jump_between_pulses_counter >= self.time_jump_between_pulses or error_in_delta_time < numerical_error:
             self.jump_between_pulses_counter = 0
             self.pulse_number += 1
+            self.ResetTemperatureField()
+            if self.print_debug_info:
+                initial_system_energy = self.MonitorEnergy()
+                print("\n\nEnergy before laser:", initial_system_energy, "J")
+            self.ImposeLaserDeltaTemperature()
+            if self.print_debug_info:
+                print("self.Q:", self.Q, "J")
+                expected_energy_after_laser = initial_system_energy + self.Q
+                system_energy = self.MonitorEnergy()
+                print("Expected energy after laser:", expected_energy_after_laser, "J")
+                print("Actual energy after laser:", system_energy, "J")
+                relative_error = 100.0 * (system_energy - expected_energy_after_laser) / expected_energy_after_laser
+                print("Relative error in energy (%):", relative_error, "\n\n")
             self.RemoveElementsByAblation()
             self.AdjustTemperatureFieldAfterAblation()
             self.ResidualHeatStage()
@@ -338,6 +351,12 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         for elem in self.main_model_part.Elements:
             elem.CalculateOnIntegrationPoints(KratosMultiphysics.TEMPERATURE, self.main_model_part.ProcessInfo)
 
+    def ImposeLaserDeltaTemperature(self):
+        if not self.consider_material_refraction:
+            self.ImposeTemperatureIncreaseDueToLaser()
+        else:
+            self.ImposeTemperatureIncreaseDueToLaserWithRefraction()
+
     def Initialize(self):
         super(convection_diffusion_transient_solver.ConvectionDiffusionTransientSolver, self).Initialize()
         self.starting_time = timer.time()
@@ -363,22 +382,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
 
         self.IdentifyInitialSurfaceNodes()
 
-        #initial_system_energy = self.MonitorEnergy()
-        #self.RemoveElementsByAblation()
-        #computed_energy_after_ablation = self.MonitorEnergy()
-        #self.AdjustTemperatureFieldAfterAblation()
-        #residual_heat = self.evaporation_energy_fraction * self.Q
-
         self.ResidualHeatStage()
-
-        '''system_energy_after_residual_heat = self.MonitorEnergy()
-        print("\nPulse_number:", self.pulse_number)
-        print("Initial system energy:", initial_system_energy)
-        print("\nComputed energy after laser:", computed_energy_after_ablation)
-        print("\nResidual_heat:", residual_heat)
-        print("System energy after residual heat:", system_energy_after_residual_heat)
-        difference_after_and_before_residual_heat = system_energy_after_residual_heat - computed_energy_after_ablation
-        print("Difference after and before residual heat:", difference_after_and_before_residual_heat, "\n")'''
 
         if self.print_hdf5_and_gnuplot_files:
             self.WriteResults(self.results_filename, self.main_model_part.ProcessInfo)
@@ -426,6 +430,13 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             elem.CalculateOnIntegrationPoints(KratosMultiphysics.TEMPERATURE, self.main_model_part.ProcessInfo)
             pre_evaporation_temperature = elem.GetValue(KratosMultiphysics.TEMPERATURE)
             elem.SetValue(LaserDrillingApplication.PRE_EVAPORATION_TEMPERATURE, pre_evaporation_temperature)
+
+    def ResetTemperatureField(self):
+        if self.adjust_T_field_after_ablation:
+            reference_temp = self.reference_T_after_laser
+            for node in self.main_model_part.Nodes:
+                node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, reference_temp)
+                node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, reference_temp)
 
     def ResidualHeatStage(self):
         if self.evaporation_energy_fraction:
