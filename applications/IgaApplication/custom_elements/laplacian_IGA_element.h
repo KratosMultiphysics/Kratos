@@ -43,7 +43,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class LaplacianIGAElement : public Element
+class KRATOS_API(IGA_APPLICATION) LaplacianIGAElement : public Element
 {
 public:
     ///@name Type Definitions
