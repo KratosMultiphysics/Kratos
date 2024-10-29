@@ -170,8 +170,10 @@ void GeometricalObjectsBins::SearchInBoundingBox(
 
     // Define bounding box
     BoundingBox<PointType> bounding_box;
-    noalias(bounding_box.GetMinPoint().Coordinates()) = rMinPoint;
-    noalias(bounding_box.GetMaxPoint().Coordinates()) = rMaxPoint;
+    auto& r_min_point = bounding_box.GetMinPoint();
+    auto& r_max_point = bounding_box.GetMaxPoint();
+    noalias(r_min_point.Coordinates()) = rMinPoint;
+    noalias(r_max_point.Coordinates()) = rMaxPoint;
 
     // Initialize the candidates
     std::unordered_set<GeometricalObject*> candidates;
@@ -220,7 +222,7 @@ void GeometricalObjectsBins::SearchInBoundingBox(
     // Loop over the remaining candidates and check for intersection
     for(auto& p_geometrical_object : candidates) {
         const auto& r_geometry = p_geometrical_object->GetGeometry();
-        if(r_geometry.HasIntersection(rMinPoint, rMaxPoint)) {
+        if(r_geometry.HasIntersection(r_min_point, r_max_point)) {
             // Add the object to the results without calculating distance
             rResults.push_back(ResultType(p_geometrical_object));
         }
