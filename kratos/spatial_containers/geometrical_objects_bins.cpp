@@ -175,9 +175,9 @@ void GeometricalObjectsBins::SearchInBoundingBox(
     noalias(r_min_point.Coordinates()) = rMinPoint;
     noalias(r_max_point.Coordinates()) = rMaxPoint;
 
-    // Initialize the candidates and collected results
-    std::unordered_set<GeometricalObject*> candidates;
+    // Initialize the processed objects and collected results
     std::unordered_set<GeometricalObject*> processed_objects;
+    std::unordered_set<GeometricalObject*> candidates;
     std::vector<GeometricalObject*> collected_results;
 
     // Initialize the position bounds
@@ -200,8 +200,7 @@ void GeometricalObjectsBins::SearchInBoundingBox(
                 if (IsCellBoundingBoxInsideBoundingBox(i, j, k, rPoint, bounding_box)) {
                     for(auto p_geometrical_object : r_cell) {
                         // Insert the object into the processed set to avoid duplicates
-                        auto insert_result = processed_objects.insert(p_geometrical_object);
-                        if (insert_result.second) {
+                        if (processed_objects.insert(p_geometrical_object).second) {
                             // Collect the object
                             collected_results.push_back(p_geometrical_object);
                         }
@@ -215,13 +214,13 @@ void GeometricalObjectsBins::SearchInBoundingBox(
         }
     }
 
-    // Remove already processed objects from candidates
-    for (const auto& p_object : processed_objects) {
-        candidates.erase(p_object);
-    }
-
-    // Loop over the remaining candidates and check for intersection
+    // Loop over all candidates and check for intersection
     for(auto& p_geometrical_object : candidates) {
+        // Skip already processed objects
+        if (processed_objects.find(p_geometrical_object) != processed_objects.end()) {
+            continue;
+        }
+
         const auto& r_geometry = p_geometrical_object->GetGeometry();
         if(r_geometry.HasIntersection(r_min_point, r_max_point)) {
             // Collect the object
