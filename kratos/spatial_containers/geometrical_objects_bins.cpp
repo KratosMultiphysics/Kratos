@@ -265,55 +265,6 @@ GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchIsInside(const 
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool GeometricalObjectsBins::IsCellBoundingBoxInsideRadius(
-    const std::size_t I,
-    const std::size_t J,
-    const std::size_t K,
-    const Point& rPoint,
-    const double Radius
-    )
-{
-    // Check the indices
-    KRATOS_DEBUG_ERROR_IF(I > mNumberOfCells[0]) << "Index " << I << " is larger than number of cells in x direction: " << mNumberOfCells[0] << std::endl;
-    KRATOS_DEBUG_ERROR_IF(J > mNumberOfCells[1]) << "Index " << J << " is larger than number of cells in y direction: " << mNumberOfCells[1] << std::endl;
-    KRATOS_DEBUG_ERROR_IF(K > mNumberOfCells[2]) << "Index " << K << " is larger than number of cells in z direction: " << mNumberOfCells[2] << std::endl;
-
-    // Calculate the squared radius
-    const double squared_radius = Radius * Radius;
-
-    // Get the bounding box's minimum point
-    const array_1d<double, 3>& r_min_point = mBoundingBox.GetMinPoint();
-
-    // Calculate the minimum point of the cell
-    array_1d<double, 3> min_point;
-    min_point[0] = r_min_point[0] + I * mCellSizes[0];
-    min_point[1] = r_min_point[1] + J * mCellSizes[1];
-    min_point[2] = r_min_point[2] + K * mCellSizes[2];
-
-    // Calculate the maximum point of the cell
-    array_1d<double, 3> max_point;
-    max_point[0] = r_min_point[0] + (I + 1) * mCellSizes[0];
-    max_point[1] = r_min_point[1] + (J + 1) * mCellSizes[1];
-    max_point[2] = r_min_point[2] + (K + 1) * mCellSizes[2];
-
-    // Calculate squared distances from rPoint to min_point and max_point
-    const double dx_min = min_point[0] - rPoint[0];
-    const double dy_min = min_point[1] - rPoint[1];
-    const double dz_min = min_point[2] - rPoint[2];
-    const double distance_squared_min = dx_min * dx_min + dy_min * dy_min + dz_min * dz_min;
-
-    const double dx_max = max_point[0] - rPoint[0];
-    const double dy_max = max_point[1] - rPoint[1];
-    const double dz_max = max_point[2] - rPoint[2];
-    const double distance_squared_max = dx_max * dx_max + dy_max * dy_max + dz_max * dz_max;
-
-    // Check if both min_point and max_point are within the squared radius
-    return (distance_squared_min <= squared_radius) && (distance_squared_max <= squared_radius);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 bool GeometricalObjectsBins::IsCellBoundingBoxInsideBoundingBox(
     const std::size_t I,
     const std::size_t J,
