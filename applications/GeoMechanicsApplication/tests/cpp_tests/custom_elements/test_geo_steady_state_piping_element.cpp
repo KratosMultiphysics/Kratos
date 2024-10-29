@@ -305,4 +305,29 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsTheExpectedLeftHan
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
 
+KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementHasValuesAfterInitialize,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto dummy_process_info = ProcessInfo{};
+    const auto p_properties       = std::make_shared<Properties>();
+
+    Model model;
+    auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
+    auto  p_element =
+        CreateHorizontalUnitLengthGeoSteadyStatePwPipingElementWithPWDofs(r_model_part, p_properties);
+
+    // Act
+    p_element->Initialize(dummy_process_info);
+
+    // Assert
+    KRATOS_EXPECT_EQ(p_element->GetValue(PIPE_ELEMENT_LENGTH), 1.);
+    KRATOS_EXPECT_EQ(p_element->GetValue(PIPE_EROSION), false);
+    const double quite_small = 1.E-10;
+    KRATOS_EXPECT_EQ(p_element->GetValue(PIPE_HEIGHT), quite_small);
+    KRATOS_EXPECT_EQ(p_element->GetValue(PREV_PIPE_HEIGHT), quite_small);
+    KRATOS_EXPECT_EQ(p_element->GetValue(DIFF_PIPE_HEIGHT), 0.);
+    KRATOS_EXPECT_EQ(p_element->GetValue(PIPE_ACTIVE), false);
+    }
+
 } // namespace Kratos::Testing
