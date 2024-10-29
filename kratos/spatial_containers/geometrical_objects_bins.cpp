@@ -175,9 +175,10 @@ void GeometricalObjectsBins::SearchInBoundingBox(
     noalias(r_min_point.Coordinates()) = rMinPoint;
     noalias(r_max_point.Coordinates()) = rMaxPoint;
 
-    // Initialize the candidates
+    // Initialize the candidates and collected results
     std::unordered_set<GeometricalObject*> candidates;
     std::unordered_set<GeometricalObject*> processed_objects;
+    std::vector<GeometricalObject*> collected_results;
 
     // Initialize the position bounds
     array_1d<std::size_t, Dimension> min_position;
@@ -201,8 +202,8 @@ void GeometricalObjectsBins::SearchInBoundingBox(
                         // Insert the object into the processed set to avoid duplicates
                         auto insert_result = processed_objects.insert(p_geometrical_object);
                         if (insert_result.second) {
-                            // Add the object to the results without calculating distance
-                            rResults.push_back(ResultType(p_geometrical_object));
+                            // Collect the object
+                            collected_results.push_back(p_geometrical_object);
                         }
                     }
                 } else {
@@ -223,9 +224,17 @@ void GeometricalObjectsBins::SearchInBoundingBox(
     for(auto& p_geometrical_object : candidates) {
         const auto& r_geometry = p_geometrical_object->GetGeometry();
         if(r_geometry.HasIntersection(r_min_point, r_max_point)) {
-            // Add the object to the results without calculating distance
-            rResults.push_back(ResultType(p_geometrical_object));
+            // Collect the object
+            collected_results.push_back(p_geometrical_object);
         }
+    }
+
+    // Reserve space in rResults to prevent reallocations
+    rResults.reserve(collected_results.size());
+
+    // Insert all collected results into rResults
+    for (auto& p_geometrical_object : collected_results) {
+        rResults.push_back(ResultType(p_geometrical_object));
     }
 
     // Note: We avoid shrink_to_fit for potential performance issues
