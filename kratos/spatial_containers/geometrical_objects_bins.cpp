@@ -218,11 +218,9 @@ void GeometricalObjectsBins::SearchInBoundingBox(
     }
 
     // Loop over the remaining candidates and check for intersection
-    const auto& r_min_point = bounding_box.GetMinPoint();
-    const auto& r_max_point = bounding_box.GetMaxPoint();
     for(auto& p_geometrical_object : candidates) {
         const auto& r_geometry = p_geometrical_object->GetGeometry();
-        if(r_geometry.HasIntersection(r_min_point, r_max_point)) {
+        if(r_geometry.HasIntersection(rMinPoint, rMaxPoint)) {
             // Add the object to the results without calculating distance
             rResults.push_back(ResultType(p_geometrical_object));
         }
