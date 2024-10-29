@@ -197,7 +197,7 @@ void GeometricalObjectsBins::SearchInBoundingBox(
                 auto& r_cell = GetCell(i, j, k);
 
                 // Check if the cell's bounding box intersects with the search bounding box
-                if (IsCellBoundingBoxInsideBoundingBox(i, j, k, rPoint, bounding_box)) {
+                if (IsCellInsideBoundingBox(i, j, k, rPoint, bounding_box)) {
                     for(auto p_geometrical_object : r_cell) {
                         // Insert the object into the processed set to avoid duplicates
                         if (processed_objects.insert(p_geometrical_object).second) {
@@ -275,7 +275,7 @@ GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchIsInside(const 
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool GeometricalObjectsBins::IsCellBoundingBoxInsideBoundingBox(
+bool GeometricalObjectsBins::IsCellInsideBoundingBox(
     const std::size_t I,
     const std::size_t J,
     const std::size_t K,

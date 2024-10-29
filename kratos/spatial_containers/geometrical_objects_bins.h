@@ -437,7 +437,7 @@ protected:
      * @param rBoundingBox The bounding box within which the bounding box should be.
      * @return True if the bounding box is fully inside the bounding box, false otherwise.
      */
-    bool IsCellBoundingBoxInsideBoundingBox(
+    bool IsCellInsideBoundingBox(
         const std::size_t I,
         const std::size_t J,
         const std::size_t K,
