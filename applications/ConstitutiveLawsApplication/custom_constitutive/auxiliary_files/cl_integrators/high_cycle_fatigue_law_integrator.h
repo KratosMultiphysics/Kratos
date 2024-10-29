@@ -251,12 +251,6 @@ public:
 
         const Vector& r_fatigue_coefficients = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS];
 
-        // Reduction factors applied to the fatigue limit
-        double k_residual_stress = (!UniaxialResidualStress) ? 1.0 : (1 - ((UniaxialResidualStress + (0.5 + 0.5 * ReversionFactor) * MaxStress) / UltimateStress)) * std::abs((0.5 - 0.5 * ReversionFactor)); // Goodman mean stress correction
-        // double const k_residual_stress = 1 - std::pow(((UniaxialResidualStress + (0.5 + 0.5 * ReversionFactor) * MaxStress) / UltimateStress), 2.0); // Gerber mean stress correction
-        double const k_roughness = (!rElementGeometry.Has(SURFACE_ROUGHNESS)) ? 1.0 : 1 - rElementGeometry.GetValue(MATERIAL_PARAMETER_C1)
-                     * std::log10(rElementGeometry.GetValue(SURFACE_ROUGHNESS)) * std::log10((2 * UltimateStress) / rElementGeometry.GetValue(MATERIAL_PARAMETER_C2));
-
         //These variables have been defined following the model described by S. Oller et al. in A continuum mechanics model for mechanical fatigue analysis (2005), equation 13 on page 184.
         // const double Se = k_residual_stress * k_roughness * (r_fatigue_coefficients[0] * UltimateStress);
         const double Se = r_fatigue_coefficients[0] * UltimateStress;
@@ -266,7 +260,23 @@ public:
         const double BETAF = r_fatigue_coefficients[4];
         const double AUXR1 = r_fatigue_coefficients[5];
         const double AUXR2 = r_fatigue_coefficients[6];
-        const double FatigueReductionFactorSmoothness = r_fatigue_coefficients[7];
+        const double FatigueReductionFactorSmoothness = (r_fatigue_coefficients.size() > 7) ? r_fatigue_coefficients[7] : 1.0;
+        const double c_stress_concentration = (r_fatigue_coefficients.size() > 8) ? r_fatigue_coefficients[8] : 6.0;
+        const double NominalStress = (r_fatigue_coefficients.size() > 9) ? r_fatigue_coefficients[9] * UltimateStress : MaxStress;
+
+        // Reduction factors applied to the fatigue limit
+        const double k_residual_stress = (!UniaxialResidualStress) ? 1.0 : (1 - ((UniaxialResidualStress + (0.5 + 0.5 * ReversionFactor) * MaxStress) / UltimateStress)) * std::abs((0.5 - 0.5 * ReversionFactor)); // Goodman mean stress correction
+        // double const k_residual_stress = 1 - std::pow(((UniaxialResidualStress + (0.5 + 0.5 * ReversionFactor) * MaxStress) / UltimateStress), 2.0); // Gerber mean stress correction
+        const double k_roughness = (!rElementGeometry.Has(SURFACE_ROUGHNESS)) ? 1.0 : 1 - rElementGeometry.GetValue(MATERIAL_PARAMETER_C1)
+                     * std::log10(rElementGeometry.GetValue(SURFACE_ROUGHNESS)) * std::log10((2 * UltimateStress) / rElementGeometry.GetValue(MATERIAL_PARAMETER_C2));
+        const double k_stress_concentration = (MaxStress < NominalStress) ? 1.0 : MaxStress / NominalStress;
+        double h_stress_concentration = (1.0 / (6.0 - c_stress_concentration)) * std::log10(LocalNumberOfCycles / std::pow(10, c_stress_concentration));
+        
+        if (LocalNumberOfCycles < std::pow(10, c_stress_concentration)){
+            h_stress_concentration = 0.0;
+        } else if (LocalNumberOfCycles > 1.0e6){
+            h_stress_concentration = 1.0;
+        }
 
         if (std::abs(ReversionFactor) < 1.0) {
             rSth = Se + (UltimateStress - Se) * std::pow((0.5 + 0.5 * (ReversionFactor)), STHR1);
@@ -276,7 +286,7 @@ public:
 			rAlphat = ALFAF - (0.5 + 0.5 / (ReversionFactor)) * AUXR2;
         }
 
-        rSth *= k_residual_stress * k_roughness;
+        rSth *= k_residual_stress * std::pow(k_stress_concentration, (1 - h_stress_concentration)) * k_roughness;
 
         const double square_betaf = std::pow(BETAF, 2.0);
 
