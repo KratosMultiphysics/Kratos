@@ -19,8 +19,28 @@
 #include "custom_elements/plane_strain_stress_state.h"
 #include "custom_elements/steady_state_Pw_piping_element.hpp"
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_erosion_process_strategy.hpp"
-#include "custom_workflows/dgeoflow.h"
 #include "geo_mechanics_fast_suite.h"
+#include "linear_solvers/linear_solver.h"
+#include "test_utilities.h"
+
+#include <geo_mechanics_application.h>
+
+/* Utility includes */
+#include "includes/model_part.h"
+#include "spaces/ublas_space.h"
+
+// The most basic scheme (static)
+#include "custom_strategies/schemes/backward_euler_quasistatic_Pw_scheme.hpp"
+
+// The most builder and solver (the block builder and solver)
+#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
+
+// The strategies to test
+#include <custom_processes/apply_component_table_process.hpp>
+#include <linear_solvers/skyline_lu_factorization_solver.h>
+
+#include <solving_strategies/convergencecriterias/mixed_generic_criteria.h>
+#include <solving_strategies/strategies/implicit_solving_strategy.h>
 
 namespace Kratos
 {
@@ -29,20 +49,21 @@ class MockGeoMechanicsNewtonRaphsonErosionProcessStrategy
     : public GeoMechanicsNewtonRaphsonErosionProcessStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
 public:
-    using BaseType = ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>;
+    using SolvingStrategyType = ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>;
     using TConvergenceCriteriaType = ConvergenceCriteria<TSparseSpace, TDenseSpace>;
-    using TBuilderAndSolverType    = typename BaseType::TBuilderAndSolverType;
-    using TSchemeType              = typename BaseType::TSchemeType;
+    using TBuilderAndSolverType    = typename SolvingStrategyType::TBuilderAndSolverType;
+    using TSchemeType              = typename SolvingStrategyType::TSchemeType;
 
-    MockGeoMechanicsNewtonRaphsonErosionProcessStrategy(ModelPart&                    model_part,
+    MockGeoMechanicsNewtonRaphsonErosionProcessStrategy(ModelPart&                    rModelPart,
                                                         typename TSchemeType::Pointer pScheme,
-                                                        typename TLinearSolver::Pointer pNewLinearSolver,
                                                         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
                                                         typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
                                                         Parameters& rParameters)
         : GeoMechanicsNewtonRaphsonErosionProcessStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(
-              model_part, pScheme, pNewLinearSolver, pNewConvergenceCriteria, pNewBuilderAndSolver, rParameters),
-          mModelPart(model_part){};
+              rModelPart, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, rParameters),
+          mrModelPart(rModelPart)
+    {
+    }
 
 private:
     bool Recalculate() override
@@ -50,50 +71,58 @@ private:
         // The function provides a pressure change over iterations that leads to a non-linear growth of an equilibrium pipe height.
         // As a result the height curve crosses twice a pipe height growth curve in the search algorithm implemented
         // in  GeoMechanicsNewtonRaphsonErosionProcessStrategy. The search stops at the second point.
-        for (auto& node : mModelPart.Nodes()) {
+        for (auto& node : mrModelPart.Nodes()) {
             node.FastGetSolutionStepValue(WATER_PRESSURE) =
-                pow(node.FastGetSolutionStepValue(WATER_PRESSURE), 0.9725);
+                std::pow(node.FastGetSolutionStepValue(WATER_PRESSURE), 0.9725);
         }
         return true;
     }
 
-    void       BaseClassFinalizeSolutionStep() override{};
-    ModelPart& mModelPart;
+    void BaseClassFinalizeSolutionStep() override
+    {
+        // to avoid calling the BaseClassFinalizeSolutionStep in tested class.
+    }
+
+    ModelPart& mrModelPart;
 };
 
-Node::Pointer CreateNodeWithFastSolutionStepValues(ModelPart& rModelPart, int Id, double X, double Y, double WaterPressure)
+Node::Pointer CreateNodeWithSolutionStepValues(ModelPart& rModelPart, int Id, double CoordinateX, double CoordinateY, double WaterPressure)
 {
-    constexpr double z      = 0.0;
-    auto             p_node = rModelPart.CreateNewNode(Id, X, Y, z);
-
-    p_node->SetLock();
+    constexpr double coordinate_z = 0.0;
+    auto             p_node = rModelPart.CreateNewNode(Id, CoordinateX, CoordinateY, coordinate_z);
 
     p_node->FastGetSolutionStepValue(WATER_PRESSURE) = WaterPressure;
-    const array_1d<double, 3> GravitationalAcceleration{0, 9.81, 0};
+    const array_1d<double, 3> GravitationalAcceleration{0, -9.81, 0};
     p_node->FastGetSolutionStepValue(VOLUME_ACCELERATION) = GravitationalAcceleration;
-
-    p_node->UnSetLock();
 
     return p_node;
 }
 
-Geometry<Node>::Pointer CreateQuadrilateral2D4N(
-    ModelPart& rModelPart, int Id1, int Id2, int Id3, int Id4, double Xmin, double Xmax, double WaterPressureLeft, double WaterPressureRight)
+Geometry<Node>::Pointer CreateQuadrilateral2D4N(ModelPart&              rModelPart,
+                                                const std::vector<int>& rNodeIds,
+                                                double                  Xmin,
+                                                double                  Xmax,
+                                                double                  WaterPressureLeft,
+                                                double                  WaterPressureRight)
 {
     constexpr double y_min = -0.1;
     constexpr double y_max = 0.1;
 
-    return Kratos::make_shared<Quadrilateral2D4<Node>>(
-        CreateNodeWithFastSolutionStepValues(rModelPart, Id1, Xmin, y_min, WaterPressureLeft),
-        CreateNodeWithFastSolutionStepValues(rModelPart, Id2, Xmax, y_min, WaterPressureRight),
-        CreateNodeWithFastSolutionStepValues(rModelPart, Id3, Xmax, y_max, WaterPressureRight),
-        CreateNodeWithFastSolutionStepValues(rModelPart, Id4, Xmin, y_max, WaterPressureLeft));
+    return make_shared<Quadrilateral2D4<Node>>(
+        CreateNodeWithSolutionStepValues(rModelPart, rNodeIds[0], Xmin, y_min, WaterPressureLeft),
+        CreateNodeWithSolutionStepValues(rModelPart, rNodeIds[1], Xmax, y_min, WaterPressureRight),
+        CreateNodeWithSolutionStepValues(rModelPart, rNodeIds[2], Xmax, y_max, WaterPressureRight),
+        CreateNodeWithSolutionStepValues(rModelPart, rNodeIds[3], Xmin, y_max, WaterPressureLeft));
 }
 
-KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer SetupPipingStrategy(Model& rModel)
+auto SetupPipingStrategy(Model& rModel)
 {
-    using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
-    using LocalSpaceType  = UblasSpace<double, Matrix, Vector>;
+    using SparseSpaceType          = UblasSpace<double, CompressedMatrix, Vector>;
+    using LocalSpaceType           = UblasSpace<double, Matrix, Vector>;
+    using LinearSolverType         = SkylineLUFactorizationSolver<SparseSpaceType, LocalSpaceType>;
+    using ConvergenceCriteriaType  = ConvergenceCriteria<SparseSpaceType, LocalSpaceType>;
+    using MixedGenericCriteriaType = MixedGenericCriteria<SparseSpaceType, LocalSpaceType>;
+    using ConvergenceVariableListType = typename MixedGenericCriteriaType::ConvergenceVariableListType;
 
     auto& r_model_part = rModel.CreateModelPart("ModelPart", 1);
     r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
@@ -103,8 +132,8 @@ KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer Setu
     auto p_element_props = r_model_part.CreateNewProperties(0);
     p_element_props->SetValue(CONSTITUTIVE_LAW, LinearElastic2DInterfaceLaw().Clone());
 
-    auto p_element = make_intrusive<UPwSmallStrainElement<2, 4>>(
-        0, CreateQuadrilateral2D4N(r_model_part, 13, 14, 15, 16, 3.0, 4.0, 2000.0, 2000.0),
+    auto p_element = make_intrusive<SteadyStatePwElement<2, 4>>(
+        0, CreateQuadrilateral2D4N(r_model_part, std::vector<int>{13, 14, 15, 16}, 3.0, 4.0, 2000.0, 2000.0),
         p_element_props, std::make_unique<PlaneStrainStressState>());
     p_element->Initialize(r_process_info);
     r_model_part.AddElement(p_element);
@@ -124,20 +153,20 @@ KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer Setu
 
     // Create the start piping element
     auto p_piping_element = make_intrusive<SteadyStatePwPipingElement<2, 4>>(
-        1, CreateQuadrilateral2D4N(r_model_part, 1, 2, 3, 4, 0.0, 1.0, 0.0, 500.0),
+        1, CreateQuadrilateral2D4N(r_model_part, std::vector<int>{1, 2, 3, 4}, 0.0, 1.0, 0.0, 500.0),
         p_piping_element_prop, std::make_unique<PlaneStrainStressState>());
     p_piping_element->Initialize(r_process_info);
     r_model_part.AddElement(p_piping_element);
 
     // Create other piping elements
     p_piping_element = make_intrusive<SteadyStatePwPipingElement<2, 4>>(
-        2, CreateQuadrilateral2D4N(r_model_part, 5, 6, 7, 8, 2.0, 3.0, 500.0, 1000.0),
+        2, CreateQuadrilateral2D4N(r_model_part, std::vector<int>{5, 6, 7, 8}, 2.0, 3.0, 500.0, 1000.0),
         p_piping_element_prop, std::make_unique<PlaneStrainStressState>());
     p_piping_element->Initialize(r_process_info);
     r_model_part.AddElement(p_piping_element);
 
     p_piping_element = make_intrusive<SteadyStatePwPipingElement<2, 4>>(
-        3, CreateQuadrilateral2D4N(r_model_part, 9, 10, 11, 12, 1.0, 2.0, 1000.0, 1500.0),
+        3, CreateQuadrilateral2D4N(r_model_part, std::vector<int>{9, 10, 11, 12}, 1.0, 2.0, 1000.0, 1500.0),
         p_piping_element_prop, std::make_unique<PlaneStrainStressState>());
     p_piping_element->Initialize(r_process_info);
     r_model_part.AddElement(p_piping_element);
@@ -147,21 +176,17 @@ KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer Setu
  		"max_piping_iterations": 25
     }  )");
 
-    const auto p_solver =
-        Kratos::make_shared<SkylineLUFactorizationSolver<SparseSpaceType, LocalSpaceType>>();
+    const auto p_solver = Kratos::make_shared<LinearSolverType>();
     const auto p_scheme =
         Kratos::make_shared<BackwardEulerQuasistaticPwScheme<SparseSpaceType, LocalSpaceType>>();
     const auto p_builder_and_solver =
-        Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<SparseSpaceType, LocalSpaceType, KratosExecute::LinearSolverType>>(
-            p_solver);
-    const KratosExecute::ConvergenceVariableListType convergence_settings{};
-    const auto p_criteria = std::make_shared<KratosExecute::MixedGenericCriteriaType>(convergence_settings);
+        Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>>(p_solver);
+    const ConvergenceVariableListType      convergence_settings{};
+    const ConvergenceCriteriaType::Pointer p_criteria =
+        std::make_shared<MixedGenericCriteriaType>(convergence_settings);
 
-    auto p_solving_strategy =
-        Kratos::make_unique<MockGeoMechanicsNewtonRaphsonErosionProcessStrategy<SparseSpaceType, LocalSpaceType, KratosExecute::LinearSolverType>>(
-            r_model_part, p_scheme, p_solver, p_criteria, p_builder_and_solver, p_parameters);
-
-    return p_solving_strategy;
+    return std::make_unique<MockGeoMechanicsNewtonRaphsonErosionProcessStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>>(
+        r_model_part, p_scheme, p_criteria, p_builder_and_solver, p_parameters);
 }
 } // namespace Kratos
 
@@ -169,13 +194,19 @@ namespace Kratos::Testing
 {
 KRATOS_TEST_CASE_IN_SUITE(CheckGetPipingElements, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
+    // Arrange
     Model model;
     auto  p_solving_strategy = SetupPipingStrategy(model);
 
+    // Act
     const auto piping_elements = p_solving_strategy->GetPipingElements();
 
-    constexpr int number_of_piping_elements = 3;
+    // Assert
+    const auto    elements           = model.GetModelPart("ModelPart").Elements();
+    constexpr int number_of_elements = 4;
+    KRATOS_EXPECT_EQ(elements.size(), number_of_elements);
 
+    constexpr int number_of_piping_elements = 3;
     KRATOS_EXPECT_EQ(piping_elements.size(), number_of_piping_elements);
     KRATOS_EXPECT_EQ(piping_elements[0]->GetId(), 1);
     KRATOS_EXPECT_EQ(piping_elements[1]->GetId(), 3);
@@ -184,25 +215,28 @@ KRATOS_TEST_CASE_IN_SUITE(CheckGetPipingElements, KratosGeoMechanicsFastSuiteWit
 
 KRATOS_TEST_CASE_IN_SUITE(CheckFinalizeSolutionStep, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
+    // Arrange
     Model model;
     auto  p_solving_strategy = SetupPipingStrategy(model);
 
+    // Act
     p_solving_strategy->FinalizeSolutionStep();
 
+    // Assert
     auto elements = model.GetModelPart("ModelPart").Elements();
 
     constexpr int active = 1;
     KRATOS_EXPECT_EQ(elements[1].GetValue(PIPE_ACTIVE), active);
 
     constexpr double expected_active_pipe_height = 0.0183333;
-    KRATOS_EXPECT_NEAR(elements[1].GetValue(PIPE_HEIGHT), expected_active_pipe_height, 1.0e-6);
+    KRATOS_EXPECT_NEAR(elements[1].GetValue(PIPE_HEIGHT), expected_active_pipe_height, Defaults::relative_tolerance);
 
     constexpr int inactive = 0;
     KRATOS_EXPECT_EQ(elements[2].GetValue(PIPE_ACTIVE), inactive);
     KRATOS_EXPECT_EQ(elements[3].GetValue(PIPE_ACTIVE), inactive);
 
     constexpr double expected_inactive_pipe_height = 0.0;
-    KRATOS_EXPECT_NEAR(elements[2].GetValue(PIPE_HEIGHT), expected_inactive_pipe_height, 1.0e-6);
-    KRATOS_EXPECT_NEAR(elements[3].GetValue(PIPE_HEIGHT), expected_inactive_pipe_height, 1.0e-6);
+    KRATOS_EXPECT_NEAR(elements[2].GetValue(PIPE_HEIGHT), expected_inactive_pipe_height, Defaults::relative_tolerance);
+    KRATOS_EXPECT_NEAR(elements[3].GetValue(PIPE_HEIGHT), expected_inactive_pipe_height, Defaults::relative_tolerance);
 }
 } // namespace Kratos::Testing

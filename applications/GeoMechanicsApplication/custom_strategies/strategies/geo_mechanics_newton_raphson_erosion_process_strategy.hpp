@@ -439,5 +439,5 @@ private:
             }
         }
     }
-}; // Class GeoMechanicsNewtonRaphsonStrategy
+}; // Class GeoMechanicsNewtonRaphsonErosionProcessStrategy
 } // namespace Kratos
