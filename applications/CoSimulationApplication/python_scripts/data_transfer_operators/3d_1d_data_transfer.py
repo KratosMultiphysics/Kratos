@@ -91,7 +91,7 @@ class Kratos3D1DDataTransferOperator(CoSimulationDataTransferOperator):
     def _Check(self, from_solver_data, to_solver_data):
         def CheckData(data_to_check):
             if "node" not in data_to_check.location:
-                raise Exception('Transfer only supports nodal values!"{}"\nChecking ModelPart "{}" of solver "{}"'.format(self._ClassName(), data_to_check.model_part_name, data_to_check.solver_name))
+                raise Exception(f'Transfer only supports nodal values! "{self._ClassName()}"\nChecking ModelPart "{data_to_check.model_part_name}" of solver "{data_to_check.solver_name}"')
 
         CheckData(from_solver_data)
         CheckData(to_solver_data)
