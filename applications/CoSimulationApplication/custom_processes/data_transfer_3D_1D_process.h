@@ -142,15 +142,6 @@ public:
         UpdatePoint();
     }
 
-    ///Copy constructor  (not really required)
-    PointElement(const PointElement& rRHS):
-        BaseType(rRHS),
-        mpElement(rRHS.mpElement)
-    {
-    }
-
-    /// Destructor.
-    ~PointElement() override= default;
 
     ///@}
     ///@name Operators
