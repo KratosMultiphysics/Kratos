@@ -74,22 +74,22 @@ public:
         // intentionally empty
     }
 
-    void CloneTimeStep() override{
+    void CloneTimeStep() override {
         // intentionally empty
     };
-    void RestorePositionsAndDOFVectorToStartOfStep() override{
+    void RestorePositionsAndDOFVectorToStartOfStep() override {
         // intentionally empty
     };
-    void SaveTotalDisplacementFieldAtStartOfTimeLoop() override{
+    void SaveTotalDisplacementFieldAtStartOfTimeLoop() override {
         // intentionally empty
     };
-    void AccumulateTotalDisplacementField() override{
+    void AccumulateTotalDisplacementField() override {
         // intentionally empty
     };
-    void ComputeIncrementalDisplacementField() override{
+    void ComputeIncrementalDisplacementField() override {
         // intentionally empty
     };
-    void OutputProcess() override{
+    void OutputProcess() override {
         // intentionally empty
     };
 
