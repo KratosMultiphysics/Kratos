@@ -24,7 +24,7 @@
 /* The mappers includes */
 #include "spaces/ublas_space.h"
 #include "mappers/mapper_flags.h"
-#include "factories/mapper_factory.h" 
+#include "factories/mapper_factory.h"
 
 namespace Kratos
 {
@@ -51,12 +51,12 @@ ModelPart& Determine1DModelPart(ModelPart& rFirstModelPart, ModelPart& rSecondMo
 
         // First model part
         if (rFirstModelPart.NumberOfElements() > 0 || rFirstModelPart.NumberOfConditions() > 0 ) {
-            if (rFirstModelPart.NumberOfElements() > 0) {
-                if (rFirstModelPart.ElementsBegin()->GetGeometry().LocalSpaceDimension() == 1) {
+            if (rFirstModelPart.NumberOfConditions() > 0) {
+                if (rFirstModelPart.ConditionsBegin()->GetGeometry().LocalSpaceDimension() == 1) {
                     return rFirstModelPart;
                 }
             } else {
-                if (rFirstModelPart.ConditionsBegin()->GetGeometry().LocalSpaceDimension() == 1) {
+                if (rFirstModelPart.ElementsBegin()->GetGeometry().LocalSpaceDimension() == 1) {
                     return rFirstModelPart;
                 }
             }
@@ -64,12 +64,12 @@ ModelPart& Determine1DModelPart(ModelPart& rFirstModelPart, ModelPart& rSecondMo
 
         // Second model part
         if (rSecondModelPart.NumberOfElements() > 0 || rSecondModelPart.NumberOfConditions() > 0 ) {
-            if (rSecondModelPart.NumberOfElements() > 0) {
-                if (rSecondModelPart.ElementsBegin()->GetGeometry().LocalSpaceDimension() == 1) {
+            if (rSecondModelPart.NumberOfConditions() > 0) {
+                if (rSecondModelPart.ConditionsBegin()->GetGeometry().LocalSpaceDimension() == 1) {
                     return rSecondModelPart;
                 }
             } else {
-                if (rSecondModelPart.ConditionsBegin()->GetGeometry().LocalSpaceDimension() == 1) {
+                if (rSecondModelPart.ElementsBegin()->GetGeometry().LocalSpaceDimension() == 1) {
                     return rSecondModelPart;
                 }
             }
@@ -243,7 +243,7 @@ public:
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
      */
     const Parameters GetDefaultParameters() const override;
-    
+
     ///@}
 private:
     ///@name Private member Variables
