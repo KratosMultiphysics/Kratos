@@ -246,7 +246,7 @@ double DataTransfer3D1DProcess::GetMaxLength(ModelPart& rModelPart)
 {
     auto& r_elements_array = rModelPart.Elements();
     KRATOS_ERROR_IF(r_elements_array.size() == 0) << "Empty model part" << std::endl;
-    return block_for_each<MaxReduction<double>>(r_elements_array, [&](Element& rElement) {
+    return block_for_each<MaxReduction<double>>(r_elements_array, [&](const auto& rElement) {
         return rElement.GetGeometry().Length();
     });
 }
