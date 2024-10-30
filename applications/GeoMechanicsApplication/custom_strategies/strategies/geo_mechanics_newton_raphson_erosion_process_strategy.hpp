@@ -31,7 +31,6 @@
 
 namespace Kratos
 {
-
 template <class TSparseSpace, class TDenseSpace, class TLinearSolver>
 class GeoMechanicsNewtonRaphsonErosionProcessStrategy
     : public GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
@@ -54,7 +53,6 @@ public:
 
     GeoMechanicsNewtonRaphsonErosionProcessStrategy(ModelPart&                    model_part,
                                                     typename TSchemeType::Pointer pScheme,
-                                                    typename TLinearSolver::Pointer pNewLinearSolver,
                                                     typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
                                                     typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
                                                     Parameters& rParameters,
@@ -63,16 +61,7 @@ public:
                                                     bool        ReformDofSetAtEachStep = false,
                                                     bool        MoveMeshFlag           = false)
         : GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(
-              model_part,
-              pScheme,
-              pNewLinearSolver,
-              pNewConvergenceCriteria,
-              pNewBuilderAndSolver,
-              rParameters,
-              MaxIterations,
-              CalculateReactions,
-              ReformDofSetAtEachStep,
-              MoveMeshFlag)
+              model_part, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, rParameters, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
     {
         rank              = model_part.GetCommunicator().MyPID();
         mPipingIterations = rParameters["max_piping_iterations"].GetInt();
@@ -95,7 +84,7 @@ public:
         if (PipeElements.empty()) {
             KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0)
                 << "No Pipe Elements -> Finalizing Solution " << std::endl;
-            GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::FinalizeSolutionStep();
+            this->BaseClassFinalizeSolutionStep();
             return;
         }
         // calculate max pipe height and pipe increment
@@ -134,13 +123,13 @@ public:
                 save_or_reset_pipe_heights(OpenPipeElements, grow);
             }
             // recalculate groundwater flow
-            bool converged = Recalculate();
+            bool converged = this->Recalculate();
 
             // error check
             KRATOS_ERROR_IF_NOT(converged) << "Groundwater flow calculation failed to converge." << std::endl;
         }
 
-        GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::FinalizeSolutionStep();
+        this->BaseClassFinalizeSolutionStep();
     }
 
     /**
@@ -150,7 +139,6 @@ public:
     int Check() override
     {
         KRATOS_TRY
-
         BaseType::Check();
         this->GetBuilderAndSolver()->Check(BaseType::GetModelPart());
         this->GetScheme()->Check(BaseType::GetModelPart());
@@ -306,23 +294,20 @@ private:
         return max_pipe_height / (n_steps - 1);
     }
 
-    bool Recalculate()
+    virtual bool Recalculate()
     {
         KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", this->GetEchoLevel() > 0 && rank == 0)
             << "Recalculating" << std::endl;
-        // KRATOS_INFO_IF("PipingLoop") << "Recalculating" << std::endl;
-        // ModelPart& CurrentModelPart = this->GetModelPart();
-        // this->Clear();
-
-        // Reset displacements to the initial (Assumes Water Pressure is the convergence criteria)
-        /* block_for_each(CurrentModelPart.Nodes(), [&](Node& rNode) {
-             auto dold = rNode.GetSolutionStepValue(WATER_PRESSURE, 1);
-             rNode.GetSolutionStepValue(WATER_PRESSURE, 0) = dold;
-             });*/
 
         GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::InitializeSolutionStep();
         GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Predict();
         return GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::SolveSolutionStep();
+    }
+
+    virtual void BaseClassFinalizeSolutionStep()
+    {
+        // to override in a unit test
+        GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::FinalizeSolutionStep();
     }
 
     bool check_pipe_equilibrium(filtered_elements open_pipe_elements, double amax, unsigned int mPipingIterations)
@@ -341,7 +326,7 @@ private:
             equilibrium = true;
 
             // perform a flow calculation and stop growing if the calculation doesn't converge
-            converged = Recalculate();
+            converged = this->Recalculate();
 
             // todo: JDN (20220817) : grow not used.
             // if (!converged)
@@ -354,7 +339,6 @@ private:
                 equilibrium = true;
                 for (auto OpenPipeElement : open_pipe_elements) {
                     auto pElement = static_cast<SteadyStatePwPipingElement<2, 4>*>(OpenPipeElement);
-
                     // get open pipe element geometry and properties
                     auto& Geom = OpenPipeElement->GetGeometry();
                     auto& prop = OpenPipeElement->GetProperties();
@@ -383,7 +367,6 @@ private:
                         equilibrium = true;
                         OpenPipeElement->SetValue(PIPE_HEIGHT, small_pipe_height);
                     }
-
                     // calculate difference between equilibrium height and current pipe height
                     OpenPipeElement->SetValue(DIFF_PIPE_HEIGHT, eq_height - current_height);
                 }
@@ -447,7 +430,5 @@ private:
             }
         }
     }
-
-}; // Class GeoMechanicsNewtonRaphsonStrategy
-
+}; // Class GeoMechanicsNewtonRaphsonErosionProcessStrategy
 } // namespace Kratos
