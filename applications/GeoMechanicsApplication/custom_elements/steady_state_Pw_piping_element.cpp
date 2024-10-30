@@ -20,7 +20,6 @@
 
 namespace Kratos
 {
-
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer SteadyStatePwPipingElement<TDim, TNumNodes>::Create(IndexType NewId,
                                                                      NodesArrayType const& ThisNodes,
@@ -326,5 +325,4 @@ bool SteadyStatePwPipingElement<TDim, TNumNodes>::InEquilibrium(const Properties
 template class SteadyStatePwPipingElement<2, 4>;
 template class SteadyStatePwPipingElement<3, 6>;
 template class SteadyStatePwPipingElement<3, 8>;
-
 } // Namespace Kratos
