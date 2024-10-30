@@ -240,10 +240,7 @@ class Kratos3D1DDataTransferOperator(CoSimulationDataTransferOperator):
                 raise ValueError("Inconsistent geometry types found in model_part.")
 
         # Check if the element is 1D
-        if first_geometry_type == 1:
-            return False
-        else:
-            return True
+        return first_geometry_type != 1
 
     @classmethod
     def _GetDefaultParameters(cls):
