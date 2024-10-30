@@ -231,13 +231,28 @@ class Kratos3D1DDataTransferOperator(CoSimulationDataTransferOperator):
         """
         first_geometry_type = None
 
-        for elem in model_part.Elements:
-            geom = elem.GetGeometry()
+        # First check the conditions
+        for cond in model_part.Conditions:
+            geom = cond.GetGeometry()
             # Check for consistent geometry type
             if first_geometry_type is None:
                 first_geometry_type = geom.LocalSpaceDimension()
             elif geom.LocalSpaceDimension() != first_geometry_type:
                 raise ValueError("Inconsistent geometry types found in model_part.")
+
+        # Now checking elements
+        if first_geometry_type is None:
+            for elem in model_part.Elements:
+                geom = elem.GetGeometry()
+                # Check for consistent geometry type
+                if first_geometry_type is None:
+                    first_geometry_type = geom.LocalSpaceDimension()
+                elif geom.LocalSpaceDimension() != first_geometry_type:
+                    raise ValueError("Inconsistent geometry types found in model_part.")
+
+        # Raise error if no geometries
+        if first_geometry_type is None:
+            raise ValueError("Neither elements or conditions defined.")
 
         # Check if the element is 1D
         return first_geometry_type != 1
