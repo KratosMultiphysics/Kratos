@@ -33,7 +33,8 @@ class ImplicitMechanicalSolver(MechanicalSolver):
             "damp_factor_m"           :-0.3,
             "newmark_beta"            : 0.25,
             "rayleigh_alpha"          : 0.0,
-            "rayleigh_beta"           : 0.0
+            "rayleigh_beta"           : 0.0,
+            "store_bossak_acceleration" : false
         }""")
         this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
@@ -89,10 +90,12 @@ class ImplicitMechanicalSolver(MechanicalSolver):
             scheme_settings = KratosMultiphysics.Parameters("""{
                 "damp_factor_m" : 0.0,
                 "newmark_beta" : 0.0,
-                "projection_variables_list" : []
+                "projection_variables_list" : [],
+                "store_bossak_acceleration": false
             }""")
             scheme_settings["damp_factor_m"].SetDouble(0.0 if scheme_type == "newmark" else self.settings["damp_factor_m"].GetDouble())
             scheme_settings["newmark_beta"].SetDouble(self.settings["newmark_beta"].GetDouble())
+            scheme_settings["store_bossak_acceleration"].SetBool(self.settings["store_bossak_acceleration"].GetBool())
             if self.settings["use_orthogonal_subscales"].GetBool():
                 if self.settings["volumetric_strain_dofs"].GetBool():
                     scheme_settings["projection_variables_list"].SetStringArray(["VOLUMETRIC_STRAIN_PROJECTION","DISPLACEMENT_PROJECTION"])
