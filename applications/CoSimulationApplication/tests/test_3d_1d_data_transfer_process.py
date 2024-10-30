@@ -265,7 +265,7 @@ def generate_result(model, output_filename, domain):
     }""")
 
     out_parameters["model_part_name"].SetString(domain)
-    out_parameters["output_file_name"].SetString(str(output_filename) + "_data_transfer.json")
+    out_parameters["output_file_name"].SetString(f"{output_filename}_data_transfer.json")
 
     # Execute the output generation process.
     out = JsonOutputProcess(model, out_parameters)
