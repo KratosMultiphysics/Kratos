@@ -285,7 +285,7 @@ private:
      * @param rModelPart The model part to compute
      * @return The maximum length
      */
-    static double GetMaxLength(ModelPart& rModelPart);
+    static double GetMaxLength(const ModelPart& rModelPart);
 
     ///@}
 }; // Class DataTransfer3D1DProcess
