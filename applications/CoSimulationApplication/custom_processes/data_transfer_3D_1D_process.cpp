@@ -242,13 +242,20 @@ void DataTransfer3D1DProcess::InterpolateFrom3Dto1D()
 /***********************************************************************************/
 /***********************************************************************************/
 
-double DataTransfer3D1DProcess::GetMaxLength(ModelPart& rModelPart)
+double DataTransfer3D1DProcess::GetMaxLength(const ModelPart& rModelPart)
 {
-    auto& r_elements_array = rModelPart.Elements();
-    KRATOS_ERROR_IF(r_elements_array.size() == 0) << "Empty model part" << std::endl;
-    return block_for_each<MaxReduction<double>>(r_elements_array, [&](const auto& rElement) {
-        return rElement.GetGeometry().Length();
-    });
+    KRATOS_ERROR_IF(rModelPart.NumberOfElements() == 0 && rModelPart.NumberOfConditions() == 0) << "Empty model part" << std::endl;
+    if (rModelPart.NumberOfConditions() > 0) {
+        auto& r_conditions_array = rModelPart.Conditions();
+        return block_for_each<MaxReduction<double>>(r_conditions_array, [&](const auto& rCondition) {
+            return rCondition.GetGeometry().Length();
+        });
+    } else {
+        auto& r_elements_array = rModelPart.Elements();
+        return block_for_each<MaxReduction<double>>(r_elements_array, [&](const auto& rElement) {
+            return rElement.GetGeometry().Length();
+        });
+    }
 }
 
 /***********************************************************************************/
