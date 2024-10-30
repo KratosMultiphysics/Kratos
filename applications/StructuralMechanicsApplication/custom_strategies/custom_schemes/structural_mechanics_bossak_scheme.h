@@ -13,10 +13,13 @@
 #pragma once
 
 // System includes
+#include <iostream>
 
 // External includes
 
 // Project includes
+#include "includes/variables.h"
+#include "structural_mechanics_application_variables.h"
 #include "includes/cfd_variables.h" //TODO: For OSS_SWITCH (think about a better place for this variable)
 #include "processes/calculate_nodal_area_process.h"
 
@@ -53,6 +56,9 @@ public:
 
     /// Class type for the scheme
     using ClassType = StructuralMechanicsBossakScheme<TSparseSpace, TDenseSpace>;
+
+    /// Type for the dofs array within BossakBaseType
+    using DofsArrayType = typename BossakBaseType::DofsArrayType;
 
     /// Type for the system matrix within BossakBaseType
     using TSystemMatrixType = typename BossakBaseType::TSystemMatrixType;
@@ -101,6 +107,27 @@ public:
         return BaseTypePointer(new StructuralMechanicsBossakScheme(*this));
     }
 
+    int Check(const ModelPart& rModelPart) const override
+    {
+        KRATOS_TRY;
+
+        // Call the base Check method
+        int result = BossakBaseType::Check(rModelPart);
+
+        // Check that angular variables are correctly allocated
+        if (rModelPart.HasNodalSolutionStepVariable(ROTATION))
+        {
+            for (const auto& rnode : rModelPart.Nodes()) {
+                    KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ANGULAR_VELOCITY,rnode)
+                    KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ANGULAR_ACCELERATION,rnode)
+            }
+        }
+
+        return result;
+
+        KRATOS_CATCH( "" );
+    }
+
     void Initialize(ModelPart& rModelPart) override
     {
         // Call the base Initialize method
@@ -122,6 +149,52 @@ public:
         }
     }
 
+    void Update(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
+    {
+        KRATOS_TRY;
+
+        // Call the base Update method
+        BossakBaseType::Update(rModelPart, rDofSet, rA, rDx, rb);
+
+        // Updating angular time derivatives if they are available (nodally for efficiency)
+        if(rModelPart.HasNodalSolutionStepVariable(ROTATION))
+        {
+            block_for_each(rModelPart.Nodes(), array_1d<double,3>(), [&](Node& rNode, array_1d<double,3>& rDeltaRotationTLS){
+                    noalias(rDeltaRotationTLS) = rNode.FastGetSolutionStepValue(ROTATION) - rNode.FastGetSolutionStepValue(ROTATION, 1);
+
+                    array_1d<double, 3>& r_current_angular_velocity = rNode.FastGetSolutionStepValue(ANGULAR_VELOCITY);
+                    const array_1d<double, 3>& r_previous_angular_velocity = rNode.FastGetSolutionStepValue(ANGULAR_VELOCITY, 1);
+
+                    array_1d<double, 3>& r_current_angular_acceleration = rNode.FastGetSolutionStepValue(ANGULAR_ACCELERATION);
+                    const array_1d<double, 3>& r_previous_angular_acceleration = rNode.FastGetSolutionStepValue(ANGULAR_ACCELERATION, 1);
+
+                    UpdateAngularVelocity(r_current_angular_velocity, rDeltaRotationTLS, r_previous_angular_velocity, r_previous_angular_acceleration);
+                    UpdateAngularAcceleration(r_current_angular_acceleration, rDeltaRotationTLS, r_previous_angular_velocity, r_previous_angular_acceleration);
+            });
+        }
+
+        KRATOS_WATCH(rModelPart.HasNodalSolutionStepVariable(ROTATION))
+        auto& rNodes = rModelPart.Nodes();
+        for (auto iter=rNodes.begin(); iter !=rNodes.end(); ++iter)
+        {
+            size_t node_id = iter->GetId();
+            const array_1d<double,3>& ang_vel = iter->FastGetSolutionStepValue(ANGULAR_VELOCITY);
+            const array_1d<double,3>& ang_acc = iter->FastGetSolutionStepValue(ANGULAR_ACCELERATION);
+            std::cout << "node " << node_id << std::endl;
+            std::cout << "angular vel of node " << node_id << " : " << ang_vel << std::endl;
+            std::cout << "angular acc of node " << node_id << " : " << ang_acc << std::endl;
+        }
+
+        KRATOS_CATCH( "" );
+    }
+
+
     void InitializeSolutionStep(
         ModelPart &rModelPart,
         TSystemMatrixType &A,
@@ -137,6 +210,36 @@ public:
         if (oss_switch && mUpdateNodalArea) {
             CalculateNodalAreaProcess<false>(rModelPart).Execute();
         }
+    }
+
+    void FinalizeSolutionStep(ModelPart &rModelPart, TSystemMatrixType &A, TSystemVectorType &Dx, TSystemVectorType &b) override
+    {
+        KRATOS_TRY
+
+        // Call the base FinalizeSolutionStep method
+        BossakBaseType::FinalizeSolutionStep(rModelPart, A, Dx, b);
+        
+        if (mStoreBossakAcceleration) 
+        {
+            block_for_each(rModelPart.Nodes(), array_1d<double,3>(), [&](Node& rNode, array_1d<double,3>& rBossakAccelerationTLS)
+            {
+                noalias(rBossakAccelerationTLS) = (1 -  this->mBossak.alpha) * rNode.FastGetSolutionStepValue(ACCELERATION, 0)
+                                                        + (this->mBossak.alpha) * rNode.FastGetSolutionStepValue(ACCELERATION, 1);             
+                rNode.SetValue(BOSSAK_ACCELERATION, rBossakAccelerationTLS);
+            });
+
+            if(rModelPart.HasNodalSolutionStepVariable(ROTATION))
+            {
+                block_for_each(rModelPart.Nodes(), array_1d<double,3>(), [&](Node& rNode, array_1d<double,3>& rBossakAngularAccelerationTLS)
+                {
+                    noalias(rBossakAngularAccelerationTLS) = (1 -  this->mBossak.alpha) * rNode.FastGetSolutionStepValue(ANGULAR_ACCELERATION, 0)
+                                                                + (this->mBossak.alpha) * rNode.FastGetSolutionStepValue(ANGULAR_ACCELERATION, 1);             
+                    rNode.SetValue(ANGULAR_BOSSAK_ACCELERATION, rBossakAngularAccelerationTLS);
+                });
+            }
+        }
+
+        KRATOS_CATCH("")
     }
 
     void FinalizeNonLinIteration(
@@ -202,7 +305,8 @@ public:
         Parameters default_parameters = Parameters(R"({
             "name" : "structural_mechanics_bossak_scheme",
             "update_nodal_area" : true,
-            "projection_variables_list" : []
+            "projection_variables_list" : [],
+            "store_bossak_acceleration" : false
         })");
 
         // Getting base class default parameters
@@ -249,6 +353,7 @@ protected:
         BossakBaseType::AssignSettings(ThisParameters);
 
         mUpdateNodalArea = ThisParameters["update_nodal_area"].GetBool();
+        mStoreBossakAcceleration = ThisParameters["store_bossak_acceleration"].GetBool();
         const auto& r_proj_var_list = ThisParameters["projection_variables_list"].GetStringArray();
         for (const std::string& r_var_name : r_proj_var_list) {
             if (KratosComponents<Variable<double>>::Has(r_var_name)) {
@@ -261,12 +366,34 @@ protected:
         }
     }
 
+    inline void UpdateAngularVelocity(
+        array_1d<double, 3>& rCurrentAngularVelocity,
+        const array_1d<double, 3>& rDeltaRotation,
+        const array_1d<double, 3>& rPreviousAngularVelocity,
+        const array_1d<double, 3>& rPreviousAngularAcceleration
+        )
+    {
+        noalias(rCurrentAngularVelocity) = (this->mBossak.c1 * rDeltaRotation - this->mBossak.c4 * rPreviousAngularVelocity - this->mBossak.c5 * rPreviousAngularAcceleration);
+    }
+
+    inline void UpdateAngularAcceleration(
+        array_1d<double, 3>& rCurrentAngularAcceleration,
+        const array_1d<double, 3>& rDeltaRotation,
+        const array_1d<double, 3>& rPreviousAngularVelocity,
+        const array_1d<double, 3>& rPreviousAngularAcceleration
+        )
+    {
+        noalias(rCurrentAngularAcceleration) = (this->mBossak.c0 * rDeltaRotation - this->mBossak.c2 * rPreviousAngularVelocity - this->mBossak.c3 * rPreviousAngularAcceleration);
+    }
+
     ///@}
 private:
     ///@name Private Member Variables
     ///@{
 
     bool mUpdateNodalArea;
+
+    bool mStoreBossakAcceleration;
 
     std::vector<const Variable<double>*> mProjectionScalarVariablesList;
 
