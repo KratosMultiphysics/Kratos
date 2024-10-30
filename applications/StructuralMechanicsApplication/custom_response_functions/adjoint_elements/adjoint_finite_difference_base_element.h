@@ -237,13 +237,6 @@ public:
         KRATOS_CATCH("")
     }
 
-    void CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector,
-					      const ProcessInfo& rCurrentProcessInfo) override
-    {
-        mpPrimalElement->CalculateFirstDerivativesRHS(rRightHandSideVector,
-					        rCurrentProcessInfo);
-    }
-
     void CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix,
 							 VectorType& rRightHandSideVector,
 							 const ProcessInfo& rCurrentProcessInfo) override
@@ -261,13 +254,6 @@ public:
                                              rCurrentProcessInfo);
         noalias(rLeftHandSideMatrix) = - rLeftHandSideMatrix;
         KRATOS_CATCH("")
-    }
-
-    void CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
-					       const ProcessInfo& rCurrentProcessInfo) override
-    {
-        mpPrimalElement->CalculateSecondDerivativesRHS(rRightHandSideVector,
-					        rCurrentProcessInfo);
     }
 
     void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override
@@ -382,6 +368,22 @@ public:
 
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
+
+    // Transient adjoint analysis methods
+
+    /**
+     * Calculates the bossak scheme RHS depending on the first derivatives vector (i.e. -damping matrix * velocity)
+     * **/
+    void CalculateFirstDerivativesRHS(VectorType& rFirstDerivativesRHSVector, const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * Calculates the bossak scheme RHS depending on the second derivatives vector 
+     * (i.e. -mass matrix * bossak_acceleration
+     * where bossak_acceleration = (1 - alpha_bossak) current_acceleration + alpha_bossak * previous_acceleration
+     * )
+     * **/
+    void CalculateSecondDerivativesRHS(VectorType& rSecondDerivativesRHSVector, const ProcessInfo& rCurrentProcessInfo) override;
+
 
     // Sensitivity functions
 
@@ -545,6 +547,13 @@ private:
      * This can be overwritten by derived classes.
      */
     virtual double GetPerturbationSizeModificationFactor(const Variable<array_1d<double,3>>& rDesignVariable) const;
+
+    /**
+     * Returns the Bossak acceleration vector if available.
+     * The vector is necessary to calculate the sensitivity matrix in transient adjoint analysis.
+     */
+    void GetBossakAccelerationVector(Vector& rValues) const;
+
 
     ///@}
 

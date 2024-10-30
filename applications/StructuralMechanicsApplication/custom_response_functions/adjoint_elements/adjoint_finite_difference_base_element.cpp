@@ -289,6 +289,44 @@ int AdjointFiniteDifferencingBaseElement<TPrimalElement>::Check(const ProcessInf
     KRATOS_CATCH("")
 }
 
+// Transient adjoint analysis methods
+
+template <class TPrimalElement>
+void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateFirstDerivativesRHS(VectorType& rFirstDerivativesRHSVector, 
+                                                                                        const ProcessInfo& rCurrentProcessInfo)
+{
+    const GeometryType& r_geometry = this->GetGeometry();
+
+    const SizeType number_of_nodes = r_geometry.PointsNumber();
+    const SizeType domain_size =  r_geometry.WorkingSpaceDimension();
+    const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * domain_size : domain_size;
+    const SizeType local_size = number_of_nodes * num_dofs_per_node;
+
+    Matrix damping_matrix = ZeroMatrix(local_size,local_size);
+    CalculateDampingMatrix(damping_matrix,rCurrentProcessInfo);
+    Vector current_nodal_velocities = ZeroVector(local_size);
+    pGetPrimalElement()->GetFirstDerivativesVector(current_nodal_velocities);
+    rFirstDerivativesRHSVector = -prod(damping_matrix,current_nodal_velocities);
+}
+
+template <class TPrimalElement>
+void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSecondDerivativesRHS(VectorType& rSecondDerivativesRHSVector, 
+                                                                                         const ProcessInfo& rCurrentProcessInfo) 
+{
+    const GeometryType& r_geometry = this->GetGeometry();
+
+    const SizeType number_of_nodes = r_geometry.PointsNumber();
+    const SizeType domain_size =  r_geometry.WorkingSpaceDimension();
+    const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * domain_size : domain_size;
+    const SizeType local_size = number_of_nodes * num_dofs_per_node;
+
+    Matrix mass_matrix = ZeroMatrix(local_size,local_size);
+    CalculateMassMatrix(mass_matrix,rCurrentProcessInfo);
+    Vector nodal_bossak_accelerations = ZeroVector(local_size);
+    GetBossakAccelerationVector(nodal_bossak_accelerations);
+    rSecondDerivativesRHSVector = -prod(mass_matrix,nodal_bossak_accelerations);
+}
+
 // Sensitivity functions
 
 template <class TPrimalElement>
@@ -297,31 +335,66 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityM
 {
     KRATOS_TRY;
 
-    // Get perturbation size
-    const double delta = this->GetPerturbationSize(rDesignVariable, rCurrentProcessInfo);
+    const SizeType number_of_nodes = mpPrimalElement->GetGeometry().PointsNumber();
+    const SizeType dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
+    const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * dimension : dimension;
+    const SizeType local_size = number_of_nodes * num_dofs_per_node;
 
-    Vector RHS;
-    this->pGetPrimalElement()->CalculateRightHandSide(RHS, rCurrentProcessInfo);
-    KRATOS_WATCH(RHS)
-    Matrix  Mass_Matrix;
-    this->pGetPrimalElement()->CalculateMassMatrix(Mass_Matrix, rCurrentProcessInfo);
-    KRATOS_WATCH(Mass_Matrix)
-    Vector Acc_0;
-    this->pGetPrimalElement()->GetSecondDerivativesVector(Acc_0, 0);
-    Vector Acc_1;
-    this->pGetPrimalElement()->GetSecondDerivativesVector(Acc_1, 1);
-    KRATOS_WATCH(Acc_0)
-    KRATOS_WATCH(Acc_1)
-
-    // Get pseudo-load from utility
-    FiniteDifferenceUtility::CalculateRightHandSideDerivative(*pGetPrimalElement(), RHS, rDesignVariable, delta, rOutput, rCurrentProcessInfo);
-
-    if (rOutput.size1() == 0 || rOutput.size2() == 0)
+    if ( mpPrimalElement->GetProperties().Has(rDesignVariable) )
     {
-        const SizeType number_of_nodes = mpPrimalElement->GetGeometry().PointsNumber();
-        const SizeType dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
-        const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * dimension : dimension;
-        const SizeType local_size = number_of_nodes * num_dofs_per_node;
+        // local storage
+        Vector RHS = ZeroVector(local_size);
+        Vector RHS_perturbed = ZeroVector(local_size);
+        Vector FirstDerivativesRHS = ZeroVector(local_size);
+        Vector FirstDerivativesRHS_perturbed = ZeroVector(local_size);
+        Vector SecondDerivativesRHS = ZeroVector(local_size);
+        Vector SecondDerivativesRHS_perturbed = ZeroVector(local_size);
+
+        // unperturbed RHS
+        CalculateRightHandSide(RHS, rCurrentProcessInfo);
+        bool has_bossak_acc = this->GetGeometry()[0].Has(BOSSAK_ACCELERATION);
+        if(has_bossak_acc){
+            CalculateFirstDerivativesRHS(FirstDerivativesRHS, rCurrentProcessInfo);
+            CalculateSecondDerivativesRHS(SecondDerivativesRHS, rCurrentProcessInfo);
+        }
+        
+        // Resize sensitivity matrix
+        if ( (rOutput.size1() != 1) || (rOutput.size2() != RHS.size() ) )
+            rOutput.resize(1, RHS.size(), false);
+
+        // Save property pointer
+        Properties::Pointer p_global_properties = mpPrimalElement->pGetProperties();
+
+        // Create new property and assign it to the element
+        Properties::Pointer p_local_property(Kratos::make_shared<Properties>(Properties(*p_global_properties)));
+        mpPrimalElement->SetProperties(p_local_property);
+
+        // perturb the design variable
+        const double delta = this->GetPerturbationSize(rDesignVariable, rCurrentProcessInfo);
+        const double current_property_value = mpPrimalElement->GetProperties()[rDesignVariable];
+        p_local_property->SetValue(rDesignVariable, (current_property_value + delta));
+
+        // Compute RHS after perturbation
+        CalculateRightHandSide(RHS_perturbed, rCurrentProcessInfo);
+        if(has_bossak_acc){
+            CalculateFirstDerivativesRHS(FirstDerivativesRHS_perturbed, rCurrentProcessInfo);
+            CalculateSecondDerivativesRHS(SecondDerivativesRHS_perturbed, rCurrentProcessInfo);
+        }
+
+        // Compute derivative of RHS w.r.t. design variable with finite differences
+        for(IndexType i = 0; i < RHS_perturbed.size(); ++i){
+            rOutput(0, i) = (RHS_perturbed[i] - RHS[i]) / delta;
+            if(has_bossak_acc){
+                rOutput(0, i) += (FirstDerivativesRHS_perturbed[i] - FirstDerivativesRHS[i]) / delta;
+                rOutput(0, i) += (SecondDerivativesRHS_perturbed[i] - SecondDerivativesRHS[i]) / delta;
+            }
+        }
+
+        // Give element original properties back
+        mpPrimalElement->SetProperties(p_global_properties);
+    }
+    else
+    {
         rOutput = ZeroMatrix(0, local_size);
     }
 
@@ -785,6 +858,42 @@ double AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSize
     else
         return 1.0;
 
+    KRATOS_CATCH("")
+}
+
+template <class TPrimalElement>
+void AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetBossakAccelerationVector(Vector& rValues) const
+{
+    KRATOS_TRY
+
+    const GeometryType& r_geometry = this->GetGeometry();
+
+    const SizeType number_of_nodes = r_geometry.PointsNumber();
+    const SizeType domain_size =  r_geometry.WorkingSpaceDimension();
+    const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * domain_size : domain_size;
+    const SizeType local_size = number_of_nodes * num_dofs_per_node;
+
+    if(rValues.size() != local_size)
+       rValues.resize(local_size, false);
+
+    for (IndexType i = 0; i < number_of_nodes; ++i)
+    {
+        const NodeType& r_node = r_geometry[i];
+        const array_1d<double,3>& r_bossak_acc = r_node.GetValue(BOSSAK_ACCELERATION);
+
+        const IndexType index = i * num_dofs_per_node;
+        rValues[index]     = r_bossak_acc[0];
+        rValues[index + 1] = r_bossak_acc[1];
+        rValues[index + 2] = r_bossak_acc[2];
+
+        if(mHasRotationDofs)
+        {
+            const array_1d<double,3>& r_bossak_ang_acc = r_node.GetValue(ANGULAR_BOSSAK_ACCELERATION);
+            rValues[index + 3] = r_bossak_ang_acc[0];
+            rValues[index + 4] = r_bossak_ang_acc[1];
+            rValues[index + 5] = r_bossak_ang_acc[2];
+        }
+    }
     KRATOS_CATCH("")
 }
 
