@@ -122,7 +122,7 @@ KratosApplication::KratosApplication(const std::string& ApplicationName)
       mpModelers(KratosComponents<Modeler>::pGetComponents()),
       mpRegisteredObjects(&(Serializer::GetRegisteredObjects())),
       mpRegisteredObjectsName(&(Serializer::GetRegisteredObjectsName())) {
-        
+
         Registry::SetCurrentSource(mApplicationName);
 
         for (auto component : {"geometries", "elements", "conditions", "constraints", "modelers", "constitutive_laws"}) {
@@ -302,6 +302,8 @@ void KratosApplication::RegisterKratosCore() {
     KRATOS_REGISTER_FLAG(MARKER);
     KRATOS_REGISTER_FLAG(PERIODIC);
     KRATOS_REGISTER_FLAG(WALL);
+    KRATOS_REGISTER_FLAG(SBM_BOUNDARY);
+    KRATOS_REGISTER_FLAG(SBM_INTERFACE);
 
     // Note: using internal macro for these two because they do not have a NOT_ version
     KRATOS_ADD_FLAG_TO_KRATOS_COMPONENTS(ALL_DEFINED);
@@ -355,7 +357,7 @@ void KratosApplication::DeregisterComponent(std::string const & rComponentName) 
     }
 }
 
-void KratosApplication::DeregisterCommonComponents() 
+void KratosApplication::DeregisterCommonComponents()
 {
     KRATOS_INFO("") << "Deregistering " << mApplicationName << std::endl;
 

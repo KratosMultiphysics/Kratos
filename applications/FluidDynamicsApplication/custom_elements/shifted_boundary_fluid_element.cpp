@@ -102,7 +102,7 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
     // Check if the element belongs to the surrogate interface.
     // Note that the INTERFACE flag is assumed to be set in the 1st layer of elements attached to the surrogate boundary e.g. by the ShiftedBoundaryMeshlessInterfaceUtility.
     // At the faces of these INTERFACE elements which are attached to BOUNDARY elements (surrogate interface gamma_tilde), the boundary flux contributions is added as a surrogate.
-    if (this->Is(INTERFACE)) {
+    if (this->Is(SBM_INTERFACE)) {
         // Initialize the element data
         ShiftedBoundaryElementData data;
         data.Initialize(*this, rCurrentProcessInfo);
@@ -472,7 +472,7 @@ std::vector<std::size_t> ShiftedBoundaryFluidElement<TBaseElement>::GetSurrogate
     std::vector<std::size_t> surrogate_faces_ids;
     for (std::size_t i_face = 0; i_face < n_faces; ++i_face) {
         auto p_neigh_elem = r_neigh_elems(i_face).get();
-        if (p_neigh_elem != nullptr && p_neigh_elem->Is(BOUNDARY)) {
+        if (p_neigh_elem != nullptr && p_neigh_elem->Is(SBM_BOUNDARY)) {
             surrogate_faces_ids.push_back(i_face);
         }
     }

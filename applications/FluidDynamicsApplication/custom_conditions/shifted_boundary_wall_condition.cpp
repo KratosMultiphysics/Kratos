@@ -125,7 +125,7 @@ void ShiftedBoundaryWallCondition<TDim>::CalculateLocalSystem(
     noalias(rRightHandSideVector) = ZeroVector(local_size);
     noalias(rLeftHandSideMatrix) = ZeroMatrix(local_size, local_size);
 
-    AddNitscheImposition(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+    //AddNitscheImposition(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
 
     //AddDirichletPenalization(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
 
@@ -214,7 +214,7 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
         const auto& r_velocity= r_geometry[i_node].FastGetSolutionStepValue(VELOCITY);
         //const auto& r_embedded_velocity = r_geometry[i_node].GetValue(EMBEDDED_VELOCITY);
         for (std::size_t d = 0; d < TDim; ++d) {
-            unknown_values[i_node*BlockSize + d] = r_velocity[d];  // - r_embedded_velocity[d];
+            unknown_values[i_node*BlockSize + d] = r_velocity[d];  // - r_embedded_velocity[d];  TODO
         }
         unknown_values[i_node*BlockSize + TDim] = r_geometry[i_node].FastGetSolutionStepValue(PRESSURE);
     }
@@ -371,9 +371,11 @@ void ShiftedBoundaryWallCondition<TDim>::AddDirichletPenalization(
     for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
         const auto& r_velocity= r_geometry[i_node].FastGetSolutionStepValue(VELOCITY);
         //const auto& r_embedded_velocity = r_geometry[i_node].GetValue(EMBEDDED_VELOCITY);
-        for (std::size_t d = 0; d < TDim; ++d) {
-            unknown_values[i_node*BlockSize + d] = r_velocity[d];  // - r_embedded_velocity[d];
-        }
+        /*for (std::size_t d = 0; d < TDim; ++d) {
+            unknown_values[i_node*BlockSize + d] = r_velocity[d];  // - r_embedded_velocity[d];  TODO
+        }*/
+        unknown_values[i_node*BlockSize +    0] = r_velocity[0];  //-1.0;
+        unknown_values[i_node*BlockSize +    1] = r_velocity[1];
         unknown_values[i_node*BlockSize + TDim] = r_geometry[i_node].FastGetSolutionStepValue(PRESSURE);
     }
 

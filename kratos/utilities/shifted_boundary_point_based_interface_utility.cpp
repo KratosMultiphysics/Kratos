@@ -120,11 +120,11 @@ namespace Kratos
             mNegativeSideIsEnclosed = true;
         }
 
-        // If true, then the support cloud for a node can be found beyond a first layer of deactivated BOUNDARY elements (direct neighbors) in normal direction
+        // If true, then the support cloud for a node can be found beyond a first layer of deactivated SBM_BOUNDARY elements (direct neighbors) in normal direction
         // NOTE that this is beneficial for small cuts and overlapping boundaries or if skin points are not located in the same elements as the tessellated geometry
         mCrossBoundaryNeighbors = ThisParameters["cross_boundary_neighbors"].GetBool();
 
-        // If true, then elements will be declared BOUNDARY which are intersected by the tessellated skin geometry
+        // If true, then elements will be declared SBM_BOUNDARY which are intersected by the tessellated skin geometry
         mUseTessellatedBoundary = ThisParameters["use_tessellated_boundary"].GetBool();
     };
 
@@ -138,13 +138,13 @@ namespace Kratos
         // NOTE Resetting the interface flags will eliminate previously embedded model parts except for their wall conditions!
         block_for_each(mpModelPart->Nodes(), [](NodeType& rNode){
             rNode.Set(ACTIVE, true);         // Nodes that belong to the elements to be assembled
-            rNode.Set(BOUNDARY, false);      // TODO Nodes that belong to the surrogate boundary
-            rNode.Set(INTERFACE, false);     // TODO Nodes that belong to the cloud of points
+            rNode.Set(SBM_BOUNDARY, false);      // TODO Nodes that belong to the surrogate boundary
+            rNode.Set(SBM_INTERFACE, false);     // TODO Nodes that belong to the cloud of points
         });
         block_for_each(mpModelPart->Elements(), [](ElementType& rElement){
             rElement.Set(ACTIVE, true);      // Elements in the positive distance region (the ones to be assembled)
-            rElement.Set(BOUNDARY, false);   // Elements in which the skin geometry is located (true boundary gamma)
-            rElement.Set(INTERFACE, false);  // Positive distance elements owning the surrogate boundary nodes
+            rElement.Set(SBM_BOUNDARY, false);   // Elements in which the skin geometry is located (true boundary gamma)
+            rElement.Set(SBM_INTERFACE, false);  // Positive distance elements owning the surrogate boundary nodes
         });
 
         // Reset MODIFIED flag
@@ -181,8 +181,8 @@ namespace Kratos
         const std::size_t n_elements = (find_intersected_objects_process.GetModelPart1()).NumberOfElements();
         auto& r_elements = (find_intersected_objects_process.GetModelPart1()).ElementsArray();
 
-        // (Check for nodes that would be surrounded by BOUNDARY elements only, as these nodes are probably intersected by the skin)
-        // Check for nodes that would be surrounded by BOUNDARY elements mostly to detect small cuts
+        // (Check for nodes that would be surrounded by SBM_BOUNDARY elements only, as these nodes are probably intersected by the skin)
+        // Check for nodes that would be surrounded by SBM_BOUNDARY elements mostly to detect small cuts
         //TODO do not move outer boundary elements
         const std::size_t n_dim = mpModelPart->GetProcessInfo()[DOMAIN_SIZE];
         const double relocation_multiplier = 1e-2;  //1e-10 OR 1e-2*length
@@ -204,7 +204,7 @@ namespace Kratos
             }
             // n_neighbors/2 +1 works well for 2D - TODO: n_neighbors/2+2 as well?? 3D +4?
             const std::size_t n_critical = (n_dim == 2) ? n_neighbors-1 : n_neighbors;
-            bool majority_is_selected = n_selected > n_neighbors/2 +1 && n_selected >= n_critical;
+            bool majority_is_selected = false; //n_selected > n_neighbors/2 +1 && n_selected >= n_critical;
 
             // If there are only intersected elements around the current node, we will check whether the node is intersected and get the intersecting object's normal
             bool relocate_node = false;
@@ -265,17 +265,17 @@ namespace Kratos
             new_find_intersected_objects_process.FindIntersections();
             std::vector<PointerVector<GeometricalObject>>&  r_new_intersected_objects = new_find_intersected_objects_process.GetIntersections();
 
-            // Mark elements as BOUNDARY that are intersected by the tessellated skin geometry
+            // Mark elements as SBM_BOUNDARY that are intersected by the tessellated skin geometry
             IndexPartition<std::size_t>(n_elements).for_each([&](std::size_t i_ele) {
                 if (!r_new_intersected_objects[i_ele].empty()) {
-                    r_elements[i_ele]->Set(BOUNDARY, true);
+                    r_elements[i_ele]->Set(SBM_BOUNDARY, true);
                 }
             });
         } else {
-            // Mark elements as BOUNDARY that are intersected by the tessellated skin geometry
+            // Mark elements as SBM_BOUNDARY that are intersected by the tessellated skin geometry
             IndexPartition<std::size_t>(n_elements).for_each([&](std::size_t i_ele) {
                 if (!r_intersected_objects[i_ele].empty()) {
-                    r_elements[i_ele]->Set(BOUNDARY, true);
+                    r_elements[i_ele]->Set(SBM_BOUNDARY, true);
                 }
             });
         }
@@ -298,11 +298,11 @@ namespace Kratos
                 KRATOS_ERROR << "Wrong domain size.";
         }
 
-        // Mark elements as BOUNDARY (gamma) in which skin points were located
-        // NOTE that these elements should already be BOUNDARY because of the tessellated interface
-        // NOTE that BOUNDARY elements will get deactivated and that the split elements BC is applied by means of the extension operators
+        // Mark elements as SBM_BOUNDARY (gamma) in which skin points were located
+        // NOTE that these elements should already be SBM_BOUNDARY because of the tessellated interface
+        // NOTE that SBM_BOUNDARY elements will get deactivated and that the split elements BC is applied by means of the extension operators
         std::for_each(mSkinPointsMap.begin(), mSkinPointsMap.end(), [](const std::pair<ElementType::Pointer, SkinPointsDataVectorType>& rKeyData){
-           rKeyData.first->Set(BOUNDARY, true);
+           rKeyData.first->Set(SBM_BOUNDARY, true);
         });
 
         KRATOS_INFO("ShiftedBoundaryPointBasedInterfaceUtility") << mSkinModelPartName << " skin points were mapped to volume mesh elements."  << std::endl;
@@ -310,25 +310,25 @@ namespace Kratos
 
     void ShiftedBoundaryPointBasedInterfaceUtility::SetInterfaceFlags()
     {
-        // Find the surrogate boundary elements and mark them as INTERFACE (gamma_tilde)
+        // Find the surrogate boundary elements and mark them as SBM_INTERFACE (gamma_tilde)
         // Note that we rely on the fact that the neighbors are sorted according to the faces
-        // TODO faster to store BOUNDARY element pointers somewhere?
+        // TODO faster to store SBM_BOUNDARY element pointers somewhere?
         //for (auto& rElement : mpModelPart->Elements()) {
         LockObject mutex;
         block_for_each(mpModelPart->Elements(), [&mutex](ElementType& rElement){
-            if (rElement.Is(BOUNDARY)) {
+            if (rElement.Is(SBM_BOUNDARY)) {
                 const std::size_t n_faces = rElement.GetGeometry().FacesNumber();
                 auto& r_neigh_elems = rElement.GetValue(NEIGHBOUR_ELEMENTS);
                 for (std::size_t i_face = 0; i_face < n_faces; ++i_face) {
-                    // The neighbour corresponding to the current face is not also BOUNDARY, it means that the current face is surrogate boundary (INTERFACE)
-                    // Flag the current neighbour owning the surrogate face as INTERFACE
+                    // The neighbour corresponding to the current face is not also SBM_BOUNDARY, it means that the current face is surrogate boundary (SBM_INTERFACE)
+                    // Flag the current neighbour owning the surrogate face as SBM_INTERFACE
                     // The nodes will be flagged if required (MLS basis) when creating the cloud
                     auto p_neigh_elem = r_neigh_elems(i_face).get();
                     if (p_neigh_elem != nullptr) {
-                        if (!p_neigh_elem->Is(BOUNDARY)) {
+                        if (!p_neigh_elem->Is(SBM_BOUNDARY)) {
                             {
                                 std::scoped_lock<LockObject> lock(mutex);
-                                p_neigh_elem->Set(INTERFACE, true);
+                                p_neigh_elem->Set(SBM_INTERFACE, true);
                             }
                         }
                     }
@@ -342,7 +342,7 @@ namespace Kratos
     {
         // Deactivate elements in which the (true) boundary is located
         block_for_each(mpModelPart->Elements(), [](ElementType& rElement){
-            if (rElement.Is(BOUNDARY)) {
+            if (rElement.Is(SBM_BOUNDARY)) {
                 rElement.Set(ACTIVE, false);
             }
         });
@@ -1033,7 +1033,7 @@ namespace Kratos
         prev_layer_nodes.push_back(p_node);
 
         // Add second layer of nodal neighbors. These are the nodal neighbors of the given nodes in direction of the average skin normal
-        // NOTE that if mCrossBoundaryNeighbors is true, then nodes can be taken from BOUNDARY elements (direct neighbors) if the dot product is sufficiently high.
+        // NOTE that if mCrossBoundaryNeighbors is true, then nodes can be taken from SBM_BOUNDARY elements (direct neighbors) if the dot product is sufficiently high.
         if (mCrossBoundaryNeighbors) {
             AddLateralSupportLayerCrossingBoundary(rAvgSkinPosition, rAvgSkinNormal, prev_layer_nodes, cur_layer_nodes, aux_set);
         } else {
@@ -1087,8 +1087,8 @@ namespace Kratos
         for (auto it_set = aux_set.begin(); it_set != aux_set.end(); ++it_set) {
             if ((*it_set)->Is(ACTIVE)) {
                 rCloudNodes(aux_i++) = *it_set;
-                // For visualization: Mark active support nodes as BOUNDARY if they are on the positive side (support for negative side nodes) and INTERFACE for the negative side (support for positive side nodes)
-                (*it_set)->Set(INTERFACE, true);
+                // For visualization: Mark active support nodes as SBM_BOUNDARY if they are on the positive side (support for negative side nodes) and SBM_INTERFACE for the negative side (support for positive side nodes)
+                (*it_set)->Set(SBM_INTERFACE, true);
             }
         }
         std::sort(rCloudNodes.ptr_begin(), rCloudNodes.ptr_end(), [](NodeType::Pointer& pNode1, NodeType::Pointer rNode2){return (pNode1->Id() < rNode2->Id());});
@@ -1142,7 +1142,7 @@ namespace Kratos
         }
 
         // Add second layer of nodal neighbors. These are the nodal neighbors of the given nodes in direction of the average skin normal
-        // NOTE that if mCrossBoundaryNeighbors is true, then nodes can be taken from BOUNDARY elements (direct neighbors) if the dot product is sufficiently high.
+        // NOTE that if mCrossBoundaryNeighbors is true, then nodes can be taken from SBM_BOUNDARY elements (direct neighbors) if the dot product is sufficiently high.
         if (mCrossBoundaryNeighbors) {
             AddLateralSupportLayerCrossingBoundary(rAvgSkinPosition, rAvgSkinNormal, prev_layer_nodes, cur_layer_nodes, aux_set);
         } else {
@@ -1196,11 +1196,11 @@ namespace Kratos
         for (auto it_set = aux_set.begin(); it_set != aux_set.end(); ++it_set) {
             if ((*it_set)->Is(ACTIVE)) {
                 rCloudNodes(aux_i++) = *it_set;
-                // For visualization: Mark active support nodes as BOUNDARY if they are on the positive side (support for negative side nodes) and INTERFACE for the negative side (support for positive side nodes)
+                // For visualization: Mark active support nodes as SBM_BOUNDARY if they are on the positive side (support for negative side nodes) and SBM_INTERFACE for the negative side (support for positive side nodes)
                 if (ConsiderPositiveSide) {
-                    (*it_set)->Set(BOUNDARY, true);
+                    (*it_set)->Set(SBM_BOUNDARY, true);
                 } else {
-                    (*it_set)->Set(INTERFACE, true);
+                    (*it_set)->Set(SBM_INTERFACE, true);
                 }
             }
         }
@@ -1227,12 +1227,12 @@ namespace Kratos
         for (auto& p_node : PreviousLayerNodes) {
             auto& r_elem_neigh_vect = p_node->GetValue(NEIGHBOUR_ELEMENTS);
 
-            // Add all nodes of neighboring elements to cloud nodes set if element is not (!) BOUNDARY and in normal direction
+            // Add all nodes of neighboring elements to cloud nodes set if element is not (!) SBM_BOUNDARY and in normal direction
             // This way the boundary cannot be crossed (not 'ACTIVE' might be used instead here)
             for (std::size_t i_neigh = 0; i_neigh < r_elem_neigh_vect.size(); ++i_neigh) {
                 auto p_elem_neigh = r_elem_neigh_vect(i_neigh).get();
                 if (p_elem_neigh != nullptr) {
-                    if (!p_elem_neigh->Is(BOUNDARY)) {
+                    if (!p_elem_neigh->Is(SBM_BOUNDARY)) {
                         const auto& r_geom = p_elem_neigh->GetGeometry();
                         for (std::size_t i_neigh_node = 0; i_neigh_node < r_geom.PointsNumber(); ++i_neigh_node) {
                             // Add node of neighboring element only if it is in the inwards normal direction of the element's averaged skin points
@@ -1268,7 +1268,7 @@ namespace Kratos
             auto& r_elem_neigh_vect = p_node->GetValue(NEIGHBOUR_ELEMENTS);
 
             // Add all nodes of neighboring elements to cloud nodes set if node is in normal direction
-            // NOTE that nodes of BOUNDARY elements can be taken as well here if the dot product and distance are sufficiently high.
+            // NOTE that nodes of SBM_BOUNDARY elements can be taken as well here if the dot product and distance are sufficiently high.
             // This way the boundary can be crossed.
             for (std::size_t i_neigh = 0; i_neigh < r_elem_neigh_vect.size(); ++i_neigh) {
                 auto p_elem_neigh = r_elem_neigh_vect(i_neigh).get();
@@ -1284,7 +1284,7 @@ namespace Kratos
                         avg_skin_pt_to_node /= d;
                         const double dot_product = inner_prod(avg_skin_pt_to_node, rAvgSkinNormal);
                         const double h = GetElementSizeFunction(r_geom)(r_geom);
-                        if ( (!p_elem_neigh->Is(BOUNDARY) && dot_product > 0.1) || (dot_product > 0.5 && d > 0.5*h) ) {
+                        if ( (!p_elem_neigh->Is(SBM_BOUNDARY) && dot_product > 0.1) || (dot_product > 0.5 && d > 0.5*h) ) {
                             auto set_return = SupportNodesSet.insert(p_neigh);
                             // Only add nodes as basis for the next layer if they have not been added to the set already (because then they would be considered again and again)
                             if (set_return.second) {
