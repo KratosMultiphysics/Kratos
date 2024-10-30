@@ -216,7 +216,6 @@ def debug_vtk(model, list_names):
         vtk_output_parameters = KratosMultiphysics.Parameters("""{
             "Parameters" : {
                 "model_part_name"                    : "",
-                "file_format"                        : "ascii",
                 "output_precision"                   : 8,
                 "output_interval"                    : 2,
                 "output_sub_model_parts"             : true,
