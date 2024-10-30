@@ -14,10 +14,10 @@ from KratosMultiphysics.json_output_process import JsonOutputProcess
 
 # Import basic dependencies
 import math
-import os
+from pathlib import Path
 
 def GetFilePath(fileName):
-    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
+    return Path(__file__).parent / fileName
 
 class Test3D1DDataTransferProcessBlock(KratosUnittest.TestCase):
     def setUp(self):
@@ -218,7 +218,7 @@ def check_results(model, input_filename, domain):
     """)
 
     check_parameters["model_part_name"].SetString(domain)
-    check_parameters["input_file_name"].SetString(input_filename + "_data_transfer.json")
+    check_parameters["input_file_name"].SetString(str(input_filename) + "_data_transfer.json")
 
     check = FromJsonCheckResultProcess(model, check_parameters)
     check.ExecuteInitialize()
