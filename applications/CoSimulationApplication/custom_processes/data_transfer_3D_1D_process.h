@@ -218,8 +218,6 @@ public:
         Parameters ThisParameters = Parameters(R"({})")
         );
 
-    /// Destructor.
-    ~DataTransfer3D1DProcess() override = default;
 
     ///@}
     ///@name Operators
