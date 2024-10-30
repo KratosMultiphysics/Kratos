@@ -426,7 +426,6 @@ void SensitivityBuilder::UpdateSensitivities()
     if (mBuildMode == "integrate") {
         // integrate in time
         scaling_factor = -mpModelPart->GetProcessInfo()[DELTA_TIME];
-        KRATOS_WATCH(mpModelPart->GetProcessInfo()[DELTA_TIME])
     } else if (mBuildMode == "sum") {
         scaling_factor = 1.0;
     } else if (mBuildMode == "static") {
