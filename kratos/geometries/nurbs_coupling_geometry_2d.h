@@ -27,6 +27,8 @@
 
 #include "utilities/nurbs_utilities/projection_nurbs_geometry_utilities.h"
 
+#include "includes/io.h"
+
 namespace Kratos
 {
 ///@name Kratos Classes
@@ -70,8 +72,20 @@ public:
 
     typedef typename NurbsSurfaceType::Pointer NurbsSurfaceTypePointer;
 
+    // MODIFIED --------------------------------------
+    typedef PointerVector<Node> ContainerNodeType;
+    typedef PointerVector<Point> ContainerEmbeddedNodeType;
+
+    typedef BrepCurveOnSurface<ContainerNodeType, ContainerEmbeddedNodeType> BrepCurveOnSurfaceType;
+
+    typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceArrayType;
+    //--------------------------------------------------------------------------------------
+
     static constexpr IndexType MasterIndex = 0;
     static constexpr IndexType SlaveIndex = 1;
+
+    static constexpr IndexType CURVE_ON_SURFACE_INDEX = std::numeric_limits<IndexType>::max() - 2;
+    static constexpr IndexType EMBEDDED_CURVE_INDEX = std::numeric_limits<IndexType>::max() - 3;
 
 
     ///@}
@@ -79,16 +93,39 @@ public:
     ///@{
 
     /// constructor for untrimmed surface
-    NurbsCouplingGeometry2D(
-        GeometriesArrayType& slaveGeometryList,
-        GeometriesArrayType& masterGeometryList)
-        : mSlaveGeometryList(slaveGeometryList)
-        , mMasterGeometryList(masterGeometryList)
-    {
+    /// constructor for untrimmed surface
+NurbsCouplingGeometry2D(
+    GeometriesArrayType& slaveGeometryList,
+    GeometriesArrayType& masterGeometryList)
+{
+    // Assicurati di ottenere il puntatore alle superfici corrette.
+    mpNurbsSurfaceMaster = std::dynamic_pointer_cast<NurbsSurfaceType>(
+        masterGeometryList[0].pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX));
+    mpNurbsSurfaceSlave = std::dynamic_pointer_cast<NurbsSurfaceType>(
+        slaveGeometryList[0].pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX));
 
-        mpNurbsSurfaceMaster = std::dynamic_pointer_cast<NurbsSurfaceType>(mMasterGeometryList[0].pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX));
-        mpNurbsSurfaceSlave = std::dynamic_pointer_cast<NurbsSurfaceType>(mSlaveGeometryList[0].pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX));
+    // Ridimensiona le liste
+    mSlaveGeometryList.resize(slaveGeometryList.size());
+    mMasterGeometryList.resize(masterGeometryList.size());
+
+    // Itera su ogni elemento per fare il cast da Geometry a BrepCurveOnSurface
+    for (std::size_t i = 0; i < slaveGeometryList.size(); ++i) {
+        auto slave_part = std::dynamic_pointer_cast<BrepCurveOnSurfaceType>(slaveGeometryList(i));
+        if (!slave_part) {
+            KRATOS_ERROR << "Element " << i << " in slaveGeometryList is not of type BrepCurveOnSurface." << std::endl;
+        }
+        mSlaveGeometryList[i] = slave_part;
     }
+
+    for (std::size_t i = 0; i < masterGeometryList.size(); ++i) {
+        auto master_part = std::dynamic_pointer_cast<BrepCurveOnSurfaceType>(masterGeometryList(i));
+        if (!master_part) {
+            KRATOS_ERROR << "Element " << i << " in masterGeometryList is not of type BrepCurveOnSurface." << std::endl;
+        }
+        mMasterGeometryList[i] = master_part;
+    }
+}
+
 
     explicit NurbsCouplingGeometry2D()
         : BaseType()
@@ -195,13 +232,13 @@ public:
 
 
     /// Returns the Slave Geometry list of this coupling geometry.
-    GeometriesArrayType pGetSlaveGeometry()
+    BrepCurveOnSurfaceArrayType pGetSlaveGeometry()
     {
         return mSlaveGeometryList;
     }
 
     /// Returns the Master Geometry list of this coupling geometry.
-    GeometriesArrayType pGetMasterGeometry()
+    BrepCurveOnSurfaceArrayType pGetMasterGeometry()
     {
         return mMasterGeometryList;
     }
@@ -221,8 +258,8 @@ public:
                                              std::vector<std::vector<double>>& integration_edges_on_parameter_parent_list,
                                              std::vector<std::vector<double>>& spans_parent_list,
                                              std::vector<std::vector<double>>& spans_paired_list,
-                                             GeometriesArrayType& rParentGeometryList,
-                                             GeometriesArrayType& rPairedGeometryList);
+                                             BrepCurveOnSurfaceArrayType& rParentGeometryList,
+                                             BrepCurveOnSurfaceArrayType& rPairedGeometryList);
 
     ///@}
 
@@ -243,8 +280,8 @@ public:
         for (IndexType i = 0; i < local_space_dimension; ++i) {
             SizeType max_p = 0;
 
-            max_p = std::max(mSlaveGeometryList[0].PolynomialDegree(i) + 1, max_p);
-            max_p = std::max(mMasterGeometryList[0].PolynomialDegree(i) + 1, max_p);
+            max_p = std::max(mSlaveGeometryList[0]->PolynomialDegree(i) + 1, max_p);
+            max_p = std::max(mMasterGeometryList[0]->PolynomialDegree(i) + 1, max_p);
 
             number_of_points_per_span_per_direction[i] = max_p;
             quadrature_method_per_direction[i] = IntegrationInfo::QuadratureMethod::GAUSS;
@@ -267,8 +304,8 @@ public:
         IntegrationInfo& rIntegrationInfo,
         std::vector<std::vector<double>>& spans_parent_list,
         std::vector<std::vector<double>>& spans_paired_list,
-        GeometriesArrayType& rParentGeometryList,
-        GeometriesArrayType& rPairedGeometryList
+        BrepCurveOnSurfaceArrayType& rParentGeometryList,
+        BrepCurveOnSurfaceArrayType& rPairedGeometryList
         );
     
     ///@}
@@ -311,8 +348,8 @@ public:
         IntegrationInfo& rIntegrationInfo,
         NurbsSurfaceTypePointer rpNurbsSurfaceParent,
         NurbsSurfaceTypePointer rpNurbsSurfacePaired,
-        GeometriesArrayType& rParentGeometryList,
-        GeometriesArrayType& rPairedGeometryList,
+        BrepCurveOnSurfaceArrayType& rParentGeometryList,
+        BrepCurveOnSurfaceArrayType& rPairedGeometryList,
         const IndexType& integrationDomain,
         SizeType& quadraturePointId);
 
@@ -370,8 +407,8 @@ private:
 
     static const GeometryDimension msGeometryDimension;
 
-    GeometriesArrayType mMasterGeometryList;
-    GeometriesArrayType mSlaveGeometryList;
+    BrepCurveOnSurfaceArrayType mMasterGeometryList;
+    BrepCurveOnSurfaceArrayType mSlaveGeometryList;
 
     NurbsSurfaceTypePointer mpNurbsSurfaceMaster;
     NurbsSurfaceTypePointer mpNurbsSurfaceSlave;

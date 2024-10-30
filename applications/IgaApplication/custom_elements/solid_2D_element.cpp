@@ -145,8 +145,10 @@ void Solid2DElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
     Vector old_displacement(mat_size);
     GetValuesVector(old_displacement);
 
-    volume_force_local[0] = this->GetValue(BODY_FORCE_X);
-    volume_force_local[1] = this->GetValue(BODY_FORCE_Y);
+    volume_force_local[0] = this->GetValue(BODY_FORCE_X);// 
+    volume_force_local[1] = this->GetValue(BODY_FORCE_Y);//
+
+    // if (norm_2(volume_force_local) > 1e-10)  KRATOS_WATCH(volume_force_local)
 
     // r_geometry.Jacobian(J0, IntegrationPointIndex, this->GetIntegrationMethod());
     
@@ -199,7 +201,7 @@ void Solid2DElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
     Values.SetStressVector(this_constitutive_variables.StressVector);
     Values.SetConstitutiveMatrix(this_constitutive_variables.D);
 
-    mpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2); 
+    mpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy); 
 
     const Vector& r_stress_vector = Values.GetStressVector();
     const Matrix& r_D = Values.GetConstitutiveMatrix();

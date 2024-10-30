@@ -47,10 +47,13 @@ class AnalysisStage(object):
         """
         self.Initialize()
         self.RunSolutionLoop()
-        self.Finalize()
+        
         
         # for process in self._GetListOfProcesses():
         #     process.ExecuteInitializeSolutionStep()
+            
+        
+        self.Finalize()
 
     def KeepAdvancingSolutionLoop(self):
         """This function specifies the stopping criteria for breaking the solution loop

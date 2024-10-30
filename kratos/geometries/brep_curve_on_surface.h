@@ -462,6 +462,21 @@ public:
         return mpCurveOnSurface->GlobalCoordinates(rResult, rLocalCoordinates);
     }
 
+    /*
+    * @brief This method maps from dimension space to parameter space.
+    * @param rResult array_1d<double, 3> with the coordinates in parameter space
+    * @param LocalCoordinates The local coordinates in dimension space
+    * @return array_1d<double, 3> with the coordinates in parameter space
+    * @see PointLocalCoordinates
+    */
+    CoordinatesArrayType& LocalCoordinates(
+        CoordinatesArrayType& rResult,
+        const CoordinatesArrayType& rLocalCoordinates
+    ) const
+     {
+        return mpCurveOnSurface->LocalCoordinates(rResult, rLocalCoordinates);
+    }
+
     /**
     * @brief This method maps from local space to global/working space and computes the
     *        number of derivatives at the underlying nurbs curve on surface
@@ -481,6 +496,27 @@ public:
         const SizeType DerivativeOrder) const override
     {
         return mpCurveOnSurface->GlobalSpaceDerivatives(rGlobalSpaceDerivatives, rLocalCoordinates, DerivativeOrder);
+    }
+
+    /**
+    * @brief This method maps from local space to local/parameter space and computes the
+    *        number of derivatives at the underlying nurbs curve on surface
+    *        at the parameter rLocalCoordinates[0].
+    *
+    * @param LocalCoordinates The local coordinates in curve-paramater space
+    * @param Derivative Number of computed derivatives
+    *        0 -> Location = PointLocalCoordinates
+    *        1 -> Tangent
+    *        2 -> Curvature
+    *        ...
+    * @return std::vector<array_1d<double, 3>> with the parameter space derivatives
+    */
+    void LocalSpaceDerivatives(
+        std::vector<CoordinatesArrayType>& rGlobalSpaceDerivatives,
+        const CoordinatesArrayType& rLocalCoordinates,
+        const SizeType DerivativeOrder) const
+    {
+        return mpCurveOnSurface->LocalSpaceDerivatives(rGlobalSpaceDerivatives, rLocalCoordinates, DerivativeOrder);
     }
 
     /**

@@ -19,26 +19,8 @@ namespace Kratos
     IgaContactProcess::IgaContactProcess(
         Model& rModel, Parameters ThisParameters) : mpModel(&rModel), mParameters(ThisParameters)
     {
-
-        // // mThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
-        // KRATOS_ERROR_IF_NOT( rModel.HasModelPart( mParameters["contact_model_part_name"].GetString()) )
-        //     << "IgaContactProcess: Model Part '" <<  mParameters["contact_model_part_name"].GetString() << "' does not exist." << std::endl;
         
         mEchoLevel = mParameters["echo_level"].GetInt();
-        // KRATOS_ERROR_IF_NOT( rModel.HasModelPart( mThisParameters["embedded_model_part_name"].GetString()) )
-        //     << "IgaContactProcess: Model Part '" <<  mThisParameters["embedded_model_part_name"].GetString() << "' does not exist." << std::endl;
-
-        // ModelPart& main_model_part = mrModel.GetModelPart(mThisParameters["main_model_part_name"].GetString());
-        // KRATOS_ERROR_IF_NOT( main_model_part.HasGeometry(mThisParameters["nurbs_volume_name"].GetString()) )
-        //     << "IgaContactProcess: Model Part '" <<  mThisParameters["main_model_part_name"].GetString() << "' does not have Geometry: '"
-        //         << mThisParameters["nurbs_volume_name"].GetString() << "'. " << std::endl;
-        // ModelPart::GeometryType::Pointer p_geometry = main_model_part.pGetGeometry(mThisParameters["nurbs_volume_name"].GetString());
-
-        // KRATOS_ERROR_IF( p_geometry->GetGeometryType() != GeometryData::KratosGeometryType::Kratos_Nurbs_Volume)
-        //     << "IgaContactProcess: Geometry: '" <<  mThisParameters["nurbs_volume_name"].GetInt() << "' is no 'Kratos_Nurbs_Volume-Geometry'." << std::endl;
-   }
-
-    void IgaContactProcess::Execute(){
 
         // KRATOS_ERROR_IF_NOT(mParameters.Has("contact_model_part_name"))
         //     << "Missing \"contact_model_part_name\" section" << std::endl;
@@ -56,7 +38,6 @@ namespace Kratos
                                       ? mpModel->GetModelPart(contact_model_part_name)
                                       : mpModel->CreateModelPart(contact_model_part_name);
 
-        contact_model_part.RemoveConditionsFromAllLevels();
 
         // PHYSICS HERE OR IN IGA_MODELER???????????
         // const std::string& rDataFileName = mParameters.Has("physics_file_name")
@@ -75,7 +56,7 @@ namespace Kratos
         GetCadGeometryList(geometry_list_slave, slave_model_part, mParameters["contact_parameters"]["slave_model_part"]);
 
         const IndexType slave_property_id = mParameters["contact_parameters"]["slave_model_part"]["property_id"].GetInt();
-        Properties::Pointer p_prop_slave = slave_model_part.pGetProperties(slave_property_id);
+        mpPropSlave = slave_model_part.pGetProperties(slave_property_id);
     
         // Obtain MASTER interface b_reps
         const std::string master_model_part_name = mParameters["contact_parameters"]["master_model_part"]["sub_model_part_name"].GetString();
@@ -88,9 +69,17 @@ namespace Kratos
         GetCadGeometryList(geometry_list_master, master_model_part, mParameters["contact_parameters"]["master_model_part"]);
 
         const IndexType master_property_id = mParameters["contact_parameters"]["master_model_part"]["property_id"].GetInt();
-        Properties::Pointer p_prop_master = master_model_part.pGetProperties(master_property_id);
+        mpPropMaster = master_model_part.pGetProperties(master_property_id);
 
-        auto couplingGeometry = Kratos::make_shared<NurbsCouplingGeometry2D<PointType, PointerVector<NodeType>>>(geometry_list_slave, geometry_list_master);
+        mpCouplingGeometry = Kratos::make_shared<NurbsCouplingGeometry2D<PointType, PointerVector<NodeType>>>(geometry_list_slave, geometry_list_master);
+   }
+
+    void IgaContactProcess::Execute(){
+
+        std::string contact_model_part_name = "IgaModelPart.ContactInterface";
+
+        ModelPart& contact_model_part = mpModel->GetModelPart(contact_model_part_name);
+        contact_model_part.RemoveConditionsFromAllLevels();
 
         //---------------------------------------------------------------
         KRATOS_WATCH("ÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇ")
@@ -107,7 +96,7 @@ namespace Kratos
         std::string quadrature_method = mParameters.Has("quadrature_method")
             ? mParameters["integration_rule"].GetString()
             : "GAUSS";
-        IntegrationInfo integration_info = couplingGeometry->GetDefaultIntegrationInfo();
+        IntegrationInfo integration_info = mpCouplingGeometry->GetDefaultIntegrationInfo();
         for (IndexType i = 0; i < integration_info.LocalSpaceDimension(); ++i) {
             if (quadrature_method == "GAUSS") {
                 integration_info.SetQuadratureMethod(0, IntegrationInfo::QuadratureMethod::GAUSS);
@@ -124,7 +113,7 @@ namespace Kratos
             }
         }
 
-        couplingGeometry->CreateQuadraturePointGeometries(geometries, shape_function_derivatives_order, integration_info);
+        mpCouplingGeometry->CreateQuadraturePointGeometries(geometries, shape_function_derivatives_order, integration_info);
 
         SizeType id = 1;
         // if (contact_model_part.GetRootModelPart().Conditions().size() > 0)
@@ -139,7 +128,7 @@ namespace Kratos
 
         this->CreateConditions(
                         geometries.ptr_begin(), geometries.ptr_end(),
-                        contact_model_part, name, id, p_prop_master, p_prop_slave);
+                        contact_model_part, name, id, mpPropMaster, mpPropSlave);
     }
 
 

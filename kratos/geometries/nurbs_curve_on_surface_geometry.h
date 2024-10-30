@@ -63,6 +63,9 @@ public:
     using BaseType::pGetPoint;
     using BaseType::GetPoint;
 
+
+    static constexpr IndexType EMBEDDED_CURVE_INDEX = std::numeric_limits<IndexType>::max() - 3;
+
     /// Counted pointer of NurbsCurveOnSurfaceGeometry
     KRATOS_CLASS_POINTER_DEFINITION(NurbsCurveOnSurfaceGeometry);
 
@@ -185,7 +188,7 @@ public:
     */
     bool HasGeometryPart(const IndexType Index) const override
     {
-        return Index == GeometryType::BACKGROUND_GEOMETRY_INDEX;
+        return (Index == GeometryType::BACKGROUND_GEOMETRY_INDEX || Index == EMBEDDED_CURVE_INDEX);
     }
 
     ///@}
@@ -393,6 +396,17 @@ public:
     NurbsInterval DomainInterval() const
     {
         return mpNurbsCurve->DomainInterval();
+    }
+
+    void DomainInterval(Vector& domainInterval) const override
+    {
+        
+        if (domainInterval.size() != 2) domainInterval.resize(2);
+        NurbsInterval interval = mpNurbsCurve->DomainInterval();
+
+        domainInterval[0] = interval.MinParameter();
+        domainInterval[1] = interval.MaxParameter();
+
     }
 
     ///@}
@@ -725,6 +739,24 @@ public:
         return mpNurbsSurface->GlobalCoordinates(rResult, result_local);
     }
 
+
+    /*
+    * @brief This method maps from dimension space to parameter space.
+    * @param rResult array_1d<double, 3> with the coordinates in parameter space
+    * @param LocalCoordinates The local coordinates in dimension space
+    * @return array_1d<double, 3> with the coordinates in parameter space
+    * @see PointLocalCoordinates
+    */
+    CoordinatesArrayType& LocalCoordinates(
+        CoordinatesArrayType& rResult,
+        const CoordinatesArrayType& rLocalCoordinates
+    ) const
+    {
+        // Compute the coordinates of the embedded curve in the parametric space of the surface
+        return mpNurbsCurve->GlobalCoordinates(rResult, rLocalCoordinates);
+
+    }
+
     /**
     * @brief This method maps from dimension space to working space and computes the
     *        number of derivatives at the dimension parameter.
@@ -779,6 +811,29 @@ public:
         }
     }
 
+    /**
+    * @brief This method maps from dimension space to parameter space and computes the
+    *        number of derivatives at the dimension parameter.
+    * @param LocalCoordinates The local coordinates in dimension space
+    * @param Derivative Number of computed derivatives
+    * @return std::vector<array_1d<double, 3>> with the coordinates in parameter space
+    * @see PointLocalCoordinates
+    */
+    void LocalSpaceDerivatives(
+        std::vector<CoordinatesArrayType>& rGlobalSpaceDerivatives,
+        const CoordinatesArrayType& rCoordinates,
+        const SizeType DerivativeOrder) const 
+    {
+        // Check size of output
+        if (rGlobalSpaceDerivatives.size() != DerivativeOrder + 1) {
+            rGlobalSpaceDerivatives.resize(DerivativeOrder + 1);
+        }
+
+        // Compute the gradients of the embedded curve in the parametric space of the surface
+        mpNurbsCurve->GlobalSpaceDerivatives(rGlobalSpaceDerivatives, rCoordinates, DerivativeOrder);
+
+    }
+
     /*
     * @brief computes the normal of the curve
     *        laying on the underlying surface.
@@ -788,7 +843,7 @@ public:
     array_1d<double, 3> Normal(const CoordinatesArrayType& local_coord) const override
     {
         std::vector<CoordinatesArrayType> curve_global_space_derivatives(2);
-        this->GlobalSpaceDerivatives(
+        this->LocalSpaceDerivatives(
             curve_global_space_derivatives, local_coord, 1);
 
         std::vector<CoordinatesArrayType> surface_global_space_derivatives(2);
@@ -798,7 +853,7 @@ public:
         Vector local_tangent = curve_global_space_derivatives[1];
         array_1d<double, 3> normal_parameter_space;
 
-        double magnitude = std::sqrt(local_tangent[0] * local_tangent[0] + local_tangent[1] * local_tangent[1]);
+        double magnitude = 1; //std::sqrt(local_tangent[0] * local_tangent[0] + local_tangent[1] * local_tangent[1]);
         normal_parameter_space[0] = + local_tangent[1] / magnitude;
         normal_parameter_space[1] = - local_tangent[0] / magnitude; 
         normal_parameter_space[2] = 0;
@@ -806,12 +861,21 @@ public:
 
         Matrix Jacobian = ZeroMatrix(2,2);
         Jacobian(0,0) = surface_global_space_derivatives[1][0];
-        Jacobian(0,1) = surface_global_space_derivatives[1][1];
-        Jacobian(1,0) = surface_global_space_derivatives[2][0];
+        Jacobian(0,1) = surface_global_space_derivatives[2][0];
+        Jacobian(1,0) = surface_global_space_derivatives[1][1];
         Jacobian(1,1) = surface_global_space_derivatives[2][1];
 
         array_1d<double, 3> normal_physical_space;
-        normal_physical_space = prod(Jacobian, normal_parameter_space);
+        // normal_physical_space = prod(Jacobian, normal_parameter_space);
+
+        //***** */
+        Matrix Inv_Jacobian = ZeroMatrix(2,2);
+        double detJ;
+        MathUtils<double>::InvertMatrix(Jacobian,Inv_Jacobian,detJ);
+
+        normal_physical_space = prod(trans(Inv_Jacobian),normal_parameter_space);
+        // normal_physical_space /= norm_2(normal_physical_space);
+        //***** */
         normal_physical_space[2] = 0.0;
 
         return normal_physical_space;

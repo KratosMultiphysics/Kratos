@@ -1,3 +1,4 @@
+
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
@@ -139,6 +140,8 @@ namespace Kratos
 
         const double IntToReferenceWeight = integration_points[0].Weight() * std::abs(DetJ0) * thickness;
 
+        SetValue(INTEGRATION_WEIGHT, IntToReferenceWeight);
+
         // MODIFIED
         Matrix B = ZeroMatrix(3,mat_size);
 
@@ -172,7 +175,7 @@ namespace Kratos
 
         Values.SetStressVector(this_constitutive_variables.StressVector);
         Values.SetConstitutiveMatrix(this_constitutive_variables.D);
-        mpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);
+        mpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy);
 
         const Matrix& r_D = Values.GetConstitutiveMatrix();
         //---------------------
@@ -372,91 +375,107 @@ namespace Kratos
         ConstitutiveLaw::Parameters constitutive_law_parameters(
             GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
-        mpConstitutiveLaw->FinalizeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_PK2);
+        mpConstitutiveLaw->FinalizeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
 
-        
-    /////////////////////////
+        //---------- SET STRESS VECTOR VALUE ----------------------------------------------------------------
         const auto& r_geometry = GetGeometry();
         const SizeType nb_nodes = r_geometry.size();
+        const SizeType mat_size = nb_nodes * 2;
 
-        // Integration Points
-        const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
-        // Shape function values
-        const Matrix& r_N = r_geometry.ShapeFunctionsValues();
-
+        // Shape function derivatives (NEW) 
+        // Initialize Jacobian
         GeometryType::JacobiansType J0;
+        // Initialize DN_DX
+        const unsigned int dim = 2;
+        Matrix DN_DX(nb_nodes,2);
+        Matrix InvJ0(dim,dim);
+
+        // Compute the normals
+        array_1d<double, 3> tangent_parameter_space;
+        array_1d<double, 2> normal_physical_space;
+        array_1d<double, 3> normal_parameter_space;
+
+        r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space !!
+        double magnitude = std::sqrt(tangent_parameter_space[0] * tangent_parameter_space[0] + tangent_parameter_space[1] * tangent_parameter_space[1]);
+        
+        // NEW FOR GENERAL JACOBIAN
+        normal_parameter_space[0] = + tangent_parameter_space[1] / magnitude;
+        normal_parameter_space[1] = - tangent_parameter_space[0] / magnitude;  // By observations on the result of .Calculate(LOCAL_TANGENT
+
+        const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
         r_geometry.Jacobian(J0,this->GetIntegrationMethod());
-        // Get the parameter coordinates
-        Vector GP_parameter_coord(2); 
-        GP_parameter_coord = r_geometry.Center(); // Only one Integration Points 
+        double DetJ0;
+        // MODIFIED
+        Vector old_displacement(mat_size);
+        GetValuesVector(old_displacement);
+        
+        Matrix Jacobian = ZeroMatrix(2,2);
+        Jacobian(0,0) = J0[0](0,0);
+        Jacobian(0,1) = J0[0](0,1);
+        Jacobian(1,0) = J0[0](1,0);
+        Jacobian(1,1) = J0[0](1,1);
 
-        double x_coord_gauss_point = 0;
-        double y_coord_gauss_point = 0;
-        double rOutput = 0;
+        // Calculating inverse jacobian and jacobian determinant
+        MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
 
-        for (IndexType i = 0; i < nb_nodes; ++i)
-        {
-            // KRATOS_WATCH(r_geometry[i])
-            double output_solution_step_value = r_geometry[i].GetSolutionStepValue(DISPLACEMENT_X);
-            rOutput += r_N(0, i) * output_solution_step_value;
-            x_coord_gauss_point += r_N(0, i) * r_geometry[i].X0();
-            y_coord_gauss_point += r_N(0, i) * r_geometry[i].Y0();
-        }        
+        // // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
+        noalias(DN_DX) = prod(DN_De[0],InvJ0);
 
-        // ########################################################################333
-        double x = GP_parameter_coord[0];
-        double y = GP_parameter_coord[1];
-        // double true_sol = -cos(x)*sinh(y);
-        Vector approx_lhs = ZeroVector(9);
-        Vector approx_rhs = ZeroVector(9);
+        // MODIFIED
+        Matrix B = ZeroMatrix(3,mat_size);
 
-        for (IndexType i = 0; i < 9; i++) {
-            for (IndexType j = 0; j < 9; j++) {
-                
-                for (IndexType idim = 0; idim < 1; idim++) {
-                    const int id1 = 2*idim;
-                    const int iglob = 2*i+idim;
+        CalculateB(B, DN_DX);
 
-                    approx_lhs[i] -= r_N(0,i)*r_N(0,j)* r_geometry[j].GetSolutionStepValue(DISPLACEMENT_X);
-                }
-            }
-        }
+        normal_physical_space = prod(trans(InvJ0),normal_parameter_space);
 
-        Vector u_D(2);
-        u_D[0] = this->GetValue(DISPLACEMENT_X);
-        u_D[1] = this->GetValue(DISPLACEMENT_Y);
+        normal_physical_space /= norm_2(normal_physical_space);
 
-        for (IndexType i = 0; i < 9; i++) {
+        // GET STRESS VECTOR
+        ConstitutiveLaw::Parameters Values(r_geometry, GetProperties(), rCurrentProcessInfo);
 
-            for (IndexType idim = 0; idim < 1; idim++) {
+        const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
+        // Set constitutive law flags:
+        Flags& ConstitutiveLawOptions=Values.GetOptions();
 
-                approx_rhs[i] -= r_N(0,i)*u_D[idim];
-            }
-        }
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
-        // KRATOS_WATCH(approx_lhs - approx_rhs)
+        ConstitutiveVariables this_constitutive_variables(strain_size);
 
-        // ########################################################################333
+        Vector old_strain = prod(B,old_displacement);
+    
+        // Values.SetStrainVector(this_constitutive_variables.StrainVector);
+        Values.SetStrainVector(old_strain);
 
-        // KRATOS_WATCH(err)
+        Values.SetStressVector(this_constitutive_variables.StressVector);
+        Values.SetConstitutiveMatrix(this_constitutive_variables.D);
+        mpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy);
 
-        // std::ofstream output_file("txt_files/output_results_GPs.txt", std::ios::app);
-        // if (output_file.is_open()) {
-        //     output_file << std::scientific << std::setprecision(14); // Set precision to 10^-14
-        //     output_file << rOutput << " " << x_coord_gauss_point << " " << y_coord_gauss_point << " " <<integration_points[0].Weight() << std::endl;
-        //     output_file.close();
-        // } 
+        const Vector sigma = Values.GetStressVector();
+        Vector sigma_n(2);
 
+        sigma_n[0] = sigma[0]*normal_physical_space[0] + sigma[2]*normal_physical_space[1];
+        sigma_n[1] = sigma[2]*normal_physical_space[0] + sigma[1]*normal_physical_space[1];
 
-        std::ofstream outputFile("txt_files/Gauss_Point_coordinates.txt", std::ios::app);
-        if (!outputFile.is_open())
-        {
-            std::cerr << "Failed to open the file for writing." << std::endl;
-            return;
-        }
-        outputFile << std::setprecision(14); // Set precision to 10^-14
-        outputFile << x_coord_gauss_point << "  " << y_coord_gauss_point <<"\n";
-        outputFile.close();
+        //-----------------------------------------
+        // Vector sigma_n = ZeroVector(2);
+        // const Matrix D = Values.GetConstitutiveMatrix();
+        // Matrix DB = prod(D,B);
+        // for (IndexType j = 0; j < r_geometry.size(); j++) {
+
+        //     for (IndexType jdim = 0; jdim < 2; jdim++) {
+        //         const int jglob = 2*j+jdim;
+
+        //         sigma_n[0] += (DB(0, jglob)* normal_physical_space[0] + DB(2, jglob)* normal_physical_space[1])*old_displacement[jglob];
+        //         sigma_n[1] += (DB(2, jglob)* normal_physical_space[0] + DB(1, jglob)* normal_physical_space[1])*old_displacement[jglob];
+        //     }
+        // }
+        //2222222222222222222222222222222222222222222222222222222222222222222222222
+
+        SetValue(NORMAL_STRESS, sigma_n);
+        // //---------------------
     }
 
     void SupportSolid2DCondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
@@ -464,7 +483,7 @@ namespace Kratos
         ConstitutiveLaw::Parameters constitutive_law_parameters(
             GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
-        mpConstitutiveLaw->InitializeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_PK2);
+        mpConstitutiveLaw->InitializeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
     }
 
 } // Namespace Kratos

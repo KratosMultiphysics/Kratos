@@ -347,7 +347,8 @@ namespace Kratos
         //                                         Vector& old_displacement, Matrix& DB, const Kratos::ProcessInfo& rCurrentProcessInfo);
 
         const Matrix GetConstitutiveMatrix(IndexType index, Matrix& r_B, GeometryType r_geometry,
-                                            Vector& old_displacement, const Kratos::ProcessInfo& rCurrentProcessInfo); 
+                                            Vector& old_displacement, const Kratos::ProcessInfo& rCurrentProcessInfo,
+                                            Vector& stress_vector); 
         
         PropertiesType& GetProperty(IndexType index) {
             if (index == 0) {
@@ -370,7 +371,8 @@ namespace Kratos
         void GetDeformed(const Matrix& N, Vector& reference_position, Vector& displacement, Vector& deformed_position);
 
         bool CheckCriteria(const Vector& deformed_pos_master, const Vector& deformed_pos_slave, const Vector& displacement_master,
-                           const Vector& normal, const Matrix& DB_master, array_1d<double, 3>& local_tangent, array_1d<double, 2>& old_normal);
+                           const Vector& normal, const Matrix& DB_master, array_1d<double, 3>& local_tangent, array_1d<double, 2>& old_normal,
+                           const Vector stress_vector_master);
 
         friend class Serializer;
 

@@ -32,6 +32,9 @@ public:
     typedef Geometry<TPointType> BaseType;
     typedef Geometry<TPointType> GeometryType;
 
+    ///definition of the geometry type with given NodeType
+    typedef Geometry<Node> GeometryNodeType;
+
     /// Pointer definition of CouplingGeometry
     KRATOS_CLASS_POINTER_DEFINITION( ProjectionNurbsContactUtilities );
 
@@ -50,6 +53,13 @@ public:
     typedef typename TSurfaceContainerPointType::value_type NodeType;
 
     typedef typename NurbsSurfaceType::Pointer NurbsSurfaceTypePointer;
+
+
+    // MODIFIED --------------------------------------
+    typedef PointerVector<Node> ContainerNodeType;
+    typedef PointerVector<Point> ContainerEmbeddedNodeType;
+
+    typedef BrepCurveOnSurface<ContainerNodeType, ContainerEmbeddedNodeType> BrepCurveOnSurfaceType;
 
     /*
     * @brief Returns the projection of a point onto a Nurbs curve
@@ -72,6 +82,7 @@ public:
         const CoordinatesArrayType& rPointGlobalCoordinatesCoordinates,
         CoordinatesArrayType& rProjectedPointGlobalCoordinates,
         const Geometry<TPointType>& rGeometry,
+        double& distance,
         const int MaxIterations = 20,
         const double Accuracy = 1e-6)
     {
@@ -96,6 +107,8 @@ public:
             // Compute the distance vector between the point and its
             // projection on the curve
             distance_vector = rProjectedPointGlobalCoordinates - rPointGlobalCoordinatesCoordinates;
+
+            distance = norm_2(distance_vector);
             if (norm_2(distance_vector) < Acc) // Acc
                 return true;
 
@@ -446,73 +459,89 @@ public:
     ///@name Projection functionalaties
     ///@{
 
-    static bool GetProjection(NurbsSurfaceTypePointer rpNurbsSurfaceParent, 
-                                NurbsSurfaceTypePointer rpNurbsSurfacePaired, 
-                                CoordinatesArrayType& slavePointLocalCoord, 
-                                GeometryType &slave_geometry, GeometryType &master_geometry, 
+    static bool GetProjection(const NurbsSurfaceTypePointer rpNurbsSurfaceParent, 
+                              const NurbsSurfaceTypePointer rpNurbsSurfacePaired, 
+                              const CoordinatesArrayType& parentPointLocalCoord, 
+                                BrepCurveOnSurfaceType &parent_geometry, 
+                                BrepCurveOnSurfaceType &paired_geometry, 
                                 double& localProjection, double& distance) {
         
-        CoordinatesArrayType slavePoint;
-        slave_geometry.GlobalCoordinates(slavePoint, slavePointLocalCoord);
+        CoordinatesArrayType parentPointGlobalCoord;
+        CoordinatesArrayType parentPointParamCoord;
+        CoordinatesArrayType parentPointGlobalCoord_updated;
 
-        // // NewNormal
-        CoordinatesArrayType old_normal = slave_geometry.Normal(slavePointLocalCoord);
+        CoordinatesArrayType old_normal = parent_geometry.Normal(parentPointLocalCoord);
+
+        parent_geometry.GlobalCoordinates(parentPointGlobalCoord, parentPointLocalCoord);
+
+        parent_geometry.LocalCoordinates(parentPointParamCoord, parentPointLocalCoord);
 
         // GET DERIVATIVES
 
-        IntegrationPoint<1> integrationPointSlave(slavePointLocalCoord[0]);
+        IntegrationPoint<1> integrationPointParent(parentPointLocalCoord[0]);
         std::vector<CoordinatesArrayType> global_space_derivatives(2);
+        CoordinatesArrayType param_coordinates(2);
 
-        slave_geometry.GlobalSpaceDerivatives( global_space_derivatives, integrationPointSlave, 1);
+        parent_geometry.LocalSpaceDerivatives( global_space_derivatives, integrationPointParent, 1);
+
 
         std::vector<CoordinatesArrayType> displacement_derivatives;
         // CoordinatesArrayType displacement;
         // GetDisplacementDerivatives(rpNurbsSurfacePaired, global_space_derivatives[0], 1, displacement, displacement_derivatives); 
 
-        GetDisplacementDerivativesOnCurve(rpNurbsSurfacePaired, global_space_derivatives[0], 1, displacement_derivatives,
+        GetDisplacementDerivativesOnCurve(rpNurbsSurfaceParent, parentPointParamCoord, 1, displacement_derivatives,
                                           global_space_derivatives); //get [du/dt, dv/dt]
 
-        
         Vector displacement_normal_contribution = ZeroVector(2); 
         displacement_normal_contribution[0] = displacement_derivatives[1][1];
         displacement_normal_contribution[1] = -displacement_derivatives[1][0];
 
 
+        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        if (parentPointGlobalCoord[0] < 5.0 + 1e-12) displacement_normal_contribution = -displacement_normal_contribution;
+
+
         CoordinatesArrayType new_normal = (old_normal + displacement_normal_contribution)/ norm_2((old_normal + displacement_normal_contribution));
+        
+        // new_normal = old_normal;
+
+        parentPointGlobalCoord_updated = parentPointGlobalCoord + displacement_derivatives[0];
 
         // find slave normal in that point
-        // CoordinatesArrayType normal = slave_geometry.UnitNormal(slavePointLocalCoord);
+        // CoordinatesArrayType normal = parent_geometry.UnitNormal(slavePointLocalCoord);
         
-        const double toll = 1e-10;
+        const double toll = 1e-8;
         double res = toll + 1;
         int it = 0;
-        const int itMax = 10;
-        const double number_of_initial_guesses = 10;
+        const int itMax = 100;
+        const double number_of_initial_guesses = 50;
 
         // starting point NEWTON RAPHSON
-        CoordinatesArrayType globCoordMaster;
-        CoordinatesArrayType globCoordMaster_updated;
+        CoordinatesArrayType globCoordPaired;
+        CoordinatesArrayType paramCoordPaired;
+        CoordinatesArrayType globCoordPaired_updated;
 
-        CoordinatesArrayType displacement_master;
-        std::vector<CoordinatesArrayType> displacement_derivatives_master;
-        CoordinatesArrayType slavePoint_updated;
+        CoordinatesArrayType displacement_paired;
+        std::vector<CoordinatesArrayType> displacement_derivatives_paired;
 
-        CoordinatesArrayType displacement_slave;
-        // std::vector<CoordinatesArrayType> displacement_derivatives_slave;
+        CoordinatesArrayType displacement_parent;
         CoordinatesArrayType t(3); 
 
         Vector b_rep_interval;
-        master_geometry.DomainInterval(b_rep_interval);
+        paired_geometry.DomainInterval(b_rep_interval);
 
         bool has_converged_at_least_once = false;
         distance = 1e12;
         
         //first trial
-        // master_geometry.ProjectionPointGlobalToLocalSpace(slavePoint_updated, t, 1e-12);
+        // paired_geometry.ProjectionPointGlobalToLocalSpace(slavePoint_updated, t, 1e-12);
 
         // KRATOS_WATCH(t)
         int larger_direction = 1;
         int smaller_direction = 0;
+
+        //
 
         if (std::abs(new_normal[0]) > std::abs(new_normal[1])) { larger_direction = 0; smaller_direction = 1;}
 
@@ -522,55 +551,64 @@ public:
             it = 0;
             t[0] = b_rep_interval[0] +  (b_rep_interval[1]- b_rep_interval[0])/(number_of_initial_guesses-1) * float(i_guess);
 
-            master_geometry.GlobalCoordinates(globCoordMaster, t);
+            paired_geometry.GlobalCoordinates(globCoordPaired, t);
+
+            paired_geometry.LocalCoordinates(paramCoordPaired, t);
 
             //
-            GetDisplacement(rpNurbsSurfaceParent, globCoordMaster, displacement_master); 
-            globCoordMaster_updated = globCoordMaster + displacement_master;
+            
             //
-            GetDisplacement(rpNurbsSurfacePaired, slavePoint, displacement_slave); //get slave displacement
-            slavePoint_updated = slavePoint + displacement_slave;
+            GetDisplacement(rpNurbsSurfacePaired, paramCoordPaired, displacement_paired); //get slave displacement
+            globCoordPaired_updated = globCoordPaired + displacement_paired;
             //
 
-            double s_line = (globCoordMaster_updated[larger_direction] - slavePoint_updated[larger_direction])/new_normal[larger_direction];
-            double smaller_direction_line_current = s_line*new_normal[smaller_direction] + slavePoint_updated[smaller_direction];
-            res = smaller_direction_line_current - globCoordMaster_updated[smaller_direction];
+            double s_line = (globCoordPaired_updated[larger_direction] - parentPointGlobalCoord_updated[larger_direction])/new_normal[larger_direction];
+            double smaller_direction_line_current = s_line*new_normal[smaller_direction] + parentPointGlobalCoord_updated[smaller_direction];
+            res = smaller_direction_line_current - globCoordPaired_updated[smaller_direction];
 
             while (std::abs(res) > toll && it < itMax) {
 
                 //----------------
                 std::vector<CoordinatesArrayType> rGlobalSpaceDerivatives;
 
-                master_geometry.GlobalSpaceDerivatives(rGlobalSpaceDerivatives, t, 1);
+                paired_geometry.GlobalSpaceDerivatives(rGlobalSpaceDerivatives, t, 1);
+
+                paired_geometry.LocalCoordinates(paramCoordPaired, t);
+
+                std::vector<CoordinatesArrayType> rLocalSpaceDerivatives;
+
+                paired_geometry.LocalSpaceDerivatives(rLocalSpaceDerivatives, t, 1);
                 
                 // NEW
 
-                GetDisplacementDerivativesOnCurve(rpNurbsSurfaceParent, rGlobalSpaceDerivatives[0], 1, displacement_derivatives_master,
-                                                rGlobalSpaceDerivatives);
+                GetDisplacementDerivativesOnCurve(rpNurbsSurfacePaired, paramCoordPaired, 1, displacement_derivatives_paired,
+                                                rLocalSpaceDerivatives);
                 //
 
-                Vector master_derivative_updated = rGlobalSpaceDerivatives[1] + displacement_derivatives_master[1];
+                Vector paired_derivative_updated = rGlobalSpaceDerivatives[1] + displacement_derivatives_paired[1];
 
-                const double f_der = new_normal[smaller_direction]/new_normal[larger_direction] * master_derivative_updated[larger_direction] - master_derivative_updated[smaller_direction];
+                const double f_der = new_normal[smaller_direction]/new_normal[larger_direction] * paired_derivative_updated[larger_direction] - paired_derivative_updated[smaller_direction];
 
                 if (std::abs(f_der) < 1e-10) break;
                 t[0] -= res/f_der;
 
                 if (t[0] < b_rep_interval[0] || t[0] > b_rep_interval[1]) break;
 
-                master_geometry.GlobalCoordinates(globCoordMaster, t);
+                paired_geometry.GlobalCoordinates(globCoordPaired, t);
 
-                GetDisplacement(rpNurbsSurfaceParent, globCoordMaster, displacement_master);
+                paired_geometry.LocalCoordinates(paramCoordPaired, t);
 
-                globCoordMaster_updated = globCoordMaster + displacement_master;
+                GetDisplacement(rpNurbsSurfacePaired, paramCoordPaired, displacement_paired);
+
+                globCoordPaired_updated = globCoordPaired + displacement_paired;
                 //
                 
 
-                s_line = (globCoordMaster_updated[larger_direction] - slavePoint_updated[larger_direction])/new_normal[larger_direction];
+                s_line = (globCoordPaired_updated[larger_direction] - parentPointGlobalCoord_updated[larger_direction])/new_normal[larger_direction];
 
-                smaller_direction_line_current = s_line*new_normal[smaller_direction] + slavePoint_updated[smaller_direction];
+                smaller_direction_line_current = s_line*new_normal[smaller_direction] + parentPointGlobalCoord_updated[smaller_direction];
 
-                res = smaller_direction_line_current - globCoordMaster_updated[smaller_direction];
+                res = smaller_direction_line_current - globCoordPaired_updated[smaller_direction];
 
                 it += 1;
             }
@@ -578,7 +616,7 @@ public:
             if (std::abs(res) < toll) {
                 has_converged_at_least_once = true; 
 
-                double curr_distance = norm_2(slavePoint_updated-globCoordMaster_updated);
+                double curr_distance = norm_2(parentPointGlobalCoord_updated-globCoordPaired_updated);
                 if (curr_distance < distance) {
                     distance = curr_distance;
                     localProjection = t[0];
@@ -589,11 +627,40 @@ public:
         
 
 
-        if (!has_converged_at_least_once) return 0;
+        if (!has_converged_at_least_once) 
+        {
+            // std::string name_output_file; 
+            // if (parentPointGlobalCoord[0] > 5.0+1e-12) {
+            //     name_output_file = "txt_files/error_projection_contact_slave.txt";
+            // } else {
+            //     name_output_file = "txt_files/error_projection_contact_master.txt";
+            // }
+
+            // std::ofstream outputFile(name_output_file, std::ios::app);
+            // if (!outputFile.is_open())
+            // {
+            //     std::cerr << "Failed to open the file for writing." << std::endl;
+            //     return 3;
+            // }
+
+            // t[0] = localProjection;
+            // paired_geometry.GlobalCoordinates(globCoordPaired, t);
+            // paired_geometry.LocalCoordinates(paramCoordPaired, t);
+
+            // GetDisplacement(rpNurbsSurfacePaired, paramCoordPaired, displacement_paired);
+
+            // globCoordPaired_updated = globCoordPaired + displacement_paired;
+
+            // outputFile << std::setprecision(14); // Set precision to 10^-14
+            // outputFile << parentPointGlobalCoord_updated[0] << "  " << parentPointGlobalCoord_updated[1] << "  "
+            //             << globCoordPaired_updated[0] << "  " << globCoordPaired_updated[1] << "  " 
+            //             << new_normal[0] << "  " << new_normal[1] << "\n";
+            return 0;
+        }
         else
         {
             std::string name_output_file; 
-            if (slavePoint[0] > 2.0+1e-12) {
+            if (parentPointGlobalCoord[0] > 5.0+1e-12) {
                 name_output_file = "txt_files/projection_contact_slave.txt";
             } else {
                 name_output_file = "txt_files/projection_contact_master.txt";
@@ -607,105 +674,26 @@ public:
             }
 
             t[0] = localProjection;
-            master_geometry.GlobalCoordinates(globCoordMaster, t);
+            paired_geometry.GlobalCoordinates(globCoordPaired, t);
+            paired_geometry.LocalCoordinates(paramCoordPaired, t);
 
-            GetDisplacement(rpNurbsSurfaceParent, globCoordMaster, displacement_master);
+            GetDisplacement(rpNurbsSurfacePaired, paramCoordPaired, displacement_paired);
 
-            globCoordMaster_updated = globCoordMaster + displacement_master;
+            globCoordPaired_updated = globCoordPaired + displacement_paired;
 
             outputFile << std::setprecision(14); // Set precision to 10^-14
-            outputFile << globCoordMaster_updated[0] << "  " << globCoordMaster_updated[1] << "  "
-                        << slavePoint_updated[0] << "  " << slavePoint_updated[1] << "  " 
+            outputFile << parentPointGlobalCoord_updated[0] << "  " << parentPointGlobalCoord_updated[1] << "  "
+                        << globCoordPaired_updated[0] << "  " << globCoordPaired_updated[1] << "  " 
                         << new_normal[0] << "  " << new_normal[1] << "\n";
+
+            // outputFile << parentPointGlobalCoord[0] << "  " << parentPointGlobalCoord[1] << "  "
+            //             << globCoordPaired[0] << "  " << globCoordPaired[1] << "  " 
+            //             << new_normal[0] << "  " << new_normal[1] << "\n";
             outputFile.close();
             
         }
 
-
-        
         return 1;
-
-        //+----------------------------------------------------------------------------------------------------------
-        // OLD VERSION -------------------------------------------------------------------------------------------
-        //+----------------------------------------------------------------------------------------------------------
-        // const double toll2 = 1e-10;
-        // double res2 = toll2 + 1;
-        // int it2 = 0;
-        // const int itMax2 = 2e2;
-
-        // // starting point NEWTON RAPHSON
-        // CoordinatesArrayType globCoordMaster2;
-        // CoordinatesArrayType t2(3); t2[0] = 0; //first trial
-
-        // larger_direction = 1;
-        // smaller_direction = 0;
-        // if (std::abs(normal[0]) > std::abs(normal[1])) { larger_direction = 0; smaller_direction = 1;}
-
-        // master_geometry.GlobalCoordinates(globCoordMaster2, t2);
-        // const double s_line2 = (globCoordMaster2[larger_direction] - slavePoint[larger_direction])/normal[larger_direction];
-        // const double smaller_direction_line_current2 = s_line2*normal[smaller_direction] + slavePoint[smaller_direction];
-        // res2 = smaller_direction_line_current2 - globCoordMaster2[smaller_direction];
-
-        // while (std::abs(res2) > toll2 && it2 < itMax2) {
-        //     //----------------
-        //     std::vector<CoordinatesArrayType> rGlobalSpaceDerivatives;
-
-        //     master_geometry.GlobalSpaceDerivatives(rGlobalSpaceDerivatives, t2, 1);
-
-        //     // KRATOS_WATCH(rGlobalSpaceDerivatives)
-
-
-        //     const double f_der = normal[smaller_direction]/normal[larger_direction] * rGlobalSpaceDerivatives[1][larger_direction] - rGlobalSpaceDerivatives[1][smaller_direction];
-
-        //     t2[0] -= res2/f_der;
-
-        //     master_geometry.GlobalCoordinates(globCoordMaster2, t2);
-
-        //     const double s_line = (globCoordMaster2[larger_direction] - slavePoint[larger_direction])/normal[larger_direction];
-
-        //     const double smaller_direction_line_current = s_line*normal[smaller_direction] + slavePoint[smaller_direction];
-
-        //     res2 = smaller_direction_line_current - globCoordMaster2[smaller_direction];
-
-        //     it2++;
-        // }
-
-        // localProjection = t2[0];
-        
-
-        // // if (true) 
-        // // {
-        // //     std::string name_output_file; 
-        // //     if (slavePoint[0] > 2.0+1e-12) {
-        // //         name_output_file = "txt_files/projection_contact_slave.txt";
-        // //     } else {
-        // //         name_output_file = "txt_files/projection_contact_master.txt";
-        // //     }
-
-        // //     std::ofstream outputFile(name_output_file, std::ios::app);
-        // //     if (!outputFile.is_open())
-        // //     {
-        // //         std::cerr << "Failed to open the file for writing." << std::endl;
-        // //         return 3;
-        // //     }
-        // //     outputFile << std::setprecision(14); // Set precision to 10^-14
-        // //     outputFile << globCoordMaster2[0] << "  " << globCoordMaster2[1] << "  "
-        // //                 << slavePoint[0] << "  " << slavePoint[1]  << "\n";
-        // //     outputFile.close();
-            
-        // // }
-
-        // if (it2 >= itMax2) {KRATOS_WARNING("NR for contact projection has not converged, res:") << res2;
-        // return 0;
-        // }
-
-        // // KRATOS_WATCH(t)
-        // // KRATOS_WATCH(globCoordMaster)
-
-        // distance = norm_2(slavePoint-globCoordMaster2);
-        // return 1;
-        //+----------------------------------------------------------------------------------------------------------
-        //+----------------------------------------------------------------------------------------------------------
     }    
     /// }
 
@@ -732,28 +720,38 @@ public:
         const NurbsSurfaceTypePointer rpNurbsSurfaceParent, 
         const NurbsSurfaceTypePointer rpNurbsSurfacePaired, 
         CoordinatesArrayType& rProjectedPointLocalCoordinates,
-        const CoordinatesArrayType& rPointLocalCoordinates,
+        const CoordinatesArrayType& rPointLocalCoordinates, // curve on surface local coord (curve parameter space)
         CoordinatesArrayType& rProjectedPointGlobalCoordinates,
-        GeometryType &rParentGeometry, GeometryType &rPairedGeometry, 
+        BrepCurveOnSurfaceType &rParentGeometry, BrepCurveOnSurfaceType &rPairedGeometry, 
         double& distance,
         const int rNumberOfInitialGuesses,
         const int MaxIterations = 20,
         const double Accuracy = 1e-6)
     {
+
         // Intialize variables
         double residual, delta_t;
 
-        std::vector<array_1d<double, 3>> derivatives(3);
+        CoordinatesArrayType projected_point_local_coordinates(3);
+
+        std::vector<array_1d<double, 3>> global_derivatives(3);
+
+        std::vector<array_1d<double, 3>> local_derivatives(3);
 
         std::vector<CoordinatesArrayType> derivatives_on_deformed;
         array_1d<double, 3> distance_vector;
 
-        const double Acc = 1e-4;
+        const double Acc = Accuracy;
 
+        CoordinatesArrayType point_local_coordinates(3); //parameter
         CoordinatesArrayType point_global_coordinates(3);
         CoordinatesArrayType point_global_displacement;
         rParentGeometry.GlobalCoordinates(point_global_coordinates, rPointLocalCoordinates);
-        GetDisplacement(rpNurbsSurfaceParent, point_global_coordinates, point_global_displacement); 
+
+        rParentGeometry.LocalCoordinates(point_local_coordinates, rPointLocalCoordinates);
+        GetDisplacement(rpNurbsSurfaceParent, point_local_coordinates, point_global_displacement); 
+
+
         CoordinatesArrayType point_deformed_global_coordinates = point_global_coordinates + point_global_displacement;
 
         point_deformed_global_coordinates[2] = 0.0;
@@ -765,6 +763,8 @@ public:
         rPairedGeometry.DomainInterval(b_rep_interval);
         bool is_converged_at_least_once = false;
         double best_distance = 1e12;
+
+        // KRATOS_WATCH(point_deformed_global_coordinates)
         // KRATOS_WATCH(point_deformed_global_coordinates)
         for (IndexType i_guess = 0; i_guess < rNumberOfInitialGuesses; i_guess++)
         {   
@@ -779,27 +779,37 @@ public:
             {
                 // Compute the position, the base and the acceleration vector
                 rPairedGeometry.GlobalSpaceDerivatives(
-                    derivatives,
+                    global_derivatives,
                     t,
                     2);
                     
-                rProjectedPointGlobalCoordinates = derivatives[0];
+                rProjectedPointGlobalCoordinates = global_derivatives[0];
 
+                rPairedGeometry.LocalCoordinates(projected_point_local_coordinates, t);
+
+                projected_point_local_coordinates[2] = 0.0;
+                
                 std::vector<array_1d<double, 3>> derivatives_updated(3);
 
+                rPairedGeometry.LocalSpaceDerivatives(
+                    local_derivatives,
+                    t,
+                    2);
+
                 // NEW
-                GetDisplacementDerivativesOnCurve(rpNurbsSurfacePaired, rProjectedPointGlobalCoordinates, 2, derivatives_on_deformed,
-                                                    derivatives);
+                GetDisplacementDerivativesOnCurve(rpNurbsSurfacePaired, projected_point_local_coordinates, 2, derivatives_on_deformed,
+                                                  local_derivatives);
                 
                 for (int i_der = 0; i_der < 3; i_der++){
                     for (int i_dim = 0; i_dim < 2; i_dim++) {
-                        derivatives_updated[i_der][i_dim] =  derivatives[i_der][i_dim] + derivatives_on_deformed[i_der][i_dim];
+                        derivatives_updated[i_der][i_dim] =  global_derivatives[i_der][i_dim] + derivatives_on_deformed[i_der][i_dim];
                     }
                 }
 
                 derivatives_updated[0][2] = 0.0; derivatives_updated[1][2] = 0.0; derivatives_updated[2][2] = 0.0;
 
-                GetDisplacement(rpNurbsSurfacePaired, rProjectedPointGlobalCoordinates, projected_point_global_displacement); 
+                // GetDisplacement(rpNurbsSurfacePaired, projected_point_local_coordinates, projected_point_global_displacement);  //???
+
                 projected_point_deformed_global_coordinates = rProjectedPointGlobalCoordinates + derivatives_on_deformed[0];
 
                 projected_point_deformed_global_coordinates[2] = 0.0;
@@ -808,10 +818,10 @@ public:
                 // projection on the curve
                 distance_vector = projected_point_deformed_global_coordinates - point_deformed_global_coordinates;
                 distance = norm_2(distance_vector);
+
                 if (distance < Acc) // Acc
                 {
                     rProjectedPointLocalCoordinates = t;
-                    // KRATOS_WATCH(projected_point_deformed_global_coordinates)
                     return true;
                 }
 
@@ -845,7 +855,6 @@ public:
                     if (std::isnan(to_check)) break;
                     else 
                     {
-                        // KRATOS_WATCH(projected_point_deformed_global_coordinates)
                         rProjectedPointLocalCoordinates = t;
                         return true;
                     }
@@ -865,7 +874,11 @@ public:
             }
         }
 
-        if (is_converged_at_least_once) return true;
+        if (is_converged_at_least_once) 
+        {
+            distance = best_distance;
+            return true;
+        }
         // Return false if the Newton-Raphson iterations did not converge
         return false;
     }

@@ -93,10 +93,6 @@ namespace Kratos
         // Integration
         const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry_master.IntegrationPoints();
 
-        // Determine the integration: conservative -> initial; non-conservative -> current
-        Vector determinant_jacobian_vector(integration_points.size());
-        r_geometry_master.DeterminantOfJacobian(determinant_jacobian_vector);
-
         // Shape function derivatives 
         // MASTER ------------------------------------------------
         // Initialize Jacobian
@@ -124,11 +120,8 @@ namespace Kratos
 
         double DetJ0_master;
 
-         Vector GP_parameter_coord(2); 
-        GP_parameter_coord = prod(r_geometry_master.Center(),J0_master[0]);
-        
-        normal_physical_space = prod(trans(J0_master[0]),normal_parameter_space);
-        tangent_physical_space = prod(trans(J0_master[0]),tangent_parameter_space);
+        Vector GP_parameter_coord(2); 
+        GP_parameter_coord = r_geometry_master.Center();
 
         Matrix Jacobian = ZeroMatrix(2,2);
         Jacobian(0,0) = J0_master[0](0,0);
@@ -138,6 +131,18 @@ namespace Kratos
 
         // Calculating inverse jacobian and jacobian determinant
         MathUtils<double>::InvertMatrix(Jacobian,InvJ0_master,DetJ0_master);
+
+
+        // COMPUTE TRUE JACOBIAN DETERMINANT AND PHYSICAL NORMAL
+        Vector add_factor = prod(Jacobian, tangent_parameter_space);
+
+        DetJ0_master = norm_2(add_factor);
+
+        normal_physical_space = prod(trans(InvJ0_master),normal_parameter_space);
+        normal_physical_space /= norm_2(normal_physical_space);
+
+        tangent_physical_space = prod(trans(InvJ0_master),tangent_parameter_space);
+        tangent_physical_space /= norm_2(tangent_physical_space);
 
         // retrieve shape function values
 
@@ -167,7 +172,7 @@ namespace Kratos
         Jacobian_slave(1,1) = J0_slave[0](1,1);
 
         // Calculating inverse jacobian and jacobian determinant
-        MathUtils<double>::InvertMatrix(Jacobian_slave,InvJ0_slave,DetJ0_slave);
+        MathUtils<double>::InvertMatrix(Jacobian_slave,InvJ0_slave,DetJ0_slave);  //DetJ0 is not the true one for NURBS geometries
 
          // retrieve shape function value
         Vector old_displacement_slave(2*number_of_nodes_slave);
@@ -180,13 +185,16 @@ namespace Kratos
 
         Vector GP_parameter_coord_on_slave(2); 
         r_geometry_slave.Jacobian(J0_slave,this->GetIntegrationMethod());
-        GP_parameter_coord_on_slave = prod(r_geometry_slave.Center(),J0_slave[0]);
+        GP_parameter_coord_on_slave = r_geometry_slave.Center();
 
         //------------------- REFERENCE WEIGHT
 
         const double thickness = (*mpPropMaster).Has(THICKNESS) ? (*mpPropMaster)[THICKNESS] : 1.0;
 
         const double IntToReferenceWeight = integration_points[0].Weight() * std::abs(DetJ0_master) * thickness;
+
+        SetValue(INTEGRATION_WEIGHT, IntToReferenceWeight);
+        SetValue(ACTIVATION_LEVEL, integrationDomain);
 
         //------------------- DB MATRICES 
 
@@ -209,13 +217,14 @@ namespace Kratos
         outputFile.close();
 
         //---------- GET CONSTITUTIVE MATRICES  
-
+        Vector stress_vector_master;
         const Matrix r_D_master = GetConstitutiveMatrix(0, B_master, r_geometry_master,
-                                                         old_displacement_master, rCurrentProcessInfo); //master
+                                                         old_displacement_master, rCurrentProcessInfo, stress_vector_master); //master
 
         
+        Vector stress_vector_slave;
         const Matrix r_D_slave  = GetConstitutiveMatrix(1, B_slave, r_geometry_slave,
-                                                         old_displacement_slave, rCurrentProcessInfo); // slave
+                                                         old_displacement_slave, rCurrentProcessInfo, stress_vector_slave); // slave
     
 
         //  ----------------------------------------------------------------------------
@@ -231,6 +240,13 @@ namespace Kratos
         Vector slave_deformed_old(2); 
         GetDeformed(N_slave, GP_parameter_coord_on_slave, old_displacement_slave, slave_deformed_old);
 
+        // KRATOS_WATCH("------------------")
+        // KRATOS_WATCH(GP_parameter_coord)
+        // KRATOS_WATCH(master_deformed_old)
+        // KRATOS_WATCH(GP_parameter_coord_on_slave)
+        // KRATOS_WATCH(slave_deformed_old)
+        // KRATOS_WATCH("-------------------------")
+
 
         //-----------
         // COMPUTE NORMAL GAP AND CHECK CONDITION
@@ -241,7 +257,17 @@ namespace Kratos
         Matrix DB_master = prod(r_D_master,B_master);
 
         CheckCriteria(master_deformed_old, slave_deformed_old, old_displacement_master, normal_physical_space, DB_master, 
-                      tangent_parameter_space, normal_physical_space); 
+                      tangent_parameter_space, normal_physical_space, stress_vector_master); 
+
+
+        // if (m_contact_is_active) {
+        //     KRATOS_WATCH(GP_parameter_coord)
+        //     KRATOS_WATCH(GP_parameter_coord_on_slave)
+        //     KRATOS_WATCH(master_deformed_old)
+        //     KRATOS_WATCH(slave_deformed_old)
+        //     KRATOS_WATCH(normal_physical_space)
+        //     KRATOS_WATCH("***********************************")
+        // }
                 //----------------------------------------------------------------------------
 
 
@@ -776,174 +802,255 @@ namespace Kratos
         ConstitutiveLaw::Parameters constitutive_law_parameters(
             GetMasterGeometry(), *mpPropMaster, rCurrentProcessInfo);
 
-        mpConstitutiveLawMaster->FinalizeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_PK2);
+        mpConstitutiveLawMaster->FinalizeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
 
         
     /////////////////////////
+    //     const auto& r_geometry = GetMasterGeometry();
+    //     const SizeType nb_nodes = r_geometry.size();
+
+    //     // Integration Points
+    //     const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
+    //     // Shape function values
+    //     const Matrix& r_N = r_geometry.ShapeFunctionsValues();
+
+    //     GeometryType::JacobiansType J0;
+    //     r_geometry.Jacobian(J0,this->GetIntegrationMethod());
+    //     // Get the parameter coordinates
+    //     Vector GP_parameter_coord(2); 
+    //     GP_parameter_coord = r_geometry.Center(); // Only one Integration Points 
+
+    //     double x_coord_gauss_point = 0;
+    //     double y_coord_gauss_point = 0;
+    //     double rOutput_x = 0;
+    //     double rOutput_y = 0;
+
+    //     for (IndexType i = 0; i < nb_nodes; ++i)
+    //     {
+    //         // KRATOS_WATCH(r_geometry[i])
+    //         double output_solution_step_value_x = r_geometry[i].GetSolutionStepValue(DISPLACEMENT_X);
+    //         double output_solution_step_value_y = r_geometry[i].GetSolutionStepValue(DISPLACEMENT_Y);
+    //         rOutput_x += r_N(0, i) * output_solution_step_value_x;
+    //         rOutput_y += r_N(0, i) * output_solution_step_value_y;
+    //         x_coord_gauss_point += r_N(0, i) * r_geometry[i].X0();
+    //         y_coord_gauss_point += r_N(0, i) * r_geometry[i].Y0();
+    //     }   
+
+    // //////////////////////////
+    // /////////////// SLAVE 
+    // ////////////////////////
+    //     const auto& r_geometry_slave = GetSlaveGeometry();
+    //     const SizeType nb_nodes_slave = r_geometry_slave.size();
+
+    //     // Integration Points
+    //     const GeometryType::IntegrationPointsArrayType& integration_points_slave = r_geometry_slave.IntegrationPoints();
+    //     // Shape function values
+    //     const Matrix& r_N_slave = r_geometry_slave.ShapeFunctionsValues();
+
+    //     GeometryType::JacobiansType J0_slave;
+    //     r_geometry_slave.Jacobian(J0_slave,this->GetIntegrationMethod());
+    //     // Get the parameter coordinates
+    //     Vector GP_parameter_coord_slave(2); 
+    //     GP_parameter_coord_slave = r_geometry_slave.Center(); // Only one Integration Points 
+
+    //     double x_coord_gauss_point_slave = 0;
+    //     double y_coord_gauss_point_slave = 0;
+    //     double rOutput_slave_x = 0;
+    //     double rOutput_slave_y = 0;
+
+    //     for (IndexType i = 0; i < nb_nodes_slave; ++i)
+    //     {
+    //         // KRATOS_WATCH(r_geometry[i])
+    //         double output_solution_step_value_x = r_geometry_slave[i].GetSolutionStepValue(DISPLACEMENT_X);
+    //         double output_solution_step_value_y = r_geometry_slave[i].GetSolutionStepValue(DISPLACEMENT_Y);
+    //         rOutput_slave_x += r_N_slave(0, i) * output_solution_step_value_x;
+    //         rOutput_slave_y += r_N_slave(0, i) * output_solution_step_value_y;
+    //         x_coord_gauss_point_slave += r_N_slave(0, i) * r_geometry_slave[i].X0();
+    //         y_coord_gauss_point_slave += r_N_slave(0, i) * r_geometry_slave[i].Y0();
+    //     }     
+
+    //     if (m_contact_is_active) {
+    //     // if (true) {
+    //         if (x_coord_gauss_point <= 2.005 || GetGeometry().GetValue(ACTIVATION_LEVEL) == 0) {
+    //             std::ofstream gap_file("txt_files/gap_output_master.txt", std::ios::app);
+    //             if (gap_file.is_open()) {
+    //                 gap_file << std::scientific << std::setprecision(14); // Set precision to 10^-14
+
+    //                 const double x_final_pos_master = x_coord_gauss_point + rOutput_x;
+    //                 const double x_final_pos_slave = x_coord_gauss_point_slave + rOutput_slave_x;
+
+    //                 // gap_file << x_final_pos_master-x_final_pos_slave << " " << x_coord_gauss_point + rOutput_x << " " << y_coord_gauss_point + rOutput_y << " " <<integration_points[0].Weight() << std::endl;
+    //                 gap_file << x_final_pos_master-x_final_pos_slave << " " << x_coord_gauss_point << " " << y_coord_gauss_point << " " <<integration_points[0].Weight() << std::endl;
+    //                 gap_file.close();
+
+    //                 // KRATOS_WATCH(y_coord_gauss_point+rOutput_y)
+    //                 // KRATOS_WATCH(y_coord_gauss_point_slave + rOutput_slave_y)
+    //             }  
+
+    //             std::ofstream gap_file2("txt_files/gap_output_slave.txt", std::ios::app);
+    //             if (gap_file2.is_open()) {
+    //                 gap_file2 << std::scientific << std::setprecision(14); // Set precision to 10^-14
+
+    //                 const double x_final_pos_master = x_coord_gauss_point + rOutput_x;
+    //                 const double x_final_pos_slave = x_coord_gauss_point_slave + rOutput_slave_x;
+
+    //                 const double y_final_pos_slave = y_coord_gauss_point_slave + rOutput_slave_y;
+
+
+    //                 // gap_file2 << x_final_pos_master-x_final_pos_slave << " " << x_final_pos_slave << " " << y_final_pos_slave << " " <<integration_points[0].Weight() << std::endl;
+    //                 gap_file2 << x_final_pos_master-x_final_pos_slave << " " << x_coord_gauss_point_slave << " " << y_coord_gauss_point_slave << " " <<integration_points[0].Weight() << std::endl;
+    //                 gap_file2.close();
+    //             }  
+    //         }
+    //         else if (x_coord_gauss_point >2.005 || GetGeometry().GetValue(ACTIVATION_LEVEL) == 1){
+    //             std::ofstream gap_file("txt_files/gap_output_slave.txt", std::ios::app);
+    //             if (gap_file.is_open()) {
+    //                 gap_file << std::scientific << std::setprecision(14); // Set precision to 10^-14
+
+    //                 const double x_final_pos_master = x_coord_gauss_point + rOutput_x;
+    //                 const double x_final_pos_slave = x_coord_gauss_point_slave + rOutput_slave_x;
+
+    //                 // gap_file << x_final_pos_master-x_final_pos_slave << " " << x_coord_gauss_point + rOutput_x << " " << y_coord_gauss_point + rOutput_y << " " <<integration_points[0].Weight() << std::endl;
+    //                 gap_file << x_final_pos_master-x_final_pos_slave << " " << x_coord_gauss_point << " " << y_coord_gauss_point << " " <<integration_points[0].Weight() << std::endl;
+    //                 gap_file.close();
+
+    //                 // KRATOS_WATCH(y_coord_gauss_point+rOutput_y)
+    //                 // KRATOS_WATCH(y_coord_gauss_point_slave + rOutput_slave_y)
+    //             }  
+
+    //             std::ofstream gap_file2("txt_files/gap_output_master.txt", std::ios::app);
+    //             if (gap_file2.is_open()) {
+    //                 gap_file2 << std::scientific << std::setprecision(14); // Set precision to 10^-14
+
+    //                 const double x_final_pos_master = x_coord_gauss_point + rOutput_x;
+    //                 const double x_final_pos_slave = x_coord_gauss_point_slave + rOutput_slave_x;
+
+    //                 const double y_final_pos_slave = y_coord_gauss_point_slave + rOutput_slave_y;
+
+
+    //                 // gap_file2 << x_final_pos_master-x_final_pos_slave << " " << x_final_pos_slave << " " << y_final_pos_slave << " " <<integration_points[0].Weight() << std::endl;
+                    
+    //                 gap_file2 << x_final_pos_master-x_final_pos_slave << " " << x_coord_gauss_point_slave << " " << y_coord_gauss_point_slave << " " <<integration_points[0].Weight() << std::endl;
+                    
+    //                 gap_file2.close();
+    //             }  
+    //         }
+
+    //         std::ofstream disp_file("txt_files/contact_displacement.txt", std::ios::app);
+
+    //         disp_file << x_coord_gauss_point << " " << x_coord_gauss_point + rOutput_x << " " << y_coord_gauss_point << " " << y_coord_gauss_point + rOutput_y << std::endl;
+
+    //         disp_file << x_coord_gauss_point_slave << " " << x_coord_gauss_point_slave + rOutput_slave_x << " " << y_coord_gauss_point_slave << " " << y_coord_gauss_point_slave + rOutput_slave_y << std::endl;
+        
+    //     }
+
+    //     if (x_coord_gauss_point <= 2.0) {
+    //     std::ofstream output_file("txt_files/output_results_GPs_master.txt", std::ios::app);
+    //         if (output_file.is_open()) {
+    //             output_file << std::scientific << std::setprecision(14); // Set precision to 10^-14
+    //             output_file << rOutput_x << " " << rOutput_y << " " << x_coord_gauss_point << " " << y_coord_gauss_point << " " <<integration_points[0].Weight() << std::endl;
+    //             output_file.close();
+    //         } 
+    //     } else {
+    //         std::ofstream output_file("txt_files/output_results_GPs_slave.txt", std::ios::app);
+    //         if (output_file.is_open()) {
+    //             output_file << std::scientific << std::setprecision(14); // Set precision to 10^-14
+    //             output_file << rOutput_x << " " << rOutput_y << " " << x_coord_gauss_point << " " << y_coord_gauss_point << " " <<integration_points[0].Weight() << std::endl;
+    //             output_file.close();
+    //         } 
+    //     }
+
+
+    //     std::ofstream outputFile("txt_files/Gauss_Point_coordinates.txt", std::ios::app);
+    //     if (!outputFile.is_open())
+    //     {
+    //         std::cerr << "Failed to open the file for writing." << std::endl;
+    //         return;
+    //     }
+    //     outputFile << std::setprecision(14); // Set precision to 10^-14
+    //     outputFile << x_coord_gauss_point << "  " << y_coord_gauss_point <<"\n";
+    //     outputFile.close();
+
+
+        //---------- SET STRESS VECTOR VALUE ----------------------------------------------------------------
         const auto& r_geometry = GetMasterGeometry();
         const SizeType nb_nodes = r_geometry.size();
+        const SizeType mat_size = nb_nodes * 2;
 
-        // Integration Points
-        const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
-        // Shape function values
-        const Matrix& r_N = r_geometry.ShapeFunctionsValues();
-
+        // Shape function derivatives (NEW) 
+        // Initialize Jacobian
         GeometryType::JacobiansType J0;
-        r_geometry.Jacobian(J0,this->GetIntegrationMethod());
-        // Get the parameter coordinates
-        Vector GP_parameter_coord(2); 
-        GP_parameter_coord = prod(r_geometry.Center(),J0[0]); // Only one Integration Points 
+        // Initialize DN_DX
+        const unsigned int dim = 2;
+        Matrix DN_DX(nb_nodes,2);
+        Matrix InvJ0(dim,dim);
 
-        double x_coord_gauss_point = 0;
-        double y_coord_gauss_point = 0;
-        double rOutput_x = 0;
-        double rOutput_y = 0;
+        // Compute the normals
+        array_1d<double, 3> tangent_parameter_space;
+        array_1d<double, 2> normal_physical_space;
+        array_1d<double, 3> normal_parameter_space;
 
-        for (IndexType i = 0; i < nb_nodes; ++i)
-        {
-            // KRATOS_WATCH(r_geometry[i])
-            double output_solution_step_value_x = r_geometry[i].GetSolutionStepValue(DISPLACEMENT_X);
-            double output_solution_step_value_y = r_geometry[i].GetSolutionStepValue(DISPLACEMENT_Y);
-            rOutput_x += r_N(0, i) * output_solution_step_value_x;
-            rOutput_y += r_N(0, i) * output_solution_step_value_y;
-            x_coord_gauss_point += r_N(0, i) * r_geometry[i].X0();
-            y_coord_gauss_point += r_N(0, i) * r_geometry[i].Y0();
-        }   
-
-    //////////////////////////
-    /////////////// SLAVE 
-    ////////////////////////
-        const auto& r_geometry_slave = GetSlaveGeometry();
-        const SizeType nb_nodes_slave = r_geometry_slave.size();
-
-        // Integration Points
-        const GeometryType::IntegrationPointsArrayType& integration_points_slave = r_geometry_slave.IntegrationPoints();
-        // Shape function values
-        const Matrix& r_N_slave = r_geometry_slave.ShapeFunctionsValues();
-
-        GeometryType::JacobiansType J0_slave;
-        r_geometry_slave.Jacobian(J0_slave,this->GetIntegrationMethod());
-        // Get the parameter coordinates
-        Vector GP_parameter_coord_slave(2); 
-        GP_parameter_coord_slave = prod(r_geometry_slave.Center(),J0_slave[0]); // Only one Integration Points 
-
-        double x_coord_gauss_point_slave = 0;
-        double y_coord_gauss_point_slave = 0;
-        double rOutput_slave_x = 0;
-        double rOutput_slave_y = 0;
-
-        for (IndexType i = 0; i < nb_nodes_slave; ++i)
-        {
-            // KRATOS_WATCH(r_geometry[i])
-            double output_solution_step_value_x = r_geometry_slave[i].GetSolutionStepValue(DISPLACEMENT_X);
-            double output_solution_step_value_y = r_geometry_slave[i].GetSolutionStepValue(DISPLACEMENT_Y);
-            rOutput_slave_x += r_N_slave(0, i) * output_solution_step_value_x;
-            rOutput_slave_y += r_N_slave(0, i) * output_solution_step_value_y;
-            x_coord_gauss_point_slave += r_N_slave(0, i) * r_geometry_slave[i].X0();
-            y_coord_gauss_point_slave += r_N_slave(0, i) * r_geometry_slave[i].Y0();
-        }     
-
-        if (m_contact_is_active) {
-        // if (true) {
-            if (x_coord_gauss_point <= 2.005 || GetGeometry().GetValue(ACTIVATION_LEVEL) == 0) {
-                std::ofstream gap_file("txt_files/gap_output_master.txt", std::ios::app);
-                if (gap_file.is_open()) {
-                    gap_file << std::scientific << std::setprecision(14); // Set precision to 10^-14
-
-                    const double x_final_pos_master = x_coord_gauss_point + rOutput_x;
-                    const double x_final_pos_slave = x_coord_gauss_point_slave + rOutput_slave_x;
-
-                    // gap_file << x_final_pos_master-x_final_pos_slave << " " << x_coord_gauss_point + rOutput_x << " " << y_coord_gauss_point + rOutput_y << " " <<integration_points[0].Weight() << std::endl;
-                    gap_file << x_final_pos_master-x_final_pos_slave << " " << x_coord_gauss_point << " " << y_coord_gauss_point << " " <<integration_points[0].Weight() << std::endl;
-                    gap_file.close();
-
-                    // KRATOS_WATCH(y_coord_gauss_point+rOutput_y)
-                    // KRATOS_WATCH(y_coord_gauss_point_slave + rOutput_slave_y)
-                }  
-
-                std::ofstream gap_file2("txt_files/gap_output_slave.txt", std::ios::app);
-                if (gap_file2.is_open()) {
-                    gap_file2 << std::scientific << std::setprecision(14); // Set precision to 10^-14
-
-                    const double x_final_pos_master = x_coord_gauss_point + rOutput_x;
-                    const double x_final_pos_slave = x_coord_gauss_point_slave + rOutput_slave_x;
-
-                    const double y_final_pos_slave = y_coord_gauss_point_slave + rOutput_slave_y;
-
-
-                    // gap_file2 << x_final_pos_master-x_final_pos_slave << " " << x_final_pos_slave << " " << y_final_pos_slave << " " <<integration_points[0].Weight() << std::endl;
-                    gap_file2 << x_final_pos_master-x_final_pos_slave << " " << x_coord_gauss_point_slave << " " << y_coord_gauss_point_slave << " " <<integration_points[0].Weight() << std::endl;
-                    gap_file2.close();
-                }  
-            }
-            else if (x_coord_gauss_point >2.005 || GetGeometry().GetValue(ACTIVATION_LEVEL) == 1){
-                std::ofstream gap_file("txt_files/gap_output_slave.txt", std::ios::app);
-                if (gap_file.is_open()) {
-                    gap_file << std::scientific << std::setprecision(14); // Set precision to 10^-14
-
-                    const double x_final_pos_master = x_coord_gauss_point + rOutput_x;
-                    const double x_final_pos_slave = x_coord_gauss_point_slave + rOutput_slave_x;
-
-                    // gap_file << x_final_pos_master-x_final_pos_slave << " " << x_coord_gauss_point + rOutput_x << " " << y_coord_gauss_point + rOutput_y << " " <<integration_points[0].Weight() << std::endl;
-                    gap_file << x_final_pos_master-x_final_pos_slave << " " << x_coord_gauss_point << " " << y_coord_gauss_point << " " <<integration_points[0].Weight() << std::endl;
-                    gap_file.close();
-
-                    // KRATOS_WATCH(y_coord_gauss_point+rOutput_y)
-                    // KRATOS_WATCH(y_coord_gauss_point_slave + rOutput_slave_y)
-                }  
-
-                std::ofstream gap_file2("txt_files/gap_output_master.txt", std::ios::app);
-                if (gap_file2.is_open()) {
-                    gap_file2 << std::scientific << std::setprecision(14); // Set precision to 10^-14
-
-                    const double x_final_pos_master = x_coord_gauss_point + rOutput_x;
-                    const double x_final_pos_slave = x_coord_gauss_point_slave + rOutput_slave_x;
-
-                    const double y_final_pos_slave = y_coord_gauss_point_slave + rOutput_slave_y;
-
-
-                    // gap_file2 << x_final_pos_master-x_final_pos_slave << " " << x_final_pos_slave << " " << y_final_pos_slave << " " <<integration_points[0].Weight() << std::endl;
-                    
-                    gap_file2 << x_final_pos_master-x_final_pos_slave << " " << x_coord_gauss_point_slave << " " << y_coord_gauss_point_slave << " " <<integration_points[0].Weight() << std::endl;
-                    
-                    gap_file2.close();
-                }  
-            }
-
-            std::ofstream disp_file("txt_files/contact_displacement.txt", std::ios::app);
-
-            disp_file << x_coord_gauss_point << " " << x_coord_gauss_point + rOutput_x << " " << y_coord_gauss_point << " " << y_coord_gauss_point + rOutput_y << std::endl;
-
-            disp_file << x_coord_gauss_point_slave << " " << x_coord_gauss_point_slave + rOutput_slave_x << " " << y_coord_gauss_point_slave << " " << y_coord_gauss_point_slave + rOutput_slave_y << std::endl;
+        r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space !!
+        double magnitude = std::sqrt(tangent_parameter_space[0] * tangent_parameter_space[0] + tangent_parameter_space[1] * tangent_parameter_space[1]);
         
-        }
+        // NEW FOR GENERAL JACOBIAN
+        normal_parameter_space[0] = + tangent_parameter_space[1] / magnitude;
+        normal_parameter_space[1] = - tangent_parameter_space[0] / magnitude;  // By observations on the result of .Calculate(LOCAL_TANGENT
 
-        if (x_coord_gauss_point <= 2.0) {
-        std::ofstream output_file("txt_files/output_results_GPs_master.txt", std::ios::app);
-            if (output_file.is_open()) {
-                output_file << std::scientific << std::setprecision(14); // Set precision to 10^-14
-                output_file << rOutput_x << " " << rOutput_y << " " << x_coord_gauss_point << " " << y_coord_gauss_point << " " <<integration_points[0].Weight() << std::endl;
-                output_file.close();
-            } 
-        } else {
-            std::ofstream output_file("txt_files/output_results_GPs_slave.txt", std::ios::app);
-            if (output_file.is_open()) {
-                output_file << std::scientific << std::setprecision(14); // Set precision to 10^-14
-                output_file << rOutput_x << " " << rOutput_y << " " << x_coord_gauss_point << " " << y_coord_gauss_point << " " <<integration_points[0].Weight() << std::endl;
-                output_file.close();
-            } 
-        }
+        const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
+        r_geometry.Jacobian(J0,this->GetIntegrationMethod());
+        double DetJ0;
+        // MODIFIED
+        Vector old_displacement(mat_size);
+        GetValuesVector(old_displacement, 0);
+        
+        Matrix Jacobian = ZeroMatrix(2,2);
+        Jacobian(0,0) = J0[0](0,0);
+        Jacobian(0,1) = J0[0](0,1);
+        Jacobian(1,0) = J0[0](1,0);
+        Jacobian(1,1) = J0[0](1,1);
 
+        // Calculating inverse jacobian and jacobian determinant
+        MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
 
-        std::ofstream outputFile("txt_files/Gauss_Point_coordinates.txt", std::ios::app);
-        if (!outputFile.is_open())
-        {
-            std::cerr << "Failed to open the file for writing." << std::endl;
-            return;
-        }
-        outputFile << std::setprecision(14); // Set precision to 10^-14
-        outputFile << x_coord_gauss_point << "  " << y_coord_gauss_point <<"\n";
-        outputFile.close();
+        // // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
+        noalias(DN_DX) = prod(DN_De[0],InvJ0);
+
+        // MODIFIED
+        Matrix B = ZeroMatrix(3,mat_size);
+
+        CalculateB(B, DN_DX,nb_nodes);
+
+        normal_physical_space = prod(trans(InvJ0),normal_parameter_space);
+
+        normal_physical_space /= norm_2(normal_physical_space);
+
+        // GET STRESS VECTOR
+        Vector stress_vector_master;
+        const Matrix r_D_master = GetConstitutiveMatrix(0, B, r_geometry,
+                                                         old_displacement, rCurrentProcessInfo, stress_vector_master); //master
+
+        Vector sigma_n(2);
+
+        sigma_n[0] = stress_vector_master[0]*normal_physical_space[0] + stress_vector_master[2]*normal_physical_space[1];
+        sigma_n[1] = stress_vector_master[2]*normal_physical_space[0] + stress_vector_master[1]*normal_physical_space[1];
+
+        //-----------------------------------------
+        // Vector sigma_n = ZeroVector(2);
+        // Matrix DB = prod(r_D_master,B);
+        // for (IndexType j = 0; j < r_geometry.size(); j++) {
+
+        //     for (IndexType jdim = 0; jdim < 2; jdim++) {
+        //         const int jglob = 2*j+jdim;
+
+        //         sigma_n[0] += (DB(0, jglob)* normal_physical_space[0] + DB(2, jglob)* normal_physical_space[1])*old_displacement[jglob];
+        //         sigma_n[1] += (DB(2, jglob)* normal_physical_space[0] + DB(1, jglob)* normal_physical_space[1])*old_displacement[jglob];
+        //     }
+        // }
+        //2222222222222222222222222222222222222222222222222222222222222222222222222
+
+        SetValue(NORMAL_STRESS, sigma_n);
+        // //---------------------
     }
 
     void SupportContact2DCondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
@@ -952,7 +1059,7 @@ namespace Kratos
         ConstitutiveLaw::Parameters constitutive_law_parameters(
             GetMasterGeometry(), (*mpPropMaster), rCurrentProcessInfo);
 
-        mpConstitutiveLawMaster->InitializeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_PK2);
+        mpConstitutiveLawMaster->InitializeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
 
     }
 
@@ -974,7 +1081,8 @@ namespace Kratos
 
     //----------------------------------------------------------------------------------
     const Matrix SupportContact2DCondition::GetConstitutiveMatrix(IndexType index, Matrix& r_B, GeometryType r_geometry,
-                                                                   Vector& old_displacement, const Kratos::ProcessInfo& rCurrentProcessInfo) {
+                                                                   Vector& old_displacement, const Kratos::ProcessInfo& rCurrentProcessInfo,
+                                                                   Vector& stress_vector) {
 
         ConstitutiveLaw::Pointer rpConstitutiveLaw = GetConstitutiveLaw(index);
 
@@ -997,10 +1105,13 @@ namespace Kratos
     
         // Values.SetStrainVector(this_constitutive_variables.StrainVector);
         Values.SetStrainVector(old_strain);
-
         Values.SetStressVector(this_constitutive_variables.StressVector);
+
         Values.SetConstitutiveMatrix(this_constitutive_variables.D);
-        rpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);
+        rpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy);
+
+        
+        stress_vector = Values.GetStressVector();
 
         return Values.GetConstitutiveMatrix();
         
@@ -1029,21 +1140,26 @@ namespace Kratos
     bool SupportContact2DCondition::CheckCriteria(const Vector& deformed_pos_master, 
                                                   const Vector& deformed_pos_slave, const Vector& displacement_master,
                                                   const Vector& normal, const Matrix& DB_master,
-                                                  array_1d<double, 3>& local_tangent, array_1d<double, 2>& old_normal){
+                                                  array_1d<double, 3>& local_tangent, array_1d<double, 2>& old_normal,
+                                                  const Vector stress_vector_master){
         const double toll = 1e-12;
 
-        // const double toll_tangential_distance = 1e-1;
+        const double toll_tangential_distance = 1e-1;
 
         double flag_normal_gap = inner_prod(deformed_pos_slave - deformed_pos_master, normal);
 
         double tangential_gap = norm_2((deformed_pos_slave - deformed_pos_master) - flag_normal_gap * normal);
+
 
         // COMPUTE THE UPDATED NORMAL
         //need du/dt = du/dx dx_curve/dt + du/dx dx_curve/dt (for each component)
         int nNodesMaster = GetMasterGeometry().size();
         Vector old_displacement_master(nNodesMaster*2);
         GetValuesVector(old_displacement_master, QuadraturePointCouplingGeometry2D<Point>::Master);
-        if (norm_2(old_displacement_master) > 1e-12 && GetGeometry().GetValue(ACTIVATION_LEVEL) == 0) {
+
+        Vector new_normal(3);
+        new_normal = old_normal;
+        if ( (norm_2(old_displacement_master) > 1e-12 && GetGeometry().GetValue(ACTIVATION_LEVEL) == 0)) {
 
             const int derivative_order = 1;
             Matrix shapeFunctionDerivatives_master = GetMasterGeometry().ShapeFunctionDerivatives(derivative_order, 0, this->GetIntegrationMethod());
@@ -1077,10 +1193,12 @@ namespace Kratos
 
             // KRATOS_WATCH(normal_displacement)
 
-            Vector new_normal(3);
-            new_normal = old_normal *magnitude  + normal_displacement;
+            
+            // new_normal = old_normal *magnitude  + normal_displacement;
 
-            new_normal = new_normal / norm_2(new_normal);
+            // new_normal = new_normal / norm_2(new_normal);
+
+            new_normal = old_normal;
 
             // KRATOS_WATCH(new_normal)
 
@@ -1099,48 +1217,39 @@ namespace Kratos
         // COMPUTE TRUE NORMAL STRESS
 
         double true_normal_stress = 0.0;
-        for (IndexType j = 0; j < GetMasterGeometry().size(); j++) {
-            
-            for (IndexType idim = 0; idim < 2; idim++) {
-                // rLeftHandSideMatrix(2*i+idim, 2*j+idim) -= H_master(0,i)*H_master(0,j)* penalty_integration;
-                const int id1 = 2*idim;
+        // Vector sigma_n = ZeroVector(2);
+        // for (IndexType j = 0; j < GetMasterGeometry().size(); j++) {
 
-                for (IndexType jdim = 0; jdim < 2; jdim++) {
-                    const int id2 = (id1+2)%3;
-                    const int jglob = 2*j+jdim;
+        //     for (IndexType jdim = 0; jdim < 2; jdim++) {
+        //         const int jglob = 2*j+jdim;
 
-                    
-                    double sigma_n_u_dot_n = 0.0;
-                    double sigma_n_u_dot_tau = 0.0;
+        //         sigma_n[0] += (DB_master(0, jglob)* new_normal[0] + DB_master(2, jglob)* new_normal[1])*displacement_master[jglob];
+        //         sigma_n[1] += (DB_master(2, jglob)* new_normal[0] + DB_master(1, jglob)* new_normal[1])*displacement_master[jglob];
+        //     }
+        // }
+        // true_normal_stress = sigma_n[0]*new_normal[0] + sigma_n[1]*new_normal[1];
 
-                    double sigma_n_w_dot_n = 0.0;
-                    double sigma_n_w_dot_tau = 0.0;
-
-                    const double sigma_n_u_kdim = (DB_master(id1, jglob)* normal[0] + DB_master(id2, jglob)* normal[1]);
-
-                    sigma_n_u_dot_n += sigma_n_u_kdim*normal[jdim];
-                    sigma_n_u_dot_tau += sigma_n_u_kdim*normal[jdim]; // eventually for imposed forces on tangent direction
-
-                    true_normal_stress += sigma_n_u_dot_n* displacement_master[jglob];
-
-                }
-            }
-        }
+        true_normal_stress = (stress_vector_master[0]* new_normal[0] + stress_vector_master[2]* new_normal[1])*new_normal[0] +
+                                      (stress_vector_master[2]* new_normal[0] + stress_vector_master[1]* new_normal[1])*new_normal[1];
 
 
         // if (integrationDomain == 0) true_normal_stress = -true_normal_stress;
         if (-true_normal_stress -(*mpPropMaster)[YOUNG_MODULUS]*flag_normal_gap > toll) {
-            
+        // if (-(*mpPropMaster)[YOUNG_MODULUS]*flag_normal_gap > toll) {
             // if (tangential_gap > toll_tangential_distance) 
             // {
             //     m_contact_is_active = false;
             //     return false;
             // }
 
+            // KRATOS_WATCH(displacement_master)
+
             m_contact_is_active = true;
+
             return true;
  
         } //else if (GetMasterGeometry().Center()[1] < 1.5001 && GetMasterGeometry().Center()[1] > 0.49999) {
+        
 
         //     KRATOS_WATCH("nnnnnnnoooooooooooooooooooooo") 
         //     KRATOS_WATCH(true_normal_stress)

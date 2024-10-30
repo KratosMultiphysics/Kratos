@@ -65,6 +65,9 @@ public:
 
     using PointType = Node;
 
+
+    typedef typename Kratos::shared_ptr<Kratos::NurbsCouplingGeometry2D<PointType, PointerVector<NodeType>>> NurbsCouplingGeometryType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -148,6 +151,11 @@ private:
     Model* mpModel = nullptr;
     Parameters mParameters;
     SizeType mEchoLevel;
+
+    NurbsCouplingGeometryType mpCouplingGeometry = nullptr;
+
+    Properties::Pointer mpPropMaster;
+    Properties::Pointer mpPropSlave;
 
 
     bool GetProjection(CoordinatesArrayType& slavePoint, GeometryType &slave_geometry, GeometryType &master_geometry, double& localProjection);
