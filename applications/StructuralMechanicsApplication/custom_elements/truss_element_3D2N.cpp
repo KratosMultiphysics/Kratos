@@ -90,7 +90,7 @@ void TrussElement3D2N::Initialize(const ProcessInfo& rCurrentProcessInfo)
     KRATOS_TRY
 
     // Initialization should not be done again in a restart!
-    if (!rCurrentProcessInfo[IS_RESTARTED]) {
+    //if (!rCurrentProcessInfo[IS_RESTARTED]) {
         if (GetProperties()[CONSTITUTIVE_LAW] != nullptr) {
             mpConstitutiveLaw = GetProperties()[CONSTITUTIVE_LAW]->Clone();
             const auto& N_values =
@@ -100,7 +100,7 @@ void TrussElement3D2N::Initialize(const ProcessInfo& rCurrentProcessInfo)
         } else {
             KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << Id() << std::endl;
         }
-    }
+    //}
 
     KRATOS_CATCH("")
 }

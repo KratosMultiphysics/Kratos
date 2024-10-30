@@ -29,7 +29,10 @@ void LinearTimoshenkoCurvedBeamElement2D3N::Initialize(const ProcessInfo& rCurre
     KRATOS_TRY
 
     // Initialization should not be done again in a restart!
-    if (!rCurrentProcessInfo[IS_RESTARTED]) {
+    const auto& r_integration_points = this->IntegrationPoints(mThisIntegrationMethod);
+
+    if (!rCurrentProcessInfo[IS_RESTARTED] ||
+        mConstitutiveLawVector.size() != r_integration_points.size()) {
         if (this->UseGeometryIntegrationMethod()) {
             if (GetProperties().Has(INTEGRATION_ORDER) ) {
                 mThisIntegrationMethod = static_cast<GeometryData::IntegrationMethod>(GetProperties()[INTEGRATION_ORDER] - 1);
@@ -38,13 +41,13 @@ void LinearTimoshenkoCurvedBeamElement2D3N::Initialize(const ProcessInfo& rCurre
             }
         }
 
-        const auto& r_integration_points = this->IntegrationPoints(mThisIntegrationMethod);
 
         // Constitutive Law initialisation
         if (mConstitutiveLawVector.size() != r_integration_points.size())
             mConstitutiveLawVector.resize(r_integration_points.size());
         InitializeMaterial();
     }
+
     KRATOS_CATCH("")
 }
 
@@ -765,8 +768,10 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateOnIntegrationPoints(
 int LinearTimoshenkoCurvedBeamElement2D3N::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
-
-    return mConstitutiveLawVector[0]->Check(GetProperties(), GetGeometry(), rCurrentProcessInfo);
+    if (this->IsActive()) {
+        return mConstitutiveLawVector[0]->Check(GetProperties(), GetGeometry(), rCurrentProcessInfo);
+    }
+    return 0;
 
     KRATOS_CATCH( "" );
 }
