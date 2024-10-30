@@ -191,16 +191,31 @@ public:
         const auto& previous_displacement = rModelPart.GetNode(2).FastGetSolutionStepValue(rDisVariable, 1);
         KRATOS_WATCH(current_displacement)
         KRATOS_WATCH(previous_displacement)
+        const Variable<array_1d<double, 3>>& rRotVariable = KratosComponents<Variable<array_1d<double, 3>>>::Get("ROTATION");
+        const auto& current_rotation = rModelPart.GetNode(2).FastGetSolutionStepValue(rRotVariable, 0);
+        const auto& previous_rotation = rModelPart.GetNode(2).FastGetSolutionStepValue(rRotVariable, 1);
+        KRATOS_WATCH(current_rotation)
+        KRATOS_WATCH(previous_rotation)
         const Variable<array_1d<double, 3>>& rVelVariable = KratosComponents<Variable<array_1d<double, 3>>>::Get("VELOCITY");
         const auto& current_velocity = rModelPart.GetNode(2).FastGetSolutionStepValue(rVelVariable, 0);
         const auto& previous_velocity = rModelPart.GetNode(2).FastGetSolutionStepValue(rVelVariable, 1);
         KRATOS_WATCH(current_velocity)
         KRATOS_WATCH(previous_velocity)
+        const Variable<array_1d<double, 3>>& rAngVelVariable = KratosComponents<Variable<array_1d<double, 3>>>::Get("ANGULAR_VELOCITY");
+        const auto& current_ang_velocity = rModelPart.GetNode(2).FastGetSolutionStepValue(rAngVelVariable, 0);
+        const auto& previous_ang_velocity = rModelPart.GetNode(2).FastGetSolutionStepValue(rAngVelVariable, 1);
+        KRATOS_WATCH(current_ang_velocity)
+        KRATOS_WATCH(previous_ang_velocity)
         const Variable<array_1d<double, 3>>& rAccVariable = KratosComponents<Variable<array_1d<double, 3>>>::Get("ACCELERATION");
         const auto& current_acceleration= rModelPart.GetNode(2).FastGetSolutionStepValue(rAccVariable, 0);
         const auto& previous_acceleration= rModelPart.GetNode(2).FastGetSolutionStepValue(rAccVariable, 1);
         KRATOS_WATCH(current_acceleration)
         KRATOS_WATCH(previous_acceleration)
+        const Variable<array_1d<double, 3>>& rAngAccVariable = KratosComponents<Variable<array_1d<double, 3>>>::Get("ANGULAR_ACCELERATION");
+        const auto& current_ang_acceleration= rModelPart.GetNode(2).FastGetSolutionStepValue(rAngAccVariable, 0);
+        const auto& previous_ang_acceleration= rModelPart.GetNode(2).FastGetSolutionStepValue(rAngAccVariable, 1);
+        KRATOS_WATCH(current_ang_acceleration)
+        KRATOS_WATCH(previous_ang_acceleration)
 
         std::cout << std::endl;
         std::cout << "------------------------------" << std::endl;
@@ -858,8 +873,7 @@ private:
             rCurrentEntity, mFirstDerivsLHS[k],
             mFirstDerivsResponseGradient[k], rCurrentProcessInfo);
         noalias(rLHS_Contribution) += mBossak.C6 * mFirstDerivsLHS[k];
-        noalias(rRHS_Contribution) -=
-            mBossak.C6 * mFirstDerivsResponseGradient[k];
+        noalias(rRHS_Contribution) -= mBossak.C6 * mFirstDerivsResponseGradient[k];
     }
 
     /**
@@ -890,8 +904,7 @@ private:
             rCurrentEntity, mSecondDerivsLHS[k],
             mSecondDerivsResponseGradient[k], rCurrentProcessInfo);
         noalias(rLHS_Contribution) += mBossak.C7 * mSecondDerivsLHS[k];
-        noalias(rRHS_Contribution) -=
-            mBossak.C7 * (1.0 - mBossak.Alpha) * mSecondDerivsResponseGradient[k];
+        noalias(rRHS_Contribution) -= mBossak.C7 * mSecondDerivsResponseGradient[k];
     }
 
     /**
@@ -989,14 +1002,10 @@ private:
 
         if (rAdjointTimeSchemeValues2.size() != mFirstDerivsResponseGradient[k].size())
             rAdjointTimeSchemeValues2.resize(mFirstDerivsResponseGradient[k].size(), false);
-        noalias(rAdjointTimeSchemeValues2) =
-            -mFirstDerivsResponseGradient[k] -
-            prod(mFirstDerivsLHS[k], mAdjointValuesVector[k]);
+        noalias(rAdjointTimeSchemeValues2) = -mFirstDerivsResponseGradient[k] - prod(mFirstDerivsLHS[k], mAdjointValuesVector[k]);
         if (rAdjointTimeSchemeValues3.size() != mSecondDerivsResponseGradient[k].size())
             rAdjointTimeSchemeValues3.resize(mSecondDerivsResponseGradient[k].size(), false);
-        noalias(rAdjointTimeSchemeValues3) =
-            - (1.0 - mBossak.Alpha) * mSecondDerivsResponseGradient[k] -
-            prod(mSecondDerivsLHS[k], mAdjointValuesVector[k]);
+        noalias(rAdjointTimeSchemeValues3) = - mSecondDerivsResponseGradient[k] - prod(mSecondDerivsLHS[k], mAdjointValuesVector[k]);
 
         KRATOS_CATCH("");
     }
@@ -1033,9 +1042,7 @@ private:
 
         if (rAdjointAuxiliaryValues.size() != mSecondDerivsLHS[k].size1())
             rAdjointAuxiliaryValues.resize(mSecondDerivsLHS[k].size1(), false);
-        noalias(rAdjointAuxiliaryValues) =
-            prod(mSecondDerivsLHS[k], mAdjointValuesVector[k])
-            + mBossak.Alpha * mSecondDerivsResponseGradient[k];
+        noalias(rAdjointAuxiliaryValues) = prod(mSecondDerivsLHS[k], mAdjointValuesVector[k]);
 
         KRATOS_CATCH("");
     }
