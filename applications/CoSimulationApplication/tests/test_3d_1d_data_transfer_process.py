@@ -83,7 +83,6 @@ class Test3D1DDataTransferProcessBlock(KratosUnittest.TestCase):
         # # Debug
         debug_vtk(self.current_model, ["Block", "Line"])
 
-    @KratosUnittest.skipIf(KM.IsDistributedRun(), "This test is designed for serial runs only.")
     def test_block_from_3d_to_1d(self):
 
         # Data transfer
