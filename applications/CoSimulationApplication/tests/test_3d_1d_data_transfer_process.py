@@ -60,10 +60,6 @@ class Test3D1DDataTransferProcessBlock(KratosUnittest.TestCase):
             node.SetSolutionStepValue(KM.TEMPERATURE, - node.Z)
         del node
 
-    def tearDown(self):
-        pass
-
-    @KratosUnittest.skipIf(KM.IsDistributedRun(), "This test is designed for serial runs only.")
     def test_block_from_1d_to_3d(self):
 
         # Data transfer
