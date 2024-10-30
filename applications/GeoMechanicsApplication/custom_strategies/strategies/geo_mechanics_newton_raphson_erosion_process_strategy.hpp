@@ -298,15 +298,6 @@ private:
     {
         KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", this->GetEchoLevel() > 0 && rank == 0)
             << "Recalculating" << std::endl;
-        // KRATOS_INFO_IF("PipingLoop") << "Recalculating" << std::endl;
-        // ModelPart& CurrentModelPart = this->GetModelPart();
-        // this->Clear();
-
-        // Reset displacements to the initial (Assumes Water Pressure is the convergence criteria)
-        /* block_for_each(CurrentModelPart.Nodes(), [&](Node& rNode) {
-             auto dold = rNode.GetSolutionStepValue(WATER_PRESSURE, 1);
-             rNode.GetSolutionStepValue(WATER_PRESSURE, 0) = dold;
-             });*/
 
         GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::InitializeSolutionStep();
         GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Predict();
@@ -315,7 +306,7 @@ private:
 
     virtual void BaseClassFinalizeSolutionStep()
     {
-        // to over-write in a unit test
+        // to override in a unit test
         GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::FinalizeSolutionStep();
     }
 
