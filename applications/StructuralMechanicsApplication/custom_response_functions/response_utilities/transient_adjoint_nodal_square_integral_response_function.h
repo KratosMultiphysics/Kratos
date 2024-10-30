@@ -196,7 +196,6 @@ private:
     size_t mTracedDofTimeDerivativeOrder;
     array_1d<double,3> mResponseDirection;
     std::string mResponsePartName;
-    double mAlphaBossak;
     std::unordered_map<IndexType, std::vector<IndexType>> mElementNodeMap;
 
     ///@}
