@@ -32,21 +32,21 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsInt, KratosCoreFastSuite)
 
     int test = 1;
 
-    KRATOS_CHECK_EQUAL(type_trait::Size(test), 1U);
-    KRATOS_CHECK_EQUAL(type_trait::Shape(test).size(), type_trait::Dimension);
-    KRATOS_CHECK_EQUAL(type_trait::Shape(test), std::vector<unsigned int>{});
-    KRATOS_CHECK_IS_FALSE(type_trait::Reshape(test, std::vector<unsigned int>{}));
-    KRATOS_CHECK_EQUAL(type_trait::GetContiguousData(test), &test);
+    KRATOS_EXPECT_EQ(type_trait::Size(test), 1U);
+    KRATOS_EXPECT_EQ(type_trait::Shape(test).size(), type_trait::Dimension);
+    KRATOS_EXPECT_EQ(type_trait::Shape(test), std::vector<unsigned int>{});
+    KRATOS_EXPECT_FALSE(type_trait::Reshape(test, std::vector<unsigned int>{}));
+    KRATOS_EXPECT_EQ(type_trait::GetContiguousData(test), &test);
 
     int dummy = -1;
     type_trait::CopyToContiguousData(&dummy, test);
-    KRATOS_CHECK_EQUAL(dummy, test);
+    KRATOS_EXPECT_EQ(dummy, test);
 
     dummy = -2;
     type_trait::CopyFromContiguousData(dummy, &test);
-    KRATOS_CHECK_EQUAL(dummy, test);
+    KRATOS_EXPECT_EQ(dummy, test);
 
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         type_trait::Reshape(test, std::vector<unsigned int>{1}),
         "Invalid shape/dimension given for primitive data type [ Expected shape = [], provided shape = [1] ]."
     );
@@ -66,21 +66,21 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsArray1dDouble, KratosCoreFastSuite)
 
     array_1d<double, 5> test{1, 2, 3, 4, 5};
 
-    KRATOS_CHECK_EQUAL(type_trait::Size(test), 5);
-    KRATOS_CHECK_EQUAL(type_trait::Shape(test).size(), type_trait::Dimension);
-    KRATOS_CHECK_EQUAL(type_trait::Shape(test), std::vector<unsigned int>{5});
-    KRATOS_CHECK_IS_FALSE(type_trait::Reshape(test, std::vector<unsigned int>{5}));
-    KRATOS_CHECK_EQUAL(type_trait::GetContiguousData(test), &test[0]);
+    KRATOS_EXPECT_EQ(type_trait::Size(test), 5);
+    KRATOS_EXPECT_EQ(type_trait::Shape(test).size(), type_trait::Dimension);
+    KRATOS_EXPECT_EQ(type_trait::Shape(test), std::vector<unsigned int>{5});
+    KRATOS_EXPECT_FALSE(type_trait::Reshape(test, std::vector<unsigned int>{5}));
+    KRATOS_EXPECT_EQ(type_trait::GetContiguousData(test), &test[0]);
 
     array_1d<double, 5> dummy;
     type_trait::CopyToContiguousData(dummy.data().data(), test);
-    KRATOS_CHECK_VECTOR_EQUAL(dummy, test);
+    KRATOS_EXPECT_VECTOR_EQ(dummy, test);
 
     dummy = array_1d<double, 5>(5, -2);
     type_trait::CopyFromContiguousData(dummy, test.data().data());
-    KRATOS_CHECK_VECTOR_EQUAL(dummy, test);
+    KRATOS_EXPECT_VECTOR_EQ(dummy, test);
 
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         type_trait::Reshape(test, std::vector<unsigned int>{}),
         "Invalid shape/dimension given for array_1d data type [ Expected shape = [5], provided shape = [] ]."
     );
@@ -100,25 +100,25 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsVectorDouble, KratosCoreFastSuite)
 
     Vector test(7, 1);
 
-    KRATOS_CHECK_EQUAL(type_trait::Size(test), 7);
-    KRATOS_CHECK_EQUAL(type_trait::Shape(test).size(), type_trait::Dimension);
-    KRATOS_CHECK_EQUAL(type_trait::Shape(test), std::vector<unsigned int>{7});
-    KRATOS_CHECK_IS_FALSE(type_trait::Reshape(test, std::vector<unsigned int>{7}));
-    KRATOS_CHECK(type_trait::Reshape(test, std::vector<unsigned int>{9}));
-    KRATOS_CHECK_EQUAL(test.size(), 9);
-    KRATOS_CHECK_EQUAL(type_trait::GetContiguousData(test), &test[0]);
+    KRATOS_EXPECT_EQ(type_trait::Size(test), 7);
+    KRATOS_EXPECT_EQ(type_trait::Shape(test).size(), type_trait::Dimension);
+    KRATOS_EXPECT_EQ(type_trait::Shape(test), std::vector<unsigned int>{7});
+    KRATOS_EXPECT_FALSE(type_trait::Reshape(test, std::vector<unsigned int>{7}));
+    KRATOS_EXPECT_TRUE(type_trait::Reshape(test, std::vector<unsigned int>{9}));
+    KRATOS_EXPECT_EQ(test.size(), 9);
+    KRATOS_EXPECT_EQ(type_trait::GetContiguousData(test), &test[0]);
 
     test = Vector(9, 2);
 
     Vector dummy(9, -1);
     type_trait::CopyToContiguousData(dummy.data().begin(), test);
-    KRATOS_CHECK_VECTOR_EQUAL(dummy, test);
+    KRATOS_EXPECT_VECTOR_EQ(dummy, test);
 
     dummy = Vector(9, -2);
     type_trait::CopyFromContiguousData(dummy, test.data().begin());
-    KRATOS_CHECK_VECTOR_EQUAL(dummy, test);
+    KRATOS_EXPECT_VECTOR_EQ(dummy, test);
 
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         type_trait::Reshape(test, std::vector<unsigned int>{}),
         "Invalid shape/dimension given for DenseVector data type [ Expected = [9], provided = [] ]"
     );
@@ -139,31 +139,31 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsMatrixDouble, KratosCoreFastSuite)
 
     Matrix test(3, 4, 1);
 
-    KRATOS_CHECK_EQUAL(type_trait::Size(test), 12);
+    KRATOS_EXPECT_EQ(type_trait::Size(test), 12);
 
     std::vector<unsigned int> shape{3, 4};
-    KRATOS_CHECK_EQUAL(type_trait::Shape(test).size(), type_trait::Dimension);
-    KRATOS_CHECK_EQUAL(type_trait::Shape(test), shape);
-    KRATOS_CHECK_IS_FALSE(type_trait::Reshape(test, shape));
+    KRATOS_EXPECT_EQ(type_trait::Shape(test).size(), type_trait::Dimension);
+    KRATOS_EXPECT_EQ(type_trait::Shape(test), shape);
+    KRATOS_EXPECT_FALSE(type_trait::Reshape(test, shape));
 
     shape[0] = 4;
     shape[1] = 5;
-    KRATOS_CHECK(type_trait::Reshape(test, shape));
-    KRATOS_CHECK_EQUAL(test.size1(), 4);
-    KRATOS_CHECK_EQUAL(test.size2(), 5);
-    KRATOS_CHECK_EQUAL(type_trait::GetContiguousData(test), &test(0, 0));
+    KRATOS_EXPECT_TRUE(type_trait::Reshape(test, shape));
+    KRATOS_EXPECT_EQ(test.size1(), 4);
+    KRATOS_EXPECT_EQ(test.size2(), 5);
+    KRATOS_EXPECT_EQ(type_trait::GetContiguousData(test), &test(0, 0));
 
     test = Matrix(4, 5, 2);
 
     Matrix dummy(4, 5);
     type_trait::CopyToContiguousData(dummy.data().begin(), test);
-    KRATOS_CHECK_MATRIX_EQUAL(dummy, test);
+    KRATOS_EXPECT_MATRIX_EQ(dummy, test);
 
     dummy = Matrix(4, 5, -2);
     type_trait::CopyFromContiguousData(dummy, test.data().begin());
-    KRATOS_CHECK_MATRIX_EQUAL(dummy, test);
+    KRATOS_EXPECT_MATRIX_EQ(dummy, test);
 
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         type_trait::Reshape(test, std::vector<unsigned int>{}),
         "Invalid shape/dimension given for DenseMatrix data type [ Expected = [4, 5], provided = [] ]."
     );
@@ -183,25 +183,25 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsString, KratosCoreFastSuite)
 
     std::string test = "test";
 
-    KRATOS_CHECK_EQUAL(type_trait::Size(test), 4);
-    KRATOS_CHECK_EQUAL(type_trait::Shape(test).size(), type_trait::Dimension);
-    KRATOS_CHECK_EQUAL(type_trait::Shape(test), std::vector<unsigned int>{4});
-    KRATOS_CHECK_IS_FALSE(type_trait::Reshape(test, std::vector<unsigned int>{4}));
-    KRATOS_CHECK(type_trait::Reshape(test, std::vector<unsigned int>{6}));
-    KRATOS_CHECK_EQUAL(test.size(), 6);
-    KRATOS_CHECK_EQUAL(type_trait::GetContiguousData(test), &test[0]);
+    KRATOS_EXPECT_EQ(type_trait::Size(test), 4);
+    KRATOS_EXPECT_EQ(type_trait::Shape(test).size(), type_trait::Dimension);
+    KRATOS_EXPECT_EQ(type_trait::Shape(test), std::vector<unsigned int>{4});
+    KRATOS_EXPECT_FALSE(type_trait::Reshape(test, std::vector<unsigned int>{4}));
+    KRATOS_EXPECT_TRUE(type_trait::Reshape(test, std::vector<unsigned int>{6}));
+    KRATOS_EXPECT_EQ(test.size(), 6);
+    KRATOS_EXPECT_EQ(type_trait::GetContiguousData(test), &test[0]);
 
     test = "test01";
 
     std::string dummy = "000000";
     type_trait::CopyToContiguousData(dummy.data(), test);
-    KRATOS_CHECK_VECTOR_EQUAL(dummy, test);
+    KRATOS_EXPECT_VECTOR_EQ(dummy, test);
 
     dummy = "000000";
     type_trait::CopyFromContiguousData(dummy, test.data());
-    KRATOS_CHECK_VECTOR_EQUAL(dummy, test);
+    KRATOS_EXPECT_VECTOR_EQ(dummy, test);
 
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         type_trait::Reshape(test, std::vector<unsigned int>{}),
         "Invalid shape/dimension given for std::string data type [ Expected = [6], provided = [] ]."
     );
@@ -221,25 +221,25 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsStdVectorInt, KratosCoreFastSuite)
 
     std::vector<int> test(7, 1);
 
-    KRATOS_CHECK_EQUAL(type_trait::Size(test), 7);
-    KRATOS_CHECK_EQUAL(type_trait::Shape(test).size(), type_trait::Dimension);
-    KRATOS_CHECK_EQUAL(type_trait::Shape(test), std::vector<unsigned int>{7});
-    KRATOS_CHECK_IS_FALSE(type_trait::Reshape(test, std::vector<unsigned int>{7}));
-    KRATOS_CHECK(type_trait::Reshape(test, std::vector<unsigned int>{9}));
-    KRATOS_CHECK_EQUAL(test.size(), 9);
-    KRATOS_CHECK_EQUAL(type_trait::GetContiguousData(test), &test[0]);
+    KRATOS_EXPECT_EQ(type_trait::Size(test), 7);
+    KRATOS_EXPECT_EQ(type_trait::Shape(test).size(), type_trait::Dimension);
+    KRATOS_EXPECT_EQ(type_trait::Shape(test), std::vector<unsigned int>{7});
+    KRATOS_EXPECT_FALSE(type_trait::Reshape(test, std::vector<unsigned int>{7}));
+    KRATOS_EXPECT_TRUE(type_trait::Reshape(test, std::vector<unsigned int>{9}));
+    KRATOS_EXPECT_EQ(test.size(), 9);
+    KRATOS_EXPECT_EQ(type_trait::GetContiguousData(test), &test[0]);
 
     test = std::vector<int>(9, 2);
 
     std::vector<int> dummy(9);
     type_trait::CopyToContiguousData(dummy.data(), test);
-    KRATOS_CHECK_VECTOR_EQUAL(dummy, test);
+    KRATOS_EXPECT_VECTOR_EQ(dummy, test);
 
     dummy = std::vector<int>(9, -2);
     type_trait::CopyFromContiguousData(dummy, test.data());
-    KRATOS_CHECK_VECTOR_EQUAL(dummy, test);
+    KRATOS_EXPECT_VECTOR_EQ(dummy, test);
 
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         type_trait::Reshape(test, std::vector<unsigned int>{}),
         "Invalid shape/dimension given for std::vector data type [ Expected = [9], provided = [] ]."
     );
@@ -270,19 +270,19 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsArray1dNested, KratosCoreFastSuite)
         }
     }
 
-    KRATOS_CHECK_EQUAL(type_trait::Size(test), 150);
+    KRATOS_EXPECT_EQ(type_trait::Size(test), 150);
 
     std::vector<unsigned int> shape{5, 3, 10};
-    KRATOS_CHECK_EQUAL(type_trait::Shape(test).size(), type_trait::Dimension);
-    KRATOS_CHECK_EQUAL(type_trait::Shape(test), shape);
-    KRATOS_CHECK_IS_FALSE(type_trait::Reshape(test, shape));
+    KRATOS_EXPECT_EQ(type_trait::Shape(test).size(), type_trait::Dimension);
+    KRATOS_EXPECT_EQ(type_trait::Shape(test), shape);
+    KRATOS_EXPECT_FALSE(type_trait::Reshape(test, shape));
 
     std::vector<int> values(150, -1);
     type_trait::CopyToContiguousData(values.data(), test);
-    KRATOS_CHECK_EQUAL(values, ref_values);
+    KRATOS_EXPECT_EQ(values, ref_values);
 
     type_trait::CopyFromContiguousData(result, values.data());
-    KRATOS_CHECK_EQUAL(test, result);
+    KRATOS_EXPECT_EQ(test, result);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsVectorNested, KratosCoreFastSuite)
@@ -314,34 +314,34 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsVectorNested, KratosCoreFastSuite)
         }
     }
 
-    KRATOS_CHECK_EQUAL(type_trait::Size(test), 24);
+    KRATOS_EXPECT_EQ(type_trait::Size(test), 24);
 
     std::vector<unsigned int> shape{2, 3, 4};
-    KRATOS_CHECK_EQUAL(type_trait::Shape(test).size(), type_trait::Dimension);
-    KRATOS_CHECK_EQUAL(type_trait::Shape(test), shape);
-    KRATOS_CHECK_IS_FALSE(type_trait::Reshape(test, shape));
+    KRATOS_EXPECT_EQ(type_trait::Shape(test).size(), type_trait::Dimension);
+    KRATOS_EXPECT_EQ(type_trait::Shape(test), shape);
+    KRATOS_EXPECT_FALSE(type_trait::Reshape(test, shape));
 
     auto temp = test;
     shape[0] = 5;
     shape[1] = 6;
     shape[2] = 7;
-    KRATOS_CHECK(type_trait::Reshape(temp, shape));
-    KRATOS_CHECK_EQUAL(temp.size(), 5);
+    KRATOS_EXPECT_TRUE(type_trait::Reshape(temp, shape));
+    KRATOS_EXPECT_EQ(temp.size(), 5);
     for (unsigned int i = 0; i < 5; ++i) {
-        KRATOS_CHECK_EQUAL(temp[i].size(), 6);
+        KRATOS_EXPECT_EQ(temp[i].size(), 6);
         for (unsigned int j = 0; j < 6; ++j) {
-            KRATOS_CHECK_EQUAL(temp[i][j].size(), 7);
+            KRATOS_EXPECT_EQ(temp[i][j].size(), 7);
         }
     }
 
     std::vector<double> values(24, -1);
     type_trait::CopyToContiguousData(values.data(), test);
-    KRATOS_CHECK_EQUAL(values, ref_values);
+    KRATOS_EXPECT_EQ(values, ref_values);
 
     type_trait::CopyFromContiguousData(result, values.data());
     for (unsigned int i = 0; i < 2; ++i) {
         for (unsigned int j = 0; j < 3; ++j) {
-            KRATOS_CHECK_VECTOR_EQUAL(result[i][j], test[i][j]);
+            KRATOS_EXPECT_VECTOR_EQ(result[i][j], test[i][j]);
         }
     }
 }
@@ -378,12 +378,12 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsMatrixNested, KratosCoreFastSuite)
         }
     }
 
-    KRATOS_CHECK_EQUAL(type_trait::Size(test), 2*3*4*5*6*7);
+    KRATOS_EXPECT_EQ(type_trait::Size(test), 2*3*4*5*6*7);
 
     std::vector<unsigned int> shape{2, 3, 4, 5, 6, 7};
-    KRATOS_CHECK_EQUAL(type_trait::Shape(test).size(), type_trait::Dimension);
-    KRATOS_CHECK_EQUAL(type_trait::Shape(test), shape);
-    KRATOS_CHECK_IS_FALSE(type_trait::Reshape(test, shape));
+    KRATOS_EXPECT_EQ(type_trait::Shape(test).size(), type_trait::Dimension);
+    KRATOS_EXPECT_EQ(type_trait::Shape(test), shape);
+    KRATOS_EXPECT_FALSE(type_trait::Reshape(test, shape));
 
     auto temp = test;
     shape[0] = 3;
@@ -392,26 +392,26 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsMatrixNested, KratosCoreFastSuite)
     shape[3] = 6;
     shape[4] = 7;
     shape[5] = 8;
-    KRATOS_CHECK(type_trait::Reshape(temp, shape));
-    KRATOS_CHECK_EQUAL(temp.size1(), 3);
-    KRATOS_CHECK_EQUAL(temp.size2(), 4);
+    KRATOS_EXPECT_TRUE(type_trait::Reshape(temp, shape));
+    KRATOS_EXPECT_EQ(temp.size1(), 3);
+    KRATOS_EXPECT_EQ(temp.size2(), 4);
     for (unsigned int i = 0; i < 12; ++i) {
-        KRATOS_CHECK_EQUAL(temp.data()[i].size1(), 5);
-        KRATOS_CHECK_EQUAL(temp.data()[i].size2(), 6);
+        KRATOS_EXPECT_EQ(temp.data()[i].size1(), 5);
+        KRATOS_EXPECT_EQ(temp.data()[i].size2(), 6);
         for (unsigned int j = 0; j < 30; ++j) {
-            KRATOS_CHECK_EQUAL(temp.data()[i].data()[j].size1(), 7);
-            KRATOS_CHECK_EQUAL(temp.data()[i].data()[j].size2(), 8);
+            KRATOS_EXPECT_EQ(temp.data()[i].data()[j].size1(), 7);
+            KRATOS_EXPECT_EQ(temp.data()[i].data()[j].size2(), 8);
         }
     }
 
     std::vector<double> values(5040, -1);
     type_trait::CopyToContiguousData(values.data(), test);
-    KRATOS_CHECK_EQUAL(values, ref_values);
+    KRATOS_EXPECT_EQ(values, ref_values);
 
     type_trait::CopyFromContiguousData(result, values.data());
     for (unsigned int i = 0; i < 6; ++i) {
         for (unsigned int j = 0; j < 20; ++j) {
-            KRATOS_CHECK_MATRIX_EQUAL(result.data()[i].data()[j], test.data()[i].data()[j]);
+            KRATOS_EXPECT_MATRIX_EQ(result.data()[i].data()[j], test.data()[i].data()[j]);
         }
     }
 }
@@ -440,29 +440,29 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsStdVectorNested, KratosCoreFastSuite)
         }
     }
 
-    KRATOS_CHECK_EQUAL(type_trait::Size(test), 6);
+    KRATOS_EXPECT_EQ(type_trait::Size(test), 6);
 
     std::vector<unsigned int> shape{2, 3};
-    KRATOS_CHECK_EQUAL(type_trait::Shape(test).size(), type_trait::Dimension);
-    KRATOS_CHECK_EQUAL(type_trait::Shape(test), shape);
-    KRATOS_CHECK_IS_FALSE(type_trait::Reshape(test, shape));
+    KRATOS_EXPECT_EQ(type_trait::Shape(test).size(), type_trait::Dimension);
+    KRATOS_EXPECT_EQ(type_trait::Shape(test), shape);
+    KRATOS_EXPECT_FALSE(type_trait::Reshape(test, shape));
 
     auto temp = test;
     shape[0] = 3;
     shape[1] = 4;
-    KRATOS_CHECK(type_trait::Reshape(temp, shape));
-    KRATOS_CHECK_EQUAL(temp.size(), 3);
+    KRATOS_EXPECT_TRUE(type_trait::Reshape(temp, shape));
+    KRATOS_EXPECT_EQ(temp.size(), 3);
     for (unsigned int i = 0; i < 3; ++i) {
-        KRATOS_CHECK_EQUAL(temp[i].size(), 4);
+        KRATOS_EXPECT_EQ(temp[i].size(), 4);
     }
 
     std::vector<int> values(6, -1);
     type_trait::CopyToContiguousData(values.data(), test);
-    KRATOS_CHECK_VECTOR_EQUAL(values, ref_values);
+    KRATOS_EXPECT_VECTOR_EQ(values, ref_values);
 
     type_trait::CopyFromContiguousData(result, values.data());
     for (unsigned int i = 0; i < 2; ++i) {
-        KRATOS_CHECK_VECTOR_EQUAL(result[i], test[i]);
+        KRATOS_EXPECT_VECTOR_EQ(result[i], test[i]);
     }
 }
 
@@ -501,12 +501,12 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsMixedNested1, KratosCoreFastSuite)
         }
     }
 
-    KRATOS_CHECK_EQUAL(type_trait::Size(test), 2160);
+    KRATOS_EXPECT_EQ(type_trait::Size(test), 2160);
 
     std::vector<unsigned int> shape{3, 4, 5, 6, 6, 1};
-    KRATOS_CHECK_EQUAL(type_trait::Shape(test).size(), type_trait::Dimension);
-    KRATOS_CHECK_EQUAL(type_trait::Shape(test), shape);
-    KRATOS_CHECK_IS_FALSE(type_trait::Reshape(test, shape));
+    KRATOS_EXPECT_EQ(type_trait::Shape(test).size(), type_trait::Dimension);
+    KRATOS_EXPECT_EQ(type_trait::Shape(test), shape);
+    KRATOS_EXPECT_FALSE(type_trait::Reshape(test, shape));
 
     auto temp = test;
     shape[0] = 4;
@@ -515,17 +515,17 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsMixedNested1, KratosCoreFastSuite)
     shape[3] = 7;
     shape[4] = 6;
     shape[5] = 9;
-    KRATOS_CHECK(type_trait::Reshape(temp, shape));
-    KRATOS_CHECK_EQUAL(temp.size(), 4);
+    KRATOS_EXPECT_TRUE(type_trait::Reshape(temp, shape));
+    KRATOS_EXPECT_EQ(temp.size(), 4);
     for (unsigned int i = 0; i < 4; ++i) {
-        KRATOS_CHECK_EQUAL(temp[i].size(), 5);
+        KRATOS_EXPECT_EQ(temp[i].size(), 5);
         for (unsigned int j = 0; j < 5; ++j) {
-            KRATOS_CHECK_EQUAL(temp[i][j].size1(), 6);
-            KRATOS_CHECK_EQUAL(temp[i][j].size2(), 7);
+            KRATOS_EXPECT_EQ(temp[i][j].size1(), 6);
+            KRATOS_EXPECT_EQ(temp[i][j].size2(), 7);
             for (unsigned int k = 0; k < 42; ++k) {
-                KRATOS_CHECK_EQUAL(temp[i][j].data()[k].size(), 6);
+                KRATOS_EXPECT_EQ(temp[i][j].data()[k].size(), 6);
                 for (unsigned int l = 0; l < 6; ++l) {
-                    KRATOS_CHECK_EQUAL(temp[i][j].data()[k][l].size(), 9);
+                    KRATOS_EXPECT_EQ(temp[i][j].data()[k][l].size(), 9);
                 }
             }
         }
@@ -533,14 +533,14 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsMixedNested1, KratosCoreFastSuite)
 
     std::vector<char> values(2160, 0);
     type_trait::CopyToContiguousData(values.data(), test);
-    KRATOS_CHECK_EQUAL(values, ref_values);
+    KRATOS_EXPECT_EQ(values, ref_values);
 
     type_trait::CopyFromContiguousData(result, values.data());
     for (unsigned int i = 0; i < 3; ++i) {
         for (unsigned int j = 0; j < 4; ++j) {
             for (unsigned int k = 0; k < 30; ++k) {
                 for (unsigned int l = 0; l < 6; ++l) {
-                    KRATOS_CHECK_EQUAL(result[i][j].data()[k][l], test[i][j].data()[k][l]);
+                    KRATOS_EXPECT_EQ(result[i][j].data()[k][l], test[i][j].data()[k][l]);
                 }
             }
         }
@@ -584,12 +584,12 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsMixedNested2, KratosCoreFastSuite)
         }
     }
 
-    KRATOS_CHECK_EQUAL(type_trait::Size(test), 2160);
+    KRATOS_EXPECT_EQ(type_trait::Size(test), 2160);
 
     std::vector<unsigned int> shape{3, 4, 5, 6, 6};
-    KRATOS_CHECK_EQUAL(type_trait::Shape(test).size(), type_trait::Dimension);
-    KRATOS_CHECK_EQUAL(type_trait::Shape(test), shape);
-    KRATOS_CHECK_IS_FALSE(type_trait::Reshape(test, shape));
+    KRATOS_EXPECT_EQ(type_trait::Shape(test).size(), type_trait::Dimension);
+    KRATOS_EXPECT_EQ(type_trait::Shape(test), shape);
+    KRATOS_EXPECT_FALSE(type_trait::Reshape(test, shape));
 
     auto temp = test;
     shape[0] = 4;
@@ -597,29 +597,29 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsMixedNested2, KratosCoreFastSuite)
     shape[2] = 6;
     shape[3] = 7;
     shape[4] = 6;
-    KRATOS_CHECK(type_trait::Reshape(temp, shape));
-    KRATOS_CHECK_EQUAL(temp.size(), 4);
+    KRATOS_EXPECT_TRUE(type_trait::Reshape(temp, shape));
+    KRATOS_EXPECT_EQ(temp.size(), 4);
     for (unsigned int i = 0; i < 4; ++i) {
-        KRATOS_CHECK_EQUAL(temp[i].size(), 5);
+        KRATOS_EXPECT_EQ(temp[i].size(), 5);
         for (unsigned int j = 0; j < 5; ++j) {
-            KRATOS_CHECK_EQUAL(temp[i][j].size1(), 6);
-            KRATOS_CHECK_EQUAL(temp[i][j].size2(), 7);
+            KRATOS_EXPECT_EQ(temp[i][j].size1(), 6);
+            KRATOS_EXPECT_EQ(temp[i][j].size2(), 7);
             for (unsigned int k = 0; k < 42; ++k) {
-                KRATOS_CHECK_EQUAL(temp[i][j].data()[k].size(), 6);
+                KRATOS_EXPECT_EQ(temp[i][j].data()[k].size(), 6);
             }
         }
     }
 
     std::vector<double> values(2160, 0);
     type_trait::CopyToContiguousData(values.data(), test);
-    KRATOS_CHECK_EQUAL(values, ref_values);
+    KRATOS_EXPECT_EQ(values, ref_values);
 
     type_trait::CopyFromContiguousData(result, values.data());
     for (unsigned int i = 0; i < 3; ++i) {
         for (unsigned int j = 0; j < 4; ++j) {
             for (unsigned int k = 0; k < 30; ++k) {
                 for (unsigned int l = 0; l < 6; ++l) {
-                    KRATOS_CHECK_EQUAL(result[i][j].data()[k][l], test[i][j].data()[k][l]);
+                    KRATOS_EXPECT_EQ(result[i][j].data()[k][l], test[i][j].data()[k][l]);
                 }
             }
         }
@@ -654,13 +654,13 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsNestedArray1d, KratosCoreFastSuite)
         }
     }
 
-    KRATOS_CHECK_EQUAL(static_type_trait::Size(static_test), 120);
+    KRATOS_EXPECT_EQ(static_type_trait::Size(static_test), 120);
     const auto const_static_test = static_test;
     int* p_static_start = static_type_trait::GetContiguousData(static_test);
     int const* p_const_static_start =  static_type_trait::GetContiguousData(const_static_test);
     for (unsigned int i = 0; i < 120; ++i) {
-        KRATOS_CHECK_EQUAL(ref_values[i], *(p_static_start++));
-        KRATOS_CHECK_EQUAL(ref_values[i], *(p_const_static_start++));
+        KRATOS_EXPECT_EQ(ref_values[i], *(p_static_start++));
+        KRATOS_EXPECT_EQ(ref_values[i], *(p_const_static_start++));
     }
 
     // now check for non static data type combinations
@@ -708,13 +708,13 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsNestedDenseVector, KratosCoreFastSuite)
         }
     }
 
-    KRATOS_CHECK_EQUAL(type_trait::Size(static_test), 120);
+    KRATOS_EXPECT_EQ(type_trait::Size(static_test), 120);
     const auto const_static_test = static_test;
     int* p_static_start = type_trait::GetContiguousData(static_test);
     int const* p_const_static_start =  type_trait::GetContiguousData(const_static_test);
     for (unsigned int i = 0; i < 120; ++i) {
-        KRATOS_CHECK_EQUAL(ref_values[i], *(p_static_start++));
-        KRATOS_CHECK_EQUAL(ref_values[i], *(p_const_static_start++));
+        KRATOS_EXPECT_EQ(ref_values[i], *(p_static_start++));
+        KRATOS_EXPECT_EQ(ref_values[i], *(p_const_static_start++));
     }
 
     // now check for non static data type combinations
@@ -763,13 +763,13 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsNestedDenseMatrix, KratosCoreFastSuite)
         }
     }
 
-    KRATOS_CHECK_EQUAL(type_trait::Size(static_test), 120);
+    KRATOS_EXPECT_EQ(type_trait::Size(static_test), 120);
     const auto const_static_test = static_test;
     int* p_static_start = type_trait::GetContiguousData(static_test);
     int const* p_const_static_start =  type_trait::GetContiguousData(const_static_test);
     for (unsigned int i = 0; i < 120; ++i) {
-        KRATOS_CHECK_EQUAL(ref_values[i], *(p_static_start++));
-        KRATOS_CHECK_EQUAL(ref_values[i], *(p_const_static_start++));
+        KRATOS_EXPECT_EQ(ref_values[i], *(p_static_start++));
+        KRATOS_EXPECT_EQ(ref_values[i], *(p_const_static_start++));
     }
 
     // now check for non static data type combinations
@@ -806,9 +806,9 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsNestedZeroSize, KratosCoreFastSuite)
     static_assert(!data_type_1_trait::IsDimensionDynamic<4>());
     static_assert(data_type_1_trait::IsDimensionDynamic<5>());
     data_type_1 test_data_type_1;
-    KRATOS_CHECK_EQUAL(data_type_1_trait::Size(test_data_type_1), 0);
+    KRATOS_EXPECT_EQ(data_type_1_trait::Size(test_data_type_1), 0);
     std::vector<unsigned int> data_type_1_shape{0, 0, 0, 0, 0, 0};
-    KRATOS_CHECK_EQUAL(data_type_1_trait::Shape(test_data_type_1), data_type_1_shape);
+    KRATOS_EXPECT_EQ(data_type_1_trait::Shape(test_data_type_1), data_type_1_shape);
 
     using data_type_2 = std::vector<DenseVector<DenseMatrix<array_1d<std::string, 3>>>>;
     using data_type_2_trait = DataTypeTraits<data_type_2>;
@@ -822,9 +822,9 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsNestedZeroSize, KratosCoreFastSuite)
     static_assert(!data_type_2_trait::IsDimensionDynamic<4>());
     static_assert(data_type_2_trait::IsDimensionDynamic<5>());
     data_type_2 test_data_type_2;
-    KRATOS_CHECK_EQUAL(data_type_2_trait::Size(test_data_type_2), 0);
+    KRATOS_EXPECT_EQ(data_type_2_trait::Size(test_data_type_2), 0);
     std::vector<unsigned int> data_type_2_shape{0, 0, 0, 0, 3, 0};
-    KRATOS_CHECK_EQUAL(data_type_2_trait::Shape(test_data_type_2), data_type_2_shape);
+    KRATOS_EXPECT_EQ(data_type_2_trait::Shape(test_data_type_2), data_type_2_shape);
 
     using data_type_3 = std::vector<array_1d<array_1d<array_1d<array_1d<double, 4>, 0>, 4>, 0>>;
     using data_type_3_trait = DataTypeTraits<data_type_3>;
@@ -837,9 +837,9 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsNestedZeroSize, KratosCoreFastSuite)
     static_assert(!data_type_3_trait::IsDimensionDynamic<3>());
     static_assert(!data_type_3_trait::IsDimensionDynamic<4>());
     data_type_3 test_data_type_3;
-    KRATOS_CHECK_EQUAL(data_type_3_trait::Size(test_data_type_3), 0);
+    KRATOS_EXPECT_EQ(data_type_3_trait::Size(test_data_type_3), 0);
     std::vector<unsigned int> data_type_3_shape{0, 0, 4, 0, 4};
-    KRATOS_CHECK_EQUAL(data_type_3_trait::Shape(test_data_type_3), data_type_3_shape);
+    KRATOS_EXPECT_EQ(data_type_3_trait::Shape(test_data_type_3), data_type_3_shape);
 
     using data_type_4 = DenseVector<array_1d<array_1d<array_1d<array_1d<double, 4>, 0>, 4>, 0>>;
     using data_type_4_trait = DataTypeTraits<data_type_4>;
@@ -852,10 +852,10 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsNestedZeroSize, KratosCoreFastSuite)
     static_assert(!data_type_4_trait::IsDimensionDynamic<3>());
     static_assert(!data_type_4_trait::IsDimensionDynamic<4>());
     data_type_4 test_data_type_4;
-    KRATOS_CHECK_EQUAL(data_type_4_trait::Size(test_data_type_4), 0);
+    KRATOS_EXPECT_EQ(data_type_4_trait::Size(test_data_type_4), 0);
     std::vector<unsigned int> data_type_4_shape{0, 0, 4, 0, 4};
-    KRATOS_CHECK_EQUAL(data_type_4_trait::Shape(test_data_type_4), data_type_4_shape);
-    KRATOS_CHECK_EQUAL(data_type_4_trait::GetContiguousData(test_data_type_4), 0);
+    KRATOS_EXPECT_EQ(data_type_4_trait::Shape(test_data_type_4), data_type_4_shape);
+    KRATOS_EXPECT_TRUE(data_type_4_trait::GetContiguousData(test_data_type_4) == nullptr);
 
     using data_type_5 = DenseMatrix<array_1d<array_1d<array_1d<array_1d<double, 4>, 0>, 4>, 0>>;
     using data_type_5_trait = DataTypeTraits<data_type_5>;
@@ -869,10 +869,10 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsNestedZeroSize, KratosCoreFastSuite)
     static_assert(!data_type_5_trait::IsDimensionDynamic<4>());
     static_assert(!data_type_5_trait::IsDimensionDynamic<5>());
     data_type_5 test_data_type_5;
-    KRATOS_CHECK_EQUAL(data_type_5_trait::Size(test_data_type_5), 0);
+    KRATOS_EXPECT_EQ(data_type_5_trait::Size(test_data_type_5), 0);
     std::vector<unsigned int> data_type_5_shape{0, 0, 0, 4, 0, 4};
-    KRATOS_CHECK_EQUAL(data_type_5_trait::Shape(test_data_type_5), data_type_5_shape);
-    KRATOS_CHECK_EQUAL(data_type_5_trait::GetContiguousData(test_data_type_5), 0);
+    KRATOS_EXPECT_EQ(data_type_5_trait::Shape(test_data_type_5), data_type_5_shape);
+    KRATOS_EXPECT_TRUE(data_type_5_trait::GetContiguousData(test_data_type_5) == nullptr);
 
     using data_type_6 = array_1d<array_1d<array_1d<array_1d<array_1d<double, 4>, 0>, 4>, 0>, 2>;
     using data_type_6_trait = DataTypeTraits<data_type_6>;
@@ -885,9 +885,9 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsNestedZeroSize, KratosCoreFastSuite)
     static_assert(!data_type_6_trait::IsDimensionDynamic<3>());
     static_assert(!data_type_6_trait::IsDimensionDynamic<4>());
     data_type_6 test_data_type_6;
-    KRATOS_CHECK_EQUAL(data_type_6_trait::Size(test_data_type_6), 0);
+    KRATOS_EXPECT_EQ(data_type_6_trait::Size(test_data_type_6), 0);
     std::vector<unsigned int> data_type_6_shape{2, 0, 4, 0, 4};
-    KRATOS_CHECK_EQUAL(data_type_6_trait::Shape(test_data_type_6), data_type_6_shape);
+    KRATOS_EXPECT_EQ(data_type_6_trait::Shape(test_data_type_6), data_type_6_shape);
 
     using data_type_7 = array_1d<array_1d<DenseVector<array_1d<array_1d<double, 4>, 0>>, 0>, 2>;
     using data_type_7_trait = DataTypeTraits<data_type_7>;
@@ -900,9 +900,9 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsNestedZeroSize, KratosCoreFastSuite)
     static_assert(!data_type_7_trait::IsDimensionDynamic<3>());
     static_assert(!data_type_7_trait::IsDimensionDynamic<4>());
     data_type_7 test_data_type_7;
-    KRATOS_CHECK_EQUAL(data_type_7_trait::Size(test_data_type_7), 0);
+    KRATOS_EXPECT_EQ(data_type_7_trait::Size(test_data_type_7), 0);
     std::vector<unsigned int> data_type_7_shape{2, 0, 0, 0, 4};
-    KRATOS_CHECK_EQUAL(data_type_7_trait::Shape(test_data_type_7), data_type_7_shape);
+    KRATOS_EXPECT_EQ(data_type_7_trait::Shape(test_data_type_7), data_type_7_shape);
 
     using data_type_8 = array_1d<array_1d<DenseMatrix<array_1d<array_1d<double, 4>, 0>>, 0>, 2>;
     using data_type_8_trait = DataTypeTraits<data_type_8>;
@@ -916,9 +916,9 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsNestedZeroSize, KratosCoreFastSuite)
     static_assert(!data_type_8_trait::IsDimensionDynamic<4>());
     static_assert(!data_type_8_trait::IsDimensionDynamic<5>());
     data_type_8 test_data_type_8;
-    KRATOS_CHECK_EQUAL(data_type_8_trait::Size(test_data_type_8), 0);
+    KRATOS_EXPECT_EQ(data_type_8_trait::Size(test_data_type_8), 0);
     std::vector<unsigned int> data_type_8_shape{2, 0, 0, 0, 0, 4};
-    KRATOS_CHECK_EQUAL(data_type_8_trait::Shape(test_data_type_8), data_type_8_shape);
+    KRATOS_EXPECT_EQ(data_type_8_trait::Shape(test_data_type_8), data_type_8_shape);
 
     using data_type_9 = array_1d<array_1d<std::vector<array_1d<array_1d<double, 4>, 0>>, 0>, 2>;
     using data_type_9_trait = DataTypeTraits<data_type_9>;
@@ -931,9 +931,9 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsNestedZeroSize, KratosCoreFastSuite)
     static_assert(!data_type_9_trait::IsDimensionDynamic<3>());
     static_assert(!data_type_9_trait::IsDimensionDynamic<4>());
     data_type_9 test_data_type_9;
-    KRATOS_CHECK_EQUAL(data_type_9_trait::Size(test_data_type_9), 0);
+    KRATOS_EXPECT_EQ(data_type_9_trait::Size(test_data_type_9), 0);
     std::vector<unsigned int> data_type_9_shape{2, 0, 0, 0, 4};
-    KRATOS_CHECK_EQUAL(data_type_9_trait::Shape(test_data_type_9), data_type_9_shape);
+    KRATOS_EXPECT_EQ(data_type_9_trait::Shape(test_data_type_9), data_type_9_shape);
 }
 
 } // namespace Kratos::Testing

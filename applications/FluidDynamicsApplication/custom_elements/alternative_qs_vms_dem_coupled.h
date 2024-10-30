@@ -100,6 +100,8 @@ public:
     /// Type for an array of shape function gradient matrices
     typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
 
+    typedef GeometryType::ShapeFunctionsSecondDerivativesType ShapeFunctionsSecondDerivativesType;
+
     constexpr static unsigned int Dim = QSVMS<TElementData>::Dim;
     constexpr static unsigned int NumNodes = QSVMS<TElementData>::NumNodes;
     constexpr static unsigned int BlockSize = QSVMS<TElementData>::BlockSize;
@@ -179,6 +181,11 @@ public:
         GeometryType::Pointer pGeom,
         Properties::Pointer pProperties) const override;
 
+
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+
+    GeometryData::IntegrationMethod GetIntegrationMethod() const override;
+
     ///@}
     ///@name Access
     ///@{
@@ -218,7 +225,11 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-
+    int mInterpolationOrder = 1;
+    DenseVector <BoundedMatrix<double,Dim,Dim>> mViscousResistanceTensor;
+    // Velocity subscale history, stored at integration points
+    DenseVector< array_1d<double,Dim> > mPredictedSubscaleVelocity;
+    DenseVector< array_1d<double,Dim> > mPreviousVelocity;
     ///@}
     ///@name Protected Operators
     ///@{
@@ -229,6 +240,8 @@ protected:
     ///@{
 
     // Protected interface of FluidElement ////////////////////////////////////
+
+    /// Determine the shape second derivative in the gauss point
 
     void AlgebraicMomentumResidual(
         const TElementData& rData,
@@ -244,6 +257,11 @@ protected:
         TElementData& rData,
         MatrixType &rMassMatrix);
 
+    void AddReactionStabilization(
+        TElementData& rData,
+        BoundedMatrix<double,NumNodes*(Dim+1),NumNodes*(Dim+1)>& rLHS,
+        VectorType& rLocalRHS);
+
     void AddViscousTerm(
         const TElementData& rData,
         BoundedMatrix<double,LocalSize,LocalSize>& rLHS,
@@ -256,14 +274,35 @@ protected:
         BoundedMatrix<double,Dim,Dim> &TauOne,
         double &TauTwo) const;
 
+    void CalculateProjections(
+        const ProcessInfo &rCurrentProcessInfo) override;
+
+    void UpdateIntegrationPointDataSecondDerivatives(
+        TElementData& rData,
+        unsigned int IntegrationPointIndex,
+        double Weight,
+        const typename TElementData::MatrixRowType& rN,
+        const typename TElementData::ShapeDerivativesType& rDN_DX,
+        const typename TElementData::ShapeFunctionsSecondDerivativesType& rDDN_DDX) const;
+
     void AddVelocitySystem(
         TElementData& rData,
         MatrixType &rLocalLHS,
         VectorType &rLocalRHS) override;
 
+    void CalculateMassMatrix(MatrixType& rMassMatrix,
+                            const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateLocalVelocityContribution(MatrixType& rDampMatrix,
+                                            VectorType& rRightHandSideVector,
+                                            const ProcessInfo& rCurrentProcessInfo) override;
+
     void AddMassLHS(
         TElementData& rData,
         MatrixType& rMassMatrix) override;
+
+    void CalculateResistanceTensor(
+        const TElementData& rData);
 
     void MassProjTerm(
         const TElementData& rData,
@@ -280,6 +319,29 @@ protected:
     void Calculate(
         const Variable<array_1d<double, 3>>& rVariable,
         array_1d<double, 3>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 3>>& rVariable,
+        std::vector<array_1d<double, 3>>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(
+        Variable<Matrix> const& rVariable,
+        std::vector<Matrix>& rValues,
+        ProcessInfo const& rCurrentProcessInfo) override;
+
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+
+    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+
+    void UpdateSubscaleVelocity(const TElementData& rData);
+
+    array_1d<double,3> FullConvectiveVelocity(const TElementData& rData) const;
 
     ///@}
     ///@name Protected  Access

@@ -50,21 +50,21 @@ namespace Kratos {
 
             PointOnGeometry<PointerVector<Node>, 3, 1> point(point_coordinates, p_nurbs_curve);
 
-            KRATOS_CHECK_EQUAL(point.LocalSpaceDimension(), 1);
-            KRATOS_CHECK_EQUAL(point.WorkingSpaceDimension(), 3);
+            KRATOS_EXPECT_EQ(point.LocalSpaceDimension(), 1);
+            KRATOS_EXPECT_EQ(point.WorkingSpaceDimension(), 3);
 
             /// Check creation of quadrature point geometries
             GeometryType::GeometriesArrayType geometry_vector;
             auto integration_info = point.GetDefaultIntegrationInfo();
             point.CreateQuadraturePointGeometries(geometry_vector, 2, integration_info);
 
-            KRATOS_CHECK_EQUAL(geometry_vector[0].LocalSpaceDimension(), 1);
-            KRATOS_CHECK_EQUAL(geometry_vector[0].WorkingSpaceDimension(), 3);
+            KRATOS_EXPECT_EQ(geometry_vector[0].LocalSpaceDimension(), 1);
+            KRATOS_EXPECT_EQ(geometry_vector[0].WorkingSpaceDimension(), 3);
 
             std::vector<double> location{ { 5, 0, 0.0 } };
-            KRATOS_CHECK_VECTOR_NEAR(geometry_vector[0].Center(), location, TOLERANCE);
+            KRATOS_EXPECT_VECTOR_NEAR(geometry_vector[0].Center(), location, TOLERANCE);
             std::vector<double> shape_functions{ { 0.5, 0.5 } };
-            KRATOS_CHECK_VECTOR_NEAR(row(geometry_vector[0].ShapeFunctionsValues(), 0), shape_functions, TOLERANCE);
+            KRATOS_EXPECT_VECTOR_NEAR(row(geometry_vector[0].ShapeFunctionsValues(), 0), shape_functions, TOLERANCE);
         }
     } // namespace Testing.
 } // namespace Kratos.

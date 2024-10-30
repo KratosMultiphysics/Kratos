@@ -1,0 +1,105 @@
+{
+    "properties": [{
+      "model_part_name":         "PorousDomain.soil",
+      "properties_id":           1,
+      "Material": {
+          "constitutive_law": {
+              "name"             :  "GeoLinearElasticPlaneStrain2DLaw" 
+          },
+          "Variables": {
+              "IGNORE_UNDRAINED"         :  true,
+              "YOUNG_MODULUS"            :  30000000,
+              "POISSON_RATIO"            :  0.2,
+              "DENSITY_SOLID"            :  2.0e3,
+              "DENSITY_WATER"            :  1.0e3,
+              "POROSITY"                 :  0.3,
+              "BULK_MODULUS_SOLID"       :  1.0e12,
+              "BULK_MODULUS_FLUID"       :  2.0e-30,
+              "PERMEABILITY_XX"          :  4.5e-30,
+              "PERMEABILITY_YY"          :  4.5e-30,
+              "PERMEABILITY_XY"          :  0.0,
+              "DYNAMIC_VISCOSITY"        :  1.0e-3,
+              "THICKNESS"                :  1.0
+         },
+         "Tables": {}
+      }
+   },{
+ "model_part_name":         "PorousDomain.beam",
+      "properties_id":           2,
+      "Material": {
+          "constitutive_law": {
+              "name"             :  "KratosMultiphysics.StructuralMechanicsApplication.BeamConstitutiveLaw" 
+          },
+          "Variables": {
+              "YOUNG_MODULUS"    :  2.07E+13,
+              "POISSON_RATIO"    :  0.29,
+              "DENSITY"          :  7850.0,
+              "CROSS_AREA"       :  0.01,
+              "I33"              :  8.33333E-08
+         },
+         "Tables": {}
+      }
+   },{
+      "model_part_name":         "PorousDomain.contact_left",
+      "properties_id":           3,
+      "Material": {
+          "constitutive_law": {
+              "name"             :  "SmallStrainUDSM2DInterfaceLaw" 
+          },
+          "Variables": {
+              "IGNORE_UNDRAINED"         :  false,
+              "DENSITY_SOLID"            :  2.0e3,
+              "DENSITY_WATER"            :  1.0e3,
+              "POROSITY"                 :  0.3,
+              "BULK_MODULUS_SOLID"       :  1.0e12,
+              "BULK_MODULUS_FLUID"       :  2.0e9,
+              "TRANSVERSAL_PERMEABILITY" :  1.0e-13,
+              "DYNAMIC_VISCOSITY"        :  1.0e-3,
+              "MINIMUM_JOINT_WIDTH"      :  1.0e-3,
+              "UDSM_NAME"                :  "../../MohrCoulomb64.dll",
+              "UDSM_NUMBER"              :  1,
+              "IS_FORTRAN_UDSM"          :  true,
+              "UMAT_PARAMETERS"          :  [1E02,
+                                             0.0,
+                                             0,
+                                             0,
+                                             0.0,
+                                             0,
+                                             1,
+                                             0.0]
+         },
+         "Tables": {}
+      }
+   },{
+      "model_part_name":         "PorousDomain.contact_right",
+      "properties_id":           4,
+      "Material": {
+          "constitutive_law": {
+              "name"             :  "SmallStrainUDSM2DInterfaceLaw" 
+          },
+          "Variables": {
+              "IGNORE_UNDRAINED"         :  false,
+              "DENSITY_SOLID"            :  2.0e3,
+              "DENSITY_WATER"            :  1.0e3,
+              "POROSITY"                 :  0.3,
+              "BULK_MODULUS_SOLID"       :  1.0e12,
+              "BULK_MODULUS_FLUID"       :  2.0e9,
+              "TRANSVERSAL_PERMEABILITY" :  1.0e-13,
+              "DYNAMIC_VISCOSITY"        :  1.0e-3,
+              "MINIMUM_JOINT_WIDTH"      :  1.0e-3,
+              "UDSM_NAME"                :  "../../MohrCoulomb64.dll",
+              "UDSM_NUMBER"              :  1,
+              "IS_FORTRAN_UDSM"          :  true,
+              "UMAT_PARAMETERS"          :  [1E02,
+                                            0.0,
+                                            0,
+                                            0,
+                                            0.0,
+                                            0,
+                                            0,
+                                            0.0]
+         },
+         "Tables": {}
+      }
+   }]
+}

@@ -1,0 +1,147 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "coupled_damage_problem",
+        "parallel_type" : "OpenMP",
+        "start_time"    : 0.0,
+        "end_time"      : 1.0,
+        "echo_level"    : 0
+    },
+    "solver_settings"  : {
+        "solver_type"             : "ThermoMechanicallyCoupled",
+        "domain_size"             : 2,
+        "echo_level"              : 0,
+        "structural_solver_settings" : {
+            "solver_type"                     : "Static",
+            "model_part_name"                 : "Structure",
+            "domain_size"                     : 2,
+            "echo_level"                      : 1,
+            "analysis_type"                   : "non_linear",
+            "model_import_settings"           : {
+                "input_type"     : "mdpa",
+                "input_filename" : "thermo_mechanical_tests/thermo_mechanical_damage/thermo_mech_damage_test"
+            },
+            "material_import_settings"        : {
+                "materials_filename" : "thermo_mechanical_tests/thermo_mechanical_damage/StructuralMaterials.json"
+            },
+            "time_stepping"                        : {
+                "time_step_table" : [[0.0,1.0e-2]]
+            },
+            "line_search"                     : false,
+            "convergence_criterion"           : "residual_criterion",
+            "displacement_relative_tolerance" : 0.0001,
+            "displacement_absolute_tolerance" : 1e-9,
+            "residual_relative_tolerance"     : 0.0001,
+            "residual_absolute_tolerance"     : 1e-8,
+            "use_old_stiffness_in_first_iteration" : true,
+            "max_iteration"                   : 10,
+            "rotation_dofs"                   : false
+        },
+        "thermal_solver_settings" : {
+            "solver_type"                        : "stationary",
+            "analysis_type"                      : "non_linear",
+            "model_part_name"                    : "ThermalModelPart",
+            "domain_size"                        : 2,
+            "model_import_settings"              : {
+                "input_type"     : "mdpa",
+                "input_filename" : "thermo_mechanical_tests/thermo_mechanical_damage/thermo_mech_damage_test"
+            },
+            "material_import_settings"           : {
+                "materials_filename" : "thermo_mechanical_tests/thermo_mechanical_damage/ConvectionDiffusionMaterials.json"
+            },
+            "line_search"                        : false,
+            "echo_level"                         : 1,
+            "compute_reactions"                  : false,
+            "max_iteration"                      : 10,
+            "convergence_criterion"              : "residual_criterion",
+            "solution_relative_tolerance"        : 1e-5,
+            "solution_absolute_tolerance"        : 1e-7,
+            "residual_relative_tolerance"        : 1e-5,
+            "residual_absolute_tolerance"        : 1e-7,
+            "problem_domain_sub_model_part_list" : ["CNVDFFParts_thermal_body"],
+            "processes_sub_model_part_list"      : ["TEMPERATURE_Temperature_Auto1"],
+            "time_stepping"                      : {
+                "time_step" : 1.0e-2
+            }
+        }
+    },
+    "processes"        : {
+        "initial_conditions_process_list" : [],
+        "constraints_process_list"        : [{
+            "python_module" : "assign_scalar_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignScalarVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "ThermalModelPart.TEMPERATURE_Temperature_Auto1",
+                "variable_name"   : "TEMPERATURE",
+                "interval"        : [0.0,"End"],
+                "constrained"     : true,
+                "value"           : "t*1000"
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_x_fixed",
+                "variable_name"   : "DISPLACEMENT",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [true,false,true],
+                "value"           : [0.0,null,0.0]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_y_fixed",
+                "variable_name"   : "DISPLACEMENT",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [false,true,true],
+                "value"           : [null,0.0,0.0]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_displ",
+                "variable_name"   : "DISPLACEMENT",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [true,false,true],
+                "value"           : ["0.5e-5*t",null,0.0]
+            }
+        }],
+        "loads_process_list"              : [],
+        "list_other_processes"            : [],
+    //"_json_output_process" : [{
+    //    "python_module"   : "json_output_process",
+    //    "kratos_module" : "KratosMultiphysics",
+    //    "help"                  : "",
+    //    "process_name"          : "JsonOutputProcess",
+    //    "Parameters"            : {
+    //        "output_variables"              : ["DISPLACEMENT"],
+    //        "gauss_points_output_variables" : ["DAMAGE"],
+    //        "output_file_name"              : "thermo_mechanical_tests/thermo_mechanical_damage/coupled_damage_thermomech_test_results.json",
+    //        "model_part_name"               : "Structure.to_check",
+    //        "time_frequency"                : 0.25
+    //    }
+    //}]
+    "json_check_process" : [{
+        "python_module"   : "from_json_check_result_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "FromJsonCheckResultProcess",
+        "Parameters"            : {
+            "check_variables"              : ["DISPLACEMENT"],
+            "gauss_points_check_variables" : ["DAMAGE"],
+            "input_file_name"              : "thermo_mechanical_tests/thermo_mechanical_damage/coupled_damage_thermomech_test_results.json",
+            "model_part_name"               : "Structure.to_check",
+            "time_frequency"                : 0.25
+        }
+    }]
+    },
+    "output_processes" : {
+        "gid_output" : [],
+        "vtk_output" : []
+    }
+}

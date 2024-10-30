@@ -4,6 +4,10 @@ from KratosMultiphysics import gid_output_process
 
 class GiDOutputProcess(gid_output_process.GiDOutputProcess):
 
+    def __init__(self, model_part, file_name, param=None):
+        super().__init__(model_part, file_name, param)
+        self.do_first_output = True
+
     def _InitializeGiDIO(self,gidpost_flags,param):
         '''Initialize GidIO objects (for volume and cut outputs) and related data.'''
         self.volume_file_name = self.base_file_name
@@ -29,13 +33,11 @@ class GiDOutputProcess(gid_output_process.GiDOutputProcess):
 
     def IsOutputStep(self):
 
-        if  ( self.step_count==1):
+        if self.do_first_output:
+            self.do_first_output = False
             return True
-        if self.output_control_is_time:
-            time = self.__get_pretty_time(self.model_part.ProcessInfo[TIME])
-            return (time >= self.__get_pretty_time(self.next_output))
         else:
-            return ( self.step_count >= self.next_output )
+            return self.controller.Evaluate()
 
     def PrintOutput(self):
         if self.point_output_process is not None:
@@ -78,13 +80,7 @@ class GiDOutputProcess(gid_output_process.GiDOutputProcess):
             self.__write_step_to_list(label)
 
         # Schedule next output
-        if self.output_interval > 0.0: # Note: if == 0, we'll just always print
-            if self.output_control_is_time:
-                while self.__get_pretty_time(self.next_output) <= time:
-                    self.next_output += self.output_interval
-            else:
-                while self.next_output <= self.step_count:
-                    self.next_output += self.output_interval
+        self.controller.Update()
 
         if self.point_output_process is not None:
             self.point_output_process.ExecuteAfterOutputStep()

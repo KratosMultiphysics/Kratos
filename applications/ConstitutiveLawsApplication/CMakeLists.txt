@@ -16,6 +16,7 @@ file(GLOB_RECURSE KRATOS_CONSTITUTIVE_LAWS_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws_application_variables.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive_thermal/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/*.cpp
 )
@@ -28,12 +29,13 @@ endif(CMAKE_UNITY_BUILD MATCHES ON)
 ## ConstitutiveLaws testing sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
     file(GLOB_RECURSE KRATOS_CONSTITUTIVE_LAWS_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+    kratos_add_gtests(TARGET KratosConstitutiveLawsCore SOURCES "${KRATOS_CONSTITUTIVE_LAWS_APPLICATION_TESTING_SOURCES}")
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ## ConstitutiveLaws python interface sources
 file(GLOB_RECURSE KRATOS_CONSTITUTIVE_LAWS_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
 
-add_library(KratosConstitutiveLawsCore SHARED ${KRATOS_CONSTITUTIVE_LAWS_APPLICATION_CORE} ${KRATOS_CONSTITUTIVE_LAWS_APPLICATION_TESTING_SOURCES})
+add_library(KratosConstitutiveLawsCore SHARED ${KRATOS_CONSTITUTIVE_LAWS_APPLICATION_CORE})
 target_link_libraries(KratosConstitutiveLawsCore PUBLIC KratosCore KratosStructuralMechanicsCore)
 set_target_properties(KratosConstitutiveLawsCore PROPERTIES COMPILE_DEFINITIONS "CONSTITUTIVE_LAWS_APPLICATION=EXPORT,API")
 

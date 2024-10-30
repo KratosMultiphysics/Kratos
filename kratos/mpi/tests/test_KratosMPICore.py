@@ -33,6 +33,8 @@ with KratosUnittest.WorkFolderScope("../../tests", __file__, True):
     import test_container_expression
     import test_combine_model_part_modeler
     from test_model_part_operation_utilities import TestModelPartOperationUtilities
+    import test_stl_io
+    import test_compute_nodal_gradient_process
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -82,6 +84,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_variable_redistribution.TestVariableRedistributionUtility]))
     smallSuite.addTest(TestModelPartOperationUtilities("test_Sum"))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_combine_model_part_modeler.TestCombineModelPartModeler]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_stl_io.TestStlIO]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_compute_nodal_gradient_process.TestComputeNodalGradientProcessCoarseSphere]))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['mpi_nightly']

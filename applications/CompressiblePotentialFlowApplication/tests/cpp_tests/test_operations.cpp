@@ -137,11 +137,11 @@ KRATOS_TEST_CASE_IN_SUITE(PotentialToCompressibleNavierStokesOperation, Compress
 
       // Check potential velocities and nodal areas
       auto nodal_area = it_potential_node->GetValue(NODAL_AREA);
-      KRATOS_CHECK_NEAR(nodal_area, 0.166666667, 1e-9);
+      KRATOS_EXPECT_NEAR(nodal_area, 0.166666667, 1e-9);
 
-      KRATOS_CHECK_NEAR(r_velocity[0], 1, 1e-9);
-      KRATOS_CHECK_NEAR(r_velocity[1], 1, 1e-9);
-      KRATOS_CHECK_NEAR(r_velocity[2], 0, 1e-9);
+      KRATOS_EXPECT_NEAR(r_velocity[0], 1, 1e-9);
+      KRATOS_EXPECT_NEAR(r_velocity[1], 1, 1e-9);
+      KRATOS_EXPECT_NEAR(r_velocity[2], 0, 1e-9);
 
       // Explicit calculate of local nodal values
       const double velocity_norm_2 = r_velocity[0] * r_velocity[0] + r_velocity[1] * r_velocity[1] + r_velocity[2] * r_velocity[2];
@@ -154,15 +154,15 @@ KRATOS_TEST_CASE_IN_SUITE(PotentialToCompressibleNavierStokesOperation, Compress
 
       // Check nodal values
       auto r_nodal_density = it_node->FastGetSolutionStepValue(DENSITY);
-      KRATOS_CHECK_NEAR(r_nodal_density, density, 1e-9);
+      KRATOS_EXPECT_NEAR(r_nodal_density, density, 1e-9);
 
       auto& r_nodal_momentum = it_node->FastGetSolutionStepValue(MOMENTUM);
-      KRATOS_CHECK_NEAR(r_nodal_momentum[0], density * r_velocity[0], 1e-9);
-      KRATOS_CHECK_NEAR(r_nodal_momentum[1], density * r_velocity[1], 1e-9);
-      KRATOS_CHECK_NEAR(r_nodal_momentum[2], density * r_velocity[2], 1e-9);
+      KRATOS_EXPECT_NEAR(r_nodal_momentum[0], density * r_velocity[0], 1e-9);
+      KRATOS_EXPECT_NEAR(r_nodal_momentum[1], density * r_velocity[1], 1e-9);
+      KRATOS_EXPECT_NEAR(r_nodal_momentum[2], density * r_velocity[2], 1e-9);
 
       auto r_nodal_total_energy = it_node->FastGetSolutionStepValue(TOTAL_ENERGY);
-      KRATOS_CHECK_NEAR(r_nodal_total_energy, density * energy, 1e-9);
+      KRATOS_EXPECT_NEAR(r_nodal_total_energy, density * energy, 1e-9);
     }
 }
 } // namespace Kratos::Testing

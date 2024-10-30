@@ -20,7 +20,7 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "custom_processes/normal_gap_process.h"
-#include "spatial_containers/specialized_spatial_search.h"
+#include "spatial_containers/point_object.h"
 #include "custom_conditions/paired_condition.h"
 #include "spatial_containers/spatial_containers.h" // kd-tree
 

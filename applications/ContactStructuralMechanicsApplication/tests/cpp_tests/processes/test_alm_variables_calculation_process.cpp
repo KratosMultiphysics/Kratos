@@ -14,12 +14,13 @@
 // External includes
 
 // Project includes
-#include "testing/testing.h"
 #include "includes/kratos_flags.h"
-// #include "includes/gid_io.h"
 #include "containers/model.h"
 
-/* Processes */
+// Application includes
+#include "tests/cpp_tests/contact_structural_mechanics_fast_suite.h"
+
+// Processes
 #include "custom_processes/alm_variables_calculation_process.h"
 
 namespace Kratos::Testing
@@ -92,7 +93,7 @@ KRATOS_TEST_CASE_IN_SUITE(ALMVariablesProcess, KratosContactStructuralMechanicsF
 //     // DEBUG
 //     GiDIODebugALMVariables(this_model_part);
 
-    KRATOS_CHECK_LESS_EQUAL(std::abs((initial_penalty - 305.858)/initial_penalty), tolerance);
-    KRATOS_CHECK_LESS_EQUAL(std::abs((scale_factor - 305.858)/scale_factor), tolerance);
+    KRATOS_EXPECT_LE(std::abs((initial_penalty - 305.858)/initial_penalty), tolerance);
+    KRATOS_EXPECT_LE(std::abs((scale_factor - 305.858)/scale_factor), tolerance);
 }
 }  // namespace Kratos::Testing.

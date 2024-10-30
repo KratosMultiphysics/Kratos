@@ -146,6 +146,7 @@ namespace Kratos {
                                     double equiv_young,
                                     double equiv_shear,
                                     double indentation,
+                                    double indentation_particle,
                                     double calculation_area,
                                     double& acumulated_damage,
                                     SphericContinuumParticle* element1,
@@ -164,6 +165,7 @@ namespace Kratos {
                 kn_el,
                 equiv_young,
                 indentation,
+                indentation_particle,
                 calculation_area,
                 acumulated_damage,
                 element1,
@@ -214,6 +216,7 @@ namespace Kratos {
             const double kn_el,
             double equiv_young,
             double indentation,
+            double indentation_particle,
             double calculation_area,
             double& acumulated_damage,
             SphericContinuumParticle* element1,
@@ -505,10 +508,10 @@ namespace Kratos {
                     double ElasticLocalRotationalMoment[3], 
                     double ViscoLocalRotationalMoment[3], 
                     double equiv_poisson, 
-                    double indentation, 
-                    double LocalElasticContactForce[3],
+                    double indentation,
+                    double indentation_particle,
                     double normalLocalContactForce,
-                    double GlobalElasticContactForces[3],
+                    double GlobalContactForce[3],
                     double LocalCoordSystem_2[3],
                     const int i_neighbor_count) 
     {
@@ -527,12 +530,11 @@ namespace Kratos {
                                         ElasticLocalRotationalMoment, 
                                         ViscoLocalRotationalMoment, 
                                         equiv_poisson, 
-                                        indentation, 
-                                        LocalElasticContactForce);
+                                        indentation);
         }             
 
         DemContact::ComputeParticleContactMoments(normalLocalContactForce,
-                                                GlobalElasticContactForces,
+                                                GlobalContactForce,
                                                 LocalCoordSystem_2,
                                                 element,
                                                 neighbor,
@@ -551,8 +553,7 @@ namespace Kratos {
                                                     double ElasticLocalRotationalMoment[3],
                                                     double ViscoLocalRotationalMoment[3],
                                                     double equiv_poisson,
-                                                    double indentation,
-                                                    double LocalElasticContactForce[3]) {}  //ComputeParticleRotationalMoments
+                                                    double indentation) {}  //ComputeParticleRotationalMoments
 
 
 

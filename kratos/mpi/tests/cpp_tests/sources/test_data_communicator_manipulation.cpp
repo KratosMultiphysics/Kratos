@@ -22,23 +22,23 @@
 #include "includes/parallel_environment.h"
 #include "mpi/includes/mpi_data_communicator.h"
 #include "mpi/utilities/data_communicator_factory.h"
-#include "testing/testing.h"
+#include "mpi/testing/mpi_testing.h"
 
 namespace Kratos::Testing {
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorDuplicate, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorDuplicate, KratosMPICoreFastSuite)
 {
     const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
     const DataCommunicator& r_duplicate = DataCommunicatorFactory::DuplicateAndRegister(r_comm, "Duplicate");
 
-    KRATOS_CHECK_EQUAL(r_comm.Rank(), r_duplicate.Rank());
-    KRATOS_CHECK_EQUAL(r_comm.Size(), r_duplicate.Size());
+    KRATOS_EXPECT_EQ(r_comm.Rank(), r_duplicate.Rank());
+    KRATOS_EXPECT_EQ(r_comm.Size(), r_duplicate.Size());
 
     // Clean up the ParallelEnvironment after test
     ParallelEnvironment::UnregisterDataCommunicator("Duplicate");
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorSplit, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorSplit, KratosMPICoreFastSuite)
 {
     const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
     const int global_rank = r_comm.Rank();
@@ -57,14 +57,14 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorSplit, KratosMPIC
         int expected_rank = global_rank < i ? key : key - 1;
         // MPI_Comm_split assigns rank by order of increasing key.
         // Here keys in the global_rank >= i side of the split range between 1 and (global_size-i)
-        KRATOS_CHECK_EQUAL(r_split_comm.Size(), expected_size);
-        KRATOS_CHECK_EQUAL(r_split_comm.Rank(), expected_rank);
+        KRATOS_EXPECT_EQ(r_split_comm.Size(), expected_size);
+        KRATOS_EXPECT_EQ(r_split_comm.Rank(), expected_rank);
 
         ParallelEnvironment::UnregisterDataCommunicator(name.str());
     }
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorFromRanks, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorFromRanks, KratosMPICoreFastSuite)
 {
     const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
     const int global_size = r_comm.Size();
@@ -88,20 +88,20 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorFromRanks, Kratos
         if (global_rank == 0)
         {
             // The communicator is equal to MPI_COMM_NULL for ranks that do not participate in it
-            KRATOS_CHECK(r_new_comm.IsNullOnThisRank());
-            KRATOS_CHECK_IS_FALSE(r_new_comm.IsDefinedOnThisRank());
+            KRATOS_EXPECT_TRUE(r_new_comm.IsNullOnThisRank());
+            KRATOS_EXPECT_FALSE(r_new_comm.IsDefinedOnThisRank());
         }
         else
         {
-            KRATOS_CHECK_EQUAL(r_new_comm.Rank(), global_rank-1);
-            KRATOS_CHECK_EQUAL(r_new_comm.Size(), global_size-1);
+            KRATOS_EXPECT_EQ(r_new_comm.Rank(), global_rank-1);
+            KRATOS_EXPECT_EQ(r_new_comm.Size(), global_size-1);
         }
 
         ParallelEnvironment::UnregisterDataCommunicator("NewCommunicator");
     }
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorUnion, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorUnion, KratosMPICoreFastSuite)
 {
     const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
     const int global_size = r_comm.Size();
@@ -127,10 +127,10 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorUnion, KratosMPIC
             r_all_except_first_comm, r_all_except_last_comm, r_comm, "UnionCommunicator");
 
         // our union MPI comm involves all ranks in the parent communicator, so it should be defined everywhere
-        KRATOS_CHECK_IS_FALSE(r_union_comm.IsNullOnThisRank());
+        KRATOS_EXPECT_FALSE(r_union_comm.IsNullOnThisRank());
 
-        KRATOS_CHECK_EQUAL(r_union_comm.Rank(), r_comm.Rank());
-        KRATOS_CHECK_EQUAL(r_union_comm.Size(), global_size);
+        KRATOS_EXPECT_EQ(r_union_comm.Rank(), r_comm.Rank());
+        KRATOS_EXPECT_EQ(r_union_comm.Size(), global_size);
 
         // Clean up the ParallelEnvironment after test
         ParallelEnvironment::UnregisterDataCommunicator("AllExceptFirst");
@@ -139,7 +139,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorUnion, KratosMPIC
     }
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorIntersection, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorIntersection, KratosMPICoreFastSuite)
 {
     const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
     const int global_size = r_comm.Size();
@@ -169,12 +169,12 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorIntersection, Kra
         if ( (global_rank == 0) || (global_rank == global_size-1 ) )
         {
             // The first and last ranks do not participate in the intersection communicator
-            KRATOS_CHECK(r_intersection_comm.IsNullOnThisRank());
+            KRATOS_EXPECT_TRUE(r_intersection_comm.IsNullOnThisRank());
         }
         else
         {
-            KRATOS_CHECK_EQUAL(r_intersection_comm.Rank(), r_comm.Rank() - 1);
-            KRATOS_CHECK_EQUAL(r_intersection_comm.Size(), r_comm.Size() - 2);
+            KRATOS_EXPECT_EQ(r_intersection_comm.Rank(), r_comm.Rank() - 1);
+            KRATOS_EXPECT_EQ(r_intersection_comm.Size(), r_comm.Size() - 2);
         }
 
         // Clean up the ParallelEnvironment after test
@@ -184,40 +184,40 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorIntersection, Kra
     }
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(ParallelEnvironmentRegisterDataCommunicator, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ParallelEnvironmentRegisterDataCommunicator, KratosMPICoreFastSuite)
 {
     const DataCommunicator& r_comm = ParallelEnvironment::GetDefaultDataCommunicator();
 
     DataCommunicatorFactory::SplitAndRegister(r_comm, r_comm.Rank() % 2, 0, "EvenOdd");
 
-    KRATOS_CHECK(ParallelEnvironment::HasDataCommunicator("EvenOdd"));
+    KRATOS_EXPECT_TRUE(ParallelEnvironment::HasDataCommunicator("EvenOdd"));
 
     ParallelEnvironment::UnregisterDataCommunicator("EvenOdd");
 
-    KRATOS_CHECK_IS_FALSE(ParallelEnvironment::HasDataCommunicator("EvenOdd"));
+    KRATOS_EXPECT_FALSE(ParallelEnvironment::HasDataCommunicator("EvenOdd"));
 
     DataCommunicatorFactory::SplitAndRegister(r_comm, r_comm.Rank() % 2, 0, "EvenOdd");
 
-    KRATOS_CHECK(ParallelEnvironment::HasDataCommunicator("EvenOdd"));
+    KRATOS_EXPECT_TRUE(ParallelEnvironment::HasDataCommunicator("EvenOdd"));
 
     // Clean up after the test
     ParallelEnvironment::UnregisterDataCommunicator("EvenOdd");
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(ParallelEnvironmentUnregister, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ParallelEnvironmentUnregister, KratosMPICoreFastSuite)
 {
     const DataCommunicator& r_comm = ParallelEnvironment::GetDefaultDataCommunicator();
 
     DataCommunicatorFactory::SplitAndRegister(r_comm, r_comm.Rank() % 2, 0, "EvenOdd");
 
-    KRATOS_CHECK(ParallelEnvironment::HasDataCommunicator("EvenOdd"));
+    KRATOS_EXPECT_TRUE(ParallelEnvironment::HasDataCommunicator("EvenOdd"));
 
     ParallelEnvironment::UnregisterDataCommunicator("EvenOdd");
 
-    KRATOS_CHECK_IS_FALSE(ParallelEnvironment::HasDataCommunicator("EvenOdd"));
+    KRATOS_EXPECT_FALSE(ParallelEnvironment::HasDataCommunicator("EvenOdd"));
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(ParallelEnvironmentUnregisterDefault, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ParallelEnvironmentUnregisterDefault, KratosMPICoreFastSuite)
 {
     const DataCommunicator& r_comm = ParallelEnvironment::GetDefaultDataCommunicator();
     std::string current_default_name = ParallelEnvironment::GetDefaultDataCommunicatorName();
@@ -226,7 +226,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(ParallelEnvironmentUnregisterDefault, Krat
 
     ParallelEnvironment::SetDefaultDataCommunicator("EvenOdd");
 
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         ParallelEnvironment::UnregisterDataCommunicator("EvenOdd"),
         "Trying to unregister the default DataCommunicator"
     );

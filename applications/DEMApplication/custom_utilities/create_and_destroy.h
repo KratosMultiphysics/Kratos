@@ -68,6 +68,8 @@ public:
     virtual double SelectRadius(bool initial,
                                 ModelPart& r_sub_model_part_with_parameters,
                                 std::map<std::string, std::unique_ptr<RandomVariable>>& r_random_variables_map);
+    virtual double SelectRadius(Parameters r_sub_model_part_with_parameters,
+                                std::map<std::string, std::unique_ptr<RandomVariable>>& r_random_variables_map);
 
     void NodeCreatorWithPhysicalParameters(ModelPart& r_modelpart,
                                            Node ::Pointer& pnew_node,
@@ -248,6 +250,8 @@ public:
                                          double scale_factor,
                                          bool automatic);
 
+    void UpdateSurroundingBoundingBox(ModelPart& spheres_model_part);
+
     template<class TParticleType>
     bool CheckParticlePreservationCriteria(const Element::Pointer p_element, const double current_time);
 
@@ -272,6 +276,7 @@ public:
     void MarkParticlesForErasingGivenBoundingBox(ModelPart& r_model_part, array_1d<double, 3> low_point, array_1d<double, 3> high_point);
     void MarkParticlesForErasingGivenCylinder(ModelPart& r_model_part, array_1d<double, 3 > center, array_1d<double, 3 > axis_vector, const double radius);
     void MarkContactElementsForErasing(ModelPart& r_model_part, ModelPart& mcontacts_model_part);
+    void MarkContactElementsForErasingContinuum(ModelPart& r_model_part, ModelPart& mcontacts_model_part);
 
     template<class TParticleType>
     void DestroyParticlesOutsideBoundingBox(ModelPart& r_model_part);

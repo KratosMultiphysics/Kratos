@@ -1,0 +1,343 @@
+<!-- Schedule section -->
+<div class="section scrollspy section-gray-section" id="schedule">
+   <div class="container">
+      <h4 class="center-align section-gray-header">Schedule</h4>
+
+      <div class="row">
+         <!-- <div class="col s12 m12 l12 section-gray-body"> -->
+         <!--    <p class="center-align">More details about the schedule will be announced soon.</p> -->
+         <!-- </div> -->
+         <div class="center-align">
+            <div class="col s10 offset-s1 m4 offset-m2 l3 offset-l3">
+               <a href="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/refs/heads/files-kratos-workshop-2024-webpage/Workshops_files/Kratos_Workshop_2024/Webpage_Event/program.pdf"
+                  class="btn-large" style="width: 100%; font-weight: bold; background-color: #3D1419">
+                  <i class="material-icons left">file_download</i>Download PDF
+               </a>
+            </div>
+            <div class="col s10 offset-s1 m4 l3 button-space" >
+               <a class="btn-large" id="my-default-button" style="width: 100%; font-weight: bold; background-color: #3D1419">
+                  <i class="material-icons left">event</i>Add to Calendar
+               </a>
+            </div>
+
+            <style>
+               /* For small screens (small devices) */
+               @media only screen and (max-width: 600px) {
+                  .button-space {
+                     margin-top: 10px; /* Adjust the value as needed */
+                  }
+               }
+            </style>
+
+            <script type="application/javascript">
+               const config = {
+                  name: "Kratos Multiphysics Workshop 2024",
+                  startDate: "2024-10-13",
+                  subscribe: true,
+                  icsFile:"https://raw.githubusercontent.com/KratosMultiphysics/Documentation/refs/heads/files-kratos-workshop-2024-webpage/Workshops_files/Kratos_Workshop_2024/Webpage_Event/program.ics",
+                  options: ["Apple", "Google", "iCal", "Outlook.com"],
+                  timeZone: "America/Los_Angeles"
+               };
+               const button = document.getElementById('my-default-button');
+               if (button) {
+                  button.addEventListener('click', () => atcb_action(config, button));
+               }
+            </script>
+
+         </div>
+      </div>
+
+      <div class="row">
+
+         <div class="col s12 m10 offset-m1 l10 offset-l1 section-gray-body">
+            <ul class="tabs">
+               <li class="tab col s4"><a class="active" href="#day1"><span  style="font-weight: bold; font-size: 20px;">Day 1</span></a></li>
+               <li class="tab col s4"><a href="#day2"><span  style="font-weight: bold; font-size: 20px;">Day 2</span></a></li>
+               <li class="tab col s4"><a href="#day3"><span  style="font-weight: bold; font-size: 20px;">Day 3</span></a></li>
+            </ul>
+         </div>
+
+         <!--- First Day -->
+         <div id="day1" class="col s12 m10 offset-m1 l10 offset-l1">
+            <table class="schedule">
+               <tbody>
+                  <tr>
+                     <th>14:00<br class="hide-on-med-and-up">-14:30</th>
+                     <td>
+                        <span id="schedule-talk">Welcome</span>
+                     </td>
+                  </tr>
+                  <tr style="border: none">
+                     <th></th>
+                     <td><h5 id="schedule-session">Introduction to Kratos</h5></td>
+                  </tr>
+                  <tr style="border: none">
+                     <th>14:30<br class="hide-on-med-and-up">-15:15</th>
+                     <td>
+                        <span id="schedule-talk">Kratos. Why? What? How? An Historical Perspective</span>
+                        <br class="hide-on-large-only">
+                        <span id="schedule-talk-author">(Pooyan Dadvand & Riccardo Rossi)</span>
+                     </td>
+                  </tr>
+                  <tr>
+                     <th>15:15<br class="hide-on-med-and-up">-16:00</th>
+                     <td>
+                        <span id="schedule-talk">Kratos: an Overview</span>
+                        <br class="hide-on-large-only">
+                        <span id="schedule-talk-author">(Pooyan Dadvand & Riccardo Rossi)</span>
+                     </td>
+                  </tr>
+                  <tr class="blue-grey lighten-5">
+                     <th style="font-size: 18px">16:00<br class="hide-on-med-and-up">-16:30</th>
+                     <td>
+                        <span id="schedule-break">Coffee Break</span>
+                     </td>
+                  </tr>
+                  <tr style="border: none">
+                     <th></th>
+                     <td><h5 id="schedule-session">Kratos 4 Industry</h5></td>
+                  </tr>
+                  <tr style="border: none">
+                     <th>16:30<br class="hide-on-med-and-up">-17:00</th>
+                     <td>
+                        <span id="schedule-talk">Collaboration with Industry in Germany</span>
+                        <br class="hide-on-large-only">
+                        <span id="schedule-talk-author">(Suneth Warnakulasuriya)</span>
+                     </td>
+                  </tr>
+                  <tr style="border: none">
+                     <th>17:00<br class="hide-on-med-and-up">-18:00</th>
+                     <td>
+                        <span id="schedule-talk">Deltares</span>
+                        <br class="hide-on-large-only">
+                        <span id="schedule-talk-author">(Jonathan Nuttall)</span>
+                     </td>
+                  </tr>
+                  <tr>
+                     <th>18:00<br class="hide-on-med-and-up">-18:30</th>
+                     <td>
+                        <span id="schedule-talk">Altair</span>
+                        <br class="hide-on-large-only">
+                        <span id="schedule-talk-author">(Pooyan Dadvand)</span>
+                     </td>
+                  </tr>
+               </tbody>
+            </table>
+         </div>
+
+         <!--- Second Day -->
+         <div id="day2" class="col s12 m10 offset-m1 l10 offset-l1 section-gray-body">
+            <table class="schedule">
+               <tbody>
+                  <tr style="border: none">
+                     <th></th>
+                     <td><h5 id="schedule-session">What's new in Kratos? Application Session (1)</h5></td>
+                  </tr>
+                  <tr style="border: none">
+                     <th>09:00<br class="hide-on-med-and-up">-09:30</th>
+                     <td>
+                        <span id="schedule-talk">Computational Fluid Dynamics</span>
+                        <br class="hide-on-large-only">
+                        <span id="schedule-talk-author">(Rubén Zorrilla Martínez)</span>
+                     </td>
+                  </tr>
+                  <tr style="border: none">
+                     <th>09:30<br class="hide-on-med-and-up">-10:00</th>
+                     <td>
+                        <span id="schedule-talk">Computational Solid Mechanics</span>
+                        <br class="hide-on-large-only">
+                        <span id="schedule-talk-author">(Suneth Warnakulasuriya)</span>
+                     </td>
+                  </tr>
+                  <tr>
+                     <th>10:00<br class="hide-on-med-and-up">-10:30</th>
+                     <td>
+                        <span id="schedule-talk">Reduced Order Models</span>
+                        <br class="hide-on-large-only">
+                        <span id="schedule-talk-author">(Riccardo Rossi)</span>
+                     </td>
+                  </tr>
+                  <tr class="blue-grey lighten-5">
+                     <th style="font-size: 18px">10:30<br class="hide-on-med-and-up">-11:00</th>
+                     <td>
+                        <span id="schedule-break">Coffee Break</span>
+                     </td>
+                  </tr>
+                  <tr style="border: none">
+                     <th></th>
+                     <td><h5 id="schedule-session">What's new in Kratos? Application Session (2)</h5></td>
+                  </tr>
+                  <tr style="border: none">
+                     <th>11:00<br class="hide-on-med-and-up">-11:30</th>
+                     <td>
+                        <span id="schedule-talk">Coupling: the CoSimulation Application</span>
+                        <br class="hide-on-large-only">
+                        <span id="schedule-talk-author">(Rubén Zorrilla Martínez)</span>
+                     </td>
+                  </tr>
+                  <tr style="border: none">
+                     <th>11:30<br class="hide-on-med-and-up">-12:00</th>
+                     <td>
+                        <span id="schedule-talk">Particle Methods: the MPMApplication</span>
+                        <br class="hide-on-large-only">
+                        <span id="schedule-talk-author">(Antonia Larese)</span>
+                     </td>
+                  </tr>
+                  <tr>
+                     <th>12:00<br class="hide-on-med-and-up">-12:30</th>
+                     <td>
+                        <span id="schedule-talk">Optimization and System Identification</span>
+                        <br class="hide-on-large-only">
+                        <span id="schedule-talk-author">(Ihar Antonau & Suneth Warnakulasuriya)</span>
+                     </td>
+                  </tr>
+                  <tr class="blue-grey lighten-5">
+                     <th style="font-size: 18px">12:30<br class="hide-on-med-and-up">-14:00</th>
+                     <td>
+                        <span id="schedule-break">Lunch Break</span>
+                     </td>
+                  </tr>
+                  <tr style="border: none">
+                     <th></th>
+                     <td><h5 id="schedule-session">What's new in Kratos? Application Session (3)</h5></td>
+                  </tr>
+                  <tr>
+                     <th>14:00<br class="hide-on-med-and-up">-15:00</th>
+                     <td>
+                        <span id="schedule-talk">The GeoMechanicsApplication</span>
+                        <br class="hide-on-large-only">
+                        <span id="schedule-talk-author">(Jonathan Nuttall)</span>
+                     </td>
+                  </tr>
+                  <tr style="border: none">
+                     <th></th>
+                     <td><h5 id="schedule-session">What's new in Kratos? Core Session</h5></td>
+                  </tr>
+                  <tr>
+                     <th>15:00<br class="hide-on-med-and-up">-16:00</th>
+                     <td>
+                        <span id="schedule-talk">GUI and FlowGraph, Multistage and Register</span>
+                        <br class="hide-on-large-only">
+                        <span id="schedule-talk-author">(Carlos Roig)</span>
+                     </td>
+                  </tr>
+                  <tr>
+                     <th>16:00<br class="hide-on-med-and-up">-18:00</th>
+                     <td>
+                        <span id="schedule-talk">Round Table & Coffee</span>
+                     </td>
+                  </tr>
+               </tbody>
+            </table>
+         </div>
+
+         <!--- Third Day -->
+         <div id="day3" class="col s12 m10 offset-m1 l10 offset-l1 section-gray-body">
+            <table class="schedule">
+               <tbody>
+                  <tr style="border: none">
+                     <th></th>
+                     <td><h5 id="schedule-session">Kratos Course (Session 1)</h5></td>
+                  </tr>
+                  <tr style="border: none">
+                     <th>09:00<br class="hide-on-med-and-up">-09:15</th>
+                     <td>
+                        <span id="schedule-talk">Introduction: What is Kratos?</span>
+                        <br class="hide-on-large-only">
+                        <span id="schedule-talk-author">(Carlos Roig)</span>
+                     </td>
+                  </tr>
+                  <tr style="border: none">
+                     <th>09:15<br class="hide-on-med-and-up">-09:45</th>
+                     <td>
+                        <span id="schedule-talk">Environment Setup and Kratos Installation</span>
+                        <br class="hide-on-large-only">
+                        <span id="schedule-talk-author">(Carlos Roig)</span>
+                     </td>
+                  </tr>
+                  <tr style="border: none">
+                     <th>09:45<br class="hide-on-med-and-up">-10:00</th>
+                     <td>
+                        <span id="schedule-talk">Installation Troubleshooting</span>
+                        <br class="hide-on-large-only">
+                        <span id="schedule-talk-author">(Carlos Roig)</span>
+                     </td>
+                  </tr>
+                  <tr>
+                     <th>10:00<br class="hide-on-med-and-up">-10:30</th>
+                     <td>
+                        <span id="schedule-talk">Basic I/O</span>
+                        <br class="hide-on-large-only">
+                        <span id="schedule-talk-author">(Riccardo Rossi)</span>
+                     </td>
+                  </tr>
+                  <tr class="blue-grey lighten-5">
+                     <th style="font-size: 18px">10:30<br class="hide-on-med-and-up">-11:00</th>
+                     <td>
+                        <span id="schedule-break">Coffee Break</span>
+                     </td>
+                  </tr>
+                  <tr style="border: none">
+                     <th></th>
+                     <td><h5 id="schedule-session">Kratos Course (Session 2)</h5></td>
+                  </tr>
+                  <tr style="border: none">
+                     <th>11:00<br class="hide-on-med-and-up">-11:45</th>
+                     <td>
+                        <span id="schedule-talk">Geometry Management</span>
+                        <br class="hide-on-large-only">
+                        <span id="schedule-talk-author">(Suneth Warnakulasuriya)</span>
+                     </td>
+                  </tr>
+                  <tr>
+                     <th>11:45<br class="hide-on-med-and-up">-12:30</th>
+                     <td>
+                        <span id="schedule-talk">Data Management</span>
+                        <br class="hide-on-large-only">
+                        <span id="schedule-talk-author">(Rubén Zorrilla Martínez)</span>
+                     </td>
+                  </tr>
+                  <tr class="blue-grey lighten-5">
+                     <th style="font-size: 18px">12:30<br class="hide-on-med-and-up">-14:00</th>
+                     <td>
+                        <span id="schedule-break">Lunch Break</span>
+                     </td>
+                  </tr>
+                  <tr style="border: none">
+                     <th></th>
+                     <td><h5 id="schedule-session">Kratos Course (Session 3)</h5></td>
+                  </tr>
+                  <tr style="border: none">
+                     <th>14:00<br class="hide-on-med-and-up">-14:45</th>
+                     <td>
+                        <span id="schedule-talk">Simulation Loop</span>
+                        <br class="hide-on-large-only">
+                        <span id="schedule-talk-author">(Rubén Zorrilla Martínez)</span>
+                     </td>
+                  </tr>
+                  <tr>
+                     <th>14:45<br class="hide-on-med-and-up">-16:00</th>
+                     <td>
+                        <span id="schedule-talk">Multiphysics & Multistage</span>
+                        <br class="hide-on-large-only">
+                        <span id="schedule-talk-author">(Pooyan Dadvand & Rubén Zorrilla Martínez)</span>
+                     </td>
+                  </tr>
+                  <tr class="blue-grey lighten-5">
+                     <th style="font-size: 18px">16:00<br class="hide-on-med-and-up">-16:30</th>
+                     <td>
+                        <span id="schedule-break">Coffee Break</span>
+                     </td>
+                  </tr>
+                  <tr>
+                     <th>16:30<br class="hide-on-med-and-up">-17:00</th>
+                     <td><h5 id="schedule-session">Q&A and Technical discussions</h5></td>
+                  </tr>
+               </tbody>
+            </table>
+         </div>
+
+      </div>
+
+   </div>
+</div>

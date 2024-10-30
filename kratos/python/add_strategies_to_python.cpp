@@ -325,6 +325,7 @@ namespace Kratos:: Python
         py::class_<ResidualBasedAdjointStaticSchemeType, typename ResidualBasedAdjointStaticSchemeType::Pointer, BaseSchemeType>
         (m, "ResidualBasedAdjointStaticScheme")
         .def(py::init<AdjointResponseFunction::Pointer>())
+        .def("SetResponseFunction", &ResidualBasedAdjointStaticSchemeType::SetResponseFunction, py::arg("new_response_function"))
         ;
 
         // Residual Based Adjoint Steady Scheme Type
@@ -520,9 +521,16 @@ namespace Kratos:: Python
 
         auto sparse_space_binder = CreateSpaceInterface< SparseSpaceType >(m,"UblasSparseSpace");
         sparse_space_binder.def("TwoNorm", TwoNorm);
-        //the dot product of two vectors
+        // The dot product of two vectors
         sparse_space_binder.def("Dot", Dot);
         sparse_space_binder.def("TransposeMult", TransposeMult);
+        // Size functions
+        sparse_space_binder.def("Size", &SparseSpaceType::Size);
+        sparse_space_binder.def("Size1", &SparseSpaceType::Size1);
+        sparse_space_binder.def("Size2", &SparseSpaceType::Size2);
+        // Information functions
+        sparse_space_binder.def("IsDistributed", &SparseSpaceType::IsDistributed);
+        sparse_space_binder.def("FastestDirectSolverList", &SparseSpaceType::FastestDirectSolverList);
 
         auto cplx_sparse_space_binder = CreateSpaceInterface< ComplexSparseSpaceType >(m,"UblasComplexSparseSpace");
 
@@ -653,6 +661,8 @@ namespace Kratos:: Python
             .def("GetUseOldStiffnessInFirstIterationFlag", &ResidualBasedNewtonRaphsonStrategyType::GetUseOldStiffnessInFirstIterationFlag)
             .def("SetReformDofSetAtEachStepFlag", &ResidualBasedNewtonRaphsonStrategyType::SetReformDofSetAtEachStepFlag)
             .def("GetReformDofSetAtEachStepFlag", &ResidualBasedNewtonRaphsonStrategyType::GetReformDofSetAtEachStepFlag)
+            .def("GetNonconvergedSolutions", &ResidualBasedNewtonRaphsonStrategyType::GetNonconvergedSolutions)
+            .def("SetUpNonconvergedSolutionsFlag", &ResidualBasedNewtonRaphsonStrategyType::SetUpNonconvergedSolutionsFlag)
             ;
 
         // ARC-LENGTH

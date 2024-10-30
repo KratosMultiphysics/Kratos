@@ -16,12 +16,14 @@
 // External includes
 
 // Project includes
-#include "testing/testing.h"
 #include "spaces/ublas_space.h"
-#include "includes/properties.h"
 #include "containers/model.h"
+#include "includes/properties.h"
 #include "includes/model_part.h"
 #include "utilities/math_utils.h"
+
+// Application includes
+#include "tests/cpp_tests/contact_structural_mechanics_fast_suite.h"
 
 /* GAUSS-LEGENDRE */
 #include "integration/triangle_gauss_legendre_integration_points.h"
@@ -149,7 +151,7 @@ KRATOS_TEST_CASE_IN_SUITE(MassMatrixIntegrationTriangle, KratosContactStructural
     const double tolerance = 1.0e-6;
     for (IndexType i_node = 0; i_node < 3; ++i_node)
         for (IndexType j_node = 0; j_node < 3; ++j_node)
-            KRATOS_CHECK_NEAR(mass_matrix_0(i_node,j_node), mass_matrix_1(i_node,j_node), tolerance);
+            KRATOS_EXPECT_NEAR(mass_matrix_0(i_node,j_node), mass_matrix_1(i_node,j_node), tolerance);
 }
 
 /** 
@@ -251,7 +253,7 @@ KRATOS_TEST_CASE_IN_SUITE(MassMatrixIntegrationQuadrilateral, KratosContactStruc
     const double tolerance = 1.0e-6;
     for (IndexType i_node = 0; i_node < 4; ++i_node)
         for (IndexType j_node = 0; j_node < 4; ++j_node)
-            KRATOS_CHECK_NEAR(mass_matrix_0(i_node,j_node), mass_matrix_1(i_node,j_node), tolerance);
+            KRATOS_EXPECT_NEAR(mass_matrix_0(i_node,j_node), mass_matrix_1(i_node,j_node), tolerance);
 }
 
 /** 
@@ -382,7 +384,7 @@ KRATOS_TEST_CASE_IN_SUITE(MassMatrixIntegrationQuadrilateralDeformed, KratosCont
     const double tolerance = 1.0e-6;
     for (IndexType i_node = 0; i_node < 4; ++i_node)
         for (IndexType j_node = 0; j_node < 4; ++j_node)
-            KRATOS_CHECK_NEAR(mass_matrix_0(i_node,j_node), mass_matrix_1(i_node,j_node), tolerance);
+            KRATOS_EXPECT_NEAR(mass_matrix_0(i_node,j_node), mass_matrix_1(i_node,j_node), tolerance);
     
     array_1d<double, 3> disp_array = ZeroVector(3);
     disp_array[0] = 0.1;
@@ -456,7 +458,7 @@ KRATOS_TEST_CASE_IN_SUITE(MassMatrixIntegrationQuadrilateralDeformed, KratosCont
     
     for (IndexType i_node = 0; i_node < 4; ++i_node)
         for (IndexType j_node = 0; j_node < 4; ++j_node)
-            KRATOS_CHECK_NEAR(mass_matrix_0(i_node,j_node), mass_matrix_1(i_node,j_node), tolerance);
+            KRATOS_EXPECT_NEAR(mass_matrix_0(i_node,j_node), mass_matrix_1(i_node,j_node), tolerance);
     
 }
 
@@ -513,7 +515,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestCheckRotation, KratosContactStructuralMechanicsFas
         const array_1d<double, 3>& coords1 = aux_geometry[i_node].Coordinates();
         const array_1d<double, 3>& coords2 = triangle_0[i_node].Coordinates();
         for (IndexType jdim = 0; jdim < 3; jdim++)
-            KRATOS_CHECK_NEAR(coords1[jdim], coords2[jdim], tolerance);
+            KRATOS_EXPECT_NEAR(coords1[jdim], coords2[jdim], tolerance);
     }
 }
     

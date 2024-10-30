@@ -35,24 +35,6 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitFluidPspgElement<TDim>::Initialize(const ProcessInfo &rCurrentProcessInfo)
-  {
-    KRATOS_TRY;
-
-    // If we are restarting, the constitutive law will be already defined
-    if (mpConstitutiveLaw == nullptr)
-    {
-      const Properties &r_properties = this->GetProperties();
-      KRATOS_ERROR_IF_NOT(r_properties.Has(CONSTITUTIVE_LAW))
-          << "In initialization of Element " << this->Info() << ": No CONSTITUTIVE_LAW defined for property "
-          << r_properties.Id() << "." << std::endl;
-      mpConstitutiveLaw = r_properties[CONSTITUTIVE_LAW]->Clone();
-    }
-
-    KRATOS_CATCH("");
-  }
-
-  template <unsigned int TDim>
   int TwoStepUpdatedLagrangianVPImplicitFluidPspgElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo) const
   {
     KRATOS_TRY;

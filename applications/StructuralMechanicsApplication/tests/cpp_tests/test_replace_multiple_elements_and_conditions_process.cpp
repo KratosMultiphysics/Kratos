@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "testing/testing.h"
+#include "structural_mechanics_fast_suite.h"
 #include "geometries/triangle_3d_3.h"
 #include "containers/model.h"
 
@@ -81,19 +81,19 @@ namespace Kratos
             std::string component_name;
 
             CompareElementsAndConditionsUtility::GetRegisteredName(this_model_part.GetElement(1), component_name);
-            KRATOS_CHECK_EQUAL(component_name, "ShellThinElement3D3N");
+            KRATOS_EXPECT_EQ(component_name, "ShellThinElement3D3N");
 
             CompareElementsAndConditionsUtility::GetRegisteredName(this_model_part.GetElement(2), component_name);
-            KRATOS_CHECK_EQUAL(component_name, "ShellThinElement3D3N");
+            KRATOS_EXPECT_EQ(component_name, "ShellThinElement3D3N");
 
             CompareElementsAndConditionsUtility::GetRegisteredName(this_model_part.GetCondition(1), component_name);
-            KRATOS_CHECK_EQUAL(component_name, "SurfaceLoadCondition3D3N");
+            KRATOS_EXPECT_EQ(component_name, "SurfaceLoadCondition3D3N");
 
             CompareElementsAndConditionsUtility::GetRegisteredName(this_model_part.GetCondition(2), component_name);
-            KRATOS_CHECK_EQUAL(component_name, "SurfaceLoadCondition3D3N");
+            KRATOS_EXPECT_EQ(component_name, "SurfaceLoadCondition3D3N");
         }
 
-        // Does not work because KRATOS_CHECK_EXCEPTION_IS_THROWN works only for errors thrown in serial regions
+        // Does not work because KRATOS_EXPECT_EXCEPTION_IS_THROWN works only for errors thrown in serial regions
         // KRATOS_TEST_CASE_IN_SUITE(ReplaceMultipleElementsAndConditionsProcess2, KratosStructuralMechanicsFastSuite)
         // {
         //     Model current_model;
@@ -110,7 +110,7 @@ namespace Kratos
 
         //     ReplaceMultipleElementsAndConditionsProcess replacement_process(this_model_part, parameters);
 
-        //     KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        //     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         //         replacement_process.Execute(),
         //         "Element3D3N was not defined in the replacement table!"
         //     );
@@ -142,16 +142,16 @@ namespace Kratos
             std::string component_name;
 
             CompareElementsAndConditionsUtility::GetRegisteredName(this_model_part.GetElement(1), component_name);
-            KRATOS_CHECK_EQUAL(component_name, "ShellThinElement3D3N");
+            KRATOS_EXPECT_EQ(component_name, "ShellThinElement3D3N");
 
             CompareElementsAndConditionsUtility::GetRegisteredName(this_model_part.GetElement(2), component_name);
-            KRATOS_CHECK_EQUAL(component_name, "ShellThinElement3D3N");
+            KRATOS_EXPECT_EQ(component_name, "ShellThinElement3D3N");
 
             CompareElementsAndConditionsUtility::GetRegisteredName(this_model_part.GetCondition(1), component_name);
-            KRATOS_CHECK_EQUAL(component_name, "SurfaceLoadCondition3D3N");
+            KRATOS_EXPECT_EQ(component_name, "SurfaceLoadCondition3D3N");
 
             CompareElementsAndConditionsUtility::GetRegisteredName(this_model_part.GetCondition(2), component_name);
-            KRATOS_CHECK_EQUAL(component_name, "SurfaceLoadCondition3D3N");
+            KRATOS_EXPECT_EQ(component_name, "SurfaceLoadCondition3D3N");
         }
 
 
@@ -185,16 +185,16 @@ namespace Kratos
             std::string component_name;
 
             CompareElementsAndConditionsUtility::GetRegisteredName(this_model_part.GetElement(1), component_name);
-            KRATOS_CHECK_EQUAL(component_name, "ShellThinElement3D3N");
+            KRATOS_EXPECT_EQ(component_name, "ShellThinElement3D3N");
 
             CompareElementsAndConditionsUtility::GetRegisteredName(this_model_part.GetElement(2), component_name);
-            KRATOS_CHECK_EQUAL(component_name, "ShellThinElement3D3N");
+            KRATOS_EXPECT_EQ(component_name, "ShellThinElement3D3N");
 
             CompareElementsAndConditionsUtility::GetRegisteredName(this_model_part.GetCondition(1), component_name);
-            KRATOS_CHECK_EQUAL(component_name, "SurfaceLoadCondition3D3N");
+            KRATOS_EXPECT_EQ(component_name, "SurfaceLoadCondition3D3N");
 
             CompareElementsAndConditionsUtility::GetRegisteredName(this_model_part.GetCondition(2), component_name);
-            KRATOS_CHECK_EQUAL(component_name, "SurfaceLoadCondition3D3N");
+            KRATOS_EXPECT_EQ(component_name, "SurfaceLoadCondition3D3N");
         }
 
     } // namespace Testing

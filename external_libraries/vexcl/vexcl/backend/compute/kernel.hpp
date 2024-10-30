@@ -195,19 +195,22 @@ class kernel {
         }
 
         /// Set launch configuration.
-        kernel& config(ndrange blocks, ndrange threads) {
+        kernel& config(ndrange blocks, ndrange threads, size_t shared_memory = 0) {
             const size_t *b = blocks.dim;
             const size_t *t = threads.dim;
 
             g_size = ndrange(b[0] * t[0], b[1] * t[1], b[2] * t[2]);
             w_size = threads;
 
+            if (shared_memory)
+                K.set_arg(argpos++, boost::compute::local_buffer<char>(shared_memory));
+
             return *this;
         }
 
         /// Set launch configuration.
-        kernel& config(size_t blocks, size_t threads) {
-            return config(ndrange(blocks), ndrange(threads));
+        kernel& config(size_t blocks, size_t threads, size_t shared_memory = 0) {
+            return config(ndrange(blocks), ndrange(threads), shared_memory);
         }
 
         size_t preferred_work_group_size_multiple(const boost::compute::command_queue &q) const {

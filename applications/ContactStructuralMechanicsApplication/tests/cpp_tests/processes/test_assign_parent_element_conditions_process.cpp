@@ -15,11 +15,13 @@
 // External includes
 
 // Project includes
-#include "testing/testing.h"
 #include "containers/model.h"
-#include "contact_structural_mechanics_application_variables.h"
 
-/* Processes */
+// Application includes
+#include "contact_structural_mechanics_application_variables.h"
+#include "tests/cpp_tests/contact_structural_mechanics_fast_suite.h"
+
+// Processes
 #include "custom_processes/assign_parent_element_conditions_process.h"
 
 namespace Kratos::Testing 
@@ -52,10 +54,10 @@ KRATOS_TEST_CASE_IN_SUITE(AssignParentElementConditionsProcess1, KratosContactSt
     AssignParentElementConditionsProcess(r_model_part, r_model_part).Execute();
 
     // Check the parent element
-    KRATOS_CHECK_EQUAL(p_cond1->GetValue(PARENT_ELEMENT), p_element);
-    KRATOS_CHECK_EQUAL(p_cond2->GetValue(PARENT_ELEMENT), p_element);
-    KRATOS_CHECK_EQUAL(p_cond3->GetValue(PARENT_ELEMENT), p_element);
-    KRATOS_CHECK_EQUAL(p_cond4->GetValue(PARENT_ELEMENT), p_element);
+    KRATOS_EXPECT_EQ(p_cond1->GetValue(PARENT_ELEMENT), p_element);
+    KRATOS_EXPECT_EQ(p_cond2->GetValue(PARENT_ELEMENT), p_element);
+    KRATOS_EXPECT_EQ(p_cond3->GetValue(PARENT_ELEMENT), p_element);
+    KRATOS_EXPECT_EQ(p_cond4->GetValue(PARENT_ELEMENT), p_element);
 }
 
 }  // namespace Kratos::Testing.
