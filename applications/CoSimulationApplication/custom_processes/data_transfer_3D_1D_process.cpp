@@ -34,6 +34,69 @@ using DistanceIterator = DistanceVector::iterator;                              
 using BucketType = Bucket<3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>; \
 using KDTree = Tree<KDTreePartition<BucketType>>;
 
+/**
+ * @brief This method determines the 1D model part
+ * @param rFirstModelPart The first ModelPart
+ * @param rSecondModelPart The second ModelPart
+ * @return The 1D model part
+ */
+ModelPart& Determine1DModelPart(ModelPart& rFirstModelPart, ModelPart& rSecondModelPart)
+{
+    // In MPI could be a bit troublesome
+    if (rFirstModelPart.IsDistributed()) { 
+        KRATOS_ERROR << "Not compatible with MPI" << std::endl;
+    } else { // In serial we just check model part has 1D entities (local space)
+        // Determine if the modelparts have entities
+
+        // First model part
+        if (rFirstModelPart.NumberOfElements() > 0 || rFirstModelPart.NumberOfConditions() > 0 ) {
+            if (rFirstModelPart.NumberOfConditions() > 0) {
+                if (rFirstModelPart.ConditionsBegin()->GetGeometry().LocalSpaceDimension() == 1) {
+                    return rFirstModelPart;
+                }
+            } else {
+                if (rFirstModelPart.ElementsBegin()->GetGeometry().LocalSpaceDimension() == 1) {
+                    return rFirstModelPart;
+                }
+            }
+        }
+
+        // Second model part
+        if (rSecondModelPart.NumberOfElements() > 0 || rSecondModelPart.NumberOfConditions() > 0 ) {
+            if (rSecondModelPart.NumberOfConditions() > 0) {
+                if (rSecondModelPart.ConditionsBegin()->GetGeometry().LocalSpaceDimension() == 1) {
+                    return rSecondModelPart;
+                }
+            } else {
+                if (rSecondModelPart.ElementsBegin()->GetGeometry().LocalSpaceDimension() == 1) {
+                    return rSecondModelPart;
+                }
+            }
+        }
+    }
+
+    KRATOS_ERROR << "Impossible to detect 1D model part" << std::endl;
+    return rFirstModelPart;
+}
+
+/**
+ * @brief This method determines the 3D model part
+ * @details The counter part of the previous method
+ * @param rFirstModelPart The first ModelPart
+ * @param rSecondModelPart The second ModelPart
+ * @return The 3D model part 
+ */
+ModelPart& Determine3DModelPart(ModelPart& rFirstModelPart, ModelPart& rSecondModelPart)
+{
+    // It is the counter part of the previous method
+    ModelPart* p_1d_model_part = &Determine1DModelPart(rFirstModelPart, rSecondModelPart);
+    if (p_1d_model_part == &rFirstModelPart) {
+        return rSecondModelPart;
+    } else {
+        return rFirstModelPart;
+    }
+}
+
 /***********************************************************************************/
 /***********************************************************************************/
 
