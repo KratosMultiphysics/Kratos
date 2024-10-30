@@ -39,10 +39,9 @@ void AdvanceInTimeHighCycleFatigueProcess::Execute()
     bool cycle_found = false;
     std::vector<double> damage;
     std::vector<double> previous_cycle_damage;
-    std::vector<double>  cycles_to_failure_element;
-    std::vector<int>  local_number_of_cycles;
+    std::vector<double> cycles_to_failure_element;
+    std::vector<int> local_number_of_cycles;
     
-    process_info[NO_LINEARITY_ACTIVATION] = false;
     process_info[ADVANCE_STRATEGY_APPLIED] = false;
 
     this->CyclicLoad();  //This method checks if a cyclic load is being applied.
@@ -94,6 +93,7 @@ void AdvanceInTimeHighCycleFatigueProcess::Execute()
                 process_info[ADVANCE_STRATEGY_APPLIED] = true;
             }
         }
+        process_info[NO_LINEARITY_ACTIVATION] = false;
     }
 }
 
