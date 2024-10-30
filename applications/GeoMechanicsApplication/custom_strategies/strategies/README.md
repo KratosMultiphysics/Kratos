@@ -56,7 +56,7 @@ maximum number of iterations is the user input, "max_piping_iterations".
 
 The typical case is the following. Initially, the equilibrium pipe height is small and quickly the pipe height is
 increased above the equilibrium height. At this moment PIPE_EROSION is set to true. Then due to the flow development,
-the water pressure gradient decreases that leads to a higher value of the equilibrium height. As a result the
+the water pressure gradient decreases, which leads to a higher value of the equilibrium height. As a result the
 equilibrium pipe height grows faster than the pipe height. When both of the heights become equal, the iterative process
 is stopped.
 
