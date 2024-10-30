@@ -451,6 +451,7 @@ private:
     double mInitialTherhold = 0.0; // Initial damage threshold
     bool mFirstCycleNonlinearity = true; // Indicator of first nonlinearity
     double mRelaxationFactor = 1.0; // Relaxation factor of the residual stresses
+    double mStressConcentrationFactor = 1.0; // Stress concentratation factor applied to the maximum stress
 
 
     ///@}
@@ -498,6 +499,7 @@ private:
         rSerializer.save("InitialTherhold", mInitialTherhold);
         rSerializer.save("FirstCycleNonlinearity", mFirstCycleNonlinearity);
         rSerializer.save("RelaxationFactor", mRelaxationFactor);
+        rSerializer.save("StressConcentrationFactor", mStressConcentrationFactor);
     }
 
     void load(Serializer &rSerializer) override
@@ -529,6 +531,7 @@ private:
         rSerializer.load("InitialTherhold", mInitialTherhold);
         rSerializer.save("FirstCycleNonlinearity", mFirstCycleNonlinearity);
         rSerializer.load("RelaxationFactor", mRelaxationFactor);
+        rSerializer.load("StressConcentrationFactor", mStressConcentrationFactor);
     }
     ///@}
 

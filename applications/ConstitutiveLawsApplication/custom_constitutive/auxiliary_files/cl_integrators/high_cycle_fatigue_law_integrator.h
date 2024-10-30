@@ -204,6 +204,24 @@ public:
     }
 
     /**
+     * @brief This method computes the stress concentration factor applied to the maximum stress
+     * @param MaxStress Signed maximum stress in the current cycle.
+     * @param UltimateStress Material ultimate stress.
+     * @param rMaterialParameters Material properties.
+     * @param rStressConcentrationFactor Stress concentration factor
+     */
+
+    static void CalculateStressConcentrationFactor(const double MaxStress,
+                                                    const double UltimateStress,
+                                                    const Properties& rMaterialParameters,    
+                                                    double& rStressConcentrationFactor)
+    {       
+        const Vector& r_fatigue_coefficients = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS];
+        const double NominalStress = (r_fatigue_coefficients.size() > 9) ? r_fatigue_coefficients[9] * UltimateStress : MaxStress;
+        rStressConcentrationFactor = (MaxStress < NominalStress) ? 1.0 : MaxStress / NominalStress;
+    }
+
+    /**
      * @brief This method computes the relaxation factor of the residual stresses
      * @param UniaxialStress Equivalent stress of the applied load.
      * @param UniaxialResidualStress Initial equivalent stress.
@@ -213,9 +231,9 @@ public:
      */
 
     static void CalculateRelaxationFactor(const double UniaxialStress,
-                                          const double UniaxialResidualStress,    
-                                           const double InitialThreshold,
-                                           double& rRelaxationFactor)
+                                            const double UniaxialResidualStress,    
+                                            const double InitialThreshold,
+                                            double& rRelaxationFactor)
     {       
         rRelaxationFactor = (rRelaxationFactor > 1.0) ? 1.0 : (-0.05276 * ((UniaxialStress + UniaxialResidualStress) / (InitialThreshold)) + 0.487);
         // rRelaxationFactor = (InitialThreshold - UniaxialStress) / UniaxialResidualStress;  // Relaxation factor proposed by Gustafsson et al. in High cycle fatigue life estimation of punched and trimmed specimens considering residual stress and surface roughness
@@ -235,7 +253,7 @@ public:
      * @param rAlphat Internal variable of the fatigue model.
      * @param rN_f Number of cycles to failure.
      */
-    static void CalculateFatigueParameters(const double MaxStress,
+    static void CalculateFatigueParameters(double MaxStress,
                                             const double UniaxialResidualStress,
                                             const double UltimateStress,
                                             const double ReversionFactor,
@@ -243,6 +261,7 @@ public:
                                             unsigned int LocalNumberOfCycles,
                                             const Properties& rMaterialParameters,
                                             const ConstitutiveLaw::GeometryType& rElementGeometry,
+                                            const double StressConcentrationFactor,
                                             double& rB0,
                                             double& rSth,
                                             double& rAlphat,
@@ -262,14 +281,14 @@ public:
         const double AUXR2 = r_fatigue_coefficients[6];
         const double FatigueReductionFactorSmoothness = (r_fatigue_coefficients.size() > 7) ? r_fatigue_coefficients[7] : 1.0;
         const double c_stress_concentration = (r_fatigue_coefficients.size() > 8) ? r_fatigue_coefficients[8] : 6.0;
-        const double NominalStress = (r_fatigue_coefficients.size() > 9) ? r_fatigue_coefficients[9] * UltimateStress : MaxStress;
+        // const double NominalStress = (r_fatigue_coefficients.size() > 9) ? r_fatigue_coefficients[9] * UltimateStress : MaxStress;
 
         // Reduction factors applied to the fatigue limit
         const double k_residual_stress = (!UniaxialResidualStress) ? 1.0 : (1 - ((UniaxialResidualStress + (0.5 + 0.5 * ReversionFactor) * MaxStress) / UltimateStress)) * std::abs((0.5 - 0.5 * ReversionFactor)); // Goodman mean stress correction
         // double const k_residual_stress = 1 - std::pow(((UniaxialResidualStress + (0.5 + 0.5 * ReversionFactor) * MaxStress) / UltimateStress), 2.0); // Gerber mean stress correction
         const double k_roughness = (!rElementGeometry.Has(SURFACE_ROUGHNESS)) ? 1.0 : 1 - rElementGeometry.GetValue(MATERIAL_PARAMETER_C1)
                      * std::log10(rElementGeometry.GetValue(SURFACE_ROUGHNESS)) * std::log10((2 * UltimateStress) / rElementGeometry.GetValue(MATERIAL_PARAMETER_C2));
-        const double k_stress_concentration = (MaxStress < NominalStress) ? 1.0 : MaxStress / NominalStress;
+        // const double StressConcentrationFactor = (MaxStress < NominalStress) ? 1.0 : MaxStress / NominalStress;
         double h_stress_concentration = (1.0 / (6.0 - c_stress_concentration)) * std::log10(LocalNumberOfCycles / std::pow(10, c_stress_concentration));
         
         if (LocalNumberOfCycles < std::pow(10, c_stress_concentration)){
@@ -286,7 +305,8 @@ public:
 			rAlphat = ALFAF - (0.5 + 0.5 / (ReversionFactor)) * AUXR2;
         }
 
-        rSth *= k_residual_stress * std::pow(k_stress_concentration, (1 - h_stress_concentration)) * k_roughness;
+        rSth *= k_residual_stress * k_roughness;
+        MaxStress /= std::pow(StressConcentrationFactor, (1 - h_stress_concentration));
 
         const double square_betaf = std::pow(BETAF, 2.0);
 

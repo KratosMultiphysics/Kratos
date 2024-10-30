@@ -97,6 +97,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
     double max_stress_relative_error = mMaxStressRelativeError;
     unsigned int global_number_of_cycles = mNumberOfCyclesGlobal;
     unsigned int local_number_of_cycles = mNumberOfCyclesLocal;
+    double stress_concentration_factor = mStressConcentrationFactor;
     double B0 = mFatigueReductionParameter;
     bool new_cycle = false;
     double s_th = mThresholdStress;
@@ -118,7 +119,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
     this->template AddInitialStressVectorContribution<array_1d<double, VoigtSize>>(residual_stress_vector);
     TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(residual_stress_vector, r_strain_vector, uniaxial_residual_stress, rValues);
     uniaxial_residual_stress = (rValues.GetElementGeometry().Has(INITIAL_STRESS_VECTOR)) ? uniaxial_residual_stress : 0.0;
-    double load_direction_residual_stress = residual_stress_vector[1];
+    // double load_direction_residual_stress = residual_stress_vector[1];
 
     if (((time - time_offset) % load_increments_per_cycle) == 0 && (time - time_offset) > 0) {
 
@@ -157,6 +158,14 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
         double alphat;
         double threshold = this->GetThreshold() * (1 - this->GetDamage());
         HighCycleFatigueLawIntegrator<6>::CalculateUltimateStress(ultimate_stress, rValues.GetMaterialProperties());
+        
+        if (local_number_of_cycles < 3){
+            HighCycleFatigueLawIntegrator<6>::CalculateStressConcentrationFactor(
+                max_stress,
+                ultimate_stress,
+                rValues.GetMaterialProperties(),  
+                stress_concentration_factor);
+        }
 
         HighCycleFatigueLawIntegrator<6>::CalculateFatigueParameters(
             max_stress,
@@ -167,6 +176,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
             local_number_of_cycles,
             rValues.GetMaterialProperties(),
             rValues.GetElementGeometry(),
+            stress_concentration_factor,
             B0,
             s_th,
             alphat,
@@ -215,6 +225,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
             local_number_of_cycles,
             rValues.GetMaterialProperties(),
             rValues.GetElementGeometry(),
+            stress_concentration_factor,
             B0,
             s_th,
             alphat,
@@ -260,7 +271,8 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
     mNewCycleIndicator = new_cycle;
     mThresholdStress = s_th;
     mRelaxationFactor = relaxation_factor;
-    mReferenceDamage = reference_damage;  
+    mReferenceDamage = reference_damage; 
+    mStressConcentrationFactor = stress_concentration_factor;
 }
 
 
