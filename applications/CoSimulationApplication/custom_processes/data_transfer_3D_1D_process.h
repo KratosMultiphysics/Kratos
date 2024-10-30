@@ -219,7 +219,7 @@ public:
         );
 
     /// Destructor.
-    ~DataTransfer3D1DProcess() override;
+    ~DataTransfer3D1DProcess() override = default;
 
     ///@}
     ///@name Operators
