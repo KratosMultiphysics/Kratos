@@ -147,7 +147,6 @@ class Test3D1DDataTransferProcessTorus(KratosUnittest.TestCase):
     def tearDown(self):
         pass
 
-    @KratosUnittest.skipIf(KM.IsDistributedRun(), "This test is designed for serial runs only.")
     def test_torus_from_1d_to_3d(self):
 
         # Data transfer
