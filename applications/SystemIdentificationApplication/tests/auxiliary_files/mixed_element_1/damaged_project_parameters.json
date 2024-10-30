@@ -17,7 +17,7 @@
         "analysis_type": "non_linear",
         "model_import_settings": {
             "input_type": "mdpa",
-            "input_filename": "auxiliary_files/mixed_element_1/processed_truss_example"
+            "input_filename": "auxiliary_files/mixed_element_1/model_part"
         },
         "material_import_settings": {
             "materials_filename": "auxiliary_files/mixed_element_1/damaged_structural_materials.json"

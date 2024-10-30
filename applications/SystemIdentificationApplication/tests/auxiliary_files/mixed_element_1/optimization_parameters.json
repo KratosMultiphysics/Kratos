@@ -9,7 +9,7 @@
             "settings": {
                 "model_part_name": "AdjointStructure",
                 "domain_size": 3,
-                "input_filename": "auxiliary_files/mixed_element_1/processed_truss_example"
+                "input_filename": "auxiliary_files/mixed_element_1/model_part"
             }
         },
         {
