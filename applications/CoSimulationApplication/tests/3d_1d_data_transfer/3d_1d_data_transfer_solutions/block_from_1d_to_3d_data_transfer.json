@@ -1,2375 +1,405 @@
 {
-    "TIME": [
+  "TIME": [
+    0.0
+  ],
+  "NODE_1": {
+    "TEMPERATURE": [
+      -5.000000000000016
+    ]
+  },
+  "NODE_2": {
+    "TEMPERATURE": [
+      -5.000000000000016
+    ]
+  },
+  "NODE_3": {
+    "TEMPERATURE": [
+      -4.744114511400073
+    ]
+  },
+  "NODE_4": {
+    "TEMPERATURE": [
+      -4.632766952099969
+    ]
+  },
+  "NODE_5": {
+    "TEMPERATURE": [
+      -4.8753320696999936
+    ]
+  },
+  "NODE_6": {
+    "TEMPERATURE": [
+      -5.000000000000016
+    ]
+  },
+  "NODE_7": {
+    "TEMPERATURE": [
+      -5.000000000000016
+    ]
+  },
+  "NODE_8": {
+    "TEMPERATURE": [
+      -4.421271446899998
+    ]
+  },
+  "NODE_9": {
+    "TEMPERATURE": [
+      -4.291196363199978
+    ]
+  },
+  "NODE_10": {
+    "TEMPERATURE": [
+      -4.339458637699915
+    ]
+  },
+  "NODE_11": {
+    "TEMPERATURE": [
+      -4.378483632599995
+    ]
+  },
+  "NODE_12": {
+    "TEMPERATURE": [
+      -4.802060292300001
+    ]
+  },
+  "NODE_13": {
+    "TEMPERATURE": [
+      -4.564931462600029
+    ]
+  },
+  "NODE_14": {
+    "TEMPERATURE": [
+      -4.460684542800019
+    ]
+  },
+  "NODE_15": {
+    "TEMPERATURE": [
+      -4.084322500200041
+    ]
+  },
+  "NODE_16": {
+    "TEMPERATURE": [
+      -4.2068619867999315
+    ]
+  },
+  "NODE_17": {
+    "TEMPERATURE": [
+      -4.028861061700022
+    ]
+  },
+  "NODE_18": {
+    "TEMPERATURE": [
+      -4.130189538300072
+    ]
+  },
+  "NODE_19": {
+    "TEMPERATURE": [
+      -4.1176470587999905
+    ]
+  },
+  "NODE_20": {
+    "TEMPERATURE": [
+      -3.9447709967999094
+    ]
+  },
+  "NODE_21": {
+    "TEMPERATURE": [
+      -3.803778712400012
+    ]
+  },
+  "NODE_22": {
+    "TEMPERATURE": [
+      -3.8450816702999906
+    ]
+  },
+  "NODE_23": {
+    "TEMPERATURE": [
+      -3.629007628499963
+    ]
+  },
+  "NODE_24": {
+    "TEMPERATURE": [
+      -3.674604974400008
+    ]
+  },
+  "NODE_25": {
+    "TEMPERATURE": [
+      -3.6074842590999663
+    ]
+  },
+  "NODE_26": {
+    "TEMPERATURE": [
+      -3.354974470999953
+    ]
+  },
+  "NODE_27": {
+    "TEMPERATURE": [
+      -3.4562997361999694
+    ]
+  },
+  "NODE_28": {
+    "TEMPERATURE": [
+      -3.366254742499978
+    ]
+  },
+  "NODE_29": {
+    "TEMPERATURE": [
+      -3.1500500928000235
+    ]
+  },
+  "NODE_30": {
+    "TEMPERATURE": [
+      -3.188123192000007
+    ]
+  },
+  "NODE_31": {
+    "TEMPERATURE": [
+      -3.0882352940999827
+    ]
+  },
+  "NODE_32": {
+    "TEMPERATURE": [
+      -2.949907332800022
+    ]
+  },
+  "NODE_33": {
+    "TEMPERATURE": [
+      -3.0882352940999827
+    ]
+  },
+  "NODE_34": {
+    "TEMPERATURE": [
+      -2.9449284529000144
+    ]
+  },
+  "NODE_35": {
+    "TEMPERATURE": [
+      -2.8701266479999834
+    ]
+  },
+  "NODE_36": {
+    "TEMPERATURE": [
+      -2.798603369199957
+    ]
+  },
+  "NODE_37": {
+    "TEMPERATURE": [
+      -2.7955905052000016
+    ]
+  },
+  "NODE_38": {
+    "TEMPERATURE": [
+      -2.7090064435999954
+    ]
+  },
+  "NODE_39": {
+    "TEMPERATURE": [
+      -2.650428893000013
+    ]
+  },
+  "NODE_40": {
+    "TEMPERATURE": [
+      -2.519972225799978
+    ]
+  },
+  "NODE_41": {
+    "TEMPERATURE": [
+      -2.619949821899999
+    ]
+  },
+  "NODE_42": {
+    "TEMPERATURE": [
+      -2.4248122609999996
+    ]
+  },
+  "NODE_43": {
+    "TEMPERATURE": [
+      -2.324939933800011
+    ]
+  },
+  "NODE_44": {
+    "TEMPERATURE": [
+      -2.325036540399993
+    ]
+  },
+  "NODE_45": {
+    "TEMPERATURE": [
+      -2.185928188099998
+    ]
+  },
+  "NODE_46": {
+    "TEMPERATURE": [
+      -2.062291079600019
+    ]
+  },
+  "NODE_47": {
+    "TEMPERATURE": [
+      -2.0993851876000025
+    ]
+  },
+  "NODE_48": {
+    "TEMPERATURE": [
+      -1.9251963758999755
+    ]
+  },
+  "NODE_49": {
+    "TEMPERATURE": [
+      -1.8476097829999927
+    ]
+  },
+  "NODE_50": {
+    "TEMPERATURE": [
+      -1.7928026980999978
+    ]
+  },
+  "NODE_51": {
+    "TEMPERATURE": [
+      -1.746725007799981
+    ]
+  },
+  "NODE_52": {
+    "TEMPERATURE": [
+      -1.6217611272999952
+    ]
+  },
+  "NODE_53": {
+    "TEMPERATURE": [
+      -1.5957714246999872
+    ]
+  },
+  "NODE_54": {
+    "TEMPERATURE": [
+      -1.5383051286999883
+    ]
+  },
+  "NODE_55": {
+    "TEMPERATURE": [
+      -1.515820087999995
+    ]
+  },
+  "NODE_56": {
+    "TEMPERATURE": [
+      -1.409387471
+    ]
+  },
+  "NODE_57": {
+    "TEMPERATURE": [
+      -1.347134889900002
+    ]
+  },
+  "NODE_58": {
+    "TEMPERATURE": [
+      -1.2601791011999965
+    ]
+  },
+  "NODE_59": {
+    "TEMPERATURE": [
+      -1.1128282094999995
+    ]
+  },
+  "NODE_60": {
+    "TEMPERATURE": [
+      -1.1272310391999967
+    ]
+  },
+  "NODE_61": {
+    "TEMPERATURE": [
+      -1.1142290547000029
+    ]
+  },
+  "NODE_62": {
+    "TEMPERATURE": [
+      -1.013403710499997
+    ]
+  },
+  "NODE_63": {
+    "TEMPERATURE": [
+      -0.9300817773999981
+    ]
+  },
+  "NODE_64": {
+    "TEMPERATURE": [
+      -0.8758774109999918
+    ]
+  },
+  "NODE_65": {
+    "TEMPERATURE": [
+      -0.868314934999993
+    ]
+  },
+  "NODE_66": {
+    "TEMPERATURE": [
+      -0.7461992327999923
+    ]
+  },
+  "NODE_67": {
+    "TEMPERATURE": [
+      -0.6945563736999933
+    ]
+  },
+  "NODE_68": {
+    "TEMPERATURE": [
+      -0.6560439909000009
+    ]
+  },
+  "NODE_69": {
+    "TEMPERATURE": [
+      -0.6084473629999976
+    ]
+  },
+  "NODE_70": {
+    "TEMPERATURE": [
+      -0.5941082989999897
+    ]
+  },
+  "NODE_71": {
+    "TEMPERATURE": [
+      -0.45859261559999875
+    ]
+  },
+  "NODE_72": {
+    "TEMPERATURE": [
+      -0.37149917809999305
+    ]
+  },
+  "NODE_73": {
+    "TEMPERATURE": [
+      -0.3910223169999885
+    ]
+  },
+  "NODE_74": {
+    "TEMPERATURE": [
+      -0.20463118699999838
+    ]
+  },
+  "NODE_75": {
+    "TEMPERATURE": [
+      -0.17408453329999468
+    ]
+  },
+  "NODE_76": {
+    "TEMPERATURE": [
+      -0.12089350139999472
+    ]
+  },
+  "NODE_77": {
+    "TEMPERATURE": [
       0.0
-    ],
-    "NODE_1": {
-      "TEMPERATURE": [
-        5.0
-      ]
-    },
-    "NODE_2": {
-      "TEMPERATURE": [
-        4.7058823529
-      ]
-    },
-    "NODE_3": {
-      "TEMPERATURE": [
-        5.0
-      ]
-    },
-    "NODE_4": {
-      "TEMPERATURE": [
-        5.0
-      ]
-    },
-    "NODE_5": {
-      "TEMPERATURE": [
-        4.739950307
-      ]
-    },
-    "NODE_6": {
-      "TEMPERATURE": [
-        4.5824496184
-      ]
-    },
-    "NODE_7": {
-      "TEMPERATURE": [
-        4.5588235294
-      ]
-    },
-    "NODE_8": {
-      "TEMPERATURE": [
-        4.7729679317
-      ]
-    },
-    "NODE_9": {
-      "TEMPERATURE": [
-        -5.000000000000016
-      ]
-    },
-    "NODE_10": {
-      "TEMPERATURE": [
-        -5.000000000000016
-      ]
-    },
-    "NODE_11": {
-      "TEMPERATURE": [
-        4.704998638
-      ]
-    },
-    "NODE_12": {
-      "TEMPERATURE": [
-        4.704998638
-      ]
-    },
-    "NODE_13": {
-      "TEMPERATURE": [
-        4.4117647059
-      ]
-    },
-    "NODE_14": {
-      "TEMPERATURE": [
-        4.4472405325
-      ]
-    },
-    "NODE_15": {
-      "TEMPERATURE": [
-        5.0
-      ]
-    },
-    "NODE_16": {
-      "TEMPERATURE": [
-        5.0
-      ]
-    },
-    "NODE_17": {
-      "TEMPERATURE": [
-        4.5059928135
-      ]
-    },
-    "NODE_18": {
-      "TEMPERATURE": [
-        -4.744114511400073
-      ]
-    },
-    "NODE_19": {
-      "TEMPERATURE": [
-        4.5879443787
-      ]
-    },
-    "NODE_20": {
-      "TEMPERATURE": [
-        4.4073461314
-      ]
-    },
-    "NODE_21": {
-      "TEMPERATURE": [
-        4.7769721041
-      ]
-    },
-    "NODE_22": {
-      "TEMPERATURE": [
-        4.2647058824
-      ]
-    },
-    "NODE_23": {
-      "TEMPERATURE": [
-        4.2647058824
-      ]
-    },
-    "NODE_24": {
-      "TEMPERATURE": [
-        4.4073461314
-      ]
-    },
-    "NODE_25": {
-      "TEMPERATURE": [
-        4.5376949141
-      ]
-    },
-    "NODE_26": {
-      "TEMPERATURE": [
-        -4.632766952099969
-      ]
-    },
-    "NODE_27": {
-      "TEMPERATURE": [
-        -4.8753320696999936
-      ]
-    },
-    "NODE_28": {
-      "TEMPERATURE": [
-        4.8178979523
-      ]
-    },
-    "NODE_29": {
-      "TEMPERATURE": [
-        4.5824496184
-      ]
-    },
-    "NODE_30": {
-      "TEMPERATURE": [
-        4.5588235294
-      ]
-    },
-    "NODE_31": {
-      "TEMPERATURE": [
-        4.1176470588
-      ]
-    },
-    "NODE_32": {
-      "TEMPERATURE": [
-        -5.000000000000016
-      ]
-    },
-    "NODE_33": {
-      "TEMPERATURE": [
-        -5.000000000000016
-      ]
-    },
-    "NODE_34": {
-      "TEMPERATURE": [
-        4.2202737654
-      ]
-    },
-    "NODE_35": {
-      "TEMPERATURE": [
-        -4.421271446899998
-      ]
-    },
-    "NODE_36": {
-      "TEMPERATURE": [
-        4.8023751686
-      ]
-    },
-    "NODE_37": {
-      "TEMPERATURE": [
-        -4.291196363199978
-      ]
-    },
-    "NODE_38": {
-      "TEMPERATURE": [
-        -4.339458637699915
-      ]
-    },
-    "NODE_39": {
-      "TEMPERATURE": [
-        -4.378483632599995
-      ]
-    },
-    "NODE_40": {
-      "TEMPERATURE": [
-        -4.802060292300001
-      ]
-    },
-    "NODE_41": {
-      "TEMPERATURE": [
-        4.1176470588
-      ]
-    },
-    "NODE_42": {
-      "TEMPERATURE": [
-        -4.564931462600029
-      ]
-    },
-    "NODE_43": {
-      "TEMPERATURE": [
-        4.5609782086
-      ]
-    },
-    "NODE_44": {
-      "TEMPERATURE": [
-        4.7247900184
-      ]
-    },
-    "NODE_45": {
-      "TEMPERATURE": [
-        5.0
-      ]
-    },
-    "NODE_46": {
-      "TEMPERATURE": [
-        5.0
-      ]
-    },
-    "NODE_47": {
-      "TEMPERATURE": [
-        4.1176470588
-      ]
-    },
-    "NODE_48": {
-      "TEMPERATURE": [
-        4.3851404879
-      ]
-    },
-    "NODE_49": {
-      "TEMPERATURE": [
-        4.1176470588
-      ]
-    },
-    "NODE_50": {
-      "TEMPERATURE": [
-        4.7058823529
-      ]
-    },
-    "NODE_51": {
-      "TEMPERATURE": [
-        4.7058823529
-      ]
-    },
-    "NODE_52": {
-      "TEMPERATURE": [
-        4.2647058824
-      ]
-    },
-    "NODE_53": {
-      "TEMPERATURE": [
-        4.2647058824
-      ]
-    },
-    "NODE_54": {
-      "TEMPERATURE": [
-        5.0
-      ]
-    },
-    "NODE_55": {
-      "TEMPERATURE": [
-        5.0
-      ]
-    },
-    "NODE_56": {
-      "TEMPERATURE": [
-        4.325030094
-      ]
-    },
-    "NODE_57": {
-      "TEMPERATURE": [
-        3.9705882353
-      ]
-    },
-    "NODE_58": {
-      "TEMPERATURE": [
-        3.9705882353
-      ]
-    },
-    "NODE_59": {
-      "TEMPERATURE": [
-        -4.460684542800019
-      ]
-    },
-    "NODE_60": {
-      "TEMPERATURE": [
-        -4.084322500200041
-      ]
-    },
-    "NODE_61": {
-      "TEMPERATURE": [
-        4.5824496184
-      ]
-    },
-    "NODE_62": {
-      "TEMPERATURE": [
-        4.5588235294
-      ]
-    },
-    "NODE_63": {
-      "TEMPERATURE": [
-        3.9474266099
-      ]
-    },
-    "NODE_64": {
-      "TEMPERATURE": [
-        4.1176470588
-      ]
-    },
-    "NODE_65": {
-      "TEMPERATURE": [
-        4.630303962
-      ]
-    },
-    "NODE_66": {
-      "TEMPERATURE": [
-        -4.2068619867999315
-      ]
-    },
-    "NODE_67": {
-      "TEMPERATURE": [
-        4.8752258563
-      ]
-    },
-    "NODE_68": {
-      "TEMPERATURE": [
-        4.704998638
-      ]
-    },
-    "NODE_69": {
-      "TEMPERATURE": [
-        4.704998638
-      ]
-    },
-    "NODE_70": {
-      "TEMPERATURE": [
-        4.4117647059
-      ]
-    },
-    "NODE_71": {
-      "TEMPERATURE": [
-        4.4117647059
-      ]
-    },
-    "NODE_72": {
-      "TEMPERATURE": [
-        -4.028861061700022
-      ]
-    },
-    "NODE_73": {
-      "TEMPERATURE": [
-        4.3474004064
-      ]
-    },
-    "NODE_74": {
-      "TEMPERATURE": [
-        3.8235294118
-      ]
-    },
-    "NODE_75": {
-      "TEMPERATURE": [
-        -4.130189538300072
-      ]
-    },
-    "NODE_76": {
-      "TEMPERATURE": [
-        5.0
-      ]
-    },
-    "NODE_77": {
-      "TEMPERATURE": [
-        5.0
-      ]
-    },
-    "NODE_78": {
-      "TEMPERATURE": [
-        -4.1176470587999905
-      ]
-    },
-    "NODE_79": {
-      "TEMPERATURE": [
-        3.8239885702
-      ]
-    },
-    "NODE_80": {
-      "TEMPERATURE": [
-        4.4073461314
-      ]
-    },
-    "NODE_81": {
-      "TEMPERATURE": [
-        3.9705882353
-      ]
-    },
-    "NODE_82": {
-      "TEMPERATURE": [
-        3.9705882353
-      ]
-    },
-    "NODE_83": {
-      "TEMPERATURE": [
-        4.2647058824
-      ]
-    },
-    "NODE_84": {
-      "TEMPERATURE": [
-        4.2647058824
-      ]
-    },
-    "NODE_85": {
-      "TEMPERATURE": [
-        4.4073461314
-      ]
-    },
-    "NODE_86": {
-      "TEMPERATURE": [
-        3.824906887
-      ]
-    },
-    "NODE_87": {
-      "TEMPERATURE": [
-        4.4117647059
-      ]
-    },
-    "NODE_88": {
-      "TEMPERATURE": [
-        3.824906887
-      ]
-    },
-    "NODE_89": {
-      "TEMPERATURE": [
-        4.5824496184
-      ]
-    },
-    "NODE_90": {
-      "TEMPERATURE": [
-        4.5588235294
-      ]
-    },
-    "NODE_91": {
-      "TEMPERATURE": [
-        4.1176470588
-      ]
-    },
-    "NODE_92": {
-      "TEMPERATURE": [
-        4.1176470588
-      ]
-    },
-    "NODE_93": {
-      "TEMPERATURE": [
-        -3.9447709967999094
-      ]
-    },
-    "NODE_94": {
-      "TEMPERATURE": [
-        -3.803778712400012
-      ]
-    },
-    "NODE_95": {
-      "TEMPERATURE": [
-        -3.8450816702999906
-      ]
-    },
-    "NODE_96": {
-      "TEMPERATURE": [
-        3.6764705882
-      ]
-    },
-    "NODE_97": {
-      "TEMPERATURE": [
-        3.6764705882
-      ]
-    },
-    "NODE_98": {
-      "TEMPERATURE": [
-        4.1176470588
-      ]
-    },
-    "NODE_99": {
-      "TEMPERATURE": [
-        3.8239885702
-      ]
-    },
-    "NODE_100": {
-      "TEMPERATURE": [
-        3.7854627538
-      ]
-    },
-    "NODE_101": {
-      "TEMPERATURE": [
-        4.0472146939
-      ]
-    },
-    "NODE_102": {
-      "TEMPERATURE": [
-        5.0
-      ]
-    },
-    "NODE_103": {
-      "TEMPERATURE": [
-        4.1176470588
-      ]
-    },
-    "NODE_104": {
-      "TEMPERATURE": [
-        4.1176470588
-      ]
-    },
-    "NODE_105": {
-      "TEMPERATURE": [
-        4.7058823529
-      ]
-    },
-    "NODE_106": {
-      "TEMPERATURE": [
-        4.2647058824
-      ]
-    },
-    "NODE_107": {
-      "TEMPERATURE": [
-        4.2647058824
-      ]
-    },
-    "NODE_108": {
-      "TEMPERATURE": [
-        3.8239885702
-      ]
-    },
-    "NODE_109": {
-      "TEMPERATURE": [
-        3.9705882353
-      ]
-    },
-    "NODE_110": {
-      "TEMPERATURE": [
-        3.9705882353
-      ]
-    },
-    "NODE_111": {
-      "TEMPERATURE": [
-        3.5294117647
-      ]
-    },
-    "NODE_112": {
-      "TEMPERATURE": [
-        -3.629007628499963
-      ]
-    },
-    "NODE_113": {
-      "TEMPERATURE": [
-        3.6764705882
-      ]
-    },
-    "NODE_114": {
-      "TEMPERATURE": [
-        3.6764705882
-      ]
-    },
-    "NODE_115": {
-      "TEMPERATURE": [
-        3.5312490678
-      ]
-    },
-    "NODE_116": {
-      "TEMPERATURE": [
-        4.4117647059
-      ]
-    },
-    "NODE_117": {
-      "TEMPERATURE": [
-        3.5848543602
-      ]
-    },
-    "NODE_118": {
-      "TEMPERATURE": [
-        3.5349236739
-      ]
-    },
-    "NODE_119": {
-      "TEMPERATURE": [
-        3.8235294118
-      ]
-    },
-    "NODE_120": {
-      "TEMPERATURE": [
-        3.8235294118
-      ]
-    },
-    "NODE_121": {
-      "TEMPERATURE": [
-        3.5349236739
-      ]
-    },
-    "NODE_122": {
-      "TEMPERATURE": [
-        3.8239885702
-      ]
-    },
-    "NODE_123": {
-      "TEMPERATURE": [
-        -3.674604974400008
-      ]
-    },
-    "NODE_124": {
-      "TEMPERATURE": [
-        3.5752977407
-      ]
-    },
-    "NODE_125": {
-      "TEMPERATURE": [
-        3.9705882353
-      ]
-    },
-    "NODE_126": {
-      "TEMPERATURE": [
-        3.9705882353
-      ]
-    },
-    "NODE_127": {
-      "TEMPERATURE": [
-        3.824906887
-      ]
-    },
-    "NODE_128": {
-      "TEMPERATURE": [
-        3.824906887
-      ]
-    },
-    "NODE_129": {
-      "TEMPERATURE": [
-        3.3823529412
-      ]
-    },
-    "NODE_130": {
-      "TEMPERATURE": [
-        3.3823529412
-      ]
-    },
-    "NODE_131": {
-      "TEMPERATURE": [
-        -3.6074842590999663
-      ]
-    },
-    "NODE_132": {
-      "TEMPERATURE": [
-        4.1176470588
-      ]
-    },
-    "NODE_133": {
-      "TEMPERATURE": [
-        3.3928795921
-      ]
-    },
-    "NODE_134": {
-      "TEMPERATURE": [
-        3.6764705882
-      ]
-    },
-    "NODE_135": {
-      "TEMPERATURE": [
-        3.6764705882
-      ]
-    },
-    "NODE_136": {
-      "TEMPERATURE": [
-        -3.354974470999953
-      ]
-    },
-    "NODE_137": {
-      "TEMPERATURE": [
-        3.4868558253
-      ]
-    },
-    "NODE_138": {
-      "TEMPERATURE": [
-        3.2839695131
-      ]
-    },
-    "NODE_139": {
-      "TEMPERATURE": [
-        -3.4562997361999694
-      ]
-    },
-    "NODE_140": {
-      "TEMPERATURE": [
-        3.2352941176
-      ]
-    },
-    "NODE_141": {
-      "TEMPERATURE": [
-        3.5294117647
-      ]
-    },
-    "NODE_142": {
-      "TEMPERATURE": [
-        3.5294117647
-      ]
-    },
-    "NODE_143": {
-      "TEMPERATURE": [
-        3.3823529412
-      ]
-    },
-    "NODE_144": {
-      "TEMPERATURE": [
-        3.3823529412
-      ]
-    },
-    "NODE_145": {
-      "TEMPERATURE": [
-        3.5312490678
-      ]
-    },
-    "NODE_146": {
-      "TEMPERATURE": [
-        -3.366254742499978
-      ]
-    },
-    "NODE_147": {
-      "TEMPERATURE": [
-        3.6764705882
-      ]
-    },
-    "NODE_148": {
-      "TEMPERATURE": [
-        3.6764705882
-      ]
-    },
-    "NODE_149": {
-      "TEMPERATURE": [
-        3.2352941176
-      ]
-    },
-    "NODE_150": {
-      "TEMPERATURE": [
-        3.5349236739
-      ]
-    },
-    "NODE_151": {
-      "TEMPERATURE": [
-        3.8235294118
-      ]
-    },
-    "NODE_152": {
-      "TEMPERATURE": [
-        3.2352941176
-      ]
-    },
-    "NODE_153": {
-      "TEMPERATURE": [
-        3.5349236739
-      ]
-    },
-    "NODE_154": {
-      "TEMPERATURE": [
-        3.2999908075
-      ]
-    },
-    "NODE_155": {
-      "TEMPERATURE": [
-        3.3823529412
-      ]
-    },
-    "NODE_156": {
-      "TEMPERATURE": [
-        3.3823529412
-      ]
-    },
-    "NODE_157": {
-      "TEMPERATURE": [
-        3.0882352941
-      ]
-    },
-    "NODE_158": {
-      "TEMPERATURE": [
-        3.0882352941
-      ]
-    },
-    "NODE_159": {
-      "TEMPERATURE": [
-        3.2352941176
-      ]
-    },
-    "NODE_160": {
-      "TEMPERATURE": [
-        -3.1500500928000235
-      ]
-    },
-    "NODE_161": {
-      "TEMPERATURE": [
-        3.318807729
-      ]
-    },
-    "NODE_162": {
-      "TEMPERATURE": [
-        -3.188123192000007
-      ]
-    },
-    "NODE_163": {
-      "TEMPERATURE": [
-        3.0661764706
-      ]
-    },
-    "NODE_164": {
-      "TEMPERATURE": [
-        3.2746337112
-      ]
-    },
-    "NODE_165": {
-      "TEMPERATURE": [
-        -3.0882352940999827
-      ]
-    },
-    "NODE_166": {
-      "TEMPERATURE": [
-        3.2352941176
-      ]
-    },
-    "NODE_167": {
-      "TEMPERATURE": [
-        3.2352941176
-      ]
-    },
-    "NODE_168": {
-      "TEMPERATURE": [
-        3.5294117647
-      ]
-    },
-    "NODE_169": {
-      "TEMPERATURE": [
-        3.3823529412
-      ]
-    },
-    "NODE_170": {
-      "TEMPERATURE": [
-        3.3823529412
-      ]
-    },
-    "NODE_171": {
-      "TEMPERATURE": [
-        3.0882352941
-      ]
-    },
-    "NODE_172": {
-      "TEMPERATURE": [
-        3.0882352941
-      ]
-    },
-    "NODE_173": {
-      "TEMPERATURE": [
-        2.9411764706
-      ]
-    },
-    "NODE_174": {
-      "TEMPERATURE": [
-        3.2352941176
-      ]
-    },
-    "NODE_175": {
-      "TEMPERATURE": [
-        -2.949907332800022
-      ]
-    },
-    "NODE_176": {
-      "TEMPERATURE": [
-        3.2352941176
-      ]
-    },
-    "NODE_177": {
-      "TEMPERATURE": [
-        3.0882352941
-      ]
-    },
-    "NODE_178": {
-      "TEMPERATURE": [
-        2.9411764706
-      ]
-    },
-    "NODE_179": {
-      "TEMPERATURE": [
-        2.9411764706
-      ]
-    },
-    "NODE_180": {
-      "TEMPERATURE": [
-        3.1690174803
-      ]
-    },
-    "NODE_181": {
-      "TEMPERATURE": [
-        3.2365264063
-      ]
-    },
-    "NODE_182": {
-      "TEMPERATURE": [
-        -3.0882352940999827
-      ]
-    },
-    "NODE_183": {
-      "TEMPERATURE": [
-        3.0882352941
-      ]
-    },
-    "NODE_184": {
-      "TEMPERATURE": [
-        3.0882352941
-      ]
-    },
-    "NODE_185": {
-      "TEMPERATURE": [
-        -2.9449284529000144
-      ]
-    },
-    "NODE_186": {
-      "TEMPERATURE": [
-        2.9096068988
-      ]
-    },
-    "NODE_187": {
-      "TEMPERATURE": [
-        2.7941176471
-      ]
-    },
-    "NODE_188": {
-      "TEMPERATURE": [
-        2.7941176471
-      ]
-    },
-    "NODE_189": {
-      "TEMPERATURE": [
-        3.2352941176
-      ]
-    },
-    "NODE_190": {
-      "TEMPERATURE": [
-        2.9010575735
-      ]
-    },
-    "NODE_191": {
-      "TEMPERATURE": [
-        3.0882352941
-      ]
-    },
-    "NODE_192": {
-      "TEMPERATURE": [
-        3.0882352941
-      ]
-    },
-    "NODE_193": {
-      "TEMPERATURE": [
-        -2.8701266479999834
-      ]
-    },
-    "NODE_194": {
-      "TEMPERATURE": [
-        -2.798603369199957
-      ]
-    },
-    "NODE_195": {
-      "TEMPERATURE": [
-        2.9411764706
-      ]
-    },
-    "NODE_196": {
-      "TEMPERATURE": [
-        2.9411764706
-      ]
-    },
-    "NODE_197": {
-      "TEMPERATURE": [
-        2.7955905052
-      ]
-    },
-    "NODE_198": {
-      "TEMPERATURE": [
-        2.9165877713
-      ]
-    },
-    "NODE_199": {
-      "TEMPERATURE": [
-        2.7941176471
-      ]
-    },
-    "NODE_200": {
-      "TEMPERATURE": [
-        2.7941176471
-      ]
-    },
-    "NODE_201": {
-      "TEMPERATURE": [
-        2.9411764706
-      ]
-    },
-    "NODE_202": {
-      "TEMPERATURE": [
-        2.9411764706
-      ]
-    },
-    "NODE_203": {
-      "TEMPERATURE": [
-        2.6470588235
-      ]
-    },
-    "NODE_204": {
-      "TEMPERATURE": [
-        -2.7955905052000016
-      ]
-    },
-    "NODE_205": {
-      "TEMPERATURE": [
-        2.6485316817
-      ]
-    },
-    "NODE_206": {
-      "TEMPERATURE": [
-        2.651477398
-      ]
-    },
-    "NODE_207": {
-      "TEMPERATURE": [
-        2.651477398
-      ]
-    },
-    "NODE_208": {
-      "TEMPERATURE": [
-        2.7955905052
-      ]
-    },
-    "NODE_209": {
-      "TEMPERATURE": [
-        2.7941176471
-      ]
-    },
-    "NODE_210": {
-      "TEMPERATURE": [
-        2.7941176471
-      ]
-    },
-    "NODE_211": {
-      "TEMPERATURE": [
-        -2.7090064435999954
-      ]
-    },
-    "NODE_212": {
-      "TEMPERATURE": [
-        -2.650428893000013
-      ]
-    },
-    "NODE_213": {
-      "TEMPERATURE": [
-        2.6514317871
-      ]
-    },
-    "NODE_214": {
-      "TEMPERATURE": [
-        2.5856300957
-      ]
-    },
-    "NODE_215": {
-      "TEMPERATURE": [
-        2.9411764706
-      ]
-    },
-    "NODE_216": {
-      "TEMPERATURE": [
-        2.6485316817
-      ]
-    },
-    "NODE_217": {
-      "TEMPERATURE": [
-        2.5
-      ]
-    },
-    "NODE_218": {
-      "TEMPERATURE": [
-        2.5
-      ]
-    },
-    "NODE_219": {
-      "TEMPERATURE": [
-        2.7941176471
-      ]
-    },
-    "NODE_220": {
-      "TEMPERATURE": [
-        2.7941176471
-      ]
-    },
-    "NODE_221": {
-      "TEMPERATURE": [
-        2.6470588235
-      ]
-    },
-    "NODE_222": {
-      "TEMPERATURE": [
-        2.6470588235
-      ]
-    },
-    "NODE_223": {
-      "TEMPERATURE": [
-        2.5131178181
-      ]
-    },
-    "NODE_224": {
-      "TEMPERATURE": [
-        2.6075006096
-      ]
-    },
-    "NODE_225": {
-      "TEMPERATURE": [
-        -2.519972225799978
-      ]
-    },
-    "NODE_226": {
-      "TEMPERATURE": [
-        -2.619949821899999
-      ]
-    },
-    "NODE_227": {
-      "TEMPERATURE": [
-        2.651477398
-      ]
-    },
-    "NODE_228": {
-      "TEMPERATURE": [
-        2.651477398
-      ]
-    },
-    "NODE_229": {
-      "TEMPERATURE": [
-        2.5
-      ]
-    },
-    "NODE_230": {
-      "TEMPERATURE": [
-        2.5
-      ]
-    },
-    "NODE_231": {
-      "TEMPERATURE": [
-        2.5521864614
-      ]
-    },
-    "NODE_232": {
-      "TEMPERATURE": [
-        2.3529411765
-      ]
-    },
-    "NODE_233": {
-      "TEMPERATURE": [
-        2.3552710615
-      ]
-    },
-    "NODE_234": {
-      "TEMPERATURE": [
-        2.3599308316
-      ]
-    },
-    "NODE_235": {
-      "TEMPERATURE": [
-        2.3599308316
-      ]
-    },
-    "NODE_236": {
-      "TEMPERATURE": [
-        2.329283772
-      ]
-    },
-    "NODE_237": {
-      "TEMPERATURE": [
-        -2.4248122609999996
-      ]
-    },
-    "NODE_238": {
-      "TEMPERATURE": [
-        2.5
-      ]
-    },
-    "NODE_239": {
-      "TEMPERATURE": [
-        2.5
-      ]
-    },
-    "NODE_240": {
-      "TEMPERATURE": [
-        2.3368073869
-      ]
-    },
-    "NODE_241": {
-      "TEMPERATURE": [
-        2.4358293605
-      ]
-    },
-    "NODE_242": {
-      "TEMPERATURE": [
-        -2.324939933800011
-      ]
-    },
-    "NODE_243": {
-      "TEMPERATURE": [
-        2.6470588235
-      ]
-    },
-    "NODE_244": {
-      "TEMPERATURE": [
-        2.3265137351
-      ]
-    },
-    "NODE_245": {
-      "TEMPERATURE": [
-        2.367269732
-      ]
-    },
-    "NODE_246": {
-      "TEMPERATURE": [
-        -2.325036540399993
-      ]
-    },
-    "NODE_247": {
-      "TEMPERATURE": [
-        2.5
-      ]
-    },
-    "NODE_248": {
-      "TEMPERATURE": [
-        2.5
-      ]
-    },
-    "NODE_249": {
-      "TEMPERATURE": [
-        2.3721472185
-      ]
-    },
-    "NODE_250": {
-      "TEMPERATURE": [
-        2.2058823529
-      ]
-    },
-    "NODE_251": {
-      "TEMPERATURE": [
-        2.2058823529
-      ]
-    },
-    "NODE_252": {
-      "TEMPERATURE": [
-        2.3529411765
-      ]
-    },
-    "NODE_253": {
-      "TEMPERATURE": [
-        2.3529411765
-      ]
-    },
-    "NODE_254": {
-      "TEMPERATURE": [
-        2.3030383899
-      ]
-    },
-    "NODE_255": {
-      "TEMPERATURE": [
-        2.3599308316
-      ]
-    },
-    "NODE_256": {
-      "TEMPERATURE": [
-        2.3599308316
-      ]
-    },
-    "NODE_257": {
-      "TEMPERATURE": [
-        2.2058823529
-      ]
-    },
-    "NODE_258": {
-      "TEMPERATURE": [
-        2.2058823529
-      ]
-    },
-    "NODE_259": {
-      "TEMPERATURE": [
-        -2.185928188099998
-      ]
-    },
-    "NODE_260": {
-      "TEMPERATURE": [
-        2.2029814069
-      ]
-    },
-    "NODE_261": {
-      "TEMPERATURE": [
-        2.3163307333
-      ]
-    },
-    "NODE_262": {
-      "TEMPERATURE": [
-        2.0588235294
-      ]
-    },
-    "NODE_263": {
-      "TEMPERATURE": [
-        2.2030470559
-      ]
-    },
-    "NODE_264": {
-      "TEMPERATURE": [
-        -2.062291079600019
-      ]
-    },
-    "NODE_265": {
-      "TEMPERATURE": [
-        2.0881483902
-      ]
-    },
-    "NODE_266": {
-      "TEMPERATURE": [
-        2.0692261801
-      ]
-    },
-    "NODE_267": {
-      "TEMPERATURE": [
-        2.0692261801
-      ]
-    },
-    "NODE_268": {
-      "TEMPERATURE": [
-        2.2058823529
-      ]
-    },
-    "NODE_269": {
-      "TEMPERATURE": [
-        2.2058823529
-      ]
-    },
-    "NODE_270": {
-      "TEMPERATURE": [
-        2.3529411765
-      ]
-    },
-    "NODE_271": {
-      "TEMPERATURE": [
-        2.0819510527
-      ]
-    },
-    "NODE_272": {
-      "TEMPERATURE": [
-        -2.0993851876000025
-      ]
-    },
-    "NODE_273": {
-      "TEMPERATURE": [
-        2.0343882667
-      ]
-    },
-    "NODE_274": {
-      "TEMPERATURE": [
-        2.0819303297
-      ]
-    },
-    "NODE_275": {
-      "TEMPERATURE": [
-        2.2058823529
-      ]
-    },
-    "NODE_276": {
-      "TEMPERATURE": [
-        2.2058823529
-      ]
-    },
-    "NODE_277": {
-      "TEMPERATURE": [
-        1.9117647059
-      ]
-    },
-    "NODE_278": {
-      "TEMPERATURE": [
-        1.9117647059
-      ]
-    },
-    "NODE_279": {
-      "TEMPERATURE": [
-        2.0588235294
-      ]
-    },
-    "NODE_280": {
-      "TEMPERATURE": [
-        2.0588235294
-      ]
-    },
-    "NODE_281": {
-      "TEMPERATURE": [
-        2.0622910796
-      ]
-    },
-    "NODE_282": {
-      "TEMPERATURE": [
-        2.0481179161
-      ]
-    },
-    "NODE_283": {
-      "TEMPERATURE": [
-        2.0692261801
-      ]
-    },
-    "NODE_284": {
-      "TEMPERATURE": [
-        2.0692261801
-      ]
-    },
-    "NODE_285": {
-      "TEMPERATURE": [
-        1.997619317
-      ]
-    },
-    "NODE_286": {
-      "TEMPERATURE": [
-        1.9899929833
-      ]
-    },
-    "NODE_287": {
-      "TEMPERATURE": [
-        -1.9251963758999755
-      ]
-    },
-    "NODE_288": {
-      "TEMPERATURE": [
-        1.9117647059
-      ]
-    },
-    "NODE_289": {
-      "TEMPERATURE": [
-        1.9117647059
-      ]
-    },
-    "NODE_290": {
-      "TEMPERATURE": [
-        1.9015432186
-      ]
-    },
-    "NODE_291": {
-      "TEMPERATURE": [
-        1.7647058824
-      ]
-    },
-    "NODE_292": {
-      "TEMPERATURE": [
-        1.7694131909
-      ]
-    },
-    "NODE_293": {
-      "TEMPERATURE": [
-        1.9117647059
-      ]
-    },
-    "NODE_294": {
-      "TEMPERATURE": [
-        1.9117647059
-      ]
-    },
-    "NODE_295": {
-      "TEMPERATURE": [
-        1.778827808
-      ]
-    },
-    "NODE_296": {
-      "TEMPERATURE": [
-        1.778827808
-      ]
-    },
-    "NODE_297": {
-      "TEMPERATURE": [
-        2.0588235294
-      ]
-    },
-    "NODE_298": {
-      "TEMPERATURE": [
-        -1.8476097829999927
-      ]
-    },
-    "NODE_299": {
-      "TEMPERATURE": [
-        1.9323838685
-      ]
-    },
-    "NODE_300": {
-      "TEMPERATURE": [
-        -1.7928026980999978
-      ]
-    },
-    "NODE_301": {
-      "TEMPERATURE": [
-        1.780704557
-      ]
-    },
-    "NODE_302": {
-      "TEMPERATURE": [
-        -1.746725007799981
-      ]
-    },
-    "NODE_303": {
-      "TEMPERATURE": [
-        1.7694131909
-      ]
-    },
-    "NODE_304": {
-      "TEMPERATURE": [
-        1.9117647059
-      ]
-    },
-    "NODE_305": {
-      "TEMPERATURE": [
-        1.9117647059
-      ]
-    },
-    "NODE_306": {
-      "TEMPERATURE": [
-        1.8197886432
-      ]
-    },
-    "NODE_307": {
-      "TEMPERATURE": [
-        1.7694131909
-      ]
-    },
-    "NODE_308": {
-      "TEMPERATURE": [
-        1.7647058824
-      ]
-    },
-    "NODE_309": {
-      "TEMPERATURE": [
-        1.7647058824
-      ]
-    },
-    "NODE_310": {
-      "TEMPERATURE": [
-        1.6176470588
-      ]
-    },
-    "NODE_311": {
-      "TEMPERATURE": [
-        1.6176470588
-      ]
-    },
-    "NODE_312": {
-      "TEMPERATURE": [
-        1.778827808
-      ]
-    },
-    "NODE_313": {
-      "TEMPERATURE": [
-        1.778827808
-      ]
-    },
-    "NODE_314": {
-      "TEMPERATURE": [
-        1.6176470588
-      ]
-    },
-    "NODE_315": {
-      "TEMPERATURE": [
-        1.6176470588
-      ]
-    },
-    "NODE_316": {
-      "TEMPERATURE": [
-        -1.6217611272999952
-      ]
-    },
-    "NODE_317": {
-      "TEMPERATURE": [
-        -1.5957714246999872
-      ]
-    },
-    "NODE_318": {
-      "TEMPERATURE": [
-        -1.5383051286999883
-      ]
-    },
-    "NODE_319": {
-      "TEMPERATURE": [
-        1.5232903843
-      ]
-    },
-    "NODE_320": {
-      "TEMPERATURE": [
-        1.4705882353
-      ]
-    },
-    "NODE_321": {
-      "TEMPERATURE": [
-        1.7647058824
-      ]
-    },
-    "NODE_322": {
-      "TEMPERATURE": [
-        1.6176470588
-      ]
-    },
-    "NODE_323": {
-      "TEMPERATURE": [
-        1.6176470588
-      ]
-    },
-    "NODE_324": {
-      "TEMPERATURE": [
-        1.4757917991
-      ]
-    },
-    "NODE_325": {
-      "TEMPERATURE": [
-        1.4889537546
-      ]
-    },
-    "NODE_326": {
-      "TEMPERATURE": [
-        1.4889537546
-      ]
-    },
-    "NODE_327": {
-      "TEMPERATURE": [
-        -1.515820087999995
-      ]
-    },
-    "NODE_328": {
-      "TEMPERATURE": [
-        1.5540866649
-      ]
-    },
-    "NODE_329": {
-      "TEMPERATURE": [
-        1.6176470588
-      ]
-    },
-    "NODE_330": {
-      "TEMPERATURE": [
-        1.6176470588
-      ]
-    },
-    "NODE_331": {
-      "TEMPERATURE": [
-        1.4343159065
-      ]
-    },
-    "NODE_332": {
-      "TEMPERATURE": [
-        -1.409387471
-      ]
-    },
-    "NODE_333": {
-      "TEMPERATURE": [
-        1.4705882353
-      ]
-    },
-    "NODE_334": {
-      "TEMPERATURE": [
-        1.4705882353
-      ]
-    },
-    "NODE_335": {
-      "TEMPERATURE": [
-        1.4767100751
-      ]
-    },
-    "NODE_336": {
-      "TEMPERATURE": [
-        1.4889537546
-      ]
-    },
-    "NODE_337": {
-      "TEMPERATURE": [
-        1.3235294118
-      ]
-    },
-    "NODE_338": {
-      "TEMPERATURE": [
-        1.3235294118
-      ]
-    },
-    "NODE_339": {
-      "TEMPERATURE": [
-        1.4889537546
-      ]
-    },
-    "NODE_340": {
-      "TEMPERATURE": [
-        1.4977087657
-      ]
-    },
-    "NODE_341": {
-      "TEMPERATURE": [
-        1.4084428723
-      ]
-    },
-    "NODE_342": {
-      "TEMPERATURE": [
-        -1.347134889900002
-      ]
-    },
-    "NODE_343": {
-      "TEMPERATURE": [
-        1.3804069539
-      ]
-    },
-    "NODE_344": {
-      "TEMPERATURE": [
-        1.3235294118
-      ]
-    },
-    "NODE_345": {
-      "TEMPERATURE": [
-        1.3235294118
-      ]
-    },
-    "NODE_346": {
-      "TEMPERATURE": [
-        1.2788660413
-      ]
-    },
-    "NODE_347": {
-      "TEMPERATURE": [
-        1.2891400569
-      ]
-    },
-    "NODE_348": {
-      "TEMPERATURE": [
-        -1.2601791011999965
-      ]
-    },
-    "NODE_349": {
-      "TEMPERATURE": [
-        1.2425370809
-      ]
-    },
-    "NODE_350": {
-      "TEMPERATURE": [
-        1.4705882353
-      ]
-    },
-    "NODE_351": {
-      "TEMPERATURE": [
-        1.3235294118
-      ]
-    },
-    "NODE_352": {
-      "TEMPERATURE": [
-        1.3235294118
-      ]
-    },
-    "NODE_353": {
-      "TEMPERATURE": [
-        1.1764705882
-      ]
-    },
-    "NODE_354": {
-      "TEMPERATURE": [
-        1.199666744
-      ]
-    },
-    "NODE_355": {
-      "TEMPERATURE": [
-        1.199666744
-      ]
-    },
-    "NODE_356": {
-      "TEMPERATURE": [
-        1.2544129414
-      ]
-    },
-    "NODE_357": {
-      "TEMPERATURE": [
-        1.3235294118
-      ]
-    },
-    "NODE_358": {
-      "TEMPERATURE": [
-        1.3235294118
-      ]
-    },
-    "NODE_359": {
-      "TEMPERATURE": [
-        1.1287544327
-      ]
-    },
-    "NODE_360": {
-      "TEMPERATURE": [
-        1.1842026402
-      ]
-    },
-    "NODE_361": {
-      "TEMPERATURE": [
-        1.1769591102
-      ]
-    },
-    "NODE_362": {
-      "TEMPERATURE": [
-        1.2056673894
-      ]
-    },
-    "NODE_363": {
-      "TEMPERATURE": [
-        1.2102616021
-      ]
-    },
-    "NODE_364": {
-      "TEMPERATURE": [
-        -1.1128282094999995
-      ]
-    },
-    "NODE_365": {
-      "TEMPERATURE": [
-        1.1764705882
-      ]
-    },
-    "NODE_366": {
-      "TEMPERATURE": [
-        1.1764705882
-      ]
-    },
-    "NODE_367": {
-      "TEMPERATURE": [
-        1.199666744
-      ]
-    },
-    "NODE_368": {
-      "TEMPERATURE": [
-        1.199666744
-      ]
-    },
-    "NODE_369": {
-      "TEMPERATURE": [
-        -1.1272310391999967
-      ]
-    },
-    "NODE_370": {
-      "TEMPERATURE": [
-        -1.1142290547000029
-      ]
-    },
-    "NODE_371": {
-      "TEMPERATURE": [
-        1.0580807699
-      ]
-    },
-    "NODE_372": {
-      "TEMPERATURE": [
-        1.0294117647
-      ]
-    },
-    "NODE_373": {
-      "TEMPERATURE": [
-        1.0294117647
-      ]
-    },
-    "NODE_374": {
-      "TEMPERATURE": [
-        1.0594688956
-      ]
-    },
-    "NODE_375": {
-      "TEMPERATURE": [
-        -1.013403710499997
-      ]
-    },
-    "NODE_376": {
-      "TEMPERATURE": [
-        0.9954069867
-      ]
-    },
-    "NODE_377": {
-      "TEMPERATURE": [
-        1.0294117647
-      ]
-    },
-    "NODE_378": {
-      "TEMPERATURE": [
-        1.0294117647
-      ]
-    },
-    "NODE_379": {
-      "TEMPERATURE": [
-        1.1764705882
-      ]
-    },
-    "NODE_380": {
-      "TEMPERATURE": [
-        1.0206947291
-      ]
-    },
-    "NODE_381": {
-      "TEMPERATURE": [
-        1.0294117647
-      ]
-    },
-    "NODE_382": {
-      "TEMPERATURE": [
-        1.0294117647
-      ]
-    },
-    "NODE_383": {
-      "TEMPERATURE": [
-        0.911086558
-      ]
-    },
-    "NODE_384": {
-      "TEMPERATURE": [
-        0.8823529412
-      ]
-    },
-    "NODE_385": {
-      "TEMPERATURE": [
-        0.911086558
-      ]
-    },
-    "NODE_386": {
-      "TEMPERATURE": [
-        0.8919308135
-      ]
-    },
-    "NODE_387": {
-      "TEMPERATURE": [
-        -0.9300817773999981
-      ]
-    },
-    "NODE_388": {
-      "TEMPERATURE": [
-        1.0294117647
-      ]
-    },
-    "NODE_389": {
-      "TEMPERATURE": [
-        1.0294117647
-      ]
-    },
-    "NODE_390": {
-      "TEMPERATURE": [
-        0.8919308135
-      ]
-    },
-    "NODE_391": {
-      "TEMPERATURE": [
-        -0.8758774109999918
-      ]
-    },
-    "NODE_392": {
-      "TEMPERATURE": [
-        -0.868314934999993
-      ]
-    },
-    "NODE_393": {
-      "TEMPERATURE": [
-        0.8919308135
-      ]
-    },
-    "NODE_394": {
-      "TEMPERATURE": [
-        0.911086558
-      ]
-    },
-    "NODE_395": {
-      "TEMPERATURE": [
-        0.8823529412
-      ]
-    },
-    "NODE_396": {
-      "TEMPERATURE": [
-        0.8823529412
-      ]
-    },
-    "NODE_397": {
-      "TEMPERATURE": [
-        0.911086558
-      ]
-    },
-    "NODE_398": {
-      "TEMPERATURE": [
-        0.7975595847
-      ]
-    },
-    "NODE_399": {
-      "TEMPERATURE": [
-        0.7352941176
-      ]
-    },
-    "NODE_400": {
-      "TEMPERATURE": [
-        0.7352941176
-      ]
-    },
-    "NODE_401": {
-      "TEMPERATURE": [
-        -0.7461992327999923
-      ]
-    },
-    "NODE_402": {
-      "TEMPERATURE": [
-        0.7352941176
-      ]
-    },
-    "NODE_403": {
-      "TEMPERATURE": [
-        0.7352941176
-      ]
-    },
-    "NODE_404": {
-      "TEMPERATURE": [
-        -0.6945563736999933
-      ]
-    },
-    "NODE_405": {
-      "TEMPERATURE": [
-        0.8823529412
-      ]
-    },
-    "NODE_406": {
-      "TEMPERATURE": [
-        0.7352941176
-      ]
-    },
-    "NODE_407": {
-      "TEMPERATURE": [
-        0.7352941176
-      ]
-    },
-    "NODE_408": {
-      "TEMPERATURE": [
-        0.623342643
-      ]
-    },
-    "NODE_409": {
-      "TEMPERATURE": [
-        0.623342643
-      ]
-    },
-    "NODE_410": {
-      "TEMPERATURE": [
-        0.5882352941
-      ]
-    },
-    "NODE_411": {
-      "TEMPERATURE": [
-        0.594108299
-      ]
-    },
-    "NODE_412": {
-      "TEMPERATURE": [
-        -0.6560439909000009
-      ]
-    },
-    "NODE_413": {
-      "TEMPERATURE": [
-        0.7352941176
-      ]
-    },
-    "NODE_414": {
-      "TEMPERATURE": [
-        0.7352941176
-      ]
-    },
-    "NODE_415": {
-      "TEMPERATURE": [
-        0.5782871844
-      ]
-    },
-    "NODE_416": {
-      "TEMPERATURE": [
-        -0.6084473629999976
-      ]
-    },
-    "NODE_417": {
-      "TEMPERATURE": [
-        0.594108299
-      ]
-    },
-    "NODE_418": {
-      "TEMPERATURE": [
-        -0.5941082989999897
-      ]
-    },
-    "NODE_419": {
-      "TEMPERATURE": [
-        0.623342643
-      ]
-    },
-    "NODE_420": {
-      "TEMPERATURE": [
-        0.623342643
-      ]
-    },
-    "NODE_421": {
-      "TEMPERATURE": [
-        0.5882352941
-      ]
-    },
-    "NODE_422": {
-      "TEMPERATURE": [
-        0.5882352941
-      ]
-    },
-    "NODE_423": {
-      "TEMPERATURE": [
-        0.594108299
-      ]
-    },
-    "NODE_424": {
-      "TEMPERATURE": [
-        0.4411764706
-      ]
-    },
-    "NODE_425": {
-      "TEMPERATURE": [
-        -0.45859261559999875
-      ]
-    },
-    "NODE_426": {
-      "TEMPERATURE": [
-        0.4236881364
-      ]
-    },
-    "NODE_427": {
-      "TEMPERATURE": [
-        0.4707226062
-      ]
-    },
-    "NODE_428": {
-      "TEMPERATURE": [
-        0.4411764706
-      ]
-    },
-    "NODE_429": {
-      "TEMPERATURE": [
-        0.4366790621
-      ]
-    },
-    "NODE_430": {
-      "TEMPERATURE": [
-        0.5882352941
-      ]
-    },
-    "NODE_431": {
-      "TEMPERATURE": [
-        0.4236881364
-      ]
-    },
-    "NODE_432": {
-      "TEMPERATURE": [
-        0.3606551109
-      ]
-    },
-    "NODE_433": {
-      "TEMPERATURE": [
-        -0.37149917809999305
-      ]
-    },
-    "NODE_434": {
-      "TEMPERATURE": [
-        0.4411764706
-      ]
-    },
-    "NODE_435": {
-      "TEMPERATURE": [
-        -0.3910223169999885
-      ]
-    },
-    "NODE_436": {
-      "TEMPERATURE": [
-        0.4236881364
-      ]
-    },
-    "NODE_437": {
-      "TEMPERATURE": [
-        0.2941176471
-      ]
-    },
-    "NODE_438": {
-      "TEMPERATURE": [
-        0.3011391168
-      ]
-    },
-    "NODE_439": {
-      "TEMPERATURE": [
-        0.4411764706
-      ]
-    },
-    "NODE_440": {
-      "TEMPERATURE": [
-        0.3011391168
-      ]
-    },
-    "NODE_441": {
-      "TEMPERATURE": [
-        0.4236881364
-      ]
-    },
-    "NODE_442": {
-      "TEMPERATURE": [
-        0.3600139245
-      ]
-    },
-    "NODE_443": {
-      "TEMPERATURE": [
-        0.3074484972
-      ]
-    },
-    "NODE_444": {
-      "TEMPERATURE": [
-        0.3180916242
-      ]
-    },
-    "NODE_445": {
-      "TEMPERATURE": [
-        0.2673962904
-      ]
-    },
-    "NODE_446": {
-      "TEMPERATURE": [
-        0.2941176471
-      ]
-    },
-    "NODE_447": {
-      "TEMPERATURE": [
-        0.2941176471
-      ]
-    },
-    "NODE_448": {
-      "TEMPERATURE": [
-        0.2154705127
-      ]
-    },
-    "NODE_449": {
-      "TEMPERATURE": [
-        0.3011391168
-      ]
-    },
-    "NODE_450": {
-      "TEMPERATURE": [
-        0.3011391168
-      ]
-    },
-    "NODE_451": {
-      "TEMPERATURE": [
-        0.1584905109
-      ]
-    },
-    "NODE_452": {
-      "TEMPERATURE": [
-        -0.20463118699999838
-      ]
-    },
-    "NODE_453": {
-      "TEMPERATURE": [
-        -0.17408453329999468
-      ]
-    },
-    "NODE_454": {
-      "TEMPERATURE": [
-        0.2446258797
-      ]
-    },
-    "NODE_455": {
-      "TEMPERATURE": [
-        0.2941176471
-      ]
-    },
-    "NODE_456": {
-      "TEMPERATURE": [
-        0.0994399695
-      ]
-    },
-    "NODE_457": {
-      "TEMPERATURE": [
-        -0.12089350139999472
-      ]
-    },
-    "NODE_458": {
-      "TEMPERATURE": [
-        0.1414719009
-      ]
-    },
-    "NODE_459": {
-      "TEMPERATURE": [
-        0.0
-      ]
-    },
-    "NODE_460": {
-      "TEMPERATURE": [
-        0.0
-      ]
-    },
-    "NODE_461": {
-      "TEMPERATURE": [
-        0.0
-      ]
-    },
-    "NODE_462": {
-      "TEMPERATURE": [
-        0.0
-      ]
-    },
-    "NODE_463": {
-      "TEMPERATURE": [
-        0.0
-      ]
-    },
-    "NODE_464": {
-      "TEMPERATURE": [
-        0.0
-      ]
-    },
-    "NODE_465": {
-      "TEMPERATURE": [
-        0.0
-      ]
-    },
-    "NODE_466": {
-      "TEMPERATURE": [
-        0.0
-      ]
-    },
-    "NODE_467": {
-      "TEMPERATURE": [
-        0.0
-      ]
-    },
-    "NODE_468": {
-      "TEMPERATURE": [
-        0.0
-      ]
-    },
-    "NODE_469": {
-      "TEMPERATURE": [
-        0.0
-      ]
-    },
-    "NODE_470": {
-      "TEMPERATURE": [
-        0.0
-      ]
-    },
-    "NODE_471": {
-      "TEMPERATURE": [
-        0.0
-      ]
-    },
-    "NODE_472": {
-      "TEMPERATURE": [
-        0.0
-      ]
-    },
-    "NODE_473": {
-      "TEMPERATURE": [
-        0.0
-      ]
-    },
-    "NODE_474": {
-      "TEMPERATURE": [
-        0.0
-      ]
-    }
+    ]
+  },
+  "NODE_78": {
+    "TEMPERATURE": [
+      0.0
+    ]
+  },
+  "NODE_79": {
+    "TEMPERATURE": [
+      0.0
+    ]
+  },
+  "NODE_80": {
+    "TEMPERATURE": [
+      0.0
+    ]
   }
+}

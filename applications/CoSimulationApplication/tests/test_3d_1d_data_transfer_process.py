@@ -79,11 +79,14 @@ class Test3D1DDataTransferProcessBlock(KratosUnittest.TestCase):
         # Define result file path for the output of the transfer.
         result_file = GetFilePath("3d_1d_data_transfer/3d_1d_data_transfer_solutions/block_from_1d_to_3d")
 
+        # # Generate output results in JSON format.
+        # generate_result(self.current_model, result_file, "Block")
+
         # Check the results against expected outcomes.
         check_results(self.current_model, result_file, "Block")
 
         # Debug output for visualization.
-        debug_vtk(self.current_model, ["Block", "Line"])
+        # debug_vtk(self.current_model, ["Block", "Line"])
 
     def test_block_from_3d_to_1d(self):
         """Test data transfer from the 3D block to the 1D line."""
@@ -100,6 +103,9 @@ class Test3D1DDataTransferProcessBlock(KratosUnittest.TestCase):
 
         # Define result file path for the output of the transfer.
         result_file = GetFilePath("3d_1d_data_transfer/3d_1d_data_transfer_solutions/block_from_3d_to_1d")
+
+        # # Generate output results in JSON format.
+        # generate_result(self.current_model, result_file, "Line")
 
         # Check the results against expected outcomes.
         check_results(self.current_model, result_file, "Line")
@@ -167,11 +173,14 @@ class Test3D1DDataTransferProcessTorus(KratosUnittest.TestCase):
         # Define result file path for the output of the transfer.
         result_file = GetFilePath("3d_1d_data_transfer/3d_1d_data_transfer_solutions/torus_from_1d_to_3d")
 
+        # # Generate output results in JSON format.
+        # generate_result(self.current_model, result_file, "Torus")
+
         # Check the results against expected outcomes.
         check_results(self.current_model, result_file, "Torus")
 
         # Debug output for visualization.
-        debug_vtk(self.current_model, ["Torus", "Circle"])
+        # debug_vtk(self.current_model, ["Torus", "Circle"])
 
     def test_torus_from_3d_to_1d(self):
         """Test data transfer from the 3D torus to the 1D circle."""
@@ -188,6 +197,9 @@ class Test3D1DDataTransferProcessTorus(KratosUnittest.TestCase):
 
         # Define result file path for the output of the transfer.
         result_file = GetFilePath("3d_1d_data_transfer/3d_1d_data_transfer_solutions/torus_from_3d_to_1d")
+
+        # # Generate output results in JSON format.
+        # generate_result(self.current_model, result_file, "Circle")
 
         # Check the results against expected outcomes.
         check_results(self.current_model, result_file, "Circle")
@@ -254,7 +266,7 @@ def generate_result(model, output_filename, domain):
     }""")
 
     out_parameters["model_part_name"].SetString(domain)
-    out_parameters["output_file_name"].SetString(output_filename + "_data_transfer.json")
+    out_parameters["output_file_name"].SetString(str(output_filename) + "_data_transfer.json")
 
     # Execute the output generation process.
     out = JsonOutputProcess(model, out_parameters)
