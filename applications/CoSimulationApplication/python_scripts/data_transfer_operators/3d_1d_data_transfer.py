@@ -76,10 +76,7 @@ class Kratos3D1DDataTransferOperator(CoSimulationDataTransferOperator):
                     parameters["swap_sign"].SetBool(True)
 
             # Check if the origin model part is 3D or 1D
-            if self.__check_model_part_3D(model_part_origin):
-                self.origin_is_3d = True
-            else:
-                self.origin_is_3d = False
+            self.origin_is_3d = self.__check_model_part_3D(model_part_origin)
             # Clone is necessary because the settings are validated and defaults assigned, which could influence the creation of other data transfers
             self.__data_transfer_process[identifier_tuple] = KratosCoSim.DataTransfer3D1DProcess(model_part_origin, model_part_destination, parameters.Clone())
             self.__data_transfer_process[inverse_identifier_tuple] = KratosCoSim.DataTransfer3D1DProcess(model_part_origin, model_part_destination, parameters.Clone())
