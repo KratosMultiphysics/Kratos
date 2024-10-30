@@ -113,7 +113,7 @@ void SmallDisplacementShiftedBoundaryElement<TDim>::CalculateLocalSystem(
                 // Get the current surrogate face geometry information
                 const auto& r_sur_bd_geom = r_boundaries[sur_bd_id];
                 const unsigned int n_bd_points = r_sur_bd_geom.PointsNumber();
-                const DenseVector<std::size_t> sur_bd_local_ids = row(nodes_in_faces, sur_bd_id);
+                const DenseVector<std::size_t> sur_bd_local_ids = column(nodes_in_faces, sur_bd_id);
                 const auto& r_sur_bd_N = r_sur_bd_geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
 
                 // Get the gradient of the node contrary to the surrogate face
@@ -203,7 +203,7 @@ void SmallDisplacementShiftedBoundaryElement<TDim>::CalculateLeftHandSide(
                 // Get the current surrogate face geometry information
                 const auto& r_sur_bd_geom = r_boundaries[sur_bd_id];
                 const unsigned int n_bd_points = r_sur_bd_geom.PointsNumber();
-                const DenseVector<std::size_t> sur_bd_local_ids = row(nodes_in_faces, sur_bd_id);
+                const DenseVector<std::size_t> sur_bd_local_ids = column(nodes_in_faces, sur_bd_id);
                 const auto& r_sur_bd_N = r_sur_bd_geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
 
                 // Get the gradient of the node contrary to the surrogate face
@@ -292,7 +292,7 @@ void SmallDisplacementShiftedBoundaryElement<TDim>::CalculateRightHandSide(
                 // Get the current surrogate face geometry information
                 const auto& r_sur_bd_geom = r_boundaries[sur_bd_id];
                 const unsigned int n_bd_points = r_sur_bd_geom.PointsNumber();
-                const DenseVector<std::size_t> sur_bd_local_ids = row(nodes_in_faces, sur_bd_id);
+                const DenseVector<std::size_t> sur_bd_local_ids = column(nodes_in_faces, sur_bd_id);
                 const auto& r_sur_bd_N = r_sur_bd_geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
 
                 // Get the gradient of the node contrary to the surrogate face

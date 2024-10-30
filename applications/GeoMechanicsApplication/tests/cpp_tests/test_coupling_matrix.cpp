@@ -12,8 +12,8 @@
 
 #include "containers/model.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
-#include "includes/checks.h"
 #include "geo_mechanics_fast_suite.h"
+#include "includes/checks.h"
 #include <boost/numeric/ublas/assignment.hpp>
 
 using namespace Kratos;
@@ -21,7 +21,7 @@ using namespace Kratos;
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateCouplingMatrix2D3NGivesCorrectResults, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CalculateCouplingMatrix2D3NGivesCorrectResults, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     constexpr SizeType voigt_size = VOIGT_SIZE_2D_PLANE_STRESS;
     constexpr SizeType size_D     = 2;
@@ -60,7 +60,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateCouplingMatrix2D3NGivesCorrectResults, Kratos
     KRATOS_CHECK_MATRIX_NEAR(coupling_matrix, expected_coupling_matrix, 1e-12)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateCouplingMatrix3D4NGivesCorrectResults, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CalculateCouplingMatrix3D4NGivesCorrectResults, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     constexpr SizeType voigt_size = VOIGT_SIZE_3D;
     constexpr SizeType size_D     = 3;

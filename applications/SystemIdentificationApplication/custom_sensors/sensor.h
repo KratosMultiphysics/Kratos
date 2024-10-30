@@ -31,7 +31,7 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-class Sensor: public AdjointResponseFunction, public DataValueContainer
+class KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) Sensor: public AdjointResponseFunction, public DataValueContainer
 {
 public:
     ///@name Type Definitions

@@ -1,0 +1,22 @@
+@startuml
+:PipeElements = GetPipingElements();
+
+:openPipeElements = InitialiseNumActivePipeElements();
+
+:amax = CalculateMaxPipeHeight();
+
+while (grow and openPipeElements < PipeElements.size()) is (true)
+ :Activates next piping element: Set PIPE_ACTIVE = true;
+ :check_pipe_equilibrium();
+ :grow, openPipeElements = check_status_tip_element();
+ if (openPipeElements < PipeElements.size) then
+                 :save_or_reset_pipe_heights();
+ endif
+ :converged = Recalculate();
+ if(not converged) then
+ :stop;
+ endif
+endwhile
+
+:GeoMechanicsNewtonRaphsonStrategy::FinalizeSolutionStep();
+@enduml

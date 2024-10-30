@@ -54,7 +54,6 @@ public:
 
     GeoMechanicsNewtonRaphsonErosionProcessStrategy(ModelPart&                    model_part,
                                                     typename TSchemeType::Pointer pScheme,
-                                                    typename TLinearSolver::Pointer pNewLinearSolver,
                                                     typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
                                                     typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
                                                     Parameters& rParameters,
@@ -63,16 +62,7 @@ public:
                                                     bool        ReformDofSetAtEachStep = false,
                                                     bool        MoveMeshFlag           = false)
         : GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(
-              model_part,
-              pScheme,
-              pNewLinearSolver,
-              pNewConvergenceCriteria,
-              pNewBuilderAndSolver,
-              rParameters,
-              MaxIterations,
-              CalculateReactions,
-              ReformDofSetAtEachStep,
-              MoveMeshFlag)
+              model_part, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, rParameters, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
     {
         rank              = model_part.GetCommunicator().MyPID();
         mPipingIterations = rParameters["max_piping_iterations"].GetInt();
@@ -158,8 +148,6 @@ public:
 
         KRATOS_CATCH("")
     }
-
-    //-----------------------------Get Piping Elements--------------------------------------
 
     std::vector<Element*> GetPipingElements()
     {
@@ -449,8 +437,6 @@ private:
             }
         }
     }
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 }; // Class GeoMechanicsNewtonRaphsonStrategy
 

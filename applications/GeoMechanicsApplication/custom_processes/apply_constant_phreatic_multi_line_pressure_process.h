@@ -22,6 +22,9 @@
 namespace Kratos
 {
 
+class ModelPart;
+class Node;
+
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyConstantPhreaticMultiLinePressureProcess : public Process
 {
 public:
