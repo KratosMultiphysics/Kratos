@@ -676,7 +676,6 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateOnIntegrationPoints(
 
     if (rVariable == AXIAL_FORCE || rVariable == BENDING_MOMENT || rVariable == SHEAR_FORCE) {
         const auto &r_geometry = GetGeometry();
-        const int strain_component = (rVariable == AXIAL_STRAIN) ? 0 : (rVariable == SHEAR_STRAIN) ? 2 : 1;
 
         ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
         auto &r_cl_options = cl_values.GetOptions();
@@ -727,10 +726,14 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateOnIntegrationPoints(
             mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values);
             const Vector &r_generalized_stresses = cl_values.GetStressVector();
 
-            rOutput[IP] = r_generalized_stresses[strain_component];
+            if (rVariable == AXIAL_FORCE)
+                rOutput[IP] = r_generalized_stresses[0];
+            else if (rVariable == BENDING_MOMENT)
+                rOutput[IP] = r_generalized_stresses[1];
+            else if (rVariable == SHEAR_FORCE)
+                rOutput[IP] = r_generalized_stresses[2];
         }
     } else if (rVariable == AXIAL_STRAIN || rVariable == BENDING_STRAIN || rVariable == SHEAR_STRAIN) {
-        const int strain_component = (rVariable == AXIAL_STRAIN) ? 0 : (rVariable == SHEAR_STRAIN) ? 2 : 1;
 
         // Let's initialize the cl values
         VectorType strain_vector(StrainSize);
@@ -770,7 +773,12 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateOnIntegrationPoints(
             strain_vector[2] = Gamma[1]; // shear strain
             strain_vector[1] = inner_prod(B_b, nodal_values); // curvature
 
-            rOutput[IP] = strain_vector[strain_component];
+            if (rVariable == AXIAL_STRAIN)
+                rOutput[IP] = strain_vector[0];
+            else if (rVariable == BENDING_STRAIN)
+                rOutput[IP] = strain_vector[1];
+            else if (rVariable == SHEAR_STRAIN)
+                rOutput[IP] = strain_vector[2];
         }
     }
 }

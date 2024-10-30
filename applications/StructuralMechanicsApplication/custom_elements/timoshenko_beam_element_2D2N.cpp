@@ -947,14 +947,18 @@ void LinearTimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
         VectorType nodal_values(mat_size);
         GetNodalValuesVector(nodal_values);
 
-        const int strain_component = (rVariable == AXIAL_STRAIN) ? 0 : (rVariable == SHEAR_STRAIN) ? 2 : 1;
-
         // Loop over the integration points
         for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
             const double xi = integration_points[IP].X();
 
             CalculateGeneralizedStrainsVector(strain_vector, length, Phi, xi, nodal_values);
-            rOutput[IP] = strain_vector[strain_component];
+
+            if (rVariable == AXIAL_STRAIN)
+                rOutput[IP] = strain_vector[0];
+            else if (rVariable == BENDING_STRAIN)
+                rOutput[IP] = strain_vector[1];
+            else if (rVariable == SHEAR_STRAIN)
+                rOutput[IP] = strain_vector[2];
         }
     }
 }
