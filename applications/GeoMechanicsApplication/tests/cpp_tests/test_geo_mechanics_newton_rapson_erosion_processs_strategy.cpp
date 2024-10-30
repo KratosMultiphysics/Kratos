@@ -10,37 +10,14 @@
 //  Main authors:    Gennady Markelov
 //
 
-#include <string>
-
 // Project includes
-#include "containers/model.h"
-#include "custom_constitutive/linear_elastic_2D_interface_law.h"
-#include "custom_elements/U_Pw_small_strain_element.hpp"
-#include "custom_elements/plane_strain_stress_state.h"
-#include "custom_elements/steady_state_Pw_piping_element.hpp"
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_erosion_process_strategy.hpp"
 #include "geo_mechanics_fast_suite.h"
-#include "linear_solvers/linear_solver.h"
 #include "test_utilities.h"
 
 #include <geo_mechanics_application.h>
-
-/* Utility includes */
-#include "includes/model_part.h"
-#include "spaces/ublas_space.h"
-
-// The most basic scheme (static)
-#include "custom_strategies/schemes/backward_euler_quasistatic_Pw_scheme.hpp"
-
-// The most builder and solver (the block builder and solver)
-#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
-
-// The strategies to test
-#include <custom_processes/apply_component_table_process.hpp>
 #include <linear_solvers/skyline_lu_factorization_solver.h>
-
 #include <solving_strategies/convergencecriterias/mixed_generic_criteria.h>
-#include <solving_strategies/strategies/implicit_solving_strategy.h>
 
 namespace Kratos
 {
@@ -122,7 +99,7 @@ auto SetupPipingStrategy(Model& rModel)
     using LinearSolverType         = SkylineLUFactorizationSolver<SparseSpaceType, LocalSpaceType>;
     using ConvergenceCriteriaType  = ConvergenceCriteria<SparseSpaceType, LocalSpaceType>;
     using MixedGenericCriteriaType = MixedGenericCriteria<SparseSpaceType, LocalSpaceType>;
-    using ConvergenceVariableListType = typename MixedGenericCriteriaType::ConvergenceVariableListType;
+    using ConvergenceVariableListType = MixedGenericCriteriaType::ConvergenceVariableListType;
 
     auto& r_model_part = rModel.CreateModelPart("ModelPart", 1);
     r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
@@ -139,35 +116,35 @@ auto SetupPipingStrategy(Model& rModel)
     r_model_part.AddElement(p_element);
 
     // Set the pipe element properties
-    auto p_piping_element_prop = r_model_part.CreateNewProperties(1);
-    p_piping_element_prop->SetValue(PIPE_D_70, 2e-4);
-    p_piping_element_prop->SetValue(PIPE_ETA, 0.25);
-    p_piping_element_prop->SetValue(PIPE_THETA, 30);
-    p_piping_element_prop->SetValue(DENSITY_SOLID, 2650);
-    p_piping_element_prop->SetValue(DENSITY_WATER, 1000);
-    p_piping_element_prop->SetValue(PIPE_ELEMENT_LENGTH, 1.0);
-    p_piping_element_prop->SetValue(PIPE_MODIFIED_D, false);
-    p_piping_element_prop->SetValue(PIPE_MODEL_FACTOR, 1);
-    p_piping_element_prop->SetValue(PIPE_START_ELEMENT, 1);
-    p_piping_element_prop->SetValue(CONSTITUTIVE_LAW, LinearElastic2DInterfaceLaw().Clone());
+    auto p_piping_element_props = r_model_part.CreateNewProperties(1);
+    p_piping_element_props->SetValue(PIPE_D_70, 2e-4);
+    p_piping_element_props->SetValue(PIPE_ETA, 0.25);
+    p_piping_element_props->SetValue(PIPE_THETA, 30);
+    p_piping_element_props->SetValue(DENSITY_SOLID, 2650);
+    p_piping_element_props->SetValue(DENSITY_WATER, 1000);
+    p_piping_element_props->SetValue(PIPE_ELEMENT_LENGTH, 1.0);
+    p_piping_element_props->SetValue(PIPE_MODIFIED_D, false);
+    p_piping_element_props->SetValue(PIPE_MODEL_FACTOR, 1);
+    p_piping_element_props->SetValue(PIPE_START_ELEMENT, 1);
+    p_piping_element_props->SetValue(CONSTITUTIVE_LAW, LinearElastic2DInterfaceLaw().Clone());
 
     // Create the start piping element
     auto p_piping_element = make_intrusive<SteadyStatePwPipingElement<2, 4>>(
         1, CreateQuadrilateral2D4N(r_model_part, std::vector<int>{1, 2, 3, 4}, 0.0, 1.0, 0.0, 500.0),
-        p_piping_element_prop, std::make_unique<PlaneStrainStressState>());
+        p_piping_element_props, std::make_unique<PlaneStrainStressState>());
     p_piping_element->Initialize(r_process_info);
     r_model_part.AddElement(p_piping_element);
 
     // Create other piping elements
     p_piping_element = make_intrusive<SteadyStatePwPipingElement<2, 4>>(
         2, CreateQuadrilateral2D4N(r_model_part, std::vector<int>{5, 6, 7, 8}, 2.0, 3.0, 500.0, 1000.0),
-        p_piping_element_prop, std::make_unique<PlaneStrainStressState>());
+        p_piping_element_props, std::make_unique<PlaneStrainStressState>());
     p_piping_element->Initialize(r_process_info);
     r_model_part.AddElement(p_piping_element);
 
     p_piping_element = make_intrusive<SteadyStatePwPipingElement<2, 4>>(
         3, CreateQuadrilateral2D4N(r_model_part, std::vector<int>{9, 10, 11, 12}, 1.0, 2.0, 1000.0, 1500.0),
-        p_piping_element_prop, std::make_unique<PlaneStrainStressState>());
+        p_piping_element_props, std::make_unique<PlaneStrainStressState>());
     p_piping_element->Initialize(r_process_info);
     r_model_part.AddElement(p_piping_element);
 
@@ -176,17 +153,14 @@ auto SetupPipingStrategy(Model& rModel)
  		"max_piping_iterations": 25
     }  )");
 
-    const auto p_solver = Kratos::make_shared<LinearSolverType>();
-    const auto p_scheme =
-        Kratos::make_shared<BackwardEulerQuasistaticPwScheme<SparseSpaceType, LocalSpaceType>>();
     const auto p_builder_and_solver =
-        Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>>(p_solver);
+        Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>>(nullptr);
     const ConvergenceVariableListType      convergence_settings{};
     const ConvergenceCriteriaType::Pointer p_criteria =
         std::make_shared<MixedGenericCriteriaType>(convergence_settings);
 
     return std::make_unique<MockGeoMechanicsNewtonRaphsonErosionProcessStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>>(
-        r_model_part, p_scheme, p_criteria, p_builder_and_solver, p_parameters);
+        r_model_part, nullptr, p_criteria, p_builder_and_solver, p_parameters);
 }
 } // namespace Kratos
 
