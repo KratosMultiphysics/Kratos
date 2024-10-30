@@ -106,79 +106,79 @@ Begin Nodes
 End Nodes
 
 Begin Elements	SmallDisplacementElement3D8N
-	1	0	50	44	45	53	29	24	25	30	
-	2	0	67	50	53	70	54	29	30	55	
-	3	0	94	67	70	95	84	54	55	85	
-	4	0	48	43	44	50	28	23	24	29	
-	5	0	64	48	50	67	52	28	29	54	
-	6	0	93	64	67	94	83	52	54	84	
-	7	0	79	65	69	80	50	44	45	53	
-	8	0	89	79	80	90	67	50	53	70	
-	9	0	99	89	90	100	94	67	70	95	
-	10	0	78	62	65	79	48	43	44	50	
-	11	0	88	78	79	89	64	48	50	67	
-	12	0	98	88	89	99	93	64	67	94	
-	13	0	61	92	91	60	51	82	81	49	
-	14	0	47	61	60	46	27	51	49	26	
-	15	0	42	47	46	41	22	27	26	21	
-	16	0	64	93	92	61	52	83	82	51	
-	17	0	48	64	61	47	28	52	51	27	
-	18	0	43	48	47	42	23	28	27	22	
-	19	0	87	97	96	86	61	92	91	60	
-	20	0	77	87	86	76	47	61	60	46	
-	21	0	58	77	76	57	42	47	46	41	
-	22	0	88	98	97	87	64	93	92	61	
-	23	0	78	88	87	77	48	64	61	47	
-	24	0	62	78	77	58	43	48	47	42	
-	25	0	37	72	71	36	32	59	56	31	
-	26	0	17	37	36	16	12	32	31	11	
-	27	0	7	17	16	6	2	12	11	1	
-	28	0	38	73	72	37	33	63	59	32	
-	29	0	18	38	37	17	13	33	32	12	
-	30	0	8	18	17	7	3	13	12	2	
-	31	0	51	82	81	49	37	72	71	36	
-	32	0	27	51	49	26	17	37	36	16	
-	33	0	22	27	26	21	7	17	16	6	
-	34	0	52	83	82	51	38	73	72	37	
-	35	0	28	52	51	27	18	38	37	17	
-	36	0	23	28	27	22	8	18	17	7	
-	37	0	19	9	10	20	14	4	5	15	
-	38	0	39	19	20	40	34	14	15	35	
-	39	0	74	39	40	75	66	34	35	68	
-	40	0	18	8	9	19	13	3	4	14	
-	41	0	38	18	19	39	33	13	14	34	
-	42	0	73	38	39	74	63	33	34	66	
-	43	0	29	24	25	30	19	9	10	20	
-	44	0	54	29	30	55	39	19	20	40	
-	45	0	84	54	55	85	74	39	40	75	
-	46	0	28	23	24	29	18	8	9	19	
-	47	0	52	28	29	54	38	18	19	39	
-	48	0	83	52	54	84	73	38	39	74	
+	1	0	50	44	45	53	29	24	25	30
+	2	0	67	50	53	70	54	29	30	55
+	3	0	94	67	70	95	84	54	55	85
+	4	0	48	43	44	50	28	23	24	29
+	5	0	64	48	50	67	52	28	29	54
+	6	0	93	64	67	94	83	52	54	84
+	7	0	79	65	69	80	50	44	45	53
+	8	0	89	79	80	90	67	50	53	70
+	9	0	99	89	90	100	94	67	70	95
+	10	0	78	62	65	79	48	43	44	50
+	11	0	88	78	79	89	64	48	50	67
+	12	0	98	88	89	99	93	64	67	94
+	13	0	61	92	91	60	51	82	81	49
+	14	0	47	61	60	46	27	51	49	26
+	15	0	42	47	46	41	22	27	26	21
+	16	0	64	93	92	61	52	83	82	51
+	17	0	48	64	61	47	28	52	51	27
+	18	0	43	48	47	42	23	28	27	22
+	19	0	87	97	96	86	61	92	91	60
+	20	0	77	87	86	76	47	61	60	46
+	21	0	58	77	76	57	42	47	46	41
+	22	0	88	98	97	87	64	93	92	61
+	23	0	78	88	87	77	48	64	61	47
+	24	0	62	78	77	58	43	48	47	42
+	25	0	37	72	71	36	32	59	56	31
+	26	0	17	37	36	16	12	32	31	11
+	27	0	7	17	16	6	2	12	11	1
+	28	0	38	73	72	37	33	63	59	32
+	29	0	18	38	37	17	13	33	32	12
+	30	0	8	18	17	7	3	13	12	2
+	31	0	51	82	81	49	37	72	71	36
+	32	0	27	51	49	26	17	37	36	16
+	33	0	22	27	26	21	7	17	16	6
+	34	0	52	83	82	51	38	73	72	37
+	35	0	28	52	51	27	18	38	37	17
+	36	0	23	28	27	22	8	18	17	7
+	37	0	19	9	10	20	14	4	5	15
+	38	0	39	19	20	40	34	14	15	35
+	39	0	74	39	40	75	66	34	35	68
+	40	0	18	8	9	19	13	3	4	14
+	41	0	38	18	19	39	33	13	14	34
+	42	0	73	38	39	74	63	33	34	66
+	43	0	29	24	25	30	19	9	10	20
+	44	0	54	29	30	55	39	19	20	40
+	45	0	84	54	55	85	74	39	40	75
+	46	0	28	23	24	29	18	8	9	19
+	47	0	52	28	29	54	38	18	19	39
+	48	0	83	52	54	84	73	38	39	74
 End Elements
 
-Begin Elements	TrussLinearElement3D2N
-	81	0	83	52	
-	82	0	52	28	
-	83	0	28	23	
+Begin Elements	CrLinearBeamElement3D2N
+	81	0	83	52
+	82	0	52	28
+	83	0	28	23
 End Elements
 
 Begin Conditions	SmallDisplacementSurfaceLoadCondition3D4N
-	18	0	95	94	84	85	
-	19	0	100	99	94	95	
-	20	0	94	93	83	84	
-	21	0	99	98	93	94	
-	22	0	93	92	82	83	
-	23	0	98	97	92	93	
-	24	0	92	91	81	82	
-	25	0	97	96	91	92	
-	26	0	75	74	66	68	
-	27	0	85	84	74	75	
-	28	0	74	73	63	66	
-	29	0	84	83	73	74	
-	30	0	73	72	59	63	
-	31	0	83	82	72	73	
-	32	0	72	71	56	59	
-	33	0	82	81	71	72	
+	18	0	95	94	84	85
+	19	0	100	99	94	95
+	20	0	94	93	83	84
+	21	0	99	98	93	94
+	22	0	93	92	82	83
+	23	0	98	97	92	93
+	24	0	92	91	81	82
+	25	0	97	96	91	92
+	26	0	75	74	66	68
+	27	0	85	84	74	75
+	28	0	74	73	63	66
+	29	0	84	83	73	74
+	30	0	73	72	59	63
+	31	0	83	82	72	73
+	32	0	72	71	56	59
+	33	0	82	81	71	72
 End Conditions
 
 Begin SubModelPart	damaged_solid
@@ -226,7 +226,7 @@ Begin SubModelPart	damaged_solid
 	End SubModelPartElements
 	Begin SubModelPartConditions
 	End SubModelPartConditions
-End SubModelPart	
+End SubModelPart
 
 Begin SubModelPart	damaged_truss
 	Begin SubModelPartData
@@ -242,7 +242,7 @@ Begin SubModelPart	damaged_truss
 	End SubModelPartElements
 	Begin SubModelPartConditions
 	End SubModelPartConditions
-End SubModelPart	
+End SubModelPart
 
 Begin SubModelPart	DISPLACEMENT_bc_fixed
 	Begin SubModelPartData
@@ -280,7 +280,7 @@ Begin SubModelPart	DISPLACEMENT_bc_fixed
 	End SubModelPartElements
 	Begin SubModelPartConditions
 	End SubModelPartConditions
-End SubModelPart	
+End SubModelPart
 
 Begin SubModelPart	SurfaceLoad3D_bc_load
 	Begin SubModelPartData
@@ -334,7 +334,7 @@ Begin SubModelPart	SurfaceLoad3D_bc_load
 		32
 		33
 	End SubModelPartConditions
-End SubModelPart	
+End SubModelPart
 
 Begin SubModelPart	Parts_Truss_truss
 	Begin SubModelPartData
@@ -354,7 +354,7 @@ Begin SubModelPart	Parts_Truss_truss
 	End SubModelPartElements
 	Begin SubModelPartConditions
 	End SubModelPartConditions
-End SubModelPart	
+End SubModelPart
 
 Begin SubModelPart	all
 	Begin SubModelPartData
@@ -534,7 +534,7 @@ Begin SubModelPart	all
 		32
 		33
 	End SubModelPartConditions
-End SubModelPart	
+End SubModelPart
 
 Begin SubModelPart	Parts_Solid_solids
 	Begin SubModelPartData
@@ -695,5 +695,5 @@ Begin SubModelPart	Parts_Solid_solids
 	End SubModelPartElements
 	Begin SubModelPartConditions
 	End SubModelPartConditions
-End SubModelPart	
+End SubModelPart
 
