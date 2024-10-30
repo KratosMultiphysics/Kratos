@@ -12,6 +12,8 @@
 
 #pragma once
 
+#include <numeric>
+
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/transport_equation_utilities.hpp"
@@ -111,6 +113,27 @@ namespace Kratos {
             this->SetValue(PIPE_ACTIVE, false);
         }
 
+        double CalculateEquilibriumPipeHeight(const PropertiesType &Prop, const GeometryType &Geom,
+                                              double) {
+            // calculate head gradient over element ( now without abs in CalculateHeadGradient )
+            double dhdx = CalculateHeadGradient(Prop, Geom);
+            // return infinite when dhdx is 0
+            if (std::abs(dhdx) < std::numeric_limits<double>::epsilon()) return 1e10;
+
+            // calculate particle diameter to be replaced with Anne's version!
+            //const double particle_d = CalculateParticleDiameter(Prop);
+            const auto particle_d = Prop[PIPE_D_70];
+
+            // todo calculate slope of pipe (in degrees! see formula), currently pipe is assumed to be horizontal
+            const double pipe_slope = 0.0;
+            const double theta = Prop[PIPE_THETA];
+
+            return Prop[PIPE_MODEL_FACTOR] * (Globals::Pi / 3.0) * particle_d * (
+                       Prop[DENSITY_SOLID] / Prop[DENSITY_WATER] - 1.0) * Prop[PIPE_ETA] *
+                   (std::sin(MathUtils<>::DegreesToRadians(theta + pipe_slope)) /
+                    std::cos(MathUtils<>::DegreesToRadians(theta))) / std::abs(dhdx);
+        }
+
     private:
         void CheckDomainSize() const {
             constexpr auto min_domain_size = 1.0e-15;
@@ -160,10 +183,19 @@ namespace Kratos {
             }
         }
 
-        double CalculateLength(const GeometryType& Geom)
-        {
+        double CalculateLength(const GeometryType &Geom) {
             // currently length is only calculated in x direction, to be changed for inclined pipes
             return std::abs(Geom.GetPoint(1)[0] - Geom.GetPoint(0)[0]);
+        }
+
+        double CalculateHeadGradient(const PropertiesType &rProp, const GeometryType &rGeom) {
+            const auto nodal_heads = GeoElementUtilities::CalculateNodalHydraulicHeadFromWaterPressures(rGeom, rProp);
+            Matrix shapefunctions_local_gradient;
+            // iso-parametric derivative
+            GetGeometry().ShapeFunctionsLocalGradients(shapefunctions_local_gradient, GetGeometry().Center());
+            // local derivative
+            shapefunctions_local_gradient /= GetGeometry().DeterminantOfJacobian(GetGeometry().Center());
+            return Vector{prod(trans(shapefunctions_local_gradient), nodal_heads)}[0];
         }
 
         static void AddContributionsToLhsMatrix(MatrixType &rLeftHandSideMatrix,
