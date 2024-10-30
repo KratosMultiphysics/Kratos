@@ -144,15 +144,25 @@ class QNBBStep(BBStep):
             d = algorithm_buffered_data.GetValue("control_field_update", 1)
             d = d.Evaluate()
             for i in range(len(y)):
-                dy = d[i] * y[i]
-                dd = d[i] * d[i]
+                if isinstance(d[i], (float, int, numpy.float64)):
+                    dy = d[i] * y[i]
+                    dd = d[i] * d[i]
+                elif isinstance(d[i], (numpy.ndarray)):
+                    dy = numpy.dot(d[i], y[i])
+                    dd = numpy.dot(d[i], d[i])
+                
                 if math.isclose(dy, 0.0, abs_tol=1e-16):
                     self.step_numpy[i] = self._max_step / norm
                 else:
                     self.step_numpy[i] = abs( dd / dy )
-                if self.step_numpy[i] > self._max_step / norm:
-                    self.step_numpy[i] = self._max_step / norm
 
+                if isinstance(d[i], (float, int, numpy.float64)):
+                    if self.step_numpy[i] > self._max_step / norm:
+                        self.step_numpy[i] = self._max_step / norm
+                elif isinstance(d[i], (numpy.ndarray)):
+                    if self.step_numpy[i][0] > self._max_step / norm:
+                        self.step_numpy[i] = self._max_step / norm
+                
         DictLogger("Line Search info",self.GetInfo())
 
         shape = [c.GetItemShape() for c in self.step.GetContainerExpressions()]
