@@ -886,7 +886,10 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         Vector cp_indices,
         Matrix N_subdiv,
         Matrix dN_dxi_subdiv,
-        Matrix dN_deta_subdiv
+        Matrix dN_deta_subdiv,
+        Matrix d2N_dxi2_subdiv,
+        Matrix d2N_dxi_deta_subdiv,
+        Matrix d2N_deta2_subdiv
         // PointsArrayType rPoints        
         // GeometriesArrayType& rResultGeometries
         ) 
@@ -908,17 +911,23 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
             // Matrix sizes must be change in this case
             // For a one element case, the matrix should be 1 x number of control points
             Matrix N(1, num_nonzero_cps); //
-            Matrix dN_dxi(1, num_nonzero_cps); //
-            Matrix dN_deta(1, num_nonzero_cps); //
+            // Matrix dN_dxi(1, num_nonzero_cps); //
+            // Matrix dN_deta(1, num_nonzero_cps); //
             Matrix dN(num_nonzero_cps,2); 
+            Matrix d2N(num_nonzero_cps,3); 
+
             for(int i=0; i<num_nonzero_cps; i++)
             {
                 N(0,i) = N_subdiv(0,i);
-                dN_dxi(0,i) = dN_dxi_subdiv(0,i);
-                dN_deta(0,i) = dN_deta_subdiv(0,i);
+                // dN_dxi(0,i) = dN_dxi_subdiv(0,i);
+                // dN_deta(0,i) = dN_deta_subdiv(0,i);
 
                 dN(i,0) = dN_dxi_subdiv(0,i);
                 dN(i,1) = dN_deta_subdiv(0,i);
+
+                d2N(i,0) = d2N_dxi2_subdiv(0,i);
+                d2N(i,1) = d2N_dxi_deta_subdiv(0,i);
+                d2N(i,2) = d2N_deta2_subdiv(0,i);
             }
             DenseVector<Matrix> shape_function_derivatives(2); //
 
@@ -926,11 +935,13 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
             // shape_function_derivatives(1) = dN_deta;
 
             shape_function_derivatives(0) = dN;
-            
-            // std::cout << "N: " << N << std::endl;
-            // std::cout << "shape function derivatives 1: " << shape_function_derivatives(0) << std::endl;
-            // std::cout << "shape function derivatives 2: " << shape_function_derivatives(1) << std::endl;
+            shape_function_derivatives(1) = d2N;
 
+            // std::cout << std::setprecision(16);
+            
+            std::cout << "N: " << N << std::endl;
+            std::cout << "shape function derivatives 1: " << shape_function_derivatives(0) << std::endl;
+            std::cout << "shape function derivatives 2: " << shape_function_derivatives(1) << std::endl;
 
             /// Get List of Control Points
             PointsArrayType nonzero_control_points(num_nonzero_cps);
