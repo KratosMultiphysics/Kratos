@@ -158,6 +158,10 @@ void  AddContainersToPython(pybind11::module& m)
     .def("__str__", PrintObject<Variable<Quaternion<double> >>)
     ;
 
+    py::class_<Variable<std::vector<DataValueContainer>>>(m, "DataValueContainerVectorVariable")
+    .def("__str__", PrintObject<Variable<std::vector<DataValueContainer>>>)
+    ;
+
     typedef py::class_<DataValueContainer, DataValueContainer::Pointer> DataValueContainerBinderType;
     DataValueContainerBinderType DataValueBinder(m, "DataValueContainer" );
     DataValueBinder.def( "__len__", &DataValueContainer::Size );
@@ -175,6 +179,7 @@ void  AddContainersToPython(pybind11::module& m)
     DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<RadiationSettings::Pointer> >(DataValueBinder);
     DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<Quaternion<double>> >(DataValueBinder);
     DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<std::string> >(DataValueBinder);
+    DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<std::vector<DataValueContainer>> >(DataValueBinder);
 
     typedef py::class_<VariablesListDataValueContainer, VariablesListDataValueContainer::Pointer> VariableDataValueContainerBinderType;
     VariableDataValueContainerBinderType VariableDataValueBinder(m, "VariablesListDataValueContainer" );

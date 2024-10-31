@@ -148,6 +148,7 @@ void  AddNodeToPython(pybind11::module& m)
     IndexingUtility<NodeBinderType,Node,Variable<Quaternion<double> > >(node_binder);
     IndexingUtility<NodeBinderType,Node,Variable<Vector > >(node_binder);
     IndexingUtility<NodeBinderType,Node,Variable<Matrix > >(node_binder);
+    IndexingUtility<NodeBinderType,Node,Variable<std::vector<DataValueContainer>> >(node_binder);
 
     node_binder.def("GetBufferSize", &Node::GetBufferSize);
     node_binder.def("AddDof", NodeAddDof<Variable<double> >);
