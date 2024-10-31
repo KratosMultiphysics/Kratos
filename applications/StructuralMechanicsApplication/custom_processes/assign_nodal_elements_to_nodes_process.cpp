@@ -106,7 +106,7 @@ void AssignNodalElementsToNodesProcess::ExecuteInitialize()
     // Assuming the number of properties is ordered
     ModelPart& r_root_model_part = mrThisModelPart.GetRootModelPart();
     const SizeType number_properties = r_root_model_part.NumberOfProperties();
-    Properties::Pointer p_properties = r_root_model_part.pGetProperties(number_properties + 1);
+    Properties::Pointer p_properties = r_root_model_part.HasProperties(number_properties + 1) ? r_root_model_part.pGetProperties(number_properties + 1) : r_root_model_part.CreateNewProperties(number_properties + 1);
 
     // Domain size
     const SizeType domain_size = r_root_model_part.GetProcessInfo()[DOMAIN_SIZE];
