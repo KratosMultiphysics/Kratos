@@ -268,7 +268,24 @@ public:
         ) override
     {
         // We save the current WEIGHTED_GAP in the buffer
-        auto& r_conditions_array = rModelPart.GetSubModelPart("ContactInterface").Conditions();
+        // auto& r_conditions_array = rModelPart.GetSubModelPart("ContactInterface").Conditions();
+
+        
+        for (auto i_cond : rModelPart.GetSubModelPart("ContactInterface").Conditions()) {
+            
+            int n_CP = i_cond.GetGeometry().GetGeometryPart(0).size();
+            int p = (int) sqrt(n_CP);
+
+            int n_GP = 2*p+1;
+
+            KRATOS_WATCH(n_CP)
+            KRATOS_WATCH(p)
+            KRATOS_WATCH(n_GP)
+
+        }
+
+
+
         // block_for_each(r_nodes_array, [&](Node& rNode) {
         //     rNode.FastGetSolutionStepValue(WEIGHTED_GAP, 1) = rNode.FastGetSolutionStepValue(WEIGHTED_GAP);
         // });

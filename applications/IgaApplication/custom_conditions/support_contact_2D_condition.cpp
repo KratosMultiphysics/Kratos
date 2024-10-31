@@ -267,7 +267,7 @@ namespace Kratos
 
         // Assembly
 
-        if (true) {
+        if (m_contact_is_active) {
 
             // MASTER
             Matrix DB_master = prod(r_D_master,B_master);
@@ -721,7 +721,6 @@ namespace Kratos
 
         mpConstitutiveLawMaster->FinalizeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
 
-        
     /////////////////////////
     //     const auto& r_geometry = GetMasterGeometry();
     //     const SizeType nb_nodes = r_geometry.size();

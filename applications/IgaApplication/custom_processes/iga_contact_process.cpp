@@ -30,13 +30,13 @@ namespace Kratos
         //                             : mpModel->CreateModelPart(mParameters["contact_model_part_name"].GetString());
 
 
-        std::string contact_model_part_name = "IgaModelPart.ContactInterface";
+        // std::string contact_model_part_name = "IgaModelPart.ContactInterface";
 
-        // Model& mainModel = r_model_part->GetModel();
+        // // Model& mainModel = r_model_part->GetModel();
 
-        ModelPart& contact_model_part = mpModel->HasModelPart(contact_model_part_name)
-                                      ? mpModel->GetModelPart(contact_model_part_name)
-                                      : mpModel->CreateModelPart(contact_model_part_name);
+        // ModelPart& contact_model_part = mpModel->HasModelPart(contact_model_part_name)
+        //                               ? mpModel->GetModelPart(contact_model_part_name)
+        //                               : mpModel->CreateModelPart(contact_model_part_name);
 
 
         // PHYSICS HERE OR IN IGA_MODELER???????????
@@ -76,10 +76,35 @@ namespace Kratos
 
     void IgaContactProcess::Execute(){
 
-        std::string contact_model_part_name = "IgaModelPart.ContactInterface";
+        std::string main_model_part_name = "IgaModelPart";
 
-        ModelPart& contact_model_part = mpModel->GetModelPart(contact_model_part_name);
-        contact_model_part.RemoveConditionsFromAllLevels();
+        std::string contact_sub_model_part_name = "ContactInterface";
+
+        // Model& mainModel = r_model_part->GetModel();
+
+        ModelPart& main_model_part = mpModel->HasModelPart(main_model_part_name)
+                                      ? mpModel->GetModelPart(main_model_part_name)
+                                      : mpModel->CreateModelPart(main_model_part_name);
+
+
+        main_model_part.RemoveSubModelPart(contact_sub_model_part_name);
+
+        
+        ModelPart& contact_sub_model_part = main_model_part.HasSubModelPart(contact_sub_model_part_name)
+                                            ? main_model_part.GetSubModelPart(contact_sub_model_part_name)
+                                            : main_model_part.CreateSubModelPart(contact_sub_model_part_name);
+
+        // for (auto i_cond : contact_sub_model_part.Conditions()) {
+        //     i_cond.Set(TO_ERASE, true);
+        // }
+        // contact_sub_model_part.RemoveConditionsFromAllLevels(TO_ERASE);
+
+        // std::string contact_model_part_name = "IgaModelPart.ContactInterface";
+
+        // ModelPart& contact_model_part = mpModel->GetModelPart(contact_model_part_name);
+        // contact_sub_model_part.RemoveConditionsFromAllLevels(TO_ERASE);
+
+        // contact_sub_model_part.RemoveConditions(TO_ERASE);
 
         //---------------------------------------------------------------
         KRATOS_WATCH("ÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇ")
@@ -118,8 +143,8 @@ namespace Kratos
         SizeType id = 1;
         // if (contact_model_part.GetRootModelPart().Conditions().size() > 0)
         //     id = contact_model_part.GetRootModelPart().Conditions().back().Id() + 1;
-        if (contact_model_part.GetRootModelPart().Conditions().size() > 0)
-            id = contact_model_part.GetRootModelPart().Conditions().back().Id() + 1;
+        if (contact_sub_model_part.GetRootModelPart().Conditions().size() > 0)
+            id = contact_sub_model_part.GetRootModelPart().Conditions().back().Id() + 1;
         
         KRATOS_ERROR_IF_NOT(mParameters.Has("name"))
             << "\"name\" need to be specified." << std::endl;
@@ -128,7 +153,7 @@ namespace Kratos
 
         this->CreateConditions(
                         geometries.ptr_begin(), geometries.ptr_end(),
-                        contact_model_part, name, id, mpPropMaster, mpPropSlave);
+                        contact_sub_model_part, name, id, mpPropMaster, mpPropSlave);
     }
 
 

@@ -501,7 +501,7 @@ public:
 
         //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        if (parentPointGlobalCoord[0] < 5.0 + 1e-12) displacement_normal_contribution = -displacement_normal_contribution;
+        // if (parentPointGlobalCoord[0] < 5.0 + 1e-12) displacement_normal_contribution = -displacement_normal_contribution;
 
 
         CoordinatesArrayType new_normal = (old_normal + displacement_normal_contribution)/ norm_2((old_normal + displacement_normal_contribution));
@@ -953,6 +953,14 @@ public:
                                         current_distance,
                                         rNumberInitialGuesses,
                                         rMaxIt, toll);
+
+            // double temp_loc_coord = 0.0;
+            // isConverged = ProjectionNurbsContactUtilities<TPointType, TSurfaceContainerPointType>::GetProjection(rpNurbsSurfaceParent, rpNurbsSurfacePaired, 
+            //                                         rParentPointLocal, 
+            //                                         rParentGeometry, *rPairedGeometryList[i_brep_s],
+            //                                         temp_loc_coord, current_distance);
+            // local_coord_projected_on_slave[0] = temp_loc_coord;
+
             if (isConverged) {
                 isConvergedAtLeastOnce = true;
 
