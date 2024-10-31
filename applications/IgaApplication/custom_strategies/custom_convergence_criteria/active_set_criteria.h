@@ -267,8 +267,8 @@ public:
         const TSystemVectorType& rb
         ) override
     {
-        // // We save the current WEIGHTED_GAP in the buffer
-        // auto& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
+        // We save the current WEIGHTED_GAP in the buffer
+        auto& r_conditions_array = rModelPart.GetSubModelPart("ContactInterface").Conditions();
         // block_for_each(r_nodes_array, [&](Node& rNode) {
         //     rNode.FastGetSolutionStepValue(WEIGHTED_GAP, 1) = rNode.FastGetSolutionStepValue(WEIGHTED_GAP);
         // });

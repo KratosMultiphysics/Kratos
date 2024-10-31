@@ -61,6 +61,8 @@ public:
 
     typedef BrepCurveOnSurface<ContainerNodeType, ContainerEmbeddedNodeType> BrepCurveOnSurfaceType;
 
+    typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceArrayType;
+
     /*
     * @brief Returns the projection of a point onto a Nurbs curve
     *        geometry using the Newton-Rapshon iterative method
@@ -881,6 +883,145 @@ public:
         }
         // Return false if the Newton-Raphson iterations did not converge
         return false;
+    }
+
+
+
+    static bool GetProjectionOnPairedGeometry(NurbsSurfaceTypePointer rpNurbsSurfaceParent,
+                                              NurbsSurfaceTypePointer rpNurbsSurfacePaired,
+                                              BrepCurveOnSurfaceType& rParentGeometry,
+                                              const BrepCurveOnSurfaceArrayType& rPairedGeometryList,
+                                              const CoordinatesArrayType& rParentPointLocal,
+                                              CoordinatesArrayType& ProjectionOnPairedGeometry,
+                                              int best_brep_id_slave,
+                                              int rNumberInitialGuesses = 25,
+                                              int rMaxIt = 50,
+                                              double toll = 1e-9
+                                              ) 
+    {
+        // MASTER
+        std::vector<CoordinatesArrayType> parameter_space_derivatives_master(2);
+        std::vector<CoordinatesArrayType> physical_space_derivatives_master(2);
+
+        rParentGeometry.LocalSpaceDerivatives(
+                parameter_space_derivatives_master,
+                rParentPointLocal,
+                1);
+
+        rParentGeometry.GlobalSpaceDerivatives(
+                physical_space_derivatives_master,
+                rParentPointLocal,
+                1);
+
+        // SLAVE
+        CoordinatesArrayType master_quadrature_point_parameter(3);
+        master_quadrature_point_parameter[0] = parameter_space_derivatives_master[0][0]; master_quadrature_point_parameter[1] = parameter_space_derivatives_master[0][1];
+        master_quadrature_point_parameter[2] = 0.0;
+
+        CoordinatesArrayType master_quadrature_point_physical(3);
+        master_quadrature_point_physical[0] = physical_space_derivatives_master[0][0]; master_quadrature_point_physical[1] = physical_space_derivatives_master[0][1];
+        master_quadrature_point_physical[2] = 0.0;
+
+        CoordinatesArrayType displacement_on_projection; CoordinatesArrayType displacement_on_master_quadrature_point;
+        GetDisplacement(rpNurbsSurfaceParent, master_quadrature_point_parameter, displacement_on_master_quadrature_point);
+        CoordinatesArrayType master_quadrature_point_deformed = master_quadrature_point_physical + displacement_on_master_quadrature_point;
+
+        //---------------------------------------------------------
+        double best_distance = 1e16;
+        CoordinatesArrayType best_projected_point_on_slave_local;
+        best_brep_id_slave = -1;
+        bool isConvergedAtLeastOnce = false;
+        CoordinatesArrayType best_projected_on_slave;
+        for (IndexType i_brep_s = 0; i_brep_s < rPairedGeometryList.size(); i_brep_s++) {
+            //---------------------------------------------------------------------------------------------------
+
+            CoordinatesArrayType local_coord_projected_on_slave; //first trial
+            local_coord_projected_on_slave[0] = 0;
+            CoordinatesArrayType rProjectedPointGlobalCoordinates;
+            double current_distance;
+            
+
+            Vector b_rep_interval;
+            rPairedGeometryList[i_brep_s]->DomainInterval(b_rep_interval);
+
+            bool isConverged = false;
+            isConverged = NewtonRaphsonCurveOnDeformed(rpNurbsSurfaceParent, rpNurbsSurfacePaired,
+                                        local_coord_projected_on_slave,
+                                        rParentPointLocal,
+                                        rProjectedPointGlobalCoordinates,
+                                        rParentGeometry, *rPairedGeometryList[i_brep_s], 
+                                        current_distance,
+                                        rNumberInitialGuesses,
+                                        rMaxIt, toll);
+            if (isConverged) {
+                isConvergedAtLeastOnce = true;
+
+                if (current_distance < best_distance) {
+                    best_distance = current_distance;
+                    best_projected_point_on_slave_local = local_coord_projected_on_slave;
+
+                    
+                    best_brep_id_slave = i_brep_s;
+
+                    // if (std::abs(local_coord_projected_on_slave[0] - b_rep_interval[0]) < 1e-12
+                    //     || std::abs(local_coord_projected_on_slave[0] - b_rep_interval[1]) < 1e-12) {
+                    //         best_projected_point_on_slave_local[0] += ((b_rep_interval[0]-local_coord_projected_on_slave[0]) + (b_rep_interval[1]-local_coord_projected_on_slave[0]))
+                    //                                                     / (std::abs(b_rep_interval[1]-b_rep_interval[0])) *1e-9;
+                    //     }
+                }
+            } else {
+                Vector interval; 
+                rPairedGeometryList[i_brep_s]->DomainInterval(interval);
+                local_coord_projected_on_slave[0] = interval[0];
+                CoordinatesArrayType point_projected_on_slave_parameter(3);        
+                rPairedGeometryList[i_brep_s]->LocalCoordinates(point_projected_on_slave_parameter, local_coord_projected_on_slave);
+
+                CoordinatesArrayType point_projected_on_slave_physical(3);        
+                rPairedGeometryList[i_brep_s]->GlobalCoordinates(point_projected_on_slave_physical, local_coord_projected_on_slave);
+
+                // NEW
+                ProjectionNurbsContactUtilities<TPointType, TSurfaceContainerPointType>::GetDisplacement(rpNurbsSurfacePaired, point_projected_on_slave_parameter, displacement_on_projection);
+
+                CoordinatesArrayType point_projected_on_slave_deformed = point_projected_on_slave_physical + displacement_on_projection;
+                
+                current_distance = norm_2(master_quadrature_point_deformed-point_projected_on_slave_deformed);
+
+                if (current_distance < best_distance) {
+                    best_distance = current_distance;
+                    best_projected_point_on_slave_local = local_coord_projected_on_slave;
+
+                    // best_projected_point_on_slave_local[0] -= 1e-9;
+                    best_brep_id_slave = i_brep_s;
+                }
+                //*******************************************************
+                // SECOND VERTEX
+                //***************************************************** */ */
+                local_coord_projected_on_slave[0] = interval[1];
+                rPairedGeometryList[i_brep_s]->LocalCoordinates(point_projected_on_slave_parameter, local_coord_projected_on_slave);
+
+                rPairedGeometryList[i_brep_s]->GlobalCoordinates(point_projected_on_slave_physical, local_coord_projected_on_slave);
+
+                    // NEW
+                ProjectionNurbsContactUtilities<TPointType, TSurfaceContainerPointType>::GetDisplacement(rpNurbsSurfacePaired, point_projected_on_slave_parameter, displacement_on_projection);
+                point_projected_on_slave_deformed = point_projected_on_slave_physical + displacement_on_projection;
+
+                current_distance = norm_2(master_quadrature_point_deformed-point_projected_on_slave_deformed);
+
+
+                if (current_distance < best_distance) {
+                    best_distance = current_distance;
+                    best_projected_point_on_slave_local = local_coord_projected_on_slave;
+
+                    // best_projected_point_on_slave_local[0] -= 1e-9;
+                    best_brep_id_slave = i_brep_s;
+                }
+            }
+
+        }
+
+        ProjectionOnPairedGeometry = best_projected_point_on_slave_local;
+        
+        return isConvergedAtLeastOnce;
     }
 
 };

@@ -71,15 +71,29 @@ namespace Kratos
                     }
                 } 
                 
-                if (best_parent_brep_index > -1) integration_edges_on_parameter_parent_list[best_parent_brep_index].push_back(projection_parameter_in_best_parent_brep);
+                if (best_parent_brep_index > -1) 
+                {
+                    // check if valuye is already present
+                    bool is_present = false;
+                    for (IndexType i_vertex = 0; i_vertex < integration_edges_on_parameter_parent_list[best_parent_brep_index].size(); i_vertex++)
+                    {
+                        if (std::abs(projection_parameter_in_best_parent_brep - integration_edges_on_parameter_parent_list[best_parent_brep_index][i_vertex]) < 1e-4) 
+                        {
+                            is_present = true;
+                            break;
+                        }
+                    }
+                    if (is_present) continue;
+                    integration_edges_on_parameter_parent_list[best_parent_brep_index].push_back(projection_parameter_in_best_parent_brep);
+                }
             }
         }
 
         // maybe we can do better
         for (int i_brep_parent = 0; i_brep_parent < spans_parent_list.size(); i_brep_parent++) {
             std::sort(integration_edges_on_parameter_parent_list[i_brep_parent].begin(), integration_edges_on_parameter_parent_list[i_brep_parent].end());
-            auto last = std::unique(integration_edges_on_parameter_parent_list[i_brep_parent].begin(), integration_edges_on_parameter_parent_list[i_brep_parent].end());
-            integration_edges_on_parameter_parent_list[i_brep_parent].erase(last, integration_edges_on_parameter_parent_list[i_brep_parent].end());
+            // auto last = std::unique(integration_edges_on_parameter_parent_list[i_brep_parent].begin(), integration_edges_on_parameter_parent_list[i_brep_parent].end());
+            // integration_edges_on_parameter_parent_list[i_brep_parent].erase(last, integration_edges_on_parameter_parent_list[i_brep_parent].end());
         }
 
         
@@ -103,6 +117,53 @@ namespace Kratos
             
     }
 
+    template<class TPointType, class TSurfaceContainerPointType> 
+    void NurbsCouplingGeometry2D<TPointType, TSurfaceContainerPointType>::FilterSpansForProjection(NurbsSurfaceTypePointer rpNurbsSurfaceParent,
+        NurbsSurfaceTypePointer rpNurbsSurfacePaired,
+        std::vector<std::vector<double>>& integration_edges_on_parameter_parent_list,
+        std::vector<std::vector<std::vector<double>>>& integration_edges_on_parameter_parent_list_filtered,
+        BrepCurveOnSurfaceArrayType& rParentGeometryList,
+        BrepCurveOnSurfaceArrayType& rPairedGeometryList)
+    {
+        SizeType count_active_spans = 0;
+        bool last_is_converged = false;
+        integration_edges_on_parameter_parent_list_filtered.resize(rParentGeometryList.size());
+        for (IndexType i_brep_parent = 0; i_brep_parent < rParentGeometryList.size(); i_brep_parent++)
+        {
+            for (IndexType i = 0; i < integration_edges_on_parameter_parent_list[i_brep_parent].size(); i++)
+            {
+                CoordinatesArrayType vertex_edge_parent_geometry = ZeroVector(3);
+                vertex_edge_parent_geometry[0] = integration_edges_on_parameter_parent_list[i_brep_parent][i];
+
+                CoordinatesArrayType projection_on_slave;
+                int best_brep_slave_index;
+                bool is_converged = ProjectionNurbsContactUtilities<TPointType, TSurfaceContainerPointType>::GetProjectionOnPairedGeometry(rpNurbsSurfaceParent,
+                                                rpNurbsSurfacePaired,
+                                                *rParentGeometryList[i_brep_parent],
+                                                rPairedGeometryList,
+                                                vertex_edge_parent_geometry,
+                                                projection_on_slave,
+                                                best_brep_slave_index,
+                                                20,
+                                                20,
+                                                1e-6
+                                                );  
+
+                if (is_converged && last_is_converged)
+                {
+                    std::vector<double> current_span(2);
+                    current_span[0] = integration_edges_on_parameter_parent_list[i_brep_parent][i-1]; 
+                    current_span[1] = integration_edges_on_parameter_parent_list[i_brep_parent][i]; 
+                    integration_edges_on_parameter_parent_list_filtered[i_brep_parent].push_back(current_span);
+
+                }
+                last_is_converged = is_converged;
+            }
+            
+        }
+        
+    }
+
     ///@}
 
     ///@}
@@ -118,22 +179,63 @@ namespace Kratos
     void NurbsCouplingGeometry2D<TPointType, TSurfaceContainerPointType>::CreateIntegrationPoints(
         NurbsSurfaceTypePointer rpNurbsSurfaceParent,
         NurbsSurfaceTypePointer rpNurbsSurfacePaired,
-        std::vector<IntegrationPointsArrayType>& rIntegrationPoints,
+        std::vector<std::vector<IntegrationPointsArrayType>>& rIntegrationPoints,
         IntegrationInfo& rIntegrationInfo,
         std::vector<std::vector<double>>& spans_parent_list,
         std::vector<std::vector<double>>& spans_paired_list,
         BrepCurveOnSurfaceArrayType& rParentGeometryList,
-        BrepCurveOnSurfaceArrayType& rPairedGeometryList
+        BrepCurveOnSurfaceArrayType& rPairedGeometryList,
+        std::vector<std::vector<int>>& projected_paired_geometry_id
         )
-    {
+    {   
         std::vector<std::vector<double>> integration_edges_on_parameter_parent_list(spans_parent_list.size());
         SpansLocalSpaceForParentIntegration(rpNurbsSurfaceParent, rpNurbsSurfacePaired, integration_edges_on_parameter_parent_list, 
                                             spans_parent_list, spans_paired_list, rParentGeometryList, rPairedGeometryList);
+
+        std::vector<std::vector<std::vector<double>>> integration_edges_on_parameter_parent_list_filtered;
+        FilterSpansForProjection(rpNurbsSurfaceParent, rpNurbsSurfacePaired, integration_edges_on_parameter_parent_list,
+                                 integration_edges_on_parameter_parent_list_filtered, rParentGeometryList, rPairedGeometryList);
+
+        projected_paired_geometry_id.resize(spans_parent_list.size());
         
         for (int i_brep_parent = 0; i_brep_parent < spans_parent_list.size(); i_brep_parent++){
-            IntegrationPointUtilities::CreateIntegrationPoints1D(
-                rIntegrationPoints[i_brep_parent], integration_edges_on_parameter_parent_list[i_brep_parent], rIntegrationInfo);
+            // IntegrationPointUtilities::CreateIntegrationPoints1D(
+            //     rIntegrationPoints[i_brep_parent], integration_edges_on_parameter_parent_list[i_brep_parent], rIntegrationInfo);
+            rIntegrationPoints[i_brep_parent].resize(2);
+            CreateIntegrationPoints1DGauss(
+                rIntegrationPoints[i_brep_parent][0], integration_edges_on_parameter_parent_list_filtered[i_brep_parent], rIntegrationInfo);
+
+            // project the integration points and check if everything went correctly
+            int n_integration_points = rIntegrationPoints[i_brep_parent][0].size();
+
+            // initialize slave integration points array
+            rIntegrationPoints[i_brep_parent][1].resize(n_integration_points);
+            projected_paired_geometry_id[i_brep_parent].resize(n_integration_points);
+
+            for (IndexType i = 0; i < rIntegrationPoints[i_brep_parent][0].size(); ++i)
+            { 
+                // ###########################################################################################################3
+                // ###########################################################################################################3
+
+                CoordinatesArrayType projection_on_slave;
+                int best_brep_slave_index;
+                bool is_converged = ProjectionNurbsContactUtilities<TPointType, TSurfaceContainerPointType>::GetProjectionOnPairedGeometry(rpNurbsSurfaceParent,
+                                              rpNurbsSurfacePaired,
+                                              *rParentGeometryList[i_brep_parent],
+                                              rPairedGeometryList,
+                                              rIntegrationPoints[i_brep_parent][0][i],
+                                              projection_on_slave,
+                                              best_brep_slave_index
+                                              ); 
+                
+                projected_paired_geometry_id[i_brep_parent][i] = best_brep_slave_index;
+
+                IntegrationPoint<1> integrationPointSlave(projection_on_slave[0]);
+                rIntegrationPoints[i_brep_parent][1][i] = integrationPointSlave;
+                // ###########################################################################################################3
+            }
         }
+
 
     }
     
@@ -171,24 +273,16 @@ namespace Kratos
 
 
         // for master
-        std::vector<IntegrationPointsArrayType> IntegrationPointsMaster(mMasterGeometryList.size());
-        CreateIntegrationPoints(mpNurbsSurfaceMaster, mpNurbsSurfaceSlave, IntegrationPointsMaster, rIntegrationInfo, spans_master_list, spans_slave_list, 
-                                mMasterGeometryList, mSlaveGeometryList);
-
-
-         // // for slave
-        std::vector<IntegrationPointsArrayType> IntegrationPointsSlave(mSlaveGeometryList.size());
-        CreateIntegrationPoints(mpNurbsSurfaceSlave, mpNurbsSurfaceMaster, IntegrationPointsSlave, rIntegrationInfo, spans_slave_list, spans_master_list, 
-                                mSlaveGeometryList, mMasterGeometryList);
-
+        std::vector<std::vector<IntegrationPointsArrayType>> IntegrationPoints(mMasterGeometryList.size());
+        std::vector<std::vector<int>> projected_paired_geometry_id;
+        CreateIntegrationPoints(mpNurbsSurfaceMaster, mpNurbsSurfaceSlave, IntegrationPoints, rIntegrationInfo, spans_master_list, spans_slave_list, 
+                                mMasterGeometryList, mSlaveGeometryList, projected_paired_geometry_id);
 
         // // Resize containers.
         int numberIntegrationPointsMaster = 0; 
-        int numberIntegrationPointsSlave = 0; 
-        for (int i = 0; i < mMasterGeometryList.size(); i++) numberIntegrationPointsMaster += IntegrationPointsMaster[i].size();  
-        for (int i = 0; i < mSlaveGeometryList.size(); i++) numberIntegrationPointsSlave += IntegrationPointsSlave[i].size(); 
+        for (int i = 0; i < mMasterGeometryList.size(); i++) numberIntegrationPointsMaster += IntegrationPoints[i][0].size();  
 
-        const int numberIntegrationPoints = numberIntegrationPointsMaster+numberIntegrationPointsSlave;
+        const int numberIntegrationPoints = numberIntegrationPointsMaster;
         if (rResultGeometries.size() != numberIntegrationPoints)
             rResultGeometries.resize(numberIntegrationPoints);
 
@@ -197,7 +291,8 @@ namespace Kratos
         this->CreateQuadraturePointGeometriesOnParent(
             rResultGeometries,
             NumberOfShapeFunctionDerivatives,
-            IntegrationPointsMaster,
+            IntegrationPoints,
+            projected_paired_geometry_id,
             rIntegrationInfo,
             mpNurbsSurfaceMaster,
             mpNurbsSurfaceSlave,
@@ -207,18 +302,18 @@ namespace Kratos
             quadraturePointId);
 
        
-        GeometriesArrayType rResultGeometries2;
-        this->CreateQuadraturePointGeometriesOnParent(
-            rResultGeometries,
-            NumberOfShapeFunctionDerivatives,
-            IntegrationPointsSlave,
-            rIntegrationInfo,
-            mpNurbsSurfaceSlave,
-            mpNurbsSurfaceMaster,
-            mSlaveGeometryList,
-            mMasterGeometryList,
-            SlaveIndex,
-            quadraturePointId);
+        // GeometriesArrayType rResultGeometries2;
+        // this->CreateQuadraturePointGeometriesOnParent(
+        //     rResultGeometries,
+        //     NumberOfShapeFunctionDerivatives,
+        //     IntegrationPointsSlave,
+        //     rIntegrationInfo,
+        //     mpNurbsSurfaceSlave,
+        //     mpNurbsSurfaceMaster,
+        //     mSlaveGeometryList,
+        //     mMasterGeometryList,
+        //     SlaveIndex,
+        //     quadraturePointId);
 
         rResultGeometries.resize(quadraturePointId);
         
@@ -245,7 +340,8 @@ namespace Kratos
     void NurbsCouplingGeometry2D<TPointType, TSurfaceContainerPointType>::CreateQuadraturePointGeometriesOnParent(
         GeometriesArrayType& rResultGeometries,
         IndexType NumberOfShapeFunctionDerivatives,
-        const std::vector<IntegrationPointsArrayType>& rIntegrationPoints,
+        const std::vector<std::vector<IntegrationPointsArrayType>>& rIntegrationPoints,
+        const std::vector<std::vector<int>>& projected_paired_geometry_id,
         IntegrationInfo& rIntegrationInfo,
         NurbsSurfaceTypePointer rpNurbsSurfaceParent,
         NurbsSurfaceTypePointer rpNurbsSurfacePaired,
@@ -296,8 +392,8 @@ namespace Kratos
                 // IF IS_SBM -> check to which axis the brep is alligned
                 std::vector<CoordinatesArrayType> first_integration_point(2); // first integration point of the brep in the parameter space
                 std::vector<CoordinatesArrayType> last_integration_point(2); // last integration point of the brep in the parameter space
-                rParentGeometryList[i_brep_m]->LocalSpaceDerivatives(first_integration_point,rIntegrationPoints[i_brep_m][0],1); 
-                rParentGeometryList[i_brep_m]->LocalSpaceDerivatives(last_integration_point,rIntegrationPoints[i_brep_m][rIntegrationPoints.size()-1],1); 
+                rParentGeometryList[i_brep_m]->LocalSpaceDerivatives(first_integration_point,rIntegrationPoints[i_brep_m][0][0],1); 
+                rParentGeometryList[i_brep_m]->LocalSpaceDerivatives(last_integration_point,rIntegrationPoints[i_brep_m][0][rIntegrationPoints.size()-1],1); 
 
                 // check if the brep is internal (external breps do not need to be computed in a different knot span) 
                 is_brep_internal = true; 
@@ -337,7 +433,7 @@ namespace Kratos
             }
             //--------------------------------------------------
             //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-            for (IndexType i = 0; i < rIntegrationPoints[i_brep_m].size(); ++i)
+            for (IndexType i = 0; i < rIntegrationPoints[i_brep_m][0].size(); ++i)
             {  
                 // MASTER
                 //ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ
@@ -346,12 +442,12 @@ namespace Kratos
 
                 rParentGeometryList[i_brep_m]->LocalSpaceDerivatives(
                         parameter_space_derivatives_master,
-                        rIntegrationPoints[i_brep_m][i],
+                        rIntegrationPoints[i_brep_m][0][i],
                         1);
 
                 rParentGeometryList[i_brep_m]->GlobalSpaceDerivatives(
                         physical_space_derivatives_master,
-                        rIntegrationPoints[i_brep_m][i],
+                        rIntegrationPoints[i_brep_m][0][i],
                         1);
 
                 
@@ -429,157 +525,17 @@ namespace Kratos
                 }
 
                 GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container_master(
-                    default_method, rIntegrationPoints[i_brep_m][i],
+                    default_method, rIntegrationPoints[i_brep_m][0][i],
                     N_m, shape_function_derivatives_m);
                     
 
 
-                // SLAVE
-                //ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ    
+                int projected_brep_id = projected_paired_geometry_id[i_brep_m][i];
 
-                // project point 
-
-                
-                CoordinatesArrayType master_quadrature_point_parameter(3);
-                master_quadrature_point_parameter[0] = parameter_space_derivatives_master[0][0]; master_quadrature_point_parameter[1] = parameter_space_derivatives_master[0][1];
-                master_quadrature_point_parameter[2] = 0.0;
-
-                CoordinatesArrayType master_quadrature_point_physical(3);
-                master_quadrature_point_physical[0] = physical_space_derivatives_master[0][0]; master_quadrature_point_physical[1] = physical_space_derivatives_master[0][1];
-                master_quadrature_point_physical[2] = 0.0;
-
-                CoordinatesArrayType displacement_on_projection; CoordinatesArrayType displacement_on_master_quadrature_point;
-                ProjectionNurbsContactUtilities<TPointType, TSurfaceContainerPointType>::GetDisplacement(rpNurbsSurfaceParent, master_quadrature_point_parameter, displacement_on_master_quadrature_point);
-                CoordinatesArrayType master_quadrature_point_deformed = master_quadrature_point_physical + displacement_on_master_quadrature_point;
-
-                //---------------------------------------------------------
-                double best_distance = 1e16;
-                CoordinatesArrayType best_projected_point_on_slave_local;
-                int best_brep_id_slave = -1;
-                bool isConvergedAtLeastOnce = false;
-                CoordinatesArrayType best_projected_on_slave;
-                for (IndexType i_brep_s = 0; i_brep_s < rPairedGeometryList.size(); i_brep_s++) {
-                    //---------------------------------------------------------------------------------------------------
-
-                    CoordinatesArrayType local_coord_projected_on_slave; //first trial
-                    local_coord_projected_on_slave[0] = 0;
-                    CoordinatesArrayType rProjectedPointGlobalCoordinates;
-                    double current_distance;
-                    // bool isConverged = rPairedGeometryList[i_brep_s].ProjectionPointGlobalToLocalSpace(master_quadrature_point_parameter, local_coord_projected_on_slave, 1e-12);
-                    
-
-                    Vector b_rep_interval;
-                    rPairedGeometryList[i_brep_s]->DomainInterval(b_rep_interval);
-
-                    bool isConverged = false;
-
-                    // if (integrationDomain == 0)
-                    // {
-                        isConverged = ProjectionNurbsContactUtilities<TPointType, TSurfaceContainerPointType>::NewtonRaphsonCurveOnDeformed(rpNurbsSurfaceParent, rpNurbsSurfacePaired,
-                                                    local_coord_projected_on_slave,
-                                                    rIntegrationPoints[i_brep_m][i],
-                                                    rProjectedPointGlobalCoordinates,
-                                                    *rParentGeometryList[i_brep_m], *rPairedGeometryList[i_brep_s], 
-                                                    current_distance,
-                                                    25,
-                                                    50, 1e-9);
-                    // } else //if (integrationDomain == 1)
-                    // {
-                    //     double temp_loc_coord = 0.0;
-                    //     isConverged = ProjectionNurbsContactUtilities<TPointType, TSurfaceContainerPointType>::GetProjection(rpNurbsSurfaceParent, rpNurbsSurfacePaired, 
-                    //                                             rIntegrationPoints[i_brep_m][i], 
-                    //                                             *rParentGeometryList[i_brep_m], *rPairedGeometryList[i_brep_s],
-                    //                                             temp_loc_coord, current_distance);
-                    //     local_coord_projected_on_slave[0] = temp_loc_coord;
-                    // }
-                    
-                    // bool isConverged = ProjectionNurbsContactUtilities<TPointType, TSurfaceContainerPointType>:: NewtonRaphsonCurve(
-                    //                                             local_coord_projected_on_slave,
-                    //                                             master_quadrature_point_parameter,
-                    //                                             rProjectedPointGlobalCoordinates,
-                    //                                             *rPairedGeometryList[i_brep_s],
-                    //                                             current_distance,
-                    //                                             20,
-                    //                                             1e-9);
-
-                    
-                    
-                    if (isConverged) {
-                        isConvergedAtLeastOnce = true;
-
-                        if (current_distance < best_distance) {
-                            best_distance = current_distance;
-                            best_projected_point_on_slave_local = local_coord_projected_on_slave;
-
-                            
-                            best_brep_id_slave = i_brep_s;
-
-                            if (std::abs(local_coord_projected_on_slave[0] - b_rep_interval[0]) < 1e-12
-                                || std::abs(local_coord_projected_on_slave[0] - b_rep_interval[1]) < 1e-12) {
-                                    best_projected_point_on_slave_local[0] += ((b_rep_interval[0]-local_coord_projected_on_slave[0]) + (b_rep_interval[1]-local_coord_projected_on_slave[0]))
-                                                                                / (std::abs(b_rep_interval[1]-b_rep_interval[0])) *1e-9;
-                                }
-                        }
-                    } else {
-                        Vector interval; 
-                        rPairedGeometryList[i_brep_s]->DomainInterval(interval);
-                        local_coord_projected_on_slave[0] = interval[0];
-                        CoordinatesArrayType point_projected_on_slave_parameter(3);        
-                        rPairedGeometryList[i_brep_s]->LocalCoordinates(point_projected_on_slave_parameter, local_coord_projected_on_slave);
-
-                        CoordinatesArrayType point_projected_on_slave_physical(3);        
-                        rPairedGeometryList[i_brep_s]->GlobalCoordinates(point_projected_on_slave_physical, local_coord_projected_on_slave);
-
-                        // NEW
-                        ProjectionNurbsContactUtilities<TPointType, TSurfaceContainerPointType>::GetDisplacement(rpNurbsSurfacePaired, point_projected_on_slave_parameter, displacement_on_projection);
-
-                        CoordinatesArrayType point_projected_on_slave_deformed = point_projected_on_slave_physical + displacement_on_projection;
-                        
-                        current_distance = norm_2(master_quadrature_point_deformed-point_projected_on_slave_deformed);
-
-                        if (current_distance < best_distance) {
-                            best_distance = current_distance;
-                            best_projected_point_on_slave_local = local_coord_projected_on_slave;
-
-                            best_projected_point_on_slave_local[0] -= 1e-9;
-                            best_brep_id_slave = i_brep_s;
-                        }
-                        //*******************************************************
-                        // SECOND VERTEX
-                        //***************************************************** */ */
-                        local_coord_projected_on_slave[0] = interval[1];
-                        rPairedGeometryList[i_brep_s]->LocalCoordinates(point_projected_on_slave_parameter, local_coord_projected_on_slave);
-
-                        rPairedGeometryList[i_brep_s]->GlobalCoordinates(point_projected_on_slave_physical, local_coord_projected_on_slave);
-
-                         // NEW
-                        ProjectionNurbsContactUtilities<TPointType, TSurfaceContainerPointType>::GetDisplacement(rpNurbsSurfacePaired, point_projected_on_slave_parameter, displacement_on_projection);
-                        point_projected_on_slave_deformed = point_projected_on_slave_physical + displacement_on_projection;
-
-                        current_distance = norm_2(master_quadrature_point_deformed-point_projected_on_slave_deformed);
-
-
-                        if (current_distance < best_distance) {
-                            best_distance = current_distance;
-                            best_projected_point_on_slave_local = local_coord_projected_on_slave;
-
-                            best_projected_point_on_slave_local[0] -= 1e-9;
-                            best_brep_id_slave = i_brep_s;
-                        }
-                    }
-
-                }
-                if (!isConvergedAtLeastOnce) continue;
-
-
-                // WARNING ! REMOVE
-
-    
-
-                IntegrationPoint<1> integrationPointSlave(best_projected_point_on_slave_local[0]);
+                IntegrationPoint<1> integrationPointSlave = rIntegrationPoints[i_brep_m][1][i];
 
                 std::vector<CoordinatesArrayType> parameter_space_derivatives_slave(2);
-                rPairedGeometryList[best_brep_id_slave]->LocalSpaceDerivatives(
+                rPairedGeometryList[projected_brep_id]->LocalSpaceDerivatives(
                         parameter_space_derivatives_slave,
                         integrationPointSlave,
                         1);
@@ -588,7 +544,7 @@ namespace Kratos
 
                 //***+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
                 CoordinatesArrayType physical_integration_point_slave(2);
-                rPairedGeometryList[best_brep_id_slave]->GlobalCoordinates(
+                rPairedGeometryList[projected_brep_id]->GlobalCoordinates(
                         physical_integration_point_slave,
                         integrationPointSlave);
 
@@ -599,7 +555,7 @@ namespace Kratos
 
                 CoordinatesArrayType physical_integration_point_slave_deformed = physical_integration_point_slave + displacement_on_slave_integration_point;
 
-
+                CoordinatesArrayType displacement_on_projection; 
                 ProjectionNurbsContactUtilities<TPointType, TSurfaceContainerPointType>::GetDisplacement(rpNurbsSurfaceParent, parameter_space_derivatives_master[0], displacement_on_projection);
 
                 std::ofstream outputFile2("txt_files/Gauss_Point_Contact_coordinates.txt", std::ios::app);
@@ -609,12 +565,31 @@ namespace Kratos
                     return;
                 }
 
+                rParentGeometryList[i_brep_m]->LocalSpaceDerivatives(
+                        parameter_space_derivatives_master,
+                        rIntegrationPoints[i_brep_m][0][i],
+                        1);
 
+                rParentGeometryList[i_brep_m]->GlobalSpaceDerivatives(
+                        physical_space_derivatives_master,
+                        rIntegrationPoints[i_brep_m][0][i],
+                        1);
+                
+                CoordinatesArrayType master_quadrature_point_parameter(3);
+                master_quadrature_point_parameter[0] = parameter_space_derivatives_master[0][0]; master_quadrature_point_parameter[1] = parameter_space_derivatives_master[0][1];
+                master_quadrature_point_parameter[2] = 0.0;
+
+                CoordinatesArrayType master_quadrature_point_physical(3);
+                master_quadrature_point_physical[0] = physical_space_derivatives_master[0][0]; master_quadrature_point_physical[1] = physical_space_derivatives_master[0][1];
+                master_quadrature_point_physical[2] = 0.0;
+
+                CoordinatesArrayType displacement_on_master_quadrature_point;
+                ProjectionNurbsContactUtilities<TPointType, TSurfaceContainerPointType>::GetDisplacement(rpNurbsSurfaceParent, master_quadrature_point_parameter, displacement_on_master_quadrature_point);
+                CoordinatesArrayType master_quadrature_point_deformed = master_quadrature_point_physical + displacement_on_master_quadrature_point;         
                 outputFile2 << std::setprecision(14); // Set precision to 10^-14
                 outputFile2 << master_quadrature_point_deformed[0] << "  " << master_quadrature_point_deformed[1]  <<" " 
                             << physical_integration_point_slave_deformed[0]  << "  " << physical_integration_point_slave_deformed[1]   <<"\n";
                 outputFile2.close();
-
 
 
                 //++++++++++++++++++++++++++++++++++++++++
@@ -665,29 +640,13 @@ namespace Kratos
                     nonzero_control_points_master, nonzero_control_points_slave,
                     parameter_space_derivatives_master[1][0], parameter_space_derivatives_master[1][1], 
                     parameter_space_derivatives_slave[1][0], parameter_space_derivatives_slave[1][1],
-                    &(*rParentGeometryList[i_brep_m]), &(*rPairedGeometryList[best_brep_id_slave]), this);
+                    &(*rParentGeometryList[i_brep_m]), &(*rPairedGeometryList[projected_brep_id]), this);
 
                 // set value of the background integration domain
                 rResultGeometries(quadraturePointId)->SetValue(ACTIVATION_LEVEL, integrationDomain);
                 quadraturePointId++;
             }
         }
-    }
-
-
-    template<class TPointType, class TSurfaceContainerPointType> 
-    void NurbsCouplingGeometry2D<TPointType, TSurfaceContainerPointType>::CreateQuadraturePointGeometriesSlave(
-        GeometriesArrayType& rResultGeometries,
-        IndexType NumberOfShapeFunctionDerivatives,
-        const IntegrationPointsArrayType& rIntegrationPoints,
-        IntegrationInfo& rIntegrationInfo) 
-    {
-        // mpCurveOnSurface->CreateQuadraturePointGeometries(
-        //     rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationPoints, rIntegrationInfo);
-
-        // for (IndexType i = 0; i < rResultGeometries.size(); ++i) {
-        //     rResultGeometries(i)->SetGeometryParent(this);
-        // }
     }
 
     ///@}

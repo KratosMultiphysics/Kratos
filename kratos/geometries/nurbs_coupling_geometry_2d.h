@@ -300,12 +300,13 @@ NurbsCouplingGeometry2D(
     void CreateIntegrationPoints(
         NurbsSurfaceTypePointer rpNurbsSurfaceParent,
         NurbsSurfaceTypePointer rpNurbsSurfacePaired,
-        std::vector<IntegrationPointsArrayType>& rIntegrationPoints,
+        std::vector<std::vector<IntegrationPointsArrayType>>& rIntegrationPoints,
         IntegrationInfo& rIntegrationInfo,
         std::vector<std::vector<double>>& spans_parent_list,
         std::vector<std::vector<double>>& spans_paired_list,
         BrepCurveOnSurfaceArrayType& rParentGeometryList,
-        BrepCurveOnSurfaceArrayType& rPairedGeometryList
+        BrepCurveOnSurfaceArrayType& rPairedGeometryList,
+        std::vector<std::vector<int>>& projected_paired_geometry_id
         );
     
     ///@}
@@ -344,23 +345,25 @@ NurbsCouplingGeometry2D(
     void CreateQuadraturePointGeometriesOnParent(
         GeometriesArrayType& rResultGeometries,
         IndexType NumberOfShapeFunctionDerivatives,
-        const std::vector<IntegrationPointsArrayType>& rIntegrationPoints,
+        const std::vector<std::vector<IntegrationPointsArrayType>>& rIntegrationPoints,
+        const std::vector<std::vector<int>>& projected_paired_geometry_id,
         IntegrationInfo& rIntegrationInfo,
         NurbsSurfaceTypePointer rpNurbsSurfaceParent,
         NurbsSurfaceTypePointer rpNurbsSurfacePaired,
         BrepCurveOnSurfaceArrayType& rParentGeometryList,
         BrepCurveOnSurfaceArrayType& rPairedGeometryList,
         const IndexType& integrationDomain,
-        SizeType& quadraturePointId);
+        SizeType& quadraturePointId) ;
 
-
-    void CreateQuadraturePointGeometriesSlave(
-        GeometriesArrayType& rResultGeometries,
-        IndexType NumberOfShapeFunctionDerivatives,
-        const IntegrationPointsArrayType& rIntegrationPoints,
-        IntegrationInfo& rIntegrationInfo);
 
     ///@}
+
+    void FilterSpansForProjection(NurbsSurfaceTypePointer rpNurbsSurfaceParent,
+        NurbsSurfaceTypePointer rpNurbsSurfacePaired,
+        std::vector<std::vector<double>>& integration_edges_on_parameter_parent_list,
+        std::vector<std::vector<std::vector<double>>>& integration_edges_on_parameter_parent_list_filtered,
+        BrepCurveOnSurfaceArrayType& rParentGeometryList,
+        BrepCurveOnSurfaceArrayType& rPairedGeometryList);
 
 
 
@@ -413,6 +416,36 @@ private:
     NurbsSurfaceTypePointer mpNurbsSurfaceMaster;
     NurbsSurfaceTypePointer mpNurbsSurfaceSlave;
     ///@}
+
+     /* @brief Creates integration points within provided spans according
+     *        to the provided points per span.
+     * @param rIntegrationPoints result integration points.
+     * @param rSpansLocalSpace spans in which integration points are generated.
+     * @param IntegrationPointsPerSpan number of integration points per span.
+     */
+    void CreateIntegrationPoints1DGauss(
+        IntegrationPointsArrayType& rIntegrationPoints,
+        const std::vector<std::vector<double>>& rSpansLocalSpace,
+        const IntegrationInfo& rIntegrationInfo)
+    {
+
+        SizeType IntegrationPointsPerSpan = rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0);
+        const SizeType num_spans = rSpansLocalSpace.size();
+        const SizeType number_of_integration_points = num_spans * IntegrationPointsPerSpan;
+
+        if (rIntegrationPoints.size() != number_of_integration_points)
+            rIntegrationPoints.resize(number_of_integration_points);
+
+        auto integration_point_iterator = rIntegrationPoints.begin();
+        for (IndexType i = 0; i < num_spans; ++i)
+        {
+            IntegrationPointUtilities::IntegrationPoints1D(
+                integration_point_iterator,
+                IntegrationPointsPerSpan,
+                rSpansLocalSpace[i][0], rSpansLocalSpace[i][1]);
+        }
+    }
+
     ///@name Serialization
     ///@{
 
