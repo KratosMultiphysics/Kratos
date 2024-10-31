@@ -213,36 +213,23 @@ void AssignNodalElementsToNodesProcess::ExecuteInitialize()
     aux_node_array(0) = *(it_node_begin).base();
 
     const SizeType number_of_nodes = mrThisModelPart.Nodes().size();
-    std::vector<Element::Pointer> auxiliary_elements_vector;
 
     GeometryType::Pointer p_dummy_geom = GetPointGeometryFromNode(aux_node_array, domain_size);
     const Element& r_reference_element = NodalConcentratedElement(0, p_dummy_geom);
 
-    #pragma omp parallel
-    {
-        // Buffer for new elements if created
-        std::vector<Element::Pointer> auxiliary_elements_vector_buffer;
+    std::vector<Element::Pointer> auxiliary_elements_vector  = IndexPartition<std::size_t>(number_of_nodes).for_each<AccumReduction<Element::Pointer>>([&](std::size_t i) {
+        auto it_node = it_node_begin + i;
 
-        #pragma omp for
-        for(int i=0; i< static_cast<int>(number_of_nodes); ++i) {
-            auto it_node = it_node_begin + i;
+        PointerVector<Node> this_node_array(1);
+        this_node_array(0) = *(it_node).base();
 
-            PointerVector<Node> this_node_array(1);
-            this_node_array(0) = *(it_node).base();
+        auto p_element = r_reference_element.Create(number_elements + 1 + i, GetPointGeometryFromNode(this_node_array, domain_size), p_properties);
 
-            auto p_element = r_reference_element.Create(number_elements + 1 + i, GetPointGeometryFromNode(this_node_array, domain_size), p_properties);
-            auxiliary_elements_vector_buffer.push_back(p_element);
+        // Deep copy elemental flags
+        p_element->Set(Flags(*it_node));
 
-            // Deep copy elemental flags
-            p_element->Set(Flags(*it_node));
-        }
-
-        // Combine buffers together
-        #pragma omp critical
-        {
-            std::move(auxiliary_elements_vector_buffer.begin(),auxiliary_elements_vector_buffer.end(),back_inserter(auxiliary_elements_vector));
-        }
-    }
+        return p_element;
+    });
 
     // Adding to the model part
     ElementsArrayType aux_elems;
