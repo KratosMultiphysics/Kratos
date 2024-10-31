@@ -328,10 +328,12 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     void CalculateOnIntegrationPoints(
-        const Variable<double>& rVariable,
-        std::vector<double>& rOutput,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const Variable<double> &rVariable, std::vector<double> &rOutput,
+        const ProcessInfo &rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(
+        const Variable<Vector> &rVariable, std::vector<Vector> &rOutput,
+        const ProcessInfo &rCurrentProcessInfo) override;
 
     /**
      * @brief Get on rVariable Constitutive Law from the element

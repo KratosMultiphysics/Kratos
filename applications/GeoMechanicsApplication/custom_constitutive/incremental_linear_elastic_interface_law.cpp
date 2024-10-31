@@ -86,6 +86,8 @@ void GeoIncrementalLinearElasticInterfaceLaw::CalculateMaterialResponseCauchy(Co
         prod(MakeConstitutiveMatrix(rValues.GetMaterialProperties()[INTERFACE_NORMAL_STIFFNESS],
                                     rValues.GetMaterialProperties()[INTERFACE_SHEAR_STIFFNESS]),
              rValues.GetStrainVector() - mPreviousRelativeDisplacement);
+
+    this->AddInitialStressVectorContribution(rValues.GetStressVector());
 }
 
 bool GeoIncrementalLinearElasticInterfaceLaw::RequiresInitializeMaterialResponse() { return false; }
