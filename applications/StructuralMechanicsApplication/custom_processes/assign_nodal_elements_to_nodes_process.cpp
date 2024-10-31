@@ -24,6 +24,18 @@
 
 namespace Kratos
 {
+
+AssignNodalElementsToNodesProcess::AssignNodalElementsToNodesProcess(
+    Model& rModel,
+    Parameters ThisParameters
+    ) : AssignNodalElementsToNodesProcess(rModel.GetModelPart(ThisParameters["model_part_name"].GetString()), ThisParameters)
+{
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 AssignNodalElementsToNodesProcess::AssignNodalElementsToNodesProcess(
     ModelPart& rThisModelPart,
     Parameters ThisParameters

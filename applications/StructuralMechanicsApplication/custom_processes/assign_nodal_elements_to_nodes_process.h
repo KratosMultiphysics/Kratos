@@ -17,7 +17,7 @@
 
 // Project includes
 #include "processes/process.h"
-#include "includes/model_part.h"
+#include "containers/model.h"
 #include "includes/kratos_parameters.h"
 
 namespace Kratos
@@ -71,6 +71,16 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
+
+    /**
+     * @brief Default constructor.
+     * @param rModel The model to compute
+     * @param ThisParameters The parameters of configuration
+     */
+    AssignNodalElementsToNodesProcess(
+        Model& rModel,
+        Parameters ThisParameters = Parameters(R"({})")
+        );
 
     /**
      * @brief Default constructor.
