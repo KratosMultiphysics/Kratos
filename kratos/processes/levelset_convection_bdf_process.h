@@ -220,7 +220,7 @@ public:
         }
 
         // If required, calculate nodal element size
-        KRATOS_WATCH("PRIMERO")
+        // KRATOS_WATCH("PRIMERO")
         // Note that this is done once assuming no mesh deformation
         if (mElementTauNodal || mCalculateNodalH) {
             ComputeNodalH();
@@ -280,7 +280,7 @@ public:
         // block_for_each(mpDistanceModelPart->Nodes(), [&](Node &rNode){ rNode.FastGetSolutionStepValue(*mpVolumeSourceVar, 0.0); });
         mpSolvingStrategy->SolveSolutionStep(); // forward convection to reach phi_n+1
         mpSolvingStrategy->FinalizeSolutionStep();
-        NodalAccelerationProjection();
+        // NodalAccelerationProjection();
 
         // Reset the processinfo to the original settings
         process_info_data.RestoreProcessInfoData(mpDistanceModelPart->GetProcessInfo());
@@ -822,7 +822,7 @@ protected:
         mpSolvingStrategy->Predict();
         mpSolvingStrategy->SolveSolutionStep(); // forward convection to obtain the corrected phi_n+1
         mpSolvingStrategy->FinalizeSolutionStep();
-        
+
     }
 
 
@@ -845,9 +845,9 @@ protected:
             if(rNode.Id()==5173){
                 KRATOS_WATCH(sum_proj);
             }
-            sum_proj /= rNode.GetValue(NODAL_AREA); 
+            sum_proj /= rNode.GetValue(NODAL_AREA);
         if (rNode.Id() == 5173)
-        {   
+        {
             KRATOS_WATCH(sum_proj);
         }
             });
@@ -1033,7 +1033,7 @@ private:
                 "dynamic_tau" : 0.1,
                 "cross_wind_stabilization_factor" : 0.7,
                 "requires_distance_gradient" : false,
-                "tau_nodal": false
+                "tau_nodal": true
             })");
         }
 

@@ -48,7 +48,7 @@ namespace Kratos {
 			modelPart.AddNodalSolutionStepVariable(PRESSURE);
 			modelPart.AddNodalSolutionStepVariable(VELOCITY);
 			modelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
-			modelPart.AddNodalSolutionStepVariable(FRACTIONAL_ACCELERATION);
+			// modelPart.AddNodalSolutionStepVariable(FRACTIONAL_ACCELERATION);
 
 			// Process info creation
 			double delta_time = 0.1;
@@ -99,9 +99,9 @@ namespace Kratos {
 					pElement->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY)[k]    = 0.0;
 					pElement->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY, 1)[k] = 0.0;
 					pElement->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY, 2)[k] = 0.0;
-					pElement->GetGeometry()[i].FastGetSolutionStepValue(FRACTIONAL_ACCELERATION)[k] = 0.5;
-					pElement->GetGeometry()[i].FastGetSolutionStepValue(FRACTIONAL_ACCELERATION, 1)[k] = 0.5;
-					pElement->GetGeometry()[i].FastGetSolutionStepValue(FRACTIONAL_ACCELERATION, 2)[k] = 0.5;
+					// pElement->GetGeometry()[i].FastGetSolutionStepValue(FRACTIONAL_ACCELERATION)[k] = 0.5;
+					// pElement->GetGeometry()[i].FastGetSolutionStepValue(FRACTIONAL_ACCELERATION, 1)[k] = 0.5;
+					// pElement->GetGeometry()[i].FastGetSolutionStepValue(FRACTIONAL_ACCELERATION, 2)[k] = 0.5;
 				}
 			}
 

@@ -433,7 +433,9 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointLHSC
     const double K_darcy = rData.DarcyTerm;
 
     const auto vconv = rData.Velocity - rData.Velocity_OldStep1;
-    const auto an = rData.Acceleration;
+    const auto vfrac = rData.Velocity_Fractional;
+    bool not_air_traj = rData.NotAirTraj;
+    // const auto an = rData.Acceleration;
 
     // Get constitutive matrix
     const Matrix &C = rData.C;
@@ -472,7 +474,10 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointLHSC
     const double dyn_tau = rData.DynamicTau;
 
     const auto vconv = rData.Velocity - rData.Velocity_OldStep1;
-    const auto an = rData.Acceleration;
+    const auto vfrac = rData.Velocity_Fractional;
+    bool not_air_traj = rData.NotAirTraj;
+
+    // const auto an = rData.Acceleration;
 
     // Get constitutive matrix
     const Matrix &C = rData.C;
@@ -514,10 +519,12 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointRHSC
 
     const auto &v = rData.Velocity;
     const auto &vn = rData.Velocity_OldStep1;
-    const auto an = rData.Acceleration;
+    // const auto an = rData.Acceleration;
     const auto &vnn = rData.Velocity_OldStep2;
     const auto &vmesh = rData.MeshVelocity;
     const auto &vconv = v - vn;
+    const auto vfrac = rData.Velocity_Fractional;
+    bool not_air_traj = rData.NotAirTraj;
     const auto &f = rData.BodyForce;
     const auto &p = rData.Pressure;
     const auto &stress = rData.ShearStress;
@@ -565,10 +572,12 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointRHSC
 
     const auto &v = rData.Velocity;
     const auto &vn = rData.Velocity_OldStep1;
-    const auto an = rData.Acceleration;
+    // const auto an = rData.Acceleration;
     const auto &vnn = rData.Velocity_OldStep2;
     const auto &vmesh = rData.MeshVelocity;
     const auto &vconv = v - vn;
+    const auto vfrac = rData.Velocity_Fractional;
+    bool not_air_traj = rData.NotAirTraj;
     const auto &f = rData.BodyForce;
     const auto &p = rData.Pressure;
     const auto &stress = rData.ShearStress;
@@ -619,10 +628,12 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointEnri
 
     const auto &v = rData.Velocity;
     const auto &vn = rData.Velocity_OldStep1;
-    const auto an = rData.Acceleration;
+    // const auto an = rData.Acceleration;
     const auto &vnn = rData.Velocity_OldStep2;
     const auto &vmesh = rData.MeshVelocity;
     const auto &vconv = v - vn;
+    const auto vfrac = rData.Velocity_Fractional;
+    bool not_air_traj = rData.NotAirTraj;
     const auto &f = rData.BodyForce;
     const auto &p = rData.Pressure;
 
@@ -638,11 +649,14 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointEnri
 
     // Mass correction term
     double volume_error_ratio = 0.0;
-    if (rData.IsCut()) {
+    if (rData.IsAir())
+    {
+        volume_error_ratio=0.0;
+    }
+    else{
         const double volume_error = -rData.VolumeError;
         volume_error_ratio = volume_error / dt;
     }
-
     auto &V = rData.V;
     auto &H = rData.H;
     auto &Kee = rData.Kee;
@@ -688,10 +702,12 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointEnri
 
     const auto &v = rData.Velocity;
     const auto &vn = rData.Velocity_OldStep1;
-    const auto an = rData.Acceleration;
+    // const auto an = rData.Acceleration;
     const auto &vnn = rData.Velocity_OldStep2;
     const auto &vmesh = rData.MeshVelocity;
     const auto &vconv = v - vn;
+    const auto vfrac = rData.Velocity_Fractional;
+    bool not_air_traj = rData.NotAirTraj;
     const auto &f = rData.BodyForce;
     const auto &p = rData.Pressure;
 

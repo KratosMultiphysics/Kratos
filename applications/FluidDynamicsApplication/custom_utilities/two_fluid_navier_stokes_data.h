@@ -54,7 +54,7 @@ NodalVectorData Velocity_OldStep1;
 NodalVectorData Velocity_OldStep2;
 NodalVectorData MeshVelocity;
 NodalVectorData BodyForce;
-NodalVectorData Acceleration;
+NodalVectorData Velocity_Fractional;
 NodalScalarData Pressure;
 NodalScalarData Distance;
 NodalScalarData NodalDensity;
@@ -72,6 +72,7 @@ double VolumeError;
 double bdf0;
 double bdf1;
 double bdf2;
+double NotAirTraj;
 
 // Auxiliary containers for the symbolically-generated matrices
 BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)> lhs;
@@ -122,7 +123,8 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     this->FillFromHistoricalNodalData(Pressure,PRESSURE,r_geometry);
     this->FillFromHistoricalNodalData(NodalDensity, DENSITY, r_geometry);
     this->FillFromHistoricalNodalData(NodalDynamicViscosity, DYNAMIC_VISCOSITY, r_geometry);
-    this->FillFromHistoricalNodalData(Acceleration, FRACTIONAL_ACCELERATION, r_geometry,1);
+    // this->FillFromHistoricalNodalData(Acceleration, FRACTIONAL_ACCELERATION, r_geometry,1);
+    this->FillFromHistoricalNodalData(Velocity_Fractional, FRACTIONAL_VELOCITY, r_geometry, 0);
     this->FillFromProperties(SmagorinskyConstant, C_SMAGORINSKY, r_properties);
     this->FillFromProperties(LinearDarcyCoefficient, LIN_DARCY_COEF, r_properties);
     this->FillFromProperties(NonLinearDarcyCoefficient, NONLIN_DARCY_COEF, r_properties);
@@ -151,6 +153,13 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
         else
             NumNegativeNodes++;
     }
+    if (NumPositiveNodes>0.0){
+        NotAirTraj= 0.0;
+    }
+    else{
+        NotAirTraj = 1.0;
+    }
+
 }
 
 void UpdateGeometryValues(
