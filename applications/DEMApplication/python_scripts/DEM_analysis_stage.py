@@ -245,6 +245,7 @@ class DEMAnalysisStage(AnalysisStage):
     def Initialize(self):
         self.time = 0.0
         self.time_old_print = 0.0
+        self.time_old_update_contact_element = 0.0
 
         self.ReadModelParts()
 
@@ -308,6 +309,13 @@ class DEMAnalysisStage(AnalysisStage):
         self.BoundingBoxMaxX_update = self.DEM_parameters["BoundingBoxMaxX"].GetDouble()
         self.BoundingBoxMaxY_update = self.DEM_parameters["BoundingBoxMaxY"].GetDouble()
         self.BoundingBoxMaxZ_update = self.DEM_parameters["BoundingBoxMaxZ"].GetDouble()
+
+        self.bounding_box_servo_loading_option = False
+        if "BoundingBoxServoLoadingOption" in self.DEM_parameters.keys():
+            if self.DEM_parameters["BoundingBoxServoLoadingOption"].GetBool():
+                self.bounding_box_servo_loading_option = True
+        
+        self.bounding_box_move_velocity = [0.0, 0.0, 0.0]
 
     def SetMaterials(self):
 
@@ -498,6 +506,10 @@ class DEMAnalysisStage(AnalysisStage):
     def IsTimeToPrintPostProcess(self):
         return self.do_print_results_option and self.DEM_parameters["OutputTimeStep"].GetDouble() - (self.time - self.time_old_print) < 1e-2 * self._GetSolver().dt
 
+    def IsTimeToUpdateContactElementForServo(self):
+        return self.bounding_box_servo_loading_option and self.DEM_parameters["BoundingBoxServoLoadingSettings"]["BoundingBoxServoLoadingFrequency"].GetInt() * \
+                self._GetSolver().dt - (self.time - self.time_old_update_contact_element) < 1e-2 * self._GetSolver().dt
+
     def PrintResults(self):
         #### GiD IO ##########################################
         if self.IsTimeToPrintPostProcess():
@@ -523,6 +535,8 @@ class DEMAnalysisStage(AnalysisStage):
                 self.FillAnalyticSubModelPartsWithNewParticles()
         if self.DEM_parameters["ContactMeshOption"].GetBool():
             self.UpdateIsTimeToPrintInModelParts(self.IsTimeToPrintPostProcess())
+        if self.bounding_box_servo_loading_option:
+            self.UpdateIsTimeToUpdateContactElementForServo(self.IsTimeToUpdateContactElementForServo())
 
         if self.DEM_parameters["Dimension"].GetInt() == 2:
             self.spheres_model_part.ProcessInfo[IMPOSED_Z_STRAIN_OPTION] = self.DEM_parameters["ImposeZStrainIn2DOption"].GetBool()
@@ -530,32 +544,98 @@ class DEMAnalysisStage(AnalysisStage):
                 if self.spheres_model_part.ProcessInfo[IMPOSED_Z_STRAIN_OPTION]:
                     self.spheres_model_part.ProcessInfo.SetValue(IMPOSED_Z_STRAIN_VALUE, eval(self.DEM_parameters["ZStrainValue"].GetString()))
 
+        bounding_box_servo_loading_option = False
+        if "BoundingBoxServoLoadingOption" in self.DEM_parameters.keys():
+            if self.DEM_parameters["BoundingBoxServoLoadingOption"].GetBool():
+                bounding_box_servo_loading_option = True
+
         if "BoundingBoxMoveOption" in self.DEM_parameters.keys():
             if self.DEM_parameters["BoundingBoxMoveOption"].GetBool():
                 time_step = self.spheres_model_part.ProcessInfo[TIME_STEPS]
-                NStepSearch = self.DEM_parameters["NeighbourSearchFrequency"].GetInt()
-                if (time_step + 1) % NStepSearch == 0 and (time_step > 0):
-                    self.UpdateSearchStartegyAndCPlusPlusStrategy()
-                    self.procedures.UpdateBoundingBox(self.spheres_model_part, self.creator_destructor)
+                if bounding_box_servo_loading_option:
+                    NStepSearch = self.DEM_parameters["BoundingBoxServoLoadingSettings"]["BoundingBoxServoLoadingFrequency"].GetInt()
+                    if (time_step + 1) % NStepSearch == 0 and (time_step > 0):
+                        measured_global_stress = self.MeasureSphereForGettingGlobalStressTensor()
+                        self.CalculateBoundingBoxMoveVelocity(measured_global_stress)
+                        self.UpdateSearchStartegyAndCPlusPlusStrategy(self.bounding_box_move_velocity)
+                        self.procedures.UpdateBoundingBox(self.spheres_model_part, self.creator_destructor, self.bounding_box_move_velocity)
+                else:
+                    NStepSearch = self.DEM_parameters["NeighbourSearchFrequency"].GetInt()
+                    if (time_step + 1) % NStepSearch == 0 and (time_step > 0):
+                        bounding_box_move_velocity = self.DEM_parameters["BoundingBoxMoveVelocity"].GetVector()
+                        self.UpdateSearchStartegyAndCPlusPlusStrategy(bounding_box_move_velocity)
+                        self.procedures.UpdateBoundingBox(self.spheres_model_part, self.creator_destructor, bounding_box_move_velocity)
 
-    def UpdateSearchStartegyAndCPlusPlusStrategy(self):
+    def CalculateBoundingBoxMoveVelocity(self, measured_global_stress):
+
+        # note: servo_loading_type = "isotropic" or "anisotropic"
+        servo_loading_type = self.DEM_parameters["BoundingBoxServoLoadingSettings"]["BoundingBoxServoLoadingType"].GetString()
+
+        if servo_loading_type == "isotropic":
+            self.CalculateBoundingBoxMoveVelocityIsotropic(measured_global_stress)
+        elif servo_loading_type == "anisotropic":
+            self.CalculateBoundingBoxMoveVelocityAnisotropic(measured_global_stress)
+    
+    def CalculateBoundingBoxMoveVelocityIsotropic(self, measured_global_stress):
+
+        servo_loading_stress = self.DEM_parameters["BoundingBoxServoLoadingSettings"]["BoundingBoxServoLoadingStress"].GetVector()
+        servo_loading_factor = self.DEM_parameters["BoundingBoxServoLoadingSettings"]["BoundingBoxServoLoadingFactor"].GetDouble()
+        d50 = self.DEM_parameters["BoundingBoxServoLoadingSettings"]["MeanParticleDiameterD50"].GetDouble()
+        Youngs_modulus = self.DEM_parameters["BoundingBoxServoLoadingSettings"]["ParticleYoungsModulus"].GetDouble()
+
+        servo_loading_stress_mean = (servo_loading_stress[0] + servo_loading_stress[1] + servo_loading_stress[2]) / 3.0
+        measured_global_stress_mean = (measured_global_stress[0][0] + measured_global_stress[1][1] + measured_global_stress[2][2]) / 3.0
 
         delta_time = self.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
-        move_velocity = self.DEM_parameters["BoundingBoxMoveVelocity"].GetDouble()
+        servo_loading_coefficient = servo_loading_factor * d50 / (delta_time * Youngs_modulus)
+        self.bounding_box_move_velocity[0] = (servo_loading_stress_mean - measured_global_stress_mean) * servo_loading_coefficient
 
+        bonuding_box_serva_loading_velocity_max = self.DEM_parameters["BoundingBoxServoLoadingSettings"]["BoundingBoxServoLoadingVelocityMax"].GetDouble()
+        if abs(self.bounding_box_move_velocity[0]) > bonuding_box_serva_loading_velocity_max:
+            self.bounding_box_move_velocity[0] = bonuding_box_serva_loading_velocity_max * np.sign(self.bounding_box_move_velocity[0])
+        
+        self.bounding_box_move_velocity[1] = self.bounding_box_move_velocity[0]
+        self.bounding_box_move_velocity[2] = self.bounding_box_move_velocity[0]
+
+    def CalculateBoundingBoxMoveVelocityAnisotropic(self, measured_global_stress):
+
+        servo_loading_stress = self.DEM_parameters["BoundingBoxServoLoadingSettings"]["BoundingBoxServoLoadingStress"].GetVector()
+        servo_loading_factor = self.DEM_parameters["BoundingBoxServoLoadingSettings"]["BoundingBoxServoLoadingFactor"].GetDouble()
+        d50 = self.DEM_parameters["BoundingBoxServoLoadingSettings"]["MeanParticleDiameterD50"].GetDouble()
+        Youngs_modulus = self.DEM_parameters["BoundingBoxServoLoadingSettings"]["ParticleYoungsModulus"].GetDouble()
+        
+        delta_time = self.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
+        servo_loading_coefficient = servo_loading_factor * d50 / (delta_time * Youngs_modulus)
+        self.bounding_box_move_velocity[0] = (servo_loading_stress[0] - measured_global_stress[0][0]) * servo_loading_coefficient
+        self.bounding_box_move_velocity[1] = (servo_loading_stress[1] - measured_global_stress[1][1]) * servo_loading_coefficient
+        self.bounding_box_move_velocity[2] = (servo_loading_stress[2] - measured_global_stress[2][2]) * servo_loading_coefficient
+
+        bonuding_box_move_velocity_max = self.DEM_parameters["BoundingBoxServoLoadingSettings"]["BoundingBoxServoLoadingVelocityMax"].GetDouble()
+        if abs(self.bounding_box_move_velocity[0]) > bonuding_box_move_velocity_max:
+            self.bounding_box_move_velocity[0] = bonuding_box_move_velocity_max * np.sign(self.bounding_box_move_velocity[0])
+        if abs(self.bounding_box_move_velocity[1]) > bonuding_box_move_velocity_max:
+            self.bounding_box_move_velocity[1] = bonuding_box_move_velocity_max * np.sign(self.bounding_box_move_velocity[1])
+        if abs(self.bounding_box_move_velocity[2]) > bonuding_box_move_velocity_max:
+            self.bounding_box_move_velocity[2] = bonuding_box_move_velocity_max * np.sign(self.bounding_box_move_velocity[2])
+
+    def UpdateSearchStartegyAndCPlusPlusStrategy(self, move_velocity):
+
+        delta_time = self.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
+
+        # note: control_bool_vector = [MoveMinX, MoveMinY, MoveMinZ, MoveMaxX, MoveMaxY, MoveMaxZ]
         control_bool_vector = self.DEM_parameters["BoundingBoxMoveOptionDetail"].GetVector()
         if control_bool_vector[0]:
-            self.BoundingBoxMinX_update += delta_time * move_velocity
+            self.BoundingBoxMinX_update += delta_time * move_velocity[0]
         if control_bool_vector[1]:
-            self.BoundingBoxMinY_update += delta_time * move_velocity
+            self.BoundingBoxMinY_update += delta_time * move_velocity[1]
         if control_bool_vector[2]:
-            self.BoundingBoxMinZ_update += delta_time * move_velocity
+            self.BoundingBoxMinZ_update += delta_time * move_velocity[2]
         if control_bool_vector[3]:
-            self.BoundingBoxMaxX_update -= delta_time * move_velocity
+            self.BoundingBoxMaxX_update -= delta_time * move_velocity[0]
         if control_bool_vector[4]:
-            self.BoundingBoxMaxY_update -= delta_time * move_velocity
+            self.BoundingBoxMaxY_update -= delta_time * move_velocity[1]
         if control_bool_vector[5]:
-            self.BoundingBoxMaxZ_update -= delta_time * move_velocity
+            self.BoundingBoxMaxZ_update -= delta_time * move_velocity[2]
 
         self._GetSolver().search_strategy = OMP_DEMSearch(self.BoundingBoxMinX_update,
                                                         self.BoundingBoxMinY_update,
@@ -570,6 +650,13 @@ class DEMAnalysisStage(AnalysisStage):
         self.UpdateIsTimeToPrintInOneModelPart(self.cluster_model_part, is_time_to_print)
         self.UpdateIsTimeToPrintInOneModelPart(self.dem_inlet_model_part, is_time_to_print)
         self.UpdateIsTimeToPrintInOneModelPart(self.rigid_face_model_part, is_time_to_print)
+
+    def UpdateIsTimeToUpdateContactElementForServo(self, is_time_to_update_contact_element):
+        self.spheres_model_part.ProcessInfo[IS_TIME_TO_UPDATE_CONTACT_ELEMENT] = is_time_to_update_contact_element
+        self.cluster_model_part.ProcessInfo[IS_TIME_TO_UPDATE_CONTACT_ELEMENT] = is_time_to_update_contact_element
+        self.dem_inlet_model_part.ProcessInfo[IS_TIME_TO_UPDATE_CONTACT_ELEMENT] = is_time_to_update_contact_element
+        self.rigid_face_model_part.ProcessInfo[IS_TIME_TO_UPDATE_CONTACT_ELEMENT] = is_time_to_update_contact_element
+        self.time_old_update_contact_element = self.time
 
     def UpdateIsTimeToPrintInOneModelPart(self, model_part, is_time_to_print):
         model_part.ProcessInfo[IS_TIME_TO_PRINT] = is_time_to_print
@@ -742,7 +829,7 @@ class DEMAnalysisStage(AnalysisStage):
             self.PrintResultsForGid(self.time)
             self.time_old_print = self.time
 
-    def MeasureSphereForGettingPackingProperties(self, radius, center_x, center_y, center_z, type):
+    def MeasureSphereForGettingPackingProperties(self, radius, center_x, center_y, center_z, type, domain_size=[1,1,1]):        
         '''
         This is a function to establish a sphere to measure local packing properties
         The type could be "porosity", "averaged_coordination_number", "fabric_tensor", "stress_tensor" or "strain" 
@@ -776,6 +863,103 @@ class DEMAnalysisStage(AnalysisStage):
                     cross_volume = math.pi * other_part_d * other_part_d * (radius - 1/3 * other_part_d) + math.pi * my_part_d * my_part_d * (r - 1/3 * my_part_d)
                     
                     sphere_volume_inside_range += cross_volume
+            
+            measured_porosity = 1.0 - (sphere_volume_inside_range / measure_sphere_volume)
+
+            return measured_porosity
+        
+        if type == "porosity_periodic":
+
+            measure_sphere_volume = 4.0 / 3.0 * math.pi * radius * radius * radius
+            sphere_volume_inside_range = 0.0
+            measured_porosity = 0.0
+
+            center_list = []
+            center_list.append([center_x, center_y, center_z])
+            if center_x + 0.5 * domain_size[0] < 2 * radius:
+                center_list.append([center_x + domain_size[0], center_y, center_z])
+                if center_y + 0.5 * domain_size[1] < 2 * radius:
+                    center_list.append([center_x + domain_size[0], center_y + domain_size[1], center_z])
+                if center_y - 0.5 * domain_size[1] > -2 * radius:
+                    center_list.append([center_x + domain_size[0], center_y - domain_size[1], center_z])
+                if center_y + 0.5 * domain_size[2] < 2 * radius:
+                    center_list.append([center_x + domain_size[0], center_y, center_z + domain_size[2]])
+                if center_y - 0.5 * domain_size[2] > -2 * radius:
+                    center_list.append([center_x + domain_size[0], center_y, center_z - domain_size[2]])
+            if center_x - 0.5 * domain_size[0] > -2 * radius:
+                center_list.append([center_x - domain_size[0], center_y, center_z])
+                if center_y + 0.5 * domain_size[1] < 2 * radius: 
+                    center_list.append([center_x - domain_size[0], center_y + domain_size[1], center_z])
+                if center_y - 0.5 * domain_size[1] > -2 * radius:
+                    center_list.append([center_x - domain_size[0], center_y - domain_size[1], center_z])
+                if center_y + 0.5 * domain_size[2] < 2 * radius:
+                    center_list.append([center_x - domain_size[0], center_y, center_z + domain_size[2]])
+                if center_y - 0.5 * domain_size[2] > -2 * radius:
+                    center_list.append([center_x - domain_size[0], center_y, center_z - domain_size[2]])
+            if center_y + 0.5 * domain_size[1] < 2 * radius:
+                center_list.append([center_x, center_y + domain_size[1], center_z])
+                if center_x + 0.5 * domain_size[0] < 2 * radius:
+                    center_list.append([center_x + domain_size[0], center_y + domain_size[1], center_z])
+                if center_x - 0.5 * domain_size[0] > -2 * radius:
+                    center_list.append([center_x - domain_size[0], center_y + domain_size[1], center_z])
+                if center_z + 0.5 * domain_size[2] < 2 * radius:
+                    center_list.append([center_x, center_y + domain_size[1], center_z + domain_size[2]])
+                if center_z - 0.5 * domain_size[2] > -2 * radius:
+                    center_list.append([center_x, center_y + domain_size[1], center_z - domain_size[2]])
+            if center_y - 0.5 * domain_size[1] > -2 * radius:
+                center_list.append([center_x, center_y - domain_size[1], center_z])
+                if center_x + 0.5 * domain_size[0] < 2 * radius:
+                    center_list.append([center_x + domain_size[0], center_y - domain_size[1], center_z])
+                if center_x - 0.5 * domain_size[0] > -2 * radius:
+                    center_list.append([center_x - domain_size[0], center_y - domain_size[1], center_z])
+                if center_z + 0.5 * domain_size[2] < 2 * radius:
+                    center_list.append([center_x, center_y - domain_size[1], center_z + domain_size[2]])
+                if center_z - 0.5 * domain_size[2] > -2 * radius:
+                    center_list.append([center_x, center_y - domain_size[1], center_z - domain_size[2]])
+            if center_z + 0.5 * domain_size[2] < 2 * radius:
+                center_list.append([center_x, center_y, center_z + domain_size[2]])
+                if center_x + 0.5 * domain_size[0] < 2 * radius:
+                    center_list.append([center_x + domain_size[0], center_y, center_z + domain_size[2]])
+                if center_x - 0.5 * domain_size[0] > -2 * radius:
+                    center_list.append([center_x - domain_size[0], center_y, center_z + domain_size[2]])
+                if center_y + 0.5 * domain_size[1] < 2 * radius:
+                    center_list.append([center_x, center_y + domain_size[1], center_z + domain_size[2]])
+                if center_y - 0.5 * domain_size[1] > -2 * radius:
+                    center_list.append([center_x, center_y - domain_size[1], center_z + domain_size[2]])
+            if center_z - 0.5 * domain_size[2] > -2 * radius:
+                center_list.append([center_x, center_y, center_z - domain_size[2]])
+                if center_x + 0.5 * domain_size[0] < 2 * radius:
+                    center_list.append([center_x + domain_size[0], center_y, center_z - domain_size[2]])
+                if center_x - 0.5 * domain_size[0] > -2 * radius:
+                    center_list.append([center_x - domain_size[0], center_y, center_z - domain_size[2]])
+                if center_y + 0.5 * domain_size[1] < 2 * radius:
+                    center_list.append([center_x, center_y + domain_size[1], center_z - domain_size[2]])
+                if center_y - 0.5 * domain_size[1] > -2 * radius:
+                    center_list.append([center_x, center_y - domain_size[1], center_z - domain_size[2]])
+            
+            for center in center_list:
+                for node in self.spheres_model_part.Nodes:
+                    
+                    r = node.GetSolutionStepValue(RADIUS)
+                    x = node.X
+                    y = node.Y
+                    z = node.Z
+
+                    center_to_sphere_distance = ((x - center[0])**2 + (y - center[1])**2 + (z - center[2])**2)**0.5
+
+                    if center_to_sphere_distance < (radius - r):
+
+                        sphere_volume_inside_range += 4/3 * math.pi * r * r * r
+
+                    elif center_to_sphere_distance <= (radius + r):
+
+                        other_part_d = radius - (radius * radius + center_to_sphere_distance * center_to_sphere_distance - r * r) / (center_to_sphere_distance * 2)
+
+                        my_part_d = r - (r * r + center_to_sphere_distance * center_to_sphere_distance - radius * radius) / (center_to_sphere_distance * 2)
+                        
+                        cross_volume = math.pi * other_part_d * other_part_d * (radius - 1/3 * other_part_d) + math.pi * my_part_d * my_part_d * (r - 1/3 * my_part_d)
+                        
+                        sphere_volume_inside_range += cross_volume
             
             measured_porosity = 1.0 - (sphere_volume_inside_range / measure_sphere_volume)
 
@@ -1106,6 +1290,47 @@ class DEMAnalysisStage(AnalysisStage):
 
         if type == "strain":
             pass
+    
+    def MeasureSphereForGettingGlobalStressTensor(self):
+
+        if self.DEM_parameters["PostStressStrainOption"].GetBool() and self.DEM_parameters["ContactMeshOption"].GetBool():
+                
+            bounding_box_volume = (self.BoundingBoxMaxX_update - self.BoundingBoxMinX_update) * \
+                                (self.BoundingBoxMaxY_update - self.BoundingBoxMinY_update) * \
+                                (self.BoundingBoxMaxZ_update - self.BoundingBoxMinZ_update)
+            
+            total_tensor        = np.empty((3, 3))
+            total_tensor[:]     = 0.0
+
+            for element in self.contact_model_part.Elements:
+        
+                x_0 = element.GetNode(0).X
+                x_1 = element.GetNode(1).X
+                y_0 = element.GetNode(0).Y
+                y_1 = element.GetNode(1).Y
+                z_0 = element.GetNode(0).Z
+                z_1 = element.GetNode(1).Z
+
+                if abs(x_0 - x_1) > 0.5 * (self.BoundingBoxMaxX_update - self.BoundingBoxMinX_update) or \
+                    abs(y_0 - y_1) > 0.5 * (self.BoundingBoxMaxY_update - self.BoundingBoxMinY_update) or \
+                    abs(z_0 - z_1) > 0.5 * (self.BoundingBoxMaxZ_update - self.BoundingBoxMinZ_update):
+                    continue
+                    
+                local_contact_force_X = element.GetValue(GLOBAL_CONTACT_FORCE)[0]
+                local_contact_force_Y = element.GetValue(GLOBAL_CONTACT_FORCE)[1]
+                local_contact_force_Z = element.GetValue(GLOBAL_CONTACT_FORCE)[2]
+                contact_force_vector = np.array([local_contact_force_X , local_contact_force_Y, local_contact_force_Z])
+                vector_l = np.array([x_0 - x_1 , y_0 - y_1, z_0 - z_1])
+                tensor = np.outer(contact_force_vector, vector_l)
+                total_tensor += tensor
+            
+            total_tensor = total_tensor / bounding_box_volume
+
+            return total_tensor
+        
+        else:
+            
+            raise Exception('The \"PostStressStrainOption\" and \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')
     
     def MeasureSphereForGettingRadialDistributionFunction(self, radius, center_x, center_y, center_z, delta_r, d_mean):
         
@@ -1642,9 +1867,6 @@ class DEMAnalysisStage(AnalysisStage):
                 
                 if total_contact_number:
                     averaged_contact_force_modulus_square = total_contact_force_tensor_modulus_square / total_contact_number
-                
-                print(averaged_total_particle_force_tensor_modulus_square)
-                print(averaged_contact_force_modulus_square)
                 
                 if averaged_contact_force_modulus_square:
                     return (averaged_total_particle_force_tensor_modulus_square / averaged_contact_force_modulus_square)**0.5
