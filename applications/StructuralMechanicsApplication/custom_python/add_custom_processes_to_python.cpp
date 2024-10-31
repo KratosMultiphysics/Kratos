@@ -81,8 +81,9 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         ;
 
     py::class_<AssignNodalElementsToNodesProcess, AssignNodalElementsToNodesProcess::Pointer, Process>(m, "AssignNodalElementsToNodesProcess")
+        .def(py::init<Model&, Parameters>())
         .def(py::init<ModelPart&>())
-        .def(py::init< ModelPart&, Parameters >())
+        .def(py::init<ModelPart&, Parameters >())
         ;
 
     //SPR_ERROR
@@ -119,9 +120,9 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<SetSphericalLocalAxesProcess, SetSphericalLocalAxesProcess::Pointer, Process>(m,"SetSphericalLocalAxesProcess")
         .def(py::init<ModelPart&, Parameters>());
-        
+
     py::class_<SetAutomatedInitialVariableProcess, SetAutomatedInitialVariableProcess::Pointer, Process>(m,"SetAutomatedInitialVariableProcess")
-    .def(py::init<ModelPart&, Parameters>());
+        .def(py::init<ModelPart&, Parameters>());
 }
 
 }  // namespace Kratos::Python
