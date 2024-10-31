@@ -17,6 +17,7 @@
 // External includes
 
 // Project includes
+#include "includes/ublas_interface.h"
 #include "includes/element.h"
 
 // Application includes
@@ -152,7 +153,7 @@ private:
 
     array_1d<double, 3> mDirection;
 
-    Point mLocalPoint;
+    Vector mNs;
 
     ///@}
     ///@name Private operations

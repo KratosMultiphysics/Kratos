@@ -16,8 +16,8 @@
 #include "includes/ublas_interface.h"
 
 #include <algorithm>
-#include <vector>
 #include <cstdlib>
+#include <vector>
 
 namespace Kratos
 {

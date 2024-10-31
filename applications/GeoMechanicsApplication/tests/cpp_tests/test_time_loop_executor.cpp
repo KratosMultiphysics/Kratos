@@ -35,20 +35,11 @@ public:
         mpModelPart->Reset();
     }
 
-    [[nodiscard]] std::size_t GetNumberOfIterations() const override
-    {
-        return 1;
-    }
+    [[nodiscard]] std::size_t GetNumberOfIterations() const override { return 1; }
 
-    [[nodiscard]] double GetEndTime() const override
-    {
-        return mpModelPart->GetProcessInfo()[TIME];
-    }
+    [[nodiscard]] double GetEndTime() const override { return mpModelPart->GetProcessInfo()[TIME]; }
 
-    void SetEndTime(double EndTime) override
-    {
-        mpModelPart->GetProcessInfo()[TIME] = EndTime;
-    }
+    void SetEndTime(double EndTime) override { mpModelPart->GetProcessInfo()[TIME] = EndTime; }
 
     [[nodiscard]] double GetTimeIncrement() const override
     {
@@ -65,19 +56,13 @@ public:
         return static_cast<std::size_t>(mpModelPart->GetProcessInfo()[STEP]);
     }
 
-    void IncrementStepNumber() override
-    {
-        ++mpModelPart->GetProcessInfo()[STEP];
-    }
+    void IncrementStepNumber() override { ++mpModelPart->GetProcessInfo()[STEP]; }
 
     void CloneTimeStep() override { mIsCloned = true; }
 
     [[nodiscard]] bool IsCloned() const { return mIsCloned; }
 
-    void RestorePositionsAndDOFVectorToStartOfStep() override
-    {
-        mIsRestoreCalled = true;
-    }
+    void RestorePositionsAndDOFVectorToStartOfStep() override { mIsRestoreCalled = true; }
 
     [[nodiscard]] bool IsRestoreCalled() const { return mIsRestoreCalled; }
 
@@ -86,10 +71,7 @@ public:
         mIsSaveTotalDisplacementFieldCalled = true;
     }
 
-    [[nodiscard]] bool IsSaveFieldCalled() const
-    {
-        return mIsSaveTotalDisplacementFieldCalled;
-    }
+    [[nodiscard]] bool IsSaveFieldCalled() const { return mIsSaveTotalDisplacementFieldCalled; }
 
     void AccumulateTotalDisplacementField() override
     {
@@ -137,28 +119,23 @@ public:
         // intentionally empty
     }
 
-    void InitializeOutput() override
-    {
-        ++mCountInitializeOutputCalled;
-    }
+    void InitializeOutput() override { ++mCountInitializeOutputCalled; }
 
     void InitializeSolutionStep() override
     {
         // intentionally empty
     }
+
     void Predict() override
     {
         // intentionally empty
     }
-    TimeStepEndState::ConvergenceState SolveSolutionStep() override
-    {
-        return mConvergenceState;
-    }
+
+    TimeStepEndState::ConvergenceState SolveSolutionStep() override { return mConvergenceState; }
+
     void FinalizeSolutionStep() override { ++mCountFinalizeSolutionStepCalled; }
-    void FinalizeOutput() override
-    {
-        ++mCountFinalizeOutputCalled;
-    }
+
+    void FinalizeOutput() override { ++mCountFinalizeOutputCalled; }
 
     void SetOutputProcessCallback(std::function<void()> Callback)
     {
@@ -166,18 +143,17 @@ public:
     }
 
 private:
-    TimeStepEndState::ConvergenceState mConvergenceState{
-        TimeStepEndState::ConvergenceState::converged};
-    Model mModel;
-    ModelPart* mpModelPart = nullptr;
-    bool mIsCloned = false;
-    bool mIsRestoreCalled = false;
-    bool mIsSaveTotalDisplacementFieldCalled = false;
-    std::size_t mCountInitializeOutputCalled = 0;
-    std::size_t mCountAccumulateTotalDisplacementFieldCalled = 0;
-    std::size_t mCountOutputProcessCalled = 0;
-    std::size_t mCountFinalizeSolutionStepCalled = 0;
-    std::size_t mCountFinalizeOutputCalled = 0;
+    TimeStepEndState::ConvergenceState mConvergenceState{TimeStepEndState::ConvergenceState::converged};
+    Model                 mModel;
+    ModelPart*            mpModelPart                                  = nullptr;
+    bool                  mIsCloned                                    = false;
+    bool                  mIsRestoreCalled                             = false;
+    bool                  mIsSaveTotalDisplacementFieldCalled          = false;
+    std::size_t           mCountInitializeOutputCalled                 = 0;
+    std::size_t           mCountAccumulateTotalDisplacementFieldCalled = 0;
+    std::size_t           mCountOutputProcessCalled                    = 0;
+    std::size_t           mCountFinalizeSolutionStepCalled             = 0;
+    std::size_t           mCountFinalizeOutputCalled                   = 0;
     std::function<void()> mOutputProcessCallback;
 };
 
@@ -193,12 +169,14 @@ public:
     {
         return rPreviousState.time < mEndTime;
     }
-    [[nodiscard]] bool WantRetryStep(std::size_t CycleNumber,
-                                     const TimeStepEndState& rPreviousState) const override
+
+    [[nodiscard]] bool WantRetryStep(std::size_t CycleNumber, const TimeStepEndState& rPreviousState) const override
     {
         return CycleNumber < mNumCyclesPerStep;
     }
+
     [[nodiscard]] double GetIncrement() const override { return 0.5; }
+
     void PostTimeStepExecution(const TimeStepEndState& rResultantState) override
     {
         // intentionally empty
@@ -206,12 +184,12 @@ public:
 
 private:
     std::size_t mNumCyclesPerStep;
-    double mEndTime{1.0};
+    double      mEndTime{1.0};
 };
 
 TimeStepEndState MakeConvergedStepState()
 {
-    auto result = TimeStepEndState{};
+    auto result              = TimeStepEndState{};
     result.convergence_state = TimeStepEndState::ConvergenceState::converged;
     return result;
 }
@@ -219,10 +197,8 @@ TimeStepEndState MakeConvergedStepState()
 std::shared_ptr<DummySolverStrategy> RunFixedCycleTimeLoop(std::size_t WantedNumOfCyclesPerStep)
 {
     TimeLoopExecutor executor;
-    executor.SetTimeIncrementor(
-        std::make_unique<FixedCyclesTimeIncrementor>(WantedNumOfCyclesPerStep));
-    auto solver_strategy = std::make_shared<DummySolverStrategy>(
-        TimeStepEndState::ConvergenceState::converged);
+    executor.SetTimeIncrementor(std::make_unique<FixedCyclesTimeIncrementor>(WantedNumOfCyclesPerStep));
+    auto solver_strategy = std::make_shared<DummySolverStrategy>(TimeStepEndState::ConvergenceState::converged);
     executor.SetSolverStrategyWrapper(solver_strategy);
     const auto step_states = executor.Run(TimeStepEndState{});
 
@@ -238,26 +214,25 @@ KRATOS_TEST_CASE_IN_SUITE(TimeLoopReturnsPerformedStatesAfterRunningAnAlwaysConv
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     TimeLoopExecutor executor;
-    const auto increments = std::vector<double>{1.1, 1.2, 1.3, 1.4};
+    const auto       increments = std::vector<double>{1.1, 1.2, 1.3, 1.4};
     executor.SetTimeIncrementor(std::make_unique<PrescribedTimeIncrementor>(increments));
-    executor.SetSolverStrategyWrapper(std::make_unique<DummySolverStrategy>(
-        TimeStepEndState::ConvergenceState::converged));
+    executor.SetSolverStrategyWrapper(
+        std::make_unique<DummySolverStrategy>(TimeStepEndState::ConvergenceState::converged));
     const auto step_states = executor.Run(MakeConvergedStepState());
 
     KRATOS_EXPECT_EQ(increments.size(), step_states.size());
     KRATOS_EXPECT_TRUE(std::all_of(step_states.begin(), step_states.end(),
-                                   [](const auto& step_state)
-                                   { return step_state.Converged(); }))
+                                   [](const auto& step_state) { return step_state.Converged(); }))
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TimeLoopReturnsOneNonConvergedPerformedStateAfterRunningANeverConvergingSolverStrategy,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     TimeLoopExecutor executor;
-    const auto increments = std::vector<double>{1.1, 1.2, 1.3, 1.4};
+    const auto       increments = std::vector<double>{1.1, 1.2, 1.3, 1.4};
     executor.SetTimeIncrementor(std::make_unique<PrescribedTimeIncrementor>(increments));
-    executor.SetSolverStrategyWrapper(std::make_unique<DummySolverStrategy>(
-        TimeStepEndState::ConvergenceState::non_converged));
+    executor.SetSolverStrategyWrapper(
+        std::make_unique<DummySolverStrategy>(TimeStepEndState::ConvergenceState::non_converged));
     const auto step_states = executor.Run(MakeConvergedStepState());
 
     KRATOS_EXPECT_EQ(1, step_states.size());
@@ -268,10 +243,10 @@ KRATOS_TEST_CASE_IN_SUITE(TimeLoopReturnsEndTimesAfterRunningAnAlwaysConvergingS
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     TimeLoopExecutor executor;
-    const auto increments = std::vector<double>{1.1, 1.2, 1.3, 1.4};
+    const auto       increments = std::vector<double>{1.1, 1.2, 1.3, 1.4};
     executor.SetTimeIncrementor(std::make_unique<PrescribedTimeIncrementor>(increments));
-    executor.SetSolverStrategyWrapper(std::make_unique<DummySolverStrategy>(
-        TimeStepEndState::ConvergenceState::converged));
+    executor.SetSolverStrategyWrapper(
+        std::make_unique<DummySolverStrategy>(TimeStepEndState::ConvergenceState::converged));
     const auto step_states = executor.Run(MakeConvergedStepState());
 
     KRATOS_EXPECT_DOUBLE_EQ(std::accumulate(increments.begin(), increments.end(), 0.),
@@ -281,11 +256,10 @@ KRATOS_TEST_CASE_IN_SUITE(TimeLoopReturnsEndTimesAfterRunningAnAlwaysConvergingS
 KRATOS_TEST_CASE_IN_SUITE(GetFiveCyclesWhenFiveCyclesAreNeeded, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     TimeLoopExecutor executor;
-    const auto wanted_num_of_cycles_per_step = 5;
-    executor.SetTimeIncrementor(
-        std::make_unique<FixedCyclesTimeIncrementor>(wanted_num_of_cycles_per_step));
-    executor.SetSolverStrategyWrapper(std::make_unique<DummySolverStrategy>(
-        TimeStepEndState::ConvergenceState::converged));
+    const auto       wanted_num_of_cycles_per_step = 5;
+    executor.SetTimeIncrementor(std::make_unique<FixedCyclesTimeIncrementor>(wanted_num_of_cycles_per_step));
+    executor.SetSolverStrategyWrapper(
+        std::make_unique<DummySolverStrategy>(TimeStepEndState::ConvergenceState::converged));
     const auto step_states = executor.Run(TimeStepEndState{});
 
     // The test time incrementor assumes fixed time increments of 0.5 and an end time of 1.0
@@ -296,30 +270,26 @@ KRATOS_TEST_CASE_IN_SUITE(GetFiveCyclesWhenFiveCyclesAreNeeded, KratosGeoMechani
     KRATOS_EXPECT_EQ(wanted_num_of_cycles_per_step, step_states[1].num_of_cycles);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ExpectOneCyclePerStepWhenUsingAPrescribedTimeIncrementor,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(ExpectOneCyclePerStepWhenUsingAPrescribedTimeIncrementor, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     TimeLoopExecutor executor;
-    const auto increments = std::vector<double>{0.1, 0.2, 0.3, 0.4};
+    const auto       increments = std::vector<double>{0.1, 0.2, 0.3, 0.4};
     executor.SetTimeIncrementor(std::make_unique<PrescribedTimeIncrementor>(increments));
-    executor.SetSolverStrategyWrapper(std::make_unique<DummySolverStrategy>(
-        TimeStepEndState::ConvergenceState::converged));
+    executor.SetSolverStrategyWrapper(
+        std::make_unique<DummySolverStrategy>(TimeStepEndState::ConvergenceState::converged));
     const auto step_states = executor.Run(MakeConvergedStepState());
 
     KRATOS_EXPECT_EQ(increments.size(), step_states.size());
     KRATOS_EXPECT_TRUE(std::all_of(step_states.begin(), step_states.end(),
-                                   [](const auto& state)
-                                   { return state.num_of_cycles == 1; }))
+                                   [](const auto& state) { return state.num_of_cycles == 1; }))
     auto time = 0.0;
-    for (auto index = std::size_t{0}; index < increments.size(); ++index)
-    {
+    for (auto index = std::size_t{0}; index < increments.size(); ++index) {
         time += increments[index];
         KRATOS_EXPECT_DOUBLE_EQ(time, step_states[index].time);
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ExpectEndTimeToBeSetOnSolverStrategyAfterRunningAStepLoop,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(ExpectEndTimeToBeSetOnSolverStrategyAfterRunningAStepLoop, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto solver_strategy = RunFixedCycleTimeLoop(1);
 
@@ -366,11 +336,9 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectDisplacementFieldUpdateForEveryStep, KratosGeoMe
 KRATOS_TEST_CASE_IN_SUITE(ExpectOutputProcessCalledForEveryStep, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     TimeLoopExecutor executor;
-    const auto wanted_num_of_cycles_per_step = 1;
-    executor.SetTimeIncrementor(
-        std::make_unique<FixedCyclesTimeIncrementor>(wanted_num_of_cycles_per_step));
-    auto solver_strategy = std::make_shared<DummySolverStrategy>(
-        TimeStepEndState::ConvergenceState::converged);
+    const auto       wanted_num_of_cycles_per_step = 1;
+    executor.SetTimeIncrementor(std::make_unique<FixedCyclesTimeIncrementor>(wanted_num_of_cycles_per_step));
+    auto solver_strategy = std::make_shared<DummySolverStrategy>(TimeStepEndState::ConvergenceState::converged);
     executor.SetSolverStrategyWrapper(solver_strategy);
     const auto step_states = executor.Run(TimeStepEndState{});
     KRATOS_EXPECT_EQ(step_states.size(), solver_strategy->GetCountOutputProcessCalled());
@@ -380,15 +348,12 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectOutputProcessCalledForEveryStep, KratosGeoMechan
 KRATOS_TEST_CASE_IN_SUITE(ExpectFinalizeSolutionStepCalledOnceForEveryStep, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     TimeLoopExecutor executor;
-    const auto wanted_num_of_cycles_per_step = 3;
-    executor.SetTimeIncrementor(
-        std::make_unique<FixedCyclesTimeIncrementor>(wanted_num_of_cycles_per_step));
-    auto solver_strategy = std::make_shared<DummySolverStrategy>(
-        TimeStepEndState::ConvergenceState::converged);
+    const auto       wanted_num_of_cycles_per_step = 3;
+    executor.SetTimeIncrementor(std::make_unique<FixedCyclesTimeIncrementor>(wanted_num_of_cycles_per_step));
+    auto solver_strategy = std::make_shared<DummySolverStrategy>(TimeStepEndState::ConvergenceState::converged);
     executor.SetSolverStrategyWrapper(solver_strategy);
     const auto step_states = executor.Run(TimeStepEndState{});
-    KRATOS_EXPECT_EQ(step_states.size(),
-                     solver_strategy->GetCountFinalizeSolutionStepCalled());
+    KRATOS_EXPECT_EQ(step_states.size(), solver_strategy->GetCountFinalizeSolutionStepCalled());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ExpectOutputIsInitializedAndFinalizedWhenRunCompletesOk, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -409,7 +374,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectOutputIsInitializedAndFinalizedWhenRunThrows, Kr
     const auto       wanted_num_of_cycles_per_step = std::size_t{1};
     executor.SetTimeIncrementor(std::make_unique<FixedCyclesTimeIncrementor>(wanted_num_of_cycles_per_step));
     auto solver_strategy = std::make_shared<DummySolverStrategy>(TimeStepEndState::ConvergenceState::converged);
-    solver_strategy->SetOutputProcessCallback([](){throw Exception{"Test exception"};});
+    solver_strategy->SetOutputProcessCallback([]() { throw Exception{"Test exception"}; });
     executor.SetSolverStrategyWrapper(solver_strategy);
 
     auto exception_caught = false;

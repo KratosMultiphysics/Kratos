@@ -23,16 +23,10 @@
           "POISSON_RATIO": 0.2,
           "THICKNESS": 1.0,
           "K0_MAIN_DIRECTION": 1,
-          "K0_VALUE_XX": 0.5,
-          "K0_VALUE_YY": 0.5,
-          "K0_VALUE_ZZ": 0.5,
-	  "K0_NC": 0.6,
+          "K0_NC": 0.6,
+          "OCR":   1.5,
           "RETENTION_LAW": "SaturatedLaw",
-          "RESIDUAL_SATURATION": 0.06203,
           "SATURATED_SATURATION": 1.0,
-          "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE": 2.561,
-          "VAN_GENUCHTEN_GN": 1.377,
-          "VAN_GENUCHTEN_GL": 1.25,
           "MINIMUM_RELATIVE_PERMEABILITY": 0.0001
         }
       }

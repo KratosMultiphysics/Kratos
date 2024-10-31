@@ -155,7 +155,6 @@ SphericParticle& SphericParticle::operator=(const SphericParticle& rOther) {
         *mSymmStressTensor = *rOther.mSymmStressTensor;
     }
     else {
-
         mStressTensor     = NULL;
         mSymmStressTensor = NULL;
     }
@@ -700,7 +699,8 @@ void SphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToRotation
                                                 const double& other_radius,
                                                 const double& dt,
                                                 const array_1d<double, 3>& my_ang_vel,
-                                                SphericParticle* p_neighbour)
+                                                SphericParticle* p_neighbour,
+                                                ParticleDataBuffer & data_buffer)
 {
     const auto& central_node = GetGeometry()[0];
     const auto& neighbour_node = p_neighbour->GetGeometry()[0];
@@ -718,6 +718,10 @@ void SphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToRotation
 
     const array_1d<double, 3>& coors = central_node.Coordinates();
     array_1d<double, 3> neigh_coors = neighbour_node.Coordinates();
+
+    if (data_buffer.mDomainIsPeriodic){
+        TransformNeighbourCoorsToClosestInPeriodicDomain(data_buffer, coors, neigh_coors);
+    }
 
     const array_1d<double, 3> other_to_me_vect = coors - neigh_coors;
     const double distance            = DEM_MODULUS_3(other_to_me_vect);
@@ -836,7 +840,7 @@ void SphericParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::Pa
             EvaluateDeltaDisplacement(data_buffer, DeltDisp, RelVel, data_buffer.mLocalCoordSystem, data_buffer.mOldLocalCoordSystem, velocity, delta_displ);
 
             if (this->Is(DEMFlags::HAS_ROTATION)) {
-                RelativeDisplacementAndVelocityOfContactPointDueToRotationQuaternion(DeltDisp, RelVel, data_buffer.mLocalCoordSystem, data_buffer.mOtherRadius, data_buffer.mDt, ang_velocity, data_buffer.mpOtherParticle);
+                RelativeDisplacementAndVelocityOfContactPointDueToRotationQuaternion(DeltDisp, RelVel, data_buffer.mLocalCoordSystem, data_buffer.mOtherRadius, data_buffer.mDt, ang_velocity, data_buffer.mpOtherParticle, data_buffer);
             }
 
             RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons(r_process_info, DeltDisp, RelVel, data_buffer.mOldLocalCoordSystem, data_buffer.mLocalCoordSystem, data_buffer.mpOtherParticle);
@@ -882,13 +886,18 @@ void SphericParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::Pa
             }
 
             if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
-                AddNeighbourContributionToStressTensor(r_process_info,GlobalElasticContactForce, data_buffer.mLocalCoordSystem[2], data_buffer.mDistance, data_buffer.mRadiusSum, this);
+                AddNeighbourContributionToStressTensor(r_process_info, GlobalContactForce, data_buffer.mLocalCoordSystem[2], data_buffer.mDistance, data_buffer.mRadiusSum, this);
             }
 
             if (r_process_info[IS_TIME_TO_PRINT] && r_process_info[CONTACT_MESH_OPTION] == 1) { //TODO: we should avoid calling a processinfo for each neighbour. We can put it once per time step in the buffer??
                 unsigned int neighbour_iterator_id = data_buffer.mpOtherParticle->Id();
                 if ((i < (int)mNeighbourElements.size()) && this->Id() < neighbour_iterator_id) {
-                    CalculateOnContactElements(i, LocalContactForce);
+                    CalculateOnContactElements(i, LocalContactForce, GlobalContactForce);
+                }
+            } else if (r_process_info[IS_TIME_TO_UPDATE_CONTACT_ELEMENT] && r_process_info[CONTACT_MESH_OPTION] == 1) {
+                unsigned int neighbour_iterator_id = data_buffer.mpOtherParticle->Id();
+                if ((i < (int)mNeighbourElements.size()) && this->Id() < neighbour_iterator_id) {
+                    CalculateOnContactElements(i, LocalContactForce, GlobalContactForce);
                 }
             }
 
@@ -1124,7 +1133,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(SphericParticl
             } //wall->GetProperties()[COMPUTE_WEAR] if
 
             if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
-                AddWallContributionToStressTensor(GlobalElasticContactForce, data_buffer.mLocalCoordSystem[2], DistPToB, 0.0);
+                AddWallContributionToStressTensor(GlobalContactForce, data_buffer.mLocalCoordSystem[2], DistPToB, 0.0);
             }
 
             // Store contact information needed for later processes
@@ -1270,7 +1279,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(SphericParticl
         }
 
         if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
-            AddWallContributionToStressTensor(GlobalElasticContactForce, data_buffer.mLocalCoordSystem[2], DistPToB, 0.0);
+            AddWallContributionToStressTensor(GlobalContactForce, data_buffer.mLocalCoordSystem[2], DistPToB, 0.0);
         }
     }
 
@@ -1595,6 +1604,13 @@ void SphericParticle::FinalizeSolutionStep(const ProcessInfo& r_process_info){
 
         //Divide Stress Tensor by the total volume:
         //const array_1d<double, 3>& reaction_force=central_node.FastGetSolutionStepValue(FORCE_REACTION);
+
+        //make a copy
+        if (this->Is(DEMFlags::PRINT_STRESS_TENSOR)) {
+            this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_TENSOR_RAW) = (*mStressTensor);
+        }
+
+        //KRATOS_WATCH(this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_TENSOR_RAW))
 
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
@@ -1921,16 +1937,18 @@ void SphericParticle::MemberDeclarationFirstStep(const ProcessInfo& r_process_in
 
         mSymmStressTensor  = new BoundedMatrix<double, 3, 3>(3,3);
         *mSymmStressTensor = ZeroMatrix(3,3);
+
         mStrainTensor  = new BoundedMatrix<double, 3, 3>(3,3);
         *mStrainTensor = ZeroMatrix(3,3);
+
         mDifferentialStrainTensor  = new BoundedMatrix<double, 3, 3>(3,3);
         *mDifferentialStrainTensor = ZeroMatrix(3,3);
     }
     else {
 
-        mStressTensor     = NULL;
-        mSymmStressTensor = NULL;
-        mStrainTensor     = NULL;
+        mStressTensor             = NULL;
+        mSymmStressTensor         = NULL;
+        mStrainTensor             = NULL;
         mDifferentialStrainTensor = NULL;
     }
 
@@ -2227,7 +2245,7 @@ void SphericParticle::ApplyGlobalDampingToContactForcesAndMoments(array_1d<doubl
         KRATOS_CATCH("")
     }
 
-    void SphericParticle::CalculateOnContactElements(size_t i, double LocalContactForce[3]) {
+    void SphericParticle::CalculateOnContactElements(size_t i, double LocalContactForce[3], double GlobalContactForce[3]) {
 
         KRATOS_TRY
 
@@ -2238,6 +2256,11 @@ void SphericParticle::ApplyGlobalDampingToContactForcesAndMoments(array_1d<doubl
         bond->mLocalContactForce[0] = LocalContactForce[0];
         bond->mLocalContactForce[1] = LocalContactForce[1];
         bond->mLocalContactForce[2] = LocalContactForce[2];
+
+        bond->mGlobalContactForce[0] = GlobalContactForce[0];
+        bond->mGlobalContactForce[1] = GlobalContactForce[1];
+        bond->mGlobalContactForce[2] = GlobalContactForce[2];
+        
         KRATOS_CATCH("")
     }
 

@@ -49,7 +49,8 @@ KRATOS_TEST_CASE_IN_SUITE(NodeUtilities_DoesNotUpdateFixedComponent, KratosGeoMe
     KRATOS_EXPECT_VECTOR_NEAR(expected_vector, node.FastGetSolutionStepValue(ACCELERATION, 0), 1e-12)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NodeUtilities_DoesNotUpdateAnythingWhenAllComponentsAreFixed, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(NodeUtilities_DoesNotUpdateAnythingWhenAllComponentsAreFixed,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Node node(1, 0.0, 0.0, 0.0);
     AddAcceleration(node);

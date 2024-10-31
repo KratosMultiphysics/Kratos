@@ -173,7 +173,8 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemePredictFixedDisplacements_DoesN
     KRATOS_EXPECT_VECTOR_NEAR(actual_displacement, expected_displacement, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemePredictWithout3DDofs_DoesNotUpdateZDisplacement, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemePredictWithout3DDofs_DoesNotUpdateZDisplacement,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const bool                    three_d_case = false;
     NewmarkDynamicUPwSchemeTester tester(three_d_case);
@@ -271,7 +272,8 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemeUpdate_DoesNotUpdateFixedFirstD
     KRATOS_EXPECT_VECTOR_NEAR(actual_velocity, expected_velocity, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemeUpdate_DoesNotUpdateFixedScalarVariable, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemeUpdate_DoesNotUpdateFixedScalarVariable,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     NewmarkDynamicUPwSchemeTester tester;
 

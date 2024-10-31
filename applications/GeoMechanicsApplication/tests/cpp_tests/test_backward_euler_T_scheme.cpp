@@ -21,7 +21,8 @@ using namespace Kratos;
 using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
 using LocalSpaceType  = UblasSpace<double, Matrix, Vector>;
 
-KRATOS_TEST_CASE_IN_SUITE(BackwardEulerTScheme_UpdatesVariablesDerivatives_WhenPredictIsCalled, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(BackwardEulerTScheme_UpdatesVariablesDerivatives_WhenPredictIsCalled,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     BackwardEulerTScheme<SparseSpaceType, LocalSpaceType> scheme;
 

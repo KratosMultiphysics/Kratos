@@ -1,5 +1,6 @@
 import os
 import shutil
+import stat
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
@@ -60,14 +61,6 @@ class KratosGeoMechanicsParameterFieldTests(KratosUnittest.TestCase):
         test_name = os.path.join("test_parameter_field", "parameter_field_python_umat_parameters")
         file_path = test_helper.get_file_path(test_name)
 
-        custom_script_name = "custom_field_umat_parameters.py"
-        custom_python_file = os.path.join(file_path, custom_script_name)
-
-        # copy user defined python script to installation folder
-        new_custom_script_path = os.path.join(os.path.dirname(KratosGeo.__file__), "user_defined_scripts")
-        shutil.copy(custom_python_file,new_custom_script_path)
-
-        # run simulation
         simulation = test_helper.run_kratos(file_path)
 
         # get element centers
@@ -81,9 +74,6 @@ class KratosGeoMechanicsParameterFieldTests(KratosUnittest.TestCase):
         for center_coord, res in zip(center_coords, results):
             expected_res = 20000 * center_coord[0] + 30000 * center_coord[1]
             self.assertAlmostEqual(expected_res, res[0][0])
-
-        # remove user defined python script from installation folder
-        os.remove(os.path.join(new_custom_script_path, custom_script_name))
 
     def test_parameter_field_with_json_umat_parameters(self):
         """
@@ -108,7 +98,6 @@ class KratosGeoMechanicsParameterFieldTests(KratosUnittest.TestCase):
         for center_coord, res in zip(center_coords, results):
             expected_res = 20000 * center_coord[0] + 30000 * center_coord[1]
             self.assertAlmostEqual(expected_res, res[0][0])
-
 
     def test_parameter_field_with_function(self):
         """
@@ -148,7 +137,13 @@ class KratosGeoMechanicsParameterFieldTests(KratosUnittest.TestCase):
 
         # copy user defined python script to installation folder
         new_custom_script_path = os.path.join(os.path.dirname(KratosGeo.__file__), "user_defined_scripts")
-        shutil.copy(custom_python_file,new_custom_script_path)
+        try:
+            shutil.copy(custom_python_file, new_custom_script_path)
+        except Exception as e:
+            print(f"Source file path: {custom_python_file}")
+            print(f"Destination file path: {new_custom_script_path}")
+            print(f"Error occurred while copying the file {e}.")
+            raise
 
         # run simulation
         simulation = test_helper.run_kratos(file_path)

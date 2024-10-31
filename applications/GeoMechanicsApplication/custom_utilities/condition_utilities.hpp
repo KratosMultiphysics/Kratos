@@ -24,7 +24,6 @@ namespace Kratos
 class ConditionUtilities
 {
 public:
-    //----------------------------------------------------------------------------------------
     template <unsigned int TDim, unsigned int TNumNodes>
     static inline void CalculateNuMatrix(BoundedMatrix<double, TDim, TDim * TNumNodes>& rNu,
                                          const Matrix&                                  NContainer,
@@ -39,7 +38,6 @@ public:
         }
     }
 
-    //----------------------------------------------------------------------------------------
     template <unsigned int TDim, unsigned int TNumNodes>
     static inline void InterpolateVariableWithComponents(array_1d<double, TDim>& rVector,
                                                          const Matrix&           Ncontainer,
@@ -56,7 +54,6 @@ public:
         }
     }
 
-    //----------------------------------------------------------------------------------------
     static inline void GetDisplacementsVector(array_1d<double, 4>&         rDisplacementVector,
                                               const Element::GeometryType& Geom)
     {
@@ -70,7 +67,6 @@ public:
         }
     }
 
-    //----------------------------------------------------------------------------------------
     static inline void GetDisplacementsVector(array_1d<double, 12>&        rDisplacementVector,
                                               const Element::GeometryType& Geom)
     {
@@ -85,7 +81,6 @@ public:
         }
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     template <unsigned int TNumNodes>
     static inline void GetFaceLoadVector(array_1d<double, 3 * TNumNodes>& rFaceLoadVector,
                                          const Element::GeometryType&     Geom)
@@ -102,7 +97,6 @@ public:
         }
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     template <unsigned int TNumNodes>
     static inline void GetFaceLoadVector(array_1d<double, 2 * TNumNodes>& rFaceLoadVector,
                                          const Element::GeometryType&     Geom)

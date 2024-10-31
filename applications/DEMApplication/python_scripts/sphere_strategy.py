@@ -81,6 +81,10 @@ class ExplicitStrategy():
             self.contact_mesh_option      = DEM_parameters["ContactMeshOption"].GetBool()
         self.automatic_bounding_box_option = DEM_parameters["AutomaticBoundingBoxOption"].GetBool()
 
+        self.bounding_box_servo_loading_option = 0
+        if "BoundingBoxServoLoadingOption" in DEM_parameters.keys():
+            self.bounding_box_servo_loading_option = DEM_parameters["BoundingBoxServoLoadingOption"].GetBool()
+
         self.delta_option = DEM_parameters["DeltaOption"].GetString() #TODO: this is not an option (bool) let's change the name to something including 'type'
 
         self.search_increment = 0.0
@@ -192,6 +196,15 @@ class ExplicitStrategy():
         if "RadiusMultiplierMax" in DEM_parameters.keys():
             self.radius_multiplier_max = DEM_parameters["RadiusMultiplierMax"].GetDouble()
 
+        if "RadiusExpansionRateChangeOption" in DEM_parameters.keys():
+            self.radius_expansion_rate_change_option = DEM_parameters["RadiusExpansionRateChangeOption"].GetBool()
+
+        if "RadiusExpansionAcceleration" in DEM_parameters.keys():
+            self.radius_expansion_acceleration = DEM_parameters["RadiusExpansionAcceleration"].GetDouble()
+
+        if "RadiusExpansionRateMin" in DEM_parameters.keys():
+            self.radius_expansion_rate_min = DEM_parameters["RadiusExpansionRateMin"].GetDouble()
+
         if "EnergyCalculationOption" in DEM_parameters.keys():
             self.energy_calculation_option = DEM_parameters["EnergyCalculationOption"].GetBool()
         
@@ -296,6 +309,9 @@ class ExplicitStrategy():
         self.spheres_model_part.ProcessInfo.SetValue(IS_RADIUS_EXPANSION, self.radius_expansion_option)
         self.spheres_model_part.ProcessInfo.SetValue(RADIUS_EXPANSION_RATE, self.radius_expansion_rate)
         self.spheres_model_part.ProcessInfo.SetValue(RADIUS_MULTIPLIER_MAX, self.radius_multiplier_max)
+        self.spheres_model_part.ProcessInfo.SetValue(IS_RADIUS_EXPANSION_RATE_CHANGE, self.radius_expansion_rate_change_option)
+        self.spheres_model_part.ProcessInfo.SetValue(RADIUS_EXPANSION_ACCELERATION, self.radius_expansion_acceleration)
+        self.spheres_model_part.ProcessInfo.SetValue(RADIUS_EXPANSION_RATE_MIN, self.radius_expansion_rate_min)
 
         self.spheres_model_part.ProcessInfo.SetValue(ENERGY_CALCULATION_OPTION, self.energy_calculation_option)
 
@@ -309,6 +325,11 @@ class ExplicitStrategy():
             self.spheres_model_part.ProcessInfo.SetValue(CONTACT_MESH_OPTION, 1)
         else:
             self.spheres_model_part.ProcessInfo.SetValue(CONTACT_MESH_OPTION, 0)
+
+        if self.bounding_box_servo_loading_option:
+            self.spheres_model_part.ProcessInfo.SetValue(BOUNDING_BOX_SERVO_LOADING_OPTION, 1)
+        else:
+            self.spheres_model_part.ProcessInfo.SetValue(BOUNDING_BOX_SERVO_LOADING_OPTION, 0)
 
         # PRINTING VARIABLES
 

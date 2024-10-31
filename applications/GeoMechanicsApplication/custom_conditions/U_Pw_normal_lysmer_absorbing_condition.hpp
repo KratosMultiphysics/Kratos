@@ -40,8 +40,6 @@ public:
     using VectorType     = Vector;
     using MatrixType     = Matrix;
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     // Default constructor
     UPwLysmerAbsorbingCondition() : UPwFaceLoadCondition<TDim, TNumNodes>() {}
 
@@ -56,8 +54,6 @@ public:
         : UPwFaceLoadCondition<TDim, TNumNodes>(NewId, pGeometry, pProperties)
     {
     }
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     Condition::Pointer Create(IndexType               NewId,
                               NodesArrayType const&   ThisNodes,
@@ -85,12 +81,11 @@ public:
     void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-    * @brief Calculates LHS stiffness part of absorbing boundary
-    * @param rLeftHandSideMatrix Global left hand side matrix
-    * @param rCurrentProcessInfo Current process information
-    */
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-        const ProcessInfo& rCurrentProcessInfo) override;
+     * @brief Calculates LHS stiffness part of absorbing boundary
+     * @param rLeftHandSideMatrix Global left hand side matrix
+     * @param rCurrentProcessInfo Current process information
+     */
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief Calculates LHS Damping part of absorbing boundary
@@ -110,8 +105,6 @@ public:
                               const ProcessInfo& rCurrentProcessInfo) override;
 
     std::string Info() const override;
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
     static constexpr SizeType N_DOF          = TNumNodes * TDim;
@@ -140,8 +133,6 @@ protected:
     };
 
     // Member Variables
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /**
      * @brief Adds the condition matrix to the global left hand side
@@ -200,7 +191,6 @@ protected:
      * @param rNeighbourElement The neighbouring element of the condition
      */
     Matrix CalculateExtrapolationMatrixNeighbour(const Element& rNeighbourElement);
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
     using hashmap =

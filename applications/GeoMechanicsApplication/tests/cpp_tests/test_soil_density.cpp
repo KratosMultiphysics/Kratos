@@ -11,8 +11,8 @@
 //
 
 #include "custom_utilities/transport_equation_utilities.hpp"
-#include "includes/checks.h"
 #include "geo_mechanics_fast_suite.h"
+#include "includes/checks.h"
 
 using namespace Kratos;
 

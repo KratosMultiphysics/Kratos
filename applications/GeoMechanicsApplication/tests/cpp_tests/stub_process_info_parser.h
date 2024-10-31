@@ -14,7 +14,8 @@
 
 #include "custom_utilities/process_info_parser.h"
 
-namespace Kratos {
+namespace Kratos
+{
 
 class StubProcessInfoParser : public ProcessInfoParser
 {
@@ -24,4 +25,4 @@ public:
     static std::size_t NumberOfProcesses();
 };
 
-} // Kratos
+} // namespace Kratos

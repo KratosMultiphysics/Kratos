@@ -26,7 +26,6 @@ SurfaceNormalLoad3DDiffOrderCondition::SurfaceNormalLoad3DDiffOrderCondition()
 {
 }
 
-//----------------------------------------------------------------------------------------
 // Constructor 1
 SurfaceNormalLoad3DDiffOrderCondition::SurfaceNormalLoad3DDiffOrderCondition(IndexType NewId,
                                                                              GeometryType::Pointer pGeometry)
@@ -34,7 +33,6 @@ SurfaceNormalLoad3DDiffOrderCondition::SurfaceNormalLoad3DDiffOrderCondition(Ind
 {
 }
 
-//----------------------------------------------------------------------------------------
 // Constructor 2
 SurfaceNormalLoad3DDiffOrderCondition::SurfaceNormalLoad3DDiffOrderCondition(IndexType NewId,
                                                                              GeometryType::Pointer pGeometry,
@@ -43,7 +41,6 @@ SurfaceNormalLoad3DDiffOrderCondition::SurfaceNormalLoad3DDiffOrderCondition(Ind
 {
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Condition::Pointer SurfaceNormalLoad3DDiffOrderCondition::Create(IndexType             NewId,
                                                                  NodesArrayType const& ThisNodes,
                                                                  PropertiesType::Pointer pProperties) const
@@ -76,7 +73,6 @@ void SurfaceNormalLoad3DDiffOrderCondition::CalculateConditionVector(ConditionVa
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 double SurfaceNormalLoad3DDiffOrderCondition::CalculateIntegrationCoefficient(
     const IndexType                                 PointNumber,
     const GeometryType::JacobiansType&              JContainer,
@@ -90,7 +86,6 @@ double SurfaceNormalLoad3DDiffOrderCondition::CalculateIntegrationCoefficient(
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 void SurfaceNormalLoad3DDiffOrderCondition::CalculateAndAddConditionForce(VectorType& rRightHandSideVector,
                                                                           ConditionVariables& rVariables)
 {

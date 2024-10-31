@@ -261,19 +261,22 @@ private:
     {
         const auto points                  = this->Points();
         const auto number_of_midline_nodes = std::size_t{points.size() / 2};
+        auto       result                  = PointerVector<Node>{number_of_midline_nodes};
 
         auto is_null = [](const auto& rNodePtr) { return rNodePtr == nullptr; };
         if (std::any_of(points.ptr_begin(), points.ptr_end(), is_null)) {
             // At least one point is not defined, so the points of the mid-line can't be computed.
             // As a result, all the mid-line points will be undefined.
-            return PointerVector<Node>{number_of_midline_nodes};
+            return result;
         }
 
-        auto result = PointerVector<Node>{};
-        for (std::size_t i = 0; i < number_of_midline_nodes; ++i) {
-            const auto mid_point = (points[i] + points[i + number_of_midline_nodes]) / 2;
-            result.push_back(make_intrusive<Node>(points[i].Id(), mid_point));
-        }
+        auto begin_of_first_side  = points.ptr_begin();
+        auto begin_of_second_side = begin_of_first_side + number_of_midline_nodes;
+        auto make_mid_point       = [](auto pPoint1, auto pPoint2) {
+            return make_intrusive<Node>(pPoint1->Id(), Point{(*pPoint1 + *pPoint2) / 2});
+        };
+        std::transform(begin_of_first_side, begin_of_second_side, begin_of_second_side,
+                       result.ptr_begin(), make_mid_point);
         return result;
     }
 

@@ -18,7 +18,7 @@
 
 // Application includes
 #include "custom_elements/U_Pw_base_element.hpp"
-#include "custom_utilities/interface_element_utilities.hpp"
+#include "custom_utilities/interface_element_utilities.h"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
@@ -105,7 +105,7 @@ public:
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
                                       std::vector<array_1d<double, 3>>&    rValues,
                                       const ProcessInfo& rCurrentProcessInfo) override;
-    
+
     using UPwBaseElement::CalculateOnIntegrationPoints;
 
 protected:

@@ -468,7 +468,14 @@ void AddVariableUtilsToPython(pybind11::module &m)
         .def("SaveNonHistoricalVariable", &VariableUtils::SaveNonHistoricalVariable<array_1d<double, 9>, ModelPart::ElementsContainerType>)
         .def("SaveNonHistoricalVariable", &VariableUtils::SaveNonHistoricalVariable<Vector, ModelPart::ElementsContainerType>)
         .def("SaveNonHistoricalVariable", &VariableUtils::SaveNonHistoricalVariable<Matrix, ModelPart::ElementsContainerType>)
-        .def("SelectNodeList", &VariableUtils::SelectNodeList)
+        .def("SelectNodeList", [](
+            VariableUtils& self,
+            const Variable<double>& rVariable,
+            const double Value,
+            const ModelPart::NodesContainerType::Pointer pOriginNodes
+            ) -> ModelPart::NodesContainerType::Pointer
+            { return Kratos::make_shared<ModelPart::NodesContainerType>(self.SelectNodeList(rVariable, Value, *pOriginNodes)); },
+            py::arg("variable"), py::arg("value"), py::arg("nodes"))
         .def("CopyScalarVar", &VariableUtils::CopyVariable<double>)                                                                    // To be removed
         .def("CopyVectorVar", &VariableUtils::CopyVariable<array_1d<double, 3>>)                                                       // To be removed
         .def("CopyVariable", &VariableUtils::CopyVariable<bool>)

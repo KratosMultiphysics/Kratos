@@ -1,6 +1,6 @@
 ---
-title: KratosStructuralMechanicsAPI Constitutive laws in Structural Mechanics Application
-keywords: 
+title: Constitutive laws
+keywords: [structural constitutive laws api]
 tags: [KratosStructuralMechanicsAPI-Constitutive-laws-in-Structural-Mechanics-Application.md]
 sidebar: structural_mechanics_application
 summary: 
@@ -14,26 +14,41 @@ Since this is a work-in-progress, we are going to describe the present state of 
 
 At this point, there are some Constitutive Laws (CL from now on) that are available and ready to use:
 
-1. [Isotropic Elasticity (2D, 3D, Axisymmetric, truss, beam)](#isotropic-elasticity)
-2. [HyperElasticity (2D, 3D)](#hyperelasticity)
-	1. [Kirchhoff Material](#kirchhoff-material)
-	2. [Neo-Hookean Material](#neo-hookean-material)
-3. [Isotropic Plasticity (3D)](#isotropic-plasticity)
-	1. [Brief summary of the modualr design](#brief-summary-of-the-modular-design)
-		1. [Introduction](#introduction)
-		2. [Yield Surface](#yield-surface)
-		3. [Plastic Potential](#plastic-potential)
-			1. [Flow Rules](#flow-rules)
-	2. [Small Strain Plasticity](#small-strain-plasticity)
-		1. [General description](#general-description)
-		2. [Constitutive Law Integrator](#constitutive-law-integrator)
-	3. [Finite Strain Plasticity](#finite-strain-plasticity)
-		1. [General description](#general-description)
-4. [Kinematic Plasticity (3D)]
-4. [Isotropic Damage (3D)](#isotropic-damage)
-5. [ViscoElasticity (3D)](#)
-6. [ViscoPlasticity (3D)](#)
-7. [d+d- Damage Model](#d+d-damage-model)
+- [Overview](#overview)
+- [Isotropic Elasticity](#isotropic-elasticity)
+- [HyperElasticity](#hyperelasticity)
+  - [Common properties](#common-properties)
+  - [Kirchhoff Material](#kirchhoff-material)
+  - [Neo-Hookean Material](#neo-hookean-material)
+- [Isotropic Plasticity](#isotropic-plasticity)
+  - [Brief summary of the modular design](#brief-summary-of-the-modular-design)
+    - [Introduction](#introduction)
+    - [Yield Surface](#yield-surface)
+      - [Plastic Potential](#plastic-potential)
+      - [Flow Rules](#flow-rules)
+  - [Small Strain Plasticity](#small-strain-plasticity)
+    - [General Description](#general-description)
+    - [Constitutive Law Integrator](#constitutive-law-integrator)
+  - [Finite Strain Plasticity](#finite-strain-plasticity)
+    - [General Description](#general-description-1)
+  - [How to use it?](#how-to-use-it)
+- [Small Strain Isotropic Damage](#small-strain-isotropic-damage)
+  - [General Description](#general-description-2)
+  - [How to use it?](#how-to-use-it-1)
+- [Small Strain d+d- Damage](#small-strain-dd--damage)
+  - [General Description](#general-description-3)
+  - [How to use it?](#how-to-use-it-2)
+- [ViscoElasticity](#viscoelasticity)
+  - [General Description](#general-description-4)
+  - [Generalized Maxwell model](#generalized-maxwell-model)
+    - [How to use it?](#how-to-use-it-3)
+  - [Generalized Kelvin model](#generalized-kelvin-model)
+    - [How to use it?](#how-to-use-it-4)
+- [ViscoPlasticity](#viscoplasticity)
+- [Appendix](#appendix)
+  - [The Mohr-Coulomb modified yield surface](#the-mohr-coulomb-modified-yield-surface)
+- [References](#references)
+- [Contact us!](#contact-us)
 
 A description of the previous models will be done in the following paragraphs.
 
@@ -238,7 +253,7 @@ The parameters needed for the plasticity (neglecting the young modulus and poiss
 * `FRICTION_ANGLE`: Defines the friction angle value in degrees
 * `DILATANCY_ANGLE`: Defines the dilatancy angle value in degrees (usually 0.5*friction_angle)
 
-# Small Strain Isotropic Damage 
+# Small Strain Isotropic Damage
 
 ## General Description
 
@@ -283,7 +298,7 @@ The parameters are the following (use International System):
 * `FRICTION_ANGLE`: Defines the friction angle value in degrees
 * `SOFTENING_TYPE`: Defines the softening type (linear softening=0, exponential softening=1)
 
-# Small Strain d+d- Damage 
+# Small Strain d+d- Damage
 
 ## General Description
 
@@ -296,7 +311,7 @@ Once we have Decomposed the stress tensor we proceed to the calculation of the d
 
 ![plasti.](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/CL%20StructuralMech/integrated.png)
 
-In order to guarantee flexibility, we have designed an structure capable of combining different yield surfaces in tension and in compression. This has been achieved by _templating_ two integrators named **TConstLawIntegratorTensionType** and 
+In order to guarantee flexibility, we have designed an structure capable of combining different yield surfaces in tension and in compression. This has been achieved by _templating_ two integrators named **TConstLawIntegratorTensionType** and
 **TConstLawIntegratorCompressionType** which define the tension/compression yield surfaces and flow rules.
 
 The implementation is described below (`generic_small_strain_d_plus_d_minus_damage.cpp`):
@@ -342,7 +357,7 @@ The parameters required for this model have been explained previously and the wa
 1. Rankine
 2. Tresca
 3. VonMises
-4. ModifiedMohrCoulomb 
+4. ModifiedMohrCoulomb
 5. DruckerPrager
 6. SimoJu
 7. Classical Mohr-Coulomb
@@ -455,7 +470,7 @@ where the stress function "_f_" is expressed as[1] (being θ the Lode's angle, I
 
 Through this new Mohr-Coulomb modified function any strength relation required by
 the different materials can be established by only modifying **K**i , without increasing
-dilatancy. 
+dilatancy.
 
 The values of the **K**i and the parameters required can be seen in the figures below[1].
 

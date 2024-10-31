@@ -29,17 +29,17 @@ class MovingPeriodicBoundaryTestSolution(KratosMultiphysics.DEMApplication.DEM_a
             angular_velocity = node.GetSolutionStepValue(Kratos.ANGULAR_VELOCITY)
             if node.Id == 1:
                 if self.time >= 0.000005 and self.time < 0.0000051:
-                    expected_value = 2.1177075701906707e-06
+                    expected_value = 0.00011420848239321796
                     self.CheckValues(velocity, 0, expected_value, tolerance)
-                    expected_value = 1.8578612376954684e-06
+                    expected_value = 6.775654826452476e-05
                     self.CheckValues(velocity, 1, expected_value, tolerance)
-                    expected_value = 4.827815628977769e-06
+                    expected_value = 0.0001274415501419127
                     self.CheckValues(velocity, 2, expected_value, tolerance)
-                    expected_value = 0.0
+                    expected_value = -0.17098314823023963
                     self.CheckValues(angular_velocity, 0, expected_value, tolerance)
-                    expected_value = 0.0
+                    expected_value = 0.03424127526925506
                     self.CheckValues(angular_velocity, 1, expected_value, tolerance)
-                    expected_value = 0.0
+                    expected_value = -0.41289095377539375
                     self.CheckValues(angular_velocity, 2, expected_value, tolerance)
 
     def CheckValues(self, variable, component, expected_value, tolerance):

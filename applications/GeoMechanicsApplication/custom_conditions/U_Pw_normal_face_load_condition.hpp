@@ -39,8 +39,6 @@ public:
     using VectorType     = Vector;
     using MatrixType     = Matrix;
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     // Default constructor
     UPwNormalFaceLoadCondition() : UPwCondition<TDim, TNumNodes>() {}
 
@@ -56,15 +54,11 @@ public:
     {
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     Condition::Pointer Create(IndexType               NewId,
                               NodesArrayType const&   ThisNodes,
                               PropertiesType::Pointer pProperties) const override;
 
     std::string Info() const override;
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
     struct NormalFaceLoadVariables {
@@ -73,8 +67,6 @@ protected:
     };
 
     // Member Variables
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void CalculateRHS(VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo) override;
 
@@ -89,13 +81,7 @@ protected:
     virtual double CalculateIntegrationCoefficient(const IndexType PointNumber,
                                                    const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const;
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 private:
-    // Member Variables
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     // Serialization
 
     friend class Serializer;

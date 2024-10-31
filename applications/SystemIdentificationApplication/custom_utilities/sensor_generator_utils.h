@@ -31,7 +31,7 @@ public:
     ///@name Public static operations
     ///@{
 
-    static bool IsPointInGeometry(
+    KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) static bool IsPointInGeometry(
         const Point& rPoint,
         const Geometry<Node>& rGeometry);
 
