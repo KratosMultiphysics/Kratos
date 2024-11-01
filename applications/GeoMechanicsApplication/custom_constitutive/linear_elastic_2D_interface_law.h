@@ -13,7 +13,7 @@
 #pragma once
 
 // Project includes
-#include "custom_constitutive/linear_elastic_plane_strain_2D_law.h"
+#include "custom_constitutive/incremental_linear_elastic_law.h"
 
 namespace Kratos
 {
@@ -43,7 +43,7 @@ namespace Kratos
  * @details This class derives from the linear elastic case on 3D
  * @author Vahid Galavi
  */
-class KRATOS_API(GEO_MECHANICS_APPLICATION) LinearElastic2DInterfaceLaw : public GeoLinearElasticPlaneStrain2DLaw
+class KRATOS_API(GEO_MECHANICS_APPLICATION) LinearElastic2DInterfaceLaw : public GeoIncrementalLinearElasticLaw
 {
 public:
     ///@name Type Definitions
@@ -53,7 +53,7 @@ public:
     using CLBaseType = ConstitutiveLaw;
 
     /// The base class ElasticIsotropicK03DLaw type definition
-    using BaseType = GeoLinearElasticPlaneStrain2DLaw;
+    using BaseType = GeoIncrementalLinearElasticLaw;
 
     /// The size type definition
     using SizeType = std::size_t;
@@ -120,7 +120,7 @@ public:
      * @param rValue a reference to the returned value
      * @param rValue output: the value of the specified variable
      */
-    using GeoLinearElasticPlaneStrain2DLaw::GetValue;
+    using GeoIncrementalLinearElasticLaw::GetValue;
     bool& GetValue(const Variable<bool>& rThisVariable, bool& rValue) override;
 
     ///@}
@@ -189,12 +189,12 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, GeoLinearElasticPlaneStrain2DLaw)
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, GeoIncrementalLinearElasticLaw)
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, GeoLinearElasticPlaneStrain2DLaw)
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, GeoIncrementalLinearElasticLaw)
     }
 }; // Class LinearElastic2DInterfaceLaw
 

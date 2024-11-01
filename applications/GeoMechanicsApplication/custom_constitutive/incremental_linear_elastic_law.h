@@ -21,27 +21,27 @@ namespace Kratos
 class ConstitutiveLawDimension;
 
 /**
- * @class GeoLinearElasticPlaneStrain2DLaw
+ * @class GeoIncrementalLinearElasticLaw
  * @ingroup GeoMechanicsApplication
- * @brief This class defines a small deformation linear elastic constitutive model for plane strain cases
+ * @brief This class defines a small deformation linear elastic constitutive model for plane strain and 3D cases
  * @author Vahid Galavi
  */
-class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoLinearElasticPlaneStrain2DLaw : public GeoLinearElasticLaw
+class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoIncrementalLinearElasticLaw : public GeoLinearElasticLaw
 {
 public:
     using BaseType = GeoLinearElasticLaw;
     using SizeType = std::size_t;
 
-    KRATOS_CLASS_POINTER_DEFINITION(GeoLinearElasticPlaneStrain2DLaw);
-    GeoLinearElasticPlaneStrain2DLaw();
+    KRATOS_CLASS_POINTER_DEFINITION(GeoIncrementalLinearElasticLaw);
+    GeoIncrementalLinearElasticLaw();
 
-    explicit GeoLinearElasticPlaneStrain2DLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension);
-    GeoLinearElasticPlaneStrain2DLaw(const GeoLinearElasticPlaneStrain2DLaw& rOther);
-    GeoLinearElasticPlaneStrain2DLaw& operator=(const GeoLinearElasticPlaneStrain2DLaw& rOther);
+    explicit GeoIncrementalLinearElasticLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension);
+    GeoIncrementalLinearElasticLaw(const GeoIncrementalLinearElasticLaw& rOther);
+    GeoIncrementalLinearElasticLaw& operator=(const GeoIncrementalLinearElasticLaw& rOther);
 
-    GeoLinearElasticPlaneStrain2DLaw(GeoLinearElasticPlaneStrain2DLaw&& rOther) noexcept;
-    GeoLinearElasticPlaneStrain2DLaw& operator=(GeoLinearElasticPlaneStrain2DLaw&& rOther) noexcept;
-    ~GeoLinearElasticPlaneStrain2DLaw() override;
+    GeoIncrementalLinearElasticLaw(GeoIncrementalLinearElasticLaw&& rOther) noexcept;
+    GeoIncrementalLinearElasticLaw& operator=(GeoIncrementalLinearElasticLaw&& rOther) noexcept;
+    ~GeoIncrementalLinearElasticLaw() override;
 
     [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override;
 
@@ -112,6 +112,6 @@ private:
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
-}; // Class GeoLinearElasticPlaneStrain2DLaw
+}; // Class GeoIncrementalLinearElasticLaw
 
 } // namespace Kratos
