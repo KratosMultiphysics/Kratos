@@ -241,6 +241,7 @@ void SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeft
         if (CalculateResidualVectorFlag)
             this->CalculateAndAddRHS(rRightHandSideVector, Variables, GPoint);
     }
+    KRATOS_INFO("CalculatePermeabilityMatrix") << "PIPE_HEIGHT " << Variables.JointWidth << " k: " << rLeftHandSideMatrix << std::endl;
 
     KRATOS_CATCH("")
 }
@@ -296,6 +297,7 @@ double SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateEquilibriumPipeHeig
 
     // calculate particle diameter
     double particle_d = GeoTransportEquationUtilities::CalculateParticleDiameter(Prop);
+    KRATOS_INFO("CalculateEquilibriumPipeHeight") << "dhdx: " << dhdx <<" particle_d: " << particle_d << std::endl;
 
     // todo calculate slope of pipe, currently pipe is assumed to be horizontal
     const double pipeSlope = 0;

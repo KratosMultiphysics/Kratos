@@ -299,11 +299,13 @@ private:
         double da = CalculatePipeHeightIncrement(amax, mPipingIterations);
 
         while (PipeIter < mPipingIterations && !equilibrium && converged) {
+            KRATOS_INFO("check Piping equilibrium") << "PipeIter: " << PipeIter << std::endl;
             // set equilibrium on true
             equilibrium = true;
 
             // perform a flow calculation and stop growing if the calculation doesn't converge
             converged = this->Recalculate();
+            KRATOS_INFO("check Piping equilibrium") << "Converged: " << converged << std::endl;
 
             // todo: JDN (20220817) : grow not used.
             // if (!converged)
@@ -323,6 +325,7 @@ private:
                     double eq_height = OpenPipeElement->CalculateEquilibriumPipeHeight(
                         prop, Geom, OpenPipeElement->GetValue(PIPE_ELEMENT_LENGTH));
                     double current_height = OpenPipeElement->GetValue(PIPE_HEIGHT);
+                    KRATOS_INFO("check Piping equilibrium") << "Open Piping element: " << OpenPipeElement->Id() << " eq_height " << eq_height << " current_height " << current_height << std::endl;
 
                     // set erosion on true if current pipe height is greater than the equilibrium height
                     if (current_height > eq_height) {
@@ -350,6 +353,7 @@ private:
                 PipeIter += 1;
             }
         }
+        KRATOS_INFO("check Piping equilibrium") << "PipeIter: " << PipeIter << " equilibrium " << equilibrium << std::endl;
         return equilibrium;
     }
 
@@ -416,6 +420,9 @@ private:
         unsigned int number_of_piping_elements = rPipingElements.size();
         unsigned int number_of_open_piping_elements = this->InitialiseNumActivePipeElements(rPipingElements);
         while (grow && (number_of_open_piping_elements < number_of_piping_elements)) {
+            KRATOS_INFO("DetermineOpenPipingElements")
+                << "grow " << grow << "number_of_open_piping_elements" << number_of_open_piping_elements
+                << " number_of_piping_elements " << number_of_piping_elements << std::endl;
             // todo: JDN (20220817) : grow not used.
             // bool Equilibrium = false;
 
@@ -423,6 +430,7 @@ private:
             auto tip_element = rPipingElements.at(number_of_open_piping_elements);
             number_of_open_piping_elements += 1;
             tip_element->SetValue(PIPE_ACTIVE, true);
+            KRATOS_INFO("DetermineOpenPipingElements") << "tip_element " << tip_element << std::endl;
 
             // Get all open pipe elements
             std::function<bool(Element*)> filter = [](Element* i) {
