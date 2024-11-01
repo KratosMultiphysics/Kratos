@@ -52,9 +52,47 @@ void ConversionUtilities::ConvertElementalDataToNodalData(
     rModelPart.GetCommunicator().AssembleCurrentData(rNodalVariable);
 }
 
+template<class TDataType>
+void ConversionUtilities::ConvertNodalDataToElementalData(
+    ModelPart& rModelPart,
+    const Variable<TDataType>& rElementalVariable,
+    const Variable<TDataType>& rNodalVariable )
+{
+    // prepare elemental variable
+    VariableUtils().SetNonHistoricalVariableToZero(rElementalVariable, rModelPart.Elements());
+
+    block_for_each(rModelPart.Elements(), [&](Element& rElement){
+        const std::size_t num_nodes = rElement.GetGeometry().PointsNumber();
+
+        if constexpr(std::is_same_v<TDataType, double>) {
+                double temp = 0.0;
+                for (auto& r_node : rElement.GetGeometry().Points()){
+                    temp += r_node.FastGetSolutionStepValue(rNodalVariable) / num_nodes;
+                } 
+                rElement.SetValue(rElementalVariable, temp);
+            }
+        else if constexpr(std::is_same_v<TDataType, array_1d<double, 3>>) {
+            array_1d<double, 3> temp = ZeroVector(3);
+            for (auto& r_node : rElement.GetGeometry().Points()){
+                temp += r_node.FastGetSolutionStepValue(rNodalVariable) / num_nodes;
+            }
+            rElement.SetValue(rElementalVariable, temp);
+        }
+        
+        else {
+                static_assert(!std::is_same_v<TDataType, TDataType>, "Unsupported data type.");
+            }
+    });
+
+    rModelPart.GetCommunicator().AssembleCurrentData(rElementalVariable);
+}
+
 // template instantiations
 template void ConversionUtilities::ConvertElementalDataToNodalData<double>(ModelPart&, const Variable<double>&,  const Variable<double>&);
 template void ConversionUtilities::ConvertElementalDataToNodalData<array_1d<double, 3>>(ModelPart&, const Variable<array_1d<double, 3>>&,  const Variable<array_1d<double, 3>>&);
+
+template void ConversionUtilities::ConvertNodalDataToElementalData<double>(ModelPart&, const Variable<double>&,  const Variable<double>&);
+template void ConversionUtilities::ConvertNodalDataToElementalData<array_1d<double, 3>>(ModelPart&, const Variable<array_1d<double, 3>>&,  const Variable<array_1d<double, 3>>&);
 
 
 }  // namespace Kratos.
