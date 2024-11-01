@@ -41,7 +41,7 @@ Matrix CompressibilityCalculator::LHSContribution(const Matrix& rCompressibility
     return rCompressibilityMatrix * mInputProvider.GetDtPressureCoefficient();
 }
 
-std::pair<Matrix, Vector> CompressibilityCalculator::CalculateLeftAndRightHandSide()
+std::pair<Matrix, Vector> CompressibilityCalculator::LocalSystemContribution()
 {
     const auto compressibility_matrix = CalculateCompressibilityMatrix();
     return {(LHSContribution(compressibility_matrix)), (RHSContribution(compressibility_matrix))};

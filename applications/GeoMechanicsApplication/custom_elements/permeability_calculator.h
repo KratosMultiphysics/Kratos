@@ -12,16 +12,15 @@
 
 #pragma once
 
-#include "calculator.h"
-
-#include <custom_retention/retention_law.h>
+#include "contribution_calculator.h"
+#include "custom_retention/retention_law.h"
 
 #include <utility>
 
 namespace Kratos
 {
 
-class PermeabilityCalculator : public Calculator
+class PermeabilityCalculator : public ContributionCalculator
 {
 public:
     class InputProvider
@@ -77,7 +76,7 @@ public:
 
     Matrix                    LHSContribution() override;
     Vector                    RHSContribution() override;
-    std::pair<Matrix, Vector> CalculateLeftAndRightHandSide() override;
+    std::pair<Matrix, Vector> LocalSystemContribution() override;
 
 private:
     InputProvider mInputProvider;

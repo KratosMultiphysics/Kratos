@@ -112,7 +112,7 @@ public:
 
         for (const auto& rContribution : mContributions) {
             const auto calculator = CreateCalculator(rContribution, rCurrentProcessInfo);
-            const auto [LHSContribution, RHSContribution] = calculator->CalculateLeftAndRightHandSide();
+            const auto [LHSContribution, RHSContribution] = calculator->LocalSystemContribution();
             rLeftHandSideMatrix += LHSContribution;
             rRightHandSideVector += RHSContribution;
         }
@@ -317,8 +317,8 @@ private:
         return fluid_body_vector;
     }
 
-    std::unique_ptr<Calculator> CreateCalculator(const CalculationContribution& rContribution,
-                                                 const ProcessInfo&             rCurrentProcessInfo)
+    std::unique_ptr<ContributionCalculator> CreateCalculator(const CalculationContribution& rContribution,
+                                                             const ProcessInfo& rCurrentProcessInfo)
     {
         switch (rContribution) {
         case CalculationContribution::Permeability:

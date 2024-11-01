@@ -12,7 +12,7 @@
 
 #pragma once
 
-#include "calculator.h"
+#include "contribution_calculator.h"
 #include "custom_retention/retention_law.h"
 #include "includes/properties.h"
 #include "includes/ublas_interface.h"
@@ -23,7 +23,7 @@
 namespace Kratos
 {
 
-class CompressibilityCalculator : public Calculator
+class CompressibilityCalculator : public ContributionCalculator
 {
 public:
     class InputProvider
@@ -84,7 +84,7 @@ public:
 
     Matrix                    LHSContribution() override;
     Vector                    RHSContribution() override;
-    std::pair<Matrix, Vector> CalculateLeftAndRightHandSide() override;
+    std::pair<Matrix, Vector> LocalSystemContribution() override;
 
 private:
     [[nodiscard]] Matrix CalculateCompressibilityMatrix() const;

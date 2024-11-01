@@ -30,7 +30,7 @@ Vector PermeabilityCalculator::RHSContribution()
     return RHSContribution(CalculatePermeabilityMatrix());
 }
 
-std::pair<Matrix, Vector> PermeabilityCalculator::CalculateLeftAndRightHandSide()
+std::pair<Matrix, Vector> PermeabilityCalculator::LocalSystemContribution()
 {
     const auto permeability_matrix = CalculatePermeabilityMatrix();
     return {permeability_matrix, (RHSContribution(permeability_matrix))};

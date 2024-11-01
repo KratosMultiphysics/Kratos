@@ -16,14 +16,14 @@
 namespace Kratos
 {
 
-class Calculator
+class ContributionCalculator
 {
 public:
-    virtual ~Calculator() = default;
+    virtual ~ContributionCalculator() = default;
 
-    virtual Matrix                    LHSContribution()               = 0;
-    virtual Vector                    RHSContribution()               = 0;
-    virtual std::pair<Matrix, Vector> CalculateLeftAndRightHandSide() = 0;
+    virtual Matrix                    LHSContribution()         = 0;
+    virtual Vector                    RHSContribution()         = 0;
+    virtual std::pair<Matrix, Vector> LocalSystemContribution() = 0;
 };
 
 } // namespace Kratos
