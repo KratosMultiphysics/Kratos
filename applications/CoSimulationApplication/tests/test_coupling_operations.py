@@ -267,20 +267,20 @@ class TestConversionOperation(KratosUnittest.TestCase):
         props = self.model_part.CreateNewProperties(1)
 
         new_node = self.model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
-        new_node.SetValue(KM.TEMPERATURE, 5)
+        new_node.SetSolutionStepValue(KM.TEMPERATURE, 5)
         new_node = self.model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
-        new_node.SetValue(KM.TEMPERATURE, 4)
+        new_node.SetSolutionStepValue(KM.TEMPERATURE, 4)
         new_node = self.model_part.CreateNewNode(3, 1.0, 1.0, 0.0)
-        new_node.SetValue(KM.TEMPERATURE, 4)
+        new_node.SetSolutionStepValue(KM.TEMPERATURE, 4)
         new_node = self.model_part.CreateNewNode(4, 0.0, 1.0, 0.0)
-        new_node.SetValue(KM.TEMPERATURE, 5)
+        new_node.SetSolutionStepValue(KM.TEMPERATURE, 5)
 
         new_element = self.model_part.CreateNewElement("Element2D4N", 1, [1,2,3,4], props)
 
         new_node = self.model_part.CreateNewNode(5, 2.0, 0.0, 0.0)
-        new_node.SetValue(KM.TEMPERATURE, 1)
+        new_node.SetSolutionStepValue(KM.TEMPERATURE, 1)
         new_node = self.model_part.CreateNewNode(6, 2.0, 1.0, 0.0)
-        new_node.SetValue(KM.TEMPERATURE, 1)
+        new_node.SetSolutionStepValue(KM.TEMPERATURE, 1)
         new_element = self.model_part.CreateNewElement("Element2D4N", 2, [2,5,6,3], props)
 
         nodal_data = KM.Parameters("""{
@@ -289,9 +289,9 @@ class TestConversionOperation(KratosUnittest.TestCase):
             "variable_name"   : "TEMPERATURE"
         }""")
 
-        self.interface_data = CouplingInterfaceData(nodal_data, self.model)
+        self.nodal_data = CouplingInterfaceData(nodal_data, self.model)
 
-        self.solver_wrappers = {"dummy_solver" : DummySolverWrapper({"nodal_data" : self.interface_data})}
+        self.solver_wrappers = {"dummy_solver" : DummySolverWrapper({"nodal_data" : self.nodal_data})}
 
         self.solver_process_info = KM.ProcessInfo()
 
@@ -308,17 +308,19 @@ class TestConversionOperation(KratosUnittest.TestCase):
 
         conversion_operation.Execute()
 
-        nodal_data_output_setting = KM.Parameters("""{
+        elemental_data_output_setting = KM.Parameters("""{
             "model_part_name"       : "default",
             "variable_name"         : "TEMPERATURE",
             "location"              : "element"
         }""")
 
-        nodal_data_output = CouplingInterfaceData(nodal_data_output_setting,  self.model)
+        elemental_data_output = CouplingInterfaceData(elemental_data_output_setting,  self.model)
 
-        expected_nodal_values = [4.5, 2.5]
+        expected_elemental_values = [4.5, 2.5]
+        expected_nodal_values = [5.0, 4.0, 4.0, 5.0, 1.0, 1.0]
 
-        self.assertVectorAlmostEqual(expected_nodal_values, nodal_data_output.GetData())
+        self.assertVectorAlmostEqual(expected_elemental_values, elemental_data_output.GetData())
+        self.assertVectorAlmostEqual(expected_nodal_values, self.nodal_data.GetData())
 
     def test_nodal_to_elemental_conversion_vector(self):
         self.model = KM.Model()
@@ -328,20 +330,20 @@ class TestConversionOperation(KratosUnittest.TestCase):
         props = self.model_part.CreateNewProperties(1)
 
         new_node = self.model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
-        new_node.SetValue(KM.FORCE, [5, 4, 2])
+        new_node.SetSolutionStepValue(KM.FORCE, [5, 4, 2])
         new_node = self.model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
-        new_node.SetValue(KM.FORCE, [5, 4, 2])
+        new_node.SetSolutionStepValue(KM.FORCE, [5, 4, 2])
         new_node = self.model_part.CreateNewNode(3, 1.0, 1.0, 0.0)
-        new_node.SetValue(KM.FORCE, [4, 3, 5])
+        new_node.SetSolutionStepValue(KM.FORCE, [4, 3, 5])
         new_node = self.model_part.CreateNewNode(4, 0.0, 1.0, 0.0)
-        new_node.SetValue(KM.FORCE, [4, 3, 5])
+        new_node.SetSolutionStepValue(KM.FORCE, [4, 3, 5])
 
         new_element = self.model_part.CreateNewElement("Element2D4N", 1, [1,2,3,4], props)
 
         new_node = self.model_part.CreateNewNode(5, 2.0, 0.0, 0.0)
-        new_node.SetValue(KM.FORCE, [1, 2, 10])
+        new_node.SetSolutionStepValue(KM.FORCE, [1, 2, 10])
         new_node = self.model_part.CreateNewNode(6, 2.0, 1.0, 0.0)
-        new_node.SetValue(KM.FORCE, [1, 2, 10])
+        new_node.SetSolutionStepValue(KM.FORCE, [1, 2, 10])
         new_element = self.model_part.CreateNewElement("Element2D4N", 2, [2,5,6,3], props)
 
         nodal_data = KM.Parameters("""{
@@ -351,9 +353,9 @@ class TestConversionOperation(KratosUnittest.TestCase):
             "dimension"       : 3
         }""")
 
-        self.interface_data = CouplingInterfaceData(nodal_data, self.model)
+        self.nodal_data = CouplingInterfaceData(nodal_data, self.model)
 
-        self.solver_wrappers = {"dummy_solver" : DummySolverWrapper({"nodal_data" : self.interface_data})}
+        self.solver_wrappers = {"dummy_solver" : DummySolverWrapper({"nodal_data" : self.nodal_data})}
 
         self.solver_process_info = KM.ProcessInfo()
 
@@ -370,18 +372,20 @@ class TestConversionOperation(KratosUnittest.TestCase):
 
         conversion_operation.Execute()
 
-        nodal_data_output_setting = KM.Parameters("""{
+        elemental_data_output_setting = KM.Parameters("""{
             "model_part_name"       : "default",
             "variable_name"         : "FORCE",
             "location"              : "element",
             "dimension"             : 3
         }""")
 
-        nodal_data_output = CouplingInterfaceData(nodal_data_output_setting,  self.model)
+        elemental_data_output = CouplingInterfaceData(elemental_data_output_setting,  self.model)
 
-        expected_nodal_values = [4.5, 3.5, 3.5, 2.75, 2.75, 6.75]
+        expected_elemental_values = [4.5, 3.5, 3.5, 2.75, 2.75, 6.75]
+        expected_nodal_values = [5, 4, 2, 5, 4, 2, 4, 3, 5, 4, 3, 5, 1, 2, 10, 1, 2, 10]
 
-        self.assertVectorAlmostEqual(expected_nodal_values, nodal_data_output.GetData())
+        self.assertVectorAlmostEqual(expected_elemental_values, elemental_data_output.GetData())
+        self.assertVectorAlmostEqual(expected_nodal_values, self.nodal_data.GetData())
 
 if __name__ == '__main__':
     KratosUnittest.main()
