@@ -24,7 +24,7 @@
                     "DENSITY_WATER": 1000
                 },
                 "constitutive_law": {
-                    "name": "LinearElastic3DLaw"
+                    "name": "GeoLinearElastic3DLaw"
                 }
             },
             "Tables": {}
@@ -53,7 +53,7 @@
                     "DENSITY_WATER": 1000
                 },
                 "constitutive_law": {
-                    "name": "LinearElastic3DLaw"
+                    "name": "GeoLinearElastic3DLaw"
                 }
             },
             "Tables": {}
@@ -82,7 +82,7 @@
                     "DENSITY_WATER": 1000
                 },
                 "constitutive_law": {
-                    "name": "LinearElastic3DLaw"
+                    "name": "GeoLinearElastic3DLaw"
                 }
             },
             "Tables": {}

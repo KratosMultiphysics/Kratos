@@ -4,7 +4,7 @@
         "properties_id"               : 1,
         "Material": {
             "constitutive_law": {
-                "name"                : "LinearElastic3DLaw"
+                "name"                : "GeoLinearElastic3DLaw"
             },
             "Variables": {
                 "YOUNG_MODULUS"       : 91800.0,
