@@ -26,43 +26,24 @@ public:
     class InputProvider
     {
     public:
-        InputProvider(std::function<const Properties&()>                         rElementProperties,
-                      std::function<const std::vector<RetentionLaw::Pointer>&()> rRetentionLaws,
-                      std::function<Vector()>                        rIntegrationCoefficients,
-                      std::function<Vector(const Variable<double>&)> rNodalValuesOfDtWaterPressure,
-                      std::function<Geometry<Node>::ShapeFunctionsGradientsType()> rShapeFunctionGradients)
-            : mGetElementProperties(std::move(rElementProperties)),
-              mGetRetentionLaws(std::move(rRetentionLaws)),
-              mGetIntegrationCoefficients(std::move(rIntegrationCoefficients)),
-              mGetNodalValues(std::move(rNodalValuesOfDtWaterPressure)),
-              mGetShapeFunctionGradients(std::move(rShapeFunctionGradients))
+        InputProvider(std::function<const Properties&()>                         GetElementProperties,
+                      std::function<const std::vector<RetentionLaw::Pointer>&()> GetRetentionLaws,
+                      std::function<Vector()>                        GetIntegrationCoefficients,
+                      std::function<Vector(const Variable<double>&)> GetNodalValuesOf,
+                      std::function<Geometry<Node>::ShapeFunctionsGradientsType()> GetShapeFunctionGradients)
+            : mGetElementProperties(std::move(GetElementProperties)),
+              mGetRetentionLaws(std::move(GetRetentionLaws)),
+              mGetIntegrationCoefficients(std::move(GetIntegrationCoefficients)),
+              mGetNodalValues(std::move(GetNodalValuesOf)),
+              mGetShapeFunctionGradients(std::move(GetShapeFunctionGradients))
         {
         }
 
-        [[nodiscard]] const Properties& GetElementProperties() const
-        {
-            return mGetElementProperties();
-        }
-
-        [[nodiscard]] const std::vector<RetentionLaw::Pointer>& GetRetentionLaws() const
-        {
-            return mGetRetentionLaws();
-        }
-
-        [[nodiscard]] Vector GetIntegrationCoefficients() const
-        {
-            return mGetIntegrationCoefficients();
-        }
-
-        [[nodiscard]] Vector GetNodalValues(const Variable<double>& rVariable) const
-        {
-            return mGetNodalValues(rVariable);
-        }
-
-        [[nodiscard]] Geometry<Node>::ShapeFunctionsGradientsType GetShapeFunctionGradients() const
-        {
-            return mGetShapeFunctionGradients();
-        }
+        [[nodiscard]] const Properties& GetElementProperties() const;
+        [[nodiscard]] const std::vector<RetentionLaw::Pointer>& GetRetentionLaws() const;
+        [[nodiscard]] Vector GetIntegrationCoefficients() const;
+        [[nodiscard]] Vector GetNodalValues(const Variable<double>& rVariable) const;
+        [[nodiscard]] Geometry<Node>::ShapeFunctionsGradientsType GetShapeFunctionGradients() const;
 
     private:
         std::function<const Properties&()>                           mGetElementProperties;
