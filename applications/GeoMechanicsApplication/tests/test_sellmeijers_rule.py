@@ -52,6 +52,7 @@ class TestSellmeijersRule(KratosUnittest.TestCase):
             # check if pipe elements become active
             pipe_active, pipe_length, model = self.model_kratos_run(file_path, search_array[counter_head], model)
             pipe_length_total.append(pipe_length)
+        #    print(f"counter_head = {counter_head}, pipe_active = {pipe_active}, pipe_length = {pipe_length}, pipe_length_total = {pipe_length_total}")
             if pipe_active:
                 return search_array[counter_head - 1], pipe_length_total[counter_head - 1]
             counter_head = counter_head + 1
@@ -75,6 +76,7 @@ class TestSellmeijersRule(KratosUnittest.TestCase):
     @parameterized.expand(
         [('7.10', 3.00E-04, 1.157E-12, 10.29, 11.3, 7.5, 'test_compare_sellmeijer/HeightAquiferD10L30.gid')])
     def test_sellmeijers_rule_height(self, name, d70, kappa, Hc, Hn, length_n, test_name_gid):
+    #    print("Running test_sellmeijers_rule_height")
         file_path = test_helper.get_file_path(os.path.join('./', test_name_gid))
         os.chdir(file_path)
         critical_head_found, length = self.critical_head_loop(file_path, kappa, d70, Hn, 'linear')
@@ -83,6 +85,17 @@ class TestSellmeijersRule(KratosUnittest.TestCase):
         self.assertAlmostEqual(Hn, critical_head_found, 1,
                                f"Critical head kratos: {critical_head_found}, old geo flow {Hn}")
 
+    #@parameterized.expand(
+    #    [('7.10', 3.00E-04, 1.157E-12, 10.29, 11.3, 7.5, 'test_compare_sellmeijer/HeightAquiferD10L30line')])
+    #def test_sellmeijers_rule_height_line(self, name, d70, kappa, Hc, Hn, length_n, test_name_line):
+    #    print("Running test_sellmeijers_rule_height_line")
+    #    file_path = test_helper.get_file_path(os.path.join('./', test_name_line))
+    #    os.chdir(file_path)
+    #    critical_head_found, length = self.critical_head_loop(file_path, kappa, d70, Hn, 'linear')
+    #    self.results = {"value_name": name, "test_result_h": Hc, "kratos_results_h": critical_head_found,
+    #                    "equivalent_software_h": Hn, "kratos_results_l": length, "equivalent_software_l": length_n}
+    #    self.assertAlmostEqual(Hn, critical_head_found, 1,
+    #                           f"Critical head kratos: {critical_head_found}, old geo flow {Hn}")
 
 if __name__ == '__main__':
     KratosUnittest.main()
