@@ -129,8 +129,7 @@ public:
         if (std::abs(dhdx) < std::numeric_limits<double>::epsilon()) return 1e10;
 
         // calculate particle diameter to be replaced with Anne's version!
-        // const double particle_d = CalculateParticleDiameter(Prop);
-        const auto particle_d = Prop[PIPE_D_70];
+        const auto particle_d = GeoTransportEquationUtilities::CalculateParticleDiameter(Prop);
 
         // todo calculate slope of pipe (in degrees! see formula), currently pipe is assumed to be horizontal
         const double pipe_slope = 0.0;
