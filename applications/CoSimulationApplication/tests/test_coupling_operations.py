@@ -267,20 +267,20 @@ class TestConversionOperation(KratosUnittest.TestCase):
         props = self.model_part.CreateNewProperties(1)
 
         new_node = self.model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
-        new_node.SetValue(KM.TEMPERATURE, 5)
+        new_node.SetSolutionStepValue(KM.TEMPERATURE, 5)
         new_node = self.model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
-        new_node.SetValue(KM.TEMPERATURE, 4)
+        new_node.SetSolutionStepValue(KM.TEMPERATURE, 4)
         new_node = self.model_part.CreateNewNode(3, 1.0, 1.0, 0.0)
-        new_node.SetValue(KM.TEMPERATURE, 4)
+        new_node.SetSolutionStepValue(KM.TEMPERATURE, 4)
         new_node = self.model_part.CreateNewNode(4, 0.0, 1.0, 0.0)
-        new_node.SetValue(KM.TEMPERATURE, 5)
+        new_node.SetSolutionStepValue(KM.TEMPERATURE, 5)
 
         new_element = self.model_part.CreateNewElement("Element2D4N", 1, [1,2,3,4], props)
 
         new_node = self.model_part.CreateNewNode(5, 2.0, 0.0, 0.0)
-        new_node.SetValue(KM.TEMPERATURE, 1)
+        new_node.SetSolutionStepValue(KM.TEMPERATURE, 1)
         new_node = self.model_part.CreateNewNode(6, 2.0, 1.0, 0.0)
-        new_node.SetValue(KM.TEMPERATURE, 1)
+        new_node.SetSolutionStepValue(KM.TEMPERATURE, 1)
         new_element = self.model_part.CreateNewElement("Element2D4N", 2, [2,5,6,3], props)
 
         nodal_data = KM.Parameters("""{
@@ -328,20 +328,20 @@ class TestConversionOperation(KratosUnittest.TestCase):
         props = self.model_part.CreateNewProperties(1)
 
         new_node = self.model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
-        new_node.SetValue(KM.FORCE, [5, 4, 2])
+        new_node.SetSolutionStepValue(KM.FORCE, [5, 4, 2])
         new_node = self.model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
-        new_node.SetValue(KM.FORCE, [5, 4, 2])
+        new_node.SetSolutionStepValue(KM.FORCE, [5, 4, 2])
         new_node = self.model_part.CreateNewNode(3, 1.0, 1.0, 0.0)
-        new_node.SetValue(KM.FORCE, [4, 3, 5])
+        new_node.SetSolutionStepValue(KM.FORCE, [4, 3, 5])
         new_node = self.model_part.CreateNewNode(4, 0.0, 1.0, 0.0)
-        new_node.SetValue(KM.FORCE, [4, 3, 5])
+        new_node.SetSolutionStepValue(KM.FORCE, [4, 3, 5])
 
         new_element = self.model_part.CreateNewElement("Element2D4N", 1, [1,2,3,4], props)
 
         new_node = self.model_part.CreateNewNode(5, 2.0, 0.0, 0.0)
-        new_node.SetValue(KM.FORCE, [1, 2, 10])
+        new_node.SetSolutionStepValue(KM.FORCE, [1, 2, 10])
         new_node = self.model_part.CreateNewNode(6, 2.0, 1.0, 0.0)
-        new_node.SetValue(KM.FORCE, [1, 2, 10])
+        new_node.SetSolutionStepValue(KM.FORCE, [1, 2, 10])
         new_element = self.model_part.CreateNewElement("Element2D4N", 2, [2,5,6,3], props)
 
         nodal_data = KM.Parameters("""{

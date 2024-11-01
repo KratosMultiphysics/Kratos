@@ -58,8 +58,8 @@ void ConversionUtilities::ConvertNodalDataToElementalData(
     const Variable<TDataType>& rElementalVariable,
     const Variable<TDataType>& rNodalVariable )
 {
-    // prepare nodal variable
-    VariableUtils().SetVariable(rElementalVariable, rElementalVariable.Zero(), rModelPart.Nodes());
+    // prepare elemental variable
+    VariableUtils().SetNonHistoricalVariableToZero(rElementalVariable, rModelPart.Elements());
 
     block_for_each(rModelPart.Elements(), [&](Element& rElement){
         const std::size_t num_nodes = rElement.GetGeometry().PointsNumber();
@@ -67,14 +67,14 @@ void ConversionUtilities::ConvertNodalDataToElementalData(
         if constexpr(std::is_same_v<TDataType, double>) {
                 double temp = 0.0;
                 for (auto& r_node : rElement.GetGeometry().Points()){
-                    temp += r_node.GetValue(rNodalVariable) / num_nodes;
+                    temp += r_node.FastGetSolutionStepValue(rNodalVariable) / num_nodes;
                 } 
                 rElement.SetValue(rElementalVariable, temp);
             }
         else if constexpr(std::is_same_v<TDataType, array_1d<double, 3>>) {
             array_1d<double, 3> temp = ZeroVector(3);
             for (auto& r_node : rElement.GetGeometry().Points()){
-                temp += r_node.GetValue(rNodalVariable) / num_nodes;
+                temp += r_node.FastGetSolutionStepValue(rNodalVariable) / num_nodes;
             }
             rElement.SetValue(rElementalVariable, temp);
         }
