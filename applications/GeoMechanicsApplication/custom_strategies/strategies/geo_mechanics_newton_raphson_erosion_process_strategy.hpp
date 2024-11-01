@@ -75,6 +75,12 @@ public:
 
         // get piping elements
         std::vector<Element*> PipeElements = GetPipingElements();
+        if (PipeElements.empty()) {
+            KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0)
+                << "No Pipe Elements -> Finalizing Solution " << std::endl;
+            this->BaseClassFinalizeSolutionStep();
+            return;
+        }
 
         auto piping_interface_elements = std::vector<SteadyStatePwPipingElement<2, 4>*>{};
         std::transform(
@@ -90,12 +96,6 @@ public:
         // get initially open pipe elements
         unsigned int number_of_open_pipe_elements = this->InitialiseNumActivePipeElements(PipeElements);
 
-        if (PipeElements.empty()) {
-            KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0)
-                << "No Pipe Elements -> Finalizing Solution " << std::endl;
-            this->BaseClassFinalizeSolutionStep();
-            return;
-        }
         // calculate max pipe height and pipe increment
         double amax = CalculateMaxPipeHeight(PipeElements);
 
