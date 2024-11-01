@@ -88,7 +88,7 @@ public:
         unsigned int n_el = PipeElements.size(); // number of piping elements
 
         // get initially open pipe elements
-        unsigned int openPipeElements = this->InitialiseNumActivePipeElements(PipeElements);
+        unsigned int number_of_open_pipe_elements = this->InitialiseNumActivePipeElements(PipeElements);
 
         if (PipeElements.empty()) {
             KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0)
@@ -100,13 +100,13 @@ public:
         double amax = CalculateMaxPipeHeight(PipeElements);
 
         // continue this loop, while the pipe is growing in length
-        while (grow && (openPipeElements < n_el)) {
+        while (grow && (number_of_open_pipe_elements < n_el)) {
             // todo: JDN (20220817) : grow not used.
             // bool Equilibrium = false;
 
             // get tip element and activate
-            Element* tip_element = PipeElements.at(openPipeElements);
-            openPipeElements += 1;
+            Element* tip_element = PipeElements.at(number_of_open_pipe_elements);
+            number_of_open_pipe_elements += 1;
             tip_element->SetValue(PIPE_ACTIVE, true);
 
             // Get all open pipe elements
@@ -123,12 +123,12 @@ public:
             check_pipe_equilibrium(OpenPipeElements, amax, mPipingIterations);
 
             // check if pipe should grow in length
-            std::tie(grow, openPipeElements) =
-                check_status_tip_element(openPipeElements, n_el, amax, PipeElements);
+            std::tie(grow, number_of_open_pipe_elements) =
+                check_status_tip_element(number_of_open_pipe_elements, n_el, amax, PipeElements);
 
             // if n open elements is lower than total pipe elements, save pipe height current
             // growing iteration or reset to previous iteration in case the pipe should not grow.
-            if (openPipeElements < n_el) {
+            if (number_of_open_pipe_elements < n_el) {
                 save_or_reset_pipe_heights(OpenPipeElements, grow);
             }
             // recalculate groundwater flow
