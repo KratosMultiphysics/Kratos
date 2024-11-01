@@ -65,15 +65,14 @@ class TSolver(GeoSolver):
             "block_builder"              : true,
             "search_neighbours_step"     : false,
             "linear_solver_settings":{
-                "solver_type": "AMGCL",
-                "tolerance": 1.0e-6,
-                "max_iteration": 100,
-                "scaling": false,
-                "verbosity": 0,
-                "preconditioner_type": "ILU0Preconditioner",
-                "smoother_type": "ilu0",
-                "krylov_type": "gmres",
-                "coarsening_type": "aggregation"
+                "solver_type":     "amgcl",
+                "smoother_type":   "ilu0",
+                "krylov_type":     "gmres",
+                "coarsening_type": "aggregation",
+                "max_iteration":   100,
+                "verbosity":       0,
+                "tolerance":       1.0e-6,
+                "scaling":         false
             },
             "problem_domain_sub_model_part_list": [""],
             "processes_sub_model_part_list": [""],
