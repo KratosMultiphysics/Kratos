@@ -71,8 +71,6 @@ public:
         KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0)
             << "Max Piping Iterations: " << mPipingIterations << std::endl;
 
-        bool grow = true;
-
         // get piping elements
         std::vector<Element*> piping_elements = GetPipingElements();
         if (piping_elements.empty()) {
@@ -91,15 +89,13 @@ public:
             return p_element == nullptr;
         })) << "Not all open piping elements could be downcast to SteadyStatePwPipingElement<2, 4>*\n";
 
-        unsigned int number_of_piping_elements = piping_elements.size();
-
-        // get initially open pipe elements
-        unsigned int number_of_open_piping_elements = this->InitialiseNumActivePipeElements(piping_elements);
-
         // calculate max pipe height and pipe increment
-        double amax = CalculateMaxPipeHeight(piping_elements);
+        const auto amax = CalculateMaxPipeHeight(piping_elements);
 
         // continue this loop, while the pipe is growing in length
+        bool grow = true;
+        unsigned int number_of_piping_elements = piping_elements.size();
+        unsigned int number_of_open_piping_elements = this->InitialiseNumActivePipeElements(piping_elements);
         while (grow && (number_of_open_piping_elements < number_of_piping_elements)) {
             // todo: JDN (20220817) : grow not used.
             // bool Equilibrium = false;
