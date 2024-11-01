@@ -38,13 +38,13 @@ Vector CompressibilityCalculator::RHSContribution(const Matrix& rCompressibility
 
 Matrix CompressibilityCalculator::LHSContribution(const Matrix& rCompressibilityMatrix) const
 {
-    return rCompressibilityMatrix * mInputProvider.GetDtPressureCoefficient();
+    return rCompressibilityMatrix * mInputProvider.GetMatrixScalarFactor();
 }
 
 std::pair<Matrix, Vector> CompressibilityCalculator::LocalSystemContribution()
 {
     const auto compressibility_matrix = CalculateCompressibilityMatrix();
-    return {(LHSContribution(compressibility_matrix)), (RHSContribution(compressibility_matrix))};
+    return {LHSContribution(compressibility_matrix), RHSContribution(compressibility_matrix)};
 }
 
 Matrix CompressibilityCalculator::CalculateCompressibilityMatrix() const
@@ -54,11 +54,10 @@ Matrix CompressibilityCalculator::CalculateCompressibilityMatrix() const
     auto        result = Matrix{ZeroMatrix{r_N_container.size2(), r_N_container.size2()}};
     for (unsigned int integration_point_index = 0;
          integration_point_index < integration_coefficients.size(); ++integration_point_index) {
-        const auto   N = Vector{row(r_N_container, integration_point_index)};
-        const double biot_modulus_inverse =
-            CalculateBiotModulusInverse(mInputProvider.GetRetentionLaws()[integration_point_index]);
+        const auto N = Vector{row(r_N_container, integration_point_index)};
         result += GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
-            N, biot_modulus_inverse, integration_coefficients[integration_point_index]);
+            N, CalculateBiotModulusInverse(mInputProvider.GetRetentionLaws()[integration_point_index]),
+            integration_coefficients[integration_point_index]);
     }
     return result;
 }
@@ -75,13 +74,40 @@ double CompressibilityCalculator::CalculateBiotModulusInverse(const RetentionLaw
     double result = (biot_coefficient - r_properties[POROSITY]) / r_properties[BULK_MODULUS_SOLID] +
                     r_properties[POROSITY] / bulk_fluid;
 
-    RetentionLaw::Parameters retention_parameters(mInputProvider.GetElementProperties());
-    const double degree_of_saturation = rRetentionLaw->CalculateSaturation(retention_parameters);
-    const double derivative_of_saturation = rRetentionLaw->CalculateDerivativeOfSaturation(retention_parameters);
-
-    result *= degree_of_saturation;
-    result -= derivative_of_saturation * r_properties[POROSITY];
+    RetentionLaw::Parameters retention_parameters(r_properties);
+    result *= rRetentionLaw->CalculateSaturation(retention_parameters);
+    result -= rRetentionLaw->CalculateDerivativeOfSaturation(retention_parameters) * r_properties[POROSITY];
     return result;
+}
+
+const Properties& CompressibilityCalculator::InputProvider::GetElementProperties() const
+{
+    return mGetElementProperties();
+}
+
+const std::vector<RetentionLaw::Pointer>& CompressibilityCalculator::InputProvider::GetRetentionLaws() const
+{
+    return mGetRetentionLaws();
+}
+
+const Matrix& CompressibilityCalculator::InputProvider::GetNContainer() const
+{
+    return mGetNContainer();
+}
+
+Vector CompressibilityCalculator::InputProvider::GetIntegrationCoefficients() const
+{
+    return mGetIntegrationCoefficients();
+}
+
+double CompressibilityCalculator::InputProvider::GetMatrixScalarFactor() const
+{
+    return mGetMatrixScalarFactor();
+}
+
+Vector CompressibilityCalculator::InputProvider::GetNodalValues(const Variable<double>& rVariable) const
+{
+    return mGetNodalValues(rVariable);
 }
 
 } // namespace Kratos

@@ -29,54 +29,34 @@ public:
     class InputProvider
     {
     public:
-        InputProvider(std::function<const Properties&()>                         rElementProperties,
-                      std::function<const std::vector<RetentionLaw::Pointer>&()> rRetentionLaws,
-                      std::function<const Matrix&()>                             rNContainer,
-                      std::function<Vector()>                        rIntegrationCoefficients,
-                      std::function<double()>                        DtPressureCoefficient,
-                      std::function<Vector(const Variable<double>&)> rNodalValuesOfDtWaterPressure)
-            : mGetElementProperties(std::move(rElementProperties)),
-              mGetRetentionLaws(std::move(rRetentionLaws)),
-              mGetNContainer(std::move(rNContainer)),
-              mGetIntegrationCoefficients(std::move(rIntegrationCoefficients)),
-              mGetDtPressureCoefficient(std::move(DtPressureCoefficient)),
-              mGetNodalValues(std::move(rNodalValuesOfDtWaterPressure))
+        InputProvider(std::function<const Properties&()> GetElementProperties,
+                      std::function<const std::vector<RetentionLaw::Pointer>&()> GetRetentionLaws,
+                      std::function<const Matrix&()>                             GetNContainer,
+                      std::function<Vector()>                        GetIntegrationCoefficients,
+                      std::function<double()>                        GetMatrixScalarFactor,
+                      std::function<Vector(const Variable<double>&)> GetNodalValuesOf)
+            : mGetElementProperties(std::move(GetElementProperties)),
+              mGetRetentionLaws(std::move(GetRetentionLaws)),
+              mGetNContainer(std::move(GetNContainer)),
+              mGetIntegrationCoefficients(std::move(GetIntegrationCoefficients)),
+              mGetMatrixScalarFactor(std::move(GetMatrixScalarFactor)),
+              mGetNodalValues(std::move(GetNodalValuesOf))
         {
         }
 
-        [[nodiscard]] const Properties& GetElementProperties() const
-        {
-            return mGetElementProperties();
-        }
-
-        [[nodiscard]] const std::vector<RetentionLaw::Pointer>& GetRetentionLaws() const
-        {
-            return mGetRetentionLaws();
-        }
-
-        [[nodiscard]] const Matrix& GetNContainer() const { return mGetNContainer(); }
-
-        [[nodiscard]] Vector GetIntegrationCoefficients() const
-        {
-            return mGetIntegrationCoefficients();
-        }
-
-        [[nodiscard]] double GetDtPressureCoefficient() const
-        {
-            return mGetDtPressureCoefficient();
-        }
-
-        [[nodiscard]] Vector GetNodalValues(const Variable<double>& rVariable) const
-        {
-            return mGetNodalValues(rVariable);
-        }
+        [[nodiscard]] const Properties&                         GetElementProperties() const;
+        [[nodiscard]] const std::vector<RetentionLaw::Pointer>& GetRetentionLaws() const;
+        [[nodiscard]] const Matrix&                             GetNContainer() const;
+        [[nodiscard]] Vector                                    GetIntegrationCoefficients() const;
+        [[nodiscard]] double                                    GetMatrixScalarFactor() const;
+        [[nodiscard]] Vector GetNodalValues(const Variable<double>& rVariable) const;
 
     private:
         std::function<const Properties&()>                         mGetElementProperties;
         std::function<const std::vector<RetentionLaw::Pointer>&()> mGetRetentionLaws;
         std::function<const Matrix&()>                             mGetNContainer;
         std::function<Vector()>                                    mGetIntegrationCoefficients;
-        std::function<double()>                                    mGetDtPressureCoefficient;
+        std::function<double()>                                    mGetMatrixScalarFactor;
         std::function<Vector(const Variable<double>&)>             mGetNodalValues;
     };
 
