@@ -79,7 +79,6 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElementReturnsTheExpectedLeftHandSideAn
     p_properties->SetValue(BIOT_COEFFICIENT, 1.000000e+00);
     p_properties->SetValue(RETENTION_LAW, "SaturatedLaw");
     p_properties->SetValue(SATURATED_SATURATION, 1.000000e+00);
-    p_properties->SetValue(RESIDUAL_SATURATION, 0.000000e+00);
     p_properties->SetValue(CROSS_AREA, 1.0);
     p_properties->SetValue(IGNORE_UNDRAINED, false);
 
