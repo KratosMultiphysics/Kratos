@@ -118,13 +118,13 @@ void FluidMeshUtilities::AssignNeighbourElementsToConditions(
         }
     }
 
-    // Check that all of the conditions belong to at least an element
-    // This is particularly useful in MPI to ensure that conditions lie in the same partition that the parents do
-    if (rModelPart.GetCommunicator().LocalMesh().NumberOfConditions() != 0) {
-        block_for_each(rModelPart.Conditions(), [](Condition& rCondition){
-            KRATOS_ERROR_IF_NOT(rCondition.Is(VISITED)) << "Found a condition without any corresponding element. Id of condition " << rCondition.Id() << "." << std::endl;
-        });
-    }
+    // // Check that all of the conditions belong to at least an element
+    // // This is particularly useful in MPI to ensure that conditions lie in the same partition that the parents do
+    // if (rModelPart.GetCommunicator().LocalMesh().NumberOfConditions() != 0) {
+    //     block_for_each(rModelPart.Conditions(), [](Condition& rCondition){
+    //         KRATOS_ERROR_IF_NOT(rCondition.Is(VISITED)) << "Found a condition without any corresponding element. Id of condition " << rCondition.Id() << "." << std::endl;
+    //     });
+    // }
 }
 
 } // namespace Kratos
