@@ -128,6 +128,7 @@
 #include "custom_constitutive/linear_elastic_plane_strain_K0_law.h"
 #include "custom_constitutive/linear_elastic_plane_stress_2D_law.h"
 #include "custom_constitutive/plane_strain.h"
+#include "custom_constitutive/elastic_3D.h"
 #include "custom_constitutive/small_strain_udsm_2D_interface_law.hpp"
 #include "custom_constitutive/small_strain_udsm_2D_plane_strain_law.hpp"
 #include "custom_constitutive/small_strain_udsm_3D_interface_law.hpp"
@@ -946,6 +947,7 @@ private:
     const BilinearCohesive2DLaw  mBilinearCohesive2DLaw;
     const LinearPlaneStrainK0Law mLinearPlaneStrainK0Law;
     const GeoIncrementalLinearElasticLaw  mLinearElasticPlaneStrain2DLaw{std::make_unique<PlaneStrain>()};
+    const GeoIncrementalLinearElasticLaw  mLinearElastic3DLaw{std::make_unique<Elastic3D>()};
     const ElasticIsotropicK03DLaw          mElasticIsotropicK03DLaw;
     const GeoLinearElasticPlaneStress2DLaw mLinearElasticPlaneStress2DLaw;
 
