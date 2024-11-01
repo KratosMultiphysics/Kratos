@@ -20,6 +20,7 @@
 
 // Application includes
 #include "boost/range/adaptor/filtered.hpp"
+#include "custom_elements/geo_steady_state_Pw_piping_element.h"
 #include "custom_elements/steady_state_Pw_piping_element.hpp"
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_strategy.hpp"
 #include "custom_utilities/transport_equation_utilities.hpp"
@@ -81,19 +82,42 @@ public:
         }
 
         auto piping_interface_elements = std::vector<SteadyStatePwPipingElement<2, 4>*>{};
-        std::transform(
-            piping_elements.begin(), piping_elements.end(), std::back_inserter(piping_interface_elements),
-            [](auto p_element) { return dynamic_cast<SteadyStatePwPipingElement<2, 4>*>(p_element); });
-        KRATOS_DEBUG_ERROR_IF(std::any_of(piping_interface_elements.begin(),
-                                          piping_interface_elements.end(), [](auto p_element) {
-            return p_element == nullptr;
-        })) << "Not all open piping elements could be downcast to SteadyStatePwPipingElement<2, 4>*\n";
+        std::transform(piping_elements.begin(), piping_elements.end(),
+                       std::back_inserter(piping_interface_elements), [](auto p_element) {
+            return dynamic_cast<SteadyStatePwPipingElement<2, 4>*>(p_element);
+        });
 
-        // calculate max pipe height and pipe increment
-        const auto max_pipe_height = CalculateMaxPipeHeight(piping_elements);
+        const auto number_of_piping_interface_elements =
+            std::count_if(piping_interface_elements.begin(), piping_interface_elements.end(),
+                          [](auto p_element) { return p_element != nullptr; });
+        KRATOS_ERROR_IF(number_of_piping_interface_elements != 0 &&
+                        number_of_piping_interface_elements != piping_interface_elements.size())
+            << "Unexpected number of piping interface elements: expected either 0 or "
+            << piping_interface_elements.size() << " but got "
+            << number_of_piping_interface_elements << std::endl;
 
-        this->DetermineOpenPipingElements(piping_interface_elements, max_pipe_height);
+        if (number_of_piping_interface_elements > 0) {
+            const auto max_pipe_height = CalculateMaxPipeHeight(piping_interface_elements);
+            this->DetermineOpenPipingElements(piping_interface_elements, max_pipe_height);
+            this->BaseClassFinalizeSolutionStep();
+            return;
+        }
 
+        auto piping_line_elements = std::vector<GeoSteadyStatePwPipingElement<2, 2>*>{};
+        std::transform(piping_elements.begin(), piping_elements.end(),
+                       std::back_inserter(piping_line_elements), [](auto p_element) {
+            return dynamic_cast<GeoSteadyStatePwPipingElement<2, 2>*>(p_element);
+        });
+
+        const auto number_of_piping_line_elements =
+            std::count_if(piping_line_elements.begin(), piping_line_elements.end(),
+                          [](auto p_element) { return p_element != nullptr; });
+        KRATOS_ERROR_IF(number_of_piping_line_elements != piping_line_elements.size())
+            << "Unexpected number of piping line elements: expected " << piping_line_elements.size()
+            << " but got " << number_of_piping_line_elements << std::endl;
+
+        const auto max_pipe_height = CalculateMaxPipeHeight(piping_line_elements);
+        this->DetermineOpenPipingElements(piping_line_elements, max_pipe_height);
         this->BaseClassFinalizeSolutionStep();
     }
 
@@ -213,13 +237,14 @@ private:
     /// </summary>
     /// <param name="pipe_elements"> vector of all pipe elements</param>
     /// <returns></returns>
-    double CalculateMaxPipeHeight(std::vector<Element*> pipe_elements)
+    template <typename FilteredElementType>
+    double CalculateMaxPipeHeight(const FilteredElementType& pipe_elements)
     {
         double max_diameter  = 0;
         double height_factor = 100;
 
         // loop over all elements
-        for (Element* pipe_element : pipe_elements) {
+        for (auto pipe_element : pipe_elements) {
             // calculate pipe particle diameter of pipe element
             PropertiesType prop = pipe_element->GetProperties();
             double particle_diameter = GeoTransportEquationUtilities::CalculateParticleDiameter(prop);
@@ -337,17 +362,17 @@ private:
     /// <param name="PipeElements"> vector of all pipe elements</param>
     /// <returns>tuple of grow bool and number of open pipe elements</returns>
     template <typename FilteredElementType>
-    std::tuple<bool, int> check_status_tip_element(unsigned int          n_open_elements,
-                                                   unsigned int          n_elements,
-                                                   double                max_pipe_height,
+    std::tuple<bool, int> check_status_tip_element(unsigned int               n_open_elements,
+                                                   unsigned int               n_elements,
+                                                   double                     max_pipe_height,
                                                    const FilteredElementType& PipeElements)
     {
         bool grow = true;
         // check status of tip element, stop growing if pipe_height is zero or greater than maximum
         // pipe height or if all elements are open
         if (n_open_elements < n_elements) {
-            auto tip_element = PipeElements.at(n_open_elements - 1);
-            double   pipe_height = tip_element->GetValue(PIPE_HEIGHT);
+            auto   tip_element = PipeElements.at(n_open_elements - 1);
+            double pipe_height = tip_element->GetValue(PIPE_HEIGHT);
 
             if ((pipe_height > max_pipe_height + std::numeric_limits<double>::epsilon()) ||
                 (pipe_height < pipe_height_accuracy)) {
@@ -385,9 +410,9 @@ private:
     }
 
     template <typename FilteredElementType>
-    void DetermineOpenPipingElements(const FilteredElementType& rPipingElements,
-                             double MaxPipeHeight) {
-        bool grow = true;
+    void DetermineOpenPipingElements(const FilteredElementType& rPipingElements, double MaxPipeHeight)
+    {
+        bool         grow                      = true;
         unsigned int number_of_piping_elements = rPipingElements.size();
         unsigned int number_of_open_piping_elements = this->InitialiseNumActivePipeElements(rPipingElements);
         while (grow && (number_of_open_piping_elements < number_of_piping_elements)) {
@@ -413,8 +438,8 @@ private:
             check_pipe_equilibrium(OpenPipeElements, MaxPipeHeight, mPipingIterations);
 
             // check if pipe should grow in length
-            std::tie(grow, number_of_open_piping_elements) =
-                check_status_tip_element(number_of_open_piping_elements, number_of_piping_elements, MaxPipeHeight, rPipingElements);
+            std::tie(grow, number_of_open_piping_elements) = check_status_tip_element(
+                number_of_open_piping_elements, number_of_piping_elements, MaxPipeHeight, rPipingElements);
 
             // if n open elements is lower than total pipe elements, save pipe height current
             // growing iteration or reset to previous iteration in case the pipe should not grow.
