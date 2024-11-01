@@ -10,8 +10,8 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "custom_constitutive/incremental_linear_elastic_law.h"
 #include "custom_constitutive/elastic_3D.h"
+#include "custom_constitutive/incremental_linear_elastic_law.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
@@ -84,8 +84,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoLinearElastic3DLawReturnsExpectedStrainSize, Kratos
     KRATOS_EXPECT_EQ(law.GetStrainSize(), 6);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoLinearElastic3DLawReturnsExpectedWorkingSpaceDimension,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(GeoLinearElastic3DLawReturnsExpectedWorkingSpaceDimension, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto law = CreateLinearElastic3DLaw();
     KRATOS_EXPECT_EQ(law.WorkingSpaceDimension(), 3);
@@ -98,7 +97,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoLinearElastic3DLawReturnsExpectedStress, KratosGeoM
     const auto stress = Calculate3DStress(law);
 
     Vector expected_stress{6};
-    expected_stress <<= 2.5e+07, 2.5e+07, 2.5e+07, 3.84615e+06, 3.84615e+06,3.84615e+06;
+    expected_stress <<= 2.5e+07, 2.5e+07, 2.5e+07, 3.84615e+06, 3.84615e+06, 3.84615e+06;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress, 1e-3);
 }
 

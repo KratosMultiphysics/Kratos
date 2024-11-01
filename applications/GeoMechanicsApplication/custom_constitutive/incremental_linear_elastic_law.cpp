@@ -56,8 +56,7 @@ GeoIncrementalLinearElasticLaw& GeoIncrementalLinearElasticLaw::operator=(const 
 }
 
 GeoIncrementalLinearElasticLaw::GeoIncrementalLinearElasticLaw(GeoIncrementalLinearElasticLaw&& rOther) noexcept = default;
-GeoIncrementalLinearElasticLaw& GeoIncrementalLinearElasticLaw::operator=(
-    GeoIncrementalLinearElasticLaw&& rOther) noexcept               = default;
+GeoIncrementalLinearElasticLaw& GeoIncrementalLinearElasticLaw::operator=(GeoIncrementalLinearElasticLaw&& rOther) noexcept = default;
 GeoIncrementalLinearElasticLaw::~GeoIncrementalLinearElasticLaw() = default;
 
 ConstitutiveLaw::Pointer GeoIncrementalLinearElasticLaw::Clone() const
@@ -115,9 +114,9 @@ void GeoIncrementalLinearElasticLaw::CalculateElasticMatrix(Matrix& C, Constitut
     KRATOS_CATCH("")
 }
 
-void GeoIncrementalLinearElasticLaw::CalculatePK2Stress(const Vector& rStrainVector,
-                                                          Vector&       rStressVector,
-                                                          ConstitutiveLaw::Parameters& rValues)
+void GeoIncrementalLinearElasticLaw::CalculatePK2Stress(const Vector&                rStrainVector,
+                                                        Vector&                      rStressVector,
+                                                        ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY
 
