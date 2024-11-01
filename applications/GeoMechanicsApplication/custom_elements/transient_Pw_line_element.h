@@ -44,7 +44,7 @@ public:
 
     TransientPwLineElement(IndexType                                   NewId,
                            const GeometryType::Pointer&                pGeometry,
-                           const PropertiesType::Pointer               pProperties,
+                           const PropertiesType::Pointer&              pProperties,
                            const std::vector<CalculationContribution>& rContributions)
         : Element(NewId, pGeometry, pProperties), mContributions(rContributions)
     {
@@ -63,21 +63,20 @@ public:
 
     void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const override
     {
-        rElementalDofList = GetDofs();
+        rElementalDofList = MakeDofGetter();
     }
 
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override
     {
-        rResult = Geo::DofUtilities::ExtractEquationIdsFrom(GetDofs());
+        rResult = Geo::DofUtilities::ExtractEquationIdsFrom(MakeDofGetter());
     }
 
-    void Initialize(const ProcessInfo& rCurrentProcessInfo) override
+    void Initialize(const ProcessInfo&) override
     {
-        if (const std::size_t number_integration_points =
-                GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
-            mRetentionLawVector.size() != number_integration_points) {
-            mRetentionLawVector.resize(number_integration_points);
-        }
+        const std::size_t number_integration_points =
+            GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
+        mRetentionLawVector.resize(number_integration_points);
+
         for (unsigned int i = 0; i < mRetentionLawVector.size(); ++i) {
             mRetentionLawVector[i] = RetentionLawFactory::Clone(GetProperties());
             mRetentionLawVector[i]->InitializeMaterial(
@@ -334,36 +333,36 @@ private:
     CompressibilityCalculator::InputProvider CreateCompressibilityInputProvider(const ProcessInfo& rCurrentProcessInfo)
     {
         return CompressibilityCalculator::InputProvider(
-            GetPropertiesLambda(), GetRetentionLawsLambda(), GetNContainerLambda(),
-            GetIntegrationCoefficientsLambda(), GetDtPressureCoefficientLambda(rCurrentProcessInfo),
-            GetNodalVariableLambda());
+            MakePropertiesGetter(), MakeRetentionLawsGetter(), MakeNContainerGetter(),
+            MakeIntegrationCoefficientsGetter(), MakeMatrixScalarFactorGetter(rCurrentProcessInfo),
+            MakeNodalVariableGetter());
     }
 
     PermeabilityCalculator::InputProvider CreatePermeabilityInputProvider()
     {
         return PermeabilityCalculator::InputProvider(
-            GetPropertiesLambda(), GetRetentionLawsLambda(), GetIntegrationCoefficientsLambda(),
-            GetNodalVariableLambda(), GetShapeFunctionLocalGradientsLambda());
+            MakePropertiesGetter(), MakeRetentionLawsGetter(), MakeIntegrationCoefficientsGetter(),
+            MakeNodalVariableGetter(), MakeShapeFunctionLocalGradientsGetter());
     }
 
-    auto GetPropertiesLambda()
+    auto MakePropertiesGetter()
     {
         return [this]() -> const Properties& { return GetProperties(); };
     }
 
-    auto GetRetentionLawsLambda()
+    auto MakeRetentionLawsGetter()
     {
         return [this]() -> const std::vector<RetentionLaw::Pointer>& { return mRetentionLawVector; };
     }
 
-    auto GetNContainerLambda()
+    auto MakeNContainerGetter()
     {
         return [this]() -> const Matrix& {
             return GetGeometry().ShapeFunctionsValues(GetIntegrationMethod());
         };
     }
 
-    auto GetIntegrationCoefficientsLambda()
+    auto MakeIntegrationCoefficientsGetter()
     {
         return [this]() -> Vector {
             Vector det_J_container;
@@ -372,18 +371,18 @@ private:
         };
     }
 
-    static auto GetDtPressureCoefficientLambda(const ProcessInfo& rCurrentProcessInfo)
+    static auto MakeMatrixScalarFactorGetter(const ProcessInfo& rCurrentProcessInfo)
     {
         return [&rCurrentProcessInfo]() { return rCurrentProcessInfo[DT_PRESSURE_COEFFICIENT]; };
     }
 
-    auto GetNodalVariableLambda() const
+    auto MakeNodalVariableGetter() const
     {
         return
             [this](const Variable<double>& variable) -> Vector { return GetNodalValuesOf(variable); };
     }
 
-    auto GetShapeFunctionLocalGradientsLambda()
+    auto MakeShapeFunctionLocalGradientsGetter()
     {
         return [this]() {
             Vector det_J_container;
@@ -397,7 +396,7 @@ private:
         };
     }
 
-    [[nodiscard]] DofsVectorType GetDofs() const
+    [[nodiscard]] DofsVectorType MakeDofGetter() const
     {
         return Geo::DofUtilities::ExtractDofsFromNodes(GetGeometry(), WATER_PRESSURE);
     }
