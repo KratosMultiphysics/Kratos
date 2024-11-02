@@ -452,6 +452,7 @@ private:
     bool mFirstCycleNonlinearity = true; // Indicator of first nonlinearity
     double mRelaxationFactor = 1.0; // Relaxation factor of the residual stresses
     double mStressConcentrationFactor = 1.0; // Stress concentratation factor applied to the maximum stress
+    bool mLinearCycleJumpIndicator = false; // Indicator of the cycle jump in the linear phase
 
 
     ///@}
@@ -500,6 +501,7 @@ private:
         rSerializer.save("FirstCycleNonlinearity", mFirstCycleNonlinearity);
         rSerializer.save("RelaxationFactor", mRelaxationFactor);
         rSerializer.save("StressConcentrationFactor", mStressConcentrationFactor);
+        rSerializer.save("LinearCycleJumpIndicator", mLinearCycleJumpIndicator);
     }
 
     void load(Serializer &rSerializer) override
@@ -532,6 +534,7 @@ private:
         rSerializer.save("FirstCycleNonlinearity", mFirstCycleNonlinearity);
         rSerializer.load("RelaxationFactor", mRelaxationFactor);
         rSerializer.load("StressConcentrationFactor", mStressConcentrationFactor);
+        rSerializer.load("mLinearCycleJumpIndicator", mLinearCycleJumpIndicator);
     }
     ///@}
 

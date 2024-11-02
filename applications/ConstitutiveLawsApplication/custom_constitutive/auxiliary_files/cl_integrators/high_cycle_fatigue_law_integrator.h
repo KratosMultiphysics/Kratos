@@ -288,7 +288,7 @@ public:
         
         double previsous_nf = LocalNumberOfCycles;
         double reference_max_stress = MaxStress;
-        unsigned int max_num_iteration = 20;
+        unsigned int max_num_iteration = 50;
 
         for  (IndexType i = 1; i <= max_num_iteration; ++i){
             

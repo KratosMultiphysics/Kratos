@@ -92,6 +92,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
     bool first_min_indicator = mFirstMinDetected;
     bool max_indicator = mMaxDetected;
     bool min_indicator = mMinDetected;
+    bool linear_cycle_jump_indicator = mLinearCycleJumpIndicator;
     double fatigue_reduction_factor = mFatigueReductionFactor;
     double reversion_factor_relative_error = mReversionFactorRelativeError;
     double max_stress_relative_error = mMaxStressRelativeError;
@@ -107,7 +108,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
     int time = rValues.GetProcessInfo()[TIME];
     const int load_increments_per_cycle = rValues.GetProcessInfo()[LOAD_INCREMENTS_PER_CYCLE];
     int time_offset = rValues.GetProcessInfo()[NEW_MODEL_PART_START_TIME];
-    bool linear_cycle_jump_indicator = rValues.GetProcessInfo()[NO_LINEARITY_ACTIVATION];
 
     // We get the strain vector
     Vector& r_strain_vector = rValues.GetStrainVector();
@@ -166,7 +166,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
                 rValues.GetMaterialProperties(),  
                 stress_concentration_factor);
         }
-
+       
         HighCycleFatigueLawIntegrator<6>::CalculateFatigueParameters(
             max_stress,
             uniaxial_residual_stress,
@@ -216,7 +216,9 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
         double threshold = this->GetThreshold() * (1 - this->GetDamage());
         double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(max_stress, min_stress);
         HighCycleFatigueLawIntegrator<6>::CalculateUltimateStress(ultimate_stress, rValues.GetMaterialProperties());
-        
+
+        linear_cycle_jump_indicator = true;
+
         HighCycleFatigueLawIntegrator<6>::CalculateFatigueParameters(
             max_stress,
             uniaxial_residual_stress,
@@ -248,6 +250,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
         mCyclesToFailure = std::numeric_limits<double>::infinity();
         mReferenceDamage = 0.0;
         mFirstCycleNonlinearity = true;
+        mLinearCycleJumpIndicator = false;
     }
 
     max_indicator = false;
@@ -275,6 +278,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
     mRelaxationFactor = relaxation_factor;
     mReferenceDamage = reference_damage; 
     mStressConcentrationFactor = stress_concentration_factor;
+    mLinearCycleJumpIndicator = linear_cycle_jump_indicator;
 }
 
 
