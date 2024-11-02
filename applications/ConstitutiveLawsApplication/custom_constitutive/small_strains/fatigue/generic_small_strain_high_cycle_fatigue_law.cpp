@@ -107,6 +107,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
     int time = rValues.GetProcessInfo()[TIME];
     const int load_increments_per_cycle = rValues.GetProcessInfo()[LOAD_INCREMENTS_PER_CYCLE];
     int time_offset = rValues.GetProcessInfo()[NEW_MODEL_PART_START_TIME];
+    bool linear_cycle_jump_indicator = rValues.GetProcessInfo()[NO_LINEARITY_ACTIVATION];
 
     // We get the strain vector
     Vector& r_strain_vector = rValues.GetStrainVector();
@@ -119,7 +120,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
     this->template AddInitialStressVectorContribution<array_1d<double, VoigtSize>>(residual_stress_vector);
     TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(residual_stress_vector, r_strain_vector, uniaxial_residual_stress, rValues);
     uniaxial_residual_stress = (rValues.GetElementGeometry().Has(INITIAL_STRESS_VECTOR)) ? uniaxial_residual_stress : 0.0;
-    // double load_direction_residual_stress = residual_stress_vector[1];
 
     if (((time - time_offset) % load_increments_per_cycle) == 0 && (time - time_offset) > 0) {
 
@@ -180,7 +180,8 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
             B0,
             s_th,
             alphat,
-            cycles_to_failure);
+            cycles_to_failure,
+            linear_cycle_jump_indicator);
              
         HighCycleFatigueLawIntegrator<6>::CalculateFatigueReductionFactor(rValues.GetMaterialProperties(),
                                                                                         max_stress,
@@ -215,7 +216,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
         double threshold = this->GetThreshold() * (1 - this->GetDamage());
         double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(max_stress, min_stress);
         HighCycleFatigueLawIntegrator<6>::CalculateUltimateStress(ultimate_stress, rValues.GetMaterialProperties());
-
+        
         HighCycleFatigueLawIntegrator<6>::CalculateFatigueParameters(
             max_stress,
             uniaxial_residual_stress,
@@ -229,7 +230,8 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
             B0,
             s_th,
             alphat,
-            cycles_to_failure);
+            cycles_to_failure,
+            linear_cycle_jump_indicator);
       
         HighCycleFatigueLawIntegrator<6>::CalculateFatigueReductionFactor(rValues.GetMaterialProperties(),
                                                                                         max_stress,

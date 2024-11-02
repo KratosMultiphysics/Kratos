@@ -38,10 +38,11 @@ void AdvanceInTimeHighCycleFatigueProcess::Execute()
     auto& process_info = mrModelPart.GetProcessInfo();
     bool cycle_found = false;
     std::vector<double> damage;
-    std::vector<double> previous_cycle_damage;
+    // std::vector<double> previous_cycle_damage;
     std::vector<double> cycles_to_failure_element;
     std::vector<int> local_number_of_cycles;
     
+    // process_info[NO_LINEARITY_ACTIVATION] = false;
     process_info[ADVANCE_STRATEGY_APPLIED] = false;
 
     this->CyclicLoad();  //This method checks if a cyclic load is being applied.
@@ -51,7 +52,7 @@ void AdvanceInTimeHighCycleFatigueProcess::Execute()
     for (auto& r_elem : mrModelPart.Elements()) {
         unsigned int number_of_ip = r_elem.GetGeometry().IntegrationPoints(r_elem.GetIntegrationMethod()).size();
         r_elem.CalculateOnIntegrationPoints(DAMAGE, damage, process_info);
-        r_elem.CalculateOnIntegrationPoints(PREVIOUS_CYCLE_DAMAGE, previous_cycle_damage, process_info);
+        // r_elem.CalculateOnIntegrationPoints(PREVIOUS_CYCLE_DAMAGE, previous_cycle_damage, process_info);
         r_elem.CalculateOnIntegrationPoints(CYCLES_TO_FAILURE, cycles_to_failure_element, process_info);
         r_elem.CalculateOnIntegrationPoints(LOCAL_NUMBER_OF_CYCLES, local_number_of_cycles, process_info);
 
@@ -63,10 +64,10 @@ void AdvanceInTimeHighCycleFatigueProcess::Execute()
         if (is_fatigue) {    
             for (unsigned int i = 0; i < number_of_ip; i++) {
                 
-                double delta_damage = damage[i] - previous_cycle_damage[i];
+                // double delta_damage = damage[i] - previous_cycle_damage[i];
                 double delta_number_of_cycles = cycles_to_failure_element[i] - local_number_of_cycles[i];               
 
-                if ((delta_damage > 1.0e-6) || (delta_number_of_cycles <= 1.0)) {
+                if ((damage[i] > 0.0) || (delta_number_of_cycles <= 1.0)) {
                     process_info[NO_LINEARITY_ACTIVATION] = true;
                     break;
                 }
@@ -93,7 +94,7 @@ void AdvanceInTimeHighCycleFatigueProcess::Execute()
                 process_info[ADVANCE_STRATEGY_APPLIED] = true;
             }
         }
-        process_info[NO_LINEARITY_ACTIVATION] = false;
+        // process_info[NO_LINEARITY_ACTIVATION] = false;
     }
 }
 

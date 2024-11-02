@@ -265,7 +265,8 @@ public:
                                             double& rB0,
                                             double& rSth,
                                             double& rAlphat,
-                                            double& rN_f)
+                                            double& rN_f,
+                                            bool LinearCycleJumpIndicator)
 	{
 
         const Vector& r_fatigue_coefficients = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS];
@@ -284,94 +285,129 @@ public:
         // const double NominalStress = (r_fatigue_coefficients.size() > 9) ? r_fatigue_coefficients[9] * UltimateStress : MaxStress;
 
         // Reduction factors applied to the fatigue limit
-        const double k_residual_stress = (!UniaxialResidualStress) ? 1.0 : (1 - ((UniaxialResidualStress + (0.5 + 0.5 * ReversionFactor) * MaxStress) / UltimateStress)) * std::abs((0.5 - 0.5 * ReversionFactor)); // Goodman mean stress correction
-        // double const k_residual_stress = 1 - std::pow(((UniaxialResidualStress + (0.5 + 0.5 * ReversionFactor) * MaxStress) / UltimateStress), 2.0); // Gerber mean stress correction
-        const double k_roughness = (!rElementGeometry.Has(SURFACE_ROUGHNESS)) ? 1.0 : 1 - rElementGeometry.GetValue(MATERIAL_PARAMETER_C1)
-                     * std::log10(rElementGeometry.GetValue(SURFACE_ROUGHNESS)) * std::log10((2 * UltimateStress) / rElementGeometry.GetValue(MATERIAL_PARAMETER_C2));
-        // const double StressConcentrationFactor = (MaxStress < NominalStress) ? 1.0 : MaxStress / NominalStress;
-        double h_stress_concentration = (1.0 / (6.0 - c_stress_concentration)) * std::log10(LocalNumberOfCycles / std::pow(10, c_stress_concentration));
         
-        if (LocalNumberOfCycles < std::pow(10, c_stress_concentration)){
-            h_stress_concentration = 0.0;
-        } else if (LocalNumberOfCycles > 1.0e6){
-            h_stress_concentration = 1.0;
-        }
+        double previsous_nf = LocalNumberOfCycles;
+        double reference_max_stress = MaxStress;
+        unsigned int max_num_iteration = 20;
 
-        if (std::abs(ReversionFactor) < 1.0) {
-            rSth = Se + (UltimateStress - Se) * std::pow((0.5 + 0.5 * (ReversionFactor)), STHR1);
-			rAlphat = ALFAF + (0.5 + 0.5 * (ReversionFactor)) * AUXR1;
-        } else {
-            rSth = Se + (UltimateStress - Se) * std::pow((0.5 + 0.5 / (ReversionFactor)), STHR2);
-			rAlphat = ALFAF - (0.5 + 0.5 / (ReversionFactor)) * AUXR2;
-        }
+        for  (IndexType i = 1; i <= max_num_iteration; ++i){
+            
+            double h_stress_concentration = (1.0 / (6.0 - c_stress_concentration)) * std::log10(previsous_nf / std::pow(10, c_stress_concentration));
+            
+            if (previsous_nf < std::pow(10, c_stress_concentration)){
+                h_stress_concentration = 0.0;
+            } else if (previsous_nf > 1.0e6){
+                h_stress_concentration = 1.0;
+            }
 
-        rSth *= k_residual_stress * k_roughness;
-        MaxStress /= std::pow(StressConcentrationFactor, (1 - h_stress_concentration));
+            MaxStress = reference_max_stress / std::pow(StressConcentrationFactor, (1 - h_stress_concentration));
 
-        const double square_betaf = std::pow(BETAF, 2.0);
+            const double k_residual_stress = (!UniaxialResidualStress) ? 1.0 : (1 - ((UniaxialResidualStress + (0.5 + 0.5 * ReversionFactor) * MaxStress) / UltimateStress)) * std::abs((0.5 - 0.5 * ReversionFactor)); // Goodman mean stress correction
+            // double const k_residual_stress = 1 - std::pow(((UniaxialResidualStress + (0.5 + 0.5 * ReversionFactor) * MaxStress) / UltimateStress), 2.0); // Gerber mean stress correction
+            const double k_roughness = (!rElementGeometry.Has(SURFACE_ROUGHNESS)) ? 1.0 : 1 - rElementGeometry.GetValue(MATERIAL_PARAMETER_C1)
+                        * std::log10(rElementGeometry.GetValue(SURFACE_ROUGHNESS)) * std::log10((2 * UltimateStress) / rElementGeometry.GetValue(MATERIAL_PARAMETER_C2));
+            // const double StressConcentrationFactor = (MaxStress < NominalStress) ? 1.0 : MaxStress / NominalStress;
 
-        if (MaxStress > rSth) {
-          if(std::abs(ReversionFactor) < 1.0){
-                rN_f = std::pow(10.0,std::pow(-std::log((MaxStress - rSth) / (UltimateStress - rSth)) / rAlphat,(1.0 / BETAF)));
-                rB0 = -(std::log(MaxStress / UltimateStress) / std::pow((std::log10(rN_f)), FatigueReductionFactorSmoothness * square_betaf));
+            if (std::abs(ReversionFactor) < 1.0) {
+                rSth = Se + (UltimateStress - Se) * std::pow((0.5 + 0.5 * (ReversionFactor)), STHR1);
+                rAlphat = ALFAF + (0.5 + 0.5 * (ReversionFactor)) * AUXR1;
+            } else {
+                rSth = Se + (UltimateStress - Se) * std::pow((0.5 + 0.5 / (ReversionFactor)), STHR2);
+                rAlphat = ALFAF - (0.5 + 0.5 / (ReversionFactor)) * AUXR2;
+            }
 
-                const int softening_type = rMaterialParameters[SOFTENING_TYPE];
-                const int curve_by_points = static_cast<int>(SofteningType::CurveFittingDamage);
-                
-                if (softening_type == curve_by_points) {
-                    rN_f = std::pow(rN_f, std::pow(std::log(MaxStress / Threshold) / std::log(MaxStress / UltimateStress), 1.0 / (FatigueReductionFactorSmoothness * square_betaf)));
-                    if (MaxStress >= Threshold){
-                        rN_f = 1.0;
-                    }
-                }
-                 
-                if (std::isnan(rN_f)) {
-                    rN_f = std::numeric_limits<double>::infinity();
-                    rB0 = -(std::log(MaxStress / UltimateStress) / std::pow((std::log10(rN_f)), FatigueReductionFactorSmoothness * square_betaf));
+            rSth *= (k_residual_stress * k_roughness);
+            // MaxStress /= std::pow(StressConcentrationFactor, (1 - h_stress_concentration));
 
-                    // const double equivalent_max_stress = (0.5 * MaxStress * (1.0 - ReversionFactor)) / (1.0 - (std::pow(((MaxStress * (1.0 + ReversionFactor)) / (2.0 * UltimateStress)), 2.0))); // Gerber mean stress correction
-                    // const double reference_reversion_factor = - 0.999;
-        
-                    // rSth = Se;
-                    // rAlphat = ALFAF + (0.5 + 0.5 * (reference_reversion_factor)) * AUXR1;
-                    
-                    // rN_f = std::pow(10.0,std::pow(-std::log((equivalent_max_stress - rSth) / (UltimateStress - rSth)) / rAlphat,(1.0 / BETAF)));
-                    // rB0 = -(std::log(equivalent_max_stress / UltimateStress) / std::pow((std::log10(rN_f)), FatigueReductionFactorSmoothness * square_betaf));
+            const double square_betaf = std::pow(BETAF, 2.0);
+            double nf_tolerance = 0.1;
+            bool is_converged = false;
 
-                    // const int softening_type = rMaterialParameters[SOFTENING_TYPE];
-                    // const int curve_by_points = static_cast<int>(SofteningType::CurveFittingDamage);
-
-                    // if (softening_type == curve_by_points) {
-                    //     rN_f = std::pow(rN_f, std::pow(std::log(equivalent_max_stress / Threshold) / std::log(equivalent_max_stress / UltimateStress), 1.0 / (FatigueReductionFactorSmoothness * square_betaf)));
-                    //     if (equivalent_max_stress >= Threshold){
-                    //         rN_f = 1.0;
-                    //     }
-                    // }
-
-                }
-        } else if (ReversionFactor <= -1.0) {
-                    // const double equivalent_max_stress = (UltimateStress * MaxStress * (1.0 - ReversionFactor)) / (2.0 * UltimateStress - MaxStress * (1.0 + ReversionFactor)); // Goodman mean stress correction
-                    const double equivalent_max_stress =  MaxStress * std::sqrt((1.0 - ReversionFactor) / 2.0); // SWT mean stress correction
-                    if (equivalent_max_stress > Se) {
-                        const double reference_reversion_factor = - 0.999;
-           
-                        rSth = Se + (UltimateStress - Se) * std::pow((0.5 + 0.5 * (reference_reversion_factor)), STHR1);
-                        rAlphat = ALFAF + (0.5 + 0.5 * (reference_reversion_factor)) * AUXR1;
+            if (MaxStress > rSth) {
+                if(std::abs(ReversionFactor) < 1.0){
+                        rN_f = std::pow(10.0,std::pow(-std::log((MaxStress - rSth) / (UltimateStress - rSth)) / rAlphat,(1.0 / BETAF)));
+                        rB0 = -(std::log(MaxStress / UltimateStress) / std::pow((std::log10(rN_f)), FatigueReductionFactorSmoothness * square_betaf));
                         
-                        rN_f = std::pow(10.0,std::pow(-std::log((equivalent_max_stress - rSth) / (UltimateStress - rSth)) / rAlphat,(1.0 / BETAF)));
-                        rB0 = -(std::log(equivalent_max_stress / UltimateStress) / std::pow((std::log10(rN_f)), FatigueReductionFactorSmoothness * square_betaf));
-
+                        if (std::abs(rN_f - previsous_nf) < nf_tolerance){
+                            is_converged = true;
+                        }
+                        
                         const int softening_type = rMaterialParameters[SOFTENING_TYPE];
                         const int curve_by_points = static_cast<int>(SofteningType::CurveFittingDamage);
-
-                        if (softening_type == curve_by_points) {
-                            rN_f = std::pow(rN_f, std::pow(std::log(equivalent_max_stress / Threshold) / std::log(equivalent_max_stress / UltimateStress), 1.0 / (FatigueReductionFactorSmoothness * square_betaf)));
-                            if (equivalent_max_stress >= Threshold){
-                                rN_f = 1.0;
-                            }
+                        
+                        if (is_converged || LinearCycleJumpIndicator){
+                            if (softening_type == curve_by_points) {
+                                rN_f = std::pow(rN_f, std::pow(std::log(MaxStress / Threshold) / std::log(MaxStress / UltimateStress), 1.0 / (FatigueReductionFactorSmoothness * square_betaf)));
+                                if (MaxStress >= Threshold){
+                                    rN_f = 1.0;
+                                }
+                            }                           
+                            break;
                         }
-                    }
-                }
+
+                        if (std::isnan(rN_f)) {
+                            rN_f = std::numeric_limits<double>::infinity();
+                            rB0 = -(std::log(MaxStress / UltimateStress) / std::pow((std::log10(rN_f)), FatigueReductionFactorSmoothness * square_betaf));
+                            break;
+
+                            // const double equivalent_max_stress = (0.5 * MaxStress * (1.0 - ReversionFactor)) / (1.0 - (std::pow(((MaxStress * (1.0 + ReversionFactor)) / (2.0 * UltimateStress)), 2.0))); // Gerber mean stress correction
+                            // const double reference_reversion_factor = - 0.999;
+                
+                            // rSth = Se;
+                            // rAlphat = ALFAF + (0.5 + 0.5 * (reference_reversion_factor)) * AUXR1;
+                            
+                            // rN_f = std::pow(10.0,std::pow(-std::log((equivalent_max_stress - rSth) / (UltimateStress - rSth)) / rAlphat,(1.0 / BETAF)));
+                            // rB0 = -(std::log(equivalent_max_stress / UltimateStress) / std::pow((std::log10(rN_f)), FatigueReductionFactorSmoothness * square_betaf));
+
+                            // const int softening_type = rMaterialParameters[SOFTENING_TYPE];
+                            // const int curve_by_points = static_cast<int>(SofteningType::CurveFittingDamage);
+
+                            // if (softening_type == curve_by_points) {
+                            //     rN_f = std::pow(rN_f, std::pow(std::log(equivalent_max_stress / Threshold) / std::log(equivalent_max_stress / UltimateStress), 1.0 / (FatigueReductionFactorSmoothness * square_betaf)));
+                            //     if (equivalent_max_stress >= Threshold){
+                            //         rN_f = 1.0;
+                            //     }
+                            // }
+                        }
+                        
+                        previsous_nf = rN_f;
+
+                } else if (ReversionFactor <= -1.0) {
+                            // const double equivalent_max_stress = (UltimateStress * MaxStress * (1.0 - ReversionFactor)) / (2.0 * UltimateStress - MaxStress * (1.0 + ReversionFactor)); // Goodman mean stress correction
+                            double equivalent_max_stress =  MaxStress * std::sqrt((1.0 - ReversionFactor) / 2.0); // SWT mean stress correction
+                            if (equivalent_max_stress > Se) {
+                                const double reference_reversion_factor = - 0.999;
+                
+                                rSth = Se + (UltimateStress - Se) * std::pow((0.5 + 0.5 * (reference_reversion_factor)), STHR1);
+                                rAlphat = ALFAF + (0.5 + 0.5 * (reference_reversion_factor)) * AUXR1;
+                                
+                                rN_f = std::pow(10.0,std::pow(-std::log((equivalent_max_stress - rSth) / (UltimateStress - rSth)) / rAlphat,(1.0 / BETAF)));
+                                rB0 = -(std::log(equivalent_max_stress / UltimateStress) / std::pow((std::log10(rN_f)), FatigueReductionFactorSmoothness * square_betaf));
+
+                                if (std::abs(rN_f - previsous_nf) < nf_tolerance){
+                                    is_converged = true;
+                                }
+
+                                const int softening_type = rMaterialParameters[SOFTENING_TYPE];
+                                const int curve_by_points = static_cast<int>(SofteningType::CurveFittingDamage);
+
+                                if (is_converged || LinearCycleJumpIndicator){
+                                    if (softening_type == curve_by_points) {
+                                        rN_f = std::pow(rN_f, std::pow(std::log(equivalent_max_stress / Threshold) / std::log(equivalent_max_stress / UltimateStress), 1.0 / (FatigueReductionFactorSmoothness * square_betaf)));
+                                        if (equivalent_max_stress >= Threshold){
+                                            rN_f = 1.0;
+                                        }
+                                    }
+                                    break;    
+                                }
+
+                                previsous_nf = rN_f;
+                            }
+                } 
+            } else {
+                break;
+            }
+            KRATOS_ERROR_IF(i >= max_num_iteration) << "Maximum number of iterations inside the HCF loop exceeded" << std::endl;
         }
     }
 
