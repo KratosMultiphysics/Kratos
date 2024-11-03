@@ -156,6 +156,9 @@ double TrussConstitutiveLaw::CalculateStressElastic(
     CalculateValue(rParameterValues,TANGENT_MODULUS,tangent_modulus);
 
     const double current_stress = tangent_modulus*current_strain[0];
+    Matrix& r_const_matrix = rParameterValues.GetConstitutiveMatrix();
+    r_const_matrix.resize(1, 1);
+    r_const_matrix(0, 0) = tangent_modulus;
     return current_stress;
 }
 
