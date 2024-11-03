@@ -16,7 +16,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/small_displacement.h"
+#include "small_displacement.h"
 
 namespace Kratos
 {

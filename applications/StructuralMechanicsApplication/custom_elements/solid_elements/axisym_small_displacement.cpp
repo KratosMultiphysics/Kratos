@@ -14,7 +14,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/axisym_small_displacement.h"
+#include "axisym_small_displacement.h"
 #include "custom_utilities/structural_mechanics_math_utilities.hpp"
 
 namespace Kratos

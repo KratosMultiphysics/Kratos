@@ -16,7 +16,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/base_solid_element.h"
+#include "base_solid_element.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/structural_mechanics_math_utilities.hpp"
 

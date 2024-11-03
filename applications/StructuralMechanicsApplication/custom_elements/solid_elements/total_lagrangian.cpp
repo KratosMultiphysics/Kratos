@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/total_lagrangian.h"
+#include "total_lagrangian.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
 #include "structural_mechanics_application_variables.h"

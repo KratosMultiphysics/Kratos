@@ -22,7 +22,7 @@
 #include "utilities/geometry_utilities.h"
 
 // Application includes
-#include "custom_elements/small_displacement_shifted_boundary_element.h"
+#include "small_displacement_shifted_boundary_element.h"
 
 
 namespace Kratos

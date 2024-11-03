@@ -20,7 +20,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_elements/total_lagrangian.h"
+#include "total_lagrangian.h"
 #include "includes/variables.h"
 
 namespace Kratos

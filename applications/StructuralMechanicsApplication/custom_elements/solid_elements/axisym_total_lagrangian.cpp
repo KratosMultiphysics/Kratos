@@ -14,7 +14,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/axisym_total_lagrangian.h"
+#include "axisym_total_lagrangian.h"
 #include "custom_utilities/structural_mechanics_math_utilities.hpp"
 
 namespace Kratos

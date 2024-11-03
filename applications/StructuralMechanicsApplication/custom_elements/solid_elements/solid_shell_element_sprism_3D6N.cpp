@@ -18,7 +18,7 @@
 #include "input_output/logger.h"
 #include "utilities/geometry_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
-#include "custom_elements/solid_shell_element_sprism_3D6N.h"
+#include "solid_shell_element_sprism_3D6N.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
 #include "includes/global_pointer_variables.h"
 

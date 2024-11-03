@@ -11,7 +11,7 @@
 //
 
 // Application includes
-#include "custom_elements/z_strain_driven_2p5_small_displacement.h"
+#include "z_strain_driven_2p5_small_displacement.h"
 
 namespace Kratos
 {

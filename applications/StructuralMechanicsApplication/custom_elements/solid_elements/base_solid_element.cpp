@@ -21,7 +21,7 @@
 #include "utilities/atomic_utilities.h"
 
 // Application includes
-#include "custom_elements/solid_elements/base_solid_element.h"
+#include "base_solid_element.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"

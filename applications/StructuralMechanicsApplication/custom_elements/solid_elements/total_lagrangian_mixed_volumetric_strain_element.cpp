@@ -22,7 +22,7 @@
 #include "includes/checks.h"
 
 // Application includes
-#include "custom_elements/total_lagrangian_mixed_volumetric_strain_element.h"
+#include "total_lagrangian_mixed_volumetric_strain_element.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
 

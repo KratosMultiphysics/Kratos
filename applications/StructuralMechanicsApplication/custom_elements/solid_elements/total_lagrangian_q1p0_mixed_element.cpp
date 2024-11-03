@@ -14,7 +14,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/total_lagrangian_q1p0_mixed_element.h"
+#include "total_lagrangian_q1p0_mixed_element.h"
 
 namespace Kratos
 {

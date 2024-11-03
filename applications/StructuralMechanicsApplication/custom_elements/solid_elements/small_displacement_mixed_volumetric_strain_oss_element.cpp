@@ -22,7 +22,7 @@
 #include "includes/checks.h"
 
 // Application includes
-#include "custom_elements/small_displacement_mixed_volumetric_strain_oss_element.h"
+#include "small_displacement_mixed_volumetric_strain_oss_element.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
 
 namespace Kratos

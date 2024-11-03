@@ -17,7 +17,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_elements/small_displacement_bbar.h"
+#include "small_displacement_bbar.h"
 
 namespace Kratos
 {

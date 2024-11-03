@@ -14,7 +14,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/updated_lagrangian.h"
+#include "updated_lagrangian.h"
 #include "utilities/math_utils.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/structural_mechanics_math_utilities.hpp"

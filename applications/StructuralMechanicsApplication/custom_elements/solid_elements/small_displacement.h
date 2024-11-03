@@ -18,7 +18,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_elements/base_solid_element.h"
+#include "base_solid_element.h"
 #include "includes/variables.h"
 
 namespace Kratos

@@ -19,7 +19,7 @@
 #include "utilities/math_utils.h"
 
 // Application includes
-#include "custom_elements/small_displacement.h"
+#include "small_displacement.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
 #include "structural_mechanics_application_variables.h"
 
