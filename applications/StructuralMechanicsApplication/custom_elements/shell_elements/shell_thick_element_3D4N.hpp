@@ -19,7 +19,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/base_shell_element.h"
+#include "base_shell_element.h"
 #include "custom_utilities/shell_utilities.h"
 #include "custom_utilities/shellq4_corotational_coordinate_transformation.hpp"
 #include "custom_utilities/shellq4_local_coordinate_system.hpp"

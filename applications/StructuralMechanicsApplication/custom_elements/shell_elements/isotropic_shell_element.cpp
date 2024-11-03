@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/isotropic_shell_element.hpp"
+#include "isotropic_shell_element.hpp"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
 #include "structural_mechanics_application_variables.h"
 

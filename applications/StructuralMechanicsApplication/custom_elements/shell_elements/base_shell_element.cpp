@@ -16,7 +16,7 @@
 
 // Project includes
 #include "includes/checks.h"
-#include "custom_elements/base_shell_element.h"
+#include "base_shell_element.h"
 #include "custom_utilities/shell_utilities.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
 #include "custom_utilities/shellt3_corotational_coordinate_transformation.hpp"
