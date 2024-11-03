@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/timoshenko_beam_element_2D2N.h"
+#include "timoshenko_beam_element_2D2N.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
 
 namespace Kratos

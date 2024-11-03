@@ -10,7 +10,7 @@
 //
 
 #include "structural_mechanics_fast_suite.h"
-#include "custom_constitutive/truss_elements/truss_constitutive_law.h"
+#include "custom_constitutive/truss_constitutive_law.h"
 
 namespace Kratos::Testing
 {
