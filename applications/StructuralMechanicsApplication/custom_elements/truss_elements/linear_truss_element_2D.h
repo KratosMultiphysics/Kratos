@@ -47,8 +47,7 @@ using SizeType = std::size_t;
 /**
  * @class LinearTrussElement2D
  * @ingroup StructuralMechanicsApplication
- * @brief This is the Linear TRUSS element of 2 nodes.
- * 2 and 3 noded elements
+ * @brief This is the Linear TRUSS element of 2 and 3 nodes.
  * @author Alejandro Cornejo
  */
 template <SizeType TNNodes>
@@ -130,27 +129,18 @@ public:
     ///@{
 
     /**
-     * @brief Indicates the amount of DoFs per node (u0, v, theta)
-     */
-    IndexType GetDoFsPerNode() const
-    {
-        return 2;
-    }
-
-    /**
      * @brief This method returns the angle of the FE axis
      */
     double GetAngle() const
     {
-        // return StructuralMechanicsElementUtilities::GetReferenceRotationAngle2D2NBeam(GetGeometry());
-        return 1.0;
+        return StructuralMechanicsElementUtilities::GetReferenceRotationAngle2D2NBeam(GetGeometry());
     }
 
     /**
-     * @brief Returns a 6 component vector including the values of the DoFs
+     * @brief Returns a n component vector including the values of the DoFs
      * in LOCAL beam axes
      */
-    void GetNodalValuesVector(VectorType& rNodalValue) const;
+    void GetNodalValuesVector(SystemSizeBoundedArrayType& rNodalValue) const;
 
     /**
      * @brief Computes the length of the FE and returns it
@@ -241,8 +231,8 @@ public:
      * @param Phi The shear slenderness parameter
      * @param xi The coordinate in the natural axes
     */
-    void GetShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const;
-    void GetFirstDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const;
+    void GetShapeFunctionsValues(VectorType& rN, const double Length, const double xi) const;
+    void GetFirstDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double xi) const;
 
     /**
      * @brief This function rotates the LHS from local to global coordinates
