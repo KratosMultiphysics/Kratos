@@ -14,7 +14,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/cable_element_3D2N.hpp"
+#include "cable_element_3D2N.hpp"
 #include "includes/define.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"

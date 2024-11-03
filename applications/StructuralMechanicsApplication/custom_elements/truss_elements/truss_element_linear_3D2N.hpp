@@ -16,7 +16,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/truss_element_3D2N.hpp"
+#include "truss_element_3D2N.hpp"
 #include "includes/define.h"
 #include "includes/variables.h"
 
