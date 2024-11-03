@@ -23,14 +23,6 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
         W_m   = 192e-3 # Kg/mol (molecular weight)
         return self.rho * (E_m_H + E_m_C + E_m_O) / W_m # J/mm3
 
-    def ComputeOpticalPenetrationDepth(self):
-        light_lambda = 550e-6 # mm, light wavelength
-        epoxy_n = self.refractive_index_n
-        n = epoxy_n
-        A = 4.0 * n / ((n + 1)**2 + n**2)
-        self.l_s = 0.25 * light_lambda * A / np.pi
-        return self.l_s
-
     def ImposeTemperatureIncreaseDueToLaserWithRefraction(self):
         X = self.list_of_decomposed_nodes_coords_X
         Y = self.list_of_decomposed_nodes_coords_Y
@@ -169,7 +161,7 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
                     ionization_energy_per_volume_threshold = self.ionizarion_energy_per_volume_threshold
                     energy_threshold = min(enthalpy_energy_per_volume, ionization_energy_per_volume_threshold)
                 else:
-                    energy_threshold = self.q_ast
+                    energy_threshold = elem.GetValue(LaserDrillingApplication.MATERIAL_THERMAL_ENERGY_PER_VOLUME) #self.q_ast
                 if q_energy_per_volume >= energy_threshold:
                     elem.Set(KratosMultiphysics.ACTIVE, False)
                     for node in elem.GetNodes():

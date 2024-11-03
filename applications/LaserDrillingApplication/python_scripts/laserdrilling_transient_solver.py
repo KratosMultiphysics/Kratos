@@ -38,10 +38,13 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             self.jump_between_pulses_counter = 0
             self.pulse_number += 1
             self.ResetTemperatureField()
+
             if self.print_debug_info:
                 initial_system_energy = self.MonitorEnergy()
                 print("\n\nEnergy before laser:", initial_system_energy, "J")
+
             self.ImposeLaserDeltaTemperature()
+
             if self.print_debug_info:
                 print("self.Q:", self.Q, "J")
                 expected_energy_after_laser = initial_system_energy + self.Q
@@ -50,6 +53,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
                 print("Actual energy after laser:", system_energy, "J")
                 relative_error = 100.0 * (system_energy - expected_energy_after_laser) / expected_energy_after_laser
                 print("Relative error in energy (%):", relative_error, "\n\n")
+
             self.RemoveElementsByAblation()
             self.AdjustTemperatureFieldAfterAblation()
             self.ResidualHeatStage()
@@ -80,6 +84,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             elem.SetValue(LaserDrillingApplication.ENERGY_PER_VOLUME, 0.0)
             elem.SetValue(LaserDrillingApplication.ENTHALPY_ENERGY_PER_VOLUME, 0.0)
             elem.Set(KratosMultiphysics.ACTIVE, True)
+            elem.SetValue(LaserDrillingApplication.MATERIAL_THERMAL_ENERGY_PER_VOLUME, 0.0)
 
         for node in self.main_model_part.Nodes:
             node.SetValue(LaserDrillingApplication.DECOMPOSED_NODE, 0.0)
@@ -87,6 +92,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             node.SetValue(LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME, 0.0)
             node.SetValue(LaserDrillingApplication.ENERGY_PER_VOLUME, 0.0)
             node.SetValue(LaserDrillingApplication.ENTHALPY_ENERGY_PER_VOLUME, 0.0)
+            node.SetValue(LaserDrillingApplication.MATERIAL_THERMAL_ENERGY_PER_VOLUME, 0.0)
 
     def ComputeSpotDiameter(self):
         spot_diameter = self.beam_waist_diameter * sqrt(1.0 + ((self.focus_z_offset + self.z_ast_max) / self.rayleigh_length)**2)
@@ -268,6 +274,17 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
 
         self.analytical_ablated_volume_in_n_pulses = 0.0
 
+        for properties, i in enumerate(materials["properties"]):
+            full_material_part_name_i = i["model_part_name"].GetString()
+            prefix = 'ThermalModelPart.'
+            material_part_name_i = full_material_part_name_i.removeprefix(prefix)
+
+            material_part_i = self.main_model_part.GetSubModelPart(material_part_name_i)
+            material_settings_i = i["Material"]
+            thermal_energy_per_volume_i = material_settings_i['Variables']['ENERGY_PER_VOLUME_THRESHOLD'].GetDouble()
+            for elem in material_part_i.Elements:
+                elem.SetValue(LaserDrillingApplication.MATERIAL_THERMAL_ENERGY_PER_VOLUME, thermal_energy_per_volume_i)
+
         #self.sigma = 0.5 * self.R_far
         #self.K = 1 / (2 * self.sigma**2)
         #import math
@@ -310,6 +327,14 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
     def ComputeMaximumDepth(self):
         maximum_depth = self.list_of_ablated_nodes_coords_X[0]
         return maximum_depth
+
+    def ComputeOpticalPenetrationDepth(self):
+        light_lambda = 550e-6 # mm, light wavelength
+        epoxy_n = self.refractive_index_n
+        n = epoxy_n
+        A = 4.0 * n / ((n + 1)**2 + n**2)
+        self.l_s = 0.25 * light_lambda * A / np.pi
+        return self.l_s
 
     def UpdateLaserRelatedParameters(self):
         self.z_ast_max = self.ComputeMaximumDepth()
@@ -360,9 +385,10 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
     def Initialize(self):
         super(convection_diffusion_transient_solver.ConvectionDiffusionTransientSolver, self).Initialize()
         self.starting_time = timer.time()
-        self.SetParameters()
 
         self.AllocateKratosMemory()
+
+        self.SetParameters()
 
         self.list_of_decomposed_nodes_coords = []
         self.list_of_decomposed_nodes_coords_X = []

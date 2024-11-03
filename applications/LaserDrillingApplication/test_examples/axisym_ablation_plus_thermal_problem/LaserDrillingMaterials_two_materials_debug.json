@@ -36,7 +36,7 @@
                 "THERMAL_DEPTH": 0.00025,
                 "ENTHALPY": 4e5,
                 "OPTICAL_PENETRATION_DEPTH": 5e-4,
-                "ENERGY_PER_VOLUME_THRESHOLD": 1.0,
+                "ENERGY_PER_VOLUME_THRESHOLD": 2.5,
                 "REFRACTIVE_INDEX": 1.5
             },
             "Tables" : null
