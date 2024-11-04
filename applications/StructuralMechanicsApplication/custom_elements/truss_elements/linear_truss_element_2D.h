@@ -233,8 +233,9 @@ public:
      * @param Phi The shear slenderness parameter
      * @param xi The coordinate in the natural axes
     */
-    void GetShapeFunctionsValues(VectorType& rN, const double Length, const double xi) const;
-    void GetFirstDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double xi) const;
+    void GetShapeFunctionsValues(SystemSizeBoundedArrayType& rN, const double Length, const double xi) const;
+    void GetShapeFunctionsValuesY(SystemSizeBoundedArrayType& rN, const double Length, const double xi) const;
+    void GetFirstDerivativesShapeFunctionsValues(SystemSizeBoundedArrayType& rN, const double Length, const double xi) const;
 
     /**
      * @brief This function rotates the LHS from local to global coordinates
