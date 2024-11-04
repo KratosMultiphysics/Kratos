@@ -243,8 +243,7 @@ public:
      * @param rGeometry the geometry of the FE
     */
     void RotateLHS(
-        MatrixType &rLHS,
-        const GeometryType &rGeometry);
+        MatrixType &rLHS);
 
     /**
      * @brief This function rotates the RHS from local to global coordinates
@@ -252,8 +251,7 @@ public:
      * @param rGeometry the geometry of the FE
     */
     void RotateRHS(
-        VectorType &rRHS,
-        const GeometryType &rGeometry);
+        VectorType &rRHS);
 
     /**
      * @brief This function rotates the LHS and RHS from local to global coordinates
@@ -263,8 +261,7 @@ public:
     */
     void RotateAll(
         MatrixType &rLHS,
-        VectorType &rRHS,
-        const GeometryType &rGeometry);
+        VectorType &rRHS);
 
     /**
      * @brief This function retrieves the body forces in local axes
