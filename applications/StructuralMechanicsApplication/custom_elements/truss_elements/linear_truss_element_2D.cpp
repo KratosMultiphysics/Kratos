@@ -327,7 +327,7 @@ void LinearTrussElement2D<TNNodes>::CalculateLocalSystem(
     cl_values.SetStressVector(stress_vector);
     cl_values.SetConstitutiveMatrix(constitutive_matrix);
     SystemSizeBoundedArrayType nodal_values(SystemSize);
-    GetNodalValuesVector(nodal_values);
+    GetNodalValuesVector(nodal_values); // In local axes
 
     SystemSizeBoundedArrayType B, N_shape, N_shapeY;
 
@@ -335,13 +335,13 @@ void LinearTrussElement2D<TNNodes>::CalculateLocalSystem(
     for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
         const auto local_body_forces = GetLocalAxesBodyForce(*this, integration_points, IP);
 
+        const double xi     = integration_points[IP].X();
+        const double weight = integration_points[IP].Weight();
+        const double jacobian_weight = weight * J * area;
         GetShapeFunctionsValues(N_shape, length, xi);
         GetShapeFunctionsValuesY(N_shapeY, length, xi);
         GetFirstDerivativesShapeFunctionsValues(B, length, xi);
 
-        const double xi     = integration_points[IP].X();
-        const double weight = integration_points[IP].Weight();
-        const double jacobian_weight = weight * J * area;
 
         strain_vector[0] = inner_prod(B, nodal_values);
         mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values); // fills stress and const. matrix
@@ -352,7 +352,7 @@ void LinearTrussElement2D<TNNodes>::CalculateLocalSystem(
         noalias(rRHS) += N_shape * local_body_forces[0] * jacobian_weight;
         noalias(rRHS) += N_shapeY * local_body_forces[1] * jacobian_weight;
     }
-    RotateAll(rLHS, rRHS, r_geometry);
+    RotateAll(rLHS, rRHS); // rotate to global
 
     KRATOS_CATCH("")
 
@@ -387,8 +387,7 @@ void LinearTrussElement2D<TNNodes>::CalculateRightHandSide(
 
 template<SizeType TNNodes>
 void LinearTrussElement2D<TNNodes>::RotateLHS(
-    MatrixType& rLHS,
-    const GeometryType& rGeometry
+    MatrixType& rLHS
 )
 {
     const double angle = GetAngle();
@@ -413,8 +412,7 @@ void LinearTrussElement2D<TNNodes>::RotateLHS(
 
 template<SizeType TNNodes>
 void LinearTrussElement2D<TNNodes>::RotateRHS(
-    VectorType& rRHS,
-    const GeometryType& rGeometry
+    VectorType& rRHS
 )
 {
     const double angle = GetAngle();
@@ -423,7 +421,7 @@ void LinearTrussElement2D<TNNodes>::RotateRHS(
         BoundedMatrix<double, SystemSize, SystemSize> global_size_T;
         BoundedVector<double, SystemSize> local_rhs;
         noalias(local_rhs) = rRHS;
-        StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NTruss(T, angle);
+        StructuralMechanicsElementUtilities::BuildRotationMatrixForTruss(T, angle);
         if constexpr (NNodes == 2) {
             StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NTruss(T, global_size_T);
         } else {
@@ -440,8 +438,7 @@ void LinearTrussElement2D<TNNodes>::RotateRHS(
 template<SizeType TNNodes>
 void LinearTrussElement2D<TNNodes>::RotateAll(
     MatrixType& rLHS,
-    VectorType& rRHS,
-    const GeometryType& rGeometry
+    VectorType& rRHS
 )
 {
     const double angle = GetAngle();
@@ -449,7 +446,7 @@ void LinearTrussElement2D<TNNodes>::RotateAll(
         BoundedMatrix<double, DofsPerNode, DofsPerNode> T;
         BoundedMatrix<double, SystemSize, SystemSize> global_size_T, aux_product;
         BoundedVector<double, SystemSize> local_rhs;
-        StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NTruss(T, angle);
+        StructuralMechanicsElementUtilities::BuildRotationMatrixForTruss(T, angle);
 
         if constexpr (NNodes == 2) {
             StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NTruss(T, global_size_T);
