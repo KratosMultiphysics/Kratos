@@ -70,7 +70,7 @@ void LinearTrussElement2D<TNNodes>::InitializeMaterial()
         auto N_values            = Vector();
         for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number) {
             mConstitutiveLawVector[point_number] = r_props[CONSTITUTIVE_LAW]->Clone();
-            mConstitutiveLawVector[point_number]->InitializeMaterial(r_properties, r_geometry, N_values);
+            mConstitutiveLawVector[point_number]->InitializeMaterial(r_props, r_geometry, N_values);
         }
     } else
         KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
@@ -193,7 +193,7 @@ void LinearTrussElement2D<TNNodes>::GetFirstDerivativesShapeFunctionsValues(
         rdN_dX[0] = xi - 0.5;
         rdN_dX[2] = -2.0 * xi;
         rdN_dX[4] = xi + 0.5;
-        rdN_dX *= 2.0 / Length;
+        rdN_dX *= 2.0 / Length; // The Jacobian
     }
 }
 
@@ -203,7 +203,35 @@ void LinearTrussElement2D<TNNodes>::GetFirstDerivativesShapeFunctionsValues(
 template<SizeType TNNodes>
 void LinearTrussElement2D<TNNodes>::GetNodalValuesVector(SystemSizeBoundedArrayType& rNodalValues) const
 {
+    if (rNodalValues.size() != SystemSize)
+        rNodalValues.resize(SystemSize, false);
+    const auto &r_geom = GetGeometry();
 
+    const double angle = GetAngle();
+
+    BoundedVector<double, SystemSize> global_values;
+
+    // We fill the vector with global values
+    for (SizeType i = 0; i < NNodes; ++i) {
+        const auto& r_displ = r_geom[i].FastGetSolutionStepValue(DISPLACEMENT);
+        global_values[i * DofsPerNode]     = r_displ[0];
+        global_values[i * DofsPerNode + 1] = r_displ[1];
+    }
+
+    if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
+        BoundedMatrix<double, DofsPerNode, DofsPerNode> T;
+        BoundedMatrix<double, SystemSize, SystemSize> global_size_T;
+        StructuralMechanicsElementUtilities::BuildRotationMatrixForTruss(T, angle);
+        if constexpr (NNodes == 2) {
+            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NTruss(T, global_size_T);
+        } else {
+            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NTruss(T, global_size_T);
+        }
+        // We rotate to local axes
+        noalias(rNodalValues) = prod(trans(global_size_T), global_values);
+    } else {
+        noalias(rNodalValues) = global_values;
+    }
 }
 
 /***********************************************************************************/
@@ -216,7 +244,15 @@ array_1d<double, 3> LinearTrussElement2D<TNNodes>::GetLocalAxesBodyForce(
     const IndexType PointNumber
     ) const
 {
+    const double angle = GetAngle();
+    const auto body_force = StructuralMechanicsElementUtilities::GetBodyForce(*this, rIntegrationPoints, PointNumber);
 
+    const double c = std::cos(angle);
+    const double s = std::sin(angle);
+    array_1d<double, 3> local_body_force = ZeroVector(3);
+    local_body_force[0] = c * body_force[0] + s * body_force[1];
+    local_body_force[1] = -s * body_force[0] + c * body_force[1];
+    return local_body_force;
 }
 
 /***********************************************************************************/
