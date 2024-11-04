@@ -161,7 +161,16 @@ void LinearTrussElement2D<TNNodes>::GetShapeFunctionsValues(
     const double xi
     ) const
 {
-
+    if (rN.size() != SystemSize)
+        rN.resize(SystemSize, false);
+    if constexpr (NNodes == 2) {
+        rN[0] = 0.5 * (1.0 - xi);
+        rN[2] = 0.5 * (1.0 + xi);
+    } else { // 3N
+        rN[0] = 0.5 * xi * (xi - 1.0);
+        rN[2] = (1.0 - std::pow(xi, 2));
+        rN[4] = 0.5 * xi * (xi + 1.0);
+    }
 }
 
 /***********************************************************************************/
