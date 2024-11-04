@@ -62,8 +62,9 @@ public:
 
     /// The base element type
     using BaseType = Element;
+    static constexpr SizeType NNodes = TNNodes;
     static constexpr SizeType DofsPerNode = 2;
-    static constexpr SizeType SystemSize = DofsPerNode * TNNodes;
+    static constexpr SizeType SystemSize = DofsPerNode * NNodes;
     using SystemSizeBoundedArrayType = array_1d<double, SystemSize>;
 
     // Counted pointer of BaseSolidElement
@@ -81,7 +82,7 @@ public:
     // Constructor using an array of nodes
     LinearTrussElement2D(IndexType NewId, GeometryType::Pointer pGeometry) : Element(NewId, pGeometry)
     {
-        if constexpr (TNNodes == 2) {
+        if constexpr (NNodes == 2) {
             mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
         } else {
             mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
@@ -93,7 +94,7 @@ public:
         : Element(NewId,pGeometry,pProperties)
     {
         // This is needed to prevent uninitialised integration method in inactive elements
-        if constexpr (TNNodes == 2) {
+        if constexpr (NNodes == 2) {
             mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
         } else {
             mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
@@ -147,6 +148,7 @@ public:
      */
     double CalculateLength() const
     {
+        // Same implementation for 2N and 3N
         return StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
     }
 
@@ -210,7 +212,7 @@ public:
     /**
      * @brief Returns the set of integration points
      */
-    const GeometryType::IntegrationPointsArrayType IntegrationPoints() const 
+    const GeometryType::IntegrationPointsArrayType IntegrationPoints() const
     {
         return GetGeometry().IntegrationPoints();
     }
@@ -239,7 +241,7 @@ public:
      * @param rLHS the left hand side
      * @param rGeometry the geometry of the FE
     */
-    virtual void RotateLHS(
+    void RotateLHS(
         MatrixType &rLHS,
         const GeometryType &rGeometry);
 
@@ -248,7 +250,7 @@ public:
      * @param rRHS the right hand side
      * @param rGeometry the geometry of the FE
     */
-    virtual void RotateRHS(
+    void RotateRHS(
         VectorType &rRHS,
         const GeometryType &rGeometry);
 
@@ -258,7 +260,7 @@ public:
      * @param rRHS the right hand side
      * @param rGeometry the geometry of the FE
     */
-    virtual void RotateAll(
+    void RotateAll(
         MatrixType &rLHS,
         VectorType &rRHS,
         const GeometryType &rGeometry);

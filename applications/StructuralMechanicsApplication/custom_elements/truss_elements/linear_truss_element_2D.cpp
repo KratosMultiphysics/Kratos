@@ -24,6 +24,9 @@
 namespace Kratos
 {
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 template<SizeType TNNodes>
 void LinearTrussElement2D<TNNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
@@ -35,7 +38,11 @@ void LinearTrussElement2D<TNNodes>::Initialize(const ProcessInfo& rCurrentProces
             if (GetProperties().Has(INTEGRATION_ORDER) ) {
                 mThisIntegrationMethod = static_cast<GeometryData::IntegrationMethod>(GetProperties()[INTEGRATION_ORDER] - 1);
             } else {
-                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
+                if constexpr (NNodes == 2) {
+                    mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
+                } else {
+                    mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
+                }
             }
         }
 
@@ -56,13 +63,13 @@ template<SizeType TNNodes>
 void LinearTrussElement2D<TNNodes>::InitializeMaterial()
 {
     KRATOS_TRY
+    const auto &r_props = GetProperties();
 
-    if (GetProperties()[CONSTITUTIVE_LAW] != nullptr) {
+    if (r_props[CONSTITUTIVE_LAW] != nullptr) {
         const auto& r_geometry   = GetGeometry();
-        const auto& r_properties = GetProperties();
         auto N_values            = Vector();
         for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number) {
-            mConstitutiveLawVector[point_number] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+            mConstitutiveLawVector[point_number] = r_props[CONSTITUTIVE_LAW]->Clone();
             mConstitutiveLawVector[point_number]->InitializeMaterial(r_properties, r_geometry, N_values);
         }
     } else
@@ -113,7 +120,7 @@ void LinearTrussElement2D<TNNodes>::EquationIdVector(
     if (rResult.size() != SystemSize)
         rResult.resize(SystemSize, false);
 
-    const IndexType xpos    = this->GetGeometry()[0].GetDofPosition(DISPLACEMENT_X);
+    const IndexType xpos = this->GetGeometry()[0].GetDofPosition(DISPLACEMENT_X);
 
     for (IndexType i = 0; i < number_of_nodes; ++i) {
         rResult[local_index++] = r_geometry[i].GetDof(DISPLACEMENT_X, xpos    ).EquationId();
