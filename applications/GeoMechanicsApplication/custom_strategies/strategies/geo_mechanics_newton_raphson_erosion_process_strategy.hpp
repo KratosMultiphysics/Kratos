@@ -22,6 +22,7 @@
 #include "boost/range/adaptor/filtered.hpp"
 #include "custom_elements/steady_state_Pw_piping_element.hpp"
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_strategy.hpp"
+#include "custom_utilities/transport_equation_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 
 #include <chrono>
@@ -31,7 +32,6 @@
 
 namespace Kratos
 {
-
 template <class TSparseSpace, class TDenseSpace, class TLinearSolver>
 class GeoMechanicsNewtonRaphsonErosionProcessStrategy
     : public GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
@@ -46,11 +46,9 @@ public:
     using DofsArrayType            = typename BaseType::DofsArrayType;
     using TSystemMatrixType        = typename BaseType::TSystemMatrixType;
     using TSystemVectorType        = typename BaseType::TSystemVectorType;
-    using filtered_elements =
-        typename boost::range_detail::filtered_range<std::function<bool(Element*)>, std::vector<Element*>>;
-    using PropertiesType = Properties;
-    using NodeType       = Node;
-    using GeometryType   = Geometry<NodeType>;
+    using PropertiesType           = Properties;
+    using NodeType                 = Node;
+    using GeometryType             = Geometry<NodeType>;
 
     GeoMechanicsNewtonRaphsonErosionProcessStrategy(ModelPart&                    model_part,
                                                     typename TSchemeType::Pointer pScheme,
@@ -77,7 +75,17 @@ public:
 
         // get piping elements
         std::vector<Element*> PipeElements = GetPipingElements();
-        unsigned int          n_el         = PipeElements.size(); // number of piping elements
+
+        auto piping_interface_elements = std::vector<SteadyStatePwPipingElement<2, 4>*>{};
+        std::transform(
+            PipeElements.begin(), PipeElements.end(), std::back_inserter(piping_interface_elements),
+            [](auto p_element) { return dynamic_cast<SteadyStatePwPipingElement<2, 4>*>(p_element); });
+        KRATOS_DEBUG_ERROR_IF(std::any_of(piping_interface_elements.begin(),
+                                          piping_interface_elements.end(), [](auto p_element) {
+            return p_element == nullptr;
+        })) << "Not all open piping elements could be downcast to SteadyStatePwPipingElement<2, 4>*\n";
+
+        unsigned int n_el = PipeElements.size(); // number of piping elements
 
         // get initially open pipe elements
         unsigned int openPipeElements = this->InitialiseNumActivePipeElements(PipeElements);
@@ -85,7 +93,7 @@ public:
         if (PipeElements.empty()) {
             KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0)
                 << "No Pipe Elements -> Finalizing Solution " << std::endl;
-            GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::FinalizeSolutionStep();
+            this->BaseClassFinalizeSolutionStep();
             return;
         }
         // calculate max pipe height and pipe increment
@@ -105,7 +113,7 @@ public:
             std::function<bool(Element*)> filter = [](Element* i) {
                 return i->Has(PIPE_ACTIVE) && i->GetValue(PIPE_ACTIVE);
             };
-            filtered_elements OpenPipeElements = PipeElements | boost::adaptors::filtered(filter);
+            auto OpenPipeElements = piping_interface_elements | boost::adaptors::filtered(filter);
             KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0)
                 << "Number of Open Pipe Elements: " << boost::size(OpenPipeElements) << std::endl;
 
@@ -124,13 +132,13 @@ public:
                 save_or_reset_pipe_heights(OpenPipeElements, grow);
             }
             // recalculate groundwater flow
-            bool converged = Recalculate();
+            bool converged = this->Recalculate();
 
             // error check
             KRATOS_ERROR_IF_NOT(converged) << "Groundwater flow calculation failed to converge." << std::endl;
         }
 
-        GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::FinalizeSolutionStep();
+        this->BaseClassFinalizeSolutionStep();
     }
 
     /**
@@ -140,7 +148,6 @@ public:
     int Check() override
     {
         KRATOS_TRY
-
         BaseType::Check();
         this->GetBuilderAndSolver()->Check(BaseType::GetModelPart());
         this->GetScheme()->Check(BaseType::GetModelPart());
@@ -245,21 +252,6 @@ private:
     }
 
     /// <summary>
-    /// Calculates the pipe particle diameter according to the modified Sellmeijer rule if selected.
-    /// Else the pipe particle diameter is equal to the d70.
-    /// </summary>
-    /// <param name="Prop"></param>
-    /// <returns></returns>
-    double CalculateParticleDiameter(const PropertiesType& Prop)
-    {
-        double diameter;
-
-        if (Prop[PIPE_MODIFIED_D]) diameter = 2.08e-4 * pow((Prop[PIPE_D_70] / 2.08e-4), 0.4);
-        else diameter = Prop[PIPE_D_70];
-        return diameter;
-    }
-
-    /// <summary>
     /// Calculates the maximum pipe height which the algorithm will allow
     /// </summary>
     /// <param name="pipe_elements"> vector of all pipe elements</param>
@@ -272,8 +264,8 @@ private:
         // loop over all elements
         for (Element* pipe_element : pipe_elements) {
             // calculate pipe particle diameter of pipe element
-            PropertiesType prop              = pipe_element->GetProperties();
-            double         particle_diameter = this->CalculateParticleDiameter(prop);
+            PropertiesType prop = pipe_element->GetProperties();
+            double particle_diameter = GeoTransportEquationUtilities::CalculateParticleDiameter(prop);
 
             // get maximum pipe particle diameter of all pipe elements
             if (particle_diameter > max_diameter) {
@@ -296,26 +288,24 @@ private:
         return max_pipe_height / (n_steps - 1);
     }
 
-    bool Recalculate()
+    virtual bool Recalculate()
     {
         KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", this->GetEchoLevel() > 0 && rank == 0)
             << "Recalculating" << std::endl;
-        // KRATOS_INFO_IF("PipingLoop") << "Recalculating" << std::endl;
-        // ModelPart& CurrentModelPart = this->GetModelPart();
-        // this->Clear();
-
-        // Reset displacements to the initial (Assumes Water Pressure is the convergence criteria)
-        /* block_for_each(CurrentModelPart.Nodes(), [&](Node& rNode) {
-             auto dold = rNode.GetSolutionStepValue(WATER_PRESSURE, 1);
-             rNode.GetSolutionStepValue(WATER_PRESSURE, 0) = dold;
-             });*/
 
         GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::InitializeSolutionStep();
         GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Predict();
         return GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::SolveSolutionStep();
     }
 
-    bool check_pipe_equilibrium(filtered_elements open_pipe_elements, double amax, unsigned int mPipingIterations)
+    virtual void BaseClassFinalizeSolutionStep()
+    {
+        // to override in a unit test
+        GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::FinalizeSolutionStep();
+    }
+
+    template <typename FilteredElementType>
+    bool check_pipe_equilibrium(const FilteredElementType& open_pipe_elements, double amax, unsigned int mPipingIterations)
     {
         bool         equilibrium = false;
         bool         converged   = true;
@@ -331,7 +321,7 @@ private:
             equilibrium = true;
 
             // perform a flow calculation and stop growing if the calculation doesn't converge
-            converged = Recalculate();
+            converged = this->Recalculate();
 
             // todo: JDN (20220817) : grow not used.
             // if (!converged)
@@ -343,14 +333,12 @@ private:
                 // Update depth of open piping Elements
                 equilibrium = true;
                 for (auto OpenPipeElement : open_pipe_elements) {
-                    auto pElement = static_cast<SteadyStatePwPipingElement<2, 4>*>(OpenPipeElement);
-
                     // get open pipe element geometry and properties
                     auto& Geom = OpenPipeElement->GetGeometry();
                     auto& prop = OpenPipeElement->GetProperties();
 
                     // calculate equilibrium pipe height and get current pipe height
-                    double eq_height = pElement->CalculateEquilibriumPipeHeight(
+                    double eq_height = OpenPipeElement->CalculateEquilibriumPipeHeight(
                         prop, Geom, OpenPipeElement->GetValue(PIPE_ELEMENT_LENGTH));
                     double current_height = OpenPipeElement->GetValue(PIPE_HEIGHT);
 
@@ -373,7 +361,6 @@ private:
                         equilibrium = true;
                         OpenPipeElement->SetValue(PIPE_HEIGHT, small_pipe_height);
                     }
-
                     // calculate difference between equilibrium height and current pipe height
                     OpenPipeElement->SetValue(DIFF_PIPE_HEIGHT, eq_height - current_height);
                 }
@@ -427,17 +414,16 @@ private:
     /// <param name="open_pipe_elements"> open pipe elements</param>
     /// <param name="grow"> boolean to check if pipe grows</param>
     /// <returns></returns>
-    void save_or_reset_pipe_heights(filtered_elements open_pipe_elements, bool grow)
+    template <typename FilteredElementType>
+    void save_or_reset_pipe_heights(const FilteredElementType& open_pipe_elements, bool grow)
     {
-        for (Element* OpenPipeElement : open_pipe_elements) {
+        for (auto p_element : open_pipe_elements) {
             if (grow) {
-                OpenPipeElement->SetValue(PREV_PIPE_HEIGHT, OpenPipeElement->GetValue(PIPE_HEIGHT));
+                p_element->SetValue(PREV_PIPE_HEIGHT, p_element->GetValue(PIPE_HEIGHT));
             } else {
-                OpenPipeElement->SetValue(PIPE_HEIGHT, OpenPipeElement->GetValue(PREV_PIPE_HEIGHT));
+                p_element->SetValue(PIPE_HEIGHT, p_element->GetValue(PREV_PIPE_HEIGHT));
             }
         }
     }
-
-}; // Class GeoMechanicsNewtonRaphsonStrategy
-
+}; // Class GeoMechanicsNewtonRaphsonErosionProcessStrategy
 } // namespace Kratos
