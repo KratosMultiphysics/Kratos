@@ -384,6 +384,7 @@ namespace Kratos
             // calculate B MATRICES
             Matrix B = ZeroMatrix(6, mat_size);
             Matrix BDrill = ZeroMatrix(1, mat_size);
+            Matrix dn = ZeroMatrix(3, 3);
             
             for (IndexType point_number_zeta = 0; point_number_zeta < integration_points_zeta.size(); ++point_number_zeta) { //loop for zeta
             
@@ -393,6 +394,7 @@ namespace Kratos
                     integration_points_zeta[point_number_zeta],
                     DN_De_Jn,
                     J_inv,
+                    dn,
                     area);
 
                 CalculateB(
@@ -401,6 +403,7 @@ namespace Kratos
                     integration_points_zeta[point_number_zeta], //zeta
                     DN_De_Jn,
                     J_inv,
+                    dn,
                     kinematic_variables);
 
                 CalculateBDrill(                                                                                         // Added 
@@ -420,7 +423,7 @@ namespace Kratos
 
                 double integration_weight =
                     r_integration_points[point_number].Weight()
-                    * m_dA_vector[point_number]; // * area; 
+                    * area; // * m_dA_vector[point_number]; 
 
                 Matrix rKm = ZeroMatrix(mat_size, mat_size);
                 Matrix rKd = ZeroMatrix(mat_size, mat_size);
@@ -814,6 +817,7 @@ namespace Kratos
         double zeta,
         Matrix& DN_De_Jn,
         Matrix& J_inv,
+        Matrix& dn,
         double& area) const
     {
 
@@ -834,7 +838,6 @@ namespace Kratos
 
 
         Matrix da3 = ZeroMatrix(3, 3);
-        Matrix dn = ZeroMatrix(3, 3);
         double inv_dA = 1 / rKinematicVariables.dA;
         double inv_dA3 = 1 / std::pow(rKinematicVariables.dA, 3);
 
@@ -909,6 +912,7 @@ namespace Kratos
         double zeta,
         Matrix& DN_De_Jn,
         Matrix& J_inv,
+        Matrix& dn,
         const KinematicVariables& rActualKinematic) const
     {
         const SizeType number_of_control_points = GetGeometry().size();
@@ -935,7 +939,6 @@ namespace Kratos
         const double y3= rActualKinematic.a3[2];
 
         Matrix da3 = ZeroMatrix(3, 3);
-        Matrix dn = ZeroMatrix(3, 3);
         Matrix Dn = ZeroMatrix(3, 3);
         Matrix b = ZeroMatrix(3, mat_size);
 
@@ -993,37 +996,52 @@ namespace Kratos
             // }
             ///////////////////////////////////////////
 
-            // derivative normal w.r.t to xi, eta and zeta
-            da1_d1[0] = (GetGeometry().GetPoint( i ).X0()) * r_DDN_DDe(i, 0);
-            da1_d1[1] = (GetGeometry().GetPoint( i ).Y0()) * r_DDN_DDe(i, 0);
-            da1_d1[2] = (GetGeometry().GetPoint( i ).Z0()) * r_DDN_DDe(i, 0);
+            // // derivative normal w.r.t to xi, eta and zeta
+            // da1_d1[0] = (GetGeometry().GetPoint( i ).X0()) * r_DDN_DDe(i, 0);
+            // da1_d1[1] = (GetGeometry().GetPoint( i ).Y0()) * r_DDN_DDe(i, 0);
+            // da1_d1[2] = (GetGeometry().GetPoint( i ).Z0()) * r_DDN_DDe(i, 0);
 
-            da1_d2[0] = (GetGeometry().GetPoint( i ).X0()) * r_DDN_DDe(i, 1);
-            da1_d2[1] = (GetGeometry().GetPoint( i ).Y0()) * r_DDN_DDe(i, 1);
-            da1_d2[2] = (GetGeometry().GetPoint( i ).Z0()) * r_DDN_DDe(i, 1);
+            // da1_d2[0] = (GetGeometry().GetPoint( i ).X0()) * r_DDN_DDe(i, 1);
+            // da1_d2[1] = (GetGeometry().GetPoint( i ).Y0()) * r_DDN_DDe(i, 1);
+            // da1_d2[2] = (GetGeometry().GetPoint( i ).Z0()) * r_DDN_DDe(i, 1);
 
-            da2_d2[0] = (GetGeometry().GetPoint( i ).X0()) * r_DDN_DDe(i, 2);
-            da2_d2[1] = (GetGeometry().GetPoint( i ).Y0()) * r_DDN_DDe(i, 2);
-            da2_d2[2] = (GetGeometry().GetPoint( i ).Z0()) * r_DDN_DDe(i, 2);
+            // da2_d2[0] = (GetGeometry().GetPoint( i ).X0()) * r_DDN_DDe(i, 2);
+            // da2_d2[1] = (GetGeometry().GetPoint( i ).Y0()) * r_DDN_DDe(i, 2);
+            // da2_d2[2] = (GetGeometry().GetPoint( i ).Z0()) * r_DDN_DDe(i, 2);
 
-            MathUtils<double>::CrossProduct(da3_tilde_d1_1, da1_d1, rActualKinematic.a2);
-            MathUtils<double>::CrossProduct(da3_tilde_d1_2, rActualKinematic.a1, da1_d2);
-            da3_tilde_d1 = da3_tilde_d1_1 + da3_tilde_d1_2;
+            // MathUtils<double>::CrossProduct(da3_tilde_d1_1, da1_d1, rActualKinematic.a2);
+            // MathUtils<double>::CrossProduct(da3_tilde_d1_2, rActualKinematic.a1, da1_d2);
+            // da3_tilde_d1 = da3_tilde_d1_1 + da3_tilde_d1_2;
 
-            MathUtils<double>::CrossProduct(da3_tilde_d2_1, da1_d2, rActualKinematic.a2);
-            MathUtils<double>::CrossProduct(da3_tilde_d2_2, rActualKinematic.a1, da2_d2);
-            da3_tilde_d2 = da3_tilde_d2_1 + da3_tilde_d2_2;
+            // MathUtils<double>::CrossProduct(da3_tilde_d2_1, da1_d2, rActualKinematic.a2);
+            // MathUtils<double>::CrossProduct(da3_tilde_d2_2, rActualKinematic.a1, da2_d2);
+            // da3_tilde_d2 = da3_tilde_d2_1 + da3_tilde_d2_2;
 
 
-            for (IndexType j = 0; j < 3; j++)
-            {
-                dn(0, j) = da3_tilde_d1[j] * inv_dA - rActualKinematic.a3_tilde[j] * inner_prod(rActualKinematic.a3_tilde, da3_tilde_d1) * inv_dA3;
-                dn(1, j) = da3_tilde_d2[j] * inv_dA - rActualKinematic.a3_tilde[j] * inner_prod(rActualKinematic.a3_tilde, da3_tilde_d2) * inv_dA3;
-                dn(2, j) = 0.0;
-            }
+            // for (IndexType j = 0; j < 3; j++)
+            // {
+            //     dn(0, j) = da3_tilde_d1[j] * inv_dA - rActualKinematic.a3_tilde[j] * inner_prod(rActualKinematic.a3_tilde, da3_tilde_d1) * inv_dA3;
+            //     dn(1, j) = da3_tilde_d2[j] * inv_dA - rActualKinematic.a3_tilde[j] * inner_prod(rActualKinematic.a3_tilde, da3_tilde_d2) * inv_dA3;
+            //     dn(2, j) = 0.0;
+            // }
+
+             /////////////////////////////////////////////
+            // xi Derivatives
+            const double dxidx= J_inv(0,0);
+            const double dxidy= J_inv(1,0);
+            const double dxidz= J_inv(2,0);
+
+            // eta  Derivatives 
+            const double detadx= J_inv(0,1);
+            const double detady= J_inv(1,1);
+            const double detadz= J_inv(2,1);
+
+            // zeta  Derivatives 
+            const double dzetadx= J_inv(0,2);
+            const double dzetady= J_inv(1,2);
+            const double dzetadz= J_inv(2,2); //!! 
+            
             ///////////////////////////////////////////
-
-
             Dn = prod(J_inv, dn);
 
             // y hat Derivative w.r.t x
@@ -1049,8 +1067,8 @@ namespace Kratos
             rB(0, index + 2) = 0;
 
             rB(0, index + 3) = 0;
-            rB(0, index + 4) = (DN_De_Jn_bending(i, 0) * y3) + (r_N(i) * (thickness/2) * zeta * dy3x);
-            rB(0, index + 5) = - ((DN_De_Jn_bending(i, 0) * y2) + (r_N(i) * (thickness/2) * zeta * dy2x));
+            rB(0, index + 4) = (DN_De_Jn_bending(i, 0) * y3) + (r_N(i) * (thickness/2) * (zeta * dy3x + y3 * dzetadx));
+            rB(0, index + 5) = - ((DN_De_Jn_bending(i, 0) * y2) + (r_N(i) * (thickness/2) * (zeta * dy2x + dzetadx * y2)));
         
 
 
@@ -1058,44 +1076,44 @@ namespace Kratos
             rB(1, index + 1) = DN_De_Jn(i, 1);
             rB(1, index + 2) = 0;
 
-            rB(1, index + 3) = - ((DN_De_Jn_bending(i, 1) * y3) + (r_N(i) * (thickness/2) * zeta * dy3y)) ; 
+            rB(1, index + 3) = - ((DN_De_Jn_bending(i, 1) * y3) + (r_N(i) * (thickness/2) * (zeta * dy3y + dzetady * y3))) ; 
             rB(1, index + 4) = 0;
-            rB(1, index + 5) = (DN_De_Jn_bending(i, 1) * y1) + (r_N(i) * (thickness/2) * zeta * dy1y); 
+            rB(1, index + 5) = (DN_De_Jn_bending(i, 1) * y1) + (r_N(i) * (thickness/2) * (zeta * dy1y + dzetady * y1)); 
 
 
             rB(2, index)     = 0;
             rB(2, index + 1) = 0;
             rB(2, index + 2) = DN_De_Jn(i, 2);
 
-            rB(2, index + 3) = (DN_De_Jn_bending(i, 2)   * y2) + (r_N(i)   * dy2z)* (thickness/2) * zeta ;  //* (thickness/2) 
-            rB(2, index + 4) = - ((DN_De_Jn_bending(i, 2) * y1)  + (r_N(i)   * dy1z) * (thickness/2) * zeta); //* (thickness/2)
+            rB(2, index + 3) = (DN_De_Jn_bending(i, 2)   * y2) + (r_N(i)  * (thickness/2) * (zeta * dy2z + dzetadz * y2)) ;  
+            rB(2, index + 4) = - ((DN_De_Jn_bending(i, 2) * y1)  + (r_N(i) * (thickness/2) * (zeta  * dy1z + dzetadz *y1))); 
             rB(2, index + 5) = 0;
             
             rB(3, index)     = DN_De_Jn(i, 1);                    
             rB(3, index + 1) = DN_De_Jn(i, 0);  
             rB(3, index + 2) = 0;
 
-            rB(3, index + 3) = - ((DN_De_Jn_bending(i, 0) * y3) +(r_N(i) * (thickness/2) * zeta * dy3x)); //!!
-            rB(3, index + 4) = (DN_De_Jn_bending(i, 1) * y3) +(r_N(i) * (thickness/2) * zeta * dy3y);  //!!
-            rB(3, index + 5) = ((DN_De_Jn_bending(i, 0) * y1) + (r_N(i) * (thickness/2) * zeta * dy1x)) - ((DN_De_Jn_bending(i, 1) * y2)+ (r_N(i) * (thickness/2) * zeta * dy2y)); 
+            rB(3, index + 3) = - ((DN_De_Jn_bending(i, 0) * y3) +(r_N(i) * (thickness/2) * (zeta * dy3x + dzetadx * y3))); //!!
+            rB(3, index + 4) = (DN_De_Jn_bending(i, 1) * y3) +(r_N(i) * (thickness/2) * (zeta * dy3y + dzetady * y3));  //!!
+            rB(3, index + 5) = ((DN_De_Jn_bending(i, 0) * y1) + (r_N(i) * (thickness/2) * (zeta * dy1x + dzetadx * y1))) - ((DN_De_Jn_bending(i, 1) * y2)+ (r_N(i) * (thickness/2) *  (zeta * dy2y + dzetady * y2))); 
 
 
             rB(4, index)     = 0;
             rB(4, index + 1) = DN_De_Jn(i, 2);
             rB(4, index + 2) = DN_De_Jn(i, 1);
 
-            rB(4, index + 3) = ((DN_De_Jn_bending(i, 1) * y2) + (r_N(i) * (thickness/2) * zeta * dy2y))  - ((DN_De_Jn_bending(i, 2) * y3)+ (r_N (i)  * dy3z)* (thickness/2) * zeta); //* (thickness/2) !!
-            rB(4, index + 4) = - ((DN_De_Jn_bending(i, 1) * y1) + (r_N(i) * (thickness/2) * zeta * dy1y)); 
-            rB(4, index + 5) = (DN_De_Jn_bending(i, 2) *  y1 ) + (r_N (i) * (thickness/2) * zeta * dy1z) ; // !!
+            rB(4, index + 3) = ((DN_De_Jn_bending(i, 1) * y2) + (r_N(i) * (thickness/2) * (zeta * dy2y + dzetady * y2)))  - ((DN_De_Jn_bending(i, 2) * y3)+ (r_N (i)  * (thickness/2) * (zeta *dy3z + dzetadz * y3))); // !!
+            rB(4, index + 4) = - ((DN_De_Jn_bending(i, 1) * y1) + (r_N(i) * (thickness/2) * (zeta * dy1y + dzetady * y1))); 
+            rB(4, index + 5) = (DN_De_Jn_bending(i, 2) *  y1 ) + (r_N (i) * (thickness/2) * (zeta * dy1z + dzetadz * y1)) ; // !!
 
 
             rB(5, index)   = DN_De_Jn (i,2);                    
             rB(5, index + 1) = 0;  
             rB(5, index + 2) = DN_De_Jn(i, 0);
 
-            rB(5, index + 3) = ((DN_De_Jn_bending(i, 0)  * y2) + (r_N(i) * (thickness/2) * zeta * dy2x) ); 
-            rB(5, index + 4) = ((DN_De_Jn_bending (i,2)  * y3) + (r_N (i)  * dy3z) * (thickness/2) * zeta ) - ((DN_De_Jn_bending(i, 0) * y1) + (r_N(i) * (thickness/2) * zeta * dy1x)); //* (thickness/2)  !!
-            rB(5, index + 5) = - ((DN_De_Jn_bending (i,2)  * y2 )+(r_N (i) * (thickness/2) * zeta * dy2z));  // !!
+            rB(5, index + 3) = ((DN_De_Jn_bending(i, 0)  * y2) + (r_N(i) * (thickness/2) * ( zeta * dy2x +  dzetadx * y2)) ); 
+            rB(5, index + 4) = ((DN_De_Jn_bending (i,2)  * y3) + (r_N (i)   * (thickness/2) * ( zeta * dy3z + dzetadz * y3 ))) - ((DN_De_Jn_bending(i, 0) * y1) + (r_N(i) * (thickness/2) * (zeta  * dy1x + dzetadx * y1) )); //!!
+            rB(5, index + 5) = - ((DN_De_Jn_bending (i,2)  * y2 )+(r_N (i) * (thickness/2) * (zeta * dy2z + dzetadz * y2)));  // !!
 
             // rB(0, index)     = DN_De_Jn(i, 0);
             // rB(0, index + 1) = 0;

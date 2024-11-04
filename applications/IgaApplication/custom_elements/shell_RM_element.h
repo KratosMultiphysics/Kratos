@@ -428,6 +428,7 @@ private:
         double zeta, //
         Matrix& DN_De_Jn,
         Matrix& J_inv,
+        Matrix& dn,
         const KinematicVariables& rActualKinematic) const;
 
     void CalculateJn(
@@ -436,6 +437,7 @@ private:
         double zeta,
         Matrix& DN_De_Jn,
         Matrix& J_inv,
+        Matrix& dn,
         double& area) const;
 
     void CalculateBDrill( //
