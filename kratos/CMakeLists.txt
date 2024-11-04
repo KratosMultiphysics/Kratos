@@ -7,6 +7,10 @@ else(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 endif(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 include_directories( ${KRATOS_SOURCE_DIR}/external_libraries/tinyexpr )
 
+message(STATUS "G+Smo include: ${GISMO_INCLUDE_DIRS}")
+
+include_directories(${GISMO_INCLUDE_DIRS})
+
 SET(ListFolders sources conditions constraints containers elements factories geometries includes integration linear_solvers mappers modeler modified_shape_functions operations processes controllers response_functions solving_strategies spaces spatial_containers utilities)
 
 ## Kratos main source code
