@@ -44,7 +44,7 @@ NodalConcentratedElement::NodalConcentratedElement(
     : Element( NewId, pGeometry )
 {
     // If we compute the Rayleigh damping or we use the damping ratio instead
-    mELementalFlags.Set(NodalConcentratedElement::COMPUTE_RAYLEIGH_DAMPING, false);
+    mElementalFlags.Set(NodalConcentratedElement::COMPUTE_RAYLEIGH_DAMPING, false);
 }
 
 //******************************CONSTRUCTOR*******************************************
@@ -58,9 +58,9 @@ NodalConcentratedElement::NodalConcentratedElement(
     : Element( NewId, pGeometry, pProperties )
 {
     if (pProperties->Has(CONSIDER_RAYLEIGH_DAMPING)) {
-        mELementalFlags.Set(NodalConcentratedElement::COMPUTE_RAYLEIGH_DAMPING, pProperties->GetValue(CONSIDER_RAYLEIGH_DAMPING));
+        mElementalFlags.Set(NodalConcentratedElement::COMPUTE_RAYLEIGH_DAMPING, pProperties->GetValue(CONSIDER_RAYLEIGH_DAMPING));
     } else {
-        mELementalFlags.Set(NodalConcentratedElement::COMPUTE_RAYLEIGH_DAMPING, false);
+        mElementalFlags.Set(NodalConcentratedElement::COMPUTE_RAYLEIGH_DAMPING, false);
     }
 }
 
@@ -69,7 +69,7 @@ NodalConcentratedElement::NodalConcentratedElement(
 
 NodalConcentratedElement::NodalConcentratedElement( NodalConcentratedElement const& rOther)
     :Element(rOther)
-    ,mELementalFlags(rOther.mELementalFlags)
+    ,mElementalFlags(rOther.mElementalFlags)
 {
 
 }
@@ -82,7 +82,7 @@ NodalConcentratedElement&  NodalConcentratedElement::operator=(NodalConcentrated
     //ALL MEMBER VARIABLES THAT MUST BE KEPT IN AN "=" OPERATION NEEDS TO BE COPIED HERE
 
     Element::operator=(rOther);
-    mELementalFlags = rOther.mELementalFlags;
+    mElementalFlags = rOther.mElementalFlags;
 
     return *this;
 }
@@ -163,8 +163,8 @@ void NodalConcentratedElement::GetDofList(
     IndexType aux_index = 0;
 
     // The displacement terms
-    if( mELementalFlags.Is(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS) ||
-        mELementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_MASS)) {
+    if( mElementalFlags.Is(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS) ||
+        mElementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_MASS)) {
 
         rElementalDofList[0] = r_node.pGetDof( DISPLACEMENT_X );
         rElementalDofList[1] = r_node.pGetDof( DISPLACEMENT_Y );
@@ -176,8 +176,8 @@ void NodalConcentratedElement::GetDofList(
     }
 
     // The rotational terms
-    if( mELementalFlags.Is(NodalConcentratedElement::COMPUTE_ROTATIONAL_STIFFNESS) ||
-        mELementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_INERTIA)) {
+    if( mElementalFlags.Is(NodalConcentratedElement::COMPUTE_ROTATIONAL_STIFFNESS) ||
+        mElementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_INERTIA)) {
 
         rElementalDofList[aux_index + 0] = r_node.pGetDof( ROTATION_X );
         rElementalDofList[aux_index + 1] = r_node.pGetDof( ROTATION_Y );
@@ -213,8 +213,8 @@ void NodalConcentratedElement::EquationIdVector(
     IndexType aux_index = 0;
 
     // The displacement terms
-    if( mELementalFlags.Is(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS) ||
-        mELementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_MASS)) {
+    if( mElementalFlags.Is(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS) ||
+        mElementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_MASS)) {
 
         rResult[0] = r_node.GetDof( DISPLACEMENT_X ).EquationId();
         rResult[1] = r_node.GetDof( DISPLACEMENT_Y ).EquationId();
@@ -226,8 +226,8 @@ void NodalConcentratedElement::EquationIdVector(
     }
 
     // The rotational terms
-    if( mELementalFlags.Is(NodalConcentratedElement::COMPUTE_ROTATIONAL_STIFFNESS) ||
-        mELementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_INERTIA)) {
+    if( mElementalFlags.Is(NodalConcentratedElement::COMPUTE_ROTATIONAL_STIFFNESS) ||
+        mElementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_INERTIA)) {
 
         rResult[aux_index + 0] = r_node.GetDof( ROTATION_X ).EquationId();
         rResult[aux_index + 1] = r_node.GetDof( ROTATION_Y ).EquationId();
@@ -260,8 +260,8 @@ void NodalConcentratedElement::GetValuesVector( Vector& rValues, int Step ) cons
     IndexType aux_index = 0;
 
     // The displacement terms
-    if( mELementalFlags.Is(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS) ||
-        mELementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_MASS)) {
+    if( mElementalFlags.Is(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS) ||
+        mElementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_MASS)) {
 
         rValues[0] = r_node.GetSolutionStepValue( DISPLACEMENT_X, Step );
         rValues[1] = r_node.GetSolutionStepValue( DISPLACEMENT_Y, Step );
@@ -273,8 +273,8 @@ void NodalConcentratedElement::GetValuesVector( Vector& rValues, int Step ) cons
     }
 
     // The rotational terms
-    if( mELementalFlags.Is(NodalConcentratedElement::COMPUTE_ROTATIONAL_STIFFNESS) ||
-        mELementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_INERTIA)) {
+    if( mElementalFlags.Is(NodalConcentratedElement::COMPUTE_ROTATIONAL_STIFFNESS) ||
+        mElementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_INERTIA)) {
 
         rValues[aux_index + 0] = r_node.GetSolutionStepValue( ROTATION_X, Step );
         rValues[aux_index + 1] = r_node.GetSolutionStepValue( ROTATION_Y, Step );
@@ -308,8 +308,8 @@ void NodalConcentratedElement::GetFirstDerivativesVector( Vector& rValues, int S
     IndexType aux_index = 0;
 
     // The displacement terms
-    if( mELementalFlags.Is(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS) ||
-        mELementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_MASS)) {
+    if( mElementalFlags.Is(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS) ||
+        mElementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_MASS)) {
 
         rValues[0] = r_node.GetSolutionStepValue( VELOCITY_X, Step );
         rValues[1] = r_node.GetSolutionStepValue( VELOCITY_Y, Step );
@@ -321,8 +321,8 @@ void NodalConcentratedElement::GetFirstDerivativesVector( Vector& rValues, int S
     }
 
     // The rotational terms
-    if( mELementalFlags.Is(NodalConcentratedElement::COMPUTE_ROTATIONAL_STIFFNESS) ||
-        mELementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_INERTIA)) {
+    if( mElementalFlags.Is(NodalConcentratedElement::COMPUTE_ROTATIONAL_STIFFNESS) ||
+        mElementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_INERTIA)) {
 
         rValues[aux_index + 0] = r_node.GetSolutionStepValue( ANGULAR_VELOCITY_X, Step );
         rValues[aux_index + 1] = r_node.GetSolutionStepValue( ANGULAR_VELOCITY_Y, Step );
@@ -354,8 +354,8 @@ void NodalConcentratedElement::GetSecondDerivativesVector( Vector& rValues, int 
     IndexType aux_index = 0;
 
     // The displacement terms
-    if( mELementalFlags.Is(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS) ||
-        mELementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_MASS)) {
+    if( mElementalFlags.Is(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS) ||
+        mElementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_MASS)) {
 
         rValues[0] = r_node.GetSolutionStepValue( ACCELERATION_X, Step );
         rValues[1] = r_node.GetSolutionStepValue( ACCELERATION_Y, Step );
@@ -367,8 +367,8 @@ void NodalConcentratedElement::GetSecondDerivativesVector( Vector& rValues, int 
     }
 
     // The rotational terms
-    if( mELementalFlags.Is(NodalConcentratedElement::COMPUTE_ROTATIONAL_STIFFNESS) ||
-        mELementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_INERTIA)) {
+    if( mElementalFlags.Is(NodalConcentratedElement::COMPUTE_ROTATIONAL_STIFFNESS) ||
+        mElementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_INERTIA)) {
 
         rValues[aux_index + 0] = r_node.GetSolutionStepValue( ANGULAR_ACCELERATION_X, Step );
         rValues[aux_index + 1] = r_node.GetSolutionStepValue( ANGULAR_ACCELERATION_Y, Step );
@@ -397,92 +397,92 @@ void NodalConcentratedElement::Initialize(const ProcessInfo& rCurrentProcessInfo
         // We check the nodal stiffness
         if (r_const_this.Has(NODAL_DISPLACEMENT_STIFFNESS) || GetProperties().Has(NODAL_DISPLACEMENT_STIFFNESS)) {
             KRATOS_WARNING_IF("NodalConcentratedElement", r_const_this.Has(NODAL_DISPLACEMENT_STIFFNESS) && GetProperties().Has(NODAL_DISPLACEMENT_STIFFNESS)) << "NODAL_DISPLACEMENT_STIFFNESS is defined both in properties and elemental data. Properties are considered by DEFAULT" << std::endl;
-            mELementalFlags.Set(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS, true);
+            mElementalFlags.Set(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS, true);
         } else {
-            mELementalFlags.Set(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS, false);
+            mElementalFlags.Set(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS, false);
         }
 
         // We check the nodal rotational stiffness
         if (r_node.SolutionStepsDataHas(ROTATION_X) && (r_const_this.Has(NODAL_ROTATIONAL_STIFFNESS) || GetProperties().Has(NODAL_ROTATIONAL_STIFFNESS))) {
             KRATOS_WARNING_IF("NodalConcentratedElement", r_const_this.Has(NODAL_ROTATIONAL_STIFFNESS) && GetProperties().Has(NODAL_ROTATIONAL_STIFFNESS)) << "NODAL_ROTATIONAL_STIFFNESS is defined both in properties and elemental data. Properties are considered by DEFAULT" << std::endl;
-            mELementalFlags.Set(NodalConcentratedElement::COMPUTE_ROTATIONAL_STIFFNESS, true);
+            mElementalFlags.Set(NodalConcentratedElement::COMPUTE_ROTATIONAL_STIFFNESS, true);
         } else {
-            mELementalFlags.Set(NodalConcentratedElement::COMPUTE_ROTATIONAL_STIFFNESS, false);
+            mElementalFlags.Set(NodalConcentratedElement::COMPUTE_ROTATIONAL_STIFFNESS, false);
         }
 
         // We check the nodal mass
         if (r_const_this.Has(NODAL_MASS) || GetProperties().Has(NODAL_MASS)) {
             KRATOS_WARNING_IF("NodalConcentratedElement", r_const_this.Has(NODAL_MASS) && GetProperties().Has(NODAL_MASS)) << "NODAL_MASS is defined both in properties and elemental data. Properties are considered by DEFAULT" << std::endl;
-            mELementalFlags.Set(NodalConcentratedElement::COMPUTE_NODAL_MASS, true);
+            mElementalFlags.Set(NodalConcentratedElement::COMPUTE_NODAL_MASS, true);
         } else {
-            mELementalFlags.Set(NodalConcentratedElement::COMPUTE_NODAL_MASS, false);
+            mElementalFlags.Set(NodalConcentratedElement::COMPUTE_NODAL_MASS, false);
         }
 
         // We check the nodal inertia
         if (r_node.SolutionStepsDataHas(ROTATION_X) &&
             (r_const_this.Has(NODAL_INERTIA) || GetProperties().Has(NODAL_INERTIA))) {
             KRATOS_WARNING_IF("NodalConcentratedElement", r_const_this.Has(NODAL_INERTIA) && GetProperties().Has(NODAL_INERTIA)) << "NODAL_INERTIA is defined both in properties and elemental data. Properties are considered by DEFAULT" << std::endl;
-            mELementalFlags.Set(NodalConcentratedElement::COMPUTE_NODAL_INERTIA, true);
+            mElementalFlags.Set(NodalConcentratedElement::COMPUTE_NODAL_INERTIA, true);
         } else {
-            mELementalFlags.Set(NodalConcentratedElement::COMPUTE_NODAL_INERTIA, false);
+            mElementalFlags.Set(NodalConcentratedElement::COMPUTE_NODAL_INERTIA, false);
         }
 
         // We check the damping ratio
         if (r_const_this.Has(NODAL_DAMPING_RATIO) || GetProperties().Has(NODAL_DAMPING_RATIO)) {
             KRATOS_WARNING_IF("NodalConcentratedElement", r_const_this.Has(NODAL_DAMPING_RATIO) && GetProperties().Has(NODAL_DAMPING_RATIO)) << "NODAL_DAMPING_RATIO is defined both in properties and elemental data. Properties are considered by DEFAULT" << std::endl;
-            mELementalFlags.Set(NodalConcentratedElement::COMPUTE_DAMPING_RATIO, true);
+            mElementalFlags.Set(NodalConcentratedElement::COMPUTE_DAMPING_RATIO, true);
         } else {
-            mELementalFlags.Set(NodalConcentratedElement::COMPUTE_DAMPING_RATIO, false);
+            mElementalFlags.Set(NodalConcentratedElement::COMPUTE_DAMPING_RATIO, false);
         }
 
         // We check the rotational damping ratio
         if (r_node.SolutionStepsDataHas(ROTATION_X) && (r_const_this.Has(NODAL_ROTATIONAL_DAMPING_RATIO) || GetProperties().Has(NODAL_ROTATIONAL_DAMPING_RATIO))) {
             KRATOS_WARNING_IF("NodalConcentratedElement", r_const_this.Has(NODAL_ROTATIONAL_DAMPING_RATIO) && GetProperties().Has(NODAL_ROTATIONAL_DAMPING_RATIO)) << "NODAL_ROTATIONAL_DAMPING_RATIO is defined both in properties and elemental data. Properties are considered by DEFAULT" << std::endl;
-            mELementalFlags.Set(NodalConcentratedElement::COMPUTE_ROTATIONAL_DAMPING_RATIO, true);
+            mElementalFlags.Set(NodalConcentratedElement::COMPUTE_ROTATIONAL_DAMPING_RATIO, true);
         } else {
-            mELementalFlags.Set(NodalConcentratedElement::COMPUTE_ROTATIONAL_DAMPING_RATIO, false);
+            mElementalFlags.Set(NodalConcentratedElement::COMPUTE_ROTATIONAL_DAMPING_RATIO, false);
         }
     } else {
         // We check the nodal stiffness
         if (r_const_this.Has(NODAL_DISPLACEMENT_STIFFNESS)) {
-            mELementalFlags.Set(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS, true);
+            mElementalFlags.Set(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS, true);
         } else {
-            mELementalFlags.Set(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS, false);
+            mElementalFlags.Set(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS, false);
         }
 
         // We check the nodal rotational stiffness
         if (r_node.SolutionStepsDataHas(ROTATION_X) && r_const_this.Has(NODAL_ROTATIONAL_STIFFNESS)) {
-            mELementalFlags.Set(NodalConcentratedElement::COMPUTE_ROTATIONAL_STIFFNESS, true);
+            mElementalFlags.Set(NodalConcentratedElement::COMPUTE_ROTATIONAL_STIFFNESS, true);
         } else {
-            mELementalFlags.Set(NodalConcentratedElement::COMPUTE_ROTATIONAL_STIFFNESS, false);
+            mElementalFlags.Set(NodalConcentratedElement::COMPUTE_ROTATIONAL_STIFFNESS, false);
         }
 
         // We check the nodal mass
         if (r_const_this.Has(NODAL_MASS)) {
-            mELementalFlags.Set(NodalConcentratedElement::COMPUTE_NODAL_MASS, true);
+            mElementalFlags.Set(NodalConcentratedElement::COMPUTE_NODAL_MASS, true);
         } else {
-            mELementalFlags.Set(NodalConcentratedElement::COMPUTE_NODAL_MASS, false);
+            mElementalFlags.Set(NodalConcentratedElement::COMPUTE_NODAL_MASS, false);
         }
 
         // We check the nodal inertia
         if (r_node.SolutionStepsDataHas(ROTATION_X) && r_const_this.Has(NODAL_INERTIA)) {
-            mELementalFlags.Set(NodalConcentratedElement::COMPUTE_NODAL_INERTIA, true);
+            mElementalFlags.Set(NodalConcentratedElement::COMPUTE_NODAL_INERTIA, true);
         } else {
-            mELementalFlags.Set(NodalConcentratedElement::COMPUTE_NODAL_INERTIA, false);
+            mElementalFlags.Set(NodalConcentratedElement::COMPUTE_NODAL_INERTIA, false);
         }
 
         // We check the damping ratio
         if (r_const_this.Has(NODAL_DAMPING_RATIO)) {
-            mELementalFlags.Set(NodalConcentratedElement::COMPUTE_DAMPING_RATIO, true);
+            mElementalFlags.Set(NodalConcentratedElement::COMPUTE_DAMPING_RATIO, true);
         } else {
-            mELementalFlags.Set(NodalConcentratedElement::COMPUTE_DAMPING_RATIO, false);
+            mElementalFlags.Set(NodalConcentratedElement::COMPUTE_DAMPING_RATIO, false);
         }
 
         // We check the rotational damping ratio
         if (r_node.SolutionStepsDataHas(ROTATION_X) && r_const_this.Has(NODAL_ROTATIONAL_DAMPING_RATIO)) {
-            mELementalFlags.Set(NodalConcentratedElement::COMPUTE_ROTATIONAL_DAMPING_RATIO, true);
+            mElementalFlags.Set(NodalConcentratedElement::COMPUTE_ROTATIONAL_DAMPING_RATIO, true);
         } else {
-            mELementalFlags.Set(NodalConcentratedElement::COMPUTE_ROTATIONAL_DAMPING_RATIO, false);
+            mElementalFlags.Set(NodalConcentratedElement::COMPUTE_ROTATIONAL_DAMPING_RATIO, false);
         }
     }
 
@@ -542,7 +542,7 @@ void NodalConcentratedElement::CalculateRightHandSide(
     auto& r_node = r_geom[0];
 
     // Volume acceleration
-    if (mELementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_MASS) && r_node.SolutionStepsDataHas(VOLUME_ACCELERATION)) {
+    if (mElementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_MASS) && r_node.SolutionStepsDataHas(VOLUME_ACCELERATION)) {
         const array_1d<double, 3 >& r_volume_acceleration = r_node.FastGetSolutionStepValue(VOLUME_ACCELERATION);
 
         // Compute and add external forces
@@ -557,8 +557,8 @@ void NodalConcentratedElement::CalculateRightHandSide(
     IndexType aux_index = 0;
 
     // The displacement terms
-    if( mELementalFlags.Is(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS) ||
-        mELementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_MASS)) {
+    if( mElementalFlags.Is(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS) ||
+        mElementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_MASS)) {
 
         // Compute and add internal forces
         const array_1d<double, 3 >& r_current_displacement = r_node.FastGetSolutionStepValue(DISPLACEMENT);
@@ -573,8 +573,8 @@ void NodalConcentratedElement::CalculateRightHandSide(
     }
 
     // The rotational terms
-    if( mELementalFlags.Is(NodalConcentratedElement::COMPUTE_ROTATIONAL_STIFFNESS) ||
-        mELementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_INERTIA)) {
+    if( mElementalFlags.Is(NodalConcentratedElement::COMPUTE_ROTATIONAL_STIFFNESS) ||
+        mElementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_INERTIA)) {
 
         // Compute and add internal forces
         const array_1d<double, 3 >& r_current_rotation = r_node.FastGetSolutionStepValue(ROTATION);
@@ -613,8 +613,8 @@ void NodalConcentratedElement::CalculateLeftHandSide(
     IndexType aux_index = 0;
 
     // The displacement terms
-    if( mELementalFlags.Is(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS) ||
-        mELementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_MASS)) {
+    if( mElementalFlags.Is(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS) ||
+        mElementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_MASS)) {
 
         const array_1d<double, 3 >& nodal_stiffness = HasProperties() ? (GetProperties().Has(NODAL_DISPLACEMENT_STIFFNESS) ? GetProperties().GetValue(NODAL_DISPLACEMENT_STIFFNESS) : r_const_this.GetValue(NODAL_DISPLACEMENT_STIFFNESS)) : r_const_this.GetValue(NODAL_DISPLACEMENT_STIFFNESS);
 
@@ -626,8 +626,8 @@ void NodalConcentratedElement::CalculateLeftHandSide(
     }
 
     // The rotational terms
-    if( mELementalFlags.Is(NodalConcentratedElement::COMPUTE_ROTATIONAL_STIFFNESS) ||
-        mELementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_INERTIA)) {
+    if( mElementalFlags.Is(NodalConcentratedElement::COMPUTE_ROTATIONAL_STIFFNESS) ||
+        mElementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_INERTIA)) {
 
         const array_1d<double, 3 >& nodal_rotational_stiffness = HasProperties() ? (GetProperties().Has(NODAL_ROTATIONAL_STIFFNESS) ? GetProperties().GetValue(NODAL_ROTATIONAL_STIFFNESS) : r_const_this.GetValue(NODAL_ROTATIONAL_STIFFNESS)) : r_const_this.GetValue(NODAL_ROTATIONAL_STIFFNESS);
 
@@ -659,8 +659,8 @@ void NodalConcentratedElement::AddExplicitContribution(
     // The displacement terms
     // Computing the nodal mass
     if (rDestinationVariable == NODAL_MASS ) {
-        if( mELementalFlags.Is(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS) ||
-            mELementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_MASS)) {
+        if( mElementalFlags.Is(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS) ||
+            mElementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_MASS)) {
 
             const double nodal_mass = HasProperties() ? (GetProperties().Has(NODAL_MASS) ? GetProperties().GetValue(NODAL_MASS) : r_const_this.GetValue(NODAL_MASS)) : r_const_this.GetValue(NODAL_MASS);
 
@@ -672,8 +672,8 @@ void NodalConcentratedElement::AddExplicitContribution(
     // The rotational terms
     // Computing the nodal inertia
     if (rDestinationVariable == NODAL_INERTIA ) {
-        if( mELementalFlags.Is(NodalConcentratedElement::COMPUTE_ROTATIONAL_STIFFNESS) ||
-            mELementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_INERTIA)) {
+        if( mElementalFlags.Is(NodalConcentratedElement::COMPUTE_ROTATIONAL_STIFFNESS) ||
+            mElementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_INERTIA)) {
 
             const array_1d<double, 3>& const_nodal_inertia =  HasProperties() ? (GetProperties().Has(NODAL_INERTIA) ? GetProperties().GetValue(NODAL_INERTIA) : r_const_this.GetValue(NODAL_INERTIA)) : r_const_this.GetValue(NODAL_INERTIA);
 
@@ -709,7 +709,7 @@ void NodalConcentratedElement::AddExplicitContribution(
     Vector damping_residual_contribution = ZeroVector(system_size);
 
     // Calculate damping contribution to residual -->
-    if (mELementalFlags.Is(NodalConcentratedElement::COMPUTE_DAMPING_RATIO) || mELementalFlags.Is(NodalConcentratedElement::COMPUTE_ROTATIONAL_DAMPING_RATIO)) {
+    if (mElementalFlags.Is(NodalConcentratedElement::COMPUTE_DAMPING_RATIO) || mElementalFlags.Is(NodalConcentratedElement::COMPUTE_ROTATIONAL_DAMPING_RATIO)) {
         Vector current_nodal_velocities = ZeroVector(system_size);
         this->GetFirstDerivativesVector(current_nodal_velocities);
 
@@ -725,8 +725,8 @@ void NodalConcentratedElement::AddExplicitContribution(
 
     // Computing the force residual
     if (rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL) {
-        if( mELementalFlags.Is(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS) ||
-            mELementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_MASS)) {
+        if( mElementalFlags.Is(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS) ||
+            mElementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_MASS)) {
 
             array_1d<double, 3>& r_force_residual = r_node.FastGetSolutionStepValue(FORCE_RESIDUAL);
 
@@ -739,8 +739,8 @@ void NodalConcentratedElement::AddExplicitContribution(
     }
 
     if (rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == MOMENT_RESIDUAL) {
-        if( mELementalFlags.Is(NodalConcentratedElement::COMPUTE_ROTATIONAL_STIFFNESS) ||
-            mELementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_INERTIA)) {
+        if( mElementalFlags.Is(NodalConcentratedElement::COMPUTE_ROTATIONAL_STIFFNESS) ||
+            mElementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_INERTIA)) {
 
             array_1d<double, 3>& r_moment_residual = r_node.FastGetSolutionStepValue(MOMENT_RESIDUAL);
 
@@ -780,8 +780,8 @@ void NodalConcentratedElement::CalculateMassMatrix(
     IndexType aux_index = 0;
 
     // The displacement terms
-    if( mELementalFlags.Is(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS) ||
-        mELementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_MASS)) {
+    if( mElementalFlags.Is(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS) ||
+        mElementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_MASS)) {
 
         const double nodal_mass = HasProperties() ? (GetProperties().Has(NODAL_MASS) ? GetProperties().GetValue(NODAL_MASS) : r_const_this.GetValue(NODAL_MASS)) : r_const_this.GetValue(NODAL_MASS);
 
@@ -793,8 +793,8 @@ void NodalConcentratedElement::CalculateMassMatrix(
     }
 
     // The rotational terms
-    if( mELementalFlags.Is(NodalConcentratedElement::COMPUTE_ROTATIONAL_STIFFNESS) ||
-        mELementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_INERTIA)) {
+    if( mElementalFlags.Is(NodalConcentratedElement::COMPUTE_ROTATIONAL_STIFFNESS) ||
+        mElementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_INERTIA)) {
 
         const array_1d<double, 3>& r_nodal_inertia =  HasProperties() ? (GetProperties().Has(NODAL_INERTIA) ? GetProperties().GetValue(NODAL_INERTIA) : r_const_this.GetValue(NODAL_INERTIA)) : r_const_this.GetValue(NODAL_INERTIA);
 
@@ -826,14 +826,14 @@ void NodalConcentratedElement::CalculateDampingMatrix(
     rDampingMatrix = ZeroMatrix( system_size, system_size );
 
     //Check, if Rayleigh damping is available; use nodal damping, if not
-    if( mELementalFlags.Is(NodalConcentratedElement::COMPUTE_RAYLEIGH_DAMPING) ) {
+    if( mElementalFlags.Is(NodalConcentratedElement::COMPUTE_RAYLEIGH_DAMPING) ) {
         StructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(*this, rDampingMatrix, rCurrentProcessInfo, system_size);
     } else {
         // We get the reference
         const auto& r_const_this = *this;
 
         IndexType aux_index = 0;
-        if( mELementalFlags.Is(NodalConcentratedElement::COMPUTE_DAMPING_RATIO) ) {
+        if( mElementalFlags.Is(NodalConcentratedElement::COMPUTE_DAMPING_RATIO) ) {
             const array_1d<double, 3 >& nodal_damping_ratio = HasProperties() ? (GetProperties().Has(NODAL_DAMPING_RATIO) ? GetProperties().GetValue(NODAL_DAMPING_RATIO) : r_const_this.GetValue(NODAL_DAMPING_RATIO)) : r_const_this.GetValue(NODAL_DAMPING_RATIO);
             for ( IndexType j = 0; j < dimension; ++j ) {
                 rDampingMatrix(j, j) += nodal_damping_ratio[j];
@@ -841,7 +841,7 @@ void NodalConcentratedElement::CalculateDampingMatrix(
 
             aux_index += dimension;
         }
-        if( mELementalFlags.Is(NodalConcentratedElement::COMPUTE_ROTATIONAL_DAMPING_RATIO) ) {
+        if( mElementalFlags.Is(NodalConcentratedElement::COMPUTE_ROTATIONAL_DAMPING_RATIO) ) {
             const array_1d<double, 3 >& nodal_rotational_damping_ratio = HasProperties() ? (GetProperties().Has(NODAL_ROTATIONAL_DAMPING_RATIO) ? GetProperties().GetValue(NODAL_ROTATIONAL_DAMPING_RATIO) : r_const_this.GetValue(NODAL_ROTATIONAL_DAMPING_RATIO)) : r_const_this.GetValue(NODAL_ROTATIONAL_DAMPING_RATIO);
             for ( IndexType j = 0; j < dimension; ++j ) {
                 rDampingMatrix(aux_index + j, aux_index+ j) += nodal_rotational_damping_ratio[j];
@@ -862,14 +862,14 @@ std::size_t NodalConcentratedElement::ComputeSizeOfSystem() const
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
 
     // The displacement terms
-    if( mELementalFlags.Is(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS) ||
-        mELementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_MASS)) {
+    if( mElementalFlags.Is(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS) ||
+        mElementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_MASS)) {
         system_size += dimension;
     }
 
     // The rotational terms
-    if( mELementalFlags.Is(NodalConcentratedElement::COMPUTE_ROTATIONAL_STIFFNESS) ||
-        mELementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_INERTIA)) {
+    if( mElementalFlags.Is(NodalConcentratedElement::COMPUTE_ROTATIONAL_STIFFNESS) ||
+        mElementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_INERTIA)) {
         system_size += dimension;
     }
 
@@ -887,8 +887,8 @@ int NodalConcentratedElement::Check( const ProcessInfo& rCurrentProcessInfo ) co
     const Node& r_node = this->GetGeometry()[0];
 
     // The displacement terms
-    if( mELementalFlags.Is(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS) ||
-        mELementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_MASS)) {
+    if( mElementalFlags.Is(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS) ||
+        mElementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_MASS)) {
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,r_node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VOLUME_ACCELERATION,r_node)
 
@@ -898,8 +898,8 @@ int NodalConcentratedElement::Check( const ProcessInfo& rCurrentProcessInfo ) co
     }
 
     // The rotational terms
-    if( mELementalFlags.Is(NodalConcentratedElement::COMPUTE_ROTATIONAL_STIFFNESS) ||
-        mELementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_INERTIA)) {
+    if( mElementalFlags.Is(NodalConcentratedElement::COMPUTE_ROTATIONAL_STIFFNESS) ||
+        mElementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_INERTIA)) {
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ROTATION,r_node)
 
         KRATOS_CHECK_DOF_IN_NODE(ROTATION_X,r_node)
@@ -918,7 +918,7 @@ int NodalConcentratedElement::Check( const ProcessInfo& rCurrentProcessInfo ) co
 void NodalConcentratedElement::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element )
-    rSerializer.save("ELementalFlags",mELementalFlags);
+    rSerializer.save("ElementalFlags",mElementalFlags);
 }
 
 /***********************************************************************************/
@@ -927,7 +927,7 @@ void NodalConcentratedElement::save( Serializer& rSerializer ) const
 void NodalConcentratedElement::load( Serializer& rSerializer )
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
-    rSerializer.load("ELementalFlags",mELementalFlags);
+    rSerializer.load("ElementalFlags",mElementalFlags);
 }
 
 } // Namespace Kratos

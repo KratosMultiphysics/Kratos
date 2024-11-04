@@ -300,7 +300,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    Flags mELementalFlags; /// Elemental flags
+    Flags mElementalFlags; /// Elemental flags
 
     ///@}
     ///@name Protected Operators
