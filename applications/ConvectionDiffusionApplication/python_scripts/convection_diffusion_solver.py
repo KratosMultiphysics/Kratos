@@ -472,7 +472,7 @@ class ConvectionDiffusionSolver(PythonSolver):
             for key, value in mat["Variables"].items():
                 var = KratosMultiphysics.KratosGlobals.GetVariable(key)
                 if (self._check_variable_to_set(var)):
-                    if value.IsDouble() or value.IsInt():
+                    if value.IsNumber():
                         KratosMultiphysics.VariableUtils().SetVariable(var, value.GetDouble(), model_part.Nodes)
                     elif value.IsVector():
                         KratosMultiphysics.VariableUtils().SetVariable(var, value.GetVector(), model_part.Nodes)
