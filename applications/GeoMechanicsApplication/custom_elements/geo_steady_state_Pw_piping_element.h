@@ -130,7 +130,6 @@ public:
 
         // calculate particle diameter to be replaced with Anne's version!
         const auto particle_d = GeoTransportEquationUtilities::CalculateParticleDiameter(Prop);
-        KRATOS_INFO("CalculateEquilibriumPipeHeight") << "dhdx: " << dhdx <<" particle_d: " << particle_d << std::endl;
         // todo calculate slope of pipe (in degrees! see formula), currently pipe is assumed to be horizontal
         const double pipe_slope = 0.0;
         const double theta      = Prop[PIPE_THETA];
@@ -253,9 +252,7 @@ private:
         const Vector&                                    rIntegrationCoefficients) const
     {
         const auto&  r_properties              = GetProperties();
-        KRATOS_INFO("Properties address") << "of element " << Id() << " = " << &r_properties << std::endl;
         const double dynamic_viscosity_inverse = 1.0 / r_properties[DYNAMIC_VISCOSITY];
-        //auto constitutive_matrix = FillPermeabilityMatrix(r_properties[PIPE_HEIGHT]);
         auto constitutive_matrix = FillPermeabilityMatrix( this->GetValue(PIPE_HEIGHT));
 
         auto result = BoundedMatrix<double, TNumNodes, TNumNodes>{ZeroMatrix{TNumNodes, TNumNodes}};
@@ -266,7 +263,6 @@ private:
                 rShapeFunctionGradients[integration_point_index], dynamic_viscosity_inverse,
                 constitutive_matrix, 1.0, rIntegrationCoefficients[integration_point_index]);
         }
-        KRATOS_INFO("CalculatePermeabilityMatrix") << "PIPE_HEIGHT " <<  this->GetValue(PIPE_HEIGHT) << " k: " << result << std::endl;
 
         return result;
     }

@@ -325,7 +325,6 @@ private:
                     double eq_height = OpenPipeElement->CalculateEquilibriumPipeHeight(
                         prop, Geom, OpenPipeElement->GetValue(PIPE_ELEMENT_LENGTH));
                     double current_height = OpenPipeElement->GetValue(PIPE_HEIGHT);
-                    KRATOS_INFO("check Piping equilibrium") << "Open Piping element: " << OpenPipeElement->Id() << " eq_height " << eq_height << " current_height " << current_height << std::endl;
 
                     // set erosion on true if current pipe height is greater than the equilibrium height
                     if (current_height > eq_height) {
