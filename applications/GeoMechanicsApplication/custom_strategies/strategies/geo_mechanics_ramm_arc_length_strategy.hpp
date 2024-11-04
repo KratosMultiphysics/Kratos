@@ -19,6 +19,9 @@
 // Application includes
 #include "geo_mechanics_application_variables.h"
 
+#include <boost/numeric/ublas/vector_expression.hpp>
+#include <boost/range/adaptor/filtered.hpp>
+
 namespace Kratos
 {
 
@@ -50,12 +53,9 @@ public:
     using GrandMotherType::mpDx; // Delta x of iteration i
     using GrandMotherType::mpScheme;
     using GrandMotherType::mReformDofSetAtEachStep;
-    using MotherType::mSubModelPartList;
-    using MotherType::mVariableNames;
 
-    GeoMechanicsRammArcLengthStrategy(ModelPart&                      model_part,
-                                      typename TSchemeType::Pointer   pScheme,
-                                      typename TLinearSolver::Pointer pNewLinearSolver,
+    GeoMechanicsRammArcLengthStrategy(ModelPart&                    model_part,
+                                      typename TSchemeType::Pointer pScheme,
                                       typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
                                       typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
                                       Parameters&                             rParameters,
@@ -64,17 +64,24 @@ public:
                                       bool ReformDofSetAtEachStep                           = false,
                                       bool MoveMeshFlag                                     = false)
         : GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(
-              model_part,
-              pScheme,
-              pNewLinearSolver,
-              pNewConvergenceCriteria,
-              pNewBuilderAndSolver,
-              rParameters,
-              MaxIterations,
-              CalculateReactions,
-              ReformDofSetAtEachStep,
-              MoveMeshFlag)
+              model_part, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, rParameters, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
     {
+        // Set Load SubModelParts and Variable names
+        if (rParameters["loads_sub_model_part_list"].size() > 0) {
+            mSubModelPartList.resize(rParameters["loads_sub_model_part_list"].size());
+            mVariableNames.resize(rParameters["loads_variable_list"].size());
+
+            if (mSubModelPartList.size() != mVariableNames.size())
+                KRATOS_ERROR << "For each SubModelPart there must be a corresponding nodal Variable"
+                             << std::endl;
+
+            for (unsigned int i = 0; i < mVariableNames.size(); ++i) {
+                mSubModelPartList[i] =
+                    &(model_part.GetSubModelPart(rParameters["loads_sub_model_part_list"][i].GetString()));
+                mVariableNames[i] = rParameters["loads_variable_list"][i].GetString();
+            }
+        }
+
         mDesiredIterations = rParameters["desired_iterations"].GetInt();
         mMaxRadiusFactor   = rParameters["max_radius_factor"].GetDouble();
         mMinRadiusFactor   = rParameters["min_radius_factor"].GetDouble();
@@ -306,7 +313,7 @@ public:
             else if (mRadius < mMinRadiusFactor * mRadius_0) mRadius = mMinRadiusFactor * mRadius_0;
 
             // Update Norm of x
-            mNormxEquilibrium = this->CalculateReferenceDofsNorm(rDofSet);
+            mNormxEquilibrium = CalculateReferenceDofsNorm(rDofSet);
         } else {
             std::cout << "************ NO CONVERGENCE: restoring equilibrium path ************" << std::endl;
 
@@ -534,6 +541,23 @@ protected:
         // Save the applied Lambda factor
         mLambda_old = mLambda;
     }
+
+private:
+    static double CalculateReferenceDofsNorm(DofsArrayType& rDofSet)
+    {
+        auto is_free_dof = [](const auto& rDof) { return rDof.IsFree(); };
+        auto free_dofs   = rDofSet | boost::adaptors::filtered(is_free_dof);
+
+        auto free_dof_values = Vector{boost::size(free_dofs)};
+        auto get_dof_value   = [](const auto& rDof) { return rDof.GetSolutionStepValue(); };
+        std::transform(std::begin(free_dofs), std::end(free_dofs), free_dof_values.begin(), get_dof_value);
+
+        return norm_2(free_dof_values);
+    }
+
+    std::vector<ModelPart*> mSubModelPartList; // List of every SubModelPart associated to an external load
+    std::vector<std::string> mVariableNames; // Name of the nodal variable associated to every SubModelPart
+
 }; // Class GeoMechanicsRammArcLengthStrategy
 
 } // namespace Kratos

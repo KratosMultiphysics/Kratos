@@ -117,12 +117,12 @@ class GeoMechanicalSolver(PythonSolver):
             "prebuild_dynamics"          : false,
             "search_neighbours_step"     : false,
             "linear_solver_settings":{
-                "solver_type": "AMGCL",
+                "solver_type": "amgcl",
                 "tolerance": 1.0e-6,
                 "max_iteration": 100,
                 "scaling": false,
                 "verbosity": 0,
-                "preconditioner_type": "ILU0Preconditioner",
+                "preconditioner_type": "amg",
                 "smoother_type": "ilu0",
                 "krylov_type": "gmres",
                 "coarsening_type": "aggregation"
@@ -489,7 +489,6 @@ class GeoMechanicalSolver(PythonSolver):
             self.strategy_params.AddValue("loads_variable_list",self.settings["loads_variable_list"])
             solving_strategy = GeoMechanicsApplication.GeoMechanicsNewtonRaphsonStrategy(self.computing_model_part,
                                                                                          self.scheme,
-                                                                                         self.linear_solver,
                                                                                          self.convergence_criterion,
                                                                                          builder_and_solver,
                                                                                          self.strategy_params,
@@ -504,7 +503,6 @@ class GeoMechanicalSolver(PythonSolver):
             self.strategy_params.AddValue("max_piping_iterations", self.settings["max_piping_iterations"])
             solving_strategy = GeoMechanicsApplication.GeoMechanicsNewtonRaphsonErosionProcessStrategy(self.computing_model_part,
                                                                                                        self.scheme,
-                                                                                                       self.linear_solver,
                                                                                                        self.convergence_criterion,
                                                                                                        builder_and_solver,
                                                                                                        self.strategy_params,
@@ -545,7 +543,6 @@ class GeoMechanicalSolver(PythonSolver):
             self.strategy_params.AddValue("loads_variable_list",self.settings["loads_variable_list"])
             solving_strategy = GeoMechanicsApplication.GeoMechanicsRammArcLengthStrategy(self.computing_model_part,
                                                                                          self.scheme,
-                                                                                         self.linear_solver,
                                                                                          self.convergence_criterion,
                                                                                          builder_and_solver,
                                                                                          self.strategy_params,
