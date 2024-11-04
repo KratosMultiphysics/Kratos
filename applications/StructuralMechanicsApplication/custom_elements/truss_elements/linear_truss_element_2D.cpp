@@ -178,12 +178,23 @@ void LinearTrussElement2D<TNNodes>::GetShapeFunctionsValues(
 
 template<SizeType TNNodes>
 void LinearTrussElement2D<TNNodes>::GetFirstDerivativesShapeFunctionsValues(
-    VectorType& rN,
+    VectorType& rdN_dX,
     const double Length,
     const double xi
     ) const
 {
-
+    if (rdN_dX.size() != SystemSize)
+        rdN_dX.resize(SystemSize, false);
+    if constexpr (NNodes == 2) {
+        const double inverse_l = 1.0 / Length;
+        rdN_dX[0] = -inverse_l;
+        rdN_dX[2] = inverse_l;
+    } else { // 3N
+        rdN_dX[0] = xi - 0.5;
+        rdN_dX[2] = -2.0 * xi;
+        rdN_dX[4] = xi + 0.5;
+        rdN_dX *= 2.0 / Length;
+    }
 }
 
 /***********************************************************************************/
