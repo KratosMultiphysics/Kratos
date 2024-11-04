@@ -49,6 +49,9 @@
 #include "custom_conditions/sbm_plain_stress_condition.h"
 #include "custom_conditions/load_plain_stress_condition.h"
 #include "custom_conditions/sbm_load_plain_stress_condition.h"
+#include "custom_conditions/support_fluid_dirichlet_condition.h"
+#include "custom_conditions/support_pressure_dirichlet_condition.h"
+#include "custom_conditions/sbm_fluid_condition.h"
 
 //modelers
 #include "custom_modelers/iga_modeler.h"
@@ -152,12 +155,15 @@ private:
     const SupportConvDiffCondition mSupportConvDiffCondition;
     const SBMLaplacianCondition mSBMLaplacianCondition;
     const SBMLaplacianNeumannCondition mSBMLaplacianNeumannCondition;
+    const SBMFluidCondition mSBMFluidCondition;
     const SBMSupportLagrangeCondition mSBMSupportLagrangeCondition;
     const SupportLaplacianLagrangeCondition mSupportLaplacianLagrangeCondition;
     const SupportPlainStressCondition mSupportPlainStressCondition;
     const LoadPlainStressCondition mLoadPlainStressCondition;
     const SBMPlainStressCondition mSBMPlainStressCondition;
     const SBMLoadPlainStressCondition mSBMLoadPlainStressCondition;
+    const SupportFluidDirichletCondition mSupportFluidDirichletCondition;
+    const SupportPressureDirichletCondition mSupportPressureDirichletCondition;
 
     // Modelers
     const IgaModeler mIgaModeler;

@@ -39,6 +39,7 @@ add_app ${KRATOS_APP_DIR}/ConvectionDiffusionApplication
 # add_app ${KRATOS_APP_DIR}/MeshingApplication
 # add_app ${KRATOS_APP_DIR}/ContactStructuralMechanicsApplication
 add_app ${KRATOS_APP_DIR}/IgaApplication
+add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication
 
 # Clean
 clear
@@ -53,4 +54,4 @@ cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -DKRATOS_GENERATE_PYTHON_STUBS=OFF
 
 # Build
-cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j24
+cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j16

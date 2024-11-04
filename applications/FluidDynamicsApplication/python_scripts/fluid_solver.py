@@ -93,12 +93,12 @@ class FluidSolver(PythonSolver):
             if not materials_imported:
                 KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, "Material properties have not been imported. Check \'material_import_settings\' in your ProjectParameters.json.")
             ## Replace default elements and conditions
-            self._ReplaceElementsAndConditions()
+            # self._ReplaceElementsAndConditions() ######
             ## Set and fill buffer
             self._SetAndFillBuffer()
 
         ## Executes the check and prepare model process. Always executed as it also assigns neighbors which are not saved in a restart
-        self._ExecuteCheckAndPrepare()
+        # self._ExecuteCheckAndPrepare() ######
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Model reading finished.")
 
@@ -148,9 +148,10 @@ class FluidSolver(PythonSolver):
         self._GetSolutionStrategy().Clear()
 
     def GetComputingModelPart(self):
-        if not self.main_model_part.HasSubModelPart("fluid_computational_model_part"):
-            raise Exception("The ComputingModelPart was not created yet!")
-        return self.main_model_part.GetSubModelPart("fluid_computational_model_part")
+        ######
+        # if not self.main_model_part.HasSubModelPart("fluid_computational_model_part"):
+        #     raise Exception("The ComputingModelPart was not created yet!")
+        return self.main_model_part
 
     ## FluidSolver specific methods.
     def _ReplaceElementsAndConditions(self):
@@ -308,6 +309,8 @@ class FluidSolver(PythonSolver):
     def _CreateScheme(self):
         domain_size = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         # Cases in which the element manages the time integration
+        self.element_integrates_in_time = True
+        print(self.element_integrates_in_time)
         if self.element_integrates_in_time:
             # "Fake" scheme for those cases in where the element manages the time integration
             # It is required to perform the nodal update once the current time step is solved

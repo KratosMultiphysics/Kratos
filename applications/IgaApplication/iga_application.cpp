@@ -72,6 +72,12 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSBMLoadPlainStressCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mSupportFluidDirichletCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mSupportPressureDirichletCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mSBMFluidCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
 {
 }
 
@@ -117,6 +123,9 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_CONDITION("LoadPlainStressCondition", mLoadPlainStressCondition)
     KRATOS_REGISTER_CONDITION("SBMPlainStressCondition", mSBMPlainStressCondition)
     KRATOS_REGISTER_CONDITION("SBMLoadPlainStressCondition", mSBMLoadPlainStressCondition)
+    KRATOS_REGISTER_CONDITION("SupportFluidDirichletCondition", mSupportFluidDirichletCondition)
+    KRATOS_REGISTER_CONDITION("SupportPressureDirichletCondition", mSupportPressureDirichletCondition)
+    KRATOS_REGISTER_CONDITION("SBMFluidCondition", mSBMFluidCondition)
 
     KRATOS_REGISTER_MODELER("IgaModeler", mIgaModeler);
     KRATOS_REGISTER_MODELER("RefinementModeler", mRefinementModeler);

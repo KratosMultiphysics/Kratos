@@ -46,11 +46,11 @@ class AnalysisStage(object):
         """This function executes the entire AnalysisStage
         It can be overridden by derived classes
         """
-        file_name = "time_txt_files/prepro_time.txt"
-        start_time = time.time()
+        # file_name = "time_txt_files/prepro_time.txt"
+        # start_time = time.time()
         self.Initialize()
-        with open(file_name, 'a') as file:
-            file.write(f"{time.time() - start_time}\n")
+        # with open(file_name, 'a') as file:
+        #     file.write(f"{time.time() - start_time}\n")
         
         self.RunSolutionLoop()
         self.Finalize()

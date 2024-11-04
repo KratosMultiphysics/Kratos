@@ -6,7 +6,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ruben Zorrilla
+//  Main authors:    Nicoló Antonelli
 //
 
 #if !defined(KRATOS_STOKES_ELEMENT_H_INCLUDED )
@@ -56,6 +56,14 @@ public:
 
     typedef Element BaseType;
 
+    /// Type for shape function values container
+    typedef Kratos::Vector ShapeFunctionsType;
+
+    /// Type for shape function derivatives container
+    typedef Kratos::Matrix ShapeDerivativesType;
+
+    /// Type for geometry calls
+    typedef Kratos::Geometry< Node > GeometryType;
     // static constexpr std::size_t NumNodes = TDim + 1;
 
     ///@}
@@ -95,6 +103,7 @@ public:
         PropertiesType::Pointer pProperties) const override;
 
 
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -116,76 +125,6 @@ public:
     {
     }
 
-    // New functions NICO
-
-
-
-    // void CalculateRightHandSide(
-    //     VectorType& rRightHandSideVector,
-    //     const ProcessInfo& rCurrentProcessInfo) override
-    // {
-    //     const SizeType number_of_nodes = GetGeometry().size();
-    //     const SizeType mat_size = number_of_nodes * 3;
-
-    //     if (rRightHandSideVector.size() != mat_size)
-    //         rRightHandSideVector.resize(mat_size);
-    //     noalias(rRightHandSideVector) = ZeroVector(mat_size);
-
-    //     MatrixType left_hand_side_matrix;
-
-    //     KRATOS_WATCH("RHS1")
-        
-    //     // CalculateAll(left_hand_side_matrix, rRightHandSideVector,
-    //     //     rCurrentProcessInfo, false, true);
-    //     MatrixType temp(0,0);
-    //     CalculateLocalSystem(temp, rRightHandSideVector, rCurrentProcessInfo);
-    // }
-
-
-    // void CalculateLeftHandSide(
-    //     MatrixType& rLeftHandSideMatrix,
-    //     const ProcessInfo& rCurrentProcessInfo) override
-    // {
-    //     KRATOS_WATCH("LHS0")
-    //     const SizeType number_of_nodes = GetGeometry().size();
-    //     const SizeType mat_size = number_of_nodes * 3;
-
-    //     VectorType right_hand_side_vector;
-
-    //     if (rLeftHandSideMatrix.size1() != mat_size)
-    //         rLeftHandSideMatrix.resize(mat_size, mat_size);
-    //     noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
-
-    //     // CalculateAll(rLeftHandSideMatrix, right_hand_side_vector,
-    //     //     rCurrentProcessInfo, true, false);
-        
-    //     KRATOS_WATCH("LHS1')
-
-    //     VectorType temp(0);
-    //     CalculateLocalSystem(rLeftHandSideMatrix, temp, rCurrentProcessInfo);
-    // }
-
-
-    // void CalculateLocalSystem(
-    //     MatrixType& rLeftHandSideMatrix,
-    //     VectorType& rRightHandSideVector,
-    //     const ProcessInfo& rCurrentProcessInfo) override
-    // {
-    //     const SizeType number_of_nodes = GetGeometry().size();
-    //     const SizeType mat_size = number_of_nodes * 3;
-
-    //     if (rRightHandSideVector.size() != mat_size)
-    //         rRightHandSideVector.resize(mat_size);
-    //     noalias(rRightHandSideVector) = ZeroVector(mat_size);
-
-    //     if (rLeftHandSideMatrix.size1() != mat_size)
-    //         rLeftHandSideMatrix.resize(mat_size, mat_size);
-    //     noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
-
-    //     CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,
-    //         rCurrentProcessInfo, true, true);
-    // }
-
     ///@}
     ///@name Access
     ///@{
@@ -196,6 +135,11 @@ public:
     ///@{
     
     IntegrationMethod GetIntegrationMethod() const override;
+
+    void CalculateOnIntegrationPoints(
+        const Variable<Vector>& rVariable,
+        std::vector<Vector>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Input and output
@@ -213,10 +157,98 @@ protected:
     ///@name Protected static Member Variables
     ///@{
 
+    template< class TVariableType >
+    void EvaluateInPoint(TVariableType& rResult,
+                         const Kratos::Variable<TVariableType>& Var,
+                         const ShapeFunctionsType& rShapeFunc,
+                         GeometryType& rGeom)
+    {
+        rResult = rShapeFunc[0] * rGeom[0].FastGetSolutionStepValue(Var);
+
+        for(SizeType i = 1; i < rShapeFunc.size(); i++)
+        {
+            rResult += rShapeFunc[i] * rGeom[i].FastGetSolutionStepValue(Var);
+        }
+    }
+
+    virtual void CalculateTau(double& TauOne,
+                              double& TauTwo,
+                              const double DynViscosity,
+                              const double h_element_size);
+
+    double ElementSize();
+
+    void AddMomentumTerms(MatrixType &rLHS,
+            VectorType &rRHS,
+            const double Density,
+            const double Viscosity,
+            const array_1d<double,3>& BodyForce,
+            const double TauTwo,
+            const ShapeFunctionsType &N,
+            const ShapeDerivativesType &DN_DX,
+            const double Weigth,
+            const Matrix& r_D,
+            Vector& r_stress_vector);
+
+    void AddContinuityTerms(MatrixType &rLHS,
+            VectorType &rRHS,
+            const double Density,
+            const array_1d<double,3>& BodyForce,
+            const double TauOne,
+            const ShapeFunctionsType &N,
+            const ShapeDerivativesType &DN_DX,
+            const double Weight);
+
+    void AddSecondOrderStabilizationTerms(MatrixType &rLHS,
+            VectorType &rRHS,
+            const double Density,
+            const array_1d<double,3>& BodyForce,
+            const double TauOne,
+            const ShapeFunctionsType &N,
+            const ShapeDerivativesType &DN_DX,
+            const double Weight,
+            const Matrix& r_D);
+    
+    Vector CalculateStressAtIntegrationPoint(const ProcessInfo& rCurrentProcessInfo);
+    
+    void InitializeMaterial();
+
+    ConstitutiveLaw::Pointer mpConstitutiveLaw; /// The pointer containing the constitutive laws
+
 
     ///@}
     ///@name Protected member Variables
     ///@{
+
+    /**
+     * Internal variables used in the kinematic calculations
+     */
+    struct ConstitutiveVariables
+    {
+        ConstitutiveLaw::StrainVectorType StrainVector;
+        ConstitutiveLaw::StressVectorType StressVector;
+        ConstitutiveLaw::VoigtSizeMatrixType D;
+
+        /**
+         * The default constructor
+         * @param StrainSize The size of the strain vector in Voigt notation
+         */
+        ConstitutiveVariables(const SizeType StrainSize)
+        {
+            if (StrainVector.size() != StrainSize)
+                StrainVector.resize(StrainSize);
+
+            if (StressVector.size() != StrainSize)
+                StressVector.resize(StrainSize);
+
+            if (D.size1() != StrainSize || D.size2() != StrainSize)
+                D.resize(StrainSize, StrainSize);
+
+            noalias(StrainVector) = ZeroVector(StrainSize);
+            noalias(StressVector) = ZeroVector(StrainSize);
+            noalias(D)            = ZeroMatrix(StrainSize, StrainSize);
+        }
+    };
 
 
     ///@}
@@ -249,18 +281,40 @@ protected:
 
 private:
     ///@name Static Member Variables
-    ///@{
 
+    // Dimension
+    int mDim;
+
+    // Basis function order
+    IndexType mBasisFunctionsOrder;
+
+    /// Order of integration.
+    Element::IntegrationMethod mIntegrationMethod;
+
+    /// Shape function derivatives at each integration point.
+    std::vector< ShapeDerivativesType > mDN_DX;
+
+    /// Integration weights at each integration point (as fraction of the element's area).
+    std::vector< double > mGaussWeight;
+
+    void CalculateB(
+        Matrix& rB,
+        const ShapeDerivativesType& r_DN_DX) const;
     
-    // /// Calculates LHS and RHS dependent on flags
-    // void CalculateAll(
-    //     MatrixType& rLeftHandSideMatrix,
-    //     VectorType& rRightHandSideVector,
-    //     const ProcessInfo& rCurrentProcessInfo,
-    //     const bool CalculateStiffnessMatrixFlag,
-    //     const bool CalculateResidualVectorFlag
-    // ) const;
+    // void CalculateB_second_order(
+    //     Matrix& B_second_order,
+    //     const ShapeDerivativesType& r_DDN_DDX) const;
+    
+    void CalculateB_derivative_x(
+        Matrix& B_derivative_x,
+        const ShapeDerivativesType& r_DDN_DDX) const;
+    
+    void CalculateB_derivative_y(
+        Matrix& B_derivative_y,
+        const ShapeDerivativesType& r_DDN_DDX) const;
 
+    void GetValuesVector(
+        Vector& rValues) const;
 
     ///@}
     ///@name Member Variables
