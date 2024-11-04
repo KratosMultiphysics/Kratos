@@ -15,7 +15,7 @@
 
 // Project includes
 #include "custom_processes/assign_nodal_elements_to_nodes_process.h"
-#include "custom_elements/nodal_concentrated_element.h"
+#include "custom_elements/nodal_elements/nodal_concentrated_element.h"
 #include "structural_mechanics_application_variables.h"
 #include "geometries/point_2d.h"
 #include "geometries/point_3d.h"
