@@ -953,12 +953,13 @@ void LinearTimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
 
             CalculateGeneralizedStrainsVector(strain_vector, length, Phi, xi, nodal_values);
 
-            if (rVariable == AXIAL_STRAIN)
+            if (rVariable == AXIAL_STRAIN) {
                 rOutput[IP] = strain_vector[0];
-            else if (rVariable == BENDING_STRAIN)
+            } else if (rVariable == BENDING_STRAIN) {
                 rOutput[IP] = strain_vector[1];
-            else if (rVariable == SHEAR_STRAIN)
+            } else if (rVariable == SHEAR_STRAIN) {
                 rOutput[IP] = strain_vector[2];
+            }
         }
     }
 }

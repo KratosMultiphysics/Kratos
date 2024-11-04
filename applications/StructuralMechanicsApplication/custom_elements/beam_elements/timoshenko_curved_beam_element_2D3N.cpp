@@ -726,12 +726,13 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateOnIntegrationPoints(
             mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values);
             const Vector &r_generalized_stresses = cl_values.GetStressVector();
 
-            if (rVariable == AXIAL_FORCE)
+            if (rVariable == AXIAL_FORCE) {
                 rOutput[IP] = r_generalized_stresses[0];
-            else if (rVariable == BENDING_MOMENT)
+            } else if (rVariable == BENDING_MOMENT) {
                 rOutput[IP] = r_generalized_stresses[1];
-            else if (rVariable == SHEAR_FORCE)
+            } else if (rVariable == SHEAR_FORCE) {
                 rOutput[IP] = r_generalized_stresses[2];
+            }
         }
     } else if (rVariable == AXIAL_STRAIN || rVariable == BENDING_STRAIN || rVariable == SHEAR_STRAIN) {
 
@@ -773,12 +774,13 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateOnIntegrationPoints(
             strain_vector[2] = Gamma[1]; // shear strain
             strain_vector[1] = inner_prod(B_b, nodal_values); // curvature
 
-            if (rVariable == AXIAL_STRAIN)
+            if (rVariable == AXIAL_STRAIN) {
                 rOutput[IP] = strain_vector[0];
-            else if (rVariable == BENDING_STRAIN)
+            } else if (rVariable == BENDING_STRAIN) {
                 rOutput[IP] = strain_vector[1];
-            else if (rVariable == SHEAR_STRAIN)
+            } else if (rVariable == SHEAR_STRAIN) {
                 rOutput[IP] = strain_vector[2];
+            }
         }
     }
 }
