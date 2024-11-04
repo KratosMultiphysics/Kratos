@@ -6,14 +6,14 @@ sidebar: kratos_for_users
 summary: 
 ---
 
-## 1. Introduction
+# 1. Introduction
 
 In the past section we have seen how to manipulate our geometry and perform several actions such as creating nodes, elements and writing or reading them.
 If we go back to section [1.2 Creating the database]() there was one action that needed to be done before performing this operation and that was adding our variables.
 
-In this section we will cover in detail this process and show how Kratos handles the databases.
+In this section we will cover in detail this process and show how Kratos handles the databases and how to query the info from several structures.
 
-## 2. Data typologies
+# 2. Data typologies
 
 When speaking about data in kratos we typically reffer to variables and we normally distigush three different types of data that one may use in a simulation.
 
@@ -59,7 +59,7 @@ node_3.SetValue(KMP.PRESSURE, 1.5)
 print(node.GetValue(KMP.PRESSURE))
 ``` 
 
-will return
+will produce:
 
 ```
 > 1.5
@@ -102,7 +102,7 @@ As with the non-historical variables, there are a set of functions provided to i
     print(node_3.GetSolutionStepValue(KMP.PRESSURE, 1)) # Gets PRESSURE in the time step 1 (previous time step)
     ```
 
-    will return:
+    will produce:
 
     ```Python
     > 2.0
@@ -110,165 +110,131 @@ As with the non-historical variables, there are a set of functions provided to i
     > 4.0
     ```
 
-## 2 The Node
+# 3 Model and ModelPart structures
 
+We are already very familiar with the modelpart and we have seen how to read and add entities to it, but we still have to cover a very important part which is how to access its data effectively.
 
+## 3.1 Model
 
+As we have explained the model, modelpart and submodelparts are structure hierarchicly and the root of the is the Model. There three main actions that one may want to do:
 
+- **Create a ModelPart**: This is a very basic operation that we have already seen several times during the course. An interesting point to add is that you may directly create a tree structure of modelparts and submodelparts by using a name spearated by `.`:
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-## 1. Introduction
-
-In the first tutorial you have successfully installed Kratos and confirmed it works, but in order to run a real simulation you will need some files that define your problem. This sections aims to cover which are the essential files that you need to run a full fledged simulation and start to play with some of the Kratos base structures.
-
-There are three different types of files that compose a Kratos simulation:
-* `.py`: A python script to run Kratos
-* `.json`: Contains settings for Kratos
-* `.mdpa`: Contains the model part information
-
-These files are usually created by a GUI (GiD, Salome, Flowgraph) and used to directly start the simulation. As the aim of the course is not to learn how to use these tools, you can download the input files for a simple structural mechanics case [here](https://github.com/KratosMultiphysics/Documentation/raw/refs/heads/master/Workshops_files/Kratos_Workshop_2019/Sources/2_Kratos_input_files_and_IO/2_Kratos_input_files_and_IO.zip).**
-
-## 2. The Kratos python script
-### 2.1. MainKratos.py
-The most important file that you have downloade is called `MainKratos.py` and as its name suggest is a python script. This would be the equivalent to your well known `.exe` for a classic problem, with the advantage that you can customize it according to your needs. It is responsible to load the required Kratos applications and to call the main Kratos functionalities as desired by the user. 
-
-Let's look at the content of this file for our structural analysis example:
-
-```python
-import KratosMultiphysics
-from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
-
-if __name__ == "__main__":
-
-    with open("ProjectParameters.json", 'r') as parameter_file:
-        parameters = KratosMultiphysics.Parameters(parameter_file.read())
+    ```Python
+    import KratosMultiphysics
 
     model = KratosMultiphysics.Model()
-    simulation = StructuralMechanicsAnalysis(model, parameters)
-    simulation.Run()
-```
+    root  = model.CreateModelPart("Root")
+    child = model.CreateModelPart("Root.Child")
+    leaf  = model.CreateModelPart("Root.Child.Leaf")
 
-In the first lines, Kratos and the structural analysis are imported. Then the settings are read from the `.json` and a Model is created. Finaly we use all that information to create a `StructuralMechanicsAnalysis` simulation. In the last line, the structural simulation executed. 
+    print(root)
+    ```
 
-It's important to notice that, while this script works and its correct, it is not the only correct way to initialize a Kratos simluation. As we will see by the end of the Crash course, there are more advanced usages.
+    will produce:
 
-### 2.2. Run Kratos from the command line
-Let's jump in and try the code:
+    ```
+    -Root- model part
+    Buffer Size : 1
+    Number of tables : 0
+    Number of sub model parts : 1
+    Current solution step index : 0
 
-Use the Kratos command prompt from your Kratos installation, navigate to the folder where your script is located and execute:
+    Number of Geometries  : 0
+    Mesh 0 :
+        Number of Nodes       : 0
+        Number of Properties  : 0
+        Number of Elements    : 0
+        Number of Conditions  : 0
+        Number of Constraints : 0
 
-```
-python MainKratos.py
-```
+    -Child- model part
+        Number of tables : 0
+        Number of sub model parts : 1
 
-If everything went well, you should have two folders with different output formats: The GiD post file ends with `.post.bin` and can be drag and droppen into GiD. Additionally VTK files are written to the VTK_Output folder. 
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 0
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 0
+            Number of Constraints : 0
+        -Leaf- model part
+            Number of tables : 0
+            Number of sub model parts : 0
 
-## 3. The project parameters file
-While you have used the `MainKratos.py` script to indicate some basic options for the simulation to work, the settings for a Kratos are stored in a `.json` file. 
-
-JSON is an open-standard format that uses human-readable text to transmit data objects consisting of attribute–value pairs. Kratos uses a thin wrapper arround this syntax, the `Parameters` object. 
-
-This section is a short version of a more detailed [description about the JSON syntax](How-to-write-a-JSON-configuration-file) and a [tutorial on how to read and use it](https://github.com/KratosMultiphysics/Kratos/wiki/Python-Script-Tutorial:-Reading-ProjectParameters).
-
-### 3.1 ProjectParameters.json
-The project parameters file for Kratos is commonly named `ProjectParameters.json`. Let's look at the content of this file for our structural analysis example. It contains four main blocks:
-
-* `problem_data`: General settings for the Kratos run
-* `solver_settings`: Settings for the solvers, like analysis type, linear solver, etc.
-* `processes`: Processes to e.g. apply boundary conditions.  
-* `output_processes`: Settings for the output
-
-Try to change the end time of the structural case from to `5.0` seconds and run the analysis again.
-
-## 4. The Model and ModePart files
-In KratosMultiphyscis, the information about your mesh is stored in a data structure named `Model`. The model is responsible of everything related with the geometrical part of Kratos. Only one can exist per simulation and will typically contain several `ModelParts`. The serialization of this modelparts. is what we call an `.mdpa`(**M**o**d**el**Pa**rt) and is your third input file.
-
-It contains blocks for properties, nodes, elements, conditions and initial values. In addition the mesh entities can be grouped into sub model parts. A detailed description of the syntax is given [here](Input-data).
-
-Don't worry to much about this right now as we will dip deeper into this file and how to read it. For now just asume that the `StructuralMechanicsAnalysis` is able to read it with the information in the `ProjectParameters.json`:
-
-```json
-"model_import_settings" : {
-    "input_type"     : "mdpa",
-    "input_filename" : "KratosWorkshop2019_high_rise_building_CSM"
-},
-```
+            Number of Geometries  : 0
+            Mesh 0 :
+                Number of Nodes       : 0
+                Number of Properties  : 0
+                Number of Elements    : 0
+                Number of Conditions  : 0
+                Number of Constraints : 0
+    ```
 
 
-### 4.1 Read a .mdpa file
-The following exercise is a short version of a more detailed [tutorial](Python-Script-Tutorial:-Reading-ModelPart-From-Input-File).
+- **Query a ModelPart**: One may want to check the status of a modelpart or get its reference. We can do this with the `HasModelPart` and `GetModelPart` functions. We can even obtain the list of all abailable modelparts using `GetModelPartNames`:
 
-A `ModelPart` has to be created via a `Model` object, which can contain several `ModelParts`. Right after creating the empty `ModelPart`, the variables needed for the following calculations have to be added. The empty `ModelPart` is then filled using the `ModelPartIO` that reads the information from an .mdpa file. In general, the analysis object takes care of these steps, especially because it knows which variables to add.
+    ```Python
+    import KratosMultiphysics
 
-Generaly, you will not have to deal with the lecture of a ModelPart, but 
+    model = KratosMultiphysics.Model()
+    model.CreateModelPart("Root")
+    model.CreateModelPart("Root.Child")
+    model.CreateModelPart("Root.Child.Leaf")
 
-Here you will do it directly in your python script. 
-If the .mdpa file contains application dependent elements, the corresponding Kratos application has to be imported. In our structural example, the elements are from the `StructuralMechanicsApplication`. 
+    # Get the list of existing modelparts
+    print(model.GetModelPartNames())
 
-Extend the small python script from the first part of the exercise with the following lines:
+    # Query for the existance of various ModelParts
+    print(model.HasModelPart("Child"))
+    print(model.HasModelPart("Root.Child"))
 
-```python
-import KratosMultiphysics.StructuralMechanicsApplication
+    # Retrieve a given ModelPart
+    print(model.GetModelPart("Root.Child.Leaf"))
+    ```
 
-this_model = KratosMultiphysics.Model()
-this_model_part = this_model.CreateModelPart("MyModelPart")
+    will produce:
 
-# Adding variables BEFORE reading the .mdpa
-this_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+    ```
+    ['Root', 'Root.Child', 'Root.Child.Leaf'] # List of ModelParts
 
-model_part_io = KratosMultiphysics.ModelPartIO("KratosWorkshop2019_high_rise_building_CSM") #path to file without ".mdpa"
-model_part_io.ReadModelPart(this_model_part)
-```
-You could also use the filename that you extracted from the ProjectParameters.json previously.
+    False   # "Child"
+    True    # "Root.Child"
 
-_Hint: You can_ ```>>> print(this_model_part)``` _to see its content._ 
+    -Leaf- model part
+    Number of tables : 0
+    Number of sub model parts : 0
 
-## Output
-An extensive example on writing GiD output can be found [here](Python-Script-Tutorial:-Writing-Output-File). In this part of the tutorial you will create a minimal configuration of a VTK output process. 
+    Number of Geometries  : 0
+    Mesh 0 :
+        Number of Nodes       : 0
+        Number of Properties  : 0
+        Number of Elements    : 0
+        Number of Conditions  : 0
+        Number of Constraints : 0
+    ```
 
-The `vtk_output` block in the ProjectParameters.json gives you an impression on the potential settings for the output. Here you will create just a minimal version of it.
-```python
-from vtk_output_process import VtkOutputProcess
-vtk_output_configuration = KratosMultiphysics.Parameters("""{
-        "model_part_name"        : \""""+this_model_part.Name+"""\",
-        "output_sub_model_parts" : false,
-        "nodal_solution_step_data_variables" : ["DISPLACEMENT"]
-    }""")
+- **Delete a ModelPart**: Finally after a modelpart becomes useless, we can delete it to free space with `DeleteModelPart`, or we can even chose to delete them all:
 
-vtk_output = VtkOutputProcess(this_model, vtk_output_configuration)
-```
+    ```Python
+    import KratosMultiphysics
 
-The output process is usually called at defined places inside the analysis. In order to use it, several functions need to be called in the right order.
+    model = KratosMultiphysics.Model()
+    model.CreateModelPart("Root")
+    model.CreateModelPart("Root.Child")
+    model.CreateModelPart("Root.Child.Leaf")
 
-```python
-vtk_output.ExecuteInitialize()
-vtk_output.ExecuteBeforeSolutionLoop()
-vtk_output.ExecuteInitializeSolutionStep()
-vtk_output.PrintOutput()
-vtk_output.ExecuteFinalizeSolutionStep()
-vtk_output.ExecuteFinalize()
-```
+    # Delete ModelPart
+    if (model.HasModelPart("Root"))
+        model.DeleteModelPart("Root")
+
+    # Query for the existance of various ModelParts
+    print(model.HasModelPart("Root"))
+    ```
+
+    will produce:
+
+    ```
+    False
+    ```

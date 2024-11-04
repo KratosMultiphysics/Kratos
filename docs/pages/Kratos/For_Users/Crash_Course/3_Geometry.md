@@ -6,11 +6,11 @@ sidebar: kratos_for_users
 summary: 
 ---
 
-## 1. The Model and ModePart
+# 1. The Model and ModePart
 
 The following section is a short version of a more detailed [tutorial](Python-Script-Tutorial:-Reading-ModelPart-From-Input-File).
 
-### 1.1 Create A Model and ModelPart
+## 1.1 Create A Model and ModelPart
 
 As you have seen before the Model and the modelpart are the data structures responsible for storing the geometrical information about your simulation.
 
@@ -96,7 +96,7 @@ Which will only print the information of the `model_part_1`:
         Number of Constraints : 0
 ```
 
-### 1.2 Create a Database
+## 1.2 Create a Database
 
 We have created a `Model` with various `ModelPart`, but those are essentially empty. In order fro them to be usefull we will need fill it with the gemoetrical information and the physical data.
 
@@ -118,7 +118,7 @@ Be aware that this step of of crucial important, specially if you pretemd to rea
 
 As stated in the Basics section, the `Solver` is nomraly in charge of reading the `ModelPart`, and the reason for that is in fact that the `Solver` knows which of those variables are used in the simulation.
 
-### 1.3 Read a .mdpa file
+## 1.3 Read a .mdpa file
 
 We have initialized our model and modelpart and assigned the variables we will use. Its now time to actually read the modelpart.
 
@@ -188,12 +188,13 @@ Will now yield:
             Number of Constraints : 0
 ```
 
-### 1.4 Manipulating the ModelPart
+## 1.4 Adding Entities Manually
 
 While you can read whole files, it is also possible to assign its entities manually. 
 
-A modelpart is generally constructed using `Nodes`, `Elements` and `Conditions`, and those entities can be created directly in python.
+A modelpart is generally constructed using `Nodes`, `Elements`, `Conditions` and `MasterSlaveConstraints``, and those entities can be created directly in python.
 
+### 1.4.1. Nodes
 Let's try to create a simple square using triangular elements. First we need to create the nodes, we will need 4 of them and we will add them to the `model_part_2` with the `CreateNewNode(ID, X, Y, Z)` function:
 
 ```python
@@ -203,7 +204,10 @@ node_3 = model_part_2.CreateNewNode(3, 1.00000, 1.00000, 0.00000)
 node_4 = model_part_2.CreateNewNode(4, 1.00000, 0.00000, 0.00000)
 ```
 
-Once we have all nodes, we can add a couple of elements.
+
+### 1.4.2. Elements and Conditions
+
+Once we have all nodes, we can add a couple of elements or conditions. Both entities have essentially the same signature, so we will only cover elements.
 
 The signature for the function that creates elements is `CreateElement(Name, ID, [LIST OF NODES ID], PROPERTIES)`.
 
@@ -241,7 +245,41 @@ We can check that out modelpart has the newly added info by printing it, as typi
         Number of Constraints : 0
 ```
 
-### 1.5 Submodelparts
+### 1.4.3. MasterSlaveConstraints
+
+This is the most advanced entity you can add to a modelpart and will represent a constrait that needs to hold while solving the problem. It requeires not only for existing entities but also for `Dofs` (degrees of freedom) which are normally managed by the solver.
+
+You will see more detailed information in future sections, but a sneek peak of how would look like would be something like this:
+
+```Python
+import KratosMultiphyscis
+
+# Creating the model and a model_part
+model = KratosMultiphysics.Model()
+model_part = model.CreateModelPart("constraint_example")
+
+# Setting up the database
+model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
+
+# Creating some nodes
+node_1 = model_part.CreateNewNode(1, 0.00000, 0.00000, 0.00000)
+node_2 = model_part.CreateNewNode(2, 0.00000, 1.00000, 0.00000)
+
+# Define some dofs (you haven't seen this yet, don't worry)
+KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X, mp)
+
+# Add the MasterSlaveConstraint Entity
+mp.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", id=1, 
+    node_1, KratosMultiphysics.DISPLACEMENT_X, 
+    node_2, KratosMultiphysics.DISPLACEMENT_X, 
+    1.0, 0
+)
+```
+
+As with the Elements and Conditions, the type (in this case `"LinearMasterSlaveConstraint"`) will determine its physcial properties.
+
+## 1.5 Submodelparts
 
 Aside for the possibility of a `Model` to contain several `ModelParts`, we also have the hability to create subdivisions inside a `ModelPart` which are called `SubModelPart`. 
 
@@ -252,7 +290,7 @@ It is very important to notice that:
 2) Entitites can belong to different submodelparts
 3) Submodelpart can have other submodelparts, hence, providing you with a mechanism to heriarchicly divide your modelparts. but an entity that belong to a given submodelpart will also belong to all its parents.
 
-## 2. Output
+# 2. Output
 The `vtk_output` block in the ProjectParameters.json gives you an impression on the potential settings for the output. Here you will create just a minimal version of it.
 
 In this part of the tutorial you will create a minimal configuration of a VTK output process. 
