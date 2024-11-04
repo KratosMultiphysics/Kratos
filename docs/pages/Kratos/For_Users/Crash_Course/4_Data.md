@@ -319,9 +319,31 @@ for node in model_part.Nodes:
 will produce:
 
 ```
+1
+2
+3
+4
 ```
 
-One may be interested in accessing entities belonging to a particular area of the ModelPart or which share a common given property. If your remember submodelparts, they are particulary suited for that need. Lets create a submodelpart, add a set of nodes and iterate over them:
+⚠️  Of course, we may have interest in accessing a particular individual entity. We can access it by id using the `[]` operator, but bear in mind that this is a very constly operation and should be avoided if possible.
+
+```Python
+my_node = model_part.Nodes[2]
+
+print(my_node)
+```
+
+will produce:
+
+```
+Node #2 :  (1, 0, 0)
+```
+
+## 3.2.3 Working with SubModelParts
+
+While needing the info of a individual entity may be a niche case, being interested in accessing entities belonging to a particular area of the ModelPart or which share a common given property is much more likely to happen. If your remember `SubModelParts`, they are particulary suited for that need. 
+
+Lets create a `SubModelPart`, add a set of `Nodes` and iterate over them:
 
 ```Python
 # You can chose any of the following lines to create the submodelpart
@@ -343,16 +365,50 @@ will produce:
 3
 ```
 
-⚠️  Of course, we may have interest in accessing a particular individual entity. We can access it by id using the `[]` operator, but bear in mind that this is a very constly operation and should be avoided if possible.
+## 3.2.4 Working with the Database
 
-```Python
-my_node = model_part.Nodes[2]
+We can use the same strategy that we are using to iterate elements to assing or query variables from their database. Lets try with some examples:
 
-print(my_node)
-```
+- **Setting a non historical variable to the elements of `model_part`**:
 
-will produce:
+    ```Python
+    for elemen in model_part.Elements:
+        element.SetValue(KratosMultiphysics.PRESSURE, element.Id*10)
+    ```
 
-```
-Node #2 :  (1, 0, 0)
-```
+- **Printing that variable**:
+
+    ```Python
+    for elemen in model_part.Elements:
+        print(element.GetValue(KratosMultiphysics.PRESSURE))
+    ```
+
+    will produce:
+
+    ```
+    10
+    20
+    30
+    40
+    ```
+
+- **Setting an historical variable to the first step of the nodes of `model_part`**:
+
+    ```Python
+    for node in model_part.Nodes:
+        node.SetSolutionStepValue(KratosMultiphysics.PRESSURE, node.Id*10, 0)
+    ```
+
+- **Printing the historical value of the nodes belonging to `sub_model_part`**:
+
+    ```Python
+    for node in sub_model_part.Nodes:
+        print(node.GetSolutionStepValue(KratosMultiphysics.PRESSURE, node.Id))
+    ```
+
+    will produce:
+
+    ```
+    10
+    30
+    ```
