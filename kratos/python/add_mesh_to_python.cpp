@@ -24,6 +24,8 @@
 #include "includes/properties.h"
 #include "python/add_mesh_to_python.h"
 #include "python/containers_interface.h"
+#include "utilities/layered_thickness_data_container.h"
+
 
 namespace Kratos::Python
 {
@@ -457,11 +459,11 @@ void  AddMeshToPython(pybind11::module& m)
     .def("SetValue", SetValueHelperFunction< Element, Variable< std::string > >)
     .def("GetValue", GetValueHelperFunction< Element, Variable< std::string > >)
 
-    .def("__setitem__", SetValueHelperFunction< Element, Variable< std::vector<DataValueContainer> > >)
-    .def("__getitem__", GetValueHelperFunction< Element, Variable< std::vector<DataValueContainer> > >)
-    .def("Has", HasHelperFunction< Element, Variable< std::vector<DataValueContainer> > >)
-    .def("SetValue", SetValueHelperFunction< Element, Variable< std::vector<DataValueContainer> > >)
-    .def("GetValue", GetValueHelperFunction< Element, Variable< std::vector<DataValueContainer> > >)
+    .def("__setitem__", SetValueHelperFunction< Element, Variable< LayeredThicknessDataContainer  > >)
+    .def("__getitem__", GetValueHelperFunction< Element, Variable< LayeredThicknessDataContainer  > >)
+    .def("Has", HasHelperFunction< Element, Variable< LayeredThicknessDataContainer  > >)
+    .def("SetValue", SetValueHelperFunction< Element, Variable< LayeredThicknessDataContainer  > >)
+    .def("GetValue", GetValueHelperFunction< Element, Variable< LayeredThicknessDataContainer  > >)
 
     .def("GetNode", GetNodeFromElement )
     .def("GetNodes", GetNodesFromElement )
@@ -609,11 +611,11 @@ void  AddMeshToPython(pybind11::module& m)
     .def("SetValue", SetValueHelperFunction< Condition, Variable< std::string > >)
     .def("GetValue", GetValueHelperFunction< Condition, Variable< std::string > >)
 
-    .def("__setitem__", SetValueHelperFunction< Condition, Variable< std::vector<DataValueContainer> > >)
-    .def("__getitem__", GetValueHelperFunction< Condition, Variable< std::vector<DataValueContainer> > >)
-    .def("Has", HasHelperFunction< Condition, Variable< std::vector<DataValueContainer> > >)
-    .def("SetValue", SetValueHelperFunction< Condition, Variable< std::vector<DataValueContainer> > >)
-    .def("GetValue", GetValueHelperFunction< Condition, Variable< std::vector<DataValueContainer> > >)
+    .def("__setitem__", SetValueHelperFunction< Condition, Variable< LayeredThicknessDataContainer  > >)
+    .def("__getitem__", GetValueHelperFunction< Condition, Variable< LayeredThicknessDataContainer  > >)
+    .def("Has", HasHelperFunction< Condition, Variable< LayeredThicknessDataContainer  > >)
+    .def("SetValue", SetValueHelperFunction< Condition, Variable< LayeredThicknessDataContainer  > >)
+    .def("GetValue", GetValueHelperFunction< Condition, Variable< LayeredThicknessDataContainer  > >)
 
     .def("GetNode", GetNodeFromCondition )
     .def("GetNodes", GetNodesFromCondition )
