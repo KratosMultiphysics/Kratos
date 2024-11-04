@@ -13,7 +13,7 @@ If we go back to section [1.2 Creating the database]() there was one action that
 
 In this section we will cover in detail this process and show how Kratos handles the databases and how to query the info from several structures.
 
-# 2. Data typologies
+# 2. Variables
 
 When speaking about data in kratos we typically reffer to variables and we normally distigush three different types of data that one may use in a simulation.
 
@@ -50,13 +50,13 @@ These variables can be used at any point in time without needing to tell the Mod
 Non Historical Variables can be interacted with their own providded `GetValue` and `SetValue` functions. For example, setting and getting a value of PRESSURE of a node:
 
 ```python
-import KratosMultiphyscis as KMP
+import KratosMultiphysics
 
 # ...
 
 node_3.SetValue(KMP.PRESSURE, 1.5)
 
-print(node.GetValue(KMP.PRESSURE))
+print(node.GetValue(KratosMultiphysics.PRESSURE))
 ``` 
 
 will produce:
@@ -83,23 +83,23 @@ As with the non-historical variables, there are a set of functions provided to i
 
     ```Python
     modelpart = Model.CreateModelPart("Test")
-    modelpart.AddNodalSolutionStepVariable(KMP.PRESSURE) # Indicates that I want to use PRESSURE as historical variable
+    modelpart.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE) # Indicates that I want to use PRESSURE as historical variable
     ```
 
 - **`SetSolutionStepValue`**: Sets a value to the entity containing the variable. If not specified it will do it by adding it to the current time step, but that can be changed specifying how many times steps back you want to set the value:
 
     ```Python
-    node_3.SetSolutionStepValue(KMP.PRESSURE, 2.0)    # Sets PRESSURE to 2 in the current time step
-    node_3.SetSolutionStepValue(KMP.PRESSURE, 2.0, 0) # Sets PRESSURE to 3 in the time step 0 (current time step)
-    node_3.SetSolutionStepValue(KMP.PRESSURE, 4.0, 1) # Sets PRESSURE to 4 in the time step 1 (previous time step)
+    node_3.SetSolutionStepValue(KratosMultiphysics.PRESSURE, 2.0)    # Sets PRESSURE to 2 in the current time step
+    node_3.SetSolutionStepValue(KratosMultiphysics.PRESSURE, 2.0, 0) # Sets PRESSURE to 3 in the time step 0 (current time step)
+    node_3.SetSolutionStepValue(KratosMultiphysics.PRESSURE, 4.0, 1) # Sets PRESSURE to 4 in the time step 1 (previous time step)
     ```
 
 - **`GetSolutionStepValue`**: Gets the variable in the current entity. If not specified it will do it by adding it to the current time step, but that can be changed specifying how many times steps back you want to set the value:
 
     ```Python
-    print(node_3.GetSolutionStepValue(KMP.PRESSURE))    # Gets PRESSURE in the current time step
-    print(node_3.GetSolutionStepValue(KMP.PRESSURE, 0)) # Gets PRESSURE in the time step 0 (current time step)
-    print(node_3.GetSolutionStepValue(KMP.PRESSURE, 1)) # Gets PRESSURE in the time step 1 (previous time step)
+    print(node_3.GetSolutionStepValue(KratosMultiphysics.PRESSURE))    # Gets PRESSURE in the current time step
+    print(node_3.GetSolutionStepValue(KratosMultiphysics.PRESSURE, 0)) # Gets PRESSURE in the time step 0 (current time step)
+    print(node_3.GetSolutionStepValue(KratosMultiphysics.PRESSURE, 1)) # Gets PRESSURE in the time step 1 (previous time step)
     ```
 
     will produce:
@@ -112,11 +112,11 @@ As with the non-historical variables, there are a set of functions provided to i
 
 # 3 Model and ModelPart structures
 
-We are already very familiar with the modelpart and we have seen how to read and add entities to it, but we still have to cover a very important part which is how to access its data effectively.
+We are already very familiar with the modelpart and we have seen how to read and add entities to it, but we still have to cover a very important part which is how to access its data effectively
 
 ## 3.1 Model
 
-As we have explained the model, modelpart and submodelparts are structure hierarchicly and the root of the is the Model. There three main actions that one may want to do:
+As we have explained the model, modelpart and submodelparts are structure hierarchicly and the root of the is the Model. There three main actions that one may want to do with a model:
 
 - **Create a ModelPart**: This is a very basic operation that we have already seen several times during the course. An interesting point to add is that you may directly create a tree structure of modelparts and submodelparts by using a name spearated by `.`:
 
@@ -215,7 +215,7 @@ As we have explained the model, modelpart and submodelparts are structure hierar
         Number of Constraints : 0
     ```
 
-- **Delete a ModelPart**: Finally after a modelpart becomes useless, we can delete it to free space with `DeleteModelPart`, or we can even chose to delete them all:
+- **Delete a ModelPart**: Finally after a modelpart becomes useless, we can delete it to free space with `DeleteModelPart`:
 
     ```Python
     import KratosMultiphysics
@@ -238,3 +238,121 @@ As we have explained the model, modelpart and submodelparts are structure hierar
     ```
     False
     ```
+
+## 3.2 ModelPart
+
+Modepart becomes a more interesting data structre. We have seen in the previous sections some of the very basic operations needed to have a insight of the structure, like adding nodes and elements, or preparing the database as we commented in the data section, but much more can be done. In this section we will go throug some of the typical operations you will see in Kratos scripts:
+
+## 3.2.1 Creating Entities
+
+We have already seen this, but for the sake of completness we will present it again.
+
+Given a ModelPart:
+
+```Python
+import KratosMultiphysics
+
+model = KratosMultiphysics.Model()
+model_part = model.CreateModelPart("ModelPart")
+
+model_part.AddNodalSolutionStepVariable(KratosMultiphyscis.PRESSURE)
+model_part.AddNodalSolutionStepVariable(KratosMultiphyscis.DISPLACEMENT)
+model_part.AddNodalSolutionStepVariable(KratosMultiphyscis.REACTION)
+model_part.SetBufferSize(2)
+```
+
+One can create nodes:
+
+```python
+node_1 = model_part.CreateNewNode(1, 0.00, 0.00, 0.00)
+node_2 = model_part.CreateNewNode(2, 1.00, 0.00, 0.00)
+node_3 = model_part.CreateNewNode(3, 1.00, 1.00, 0.00)
+node_4 = model_part.CreateNewNode(4, 1.00, 0.00, 0.00)
+```
+
+Elements
+
+```python
+element_1 = model_part.CreateNewElement("Element2D3N", 1, [1,3,2], model_part.GetProperties(1))
+element_2 = model_part.CreateNewElement("Element2D3N", 2, [1,4,3], model_part.GetProperties(1))
+```
+
+Conditions:
+
+```python
+condition_1 = model_part.CreateNewElement("LineCondition2D2N", 1, [1,2], model_part.GetProperties(1))
+```
+
+And master slave constrains:
+
+```python
+msc_1 = model.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 1, 
+    node_1, KratosMultiphysics.DISPLACEMENT_X, 
+    node_2, KratosMultiphysics.DISPLACEMENT_X, 
+    1.0, 0
+)
+```
+
+## 3.2.2 Accessing Entities
+
+Once a modelpart contains entities, we can be interested in accessing them for any given reason. The prefered way to access entities is trough iterators. For example:
+
+```Python
+for element in model_part.Elements:
+    print(element.Id)
+```
+
+will produce:
+
+```
+```
+
+As you can se, we have accessed all elements, and for performance resons we cannot assume that the iterator order will be the same as the natural order in which they were stored in the modelpart.
+
+Similarly, nodes can be queried the same way:
+
+```Python
+for node in model_part.Nodes:
+    print(node.Id)
+```
+
+will produce:
+
+```
+```
+
+One may be interested in accessing entities belonging to a particular area of the ModelPart or which share a common given property. If your remember submodelparts, they are particulary suited for that need. Lets create a submodelpart, add a set of nodes and iterate over them:
+
+```Python
+# You can chose any of the following lines to create the submodelpart
+sub_model_part = model.CreateModelPart("ModelPart.SubModelPart")
+# sub_model_part = model_part.CreateSubModelPart("SubModelPart")
+
+# Add the nodes
+sub_model_part.AddNodes([1,3])
+
+# Print the id's of the SubModelPart Nodes
+for node in sub_model_part.Nodes:
+    print(node.Id)
+```
+
+will produce:
+
+```
+1
+3
+```
+
+⚠️  Of course, we may have interest in accessing a particular individual entity. We can access it by id using the `[]` operator, but bear in mind that this is a very constly operation and should be avoided if possible.
+
+```Python
+my_node = model_part.Nodes[2]
+
+print(my_node)
+```
+
+will produce:
+
+```
+Node #2 :  (1, 0, 0)
+```
