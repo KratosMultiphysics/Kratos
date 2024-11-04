@@ -63,7 +63,7 @@ public:
     /**
      * @brief Destructor.
      */
-    ~LayeredThicknessDataContainer () = default;
+    virtual ~LayeredThicknessDataContainer () = default;
 
     /**
      * @brief Get function to access the DataValueContainer at a specific index.
