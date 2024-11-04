@@ -931,34 +931,7 @@ void SphericParticle::EvaluateBallToBallForcesForPositiveIndentiations(SphericPa
     mDiscontinuumConstitutiveLaw->CalculateForces(r_process_info, OldLocalElasticContactForce,
             LocalElasticContactForce, LocalDeltDisp, data_buffer.mLocalRelVel, indentation, previous_indentation,
             ViscoDampingLocalContactForce, cohesive_force, this, p_neighbour_element, sliding, LocalCoordSystem);
-// /////////////////////////////////////////////////////////////////////////////
-//     double particle_weight = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT); // Coupling weight of the particle center
-//         // to check if particle coupling weight is non zer0,
-//     if (particle_weight!=0)
-//     {
-//         const double other_young = element2->GetYoung();
-//         const double my_young = this->GetYoung();
 
-//         const double inverse_of_sum_of_youngs = 1.0 / (other_young + my_young);
-//         const double my_arm_length = this->GetRadius() - indentation * other_young * inverse_of_sum_of_youngs;
-//         const double other_arm_length  = element2->GetRadius() - indentation * my_young * inverse_of_sum_of_youngs;
-//         double interpolated_weight = (particle_weight*other_arm_length+element2->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT)*my_arm_length)/(my_arm_length+other_arm_length);
-    
-//     // Calculate the interpolated weight based on the current and neighboring particles, w'=w1+((3r1+r2-|y1-y2|)/2|y1-y2|)*(w2-w1) considering some indentation
-//     // double interpolated_weight = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT)+
-//     // (( 3* this->GetGeometry()[0].FastGetSolutionStepValue(RADIUS) + element2->GetGeometry()[0].FastGetSolutionStepValue(RADIUS)-
-//     // std::abs(this->GetGeometry()[0][1]-element2->GetGeometry()[0][1]))/2*std::abs(this->GetGeometry()[0][1]-element2->GetGeometry()[0][1]))*(element2->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT)-this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT));
-
-//     // Scale forces by the interpolated weight
-//     for(int i=0; i<3; ++i)
-//     {
-//         LocalElasticContactForce[i] *= (interpolated_weight/particle_weight); // Scale elastic contact force
-//         ViscoDampingLocalContactForce[i] *= (interpolated_weight/particle_weight); // Scale visco-damping contact force
-//     }
-
-//     cohesive_force *=(interpolated_weight/particle_weight); // Scale cohesive force
-//     }
-////////////////////////////////////////////////////////////////////////////////////////////////
 }
 
 
@@ -990,8 +963,7 @@ void SphericParticle::EvaluateBallToRigidFaceForcesForPositiveIndentations(Spher
                                                                     this,
                                                                     wall,
                                                                     sliding);
-                //  std::cout<<"Wall_contact "<<this->Id()<<" "<<LocalElasticContactForce[0]<<" "<<LocalElasticContactForce[1]<<" "<<LocalElasticContactForce[2]<<std::endl<<std::flush;
-                
+            
   }
 
 

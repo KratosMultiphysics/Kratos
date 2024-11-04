@@ -88,8 +88,36 @@ for (ModelPart::NodesContainerType::iterator node_it = rFEMModelPart.NodesBegin(
         node_it->FastGetSolutionStepValue(NODAL_COUPLING_WEIGHT)=0.0; // assigning weights to the nodes in the non-hybrid region
     }
 }
-
 }
+
+// void SetNodalCouplingWeightsOnFEMLinearly(ModelPart& rFEMModelPart, double& y_fem_boundary, double& y_dem_boundary, double& tolerance, double& weight_fem_boundary, double& weight_dem_boundary)
+// {
+//     // loop through all nodes in modelpart and assign weights to the nodes in the hybrid region
+//     for (ModelPart::NodesContainerType::iterator node_it = rFEMModelPart.NodesBegin(); node_it != rFEMModelPart.NodesEnd(); ++node_it)
+//     {
+//         double y_pos = node_it->Y();
+
+//         if (y_pos >= y_fem_boundary - tolerance && y_pos <= y_dem_boundary + tolerance) // assigning weights to the nodes in the hybrid region
+//         {
+//             double normalized_y = (y_pos - y_fem_boundary) / (y_dem_boundary - y_fem_boundary); // normalized position between boundaries
+//             double weight = weight_fem_boundary + (weight_dem_boundary - weight_fem_boundary) * (3 * std::pow(normalized_y, 2) - 2 * std::pow(normalized_y, 3)); // cubic interpolation
+//             node_it->FastGetSolutionStepValue(NODAL_COUPLING_WEIGHT) = weight;
+//         }
+//         else if (y_pos <= y_fem_boundary + tolerance && y_pos >= y_dem_boundary - tolerance) // assigning weights to the nodes in the hybrid region
+//         {
+//             double normalized_y = (y_pos - y_dem_boundary) / (y_fem_boundary - y_dem_boundary); // normalized position between boundaries
+//             double weight = weight_dem_boundary + (weight_fem_boundary - weight_dem_boundary) * (3 * std::pow(normalized_y, 2) - 2 * std::pow(normalized_y, 3)); // cubic interpolation
+//             node_it->FastGetSolutionStepValue(NODAL_COUPLING_WEIGHT) = weight;
+//         }
+//         else
+//         {
+//             node_it->FastGetSolutionStepValue(NODAL_COUPLING_WEIGHT) = 0.0; // assigning weights to the nodes in the non-hybrid region
+//         }
+//     }
+// }
+
+
+
 
 
 void CalculateDisplacementDifference(ModelPart& rFEMModelPart, double& dt)
@@ -124,33 +152,67 @@ void CalculateDisplacementDifference(ModelPart& rFEMModelPart, double& dt)
 
 
 
+// void CalculateNodalCouplingForces(ModelPart& rFEMModelPart, double& penalty_max)
+// {
+//     for (ModelPart::ElementsContainerType::iterator elem_it = rFEMModelPart.ElementsBegin(); elem_it != rFEMModelPart.ElementsEnd(); ++elem_it)
+//     {   
+//         //std::vector<double> V = elem_it->CalculateOnIntegrationPoints(INTEGRATION_WEIGHT,rFEMModelPart.ProcessInfo);// V is an array of integration weights 
+//         // to check if any of the nodes in the element is in the hybrid region by checking elem_it->GetGeometry()[n].FastGetSolutionStepValue(NODAL_MAUX) is 0 or not
+//         if(elem_it->GetGeometry()[0].FastGetSolutionStepValue(NODAL_MAUX) != 0)
+//         {
+//             for (unsigned int i = 0; i < elem_it->GetGeometry().IntegrationPointsNumber(); i++)
+//             {
+//                 double J = (elem_it->GetGeometry().DeterminantOfJacobian(i));
+//                 // double w = V[i] / J;
+//                 double w = 1.0;
+//                 const Kratos::Matrix shape_functions = elem_it->GetGeometry().ShapeFunctionsValues();
+//                 for (unsigned int n = 0; n < elem_it->GetGeometry().size(); n++)
+//                 {
+//                     for (unsigned int m = 0; m < elem_it->GetGeometry().size(); m++)
+//                     {
+//                         double vol = penalty_max * w * J * shape_functions(i,n) * shape_functions(i,m);
+//                         elem_it->GetGeometry()[n].FastGetSolutionStepValue(POINT_LOAD) += (vol * elem_it->GetGeometry()[n].FastGetSolutionStepValue(PENALIZE_DISPLACEMENT) );
+//                     }
+//                 }
+//             }
+//         }
+//     }
+// }
+
 void CalculateNodalCouplingForces(ModelPart& rFEMModelPart, double& penalty_max)
 {
     for (ModelPart::ElementsContainerType::iterator elem_it = rFEMModelPart.ElementsBegin(); elem_it != rFEMModelPart.ElementsEnd(); ++elem_it)
     {   
-        //std::vector<double> V = elem_it->CalculateOnIntegrationPoints(INTEGRATION_WEIGHT,rFEMModelPart.ProcessInfo);// V is an array of integration weights 
-        // to check if any of the nodes in the element is in the hybrid region by checking elem_it->GetGeometry()[n].FastGetSolutionStepValue(NODAL_MAUX) is 0 or not
-        if(elem_it->GetGeometry()[0].FastGetSolutionStepValue(NODAL_MAUX) != 0)
+        // Check if any of the nodes in the element is in the hybrid region
+        if (elem_it->GetGeometry()[0].FastGetSolutionStepValue(NODAL_MAUX) != 0)
         {
             for (unsigned int i = 0; i < elem_it->GetGeometry().IntegrationPointsNumber(); i++)
             {
-                double J = (elem_it->GetGeometry().DeterminantOfJacobian(i));
-                //double w = V[i] / J;
+                double J = elem_it->GetGeometry().DeterminantOfJacobian(i);
+                // Adjust this weight if needed. Assuming V[i] / J is omitted here
                 double w = 1.0;
                 const Kratos::Matrix shape_functions = elem_it->GetGeometry().ShapeFunctionsValues();
+                
                 for (unsigned int n = 0; n < elem_it->GetGeometry().size(); n++)
                 {
                     for (unsigned int m = 0; m < elem_it->GetGeometry().size(); m++)
                     {
-                        double vol = penalty_max * w * J * shape_functions(i,n) * shape_functions(i,m);
-                        elem_it->GetGeometry()[n].FastGetSolutionStepValue(POINT_LOAD) += (vol * elem_it->GetGeometry()[n].FastGetSolutionStepValue(PENALIZE_DISPLACEMENT) );
+                        // Define penalties for each direction
+                        std::array<double, 3> penalties = {penalty_max, penalty_max, penalty_max};
+
+                        // Loop over directions and apply specific penalty for each
+                        for (size_t dir = 0; dir < 3; ++dir)
+                        {
+                            double vol = penalties[dir] * w * J * shape_functions(i, n) * shape_functions(i, m);
+                            elem_it->GetGeometry()[n].FastGetSolutionStepValue(POINT_LOAD)[dir] += vol * elem_it->GetGeometry()[n].FastGetSolutionStepValue(PENALIZE_DISPLACEMENT)[dir];
+                        }
                     }
                 }
             }
         }
     }
 }
-      
+
 
 void CalculateNodalDEMCouplingForces(ModelPart& rFEMModelPart)
 {

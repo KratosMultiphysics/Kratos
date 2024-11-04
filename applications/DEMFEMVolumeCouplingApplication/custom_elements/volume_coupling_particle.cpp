@@ -49,8 +49,28 @@ void VolumeCouplingParticle::ComputeBallToRigidFaceContactForceAndMoment(
         //  if (particle_weight!=0)
         //  {
         //   r_elastic_force *= particle_weight; // Scale elastic force by the weight
-        //   r_contact_force *= particle_weight; // Scale contact force by the  weight
-        //   rigid_element_force *= particle_weight; // Scale rigid element force by the  weight
+        //     if (std::sqrt(r_elastic_force[0] * r_elastic_force[0] + 
+        //                 r_elastic_force[1] * r_elastic_force[1] + 
+        //                 r_elastic_force[2] * r_elastic_force[2]) != 0) 
+        //     {
+        //         // std::cout << r_elastic_force;
+        //     }
+
+        //     r_contact_force *= particle_weight; // Scale contact force by the weight
+        //     if (std::sqrt(r_contact_force[0] * r_contact_force[0] + 
+        //                 r_contact_force[1] * r_contact_force[1] + 
+        //                 r_contact_force[2] * r_contact_force[2]) != 0) 
+        //     {
+        //         // std::cout << r_contact_force;
+        //     }
+
+        //     rigid_element_force *= particle_weight; // Scale rigid element force by the weight
+        //     if (std::sqrt(rigid_element_force[0] * rigid_element_force[0] + 
+        //                 rigid_element_force[1] * rigid_element_force[1] + 
+        //                 rigid_element_force[2] * rigid_element_force[2]) != 0) 
+        //     {
+        //         // std::cout << rigid_element_force;
+        //     }
         //  }
 }
 
@@ -95,7 +115,36 @@ void VolumeCouplingParticle::EvaluateBallToBallForcesForPositiveIndentiations(Sp
                                                             double OldLocalCoordSystem[3][3],
                                                             array_1d<double, 3>& neighbour_elastic_contact_force)
 {
-    // Call the base class's function.
+    double particle_weight = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT);
+    double other_particle_weight = element2->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT);
+    // unweight the forces
+    if(particle_weight!=1 && other_particle_weight!=1)
+    {
+
+        const double other_young = element2->GetYoung();
+        const double my_young = this->GetYoung();
+        // KRATOS_WATCH(r_process_info[TIME])
+        // KRATOS_WATCH(this->Id())
+        // KRATOS_WATCH(element2->Id())
+        const double inverse_of_sum_of_youngs = 1.0 / (other_young + my_young);
+        const double my_arm_length = this->GetRadius() - indentation * other_young * inverse_of_sum_of_youngs;
+        const double other_arm_length  = element2->GetRadius() - indentation * my_young * inverse_of_sum_of_youngs;
+        double interpolated_weight = (particle_weight*other_arm_length+other_particle_weight*my_arm_length)/(my_arm_length+other_arm_length);
+
+        // Scale forces by the interpolated weight
+        // KRATOS_WATCH(r_process_info[TIME])
+        //std::cout<<"Before interpolation Ball_contact particle Id "<<this->Id()<<" neighbour id "<<data_buffer.mpOtherParticle->Id()<<" "<<LocalElasticContactForce[0]<<" "<<LocalElasticContactForce[1]<<" "<<LocalElasticContactForce[2]<<std::endl<<std::flush;
+        // KRATOS_WATCH(interpolated_weight)
+        // KRATOS_WATCH(particle_weight)
+        for(int i=0; i<3; ++i)
+        {
+            LocalElasticContactForce[i] = LocalElasticContactForce[i]/(interpolated_weight); // unScale elastic contact force
+            ViscoDampingLocalContactForce[i] = ViscoDampingLocalContactForce[i]/(interpolated_weight); // unScale visco-damping contact force
+        }
+
+        cohesive_force =cohesive_force/(interpolated_weight); // unScale cohesive force
+    }
+
     SphericParticle::EvaluateBallToBallForcesForPositiveIndentiations(data_buffer, r_process_info, LocalElasticContactForce,
                                                                         DeltDisp,LocalDeltDisp,RelVel,
                                                                         indentation,ViscoDampingLocalContactForce,
@@ -103,10 +152,8 @@ void VolumeCouplingParticle::EvaluateBallToBallForcesForPositiveIndentiations(Sp
                                                                         OldLocalCoordSystem,neighbour_elastic_contact_force);
   
 
-    double particle_weight = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT);
-    double other_particle_weight = element2->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT);
 
-    // to rule out weighting contact forces with particle outsides of the hybrid domain
+        // to rule out weighting contact forces with particle outsides of the hybrid domain
     if(particle_weight!=1 && other_particle_weight!=1)
     {
 
@@ -134,6 +181,62 @@ void VolumeCouplingParticle::EvaluateBallToBallForcesForPositiveIndentiations(Sp
 
         cohesive_force *=(interpolated_weight); // Scale cohesive force
     }
+
+
+    //std::cout<<"After interpolation Ball_contact particle Id "<<this->Id()<<" neighbour id "<<data_buffer.mpOtherParticle->Id()<<" "<<LocalElasticContactForce[0]<<" "<<LocalElasticContactForce[1]<<" "<<LocalElasticContactForce[2]<<std::endl<<std::flush;
+       
+    // std::cout<<"LocalElasticContactForce "<<LocalElasticContactForce[0]<<" " << LocalElasticContactForce[1]<<" " << LocalElasticContactForce[2]<<std::endl;
+}
+
+void VolumeCouplingParticle::EvaluateBallToRigidFaceForcesForPositiveIndentations(SphericParticle::ParticleDataBuffer &data_buffer,
+                                                                   const int rigid_neighbour_index,
+                                                                   const double DeltVel[3],
+                                                                   const ProcessInfo& r_process_info,
+                                                                   double OldLocalElasticContactForce[3],
+                                                                   double LocalElasticContactForce[3],
+                                                                   double LocalDeltDisp[3],
+                                                                   const double indentation,
+                                                                   const double  previous_indentation,
+                                                                   double ViscoDampingLocalContactForce[3],
+                                                                   double& cohesive_force,
+                                                                   Condition* const wall,
+                                                                   bool& sliding)
+{
+
+
+    double particle_weight = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT);
+
+    for(int i=0; i<3; ++i)
+        {
+            LocalElasticContactForce[i] = LocalElasticContactForce[i]/(particle_weight); // unScale elastic contact force
+            ViscoDampingLocalContactForce[i] = ViscoDampingLocalContactForce[i]/(particle_weight); // unScale visco-damping contact force
+        }
+
+    cohesive_force =cohesive_force/(particle_weight); // unScale cohesive force
+
+
+
+    // Call the base class's function.
+    SphericParticle::EvaluateBallToRigidFaceForcesForPositiveIndentations(data_buffer, rigid_neighbour_index, DeltVel,
+                                                                        r_process_info,OldLocalElasticContactForce,LocalElasticContactForce,
+                                                                        LocalDeltDisp,indentation,
+                                                                        previous_indentation,ViscoDampingLocalContactForce,cohesive_force,wall,
+                                                                        sliding);
+  
+
+    
+    // print particle weights
+    // std::cout<< " Particle weights"<<particle_weight<<" \n";
+    // std::cout<<"TESTING########################################## EvaluateBallToRigidFaceForcesForPositiveIndentations\n";
+    // to rule out weighting contact forces with particle outsides of the hybrid domain
+    for(int i=0; i<3; ++i)
+        {
+            LocalElasticContactForce[i] *= (particle_weight); // Scale elastic contact force
+            ViscoDampingLocalContactForce[i] *= (particle_weight); // Scale visco-damping contact force
+        }
+
+    cohesive_force *=(particle_weight); // Scale cohesive force
+
     //std::cout<<"After interpolation Ball_contact particle Id "<<this->Id()<<" neighbour id "<<data_buffer.mpOtherParticle->Id()<<" "<<LocalElasticContactForce[0]<<" "<<LocalElasticContactForce[1]<<" "<<LocalElasticContactForce[2]<<std::endl<<std::flush;
        
     // std::cout<<"LocalElasticContactForce "<<LocalElasticContactForce[0]<<" " << LocalElasticContactForce[1]<<" " << LocalElasticContactForce[2]<<std::endl;
