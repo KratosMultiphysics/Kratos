@@ -156,13 +156,15 @@ void LinearTrussElement2D<TNNodes>::GetDofList(
 
 template<SizeType TNNodes>
 void LinearTrussElement2D<TNNodes>::GetShapeFunctionsValues(
-    VectorType& rN,
+    SystemSizeBoundedArrayType& rN,
     const double Length,
     const double xi
     ) const
 {
     if (rN.size() != SystemSize)
         rN.resize(SystemSize, false);
+
+    rN.clear();
     if constexpr (NNodes == 2) {
         rN[0] = 0.5 * (1.0 - xi);
         rN[2] = 0.5 * (1.0 + xi);
@@ -177,14 +179,40 @@ void LinearTrussElement2D<TNNodes>::GetShapeFunctionsValues(
 /***********************************************************************************/
 
 template<SizeType TNNodes>
+void LinearTrussElement2D<TNNodes>::GetShapeFunctionsValuesY(
+    SystemSizeBoundedArrayType& rN,
+    const double Length,
+    const double xi
+    ) const
+{
+    if (rN.size() != SystemSize)
+        rN.resize(SystemSize, false);
+
+    rN.clear();
+    if constexpr (NNodes == 2) {
+        rN[1] = 0.5 * (1.0 - xi);
+        rN[3] = 0.5 * (1.0 + xi);
+    } else { // 3N
+        rN[1] = 0.5 * xi * (xi - 1.0);
+        rN[3] = (1.0 - std::pow(xi, 2));
+        rN[5] = 0.5 * xi * (xi + 1.0);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TNNodes>
 void LinearTrussElement2D<TNNodes>::GetFirstDerivativesShapeFunctionsValues(
-    VectorType& rdN_dX,
+    SystemSizeBoundedArrayType& rdN_dX,
     const double Length,
     const double xi
     ) const
 {
     if (rdN_dX.size() != SystemSize)
         rdN_dX.resize(SystemSize, false);
+
+    rdN_dX.clear();
     if constexpr (NNodes == 2) {
         const double inverse_l = 1.0 / Length;
         rdN_dX[0] = -inverse_l;
@@ -265,6 +293,68 @@ void LinearTrussElement2D<TNNodes>::CalculateLocalSystem(
     const ProcessInfo& rProcessInfo
     )
 {
+    KRATOS_TRY;
+    const auto &r_props = GetProperties();
+    const auto &r_geometry = GetGeometry();
+
+    if (rLHS.size1() != SystemSize || rLHS.size2() != SystemSize) {
+        rLHS.resize(SystemSize, SystemSize, false);
+    }
+    noalias(rLHS) = ZeroMatrix(SystemSize, SystemSize);
+
+    if (rRHS.size() != SystemSize) {
+        rRHS.resize(SystemSize, false);
+    }
+    noalias(rRHS) = ZeroVector(SystemSize);
+
+    const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
+
+    ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
+    auto &r_cl_options = cl_values.GetOptions();
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+    const double length = CalculateLength();
+    const double J      = 0.5 * length;
+    const double area   = r_props[CROSS_AREA];
+
+    // Let's initialize the cl values
+    VectorType strain_vector(1), stress_vector(1);
+    MatrixType constitutive_matrix(1, 1); // Young modulus
+
+    strain_vector.clear();
+    cl_values.SetStrainVector(strain_vector);
+    cl_values.SetStressVector(stress_vector);
+    cl_values.SetConstitutiveMatrix(constitutive_matrix);
+    SystemSizeBoundedArrayType nodal_values(SystemSize);
+    GetNodalValuesVector(nodal_values);
+
+    SystemSizeBoundedArrayType B, N_shape, N_shapeY;
+
+    // Loop over the integration points
+    for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
+        const auto local_body_forces = GetLocalAxesBodyForce(*this, integration_points, IP);
+
+        GetShapeFunctionsValues(N_shape, length, xi);
+        GetShapeFunctionsValuesY(N_shapeY, length, xi);
+        GetFirstDerivativesShapeFunctionsValues(B, length, xi);
+
+        const double xi     = integration_points[IP].X();
+        const double weight = integration_points[IP].Weight();
+        const double jacobian_weight = weight * J * area;
+
+        strain_vector[0] = inner_prod(B, nodal_values);
+        mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values); // fills stress and const. matrix
+
+        noalias(rLHS) += outer_prod(B, B) * constitutive_matrix(0, 0) * jacobian_weight;
+        noalias(rRHS) -= B * stress_vector[0] * jacobian_weight;
+
+        noalias(rRHS) += N_shape * local_body_forces[0] * jacobian_weight;
+        noalias(rRHS) += N_shapeY * local_body_forces[1] * jacobian_weight;
+    }
+    RotateAll(rLHS, rRHS, r_geometry);
+
+    KRATOS_CATCH("")
 
 }
 
@@ -301,7 +391,21 @@ void LinearTrussElement2D<TNNodes>::RotateLHS(
     const GeometryType& rGeometry
 )
 {
+    const double angle = GetAngle();
 
+    if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
+        BoundedMatrix<double, DofsPerNode, DofsPerNode> T, Tt;
+        BoundedMatrix<double, SystemSize, SystemSize> global_size_T, aux_product;
+        StructuralMechanicsElementUtilities::BuildRotationMatrixForTruss(T, angle);
+        if constexpr (NNodes == 2) {
+            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NTruss(T, global_size_T);
+        } else {
+            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NTruss(T, global_size_T);
+        }
+
+        noalias(aux_product) = prod(rLHS, trans(global_size_T));
+        noalias(rLHS) = prod(global_size_T, aux_product);
+    }
 }
 
 /***********************************************************************************/
@@ -313,7 +417,21 @@ void LinearTrussElement2D<TNNodes>::RotateRHS(
     const GeometryType& rGeometry
 )
 {
+    const double angle = GetAngle();
+    if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
+        BoundedMatrix<double, DofsPerNode, DofsPerNode> T;
+        BoundedMatrix<double, SystemSize, SystemSize> global_size_T;
+        BoundedVector<double, SystemSize> local_rhs;
+        noalias(local_rhs) = rRHS;
+        StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NTruss(T, angle);
+        if constexpr (NNodes == 2) {
+            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NTruss(T, global_size_T);
+        } else {
+            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NTruss(T, global_size_T);
+        }
 
+        noalias(rRHS) = prod(global_size_T, local_rhs);
+    }
 }
 
 /***********************************************************************************/
@@ -326,7 +444,25 @@ void LinearTrussElement2D<TNNodes>::RotateAll(
     const GeometryType& rGeometry
 )
 {
+    const double angle = GetAngle();
+    if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
+        BoundedMatrix<double, DofsPerNode, DofsPerNode> T;
+        BoundedMatrix<double, SystemSize, SystemSize> global_size_T, aux_product;
+        BoundedVector<double, SystemSize> local_rhs;
+        StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NTruss(T, angle);
 
+        if constexpr (NNodes == 2) {
+            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NTruss(T, global_size_T);
+        } else {
+            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NTruss(T, global_size_T);
+        }
+
+        noalias(local_rhs) = rRHS;
+        noalias(rRHS) = prod(global_size_T, local_rhs);
+
+        noalias(aux_product) = prod(rLHS, trans(global_size_T));
+        noalias(rLHS) = prod(global_size_T, aux_product);
+    }
 }
 
 /***********************************************************************************/
