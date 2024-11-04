@@ -232,6 +232,12 @@ namespace Kratos
 
         void GetValuesVector(Vector& rValues, IndexType index) const;
 
+        void GetStrainVector(Vector& strainVector, IndexType index) const;
+
+        void SetConstitutiveVariables(Vector& StrainVector, IndexType index, const Kratos::ProcessInfo& rCurrentProcessInfo); 
+
+        void SetNormalGap(); 
+
         void CalculateB(
             Matrix& rB, 
             Matrix& r_DN_DX,
@@ -326,6 +332,10 @@ namespace Kratos
 
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+
+    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+
     //@}
     ///@name Protected member Variables
     ///@{
@@ -373,6 +383,17 @@ namespace Kratos
         bool CheckCriteria(const Vector& deformed_pos_master, const Vector& deformed_pos_slave, const Vector& displacement_master,
                            const Vector& normal, const Matrix& DB_master, array_1d<double, 3>& local_tangent, array_1d<double, 2>& old_normal,
                            const Vector stress_vector_master);
+
+        void CalculateOnIntegrationPoints(
+            const Variable<double> &rVariable,
+            std::vector<double> &rOutput,
+            const ProcessInfo &rCurrentProcessInfo) override;
+        
+        void CalculateOnIntegrationPoints(
+            const Variable<Vector>& rVariable,
+            std::vector<Vector>& rValues,
+            const ProcessInfo& rCurrentProcessInfo
+            ) override;
 
         friend class Serializer;
 

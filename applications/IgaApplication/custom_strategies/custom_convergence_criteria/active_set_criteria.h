@@ -17,14 +17,8 @@
 // External includes
 
 // Project includes
-// #include "contact_structural_mechanics_application_variables.h"
-// #include "custom_utilities/contact_utilities.h"
-// #include "utilities/mortar_utilities.h"
-// #include "utilities/variable_utils.h"
-// #include "utilities/normal_calculation_utils.h"
-// #include "custom_processes/aalm_adapt_penalty_value_process.h"
-// #include "custom_processes/compute_dynamic_factor_process.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
+#include "iga_application_variables.h"
 
 
 namespace Kratos
@@ -269,18 +263,32 @@ public:
     {
         // We save the current WEIGHTED_GAP in the buffer
         // auto& r_conditions_array = rModelPart.GetSubModelPart("ContactInterface").Conditions();
+        ModelPart* contact_sub_model_part = rModelPart.pGetSubModelPart("ContactInterface");
 
         
-        for (auto i_cond : rModelPart.GetSubModelPart("ContactInterface").Conditions()) {
+        for (auto i_cond(contact_sub_model_part->Conditions().begin()); i_cond != contact_sub_model_part->Conditions().end(); ++i_cond)
+        {
             
-            int n_CP = i_cond.GetGeometry().GetGeometryPart(0).size();
+            int n_CP = i_cond->GetGeometry().GetGeometryPart(0).size();
             int p = (int) sqrt(n_CP);
 
             int n_GP = 2*p+1;
+            double toll = 1e-12;
 
-            KRATOS_WATCH(n_CP)
-            KRATOS_WATCH(p)
-            KRATOS_WATCH(n_GP)
+            
+            double normal_gap = i_cond->GetValue(NORMAL_GAP);
+            Vector normal_stress = i_cond->GetValue(NORMAL_STRESS);
+            Vector normal = i_cond->GetValue(NORMAL_MASTER);
+
+            // KRATOS_WATCH(normal_gap)
+
+
+            double true_normal_stress = inner_prod(normal_stress, normal);
+
+            if ((-1000*normal_gap > toll))
+            {
+                i_cond->Set(ACTIVE, true);
+            }
 
         }
 

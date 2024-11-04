@@ -86,8 +86,7 @@ namespace Kratos
                                       ? mpModel->GetModelPart(main_model_part_name)
                                       : mpModel->CreateModelPart(main_model_part_name);
 
-
-        main_model_part.RemoveSubModelPart(contact_sub_model_part_name);
+        if (main_model_part.HasSubModelPart(contact_sub_model_part_name)) main_model_part.RemoveSubModelPart(contact_sub_model_part_name);
 
         
         ModelPart& contact_sub_model_part = main_model_part.HasSubModelPart(contact_sub_model_part_name)
