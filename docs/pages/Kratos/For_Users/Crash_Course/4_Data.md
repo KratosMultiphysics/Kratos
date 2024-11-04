@@ -1,10 +1,145 @@
 ---
-title: Kratos Input Files and IO
+title: Kratos Data Management
 keywords: 
-tags: [Kratos-input-files-and-IO.md]
+tags: [Kratos-data-data-management]
 sidebar: kratos_for_users
 summary: 
 ---
+
+## 1. Introduction
+
+In the past section we have seen how to manipulate our geometry and perform several actions such as creating nodes, elements and writing or reading them.
+If we go back to section [1.2 Creating the database]() there was one action that needed to be done before performing this operation and that was adding our variables.
+
+In this section we will cover in detail this process and show how Kratos handles the databases.
+
+## 2. Data typologies
+
+When speaking about data in kratos we typically reffer to variables and we normally distigush three different types of data that one may use in a simulation.
+
+## 2.1 Regular Variables
+
+We understand by regular variables the ones offered by the programing language. In this case anything provided by python or C++ such an integer, a double or a string. 
+
+These variables are used to represent generic properties that do not represent a physical magnitude or are common enough that are usefull to have in a generic way. 
+
+For example, the coordinates of a node are a triplet of doubles that represents the physical position of that node in the space:
+
+We can print the information about one of the nodes that we created in the previous section here:
+
+```python
+print(f"Node Info | ID: {node_3.Id}, X: {node_3.X}")
+```
+
+## 2.2. Kratos Variables
+
+On the contraty, we understand by a Kratos variables a space that the Kratos frameworks provides to you in which you can store a value and are tied to a node, element, condition or similar. While you can create your own, there is a set of predefined variables that you can find in X and Y.
+
+The main advantage of this variables is that can be mixed and shared among all components and applications in Kratos and its one of the pillars that allow the multiphyscis capabilites of Kratos.
+
+In other words, this means that if your Strcutrual Solver modifies the value of the pressure in one node, everyone in Kratos will be able to account for that change, without explictly needing to communicate it.
+
+Kratos variables are divided into two main categories:
+
+### 2.2.1. Non Historical Variables: 
+
+The non historical variables hold information for information that typically does not change over time, or that if it does, does it in a way that renders the old values obsolete.
+
+These variables can be used at any point in time without needing to tell the Model which ones are needed before the simulation starts. typicaly in kratos `Nodes`, `Elements`. `Conditions`, `Properties` and `ProcessInfo` can have non-historical variables.
+
+Non Historical Variables can be interacted with their own providded `GetValue` and `SetValue` functions. For example, setting and getting a value of PRESSURE of a node:
+
+```python
+import KratosMultiphyscis as KMP
+
+# ...
+
+node_3.SetValue(KMP.PRESSURE, 1.5)
+
+print(node.GetValue(KMP.PRESSURE))
+``` 
+
+will return
+
+```
+> 1.5
+```
+        
+
+### 2.2.2. Historical Variables: 
+Historical variables on the other hand hold not only information about the their current value but also about the value they had in previous time steps of the simulation. The number of historical values that different historical variables have is the same and can be set with the `SetBufferSize` for every modelpart.
+
+For performance reasons the list of historical variables needs to be known before the simulation starts (and for that matter, before reading a mdpa) and cannot change. The historical variables are currently only allowed in the `nodes`.
+
+As with the non-historical variables, there are a set of functions provided to interact with them: 
+- **`SetBufferSize`**: To specify the size of the buffer (by default 1). Note that this needs to be set inside the modelpart, and no for individual entities. 
+
+    ```Python
+    modelpart = Model.CreateModelPart("Test")
+    modelpart.SetBufferSize(3) # Indicates that I want to keep the value for the last three time steps
+    ```
+
+- **`AddNodalSolutionStepVariable`**: To inform the `ModelPart` that a variable will need to have an historical database. Also note that this is done at the `ModelPart` level.
+
+    ```Python
+    modelpart = Model.CreateModelPart("Test")
+    modelpart.AddNodalSolutionStepVariable(KMP.PRESSURE) # Indicates that I want to use PRESSURE as historical variable
+    ```
+
+- **`SetSolutionStepValue`**: Sets a value to the entity containing the variable. If not specified it will do it by adding it to the current time step, but that can be changed specifying how many times steps back you want to set the value:
+
+    ```Python
+    node_3.SetSolutionStepValue(KMP.PRESSURE, 2.0)    # Sets PRESSURE to 2 in the current time step
+    node_3.SetSolutionStepValue(KMP.PRESSURE, 2.0, 0) # Sets PRESSURE to 3 in the time step 0 (current time step)
+    node_3.SetSolutionStepValue(KMP.PRESSURE, 4.0, 1) # Sets PRESSURE to 4 in the time step 1 (previous time step)
+    ```
+
+- **`GetSolutionStepValue`**: Gets the variable in the current entity. If not specified it will do it by adding it to the current time step, but that can be changed specifying how many times steps back you want to set the value:
+
+    ```Python
+    print(node_3.GetSolutionStepValue(KMP.PRESSURE))    # Gets PRESSURE in the current time step
+    print(node_3.GetSolutionStepValue(KMP.PRESSURE, 0)) # Gets PRESSURE in the time step 0 (current time step)
+    print(node_3.GetSolutionStepValue(KMP.PRESSURE, 1)) # Gets PRESSURE in the time step 1 (previous time step)
+    ```
+
+    will return:
+
+    ```Python
+    > 2.0
+    > 2.0
+    > 4.0
+    ```
+
+## 2 The Node
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## 1. Introduction
 

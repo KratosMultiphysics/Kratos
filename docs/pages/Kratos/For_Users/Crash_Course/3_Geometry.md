@@ -188,7 +188,7 @@ Will now yield:
             Number of Constraints : 0
 ```
 
-### Manipulating the ModelPart
+### 1.4 Manipulating the ModelPart
 
 While you can read whole files, it is also possible to assign its entities manually. 
 
@@ -241,12 +241,18 @@ We can check that out modelpart has the newly added info by printing it, as typi
         Number of Constraints : 0
 ```
 
+### 1.5 Submodelparts
 
+Aside for the possibility of a `Model` to contain several `ModelParts`, we also have the hability to create subdivisions inside a `ModelPart` which are called `SubModelPart`. 
 
+Each submodelpart represents a subset of the entitis of a given `ModelPart` that for whatever reason are interesant to keep grouped. For example, the elements and nodes that belong to an inlet of a wind tunnel can be a submodelpart of the geometry representinf the wind tunnel.
 
+It is very important to notice that: 
+1) While the different modelParts in a model a essentially different objects, submodelparts are only sets of existing entities. New entitites will not be created when added to a submodelpart. 
+2) Entitites can belong to different submodelparts
+3) Submodelpart can have other submodelparts, hence, providing you with a mechanism to heriarchicly divide your modelparts. but an entity that belong to a given submodelpart will also belong to all its parents.
 
-
-## Output
+## 2. Output
 The `vtk_output` block in the ProjectParameters.json gives you an impression on the potential settings for the output. Here you will create just a minimal version of it.
 
 In this part of the tutorial you will create a minimal configuration of a VTK output process. 

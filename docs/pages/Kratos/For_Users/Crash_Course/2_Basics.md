@@ -28,7 +28,7 @@ By organizing these files in a structured manner, you can define, configure, and
 
 These files are usually created by a GUI (GiD, Salome, Flowgraph) and used to directly start the simulation. As the aim of the course is not to learn how to use these tools, you can download the input files for a simple structural mechanics case [here](https://github.com/KratosMultiphysics/Documentation/raw/refs/heads/master/Workshops_files/Kratos_Workshop_2019/Sources/2_Kratos_input_files_and_IO/2_Kratos_input_files_and_IO.zip).
 
-### 2.2. Run Kratos from the command line
+### 1.2. Run Kratos from the command line
 Let's jump in and try the code:
 
 To execute your simulation script in Kratos, follow these steps:
@@ -48,14 +48,14 @@ To execute your simulation script in Kratos, follow these steps:
 
 If everything went well, you should have two folders with different output formats: The GiD post file ends with `.post.bin` and can be drag and droppen into GiD. Additionally VTK files are written to the VTK_Output folder. 
 
-## 3. The project parameters file
+## 2. The project parameters file
 While you have used the `MainKratos.py` script to indicate some basic options for the simulation to work, the settings for a Kratos are stored in a `.json` file. 
 
 JSON is an open-standard format that uses human-readable text to transmit data objects consisting of attribute–value pairs. Kratos uses a thin wrapper arround this syntax, the `Parameters` object. 
 
 This section is a short version of a more detailed [description about the JSON syntax](How-to-write-a-JSON-configuration-file) and a [tutorial on how to read and use it](https://github.com/KratosMultiphysics/Kratos/wiki/Python-Script-Tutorial:-Reading-ProjectParameters).
 
-### 3.1 ProjectParameters.json
+### 2.1 ProjectParameters.json
 The project parameters file for Kratos is commonly named `ProjectParameters.json`. Let's look at the content of this file for our structural analysis example. It contains four main blocks:
 
 * `problem_data`: General settings for the Kratos run
@@ -65,7 +65,7 @@ The project parameters file for Kratos is commonly named `ProjectParameters.json
 
 Try to change the end time of the structural case from to `5.0` seconds and run the analysis again.
 
-## 4. The Model and ModePart files
+## 3. The Model and ModePart files
 In KratosMultiphyscis, the information about your mesh is stored in a data structure named `Model`. The model is responsible of everything related with the geometrical part of Kratos. Only one can exist per simulation and will typically contain several `ModelParts`. The serialization of this modelparts. is what we call an `.mdpa`(**M**o**d**el**Pa**rt) and is your third input file.
 
 It contains blocks for properties, nodes, elements, conditions and initial values. In addition the mesh entities can be grouped into sub model parts. A detailed description of the syntax is given [here](Input-data).
@@ -79,8 +79,8 @@ Don't worry to much about this right now as we will dip deeper into this file an
 },
 ```
 
-## 5. The Kratos python script
-### 5.1. MainKratos.py
+## 4. The Kratos python script
+### 4.1. MainKratos.py
 The last, but the most important file that you have downloade is called `MainKratos.py` and as its name suggest is a python script. This would be the equivalent to your well known `.exe` for a classic problem, with the advantage that you can customize it according to your needs. It is responsible to load the required Kratos applications and to call the main Kratos functionalities as desired by the user. 
 
 Let's look at the content of this file for our structural analysis example:
@@ -101,7 +101,7 @@ if __name__ == "__main__":
 
 In the first lines, Kratos and the structural analysis are imported. Then the settings are read from the `.json` and a Model is created. Finaly we use all that information to create a `StructuralMechanicsAnalysis` simulation. In the last line, the structural simulation executed. 
 
-### 5.2. AnalysisStage
+### 4.2. Analysis Stage
 As you have seen, pretty much all that we have done is reading some file and creating a couple of objects and the simulation has started, and this is because the steps necessary to perform this process are inside the `AnalysisStage`. In our case the `StructuralMechanicsAnalysis`.
 
 This class contains the main simulation loop for all Kratos applications, which typically have a specialized version with the necessary particularities for the specific type of simulation that we want to run.
@@ -145,7 +145,7 @@ simulation = CourseAnalysisStage(model, parameters)
 simulation.Run()
 ```
 
-# 5 Wrap up
+## 5. Wrap up
 With this overview, you should now be familliar with the most Basic files (MainKratos.py, ProjectParameters.json, geometry.mdpa) and data strcutures (AnalysisStage, Model, Parameters) of Kratos.
 
 In the following sections we will take a closer look at each one of those and use them to introduce more detailed concepts.
