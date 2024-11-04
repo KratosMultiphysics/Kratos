@@ -305,6 +305,8 @@ for element in model_part.Elements:
 will produce:
 
 ```
+1
+2
 ```
 
 As you can se, we have accessed all elements, and for performance resons we cannot assume that the iterator order will be the same as the natural order in which they were stored in the modelpart.
@@ -388,8 +390,6 @@ We can use the same strategy that we are using to iterate elements to assing or 
     ```
     10
     20
-    30
-    40
     ```
 
 - **Setting an historical variable to the first step of the nodes of `model_part`**:
