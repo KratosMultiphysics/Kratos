@@ -11,8 +11,8 @@
 //                   Gennady Markelov
 //
 
-#include "custom_constitutive/three_dimensional.h"
 #include "custom_constitutive/incremental_linear_elastic_law.h"
+#include "custom_constitutive/three_dimensional.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
@@ -85,7 +85,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLawReturnsExpectedStrainS
     KRATOS_EXPECT_EQ(law.GetStrainSize(), 6);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLawReturnsExpectedWorkingSpaceDimension, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLawReturnsExpectedWorkingSpaceDimension,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto law = CreateIncrementalLinearElastic3DLaw();
     KRATOS_EXPECT_EQ(law.WorkingSpaceDimension(), 3);

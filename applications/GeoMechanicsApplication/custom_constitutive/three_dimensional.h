@@ -13,8 +13,8 @@
 
 #pragma once
 
-#include "includes/kratos_export_api.h"
 #include "constitutive_law_dimension.h"
+#include "includes/kratos_export_api.h"
 
 namespace Kratos
 {
