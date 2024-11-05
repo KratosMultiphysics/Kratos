@@ -60,6 +60,7 @@ typedef std::vector<NodeType::Pointer> NodeVector;
 typedef ModelPart::NodesContainerType NodesArrayType;
 
 struct Volume {
+	int Id = 0;
 	double mValue = 0.0;
 	NodesArrayType mListOfNodes;
 	NodesArrayType mNeighbourNodes;
@@ -68,6 +69,7 @@ struct Volume {
 	Vector mLowestPoint;
 	bool isGrowing = true;
 	bool isMerged = false;
+	std::vector<int> mNeighbourVolumes;
 };
 
 /// Short class definition.
@@ -147,11 +149,17 @@ private:
 
 	void SearchWaterVolumes();
 
+	void SearchWaterVolumesV2();
+
 	void GrowVolume(Volume& rVolume);
 
 	void MergeVolumes();
 
+	void MergeVolumesV2();
+
 	void MergeTwoVolumes(Volume& rVolume1, Volume& rVolume2);
+
+	void MergeTwoVolumesV2(Volume& rVolume1, Volume& rVolume2);
 
 	void SearchLowPoints();
 
@@ -165,14 +173,17 @@ private:
 
 	ModelPart &mrModelPart;
 	GeometryUtilities mGeometryUtilities;
-	double mDelta;
 	Vector mGravityDirection;
 	int mMaxIterations;
-	double mValue;
-	std::vector<Volume> mListOfVolumes;
 	bool mContinuousSens;
 	bool mQuadraticHeightPenalization;
 	std::string mEdgeSubModelPartName;
+
+	bool mDetectFreeEdgeAutomatic = false;
+	double mValue;
+	std::vector<Volume> mListOfVolumes;
+	std::string mFreeEdgeSubModelPartName;
+	bool mExactVolumeSearch;
 
 	///@}
 

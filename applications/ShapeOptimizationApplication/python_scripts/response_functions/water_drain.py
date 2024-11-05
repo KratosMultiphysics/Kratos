@@ -23,12 +23,9 @@ def _AddConditionsFromParent(parent, child):
 # ==============================================================================
 class WaterDrainResponseFunction(ResponseFunctionInterface):
     """
-    Face angle response function.
-    It aggregates the deviation of the face angles of all surface conditions using sqrt(sum(g_i)),
-    where g_i are the condition wise violations - feasible conditions do not contribute
-
-    It requires surface conditions in the modelpart, since they are used to compute the face orientation.
-    Ideally the design surface model part is used.
+    Water Drain response function.
+    It computes the water volume by integrating the water level of the surfaces which is under water.
+    For this, a node search is conducted which detects the nodes which are lying under water.
 
     Attributes
     ----------
@@ -76,10 +73,12 @@ class WaterDrainResponseFunction(ResponseFunctionInterface):
                 "input_type"        : "use_input_model_part",
                 "input_filename"    : "UNKNOWN_NAME"
             },
-            "gravity_direction": [0.0, 0.0, 1.0],
+            "gravity_direction": [0.0, 0.0, -1.0],
+            "free_edge_part_name": "automatic",
             "max_iterations_volume_search": 1000,
-            "continuous_sensitivities": true,
-            "quadratic_height_penalization": false
+            "continuous_sensitivities": false,
+            "quadratic_height_penalization": false,
+            "exact_volume_search" : false
         }""")
         return this_defaults
 
