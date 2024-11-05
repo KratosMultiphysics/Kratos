@@ -1,5 +1,5 @@
 ---
-title: Analysis stage and Simulation Loop
+title: 5 - Analysis stage and Simulation Loop
 keywords: 
 tags: [Kratos Crash Course analysis Stage Simulation Loop]
 sidebar: kratos_for_users
@@ -66,6 +66,7 @@ def Initialize(self):
     self.time = self.project_parameters["problem_data"]["start_time"].GetDouble()
     self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME] = self.time
 ```
+{: data-lang="Python"}
 
 This may look intimidating at first, but lets go step by step
 
@@ -78,6 +79,7 @@ self._ModelersSetupGeometryModel()
 self._ModelersPrepareGeometryModel()
 self._ModelersSetupModelPart()
 ```
+{: data-lang="Python"}
 
 - **Solver**: Next is the `Solvers` block. As with `Modelers`, we will present a preview of solvers in section 3, but we can start to see some interesting things that should ring a bell on us: It Imports and prepares the modelpart.
 
@@ -91,6 +93,7 @@ self._GetSolver().ImportModelPart()
 self._GetSolver().PrepareModelPart()
 self._GetSolver().AddDofs()
 ```
+{: data-lang="Python"}
 
 - **Processess and Solver Initialization**: Is the section in charge of creating the user provided processes, which will se in section 4 and execute some of their parts. In this particular block we execute the `ExecuteInitialize` and `ExecuteBeforeSolutionLoop` methods, and in the middle we initialize the solver we created in the previous section. We do it this way because some processes need to be executed before the solver is initialized, and some need to be executed after we have some of the information that the solved provides once initialized. This way, processes give enouch flexibility to approach both situations:
 
@@ -106,6 +109,7 @@ self.Check()
 for process in self._GetListOfProcesses():
     process.ExecuteBeforeSolutionLoop()
 ```
+{: data-lang="Python"}
 
 - **Time and Timestep**: Finaly, as the analysis stage is the class in control of the time loop, the last task of the initialization stage is to provide the initial, final and time step of our simulation:
 
@@ -117,6 +121,7 @@ self.end_time = self.project_parameters["problem_data"]["end_time"].GetDouble()
 self.time = self.project_parameters["problem_data"]["start_time"].GetDouble()
 self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME] = self.time
 ```
+{: data-lang="Python"}
 
 # 2.2 Execution
 
@@ -136,6 +141,7 @@ def RunSolutionLoop(self):
         self.FinalizeSolutionStep()
         self.OutputSolutionStep()
 ```
+{: data-lang="Python"}
 
 As you can see at first glance the logic is much more simpler
 
@@ -167,6 +173,7 @@ def InitializeSolutionStep(self):
     self.ChangeMaterialProperties() # This is normally empty
     self._GetSolver().InitializeSolutionStep()
 ```
+{: data-lang="Python"}
 
 As you can see, the `InitializeSolutionStep` prints info to let the user knwon that we are advancing in time, calls the `ExecuteInitializeSolutionStep` from our processes (for historical reasons, this may appear as `ApplyBoundaryConditions` in some analysis stages), and then call same method from the solver.
 
@@ -180,6 +187,7 @@ def FinalizeSolutionStep(self):
     for process in self._GetListOfProcesses():
         process.ExecuteFinalizeSolutionStep()
 ```
+{: data-lang="Python"}
 
 Anologously, the `FinalizeSolutionStep` perform the same steps (except for changing the material properties)
 
@@ -198,6 +206,7 @@ def Finalize(self):
 
     self._GetSolver().Finalize()
 ```
+{: data-lang="Python"}
 
 # 3. The Solver
 

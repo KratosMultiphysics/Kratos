@@ -1,5 +1,5 @@
 ---
-title: Kratos Data Management
+title: 4 - Kratos Data Management
 keywords: 
 tags: [Kratos Crash Course Data Management]
 sidebar: kratos_for_users
@@ -30,6 +30,7 @@ We can print the information about one of the nodes that we created in the previ
 ```python
 print(f"Node Info | ID: {node_3.Id}, X: {node_3.X}")
 ```
+{: data-lang="Python"}
 
 ## 2.2. Kratos Variables
 
@@ -58,12 +59,14 @@ node_3.SetValue(KMP.PRESSURE, 1.5)
 
 print(node.GetValue(KratosMultiphysics.PRESSURE))
 ``` 
+{: data-lang="Python"}
 
 will produce:
 
 ```
 > 1.5
 ```
+{: data-lang="Output"}
         
 
 ### 2.2.2. Historical Variables: 
@@ -74,41 +77,46 @@ For performance reasons the list of historical variables needs to be known befor
 As with the non-historical variables, there are a set of functions provided to interact with them: 
 - **`SetBufferSize`**: To specify the size of the buffer (by default 1). Note that this needs to be set inside the modelpart, and no for individual entities. 
 
-    ```python
-    modelpart = Model.CreateModelPart("Test")
-    modelpart.SetBufferSize(3) # Indicates that I want to keep the value for the last three time steps
-    ```
+```python
+modelpart = Model.CreateModelPart("Test")
+modelpart.SetBufferSize(3) # Indicates that I want to keep the value for the last three time steps
+```
+{: data-lang="Python"}
 
 - **`AddNodalSolutionStepVariable`**: To inform the `ModelPart` that a variable will need to have an historical database. Also note that this is done at the `ModelPart` level.
 
-    ```python
-    modelpart = Model.CreateModelPart("Test")
-    modelpart.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE) # Indicates that I want to use PRESSURE as historical variable
-    ```
+```python
+modelpart = Model.CreateModelPart("Test")
+modelpart.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE) # Indicates that I want to use PRESSURE as historical variable
+```
+{: data-lang="Python"}
 
 - **`SetSolutionStepValue`**: Sets a value to the entity containing the variable. If not specified it will do it by adding it to the current time step, but that can be changed specifying how many times steps back you want to set the value:
 
-    ```python
-    node_3.SetSolutionStepValue(KratosMultiphysics.PRESSURE, 2.0)    # Sets PRESSURE to 2 in the current time step
-    node_3.SetSolutionStepValue(KratosMultiphysics.PRESSURE, 2.0, 0) # Sets PRESSURE to 3 in the time step 0 (current time step)
-    node_3.SetSolutionStepValue(KratosMultiphysics.PRESSURE, 4.0, 1) # Sets PRESSURE to 4 in the time step 1 (previous time step)
-    ```
+```python
+node_3.SetSolutionStepValue(KratosMultiphysics.PRESSURE, 2.0)    # Sets PRESSURE to 2 in the current time step
+node_3.SetSolutionStepValue(KratosMultiphysics.PRESSURE, 2.0, 0) # Sets PRESSURE to 3 in the time step 0 (current time step)
+node_3.SetSolutionStepValue(KratosMultiphysics.PRESSURE, 4.0, 1) # Sets PRESSURE to 4 in the time step 1 (previous time step)
+```
+{: data-lang="Python"}
 
 - **`GetSolutionStepValue`**: Gets the variable in the current entity. If not specified it will do it by adding it to the current time step, but that can be changed specifying how many times steps back you want to set the value:
 
-    ```python
-    print(node_3.GetSolutionStepValue(KratosMultiphysics.PRESSURE))    # Gets PRESSURE in the current time step
-    print(node_3.GetSolutionStepValue(KratosMultiphysics.PRESSURE, 0)) # Gets PRESSURE in the time step 0 (current time step)
-    print(node_3.GetSolutionStepValue(KratosMultiphysics.PRESSURE, 1)) # Gets PRESSURE in the time step 1 (previous time step)
-    ```
+```python
+print(node_3.GetSolutionStepValue(KratosMultiphysics.PRESSURE))    # Gets PRESSURE in the current time step
+print(node_3.GetSolutionStepValue(KratosMultiphysics.PRESSURE, 0)) # Gets PRESSURE in the time step 0 (current time step)
+print(node_3.GetSolutionStepValue(KratosMultiphysics.PRESSURE, 1)) # Gets PRESSURE in the time step 1 (previous time step)
+```
+{: data-lang="Python"}
 
-    will produce:
+will produce:
 
-    ```bash
-    > 2.0
-    > 2.0
-    > 4.0
-    ```
+```bash
+> 2.0
+> 2.0
+> 4.0
+```
+{: data-lang="Output"}
 
 # 3 Model and ModelPart structures
 
@@ -130,6 +138,7 @@ leaf  = model.CreateModelPart("Root.Child.Leaf")
 
 print(root)
 ```
+{: data-lang="Python"}
 
 will produce:
 
@@ -171,7 +180,7 @@ Mesh 0 :
             Number of Conditions  : 0
             Number of Constraints : 0
 ```
-
+{: data-lang="Output"}
 
 - **Query a ModelPart**: One may want to check the status of a modelpart or get its reference. We can do this with the `HasModelPart` and `GetModelPart` functions. We can even obtain the list of all abailable modelparts using `GetModelPartNames`:
 
@@ -193,6 +202,7 @@ print(model.HasModelPart("Root.Child"))
 # Retrieve a given ModelPart
 print(model.GetModelPart("Root.Child.Leaf"))
 ```
+{: data-lang="Python"}
 
 will produce:
 
@@ -214,6 +224,7 @@ Mesh 0 :
     Number of Conditions  : 0
     Number of Constraints : 0
 ```
+{: data-lang="Output"}
 
 - **Delete a ModelPart**: Finally after a modelpart becomes useless, we can delete it to free space with `DeleteModelPart`:
 
@@ -232,12 +243,14 @@ if (model.HasModelPart("Root"))
 # Query for the existance of various ModelParts
 print(model.HasModelPart("Root"))
 ```
+{: data-lang="Python"}
 
 will produce:
 
 ```
 False
 ```
+{: data-lang="Output"}
 
 ## 3.2 ModelPart
 
@@ -260,6 +273,7 @@ model_part.AddNodalSolutionStepVariable(KratosMultiphyscis.DISPLACEMENT)
 model_part.AddNodalSolutionStepVariable(KratosMultiphyscis.REACTION)
 model_part.SetBufferSize(2)
 ```
+{: data-lang="Python"}
 
 One can create nodes:
 
@@ -269,6 +283,7 @@ node_2 = model_part.CreateNewNode(2, 1.00, 0.00, 0.00)
 node_3 = model_part.CreateNewNode(3, 1.00, 1.00, 0.00)
 node_4 = model_part.CreateNewNode(4, 1.00, 0.00, 0.00)
 ```
+{: data-lang="Python"}
 
 Elements
 
@@ -276,12 +291,14 @@ Elements
 element_1 = model_part.CreateNewElement("Element2D3N", 1, [1,3,2], model_part.GetProperties(1))
 element_2 = model_part.CreateNewElement("Element2D3N", 2, [1,4,3], model_part.GetProperties(1))
 ```
+{: data-lang="Python"}
 
 Conditions:
 
 ```python
 condition_1 = model_part.CreateNewElement("LineCondition2D2N", 1, [1,2], model_part.GetProperties(1))
 ```
+{: data-lang="Python"}
 
 And master slave constrains:
 
@@ -292,6 +309,7 @@ msc_1 = model.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 1,
     1.0, 0
 )
 ```
+{: data-lang="Python"}
 
 ## 3.2.2 Accessing Entities
 
@@ -301,6 +319,7 @@ Once a modelpart contains entities, we can be interested in accessing them for a
 for element in model_part.Elements:
     print(element.Id)
 ```
+{: data-lang="Python"}
 
 will produce:
 
@@ -308,6 +327,7 @@ will produce:
 1
 2
 ```
+{: data-lang="Output"}
 
 As you can se, we have accessed all elements, and for performance resons we cannot assume that the iterator order will be the same as the natural order in which they were stored in the modelpart.
 
@@ -317,6 +337,7 @@ Similarly, nodes can be queried the same way:
 for node in model_part.Nodes:
     print(node.Id)
 ```
+{: data-lang="Python"}
 
 will produce:
 
@@ -326,6 +347,7 @@ will produce:
 3
 4
 ```
+{: data-lang="Output"}
 
 ⚠️  Of course, we may have interest in accessing a particular individual entity. We can access it by id using the `[]` operator, but bear in mind that this is a very constly operation and should be avoided if possible.
 
@@ -334,12 +356,14 @@ my_node = model_part.Nodes[2]
 
 print(my_node)
 ```
+{: data-lang="Python"}
 
 will produce:
 
 ```
 Node #2 :  (1, 0, 0)
 ```
+{: data-lang="Output"}
 
 ## 3.2.3 Working with SubModelParts
 
@@ -359,6 +383,7 @@ sub_model_part.AddNodes([1,3])
 for node in sub_model_part.Nodes:
     print(node.Id)
 ```
+{: data-lang="Python"}
 
 will produce:
 
@@ -366,6 +391,7 @@ will produce:
 1
 3
 ```
+{: data-lang="Output"}
 
 ## 3.2.4 Working with the Database
 
@@ -377,6 +403,7 @@ We can use the same strategy that we are using to iterate elements to assing or 
 for elemen in model_part.Elements:
     element.SetValue(KratosMultiphysics.PRESSURE, element.Id*10)
 ```
+{: data-lang="Python"}
 
 - **Printing that variable**:
 
@@ -384,6 +411,7 @@ for elemen in model_part.Elements:
 for elemen in model_part.Elements:
     print(element.GetValue(KratosMultiphysics.PRESSURE))
 ```
+{: data-lang="Python"}
 
 will produce:
 
@@ -391,6 +419,7 @@ will produce:
 10
 20
 ```
+{: data-lang="Output"}
 
 - **Setting an historical variable to the first step of the nodes of `model_part`**:
 
@@ -398,6 +427,7 @@ will produce:
 for node in model_part.Nodes:
     node.SetSolutionStepValue(KratosMultiphysics.PRESSURE, node.Id*10, 0)
 ```
+{: data-lang="Python"}
 
 - **Printing the historical value of the nodes belonging to `sub_model_part`**:
 
@@ -405,6 +435,7 @@ for node in model_part.Nodes:
 for node in sub_model_part.Nodes:
     print(node.GetSolutionStepValue(KratosMultiphysics.PRESSURE, node.Id))
 ```
+{: data-lang="Python"}
 
 will produce:
 
@@ -412,3 +443,4 @@ will produce:
 10
 30
 ```
+{: data-lang="Output"}

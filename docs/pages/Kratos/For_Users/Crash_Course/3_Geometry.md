@@ -1,5 +1,5 @@
 ---
-title: Kratos Input Files and IO
+title: 3 - Kratos Input Files and IO
 keywords: 
 tags: [Kratos Crash Course Input Output IO Files Read Write]
 sidebar: kratos_for_users
@@ -25,6 +25,7 @@ model = KratosMultiphysics.Model()
 model_part_1 = model.CreateModelPart("MyModelPart1")
 model_part_2 = model.CreateModelPart("MyModelPart2")
 ```
+{: data-lang="Python"}
 
 In this example, we are importing an application, creating a `Model`, and calling a method, `CreateModelPart`, which takes a name as an argument to create a `ModelPart`. This additional step allows us to build a dedicated section in the model to store `nodes`, `elements`, and related data structures, specific to our simulation needs.
 
@@ -34,6 +35,7 @@ To understand how these objects are structured and what information they contain
 # Print the model
 print(model)
 ```
+{: data-lang="Python"}
 
 will print the information of the whole `model`, containing both `model_part_1` and `model_part_2`:
 
@@ -66,6 +68,7 @@ will print the information of the whole `model`, containing both `model_part_1` 
         Number of Conditions  : 0
         Number of Constraints : 0 
 ```
+{: data-lang="Output"}
 
 And we can also print the info of a single `ModelPart`:
 
@@ -73,6 +76,7 @@ And we can also print the info of a single `ModelPart`:
 # Print the model_part_1
 print(model_part_1)
 ```
+{: data-lang="Python"}
 
 will only print the information of the `model_part_1`:
 
@@ -91,6 +95,7 @@ will only print the information of the `model_part_1`:
         Number of Conditions  : 0
         Number of Constraints : 0
 ```
+{: data-lang="Output"}
 
 ## 1.2 Create a Database
 
@@ -106,6 +111,7 @@ For now, lets imagine that we want that our model holds the `DISPLACEMENT` of ou
 # Adding variables BEFORE reading the .mdpa
 model_part_1.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
 ```
+{: data-lang="Python"}
 
 There are many [variables](https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/python/add_containers_to_python.cpp) that we can use in the core and in applications (ex: [structural_mechanics_application.h](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/StructuralMechanicsApplication/custom_python/structural_mechanics_python_application.cpp)), and if none of them suits your needs you can always deifne your own.
 
@@ -124,6 +130,7 @@ The process of reading data into a `ModelPart` is handled by the `ModelPartIO` c
 model_part_io = KratosMultiphysics.ModelPartIO("KratosWorkshop2019_high_rise_building_CSM")
 model_part_io.ReadModelPart(model_part_1)
 ```
+{: data-lang="Python"}
 
 You can of course print the `model_part_1` to check that the lecture has been done sucessfully:
 
@@ -131,6 +138,7 @@ You can of course print the `model_part_1` to check that the lecture has been do
 # Print the model_part_1
 print(model_part_1)
 ```
+{: data-lang="Python"}
 
 Will now yield:
 ```bash
@@ -182,6 +190,7 @@ Will now yield:
             Number of Conditions  : 0
             Number of Constraints : 0
 ```
+{: data-lang="Output"}
 
 ## 1.4 Adding Entities Manually
 
@@ -200,6 +209,7 @@ node_2 = model_part_2.CreateNewNode(2, 1.00, 0.00, 0.00)
 node_3 = model_part_2.CreateNewNode(3, 1.00, 1.00, 0.00)
 node_4 = model_part_2.CreateNewNode(4, 1.00, 0.00, 0.00)
 ```
+{: data-lang="Python"}
 
 ### 1.4.2. Elements and Conditions
 
@@ -220,6 +230,7 @@ The properties are just another database that holds information but which is sha
 element_1 = model_part_2.CreateNewElement("Element2D3N", 1, [1,3,2], model_part_2.GetProperties(1))
 element_2 = model_part_2.CreateNewElement("Element2D3N", 2, [1,4,3], model_part_2.GetProperties(1))
 ```
+{: data-lang="Python"}
 
 ⚠️ Be mindful when asigning the list of nodes, as the order will determine the normal of the element if it is a surface.
 
@@ -240,6 +251,7 @@ We can check that out modelpart has the newly added info by printing it, as typi
         Number of Conditions  : 0
         Number of Constraints : 0
 ```
+{: data-lang="Output"}
 
 ### 1.4.3. MasterSlaveConstraints
 
@@ -272,6 +284,7 @@ mp.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", id=1,
     1.0, 0
 )
 ```
+{: data-lang="Python"}
 
 As with the `Elements` and `Conditions`, the type (in this case `"LinearMasterSlaveConstraint"`) will determine its physcial properties.
 
@@ -302,6 +315,7 @@ vtk_output_configuration = KratosMultiphysics.Parameters("""{
 
 vtk_output = VtkOutputProcess(this_model, vtk_output_configuration)
 ```
+{: data-lang="Python"}
 
 The output process is usually called at defined places inside the analysis. In order to use it, several functions need to be called in the right order.
 
@@ -313,3 +327,4 @@ vtk_output.PrintOutput()
 vtk_output.ExecuteFinalizeSolutionStep()
 vtk_output.ExecuteFinalize()
 ```
+{: data-lang="Python"}

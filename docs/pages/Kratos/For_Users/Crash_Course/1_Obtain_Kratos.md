@@ -1,5 +1,5 @@
 ---
-title: Obtain Kratos & First Steps
+title: 1 - Obtain Kratos & First Steps
 keywords: 
 tags: [Kratos Crash Course Download First Editor Pre Post]
 sidebar: kratos_for_users
@@ -55,11 +55,13 @@ kratos_venv\bin\activate.bat
 # In PowerShell
 kratos_venv\bin\Activate.ps1
 ```
+{: data-lang="Ps1"}
 
 Linux:
-```shell
+```bash
 source kratos_venv/Scripts/activate
 ```
+{: data-lang="Bash"}
 
 If everything is set up correctly, the name of your virtual environment will appear before the console prompt.
 
@@ -70,6 +72,7 @@ Once your virtual environment is activated, install the `KratosMultiphysics-all`
 ```
 python -m pip install KratosMultiphysics-all
 ```
+{: data-lang="Bash"}
 
 To verify the installation, run the following test in a Python session:
 
@@ -90,6 +93,7 @@ Maximum number of threads: 24.
 Running without MPI.
 Process Id: 517572
 ```
+{: data-lang="Output"}
 
 ## 4. Install a Text editor
 

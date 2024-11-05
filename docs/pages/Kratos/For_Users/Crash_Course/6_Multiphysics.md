@@ -1,5 +1,5 @@
 ---
-title: Multiphysics
+title: 6 - Multiphysics
 keywords: 
 tags: [Kratos Crash Course Multiphyscis]
 sidebar: kratos_for_users
@@ -28,7 +28,7 @@ As there are 2 examples intended to be shown, it would be sufficient if every ot
 ## 1. FSI Black-box generic
 The discussion relies on the examples discussed in [Running an example from GiD](https://github.com/KratosMultiphysics/Kratos/wiki/Running-an-example-from-GiD). Here it was shown how a CFD (section 3) and a CSM (section 4) can be set up and run. Additionally, in section 5 an FSI example was provided which builds upon the CFD and CSM setups.
 
-<img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/workshop_2019_tutorials/fsi1.jpg" width=500px class="center" >
+<img src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/refs/heads/master/Wiki_files/workshop_2019_tutorials/fsi1.jpg" width=500px class="center" >
 
 For this you should download and refer to the input files for [the respective case](https://github.com/KratosMultiphysics/Documentation/blob/master/Workshops_files/Kratos_Workshop_2019/Sources/6_multiphysics/6_multiphysics.zip).
 
@@ -53,11 +53,11 @@ As it can be observed now there are more settings blocks, as additional componen
 
 * the **solver type**: when referring to multiphysics simulations, one generally tries to deal with a complex problem, which can be solved in various manners: either _monolithic_ (which leads to one large system to be solved) or _partitioned_ (which implies splitting up the problem into dedicated fields, dealing with these separately and ensuring proper data transfer and convergence
 
-<img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/workshop_2019_tutorials/fsi2.jpg" width=550px class="center" >
+<img src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/refs/heads/master/Wiki_files/workshop_2019_tutorials/fsi2.jpg" width=550px class="center" >
    
 * the **coupling scheme**: here a _Dirichlet-Neumann_-type coupling is used, which specifies which values are affected by the mapping, more precisely for this case: the CFD simulation results in fluid forces on the respective structure interface, these forces being transferred (mapped) onto the structure and serving as the right hand side (RHS - or force vector), so as a Neumann boundary condition for the CSM; the CSM solve results in the deformation of the structural model, the deformations from the boundary to the fluid are transferred (mapped) onto the CFD domain, these deformations serving affecting the left hand side (LHS - or the vector of primary variables) for the pseudo-structural problem (refer to the next point of the _mesh solver_), constituting a Dirichlet boundary condition
 
-<img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/workshop_2019_tutorials/fsi3.jpg" width=650px class="center" >
+<img src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/refs/heads/master/Wiki_files/workshop_2019_tutorials/fsi3.jpg" width=650px class="center" >
 
 * the **mesh solver** and its settings: this builds upon the existing parts of the CFD (see the provided `"model_part_name"`) and is responsible for deforming the CFD mesh in order to consistently match the deformations on the interface of the fluid to the structure, which is done using a pseudo-structural formulation (hinted by the naming of the `"solver_type"`), as the mesh deformations are solved as if this was a structural mechanics problem with prescribed deformations on the respective boundary
 ```json
@@ -228,6 +228,7 @@ class AitkenConvergenceAccelerator(ConvergenceAcceleratorBase):
 ```
 
 * the **main script**: python code in `MainKratosFSI.py`; it is written in a way that it follows the KratosMultiphysics code structure and accommodates the custom python scripts
+
 ```python
 '''
 The initial part takes care of reading in the project parameters and initializing the models

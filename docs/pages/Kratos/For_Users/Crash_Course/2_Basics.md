@@ -1,5 +1,5 @@
 ---
-title: Kraots Basics
+title: 2 - Kraots Basics
 keywords: 
 tags: [Kratos Crash Course Basics]
 sidebar: kratos_for_users
@@ -33,18 +33,20 @@ Let's jump in and try the code:
 
 To execute your simulation script in Kratos, follow these steps:
 
-1) Open the Kratos Command Prompt
-2) Navigate to the Script Directory
+- 1) Open the Kratos Command Prompt
+- 2) Navigate to the Script Directory
 
-    ```bash
-    cd path/to/your/script/directory
-    ```
+```bash
+cd path/to/your/script/directory
+```
+{: data-lang="Bash"}
 
-3) Run the Simulation Script
+- 3) Run the Simulation Script
 
-    ```
-    python MainKratos.py
-    ```
+```bash
+python MainKratos.py
+```
+{: data-lang="Bash"}
 
 If everything went well, you should have two folders with different output formats: The GiD post file ends with `.post.bin` and can be drag and droppen into GiD. Additionally `VTK` files are written to the `VTK_Output` folder. 
 
@@ -78,6 +80,7 @@ Don't worry to much about this right now as we will dip deeper into this file an
     "input_filename" : "KratosWorkshop2019_high_rise_building_CSM"
 },
 ```
+{: data-lang="JSON"}
 
 ## 4. The Kratos python script
 ### 4.1. MainKratos.py
@@ -98,6 +101,7 @@ if __name__ == "__main__":
     simulation = StructuralMechanicsAnalysis(model, parameters)
     simulation.Run()
 ```
+{: data-lang="Python"}
 
 In the first lines, Kratos and the structural analysis are imported. Then the settings are read from the `.json` and a Model is created. Finaly we use all that information to create a `StructuralMechanicsAnalysis` simulation. In the last line, the structural simulation executed. 
 
@@ -133,6 +137,7 @@ if __name__ == "__main__":
     simulation = CourseAnalysisStage(model, parameters)
     simulation.Run()
 ```
+{: data-lang="Python"}
 
 As you can see, we have made a derived class from the `StructuralMechanicsAnalysis` that we were running which has two methods changed:
 - `__init__`: This will be called every time a instance is created and we will greet us with the custom message we have added:
@@ -144,6 +149,7 @@ Be mindful that we are now creating an analysis stage of our custom `CourseAnaly
 simulation = CourseAnalysisStage(model, parameters)
 simulation.Run()
 ```
+{: data-lang="Python"}
 
 ## 5. Wrap up
 With this overview, you should now be familliar with the most Basic files (MainKratos.py, ProjectParameters.json, geometry.mdpa) and data strcutures (AnalysisStage, Model, Parameters) of Kratos.
