@@ -63,12 +63,12 @@ public:
 
     void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const override
     {
-        rElementalDofList = MakeDofGetter();
+        rElementalDofList = GetDofs();
     }
 
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override
     {
-        rResult = Geo::DofUtilities::ExtractEquationIdsFrom(MakeDofGetter());
+        rResult = Geo::DofUtilities::ExtractEquationIdsFrom(GetDofs());
     }
 
     void Initialize(const ProcessInfo&) override
@@ -396,7 +396,7 @@ private:
         };
     }
 
-    [[nodiscard]] DofsVectorType MakeDofGetter() const
+    [[nodiscard]] DofsVectorType GetDofs() const
     {
         return Geo::DofUtilities::ExtractDofsFromNodes(GetGeometry(), WATER_PRESSURE);
     }

@@ -69,23 +69,25 @@ void GeoElementUtilities::FillPermeabilityMatrix(BoundedMatrix<double, 3, 3>&   
 
 Matrix GeoElementUtilities::FillPermeabilityMatrix(const Element::PropertiesType& Prop, std::size_t Dimension)
 {
-    if (Dimension == 1) {
-        BoundedMatrix<double, 1, 1> result_1d;
-        FillPermeabilityMatrix(result_1d, Prop);
-        return result_1d;
+    switch (Dimension) {
+    case 1: {
+        BoundedMatrix<double, 1, 1> result;
+        FillPermeabilityMatrix(result, Prop);
+        return result;
     }
-    if (Dimension == 2) {
-        BoundedMatrix<double, 2, 2> result_2d;
-        FillPermeabilityMatrix(result_2d, Prop);
-        return result_2d;
+    case 2: {
+        BoundedMatrix<double, 2, 2> result;
+        FillPermeabilityMatrix(result, Prop);
+        return result;
     }
-    if (Dimension == 3) {
-        BoundedMatrix<double, 3, 3> result_3d;
-        FillPermeabilityMatrix(result_3d, Prop);
-        return result_3d;
+    case 3: {
+        BoundedMatrix<double, 3, 3> result;
+        FillPermeabilityMatrix(result, Prop);
+        return result;
     }
-
-    KRATOS_ERROR << "Dimension " << Dimension << " is not supported" << std::endl;
+    default:
+        KRATOS_ERROR << "Dimension " << Dimension << " is not supported" << std::endl;
+    }
 }
 
 void GeoElementUtilities::InvertMatrix2(BoundedMatrix<double, 2, 2>&       rInvertedMatrix,
