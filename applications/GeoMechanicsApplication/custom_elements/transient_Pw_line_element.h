@@ -73,9 +73,7 @@ public:
 
     void Initialize(const ProcessInfo&) override
     {
-        const std::size_t number_integration_points =
-            GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
-        mRetentionLawVector.resize(number_integration_points);
+        mRetentionLawVector.resize(GetGeometry().IntegrationPointsNumber(GetIntegrationMethod()));
 
         for (unsigned int i = 0; i < mRetentionLawVector.size(); ++i) {
             mRetentionLawVector[i] = RetentionLawFactory::Clone(GetProperties());
