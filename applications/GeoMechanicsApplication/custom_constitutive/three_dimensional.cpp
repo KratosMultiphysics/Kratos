@@ -11,7 +11,7 @@
 //                   Gennady Markelov
 //
 
-#include "elastic_3D.h"
+#include "three_dimensional.h"
 
 #include "geo_mechanics_application_constants.h"
 #include "includes/constitutive_law.h"
@@ -19,7 +19,7 @@
 namespace Kratos
 {
 
-Matrix Elastic3D::FillConstitutiveMatrix(double c1, double c2, double c3) const
+Matrix ThreeDimensional::FillConstitutiveMatrix(double c1, double c2, double c3) const
 {
     Matrix result = ZeroMatrix(GetStrainSize(), GetStrainSize());
 
@@ -42,15 +42,15 @@ Matrix Elastic3D::FillConstitutiveMatrix(double c1, double c2, double c3) const
     return result;
 }
 
-std::unique_ptr<ConstitutiveLawDimension> Elastic3D::Clone() const
+std::unique_ptr<ConstitutiveLawDimension> ThreeDimensional::Clone() const
 {
-    return std::make_unique<Elastic3D>();
+    return std::make_unique<ThreeDimensional>();
 }
 
-std::size_t Elastic3D::GetStrainSize() const { return VOIGT_SIZE_3D; }
+std::size_t ThreeDimensional::GetStrainSize() const { return VOIGT_SIZE_3D; }
 
-std::size_t Elastic3D::GetDimension() const { return N_DIM_3D; }
+std::size_t ThreeDimensional::GetDimension() const { return N_DIM_3D; }
 
-Flags Elastic3D::GetSpatialType() const { return ConstitutiveLaw::THREE_DIMENSIONAL_LAW; }
+Flags ThreeDimensional::GetSpatialType() const { return ConstitutiveLaw::THREE_DIMENSIONAL_LAW; }
 
 } // namespace Kratos

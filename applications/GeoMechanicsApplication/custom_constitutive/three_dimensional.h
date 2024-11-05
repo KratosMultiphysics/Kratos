@@ -13,12 +13,13 @@
 
 #pragma once
 
+#include "includes/kratos_export_api.h"
 #include "constitutive_law_dimension.h"
 
 namespace Kratos
 {
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) Elastic3D : public ConstitutiveLawDimension
+class KRATOS_API(GEO_MECHANICS_APPLICATION) ThreeDimensional : public ConstitutiveLawDimension
 {
 public:
     [[nodiscard]] Matrix FillConstitutiveMatrix(double c1, double c2, double c3) const override;

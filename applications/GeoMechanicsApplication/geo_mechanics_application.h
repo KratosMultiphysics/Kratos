@@ -119,7 +119,7 @@
 // constitutive models
 #include "custom_constitutive/bilinear_cohesive_2D_law.hpp"
 #include "custom_constitutive/bilinear_cohesive_3D_law.hpp"
-#include "custom_constitutive/elastic_3D.h"
+#include "custom_constitutive/three_dimensional.h"
 #include "custom_constitutive/elastic_isotropic_K0_3d_law.h"
 #include "custom_constitutive/incremental_linear_elastic_interface_law.h"
 #include "custom_constitutive/incremental_linear_elastic_law.h"
@@ -947,7 +947,7 @@ private:
     const BilinearCohesive2DLaw  mBilinearCohesive2DLaw;
     const LinearPlaneStrainK0Law mLinearPlaneStrainK0Law;
     const GeoIncrementalLinearElasticLaw mLinearElasticPlaneStrain2DLaw{std::make_unique<PlaneStrain>()};
-    const GeoIncrementalLinearElasticLaw   mLinearElastic3DLaw{std::make_unique<Elastic3D>()};
+    const GeoIncrementalLinearElasticLaw   mLinearElastic3DLaw{std::make_unique<ThreeDimensional>()};
     const ElasticIsotropicK03DLaw          mElasticIsotropicK03DLaw;
     const GeoLinearElasticPlaneStress2DLaw mLinearElasticPlaneStress2DLaw;
 
