@@ -108,7 +108,7 @@ public:
         return 0;
     }
 
-    void Initialize(const ProcessInfo&)
+    void Initialize(const ProcessInfo&) final
     {
         // all these except the PIPE_ELEMENT_LENGTH seem to be in the erosion_process_strategy only. Why do this --> used in output for dGeoFlow
         this->SetValue(PIPE_ELEMENT_LENGTH, CalculateLength(this->GetGeometry()));
@@ -130,7 +130,7 @@ public:
 
         // calculate particle diameter to be replaced with Anne's version!
         const auto particle_d = GeoTransportEquationUtilities::CalculateParticleDiameter(Prop);
-        // todo calculate slope of pipe (in degrees! see formula), currently pipe is assumed to be horizontal
+        // for a more generic element calculate slope of pipe (in degrees! see formula), currently pipe is assumed to be horizontal
         const double pipe_slope = 0.0;
         const double theta      = Prop[PIPE_THETA];
 
@@ -196,7 +196,7 @@ private:
         }
     }
 
-    double CalculateLength(const GeometryType& Geom)
+    double CalculateLength(const GeometryType& Geom) const
     {
         // currently length is only calculated in x direction, to be changed for inclined pipes
         return std::abs(Geom.GetPoint(1)[0] - Geom.GetPoint(0)[0]);
@@ -253,7 +253,7 @@ private:
     {
         const auto&  r_properties              = GetProperties();
         const double dynamic_viscosity_inverse = 1.0 / r_properties[DYNAMIC_VISCOSITY];
-        auto constitutive_matrix = FillPermeabilityMatrix( this->GetValue(PIPE_HEIGHT));
+        auto         constitutive_matrix = FillPermeabilityMatrix(this->GetValue(PIPE_HEIGHT));
 
         auto result = BoundedMatrix<double, TNumNodes, TNumNodes>{ZeroMatrix{TNumNodes, TNumNodes}};
         for (unsigned int integration_point_index = 0;

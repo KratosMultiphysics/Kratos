@@ -144,14 +144,14 @@ class TestSellmeijersRuleValidation(KratosUnittest.TestCase):
          ('7.34', 3.00E-04, 1.157E-10, 1.68, 2, 9, 'test_compare_sellmeijer/HeightAquiferD30L30.gid'),
          ('7.35', 3.00E-04, 1.157E-10, 3.24, 3.7, 22.5, 'test_compare_sellmeijer/HeightAquiferD30L60.gid'),
          ('7.36', 3.00E-04, 1.157E-10, 4.61, 5.3, 27, 'test_compare_sellmeijer/HeightAquiferD30L90.gid')])
-    def test_sellmeijers_rule_height(self, name, d70, kappa, Hc, Hn, length_n, test_name_gid):
+    def test_sellmeijers_rule_height(self, name, d70, kappa, h_c, h_n, length_n, test_name_gid):
         file_path = test_helper.get_file_path(os.path.join('./', test_name_gid))
         os.chdir(file_path)
-        critical_head_found, length = self.critical_head_loop(file_path, kappa, d70, Hn, 'linear')
-        self.results = {"value_name": name, "test_result_h": Hc, "kratos_results_h": critical_head_found,
-                        "equivalent_software_h": Hn, "kratos_results_l": length, "equivalent_software_l": length_n}
-        self.assertAlmostEqual(Hn, critical_head_found, 1,
-                               f"Critical head kratos: {critical_head_found}, old geo flow {Hn}")
+        critical_head_found, length = self.critical_head_loop(file_path, kappa, d70, h_n, 'linear')
+        self.results = {"value_name": name, "test_result_h": h_c, "kratos_results_h": critical_head_found,
+                        "equivalent_software_h": h_n, "kratos_results_l": length, "equivalent_software_l": length_n}
+        self.assertAlmostEqual(h_n, critical_head_found, 1,
+                               f"Critical head kratos: {critical_head_found}, old geo flow {h_n}")
 
     @parameterized.expand(
         [('7.1', 1.00E-04, 1.157E-12, 3.43, 3.7, 6, 'test_compare_sellmeijer/HeightAquiferD10L30line'),
@@ -190,11 +190,11 @@ class TestSellmeijersRuleValidation(KratosUnittest.TestCase):
          ('7.34', 3.00E-04, 1.157E-10, 1.68, 2, 9, 'test_compare_sellmeijer/HeightAquiferD30L30line'),
          ('7.35', 3.00E-04, 1.157E-10, 3.24, 3.7, 22.5, 'test_compare_sellmeijer/HeightAquiferD30L60line'),
          ('7.36', 3.00E-04, 1.157E-10, 4.61, 5.3, 27, 'test_compare_sellmeijer/HeightAquiferD30L90line')])
-    def test_sellmeijers_rule_height_line(self, name, d70, kappa, Hc, Hn, length_n, test_name_line):
+    def test_sellmeijers_rule_height_line(self, name, d70, kappa, h_c, h_n, length_n, test_name_line):
         file_path = test_helper.get_file_path(os.path.join('./', test_name_line))
         os.chdir(file_path)
-        critical_head_found, length = self.critical_head_loop(file_path, kappa, d70, Hn, 'linear')
-        self.results = {"value_name": name, "test_result_h": Hc, "kratos_results_h": critical_head_found,
-                        "equivalent_software_h": Hn, "kratos_results_l": length, "equivalent_software_l": length_n}
-        self.assertAlmostEqual(Hn, critical_head_found, 1,
-                               f"Critical head kratos: {critical_head_found}, old geo flow {Hn}")
+        critical_head_found, length = self.critical_head_loop(file_path, kappa, d70, h_n, 'linear')
+        self.results = {"value_name": name, "test_result_h": h_c, "kratos_results_h": critical_head_found,
+                        "equivalent_software_h": h_n, "kratos_results_l": length, "equivalent_software_l": length_n}
+        self.assertAlmostEqual(h_n, critical_head_found, 1,
+                               f"Critical head kratos: {critical_head_found}, old geo flow {h_n}")

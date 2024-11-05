@@ -292,8 +292,6 @@ private:
         bool         equilibrium = false;
         bool         converged   = true;
         unsigned int PipeIter    = 0;
-        // todo: JDN (20220817) : grow not used.
-        // bool grow = true;
 
         // calculate max pipe height and pipe increment
         double da = CalculatePipeHeightIncrement(amax, mPipingIterations);
@@ -306,12 +304,6 @@ private:
             // perform a flow calculation and stop growing if the calculation doesn't converge
             converged = this->Recalculate();
             KRATOS_INFO("check Piping equilibrium") << "Converged: " << converged << std::endl;
-
-            // todo: JDN (20220817) : grow not used.
-            // if (!converged)
-            //{
-            //    grow = false;
-            //}
 
             if (converged) {
                 // Update depth of open piping Elements
@@ -352,7 +344,8 @@ private:
                 PipeIter += 1;
             }
         }
-        KRATOS_INFO("check Piping equilibrium") << "PipeIter: " << PipeIter << " equilibrium " << equilibrium << std::endl;
+        KRATOS_INFO("check Piping equilibrium")
+            << "PipeIter: " << PipeIter << " equilibrium " << equilibrium << std::endl;
         return equilibrium;
     }
 
@@ -415,15 +408,13 @@ private:
     template <typename FilteredElementType>
     void DetermineOpenPipingElements(const FilteredElementType& rPipingElements, double MaxPipeHeight)
     {
-        bool         grow                      = true;
-        unsigned int number_of_piping_elements = rPipingElements.size();
-        unsigned int number_of_open_piping_elements = this->InitialiseNumActivePipeElements(rPipingElements);
+        bool grow                      = true;
+        auto number_of_piping_elements = rPipingElements.size();
+        auto number_of_open_piping_elements = this->InitialiseNumActivePipeElements(rPipingElements);
         while (grow && (number_of_open_piping_elements < number_of_piping_elements)) {
             KRATOS_INFO("DetermineOpenPipingElements")
                 << "grow " << grow << "number_of_open_piping_elements" << number_of_open_piping_elements
                 << " number_of_piping_elements " << number_of_piping_elements << std::endl;
-            // todo: JDN (20220817) : grow not used.
-            // bool Equilibrium = false;
 
             // get tip element and activate
             auto tip_element = rPipingElements.at(number_of_open_piping_elements);
