@@ -1,7 +1,7 @@
-# ---
-title: Analysis stage and solution loop
+---
+title: Analysis stage and Simulation Loop
 keywords: 
-tags: [Kratos-input-files-and-IO.md]
+tags: [Kratos Crash Course analysis Stage Simulation Loop]
 sidebar: kratos_for_users
 summary: 
 ---
@@ -71,52 +71,52 @@ This may look intimidating at first, but lets go step by step
 
 1) **Modelers**: The first block we encounter is `Modelers` block. We will se what a modeler is in section 4, and in this block we are creating the ones we will need.
 
-    ```python
-    # Modelers:
-    self._CreateModelers()
-    self._ModelersSetupGeometryModel()
-    self._ModelersPrepareGeometryModel()
-    self._ModelersSetupModelPart()
-    ````
+```python
+# Modelers:
+self._CreateModelers()
+self._ModelersSetupGeometryModel()
+self._ModelersPrepareGeometryModel()
+self._ModelersSetupModelPart()
+```
 
-2) **Solver**: Next is the `Solvers` block. As with `Modelers`, we will present a preview of solvers in section 3, but we can start to see some interesting things that should ring a bell on us: It Imports and prepares the modelpart.
+- **Solver**: Next is the `Solvers` block. As with `Modelers`, we will present a preview of solvers in section 3, but we can start to see some interesting things that should ring a bell on us: It Imports and prepares the modelpart.
 
     If youu remember, we have stated several times that the solver was in charge of reading modelparts because it has de list of variables, and is here that the code reads our modelpart.
 
     Aside from reading, we will also prepare the modelpart making the necessary changes to addapt it to a specific solver, and finally add the correct degrees of freedom.
 
-    ```python
-    # Solver
-    self._GetSolver().ImportModelPart()
-    self._GetSolver().PrepareModelPart()
-    self._GetSolver().AddDofs()
-    ````
+```python
+# Solver
+self._GetSolver().ImportModelPart()
+self._GetSolver().PrepareModelPart()
+self._GetSolver().AddDofs()
+```
 
-3) **Processess and Solver Initialization**: Is the section in charge of creating the user provided processes, which will se in section 4 and execute some of their parts. In this particular block we execute the `ExecuteInitialize` and `ExecuteBeforeSolutionLoop` methods, and in the middle we initialize the solver we created in the previous section. We do it this way because some processes need to be executed before the solver is initialized, and some need to be executed after we have some of the information that the solved provides once initialized. This way, processes give enouch flexibility to approach both situations:
+- **Processess and Solver Initialization**: Is the section in charge of creating the user provided processes, which will se in section 4 and execute some of their parts. In this particular block we execute the `ExecuteInitialize` and `ExecuteBeforeSolutionLoop` methods, and in the middle we initialize the solver we created in the previous section. We do it this way because some processes need to be executed before the solver is initialized, and some need to be executed after we have some of the information that the solved provides once initialized. This way, processes give enouch flexibility to approach both situations:
 
-    ```python
-    ## Processes
-    self.__CreateListOfProcesses()
-    for process in self._GetListOfProcesses():
-        process.ExecuteInitialize()
+```python
+## Processes
+self.__CreateListOfProcesses()
+for process in self._GetListOfProcesses():
+    process.ExecuteInitialize()
 
-    self._GetSolver().Initialize()
-    self.Check()
+self._GetSolver().Initialize()
+self.Check()
 
-    for process in self._GetListOfProcesses():
-        process.ExecuteBeforeSolutionLoop()
-    ```
+for process in self._GetListOfProcesses():
+    process.ExecuteBeforeSolutionLoop()
+```
 
-4) **Time and Timestep**: Finaly, as the analysis stage is the class in control of the time loop, the last task of the initialization stage is to provide the initial, final and time step of our simulation:
+- **Time and Timestep**: Finaly, as the analysis stage is the class in control of the time loop, the last task of the initialization stage is to provide the initial, final and time step of our simulation:
 
-    ```python
-    # Get stepping and time settings
-    self.end_time = self.project_parameters["problem_data"]["end_time"].GetDouble()
+```python
+# Get stepping and time settings
+self.end_time = self.project_parameters["problem_data"]["end_time"].GetDouble()
 
-    # Get the time and the solver
-    self.time = self.project_parameters["problem_data"]["start_time"].GetDouble()
-    self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME] = self.time
-    ```
+# Get the time and the solver
+self.time = self.project_parameters["problem_data"]["start_time"].GetDouble()
+self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME] = self.time
+```
 
 # 2.2 Execution
 
@@ -139,12 +139,12 @@ def RunSolutionLoop(self):
 
 As you can see at first glance the logic is much more simpler
 
-1) **Advance the simulation time**
-2) **Initialize the solution step**
-3) **Predict a initial solution**
-4) **Perform the solution of the system**
-5) **Finalize the solution step**
-6) **Print and output**
+- 1) **Advance the simulation time**
+- 2) **Initialize the solution step**
+- 3) **Predict a initial solution**
+- 4) **Perform the solution of the system**
+- 5) **Finalize the solution step**
+- 6) **Print and output**
 
 This loop continues to execute until the KeepAdvancingSolutionLoop method returns False. This method governs the loop’s termination, which may occur for several reasons:
 
@@ -203,7 +203,8 @@ def Finalize(self):
 
 The solver is the responsible of building and solving your system given the information of your geometries, variables and configuration. There are many types of solvers inside Kratos, and it goes beyond the scope of this course to explain all details. 
 
-You can find more info in:
+Explain interface and _GetComputingPart
+
 
 # 4. Processes and Modeleres
 

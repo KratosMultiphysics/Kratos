@@ -1,7 +1,7 @@
 ---
 title: Kratos Input Files and IO
 keywords: 
-tags: [Kratos-input-files-and-IO.md]
+tags: [Kratos Crash Course Input Output IO Files Read Write]
 sidebar: kratos_for_users
 summary: 
 ---

@@ -1,3 +1,12 @@
+---
+title: Multiphysics
+keywords: 
+tags: [Kratos Crash Course Multiphyscis]
+sidebar: kratos_for_users
+summary: 
+---
+
+
 # **Multiphysics example**
 
 ## Objective

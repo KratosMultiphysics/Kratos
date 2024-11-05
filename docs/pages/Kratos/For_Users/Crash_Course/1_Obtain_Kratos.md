@@ -1,7 +1,7 @@
 ---
-title: Creating an Example
+title: Obtain Kratos & First Steps
 keywords: 
-tags: [Crash Course Tutorial Creating example]
+tags: [Kratos Crash Course Download First Editor Pre Post]
 sidebar: kratos_for_users
 summary: 
 ---

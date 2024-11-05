@@ -1,7 +1,7 @@
 ---
 title: Kratos Data Management
 keywords: 
-tags: [Kratos-data-data-management]
+tags: [Kratos Crash Course Data Management]
 sidebar: kratos_for_users
 summary: 
 ---
@@ -120,25 +120,37 @@ As we have explained the model, modelpart and submodelparts are structure hierar
 
 - **Create a ModelPart**: This is a very basic operation that we have already seen several times during the course. An interesting point to add is that you may directly create a tree structure of modelparts and submodelparts by using a name spearated by `.`:
 
-    ```python
-    import KratosMultiphysics
+```python
+import KratosMultiphysics
 
-    model = KratosMultiphysics.Model()
-    root  = model.CreateModelPart("Root")
-    child = model.CreateModelPart("Root.Child")
-    leaf  = model.CreateModelPart("Root.Child.Leaf")
+model = KratosMultiphysics.Model()
+root  = model.CreateModelPart("Root")
+child = model.CreateModelPart("Root.Child")
+leaf  = model.CreateModelPart("Root.Child.Leaf")
 
-    print(root)
-    ```
+print(root)
+```
 
-    will produce:
+will produce:
 
-    ```
-    -Root- model part
-    Buffer Size : 1
+```
+-Root- model part
+Buffer Size : 1
+Number of tables : 0
+Number of sub model parts : 1
+Current solution step index : 0
+
+Number of Geometries  : 0
+Mesh 0 :
+    Number of Nodes       : 0
+    Number of Properties  : 0
+    Number of Elements    : 0
+    Number of Conditions  : 0
+    Number of Constraints : 0
+
+-Child- model part
     Number of tables : 0
     Number of sub model parts : 1
-    Current solution step index : 0
 
     Number of Geometries  : 0
     Mesh 0 :
@@ -147,10 +159,9 @@ As we have explained the model, modelpart and submodelparts are structure hierar
         Number of Elements    : 0
         Number of Conditions  : 0
         Number of Constraints : 0
-
-    -Child- model part
+    -Leaf- model part
         Number of tables : 0
-        Number of sub model parts : 1
+        Number of sub model parts : 0
 
         Number of Geometries  : 0
         Mesh 0 :
@@ -159,85 +170,74 @@ As we have explained the model, modelpart and submodelparts are structure hierar
             Number of Elements    : 0
             Number of Conditions  : 0
             Number of Constraints : 0
-        -Leaf- model part
-            Number of tables : 0
-            Number of sub model parts : 0
-
-            Number of Geometries  : 0
-            Mesh 0 :
-                Number of Nodes       : 0
-                Number of Properties  : 0
-                Number of Elements    : 0
-                Number of Conditions  : 0
-                Number of Constraints : 0
-    ```
+```
 
 
 - **Query a ModelPart**: One may want to check the status of a modelpart or get its reference. We can do this with the `HasModelPart` and `GetModelPart` functions. We can even obtain the list of all abailable modelparts using `GetModelPartNames`:
 
-    ```python
-    import KratosMultiphysics
+```python
+import KratosMultiphysics
 
-    model = KratosMultiphysics.Model()
-    model.CreateModelPart("Root")
-    model.CreateModelPart("Root.Child")
-    model.CreateModelPart("Root.Child.Leaf")
+model = KratosMultiphysics.Model()
+model.CreateModelPart("Root")
+model.CreateModelPart("Root.Child")
+model.CreateModelPart("Root.Child.Leaf")
 
-    # Get the list of existing modelparts
-    print(model.GetModelPartNames())
+# Get the list of existing modelparts
+print(model.GetModelPartNames())
 
-    # Query for the existance of various ModelParts
-    print(model.HasModelPart("Child"))
-    print(model.HasModelPart("Root.Child"))
+# Query for the existance of various ModelParts
+print(model.HasModelPart("Child"))
+print(model.HasModelPart("Root.Child"))
 
-    # Retrieve a given ModelPart
-    print(model.GetModelPart("Root.Child.Leaf"))
-    ```
+# Retrieve a given ModelPart
+print(model.GetModelPart("Root.Child.Leaf"))
+```
 
-    will produce:
+will produce:
 
-    ```
-    ['Root', 'Root.Child', 'Root.Child.Leaf'] # List of ModelParts
+```
+['Root', 'Root.Child', 'Root.Child.Leaf'] # List of ModelParts
 
-    False   # "Child"
-    True    # "Root.Child"
+False   # "Child"
+True    # "Root.Child"
 
-    -Leaf- model part
-    Number of tables : 0
-    Number of sub model parts : 0
+-Leaf- model part
+Number of tables : 0
+Number of sub model parts : 0
 
-    Number of Geometries  : 0
-    Mesh 0 :
-        Number of Nodes       : 0
-        Number of Properties  : 0
-        Number of Elements    : 0
-        Number of Conditions  : 0
-        Number of Constraints : 0
-    ```
+Number of Geometries  : 0
+Mesh 0 :
+    Number of Nodes       : 0
+    Number of Properties  : 0
+    Number of Elements    : 0
+    Number of Conditions  : 0
+    Number of Constraints : 0
+```
 
 - **Delete a ModelPart**: Finally after a modelpart becomes useless, we can delete it to free space with `DeleteModelPart`:
 
-    ```python
-    import KratosMultiphysics
+```python
+import KratosMultiphysics
 
-    model = KratosMultiphysics.Model()
-    model.CreateModelPart("Root")
-    model.CreateModelPart("Root.Child")
-    model.CreateModelPart("Root.Child.Leaf")
+model = KratosMultiphysics.Model()
+model.CreateModelPart("Root")
+model.CreateModelPart("Root.Child")
+model.CreateModelPart("Root.Child.Leaf")
 
-    # Delete ModelPart
-    if (model.HasModelPart("Root"))
-        model.DeleteModelPart("Root")
+# Delete ModelPart
+if (model.HasModelPart("Root"))
+    model.DeleteModelPart("Root")
 
-    # Query for the existance of various ModelParts
-    print(model.HasModelPart("Root"))
-    ```
+# Query for the existance of various ModelParts
+print(model.HasModelPart("Root"))
+```
 
-    will produce:
+will produce:
 
-    ```
-    False
-    ```
+```
+False
+```
 
 ## 3.2 ModelPart
 
@@ -373,42 +373,42 @@ We can use the same strategy that we are using to iterate elements to assing or 
 
 - **Setting a non historical variable to the elements of `model_part`**:
 
-    ```python
-    for elemen in model_part.Elements:
-        element.SetValue(KratosMultiphysics.PRESSURE, element.Id*10)
-    ```
+```python
+for elemen in model_part.Elements:
+    element.SetValue(KratosMultiphysics.PRESSURE, element.Id*10)
+```
 
 - **Printing that variable**:
 
-    ```python
-    for elemen in model_part.Elements:
-        print(element.GetValue(KratosMultiphysics.PRESSURE))
-    ```
+```python
+for elemen in model_part.Elements:
+    print(element.GetValue(KratosMultiphysics.PRESSURE))
+```
 
-    will produce:
+will produce:
 
-    ```
-    10
-    20
-    ```
+```
+10
+20
+```
 
 - **Setting an historical variable to the first step of the nodes of `model_part`**:
 
-    ```python
-    for node in model_part.Nodes:
-        node.SetSolutionStepValue(KratosMultiphysics.PRESSURE, node.Id*10, 0)
-    ```
+```python
+for node in model_part.Nodes:
+    node.SetSolutionStepValue(KratosMultiphysics.PRESSURE, node.Id*10, 0)
+```
 
 - **Printing the historical value of the nodes belonging to `sub_model_part`**:
 
-    ```python
-    for node in sub_model_part.Nodes:
-        print(node.GetSolutionStepValue(KratosMultiphysics.PRESSURE, node.Id))
-    ```
+```python
+for node in sub_model_part.Nodes:
+    print(node.GetSolutionStepValue(KratosMultiphysics.PRESSURE, node.Id))
+```
 
-    will produce:
+will produce:
 
-    ```
-    10
-    30
-    ```
+```
+10
+30
+```
