@@ -26,7 +26,6 @@
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 
-#include <chrono>
 #include <ctime>
 #include <iostream>
 #include <tuple>
@@ -50,6 +49,7 @@ public:
     using PropertiesType           = Properties;
     using NodeType                 = Node;
     using GeometryType             = Geometry<NodeType>;
+    using SizeType                 = std::size_t;
 
     GeoMechanicsNewtonRaphsonErosionProcessStrategy(ModelPart&                    model_part,
                                                     typename TSchemeType::Pointer pScheme,
@@ -220,9 +220,9 @@ private:
     /// <param name="PipeElements"></param>
     /// <returns></returns>
     template <typename FilteredElementType>
-    int InitialiseNumActivePipeElements(const FilteredElementType& PipeElements)
+    SizeType InitialiseNumActivePipeElements(const FilteredElementType& PipeElements)
     {
-        int nOpenElements = 0;
+        SizeType nOpenElements = 0;
 
         for (Element* pipe_element : PipeElements) {
             if (pipe_element->GetValue(PIPE_ACTIVE)) {
