@@ -1,4 +1,5 @@
 # Importing Kratos
+from weakref import ref
 import KratosMultiphysics
 import KratosMultiphysics.IgaApplication
 from KratosMultiphysics.StructuralMechanicsApplication import python_solvers_wrapper_structural as structural_solvers
@@ -11,7 +12,8 @@ import sys
 import os
 from get_gauss_integration_points_regular_element import evaluate_face_integration_points
 from get_gauss_integration_points_regular_element import evaluate_shape_functions_and_derivatives
-
+from catmull_clark_subdivision_constant_boundaries import catmull_clark_subdivision
+from catmull_clark_subdivision_constant_boundaries import order_control_points_in_faces
 class StructuralMechanicsAnalysis(AnalysisStage):
     """
     This class is the main-script of the StructuralMechanicsApplication put in a class
@@ -54,38 +56,17 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         self._CreateModelers()
         self._ModelersSetupGeometryModel() #1
         self._ModelersPrepareGeometryModel() #2
-        self._ModelersSetupModelPart() #3
 
-        ########################################################################################
-        ########################## Extract data from physics ###################################
+        ######################
+        ## Refinement step# ##
+
+        ########################## Extract data from input ###################################
         if os.path.isfile("physics.iga.json"):
             physics_file = open("physics.iga.json",'r')
             PhysicsParameters = KratosMultiphysics.Parameters(physics_file.read())
 
         surface_id = 0
         sub_model_part = ""
-
-        for item in PhysicsParameters["element_condition_list"]:
-            if item["geometry_type"].GetString() == "GeometrySurface" and item["parameters"]["type"].GetString() == "element":
-                surface_id = item["brep_ids"][0].GetInt()
-                sub_model_part = item["iga_model_part"].GetString()
-            if item["geometry_type"].GetString() == "GeometrySurface" and item["parameters"]["type"].GetString() == "condition":
-                surface_id_cond = item["brep_ids"][0].GetInt()
-                sub_model_part_cond = item["iga_model_part"].GetString()
-
-        ########################## Remove elements #############################################
-        self.model.GetModelPart("IgaModelPart").Elements.clear()
-        self.model.GetModelPart("IgaModelPart").GetSubModelPart(sub_model_part).Elements.clear()
-
-        ########################## Remove conditions #############################################
-        self.model.GetModelPart("IgaModelPart").Conditions.clear()
-        self.model.GetModelPart("IgaModelPart").GetSubModelPart(sub_model_part_cond).Conditions.clear()
-        print(self.model.GetModelPart("IgaModelPart"))
-        
-        ########################################################################################
-        surface = self.model.GetModelPart("IgaModelPart").GetGeometry(surface_id) 
-        nurbs_surface = surface.GetGeometryPart(KratosMultiphysics.Geometry.BACKGROUND_GEOMETRY_INDEX)
-        print('Nurbs_surface: \n',nurbs_surface)
 
         # Assign material to model_parts (if Materials.json exists)
         if os.path.isfile("materials.json"):
@@ -101,7 +82,30 @@ class StructuralMechanicsAnalysis(AnalysisStage):
 
         # create property for shell elements
         load_properties = self.model.GetModelPart("IgaModelPart").GetProperties()[2]
+
+        sub_model_part_bc = []
+        sub_model_part_bc_param = []
+        sub_model_part_bc_type = []
         
+        for item in PhysicsParameters["element_condition_list"]:
+            if item["geometry_type"].GetString() == "GeometrySurface" and item["parameters"]["type"].GetString() == "element":
+                surface_id = item["brep_ids"][0].GetInt()
+                sub_model_part = item["iga_model_part"].GetString()
+            if item["geometry_type"].GetString() == "GeometrySurface" and item["parameters"]["type"].GetString() == "condition":
+                surface_id_cond = item["brep_ids"][0].GetInt()
+                sub_model_part_cond = item["iga_model_part"].GetString()
+            if item["geometry_type"].GetString() == "GeometrySurfaceNodes" or item["geometry_type"].GetString() == "GeometrySurfaceVariationNodes":
+                sub_model_part_bc.append(item["iga_model_part"].GetString())
+                local_parameters = []
+                local_parameters.append(item["parameters"]["local_parameters"][0].GetDouble())
+                local_parameters.append(item["parameters"]["local_parameters"][1].GetDouble())
+                sub_model_part_bc_type.append(item["geometry_type"].GetString())
+                sub_model_part_bc_param.append(local_parameters)
+
+        surface = self.model.GetModelPart("IgaModelPart").GetGeometry(surface_id) 
+        nurbs_surface = surface.GetGeometryPart(KratosMultiphysics.Geometry.BACKGROUND_GEOMETRY_INDEX)
+        print('Nurbs_surface: \n',nurbs_surface)
+
         ########################### Subdivision stuff ################################
     	#TO DO
         rows = 3
@@ -122,8 +126,56 @@ class StructuralMechanicsAnalysis(AnalysisStage):
             control_points.append(control_point)
         print('Control points of the geometry:', control_points)
         print('\n')
+
+        # print(len(nurbs_surface))
+        # print(nurbs_surface)
+
+        refined_control_points, refined_faces = catmull_clark_subdivision(control_points, faces)
+
+        refined_rows = 5
+        refined_cols = 5
+        refined_grid_size = (refined_rows, refined_cols)
+
+        #order control points in faces
+        refined_faces = order_control_points_in_faces(refined_control_points, refined_faces)
+
+        print('Refined Control Points:\n',refined_control_points)
+        print('\n')
+        print('Refined Faces:\n',refined_faces)
+
+        # Recreate nodes in model part to ensure correct assignment of dofs
+        node_id = (self.model.GetModelPart("IgaModelPart").Nodes)[len(self.model.GetModelPart("IgaModelPart").Nodes)].Id
+
+        nodes = KratosMultiphysics.NodesVector()
+        for i, vertex in enumerate(refined_control_points):
+            # print(node_id+i+1)
+            node = self.model.GetModelPart("IgaModelPart").CreateNewNode(node_id+i+1, vertex[0], vertex[1], vertex[2])
+            nodes.append(node)
+
+        KratosMultiphysics.CreateQuadraturePointsUtility.SetInternals(surface, nodes)
+
+        
+        ######################
+        self.model.GetModelPart("IgaModelPart").CreateSubModelPart(sub_model_part)
+        self.model.GetModelPart("IgaModelPart").CreateSubModelPart(sub_model_part_cond)
+
+
+
+        # self._ModelersSetupModelPart() #3 skip iga_modeler
+        # ########################################################################################
+        # ########################## Remove elements #############################################
+        # self.model.GetModelPart("IgaModelPart").Elements.clear()
+        # self.model.GetModelPart("IgaModelPart").GetSubModelPart(sub_model_part).Elements.clear()
+
+        # ########################## Remove conditions #############################################
+        # self.model.GetModelPart("IgaModelPart").Conditions.clear()
+        # self.model.GetModelPart("IgaModelPart").GetSubModelPart(sub_model_part_cond).Conditions.clear()
+        # print(self.model.GetModelPart("IgaModelPart"))
+        ########################################################################################
+
         # Here GaussIntegrationPoints are in the parametric domain of the element:
-        GaussIntegrationPoints_parametric, GaussIntegrationPoints_physical, element_control_points = evaluate_face_integration_points(faces, control_points, rows, cols, nGp, weight)
+        #GaussIntegrationPoints_parametric, GaussIntegrationPoints_physical, element_control_points = evaluate_face_integration_points(faces, control_points, rows, cols, nGp, weight)
+        GaussIntegrationPoints_parametric, GaussIntegrationPoints_physical, element_control_points = evaluate_face_integration_points(refined_faces, refined_control_points, refined_rows, refined_cols, nGp, weight)
         print('Gauss Integration Points in Parametric Domain:\n',GaussIntegrationPoints_parametric)
         print('\n')
         print('Gauss Integration Points in Physical Domain:\n',GaussIntegrationPoints_physical)
@@ -131,7 +183,7 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         print('Element Control Points:\n',element_control_points)
         print('\n')
 
-        # exit()
+       
         
         element_id = 1
         element_id_2 = 1
@@ -146,6 +198,9 @@ class StructuralMechanicsAnalysis(AnalysisStage):
 
             for j in range(len(_element_control_point)):
                 element_control_point[j] = _element_control_point[j]
+                self.model.GetModelPart("IgaModelPart").GetSubModelPart(sub_model_part).AddNode(self.model.GetModelPart("IgaModelPart").Nodes[_element_control_point[j]+node_id+1], 0 )
+                self.model.GetModelPart("IgaModelPart").GetSubModelPart(sub_model_part_cond).AddNode(self.model.GetModelPart("IgaModelPart").Nodes[_element_control_point[j]+node_id+1], 0 )
+            
 
             print("Element control point for the selected element: ", element_control_point)
             print('\n')
@@ -175,7 +230,8 @@ class StructuralMechanicsAnalysis(AnalysisStage):
             d2N_deta_dxi = []
             
             for integration_point in integration_points_paramentric:
-                _N, _dN_dxi, _dN_deta, _d2N_dxi2, _d2N_deta2, _d2N_dxi_deta, _d2N_deta_dxi = evaluate_shape_functions_and_derivatives(integration_point[0], integration_point[1], len(control_points))
+                print(len(element_control_points[i]))
+                _N, _dN_dxi, _dN_deta, _d2N_dxi2, _d2N_deta2, _d2N_dxi_deta, _d2N_deta_dxi = evaluate_shape_functions_and_derivatives(integration_point[0], integration_point[1], len(element_control_points[i]))
                 print(f"Shape functions N for Point {index_print}: ", _N) #2D
                 print('\n')
                 print(f"Shape function derivatives w.r.t to xi for Point {index_print}: ", _dN_dxi) # Now 2D
@@ -202,7 +258,6 @@ class StructuralMechanicsAnalysis(AnalysisStage):
             print('\n')
             print('d2N_deta_dxi\n: ', d2N_deta_dxi)
             print('\n')
-
             
             '''
             # Convert shape functions and their derivatives to Kratos Matrix format
@@ -237,6 +292,8 @@ class StructuralMechanicsAnalysis(AnalysisStage):
                 N5 = KratosMultiphysics.Matrix(1,len(element_control_points[element_id-1])) # Shape function derivatives w.r.t to xieta for an element (d2N_dxieta)
                 N6 = KratosMultiphysics.Matrix(1,len(element_control_points[element_id-1])) # Shape function derivatives w.r.t to eta2 for an element (d2N_deta2)
 
+                print(i)
+                print(element_control_points[element_id-1])#
                 for k in range(len(element_control_points[element_id-1])):
                     N1[0,k] = N[index][k]
                     N2[0,k] = dN_dxi[index][k]
@@ -251,6 +308,8 @@ class StructuralMechanicsAnalysis(AnalysisStage):
                 print('\n')
                 print('N3\n: ', N3)
                 print(integration_points_paramentric[index])
+                print(element_control_point)                                                
+
                 quadrature_point_geometry = KratosMultiphysics.GeometriesVector()
                 quadrature_point_geometry = KratosMultiphysics.CreateQuadraturePointsUtility.CreateQuadraturePoint(surface,
                                                                                                                     3,
@@ -268,8 +327,46 @@ class StructuralMechanicsAnalysis(AnalysisStage):
 
                 element_id_2 += 1
             element_id += 1
-        print(self.model.GetModelPart("IgaModelPart"))
         
+
+        # Strong boundary conditions
+        for i in range(0, len(sub_model_part_bc)): 
+            self.model.GetModelPart("IgaModelPart").CreateSubModelPart(sub_model_part_bc[i])
+
+            ##
+            u_start = 0
+            u_end = refined_rows
+            v_start = 0
+            v_end = refined_cols
+
+            if sub_model_part_bc_type[i] == "GeometrySurfaceNodes":
+                if sub_model_part_bc_param[i][0] >= 0:
+                    u_start = int(sub_model_part_bc_param[i][0]) * (refined_rows - 1)
+                    u_end = int(sub_model_part_bc_param[i][0]) * (refined_rows - 1) + 1
+                if sub_model_part_bc_param[i][1] >= 0:
+                    v_start = int(sub_model_part_bc_param[i][1]) * (refined_cols - 1)
+                    v_end = int(sub_model_part_bc_param[i][1]) * (refined_cols - 1) + 1
+            elif sub_model_part_bc_type[i] == "GeometrySurfaceVariationNodes":
+                if sub_model_part_bc_param[i][0] == 0:
+                    u_start = 1
+                    u_end = 2
+                if sub_model_part_bc_param[i][0] == 1:
+                    u_start = refined_rows - 2
+                    u_end = refined_rows - 1
+                if sub_model_part_bc_param[i][1] == 0:
+                    v_start = 1
+                    v_end = 2
+                if sub_model_part_bc_param[i][1] == 1:
+                    v_start = refined_cols - 2
+                    v_end = refined_cols - 1
+
+            for m in range(u_start, u_end):
+                for n in range(v_start, v_end):
+                    # print(self.model.GetModelPart("IgaModelPart").Nodes[(m + n * refined_rows) + node_id + 1])
+                    self.model.GetModelPart("IgaModelPart").GetSubModelPart(sub_model_part_bc[i]).AddNode(self.model.GetModelPart("IgaModelPart").Nodes[(m + n * refined_rows) + node_id + 1])
+                    
+
+        # print(self.model.GetModelPart("IgaModelPart"))
         # exit()
 
         ########################################################################################

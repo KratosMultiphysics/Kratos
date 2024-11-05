@@ -27,6 +27,7 @@
 #include "includes/kratos_filesystem.h"
 #include "includes/node.h"
 #include "geometries/geometry.h"
+#include "geometries/nurbs_surface_geometry.h"
 
 //Other utilities
 #include "utilities/function_parser_utility.h"
@@ -895,7 +896,8 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         ) 
         {
 
-            auto GeometryParent = Geometry.pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX);
+            // auto GeometryParent = Geometry.pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX);
+            auto GeometryParent = dynamic_pointer_cast<NurbsSurfaceGeometry<3, PointerVector<Node>>>(Geometry.pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX));
 
             const auto default_method = GeometryParent->GetDefaultIntegrationMethod();
 
@@ -945,11 +947,13 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
 
             /// Get List of Control Points
             PointsArrayType nonzero_control_points(num_nonzero_cps);
+            KRATOS_WATCH(num_nonzero_cps)
+
             for (int j = 0; j < num_nonzero_cps; j++) {
                 nonzero_control_points(j) = GeometryParent->pGetPoint(cp_indices[j]);
             }
 
-            // std::cout << "nonzero_control_points: " << nonzero_control_points << std::endl;
+            std::cout << "nonzero_control_points: " << nonzero_control_points << std::endl;
 
             GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
                 default_method, 
@@ -965,7 +969,27 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
 
             // return(CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePoint(WorkingSpaceDimension, LocalSpaceDimension, data_container, nonzero_control_points)); 
             return(CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePoint(WorkingSpaceDimension, LocalSpaceDimension, data_container, nonzero_control_points, &Geometry)); //nonzero_control_points
-            })
+        })
+        .def("SetInternals", [](
+        GeometryType& Geometry,
+        PointerVector<NodeType> PointsRefined
+        ) 
+        {
+            // auto GeometryParent = Geometry.pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX);
+            auto p_nurbs_surface = dynamic_pointer_cast<NurbsSurfaceGeometry<3, PointerVector<Node>>>(Geometry.pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX));
+
+            p_nurbs_surface->SetInternals(PointsRefined,
+                p_nurbs_surface->PolynomialDegreeU(), p_nurbs_surface->PolynomialDegreeV(),
+                p_nurbs_surface->KnotsU(), p_nurbs_surface->KnotsV(),
+                p_nurbs_surface->Weights());
+
+            for (IndexType i = 0; i < PointsRefined.size(); ++i) {
+                KRATOS_WATCH(PointsRefined(i)->Id())
+            }
+
+            // KRATOS_WATCH(*p_nurbs_surface)
+
+        })
         ;
 
 

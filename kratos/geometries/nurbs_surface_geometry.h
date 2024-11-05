@@ -262,10 +262,10 @@ public:
         mKnotsV = rKnotsV;
         mWeights = rWeights;
 
-        CheckAndFitKnotVectors();
+        // CheckAndFitKnotVectors();
 
-        KRATOS_ERROR_IF(rWeights.size() != rThisPoints.size())
-            << "Number of control points and weights do not match!" << std::endl;
+        // KRATOS_ERROR_IF(rWeights.size() != rThisPoints.size())
+        //     << "Number of control points and weights do not match!" << std::endl;
     }
 
     /// @return returns the polynomial degree 'p' in u direction.
