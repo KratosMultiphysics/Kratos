@@ -249,6 +249,17 @@ namespace Kratos
         /// Performs check if Penalty factor is provided.
         int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
+        void CalculateOnIntegrationPoints(
+            const Variable<double> &rVariable,
+            std::vector<double> &rOutput,
+            const ProcessInfo &rCurrentProcessInfo) override;
+        
+        void CalculateOnIntegrationPoints(
+            const Variable<Vector>& rVariable,
+            std::vector<Vector>& rValues,
+            const ProcessInfo& rCurrentProcessInfo
+            ) override;
+
         ///@}
         ///@name Input and output
         ///@{
@@ -383,17 +394,7 @@ namespace Kratos
         bool CheckCriteria(const Vector& deformed_pos_master, const Vector& deformed_pos_slave, const Vector& displacement_master,
                            const Vector& normal, const Matrix& DB_master, array_1d<double, 3>& local_tangent, array_1d<double, 2>& old_normal,
                            const Vector stress_vector_master);
-
-        void CalculateOnIntegrationPoints(
-            const Variable<double> &rVariable,
-            std::vector<double> &rOutput,
-            const ProcessInfo &rCurrentProcessInfo) override;
-        
-        void CalculateOnIntegrationPoints(
-            const Variable<Vector>& rVariable,
-            std::vector<Vector>& rValues,
-            const ProcessInfo& rCurrentProcessInfo
-            ) override;
+                           
 
         friend class Serializer;
 

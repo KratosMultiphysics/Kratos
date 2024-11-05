@@ -583,7 +583,7 @@ namespace Kratos
     {
         const auto& r_geometry = GetGeometry().GetGeometryPart(index);
 
-        const SizeType dim = r_geometry.WorkingSpaceDimension();
+        const SizeType dim = 2;//r_geometry.WorkingSpaceDimension();
 
         const SizeType number_of_nodes = r_geometry.size();
 
@@ -638,7 +638,7 @@ namespace Kratos
         Vector& StrainVector, IndexType index, const Kratos::ProcessInfo& rCurrentProcessInfo) 
     {
         const auto& r_geometry = GetGeometry().GetGeometryPart(index);
-        const SizeType dim = r_geometry.WorkingSpaceDimension();
+        const SizeType dim = 2;//r_geometry.WorkingSpaceDimension();
 
         ConstitutiveLaw::Pointer rpConstitutiveLaw = GetConstitutiveLaw(index);
 
@@ -684,9 +684,6 @@ namespace Kratos
         double normal_gap = inner_prod(GP_slave_coord_deformed - GP_master_coord_deformed, normal_physical_space_master);
 
         SetValue(NORMAL_GAP, normal_gap);
-
-        KRATOS_WATCH(normal_gap)
-
         // double tangential_gap = norm_2((deformed_pos_slave - deformed_pos_master) - normal_gap * normal_physical_space);
     }
 
@@ -714,11 +711,7 @@ namespace Kratos
         }
     }
 
-    /**
-     * @brief 
-     * 
-     * @param rCurrentProcessInfo 
-     */
+
     void SupportContact2DCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     {
         ConstitutiveLaw::Parameters constitutive_law_parameters_master(
@@ -743,12 +736,7 @@ namespace Kratos
         SetValue(NORMAL_STRESS, sigma_n);
         // //---------------------
     }
-    
-    /**
-     * @brief 
-     * 
-     * @param rCurrentProcessInfo 
-     */
+
     void SupportContact2DCondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
 
         // InitializeMaterial();
@@ -765,6 +753,7 @@ namespace Kratos
 
 
         this->InitializeNonLinearIteration(rCurrentProcessInfo);
+
     }
 
     /**
@@ -786,7 +775,7 @@ namespace Kratos
         // JACOBIANS
         // master
         GeometryType::JacobiansType J0_master; double DetJ0_master;
-        const SizeType dim = r_geometry_master.WorkingSpaceDimension();
+        const SizeType dim = 2; //r_geometry_master.WorkingSpaceDimension();
 
         Matrix DN_DX_master(number_of_nodes_master,2); Matrix InvJ0_master(dim,dim);
         r_geometry_master.Jacobian(J0_master,this->GetIntegrationMethod());
@@ -867,15 +856,15 @@ namespace Kratos
 
         // SET DISPLACEMENTS
         // master
-        Vector coefficient_master(2*number_of_nodes_master);
+        Vector coefficient_master(dim*number_of_nodes_master);
         GetValuesVector(coefficient_master, QuadraturePointCouplingGeometry2D<Point>::Master);
 
         const Matrix& N_master = r_geometry_master.ShapeFunctionsValues(this->GetIntegrationMethod());
-        Matrix H_master = ZeroMatrix(dim, number_of_nodes_master);
-        for (IndexType i_dim = 0; i_dim < dim; i_dim++) {
-            for (IndexType i = 0; i < number_of_nodes_master; ++i)
-            {
-                H_master(i_dim, i) = N_master(0, i);
+        Matrix H_master = ZeroMatrix(dim, dim*number_of_nodes_master);
+        for (IndexType i = 0; i < number_of_nodes_master; ++i)
+        {
+            for (IndexType i_dim = 0; i_dim < dim; i_dim++) {
+                H_master(i_dim, dim*i+i_dim) = N_master(0, i);
             }
         }
 
@@ -889,11 +878,11 @@ namespace Kratos
         GetValuesVector(coefficient_slave, QuadraturePointCouplingGeometry2D<Point>::Slave);
 
         const Matrix& N_slave = r_geometry_slave.ShapeFunctionsValues(this->GetIntegrationMethod());
-        Matrix H_slave = ZeroMatrix(dim, number_of_nodes_slave);
-        for (IndexType i_dim = 0; i_dim < dim; i_dim++) {
-            for (IndexType i = 0; i < number_of_nodes_slave; ++i)
-            {
-                H_slave(i_dim, i) = N_slave(0, i);
+        Matrix H_slave = ZeroMatrix(dim, dim*number_of_nodes_slave);
+        for (IndexType i = 0; i < number_of_nodes_slave; ++i)
+        {
+            for (IndexType i_dim = 0; i_dim < dim; i_dim++) {
+                H_slave(i_dim, dim*i+i_dim) = N_slave(0, i);
             }
         }
 
@@ -946,6 +935,10 @@ namespace Kratos
         this->InitializeNonLinearIteration(rCurrentProcessInfo);
     }
 
+
+    
+
+
     //----------------------------------------------------------------------------------
     const Matrix SupportContact2DCondition::GetConstitutiveMatrix(IndexType index, Matrix& r_B, GeometryType r_geometry,
                                                                    Vector& old_displacement, const Kratos::ProcessInfo& rCurrentProcessInfo,
@@ -963,6 +956,7 @@ namespace Kratos
 
         ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
         ConstitutiveVariables this_constitutive_variables(strain_size);
@@ -1013,6 +1007,8 @@ namespace Kratos
         const double toll_tangential_distance = 1e-1;
 
         double flag_normal_gap = inner_prod(deformed_pos_slave - deformed_pos_master, normal);
+
+        SetValue(NORMAL_GAP, flag_normal_gap);
 
         double tangential_gap = norm_2((deformed_pos_slave - deformed_pos_master) - flag_normal_gap * normal);
 
@@ -1125,7 +1121,6 @@ namespace Kratos
         return false;
     }
 
-
     void SupportContact2DCondition::CalculateOnIntegrationPoints(
         const Variable<double>& rVariable,
         std::vector<double>& rValues,
@@ -1146,7 +1141,7 @@ namespace Kratos
         const ProcessInfo& rCurrentProcessInfo
         )
     {
-        const SizeType dimension = GetMasterGeometry().WorkingSpaceDimension();
+        const SizeType dimension = 2;//GetMasterGeometry().WorkingSpaceDimension();
 
         if (rValues.size() != dimension)
             rValues.resize(dimension);

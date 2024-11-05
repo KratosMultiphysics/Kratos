@@ -265,83 +265,74 @@ public:
         // auto& r_conditions_array = rModelPart.GetSubModelPart("ContactInterface").Conditions();
         ModelPart* contact_sub_model_part = rModelPart.pGetSubModelPart("ContactInterface");
 
-        
+        int count_cond = 0;
+        int n_CP = (contact_sub_model_part->Conditions().begin())->GetGeometry().GetGeometryPart(0).size();
+        int p = (int) sqrt(n_CP);
+
+        int n_GP_per_segment = 2*p+1;
+        double toll = 1e-12;
+        int n_cond = contact_sub_model_part->Conditions().size(); 
+
+        Vector length = ZeroVector(n_cond);
+        Vector check_per_segment = ZeroVector(n_cond);
+
         for (auto i_cond(contact_sub_model_part->Conditions().begin()); i_cond != contact_sub_model_part->Conditions().end(); ++i_cond)
         {
             
-            int n_CP = i_cond->GetGeometry().GetGeometryPart(0).size();
-            int p = (int) sqrt(n_CP);
-
-            int n_GP = 2*p+1;
-            double toll = 1e-12;
-
-            
             double normal_gap = i_cond->GetValue(NORMAL_GAP);
-            Vector normal_stress = i_cond->GetValue(NORMAL_STRESS);
+            Vector normal_stress = i_cond->GetValue(STRESS_MASTER);
             Vector normal = i_cond->GetValue(NORMAL_MASTER);
+            double weight = i_cond->GetValue(INTEGRATION_WEIGHT);
+ 
+            // KRATOS_WATCH(i_cond->GetProperties()[YOUNG_MODULUS])
+            double yound_modulus = 10.0;
 
-            // KRATOS_WATCH(normal_gap)
 
+            // double true_normal_stress = inner_prod(normal_stress, normal);
 
-            double true_normal_stress = inner_prod(normal_stress, normal);
+            double true_normal_stress = (normal_stress[0]* normal[0] + normal_stress[2]* normal[1])*normal[0] +
+                                      (normal_stress[2]* normal[0] + normal_stress[1]* normal[1])*normal[1];
 
-            if ((-1000*normal_gap > toll))
-            {
-                i_cond->Set(ACTIVE, true);
-            }
+            int segment_index = (int) count_cond/n_GP_per_segment;
+            double check_value = -(true_normal_stress+yound_modulus*normal_gap);
+
+            length[segment_index] += weight;
+            check_per_segment[segment_index] += weight*check_value;
+
+            // if (-(true_normal_stress+yound_modulus*normal_gap) > toll)
+            // {
+            //     i_cond->Set(ACTIVE, true);
+            // }
+
+            count_cond++;
 
         }
 
+        count_cond = 0;
+        int n_changes = 0;
+        for (auto i_cond(contact_sub_model_part->Conditions().begin()); i_cond != contact_sub_model_part->Conditions().end(); ++i_cond)
+        {
+            int segment_index = (int) count_cond/n_GP_per_segment;
 
+            if (check_per_segment[segment_index]/length[segment_index] > toll)
+            {
+                if (i_cond->IsActive() == false) {
+                    i_cond->Set(ACTIVE, true);
+                    n_changes += 1;
+                }
+            } else {
+                if (i_cond->IsActive() == true) {
+                    i_cond->Set(ACTIVE, false);
+                    n_changes += 1;
+                }
+            }
 
-        // block_for_each(r_nodes_array, [&](Node& rNode) {
-        //     rNode.FastGetSolutionStepValue(WEIGHTED_GAP, 1) = rNode.FastGetSolutionStepValue(WEIGHTED_GAP);
-        // });
+            count_cond++;
 
-        // // Set to zero the weighted gap
-        // ResetWeightedGap(rModelPart);
+        }
 
-        // // Compute the contribution
-        // ContactUtilities::ComputeExplicitContributionConditions(rModelPart.GetSubModelPart("ComputingContact"));
-
-        // // GiD IO for debugging
-        // if (mOptions.Is(ActiveSetCriteria::IO_DEBUG)) {
-        //     const bool frictional_problem = rModelPart.IsDefined(SLIP) ? rModelPart.Is(SLIP) : false;
-        //     const int nl_iter = rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
-        //     const double label = static_cast<double>(nl_iter);
-
-        //     if (nl_iter == 1) {
-        //         mpIO->InitializeMesh(label);
-        //         mpIO->WriteMesh(rModelPart.GetMesh());
-        //         mpIO->FinalizeMesh();
-        //         mpIO->InitializeResults(label, rModelPart.GetMesh());
-        //     }
-
-        //     mpIO->WriteNodalFlags(INTERFACE, "INTERFACE", rModelPart.Nodes(), label);
-        //     mpIO->WriteNodalFlags(ACTIVE, "ACTIVE", rModelPart.Nodes(), label);
-        //     mpIO->WriteNodalFlags(SLAVE, "SLAVE", rModelPart.Nodes(), label);
-        //     mpIO->WriteNodalFlags(ISOLATED, "ISOLATED", rModelPart.Nodes(), label);
-        //     mpIO->WriteNodalResults(NORMAL, rModelPart.Nodes(), label, 0);
-        //     mpIO->WriteNodalResultsNonHistorical(DYNAMIC_FACTOR, rModelPart.Nodes(), label);
-        //     mpIO->WriteNodalResultsNonHistorical(AUGMENTED_NORMAL_CONTACT_PRESSURE, rModelPart.Nodes(), label);
-        //     mpIO->WriteNodalResults(DISPLACEMENT, rModelPart.Nodes(), label, 0);
-        //     if (rModelPart.Nodes().begin()->SolutionStepsDataHas(VELOCITY_X)) {
-        //         mpIO->WriteNodalResults(VELOCITY, rModelPart.Nodes(), label, 0);
-        //         mpIO->WriteNodalResults(ACCELERATION, rModelPart.Nodes(), label, 0);
-        //     }
-        //     if (r_nodes_array.begin()->SolutionStepsDataHas(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE))
-        //         mpIO->WriteNodalResults(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, rModelPart.Nodes(), label, 0);
-        //     else if (r_nodes_array.begin()->SolutionStepsDataHas(VECTOR_LAGRANGE_MULTIPLIER_X))
-        //         mpIO->WriteNodalResults(VECTOR_LAGRANGE_MULTIPLIER, rModelPart.Nodes(), label, 0);
-        //     mpIO->WriteNodalResults(WEIGHTED_GAP, rModelPart.Nodes(), label, 0);
-        //     if (frictional_problem) {
-        //         mpIO->WriteNodalFlags(SLIP, "SLIP", rModelPart.Nodes(), label);
-        //         mpIO->WriteNodalResults(WEIGHTED_SLIP, rModelPart.Nodes(), label, 0);
-        //         mpIO->WriteNodalResultsNonHistorical(AUGMENTED_TANGENT_CONTACT_PRESSURE, rModelPart.Nodes(), label);
-        //     }
-        // }
-
-        return true;
+        if (n_changes == 0) return true;
+        else return false;
     }
 
     /**
