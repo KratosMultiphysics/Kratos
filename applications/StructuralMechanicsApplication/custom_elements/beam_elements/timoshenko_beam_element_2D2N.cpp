@@ -935,6 +935,32 @@ void LinearTimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
             const Vector &r_generalized_stresses = cl_values.GetStressVector();
             rOutput[IP] = r_generalized_stresses[2];
         }
+    } else if (rVariable == AXIAL_STRAIN || rVariable == SHEAR_STRAIN || rVariable == BENDING_STRAIN) {
+
+        const double length = CalculateLength();
+        const double Phi    = StructuralMechanicsElementUtilities::CalculatePhi(r_props, length);
+
+        // Let's initialize the cl values
+        VectorType strain_vector(strain_size);
+        strain_vector.clear();
+
+        VectorType nodal_values(mat_size);
+        GetNodalValuesVector(nodal_values);
+
+        // Loop over the integration points
+        for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
+            const double xi = integration_points[IP].X();
+
+            CalculateGeneralizedStrainsVector(strain_vector, length, Phi, xi, nodal_values);
+
+            if (rVariable == AXIAL_STRAIN) {
+                rOutput[IP] = strain_vector[0];
+            } else if (rVariable == BENDING_STRAIN) {
+                rOutput[IP] = strain_vector[1];
+            } else if (rVariable == SHEAR_STRAIN) {
+                rOutput[IP] = strain_vector[2];
+            }
+        }
     }
 }
 
