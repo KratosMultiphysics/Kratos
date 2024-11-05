@@ -355,7 +355,6 @@ void LinearTrussElement2D<TNNodes>::CalculateLocalSystem(
     RotateAll(rLHS, rRHS); // rotate to global
 
     KRATOS_CATCH("")
-
 }
 
 /***********************************************************************************/
@@ -428,7 +427,62 @@ void LinearTrussElement2D<TNNodes>::CalculateRightHandSide(
     const ProcessInfo& rProcessInfo
     )
 {
+   KRATOS_TRY;
+    const auto &r_props = GetProperties();
+    const auto &r_geometry = GetGeometry();
 
+    if (rRHS.size() != SystemSize) {
+        rRHS.resize(SystemSize, false);
+    }
+    noalias(rRHS) = ZeroVector(SystemSize);
+
+    const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
+
+    ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
+    auto &r_cl_options = cl_values.GetOptions();
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+    const double length = CalculateLength();
+    const double J      = 0.5 * length;
+    const double area   = r_props[CROSS_AREA];
+
+    // Let's initialize the cl values
+    VectorType strain_vector(1), stress_vector(1);
+    MatrixType constitutive_matrix(1, 1); // Young modulus
+
+    strain_vector.clear();
+    cl_values.SetStrainVector(strain_vector);
+    cl_values.SetStressVector(stress_vector);
+    cl_values.SetConstitutiveMatrix(constitutive_matrix);
+    SystemSizeBoundedArrayType nodal_values(SystemSize);
+    GetNodalValuesVector(nodal_values); // In local axes
+
+    SystemSizeBoundedArrayType B, N_shape, N_shapeY;
+
+    // Loop over the integration points
+    for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
+        const auto local_body_forces = GetLocalAxesBodyForce(*this, integration_points, IP);
+
+        const double xi     = integration_points[IP].X();
+        const double weight = integration_points[IP].Weight();
+        const double jacobian_weight = weight * J * area;
+        GetShapeFunctionsValues(N_shape, length, xi);
+        GetShapeFunctionsValuesY(N_shapeY, length, xi);
+        GetFirstDerivativesShapeFunctionsValues(B, length, xi);
+
+
+        strain_vector[0] = inner_prod(B, nodal_values);
+        mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values); // fills stress and const. matrix
+
+        noalias(rRHS) -= B * stress_vector[0] * jacobian_weight;
+
+        noalias(rRHS) += N_shape * local_body_forces[0] * jacobian_weight;
+        noalias(rRHS) += N_shapeY * local_body_forces[1] * jacobian_weight;
+    }
+    RotateRHS(rRHS); // rotate to global
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
