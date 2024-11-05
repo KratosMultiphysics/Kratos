@@ -53,6 +53,7 @@ void LinearTrussElement2D<TNNodes>::Initialize(const ProcessInfo& rCurrentProces
             mConstitutiveLawVector.resize(r_integration_points.size());
         InitializeMaterial();
     }
+
     KRATOS_CATCH("")
 }
 
@@ -294,6 +295,7 @@ void LinearTrussElement2D<TNNodes>::CalculateLocalSystem(
     )
 {
     KRATOS_TRY;
+
     const auto &r_props = GetProperties();
     const auto &r_geometry = GetGeometry();
 
@@ -344,7 +346,7 @@ void LinearTrussElement2D<TNNodes>::CalculateLocalSystem(
 
 
         strain_vector[0] = inner_prod(B, nodal_values);
-        mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values); // fills stress and const. matrix
+        mConstitutiveLawVector[IP]->CalculateMaterialResponsePK2(cl_values); // fills stress and const. matrix
 
         noalias(rLHS) += outer_prod(B, B) * constitutive_matrix(0, 0) * jacobian_weight;
         noalias(rRHS) -= B * stress_vector[0] * jacobian_weight;
@@ -409,7 +411,7 @@ void LinearTrussElement2D<TNNodes>::CalculateLeftHandSide(
         GetFirstDerivativesShapeFunctionsValues(B, length, xi);
 
         strain_vector[0] = inner_prod(B, nodal_values);
-        mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values); // fills stress and const. matrix
+        mConstitutiveLawVector[IP]->CalculateMaterialResponsePK2(cl_values); // fills stress and const. matrix
 
         noalias(rLHS) += outer_prod(B, B) * constitutive_matrix(0, 0) * jacobian_weight;
     }
@@ -473,7 +475,7 @@ void LinearTrussElement2D<TNNodes>::CalculateRightHandSide(
 
 
         strain_vector[0] = inner_prod(B, nodal_values);
-        mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values); // fills stress and const. matrix
+        mConstitutiveLawVector[IP]->CalculateMaterialResponsePK2(cl_values); // fills stress and const. matrix
 
         noalias(rRHS) -= B * stress_vector[0] * jacobian_weight;
 
