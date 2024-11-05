@@ -4,7 +4,7 @@
       "properties_id":           1,
       "Material": {
           "constitutive_law": {
-              "name"             :  "GeoLinearElastic3DLaw"
+              "name"             :  "GeoIncrementalLinearElastic3DLaw"
           },
           "Variables": {
             "IGNORE_UNDRAINED"             :  false,
