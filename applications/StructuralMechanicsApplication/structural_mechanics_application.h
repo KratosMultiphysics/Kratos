@@ -281,6 +281,8 @@ private:
     const LinearTimoshenkoBeamElement2D2N mLinearTimoshenkoBeamElement2D2N;
     const LinearTimoshenkoBeamElement2D3N mLinearTimoshenkoBeamElement2D3N;
     const LinearTimoshenkoCurvedBeamElement2D3N mLinearTimoshenkoCurvedBeamElement2D3N;
+    const LinearTrussElement2D<2> mLinearTrussElement2D2N;
+    const LinearTrussElement2D<3> mLinearTrussElement2D3N;
 
 
     // Adding the shells elements
@@ -421,7 +423,7 @@ private:
     const AxisymUpdatedLagrangian mAxisymUpdatedLagrangian2D9N;
 
     // Adding the bushing element
-    const BushingElement mBushingElement3D2N;    
+    const BushingElement mBushingElement3D2N;
 
     // Adding the spring damper element
     const SpringDamperElement<2> mSpringDamperElement2D;
