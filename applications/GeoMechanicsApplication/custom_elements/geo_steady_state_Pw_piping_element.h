@@ -124,7 +124,7 @@ public:
     double CalculateEquilibriumPipeHeight(const PropertiesType& Prop, const GeometryType& Geom, double)
     {
         // calculate head gradient over element ( now without abs in CalculateHeadGradient )
-        double dhdx = CalculateHeadGradient(Prop, Geom);
+        const double dhdx = CalculateHeadGradient(Prop, Geom);
         // return infinite when dhdx is 0
         if (std::abs(dhdx) < std::numeric_limits<double>::epsilon()) return 1e10;
 

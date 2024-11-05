@@ -73,7 +73,7 @@ public:
             << "Max Piping Iterations: " << mPipingIterations << std::endl;
 
         // get piping elements
-        std::vector<Element*> piping_elements = GetPipingElements();
+        const auto piping_elements = GetPipingElements();
         if (piping_elements.empty()) {
             KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0)
                 << "No Pipe Elements -> Finalizing Solution " << std::endl;
@@ -87,9 +87,9 @@ public:
             return dynamic_cast<SteadyStatePwPipingElement<2, 4>*>(p_element);
         });
 
-        const auto number_of_piping_interface_elements =
+        const auto number_of_piping_interface_elements = static_cast<std::size_t>(
             std::count_if(piping_interface_elements.begin(), piping_interface_elements.end(),
-                          [](auto p_element) { return p_element != nullptr; });
+                          [](auto p_element) { return p_element != nullptr; }));
         KRATOS_ERROR_IF(number_of_piping_interface_elements != 0 &&
                         number_of_piping_interface_elements != piping_interface_elements.size())
             << "Unexpected number of piping interface elements: expected either 0 or "
@@ -109,9 +109,9 @@ public:
             return dynamic_cast<GeoSteadyStatePwPipingElement<2, 2>*>(p_element);
         });
 
-        const auto number_of_piping_line_elements =
+        const auto number_of_piping_line_elements = static_cast<std::size_t>(
             std::count_if(piping_line_elements.begin(), piping_line_elements.end(),
-                          [](auto p_element) { return p_element != nullptr; });
+                          [](auto p_element) { return p_element != nullptr; }));
         KRATOS_ERROR_IF(number_of_piping_line_elements != piping_line_elements.size())
             << "Unexpected number of piping line elements: expected " << piping_line_elements.size()
             << " but got " << number_of_piping_line_elements << std::endl;
@@ -219,8 +219,8 @@ private:
     /// </summary>
     /// <param name="PipeElements"></param>
     /// <returns></returns>
-    template <typename FilteredElementType>
-    SizeType InitialiseNumActivePipeElements(const FilteredElementType& PipeElements)
+    template <typename FilteredElementsType>
+    SizeType GetNumberOfActivePipeElements(const FilteredElementsType& PipeElements)
     {
         auto is_pipe_active = [](auto p_element) { return p_element->GetValue(PIPE_ACTIVE); };
         return std::count_if(std::begin(PipeElements), std::end(PipeElements), is_pipe_active);
@@ -231,25 +231,18 @@ private:
     /// </summary>
     /// <param name="pipe_elements"> vector of all pipe elements</param>
     /// <returns></returns>
-    template <typename FilteredElementType>
-    double CalculateMaxPipeHeight(const FilteredElementType& pipe_elements)
+    template <typename FilteredElementsType>
+    double CalculateMaxPipeHeight(const FilteredElementsType& pipe_elements)
     {
-        double max_diameter  = 0;
-        double height_factor = 100;
-
-        // loop over all elements
+        // get maximum pipe particle diameter of all pipe elements
+        double max_diameter = 0;
         for (auto pipe_element : pipe_elements) {
-            // calculate pipe particle diameter of pipe element
-            PropertiesType prop = pipe_element->GetProperties();
-            double particle_diameter = GeoTransportEquationUtilities::CalculateParticleDiameter(prop);
-
-            // get maximum pipe particle diameter of all pipe elements
-            if (particle_diameter > max_diameter) {
-                max_diameter = particle_diameter;
-            }
+            max_diameter = std::max(max_diameter, GeoTransportEquationUtilities::CalculateParticleDiameter(
+                                                      pipe_element->GetProperties()));
         }
 
         // max pipe height is maximum pipe particle diameter * a constant
+        double height_factor = 100.;
         return max_diameter * height_factor;
     }
 
@@ -281,7 +274,7 @@ private:
     }
 
     template <typename FilteredElementType>
-    bool check_pipe_equilibrium(const FilteredElementType& open_pipe_elements, double amax, unsigned int mPipingIterations)
+    bool CheckPipeEquilibrium(const FilteredElementType& open_pipe_elements, double amax, unsigned int mPipingIterations)
     {
         bool         equilibrium = false;
         bool         converged   = true;
@@ -291,13 +284,10 @@ private:
         double da = CalculatePipeHeightIncrement(amax, mPipingIterations);
 
         while (PipeIter < mPipingIterations && !equilibrium && converged) {
-            KRATOS_INFO("check Piping equilibrium") << "PipeIter: " << PipeIter << std::endl;
-            // set equilibrium on true
             equilibrium = true;
 
             // perform a flow calculation and stop growing if the calculation doesn't converge
             converged = this->Recalculate();
-            KRATOS_INFO("check Piping equilibrium") << "Converged: " << converged << std::endl;
 
             if (converged) {
                 // Update depth of open piping Elements
@@ -325,7 +315,7 @@ private:
                     }
 
                     // check if equilibrium height and current pipe heights are diverging, stop
-                    // picard iterations if this is the case and set pipe height on zero
+                    // Picard iterations if this is the case and set pipe height on zero
                     if (!OpenPipeElement->GetValue(PIPE_EROSION) && (PipeIter > 1) &&
                         ((eq_height - current_height) > OpenPipeElement->GetValue(DIFF_PIPE_HEIGHT))) {
                         equilibrium = true;
@@ -334,51 +324,48 @@ private:
                     // calculate difference between equilibrium height and current pipe height
                     OpenPipeElement->SetValue(DIFF_PIPE_HEIGHT, eq_height - current_height);
                 }
-                // increment piping iteration number
                 PipeIter += 1;
             }
         }
-        KRATOS_INFO("check Piping equilibrium")
-            << "PipeIter: " << PipeIter << " equilibrium " << equilibrium << std::endl;
         return equilibrium;
     }
 
     /// <summary>
     /// Checks the status of the tip element and checks if it should continue or stop growing
     /// </summary>
-    /// <param name="n_open_elements"> number of open pipe elements</param>
-    /// <param name="n_elements"> number of pipe elements</param>
-    /// <param name="max_pipe_height"> maximum allowed pipe height</param>
+    /// <param name="NOpenElements"> number of open pipe elements</param>
+    /// <param name="NElements"> number of pipe elements</param>
+    /// <param name="MaxPipeHeight"> maximum allowed pipe height</param>
     /// <param name="PipeElements"> vector of all pipe elements</param>
     /// <returns>tuple of grow bool and number of open pipe elements</returns>
-    template <typename FilteredElementType>
-    std::tuple<bool, int> check_status_tip_element(unsigned int               n_open_elements,
-                                                   unsigned int               n_elements,
-                                                   double                     max_pipe_height,
-                                                   const FilteredElementType& PipeElements)
+    template <typename FilteredElementsType>
+    std::tuple<bool, int> CheckStatusTipElement(unsigned int                NOpenElements,
+                                                unsigned int                NElements,
+                                                double                      MaxPipeHeight,
+                                                const FilteredElementsType& rPipeElements)
     {
         bool grow = true;
         // check status of tip element, stop growing if pipe_height is zero or greater than maximum
         // pipe height or if all elements are open
-        if (n_open_elements < n_elements) {
-            auto   tip_element = PipeElements.at(n_open_elements - 1);
+        if (NOpenElements < NElements) {
+            auto   tip_element = rPipeElements.at(NOpenElements - 1);
             double pipe_height = tip_element->GetValue(PIPE_HEIGHT);
 
-            if ((pipe_height > max_pipe_height + std::numeric_limits<double>::epsilon()) ||
+            if ((pipe_height > MaxPipeHeight + std::numeric_limits<double>::epsilon()) ||
                 (pipe_height < pipe_height_accuracy)) {
                 // stable element found; pipe length does not increase during current time step
                 grow = false;
                 tip_element->SetValue(PIPE_EROSION, false);
                 tip_element->SetValue(PIPE_ACTIVE, false);
-                n_open_elements -= 1;
+                NOpenElements -= 1;
 
                 KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0)
-                    << "Number of Open Pipe Elements: " << n_open_elements << std::endl;
+                    << "Number of Open Pipe Elements: " << NOpenElements << std::endl;
             }
         } else {
             grow = false;
         }
-        return std::make_tuple(grow, n_open_elements);
+        return std::make_tuple(grow, NOpenElements);
     }
 
     /// <summary>
@@ -388,7 +375,7 @@ private:
     /// <param name="grow"> boolean to check if pipe grows</param>
     /// <returns></returns>
     template <typename FilteredElementType>
-    void save_or_reset_pipe_heights(const FilteredElementType& open_pipe_elements, bool grow)
+    void SaveOrResetPipeHeights(const FilteredElementType& open_pipe_elements, bool grow)
     {
         for (auto p_element : open_pipe_elements) {
             if (grow) {
@@ -399,22 +386,17 @@ private:
         }
     }
 
-    template <typename FilteredElementType>
-    void DetermineOpenPipingElements(const FilteredElementType& rPipingElements, double MaxPipeHeight)
+    template <typename FilteredElementsType>
+    void DetermineOpenPipingElements(const FilteredElementsType& rPipingElements, double MaxPipeHeight)
     {
-        bool grow                      = true;
-        auto number_of_piping_elements = rPipingElements.size();
-        auto number_of_open_piping_elements = this->InitialiseNumActivePipeElements(rPipingElements);
+        bool       grow                      = true;
+        const auto number_of_piping_elements = rPipingElements.size();
+        auto number_of_open_piping_elements  = this->GetNumberOfActivePipeElements(rPipingElements);
         while (grow && (number_of_open_piping_elements < number_of_piping_elements)) {
-            KRATOS_INFO("DetermineOpenPipingElements")
-                << "grow " << grow << "number_of_open_piping_elements" << number_of_open_piping_elements
-                << " number_of_piping_elements " << number_of_piping_elements << std::endl;
-
             // get tip element and activate
             auto tip_element = rPipingElements.at(number_of_open_piping_elements);
             number_of_open_piping_elements += 1;
             tip_element->SetValue(PIPE_ACTIVE, true);
-            KRATOS_INFO("DetermineOpenPipingElements") << "tip_element " << tip_element << std::endl;
 
             // Get all open pipe elements
             std::function<bool(Element*)> filter = [](Element* i) {
@@ -426,22 +408,21 @@ private:
 
             // non-lin picard iteration, for deepening the pipe
             // Todo JDN (20220817):: Deal with Equilibrium redundancy
-            // Equilibrium = check_pipe_equilibrium(OpenPipeElements, amax, mPipingIterations);
-            check_pipe_equilibrium(OpenPipeElements, MaxPipeHeight, mPipingIterations);
+            // Equilibrium = CheckPipeEquilibrium(OpenPipeElements, amax, mPipingIterations);
+            CheckPipeEquilibrium(OpenPipeElements, MaxPipeHeight, mPipingIterations);
 
             // check if pipe should grow in length
-            std::tie(grow, number_of_open_piping_elements) = check_status_tip_element(
+            std::tie(grow, number_of_open_piping_elements) = CheckStatusTipElement(
                 number_of_open_piping_elements, number_of_piping_elements, MaxPipeHeight, rPipingElements);
 
             // if n open elements is lower than total pipe elements, save pipe height current
             // growing iteration or reset to previous iteration in case the pipe should not grow.
             if (number_of_open_piping_elements < number_of_piping_elements) {
-                save_or_reset_pipe_heights(OpenPipeElements, grow);
+                SaveOrResetPipeHeights(OpenPipeElements, grow);
             }
             // recalculate groundwater flow
             bool converged = this->Recalculate();
 
-            // error check
             KRATOS_ERROR_IF_NOT(converged) << "Groundwater flow calculation failed to converge." << std::endl;
         }
     }
