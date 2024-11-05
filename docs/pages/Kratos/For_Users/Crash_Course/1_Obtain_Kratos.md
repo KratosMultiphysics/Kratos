@@ -8,13 +8,15 @@ summary:
 
 # Obtain Kratos
 
-This is the crash course for Kratos Multiphyscis. During the course you will learn the fundamentals for out multiphyscis framework from scrach.
+Welcome to the Kratos Multiphysics Crash Course! In this course, you’ll gain a comprehensive understanding of the fundamentals of Kratos, a powerful and flexible multiphysics framework.
+
+This course is designed to guide you through Kratos from the ground up, covering essential concepts, components, and workflows. By the end, you will have a solid foundation for setting up, running, and extending Kratos simulations across multiple physical domains.
 
 ## 1. Preparation
 
-KratosMultiphyscis, like may other scientific software is a set of libraries rather than a progam. You can think of it like numpy, pytorch, etc...
+KratosMultiphysics, like many scientific software tools, is a collection of libraries rather than a standalone program. This means that Kratos doesn’t operate as a traditional application you can double-click to launch. Instead, similar to libraries like NumPy or PyTorch, Kratos provides components and functions that you integrate into your own scripts and workflows.
 
-This means that you cannot double-click Kratos and start, but rather use its components. In order to do so, there will be a set of programs that you will need to install:
+This means that you cannot double-click Kratos and start, but rather use its components. To effectively work with Kratos, you'll need to set up an environment that includes specific programs and tools to interface with its components and manage simulations. Below is a list of essential programs and tools for using Kratos:
 
 1) A Python interpreter
 2) A Code Editor
@@ -72,7 +74,7 @@ python -m pip install KratosMultiphysics-all
 To verify the installation, run the following test in a Python session:
 
 ```python
-import KratosMultiphysics as KMP
+import KratosMultiphysics
 ```
 
 Expected output:
@@ -93,4 +95,10 @@ Process Id: 517572
 
 While not mandatory, is extremly recomended that you install a code editor. This is nothing more that a text editor with some tweaks to ease the production of code, like sintaxt highlight, code suggestions, etc...
 
-We recommend you to install VSCode as is one of the most stright forward and friendly editor, but feel free to use any other editor of your choice
+We recommend you to install [VSCode](https://code.visualstudio.com/) as is one of the most stright forward and friendly editor, but feel free to use any other editor of your choice
+
+## 5. Pre and Post processor
+
+To fully utilize KratosMultiphysics, it is highly recommended that you install pre- and post-processing tools. These tools are essential for setting up simulation models, visualizing results, and performing detailed analysis. Kratos is compatible with several popular pre- and post-processors, each designed to address different needs and user segments like GiD, Salome and Paraview.
+
+Since all the geometries for this course are already done, we recommend you to just install [Paraview](https://www.paraview.org/) for visualization.

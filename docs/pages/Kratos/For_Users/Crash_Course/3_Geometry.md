@@ -8,19 +8,15 @@ summary:
 
 # 1. The Model and ModePart
 
-The following section is a short version of a more detailed [tutorial](Python-Script-Tutorial:-Reading-ModelPart-From-Input-File).
+As previously discussed, the `Model` and `ModelPart` are essential data structures in Kratos, responsible for storing the geometrical and structural information for your simulation.
 
 ## 1.1 Create A Model and ModelPart
 
-As you have seen before the Model and the modelpart are the data structures responsible for storing the geometrical information about your simulation.
-
-A `ModelPart` has to be created via a `Model` object, which can contain several `ModelParts`. Right after creating the empty `ModelPart`, the variables needed for the following calculations have to be added. The empty `ModelPart` is then filled using the `ModelPartIO` that reads the information from an .mdpa file. In general, the analysis object takes care of these steps, especially because it knows which variables to add.
-
-Generaly, you will not have to deal with the lecture of a `ModelPart`, but here you will do it directly in your python script. 
+A `ModelPart` has to be created via a `Model` object, which can contain several `ModelParts`. Right after creating the empty `ModelPart`, the variables needed for the following calculations have to be added. The empty `ModelPart` is then filled using the `ModelPartIO` that reads the information from an .mdpa file.
 
 If the `.mdpa` file contains application dependent elements, the corresponding Kratos application has to be imported. In our structural example, the elements are from the `StructuralMechanicsApplication`. 
 
-Lets create a small python script `tutorial_modelpart.py` with the following lines:
+ Typically, these steps are handled by the `Solver` object, which knows which variables and components to load based on the simulation configuration. However, to understand the process more directly, let’s create a simple Python script, `tutorial_modelpart.py`, that demonstrates how to read a ModelPart manually:
 
 ```python
 import KratosMultiphysics.StructuralMechanicsApplication
@@ -30,16 +26,16 @@ model_part_1 = model.CreateModelPart("MyModelPart1")
 model_part_2 = model.CreateModelPart("MyModelPart2")
 ```
 
-This is similar to what we had in the first part, we import an application and we create a `Model`, but we have added a new line that calls a method from the `Model` called `CreateModelPart`, which accepts a name as an argument.
+In this example, we are importing an application, creating a `Model`, and calling a method, `CreateModelPart`, which takes a name as an argument to create a `ModelPart`. This additional step allows us to build a dedicated section in the model to store `nodes`, `elements`, and related data structures, specific to our simulation needs.
 
-We can now print both this model and modelpart to see what they contain:
+To understand how these objects are structured and what information they contain, we can add print statements to examine the contents of both the `Model` and `ModelPart`:
 
 ```python
 # Print the model
 print(model)
 ```
 
-Which will print the information of the whole `model`, containing both `model_part_1` and `model_part_2`:
+will print the information of the whole `model`, containing both `model_part_1` and `model_part_2`:
 
 ```bash
 -MyModelPart1- model part
@@ -78,7 +74,7 @@ And we can also print the info of a single `ModelPart`:
 print(model_part_1)
 ```
 
-Which will only print the information of the `model_part_1`:
+will only print the information of the `model_part_1`:
 
 ```bash
 -MyModelPart1- model part
@@ -100,7 +96,9 @@ Which will only print the information of the `model_part_1`:
 
 We have created a `Model` with various `ModelPart`, but those are essentially empty. In order fro them to be usefull we will need fill it with the gemoetrical information and the physical data.
 
-The first we must do is to tell our modelparts which phsical data will be storing inside. In Kratos, for performance, this needs to be known before reading the actual geometry and is set individually for every different `ModelPart`. Will explain it further in the data management section. 
+The first essential step in setting up `ModelParts` in Kratos is to specify the type of physical data they will store. In Kratos, the structure and type of data stored in a `ModelPart` must be defined in advance for performance reasons. This setup allows Kratos to allocate resources efficiently, improving computational speed and memory management.
+
+Each `ModelPart` is configured to store specific physical quantities, known as `Variables` such as `DISPLACEMET`, `VELOCITY`, or `FORCE`. This configuration is required before reading in the geometry or other model data, and it must be performed separately for each `ModelPart` you create.
 
 For now, lets imagine that we want that our model holds the `DISPLACEMENT` of our nodes over time, we can tell it to the model with this instruction:
 
@@ -111,18 +109,15 @@ model_part_1.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
 
 There are many [variables](https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/python/add_containers_to_python.cpp) that we can use in the core and in applications (ex: [structural_mechanics_application.h](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/StructuralMechanicsApplication/custom_python/structural_mechanics_python_application.cpp)), and if none of them suits your needs you can always deifne your own.
 
-Be aware that this step of of crucial important, specially if you pretemd to read a mpda file that containts entity info. If you fail to tell the model_part which variable are available, you will se an error like this while trying to read or run your simulation:
+Be aware that this step is of crucial important, specially if you pretend to read a mpda file that containts entity info. If you fail to tell the `ModelPart` which variables are available, you will se an error while trying to read or run your simulation.
 
-```bash
-```
-
-As stated in the Basics section, the `Solver` is nomraly in charge of reading the `ModelPart`, and the reason for that is in fact that the `Solver` knows which of those variables are used in the simulation.
+As stated in the Basics section, the `Solver` is normaly in charge of reading the `ModelPart`, and the reason for that is in fact that the `Solver` is the class that knows which of those `Variables`` are used in the simulation.
 
 ## 1.3 Read a .mdpa file
 
 We have initialized our model and modelpart and assigned the variables we will use. Its now time to actually read the modelpart.
 
-This can be done through the `ModelPartIO` class. You only have to specigy the name of the file **without the .mdpa extension** and then call the read function with the model_part you want to be the one holding the file data. In this case we will go with `KratosWorkshop2019_high_rise_building_CSM` and `model_part_1`
+The process of reading data into a `ModelPart` is handled by the `ModelPartIO` class in Kratos. This class is designed to streamline the loading of model data from `.mdpa` files. To use it, you need to specify the name of the file **excluding the .mdpa extension** and then call the `ReadModelPart` function, passing the target `ModelPart` as an argument. In this case we will go with `KratosWorkshop2019_high_rise_building_CSM` and `model_part_1`:
 
 ```python
 # Create a ModelPartIO and use the Read function
@@ -192,18 +187,19 @@ Will now yield:
 
 While you can read whole files, it is also possible to assign its entities manually. 
 
-A modelpart is generally constructed using `Nodes`, `Elements`, `Conditions` and `MasterSlaveConstraints``, and those entities can be created directly in python.
+A `ModelPart` is generally constructed using `Nodes`, `Elements`, `Conditions` and `MasterSlaveConstraints`, and those entities can be created directly in python. 
+
+Let's see how:
 
 ### 1.4.1. Nodes
 Let's try to create a simple square using triangular elements. First we need to create the nodes, we will need 4 of them and we will add them to the `model_part_2` with the `CreateNewNode(ID, X, Y, Z)` function:
 
 ```python
-node_1 = model_part_2.CreateNewNode(1, 0.00000, 0.00000, 0.00000)
-node_2 = model_part_2.CreateNewNode(2, 1.00000, 0.00000, 0.00000)
-node_3 = model_part_2.CreateNewNode(3, 1.00000, 1.00000, 0.00000)
-node_4 = model_part_2.CreateNewNode(4, 1.00000, 0.00000, 0.00000)
+node_1 = model_part_2.CreateNewNode(1, 0.00, 0.00, 0.00)
+node_2 = model_part_2.CreateNewNode(2, 1.00, 0.00, 0.00)
+node_3 = model_part_2.CreateNewNode(3, 1.00, 1.00, 0.00)
+node_4 = model_part_2.CreateNewNode(4, 1.00, 0.00, 0.00)
 ```
-
 
 ### 1.4.2. Elements and Conditions
 
@@ -218,14 +214,14 @@ This function is a bit more complicated as Kratos has different concepts for the
 
 Since we want a triangle and we don't care about the Z coordinates, we can use an `Element2D3N`
 
-The properties are just another database that holds information but which is shared for all entitites of the modelpart. For the properties field we will just use `model_part_2.GetProperties(1)`. This will create empty properties for us. 
+The properties are just another database that holds information but which is shared for all entitites of the `ModelPart`. For the properties field we will just use `model_part_2.GetProperties(1)`. This will create empty properties for us. 
 
 ```python
 element_1 = model_part_2.CreateNewElement("Element2D3N", 1, [1,3,2], model_part_2.GetProperties(1))
 element_2 = model_part_2.CreateNewElement("Element2D3N", 2, [1,4,3], model_part_2.GetProperties(1))
 ```
 
-⚠️ Be mindful when asigning the list of nodes, as the order will determine the normal of the element if its a surface.
+⚠️ Be mindful when asigning the list of nodes, as the order will determine the normal of the element if it is a surface.
 
 We can check that out modelpart has the newly added info by printing it, as typical:
 
@@ -277,18 +273,19 @@ mp.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", id=1,
 )
 ```
 
-As with the Elements and Conditions, the type (in this case `"LinearMasterSlaveConstraint"`) will determine its physcial properties.
+As with the `Elements` and `Conditions`, the type (in this case `"LinearMasterSlaveConstraint"`) will determine its physcial properties.
 
 ## 1.5 Submodelparts
 
-Aside for the possibility of a `Model` to contain several `ModelParts`, we also have the hability to create subdivisions inside a `ModelPart` which are called `SubModelPart`. 
+In addition to the capability of a `Model` to contain multiple `ModelParts`, Kratos provides the functionality to create subdivisions within a `ModelPart`, referred to as `SubModelParts`. This hierarchical organization allows for more efficient data management and analysis within complex models.
 
-Each submodelpart represents a subset of the entitis of a given `ModelPart` that for whatever reason are interesant to keep grouped. For example, the elements and nodes that belong to an inlet of a wind tunnel can be a submodelpart of the geometry representinf the wind tunnel.
+A `SubModelPart` represents a subset of the entities (`nodes`, `elements`, etc.) within a `ModelPart` that are grouped together for specific purposes. For instance, `elements` and `nodes` associated with the inlet of a wind tunnel can be organized into a `SubModelPart` to facilitate targeted simulations or analyses related to airflow through that inlet.
 
 It is very important to notice that: 
-1) While the different modelParts in a model a essentially different objects, submodelparts are only sets of existing entities. New entitites will not be created when added to a submodelpart. 
-2) Entitites can belong to different submodelparts
-3) Submodelpart can have other submodelparts, hence, providing you with a mechanism to heriarchicly divide your modelparts. but an entity that belong to a given submodelpart will also belong to all its parents.
+
+1) While the different `ModelParts` in a `Model` a essentially different objects, `SubModelParts` are only sets of existing entities. New entitites will not be created when added to a `SubModelPart`. 
+2) Entitites can belong to different `SubModelParts`
+3) `SubModelPart` can have other `SubModelParts`, hence, providing you with a mechanism to heriarchicly divide your `ModelParts`. but an entity that belong to a given `SubModelPart` will also belong to all its parents.
 
 # 2. Output
 The `vtk_output` block in the ProjectParameters.json gives you an impression on the potential settings for the output. Here you will create just a minimal version of it.
