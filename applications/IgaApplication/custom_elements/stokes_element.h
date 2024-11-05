@@ -140,6 +140,11 @@ public:
         const Variable<Vector>& rVariable,
         std::vector<Vector>& rOutput,
         const ProcessInfo& rCurrentProcessInfo) override;
+    
+    void CalculateOnIntegrationPoints(
+        const Variable<Matrix>& rVariable,  
+        std::vector<Matrix>& D_constitutive_matrix, 
+        const ProcessInfo& rCurrentProcessInfo) override;   
 
     ///@}
     ///@name Input and output
@@ -210,6 +215,8 @@ protected:
             const Matrix& r_D);
     
     Vector CalculateStressAtIntegrationPoint(const ProcessInfo& rCurrentProcessInfo);
+
+    Matrix CalculateConstitutiveMatrixAtIntegrationPoint(const ProcessInfo& rCurrentProcessInfo);
     
     void InitializeMaterial();
 

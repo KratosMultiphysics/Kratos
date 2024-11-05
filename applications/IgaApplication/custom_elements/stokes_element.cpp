@@ -506,14 +506,6 @@ void StokesElement::AddSecondOrderStabilizationTerms(MatrixType &rLeftHandSideMa
 
         // Computed using the Gauss Points in the same knot span
         Vector divergence_of_sigma = this->GetValue(RECOVERED_STRESS);
-        // KRATOS_WATCH(divergence_of_sigma)
-        // KRATOS_WATCH(6*r_geometry.Center().X() - 6*r_geometry.Center().Y())
-        // KRATOS_WATCH( - 6*r_geometry.Center().Y())
-
-
-        // divergence_of_sigma[0] = 6*r_geometry.Center().X() - 6*r_geometry.Center().Y();
-        // divergence_of_sigma[1] = - 6*r_geometry.Center().Y();
-        // KRATOS_WATCH(divergence_of_sigma)
 
         // initilize the div(sigma) matrix 2x(2n)
         Vector div_sigma_1 = ZeroVector(mDim*number_of_points);
@@ -604,10 +596,8 @@ void StokesElement::AddSecondOrderStabilizationTerms(MatrixType &rLeftHandSideMa
         // Vector tempVector_sigma_v_grad_p_rhs = prod(tempMatrix_pressure_term, pressure_previous) ;
 
 
-        for (IndexType i = 0; i < number_of_points; ++i)
-        {   
-            for (IndexType dim1 = 0; dim1 < mDim; ++dim1)
-                {
+        for (IndexType i = 0; i < number_of_points; ++i) {   
+            for (IndexType dim1 = 0; dim1 < mDim; ++dim1) {
                     // Assemble 3rd order stabilization term -> sigma-sigma
                     rRightHandSideVector(i * BlockSize + dim1) += GaussWeight * TauOne * (
                         div_sigma_1[i * mDim + dim1] * divergence_of_sigma[0] + div_sigma_2[i * mDim + dim1] * divergence_of_sigma[1]);
@@ -619,7 +609,6 @@ void StokesElement::AddSecondOrderStabilizationTerms(MatrixType &rLeftHandSideMa
                     rRightHandSideVector(i * BlockSize + mDim) += GaussWeight * TauOne * DN_DX(i,dim1) * divergence_of_sigma[dim1];
                 }
         }
-    
     } // end if
 
 }
@@ -861,6 +850,26 @@ void StokesElement::CalculateOnIntegrationPoints(
     }
 }
 
+void StokesElement::CalculateOnIntegrationPoints(
+    const Variable<Matrix>& rVariable,
+    std::vector<Matrix>& D_constitutive_matrix,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rVariable == CONSTITUTIVE_MATRIX) {
+        const unsigned int num_integration_points = this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
+
+        if (D_constitutive_matrix.size() != 1) {
+            D_constitutive_matrix.resize(1);
+        }
+
+        // Resize each matrix in the vector to 3x3
+        D_constitutive_matrix[0].resize(3, 3, false);
+        noalias(D_constitutive_matrix[0]) = ZeroMatrix(3, 3); // Optionally initialize each matrix to zero
+
+        D_constitutive_matrix[0] = this->CalculateConstitutiveMatrixAtIntegrationPoint(rCurrentProcessInfo);
+    }
+}
+
 Vector StokesElement::CalculateStressAtIntegrationPoint(
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -896,6 +905,42 @@ Vector StokesElement::CalculateStressAtIntegrationPoint(
     stress_voigt = Values.GetStressVector();
     
     return stress_voigt;
+}
+
+
+Matrix StokesElement::CalculateConstitutiveMatrixAtIntegrationPoint(
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    const auto& r_geometry = GetGeometry();
+    const SizeType number_of_points = r_geometry.size();
+    const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
+    const ShapeDerivativesType& DN_DX = DN_De[0];
+    // constitutive law
+    Matrix B = ZeroMatrix(3,number_of_points*mDim);
+    CalculateB(B, DN_DX);
+    ConstitutiveLaw::Parameters Values(r_geometry, GetProperties(), rCurrentProcessInfo);
+    const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
+    // Set constitutive law flags:
+    Flags& ConstitutiveLawOptions=Values.GetOptions();
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    ConstitutiveVariables this_constitutive_variables(strain_size);
+    Vector old_displacement(number_of_points*mDim);
+    GetValuesVector(old_displacement);
+    Vector old_strain = prod(B,old_displacement);
+    // Values.SetStrainVector(this_constitutive_variables.StrainVector);
+    Values.SetStrainVector(old_strain); // this is the input parameter
+    Values.SetStressVector(this_constitutive_variables.StressVector); // this is an ouput parameter
+    Values.SetConstitutiveMatrix(this_constitutive_variables.D);
+    mpConstitutiveLaw->CalculateMaterialResponseCauchy(Values);
+    
+    ///////////////////////////////////////////////////////////////////////////////////////////////////
+    mpConstitutiveLaw->CalculateMaterialResponseCauchy(Values);
+    const Matrix& r_D = Values.GetConstitutiveMatrix();
+    
+    return r_D;
 }
 
 
