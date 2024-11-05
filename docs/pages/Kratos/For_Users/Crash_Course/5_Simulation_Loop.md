@@ -24,7 +24,7 @@ You can find the complete sequence diagram for this class in our wiki, but here 
 
 Let's take a closer look at these three diferent stages using the generic analysis stage as a guide:
 
-# 2.1 Initialize
+## 2.1 Initialize
 
 This phase prepares the simulation environment. It loads model parts, initializes data structures, and prepares solver settings based on parameters from the configuration file. This setup phase is critical, as it ensures that the simulation begins in a well-defined state with all necessary components initialized:
 
@@ -123,7 +123,7 @@ self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME] =
 ```
 {: data-lang="Python"}
 
-# 2.2 Execution
+## 2.2 Execution
 
 The main simulation loop occurs here. During this phase, the AnalysisStage manages iterative solution steps, invoking solvers and applying boundary conditions or other processes as needed. This phase continues until the simulation reaches the predefined end conditions or maximum time steps:
 
@@ -191,8 +191,7 @@ def FinalizeSolutionStep(self):
 
 Anologously, the `FinalizeSolutionStep` perform the same steps (except for changing the material properties)
 
-
-# 2.3 Finalize
+## 2.3 Finalize
 
 Once the simulation loop concludes, the `Finalize` phase handles any post-processing or data cleanup tasks. In the generic stage this consist on calling the `ExecuteFinalize` method from the processes and solver but may also include saving results, releasing memory, or performing additional actions required for analysis after the simulation run.
 
