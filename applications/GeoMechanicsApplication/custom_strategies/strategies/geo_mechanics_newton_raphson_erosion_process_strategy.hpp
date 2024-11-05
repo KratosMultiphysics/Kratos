@@ -222,7 +222,7 @@ private:
     template <typename FilteredElementType>
     SizeType InitialiseNumActivePipeElements(const FilteredElementType& PipeElements)
     {
-        auto is_pipe_active = [](auto p_element){return p_element->GetValue(PIPE_ACTIVE);};
+        auto is_pipe_active = [](auto p_element) { return p_element->GetValue(PIPE_ACTIVE); };
         return std::count_if(std::begin(PipeElements), std::end(PipeElements), is_pipe_active);
     }
 
