@@ -18,9 +18,9 @@ KratosMultiphysics, like many scientific software tools, is a collection of libr
 
 This means that you cannot double-click Kratos and start, but rather use its components. To effectively work with Kratos, you'll need to set up an environment that includes specific programs and tools to interface with its components and manage simulations. Below is a list of essential programs and tools for using Kratos:
 
-1) A Python interpreter
-2) A Code Editor
-3) Pre and Post processor (optional)
+- A Python interpreter
+- A Code Editor
+- Pre and Post processor (optional)
 
 So the first part of this course will cover where to find these software, how to install it, and how to prepare it to run Kratos.
 

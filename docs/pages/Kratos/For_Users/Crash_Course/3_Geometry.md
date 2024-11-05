@@ -247,7 +247,7 @@ This is the most advanced entity you can add to a modelpart and will represent a
 
 You will see more detailed information in future sections, but a sneek peak of how would look like would be something like this:
 
-```Python
+```python
 import KratosMultiphyscis
 
 # Creating the model and a model_part

@@ -30,7 +30,7 @@ This phase prepares the simulation environment. It loads model parts, initialize
 
 *Note: we have ommited some code that is not interesting until you touch advanced topics*
 
-```Python
+```python
 def Initialize(self):
     """This function initializes the AnalysisStage
     Usage: It is designed to be called ONCE, BEFORE the execution of the solution-loop
@@ -71,7 +71,7 @@ This may look intimidating at first, but lets go step by step
 
 1) **Modelers**: The first block we encounter is `Modelers` block. We will se what a modeler is in section 4, and in this block we are creating the ones we will need.
 
-    ```Python
+    ```python
     # Modelers:
     self._CreateModelers()
     self._ModelersSetupGeometryModel()
@@ -85,7 +85,7 @@ This may look intimidating at first, but lets go step by step
 
     Aside from reading, we will also prepare the modelpart making the necessary changes to addapt it to a specific solver, and finally add the correct degrees of freedom.
 
-    ```Python
+    ```python
     # Solver
     self._GetSolver().ImportModelPart()
     self._GetSolver().PrepareModelPart()
@@ -94,7 +94,7 @@ This may look intimidating at first, but lets go step by step
 
 3) **Processess and Solver Initialization**: Is the section in charge of creating the user provided processes, which will se in section 4 and execute some of their parts. In this particular block we execute the `ExecuteInitialize` and `ExecuteBeforeSolutionLoop` methods, and in the middle we initialize the solver we created in the previous section. We do it this way because some processes need to be executed before the solver is initialized, and some need to be executed after we have some of the information that the solved provides once initialized. This way, processes give enouch flexibility to approach both situations:
 
-    ```Python
+    ```python
     ## Processes
     self.__CreateListOfProcesses()
     for process in self._GetListOfProcesses():
@@ -109,7 +109,7 @@ This may look intimidating at first, but lets go step by step
 
 4) **Time and Timestep**: Finaly, as the analysis stage is the class in control of the time loop, the last task of the initialization stage is to provide the initial, final and time step of our simulation:
 
-    ```Python
+    ```python
     # Get stepping and time settings
     self.end_time = self.project_parameters["problem_data"]["end_time"].GetDouble()
 
@@ -122,7 +122,7 @@ This may look intimidating at first, but lets go step by step
 
 The main simulation loop occurs here. During this phase, the AnalysisStage manages iterative solution steps, invoking solvers and applying boundary conditions or other processes as needed. This phase continues until the simulation reaches the predefined end conditions or maximum time steps:
 
-```Python
+```python
 def RunSolutionLoop(self):
     """This function executes the solution loop of the AnalysisStage
     It can be overridden by derived classes
@@ -154,7 +154,7 @@ This loop continues to execute until the KeepAdvancingSolutionLoop method return
 
 Two additional methods are particularly important within this loop: `InitializeSolutionStep` and `FinalizeSolutionStep`. Similar in concept to the `Initialize` and `Finalize` methods, these functions prepare and clean up data specific to each time step:
 
-```Python
+```python
 def InitializeSolutionStep(self):
     """This function performs all the required operations that should be executed
     (for each step) BEFORE solving the solution step.
@@ -170,7 +170,7 @@ def InitializeSolutionStep(self):
 
 As you can see, the `InitializeSolutionStep` prints info to let the user knwon that we are advancing in time, calls the `ExecuteInitializeSolutionStep` from our processes (for historical reasons, this may appear as `ApplyBoundaryConditions` in some analysis stages), and then call same method from the solver.
 
-```Python
+```python
 def FinalizeSolutionStep(self):
     """This function performs all the required operations that should be executed
     (for each step) AFTER solving the solution step.
@@ -188,7 +188,7 @@ Anologously, the `FinalizeSolutionStep` perform the same steps (except for chang
 
 Once the simulation loop concludes, the `Finalize` phase handles any post-processing or data cleanup tasks. In the generic stage this consist on calling the `ExecuteFinalize` method from the processes and solver but may also include saving results, releasing memory, or performing additional actions required for analysis after the simulation run.
 
-```Python
+```python
 def Finalize(self):
     """This function finalizes the AnalysisStage
     Usage: It is designed to be called ONCE, AFTER the execution of the solution-loop
