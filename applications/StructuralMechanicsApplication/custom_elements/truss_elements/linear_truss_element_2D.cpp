@@ -576,7 +576,69 @@ void LinearTrussElement2D<TNNodes>::CalculateOnIntegrationPoints(
     const ProcessInfo& rProcessInfo
     )
 {
+    const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
+    rOutput.resize(integration_points.size());
 
+    if (rVariable == AXIAL_FORCE) {
+        const auto &r_props = GetProperties();
+        const auto &r_geometry = GetGeometry();
+        const double area = r_props[CROSS_AREA];
+
+        ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
+        auto &r_cl_options = cl_values.GetOptions();
+        r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
+        r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+        const double length = CalculateLength();
+
+        // Let's initialize the cl values
+        VectorType strain_vector(1), stress_vector(1);
+        strain_vector.clear();
+        cl_values.SetStrainVector(strain_vector);
+        cl_values.SetStressVector(stress_vector);
+        SystemSizeBoundedArrayType nodal_values(SystemSize);
+        GetNodalValuesVector(nodal_values);
+
+        SystemSizeBoundedArrayType B;
+
+        // Loop over the integration points
+        for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
+            const double xi = integration_points[IP].X();
+
+            strain_vector[0] = inner_prod(B, nodal_values);
+
+            mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values);
+            rOutput[IP] = cl_values.GetStressVector()[0] * area;
+        }
+    } else if (rVariable == AXIAL_STRAIN) {
+        const auto &r_props = GetProperties();
+        const auto &r_geometry = GetGeometry();
+        const double area = r_props[CROSS_AREA];
+
+        ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
+        auto &r_cl_options = cl_values.GetOptions();
+        r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
+        r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+        const double length = CalculateLength();
+
+        // Let's initialize the cl values
+        VectorType strain_vector(1), stress_vector(1);
+        strain_vector.clear();
+        cl_values.SetStrainVector(strain_vector);
+        cl_values.SetStressVector(stress_vector);
+        SystemSizeBoundedArrayType nodal_values(SystemSize);
+        GetNodalValuesVector(nodal_values);
+
+        SystemSizeBoundedArrayType B;
+
+        // Loop over the integration points
+        for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
+            const double xi = integration_points[IP].X();
+
+            rOutput[IP] = inner_prod(B, nodal_values);
+        }
+    }
 }
 
 /***********************************************************************************/
