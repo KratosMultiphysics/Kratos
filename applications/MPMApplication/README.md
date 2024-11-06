@@ -127,5 +127,5 @@ The `MPMApplication` is **OPEN SOURCE**. The main code and program structure is 
 
 * **Antonia Larese** - *Group Leader* - [antonia.larese@unipd.it](mailto:antonia.larese@unipd.it)
 * **Veronika Singer** - *Developer* - [veronika.singer@tum.de](mailto:veronika.singer@tum.de)
-* **Laura Moreno** - *Developer* - [laura.morenomartinez@unipd.it](mailto:laura.morenomartinez@unipd.it)
+* **Laura Moreno** - *Developer* - [laura.morenomartinez@ua.es](mailto:laura.morenomartinez@ua.es)
 * **Andi Makarim Katili** - *Developer* - [andi.katili@tum.de](mailto:andi.katili@tum.de)
