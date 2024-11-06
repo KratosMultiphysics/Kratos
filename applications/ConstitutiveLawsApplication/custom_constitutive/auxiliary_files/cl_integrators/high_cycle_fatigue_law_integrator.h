@@ -286,17 +286,17 @@ public:
 
         // Reduction factors applied to the fatigue limit
         
-        double previsous_nf = LocalNumberOfCycles;
+        double nf_trial = LocalNumberOfCycles;
         double reference_max_stress = MaxStress;
         unsigned int max_num_iteration = 50;
 
         for  (IndexType i = 1; i <= max_num_iteration; ++i){
             
-            double h_stress_concentration = (1.0 / (6.0 - c_stress_concentration)) * std::log10(previsous_nf / std::pow(10, c_stress_concentration));
+            double h_stress_concentration = (1.0 / (6.0 - c_stress_concentration)) * std::log10(nf_trial / std::pow(10, c_stress_concentration));
             
-            if (previsous_nf < std::pow(10, c_stress_concentration)){
+            if (nf_trial < std::pow(10, c_stress_concentration)){
                 h_stress_concentration = 0.0;
-            } else if (previsous_nf > 1.0e6){
+            } else if (nf_trial > 1.0e6){
                 h_stress_concentration = 1.0;
             }
 
@@ -328,7 +328,7 @@ public:
                     rN_f = std::pow(10.0,std::pow(-std::log((MaxStress - rSth) / (UltimateStress - rSth)) / rAlphat,(1.0 / BETAF)));
                     rB0 = -(std::log(MaxStress / UltimateStress) / std::pow((std::log10(rN_f)), FatigueReductionFactorSmoothness * square_betaf));
                     
-                    if (std::abs(rN_f - previsous_nf) < nf_tolerance){
+                    if (std::abs(rN_f - nf_trial) < nf_tolerance){
                         is_converged = true;
                     }
                     
@@ -370,21 +370,22 @@ public:
                         // }
                     }
                     
-                    previsous_nf = rN_f;
+                    nf_trial = rN_f;
 
                 } else if (ReversionFactor <= -1.0) {
                     // const double equivalent_max_stress = (UltimateStress * MaxStress * (1.0 - ReversionFactor)) / (2.0 * UltimateStress - MaxStress * (1.0 + ReversionFactor)); // Goodman mean stress correction
                     double equivalent_max_stress =  MaxStress * std::sqrt((1.0 - ReversionFactor) / 2.0); // SWT mean stress correction
-                    if (equivalent_max_stress > Se) {
-                        const double reference_reversion_factor = - 0.999;
+                    
+                    const double reference_reversion_factor = - 0.999;
+                    rSth = Se + (UltimateStress - Se) * std::pow((0.5 + 0.5 * (reference_reversion_factor)), STHR1);
+                    rAlphat = ALFAF + (0.5 + 0.5 * (reference_reversion_factor)) * AUXR1;
+                    
+                    if (equivalent_max_stress > rSth) {
         
-                        rSth = Se + (UltimateStress - Se) * std::pow((0.5 + 0.5 * (reference_reversion_factor)), STHR1);
-                        rAlphat = ALFAF + (0.5 + 0.5 * (reference_reversion_factor)) * AUXR1;
-                        
                         rN_f = std::pow(10.0,std::pow(-std::log((equivalent_max_stress - rSth) / (UltimateStress - rSth)) / rAlphat,(1.0 / BETAF)));
                         rB0 = -(std::log(equivalent_max_stress / UltimateStress) / std::pow((std::log10(rN_f)), FatigueReductionFactorSmoothness * square_betaf));
 
-                        if (std::abs(rN_f - previsous_nf) < nf_tolerance){
+                        if (std::abs(rN_f - nf_trial) < nf_tolerance){
                             is_converged = true;
                         }
 
@@ -401,7 +402,7 @@ public:
                             break;    
                         }
 
-                        previsous_nf = rN_f;
+                        nf_trial = rN_f;
                     
                     } else {
                         break;
