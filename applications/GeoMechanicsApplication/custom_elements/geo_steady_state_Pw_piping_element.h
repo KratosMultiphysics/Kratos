@@ -110,35 +110,35 @@ public:
 
     void Initialize(const ProcessInfo&) final
     {
-        // all these except the PIPE_ELEMENT_LENGTH seem to be in the erosion_process_strategy only. Why do this --> used in output for dGeoFlow
+        // all these except the PIPE_ELEMENT_LENGTH seem to be in the erosion_process_strategy only. Why do this: it is used in output for dGeoFlow
         this->SetValue(PIPE_ELEMENT_LENGTH, CalculateLength(this->GetGeometry()));
         this->SetValue(PIPE_EROSION, false);
         // initialise pipe height with a small value
-        double smallPipeHeight = 1e-10;
-        this->SetValue(PIPE_HEIGHT, smallPipeHeight);
-        this->SetValue(PREV_PIPE_HEIGHT, smallPipeHeight);
+        const double small_pipe_height = 1e-10;
+        this->SetValue(PIPE_HEIGHT, small_pipe_height);
+        this->SetValue(PREV_PIPE_HEIGHT, small_pipe_height);
         this->SetValue(DIFF_PIPE_HEIGHT, 0.);
         this->SetValue(PIPE_ACTIVE, false);
     }
 
-    double CalculateEquilibriumPipeHeight(const PropertiesType& Prop, const GeometryType& Geom, double)
+    double CalculateEquilibriumPipeHeight(const PropertiesType& rProp, const GeometryType& rGeom, double)
     {
         // calculate head gradient over element ( now without abs in CalculateHeadGradient )
-        const double dhdx = CalculateHeadGradient(Prop, Geom);
-        // return infinite when dhdx is 0
-        if (std::abs(dhdx) < std::numeric_limits<double>::epsilon()) return 1e10;
+        const auto head_gradient = CalculateHeadGradient(rProp, rGeom);
+        // return infinite when the head gradient dh/dx is 0
+        if (std::abs(head_gradient) < std::numeric_limits<double>::epsilon()) return 1e10;
 
         // calculate particle diameter to be replaced with Anne's version!
-        const auto particle_d = GeoTransportEquationUtilities::CalculateParticleDiameter(Prop);
+        const auto particle_d = GeoTransportEquationUtilities::CalculateParticleDiameter(rProp);
         // for a more generic element calculate slope of pipe (in degrees! see formula), currently pipe is assumed to be horizontal
         const double pipe_slope = 0.0;
-        const double theta      = Prop[PIPE_THETA];
+        const double theta      = rProp[PIPE_THETA];
 
-        return Prop[PIPE_MODEL_FACTOR] * (Globals::Pi / 3.0) * particle_d *
-               (Prop[DENSITY_SOLID] / Prop[DENSITY_WATER] - 1.0) * Prop[PIPE_ETA] *
+        return rProp[PIPE_MODEL_FACTOR] * (Globals::Pi / 3.0) * particle_d *
+               (rProp[DENSITY_SOLID] / rProp[DENSITY_WATER] - 1.0) * rProp[PIPE_ETA] *
                (std::sin(MathUtils<>::DegreesToRadians(theta + pipe_slope)) /
                 std::cos(MathUtils<>::DegreesToRadians(theta))) /
-               std::abs(dhdx);
+               std::abs(head_gradient);
     }
 
 private:

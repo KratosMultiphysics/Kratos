@@ -377,7 +377,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsEquilibriumHeightF
                                                             p_element->GetGeometry(), 0.);
 
     // Assert
-    KRATOS_EXPECT_NEAR(pipe_height, 7, 1e-10);
+    KRATOS_EXPECT_NEAR(pipe_height, 7.0, 1e-10);
 }
 
 } // namespace Kratos::Testing
