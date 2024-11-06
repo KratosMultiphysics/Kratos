@@ -587,7 +587,7 @@ void LinearTrussElement2D<TNNodes>::CalculateOnIntegrationPoints(
         ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
         auto &r_cl_options = cl_values.GetOptions();
         r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
-        r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
         const double length = CalculateLength();
 
@@ -606,6 +606,7 @@ void LinearTrussElement2D<TNNodes>::CalculateOnIntegrationPoints(
         // Loop over the integration points
         for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
             const double xi = integration_points[IP].X();
+             GetFirstDerivativesShapeFunctionsValues(B, length, xi);
 
             strain_vector[0] = inner_prod(B, nodal_values);
 
@@ -620,7 +621,7 @@ void LinearTrussElement2D<TNNodes>::CalculateOnIntegrationPoints(
         ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
         auto &r_cl_options = cl_values.GetOptions();
         r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
-        r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
         const double length = CalculateLength();
 
@@ -639,6 +640,7 @@ void LinearTrussElement2D<TNNodes>::CalculateOnIntegrationPoints(
         // Loop over the integration points
         for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
             const double xi = integration_points[IP].X();
+             GetFirstDerivativesShapeFunctionsValues(B, length, xi);
             rOutput[IP] = inner_prod(B, nodal_values);
         }
     }
