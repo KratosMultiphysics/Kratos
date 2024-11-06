@@ -1249,6 +1249,19 @@ double EmbeddedFluidElementDiscontinuous<TBaseElement>::AuxiliaryDensityGetter(
     const EmbeddedDiscontinuousElementData& rData,
     const std::size_t NodeIndex) const
 {
+
+
+//    double pressure_gauss = inner_prod(rData.N, rData.Pressure);
+//    const double p0   = 0.0;
+//    const double rho0 = 956.0;
+//    const double n    = 7.0;
+//    const double invn = 1.0/n;
+//    const double c    = 1.0e12;
+
+//    double Density = rho0*pow(n*(pressure_gauss - p0)/(rho0*c*c) + 1.0,invn);
+
+//    return Density;
+
     return rData.Density;
 }
 
@@ -1257,6 +1270,19 @@ double EmbeddedFluidElementDiscontinuous<WeaklyCompressibleNavierStokes< WeaklyC
     const EmbeddedDiscontinuousElementData& rData,
     const std::size_t NodeIndex) const
 {
+
+//    const array_1d<double, 3> density = rData.Density;
+//    double pnode = rData.Pressure(NodeIndex);
+//    const double p0   = 0.0;
+//    const double rho0 = 956.0;
+//    const double n    = 7.0;
+//    const double invn = 1.0/n;
+//    const double c    = 1.0e12;
+
+//    double density_node = rho0*pow(n*(pnode - p0)/(rho0*c*c) + 1.0,invn);
+
+//    return density_node;
+
     return rData.Density(NodeIndex);
 }
 

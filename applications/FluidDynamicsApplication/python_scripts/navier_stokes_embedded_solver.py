@@ -445,6 +445,18 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         # Call the base solver InitializeSolutionStep()
         super(NavierStokesEmbeddedMonolithicSolver, self).InitializeSolutionStep()
 
+        #rho_0 = 956.0
+        #p_0   = 0.0
+        #c     = 1.0e+2
+        #n     = 7
+        #inv_n = 1/n
+
+        #for node in self.main_model_part.Nodes:
+        #    p = node.GetSolutionStepValue(KratosMultiphysics.PRESSURE)
+        #    # new_rho = (p - p_0)/c**2 + rho_0
+        #    new_rho = rho_0*(n*(p-p_0)/(rho_0*c**2) + 1.0)**inv_n
+        #    node.SetSolutionStepValue(KratosMultiphysics.DENSITY,0,new_rho)
+
     def SolveSolutionStep(self):
         # Correct the distance field
         # Note that this is intentionally placed in here (and not in the InitializeSolutionStep() of the solver
