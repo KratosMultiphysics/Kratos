@@ -4,7 +4,7 @@
 - [Theory](#theory)
 - [Getting Started](#getting-started)
     - [Getting Binaries with `pip` (users)](#getting-binaries-with-pip-users)
-    - [Build and Compile Source Code (developers)](#build-and-compile-source-code-developers)
+    - [Build from Source (developers)](#build-from-source-developers)
 - [Examples](#examples)
 - [GiD Interface](#gid-interface)
 - [Features](#features)
@@ -40,7 +40,7 @@ python3 -m pip install KratosMPMApplication
 
 This command will install `KratosMultiphysics` (Kratos Multiphysics Core), `KratosMPMApplication` (application implementing MPM) and `KratosLinearSolversApplication` (dependency of MPMApplication).
 
-### Build and Compile Source Code (developers)
+### Build from Source (developers)
 
 Instructions on how to download, install and run the software in your local machine for development and testing purposes are available for Linux, Windows and MacOS distributions in the [installation page](https://github.com/KratosMultiphysics/Kratos/blob/master/INSTALL.md).
 
@@ -102,8 +102,8 @@ The following features are currently available and subject to development within
         * interface condition for partitioned coupling with DEM
     * Dirichlet: fixed, slip or contact condition
         * penalty method
-        * Lagrange multiplier method
-        * perturbed Lagrangian method
+        * Lagrange multiplier method (*soon in the master branch*)
+        * perturbed Lagrangian method (*soon in the master branch*)
         * interface condition for partitioned coupling with FEM, RBS,...
 
 **Time schemes**
@@ -143,3 +143,4 @@ The `MPMApplication` is **OPEN SOURCE**. The main code and program structure is 
 * **Veronika Singer** - *Developer* - [veronika.singer@tum.de](mailto:veronika.singer@tum.de)
 * **Laura Moreno** - *Developer* - [laura.morenomartinez@ua.es](mailto:laura.morenomartinez@ua.es)
 * **Andi Makarim Katili** - *Developer* - [andi.katili@tum.de](mailto:andi.katili@tum.de)
+* **Nicolò Crescenzio** - *Developer* - [nicolo.crescenzio@math.unipd.it](mailto:nicolo.crescenzio@math.unipd.it)
