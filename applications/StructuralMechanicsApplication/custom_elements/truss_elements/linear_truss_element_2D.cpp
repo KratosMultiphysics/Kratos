@@ -171,8 +171,8 @@ void LinearTrussElement2D<TNNodes>::GetShapeFunctionsValues(
         rN[2] = 0.5 * (1.0 + xi);
     } else { // 3N
         rN[0] = 0.5 * xi * (xi - 1.0);
-        rN[2] = (1.0 - std::pow(xi, 2));
-        rN[4] = 0.5 * xi * (xi + 1.0);
+        rN[2] = 0.5 * xi * (xi + 1.0);
+        rN[4] = (1.0 - std::pow(xi, 2));
     }
 }
 
@@ -195,8 +195,8 @@ void LinearTrussElement2D<TNNodes>::GetShapeFunctionsValuesY(
         rN[3] = 0.5 * (1.0 + xi);
     } else { // 3N
         rN[1] = 0.5 * xi * (xi - 1.0);
-        rN[3] = (1.0 - std::pow(xi, 2));
-        rN[5] = 0.5 * xi * (xi + 1.0);
+        rN[3] = 0.5 * xi * (xi + 1.0);
+        rN[5] = (1.0 - std::pow(xi, 2));
     }
 }
 
@@ -220,8 +220,8 @@ void LinearTrussElement2D<TNNodes>::GetFirstDerivativesShapeFunctionsValues(
         rdN_dX[2] = inverse_l;
     } else { // 3N
         rdN_dX[0] = xi - 0.5;
-        rdN_dX[2] = -2.0 * xi;
-        rdN_dX[4] = xi + 0.5;
+        rdN_dX[2] = xi + 0.5;
+        rdN_dX[4] = -2.0 * xi;
         rdN_dX *= 2.0 / Length; // The Jacobian
     }
 }
