@@ -16,56 +16,65 @@
 
 This application implements the **Material Point Method (MPM)** with main motivations of simulating non-linear large deformable materials, such as free-surface flows, geomechanical phenomena, and extreme events involving impact, penetration, fragmentation, blast, multi-phase interaction, failure evolution, etc.
 
-<p align="center">
-  <img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Readme_files/MPMApplication.gif" width="618" height="280"/>
-</p>
+![MPMApplication](https://user-images.githubusercontent.com/51473791/191960884-1f1c5a0c-efec-40ca-ac6d-2d53b5530739.gif)
 
 ## Theory
 
-Particle or meshfree methods are a category of methods where the state of a system is represented by a set of particles, without a fixed connectivity; hence, making such methods suitable for the analysis of moving discontinuities and large deformations with breaking and fragmentation. This approach does not suffer from the mesh distortion and entanglement issues posed by other Lagrangian discretizations such as the finite element method.
+Particle or meshfree methods are a family of methods in which the state of a system is represented by a set of particles, without a fixed connectivity. As a consequence, these methods are particularly well suited for the analysis of moving discontinuities and large deformations with breaking and fragmentation. This approach does not suffer from the mesh distortion and entanglement issues posed by other Lagrangian discretizations such as the Finite Element Method (FEM).
 
-The **Material Point Method** (MPM) is an hybrid thechnique which uses a fixed background grid (or mesh) for solving the governing equations in a FEM fashion and  set of material particles (MP) for storing all the hystorical variables and material informations. MPM has gained a remarkably increasing popularity due to its capability in simulating  problems involving historically dependent materials and large deformations. As MPM is able to combine the strengths of Eulerian and Lagrangian methods, it has been utilized in various engineering applications and industrial purposes, in particular in geomechanics and environmental fluid dynamics field.
+The **Material Point Method** (MPM) is an hybrid thechnique which uses a fixed background grid (or mesh) for solving the governing equations in a FEM fashion and  set of material particles (MP) for storing all the hystorical variables and material informations. The MPM has gained a remarkably increasing popularity due to its capability in simulating problems involving historically dependent materials and large deformations. As MPM is able to combine the strengths of both Eulerian and Lagrangian methods, it has been used in various engineering applications and industrial purposes, in particular in geomechanics and in the environmental fluid dynamics field.
 
 ## Getting Started
 
-This application is part of the Kratos Multiphysics framework and it can be obtained either by installing the Kratos binaries with `pip` (suggested for users that want to use the application like a black-box) or by downloading the source code and compiling it (suggested for developers).
+The `MPMApplication` is part of the Kratos Multiphysics framework and can be obtained in two different ways:
+* by installing the Kratos binaries using the package manager `pip` (suggested for users that want to use the application like a black-box);
+* by downloading the source code and compiling it (suggested for developers).
 
 ### Getting Binaries with `pip` (users)
 
-Kratos binaries are available for Linux, Windows and MacOS and can be obtained with `pip`. Open the terminal and run the following command:
+Kratos binaries are available for Linux, Windows and MacOS and can be installed by using the `pip` package manager.
+
+Open the terminal and run the following command:
 
 ```bash
 python3 -m pip install KratosMPMApplication
 ```
 
-This command will install `KratosMultiphysics` (Kratos Multiphysics Core), `KratosMPMApplication` (application implementing MPM) and `KratosLinearSolversApplication` (dependency of MPMApplication).
+This command will install the following packages:
+* `KratosMultiphysics`: Kratos Multiphysics Core;
+* `KratosMPMApplication`: application implementing MPM;
+* `KratosLinearSolversApplication`: dependency required by `MPMApplication`.
 
 ### Build from Source (developers)
 
-Instructions on how to download, install and run the software in your local machine for development and testing purposes are available for Linux, Windows and MacOS distributions in the [installation page](https://github.com/KratosMultiphysics/Kratos/blob/master/INSTALL.md).
+Instructions on how to download, compile and run Kratos in your local machine for development and testing purposes are available for Linux, Windows and MacOS distributions in the [installation page](https://github.com/KratosMultiphysics/Kratos/blob/master/INSTALL.md).
 
-In particular, be sure to compile the `MPMApplication` and the auxiliary `LinearSolversApplication`:
+In particular, in order to use the `MPMApplication` it is also required to compile the auxiliary `LinearSolversApplication`.
 
-* in **Linux**, check that in the `/path_to_kratos/scripts/standard_configure.sh` the following lines are written:
+* In **Linux**, the following lines must appear in the `/path_to_kratos/scripts/standard_configure.sh` file:
     ```bash
     export KRATOS_APPLICATIONS=
     add_app ${KRATOS_APP_DIR}/MPMApplication
     add_app ${KRATOS_APP_DIR}/LinearSolversApplication
     ```
 
-* in **Windows**, check that in the `/path_to_kratos/scripts/standard_configute.bat` the following lines appears:
+* In **Windows**, the following lines must appear in the `/path_to_kratos/scripts/standard_configure.sh` file:
     ```console
     set KRATOS_APPLICATIONS=
     CALL :add_app %KRATOS_APP_DIR%\MPMApplication;
     CALL :add_app %KRATOS_APP_DIR%\LinearSolversApplication;
     ```
 
-## Examples
-Some use-cases and validation examples are available in the MPM section of the [Examples](https://kratosmultiphysics.github.io/Examples/) repository. Also, some unit tests of the main features can be found in the [tests](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/MPMApplication/tests) folder.
+## GUI
 
-## GiD Interface
+A GUI (Graphic User Interface) for the MPM application is also available within the pre and post processing software [GiD](https://www.gidhome.com/). Instructions on how to download and install it are available in the `[GiDInterface` repository](https://github.com/KratosMultiphysics/GiDInterface/tree/master/). A basic knowledge of GiD is required.
 
-A GUI (Graphic User Interface) for the MPM application is also available within the pre and post processing software [GiD](https://www.gidhome.com/). Instructions on how to download and install it are located in the `GiDInterface` [GitHub repository](https://github.com/KratosMultiphysics/GiDInterface/tree/master/). A basic knowledge of GiD is required.
+Any software able to handle `vtk` files can be used for post processing (e.g., `Paraview`).
+
+## Examples & Tutorials
+* Use-cases and validation examples are available in the MPM section of the [Examples repository](https://kratosmultiphysics.github.io/Examples/).
+* Unit tests of the main features can be found in the [tests](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/MPMApplication/tests) folder.
+* A step-by-step tutorial using GiD for both pre and post processing is available [here](https://kratosmultiphysics.github.io/Kratos/pages/Applications/MPM_Application/MPM_example_in_GiD/introduction.html).
 
 ## Features
 
@@ -116,7 +125,6 @@ The following features are currently available and subject to development within
 * Partitioned coupling with the Rigid Body Solver (RBS)
 * Material point erase features - to delete material points outside the interest domain
 
-
 ## References
 
 Recommended references for implementation details of MPM in Kratos:
@@ -135,7 +143,7 @@ Recommended references for implementation details of MPM in Kratos:
 
 ## License
 
-The `MPMApplication` is **OPEN SOURCE**. The main code and program structure is available and aimed to grow with the need of any user willing to expand it. The **BSD** (Berkeley Software Distribution) licence allows to use and distribute the existing code without any restriction, but with the possibility to develop new parts of the code on an open or close basis depending on the developers.
+The `MPMApplication` is **Open Source**. The main code and program structure is available and aimed to grow with the need of any user willing to expand it. The **BSD** licence allows to use and distribute the existing code without any restriction, but with the possibility to develop new parts of the code on an open or close basis depending on the developers.
 
 ## Contact
 
