@@ -1,19 +1,5 @@
 # MPM Application
 
-- [Overview](#overview)
-- [Theory](#theory)
-- [Getting Started](#getting-started)
-    - [Getting Binaries with `pip` (users)](#getting-binaries-with-pip-users)
-    - [Build from Source (developers)](#build-from-source-developers)
-- [Examples](#examples)
-- [GiD Interface](#gid-interface)
-- [Features](#features)
-- [References](#references)
-- [License](#license)
-- [Contact](#contact)
-
-## Overview
-
 This application implements the **Material Point Method (MPM)** with main motivations of simulating non-linear large deformable materials, such as free-surface flows, geomechanical phenomena, and extreme events involving impact, penetration, fragmentation, blast, multi-phase interaction, failure evolution, etc.
 
 ![MPMApplication](https://user-images.githubusercontent.com/51473791/191960884-1f1c5a0c-efec-40ca-ac6d-2d53b5530739.gif)
