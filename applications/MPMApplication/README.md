@@ -65,11 +65,11 @@ Recommended references for implementation details of MPM in Kratos:
 
 The following features are currently available and subject to development within the MPM Application:
 - Formulation:
-  * Irreducible formulations (U displacement based)
+  * Irreducible formulations (u displacement based)
   * Mixed UP formulations
 
 - Element types:
-    * Updated Lagrangian elements - triangular and quadrilatera (2D) and tetrahedral and hexahedral (3D), structured and unstructured, using classical or partitioned quadrature rules (this latter limited to explicit MPM)
+    * Updated Lagrangian elements - triangular and quadrilateral (2D) and tetrahedral and hexahedral (3D), structured and unstructured, using classical or partitioned quadrature rules (this latter limited to explicit MPM)
     * Updated Lagrangian axis-symmetric elements - triangular and quadrilateral (2D), structured and unstructured
     * Updated Lagrangian mixed UP elements - triangular (2D) and tetrahedral (3D), structured and unstructured, stabilized using  Variational Multiscale Stabilization or Pressure Projection techniques
 
@@ -84,22 +84,29 @@ The following features are currently available and subject to development within
         * Johnson Cook Thermal Plastic (just for explicit MPM)
 
 - A set of Boundary conditions:
-    * Grid-Based Conditions (conforming): applied directly on the background nodes
+    * Grid-Based Conditions (conforming): applied directly at the background nodes
         * Neumann: Point load
         * Neumann: Line load (a distributed load applied over a line)
         * Neumann: Surface load (a distributed load applied over a face)
-        * Dirichlet: Slip and No slip condition on arbitrary boundary.
-    * Material Point-Based Conditions (non conforming): applied in moveable boundary particles
-        * Neumann: Moving point load
-        * Dirichlet: Imposition of displacements (homogeneous and inhomogeneous) using penalty method
+        * Dirichlet: Slip and non-slip conditions for arbitrary inclination.
+    * Material Point-Based Conditions (non-conforming): applied on movable boundary particles
+        * Neumann: 
+            * moving point load 
+            * interface condition for partitioned coupling with DEM
+        * Dirichlet: fixed, slip or contact condition
+            * penalty method, 
+            * Lagrange multiplier method 
+            * perturbed Lagrangian method
+            * interface condition for partitioned coupling with FEM, RBS,...
 
 - Strategies and schemes:
     * Implicit - Newmark/Bossak prediction and correction scheme for static, quasi-static, and dynamic problems
     * Explicit
 
 - Other features:
-    * Partitioned coupling with Finite Element Method - weak and strong coupling of nonconforming discretization
-    * Partitioned coupling with the Discrete Element Method
+    * Partitioned coupling with Finite Element Method (FEM) - weak and strong coupling of nonconforming discretization
+    * Partitioned coupling with the Discrete Element Method (DEM)
+    * Partitioned coupling with the Rigid Body Solver (RBS)
     * material point erase features - to delete material points outside the interest domain
 
 ## License
@@ -111,3 +118,4 @@ The MPM Application is OPEN SOURCE. The main code and program structure is avail
 * **Antonia Larese** - *Group Leader* - [antonia.larese@unipd.it](mailto:antonia.larese@unipd.it)
 * **Veronika Singer** - *Developer* - [veronika.singer@tum.de](mailto:veronika.singer@tum.de)
 * **Laura Moreno** - *Developer* - [laura.morenomartinez@unipd.it](mailto:laura.morenomartinez@unipd.it)
+* **Andi Makarim Katili** - *Developer* - [andi.katili@tum.de](mailto:andi.katili@tum.de)
