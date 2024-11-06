@@ -473,7 +473,6 @@ void LinearTrussElement2D<TNNodes>::CalculateRightHandSide(
         GetShapeFunctionsValuesY(N_shapeY, length, xi);
         GetFirstDerivativesShapeFunctionsValues(B, length, xi);
 
-
         strain_vector[0] = inner_prod(B, nodal_values);
         mConstitutiveLawVector[IP]->CalculateMaterialResponsePK2(cl_values); // fills stress and const. matrix
 
