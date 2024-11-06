@@ -1,9 +1,9 @@
 ---
 title: 5 - Analysis stage and Simulation Loop
-keywords: 
+keywords:
 tags: [Kratos Crash Course analysis Stage Simulation Loop]
 sidebar: kratos_for_users
-summary: 
+summary:
 ---
 
 # 1. Introduction
@@ -70,7 +70,7 @@ def Initialize(self):
 
 This may look intimidating at first, but lets go step by step
 
-1) **Modelers**: The first block we encounter is `Modelers` block. We will se what a modeler is in section 4, and in this block we are creating the ones we will need.
+- **Modelers**: The first block we encounter is `Modelers` block. We will se what a modeler is in section 4, and in this block we are creating the ones we will need.
 
 ```python
 # Modelers:
@@ -81,11 +81,11 @@ self._ModelersSetupModelPart()
 ```
 {: data-lang="Python"}
 
-- **Solver**: Next is the `Solvers` block. As with `Modelers`, we will present a preview of solvers in section 3, but we can start to see some interesting things that should ring a bell on us: It Imports and prepares the modelpart.
+- **Solver**: Next is the `Solver` block. As with `Modelers`, we will present a preview of solvers in section 3, but we can start to see some interesting things that should ring a bell on us: It Imports and prepares the modelpart.
 
-    If youu remember, we have stated several times that the solver was in charge of reading modelparts because it has de list of variables, and is here that the code reads our modelpart.
+    If you remember, we have stated several times that the solver was in charge of setting up the modelparts because it has de list of variables.
 
-    Aside from reading, we will also prepare the modelpart making the necessary changes to addapt it to a specific solver, and finally add the correct degrees of freedom.
+    Aside from setting up, it will also prepare the modelpart making the necessary changes to addapt it to a specific solver, and finally add the correct degrees of freedom.
 
 ```python
 # Solver
@@ -209,19 +209,51 @@ def Finalize(self):
 
 # 3. The Solver
 
-The solver is the responsible of building and solving your system given the information of your geometries, variables and configuration. There are many types of solvers inside Kratos, and it goes beyond the scope of this course to explain all details. 
+The solver is the responsible of providing the simulation physics and solving the problem.
 
-Explain interface and _GetComputingPart
+Hence, it can be easily guessed that there are as many solvers as physics and ways to solve such physics.
 
+Some well-established examples are the `structural_mechanics_solver.py`, `fluid_solver` and `convection_diffusion_solver.py` as well as their derived classes (e.g., `structural_mechanics_static_solver.py` or `structural_mechanics_dynamic_implicit_solver.py`).
+
+At this point, we should remark the following points:
+
+- Solvers are always implemented in Python level for the sake of flexibility.
+
+- All solvers in Kratos have `PythonSolver` class, which can be found in `python_solver.py`, as root class. This solver has no physics and its main purpose is to define the solver class API.
+
+- It is a common, and very good by the way, practice to have a base solver for one kind of physics and then deriving several solvers from it to implement the particularities. For instance, there is a unique fluid solver but then there are several derived ones according to the resolution scheme or particular physics (e.g., segregated or monolithic, single phase or two-phase, etc.).
+
+
+It has been already stated that the main purpose of the solver is to define and solve the physics of the simulation.
+
+In a nutshell, this boils down to the following
+
+- Validating the `solver_settings` in the `ProjectParameters.json` with the corresponding defaults in the solver.
+
+- Adding the required nodal historical variables to the database. Note that this is done according to the corresponding elements and conditions that actually implement the physics (i.e., the variational form).
+
+- Adding the required nodal DOFs similar to what is done with the variables.
+
+
+Complementary, it is also due mentioning that, historically, the solver also had the purpose of importing the geometry. However, this is a feature that is becoming deprecated in favour of the geometry-based input at the modeler level. Nevertheless, we consider this a technical detail that is out of the scope of this crash course.
+
+Last but important, the solver also creates and holds the strategy (e.g., the Newton-Raphson instance) and linear solver (if required) that actually solve the problem. Again, these are considered more advance features that we prefer to leave out of the scope of the crash course.
+
+
+The solver can be retrieved from the `AnalysisStage` level by calling the `_GetSolver()` function.
+
+This becomes specially handy when combined with the `GetComputingModelPart()`, namely `_GetSolver().GetComputingModelPart().
+
+Note that by doing so, we can access (and play around with or customize) the database of the model part that is actually used for the problem resolution, something that enables an easy customization of the simulation when called in the proper access points of the `AnalysisStage`.
 
 # 4. Processes and Modeleres
 
-Processes, Utilities and Modelers are the way we privde our users to make small customizations to the simulation without having to touch any of the core components descrived in this section. Essentially they are pieces of code that will be executed in selected points during the analysis stage. 
+Processes and Modelers are the way we provide our users to make customizations to the simulation without having to touch any of the core components described in this section. Essentially they are pieces of code that will be executed in selected points during the analysis stage.
 
 # 5. Utilities
 
-Finally utilities play a similar role as processes and modeleres, but there is no fixed entry porints in which they will be called during a simulation inside the analysis stage.
+Finally utilities play a similar role as processes and modeleres, but there is no fixed entry points in which they will be called during a simulation.
 
-The role of utilities is to provide a mechanism to ensure that functions that may be usefull for other users are encapuslated and can be used, but is your responsability as a programmer to call them whenever necessary, for example inside a process, or in a function that you created in your custom analysis stage.
+The role of utilities is to provide a mechanism to ensure that functions that may be useful for other users are encapuslated and can be used, but is your responsability as a programmer to call them whenever necessary, for example inside a process, or in a function that you created in your custom analysis stage.
 
-Let's make a couple of examples:
+Let's see some examples:
