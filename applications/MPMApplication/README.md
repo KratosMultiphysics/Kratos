@@ -67,7 +67,7 @@ In particular, in order to use the `MPMApplication` it is also required to compi
 
 ## GUI
 
-A GUI (Graphic User Interface) for the MPM application is also available within the pre and post processing software [GiD](https://www.gidhome.com/). Instructions on how to download and install it are available in the `[GiDInterface` repository](https://github.com/KratosMultiphysics/GiDInterface/tree/master/). A basic knowledge of GiD is required.
+A GUI (Graphic User Interface) for the MPM application is also available within the pre and post processing software [GiD](https://www.gidhome.com/). Instructions on how to download and install it are available in the [`GiDInterface` repository](https://github.com/KratosMultiphysics/GiDInterface/tree/master/). A basic knowledge of GiD is required.
 
 Any software able to handle `vtk` files can be used for post processing (e.g., `Paraview`).
 
