@@ -593,9 +593,11 @@ void LinearTrussElement2D<TNNodes>::CalculateOnIntegrationPoints(
 
         // Let's initialize the cl values
         VectorType strain_vector(1), stress_vector(1);
+        MatrixType C(1,1);
         strain_vector.clear();
         cl_values.SetStrainVector(strain_vector);
         cl_values.SetStressVector(stress_vector);
+        cl_values.SetConstitutiveMatrix(C);
         SystemSizeBoundedArrayType nodal_values(SystemSize);
         GetNodalValuesVector(nodal_values);
 
@@ -607,7 +609,7 @@ void LinearTrussElement2D<TNNodes>::CalculateOnIntegrationPoints(
 
             strain_vector[0] = inner_prod(B, nodal_values);
 
-            mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values);
+            mConstitutiveLawVector[IP]->CalculateMaterialResponsePK2(cl_values);
             rOutput[IP] = cl_values.GetStressVector()[0] * area;
         }
     } else if (rVariable == AXIAL_STRAIN) {
@@ -624,9 +626,11 @@ void LinearTrussElement2D<TNNodes>::CalculateOnIntegrationPoints(
 
         // Let's initialize the cl values
         VectorType strain_vector(1), stress_vector(1);
+        MatrixType C(1,1);
         strain_vector.clear();
         cl_values.SetStrainVector(strain_vector);
         cl_values.SetStressVector(stress_vector);
+        cl_values.SetConstitutiveMatrix(C);
         SystemSizeBoundedArrayType nodal_values(SystemSize);
         GetNodalValuesVector(nodal_values);
 
@@ -635,7 +639,6 @@ void LinearTrussElement2D<TNNodes>::CalculateOnIntegrationPoints(
         // Loop over the integration points
         for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
             const double xi = integration_points[IP].X();
-
             rOutput[IP] = inner_prod(B, nodal_values);
         }
     }
