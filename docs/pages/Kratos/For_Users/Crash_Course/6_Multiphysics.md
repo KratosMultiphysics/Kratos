@@ -210,7 +210,7 @@ As you can see, the code is very simple: We get two `ModelParts`, the input (Flu
 
 # 3 Executing and checking the Results
 
-You have all the necessary script and data to run the simulation, so let's execute it. As with the first example, the only thing you need to do is to call the `MainKratos.py` script:
+You have all the necessary scripts and data to run the simulation, so let's execute it. As with the first example, the only thing you need to do is to call the `MainKratos.py` script:
 
 ```bash
 python MainKratos.py
