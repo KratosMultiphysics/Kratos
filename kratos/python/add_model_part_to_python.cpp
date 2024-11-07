@@ -724,6 +724,21 @@ const std::unordered_set<std::string> GetNonHistoricalVariablesNames(ModelPart& 
     return variable_names;
 }
 
+class SubModelPartView {
+public:
+    using iterator = ModelPart::SubModelPartsContainerType::const_iterator;
+
+    SubModelPartView(const ModelPart::SubModelPartsContainerType& rSubModelParts)
+        : mrSubModelParts(rSubModelParts) {}
+
+    iterator begin() const { return mrSubModelParts.begin(); }
+    iterator end() const { return mrSubModelParts.end(); }
+
+    std::size_t size() const { return mrSubModelParts.size(); }
+private:
+    const ModelPart::SubModelPartsContainerType& mrSubModelParts;
+};
+
 void AddModelPartToPython(pybind11::module& m)
 {
 
@@ -744,7 +759,23 @@ void AddModelPartToPython(pybind11::module& m)
     MapInterface<ModelPart::GeometriesMapType>().CreateInterface(m,"GeometriesMapType");
     PointerVectorSetPythonInterface<ModelPart::MasterSlaveConstraintContainerType>().CreateInterface(m,"MasterSlaveConstraintsArray");
 
+    py::class_<Kratos::Python::SubModelPartView>(m, "SubModelPartView")
+        .def("__iter__", [](const Kratos::Python::SubModelPartView &self) {
+            return py::make_iterator<py::return_value_policy::reference_internal,
+                                    SubModelPartView::iterator, SubModelPartView::iterator>(
+                self.begin(), self.end()); }, py::keep_alive<0, 1>())
+        .def("__len__", &Kratos::Python::SubModelPartView::size)
+        .def("__getitem__", [](const Kratos::Python::SubModelPartView &self, std::size_t i) -> const ModelPart& {
+            if (i >= self.size())
+                throw py::index_error();
+            return *std::next(self.begin(), i); }, py::return_value_policy::reference_internal)
+        ;
+
     py::class_<ModelPart, Kratos::shared_ptr<ModelPart>, DataValueContainer, Flags>(m, "ModelPart")
+        .def("__copy__", [](const ModelPart &) {
+        throw py::type_error("ModelPart cannot be copied");})
+        .def("__deepcopy__", [](const ModelPart &, py::dict) {
+            throw py::type_error("ModelPart cannot be deep-copied");})
         .def_property("Name", GetModelPartName, SetModelPartName)
         .def("FullName", &ModelPart::FullName)
         //  .def_property("ProcessInfo", GetProcessInfo, SetProcessInfo)
@@ -931,9 +962,8 @@ void AddModelPartToPython(pybind11::module& m)
              { return self.GetRootModelPart(); }, py::return_value_policy::reference_internal)
         .def("GetModel", [](ModelPart &self) -> Model &
              { return self.GetModel(); }, py::return_value_policy::reference_internal)
-        .def_property("SubModelParts", [](ModelPart &self)
-                      { return self.SubModelParts(); }, [](ModelPart &self, ModelPart::SubModelPartsContainerType &subs)
-                      { KRATOS_ERROR << "setting submodelparts is not allowed"; })
+        .def_property_readonly("SubModelParts", [](ModelPart &self) 
+            { return Kratos::Python::SubModelPartView(self.SubModelParts()); }, py::keep_alive<0, 1>())  // Keep self alive as long as SubModelPartView exists
         .def_property_readonly("MasterSlaveConstraints", ModelPartGetMasterSlaveConstraints1)
         .def("GetHistoricalVariablesNames", [](ModelPart &rModelPart) -> std::unordered_set<std::string>
              {

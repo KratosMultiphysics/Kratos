@@ -89,11 +89,19 @@ When the overconsolidation ratio ("OCR") and optionally the unloading-reloading 
 
 $$K_0 = OCR.K_0^{nc} +  \frac{\nu_{ur}}{1 - \nu_{ur}} ( OCR - 1 )$$
 
-![Initial effective stress tensor](initial_effective_stress_tensor.png)
+```math
+\sigma^{'}_{initial} = \begin{bmatrix} {K_0 \sigma^{'}_{zz}} & 0 & 0 \\
+                                        0 & {K_0 \sigma^{'}_{zz}} & 0 \\
+                                        0 & 0 & {\sigma^{'}_{zz}} \end{bmatrix}
+```
 
 Alternatively, when the pre-overburden pressure "POP" is specified, the initial stress tensor becomes:
 
-![Initial effective stress tensor with POP](initial_effective_stress_tensor_with_POP.png)
+```math
+\sigma^{'}_{initial} = \begin{bmatrix} {K_0^{nc} (\sigma^{'}_{zz} + POP )} - \frac{\nu_{ur}}{1 - \nu_{ur}} POP & 0 & 0 \\
+                                        0 & {K_0^{nc} (\sigma^{'}_{zz} + POP)} - \frac{\nu_{ur}}{1 - \nu_{ur}} POP & 0 \\
+                                        0 & 0 & {\sigma^{'}_{zz}} \end{bmatrix}
+```
 
 When the optional unloading-reloading Poisson's ratio is omitted, a default value $\nu_{ur} = 0$ is used such that the correction term drops to 0.
 

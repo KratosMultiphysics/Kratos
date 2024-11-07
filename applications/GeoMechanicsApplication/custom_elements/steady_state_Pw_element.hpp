@@ -121,8 +121,7 @@ private:
     void load(Serializer& rSerializer) override{KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)}
 
     // Assignment operator.
-    SteadyStatePwElement&
-    operator=(SteadyStatePwElement const& rOther);
+    SteadyStatePwElement& operator=(SteadyStatePwElement const& rOther);
 
     // Copy constructor.
     SteadyStatePwElement(SteadyStatePwElement const& rOther);
