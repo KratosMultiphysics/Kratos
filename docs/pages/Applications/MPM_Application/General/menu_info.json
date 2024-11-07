@@ -1,0 +1,10 @@
+{
+    "custom_entries": [
+        {
+            "type": "kratos_example",
+            "raw_url": "https://raw.githubusercontent.com/KratosMultiphysics/Kratos/refs/heads/particle/update_readme/applications/MPMApplication/README.md",
+            "source_url": "https://github.com/KratosMultiphysics/Kratos/tree/particle/update_readme/applications/MPMApplication",
+            "file_name": "Overview.md"
+        }
+    ]
+}
