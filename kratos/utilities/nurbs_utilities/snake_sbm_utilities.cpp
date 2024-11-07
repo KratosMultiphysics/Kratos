@@ -1606,7 +1606,7 @@ namespace Kratos
         // Direction parallel to x
         bool knotSpansIsActive = true;
         
-        uint idSurrogateCondition = 1;
+        int idSurrogateCondition = 1;
         Properties::Pointer p_cond_prop = surrogate_model_part_inner.pGetProperties(0);
         
         for (int k = 0; k < insert_nb_per_span_w+1; k++) {
@@ -1938,7 +1938,7 @@ namespace Kratos
         // Direction parallel to x
         bool knotSpansIsActive = true;
         
-        uint idSurrogateCondition = 1;
+        int idSurrogateCondition = 1;
         Properties::Pointer p_cond_prop = surrogate_model_part_outer.pGetProperties(0);
         
         for (int k = 0; k < insert_nb_per_span_w+1; k++) {
