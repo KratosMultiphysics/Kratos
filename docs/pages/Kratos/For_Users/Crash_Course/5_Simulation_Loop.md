@@ -246,25 +246,25 @@ This becomes specially handy when combined with the `GetComputingModelPart()`, n
 
 Note that by doing so, we can access (and play around with or customize) the database of the model part that is actually used for the problem resolution, something that enables an easy customization of the simulation when called in the proper access points of the `AnalysisStage`.
 
-# 4. Processe
+# 4. Processes
 
-Processes and Modelers are the way we provide our users to make customizations to the simulation without having to touch any of the core components described in this section. Essentially, they are pieces of code that will be executed in selected points during the analysis stage.
+Processes are one of the ways we provide our users to make customizations to the simulation without having to touch any of the core components described in this section. Essentially, they are pieces of code that will be executed in selected points during the analysis stage.
 
 Processes in particular are the backbone for custom code execution in the analysis stage. As we have seen during the analysis stage they are use in different moments during the simulation execution.
 
-The most important characteristic  of a process is being a class with a fix set of entry points:
+The most important feature of a process is being a class with a fix set of entry points:
 
 - `ExecuteInitialize`: Will be called during the initialize sequence of an `AnalysisStage`, before the initialization of the `Solver`.
 
 - `ExecuteBeforeSolustionLoop`: Will be called during the initialize sequence of an `AnalysisStage`, after the initialization of the `Solver`
 
-- `ExecuteInitializeSolutionStep`: Will be called at the begining of each solution loop, before executing the preconditioners and solvers
+- `ExecuteInitializeSolutionStep`: Will be called at the begining of each time step, before executing the preconditioners and solvers
 
-- `ExecuteFinalizeSolutionStep`: Will be called at the end of each solution loop, after executing the preconditioners and solvers but before the output stage.
+- `ExecuteFinalizeSolutionStep`: Will be called at the end of each time step, after executing the preconditioners and solvers but before the output stage.
 
-- `ExecuteBeforeOutputStep`: Will be called at the begining of the output stage for every output process active, before printing the results
+- `ExecuteBeforeOutputStep`: Will be called at the begining of the output stage for every process active, before printing the results.
 
-- `ExecuteAfterOutputStep`: Will be called at the end of the output stage for every output process active, after printing the results
+- `ExecuteAfterOutputStep`: Will be called at the end of the output stage for every process active, after printing the results.
 
 - `ExecuteFinalize`: Will be called during the finalize sequence of an `AnalysisStage`, just before existing the stage.
 
@@ -285,10 +285,12 @@ In order to use a process, you have to add it to one of the lists available in t
 ```
 
 As you can see, here we are seeing the `assign_vector_variable_process` which is found in the module `KratosMultiphysics`. If you were to use a process from another application, the `kratos_module` would change.
+We note that these might be substituted by a `name` field thanks to the new `Registry`.
+This is however a novel feature that we will leave out of the crash course for the moment.
 
 The list of `Parameters` are the settings that the process expects, and they may broadly change between processes.
 
-In particular, this process assigns a value to a vector variable, in this case `DISPLACEMENT`. This is typically at operation that you will want to do before solving a step during a given amount of time, indicated in the `interval`.
+In particular, this process assigns a value to a vector variable, in this case `DISPLACEMENT`. This is typically at operation that you will want to do at each time step during a given amount of time, indicated in the `interval`.
 
 If we look at the implementation of such process in Kratos, we will see that, among the different entry points that we have commented, this process makes use of `ExecuteInitializeSolutionStep`, with a filter for the time:
 
@@ -314,10 +316,24 @@ Here we can see a simplified version of its implementation, and as you can see t
 
 # 5. Modelers
 
+Similar to processes, modelers are executed in selected points during the analysis stage.
+Specifically, modelers are understood to be executed at the beginning of the simulation (i.e., in the `Initialize` of the `AnalysisStage` or in the stage preprocess when doing multistage simulations) in order to set up the `Model` container, that is to say to prepare the geometry of the computational model.
+
+The `Modeler` class access points, sorted by execution order, are the following
+- `SetupGeometryModel`
+- `PrepareGeometryModel`
+- `SetupModelPart`
+
+About their instantiation, all modelers are expected to have a `Model`-`Parameters` constructror (as processes do).
+This make them standard so we can add them to the simulation `ProjectParameters.json`.
+At the same time, this make possible to leverage the defaults validation mechanism.
+
+It is important to make clear that these methods are executed sequentially for the list of modelers (same as for the list of processes).
+Long story short, this means that we execute the `SetupGeometryModel` of all the modelers in the modelers list, then so for the `PrepareGeometryModel` and so on.
+This is crucial in order to allow the concatenation of operations on top of a same model part by different modelers.
+
 # 6. Utilities
 
 Finally utilities play a similar role as processes and modeleres, but there is no fixed entry points in which they will be called during a simulation.
 
 The role of utilities is to provide a mechanism to ensure that functions that may be useful for other users are encapuslated and can be used, but is your responsability as a programmer to call them whenever necessary, for example inside a process, or in a function that you created in your custom analysis stage.
-
-Let's see some examples:
