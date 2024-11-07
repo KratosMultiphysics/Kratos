@@ -75,10 +75,9 @@ class WaterDrainResponseFunction(ResponseFunctionInterface):
             },
             "gravity_direction": [0.0, 0.0, -1.0],
             "free_edge_part_name": "automatic",
-            "max_iterations_volume_search": 1000,
+            "max_iterations_volume_search": 10000,
             "continuous_sensitivities": false,
-            "quadratic_height_penalization": false,
-            "exact_volume_search" : false
+            "quadratic_height_penalization": false
         }""")
         return this_defaults
 

@@ -60,14 +60,10 @@ typedef std::vector<NodeType::Pointer> NodeVector;
 typedef ModelPart::NodesContainerType NodesArrayType;
 
 struct Volume {
-	int Id = 0;
-	double mValue = 0.0;
-	NodesArrayType mListOfNodes;
-	NodesArrayType mNeighbourNodes;
-	std::vector<std::pair<double, NodeTypePointer>> mNeighbourNodesSorted;
-	Vector mHighestPoint;
+	IndexType Id;
+	IndexType mLowPointId;
 	Vector mLowestPoint;
-	bool isGrowing = true;
+	double mMaxWaterLevel;
 	bool isMerged = false;
 	std::vector<int> mNeighbourVolumes;
 };
@@ -149,19 +145,13 @@ private:
 
 	void SearchWaterVolumes();
 
-	void SearchWaterVolumesV2();
+	void SearchLowPoints();
 
-	void GrowVolume(Volume& rVolume);
+	void FindSteepestDescentFromEachNode();
+
+	void LevelVolumes();
 
 	void MergeVolumes();
-
-	void MergeVolumesV2();
-
-	void MergeTwoVolumes(Volume& rVolume1, Volume& rVolume2);
-
-	void MergeTwoVolumesV2(Volume& rVolume1, Volume& rVolume2);
-
-	void SearchLowPoints();
 
 	///@}
 	///@name Static Member Variables
@@ -173,18 +163,16 @@ private:
 
 	ModelPart &mrModelPart;
 	GeometryUtilities mGeometryUtilities;
+
 	Vector mGravityDirection;
 	int mMaxIterations;
 	bool mContinuousSens;
 	bool mQuadraticHeightPenalization;
-	std::string mEdgeSubModelPartName;
-
 	bool mDetectFreeEdgeAutomatic = false;
-	double mValue;
-	std::vector<Volume> mListOfVolumes;
 	std::string mFreeEdgeSubModelPartName;
-	bool mExactVolumeSearch;
 
+	std::vector<Volume> mListOfVolumes;
+	double mValue;
 	///@}
 
 }; // Class WaterDrainResponseFunctionUtility
