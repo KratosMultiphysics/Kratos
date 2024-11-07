@@ -26,13 +26,11 @@ GeoCrBeamElement3D2N::GeoCrBeamElement3D2N(IndexType NewId, GeometryType::Pointe
 {
 }
 
-//----------------------------------------------------------------------------------------------------
 GeoCrBeamElement3D2N::GeoCrBeamElement3D2N(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : CrBeamElement3D2N(NewId, pGeometry, pProperties)
 {
 }
 
-//----------------------------------------------------------------------------------------------------
 Element::Pointer GeoCrBeamElement3D2N::Create(IndexType               NewId,
                                               NodesArrayType const&   rThisNodes,
                                               PropertiesType::Pointer pProperties) const
@@ -41,7 +39,6 @@ Element::Pointer GeoCrBeamElement3D2N::Create(IndexType               NewId,
     return Kratos::make_intrusive<GeoCrBeamElement3D2N>(NewId, rGeom.Create(rThisNodes), pProperties);
 }
 
-//----------------------------------------------------------------------------------------------------
 Element::Pointer GeoCrBeamElement3D2N::Create(IndexType               NewId,
                                               GeometryType::Pointer   pGeom,
                                               PropertiesType::Pointer pProperties) const
@@ -49,10 +46,6 @@ Element::Pointer GeoCrBeamElement3D2N::Create(IndexType               NewId,
     return Kratos::make_intrusive<GeoCrBeamElement3D2N>(NewId, pGeom, pProperties);
 }
 
-//----------------------------------------------------------------------------------------------------
-GeoCrBeamElement3D2N::~GeoCrBeamElement3D2N() {}
-
-//-------------------------------------------------------------------------------------------------
 void GeoCrBeamElement3D2N::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -61,7 +54,6 @@ void GeoCrBeamElement3D2N::Initialize(const ProcessInfo& rCurrentProcessInfo)
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 void GeoCrBeamElement3D2N::ResetConstitutiveLaw()
 {
     KRATOS_TRY
@@ -72,7 +64,6 @@ void GeoCrBeamElement3D2N::ResetConstitutiveLaw()
     KRATOS_CATCH("")
 }
 
-//-------------------------------------------------------------------------------------------------
 void GeoCrBeamElement3D2N::ConstCalculateRightHandSide(VectorType&        rRightHandSideVector,
                                                        const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -95,7 +86,6 @@ void GeoCrBeamElement3D2N::ConstCalculateRightHandSide(VectorType&        rRight
     KRATOS_CATCH("")
 }
 
-//-------------------------------------------------------------------------------------------------
 void GeoCrBeamElement3D2N::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
                                                         std::vector<array_1d<double, 3>>& rOutput,
                                                         const ProcessInfo& rCurrentProcessInfo)
@@ -158,7 +148,6 @@ void GeoCrBeamElement3D2N::CalculateOnIntegrationPoints(const Variable<array_1d<
     KRATOS_CATCH("")
 }
 
-//-------------------------------------------------------------------------------------------------
 void GeoCrBeamElement3D2N::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -178,7 +167,6 @@ void GeoCrBeamElement3D2N::InitializeSolutionStep(const ProcessInfo& rCurrentPro
     KRATOS_CATCH("")
 }
 
-//-------------------------------------------------------------------------------------------------
 void GeoCrBeamElement3D2N::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -188,7 +176,6 @@ void GeoCrBeamElement3D2N::FinalizeSolutionStep(const ProcessInfo& rCurrentProce
     KRATOS_CATCH("")
 }
 
-//-------------------------------------------------------------------------------------------------
 void GeoCrBeamElement3D2N::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, CrBeamElement3D2N)
@@ -196,7 +183,6 @@ void GeoCrBeamElement3D2N::save(Serializer& rSerializer) const
     rSerializer.save("LocalForcesFinalizedPrevious", mLocalForcesFinalizedPrevious);
 }
 
-//-------------------------------------------------------------------------------------------------
 void GeoCrBeamElement3D2N::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, CrBeamElement3D2N)

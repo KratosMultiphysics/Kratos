@@ -51,11 +51,11 @@ public:
     using EquationIdVectorType = BaseType::EquationIdVectorType;
     using DofsVectorType       = BaseType::DofsVectorType;
 
-    GeoCrBeamElement2D2N(){};
+    GeoCrBeamElement2D2N() = default;
     GeoCrBeamElement2D2N(IndexType NewId, GeometryType::Pointer pGeometry);
     GeoCrBeamElement2D2N(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
-    ~GeoCrBeamElement2D2N() override;
+    ~GeoCrBeamElement2D2N() = default;
 
     /**
      * @brief Creates a new element

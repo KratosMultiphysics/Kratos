@@ -839,7 +839,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                     // Compute element kinematics B, F, DN_DX ...
                     CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
-                    // Compute material reponse
+                    // Compute material response
                     CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure(), false);
 
                     double integration_weight = GetIntegrationWeight(integration_points, point_number, detJ[point_number]);
@@ -899,7 +899,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
             for (IndexType point_number = 0; point_number < number_of_integration_points; ++point_number) {
                 // Compute element kinematics B, F, DN_DX ...
                 CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
-                // Compute material reponse, not encessary to rotate since it's an invariant
+                // Compute material response, not encessary to rotate since it's an invariant
                 CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure(), false);
 
                 // Compute VM stress
@@ -1049,10 +1049,10 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
                 //call the constitutive law to update material variables
                 if( rVariable == CAUCHY_STRESS_VECTOR) {
-                    // Compute material reponse
+                    // Compute material response
                     CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, ConstitutiveLaw::StressMeasure_Cauchy, is_rotated);
                 } else {
-                    // Compute material reponse
+                    // Compute material response
                     CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points,ConstitutiveLaw::StressMeasure_PK2, is_rotated);
                 }
 
@@ -1093,7 +1093,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
             for ( IndexType point_number = 0; point_number < number_of_integration_points; ++point_number ) {
                 // Compute element kinematics B, F, DN_DX ...
                 CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
-                // Compute material reponse
+                // Compute material response
                 CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, this_stress_measure, false);
 
                 if (strain_size == 4) { // Axysimmetric
@@ -1220,7 +1220,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 // Compute element kinematics B, F, DN_DX ...
                 CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
-                // Compute material reponse
+                // Compute material response
                 CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure(), is_rotated);
 
                 if( rOutput[point_number].size2() != this_constitutive_variables.D.size2() )

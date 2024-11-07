@@ -1,7 +1,6 @@
 # import Kratos
 import KratosMultiphysics
-import KratosMultiphysics.MeshingApplication         as MeshingApplication
-import run_cpp_unit_tests
+import KratosMultiphysics.MeshingApplication as MeshingApplication
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -11,10 +10,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from test_refine import TestRedistance                                     as TTestRedistance
 from test_remesh_rectangle import TestRemeshMMG2D                          as TTestRemeshMMG2D
 from test_remesh_sphere import TestRemeshMMG3D                             as TTestRemeshMMG3D
-from meshing_application_test_factory  import TwoDDynamicBeamTest          as TTwoDDynamicBeamTest
-from meshing_application_test_factory  import TwoDDynamicBeamLineLoadTest  as TTwoDDynamicBeamLineLoadTest
-from meshing_application_test_factory  import ThreeDShellTest              as TThreeDShellTest
-from meshing_application_test_factory  import ThreeDDynamicBeamTest        as TThreeDDynamicBeamTest
+from structural_mechanics_remeshing_test import StructuralMechanicsRemeshingTest
 from test_local_refine_parallel_to_boundaries import TestLocalRefineParallelToBoundaries as TTestRefineOnBoundaries
 from test_local_refine_triangle_conditions import TestLocalRefineTriangleMeshConditions as TTestLocalRefineTriangleMeshConditions
 from test_local_refine_only_on_boundaries import TestLocalRefineOnlyOnBoundaries as TTestLocalRefineOnlyOnBoundaries
@@ -58,10 +54,7 @@ def AssembleTestSuites():
         smallSuite.addTest(TTestRemeshMMG3D('test_remesh_sphere_skin'))
         smallSuite.addTest(TTestRemeshMMG3D('test_remesh_sphere_skin_prisms'))
         smallSuite.addTest(TTestRemeshMMG3D('test_isosurface_remesh_sphere'))
-        smallSuite.addTest(TTwoDDynamicBeamTest('test_execution'))
-        smallSuite.addTest(TTwoDDynamicBeamLineLoadTest('test_execution'))
-        smallSuite.addTest(TThreeDShellTest('test_execution'))
-        smallSuite.addTest(TThreeDDynamicBeamTest('test_execution'))
+        smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([StructuralMechanicsRemeshingTest]))
     else:
         KratosMultiphysics.Logger.PrintWarning("Unittests", "MMG process is not compiled and the corresponding tests will not be executed")
 
@@ -91,23 +84,16 @@ def AssembleTestSuites():
         allSuite.addTests(
             KratosUnittest.TestLoader().loadTestsFromTestCases([
                 TTestRemeshMMG2D,
-                TTestRemeshMMG3D,
-                TTwoDDynamicBeamTest,
-                TTwoDDynamicBeamLineLoadTest,
-                TThreeDShellTest,
-                TThreeDDynamicBeamTest,
+                TTestRemeshMMG3D
             ])
         )
+        allSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([StructuralMechanicsRemeshingTest]))
     else:
         KratosMultiphysics.Logger.PrintWarning("Unittests", "MMG process is not compiled and the corresponding tests will not be executed")
 
     return suites
 
 if __name__ == '__main__':
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
-    run_cpp_unit_tests.run()
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
-
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
     KratosUnittest.runTests(AssembleTestSuites())
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished python tests!")

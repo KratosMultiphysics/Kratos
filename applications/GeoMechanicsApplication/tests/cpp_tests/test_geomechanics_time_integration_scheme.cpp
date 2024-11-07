@@ -10,7 +10,7 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "testing/testing.h"
+#include "geo_mechanics_fast_suite.h"
 
 #include "containers/model.h"
 #include "custom_strategies/schemes/geomechanics_time_integration_scheme.hpp"
@@ -47,7 +47,7 @@ protected:
 class GeoMechanicsSchemeTester
 {
 public:
-    Model mModel;
+    Model                                     mModel;
     ConcreteGeoMechanicsTimeIntegrationScheme mScheme;
 
     void Setup()
@@ -60,8 +60,8 @@ public:
     void TestFunctionCalledOnComponent_IsOnlyCalledWhenComponentIsActive()
     {
         typename T::EquationIdVectorType r_equation_id_vector;
-        ProcessInfo r_process_info;
-        typename T::DofsVectorType r_dofs_vector;
+        ProcessInfo                      r_process_info;
+        typename T::DofsVectorType       r_dofs_vector;
 
         auto functions_and_checks = CreateFunctionsAndChecksCalledOnASingleComponent<T>(
             r_equation_id_vector, r_process_info, r_dofs_vector);
@@ -88,8 +88,8 @@ public:
     void TestFunctionCallOnAllComponents_AreOnlyCalledForActiveComponents()
     {
         CompressedMatrix A;
-        Vector Dx;
-        Vector b;
+        Vector           Dx;
+        Vector           b;
 
         auto functions_and_checks = CreateFunctionsAndChecksCalledOnAllComponents<T>(A, Dx, b);
 
@@ -200,37 +200,39 @@ public:
     ModelPart& GetModelPart() { return mModel.GetModelPart("dummy"); }
 };
 
-KRATOS_TEST_CASE_IN_SUITE(FunctionCallsOnAllElements_AreOnlyCalledForActiveElements, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(FunctionCallsOnAllElements_AreOnlyCalledForActiveElements, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     GeoMechanicsSchemeTester tester;
     tester.TestFunctionCallOnAllComponents_AreOnlyCalledForActiveComponents<SpyElement>();
 }
 
-KRATOS_TEST_CASE_IN_SUITE(FunctionCallsOnAllConditions_AreOnlyCalledForActiveConditions, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(FunctionCallsOnAllConditions_AreOnlyCalledForActiveConditions,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     GeoMechanicsSchemeTester tester;
     tester.TestFunctionCallOnAllComponents_AreOnlyCalledForActiveComponents<SpyCondition>();
 }
 
-KRATOS_TEST_CASE_IN_SUITE(FunctionCalledOnCondition_IsOnlyCalledWhenConditionIsActive, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(FunctionCalledOnCondition_IsOnlyCalledWhenConditionIsActive, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     GeoMechanicsSchemeTester tester;
     tester.TestFunctionCalledOnComponent_IsOnlyCalledWhenComponentIsActive<SpyCondition>();
 }
 
-KRATOS_TEST_CASE_IN_SUITE(FunctionCalledOnElement_IsOnlyCalledWhenElementIsActive, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(FunctionCalledOnElement_IsOnlyCalledWhenElementIsActive, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     GeoMechanicsSchemeTester tester;
     tester.TestFunctionCalledOnComponent_IsOnlyCalledWhenComponentIsActive<SpyElement>();
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ForInvalidBufferSize_CheckGeoMechanicsTimeIntegrationScheme_Throws, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ForInvalidBufferSize_CheckGeoMechanicsTimeIntegrationScheme_Throws,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     ConcreteGeoMechanicsTimeIntegrationScheme scheme;
 
-    Model model;
+    Model         model;
     constexpr int invalid_buffer_size = 1;
-    const auto& model_part            = model.CreateModelPart("dummy", invalid_buffer_size);
+    const auto&   model_part          = model.CreateModelPart("dummy", invalid_buffer_size);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(scheme.Check(model_part),
                                       "insufficient buffer size. Buffer size "
@@ -242,9 +244,9 @@ void TestUpdateForNumberOfThreads(int NumberOfThreads)
 {
     GeoMechanicsSchemeTester tester;
     tester.Setup();
-    CompressedMatrix A;
-    Vector Dx = ZeroVector(3);
-    Vector b;
+    CompressedMatrix         A;
+    Vector                   Dx = ZeroVector(3);
+    Vector                   b;
     ModelPart::DofsArrayType dofs_array;
 
     ParallelUtilities::SetNumThreads(NumberOfThreads);
@@ -283,7 +285,8 @@ void TestUpdateForNumberOfThreads(int NumberOfThreads)
     KRATOS_EXPECT_DOUBLE_EQ((dofs_array.begin() + 2)->GetSolutionStepValue(DISPLACEMENT_Y, 0), 1.0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoMechanicsTimeIntegrationScheme_GivesCorrectDofs_WhenUpdateIsCalled, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(GeoMechanicsTimeIntegrationScheme_GivesCorrectDofs_WhenUpdateIsCalled,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     TestUpdateForNumberOfThreads(1);
     TestUpdateForNumberOfThreads(2);

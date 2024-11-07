@@ -15,19 +15,21 @@
 #include <boost/range/algorithm/copy.hpp>
 
 #include "containers/model.h"
+#include "custom_elements/U_Pw_small_strain_element.hpp"
+#include "custom_elements/plane_strain_stress_state.h"
 #include "custom_utilities/dof_utilities.h"
+#include "geo_aliases.h"
 #include "geo_mechanics_application_variables.h"
+#include "geo_mechanics_fast_suite.h"
 #include "includes/element.h"
-#include "testing/testing.h"
+#include "test_utilities/model_setup_utilities.h"
 
 namespace
 {
 
 using namespace Kratos;
 
-using ConstVariableRefs = std::vector<std::reference_wrapper<const Variable<double>>>;
-
-ModelPart& CreateTestModelPart(Model& rModel, const ConstVariableRefs& rVariables)
+ModelPart& CreateTestModelPart(Model& rModel, const Geo::ConstVariableRefs& rVariables)
 {
     const auto buffer_size = std::size_t{2};
     auto&      r_result    = rModel.CreateModelPart("Dummy", buffer_size);
@@ -39,7 +41,7 @@ ModelPart& CreateTestModelPart(Model& rModel, const ConstVariableRefs& rVariable
 
 ModelPart& CreateTestModelPart(Model& rModel, const Variable<double>& rVariable)
 {
-    const auto variables = ConstVariableRefs{std::cref(rVariable)};
+    const auto variables = Geo::ConstVariableRefs{std::cref(rVariable)};
     return CreateTestModelPart(rModel, variables);
 }
 
@@ -50,8 +52,12 @@ Dof<double> MakeDofWithEquationId(Dof<double>::EquationIdType EquationId)
     return result;
 }
 
-[[maybe_unused]] intrusive_ptr<Node> AddNodeWithDofs(
-    ModelPart& rModelPart, ModelPart::IndexType NodeId, double x, double y, double z, const ConstVariableRefs& rVariables)
+[[maybe_unused]] intrusive_ptr<Node> AddNodeWithDofs(ModelPart&                    rModelPart,
+                                                     ModelPart::IndexType          NodeId,
+                                                     double                        x,
+                                                     double                        y,
+                                                     double                        z,
+                                                     const Geo::ConstVariableRefs& rVariables)
 {
     auto p_result = rModelPart.CreateNewNode(NodeId, x, y, z);
     for (const auto& r_variable : rVariables) {
@@ -63,11 +69,11 @@ Dof<double> MakeDofWithEquationId(Dof<double>::EquationIdType EquationId)
 [[maybe_unused]] intrusive_ptr<Node> AddNodeWithDof(
     ModelPart& rModelPart, ModelPart::IndexType NodeId, double x, double y, double z, const Variable<double>& rVariable)
 {
-    const auto variables = ConstVariableRefs{std::cref(rVariable)};
+    const auto variables = Geo::ConstVariableRefs{std::cref(rVariable)};
     return AddNodeWithDofs(rModelPart, NodeId, x, y, z, variables);
 }
 
-void AddThreeNodesWithDofs(ModelPart& rModelPart, const ConstVariableRefs& rVariables)
+void AddThreeNodesWithDofs(ModelPart& rModelPart, const Geo::ConstVariableRefs& rVariables)
 {
     AddNodeWithDofs(rModelPart, 1, 0.0, 0.0, 0.0, rVariables);
     AddNodeWithDofs(rModelPart, 2, 1.0, 0.0, 0.0, rVariables);
@@ -76,7 +82,7 @@ void AddThreeNodesWithDofs(ModelPart& rModelPart, const ConstVariableRefs& rVari
 
 void AddThreeNodesWithDofs(ModelPart& rModelPart, const Variable<double>& rVariable)
 {
-    const auto variables = ConstVariableRefs{std::cref(rVariable)};
+    const auto variables = Geo::ConstVariableRefs{std::cref(rVariable)};
     AddThreeNodesWithDofs(rModelPart, variables);
 }
 
@@ -93,19 +99,39 @@ void SetNodalValues(ModelPart&                            rModelPart,
     }
 }
 
+void ExpectDofsDontContainAnyNullptrs(const std::vector<Dof<double>*>& rDofs)
+{
+    KRATOS_EXPECT_TRUE(
+        std::all_of(rDofs.begin(), rDofs.end(), [](const auto p_dof) { return p_dof != nullptr; }))
+}
+
+void ExpectDofsHaveThisVariable(const std::vector<Dof<double>*>& rDofs, const Variable<double>& rExpectedVariable)
+{
+    KRATOS_EXPECT_TRUE(std::all_of(rDofs.begin(), rDofs.end(), [&rExpectedVariable](const auto p_dof) {
+        return p_dof->GetVariable() == rExpectedVariable;
+    }))
+}
+
+void ExpectDofsHaveThisNodeId(const std::vector<Dof<double>*>& rDofs, std::size_t ExpectedNodeId)
+{
+    KRATOS_EXPECT_TRUE(std::all_of(rDofs.begin(), rDofs.end(), [ExpectedNodeId](const auto p_dof) {
+        return p_dof->GetId() == ExpectedNodeId;
+    }))
+}
+
 } // namespace
 
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(ExtractingEquationIdsFromEmptyDofListReturnsEmptyList, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ExtractingEquationIdsFromEmptyDofListReturnsEmptyList, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     std::vector<Dof<double>*> dofs;
 
     KRATOS_EXPECT_TRUE(Geo::DofUtilities::ExtractEquationIdsFrom(dofs).empty())
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ExtractingEquationIdsFromDofsYieldsAssociatedIds, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ExtractingEquationIdsFromDofsYieldsAssociatedIds, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto       dof1 = MakeDofWithEquationId(22);
     auto       dof2 = MakeDofWithEquationId(20);
@@ -116,7 +142,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExtractingEquationIdsFromDofsYieldsAssociatedIds, Krat
     KRATOS_EXPECT_EQ(Geo::DofUtilities::ExtractEquationIdsFrom(dofs), expected_equation_ids);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ExtractingDofsFromEmptyNodeCollectionYieldsEmptyVector, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ExtractingDofsFromEmptyNodeCollectionYieldsEmptyVector, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto geometry_id    = Geometry<Node>::IndexType{0};
     const auto empty_geometry = Geometry<Node>{geometry_id};
@@ -124,37 +150,42 @@ KRATOS_TEST_CASE_IN_SUITE(ExtractingDofsFromEmptyNodeCollectionYieldsEmptyVector
     KRATOS_EXPECT_TRUE(Geo::DofUtilities::ExtractDofsFromNodes(empty_geometry, WATER_PRESSURE).empty())
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ExpectThrowWhenExtractingNonExistingDofsFromNodes, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ExpectThrowWhenExtractingNonExistingDofsFromNodes, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto  model        = Model{};
     auto& r_model_part = model.CreateModelPart("Dummy");
 
-    r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
-    r_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+    PointerVector<Node> nodes;
+    nodes.push_back(r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(3, 0.0, 1.0, 0.0));
 
-    const auto node_ids  = std::vector<ModelPart::IndexType>{1, 2, 3};
-    const auto p_element = r_model_part.CreateNewElement("UPwSmallStrainElement2D3N", 1, node_ids,
-                                                         r_model_part.CreateNewProperties(0));
+    auto p_element = make_intrusive<UPwSmallStrainElement<2, 3>>(
+        1, Kratos::make_shared<Triangle2D3<Node>>(nodes), r_model_part.CreateNewProperties(0),
+        std::make_unique<PlaneStrainStressState>());
+    r_model_part.AddElement(p_element);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         Geo::DofUtilities::ExtractDofsFromNodes(p_element->GetGeometry(), DISPLACEMENT_X),
         "Non-existent DOF in node #1 for variable : DISPLACEMENT_X")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(VariableTypeAndNodeIDsMustMatchWhenExtractingDofsFromNodes, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(VariableTypeAndNodeIDsMustMatchWhenExtractingDofsFromNodes, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto  model        = Model{};
     auto& r_model_part = model.CreateModelPart("Dummy");
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT_X);
 
-    AddNodeWithDof(r_model_part, 1, 0.0, 0.0, 0.0, DISPLACEMENT_X);
-    AddNodeWithDof(r_model_part, 2, 1.0, 0.0, 0.0, DISPLACEMENT_X);
-    AddNodeWithDof(r_model_part, 3, 0.0, 1.0, 0.0, DISPLACEMENT_X);
+    PointerVector<Node> nodes;
+    nodes.push_back(AddNodeWithDof(r_model_part, 1, 0.0, 0.0, 0.0, DISPLACEMENT_X));
+    nodes.push_back(AddNodeWithDof(r_model_part, 2, 1.0, 0.0, 0.0, DISPLACEMENT_X));
+    nodes.push_back(AddNodeWithDof(r_model_part, 3, 0.0, 1.0, 0.0, DISPLACEMENT_X));
 
     const auto node_ids  = std::vector<ModelPart::IndexType>{1, 2, 3};
-    const auto p_element = r_model_part.CreateNewElement("UPwSmallStrainElement2D3N", 1, node_ids,
-                                                         r_model_part.CreateNewProperties(0));
+    auto       p_element = make_intrusive<UPwSmallStrainElement<2, 3>>(
+        1, Kratos::make_shared<Triangle2D3<Node>>(nodes), r_model_part.CreateNewProperties(0),
+        std::make_unique<PlaneStrainStressState>());
+    r_model_part.AddElement(p_element);
 
     const auto dofs = Geo::DofUtilities::ExtractDofsFromNodes(p_element->GetGeometry(), DISPLACEMENT_X);
 
@@ -169,7 +200,115 @@ KRATOS_TEST_CASE_IN_SUITE(VariableTypeAndNodeIDsMustMatchWhenExtractingDofsFromN
     KRATOS_EXPECT_EQ(dofs[2]->GetId(), 3);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ExtractingValuesFromDofsYieldsNodalValues, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(UDofsPrecedePwDofsWhenExtractingUPwDofsFromNondiffOrder2DElement,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto       model           = Model{};
+    const auto nodal_variables = Geo::ConstVariableRefs{
+        std::cref(DISPLACEMENT_X), std::cref(DISPLACEMENT_Y), std::cref(WATER_PRESSURE)};
+    auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(model, nodal_variables);
+
+    const auto& r_geometry = r_model_part.Elements().front().GetGeometry();
+    const auto  dofs =
+        Geo::DofUtilities::ExtractUPwDofsFromNodes(r_geometry, r_geometry.WorkingSpaceDimension());
+
+    KRATOS_EXPECT_EQ(dofs.size(), r_model_part.NumberOfNodes() * nodal_variables.size());
+    ExpectDofsDontContainAnyNullptrs(dofs);
+    ExpectDofsHaveThisVariable({dofs[0], dofs[2], dofs[4]}, DISPLACEMENT_X);
+    ExpectDofsHaveThisVariable({dofs[1], dofs[3], dofs[5]}, DISPLACEMENT_Y);
+    ExpectDofsHaveThisVariable({dofs.begin() + 6, dofs.end()}, WATER_PRESSURE);
+    ExpectDofsHaveThisNodeId({dofs[0], dofs[1], dofs[6]}, 1);
+    ExpectDofsHaveThisNodeId({dofs[2], dofs[3], dofs[7]}, 2);
+    ExpectDofsHaveThisNodeId({dofs[4], dofs[5], dofs[8]}, 3);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(UDofsPrecedePwDofsWhenExtractingUPwDofsFromNondiffOrder3DElement,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto       model = Model{};
+    const auto nodal_variables =
+        Geo::ConstVariableRefs{std::cref(DISPLACEMENT_X), std::cref(DISPLACEMENT_Y),
+                               std::cref(DISPLACEMENT_Z), std::cref(WATER_PRESSURE)};
+    auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle3D4NElement(model, nodal_variables);
+
+    const auto& r_geometry = r_model_part.Elements().front().GetGeometry();
+    const auto  dofs =
+        Geo::DofUtilities::ExtractUPwDofsFromNodes(r_geometry, r_geometry.WorkingSpaceDimension());
+
+    KRATOS_EXPECT_EQ(dofs.size(), r_model_part.NumberOfNodes() * nodal_variables.size());
+    ExpectDofsDontContainAnyNullptrs(dofs);
+    ExpectDofsHaveThisVariable({dofs[0], dofs[3], dofs[6], dofs[9]}, DISPLACEMENT_X);
+    ExpectDofsHaveThisVariable({dofs[1], dofs[4], dofs[7], dofs[10]}, DISPLACEMENT_Y);
+    ExpectDofsHaveThisVariable({dofs[2], dofs[5], dofs[8], dofs[11]}, DISPLACEMENT_Z);
+    ExpectDofsHaveThisVariable({dofs.begin() + 12, dofs.end()}, WATER_PRESSURE);
+    ExpectDofsHaveThisNodeId({dofs[0], dofs[1], dofs[2], dofs[12]}, 1);
+    ExpectDofsHaveThisNodeId({dofs[3], dofs[4], dofs[5], dofs[13]}, 2);
+    ExpectDofsHaveThisNodeId({dofs[6], dofs[7], dofs[8], dofs[14]}, 3);
+    ExpectDofsHaveThisNodeId({dofs[9], dofs[10], dofs[11], dofs[15]}, 4);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(UDofsPrecedePwDofsWhenExtractingUPwDofsFromDiffOrder2DElement,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto model = Model{};
+    auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle2D6NUPwDiffOrderElement(model);
+
+    const auto displacement_nodes = r_model_part.Elements().front().GetGeometry();
+    const auto water_pressure_nodes =
+        Triangle2D3<Node>{displacement_nodes(0), displacement_nodes(1), displacement_nodes(2)};
+    const auto dofs = Geo::DofUtilities::ExtractUPwDofsFromNodes(
+        displacement_nodes, water_pressure_nodes, displacement_nodes.WorkingSpaceDimension());
+
+    KRATOS_EXPECT_EQ(dofs.size(), displacement_nodes.size() * 2 + water_pressure_nodes.size());
+    ExpectDofsDontContainAnyNullptrs(dofs);
+    ExpectDofsHaveThisVariable({dofs[0], dofs[2], dofs[4], dofs[6], dofs[8], dofs[10]}, DISPLACEMENT_X);
+    ExpectDofsHaveThisVariable({dofs[1], dofs[3], dofs[5], dofs[7], dofs[9], dofs[11]}, DISPLACEMENT_Y);
+    ExpectDofsHaveThisVariable({dofs.begin() + 12, dofs.end()}, WATER_PRESSURE);
+    ExpectDofsHaveThisNodeId({dofs[0], dofs[1], dofs[12]}, 1);
+    ExpectDofsHaveThisNodeId({dofs[2], dofs[3], dofs[13]}, 2);
+    ExpectDofsHaveThisNodeId({dofs[4], dofs[5], dofs[14]}, 3);
+    ExpectDofsHaveThisNodeId({dofs[6], dofs[7]}, 4);
+    ExpectDofsHaveThisNodeId({dofs[8], dofs[9]}, 5);
+    ExpectDofsHaveThisNodeId({dofs[10], dofs[11]}, 6);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(UDofsPrecedePwDofsWhenExtractingUPwDofsFromDiffOrder3DElement,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto model = Model{};
+    auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle3D10NUPwDiffOrderElement(model);
+
+    const auto second_order_nodes = r_model_part.Elements().front().GetGeometry();
+    const auto first_order_nodes  = Tetrahedra3D4<Node>{
+        second_order_nodes(0), second_order_nodes(1), second_order_nodes(2), second_order_nodes(3)};
+    const auto dofs = Geo::DofUtilities::ExtractUPwDofsFromNodes(
+        second_order_nodes, first_order_nodes, second_order_nodes.WorkingSpaceDimension());
+
+    KRATOS_EXPECT_EQ(dofs.size(), second_order_nodes.size() * 3 + first_order_nodes.size());
+    ExpectDofsDontContainAnyNullptrs(dofs);
+    ExpectDofsHaveThisVariable(
+        {dofs[0], dofs[3], dofs[6], dofs[9], dofs[12], dofs[15], dofs[18], dofs[21], dofs[24], dofs[27]},
+        DISPLACEMENT_X);
+    ExpectDofsHaveThisVariable(
+        {dofs[1], dofs[4], dofs[7], dofs[10], dofs[13], dofs[16], dofs[19], dofs[22], dofs[25], dofs[28]},
+        DISPLACEMENT_Y);
+    ExpectDofsHaveThisVariable(
+        {dofs[2], dofs[5], dofs[8], dofs[11], dofs[14], dofs[17], dofs[20], dofs[23], dofs[26], dofs[29]},
+        DISPLACEMENT_Z);
+    ExpectDofsHaveThisVariable({dofs.begin() + 30, dofs.end()}, WATER_PRESSURE);
+    ExpectDofsHaveThisNodeId({dofs[0], dofs[1], dofs[2], dofs[30]}, 1);
+    ExpectDofsHaveThisNodeId({dofs[3], dofs[4], dofs[5], dofs[31]}, 2);
+    ExpectDofsHaveThisNodeId({dofs[6], dofs[7], dofs[8], dofs[32]}, 3);
+    ExpectDofsHaveThisNodeId({dofs[9], dofs[10], dofs[11], dofs[33]}, 4);
+    ExpectDofsHaveThisNodeId({dofs[12], dofs[13], dofs[14]}, 5);
+    ExpectDofsHaveThisNodeId({dofs[15], dofs[16], dofs[17]}, 6);
+    ExpectDofsHaveThisNodeId({dofs[18], dofs[19], dofs[20]}, 7);
+    ExpectDofsHaveThisNodeId({dofs[21], dofs[22], dofs[23]}, 8);
+    ExpectDofsHaveThisNodeId({dofs[24], dofs[25], dofs[26]}, 9);
+    ExpectDofsHaveThisNodeId({dofs[27], dofs[28], dofs[29]}, 10);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ExtractingValuesFromDofsYieldsNodalValues, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto        model        = Model{};
     const auto& r_variable   = DISPLACEMENT_X;
@@ -199,11 +338,13 @@ KRATOS_TEST_CASE_IN_SUITE(ExtractingValuesFromDofsYieldsNodalValues, KratosGeoMe
                               expected_values, abs_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ExtractingFirstDerivativeValuesFromDofsYieldsNodalFirstDerivativeValues, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ExtractingFirstDerivativeValuesFromDofsYieldsNodalFirstDerivativeValues,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto& r_variable              = DISPLACEMENT_X;
     const auto& r_first_time_derivative = VELOCITY_X;
-    const auto all_variables = ConstVariableRefs{std::cref(r_variable), std::cref(r_first_time_derivative)};
+    const auto  all_variables =
+        Geo::ConstVariableRefs{std::cref(r_variable), std::cref(r_first_time_derivative)};
 
     auto  model        = Model{};
     auto& r_model_part = CreateTestModelPart(model, all_variables);
@@ -233,12 +374,12 @@ KRATOS_TEST_CASE_IN_SUITE(ExtractingFirstDerivativeValuesFromDofsYieldsNodalFirs
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ExtractingSecondDerivativeValuesFromDofsYieldsNodalSecondDerivativeValues,
-                          KratosGeoMechanicsFastSuite)
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto& r_variable               = DISPLACEMENT_X;
     const auto& r_first_time_derivative  = VELOCITY_X;
     const auto& r_second_time_derivative = ACCELERATION_X;
-    const auto  all_variables            = ConstVariableRefs{
+    const auto  all_variables            = Geo::ConstVariableRefs{
         std::cref(r_variable), std::cref(r_first_time_derivative), std::cref(r_second_time_derivative)};
 
     auto  model        = Model{};
@@ -268,7 +409,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExtractingSecondDerivativeValuesFromDofsYieldsNodalSec
                               expected_values, abs_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ExtractingValuesFromUPwDofsNotBeingPwYieldsNodalValues, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ExtractingValuesFromUPwDofsNotBeingPwYieldsNodalValues, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto        model        = Model{};
     const auto& r_variable   = DISPLACEMENT_X;
@@ -298,7 +439,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExtractingValuesFromUPwDofsNotBeingPwYieldsNodalValues
                               expected_values, abs_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ExtractingPwValuesFromUPwDofsAlwaysYieldsZeroes, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ExtractingPwValuesFromUPwDofsAlwaysYieldsZeroes, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto        model        = Model{};
     const auto& r_variable   = WATER_PRESSURE;
@@ -328,11 +469,12 @@ KRATOS_TEST_CASE_IN_SUITE(ExtractingPwValuesFromUPwDofsAlwaysYieldsZeroes, Krato
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ExtractingFirstDerivativesFromUPwDofsNotBeingPwYieldsNodalFirstDerivatives,
-                          KratosGeoMechanicsFastSuite)
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto& r_variable              = DISPLACEMENT_X;
     const auto& r_first_time_derivative = VELOCITY_X;
-    const auto all_variables = ConstVariableRefs{std::cref(r_variable), std::cref(r_first_time_derivative)};
+    const auto  all_variables =
+        Geo::ConstVariableRefs{std::cref(r_variable), std::cref(r_first_time_derivative)};
 
     auto  model        = Model{};
     auto& r_model_part = CreateTestModelPart(model, all_variables);
@@ -361,11 +503,12 @@ KRATOS_TEST_CASE_IN_SUITE(ExtractingFirstDerivativesFromUPwDofsNotBeingPwYieldsN
                               expected_values, abs_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ExtractingDPwDtValuesFromUPwDofsAlwaysYieldsZeroes, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ExtractingDPwDtValuesFromUPwDofsAlwaysYieldsZeroes, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto& r_variable              = WATER_PRESSURE;
     const auto& r_first_time_derivative = DT_WATER_PRESSURE;
-    const auto all_variables = ConstVariableRefs{std::cref(r_variable), std::cref(r_first_time_derivative)};
+    const auto  all_variables =
+        Geo::ConstVariableRefs{std::cref(r_variable), std::cref(r_first_time_derivative)};
 
     auto  model        = Model{};
     auto& r_model_part = CreateTestModelPart(model, all_variables);
@@ -394,12 +537,12 @@ KRATOS_TEST_CASE_IN_SUITE(ExtractingDPwDtValuesFromUPwDofsAlwaysYieldsZeroes, Kr
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ExtractingSecondDerivativesFromUPwDofsNotBeingPwYieldsNodalSecondDerivatives,
-                          KratosGeoMechanicsFastSuite)
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto& r_variable               = DISPLACEMENT_X;
     const auto& r_first_time_derivative  = VELOCITY_X;
     const auto& r_second_time_derivative = ACCELERATION_X;
-    const auto  all_variables            = ConstVariableRefs{
+    const auto  all_variables            = Geo::ConstVariableRefs{
         std::cref(r_variable), std::cref(r_first_time_derivative), std::cref(r_second_time_derivative)};
 
     auto  model        = Model{};
@@ -429,12 +572,13 @@ KRATOS_TEST_CASE_IN_SUITE(ExtractingSecondDerivativesFromUPwDofsNotBeingPwYields
                               expected_values, abs_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ExtractingD2PwDt2ValuesFromUPwDofsAlwaysYieldsZeroes, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ExtractingD2PwDt2ValuesFromUPwDofsAlwaysYieldsZeroes, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto& r_variable              = WATER_PRESSURE;
     const auto& r_first_time_derivative = DT_WATER_PRESSURE;
     // There is no variable defined for the second time derivative of the water pressure
-    const auto all_variables = ConstVariableRefs{std::cref(r_variable), std::cref(r_first_time_derivative)};
+    const auto all_variables =
+        Geo::ConstVariableRefs{std::cref(r_variable), std::cref(r_first_time_derivative)};
 
     auto  model        = Model{};
     auto& r_model_part = CreateTestModelPart(model, all_variables);

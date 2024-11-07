@@ -18,7 +18,7 @@
 
 // Application includes
 #include "custom_elements/steady_state_Pw_interface_element.hpp"
-#include "custom_utilities/interface_element_utilities.hpp"
+#include "custom_utilities/interface_element_utilities.h"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
@@ -47,17 +47,13 @@ public:
     /// The definition of the sizetype
     using SizeType = std::size_t;
 
-    using BaseType::CalculateRetentionResponse;
     using BaseType::mRetentionLawVector;
     using BaseType::mThisIntegrationMethod;
 
     using InterfaceElementVariables = typename BaseType::InterfaceElementVariables;
     using SFGradAuxVariables        = typename BaseType::SFGradAuxVariables;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    /// Default Constructor
-    SteadyStatePwPipingElement(IndexType NewId = 0)
+    explicit SteadyStatePwPipingElement(IndexType NewId = 0)
         : SteadyStatePwInterfaceElement<TDim, TNumNodes>(NewId)
     {
     }
@@ -87,10 +83,7 @@ public:
     {
     }
 
-    /// Destructor
-    ~SteadyStatePwPipingElement() override {}
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    ~SteadyStatePwPipingElement() = default;
 
     Element::Pointer Create(IndexType               NewId,
                             NodesArrayType const&   ThisNodes,
@@ -114,8 +107,8 @@ protected:
     void CalculateAll(MatrixType&        rLeftHandSideMatrix,
                       VectorType&        rRightHandSideVector,
                       const ProcessInfo& CurrentProcessInfo,
-                      const bool         CalculateStiffnessMatrixFlag,
-                      const bool         CalculateResidualVectorFlag) override;
+                      bool               CalculateStiffnessMatrixFlag,
+                      bool               CalculateResidualVectorFlag) override;
 
     using BaseType::CalculateOnIntegrationPoints;
     void CalculateOnIntegrationPoints(const Variable<bool>& rVariable,
@@ -130,13 +123,7 @@ protected:
 
     double pipe_initialised = false;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 private:
-    /// Member Variables
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     /// Assignment operator.
     SteadyStatePwPipingElement& operator=(SteadyStatePwPipingElement const& rOther);
 

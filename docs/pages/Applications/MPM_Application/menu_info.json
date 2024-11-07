@@ -1,0 +1,14 @@
+{
+    "side_bar_name": "mpm_application",
+    "landing_page": "General/Overview.md",
+    "additional_menu_options": {
+        "product": "MPM Application",
+        "title": "sidebar"
+
+    },
+    "custom_entries": [
+        "General",
+        "MPM_example_in_GiD",
+        "Examples"
+    ]
+}

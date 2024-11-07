@@ -28,7 +28,6 @@ Element::Pointer SteadyStatePwPipingElement<TDim, TNumNodes>::Create(IndexType N
         NewId, this->GetGeometry().Create(ThisNodes), pProperties, this->GetStressStatePolicy().Clone()));
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer SteadyStatePwPipingElement<TDim, TNumNodes>::Create(IndexType             NewId,
                                                                      GeometryType::Pointer pGeom,
@@ -76,7 +75,7 @@ int SteadyStatePwPipingElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurre
         KRATOS_ERROR << "PIPE_MODEL_FACTOR has Key zero, is not defined or has "
                         "an invalid value at element "
                      << this->Id() << std::endl;
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 
     return ierr;
 }
@@ -103,7 +102,7 @@ void SteadyStatePwPipingElement<TDim, TNumNodes>::Initialize(const ProcessInfo& 
         this->SetValue(PIPE_ACTIVE, false);
     }
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 template <>
@@ -131,7 +130,6 @@ void SteadyStatePwPipingElement<3, 8>::CalculateLength(const GeometryType& Geom)
                  << std::endl;
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     const Variable<bool>& rVariable, std::vector<bool>& rValues, const ProcessInfo& rCurrentProcessInfo)
@@ -174,13 +172,12 @@ void SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHandSideMatrix,
                                                                VectorType& rRightHandSideVector,
                                                                const ProcessInfo& CurrentProcessInfo,
-                                                               const bool CalculateStiffnessMatrixFlag,
-                                                               const bool CalculateResidualVectorFlag)
+                                                               bool CalculateStiffnessMatrixFlag,
+                                                               bool CalculateResidualVectorFlag)
 {
     KRATOS_TRY
     // Previous definitions
@@ -211,8 +208,10 @@ void SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeft
     array_1d<double, TDim> RelDispVector;
     SFGradAuxVariables     SFGradAuxVars;
 
-    // create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), CurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
+
+    const auto integration_coefficients =
+        this->CalculateIntegrationCoefficients(IntegrationPoints, detJContainer);
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
@@ -230,11 +229,9 @@ void SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeft
         InterfaceElementUtilities::FillPermeabilityMatrix(
             Variables.LocalPermeabilityMatrix, Variables.JointWidth, Prop[TRANSVERSAL_PERMEABILITY]);
 
-        CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
+        this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
-        // Compute weighting coefficient for integration
-        Variables.IntegrationCoefficient =
-            this->CalculateIntegrationCoefficient(IntegrationPoints, GPoint, detJContainer[GPoint]);
+        Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
         // Contributions to the left hand side
         if (CalculateStiffnessMatrixFlag) this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);

@@ -460,7 +460,7 @@ namespace Internals
  * Valid paths are similar to linux file system with alphanumeric names
  * and possible underscores separated by '/'. All paths are absolute.
  */
-bool IsPath(const std::string& rPath);
+bool KRATOS_API(HDF5_APPLICATION) IsPath(const std::string& rPath);
 
 /// Return vector of non-empty substrings separated by a delimiter.
 std::vector<std::string> Split(const std::string& rPath, char Delimiter);

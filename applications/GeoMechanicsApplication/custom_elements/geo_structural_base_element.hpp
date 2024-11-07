@@ -28,15 +28,11 @@ template <unsigned int TDim, unsigned int TNumNodes>
 class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoStructuralBaseElement : public Element
 {
 public:
-    /// The definition of the sizetype
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeoStructuralBaseElement);
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    /// Default Constructor
-    GeoStructuralBaseElement(IndexType NewId = 0) : Element(NewId) {}
+    explicit GeoStructuralBaseElement(IndexType NewId = 0) : Element(NewId) {}
 
     /// Constructor using an array of nodes
     GeoStructuralBaseElement(IndexType NewId, const NodesArrayType& ThisNodes)
@@ -57,16 +53,11 @@ public:
         mThisIntegrationMethod = this->GetIntegrationMethod();
     }
 
-    /// Destructor
-    virtual ~GeoStructuralBaseElement() {}
+    ~GeoStructuralBaseElement() = default;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    Element::Pointer Create(IndexType, NodesArrayType const&, PropertiesType::Pointer) const override;
 
-    Element::Pointer Create(IndexType               NewId,
-                            NodesArrayType const&   ThisNodes,
-                            PropertiesType::Pointer pProperties) const override;
-
-    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType, GeometryType::Pointer, PropertiesType::Pointer) const override;
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
@@ -75,8 +66,6 @@ public:
     void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const override;
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override;
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
                               VectorType&        rRightHandSideVector,
@@ -98,13 +87,9 @@ public:
 
     void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     void SetValuesOnIntegrationPoints(const Variable<double>&    rVariable,
                                       const std::vector<double>& rValues,
                                       const ProcessInfo&         rCurrentProcessInfo) override;
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
     static constexpr SizeType N_DOF_NODE    = (TDim == 2 ? 3 : 6);
@@ -121,7 +106,6 @@ protected:
         array_1d<double, TNumNodes * TDim> DisplacementVector;
         array_1d<double, TNumNodes * TDim> VelocityVector;
         array_1d<double, TNumNodes * TDim> NodalVolumeAcceleration;
-        array_1d<double, TNumNodes * TDim> UVector;
 
         Vector DofValuesVector;
 
@@ -168,8 +152,6 @@ protected:
                                          const GeometryType& Geom,
                                          IndexType           SolutionStepIndex = 0) const;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     virtual void CalculateStiffnessMatrix(MatrixType& rStiffnessMatrix, const ProcessInfo& rCurrentProcessInfo);
 
     virtual void CalculateAll(MatrixType&        rLeftHandSideMatrix,
@@ -181,8 +163,6 @@ protected:
     virtual void CalculateRHS(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 
     virtual void CalculateNodalCrossDirection(Matrix& NodalCrossDirection) const;
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
     /// Assignment operator.

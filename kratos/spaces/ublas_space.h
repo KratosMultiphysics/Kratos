@@ -710,8 +710,8 @@ public:
     {
         const std::size_t system_size = rA.size1();
 
-        const double* Avalues = rA.value_data().begin();
-        const std::size_t* Arow_indices = rA.index1_data().begin();
+        const auto& Avalues = rA.value_data();
+        const auto& Arow_indices = rA.index1_data();
 
         // Define  zero value tolerance
         const double zero_tolerance = std::numeric_limits<double>::epsilon();
@@ -778,9 +778,9 @@ public:
      */
     static double GetDiagonalNorm(const MatrixType& rA)
     {
-        const double* Avalues = rA.value_data().begin();
-        const std::size_t* Arow_indices = rA.index1_data().begin();
-        const std::size_t* Acol_indices = rA.index2_data().begin();
+        const auto& Avalues = rA.value_data();
+        const auto& Arow_indices = rA.index1_data();
+        const auto& Acol_indices = rA.index2_data();
 
         const double diagonal_norm = IndexPartition<std::size_t>(Size1(rA)).for_each<SumReduction<double>>([&](std::size_t Index){
             const std::size_t col_begin = Arow_indices[Index];
@@ -813,9 +813,9 @@ public:
      */
     static double GetMaxDiagonal(const MatrixType& rA)
     {
-        const double* Avalues = rA.value_data().begin();
-        const std::size_t* Arow_indices = rA.index1_data().begin();
-        const std::size_t* Acol_indices = rA.index2_data().begin();
+        const auto& Avalues = rA.value_data();
+        const auto& Arow_indices = rA.index1_data();
+        const auto& Acol_indices = rA.index2_data();
 
         return IndexPartition<std::size_t>(Size1(rA)).for_each<MaxReduction<double>>([&](std::size_t Index){
             const std::size_t col_begin = Arow_indices[Index];
@@ -836,9 +836,9 @@ public:
      */
     static double GetMinDiagonal(const MatrixType& rA)
     {
-        const double* Avalues = rA.value_data().begin();
-        const std::size_t* Arow_indices = rA.index1_data().begin();
-        const std::size_t* Acol_indices = rA.index2_data().begin();
+        const auto& Avalues = rA.value_data();
+        const auto& Arow_indices = rA.index1_data();
+        const auto& Acol_indices = rA.index2_data();
 
         return IndexPartition<std::size_t>(Size1(rA)).for_each<MinReduction<double>>([&](std::size_t Index){
             const std::size_t col_begin = Arow_indices[Index];
@@ -891,6 +891,22 @@ public:
         return false;
     }
 
+    /**
+     * @brief Returns a list of the fastest direct solvers.
+     * @details This function returns a vector of strings representing the names of the fastest direct solvers. The order of the solvers in the list may need to be updated and reordered depending on the size of the equation system.
+     * @return A vector of strings containing the names of the fastest direct solvers.
+     */
+    inline static std::vector<std::string> FastestDirectSolverList()
+    {
+        std::vector<std::string> faster_direct_solvers({
+            "pardiso_lu",              // LinearSolversApplication (if compiled with Intel-support)
+            "pardiso_ldlt",            // LinearSolversApplication (if compiled with Intel-support)
+            "sparse_lu",               // LinearSolversApplication
+            "skyline_lu_factorization" // In Core, always available, but slow
+        });
+        return faster_direct_solvers;
+    }
+
     //***********************************************************************
 
     inline static TDataType GetValue(const VectorType& x, std::size_t I)
@@ -917,7 +933,7 @@ public:
     }
 
     template< class VectorType >
-    static bool WriteMatrixMarketVector(const char* pFileName, const VectorType& rV)
+    static bool WriteMatrixMarketVector(const char* pFileName, /*const*/ VectorType& rV)
     {
         // Use full namespace in call to make sure we are not calling this function recursively
         return Kratos::WriteMatrixMarketVector(pFileName, rV);
@@ -927,16 +943,6 @@ public:
     {
         DofUpdaterType tmp;
         return tmp.Create();
-    }
-
-   /**
-    * @brief Check if the UblasSpace is distributed.
-    * @details This static member function checks whether the UblasSpace is distributed or not.
-    * @return True if the space is distributed, false otherwise.
-    */
-    static constexpr bool IsDistributedSpace()
-    {
-        return false;
     }
 
     ///@}

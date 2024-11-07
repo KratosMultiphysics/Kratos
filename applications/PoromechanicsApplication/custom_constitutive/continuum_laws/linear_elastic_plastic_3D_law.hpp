@@ -16,6 +16,7 @@
 
 // Project includes
 #include "custom_constitutive/continuum_laws/hyperelastic_plastic_3D_law.hpp"
+#include "custom_utilities/poro_element_utilities.hpp"
 
 
 
@@ -175,7 +176,8 @@ protected:
      */
 
     virtual void CalculateReturnMapping( FlowRule::RadialReturnVariables& rReturnMappingVariables, Matrix& rStressMatrix,
-                                            Vector& rStressVector, const Matrix& LinearElasticMatrix, const Vector& StrainVector );
+                                            Vector& rStressVector, const Matrix& LinearElasticMatrix, const Vector& StrainVector,
+                                            Parameters& rValues );
 
 
     /**
@@ -197,7 +199,7 @@ protected:
      */
 
     virtual void UpdateInternalStateVariables( FlowRule::RadialReturnVariables& rReturnMappingVariables, Vector& rStressVector,
-                                            const Matrix& LinearElasticMatrix, const Vector& StrainVector );
+                                            const Matrix& LinearElasticMatrix, const Vector& StrainVector, Parameters& rValues );
 
     /**
      * Updates the stress vector (to finalize the step)
