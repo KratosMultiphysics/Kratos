@@ -242,15 +242,75 @@ Last but important, the solver also creates and holds the strategy (e.g., the Ne
 
 The solver can be retrieved from the `AnalysisStage` level by calling the `_GetSolver()` function.
 
-This becomes specially handy when combined with the `GetComputingModelPart()`, namely `_GetSolver().GetComputingModelPart().
+This becomes specially handy when combined with the `GetComputingModelPart()`, namely `_GetSolver().GetComputingModelPart()`.
 
 Note that by doing so, we can access (and play around with or customize) the database of the model part that is actually used for the problem resolution, something that enables an easy customization of the simulation when called in the proper access points of the `AnalysisStage`.
 
-# 4. Processes and Modeleres
+# 4. Processe
+
+Processes and Modelers are the way we provide our users to make customizations to the simulation without having to touch any of the core components described in this section. Essentially, they are pieces of code that will be executed in selected points during the analysis stage.
+
+Processes in particular are the backbone for custom code execution in the analysis stage. As we have seen during the analysis stage they are use in different moments during the simulation execution.
+
+The most important characteristic  of a process is being a class with a fix set of entry points:
+
+- `ExecuteInitialize`: Will be called during the initialize sequence of an `AnalysisStage`, before the initialization of the `Solver`.
+
+- `ExecuteBeforeSolustionLoop`: Will be called during the initialize sequence of an `AnalysisStage`, after the initialization of the `Solver`
+
+- `ExecuteInitializeSolutionStep`: Will be called at the begining of each solution loop, before executing the preconditioners and solvers
+
+- `ExecuteFinalizeSolutionStep`: Will be called at the end of each solution loop, after executing the preconditioners and solvers but before the output stage.
+
+- `ExecuteBeforeOutputStep`: Will be called at the begining of the output stage for every output process active, before printing the results
+
+- `ExecuteAfterOutputStep`: Will be called at the end of the output stage for every output process active, after printing the results
+
+- `ExecuteFinalize`: Will be called during the finalize sequence of an `AnalysisStage`, just before existing the stage.
+
+In order to use a process, you have to add it to one of the lists available in the project parameters with the name of the process that you want to use, and the parameters it expects. There are plenty of processes in any of the examples available through kratos, but just to illustrate let's take a look at one in particular from the ones you downloaded:
+
+```json
+"constraints_process_list" : [{
+"python_module" : "assign_vector_variable_process",
+"kratos_module" : "KratosMultiphysics",
+"Parameters"    : {
+    "model_part_name" : "Structure.DISPLACEMENT_Ground",
+    "variable_name"   : "DISPLACEMENT",
+    "constrained"     : [true,true,true],
+    "value"           : [0.0,0.0,0.0],
+    "interval"        : [0.0,"End"]
+}
+}],
+```
+
+As you can see, here we are seeing the `assign_vector_variable_process` which is found in the module `KratosMultiphysics`. If you were to use a process from another application, the `kratos_module` would change.
+
+The list of `Parameters` are the settings that the process expects, and they may broadly change between processes.
+
+In particular, this process assigns a value to a vector variable, in this case `DISPLACEMENT`. This is typically at operation that you will want to do before solving a step during a given amount of time, indicated in the `interval`.
+
+If we look at the implementation of such process in Kratos, we will see that, among the different entry points that we have commented, this process makes use of `ExecuteInitializeSolutionStep`, with a filter for the time:
 
 
+```python
+def ExecuteInitializeSolutionStep(self):
+    for process in self.aux_processes:
+        process.ExecuteInitializeSolutionStep()
+```
+In particular, this process uses a list of subprocesses, which is something that you can also do. The subprocess follows the same logic:
 
-Processes and Modelers are the way we provide our users to make customizations to the simulation without having to touch any of the core components described in this section. Essentially they are pieces of code that will be executed in selected points during the analysis stage.
+
+```python
+def ExecuteInitializeSolutionStep(self):
+    current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+
+    if self.interval.IsInInterval(current_time):
+            self.value = self.table.GetValue(current_time)
+            self.variable_utils.SetVariable(self.variable, self.value, self.mesh.Nodes)
+```
+
+Here we can see a simplified version of its implementation, and as you can see the behavior is the expected.
 
 # 5. Modelers
 
