@@ -157,12 +157,6 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
 
         self._reinitialization_type = self.settings["distance_reinitialization"].GetString()
 
-        # Initialize the system volue to None
-        # current_dt = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
-        # print(current_dt)
-        bdf_vec = [1.5/0.01, -2.0/0.01, 0.5/0.01]
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.BDF_COEFFICIENTS, bdf_vec)
-        print( self.main_model_part.ProcessInfo.GetValue(KratosMultiphysics.BDF_COEFFICIENTS))
 
         # Note that this will be computed only once in the first InitializeSolutionStep call
         self.__initial_system_volume = None
@@ -219,6 +213,10 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             computing_model_part)
         elemental_neighbour_search.Execute()
 
+        delta_time = self.main_model_part.ProcessInfo.GetValue(KratosMultiphysics.DELTA_TIME)
+        print(delta_time)
+        bdf_vec = [1.5/delta_time, -2.0/delta_time, 0.5/delta_time]
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.BDF_COEFFICIENTS, bdf_vec)
         # Set and initialize the solution strategy
         solution_strategy = self._GetSolutionStrategy()
         solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
@@ -258,12 +256,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.ARTIFICIAL_DYNAMIC_VISCOSITY, self.main_model_part.Elements)
 
 
-        for node in self.main_model_part.Nodes:
-            if node.SolutionStepsDataHas(KratosMultiphysics.NODAL_AREA):
-                print(
-                    f"Nodal area for node {node.Id} is: {node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)}")
-            else:
-                print(f"Nodal area not initialized for node {node.Id}")
+
 
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
@@ -284,18 +277,18 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         # # Recompute the BDF2 coefficients
         # (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
         # Perform the convection of the historical database (Eulerian FM-ALE)
+
+        self.__PerformLevelSetConvection()
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
+        delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+        current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]  # Obtener el tiempo actual en Kratos
+
+        # Perform the level-set convection according to the previous step velocity
         if current_time >2*delta_time:
             if self.eulerian_fm_ale:
                 print("ENTRA")
                 self.__PerformEulerianFmAleVelocity()
                 KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "FM-Lagrangian method is performed.")
-
-        self.__PerformLevelSetConvection()
-        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
-        current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]  # Obtener el tiempo actual en Kratos
-        delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
-
-        # Perform the level-set convection according to the previous step velocity
 
 
         # Perform distance correction to prevent ill-conditioned cuts
@@ -351,13 +344,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
 
         # Prepare distance correction for next step
         self._GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
-        # Obtener el tiempo actual en Kratos
-        current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
-        delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
-        # Perform the convection of the historical database (Eulerian FM-ALE)
-        if current_time > 2*delta_time:
-            if self.eulerian_fm_ale:
-                KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(KratosCFD.FRACTIONAL_VELOCITY,KratosMultiphysics.VELOCITY, self.main_model_part, self.main_model_part, 0,1)
+
 
         # Finalize the solver current step
         self._GetSolutionStrategy().FinalizeSolutionStep()

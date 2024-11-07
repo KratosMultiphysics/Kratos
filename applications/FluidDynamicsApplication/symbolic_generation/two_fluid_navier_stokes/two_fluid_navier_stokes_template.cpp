@@ -1004,7 +1004,7 @@ void TwoFluidNavierStokes<TElementData>::PressureGradientStabilization(
 
     const double dt = rData.DeltaTime;
 
-    const auto v_convection = rData.Velocity - rData.MeshVelocity;
+    const auto v_convection = rData.Velocity - rData.Velocity_OldStep1;
 
     for (unsigned int gp = 0; gp < rInterfaceWeights.size(); ++gp){
 

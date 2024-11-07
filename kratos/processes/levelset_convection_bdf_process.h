@@ -250,7 +250,6 @@ public:
         r_conv_process_info.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetConvectionVariable(*mpConvectVar);
         // r_conv_process_info.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetVolumeSourceVariable(*mpVolumeSourceVar);
 
-        // Save current level set value and current and previous step velocity values
         // If the nodal stabilization tau is to be used, it is also computed in here
         IndexPartition<int>(mpDistanceModelPart->NumberOfNodes()).for_each(
         [&](int i_node){
