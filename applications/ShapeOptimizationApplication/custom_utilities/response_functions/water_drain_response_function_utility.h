@@ -63,7 +63,7 @@ struct Volume {
 	IndexType Id;
 	IndexType mLowPointId;
 	Vector mLowestPoint;
-	double mMaxWaterLevel;
+	double mMaxWaterLevel = 0;
 	bool isMerged = false;
 	std::vector<int> mNeighbourVolumes;
 };

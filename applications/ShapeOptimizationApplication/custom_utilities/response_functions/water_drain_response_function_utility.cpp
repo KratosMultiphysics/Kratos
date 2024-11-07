@@ -130,7 +130,7 @@ void WaterDrainResponseFunctionUtility::CalculateGradient()
 			double nodal_area = 1;
 			if (!mContinuousSens) nodal_area = rNode.FastGetSolutionStepValue(NODAL_AREA);
 
-			array_3d gradient = mGravityDirection * nodal_area; // * rNode.FastGetSolutionStepValue(WATER_LEVEL);
+			array_3d gradient = mGravityDirection * nodal_area;
 			if (mQuadraticHeightPenalization) gradient *= 2 * rNode.FastGetSolutionStepValue(WATER_LEVEL);
 			rNode.FastGetSolutionStepValue(SHAPE_SENSITIVITY) = gradient;
 		}
@@ -242,8 +242,7 @@ void WaterDrainResponseFunctionUtility::FindSteepestDescentFromEachNode() {
 
 		if (!r_edge_model_part.HasNode(current_node_id)) {
 			bool is_low_point = false;
-			for (int i = 0; i<mListOfVolumes.size(); i++) {
-				Volume& r_volume = mListOfVolumes[i];
+			for (std::vector<Kratos::Volume>::size_type i = 0; i<mListOfVolumes.size(); i++) {
 				if (current_node_id == mListOfVolumes[i].mLowPointId) {
 					is_low_point = true;
 					break;
@@ -259,7 +258,7 @@ void WaterDrainResponseFunctionUtility::FindSteepestDescentFromEachNode() {
 					if (!nodes_visited.insert(current_node_id).second) break;
 
 					NodeTypePointer p_current_node = mrModelPart.pGetNode(current_node_id);
-					auto& r_neighbours = mrModelPart.pGetNode(current_node_id)->GetValue(NEIGHBOUR_NODES);
+					auto& r_neighbours = p_current_node->GetValue(NEIGHBOUR_NODES);
 
 					IndexType next_node_id;
 					double max_inclination = 0;
@@ -271,11 +270,11 @@ void WaterDrainResponseFunctionUtility::FindSteepestDescentFromEachNode() {
 							next_node_id = r_neighbour.Id();
 						}
 					}
-					if (max_inclination == 0) break;
+					if (max_inclination < 1e-8) break;
 
 					if (r_edge_model_part.HasNode(next_node_id)) break;
 
-					for (int i = 0; i<mListOfVolumes.size(); i++) {
+					for (std::vector<Kratos::Volume>::size_type i = 0; i<mListOfVolumes.size(); i++) {
 						if (next_node_id == mListOfVolumes[i].mLowPointId) {
 							rNode.FastGetSolutionStepValue(WATER_VOLUMES) = mListOfVolumes[i].Id;
 							low_point_found = true;
@@ -301,7 +300,7 @@ void WaterDrainResponseFunctionUtility::LevelVolumes() {
 	BuiltinTimer timer;
 	KRATOS_INFO("ShapeOpt::WaterDrain") << "Starting LeveVolumes..." << std::endl;
 
-	for (int i = 0; i<mListOfVolumes.size(); i++) {
+	for (std::vector<Kratos::Volume>::size_type i = 0; i<mListOfVolumes.size(); i++) {
 		Volume& r_volume = mListOfVolumes[i];
 		if (r_volume.isMerged) continue;
 
@@ -312,7 +311,7 @@ void WaterDrainResponseFunctionUtility::LevelVolumes() {
 		// determine minimal edge height
 		const auto it_node_begin = mrModelPart.NodesBegin();
 		#pragma omp parallel for
-		for (int j = 0; j < mrModelPart.NumberOfNodes(); ++j) {
+		for (Kratos::ModelPart::SizeType j = 0; j < mrModelPart.NumberOfNodes(); ++j) {
 			auto it_node = it_node_begin + j;
 			int& water_volume = it_node->FastGetSolutionStepValue(WATER_VOLUMES);
 			if (water_volume != volume_id) {
@@ -343,7 +342,7 @@ void WaterDrainResponseFunctionUtility::LevelVolumes() {
 
 		// determine height tolerance by max volume edge inclination
 		double max_edge_inclination = 0;
-		for (int j = 0; j < edge_node_ids.size(); ++j) {
+		for (std::vector<IndexType>::size_type j = 0; j < edge_node_ids.size(); ++j) {
 			NodeTypePointer p_node = mrModelPart.pGetNode(edge_node_ids[j]);
 
 			auto& r_neighbours = p_node->GetValue(NEIGHBOUR_NODES);
@@ -361,7 +360,7 @@ void WaterDrainResponseFunctionUtility::LevelVolumes() {
 		// sort out nodes which are higher than the min_edge_height and determine max water level
 		std::vector<double> water_level(mrModelPart.NumberOfNodes(), -1e20);
 		#pragma omp parallel for
-		for (int j = 0; j < mrModelPart.NumberOfNodes(); ++j) {
+		for (Kratos::ModelPart::SizeType j = 0; j < mrModelPart.NumberOfNodes(); ++j) {
 			auto it_node = it_node_begin + j;
 			int& water_volume = it_node->FastGetSolutionStepValue(WATER_VOLUMES);
 			if (water_volume == volume_id) {
@@ -408,7 +407,7 @@ void WaterDrainResponseFunctionUtility::MergeVolumes() {
 
 	std::set<int> merged;
 	std::map<int, std::set<int>> volume_to_merge;
-	for (int id = 1; id < volume_neighbourhoods.size()+1; ++id) {
+	for (std::vector<std::set<int>>::size_type id = 1; id < volume_neighbourhoods.size()+1; ++id) {
 		std::vector<int> to_visit;
 		std::set<int> visited;
 		if (merged.find(id) == merged.end()) {
@@ -427,7 +426,7 @@ void WaterDrainResponseFunctionUtility::MergeVolumes() {
 			}
 			if (visited.size() != 0) {
 				volume_to_merge[id] = visited;
-				for (int visited_j : visited) {
+				for (std::set<int>::size_type visited_j : visited) {
 					if (visited_j != id) merged.insert(visited_j);
 				}
 			}
