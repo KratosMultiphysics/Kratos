@@ -74,6 +74,8 @@ python -m pip install KratosMultiphysics-all
 ```
 {: data-lang="Bash"}
 
+⚠️ If you are a windows user, please also install: https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170
+
 To verify the installation, run the following test in a Python session:
 
 ```python
