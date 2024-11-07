@@ -328,7 +328,3 @@ vtk_output.ExecuteFinalizeSolutionStep()
 vtk_output.ExecuteFinalize()
 ```
 {: data-lang="Python"}
-
-# 3. Exercice
-
-If you want to test what you have learnt, you can download an excercice prepared for this. You will see two files: A skeleton code with gaps, and the solution. Instructions alre already in the file, so follow and try to complete the gaps in the code.
