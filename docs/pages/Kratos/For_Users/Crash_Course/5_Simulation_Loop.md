@@ -248,9 +248,13 @@ Note that by doing so, we can access (and play around with or customize) the dat
 
 # 4. Processes and Modeleres
 
+
+
 Processes and Modelers are the way we provide our users to make customizations to the simulation without having to touch any of the core components described in this section. Essentially they are pieces of code that will be executed in selected points during the analysis stage.
 
-# 5. Utilities
+# 5. Modelers
+
+# 6. Utilities
 
 Finally utilities play a similar role as processes and modeleres, but there is no fixed entry points in which they will be called during a simulation.
 
