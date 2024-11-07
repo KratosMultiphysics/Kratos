@@ -40,6 +40,7 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         # Steady embedded (CutFEM) solver
         elif solver_type == "stationary_embedded":
             solver_module_name = "convection_diffusion_stationary_embedded_solver"
+        # Auxiliary solver to generate the stationary system matrix
         elif (solver_type == "stationary_matrix"):
             solver_module_name = "convection_diffusion_stationary_matrix_solver"
         # Coupled CFD-thermal solvers (volume coupling by Boussinesq approximation)

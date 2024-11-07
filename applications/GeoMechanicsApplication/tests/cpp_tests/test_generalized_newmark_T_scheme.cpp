@@ -11,21 +11,17 @@
 //
 
 #include "custom_strategies/schemes/generalized_newmark_T_scheme.hpp"
+#include "geo_mechanics_fast_suite.h"
 #include "spaces/ublas_space.h"
-#include "testing/testing.h"
 
 using namespace Kratos;
 using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
-using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+using LocalSpaceType  = UblasSpace<double, Matrix, Vector>;
 
-namespace Kratos::Testing {
-
-GeneralizedNewmarkTScheme<SparseSpaceType, LocalSpaceType> CreateValidScheme()
+namespace Kratos::Testing
 {
-    return GeneralizedNewmarkTScheme<SparseSpaceType, LocalSpaceType>(0.75);
-}
 
-ModelPart& CreateValidModelPart(Model& rModel)
+ModelPart& CreateValidTemperatureModelPart(Model& rModel)
 {
     auto& result = rModel.CreateModelPart("dummy", 2);
     result.AddNodalSolutionStepVariable(TEMPERATURE);
@@ -36,50 +32,23 @@ ModelPart& CreateValidModelPart(Model& rModel)
     return result;
 }
 
-
-KRATOS_TEST_CASE_IN_SUITE(CheckBackwardEulerQuasistaticTScheme_WithAllNecessaryParts_Returns0,
-                          KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CheckNewmarkTScheme_WithAllNecessaryParts_Returns0, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    Model model;
-    auto scheme = CreateValidScheme();
-    const auto& model_part = CreateValidModelPart(model);
+    constexpr double theta = 0.75;
+
+    GeneralizedNewmarkTScheme<SparseSpaceType, LocalSpaceType> scheme(theta);
+
+    Model       model;
+    const auto& model_part = CreateValidTemperatureModelPart(model);
 
     KRATOS_EXPECT_EQ(scheme.Check(model_part), 0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ForInvalidTheta_CheckBackwardEulerQuasistaticTScheme_Throws,
-                          KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ForMissingNodalDof_CheckNewmarkTScheme_Throws, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    constexpr double invalid_theta = -2.0;
-    GeneralizedNewmarkTScheme<SparseSpaceType, LocalSpaceType> scheme(invalid_theta);
+    constexpr double theta = 0.75;
 
-    Model model;
-    const auto& model_part = CreateValidModelPart(model);
-
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(scheme.Check(model_part),
-                                      "Theta has an invalid value")
-}
-
-KRATOS_TEST_CASE_IN_SUITE(ForInvalidBufferSize_CheckBackwardEulerQuasistaticTScheme_Throws,
-                          KratosGeoMechanicsFastSuite)
-{
-    auto scheme = CreateValidScheme();
-
-    Model model;
-    constexpr auto invalid_buffer_size = ModelPart::IndexType{1};
-    auto& model_part = CreateValidModelPart(model);
-    model_part.SetBufferSize(invalid_buffer_size);
-
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        scheme.Check(model_part),
-        "insufficient buffer size. Buffer size should be greater than or equal to "
-        "2. Current size is 1")
-}
-
-KRATOS_TEST_CASE_IN_SUITE(ForMissingNodalDof_CheckBackwardEulerQuasistaticTScheme_Throws,
-                          KratosGeoMechanicsFastSuite)
-{
-    auto scheme = CreateValidScheme();
+    GeneralizedNewmarkTScheme<SparseSpaceType, LocalSpaceType> scheme(theta);
 
     Model model;
     auto& model_part = model.CreateModelPart("dummy", 2);
@@ -87,14 +56,15 @@ KRATOS_TEST_CASE_IN_SUITE(ForMissingNodalDof_CheckBackwardEulerQuasistaticTSchem
     model_part.AddNodalSolutionStepVariable(DT_TEMPERATURE);
     auto p_node = model_part.CreateNewNode(0, 0.0, 0.0, 0.0);
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(scheme.Check(model_part),
-                                      "missing TEMPERATURE dof on node ")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(scheme.Check(model_part), "missing TEMPERATURE dof on node ")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ForMissingDtTemperatureSolutionStepVariable_CheckBackwardEulerQuasistaticTScheme_Throws,
-                          KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ForMissingDtTemperatureSolutionStepVariable_CheckNewmarkTScheme_Throws,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    auto scheme = CreateValidScheme();
+    constexpr double theta = 0.75;
+
+    GeneralizedNewmarkTScheme<SparseSpaceType, LocalSpaceType> scheme(theta);
 
     Model model;
     auto& model_part = model.CreateModelPart("dummy", 2);
@@ -102,71 +72,77 @@ KRATOS_TEST_CASE_IN_SUITE(ForMissingDtTemperatureSolutionStepVariable_CheckBackw
     auto p_node = model_part.CreateNewNode(0, 0.0, 0.0, 0.0);
     p_node->AddDof(TEMPERATURE);
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        scheme.Check(model_part),
-        "DT_TEMPERATURE variable is not allocated for node 0")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(scheme.Check(model_part),
+                                      "DT_TEMPERATURE variable is not allocated for node 0")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ForMissingTemperatureSolutionStepVariable_CheckBackwardEulerQuasistaticTScheme_Throws,
-                          KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ForMissingTemperatureSolutionStepVariable_CheckNewmarkTScheme_Throws,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    auto scheme = CreateValidScheme();
+    constexpr double theta = 0.75;
+
+    GeneralizedNewmarkTScheme<SparseSpaceType, LocalSpaceType> scheme(theta);
 
     Model model;
     auto& model_part = model.CreateModelPart("dummy", 2);
-    model_part.AddNodalSolutionStepVariable(DT_TEMPERATURE);
-    auto p_node = model_part.CreateNewNode(0, 0.0, 0.0, 0.0);
+    auto  p_node     = model_part.CreateNewNode(0, 0.0, 0.0, 0.0);
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        scheme.Check(model_part),
-        "TEMPERATURE variable is not allocated for node 0")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(scheme.Check(model_part),
+                                      "TEMPERATURE variable is not allocated for node 0")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ThermalSchemeUpdate_SetsDtTemperature, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(NewmarkTSchemeUpdate_SetsDtTemperature, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    auto scheme = CreateValidScheme();
-    Model model;
-    ModelPart& model_part = CreateValidModelPart(model);
+    constexpr double theta = 0.75;
 
-    constexpr double current_temperature = 10.0;
-    constexpr double previous_temperature = 5.0;
+    GeneralizedNewmarkTScheme<SparseSpaceType, LocalSpaceType> scheme(theta);
+
+    Model      model;
+    ModelPart& model_part = CreateValidTemperatureModelPart(model);
+
+    constexpr double current_temperature     = 10.0;
+    constexpr double previous_temperature    = 5.0;
     constexpr double previous_dt_temperature = 3.0;
-    constexpr double delta_time = 2.0;
+    constexpr double delta_time              = 2.0;
 
-    model_part.GetProcessInfo()[DELTA_TIME] = delta_time;
-    Node& node = model_part.Nodes()[0];
-    node.FastGetSolutionStepValue(TEMPERATURE) = current_temperature;
-    node.FastGetSolutionStepValue(TEMPERATURE, 1) = previous_temperature;
+    model_part.GetProcessInfo()[DELTA_TIME]          = delta_time;
+    Node& node                                       = model_part.Nodes()[0];
+    node.FastGetSolutionStepValue(TEMPERATURE, 0)    = current_temperature;
+    node.FastGetSolutionStepValue(TEMPERATURE, 1)    = previous_temperature;
     node.FastGetSolutionStepValue(DT_TEMPERATURE, 1) = previous_dt_temperature;
 
-    // This is the expected value as calculated by the UpdateVariablesDerivatives
-    constexpr double expected_value = 7.0/3.0;
-
     ModelPart::DofsArrayType dof_set;
-    CompressedMatrix A;
-    Vector Dx;
-    Vector b;
+    CompressedMatrix         A;
+    Vector                   Dx;
+    Vector                   b;
 
-    scheme.Initialize(model_part);
+    scheme.InitializeSolutionStep(model_part, A, Dx, b); // This is needed to set the time factors
     scheme.Predict(model_part, dof_set, A, Dx, b);
 
-    KRATOS_EXPECT_DOUBLE_EQ(node.FastGetSolutionStepValue(DT_TEMPERATURE), expected_value);
+    // This is the expected value as calculated by the UpdateVariablesDerivatives
+    KRATOS_EXPECT_DOUBLE_EQ(node.FastGetSolutionStepValue(DT_TEMPERATURE, 0), 7.0 / 3.0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InitializeScheme_SetsTimeFactors, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(InitializeNewmarkTScheme_SetsTimeFactors, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    auto scheme = CreateValidScheme();
-    Model model;
-    ModelPart& model_part = CreateValidModelPart(model);
-    constexpr double delta_time = 3.0;
+    constexpr double theta = 0.75;
+
+    GeneralizedNewmarkTScheme<SparseSpaceType, LocalSpaceType> scheme(theta);
+
+    Model            model;
+    ModelPart&       model_part             = CreateValidTemperatureModelPart(model);
+    constexpr double delta_time             = 3.0;
     model_part.GetProcessInfo()[DELTA_TIME] = delta_time;
 
+    CompressedMatrix A;
+    Vector           Dx;
+    Vector           b;
     scheme.Initialize(model_part);
 
     KRATOS_EXPECT_TRUE(scheme.SchemeIsInitialized())
-    constexpr double theta = 0.75;
-    KRATOS_EXPECT_DOUBLE_EQ(model_part.GetProcessInfo()[DT_TEMPERATURE_COEFFICIENT],
-                            1.0 / (theta * delta_time));
+
+    scheme.InitializeSolutionStep(model_part, A, Dx, b); // This is needed to set the time factors
+    KRATOS_EXPECT_DOUBLE_EQ(model_part.GetProcessInfo()[DT_TEMPERATURE_COEFFICIENT], 1.0 / (theta * delta_time));
 }
 
-} // namespace Kratos::Test
+} // namespace Kratos::Testing

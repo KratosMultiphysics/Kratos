@@ -50,6 +50,15 @@ class TestBoundingBox(KratosUnittest.TestCase):
         bb.Extend(1.0)
         self._CheckBoundingBoxPoints(bb)
 
+    def test_BoundingBoxIsInside(self):
+        min_point = KM.Point(-1.0, -5.0,  0.0)
+        max_point = KM.Point( 1.0, 10.0, 80.0)
+        bb = KM.BoundingBox(min_point, max_point)
+        point_inside = KM.Point(0.0, 0.0, 0.0)
+        self.assertTrue(bb.IsInside(point_inside))
+        point_outside = KM.Point(0.0, 0.0, 100.0)
+        self.assertFalse(bb.IsInside(point_outside))
+
     def _CheckBoundingBoxPoints(self, bounding_box):
         min_point, max_point = bounding_box.GetPoints()
 
