@@ -1388,7 +1388,7 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddPermeabilityFlow(Ve
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables)
 {
-    // Compute the auxiliary matrix of the product between: gradNp^T * K * gradNp
+    // Compute the auxiliary matrix of the product between: gradNp^T * K
     // where gradNp is the gradient of the shape function vector associated with the pressure fields,
     // and K is the permeability matrix.
     noalias(rVariables.PDimMatrix) = prod(rVariables.GradNpT,mIntrinsicPermeability);
