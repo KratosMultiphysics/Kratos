@@ -133,10 +133,12 @@ class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
         It can be overridden by derived classes
         """
 
+        # EDIT RF 8-11-2024: The calculation of the total displacement seems not only needed when in a stage
+        # reset_displacement is true. But this needs to be discussed
         # store total displacement field for reset_displacements
-        if self._GetSolver().settings["reset_displacements"].GetBool():
-            old_total_displacements = [node.GetSolutionStepValue(KratosGeo.TOTAL_DISPLACEMENT)
-                                       for node in self._GetSolver().GetComputingModelPart().Nodes]
+        # if self._GetSolver().settings["reset_displacements"].GetBool():
+        old_total_displacements = [node.GetSolutionStepValue(KratosGeo.TOTAL_DISPLACEMENT)
+                                   for node in self._GetSolver().GetComputingModelPart().Nodes]
 
         self._GetSolver().solver.SetRebuildLevel(self.rebuild_level)
 
@@ -211,9 +213,11 @@ class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
             if not converged:
                 raise Exception('The maximum number of cycles is reached without convergence!')
 
-            if self._GetSolver().settings["reset_displacements"].GetBool():
-                for idx, node in enumerate(self._GetSolver().GetComputingModelPart().Nodes):
-                    self._CalculateTotalDisplacement(node, old_total_displacements[idx])
+            # EDIT RF 8-11-2024: The calculation of the total displacement seems not only needed when in a stage
+            # reset_displacement is true. But this needs to be discussed
+            # if self._GetSolver().settings["reset_displacements"].GetBool():
+            for idx, node in enumerate(self._GetSolver().GetComputingModelPart().Nodes):
+                self._CalculateTotalDisplacement(node, old_total_displacements[idx])
 
             if self._GetSolver().settings["solver_type"].GetString() == "U_Pw":
                 incr_process = KratosGeo.CalculateIncrementalDisplacementProcess(
