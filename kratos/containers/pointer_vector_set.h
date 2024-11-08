@@ -178,29 +178,12 @@ public:
      */
     TDataType& operator[](const key_type& Key)
     {
-        ptr_iterator sorted_part_end;
-
-        if (mData.size() - mSortedPartSize >= mMaxBufferSize) {
-            Sort();
-            sorted_part_end = mData.end();
+        ptr_iterator i(std::lower_bound(mData.begin(), mData.end(), Key, CompareKey()));
+        if (EqualKeyTo(Key)(*i)) {
+            return **i;
         } else {
-            sorted_part_end = mData.begin() + mSortedPartSize;
+            return **mData.insert(i, TPointerType(new TDataType(Key)));
         }
-
-        ptr_iterator i(std::lower_bound(mData.begin(), sorted_part_end, Key, CompareKey()));
-        if (i == sorted_part_end) {
-            mSortedPartSize++;
-            return **mData.insert(sorted_part_end, TPointerType(new TDataType(Key)));
-        }
-
-        if (!EqualKeyTo(Key)(*i)) {
-            if ((i = std::find_if(sorted_part_end, mData.end(), EqualKeyTo(Key))) == mData.end()) {
-                mData.push_back(TPointerType(new TDataType(Key)));
-                return **(mData.end() - 1);
-            }
-        }
-
-        return **i;
     }
 
     /**
@@ -213,27 +196,12 @@ public:
      */
     pointer& operator()(const key_type& Key)
     {
-        ptr_iterator sorted_part_end;
-
-        if (mData.size() - mSortedPartSize >= mMaxBufferSize) {
-            Sort();
-            sorted_part_end = mData.end();
-        } else
-            sorted_part_end = mData.begin() + mSortedPartSize;
-
-        ptr_iterator i(std::lower_bound(mData.begin(), sorted_part_end, Key, CompareKey()));
-        if (i == sorted_part_end) {
-            mSortedPartSize++;
-            return *mData.insert(sorted_part_end, TPointerType(new TDataType(Key)));
+        ptr_iterator i(std::lower_bound(mData.begin(), mData.end(), Key, CompareKey()));
+        if (EqualKeyTo(Key)(*i)) {
+            return *i;
+        } else {
+            return *mData.insert(i, TPointerType(new TDataType(Key)));
         }
-
-        if (!EqualKeyTo(Key)(*i))
-            if ((i = std::find_if(sorted_part_end, mData.end(), EqualKeyTo(Key))) == mData.end()) {
-                mData.push_back(TPointerType(new TDataType(Key)));
-                return *(mData.end() - 1);
-            }
-
-        return *i;
     }
 
     /**
