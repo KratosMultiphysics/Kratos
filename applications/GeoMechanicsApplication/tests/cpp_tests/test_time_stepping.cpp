@@ -27,22 +27,7 @@ class ProcessSpy : public Process
 {
 public:
     MOCK_METHOD(void, ExecuteInitializeSolutionStep, (), (override));
-
-    void ExecuteFinalizeSolutionStep() override { ++mSolutionStepFinalizedCalls; }
-
-    [[nodiscard]] unsigned int NumberOfExecuteInitializeSolutionStepCalls() const
-    {
-        return mSolutionStepInitializedCalls;
-    }
-
-    [[nodiscard]] unsigned int NumberOfExecuteFinalizeSolutionStepCalls() const
-    {
-        return mSolutionStepFinalizedCalls;
-    }
-
-private:
-    unsigned int mSolutionStepInitializedCalls = 0;
-    unsigned int mSolutionStepFinalizedCalls   = 0;
+    MOCK_METHOD(void, ExecuteFinalizeSolutionStep, (), (override));
 };
 
 class DummyStrategyWrapper : public StrategyWrapper
@@ -186,6 +171,7 @@ KRATOS_TEST_CASE_IN_SUITE(ProcessMemberFunctionsAllCalledOnce, KratosGeoMechanic
     executor.SetSolverStrategy(converging_strategy);
     auto spy = std::make_shared<ProcessSpy>();
     EXPECT_CALL(*spy, ExecuteInitializeSolutionStep()).Times(1);
+    EXPECT_CALL(*spy, ExecuteFinalizeSolutionStep()).Times(1);
 
     std::vector<std::shared_ptr<Process>> processes{spy};
     std::vector<std::weak_ptr<Process>>   process_observables{spy};
@@ -193,8 +179,6 @@ KRATOS_TEST_CASE_IN_SUITE(ProcessMemberFunctionsAllCalledOnce, KratosGeoMechanic
     const auto time = 0.0;
 
     executor.Run(time);
-
-    KRATOS_EXPECT_EQ(1, spy->NumberOfExecuteFinalizeSolutionStepCalls());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SolverStrategyMemberFunctionsAllExceptInitializeAndFinalizeCalledOnce,
