@@ -1,6 +1,6 @@
 # MedApplication
 
-The Med Application an interface to the MED-library. This library writes med-files, which contain mesh, field results and other data, and is based on [HDF5](https://www.hdfgroup.org/solutions/hdf5/). This format is used by [Salome](https://www.salome-platform.org/) and [Code_Aster](https://code-aster.org).
+The Med Application is an interface to the MED-library. This library writes med-files, which contain mesh, field results and other data, and is based on [HDF5](https://www.hdfgroup.org/solutions/hdf5/). This format is used by [Salome](https://www.salome-platform.org/) and [Code_Aster](https://code-aster.org).
 
 ## Installation
 The MED-library is an external library, which must be installed before the application can be compiled
