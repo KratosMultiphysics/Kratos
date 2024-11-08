@@ -24,7 +24,7 @@ This means that you cannot double-click Kratos and start, but rather use its com
 
 So the first part of this course will cover where to find these software, how to install it, and how to prepare it to run Kratos.
 
-⚠️ If you are using MacOS, you are unable to install software in your computer, or you have any other problem, you can follow this course in a GoogleColab Notebook that you can copy from [here]().
+⚠️ If you are using MacOS, you are unable to install software in your computer, or you have any other problem, you can follow this course in a GoogleColab Notebook that you can copy from [here](https://colab.research.google.com/drive/1wG4qkGHmmlAEzW-izg5KWnxQYpbT4fZv).
 
 ## 2. Install Python
 
