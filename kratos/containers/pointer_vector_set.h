@@ -72,36 +72,6 @@ template<class TDataType,
 class PointerVectorSet final
 {
 public:
-    ///@name Class definitions
-    ///@{
-
-    /// @brief Unrestricted accessor for the pointer vector set
-    /// @details This class provides unrestricted access the underlying std::vector of the pointer vector
-    ///          set which may make the pointer vector set unsorted. Hence, once an object of this is created, the
-    ///          methods which utilize the sorted property of pointer vector set are frozen. At the destruction of this class,
-    ///          pointer vector set is sorted and made unique, and the frozen methods are released.
-    /// @param
-    /// @return
-    class UnrestrictedAccessor
-    {
-    private:
-        UnrestrictedAccessor(PointerVectorSet::WeakPointer pPointerVectorSet)
-            : mpData(pPointerVectorSet)
-        {
-        }
-
-    public:
-
-    private:
-        ///@name Member variables
-        ///@{
-
-        PointerVectorSet::WeakPointer mpData
-
-        ///@}
-    }
-
-    ///@}
     ///@name Type Definitions
     ///@{
 
