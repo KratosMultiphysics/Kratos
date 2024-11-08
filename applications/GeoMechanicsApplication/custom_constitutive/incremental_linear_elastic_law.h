@@ -23,7 +23,7 @@ class ConstitutiveLawDimension;
 /**
  * @class GeoIncrementalLinearElasticLaw
  * @ingroup GeoMechanicsApplication
- * @brief This class defines a incremental linear elastic constitutive model for plane strain and 3D cases
+ * @brief This class defines an incremental linear elastic constitutive model for plane strain and 3D cases
  * @author Vahid Galavi
  */
 class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoIncrementalLinearElasticLaw : public GeoLinearElasticLaw
