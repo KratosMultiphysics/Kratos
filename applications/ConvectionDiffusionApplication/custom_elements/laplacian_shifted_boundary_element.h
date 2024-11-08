@@ -9,8 +9,7 @@
 //  Main authors:    Ruben Zorrilla
 //
 
-#if !defined(KRATOS_LAPLACIAN_SHIFTED_BOUNDARY_ELEMENT_H_INCLUDED )
-#define  KRATOS_LAPLACIAN_SHIFTED_BOUNDARY_ELEMENT_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -63,23 +62,29 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
+    /// Constructor with geometry
     LaplacianShiftedBoundaryElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry);
 
+    /// Constructor with geometry and properties
     LaplacianShiftedBoundaryElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties);
 
-    /// Destructor.
-    virtual ~LaplacianShiftedBoundaryElement();
+    /// Destructor
+    virtual ~LaplacianShiftedBoundaryElement() = default;
+
+    /// Copy constructor
+    LaplacianShiftedBoundaryElement(const LaplacianShiftedBoundaryElement& rOther) = delete;
 
     ///@}
     ///@name Operators
     ///@{
 
+    /// Assignment operator.
+    LaplacianShiftedBoundaryElement& operator=(const LaplacianShiftedBoundaryElement& rOther) = delete;
 
     ///@}
     ///@name Operations
@@ -110,9 +115,6 @@ public:
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
-    LaplacianShiftedBoundaryElement() : LaplacianElement()
-    {
-    }
     ///@}
     ///@name Access
     ///@{
@@ -170,9 +172,9 @@ protected:
     ///@{
 
     // Protected default constructor necessary for serialization
+    LaplacianShiftedBoundaryElement() : LaplacianElement() {}
 
     ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -224,18 +226,11 @@ private:
     ///@name Un accessible methods
     ///@{
 
-    /// Assignment operator.
-    //LaplacianShiftedBoundaryElement& operator=(const LaplacianShiftedBoundaryElement& rOther);
-
-    /// Copy constructor.
-    //LaplacianShiftedBoundaryElement(const LaplacianShiftedBoundaryElement& rOther);
 
     ///@}
-
 }; // Class LaplacianShiftedBoundaryElement
 
 ///@}
-
 ///@name Type Definitions
 ///@{
 
@@ -244,22 +239,28 @@ private:
 ///@name Input and output
 ///@{
 
-
 /// input stream function
-/*  inline std::istream& operator >> (std::istream& rIStream,
-				    LaplacianShiftedBoundaryElement& rThis);
-*/
-/// output stream function
-/*  inline std::ostream& operator << (std::ostream& rOStream,
-				    const LaplacianShiftedBoundaryElement& rThis)
-    {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
-      return rOStream;
-    }*/
-///@}
+template<std::size_t TDim>
+inline std::istream& operator >> (
+    std::istream& rIStream,
+    LaplacianShiftedBoundaryElement<TDim>& rThis)
+{
+    return rIStream;
+}
 
+/// output stream function
+template<std::size_t TDim>
+inline std::ostream& operator << (
+    std::ostream& rOStream,
+    const LaplacianShiftedBoundaryElement<TDim>& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+
+///@}
 }  // namespace Kratos.
 
-#endif // KRATOS_LAPLACIAN_SHIFTED_BOUNDARY_ELEMENT_H_INCLUDED  defined

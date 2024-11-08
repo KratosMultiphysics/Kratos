@@ -18,6 +18,7 @@
 // Project includes
 #include "utilities/constraint_utilities.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "utilities/atomic_utilities.h"
 
 namespace Kratos::ConstraintUtilities
@@ -56,6 +57,72 @@ void ComputeActiveDofs(
             }
             for (const auto& r_dof : r_mpc.GetSlaveDofsVector()) {
                 rActiveDofs[r_dof->EquationId()] = 0;
+            }
+        }
+    }
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void DistributedComputeActiveDofs(
+    ModelPart& rModelPart,
+    std::vector<int>& rActiveDofs,
+    const ModelPart::DofsArrayType& rDofSet,
+    const std::size_t InitialDofId
+    )
+{
+    KRATOS_TRY
+
+    // Get the data communicator
+    const auto& r_data_communicator = rModelPart.GetCommunicator().GetDataCommunicator();
+
+    // MPI data
+    const int rank = r_data_communicator.Rank();
+
+    // The number of local dofs
+    const std::size_t number_local_dofs = block_for_each<SumReduction<std::size_t>>(rDofSet, [&rank](const auto& rDof) {
+        if (rDof.GetSolutionStepValue(PARTITION_INDEX) == rank) {
+            return 1;
+        } else {
+            return 0;
+        }
+    });
+
+    // Base active dofs
+    rActiveDofs.resize(number_local_dofs);
+
+    block_for_each(
+        rActiveDofs,
+        [](int& r_dof)
+        { r_dof = 1; }
+    );
+
+    block_for_each(
+        rDofSet,
+        [&rActiveDofs, &rank, &InitialDofId](const auto& rDof){
+            if (rDof.IsFixed() && (rDof.GetSolutionStepValue(PARTITION_INDEX) == rank)) {
+                rActiveDofs[rDof.EquationId() - InitialDofId] = 0;
+            }
+        }
+    );
+
+    // Filling rActiveDofs when MPC exist
+    if (rModelPart.NumberOfMasterSlaveConstraints() > 0) {
+        for (const auto& r_mpc : rModelPart.MasterSlaveConstraints()) {
+            for (const auto& r_dof : r_mpc.GetMasterDofsVector()) {
+                if (r_dof->GetSolutionStepValue(PARTITION_INDEX) == rank) {
+                    KRATOS_DEBUG_ERROR_IF(r_dof->EquationId() < InitialDofId) << "In master DoFs EquationId() < InitialDofId. EquationId: " << r_dof->EquationId() << ". InitialDofId: " << InitialDofId << std::endl;
+                    rActiveDofs[r_dof->EquationId() - InitialDofId] = 0;
+                }
+            }
+            for (const auto& r_dof : r_mpc.GetSlaveDofsVector()) {
+                if (r_dof->GetSolutionStepValue(PARTITION_INDEX) == rank) {
+                    KRATOS_DEBUG_ERROR_IF(r_dof->EquationId() < InitialDofId) << "In slave DoFs EquationId() < InitialDofId. EquationId: " << r_dof->EquationId() << ". InitialDofId: " << InitialDofId << std::endl;
+                    rActiveDofs[r_dof->EquationId() - InitialDofId] = 0;
+                }
             }
         }
     }

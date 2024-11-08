@@ -6,14 +6,14 @@ Begin Properties 1
   YOUNG_MODULUS 1.0e6
   POISSON_RATIO 0.3
   DENSITY_SOLID 2.0e3
-  DENSITY_WATER 1.0e3
+  DENSITY_LIQUID 1.0e3
   POROSITY 0.3
   BULK_MODULUS_SOLID 1.0e12
-  BULK_MODULUS_FLUID 3.0e9
+  BULK_MODULUS_LIQUID 3.0e9
   PERMEABILITY_XX 1.15741e-12
   PERMEABILITY_YY 1.15741e-12
   PERMEABILITY_XY 0.0
-  DYNAMIC_VISCOSITY 1.0e-3
+  DYNAMIC_VISCOSITY_LIQUID 1.0e-3
   THICKNESS 1.0
   BIOT_COEFFICIENT 1.0
 End Properties
@@ -39,7 +39,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements UPwSmallStrainElement2D4N
+Begin Elements UPlSmallStrainElement2D4N
   1  0  15 9 14 16
   2  0  13 8 9 15
   3  0  10 6 8 13
@@ -52,12 +52,12 @@ Begin Elements UPwSmallStrainElement2D4N
 End Elements
 
 
-Begin Conditions UPwDischargeCondition2D1N
+Begin Conditions UPlLiquidDischargeCondition2D1N
   1  1  1
   2  1  11
 End Conditions
 
-Begin Conditions UPwDischargeCondition2D1N
+Begin Conditions UPlLiquidDischargeCondition2D1N
   3  1  2
   4  1  5
 End Conditions
@@ -126,7 +126,7 @@ Begin SubModelPart Solid_Displacement-auto-1
   End SubModelPartConditions
 End SubModelPart
 
-Begin SubModelPart Fluid_Pressure-auto-1
+Begin SubModelPart Liquid_Pressure-auto-1
   Begin SubModelPartTables
   End SubModelPartTables
   Begin SubModelPartNodes

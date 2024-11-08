@@ -12,43 +12,45 @@
 
 #pragma once
 
-// Project includes
-#include "custom_constitutive/linear_elastic_plane_strain_K0_law.h"
+#include "custom_constitutive/linear_elastic_law.h"
+#include "geo_mechanics_application_constants.h"
 
 namespace Kratos
 {
+
+class ConstitutiveLawDimension;
 
 /**
  * @class GeoLinearElasticPlaneStrain2DLaw
  * @ingroup GeoMechanicsApplication
  * @brief This class defines a small deformation linear elastic constitutive model for plane strain cases
- * @details This class derives from the linear elastic case on 3D
  * @author Vahid Galavi
  */
-class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoLinearElasticPlaneStrain2DLaw
-    : public LinearPlaneStrainK0Law
+class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoLinearElasticPlaneStrain2DLaw : public GeoLinearElasticLaw
 {
 public:
-    /// The base class LinearPlaneStrainK0Law type definition
-    using BaseType = LinearPlaneStrainK0Law;
-
-    /// The size type definition
+    using BaseType = GeoLinearElasticLaw;
     using SizeType = std::size_t;
 
-    /// Static definition of the dimension
-    static constexpr SizeType Dimension = N_DIM_2D;
+    KRATOS_CLASS_POINTER_DEFINITION(GeoLinearElasticPlaneStrain2DLaw);
+    GeoLinearElasticPlaneStrain2DLaw();
 
-    /// Static definition of the VoigtSize
-    // for the time being
-    static constexpr SizeType VoigtSize = VOIGT_SIZE_2D_PLANE_STRAIN;
+    explicit GeoLinearElasticPlaneStrain2DLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension);
+    GeoLinearElasticPlaneStrain2DLaw(const GeoLinearElasticPlaneStrain2DLaw& rOther);
+    GeoLinearElasticPlaneStrain2DLaw& operator=(const GeoLinearElasticPlaneStrain2DLaw& rOther);
 
-    /// Counted pointer of LinearPlaneStrainK0Law
-    KRATOS_CLASS_POINTER_DEFINITION( GeoLinearElasticPlaneStrain2DLaw );
+    GeoLinearElasticPlaneStrain2DLaw(GeoLinearElasticPlaneStrain2DLaw&& rOther) noexcept;
+    GeoLinearElasticPlaneStrain2DLaw& operator=(GeoLinearElasticPlaneStrain2DLaw&& rOther) noexcept;
+    ~GeoLinearElasticPlaneStrain2DLaw() override;
 
-    /**
-     * @brief The clone operation
-     */
-    ConstitutiveLaw::Pointer Clone() const override;
+    [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override;
+
+    bool RequiresInitializeMaterialResponse() override;
+    void InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
+
+    bool RequiresFinalizeMaterialResponse() override;
+    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
+    void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief This function is designed to be called once to check compatibility with element
@@ -58,7 +60,7 @@ public:
 
     /**
      * @brief Dimension of the law:
-     * @return The dimension were the law is working
+     * @return The dimension for which the law is working
      */
     SizeType WorkingSpaceDimension() override;
 
@@ -66,7 +68,7 @@ public:
      * @brief Voigt tensor size:
      * @return The size of the strain vector in Voigt notation
      */
-    SizeType GetStrainSize() const override;
+    [[nodiscard]] SizeType GetStrainSize() const override;
 
     bool IsIncremental() override;
 
@@ -93,26 +95,23 @@ protected:
      * @param rStressVector The stress vector in Voigt notation
      * @param rValues Parameters of the constitutive law
      */
-    void CalculatePK2Stress(const Vector& rStrainVector,
-                            Vector& rStressVector,
+    void CalculatePK2Stress(const Vector&                rStrainVector,
+                            Vector&                      rStressVector,
                             ConstitutiveLaw::Parameters& rValues) override;
-
-    void InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) final;
-    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters & rValues) final;
-    void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) final;
 
     ///@}
 
 private:
-    Vector mStressVector          = ZeroVector(VoigtSize);
-    Vector mStressVectorFinalized = ZeroVector(VoigtSize);
-    Vector mDeltaStrainVector     = ZeroVector(VoigtSize);
-    Vector mStrainVectorFinalized = ZeroVector(VoigtSize);
-    bool   mIsModelInitialized    = false;
+    std::unique_ptr<ConstitutiveLawDimension> mpConstitutiveDimension;
+    Vector                                    mStressVector;
+    Vector                                    mStressVectorFinalized;
+    Vector                                    mDeltaStrainVector;
+    Vector                                    mStrainVectorFinalized;
+    bool                                      mIsModelInitialized = false;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
 }; // Class GeoLinearElasticPlaneStrain2DLaw
 
-}
+} // namespace Kratos

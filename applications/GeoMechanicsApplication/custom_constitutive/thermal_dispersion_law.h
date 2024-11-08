@@ -14,45 +14,36 @@
 
 #pragma once
 
-#include "includes/constitutive_law.h"
+#include "custom_constitutive/thermal_law.h"
 
-namespace Kratos {
+namespace Kratos
+{
 
 class RetentionLaw;
 
-/**
- * @class GeoThermalDispersionLaw
- * @ingroup GeoMechanicsApplication
- * @brief This class defines the thermal dispersion for heat cases
-*/
-class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoThermalDispersionLaw : public ConstitutiveLaw {
+class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoThermalDispersionLaw : public GeoThermalLaw
+{
 public:
-    /// Counted pointer of GeoThermalDispersionLaw
     KRATOS_CLASS_POINTER_DEFINITION(GeoThermalDispersionLaw);
+
+    GeoThermalDispersionLaw() = default;
 
     explicit GeoThermalDispersionLaw(SizeType NumberOfDimensions);
 
-    ConstitutiveLaw::Pointer Clone() const override;
-
-    SizeType WorkingSpaceDimension() override;
-
-    Matrix CalculateThermalDispersionMatrix(const Properties& rProp,
-                                            const ProcessInfo& rProcessInfo) const;
+    [[nodiscard]] Matrix CalculateThermalDispersionMatrix(const Properties& rProp) const override;
 
 private:
-    SizeType mNumberOfDimensions;
+    std::size_t mNumberOfDimensions = 2;
 
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
         rSerializer.save("NumberOfDimensions", mNumberOfDimensions);
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
         rSerializer.load("NumberOfDimensions", mNumberOfDimensions);
     }
 };

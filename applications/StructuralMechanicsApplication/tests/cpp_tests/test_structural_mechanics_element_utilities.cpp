@@ -14,8 +14,9 @@
 // External includes
 
 // Project includes
-#include "testing/testing.h"
+#include "structural_mechanics_fast_suite.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 #include "structural_mechanics_application_variables.h"
 #include "containers/model.h"
 
@@ -141,6 +142,22 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateElementLength, KratosStructuralMechanicsFastS
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         StructuralMechanicsElementUtilities::CalculateCurrentLength2D2N(*p_element_4),
         "Error: Element #4 has a current length of zero!");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CalculateShearPhivalue, KratosStructuralMechanicsFastSuite)
+{
+    auto props = Properties(1);
+    const double L = 0.25;
+    props.SetValue(YOUNG_MODULUS, 2.0E9);
+    props.SetValue(I33, 1.0e-4);
+    props.SetValue(AREA_EFFECTIVE_Y, 0.1);
+    const double G = ConstitutiveLawUtilities<3>::CalculateShearModulus(props);
+    double phi = StructuralMechanicsElementUtilities::CalculatePhi(props, L);
+    KRATOS_EXPECT_DOUBLE_EQ(phi, 12.0 * 2.0e9 * 1.0e-4 / (G * 0.1 * std::pow(L, 2)));
+
+    props.SetValue(AREA_EFFECTIVE_Y, 0.0);
+    phi = StructuralMechanicsElementUtilities::CalculatePhi(props, L);
+    KRATOS_EXPECT_DOUBLE_EQ(phi, 0.0);
 }
 
 } // namespace Testing

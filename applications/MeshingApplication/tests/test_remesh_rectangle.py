@@ -8,6 +8,9 @@ import os
 
 from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 
+# Import KratosUtilities
+from KratosMultiphysics.kratos_utilities import DeleteFilesEndingWith
+
 class TestRemeshMMG2D(KratosUnittest.TestCase):
 
     def test_remesh_rectangle_hessian(self):
@@ -26,7 +29,7 @@ class TestRemeshMMG2D(KratosUnittest.TestCase):
 
         # We import the model main_model_part
         file_path = os.path.dirname(os.path.realpath(__file__))
-        KratosMultiphysics.ModelPartIO(file_path + "/mmg_lagrangian_test/remesh_rectangle").ReadModelPart(main_model_part)
+        KratosMultiphysics.ModelPartIO(file_path + "/mmg_rectangle_test/remesh_rectangle").ReadModelPart(main_model_part)
 
         # We calculate the gradient of the distance variable
         find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(main_model_part)
@@ -173,7 +176,7 @@ class TestRemeshMMG2D(KratosUnittest.TestCase):
 
         mmg_parameters = KratosMultiphysics.Parameters("""
         {
-            "filename"                         : "mmg_lagrangian_test/remesh_rectangle",
+            "filename"                         : "mmg_rectangle_test/remesh_rectangle",
             "save_external_files"              : true,
             "echo_level"                       : 0
         }
@@ -217,7 +220,7 @@ class TestRemeshMMG2D(KratosUnittest.TestCase):
         json_check_parameters = KratosMultiphysics.Parameters("""
         {
             "check_variables"      : ["METRIC_TENSOR_2D"],
-            "input_file_name"      : "mmg_lagrangian_test/remesh_rectangle_post_metric.json",
+            "input_file_name"      : "mmg_rectangle_test/remesh_rectangle_post_metric.json",
             "model_part_name"      : "MainModelPart",
             "historical_value"     : false,
             "time_frequency"       : 0.0
@@ -232,8 +235,8 @@ class TestRemeshMMG2D(KratosUnittest.TestCase):
         # We check the solution
         check_parameters = KratosMultiphysics.Parameters("""
         {
-            "reference_file_name"   : "mmg_lagrangian_test/remesh_rectangle_result.sol",
-            "output_file_name"      : "mmg_lagrangian_test/remesh_rectangle_step=0.sol",
+            "reference_file_name"   : "mmg_rectangle_test/remesh_rectangle_step=0.ref",
+            "output_file_name"      : "mmg_rectangle_test/remesh_rectangle_step=0.sol",
             "dimension"             : 2,
             "comparison_type"       : "sol_file"
         }
@@ -247,6 +250,10 @@ class TestRemeshMMG2D(KratosUnittest.TestCase):
         check_files.ExecuteInitializeSolutionStep()
         check_files.ExecuteFinalizeSolutionStep()
         check_files.ExecuteFinalize()
+
+    def tearDown(self):
+        DeleteFilesEndingWith("mmg_rectangle_test", ".mesh")
+        DeleteFilesEndingWith("mmg_rectangle_test", ".sol")
 
 if __name__ == '__main__':
     KratosUnittest.main()
