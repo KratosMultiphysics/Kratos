@@ -1,0 +1,10 @@
+{
+    "custom_entries": [
+        "1_Obtain_Kratos.md",
+        "2_Basics.md",
+        "3_Geometry.md",
+        "4_Data.md",
+        "5_Simulation_Loop.md",
+        "6_Multiphysics.md"
+    ]
+}
