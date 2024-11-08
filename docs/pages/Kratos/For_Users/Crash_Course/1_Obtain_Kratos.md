@@ -30,7 +30,7 @@ So the first part of this course will cover where to find these software, how to
 
 If Python is not installed on your system, you can download it from the official [Python Website](https://www.python.org/) website. 
 
-Kratos is availiable for **Windows** and **Linux** from versions **3.8** to **3.12** so please select one of those.
+⚠️ Kratos is availiable for **Windows** and **Linux** from versions **3.8** to **3.12** so please select one of those.
 
 ## 2.1 Create a python virtual environment:
 
