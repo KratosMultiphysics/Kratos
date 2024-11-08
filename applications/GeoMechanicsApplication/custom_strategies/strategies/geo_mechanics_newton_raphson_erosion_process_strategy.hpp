@@ -281,7 +281,7 @@ private:
         unsigned int piping_iteration = 0;
 
         // calculate max pipe height and pipe increment
-        double da = CalculatePipeHeightIncrement(MaxPipeHeight, MaxNumberOfPipingIterations);
+        double pipe_height_increment = CalculatePipeHeightIncrement(MaxPipeHeight, MaxNumberOfPipingIterations);
 
         while (piping_iteration < MaxNumberOfPipingIterations && !equilibrium && converged) {
             equilibrium = true;
@@ -303,14 +303,12 @@ private:
                     double current_height = OpenPipeElement->GetValue(PIPE_HEIGHT);
 
                     // set erosion on true if current pipe height is greater than the equilibrium height
-                    if (current_height > eq_height) {
-                        OpenPipeElement->SetValue(PIPE_EROSION, true);
-                    }
-
+                    OpenPipeElement->SetValue(PIPE_EROSION, OpenPipeElement->GetValue(PIPE_EROSION) || (current_height > eq_height));
                     // check this if statement, I don't understand the check for pipe erosion
                     if (((!OpenPipeElement->GetValue(PIPE_EROSION) || (current_height > eq_height)) &&
                          current_height < MaxPipeHeight)) {
-                        OpenPipeElement->SetValue(PIPE_HEIGHT, OpenPipeElement->GetValue(PIPE_HEIGHT) + da);
+                        OpenPipeElement->SetValue(
+                            PIPE_HEIGHT, OpenPipeElement->GetValue(PIPE_HEIGHT) + pipe_height_increment);
                         equilibrium = false;
                     }
 
@@ -339,10 +337,10 @@ private:
     /// <param name="PipeElements"> vector of all pipe elements</param>
     /// <returns>tuple of grow bool and number of open pipe elements</returns>
     template <typename FilteredElementsType>
-    std::tuple<bool, int> CheckStatusTipElement(unsigned int NumberOfOpenPipeElements,
-                                                unsigned int NumberOfPipeELements,
-                                                double       MaxPipeHeight,
-                                                const FilteredElementsType& rPipeElements)
+    std::tuple<bool, SizeType> CheckStatusTipElement(SizeType NumberOfOpenPipeElements,
+                                                     SizeType NumberOfPipeELements,
+                                                     double   MaxPipeHeight,
+                                                     const FilteredElementsType& rPipeElements)
     {
         bool grow = true;
         // check status of tip element, stop growing if pipe_height is zero or greater than maximum
