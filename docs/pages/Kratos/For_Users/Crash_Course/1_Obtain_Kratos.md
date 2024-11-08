@@ -48,7 +48,7 @@ python -m venv kratos_venv
 This will create an isolated environment for Kratos. To activate or deactivate it, use the following commands:
 
 Windows:
-```ps1
+```bash
 # In cmd.exe
 kratos_venv\bin\activate.bat
 
@@ -74,7 +74,7 @@ python -m pip install KratosMultiphysics-all
 ```
 {: data-lang="Bash"}
 
-⚠️ If you are a windows user, please also install: https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170
+⚠️ If you are a windows user, please also install [Windows Redistributable](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170)
 
 To verify the installation, run the following test in a Python session:
 

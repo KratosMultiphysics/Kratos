@@ -16,9 +16,9 @@ The goal of this section is to become familiar with key aspects of multiphysics 
 The chosen problem is a case of fluid-thermal interaction.
 One should become familiar with the various components involved in setting up and running such simulations, as well as the necessary steps to ensure the quality and physical relevance of results.
 
-This tutorial will should one of the most simple multiphyscis applications, but we have tutorials for more complex examples with solver-level coupling in the [wiki]()
+This tutorial will should one of the most simple multiphyscis applications, but we have tutorials for more complex examples with solver-level coupling in the [this advanced tutorial](../Tutorials/Multiphysics_Example.md)
 
-Due to the complexity of the task and the time constraints, we will provide you with all the material. Please download the case from [here]() so you can follow the rest of the sections.
+Due to the complexity of the task and the time constraints, we will provide you with all the material. Please download the case from [here](https://github.com/KratosMultiphysics/Documentation/raw/refs/heads/master/Crash_Course/6_Multistage.zip) so you can follow the rest of the sections.
 
 # 2. A brief note on how to do multiphysics
 
