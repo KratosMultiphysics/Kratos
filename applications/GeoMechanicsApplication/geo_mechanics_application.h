@@ -88,6 +88,7 @@
 #include "custom_elements/U_Pw_small_strain_link_interface_element.hpp"
 #include "custom_elements/U_Pw_updated_lagrangian_FIC_element.hpp"
 #include "custom_elements/U_Pw_updated_lagrangian_element.hpp"
+#include "custom_elements/calculation_contribution.h"
 #include "custom_elements/drained_U_Pw_small_strain_element.hpp"
 #include "custom_elements/line_interface_element.h"
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
@@ -127,6 +128,7 @@
 #include "custom_constitutive/linear_elastic_plane_strain_2D_law.h"
 #include "custom_constitutive/linear_elastic_plane_strain_K0_law.h"
 #include "custom_constitutive/linear_elastic_plane_stress_2D_law.h"
+#include "custom_constitutive/plane_strain.h"
 #include "custom_constitutive/small_strain_udsm_2D_interface_law.hpp"
 #include "custom_constitutive/small_strain_udsm_2D_plane_strain_law.hpp"
 #include "custom_constitutive/small_strain_udsm_3D_interface_law.hpp"
@@ -306,17 +308,29 @@ private:
         std::make_unique<ThreeDimensionalStressState>()};
 
     const TransientPwLineElement<2, 2> mTransientPwLineElement2D2N{
-        0, Kratos::make_shared<Line2D2<NodeType>>(Element::GeometryType::PointsArrayType(2))};
+        0,
+        Kratos::make_shared<Line2D2<NodeType>>(Element::GeometryType::PointsArrayType(2)),
+        {CalculationContribution::Permeability, CalculationContribution::Compressibility}};
     const TransientPwLineElement<2, 3> mTransientPwLineElement2D3N{
-        0, Kratos::make_shared<Line2D3<NodeType>>(Element::GeometryType::PointsArrayType(3))};
+        0,
+        Kratos::make_shared<Line2D3<NodeType>>(Element::GeometryType::PointsArrayType(3)),
+        {CalculationContribution::Permeability, CalculationContribution::Compressibility}};
     const TransientPwLineElement<2, 4> mTransientPwLineElement2D4N{
-        0, Kratos::make_shared<Line2D4<NodeType>>(Element::GeometryType::PointsArrayType(4))};
+        0,
+        Kratos::make_shared<Line2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
+        {CalculationContribution::Permeability, CalculationContribution::Compressibility}};
     const TransientPwLineElement<2, 5> mTransientPwLineElement2D5N{
-        0, Kratos::make_shared<Line2D5<NodeType>>(Element::GeometryType::PointsArrayType(5))};
+        0,
+        Kratos::make_shared<Line2D5<NodeType>>(Element::GeometryType::PointsArrayType(5)),
+        {CalculationContribution::Permeability, CalculationContribution::Compressibility}};
     const TransientPwLineElement<3, 2> mTransientPwLineElement3D2N{
-        0, Kratos::make_shared<Line3D2<NodeType>>(Element::GeometryType::PointsArrayType(2))};
+        0,
+        Kratos::make_shared<Line3D2<NodeType>>(Element::GeometryType::PointsArrayType(2)),
+        {CalculationContribution::Permeability, CalculationContribution::Compressibility}};
     const TransientPwLineElement<3, 3> mTransientPwLineElement3D3N{
-        0, Kratos::make_shared<Line3D3<NodeType>>(Element::GeometryType::PointsArrayType(3))};
+        0,
+        Kratos::make_shared<Line3D3<NodeType>>(Element::GeometryType::PointsArrayType(3)),
+        {CalculationContribution::Permeability, CalculationContribution::Compressibility}};
 
     const TransientPwInterfaceElement<2, 4> mTransientPwInterfaceElement2D4N{
         0, Kratos::make_shared<QuadrilateralInterface2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
@@ -559,10 +573,10 @@ private:
         0, Kratos::make_shared<HexahedraInterface3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
         std::make_unique<ThreeDimensionalStressState>()};
 
-    const LineInterfaceElement mUPwLineInterfacePlaneStrainElement2Plus2N{
+    const LineInterfaceElement mULineInterfacePlaneStrainElement2Plus2N{
         0, Kratos::make_shared<LineInterfaceGeometry<Line2D2<NodeType>>>(
                Element::GeometryType::PointsArrayType(4))};
-    const LineInterfaceElement mUPwLineInterfacePlaneStrainElement3Plus3N{
+    const LineInterfaceElement mULineInterfacePlaneStrainElement3Plus3N{
         0, Kratos::make_shared<LineInterfaceGeometry<Line2D3<NodeType>>>(
                Element::GeometryType::PointsArrayType(6))};
 
@@ -941,10 +955,10 @@ private:
         0, Kratos::make_shared<Quadrilateral3D9<NodeType>>(Condition::GeometryType::PointsArrayType(9))};
 
     // constitutive models
-    const BilinearCohesive3DLaw            mBilinearCohesive3DLaw;
-    const BilinearCohesive2DLaw            mBilinearCohesive2DLaw;
-    const LinearPlaneStrainK0Law           mLinearPlaneStrainK0Law;
-    const GeoLinearElasticPlaneStrain2DLaw mLinearElasticPlaneStrain2DLaw;
+    const BilinearCohesive3DLaw  mBilinearCohesive3DLaw;
+    const BilinearCohesive2DLaw  mBilinearCohesive2DLaw;
+    const LinearPlaneStrainK0Law mLinearPlaneStrainK0Law;
+    const GeoLinearElasticPlaneStrain2DLaw mLinearElasticPlaneStrain2DLaw{std::make_unique<PlaneStrain>()};
     const ElasticIsotropicK03DLaw          mElasticIsotropicK03DLaw;
     const GeoLinearElasticPlaneStress2DLaw mLinearElasticPlaneStress2DLaw;
 
