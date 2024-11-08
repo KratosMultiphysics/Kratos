@@ -62,9 +62,14 @@ class GeoMechanicsAnalysisBase(AnalysisStage):
                 new_value = node.GetSolutionStepValue(variable, 0)
                 node.SetSolutionStepValue(variable, 1, new_value)
 
-    def ModifyInitialGeometry(self):
+    def ModifyAfterSolverInitialize(self):
         # Overrides the base class. Necessary to let reset_displacements function correctly i.c.w. prescribed displacements/rotations.
         # The reset needs to take place befor the Initialize of the processes, as these will set the Dirichlet condition.
+
+        # EDIT RF 8-11-2024: Changed the function from ModifyInitialGeometry to ModifyAfterSolverInitialize such that
+        # this is done after the Initialize of the processes. This is necessary for the reset_displacement_process.
+        # However, as we see in the previous comment, this will break the prescribed displacements/rotations, so we
+        # need to find a viable solution for this.
         self._GetSolver().main_model_part.ProcessInfo[KratosGeo.RESET_DISPLACEMENTS] = self.reset_displacements
         if self.reset_displacements:
             self.ResetIfHasNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
