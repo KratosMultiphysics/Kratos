@@ -10,16 +10,16 @@
 //  Main authors:    Wijtze Pieter Kikstra
 //                   Richard Faasse
 
-#include "custom_constitutive/linear_elastic_plane_strain_2D_law.h"
+#include "custom_constitutive/incremental_linear_elastic_law.h"
 #include "constitutive_law_dimension.h"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {
 
-GeoLinearElasticPlaneStrain2DLaw::GeoLinearElasticPlaneStrain2DLaw() = default;
+GeoIncrementalLinearElasticLaw::GeoIncrementalLinearElasticLaw() = default;
 
-GeoLinearElasticPlaneStrain2DLaw::GeoLinearElasticPlaneStrain2DLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension)
+GeoIncrementalLinearElasticLaw::GeoIncrementalLinearElasticLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension)
     : GeoLinearElasticLaw{},
       mpConstitutiveDimension(std::move(pConstitutiveDimension)),
       mStressVector(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
@@ -29,7 +29,7 @@ GeoLinearElasticPlaneStrain2DLaw::GeoLinearElasticPlaneStrain2DLaw(std::unique_p
 {
 }
 
-GeoLinearElasticPlaneStrain2DLaw::GeoLinearElasticPlaneStrain2DLaw(const GeoLinearElasticPlaneStrain2DLaw& rOther)
+GeoIncrementalLinearElasticLaw::GeoIncrementalLinearElasticLaw(const GeoIncrementalLinearElasticLaw& rOther)
     : GeoLinearElasticLaw(rOther),
       mStressVector(rOther.mStressVector),
       mStressVectorFinalized(rOther.mStressVectorFinalized),
@@ -41,7 +41,7 @@ GeoLinearElasticPlaneStrain2DLaw::GeoLinearElasticPlaneStrain2DLaw(const GeoLine
         mpConstitutiveDimension = rOther.mpConstitutiveDimension->Clone();
 }
 
-GeoLinearElasticPlaneStrain2DLaw& GeoLinearElasticPlaneStrain2DLaw::operator=(const GeoLinearElasticPlaneStrain2DLaw& rOther)
+GeoIncrementalLinearElasticLaw& GeoIncrementalLinearElasticLaw::operator=(const GeoIncrementalLinearElasticLaw& rOther)
 {
     GeoLinearElasticLaw::operator=(rOther);
     mStressVector          = rOther.mStressVector;
@@ -55,24 +55,23 @@ GeoLinearElasticPlaneStrain2DLaw& GeoLinearElasticPlaneStrain2DLaw::operator=(co
     return *this;
 }
 
-GeoLinearElasticPlaneStrain2DLaw::GeoLinearElasticPlaneStrain2DLaw(GeoLinearElasticPlaneStrain2DLaw&& rOther) noexcept = default;
-GeoLinearElasticPlaneStrain2DLaw& GeoLinearElasticPlaneStrain2DLaw::operator=(
-    GeoLinearElasticPlaneStrain2DLaw&& rOther) noexcept               = default;
-GeoLinearElasticPlaneStrain2DLaw::~GeoLinearElasticPlaneStrain2DLaw() = default;
+GeoIncrementalLinearElasticLaw::GeoIncrementalLinearElasticLaw(GeoIncrementalLinearElasticLaw&& rOther) noexcept = default;
+GeoIncrementalLinearElasticLaw& GeoIncrementalLinearElasticLaw::operator=(GeoIncrementalLinearElasticLaw&& rOther) noexcept = default;
+GeoIncrementalLinearElasticLaw::~GeoIncrementalLinearElasticLaw() = default;
 
-ConstitutiveLaw::Pointer GeoLinearElasticPlaneStrain2DLaw::Clone() const
+ConstitutiveLaw::Pointer GeoIncrementalLinearElasticLaw::Clone() const
 {
-    return Kratos::make_shared<GeoLinearElasticPlaneStrain2DLaw>(*this);
+    return Kratos::make_shared<GeoIncrementalLinearElasticLaw>(*this);
 }
 
-bool& GeoLinearElasticPlaneStrain2DLaw::GetValue(const Variable<bool>& rThisVariable, bool& rValue)
+bool& GeoIncrementalLinearElasticLaw::GetValue(const Variable<bool>& rThisVariable, bool& rValue)
 {
     // This Constitutive Law has been checked with Stenberg Stabilization
     if (rThisVariable == STENBERG_SHEAR_STABILIZATION_SUITABLE) rValue = true;
     return rValue;
 }
 
-void GeoLinearElasticPlaneStrain2DLaw::GetLawFeatures(Features& rFeatures)
+void GeoIncrementalLinearElasticLaw::GetLawFeatures(Features& rFeatures)
 {
     rFeatures.mOptions.Set(mpConstitutiveDimension->GetSpatialType());
     rFeatures.mOptions.Set(INFINITESIMAL_STRAINS);
@@ -85,19 +84,19 @@ void GeoLinearElasticPlaneStrain2DLaw::GetLawFeatures(Features& rFeatures)
     rFeatures.mSpaceDimension = WorkingSpaceDimension();
 }
 
-SizeType GeoLinearElasticPlaneStrain2DLaw::WorkingSpaceDimension()
+SizeType GeoIncrementalLinearElasticLaw::WorkingSpaceDimension()
 {
     return mpConstitutiveDimension->GetDimension();
 }
 
-SizeType GeoLinearElasticPlaneStrain2DLaw::GetStrainSize() const
+SizeType GeoIncrementalLinearElasticLaw::GetStrainSize() const
 {
     return mpConstitutiveDimension->GetStrainSize();
 }
 
-bool GeoLinearElasticPlaneStrain2DLaw::IsIncremental() { return true; }
+bool GeoIncrementalLinearElasticLaw::IsIncremental() { return true; }
 
-void GeoLinearElasticPlaneStrain2DLaw::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
+void GeoIncrementalLinearElasticLaw::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY
 
@@ -115,9 +114,9 @@ void GeoLinearElasticPlaneStrain2DLaw::CalculateElasticMatrix(Matrix& C, Constit
     KRATOS_CATCH("")
 }
 
-void GeoLinearElasticPlaneStrain2DLaw::CalculatePK2Stress(const Vector& rStrainVector,
-                                                          Vector&       rStressVector,
-                                                          ConstitutiveLaw::Parameters& rValues)
+void GeoIncrementalLinearElasticLaw::CalculatePK2Stress(const Vector&                rStrainVector,
+                                                        Vector&                      rStressVector,
+                                                        ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY
 
@@ -134,9 +133,9 @@ void GeoLinearElasticPlaneStrain2DLaw::CalculatePK2Stress(const Vector& rStrainV
     KRATOS_CATCH("")
 }
 
-bool GeoLinearElasticPlaneStrain2DLaw::RequiresInitializeMaterialResponse() { return true; }
+bool GeoIncrementalLinearElasticLaw::RequiresInitializeMaterialResponse() { return true; }
 
-void GeoLinearElasticPlaneStrain2DLaw::InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+void GeoIncrementalLinearElasticLaw::InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY
     if (!mIsModelInitialized) {
@@ -148,21 +147,21 @@ void GeoLinearElasticPlaneStrain2DLaw::InitializeMaterialResponseCauchy(Constitu
     KRATOS_CATCH("")
 }
 
-bool GeoLinearElasticPlaneStrain2DLaw::RequiresFinalizeMaterialResponse() { return true; }
+bool GeoIncrementalLinearElasticLaw::RequiresFinalizeMaterialResponse() { return true; }
 
-void GeoLinearElasticPlaneStrain2DLaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+void GeoIncrementalLinearElasticLaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     mStrainVectorFinalized = rValues.GetStrainVector();
     mStressVectorFinalized = mStressVector;
 }
 
-void GeoLinearElasticPlaneStrain2DLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+void GeoIncrementalLinearElasticLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     // Small deformation so we can call the Cauchy method
     FinalizeMaterialResponseCauchy(rValues);
 }
 
-void GeoLinearElasticPlaneStrain2DLaw::save(Serializer& rSerializer) const
+void GeoIncrementalLinearElasticLaw::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, GeoLinearElasticLaw)
     rSerializer.save("StressVector", mStressVector);
@@ -172,7 +171,7 @@ void GeoLinearElasticPlaneStrain2DLaw::save(Serializer& rSerializer) const
     rSerializer.save("mIsModelInitialized", mIsModelInitialized);
 }
 
-void GeoLinearElasticPlaneStrain2DLaw::load(Serializer& rSerializer)
+void GeoIncrementalLinearElasticLaw::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, GeoLinearElasticLaw)
     rSerializer.load("StressVector", mStressVector);
