@@ -97,6 +97,7 @@ from structural_mechanics_test_factory import SimpleMeshMovingTest as TSimpleMes
 ##### NIGHTLY TESTS #####
 # Patch test Small Displacements
 from structural_mechanics_test_factory import LinearTruss2D2NTest as TLinearTruss2D2NTest
+from structural_mechanics_test_factory import LinearTruss2D3NTest as TLinearTruss2D3NTest
 from structural_mechanics_test_factory import TimoshenkoBeam2D2NTest as TTimoshenkoBeam2D2NTest
 from structural_mechanics_test_factory import TimoshenkoBeam2D3NTest as TTimoshenkoBeam2D3NTest
 from structural_mechanics_test_factory import TimoshenkoCurvedBeam2D3NTest as TTimoshenkoCurvedBeam2D3NTest
@@ -346,6 +347,7 @@ def AssembleTestSuites():
     ### Adding Nightly Tests
     # Patch test Small Displacements
     smallSuite.addTest(TLinearTruss2D2NTest('test_execution'))
+    smallSuite.addTest(TLinearTruss2D3NTest('test_execution'))
     smallSuite.addTest(TTimoshenkoBeam2D2NTest('test_execution'))
     smallSuite.addTest(TTimoshenkoBeam2D3NTest('test_execution'))
     smallSuite.addTest(TTimoshenkoCurvedBeam2D3NTest('test_execution'))
