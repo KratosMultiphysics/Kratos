@@ -16,6 +16,8 @@
 #include "geo_mechanics_fast_suite.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 
+#include <gmock/gmock.h>
+
 using namespace Kratos;
 
 namespace
@@ -24,7 +26,7 @@ namespace
 class ProcessSpy : public Process
 {
 public:
-    void ExecuteInitializeSolutionStep() override { ++mSolutionStepInitializedCalls; }
+    MOCK_METHOD(void, ExecuteInitializeSolutionStep, (), (override));
 
     void ExecuteFinalizeSolutionStep() override { ++mSolutionStepFinalizedCalls; }
 
@@ -183,6 +185,7 @@ KRATOS_TEST_CASE_IN_SUITE(ProcessMemberFunctionsAllCalledOnce, KratosGeoMechanic
         std::make_shared<DummyStrategyWrapper>(TimeStepEndState::ConvergenceState::converged);
     executor.SetSolverStrategy(converging_strategy);
     auto spy = std::make_shared<ProcessSpy>();
+    EXPECT_CALL(*spy, ExecuteInitializeSolutionStep()).Times(1);
 
     std::vector<std::shared_ptr<Process>> processes{spy};
     std::vector<std::weak_ptr<Process>>   process_observables{spy};
@@ -191,7 +194,6 @@ KRATOS_TEST_CASE_IN_SUITE(ProcessMemberFunctionsAllCalledOnce, KratosGeoMechanic
 
     executor.Run(time);
 
-    KRATOS_EXPECT_EQ(1, spy->NumberOfExecuteInitializeSolutionStepCalls());
     KRATOS_EXPECT_EQ(1, spy->NumberOfExecuteFinalizeSolutionStepCalls());
 }
 
