@@ -97,7 +97,6 @@ namespace Kratos
         }
 
         
-
         // for (int i_brep_parent = 0; i_brep_parent < spans_parent_list.size(); i_brep_parent++) 
         // {
         //     Vector interval; 
@@ -144,23 +143,36 @@ namespace Kratos
                                                 vertex_edge_parent_geometry,
                                                 projection_on_slave,
                                                 best_brep_slave_index,
-                                                20,
-                                                20,
-                                                1e-6
+                                                25,
+                                                50,
+                                                1e-9
                                                 );  
 
                 if (is_converged && last_is_converged)
                 {
-                    std::vector<double> current_span(2);
-                    current_span[0] = integration_edges_on_parameter_parent_list[i_brep_parent][i-1]; 
-                    current_span[1] = integration_edges_on_parameter_parent_list[i_brep_parent][i]; 
-                    integration_edges_on_parameter_parent_list_filtered[i_brep_parent].push_back(current_span);
+                    int n_additional_subdivision = 1;
+                    double V0 = integration_edges_on_parameter_parent_list[i_brep_parent][i-1];
+                    double V1 = integration_edges_on_parameter_parent_list[i_brep_parent][i];
+                    double original_span_length = V1-V0;
+
+                    for (IndexType i_div = 0; i_div < n_additional_subdivision; i_div++) {
+                        std::vector<double> current_span(2);
+                        current_span[0] = V0 + original_span_length/n_additional_subdivision*(i_div); 
+                        current_span[1] = V0 + original_span_length/n_additional_subdivision*(i_div+1); 
+                        integration_edges_on_parameter_parent_list_filtered[i_brep_parent].push_back(current_span);
+                    }
+                    // std::vector<double> current_span(2);
+                    // current_span[0] = integration_edges_on_parameter_parent_list[i_brep_parent][i-1]; 
+                    // current_span[1] = integration_edges_on_parameter_parent_list[i_brep_parent][i]; 
+                    // integration_edges_on_parameter_parent_list_filtered[i_brep_parent].push_back(current_span);
 
                 }
                 last_is_converged = is_converged;
             }
             
         }
+
+        // exit(0);
         
     }
 
@@ -188,6 +200,7 @@ namespace Kratos
         std::vector<std::vector<int>>& projected_paired_geometry_id
         )
     {   
+
         std::vector<std::vector<double>> integration_edges_on_parameter_parent_list(spans_parent_list.size());
         SpansLocalSpaceForParentIntegration(rpNurbsSurfaceParent, rpNurbsSurfacePaired, integration_edges_on_parameter_parent_list, 
                                             spans_parent_list, spans_paired_list, rParentGeometryList, rPairedGeometryList);
@@ -235,7 +248,6 @@ namespace Kratos
                 // ###########################################################################################################3
             }
         }
-
 
     }
     
@@ -450,6 +462,7 @@ namespace Kratos
                         rIntegrationPoints[i_brep_m][0][i],
                         1);
 
+
                 
                 // std::ofstream outputFile("txt_files/Gauss_Point_Contact_coordinates.txt", std::ios::app);
                 // if (!outputFile.is_open())
@@ -590,7 +603,6 @@ namespace Kratos
                 outputFile2 << master_quadrature_point_deformed[0] << "  " << master_quadrature_point_deformed[1]  <<" " 
                             << physical_integration_point_slave_deformed[0]  << "  " << physical_integration_point_slave_deformed[1]   <<"\n";
                 outputFile2.close();
-
 
                 //++++++++++++++++++++++++++++++++++++++++
                 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

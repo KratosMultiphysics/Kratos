@@ -500,6 +500,7 @@ public:
 
 
         //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        // CIRCLE CAREFUL TO CHANGE FOR CIRCLE 
         //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // if (parentPointGlobalCoord[0] < 5.0 + 1e-12) displacement_normal_contribution = -displacement_normal_contribution;
 
@@ -865,8 +866,32 @@ public:
 
                 // Check if the parameter gets out of its interval of definition and if so clamp it
                 // back to the boundaries
-                int check = rPairedGeometry.ClosestPointLocalToLocalSpace(
-                    t, t);
+                // CoordinatesArrayType closest_t = ZeroVector(3);
+                // int check = rPairedGeometry.ClosestPointLocalToLocalSpace(
+                //     t, t,2);
+
+                int check = 0;
+                double b_rep_interval_min; double b_rep_interval_max; 
+                // KRATOS_WATCH(t)
+                if (b_rep_interval[0] < b_rep_interval[1]) {
+                    b_rep_interval_min = b_rep_interval[0];
+                    b_rep_interval_max = b_rep_interval[1];
+                }
+                else {
+                    b_rep_interval_min = b_rep_interval[1];
+                    b_rep_interval_max = b_rep_interval[0];
+                }
+                //----
+                if (t[0] > b_rep_interval_min && t[0] < b_rep_interval_max) check = 1;
+                else if (std::abs(t[0] - b_rep_interval_min) < 1e-6) {
+                    // t[0] = b_rep_interval_min; 
+                    check = 2;
+                }
+                else if (std::abs(t[0] - b_rep_interval_max) < 1e-6) {
+                    // t[0] = b_rep_interval_max; 
+                    check = 2;
+                }
+
                 if (check == 0) {
                     // if (projection_reset_to_boundary) { return false; }
                     // else { projection_reset_to_boundary = true; }

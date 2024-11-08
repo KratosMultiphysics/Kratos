@@ -13,6 +13,8 @@
 #include "iga_contact_process.h"
 #include "geometries/nurbs_volume_geometry.h"
 
+#include "utilities/variable_utils.h"
+
 namespace Kratos
 {
 
@@ -86,16 +88,39 @@ namespace Kratos
                                       ? mpModel->GetModelPart(main_model_part_name)
                                       : mpModel->CreateModelPart(main_model_part_name);
 
-        if (main_model_part.HasSubModelPart(contact_sub_model_part_name)) main_model_part.RemoveSubModelPart(contact_sub_model_part_name);
+        // if (main_model_part.HasSubModelPart(contact_sub_model_part_name)) main_model_part.RemoveSubModelPart(contact_sub_model_part_name);
 
         
         ModelPart& contact_sub_model_part = main_model_part.HasSubModelPart(contact_sub_model_part_name)
                                             ? main_model_part.GetSubModelPart(contact_sub_model_part_name)
                                             : main_model_part.CreateSubModelPart(contact_sub_model_part_name);
 
-        // for (auto i_cond : contact_sub_model_part.Conditions()) {
-        //     i_cond.Set(TO_ERASE, true);
-        // }
+
+        // KRATOS_WATCH(main_model_part.Conditions().size())
+        
+        // ConditionsArrayType& r_conditions_array = contact_sub_model_part.Conditions();
+        // KRATOS_TRACE_IF("Empty model part", r_conditions_array.size() == 0) << "YOUR CONTACT MODEL PART IS EMPTY" << std::endl;
+        // block_for_each(r_conditions_array, [&](Condition& rCond) {
+        //     // const auto& r_geometry = rCond.GetGeometry();
+        //     // if (r_geometry.NumberOfGeometryParts() > 0) {
+        //         // rCond.Set(TO_ERASE);
+        //     //     // contact_sub_model_part.Conditions().erase(rCond);
+        //     // } else 
+                
+        //         rCond.GetGeometry().GetGeometryPart(0).empty();
+        //         rCond.GetGeometry().GetGeometryPart(1).empty();
+        //         rCond.GetGeometry().GetGeometryPart(0).clear();
+        //         rCond.GetGeometry().GetGeometryPart(1).clear();
+        //         // rCond.GetGeometry().empty();
+        //         // rCond.GetGeometry().clear();
+
+
+        //         rCond.Set(TO_ERASE, true);
+        // });
+        // KRATOS_WATCH("ttttttttttttttttttttttttt")
+        // contact_sub_model_part.RemoveConditionsFromAllLevels(TO_ERASE);
+
+        // KRATOS_WATCH(main_model_part.Conditions().size())
         // contact_sub_model_part.RemoveConditionsFromAllLevels(TO_ERASE);
 
         // std::string contact_model_part_name = "IgaModelPart.ContactInterface";
@@ -188,7 +213,7 @@ namespace Kratos
         }
 
         // INITIALIZE THE CONDITIONS
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        // const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // for (int i = 0; i < new_condition_list.size(); i++) 
         // {

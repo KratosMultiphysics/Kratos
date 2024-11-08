@@ -65,6 +65,8 @@ public:
 
     using PointType = Node;
 
+    using ConditionsArrayType = ModelPart::ConditionsContainerType;
+
 
     typedef typename Kratos::shared_ptr<Kratos::NurbsCouplingGeometry2D<PointType, PointerVector<NodeType>>> NurbsCouplingGeometryType;
 

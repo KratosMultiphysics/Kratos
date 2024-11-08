@@ -49,8 +49,8 @@ class AnalysisStage(object):
         self.RunSolutionLoop()
         
         
-        for process in self._GetListOfProcesses():
-            process.ExecuteInitializeSolutionStep()
+        # for process in self._GetListOfProcesses():
+        #     process.ExecuteInitializeSolutionStep()
             
         
         self.Finalize()

@@ -148,6 +148,8 @@ public:
         const TSystemVectorType& rb
         ) override
     {
+
+        // return(this->PostCriteria(rModelPart, rDofSet, rA, rDx, rb));
     //     KRATOS_ERROR_IF_NOT(mParameters.Has("contact_model_part_name"))
     //         << "Missing \"contact_model_part_name\" section" << std::endl;
 
@@ -287,14 +289,12 @@ public:
             // KRATOS_WATCH(i_cond->GetProperties()[YOUNG_MODULUS])
             double yound_modulus = 10.0;
 
-
-            // double true_normal_stress = inner_prod(normal_stress, normal);
-
             double true_normal_stress = (normal_stress[0]* normal[0] + normal_stress[2]* normal[1])*normal[0] +
                                       (normal_stress[2]* normal[0] + normal_stress[1]* normal[1])*normal[1];
 
             int segment_index = (int) count_cond/n_GP_per_segment;
             double check_value = -(true_normal_stress+yound_modulus*normal_gap);
+            // double check_value = -(yound_modulus*normal_gap);
 
             length[segment_index] += weight;
             check_per_segment[segment_index] += weight*check_value;
@@ -316,16 +316,30 @@ public:
 
             if (check_per_segment[segment_index]/length[segment_index] > toll)
             {
-                if (i_cond->IsActive() == false) {
-                    i_cond->Set(ACTIVE, true);
-                    n_changes += 1;
+                // KRATOS_WATCH("STOPPAMI")
+                // if (i_cond->IsNot(ACTIVE)) {
+                //     i_cond->Set(ACTIVE, true);
+                //     n_changes += 1;
+                // }
+
+                if (i_cond->GetValue(ACTIVATION_LEVEL) == 0)
+                {
+                    i_cond->SetValue(ACTIVATION_LEVEL, 1);
+                    n_changes++;
                 }
             } else {
-                if (i_cond->IsActive() == true) {
-                    i_cond->Set(ACTIVE, false);
-                    n_changes += 1;
+                // if (i_cond->Is(ACTIVE)) {
+                //     i_cond->Set(ACTIVE, false);
+                //     n_changes += 1;
+                // }
+    
+                if (i_cond->GetValue(ACTIVATION_LEVEL) == 1)
+                {
+                    i_cond->SetValue(ACTIVATION_LEVEL, 0);
+                    n_changes++;
                 }
             }
+
 
             count_cond++;
 
