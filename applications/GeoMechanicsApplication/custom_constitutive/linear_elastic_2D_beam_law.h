@@ -49,7 +49,6 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// The base class ConstitutiveLaw type definition
     using CLBaseType = ConstitutiveLaw;
 
     /// The base class GeoIncrementalLinearElasticLaw type definition
