@@ -273,8 +273,8 @@ private:
         GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::FinalizeSolutionStep();
     }
 
-    template <typename FilteredElementType>
-    bool CheckPipeEquilibrium(const FilteredElementType& rOpenPipeElements, double MaxPipeHeight, unsigned int MaxNumberOfPipingIterations)
+    template <typename FilteredElementsType>
+    bool CheckPipeEquilibrium(const FilteredElementsType& rOpenPipeElements, double MaxPipeHeight, unsigned int MaxNumberOfPipingIterations)
     {
         bool         equilibrium      = false;
         bool         converged        = true;
@@ -372,8 +372,8 @@ private:
     /// <param name="rOpenPipeElements"> open pipe elements</param>
     /// <param name="Grow"> boolean to check if pipe grows</param>
     /// <returns></returns>
-    template <typename FilteredElementType>
-    void SaveOrResetPipeHeights(const FilteredElementType& rOpenPipeElements, bool Grow)
+    template <typename FilteredElementsType>
+    void SaveOrResetPipeHeights(const FilteredElementsType& rOpenPipeElements, bool Grow)
     {
         for (auto p_element : rOpenPipeElements) {
             if (Grow) {

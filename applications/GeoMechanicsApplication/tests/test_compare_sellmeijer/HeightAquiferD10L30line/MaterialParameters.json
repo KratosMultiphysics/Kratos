@@ -19,11 +19,9 @@
                     "PERMEABILITY_YY": 1.157e-12,
                     "PERMEABILITY_XY": 0.0,
                     "DYNAMIC_VISCOSITY": 0.001,
-                    "THICKNESS": 1.0,
                     "BIOT_COEFFICIENT": 1.0,
                     "RETENTION_LAW": "SaturatedLaw",
-                    "SATURATED_SATURATION": 1.0,
-                    "RESIDUAL_SATURATION": 0.06203
+                    "SATURATED_SATURATION": 1.0
                 },
                 "Tables": {}
             }
@@ -47,11 +45,9 @@
                     "PERMEABILITY_YY": 1.157e-15,
                     "PERMEABILITY_XY": 0.0,
                     "DYNAMIC_VISCOSITY": 0.001,
-                    "THICKNESS": 1.0,
                     "BIOT_COEFFICIENT": 1.0,
                     "RETENTION_LAW": "SaturatedLaw",
-                    "SATURATED_SATURATION": 1.0,
-                    "RESIDUAL_SATURATION": 0.06203
+                    "SATURATED_SATURATION": 1.0
                 },
                 "Tables": {}
             }
@@ -73,11 +69,9 @@
                     "BULK_MODULUS_FLUID": 1e+20,
                     "PERMEABILITY_XX": 0.0,
                     "DYNAMIC_VISCOSITY": 0.001,
-                    "THICKNESS": 1,
                     "BIOT_COEFFICIENT": 1.0,
                     "RETENTION_LAW": "SaturatedLaw",
                     "SATURATED_SATURATION": 1.0,
-                    "RESIDUAL_SATURATION": 0.06203,
                     "PIPE_ETA": 0.25,
                     "PIPE_THETA": 37,
                     "PIPE_START_ELEMENT": 1,
