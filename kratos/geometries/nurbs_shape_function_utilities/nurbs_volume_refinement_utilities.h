@@ -24,7 +24,7 @@
 
 namespace Kratos {
 
-class NurbsVolumeRefinementUtilities
+class KRATOS_API(KATOS_CORE) NurbsVolumeRefinementUtilities
 {
 public:
     ///@name Type Definitions

@@ -35,7 +35,7 @@
 
 
 // edxtra for couple contact geometries
-#include "geometries/nurbs_coupling_geometry_2d.h"
+// #include "geometries/nurbs_coupling_geometry_2d.h"
 
 #include "custom_conditions/support_contact_2D_condition.h"
 
