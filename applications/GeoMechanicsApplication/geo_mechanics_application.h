@@ -122,10 +122,10 @@
 #include "custom_constitutive/bilinear_cohesive_3D_law.hpp"
 #include "custom_constitutive/elastic_isotropic_K0_3d_law.h"
 #include "custom_constitutive/incremental_linear_elastic_interface_law.h"
+#include "custom_constitutive/incremental_linear_elastic_law.h"
 #include "custom_constitutive/linear_elastic_2D_beam_law.h"
 #include "custom_constitutive/linear_elastic_2D_interface_law.h"
 #include "custom_constitutive/linear_elastic_3D_interface_law.h"
-#include "custom_constitutive/linear_elastic_plane_strain_2D_law.h"
 #include "custom_constitutive/linear_elastic_plane_strain_K0_law.h"
 #include "custom_constitutive/linear_elastic_plane_stress_2D_law.h"
 #include "custom_constitutive/plane_strain.h"
@@ -137,6 +137,7 @@
 #include "custom_constitutive/small_strain_umat_2D_plane_strain_law.hpp"
 #include "custom_constitutive/small_strain_umat_3D_interface_law.hpp"
 #include "custom_constitutive/small_strain_umat_3D_law.hpp"
+#include "custom_constitutive/three_dimensional.h"
 #include "custom_constitutive/truss_backbone_constitutive_law.h"
 
 namespace Kratos
@@ -958,8 +959,9 @@ private:
     const BilinearCohesive3DLaw  mBilinearCohesive3DLaw;
     const BilinearCohesive2DLaw  mBilinearCohesive2DLaw;
     const LinearPlaneStrainK0Law mLinearPlaneStrainK0Law;
-    const GeoLinearElasticPlaneStrain2DLaw mLinearElasticPlaneStrain2DLaw{std::make_unique<PlaneStrain>()};
-    const ElasticIsotropicK03DLaw          mElasticIsotropicK03DLaw;
+    const GeoIncrementalLinearElasticLaw mLinearElasticPlaneStrain2DLaw{std::make_unique<PlaneStrain>()};
+    const GeoIncrementalLinearElasticLaw mLinearElastic3DLaw{std::make_unique<ThreeDimensional>()};
+    const ElasticIsotropicK03DLaw        mElasticIsotropicK03DLaw;
     const GeoLinearElasticPlaneStress2DLaw mLinearElasticPlaneStress2DLaw;
 
     const SmallStrainUDSM3DLaw            mSmallStrainUDSM3DLaw{};
