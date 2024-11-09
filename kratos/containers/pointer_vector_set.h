@@ -180,10 +180,10 @@ public:
     TDataType& operator[](const key_type& Key)
     {
         ptr_iterator i(std::lower_bound(mData.begin(), mData.end(), Key, CompareKey()));
-        if (EqualKeyTo(Key)(*i)) {
+        if (i != mData.end() && EqualKeyTo(Key)(*i)) {
             return **i;
         } else {
-            static_assert(!std::is_same_v<TDataType*, TPointerType>, "Raw pointers are not supported.");
+            static_assert(!std::is_pointer_v<TPointerType>, "Raw pointers are not supported.");
             return **mData.insert(i, TPointerType(new TDataType(Key)));
         }
     }
@@ -199,10 +199,10 @@ public:
     pointer& operator()(const key_type& Key)
     {
         ptr_iterator i(std::lower_bound(mData.begin(), mData.end(), Key, CompareKey()));
-        if (EqualKeyTo(Key)(*i)) {
+        if (i != mData.end() && EqualKeyTo(Key)(*i)) {
             return *i;
         } else {
-            static_assert(!std::is_same_v<TDataType*, TPointerType>, "Raw pointers are not supported.");
+            static_assert(!std::is_pointer_v<TPointerType>, "Raw pointers are not supported.");
             return *mData.insert(i, TPointerType(new TDataType(Key)));
         }
     }
