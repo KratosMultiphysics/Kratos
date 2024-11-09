@@ -20,6 +20,7 @@
 #include <sstream>
 #include <cstddef>
 #include <utility>
+#include <type_traits>
 
 // External includes
 #include <boost/iterator/indirect_iterator.hpp>
@@ -71,6 +72,88 @@ template<class TDataType,
 class PointerVectorSet final
 {
 public:
+    ///@name Class definitions
+    ///@{
+
+    /// @brief Unrestricted accessor for the pointer vector set
+    /// @details This class provides unrestricted access the underlying std::vector of the pointer vector
+    ///          set which may make the pointer vector set unsorted. Hence, once an object of this is created, the
+    ///          methods which utilize the sorted property of pointer vector set are frozen. At the destruction of this class,
+    ///          pointer vector set is sorted and made unique, and the frozen methods are released.
+    /// @param
+    /// @return
+    class MutablePass
+    {
+        ///@name Life cycle
+        ///@{
+
+        // Constructor
+        MutablePass(PointerVectorSet& rContainer)
+            : mrContainer(rContainer)
+        {
+            KRATOS_CRITICAL_SECTION
+            KRATOS_ERROR_IF(mrContainer.mHasMutablePass) << "A mutable pass is active. Hence, use of this function prohibited.";
+            mrContainer.mHasMutablePass = true;
+        }
+
+        ///@}
+
+    public:
+        ///@name Life cycle
+        ///@{
+
+        MutablePass(const MutablePass& rOther) = delete;
+
+        MutablePass(MutablePass&& rOther) noexcept = default;
+
+        // Destructor
+        ~MutablePass()
+        {
+            // Sort the PointerVectorSet data
+            std::sort(mrContainer.mData.begin(), mrContainer.mData.end(), CompareKey());
+
+            // Make the entities unique
+            typename TContainerType::iterator new_end_it = std::unique(mrContainer.mData.begin(), mrContainer.mData.end(), EqualKeyTo());
+
+            // remove the duplicated entities.
+            mrContainer.mData.erase(new_end_it,  mrContainer.mData.end());
+
+            // unfreeze the methods which dependent on the sorted state of the PointerVectorSet
+            mrContainer.mHasMutablePass = false;
+        }
+
+        ///@name Public operators
+        ///@{
+
+        MutablePass& operator=(const MutablePass& rOther) = delete;
+
+        ///@}
+        ///@name Public methods
+        ///@{
+
+        void push_back(TPointerType pValue)
+        {
+            mrContainer.mData.push_back(pValue);
+        }
+
+        ///@}
+
+    private:
+        ///@name Member variables
+        ///@{
+
+        PointerVectorSet& mrContainer;
+
+        ///@}
+        ///@name Friend classes
+        ///@{
+
+        friend class PointerVectorSet;
+
+        ///@}
+    };
+
+    ///@}
     ///@name Type Definitions
     ///@{
 
@@ -178,10 +261,12 @@ public:
      */
     TDataType& operator[](const key_type& Key)
     {
+        KRATOS_ERROR_IF(mHasMutablePass) << "A mutable pass is active. Hence, use of this function prohibited.";
         ptr_iterator i(std::lower_bound(mData.begin(), mData.end(), Key, CompareKey()));
-        if (EqualKeyTo(Key)(*i)) {
+        if (i != mData.end() && EqualKeyTo(Key)(*i)) {
             return **i;
         } else {
+            static_assert(!std::is_pointer_v<TPointerType>, "Raw pointers are not supported.");
             return **mData.insert(i, TPointerType(new TDataType(Key)));
         }
     }
@@ -196,10 +281,12 @@ public:
      */
     pointer& operator()(const key_type& Key)
     {
+        KRATOS_ERROR_IF(mHasMutablePass) << "A mutable pass is active. Hence, use of this function prohibited.";
         ptr_iterator i(std::lower_bound(mData.begin(), mData.end(), Key, CompareKey()));
-        if (EqualKeyTo(Key)(*i)) {
+        if (i != mData.end() && EqualKeyTo(Key)(*i)) {
             return *i;
         } else {
+            static_assert(!std::is_pointer_v<TPointerType>, "Raw pointers are not supported.");
             return *mData.insert(i, TPointerType(new TDataType(Key)));
         }
     }
@@ -536,6 +623,7 @@ public:
      */
     iterator insert(const TPointerType& value)
     {
+        KRATOS_ERROR_IF(mHasMutablePass) << "A mutable pass is active. Hence, use of this function prohibited.";
         auto itr_pos = std::lower_bound(mData.begin(), mData.end(), KeyOf(*value), CompareKey());
         if (itr_pos == mData.end()) {
             // the position to insert is at the end.
@@ -564,6 +652,7 @@ public:
      */
     iterator insert(const_iterator position_hint, const TPointerType& value)
     {
+        KRATOS_ERROR_IF(mHasMutablePass) << "A mutable pass is active. Hence, use of this function prohibited.";
         if (empty()) {
             // the dataset is empty. So use push back.
             mData.push_back(value);
@@ -615,6 +704,7 @@ public:
     template <class InputIterator>
     void insert(InputIterator first, InputIterator last)
     {
+        KRATOS_ERROR_IF(mHasMutablePass) << "A mutable pass is active. Hence, use of this function prohibited.";
         // first sorts the input iterators and make the input unique.
         std::sort(first, last, CompareKey());
         auto new_last = std::unique(first, last, EqualKeyTo());
@@ -709,20 +799,13 @@ public:
      */
     iterator find(const key_type& Key)
     {
-        ptr_iterator sorted_part_end;
-
-        if (mData.size() - mSortedPartSize >= mMaxBufferSize) {
-            Sort();
-            sorted_part_end = mData.end();
-        } else
-            sorted_part_end = mData.begin() + mSortedPartSize;
-
-        ptr_iterator i(std::lower_bound(mData.begin(), sorted_part_end, Key, CompareKey()));
-        if (i == sorted_part_end || (!EqualKeyTo(Key)(*i)))
-            if ((i = std::find_if(sorted_part_end, mData.end(), EqualKeyTo(Key))) == mData.end())
-                return mData.end();
-
-        return i;
+        KRATOS_ERROR_IF(mHasMutablePass) << "A mutable pass is active. Hence, use of this function prohibited.";
+        ptr_iterator i(std::lower_bound(mData.begin(), mData.end(), Key, CompareKey()));
+        if (i != mData.end() && EqualKeyTo(Key)(*i)) {
+            return i;
+        } else {
+            return mData.end();
+        }
     }
 
     /**
@@ -735,14 +818,13 @@ public:
      */
     const_iterator find(const key_type& Key) const
     {
-        ptr_const_iterator sorted_part_end(mData.begin() + mSortedPartSize);
-
-        ptr_const_iterator i(std::lower_bound(mData.begin(), sorted_part_end, Key, CompareKey()));
-        if (i == sorted_part_end || (!EqualKeyTo(Key)(*i)))
-            if ((i = std::find_if(sorted_part_end, mData.end(), EqualKeyTo(Key))) == mData.end())
-                return mData.end();
-
-        return const_iterator(i);
+        KRATOS_ERROR_IF(mHasMutablePass) << "A mutable pass is active. Hence, use of this function prohibited.";
+        ptr_const_iterator i(std::lower_bound(mData.begin(), mData.end(), Key, CompareKey()));
+        if (i != mData.end() && EqualKeyTo(Key)(*i)) {
+            return const_iterator(i);
+        } else {
+            return mData.end();
+        }
     }
 
     /**
@@ -805,6 +887,12 @@ public:
     ///@}
     ///@name Access
     ///@{
+
+    MutablePass GetMutablePass()
+    {
+
+        return MutablePass(*this);
+    }
 
     /** Gives a reference to underly normal container. */
     TContainerType& GetContainer()
@@ -1030,6 +1118,8 @@ private:
     /// The maximum buffer size for data storage.
     size_type mMaxBufferSize;
 
+    std::atomic<bool> mHasMutablePass = false;
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -1181,7 +1271,7 @@ private:
     }
 
     ///@}
-    ///@name Serialization
+    ///@name Friend classes
     ///@{
 
     /**
@@ -1189,6 +1279,19 @@ private:
      * @brief A fried class responsible for handling the serialization process.
      */
     friend class Serializer;
+
+    /**
+     * @class MutablePass
+     * @brief A friend class responsible for giving a pass to mutate which may destroy the sorted state
+     *        of PointerVectorSet. All methods which relies on the sorted state will be frozen when this is
+     *        active, and they will be unfrozen and PointerVectorSet will be sorted at the destruction on the
+     *        MutablePass.
+     */
+    friend class MutablePass;
+
+    ///@}
+    ///@name Serialization
+    ///@{
 
     /**
      * @brief Extract the object's state and uses the Serializer to store it.
