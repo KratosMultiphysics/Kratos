@@ -93,7 +93,8 @@ public:
             : mrContainer(rContainer)
         {
             KRATOS_CRITICAL_SECTION
-            KRATOS_ERROR_IF(mrContainer.mHasMutablePass) << "A mutable pass is active. Hence, use of this function prohibited.";
+            KRATOS_ERROR_IF(mrContainer.mHasMutablePass)
+                << "A mutable pass is active. Hence, creation of an another MutablePass is prohibited.";
             mrContainer.mHasMutablePass = true;
         }
 
@@ -262,7 +263,8 @@ public:
      */
     TDataType& operator[](const key_type& Key)
     {
-        KRATOS_ERROR_IF(mHasMutablePass) << "A mutable pass is active. Hence, use of this function prohibited.";
+        KRATOS_ERROR_IF(mHasMutablePass)
+            << "A mutable pass is active. Hence, use of PointerVectorSet::operator[] is prohibited.";
         ptr_iterator i(std::lower_bound(mData.begin(), mData.end(), Key, CompareKey()));
         if (i != mData.end() && EqualKeyTo(Key)(*i)) {
             return **i;
@@ -282,7 +284,8 @@ public:
      */
     pointer& operator()(const key_type& Key)
     {
-        KRATOS_ERROR_IF(mHasMutablePass) << "A mutable pass is active. Hence, use of this function prohibited.";
+        KRATOS_ERROR_IF(mHasMutablePass)
+            << "A mutable pass is active. Hence, use of PointerVectorSet::operator() is prohibited.";
         ptr_iterator i(std::lower_bound(mData.begin(), mData.end(), Key, CompareKey()));
         if (i != mData.end() && EqualKeyTo(Key)(*i)) {
             return *i;
@@ -624,7 +627,8 @@ public:
      */
     iterator insert(const TPointerType& value)
     {
-        KRATOS_ERROR_IF(mHasMutablePass) << "A mutable pass is active. Hence, use of this function prohibited.";
+        KRATOS_ERROR_IF(mHasMutablePass)
+            << "A mutable pass is active. Hence, use of PointerVectorSet::insert(value) is prohibited.";
         auto itr_pos = std::lower_bound(mData.begin(), mData.end(), KeyOf(*value), CompareKey());
         if (itr_pos == mData.end()) {
             // the position to insert is at the end.
@@ -653,7 +657,8 @@ public:
      */
     iterator insert(const_iterator position_hint, const TPointerType& value)
     {
-        KRATOS_ERROR_IF(mHasMutablePass) << "A mutable pass is active. Hence, use of this function prohibited.";
+        KRATOS_ERROR_IF(mHasMutablePass)
+            << "A mutable pass is active. Hence, use of PointerVectorSet::insert(position_hint, value) is prohibited.";
         if (empty()) {
             // the dataset is empty. So use push back.
             mData.push_back(value);
@@ -705,7 +710,8 @@ public:
     template <class InputIterator>
     void insert(InputIterator first, InputIterator last)
     {
-        KRATOS_ERROR_IF(mHasMutablePass) << "A mutable pass is active. Hence, use of this function prohibited.";
+        KRATOS_ERROR_IF(mHasMutablePass)
+            << "A mutable pass is active. Hence, use of PointerVectorSet::insert(first, last) is prohibited.";
         // first sorts the input iterators and make the input unique.
         std::sort(first, last, CompareKey());
         auto new_last = std::unique(first, last, EqualKeyTo());
@@ -800,7 +806,8 @@ public:
      */
     iterator find(const key_type& Key)
     {
-        KRATOS_ERROR_IF(mHasMutablePass) << "A mutable pass is active. Hence, use of this function prohibited.";
+        KRATOS_ERROR_IF(mHasMutablePass)
+            << "A mutable pass is active. Hence, use of PointerVectorSet::find(key) is prohibited.";
         ptr_iterator i(std::lower_bound(mData.begin(), mData.end(), Key, CompareKey()));
         if (i != mData.end() && EqualKeyTo(Key)(*i)) {
             return i;
@@ -819,7 +826,8 @@ public:
      */
     const_iterator find(const key_type& Key) const
     {
-        KRATOS_ERROR_IF(mHasMutablePass) << "A mutable pass is active. Hence, use of this function prohibited.";
+        KRATOS_ERROR_IF(mHasMutablePass)
+            << "A mutable pass is active. Hence, use of PointerVectorSet::find(key) is prohibited.";
         ptr_const_iterator i(std::lower_bound(mData.begin(), mData.end(), Key, CompareKey()));
         if (i != mData.end() && EqualKeyTo(Key)(*i)) {
             return const_iterator(i);
@@ -891,7 +899,6 @@ public:
 
     MutablePass GetMutablePass()
     {
-
         return MutablePass(*this);
     }
 
