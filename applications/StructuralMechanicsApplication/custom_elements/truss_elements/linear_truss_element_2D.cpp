@@ -616,7 +616,6 @@ void LinearTrussElement2D<TNNodes>::CalculateOnIntegrationPoints(
     } else if (rVariable == AXIAL_STRAIN) {
         const auto &r_props = GetProperties();
         const auto &r_geometry = GetGeometry();
-        const double area = r_props[CROSS_AREA];
 
         ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
         auto &r_cl_options = cl_values.GetOptions();
