@@ -2,8 +2,8 @@ Kratos Optimization Application
 A library based on: Kratos Multi-Physics
 
 Copyright (c) 2024
-	Suneth Warnakulasuriya *
 	Reza Najian Asl *
+	Suneth Warnakulasuriya *
 	Ihar Antonau **
 	Roland Wüchner *
 	* Chair of Structural Analysis (Technical University of Munich)
