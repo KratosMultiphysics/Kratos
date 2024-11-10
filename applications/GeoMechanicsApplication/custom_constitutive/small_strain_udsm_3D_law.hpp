@@ -298,6 +298,7 @@ public:
     double& GetValue(const Variable<double>& rThisVariable, double& rValue) override;
     int&    GetValue(const Variable<int>& rThisVariable, int& rValue) override;
     Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
+    using ConstitutiveLaw::GetValue;
 
     void SetValue(const Variable<double>& rVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo) override;
 
