@@ -122,6 +122,8 @@ public:
      */
     bool& GetValue(const Variable<bool>& rThisVariable, bool& rValue) override;
 
+    using LinearElastic2DInterfaceLaw::GetValue;
+
     ///@}
 
 protected:
