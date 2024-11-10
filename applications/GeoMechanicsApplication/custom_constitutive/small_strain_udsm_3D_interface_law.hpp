@@ -76,6 +76,7 @@ public:
     using SmallStrainUDSM3DLaw::GetValue;
 
     void SetValue(const Variable<Vector>& rVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo) override;
+    using SmallStrainUDSM3DLaw::SetValue;
 
     /**
      * @brief Dimension of the law:
