@@ -274,7 +274,9 @@ namespace Kratos
                             sigma_w_n[0] = (DB_master(0, iglob)* normal_physical_space[0] + DB_master(2, iglob)* normal_physical_space[1]);
                             sigma_w_n[1] = (DB_master(2, iglob)* normal_physical_space[0] + DB_master(1, iglob)* normal_physical_space[1]);
 
-                            double sigma_w_n_dot_n = sigma_w_n[idim] * normal_physical_space[idim];
+                            // double sigma_w_n_dot_n = sigma_w_n[idim] * normal_physical_space[idim];
+
+                            double sigma_w_n_dot_n = inner_prod(sigma_w_n, normal_physical_space);
 
                             // u_1 \dot n = H_master[j] * n[jdim]
                             //----------------------------------
@@ -283,8 +285,8 @@ namespace Kratos
 
                             // // PENALTY g_n = 0
                             // //*********************************************** */
-                            // // rLeftHandSideMatrix(iglob, jglob) -= H_master(0,i)*normal_physical_space[idim]
-                            // //                                     *H_master(0,j)*normal_physical_space[jdim]*penalty_integration;
+                            rLeftHandSideMatrix(iglob, jglob) -= H_master(0,i)*normal_physical_space[idim]
+                                                                *H_master(0,j)*normal_physical_space[jdim]*penalty_integration;
 
                             // FLUX 
                             // [sigma_1(u) \dot n] \dot n * (-w_1 \dot n)
@@ -348,17 +350,19 @@ namespace Kratos
                             sigma_w_n[0] = (DB_master(0, iglob)* normal_physical_space[0] + DB_master(2, iglob)* normal_physical_space[1]);
                             sigma_w_n[1] = (DB_master(2, iglob)* normal_physical_space[0] + DB_master(1, iglob)* normal_physical_space[1]);
 
-                            double sigma_w_n_dot_n = sigma_w_n[idim] * normal_physical_space[idim];; //inner_prod(sigma_w_n, normal_physical_space);
+                            // double sigma_w_n_dot_n = sigma_w_n[idim] * normal_physical_space[idim];; 
+                            
+                            double sigma_w_n_dot_n = inner_prod(sigma_w_n, normal_physical_space);
 
                             // u_1 \dot n = H_slave[j] * n[jdim]
                             //----------------------------------
-                            rLeftHandSideMatrix(iglob, jglob) += Guglielmo_innovation*sigma_w_n_dot_n * H_slave(0,j) * normal_physical_space[jdim] * normal_physical_space[idim] * IntToReferenceWeight;
+                            rLeftHandSideMatrix(iglob, jglob) += Guglielmo_innovation*sigma_w_n_dot_n * H_slave(0,j) * normal_physical_space[jdim] * IntToReferenceWeight;
                             
 
                             // PENALTY g_n = 0
                             //*********************************************** */
-                            // rLeftHandSideMatrix(iglob, jglob) += H_master(0,i)*normal_physical_space[idim]
-                            //                                     *H_slave(0,j)*normal_physical_space[jdim]*penalty_integration;
+                            rLeftHandSideMatrix(iglob, jglob) += H_master(0,i)*normal_physical_space[idim]
+                                                                *H_slave(0,j)*normal_physical_space[jdim]*penalty_integration;
 
 
 
@@ -511,7 +515,7 @@ namespace Kratos
 
                     for (IndexType idim = 0; idim < 2; idim++) {
 
-                        // rRightHandSideVector[2*i+idim] -= H_master(0,i)*gn[idim]* penalty_integration;
+                        rRightHandSideVector[2*i+idim] -= H_master(0,i)*gn[idim]* penalty_integration;
                         const int id1 = idim*2;
                         const int iglob = 2*i+idim;
 
@@ -525,8 +529,8 @@ namespace Kratos
                             sigma_w_n[0] = (DB_master(0, iglob)* normal_physical_space[0] + DB_master(2, iglob)* normal_physical_space[1]);
                             sigma_w_n[1] = (DB_master(2, iglob)* normal_physical_space[0] + DB_master(1, iglob)* normal_physical_space[1]);
 
-                            // double sigma_w_n_dot_n = inner_prod(sigma_w_n, normal_physical_space);
-                            double sigma_w_n_dot_n = sigma_w_n[idim] * normal_physical_space[idim];
+                            double sigma_w_n_dot_n = inner_prod(sigma_w_n, normal_physical_space);
+                            // double sigma_w_n_dot_n = sigma_w_n[idim] * normal_physical_space[idim];
 
                             rRightHandSideVector(iglob) -= Guglielmo_innovation*sigma_w_n_dot_n * IntToReferenceWeight *normal_gap;
                                                             //  * gn[jdim];

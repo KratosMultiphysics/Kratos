@@ -263,90 +263,92 @@ public:
         const TSystemVectorType& rb
         ) override
     {
-        // We save the current WEIGHTED_GAP in the buffer
-        // auto& r_conditions_array = rModelPart.GetSubModelPart("ContactInterface").Conditions();
-        ModelPart* contact_sub_model_part = rModelPart.pGetSubModelPart("ContactInterface");
+        return true;
+        
+        // // We save the current WEIGHTED_GAP in the buffer
+        // // auto& r_conditions_array = rModelPart.GetSubModelPart("ContactInterface").Conditions();
+        // ModelPart* contact_sub_model_part = rModelPart.pGetSubModelPart("ContactInterface");
 
-        int count_cond = 0;
-        int n_CP = (contact_sub_model_part->Conditions().begin())->GetGeometry().GetGeometryPart(0).size();
-        int p = (int) sqrt(n_CP);
+        // int count_cond = 0;
+        // int n_CP = (contact_sub_model_part->Conditions().begin())->GetGeometry().GetGeometryPart(0).size();
+        // int p = (int) sqrt(n_CP);
 
-        int n_GP_per_segment = 2*p+1;
-        double toll = 1e-12;
-        int n_cond = contact_sub_model_part->Conditions().size(); 
+        // int n_GP_per_segment = 2*p+1;
+        // double toll = 1e-12;
+        // int n_cond = contact_sub_model_part->Conditions().size(); 
 
-        Vector length = ZeroVector(n_cond);
-        Vector check_per_segment = ZeroVector(n_cond);
+        // Vector length = ZeroVector(n_cond);
+        // Vector check_per_segment = ZeroVector(n_cond);
 
-        for (auto i_cond(contact_sub_model_part->Conditions().begin()); i_cond != contact_sub_model_part->Conditions().end(); ++i_cond)
-        {
+        // for (auto i_cond(contact_sub_model_part->Conditions().begin()); i_cond != contact_sub_model_part->Conditions().end(); ++i_cond)
+        // {
             
-            double normal_gap = i_cond->GetValue(NORMAL_GAP);
-            Vector normal_stress = i_cond->GetValue(STRESS_MASTER);
-            Vector normal = i_cond->GetValue(NORMAL_MASTER);
-            double weight = i_cond->GetValue(INTEGRATION_WEIGHT);
+        //     double normal_gap = i_cond->GetValue(NORMAL_GAP);
+        //     Vector normal_stress = i_cond->GetValue(STRESS_MASTER);
+        //     Vector normal = i_cond->GetValue(NORMAL_MASTER);
+        //     double weight = i_cond->GetValue(INTEGRATION_WEIGHT);
  
-            // KRATOS_WATCH(i_cond->GetProperties()[YOUNG_MODULUS])
-            double yound_modulus = 10.0;
+        //     // KRATOS_WATCH(i_cond->GetProperties()[YOUNG_MODULUS])
+        //     double yound_modulus = 10.0;
 
-            double true_normal_stress = (normal_stress[0]* normal[0] + normal_stress[2]* normal[1])*normal[0] +
-                                      (normal_stress[2]* normal[0] + normal_stress[1]* normal[1])*normal[1];
+        //     double true_normal_stress = (normal_stress[0]* normal[0] + normal_stress[2]* normal[1])*normal[0] +
+        //                               (normal_stress[2]* normal[0] + normal_stress[1]* normal[1])*normal[1];
 
-            int segment_index = (int) count_cond/n_GP_per_segment;
-            double check_value = -(true_normal_stress+yound_modulus*normal_gap);
-            // double check_value = -(yound_modulus*normal_gap);
+        //     int segment_index = (int) count_cond/n_GP_per_segment;
+        //     double check_value = -(true_normal_stress+yound_modulus*normal_gap);
+        //     // double check_value = -(yound_modulus*normal_gap);
 
-            length[segment_index] += weight;
-            check_per_segment[segment_index] += weight*check_value;
+        //     length[segment_index] += weight;
+        //     check_per_segment[segment_index] += weight*check_value;
 
-            // if (-(true_normal_stress+yound_modulus*normal_gap) > toll)
-            // {
-            //     i_cond->Set(ACTIVE, true);
-            // }
+        //     // if (-(true_normal_stress+yound_modulus*normal_gap) > toll)
+        //     // {
+        //     //     i_cond->Set(ACTIVE, true);
+        //     // }
 
-            count_cond++;
+        //     count_cond++;
 
-        }
+        // }
 
-        count_cond = 0;
-        int n_changes = 0;
-        for (auto i_cond(contact_sub_model_part->Conditions().begin()); i_cond != contact_sub_model_part->Conditions().end(); ++i_cond)
-        {
-            int segment_index = (int) count_cond/n_GP_per_segment;
+        // count_cond = 0;
+        // int n_changes = 0;
+        // for (auto i_cond(contact_sub_model_part->Conditions().begin()); i_cond != contact_sub_model_part->Conditions().end(); ++i_cond)
+        // {
+        //     int segment_index = (int) count_cond/n_GP_per_segment;
 
-            if (check_per_segment[segment_index]/length[segment_index] > toll)
-            {
-                // KRATOS_WATCH("STOPPAMI")
-                // if (i_cond->IsNot(ACTIVE)) {
-                //     i_cond->Set(ACTIVE, true);
-                //     n_changes += 1;
-                // }
+        //     if (check_per_segment[segment_index]/length[segment_index] > toll)
+        //     {
+        //         // KRATOS_WATCH("STOPPAMI")
+        //         // if (i_cond->IsNot(ACTIVE)) {
+        //         //     i_cond->Set(ACTIVE, true);
+        //         //     n_changes += 1;
+        //         // }
 
-                if (i_cond->GetValue(ACTIVATION_LEVEL) == 0)
-                {
-                    i_cond->SetValue(ACTIVATION_LEVEL, 1);
-                    n_changes++;
-                }
-            } else {
-                // if (i_cond->Is(ACTIVE)) {
-                //     i_cond->Set(ACTIVE, false);
-                //     n_changes += 1;
-                // }
+        //         if (i_cond->GetValue(ACTIVATION_LEVEL) == 0)
+        //         {
+        //             i_cond->SetValue(ACTIVATION_LEVEL, 1);
+        //             n_changes++;
+        //         }
+        //     } else {
+        //         // if (i_cond->Is(ACTIVE)) {
+        //         //     i_cond->Set(ACTIVE, false);
+        //         //     n_changes += 1;
+        //         // }
     
-                if (i_cond->GetValue(ACTIVATION_LEVEL) == 1)
-                {
-                    i_cond->SetValue(ACTIVATION_LEVEL, 0);
-                    n_changes++;
-                }
-            }
+        //         if (i_cond->GetValue(ACTIVATION_LEVEL) == 1)
+        //         {
+        //             i_cond->SetValue(ACTIVATION_LEVEL, 0);
+        //             n_changes++;
+        //         }
+        //     }
 
 
-            count_cond++;
+        //     count_cond++;
 
-        }
+        // }
 
-        if (n_changes == 0) return true;
-        else return false;
+        // if (n_changes == 0) return true;
+        // else return false;
     }
 
     /**
