@@ -42,50 +42,31 @@ public:
 
     [[nodiscard]] double GetEndTime() const override { return 10.; };
 
-    void SetEndTime(double EndTime) override
-    {
-        // intentionally empty
-    }
+    MOCK_METHOD(void, SetEndTime, (double EndTime), (override));
 
     [[nodiscard]] double GetTimeIncrement() const override { return 0.0; }
 
-    void SetTimeIncrement(double TimeIncrement) override
-    {
-        // intentionally empty
-    }
+    MOCK_METHOD(void, SetTimeIncrement, (double TimeIncrement), (override));
 
     [[nodiscard]] std::size_t GetStepNumber() const override { return 0; }
 
-    void IncrementStepNumber() override
-    {
-        // intentionally empty
-    }
+    MOCK_METHOD(void, IncrementStepNumber, (), (override));
 
-    void CloneTimeStep() override {
-        // intentionally empty
-    };
-    void RestorePositionsAndDOFVectorToStartOfStep() override {
-        // intentionally empty
-    };
-    void SaveTotalDisplacementFieldAtStartOfTimeLoop() override {
-        // intentionally empty
-    };
-    void AccumulateTotalDisplacementField() override {
-        // intentionally empty
-    };
-    void ComputeIncrementalDisplacementField() override {
-        // intentionally empty
-    };
-    void OutputProcess() override {
-        // intentionally empty
-    };
+    MOCK_METHOD(void, CloneTimeStep, (), (override));
+
+    MOCK_METHOD(void, RestorePositionsAndDOFVectorToStartOfStep, (), (override));
+
+    MOCK_METHOD(void, SaveTotalDisplacementFieldAtStartOfTimeLoop, (), (override));
+
+    MOCK_METHOD(void, AccumulateTotalDisplacementField, (), (override));
+
+    MOCK_METHOD(void, ComputeIncrementalDisplacementField, (),  (override));
+
+    MOCK_METHOD(void, OutputProcess, (), (override));
 
     void Initialize() override { ++mSolverStrategyInitializeCalls; }
 
-    void InitializeOutput() override
-    {
-        // Intentionally empty
-    }
+    MOCK_METHOD(void, InitializeOutput, (), (override));
 
     void InitializeSolutionStep() override { ++mSolverStrategyInitializeSolutionStepCalls; }
 
@@ -124,10 +105,7 @@ public:
         return mSolverStrategyFinalizeSolutionStepCalls;
     }
 
-    void FinalizeOutput() override
-    {
-        // intentionally empty
-    }
+    MOCK_METHOD(void, FinalizeOutput, (), (override));
 
 private:
     TimeStepEndState::ConvergenceState mConvergenceState;
