@@ -303,7 +303,7 @@ private:
 
                 // set erosion on true if current pipe height is greater than the equilibrium height
                 p_open_pipe_element->SetValue(PIPE_EROSION, p_open_pipe_element->GetValue(PIPE_EROSION) ||
-                                                            (current_height > eq_height));
+                                                                (current_height > eq_height));
                 // check this if statement, I don't understand the check for pipe erosion
                 if (((!p_open_pipe_element->GetValue(PIPE_EROSION) || (current_height > eq_height)) &&
                      current_height < MaxPipeHeight)) {
@@ -345,7 +345,7 @@ private:
         // pipe height or if all elements are open
         if (NumberOfOpenPipeElements < NumberOfPipeELements) {
             auto       p_tip_element = rPipeElements.at(NumberOfOpenPipeElements - 1);
-            const auto pipe_height = p_tip_element->GetValue(PIPE_HEIGHT);
+            const auto pipe_height   = p_tip_element->GetValue(PIPE_HEIGHT);
 
             if ((pipe_height > MaxPipeHeight + std::numeric_limits<double>::epsilon()) ||
                 (pipe_height < mPipeHeightAccuracy)) {
@@ -388,7 +388,7 @@ private:
         bool       grow                      = true;
         const auto number_of_piping_elements = rPipingElements.size();
         auto number_of_open_piping_elements  = this->GetNumberOfActivePipeElements(rPipingElements);
-        auto max_pipe_height = CalculateMaxPipeHeight(rPipingElements);
+        auto max_pipe_height                 = CalculateMaxPipeHeight(rPipingElements);
         while (grow && (number_of_open_piping_elements < number_of_piping_elements)) {
             // get tip element and activate
             auto p_tip_element = rPipingElements.at(number_of_open_piping_elements);
