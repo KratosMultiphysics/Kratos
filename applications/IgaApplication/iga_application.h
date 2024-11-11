@@ -27,6 +27,7 @@
 #include "custom_elements/laplacian_IGA_element.h"
 #include "custom_elements/solid_2D_element.h"
 #include "custom_elements/conv_diff_IGA_element.h"
+#include "custom_elements/solid_3D_element.h"
 
 //conditions
 #include "custom_conditions/output_condition.h"
@@ -49,6 +50,7 @@
 #include "custom_conditions/load_solid_2D_condition.h"
 #include "custom_conditions/sbm_load_solid_2D_condition.h"
 #include "custom_conditions/support_contact_2D_condition.h"
+#include "custom_conditions/support_solid_3D_condition.h"
 
 //modelers
 #include "custom_modelers/iga_modeler.h"
@@ -136,6 +138,7 @@ private:
     const Shell5pElement mShell5pElement;
     const LaplacianIGAElement mLaplacianIGAElement;
     const Solid2DElement mSolid2DElement;
+    const Solid3DElement mSolid3DElement;
     const ConvDiffIGAElement mConvDiffIGAElement; 
 
     //Conditions
@@ -159,6 +162,7 @@ private:
     const SBMSolid2DCondition mSBMSolid2DCondition;
     const SBMLoadSolid2DCondition mSBMLoadSolid2DCondition;
     const SupportContact2DCondition mSupportContact2DCondition;
+    const SupportSolid3DCondition mSupportSolid3DCondition;
 
     // Modelers
     const IgaModeler mIgaModeler;
