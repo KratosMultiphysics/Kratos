@@ -38,7 +38,7 @@ public:
     {
     }
 
-    [[nodiscard]] std::size_t GetNumberOfIterations() const override { return 4; };
+    MOCK_METHOD(std::size_t, GetNumberOfIterations, (), (const, override));
 
     [[nodiscard]] double GetEndTime() const override { return 10.; };
 
@@ -202,6 +202,8 @@ KRATOS_TEST_CASE_IN_SUITE(TimeStepExecutionReturnsNumberOfIterations, KratosGeoM
     TimeStepExecutor executor;
     auto             converging_strategy =
         std::make_shared<DummyStrategyWrapper>(TimeStepEndState::ConvergenceState::converged);
+    EXPECT_CALL(*converging_strategy, GetNumberOfIterations()).WillOnce(testing::Return(4));
+
     executor.SetSolverStrategy(converging_strategy);
     const auto time = 2.0;
     KRATOS_EXPECT_EQ(4, executor.Run(time).num_of_iterations);
