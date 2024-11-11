@@ -12,6 +12,8 @@ from KratosMultiphysics.OptimizationApplication.algorithms.algorithm import Algo
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import DictLogger
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import CallOnAll
+from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import time_decorator
+
 
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
@@ -57,6 +59,7 @@ class NLOPTAlgorithms(Algorithm):
 
         # controls
         self.master_control = MasterControl()
+        self._optimization_problem.AddComponent(self.master_control)
         for control_name in parameters["controls"].GetStringArray():
             control = optimization_problem.GetControl(control_name)
             self.master_control.AddControl(control)
@@ -64,9 +67,12 @@ class NLOPTAlgorithms(Algorithm):
 
         # objective & constraints
         self.__objective = StandardizedNLOPTObjective(parameters["objective"], self.master_control, self._optimization_problem)
+        self._optimization_problem.AddComponent(self.__objective)
         self.__constraints = []
         for constraint_settings in parameters["constraints"]:
-            self.__constraints.append(StandardizedNLOPTConstraint(constraint_settings, self.master_control, self._optimization_problem))
+            constraint = StandardizedNLOPTConstraint(constraint_settings, self.master_control, self._optimization_problem)
+            self._optimization_problem.AddComponent(constraint)
+            self.__constraints.append(constraint)
 
         # nlopt settings
         NLOPT_settings = parameters["NLOPT_settings"]
@@ -111,14 +117,13 @@ class NLOPTAlgorithms(Algorithm):
     def Check(self):
         pass
 
+    @time_decorator()
     def Initialize(self):
         self.converged = False
+        self.master_control.Initialize()
         self.__objective.Initialize()
         self.__objective.Check()
-        for constraint in self.__constraints:
-            constraint.Initialize()
-            constraint.Check()
-        self.master_control.Initialize()
+        CallOnAll(self.__constraints, StandardizedNLOPTConstraint.Initialize)
         self.__control_field = self.master_control.GetControlField()
         self.algorithm_data = ComponentDataView("algorithm", self._optimization_problem)
 
@@ -161,12 +166,14 @@ class NLOPTAlgorithms(Algorithm):
         if self.nlopt_subsidiary_optimizer is not None:
             self.SetOptimizerSepcificSettings(self.nlopt_subsidiary_optimizer)
 
+    @time_decorator()
     def Finalize(self):
         self.__objective.Finalize()
         for constraint in self.__constraints:
             constraint.Finalize()
         self.master_control.Finalize()
 
+    @time_decorator()
     def Solve(self):
         self.nlopt_optimizer.optimize(self.x0)
         CallOnAll(self._optimization_problem.GetListOfProcesses("output_processes"), Kratos.OutputProcess.PrintOutput)

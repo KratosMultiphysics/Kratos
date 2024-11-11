@@ -39,7 +39,8 @@ namespace Kratos
  * @ingroup KratosCore
  * @brief The NurbsCouplingGeometry2D acts as topology for nurbs coupled curves on surfaces.
  */
-template<class TPointType, class TSurfaceContainerPointType> class NurbsCouplingGeometry2D
+template<class TPointType, class TSurfaceContainerPointType> 
+class KRATOS_API(KRATOS_CORE) NurbsCouplingGeometry2D
     : public Geometry<TPointType>
 {
 public:

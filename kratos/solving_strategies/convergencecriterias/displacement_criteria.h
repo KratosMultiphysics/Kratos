@@ -70,11 +70,17 @@ public:
     /// The definition of the current class
     using ClassType = DisplacementCriteria< TSparseSpace, TDenseSpace >;
 
+    /// The definition of the sparse space type
+    using SparseSpaceType = TSparseSpace;
+
     /// The data type
     using TDataType = typename BaseType::TDataType;
 
     /// The dofs array type
     using DofsArrayType = typename BaseType::DofsArrayType;
+
+    /// The definition of the DoF data type
+    using DofType = typename Node::DofType;
 
     /// The sparse matrix type
     using TSystemMatrixType = typename BaseType::TSystemMatrixType;
@@ -92,7 +98,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    //* Constructor.
+    /// Default constructor.
     explicit DisplacementCriteria()
         : BaseType()
     {
@@ -110,8 +116,11 @@ public:
         this->AssignSettings(ThisParameters);
     }
 
-    /** Constructor.
-    */
+    /**
+     * @brief Constructor 2 arguments
+     * @param NewRatioTolerance The ratio tolerance for the convergence.
+     * @param AlwaysConvergedNorm The absolute tolerance for the convergence.
+     */
     explicit DisplacementCriteria(
         TDataType NewRatioTolerance,
         TDataType AlwaysConvergedNorm)
@@ -121,8 +130,10 @@ public:
     {
     }
 
-    /** Copy constructor.
-    */
+    /**
+     * @brief Copy constructor
+     * @param rOther The criteria to be copied
+     */
     explicit DisplacementCriteria( DisplacementCriteria const& rOther )
       :BaseType(rOther)
       ,mRatioTolerance(rOther.mRatioTolerance)
@@ -131,13 +142,17 @@ public:
     {
     }
 
-    /** Destructor.
-    */
+    /**
+     * @brief Destructor.
+     */
     ~DisplacementCriteria() override {}
 
     ///@}
     ///@name Operators
     ///@{
+
+    /// Deleted assignment operator.
+    DisplacementCriteria& operator=(DisplacementCriteria const& rOther) = delete;
 
     ///@}
     ///@name Operations
@@ -153,31 +168,34 @@ public:
     }
 
     /**
-     * Compute relative and absolute error.
+     * @brief Compute relative and absolute error.
      * @param rModelPart Reference to the ModelPart containing the problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param A System matrix (unused)
-     * @param Dx Vector of results (variations on nodal variables)
-     * @param b RHS vector (residual + reactions)
+     * @param rA System matrix (unused)
+     * @param rDx Vector of results (variations on nodal variables)
+     * @param rb RHS vector (residual + reactions)
      * @return true if convergence is achieved, false otherwise
      */
     bool PostCriteria(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b
+        const TSystemMatrixType& rA,
+        const TSystemVectorType& rDx,
+        const TSystemVectorType& rb
         ) override
     {
-        const TDataType approx_zero_tolerance = std::numeric_limits<TDataType>::epsilon();
-        const SizeType size_Dx = Dx.size();
-        if (size_Dx != 0) { //if we are solving for something
-            SizeType size_solution;
-            TDataType final_correction_norm = CalculateFinalCorrectionNorm(size_solution, rDofSet, Dx);
+        if (SparseSpaceType::Size(rDx) != 0) { //if we are solving for something
+            // Some values
+            const int rank = rModelPart.GetCommunicator().GetDataCommunicator().Rank();
+            const TDataType approx_zero_tolerance = std::numeric_limits<TDataType>::epsilon();
+
+            // The final correction norm calculation
+            SizeType size_solution = 0;
+            const TDataType final_correction_norm = CalculateFinalCorrectionNorm(size_solution, rDofSet, rDx, rModelPart);
 
             TDataType ratio = 0.0;
 
-            CalculateReferenceNorm(rDofSet);
+            CalculateReferenceNorm(rDofSet, rModelPart);
             if (mReferenceDispNorm < approx_zero_tolerance) {
                 KRATOS_WARNING("DisplacementCriteria") << "NaN norm is detected. Setting reference to convergence criteria" << std::endl;
                 mReferenceDispNorm = final_correction_norm;
@@ -193,24 +211,21 @@ public:
 
             const TDataType absolute_norm = (final_correction_norm/std::sqrt(float_size_solution));
 
-            KRATOS_INFO_IF("DISPLACEMENT CRITERION", this->GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0) << " :: [ Obtained ratio = " << ratio << "; Expected ratio = " << mRatioTolerance << "; Absolute norm = " << absolute_norm << "; Expected norm =  " << mAlwaysConvergedNorm << "]" << std::endl;
+            KRATOS_INFO_IF("DISPLACEMENT CRITERION", this->GetEchoLevel() > 0 && rank == 0) << " :: [ Obtained ratio = " << ratio << "; Expected ratio = " << mRatioTolerance << "; Absolute norm = " << absolute_norm << "; Expected norm =  " << mAlwaysConvergedNorm << "]" << std::endl;
 
             rModelPart.GetProcessInfo()[CONVERGENCE_RATIO] = ratio;
             rModelPart.GetProcessInfo()[RESIDUAL_NORM] = absolute_norm;
 
-            if ( ratio <= mRatioTolerance  ||  absolute_norm<mAlwaysConvergedNorm )  { //  || (final_correction_norm/x.size())<=1e-7)
-                KRATOS_INFO_IF("DISPLACEMENT CRITERION", this->GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0) << "Convergence is achieved" << std::endl;
-                return true;
-            } else {
-                return false;
-            }
+            const bool has_achieved_convergence = ratio <= mRatioTolerance || absolute_norm < mAlwaysConvergedNorm; //  || (final_correction_norm/x.size())<=1e-7)
+            KRATOS_INFO_IF("DISPLACEMENT CRITERION", has_achieved_convergence && this->GetEchoLevel() > 0 && rank == 0) << "Convergence is achieved" << std::endl;
+            return has_achieved_convergence;
         } else { //in this case all the displacements are imposed!
             return true;
         }
     }
 
     /**
-     * This function initialize the convergence criteria
+     * @brief This function initialize the convergence criteria
      * @param rModelPart Reference to the ModelPart containing the problem. (unused)
      */
     void Initialize(
@@ -221,41 +236,41 @@ public:
     }
 
     /**
-     * This function initializes the solution step
+     * @brief This function initializes the solution step
      * @param rModelPart Reference to the ModelPart containing the problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param A System matrix (unused)
-     * @param Dx Vector of results (variations on nodal variables)
-     * @param b RHS vector (residual + reactions)
+     * @param rA System matrix (unused)
+     * @param rDx Vector of results (variations on nodal variables)
+     * @param rb RHS vector (residual + reactions)
      */
     void InitializeSolutionStep(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b
+        const TSystemMatrixType& rA,
+        const TSystemVectorType& rDx,
+        const TSystemVectorType& rb
         ) override
     {
-        BaseType::InitializeSolutionStep(rModelPart, rDofSet, A, Dx, b);
+        BaseType::InitializeSolutionStep(rModelPart, rDofSet, rA, rDx, rb);
     }
 
     /**
-     * This function finalizes the solution step
+     * @brief This function finalizes the solution step
      * @param rModelPart Reference to the ModelPart containing the problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param A System matrix (unused)
-     * @param Dx Vector of results (variations on nodal variables)
-     * @param b RHS vector (residual + reactions)
+     * @param rA System matrix (unused)
+     * @param rDx Vector of results (variations on nodal variables)
+     * @param rb RHS vector (residual + reactions)
      */
     void FinalizeSolutionStep(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b
+        const TSystemMatrixType& rA,
+        const TSystemVectorType& rDx,
+        const TSystemVectorType& rb
         ) override
     {
-        BaseType::FinalizeSolutionStep(rModelPart, rDofSet, A, Dx, b);
+        BaseType::FinalizeSolutionStep(rModelPart, rDofSet, rA, rDx, rb);
     }
 
     /**
@@ -329,6 +344,12 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    TDataType mRatioTolerance = 0.0;      /// The ratio threshold for the norm of the residual
+
+    TDataType mAlwaysConvergedNorm = 0.0; /// The absolute value threshold for the norm of the residual
+
+    TDataType mReferenceDispNorm = 0.0;   /// The norm at the beginning of the iterations
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -369,35 +390,65 @@ private:
     ///@name Member Variables
     ///@{
 
-    TDataType mRatioTolerance;      /// The ratio threshold for the norm of the residual
-
-    TDataType mAlwaysConvergedNorm; /// The absolute value threshold for the norm of the residual
-
-    TDataType mReferenceDispNorm;   /// The norm at the beginning of the iterations
-
     ///@}
     ///@name Private Operators
     ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    /**
+     * @brief Check if a Degree of Freedom (Dof) is free.
+     * @details This function checks if a given Degree of Freedom (Dof) is free.
+     * The reason why PARTITION_INDEX is considered in distributed runs is to avoid adding twice (or even more times) the same value into the norm
+     * @param rDof The Degree of Freedom to check.
+     * @param Rank The rank of the Dof.
+     * @return True if the Dof is free, false otherwise.
+     * @todo We should doo as in the residual criteria, and consider the active DoFs (not just free), taking into account the MPC in addition to fixed DoFs
+     */
+    bool IsFreeAndLocalDof(
+        const DofType& rDof,
+        const int Rank
+        )
+    {
+        if constexpr (!TSparseSpace::IsDistributed()) {
+            return rDof.IsFree();
+        } else {
+            return (rDof.IsFree() && (rDof.GetSolutionStepValue(PARTITION_INDEX) == Rank));
+        }
+    }
 
     /**
      * @brief This method computes the reference norm
      * @details It checks if the dof is fixed
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param rModelPart Reference to the ModelPart containing the problem.
+     * @todo We should doo as in the residual criteria, and consider the active DoFs (not just free), taking into account the MPC in addition to fixed DoFs
      */
-    void CalculateReferenceNorm(DofsArrayType& rDofSet)
+    void CalculateReferenceNorm(
+        DofsArrayType& rDofSet,
+        ModelPart& rModelPart
+        )
     {
+        // Retrieve the data communicator
+        const auto& r_data_communicator = rModelPart.GetCommunicator().GetDataCommunicator();
+
+        // The current MPI rank
+        const int rank = r_data_communicator.Rank();
+
         // Auxiliary struct
         struct TLS {TDataType dof_value{};};
 
-        const TDataType reference_disp_norm = block_for_each<SumReduction<TDataType>>(rDofSet, TLS(), [](auto& rDof, TLS& rTLS) {
-            if(rDof.IsFree()) {
+        const TDataType reference_disp_norm = block_for_each<SumReduction<TDataType>>(rDofSet, TLS(), [this, &rank](auto& rDof, TLS& rTLS) {
+            if (ClassType::IsFreeAndLocalDof(rDof, rank)) {
                 rTLS.dof_value = rDof.GetSolutionStepValue();
                 return std::pow(rTLS.dof_value, 2);
             } else {
                 return TDataType();
             }
         });
-        mReferenceDispNorm = std::sqrt(reference_disp_norm);
+        mReferenceDispNorm = std::sqrt(r_data_communicator.SumAll(reference_disp_norm));
     }
 
     /**
@@ -405,54 +456,45 @@ private:
      * @details It checks if the dof is fixed
      * @param rDofNum The number of DoFs
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param Dx Vector of results (variations on nodal variables)
+     * @param rDx Vector of results (variations on nodal variables)
+     * @todo We should doo as in the residual criteria, and consider the active DoFs (not just free), taking into account the MPC in addition to fixed DoFs
      */
     TDataType CalculateFinalCorrectionNorm(
         SizeType& rDofNum,
         DofsArrayType& rDofSet,
-        const TSystemVectorType& Dx
+        const TSystemVectorType& rDx,
+        ModelPart& rModelPart
         )
     {
+        // Retrieve the data communicator
+        const auto& r_data_communicator = rModelPart.GetCommunicator().GetDataCommunicator();
+
+        // The current MPI rank
+        const int rank = r_data_communicator.Rank();
+
         // Initialize
         TDataType final_correction_norm = TDataType();
-        SizeType dof_num = 0;
+        unsigned int dof_num = 0;
 
         // Custom reduction
-        using CustomReduction = CombinedReduction<SumReduction<TDataType>,SumReduction<SizeType>>;
+        using CustomReduction = CombinedReduction<SumReduction<TDataType>,SumReduction<unsigned int>>;
 
         // Auxiliary struct
-        struct TLS {TDataType dof_value{};IndexType dof_id{}; TDataType variation_dof_value{};};
+        struct TLS {TDataType dof_value{}; TDataType variation_dof_value{};};
 
         // Loop over Dofs
-        std::tie(final_correction_norm, dof_num) = block_for_each<CustomReduction>(rDofSet, TLS(), [&Dx](auto& rDof, TLS& rTLS) {
-            if (rDof.IsFree()) {
-                rTLS.dof_id = rDof.EquationId();
-                rTLS.variation_dof_value = Dx[rTLS.dof_id];
+        std::tie(final_correction_norm, dof_num) = block_for_each<CustomReduction>(rDofSet, TLS(), [this, &rDx, &rank](auto& rDof, TLS& rTLS) {
+            if (this->IsFreeAndLocalDof(rDof, rank)) {
+                rTLS.variation_dof_value = SparseSpaceType::GetValue(rDx, rDof.EquationId());
                 return std::make_tuple(std::pow(rTLS.variation_dof_value, 2), 1);
             } else {
                 return std::make_tuple(TDataType(), 0);
             }
         });
 
-        rDofNum = dof_num;
-        return std::sqrt(final_correction_norm);
+        rDofNum = static_cast<SizeType>(r_data_communicator.SumAll(dof_num));
+        return std::sqrt(r_data_communicator.SumAll(final_correction_norm));
     }
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
 
     ///@}
 }; /* Class DisplacementCriteria */

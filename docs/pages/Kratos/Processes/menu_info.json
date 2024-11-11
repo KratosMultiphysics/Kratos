@@ -1,6 +1,6 @@
 {
     "side_bar_name": "kratos_core_processes",
-    "landing_page": "General/Overview.md",
+    "landing_page": "process.md",
     "additional_menu_options": {
         "product": "Kratos Processes"
     }

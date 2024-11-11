@@ -476,6 +476,7 @@ const IndexType PointNumber
 
     // // FUTURE DEVELOPMENTS:
     // return StructuralMechanicsElementUtilities::GetBodyForce(*this, rIntegrationPoints, PointNumber);
+    return array_1d<double, 3>();
 }
 
 void Solid2DElement::CalculateKinematicVariables(

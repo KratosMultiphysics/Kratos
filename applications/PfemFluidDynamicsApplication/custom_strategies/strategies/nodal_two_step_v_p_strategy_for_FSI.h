@@ -230,7 +230,7 @@ namespace Kratos
 			double pressureNorm = 0;
 			double velocityNorm = 0;
 
-			InitializeSolutionStep(); // it fills SOLID_NODAL_SFD_NEIGHBOURS_ORDER for solids and NODAL_SFD_NEIGHBOURS_ORDER for fluids and inner solids
+			FillNodalSFDVector(); // it fills SOLID_NODAL_SFD_NEIGHBOURS_ORDER for solids and NODAL_SFD_NEIGHBOURS_ORDER for fluids and inner solids
 			for (unsigned int it = 0; it < maxNonLinearIterations; ++it)
 			{
 				if (BaseType::GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0)
@@ -764,37 +764,6 @@ namespace Kratos
 			// }
 		}
 
-		void InitializeSolutionStep() override
-		{
-			FillNodalSFDVector();
-		}
-
-		void FillNodalSFDVector()
-		{
-
-			ModelPart &rModelPart = BaseType::GetModelPart();
-
-			for (ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); itNode++)
-			{
-				this->InitializeNodalVariablesForRemeshedDomain(itNode);
-
-				InitializeNodalVariablesForSolidRemeshedDomain(itNode);
-
-				if (itNode->FastGetSolutionStepValue(INTERFACE_NODE) == false)
-				{
-					this->SetNeighboursOrderToNode(itNode); // it assigns neighbours to inner nodes, filling NODAL_SFD_NEIGHBOURS_ORDER
-					if (itNode->Is(SOLID))
-					{
-						SetNeighboursOrderToSolidNode(itNode); // it assigns neighbours to solid inner nodes, filling SOLID_NODAL_SFD_NEIGHBOURS_ORDER
-					}
-				}
-				else
-				{
-					SetNeighboursOrderToInterfaceNode(itNode); // it assigns neighbours to interface nodes, filling SOLID_NODAL_SFD_NEIGHBOURS_ORDER for solids and NODAL_SFD_NEIGHBOURS_ORDER for fluids
-				}
-			}
-		}
-
 		void SetNeighboursOrderToSolidNode(ModelPart::NodeIterator itNode)
 		{
 			NodeWeakPtrVectorType &neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
@@ -814,8 +783,8 @@ namespace Kratos
 				{
 					rNodeOrderedNeighbours[k + 1] = neighb_nodes[k].Id();
 				}
-				}
 			}
+		}
 
 		void SetNeighboursOrderToInterfaceNode(ModelPart::NodeIterator itNode)
 		{
@@ -1055,10 +1024,8 @@ namespace Kratos
 					this->InitializeNodalVariablesForRemeshedDomain(itNode);
 					InitializeNodalVariablesForSolidRemeshedDomain(itNode);
 				}
-
 			}
 			//   }
-
 		}
 
 		void CopyValuesToSolidNonInterfaceNodes(ModelPart::NodeIterator itNode)
@@ -1639,7 +1606,6 @@ namespace Kratos
 				}
 			}
 			// }
-
 		}
 
 		void ComputeAndStoreNodalDeformationGradientForSolidNode(ModelPart::NodeIterator itNode, double theta)
@@ -2088,6 +2054,34 @@ namespace Kratos
 		///@}
 		///@name Un accessible methods
 		///@{
+
+	private:
+	
+		void FillNodalSFDVector()
+		{
+
+			ModelPart &rModelPart = BaseType::GetModelPart();
+
+			for (ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); itNode++)
+			{
+				this->InitializeNodalVariablesForRemeshedDomain(itNode);
+
+				InitializeNodalVariablesForSolidRemeshedDomain(itNode);
+
+				if (itNode->FastGetSolutionStepValue(INTERFACE_NODE) == false)
+				{
+					this->SetNeighboursOrderToNode(itNode); // it assigns neighbours to inner nodes, filling NODAL_SFD_NEIGHBOURS_ORDER
+					if (itNode->Is(SOLID))
+					{
+						SetNeighboursOrderToSolidNode(itNode); // it assigns neighbours to solid inner nodes, filling SOLID_NODAL_SFD_NEIGHBOURS_ORDER
+					}
+				}
+				else
+				{
+					SetNeighboursOrderToInterfaceNode(itNode); // it assigns neighbours to interface nodes, filling SOLID_NODAL_SFD_NEIGHBOURS_ORDER for solids and NODAL_SFD_NEIGHBOURS_ORDER for fluids
+				}
+			}
+		}
 
 		/// Assignment operator.
 		NodalTwoStepVPStrategyForFSI &operator=(NodalTwoStepVPStrategyForFSI const &rOther) {}

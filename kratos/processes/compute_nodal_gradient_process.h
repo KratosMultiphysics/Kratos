@@ -18,14 +18,14 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
-#include "processes/process.h"
-#include "includes/model_part.h"
+#include "geometries/geometry.h"
+#include "includes/node.h"
 #include "includes/kratos_parameters.h"
+#include "includes/variables.h"
+#include "processes/process.h"
 
 namespace Kratos
 {
-
 ///@name Kratos Globals
 ///@{
 
@@ -46,32 +46,70 @@ namespace Kratos
 ///@{
 
 /**
- * @brief This struct is used in order to identify when using the hitorical and non historical variables
+ * @brief Settings for the computation of nodal gradients.
+ * @details This struct provides settings to control how nodal gradients are computed and identified,
+ * distinguishing between historical and non-historical variables.
  */
 struct ComputeNodalGradientProcessSettings
 {
-    // Defining clearer options
+    /**
+     * @brief Option to save computed gradients as historical variables.
+     * @details If set to true, computed gradients will be saved as historical variables.
+     * Historical variables typically represent past states or values over time.
+     */
     constexpr static bool SaveAsHistoricalVariable = true;
+
+    /**
+     * @brief Option to save computed gradients as non-historical variables.
+     * @details If set to true, computed gradients will be saved as non-historical variables.
+     * Non-historical variables typically represent instantaneous states or values.
+     */
     constexpr static bool SaveAsNonHistoricalVariable = false;
+
+    /**
+     * @brief Option to retrieve gradients as historical variables.
+     * @details If set to true, gradients will be retrieved as historical variables.
+     * Historical variables typically represent past states or values over time.
+     */
     constexpr static bool GetAsHistoricalVariable = true;
+
+    /**
+     * @brief Option to retrieve gradients as non-historical variables.
+     * @details If set to true, gradients will be retrieved as non-historical variables.
+     * Non-historical variables typically represent instantaneous states or values.
+     */
     constexpr static bool GetAsNonHistoricalVariable = false;
 };
 
 /**
- * @brief This struct is an auxiliar base class of the VariableVectorRetriever
+ * @brief Serves as a base class for retrieving vectors of variables associated with a given geometry.
+ * @details This class defines the interface for retrieving vectors of variables. It is intended to be inherited by
+ * classes that implement specific variable vector retrieval functionalities. The base class provides
+ * a default implementation for the GetVariableVector method, which should be overridden by derived classes
+ * to provide specific behaviors.
  */
 struct AuxiliarVariableVectorRetriever
 {
-    /// Destructor.
-    virtual ~AuxiliarVariableVectorRetriever()
-    {
-    }
+    /**
+     * @brief Virtual destructor to ensure proper cleanup of derived classes.
+     */
+    virtual ~AuxiliarVariableVectorRetriever() = default;
 
     /**
-     * @brief This method fills the vector of values
-     * @param rGeometry The geometry where values are stored
-     * @param rVariable The variable to retrieve
-     * @param rVector The vector to fill
+     * @brief Retrieves a vector of values for a specified variable from a given geometry.
+     * @details This method is designed to be overridden in derived classes to implement the specific logic for
+     * retrieving the vector of values associated with the specified variable and geometry. The base class
+     * implementation throws an error, indicating that the method should not be called directly on an instance
+     * of the base class.
+     *
+     * @param rGeometry Reference to the geometry from which values are to be retrieved. This parameter
+     *                  provides the context in which the variable's values are stored and accessed.
+     * @param rVariable The variable whose values are to be retrieved. This parameter specifies which
+     *                  variable's vector of values is to be filled.
+     * @param rVector Reference to the vector where the retrieved values will be stored. This parameter
+     *                is filled by the method with the values retrieved for the specified variable.
+     * @throw std::runtime_error Throws an error if called on the base class, indicating that the method
+     *        must be overridden in a derived class.
      */
     virtual void GetVariableVector(
         const Geometry<Node>& rGeometry,
@@ -79,33 +117,36 @@ struct AuxiliarVariableVectorRetriever
         Vector& rVector
         )
     {
-        KRATOS_ERROR << "Calling base class implementation" << std::endl;
+        KRATOS_ERROR << "Calling base class implementation of GetVariableVector is not allowed. "
+                     << "Please override this method in a derived class." << std::endl;
     }
 };
 
 /**
- * @brief This struct is used in order to retrieve values without loosing performance
+ * @brief A struct for efficiently retrieving values from a geometry without sacrificing performance.
+ * @details This struct is designed to efficiently retrieve values from a geometry without compromising performance. 
+ * It can handle both historical and non-historical output variables.
+ * @tparam TInputHistorical Indicates whether the output variable is historical or not.
  */
-template<bool THistorical>
+template<bool TInputHistorical>
 struct VariableVectorRetriever
     : public AuxiliarVariableVectorRetriever
 {
-    /// Destructor.
-    ~VariableVectorRetriever() override
-    {
-    }
+    /// Default destructor.
+    ~VariableVectorRetriever() override = default;
 
     /**
-     * @brief This method fills the vector of values
-     * @param rGeometry The geometry where values are stored
-     * @param rVariable The variable to retrieve
-     * @param rVector The vector to fill
+     * @brief Fills the given vector with values of the specified variable from the geometry.
+     * @details This method fills the provided vector with values of the specified variable retrieved from the given geometry.
+     * @param rGeometry The geometry from which values are to be retrieved.
+     * @param rVariable The variable whose values are to be retrieved.
+     * @param rVector The vector to be filled with values of the variable.
      */
     void GetVariableVector(
         const Geometry<Node>& rGeometry,
         const Variable<double>& rVariable,
         Vector& rVector
-        ) override;
+    ) override;
 };
 
 /**
@@ -115,18 +156,15 @@ struct VariableVectorRetriever
  * @details This process computes the gradient of a certain variable stored in the nodes
  * @author Riccardo Rossi
  * @author Vicente Mataix Ferrandiz
- * @tparam THistorical If the variable is historical or not
+ * @tparam TOutputHistorical If the output variable is historical or not
 */
-template<bool THistorical>
+template<bool TOutputHistorical>
 class KRATOS_API(KRATOS_CORE) ComputeNodalGradientProcess
     : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
-
-    /// The definition of the node
-    typedef Node NodeType;
 
     /// Pointer definition of ComputeNodalGradientProcess
     KRATOS_CLASS_POINTER_DEFINITION(ComputeNodalGradientProcess);
@@ -135,25 +173,49 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor. (Parameters)
+    /**
+     * @brief Construct a new Compute Nodal Gradient Process
+     * @details This constructor considers the model and retrieves the model parts
+     * @param rModel The model containing the model part
+     * @param ThisParameters User-defined parameters to construct the class
+     */
+    ComputeNodalGradientProcess(
+        Model& rModel,
+        Parameters ThisParameters = Parameters(R"({})")
+        );
+
+    /**
+     * @brief Construct a new Compute Nodal Gradient Process
+     * @details This constructor considers the model part as input
+     * @param rModelPart The model part containing the nodes and elements
+     * @param ThisParameters User-defined parameters to construct the class
+     */
     ComputeNodalGradientProcess(
         ModelPart& rModelPart,
         Parameters ThisParameters = Parameters(R"({})")
         );
 
-    /// Default constructor. (double)
+    /**
+     * @brief Computes the nodal gradient in a given ModelPart.
+     * @details This function computes the nodal gradient of a specified origin variable in the given ModelPart.
+     * The gradient is computed and stored in the specified gradient variable for each node.
+     * Optionally, the nodal area variable can be provided for weighted gradient computation.
+     * @param rModelPart The ModelPart in which the nodal gradient will be computed.
+     * @param rOriginVariable (optional) The variable for which the gradient will be computed.
+     * @param rGradientVariable (optional) The variable to store the computed gradient.
+     * @param rAreaVariable (optional) The variable representing nodal area for weighted gradient computation. Default is NODAL_AREA.
+     * @param NonHistoricalVariable (optional) Flag indicating if the origin variable is non-historical. Default is false.
+     */
     ComputeNodalGradientProcess(
         ModelPart& rModelPart,
         const Variable<double>& rOriginVariable,
-        const Variable<array_1d<double,3> >& rGradientVariable,
+        const Variable<array_1d<double,3>>& rGradientVariable,
         const Variable<double>& rAreaVariable = NODAL_AREA,
         const bool NonHistoricalVariable = false
         );
 
     /// Destructor.
-    ~ComputeNodalGradientProcess() override
-    {
-    }
+    ~ComputeNodalGradientProcess() override = default;
 
     ///@}
     ///@name Operators
@@ -251,11 +313,11 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart;                                           /// The main model part
-    const Variable<double>* mpOriginVariable = nullptr;               /// The scalar variable list to compute
-    const Variable<array_1d<double,3>>* mpGradientVariable;           /// The resultant gradient variable
-    const Variable<double>* mpAreaVariable = nullptr;                 /// The auxiliar area variable
-    bool mNonHistoricalVariable = false;                              /// If the variable is non-historical
+    ModelPart& mrModelPart;                                 /// The main model part
+    const Variable<double>* mpOriginVariable;               /// The scalar variable list to compute
+    const Variable<array_1d<double,3>>* mpGradientVariable; /// The resultant gradient variable
+    const Variable<double>* mpAreaVariable = &NODAL_AREA;   /// The auxiliary area variable
+    bool mNonHistoricalVariable = false;                    /// If the variable is non-historical
 
     ///@}
     ///@name Private Operators
@@ -265,26 +327,34 @@ private:
     ///@name Private Operations
     ///@{
 
-    // TODO: Try to use enable_if!!!
+    /**
+     * @brief Prepares member variables from the settings.
+     * @details This function prepares member variables necessary for computing nodal gradients from the provided settings.
+     * It retrieves origin, gradient, and area variables from the input parameters and sets them accordingly.
+     * Additionally, it sets the non-historical flag based on the input parameters.
+     * @tparam TOutputHistorical A boolean template parameter indicating whether the origin variable is historical.
+     * @param ThisParameters Parameters containing settings for preparing member variables.
+     */
+    void PrepareMemberVariablesFromSettings(Parameters ThisParameters);
 
     /**
-     * This checks the definition and correct initialization of the origin variable, for which the
+     * @brief This checks the definition and correct initialization of the origin variable, for which the
      * gradient will be computed, and the variable chosen to compute the area.
      */
     void CheckOriginAndAreaVariables();
 
     /**
-     * This clears the gradient
+     * @brief This clears the gradient
      */
     void ClearGradient();
 
     /**
-     * This gets the gradient value
+     * @brief This gets the gradient value
      * @param rThisGeometry The geometry of the element
      * @param i The node index
      */
     array_1d<double, 3>& GetGradient(
-        Element::GeometryType& rThisGeometry,
+        Geometry<Node>& rThisGeometry,
         unsigned int i
         );
 
@@ -337,21 +407,21 @@ private:
 ///@{
 
 /// input stream function
-// inline std::istream& operator >> (std::istream& rIStream,
-//                                   ComputeNodalGradientProcess& rThis);
-//
-// /// output stream function
-// inline std::ostream& operator << (std::ostream& rOStream,
-//                                   const ComputeNodalGradientProcess& rThis)
-// {
-//     rThis.PrintInfo(rOStream);
-//     rOStream << std::endl;
-//     rThis.PrintData(rOStream);
-//
-//     return rOStream;
-// }
+template<bool TOutputHistorical>
+inline std::istream& operator >> (std::istream& rIStream,
+                                  ComputeNodalGradientProcess<TOutputHistorical>& rThis);
+
+/// output stream function
+template<bool TOutputHistorical>
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const ComputeNodalGradientProcess<TOutputHistorical>& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
 ///@}
 
 }  // namespace Kratos.
-
-

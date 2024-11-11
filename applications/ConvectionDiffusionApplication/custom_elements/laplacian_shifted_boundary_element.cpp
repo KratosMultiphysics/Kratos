@@ -33,9 +33,7 @@ template<std::size_t TDim>
 LaplacianShiftedBoundaryElement<TDim>::LaplacianShiftedBoundaryElement(
     IndexType NewId,
     GeometryType::Pointer pGeometry)
-    : LaplacianElement(
-        NewId,
-        pGeometry)
+    : LaplacianElement(NewId, pGeometry)
 {
 }
 
@@ -44,10 +42,7 @@ LaplacianShiftedBoundaryElement<TDim>::LaplacianShiftedBoundaryElement(
     IndexType NewId,
     GeometryType::Pointer pGeometry,
     PropertiesType::Pointer pProperties)
-    : LaplacianElement(
-        NewId,
-        pGeometry,
-        pProperties)
+    : LaplacianElement(NewId, pGeometry, pProperties)
 {
 }
 
@@ -70,11 +65,6 @@ Element::Pointer LaplacianShiftedBoundaryElement<TDim>::Create(
 }
 
 template<std::size_t TDim>
-LaplacianShiftedBoundaryElement<TDim>::~LaplacianShiftedBoundaryElement()
-{
-}
-
-template<std::size_t TDim>
 void LaplacianShiftedBoundaryElement<TDim>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
@@ -87,7 +77,7 @@ void LaplacianShiftedBoundaryElement<TDim>::CalculateLocalSystem(
 
     // Check if the element belongs to the surrogate interface
     // Note that the INTERFACE flag is assumed to be set in the layer of elements attached to the surrogate interface
-    if (Is(BOUNDARY)) {
+    if (Is(INTERFACE)) {
         // Get convection-diffusion data container
         auto p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
         auto &r_settings = *p_settings;
@@ -117,11 +107,10 @@ void LaplacianShiftedBoundaryElement<TDim>::CalculateLocalSystem(
             // Loop the surrogate faces
             // Note that there is the chance that the surrogate face is not unique
             for (std::size_t sur_bd_id : sur_bd_ids_vect) {
-                // KRATOS_WATCH(sur_bd_id)
                 // Get the current surrogate face geometry information
                 const auto& r_sur_bd_geom = r_boundaries[sur_bd_id];
                 const unsigned int n_bd_points = r_sur_bd_geom.PointsNumber();
-                const DenseVector<std::size_t> sur_bd_local_ids = row(nodes_in_faces, sur_bd_id);
+                const DenseVector<std::size_t> sur_bd_local_ids = column(nodes_in_faces, sur_bd_id);
                 const auto& r_sur_bd_N = r_sur_bd_geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
 
                 // Get the surrogate boundary average conductivity
@@ -160,9 +149,7 @@ void LaplacianShiftedBoundaryElement<TDim>::CalculateLocalSystem(
                 }
             }
         }
-        // KRATOS_WATCH(rLeftHandSideMatrix)
     }
-
 
     KRATOS_CATCH("")
 }
@@ -177,7 +164,7 @@ void LaplacianShiftedBoundaryElement<TDim>::CalculateLeftHandSide(
 
     // Check if the element belongs to the surrogate interface
     // Note that the INTERFACE flag is assumed to be set in the layer of elements attached to the surrogate interface
-    if (Is(BOUNDARY)) {
+    if (Is(INTERFACE)) {
         // Get convection-diffusion data container
         auto p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
         auto &r_settings = *p_settings;
@@ -203,7 +190,7 @@ void LaplacianShiftedBoundaryElement<TDim>::CalculateLeftHandSide(
                 // Get the current surrogate face geometry information
                 const auto& r_sur_bd_geom = r_boundaries[sur_bd_id];
                 const unsigned int n_bd_points = r_sur_bd_geom.PointsNumber();
-                const DenseVector<std::size_t> sur_bd_local_ids = row(nodes_in_faces, sur_bd_id);
+                const DenseVector<std::size_t> sur_bd_local_ids = column(nodes_in_faces, sur_bd_id);
                 const auto& r_sur_bd_N = r_sur_bd_geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
 
                 // Get the surrogate boundary average conductivity
@@ -254,7 +241,7 @@ void LaplacianShiftedBoundaryElement<TDim>::CalculateRightHandSide(
 
     // Check if the element belongs to the surrogate interface
     // Note that the INTERFACE flag is assumed to be set in the layer of elements attached to the surrogate interface
-    if (Is(BOUNDARY)) {
+    if (Is(INTERFACE)) {
         // Get convection-diffusion data container
         auto p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
         auto &r_settings = *p_settings;
@@ -287,7 +274,7 @@ void LaplacianShiftedBoundaryElement<TDim>::CalculateRightHandSide(
                 // Get the current surrogate face geometry information
                 const auto& r_sur_bd_geom = r_boundaries[sur_bd_id];
                 const unsigned int n_bd_points = r_sur_bd_geom.PointsNumber();
-                const DenseVector<std::size_t> sur_bd_local_ids = row(nodes_in_faces, sur_bd_id);
+                const DenseVector<std::size_t> sur_bd_local_ids = column(nodes_in_faces, sur_bd_id);
                 const auto& r_sur_bd_N = r_sur_bd_geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
 
                 // Get the surrogate boundary average conductivity
@@ -331,8 +318,6 @@ void LaplacianShiftedBoundaryElement<TDim>::CalculateRightHandSide(
 template<std::size_t TDim>
 int LaplacianShiftedBoundaryElement<TDim>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
-    // Surrogate boundary checks
-
     // Base Laplacian element check
     return BaseType::Check(rCurrentProcessInfo);
 }
@@ -342,16 +327,17 @@ std::vector<std::size_t> LaplacianShiftedBoundaryElement<TDim>::GetSurrogateFace
 {
     const std::size_t n_faces = TDim + 1;
     auto& r_neigh_elems = GetValue(NEIGHBOUR_ELEMENTS);
+
     // Check the current element faces
+    // Note that we relly on the fact that the neighbours are sorted according to the faces
     std::vector<std::size_t> surrogate_faces_ids;
     for (std::size_t i_face = 0; i_face < n_faces; ++i_face) {
-        // Get the neighbour element that shares the edge
-        auto p_neigh_elem = r_neigh_elems(i_face).get(); 
-        if (p_neigh_elem != nullptr && p_neigh_elem->Is(VISITED)) {   
-            // VISITED = the element is cut!
+        auto p_neigh_elem = r_neigh_elems(i_face).get();
+        if (p_neigh_elem != nullptr && p_neigh_elem->Is(BOUNDARY)) {
             surrogate_faces_ids.push_back(i_face);
         }
     }
+
     return surrogate_faces_ids;
 }
 
