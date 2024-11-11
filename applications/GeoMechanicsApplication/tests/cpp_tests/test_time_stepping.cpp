@@ -33,6 +33,14 @@ public:
 class DummyStrategyWrapper : public StrategyWrapper
 {
 public:
+    DummyStrategyWrapper()
+    {
+        ON_CALL(*this, GetNumberOfIterations()).WillByDefault(testing::Return(4));
+        ON_CALL(*this, GetEndTime()).WillByDefault(testing::Return(10.0));
+        ON_CALL(*this, GetTimeIncrement()).WillByDefault(testing::Return(0.0));
+        ON_CALL(*this, GetStepNumber()).WillByDefault(testing::Return(0));
+    }
+
     MOCK_METHOD(std::size_t, GetNumberOfIterations, (), (const, override));
     MOCK_METHOD(double, GetEndTime, (), (const, override));
     MOCK_METHOD(void, SetEndTime, (double EndTime), (override));
