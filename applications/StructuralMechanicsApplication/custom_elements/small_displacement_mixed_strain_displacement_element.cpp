@@ -397,6 +397,9 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
     noalias(Q) = ZeroMatrix(dim * n_nodes, n_nodes * strain_size);
     noalias(M) = ZeroMatrix(n_nodes * strain_size, n_nodes * strain_size);
 
+    Matrix D0(strain_size, strain_size);
+    mConstitutiveLawVector[0]->CalculateValue(cons_law_values, CONSTITUTIVE_MATRIX, D0);
+
     const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
     SizeType n_gauss = r_integration_points.size();
     // Gauss IP loop
@@ -424,41 +427,21 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
 
         // Contributions to the RHS
         noalias(RHSu) -= w_gauss * prod(trans(kinematic_variables.B), constitutive_variables.StressVector);
+        const Vector strain_diff = kinematic_variables.SymmGradientDispl - kinematic_variables.EquivalentStrain;
+        noalias(RHSe) -= w_gauss * prod(trans(kinematic_variables.N_epsilon), Vector(prod(D0, strain_diff)));
 
         // Contributions to the LHS
         noalias(K) += w_gauss * prod(trans(kinematic_variables.B), Matrix(prod(constitutive_variables.D, kinematic_variables.B)));
         noalias(Q) += w_gauss * prod(trans(kinematic_variables.B), Matrix(prod(constitutive_variables.D, kinematic_variables.N_epsilon)));
-    }
 
-    const auto& r_lobatto_integration_points = GetGeometry().IntegrationPoints(mMassThisIntegrationMethod);
-    n_gauss = r_lobatto_integration_points.size();
-    // Lobatto IP loop
-    for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
-        CalculateKinematicVariables(kinematic_variables, i_gauss, mMassThisIntegrationMethod);
-
-        double w_gauss = kinematic_variables.detJ0 * r_lobatto_integration_points[i_gauss].Weight();
-        if (dim == 2 && r_props.Has(THICKNESS))
-            w_gauss *= r_props[THICKNESS];
-
-        const Matrix m = prod(trans(kinematic_variables.N_epsilon), kinematic_variables.N_epsilon);
-        Matrix lumped_m = ZeroMatrix(n_nodes * strain_size, n_nodes * strain_size);
-
-        for (IndexType i = 0; i < lumped_m.size1(); ++i) {
-            for (IndexType j = 0; j < lumped_m.size2(); ++j) {
-                lumped_m(i, i) += m(i, j);
-            }
-        }
-        noalias(RHSe) -= w_gauss * prod(trans(kinematic_variables.N_epsilon), kinematic_variables.SymmGradientDispl);
-        noalias(RHSe) += w_gauss * prod(lumped_m, kinematic_variables.NodalStrains);
-        noalias(M)    += w_gauss * lumped_m;
-        noalias(G) += w_gauss * prod(trans(kinematic_variables.N_epsilon), kinematic_variables.B);
+        noalias(M) += w_gauss * prod(trans(kinematic_variables.N_epsilon), Matrix(prod(D0, kinematic_variables.N_epsilon)));
+        noalias(G) += w_gauss * prod(trans(kinematic_variables.N_epsilon), Matrix(prod(D0, kinematic_variables.B)));
     }
 
     K *= tau;
     Q *= (1.0 - tau);
     M *= (tau - 1.0);
     G *= (1.0 - tau);
-    RHSe *= (1.0 - tau);
 
     AssembleRHS(rRHS, RHSu, RHSe);
     AssembleLHS(rLHS, K, Q, M, G);
@@ -511,6 +494,9 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLeftHandSide(
     noalias(Q) = ZeroMatrix(dim * n_nodes, n_nodes * strain_size);
     noalias(M) = ZeroMatrix(n_nodes * strain_size, n_nodes * strain_size);
 
+    Matrix D0(strain_size, strain_size);
+    mConstitutiveLawVector[0]->CalculateValue(cons_law_values, CONSTITUTIVE_MATRIX, D0);
+
     const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
     SizeType n_gauss = r_integration_points.size();
     // Gauss IP loop
@@ -532,28 +518,9 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLeftHandSide(
         // Contributions to the LHS
         noalias(K) += w_gauss * prod(trans(kinematic_variables.B), Matrix(prod(constitutive_variables.D, kinematic_variables.B)));
         noalias(Q) += w_gauss * prod(trans(kinematic_variables.B), Matrix(prod(constitutive_variables.D, kinematic_variables.N_epsilon)));
-    }
 
-    const auto& r_lobatto_integration_points = GetGeometry().IntegrationPoints(mMassThisIntegrationMethod);
-    n_gauss = r_lobatto_integration_points.size();
-    // Lobatto IP loop
-    for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
-        CalculateKinematicVariables(kinematic_variables, i_gauss, mMassThisIntegrationMethod);
-
-        double w_gauss = kinematic_variables.detJ0 * r_lobatto_integration_points[i_gauss].Weight();
-        if (dim == 2 && r_props.Has(THICKNESS))
-            w_gauss *= r_props[THICKNESS];
-
-        const Matrix m = prod(trans(kinematic_variables.N_epsilon), kinematic_variables.N_epsilon);
-        Matrix lumped_m = ZeroMatrix(n_nodes * strain_size, n_nodes * strain_size);
-
-        for (IndexType i = 0; i < lumped_m.size1(); ++i) {
-            for (IndexType j = 0; j < lumped_m.size2(); ++j) {
-                lumped_m(i, i) += m(i, j);
-            }
-        }
-        noalias(G) += w_gauss * prod(trans(kinematic_variables.N_epsilon), kinematic_variables.B);
-        noalias(M) += w_gauss * lumped_m;
+        noalias(M) += w_gauss * prod(trans(kinematic_variables.N_epsilon), Matrix(prod(D0, kinematic_variables.N_epsilon)));
+        noalias(G) += w_gauss * prod(trans(kinematic_variables.N_epsilon), Matrix(prod(D0, kinematic_variables.B)));
     }
 
     K *= tau;
@@ -611,6 +578,9 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateRightHandSide(
     noalias(RHSu) = ZeroVector(dim * n_nodes);
     noalias(RHSe) = ZeroVector(strain_size * n_nodes);
 
+    Matrix D0(strain_size, strain_size);
+    mConstitutiveLawVector[0]->CalculateValue(cons_law_values, CONSTITUTIVE_MATRIX, D0);
+
     // IP loop
     for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
 
@@ -636,31 +606,10 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateRightHandSide(
 
         // Contributions to the RHS
         noalias(RHSu) -= w_gauss * prod(trans(kinematic_variables.B), constitutive_variables.StressVector);
+        const Vector strain_diff = kinematic_variables.SymmGradientDispl - kinematic_variables.EquivalentStrain;
+        noalias(RHSe) -= w_gauss * prod(trans(kinematic_variables.N_epsilon), Vector(prod(D0, strain_diff)));
     }
 
-    const auto& r_lobatto_integration_points = GetGeometry().IntegrationPoints(mMassThisIntegrationMethod);
-    n_gauss = r_lobatto_integration_points.size();
-    // Lobatto IP loop
-    for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
-        CalculateKinematicVariables(kinematic_variables, i_gauss, mMassThisIntegrationMethod);
-
-        double w_gauss = kinematic_variables.detJ0 * r_lobatto_integration_points[i_gauss].Weight();
-        if (dim == 2 && r_props.Has(THICKNESS))
-            w_gauss *= r_props[THICKNESS];
-
-        const Matrix m = prod(trans(kinematic_variables.N_epsilon), kinematic_variables.N_epsilon);
-        Matrix lumped_m = ZeroMatrix(n_nodes * strain_size, n_nodes * strain_size);
-
-        for (IndexType i = 0; i < lumped_m.size1(); ++i) {
-            for (IndexType j = 0; j < lumped_m.size2(); ++j) {
-                lumped_m(i, i) += m(i, j);
-            }
-        }
-        noalias(RHSe) += w_gauss * prod(lumped_m, kinematic_variables.NodalStrains);
-        noalias(RHSe) -= w_gauss * prod(trans(kinematic_variables.N_epsilon), kinematic_variables.SymmGradientDispl);
-    }
-
-    RHSe *= (1.0 - tau);
     AssembleRHS(rRHS, RHSu, RHSe);
 }
 
