@@ -18,7 +18,7 @@
 // External includes
 
 // Project includes
-#include "../StructuralMechanicsApplication/custom_elements/cr_beam_element_2D2N.hpp"
+#include "../StructuralMechanicsApplication/custom_elements/beam_elements/cr_beam_element_2D2N.hpp"
 #include "includes/define.h"
 #include "includes/element.h"
 #include "includes/serializer.h"

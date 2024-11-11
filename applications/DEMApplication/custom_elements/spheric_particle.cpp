@@ -894,6 +894,11 @@ void SphericParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::Pa
                 if ((i < (int)mNeighbourElements.size()) && this->Id() < neighbour_iterator_id) {
                     CalculateOnContactElements(i, LocalContactForce, GlobalContactForce);
                 }
+            } else if (r_process_info[IS_TIME_TO_UPDATE_CONTACT_ELEMENT] && r_process_info[CONTACT_MESH_OPTION] == 1) {
+                unsigned int neighbour_iterator_id = data_buffer.mpOtherParticle->Id();
+                if ((i < (int)mNeighbourElements.size()) && this->Id() < neighbour_iterator_id) {
+                    CalculateOnContactElements(i, LocalContactForce, GlobalContactForce);
+                }
             }
 
             if (r_process_info[ENERGY_CALCULATION_OPTION]){
