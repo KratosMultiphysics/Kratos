@@ -30,9 +30,8 @@ void PointsData::CreateNodes(NodesContainerType& rNodes)
 {
     KRATOS_TRY;
     const unsigned num_new_nodes = mIds.size();
-
+    rNodes.reserve(rNodes.size() + num_new_nodes);
     auto mutable_pass = rNodes.GetMutablePass();
-    mutable_pass.reserve(rNodes.size() + num_new_nodes);
     for (unsigned i = 0; i < num_new_nodes; ++i)
     {
         const array_1d<double, 3>& r_coord = mCoords[i];

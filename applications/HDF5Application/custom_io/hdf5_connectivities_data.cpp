@@ -78,8 +78,8 @@ void ConnectivitiesData::CreateEntities(NodesContainerType& rNodes,
     const unsigned geometry_size = r_elem.GetGeometry().size();
     KRATOS_ERROR_IF(geometry_size != mConnectivities.size2())
         << "Non-matching geometry and connectivity sizes." << std::endl;
+    rElements.reserve(rElements.size() + num_new_elems);
     auto mutable_pass = rElements.GetMutablePass();
-    mutable_pass.reserve(rElements.size() + num_new_elems);
     ElementType::NodesArrayType nodes(geometry_size);
 
     for (unsigned i = 0; i < num_new_elems; ++i)
@@ -108,8 +108,8 @@ void ConnectivitiesData::CreateEntities(NodesContainerType& rNodes,
     const unsigned geometry_size = r_cond.GetGeometry().size();
     KRATOS_ERROR_IF(geometry_size != mConnectivities.size2())
         << "Non-matching geometry and connectivity sizes." << std::endl;
+    rConditions.reserve(rConditions.size() + num_new_conds);
     auto mutable_pass = rConditions.GetMutablePass();
-    mutable_pass.reserve(rConditions.size() + num_new_conds);
     ConditionType::NodesArrayType nodes(geometry_size);
 
     for (unsigned i = 0; i < num_new_conds; ++i)

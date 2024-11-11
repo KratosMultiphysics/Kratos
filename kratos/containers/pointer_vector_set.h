@@ -170,16 +170,6 @@ public:
         ///@name Public methods
         ///@{
 
-        void shrink_to_fit()
-        {
-            mrContainer.mData.shrink_to_fit();
-        }
-
-        void reserve(size_type NewCapacity)
-        {
-            mrContainer.mData.reserve(NewCapacity);
-        }
-
         void push_back(TPointerType pValue)
         {
             mrContainer.mData.push_back(pValue);
