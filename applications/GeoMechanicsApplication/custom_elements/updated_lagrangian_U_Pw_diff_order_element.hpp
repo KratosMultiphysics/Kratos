@@ -145,6 +145,8 @@ public:
                                       std::vector<Vector>&    rOutput,
                                       const ProcessInfo&      rCurrentProcessInfo) override;
 
+    using SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints;
+
     ///@}
     ///@name Access
     ///@{
