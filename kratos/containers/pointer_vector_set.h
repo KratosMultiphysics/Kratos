@@ -73,6 +73,43 @@ template<class TDataType,
 class PointerVectorSet final
 {
 public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of PointerVectorSet
+    KRATOS_CLASS_POINTER_DEFINITION(PointerVectorSet);
+
+    /// Key type for searching in this container.
+    using key_type = typename std::remove_reference<decltype(std::declval<TGetKeyType>()(std::declval<TDataType>()))>::type;
+
+    // Data type stored in this container.
+    using data_type = TDataType;
+    using value_type = TDataType;
+    using key_compare = TCompareType;
+    using pointer = TPointerType;
+    using reference = TDataType&;
+    using const_reference = const TDataType&;
+    using ContainerType = TContainerType;
+
+    /// @}
+    /// @name Iterators
+    /// @{
+    using iterator = boost::indirect_iterator<typename TContainerType::iterator>;
+    using const_iterator = boost::indirect_iterator<typename TContainerType::const_iterator>;
+    using reverse_iterator = boost::indirect_iterator<typename TContainerType::reverse_iterator>;
+    using const_reverse_iterator = boost::indirect_iterator<typename TContainerType::const_reverse_iterator>;
+
+    /// @}
+    /// @name Other definitions
+    /// @{
+    using size_type = typename TContainerType::size_type;
+    using ptr_iterator = typename TContainerType::iterator;
+    using ptr_const_iterator = typename TContainerType::const_iterator;
+    using ptr_reverse_iterator = typename TContainerType::reverse_iterator;
+    using ptr_const_reverse_iterator = typename TContainerType::const_reverse_iterator;
+    using difference_type = typename TContainerType::difference_type;
+
+    ///@}
     ///@name Class definitions
     ///@{
 
@@ -133,6 +170,16 @@ public:
         ///@name Public methods
         ///@{
 
+        void shrink_to_fit()
+        {
+            mrContainer.mData.shrink_to_fit();
+        }
+
+        void reserve(size_type NewCapacity)
+        {
+            mrContainer.mData.reserve(NewCapacity);
+        }
+
         void push_back(TPointerType pValue)
         {
             mrContainer.mData.push_back(pValue);
@@ -154,43 +201,6 @@ public:
 
         ///@}
     };
-
-    ///@}
-    ///@name Type Definitions
-    ///@{
-
-    /// Pointer definition of PointerVectorSet
-    KRATOS_CLASS_POINTER_DEFINITION(PointerVectorSet);
-
-    /// Key type for searching in this container.
-    using key_type = typename std::remove_reference<decltype(std::declval<TGetKeyType>()(std::declval<TDataType>()))>::type;
-
-    // Data type stored in this container.
-    using data_type = TDataType;
-    using value_type = TDataType;
-    using key_compare = TCompareType;
-    using pointer = TPointerType;
-    using reference = TDataType&;
-    using const_reference = const TDataType&;
-    using ContainerType = TContainerType;
-
-    /// @}
-    /// @name Iterators
-    /// @{
-    using iterator = boost::indirect_iterator<typename TContainerType::iterator>;
-    using const_iterator = boost::indirect_iterator<typename TContainerType::const_iterator>;
-    using reverse_iterator = boost::indirect_iterator<typename TContainerType::reverse_iterator>;
-    using const_reverse_iterator = boost::indirect_iterator<typename TContainerType::const_reverse_iterator>;
-
-    /// @}
-    /// @name Other definitions
-    /// @{
-    using size_type = typename TContainerType::size_type;
-    using ptr_iterator = typename TContainerType::iterator;
-    using ptr_const_iterator = typename TContainerType::const_iterator;
-    using ptr_reverse_iterator = typename TContainerType::reverse_iterator;
-    using ptr_const_reverse_iterator = typename TContainerType::const_reverse_iterator;
-    using difference_type = typename TContainerType::difference_type;
 
     ///@}
     ///@name Life Cycle
