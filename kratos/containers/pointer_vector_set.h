@@ -1126,7 +1126,7 @@ private:
     /// The maximum buffer size for data storage.
     size_type mMaxBufferSize;
 
-    std::atomic<bool> mHasMutablePass = false;
+    bool mHasMutablePass = false;
 
     ///@}
     ///@name Private Operators
