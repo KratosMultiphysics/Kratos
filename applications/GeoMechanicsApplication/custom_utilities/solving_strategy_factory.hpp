@@ -69,7 +69,7 @@ public:
                 ParametersUtilities::CopyOptionalParameters(rSolverSettings, strategy_entries);
             auto result =
                 std::make_unique<GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>>(
-                    rModelPart, scheme, solver, criteria, builder_and_solver, strategy_parameters,
+                    rModelPart, scheme, criteria, builder_and_solver, strategy_parameters,
                     max_iterations, calculate_reactions, reform_dof_set_at_each_step, move_mesh_flag);
             result->SetEchoLevel(echo_level);
             return result;

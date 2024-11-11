@@ -933,7 +933,7 @@ public:
     }
 
     template< class VectorType >
-    static bool WriteMatrixMarketVector(const char* pFileName, const VectorType& rV)
+    static bool WriteMatrixMarketVector(const char* pFileName, /*const*/ VectorType& rV)
     {
         // Use full namespace in call to make sure we are not calling this function recursively
         return Kratos::WriteMatrixMarketVector(pFileName, rV);

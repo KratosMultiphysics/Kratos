@@ -166,8 +166,7 @@ private:
     void load(Serializer& rSerializer) override{KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)}
 
     // Assignment operator.
-    TransientPwElement&
-    operator=(TransientPwElement const& rOther);
+    TransientPwElement& operator=(TransientPwElement const& rOther);
 
     // Copy constructor.
     TransientPwElement(TransientPwElement const& rOther);
