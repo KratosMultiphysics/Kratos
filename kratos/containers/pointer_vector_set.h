@@ -152,7 +152,7 @@ public:
             std::sort(mrContainer.mData.begin(), mrContainer.mData.end(), CompareKey());
 
             // Make the entities unique
-            typename TContainerType::iterator new_end_it = std::unique(mrContainer.mData.begin(), mrContainer.mData.end(), EqualKeyTo());
+            auto new_end_it = std::unique(mrContainer.mData.begin(), mrContainer.mData.end(), EqualKeyTo());
 
             // remove the duplicated entities.
             mrContainer.mData.erase(new_end_it,  mrContainer.mData.end());
