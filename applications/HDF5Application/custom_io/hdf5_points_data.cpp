@@ -30,13 +30,15 @@ void PointsData::CreateNodes(NodesContainerType& rNodes)
 {
     KRATOS_TRY;
     const unsigned num_new_nodes = mIds.size();
-    rNodes.reserve(rNodes.size() + num_new_nodes);
+
+    auto mutable_pass = rNodes.GetMutablePass();
+    mutable_pass.reserve(rNodes.size() + num_new_nodes);
     for (unsigned i = 0; i < num_new_nodes; ++i)
     {
         const array_1d<double, 3>& r_coord = mCoords[i];
         NodeType::Pointer p_node = Kratos::make_intrusive<NodeType>(
             mIds[i], r_coord[0], r_coord[1], r_coord[2]);
-        rNodes.push_back(p_node);
+        mutable_pass.push_back(p_node);
     }
     KRATOS_CATCH("");
 }

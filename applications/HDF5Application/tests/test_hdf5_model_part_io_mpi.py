@@ -203,8 +203,6 @@ class TestCase(KratosUnittest.TestCase):
                 self.assertEqual(read_node.Z, write_node.Z)
             # Check elements
             self.assertEqual(read_model_part.NumberOfElements(), write_model_part.NumberOfElements())
-            first_elem_id = next(iter(read_model_part.Elements)).Id
-            read_model_part.GetElement(first_elem_id) # Force a sort since order is mixed by openmp.
             for read_elem, write_elem in zip(read_model_part.Elements, write_model_part.Elements):
                 self.assertEqual(read_elem.Id, write_elem.Id)
                 self.assertEqual(read_elem.Properties.Id, write_elem.Properties.Id)
@@ -213,8 +211,6 @@ class TestCase(KratosUnittest.TestCase):
                     self.assertEqual(read_elem_node.Id, write_elem_node.Id)
             # Check conditions
             self.assertEqual(read_model_part.NumberOfConditions(), write_model_part.NumberOfConditions())
-            first_cond_id = next(iter(read_model_part.Conditions)).Id
-            read_model_part.GetCondition(first_cond_id) # Force a sort since order is mixed by openmp.
             for read_cond, write_cond in zip(read_model_part.Conditions, write_model_part.Conditions):
                 self.assertEqual(read_cond.Id, write_cond.Id)
                 self.assertEqual(read_cond.Properties.Id, write_cond.Properties.Id)
