@@ -67,9 +67,6 @@ class GeoMechanicsAnalysisBase(AnalysisStage):
         # The reset needs to take place befor the Initialize of the processes, as these will set the Dirichlet condition.
         self._GetSolver().main_model_part.ProcessInfo[KratosGeo.RESET_DISPLACEMENTS] = self.reset_displacements
         if self.reset_displacements:
-            self.ResetIfHasNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-            self.ResetIfHasNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
-
             KratosMultiphysics.VariableUtils().UpdateCurrentToInitialConfiguration(self._GetSolver().GetComputingModelPart().Nodes)
 
     def Finalize(self):
