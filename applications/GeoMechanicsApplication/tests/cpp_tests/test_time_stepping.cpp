@@ -39,29 +39,17 @@ public:
     }
 
     MOCK_METHOD(std::size_t, GetNumberOfIterations, (), (const, override));
-
-    [[nodiscard]] double GetEndTime() const override { return 10.; };
-
+    MOCK_METHOD(double, GetEndTime, (), (const, override));
     MOCK_METHOD(void, SetEndTime, (double EndTime), (override));
-
-    [[nodiscard]] double GetTimeIncrement() const override { return 0.0; }
-
+    MOCK_METHOD(double, GetTimeIncrement, (), (const, override));
     MOCK_METHOD(void, SetTimeIncrement, (double TimeIncrement), (override));
-
-    [[nodiscard]] std::size_t GetStepNumber() const override { return 0; }
-
+    MOCK_METHOD(std::size_t, GetStepNumber, (), (const, override));
     MOCK_METHOD(void, IncrementStepNumber, (), (override));
-
     MOCK_METHOD(void, CloneTimeStep, (), (override));
-
     MOCK_METHOD(void, RestorePositionsAndDOFVectorToStartOfStep, (), (override));
-
     MOCK_METHOD(void, SaveTotalDisplacementFieldAtStartOfTimeLoop, (), (override));
-
     MOCK_METHOD(void, AccumulateTotalDisplacementField, (), (override));
-
     MOCK_METHOD(void, ComputeIncrementalDisplacementField, (),  (override));
-
     MOCK_METHOD(void, OutputProcess, (), (override));
 
     void Initialize() override { ++mSolverStrategyInitializeCalls; }
