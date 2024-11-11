@@ -72,7 +72,6 @@ public:
         KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0)
             << "Max Piping Iterations: " << mPipingIterations << std::endl;
 
-        // get piping elements
         const auto piping_elements = GetPipingElements();
         if (piping_elements.empty()) {
             KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0)
@@ -97,8 +96,7 @@ public:
             << number_of_piping_interface_elements << std::endl;
 
         if (number_of_piping_interface_elements > 0) {
-            const auto max_pipe_height = CalculateMaxPipeHeight(piping_interface_elements);
-            this->DetermineOpenPipingElements(piping_interface_elements, max_pipe_height);
+            this->DetermineOpenPipingElements(piping_interface_elements);
             this->BaseClassFinalizeSolutionStep();
             return;
         }
@@ -116,8 +114,7 @@ public:
             << "Unexpected number of piping line elements: expected " << piping_line_elements.size()
             << " but got " << number_of_piping_line_elements << std::endl;
 
-        const auto max_pipe_height = CalculateMaxPipeHeight(piping_line_elements);
-        this->DetermineOpenPipingElements(piping_line_elements, max_pipe_height);
+        this->DetermineOpenPipingElements(piping_line_elements);
         this->BaseClassFinalizeSolutionStep();
     }
 
@@ -386,11 +383,12 @@ private:
     }
 
     template <typename FilteredElementsType>
-    void DetermineOpenPipingElements(const FilteredElementsType& rPipingElements, double MaxPipeHeight)
+    void DetermineOpenPipingElements(const FilteredElementsType& rPipingElements)
     {
         bool       grow                      = true;
         const auto number_of_piping_elements = rPipingElements.size();
         auto number_of_open_piping_elements  = this->GetNumberOfActivePipeElements(rPipingElements);
+        auto max_pipe_height = CalculateMaxPipeHeight(rPipingElements);
         while (grow && (number_of_open_piping_elements < number_of_piping_elements)) {
             // get tip element and activate
             auto tip_element = rPipingElements.at(number_of_open_piping_elements);
@@ -408,11 +406,11 @@ private:
             // non-lin picard iteration, for deepening the pipe
             // Todo JDN (20220817):: Deal with Equilibrium redundancy
             // Equilibrium = CheckPipeEquilibrium(OpenPipeElements, amax, mPipingIterations);
-            CheckPipeEquilibrium(OpenPipeElements, MaxPipeHeight, mPipingIterations);
+            CheckPipeEquilibrium(OpenPipeElements, max_pipe_height, mPipingIterations);
 
             // check if pipe should grow in length
             std::tie(grow, number_of_open_piping_elements) = CheckStatusTipElement(
-                number_of_open_piping_elements, number_of_piping_elements, MaxPipeHeight, rPipingElements);
+                number_of_open_piping_elements, number_of_piping_elements, max_pipe_height, rPipingElements);
 
             // if n open elements is lower than total pipe elements, save pipe height current
             // growing iteration or reset to previous iteration in case the pipe should not grow.

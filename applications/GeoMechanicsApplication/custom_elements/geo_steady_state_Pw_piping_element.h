@@ -108,8 +108,9 @@ public:
         return 0;
     }
 
-    void Initialize(const ProcessInfo&) final
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) final
     {
+        Element::Initialize(rCurrentProcessInfo);
         // all these except the PIPE_ELEMENT_LENGTH seem to be in the erosion_process_strategy only. Why do this: it is used in output for dGeoFlow
         this->SetValue(PIPE_ELEMENT_LENGTH, CalculateLength(this->GetGeometry()));
         this->SetValue(PIPE_EROSION, false);
@@ -128,7 +129,6 @@ public:
         // return infinite when the head gradient dh/dx is 0
         if (std::abs(head_gradient) < std::numeric_limits<double>::epsilon()) return 1e10;
 
-        // calculate particle diameter to be replaced with Anne's version!
         const auto particle_d = GeoTransportEquationUtilities::CalculateParticleDiameter(rProp);
         // for a more generic element calculate slope of pipe (in degrees! see formula), currently pipe is assumed to be horizontal
         const double pipe_slope = 0.0;
