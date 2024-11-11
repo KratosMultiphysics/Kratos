@@ -164,6 +164,8 @@ public:
                                  const Variable<array_1d<double, 3>>& rDestinationVariable,
                                  const ProcessInfo&                   rCurrentProcessInfo) override;
 
+    using Element::AddExplicitContribution;
+
     void GetValuesVector(Vector& rValues, int Step = 0) const override;
 
     void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
