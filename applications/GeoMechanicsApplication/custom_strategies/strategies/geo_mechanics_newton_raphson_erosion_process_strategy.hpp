@@ -173,8 +173,8 @@ public:
             return a->GetGeometry().GetPoint(0)[0] < b->GetGeometry().GetPoint(0)[0];
         });
 
-        double min_x = left_pipe[0]->GetGeometry().GetPoint(0)[0];
-        double max_x = right_pipe[0]->GetGeometry().GetPoint(0)[0];
+        const auto min_x = left_pipe[0]->GetGeometry().GetPoint(0)[0];
+        const auto max_x = right_pipe[0]->GetGeometry().GetPoint(0)[0];
 
         KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0)
             << min_x << " " << max_x << " " << pipe_element_start_x << std::endl;
@@ -187,12 +187,12 @@ public:
 
         if (min_x == pipe_element_start_x) {
             // Pipe Left -> Right
-            sort(pipe_elements.begin(), pipe_elements.end(), [](const Element* lhs, const Element* rhs) {
+            std::sort(pipe_elements.begin(), pipe_elements.end(), [](const Element* lhs, const Element* rhs) {
                 return lhs->GetGeometry().GetPoint(0)[0] < rhs->GetGeometry().GetPoint(0)[0];
             });
         } else {
             // Pipe Right -> Left
-            sort(pipe_elements.begin(), pipe_elements.end(), [](const Element* lhs, const Element* rhs) {
+            std::sort(pipe_elements.begin(), pipe_elements.end(), [](const Element* lhs, const Element* rhs) {
                 return lhs->GetGeometry().GetPoint(0)[0] > rhs->GetGeometry().GetPoint(0)[0];
             });
         }
@@ -210,8 +210,8 @@ public:
 private:
     unsigned int mPipingIterations; /// This is used to calculate the pipingLength
     int          rank;
-    double       small_pipe_height    = 1e-10;
-    double       pipe_height_accuracy = small_pipe_height * 10;
+    double       mSmallPipeHeight    = 1e-10;
+    double       mPipeHeightAccuracy = mSmallPipeHeight * 10;
 
     /// <summary>
     /// Initialises the number of open pipe elements. This value can be greater than 0 in a multi
@@ -281,7 +281,8 @@ private:
         unsigned int piping_iteration = 0;
 
         // calculate max pipe height and pipe increment
-        double pipe_height_increment = CalculatePipeHeightIncrement(MaxPipeHeight, MaxNumberOfPipingIterations);
+        const auto pipe_height_increment =
+            CalculatePipeHeightIncrement(MaxPipeHeight, MaxNumberOfPipingIterations);
 
         while (piping_iteration < MaxNumberOfPipingIterations && !equilibrium && converged) {
             equilibrium = true;
@@ -289,42 +290,41 @@ private:
             // perform a flow calculation and stop growing if the calculation doesn't converge
             converged = this->Recalculate();
 
-            if (converged) {
-                // Update depth of open piping Elements
-                equilibrium = true;
-                for (auto OpenPipeElement : rOpenPipeElements) {
-                    // get open pipe element geometry and properties
-                    auto& r_geom = OpenPipeElement->GetGeometry();
-                    auto& r_prop = OpenPipeElement->GetProperties();
+            if (!converged) continue;
 
-                    // calculate equilibrium pipe height and get current pipe height
-                    double eq_height = OpenPipeElement->CalculateEquilibriumPipeHeight(
-                        r_prop, r_geom, OpenPipeElement->GetValue(PIPE_ELEMENT_LENGTH));
-                    double current_height = OpenPipeElement->GetValue(PIPE_HEIGHT);
+            // Update depth of open piping Elements
+            equilibrium = true;
+            for (auto OpenPipeElement : rOpenPipeElements) {
+                // get open pipe element geometry and properties
+                auto& r_geom = OpenPipeElement->GetGeometry();
+                auto& r_prop = OpenPipeElement->GetProperties();
 
-                    // set erosion on true if current pipe height is greater than the equilibrium height
-                    OpenPipeElement->SetValue(PIPE_EROSION, OpenPipeElement->GetValue(PIPE_EROSION) ||
-                                                                (current_height > eq_height));
-                    // check this if statement, I don't understand the check for pipe erosion
-                    if (((!OpenPipeElement->GetValue(PIPE_EROSION) || (current_height > eq_height)) &&
-                         current_height < MaxPipeHeight)) {
-                        OpenPipeElement->SetValue(
-                            PIPE_HEIGHT, OpenPipeElement->GetValue(PIPE_HEIGHT) + pipe_height_increment);
-                        equilibrium = false;
-                    }
+                // calculate equilibrium pipe height and get current pipe height
+                double eq_height = OpenPipeElement->CalculateEquilibriumPipeHeight(
+                    r_prop, r_geom, OpenPipeElement->GetValue(PIPE_ELEMENT_LENGTH));
+                const auto current_height = OpenPipeElement->GetValue(PIPE_HEIGHT);
 
-                    // check if equilibrium height and current pipe heights are diverging, stop
-                    // Picard iterations if this is the case and set pipe height on zero
-                    if (!OpenPipeElement->GetValue(PIPE_EROSION) && (piping_iteration > 1) &&
-                        ((eq_height - current_height) > OpenPipeElement->GetValue(DIFF_PIPE_HEIGHT))) {
-                        equilibrium = true;
-                        OpenPipeElement->SetValue(PIPE_HEIGHT, small_pipe_height);
-                    }
-                    // calculate difference between equilibrium height and current pipe height
-                    OpenPipeElement->SetValue(DIFF_PIPE_HEIGHT, eq_height - current_height);
+                // set erosion on true if current pipe height is greater than the equilibrium height
+                OpenPipeElement->SetValue(PIPE_EROSION, OpenPipeElement->GetValue(PIPE_EROSION) ||
+                                                            (current_height > eq_height));
+                // check this if statement, I don't understand the check for pipe erosion
+                if (((!OpenPipeElement->GetValue(PIPE_EROSION) || (current_height > eq_height)) &&
+                     current_height < MaxPipeHeight)) {
+                    OpenPipeElement->SetValue(PIPE_HEIGHT, current_height + pipe_height_increment);
+                    equilibrium = false;
                 }
-                piping_iteration += 1;
+
+                // check if equilibrium height and current pipe heights are diverging, stop
+                // Picard iterations if this is the case and set pipe height on zero
+                if (!OpenPipeElement->GetValue(PIPE_EROSION) && (piping_iteration > 1) &&
+                    ((eq_height - current_height) > OpenPipeElement->GetValue(DIFF_PIPE_HEIGHT))) {
+                    OpenPipeElement->SetValue(PIPE_HEIGHT, mSmallPipeHeight);
+                    equilibrium = true;
+                }
+                // calculate difference between equilibrium height and current pipe height
+                OpenPipeElement->SetValue(DIFF_PIPE_HEIGHT, eq_height - current_height);
             }
+            piping_iteration += 1;
         }
         return equilibrium;
     }
@@ -347,11 +347,11 @@ private:
         // check status of tip element, stop growing if pipe_height is zero or greater than maximum
         // pipe height or if all elements are open
         if (NumberOfOpenPipeElements < NumberOfPipeELements) {
-            auto   tip_element = rPipeElements.at(NumberOfOpenPipeElements - 1);
-            double pipe_height = tip_element->GetValue(PIPE_HEIGHT);
+            auto       tip_element = rPipeElements.at(NumberOfOpenPipeElements - 1);
+            const auto pipe_height = tip_element->GetValue(PIPE_HEIGHT);
 
             if ((pipe_height > MaxPipeHeight + std::numeric_limits<double>::epsilon()) ||
-                (pipe_height < pipe_height_accuracy)) {
+                (pipe_height < mPipeHeightAccuracy)) {
                 // stable element found; pipe length does not increase during current time step
                 grow = false;
                 tip_element->SetValue(PIPE_EROSION, false);
