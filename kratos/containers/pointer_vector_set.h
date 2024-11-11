@@ -30,6 +30,7 @@
 #include "includes/define.h"
 #include "includes/serializer.h"
 #include "containers/key_generator.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
