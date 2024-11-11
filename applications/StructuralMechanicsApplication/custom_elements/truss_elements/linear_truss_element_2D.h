@@ -82,23 +82,14 @@ public:
     // Constructor using an array of nodes
     LinearTrussElement2D(IndexType NewId, GeometryType::Pointer pGeometry) : Element(NewId, pGeometry)
     {
-        if constexpr (NNodes == 2) {
-            mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
-        } else {
-            mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
-        }
+        mThisIntegrationMethod = CalculateIntegrationMethod();
     }
 
     // Constructor using an array of nodes with properties
     LinearTrussElement2D(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : Element(NewId,pGeometry,pProperties)
     {
-        // This is needed to prevent uninitialised integration method in inactive elements
-        if constexpr (NNodes == 2) {
-            mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
-        } else {
-            mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
-        }
+        mThisIntegrationMethod = CalculateIntegrationMethod();
     }
 
     // Copy constructor
@@ -135,6 +126,18 @@ public:
     double GetAngle() const
     {
         return StructuralMechanicsElementUtilities::GetReferenceRotationAngle2D2NBeam(GetGeometry());
+    }
+
+    /**
+     * @brief This method returns the integration method depending on the Number of Nodes
+     */
+    IntegrationMethod CalculateIntegrationMethod()
+    {
+        if constexpr (NNodes == 2) {
+            return GeometryData::IntegrationMethod::GI_GAUSS_1;
+        } else {
+            return GeometryData::IntegrationMethod::GI_GAUSS_2;
+        }
     }
 
     /**
