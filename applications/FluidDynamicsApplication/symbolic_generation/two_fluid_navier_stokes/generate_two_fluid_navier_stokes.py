@@ -110,6 +110,8 @@ for dim in dim_vector:
     vconv_gauss = vconv.transpose()*N
 
     vconv_old_gauss = vn.transpose()*N
+    vconv_fractional = vfrac.transpose()*N
+
 
 
     ## Compute the stabilization parameters
@@ -167,6 +169,7 @@ for dim in dim_vector:
     elif time_integration=="alpha_method":
         grad_v = DN.transpose()*v_alpha
 
+    grad_v_fractional = DN.transpose()*vfrac
     grad_v_old = DN.transpose()*vn
     grad_w = DN.transpose()*w
     grad_q = DN.transpose()*q
@@ -193,15 +196,19 @@ for dim in dim_vector:
     # Recall that the grad(w):sigma contraction equals grad_sym(w)*sigma in Voigt notation since sigma is a symmetric tensor.
 
 
+
     # Convective term definition
     convective_term = (vconv_gauss.transpose()*grad_v)
     # Convective past term definition
     convective_n_term = (vconv_old_gauss.transpose()*grad_v_old)
     accel_n = (vn-vnn)/dt
     accel_gauss_n = accel_n.transpose()*N
+    # Fractional convective term
+    convective_frac_term = vconv_fractional.transpose()*grad_v_fractional
+
 
     ## Galerkin Functional
-    rv_galerkin =rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss - rho*w_gauss.transpose()*convective_term.transpose() - grad_sym_w_voigt.transpose()*stress + div_w*p_gauss
+    rv_galerkin =rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss - rho*w_gauss.transpose()*convective_term.transpose() - grad_sym_w_voigt.transpose()*stress + div_w*p_gauss+ rho*w_gauss.transpose()*convective_frac_term.transpose()
     if time_integration=="bdf2":
         rv_galerkin -= w_gauss.transpose()*K_darcy*v_gauss #Darcy Term
 
@@ -225,7 +232,7 @@ for dim in dim_vector:
     # Stabilization functional terms
     # Momentum conservation residual
     # Note that the viscous stress term is dropped since linear elements are used
-    vel_residual = rho*f_gauss - rho*accel_gauss - rho*convective_term.transpose() - grad_p
+    vel_residual = rho*f_gauss - rho*accel_gauss - rho*convective_term.transpose() - grad_p +rho*convective_frac_term.transpose()
     if time_integration=="bdf2":
         vel_residual-= K_darcy*v_gauss
         # vel_residual-= not_air_traj*rho*(accel_gauss_n+convective_n_term.transpose()) # Adding fractional acceleration to the stabilization residual

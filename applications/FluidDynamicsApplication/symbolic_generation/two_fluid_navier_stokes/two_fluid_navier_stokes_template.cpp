@@ -432,7 +432,9 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointLHSC
     const double dyn_tau = rData.DynamicTau;
     const double K_darcy = rData.DarcyTerm;
 
-    const auto vconv = rData.Velocity - rData.Velocity_OldStep1;
+    // const auto vconv = rData.Velocity - rData.Velocity_OldStep1;
+    const auto vconv = rData.Velocity - rData.MeshVelocity;
+
     const auto vfrac = rData.Velocity_Fractional;
     bool not_air_traj = rData.NotAirTraj;
     // const auto an = rData.Acceleration;
@@ -473,7 +475,8 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointLHSC
 
     const double dyn_tau = rData.DynamicTau;
 
-    const auto vconv = rData.Velocity - rData.Velocity_OldStep1;
+    // const auto vconv = rData.Velocity - rData.Velocity_OldStep1;
+    const auto vconv = rData.Velocity - rData.MeshVelocity;
     const auto vfrac = rData.Velocity_Fractional;
     bool not_air_traj = rData.NotAirTraj;
 
@@ -522,7 +525,9 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointRHSC
     // const auto an = rData.Acceleration;
     const auto &vnn = rData.Velocity_OldStep2;
     const auto &vmesh = rData.MeshVelocity;
-    const auto &vconv = v - vn;
+    // const auto &vconv = v - vn;
+    const auto &vconv = v - vmesh;
+
     const auto vfrac = rData.Velocity_Fractional;
     bool not_air_traj = rData.NotAirTraj;
     const auto &f = rData.BodyForce;
@@ -575,7 +580,9 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointRHSC
     // const auto an = rData.Acceleration;
     const auto &vnn = rData.Velocity_OldStep2;
     const auto &vmesh = rData.MeshVelocity;
-    const auto &vconv = v - vn;
+    // const auto &vconv = v - vn;
+    const auto &vconv = v - vmesh;
+
     const auto vfrac = rData.Velocity_Fractional;
     bool not_air_traj = rData.NotAirTraj;
     const auto &f = rData.BodyForce;
@@ -631,7 +638,9 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointEnri
     // const auto an = rData.Acceleration;
     const auto &vnn = rData.Velocity_OldStep2;
     const auto &vmesh = rData.MeshVelocity;
-    const auto &vconv = v - vn;
+    // const auto &vconv = v - vn;
+    const auto &vconv = v - vmesh;
+
     const auto vfrac = rData.Velocity_Fractional;
     bool not_air_traj = rData.NotAirTraj;
     const auto &f = rData.BodyForce;
@@ -705,7 +714,9 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointEnri
     // const auto an = rData.Acceleration;
     const auto &vnn = rData.Velocity_OldStep2;
     const auto &vmesh = rData.MeshVelocity;
-    const auto &vconv = v - vn;
+    // const auto &vconv = v - vn;
+    const auto &vconv = v - vmesh;
+
     const auto vfrac = rData.Velocity_Fractional;
     bool not_air_traj = rData.NotAirTraj;
     const auto &f = rData.BodyForce;
@@ -1004,7 +1015,8 @@ void TwoFluidNavierStokes<TElementData>::PressureGradientStabilization(
 
     const double dt = rData.DeltaTime;
 
-    const auto v_convection = rData.Velocity - rData.Velocity_OldStep1;
+    // const auto v_convection = rData.Velocity - rData.Velocity_OldStep1;
+    const auto v_convection = rData.Velocity - rData.MeshVelocity;
 
     for (unsigned int gp = 0; gp < rInterfaceWeights.size(); ++gp){
 
