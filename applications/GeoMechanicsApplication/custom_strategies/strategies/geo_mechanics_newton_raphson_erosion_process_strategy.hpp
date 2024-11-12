@@ -231,7 +231,7 @@ private:
     template <typename FilteredElementsType>
     double CalculateMaxPipeHeight(const FilteredElementsType& rPipeElements)
     {
-        // get maximum pipe particle diameter of all pipe elements
+        // get maximum pipe particle diameter over all pipe elements
         double max_diameter = 0;
         for (auto pipe_element : rPipeElements) {
             max_diameter = std::max(max_diameter, GeoTransportEquationUtilities::CalculateParticleDiameter(
@@ -303,18 +303,18 @@ private:
 
                 // set erosion on true if current pipe height is greater than the equilibrium height
                 p_open_pipe_element->SetValue(PIPE_EROSION, p_open_pipe_element->GetValue(PIPE_EROSION) ||
-                                                                (current_height > eq_height));
+                                                                current_height > eq_height);
                 // check this if statement, I don't understand the check for pipe erosion
-                if (((!p_open_pipe_element->GetValue(PIPE_EROSION) || (current_height > eq_height)) &&
-                     current_height < MaxPipeHeight)) {
+                if ((!p_open_pipe_element->GetValue(PIPE_EROSION) || current_height > eq_height) &&
+                    current_height < MaxPipeHeight) {
                     p_open_pipe_element->SetValue(PIPE_HEIGHT, current_height + pipe_height_increment);
                     equilibrium = false;
                 }
 
                 // check if equilibrium height and current pipe heights are diverging, stop
                 // Picard iterations if this is the case and set pipe height on zero
-                if (!p_open_pipe_element->GetValue(PIPE_EROSION) && (piping_iteration > 1) &&
-                    ((eq_height - current_height) > p_open_pipe_element->GetValue(DIFF_PIPE_HEIGHT))) {
+                if (!p_open_pipe_element->GetValue(PIPE_EROSION) && piping_iteration > 1 &&
+                    eq_height - current_height > p_open_pipe_element->GetValue(DIFF_PIPE_HEIGHT)) {
                     p_open_pipe_element->SetValue(PIPE_HEIGHT, mSmallPipeHeight);
                     equilibrium = true;
                 }
@@ -347,8 +347,8 @@ private:
             auto       p_tip_element = rPipeElements.at(NumberOfOpenPipeElements - 1);
             const auto pipe_height   = p_tip_element->GetValue(PIPE_HEIGHT);
 
-            if ((pipe_height > MaxPipeHeight + std::numeric_limits<double>::epsilon()) ||
-                (pipe_height < mPipeHeightAccuracy)) {
+            if (pipe_height > MaxPipeHeight + std::numeric_limits<double>::epsilon() ||
+                pipe_height < mPipeHeightAccuracy) {
                 // stable element found; pipe length does not increase during current time step
                 grow = false;
                 p_tip_element->SetValue(PIPE_EROSION, false);
@@ -405,7 +405,6 @@ private:
 
             // nonlinear Picard iteration, for deepening the pipe
             // Todo JDN (20220817):: Deal with Equilibrium redundancy
-            // Equilibrium = CheckPipeEquilibrium(OpenPipeElements, amax, mPipingIterations);
             CheckPipeEquilibrium(OpenPipeElements, max_pipe_height, mPipingIterations);
 
             // check if pipe should grow in length

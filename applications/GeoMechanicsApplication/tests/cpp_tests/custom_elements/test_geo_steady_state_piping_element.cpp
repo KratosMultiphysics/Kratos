@@ -358,7 +358,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsEquilibriumHeightF
 
     // Assert
     const double infinite_pipe_height = 1.0e10;
-    KRATOS_EXPECT_EQ(pipe_height, infinite_pipe_height);
+    KRATOS_EXPECT_DOUBLE_EQ(pipe_height, infinite_pipe_height);
 
     // Create a head gradient of 1.E-3.
     p_element->GetGeometry()[1].FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;

@@ -114,7 +114,6 @@ public:
         // all these except the PIPE_ELEMENT_LENGTH seem to be in the erosion_process_strategy only. Why do this: it is used in output for dGeoFlow
         this->SetValue(PIPE_ELEMENT_LENGTH, CalculateLength(this->GetGeometry()));
         this->SetValue(PIPE_EROSION, false);
-        // initialise pipe height with a small value
         const double small_pipe_height = 1e-10;
         this->SetValue(PIPE_HEIGHT, small_pipe_height);
         this->SetValue(PREV_PIPE_HEIGHT, small_pipe_height);
