@@ -233,7 +233,11 @@ void ShellThinElement3D3N<TKinematics>::CalculateOnIntegrationPoints(const Varia
             rValues[i] = min_tsai_wu;
 
         }// Gauss loop
-    } else {
+    } else if (rVariable == THICKNESS) {
+        KRATOS_ERROR_IF_NOT(this->mSections.size() == num_gps);
+        for (unsigned int i = 0; i < this->mSections.size(); i++) {
+            rValues[i] = this->mSections[i]->GetThickness(GetProperties());
+        }} else {
         for (SizeType i = 0; i < num_gps; i++) {
             this->mSections[i]->GetValue(rVariable, GetProperties(), rValues[i]);
         }

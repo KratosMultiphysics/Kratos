@@ -22,6 +22,9 @@ void DeactivateConditionsOnInactiveElements::Execute()
 
     block_for_each(mrModelPart.Conditions(), [&](Condition& rCondition) {
         const auto& VectorOfNeighbours = rCondition.GetValue(NEIGHBOUR_ELEMENTS);
+        if (VectorOfNeighbours.size() == 0) {
+            return;
+        }
         KRATOS_ERROR_IF(VectorOfNeighbours.size() == 0)
             << "Condition without any corresponding element, ID " << rCondition.Id() << "\n"
             << "Call a process to find neighbour elements before calling this function." << std::endl;

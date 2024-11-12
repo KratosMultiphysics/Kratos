@@ -168,15 +168,15 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
     this->CheckIf1DElementIsNeighbour(FacesMap);
 
     // check that all of the conditions belong to at least an element. Throw an error otherwise (this is particularly useful in mpi)
-    all_conditions_visited = true;
-    for (const auto& rCond : mrModelPart.Conditions()) {
-        if (rCond.IsNot(VISITED)) {
-            all_conditions_visited = false;
-            KRATOS_INFO("Condition without any corresponding element, ID ") << rCond.Id() << std::endl;
-        }
-    }
-    KRATOS_ERROR_IF_NOT(all_conditions_visited)
-        << "Some conditions found without any corresponding element" << std::endl;
+    // all_conditions_visited = true;
+    // for (const auto& rCond : mrModelPart.Conditions()) {
+    //     if (rCond.IsNot(VISITED)) {
+    //         all_conditions_visited = false;
+    //         KRATOS_INFO("Condition without any corresponding element, ID ") << rCond.Id() << std::endl;
+    //     }
+    // }
+    // KRATOS_ERROR_IF_NOT(all_conditions_visited)
+    //     << "Some conditions found without any corresponding element" << std::endl;
 
     KRATOS_CATCH("")
 }

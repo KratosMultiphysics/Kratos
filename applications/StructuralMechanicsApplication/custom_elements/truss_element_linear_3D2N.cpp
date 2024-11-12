@@ -179,6 +179,7 @@ void TrussElementLinear3D2N::CalculateOnIntegrationPoints(
         rOutput[0] = ScalarVector(1, stress);
     }
 
+    TrussElement3D2N::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     KRATOS_CATCH("")
 }
 
