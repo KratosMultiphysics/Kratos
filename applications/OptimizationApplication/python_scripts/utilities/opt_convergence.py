@@ -22,6 +22,26 @@ def CreateConvergenceCriteria(parameters: Kratos.Parameters, optimization_proble
         raise RuntimeError(f"CreateConvergenceCriteria: unsupported convergence type {type}.")
 
 class MaxIterConvCriterion:
+    """
+    A convergence criterion class that checks if the maximum number of iterations has been reached.
+
+    Methods
+    -------
+    GetDefaultParameters():
+        Returns the default parameters for the convergence criterion.
+    
+    __init__(parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
+        Initializes the convergence criterion with the given parameters and optimization problem.
+    
+    IsMaxIterationsReached():
+        Checks if the maximum number of iterations has been reached.
+    
+    IsConverged(search_direction=None) -> bool:
+        Checks if the optimization problem has converged based on the maximum number of iterations.
+    
+    GetInfo() -> dict:
+        Returns a dictionary with information about the current state of convergence.
+    """
     @classmethod
     def GetDefaultParameters(cls):
         return Kratos.Parameters("""{
@@ -53,6 +73,26 @@ class MaxIterConvCriterion:
         return info
 
 class L2ConvCriterion:
+    """
+    A class to check the convergence of an optimization problem using the L2 norm criterion.
+
+    Methods
+    -------
+    GetDefaultParameters():
+        Returns the default parameters for the L2ConvCriterion.
+    
+    __init__(parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
+        Initializes the L2ConvCriterion with given parameters and optimization problem.
+    
+    IsMaxIterationsReached() -> bool:
+        Checks if the maximum number of iterations has been reached.
+    
+    IsConverged() -> bool:
+        Checks if the optimization problem has converged based on the L2 norm of the search direction.
+    
+    GetInfo() -> dict:
+        Returns a dictionary with information about the current state of convergence.
+    """
     @classmethod
     def GetDefaultParameters(cls):
         return Kratos.Parameters("""{
@@ -96,6 +136,27 @@ class L2ConvCriterion:
         return info
 
 class AverageAbsoluteImprovement:
+    """
+    A class to monitor the convergence of an optimization problem based on the average absolute improvement 
+    of a tracked value over a specified number of iterations.
+
+    Methods
+    -------
+    GetDefaultParameters():
+        Returns the default parameters for the convergence criteria.
+    
+    __init__(parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
+        Initializes the convergence criteria with the given parameters and optimization problem.
+    
+    IsMaxIterationsReached() -> bool:
+        Checks if the maximum number of iterations has been reached.
+    
+    IsConverged() -> bool:
+        Checks if the optimization problem has converged based on the average absolute improvement.
+    
+    GetInfo() -> dict:
+        Returns a dictionary with information about the current state of the convergence criteria.
+    """
     @classmethod
     def GetDefaultParameters(cls):
         return Kratos.Parameters("""{
@@ -156,6 +217,26 @@ class AverageAbsoluteImprovement:
         return info
     
 class TargetValueCriterion:
+    """
+    A class to check the convergence of an optimization problem based on a target value criterion.
+
+    Methods
+    -------
+    GetDefaultParameters():
+        Returns the default parameters for the criterion.
+    
+    __init__(parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
+        Initializes the criterion with given parameters and optimization problem.
+    
+    IsMaxIterationsReached() -> bool:
+        Checks if the maximum number of iterations has been reached.
+    
+    IsConverged() -> bool:
+        Checks if the optimization problem has converged based on the target value.
+    
+    GetInfo() -> dict:
+        Returns a dictionary with information about the current state of convergence.
+    """
     @classmethod
     def GetDefaultParameters(cls):
         return Kratos.Parameters("""{
