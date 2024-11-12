@@ -73,9 +73,9 @@ namespace Kratos
                 for(IndexType i = 0; i < dofs_of_element.size(); ++i) {
                     if (dofs_of_element[i]->Id() == node_id &&
                         dofs_of_element[i]->GetVariable() == *adjoint_solution_variable) {
-                        rResponseGradient[i]   = -1 * mResponseDirection[0];
-                        rResponseGradient[i+1] = -1 * mResponseDirection[1];
-                        rResponseGradient[i+2] = -1 * mResponseDirection[2];
+                        rResponseGradient[i]   = 1 * mResponseDirection[0];
+                        rResponseGradient[i+1] = 1 * mResponseDirection[1];
+                        rResponseGradient[i+2] = 1 * mResponseDirection[2];
                         break;
                     }
                 }

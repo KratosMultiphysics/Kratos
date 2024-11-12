@@ -101,7 +101,7 @@ namespace Kratos
             KRATOS_ERROR_IF(rResponseGradient.size() != rResidualGradient.size1())
                 << "AdjointMaxStressResponseFunction::CalculateGradient: Size of stress displacement derivative does not fit!" << std::endl;
 
-            rResponseGradient *= (-1);
+            // rResponseGradient *= (-1);
         }
         else
         {
