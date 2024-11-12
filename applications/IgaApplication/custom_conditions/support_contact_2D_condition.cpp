@@ -177,7 +177,9 @@ namespace Kratos
 
         const double IntToReferenceWeight = GetValue(INTEGRATION_WEIGHT);
 
-        const Vector normal_physical_space = GetValue(NORMAL_MASTER); SetValue(NORMAL, normal_physical_space);
+        const Vector normal_physical_space_3D = GetValue(NORMAL_MASTER); SetValue(NORMAL, normal_physical_space_3D);
+
+        Vector normal_physical_space(2); normal_physical_space[0] = normal_physical_space_3D[0]; normal_physical_space[1] = normal_physical_space_3D[1];
 
         //------------------- DB MATRICES 
 
@@ -207,17 +209,17 @@ namespace Kratos
         //  ----------------------------------------------------------------------------
 
         // compute the normal gap
-        Vector master_deformed_old(2); 
+        Vector master_deformed_old(3); 
         Vector GP_parameter_coord = r_geometry_master.Center();
         master_deformed_old = GP_parameter_coord + GetValue(DISPLACEMENT_MASTER);
 
-        Vector slave_deformed_old(2); 
+        Vector slave_deformed_old(3); 
         Vector GP_parameter_coord_on_slave = r_geometry_slave.Center();
         slave_deformed_old = GP_parameter_coord_on_slave + GetValue(DISPLACEMENT_SLAVE);
 
         //-----------
         // COMPUTE NORMAL GAP AND CHECK CONDITION
-        const double normal_gap = inner_prod(GP_parameter_coord_on_slave - GP_parameter_coord, normal_physical_space);
+        const double normal_gap = inner_prod(GP_parameter_coord_on_slave - GP_parameter_coord, normal_physical_space_3D);
 
         // bool temp_contact_is_active = false;
 
@@ -659,7 +661,7 @@ namespace Kratos
 
             for (IndexType i = 0; i < number_of_control_points; ++i)
             {
-                const array_1d<double, 2 >& displacement = GetMasterGeometry()[i].GetSolutionStepValue(DISPLACEMENT);
+                const array_1d<double, 3>& displacement = GetMasterGeometry()[i].GetSolutionStepValue(DISPLACEMENT);
                 IndexType index = i * 2;
 
                 rValues[index] = displacement[0];
@@ -674,7 +676,7 @@ namespace Kratos
 
             for (IndexType i = 0; i < number_of_control_points; ++i)
             {
-                const array_1d<double, 2 >& displacement = GetSlaveGeometry()[i].GetSolutionStepValue(DISPLACEMENT);
+                const array_1d<double, 3>& displacement = GetSlaveGeometry()[i].GetSolutionStepValue(DISPLACEMENT);
                 IndexType index = i * 2;
 
                 rValues[index] = displacement[0];
@@ -693,7 +695,7 @@ namespace Kratos
 
             for (IndexType i = 0; i < number_of_control_points_master; ++i)
             {
-                const array_1d<double, 2 >& displacement = GetMasterGeometry()[i].GetSolutionStepValue(DISPLACEMENT);
+                const array_1d<double, 3>& displacement = GetMasterGeometry()[i].GetSolutionStepValue(DISPLACEMENT);
                 IndexType index = i * 2;
 
                 rValues[index] = displacement[0];
@@ -702,7 +704,7 @@ namespace Kratos
 
             for (IndexType i = 0; i < number_of_control_points_slave; ++i)
             {
-                const array_1d<double, 2 >& displacement = GetSlaveGeometry()[i].GetSolutionStepValue(DISPLACEMENT);
+                const array_1d<double, 3>& displacement = GetSlaveGeometry()[i].GetSolutionStepValue(DISPLACEMENT);
                 IndexType index = i * 2 + mat_size_master;
 
                 rValues[index] = displacement[0];
@@ -910,34 +912,48 @@ namespace Kratos
         GeometryType::JacobiansType J0_master; double DetJ0_master;
         const SizeType dim = 2; //r_geometry_master.WorkingSpaceDimension();
 
-        Matrix DN_DX_master(number_of_nodes_master,2); Matrix InvJ0_master(dim,dim);
+        Matrix DN_DX_master(number_of_nodes_master,2); Matrix InvJ0_master(3,3);
         r_geometry_master.Jacobian(J0_master,this->GetIntegrationMethod());
 
-        Matrix Jacobian_master = ZeroMatrix(2,2);
+        Matrix Jacobian_master = ZeroMatrix(3,3);
         Jacobian_master(0,0) = J0_master[0](0,0); Jacobian_master(0,1) = J0_master[0](0,1);
         Jacobian_master(1,0) = J0_master[0](1,0); Jacobian_master(1,1) = J0_master[0](1,1);
+        Jacobian_master(2,2) = 1.0;
 
         // Calculating inverse jacobian and jacobian determinant
         MathUtils<double>::InvertMatrix(Jacobian_master,InvJ0_master,DetJ0_master);
 
+        Matrix sub_inv_jacobian_master = ZeroMatrix(2,2);
+        sub_inv_jacobian_master(0,0) = InvJ0_master(0,0);
+        sub_inv_jacobian_master(1,0) = InvJ0_master(1,0);
+        sub_inv_jacobian_master(0,1) = InvJ0_master(0,1);
+        sub_inv_jacobian_master(1,1) = InvJ0_master(1,1);
+
         // slave
         GeometryType::JacobiansType J0_slave; double DetJ0_slave;
 
-        Matrix DN_DX_slave(number_of_nodes_slave,2); Matrix InvJ0_slave(dim,dim);
+        Matrix DN_DX_slave(number_of_nodes_slave,2); Matrix InvJ0_slave(3,3);
         r_geometry_slave.Jacobian(J0_slave,this->GetIntegrationMethod());
 
-        Matrix Jacobian_slave = ZeroMatrix(2,2);
+        Matrix Jacobian_slave = ZeroMatrix(3,3);
         Jacobian_slave(0,0) = J0_slave[0](0,0); Jacobian_slave(0,1) = J0_slave[0](0,1);
         Jacobian_slave(1,0) = J0_slave[0](1,0); Jacobian_slave(1,1) = J0_slave[0](1,1);
+        Jacobian_slave(2,2) = 1.0;
 
         // Calculating inverse jacobian and jacobian determinant
         MathUtils<double>::InvertMatrix(Jacobian_slave,InvJ0_slave,DetJ0_slave);
+
+        Matrix sub_inv_jacobian_slave = ZeroMatrix(2,2);
+        sub_inv_jacobian_slave(0,0) = InvJ0_slave(0,0);
+        sub_inv_jacobian_slave(1,0) = InvJ0_slave(1,0);
+        sub_inv_jacobian_slave(0,1) = InvJ0_slave(0,1);
+        sub_inv_jacobian_slave(1,1) = InvJ0_slave(1,1);
         //-----------------------------------------------------------------------------
 
         // NORMALS
         // master
         array_1d<double, 3> tangent_parameter_space; array_1d<double, 3> tangent_physical_space;
-        array_1d<double, 2> normal_physical_space; array_1d<double, 3> normal_parameter_space;
+        array_1d<double, 3> normal_physical_space; array_1d<double, 3> normal_parameter_space;
 
         r_geometry_master.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space !!
         double magnitude = std::sqrt(tangent_parameter_space[0] * tangent_parameter_space[0] + tangent_parameter_space[1] * tangent_parameter_space[1]);
@@ -945,11 +961,14 @@ namespace Kratos
         // NEW FOR GENERAL JACOBIAN
         normal_parameter_space[0] = + tangent_parameter_space[1] / magnitude;
         normal_parameter_space[1] = - tangent_parameter_space[0] / magnitude;  // By observations on the result of .Calculate(LOCAL_TANGENT
+        normal_parameter_space[2] = 0.0;
 
         normal_physical_space = prod(trans(InvJ0_master),normal_parameter_space);
+        normal_physical_space[2] = 0.0;
         normal_physical_space /= norm_2(normal_physical_space);
 
         tangent_physical_space = prod(trans(InvJ0_master),tangent_parameter_space);
+        tangent_physical_space[2] = 0.0;
         tangent_physical_space /= norm_2(tangent_physical_space);
 
         // COMPUTE TRUE JACOBIAN DETERMINANT AND PHYSICAL NORMAL
@@ -969,9 +988,11 @@ namespace Kratos
         normal_parameter_space[1] = - tangent_parameter_space[0] / magnitude;  // By observations on the result of .Calculate(LOCAL_TANGENT
 
         normal_physical_space = prod(trans(InvJ0_slave),normal_parameter_space);
+        normal_physical_space[2] = 0.0;
         normal_physical_space /= norm_2(normal_physical_space);
 
         tangent_physical_space = prod(trans(InvJ0_slave),tangent_parameter_space);
+        tangent_physical_space[2] = 0.0;
         tangent_physical_space /= norm_2(tangent_physical_space);
         // ##
         this->SetValue(NORMAL_SLAVE, normal_physical_space);
@@ -1001,13 +1022,15 @@ namespace Kratos
             }
         }
 
-        Vector displacement_master = prod(H_master,coefficient_master);
+        Vector displacement_master_sub = prod(H_master,coefficient_master);
+
+        Vector displacement_master = ZeroVector(3); displacement_master[0] = displacement_master_sub[0]; displacement_master[1] = displacement_master_sub[1];
 
         // ##
         this->SetValue(DISPLACEMENT_MASTER, displacement_master);
         // ##
         // slave
-        Vector coefficient_slave(2*number_of_nodes_slave);
+        Vector coefficient_slave(dim*number_of_nodes_slave);
         GetValuesVector(coefficient_slave, QuadraturePointCouplingGeometry2D<Point>::Slave);
 
         const Matrix& N_slave = r_geometry_slave.ShapeFunctionsValues(this->GetIntegrationMethod());
@@ -1019,7 +1042,9 @@ namespace Kratos
             }
         }
 
-        Vector displacement_slave = prod(H_slave,coefficient_slave);
+        Vector displacement_slave_sub = prod(H_slave,coefficient_slave);
+
+        Vector displacement_slave = ZeroVector(3); displacement_slave[0] = displacement_slave_sub[0]; displacement_slave[1] = displacement_slave_sub[1];
 
         // ##
         this->SetValue(DISPLACEMENT_SLAVE, displacement_slave);
@@ -1029,7 +1054,7 @@ namespace Kratos
         // master
         // // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
         const GeometryType::ShapeFunctionsGradientsType& DN_De_master = r_geometry_master.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
-        noalias(DN_DX_master) = prod(DN_De_master[0],InvJ0_master);
+        noalias(DN_DX_master) = prod(DN_De_master[0],sub_inv_jacobian_master);
         Matrix B_master = ZeroMatrix(3,number_of_nodes_master);
         CalculateB(B_master, DN_DX_master, number_of_nodes_master);
 
@@ -1043,7 +1068,7 @@ namespace Kratos
 
 
         const GeometryType::ShapeFunctionsGradientsType& DN_De_slave = r_geometry_slave.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
-        noalias(DN_DX_slave) = prod(DN_De_slave[0],InvJ0_slave);
+        noalias(DN_DX_slave) = prod(DN_De_slave[0],sub_inv_jacobian_slave);
         Matrix B_slave = ZeroMatrix(3,number_of_nodes_slave);
         CalculateB(B_slave, DN_DX_slave, number_of_nodes_slave);
         Vector strain_vector_slave = prod(B_slave, coefficient_slave);

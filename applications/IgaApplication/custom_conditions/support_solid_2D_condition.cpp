@@ -83,11 +83,11 @@ namespace Kratos
         // Initialize DN_DX
         const unsigned int dim = 2;
         Matrix DN_DX(number_of_nodes,2);
-        Matrix InvJ0(dim,dim);
+        Matrix InvJ0(3,3);
 
         // Compute the normals
         array_1d<double, 3> tangent_parameter_space;
-        array_1d<double, 2> normal_physical_space;
+        array_1d<double, 3> normal_physical_space;
         array_1d<double, 3> normal_parameter_space;
 
         r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space !!
@@ -96,45 +96,40 @@ namespace Kratos
         // NEW FOR GENERAL JACOBIAN
         normal_parameter_space[0] = + tangent_parameter_space[1] / magnitude;
         normal_parameter_space[1] = - tangent_parameter_space[0] / magnitude;  // By observations on the result of .Calculate(LOCAL_TANGENT
+        normal_parameter_space[2] = 0.0;
 
         const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
         r_geometry.Jacobian(J0,this->GetIntegrationMethod());
         double DetJ0;
-
-        Vector GP_parameter_coord(2); 
-        GP_parameter_coord = r_geometry.Center();
         
-
         // MODIFIED
         Vector old_displacement(mat_size);
         GetValuesVector(old_displacement);
-
         
-        /////
-        // ---------------------MODIFIED POLYTIMI 30 05 24
-        std::ofstream outputFile("txt_files/boundary_GPs.txt", std::ios::app);
-        outputFile << std::setprecision(14); // Set precision to 10^-14
-        outputFile << GP_parameter_coord[0] << " " << GP_parameter_coord[1]  <<"\n";
-        outputFile.close();
-        
-
         const Matrix& N = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
 
-        Matrix Jacobian = ZeroMatrix(2,2);
+        Matrix Jacobian = ZeroMatrix(3,3);
         Jacobian(0,0) = J0[0](0,0);
         Jacobian(0,1) = J0[0](0,1);
         Jacobian(1,0) = J0[0](1,0);
         Jacobian(1,1) = J0[0](1,1);
+        Jacobian(2,2) = 1.0;
 
         // Calculating inverse jacobian and jacobian determinant
         MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
 
         Vector add_factor = prod(Jacobian, tangent_parameter_space);
+        add_factor[2] = 0.0;
 
         DetJ0 = norm_2(add_factor);
 
         // // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
-        noalias(DN_DX) = prod(DN_De[0],InvJ0);
+        Matrix sub_inv_jacobian = ZeroMatrix(2,2);
+        sub_inv_jacobian(0,0) = InvJ0(0,0);
+        sub_inv_jacobian(1,0) = InvJ0(1,0);
+        sub_inv_jacobian(0,1) = InvJ0(0,1);
+        sub_inv_jacobian(1,1) = InvJ0(1,1);
+        noalias(DN_DX) = prod(DN_De[0],sub_inv_jacobian);
 
         const double thickness = GetProperties().Has(THICKNESS) ? GetProperties()[THICKNESS] : 1.0;
 
@@ -148,8 +143,11 @@ namespace Kratos
         CalculateB(B, DN_DX);
 
         normal_physical_space = prod(trans(InvJ0),normal_parameter_space);
+        normal_physical_space[2] = 0.0;
 
         normal_physical_space /= norm_2(normal_physical_space);
+
+        SetValue(NORMAL, normal_physical_space);
 
 
     //---------- MODIFIED ----------------------------------------------------------------
@@ -338,7 +336,7 @@ namespace Kratos
 
         for (IndexType i = 0; i < number_of_control_points; ++i)
         {
-            const array_1d<double, 2 >& displacement = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT);
+            const array_1d<double, 3 >& displacement = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT);
             IndexType index = i * 2;
 
             rValues[index] = displacement[0];
@@ -390,18 +388,6 @@ namespace Kratos
         Matrix DN_DX(nb_nodes,2);
         Matrix InvJ0(dim,dim);
 
-        // Compute the normals
-        array_1d<double, 3> tangent_parameter_space;
-        array_1d<double, 2> normal_physical_space;
-        array_1d<double, 3> normal_parameter_space;
-
-        r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space !!
-        double magnitude = std::sqrt(tangent_parameter_space[0] * tangent_parameter_space[0] + tangent_parameter_space[1] * tangent_parameter_space[1]);
-        
-        // NEW FOR GENERAL JACOBIAN
-        normal_parameter_space[0] = + tangent_parameter_space[1] / magnitude;
-        normal_parameter_space[1] = - tangent_parameter_space[0] / magnitude;  // By observations on the result of .Calculate(LOCAL_TANGENT
-
         const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
         r_geometry.Jacobian(J0,this->GetIntegrationMethod());
         double DetJ0;
@@ -426,9 +412,7 @@ namespace Kratos
 
         CalculateB(B, DN_DX);
 
-        normal_physical_space = prod(trans(InvJ0),normal_parameter_space);
-
-        normal_physical_space /= norm_2(normal_physical_space);
+        array_1d<double, 3> normal_physical_space = GetValue(NORMAL);
 
         // GET STRESS VECTOR
         ConstitutiveLaw::Parameters Values(r_geometry, GetProperties(), rCurrentProcessInfo);

@@ -300,6 +300,7 @@ namespace Kratos
 
 
         SizeType quadraturePointId = 0;
+
         this->CreateQuadraturePointGeometriesOnParent(
             rResultGeometries,
             NumberOfShapeFunctionDerivatives,
@@ -312,20 +313,6 @@ namespace Kratos
             mSlaveGeometryList,
             MasterIndex,
             quadraturePointId);
-
-       
-        // GeometriesArrayType rResultGeometries2;
-        // this->CreateQuadraturePointGeometriesOnParent(
-        //     rResultGeometries,
-        //     NumberOfShapeFunctionDerivatives,
-        //     IntegrationPointsSlave,
-        //     rIntegrationInfo,
-        //     mpNurbsSurfaceSlave,
-        //     mpNurbsSurfaceMaster,
-        //     mSlaveGeometryList,
-        //     mMasterGeometryList,
-        //     SlaveIndex,
-        //     quadraturePointId);
 
         rResultGeometries.resize(quadraturePointId);
         
@@ -512,12 +499,6 @@ namespace Kratos
                     nonzero_control_points_master(j) = rpNurbsSurfaceParent->pGetPoint(cp_indices_master[j]);
                 }
 
-                CoordinatesArrayType gp = ZeroVector(2);
-                for (IndexType j = 0; j < num_nonzero_cps_master; j++) {
-                    gp[0] += nonzero_control_points_master(j)->X()* shape_function_container_master(j, 0);
-                    gp[1] += nonzero_control_points_master(j)->Y()* shape_function_container_master(j, 0);
-                }
-
                 // nonzero_control_points_master[0].GetSolutionStepValue(DISPLACEMENT_X);
                 /// Get Shape Functions N
                 for (IndexType j = 0; j < num_nonzero_cps_master; j++) {
@@ -561,14 +542,14 @@ namespace Kratos
                         physical_integration_point_slave,
                         integrationPointSlave);
 
-                CoordinatesArrayType displacement_on_slave_integration_point;
+                Vector displacement_on_slave_integration_point;
 
                 ProjectionNurbsContactUtilities<TPointType, TSurfaceContainerPointType>::
                                             GetDisplacement(rpNurbsSurfacePaired, parameter_space_derivatives_slave[0], displacement_on_slave_integration_point);
 
                 CoordinatesArrayType physical_integration_point_slave_deformed = physical_integration_point_slave + displacement_on_slave_integration_point;
 
-                CoordinatesArrayType displacement_on_projection; 
+                Vector displacement_on_projection; 
                 ProjectionNurbsContactUtilities<TPointType, TSurfaceContainerPointType>::GetDisplacement(rpNurbsSurfaceParent, parameter_space_derivatives_master[0], displacement_on_projection);
 
                 std::ofstream outputFile2("txt_files/Gauss_Point_Contact_coordinates.txt", std::ios::app);
@@ -596,7 +577,7 @@ namespace Kratos
                 master_quadrature_point_physical[0] = physical_space_derivatives_master[0][0]; master_quadrature_point_physical[1] = physical_space_derivatives_master[0][1];
                 master_quadrature_point_physical[2] = 0.0;
 
-                CoordinatesArrayType displacement_on_master_quadrature_point;
+                Vector displacement_on_master_quadrature_point;
                 ProjectionNurbsContactUtilities<TPointType, TSurfaceContainerPointType>::GetDisplacement(rpNurbsSurfaceParent, master_quadrature_point_parameter, displacement_on_master_quadrature_point);
                 CoordinatesArrayType master_quadrature_point_deformed = master_quadrature_point_physical + displacement_on_master_quadrature_point;         
                 outputFile2 << std::setprecision(14); // Set precision to 10^-14
@@ -652,10 +633,9 @@ namespace Kratos
                     nonzero_control_points_master, nonzero_control_points_slave,
                     parameter_space_derivatives_master[1][0], parameter_space_derivatives_master[1][1], 
                     parameter_space_derivatives_slave[1][0], parameter_space_derivatives_slave[1][1],
-                    &(*rParentGeometryList[i_brep_m]), &(*rPairedGeometryList[projected_brep_id]), this);
+                    &(*rParentGeometryList[i_brep_m]), &(*rPairedGeometryList[projected_brep_id]));
 
                 // set value of the background integration domain
-                rResultGeometries(quadraturePointId)->SetValue(ACTIVATION_LEVEL, integrationDomain);
                 quadraturePointId++;
             }
         }

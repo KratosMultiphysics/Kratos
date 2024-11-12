@@ -135,8 +135,6 @@ void Solid2DElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
     // Initialize Jacobian
     GeometryType::JacobiansType J0;
     r_geometry.Jacobian(J0,this->GetIntegrationMethod());
-    Vector GP_parameter_coord(2); 
-    GP_parameter_coord = prod(r_geometry.Center(),J0[0]); // check if we have tu put "GetInitialPosition"
 
 
     Vector volume_force_local(2);
@@ -524,7 +522,7 @@ void Solid2DElement::GetValuesVector(
 
         for (IndexType i = 0; i < number_of_control_points; ++i)
         {
-            const array_1d<double, 2 >& displacement = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT);
+            const array_1d<double, 3>& displacement = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT);
             IndexType index = i * 2;
 
             rValues[index] = displacement[0];

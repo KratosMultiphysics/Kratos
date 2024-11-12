@@ -44,8 +44,7 @@ public:
     typedef Geometry<TPointType> BaseType;
     typedef Geometry<TPointType> GeometryType;
 
-    typedef typename GeometryType::Pointer GeometryPointer;
-    typedef std::vector<GeometryPointer> GeometryPointerVector;
+    typedef std::vector<typename GeometryType::Pointer> GeometryPointerVector;
 
     /// Pointer definition of CouplingGeometry
 
@@ -71,8 +70,8 @@ public:
 
     /// Constructor with points and geometry shape function container
     // QuadraturePointCouplingGeometry2D(
-    //     QuadraturePointCurveOnSurfaceGeometryPointer pMasterQuadraturePoint,
-    //     QuadraturePointCurveOnSurfaceGeometryPointer pSlaveQuadraturePoint,
+    //     QuadraturePointCurveOnSurfaceGeometryType::Pointer pMasterQuadraturePoint,
+    //     QuadraturePointCurveOnSurfaceGeometryType::Pointer pSlaveQuadraturePoint,
     //     const PointsArrayType& ThisPoints,
     //     GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer,
     //     GeometryType* pGeometryParent
@@ -84,7 +83,7 @@ public:
     // }
 
     // QuadraturePointCouplingGeometry2D(
-    //     QuadraturePointCurveOnSurfaceGeometryPointer pSlaveQuadraturePoint,
+    //     QuadraturePointCurveOnSurfaceGeometryType::Pointer pSlaveQuadraturePoint,
     //     const PointsArrayType& ThisPoints,
     //     GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer,
     //     GeometryType* pGeometryParent
@@ -95,9 +94,8 @@ public:
     // }
 
     QuadraturePointCouplingGeometry2D(
-        GeometryPointer pMasterQuadraturePoint,
-        GeometryPointer pSlaveQuadraturePoint,
-        GeometryPointer pCouplingGeometry): 
+        typename GeometryType::Pointer pMasterQuadraturePoint,
+        typename GeometryType::Pointer pSlaveQuadraturePoint): 
         BaseType()
     {
         mpGeometries.resize(3);
@@ -105,13 +103,14 @@ public:
         mpGeometries[0] = pMasterQuadraturePoint;
         mpGeometries[1] = pSlaveQuadraturePoint;
 
-        mpGeometries[2] = pCouplingGeometry;
+        // mpGeometries[2] = pCouplingGeometry;
     }
 
+    ~QuadraturePointCouplingGeometry2D() override = default;
 
     void SetGeometryPart(
         const IndexType Index,
-        GeometryPointer pGeometry
+        typename GeometryType::Pointer pGeometry
         ) override
     {
         KRATOS_DEBUG_ERROR_IF(mpGeometries.size() <= Index) << "Index out of range: "
@@ -125,12 +124,12 @@ public:
         mpGeometries[Index] = pGeometry;
     }
 
-    GeometryPointer pGetGeometryPart(const IndexType Index) override
+    typename GeometryType::Pointer pGetGeometryPart(const IndexType Index) override
     {
         return mpGeometries[Index];
     }
 
-    const GeometryPointer pGetGeometryPart(const IndexType Index) const override
+    const typename GeometryType::Pointer pGetGeometryPart(const IndexType Index) const override
     {
         return mpGeometries[Index];
     }

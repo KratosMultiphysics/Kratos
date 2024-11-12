@@ -82,11 +82,9 @@ namespace Kratos
         {};
 
         /// Destructor
-        ~SupportContact2DCondition() override
-        {
-            mpConstitutiveLawMaster->Clear();
-            mpConstitutiveLawSlave->Clear();
-        };
+        // ~SupportContact2DCondition() override
+        // {
+        // };
 
         ///@}
         ///@name Life Cycle

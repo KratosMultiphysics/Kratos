@@ -30,7 +30,7 @@ export KRATOS_BUILD_TYPE=${KRATOS_BUILD_TYPE:-"Release"}
 export PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE:-"/usr/bin/python3"}
 
 # export KRATOS_BUILD_TYPE=${KRATOS_BUILD_TYPE:-"FullDebug"}
-# export PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE:-"/usr/bin/python3-dbg"}
+# export PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE:-"/usr/bin/python3"}
 
 
 
@@ -58,4 +58,4 @@ cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -DKRATOS_GENERATE_PYTHON_STUBS=OFF
 
 # Build
-cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j16
+cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j14

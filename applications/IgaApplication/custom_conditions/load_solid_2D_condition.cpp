@@ -113,12 +113,11 @@ namespace Kratos
         GeometryType::JacobiansType J0;
         // Initialize DN_DX
         const unsigned int dim = 2;
-        Matrix DN_DX(number_of_nodes,2);
-        Matrix InvJ0(dim,dim);
+        Matrix InvJ0(3,3);
 
         // Compute the normals
         array_1d<double, 3> tangent_parameter_space;
-        array_1d<double, 2> normal_physical_space;
+        array_1d<double, 3> normal_physical_space;
         array_1d<double, 3> normal_parameter_space;
 
         r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space !!
@@ -127,36 +126,36 @@ namespace Kratos
         // NEW FOR GENERAL JACOBIAN
         normal_parameter_space[0] = + tangent_parameter_space[1] / magnitude;
         normal_parameter_space[1] = - tangent_parameter_space[0] / magnitude;  // By observations on the result of .Calculate(LOCAL_TANGENT
+        normal_parameter_space[2] = 0.0;
 
         const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
         r_geometry.Jacobian(J0,this->GetIntegrationMethod());
         double DetJ0;
-
-        Vector GP_parameter_coord(2); 
-        GP_parameter_coord = r_geometry.Center();
         
-        // Stampa su file esterno le coordinate (projection[0],projection[1])
-        std::ofstream outputFile("txt_files/boundary_GPs.txt", std::ios::app);
-        outputFile << std::setprecision(14); // Set precision to 10^-14
-        outputFile << GP_parameter_coord[0] << " " << GP_parameter_coord[1]  <<"\n";
-        outputFile.close();
-
+        // MODIFIED
         const Matrix& N = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
 
-        Matrix Jacobian = ZeroMatrix(2,2);
+        Matrix Jacobian = ZeroMatrix(3,3);
         Jacobian(0,0) = J0[0](0,0);
         Jacobian(0,1) = J0[0](0,1);
         Jacobian(1,0) = J0[0](1,0);
         Jacobian(1,1) = J0[0](1,1);
+        Jacobian(2,2) = 1.0;
 
         // Calculating inverse jacobian and jacobian determinant
         MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
 
         Vector add_factor = prod(Jacobian, tangent_parameter_space);
+        add_factor[2] = 0.0;
 
         DetJ0 = norm_2(add_factor);
 
         // // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
+        Matrix sub_inv_jacobian = ZeroMatrix(2,2);
+        sub_inv_jacobian(0,0) = InvJ0(0,0);
+        sub_inv_jacobian(1,0) = InvJ0(1,0);
+        sub_inv_jacobian(0,1) = InvJ0(0,1);
+        sub_inv_jacobian(1,1) = InvJ0(1,1);
 
         const double thickness = GetProperties().Has(THICKNESS) ? GetProperties()[THICKNESS] : 1.0;
 
@@ -165,8 +164,11 @@ namespace Kratos
         SetValue(INTEGRATION_WEIGHT, IntToReferenceWeight);
 
         normal_physical_space = prod(trans(InvJ0),normal_parameter_space);
+        normal_physical_space[2] = 0.0;
 
         normal_physical_space /= norm_2(normal_physical_space);
+
+        SetValue(NORMAL, normal_physical_space);
         
         Matrix H = ZeroMatrix(1, number_of_nodes);
         for (IndexType i = 0; i < number_of_nodes; ++i)
@@ -268,92 +270,6 @@ namespace Kratos
 
         mpConstitutiveLaw->FinalizeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
 
-        
-    // /////////////////////////
-    //     const auto& r_geometry = GetGeometry();
-    //     const SizeType nb_nodes = r_geometry.size();
-
-    //     // Integration Points
-    //     const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
-    //     // Shape function values
-    //     const Matrix& r_N = r_geometry.ShapeFunctionsValues();
-
-    //     GeometryType::JacobiansType J0;
-    //     r_geometry.Jacobian(J0,this->GetIntegrationMethod());
-    //     // Get the parameter coordinates
-    //     Vector GP_parameter_coord(2); 
-    //     GP_parameter_coord = r_geometry.Center(); // Only one Integration Points 
-
-    //     double x_coord_gauss_point = 0;
-    //     double y_coord_gauss_point = 0;
-    //     double rOutput = 0;
-
-    //     for (IndexType i = 0; i < nb_nodes; ++i)
-    //     {
-    //         // KRATOS_WATCH(r_geometry[i])
-    //         double output_solution_step_value = r_geometry[i].GetSolutionStepValue(DISPLACEMENT_X);
-    //         rOutput += r_N(0, i) * output_solution_step_value;
-    //         x_coord_gauss_point += r_N(0, i) * r_geometry[i].X0();
-    //         y_coord_gauss_point += r_N(0, i) * r_geometry[i].Y0();
-    //     }        
-
-    //     // ########################################################################333
-    //     double x = GP_parameter_coord[0];
-    //     double y = GP_parameter_coord[1];
-    //     // double true_sol = -cos(x)*sinh(y);
-    //     Vector approx_lhs = ZeroVector(9);
-    //     Vector approx_rhs = ZeroVector(9);
-
-    //     for (IndexType i = 0; i < 9; i++) {
-    //         for (IndexType j = 0; j < 9; j++) {
-                
-    //             for (IndexType idim = 0; idim < 1; idim++) {
-    //                 const int id1 = 2*idim;
-    //                 const int iglob = 2*i+idim;
-
-    //                 approx_lhs[i] -= r_N(0,i)*r_N(0,j)* r_geometry[j].GetSolutionStepValue(DISPLACEMENT_X);
-    //             }
-    //         }
-    //     }
-
-    //     Vector u_D(2);
-    //     u_D[0] = this->GetValue(DISPLACEMENT_X);
-    //     u_D[1] = this->GetValue(DISPLACEMENT_Y);
-
-    //     for (IndexType i = 0; i < 9; i++) {
-
-    //         for (IndexType idim = 0; idim < 1; idim++) {
-
-    //             approx_rhs[i] -= r_N(0,i)*u_D[idim];
-    //         }
-    //     }
-
-    //     // KRATOS_WATCH(approx_lhs - approx_rhs)
-
-    //     // ########################################################################333
-
-    //     // KRATOS_WATCH(err)
-
-    //     // std::ofstream output_file("txt_files/output_results_GPs.txt", std::ios::app);
-    //     // if (output_file.is_open()) {
-    //     //     output_file << std::scientific << std::setprecision(14); // Set precision to 10^-14
-    //     //     output_file << rOutput << " " << x_coord_gauss_point << " " << y_coord_gauss_point << " " <<integration_points[0].Weight() << std::endl;
-    //     //     output_file.close();
-    //     // } 
-
-
-    //     std::ofstream outputFile("txt_files/Gauss_Point_coordinates.txt", std::ios::app);
-    //     if (!outputFile.is_open())
-    //     {
-    //         std::cerr << "Failed to open the file for writing." << std::endl;
-    //         return;
-    //     }
-    //     outputFile << std::setprecision(14); // Set precision to 10^-14
-    //     outputFile << x_coord_gauss_point << "  " << y_coord_gauss_point <<"\n";
-    //     outputFile.close();
-
-
-
         //---------- SET STRESS VECTOR VALUE ----------------------------------------------------------------
         const auto& r_geometry = GetGeometry();
         const SizeType nb_nodes = r_geometry.size();
@@ -368,17 +284,6 @@ namespace Kratos
         Matrix InvJ0(dim,dim);
 
         // Compute the normals
-        array_1d<double, 3> tangent_parameter_space;
-        array_1d<double, 2> normal_physical_space;
-        array_1d<double, 3> normal_parameter_space;
-
-        r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space !!
-        double magnitude = std::sqrt(tangent_parameter_space[0] * tangent_parameter_space[0] + tangent_parameter_space[1] * tangent_parameter_space[1]);
-        
-        // NEW FOR GENERAL JACOBIAN
-        normal_parameter_space[0] = + tangent_parameter_space[1] / magnitude;
-        normal_parameter_space[1] = - tangent_parameter_space[0] / magnitude;  // By observations on the result of .Calculate(LOCAL_TANGENT
-
         const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
         r_geometry.Jacobian(J0,this->GetIntegrationMethod());
         double DetJ0;
@@ -403,9 +308,7 @@ namespace Kratos
 
         CalculateB(B, DN_DX);
 
-        normal_physical_space = prod(trans(InvJ0),normal_parameter_space);
-
-        normal_physical_space /= norm_2(normal_physical_space);
+        array_1d<double, 3> normal_physical_space = GetValue(NORMAL);
 
         // GET STRESS VECTOR
         ConstitutiveLaw::Parameters Values(r_geometry, GetProperties(), rCurrentProcessInfo);
@@ -467,7 +370,7 @@ namespace Kratos
 
         for (IndexType i = 0; i < number_of_control_points; ++i)
         {
-            const array_1d<double, 2 >& displacement = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT);
+            const array_1d<double, 3>& displacement = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT);
             IndexType index = i * 2;
 
             rValues[index] = displacement[0];

@@ -859,22 +859,23 @@ public:
         normal_parameter_space[2] = 0;
 
 
-        Matrix Jacobian = ZeroMatrix(2,2);
+        Matrix Jacobian = ZeroMatrix(3,3);
         Jacobian(0,0) = surface_global_space_derivatives[1][0];
         Jacobian(0,1) = surface_global_space_derivatives[2][0];
         Jacobian(1,0) = surface_global_space_derivatives[1][1];
         Jacobian(1,1) = surface_global_space_derivatives[2][1];
 
+        Jacobian(2,2) = 1.0;
+
         array_1d<double, 3> normal_physical_space;
         // normal_physical_space = prod(Jacobian, normal_parameter_space);
 
         //***** */
-        Matrix Inv_Jacobian = ZeroMatrix(2,2);
+        Matrix Inv_Jacobian = ZeroMatrix(3,3);
         double detJ;
         MathUtils<double>::InvertMatrix(Jacobian,Inv_Jacobian,detJ);
 
         normal_physical_space = prod(trans(Inv_Jacobian),normal_parameter_space);
-        // normal_physical_space /= norm_2(normal_physical_space);
         //***** */
         normal_physical_space[2] = 0.0;
 

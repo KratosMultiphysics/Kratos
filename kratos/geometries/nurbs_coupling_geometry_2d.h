@@ -141,6 +141,8 @@ NurbsCouplingGeometry2D(
     }
 
     /// Destructor
+    // ~NurbsCouplingGeometry2D() override{} = default;
+
     ~NurbsCouplingGeometry2D() override = default;
 
     ///@}

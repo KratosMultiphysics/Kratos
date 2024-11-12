@@ -278,7 +278,7 @@ public:
 
     //--------------------------------------------------------------------------------------
     //--------------------------------------------------------------------------------------
-    static void GetDisplacement(NurbsSurfaceTypePointer rpNurbsSurfacePaired, CoordinatesArrayType& rParameterPointCoord, CoordinatesArrayType& displacement) {
+    static void GetDisplacement(NurbsSurfaceTypePointer rpNurbsSurfacePaired, CoordinatesArrayType& rParameterPointCoord, Vector& displacement) {
         // COMPUTE DISPLACEMENT AND DISPLACMENT DERIVATIVE IN THE PARAMETER SPACE (OF THE SURFACE)
 
         NurbsSurfaceShapeFunction shape_function_container(
@@ -302,7 +302,7 @@ public:
             nonzero_control_points(j) = rpNurbsSurfacePaired->pGetPoint(cp_indices[j]);
         }
 
-        displacement = ZeroVector(2); //dim
+        displacement = ZeroVector(3); //dim
 
         // COMPUTE DISPLACEMENT
         for (IndexType j = 0; j < num_nonzero_cps; j++) {
@@ -319,20 +319,20 @@ public:
      * @param n_derivatives 
      * @param displacement 
      * @param displacement_derivatives 
-     * @param global_space_derivatives_on_curve 
+     * @param local_space_derivatives_on_curve 
      */
     static void GetDisplacementDerivativesOnCurve(NurbsSurfaceTypePointer rpNurbsSurfacePaired, 
                                                     CoordinatesArrayType& rParameterPointCoord,
                                                     const SizeType& n_derivatives, 
-                                                    std::vector<CoordinatesArrayType>& displacement_derivatives,
-                                                    const std::vector<CoordinatesArrayType>& global_space_derivatives_on_curve) 
+                                                    std::vector<Vector>& displacement_derivatives,
+                                                    const std::vector<CoordinatesArrayType>& local_space_derivatives_on_curve) 
     {
 
         DenseVector<Matrix> displacement_derivatives_global; // [[du/dx, du/dy]
                                                               //  [dv/dx, dv/dy]]
 
         displacement_derivatives.resize(n_derivatives+1); 
-        displacement_derivatives[0].resize(2);//dim
+        displacement_derivatives[0].resize(3);
 
         GetDisplacementDerivatives(rpNurbsSurfacePaired, rParameterPointCoord, n_derivatives, displacement_derivatives[0], displacement_derivatives_global);
 
@@ -342,22 +342,22 @@ public:
 
         for (IndexType i_der = 1; i_der < n_derivatives+1; i_der++)
         {
-            displacement_derivatives[i_der].resize(2);
+            displacement_derivatives[i_der].resize(3);
             for (IndexType i_dim = 0; i_dim < 2; i_dim++)
             {
                 // du/dt^n = sum(0,k) (n)  
                 //                    (k)
 
                 if (i_der == 1) {
-                    displacement_derivatives[1][i_dim] = displacement_derivatives_global[0](i_dim, 0)*global_space_derivatives_on_curve[1][0] + displacement_derivatives_global[0](i_dim, 1)*global_space_derivatives_on_curve[1][1];
+                    displacement_derivatives[1][i_dim] = displacement_derivatives_global[0](i_dim, 0)*local_space_derivatives_on_curve[1][0] + displacement_derivatives_global[0](i_dim, 1)*local_space_derivatives_on_curve[1][1];
                 }
                 else if (i_der == 2)
                 {
-                    displacement_derivatives[2][i_dim] = displacement_derivatives_global[1](i_dim, 0) * pow(global_space_derivatives_on_curve[1][0],2) 
-                                                         + 2*displacement_derivatives_global[1](i_dim, 1) * global_space_derivatives_on_curve[1][0] * global_space_derivatives_on_curve[1][1]
-                                                         + displacement_derivatives_global[1](i_dim, 2) * pow(global_space_derivatives_on_curve[1][1], 2)
-                                                         + displacement_derivatives_global[0](i_dim, 0) * global_space_derivatives_on_curve[2][0] 
-                                                         + displacement_derivatives_global[0](i_dim, 1) * global_space_derivatives_on_curve[2][1];
+                    displacement_derivatives[2][i_dim] = displacement_derivatives_global[1](i_dim, 0) * pow(local_space_derivatives_on_curve[1][0],2) 
+                                                         + 2*displacement_derivatives_global[1](i_dim, 1) * local_space_derivatives_on_curve[1][0] * local_space_derivatives_on_curve[1][1]
+                                                         + displacement_derivatives_global[1](i_dim, 2) * pow(local_space_derivatives_on_curve[1][1], 2)
+                                                         + displacement_derivatives_global[0](i_dim, 0) * local_space_derivatives_on_curve[2][0] 
+                                                         + displacement_derivatives_global[0](i_dim, 1) * local_space_derivatives_on_curve[2][1];
                 }
 
                 
@@ -372,7 +372,7 @@ public:
     static void GetDisplacementDerivatives(NurbsSurfaceTypePointer rpNurbsSurfacePaired, 
                                     CoordinatesArrayType& rParameterPointCoord,
                                     const SizeType& n_derivatives, 
-                                    CoordinatesArrayType& displacement,
+                                    Vector& displacement,
                                     DenseVector<Matrix>& displacement_derivatives) {
         // COMPUTE DISPLACEMENT AND DISPLACMENT DERIVATIVE IN THE PARAMETER SPACE (OF THE SURFACE)
 
@@ -396,7 +396,7 @@ public:
             nonzero_control_points(j) = rpNurbsSurfacePaired->pGetPoint(cp_indices[j]);
         }
 
-        displacement = ZeroVector(2); //dim
+        displacement = ZeroVector(3); //dim
         displacement_derivatives.resize(n_derivatives);
 
         // COMPUTE DISPLACEMENT
@@ -408,7 +408,7 @@ public:
 
         // COMPUTE DERIVATIVES
         for (IndexType i = 0; i < n_derivatives; i++) {
-            displacement_derivatives[i] = ZeroMatrix(2, i+2);
+            displacement_derivatives[i] = ZeroMatrix(3, i+2);
         }
 
         IndexType shape_derivative_index = 1;
@@ -417,14 +417,14 @@ public:
             for (IndexType k = 0; k < i_der + 2; k++) {
                 for (IndexType j = 0; j < num_nonzero_cps; j++) {
                     const Vector curr_displacement_coefficient = nonzero_control_points[j].GetSolutionStepValue(DISPLACEMENT);
-                    for (IndexType i_dim = 0; i_dim < 2; i_dim++) 
+                    for (IndexType i_dim = 0; i_dim < 3; i_dim++) 
                     {
                         displacement_derivatives[i_der](i_dim, k) += curr_displacement_coefficient[i_dim] * shape_function_container(j,shape_derivative_index+k);
 
                     }
                 }
             }
-            shape_derivative_index += n_derivatives + 2;
+            shape_derivative_index += i_der + 2;
         }
     }
 
@@ -472,7 +472,7 @@ public:
         CoordinatesArrayType parentPointParamCoord;
         CoordinatesArrayType parentPointGlobalCoord_updated;
 
-        CoordinatesArrayType old_normal = parent_geometry.Normal(parentPointLocalCoord);
+        array_1d<double, 3> old_normal = parent_geometry.Normal(parentPointLocalCoord);
 
         parent_geometry.GlobalCoordinates(parentPointGlobalCoord, parentPointLocalCoord);
 
@@ -481,22 +481,23 @@ public:
         // GET DERIVATIVES
 
         IntegrationPoint<1> integrationPointParent(parentPointLocalCoord[0]);
-        std::vector<CoordinatesArrayType> global_space_derivatives(2);
-        CoordinatesArrayType param_coordinates(2);
+        std::vector<CoordinatesArrayType> global_space_derivatives(3);
+        // CoordinatesArrayType param_coordinates(2);
 
         parent_geometry.LocalSpaceDerivatives( global_space_derivatives, integrationPointParent, 1);
 
 
-        std::vector<CoordinatesArrayType> displacement_derivatives;
+        std::vector<Vector> displacement_derivatives;
         // CoordinatesArrayType displacement;
         // GetDisplacementDerivatives(rpNurbsSurfacePaired, global_space_derivatives[0], 1, displacement, displacement_derivatives); 
 
         GetDisplacementDerivativesOnCurve(rpNurbsSurfaceParent, parentPointParamCoord, 1, displacement_derivatives,
                                           global_space_derivatives); //get [du/dt, dv/dt]
 
-        Vector displacement_normal_contribution = ZeroVector(2); 
+        Vector displacement_normal_contribution = ZeroVector(3); 
         displacement_normal_contribution[0] = displacement_derivatives[1][1];
         displacement_normal_contribution[1] = -displacement_derivatives[1][0];
+        displacement_normal_contribution[2] = 0.0;
 
 
         //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -525,10 +526,10 @@ public:
         CoordinatesArrayType paramCoordPaired;
         CoordinatesArrayType globCoordPaired_updated;
 
-        CoordinatesArrayType displacement_paired;
-        std::vector<CoordinatesArrayType> displacement_derivatives_paired;
+        Vector displacement_paired;
+        std::vector<Vector> displacement_derivatives_paired;
 
-        CoordinatesArrayType displacement_parent;
+        Vector displacement_parent;
         CoordinatesArrayType t(3); 
 
         Vector b_rep_interval;
@@ -741,14 +742,14 @@ public:
 
         std::vector<array_1d<double, 3>> local_derivatives(3);
 
-        std::vector<CoordinatesArrayType> derivatives_on_deformed;
+        std::vector<Vector> derivatives_on_deformed;
         array_1d<double, 3> distance_vector;
 
         const double Acc = Accuracy;
 
         CoordinatesArrayType point_local_coordinates(3); //parameter
         CoordinatesArrayType point_global_coordinates(3);
-        CoordinatesArrayType point_global_displacement;
+        Vector point_global_displacement;
         rParentGeometry.GlobalCoordinates(point_global_coordinates, rPointLocalCoordinates);
 
         rParentGeometry.LocalCoordinates(point_local_coordinates, rPointLocalCoordinates);
@@ -759,7 +760,7 @@ public:
 
         point_deformed_global_coordinates[2] = 0.0;
 
-        CoordinatesArrayType projected_point_global_displacement;
+        Vector projected_point_global_displacement;
         CoordinatesArrayType projected_point_deformed_global_coordinates(3);
 
         Vector b_rep_interval;
@@ -925,8 +926,8 @@ public:
                                               ) 
     {
         // MASTER
-        std::vector<CoordinatesArrayType> parameter_space_derivatives_master(2);
-        std::vector<CoordinatesArrayType> physical_space_derivatives_master(2);
+        std::vector<CoordinatesArrayType> parameter_space_derivatives_master;
+        std::vector<CoordinatesArrayType> physical_space_derivatives_master;
 
         rParentGeometry.LocalSpaceDerivatives(
                 parameter_space_derivatives_master,
@@ -947,7 +948,7 @@ public:
         master_quadrature_point_physical[0] = physical_space_derivatives_master[0][0]; master_quadrature_point_physical[1] = physical_space_derivatives_master[0][1];
         master_quadrature_point_physical[2] = 0.0;
 
-        CoordinatesArrayType displacement_on_projection; CoordinatesArrayType displacement_on_master_quadrature_point;
+        Vector displacement_on_projection; Vector displacement_on_master_quadrature_point;
         GetDisplacement(rpNurbsSurfaceParent, master_quadrature_point_parameter, displacement_on_master_quadrature_point);
         CoordinatesArrayType master_quadrature_point_deformed = master_quadrature_point_physical + displacement_on_master_quadrature_point;
 
