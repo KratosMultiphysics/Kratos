@@ -24,6 +24,7 @@
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
+#include "input_output/logger.h"
 #include "utilities/integration_utilities.h"
 
 // Application includes
@@ -125,9 +126,9 @@ void ShiftedBoundaryWallCondition<TDim>::CalculateLocalSystem(
     noalias(rRightHandSideVector) = ZeroVector(local_size);
     noalias(rLeftHandSideMatrix) = ZeroMatrix(local_size, local_size);
 
-    AddNitscheImposition(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+    //AddNitscheImposition(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
 
-    //AddDirichletPenalization(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+    AddDirichletPenalization(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
 
     KRATOS_CATCH("")
     //KRATOS_ERROR << "STOP" << std::endl;

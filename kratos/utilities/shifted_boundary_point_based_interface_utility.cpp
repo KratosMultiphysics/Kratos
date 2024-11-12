@@ -27,6 +27,7 @@
 #include "input_output/logger.h"
 #include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
 #include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
+#include "spatial_containers/octree_binary.h"
 #include "tests/cpp_tests/geometries/test_geometry.h"
 #include "utilities/assign_unique_model_part_collection_tag_utility.h"
 #include "utilities/element_size_calculator.h"
@@ -644,12 +645,12 @@ namespace Kratos
                 // NOTE that the boundary normal is negative in order to point outwards (from positive to negative side),
                 // because positive side is where dot product of vector to node with average normal is positive
                 successfully_added_pos = AddIntegrationPointCondition(*p_element, sides_vector, h, skin_pt_position, -skin_pt_area_normal,
-                ext_op_map, cloud_nodes_vector_pos, skin_pt_N, skin_pt_DNDX, ++max_cond_id, /*ConsiderPositiveSide=*/true);
+                ext_op_map, cloud_nodes_vector_pos, skin_pt_N, skin_pt_DNDX, max_cond_id, /*ConsiderPositiveSide=*/true);
 
                 // Add skin pt. condition for negative side of boundary - using support cloud data for positive nodes
                 // NOTE that boundary normal is opposite (from negative to positive side)
                 successfully_added_neg = AddIntegrationPointCondition(*p_element, sides_vector, h, skin_pt_position, skin_pt_area_normal,
-                ext_op_map, cloud_nodes_vector_neg, skin_pt_N, skin_pt_DNDX, ++max_cond_id, /*ConsiderPositiveSide=*/false);
+                ext_op_map, cloud_nodes_vector_neg, skin_pt_N, skin_pt_DNDX, max_cond_id, /*ConsiderPositiveSide=*/false);
 
                 if (!successfully_added_pos || !successfully_added_neg) {
                     n_skin_pt_conditions_not_added++;
@@ -911,9 +912,9 @@ namespace Kratos
                 if (found_in_map) {
                     ex_op_was_calculated[i_node] =  1.0;
                 // Extension operator for node still needs to be calculated
-                } else if (p_node->Id() == 924 || p_node->Id() == 347 || p_node->Id() == 372) {
-                    KRATOS_INFO("\nno extension operator for edge node!\n");
-                    //TODO node is outside incised element, no support needed
+                } else if (p_node->Id() == 908 || p_node->Id() == 924 || p_node->Id() == 347 || p_node->Id() == 372) {  //p_node->Id() == 361 || p_node->Id() == 878 ||
+                    KRATOS_INFO("\nNO EXTENSION OPERATOR FOR EDGE NODE\n");
+                    //TODO find nodes of edges that are split but not bordered by a SBM_BOUNDARY element
                 } else {
                     ex_op_was_calculated[i_node] =  0.0;
                     // If node is on the positive side, then its extension operator needs support nodes on the negative side
@@ -1357,6 +1358,10 @@ namespace Kratos
         const auto& r_geom = rElement.GetGeometry();
         for (std::size_t i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
             NodeType::Pointer p_node = r_geom(i_node);
+            if (p_node->Id() == 908 || p_node->Id() == 924 || p_node->Id() == 347 || p_node->Id() == 372) {  //p_node->Id() == 361 || p_node->Id() == 878 || 
+                cloud_nodes_set_pos.insert(p_node);
+                cloud_nodes_set_neg.insert(p_node);
+            }
             if (rSidesVector(i_node) > 0.0) {
                 // Add positive side node to cloud nodes set of positive side of the boundary
                 // NOTE they might not be part of the negative node's support because they are too close to the other side or not active
@@ -1366,8 +1371,8 @@ namespace Kratos
                 if (found) {
                     auto& r_ext_op_data = rExtensionOperatorMap[p_node];
                     for (auto it_data = r_ext_op_data.begin(); it_data != r_ext_op_data.end(); ++it_data) {
-                        auto& p_node = std::get<0>(*it_data);
-                        cloud_nodes_set_neg.insert(p_node);
+                        auto& p_cl_node = std::get<0>(*it_data);
+                        cloud_nodes_set_neg.insert(p_cl_node);
                     }
                 }
             } else {
@@ -1379,8 +1384,8 @@ namespace Kratos
                 if (found) {
                     auto& r_ext_op_data = rExtensionOperatorMap[p_node];
                     for (auto it_data = r_ext_op_data.begin(); it_data != r_ext_op_data.end(); ++it_data) {
-                        auto& p_node = std::get<0>(*it_data);
-                        cloud_nodes_set_pos.insert(p_node);
+                        auto& p_cl_node = std::get<0>(*it_data);
+                        cloud_nodes_set_pos.insert(p_cl_node);
                     }
                 }
             }
@@ -1432,7 +1437,7 @@ namespace Kratos
     }
 
     bool ShiftedBoundaryPointBasedInterfaceUtility::AddIntegrationPointCondition(
-        const ElementType& rElement,
+        ElementType& rElement,
         const Vector& rSidesVector,
         const double ElementSize,
         const array_1d<double,3>& rIntPtCoordinates,
@@ -1441,16 +1446,19 @@ namespace Kratos
         const PointerVector<NodeType>& rCloudNodeVector,
         const Vector& rIntPtShapeFunctionValues,
         const Matrix& rIntPtShapeFunctionDerivatives,
-        const std::size_t ConditionId,
+        std::size_t& r_ConditionId,
         bool ConsiderPositiveSide)
     {
         const auto& r_geom = rElement.GetGeometry();
 
         // Initialize the extension operator containers
-        const std::size_t n_cl_nodes = rCloudNodeVector.size();
+        /*const std::size_t n_cl_nodes = rCloudNodeVector.size();
         const std::size_t n_dim = r_geom.WorkingSpaceDimension();
         Vector N_container = ZeroVector(n_cl_nodes);
         Matrix DN_DX_container = ZeroMatrix(n_cl_nodes, n_dim);
+
+        array_1d<double,3> area_normal = rIntPtAreaNormal;
+        double skin_pt_weight = norm_2(area_normal);*/
 
         /*PointerVector<NodeType> pos_node_vector;
         PointerVector<NodeType> neg_node_vector;
@@ -1510,6 +1518,252 @@ namespace Kratos
         p_cond_neg->SetValue(SHAPE_FUNCTIONS_GRADIENT_MATRIX, DN_DX_container_neg);*/
 
 
+        if (rElement.Id() == 1383) {  //} && !(rElement.Id() == 1417)) {
+            if (mAddedLeftEdge) {
+                return false;
+            } else {
+                mAddedLeftEdge = true;
+            }
+
+            // Initialize the extension operator containers
+            const std::size_t n_cl_nodes = r_geom.PointsNumber();
+            const std::size_t n_dim = r_geom.WorkingSpaceDimension();
+            Vector N_container = ZeroVector(n_cl_nodes);
+            Matrix DN_DX_container = ZeroMatrix(n_cl_nodes, n_dim);
+            double skin_pt_weight = 0.0;
+            
+            array_1d<double, 3> skin_pt_position;
+            array_1d<double,3> area_normal;
+            
+            PointerVector<NodeType> cloud_node_vector;
+            for (std::size_t i_node = 0; i_node < n_cl_nodes; ++i_node) {
+                const auto p_node = r_geom(i_node);
+                cloud_node_vector.push_back(p_node);
+            }
+        
+            // middle edge point on the right
+            skin_pt_position(0) = 0.3; //0.295; //0.3;
+            skin_pt_position(1) = 0.4375; //0.44; //0.4375;
+            skin_pt_position(2) = 0.0;
+            area_normal(0) = -1.0;
+            area_normal(0) = 0.0;
+            area_normal(0) = 0.0;
+            area_normal /= norm_2(area_normal);
+            skin_pt_weight = 0.025;
+            
+            GetDataForSplitElementIntegrationPoint(rElement, skin_pt_position, N_container, DN_DX_container);
+
+            auto p_prop = rElement.pGetProperties();
+            auto p_cond = mpConditionPrototype->Create(++r_ConditionId, cloud_node_vector, p_prop);
+            p_cond->Set(ACTIVE, true);
+            mpBoundarySubModelPart->AddCondition(p_cond);
+
+            // Store the SBM BC data in the condition database
+            p_cond->SetValue(ELEMENT_H, ElementSize);
+            p_cond->SetValue(INTEGRATION_COORDINATES, skin_pt_position);
+            p_cond->SetValue(NORMAL, area_normal);
+            p_cond->SetValue(INTEGRATION_WEIGHT, skin_pt_weight);
+            p_cond->SetValue(SHAPE_FUNCTIONS_VECTOR, N_container);
+            p_cond->SetValue(SHAPE_FUNCTIONS_GRADIENT_MATRIX, DN_DX_container);
+
+            KRATOS_WATCH(skin_pt_position);
+            KRATOS_WATCH(r_ConditionId);
+
+            // middle edge point on the bottom
+            skin_pt_position(0) = 0.2875;
+            skin_pt_position(1) = 0.425; //0.433;
+            skin_pt_position(2) = 0.0;
+            area_normal(0) = 0.0;
+            area_normal(0) = 1.0;
+            area_normal(0) = 0.0;
+            area_normal /= norm_2(area_normal);
+            skin_pt_weight = 0.025;
+            
+            GetDataForSplitElementIntegrationPoint(rElement, skin_pt_position, N_container, DN_DX_container);
+
+            auto p_cond_2 = mpConditionPrototype->Create(++r_ConditionId, cloud_node_vector, p_prop);
+            p_cond_2->Set(ACTIVE, true);
+            mpBoundarySubModelPart->AddCondition(p_cond_2);
+
+            // Store the SBM BC data in the condition database
+            p_cond_2->SetValue(ELEMENT_H, ElementSize);
+            p_cond_2->SetValue(INTEGRATION_COORDINATES, skin_pt_position);
+            p_cond_2->SetValue(NORMAL, area_normal);
+            p_cond_2->SetValue(INTEGRATION_WEIGHT, skin_pt_weight);
+            p_cond_2->SetValue(SHAPE_FUNCTIONS_VECTOR, N_container);
+            p_cond_2->SetValue(SHAPE_FUNCTIONS_GRADIENT_MATRIX, DN_DX_container);
+
+            KRATOS_WATCH(skin_pt_position);
+            KRATOS_WATCH(r_ConditionId);
+
+            // middle edge point on the skewed left
+            skin_pt_position(0) = 0.2875;
+            skin_pt_position(1) = 0.4375; //0.437;
+            skin_pt_position(2) = 0.0;
+            area_normal(0) = 1.0;
+            area_normal(0) = -1.0;
+            area_normal(0) = 0.0;
+            area_normal /= norm_2(area_normal);
+            skin_pt_weight = 0.035355339;
+            
+            GetDataForSplitElementIntegrationPoint(rElement, skin_pt_position, N_container, DN_DX_container);
+
+            auto p_cond_3 = mpConditionPrototype->Create(++r_ConditionId, cloud_node_vector, p_prop);
+            p_cond_3->Set(ACTIVE, true);
+            mpBoundarySubModelPart->AddCondition(p_cond_3);
+
+            // Store the SBM BC data in the condition database
+            p_cond_3->SetValue(ELEMENT_H, ElementSize);
+            p_cond_3->SetValue(INTEGRATION_COORDINATES, skin_pt_position);
+            p_cond_3->SetValue(NORMAL, area_normal);
+            p_cond_3->SetValue(INTEGRATION_WEIGHT, skin_pt_weight);
+            p_cond_3->SetValue(SHAPE_FUNCTIONS_VECTOR, N_container);
+            p_cond_3->SetValue(SHAPE_FUNCTIONS_GRADIENT_MATRIX, DN_DX_container);
+
+            KRATOS_WATCH(skin_pt_position);
+            KRATOS_WATCH(r_ConditionId);
+
+
+            /*if (!mAddedLeftEdge || !mAddedRightEdge) {
+                // Initialize the extension operator containers
+                const std::size_t n_cl_nodes = r_geom.PointsNumber();
+                const std::size_t n_dim = r_geom.WorkingSpaceDimension();
+                Vector N_container = ZeroVector(n_cl_nodes);
+                Matrix DN_DX_container = ZeroMatrix(n_cl_nodes, n_dim);
+            
+                array_1d<double, 3> skin_pt_position;
+                array_1d<double,3> area_normal;
+                area_normal(0) = 0.0;
+                area_normal(1) = 1.0;
+                area_normal(2) = 0.0;
+                const double skin_pt_weight = 0.0125/3;
+                if (mAddedLeftEdge) {
+                    mAddedRightEdge = true;
+                    skin_pt_position(0) = 0.3;
+                    skin_pt_position(1) = 0.4375;
+                    skin_pt_position(2) = 0.0;
+                    area_normal(0) = 0.0;
+                    area_normal(1) = 1.0;
+                } else {
+                    mAddedLeftEdge = true;
+                    skin_pt_position(0) = 0.2875;
+                    skin_pt_position(1) = 0.4375;
+                    //skin_pt_position(0) = 0.2875;
+                    //skin_pt_position(1) = 0.425;
+                    skin_pt_position(2) = 0.0;
+                    area_normal(0) = 0.0;
+                    area_normal(1) = 1.0;
+                }
+                area_normal /= norm_2(area_normal);
+
+                GetDataForSplitElementIntegrationPoint(rElement, skin_pt_position, N_container, DN_DX_container);
+
+                // Use shape function values and derivatives of nodes
+                PointerVector<NodeType> cloud_node_vector;
+                for (std::size_t i_node = 0; i_node < n_cl_nodes; ++i_node) {
+                    const auto p_node = r_geom(i_node);
+                    //const double i_node_N = rIntPtShapeFunctionValues(i_node);
+                    //const auto i_node_grad_N = row(rIntPtShapeFunctionDerivatives, i_node);
+                    cloud_node_vector.push_back(p_node);
+                    //N_container(i_node) = i_node_N;
+                    //for (std::size_t d = 0; d < n_dim; ++d) {
+                    //    DN_DX_container(i_node, d) = i_node_grad_N(d);
+                    //}
+                }
+
+                if (mAddedLeftEdge) {
+                    mAddedRightEdge = true;
+                    N_container(0) = 0.5;
+                    N_container(1) = 0.5;
+                    N_container(2) = 0.0;
+                } else {
+                    mAddedLeftEdge = true;
+                    N_container(0) = 0.5;
+                    N_container(1) = 0.0;
+                    N_container(2) = 0.5;
+                }
+            
+                // Create a new condition with a geometry made up with the basis nodes
+                auto p_prop = rElement.pGetProperties();
+                auto p_cond = mpConditionPrototype->Create(++r_ConditionId, cloud_node_vector, p_prop);
+                p_cond->Set(ACTIVE, true);
+                mpBoundarySubModelPart->AddCondition(p_cond);
+
+                // Store the SBM BC data in the condition database
+                p_cond->SetValue(ELEMENT_H, ElementSize);
+                p_cond->SetValue(INTEGRATION_COORDINATES, skin_pt_position);
+                p_cond->SetValue(NORMAL, area_normal);
+                p_cond->SetValue(INTEGRATION_WEIGHT, skin_pt_weight);
+                p_cond->SetValue(SHAPE_FUNCTIONS_VECTOR, N_container);
+                p_cond->SetValue(SHAPE_FUNCTIONS_GRADIENT_MATRIX, DN_DX_container);
+
+                KRATOS_WATCH(skin_pt_position);
+                KRATOS_WATCH(r_ConditionId);
+
+                auto p_cond_opposite = mpConditionPrototype->Create(++r_ConditionId, cloud_node_vector, p_prop);
+                p_cond_opposite->Set(ACTIVE, true);
+                mpBoundarySubModelPart->AddCondition(p_cond_opposite);
+
+                // Store the SBM BC data in the condition database
+                p_cond_opposite->SetValue(ELEMENT_H, ElementSize);
+                p_cond_opposite->SetValue(INTEGRATION_COORDINATES, skin_pt_position);
+                p_cond_opposite->SetValue(NORMAL, -area_normal);
+                p_cond_opposite->SetValue(INTEGRATION_WEIGHT, skin_pt_weight);
+                p_cond_opposite->SetValue(SHAPE_FUNCTIONS_VECTOR, N_container);
+                p_cond_opposite->SetValue(SHAPE_FUNCTIONS_GRADIENT_MATRIX, DN_DX_container);
+
+                KRATOS_WATCH(skin_pt_position);
+                KRATOS_WATCH(r_ConditionId);
+
+                if (mAddedRightEdge) {
+                    skin_pt_position(0) = 0.29;
+                    skin_pt_position(1) = 0.4375;
+                    area_normal(0) = 1.0;
+                    area_normal(1) = 0.0;
+                    GetDataForSplitElementIntegrationPoint(rElement, skin_pt_position, N_container, DN_DX_container);
+
+                    auto p_cond_2 = mpConditionPrototype->Create(++r_ConditionId, cloud_node_vector, p_prop);
+                    p_cond_2->Set(ACTIVE, true);
+                    mpBoundarySubModelPart->AddCondition(p_cond_2);
+
+                    // Store the SBM BC data in the condition database
+                    p_cond_2->SetValue(ELEMENT_H, ElementSize);
+                    p_cond_2->SetValue(INTEGRATION_COORDINATES, skin_pt_position);
+                    p_cond_2->SetValue(NORMAL, area_normal);
+                    p_cond_2->SetValue(INTEGRATION_WEIGHT, skin_pt_weight);
+                    p_cond_2->SetValue(SHAPE_FUNCTIONS_VECTOR, N_container);
+                    p_cond_2->SetValue(SHAPE_FUNCTIONS_GRADIENT_MATRIX, DN_DX_container);
+
+                    KRATOS_WATCH(skin_pt_position);
+                    KRATOS_WATCH(r_ConditionId);
+
+                    auto p_cond_3 = mpConditionPrototype->Create(++r_ConditionId, cloud_node_vector, p_prop);
+                    p_cond_3->Set(ACTIVE, true);
+                    mpBoundarySubModelPart->AddCondition(p_cond_3);
+
+                    // Store the SBM BC data in the condition database
+                    p_cond_3->SetValue(ELEMENT_H, ElementSize);
+                    p_cond_3->SetValue(INTEGRATION_COORDINATES, skin_pt_position);
+                    p_cond_3->SetValue(NORMAL, -area_normal);
+                    p_cond_3->SetValue(INTEGRATION_WEIGHT, skin_pt_weight);
+                    p_cond_3->SetValue(SHAPE_FUNCTIONS_VECTOR, N_container);
+                    p_cond_3->SetValue(SHAPE_FUNCTIONS_GRADIENT_MATRIX, DN_DX_container);
+
+                    KRATOS_WATCH(skin_pt_position);
+                    KRATOS_WATCH(r_ConditionId);
+                }
+
+                return true;
+            }*/
+            //return false;
+
+            return true;
+        } else {
+            rElement.Set(SBM_BOUNDARY, false);
+            return false;
+        }
+
+        /*
         // Loop the nodes that are involved in the current element
         for (std::size_t i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
             const auto p_node = r_geom(i_node);
@@ -1537,19 +1791,55 @@ namespace Kratos
                 const double i_node_N = rIntPtShapeFunctionValues(i_node);
                 const auto i_node_grad_N = row(rIntPtShapeFunctionDerivatives, i_node);
 
-                if (p_node->Id() == 924 || p_node->Id() == 347 || p_node->Id() == 372) {
-                    KRATOS_INFO("\nadding edge node shape function value!\n");
-                    // Note that we need to check for the ids to match as we do not know the node's position in the node vector
-                    for (std::size_t i_cl = 0; i_cl < n_cl_nodes; ++i_cl) {
-                        auto& p_cl_node = rCloudNodeVector(i_cl);
-                        if (p_node->Id() == p_cl_node->Id()) {
-                            N_container(i_cl) += rIntPtShapeFunctionValues(i_node);
-                            for (std::size_t d = 0; d < n_dim; ++d) {
-                                DN_DX_container(i_cl, d) += rIntPtShapeFunctionDerivatives(i_node, d);
+                if (p_node->Id() == 347 || p_node->Id() == 372) {  //p_node->Id() == 361 || 
+                    KRATOS_INFO("\nTRYING TO ADD NODE SHAPE FUNCTION VALUE ..\n");
+                    KRATOS_WATCH(ConsiderPositiveSide);
+                    KRATOS_WATCH(rElement.Id());
+                    //skin_pt_weight /= 2.0;
+                    //if (!mAddedRightEdge) {
+                        // Note that we need to check for the ids to match as we do not know the node's position in the node vector
+                        for (std::size_t i_cl = 0; i_cl < n_cl_nodes; ++i_cl) {
+                            auto& p_cl_node = rCloudNodeVector(i_cl);
+                            if (p_node->Id() == p_cl_node->Id()) {
+                                N_container(i_cl) += i_node_N;
+                                for (std::size_t d = 0; d < n_dim; ++d) {
+                                    DN_DX_container(i_cl, d) += i_node_grad_N(d);
+                                }
+                                KRATOS_INFO("ADDED RIGHT EDGE NODE SHAPE FUNCTION VALUE\n");
+                                break;
                             }
-                            break;
                         }
-                    }
+                        //const double skin_pt_weight = norm_2(rIntPtAreaNormal);
+                        //const array_1d<double,3> normal_right {{1.0, 0.0, 0.0}};
+                        //area_normal = skin_pt_weight * normal_right;
+                    //} else {
+                     //   return false;
+                    //}
+                } else if (p_node->Id() == 908 || p_node->Id() == 924) {  //p_node->Id() == 878 || 
+                    KRATOS_INFO("\nTRYING TO ADD NODE SHAPE FUNCTION VALUE ..\n");
+                    KRATOS_WATCH(ConsiderPositiveSide);
+                    KRATOS_WATCH(rElement.Id());
+                    //skin_pt_weight /= 2.0;
+                    //if (!mAddedLeftEdge) {
+                        // Note that we need to check for the ids to match as we do not know the node's position in the node vector
+                        for (std::size_t i_cl = 0; i_cl < n_cl_nodes; ++i_cl) {
+                            auto& p_cl_node = rCloudNodeVector(i_cl);
+                            if (p_node->Id() == p_cl_node->Id()) {
+                                N_container(i_cl) += i_node_N;
+                                for (std::size_t d = 0; d < n_dim; ++d) {
+                                    DN_DX_container(i_cl, d) += i_node_grad_N(d);
+                                }
+                                KRATOS_INFO("ADDED LEFT EDGE NODE SHAPE FUNCTION VALUE\n");
+                                break;
+                            }
+                        }
+                        //const double skin_pt_weight = norm_2(rIntPtAreaNormal);
+                        //const array_1d<double,3> normal_left {{-1.0, 0.0, 0.0}};
+                        //area_normal = skin_pt_weight * normal_left;
+                    //} else {
+                    //    return false;
+                    //}
+                                        
                 } else {
 
                 // If node on the other side does not have an extension basis, then no wall condition is created
@@ -1593,11 +1883,10 @@ namespace Kratos
         // Store the SBM BC data in the condition database
         p_cond->SetValue(ELEMENT_H, ElementSize);
         p_cond->SetValue(INTEGRATION_COORDINATES, rIntPtCoordinates);
-        const double skin_pt_weight = norm_2(rIntPtAreaNormal);
-        p_cond->SetValue(NORMAL, rIntPtAreaNormal/ skin_pt_weight);
+        p_cond->SetValue(NORMAL, area_normal/ skin_pt_weight);
         p_cond->SetValue(INTEGRATION_WEIGHT, skin_pt_weight);
         p_cond->SetValue(SHAPE_FUNCTIONS_VECTOR, N_container);
-        p_cond->SetValue(SHAPE_FUNCTIONS_GRADIENT_MATRIX, DN_DX_container);
+        p_cond->SetValue(SHAPE_FUNCTIONS_GRADIENT_MATRIX, DN_DX_container);*/
 
         return true;
     }

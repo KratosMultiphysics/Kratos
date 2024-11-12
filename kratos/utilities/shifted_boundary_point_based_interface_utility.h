@@ -210,6 +210,9 @@ protected:
     bool mCrossBoundaryNeighbors = false;
     bool mUseTessellatedBoundary = true;
 
+    bool mAddedLeftEdge = false;
+    bool mAddedRightEdge = false;
+
     /// @brief Protected empty constructor for derived classes
     ShiftedBoundaryPointBasedInterfaceUtility() {}
 
@@ -325,7 +328,7 @@ protected:
 
     /* TODO */
     bool AddIntegrationPointCondition(
-        const ElementType& rElement,
+        ElementType& rElement,
         const Vector& rSidesVector,
         const double ElementSize,
         const array_1d<double,3>& rIntPtCoordinates,
@@ -334,7 +337,7 @@ protected:
         const PointerVector<NodeType>& rCloudNodeVector,
         const Vector& rIntPtShapeFunctionValues,
         const Matrix& rIntPtShapeFunctionDerivatives,
-        const std::size_t ConditionId,
+        std::size_t& r_ConditionId,
         bool ConsiderPositiveSide);
 
     bool SetEnclosedNodesPressure(
