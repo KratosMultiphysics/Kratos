@@ -42,7 +42,7 @@ void CombineModelPartModeler::SetupModelPart()
     KRATOS_TRY;
     const auto& r_new_model_part_name = mParameters["combined_model_part_name"].GetString();
 
-    auto& r_combined_model_part = mpModel->HasModelPart(r_new_model_part_name) ? 
+    auto& r_combined_model_part = mpModel->HasModelPart(r_new_model_part_name) ?
         mpModel->GetModelPart(r_new_model_part_name) : mpModel->CreateModelPart(r_new_model_part_name);
 
     this->ResetModelPart(r_combined_model_part);
@@ -95,7 +95,7 @@ void CombineModelPartModeler::CheckOriginModelPartsAndAssignRoot()
     for (unsigned int i = 1; i < model_part_list.size(); i++) {
         ModelPart& r_origin_model_part = mpModel->GetModelPart(model_part_list[i]["origin_model_part"].GetString());
         if (r_origin_model_part.GetRootModelPart().FullName() != mpOriginRootModelPart->FullName()) {
-            KRATOS_ERROR << "The origin model part \"" << r_origin_model_part.FullName() << 
+            KRATOS_ERROR << "The origin model part \"" << r_origin_model_part.FullName() <<
                 "\" does not have the same root as the rest of origin model parts: \"" <<
                 mpOriginRootModelPart->FullName() << "\".\n";
         }
@@ -112,12 +112,12 @@ void CombineModelPartModeler::CopyCommonData(
     ModelPart& rCombinedModelPart) const
 {
     KRATOS_TRY;
-    
+
     if (!rCombinedModelPart.IsSubModelPart()) {
         rCombinedModelPart.SetNodalSolutionStepVariablesList(mpOriginRootModelPart->pGetNodalSolutionStepVariablesList());
         rCombinedModelPart.SetBufferSize( mpOriginRootModelPart->GetBufferSize() );
     }
-    
+
     rCombinedModelPart.SetProcessInfo( mpOriginRootModelPart->pGetProcessInfo() );
     rCombinedModelPart.PropertiesArray() = mpOriginRootModelPart->PropertiesArray();
     rCombinedModelPart.Tables() = mpOriginRootModelPart->Tables();
@@ -288,66 +288,58 @@ void CombineModelPartModeler::PopulateLocalMesh(
 
         ModelPart::NodesContainerType& rDestinationLocalNodes = rDestinationComm.LocalMesh().Nodes();
         rDestinationLocalNodes.reserve(rReferenceComm.LocalMesh().NumberOfNodes());
+        auto local_nodes_mutable_pass = rDestinationLocalNodes.GetMutablePass();
         for (auto p_node = rReferenceComm.LocalMesh().Nodes().ptr_begin(); p_node != rReferenceComm.LocalMesh().Nodes().ptr_end(); ++p_node) {
-            if (!rDestinationModelPart.GetCommunicator().LocalMesh().HasNode((*p_node)->Id())) {
-                rDestinationLocalNodes.push_back(*p_node);
-            }
+            local_nodes_mutable_pass.push_back(*p_node);
         }
 
         ModelPart::NodesContainerType& rDestinationInterfaceNodes = rDestinationComm.InterfaceMesh().Nodes();
         rDestinationInterfaceNodes.reserve(rReferenceComm.InterfaceMesh().NumberOfNodes());
+        auto interface_nodes_mutable_pass = rDestinationInterfaceNodes.GetMutablePass();
         for (auto p_node = rReferenceComm.InterfaceMesh().Nodes().ptr_begin(); p_node != rReferenceComm.InterfaceMesh().Nodes().ptr_end(); ++p_node) {
-            if (!rDestinationModelPart.GetCommunicator().InterfaceMesh().HasNode((*p_node)->Id())) {
-                rDestinationInterfaceNodes.push_back(*p_node);
-            }
+            interface_nodes_mutable_pass.push_back(*p_node);
         }
 
         ModelPart::NodesContainerType& rDestinationGhostNodes = rDestinationComm.GhostMesh().Nodes();
         rDestinationGhostNodes.reserve(rReferenceComm.GhostMesh().NumberOfNodes());
+        auto ghost_nodes_mutable_pass = rDestinationGhostNodes.GetMutablePass();
         for (auto p_node = rReferenceComm.GhostMesh().Nodes().ptr_begin(); p_node != rReferenceComm.GhostMesh().Nodes().ptr_end(); ++p_node) {
-            if (!rDestinationModelPart.GetCommunicator().GhostMesh().HasNode((*p_node)->Id())) {
-                rDestinationGhostNodes.push_back(*p_node);
-            }
+            ghost_nodes_mutable_pass.push_back(*p_node);
         }
 
         ModelPart::ConditionsContainerType& rDestinationLocalConditions = rDestinationComm.LocalMesh().Conditions();
         rDestinationLocalConditions.reserve(rDestinationModelPart.NumberOfConditions());
+        auto conditions_mutable_pass = rDestinationLocalConditions.GetMutablePass();
         for (auto p_cond = rDestinationModelPart.Conditions().ptr_begin(); p_cond != rDestinationModelPart.Conditions().ptr_end(); ++p_cond) {
-            if (!rDestinationModelPart.GetCommunicator().LocalMesh().HasCondition((*p_cond)->Id())) {
-                rDestinationLocalConditions.push_back(*p_cond);
-            }
+            conditions_mutable_pass.push_back(*p_cond);
         }
 
         ModelPart::ElementsContainerType& rDestinationLocalElements = rDestinationComm.LocalMesh().Elements();
         rDestinationLocalElements.reserve(rDestinationModelPart.NumberOfElements());
+        auto elements_mutable_pass = rDestinationLocalElements.GetMutablePass();
         for (auto p_elem = rDestinationModelPart.Elements().ptr_begin(); p_elem != rDestinationModelPart.Elements().ptr_end(); ++p_elem) {
-            if (!rDestinationModelPart.GetCommunicator().LocalMesh().HasElement((*p_elem)->Id())) {
-                rDestinationLocalElements.push_back(*p_elem);
-            }
+            elements_mutable_pass.push_back(*p_elem);
         }
     } else {
         ModelPart::NodesContainerType& rDestinationLocalNodes = rDestinationComm.LocalMesh().Nodes();
         rDestinationLocalNodes.reserve(rDestinationModelPart.NumberOfNodes());
+        auto local_nodes_mutable_pass = rDestinationLocalNodes.GetMutablePass();
         for (auto p_node = rDestinationModelPart.Nodes().ptr_begin(); p_node != rDestinationModelPart.Nodes().ptr_end(); ++p_node) {
-            if (!rDestinationModelPart.GetCommunicator().LocalMesh().HasNode((*p_node)->Id())) {
-                rDestinationLocalNodes.push_back(*p_node);
-            }
+            local_nodes_mutable_pass.push_back(*p_node);
         }
 
         ModelPart::ConditionsContainerType& rDestinationLocalConditions = rDestinationComm.LocalMesh().Conditions();
         rDestinationLocalConditions.reserve(rDestinationModelPart.NumberOfConditions());
+        auto conditions_mutable_pass = rDestinationLocalConditions.GetMutablePass();
         for (auto p_cond = rDestinationModelPart.Conditions().ptr_begin(); p_cond != rDestinationModelPart.Conditions().ptr_end(); ++p_cond) {
-            if (!rDestinationModelPart.GetCommunicator().LocalMesh().HasCondition((*p_cond)->Id())) {
-                rDestinationLocalConditions.push_back(*p_cond);
-            }
+            conditions_mutable_pass.push_back(*p_cond);
         }
 
         ModelPart::ElementsContainerType& rDestinationLocalElements = rDestinationComm.LocalMesh().Elements();
         rDestinationLocalElements.reserve(rDestinationModelPart.NumberOfElements());
+        auto elements_mutable_pass = rDestinationLocalElements.GetMutablePass();
         for (auto p_elem = rDestinationModelPart.Elements().ptr_begin(); p_elem != rDestinationModelPart.Elements().ptr_end(); ++p_elem) {
-            if (!rDestinationModelPart.GetCommunicator().LocalMesh().HasElement((*p_elem)->Id())) {
-                rDestinationLocalElements.push_back(*p_elem);
-            }
+            elements_mutable_pass.push_back(*p_elem);
         }
     }
 }
@@ -443,7 +435,7 @@ void CombineModelPartModeler::DuplicateSubModelParts(
 /***********************************************************************************/
 /***********************************************************************************/
 
-const Parameters CombineModelPartModeler::GetDefaultParameters() const 
+const Parameters CombineModelPartModeler::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"({
         "combined_model_part_name" : "",
