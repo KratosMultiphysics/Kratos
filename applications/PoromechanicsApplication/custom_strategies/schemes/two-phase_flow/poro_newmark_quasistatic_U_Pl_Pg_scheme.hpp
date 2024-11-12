@@ -413,7 +413,8 @@ public:
         KRATOS_TRY
 
         rCurrentCondition.CalculateLocalSystem(LHS_Contribution,RHS_Contribution,rCurrentProcessInfo);
-
+        KRATOS_WATCH("Inside U_PL_PG_Scheme");
+        KRATOS_WATCH(RHS_Contribution);
         rCurrentCondition.EquationIdVector(EquationId,rCurrentProcessInfo);
 
         KRATOS_CATCH( "" )
@@ -432,8 +433,6 @@ public:
         KRATOS_TRY
 
         rCurrentElement.CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
-        KRATOS_WATCH("RHS Contribution");
-        KRATOS_WATCH(RHS_Contribution);
 
         rCurrentElement.EquationIdVector(EquationId,rCurrentProcessInfo);
 

@@ -234,8 +234,22 @@ public:
                     // Calculate elemental contribution
                     pScheme->CalculateSystemContributions(*it_elem, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
+                    KRATOS_WATCH("Inside Block Builder element loop")
+                    KRATOS_WATCH("Before Assemble")
+                    KRATOS_WATCH(LHS_Contribution)
+                    KRATOS_WATCH(RHS_Contribution)
+                    KRATOS_WATCH(EquationId)
+
                     // Assemble the elemental contribution
                     Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
+
+                    KRATOS_WATCH("Inside Block Builder element loop")
+                    KRATOS_WATCH("After Assemble")
+                    KRATOS_WATCH(A)
+                    KRATOS_WATCH(b)
+                    KRATOS_WATCH(LHS_Contribution)
+                    KRATOS_WATCH(RHS_Contribution)
+                    KRATOS_WATCH(EquationId)
                 }
 
             }
@@ -248,8 +262,22 @@ public:
                     // Calculate elemental contribution
                     pScheme->CalculateSystemContributions(*it_cond, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
+                    KRATOS_WATCH("Inside Block Builder condition loop")
+                    KRATOS_WATCH("Before Assemble")
+                    KRATOS_WATCH(LHS_Contribution)
+                    KRATOS_WATCH(RHS_Contribution)
+                    KRATOS_WATCH(EquationId)
+
                     // Assemble the elemental contribution
                     Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
+
+                    KRATOS_WATCH("Inside Block Builder condition loop")
+                    KRATOS_WATCH("After Assemble")
+                    KRATOS_WATCH(A)
+                    KRATOS_WATCH(b)
+                    KRATOS_WATCH(LHS_Contribution)
+                    KRATOS_WATCH(RHS_Contribution)
+                    KRATOS_WATCH(EquationId)
                 }
             }
         }
@@ -489,6 +517,11 @@ public:
         Timer::Start("Build");
 
         Build(pScheme, rModelPart, A, b);
+
+        KRATOS_WATCH("Inside Block Builder")
+        KRATOS_WATCH("After Build")
+        KRATOS_WATCH(A)
+        KRATOS_WATCH(b)
 
         Timer::Stop("Build");
 

@@ -229,11 +229,25 @@ public:
                     // Calculate elemental contribution
                     pScheme->CalculateSystemContributions(*it_elem, LHS_Contribution, RHS_Contribution, equation_id, r_current_process_info);
 
+                    KRATOS_WATCH("Inside Elimination Builder element loop")
+                    KRATOS_WATCH("Before Assemble")
+                    KRATOS_WATCH(LHS_Contribution)
+                    KRATOS_WATCH(RHS_Contribution)
+                    KRATOS_WATCH(equation_id)
                     // Assemble the elemental contribution
 #ifdef USE_LOCKS_IN_ASSEMBLY
                     Assemble(rA, rb, LHS_Contribution, RHS_Contribution, equation_id, mLockArray);
 #else
                     Assemble(rA, rb, LHS_Contribution, RHS_Contribution, equation_id);
+
+                    KRATOS_WATCH("Inside Elimination Builder element loop")
+                    KRATOS_WATCH("After Assemble")
+                    KRATOS_WATCH(rA)
+                    KRATOS_WATCH(rb)
+                    KRATOS_WATCH(LHS_Contribution)
+                    KRATOS_WATCH(RHS_Contribution)
+                    KRATOS_WATCH(equation_id)
+
 #endif
                 }
             }
@@ -246,11 +260,22 @@ public:
                 if (it_cond->IsActive()) {
                     // Calculate elemental contribution
                     pScheme->CalculateSystemContributions(*it_cond, LHS_Contribution, RHS_Contribution, equation_id, r_current_process_info);
-
+                    KRATOS_WATCH("Inside Elimination Builder condition loop")
+                    KRATOS_WATCH("Before Assemble")
+                    KRATOS_WATCH(LHS_Contribution)
+                    KRATOS_WATCH(RHS_Contribution)
+                    KRATOS_WATCH(equation_id)
 #ifdef USE_LOCKS_IN_ASSEMBLY
                     Assemble(rA, rb, LHS_Contribution, RHS_Contribution, equation_id, mLockArray);
 #else
                     Assemble(rA, rb, LHS_Contribution, RHS_Contribution, equation_id);
+                    KRATOS_WATCH("Inside Elimination Builder condition loop")
+                    KRATOS_WATCH("After Assemble")
+                    KRATOS_WATCH(rA)
+                    KRATOS_WATCH(rb)
+                    KRATOS_WATCH(LHS_Contribution)
+                    KRATOS_WATCH(RHS_Contribution)
+                    KRATOS_WATCH(equation_id)
 #endif
                 }
             }
@@ -517,6 +542,11 @@ public:
         Timer::Start("Build");
 
         Build(pScheme, rModelPart, rA, rb);
+
+        KRATOS_WATCH("Inside Elimination Builder")
+        KRATOS_WATCH("After Build")
+        KRATOS_WATCH(rA)
+        KRATOS_WATCH(rb)
 
         Timer::Stop("Build");
 
