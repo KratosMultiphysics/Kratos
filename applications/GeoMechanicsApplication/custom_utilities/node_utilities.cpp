@@ -38,4 +38,14 @@ void NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponents(Node& rNode,
     }
 }
 
+void NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponentsOfNodes(
+    const ModelPart::NodesContainerType& rNodes,
+    const Variable<array_1d<double, 3>>& rDestinationVariable,
+    const array_1d<double, 3>&           rNewValues)
+{
+    block_for_each(rNodes, [&rDestinationVariable, &rNewValues](Node& rNode) {
+        AssignUpdatedVectorVariableToNonFixedComponents(rNode, rDestinationVariable, rNewValues);
+    });
+}
+
 } // namespace Kratos

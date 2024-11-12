@@ -57,23 +57,16 @@ class GeoMechanicsAnalysisBase(AnalysisStage):
 
     def ResetIfHasNodalSolutionStepVariable(self, variable):
         if self._GetSolver().main_model_part.HasNodalSolutionStepVariable(variable):
-            for node in self._GetSolver().GetComputingModelPart().Nodes:
-                if not node.IsFixed(variable):
-                    node.SetSolutionStepValue(variable, 0, 0.0)
-                    new_value = node.GetSolutionStepValue(variable, 0)
-                    node.SetSolutionStepValue(variable, 1, new_value)
+            KratosGeo.NodeUtilities.AssignUpdatedVectorVariableToNonFixedComponentsOfNodes(
+                self._GetSolver().GetComputingModelPart().Nodes, variable, Kratos.Array3([0.0, 0.0, 0.0]))
 
-    def ModifyAfterSolverInitialize(self):
-        # Overrides the base class. Necessary to let reset_displacements function correctly i.c.w. prescribed displacements/rotations.
-        # The reset needs to take place befor the Initialize of the processes, as these will set the Dirichlet condition.
+    def Initialize(self):
+        super().Initialize()
+
         self._GetSolver().main_model_part.ProcessInfo[KratosGeo.RESET_DISPLACEMENTS] = self.reset_displacements
         if self.reset_displacements:
-            self.ResetIfHasNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT_X)
-            self.ResetIfHasNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT_Y)
-            self.ResetIfHasNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT_Z)
-            self.ResetIfHasNodalSolutionStepVariable(KratosMultiphysics.ROTATION_X)
-            self.ResetIfHasNodalSolutionStepVariable(KratosMultiphysics.ROTATION_Y)
-            self.ResetIfHasNodalSolutionStepVariable(KratosMultiphysics.ROTATION_Z)
+            self.ResetIfHasNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+            self.ResetIfHasNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
 
             KratosMultiphysics.VariableUtils().UpdateCurrentToInitialConfiguration(self._GetSolver().GetComputingModelPart().Nodes)
 
