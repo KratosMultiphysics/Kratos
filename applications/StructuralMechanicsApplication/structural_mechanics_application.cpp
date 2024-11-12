@@ -104,6 +104,7 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mSmallDisplacementNonLocal3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
       mSmallDisplacementHexTwoNonLocalVariables3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<NodeType >(Element::GeometryType::PointsArrayType(8)))),
       mSmallDisplacementTwoNonLocalVariables3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
+      mSmallDisplacementTwoNonLocalVariables3D10N(0, Element::GeometryType::Pointer(new Tetrahedra3D10<NodeType >(Element::GeometryType::PointsArrayType(10)))),
 
       mSmallDisplacementBbar2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<NodeType>(Element::GeometryType::PointsArrayType(4)))),
       mSmallDisplacementBbar3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<NodeType>(Element::GeometryType::PointsArrayType(8)))),
@@ -518,6 +519,7 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("SmallDisplacementNonLocalElement3D4N", mSmallDisplacementNonLocal3D4N)
     KRATOS_REGISTER_ELEMENT("SmallDisplacementHexElementTwoNonLocalVariables3D8N",mSmallDisplacementHexTwoNonLocalVariables3D8N)
     KRATOS_REGISTER_ELEMENT("SmallDisplacementElementTwoNonLocalVariables3D4N",mSmallDisplacementTwoNonLocalVariables3D4N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementElementTwoNonLocalVariables3D10N",mSmallDisplacementTwoNonLocalVariables3D10N)
 
     KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainElement2D3N", mSmallDisplacementMixedVolumetricStrainElement2D3N)
     KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainElement2D4N", mSmallDisplacementMixedVolumetricStrainElement2D4N)

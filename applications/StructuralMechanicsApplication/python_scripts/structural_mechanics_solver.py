@@ -264,6 +264,7 @@ class MechanicalSolver(PythonSolver):
             msg  = "Solver did not converge for step " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]) + "\n"
             msg += "corresponding to time " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]) + "\n"
             KratosMultiphysics.Logger.PrintWarning("::[MechanicalSolver]:: ",msg)
+            exit()
         return is_converged
 
     def FinalizeSolutionStep(self):
