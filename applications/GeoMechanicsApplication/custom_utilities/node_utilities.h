@@ -27,11 +27,13 @@ public:
 
     static void AssignUpdatedVectorVariableToNonFixedComponents(Node& rNode,
                                                                 const Variable<array_1d<double, 3>>& rDestinationVariable,
-                                                                const array_1d<double, 3>& rNewValues);
+                                                                const array_1d<double, 3>& rNewValues,
+                                                                IndexType SolutionStepIndex = 0);
 
     static void AssignUpdatedVectorVariableToNonFixedComponentsOfNodes(const ModelPart::NodesContainerType& rNodes,
                                                                        const Variable<array_1d<double, 3>>& rDestinationVariable,
-                                                                       const array_1d<double, 3>& rNewValues);
+                                                                       const array_1d<double, 3>& rNewValues,
+                                                                       IndexType SolutionStepIndex = 0);
 };
 
 } // namespace Kratos

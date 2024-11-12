@@ -57,8 +57,11 @@ class GeoMechanicsAnalysisBase(AnalysisStage):
 
     def ResetIfHasNodalSolutionStepVariable(self, variable):
         if self._GetSolver().main_model_part.HasNodalSolutionStepVariable(variable):
+            zero_vector = Kratos.Array3([0.0, 0.0, 0.0])
             KratosGeo.NodeUtilities.AssignUpdatedVectorVariableToNonFixedComponentsOfNodes(
-                self._GetSolver().GetComputingModelPart().Nodes, variable, Kratos.Array3([0.0, 0.0, 0.0]))
+                self._GetSolver().GetComputingModelPart().Nodes, variable, zero_vector, 0)
+            KratosGeo.NodeUtilities.AssignUpdatedVectorVariableToNonFixedComponentsOfNodes(
+                self._GetSolver().GetComputingModelPart().Nodes, variable, zero_vector, 1)
 
     def Initialize(self):
         super().Initialize()
