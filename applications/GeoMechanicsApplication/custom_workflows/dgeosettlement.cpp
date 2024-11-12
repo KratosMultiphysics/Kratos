@@ -191,14 +191,6 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
         std::vector<std::shared_ptr<Process>> processes = GetProcesses(project_parameters);
         std::vector<std::weak_ptr<Process>> process_observables(processes.begin(), processes.end());
 
-        if (mpTimeLoopExecutor) {
-            mpTimeLoopExecutor->SetCancelDelegate(rShouldCancel);
-            mpTimeLoopExecutor->SetProgressDelegate(rProgressDelegate);
-            mpTimeLoopExecutor->SetProcessObservables(process_observables);
-            mpTimeLoopExecutor->SetTimeIncrementor(MakeTimeIncrementor(project_parameters));
-            mpTimeLoopExecutor->SetSolverStrategyWrapper(MakeStrategyWrapper(project_parameters, rWorkingDirectory));
-        }
-
         for (const auto& process : processes) {
             process->ExecuteInitialize();
         }
@@ -208,6 +200,12 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
         }
 
         if (mpTimeLoopExecutor) {
+            mpTimeLoopExecutor->SetCancelDelegate(rShouldCancel);
+            mpTimeLoopExecutor->SetProgressDelegate(rProgressDelegate);
+            mpTimeLoopExecutor->SetProcessObservables(process_observables);
+            mpTimeLoopExecutor->SetTimeIncrementor(MakeTimeIncrementor(project_parameters));
+            mpTimeLoopExecutor->SetSolverStrategyWrapper(MakeStrategyWrapper(project_parameters, rWorkingDirectory));
+
             // For now, pass a dummy state. THIS PROBABLY NEEDS TO BE REFINED AT SOME POINT!
             TimeStepEndState start_of_loop_state;
             start_of_loop_state.convergence_state = TimeStepEndState::ConvergenceState::converged;

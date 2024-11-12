@@ -77,13 +77,10 @@ private:
     {
         if (!GetComputationalModelPart().HasNodalSolutionStepVariable(rVariable)) return;
 
-        VariableUtils{}.SetHistoricalVariableToZero(rVariable, GetComputationalModelPart().Nodes());
-
-        block_for_each(GetComputationalModelPart().Nodes(),
-                       [&rVariable, SourceIndex, DestinationIndex](auto& node) {
-            node.GetSolutionStepValue(rVariable, DestinationIndex) =
-                node.GetSolutionStepValue(rVariable, SourceIndex);
-        });
+        NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponentsOfNodes(
+            GetComputationalModelPart().Nodes(), rVariable, ZeroVector{3}, 0);
+        NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponentsOfNodes(
+            GetComputationalModelPart().Nodes(), rVariable, ZeroVector{3}, 1);
     }
 
     template <typename ProcessType>
