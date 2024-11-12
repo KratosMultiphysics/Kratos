@@ -19,6 +19,7 @@
 #include "includes/kernel.h"
 #include "includes/kratos_export_api.h"
 
+#include "custom_utilities/node_utilities.h"
 #include "custom_utilities/process_factory.hpp"
 #include "geo_mechanics_application.h"
 #include "linear_solvers_application.h"
