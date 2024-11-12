@@ -201,6 +201,8 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mAxisymUpdatedLagrangian2D6N(0, Element::GeometryType::Pointer(new Triangle2D6<NodeType >(Element::GeometryType::PointsArrayType(6)))),
       mAxisymUpdatedLagrangian2D8N(0, Element::GeometryType::Pointer(new Quadrilateral2D8<NodeType >(Element::GeometryType::PointsArrayType(8)))),
       mAxisymUpdatedLagrangian2D9N(0, Element::GeometryType::Pointer(new Quadrilateral2D9<NodeType >(Element::GeometryType::PointsArrayType(9)))),
+      // Adding the bushing element
+      mBushingElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),      
       // Adding the spring damper element
       mSpringDamperElement2D(0, Element::GeometryType::Pointer(new Line2D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
       mSpringDamperElement3D(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
@@ -308,6 +310,9 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(AXIAL_FORCE)
     KRATOS_REGISTER_VARIABLE(SHEAR_FORCE)
     KRATOS_REGISTER_VARIABLE(BENDING_MOMENT)
+    KRATOS_REGISTER_VARIABLE(AXIAL_STRAIN)
+    KRATOS_REGISTER_VARIABLE(SHEAR_STRAIN)
+    KRATOS_REGISTER_VARIABLE(BENDING_STRAIN)
     KRATOS_REGISTER_VARIABLE(INITIAL_GEOMETRIC_CURVATURE)
     KRATOS_REGISTER_VARIABLE(AREA)
     KRATOS_REGISTER_VARIABLE(IT)
@@ -671,6 +676,9 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("AxisymUpdatedLagrangianElement2D6N", mAxisymUpdatedLagrangian2D6N)
     KRATOS_REGISTER_ELEMENT("AxisymUpdatedLagrangianElement2D8N", mAxisymUpdatedLagrangian2D8N)
     KRATOS_REGISTER_ELEMENT("AxisymUpdatedLagrangianElement2D9N", mAxisymUpdatedLagrangian2D9N)
+
+    // Register the bushing element
+    KRATOS_REGISTER_ELEMENT("BushingElement3D2N", mBushingElement3D2N);    
 
     // Register the spring damper element
     KRATOS_REGISTER_ELEMENT("SpringDamperElement2D", mSpringDamperElement2D);

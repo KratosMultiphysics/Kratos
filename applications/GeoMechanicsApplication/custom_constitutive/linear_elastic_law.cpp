@@ -52,7 +52,8 @@ void GeoLinearElasticLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Paramete
 
     const Flags& r_options = rValues.GetOptions();
 
-    KRATOS_DEBUG_ERROR_IF(r_options.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN))
+    KRATOS_DEBUG_ERROR_IF(r_options.IsDefined(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN) &&
+                          r_options.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN))
         << "The GeoLinearElasticLaw needs an element provided strain" << std::endl;
 
     KRATOS_ERROR_IF(!rValues.IsSetStrainVector() || rValues.GetStrainVector().size() != GetStrainSize())

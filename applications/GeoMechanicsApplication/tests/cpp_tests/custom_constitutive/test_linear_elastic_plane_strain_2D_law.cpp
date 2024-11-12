@@ -10,7 +10,7 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "custom_constitutive/linear_elastic_plane_strain_2D_law.h"
+#include "custom_constitutive/incremental_linear_elastic_law.h"
 #include "custom_constitutive/plane_strain.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
@@ -21,10 +21,9 @@ namespace
 
 using namespace Kratos;
 
-Vector CalculateStress(GeoLinearElasticPlaneStrain2DLaw& rConstitutiveLaw)
+Vector CalculateStress(GeoIncrementalLinearElasticLaw& rConstitutiveLaw)
 {
     ConstitutiveLaw::Parameters parameters;
-    parameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
     parameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
@@ -47,9 +46,9 @@ Vector CalculateStress(GeoLinearElasticPlaneStrain2DLaw& rConstitutiveLaw)
     return stress;
 }
 
-GeoLinearElasticPlaneStrain2DLaw CreateLinearElasticPlaneStrainLaw()
+GeoIncrementalLinearElasticLaw CreateLinearElasticPlaneStrainLaw()
 {
-    return GeoLinearElasticPlaneStrain2DLaw{std::make_unique<PlaneStrain>()};
+    return GeoIncrementalLinearElasticLaw{std::make_unique<PlaneStrain>()};
 }
 
 } // namespace
@@ -62,7 +61,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsCloneOfCorrectT
     const auto law         = CreateLinearElasticPlaneStrainLaw();
     const auto p_law_clone = law.Clone();
     KRATOS_EXPECT_NE(&law, p_law_clone.get());
-    KRATOS_EXPECT_NE(dynamic_cast<const GeoLinearElasticPlaneStrain2DLaw*>(p_law_clone.get()), nullptr);
+    KRATOS_EXPECT_NE(dynamic_cast<const GeoIncrementalLinearElasticLaw*>(p_law_clone.get()), nullptr);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawRequiresInitializeResponse, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -185,5 +184,19 @@ KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedStress_
     expected_stress <<= 6e+06, 6e+06, 6e+06, 1.76923e+06;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress, 1e-3);
 }
+
+#ifdef KRATOS_DEBUG
+KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawThrows_WhenElementProvidedStrainIsSetToFalse,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto law = CreateLinearElasticPlaneStrainLaw();
+
+    ConstitutiveLaw::Parameters parameters;
+    parameters.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(law.CalculateMaterialResponsePK2(parameters),
+                                      "The GeoLinearElasticLaw needs an element provided strain");
+}
+#endif
 
 } // namespace Kratos::Testing
