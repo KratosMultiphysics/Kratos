@@ -24,7 +24,6 @@ namespace Kratos::Python
 void AddCustomUtilitiesToPython(pybind11::module& m)
 {
     pybind11::class_<NodeUtilities>(m, "NodeUtilities")
-        .def(pybind11::init<>())
         .def("AssignUpdatedVectorVariableToNonFixedComponentsOfNodes",
              &NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponentsOfNodes);
 }
