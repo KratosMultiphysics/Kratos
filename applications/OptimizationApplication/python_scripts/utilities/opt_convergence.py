@@ -34,6 +34,9 @@ class MaxIterConvCriterion:
         self.__max_iter = parameters["max_iter"].GetInt()
         self.__optimization_problem = optimization_problem
 
+    def IsMaxIterationsReached(self):
+        return self.__optimization_problem.GetStep() >= self.__max_iter
+
     @time_decorator()
     def IsConverged(self, search_direction=None) -> bool:
         iter = self.__optimization_problem.GetStep()
@@ -63,6 +66,9 @@ class L2ConvCriterion:
         self.__max_iter = parameters["max_iter"].GetInt()
         self.__optimization_problem = optimization_problem
         self.__tolerance = parameters["tolerance"].GetDouble()
+
+    def IsMaxIterationsReached(self):
+        return self.__optimization_problem.GetStep() >= self.__max_iter
 
     @time_decorator()
     def IsConverged(self) -> bool:
@@ -107,6 +113,9 @@ class AverageAbsoluteImprovement:
         self.__tolerance = parameters["tolerance"].GetDouble()
         self.__abs_value_change = []
         self.value = None
+
+    def IsMaxIterationsReached(self):
+        return self.__optimization_problem.GetStep() >= self.__max_iter
 
     @time_decorator()
     def IsConverged(self) -> bool:
@@ -161,6 +170,9 @@ class TargetValueCriterion:
         self.__optimization_problem = optimization_problem
         self.__target_value = parameters["target_value"].GetDouble()
 
+    def IsMaxIterationsReached(self):
+        return self.__optimization_problem.GetStep() >= self.__max_iter
+
     @time_decorator()
     def IsConverged(self) -> bool:
         iter = self.__optimization_problem.GetStep()
@@ -201,6 +213,9 @@ class MagnitudeReductionCriterion:
         self.__optimization_problem = optimization_problem
         self.__target_scaling_factor = parameters["target_scaling_factor"].GetDouble()
         self.__machine_precision = parameters["machine_precision"].GetDouble()
+
+    def IsMaxIterationsReached(self):
+        return self.__optimization_problem.GetStep() >= self.__max_iter
 
     @time_decorator()
     def IsConverged(self) -> bool:
