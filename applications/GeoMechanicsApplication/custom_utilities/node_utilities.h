@@ -14,6 +14,7 @@
 
 #include "containers/array_1d.h"
 #include "containers/variable.h"
+#include "includes/model_part.h"
 
 namespace Kratos
 {
