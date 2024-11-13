@@ -175,6 +175,7 @@ public:
     {
         mpPrimalElement->CalculateLeftHandSide(rLeftHandSideMatrix,
                                                rCurrentProcessInfo);
+        noalias(rLeftHandSideMatrix) = -1.0 * rLeftHandSideMatrix;
     }
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
