@@ -272,6 +272,8 @@ private:
     const TrussElement3D2N mTrussElement3D2N;
     const TrussElementLinear3D2N mTrussLinearElement3D2N;
     const CableElement3D2N mCableElement3D2N;
+    const LinearTrussElement2D<2> mLinearTrussElement2D2N;
+    const LinearTrussElement2D<3> mLinearTrussElement2D3N;
 
     // Adding the beam element
     const CrBeamElement3D2N mCrBeamElement3D2N;
@@ -281,8 +283,6 @@ private:
     const LinearTimoshenkoBeamElement2D2N mLinearTimoshenkoBeamElement2D2N;
     const LinearTimoshenkoBeamElement2D3N mLinearTimoshenkoBeamElement2D3N;
     const LinearTimoshenkoCurvedBeamElement2D3N mLinearTimoshenkoCurvedBeamElement2D3N;
-    const LinearTrussElement2D<2> mLinearTrussElement2D2N;
-    const LinearTrussElement2D<3> mLinearTrussElement2D3N;
 
 
     // Adding the shells elements
