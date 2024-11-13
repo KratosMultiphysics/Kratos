@@ -530,9 +530,9 @@ void KratosStructuralMechanicsApplication::Register() {
     //Register the truss element
     KRATOS_REGISTER_ELEMENT("TrussElement3D2N", mTrussElement3D2N)
     KRATOS_REGISTER_ELEMENT("TrussLinearElement3D2N", mTrussLinearElement3D2N)
+    KRATOS_REGISTER_ELEMENT("CableElement3D2N", mCableElement3D2N)
     KRATOS_REGISTER_ELEMENT("LinearTrussElement2D2N", mLinearTrussElement2D2N)
     KRATOS_REGISTER_ELEMENT("LinearTrussElement2D3N", mLinearTrussElement2D3N)
-    KRATOS_REGISTER_ELEMENT("CableElement3D2N", mCableElement3D2N)
 
     // Register the beam element
     KRATOS_REGISTER_ELEMENT("CrBeamElement3D2N", mCrBeamElement3D2N)
