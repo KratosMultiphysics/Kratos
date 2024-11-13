@@ -17,10 +17,10 @@
         "analysis_type"                        : "non_linear",
         "model_import_settings"                : {
             "input_type"     : "mdpa",
-            "input_filename" : "LinearTruss2D/2D3N/linear_truss_2D3N_test"
+            "input_filename" : "LinearTruss2D/2D3N/linear_truss_2d3N_test"
         },
         "material_import_settings"             : {
-            "materials_filename" : "LinearTruss2D/2D3N/linear_truss_2D3N_test_materials.json"
+            "materials_filename" : "LinearTruss2D/2D3N/linear_truss_2d3N_test_materials.json"
         },
         "line_search"                          : false,
         "convergence_criterion"                : "residual_criterion",
@@ -93,7 +93,7 @@
             "Parameters"            : {
 				"check_variables"              : ["DISPLACEMENT"],
                 "gauss_points_check_variables" : ["AXIAL_FORCE", "AXIAL_STRAIN"],
-                "input_file_name"              : "LinearTruss2D/2D3N/linear_truss_2D3N_test_results.json",
+                "input_file_name"              : "LinearTruss2D/2D3N/linear_truss_2d3N_test_results.json",
                 "model_part_name"              : "Structure.Parts_Truss_Truss_Auto1",
                 "time_frequency"               : 1.0
             }
@@ -106,7 +106,7 @@
 		//	"Parameters"            : {
 		//		"output_variables"              : ["DISPLACEMENT"],
 		//		"gauss_points_output_variables" : ["AXIAL_FORCE", "AXIAL_STRAIN"],
-		//		"output_file_name"              : "LinearTruss2D/2D3N/linear_truss_2D3N_test_results.json",
+		//		"output_file_name"              : "LinearTruss2D/2D3N/linear_truss_2d3N_test_results.json",
 		//		"model_part_name"               : "Structure.Parts_Truss_Truss_Auto1",
 		//		"time_frequency"                : 1.0
 		//	}
