@@ -30,7 +30,7 @@
 #include "utilities/quadrature_points_utility.h"
 
 #include "integration/integration_point_utilities.h"
-
+#include <algorithm> 
 namespace Kratos {
 
 template <int TWorkingSpaceDimension, class TContainerPointType>
@@ -178,6 +178,7 @@ public:
         PointsArrayType const& ThisPoints) const override
     {
         return Kratos::make_shared<NurbsSurfaceGeometry>(ThisPoints);
+       
     }
 
     ///@}
@@ -192,6 +193,7 @@ public:
     void SetGeometryParent(BaseType* pGeometryParent) override
     {
         mpGeometryParent = pGeometryParent;
+
     }
 
     ///@}
@@ -209,6 +211,9 @@ public:
         }
         KRATOS_ERROR << "Possible direction index in NurbsSurfaceGeometry reaches from 0-1. Given direction index: "
             << LocalDirectionIndex << std::endl;
+        
+        KRATOS_WATCH("rOutput")
+     
     }
 
     ///@}
@@ -229,7 +234,10 @@ public:
         else {
             return mPolynomialDegreeV;
         }
+        
+
     }
+    
 
     ///@}
     ///@name Dynamic access to internals
@@ -240,12 +248,16 @@ public:
         const Variable<array_1d<double, 3>>& rVariable,
         array_1d<double, 3>& rOutput) const override
     {
+
         if (rVariable == CHARACTERISTIC_GEOMETRY_LENGTH)
         {
             const CoordinatesArrayType local_coordinates = rOutput;
             CalculateEstimatedKnotLengthness(rOutput, local_coordinates);
         }
+
+
     }
+    // Declaration of CHARACTERISTIC_GEOMETRY_LENGTH somewhere in the code base
 
     ///@}
     ///@name Get and Set functions
@@ -393,6 +405,7 @@ public:
      */
     void SpansLocalSpace(std::vector<double>& rSpans, IndexType DirectionIndex) const override
     {
+
         rSpans.resize(this->NumberOfKnotSpans(DirectionIndex) + 1);
 
         if (DirectionIndex == 0) {
@@ -490,6 +503,8 @@ public:
         CoordinatesArrayType& rKnotLengthness,
         const CoordinatesArrayType& rLocalCoordinates) const
     {
+        double maxKnot = KnotsU.end();
+        KRATOS_WATCH(maxKnot)        
         const IndexType SpanU = NurbsUtilities::GetLowerSpan(PolynomialDegreeU(), KnotsU(), rLocalCoordinates[0]);
         const IndexType SpanV = NurbsUtilities::GetLowerSpan(PolynomialDegreeV(), KnotsV(), rLocalCoordinates[1]);
 
@@ -519,6 +534,17 @@ public:
         rKnotLengthness[0] = (norm_2(gp1 - gp2) + norm_2(gp3 - gp4)) / 2;
         rKnotLengthness[1] = (norm_2(gp1 - gp4) + norm_2(gp2 - gp3)) / 2;
         rKnotLengthness[2] = 0;
+
+        KRATOS_WATCH(rKnotLengthness)
+        // else {
+        //         KRATOS_ERROR
+        //             << "Number of controls points and polynomial degrees and number of knots do not match! " << std::endl
+        //             << " P: " << mPolynomialDegreeU << ", Q: " << mPolynomialDegreeV
+        //             << ", number of knots u: " << mKnotsU.size() << ", number of knots v: " << mKnotsV.size()
+        //             << ", number of control points: " << num_control_points << std::endl
+        //             << "Following condition must be achieved: ControlPoints.size() = (KnotsU.size() - P + 1) * (KnotsV.size() - Q + 1)"
+        //             << std::endl;
+        //     }
     }
 
     ///@}

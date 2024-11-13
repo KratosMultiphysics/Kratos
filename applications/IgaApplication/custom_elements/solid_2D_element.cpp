@@ -108,6 +108,8 @@ void Solid2DElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
     const unsigned int number_of_points = r_geometry.size();
     const unsigned int dim = r_geometry.WorkingSpaceDimension(); // dim = 2
     const SizeType mat_size = number_of_points * 2;
+
+
     //resizing as needed the LHS
     if(rLeftHandSideMatrix.size1() != mat_size)
         rLeftHandSideMatrix.resize(mat_size,mat_size,false);
@@ -120,6 +122,17 @@ void Solid2DElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 
 
     //-------------------------------------------------------------------------
+    const SizeType points_number = r_geometry.size();
+    array_1d<double, 3> center = r_geometry[0].GetInitialPosition().Coordinates();
+    array_1d<double, 3> center1=center;
+    // KRATOS_WATCH(center1)
+
+    for ( IndexType i_node = 1 ; i_node < points_number ; ++i_node ) {
+        center += r_geometry[i_node].GetInitialPosition().Coordinates();
+        // KRATOS_WATCH(r_geometry[i_node].GetInitialPosition().Coordinates())
+    }
+    center /= static_cast<double>( points_number );
+
 
     // reading integration points and local gradients
     const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());

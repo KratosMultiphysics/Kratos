@@ -119,11 +119,13 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateMateri
 
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
                 r_constitutive_matrix *= (1.0 - damage);
+
             }
         } else { // Damage case
             const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
             // This routine updates the PredictiveStress to verify the yield surf
             TConstLawIntegratorType::IntegrateStressVector(predictive_stress_vector, uniaxial_stress, damage, threshold, rValues, characteristic_length);
+            // KRATOS_WATCH(characteristic_length)
 
             // Updated Values
             noalias(r_integrated_stress_vector) = predictive_stress_vector;
@@ -236,7 +238,6 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::FinalizeMateria
     if (r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
         BaseType::CalculateCauchyGreenStrain( rValues, r_strain_vector);
     }
-
     // We compute the stress
     if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
         // Elastic Matrix

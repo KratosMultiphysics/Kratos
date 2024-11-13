@@ -117,6 +117,7 @@ namespace Kratos
         else {
             KRATOS_ERROR << "Nurbs Geometry Modeler is only available for surfaces and volumes." << std::endl;
         }
+        // const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
 
     }
 
@@ -175,6 +176,8 @@ namespace Kratos
             points, OrderU, OrderV, knot_vector_u, knot_vector_v);
 
 
+
+
         // Set up knots for knot refinement according to the given number of elements in each direction.
         double delta_knot_u = (B_uvw[0]-A_uvw[0]) / NumKnotSpansU;
         double knot_u = A_uvw[0];
@@ -195,6 +198,17 @@ namespace Kratos
         // Set up weights. Required in case no refinement is performed.
         Vector WeightsRefined(points.size(),1.0);
 
+        // 2. Prepare the rVariable and rOutput
+        const Variable<array_1d<double, 3>>& rVariable = CHARACTERISTIC_GEOMETRY_LENGTH;  // This is likely predefined somewhere
+        
+        array_1d<double, 3> rOutput{0.0, 5.0, 0.0};  // Initialize the output array
+        KRATOS_WATCH(rOutput);
+
+        // 3. Call the Calculate method on the relevant object (assume p_surface_geometry or something similar)
+        p_surface_geometry->Calculate(rVariable, rOutput);
+
+        // 4. Optionally, observe the output
+        KRATOS_WATCH(rOutput);
 
         KRATOS_INFO_IF("::[NurbsGeometryModeler]::", mEchoLevel > 0) << "Ending the CreateTheSnakeCoordinates" << std::endl;
 

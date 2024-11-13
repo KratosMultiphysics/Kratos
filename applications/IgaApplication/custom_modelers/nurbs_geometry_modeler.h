@@ -26,6 +26,7 @@
 #include "input_output/cad_json_input_sbm.h"
 #include "utilities/nurbs_utilities/snake_sbm_utilities.h"
 
+
 namespace Kratos {
 
 class KRATOS_API(IGA_APPLICATION) NurbsGeometryModeler
