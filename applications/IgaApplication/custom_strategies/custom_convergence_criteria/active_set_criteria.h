@@ -358,14 +358,14 @@ public:
 
         }
 
-
-        if (n_changes == 0){
+        double min_percentage_change = 0.01;
+        if (n_changes/n_cond <= min_percentage_change){
             KRATOS_INFO_IF("ACTIVE SET CRITERION: Convergence achieved", this->GetEchoLevel()>0) << std::endl;
             return true;
         } 
         else{
             KRATOS_INFO_IF("ACTIVE SET CRITERION: Convergence NOT achieved. -> ", this->GetEchoLevel()>0) 
-            << n_changes << " changes" << std::endl;
+            << n_changes << " changes over " << n_cond << " conditions -> CHANGE: " << n_changes/n_cond*100 << std::endl;
             return false;
         } 
     }
