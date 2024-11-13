@@ -134,7 +134,8 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateOnIntegrationPoints(const Va
     }
 }
 
-std::vector<double> Kratos::UpdatedLagrangianUPwDiffOrderElement::GetOptionalPermeabilityUpdateFactors(const std::vector<Vector>&) const
+std::vector<double> Kratos::UpdatedLagrangianUPwDiffOrderElement::GetOptionalPermeabilityUpdateFactors(
+    const std::vector<Vector>&) const
 {
     return {};
 }

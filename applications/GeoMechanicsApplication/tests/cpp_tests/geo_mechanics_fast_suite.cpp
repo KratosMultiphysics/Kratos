@@ -12,6 +12,8 @@
 //
 
 #include "geo_mechanics_fast_suite.h"
+#include "geo_mechanics_application.h"
+#include "linear_solvers_application.h"
 
 namespace Kratos::Testing
 {
@@ -24,8 +26,10 @@ KratosGeoMechanicsFastSuite::KratosGeoMechanicsFastSuite() : KratosCoreFastSuite
     this->ImportApplicationIntoKernel(mpLinearSolversApp);
 }
 
-KratosGeoMechanicsFastSuiteWithoutKernel::KratosGeoMechanicsFastSuiteWithoutKernel() : KratosCoreFastSuiteWithoutKernel()
+KratosGeoMechanicsFastSuiteWithoutKernel::KratosGeoMechanicsFastSuiteWithoutKernel()
+    : KratosCoreFastSuiteWithoutKernel()
 {
+    // clang-format off
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DISPLACEMENT)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VELOCITY)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ACCELERATION)
@@ -39,9 +43,11 @@ KratosGeoMechanicsFastSuiteWithoutKernel::KratosGeoMechanicsFastSuiteWithoutKern
 
     KRATOS_REGISTER_VARIABLE(CAUCHY_STRESS_VECTOR)
     KRATOS_REGISTER_VARIABLE(CAUCHY_STRESS_TENSOR)
+    // clang-format on
 }
 
-KratosGeoMechanicsIntegrationSuite::KratosGeoMechanicsIntegrationSuite() : KratosCoreFastSuite()
+KratosGeoMechanicsIntegrationSuite::KratosGeoMechanicsIntegrationSuite()
+    : KratosCoreFastSuite()
 {
     mpGeoApp = std::make_shared<KratosGeoMechanicsApplication>();
     this->ImportApplicationIntoKernel(mpGeoApp);

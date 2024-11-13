@@ -10,10 +10,13 @@
 //  Main authors:    Gennady Markelov
 //
 
-#include "custom_utilities/element_utilities.hpp"
+#include "custom_constitutive/linear_elastic_2D_interface_law.h"
 #include "custom_utilities/equation_of_motion_utilities.h"
+#include "geo_mechanics_application_variables.h"
 #include "geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/test_utilities.h"
 #include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
+
 #include <boost/numeric/ublas/assignment.hpp>
 
 using namespace Kratos;
@@ -21,7 +24,7 @@ using namespace Kratos;
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix2D6NDiffOrderGivesCorrectResults, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix2D6NDiffOrderGivesCorrectResults, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
     auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle2D6NDiffOrderElement(model);
@@ -33,8 +36,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix2D6NDiffOrderGivesCorrectResults, K
     p_elem_prop->SetValue(POROSITY, 0.0);
     p_elem_prop->SetValue(DENSITY_SOLID, 1700.0);
     // set arbitrary constitutive law
-    const auto& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElastic2DInterfaceLaw");
-    p_elem_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
+    p_elem_prop->SetValue(CONSTITUTIVE_LAW, LinearElastic2DInterfaceLaw().Clone());
 
     ProcessInfo process_info;
 
@@ -47,18 +49,18 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix2D6NDiffOrderGivesCorrectResults, K
                                 r_geom.WorkingSpaceDimension() * r_geom.PointsNumber() + 3);
     // clang-format off
        expected_mass_matrix <<=
-    0.0524691,0.0524691,-0.0262346,-0.0262346,-0.0262346,-0.0262346,0.0262346,0.0262346,-0.0524691,-0.0524691,0.0262346,0.0262346,0,0,0,
-    0.0524691,0.0524691,-0.0262346,-0.0262346,-0.0262346,-0.0262346,0.0262346,0.0262346,-0.0524691,-0.0524691,0.0262346,0.0262346,0,0,0,
-    -0.0262346,-0.0262346,0.0524691,0.0524691,-0.0262346,-0.0262346,0.0262346,0.0262346,0.0262346,0.0262346,-0.0524691,-0.0524691,0,0,0,
-    -0.0262346,-0.0262346,0.0524691,0.0524691,-0.0262346,-0.0262346,0.0262346,0.0262346,0.0262346,0.0262346,-0.0524691,-0.0524691,0,0,0,
-    -0.0262346,-0.0262346,-0.0262346,-0.0262346,0.0524691,0.0524691,-0.0524691,-0.0524691,0.0262346,0.0262346,0.0262346,0.0262346,0,0,0,
-    -0.0262346,-0.0262346,-0.0262346,-0.0262346,0.0524691,0.0524691,-0.0524691,-0.0524691,0.0262346,0.0262346,0.0262346,0.0262346,0,0,0,
-    0.0262346,0.0262346,0.0262346,0.0262346,-0.0524691,-0.0524691,0.28858,0.28858,0.209877,0.209877,0.209877,0.209877,0,0,0,
-    0.0262346,0.0262346,0.0262346,0.0262346,-0.0524691,-0.0524691,0.28858,0.28858,0.209877,0.209877,0.209877,0.209877,0,0,0,
-    -0.0524691,-0.0524691,0.0262346,0.0262346,0.0262346,0.0262346,0.209877,0.209877,0.28858,0.28858,0.209877,0.209877,0,0,0,
-    -0.0524691,-0.0524691,0.0262346,0.0262346,0.0262346,0.0262346,0.209877,0.209877,0.28858,0.28858,0.209877,0.209877,0,0,0,
-    0.0262346,0.0262346,-0.0524691,-0.0524691,0.0262346,0.0262346,0.209877,0.209877,0.209877,0.209877,0.28858,0.28858,0,0,0,
-    0.0262346,0.0262346,-0.0524691,-0.0524691,0.0262346,0.0262346,0.209877,0.209877,0.209877,0.209877,0.28858,0.28858,0,0,0,
+    0.0524691,0.0,-0.0262346,0.0,-0.0262346,0.0,0.0262346,0.0,-0.0524691,0.0,0.0262346,0.0,0,0,0,
+    0.0,0.0524691,0.0,-0.0262346,0.0,-0.0262346,0.0,0.0262346,0.0,-0.0524691,0.0,0.0262346,0,0,0,
+    -0.0262346,0.0,0.0524691,0.0,-0.0262346,0.0,0.0262346,0.0,0.0262346,0.0,-0.0524691,0.0,0,0,0,
+    0.0,-0.0262346,0.0,0.0524691,0.0,-0.0262346,0.0,0.0262346,0.0,0.0262346,0.0,-0.0524691,0,0,0,
+    -0.0262346,0.0,-0.0262346,0.0,0.0524691,0.0,-0.0524691,0.0,0.0262346,0.0,0.0262346,0.0,0,0,0,
+    0.0,-0.0262346,0.0,-0.0262346,0.0,0.0524691,0.0,-0.0524691,0.0,0.0262346,0.0,0.0262346,0,0,0,
+    0.0262346,0.0,0.0262346,0.0,-0.0524691,0.0,0.28858,0.0,0.209877,0.0,0.209877,0.0,0,0,0,
+    0.0,0.0262346,0.0,0.0262346,0.0,-0.0524691,0.0,0.28858,0.0,0.209877,0.0,0.209877,0,0,0,
+    -0.0524691,0.0,0.0262346,0.0,0.0262346,0.0,0.209877,0.0,0.28858,0.0,0.209877,0.0,0,0,0,
+    0.0,-0.0524691,0.0,0.0262346,0.0,0.0262346,0.0,0.209877,0.0,0.28858,0.0,0.209877,0,0,0,
+    0.0262346,0.0,-0.0524691,0.0,0.0262346,0.0,0.209877,0.0,0.209877,0.0,0.28858,0.0,0,0,0,
+    0.0,0.0262346,0.0,-0.0524691,0.0,0.0262346,0.0,0.209877,0.0,0.209877,0.0,0.28858,0,0,0,
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
@@ -67,7 +69,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix2D6NDiffOrderGivesCorrectResults, K
     KRATOS_CHECK_MATRIX_NEAR(mass_matrix, expected_mass_matrix, 1e-4)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix3D4NGivesCorrectResults, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix3D4NGivesCorrectResults, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model      model;
     const auto nodal_variables =
@@ -78,8 +80,8 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix3D4NGivesCorrectResults, KratosGeoM
     // Set the element properties
     auto p_elem_prop = r_model_part.pGetProperties(0);
     // set arbitrary constitutive law
-    const auto& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElastic2DInterfaceLaw");
-    p_elem_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
+
+    p_elem_prop->SetValue(CONSTITUTIVE_LAW, LinearElastic2DInterfaceLaw().Clone());
     // Please note these are not representative values, it just ensures the values are set
     p_elem_prop->SetValue(DENSITY_WATER, 1000.0);
     p_elem_prop->SetValue(POROSITY, 0.3);
@@ -98,18 +100,18 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix3D4NGivesCorrectResults, KratosGeoM
                                 (r_geom.WorkingSpaceDimension() + 1) * r_geom.PointsNumber());
     // clang-format off
     expected_mass_matrix <<=
-    34.1667,34.1667,34.1667,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,0,0,0,0,
-    34.1667,34.1667,34.1667,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,0,0,0,0,
-    34.1667,34.1667,34.1667,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,0,0,0,0,
-    17.0833,17.0833,17.0833,34.1667,34.1667,34.1667,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,0,0,0,0,
-    17.0833,17.0833,17.0833,34.1667,34.1667,34.1667,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,0,0,0,0,
-    17.0833,17.0833,17.0833,34.1667,34.1667,34.1667,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,0,0,0,0,
-    17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,34.1667,34.1667,34.1667,17.0833,17.0833,17.0833,0,0,0,0,
-    17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,34.1667,34.1667,34.1667,17.0833,17.0833,17.0833,0,0,0,0,
-    17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,34.1667,34.1667,34.1667,17.0833,17.0833,17.0833,0,0,0,0,
-    17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,34.1667,34.1667,34.1667,0,0,0,0,
-    17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,34.1667,34.1667,34.1667,0,0,0,0,
-    17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,34.1667,34.1667,34.1667,0,0,0,0,
+    34.1667,0.0,0.0,17.0833,0.0,0.0,17.0833,0.0,0.0,17.0833,0.0,0.0,0,0,0,0,
+    0.0,34.1667,0.0,0.0,17.0833,0.0,0.0,17.0833,0.0,0.0,17.0833,0.0,0,0,0,0,
+    0.0,0.0,34.1667,0.0,0.0,17.0833,0.0,0.0,17.0833,0.0,0.0,17.0833,0,0,0,0,
+    17.0833,0.0,0.0,34.1667,0.0,0.0,17.0833,0.0,0.0,17.0833,0.0,0.0,0,0,0,0,
+    0.0,17.0833,0.0,0.0,34.1667,0.0,0.0,17.0833,0.0,0.0,17.0833,0.0,0,0,0,0,
+    0.0,0.0,17.0833,0.0,0.0,34.1667,0.0,0.0,17.0833,0.0,0.0,17.0833,0,0,0,0,
+    17.0833,0.0,0.0,17.0833,0.0,0.0,34.1667,0.0,0.0,17.0833,0.0,0.0,0,0,0,0,
+    0.0,17.0833,0.0,0.0,17.0833,0.0,0.0,34.1667,0.0,0.0,17.0833,0.0,0,0,0,0,
+    0.0,0.0,17.0833,0.0,0.0,17.0833,0.0,0.0,34.1667,0.0,0.0,17.0833,0,0,0,0,
+    17.0833,0.0,0.0,17.0833,0.0,0.0,17.0833,0.0,0.0,34.1667,0.0,0.0,0,0,0,0,
+    0.0,17.0833,0.0,0.0,17.0833,0.0,0.0,17.0833,0.0,0.0,34.1667,0.0,0,0,0,0,
+    0.0,0.0,17.0833,0.0,0.0,17.0833,0.0,0.0,17.0833,0.0,0.0,34.1667,0,0,0,0,
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -119,7 +121,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix3D4NGivesCorrectResults, KratosGeoM
     KRATOS_CHECK_MATRIX_NEAR(mass_matrix, expected_mass_matrix, 1e-4)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateDampingMatrixGivesCorrectResults, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CalculateDampingMatrixGivesCorrectResults, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     constexpr std::size_t n = 10;
 
@@ -158,7 +160,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateDampingMatrixGivesCorrectResults, KratosGeoMe
     KRATOS_CHECK_MATRIX_NEAR(damping_matrix, expected_damping_matrix, 1e-4)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateStiffnessMatrixGivesCorrectResults, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CalculateStiffnessMatrixGivesCorrectResults, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     constexpr std::size_t voigt_size = 4;
     constexpr std::size_t n          = 3;
@@ -182,5 +184,90 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateStiffnessMatrixGivesCorrectResults, KratosGeo
 
     KRATOS_CHECK_MATRIX_NEAR(stiffness_matrix, expected_stiffness_matrix, 1e-4)
 }
+
+KRATOS_TEST_CASE_IN_SUITE(TheInternalForceVectorIsTheIntegralOfBTransposedTimesSigma, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto b_matrix                 = Matrix{ScalarMatrix{2, 8, 1.0}};
+    const auto b_matrices               = std::vector<Matrix>{b_matrix, b_matrix};
+    const auto stress_vector            = Vector{ScalarVector{2, 1.0}};
+    const auto stress_vectors           = std::vector<Vector>{stress_vector, stress_vector};
+    const auto integration_coefficients = std::vector<double>{0.25, 0.4};
+
+    const auto expected_internal_force_vector = Vector{ScalarVector{8, 1.3}};
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(GeoEquationOfMotionUtilities::CalculateInternalForceVector(
+                                           b_matrices, stress_vectors, integration_coefficients),
+                                       expected_internal_force_vector, Defaults::relative_tolerance)
+}
+
+// The following tests only raise errors when using debug builds
+#ifdef KRATOS_DEBUG
+
+KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorFailsWhenTheInputVectorsHaveDifferentSizes,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto b_matrix       = Matrix{ScalarMatrix{2, 8, 1.0}};
+    const auto b_matrices     = std::vector<Matrix>{b_matrix}; // Error: missing one matrix
+    const auto stress_vector  = Vector{ScalarVector{2, 1.0}};
+    const auto stress_vectors = std::vector<Vector>{stress_vector, stress_vector};
+    const auto integration_coefficients = std::vector<double>{0.25, 0.4};
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        GeoEquationOfMotionUtilities::CalculateInternalForceVector(b_matrices, stress_vectors, integration_coefficients),
+        "Cannot calculate the internal force vector: input vectors have different sizes")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorFailsWhenAllInputVectorsAreEmpty,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto b_matrices               = std::vector<Matrix>{};
+    const auto stress_vectors           = std::vector<Vector>{};
+    const auto integration_coefficients = std::vector<double>{};
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        GeoEquationOfMotionUtilities::CalculateInternalForceVector(b_matrices, stress_vectors, integration_coefficients),
+        "Cannot calculate the internal force vector: input vectors are empty")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorFailsWhenBMatricesHaveDifferentSizes,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto b_matrices = std::vector<Matrix>{ScalarMatrix{2, 8, 1.0}, ScalarMatrix{1, 8, 1.0}}; // Error: matrices have different numbers of rows
+    const auto stress_vector            = Vector{ScalarVector{2, 1.0}};
+    const auto stress_vectors           = std::vector<Vector>{stress_vector, stress_vector};
+    const auto integration_coefficients = std::vector<double>{0.25, 0.4};
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        GeoEquationOfMotionUtilities::CalculateInternalForceVector(b_matrices, stress_vectors, integration_coefficients),
+        "Cannot calculate the internal force vector: B-matrices have different sizes")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorFailsWhenStressVectorsHaveDifferentSizes,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto b_matrix   = Matrix{ScalarMatrix{2, 8, 1.0}};
+    const auto b_matrices = std::vector<Matrix>{b_matrix, b_matrix};
+    const auto stress_vectors = std::vector<Vector>{ScalarVector{2, 1.0}, ScalarVector{3, 1.0}}; // Error: vectors have different sizes
+    const auto integration_coefficients = std::vector<double>{0.25, 0.4};
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        GeoEquationOfMotionUtilities::CalculateInternalForceVector(b_matrices, stress_vectors, integration_coefficients),
+        "Cannot calculate the internal force vector: stress vectors have different sizes")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorFailsWhenTheMatrixVectorProductCantBeComputed,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Error: transpose of the B-matrix has more columns (3) than the number of stress components (2)
+    const auto b_matrix                 = Matrix{ScalarMatrix{3, 8, 1.0}};
+    const auto b_matrices               = std::vector<Matrix>{b_matrix, b_matrix};
+    const auto stress_vector            = Vector{ScalarVector{2, 1.0}};
+    const auto stress_vectors           = std::vector<Vector>{stress_vector, stress_vector};
+    const auto integration_coefficients = std::vector<double>{0.25, 0.4};
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        GeoEquationOfMotionUtilities::CalculateInternalForceVector(b_matrices, stress_vectors, integration_coefficients), "Cannot calculate the internal force vector: matrix-vector product cannot be calculated due to size mismatch")
+}
+
+#endif
 
 } // namespace Kratos::Testing

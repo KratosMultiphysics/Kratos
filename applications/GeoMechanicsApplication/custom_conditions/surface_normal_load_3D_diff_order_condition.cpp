@@ -14,6 +14,7 @@
 
 // Project includes
 #include "custom_conditions/surface_normal_load_3D_diff_order_condition.hpp"
+#include "includes/variables.h"
 #include "utilities/math_utils.h"
 
 namespace Kratos
@@ -25,7 +26,6 @@ SurfaceNormalLoad3DDiffOrderCondition::SurfaceNormalLoad3DDiffOrderCondition()
 {
 }
 
-//----------------------------------------------------------------------------------------
 // Constructor 1
 SurfaceNormalLoad3DDiffOrderCondition::SurfaceNormalLoad3DDiffOrderCondition(IndexType NewId,
                                                                              GeometryType::Pointer pGeometry)
@@ -33,7 +33,6 @@ SurfaceNormalLoad3DDiffOrderCondition::SurfaceNormalLoad3DDiffOrderCondition(Ind
 {
 }
 
-//----------------------------------------------------------------------------------------
 // Constructor 2
 SurfaceNormalLoad3DDiffOrderCondition::SurfaceNormalLoad3DDiffOrderCondition(IndexType NewId,
                                                                              GeometryType::Pointer pGeometry,
@@ -42,7 +41,6 @@ SurfaceNormalLoad3DDiffOrderCondition::SurfaceNormalLoad3DDiffOrderCondition(Ind
 {
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Condition::Pointer SurfaceNormalLoad3DDiffOrderCondition::Create(IndexType             NewId,
                                                                  NodesArrayType const& ThisNodes,
                                                                  PropertiesType::Pointer pProperties) const
@@ -75,7 +73,6 @@ void SurfaceNormalLoad3DDiffOrderCondition::CalculateConditionVector(ConditionVa
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 double SurfaceNormalLoad3DDiffOrderCondition::CalculateIntegrationCoefficient(
     const IndexType                                 PointNumber,
     const GeometryType::JacobiansType&              JContainer,
@@ -89,7 +86,6 @@ double SurfaceNormalLoad3DDiffOrderCondition::CalculateIntegrationCoefficient(
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 void SurfaceNormalLoad3DDiffOrderCondition::CalculateAndAddConditionForce(VectorType& rRightHandSideVector,
                                                                           ConditionVariables& rVariables)
 {
@@ -106,6 +102,11 @@ void SurfaceNormalLoad3DDiffOrderCondition::CalculateAndAddConditionForce(Vector
         rRightHandSideVector[Index + 2] +=
             rVariables.Nu[i] * rVariables.ConditionVector[2] * rVariables.IntegrationCoefficient;
     }
+}
+
+std::string SurfaceNormalLoad3DDiffOrderCondition::Info() const
+{
+    return "SurfaceNormalLoad3DDiffOrderCondition";
 }
 
 } // Namespace Kratos.
