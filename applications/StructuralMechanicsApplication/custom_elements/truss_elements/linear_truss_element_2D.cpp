@@ -38,11 +38,7 @@ void LinearTrussElement2D<TNNodes>::Initialize(const ProcessInfo& rCurrentProces
             if (GetProperties().Has(INTEGRATION_ORDER) ) {
                 mThisIntegrationMethod = static_cast<GeometryData::IntegrationMethod>(GetProperties()[INTEGRATION_ORDER] - 1);
             } else {
-                if constexpr (NNodes == 2) {
-                    mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
-                } else {
-                    mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
-                }
+                mThisIntegrationMethod = CalculateIntegrationMethod();
             }
         }
 
@@ -675,6 +671,7 @@ int LinearTrussElement2D<TNNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
     KRATOS_TRY;
 
     return mConstitutiveLawVector[0]->Check(GetProperties(), GetGeometry(), rCurrentProcessInfo);
+    KRATOS_ERROR_IF_NOT(GetProperties().Has(CROSS_AREA)) << "CROSS_AREA not defined in the properties" << std::endl;
 
     KRATOS_CATCH( "" );
 }
