@@ -454,4 +454,47 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsPermeabilityMatrix
     // Assert
     KRATOS_EXPECT_DOUBLE_EQ(permeability_matrices[0](0, 0), std::pow(pipe_height, 3) / 12.0);
 }
+
+KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsFluidFluxVector, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto dummy_process_info = ProcessInfo{};
+    const auto p_properties       = std::make_shared<Properties>();
+
+    Model model;
+    auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
+    auto  p_element =
+        CreateHorizontalUnitLengthGeoSteadyStatePwPipingElementWithPWDofs(r_model_part, p_properties);
+    p_element->GetProperties().SetValue(DENSITY_WATER, 1.0E3);
+    p_element->GetProperties().SetValue(DYNAMIC_VISCOSITY, 1.0E-2);
+    p_element->GetProperties().SetValue(PIPE_HEIGHT, 1.0E-1);
+    p_element->GetProperties().SetValue(DENSITY_SOLID, 2.0E3);
+    // PIPE_ETA such that multiplication with Pi/3 becomes 1.
+    p_element->GetProperties().SetValue(PIPE_ETA, 3.0 / Globals::Pi);
+    p_element->GetProperties().SetValue(PIPE_MODEL_FACTOR, 1.0);
+    // slope = 0. PIPE_THETA = 45 deg. such that sin(theta + slope) / cos(theta) becomes 1.
+    p_element->GetProperties().SetValue(PIPE_THETA, 45.0);
+    // no PIPE_MODIFIED_D so the equilibrium height becomes PIPE_D_70 / |dh/dx| = 7.e-3 / |-1.e-3| = 7.
+    p_element->GetProperties().SetValue(PIPE_D_70, 7.e-3);
+
+    // Set gravity perpendicular to the line ( so no fluid body flow vector from this )
+    p_element->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION) =
+        array_1d<double, 3>{0.0, -10.0, 0.0};
+    p_element->GetGeometry()[1].FastGetSolutionStepValue(VOLUME_ACCELERATION) =
+        array_1d<double, 3>{0.0, -10.0, 0.0};
+    // Create a head gradient of -10/(density_water*|volume_acceleration|) = -1.E-3.
+    p_element->GetGeometry()[0].FastGetSolutionStepValue(WATER_PRESSURE) = -10.0;
+    p_element->GetGeometry()[1].FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
+
+    p_element->SetValue(PIPE_HEIGHT, 1.0E-1);
+
+    // Act
+    std::vector<array_1d<double, 3>> fluid_fluxes(
+        p_element->GetGeometry().IntegrationPointsNumber(p_element->GetIntegrationMethod()));
+    p_element->CalculateOnIntegrationPoints(FLUID_FLUX_VECTOR, fluid_fluxes, dummy_process_info);
+
+    // Assert
+    KRATOS_EXPECT_DOUBLE_EQ(fluid_fluxes[0](0), 1.E-3 * 0.1 / 12.0);
+}
+
 } // namespace Kratos::Testing

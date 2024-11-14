@@ -148,11 +148,7 @@ public:
             const auto output_points =
                 this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
             rValues.resize(output_points);
-
-            const auto pipe_active = this->GetValue(rVariable);
-            for (unsigned int output_point = 0; output_point < output_points; ++output_point) {
-                rValues[output_point] = pipe_active;
-            }
+            std::fill_n(rValues.begin(), output_points, this->GetValue(rVariable));
         }
     }
 
@@ -164,10 +160,7 @@ public:
             const auto output_points =
                 this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
             rValues.resize(output_points);
-            const auto pipe_height = this->GetValue(rVariable);
-            for (unsigned int output_point = 0; output_point < output_points; ++output_point) {
-                rValues[output_point] = pipe_height;
-            }
+            std::fill_n(rValues.begin(), output_points, this->GetValue(rVariable));
         }
     }
 
@@ -183,9 +176,8 @@ public:
             auto head_gradient = CalculateHeadGradient(this->GetProperties(), this->GetGeometry());
             auto constitutive_matrix = FillPermeabilityMatrix(this->GetValue(PIPE_HEIGHT));
             for (unsigned int output_point = 0; output_point < output_points; ++output_point) {
-                // probably this should be rotated to the direction of the element
-                // rValues[output_point][0] = dynamic_viscosity_inverse * constitutive_matrix * head_gradient;
-                rValues[output_point][0] = 0.0;
+                // this should be rotated to the direction of the element for the global fluid flux vector
+                rValues[output_point][0] = - dynamic_viscosity_inverse * constitutive_matrix(0, 0) * head_gradient;
                 rValues[output_point][1] = 0.0;
                 rValues[output_point][2] = 0.0;
             }
@@ -201,10 +193,7 @@ public:
             const auto output_points =
                 this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
             rValues.resize(output_points);
-            auto constitutive_matrix = FillPermeabilityMatrix(this->GetValue(PIPE_HEIGHT));
-            for (unsigned int output_point = 0; output_point < output_points; ++output_point) {
-                rValues[output_point] = constitutive_matrix;
-            }
+            std::fill_n(rValues.begin(), output_points, FillPermeabilityMatrix(this->GetValue(PIPE_HEIGHT)));
         }
     }
 
