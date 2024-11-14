@@ -381,4 +381,27 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsEquilibriumHeightF
     KRATOS_EXPECT_NEAR(pipe_height, 7.0, 1e-10);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsPipeActive, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto dummy_process_info = ProcessInfo{};
+    const auto p_properties       = std::make_shared<Properties>();
+
+    Model model;
+    auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
+    auto  p_element =
+        CreateHorizontalUnitLengthGeoSteadyStatePwPipingElementWithPWDofs(r_model_part, p_properties);
+
+    p_element->SetValue(PIPE_ACTIVE, false);
+
+    std::vector<bool> pipe_active(
+        p_element->GetGeometry().IntegrationPointsNumber(p_element->GetIntegrationMethod()));
+    p_element->CalculateOnIntegrationPoints(PIPE_ACTIVE, pipe_active, dummy_process_info);
+    KRATOS_EXPECT_FALSE(pipe_active[0]);
+
+    p_element->SetValue(PIPE_ACTIVE, true);
+    p_element->CalculateOnIntegrationPoints(PIPE_ACTIVE, pipe_active, dummy_process_info);
+    KRATOS_EXPECT_TRUE(pipe_active[0]);
+}
+
 } // namespace Kratos::Testing

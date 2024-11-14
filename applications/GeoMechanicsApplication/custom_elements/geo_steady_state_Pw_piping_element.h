@@ -131,13 +131,81 @@ public:
         const auto particle_d = GeoTransportEquationUtilities::CalculateParticleDiameter(rProp);
         // for a more generic element calculate slope of pipe (in degrees! see formula), currently pipe is assumed to be horizontal
         const double pipe_slope = 0.0;
-        const double theta      = rProp[PIPE_THETA];
+        const auto   theta      = rProp[PIPE_THETA];
 
         return rProp[PIPE_MODEL_FACTOR] * (Globals::Pi / 3.0) * particle_d *
                (rProp[DENSITY_SOLID] / rProp[DENSITY_WATER] - 1.0) * rProp[PIPE_ETA] *
                (std::sin(MathUtils<>::DegreesToRadians(theta + pipe_slope)) /
                 std::cos(MathUtils<>::DegreesToRadians(theta))) /
                std::abs(head_gradient);
+    }
+
+    void CalculateOnIntegrationPoints(const Variable<bool>& rVariable,
+                                      std::vector<bool>&    rValues,
+                                      const ProcessInfo&    rCurrentProcessInfo)
+    {
+        if (rVariable == PIPE_ACTIVE) {
+            const auto output_points =
+                this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
+            rValues.resize(output_points);
+
+            const auto pipe_active = this->GetValue(rVariable);
+            for (unsigned int output_point = 0; output_point < output_points; ++output_point) {
+                rValues[output_point] = pipe_active;
+            }
+        }
+    }
+
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+                                      std::vector<double>&    rValues,
+                                      const ProcessInfo&      rCurrentProcessInfo)
+    {
+        if (rVariable == PIPE_HEIGHT) {
+            const auto output_points =
+                this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
+            rValues.resize(output_points);
+            const auto pipe_height = this->GetValue(rVariable);
+            for (unsigned int output_point = 0; output_point < output_points; ++output_point) {
+                rValues[output_point] = pipe_height;
+            }
+        }
+    }
+
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
+                                      std::vector<array_1d<double, 3>>&    rValues,
+                                      const ProcessInfo&                   rCurrentProcessInfo)
+    {
+        if (rVariable == FLUID_FLUX_VECTOR || rVariable == LOCAL_FLUID_FLUX_VECTOR) {
+            const auto output_points =
+                this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
+            rValues.resize(output_points);
+            auto dynamic_viscosity_inverse = 1.0 / this->GetProperties()[DYNAMIC_VISCOSITY];
+            auto head_gradient = CalculateHeadGradient(this->GetProperties(), this->GetGeometry());
+            auto constitutive_matrix = FillPermeabilityMatrix(this->GetValue(PIPE_HEIGHT));
+            for (unsigned int output_point = 0; output_point < output_points; ++output_point) {
+                // probably this should be rotated to the direction of the element
+                // rValues[output_point][0] = dynamic_viscosity_inverse * constitutive_matrix * head_gradient;
+                rValues[output_point][0] = 0.0;
+                rValues[output_point][1] = 0.0;
+                rValues[output_point][2] = 0.0;
+            }
+        }
+    }
+
+    void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
+                                      std::vector<Matrix>&    rValues,
+                                      const ProcessInfo&      rCurrentProcessInfo)
+    {
+        if (rVariable == PERMEABILITY_MATRIX || rVariable == LOCAL_PERMEABILITY_MATRIX) {
+            // permeability matrix
+            const auto output_points =
+                this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
+            rValues.resize(output_points);
+            auto constitutive_matrix = FillPermeabilityMatrix(this->GetValue(PIPE_HEIGHT));
+            for (unsigned int output_point = 0; output_point < output_points; ++output_point) {
+                rValues[output_point] = constitutive_matrix;
+            }
+        }
     }
 
 private:
