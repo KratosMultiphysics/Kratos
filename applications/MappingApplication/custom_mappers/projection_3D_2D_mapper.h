@@ -456,7 +456,6 @@ private:
         const auto& r_2d_model_part = this->Get2DModelPart();
         const bool is_distributed = r_2d_model_part.IsDistributed();
         auto p_geometry = GetGeometryFromModelPart(r_2d_model_part);
-        const bool is_pure_2d_geometry = p_geometry->LocalSpaceDimension() == p_geometry->WorkingSpaceDimension() ? true : false;
 
         // MPI data
         const auto& r_communicator = r_2d_model_part.GetCommunicator();
@@ -483,6 +482,7 @@ private:
             GeometryType::CoordinatesArrayType aux_coords;
             noalias(mPointPlane.Coordinates()) = p_geometry->Center();
             p_geometry->PointLocalCoordinates(aux_coords, mPointPlane);
+            const bool is_pure_2d_geometry = p_geometry->LocalSpaceDimension() == p_geometry->WorkingSpaceDimension() ? true : false;
             if (is_pure_2d_geometry) {
                 mNormalPlane[0] = 0.0;
                 mNormalPlane[1] = 0.0;
