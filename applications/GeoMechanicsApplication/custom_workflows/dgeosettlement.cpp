@@ -339,10 +339,8 @@ std::shared_ptr<StrategyWrapper> KratosGeoSettlement::MakeStrategyWrapper(const 
     GetMainModelPart().CloneTimeStep();
 
     if (rProjectParameters["solver_settings"]["reset_displacements"].GetBool()) {
-        constexpr auto source_index      = std::size_t{0};
-        constexpr auto destination_index = std::size_t{1};
-        RestoreValuesOfNodalVariable(DISPLACEMENT, source_index, destination_index);
-        RestoreValuesOfNodalVariable(ROTATION, source_index, destination_index);
+        ResetValuesOfNodalVariable(DISPLACEMENT);
+        ResetValuesOfNodalVariable(ROTATION);
 
         VariableUtils{}.UpdateCurrentToInitialConfiguration(GetComputationalModelPart().Nodes());
     }

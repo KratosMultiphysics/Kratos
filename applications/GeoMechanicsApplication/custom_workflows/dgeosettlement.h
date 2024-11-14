@@ -74,7 +74,7 @@ private:
                             const std::stringstream&                rKratosLogBuffer) const;
 
     template <typename TVariableType>
-    void RestoreValuesOfNodalVariable(const TVariableType& rVariable, Node::IndexType SourceIndex, Node::IndexType DestinationIndex)
+    void ResetValuesOfNodalVariable(const TVariableType& rVariable)
     {
         if (!GetComputationalModelPart().HasNodalSolutionStepVariable(rVariable)) return;
 
