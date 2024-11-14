@@ -26,7 +26,7 @@ public:
     class InputProvider
     {
     public:
-        InputProvider(std::function<const Properties&()>                         GetElementProperties,
+        InputProvider(std::function<const Properties&()> GetElementProperties,
                       std::function<const std::vector<RetentionLaw::Pointer>&()> GetRetentionLaws,
                       std::function<Vector()>                        GetIntegrationCoefficients,
                       std::function<Vector(const Variable<double>&)> GetNodalValuesOf,
@@ -39,9 +39,9 @@ public:
         {
         }
 
-        [[nodiscard]] const Properties& GetElementProperties() const;
+        [[nodiscard]] const Properties&                         GetElementProperties() const;
         [[nodiscard]] const std::vector<RetentionLaw::Pointer>& GetRetentionLaws() const;
-        [[nodiscard]] Vector GetIntegrationCoefficients() const;
+        [[nodiscard]] Vector                                    GetIntegrationCoefficients() const;
         [[nodiscard]] Vector GetNodalValues(const Variable<double>& rVariable) const;
         [[nodiscard]] Geometry<Node>::ShapeFunctionsGradientsType GetShapeFunctionGradients() const;
 
