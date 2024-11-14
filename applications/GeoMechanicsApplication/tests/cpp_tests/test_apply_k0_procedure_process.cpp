@@ -90,22 +90,6 @@ namespace
 ModelPart& PrepareTestModelPart(Model& rModel)
 {
     auto& result = rModel.CreateModelPart("dummy");
-
-    // Set up the test model part mesh
-    auto                   p_point_1 = Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0);
-    auto                   p_point_2 = Kratos::make_intrusive<Node>(2, 0.0, 1.0, 0.0);
-    auto                   p_point_3 = Kratos::make_intrusive<Node>(3, 1.0, 1.0, 0.0);
-    auto                   p_point_4 = Kratos::make_intrusive<Node>(4, 1.0, 0.0, 0.0);
-    Quadrilateral2D4<Node> domain_geometry(p_point_1, p_point_2, p_point_3, p_point_4);
-
-    Parameters mesher_parameters(R"({
-        "number_of_divisions": 2,
-        "element_name": "Element2D3N",
-        "condition_name": "LineCondition",
-        "create_skin_sub_model_part": true
-    })");
-    StructuredMeshGeneratorProcess(domain_geometry, result, mesher_parameters).Execute();
-
     auto  p_dummy_law             = std::make_shared<Testing::StubLinearElasticLaw>();
     auto& r_model_part_properties = result.GetProperties(0);
     r_model_part_properties.SetValue(CONSTITUTIVE_LAW, p_dummy_law);
@@ -199,6 +183,24 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithK0_NC, KratosGeoMecha
     KRATOS_EXPECT_VECTOR_NEAR(actual_stress_vector, expected_stress_vector, Defaults::absolute_tolerance);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithK0_NC_3D, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto p_properties = std::make_shared<Properties>();
+    p_properties->SetValue(K0_NC, 0.5);
+    p_properties->SetValue(K0_MAIN_DIRECTION, 1);
+    Vector initial_stress_vector{6};
+    initial_stress_vector <<= 0.0, -10.0, 0.0, 27.0, 10.0, 5.0;
+
+    // Act
+    const auto actual_stress_vector = ApplyK0ProcedureOnStubElement(p_properties, initial_stress_vector);
+
+    // Assert
+    Vector expected_stress_vector{6};
+    expected_stress_vector <<= -5.0, -10.0, -5.0, 0.0, 0.0, 0.0;
+    KRATOS_EXPECT_VECTOR_NEAR(actual_stress_vector, expected_stress_vector, Defaults::absolute_tolerance);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithPhi, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -222,6 +224,29 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithPhi, KratosGeoMechani
     KRATOS_EXPECT_VECTOR_NEAR(actual_stress_vector, expected_stress_vector, Defaults::absolute_tolerance);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithPhi_3D, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto p_properties = std::make_shared<Properties>();
+    p_properties->SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 1);
+    p_properties->SetValue(NUMBER_OF_UMAT_PARAMETERS, 1);
+    Vector umat_parameters{1};
+    umat_parameters[0] = 30.0;
+    p_properties->SetValue(UMAT_PARAMETERS, umat_parameters);
+    p_properties->SetValue(K0_MAIN_DIRECTION, 1);
+
+    Vector initial_stress_vector{6};
+    initial_stress_vector <<= 0.0, -10.0, 0.0, 27.0, 10.0, 5.0;
+
+    // Act
+    const auto actual_stress_vector = ApplyK0ProcedureOnStubElement(p_properties, initial_stress_vector);
+
+    // Assert
+    Vector expected_stress_vector{6};
+    expected_stress_vector <<= -5.0, -10.0, -5.0, 0.0, 0.0, 0.0;
+    KRATOS_EXPECT_VECTOR_NEAR(actual_stress_vector, expected_stress_vector, Defaults::absolute_tolerance);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithK0_NCandOCR, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -238,6 +263,25 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithK0_NCandOCR, KratosGe
     // Assert
     Vector expected_stress_vector{4};
     expected_stress_vector <<= -7.5, -10.0, -7.5, 0.0;
+    KRATOS_EXPECT_VECTOR_NEAR(actual_stress_vector, expected_stress_vector, Defaults::absolute_tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithK0_NCandOCR_3D, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto p_properties = std::make_shared<Properties>();
+    p_properties->SetValue(K0_NC, 0.5);
+    p_properties->SetValue(K0_MAIN_DIRECTION, 1);
+    p_properties->SetValue(OCR, 1.5);
+    Vector initial_stress_vector{6};
+    initial_stress_vector <<= 0.0, -10.0, 0.0, 27.0, 10.0, 5.0;
+
+    // Act
+    const auto actual_stress_vector = ApplyK0ProcedureOnStubElement(p_properties, initial_stress_vector);
+
+    // Assert
+    Vector expected_stress_vector{6};
+    expected_stress_vector <<= -7.5, -10.0, -7.5, 0.0, 0.0, 0.0;
     KRATOS_EXPECT_VECTOR_NEAR(actual_stress_vector, expected_stress_vector, Defaults::absolute_tolerance);
 }
 
@@ -261,6 +305,26 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithK0_NCandOCRandNu_UR, 
     KRATOS_EXPECT_VECTOR_NEAR(actual_stress_vector, expected_stress_vector, Defaults::absolute_tolerance);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithK0_NCandOCRandNu_UR_3D, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto p_properties = std::make_shared<Properties>();
+    p_properties->SetValue(K0_NC, 0.5);
+    p_properties->SetValue(K0_MAIN_DIRECTION, 1);
+    p_properties->SetValue(OCR, 1.5);
+    p_properties->SetValue(POISSON_UNLOADING_RELOADING, 0.25);
+    Vector initial_stress_vector{6};
+    initial_stress_vector <<= 0.0, -10.0, 0.0, 27.0, 10.0, 5.0;
+
+    // Act
+    const auto actual_stress_vector = ApplyK0ProcedureOnStubElement(p_properties, initial_stress_vector);
+
+    // Assert
+    Vector expected_stress_vector{6};
+    expected_stress_vector <<= -7 * 10.0 / 12.0, -10.0, -7 * 10.0 / 12.0, 0.0, 0.0, 0.0;
+    KRATOS_EXPECT_VECTOR_NEAR(actual_stress_vector, expected_stress_vector, Defaults::absolute_tolerance);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithK0_NCandPOP, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -277,6 +341,25 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithK0_NCandPOP, KratosGe
     // Assert
     Vector expected_stress_vector{4};
     expected_stress_vector <<= -30.0, -10.0, -30.0, 0.0;
+    KRATOS_EXPECT_VECTOR_NEAR(actual_stress_vector, expected_stress_vector, Defaults::absolute_tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithK0_NCandPOP_3D, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto p_properties = std::make_shared<Properties>();
+    p_properties->SetValue(K0_NC, 0.5);
+    p_properties->SetValue(K0_MAIN_DIRECTION, 1);
+    p_properties->SetValue(POP, 50.0);
+    Vector initial_stress_vector{6};
+    initial_stress_vector <<= 0.0, -10.0, 0.0, 27.0, 10.0, 5.0;
+
+    // Act
+    const auto actual_stress_vector = ApplyK0ProcedureOnStubElement(p_properties, initial_stress_vector);
+
+    // Assert
+    Vector expected_stress_vector{6};
+    expected_stress_vector <<= -30.0, -10.0, -30.0, 0.0, 0.0, 0.0;
     KRATOS_EXPECT_VECTOR_NEAR(actual_stress_vector, expected_stress_vector, Defaults::absolute_tolerance);
 }
 
@@ -297,6 +380,26 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithK0_NCandPOPandNu_UR, 
     // Assert
     Vector expected_stress_vector{4};
     expected_stress_vector <<= -30.0 + 50.0 / 3.0, -10.0, -30.0 + 50.0 / 3.0, 0.0;
+    KRATOS_EXPECT_VECTOR_NEAR(actual_stress_vector, expected_stress_vector, Defaults::absolute_tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithK0_NCandPOPandNu_UR_3D, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto p_properties = std::make_shared<Properties>();
+    p_properties->SetValue(K0_NC, 0.5);
+    p_properties->SetValue(K0_MAIN_DIRECTION, 1);
+    p_properties->SetValue(POP, 50.0);
+    p_properties->SetValue(POISSON_UNLOADING_RELOADING, 0.25);
+    Vector initial_stress_vector{6};
+    initial_stress_vector <<= 0.0, -10.0, 0.0, 27.0, 10.0, 5.0;
+
+    // Act
+    const auto actual_stress_vector = ApplyK0ProcedureOnStubElement(p_properties, initial_stress_vector);
+
+    // Assert
+    Vector expected_stress_vector{6};
+    expected_stress_vector <<= -30.0 + 50.0 / 3.0, -10.0, -30.0 + 50.0 / 3.0, 0.0, 0.0, 0.0;
     KRATOS_EXPECT_VECTOR_NEAR(actual_stress_vector, expected_stress_vector, Defaults::absolute_tolerance);
 }
 
