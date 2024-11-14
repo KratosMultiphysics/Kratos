@@ -44,6 +44,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
                 "shed_wake_from_trailing_edge"  : false,
                 "shedded_wake_distance"         : 12.5,
                 "shedded_wake_element_size"     : 0.2,
+                "shedded_grow_factor"           : 1.05,
                 "echo_level": 1
             }
         }''')
@@ -73,7 +74,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
 
         self.fluid_model_part = self.trailing_edge_model_part.GetRootModelPart()
 
-        # Modify to generate de wake for a list of TEs
+        # Modify to generate the wake for a list of TEs
         if self.trailing_edge_model_part.NumberOfConditions()<1 and self.wake_process_cpp_parameters["shed_wake_from_trailing_edge"].GetBool():
             reference_point = [0.0, 0.0, 0.0]
             prop = self.trailing_edge_model_part.GetProperties()[1]
@@ -206,14 +207,14 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
                                     {
                                         "result_file_configuration": {
                                             "gidpost_flags": {
-                                                "GiDPostMode": "GiD_PostAscii",
+                                                "GiDPostMode": "GiD_PostBinary",
                                                 "WriteDeformedMeshFlag": "WriteUndeformed",
                                                 "WriteConditionsFlag": "WriteConditions",
                                                 "MultiFileFlag": "SingleFile"
                                             },
                                             "file_label": "time",
                                             "output_control_type": "step",
-                                            "output_frequency": 1.0,
+                                            "output_interval": 1.0,
                                             "body_output": true,
                                             "node_output": false,
                                             "skin_output": false,

@@ -61,21 +61,13 @@ class HRomTrainingUtility(object):
 
         for model_part_name in self.include_elements_model_parts_list:
             if not self.solver.model.HasModelPart(model_part_name):
-                if "upwind_elements" in model_part_name:
-                    element_list = np.unique(np.int0(np.loadtxt("upwind_elements_list.txt", usecols=(0,))))
-                    element_list =  [element_id.tolist() for element_id in element_list]
-                    root_model_part = self.solver.GetComputingModelPart().GetRootModelPart()
-                    root_model_part.CreateSubModelPart("upwind_elements")
-                    upwind_elements_model_part = root_model_part.GetSubModelPart("upwind_elements")
-                    upwind_elements_model_part.AddElements(element_list)
-
-                if "trailing_edge_element" in model_part_name:
-                    element_list = np.unique(np.int0(np.loadtxt("trailing_edge_element_id.txt", usecols=(0,))))
-                    element_list =  [element_id.tolist() for element_id in element_list]
-                    root_model_part = self.solver.GetComputingModelPart().GetRootModelPart()
-                    root_model_part.CreateSubModelPart("trailing_edge_element")
-                    trailing_edge_element_model_part = root_model_part.GetSubModelPart("trailing_edge_element")
-                    trailing_edge_element_model_part.AddElements(element_list)
+                name = model_part_name.split('.')[1]
+                element_list = np.unique(np.int0(np.loadtxt(f"{name}_elements_list.txt", usecols=(0,))))
+                element_list =  [element_id.tolist() for element_id in element_list]
+                root_model_part = self.solver.GetComputingModelPart().GetRootModelPart()
+                root_model_part.CreateSubModelPart(name)
+                new_elements_model_part = root_model_part.GetSubModelPart(name)
+                new_elements_model_part.AddElements(element_list)
             else:
                 raise Exception('The model part named "' + model_part_name + '" does not exist in the model')
 
@@ -90,14 +82,6 @@ class HRomTrainingUtility(object):
         candidate_ids = np.empty(0)
         for model_part_name in initial_candidate_elements_model_part_list:
             if not self.solver.model.HasModelPart(model_part_name):
-                if "upwind_elements" in model_part_name:
-                    element_list = np.unique(np.int0(np.loadtxt("upwind_elements_list.txt", usecols=(0,))))
-                    element_list =  [element_id.tolist() for element_id in element_list]
-                    root_model_part = self.solver.GetComputingModelPart().GetRootModelPart()
-                    root_model_part.CreateSubModelPart("upwind_elements")
-                    upwind_elements_model_part = root_model_part.GetSubModelPart("upwind_elements")
-                    upwind_elements_model_part.AddElements(element_list)
-            else:
                 raise Exception('The model part named "' + model_part_name + '" does not exist in the model')
             candidate_elements_model_part = self.solver.model.GetModelPart(model_part_name)
             if candidate_elements_model_part.NumberOfElements() == 0:

@@ -1,6 +1,7 @@
 # Importing the Kratos Library
 import KratosMultiphysics as KratosMultiphysics
 import KratosMultiphysics.MeshingApplication as MeshingApplication
+import KratosMultiphysics.MappingApplication
 
 try:
     import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
@@ -385,6 +386,8 @@ class MmgProcess(KratosMultiphysics.Process):
         mmg_parameters.AddValue("debug_result_mesh",self.settings["debug_result_mesh"])
         mmg_parameters.AddValue("initialize_entities",self.settings["initialize_entities"])
         mmg_parameters.AddValue("echo_level",self.settings["echo_level"])
+        mmg_parameters.AddValue("use_mapper_if_available",self.settings["use_mapper_if_available"])
+        mmg_parameters.AddValue("mapping_parameters",self.settings["mapping_parameters"])
         if self.strategy == "optimization":
             mmg_parameters["advanced_parameters"]["mesh_optimization_only"].SetBool(True)
 

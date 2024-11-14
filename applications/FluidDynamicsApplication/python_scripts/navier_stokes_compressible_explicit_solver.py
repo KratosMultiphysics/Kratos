@@ -88,6 +88,7 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.HEAT_SOURCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.NUMERICAL_ENTROPY) # TODO: This is only necessary whith shock capturing entropy_based
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.DENSITY_GRADIENT)
 
         # Post-process variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.MACH)

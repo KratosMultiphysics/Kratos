@@ -43,6 +43,7 @@ Define3DWakeProcess::Define3DWakeProcess(ModelPart& rTrailingEdgeModelPart,
         "shed_wake_from_trailing_edge"         : false,
         "shedded_wake_distance"                : 12.5,
         "shedded_wake_element_size"            : 0.2,
+        "shedded_grow_factor"                  : 1.05,
         "decrease_wake_width_at_the_wing_tips" : false,
         "echo_level": 1
     })" );
@@ -57,6 +58,7 @@ Define3DWakeProcess::Define3DWakeProcess(ModelPart& rTrailingEdgeModelPart,
     mShedWakeFromTrailingEdge = ThisParameters["shed_wake_from_trailing_edge"].GetBool();
     mSheddedWakeDistance = ThisParameters["shedded_wake_distance"].GetDouble();
     mSheddedWakeElementSize = ThisParameters["shedded_wake_element_size"].GetDouble();
+    mGrowFactor = ThisParameters["shedded_grow_factor"].GetDouble();
     mDecreaseWakeWidthAtTheWingTips = ThisParameters["decrease_wake_width_at_the_wing_tips"].GetBool();
     mEchoLevel = ThisParameters["echo_level"].GetInt();
 
@@ -199,7 +201,7 @@ void Define3DWakeProcess::MarkTrailingEdgeNodesAndFindWingtipNodes()
 
     // Marking wingtip nodes
     p_right_wing_tip_node->SetValue(WING_TIP, true);
-    p_left_wing_tip_node->SetValue(WING_TIP, true);
+    p_left_wing_tip_node->SetValue(WING_ROOT, true);
 }
 
 // This function computes the wing lower surface normals and marks the upper
@@ -290,15 +292,18 @@ void Define3DWakeProcess::ComputeAndSaveLocalWakeNormal() const
 // of the wake surface in the wake direction. Note that the element size in span
 // direction is predetermined by the size of the conditions constituting the
 // trailing edge.
+
 void Define3DWakeProcess::ShedWakeSurfaceFromTheTrailingEdge() const
 {
     const Properties::Pointer pElemProp = mrStlWakeModelPart.pGetProperties(0);
-    const double number_of_elements = mSheddedWakeDistance / mSheddedWakeElementSize;
-    const unsigned int number_of_elements_in_wake_direction = int(number_of_elements);
+    const double max_distance = mSheddedWakeDistance;
+    const double initial_element_size = mSheddedWakeElementSize;
+    const double growth_factor = mGrowFactor;
 
     IndexType node_index = 0;
     IndexType element_index = 0;
 
+    array_1d<double,3> coordinates0;
     array_1d<double,3> coordinates1;
     array_1d<double,3> coordinates2;
     array_1d<double,3> coordinates3;
@@ -306,35 +311,136 @@ void Define3DWakeProcess::ShedWakeSurfaceFromTheTrailingEdge() const
 
     for (auto& r_cond : mrTrailingEdgeModelPart.Conditions()) {
         auto& r_geometry = r_cond.GetGeometry();
+
+        if (r_geometry[0].GetValue(WING_ROOT) != 0 || r_geometry[1].GetValue(WING_ROOT) != 0){
+            coordinates1 = r_geometry[0].Coordinates();
+            coordinates2 = r_geometry[1].Coordinates();
+            if(r_geometry[0].GetValue(WING_ROOT) != 0){
+                auto local_vector = coordinates2-coordinates1;
+                // auto local_distance = std::pow(inner_prod(local_vector,local_vector),0.5);
+                // auto local_span_direction = (local_vector)/local_distance;
+                // coordinate1 += -0.5*local_distance*local_span_direction;
+                coordinates0 = coordinates1-local_vector;
+            }
+            else if(r_geometry[1].GetValue(WING_ROOT) != 0){
+                auto local_vector = coordinates1-coordinates2;
+                // auto local_distance = std::pow(inner_prod(local_vector,local_vector),0.5);
+                // auto local_span_direction = (local_vector)/local_distance;
+                // coordinate2 += -0.5*local_distance*local_span_direction;
+                coordinates0 = coordinates2-local_vector;
+            }
+
+            double current_element_size = initial_element_size;
+            double accumulated_distance = 0.0;
+
+            coordinates3 = coordinates0 + current_element_size * mWakeDirection;
+            coordinates4 = coordinates1 + current_element_size * mWakeDirection;
+
+            CreateWakeSurfaceNodesAndElements(node_index, coordinates0, coordinates1, coordinates3,
+                                            coordinates4, element_index, pElemProp);
+
+            while (accumulated_distance + current_element_size <= max_distance) {
+                accumulated_distance += current_element_size;
+                current_element_size *= growth_factor;
+
+                coordinates0 = coordinates3;
+                coordinates1 = coordinates4;
+                coordinates3 = coordinates0 + current_element_size * mWakeDirection;
+                coordinates4 = coordinates1 + current_element_size * mWakeDirection;
+
+                CreateWakeSurfaceNodesAndElements(node_index, coordinates0, coordinates1, coordinates3,
+                                                coordinates4, element_index, pElemProp);
+            }
+        }
+
         coordinates1 = r_geometry[0].Coordinates();
         coordinates2 = r_geometry[1].Coordinates();
 
-        if(mDecreaseWakeWidthAtTheWingTips){
-            if(r_geometry[0].GetValue(WING_TIP) != 0){
+        if (mDecreaseWakeWidthAtTheWingTips) {
+            if (r_geometry[0].GetValue(WING_TIP) != 0) {
                 DecreaseWakeWidthAtTheWingTips(coordinates1, coordinates2);
-            }
-            else if(r_geometry[1].GetValue(WING_TIP) != 0){
+            } else if (r_geometry[1].GetValue(WING_TIP) != 0) {
                 DecreaseWakeWidthAtTheWingTips(coordinates2, coordinates1);
             }
         }
 
-        coordinates3 = coordinates1 + mSheddedWakeElementSize * mWakeDirection;
-        coordinates4 = coordinates2 + mSheddedWakeElementSize * mWakeDirection;
+        double current_element_size = initial_element_size;
+        double accumulated_distance = 0.0;
+
+        coordinates3 = coordinates1 + current_element_size * mWakeDirection;
+        coordinates4 = coordinates2 + current_element_size * mWakeDirection;
 
         CreateWakeSurfaceNodesAndElements(node_index, coordinates1, coordinates2, coordinates3,
-                                   coordinates4, element_index, pElemProp);
+                                          coordinates4, element_index, pElemProp);
 
-        for (unsigned int j = 0; j < number_of_elements_in_wake_direction; j++){
+        while (accumulated_distance + current_element_size <= max_distance) {
+            accumulated_distance += current_element_size;
+            current_element_size *= growth_factor;
+
             coordinates1 = coordinates3;
             coordinates2 = coordinates4;
-            coordinates3 = coordinates1 + mSheddedWakeElementSize * mWakeDirection;
-            coordinates4 = coordinates2 + mSheddedWakeElementSize * mWakeDirection;
+            coordinates3 = coordinates1 + current_element_size * mWakeDirection;
+            coordinates4 = coordinates2 + current_element_size * mWakeDirection;
 
             CreateWakeSurfaceNodesAndElements(node_index, coordinates1, coordinates2, coordinates3,
-                                   coordinates4, element_index, pElemProp);
+                                              coordinates4, element_index, pElemProp);
         }
     }
 }
+
+
+// void Define3DWakeProcess::ShedWakeSurfaceFromTheTrailingEdge() const
+// {
+//     const Properties::Pointer pElemProp = mrStlWakeModelPart.pGetProperties(0);
+//     const double number_of_elements = mSheddedWakeDistance / mSheddedWakeElementSize;
+//     const unsigned int number_of_elements_in_wake_direction = int(number_of_elements);
+
+//     IndexType node_index = 0;
+//     IndexType element_index = 0;
+
+//     array_1d<double,3> coordinates1;
+//     array_1d<double,3> coordinates2;
+//     array_1d<double,3> coordinates3;
+//     array_1d<double,3> coordinates4;
+
+//     for (auto& r_cond : mrTrailingEdgeModelPart.Conditions()) {
+//         auto& r_geometry = r_cond.GetGeometry();
+//         coordinates1 = r_geometry[0].Coordinates();
+//         coordinates2 = r_geometry[1].Coordinates();
+
+//         if(r_geometry[0].GetValue(WING_TIP) != 0){
+//             coordinates1 += -0.25*std::pow(inner_prod(coordinates1-coordinates2,coordinates1-coordinates2),0.5)*mSpanDirection;
+//         }
+//         else if(r_geometry[1].GetValue(WING_TIP) != 0){
+//             coordinates2 += -0.25*std::pow(inner_prod(coordinates1-coordinates2,coordinates1-coordinates2),0.5)*mSpanDirection;
+//         }
+
+//         if(mDecreaseWakeWidthAtTheWingTips){
+//             if(r_geometry[0].GetValue(WING_TIP) != 0){
+//                 DecreaseWakeWidthAtTheWingTips(coordinates1, coordinates2);
+//             }
+//             else if(r_geometry[1].GetValue(WING_TIP) != 0){
+//                 DecreaseWakeWidthAtTheWingTips(coordinates2, coordinates1);
+//             }
+//         }
+
+//         coordinates3 = coordinates1 + mSheddedWakeElementSize * mWakeDirection;
+//         coordinates4 = coordinates2 + mSheddedWakeElementSize * mWakeDirection;
+
+//         CreateWakeSurfaceNodesAndElements(node_index, coordinates1, coordinates2, coordinates3,
+//                                    coordinates4, element_index, pElemProp);
+
+//         for (unsigned int j = 0; j < number_of_elements_in_wake_direction; j++){
+//             coordinates1 = coordinates3;
+//             coordinates2 = coordinates4;
+//             coordinates3 = coordinates1 + mSheddedWakeElementSize * mWakeDirection;
+//             coordinates4 = coordinates2 + mSheddedWakeElementSize * mWakeDirection;
+
+//             CreateWakeSurfaceNodesAndElements(node_index, coordinates1, coordinates2, coordinates3,
+//                                    coordinates4, element_index, pElemProp);
+//         }
+//     }
+// }
 
 
 // This function decreases the wake width, avoiding cutting elements outside of the wake.

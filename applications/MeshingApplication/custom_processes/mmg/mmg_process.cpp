@@ -1496,7 +1496,7 @@ const Parameters MmgProcess<TMMGLibrary>::GetDefaultParameters() const
         "save_external_files"                  : false,
         "save_colors_files"                    : false,
         "save_mdpa_file"                       : false,
-        "max_number_of_searchs"                : 1000,
+        "max_number_of_searchs"                : 100000,
         "preserve_flags"                       : true,
         "interpolate_nodal_values"             : true,
         "interpolate_non_historical"           : true,

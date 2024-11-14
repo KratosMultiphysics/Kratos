@@ -608,11 +608,23 @@ class RomManager(object):
             BasisOutputProcess._PrintRomBasis(u, sigma) #Calling the RomOutput Process for creating the RomParameter.json
             self.data_base.add_to_database("RightBasis", mu_train, u )
             self.data_base.add_to_database("SingularValues_Solution", mu_train, sigma )
+            
+            self.GenerateDatabaseSummary()
+
+            del BasisOutputProcess
+            
+            gc.collect()
         else:
-            BasisOutputProcess = self.InitializeDummySimulationForBasisOutputProcess()
-            _ , hash_sigma = self.data_base.check_if_in_database("SingularValues_Solution", mu_train)
-            BasisOutputProcess._PrintRomBasis(self.data_base.get_single_numpy_from_database(hash_basis), self.data_base.get_single_numpy_from_database(hash_sigma) ) #this updates the RomParameters.json
-        self.GenerateDatabaseSummary()
+            if self.rebuild_phi:
+                BasisOutputProcess = self.InitializeDummySimulationForBasisOutputProcess()
+                _ , hash_sigma = self.data_base.check_if_in_database("SingularValues_Solution", mu_train)
+                BasisOutputProcess._PrintRomBasis(self.data_base.get_single_numpy_from_database(hash_basis), self.data_base.get_single_numpy_from_database(hash_sigma) ) #this updates the RomParameters.json
+                
+                self.GenerateDatabaseSummary()
+
+                del BasisOutputProcess
+                
+                gc.collect()
 
     def _LoadSolutionBasis(self, mu_train):
         in_database, hash_basis = self.data_base.check_if_in_database("RightBasis", mu_train)
@@ -759,81 +771,83 @@ class RomManager(object):
                     
                     gc.collect()
 
-            rows = np.load(f'{self.general_rom_manager_parameters["ROM"]["rom_basis_output_folder"].GetString()}/RightBasisMatrix.npy').shape[0]
-            columns = np.load(f'{self.general_rom_manager_parameters["ROM"]["rom_basis_output_folder"].GetString()}/RightBasisMatrix.npy').shape[1]
+            if self.general_rom_manager_parameters["HROM"]["use_dask_matrix"].GetBool():
+                columns = np.load(f'{self.general_rom_manager_parameters["ROM"]["rom_basis_output_folder"].GetString()}/RightBasisMatrix.npy').shape[1]
+                block_size = self.general_rom_manager_parameters["HROM"]["block_size"].GetInt()
+                cluster = LocalCluster(
+                    n_workers          = self.general_rom_manager_parameters["HROM"]["n_workers"].GetInt(),    # Trabajadores por cada núcleo
+                    threads_per_worker = self.general_rom_manager_parameters["HROM"]["threads_per_worker"].GetInt(),    # Hilos por trabajador
+                    memory_limit       = self.general_rom_manager_parameters["HROM"]["memory_limit"].GetString(), # Límite de memoria por trabajador
+                    local_directory    = os.getcwd()
+                )
+                client = Client(cluster)
 
-            memory_info = psutil.virtual_memory()
-            available_memory_gb = memory_info.available / (1024 ** 3)
-
-            if rows*columns**2*8*1e-9 > available_memory_gb:
-                input('Using dask')
-
-                dask.config.set({'temporary-directory': '/home/marco-kratos-pc'})
-                dask.config.set({'distributed.worker.memory.target': 0.6,  # Comienza a "spillar" al 60% del uso de memoria
-                                'distributed.worker.memory.spill': 0.7,   # Empieza a volcar al disco al 70%
-                                'distributed.worker.memory.pause': 0.8,   # Pausar nuevas tareas al 80%
-                                'distributed.worker.memory.terminate': 0.9}) # Terminar al 90% para evitar crash
-
-                # Configuración del clúster
-                # cluster = LocalCluster(
-                #     n_workers=8,             # Un trabajador por cada núcleo
-                #     threads_per_worker=1,    # Un hilo por trabajador
-                #     memory_limit='2GB',       # Límite de memoria por trabajador
-                #     local_directory=os.getcwd()
-                # )
-                # client = Client(cluster)
-
-                if not os.path.exists('ResidualsSnapshotsMatrix.zarr'):
-                    # Crear un grupo Zarr para almacenar la matriz
-                    zarr_store = zarr.open('ResidualsSnapshotsMatrix.zarr', mode='w', shape=(rows, columns * len(mu_train)), chunks=(1000, 100), dtype='float64')
-                    # Conectar con la base de datos y cargar los fragmentos incrementales en Zarr
+                zarr_path = 'ResidualsSnapshotsMatrix.zarr'
+                if not os.path.exists(zarr_path):
+                    zarr_matrix = zarr.open(zarr_path, mode='w', shape=(0, columns), chunks=(1000, 100), dtype='float64')
                     with sqlite3.connect(self.data_base.database_name) as conn:
                         cursor = conn.cursor()
                         for i, mu in enumerate(mu_train):
                             hash_mu, _ = self.data_base.get_hashed_file_name_for_table("ResidualsProjected", mu)
-                            cursor.execute(f"SELECT file_name FROM ResidualsProjected WHERE file_name = ?", (hash_mu,))
+                            cursor.execute("SELECT file_name FROM ResidualsProjected WHERE file_name = ?", (hash_mu,))
                             result = cursor.fetchone()
                             if result:
                                 file_name = result[0]
-                                # Cargar el archivo .npy correspondiente y escribir el fragmento en el archivo Zarr
-                                zarr_store[:, i * columns:(i + 1) * columns] = np.load(self.data_base.npys_directory / (file_name + '.npy'))
+                                file_path = self.data_base.npys_directory / (file_name + '.npy')
+                                try:
+                                    fragment = np.load(file_path, mmap_mode='r')
+                                    current_shape = zarr_matrix.shape
+                                    zarr_matrix.resize((fragment.shape[0], current_shape[1] + fragment.shape[1] - 1))
+                                    zarr_matrix[:, i*fragment.shape[1]:(i+1)*fragment.shape[1]] = fragment 
+                                except FileNotFoundError:
+                                    print(f"Archivo no encontrado: {file_path}")
+                                except Exception as e:
+                                    print(f"Error al cargar el archivo {file_path}: {e}")
+                zarr_matrix = da.from_zarr(zarr_path)
+                zarr_matrix.persist()
 
-                # Leer la matriz Zarr como un arreglo Dask y realizar SVD
-                dask_array = da.from_zarr('ResidualsSnapshotsMatrix.zarr')
-                # Persistir el arreglo Dask para mantener los datos en la memoria distribuida
-                dask_array = dask_array.persist()
+                if self.general_rom_manager_parameters["HROM"]["use_block_svd_dask"].GetBool():
+                    if self.general_rom_manager_parameters["HROM"]["use_rows_equal_to_columns_in_block"].GetBool():
+                        block_size = zarr_matrix.shape[1]
+                    u = self.block_svd_dask(zarr_matrix, block_size)
+                    del zarr_matrix
+                    gc.collect()
+                    u = u.compute()
+                    client.close()
+                    cluster.close()
+                elif self.general_rom_manager_parameters["HROM"]["use_svd_dask"].GetBool():
+                    u, _, _ = da.linalg.svd_compressed(zarr_matrix, k=zarr_matrix.shape[1], compute=False)
+                    del zarr_matrix
+                    gc.collect()
+                    u = u.compute()
+                    client.close()
+                    cluster.close()
+                else:
+                    RedidualsSnapshotsMatrix = zarr_matrix.compute()
+                    del zarr_matrix
+                    gc.collect()
+                    client.close()
+                    cluster.close()
 
-                input('Pre svd')
-
-                # Realizar la descomposición SVD
-                svd = TruncatedSVD(n_components=5, algorithm="randomized", n_iter=5, random_state=42)
-                u = svd.fit_transform(dask_array)
-
-                del dask_array
-                gc.collect()
-
-                input(u.shape)
-
-                # Persistir el resultado final
-                u = u.compute()
-
-                # Cerrar el cliente y el clúster cuando hayas terminado
-                # client.close()
-                # cluster.close()
-
+                    if self.general_rom_manager_parameters["HROM"]["use_block_svd"].GetBool():
+                        u = self.block_svd(RedidualsSnapshotsMatrix,block_size)
+                    else:
+                        u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(RedidualsSnapshotsMatrix,
+                        self.general_rom_manager_parameters["HROM"]["element_selection_svd_truncation_tolerance"].GetDouble())
+                    del RedidualsSnapshotsMatrix
+                    gc.collect()
             else:
+                block_size = self.general_rom_manager_parameters["HROM"]["block_size"].GetInt()
                 RedidualsSnapshotsMatrix = self.data_base.get_snapshots_matrix_from_database(mu_train, table_name="ResidualsProjected")
-
-                # u,_,_ = sklearn.utils.extmath.randomized_svd(RedidualsSnapshotsMatrix, 700)
-                                 
-                # u,_,_ = np.linalg.svd(RedidualsSnapshotsMatrix,full_matrices=False)
-
-                u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(RedidualsSnapshotsMatrix,
-                self.general_rom_manager_parameters["HROM"]["element_selection_svd_truncation_tolerance"].GetDouble())
-
+                if self.general_rom_manager_parameters["HROM"]["use_block_svd"].GetBool():
+                    if self.general_rom_manager_parameters["HROM"]["use_rows_equal_to_columns_in_block"].GetBool():
+                        block_size = zarr_matrix.shape[1]
+                    u = self.block_svd(RedidualsSnapshotsMatrix,block_size)
+                else:
+                    u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(RedidualsSnapshotsMatrix,
+                    self.general_rom_manager_parameters["HROM"]["element_selection_svd_truncation_tolerance"].GetDouble())
                 del RedidualsSnapshotsMatrix
                 gc.collect()
-
             # if simulation is None:
             HROM_utility = self.InitializeDummySimulationForHromTrainingUtility()
             # else:
@@ -861,6 +875,34 @@ class RomManager(object):
             HROM_utility.AppendHRomWeightsToRomParameters()
             HROM_utility.CreateHRomModelParts()
         self.GenerateDatabaseSummary()
+
+    def block_svd_dask(self, matrix, block_size):
+        rows, cols = matrix.shape
+        U_blocks = []
+        max_columns = 0
+        for i in range(0, rows, block_size):
+            end_row = min(i + block_size, rows)
+            block = matrix[i:end_row, :]
+            U, _, _ = da.linalg.svd_compressed(block, k=cols, compute=False)
+            U = da.atleast_2d(U)
+            max_columns = max(max_columns, U.shape[1])
+            U_blocks.append(U)
+        U_blocks_padded = [da.pad(U, ((0, 0), (0, max_columns - U.shape[1])), 'constant') for U in U_blocks]
+        return da.concatenate(U_blocks_padded, axis=0)
+
+    def block_svd(self, matrix, block_size):
+        rows, _ = matrix.shape
+        U_blocks = []
+        max_columns = 0
+        for i in range(0, rows, block_size):
+            end_row = min(i + block_size, rows)
+            block = matrix[i:end_row, :]
+            U, _, _, _ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(block, 0)
+            U = np.atleast_2d(U)
+            max_columns = max(max_columns, U.shape[1])
+            U_blocks.append(U)
+        U_blocks_padded = [np.pad(U, ((0, 0), (0, max_columns - U.shape[1])), 'constant') for U in U_blocks]
+        return np.concatenate(U_blocks_padded, axis=0)
 
     def _LaunchHROM(self, mu_train, gid_and_vtk_name ='HROM_Fit'):
         """
@@ -956,22 +998,34 @@ class RomManager(object):
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
         for Id, mu in enumerate(mu_run):
-            parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
-            parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
-            parameters_copy = self._StoreResultsByName(parameters_copy,'FOM_Run',mu,Id)
-            materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
-            self.UpdateMaterialParametersFile(materials_file_name, mu)
-            model = KratosMultiphysics.Model()
-            analysis_stage_class = self._GetAnalysisStageClass(parameters_copy)
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
-            simulation.Run()
-            self.QoI_Run_FOM.append(simulation.GetFinalData())
+            if self.relaunch_FOM:
+                self.data_base.delete_if_in_database("FOM", mu)
+                self.data_base.delete_if_in_database("QoI_FOM", mu)
+            fom_in_database, _ = self.data_base.check_if_in_database("FOM", mu)
+            if not fom_in_database:
+                parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
+                parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
+                parameters_copy = self._StoreResultsByName(parameters_copy,'FOM_Run',mu,Id)
+                materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
+                self.UpdateMaterialParametersFile(materials_file_name, mu)
+                model = KratosMultiphysics.Model()
+                analysis_stage_class = self._GetAnalysisStageClass(parameters_copy)
+                simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
+                simulation.Run()
+                if not fom_in_database:
+                    self.data_base.add_to_database("QoI_FOM", mu, simulation.GetFinalData())
+                    for process in simulation._GetListOfOutputProcesses():
+                        if isinstance(process, CalculateRomBasisOutputProcess):
+                            BasisOutputProcess = process
+                    SnapshotsMatrix = BasisOutputProcess._GetSnapshotsMatrix() #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
+                    self.data_base.add_to_database("FOM", mu, SnapshotsMatrix)
 
-            simulation.Clear()
-            del model
-            del simulation
+                simulation.Clear()
+                del model
+                del simulation
+                del SnapshotsMatrix
             
-            gc.collect()
+                gc.collect()
 
     def _LaunchRunROM(self, mu_run, nn_rom_interface=None):
         """
@@ -981,22 +1035,37 @@ class RomManager(object):
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
         for Id, mu in enumerate(mu_run):
-            parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
-            parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
-            parameters_copy = self._StoreResultsByName(parameters_copy,'ROM_Run',mu,Id)
-            materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
-            self.UpdateMaterialParametersFile(materials_file_name, mu)
-            model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy, nn_rom_interface=nn_rom_interface))
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
-            simulation.Run()
-            self.QoI_Run_ROM.append(simulation.GetFinalData())
+            if self.relaunch_ROM:
+                self.data_base.delete_if_in_database("ROM", mu)
+                self.data_base.delete_if_in_database("ROM_q", mu)
+                self.data_base.delete_if_in_database("QoI_ROM", mu)
+            in_database, _ = self.data_base.check_if_in_database("ROM", mu)
+            if not in_database:
+                parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
+                parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
+                parameters_copy = self._StoreResultsByName(parameters_copy,'ROM_Run',mu,Id)
+                materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
+                self.UpdateMaterialParametersFile(materials_file_name, mu)
+                model = KratosMultiphysics.Model()
+                analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy, nn_rom_interface=nn_rom_interface))
+                simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
+                simulation.Run()
+                model_part = simulation._GetSolver().GetComputingModelPart().GetRootModelPart()
+                q = np.block(np.array(model_part.GetValue(KratosMultiphysics.RomApplication.ROM_SOLUTION_INCREMENT)).reshape(-1,1))
+                self.data_base.add_to_database("ROM_q", mu, q)
+                self.data_base.add_to_database("QoI_ROM", mu, simulation.GetFinalData())
+                for process in simulation._GetListOfOutputProcesses():
+                    if isinstance(process, CalculateRomBasisOutputProcess):
+                        BasisOutputProcess = process
+                SnapshotsMatrix = BasisOutputProcess._GetSnapshotsMatrix() #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
+                self.data_base.add_to_database("ROM", mu, SnapshotsMatrix )
 
-            simulation.Clear()
-            del model
-            del simulation
-            
-            gc.collect()
+                simulation.Clear()
+                del model
+                del simulation
+                del SnapshotsMatrix
+                
+                gc.collect()
 
 
     def _LaunchRunHROM(self, mu_run, use_full_model_part):
@@ -1010,22 +1079,37 @@ class RomManager(object):
             parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(f"{model_part_name}HROM")
 
         for Id, mu in enumerate(mu_run):
-            parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
-            parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
-            parameters_copy = self._StoreResultsByName(parameters_copy,'HROM_Run',mu,Id)
-            materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
-            self.UpdateMaterialParametersFile(materials_file_name, mu)
-            model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
-            simulation.Run()
-            self.QoI_Run_HROM.append(simulation.GetFinalData())
+            if self.relaunch_HROM:
+                self.data_base.delete_if_in_database("HROM", mu)
+                self.data_base.delete_if_in_database("HROM_q", mu)
+                self.data_base.delete_if_in_database("QoI_HROM", mu)
+            in_database, _ = self.data_base.check_if_in_database("HROM", mu)
+            if not in_database:
+                parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
+                parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
+                parameters_copy = self._StoreResultsByName(parameters_copy,'HROM_Run',mu,Id)
+                materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
+                self.UpdateMaterialParametersFile(materials_file_name, mu)
+                model = KratosMultiphysics.Model()
+                analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
+                simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
+                simulation.Run()
+                model_part = simulation._GetSolver().GetComputingModelPart().GetRootModelPart()
+                q = np.block(np.array(model_part.GetValue(KratosMultiphysics.RomApplication.ROM_SOLUTION_INCREMENT)).reshape(-1,1))
+                self.data_base.add_to_database("HROM_q", mu, q)
+                self.data_base.add_to_database("QoI_HROM", mu, simulation.GetFinalData())
+                for process in simulation._GetListOfOutputProcesses():
+                    if isinstance(process, CalculateRomBasisOutputProcess):
+                        BasisOutputProcess = process
+                SnapshotsMatrix = BasisOutputProcess._GetSnapshotsMatrix() #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
+                self.data_base.add_to_database("HROM", mu, SnapshotsMatrix)
 
-            simulation.Clear()
-            del model
-            del simulation
-            
-            gc.collect()
+                simulation.Clear()
+                del model
+                del simulation
+                del SnapshotsMatrix
+                
+                gc.collect()
 
 
     def _LaunchRunHHROM(self, mu_run):
@@ -1038,22 +1122,37 @@ class RomManager(object):
         parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(f"{model_part_name}HROM")
 
         for Id, mu in enumerate(mu_run):
-            parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
-            parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
-            parameters_copy = self._StoreResultsByName(parameters_copy,'HHROM_Run',mu,Id)
-            materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
-            self.UpdateMaterialParametersFile(materials_file_name, mu)
-            model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
-            simulation.Run()
-            self.QoI_Run_HROM.append(simulation.GetFinalData())
+            if self.relaunch_HROM:
+                self.data_base.delete_if_in_database("HROM", mu)
+                self.data_base.delete_if_in_database("HROM_q", mu)
+                self.data_base.delete_if_in_database("QoI_HROM", mu)
+            in_database, _ = self.data_base.check_if_in_database("HROM", mu)
+            if not in_database:
+                parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
+                parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
+                parameters_copy = self._StoreResultsByName(parameters_copy,'HHROM_Run',mu,Id)
+                materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
+                self.UpdateMaterialParametersFile(materials_file_name, mu)
+                model = KratosMultiphysics.Model()
+                analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
+                simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
+                simulation.Run()
+                model_part = simulation._GetSolver().GetComputingModelPart().GetRootModelPart()
+                q = np.block(np.array(model_part.GetValue(KratosMultiphysics.RomApplication.ROM_SOLUTION_INCREMENT)).reshape(-1,1))
+                self.data_base.add_to_database("HROM_q", mu, q)
+                self.data_base.add_to_database("QoI_HROM", mu, simulation.GetFinalData())
+                for process in simulation._GetListOfOutputProcesses():
+                    if isinstance(process, CalculateRomBasisOutputProcess):
+                        BasisOutputProcess = process
+                SnapshotsMatrix = BasisOutputProcess._GetSnapshotsMatrix() #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
+                self.data_base.add_to_database("HROM", mu, SnapshotsMatrix)
 
-            simulation.Clear()
-            del model
-            del simulation
-            
-            gc.collect()
+                simulation.Clear()
+                del model
+                del simulation
+                del SnapshotsMatrix
+                
+                gc.collect()
 
     def _LaunchTrainNeuralNetwork(self, mu_train, mu_validation):
         RomNeuralNetworkTrainer = self._TryImportNNTrainer()
@@ -1387,7 +1486,16 @@ class RomManager(object):
                 "include_nodal_neighbouring_elements_model_parts_list":[],
                 "include_minimum_condition": false,       // if true, keep at least one condition per submodelpart
                 "include_condition_parents": false,       // if true, when a condition is chosen by the ECM algorithm, the parent element is also included
-                "echo_level" : 0                          // if >0, get hrom training status promts
+                "echo_level" : 0,                          // if >0, get hrom training status promts
+                "use_dask_matrix": false,
+                "use_svd_dask": false,
+                "use_block_svd_dask": false,
+                "use_block_svd": false,
+                "use_rows_equal_to_columns_in_block": false,
+                "block_size": 1000,
+                "n_workers": 2,
+                "threads_per_worker": 1,
+                "memory_limit": "8GB"
             }
         }""")
 

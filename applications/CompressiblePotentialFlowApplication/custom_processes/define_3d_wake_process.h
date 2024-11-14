@@ -109,6 +109,7 @@ private:
 
     double mSheddedWakeDistance;
     double mSheddedWakeElementSize;
+    double mGrowFactor;
 
     BoundedVector<double, 3> mWakeNormalOld;
 
