@@ -101,7 +101,9 @@ public:
         CheckHasDofsFor(WATER_PRESSURE);
         CheckProperties();
         // conditional on model dimension
-        CheckForNonZeroZCoordinateIn2D();
+        if constexpr (TDim == 2) {
+            CheckForNonZeroZCoordinate();
+        }
 
         KRATOS_CATCH("")
 
@@ -173,6 +175,9 @@ private:
         CheckProperty(DENSITY_WATER);
         CheckProperty(DYNAMIC_VISCOSITY);
         CheckProperty(PIPE_HEIGHT);
+        if constexpr (TDim == 3) {
+            CheckProperty(PIPE_WIDTH_FACTOR);
+        }
     }
 
     void CheckProperty(const Kratos::Variable<double>& rVariable) const
@@ -184,15 +189,13 @@ private:
             << ") is not in the range [0,-> at element " << Id() << std::endl;
     }
 
-    void CheckForNonZeroZCoordinateIn2D() const
+    void CheckForNonZeroZCoordinate() const
     {
-        if constexpr (TDim == 2) {
-            const auto& r_geometry = GetGeometry();
-            auto        pos        = std::find_if(r_geometry.begin(), r_geometry.end(),
-                                                  [](const auto& node) { return node.Z() != 0.0; });
-            KRATOS_ERROR_IF_NOT(pos == r_geometry.end())
-                << "Node with non-zero Z coordinate found. Id: " << pos->Id() << std::endl;
-        }
+        const auto& r_geometry = GetGeometry();
+        auto        pos        = std::find_if(r_geometry.begin(), r_geometry.end(),
+                                              [](const auto& node) { return node.Z() != 0.0; });
+        KRATOS_ERROR_IF_NOT(pos == r_geometry.end())
+            << "Node with non-zero Z coordinate found. Id: " << pos->Id() << std::endl;
     }
 
     double CalculateLength(const GeometryType& Geom) const

@@ -110,11 +110,29 @@ public:
         const auto number_of_piping_line_elements = static_cast<std::size_t>(
             std::count_if(piping_line_elements.begin(), piping_line_elements.end(),
                           [](auto p_element) { return p_element != nullptr; }));
-        KRATOS_ERROR_IF(number_of_piping_line_elements != piping_line_elements.size())
-            << "Unexpected number of piping line elements: expected " << piping_line_elements.size()
-            << " but got " << number_of_piping_line_elements << std::endl;
 
-        this->DetermineOpenPipingElements(piping_line_elements);
+        if (number_of_piping_line_elements > 0) {
+            this->DetermineOpenPipingElements(piping_line_elements);
+            this->BaseClassFinalizeSolutionStep();
+            return;
+        }
+
+
+        auto piping_3D_line_elements = std::vector<GeoSteadyStatePwPipingElement<3, 2>*>{};
+        std::transform(piping_elements.begin(), piping_elements.end(),
+                       std::back_inserter(piping_3D_line_elements), [](auto p_element) {
+            return dynamic_cast<GeoSteadyStatePwPipingElement<3, 2>*>(p_element);
+        });
+
+        const auto number_of_3D_piping_line_elements = static_cast<std::size_t>(
+            std::count_if(piping_3D_line_elements.begin(), piping_3D_line_elements.end(),
+                          [](auto p_element) { return p_element != nullptr; }));
+
+        KRATOS_ERROR_IF(number_of_3D_piping_line_elements != piping_3D_line_elements.size())
+            << "Unexpected number of piping line elements: expected " << piping_3D_line_elements.size()
+            << " but got " << number_of_3D_piping_line_elements << std::endl;
+
+        this->DetermineOpenPipingElements(piping_3D_line_elements);
         this->BaseClassFinalizeSolutionStep();
     }
 

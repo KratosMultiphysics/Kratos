@@ -85,6 +85,7 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_ELEMENT("SteadyStatePwPipingElement3D6N", mSteadyStatePwPipingElement3D6N)
     KRATOS_REGISTER_ELEMENT("SteadyStatePwPipingElement3D8N", mSteadyStatePwPipingElement3D8N)
     KRATOS_REGISTER_ELEMENT("GeoSteadyStatePwPipingElement2D2N", mGeoSteadyStatePwPipingElement2D2N)
+    KRATOS_REGISTER_ELEMENT("GeoSteadyStatePwPipingElement3D2N", mGeoSteadyStatePwPipingElement3D2N)
 
     // Small strain elements
     KRATOS_REGISTER_ELEMENT("UPwSmallStrainElement2D3N", mUPwSmallStrainElement2D3N)
