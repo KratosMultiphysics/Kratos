@@ -243,7 +243,10 @@ private:
 
     Matrix FillPermeabilityMatrix(double pipe_height) const
     {
-        return ScalarMatrix{1, 1, std::pow(pipe_height, 3) / 12.0};
+        if constexpr (TDim == 2) {
+            return ScalarMatrix{1, 1, std::pow(pipe_height, 3) / 12.0};
+        }
+        return ScalarMatrix{1, 1, this->GetProperties()[PIPE_WIDTH_FACTOR] * std::pow(pipe_height, 4) / 12.0};
     }
 
     BoundedMatrix<double, TNumNodes, TNumNodes> CalculatePermeabilityMatrix(

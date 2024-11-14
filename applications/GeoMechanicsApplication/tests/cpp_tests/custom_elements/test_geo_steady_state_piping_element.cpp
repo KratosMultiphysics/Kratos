@@ -69,11 +69,33 @@ intrusive_ptr<GeoSteadyStatePwPipingElement<2, 2>> CreateGeoSteadyStatePwPipingE
     return p_result;
 }
 
+intrusive_ptr<GeoSteadyStatePwPipingElement<3, 2>> CreateGeoSteadyStatePwPipingElement3D2NWithPWDofs(
+    const ModelPart& rModelPart, const Properties::Pointer& rProperties, const Geometry<Node>::Pointer& rGeometry)
+{
+    auto p_result = make_intrusive<GeoSteadyStatePwPipingElement<3, 2>>(
+        NextElementNumber(rModelPart), rGeometry, rProperties);
+    for (auto& node : p_result->GetGeometry()) {
+        node.AddDof(WATER_PRESSURE);
+    }
+
+    return p_result;
+}
+
 intrusive_ptr<GeoSteadyStatePwPipingElement<2, 2>> CreateHorizontalUnitLengthGeoSteadyStatePwPipingElementWithPWDofs(
     ModelPart& rModelPart, const Properties::Pointer& rProperties)
 {
     const auto p_geometry = std::make_shared<Line2D2<Node>>(CreateNodesOnModelPart(rModelPart));
     auto p_element = CreateGeoSteadyStatePwPipingElementWithPWDofs(rModelPart, rProperties, p_geometry);
+
+    rModelPart.AddElement(p_element);
+    return p_element;
+}
+
+intrusive_ptr<GeoSteadyStatePwPipingElement<3, 2>> CreateHorizontalUnitLengthGeoSteadyStatePwPipingElement3D2NWithPWDofs(
+    ModelPart& rModelPart, const Properties::Pointer& rProperties)
+{
+    const auto p_geometry = std::make_shared<Line3D2<Node>>(CreateNodesOnModelPart(rModelPart));
+    auto p_element = CreateGeoSteadyStatePwPipingElement3D2NWithPWDofs(rModelPart, rProperties, p_geometry);
 
     rModelPart.AddElement(p_element);
     return p_element;
@@ -301,6 +323,46 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsTheExpectedLeftHan
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 
     auto expected_right_hand_side = Vector{ScalarVector{2, 1. / 12.}};
+    expected_right_hand_side(1)   = -expected_right_hand_side(1);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElement3D2NReturnsTheExpectedLeftHandSideAndRightHandSide,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto dummy_process_info = ProcessInfo{};
+    const auto p_properties       = std::make_shared<Properties>();
+
+    Model model;
+    auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
+    auto  p_element =
+        CreateHorizontalUnitLengthGeoSteadyStatePwPipingElement3D2NWithPWDofs(r_model_part, p_properties);
+    p_element->GetProperties().SetValue(DENSITY_WATER, 1.0E3);
+    p_element->GetProperties().SetValue(DYNAMIC_VISCOSITY, 1.0E-2);
+    p_element->GetProperties().SetValue(PIPE_WIDTH_FACTOR, 1.5);
+    p_element->SetValue(PIPE_HEIGHT, 1.0E-1);
+    // Set gravity perpendicular to the line ( so no fluid body flow vector from this )
+    p_element->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION) =
+        array_1d<double, 3>{0.0, -10.0, 0.0};
+    p_element->GetGeometry()[1].FastGetSolutionStepValue(VOLUME_ACCELERATION) =
+        array_1d<double, 3>{0.0, -10.0, 0.0};
+    // Create a head gradient of -10.
+    p_element->GetGeometry()[0].FastGetSolutionStepValue(WATER_PRESSURE) = 10.0;
+    p_element->GetGeometry()[1].FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
+
+    // Act
+    Vector actual_right_hand_side;
+    Matrix actual_left_hand_side;
+    p_element->CalculateLocalSystem(actual_left_hand_side, actual_right_hand_side, dummy_process_info);
+
+    // Assert
+    auto expected_left_hand_side  = Matrix{ScalarMatrix{2, 2, 0.015 / 12.}};
+    expected_left_hand_side(0, 0) = -expected_left_hand_side(0, 0);
+    expected_left_hand_side(1, 1) = -expected_left_hand_side(1, 1);
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
+
+    auto expected_right_hand_side = Vector{ScalarVector{2, 0.15 / 12.}};
     expected_right_hand_side(1)   = -expected_right_hand_side(1);
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
