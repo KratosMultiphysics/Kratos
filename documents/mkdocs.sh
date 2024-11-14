@@ -35,9 +35,9 @@ while getopts ":h a: A e: c C" arg; do
             applications="$applications $OPTARG,$kratos_root_dir/applications"
             ;;
         A)  # Add all Kratos applications.
-            for app_path in "$kratos_root_dir/applications/*Application"; do
-                app_name="$(basename ${$app_path})"
-                applications="$applications $app_name,$kratos_root_dir/applications$"
+            for app_path in $kratos_root_dir/applications/*Application; do
+                app_name="$(basename $app_path)"
+                applications="$applications $app_name,$kratos_root_dir/applications"
             done
             ;;
         e)  # Add an application from an external directory. The passed argument
