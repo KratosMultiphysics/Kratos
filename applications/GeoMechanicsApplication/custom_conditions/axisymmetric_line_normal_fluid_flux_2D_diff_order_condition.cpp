@@ -41,7 +41,7 @@ AxisymmetricLineNormalFluidFlux2DDiffOrderCondition::AxisymmetricLineNormalFluid
 Condition::Pointer AxisymmetricLineNormalFluidFlux2DDiffOrderCondition::Create(
     IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
-    return this->Create(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Create(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
 Condition::Pointer AxisymmetricLineNormalFluidFlux2DDiffOrderCondition::Create(
