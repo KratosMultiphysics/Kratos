@@ -397,10 +397,12 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsPipeActive, Kratos
     std::vector<bool> pipe_active(
         p_element->GetGeometry().IntegrationPointsNumber(p_element->GetIntegrationMethod()));
     p_element->CalculateOnIntegrationPoints(PIPE_ACTIVE, pipe_active, dummy_process_info);
+    // Assert
     KRATOS_EXPECT_FALSE(pipe_active[0]);
 
     p_element->SetValue(PIPE_ACTIVE, true);
     p_element->CalculateOnIntegrationPoints(PIPE_ACTIVE, pipe_active, dummy_process_info);
+    // Assert
     KRATOS_EXPECT_TRUE(pipe_active[0]);
 }
 
@@ -421,7 +423,35 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsPipeHeight, Kratos
     std::vector<double> pipe_heights(
         p_element->GetGeometry().IntegrationPointsNumber(p_element->GetIntegrationMethod()));
     p_element->CalculateOnIntegrationPoints(PIPE_HEIGHT, pipe_heights, dummy_process_info);
+
+    // Assert
     KRATOS_EXPECT_DOUBLE_EQ(pipe_heights[0], pipe_height);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsPermeabilityMatrix, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto dummy_process_info = ProcessInfo{};
+    const auto p_properties       = std::make_shared<Properties>();
+
+    Model model;
+    auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
+    auto  p_element =
+        CreateHorizontalUnitLengthGeoSteadyStatePwPipingElementWithPWDofs(r_model_part, p_properties);
+
+    const double pipe_height = 1.E-1;
+    p_element->SetValue(PIPE_HEIGHT, pipe_height);
+
+    std::vector<Matrix> permeability_matrices(
+        p_element->GetGeometry().IntegrationPointsNumber(p_element->GetIntegrationMethod()));
+    p_element->CalculateOnIntegrationPoints(PERMEABILITY_MATRIX, permeability_matrices, dummy_process_info);
+
+    // Assert
+    KRATOS_EXPECT_DOUBLE_EQ(permeability_matrices[0](0, 0), std::pow(pipe_height, 3) / 12.0);
+
+    p_element->CalculateOnIntegrationPoints(LOCAL_PERMEABILITY_MATRIX, permeability_matrices, dummy_process_info);
+
+    // Assert
+    KRATOS_EXPECT_DOUBLE_EQ(permeability_matrices[0](0, 0), std::pow(pipe_height, 3) / 12.0);
+}
 } // namespace Kratos::Testing
