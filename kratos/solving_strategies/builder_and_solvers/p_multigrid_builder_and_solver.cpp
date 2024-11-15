@@ -18,6 +18,10 @@
 #include "utilities/dof_utilities/block_build_dof_array_utility.h" // BlockBuildDofArrayUtility
 #include "utilities/atomic_utilities.h" // AtomicAdd
 #include "utilities/sparse_matrix_multiplication_utility.h"
+#include "utilities/reduction_utilities.h"
+
+// System includes
+#include <algorithm> // std::lower_bound
 
 
 namespace Kratos {
@@ -65,22 +69,22 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
 
             if (rInterface.GetLinearSolver().AdditionalPhysicalDataIsNeeded()) {
                 rInterface.GetLinearSolver().ProvideAdditionalData(rLhs,
-                                                                       modified_solution,
-                                                                       rRhs,
-                                                                       rInterface.mDofSet,
-                                                                       rModelPart);
+                                                                   modified_solution,
+                                                                   rRhs,
+                                                                   rInterface.mDofSet,
+                                                                   rModelPart);
             }
             rInterface.GetLinearSolver().Solve(rLhs, modified_solution, rRhs);
 
             //recover solution of the original problem
-            TSparse::Mult(mRelationMatrix, modified_solution, modified_solution);
+            TSparse::Mult(mRelationMatrix, modified_solution, rSolution);
         } else {
             if (rInterface.GetLinearSolver().AdditionalPhysicalDataIsNeeded()) {
                 rInterface.GetLinearSolver().ProvideAdditionalData(rLhs,
-                                                                       rSolution,
-                                                                       rRhs,
-                                                                       rInterface.mDofSet,
-                                                                       rModelPart);
+                                                                   rSolution,
+                                                                   rRhs,
+                                                                   rInterface.mDofSet,
+                                                                   rModelPart);
             }
             rInterface.GetLinearSolver().Solve(rLhs, rSolution, rRhs);
         }
@@ -94,32 +98,30 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
 
     static void MapRowContribution(typename Interface::TSystemMatrixType& rLhs,
                                    const typename Interface::LocalSystemMatrixType& rLocalLhs,
-                                   const unsigned iGlobal,
-                                   const unsigned iLocal,
-                                   const Element::EquationIdVectorType& rEquationIds)
+                                   const unsigned iRow,
+                                   const unsigned iLocalRow,
+                                   const Element::EquationIdVectorType& rEquationIds) noexcept
     {
-        KRATOS_TRY
         auto& r_entries = rLhs.value_data();
         const auto& r_row_extents = rLhs.index1_data();
         const auto& r_column_indices = rLhs.index2_data();
 
-        const auto i_row_begin = r_row_extents[iGlobal];
-        const auto i_row_end = r_row_extents[iGlobal + 1];
+        const auto i_row_begin = r_row_extents[iRow];
+        const auto i_row_end = r_row_extents[iRow + 1];
 
-        for (unsigned int j=1; j<rEquationIds.size(); j++) {
-            unsigned int id_to_find = rEquationIds[j];
+        for (unsigned int iLocalColumn=0; iLocalColumn<rEquationIds.size(); iLocalColumn++) {
+            const unsigned int iColumn = rEquationIds[iLocalColumn];
             const auto it = std::lower_bound(r_column_indices.begin() + i_row_begin,
                                              r_column_indices.begin() + i_row_end,
-                                             id_to_find);
-            AtomicAdd(r_entries[*it],  rLocalLhs(iLocal, j));
+                                             iColumn);
+            AtomicAdd(r_entries[std::distance(r_column_indices.begin(), it)],  rLocalLhs(iLocalRow, iLocalColumn));
         }
-        KRATOS_CATCH("")
     }
 
 
     static void MapLhsContribution(typename Interface::TSystemMatrixType& rLhs,
                                    const typename Interface::LocalSystemMatrixType& rContribution,
-                                   const Element::EquationIdVectorType& rEquationIds)
+                                   const Element::EquationIdVectorType& rEquationIds) noexcept
     {
         const std::size_t local_size = rContribution.size1();
         for (IndexType i_local = 0; i_local < local_size; i_local++) {
@@ -131,18 +133,13 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
 
     static void MapRhsContribution(typename Interface::TSystemVectorType& rRhs,
                                    const typename Interface::LocalSystemVectorType& rContribution,
-                                   const Element::EquationIdVectorType& rEquationIds)
+                                   const Element::EquationIdVectorType& rEquationIds) noexcept
     {
         unsigned int local_size = rContribution.size();
 
         for (unsigned int i_local = 0; i_local < local_size; i_local++) {
             unsigned int i_global = rEquationIds[i_local];
-
-            // ASSEMBLING THE SYSTEM VECTOR
-            double& b_value = rRhs[i_global];
-            const double& rhs_value = rContribution[i_local];
-
-            AtomicAdd(b_value, rhs_value);
+            AtomicAdd(rRhs[i_global], rContribution[i_local]);
         }
     }
 
@@ -151,15 +148,17 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
                                  typename Interface::TSystemVectorType& rRhs,
                                  const typename Interface::LocalSystemMatrixType& rLhsContribution,
                                  const typename Interface::LocalSystemVectorType& rRhsContribution,
-                                 const Element::EquationIdVectorType& rEquationIds)
+                                 const Element::EquationIdVectorType& rEquationIds) noexcept
     {
-        unsigned int local_size = rLhs.size1();
+        const unsigned int local_size = rLhsContribution.size1();
         for (unsigned int i_local = 0; i_local < local_size; i_local++) {
             unsigned int i_global = rEquationIds[i_local];
-            double& r_a = rRhs[i_global];
-            const double& v_a = rRhsContribution(i_local);
-            AtomicAdd(r_a, v_a);
-            Impl::MapRowContribution(rLhs, rLhsContribution, i_global, i_local, rEquationIds);
+            AtomicAdd(rRhs[i_global], rRhsContribution[i_local]);
+            Impl::MapRowContribution(rLhs,
+                                     rLhsContribution,
+                                     i_global,
+                                     i_local,
+                                     rEquationIds);
         }
     }
 
@@ -400,7 +399,7 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
         std::vector<LockObject> lock_array(mpInterface->GetEquationSystemSize());
         std::vector<std::unordered_set<std::size_t> > indices(mpInterface->GetEquationSystemSize());
-        Element::EquationIdVectorType ids(3, 0);
+        Element::EquationIdVectorType ids;
 
         block_for_each(rModelPart.Elements(), ids, [&](Element& rElem, Element::EquationIdVectorType& rIdsTLS){
             rpScheme->EquationId(rElem, rIdsTLS, r_current_process_info);
@@ -425,12 +424,10 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
         if (rModelPart.MasterSlaveConstraints().size() != 0) {
             struct TLS
             {
-                Element::EquationIdVectorType master_ids = Element::EquationIdVectorType(3,0);
-                Element::EquationIdVectorType slave_ids = Element::EquationIdVectorType(3,0);
+                Element::EquationIdVectorType master_ids, slave_ids;
             };
-            TLS tls;
 
-            block_for_each(rModelPart.MasterSlaveConstraints(), tls, [&](MasterSlaveConstraint& rConst, TLS& rTls){
+            block_for_each(rModelPart.MasterSlaveConstraints(), TLS(), [&](MasterSlaveConstraint& rConst, TLS& rTls){
                 rConst.EquationIdVector(rTls.slave_ids, rTls.master_ids, r_current_process_info);
 
                 for (std::size_t i = 0; i < rTls.slave_ids.size(); i++) {
@@ -513,6 +510,18 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
 // --------------------------------------------------------- //
 // Constructors
 // --------------------------------------------------------- //
+
+
+template <class TSparse, class TDense, class TSolver>
+PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::~PMultigridBuilderAndSolver() = default;
+
+
+template <class TSparse, class TDense, class TSolver>
+PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::PMultigridBuilderAndSolver()
+    : Interface(),
+      mpImpl(new Impl(this))
+{
+}
 
 
 template <class TSparse, class TDense, class TSolver>
@@ -621,10 +630,7 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Build(typename Interfac
 
     KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
 
-    // Getting the elements from the model
     const int nelements = static_cast<int>(rModelPart.Elements().size());
-
-    // Getting the array of the conditions
     const int nconditions = static_cast<int>(rModelPart.Conditions().size());
 
     const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
@@ -632,26 +638,24 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Build(typename Interfac
     const auto cond_begin = rModelPart.Conditions().begin();
 
     //contributions to the system
-    typename Interface::LocalSystemMatrixType LHS_Contribution;
-    typename Interface::LocalSystemVectorType RHS_Contribution;
-
-    //vector containing the localization in the system of the different
-    //terms
-    Element::EquationIdVectorType EquationId;
+    typename Interface::LocalSystemMatrixType lhs_contribution;
+    typename Interface::LocalSystemVectorType rhs_contribution;
 
     // Assemble all elements
-    #pragma omp parallel firstprivate(nelements,nconditions, LHS_Contribution, RHS_Contribution, EquationId )
+    #pragma omp parallel private(lhs_contribution, rhs_contribution)
     {
+        Element::EquationIdVectorType EquationIds;
+
         # pragma omp for  schedule(guided, 512) nowait
         for (int k = 0; k < nelements; k++) {
             auto it_elem = el_begin + k;
 
             if (it_elem->IsActive()) {
                 // Calculate elemental contribution
-                pScheme->CalculateSystemContributions(*it_elem, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                pScheme->CalculateSystemContributions(*it_elem, lhs_contribution, rhs_contribution, EquationIds, CurrentProcessInfo);
 
                 // Assemble the elemental contribution
-                mpImpl->MapContributions(rLhs, rRhs, LHS_Contribution, RHS_Contribution, EquationId);
+                mpImpl->MapContributions(rLhs, rRhs, lhs_contribution, rhs_contribution, EquationIds);
             }
 
         }
@@ -662,10 +666,10 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Build(typename Interfac
 
             if (it_cond->IsActive()) {
                 // Calculate elemental contribution
-                pScheme->CalculateSystemContributions(*it_cond, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                pScheme->CalculateSystemContributions(*it_cond, lhs_contribution, rhs_contribution, EquationIds, CurrentProcessInfo);
 
                 // Assemble the elemental contribution
-                mpImpl->MapContributions(rLhs, rRhs, LHS_Contribution, RHS_Contribution, EquationId);
+                mpImpl->MapContributions(rLhs, rRhs, lhs_contribution, rhs_contribution, EquationIds);
             }
         }
     }
@@ -752,6 +756,65 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::BuildRHS(typename Inter
 }
 
 
+
+// --------------------------------------------------------- //
+// Querying the Diagonal
+// --------------------------------------------------------- //
+
+
+template <class TSparse>
+void GetDiagonalScaleFactor(typename TSparse::DataType& rDiagonalScaleFactor,
+                            const typename TSparse::MatrixType& rMatrix,
+                            const DiagonalScaling ScalingStrategy,
+                            [[maybe_unused]] const ProcessInfo& rProcessInfo)
+{
+    KRATOS_TRY
+    switch (ScalingStrategy) {
+        case DiagonalScaling::None:
+            rDiagonalScaleFactor = 1;
+            break;
+        case DiagonalScaling::AbsMax:
+            rDiagonalScaleFactor = IndexPartition(rMatrix.size1()).template for_each<MaxReduction<typename TSparse::DataType>>(
+                [&rMatrix](std::size_t iRow) -> typename TSparse::DataType {
+                    const auto itBegin = rMatrix.index2_data().begin() + rMatrix.index1_data()[iRow];
+                    const auto itEnd = rMatrix.index2_data().begin() + rMatrix.index1_data()[iRow + 1];
+
+                    // Look for the diagonal entry in the current row.
+                    const auto itColumnIndex = std::lower_bound(itBegin, itEnd, iRow);
+                    KRATOS_ERROR_IF(itBegin == itEnd || *itColumnIndex != iRow)
+                        << "row " << iRow << " has no diagonal entry";
+
+                    const auto diagonal_entry = rMatrix.value_data()[std::distance(itBegin, itColumnIndex)];
+                    return std::abs(diagonal_entry);
+            });
+            break;
+        case DiagonalScaling::Norm:
+            rDiagonalScaleFactor = IndexPartition(rMatrix.size1()).template for_each<AbsMaxReduction<typename TSparse::DataType>>(
+                [&rMatrix](std::size_t iRow) -> typename TSparse::DataType {
+                    const auto itBegin = rMatrix.index2_data().begin() + rMatrix.index1_data()[iRow];
+                    const auto itEnd = rMatrix.index2_data().begin() + rMatrix.index1_data()[iRow + 1];
+
+                    // Look for the diagonal entry in the current row.
+                    const auto itColumnIndex = std::lower_bound(itBegin, itEnd, iRow);
+                    KRATOS_ERROR_IF(itBegin == itEnd || *itColumnIndex != iRow)
+                        << "row " << iRow << " has no diagonal entry";
+
+                    const auto diagonal_entry = rMatrix.value_data()[std::distance(itBegin, itColumnIndex)];
+                    return diagonal_entry * diagonal_entry;
+            });
+            rDiagonalScaleFactor = std::sqrt(rDiagonalScaleFactor);
+            break;
+        case DiagonalScaling::Constant:
+            rDiagonalScaleFactor = rProcessInfo.GetValue(BUILD_SCALE_FACTOR);
+            break;
+        default: {
+            KRATOS_ERROR << "unsupported diagonal scaling (" << (int)ScalingStrategy << ')';
+        }
+    } // switch ScalingStrategy
+    KRATOS_CATCH("")
+}
+
+
 // --------------------------------------------------------- //
 // Constraint Imposition
 // --------------------------------------------------------- //
@@ -779,10 +842,10 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::ApplyDirichletCondition
         }
     });
 
-    // Detect if there is a line of all zeros and set the diagonal to a certain number (1 if not scale, some norms values otherwise) if this happens
-    // TODO
-    //mpImpl->mDiagonalScaleFactor = TSparse::CheckAndCorrectZeroDiagonalValues(rModelPart.GetProcessInfo(), rLhs, rRhs, mpImpl->mDiagonalScaling);
-    mpImpl->mDiagonalScaleFactor = 1.0;
+    //GetDiagonalScaleFactor<TSparse>(mpImpl->mDiagonalScaleFactor,
+    //                                rLhs,
+    //                                mpImpl->mDiagonalScaling,
+    //                                rModelPart.GetProcessInfo());
 
     double* Avalues = rLhs.value_data().begin();
     std::size_t* Arow_indices = rLhs.index1_data().begin();
@@ -797,7 +860,6 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::ApplyDirichletCondition
             for (std::size_t j = col_begin; j < col_end; ++j)
                 if (Acol_indices[j] != Index )
                     Avalues[j] = 0.0;
-
             // Zero out the RHS
             rRhs[Index] = 0.0;
         } else {
@@ -869,9 +931,10 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::ApplyConstraints(typena
         auxiliar_A_matrix.resize(0, 0, false);                                              //free memory
 
         // Compute the scale factor value
-        // TODO
-        //mpImpl->mDiagonalScaleFactor = TSparse::GetScaleNorm(rModelPart.GetProcessInfo(), rLhs, mpImpl->mDiagonalScaling);
-        mpImpl->mDiagonalScaleFactor = 1;
+        GetDiagonalScaleFactor<TSparse>(mpImpl->mDiagonalScaleFactor,
+                                        rLhs,
+                                        mpImpl->mDiagonalScaling,
+                                        rModelPart.GetProcessInfo());
 
         // Apply diagonal values on slaves
         IndexPartition<std::size_t>(mpImpl->mSlaveIds.size()).for_each([&](std::size_t Index){
@@ -939,6 +1002,7 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::BuildAndSolve(typename 
     ApplyDirichletConditions(pScheme, rModelPart, rLhs, rSolution, rRhs);
 
     // Solve constrained assembled system.
+    TSparse::WriteMatrixMarketMatrix("test.mm", rLhs, false);
     mpImpl->SystemSolveWithPhysics(rLhs, rSolution, rRhs, rModelPart, *this);
     KRATOS_CATCH("")
 }
@@ -1037,7 +1101,7 @@ Parameters PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::GetDefaultParamet
 {
     Parameters parameters = Parameters(R"({
         "name"              : "p_multigrid_builder_and_solver",
-        "diagonal_scaling"  : "max",
+        "diagonal_scaling"  : "abs_max"
     })");
     parameters.RecursivelyAddMissingParameters(Interface::GetDefaultParameters());
     return parameters;

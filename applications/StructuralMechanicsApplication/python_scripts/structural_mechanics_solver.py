@@ -139,7 +139,7 @@ class MechanicalSolver(PythonSolver):
                 "advanced_settings" : { }
             },
             "builder_and_solver_settings" : {
-                "use_block_builder" : true,
+                "type" : "block",
                 "use_lagrange_BS"   : false,
                 "advanced_settings" : { }
             },
@@ -353,7 +353,7 @@ class MechanicalSolver(PythonSolver):
     def _GetBuilderAndSolver(self):
         if not hasattr(self, '_builder_and_solver'):
             self._builder_and_solver = self._CreateBuilderAndSolver()
-        elif not self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool(): # Block builder and solver are unified with MPC and without. In the case of the elimination this could be a problem
+        elif not self.settings["builder_and_solver_settings"]["type"].GetString() == "block": # Block builder and solver are unified with MPC and without. In the case of the elimination this could be a problem
             if self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0 and not self.mpc_block_builder_initialized:
                 self.settings["multi_point_constraints_used"].SetBool(True)
                 self._builder_and_solver = self._CreateBuilderAndSolver()
@@ -363,7 +363,7 @@ class MechanicalSolver(PythonSolver):
     def _GetSolutionStrategy(self):
         if not hasattr(self, '_mechanical_solution_strategy'):
             self._mechanical_solution_strategy = self._CreateSolutionStrategy()
-        elif not self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool(): # Block builder and solver are unified with MPC and without. In the case of the elimination this could be a problem
+        elif not self.settings["builder_and_solver_settings"]["type"].GetString() == "block": # Block builder and solver are unified with MPC and without. In the case of the elimination this could be a problem
             if self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0 and not self.mpc_block_builder_initialized:
                 self._mechanical_solution_strategy = self._CreateSolutionStrategy()
         return self._mechanical_solution_strategy
@@ -460,12 +460,15 @@ class MechanicalSolver(PythonSolver):
 
     def _CreateBuilderAndSolver(self):
         linear_solver = self._GetLinearSolver()
-        if self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool():
+        if self.settings["builder_and_solver_settings"]["type"].GetString() == "block":
             bs_params = self.settings["builder_and_solver_settings"]["advanced_settings"]
             if not self.settings["builder_and_solver_settings"]["use_lagrange_BS"].GetBool():
                 builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver, bs_params)
             else:
                 builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier(linear_solver, bs_params)
+        elif self.settings["builder_and_solver_settings"]["type"].GetString() == "p_multigrid":
+            parameters = self.settings["builder_and_solver_settings"]["advanced_settings"]
+            builder_and_solver = KratosMultiphysics.PMultigridBuilderAndSolver(linear_solver, parameters)
         else:
             if self.settings["multi_point_constraints_used"].GetBool():
                 builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolverWithConstraints(linear_solver)

@@ -279,7 +279,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsTheExpectedLeftHan
         CreateHorizontalUnitLengthGeoSteadyStatePwPipingElementWithPWDofs(r_model_part, p_properties);
     p_element->GetProperties().SetValue(DENSITY_WATER, 1.0E3);
     p_element->GetProperties().SetValue(DYNAMIC_VISCOSITY, 1.0E-2);
-    p_element->GetProperties().SetValue(PIPE_HEIGHT, 1.0E-1);
+    p_element->SetValue(PIPE_HEIGHT, 1.0E-1);
     // Set gravity perpendicular to the line ( so no fluid body flow vector from this )
     p_element->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION) =
         array_1d<double, 3>{0.0, -10.0, 0.0};
@@ -303,6 +303,82 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsTheExpectedLeftHan
     auto expected_right_hand_side = Vector{ScalarVector{2, 1. / 12.}};
     expected_right_hand_side(1)   = -expected_right_hand_side(1);
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementHasValuesAfterInitialize, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto dummy_process_info = ProcessInfo{};
+    const auto p_properties       = std::make_shared<Properties>();
+
+    Model model;
+    auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
+    auto  p_element =
+        CreateHorizontalUnitLengthGeoSteadyStatePwPipingElementWithPWDofs(r_model_part, p_properties);
+
+    // Act
+    p_element->Initialize(dummy_process_info);
+
+    // Assert
+    KRATOS_EXPECT_EQ(p_element->GetValue(PIPE_ELEMENT_LENGTH), 1.);
+    KRATOS_EXPECT_EQ(p_element->GetValue(PIPE_EROSION), false);
+    const double quite_small = 1.E-10;
+    KRATOS_EXPECT_EQ(p_element->GetValue(PIPE_HEIGHT), quite_small);
+    KRATOS_EXPECT_EQ(p_element->GetValue(PREV_PIPE_HEIGHT), quite_small);
+    KRATOS_EXPECT_EQ(p_element->GetValue(DIFF_PIPE_HEIGHT), 0.);
+    KRATOS_EXPECT_EQ(p_element->GetValue(PIPE_ACTIVE), false);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsEquilibriumHeightForHeadGradient,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto dummy_process_info = ProcessInfo{};
+    const auto p_properties       = std::make_shared<Properties>();
+
+    Model model;
+    auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
+    auto  p_element =
+        CreateHorizontalUnitLengthGeoSteadyStatePwPipingElementWithPWDofs(r_model_part, p_properties);
+    p_element->GetProperties().SetValue(DENSITY_WATER, 1.0E3);
+    p_element->GetProperties().SetValue(DYNAMIC_VISCOSITY, 1.0E-2);
+    p_element->GetProperties().SetValue(PIPE_HEIGHT, 1.0E-1);
+    // Set gravity perpendicular to the line ( so no fluid body flow vector from this )
+    p_element->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION) =
+        array_1d<double, 3>{0.0, -10.0, 0.0};
+    p_element->GetGeometry()[1].FastGetSolutionStepValue(VOLUME_ACCELERATION) =
+        array_1d<double, 3>{0.0, -10.0, 0.0};
+    // Create a head gradient of 0.
+    p_element->GetGeometry()[0].FastGetSolutionStepValue(WATER_PRESSURE) = -10.0;
+    p_element->GetGeometry()[1].FastGetSolutionStepValue(WATER_PRESSURE) = -10.0;
+
+    // Act
+    auto pipe_height = p_element->CalculateEquilibriumPipeHeight(p_element->GetProperties(),
+                                                                 p_element->GetGeometry(), 0.);
+
+    // Assert
+    const double infinite_pipe_height = 1.0e10;
+    KRATOS_EXPECT_DOUBLE_EQ(pipe_height, infinite_pipe_height);
+
+    // Create a head gradient of 1.E-3.
+    p_element->GetGeometry()[1].FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
+    // Add other necessary material parameters
+    // DENSITY_SOLID such that rho_s/rho_w - 1. = 1.
+    p_element->GetProperties().SetValue(DENSITY_SOLID, 2.0E3);
+    // PIPE_ETA such that multiplication with Pi/3 becomes 1.
+    p_element->GetProperties().SetValue(PIPE_ETA, 3.0 / Globals::Pi);
+    p_element->GetProperties().SetValue(PIPE_MODEL_FACTOR, 1.0);
+    // slope = 0. PIPE_THETA = 45 deg. such that sin(theta + slope) / cos(theta) becomes 1.
+    p_element->GetProperties().SetValue(PIPE_THETA, 45.0);
+    // no PIPE_MODIFIED_D so the equilibrium height becomes PIPE_D_70 / |dh/dx| = 7.e-3 / |-1.e-3| = 7.
+    p_element->GetProperties().SetValue(PIPE_D_70, 7.e-3);
+
+    // Act
+    pipe_height = p_element->CalculateEquilibriumPipeHeight(p_element->GetProperties(),
+                                                            p_element->GetGeometry(), 0.);
+
+    // Assert
+    KRATOS_EXPECT_NEAR(pipe_height, 7.0, 1e-10);
 }
 
 } // namespace Kratos::Testing
