@@ -78,6 +78,8 @@ class RomDatabase(object):
                         (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, tol_res REAL, type_of_projection TEXT, type_of_decoder TEXT, using_non_converged_sols REAL, file_name TEXT)''',
             "RightBasis": '''CREATE TABLE IF NOT EXISTS RightBasis
                         (id INTEGER PRIMARY KEY, tol_sol REAL, using_non_converged_sols INTEGER,  file_name TEXT)''',
+            "RightBasisHROM": '''CREATE TABLE IF NOT EXISTS RightBasisHROM
+                        (id INTEGER PRIMARY KEY, tol_sol REAL, using_non_converged_sols INTEGER,  file_name TEXT)''',
             "SingularValues_Solution":'''CREATE TABLE IF NOT EXISTS SingularValues_Solution
                         (id INTEGER PRIMARY KEY, tol_sol REAL, using_non_converged_sols INTEGER, file_name TEXT)''',
             "LeftBasis": '''CREATE TABLE IF NOT EXISTS LeftBasis
@@ -191,6 +193,8 @@ class RomDatabase(object):
         elif table_name == 'RightBasis':
             hash_mu = self.hash_parameters(serialized_mu, tol_sol, non_converged_fom_14_bool, table_name)
         elif table_name == 'SingularValues_Solution':
+            hash_mu = self.hash_parameters(serialized_mu, tol_sol, non_converged_fom_14_bool, table_name)
+        elif table_name == 'RightBasisHROM':
             hash_mu = self.hash_parameters(serialized_mu, tol_sol, non_converged_fom_14_bool, table_name)
         #TODO some other params might need to be added the "ann_enhanced" part to notice when they are generated with it. To be added in PR including online AnnEnhanced PROM
         elif table_name == 'LeftBasis':
@@ -320,6 +324,7 @@ class RomDatabase(object):
             'SingularValues_Residuals': 'INSERT INTO {table} (parameters, type_of_projection, tol_sol , tol_res , type_of_decoder, using_non_converged_sols, file_name) VALUES (?, ?, ?, ?, ?, ?, ?)',
             'PetrovGalerkinSnapshots': 'INSERT INTO {table} (parameters, tol_sol , type_of_projection, type_of_decoder, using_non_converged_sols, basis_strategy, include_phi, tol_pg, solving_technique, monotonicity_preserving, file_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
             'RightBasis': 'INSERT INTO {table} (tol_sol, using_non_converged_sols, file_name) VALUES (?, ?, ?)',
+            'RightBasisHROM': 'INSERT INTO {table} (tol_sol, using_non_converged_sols, file_name) VALUES (?, ?, ?)',
             'SingularValues_Solution': 'INSERT INTO {table} (tol_sol, using_non_converged_sols, file_name) VALUES (?, ?, ?)',
             'LeftBasis': 'INSERT INTO {table} (tol_sol, type_of_projection, type_of_decoder, using_non_converged_sols, basis_strategy, include_phi, tol_pg, solving_technique, monotonicity_preserving, file_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
             'HROM_Elements': 'INSERT INTO {table} (tol_sol , tol_res , type_of_projection, type_of_decoder, using_non_converged_sols, file_name) VALUES (?, ?, ?, ?, ?, ?)',
@@ -359,6 +364,8 @@ class RomDatabase(object):
             elif table_name == 'PetrovGalerkinSnapshots':
                 cursor.execute(query, (serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, file_name))
             elif table_name in ['RightBasis', 'SingularValues_Solution']:
+                cursor.execute(query, (tol_sol, non_converged_fom_14_bool, file_name))
+            elif table_name in ['RightBasisHROM']:
                 cursor.execute(query, (tol_sol, non_converged_fom_14_bool, file_name))
             elif table_name == 'LeftBasis':
                 cursor.execute(query, (tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, file_name))

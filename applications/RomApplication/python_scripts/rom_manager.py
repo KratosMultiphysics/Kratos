@@ -26,7 +26,7 @@ class RomManager(object):
 
     def __init__(self,project_parameters_name="ProjectParameters.json", general_rom_manager_parameters=None, CustomizeSimulation=None, 
                  UpdateProjectParameters=None,UpdateMaterialParametersFile=None, mu_names=None, 
-                 relaunch_FOM=False, relaunch_ROM=False, relaunch_HROM=False, rebuild_phi=False):
+                 relaunch_FOM=False, relaunch_ROM=False, relaunch_HROM=False, rebuild_phi=False, rebuild_phiHROM=False, relaunch_TrainHROM=False):
         #FIXME:
         # - Use a method (upcoming) for smothly retrieving solutions. In here we are using the RomBasisOutput process in order to store the solutions
         # - There is some redundancy between the methods that launch the simulations. Can we create a single method?
@@ -49,9 +49,11 @@ class RomManager(object):
         self.data_base = RomDatabase(self.general_rom_manager_parameters, mu_names)
         self.SetupErrorsDictionaries()
         self.rebuild_phi   = rebuild_phi
+        self.rebuild_phiHROM   = rebuild_phiHROM
         self.relaunch_FOM  = relaunch_FOM
         self.relaunch_ROM  = relaunch_ROM
         self.relaunch_HROM = relaunch_HROM
+        self.relaunch_TrainHROM = relaunch_TrainHROM
 
     def Fit(self, mu_train=[None],mu_validation=[None]):
         if len(mu_train) > 0 or len(mu_validation) > 0:
@@ -740,121 +742,140 @@ class RomManager(object):
         """
         This method should be parallel capable
         """
-        if self.relaunch_HROM:
+        if self.relaunch_TrainHROM:
             self.data_base.delete_if_in_database("HROM_Elements", mu_train)
             self.data_base.delete_if_in_database("HROM_Weights", mu_train)
         in_database_elems, hash_z =  self.data_base.check_if_in_database("HROM_Elements", mu_train)
         in_database_weights, hash_w =  self.data_base.check_if_in_database("HROM_Weights", mu_train)
         if not in_database_elems and not in_database_weights:
-            with open(self.project_parameters_name,'r') as parameter_file:
-                parameters = KratosMultiphysics.Parameters(parameter_file.read())
-            simulation = None
-            for mu in mu_train:
-                in_database_residuals, _ =  self.data_base.check_if_in_database("ResidualsProjected", mu)
-                if not in_database_residuals:
-                    parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
-                    parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
-                    parameters_copy = self._StoreNoResults(parameters_copy)
-                    materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
-                    self.UpdateMaterialParametersFile(materials_file_name, mu)
-                    model = KratosMultiphysics.Model()
-                    analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
-                    simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
-                    simulation.Run()
-                    ResidualProjected = simulation.GetHROM_utility()._GetResidualsProjectedMatrix() #TODO flush intermediately the residuals projected to cope with large models.
-                    self.data_base.add_to_database("ResidualsProjected", mu, ResidualProjected )
+            if self.rebuild_phiHROM:
+                self.data_base.delete_if_in_database("RightBasisHROM", mu_train)
+            in_database_right_bases_hrom, hash_right_bases_hrom =  self.data_base.check_if_in_database("RightBasisHROM", mu_train)
+            if not in_database_right_bases_hrom or not os.path.exists('PhiHROMMatrix.zarr'):
+                with open(self.project_parameters_name,'r') as parameter_file:
+                    parameters = KratosMultiphysics.Parameters(parameter_file.read())
+                simulation = None
+                for mu in mu_train:
+                    in_database_residuals, _ =  self.data_base.check_if_in_database("ResidualsProjected", mu)
+                    if not in_database_residuals:
+                        parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
+                        parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
+                        parameters_copy = self._StoreNoResults(parameters_copy)
+                        materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
+                        self.UpdateMaterialParametersFile(materials_file_name, mu)
+                        model = KratosMultiphysics.Model()
+                        analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
+                        simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
+                        simulation.Run()
+                        ResidualProjected = simulation.GetHROM_utility()._GetResidualsProjectedMatrix() #TODO flush intermediately the residuals projected to cope with large models.
+                        self.data_base.add_to_database("ResidualsProjected", mu, ResidualProjected )
 
-                    simulation.Clear()
-                    del model
-                    del simulation
-                    del ResidualProjected
-                    
-                    gc.collect()
+                        simulation.Clear()
+                        del model
+                        del simulation
+                        del ResidualProjected
+                        
+                        gc.collect()
 
-            if self.general_rom_manager_parameters["HROM"]["use_dask_matrix"].GetBool():
-                columns = np.load(f'{self.general_rom_manager_parameters["ROM"]["rom_basis_output_folder"].GetString()}/RightBasisMatrix.npy').shape[1]
-                block_size = self.general_rom_manager_parameters["HROM"]["block_size"].GetInt()
+                if self.general_rom_manager_parameters["HROM"]["use_dask"].GetBool():
+                    columns = np.load(f'{self.general_rom_manager_parameters["ROM"]["rom_basis_output_folder"].GetString()}/RightBasisMatrix.npy').shape[1]
+                    block_size = self.general_rom_manager_parameters["HROM"]["block_size"].GetInt()
 
-                if self.general_rom_manager_parameters["HROM"]["scheduler"].GetBool():
-                    cluster = f'tcp://{self.general_rom_manager_parameters["HROM"]["ip_scheduler"].GetString()}:8786'
+                    zarr_path = 'ResidualsSnapshotsMatrix.zarr'
+                    if not os.path.exists(zarr_path):
+                        zarr_matrix = zarr.open(zarr_path, mode='w', shape=(0, columns), chunks=(1000, 100), dtype='float64')
+                        with sqlite3.connect(self.data_base.database_name) as conn:
+                            cursor = conn.cursor()
+                            for i, mu in enumerate(mu_train):
+                                hash_mu, _ = self.data_base.get_hashed_file_name_for_table("ResidualsProjected", mu)
+                                cursor.execute("SELECT file_name FROM ResidualsProjected WHERE file_name = ?", (hash_mu,))
+                                result = cursor.fetchone()
+                                if result:
+                                    file_name = result[0]
+                                    file_path = self.data_base.npys_directory / (file_name + '.npy')
+                                    try:
+                                        fragment = np.load(file_path, mmap_mode='r')
+                                        current_shape = zarr_matrix.shape
+                                        zarr_matrix.resize((fragment.shape[0], current_shape[1] + fragment.shape[1] - 1))
+                                        zarr_matrix[:, i*fragment.shape[1]:(i+1)*fragment.shape[1]] = fragment 
+                                    except FileNotFoundError:
+                                        print(f"Archivo no encontrado: {file_path}")
+                                    except Exception as e:
+                                        print(f"Error al cargar el archivo {file_path}: {e}")
+
+                    if self.general_rom_manager_parameters["HROM"]["scheduler"].GetBool():
+                        cluster = f'tcp://{self.general_rom_manager_parameters["HROM"]["ip_scheduler"].GetString()}:8786'
+                    else:
+                        cluster = LocalCluster(
+                            n_workers          = self.general_rom_manager_parameters["HROM"]["n_workers"].GetInt(),    # Trabajadores por cada núcleo
+                            threads_per_worker = self.general_rom_manager_parameters["HROM"]["threads_per_worker"].GetInt(),    # Hilos por trabajador
+                            memory_limit       = self.general_rom_manager_parameters["HROM"]["memory_limit"].GetString(), # Límite de memoria por trabajador
+                            local_directory    = os.getcwd()
+                        )
+
+                    client = Client(cluster)
+                    print(client)
+                    input('Pause')
+
+                    zarr_matrix = da.from_zarr(zarr_path)
+                    zarr_matrix.persist()
+
+                    if self.general_rom_manager_parameters["HROM"]["use_block_svd_dask"].GetBool():
+                        if self.general_rom_manager_parameters["HROM"]["use_rows_equal_to_columns_in_block"].GetBool():
+                            block_size = zarr_matrix.shape[1]
+                        u = self.block_svd_dask(zarr_matrix, block_size)
+                        del zarr_matrix
+                        gc.collect()
+                        u = u.compute()
+                        client.close()
+                        cluster.close()
+                    elif self.general_rom_manager_parameters["HROM"]["use_svd_dask"].GetBool():
+                        u, _, _ = da.linalg.svd_compressed(zarr_matrix, k=zarr_matrix.shape[1], compute=False)
+                        del zarr_matrix
+                        gc.collect()
+                        u = u.compute()
+                        client.close()
+                        cluster.close()
+                    else:
+                        RedidualsSnapshotsMatrix = zarr_matrix.compute()
+                        del zarr_matrix
+                        gc.collect()
+                        client.close()
+                        cluster.close()
+
+                        if self.general_rom_manager_parameters["HROM"]["use_block_svd"].GetBool():
+                            u = self.block_svd(RedidualsSnapshotsMatrix,block_size)
+                        else:
+                            u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(RedidualsSnapshotsMatrix,
+                            self.general_rom_manager_parameters["HROM"]["element_selection_svd_truncation_tolerance"].GetDouble())
+                        del RedidualsSnapshotsMatrix
+                        gc.collect()
                 else:
-                    cluster = LocalCluster(
-                        n_workers          = self.general_rom_manager_parameters["HROM"]["n_workers"].GetInt(),    # Trabajadores por cada núcleo
-                        threads_per_worker = self.general_rom_manager_parameters["HROM"]["threads_per_worker"].GetInt(),    # Hilos por trabajador
-                        memory_limit       = self.general_rom_manager_parameters["HROM"]["memory_limit"].GetString(), # Límite de memoria por trabajador
-                        local_directory    = os.getcwd()
-                    )
-
-                client = Client(cluster)
-                print(client)
-                input('Pause')
-
-                zarr_path = 'ResidualsSnapshotsMatrix.zarr'
-                if not os.path.exists(zarr_path):
-                    zarr_matrix = zarr.open(zarr_path, mode='w', shape=(0, columns), chunks=(1000, 100), dtype='float64')
-                    with sqlite3.connect(self.data_base.database_name) as conn:
-                        cursor = conn.cursor()
-                        for i, mu in enumerate(mu_train):
-                            hash_mu, _ = self.data_base.get_hashed_file_name_for_table("ResidualsProjected", mu)
-                            cursor.execute("SELECT file_name FROM ResidualsProjected WHERE file_name = ?", (hash_mu,))
-                            result = cursor.fetchone()
-                            if result:
-                                file_name = result[0]
-                                file_path = self.data_base.npys_directory / (file_name + '.npy')
-                                try:
-                                    fragment = np.load(file_path, mmap_mode='r')
-                                    current_shape = zarr_matrix.shape
-                                    zarr_matrix.resize((fragment.shape[0], current_shape[1] + fragment.shape[1] - 1))
-                                    zarr_matrix[:, i*fragment.shape[1]:(i+1)*fragment.shape[1]] = fragment 
-                                except FileNotFoundError:
-                                    print(f"Archivo no encontrado: {file_path}")
-                                except Exception as e:
-                                    print(f"Error al cargar el archivo {file_path}: {e}")
-                zarr_matrix = da.from_zarr(zarr_path)
-                zarr_matrix.persist()
-
-                if self.general_rom_manager_parameters["HROM"]["use_block_svd_dask"].GetBool():
-                    if self.general_rom_manager_parameters["HROM"]["use_rows_equal_to_columns_in_block"].GetBool():
-                        block_size = zarr_matrix.shape[1]
-                    u = self.block_svd_dask(zarr_matrix, block_size)
-                    del zarr_matrix
-                    gc.collect()
-                    u = u.compute()
-                    client.close()
-                    cluster.close()
-                elif self.general_rom_manager_parameters["HROM"]["use_svd_dask"].GetBool():
-                    u, _, _ = da.linalg.svd_compressed(zarr_matrix, k=zarr_matrix.shape[1], compute=False)
-                    del zarr_matrix
-                    gc.collect()
-                    u = u.compute()
-                    client.close()
-                    cluster.close()
-                else:
-                    RedidualsSnapshotsMatrix = zarr_matrix.compute()
-                    del zarr_matrix
-                    gc.collect()
-                    client.close()
-                    cluster.close()
-
+                    block_size = self.general_rom_manager_parameters["HROM"]["block_size"].GetInt()
+                    RedidualsSnapshotsMatrix = self.data_base.get_snapshots_matrix_from_database(mu_train, table_name="ResidualsProjected")
                     if self.general_rom_manager_parameters["HROM"]["use_block_svd"].GetBool():
+                        if self.general_rom_manager_parameters["HROM"]["use_rows_equal_to_columns_in_block"].GetBool():
+                            block_size = zarr_matrix.shape[1]
                         u = self.block_svd(RedidualsSnapshotsMatrix,block_size)
                     else:
                         u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(RedidualsSnapshotsMatrix,
                         self.general_rom_manager_parameters["HROM"]["element_selection_svd_truncation_tolerance"].GetDouble())
                     del RedidualsSnapshotsMatrix
                     gc.collect()
-            else:
-                block_size = self.general_rom_manager_parameters["HROM"]["block_size"].GetInt()
-                RedidualsSnapshotsMatrix = self.data_base.get_snapshots_matrix_from_database(mu_train, table_name="ResidualsProjected")
-                if self.general_rom_manager_parameters["HROM"]["use_block_svd"].GetBool():
-                    if self.general_rom_manager_parameters["HROM"]["use_rows_equal_to_columns_in_block"].GetBool():
-                        block_size = zarr_matrix.shape[1]
-                    u = self.block_svd(RedidualsSnapshotsMatrix,block_size)
+
+                if self.general_rom_manager_parameters["HROM"]["use_dask"].GetBool():
+                    zarr_path = 'PhiHROMMatrix.zarr'
+                    zarr_matrix = zarr.open(zarr_path, mode='w', shape=(u.shape), chunks=(1000, 100), dtype='float64')
+                    zarr_matrix[:] = u
                 else:
-                    u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(RedidualsSnapshotsMatrix,
-                    self.general_rom_manager_parameters["HROM"]["element_selection_svd_truncation_tolerance"].GetDouble())
-                del RedidualsSnapshotsMatrix
-                gc.collect()
+                    self.data_base.add_to_database("RightBasisHROM", mu_train, u)
+            else:
+                if self.general_rom_manager_parameters["HROM"]["use_dask"].GetBool():
+                    u = da.from_zarr(zarr_path)
+                    u = u[:]
+                else:
+                    u = self.data_base.get_single_numpy_from_database(hash_right_bases_hrom)
+
             # if simulation is None:
             HROM_utility = self.InitializeDummySimulationForHromTrainingUtility()
             # else:
@@ -1494,7 +1515,7 @@ class RomManager(object):
                 "include_minimum_condition": false,       // if true, keep at least one condition per submodelpart
                 "include_condition_parents": false,       // if true, when a condition is chosen by the ECM algorithm, the parent element is also included
                 "echo_level" : 0,                          // if >0, get hrom training status promts
-                "use_dask_matrix": false,
+                "use_dask": false,
                 "use_svd_dask": false,
                 "use_block_svd_dask": false,
                 "use_block_svd": false,
