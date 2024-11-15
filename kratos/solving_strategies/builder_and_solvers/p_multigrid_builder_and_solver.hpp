@@ -40,7 +40,10 @@ private:
 public:
     KRATOS_CLASS_POINTER_DEFINITION(PMultigridBuilderAndSolver);
 
-    PMultigridBuilderAndSolver() = default;
+    /// @details Required by PIMPL.
+    ~PMultigridBuilderAndSolver();
+
+    PMultigridBuilderAndSolver();
 
     PMultigridBuilderAndSolver(const typename TLinearSolver::Pointer& pSolver,
                                Parameters Settings);
