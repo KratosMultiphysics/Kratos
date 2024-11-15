@@ -774,13 +774,20 @@ class RomManager(object):
             if self.general_rom_manager_parameters["HROM"]["use_dask_matrix"].GetBool():
                 columns = np.load(f'{self.general_rom_manager_parameters["ROM"]["rom_basis_output_folder"].GetString()}/RightBasisMatrix.npy').shape[1]
                 block_size = self.general_rom_manager_parameters["HROM"]["block_size"].GetInt()
-                cluster = LocalCluster(
-                    n_workers          = self.general_rom_manager_parameters["HROM"]["n_workers"].GetInt(),    # Trabajadores por cada núcleo
-                    threads_per_worker = self.general_rom_manager_parameters["HROM"]["threads_per_worker"].GetInt(),    # Hilos por trabajador
-                    memory_limit       = self.general_rom_manager_parameters["HROM"]["memory_limit"].GetString(), # Límite de memoria por trabajador
-                    local_directory    = os.getcwd()
-                )
+
+                if self.general_rom_manager_parameters["HROM"]["scheduler"].GetBool():
+                    cluster = f'tcp://{self.general_rom_manager_parameters["HROM"]["ip_scheduler"].GetString()}:8786'
+                else:
+                    cluster = LocalCluster(
+                        n_workers          = self.general_rom_manager_parameters["HROM"]["n_workers"].GetInt(),    # Trabajadores por cada núcleo
+                        threads_per_worker = self.general_rom_manager_parameters["HROM"]["threads_per_worker"].GetInt(),    # Hilos por trabajador
+                        memory_limit       = self.general_rom_manager_parameters["HROM"]["memory_limit"].GetString(), # Límite de memoria por trabajador
+                        local_directory    = os.getcwd()
+                    )
+
                 client = Client(cluster)
+                print(client)
+                input('Pause')
 
                 zarr_path = 'ResidualsSnapshotsMatrix.zarr'
                 if not os.path.exists(zarr_path):
@@ -1495,7 +1502,9 @@ class RomManager(object):
                 "block_size": 1000,
                 "n_workers": 2,
                 "threads_per_worker": 1,
-                "memory_limit": "8GB"
+                "memory_limit": "8GB",
+                "scheduler": false,
+                "ip_scheduler": "0" 
             }
         }""")
 
