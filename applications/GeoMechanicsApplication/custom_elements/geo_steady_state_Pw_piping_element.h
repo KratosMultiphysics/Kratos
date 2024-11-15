@@ -21,6 +21,7 @@
 #include "includes/cfd_variables.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
+#include <custom_utilities/math_utilities.h>
 
 namespace Kratos
 {
@@ -32,12 +33,14 @@ public:
 
     explicit GeoSteadyStatePwPipingElement(IndexType NewId = 0) : Element(NewId) {}
 
-    GeoSteadyStatePwPipingElement(IndexType NewId, GeometryType::Pointer pGeometry)
+    GeoSteadyStatePwPipingElement(IndexType NewId, const GeometryType::Pointer& pGeometry)
         : Element(NewId, pGeometry)
     {
     }
 
-    GeoSteadyStatePwPipingElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    GeoSteadyStatePwPipingElement(IndexType                      NewId,
+                                  const GeometryType::Pointer&   pGeometry,
+                                  const PropertiesType::Pointer& pProperties)
         : Element(NewId, pGeometry, pProperties)
     {
     }
@@ -114,7 +117,7 @@ public:
         // all these except the PIPE_ELEMENT_LENGTH seem to be in the erosion_process_strategy only. Why do this: it is used in output for dGeoFlow
         this->SetValue(PIPE_ELEMENT_LENGTH, CalculateLength(this->GetGeometry()));
         this->SetValue(PIPE_EROSION, false);
-        const double small_pipe_height = 1e-10;
+        constexpr double small_pipe_height = 1e-10;
         this->SetValue(PIPE_HEIGHT, small_pipe_height);
         this->SetValue(PREV_PIPE_HEIGHT, small_pipe_height);
         this->SetValue(DIFF_PIPE_HEIGHT, 0.);
@@ -130,8 +133,8 @@ public:
 
         const auto particle_d = GeoTransportEquationUtilities::CalculateParticleDiameter(rProp);
         // for a more generic element calculate slope of pipe (in degrees! see formula), currently pipe is assumed to be horizontal
-        const double pipe_slope = 0.0;
-        const auto   theta      = rProp[PIPE_THETA];
+        constexpr double pipe_slope = 0.0;
+        const auto       theta      = rProp[PIPE_THETA];
 
         return rProp[PIPE_MODEL_FACTOR] * (Globals::Pi / 3.0) * particle_d *
                (rProp[DENSITY_SOLID] / rProp[DENSITY_WATER] - 1.0) * rProp[PIPE_ETA] *
@@ -142,60 +145,77 @@ public:
 
     void CalculateOnIntegrationPoints(const Variable<bool>& rVariable,
                                       std::vector<bool>&    rValues,
-                                      const ProcessInfo&    rCurrentProcessInfo)
+                                      const ProcessInfo&    rCurrentProcessInfo) override
     {
         if (rVariable == PIPE_ACTIVE) {
-            const auto output_points =
+            const auto number_of_integration_points =
                 this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
-            rValues.resize(output_points);
-            std::fill_n(rValues.begin(), output_points, this->GetValue(rVariable));
+            rValues.resize(number_of_integration_points);
+            std::fill_n(rValues.begin(), number_of_integration_points, this->GetValue(rVariable));
         }
     }
 
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
                                       std::vector<double>&    rValues,
-                                      const ProcessInfo&      rCurrentProcessInfo)
+                                      const ProcessInfo&      rCurrentProcessInfo) override
     {
         if (rVariable == PIPE_HEIGHT) {
-            const auto output_points =
+            const auto number_of_integration_points =
                 this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
-            rValues.resize(output_points);
-            std::fill_n(rValues.begin(), output_points, this->GetValue(rVariable));
+            rValues.resize(number_of_integration_points);
+            std::fill_n(rValues.begin(), number_of_integration_points, this->GetValue(rVariable));
         }
     }
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
                                       std::vector<array_1d<double, 3>>&    rValues,
-                                      const ProcessInfo&                   rCurrentProcessInfo)
+                                      const ProcessInfo& rCurrentProcessInfo) override
     {
         if (rVariable == FLUID_FLUX_VECTOR || rVariable == LOCAL_FLUID_FLUX_VECTOR) {
-            const auto output_points =
+            const auto number_of_integration_points =
                 this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
-            rValues.resize(output_points);
-            auto dynamic_viscosity_inverse = 1.0 / this->GetProperties()[DYNAMIC_VISCOSITY];
-            auto head_gradient = CalculateHeadGradient(this->GetProperties(), this->GetGeometry());
-            auto constitutive_matrix = FillPermeabilityMatrix(this->GetValue(PIPE_HEIGHT));
-            for (unsigned int output_point = 0; output_point < output_points; ++output_point) {
+            rValues.resize(number_of_integration_points);
+            auto        dynamic_viscosity_inverse = 1.0 / this->GetProperties()[DYNAMIC_VISCOSITY];
+            auto        constitutive_matrix = FillPermeabilityMatrix(this->GetValue(PIPE_HEIGHT));
+            const auto& r_integration_points =
+                this->GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+            for (auto i = 0; i < number_of_integration_points; ++i) {
                 // this should be rotated to the direction of the element for the global fluid flux vector
-                rValues[output_point][0] = - dynamic_viscosity_inverse * constitutive_matrix(0, 0) * head_gradient;
-                rValues[output_point][1] = 0.0;
-                rValues[output_point][2] = 0.0;
+                const auto head_gradient = CalculateHeadGradient(this->GetProperties(), this->GetGeometry());
+                const auto longitudinal_flux =
+                    -dynamic_viscosity_inverse * constitutive_matrix(0, 0) * head_gradient;
+                if (rVariable == LOCAL_FLUID_FLUX_VECTOR) {
+                    rValues[i][0] = longitudinal_flux;
+                    rValues[i][1] = 0.0;
+                    rValues[i][2] = 0.0;
+                } else {
+                    Matrix jacobian;
+                    this->GetGeometry().Jacobian(jacobian, r_integration_points[i]);
+                    const auto tangential_vector =
+                        GeoMechanicsMathUtilities::Normalized(Vector{column(jacobian, 0)});
+                    rValues[i][0] = longitudinal_flux * tangential_vector[0];
+                    rValues[i][1] = longitudinal_flux * tangential_vector[1];
+                    rValues[i][2] = longitudinal_flux * tangential_vector[2];
+                }
             }
         }
     }
 
     void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
                                       std::vector<Matrix>&    rValues,
-                                      const ProcessInfo&      rCurrentProcessInfo)
+                                      const ProcessInfo&      rCurrentProcessInfo) override
     {
         if (rVariable == PERMEABILITY_MATRIX || rVariable == LOCAL_PERMEABILITY_MATRIX) {
             // permeability matrix
-            const auto output_points =
+            const auto number_of_integration_points =
                 this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
-            rValues.resize(output_points);
-            std::fill_n(rValues.begin(), output_points, FillPermeabilityMatrix(this->GetValue(PIPE_HEIGHT)));
+            rValues.resize(number_of_integration_points);
+            std::fill_n(rValues.begin(), number_of_integration_points,
+                        FillPermeabilityMatrix(this->GetValue(PIPE_HEIGHT)));
         }
     }
+
+    using Element::CalculateOnIntegrationPoints;
 
 private:
     void CheckDomainSize() const
@@ -252,7 +272,7 @@ private:
         }
     }
 
-    double CalculateLength(const GeometryType& Geom) const
+    static double CalculateLength(const GeometryType& Geom)
     {
         // currently length is only calculated in x direction, to be changed for inclined pipes
         return std::abs(Geom.GetPoint(1)[0] - Geom.GetPoint(0)[0]);
@@ -298,7 +318,7 @@ private:
         return result;
     }
 
-    Matrix FillPermeabilityMatrix(double pipe_height) const
+    static Matrix FillPermeabilityMatrix(double pipe_height)
     {
         return ScalarMatrix{1, 1, std::pow(pipe_height, 3) / 12.0};
     }

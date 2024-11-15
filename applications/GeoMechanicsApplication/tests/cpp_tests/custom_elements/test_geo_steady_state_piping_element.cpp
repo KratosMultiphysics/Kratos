@@ -30,8 +30,8 @@ PointerVector<Node> CreateTwoNodes()
 PointerVector<Node> CreateNodesOnModelPart(ModelPart& rModelPart)
 {
     PointerVector<Node> result;
-    result.push_back(rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0));
-    result.push_back(rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0));
+    result.push_back(rModelPart.CreateNewNode(1, 1.0, 0.0, 0.0));
+    result.push_back(rModelPart.CreateNewNode(2, 0.0, 0.0, 0.0));
     return result;
 }
 
@@ -398,12 +398,12 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsPipeActive, Kratos
         p_element->GetGeometry().IntegrationPointsNumber(p_element->GetIntegrationMethod()));
     p_element->CalculateOnIntegrationPoints(PIPE_ACTIVE, pipe_active, dummy_process_info);
     // Assert
-    KRATOS_EXPECT_FALSE(pipe_active[0]);
+    KRATOS_EXPECT_FALSE(pipe_active[0])
 
     p_element->SetValue(PIPE_ACTIVE, true);
     p_element->CalculateOnIntegrationPoints(PIPE_ACTIVE, pipe_active, dummy_process_info);
     // Assert
-    KRATOS_EXPECT_TRUE(pipe_active[0]);
+    KRATOS_EXPECT_TRUE(pipe_active[0])
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsPipeHeight, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -491,10 +491,14 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsFluidFluxVector, K
     // Act
     std::vector<array_1d<double, 3>> fluid_fluxes(
         p_element->GetGeometry().IntegrationPointsNumber(p_element->GetIntegrationMethod()));
-    p_element->CalculateOnIntegrationPoints(FLUID_FLUX_VECTOR, fluid_fluxes, dummy_process_info);
+    p_element->CalculateOnIntegrationPoints(LOCAL_FLUID_FLUX_VECTOR, fluid_fluxes, dummy_process_info);
 
     // Assert
     KRATOS_EXPECT_DOUBLE_EQ(fluid_fluxes[0](0), 1.E-3 * 0.1 / 12.0);
+
+    // element tangetial axis is opposite global X, so global flux has negative X component
+    p_element->CalculateOnIntegrationPoints(FLUID_FLUX_VECTOR, fluid_fluxes, dummy_process_info);
+    KRATOS_EXPECT_DOUBLE_EQ(fluid_fluxes[0](0), -1.E-3 * 0.1 / 12.0);
 }
 
 } // namespace Kratos::Testing
