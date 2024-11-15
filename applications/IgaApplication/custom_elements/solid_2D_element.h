@@ -40,6 +40,7 @@ protected:
         Matrix  InvJ0;
         Matrix  DN_DX;
         Vector Displacements;
+        double characteristic_length;
 
         /**
          * The default constructor
@@ -62,6 +63,8 @@ protected:
             J0 = ZeroMatrix(Dimension, Dimension);
             InvJ0 = ZeroMatrix(Dimension, Dimension);
             Displacements = ZeroVector(Dimension * NumberOfNodes);
+            characteristic_length = 0.0;
+
         }
     };
 

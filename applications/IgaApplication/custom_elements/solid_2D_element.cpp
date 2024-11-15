@@ -26,6 +26,7 @@
 
 #include "utilities/math_utils.h"
 #include "utilities/function_parser_utility.h"
+#include "custom_utilities/array_1d_max.h"
 
 
 namespace Kratos
@@ -109,6 +110,12 @@ void Solid2DElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
     const unsigned int dim = r_geometry.WorkingSpaceDimension(); // dim = 2
     const SizeType mat_size = number_of_points * 2;
 
+    array_1d<double, 3> center = r_geometry[0].GetInitialPosition().Coordinates();
+    // KRATOS_WATCH(center)
+    // array_1d<double, 3> rOutput{0.0, 0.0, 0.0};  // Initialize the output array
+    r_geometry.Calculate(CHARACTERISTIC_GEOMETRY_LENGTH, center);
+    double characteristic_length = Kratos::Array1DMax::FindMaxInArray1D(center);
+    KRATOS_WATCH(characteristic_length)
 
     //resizing as needed the LHS
     if(rLeftHandSideMatrix.size1() != mat_size)
@@ -122,16 +129,16 @@ void Solid2DElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 
 
     //-------------------------------------------------------------------------
-    const SizeType points_number = r_geometry.size();
-    array_1d<double, 3> center = r_geometry[0].GetInitialPosition().Coordinates();
-    array_1d<double, 3> center1=center;
-    // KRATOS_WATCH(center1)
+    // const SizeType points_number = r_geometry.size();
+    // array_1d<double, 3> center = r_geometry[0].GetInitialPosition().Coordinates();
+    // array_1d<double, 3> center1=center;
+    // // KRATOS_WATCH(center1)
 
-    for ( IndexType i_node = 1 ; i_node < points_number ; ++i_node ) {
-        center += r_geometry[i_node].GetInitialPosition().Coordinates();
-        // KRATOS_WATCH(r_geometry[i_node].GetInitialPosition().Coordinates())
-    }
-    center /= static_cast<double>( points_number );
+    // for ( IndexType i_node = 1 ; i_node < points_number ; ++i_node ) {
+    //     center += r_geometry[i_node].GetInitialPosition().Coordinates();
+    //     // KRATOS_WATCH(r_geometry[i_node].GetInitialPosition().Coordinates())
+    // }
+    // center /= static_cast<double>( points_number );
 
 
     // reading integration points and local gradients

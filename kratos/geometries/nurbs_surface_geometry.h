@@ -503,8 +503,6 @@ public:
         CoordinatesArrayType& rKnotLengthness,
         const CoordinatesArrayType& rLocalCoordinates) const
     {
-        double maxKnot = KnotsU.end();
-        KRATOS_WATCH(maxKnot)        
         const IndexType SpanU = NurbsUtilities::GetLowerSpan(PolynomialDegreeU(), KnotsU(), rLocalCoordinates[0]);
         const IndexType SpanV = NurbsUtilities::GetLowerSpan(PolynomialDegreeV(), KnotsV(), rLocalCoordinates[1]);
 
@@ -535,7 +533,6 @@ public:
         rKnotLengthness[1] = (norm_2(gp1 - gp4) + norm_2(gp2 - gp3)) / 2;
         rKnotLengthness[2] = 0;
 
-        KRATOS_WATCH(rKnotLengthness)
         // else {
         //         KRATOS_ERROR
         //             << "Number of controls points and polynomial degrees and number of knots do not match! " << std::endl

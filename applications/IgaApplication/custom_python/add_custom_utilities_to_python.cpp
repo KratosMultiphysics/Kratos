@@ -22,7 +22,7 @@
 #include "spaces/ublas_space.h"
 #include "custom_utilities/director_utilities.h"
 #include "custom_utilities/iga_flags.h"
-
+#include "custom_utilities/array_1d_max.h"
 
 namespace Kratos {
 namespace Python {
@@ -39,6 +39,8 @@ void AddCustomUtilitiesToPython(
     pybind11::class_< IgaFlags > iga_flags = pybind11::class_< IgaFlags >(m, "IgaFlags")
         .def(pybind11::init<>())
         ;
+    pybind11::class_<Array1DMax>(m, "Array1DMax")
+            .def_static("FindMaxInArray1D", &Array1DMax::FindMaxInArray1D, "Find the maximum value in an array_1d<double, 3>");     
 
     iga_flags.attr("FIX_DISPLACEMENT_X") = IgaFlags::FIX_DISPLACEMENT_X;
     iga_flags.attr("FIX_DISPLACEMENT_Y") = IgaFlags::FIX_DISPLACEMENT_Y;
