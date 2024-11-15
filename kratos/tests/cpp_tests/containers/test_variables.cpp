@@ -71,7 +71,25 @@ KRATOS_TEST_CASE_IN_SUITE(VariablesKeyOrder, KratosCoreFastSuite) {
     }
   }
 
+KRATOS_TEST_CASE_IN_SUITE(VariablesRegister, KratosCoreFastSuite) {
+    Variable<double> new_var("NEW_DUMMY_VARIABLE");
+    new_var.Register();
+    KRATOS_EXPECT_TRUE(Registry::HasItem("variables.all.NEW_DUMMY_VARIABLE"));
+    KRATOS_EXPECT_TRUE(Registry::HasItem("variables.KratosMultiphysics.NEW_DUMMY_VARIABLE"));
 
+    // Attempting to register a variable with the same name and type does nothing
+    Variable<double> duplicate_variable("NEW_DUMMY_VARIABLE");
+    duplicate_variable.Register();
+    KRATOS_EXPECT_TRUE(Registry::HasItem("variables.all.NEW_DUMMY_VARIABLE"));
+    KRATOS_EXPECT_TRUE(Registry::HasItem("variables.KratosMultiphysics.NEW_DUMMY_VARIABLE"));
+
+    // Attempting to register a variable with the same name and different type is an error
+    Variable<int> wrong_type_variable("NEW_DUMMY_VARIABLE");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        wrong_type_variable.Register(),
+        "Attempting to register NEW_DUMMY_VARIABLE but a variable with the same name and different type already exists"
+    )
+}
 
 
 }

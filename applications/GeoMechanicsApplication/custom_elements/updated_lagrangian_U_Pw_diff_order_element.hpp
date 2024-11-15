@@ -140,10 +140,10 @@ public:
     void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
                                       std::vector<Matrix>&    rOutput,
                                       const ProcessInfo&      rCurrentProcessInfo) override;
-
     void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
                                       std::vector<Vector>&    rOutput,
                                       const ProcessInfo&      rCurrentProcessInfo) override;
+    using SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints;
 
     ///@}
     ///@name Access

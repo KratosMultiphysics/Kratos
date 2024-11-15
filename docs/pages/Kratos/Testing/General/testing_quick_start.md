@@ -6,9 +6,13 @@ sidebar: kratos_testing
 summary: 
 ---
 
-## How to run tests
+Kratos includes multiple layers of integrated testing to ensure functional correctness and maintain code stability, even after modifications by collaborators.
 
-This section provides insight on how to run the different Kratos tests and some of the options available. 
+This section provides a concise overview of the test structure, key features, and usage guidelines.
+
+## Running Tests
+
+This section outlines the steps to execute various Kratos tests and describes the available options for configuring test runs.
 
 - [Cpp Tests](#cpp-tests)
 - [Python Tests](#python-tests)
@@ -18,15 +22,16 @@ This section provides insight on how to run the different Kratos tests and some 
 There are several ways to run the different cpp level tests in Kratos:
 
 - [Direct Execution](#direct-execution)
-- [Python Launcher](#python-launcher)
+- [Python Launcher](#python-launcher-for-cpp)
 
 #### Direct Execution
 
-The most straigh forward way to run a test is execute it directly from the binary file containing it. You will be able to find the test binaries in `kratos/bin/[Release|Debug|FullDebug]/test`.
+The simplest way to run a test is by executing it directly from the corresponding binary file. You can locate the test binaries in the following directory:
+`kratos/bin/[Release|Debug|FullDebug]/test`.
 
-You may see different binaries based on the applications and components that you have compiled. 
+The available binaries may vary depending on the applications and components you have compiled.
 
-For exampe having compiled the `FluidDynamicsApplication`, the `MappingApplication` and `TrilinosApplication` with `MPI` support enabled, will generate the following binaries:
+For example, compiling the `FluidDynamicsApplication`, `MappingApplication`, and `TrilinosApplication` with MPI support enabled will generate the following binaries:
 
 ```console
 $ ls -la
@@ -39,19 +44,19 @@ $ ls -la
 -rwxr-xr-x 1 user group  4928160 Jun 13 09:56 KratosTrilinosCoreTest
 ```
 
-You may execute the serial tests (no `MPI` in the name with the following command):
+To run serial tests (those without MPI in the name), use the following command:
 
 ```console
 ./KratosCoreTest
 ```
 
-For MPI based tests, you may execute them invoking the binary through the mpi wrapper:
+For MPI-based tests, execute them by invoking the binary through the MPI wrapper:
 
 ```console
 mpiexec -np [N] ./KratosMPICoreTest
 ```
 
-This commands will result in an output like this:
+These commands will produce an output similar to the following:
 
 ```console
 [==========] Running 1495 tests from 10 test suites.
@@ -65,25 +70,100 @@ This commands will result in an output like this:
 [  PASSED  ] 1488 tests.
 ```
 
-There are serveral options that can be used to have more control over which tests inside a suite are run, what information is shown, and overall tailor the run to your needs. You can find a complete list of options in [Running Test Programs: Advanced Options](https://google.github.io/googletest/advanced.html#running-test-programs-advanced-options)
+Several options are available to give you greater control over which tests within a suite are executed, what information is displayed, and to customize the test run according to your needs. For a full list of options, refer to the  [Running Test Programs: Advanced Options](https://google.github.io/googletest/advanced.html#running-test-programs-advanced-options) documentation.
 
-As a resume, a brief list of some commonly used ones for Kratos are:
+Below is a summary of commonly used options in Kratos:
 
-- **--gtest_list_tests**: Prints the list of available tests in a binary.
-- **--gtest_filter=\***: Runs only a subset of the specified tests.
-- **--gtest_repeat=N**: Repeats the selected tests multiple times (usefull to detect race conditions).
-- **--gtest_shuffle**: Randomizes the running order of tests. While combined with `--gtest_repeat` will select a different order for every repetition.
-- **--gtest_brief=N**: Controls the verbosity of the output. 
+- **--gtest_list_tests**: Displays the list of available tests in the binary.
+- **--gtest_filter=\***: Runs only a specified subset of tests.
+- **--gtest_repeat=N**: Repeats the selected tests multiple times (useful for detecting race conditions).
+- **--gtest_shuffle**: Randomizes the execution order of tests. When combined with `--gtest_repeat`, each repetition runs in a different order.
+- **--gtest_brief=N**: Adjusts the verbosity of the output.
 
-We also provide different [examples]() of this different options if you are interested.
+For more details, we also provide several [examples]() demonstrating the usage of these options.
 
 #### Debugging
 
 While historically it has been hard for the Kratos tests to be run alongisde debugging tools due to its reliance on python launcher, this is no longer the case anymore with GTest as they provide a direct access to the C++ layer of Kratos. 
 
-#### Python Launcher
+#### Python Launcher for Cpp
 
-You may also run the tests through the python launcher located in 
+You may also run the tests through the python launcher located in `../bin/Release/KratosMultiphysics/testing`. For cpp tests there are two variants that you may use:
+
+- run_cpp_tests.py: To run the serial tests
+- run_cpp_mpi_tests.py: To run the distributed tests
 
 ### Python Tests
+
+There are three main methods to run python tests:
+
+- [Direct Execution of the Test](#direct-execution-test)
+- [Direct Execution of the Suite](#direct-execution-suite)
+- [Python Launcher](#python-launcher-for-python)
+
+#### Direct Execution Test
+
+every python test can be treated as a individual python script that executes the given Kratos feature being evaluated. For example:
+
+```Python
+import KratosMultiphysics as KM
+import KratosMultiphysics.KratosUnittest as KratosUnittest
+
+class TestControllers(KratosUnittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.model = KM.Model()
+        cls.model_part = cls.model.CreateModelPart("test")
+
+    def setUp(self) -> None:
+        self.model_part.ProcessInfo[KM.STEP] = 0
+        self.model_part.ProcessInfo[KM.TIME] = 0
+
+    def test_TemporalControllerStep(self):
+        params = KM.Parameters("""{
+            "model_part_name"     : "test",
+            "output_control_type" : "step",
+            "output_interval"     : 3
+        }""")
+
+        # testing from start
+        controller = KM.OutputController(self.model, params)
+        for _ in range(100):
+            self.model_part.ProcessInfo[KM.STEP] += 1
+            self.assertEqual(controller.Evaluate(), self.model_part.ProcessInfo[KM.STEP] % 3 == 0)
+            controller.Update()
+
+        # testing for restart
+        self.model_part.ProcessInfo[KM.STEP] = 99
+        controller = KM.OutputController(self.model, params)
+        for _ in range(100):
+            self.model_part.ProcessInfo[KM.STEP] += 1
+            self.assertEqual(controller.Evaluate(), self.model_part.ProcessInfo[KM.STEP] % 3 == 0)
+            controller.Update()
+
+if __name__ == "__main__":
+    KratosUnittest.main()
+```
+
+The `KratosUnittest.main()` method will ensure that the script can be launch as stand alone python script. Note that the deveoper of the test may choose not to provide this method for several reasons which means that the tests file in particular is not ment to be executed separately.
+
+```bash
+python test_controlers.py
+```
+
+#### Direct Execution Suite
+
+Python tests are organized in suits inside the test_[ApplicationName].py file. In order to run a suite with all the tests, you may execute this file as stand alone script:
+
+```bash
+python test_KratosCore.py
+```
+
+#### Python Launcher for Python
+
+You may also run the tests through the python launcher located in `../bin/Release/KratosMultiphysics/testing`. For python tests there are two variants that you may use:
+
+- run_python_tests.py: To run the serial tests
+- run_python_mpi_tests.py: To run the distributed tests
+
 

@@ -15,8 +15,8 @@
 #include "custom_response_functions/response_utilities/stress_response_definitions.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
 #include "includes/checks.h"
-#include "custom_elements/truss_element_3D2N.hpp"
-#include "custom_elements/truss_element_linear_3D2N.hpp"
+#include "custom_elements/truss_elements/truss_element_3D2N.hpp"
+#include "custom_elements/truss_elements/truss_element_linear_3D2N.hpp"
 
 
 

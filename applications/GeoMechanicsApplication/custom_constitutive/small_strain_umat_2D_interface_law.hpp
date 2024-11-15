@@ -73,8 +73,10 @@ public:
     ConstitutiveLaw::Pointer Clone() const override;
 
     Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
+    using SmallStrainUMAT3DLaw::GetValue;
 
     void SetValue(const Variable<Vector>& rVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo) override;
+    using SmallStrainUMAT3DLaw::SetValue;
 
     /**
      * @brief Dimension of the law:

@@ -16,7 +16,7 @@ It checks the water pressure after a single stage of calculation on these single
     - Next to this, the X,Y displacements of the sides are fixed, meaning only the top nodes are free to move and only in the Z direction.
     - The water pressure in the top nodes is kept at 0.0.
 -   Material:
-    -   The material is described using a linear elastic material with a `LinearElastic3DLaw`, a Young's modulus
+    -   The material is described using a linear elastic material with a `GeoIncrementalLinearElastic3DLaw`, a Young's modulus
         of 10000 [kPa] and a Poisson ratio of 0.0.
 -   Loads:
     -   Using the `ApplyVectorConstraintTableProcess`, a negative VOLUME_ACCELERATION of 9.81 [m/s^2] is applied in the z-direction to the entire cube.

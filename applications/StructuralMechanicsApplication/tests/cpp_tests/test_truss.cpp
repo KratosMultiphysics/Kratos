@@ -14,8 +14,8 @@
 #include "structural_mechanics_fast_suite.h"
 #include "structural_mechanics_application_variables.h"
 
-#include "custom_elements/truss_element_3D2N.hpp"
-#include "custom_elements/truss_element_linear_3D2N.hpp"
+#include "custom_elements/truss_elements/truss_element_3D2N.hpp"
+#include "custom_elements/truss_elements/truss_element_linear_3D2N.hpp"
 
 #include <utility>
 

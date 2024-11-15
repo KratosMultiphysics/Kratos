@@ -12,6 +12,8 @@
 
 #pragma once
 
+#include <numeric>
+
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/transport_equation_utilities.hpp"
@@ -22,7 +24,6 @@
 
 namespace Kratos
 {
-
 template <unsigned int TDim, unsigned int TNumNodes>
 class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoSteadyStatePwPipingElement : public Element
 {
@@ -66,7 +67,6 @@ public:
                               const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
-
         Vector det_J_container;
         GetGeometry().DeterminantOfJacobian(det_J_container, this->GetIntegrationMethod());
         GeometryType::ShapeFunctionsGradientsType dN_dX_container =
@@ -96,7 +96,6 @@ public:
     int Check(const ProcessInfo&) const override
     {
         KRATOS_TRY
-
         CheckDomainSize();
         CheckHasSolutionStepsDataFor(WATER_PRESSURE);
         CheckHasDofsFor(WATER_PRESSURE);
@@ -107,6 +106,38 @@ public:
         KRATOS_CATCH("")
 
         return 0;
+    }
+
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) final
+    {
+        Element::Initialize(rCurrentProcessInfo);
+        // all these except the PIPE_ELEMENT_LENGTH seem to be in the erosion_process_strategy only. Why do this: it is used in output for dGeoFlow
+        this->SetValue(PIPE_ELEMENT_LENGTH, CalculateLength(this->GetGeometry()));
+        this->SetValue(PIPE_EROSION, false);
+        const double small_pipe_height = 1e-10;
+        this->SetValue(PIPE_HEIGHT, small_pipe_height);
+        this->SetValue(PREV_PIPE_HEIGHT, small_pipe_height);
+        this->SetValue(DIFF_PIPE_HEIGHT, 0.);
+        this->SetValue(PIPE_ACTIVE, false);
+    }
+
+    double CalculateEquilibriumPipeHeight(const PropertiesType& rProp, const GeometryType& rGeom, double)
+    {
+        // calculate head gradient over element ( now without abs in CalculateHeadGradient )
+        const auto head_gradient = CalculateHeadGradient(rProp, rGeom);
+        // return infinite when the head gradient dh/dx is 0
+        if (std::abs(head_gradient) < std::numeric_limits<double>::epsilon()) return 1e10;
+
+        const auto particle_d = GeoTransportEquationUtilities::CalculateParticleDiameter(rProp);
+        // for a more generic element calculate slope of pipe (in degrees! see formula), currently pipe is assumed to be horizontal
+        const double pipe_slope = 0.0;
+        const double theta      = rProp[PIPE_THETA];
+
+        return rProp[PIPE_MODEL_FACTOR] * (Globals::Pi / 3.0) * particle_d *
+               (rProp[DENSITY_SOLID] / rProp[DENSITY_WATER] - 1.0) * rProp[PIPE_ETA] *
+               (std::sin(MathUtils<>::DegreesToRadians(theta + pipe_slope)) /
+                std::cos(MathUtils<>::DegreesToRadians(theta))) /
+               std::abs(head_gradient);
     }
 
 private:
@@ -164,6 +195,24 @@ private:
         }
     }
 
+    double CalculateLength(const GeometryType& Geom) const
+    {
+        // currently length is only calculated in x direction, to be changed for inclined pipes
+        return std::abs(Geom.GetPoint(1)[0] - Geom.GetPoint(0)[0]);
+    }
+
+    double CalculateHeadGradient(const PropertiesType& rProp, const GeometryType& rGeom)
+    {
+        const auto nodal_heads =
+            GeoElementUtilities::CalculateNodalHydraulicHeadFromWaterPressures(rGeom, rProp);
+        Matrix shapefunctions_local_gradient;
+        // iso-parametric derivative
+        GetGeometry().ShapeFunctionsLocalGradients(shapefunctions_local_gradient, GetGeometry().Center());
+        // local derivative
+        shapefunctions_local_gradient /= GetGeometry().DeterminantOfJacobian(GetGeometry().Center());
+        return Vector{prod(trans(shapefunctions_local_gradient), nodal_heads)}[0];
+    }
+
     static void AddContributionsToLhsMatrix(MatrixType& rLeftHandSideMatrix,
                                             const BoundedMatrix<double, TNumNodes, TNumNodes>& rPermeabilityMatrix)
     {
@@ -203,8 +252,7 @@ private:
     {
         const auto&  r_properties              = GetProperties();
         const double dynamic_viscosity_inverse = 1.0 / r_properties[DYNAMIC_VISCOSITY];
-
-        auto constitutive_matrix = FillPermeabilityMatrix(r_properties[PIPE_HEIGHT]);
+        auto         constitutive_matrix = FillPermeabilityMatrix(this->GetValue(PIPE_HEIGHT));
 
         auto result = BoundedMatrix<double, TNumNodes, TNumNodes>{ZeroMatrix{TNumNodes, TNumNodes}};
         for (unsigned int integration_point_index = 0;
@@ -288,5 +336,4 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
     }
 };
-
 } // namespace Kratos

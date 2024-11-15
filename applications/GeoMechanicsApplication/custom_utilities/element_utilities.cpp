@@ -12,6 +12,8 @@
 
 #include "element_utilities.hpp"
 
+#include <cstddef>
+
 namespace Kratos
 {
 
@@ -63,6 +65,29 @@ void GeoElementUtilities::FillPermeabilityMatrix(BoundedMatrix<double, 3, 3>&   
 
     rPermeabilityMatrix(2, 0) = Prop[PERMEABILITY_ZX];
     rPermeabilityMatrix(0, 2) = rPermeabilityMatrix(2, 0);
+}
+
+Matrix GeoElementUtilities::FillPermeabilityMatrix(const Element::PropertiesType& Prop, std::size_t Dimension)
+{
+    switch (Dimension) {
+    case 1: {
+        BoundedMatrix<double, 1, 1> result;
+        FillPermeabilityMatrix(result, Prop);
+        return result;
+    }
+    case 2: {
+        BoundedMatrix<double, 2, 2> result;
+        FillPermeabilityMatrix(result, Prop);
+        return result;
+    }
+    case 3: {
+        BoundedMatrix<double, 3, 3> result;
+        FillPermeabilityMatrix(result, Prop);
+        return result;
+    }
+    default:
+        KRATOS_ERROR << "Dimension " << Dimension << " is not supported" << std::endl;
+    }
 }
 
 void GeoElementUtilities::InvertMatrix2(BoundedMatrix<double, 2, 2>&       rInvertedMatrix,

@@ -53,5 +53,5 @@ public:
                                                const std::vector<Vector>& rStressVectors,
                                                const std::vector<double>& rIntegrationCoefficients);
 
-}; /* Class GeoTransportEquationUtilities*/
+}; /* Class GeoEquationOfMotionUtilities*/
 } /* namespace Kratos.*/
