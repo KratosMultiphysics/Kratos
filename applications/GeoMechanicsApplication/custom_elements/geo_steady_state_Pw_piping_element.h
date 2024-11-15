@@ -179,7 +179,7 @@ public:
             auto        constitutive_matrix = FillPermeabilityMatrix(this->GetValue(PIPE_HEIGHT));
             const auto& r_integration_points =
                 this->GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
-            for (auto i = 0; i < number_of_integration_points; ++i) {
+            for (std::size_t i = 0; i < number_of_integration_points; ++i) {
                 // this should be rotated to the direction of the element for the global fluid flux vector
                 const auto head_gradient = CalculateHeadGradient(this->GetProperties(), this->GetGeometry());
                 const auto longitudinal_flux =
