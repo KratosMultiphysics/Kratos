@@ -70,7 +70,6 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             "eulerian_fm_ale_settings":{
                 "max_CFL" : 1.0,
                 "max_substeps" : 0,
-                "eulerian_error_compensation" : false,
                 "element_type" : "levelset_convection_supg",
                 "element_settings" : {
                     "dynamic_tau" : 1.0,
@@ -136,15 +135,15 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
 
         self.eulerian_fm_ale = self.settings["eulerian_fm_ale"].GetBool()
         if self.eulerian_fm_ale:
-            self.fm_ale_variable = KratosCFD.CONVECTION_SCALAR
-            self.eulerian_gradient = KratosCFD.CONVECTION_SCALAR_GRADIENT
-            self.eulerian_convection_var = KratosCFD.CONVECTION_VELOCITY
-            self.eulerian_acceleration_var =KratosMultiphysics.HEAT_FLUX
-            self.settings["eulerian_fm_ale_settings"].AddEmptyValue("levelset_variable_name").SetString("CONVECTION_SCALAR")
-            self.settings["eulerian_fm_ale_settings"].AddEmptyValue("levelset_gradient_variable_name").SetString("CONVECTION_SCALAR_GRADIENT")
-            self.settings["eulerian_fm_ale_settings"].AddEmptyValue("levelset_convection_variable_name").SetString("CONVECTION_VELOCITY")
-            # self.settings["eulerian_fm_ale_settings"].AddEmptyValue("levelset_volume_source_variable_name").SetString("HEAT_FLUX")
             self.settings["eulerian_fm_ale_settings"].AddEmptyValue("convection_model_part_name").SetString("EulerianFMALEModelPart")
+        #     self.fm_ale_variable = KratosCFD.CONVECTION_SCALAR
+        #     self.eulerian_gradient = KratosCFD.CONVECTION_SCALAR_GRADIENT
+        #     self.eulerian_convection_var = KratosCFD.CONVECTION_VELOCITY
+        #     self.eulerian_acceleration_var =KratosMultiphysics.HEAT_FLUX
+        #     self.settings["eulerian_fm_ale_settings"].AddEmptyValue("levelset_variable_name").SetString("CONVECTION_SCALAR")
+        #     self.settings["eulerian_fm_ale_settings"].AddEmptyValue("levelset_gradient_variable_name").SetString("CONVECTION_SCALAR_GRADIENT")
+        #     self.settings["eulerian_fm_ale_settings"].AddEmptyValue("levelset_convection_variable_name").SetString("CONVECTION_VELOCITY")
+        #     # self.settings["eulerian_fm_ale_settings"].AddEmptyValue("levelset_volume_source_variable_name").SetString("HEAT_FLUX")
 
 
 
@@ -182,18 +181,35 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE) # Distance function nodal values
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT) # Distance gradient nodal values
 
-        if self.eulerian_fm_ale:
-            # Auxiliary variable to store the historical scalar to be convected
-            self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.CONVECTION_SCALAR)
-            # Auxiliary variable to store the velocity to be used in the historical data convection
-            self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.CONVECTION_VELOCITY)
-            # Auxiliary variable to store the gradient of the historical scalar to be convected
-            self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.CONVECTION_SCALAR_GRADIENT)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.AUXILIAR_VECTOR_VELOCITY)
+        # if self.eulerian_fm_ale:
+            # # Auxiliary variable to store the historical scalar to be convected
+            # self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.CONVECTION_SCALAR)
+            # # Auxiliary variable to store the velocity to be used in the historical data convection
+            # self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.CONVECTION_VELOCITY)
+            # # Auxiliary variable to store the gradient of the historical scalar to be convected
+            # self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.CONVECTION_SCALAR_GRADIENT)
+            # self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.AUXILIAR_VECTOR_VELOCITY)
 
 
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid solver variables added correctly.")
+
+    def AddDofs(self):
+        # Llamamos a la función de la clase base para añadir los DOFs existentes
+        super().AddDofs()
+
+        # Añadimos los DOFs adicionales específicos de la clase derivada
+        dofs_and_reactions_to_add = []
+        # Añadir el nuevo DOF y su reacción
+        dofs_and_reactions_to_add.append("FRACTIONAL_VELOCITY_X")
+        dofs_and_reactions_to_add.append("FRACTIONAL_VELOCITY_Y")
+        dofs_and_reactions_to_add.append("FRACTIONAL_VELOCITY_Z")
+        # Utilizamos VariableUtils para añadir esta lista de nuevos DOFs al main_model_part
+        KratosMultiphysics.VariableUtils.AddDofsList(
+            dofs_and_reactions_to_add, self.main_model_part)
+
+        KratosMultiphysics.Logger.PrintInfo(
+            self.__class__.__name__, "DOF added correctly.")
 
     def Initialize(self):
         computing_model_part = self.GetComputingModelPart()
@@ -238,9 +254,9 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]  # Obtener el tiempo actual en Kratos
         delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
         # Perform the convection of the historical database (Eulerian FM-ALE)
-        if current_time >2*delta_time:
-            if self.eulerian_fm_ale:
-                self._GetEulerianFmAleProcess()
+
+        if self.eulerian_fm_ale:
+            self._GetEulerianFmAleProcess()
 
         if self.settings["formulation"].Has("mass_source"):
             self.mass_source = self.settings["formulation"]["mass_source"].GetBool()
@@ -284,11 +300,12 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]  # Obtener el tiempo actual en Kratos
 
         # Perform the level-set convection according to the previous step velocity
-        if current_time >2*delta_time:
-            if self.eulerian_fm_ale:
-                print("ENTRA")
-                self.__PerformEulerianFmAleVelocity()
-                KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "FM-Lagrangian method is performed.")
+
+
+        if self.eulerian_fm_ale:
+            print("ENTRA")
+            self.__PerformEulerianFmAleVelocity()
+            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "FM-Lagrangian method is performed.")
 
 
         # Perform distance correction to prevent ill-conditioned cuts
@@ -451,34 +468,21 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         # Solve the historical data convection problem
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         velocity_components = [KratosMultiphysics.VELOCITY_X,KratosMultiphysics.VELOCITY_Y,KratosMultiphysics.VELOCITY_Z]
-        auxiliar_velocity_componentes = [KratosCFD.AUXILIAR_VECTOR_VELOCITY_X, KratosCFD.AUXILIAR_VECTOR_VELOCITY_Y, KratosCFD.AUXILIAR_VECTOR_VELOCITY_Z]
         fractional_velocity_componentes = [KratosCFD.FRACTIONAL_VELOCITY_X, KratosCFD.FRACTIONAL_VELOCITY_Y, KratosCFD.FRACTIONAL_VELOCITY_Z]
-        mesh_var = [KratosMultiphysics.MESH_VELOCITY_X,KratosMultiphysics.MESH_VELOCITY_Y,KratosMultiphysics.MESH_VELOCITY_Z]
-        # a_n_var = [KratosCFD.FRACTIONAL_ACCELERATION_X,KratosCFD.FRACTIONAL_ACCELERATION_Y, KratosCFD.FRACTIONAL_ACCELERATION_Z]
-
-        KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(KratosMultiphysics.VELOCITY,self.eulerian_convection_var, self.main_model_part, self.main_model_part, 0, 0)
-        KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(KratosMultiphysics.VELOCITY,self.eulerian_convection_var, self.main_model_part, self.main_model_part, 1, 1)
-        KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(KratosMultiphysics.VELOCITY,self.eulerian_convection_var, self.main_model_part, self.main_model_part, 2, 2)
-
-        KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(KratosMultiphysics.VELOCITY,KratosCFD.FRACTIONAL_VELOCITY, self.main_model_part, self.main_model_part, 0, 0)
-        KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(KratosMultiphysics.VELOCITY,KratosCFD.FRACTIONAL_VELOCITY, self.main_model_part, self.main_model_part, 1, 1)
-        KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(KratosMultiphysics.VELOCITY,KratosCFD.FRACTIONAL_VELOCITY, self.main_model_part, self.main_model_part, 2, 2)
-
-
-        KratosMultiphysics.VariableUtils().SetHistoricalVariableToZero(self.eulerian_gradient, self.main_model_part.Nodes)
-
         for i in range(domain_size):
+            self.VelocityBoundaryConditionFractional(fractional_velocity_componentes[i], velocity_components[i])
 
-            KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(velocity_components[i], self.fm_ale_variable, self.main_model_part, self.main_model_part, 0, 0)
-            KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(velocity_components[i], self.fm_ale_variable, self.main_model_part, self.main_model_part, 1,1)
-            KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(velocity_components[i], self.fm_ale_variable, self.main_model_part, self.main_model_part, 2,2)
+        self._GetEulerianFmAleProcess().Execute()
 
-            self._GetEulerianFmAleProcess().Execute()
 
-            KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(self.fm_ale_variable, auxiliar_velocity_componentes[i], self.main_model_part, self.main_model_part, 0, 0)
+    def VelocityBoundaryConditionFractional(self, fractional_velocity_componentes, velocity_components):
+        for node in self.GetComputingModelPart().Nodes:
+            if node.IsFixed(velocity_components):
+                v_fix = node.GetSolutionStepValue(velocity_components)
+                node.SetSolutionStepValue(fractional_velocity_componentes,v_fix)
+                node.Fix(fractional_velocity_componentes)
 
-            self.__CorrectVelocityHistory(velocity_components[i], fractional_velocity_componentes[i], mesh_var[i])
-        self.__SlipConditionFixity()
+
 
     def __CorrectVelocityHistory(self, velocity_components, fractional_velocity_componentes, mesh_variable):
         for node in self.GetComputingModelPart().Nodes:
@@ -656,17 +660,19 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         computing_model_part = self.GetComputingModelPart()
         linear_solver = self._GetLevelsetLinearSolver()
-        eulerian_fm_ale_settings = self.settings["eulerian_fm_ale_settings"]
+        print("aaaaaaaaaaaaaaaaaaaaaaaaa")
+        print(linear_solver)
+        fm_ale_convection_settings = self.settings["eulerian_fm_ale_settings"]
         if domain_size == 2:
-            eulerian_fm_ale_process = KratosMultiphysics.LevelSetConvectionBDFProcess2D(
+            eulerian_fm_ale_process = KratosCFD.VectorialConvectionProcess2D(
                 computing_model_part,
-                linear_solver,
-                eulerian_fm_ale_settings)
+                linear_solver, fm_ale_convection_settings)
+
         else:
-            eulerian_fm_ale_process = KratosMultiphysics.LevelSetConvectionBDFProcess3D(
+            eulerian_fm_ale_process=KratosCFD.VectorialConvectionProcess3D(
                 computing_model_part,
-                linear_solver,
-                eulerian_fm_ale_settings)
+                linear_solver, fm_ale_convection_settings)
+
 
         return eulerian_fm_ale_process
 

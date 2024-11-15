@@ -204,7 +204,8 @@ for dim in dim_vector:
     accel_n = (vn-vnn)/dt
     accel_gauss_n = accel_n.transpose()*N
     # Fractional convective term
-    convective_frac_term = vconv_fractional.transpose()*grad_v_fractional
+    # convective_frac_term = vconv_fractional.transpose()*grad_v_fractional
+    convective_frac_term = vconv_old_gauss.transpose()*grad_v_fractional
 
 
     ## Galerkin Functional
