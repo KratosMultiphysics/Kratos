@@ -85,12 +85,12 @@ namespace
 
 ModelPart& PrepareTestModelPart(Model& rModel)
 {
-    auto& result = rModel.CreateModelPart("dummy");
+    auto& result                  = rModel.CreateModelPart("dummy");
     auto  p_dummy_law             = std::make_shared<Testing::StubLinearElasticLaw>();
     auto  p_model_part_properties = result.pGetProperties(0);
     p_model_part_properties->SetValue(CONSTITUTIVE_LAW, p_dummy_law);
 
-    auto  p_element    = make_intrusive<StubElement>();
+    auto p_element = make_intrusive<StubElement>();
     p_element->SetProperties(p_model_part_properties);
     result.AddElement(p_element);
 
@@ -151,7 +151,8 @@ KRATOS_TEST_CASE_IN_SUITE(NoneOfElementsConsiderDiagonalEntriesOnlyAndNoShearWhe
     KRATOS_EXPECT_FALSE(ElementConsidersDiagonalEntriesOnlyAndNoShear(r_model_part.Elements()[0]))
 }
 
-KRATOS_TEST_CASE_IN_SUITE(UseStandardProcedureFlagIsInEffectDuringProcessExecutionOnly, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(UseStandardProcedureFlagIsInEffectDuringProcessExecutionOnly,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
     auto& r_model_part = PrepareTestModelPart(model);
