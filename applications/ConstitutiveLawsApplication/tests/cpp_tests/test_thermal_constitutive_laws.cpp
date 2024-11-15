@@ -21,7 +21,7 @@
 
 // Application includes
 #include "structural_mechanics_application_variables.h"
-#include "custom_elements/small_displacement.h"
+#include "custom_elements/solid_elements/small_displacement.h"
 #include "tests/cpp_tests/constitutive_laws_fast_suite.h"
 
 namespace Kratos::Testing
