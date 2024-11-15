@@ -87,7 +87,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             ordered_indexes = sorted(range(len(node_distances)), key=lambda i: node_distances[i])
             node_list = [node_ids[i] for i in ordered_indexes]
             for i in range(1, self.trailing_edge_model_part.NumberOfNodes()):
-                self.trailing_edge_model_part.CreateNewCondition("LineCondition3D2N", self.fluid_model_part.NumberOfConditions()+i, [node_list[i-1], node_list[i]], prop)
+                self.trailing_edge_model_part.CreateNewCondition("LineCondition3D2N", 10000000+i, [node_list[i-1], node_list[i]], prop)
 
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.WAKE_NORMAL,self.wake_normal)
 

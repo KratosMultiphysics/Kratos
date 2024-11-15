@@ -747,11 +747,11 @@ class RomManager(object):
             self.data_base.delete_if_in_database("HROM_Weights", mu_train)
         in_database_elems, hash_z =  self.data_base.check_if_in_database("HROM_Elements", mu_train)
         in_database_weights, hash_w =  self.data_base.check_if_in_database("HROM_Weights", mu_train)
-        if not in_database_elems and not in_database_weights:
+        if not in_database_elems or not in_database_weights:
             if self.rebuild_phiHROM:
                 self.data_base.delete_if_in_database("RightBasisHROM", mu_train)
             in_database_right_bases_hrom, hash_right_bases_hrom =  self.data_base.check_if_in_database("RightBasisHROM", mu_train)
-            if not in_database_right_bases_hrom or not os.path.exists('PhiHROMMatrix.zarr'):
+            if not in_database_right_bases_hrom and (not os.path.exists('PhiHROMMatrix.zarr') and self.general_rom_manager_parameters["HROM"]["use_dask"].GetBool()):
                 with open(self.project_parameters_name,'r') as parameter_file:
                     parameters = KratosMultiphysics.Parameters(parameter_file.read())
                 simulation = None
@@ -871,8 +871,9 @@ class RomManager(object):
                     self.data_base.add_to_database("RightBasisHROM", mu_train, u)
             else:
                 if self.general_rom_manager_parameters["HROM"]["use_dask"].GetBool():
+                    zarr_path = 'PhiHROMMatrix.zarr'
                     u = da.from_zarr(zarr_path)
-                    u = u[:]
+                    u = u.compute()
                 else:
                     u = self.data_base.get_single_numpy_from_database(hash_right_bases_hrom)
 
