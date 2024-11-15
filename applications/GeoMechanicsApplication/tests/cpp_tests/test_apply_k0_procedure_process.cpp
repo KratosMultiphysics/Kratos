@@ -13,14 +13,10 @@
 #include "custom_processes/apply_k0_procedure_process.h"
 #include "geo_mechanics_application_variables.h"
 #include "geo_mechanics_fast_suite.h"
-#include "geometries/quadrilateral_2d_4.h"
 #include "includes/element.h"
-#include "processes/structured_mesh_generator_process.h"
 #include "stub_linear_elastic_law.h"
 #include "test_utilities.h"
 
-#include <boost/algorithm/cxx11/all_of.hpp>
-#include <boost/algorithm/cxx11/none_of.hpp>
 #include <boost/numeric/ublas/assignment.hpp>
 
 namespace
@@ -91,8 +87,12 @@ ModelPart& PrepareTestModelPart(Model& rModel)
 {
     auto& result = rModel.CreateModelPart("dummy");
     auto  p_dummy_law             = std::make_shared<Testing::StubLinearElasticLaw>();
-    auto& r_model_part_properties = result.GetProperties(0);
-    r_model_part_properties.SetValue(CONSTITUTIVE_LAW, p_dummy_law);
+    auto  p_model_part_properties = result.pGetProperties(0);
+    p_model_part_properties->SetValue(CONSTITUTIVE_LAW, p_dummy_law);
+
+    auto  p_element    = make_intrusive<StubElement>();
+    p_element->SetProperties(p_model_part_properties);
+    result.AddElement(p_element);
 
     return result;
 }
@@ -110,7 +110,7 @@ namespace Kratos::Testing
 {
 
 KRATOS_TEST_CASE_IN_SUITE(AllElementsConsiderDiagonalEntriesOnlyAndNoShearWhenUseStandardProcedureFlagIsNotDefined,
-                          KratosGeoMechanicsFastSuite)
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
     auto& r_model_part = PrepareTestModelPart(model);
@@ -120,11 +120,11 @@ KRATOS_TEST_CASE_IN_SUITE(AllElementsConsiderDiagonalEntriesOnlyAndNoShearWhenUs
     ApplyK0ProcedureProcess process{r_model_part, k0_settings};
     process.ExecuteInitialize();
 
-    KRATOS_EXPECT_TRUE(boost::algorithm::all_of(r_model_part.Elements(), ElementConsidersDiagonalEntriesOnlyAndNoShear))
+    KRATOS_EXPECT_TRUE(ElementConsidersDiagonalEntriesOnlyAndNoShear(r_model_part.Elements()[0]))
 }
 
 KRATOS_TEST_CASE_IN_SUITE(AllElementsConsiderDiagonalEntriesOnlyAndNoShearWhenUsingStandardProcedure,
-                          KratosGeoMechanicsFastSuite)
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
     auto& r_model_part = PrepareTestModelPart(model);
@@ -134,11 +134,11 @@ KRATOS_TEST_CASE_IN_SUITE(AllElementsConsiderDiagonalEntriesOnlyAndNoShearWhenUs
     ApplyK0ProcedureProcess process{r_model_part, k0_settings};
     process.ExecuteInitialize();
 
-    KRATOS_EXPECT_TRUE(boost::algorithm::all_of(r_model_part.Elements(), ElementConsidersDiagonalEntriesOnlyAndNoShear))
+    KRATOS_EXPECT_TRUE(ElementConsidersDiagonalEntriesOnlyAndNoShear(r_model_part.Elements()[0]))
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NoneOfElementsConsiderDiagonalEntriesOnlyAndNoShearWhenNotUsingStandardProcedure,
-                          KratosGeoMechanicsFastSuite)
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
     auto& r_model_part = PrepareTestModelPart(model);
@@ -148,10 +148,10 @@ KRATOS_TEST_CASE_IN_SUITE(NoneOfElementsConsiderDiagonalEntriesOnlyAndNoShearWhe
     ApplyK0ProcedureProcess process{r_model_part, k0_settings};
     process.ExecuteInitialize();
 
-    KRATOS_EXPECT_TRUE(boost::algorithm::none_of(r_model_part.Elements(), ElementConsidersDiagonalEntriesOnlyAndNoShear))
+    KRATOS_EXPECT_FALSE(ElementConsidersDiagonalEntriesOnlyAndNoShear(r_model_part.Elements()[0]))
 }
 
-KRATOS_TEST_CASE_IN_SUITE(UseStandardProcedureFlagIsInEffectDuringProcessExecutionOnly, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(UseStandardProcedureFlagIsInEffectDuringProcessExecutionOnly, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
     auto& r_model_part = PrepareTestModelPart(model);
@@ -162,7 +162,7 @@ KRATOS_TEST_CASE_IN_SUITE(UseStandardProcedureFlagIsInEffectDuringProcessExecuti
     process.ExecuteInitialize(); // start considering diagonal entries only and no shear
     process.ExecuteFinalize();   // stop considering diagonal entries only and no shear
 
-    KRATOS_EXPECT_TRUE(boost::algorithm::none_of(r_model_part.Elements(), ElementConsidersDiagonalEntriesOnlyAndNoShear))
+    KRATOS_EXPECT_FALSE(ElementConsidersDiagonalEntriesOnlyAndNoShear(r_model_part.Elements()[0]))
 }
 
 KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithK0_NC, KratosGeoMechanicsFastSuiteWithoutKernel)
