@@ -281,10 +281,11 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsTheExpectedLeftHan
     p_element->GetProperties().SetValue(DYNAMIC_VISCOSITY, 1.0E-2);
     p_element->SetValue(PIPE_HEIGHT, 1.0E-1);
     // Set gravity perpendicular to the line ( so no fluid body flow vector from this )
+    const auto gravity_acceleration = array_1d<double, 3>{0.0, -10.0, 0.0};
     p_element->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION) =
-        array_1d<double, 3>{0.0, -10.0, 0.0};
+        gravity_acceleration;
     p_element->GetGeometry()[1].FastGetSolutionStepValue(VOLUME_ACCELERATION) =
-        array_1d<double, 3>{0.0, -10.0, 0.0};
+        gravity_acceleration;
     // Create a head gradient of -10.
     p_element->GetGeometry()[0].FastGetSolutionStepValue(WATER_PRESSURE) = 10.0;
     p_element->GetGeometry()[1].FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
@@ -343,10 +344,11 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsEquilibriumHeightF
     p_element->GetProperties().SetValue(DENSITY_WATER, 1.0E3);
     p_element->GetProperties().SetValue(DYNAMIC_VISCOSITY, 1.0E-2);
     // Set gravity perpendicular to the line ( so no fluid body flow vector from this )
+    const auto gravity_acceleration = array_1d<double, 3>{0.0, -10.0, 0.0};
     p_element->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION) =
-        array_1d<double, 3>{0.0, -10.0, 0.0};
+        gravity_acceleration;
     p_element->GetGeometry()[1].FastGetSolutionStepValue(VOLUME_ACCELERATION) =
-        array_1d<double, 3>{0.0, -10.0, 0.0};
+        gravity_acceleration;
     // Create a head gradient of 0.
     p_element->GetGeometry()[0].FastGetSolutionStepValue(WATER_PRESSURE) = -10.0;
     p_element->GetGeometry()[1].FastGetSolutionStepValue(WATER_PRESSURE) = -10.0;
@@ -393,16 +395,18 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsPipeActive, Kratos
 
     p_element->SetValue(PIPE_ACTIVE, false);
 
-    std::vector<bool> pipe_active(
-        p_element->GetGeometry().IntegrationPointsNumber(p_element->GetIntegrationMethod()));
-    p_element->CalculateOnIntegrationPoints(PIPE_ACTIVE, pipe_active, dummy_process_info);
+    std::vector<bool> pipe_active_states;
+    p_element->CalculateOnIntegrationPoints(PIPE_ACTIVE, pipe_active_states, dummy_process_info);
     // Assert
-    KRATOS_EXPECT_FALSE(pipe_active[0])
+    KRATOS_EXPECT_EQ(pipe_active_states.size(), 2);
+    KRATOS_EXPECT_FALSE(pipe_active_states[0])
+    KRATOS_EXPECT_FALSE(pipe_active_states[1])
 
     p_element->SetValue(PIPE_ACTIVE, true);
-    p_element->CalculateOnIntegrationPoints(PIPE_ACTIVE, pipe_active, dummy_process_info);
+    p_element->CalculateOnIntegrationPoints(PIPE_ACTIVE, pipe_active_states, dummy_process_info);
     // Assert
-    KRATOS_EXPECT_TRUE(pipe_active[0])
+    KRATOS_EXPECT_TRUE(pipe_active_states[0])
+    KRATOS_EXPECT_TRUE(pipe_active_states[1])
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsPipeHeight, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -416,14 +420,14 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsPipeHeight, Kratos
     auto  p_element =
         CreateHorizontalUnitLengthGeoSteadyStatePwPipingElementWithPWDofs(r_model_part, p_properties);
 
-    const double pipe_height = 1.234E-5;
+    constexpr auto pipe_height = 1.234E-5;
     p_element->SetValue(PIPE_HEIGHT, pipe_height);
 
-    std::vector<double> pipe_heights(
-        p_element->GetGeometry().IntegrationPointsNumber(p_element->GetIntegrationMethod()));
+    std::vector<double> pipe_heights;
     p_element->CalculateOnIntegrationPoints(PIPE_HEIGHT, pipe_heights, dummy_process_info);
 
     // Assert
+    KRATOS_EXPECT_EQ(pipe_heights.size(), 2);
     KRATOS_EXPECT_DOUBLE_EQ(pipe_heights[0], pipe_height);
 }
 
@@ -438,16 +442,17 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsPermeabilityMatrix
     auto  p_element =
         CreateHorizontalUnitLengthGeoSteadyStatePwPipingElementWithPWDofs(r_model_part, p_properties);
 
-    const double pipe_height = 1.E-1;
+    constexpr auto pipe_height = 1.E-1;
     p_element->SetValue(PIPE_HEIGHT, pipe_height);
 
-    std::vector<Matrix> permeability_matrices(
-        p_element->GetGeometry().IntegrationPointsNumber(p_element->GetIntegrationMethod()));
+    std::vector<Matrix> permeability_matrices;
     p_element->CalculateOnIntegrationPoints(PERMEABILITY_MATRIX, permeability_matrices, dummy_process_info);
 
     // Assert
+    KRATOS_EXPECT_EQ(permeability_matrices.size(), 2);
     KRATOS_EXPECT_DOUBLE_EQ(permeability_matrices[0](0, 0), std::pow(pipe_height, 3) / 12.0);
 
+    permeability_matrices.clear();
     p_element->CalculateOnIntegrationPoints(LOCAL_PERMEABILITY_MATRIX, permeability_matrices, dummy_process_info);
 
     // Assert
@@ -476,10 +481,11 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsFluidFluxVector, K
     p_element->GetProperties().SetValue(PIPE_D_70, 7.e-3);
 
     // Set gravity perpendicular to the line ( so no fluid body flow vector from this )
+    const auto gravity_acceleration = array_1d<double, 3>{0.0, -10.0, 0.0};
     p_element->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION) =
-        array_1d<double, 3>{0.0, -10.0, 0.0};
+        gravity_acceleration;
     p_element->GetGeometry()[1].FastGetSolutionStepValue(VOLUME_ACCELERATION) =
-        array_1d<double, 3>{0.0, -10.0, 0.0};
+        gravity_acceleration;
     // Create a head gradient of -10/(density_water*|volume_acceleration|) = -1.E-3.
     p_element->GetGeometry()[0].FastGetSolutionStepValue(WATER_PRESSURE) = -10.0;
     p_element->GetGeometry()[1].FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
@@ -487,14 +493,15 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsFluidFluxVector, K
     p_element->SetValue(PIPE_HEIGHT, 1.0E-1);
 
     // Act
-    std::vector<array_1d<double, 3>> fluid_fluxes(
-        p_element->GetGeometry().IntegrationPointsNumber(p_element->GetIntegrationMethod()));
+    std::vector<array_1d<double, 3>> fluid_fluxes;
     p_element->CalculateOnIntegrationPoints(LOCAL_FLUID_FLUX_VECTOR, fluid_fluxes, dummy_process_info);
 
     // Assert
+    KRATOS_EXPECT_EQ(fluid_fluxes.size(), 2);
     KRATOS_EXPECT_DOUBLE_EQ(fluid_fluxes[0](0), 1.E-3 * 0.1 / 12.0);
 
     // element tangetial axis is opposite global X, so global flux has negative X component
+    fluid_fluxes.clear();
     p_element->CalculateOnIntegrationPoints(FLUID_FLUX_VECTOR, fluid_fluxes, dummy_process_info);
     KRATOS_EXPECT_DOUBLE_EQ(fluid_fluxes[0](0), -1.E-3 * 0.1 / 12.0);
 }
