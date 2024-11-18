@@ -200,83 +200,140 @@ namespace Kratos
 
         // Assembly
 
-        //Matrix B = ZeroMatrix(3,mat_size);
-
-        //CalculateB(B, DN_DX);
-
         Matrix DB = prod(r_D,B);
         double integration_factor = IntToReferenceWeight;
-        // KRATOS_WATCH(GP_parameter_coord)
-        for (IndexType i = 0; i < number_of_nodes; i++) {
-            for (IndexType j = 0; j < number_of_nodes; j++) {
-                
-                for (IndexType idim = 0; idim < 2; idim++) {
-                    const int id1 = 2*idim;
-                    const int iglob = 2*i+idim;
 
-                    rLeftHandSideMatrix(2*i+idim, 2*j+idim) -= H(0,i)*H(0,j)* penalty_integration;
-
-                    // KRATOS_WATCH(iglob)
-                    // KRATOS_WATCH(H(0,j))
-
-                    for (IndexType jdim = 0; jdim < 2; jdim++) {
-                        const int id2 = (id1+2)%3;
-                        const int jglob = 2*j+jdim;
-                        rLeftHandSideMatrix(iglob, jglob) -= H(0,i)*(DB(id1, jglob)* normal_physical_space[0] + DB(id2, jglob)* normal_physical_space[1]) * integration_factor;
-
-                        rLeftHandSideMatrix(iglob, jglob) -= Guglielmo_innovation*H(0,j)*(DB(id1, 2*i+jdim)* normal_physical_space[0] + DB(id2, 2*i+jdim)* normal_physical_space[1]) * integration_factor;
-                    }
-
-                }
-            }
-        }
-        // KRATOS_WATCH(summ)
-        // KRATOS_WATCH("-----------------------------")
-        
-        
-        if (CalculateResidualVectorFlag) {
-            
-            // const double& temperature = Has(TEMPERATURE)
-            //     ? this->GetValue(TEMPERATURE)
-            //     : 0.0;
-            
-            Vector u_D = ZeroVector(2); //->GetValue(DISPLACEMENT);
-            
-            // double x = GP_parameter_coord[0];
-            // double y = GP_parameter_coord[1];
-
-            // u_D[0] = -cos(x)*sinh(y);
-            // u_D[1] = sin(x)*cosh(y);
-
-            u_D[0] = this->GetValue(DISPLACEMENT_X);
-            u_D[1] = this->GetValue(DISPLACEMENT_Y);
+        if (this->Has(DIRECTION)){
+            // ASSIGN BC BY DIRECTION
+            //--------------------------------------------------------------------------------------------
+            Vector direction = this->GetValue(DIRECTION);
 
             for (IndexType i = 0; i < number_of_nodes; i++) {
+                for (IndexType j = 0; j < number_of_nodes; j++) {
+                    
+                    for (IndexType idim = 0; idim < 2; idim++) {
+                        const int iglob = 2*i+idim;
 
-                for (IndexType idim = 0; idim < 2; idim++) {
+                        for (IndexType jdim = 0; jdim < 2; jdim++) {
+                            const int jglob = 2*j+jdim;
 
-                    rRightHandSideVector[2*i+idim] -= H(0,i)*u_D[idim]* penalty_integration;
-                    const int id1 = idim*2;
+                            // PENALTY TERM
+                            rLeftHandSideMatrix(iglob, jglob) -= H(0,i)*H(0,j)* penalty_integration * direction[idim] * direction[jdim];
 
-                    for (IndexType jdim = 0; jdim < 2; jdim++) {
-                        const int id2 = (id1+2)%3;
-                        rRightHandSideVector(2*i+idim) -= Guglielmo_innovation*u_D[jdim]*(DB(id1, 2*i+jdim)* normal_physical_space[0] + DB(id2, 2*i+jdim)* normal_physical_space[1]) * integration_factor;
+                             // FLUX 
+                            // [sigma(u) \dot n] \dot n * (-w \dot n)
+                            //*********************************************** */
+                            Vector sigma_u_n = ZeroVector(3);
+                            sigma_u_n[0] = DB(0, jglob)*normal_physical_space[0] + DB(2, jglob)*normal_physical_space[1];
+                            sigma_u_n[1] = DB(2, jglob)*normal_physical_space[0] + DB(1, jglob)*normal_physical_space[1];
+
+                            double sigma_u_n_dot_direction = inner_prod(sigma_u_n, direction);
+
+                            rLeftHandSideMatrix(iglob, jglob) -= H(0,i) * sigma_u_n_dot_direction * direction[idim] * integration_factor;
+
+                            // // PENALTY FREE g_n = 0
+                            // // [\sigma_1(w) \dot n] \dot n (-u_1 \dot n)
+                            // //*********************************************** */
+                            Vector sigma_w_n = ZeroVector(3);
+                            sigma_w_n[0] = (DB(0, iglob)* normal_physical_space[0] + DB(2, iglob)* normal_physical_space[1]);
+                            sigma_w_n[1] = (DB(2, iglob)* normal_physical_space[0] + DB(1, iglob)* normal_physical_space[1]);
+
+                            double sigma_w_n_dot_direction = inner_prod(sigma_w_n, direction);
+
+                            rLeftHandSideMatrix(iglob, jglob) -= Guglielmo_innovation*H(0,j) * sigma_w_n_dot_direction * direction[jdim] * integration_factor;
+                        }
+
                     }
-
                 }
+            }
 
+            if (CalculateResidualVectorFlag) {
+                
+                double displacement_module = this->GetValue(MODULE);
+                
+                for (IndexType i = 0; i < number_of_nodes; i++) {
 
+                    for (IndexType idim = 0; idim < 2; idim++) {
+                        const int iglob = 2*i+idim;
+
+                        rRightHandSideVector(iglob) -= H(0,i) * direction[idim] * displacement_module * penalty_integration;
+
+                        // // PENALTY FREE g_n = 0
+                        // // rhs -> [\sigma_1(w) \dot n] \dot n (-g_{n,0})
+                        // //*********************************************** */
+                        Vector sigma_w_n = ZeroVector(3);
+                        sigma_w_n[0] = (DB(0, iglob)* normal_physical_space[0] + DB(2, iglob)* normal_physical_space[1]);
+                        sigma_w_n[1] = (DB(2, iglob)* normal_physical_space[0] + DB(1, iglob)* normal_physical_space[1]);
+
+                        double sigma_w_n_dot_n = inner_prod(sigma_w_n, direction);
+
+                        rRightHandSideVector(iglob) -= Guglielmo_innovation*sigma_w_n_dot_n * integration_factor *displacement_module;
+
+                    }
+                }
+            }
+        }
+        else {
+            // ASSIGN BC BY COMPONENTS 
+            //--------------------------------------------------------------------------------------------
+            for (IndexType i = 0; i < number_of_nodes; i++) {
+                for (IndexType j = 0; j < number_of_nodes; j++) {
+                    
+                    for (IndexType idim = 0; idim < 2; idim++) {
+                        const int id1 = 2*idim;
+                        const int iglob = 2*i+idim;
+
+                        rLeftHandSideMatrix(2*i+idim, 2*j+idim) -= H(0,i)*H(0,j)* penalty_integration;
+
+                        for (IndexType jdim = 0; jdim < 2; jdim++) {
+                            const int id2 = (id1+2)%3;
+                            const int jglob = 2*j+jdim;
+                            rLeftHandSideMatrix(iglob, jglob) -= H(0,i)*(DB(id1, jglob)* normal_physical_space[0] + DB(id2, jglob)* normal_physical_space[1]) * integration_factor;
+
+                            rLeftHandSideMatrix(iglob, jglob) -= Guglielmo_innovation*H(0,j)*(DB(id1, 2*i+jdim)* normal_physical_space[0] + DB(id2, 2*i+jdim)* normal_physical_space[1]) * integration_factor;
+                        }
+
+                    }
+                }
             }
             
-            Vector temp = ZeroVector(number_of_nodes);
+            if (CalculateResidualVectorFlag) {
+                
+                Vector u_D = ZeroVector(2); //->GetValue(DISPLACEMENT);
+                
+                // double x = GP_parameter_coord[0];
+                // double y = GP_parameter_coord[1];
 
-            GetValuesVector(temp);
+                u_D[0] = this->GetValue(DISPLACEMENT_X);
+                u_D[1] = this->GetValue(DISPLACEMENT_Y);
 
-            // RHS = ExtForces - K*temp;
-            noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);
-            
-            // exit(0);
+                for (IndexType i = 0; i < number_of_nodes; i++) {
+
+                    for (IndexType idim = 0; idim < 2; idim++) {
+
+                        rRightHandSideVector[2*i+idim] -= H(0,i)*u_D[idim]* penalty_integration;
+                        const int id1 = idim*2;
+
+                        for (IndexType jdim = 0; jdim < 2; jdim++) {
+                            const int id2 = (id1+2)%3;
+                            rRightHandSideVector(2*i+idim) -= Guglielmo_innovation*u_D[jdim]*(DB(id1, 2*i+jdim)* normal_physical_space[0] + DB(id2, 2*i+jdim)* normal_physical_space[1]) * integration_factor;
+                        }
+
+                    }
+
+
+                }
+            }
         }
+            
+        Vector temp = ZeroVector(number_of_nodes);
+
+        GetValuesVector(temp);
+
+        // RHS = ExtForces - K*temp;
+        noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);
+        
+        // exit(0);
         KRATOS_CATCH("")
     }
 

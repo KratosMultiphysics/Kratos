@@ -208,6 +208,8 @@ namespace Kratos
 
         void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
+        array_1d<double, 3> GetNormalOnDeformed();
+
         struct ConstitutiveVariables
     {
         ConstitutiveLaw::StrainVectorType StrainVector;

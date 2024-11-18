@@ -521,26 +521,25 @@ namespace Kratos
                         const int id1 = idim*2;
                         const int iglob = 2*i+idim;
 
-                        // for (IndexType jdim = 0; jdim < 2; jdim++) {
-                        //     const int id2 = (id1+2)%3;
+                        // // PENALTY FREE g_n = 0
+                        // // rhs -> [\sigma_1(w) \dot n] \dot n (-g_{n,0})
+                        // //*********************************************** */
+                        Vector sigma_w_n(2);
+                        sigma_w_n[0] = (DB_master(0, iglob)* normal_physical_space[0] + DB_master(2, iglob)* normal_physical_space[1]);
+                        sigma_w_n[1] = (DB_master(2, iglob)* normal_physical_space[0] + DB_master(1, iglob)* normal_physical_space[1]);
 
-                            // // PENALTY FREE g_n = 0
-                            // // rhs -> [\sigma_1(w) \dot n] \dot n (-g_{n,0})
-                            // //*********************************************** */
-                            Vector sigma_w_n(2);
-                            sigma_w_n[0] = (DB_master(0, iglob)* normal_physical_space[0] + DB_master(2, iglob)* normal_physical_space[1]);
-                            sigma_w_n[1] = (DB_master(2, iglob)* normal_physical_space[0] + DB_master(1, iglob)* normal_physical_space[1]);
+                        double sigma_w_n_dot_n = inner_prod(sigma_w_n, normal_physical_space);
+                        // double sigma_w_n_dot_n = sigma_w_n[idim] * normal_physical_space[idim];
 
-                            double sigma_w_n_dot_n = inner_prod(sigma_w_n, normal_physical_space);
-                            // double sigma_w_n_dot_n = sigma_w_n[idim] * normal_physical_space[idim];
-
-                            rRightHandSideVector(iglob) -= Guglielmo_innovation*sigma_w_n_dot_n * IntToReferenceWeight *normal_gap;
-                                                            //  * gn[jdim];
+                        rRightHandSideVector(iglob) -= Guglielmo_innovation*sigma_w_n_dot_n * IntToReferenceWeight *normal_gap;
+                                                        //  * gn[jdim];
 
 
                                             
 
 
+                        // for (IndexType jdim = 0; jdim < 2; jdim++) {
+                        //     const int id2 = (id1+2)%3;
 
                             // double sigma_n_w_dot_n = 0.0;
                             // double sigma_n_w_dot_tau = 0.0;

@@ -428,35 +428,6 @@ public:
         }
     }
 
-    ///Get normal on deformed configuration
-    // static void GetNormalOnDeformed(GeometryType &rGeometry, CoordinatesArrayType& slavePointLocalCoord, )
-    // {
-    //     CoordinatesArrayType old_normal = rGeometry.Normal(slavePointLocalCoord);
-
-    //     // GET DERIVATIVES
-
-    //     IntegrationPoint<1> integrationPointSlave(slavePointLocalCoord[0]);
-    //     std::vector<CoordinatesArrayType> global_space_derivatives(2);
-
-    //     rGeometry.GlobalSpaceDerivatives( global_space_derivatives, integrationPointSlave, 1);
-
-    //     std::vector<CoordinatesArrayType> displacement_derivatives;
-    //     // CoordinatesArrayType displacement;
-    //     // GetDisplacementDerivatives(rpNurbsSurfacePaired, global_space_derivatives[0], 1, displacement, displacement_derivatives); 
-
-    //     GetDisplacementDerivativesOnCurve(rpNurbsSurfacePaired, global_space_derivatives[0], 1, displacement_derivatives,
-    //                                       global_space_derivatives); //get [du/dt, dv/dt]
-
-        
-    //     Vector displacement_normal_contribution = ZeroVector(2); 
-    //     displacement_normal_contribution[0] = displacement_derivatives[1][1];
-    //     displacement_normal_contribution[1] = -displacement_derivatives[1][0];
-
-
-    //     CoordinatesArrayType new_normal = (old_normal + displacement_normal_contribution)/ norm_2((old_normal + displacement_normal_contribution));
-
-    // }
-
 
     ///@name Projection functionalaties
     ///@{
@@ -481,34 +452,40 @@ public:
         // GET DERIVATIVES
 
         IntegrationPoint<1> integrationPointParent(parentPointLocalCoord[0]);
-        std::vector<CoordinatesArrayType> global_space_derivatives(3);
+        std::vector<CoordinatesArrayType> local_space_derivatives(3);
         // CoordinatesArrayType param_coordinates(2);
 
-        parent_geometry.LocalSpaceDerivatives( global_space_derivatives, integrationPointParent, 1);
+        parent_geometry.LocalSpaceDerivatives( local_space_derivatives, integrationPointParent, 1);
 
+        std::vector<CoordinatesArrayType> surface_global_space_derivatives(2);
+        rpNurbsSurfaceParent->GlobalSpaceDerivatives(surface_global_space_derivatives, parentPointParamCoord,2);
+
+        Matrix Jacobian = ZeroMatrix(2,2);
+        Jacobian(0,0) = surface_global_space_derivatives[1][0];
+        Jacobian(0,1) = surface_global_space_derivatives[2][0];
+        Jacobian(1,0) = surface_global_space_derivatives[1][1];
+        Jacobian(1,1) = surface_global_space_derivatives[2][1];
+
+        Vector tangent_undeformed_physical(2); 
+        tangent_undeformed_physical[0] = local_space_derivatives[1][0]; tangent_undeformed_physical[1] = local_space_derivatives[1][1];
+
+
+        tangent_undeformed_physical = prod(Jacobian,tangent_undeformed_physical);
+
+        //***** */
 
         std::vector<Vector> displacement_derivatives;
-        // CoordinatesArrayType displacement;
-        // GetDisplacementDerivatives(rpNurbsSurfacePaired, global_space_derivatives[0], 1, displacement, displacement_derivatives); 
 
         GetDisplacementDerivativesOnCurve(rpNurbsSurfaceParent, parentPointParamCoord, 1, displacement_derivatives,
-                                          global_space_derivatives); //get [du/dt, dv/dt]
+                                          local_space_derivatives); //get [du/dt, dv/dt]
 
-        Vector displacement_normal_contribution = ZeroVector(3); 
-        displacement_normal_contribution[0] = displacement_derivatives[1][1];
-        displacement_normal_contribution[1] = -displacement_derivatives[1][0];
-        displacement_normal_contribution[2] = 0.0;
+        Vector normal_physical_deformed = ZeroVector(3); 
+        normal_physical_deformed[0] = displacement_derivatives[1][1] + tangent_undeformed_physical[1];
+        normal_physical_deformed[1] = -(displacement_derivatives[1][0] + tangent_undeformed_physical[0]);
+        normal_physical_deformed[2] = 0.0;
 
+        CoordinatesArrayType new_normal = (normal_physical_deformed)/ norm_2(normal_physical_deformed);
 
-        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        // CIRCLE CAREFUL TO CHANGE FOR CIRCLE 
-        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        // if (parentPointGlobalCoord[0] < 5.0 + 1e-12) displacement_normal_contribution = -displacement_normal_contribution;
-
-
-        CoordinatesArrayType new_normal = (old_normal + displacement_normal_contribution)/ norm_2((old_normal + displacement_normal_contribution));
-        
-        // new_normal = old_normal;
 
         parentPointGlobalCoord_updated = parentPointGlobalCoord + displacement_derivatives[0];
 
@@ -919,7 +896,7 @@ public:
                                               const BrepCurveOnSurfaceArrayType& rPairedGeometryList,
                                               const CoordinatesArrayType& rParentPointLocal,
                                               CoordinatesArrayType& ProjectionOnPairedGeometry,
-                                              int best_brep_id_slave,
+                                              int &best_brep_id_slave,
                                               int rNumberInitialGuesses = 25,
                                               int rMaxIt = 50,
                                               double toll = 1e-9

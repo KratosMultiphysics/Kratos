@@ -149,6 +149,8 @@ public:
         ) override
     {
 
+        return PostCriteria(rModelPart, rDofSet, rA, rDx, rb);
+
         // return(this->PostCriteria(rModelPart, rDofSet, rA, rDx, rb));
     //     KRATOS_ERROR_IF_NOT(mParameters.Has("contact_model_part_name"))
     //         << "Missing \"contact_model_part_name\" section" << std::endl;
@@ -243,7 +245,7 @@ public:
     //                     contact_model_part, name, id, p_prop_master, p_prop_slave);
 
 
-        return true;
+        // return true;
     }
 
     /**
@@ -272,11 +274,15 @@ public:
         int p = (int) sqrt(n_CP);
 
         int n_GP_per_segment = 2*p+1;
-        double toll = 1e-12;
+        // double toll = 1e-2;
+        double toll = 1e-8;
         int n_cond = contact_sub_model_part->Conditions().size(); 
 
         Vector length = ZeroVector(n_cond);
         Vector check_per_segment = ZeroVector(n_cond);
+
+        Vector check_per_segment_stress = ZeroVector(n_cond);
+        Vector check_per_segment_gap = ZeroVector(n_cond);
         int n_changes = 0;
 
         for (auto i_cond(contact_sub_model_part->Conditions().begin()); i_cond != contact_sub_model_part->Conditions().end(); ++i_cond)
@@ -290,7 +296,7 @@ public:
             double weight = i_cond->GetValue(INTEGRATION_WEIGHT);
  
             // KRATOS_WATCH(i_cond->GetProperties()[YOUNG_MODULUS])
-            double yound_modulus = 10.0;
+            double yound_modulus = 100.0;
 
             double true_normal_stress = (normal_stress[0]* normal[0] + normal_stress[2]* normal[1])*normal[0] +
                                       (normal_stress[2]* normal[0] + normal_stress[1]* normal[1])*normal[1];
@@ -301,6 +307,9 @@ public:
 
             length[segment_index] += weight;
             check_per_segment[segment_index] += weight*check_value;
+
+            check_per_segment_stress[segment_index] += weight*(-true_normal_stress);
+            check_per_segment_gap[segment_index] += weight*(-normal_gap);
 
             // if (check_value > toll)
             // {
@@ -327,45 +336,50 @@ public:
         {
             int segment_index = (int) count_cond/n_GP_per_segment;
 
-            if (check_per_segment[segment_index]/length[segment_index] > toll)
-            {
-                // KRATOS_WATCH("STOPPAMI")
-                // if (i_cond->IsNot(ACTIVE)) {
-                //     i_cond->Set(ACTIVE, true);
-                //     n_changes += 1;
-                // }
+            // // OLD VERSION 
+            // if (check_per_segment[segment_index]/length[segment_index] > toll)
+            // {
+            //     if (i_cond->GetValue(ACTIVATION_LEVEL) == 0)
+            //     {
+            //         i_cond->SetValue(ACTIVATION_LEVEL, 1);
+            //         n_changes++;
+            //     }
+            // } else {
+            //     if (i_cond->GetValue(ACTIVATION_LEVEL) == 1)
+            //     {
+            //         i_cond->SetValue(ACTIVATION_LEVEL, 0);
+            //         n_changes++;
+            //     }
+            // }
 
-                if (i_cond->GetValue(ACTIVATION_LEVEL) == 0)
-                {
-                    i_cond->SetValue(ACTIVATION_LEVEL, 1);
-                    n_changes++;
-                }
-            } else {
-                // if (i_cond->Is(ACTIVE)) {
-                //     i_cond->Set(ACTIVE, false);
-                //     n_changes += 1;
-                // }
-    
-                if (i_cond->GetValue(ACTIVATION_LEVEL) == 1)
-                {
-                    i_cond->SetValue(ACTIVATION_LEVEL, 0);
-                    n_changes++;
-                }
+            // NEW VERSION 
+            if (i_cond->GetValue(ACTIVATION_LEVEL) == 0 &&
+                check_per_segment_gap[segment_index]/length[segment_index] > toll)
+            {
+                i_cond->SetValue(ACTIVATION_LEVEL, 1);
+                n_changes++;
+            }
+            else if (i_cond->GetValue(ACTIVATION_LEVEL) == 1 &&
+                check_per_segment_stress[segment_index]/length[segment_index] < -toll)
+            {
+                i_cond->SetValue(ACTIVATION_LEVEL, 0);
+                n_changes++;
             }
 
 
             count_cond++;
 
         }
-
-        double min_percentage_change = 0.01;
-        if (n_changes/n_cond <= min_percentage_change){
-            KRATOS_INFO_IF("ACTIVE SET CRITERION: Convergence achieved", this->GetEchoLevel()>0) << std::endl;
+        double min_percentage_change = 0.0; //0.005; //8/n_cond;
+        double rel_change = (double) n_changes/n_cond;
+        if (rel_change <= min_percentage_change){
+            KRATOS_INFO_IF("ACTIVE SET CRITERION: Convergence achieved", this->GetEchoLevel()>=0)
+            << n_changes << " changes over " << n_cond << " conditions -> CHANGE: " << rel_change << std::endl;
             return true;
         } 
         else{
-            KRATOS_INFO_IF("ACTIVE SET CRITERION: Convergence NOT achieved. -> ", this->GetEchoLevel()>0) 
-            << n_changes << " changes over " << n_cond << " conditions -> CHANGE: " << n_changes/n_cond*100 << std::endl;
+            KRATOS_INFO_IF("ACTIVE SET CRITERION: Convergence NOT achieved. -> ", this->GetEchoLevel()>=0) 
+            << n_changes << " changes over " << n_cond << " conditions -> CHANGE: " << rel_change*100 << "%" << std::endl;
             return false;
         } 
     }

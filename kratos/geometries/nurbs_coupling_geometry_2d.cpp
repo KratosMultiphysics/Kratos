@@ -47,7 +47,7 @@ namespace Kratos
         for (int i_brep_paired = 0; i_brep_paired < spans_paired_list.size(); i_brep_paired++) {
             for (int i = 0; i < spans_paired_list[i_brep_paired].size(); i++) {
                 
-                CoordinatesArrayType locCoord(3); locCoord[0] = spans_paired_list[i_brep_paired][i]+1e-7;
+                CoordinatesArrayType locCoord(3); locCoord[0] = spans_paired_list[i_brep_paired][i]+1e-8;
                 
                 double incumb_distance = 1e16;
                 double projection_parameter_in_best_parent_brep;
@@ -88,6 +88,7 @@ namespace Kratos
                 }
             }
         }
+        // exit(0);
 
         // maybe we can do better
         for (int i_brep_parent = 0; i_brep_parent < spans_parent_list.size(); i_brep_parent++) {

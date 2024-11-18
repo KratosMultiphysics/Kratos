@@ -208,7 +208,7 @@ namespace Kratos
                 }
             }
             
-            Vector temp = ZeroVector(number_of_nodes);
+            Vector temp = ZeroVector(dim*number_of_nodes);
 
 
             GetValuesVector(temp);
@@ -336,6 +336,11 @@ namespace Kratos
         const Vector sigma = Values.GetStressVector();
         Vector sigma_n(2);
 
+        array_1d<double, 3> new_normal = GetNormalOnDeformed();
+
+        // sigma_n[0] = sigma[0]*new_normal[0] + sigma[2]*new_normal[1];
+        // sigma_n[1] = sigma[2]*new_normal[0] + sigma[1]*new_normal[1];
+
         sigma_n[0] = sigma[0]*normal_physical_space[0] + sigma[2]*normal_physical_space[1];
         sigma_n[1] = sigma[2]*normal_physical_space[0] + sigma[1]*normal_physical_space[1];
 
@@ -376,6 +381,83 @@ namespace Kratos
             rValues[index] = displacement[0];
             rValues[index + 1] = displacement[1];
         }
+    }
+
+
+    array_1d<double, 3> LoadSolid2DCondition::GetNormalOnDeformed() 
+    {
+        const SizeType dim = 2;
+        const auto& r_geometry = GetGeometry();
+        const SizeType number_of_nodes = r_geometry.size();
+
+        GeometryType::JacobiansType J0;
+        const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
+        r_geometry.Jacobian(J0,this->GetIntegrationMethod());
+
+        double DetJ0_master;
+
+        Matrix Jacobian = ZeroMatrix(3,3);
+        Jacobian(0,0) = J0[0](0,0); Jacobian(0,1) = J0[0](0,1);
+        Jacobian(1,0) = J0[0](1,0); Jacobian(1,1) = J0[0](1,1);
+        Jacobian(2,2) = 1.0;
+
+        Matrix InvJ0 = ZeroMatrix(3,3); double DetJ0;
+        
+        MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
+
+        // Get displacement derivatives
+        Matrix displacement_derivatives = ZeroMatrix(3,3);  //get [[du/dxi, du/deta],
+                                                                //     [dv/dxi, dv/deta]
+        
+        Vector displacement_coefficient(number_of_nodes*dim);
+        GetValuesVector(displacement_coefficient);
+        
+
+        for (IndexType icp = 0; icp < number_of_nodes; icp++) {
+            for (IndexType idim = 0; idim < dim; idim++) {
+                for (IndexType jdim = 0; jdim < dim; jdim++) {
+                    displacement_derivatives(idim,jdim) += DN_De[0](icp, jdim) * displacement_coefficient[icp*dim+idim];
+                } 
+            }
+        }
+
+        array_1d<double, 3> tangent_parameter_space;
+
+        r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space);
+
+        array_1d<double, 3> tangent_physical_deformed = prod((Jacobian + displacement_derivatives), tangent_parameter_space);
+
+        Vector normal_physical_deformed = ZeroVector(3); 
+        normal_physical_deformed[0] = tangent_physical_deformed[1];
+        normal_physical_deformed[1] = -tangent_physical_deformed[0];
+        normal_physical_deformed[2] = 0.0;
+
+        array_1d<double, 3>  new_normal = -(normal_physical_deformed)/ norm_2(normal_physical_deformed);
+
+
+        ////////////////////////////////////////////////////////////////////////
+        // // Compute the normals
+        // array_1d<double, 3> normal_physical_space;
+        // array_1d<double, 3> normal_parameter_space;
+
+        // double magnitude = std::sqrt(tangent_parameter_space[0] * tangent_parameter_space[0] + tangent_parameter_space[1] * tangent_parameter_space[1]);
+        
+        // // NEW FOR GENERAL JACOBIAN
+        // normal_parameter_space[0] = + tangent_parameter_space[1] / magnitude;
+        // normal_parameter_space[1] = - tangent_parameter_space[0] / magnitude;  // By observations on the result of .Calculate(LOCAL_TANGENT
+        // normal_parameter_space[2] = 0.0;
+
+        // normal_physical_space = prod(trans(InvJ0),normal_parameter_space);
+        // normal_physical_space[2] = 0.0;
+
+        // normal_physical_space /= norm_2(normal_physical_space);
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        // SetValue(NORMAL, new_normal);
+
+        // KRATOS_WATCH(new_normal)
+        // KRATOS_WATCH(normal_physical_space)
+        return new_normal;
     }
 
 } // Namespace Kratos

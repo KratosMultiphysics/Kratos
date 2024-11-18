@@ -854,6 +854,7 @@ public:
         array_1d<double, 3> normal_parameter_space;
 
         double magnitude = 1; //std::sqrt(local_tangent[0] * local_tangent[0] + local_tangent[1] * local_tangent[1]);
+
         normal_parameter_space[0] = + local_tangent[1] / magnitude;
         normal_parameter_space[1] = - local_tangent[0] / magnitude; 
         normal_parameter_space[2] = 0;
@@ -875,7 +876,7 @@ public:
         double detJ;
         MathUtils<double>::InvertMatrix(Jacobian,Inv_Jacobian,detJ);
 
-        normal_physical_space = prod(trans(Inv_Jacobian),normal_parameter_space);
+        normal_physical_space = prod(normal_parameter_space, trans(Inv_Jacobian));
         //***** */
         normal_physical_space[2] = 0.0;
 
