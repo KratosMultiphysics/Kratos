@@ -342,7 +342,6 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsEquilibriumHeightF
         CreateHorizontalUnitLengthGeoSteadyStatePwPipingElementWithPWDofs(r_model_part, p_properties);
     p_element->GetProperties().SetValue(DENSITY_WATER, 1.0E3);
     p_element->GetProperties().SetValue(DYNAMIC_VISCOSITY, 1.0E-2);
-    p_element->GetProperties().SetValue(PIPE_HEIGHT, 1.0E-1);
     // Set gravity perpendicular to the line ( so no fluid body flow vector from this )
     p_element->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION) =
         array_1d<double, 3>{0.0, -10.0, 0.0};
@@ -467,7 +466,6 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsFluidFluxVector, K
         CreateHorizontalUnitLengthGeoSteadyStatePwPipingElementWithPWDofs(r_model_part, p_properties);
     p_element->GetProperties().SetValue(DENSITY_WATER, 1.0E3);
     p_element->GetProperties().SetValue(DYNAMIC_VISCOSITY, 1.0E-2);
-    p_element->GetProperties().SetValue(PIPE_HEIGHT, 1.0E-1);
     p_element->GetProperties().SetValue(DENSITY_SOLID, 2.0E3);
     // PIPE_ETA such that multiplication with Pi/3 becomes 1.
     p_element->GetProperties().SetValue(PIPE_ETA, 3.0 / Globals::Pi);

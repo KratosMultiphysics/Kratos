@@ -176,14 +176,14 @@ public:
                 this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
             rValues.resize(number_of_integration_points);
             auto        dynamic_viscosity_inverse = 1.0 / this->GetProperties()[DYNAMIC_VISCOSITY];
-            auto        constitutive_matrix = FillPermeabilityMatrix(this->GetValue(PIPE_HEIGHT));
+            auto        permeability_matrix = FillPermeabilityMatrix(this->GetValue(PIPE_HEIGHT));
             const auto& r_integration_points =
                 this->GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+            const auto head_gradient = CalculateHeadGradient(this->GetProperties(), this->GetGeometry());
+            const auto longitudinal_flux =
+                -dynamic_viscosity_inverse * permeability_matrix(0, 0) * head_gradient;
             for (std::size_t i = 0; i < number_of_integration_points; ++i) {
                 // this should be rotated to the direction of the element for the global fluid flux vector
-                const auto head_gradient = CalculateHeadGradient(this->GetProperties(), this->GetGeometry());
-                const auto longitudinal_flux =
-                    -dynamic_viscosity_inverse * constitutive_matrix(0, 0) * head_gradient;
                 if (rVariable == LOCAL_FLUID_FLUX_VECTOR) {
                     rValues[i][0] = longitudinal_flux;
                     rValues[i][1] = 0.0;
