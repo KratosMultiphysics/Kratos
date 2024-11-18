@@ -10,6 +10,7 @@
 //  Main authors:    Anne van de Graaf
 //
 #include "containers/model.h"
+#include "custom_constitutive/plane_strain.h"
 #include "custom_processes/apply_k0_procedure_process.h"
 #include "geo_mechanics_application_variables.h"
 #include "geo_mechanics_fast_suite.h"
@@ -18,6 +19,8 @@
 #include "test_utilities.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
+#include <custom_constitutive/incremental_linear_elastic_law.h>
+#include <custom_constitutive/three_dimensional.h>
 
 namespace
 {
@@ -422,6 +425,15 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureChecksIfProcessHasCorrectMaterialData, Krat
                                       "K0_MAIN_DIRECTION is not defined for element 1.");
 
     p_element->GetProperties().SetValue(K0_MAIN_DIRECTION, 4);
+
+    p_element->GetProperties().SetValue(
+        CONSTITUTIVE_LAW, std::make_unique<GeoIncrementalLinearElasticLaw>(std::make_unique<PlaneStrain>()));
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(process.Check(),
+                                      "K0_MAIN_DIRECTION should be 0 or 1 for element 1.")
+
+    p_element->GetProperties().SetValue(
+        CONSTITUTIVE_LAW,
+        std::make_unique<GeoIncrementalLinearElasticLaw>(std::make_unique<ThreeDimensional>()));
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(process.Check(),
                                       "K0_MAIN_DIRECTION should be 0, 1 or 2 for element 1.")
 
