@@ -20,6 +20,7 @@
 #include "includes/master_slave_constraint.h"
 #include "constraints/linear_master_slave_constraint.h"
 #include "constraints/slip_constraint.h"
+#include "constraints/link_constraint.h"
 
 namespace Kratos::Python
 {
@@ -150,6 +151,10 @@ void AddConstraintToPython(pybind11::module &m)
         array_1d<double,3>
         >())
     ;
+
+    pybind11::class_<LinkConstraint, LinkConstraint::Pointer, MasterSlaveConstraint>(m, "LinkConstraint")
+        .def(pybind11::init<const IndexType,Node&,Node&,const unsigned>())
+        ;
 }
 
 } // namespace Kratos::Python.
