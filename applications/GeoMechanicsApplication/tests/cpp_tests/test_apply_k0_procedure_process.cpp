@@ -17,10 +17,10 @@
 #include "includes/element.h"
 #include "stub_linear_elastic_law.h"
 #include "test_utilities.h"
-
-#include <boost/numeric/ublas/assignment.hpp>
 #include <custom_constitutive/incremental_linear_elastic_law.h>
 #include <custom_constitutive/three_dimensional.h>
+
+#include <boost/numeric/ublas/assignment.hpp>
 
 namespace
 {
