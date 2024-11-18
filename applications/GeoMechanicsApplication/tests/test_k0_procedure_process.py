@@ -472,5 +472,25 @@ class KratosGeoMechanicsK0ProcedureProcessTests(KratosUnittest.TestCase):
         integration_point = (2, 0)  # far right
         self.assert_stresses_at_integration_point(cauchy_stress_tensors, integration_point, expected_vertical_stress=-22084, expected_horizontal_stress=-11042, rel_tol=0.02)
 
+    def test_k0_procedure_for_3d(self):
+        """
+        Test to check whether the effective stress distribution is in line with regression data.
+        To this end, we test the horizontal, vertical and shear stresses at a selection
+        of integration points (defined as pairs of element IDs and integration point indices).
+        The settings are taken from lysmer_column3d_hexa_in_Z test.
+        """
+        test_path = test_helper.get_file_path(os.path.join("test_k0_procedure_process", "test_k0_procedure_k0_nc_3D"))
+        simulation = test_helper.run_kratos(test_path)
+
+        cauchy_stress_tensors = test_helper.get_on_integration_points(simulation, Kratos.CAUCHY_STRESS_TENSOR)
+
+        # Check the stresses at a few integration points
+        integration_point = (1, 1)  # bottom
+        self.assert_stresses_at_integration_point(cauchy_stress_tensors, integration_point, expected_vertical_stress= -151.0731, expected_horizontal_stress= -151.0731, rel_tol=0.02)
+        integration_point = (10, 1)  # middle
+        self.assert_stresses_at_integration_point(cauchy_stress_tensors, integration_point, expected_vertical_stress=-98.5239, expected_horizontal_stress=-98.5239, rel_tol=0.02)
+        integration_point = (20, 1)  # top
+        self.assert_stresses_at_integration_point(cauchy_stress_tensors, integration_point, expected_vertical_stress=-9.0382, expected_horizontal_stress=-9.0382, rel_tol=0.02)
+
 if __name__ == '__main__':
     KratosUnittest.main()
