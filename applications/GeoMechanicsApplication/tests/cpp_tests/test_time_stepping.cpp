@@ -16,6 +16,8 @@
 #include "geo_mechanics_fast_suite.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 
+#include <gmock/gmock.h>
+
 using namespace Kratos;
 
 namespace
@@ -24,131 +26,41 @@ namespace
 class ProcessSpy : public Process
 {
 public:
-    void ExecuteInitializeSolutionStep() override { ++mSolutionStepInitializedCalls; }
-
-    void ExecuteFinalizeSolutionStep() override { ++mSolutionStepFinalizedCalls; }
-
-    [[nodiscard]] unsigned int NumberOfExecuteInitializeSolutionStepCalls() const
-    {
-        return mSolutionStepInitializedCalls;
-    }
-
-    [[nodiscard]] unsigned int NumberOfExecuteFinalizeSolutionStepCalls() const
-    {
-        return mSolutionStepFinalizedCalls;
-    }
-
-private:
-    unsigned int mSolutionStepInitializedCalls = 0;
-    unsigned int mSolutionStepFinalizedCalls   = 0;
+    MOCK_METHOD(void, ExecuteInitializeSolutionStep, (), (override));
+    MOCK_METHOD(void, ExecuteFinalizeSolutionStep, (), (override));
 };
 
 class DummyStrategyWrapper : public StrategyWrapper
 {
 public:
-    explicit DummyStrategyWrapper(TimeStepEndState::ConvergenceState ConvergenceState)
-        : mConvergenceState(ConvergenceState)
+    DummyStrategyWrapper()
     {
+        ON_CALL(*this, GetNumberOfIterations()).WillByDefault(testing::Return(4));
+        ON_CALL(*this, GetEndTime()).WillByDefault(testing::Return(10.0));
+        ON_CALL(*this, GetTimeIncrement()).WillByDefault(testing::Return(0.0));
+        ON_CALL(*this, GetStepNumber()).WillByDefault(testing::Return(0));
     }
 
-    [[nodiscard]] std::size_t GetNumberOfIterations() const override { return 4; };
-
-    [[nodiscard]] double GetEndTime() const override { return 10.; };
-
-    void SetEndTime(double EndTime) override
-    {
-        // intentionally empty
-    }
-
-    [[nodiscard]] double GetTimeIncrement() const override { return 0.0; }
-
-    void SetTimeIncrement(double TimeIncrement) override
-    {
-        // intentionally empty
-    }
-
-    [[nodiscard]] std::size_t GetStepNumber() const override { return 0; }
-
-    void IncrementStepNumber() override
-    {
-        // intentionally empty
-    }
-
-    void CloneTimeStep() override{
-        // intentionally empty
-    };
-    void RestorePositionsAndDOFVectorToStartOfStep() override{
-        // intentionally empty
-    };
-    void SaveTotalDisplacementFieldAtStartOfTimeLoop() override{
-        // intentionally empty
-    };
-    void AccumulateTotalDisplacementField() override{
-        // intentionally empty
-    };
-    void ComputeIncrementalDisplacementField() override{
-        // intentionally empty
-    };
-    void OutputProcess() override{
-        // intentionally empty
-    };
-
-    void Initialize() override { ++mSolverStrategyInitializeCalls; }
-
-    void InitializeOutput() override
-    {
-        // Intentionally empty
-    }
-
-    void InitializeSolutionStep() override { ++mSolverStrategyInitializeSolutionStepCalls; }
-
-    void Predict() override { ++mSolverStrategyPredictCalls; }
-
-    TimeStepEndState::ConvergenceState SolveSolutionStep() override
-    {
-        ++mSolverStrategySolveSolutionsStepCalls;
-        return mConvergenceState;
-    }
-
-    void FinalizeSolutionStep() override { ++mSolverStrategyFinalizeSolutionStepCalls; }
-
-    [[nodiscard]] unsigned int NumberOfSolverStrategyInitializeCalls() const
-    {
-        return mSolverStrategyInitializeCalls;
-    }
-
-    [[nodiscard]] unsigned int NumberOfSolverStrategyInitializeSolutionStepCalls() const
-    {
-        return mSolverStrategyInitializeSolutionStepCalls;
-    }
-
-    [[nodiscard]] unsigned int NumberOfSolverStrategyPredictCalls() const
-    {
-        return mSolverStrategyPredictCalls;
-    }
-
-    [[nodiscard]] unsigned int NumberOfSolverStrategySolveSolutionStepCalls() const
-    {
-        return mSolverStrategySolveSolutionsStepCalls;
-    }
-
-    [[nodiscard]] unsigned int NumberOfSolverStrategyFinalizeSolutionStepCalls() const
-    {
-        return mSolverStrategyFinalizeSolutionStepCalls;
-    }
-
-    void FinalizeOutput() override
-    {
-        // intentionally empty
-    }
-
-private:
-    TimeStepEndState::ConvergenceState mConvergenceState;
-    unsigned int                       mSolverStrategyInitializeCalls             = 0;
-    unsigned int                       mSolverStrategyInitializeSolutionStepCalls = 0;
-    unsigned int                       mSolverStrategyPredictCalls                = 0;
-    unsigned int                       mSolverStrategySolveSolutionsStepCalls     = 0;
-    unsigned int                       mSolverStrategyFinalizeSolutionStepCalls   = 0;
+    MOCK_METHOD(std::size_t, GetNumberOfIterations, (), (const, override));
+    MOCK_METHOD(double, GetEndTime, (), (const, override));
+    MOCK_METHOD(void, SetEndTime, (double EndTime), (override));
+    MOCK_METHOD(double, GetTimeIncrement, (), (const, override));
+    MOCK_METHOD(void, SetTimeIncrement, (double TimeIncrement), (override));
+    MOCK_METHOD(std::size_t, GetStepNumber, (), (const, override));
+    MOCK_METHOD(void, IncrementStepNumber, (), (override));
+    MOCK_METHOD(void, CloneTimeStep, (), (override));
+    MOCK_METHOD(void, RestorePositionsAndDOFVectorToStartOfStep, (), (override));
+    MOCK_METHOD(void, SaveTotalDisplacementFieldAtStartOfTimeLoop, (), (override));
+    MOCK_METHOD(void, AccumulateTotalDisplacementField, (), (override));
+    MOCK_METHOD(void, ComputeIncrementalDisplacementField, (), (override));
+    MOCK_METHOD(void, OutputProcess, (), (override));
+    MOCK_METHOD(void, Initialize, (), (override));
+    MOCK_METHOD(void, InitializeOutput, (), (override));
+    MOCK_METHOD(void, InitializeSolutionStep, (), (override));
+    MOCK_METHOD(void, Predict, (), (override));
+    MOCK_METHOD(TimeStepEndState::ConvergenceState, SolveSolutionStep, (), (override));
+    MOCK_METHOD(void, FinalizeSolutionStep, (), (override));
+    MOCK_METHOD(void, FinalizeOutput, (), (override));
 };
 
 } // namespace
@@ -159,87 +71,96 @@ namespace Kratos::Testing
 KRATOS_TEST_CASE_IN_SUITE(RunReturnsNonConvergedWhenStrategyDoesNotConverge, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     TimeStepExecutor executor;
-    auto             nonconverging_strategy =
-        std::make_shared<DummyStrategyWrapper>(TimeStepEndState::ConvergenceState::non_converged);
+    auto             nonconverging_strategy = std::make_shared<DummyStrategyWrapper>();
+    EXPECT_CALL(*nonconverging_strategy, SolveSolutionStep())
+        .WillOnce(testing::Return(TimeStepEndState::ConvergenceState::non_converged));
+
     executor.SetSolverStrategy(nonconverging_strategy);
-    const auto time = 0.0;
+    constexpr auto time = 0.0;
     KRATOS_EXPECT_TRUE(executor.Run(time).NonConverged())
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RunReturnsConvergedWhenStrategyConverged, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     TimeStepExecutor executor;
-    auto             converging_strategy =
-        std::make_shared<DummyStrategyWrapper>(TimeStepEndState::ConvergenceState::converged);
+    auto             converging_strategy = std::make_shared<DummyStrategyWrapper>();
+    EXPECT_CALL(*converging_strategy, SolveSolutionStep()).WillOnce(testing::Return(TimeStepEndState::ConvergenceState::converged));
+
     executor.SetSolverStrategy(converging_strategy);
-    const auto time = 0.0;
+    constexpr auto time = 0.0;
     KRATOS_EXPECT_TRUE(executor.Run(time).Converged())
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ProcessMemberFunctionsAllCalledOnce, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     TimeStepExecutor executor;
-    auto             converging_strategy =
-        std::make_shared<DummyStrategyWrapper>(TimeStepEndState::ConvergenceState::converged);
+    auto             converging_strategy = std::make_shared<DummyStrategyWrapper>();
+    EXPECT_CALL(*converging_strategy, SolveSolutionStep()).WillOnce(testing::Return(TimeStepEndState::ConvergenceState::converged));
+
     executor.SetSolverStrategy(converging_strategy);
     auto spy = std::make_shared<ProcessSpy>();
+    EXPECT_CALL(*spy, ExecuteInitializeSolutionStep()).Times(1);
+    EXPECT_CALL(*spy, ExecuteFinalizeSolutionStep()).Times(1);
 
     std::vector<std::shared_ptr<Process>> processes{spy};
     std::vector<std::weak_ptr<Process>>   process_observables{spy};
     executor.SetProcessObservables(process_observables);
-    const auto time = 0.0;
+    constexpr auto time = 0.0;
 
     executor.Run(time);
-
-    KRATOS_EXPECT_EQ(1, spy->NumberOfExecuteInitializeSolutionStepCalls());
-    KRATOS_EXPECT_EQ(1, spy->NumberOfExecuteFinalizeSolutionStepCalls());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SolverStrategyMemberFunctionsAllExceptInitializeAndFinalizeCalledOnce,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     TimeStepExecutor executor;
-    auto             converging_strategy =
-        std::make_shared<DummyStrategyWrapper>(TimeStepEndState::ConvergenceState::converged);
+    auto             converging_strategy = std::make_shared<DummyStrategyWrapper>();
+
     executor.SetSolverStrategy(converging_strategy);
-    const auto time = 0.0;
+    constexpr auto time = 0.0;
+
+    EXPECT_CALL(*converging_strategy, Initialize()).Times(0);
+    EXPECT_CALL(*converging_strategy, InitializeSolutionStep()).Times(1);
+    EXPECT_CALL(*converging_strategy, Predict()).Times(1);
+    EXPECT_CALL(*converging_strategy, SolveSolutionStep()).WillOnce(testing::Return(TimeStepEndState::ConvergenceState::converged));
+    EXPECT_CALL(*converging_strategy, FinalizeSolutionStep()).Times(0);
 
     executor.Run(time);
-
-    KRATOS_EXPECT_EQ(0, converging_strategy->NumberOfSolverStrategyInitializeCalls());
-    KRATOS_EXPECT_EQ(1, converging_strategy->NumberOfSolverStrategyInitializeSolutionStepCalls());
-    KRATOS_EXPECT_EQ(1, converging_strategy->NumberOfSolverStrategyPredictCalls());
-    KRATOS_EXPECT_EQ(1, converging_strategy->NumberOfSolverStrategySolveSolutionStepCalls());
-    KRATOS_EXPECT_EQ(0, converging_strategy->NumberOfSolverStrategyFinalizeSolutionStepCalls());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ConvergingTimeStepExecutionReturnsGivenTime, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     TimeStepExecutor executor;
-    auto             converging_strategy =
-        std::make_shared<DummyStrategyWrapper>(TimeStepEndState::ConvergenceState::converged);
+    auto             converging_strategy = std::make_shared<DummyStrategyWrapper>();
+    EXPECT_CALL(*converging_strategy, SolveSolutionStep()).WillOnce(testing::Return(TimeStepEndState::ConvergenceState::converged));
+
     executor.SetSolverStrategy(converging_strategy);
-    const auto time = 2.0;
+    constexpr auto time = 2.0;
     KRATOS_EXPECT_DOUBLE_EQ(time, executor.Run(time).time);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NonConvergingTimeStepExecutionReturnsGivenTime, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     TimeStepExecutor executor;
-    auto             non_converging_strategy =
-        std::make_shared<DummyStrategyWrapper>(TimeStepEndState::ConvergenceState::non_converged);
+    auto             non_converging_strategy = std::make_shared<DummyStrategyWrapper>();
+    EXPECT_CALL(*non_converging_strategy, SolveSolutionStep())
+        .WillOnce(testing::Return(TimeStepEndState::ConvergenceState::non_converged));
+
     executor.SetSolverStrategy(non_converging_strategy);
-    const auto time = 2.0;
+    constexpr auto time = 2.0;
     KRATOS_EXPECT_DOUBLE_EQ(time, executor.Run(time).time);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TimeStepExecutionReturnsNumberOfIterations, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     TimeStepExecutor executor;
-    auto             converging_strategy =
-        std::make_shared<DummyStrategyWrapper>(TimeStepEndState::ConvergenceState::converged);
+    auto             converging_strategy = std::make_shared<DummyStrategyWrapper>();
+    EXPECT_CALL(*converging_strategy, SolveSolutionStep()).WillOnce(testing::Return(TimeStepEndState::ConvergenceState::converged));
+
+    EXPECT_CALL(*converging_strategy, GetNumberOfIterations()).WillOnce(testing::Return(4));
+
     executor.SetSolverStrategy(converging_strategy);
-    const auto time = 2.0;
+    constexpr auto time = 2.0;
     KRATOS_EXPECT_EQ(4, executor.Run(time).num_of_iterations);
 }
 

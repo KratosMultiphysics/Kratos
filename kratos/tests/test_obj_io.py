@@ -226,6 +226,12 @@ class TestObjIO(KratosUnittest.TestCase):
         obj_name = GetFilePath("auxiliar_files_for_python_unittest/obj_files/cube_degenerated.obj")
         ReadModelPartFromOBJ(self.model_part, obj_name, True)
 
+        clean_settings = KratosMultiphysics.Parameters("""{
+            "model_part_name"    : "Main",
+            "entity_type"        : "condition"
+        }""")
+        KratosMultiphysics.CleanUpProblematicTrianglesModeler(self.current_model, clean_settings).SetupModelPart()
+
         # # Debug
         # debug_vtk(self.model_part)
 
