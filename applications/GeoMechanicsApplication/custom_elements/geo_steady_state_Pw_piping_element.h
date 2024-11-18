@@ -176,9 +176,9 @@ public:
                 this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
             rValues.resize(number_of_integration_points);
             const auto dynamic_viscosity_inverse = 1.0 / this->GetProperties()[DYNAMIC_VISCOSITY];
-            const auto constitutive_matrix = FillPermeabilityMatrix(this->GetValue(PIPE_HEIGHT));
+            const auto permeability_matrix = FillPermeabilityMatrix(this->GetValue(PIPE_HEIGHT));
             auto       local_fluid_flux_vector = array_1d<double, 3>(3, 0.0);
-            local_fluid_flux_vector[0] = -dynamic_viscosity_inverse * constitutive_matrix(0, 0) *
+            local_fluid_flux_vector[0] = -dynamic_viscosity_inverse * permeability_matrix(0, 0) *
                                          CalculateHeadGradient(this->GetProperties(), this->GetGeometry());
             std::fill_n(rValues.begin(), number_of_integration_points, local_fluid_flux_vector);
 

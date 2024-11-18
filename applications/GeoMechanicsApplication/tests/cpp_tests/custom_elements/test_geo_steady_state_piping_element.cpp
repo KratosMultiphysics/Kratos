@@ -394,15 +394,13 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsPipeActive, Kratos
     std::vector<bool> pipe_active_states;
     p_element->CalculateOnIntegrationPoints(PIPE_ACTIVE, pipe_active_states, dummy_process_info);
     // Assert
-    KRATOS_EXPECT_EQ(pipe_active_states.size(), 2);
-    KRATOS_EXPECT_FALSE(pipe_active_states[0])
-    KRATOS_EXPECT_FALSE(pipe_active_states[1])
+    KRATOS_EXPECT_EQ(pipe_active_states, (std::vector<bool>{false, false}));
 
     p_element->SetValue(PIPE_ACTIVE, true);
+    pipe_active_states.clear();
     p_element->CalculateOnIntegrationPoints(PIPE_ACTIVE, pipe_active_states, dummy_process_info);
     // Assert
-    KRATOS_EXPECT_TRUE(pipe_active_states[0])
-    KRATOS_EXPECT_TRUE(pipe_active_states[1])
+    KRATOS_EXPECT_EQ(pipe_active_states, (std::vector<bool>{true, true}));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsPipeHeight, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -423,8 +421,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsPipeHeight, Kratos
     p_element->CalculateOnIntegrationPoints(PIPE_HEIGHT, pipe_heights, dummy_process_info);
 
     // Assert
-    KRATOS_EXPECT_EQ(pipe_heights.size(), 2);
-    KRATOS_EXPECT_DOUBLE_EQ(pipe_heights[0], pipe_height);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(
+        pipe_heights, (std::vector<double>{pipe_height, pipe_height}), Defaults::relative_tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsPermeabilityMatrix, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -446,13 +444,21 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsPermeabilityMatrix
 
     // Assert
     KRATOS_EXPECT_EQ(permeability_matrices.size(), 2);
-    KRATOS_EXPECT_DOUBLE_EQ(permeability_matrices[0](0, 0), std::pow(pipe_height, 3) / 12.0);
+    const auto expected_permeability_matrix = Matrix{1, 1, std::pow(pipe_height, 3) / 12.0};
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(permeability_matrices[0], expected_permeability_matrix,
+                                       Defaults::relative_tolerance);
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(permeability_matrices[1], expected_permeability_matrix,
+                                       Defaults::relative_tolerance);
 
     permeability_matrices.clear();
     p_element->CalculateOnIntegrationPoints(LOCAL_PERMEABILITY_MATRIX, permeability_matrices, dummy_process_info);
 
     // Assert
-    KRATOS_EXPECT_DOUBLE_EQ(permeability_matrices[0](0, 0), std::pow(pipe_height, 3) / 12.0);
+    KRATOS_EXPECT_EQ(permeability_matrices.size(), 2);
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(permeability_matrices[0], expected_permeability_matrix,
+                                       Defaults::relative_tolerance);
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(permeability_matrices[1], expected_permeability_matrix,
+                                       Defaults::relative_tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsFluidFluxVector, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -491,13 +497,19 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsFluidFluxVector, K
     p_element->CalculateOnIntegrationPoints(LOCAL_FLUID_FLUX_VECTOR, fluid_fluxes, dummy_process_info);
 
     // Assert
+    auto expected_fluid_flux_array = array_1d<double, 3>{ZeroVector{3}};
+    expected_fluid_flux_array[0]   = 1.E-3 * 0.1 / 12.0;
     KRATOS_EXPECT_EQ(fluid_fluxes.size(), 2);
-    KRATOS_EXPECT_DOUBLE_EQ(fluid_fluxes[0](0), 1.E-3 * 0.1 / 12.0);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(fluid_fluxes[0], expected_fluid_flux_array, Defaults::relative_tolerance);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(fluid_fluxes[1], expected_fluid_flux_array, Defaults::relative_tolerance);
 
-    // element tangetial axis is opposite global X, so global flux has negative X component
+    // element tangential axis is opposite global X, so global flux has negative X component
     fluid_fluxes.clear();
     p_element->CalculateOnIntegrationPoints(FLUID_FLUX_VECTOR, fluid_fluxes, dummy_process_info);
-    KRATOS_EXPECT_DOUBLE_EQ(fluid_fluxes[0](0), -1.E-3 * 0.1 / 12.0);
+    expected_fluid_flux_array[0] = -1.E-3 * 0.1 / 12.0;
+    KRATOS_EXPECT_EQ(fluid_fluxes.size(), 2);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(fluid_fluxes[0], expected_fluid_flux_array, Defaults::relative_tolerance);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(fluid_fluxes[1], expected_fluid_flux_array, Defaults::relative_tolerance);
 }
 
 } // namespace Kratos::Testing
