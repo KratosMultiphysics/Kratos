@@ -282,10 +282,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsTheExpectedLeftHan
     p_element->SetValue(PIPE_HEIGHT, 1.0E-1);
     // Set gravity perpendicular to the line ( so no fluid body flow vector from this )
     const auto gravity_acceleration = array_1d<double, 3>{0.0, -10.0, 0.0};
-    p_element->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION) =
-        gravity_acceleration;
-    p_element->GetGeometry()[1].FastGetSolutionStepValue(VOLUME_ACCELERATION) =
-        gravity_acceleration;
+    p_element->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_acceleration;
+    p_element->GetGeometry()[1].FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_acceleration;
     // Create a head gradient of -10.
     p_element->GetGeometry()[0].FastGetSolutionStepValue(WATER_PRESSURE) = 10.0;
     p_element->GetGeometry()[1].FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
@@ -345,10 +343,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsEquilibriumHeightF
     p_element->GetProperties().SetValue(DYNAMIC_VISCOSITY, 1.0E-2);
     // Set gravity perpendicular to the line ( so no fluid body flow vector from this )
     const auto gravity_acceleration = array_1d<double, 3>{0.0, -10.0, 0.0};
-    p_element->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION) =
-        gravity_acceleration;
-    p_element->GetGeometry()[1].FastGetSolutionStepValue(VOLUME_ACCELERATION) =
-        gravity_acceleration;
+    p_element->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_acceleration;
+    p_element->GetGeometry()[1].FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_acceleration;
     // Create a head gradient of 0.
     p_element->GetGeometry()[0].FastGetSolutionStepValue(WATER_PRESSURE) = -10.0;
     p_element->GetGeometry()[1].FastGetSolutionStepValue(WATER_PRESSURE) = -10.0;
@@ -482,10 +478,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsFluidFluxVector, K
 
     // Set gravity perpendicular to the line ( so no fluid body flow vector from this )
     const auto gravity_acceleration = array_1d<double, 3>{0.0, -10.0, 0.0};
-    p_element->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION) =
-        gravity_acceleration;
-    p_element->GetGeometry()[1].FastGetSolutionStepValue(VOLUME_ACCELERATION) =
-        gravity_acceleration;
+    p_element->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_acceleration;
+    p_element->GetGeometry()[1].FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_acceleration;
     // Create a head gradient of -10/(density_water*|volume_acceleration|) = -1.E-3.
     p_element->GetGeometry()[0].FastGetSolutionStepValue(WATER_PRESSURE) = -10.0;
     p_element->GetGeometry()[1].FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;

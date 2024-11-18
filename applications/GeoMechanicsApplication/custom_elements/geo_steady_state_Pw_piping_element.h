@@ -175,27 +175,27 @@ public:
             const auto number_of_integration_points =
                 this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
             rValues.resize(number_of_integration_points);
-            const auto  dynamic_viscosity_inverse = 1.0 / this->GetProperties()[DYNAMIC_VISCOSITY];
-            const auto  permeability_matrix = FillPermeabilityMatrix(this->GetValue(PIPE_HEIGHT));
+            const auto dynamic_viscosity_inverse = 1.0 / this->GetProperties()[DYNAMIC_VISCOSITY];
+            const auto constitutive_matrix = FillPermeabilityMatrix(this->GetValue(PIPE_HEIGHT));
+            auto       local_fluid_flux_vector = array_1d<double, 3>(3, 0.0);
+            local_fluid_flux_vector[0] = -dynamic_viscosity_inverse * constitutive_matrix(0, 0) *
+                                         CalculateHeadGradient(this->GetProperties(), this->GetGeometry());
+            std::fill_n(rValues.begin(), number_of_integration_points, local_fluid_flux_vector);
+
+            if (rVariable == LOCAL_FLUID_FLUX_VECTOR) return;
+
+            // For the global fluid flux vector the local fluid flux vector should be rotated to the direction of the element
             const auto& r_integration_points =
                 this->GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
-            const auto head_gradient = CalculateHeadGradient(this->GetProperties(), this->GetGeometry());
-            const auto longitudinal_flux = -dynamic_viscosity_inverse * permeability_matrix(0, 0) * head_gradient;
             for (std::size_t i = 0; i < number_of_integration_points; ++i) {
-                // this should be rotated to the direction of the element for the global fluid flux vector
-                if (rVariable == LOCAL_FLUID_FLUX_VECTOR) {
-                    rValues[i][0] = longitudinal_flux;
-                    rValues[i][1] = 0.0;
-                    rValues[i][2] = 0.0;
-                } else {
-                    Matrix jacobian;
-                    this->GetGeometry().Jacobian(jacobian, r_integration_points[i]);
-                    const auto tangential_vector =
-                        GeoMechanicsMathUtilities::Normalized(Vector{column(jacobian, 0)});
-                    rValues[i][0] = longitudinal_flux * tangential_vector[0];
-                    rValues[i][1] = longitudinal_flux * tangential_vector[1];
-                    rValues[i][2] = longitudinal_flux * tangential_vector[2];
-                }
+                Matrix jacobian;
+                this->GetGeometry().Jacobian(jacobian, r_integration_points[i]);
+                const auto tangential_vector =
+                    GeoMechanicsMathUtilities::Normalized(Vector{column(jacobian, 0)});
+                std::transform(tangential_vector.begin(), tangential_vector.end(),
+                               rValues[i].begin(), [&local_fluid_flux_vector](auto component) {
+                    return component * local_fluid_flux_vector[0];
+                });
             }
         }
     }
@@ -244,8 +244,8 @@ private:
 
     void CheckProperties() const
     {
-        // typical material parameters check, this should be in the check of the constitutive law.
-        // possibly check PIPE_HEIGHT, CROSS_SECTION == 1.0
+        // typical material parameters check, this should be in the check of the constitutive
+        // law. possibly check PIPE_HEIGHT, CROSS_SECTION == 1.0
         CheckProperty(DENSITY_WATER);
         CheckProperty(DYNAMIC_VISCOSITY);
         CheckProperty(PIPE_HEIGHT);
