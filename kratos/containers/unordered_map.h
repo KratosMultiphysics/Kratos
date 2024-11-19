@@ -13,17 +13,18 @@
 #pragma once
 
 // System includes
-#include <unordered_map>
-// TODO: Replace with more suited and advanced implementations
+// #include <unordered_map> // NOTE: STL implementation
 
 // External includes
+#include "ankerl/unordered_dense.h"
 
 // Project includes
 
 namespace Kratos {
 
 template<class T1, class T2>
-using unordered_map = std::unordered_map<T1, T2>;
+using unordered_map = ankerl::unordered_dense::map<T1, T2>;
+// using unordered_map = std::unordered_map<T1, T2>; // NOTE: STL implementation
 
 
 } // namespace Kratos
