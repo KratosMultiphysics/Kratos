@@ -2,7 +2,7 @@
     "problem_data": {
         "problem_name":         "lysmer_column3d_hexa_in_Z",
         "start_time":           0.0,
-        "end_time":             0.3,
+        "end_time":             1.0,
         "echo_level":           1,
         "parallel_type":        "OpenMP",
         "number_of_threads":    1
@@ -19,8 +19,8 @@
             "materials_filename":       "MaterialParameters.json"
         },
         "time_stepping":              {
-            "time_step":                0.01,
-            "max_delta_time_factor":    1000
+            "time_step":                1.0,
+            "max_delta_time_factor":    1
         },
         "buffer_size":                        2,
         "echo_level":                         1,
@@ -30,7 +30,7 @@
         "reform_dofs_at_each_step":           false,
         "nodal_smoothing":                    false,
         "block_builder":                      true,
-        "solution_type":                      "Dynamic",
+        "solution_type":                      "Quasi_Static",
         "scheme_type":                        "Newmark",
         "reset_displacements":                true,
         "newmark_beta":                       0.25,
@@ -39,7 +39,7 @@
         "rayleigh_m":                         0.1,
         "rayleigh_k":                         0.001,
         "strategy_type":                      "newton_raphson",
-        "convergence_criterion":              "displacement_criterion",
+        "convergence_criterion":              "residual_criterion",
         "displacement_relative_tolerance":    1.0E-4,
         "displacement_absolute_tolerance":    1.0E-9,
         "residual_relative_tolerance":        1.0E-4,
@@ -48,7 +48,7 @@
         "water_pressure_absolute_tolerance":  1.0E-9,
         "min_iterations":                     6,
         "max_iterations":                     30,
-        "number_cycles":                      100,
+        "number_cycles":                      1,
         "reduction_factor":                   1,
         "increase_factor":                    1,
         "desired_iterations":                 4,

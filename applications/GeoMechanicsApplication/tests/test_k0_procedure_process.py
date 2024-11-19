@@ -27,6 +27,17 @@ class KratosGeoMechanicsK0ProcedureProcessTests(KratosUnittest.TestCase):
         for integration_point in integration_points:
             self.assert_stresses_at_integration_point(cauchy_stress_tensors, integration_point, expected_horizontal_stress, expected_vertical_stress, rel_tol)
 
+    def compare_stresses_at_integration_point(self, cauchy_stress_tensors, integration_point, k0_nc, rel_tol):
+        """
+        Verifies whether the computed stresses are (nearly) equal to some expected values at the
+        given integration point.  Note that this function assumes there are no shear stresses!
+        """
+        element_id, integration_point_index = integration_point
+        stress_tensor = cauchy_stress_tensors[element_id-1][integration_point_index]
+        z_stress = stress_tensor[2, 2]
+        self.assertIsClose(stress_tensor[0, 0], z_stress*k0_nc, rel_tol=rel_tol, msg=f"X stress at integration point {integration_point_index} of element {element_id}")
+        self.assertIsClose(stress_tensor[1, 1], z_stress*k0_nc, rel_tol=rel_tol, msg=f"Y stress at integration point {integration_point_index} of element {element_id}")
+
     def test_k0_procedure_k0_nc(self):
         """
         Test to check if CAUCHY_STRESS_XX is correctly derived from CAUCHY_STRESS_YY using K0_NC
@@ -484,13 +495,14 @@ class KratosGeoMechanicsK0ProcedureProcessTests(KratosUnittest.TestCase):
 
         cauchy_stress_tensors = test_helper.get_on_integration_points(simulation, Kratos.CAUCHY_STRESS_TENSOR)
 
+        k0_nc = 0.5
         # Check the stresses at a few integration points
         integration_point = (1, 1)  # bottom
-        self.assert_stresses_at_integration_point(cauchy_stress_tensors, integration_point, expected_vertical_stress= -151.0731, expected_horizontal_stress= -151.0731, rel_tol=0.02)
+        self.compare_stresses_at_integration_point(cauchy_stress_tensors, integration_point, k0_nc, rel_tol=0.02)
         integration_point = (10, 1)  # middle
-        self.assert_stresses_at_integration_point(cauchy_stress_tensors, integration_point, expected_vertical_stress=-98.5239, expected_horizontal_stress=-98.5239, rel_tol=0.02)
+        self.compare_stresses_at_integration_point(cauchy_stress_tensors, integration_point, k0_nc, rel_tol=0.02)
         integration_point = (20, 1)  # top
-        self.assert_stresses_at_integration_point(cauchy_stress_tensors, integration_point, expected_vertical_stress=-9.0382, expected_horizontal_stress=-9.0382, rel_tol=0.02)
+        self.compare_stresses_at_integration_point(cauchy_stress_tensors, integration_point, k0_nc, rel_tol=0.02)
 
 if __name__ == '__main__':
     KratosUnittest.main()
