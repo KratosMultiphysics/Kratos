@@ -15,8 +15,8 @@
 #include "includes/code_location.h" // KRATOS_CODE_LOCATION
 
 // STL includes
-#include <optional> // std::optional
 #include <array> // std::array
+#include <memory> // std::unique_ptr
 
 
 namespace Kratos {
@@ -34,11 +34,25 @@ public:
                    Node& rSecond,
                    const unsigned Dimensions);
 
+    LinkConstraint(LinkConstraint&& rRhs) noexcept;
+
+    LinkConstraint(const LinkConstraint& rRhs);
+
+    LinkConstraint& operator=(LinkConstraint&& rRhs) noexcept;
+
+    LinkConstraint& operator=(const LinkConstraint& rRhs);
+
+    ~LinkConstraint();
+
     MasterSlaveConstraint::Pointer Clone(IndexType NewId) const override;
 
     void InitializeSolutionStep(const ProcessInfo& rProcessInfo) override;
 
     void InitializeNonLinearIteration(const ProcessInfo& rProcessInfo) override;
+
+    void ResetSlaveDofs(const ProcessInfo& rProcessInfo) override;
+
+    void Apply(const ProcessInfo& rProcessInfo) override;
 
     void GetDofList(DofPointerVectorType& rSlaves,
                     DofPointerVectorType& rMasters,
@@ -66,7 +80,7 @@ public:
                                           DofPointerVectorType&,
                                           const MatrixType&,
                                           const VectorType&) const override
-    {KRATOS_ERROR << KRATOS_CODE_LOCATION.GetFunctionName() << " is not supported by LinkConstraint.";}
+    {KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not supported by LinkConstraint.";}
 
     MasterSlaveConstraint::Pointer Create(IndexType,
                                           NodeType&,
@@ -75,47 +89,29 @@ public:
                                           const VariableType&,
                                           const double,
                                           const double) const override
-    {KRATOS_ERROR << KRATOS_CODE_LOCATION.GetFunctionName() << " is not supported by LinkConstraint.";}
+    {KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not supported by LinkConstraint.";}
 
     void SetDofList(const DofPointerVectorType&,
                     const DofPointerVectorType&,
                     const ProcessInfo&) override
-    {KRATOS_ERROR << KRATOS_CODE_LOCATION.GetFunctionName() << " is not supported by LinkConstraint.";}
+    {KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not supported by LinkConstraint.";}
 
     void SetSlaveDofsVector(const DofPointerVectorType&) override
-    {KRATOS_ERROR << KRATOS_CODE_LOCATION.GetFunctionName() << " is not supported by LinkConstraint.";}
+    {KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not supported by LinkConstraint.";}
 
     void SetMasterDofsVector(const DofPointerVectorType&) override
-    {KRATOS_ERROR << KRATOS_CODE_LOCATION.GetFunctionName() << " is not supported by LinkConstraint.";}
-
-    void ResetSlaveDofs(const ProcessInfo& rProcessInfo) override
-    {KRATOS_ERROR << KRATOS_CODE_LOCATION.GetFunctionName() << " is not supported by LinkConstraint.";}
+    {KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not supported by LinkConstraint.";}
 
     void SetLocalSystem(const MatrixType&,
                         const VectorType&,
                         const ProcessInfo&) override
-    {KRATOS_ERROR << KRATOS_CODE_LOCATION.GetFunctionName() << " is not supported by LinkConstraint.";}
-
-    void Apply(const ProcessInfo& rProcessInfo) override
-    {KRATOS_ERROR << KRATOS_CODE_LOCATION.GetFunctionName() << " is not supported by LinkConstraint.";}
+    {KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not supported by LinkConstraint.";}
 
     /// @}
 
 private:
-    unsigned mDimensions;
-
-    /// @details MasterSlaveConstraint::GetSlaveDofsVector and MasterSlaveConstraint::GetMasterDofsVector
-    ///          require arrays of mutable Dof pointers, which are only obtainable from mutable nodes,
-    ///          so the nodes pointers stored here cannot be immutable. Risky business.
-    std::optional<std::array<Node*,2>> mNodePair;
-
-    /// @details Unfortunately, the MasterSlaveConstraint interface demands that
-    ///          GetSlaveDofsVector and GetMasterDofsVector returns the array of
-    ///          Dofs by reference, even though those must be computed dynamically
-    ///          by LinkConstraint. As a result, these vectors must be stored as
-    ///          member variables and updated in InitializeNonlinearIteration, instead
-    ///          of being computed on the fly.
-    std::optional<std::array<DofPointerVectorType,2>> mDofVectors; // {slave, masters}
+    struct Impl;
+    std::unique_ptr<Impl> mpImpl;
 }; // class LinkConstraint
 
 
