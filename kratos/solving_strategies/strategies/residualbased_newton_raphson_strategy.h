@@ -788,15 +788,6 @@ class ResidualBasedNewtonRaphsonStrategy
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
         ModelPart& r_model_part = BaseType::GetModelPart();
 
-        KRATOS_WATCH("Inside Newton Raphson InitializeSolutionStep")
-        const int NNodes = static_cast<int>(r_model_part.Nodes().size());
-        auto node_begin = r_model_part.NodesBegin();
-        for(int i = 0; i < NNodes; i++)
-        {
-            auto itNode = node_begin + i;
-            KRATOS_WATCH(*itNode.base())
-        }
-
         // Set up the system, operation performed just once unless it is required
         // to reform the dof set at each iteration
         BuiltinTimer system_construction_time;
@@ -821,9 +812,6 @@ class ResidualBasedNewtonRaphsonStrategy
             KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0) << "System Matrix Resize Time: "
                 << system_matrix_resize_time << std::endl;
         }
-
-        auto& r_dof_set = p_builder_and_solver->GetDofSet();
-        KRATOS_WATCH(r_dof_set)
 
         KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0) << "System Construction Time: "
             << system_construction_time << std::endl;
