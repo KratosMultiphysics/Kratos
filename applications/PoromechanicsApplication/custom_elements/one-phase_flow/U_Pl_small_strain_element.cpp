@@ -41,9 +41,6 @@ int UPlSmallStrainElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentPro
     const PropertiesType& Prop = this->GetProperties();
     const GeometryType& Geom = this->GetGeometry();
 
-    KRATOS_WATCH("Inside Small Strain U_Pl element check. Geom:")
-    KRATOS_WATCH(Geom)
-
     // Base class checks for positive area and Id > 0
     int ierr = Element::Check(rCurrentProcessInfo);
     if(ierr != 0) return ierr;
