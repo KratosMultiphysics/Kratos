@@ -38,7 +38,7 @@ Vector CompressibilityCalculator::RHSContribution(const Matrix& rCompressibility
 
 Matrix CompressibilityCalculator::LHSContribution(const Matrix& rCompressibilityMatrix) const
 {
-    return mInputProvider.GetMatrixScalarFactor()* rCompressibilityMatrix;
+    return mInputProvider.GetMatrixScalarFactor() * rCompressibilityMatrix;
 }
 
 std::pair<Matrix, Vector> CompressibilityCalculator::LocalSystemContribution()
