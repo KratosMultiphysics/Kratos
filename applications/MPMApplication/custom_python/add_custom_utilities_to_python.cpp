@@ -68,7 +68,7 @@ namespace Python{
     void GenerateLagrangeNodes(
         ModelPart& rBackgroundGridModelPart)
     {
-        MPMParticleGeneratorUtility::GenerateLagrangeNodes(rBackgroundGridModelPart);
+        MaterialPointGeneratorUtility::GenerateLagrangeNodes(rBackgroundGridModelPart);
     }
 
     void  AddCustomUtilitiesToPython(pybind11::module& m)

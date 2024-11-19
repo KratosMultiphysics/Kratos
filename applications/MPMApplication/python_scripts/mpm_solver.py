@@ -239,7 +239,7 @@ class MPMSolver(PythonSolver):
             KratosMPM.GenerateMaterialPointCondition(self.grid_model_part, self.initial_mesh_model_part, self.material_point_model_part)
 
             if lagrange_dofs:
-                KratosParticle.GenerateLagrangeNodes(self.grid_model_part)
+                KratosMPM.GenerateLagrangeNodes(self.grid_model_part)
         else:
             self.grid_model_part.ProcessInfo = self.material_point_model_part.ProcessInfo
 
