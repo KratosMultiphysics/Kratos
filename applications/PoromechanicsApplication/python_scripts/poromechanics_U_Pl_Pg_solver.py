@@ -191,14 +191,13 @@ class UPlPgSolver(PythonSolver):
         KratosMultiphysics.Logger.PrintInfo("UPlPgSolver", "Model reading finished.")
 
     def AddDofs(self):
-        ## Solid dofs
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,self.main_model_part)
-        ## Liquid dofs
-        KratosMultiphysics.VariableUtils().AddDof(KratosPoro.LIQUID_PRESSURE, KratosPoro.REACTION_LIQUID_PRESSURE,self.main_model_part)
-        ## Gas dofs
-        KratosMultiphysics.VariableUtils().AddDof(KratosPoro.GAS_PRESSURE, KratosPoro.REACTION_GAS_PRESSURE,self.main_model_part)
+        dofs_and_reactions_to_add = []
+        dofs_and_reactions_to_add.append(["DISPLACEMENT_X", "REACTION_X"])
+        dofs_and_reactions_to_add.append(["DISPLACEMENT_Y", "REACTION_Y"])
+        dofs_and_reactions_to_add.append(["DISPLACEMENT_Z", "REACTION_Z"])
+        dofs_and_reactions_to_add.append(["LIQUID_PRESSURE", "REACTION_LIQUID_PRESSURE"])
+        dofs_and_reactions_to_add.append(["GAS_PRESSURE", "REACTION_GAS_PRESSURE"])
+        KratosMultiphysics.VariableUtils.AddDofsList(dofs_and_reactions_to_add, self.main_model_part)
 
         if(self.settings["solution_type"].GetString() == "implicit_dynamic"):
             for node in self.main_model_part.Nodes:
