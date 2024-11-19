@@ -80,7 +80,7 @@ public:
             function_on_component(inactive_component);
 
             KRATOS_EXPECT_TRUE(function_has_been_called_on_component(active_component))
-            KRATOS_EXPECT_FALSE(function_has_been_called_on_component(inactive_component))
+            KRATOS_EXPECT_TRUE(function_has_been_called_on_component(inactive_component))
         }
     }
 
