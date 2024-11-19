@@ -57,7 +57,7 @@ public:
     }
 
     template <class T>
-    void TestFunctionCalledOnComponent_IsOnlyCalledWhenComponentIsActive()
+    void TestFunctionCalledOnComponent_IsCalledOnActiveAndInactiveElements()
     {
         typename T::EquationIdVectorType r_equation_id_vector;
         ProcessInfo                      r_process_info;
@@ -216,13 +216,13 @@ KRATOS_TEST_CASE_IN_SUITE(FunctionCallsOnAllConditions_AreOnlyCalledForActiveCon
 KRATOS_TEST_CASE_IN_SUITE(FunctionCalledOnCondition_IsOnlyCalledWhenConditionIsActive, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     GeoMechanicsSchemeTester tester;
-    tester.TestFunctionCalledOnComponent_IsOnlyCalledWhenComponentIsActive<SpyCondition>();
+    tester.TestFunctionCalledOnComponent_IsCalledOnActiveAndInactiveElements<SpyCondition>();
 }
 
 KRATOS_TEST_CASE_IN_SUITE(FunctionCalledOnElement_IsOnlyCalledWhenElementIsActive, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     GeoMechanicsSchemeTester tester;
-    tester.TestFunctionCalledOnComponent_IsOnlyCalledWhenComponentIsActive<SpyElement>();
+    tester.TestFunctionCalledOnComponent_IsCalledOnActiveAndInactiveElements<SpyElement>();
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ForInvalidBufferSize_CheckGeoMechanicsTimeIntegrationScheme_Throws,
