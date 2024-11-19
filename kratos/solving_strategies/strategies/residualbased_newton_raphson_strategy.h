@@ -794,8 +794,6 @@ class ResidualBasedNewtonRaphsonStrategy
         for(int i = 0; i < NNodes; i++)
         {
             auto itNode = node_begin + i;
-            KRATOS_WATCH(itNode->Id())
-            KRATOS_WATCH(*itNode)
             KRATOS_WATCH(*itNode.base())
         }
 
