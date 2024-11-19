@@ -215,7 +215,7 @@ class AlgorithmGradientProjection(Algorithm):
 
                 converged &= all([value <= 0.0 for value in self.__constr_value]) 
 
-                self.converged = converged or self.__convergence_criteria.IsMaxIterationsReached()
+                self.converged |=  self.__convergence_criteria.IsMaxIterationsReached()
 
                 self._optimization_problem.AdvanceStep()
 
