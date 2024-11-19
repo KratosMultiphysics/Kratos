@@ -2,6 +2,7 @@ import KratosMultiphysics
 import KratosMultiphysics.CompressiblePotentialFlowApplication as CPFApp
 import math
 from KratosMultiphysics.gid_output_process import GiDOutputProcess
+from KratosMultiphysics.vtk_output_process import VtkOutputProcess
 import time as time
 
 def DotProduct(A,B):
@@ -33,7 +34,8 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             "model_part_name": "",
             "body_model_part_name": "",
             "wake_stl_file_name" : "",
-            "output_wake": false,
+            "gid_output_wake": false,
+            "vtk_output_wake": false,
             "wake_process_cpp_parameters":    {
                 "tolerance"                     : 1e-9,
                 "wake_normal"                   : [0.0,0.0,1.0],
@@ -52,7 +54,8 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
 
         self.model = Model
 
-        self.output_wake = settings["output_wake"].GetBool()
+        self.gid_output_wake = settings["gid_output_wake"].GetBool()
+        self.vtk_output_wake = settings["vtk_output_wake"].GetBool()
         self.wake_process_cpp_parameters = settings["wake_process_cpp_parameters"]
 
         self.epsilon = self.wake_process_cpp_parameters["tolerance"].GetDouble()
@@ -137,7 +140,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             'DefineWakeProcess3D', 'Executing Define3DWakeProcess took ', round(exe_time/60, 2), ' min')
 
         # # Output the wake in GiD for visualization
-        if(self.output_wake):
+        if(self.gid_output_wake or self.vtk_output_wake):
             self.__VisualizeWake()
 
     # This function imports the stl file containing the wake and creates the wake model part out of it.
@@ -201,40 +204,63 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             counter +=1
 
         output_file = "representation_of_wake"
-        gid_output =  GiDOutputProcess(self.wake_model_part,
-                                output_file,
-                                KratosMultiphysics.Parameters("""
-                                    {
-                                        "result_file_configuration": {
-                                            "gidpost_flags": {
-                                                "GiDPostMode": "GiD_PostBinary",
-                                                "WriteDeformedMeshFlag": "WriteUndeformed",
-                                                "WriteConditionsFlag": "WriteConditions",
-                                                "MultiFileFlag": "SingleFile"
-                                            },
-                                            "file_label": "time",
-                                            "output_control_type": "step",
-                                            "output_interval": 1.0,
-                                            "body_output": true,
-                                            "node_output": false,
-                                            "skin_output": false,
-                                            "plane_output": [],
-                                            "nodal_results": [],
-                                            "nodal_nonhistorical_results": ["REACTION_WATER_PRESSURE"],
-                                            "nodal_flags_results": [],
-                                            "gauss_point_results": [],
-                                            "additional_list_files": []
+        if self.gid_output_wake:
+            gid_output =  GiDOutputProcess(self.wake_model_part,
+                                    output_file,
+                                    KratosMultiphysics.Parameters("""
+                                        {
+                                            "result_file_configuration": {
+                                                "gidpost_flags": {
+                                                    "GiDPostMode": "GiD_PostBinary",
+                                                    "WriteDeformedMeshFlag": "WriteUndeformed",
+                                                    "WriteConditionsFlag": "WriteConditions",
+                                                    "MultiFileFlag": "SingleFile"
+                                                },
+                                                "file_label": "time",
+                                                "output_control_type": "step",
+                                                "output_frequency": 1.0,
+                                                "body_output": true,
+                                                "node_output": false,
+                                                "skin_output": false,
+                                                "plane_output": [],
+                                                "nodal_results": [],
+                                                "nodal_nonhistorical_results": ["REACTION_WATER_PRESSURE"],
+                                                "nodal_flags_results": [],
+                                                "gauss_point_results": [],
+                                                "additional_list_files": []
+                                            }
                                         }
-                                    }
-                                    """)
-                                )
+                                        """)
+                                    )
 
-        gid_output.ExecuteInitialize()
-        gid_output.ExecuteBeforeSolutionLoop()
-        gid_output.ExecuteInitializeSolutionStep()
-        gid_output.PrintOutput()
-        gid_output.ExecuteFinalizeSolutionStep()
-        gid_output.ExecuteFinalize()
+            gid_output.ExecuteInitialize()
+            gid_output.ExecuteBeforeSolutionLoop()
+            gid_output.ExecuteInitializeSolutionStep()
+            gid_output.PrintOutput()
+            gid_output.ExecuteFinalizeSolutionStep()
+            gid_output.ExecuteFinalize()
+
+        if self.vtk_output_wake:
+            output = VtkOutputProcess( self.model,
+                                    KratosMultiphysics.Parameters("""
+                                        {
+                                            "model_part_name"                    : "wake_model_part",
+                                            "output_control_type"                : "step",
+                                            "output_interval"                    : 1,
+                                            "file_format"                        : "binary",
+                                            "output_precision"                   : 7,
+                                            "output_sub_model_parts"             : false,
+                                            "output_path"                        : "wake_output",
+                                            "save_output_files_in_folder"        : true,
+                                            "nodal_data_value_variables"         : ["REACTION_WATER_PRESSURE"]
+                                        }
+                                        """))
+            output.ExecuteInitialize()
+            output.ExecuteBeforeSolutionLoop()
+            output.ExecuteInitializeSolutionStep()
+            output.PrintOutput()
+            output.ExecuteFinalizeSolutionStep()
+            output.ExecuteFinalize()
 
     def ExecuteFinalizeSolutionStep(self):
         if not self.fluid_model_part.HasSubModelPart("wake_elements_model_part"):
