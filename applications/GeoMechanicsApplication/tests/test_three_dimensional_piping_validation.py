@@ -18,8 +18,6 @@ class TestThreeDimensionalPipingValidation(KratosUnittest.TestCase):
         pipe_active_before_critical_head = \
             reader.element_integration_point_values_at_time("PIPE_ACTIVE", 0.5, actual_data, pipe_elements, [1])
         for active, element in zip(pipe_active_before_critical_head, pipe_elements):
-            print(element)
-            print(active)
             if element > 24004:
                 self.assertEqual(active[0], 1)
             else:
