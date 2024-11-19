@@ -95,6 +95,7 @@ public:
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
                                       std::vector<array_1d<double, 3>>&    rOutput,
                                       const ProcessInfo& rCurrentProcessInfo) override;
+    using CrBeamElement2D2N::CalculateOnIntegrationPoints;
 
     void ResetConstitutiveLaw() override;
 
