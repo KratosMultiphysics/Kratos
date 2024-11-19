@@ -2,6 +2,7 @@
 import numpy
 from abc import ABC
 from abc import abstractmethod
+from math import log
 from typing import Union
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.testing.utilities import ReadModelPart
@@ -10,14 +11,17 @@ from KratosMultiphysics.testing.utilities import ReadModelPart
 import KratosMultiphysics.KratosUnittest as kratos_unittest
 
 class TestContainerExpression(ABC):
+    ExpressionUnionType = Union[Kratos.Expression.NodalExpression, Kratos.Expression.ConditionExpression, Kratos.Expression.ElementExpression]
     @classmethod
     def CreateEntities(cls):
         cls.model =  Kratos.Model()
         cls.model_part = cls.model.CreateModelPart("test")
         cls.model_part.AddNodalSolutionStepVariable(Kratos.DENSITY)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.PRESSURE)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.TEMPERATURE)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.ACCELERATION)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.REACTION)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.INITIAL_STRAIN)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.PENALTY)
@@ -52,6 +56,8 @@ class TestContainerExpression(ABC):
             element.SetValue(Kratos.INITIAL_STRAIN, Kratos.Vector([id+3, id+4, id+5, id+6, id+7, id+8]))
             element.SetValue(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR, Kratos.Matrix([[id+3, id+4], [id+5, id+6]]))
 
+        cls.data_comm: Kratos.DataCommunicator = cls.model_part.GetCommunicator().GetDataCommunicator()
+
     def test_ContainerExpressionAdd(self):
         a = self._GetContainerExpression()
         b = self._GetContainerExpression()
@@ -63,8 +69,10 @@ class TestContainerExpression(ABC):
         c += b
 
         self._Evaluate(c, Kratos.ACCELERATION)
+        self._Evaluate(a, Kratos.REACTION)
         for node in c.GetContainer():
             self.assertVectorAlmostEqual(self._GetValue(node, Kratos.ACCELERATION), self._GetValue(node, Kratos.VELOCITY) * 3, 12)
+            self.assertVectorAlmostEqual(self._GetValue(node, Kratos.REACTION), self._GetValue(node, Kratos.VELOCITY), 12)
 
         c = a + 100.0
         self._Evaluate(c, Kratos.ACCELERATION)
@@ -111,8 +119,10 @@ class TestContainerExpression(ABC):
         c -= a
 
         self._Evaluate(c, Kratos.ACCELERATION)
+        self._Evaluate(a, Kratos.REACTION)
         for node in c.GetContainer():
             self.assertVectorAlmostEqual(self._GetValue(node, Kratos.ACCELERATION), self._GetValue(node, Kratos.VELOCITY) * 5, 12)
+            self.assertVectorAlmostEqual(self._GetValue(node, Kratos.REACTION), self._GetValue(node, Kratos.VELOCITY), 12)
 
         c = a - 100.0
         self._Evaluate(c, Kratos.ACCELERATION)
@@ -165,8 +175,10 @@ class TestContainerExpression(ABC):
         c /= 2.0
 
         self._Evaluate(c, Kratos.ACCELERATION)
+        self._Evaluate(a, Kratos.REACTION)
         for node in c.GetContainer():
             self.assertVectorAlmostEqual(self._GetValue(node, Kratos.ACCELERATION), self._GetValue(node, Kratos.VELOCITY) / 4, 12)
+            self.assertVectorAlmostEqual(self._GetValue(node, Kratos.REACTION), self._GetValue(node, Kratos.VELOCITY), 12)
 
         a = self._GetContainerExpression()
         self._Read(a, Kratos.PRESSURE)
@@ -175,17 +187,16 @@ class TestContainerExpression(ABC):
         c /= 2.0
 
         self._Evaluate(c, Kratos.DENSITY)
+        self._Evaluate(a, Kratos.TEMPERATURE)
         for node in c.GetContainer():
             self.assertEqual(self._GetValue(node, Kratos.DENSITY), self._GetValue(node, Kratos.PRESSURE) / 4, 12)
+            self.assertEqual(self._GetValue(node, Kratos.TEMPERATURE), self._GetValue(node, Kratos.PRESSURE), 12)
 
         d = c / a
         d /= (a * 2)
         self._Evaluate(d, Kratos.DENSITY)
         for node in c.GetContainer():
             self.assertEqual(self._GetValue(node, Kratos.DENSITY), 0.5 * ((self._GetValue(node, Kratos.PRESSURE) / 4) / self._GetValue(node, Kratos.PRESSURE)) / self._GetValue(node, Kratos.PRESSURE) , 12)
-
-        a = self._GetContainerExpression()
-        self._Read(a, Kratos.VELOCITY)
 
     def test_ContainerExpressionPow(self):
         a = self._GetContainerExpression()
@@ -195,9 +206,11 @@ class TestContainerExpression(ABC):
         c **= 2.0
 
         self._Evaluate(c, Kratos.ACCELERATION)
+        self._Evaluate(a, Kratos.REACTION)
         for node in c.GetContainer():
             ref_value = self._GetValue(node, Kratos.VELOCITY)
             self.assertVectorAlmostEqual(self._GetValue(node, Kratos.ACCELERATION), Kratos.Array3([ref_value[0]**4, ref_value[1]**4, ref_value[2]**4]), 12)
+            self.assertVectorAlmostEqual(self._GetValue(node, Kratos.REACTION), ref_value, 12)
 
         a = self._GetContainerExpression()
         self._Read(a, Kratos.PRESSURE)
@@ -206,8 +219,10 @@ class TestContainerExpression(ABC):
         c **= 2.0
 
         self._Evaluate(c, Kratos.DENSITY)
+        self._Evaluate(a, Kratos.TEMPERATURE)
         for node in c.GetContainer():
             self.assertEqual(self._GetValue(node, Kratos.DENSITY), self._GetValue(node, Kratos.PRESSURE) ** 4, 12)
+            self.assertEqual(self._GetValue(node, Kratos.TEMPERATURE), self._GetValue(node, Kratos.PRESSURE), 12)
 
     def test_ContainerExpressionNeg(self):
         a = self._GetContainerExpression()
@@ -216,8 +231,10 @@ class TestContainerExpression(ABC):
         c = -a
 
         self._Evaluate(c, Kratos.ACCELERATION)
+        self._Evaluate(a, Kratos.REACTION)
         for node in c.GetContainer():
             self.assertVectorAlmostEqual(self._GetValue(node, Kratos.ACCELERATION), self._GetValue(node, Kratos.VELOCITY) * (-1.0), 12)
+            self.assertVectorAlmostEqual(self._GetValue(node, Kratos.REACTION), self._GetValue(node, Kratos.VELOCITY), 12)
 
         a = self._GetContainerExpression()
         self._Read(a, Kratos.PRESSURE)
@@ -225,8 +242,10 @@ class TestContainerExpression(ABC):
         c = -a
 
         self._Evaluate(c, Kratos.DENSITY)
+        self._Evaluate(a, Kratos.TEMPERATURE)
         for node in c.GetContainer():
             self.assertEqual(self._GetValue(node, Kratos.DENSITY), self._GetValue(node, Kratos.PRESSURE) * (-1.0), 12)
+            self.assertEqual(self._GetValue(node, Kratos.TEMPERATURE), self._GetValue(node, Kratos.PRESSURE), 12)
 
     def test_SetData(self):
         a = self._GetContainerExpression()
@@ -279,7 +298,7 @@ class TestContainerExpression(ABC):
         self._Read(a, Kratos.VELOCITY)
         self._Read(b, Kratos.PRESSURE)
 
-        c = a.Scale(b)
+        c = Kratos.Expression.Utils.Scale(a, b)
         self._Evaluate(c, Kratos.ACCELERATION)
 
         for entity in a.GetContainer():
@@ -492,7 +511,7 @@ class TestContainerExpression(ABC):
         a = self._GetContainerExpression()
         self._Read(a, Kratos.INITIAL_STRAIN)
 
-        sliced = a.Slice(2, 3)
+        sliced = Kratos.Expression.Utils.Slice(a, 2, 3)
         sliced *= 2.0
         self._Evaluate(sliced, Kratos.ACCELERATION)
 
@@ -505,7 +524,7 @@ class TestContainerExpression(ABC):
         a = self._GetContainerExpression()
         self._Read(a, Kratos.INITIAL_STRAIN)
 
-        reshaped = a.Reshape([2, 3])
+        reshaped = Kratos.Expression.Utils.Reshape(a, [2, 3])
         reshaped *= 2.0
         self._Evaluate(reshaped, Kratos.PK2_STRESS_TENSOR)
 
@@ -524,7 +543,7 @@ class TestContainerExpression(ABC):
         # Reshape a single scalar expression to itself
         input_expression = self._GetContainerExpression()
         self._Read(input_expression, Kratos.PRESSURE)
-        combed = input_expression.Reshape([])
+        combed = Kratos.Expression.Utils.Reshape(input_expression, [])
         array = Kratos.Vector(input_expression.GetExpression().NumberOfEntities() * input_expression.GetItemComponentCount())
         Kratos.Expression.CArrayExpressionIO.Write(combed, array)
         for i_entity, entity in enumerate(combed.GetContainer()):
@@ -536,7 +555,7 @@ class TestContainerExpression(ABC):
         b = self._GetContainerExpression()
         self._Read(b, Kratos.VELOCITY)
 
-        combed = a.Comb(b)
+        combed = Kratos.Expression.Utils.Comb([a, b])
         combed *= 2.0
         self._Evaluate(combed, Kratos.PENALTY)
 
@@ -550,7 +569,7 @@ class TestContainerExpression(ABC):
             new_vector[3] = original_v[2]
             self.assertVectorAlmostEqual(self._GetValue(entity, Kratos.PENALTY), new_vector * 2, 12)
 
-        combed = a.Comb([b, a])
+        combed = Kratos.Expression.Utils.Comb([a, b, a])
         combed *= 2.0
         self._Evaluate(combed, Kratos.PENALTY)
 
@@ -569,7 +588,7 @@ class TestContainerExpression(ABC):
         # Comb from a single scalar expression
         input_expression = self._GetContainerExpression()
         self._Read(input_expression, Kratos.PRESSURE)
-        combed = input_expression.Comb([])
+        combed = Kratos.Expression.Utils.Comb([input_expression])
         array = Kratos.Vector(input_expression.GetExpression().NumberOfEntities() * input_expression.GetItemComponentCount())
         Kratos.Expression.CArrayExpressionIO.Write(combed, array)
         for i_entity, entity in enumerate(combed.GetContainer()):
@@ -579,7 +598,10 @@ class TestContainerExpression(ABC):
         a = self._GetContainerExpression()
         self._Read(a, Kratos.INITIAL_STRAIN)
 
-        self._Evaluate((a.Comb([a.Slice(2, 2), a.Slice(3, 2)]) * 2).Reshape([5, 2]), Kratos.PK2_STRESS_TENSOR)
+        km_comb = Kratos.Expression.Utils.Comb
+        km_slice = Kratos.Expression.Utils.Slice
+        km_reshape = Kratos.Expression.Utils.Reshape
+        self._Evaluate(km_reshape(km_comb([a, km_slice(a, 2, 2), km_slice(a, 3, 2)]) * 2, [5, 2]), Kratos.PK2_STRESS_TENSOR)
 
         for entity in a.GetContainer():
             original_value = self._GetValue(entity, Kratos.INITIAL_STRAIN)
@@ -665,12 +687,115 @@ class TestContainerExpression(ABC):
             velocity = Kratos.Array3([vector[i * 3], vector[i * 3 + 1], vector[i * 3 + 2]])
             self.assertVectorAlmostEqual(velocity, self._GetValue(entity, Kratos.VELOCITY))
 
+    def test_GetMaxDepth(self):
+        a = self._GetContainerExpression()
+        self._Read(a, Kratos.GREEN_LAGRANGE_STRAIN_TENSOR)
+        b = a + 10
+        c = b * 2 + a
+        d = c ** 2
+        e = Kratos.Expression.Utils.Comb([a, a, d])
+        f = Kratos.Expression.Utils.Reshape(e, [6, 2])
+        g = Kratos.Expression.Utils.Slice(f, 2, 4)
+        h = Kratos.Expression.Utils.Reshape(g, [2, 2])
+        i = h - a
+        j = Kratos.Expression.Utils.Abs(i)
+        k = Kratos.Expression.Utils.EntitySum(j)
+        self.assertEqual(k.GetMaxDepth(), 12)
+
+    def test_Collapse(self):
+        a = self._GetContainerExpression()
+        self._Read(a, Kratos.GREEN_LAGRANGE_STRAIN_TENSOR)
+        b = a + 10
+        c = b * 2 + a
+        d = c ** 2
+        e = Kratos.Expression.Utils.Collapse(d)
+        self.assertEqual(d.GetMaxDepth(), 5)
+        self.assertEqual(e.GetMaxDepth(), 1)
+        self.assertEqual(Kratos.Expression.Utils.NormInf(e-d), 0.0)
+
+    def test_Abs(self):
+        a = self._GetContainerExpression()
+        self._Read(a, Kratos.PRESSURE)
+        b = a * -1
+        c = Kratos.Expression.Utils.Abs(b)
+        for v1, v2, v3 in zip(a.Evaluate(), b.Evaluate(), c.Evaluate()):
+            self.assertEqual(v1, -v2)
+            self.assertEqual(v3, abs(v2))
+
+    def test_Log(self):
+        a = self._GetContainerExpression()
+        self._Read(a, Kratos.PRESSURE)
+        b = a * 2.0
+        c = Kratos.Expression.Utils.Log(b)
+        for v1, v2, v3 in zip(a.Evaluate(), b.Evaluate(), c.Evaluate()):
+            self.assertEqual(v1 * 2, v2)
+            self.assertEqual(v3, log(v2))
+
+    def test_EntityMin(self):
+        a = self._GetContainerExpression()
+        self._Read(a, Kratos.GREEN_LAGRANGE_STRAIN_TENSOR)
+        b = Kratos.Expression.Utils.EntityMin(a)
+
+        self.assertEqual(b.Evaluate().shape, (len(self._GetContainer()), ))
+        for v1, v2 in zip(a.Evaluate(), b.Evaluate()):
+            self.assertEqual(numpy.min(v1), v2)
+
+    def test_EntityMax(self):
+        a = self._GetContainerExpression()
+        self._Read(a, Kratos.GREEN_LAGRANGE_STRAIN_TENSOR)
+        b = Kratos.Expression.Utils.EntityMax(a * -1)
+
+        self.assertEqual(b.Evaluate().shape, (len(self._GetContainer()), ))
+        for v1, v2 in zip(a.Evaluate(), b.Evaluate()):
+            self.assertEqual(numpy.max(-v1), v2)
+
+    def test_EntitySum(self):
+        a = self._GetContainerExpression()
+        self._Read(a, Kratos.GREEN_LAGRANGE_STRAIN_TENSOR)
+        b = Kratos.Expression.Utils.EntitySum(a)
+
+        self.assertEqual(b.Evaluate().shape, (len(self._GetContainer()), ))
+        for v1, v2 in zip(a.Evaluate(), b.Evaluate()):
+            self.assertEqual(numpy.sum(v1), v2)
+
+    def test_NormInf(self):
+        a = self._GetContainerExpression()
+        self._Read(a, Kratos.VELOCITY)
+        a *= -1
+        c = a.Evaluate().reshape([len(self._GetContainer()) * 3])
+        if c.shape == (0,):
+            # numpy norm inf throws an error if the array shape is zero.
+            # hence this is checked before.
+            norm_inf = 0.0
+        else:
+            norm_inf = numpy.linalg.norm(c, ord=numpy.inf)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormInf(a), self.data_comm.MaxAll(norm_inf), 9)
+
+    def test_NormL2(self):
+        a = self._GetContainerExpression()
+        self._Read(a, Kratos.VELOCITY)
+        a *= -1
+        c = a.Evaluate().reshape([len(self._GetContainer()) * 3])
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(a), self.data_comm.SumAll(numpy.linalg.norm(c, ord=2) ** 2) ** 0.5, 9)
+
+    def test_NormP(self):
+        a = self._GetContainerExpression()
+        self._Read(a, Kratos.VELOCITY)
+        a *= -1
+        c = a.Evaluate().reshape([len(self._GetContainer()) * 3])
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormP(a, 3), self.data_comm.SumAll(numpy.linalg.norm(c, ord=3) ** 3) ** (1/3), 9)
+
+    def test_InnerProduct(self):
+        a = self._GetContainerExpression()
+        self._Read(a, Kratos.VELOCITY)
+        self.assertAlmostEqual(Kratos.Expression.Utils.InnerProduct(a, a), self.data_comm.SumAll(numpy.linalg.norm(a.Evaluate()) ** 2), 9)
+
     @abstractmethod
-    def _GetContainerExpression(self) -> Union[Kratos.Expression.NodalExpression, Kratos.Expression.ElementExpression, Kratos.Expression.ConditionExpression]:
+    def _GetContainerExpression(self) -> ExpressionUnionType:
         pass
 
     @abstractmethod
-    def _GetContainerType(self) -> Kratos.Expression.ContainerType:
+    def _GetContainerType(self) -> Kratos.Globals.DataLocation:
         pass
 
     @abstractmethod
@@ -697,8 +822,8 @@ class TestHistoricalContainerExpression(kratos_unittest.TestCase, TestContainerE
     def _GetContainerExpression(self) -> Kratos.Expression.NodalExpression:
         return Kratos.Expression.NodalExpression(self.model_part)
 
-    def _GetContainerType(self) -> Kratos.Expression.ContainerType:
-        return Kratos.Expression.ContainerType.NodalHistorical
+    def _GetContainerType(self) -> Kratos.Globals.DataLocation:
+        return Kratos.Globals.DataLocation.NodeHistorical
 
     def _GetContainer(self):
         return self.model_part.GetCommunicator().LocalMesh().Nodes
@@ -720,8 +845,8 @@ class TestNodalContainerExpression(kratos_unittest.TestCase, TestContainerExpres
     def _GetContainerExpression(self) -> Kratos.Expression.NodalExpression:
         return Kratos.Expression.NodalExpression(self.model_part)
 
-    def _GetContainerType(self) -> Kratos.Expression.ContainerType:
-        return Kratos.Expression.ContainerType.NodalNonHistorical
+    def _GetContainerType(self) -> Kratos.Globals.DataLocation:
+        return Kratos.Globals.DataLocation.NodeNonHistorical
 
     def _GetContainer(self):
         return self.model_part.GetCommunicator().LocalMesh().Nodes
@@ -743,8 +868,8 @@ class TestConditionContainerExpression(kratos_unittest.TestCase, TestContainerEx
     def _GetContainerExpression(self) -> Kratos.Expression.ConditionExpression:
         return Kratos.Expression.ConditionExpression(self.model_part)
 
-    def _GetContainerType(self) -> Kratos.Expression.ContainerType:
-        return Kratos.Expression.ContainerType.ConditionNonHistorical
+    def _GetContainerType(self) -> Kratos.Globals.DataLocation:
+        return Kratos.Globals.DataLocation.Condition
 
     def _GetContainer(self):
         return self.model_part.GetCommunicator().LocalMesh().Conditions
@@ -758,6 +883,34 @@ class TestConditionContainerExpression(kratos_unittest.TestCase, TestContainerEx
     def _Evaluate(self, container_expression, variable):
         Kratos.Expression.VariableExpressionIO.Write(container_expression, variable)
 
+    def testDomainSizeExpressionIOCondition(self):
+        condition_exp = Kratos.Expression.ConditionExpression(self.model_part)
+        Kratos.Expression.DomainSizeExpressionIO.Read(condition_exp)
+        numpy_condition_exp = condition_exp.Evaluate()
+        for i, condition in enumerate(self.model_part.Conditions):
+            self.assertEqual(numpy_condition_exp[i], condition.GetGeometry().DomainSize())
+
+    def testDomainSizeExpressionIOElement(self):
+        element_exp = Kratos.Expression.ElementExpression(self.model_part)
+        Kratos.Expression.DomainSizeExpressionIO.Read(element_exp)
+        numpy_element_exp = element_exp.Evaluate()
+        for i, element in enumerate(self.model_part.Elements):
+            self.assertEqual(numpy_element_exp[i], element.GetGeometry().DomainSize())
+
+    def testDomainSizeExpressionIOCondition_Empty(self):
+        model = Kratos.Model()
+        model_part = model.CreateModelPart("test")
+        cond_exp = Kratos.Expression.ConditionExpression(model_part)
+        Kratos.Expression.DomainSizeExpressionIO.Read(cond_exp)
+        self.assertEqual(cond_exp.Evaluate().shape, (0,))
+
+    def testDomainSizeExpressionIOElement_Empty(self):
+        model = Kratos.Model()
+        model_part = model.CreateModelPart("test")
+        element_exp = Kratos.Expression.ElementExpression(model_part)
+        Kratos.Expression.DomainSizeExpressionIO.Read(element_exp)
+        self.assertEqual(element_exp.Evaluate().shape, (0,))
+
 class TestElementContainerExpression(kratos_unittest.TestCase, TestContainerExpression):
     @classmethod
     def setUpClass(cls):
@@ -766,8 +919,8 @@ class TestElementContainerExpression(kratos_unittest.TestCase, TestContainerExpr
     def _GetContainerExpression(self):
         return Kratos.Expression.ElementExpression(self.model_part)
 
-    def _GetContainerType(self) -> Kratos.Expression.ContainerType:
-        return Kratos.Expression.ContainerType.ElementNonHistorical
+    def _GetContainerType(self) -> Kratos.Globals.DataLocation:
+        return Kratos.Globals.DataLocation.Element
 
     def _GetContainer(self):
         return self.model_part.GetCommunicator().LocalMesh().Elements
@@ -842,5 +995,4 @@ class TestNodalPositionExpressionIO(kratos_unittest.TestCase):
 
 
 if __name__ == "__main__":
-    Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
     kratos_unittest.main()

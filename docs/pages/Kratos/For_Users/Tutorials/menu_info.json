@@ -1,0 +1,10 @@
+{
+    "custom_entries": [
+        "Running_An_Example_From_GiD.md",
+        "Kratos_Input_Files_And_Io.md",
+        "Data_Management.md",
+        "Solving_Strategies.md",
+        "Manipulating_Solution_Values.md",
+        "Multiphysics_Example.md"
+    ]
+}

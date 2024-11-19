@@ -81,12 +81,12 @@ class UPwSolver(GeoSolver):
             "prebuild_dynamics"          : false,
             "search_neighbours_step"     : false,
             "linear_solver_settings":{
-                "solver_type": "AMGCL",
+                "solver_type": "amgcl",
                 "tolerance": 1.0e-6,
                 "max_iteration": 100,
                 "scaling": false,
                 "verbosity": 0,
-                "preconditioner_type": "ILU0Preconditioner",
+                "preconditioner_type": "amg",
                 "smoother_type": "ilu0",
                 "krylov_type": "gmres",
                 "coarsening_type": "aggregation"
@@ -119,6 +119,7 @@ class UPwSolver(GeoSolver):
 
         ## Fluid dofs
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.WATER_PRESSURE, KratosMultiphysics.REACTION_WATER_PRESSURE,self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosGeo.DT_WATER_PRESSURE, self.main_model_part)
 
         if self.settings["rotation_dofs"].GetBool():
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.REACTION_MOMENT_X,self.main_model_part)
@@ -136,16 +137,15 @@ class UPwSolver(GeoSolver):
                 node.AddDof(KratosMultiphysics.ACCELERATION_X)
                 node.AddDof(KratosMultiphysics.ACCELERATION_Y)
                 node.AddDof(KratosMultiphysics.ACCELERATION_Z)
-            # if self.settings["rotation_dofs"].GetBool():
-            #     for node in self.main_model_part.Nodes:
-            #         # adding ANGULAR_VELOCITY as dofs
-            #         node.AddDof(KratosMultiphysics.ANGULAR_VELOCITY_X)
-            #         node.AddDof(KratosMultiphysics.ANGULAR_VELOCITY_Y)
-            #         node.AddDof(KratosMultiphysics.ANGULAR_VELOCITY_Z)
-            #         # adding ANGULAR_ACCELERATION as dofs
-            #         node.AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_X)
-            #         node.AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_Y)
-            #         node.AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_Z)
+                if self.settings["rotation_dofs"].GetBool():
+                    # adding ANGULAR_VELOCITY as dofs
+                    node.AddDof(KratosMultiphysics.ANGULAR_VELOCITY_X)
+                    node.AddDof(KratosMultiphysics.ANGULAR_VELOCITY_Y)
+                    node.AddDof(KratosMultiphysics.ANGULAR_VELOCITY_Z)
+                    # adding ANGULAR_ACCELERATION as dofs
+                    node.AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_X)
+                    node.AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_Y)
+                    node.AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_Z)
 
         KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver", "DOFs added correctly.")
 
@@ -153,12 +153,6 @@ class UPwSolver(GeoSolver):
         KratosMultiphysics.Logger.PrintInfo("::[GeoMechanics_U_Pw_Solver]:: ", "Initialisation ...")
 
         super().Initialize()
-
-        self.find_neighbour_elements_of_conditions_process = KratosGeo.FindNeighbourElementsOfConditionsProcess(self.computing_model_part)
-        self.find_neighbour_elements_of_conditions_process.Execute()
-
-        self.deactivate_conditions_on_inactive_elements_process = KratosGeo.DeactivateConditionsOnInactiveElements(self.computing_model_part)
-        self.deactivate_conditions_on_inactive_elements_process.Execute()
 
         KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver", "solver.Initialize is set successfully")
 
@@ -193,20 +187,10 @@ class UPwSolver(GeoSolver):
             elif (solution_type.lower() == "dynamic"):
                 KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, scheme", "Dynamic.")
                 scheme = KratosGeo.NewmarkDynamicUPwScheme(beta,gamma,theta)
-            elif (solution_type.lower() == "k0-procedure" or solution_type.lower() == "k0_procedure"):
-                if (rayleigh_m < 1.0e-20 and rayleigh_k < 1.0e-20):
-                    KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, scheme", "Quasi-UnDamped.")
-                    scheme = KratosGeo.NewmarkQuasistaticUPwScheme(beta,gamma,theta)
-                else:
-                    KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, scheme", "Quasi-Damped.")
-                    scheme = KratosGeo.NewmarkQuasistaticDampedUPwScheme(beta,gamma,theta)
             else:
               raise RuntimeError(f"Undefined solution type '{solution_type}'")
         elif (scheme_type.lower() == "backward_euler"or scheme_type.lower() == "backward-euler"):
             if (solution_type.lower() == "quasi-static" or solution_type.lower() == "quasi_static"):
-                KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, scheme", "Backward Euler.")
-                scheme = KratosGeo.BackwardEulerQuasistaticUPwScheme()
-            elif (solution_type.lower() == "k0-procedure" or solution_type.lower() == "k0_procedure"):
                 KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, scheme", "Backward Euler.")
                 scheme = KratosGeo.BackwardEulerQuasistaticUPwScheme()
             else:
@@ -228,26 +212,19 @@ class UPwSolver(GeoSolver):
             convergence_criterion = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
             convergence_criterion.SetEchoLevel(echo_level)
         elif (convergence_criterion.lower() == "residual_criterion"):
-            convergence_criterion = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
-            # other_dof_name = "WATER_PRESSURE"
-            # convergence_criterion = KratosStructure.ResidualDisplacementAndOtherDoFCriteria(R_RT, R_AT, other_dof_name)
-            convergence_criterion.SetEchoLevel(echo_level)
+            convergence_criterion = self._MakeResidualCriterion()
         elif (convergence_criterion.lower() == "and_criterion"):
             Displacement = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
             Displacement.SetEchoLevel(echo_level)
-            Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
-            # other_dof_name = "WATER_PRESSURE"
-            # Residual = KratosStructure.ResidualDisplacementAndOtherDoFCriteria(R_RT, R_AT, other_dof_name)
-            Residual.SetEchoLevel(echo_level)
-            convergence_criterion = KratosMultiphysics.AndCriteria(Residual, Displacement)
+            residual = self._MakeResidualCriterion()
+            convergence_criterion = KratosMultiphysics.AndCriteria(residual, Displacement)
         elif (convergence_criterion.lower() == "or_criterion"):
             Displacement = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
             Displacement.SetEchoLevel(echo_level)
-            # Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
             other_dof_name = "WATER_PRESSURE"
-            Residual = KratosStructure.ResidualDisplacementAndOtherDoFCriteria(R_RT, R_AT, other_dof_name)
-            Residual.SetEchoLevel(echo_level)
-            convergence_criterion = KratosMultiphysics.OrCriteria(Residual, Displacement)
+            residual = KratosStructure.ResidualDisplacementAndOtherDoFCriteria(R_RT, R_AT, other_dof_name)
+            residual.SetEchoLevel(echo_level)
+            convergence_criterion = KratosMultiphysics.OrCriteria(residual, Displacement)
         elif (convergence_criterion.lower() == "water_pressure_criterion"):
             convergence_criterion = KratosMultiphysics.MixedGenericCriteria([(KratosMultiphysics.WATER_PRESSURE, D_RT, D_AT)])
             convergence_criterion.SetEchoLevel(echo_level)
@@ -261,13 +238,14 @@ class UPwSolver(GeoSolver):
 
         return convergence_criterion
 
-    def _ConstructBuilderAndSolver(self, block_builder):
+    def _CreateBuilderAndSolver(self):
+        block_builder = self.settings["block_builder"].GetBool()
         if (block_builder and
             self.settings.Has("prebuild_dynamics") and
             self.settings["prebuild_dynamics"].GetBool()):
             return KratosGeo.ResidualBasedBlockBuilderAndSolverWithMassAndDamping(self.linear_solver)
 
-        return super()._ConstructBuilderAndSolver(block_builder)
+        return super()._CreateBuilderAndSolver()
 
     def _CheckConvergence(self):
         IsConverged = self.solver.IsConverged()

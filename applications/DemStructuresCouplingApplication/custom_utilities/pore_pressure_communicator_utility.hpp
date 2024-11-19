@@ -89,7 +89,7 @@ namespace Kratos {
                         const auto& geom = shared_p_element->GetGeometry();
                         array_1d<double, 3> interpolated_gradient_of_pore_pressure = ZeroVector(3);
                         for (size_t j = 0; j < geom.size(); j++) {
-                            noalias(interpolated_gradient_of_pore_pressure) += N[j] * geom[j].FastGetSolutionStepValue(WATER_PRESSURE_GRADIENT);
+                            noalias(interpolated_gradient_of_pore_pressure) += N[j] * geom[j].FastGetSolutionStepValue(LIQUID_PRESSURE_GRADIENT);
                         }
                         noalias(central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)) = -1.0 * interpolated_gradient_of_pore_pressure * particle_volume * particle_volume_to_voronoi_volume_factor;
                     }

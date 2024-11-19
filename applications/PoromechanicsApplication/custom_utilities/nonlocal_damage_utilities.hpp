@@ -86,7 +86,7 @@ public:
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void CalculateNonlocalEquivalentStrain (Parameters* pParameters, const ProcessInfo& CurrentProcessInfo)
+    void CalculateNonlocalEquivalentStrain (Parameters* pParameters, const ProcessInfo& rCurrentProcessInfo)
     {
         int NGPoints = static_cast<int>(mGaussPointList.size());
         double CharacteristicLength = (*pParameters)["characteristic_length"].GetDouble();
@@ -97,7 +97,7 @@ public:
         {
             const GaussPoint& ReceiverPoint = *(mGaussPointList[i]);
             double LocalEquivalentStrain;
-            LocalEquivalentStrain = ReceiverPoint.pConstitutiveLaw->GetValue(LOCAL_EQUIVALENT_STRAIN,LocalEquivalentStrain);;
+            LocalEquivalentStrain = ReceiverPoint.pConstitutiveLaw->GetValue(LOCAL_EQUIVALENT_STRAIN,LocalEquivalentStrain);
             double Numerator = ReceiverPoint.Weight*LocalEquivalentStrain;
             double WeightingFunctionDenominator = ReceiverPoint.Weight;
             
@@ -113,7 +113,7 @@ public:
                 WeightingFunctionDenominator += SourcePoint.Weight*exp(-4.0*Distance*Distance/(CharacteristicLength*CharacteristicLength));
             }
             double NonlocalEquivalentStrain = Numerator/WeightingFunctionDenominator;
-            ReceiverPoint.pConstitutiveLaw->SetValue(NONLOCAL_EQUIVALENT_STRAIN,NonlocalEquivalentStrain,CurrentProcessInfo);
+            ReceiverPoint.pConstitutiveLaw->SetValue(NONLOCAL_EQUIVALENT_STRAIN,NonlocalEquivalentStrain,rCurrentProcessInfo);
         }
     }
 

@@ -28,7 +28,7 @@
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 #include "spaces/ublas_space.h"
-#include "testing/testing.h"
+#include "structural_mechanics_fast_suite.h"
 #include "utilities/sensitivity_builder.h"
 
 // Application includes
@@ -207,6 +207,7 @@ void SolvePrimal(ModelPart* pModelPart,
                  std::function<void(ModelPart*)> CallerFun)
 {
     auto p_solver = CreatePrimalSolvingStrategy(pModelPart);
+    p_solver->SetEchoLevel(0);
     p_solver->Initialize();
     const double start_time = 0.0;
     pModelPart->CloneTimeStep(start_time - DeltaTime);
@@ -291,6 +292,7 @@ void SolveAdjoint(ModelPart* pAdjointModelPart,
     auto p_response_function = ResponseFunctionFactory(pAdjointModelPart, ResponseNodeId);
     auto p_adjoint_solver =
         CreateAdjointSolvingStrategy(pAdjointModelPart, p_response_function);
+    p_adjoint_solver->SetEchoLevel(0);
     p_adjoint_solver->Initialize();
     SensitivityBuilder sensitivity_builder(
         Parameters(R"(

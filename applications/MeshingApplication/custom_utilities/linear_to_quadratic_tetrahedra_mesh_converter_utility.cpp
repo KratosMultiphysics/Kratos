@@ -14,23 +14,28 @@
 #include "custom_utilities/linear_to_quadratic_tetrahedra_mesh_converter_utility.h"
 
 namespace Kratos {
-    
+
     void LinearToQuadraticTetrahedraMeshConverter::LocalConvertLinearToQuadraticTetrahedraMesh(
-        bool RefineOnReference, 
-        bool InterpolateInternalVariables) 
+        bool RefineOnReference,
+        bool InterpolateInternalVariables)
     {
         //checking all elements to be refined are linear tets
-        block_for_each(mModelPart.Elements(), [&](Element element) {
-            if(element.Has(SPLIT_ELEMENT) && element.GetValue(SPLIT_ELEMENT)){
-                KRATOS_ERROR_IF_NOT(element.GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4) << "Element #" << element.Id() << " is not a linear tetrahedron" << std::endl;
+        block_for_each(mModelPart.Elements(), [](const Element& r_element) {
+            if(r_element.Has(SPLIT_ELEMENT) && r_element.GetValue(SPLIT_ELEMENT)){
+                KRATOS_ERROR_IF_NOT(r_element.GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4) << "Element #" << r_element.Id() << " is not a linear tetrahedron" << std::endl;
+            }
+        });
+        block_for_each(mModelPart.Conditions(), [](const Condition& r_condition) {
+            if(r_condition.Has(SPLIT_ELEMENT) && r_condition.GetValue(SPLIT_ELEMENT)){
+                KRATOS_ERROR_IF_NOT(r_condition.GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3) << "Condition #" << r_condition.Id() << " is not a linear tetrahedron" << std::endl;
             }
         });
         LocalRefineMesh(RefineOnReference, InterpolateInternalVariables);
-    } 
+    }
 
     Tetrahedra3D10<Node> LinearToQuadraticTetrahedraMeshConverter::GenerateTetrahedra(
-        ModelPart& rThisModelPart, 
-        const std::vector<int>& rNodeIds) 
+        ModelPart& rThisModelPart,
+        const std::vector<int>& rNodeIds)
     {
         unsigned int i0 = rNodeIds[0];
         unsigned int i1 = rNodeIds[1];
@@ -59,8 +64,8 @@ namespace Kratos {
     }
 
     Triangle3D6<Node> LinearToQuadraticTetrahedraMeshConverter::GenerateTriangle3D6(
-        ModelPart& rThisModelPart, 
-        const array_1d<int, 6>& rNodeIds) 
+        ModelPart& rThisModelPart,
+        const array_1d<int, 6>& rNodeIds)
     {
         unsigned int i0   = rNodeIds[0];
         unsigned int i1   = rNodeIds[1];
@@ -120,7 +125,7 @@ namespace Kratos {
                     //This method only copies the current information to the new element
                     InterpolateInteralVariables(0, *it.base(), p_element, r_current_process_info);
                 }
-                
+
                 // Transfer elemental variables to new element
                 p_element->GetData() = it->GetData();
                 p_element->GetValue(SPLIT_ELEMENT) = false;
@@ -168,7 +173,7 @@ namespace Kratos {
                 // GlobalPointersVector< Element >& children = p_element->GetValue(NEIGHBOUR_ELEMENTS);
                 auto& children = p_element->GetValue(NEIGHBOUR_ELEMENTS);
                 p_element = children[0].shared_from_this();
-            } 
+            }
         }
 
         //Recursively for all subModelParts
@@ -239,7 +244,7 @@ namespace Kratos {
                 // GlobalPointersVector< Condition >& children = p_cond->GetValue(NEIGHBOUR_CONDITIONS);
                 auto& children = p_cond->GetValue(NEIGHBOUR_CONDITIONS);
                 p_cond = children[0].shared_from_this();
-            } 
+            }
         }
         for (ModelPart::SubModelPartIterator i_submodelpart = rThisModelPart.SubModelPartsBegin();
                 i_submodelpart != rThisModelPart.SubModelPartsEnd(); i_submodelpart++)
