@@ -22,8 +22,8 @@
 
 namespace Kratos {
 
-template<class T1, class T2>
-using unordered_set = std::unordered_set<T1, T2>;
+template<class T>
+using unordered_set = std::unordered_set<T>;
 
 
 } // namespace Kratos
