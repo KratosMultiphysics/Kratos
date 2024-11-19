@@ -29,7 +29,7 @@ using namespace Kratos;
 class MockConstitutiveLaw : public GeoIncrementalLinearElasticLaw
 {
 public:
-    //KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(MockConstitutiveLaw);
+    // KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(MockConstitutiveLaw);
 
     MOCK_METHOD(std::size_t, WorkingSpaceDimension, (), (override));
 };
@@ -427,7 +427,7 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureChecksIfProcessHasCorrectMaterialData, Krat
     const auto              k0_settings = Parameters{};
     ApplyK0ProcedureProcess process{r_model_part, k0_settings};
 
-    auto mock_constitutive_law =  std::make_shared<MockConstitutiveLaw>();
+    auto mock_constitutive_law = std::make_shared<MockConstitutiveLaw>();
     p_element->GetProperties().SetValue(CONSTITUTIVE_LAW, mock_constitutive_law);
     EXPECT_CALL(*mock_constitutive_law, WorkingSpaceDimension()).WillRepeatedly(testing::Return(2));
 
@@ -438,8 +438,7 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureChecksIfProcessHasCorrectMaterialData, Krat
     p_element->GetProperties().SetValue(K0_MAIN_DIRECTION, 4);
 
     EXPECT_CALL(*mock_constitutive_law, WorkingSpaceDimension()).WillRepeatedly(testing::Return(1));
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(process.Check(),
-                                  "dimension should be 2 or 3 for element 1.")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(process.Check(), "dimension should be 2 or 3 for element 1.")
 
     EXPECT_CALL(*mock_constitutive_law, WorkingSpaceDimension()).WillRepeatedly(testing::Return(2));
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(process.Check(),
