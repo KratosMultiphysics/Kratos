@@ -320,7 +320,7 @@ private:
         return result;
     }
 
-    static Matrix FillPermeabilityMatrix(double pipe_height)
+    Matrix FillPermeabilityMatrix(double pipe_height) const
     {
         if constexpr (TDim == 2) {
             return ScalarMatrix{1, 1, std::pow(pipe_height, 3) / 12.0};
