@@ -29,8 +29,6 @@ using namespace Kratos;
 class MockConstitutiveLaw : public GeoIncrementalLinearElasticLaw
 {
 public:
-    // KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(MockConstitutiveLaw);
-
     MOCK_METHOD(std::size_t, WorkingSpaceDimension, (), (override));
 };
 
