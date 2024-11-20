@@ -180,7 +180,23 @@ public:
     }
 
     /** Copy constructor. Initialize this node with given node.*/
-    Node(Node const& rOtherNode) = delete;
+    explicit Node(const Node& rOtherNode)
+        : BaseType(rOtherNode)
+        , Flags(rOtherNode)
+        , mNodalData(rOtherNode.Id())
+        , mData(rOtherNode.mData)
+        , mInitialPosition(rOtherNode.mInitialPosition)
+        , mNodeLock()
+    {
+        // Deep copying the nodal data
+        this->mNodalData = rOtherNode.mNodalData;
+
+        // Deep copying the dofs
+        for (const auto& it_dof : rOtherNode.mDofs) {
+            mDofs.push_back(Kratos::make_unique<DofType>(*it_dof));
+            mDofs.back()->SetNodalData(&mNodalData);
+        }
+    }
 
     /**
      * Constructor using coordinates stored in given array. Initialize
