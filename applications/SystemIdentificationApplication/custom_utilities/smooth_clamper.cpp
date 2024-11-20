@@ -98,7 +98,7 @@ ContainerExpression<TContainerType> SmoothClamper<TContainerType>::CalculateForw
 
     auto p_result_exp = LiteralFlatExpression<double>::Create(number_of_entities, {});
 
-    IndexPartition<IndexType>(number_of_entities).for_each([&p_result_exp, &r_input_exp, min, delta](const auto Index) {
+    IndexPartition<IndexType>(number_of_entities).for_each([&p_result_exp, &r_input_exp, delta](const auto Index) {
         const double x = r_input_exp.Evaluate(Index, Index, 0);
         double& value = *(p_result_exp->begin() + Index);
         if (x < 0.0) {
