@@ -38,10 +38,7 @@ public:
     }
 
 protected:
-    void UpdateVariablesDerivatives(ModelPart& rModelPart) override
-    {
-        // Intentionally left empty
-    }
+    MOCK_METHOD(void, UpdateVariablesDerivatives, (ModelPart & rModelPart), (override));
 };
 
 class GeoMechanicsSchemeTester
@@ -57,31 +54,32 @@ public:
     }
 
     template <class T>
-    void TestFunctionCalledOnComponent_IsCalledOnActiveAndInactiveElements()
+    void TestFunctionCalledOnComponent_IsCalledOnActiveAndInactiveComponents()
     {
         typename T::EquationIdVectorType r_equation_id_vector;
         ProcessInfo                      r_process_info;
         typename T::DofsVectorType       r_dofs_vector;
 
-        auto functions_and_checks = CreateFunctionsAndChecksCalledOnASingleComponent<T>(
-            r_equation_id_vector, r_process_info, r_dofs_vector);
+        Setup();
+        auto active_component = Kratos::make_intrusive<T>();
+        active_component->SetId(0);
+        active_component->Set(ACTIVE, true);
 
-        for (const auto& [function_on_component, function_has_been_called_on_component] : functions_and_checks) {
-            Setup();
-            auto active_component = Kratos::make_intrusive<T>();
-            active_component->SetId(0);
-            active_component->Set(ACTIVE, true);
+        auto inactive_component = Kratos::make_intrusive<T>();
+        inactive_component->SetId(1);
+        inactive_component->Set(ACTIVE, false);
 
-            auto inactive_component = Kratos::make_intrusive<T>();
-            inactive_component->SetId(1);
-            inactive_component->Set(ACTIVE, false);
+        EXPECT_CALL(*active_component, EquationIdVector(testing::_, testing::_)).Times(1);
+        mScheme.EquationId(*active_component.get(), r_equation_id_vector, r_process_info);
 
-            function_on_component(active_component);
-            function_on_component(inactive_component);
+        EXPECT_CALL(*inactive_component, EquationIdVector(testing::_, testing::_)).Times(1);
+        mScheme.EquationId(*inactive_component.get(), r_equation_id_vector, r_process_info);
 
-            KRATOS_EXPECT_TRUE(function_has_been_called_on_component(active_component))
-            KRATOS_EXPECT_TRUE(function_has_been_called_on_component(inactive_component))
-        }
+        EXPECT_CALL(*active_component, GetDofList(testing::_, testing::_)).Times(1);
+        mScheme.GetDofList(*active_component.get(), r_dofs_vector, r_process_info);
+
+        EXPECT_CALL(*inactive_component, GetDofList(testing::_, testing::_)).Times(1);
+        mScheme.GetDofList(*inactive_component.get(), r_dofs_vector, r_process_info);
     }
 
     template <class T>
@@ -160,33 +158,6 @@ public:
         return functions_and_checks;
     }
 
-    template <typename T>
-    std::vector<std::pair<std::function<void(const Kratos::intrusive_ptr<T> Component)>, std::function<bool(const Kratos::intrusive_ptr<T> rElement)>>> CreateFunctionsAndChecksCalledOnASingleComponent(
-        typename T::EquationIdVectorType& rEquationIdVector, ProcessInfo& rProcessInfo, typename T::DofsVectorType& rDofsVector)
-    {
-        std::vector<std::pair<std::function<void(const Kratos::intrusive_ptr<T> Component)>, std::function<bool(const Kratos::intrusive_ptr<T> Component)>>> functions_and_checks;
-
-        auto equation_id = [this, &rEquationIdVector, &rProcessInfo](const Kratos::intrusive_ptr<T> Component) {
-            mScheme.EquationId(*Component.get(), rEquationIdVector, rProcessInfo);
-        };
-
-        auto equation_id_check = [](const Kratos::intrusive_ptr<T> Component) {
-            return Component->IsEquationIdRetrieved();
-        };
-
-        auto get_dofs_list = [this, &rDofsVector, &rProcessInfo](const Kratos::intrusive_ptr<T> Component) {
-            mScheme.GetDofList(*Component.get(), rDofsVector, rProcessInfo);
-        };
-
-        auto get_dofs_list_check = [](const Kratos::intrusive_ptr<T> Component) {
-            return Component->IsGetDofListCalled();
-        };
-
-        functions_and_checks.push_back({equation_id, equation_id_check});
-        functions_and_checks.push_back({get_dofs_list, get_dofs_list_check});
-        return functions_and_checks;
-    }
-
     void AddComponent(ModelPart::ElementType::Pointer element)
     {
         GetModelPart().AddElement(element);
@@ -213,16 +184,17 @@ KRATOS_TEST_CASE_IN_SUITE(FunctionCallsOnAllConditions_AreOnlyCalledForActiveCon
     tester.TestFunctionCallOnAllComponents_AreOnlyCalledForActiveComponents<SpyCondition>();
 }
 
-KRATOS_TEST_CASE_IN_SUITE(FunctionCalledOnCondition_IsOnlyCalledWhenConditionIsActive, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(FunctionCalledOnCondition_IsCalledOnActiveAndInactiveConditions,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     GeoMechanicsSchemeTester tester;
-    tester.TestFunctionCalledOnComponent_IsCalledOnActiveAndInactiveElements<SpyCondition>();
+    tester.TestFunctionCalledOnComponent_IsCalledOnActiveAndInactiveComponents<SpyCondition>();
 }
 
-KRATOS_TEST_CASE_IN_SUITE(FunctionCalledOnElement_IsOnlyCalledWhenElementIsActive, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(FunctionCalledOnElement_IsCalledOnActiveAndInactiveElements, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     GeoMechanicsSchemeTester tester;
-    tester.TestFunctionCalledOnComponent_IsCalledOnActiveAndInactiveElements<SpyElement>();
+    tester.TestFunctionCalledOnComponent_IsCalledOnActiveAndInactiveComponents<SpyElement>();
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ForInvalidBufferSize_CheckGeoMechanicsTimeIntegrationScheme_Throws,
