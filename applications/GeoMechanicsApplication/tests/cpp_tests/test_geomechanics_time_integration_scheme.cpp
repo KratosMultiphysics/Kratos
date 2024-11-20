@@ -38,7 +38,7 @@ public:
     }
 
 protected:
-    MOCK_METHOD(void, UpdateVariablesDerivatives, (ModelPart & rModelPart), (override));
+    MOCK_METHOD(void, UpdateVariablesDerivatives, (ModelPart&), (override));
 };
 
 class GeoMechanicsSchemeTester

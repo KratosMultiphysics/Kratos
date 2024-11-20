@@ -25,14 +25,8 @@ public:
     void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
     void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
-    MOCK_METHOD(void,
-                EquationIdVector,
-                (EquationIdVectorType & rResult, const ProcessInfo& rCurrentProcessInfo),
-                (const, override));
-    MOCK_METHOD(void,
-                GetDofList,
-                (DofsVectorType & rElementalDofList, const ProcessInfo& rCurrentProcessInfo),
-                (const, override));
+    MOCK_METHOD(void, EquationIdVector, (EquationIdVectorType&, const ProcessInfo&), (const, override));
+    MOCK_METHOD(void, GetDofList, (DofsVectorType&, const ProcessInfo&), (const, override));
 
     bool IsSolutionStepInitialized() const;
     bool IsSolutionStepFinalized() const;
