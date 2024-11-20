@@ -242,22 +242,17 @@ public:
     {
     }
 
+    /**
+     * @brief Creates a clone of the current node with a new ID.
+     * @details This method creates a new node that is a copy of the current node,
+     * but with a different ID specified by the user.
+     * @param NewId The ID to be assigned to the new node.
+     * @return Node::Pointer A pointer to the newly created node.
+     */
     typename Node::Pointer Clone(IndexType NewId)
     {
-        Node::Pointer p_new_node = Kratos::make_intrusive<Node >( NewId, (*this)[0], (*this)[1], (*this)[2]);
-        p_new_node->mNodalData = this->mNodalData;
-
-        Node::DofsContainerType& my_dofs = (this)->GetDofs();
-        for (typename DofsContainerType::const_iterator it_dof = my_dofs.begin(); it_dof != my_dofs.end(); it_dof++)
-        {
-            p_new_node->pAddDof(**it_dof);
-        }
-
-        p_new_node->mData = this->mData;
-        p_new_node->mInitialPosition = this->mInitialPosition;
-
-        p_new_node->Set(Flags(*this));
-
+        Node::Pointer p_new_node = Kratos::make_intrusive<Node>(*this);
+        p_new_node->SetId(NewId);
         return p_new_node;
     }
 
