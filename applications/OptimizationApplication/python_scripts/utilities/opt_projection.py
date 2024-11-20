@@ -1,3 +1,6 @@
+# Temporal fix until to avoid list[type] related errors until we move to 3.9 and above.
+from __future__ import annotations
+
 from typing import Optional
 from abc import ABC, abstractmethod
 
@@ -75,7 +78,7 @@ class IdentityDesignVariableProjection(DesignVariableProjection):
         parameters.ValidateAndAssignDefaults(default_settings)
         pass
 
-    def SetProjectionSpaces(self, _: list[float], __: list[float]) -> None:
+    def SetProjectionSpaces(self, _: 'list[float]', __: 'list[float]') -> None:
         # not using any of the spaces provided.
         pass
 
@@ -111,7 +114,7 @@ class SigmoidalDesignVariableProjection(DesignVariableProjection):
         self.x_space_values: 'Optional[list[float]]' = None
         self.y_space_values: 'Optional[list[float]]' = None
 
-    def SetProjectionSpaces(self, x_space_values: list[float], y_space_values: list[float]) -> None:
+    def SetProjectionSpaces(self, x_space_values: 'list[float]', y_space_values: 'list[float]') -> None:
         self.x_space_values = x_space_values
         self.y_space_values = y_space_values
 
@@ -151,7 +154,7 @@ class AdaptiveSigmoidalDesignVariableProjection(DesignVariableProjection):
 
         self.optimization_problem = optimization_problem
 
-    def SetProjectionSpaces(self, x_space_values: list[float], y_space_values: list[float]) -> None:
+    def SetProjectionSpaces(self, x_space_values: 'list[float]', y_space_values: 'list[float]') -> None:
         self.x_space_values = x_space_values
         self.y_space_values = y_space_values
 
