@@ -42,10 +42,10 @@ public:
     bool IsGetDofListCalled() const;
 
 private:
-    bool         mSolutionStepInitialized    = false;
-    bool         mSolutionStepFinalized      = false;
-    bool         mNonLinIterationInitialized = false;
-    bool         mNonLinIterationFinalized   = false;
+    bool mSolutionStepInitialized    = false;
+    bool mSolutionStepFinalized      = false;
+    bool mNonLinIterationInitialized = false;
+    bool mNonLinIterationFinalized   = false;
 };
 
 } // namespace Kratos::Testing
