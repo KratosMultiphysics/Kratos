@@ -6,7 +6,7 @@ import KratosMultiphysics
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.MPMApplication.python_solvers_wrapper_mpm import CreateSolver
 
-class MPMAnalysis(AnalysisStage):
+class MpmAnalysis(AnalysisStage):
     """
     This class is the main-script of the MPMApplication put in a class
     """
@@ -21,11 +21,11 @@ class MPMAnalysis(AnalysisStage):
         # TODO: the following import lines will be kept here for future reference
         if (project_parameters["problem_data"]["parallel_type"].GetString() == "MPI"):
             warn_msg  = 'Currently MPI parallelization is not present in MPMApplication!'
-            KratosMultiphysics.Logger.PrintWarning("MPMAnalysis", warn_msg)
+            KratosMultiphysics.Logger.PrintWarning("MpmAnalysis", warn_msg)
             # import KratosMultiphysics.MetisApplication as MetisApplication
             # import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 
-        super(MPMAnalysis, self).__init__(model, project_parameters)
+        super(MpmAnalysis, self).__init__(model, project_parameters)
 
     #### Internal functions ####
     def _CreateSolver(self):
@@ -35,7 +35,7 @@ class MPMAnalysis(AnalysisStage):
 
     def _CreateProcesses(self, parameter_name, initialization_order):
         """Create a list of Processes"""
-        list_of_processes = super(MPMAnalysis, self)._CreateProcesses(parameter_name, initialization_order)
+        list_of_processes = super(MpmAnalysis, self)._CreateProcesses(parameter_name, initialization_order)
 
         if parameter_name == "processes":
             processes_block_names = ["constraints_process_list", "loads_process_list", "list_other_processes", "gravity"]
@@ -44,7 +44,7 @@ class MPMAnalysis(AnalysisStage):
                 info_msg += "Refer to \"https://github.com/KratosMultiphysics/Kratos/wiki/Common-"
                 info_msg += "Python-Interface-of-Applications-for-Users#analysisstage-usage\" "
                 info_msg += "for a description of the new format"
-                KratosMultiphysics.Logger.PrintWarning("MPMAnalysis", info_msg)
+                KratosMultiphysics.Logger.PrintWarning("MpmAnalysis", info_msg)
                 from KratosMultiphysics.process_factory import KratosProcessFactory
                 factory = KratosProcessFactory(self.model)
                 for process_name in processes_block_names:
@@ -60,7 +60,7 @@ class MPMAnalysis(AnalysisStage):
                 info_msg += "Refer to \"https://github.com/KratosMultiphysics/Kratos/wiki/Common-"
                 info_msg += "Python-Interface-of-Applications-for-Users#analysisstage-usage\" "
                 info_msg += "for a description of the new format"
-                KratosMultiphysics.Logger.PrintInfo("MPMAnalysis", info_msg)
+                KratosMultiphysics.Logger.PrintInfo("MpmAnalysis", info_msg)
                 if self.project_parameters.Has("grid_output_configuration"):
                     grid_gid_output= self._SetUpGiDOutput("grid_output")
                     list_of_processes += [grid_gid_output,]
@@ -111,5 +111,5 @@ if __name__ == "__main__":
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
     model = KratosMultiphysics.Model()
-    simulation = MPMAnalysis(model, parameters)
+    simulation = MpmAnalysis(model, parameters)
     simulation.Run()
