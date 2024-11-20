@@ -42,7 +42,7 @@ public:
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeneralUPwDiffOrderCondition);
 
-    GeneralUPwDiffOrderCondition() : GeneralUPwDiffOrderCondition(0, nullptr, nullptr){};
+    GeneralUPwDiffOrderCondition() : GeneralUPwDiffOrderCondition(0, nullptr, nullptr) {};
 
     GeneralUPwDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry)
         : GeneralUPwDiffOrderCondition(NewId, pGeometry, nullptr)
@@ -57,6 +57,7 @@ public:
     Condition::Pointer Create(IndexType               NewId,
                               NodesArrayType const&   ThisNodes,
                               PropertiesType::Pointer pProperties) const override;
+    Condition::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 

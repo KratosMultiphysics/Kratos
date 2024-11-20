@@ -28,7 +28,7 @@
 #include "includes/kratos_components.h"
 
 // Application includes
-#include "custom_elements/total_lagrangian.h"
+#include "custom_elements/solid_elements/total_lagrangian.h"
 #include "custom_constitutive/linear_plane_strain.h"
 
 namespace Kratos

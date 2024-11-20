@@ -15,15 +15,17 @@
 
 // Project includes
 #include "custom_python/add_custom_utilities_to_python.h"
-#include "includes/kratos_parameters.h"
 
-#include "custom_utilities/condition_utilities.hpp"
-#include "custom_utilities/element_utilities.hpp"
-#include "custom_utilities/interface_element_utilities.h"
+#include "custom_utilities/node_utilities.h"
 
 namespace Kratos::Python
 {
 
-void AddCustomUtilitiesToPython(pybind11::module&) { namespace py = pybind11; }
+void AddCustomUtilitiesToPython(const pybind11::module& rModule)
+{
+    pybind11::class_<NodeUtilities>(rModule, "NodeUtilities")
+        .def("AssignUpdatedVectorVariableToNonFixedComponentsOfNodes",
+             &NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponentsOfNodes);
+}
 
 } // Namespace Kratos::Python.
