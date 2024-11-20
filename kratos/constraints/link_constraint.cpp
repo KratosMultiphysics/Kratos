@@ -28,6 +28,7 @@ struct LinkConstraint::Impl
     using ValueType = double;
 
     static void ComputeRelationMatrix(LinkConstraint::MatrixType& rRelationMatrix,
+                                      LinkConstraint::VectorType& rConstraintGaps,
                                       LinkConstraint::DofPointerVectorType& rSlaves,
                                       LinkConstraint::DofPointerVectorType& rMasters,
                                       const std::array<Node*, 2> rNodePair,
@@ -38,6 +39,7 @@ struct LinkConstraint::Impl
 
         // Set output sizes.
         rRelationMatrix.resize(1, 2 * Dimensions - 1);
+        rConstraintGaps.resize(1);
         rSlaves.resize(1);
         rMasters.resize(2 * Dimensions - 1);
 
@@ -61,27 +63,28 @@ struct LinkConstraint::Impl
         // Dof coefficients in the constraint equation, in the
         // same order as "dofs".
         std::array<ValueType,6> constraint_equation {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+        rConstraintGaps[0] = 0.0;
 
-        for (unsigned iComponent=0u; iComponent<Dimensions; ++iComponent) {
+        for (unsigned i_component=0u; i_component<Dimensions; ++i_component) {
             std::array<ValueType,2> initial_coordinate_pair, displacement_component_pair;
 
-            for (unsigned iNode=0u; iNode<2; ++iNode) {
-                initial_coordinate_pair[iNode] = rNodePair[iNode]->Coordinates()[iComponent];
-                displacement_component_pair[iNode] = rNodePair[iNode]->GetSolutionStepValue(*displacement_components[iComponent]);
+            for (unsigned i_node=0u; i_node<2; ++i_node) {
+                initial_coordinate_pair[i_node] = rNodePair[i_node]->Coordinates()[i_component];
+                displacement_component_pair[i_node] = rNodePair[i_node]->GetSolutionStepValue(*displacement_components[i_component]);
 
                 // For some ungodly reason, the MasterSlaveConstraint interface demands mutable
-                // Dofs, but node just refuses to provide mutable access to individual Dofs.
+                // Dofs, but node just refuses to provide mutable access to individual ones.
                 // What it does provide though, is mutable access to ALL its Dofs at once. Insane.
-                const unsigned i_dof_in_node = rNodePair[iNode]->GetDofPosition(*displacement_components[iComponent]);
-                const unsigned iDof = iNode ? iComponent + Dimensions : iComponent;
-                dofs[iDof] = rNodePair[iNode]->GetDofs()[i_dof_in_node].get();
-            } // for iNode in range(2)
+                const unsigned i_dof_in_node = rNodePair[i_node]->GetDofPosition(*displacement_components[i_component]);
+                const unsigned iDof = i_node ? i_component + Dimensions : i_component;
+                dofs[iDof] = rNodePair[i_node]->GetDofs()[i_dof_in_node].get();
+            } // for i_node in range(2)
 
-            constraint_equation[iComponent] = displacement_component_pair[0]
-                                              + 2 * (initial_coordinate_pair[0] - initial_coordinate_pair[1])
-                                              - displacement_component_pair[1];
-            constraint_equation[iComponent + Dimensions] = -constraint_equation[iComponent];
-        } // for iComponent in range(mDimensions)
+            constraint_equation[i_component] = 2 * (initial_coordinate_pair[0] + displacement_component_pair[0]
+                                                    - initial_coordinate_pair[1] - displacement_component_pair[1]);
+            constraint_equation[i_component + Dimensions] = -constraint_equation[i_component];
+            rConstraintGaps[i_component] += std::pow(initial_coordinate_pair[0] - initial_coordinate_pair[1], 2);
+        } // for i_component in range(mDimensions)
 
         // Pick a slave.
         // The only hard criterion is that the slave's coefficient must
@@ -89,10 +92,10 @@ struct LinkConstraint::Impl
         // to unambiguously pick a slave Dof. So let's pick the Dof with
         // the largest absolute coefficient.
         const auto it_slave = std::max_element(constraint_equation.begin(),
-                                            constraint_equation.end(),
-                                            [](const ValueType left, const ValueType right) -> bool {
-                                                return std::abs(left) < std::abs(right);
-                                            });
+                                               constraint_equation.end(),
+                                               [](const ValueType left, const ValueType right) -> bool {
+                                                   return std::abs(left) < std::abs(right);
+                                               });
         const unsigned i_slave = std::distance(constraint_equation.begin(), it_slave);
         const ValueType slave_coefficient = constraint_equation[i_slave];
 
@@ -111,19 +114,6 @@ struct LinkConstraint::Impl
                 ++i_master;
             }
         } // for i_dof in range(2 * Dimensions)
-
-        for (unsigned i=0; i<2*Dimensions; ++i) {
-            std::cout
-                << dofs[i]->EquationId() << " "
-                ;
-        }
-        std::cout << "\n";
-        std::cout << "slave is " << rSlaves[0]->EquationId() << "\n";
-        std::cout << "masters are "; for (auto* p_master : rMasters) std::cout << p_master->EquationId() << " ";
-        std::cout << "\n";
-        for (auto c : constraint_equation) std::cout << c << " ";
-        std::cout << "\n";
-        std::cout << rRelationMatrix << std::endl;
     }
 
 
@@ -143,6 +133,8 @@ struct LinkConstraint::Impl
     std::array<DofPointerVectorType,2> mDofVectors; // {slave, masters}
 
     LinkConstraint::MatrixType mRelationMatrix;
+
+    LinkConstraint::VectorType mConstraintGaps;
 }; // struct LinkConstraint::Impl
 
 
@@ -154,12 +146,14 @@ LinkConstraint::LinkConstraint(const IndexType Id,
       mpImpl(new Impl{Dimensions,
                       {&rFirst, &rSecond},
                       {},
+                      {},
                       {}})
 {
     KRATOS_TRY
     Impl::ComputeRelationMatrix(mpImpl->mRelationMatrix,
-                                mpImpl->mDofVectors[0],
-                                mpImpl->mDofVectors[1],
+                                mpImpl->mConstraintGaps,
+                                mpImpl->mDofVectors.front(),
+                                mpImpl->mDofVectors.back(),
                                 mpImpl->mNodePair,
                                 mpImpl->mDimensions);
     KRATOS_CATCH("")
@@ -221,8 +215,9 @@ void LinkConstraint::InitializeNonLinearIteration(const ProcessInfo& rProcessInf
 {
     KRATOS_TRY
     Impl::ComputeRelationMatrix(mpImpl->mRelationMatrix,
-                                mpImpl->mDofVectors[0],
-                                mpImpl->mDofVectors[1],
+                                mpImpl->mConstraintGaps,
+                                mpImpl->mDofVectors.front(),
+                                mpImpl->mDofVectors.back(),
                                 mpImpl->mNodePair,
                                 mpImpl->mDimensions);
     KRATOS_CATCH("")
@@ -231,31 +226,30 @@ void LinkConstraint::InitializeNonLinearIteration(const ProcessInfo& rProcessInf
 
 void LinkConstraint::ResetSlaveDofs(const ProcessInfo& rProcessInfo)
 {
-    KRATOS_TRY
-    for (auto* p_dof : mpImpl->mDofVectors.front()) {
-        AtomicAdd(p_dof->GetSolutionStepValue(), -p_dof->GetSolutionStepValue());
+    for (Dof<Impl::ValueType>* p_dof : mpImpl->mDofVectors.front()) {
+        p_dof->GetSolutionStepValue() = 0;
     }
-    KRATOS_CATCH("")
 }
 
 
 void LinkConstraint::Apply(const ProcessInfo& rProcessInfo)
 {
     KRATOS_TRY
-    Vector master_dofs_values(mpImpl->mDofVectors[1].size());
+    Vector master_dofs_values(mpImpl->mDofVectors.back().size());
 
-    for (IndexType i = 0; i < mpImpl->mDofVectors[1].size(); ++i) {
-        master_dofs_values[i] = mpImpl->mDofVectors[1][i]->GetSolutionStepValue();
+    for (IndexType i = 0; i < mpImpl->mDofVectors.back().size(); ++i) {
+        master_dofs_values[i] = mpImpl->mDofVectors.back()[i]->GetSolutionStepValue();
     }
 
     // Apply the constraint to the slave dofs
+    KRATOS_ERROR_IF_NOT(mpImpl->mRelationMatrix.size1() == mpImpl->mConstraintGaps.size());
     for (IndexType i = 0; i < mpImpl->mRelationMatrix.size1(); ++i) {
-        Impl::ValueType tmp = 0;
+        Impl::ValueType tmp = mpImpl->mConstraintGaps[i];
         for(IndexType j = 0; j < mpImpl->mRelationMatrix.size2(); ++j) {
             tmp += mpImpl->mRelationMatrix(i,j) * master_dofs_values[j];
         }
 
-        AtomicAdd(mpImpl->mDofVectors[0][i]->GetSolutionStepValue(), tmp);
+        AtomicAdd(mpImpl->mDofVectors.front()[i]->GetSolutionStepValue(), tmp);
     }
     KRATOS_CATCH("")
 }
@@ -263,32 +257,32 @@ void LinkConstraint::Apply(const ProcessInfo& rProcessInfo)
 
 void LinkConstraint::GetDofList(DofPointerVectorType& rSlaves,
                                 DofPointerVectorType& rMasters,
-                                const ProcessInfo& rProcessInfo) const
+                                [[maybe_unused]] const ProcessInfo& rProcessInfo) const
 {
-    rSlaves = mpImpl->mDofVectors[0];
-    rMasters = mpImpl->mDofVectors[1];
+    rSlaves = this->GetSlaveDofsVector();
+    rMasters = this->GetMasterDofsVector();
 }
 
 
 void LinkConstraint::EquationIdVector(EquationIdVectorType& rSlaves,
                                       EquationIdVectorType& rMasters,
-                                      const ProcessInfo& rProcessInfo) const
+                                      [[maybe_unused]] const ProcessInfo& rProcessInfo) const
 {
     KRATOS_TRY
-    rSlaves.resize(mpImpl->mDofVectors[0].size());
-    rMasters.resize(mpImpl->mDofVectors[1].size());
+    rSlaves.resize(mpImpl->mDofVectors.front().size());
+    rMasters.resize(mpImpl->mDofVectors.back().size());
 
     const auto dof_to_equation_id = [](const Dof<double>* pDof) -> Dof<double>::EquationIdType {
         return pDof->EquationId();
     };
 
-    std::transform(mpImpl->mDofVectors[0].begin(),
-                   mpImpl->mDofVectors[0].end(),
+    std::transform(mpImpl->mDofVectors.front().begin(),
+                   mpImpl->mDofVectors.front().end(),
                    rSlaves.begin(),
                    dof_to_equation_id);
 
-    std::transform(mpImpl->mDofVectors[1].begin(),
-                   mpImpl->mDofVectors[1].end(),
+    std::transform(mpImpl->mDofVectors.back().begin(),
+                   mpImpl->mDofVectors.back().end(),
                    rMasters.begin(),
                    dof_to_equation_id);
     KRATOS_CATCH("")
@@ -297,23 +291,22 @@ void LinkConstraint::EquationIdVector(EquationIdVectorType& rSlaves,
 
 const LinkConstraint::DofPointerVectorType& LinkConstraint::GetSlaveDofsVector() const
 {
-    return mpImpl->mDofVectors[0];
+    return mpImpl->mDofVectors.front();
 }
 
 
 const LinkConstraint::DofPointerVectorType& LinkConstraint::GetMasterDofsVector() const
 {
-    return mpImpl->mDofVectors[1];
+    return mpImpl->mDofVectors.back();
 }
 
 
 void LinkConstraint::CalculateLocalSystem(MatrixType& rRelationMatrix,
                                           VectorType& rConstraintGaps,
-                                          const ProcessInfo& rProcessInfo) const
+                                          [[maybe_unused]] const ProcessInfo& rProcessInfo) const
 {
     rRelationMatrix = mpImpl->mRelationMatrix;
-    rConstraintGaps.resize(1);
-    rConstraintGaps[0] = 0;
+    rConstraintGaps = mpImpl->mConstraintGaps;
 }
 
 
@@ -342,7 +335,7 @@ int LinkConstraint::Check(const ProcessInfo& rProcessInfo) const
 
     // Check for overlapping nodes.
     constexpr Impl::ValueType tolerance = 1e-16;
-    KRATOS_ERROR_IF(norm_2(mpImpl->mNodePair[0]->Coordinates() - mpImpl->mNodePair[1]->Coordinates()) < tolerance)
+    KRATOS_ERROR_IF(norm_2(mpImpl->mNodePair.front()->Coordinates() - mpImpl->mNodePair.back()->Coordinates()) < tolerance)
         << "coincident nodes in LinkConstraint";
 
     return 0;
