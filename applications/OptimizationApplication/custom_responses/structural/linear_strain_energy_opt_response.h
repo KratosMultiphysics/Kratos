@@ -198,7 +198,7 @@ public:
 
         Element::NodesArrayType node_array;
         for (auto& node_i : elem_i.GetGeometry()){
-            Element::NodeType::Pointer node_p = node_i.Clone();
+            Node::Pointer node_p = node_i.Clone(node_i.Id());
             node_array.push_back(node_p);
         }
 
