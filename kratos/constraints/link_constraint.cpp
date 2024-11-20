@@ -114,6 +114,14 @@ struct LinkConstraint::Impl
                 ++i_master;
             }
         } // for i_dof in range(2 * Dimensions)
+
+        std::cout << "constraint equation: ";
+        for (const auto c : constraint_equation) std::cout << c << ' ';
+        std::cout << "\n"
+                  << "slave: " << i_slave << "\n";
+        std::cout << "relation matrix:\n"
+                  << rRelationMatrix
+                  << "\n";
     }
 
 
