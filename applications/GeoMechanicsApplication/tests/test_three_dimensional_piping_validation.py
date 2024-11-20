@@ -4,7 +4,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
 
 
-class TestThreeDimensionalPipingValidation(KratosUnittest.TestCase):
+class KratosGeoMechanicsThreeDimensionalPipingValidation(KratosUnittest.TestCase):
     def test_three_dimensional_piping(self):
         file_path = test_helper.get_file_path(os.path.join('three_dimensional_piping'))
         simulation = test_helper.run_kratos(file_path)
