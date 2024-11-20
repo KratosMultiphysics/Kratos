@@ -1195,7 +1195,8 @@ void SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(SphericParticl
         DeltDisp[1] = delta_displ[1] - wall_delta_disp_at_contact_point[1];
         DeltDisp[2] = delta_displ[2] - wall_delta_disp_at_contact_point[2];
 
-        Node::Pointer other_particle_node = this->GetGeometry()[0].Clone();
+        auto& r_node = this->GetGeometry()[0];
+        Node::Pointer other_particle_node = r_node.Clone(r_node.Id());
         other_particle_node->GetSolutionStepValue(DELTA_DISPLACEMENT) = wall_delta_disp_at_contact_point;
         data_buffer.mpOtherParticleNode = &*other_particle_node;
         DEM_COPY_SECOND_TO_FIRST_3(data_buffer.mOtherToMeVector, cond_to_me_vect)
