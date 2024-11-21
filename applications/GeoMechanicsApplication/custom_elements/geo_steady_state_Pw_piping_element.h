@@ -218,6 +218,8 @@ public:
 
     using Element::CalculateOnIntegrationPoints;
 
+    std::string Info() const override { return "GeoSteadyStatePwPipingElement"; }
+
 private:
     void CheckDomainSize() const
     {

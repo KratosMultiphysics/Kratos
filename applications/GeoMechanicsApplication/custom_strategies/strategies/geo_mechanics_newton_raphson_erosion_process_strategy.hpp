@@ -79,8 +79,8 @@ public:
         if (number_of_piping_elements == 0) return std::nullopt;
 
         KRATOS_ERROR_IF(number_of_piping_elements != rPipeElements.size())
-            << "Unexpected number of piping elements: expected " << rPipeElements.size()
-            << " but got " << number_of_piping_elements << std::endl;
+            << "Unexpected number of piping elements of type " << rPipeElements[0]->Info() << ": expected "
+            << rPipeElements.size() << " but got " << number_of_piping_elements << std::endl;
 
         return result;
     }
@@ -122,7 +122,7 @@ public:
             return;
         }
 
-        KRATOS_ERROR << "Unexpected type of piping line element\n";
+        KRATOS_ERROR << "Unexpected type of piping element\n";
     }
 
     /**
@@ -330,6 +330,8 @@ private:
             }
             ++piping_iteration;
         }
+
+        KRATOS_INFO("PipingLoop") << "Piping Iteration: " << piping_iteration << std::endl;
         return equilibrium;
     }
 

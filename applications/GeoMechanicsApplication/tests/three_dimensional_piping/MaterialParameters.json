@@ -5,7 +5,7 @@
             "properties_id": 1,
             "Material": {
                 "constitutive_law": {
-                    "name": "LinearElasticK03DLaw"
+                    "name": "GeoIncrementalLinearElastic3DLaw"
                 },
                 "Variables": {
                     "YOUNG_MODULUS": 100000,
@@ -34,7 +34,7 @@
             "properties_id": 2,
             "Material": {
                 "constitutive_law": {
-                    "name": "LinearElasticK03DLaw"
+                    "name": "GeoIncrementalLinearElastic3DLaw"
                 },
                 "Variables": {
                     "YOUNG_MODULUS": 100000,
@@ -66,7 +66,7 @@
             "properties_id": 3,
             "Material": {
                 "constitutive_law": {
-                    "name": "LinearElasticK03DLaw"
+                    "name": "GeoIncrementalLinearElastic3DLaw"
                 },
                 "Variables": {
                     "YOUNG_MODULUS": 100000,
