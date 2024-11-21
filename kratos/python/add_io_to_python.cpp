@@ -24,6 +24,7 @@
 #include "includes/model_part_io.h"
 #include "includes/reorder_consecutive_model_part_io.h"
 #include "input_output/stl_io.h"
+#include "input_output/obj_io.h"
 #include "includes/gid_io.h"
 #include "python/add_io_to_python.h"
 #include "containers/flags.h"
@@ -185,10 +186,12 @@ void  AddIOToPython(pybind11::module& m)
     py::class_<StlIO, StlIO::Pointer, IO>(m, "StlIO")
         .def(py::init<std::filesystem::path const& >())
         .def(py::init<std::filesystem::path const&, Parameters>())
-        .def("ReadModelPart", &StlIO::ReadModelPart)
-        .def("WriteModelPart", &StlIO::WriteModelPart)
         ;
 
+    py::class_<ObjIO, ObjIO::Pointer, IO>(m, "ObjIO")
+        .def(py::init<std::filesystem::path const& >())
+        .def(py::init<std::filesystem::path const&, Parameters>())
+        ;
 
     // Import of CAD models to the model part
     py::class_<CadJsonInput<>, CadJsonInput<>::Pointer>(m, "CadJsonInput")

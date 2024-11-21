@@ -28,18 +28,23 @@ Condition::Pointer UPwLysmerAbsorbingCondition<TDim, TNumNodes>::Create(IndexTyp
         new UPwLysmerAbsorbingCondition(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+                                                                         const ProcessInfo& rCurrentProcessInfo)
+{
+    ElementMatrixType stiffness_matrix;
+
+    this->CalculateConditionStiffnessMatrix(stiffness_matrix, rCurrentProcessInfo);
+
+    this->AddLHS(rLeftHandSideMatrix, stiffness_matrix);
+}
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixType& rLhsMatrix,
                                                                         VectorType& rRightHandSideVector,
                                                                         const ProcessInfo& rCurrentProcessInfo)
 {
-    ElementMatrixType stiffness_matrix;
-
-    this->CalculateConditionStiffnessMatrix(stiffness_matrix, rCurrentProcessInfo);
-
-    this->AddLHS(rLhsMatrix, stiffness_matrix);
+    this->CalculateLeftHandSide(rLhsMatrix, rCurrentProcessInfo);
 
     this->CalculateAndAddRHS(rRightHandSideVector, rLhsMatrix);
 }
@@ -173,9 +178,6 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateDampingMatrix(Matrix
     // assemble left hand side vector
     this->AddLHS(rDampingMatrix, abs_matrix);
 }
-
-//----------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::GetValuesVector(Vector& rValues, int Step) const
@@ -520,8 +522,6 @@ void UPwLysmerAbsorbingCondition<3, 3>::CalculateRotationMatrix(BoundedMatrix<do
     rRotationMatrix(2, 2) = v_z[2];
 }
 
-//----------------------------------------------------------------------------------------
-
 template <>
 void UPwLysmerAbsorbingCondition<3, 4>::CalculateRotationMatrix(BoundedMatrix<double, 3, 3>& rRotationMatrix,
                                                                 const Element::GeometryType& rGeom)
@@ -574,8 +574,6 @@ std::string UPwLysmerAbsorbingCondition<TDim, TNumNodes>::Info() const
 {
     return "UPwLysmerAbsorbingCondition";
 }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template class UPwLysmerAbsorbingCondition<2, 2>;
 template class UPwLysmerAbsorbingCondition<2, 3>;

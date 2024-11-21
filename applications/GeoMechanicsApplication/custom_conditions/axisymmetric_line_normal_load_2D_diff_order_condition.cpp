@@ -24,7 +24,6 @@ AxisymmetricLineNormalLoad2DDiffOrderCondition::AxisymmetricLineNormalLoad2DDiff
 {
 }
 
-//----------------------------------------------------------------------------------------
 // Constructor 1
 AxisymmetricLineNormalLoad2DDiffOrderCondition::AxisymmetricLineNormalLoad2DDiffOrderCondition(
     IndexType NewId, GeometryType::Pointer pGeometry)
@@ -32,7 +31,6 @@ AxisymmetricLineNormalLoad2DDiffOrderCondition::AxisymmetricLineNormalLoad2DDiff
 {
 }
 
-//----------------------------------------------------------------------------------------
 // Constructor 2
 AxisymmetricLineNormalLoad2DDiffOrderCondition::AxisymmetricLineNormalLoad2DDiffOrderCondition(
     IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
@@ -40,16 +38,20 @@ AxisymmetricLineNormalLoad2DDiffOrderCondition::AxisymmetricLineNormalLoad2DDiff
 {
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Condition::Pointer AxisymmetricLineNormalLoad2DDiffOrderCondition::Create(IndexType NewId,
                                                                           NodesArrayType const& ThisNodes,
                                                                           PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(new AxisymmetricLineNormalLoad2DDiffOrderCondition(
-        NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Create(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
-//----------------------------------------------------------------------------------------
+Condition::Pointer AxisymmetricLineNormalLoad2DDiffOrderCondition::Create(IndexType NewId,
+                                                                          GeometryType::Pointer pGeom,
+                                                                          PropertiesType::Pointer pProperties) const
+{
+    return make_intrusive<AxisymmetricLineNormalLoad2DDiffOrderCondition>(NewId, pGeom, pProperties);
+}
+
 double AxisymmetricLineNormalLoad2DDiffOrderCondition::CalculateIntegrationCoefficient(
     const IndexType                                 PointNumber,
     const GeometryType::JacobiansType&              JContainer,

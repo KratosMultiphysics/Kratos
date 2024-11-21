@@ -249,7 +249,7 @@ int ApplyConstantPhreaticMultiLinePressureProcess::findIndex(const Node& rNode) 
         }
     }
 
-    return number_of_coordinates - 1;
+    return number_of_coordinates - 2;
 }
 
 double ApplyConstantPhreaticMultiLinePressureProcess::CalculatePressure(const Node& rNode,

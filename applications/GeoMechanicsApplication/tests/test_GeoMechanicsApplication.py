@@ -16,6 +16,7 @@ from test_benchmark_set_2 import KratosGeoMechanicsBenchmarkSet2
 from test_soil_structure_interactions import KratosGeoMechanicsSoilStructureInteractionTests
 from test_water_pressure import KratosGeoMechanicsWaterPressureTests
 from test_dynamics import KratosGeoMechanicsDynamicsTests
+from test_dynamics_long import KratosGeoMechanicsDynamicsLongTests
 from test_elements import KratosGeoMechanicsElementTypeTests
 from test_steady_state_groundwater_flow import KratosGeoMechanicsSteadyStateGroundWaterFlowTests
 from test_transient_groundwater_flow import KratosGeoMechanicsTransientGroundWaterFlowTests
@@ -53,6 +54,8 @@ from test_compressibility import KratosGeoMechanicsCompressibilityTests
 from fixed_spatial_variation import KratosGeoMechanicsFixedSpatialVariationTests
 from test_integration_node_extrapolation import KratosGeoMechanicsExtrapolationTests
 from test_truss_backbone_mat import KratosGeoMechanicsTrussBackboneMaterialTests
+from test_line_interface_elements import KratosGeoMechanicsInterfaceElementTests
+from test_three_dimensional_piping_validation import KratosGeoMechanicsThreeDimensionalPipingValidation
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -99,7 +102,8 @@ def AssembleTestSuites():
                         KratosGeoMechanicsCompressibilityTests,
                         KratosGeoMechanicsFixedSpatialVariationTests,
                         KratosGeoMechanicsExtrapolationTests,
-                        KratosGeoMechanicsTrussBackboneMaterialTests
+                        KratosGeoMechanicsTrussBackboneMaterialTests,
+                        KratosGeoMechanicsInterfaceElementTests
     ]
 
     # Create an array with the selected tests
@@ -130,7 +134,9 @@ def AssembleTestSuites():
                         KratosGeoMechanicsBenchmarkSet1,
                         KratosGeoMechanicsBenchmarkSet2,
                         KratosGeoMechanicsTransientGroundWaterFlowTests,
-                        TestSellmeijersRuleValidation
+                        TestSellmeijersRuleValidation,
+                        KratosGeoMechanicsDynamicsLongTests,
+                        KratosGeoMechanicsThreeDimensionalPipingValidation
                         ]
 
     # Create an array that contains all the tests from every testCase
