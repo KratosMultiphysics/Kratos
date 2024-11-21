@@ -331,7 +331,6 @@ private:
             ++piping_iteration;
         }
 
-        KRATOS_INFO("PipingLoop") << "Piping Iteration: " << piping_iteration << std::endl;
         return equilibrium;
     }
 
