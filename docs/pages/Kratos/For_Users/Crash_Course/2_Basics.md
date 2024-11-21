@@ -26,7 +26,7 @@ The model part file defines the geometry, mesh, boundary conditions, and initial
 
 By organizing these files in a structured manner, you can define, configure, and execute a full Kratos simulation. Each of these files plays a critical role in building, solving, and post-processing your multiphysics problem. In the following sections, we’ll cover these files in detail, providing examples and explaining key configurations required for typical use cases.
 
-These files are usually created by a GUI (GiD, Salome, Flowgraph) and used to directly start the simulation. As the aim of the course is not to learn how to use these tools, you can download the input files for a simple structural mechanics case [here](https://github.com/KratosMultiphysics/Documentation/raw/refs/heads/master/Workshops_files/Kratos_Workshop_2019/Sources/2_Kratos_input_files_and_IO/2_Kratos_input_files_and_IO.zip).
+These files are usually created by a GUI (GiD, Salome, Flowgraph) and used to directly start the simulation. As the aim of the course is not to learn how to use these tools, you can download the input files for a simple structural mechanics case [here](https://github.com/KratosMultiphysics/Documentation/raw/refs/heads/master/Crash_Course/2_Basics.zip).
 
 ### 1.2. Run Kratos from the command line
 Let's jump in and try the code:

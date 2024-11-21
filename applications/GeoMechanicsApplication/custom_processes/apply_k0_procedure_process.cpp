@@ -78,8 +78,17 @@ void ApplyK0ProcedureProcess::CheckK0MainDirection(const Properties& rProperties
 {
     KRATOS_ERROR_IF(!rProperties.Has(K0_MAIN_DIRECTION))
         << "K0_MAIN_DIRECTION is not defined for element " << ElementId << "." << std::endl;
-    KRATOS_ERROR_IF(rProperties[K0_MAIN_DIRECTION] < 0 || rProperties[K0_MAIN_DIRECTION] > 1)
-        << "K0_MAIN_DIRECTION should be 0 or 1 for element " << ElementId << "." << std::endl;
+
+    const auto dimension = rProperties.GetValue(CONSTITUTIVE_LAW).get()->WorkingSpaceDimension();
+    if (dimension == 2) {
+        KRATOS_ERROR_IF(rProperties[K0_MAIN_DIRECTION] < 0 || rProperties[K0_MAIN_DIRECTION] > 1)
+            << "K0_MAIN_DIRECTION should be 0 or 1 for element " << ElementId << "." << std::endl;
+    } else if (dimension == 3) {
+        KRATOS_ERROR_IF(rProperties[K0_MAIN_DIRECTION] < 0 || rProperties[K0_MAIN_DIRECTION] > 2)
+            << "K0_MAIN_DIRECTION should be 0, 1 or 2 for element " << ElementId << "." << std::endl;
+    } else {
+        KRATOS_ERROR << "dimension should be 2 or 3 for element " << ElementId << "." << std::endl;
+    }
 }
 
 void ApplyK0ProcedureProcess::CheckK0(const Properties& rProperties, IndexType ElementId)

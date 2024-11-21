@@ -42,8 +42,14 @@ Condition::Pointer SurfaceNormalFluidFlux3DDiffOrderCondition::Create(IndexType 
                                                                       NodesArrayType const& ThisNodes,
                                                                       PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(new SurfaceNormalFluidFlux3DDiffOrderCondition(
-        NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Create(NewId, GetGeometry().Create(ThisNodes), pProperties);
+}
+
+Condition::Pointer SurfaceNormalFluidFlux3DDiffOrderCondition::Create(IndexType             NewId,
+                                                                      GeometryType::Pointer pGeom,
+                                                                      PropertiesType::Pointer pProperties) const
+{
+    return make_intrusive<SurfaceNormalFluidFlux3DDiffOrderCondition>(NewId, pGeom, pProperties);
 }
 
 void SurfaceNormalFluidFlux3DDiffOrderCondition::CalculateConditionVector(ConditionVariables& rVariables,
