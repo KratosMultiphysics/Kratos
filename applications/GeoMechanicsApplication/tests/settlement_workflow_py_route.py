@@ -5,7 +5,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
 
 
-class KratosGeoMechanicsSettlementWorkflow(KratosUnittest.TestCase):
+class KratosGeoMechanicsSettlementWorkflowPyRoute(KratosUnittest.TestCase):
     """
     This test class is used to check the settlement workflow test, same as test_settlement_workflow.cpp to
     make sure the python workflow yields the same results as the c++ workflow.
