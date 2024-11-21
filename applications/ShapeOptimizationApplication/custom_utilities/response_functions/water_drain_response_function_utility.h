@@ -113,6 +113,7 @@ public:
 
 	double CalculateValue();
 
+	// TOOD: include area derivatives for finite difference test
 	void CalculateGradient();
 
 	// ==============================================================================

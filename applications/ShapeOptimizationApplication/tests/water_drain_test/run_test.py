@@ -31,6 +31,11 @@ optimization_log_filename = parameters["optimization_settings"]["output"]["optim
 # 1) some values from csv output
 # 2) using the "json_output_process" & "json_check_process"
 
+# TODO: finite difference sensitivity testing
+#       - implement area derivatives
+#       - fd sensitivities can only be computed for the infeasible nodes ("volume nodes") which are forming a pond
+#       - feasible nodes don't have any sensitivity
+
 objective_reference_result = [2.11349E+01, 5.28372E+00, 0.00000E+00]
 
 with open(os.path.join(output_directory, optimization_log_filename), 'r') as csvfile:

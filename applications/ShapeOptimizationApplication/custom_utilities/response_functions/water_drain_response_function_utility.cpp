@@ -128,6 +128,11 @@ void WaterDrainResponseFunctionUtility::CalculateGradient()
 	// First gradients are initialized
 	VariableUtils().SetHistoricalVariableToZero(SHAPE_SENSITIVITY, mrModelPart.Nodes());
 
+	// TODO: Finite Difference test
+	// but: derivatives of the nodal area are currently neglected:
+	// 		nodal response value: gi = water_level_i * area_i
+	// 		full derivative: dgi/dx = dwater_level_i/dx * area_i + water_level_i * darea_i/dx
+	// These are necessary in order to set up a finite difference test!
     block_for_each(mrModelPart.Nodes(), [&](Node& rNode)
     {
 		if (rNode.FastGetSolutionStepValue(WATER_LEVEL) > 0.0) {
@@ -138,6 +143,7 @@ void WaterDrainResponseFunctionUtility::CalculateGradient()
 				projected_nodal_area = std::abs(MathUtils<double>::Dot3(normal, mGravityDirection));
 			}
 
+			// neglect area derivative: dgi/dx ~= dwater_level_i/dx * area_i = gravity_direction * area_i
 			array_3d gradient = mGravityDirection * projected_nodal_area;
 			if (mQuadraticHeightPenalization) gradient *= 2 * rNode.FastGetSolutionStepValue(WATER_LEVEL);
 			rNode.FastGetSolutionStepValue(SHAPE_SENSITIVITY) = gradient;
