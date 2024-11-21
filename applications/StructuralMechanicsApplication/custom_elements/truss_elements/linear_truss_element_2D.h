@@ -322,6 +322,12 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
+  void CalculateOnIntegrationPoints(
+    const Variable<Vector>& rVariable,
+    std::vector<Vector>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo
+    ) override;
+
     /**
      * @brief Get on rVariable Constitutive Law from the element
      * @param rVariable The variable we want to get

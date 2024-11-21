@@ -32,17 +32,19 @@ void LinearTrussElement2D<TNNodes>::Initialize(const ProcessInfo& rCurrentProces
 {
     KRATOS_TRY
 
-    // Initialization should not be done again in a restart!
-    if (!rCurrentProcessInfo[IS_RESTARTED]) {
-        if (this->UseGeometryIntegrationMethod()) {
-            if (GetProperties().Has(INTEGRATION_ORDER) ) {
-                mThisIntegrationMethod = static_cast<GeometryData::IntegrationMethod>(GetProperties()[INTEGRATION_ORDER] - 1);
-            } else {
-                mThisIntegrationMethod = CalculateIntegrationMethod();
-            }
+    if (this->UseGeometryIntegrationMethod()) {
+        if (GetProperties().Has(INTEGRATION_ORDER) ) {
+            mThisIntegrationMethod = static_cast<GeometryData::IntegrationMethod>(GetProperties()[INTEGRATION_ORDER] - 1);
+        } else {
+            mThisIntegrationMethod = CalculateIntegrationMethod();
         }
+    }
+    const auto& r_integration_points = this->IntegrationPoints(mThisIntegrationMethod);
 
-        const auto& r_integration_points = this->IntegrationPoints(mThisIntegrationMethod);
+    // Initialization should not be done again in a restart!
+    if (!rCurrentProcessInfo[IS_RESTARTED] || mConstitutiveLawVector.size() != r_integration_points.size()) {
+
+
 
         // Constitutive Law initialisation
         if (mConstitutiveLawVector.size() != r_integration_points.size())
@@ -350,6 +352,19 @@ void LinearTrussElement2D<TNNodes>::CalculateLocalSystem(
         noalias(rRHS) += N_shape * local_body_forces[0] * jacobian_weight;
         noalias(rRHS) += N_shapeY * local_body_forces[1] * jacobian_weight;
     }
+    double prestress = 0.00;
+    if (GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
+        prestress = GetProperties()[TRUSS_PRESTRESS_PK2];
+    }
+    const double A = GetProperties()[CROSS_AREA];
+    const double N = prestress * A;
+
+    // internal force vectors
+    BoundedVector<double, 2*TNNodes> f_local = ZeroVector(2*TNNodes);
+    f_local[0] = -1.00 * N;
+    f_local[2] = 1.00 * N;
+    rRHS -= f_local;
+
     RotateAll(rLHS, rRHS); // rotate to global
 
     KRATOS_CATCH("")
@@ -477,6 +492,20 @@ void LinearTrussElement2D<TNNodes>::CalculateRightHandSide(
         noalias(rRHS) += N_shape * local_body_forces[0] * jacobian_weight;
         noalias(rRHS) += N_shapeY * local_body_forces[1] * jacobian_weight;
     }
+
+    double prestress = 0.00;
+    if (GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
+        prestress = GetProperties()[TRUSS_PRESTRESS_PK2];
+    }
+    const double A = GetProperties()[CROSS_AREA];
+    const double N = prestress * A;
+
+    // internal force vectors
+    BoundedVector<double, 2*TNNodes> f_local = ZeroVector(TNNodes);
+    f_local[0] = -1.00 * N;
+    f_local[2] = 1.00 * N;
+    rRHS -= f_local;
+
     RotateRHS(rRHS); // rotate to global
 
     KRATOS_CATCH("")
@@ -565,31 +594,101 @@ void LinearTrussElement2D<TNNodes>::RotateAll(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TNNodes>
+template <SizeType TNNodes>
 void LinearTrussElement2D<TNNodes>::CalculateOnIntegrationPoints(
-    const Variable<double>& rVariable,
-    std::vector<double>& rOutput,
-    const ProcessInfo& rProcessInfo
-    )
-{
-    const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
+    const Variable<double> &rVariable, std::vector<double> &rOutput,
+    const ProcessInfo &rProcessInfo) {
+  const auto &integration_points = IntegrationPoints(GetIntegrationMethod());
+  rOutput.resize(integration_points.size());
+
+  if (rVariable == AXIAL_FORCE) {
+    const auto &r_props = GetProperties();
+    const auto &r_geometry = GetGeometry();
+    const double area = r_props[CROSS_AREA];
+
+    ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
+    auto &r_cl_options = cl_values.GetOptions();
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+    const double length = CalculateLength();
+
+    // Let's initialize the cl values
+    VectorType strain_vector(1), stress_vector(1);
+    MatrixType C(1, 1);
+    strain_vector.clear();
+    cl_values.SetStrainVector(strain_vector);
+    cl_values.SetStressVector(stress_vector);
+    cl_values.SetConstitutiveMatrix(C);
+    SystemSizeBoundedArrayType nodal_values(SystemSize);
+    GetNodalValuesVector(nodal_values);
+
+    SystemSizeBoundedArrayType B;
+
+    // Loop over the integration points
+    for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
+      const double xi = integration_points[IP].X();
+      GetFirstDerivativesShapeFunctionsValues(B, length, xi);
+
+      strain_vector[0] = inner_prod(B, nodal_values);
+
+      mConstitutiveLawVector[IP]->CalculateMaterialResponsePK2(cl_values);
+      rOutput[IP] = cl_values.GetStressVector()[0] * area;
+    }
+  } else if (rVariable == AXIAL_STRAIN) {
+    const auto &r_props = GetProperties();
+    const auto &r_geometry = GetGeometry();
+
+    ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
+    auto &r_cl_options = cl_values.GetOptions();
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+    const double length = CalculateLength();
+
+    // Let's initialize the cl values
+    VectorType strain_vector(1), stress_vector(1);
+    MatrixType C(1, 1);
+    strain_vector.clear();
+    cl_values.SetStrainVector(strain_vector);
+    cl_values.SetStressVector(stress_vector);
+    cl_values.SetConstitutiveMatrix(C);
+    SystemSizeBoundedArrayType nodal_values(SystemSize);
+    GetNodalValuesVector(nodal_values);
+
+    SystemSizeBoundedArrayType B;
+
+    // Loop over the integration points
+    for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
+      const double xi = integration_points[IP].X();
+      GetFirstDerivativesShapeFunctionsValues(B, length, xi);
+      rOutput[IP] = inner_prod(B, nodal_values);
+    }
+  }
+}
+template <SizeType TNNodes>
+void LinearTrussElement2D<TNNodes>::CalculateOnIntegrationPoints(
+    const Variable<Vector> &rVariable, std::vector<Vector> &rOutput,
+    const ProcessInfo &rCurrentProcessInfo) {
+
+    const auto &integration_points = IntegrationPoints(GetIntegrationMethod());
     rOutput.resize(integration_points.size());
 
-    if (rVariable == AXIAL_FORCE) {
+    if (rVariable == PK2_STRESS_VECTOR) {
         const auto &r_props = GetProperties();
         const auto &r_geometry = GetGeometry();
         const double area = r_props[CROSS_AREA];
 
-        ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
+        ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rCurrentProcessInfo);
         auto &r_cl_options = cl_values.GetOptions();
-        r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
+        r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
         r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
         const double length = CalculateLength();
 
         // Let's initialize the cl values
         VectorType strain_vector(1), stress_vector(1);
-        MatrixType C(1,1);
+        MatrixType C(1, 1);
         strain_vector.clear();
         cl_values.SetStrainVector(strain_vector);
         cl_values.SetStressVector(stress_vector);
@@ -602,41 +701,12 @@ void LinearTrussElement2D<TNNodes>::CalculateOnIntegrationPoints(
         // Loop over the integration points
         for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
             const double xi = integration_points[IP].X();
-             GetFirstDerivativesShapeFunctionsValues(B, length, xi);
+            GetFirstDerivativesShapeFunctionsValues(B, length, xi);
 
             strain_vector[0] = inner_prod(B, nodal_values);
 
             mConstitutiveLawVector[IP]->CalculateMaterialResponsePK2(cl_values);
-            rOutput[IP] = cl_values.GetStressVector()[0] * area;
-        }
-    } else if (rVariable == AXIAL_STRAIN) {
-        const auto &r_props = GetProperties();
-        const auto &r_geometry = GetGeometry();
-
-        ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
-        auto &r_cl_options = cl_values.GetOptions();
-        r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
-        r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-
-        const double length = CalculateLength();
-
-        // Let's initialize the cl values
-        VectorType strain_vector(1), stress_vector(1);
-        MatrixType C(1,1);
-        strain_vector.clear();
-        cl_values.SetStrainVector(strain_vector);
-        cl_values.SetStressVector(stress_vector);
-        cl_values.SetConstitutiveMatrix(C);
-        SystemSizeBoundedArrayType nodal_values(SystemSize);
-        GetNodalValuesVector(nodal_values);
-
-        SystemSizeBoundedArrayType B;
-
-        // Loop over the integration points
-        for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
-            const double xi = integration_points[IP].X();
-             GetFirstDerivativesShapeFunctionsValues(B, length, xi);
-            rOutput[IP] = inner_prod(B, nodal_values);
+            rOutput[IP] = cl_values.GetStressVector();
         }
     }
 }
@@ -669,9 +739,15 @@ template<SizeType TNNodes>
 int LinearTrussElement2D<TNNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
+    if (this->IsActive()) {
+      return mConstitutiveLawVector[0]->Check(GetProperties(), GetGeometry(),
+                                              rCurrentProcessInfo);
+      KRATOS_ERROR_IF_NOT(GetProperties().Has(CROSS_AREA))
+          << "CROSS_AREA not defined in the properties" << std::endl;
 
-    return mConstitutiveLawVector[0]->Check(GetProperties(), GetGeometry(), rCurrentProcessInfo);
-    KRATOS_ERROR_IF_NOT(GetProperties().Has(CROSS_AREA)) << "CROSS_AREA not defined in the properties" << std::endl;
+    }
+
+    return 0;
 
     KRATOS_CATCH( "" );
 }

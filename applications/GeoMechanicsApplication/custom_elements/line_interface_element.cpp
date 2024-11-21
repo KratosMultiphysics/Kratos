@@ -193,8 +193,7 @@ void LineInterfaceElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
         GeoElementUtilities::EvaluateShapeFunctionsAtIntegrationPoints(
             mIntegrationScheme->GetIntegrationPoints(), GetGeometry());
     if (!rCurrentProcessInfo[IS_RESTARTED] ||
-        mConstitutiveLaws.size() != shape_function_values_at_integration_points.size())
-    {
+        mConstitutiveLaws.size() != shape_function_values_at_integration_points.size()) {
         mConstitutiveLaws.clear();
         for (const auto& r_shape_function_values : shape_function_values_at_integration_points) {
             mConstitutiveLaws.push_back(GetProperties()[CONSTITUTIVE_LAW]->Clone());
@@ -202,7 +201,6 @@ void LineInterfaceElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
         }
     }
 }
-
 
 int LineInterfaceElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
