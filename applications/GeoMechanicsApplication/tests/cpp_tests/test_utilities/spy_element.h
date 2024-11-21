@@ -32,8 +32,6 @@ public:
     bool IsSolutionStepFinalized() const;
     bool IsNonLinIterationInitialized() const;
     bool IsNonLinIterationFinalized() const;
-    bool IsEquationIdRetrieved() const;
-    bool IsGetDofListCalled() const;
 
 private:
     bool mSolutionStepInitialized    = false;

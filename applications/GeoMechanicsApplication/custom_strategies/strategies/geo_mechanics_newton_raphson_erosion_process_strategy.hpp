@@ -98,25 +98,22 @@ public:
             return;
         }
 
-        auto piping_interface_elements =
-            TryDownCastToPipingElement<SteadyStatePwPipingElement<2, 4>>(piping_elements);
-        if (piping_interface_elements) {
+        if (auto piping_interface_elements =
+                TryDownCastToPipingElement<SteadyStatePwPipingElement<2, 4>>(piping_elements)) {
             this->DetermineOpenPipingElements(piping_interface_elements.value());
             this->BaseClassFinalizeSolutionStep();
             return;
         }
 
-        auto piping_2D_line_elements =
-            TryDownCastToPipingElement<GeoSteadyStatePwPipingElement<2, 2>>(piping_elements);
-        if (piping_2D_line_elements) {
+        if (auto piping_2D_line_elements =
+                TryDownCastToPipingElement<GeoSteadyStatePwPipingElement<2, 2>>(piping_elements)) {
             this->DetermineOpenPipingElements(piping_2D_line_elements.value());
             this->BaseClassFinalizeSolutionStep();
             return;
         }
 
-        auto piping_3D_line_elements =
-            TryDownCastToPipingElement<GeoSteadyStatePwPipingElement<3, 2>>(piping_elements);
-        if (piping_3D_line_elements) {
+        if (auto piping_3D_line_elements =
+                TryDownCastToPipingElement<GeoSteadyStatePwPipingElement<3, 2>>(piping_elements)) {
             this->DetermineOpenPipingElements(piping_3D_line_elements.value());
             this->BaseClassFinalizeSolutionStep();
             return;

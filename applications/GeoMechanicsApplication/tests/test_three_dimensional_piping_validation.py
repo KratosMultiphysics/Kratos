@@ -7,7 +7,7 @@ import test_helper
 class KratosGeoMechanicsThreeDimensionalPipingValidation(KratosUnittest.TestCase):
     def test_three_dimensional_piping(self):
         file_path = test_helper.get_file_path(os.path.join('three_dimensional_piping'))
-        simulation = test_helper.run_kratos(file_path)
+        test_helper.run_kratos(file_path)
         result_file_name = os.path.join(file_path, 'Cube_10sS_1.post.res')
 
         reader = test_helper.GiDOutputFileReader()
