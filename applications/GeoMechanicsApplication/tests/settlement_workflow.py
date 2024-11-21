@@ -1,4 +1,5 @@
 import os
+import shutil
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import test_helper
@@ -9,17 +10,32 @@ class KratosGeoMechanicsSettlementWorkflow(KratosUnittest.TestCase):
     This test class is used to check the settlement workflow test, same as test_settlement_workflow.cpp to
     make sure the python workflow yields the same results as the c++ workflow.
     """
+    def setUp(self):
+        super().setUp()
+
+        self.test_root = test_helper.get_file_path("test_settlement_workflow")
+        self.test_path = os.path.join(self.test_root, "python")
+
+        try:
+            shutil.rmtree(self.test_path)
+        except FileNotFoundError:
+            pass
+
+        os.makedirs(self.test_path)
+
+        input_filenames = ["MaterialParameters.json", "ProjectParameters_stage1.json", "ProjectParameters_stage2.json", "ProjectParameters_stage3.json", "ProjectParameters_stage4.json", "test_model.mdpa"]
+        for filename in input_filenames:
+            shutil.copy(os.path.join(self.test_root, filename), os.path.join(self.test_path, filename))
+
 
     def test_d_settlement_workflow(self):
-        test_name = 'test_settlement_workflow'
-        file_path = test_helper.get_file_path(test_name)
-        test_helper.run_stages(file_path, 4)
+        test_helper.run_stages(self.test_path, 4)
 
         times_to_check = [1.0, 2.0, 3.0, 3.2]
 
         for i in range(4):
-            result_file_name = os.path.join(file_path, f'test_model_stage{i+1}.post.res')
-            expected_result_file_name = os.path.join(file_path, f'test_model_stage{i+1}.post.orig.res')
+            result_file_name = os.path.join(self.test_path, f'test_model_stage{i+1}.post.res')
+            expected_result_file_name = os.path.join(self.test_root, f'test_model_stage{i+1}.post.orig.res')
 
             reader = test_helper.GiDOutputFileReader()
 
