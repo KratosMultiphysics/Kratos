@@ -21,7 +21,6 @@
 #include <cstddef>
 #include <utility>
 #include <type_traits>
-#include <type_traits>
 
 // External includes
 #include <boost/iterator/indirect_iterator.hpp>
@@ -593,6 +592,7 @@ public:
     {
         std::swap(mSortedPartSize, rOther.mSortedPartSize);
         std::swap(mMaxBufferSize, rOther.mMaxBufferSize);
+        std::swap(mHasMutablePass, rOther.mHasMutablePass);
         mData.swap(rOther.mData);
     }
 
@@ -711,8 +711,6 @@ public:
     template <class InputIterator>
     void insert(InputIterator first, InputIterator last)
     {
-        KRATOS_ERROR_IF(mHasMutablePass)
-            << "A mutable pass is active. Hence, use of PointerVectorSet::insert(first, last) is prohibited.";
         // first sorts the input iterators and make the input unique.
         std::sort(first, last, CompareKey());
         auto new_last = std::unique(first, last, EqualKeyTo());
@@ -1150,6 +1148,9 @@ private:
                 mData.push_back(GetPointer(it));
             }
         } else {
+            KRATOS_ERROR_IF(mHasMutablePass)
+                << "A mutable pass is active. Hence, use of PointerVectorSet::insert(first, last) is prohibited.";            
+                
             if (KeyOf(GetReference(first)) > KeyOf(*(mData.back()))) {
                 // all are pointing to the end of the vector, hence pushing back.
                 mData.reserve(mData.size() + std::distance(first, last));
