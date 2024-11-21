@@ -88,19 +88,19 @@ void TrussElement3D2N::GetDofList(DofsVectorType& rElementalDofList,
 void TrussElement3D2N::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-
+    const auto& N_values =
+        GetGeometry().ShapeFunctionsValues(GetIntegrationMethod());
     // Initialization should not be done again in a restart!
-    //if (!rCurrentProcessInfo[IS_RESTARTED]) {
+    if (!rCurrentProcessInfo[IS_RESTARTED] || N_values.size1() != 1) {
         if (GetProperties()[CONSTITUTIVE_LAW] != nullptr) {
             mpConstitutiveLaw = GetProperties()[CONSTITUTIVE_LAW]->Clone();
-            const auto& N_values =
-                GetGeometry().ShapeFunctionsValues(GetIntegrationMethod());
+
             mpConstitutiveLaw->InitializeMaterial(GetProperties(), GetGeometry(),
                 row(N_values , 0));
         } else {
             KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << Id() << std::endl;
         }
-    //}
+    }
 
     KRATOS_CATCH("")
 }
