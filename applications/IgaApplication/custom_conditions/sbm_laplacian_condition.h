@@ -22,7 +22,7 @@
 namespace Kratos
 {
 /// Condition for penalty support condition
-class SBMLaplacianCondition
+class KRATOS_API(IGA_APPLICATION) SBMLaplacianCondition
     : public Condition
 {
 public:

@@ -19,7 +19,7 @@
 #include "structural_mechanics_fast_suite.h"
 
 // Application includes
-#include "custom_elements/membrane_element_2D2N.h"
+#include "custom_elements/membrane_elements/membrane_element_2D2N.h"
 
 namespace Kratos::Testing
 {

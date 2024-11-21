@@ -41,8 +41,14 @@ Condition::Pointer SurfaceLoad3DDiffOrderCondition::Create(IndexType            
                                                            NodesArrayType const& ThisNodes,
                                                            PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(
-        new SurfaceLoad3DDiffOrderCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Create(NewId, GetGeometry().Create(ThisNodes), pProperties);
+}
+
+Condition::Pointer SurfaceLoad3DDiffOrderCondition::Create(IndexType             NewId,
+                                                           GeometryType::Pointer pGeom,
+                                                           PropertiesType::Pointer pProperties) const
+{
+    return make_intrusive<SurfaceLoad3DDiffOrderCondition>(NewId, pGeom, pProperties);
 }
 
 void SurfaceLoad3DDiffOrderCondition::CalculateConditionVector(ConditionVariables& rVariables, unsigned int PointNumber)

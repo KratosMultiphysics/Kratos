@@ -122,6 +122,8 @@ public:
     static void FillPermeabilityMatrix(BoundedMatrix<double, 3, 3>&   rPermeabilityMatrix,
                                        const Element::PropertiesType& Prop);
 
+    static Matrix FillPermeabilityMatrix(const Element::PropertiesType& Prop, std::size_t Dimension);
+
     static void InvertMatrix2(BoundedMatrix<double, 2, 2>&       rInvertedMatrix,
                               const BoundedMatrix<double, 2, 2>& InputMatrix,
                               double&                            InputMatrixDet);

@@ -74,15 +74,25 @@ class TestSellmeijersRule(KratosUnittest.TestCase):
 
     @parameterized.expand(
         [('7.10', 3.00E-04, 1.157E-12, 10.29, 11.3, 7.5, 'test_compare_sellmeijer/HeightAquiferD10L30.gid')])
-    def test_sellmeijers_rule_height(self, name, d70, kappa, Hc, Hn, length_n, test_name_gid):
+    def test_sellmeijers_rule_height(self, name, d70, kappa, h_c, h_n, length_n, test_name_gid):
         file_path = test_helper.get_file_path(os.path.join('./', test_name_gid))
         os.chdir(file_path)
-        critical_head_found, length = self.critical_head_loop(file_path, kappa, d70, Hn, 'linear')
-        self.results = {"value_name": name, "test_result_h": Hc, "kratos_results_h": critical_head_found,
-                        "equivalent_software_h": Hn, "kratos_results_l": length, "equivalent_software_l": length_n}
-        self.assertAlmostEqual(Hn, critical_head_found, 1,
-                               f"Critical head kratos: {critical_head_found}, old geo flow {Hn}")
+        critical_head_found, length = self.critical_head_loop(file_path, kappa, d70, h_n, 'linear')
+        self.results = {"value_name": name, "test_result_h": h_c, "kratos_results_h": critical_head_found,
+                        "equivalent_software_h": h_n, "kratos_results_l": length, "equivalent_software_l": length_n}
+        self.assertAlmostEqual(h_n, critical_head_found, 1,
+                               f"Critical head kratos: {critical_head_found}, old geo flow {h_n}")
 
+    @parameterized.expand(
+        [('7.10', 3.00E-04, 1.157E-12, 10.29, 11.3, 7.5, 'test_compare_sellmeijer/HeightAquiferD10L30line')])
+    def test_sellmeijers_rule_height_line(self, name, d70, kappa, h_c, h_n, length_n, test_name_line):
+        file_path = test_helper.get_file_path(os.path.join('./', test_name_line))
+        os.chdir(file_path)
+        critical_head_found, length = self.critical_head_loop(file_path, kappa, d70, h_n, 'linear')
+        self.results = {"value_name": name, "test_result_h": h_c, "kratos_results_h": critical_head_found,
+                        "equivalent_software_h": h_n, "kratos_results_l": length, "equivalent_software_l": length_n}
+        self.assertAlmostEqual(h_n, critical_head_found, 1,
+                               f"Critical head kratos: {critical_head_found}, old geo flow {h_n}")
 
 if __name__ == '__main__':
     KratosUnittest.main()

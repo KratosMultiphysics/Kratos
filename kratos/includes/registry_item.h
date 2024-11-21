@@ -23,7 +23,7 @@
     #include <boost/any.hpp>
 #else
     #include <any>
-#endif 
+#endif
 
 // External includes
 
@@ -257,7 +257,7 @@ public:
         KRATOS_CATCH("");
     }
 
-    template<typename TDataType, typename TCastType> 
+    template<typename TDataType, typename TCastType>
     TCastType const& GetValueAs() const
     {
         KRATOS_TRY
@@ -284,6 +284,16 @@ public:
     bool HasItems() const;
 
     bool HasItem(std::string const& rItemName) const;
+
+    template<class OtherType>
+    bool IsSameType(const OtherType& rOther) const {
+        try {
+            GetValue<OtherType>();
+        } catch (...) {
+            return false;
+        }
+        return true;
+    }
 
     ///@}
     ///@name Input and output
