@@ -87,7 +87,6 @@ ContainerExpression<TContainerType> SmoothClamper<TContainerType>::CalculateForw
     // y = 3x^2 - 2x^3
     // dy/dx = 3.2.x - 2.3.x^2
 
-    const auto min = mMin;
     const auto delta = mMax - mMin;
     const auto& r_input_exp = rInput.GetExpression();
     const auto number_of_entities = r_input_exp.NumberOfEntities();
