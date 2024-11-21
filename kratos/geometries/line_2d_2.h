@@ -1066,7 +1066,6 @@ public:
         const TPointType& r_first_point  = BaseType::GetPoint(0);
         const TPointType& r_second_point = BaseType::GetPoint(1);
 
-        // The length
         const double length = Length();
 
         // Project the point on the line in global space
