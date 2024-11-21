@@ -59,6 +59,11 @@ typedef NodeType::Pointer NodeTypePointer;
 typedef std::vector<NodeType::Pointer> NodeVector;
 typedef ModelPart::NodesContainerType NodesArrayType;
 
+/// Short class definition.
+/**
+ Helper structure storing the information of the pond, such as lowest node id and coordinates, maximal water level,
+ neighbouring ponds and if the pond has been merged into another pond.
+ */
 struct Volume {
 	IndexType Id;
 	IndexType mLowPointId;
@@ -69,10 +74,10 @@ struct Volume {
 };
 
 /// Short class definition.
-/** Detail class definition.
-
+/** Water Drain response function to prevent ponding.
+    It computes the water volume by integrating the water level of the ponds.
+    For this, a node search is conducted which detects the nodes which are forming a pond.
  */
-
 class KRATOS_API(SHAPE_OPTIMIZATION_APPLICATION) WaterDrainResponseFunctionUtility
 {
 public:
@@ -143,14 +148,19 @@ private:
 	///@name Operations
 	///@{
 
+	/// @brief Determines the water volumes or ponds on the surface and the water level of these.
 	void SearchWaterVolumes();
 
+	/// @brief Finds lowest points of the ponds (elliptic points of the surface).
 	void SearchLowPoints();
 
+	/// @brief Determines whereto water flows from each node and adds nodes to their respective ponds.
 	void FindSteepestDescentFromEachNode();
 
+	/// @brief Flattens the ponds so that their maximum water level is correct.
 	void LevelVolumes();
 
+	/// @brief Merges neighbouring ponds if necessary.
 	void MergeVolumes();
 
 	///@}

@@ -40,7 +40,7 @@ WaterDrainResponseFunctionUtility::WaterDrainResponseFunctionUtility(ModelPart& 
 
 	mGravityDirection = ResponseSettings["gravity_direction"].GetVector();
 	const double direction_norm = norm_2(mGravityDirection);
-	KRATOS_ERROR_IF(direction_norm < std::numeric_limits<double>::epsilon()) << "WaterDrainResponseFunctionUtility: 'main_direction' vector norm is 0!" << std::endl;
+	KRATOS_ERROR_IF(direction_norm < 1e-16) << "WaterDrainResponseFunctionUtility: 'main_direction' vector norm is 0!" << std::endl;
 	mGravityDirection /= direction_norm;
 
 	mMaxIterations = ResponseSettings["max_iterations_volume_search"].GetInt();
@@ -107,11 +107,13 @@ double WaterDrainResponseFunctionUtility::CalculateValue()
 {
 	KRATOS_TRY;
 
-	const double mValue = block_for_each<SumReduction<double>>(mrModelPart.Nodes(), [&](Node& rNode) {
+	const double value = block_for_each<SumReduction<double>>(mrModelPart.Nodes(), [&](Node& rNode) {
 		double g_i = rNode.FastGetSolutionStepValue(WATER_LEVEL) * rNode.FastGetSolutionStepValue(NODAL_AREA);
 		if (mQuadraticHeightPenalization) g_i *= rNode.FastGetSolutionStepValue(WATER_LEVEL);
 		return g_i;
 	});
+
+	mValue = value;
 
 	return mValue;
 
@@ -298,7 +300,7 @@ void WaterDrainResponseFunctionUtility::LevelVolumes() {
 	KRATOS_TRY;
 
 	BuiltinTimer timer;
-	KRATOS_INFO("ShapeOpt::WaterDrain") << "Starting LeveVolumes..." << std::endl;
+	KRATOS_INFO("ShapeOpt::WaterDrain") << "Starting LevelVolumes..." << std::endl;
 
 	for (std::vector<Kratos::Volume>::size_type i = 0; i<mListOfVolumes.size(); i++) {
 		Volume& r_volume = mListOfVolumes[i];
