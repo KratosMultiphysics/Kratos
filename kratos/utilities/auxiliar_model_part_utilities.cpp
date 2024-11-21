@@ -473,7 +473,7 @@ void AuxiliarModelPartUtilities::RemoveOrphanNodesFromSubModelParts()
                 }
                 const auto& r_geometries = r_sub_model_part.Geometries();
                 for (auto it_geom = r_geometries.begin(); it_geom != r_geometries.end(); ++it_geom) {
-                    auto& r_geometry = *(*(it_geom.base()));
+                    auto& r_geometry = *it_geom;
                     for (auto& r_node : r_geometry) {
                         r_node.Set(TO_ERASE, false);
                     }
