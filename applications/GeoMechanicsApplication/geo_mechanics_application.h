@@ -403,6 +403,8 @@ private:
         std::make_unique<ThreeDimensionalStressState>()};
     const GeoSteadyStatePwPipingElement<2, 2> mGeoSteadyStatePwPipingElement2D2N{
         0, Kratos::make_shared<Line2D2<NodeType>>(Element::GeometryType::PointsArrayType(2))};
+    const GeoSteadyStatePwPipingElement<3, 2> mGeoSteadyStatePwPipingElement3D2N{
+        0, Kratos::make_shared<Line3D2<NodeType>>(Element::GeometryType::PointsArrayType(2))};
 
     // small strain elements:
     const UPwSmallStrainElement<2, 3> mUPwSmallStrainElement2D3N{
