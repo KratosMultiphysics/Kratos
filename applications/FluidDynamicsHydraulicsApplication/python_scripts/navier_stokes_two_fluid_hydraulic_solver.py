@@ -111,7 +111,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         self.element_integrates_in_time = True
         self.element_has_nodal_properties = True
 
-        self.min_buffer_size = 3
+        self.min_buffer_size = 4
 
         # self.element_name = "TwoFluidNavierStokesAlphaMethod"
         # self.rho_inf = 0.0
@@ -211,6 +211,11 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo(
             self.__class__.__name__, "DOF added correctly.")
 
+        # Instantiate the level set convection process
+        # Note that is is required to do this in here in order to validate the defaults and set the corresponding distance gradient flag
+        # Note that the nodal gradient of the distance is required either for the eulerian BFECC limiter or by the algebraic element antidiffusivity
+        self._GetLevelSetConvectionProcess()
+
     def Initialize(self):
         computing_model_part = self.GetComputingModelPart()
         # Calculate boundary normals
@@ -294,6 +299,19 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         # (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
         # Perform the convection of the historical database (Eulerian FM-ALE)
 
+        for node in self.main_model_part.Nodes:
+            if node.Id == 2535:
+                print("PRE LEVEL SET")
+                print("Velocity O", node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,0))
+                print("Velocity 1", node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,1))
+                print("Velocity 2", node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,2))
+                print("Fractional_velocity", node.GetSolutionStepValue(
+                    KratosCFD.FRACTIONAL_VELOCITY, 0))
+                print("Distance O", node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,0))
+                print("Distance 1", node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,1))
+
+
+
         self.__PerformLevelSetConvection()
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
         delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
@@ -302,12 +320,33 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         # Perform the level-set convection according to the previous step velocity
 
 
+        for node in self.main_model_part.Nodes:
+            if node.Id == 2535:
+                print("POSTLEVEL SET")
+                print("Velocity O", node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,0))
+                print("Velocity 1", node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,1))
+                print("Velocity 2", node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,2))
+                print("Fractional_velocity", node.GetSolutionStepValue(
+                    KratosCFD.FRACTIONAL_VELOCITY, 0))
+                print("Distance O", node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,0))
+                print("Distance 1", node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,1))
+
         if self.eulerian_fm_ale:
             print("ENTRA")
             self.__PerformEulerianFmAleVelocity()
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "FM-Lagrangian method is performed.")
 
 
+        for node in self.main_model_part.Nodes:
+            if node.Id == 2535:
+                print("POST FRACTIONAL 1 ")
+                print("Velocity O", node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,0))
+                print("Velocity 1", node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,1))
+                print("Velocity 2", node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,2))
+                print("Fractional_velocity", node.GetSolutionStepValue(
+                    KratosCFD.FRACTIONAL_VELOCITY, 0))
+                print("Distance O", node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,0))
+                print("Distance 1", node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,1))
         # Perform distance correction to prevent ill-conditioned cuts
         self._GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
 
@@ -365,6 +404,17 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
 
         # Finalize the solver current step
         self._GetSolutionStrategy().FinalizeSolutionStep()
+
+        for node in self.main_model_part.Nodes:
+            if node.Id ==2535:
+                print("POST FRACTIONAL 2")
+                print("Velocity O", node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,0))
+                print("Velocity 1", node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,1))
+                print("Velocity 2", node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,2))
+                print("Fractional_velocity", node.GetSolutionStepValue(
+                    KratosCFD.FRACTIONAL_VELOCITY, 0))
+                print("Distance O", node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,0))
+                print("Distance 1", node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,1))
 
         # Acceleration for generalised alpha time integration method.
         # self.__CalculateTimeIntegrationAcceleration()

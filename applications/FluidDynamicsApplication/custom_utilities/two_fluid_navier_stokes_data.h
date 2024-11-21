@@ -52,6 +52,8 @@ typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
 NodalVectorData Velocity;
 NodalVectorData Velocity_OldStep1;
 NodalVectorData Velocity_OldStep2;
+NodalVectorData Velocity_OldStep3;
+
 NodalVectorData MeshVelocity;
 NodalVectorData BodyForce;
 NodalVectorData Velocity_Fractional;
@@ -117,6 +119,8 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     this->FillFromHistoricalNodalData(Velocity,VELOCITY,r_geometry);
     this->FillFromHistoricalNodalData(Velocity_OldStep1,VELOCITY,r_geometry,1);
     this->FillFromHistoricalNodalData(Velocity_OldStep2,VELOCITY,r_geometry,2);
+    this->FillFromHistoricalNodalData(Velocity_OldStep3, VELOCITY, r_geometry, 3);
+
     this->FillFromHistoricalNodalData(Distance, DISTANCE, r_geometry);
     this->FillFromHistoricalNodalData(MeshVelocity,MESH_VELOCITY,r_geometry);
     this->FillFromHistoricalNodalData(BodyForce,BODY_FORCE,r_geometry);
@@ -136,6 +140,7 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     bdf0 = BDFVector[0];
     bdf1 = BDFVector[1];
     bdf2 = BDFVector[2];
+    KRATOS_WATCH(BDFVector)
 
     noalias(lhs) = ZeroMatrix(TNumNodes*(TDim+1),TNumNodes*(TDim+1));
     noalias(rhs) = ZeroVector(TNumNodes*(TDim+1));

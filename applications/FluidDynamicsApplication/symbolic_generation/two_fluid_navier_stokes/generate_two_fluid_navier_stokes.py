@@ -21,6 +21,7 @@ divide_by_rho = True                # Divide by density in mass conservation equ
 ASGS_stabilization = True           # Consider ASGS stabilization terms
 mode = "c"                          # Output mode to a c++ file
 time_integration="bdf2"
+adding_acceleration=True            # Add acceleration
 
 if time_integration == "bdf2":
     output_filename = "two_fluid_navier_stokes.cpp"
@@ -65,6 +66,8 @@ for dim in dim_vector:
     vfrac = DefineMatrix('vfrac', nnodes, dim)
     vn = DefineMatrix('vn',nnodes,dim)          # Previous step velocity
     vnn = DefineMatrix('vnn',nnodes,dim)        # 2 previous step velocity
+    vnnn = DefineMatrix('vnnn', nnodes, dim)        # 2 previous step velocity
+
     p = DefineVector('p',nnodes)                # Pressure
     penr= DefineVector('penr',nnodes)	        # Enriched Pressure
     # an = DefineMatrix('an', nnodes, dim)        #fractional acceleration
@@ -111,6 +114,8 @@ for dim in dim_vector:
 
     vconv_old_gauss = vn.transpose()*N
     vconv_fractional = vfrac.transpose()*N
+
+
 
 
 
@@ -201,22 +206,24 @@ for dim in dim_vector:
     convective_term = (vconv_gauss.transpose()*grad_v)
     # Convective past term definition
     convective_n_term = (vconv_old_gauss.transpose()*grad_v_old)
-    accel_n = (vn-vnn)/dt
+    accel_n = bdf0*vn+bdf1*vnn+bdf2*vnnn
+
     accel_gauss_n = accel_n.transpose()*N
     # Fractional convective term
-    # convective_frac_term = vconv_fractional.transpose()*grad_v_fractional
-    convective_frac_term = vconv_old_gauss.transpose()*grad_v_fractional
+
+    convective_frac_term = vconv_fractional.transpose()*grad_v_fractional
+    convective_frac_term = vconv_fractional.transpose()*grad_v
 
 
     ## Galerkin Functional
-    rv_galerkin =rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss - rho*w_gauss.transpose()*convective_term.transpose() - grad_sym_w_voigt.transpose()*stress + div_w*p_gauss+ rho*w_gauss.transpose()*convective_frac_term.transpose()
+    rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss -rho*w_gauss.transpose()*convective_term.transpose() - grad_sym_w_voigt.transpose()*stress + div_w*p_gauss + rho*w_gauss.transpose()*convective_frac_term.transpose()
     if time_integration=="bdf2":
         rv_galerkin -= w_gauss.transpose()*K_darcy*v_gauss #Darcy Term
-
-        # Adding fractional acceleration convective part
-        rv_galerkin -= rho*w_gauss.transpose()*convective_n_term.transpose()
-        # Adding fractional acceleration partial part
-        rv_galerkin -= rho*w_gauss.transpose()*accel_gauss_n
+        if adding_acceleration:
+            # Adding fractional acceleration convective part
+            rv_galerkin -= rho*w_gauss.transpose()*convective_n_term.transpose()
+            # Adding fractional acceleration partial part
+            rv_galerkin -= rho*w_gauss.transpose()*accel_gauss_n
 
 
 
@@ -233,11 +240,11 @@ for dim in dim_vector:
     # Stabilization functional terms
     # Momentum conservation residual
     # Note that the viscous stress term is dropped since linear elements are used
-    vel_residual = rho*f_gauss - rho*accel_gauss - rho*convective_term.transpose() - grad_p +rho*convective_frac_term.transpose()
+    vel_residual = rho*f_gauss - rho*accel_gauss - rho*convective_term.transpose() -grad_p +rho*convective_frac_term.transpose()
     if time_integration=="bdf2":
         vel_residual-= K_darcy*v_gauss
-        # vel_residual-= not_air_traj*rho*(accel_gauss_n+convective_n_term.transpose()) # Adding fractional acceleration to the stabilization residual
-        vel_residual -=rho*(accel_gauss_n+convective_n_term.transpose())
+        if adding_acceleration:
+            vel_residual -=rho*(accel_gauss_n+convective_n_term.transpose())
     # Mass conservation residual
     if (divide_by_rho):
         if time_integration=="alpha_method":
@@ -303,7 +310,12 @@ for dim in dim_vector:
     ##  K V   x    =  b + rhs_eV
     ##  H Kee penr =  rhs_ee
 
-    vel_residual_enr = rho*f_gauss - rho*(accel_gauss + convective_term.transpose()) - grad_p  - grad_penr
+    vel_residual_enr = rho*f_gauss - rho*(accel_gauss + convective_term.transpose()) - grad_p  - grad_penr+rho*convective_frac_term.transpose()
+    if adding_acceleration:
+        vel_residual_enr -= rho*(accel_gauss_n+convective_n_term.transpose())
+
+    # vel_residual_enr = rho*f_gauss - rho*(accel_gauss + convective_term.transpose()) - grad_p  - grad_penr
+
     if time_integration == "bdf2":
         vel_residual_enr-= K_darcy*v_gauss
     vel_subscale_enr = vel_residual_enr * tau1

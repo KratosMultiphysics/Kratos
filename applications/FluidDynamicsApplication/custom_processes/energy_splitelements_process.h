@@ -379,7 +379,7 @@ public:
         else if (mDomainSize == 3)
         {
 
-            KRATOS_WATCH("ESTOY AQUI")
+
             double total_energy = 0.0;
             double total_potential_energy = 0.0;
             double total_kinematic_energy = 0.0;
@@ -730,7 +730,6 @@ public:
         else if (mDomainSize == 3)
         {
 
-            KRATOS_WATCH("ESTOY AQUI")
             double total_energy = 0.0;
             double total_potential_energy = 0.0;
             double total_kinematic_energy = 0.0;
@@ -1001,7 +1000,7 @@ protected:
         const unsigned int n_nodes = rGeometry.PointsNumber();
 // It should be improve in order to have z_interpolated depending on the directions of the problem gravity
         for (unsigned int i_node = 0; i_node < n_nodes; ++i_node){
-            z_interpolated += rGeometry[i_node].Z() * rN[i_node];
+            z_interpolated += rGeometry[i_node].Y() * rN[i_node];
         }
         // Calculate and return Gauss pt. potential energy
         return (Density * gravity * z_interpolated) * Weight;
@@ -1016,7 +1015,7 @@ protected:
         double z_interpolated = 0.0;
         const unsigned int n_nodes = rGeometry.PointsNumber();
         for (unsigned int i_node = 0; i_node < n_nodes; ++i_node){
-            z_interpolated += rGeometry[i_node].Z() * rN[i_node];
+            z_interpolated += rGeometry[i_node].Y() * rN[i_node];
         }
 
         return (z_interpolated) * Weight;
