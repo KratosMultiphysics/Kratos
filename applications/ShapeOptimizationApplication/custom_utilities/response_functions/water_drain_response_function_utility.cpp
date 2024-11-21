@@ -108,7 +108,9 @@ double WaterDrainResponseFunctionUtility::CalculateValue()
 	KRATOS_TRY;
 
 	const double value = block_for_each<SumReduction<double>>(mrModelPart.Nodes(), [&](Node& rNode) {
-		double g_i = rNode.FastGetSolutionStepValue(WATER_LEVEL) * rNode.FastGetSolutionStepValue(NODAL_AREA);
+		Vector normal = rNode.FastGetSolutionStepValue(NORMAL);
+		const double projected_nodal_area = std::abs(MathUtils<double>::Dot3(normal, mGravityDirection));
+		double g_i = rNode.FastGetSolutionStepValue(WATER_LEVEL) * projected_nodal_area;
 		if (mQuadraticHeightPenalization) g_i *= rNode.FastGetSolutionStepValue(WATER_LEVEL);
 		return g_i;
 	});
@@ -129,10 +131,14 @@ void WaterDrainResponseFunctionUtility::CalculateGradient()
     block_for_each(mrModelPart.Nodes(), [&](Node& rNode)
     {
 		if (rNode.FastGetSolutionStepValue(WATER_LEVEL) > 0.0) {
-			double nodal_area = 1;
-			if (!mContinuousSens) nodal_area = rNode.FastGetSolutionStepValue(NODAL_AREA);
+			double projected_nodal_area = 1;
 
-			array_3d gradient = mGravityDirection * nodal_area;
+			if (!mContinuousSens) {
+				Vector normal = rNode.FastGetSolutionStepValue(NORMAL);
+				projected_nodal_area = std::abs(MathUtils<double>::Dot3(normal, mGravityDirection));
+			}
+
+			array_3d gradient = mGravityDirection * projected_nodal_area;
 			if (mQuadraticHeightPenalization) gradient *= 2 * rNode.FastGetSolutionStepValue(WATER_LEVEL);
 			rNode.FastGetSolutionStepValue(SHAPE_SENSITIVITY) = gradient;
 		}

@@ -31,7 +31,7 @@ optimization_log_filename = parameters["optimization_settings"]["output"]["optim
 # 1) some values from csv output
 # 2) using the "json_output_process" & "json_check_process"
 
-objective_reference_result = [4.59725E+02, 1.02822E+02, 1.34972E-12]
+objective_reference_result = [2.11349E+01, 5.28372E+00, 0.00000E+00]
 
 with open(os.path.join(output_directory, optimization_log_filename), 'r') as csvfile:
     reader = csv.reader(csvfile, delimiter=',')
