@@ -135,5 +135,21 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
 
         os.chdir(initial_cwd)
 
+    def test_multi_stage_3_plus_3_line_interface_element_with_neumann_conditions_and_reset_displacements(self):
+        file_path = test_helper.get_file_path(os.path.join('line_interface_elements', 'Neumann_multi_stage_reset_displacements'))
+
+        initial_cwd = os.getcwd()
+        os.chdir(file_path)
+
+        project_parameters_file_names = ['ProjectParameters_stage1.json', 'ProjectParameters_stage2.json']
+        expected_displacement_vectors_of_loaded_side = [[-8.8933333333333332e-5, -2.22e-5, 0.0], [-2.0e-4--8.8933333333333332e-5, -4.44e-5--2.22e-5, 0.0]]
+        for file_name, displacement_vector in zip(project_parameters_file_names, expected_displacement_vectors_of_loaded_side):
+            stage = test_helper.make_geomechanics_analysis(self.model, os.path.join(file_path, file_name))
+            stage.Run()
+
+            self.assert_results_of_multi_stage_test(stage, displacement_vector)
+
+        os.chdir(initial_cwd)
+
 if __name__ == '__main__':
     KratosUnittest.main()

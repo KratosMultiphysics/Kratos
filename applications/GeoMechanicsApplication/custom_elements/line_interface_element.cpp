@@ -180,6 +180,20 @@ void LineInterfaceElement::CalculateOnIntegrationPoints(const Variable<Constitut
     rOutput = mConstitutiveLaws;
 }
 
+void LineInterfaceElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+{
+    const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
+    auto relative_displacements = CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices);
+    auto tractions = CalculateTractionsAtIntegrationPoints(relative_displacements);
+
+    for (std::size_t i = 0; i < mConstitutiveLaws.size(); ++i) {
+        auto law_parameters = ConstitutiveLaw::Parameters{};
+        law_parameters.SetStrainVector(relative_displacements[i]);
+        law_parameters.SetStressVector(tractions[i]);
+        mConstitutiveLaws[i]->FinalizeMaterialResponseCauchy(law_parameters);
+    }
+}
+
 void LineInterfaceElement::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const
 {
     rElementalDofList = GetDofs();
@@ -198,6 +212,11 @@ void LineInterfaceElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
         for (const auto& r_shape_function_values : shape_function_values_at_integration_points) {
             mConstitutiveLaws.push_back(GetProperties()[CONSTITUTIVE_LAW]->Clone());
             mConstitutiveLaws.back()->InitializeMaterial(GetProperties(), GetGeometry(), r_shape_function_values);
+        }
+    }
+    else {
+        for (std::size_t i = 0; i < mConstitutiveLaws.size(); ++i) {
+            mConstitutiveLaws[i]->InitializeMaterial(GetProperties(), GetGeometry(), shape_function_values_at_integration_points[i]);
         }
     }
 }
