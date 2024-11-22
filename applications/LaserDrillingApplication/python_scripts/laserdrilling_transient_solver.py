@@ -106,6 +106,13 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         return self.omega_0 * math.sqrt(0.5 * math.log(self.F_p / (self.delta_pen * self.q_ast)))
 
     def SetParameters(self):
+        # TODO: - Utilitzar GUI de GiD de la LaserDrilling Application per a generar un cas amb 2 materials i
+        #         revisar si pots llegir-los utilitzant les funcions del solver base ja existents:
+        #         ConvectionDiffusionTransientSolver -> ConvectionDiffusionSolver -> PrepareModelPart() -> self.import_materials()
+        #         (applications\ConvectionDiffusionApplication\python_scripts\convection_diffusion_solver.py)
+        #         Si no funcinoa, pots provar la GUI de GiD de la ConvectionDiffusion Application per a generar un cas amb 2 materials
+        #       - Segurament hauras de generalitzar aquesta funcio per a mes d'1 material: tot el que es llegeixi de self.material_settings
+        #         hauria de llegir-se del json de materials (LaserDrillingMaterials.json)
 
         self.some_elements_are_above_the_evap_temp = False
         self.jump_between_pulses_counter = 0
