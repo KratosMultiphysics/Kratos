@@ -121,6 +121,38 @@ public:
             });
         }
     }
+    void Update(
+    ModelPart& rModelPart,
+    DofsArrayType& rDofSet,
+    TSystemMatrixType& rA,
+    TSystemVectorType& rDx,
+    TSystemVectorType& rb
+    ) override
+    {
+        KRATOS_TRY
+
+        // Call the base Update method
+        BossakBaseType::Update(rModelPart, rDofSet, rA, rDx, rb);
+
+        // Updating angular time derivatives if they are available (nodally for efficiency)
+        if(rModelPart.HasNodalSolutionStepVariable(ROTATION))
+        {
+            block_for_each(rModelPart.Nodes(), array_1d<double,3>(), [&](Node& rNode, array_1d<double,3>& rDeltaRotationTLS){
+                    noalias(rDeltaRotationTLS) = rNode.FastGetSolutionStepValue(ROTATION) - rNode.FastGetSolutionStepValue(ROTATION, 1);
+
+                    array_1d<double, 3>& r_current_angular_velocity = rNode.FastGetSolutionStepValue(ANGULAR_VELOCITY);
+                    const array_1d<double, 3>& r_previous_angular_velocity = rNode.FastGetSolutionStepValue(ANGULAR_VELOCITY, 1);
+
+                    array_1d<double, 3>& r_current_angular_acceleration = rNode.FastGetSolutionStepValue(ANGULAR_ACCELERATION);
+                    const array_1d<double, 3>& r_previous_angular_acceleration = rNode.FastGetSolutionStepValue(ANGULAR_ACCELERATION, 1);
+
+                    UpdateAngularVelocity(r_current_angular_velocity, rDeltaRotationTLS, r_previous_angular_velocity, r_previous_angular_acceleration);
+                    UpdateAngularAcceleration(r_current_angular_acceleration, rDeltaRotationTLS, r_previous_angular_velocity, r_previous_angular_acceleration);
+            });
+        }
+
+        KRATOS_CATCH("")
+    }
 
     void InitializeSolutionStep(
         ModelPart &rModelPart,
@@ -259,6 +291,26 @@ protected:
                 KRATOS_ERROR << "Wrong projection variable '" << r_var_name << "'." << std::endl;
             }
         }
+    }
+
+    inline void UpdateAngularVelocity(
+        array_1d<double, 3>& rCurrentAngularVelocity,
+        const array_1d<double, 3>& rDeltaRotation,
+        const array_1d<double, 3>& rPreviousAngularVelocity,
+        const array_1d<double, 3>& rPreviousAngularAcceleration
+        )
+    {
+        noalias(rCurrentAngularVelocity) = (this->mBossak.c1 * rDeltaRotation - this->mBossak.c4 * rPreviousAngularVelocity - this->mBossak.c5 * rPreviousAngularAcceleration);
+    }
+
+    inline void UpdateAngularAcceleration(
+        array_1d<double, 3>& rCurrentAngularAcceleration,
+        const array_1d<double, 3>& rDeltaRotation,
+        const array_1d<double, 3>& rPreviousAngularVelocity,
+        const array_1d<double, 3>& rPreviousAngularAcceleration
+        )
+    {
+        noalias(rCurrentAngularAcceleration) = (this->mBossak.c0 * rDeltaRotation - this->mBossak.c2 * rPreviousAngularVelocity - this->mBossak.c3 * rPreviousAngularAcceleration);
     }
 
     ///@}
