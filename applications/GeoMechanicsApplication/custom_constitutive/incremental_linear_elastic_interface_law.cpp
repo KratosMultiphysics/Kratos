@@ -74,12 +74,12 @@ void GeoIncrementalLinearElasticInterfaceLaw::InitializeMaterial(const Propertie
                                                                  const Vector&)
 {
     KRATOS_INFO("InitializeMaterial") << "Got here!" << std::endl;
-    // if (mPreviousRelativeDisplacement.size() != GetStrainSize()) {
+    if (mPreviousRelativeDisplacement.size() != GetStrainSize()) {
         KRATOS_INFO("mPreviousRelativeDisplacement.size() != GetStrainSize()") << std::endl;
         mPreviousRelativeDisplacement = ZeroVector{GetStrainSize()};
         KRATOS_INFO("mPreviousRelativeDisplacement") << mPreviousRelativeDisplacement << std::endl;
 
-    // }
+    }
     if (mPreviousTraction.size() != GetStrainSize()) {
         KRATOS_INFO("mPreviousTraction.size() != GetStrainSize()") << std::endl;
         mPreviousTraction = ZeroVector{GetStrainSize()};
@@ -88,7 +88,7 @@ void GeoIncrementalLinearElasticInterfaceLaw::InitializeMaterial(const Propertie
     if (HasInitialState()) {
         KRATOS_INFO("GetInitialState().GetInitialStrainVector()") << GetInitialState().GetInitialStrainVector() << std::endl;
         KRATOS_INFO("GetInitialState().GetInitialStressVector()") << GetInitialState().GetInitialStressVector() << std::endl;
-        // mPreviousRelativeDisplacement = GetInitialState().GetInitialStrainVector();
+        mPreviousRelativeDisplacement = GetInitialState().GetInitialStrainVector();
         mPreviousTraction             = GetInitialState().GetInitialStressVector();
     }
 }
