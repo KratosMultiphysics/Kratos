@@ -19,7 +19,10 @@ class KratosGeoMechanicsSettlementWorkflow(KratosUnittest.TestCase):
 
         os.makedirs(self.test_path)
 
-        input_filenames = ["MaterialParameters.json", "ProjectParameters_stage1.json", "ProjectParameters_stage2.json", "ProjectParameters_stage3.json", "ProjectParameters_stage4.json", "test_model.mdpa"]
+        self.number_of_stages = 4
+        self.project_parameters_filenames = [f"ProjectParameters_stage{i+1}.json" for i in range(self.number_of_stages)]
+        input_filenames = self.project_parameters_filenames[:] + ["MaterialParameters.json", "test_model.mdpa"]
+
         for filename in input_filenames:
             shutil.copy(os.path.join(self.test_root, filename), os.path.join(self.test_path, filename))
 
@@ -41,7 +44,7 @@ class KratosGeoMechanicsSettlementWorkflowPyRoute(KratosGeoMechanicsSettlementWo
 
         times_to_check = [1.0, 2.0, 3.0, 3.2]
 
-        for i in range(4):
+        for i in range(self.number_of_stages):
             result_file_name = os.path.join(self.test_path, f'test_model_stage{i+1}.post.res')
             expected_result_file_name = os.path.join(self.test_root, f'test_model_stage{i+1}.post.orig.res')
 
