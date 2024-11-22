@@ -5,16 +5,12 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
 
 
-class KratosGeoMechanicsSettlementWorkflowPyRoute(KratosUnittest.TestCase):
-    """
-    This test class is used to check the settlement workflow test, same as test_settlement_workflow.cpp to
-    make sure the python workflow yields the same results as the c++ workflow.
-    """
+class KratosGeoMechanicsSettlementWorkflow(KratosUnittest.TestCase):
     def setUp(self):
         super().setUp()
 
         self.test_root = test_helper.get_file_path("test_settlement_workflow")
-        self.test_path = os.path.join(self.test_root, "python")
+        self.test_path = os.path.join(self.test_root, self.get_test_dir_name())
 
         try:
             shutil.rmtree(self.test_path)
@@ -26,6 +22,18 @@ class KratosGeoMechanicsSettlementWorkflowPyRoute(KratosUnittest.TestCase):
         input_filenames = ["MaterialParameters.json", "ProjectParameters_stage1.json", "ProjectParameters_stage2.json", "ProjectParameters_stage3.json", "ProjectParameters_stage4.json", "test_model.mdpa"]
         for filename in input_filenames:
             shutil.copy(os.path.join(self.test_root, filename), os.path.join(self.test_path, filename))
+
+    def get_test_dir_name(self):
+        raise RuntimeError("This base class does not provide a generic test directory name")
+
+
+class KratosGeoMechanicsSettlementWorkflowPyRoute(KratosGeoMechanicsSettlementWorkflow):
+    """
+    This test class is used to check the settlement workflow test, same as test_settlement_workflow.cpp to
+    make sure the python workflow yields the same results as the c++ workflow.
+    """
+    def get_test_dir_name(self):
+        return "python"
 
 
     def test_d_settlement_workflow(self):
