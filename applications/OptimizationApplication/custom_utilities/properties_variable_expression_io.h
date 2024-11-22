@@ -23,6 +23,7 @@
 #include "containers/variable.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "includes/global_variables.h"
 
 namespace Kratos {
 
@@ -47,24 +48,22 @@ public:
     ///@name Public classes
     ///@{
 
-    class KRATOS_API(OPTIMIZATION_APPLICATION) PropertiesVariableExpressionInput : public ExpressionInput
+    class KRATOS_API(OPTIMIZATION_APPLICATION) Input : public ExpressionInput
     {
     public:
         ///@name Type definitions
         ///@{
 
-        KRATOS_CLASS_POINTER_DEFINITION(PropertiesVariableExpressionInput);
+        KRATOS_CLASS_POINTER_DEFINITION(Input);
 
         ///@}
         ///@name Life cycle
         ///@{
 
-        PropertiesVariableExpressionInput(
+        Input(
             const ModelPart& rModelPart,
             const VariableType& rVariable,
-            const ContainerType& rContainerType);
-
-        ~PropertiesVariableExpressionInput() override = default;
+            Globals::DataLocation CurrentLocation);
 
         ///@}
         ///@name Public operations
@@ -78,34 +77,32 @@ public:
         ///@name Private member variables
         ///@{
 
-        const ModelPart& mrModelPart;
+        ModelPart const * mpModelPart;
 
-        const VariableType mpVariable;
+        VariableType mpVariable;
 
-        const ContainerType mContainerType;
+        Globals::DataLocation mDataLocation;
 
         ///@}
 
     };
 
-    class KRATOS_API(OPTIMIZATION_APPLICATION) PropertiesVariableExpressionOutput : public ExpressionOutput
+    class KRATOS_API(OPTIMIZATION_APPLICATION) Output : public ExpressionOutput
     {
     public:
         ///@name Type definitions
         ///@{
 
-        KRATOS_CLASS_POINTER_DEFINITION(PropertiesVariableExpressionOutput);
+        KRATOS_CLASS_POINTER_DEFINITION(Output);
 
         ///@}
         ///@name Life cycle
         ///@{
 
-        PropertiesVariableExpressionOutput(
+        Output(
             ModelPart& rModelPart,
             const VariableType& rVariable,
-            const ContainerType& rContainerType);
-
-        ~PropertiesVariableExpressionOutput() override = default;
+            Globals::DataLocation CurrentLocation);
 
         ///@}
         ///@name Public operations
@@ -119,11 +116,11 @@ public:
         ///@name Private member variables
         ///@{
 
-        ModelPart& mrModelPart;
+        ModelPart * mpModelPart;
 
-        const VariableType mpVariable;
+        VariableType mpVariable;
 
-        const ContainerType mContainerType;
+        Globals::DataLocation mDataLocation;
 
         ///@}
 

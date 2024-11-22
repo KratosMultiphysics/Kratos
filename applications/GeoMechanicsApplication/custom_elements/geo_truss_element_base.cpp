@@ -17,7 +17,8 @@
 
 // Project includes
 #include "custom_elements/geo_truss_element_base.hpp"
-#include "custom_utilities/structural_mechanics_element_utilities.h"
+#include "../StructuralMechanicsApplication/custom_utilities/structural_mechanics_element_utilities.h"
+#include "custom_utilities/dof_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/checks.h"
 #include "includes/define.h"
@@ -26,25 +27,22 @@
 namespace Kratos
 {
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 GeoTrussElementBase<TDim, TNumNodes>::GeoTrussElementBase(IndexType NewId, GeometryType::Pointer pGeometry)
     : Element(NewId, pGeometry)
 {
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-GeoTrussElementBase<TDim, TNumNodes>::GeoTrussElementBase(IndexType NewId,
-                                                          GeometryType::Pointer pGeometry,
+GeoTrussElementBase<TDim, TNumNodes>::GeoTrussElementBase(IndexType               NewId,
+                                                          GeometryType::Pointer   pGeometry,
                                                           PropertiesType::Pointer pProperties)
     : Element(NewId, pGeometry, pProperties)
 {
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer GeoTrussElementBase<TDim, TNumNodes>::Create(IndexType NewId,
+Element::Pointer GeoTrussElementBase<TDim, TNumNodes>::Create(IndexType             NewId,
                                                               NodesArrayType const& rThisNodes,
                                                               PropertiesType::Pointer pProperties) const
 {
@@ -52,72 +50,31 @@ Element::Pointer GeoTrussElementBase<TDim, TNumNodes>::Create(IndexType NewId,
     return Kratos::make_intrusive<GeoTrussElementBase>(NewId, rGeom.Create(rThisNodes), pProperties);
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer GeoTrussElementBase<TDim, TNumNodes>::Create(IndexType NewId,
+Element::Pointer GeoTrussElementBase<TDim, TNumNodes>::Create(IndexType             NewId,
                                                               GeometryType::Pointer pGeom,
                                                               PropertiesType::Pointer pProperties) const
 {
     return Kratos::make_intrusive<GeoTrussElementBase>(NewId, pGeom, pProperties);
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 GeoTrussElementBase<TDim, TNumNodes>::~GeoTrussElementBase()
 {
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void GeoTrussElementBase<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
-                                                            const ProcessInfo& rCurrentProcessInfo) const
+void GeoTrussElementBase<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
 {
-    if (rResult.size() != TDim * TNumNodes) {
-        rResult.resize(TDim * TNumNodes);
-    }
-
-    if constexpr (TDim > 2) {
-        unsigned int index = 0;
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rResult[index++] = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
-            rResult[index++] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
-            rResult[index++] = GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
-        }
-    } else {
-        unsigned int index = 0;
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rResult[index++] = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
-            rResult[index++] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
-        }
-    }
+    rResult = Geo::DofUtilities::ExtractEquationIdsFrom(GetDofs());
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void GeoTrussElementBase<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,
-                                                      const ProcessInfo& rCurrentProcessInfo) const
+void GeoTrussElementBase<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const
 {
-    if (rElementalDofList.size() != TDim * TNumNodes) {
-        rElementalDofList.resize(TDim * TNumNodes);
-    }
-
-    if constexpr (TDim > 2) {
-        unsigned int index = 0;
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rElementalDofList[index++] = GetGeometry()[i].pGetDof(DISPLACEMENT_X);
-            rElementalDofList[index++] = GetGeometry()[i].pGetDof(DISPLACEMENT_Y);
-            rElementalDofList[index++] = GetGeometry()[i].pGetDof(DISPLACEMENT_Z);
-        }
-    } else {
-        unsigned int index = 0;
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rElementalDofList[index++] = GetGeometry()[i].pGetDof(DISPLACEMENT_X);
-            rElementalDofList[index++] = GetGeometry()[i].pGetDof(DISPLACEMENT_Y);
-        }
-    }
+    rElementalDofList = GetDofs();
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
@@ -137,7 +94,6 @@ void GeoTrussElementBase<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurren
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::CreateElementStiffnessMatrix(MatrixType& rLocalStiffnessMatrix,
                                                                         const ProcessInfo& rCurrentProcessInfo)
@@ -154,16 +110,14 @@ void GeoTrussElementBase<TDim, TNumNodes>::CreateElementStiffnessMatrix(MatrixTy
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::CalculateDampingMatrix(MatrixType& rDampingMatrix,
                                                                   const ProcessInfo& rCurrentProcessInfo)
 {
-    GeoStructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(
+    StructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(
         *this, rDampingMatrix, rCurrentProcessInfo, TDim * TNumNodes);
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMassMatrix,
                                                                const ProcessInfo& rCurrentProcessInfo)
@@ -176,7 +130,7 @@ void GeoTrussElementBase<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMass
     }
     rMassMatrix = ZeroMatrix(TDim * TNumNodes, TDim * TNumNodes);
 
-    if (GeoStructuralMechanicsElementUtilities::ComputeLumpedMassMatrix(GetProperties(), rCurrentProcessInfo)) {
+    if (StructuralMechanicsElementUtilities::ComputeLumpedMassMatrix(GetProperties(), rCurrentProcessInfo)) {
         // Compute lumped mass matrix
         VectorType temp_vector(TDim * TNumNodes);
         CalculateLumpedMassVector(temp_vector, rCurrentProcessInfo);
@@ -192,7 +146,6 @@ void GeoTrussElementBase<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMass
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::CalculateConsistentMassMatrix(MatrixType& rMassMatrix,
                                                                          const ProcessInfo& rCurrentProcessInfo) const
@@ -200,7 +153,7 @@ void GeoTrussElementBase<TDim, TNumNodes>::CalculateConsistentMassMatrix(MatrixT
     KRATOS_TRY
 
     const double A   = GetProperties()[CROSS_AREA];
-    const double L   = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+    const double L   = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
     const double rho = GetProperties()[DENSITY];
 
     const double factor = TDim * TNumNodes;
@@ -214,7 +167,6 @@ void GeoTrussElementBase<TDim, TNumNodes>::CalculateConsistentMassMatrix(MatrixT
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::CalculateBodyForces(FullDofVectorType& rGlobalBodyForces)
 {
@@ -225,8 +177,8 @@ void GeoTrussElementBase<TDim, TNumNodes>::CalculateBodyForces(FullDofVectorType
 
     // creating necessary values
     const double A = GetProperties()[CROSS_AREA];
-    const double L = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
-    const double rho = GeoStructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
+    const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+    const double rho = StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
 
     double total_mass = A * L * rho;
 
@@ -246,73 +198,24 @@ void GeoTrussElementBase<TDim, TNumNodes>::CalculateBodyForces(FullDofVectorType
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::GetValuesVector(Vector& rValues, int Step) const
 {
-    KRATOS_TRY
-
-    if (rValues.size() != TDim * TNumNodes) {
-        rValues.resize(TDim * TNumNodes, false);
-    }
-
-    unsigned int index = 0;
-    for (unsigned int i = 0; i < TNumNodes; ++i) {
-        const auto& disp = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
-
-        for (unsigned int idim = 0; idim < TDim; ++idim) {
-            rValues[index++] = disp[idim];
-        }
-    }
-
-    KRATOS_CATCH("")
+    rValues = Geo::DofUtilities::ExtractSolutionStepValues(GetDofs(), Step);
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::GetFirstDerivativesVector(Vector& rValues, int Step) const
 {
-    KRATOS_TRY
-
-    if (rValues.size() != TDim * TNumNodes) {
-        rValues.resize(TDim * TNumNodes, false);
-    }
-
-    unsigned int index = 0;
-    for (unsigned int i = 0; i < TNumNodes; ++i) {
-        const auto& vel = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, Step);
-
-        for (unsigned int idim = 0; idim < TDim; ++idim) {
-            rValues[index++] = vel[idim];
-        }
-    }
-
-    KRATOS_CATCH("")
+    rValues = Geo::DofUtilities::ExtractFirstTimeDerivatives(GetDofs(), Step);
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::GetSecondDerivativesVector(Vector& rValues, int Step) const
 {
-    KRATOS_TRY
-
-    if (rValues.size() != TDim * TNumNodes) {
-        rValues.resize(TDim * TNumNodes, false);
-    }
-
-    unsigned int index = 0;
-    for (unsigned int i = 0; i < TNumNodes; ++i) {
-        const auto& acc = GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION, Step);
-
-        for (unsigned int idim = 0; idim < TDim; ++idim) {
-            rValues[index++] = acc[idim];
-        }
-    }
-
-    KRATOS_CATCH("")
+    rValues = Geo::DofUtilities::ExtractSecondTimeDerivatives(GetDofs(), Step);
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                                                 VectorType& rRightHandSideVector,
@@ -326,7 +229,6 @@ void GeoTrussElementBase<TDim, TNumNodes>::CalculateLocalSystem(MatrixType& rLef
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::CalculateRightHandSide(VectorType& rRightHandSideVector,
                                                                   const ProcessInfo& rCurrentProcessInfo)
@@ -348,7 +250,6 @@ void GeoTrussElementBase<TDim, TNumNodes>::CalculateRightHandSide(VectorType& rR
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                                                  const ProcessInfo& rCurrentProcessInfo)
@@ -361,11 +262,10 @@ void GeoTrussElementBase<TDim, TNumNodes>::CalculateLeftHandSide(MatrixType& rLe
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::Calculate(const Variable<Matrix>& rVariable,
-                                                     Matrix& rOutput,
-                                                     const ProcessInfo& rCurrentProcessInfo)
+                                                     Matrix&                 rOutput,
+                                                     const ProcessInfo&      rCurrentProcessInfo)
 {
     if (rVariable == MEMBRANE_PRESTRESS) {
         std::vector<Vector> prestress_matrix;
@@ -380,15 +280,14 @@ void GeoTrussElementBase<TDim, TNumNodes>::Calculate(const Variable<Matrix>& rVa
     }
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::Calculate(const Variable<double>& rVariable,
-                                                     double& rOutput,
-                                                     const ProcessInfo& rCurrentProcessInfo)
+                                                     double&                 rOutput,
+                                                     const ProcessInfo&      rCurrentProcessInfo)
 {
     if (rVariable == STRAIN_ENERGY) {
-        const double L0 = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
-        const double A = GetProperties()[CROSS_AREA];
+        const double L0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+        const double A  = GetProperties()[CROSS_AREA];
 
         // material strain energy
         double strain_energy(0.00);
@@ -432,7 +331,6 @@ void GeoTrussElementBase<TDim, TNumNodes>::Calculate(const Variable<double>& rVa
     }
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
                                                                         std::vector<double>& rOutput,
@@ -453,15 +351,14 @@ void GeoTrussElementBase<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Va
         }
     }
     if (rVariable == REFERENCE_DEFORMATION_GRADIENT_DETERMINANT) {
-        const double l = GeoStructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
-        const double L0 = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
-        rOutput[0] = l / L0;
+        const double l  = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
+        const double L0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+        rOutput[0]      = l / L0;
     }
 
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
                                                                         std::vector<Vector>& rOutput,
@@ -486,15 +383,15 @@ void GeoTrussElementBase<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Va
             (GetProperties().Has(TRUSS_PRESTRESS_PK2) ? GetProperties()[TRUSS_PRESTRESS_PK2] : 0.0);
 
         ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
-        Vector temp_strain = ZeroVector(1);
-        Vector temp_stress = ZeroVector(1);
-        temp_strain[0]     = CalculateGreenLagrangeStrain();
+        Vector                      temp_strain = ZeroVector(1);
+        Vector                      temp_stress = ZeroVector(1);
+        temp_strain[0]                          = CalculateGreenLagrangeStrain();
         Values.SetStrainVector(temp_strain);
         Values.SetStressVector(temp_stress);
         mpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);
 
-        const double l = GeoStructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
-        const double L0 = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+        const double l  = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
+        const double L0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
 
         temp_stress[0] += prestress;
         rOutput[0] = temp_stress;
@@ -507,7 +404,6 @@ void GeoTrussElementBase<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Va
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
                                                                         std::vector<array_1d<double, 3>>& rOutput,
@@ -530,13 +426,12 @@ void GeoTrussElementBase<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Va
     }
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 int GeoTrussElementBase<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
-    const double numerical_limit   = std::numeric_limits<double>::epsilon();
+    const double   numerical_limit = std::numeric_limits<double>::epsilon();
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension       = GetGeometry().WorkingSpaceDimension();
 
@@ -580,7 +475,7 @@ int GeoTrussElementBase<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProce
         KRATOS_ERROR << "DENSITY not provided for this element" << Id() << std::endl;
     }
 
-    KRATOS_ERROR_IF(GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this) < std::numeric_limits<double>::epsilon())
+    KRATOS_ERROR_IF(StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this) < std::numeric_limits<double>::epsilon())
         << "Element #" << Id() << " has a length of zero!" << std::endl;
 
     if (TDim == 2) {
@@ -597,60 +492,28 @@ int GeoTrussElementBase<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProce
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 double GeoTrussElementBase<TDim, TNumNodes>::CalculateGreenLagrangeStrain() const
 {
     KRATOS_TRY
 
-    const double l = GeoStructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
-    const double L = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+    const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
+    const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
     const double e = ((l * l - L * L) / (2.00 * L * L));
     return e;
 
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::UpdateInternalForces(FullDofVectorType& rInternalForces,
                                                                 const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY
-
-    FullDofMatrixType transformation_matrix;
-    CreateTransformationMatrix(transformation_matrix);
-
-    const double l  = GeoStructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
-    const double L0 = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
-    const double A  = GetProperties()[CROSS_AREA];
-
-    double prestress = 0.00;
-    if (GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
-        prestress = GetProperties()[TRUSS_PRESTRESS_PK2];
-    }
-
-    ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
-    Vector temp_strain = ZeroVector(1);
-    Vector temp_stress = ZeroVector(1);
-    temp_strain[0]     = CalculateGreenLagrangeStrain();
-    Values.SetStrainVector(temp_strain);
-    Values.SetStressVector(temp_stress);
-    mpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);
-
-    const double normal_force = ((temp_stress[0] + prestress) * l * A) / L0;
-
-    // internal force vectors
-    FullDofVectorType f_local = ZeroVector(TDim * TNumNodes);
-    f_local[0]                = -1.00 * normal_force;
-    f_local[TDim]             = 1.00 * normal_force;
-    rInternalForces           = ZeroVector(TDim * TNumNodes);
-    noalias(rInternalForces)  = prod(transformation_matrix, f_local);
-
-    KRATOS_CATCH("")
+    KRATOS_ERROR << "Classes derived from GeoTrussElementBase must override member function "
+                    "UpdateInternalForces"
+                 << std::endl;
 }
 
-//----------------------------------------------------------------------------------------
 template <>
 void GeoTrussElementBase<3, 2>::WriteTransformationCoordinates(FullDofVectorType& rReferenceCoordinates)
 {
@@ -668,7 +531,6 @@ void GeoTrussElementBase<3, 2>::WriteTransformationCoordinates(FullDofVectorType
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <>
 void GeoTrussElementBase<2, 2>::WriteTransformationCoordinates(FullDofVectorType& rReferenceCoordinates)
 {
@@ -684,7 +546,6 @@ void GeoTrussElementBase<2, 2>::WriteTransformationCoordinates(FullDofVectorType
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <>
 void GeoTrussElementBase<3, 2>::CreateTransformationMatrix(FullDofMatrixType& rRotationMatrix)
 {
@@ -692,11 +553,11 @@ void GeoTrussElementBase<3, 2>::CreateTransformationMatrix(FullDofMatrixType& rR
 
     // 1st calculate transformation matrix
     using arraydim                          = BoundedVector<double, DIM>;
-    arraydim direction_vector_x             = ZeroVector(DIM);
-    arraydim direction_vector_y             = ZeroVector(DIM);
-    arraydim direction_vector_z             = ZeroVector(DIM);
+    arraydim          direction_vector_x    = ZeroVector(DIM);
+    arraydim          direction_vector_y    = ZeroVector(DIM);
+    arraydim          direction_vector_z    = ZeroVector(DIM);
     FullDofVectorType reference_coordinates = ZeroVector(DIM * NUM_NODES);
-    arraydim global_z_vector                = ZeroVector(DIM);
+    arraydim          global_z_vector       = ZeroVector(DIM);
     global_z_vector[2]                      = 1.0;
 
     this->WriteTransformationCoordinates(reference_coordinates);
@@ -707,7 +568,7 @@ void GeoTrussElementBase<3, 2>::CreateTransformationMatrix(FullDofMatrixType& rR
 
     // local x-axis (e1_local) is the beam axis  (in GID is e3_local)
     const double numeric_limit = std::numeric_limits<double>::epsilon();
-    double VectorNorm;
+    double       VectorNorm;
     VectorNorm = MathUtils<double>::Norm(direction_vector_x);
     if (VectorNorm > numeric_limit) {
         direction_vector_x /= VectorNorm;
@@ -751,7 +612,6 @@ void GeoTrussElementBase<3, 2>::CreateTransformationMatrix(FullDofMatrixType& rR
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <>
 void GeoTrussElementBase<2, 2>::CreateTransformationMatrix(FullDofMatrixType& rRotationMatrix)
 {
@@ -805,7 +665,6 @@ void GeoTrussElementBase<2, 2>::CreateTransformationMatrix(FullDofMatrixType& rR
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::AddExplicitContribution(const VectorType& rRHSVector,
                                                                    const Variable<VectorType>& rRHSVariable,
@@ -822,7 +681,7 @@ void GeoTrussElementBase<TDim, TNumNodes>::AddExplicitContribution(const VectorT
 
         for (SizeType i = 0; i < TNumNodes; ++i) {
             double& r_nodal_mass = r_geom[i].GetValue(NODAL_MASS);
-            int index            = i * TDim;
+            int     index        = i * TDim;
 
             AtomicAdd(r_nodal_mass, element_mass_vector(index));
         }
@@ -831,7 +690,6 @@ void GeoTrussElementBase<TDim, TNumNodes>::AddExplicitContribution(const VectorT
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::AddExplicitContribution(const VectorType& rRHSVector,
                                                                    const Variable<VectorType>& rRHSVariable,
@@ -842,7 +700,7 @@ void GeoTrussElementBase<TDim, TNumNodes>::AddExplicitContribution(const VectorT
 
     if (rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL) {
         FullDofVectorType damping_residual_contribution = ZeroVector(TDim * TNumNodes);
-        Vector current_nodal_velocities                 = ZeroVector(TDim * TNumNodes);
+        Vector            current_nodal_velocities      = ZeroVector(TDim * TNumNodes);
         GetFirstDerivativesVector(current_nodal_velocities);
         Matrix damping_matrix;
         CalculateDampingMatrix(damping_matrix, rCurrentProcessInfo);
@@ -864,7 +722,7 @@ void GeoTrussElementBase<TDim, TNumNodes>::AddExplicitContribution(const VectorT
 
         for (unsigned int i = 0; i < TNumNodes; ++i) {
             double& r_nodal_mass = GetGeometry()[i].GetValue(NODAL_MASS);
-            int index            = i * TDim;
+            int     index        = i * TDim;
 
             AtomicAdd(r_nodal_mass, mass_vector[index]);
         }
@@ -873,14 +731,13 @@ void GeoTrussElementBase<TDim, TNumNodes>::AddExplicitContribution(const VectorT
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <>
 void GeoTrussElementBase<3, 2>::CalculateGeometricStiffnessMatrix(FullDofMatrixType& rGeometricStiffnessMatrix,
                                                                   const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    double E       = ReturnTangentModulus1D(rCurrentProcessInfo);
+    double       E = ReturnTangentModulus1D(rCurrentProcessInfo);
     const double A = GetProperties()[CROSS_AREA];
 
     double prestress = 0.00;
@@ -903,13 +760,13 @@ void GeoTrussElementBase<3, 2>::CalculateGeometricStiffnessMatrix(FullDofMatrixT
                 GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
     double dw = GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_Z) -
                 GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Z);
-    const double dx = GetGeometry()[1].X0() - GetGeometry()[0].X0();
-    const double dy = GetGeometry()[1].Y0() - GetGeometry()[0].Y0();
-    const double dz = GetGeometry()[1].Z0() - GetGeometry()[0].Z0();
-    const double L  = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
-    const double l  = GeoStructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
-    double e_gL     = (l * l - L * L) / (2.00 * L * L);
-    const double L3 = L * L * L;
+    const double dx   = GetGeometry()[1].X0() - GetGeometry()[0].X0();
+    const double dy   = GetGeometry()[1].Y0() - GetGeometry()[0].Y0();
+    const double dz   = GetGeometry()[1].Z0() - GetGeometry()[0].Z0();
+    const double L    = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+    const double l    = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
+    double       e_gL = (l * l - L * L) / (2.00 * L * L);
+    const double L3   = L * L * L;
 
     const double K_sigma = ((E * A * e_gL) / L) + ((prestress * A) / L);
     const double K_uij   = (E * A) / L3;
@@ -971,14 +828,13 @@ void GeoTrussElementBase<3, 2>::CalculateGeometricStiffnessMatrix(FullDofMatrixT
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <>
 void GeoTrussElementBase<2, 2>::CalculateGeometricStiffnessMatrix(FullDofMatrixType& rGeometricStiffnessMatrix,
                                                                   const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    double E       = ReturnTangentModulus1D(rCurrentProcessInfo);
+    double       E = ReturnTangentModulus1D(rCurrentProcessInfo);
     const double A = GetProperties()[CROSS_AREA];
 
     double prestress = 0.00;
@@ -999,12 +855,12 @@ void GeoTrussElementBase<2, 2>::CalculateGeometricStiffnessMatrix(FullDofMatrixT
                 GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X);
     double dv = GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_Y) -
                 GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
-    const double dx = GetGeometry()[1].X0() - GetGeometry()[0].X0();
-    const double dy = GetGeometry()[1].Y0() - GetGeometry()[0].Y0();
-    const double L  = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
-    const double l  = GeoStructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
-    double e_gL     = (l * l - L * L) / (2.00 * L * L);
-    const double L3 = L * L * L;
+    const double dx   = GetGeometry()[1].X0() - GetGeometry()[0].X0();
+    const double dy   = GetGeometry()[1].Y0() - GetGeometry()[0].Y0();
+    const double L    = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+    const double l    = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
+    double       e_gL = (l * l - L * L) / (2.00 * L * L);
+    const double L3   = L * L * L;
 
     const double K_sigma = ((E * A * e_gL) / L) + ((prestress * A) / L);
     const double K_uij   = (E * A) / L3;
@@ -1036,7 +892,6 @@ void GeoTrussElementBase<2, 2>::CalculateGeometricStiffnessMatrix(FullDofMatrixT
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <>
 void GeoTrussElementBase<3, 2>::CalculateElasticStiffnessMatrix(MatrixType& rElasticStiffnessMatrix,
                                                                 const ProcessInfo& rCurrentProcessInfo)
@@ -1052,7 +907,7 @@ void GeoTrussElementBase<3, 2>::CalculateElasticStiffnessMatrix(MatrixType& rEla
     const double dx = GetGeometry()[1].X0() - GetGeometry()[0].X0();
     const double dy = GetGeometry()[1].Y0() - GetGeometry()[0].Y0();
     const double dz = GetGeometry()[1].Z0() - GetGeometry()[0].Z0();
-    const double L  = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+    const double L  = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
     const double L3 = L * L * L;
 
     const double EA = E * A;
@@ -1114,7 +969,6 @@ void GeoTrussElementBase<3, 2>::CalculateElasticStiffnessMatrix(MatrixType& rEla
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <>
 void GeoTrussElementBase<2, 2>::CalculateElasticStiffnessMatrix(MatrixType& rElasticStiffnessMatrix,
                                                                 const ProcessInfo& rCurrentProcessInfo)
@@ -1128,7 +982,7 @@ void GeoTrussElementBase<2, 2>::CalculateElasticStiffnessMatrix(MatrixType& rEla
 
     const double dx = GetGeometry()[1].X0() - GetGeometry()[0].X0();
     const double dy = GetGeometry()[1].Y0() - GetGeometry()[0].Y0();
-    const double L  = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+    const double L  = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
     const double L3 = L * L * L;
 
     const double EA = E * A;
@@ -1160,24 +1014,17 @@ void GeoTrussElementBase<2, 2>::CalculateElasticStiffnessMatrix(MatrixType& rEla
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void GeoTrussElementBase<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+void GeoTrussElementBase<TDim, TNumNodes>::FinalizeMaterialResponse(double Strain, const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY;
-
-    ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
-    Vector temp_strain = ZeroVector(1);
-    Vector temp_stress = ZeroVector(1);
-    temp_strain[0]     = CalculateGreenLagrangeStrain();
-    Values.SetStrainVector(temp_strain);
-    Values.SetStressVector(temp_stress);
-    mpConstitutiveLaw->FinalizeMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);
-
-    KRATOS_CATCH("");
+    auto values = ConstitutiveLaw::Parameters(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
+    auto temp_strain = Vector{ScalarVector(1, Strain)};
+    auto temp_stress = Vector{ZeroVector(1)};
+    values.SetStrainVector(temp_strain);
+    values.SetStressVector(temp_stress);
+    mpConstitutiveLaw->FinalizeMaterialResponse(values, ConstitutiveLaw::StressMeasure_PK2);
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::save(Serializer& rSerializer) const
 {
@@ -1185,7 +1032,6 @@ void GeoTrussElementBase<TDim, TNumNodes>::save(Serializer& rSerializer) const
     rSerializer.save("mpConstitutiveLaw", mpConstitutiveLaw);
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::load(Serializer& rSerializer)
 {
@@ -1193,7 +1039,6 @@ void GeoTrussElementBase<TDim, TNumNodes>::load(Serializer& rSerializer)
     rSerializer.load("mpConstitutiveLaw", mpConstitutiveLaw);
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::CalculateLumpedMassVector(VectorType& rLumpedMassVector,
                                                                      const ProcessInfo& rCurrentProcessInfo) const
@@ -1206,7 +1051,7 @@ void GeoTrussElementBase<TDim, TNumNodes>::CalculateLumpedMassVector(VectorType&
     }
 
     const double A   = GetProperties()[CROSS_AREA];
-    const double L   = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+    const double L   = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
     const double rho = GetProperties()[DENSITY];
 
     const double total_mass = A * L * rho;
@@ -1222,7 +1067,6 @@ void GeoTrussElementBase<TDim, TNumNodes>::CalculateLumpedMassVector(VectorType&
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 double GeoTrussElementBase<TDim, TNumNodes>::ReturnTangentModulus1D(const ProcessInfo& rCurrentProcessInfo)
 {
@@ -1242,7 +1086,18 @@ double GeoTrussElementBase<TDim, TNumNodes>::ReturnTangentModulus1D(const Proces
     KRATOS_CATCH("")
 }
 
-//--------------------------------------------------------------------------------------------
+template <unsigned int TDim, unsigned int TNumNodes>
+Element::DofsVectorType GeoTrussElementBase<TDim, TNumNodes>::GetDofs() const
+{
+    auto result = Element::DofsVectorType{};
+    for (const auto& r_node : GetGeometry()) {
+        result.push_back(r_node.pGetDof(DISPLACEMENT_X));
+        result.push_back(r_node.pGetDof(DISPLACEMENT_Y));
+        if constexpr (TDim == 3) result.push_back(r_node.pGetDof(DISPLACEMENT_Z));
+    }
+    return result;
+}
+
 template class GeoTrussElementBase<2, 2>;
 template class GeoTrussElementBase<3, 2>;
 

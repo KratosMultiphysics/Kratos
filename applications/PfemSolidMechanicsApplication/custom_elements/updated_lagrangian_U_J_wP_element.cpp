@@ -145,143 +145,8 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUJwPElement::CalculateOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo)
-   {
 
-      KRATOS_TRY
-
-
-      const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
-
-      if ( rOutput.size() != integration_points_number )
-         rOutput.resize( integration_points_number );
-      /*if ( rVariable == EFF_CON_WATER_FORCE) {
-         const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-         int voigtSize = 3;
-         if ( dimension == 3)
-            voigtSize = 6;
-
-         // vale, torno a fer de les meves...
-         ElementDataType Variables;
-         this->InitializeElementData( Variables, rCurrentProcessInfo);
-
-         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod);
-         //reading integration points
-         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
-         {
-            //compute element kinematics B, F, DN_DX ...
-            this->CalculateKinematics(Variables,PointNumber);
-
-            const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-
-            Vector StressVector = ZeroVector(voigtSize);
-
-            double WaterPressure = 0;
-            for (unsigned int i = 0; i < number_of_nodes; i++)
-               WaterPressure += GetGeometry()[i].GetSolutionStepValue( WATER_PRESSURE ) * Variables.N[i];
-
-            for (unsigned int i = 0; i < dimension; i++) {
-               StressVector(i) += WaterPressure;
-            }
-
-            double thisInt = integration_points[PointNumber].Weight() * Variables.detJ;
-            double IntegrationWeight = thisInt;
-            Vector WPF = IntegrationWeight * prod( trans( Variables.B ), StressVector );
-
-            rOutput[PointNumber] = WPF;
-         }
-
-      }
-      else if ( ( rVariable == EFF_CON_TOTAL_FORCE) || ( rVariable == EFF_CON_EFFEC_FORCE) )
-      {
-         const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-         // vale, torno a fer de les meves...
-         ElementDataType Variables;
-         this->InitializeElementData( Variables, rCurrentProcessInfo);
-
-         //create constitutive law parameters:
-         ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
-
-         //set constitutive law flags:
-         Flags &ConstitutiveLawOptions=Values.GetOptions();
-
-         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
-         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-
-         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod);
-         //reading integration points
-
-
-         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
-         {
-
-            // 1. COmpute The Cauchy stress
-
-            //compute element kinematics B, F, DN_DX ...
-            this->CalculateKinematics(Variables,PointNumber);
-
-            //to take in account previous step writing
-            if( mFinalizedStep ){
-               this->GetHistoricalVariables(Variables,PointNumber);
-            }
-
-            //set general variables to constitutivelaw parameters
-            this->SetElementData(Variables,Values,PointNumber);
-
-            // OBS, now changing Variables I change Values because they are pointers ( I hope);
-            double ElementalDetFT = Variables.detH;
-            Matrix ElementalFT = Variables.H;
-
-            // AND NOW IN THE OTHER WAY
-            Matrix m; double d;
-            ComputeConstitutiveVariables( Variables, m, d);
-
-            Variables.H = m;
-            Variables.detH = d;
-            Values.SetDeformationGradientF( Variables.H);
-            Values.SetDeterminantF( Variables.detH );
-
-            mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
-
-            Variables.FT = ElementalFT;
-            Variables.detH = ElementalDetFT;
-
-
-            // 2. Do My THIngs
-            Vector StressVector = Variables.StressVector;
-
-            const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-            // 2.b Compute The total stress (if necessary)
-            if ( rVariable == EFF_CON_TOTAL_FORCE )
-            {
-
-               double WaterPressure = 0.0;
-               for (unsigned int i = 0; i < number_of_nodes; i++)
-                  WaterPressure += GetGeometry()[i].GetSolutionStepValue( WATER_PRESSURE ) * Variables.N[i];
-
-               for (unsigned int i = 0; i < dimension; i++) {
-                  StressVector(i) += WaterPressure;
-               }
-            }
-
-            double thisInt = integration_points[PointNumber].Weight() * Variables.detJ;
-            double IntegrationWeight = thisInt;
-            Vector WPF = IntegrationWeight * prod( trans( Variables.B ), StressVector );
-
-            rOutput[PointNumber] = WPF;
-         }
-
-
-      }
-      else {*/
-         UpdatedLagrangianUJElement::CalculateOnIntegrationPoints( rVariable, rOutput, rCurrentProcessInfo);
-      //}
-
-      KRATOS_CATCH("")
-   }
-
-   void UpdatedLagrangianUJwPElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
+   void UpdatedLagrangianUJwPElement::GetDofList( DofsVectorType& rElementalDofList, const  ProcessInfo& rCurrentProcessInfo ) const
    {
       rElementalDofList.resize( 0 );
 
@@ -304,7 +169,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUJwPElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+   void UpdatedLagrangianUJwPElement::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const
    {
       const unsigned int number_of_nodes = GetGeometry().size();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -437,7 +302,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   int  UpdatedLagrangianUJwPElement::Check( const ProcessInfo& rCurrentProcessInfo )
+   int  UpdatedLagrangianUJwPElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
    {
       KRATOS_TRY
 
@@ -580,8 +445,8 @@ namespace Kratos
 
      // LHS. water pressure stabilization
       ProcessInfo SomeProcessInfo;
-      std::vector< double> Mmodulus;
-      GetValueOnIntegrationPoints( M_MODULUS, Mmodulus, SomeProcessInfo);
+      std::vector<double> Mmodulus;
+      this->CalculateOnIntegrationPoints( M_MODULUS, Mmodulus, SomeProcessInfo);
       double ConstrainedModulus = Mmodulus[0];
       if ( ConstrainedModulus < 1e-5)
       {
@@ -651,7 +516,7 @@ namespace Kratos
       // Add Stab term
       ProcessInfo SomeProcessInfo;
       std::vector< double> Mmodulus;
-      GetValueOnIntegrationPoints( M_MODULUS, Mmodulus, SomeProcessInfo);
+      this->CalculateOnIntegrationPoints( M_MODULUS, Mmodulus, SomeProcessInfo);
       double ConstrainedModulus = Mmodulus[0];
       if ( ConstrainedModulus < 1e-5)
       {
@@ -673,7 +538,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
    // ** mass and damping matrix, copied directly from LargeDisplacementUPElement
-   void UpdatedLagrangianUJwPElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
+   void UpdatedLagrangianUJwPElement::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
    {
       KRATOS_TRY
 
@@ -740,7 +605,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUJwPElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo )
+   void UpdatedLagrangianUJwPElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo )
    {
       KRATOS_TRY
 

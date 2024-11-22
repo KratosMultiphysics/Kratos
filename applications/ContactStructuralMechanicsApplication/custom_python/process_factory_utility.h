@@ -50,7 +50,7 @@ namespace Kratos
  * @details This class is used in order to interoperate between c++ and python
  * @author Vicente Mataix Ferrandiz
  */
-class ProcessFactoryUtility
+class KRATOS_API_EXPORT ProcessFactoryUtility
 {
 public:
 

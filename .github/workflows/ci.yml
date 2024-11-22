@@ -2,20 +2,8 @@ name: CI
 
 on:
   pull_request:
-  merge_group:
     branches:
       - master
-    paths-ignore:       # This must be the same as .github/workflows/ci_dummy.yml - "paths" !
-      - '**.md'
-      - 'documents/**'
-      - 'scripts/**'   # Docker builds will be triggered by `build_docker_image_****.yml` workflows.
-      - '.github/workflows/ci-dummy.yml'
-      - '.github/workflows/build_docker_image*.yml'
-      - '.github/workflows/nightly_build.yml'
-      - 'kratos/templates/**'
-      - 'kratos/python_scripts/application_generator/**'
-      - 'docs/**'
-      - '.github/workflows/jekyll-gh-pages.yml'
 
   workflow_dispatch:
 
@@ -56,8 +44,9 @@ jobs:
       KRATOS_BUILD_TYPE: ${{ matrix.build-type }}
       KRATOS_CI_CHANGED_FILES: ${{needs.changed-files.outputs.files}}
       KRATOS_CI_APPLICATIONS: ".github/workflows/ci_apps_linux.json"
-      OMPI_MCA_rmaps_base_oversubscribe: 1 # Allow oversubscription for MPI (needed for OpenMPI >= 3.0)
-      OMPI_MCA_btl_vader_single_copy_mechanism: none # suppressing some annoying OpenMPI messages
+      KRATOS_CI_CORES: 4                              # Current limits are 4 CPU and 16 GB Ram
+      OMPI_MCA_rmaps_base_oversubscribe: 1            # Allow oversubscription for MPI (needed for OpenMPI >= 3.0)
+      OMPI_MCA_btl_vader_single_copy_mechanism: none  # Suppressing some annoying OpenMPI messages
 
     container:
       image: kratosmultiphysics/kratos-image-ci-ubuntu-22-04:latest
@@ -79,29 +68,108 @@ jobs:
         if [ ${{ matrix.compiler }} = gcc ]; then
           export CC=/usr/bin/gcc-12
           export CXX=/usr/bin/g++-12
-          export KRATOS_CMAKE_OPTIONS_FLAGS="-DUSE_EIGEN_MKL=ON -DUSE_EIGEN_FEAST=ON -DTRILINOS_EXCLUDE_AMESOS2_SOLVER=OFF -DMMG_ROOT=/external_libraries/mmg/mmg_5_5_1/ -DPMMG_ROOT=/external_libraries/ParMmg_5ffc6ad -DINCLUDE_PMMG=ON"
+          export KRATOS_CMAKE_OPTIONS_FLAGS="-DUSE_EIGEN_MKL=ON -DUSE_EIGEN_FEAST=ON -DTRILINOS_EXCLUDE_AMESOS2_SOLVER=OFF"
           export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations -Wignored-qualifiers"
         elif [ ${{ matrix.compiler }} = clang ]; then
           export CC=/usr/bin/clang-14
           export CXX=/usr/bin/clang++-14
           export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations"
-          export KRATOS_CMAKE_OPTIONS_FLAGS="-DTRILINOS_EXCLUDE_AMESOS2_SOLVER=OFF -DMMG_ROOT=/external_libraries/mmg/mmg_5_5_1/"
+          export KRATOS_CMAKE_OPTIONS_FLAGS="-DTRILINOS_EXCLUDE_AMESOS2_SOLVER=OFF"
         else
           echo 'Unsupported compiler: ${{ matrix.compiler }}'
           exit 1
         fi
         source /opt/intel/oneapi/setvars.sh
-        cp .github/workflows/configure.sh configure.sh
+        cp .github/workflows/configure_core.sh configure.sh
         python3 kratos/python_scripts/testing/ci_utilities.py
         bash configure.sh
+        rm -r ${GITHUB_WORKSPACE}/build
+
+    - name: Build Dependencies
+      shell: bash
+      run: |
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          export CC=/usr/bin/gcc-12
+          export CXX=/usr/bin/g++-12
+          export KRATOS_CMAKE_OPTIONS_FLAGS="-DMMG_ROOT=/external_libraries/mmg/mmg_5_5_1/ -DPMMG_ROOT=/external_libraries/ParMmg_5ffc6ad -DINCLUDE_PMMG=ON"
+          export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations -Wignored-qualifiers"
+        elif [ ${{ matrix.compiler }} = clang ]; then
+          export CC=/usr/bin/clang-14
+          export CXX=/usr/bin/clang++-14
+          export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations"
+          export KRATOS_CMAKE_OPTIONS_FLAGS="-DMMG_ROOT=/external_libraries/mmg/mmg_5_5_1/" 
+        else
+          echo 'Unsupported compiler: ${{ matrix.compiler }}'
+          exit 1
+        fi
+        source /opt/intel/oneapi/setvars.sh
+        cp .github/workflows/configure_dependencies.sh configure.sh
+        bash configure.sh
+        rm -r ${GITHUB_WORKSPACE}/build
+
+    - name: Build Core Apps
+      shell: bash
+      run: |
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          export CC=/usr/bin/gcc-12
+          export CXX=/usr/bin/g++-12
+          export KRATOS_CMAKE_OPTIONS_FLAGS=""
+          export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations -Wignored-qualifiers"
+        elif [ ${{ matrix.compiler }} = clang ]; then
+          export CC=/usr/bin/clang-14
+          export CXX=/usr/bin/clang++-14
+          export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations"
+          export KRATOS_CMAKE_OPTIONS_FLAGS=""
+        else
+          echo 'Unsupported compiler: ${{ matrix.compiler }}'
+          exit 1
+        fi
+        source /opt/intel/oneapi/setvars.sh
+        cp .github/workflows/configure_core_applications.sh configure.sh
+        bash configure.sh
+        rm -r ${GITHUB_WORKSPACE}/build
+
+    - name: Build Research Apps
+      shell: bash
+      run: |
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          export CC=/usr/bin/gcc-12
+          export CXX=/usr/bin/g++-12
+          export KRATOS_CMAKE_OPTIONS_FLAGS=""
+          export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations -Wignored-qualifiers"
+        elif [ ${{ matrix.compiler }} = clang ]; then
+          export CC=/usr/bin/clang-14
+          export CXX=/usr/bin/clang++-14
+          export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations"
+          export KRATOS_CMAKE_OPTIONS_FLAGS=""
+        else
+          echo 'Unsupported compiler: ${{ matrix.compiler }}'
+          exit 1
+        fi
+        source /opt/intel/oneapi/setvars.sh
+        cp .github/workflows/configure_research_applications.sh configure.sh
+        bash configure.sh
+        rm -r ${GITHUB_WORKSPACE}/build
+
+    - name: Running C++ tests
+      shell: bash
+      run: |
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          source /opt/intel/oneapi/setvars.sh
+        fi
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        python3 kratos/python_scripts/testing/run_cpp_tests.py
 
     - name: Running python tests
       shell: bash
       run: |
-        source /opt/intel/oneapi/setvars.sh
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          source /opt/intel/oneapi/setvars.sh
+        fi
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-        python3 kratos/python_scripts/testing/run_tests.py -v 2 -l nightly -c python3
+        python3 kratos/python_scripts/testing/run_python_tests.py -v 2 -l nightly -c python3
 
     - name: Prepare Parallel Env
       shell: bash
@@ -112,58 +180,71 @@ jobs:
       shell: bash
       timeout-minutes : 10
       run: |
-        source /opt/intel/oneapi/setvars.sh
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          source /opt/intel/oneapi/setvars.sh
+        fi
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-        mpiexec -np 2 --hostfile ${GITHUB_WORKSPACE}/ci_hostfile python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --using-mpi
+        python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --mpi_flags "--hostfile ${GITHUB_WORKSPACE}/ci_hostfile" -n 2
 
     - name: Running MPI C++ tests (3 Cores)
       shell: bash
       timeout-minutes : 10
       run: |
-        source /opt/intel/oneapi/setvars.sh
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          source /opt/intel/oneapi/setvars.sh
+        fi
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-        mpiexec -np 3 --hostfile ${GITHUB_WORKSPACE}/ci_hostfile python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --using-mpi
+        python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --mpi_flags "--hostfile ${GITHUB_WORKSPACE}/ci_hostfile" -n 3
 
     - name: Running MPI C++ tests (4 Cores)
       shell: bash
       timeout-minutes : 10
       run: |
-        source /opt/intel/oneapi/setvars.sh
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          source /opt/intel/oneapi/setvars.sh
+        fi
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-        mpiexec -np 4 --hostfile ${GITHUB_WORKSPACE}/ci_hostfile python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --using-mpi
+        python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --mpi_flags "--hostfile ${GITHUB_WORKSPACE}/ci_hostfile" -n 4
 
     - name: Running Python MPI tests (2 Cores)
       shell: bash
       run: |
-        source /opt/intel/oneapi/setvars.sh
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          source /opt/intel/oneapi/setvars.sh
+        fi
         export OMP_NUM_THREADS=1
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 2 --mpi_flags="--hostfile ${GITHUB_WORKSPACE}/ci_hostfile"
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py --mpi_flags "--hostfile ${GITHUB_WORKSPACE}/ci_hostfile" -l mpi_nightly -n 2
 
     - name: Running Python MPI tests (3 Cores)
       shell: bash
       run: |
-        source /opt/intel/oneapi/setvars.sh
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          source /opt/intel/oneapi/setvars.sh
+        fi
         export OMP_NUM_THREADS=1
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 3 --mpi_flags="--hostfile ${GITHUB_WORKSPACE}/ci_hostfile"
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py --mpi_flags "--hostfile ${GITHUB_WORKSPACE}/ci_hostfile" -l mpi_nightly -n 3
 
     - name: Running Python MPI tests (4 Cores)
       shell: bash
       run: |
-        source /opt/intel/oneapi/setvars.sh
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          source /opt/intel/oneapi/setvars.sh
+        fi
         export OMP_NUM_THREADS=1
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 4 --mpi_flags="--hostfile ${GITHUB_WORKSPACE}/ci_hostfile"
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py --mpi_flags "--hostfile ${GITHUB_WORKSPACE}/ci_hostfile" -l mpi_nightly -n 4
+
 
   windows:
-    runs-on: windows-2022
+    runs-on: windows-2019
     needs: changed-files
     env:
       KRATOS_BUILD_TYPE: Custom
@@ -203,12 +284,20 @@ jobs:
         python kratos/python_scripts/testing/ci_utilities.py
         configure.cmd
 
+    - name: Running C++ tests
+      shell: cmd
+      run: |
+        set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
+        set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
+        python kratos/python_scripts/testing/run_cpp_tests.py
+
     - name: Running python tests
       shell: cmd
       run: |
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
         set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
-        python kratos/python_scripts/testing/run_tests.py -l nightly -c python
+        python kratos/python_scripts/testing/run_python_tests.py -l nightly -c python
+
 
   centos:
     runs-on: ubuntu-latest
@@ -217,6 +306,7 @@ jobs:
       KRATOS_BUILD_TYPE: Custom
       KRATOS_CI_CHANGED_FILES: ${{needs.changed-files.outputs.files}}
       KRATOS_CI_APPLICATIONS: ".github/workflows/ci_apps_centos.json"
+      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
 
     container:
       image: kratosmultiphysics/kratos-image-ci-centos7:latest
@@ -238,11 +328,17 @@ jobs:
         cp .github/workflows/centos_configure.sh centos_configure.sh
         bash centos_configure.sh
 
+    - name: Running C++ tests
+      run: |
+        export PYTHONPATH=${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/bin/Custom/libs
+        python3.8 kratos/python_scripts/testing/run_cpp_tests.py
+
     - name: Running python tests
       run: |
-        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3.8 kratos/python_scripts/testing/run_tests.py -l nightly -c python3.8
+        export PYTHONPATH=${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/bin/Custom/libs
+        python3.8 kratos/python_scripts/testing/run_python_tests.py -l nightly -c python3.8
 
 
   ubuntu-core-without-unity:
@@ -257,12 +353,6 @@ jobs:
     container:
       image: kratosmultiphysics/kratos-image-ci-ubuntu-22-04:latest
       options: --user 1001
-      env:
-        CCACHE_SLOPPINESS: pch_defines,time_macros
-        CCACHE_COMPILERCHECK: content
-        CCACHE_COMPRESS: true
-        CCACHE_NODISABLE: true
-        CCACHE_MAXSIZE: 500M
 
     steps:
     - uses: actions/checkout@v4
@@ -271,24 +361,16 @@ jobs:
       shell: bash
       run: python3 kratos/python_scripts/testing/ci_utilities.py
 
-    - name: Cache Build
-      id: cache-build
-      uses: actions/cache@v3
-      with:
-        path: ~/.ccache
-        key: ${{ runner.os }}-no-unity-ccache-${{ github.sha }}
-        restore-keys: ${{ runner.os }}-no-unity-ccache-
-
     - name: Build
       shell: bash
       run: |
-        export CC=/usr/lib/ccache/clang-14
-        export CXX=/usr/lib/ccache/clang++-14
+        export CC=/usr/bin/clang-14
+        export CXX=/usr/bin/clang++-14
 
         export KRATOS_SOURCE="${KRATOS_SOURCE:-${PWD}}"
         export KRATOS_BUILD="${KRATOS_SOURCE}/build"
         export KRATOS_APP_DIR="${KRATOS_SOURCE}/applications"
-        export PYTHON_EXECUTABLE="/usr/bin/python3.10"
+        export PYTHON_EXECUTABLE="/usr/bin/python3"
         export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 
         add_app () {
@@ -310,49 +392,50 @@ jobs:
         -DKRATOS_USE_PCH=ON
 
         # Build
+        # Please do not use more than 2 cores or it will produce an out of heap memory error
         cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j2
 
-        ccache -s
+    - name: Running C++ tests
+      shell: bash
+      run: |
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
+        python3 kratos/python_scripts/testing/run_cpp_tests.py
 
     - name: Running python tests
       shell: bash
       run: |
-        source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3 kratos/python_scripts/testing/run_tests.py -l nightly -c python3
+        python3 kratos/python_scripts/testing/run_python_tests.py -l nightly -c python3
 
     - name: Running MPI C++ tests (2 Cores)
       shell: bash
       timeout-minutes : 10
       run: |
-        source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        mpiexec -np 2 python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --using-mpi
+        python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py -n 2
 
     - name: Running MPI C++ tests (3 Cores)
       shell: bash
       timeout-minutes : 10
       run: |
-        source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        mpiexec -np 3 python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --using-mpi
+        python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py -n 3
 
     - name: Running MPI C++ tests (4 Cores)
       shell: bash
       timeout-minutes : 10
       run: |
-        source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        mpiexec -np 4 python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --using-mpi
+        python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py -n 4
 
     - name: Running Python MPI tests (2 Cores)
       shell: bash
       run: |
-        source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
         python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 2
@@ -360,7 +443,6 @@ jobs:
     - name: Running Python MPI tests (3 Cores)
       shell: bash
       run: |
-        source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
         python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 3
@@ -368,14 +450,13 @@ jobs:
     - name: Running Python MPI tests (4 Cores)
       shell: bash
       run: |
-        source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
         python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 4
 
 
   windows-core-without-unity:
-    runs-on: windows-2022
+    runs-on: windows-2019
     needs: changed-files
     env:
       KRATOS_BUILD_TYPE: Custom
@@ -409,7 +490,7 @@ jobs:
     - name: Build
       shell: cmd
       run: |
-        call "%ProgramFiles%\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64 || goto :error
+        call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64 || goto :error
 
         set CC=cl.exe
         set CXX=cl.exe
@@ -425,7 +506,7 @@ jobs:
         del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeFiles"
 
         cmake                                                 ^
-          -G"Visual Studio 17 2022"                           ^
+          -G"Visual Studio 16 2019"                           ^
           -H"%KRATOS_SOURCE%"                                 ^
           -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"              ^
           -DBOOST_ROOT="%TEMP%\boost"                         ^
@@ -442,12 +523,19 @@ jobs:
         echo Failed with error #%errorlevel%.
         exit /b %errorlevel%
 
+    - name: Running C++ tests
+      shell: cmd
+      run: |
+        set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
+        set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
+        python kratos/python_scripts/testing/run_cpp_tests.py
+
     - name: Running python tests
       shell: cmd
       run: |
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
         set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
-        python kratos/python_scripts/testing/run_tests.py -l nightly -c python
+        python kratos/python_scripts/testing/run_python_tests.py -l nightly -c python
 
 
   ubuntu-intel-legacy:
@@ -482,22 +570,32 @@ jobs:
         cp .github/workflows/intel_configure.sh configure.sh
         bash configure.sh
 
+    - name: Running C++ tests
+      shell: bash
+      run: |
+        source /opt/intel/oneapi/setvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
+        python3 kratos/python_scripts/testing/run_cpp_tests.py
+
     - name: Running python tests
       shell: bash
       run: |
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3 kratos/python_scripts/testing/run_tests.py -l nightly -c python3
+        python3 kratos/python_scripts/testing/run_python_tests.py -l nightly -c python3
 
     - name: Running MPI C++ tests (2 Cores)
       shell: bash
       timeout-minutes : 10
       run: |
+        export PYTHONPATH=
+        export LD_LIBRARY_PATH=
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        mpiexec -np 2 python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --using-mpi
+        python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py -n 2
 
     - name: Running MPI C++ tests (3 Cores)
       shell: bash
@@ -506,7 +604,7 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        mpiexec -np 3 python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --using-mpi
+        python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py -n 3
 
     - name: Running MPI C++ tests (4 Cores)
       shell: bash
@@ -515,7 +613,7 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        mpiexec -np 4 python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --using-mpi
+        python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py -n 4
 
     - name: Running Python MPI tests (2 Cores)
       shell: bash
@@ -575,6 +673,15 @@ jobs:
         cp .github/workflows/intel_configure.sh configure.sh
         bash configure.sh
 
+    - name: Running C++ tests
+      shell: bash
+      continue-on-error: true # TODO segfaults in cpp-tests
+      run: |
+        source /opt/intel/oneapi/setvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
+        python3 kratos/python_scripts/testing/run_cpp_tests.py
+
     - name: Running python tests
       shell: bash
       continue-on-error: true # TODO segfaults in cpp-tests
@@ -582,7 +689,7 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3 kratos/python_scripts/testing/run_tests.py -l nightly -c python3
+        python3 kratos/python_scripts/testing/run_python_tests.py -l nightly -c python3
 
     - name: Running MPI C++ tests (2 Cores)
       shell: bash
@@ -591,7 +698,7 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        mpiexec -np 2 python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --using-mpi
+        python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py -n 2
 
     - name: Running MPI C++ tests (3 Cores)
       shell: bash
@@ -600,7 +707,7 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        mpiexec -np 3 python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --using-mpi
+        python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py -n 3
 
     - name: Running MPI C++ tests (4 Cores)
       shell: bash
@@ -609,7 +716,7 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        mpiexec -np 4 python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --using-mpi
+        python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py -n 4
 
     - name: Running Python MPI tests (2 Cores)
       shell: bash

@@ -18,7 +18,7 @@
 // External includes
 
 // Project includes
-#include "../StructuralMechanicsApplication/custom_elements/cr_beam_element_2D2N.hpp"
+#include "../StructuralMechanicsApplication/custom_elements/beam_elements/cr_beam_element_2D2N.hpp"
 #include "includes/define.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
@@ -51,11 +51,11 @@ public:
     using EquationIdVectorType = BaseType::EquationIdVectorType;
     using DofsVectorType       = BaseType::DofsVectorType;
 
-    GeoCrBeamElement2D2N(){};
+    GeoCrBeamElement2D2N() = default;
     GeoCrBeamElement2D2N(IndexType NewId, GeometryType::Pointer pGeometry);
     GeoCrBeamElement2D2N(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
-    ~GeoCrBeamElement2D2N() override;
+    ~GeoCrBeamElement2D2N() = default;
 
     /**
      * @brief Creates a new element
@@ -73,8 +73,8 @@ public:
      * @param pProperties The pointer to property
      * @return The pointer to the created element
      */
-    Element::Pointer Create(IndexType NewId,
-                            NodesArrayType const& ThisNodes,
+    Element::Pointer Create(IndexType               NewId,
+                            NodesArrayType const&   ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
@@ -83,8 +83,8 @@ public:
 
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                              VectorType& rRightHandSideVector,
+    void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
+                              VectorType&        rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
@@ -93,8 +93,9 @@ public:
      * @brief This function calculates the element contributions to an explicit time integration
      */
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
-                                      std::vector<array_1d<double, 3>>& rOutput,
+                                      std::vector<array_1d<double, 3>>&    rOutput,
                                       const ProcessInfo& rCurrentProcessInfo) override;
+    using CrBeamElement2D2N::CalculateOnIntegrationPoints;
 
     void ResetConstitutiveLaw() override;
 

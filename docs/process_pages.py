@@ -2,6 +2,7 @@ import requests
 from argparse import ArgumentParser
 from collections import OrderedDict
 from pathlib import Path
+import subprocess
 
 from entry_utilities import default_header_dict
 from entry_utilities import file_navigation_levels
@@ -215,16 +216,63 @@ def CreateNavigatonBar(root_path: str, max_levels: int, default_header_dict: dic
     list_of_strings = GenerateStrings(list_of_entries, is_locally_built)
     return list_of_strings
 
+def AddPythonSnippetOutputs(file_path: Path) -> None:
+    with open(file_path, "r") as file_input:
+        lines = file_input.readlines()
+
+    found_python_snippet_block = False
+    snippet_lines = []
+    output_lines = []
+    index = 0
+    while index < len(lines):
+        line = lines[index]
+        index += 1
+        if not found_python_snippet_block or line != "## POST_PROCESS_PAGES_PYTHON_OUTPUT_GENERATION\n":
+            output_lines.append(line)
+
+        if found_python_snippet_block and line.startswith("```"):
+            found_python_snippet_block = False
+            if "## POST_PROCESS_PAGES_PYTHON_OUTPUT_GENERATION\n" in snippet_lines:
+                # check whether existing expected output is found
+                temp_index = index
+                is_existing_output_found = False
+                while temp_index < len(lines):
+                    if lines[temp_index].strip():
+                        is_existing_output_found  = lines[temp_index] == "Expected output:\n"
+                        is_existing_output_found &= lines[temp_index+1] == "```console\n"
+                        break
+                    temp_index += 1
+
+                if not is_existing_output_found:
+                    # create a temp file
+                    temp_file_path = f"{file_path.name}.temp.py"
+                    with open(temp_file_path, "w") as temp_file_output:
+                        temp_file_output.writelines(snippet_lines)
+
+                    subprocess_run = subprocess.run([GetPython3Command(), "-u", temp_file_path], stdout=subprocess.PIPE, universal_newlines=True, check=True)
+                    output_lines.append("\n")
+                    output_lines.append("Expected output:\n")
+                    output_lines.append("```console\n")
+                    output_lines.append(subprocess_run.stdout)
+                    output_lines.append("```\n")
+
+                    # remove the temp file
+                    Path(temp_file_path).unlink()
+
+                    if is_existing_output_found:
+                        index += temp_index + lines[temp_index:].index("```\n") + 1
+
+        if found_python_snippet_block:
+            snippet_lines.append(line)
+
+        if line == "```python\n":
+            found_python_snippet_block = True
+            snippet_lines = []
+
+    with open(file_path, "w") as file_output:
+        file_output.writelines(output_lines)
+
 if __name__ == "__main__":
-    ## process the index file.
-    r = requests.get("https://raw.githubusercontent.com/KratosMultiphysics/Kratos/master/README.md", allow_redirects=True)
-
-    with open("pages/index.md", "w") as file_output:
-        if r.status_code == 200:
-            data = r.text
-            data = "---\nkeywords: Summary\ntags: []\nsidebar: kratos_for_users\npermalink: index.html\ntitle: Summary\nsummary: \n---\n" + data
-            file_output.write(data)
-
     parser = ArgumentParser(description="Process mark down files in pages folder to create navigation bars.")
     parser.add_argument("-t", "--build_type", dest="build_type", metavar="<build_type>",
                         choices=['local', 'web'], default="locally", help="type of the web page build")
@@ -258,6 +306,10 @@ if __name__ == "__main__":
                         file_output.write("entries:\n")
                         file_output.writelines(list_of_strings)
 
+    if is_locally_built:
+        from KratosMultiphysics.testing.utilities import GetPython3Command
+        for file_path in Path("pages").rglob("*.md"):
+            AddPythonSnippetOutputs(file_path)
 
     # sub_itr_dir = Path("pages/1_Kratos/1_For_Users")
     # print("Creating side bar for {:s}...".format(str(sub_itr_dir)))

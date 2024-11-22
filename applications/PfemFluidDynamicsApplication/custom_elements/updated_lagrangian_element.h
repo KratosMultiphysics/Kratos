@@ -236,16 +236,27 @@ namespace Kratos
                                       VectorType &rRightHandSideVector,
                                       const ProcessInfo &rCurrentProcessInfo) override{};
 
-    void CalculateLeftHandSide(MatrixType &rLeftHandSideMatrix,
-                               const ProcessInfo &rCurrentProcessInfo) override
+    void CalculateLeftHandSide(
+        MatrixType &rLeftHandSideMatrix,
+        const ProcessInfo &rCurrentProcessInfo) override
     {
-      KRATOS_TRY;
-      KRATOS_THROW_ERROR(std::logic_error, "UpdatedLagrangianElement::CalculateLeftHandSide not implemented", "");
-      KRATOS_CATCH("");
+        KRATOS_TRY;
+
+        KRATOS_ERROR << "UpdatedLagrangianElement::CalculateLeftHandSide not implemented." << std::endl;
+
+        KRATOS_CATCH("");
     }
 
-    void CalculateRightHandSide(VectorType &rRightHandSideVector,
-                                const ProcessInfo &rCurrentProcessInfo) override{};
+    void CalculateRightHandSide(
+        VectorType &rRightHandSideVector,
+        const ProcessInfo &rCurrentProcessInfo) override
+    {
+        KRATOS_TRY;
+
+        KRATOS_ERROR << "UpdatedLagrangianElement::CalculateRightHandSide not implemented." << std::endl;
+
+        KRATOS_CATCH("");
+    };
 
     // The following methods have different implementations depending on TDim
     /// Provides the global indices for each one of this element's local rows
@@ -419,7 +430,7 @@ namespace Kratos
                                Matrix &rNContainer,
                                Vector &rGaussWeights);
 
-    void CalculateGeometryData(Vector &rGaussWeights);
+    virtual void CalculateGeometryData(Vector &rGaussWeights);
     double ElementSize(/*ShapeFunctionDerivativesType& rDN_DX*/);
 
     /**

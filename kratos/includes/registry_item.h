@@ -18,7 +18,12 @@
 #include <string>
 #include <iostream>
 #include <unordered_map>
-#include <any>
+
+#if defined (__GNUC__) && __GNUC__ <= 8 && __GNUC_MINOR__ <= 3
+    #include <boost/any.hpp>
+#else
+    #include <any>
+#endif
 
 // External includes
 
@@ -243,17 +248,25 @@ public:
     {
         KRATOS_TRY
 
+#if defined (__GNUC__) && __GNUC__ <= 8 && __GNUC_MINOR__ <= 3
+        return *(boost::any_cast<std::shared_ptr<TDataType>>(mpValue));
+#else
         return *(std::any_cast<std::shared_ptr<TDataType>>(mpValue));
+#endif
 
         KRATOS_CATCH("");
     }
 
-    template<typename TDataType, typename TCastType> 
+    template<typename TDataType, typename TCastType>
     TCastType const& GetValueAs() const
     {
         KRATOS_TRY
 
+#if defined (__GNUC__) && __GNUC__ <= 8 && __GNUC_MINOR__ <= 3
+        return *std::dynamic_pointer_cast<TCastType>(boost::any_cast<std::shared_ptr<TDataType>>(mpValue));
+#else
         return *std::dynamic_pointer_cast<TCastType>(std::any_cast<std::shared_ptr<TDataType>>(mpValue));
+#endif
 
         KRATOS_CATCH("");
     }
@@ -271,6 +284,16 @@ public:
     bool HasItems() const;
 
     bool HasItem(std::string const& rItemName) const;
+
+    template<class OtherType>
+    bool IsSameType(const OtherType& rOther) const {
+        try {
+            GetValue<OtherType>();
+        } catch (...) {
+            return false;
+        }
+        return true;
+    }
 
     ///@}
     ///@name Input and output
@@ -293,7 +316,11 @@ private:
     ///@{
 
     std::string mName;
+#if defined (__GNUC__) && __GNUC__ <= 8 && __GNUC_MINOR__ <= 3
+    boost::any mpValue;
+#else
     std::any mpValue;
+#endif
     std::string (RegistryItem::*mGetValueStringMethod)() const;
 
     ///@}

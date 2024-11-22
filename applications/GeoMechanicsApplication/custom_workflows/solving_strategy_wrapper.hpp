@@ -27,11 +27,10 @@ template <class TSparseSpace, class TDenseSpace>
 class SolvingStrategyWrapper : public StrategyWrapper
 {
 public:
-    explicit SolvingStrategyWrapper(
-        std::unique_ptr<SolvingStrategy<TSparseSpace, TDenseSpace>> strategy,
-        bool ResetDisplacements = false,
-        const std::filesystem::path& rWorkingDirectory = "",
-        const Parameters& rProjectParameters = {})
+    explicit SolvingStrategyWrapper(std::unique_ptr<SolvingStrategy<TSparseSpace, TDenseSpace>> strategy,
+                                    bool                         ResetDisplacements = false,
+                                    const std::filesystem::path& rWorkingDirectory  = "",
+                                    const Parameters&            rProjectParameters = {})
         : mpStrategy(std::move(strategy)),
           mrModelPart(mpStrategy->GetModelPart()),
           mResetDisplacements{ResetDisplacements},
@@ -47,37 +46,25 @@ public:
         return mrModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
     }
 
-    double GetEndTime() const override
-    {
-        return mrModelPart.GetProcessInfo()[TIME];
-    }
+    double GetEndTime() const override { return mrModelPart.GetProcessInfo()[TIME]; }
 
-    void Initialize() override
+    void Initialize() override { mpStrategy->Initialize(); }
+
+    void InitializeOutput() override
     {
-        mpStrategy->Initialize();
         const auto gid_output_settings =
-            mProjectParameters["output_processes"]["gid_output"][0]
-                              ["Parameters"];
+            mProjectParameters["output_processes"]["gid_output"][0]["Parameters"];
         mWriter = std::make_unique<GeoOutputWriter>(
             gid_output_settings, mWorkingDirectory.generic_string(), mrModelPart);
     }
 
-    void InitializeSolutionStep() override
-    {
-        mpStrategy->InitializeSolutionStep();
-    }
+    void InitializeSolutionStep() override { mpStrategy->InitializeSolutionStep(); }
 
     void Predict() override { mpStrategy->Predict(); }
 
-    void SetEndTime(double EndTime) override
-    {
-        mrModelPart.GetProcessInfo()[TIME] = EndTime;
-    }
+    void SetEndTime(double EndTime) override { mrModelPart.GetProcessInfo()[TIME] = EndTime; }
 
-    double GetTimeIncrement() const override
-    {
-        return mrModelPart.GetProcessInfo()[DELTA_TIME];
-    }
+    double GetTimeIncrement() const override { return mrModelPart.GetProcessInfo()[DELTA_TIME]; }
 
     void SetTimeIncrement(double TimeIncrement) override
     {
@@ -89,15 +76,11 @@ public:
         return static_cast<std::size_t>(mrModelPart.GetProcessInfo()[STEP]);
     }
 
-    void IncrementStepNumber() override
-    {
-        mrModelPart.GetProcessInfo()[STEP] += 1;
-    }
+    void IncrementStepNumber() override { mrModelPart.GetProcessInfo()[STEP] += 1; }
 
     void CloneTimeStep() override
     {
-        auto& root_model_part =
-            mrModelPart.IsSubModelPart() ? mrModelPart.GetRootModelPart() : mrModelPart;
+        auto& root_model_part = mrModelPart.IsSubModelPart() ? mrModelPart.GetRootModelPart() : mrModelPart;
         root_model_part.CloneTimeStep();
     }
 
@@ -114,11 +97,9 @@ public:
 
     void SaveTotalDisplacementFieldAtStartOfTimeLoop() override
     {
-        if (mResetDisplacements)
-        {
+        if (mResetDisplacements) {
             mOldTotalDisplacements.clear();
-            for (const auto& node : mrModelPart.Nodes())
-            {
+            for (const auto& node : mrModelPart.Nodes()) {
                 mOldTotalDisplacements.emplace_back(node.GetSolutionStepValue(TOTAL_DISPLACEMENT));
             }
         }
@@ -126,16 +107,12 @@ public:
 
     void AccumulateTotalDisplacementField() override
     {
-        if (mResetDisplacements)
-        {
-            KRATOS_ERROR_IF_NOT(mrModelPart.Nodes().size() ==
-                                mOldTotalDisplacements.size())
+        if (mResetDisplacements) {
+            KRATOS_ERROR_IF_NOT(mrModelPart.Nodes().size() == mOldTotalDisplacements.size())
                 << "The number of old displacements (" << mOldTotalDisplacements.size()
-                << ") does not match the current number of nodes ("
-                << mrModelPart.Nodes().size() << ").";
+                << ") does not match the current number of nodes (" << mrModelPart.Nodes().size() << ").";
             std::size_t count = 0;
-            for (auto& node : mrModelPart.Nodes())
-            {
+            for (auto& node : mrModelPart.Nodes()) {
                 node.GetSolutionStepValue(TOTAL_DISPLACEMENT) =
                     mOldTotalDisplacements[count] + node.GetSolutionStepValue(DISPLACEMENT);
                 ++count;
@@ -143,62 +120,56 @@ public:
         }
     }
 
+    void ComputeIncrementalDisplacementField() override
+    {
+        for (auto& node : mrModelPart.Nodes()) {
+            node.GetSolutionStepValue(INCREMENTAL_DISPLACEMENT) =
+                node.GetSolutionStepValue(DISPLACEMENT, 0) - node.GetSolutionStepValue(DISPLACEMENT, 1);
+        }
+    }
+
     void OutputProcess() override
     {
-        if (mWriter)
-        {
+        if (mWriter) {
             const auto write_hydraulic_head_to_nodes = false;
             const auto gid_output_settings =
-                mProjectParameters["output_processes"]["gid_output"][0]
-                                  ["Parameters"];
-            mWriter->WriteGiDOutput(mrModelPart, gid_output_settings,
-                                    write_hydraulic_head_to_nodes);
+                mProjectParameters["output_processes"]["gid_output"][0]["Parameters"];
+            mWriter->WriteGiDOutput(mrModelPart, gid_output_settings, write_hydraulic_head_to_nodes);
         }
     }
 
     TimeStepEndState::ConvergenceState SolveSolutionStep() override
     {
-        return mpStrategy->SolveSolutionStep()
-                   ? TimeStepEndState::ConvergenceState::converged
-                   : TimeStepEndState::ConvergenceState::non_converged;
-        ;
+        return mpStrategy->SolveSolutionStep() ? TimeStepEndState::ConvergenceState::converged
+                                               : TimeStepEndState::ConvergenceState::non_converged;
     }
 
-    void FinalizeSolutionStep() override
-    {
-        return mpStrategy->FinalizeSolutionStep();
-    }
+    void FinalizeSolutionStep() override { return mpStrategy->FinalizeSolutionStep(); }
+
     void FinalizeOutput() override
     {
-        if (mWriter)
-        {
-            mWriter->FinalizeResults();
-        }
+        if (mWriter) mWriter->FinalizeResults();
     }
 
 private:
     template <typename TVariableType>
-    void CopyNodalSolutionStepValues(const TVariableType& rVariable,
-                                     Node::IndexType SourceIndex,
-                                     Node::IndexType DestinationIndex)
+    void CopyNodalSolutionStepValues(const TVariableType& rVariable, Node::IndexType SourceIndex, Node::IndexType DestinationIndex)
     {
-        if (!mrModelPart.HasNodalSolutionStepVariable(rVariable))
-            return;
+        if (!mrModelPart.HasNodalSolutionStepVariable(rVariable)) return;
 
-        for (auto& node : mrModelPart.Nodes())
-        {
+        for (auto& node : mrModelPart.Nodes()) {
             node.GetSolutionStepValue(rVariable, DestinationIndex) =
                 node.GetSolutionStepValue(rVariable, SourceIndex);
         }
     }
 
     std::unique_ptr<SolvingStrategy<TSparseSpace, TDenseSpace>> mpStrategy;
-    ModelPart& mrModelPart;
-    bool mResetDisplacements;
-    std::vector<array_1d<double, 3>> mOldTotalDisplacements;
-    Parameters mProjectParameters;
-    std::filesystem::path mWorkingDirectory;
-    std::unique_ptr<GeoOutputWriter> mWriter;
+    ModelPart&                                                  mrModelPart;
+    bool                                                        mResetDisplacements;
+    std::vector<array_1d<double, 3>>                            mOldTotalDisplacements;
+    Parameters                                                  mProjectParameters;
+    std::filesystem::path                                       mWorkingDirectory;
+    std::unique_ptr<GeoOutputWriter>                            mWriter;
 };
 
 } // namespace Kratos

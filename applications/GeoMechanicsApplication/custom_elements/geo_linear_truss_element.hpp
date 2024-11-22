@@ -18,7 +18,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/geo_linear_truss_element_base.hpp"
+#include "custom_elements/geo_truss_element_base.hpp"
 
 namespace Kratos
 {
@@ -31,20 +31,12 @@ namespace Kratos
  */
 
 template <unsigned int TDim, unsigned int TNumNodes>
-class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoLinearTrussElement
-    : public GeoTrussElementLinearBase<TDim, TNumNodes>
+class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoLinearTrussElement : public GeoTrussElementBase<TDim, TNumNodes>
 {
-protected:
-    // const values
-    static constexpr int mStressVectorSize    = 1;
-    Vector mInternalStresses                  = ZeroVector(mStressVectorSize);
-    Vector mInternalStressesFinalized         = ZeroVector(mStressVectorSize);
-    Vector mInternalStressesFinalizedPrevious = ZeroVector(mStressVectorSize);
-
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeoLinearTrussElement);
 
-    using BaseType          = GeoTrussElementLinearBase<TDim, TNumNodes>;
+    using BaseType          = GeoTrussElementBase<TDim, TNumNodes>;
     using GeometryType      = Element::GeometryType;
     using NodesArrayType    = Element::NodesArrayType;
     using PropertiesType    = Element::PropertiesType;
@@ -57,11 +49,9 @@ public:
 
     using GeoTrussElementBase<TDim, TNumNodes>::mpConstitutiveLaw;
 
-    GeoLinearTrussElement(){};
+    GeoLinearTrussElement() = default;
     GeoLinearTrussElement(IndexType NewId, GeometryType::Pointer pGeometry);
     GeoLinearTrussElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
-
-    ~GeoLinearTrussElement() override;
 
     /**
      * @brief Creates a new element
@@ -79,11 +69,19 @@ public:
      * @param pProperties The pointer to property
      * @return The pointer to the created element
      */
-    Element::Pointer Create(IndexType NewId,
-                            NodesArrayType const& ThisNodes,
+    Element::Pointer Create(IndexType               NewId,
+                            NodesArrayType const&   ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CreateElementStiffnessMatrix(MatrixType&        rLocalStiffnessMatrix,
+                                      const ProcessInfo& rCurrentProcessInfo) override;
+
+    void WriteTransformationCoordinates(FullDofVectorType& rReferenceCoordinates) override;
 
     /**
      * @brief This function updates the internal normal force w.r.t. the current deformations
@@ -92,18 +90,25 @@ public:
     void UpdateInternalForces(FullDofVectorType& rInternalForces, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
-                                      std::vector<array_1d<double, 3>>& rOutput,
+                                      std::vector<array_1d<double, 3>>&    rOutput,
                                       const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
+                                      std::vector<Vector>&    rOutput,
+                                      const ProcessInfo&) override;
 
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     void ResetConstitutiveLaw() override;
 
 private:
+    double CalculateLinearStrain();
+    void   AddPrestressLinear(VectorType& rRightHandSideVector);
+
     friend class Serializer;
+
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType)
         rSerializer.save("InternalStresses", mInternalStresses);
         rSerializer.save("InternalStressesFinalized", mInternalStressesFinalized);
         rSerializer.save("InternalStressesFinalizedPrevious", mInternalStressesFinalizedPrevious);
@@ -111,11 +116,16 @@ private:
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType)
         rSerializer.load("InternalStresses", mInternalStresses);
         rSerializer.load("InternalStressesFinalized", mInternalStressesFinalized);
         rSerializer.load("InternalStressesFinalizedPrevious", mInternalStressesFinalizedPrevious);
     }
+
+    static constexpr int mStressVectorSize                  = 1;
+    Vector               mInternalStresses                  = ZeroVector(mStressVectorSize);
+    Vector               mInternalStressesFinalized         = ZeroVector(mStressVectorSize);
+    Vector               mInternalStressesFinalizedPrevious = ZeroVector(mStressVectorSize);
 };
 } // namespace Kratos
 
