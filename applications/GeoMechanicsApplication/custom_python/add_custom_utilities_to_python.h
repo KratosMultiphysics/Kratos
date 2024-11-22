@@ -15,7 +15,9 @@
 #define KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED
 
 // System includes
+#include <pybind11/functional.h>
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 
 // External includes
 
