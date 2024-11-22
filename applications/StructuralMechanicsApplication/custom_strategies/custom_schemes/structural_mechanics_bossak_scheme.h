@@ -17,6 +17,8 @@
 // External includes
 
 // Project includes
+#include "includes/variables.h"
+#include "structural_mechanics_application_variables.h"
 #include "includes/cfd_variables.h" //TODO: For OSS_SWITCH (think about a better place for this variable)
 #include "processes/calculate_nodal_area_process.h"
 
@@ -53,6 +55,9 @@ public:
 
     /// Class type for the scheme
     using ClassType = StructuralMechanicsBossakScheme<TSparseSpace, TDenseSpace>;
+
+    /// Type for the dofs array within BossakBaseType
+    using DofsArrayType = typename BossakBaseType::DofsArrayType;
 
     /// Type for the system matrix within BossakBaseType
     using TSystemMatrixType = typename BossakBaseType::TSystemMatrixType;
@@ -121,13 +126,14 @@ public:
             });
         }
     }
+
     void Update(
-    ModelPart& rModelPart,
-    DofsArrayType& rDofSet,
-    TSystemMatrixType& rA,
-    TSystemVectorType& rDx,
-    TSystemVectorType& rb
-    ) override
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
     {
         KRATOS_TRY
 
