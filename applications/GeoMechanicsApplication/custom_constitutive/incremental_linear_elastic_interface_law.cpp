@@ -73,21 +73,12 @@ void GeoIncrementalLinearElasticInterfaceLaw::InitializeMaterial(const Propertie
                                                                  const ConstitutiveLaw::GeometryType&,
                                                                  const Vector&)
 {
-    KRATOS_INFO("InitializeMaterial") << "Got here!" << std::endl;
     if (mPreviousRelativeDisplacement.size() != GetStrainSize()) {
-        KRATOS_INFO("mPreviousRelativeDisplacement.size() != GetStrainSize()") << std::endl;
         mPreviousRelativeDisplacement = ZeroVector{GetStrainSize()};
-        KRATOS_INFO("mPreviousRelativeDisplacement") << mPreviousRelativeDisplacement << std::endl;
-
-    }
-    if (mPreviousTraction.size() != GetStrainSize()) {
-        KRATOS_INFO("mPreviousTraction.size() != GetStrainSize()") << std::endl;
         mPreviousTraction = ZeroVector{GetStrainSize()};
     }
 
     if (HasInitialState()) {
-        KRATOS_INFO("GetInitialState().GetInitialStrainVector()") << GetInitialState().GetInitialStrainVector() << std::endl;
-        KRATOS_INFO("GetInitialState().GetInitialStressVector()") << GetInitialState().GetInitialStressVector() << std::endl;
         mPreviousRelativeDisplacement = GetInitialState().GetInitialStrainVector();
         mPreviousTraction             = GetInitialState().GetInitialStressVector();
     }
@@ -95,16 +86,11 @@ void GeoIncrementalLinearElasticInterfaceLaw::InitializeMaterial(const Propertie
 
 void GeoIncrementalLinearElasticInterfaceLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
-    KRATOS_INFO("CalculateMaterialResponseCauchy: mPreviousRelativeDisplacement") << mPreviousRelativeDisplacement << std::endl;
-    KRATOS_INFO("CalculateMaterialResponseCauchy: mPreviousTraction") << mPreviousTraction << std::endl;
-    KRATOS_INFO("CalculateMaterialResponseCauchy: GetStrainVector") << rValues.GetStrainVector() << std::endl;
     rValues.GetStressVector() =
         mPreviousTraction +
         prod(MakeConstitutiveMatrix(rValues.GetMaterialProperties()[INTERFACE_NORMAL_STIFFNESS],
                                     rValues.GetMaterialProperties()[INTERFACE_SHEAR_STIFFNESS]),
              rValues.GetStrainVector() - mPreviousRelativeDisplacement);
-
-    KRATOS_INFO("CalculateMaterialResponseCauchy: GetStressVector") << rValues.GetStressVector() << std::endl;
 }
 
 bool GeoIncrementalLinearElasticInterfaceLaw::RequiresInitializeMaterialResponse() { return false; }
@@ -113,8 +99,6 @@ void GeoIncrementalLinearElasticInterfaceLaw::FinalizeMaterialResponseCauchy(Con
 {
     mPreviousRelativeDisplacement = rValues.GetStrainVector();
     mPreviousTraction             = rValues.GetStressVector();
-    KRATOS_INFO("FinalizeMaterialResponseCauchy: mPreviousRelativeDisplacement") << mPreviousRelativeDisplacement << std::endl;
-    KRATOS_INFO("FinalizeMaterialResponseCauchy: mPreviousTraction") << mPreviousTraction << std::endl;
 }
 
 int GeoIncrementalLinearElasticInterfaceLaw::Check(const Properties& rMaterialProperties,

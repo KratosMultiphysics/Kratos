@@ -182,16 +182,16 @@ void LineInterfaceElement::CalculateOnIntegrationPoints(const Variable<Constitut
 
 void LineInterfaceElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
-    const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
-    auto relative_displacements = CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices);
-    auto tractions = CalculateTractionsAtIntegrationPoints(relative_displacements);
-
-    for (std::size_t i = 0; i < mConstitutiveLaws.size(); ++i) {
-        auto law_parameters = ConstitutiveLaw::Parameters{};
-        law_parameters.SetStrainVector(relative_displacements[i]);
-        law_parameters.SetStressVector(tractions[i]);
-        mConstitutiveLaws[i]->FinalizeMaterialResponseCauchy(law_parameters);
-    }
+    // const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
+    // auto relative_displacements = CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices);
+    // auto tractions = CalculateTractionsAtIntegrationPoints(relative_displacements);
+    //
+    // for (std::size_t i = 0; i < mConstitutiveLaws.size(); ++i) {
+    //     auto law_parameters = ConstitutiveLaw::Parameters{};
+    //     law_parameters.SetStrainVector(relative_displacements[i]);
+    //     law_parameters.SetStressVector(tractions[i]);
+    //     mConstitutiveLaws[i]->FinalizeMaterialResponseCauchy(law_parameters);
+    // }
 }
 
 void LineInterfaceElement::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const
