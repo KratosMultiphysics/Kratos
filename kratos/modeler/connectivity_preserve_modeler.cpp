@@ -240,13 +240,6 @@ void ConnectivityPreserveModeler::CopyCommonData(
     rDestinationModelPart.AddNodes(rOriginModelPart.NodesBegin(), rOriginModelPart.NodesEnd());
 
     // Assign the geometries to the new model part
-    // auto new_geometries = GeometriesMapType(rOriginModelPart.Geometries());
-    // rDestinationModelPart.Geometries().swap(new_geometries);
-
-    // ModelPart::GeometriesMapType& r_origin_geometries = rOriginModelPart.Geometries();
-    // ModelPart::GeometriesMapType r_destination_geometries = r_origin_geometries;
-    // rDestinationModelPart.Geometries() = r_destination_geometries;
-
     rDestinationModelPart.Geometries() = rOriginModelPart.Geometries();
 }
 
