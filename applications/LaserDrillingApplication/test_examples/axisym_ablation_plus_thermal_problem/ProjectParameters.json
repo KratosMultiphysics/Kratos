@@ -20,7 +20,7 @@
         "compute_vaporisation" : false,
         "vaporisation_temperature" : 1000.0,
         "echo_level"    : 0,
-        "print_debug_info": true
+        "print_debug_info": false
     },
     "solver_settings"  : {
         "solver_type"                        : "laserdrilling_transient_solver_ablation_plus_thermal",
@@ -43,7 +43,7 @@
         "solution_absolute_tolerance"        : 1e-7,
         "residual_relative_tolerance"        : 1e-5,
         "residual_absolute_tolerance"        : 1e-7,
-        "problem_domain_sub_model_part_list" : ["CNVDFFParts_copper", "CNVDFFParts_resin"],
+        "problem_domain_sub_model_part_list" : ["CNVDFFParts_piece"],
         "transient_parameters" : {
             "dynamic_tau": 0.0,
             "theta"    : 1.0
@@ -68,17 +68,7 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignScalarVariableProcess",
             "Parameters"    : {
-                "model_part_name" : "ThermalModelPart.CNVDFFParts_copper",
-                "variable_name"   : "HEAT_FLUX",
-                "value"           : 0.0,
-                "constrained"     : false
-            }
-        },{
-            "python_module" : "assign_scalar_variable_process",
-            "kratos_module" : "KratosMultiphysics",
-            "process_name"  : "AssignScalarVariableProcess",
-            "Parameters"    : {
-                "model_part_name" : "ThermalModelPart.CNVDFFParts_resin",
+                "model_part_name" : "ThermalModelPart.CNVDFFParts_piece",
                 "variable_name"   : "HEAT_FLUX",
                 "value"           : 0.0,
                 "constrained"     : false
@@ -88,27 +78,7 @@
             "kratos_module" : "KratosMultiphysics.LaserDrillingApplication",
             "process_name"  : "ElementDeactivationProcess",
             "Parameters"    : {
-                "model_part_name" : "ThermalModelPart.CNVDFFParts_copper",
-                "interval"        : [0.0,1e30],
-                "thermal_energy_per_volume_threshold" : 0.9,
-                "thermal_counter_threshold" : 1,
-                "alpha_threshold" : 0.85,
-                "decomposition_law" : "Prout-Tompkins",
-                "A" : 8720000,
-                "Ea": 79600,
-                "R" : 8.3145,
-                "m" : 0.947,
-                "n" : 3.692,
-                "decomposition_law_reference_temperature" : 400.0,
-                "decomposition_law_constant_1" : 1e-7,
-                "decomposition_law_constant_2" : 0.007
-            }
-        },{
-            "python_module" : "element_deactivation_process",
-            "kratos_module" : "KratosMultiphysics.LaserDrillingApplication",
-            "process_name"  : "ElementDeactivationProcess",
-            "Parameters"    : {
-                "model_part_name" : "ThermalModelPart.CNVDFFParts_resin",
+                "model_part_name" : "ThermalModelPart.CNVDFFParts_piece",
                 "interval"        : [0.0,1e30],
                 "thermal_energy_per_volume_threshold" : 0.9,
                 "thermal_counter_threshold" : 1,

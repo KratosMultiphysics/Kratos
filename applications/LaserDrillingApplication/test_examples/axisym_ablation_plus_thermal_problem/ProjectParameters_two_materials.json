@@ -11,7 +11,7 @@
         "focus_Z_offset" : 0.4,
         "Rayleigh_length": 0.409,
         "beam_waist_diameter": 0.0179,
-        "consider_material_refraction": false,
+        "consider_material_refraction": true,
         "adjust_T_field_after_ablation" : true,
         "reference_T_after_laser" : 0.0,
         "mesh_size" : "coarse",
@@ -20,7 +20,7 @@
         "compute_vaporisation" : false,
         "vaporisation_temperature" : 1000.0,
         "echo_level"    : 0,
-        "print_debug_info": true
+        "print_debug_info": false
     },
     "solver_settings"  : {
         "solver_type"                        : "laserdrilling_transient_solver_ablation_plus_thermal",

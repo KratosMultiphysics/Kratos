@@ -1,6 +1,6 @@
 {
     "properties" : [{
-        "model_part_name" : "ThermalModelPart.CNVDFFParts_copper",
+        "model_part_name" : "ThermalModelPart.CNVDFFParts_piece",
         "properties_id"   : 1,
         "Material"        : {
             "compute_optical_penetration_depth_using_refractive_index": false,
@@ -16,27 +16,6 @@
                 "ENTHALPY": 4e5,
                 "OPTICAL_PENETRATION_DEPTH": 5e-4,
                 "ENERGY_PER_VOLUME_THRESHOLD": 10.0,
-                "REFRACTIVE_INDEX": 1.5
-            },
-            "Tables" : null
-        }
-    },{
-        "model_part_name" : "ThermalModelPart.CNVDFFParts_resin",
-        "properties_id"   : 2,
-        "Material"        : {
-            "compute_optical_penetration_depth_using_refractive_index": false,
-            "compute_energy_per_unit_volume_threshold_using_enthalpy_and_ionization": false,
-            "Variables" : {
-                "DENSITY"       : 1.72E-06,
-                "CONDUCTIVITY"  : 3.00E-04,
-                "SPECIFIC_HEAT" : 1500.0,
-                "IONIZATION_ALPHA": 0.95,
-                "PENETRATION_DEPTH": 0.0006,
-                "ABLATION_THRESHOLD": 0.003,
-                "THERMAL_DEPTH": 0.00025,
-                "ENTHALPY": 4e5,
-                "OPTICAL_PENETRATION_DEPTH": 5e-4,
-                "ENERGY_PER_VOLUME_THRESHOLD": 1.0,
                 "REFRACTIVE_INDEX": 1.5
             },
             "Tables" : null
