@@ -1,6 +1,8 @@
 import os
 import shutil
+import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.GeoMechanicsApplication as GeoMechanicsApplication
 
 import test_helper
 
@@ -35,12 +37,22 @@ class KratosGeoMechanicsSettlementWorkflowPyRoute(KratosGeoMechanicsSettlementWo
     This test class is used to check the settlement workflow test, same as test_settlement_workflow.cpp to
     make sure the python workflow yields the same results as the c++ workflow.
     """
+    def setUp(self):
+        super().setUp()
+
+        # The Kratos kernel uses a **static** list of applications that is implicitly shared by all kernel objects.
+        # When a kernel object is destroyed, it will deregister all applications. Since the C++ route has its own
+        # kernel object, the Python route may no longer work when the C++ route test is run first. To work around
+        # this design flaw, explicitly import the GeoMechanicsApplication when a new test is about to be run:
+        self.geo_app = GeoMechanicsApplication.KratosGeoMechanicsApplication()
+        KratosMultiphysics._ImportApplication(self.geo_app, "KratosGeoMechanicsApplication")
+
     def get_test_dir_name(self):
         return "python"
 
 
     def test_d_settlement_workflow(self):
-        test_helper.run_stages(self.test_path, 4)
+        test_helper.run_stages(self.test_path, self.number_of_stages)
 
         times_to_check = [1.0, 2.0, 3.0, 3.2]
 
@@ -83,6 +95,28 @@ class KratosGeoMechanicsSettlementWorkflowPyRoute(KratosGeoMechanicsSettlementWo
             # Although the values are matrices, they are read as lists,
             # meaning we can use assertVectorAlmostEqual
             self.assertVectorAlmostEqual(actual_total_stress, expected_total_stress, 3)
+
+
+class KratosGeoMechanicsSettlementWorkflowCppRoute(KratosGeoMechanicsSettlementWorkflow):
+    """
+    This test class is used to check the settlement workflow test, same as test_settlement_workflow.cpp to
+    make sure the python workflow yields the same results as the c++ workflow.
+    """
+    def setUp(self):
+        super().setUp()
+
+        self.settlement_api = GeoMechanicsApplication.CustomWorkflowFactory.CreateKratosGeoSettlement()
+
+
+    def get_test_dir_name(self):
+        return "cpp"
+
+
+    def test_d_settlement_workflow(self):
+        noop = lambda *args, **kwargs: None
+        for i in range(self.number_of_stages):
+            status = self.settlement_api.RunStage(self.test_path, self.project_parameters_filenames[i], noop, noop, noop, noop)
+            self.assertEqual(status, 0)
 
 
 if __name__ == '__main__':
