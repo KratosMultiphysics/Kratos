@@ -75,6 +75,9 @@ endif()
 # If no test policy enable by default
 option(KRATOS_BUILD_TESTING "KRATOS_BUILD_TESTING defines if the C++ tests are compiled. These increase compilation time, but if not set only python tests can be executed. Default setting is ON" ON)
 
+# If no benchmark policy enable by default
+option(KRATOS_BUILD_BENCHMARK "KRATOS_BUILD_BENCHMARK defines if the C++ benchmarks (Google benchmark) are compiled. These increase compilation time. Default setting is OFF" OFF)
+
 # If no pch policy disable by default
 option(KRATOS_USE_PCH "KRATOS_USE_PCH defines if pch will be used during the compilation. This may will decrease compilation for clean build or if core components are touched. Default setting is OFF" OFF)
 
@@ -288,6 +291,7 @@ SET(INSTALL_PYTHON_FILES ON)        # To be removed when all applications are po
 include(install_function)
 include(KratosDependencies)
 include(KratosGTest)
+include(KratosGBenchmark)
 include(FetchContent)
 
 # Logger configuration
@@ -319,6 +323,28 @@ if(KRATOS_BUILD_TESTING MATCHES ON)
   # restore the current directory's old `COMPILE_OPTIONS`
   set_directory_properties(PROPERTIES COMPILE_OPTIONS "${kratos_root_compile_options}")
 endif(KRATOS_BUILD_TESTING MATCHES ON) 
+
+# Benchmarking
+if(KRATOS_BUILD_BENCHMARK MATCHES ON)
+  # retrieve a copy of the current directory's `COMPILE_OPTIONS`
+  get_directory_property(kratos_root_compile_options COMPILE_OPTIONS)
+
+  # Disable warnings (needed by centos. We should all love centos, it clearly needs some affection)
+  add_compile_options(-w)
+
+  FetchContent_Declare(
+    googlebenchmark
+    URL https://github.com/google/benchmark/archive/v1.9.0.zip
+  )
+  # For Windows: Prevent overriding the parent project's compiler/linker settings
+  set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
+  set(CMAKE_INSTALL_LIBDIR "libs") # In Linux default dir is lib
+  set(CMAKE_INSTALL_BINDIR "libs") # In Win default dir is bin
+  FetchContent_MakeAvailable(googlebenchmark)
+
+  # restore the current directory's old `COMPILE_OPTIONS`
+  set_directory_properties(PROPERTIES COMPILE_OPTIONS "${kratos_root_compile_options}")
+endif(KRATOS_BUILD_BENCHMARK MATCHES ON)
 
 ################### PYBIND11
 
