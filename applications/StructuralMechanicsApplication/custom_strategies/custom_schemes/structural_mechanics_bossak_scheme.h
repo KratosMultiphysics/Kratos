@@ -146,7 +146,7 @@ public:
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
         const double delta_time = r_current_process_info[DELTA_TIME];
 
-        // Predicting angular time derivatives if they are available (nodally for efficiency)
+        // Updating angular time derivatives if they are available (nodally for efficiency)
         if(rModelPart.HasNodalSolutionStepVariable(ROTATION) && rModelPart.Nodes().size() > 0)
         {
             const auto it_node_begin = rModelPart.Nodes().begin();
@@ -226,15 +226,61 @@ public:
         TSystemVectorType &Dx,
         TSystemVectorType &b) override
     {
+        KRATOS_TRY
+
         // Call the base InitializeSolutionStep method
         BossakBaseType::InitializeSolutionStep(rModelPart, A, Dx, b);
 
-        // Update the NODAL_AREA (note that this strictly required only in the updated Lagrangian case)
+        // The current process info
         const auto& r_current_process_info = rModelPart.GetProcessInfo();
+
+        // Updating angular time derivatives if they are available (nodally for efficiency)
+        if(rModelPart.HasNodalSolutionStepVariable(ROTATION))
+        {
+            const auto it_node_begin = rModelPart.Nodes().begin();
+
+            // Getting dimension
+            const std::size_t dimension = r_current_process_info.Has(DOMAIN_SIZE) ? r_current_process_info.GetValue(DOMAIN_SIZE) : 3;
+
+            // Getting position
+            const int angular_vel_pos = it_node_begin->HasDofFor(ANGULAR_VELOCITY_X) ? static_cast<int>(it_node_begin->GetDofPosition(ANGULAR_VELOCITY_X)) : -1;
+            const int angular_acc_pos = it_node_begin->HasDofFor(ANGULAR_ACCELERATION_X) ? static_cast<int>(it_node_begin->GetDofPosition(ANGULAR_ACCELERATION_X)) : -1;
+
+            std::array<bool, 3> fixed = {false, false, false};
+            const std::array<const Variable<ComponentType>*, 3> rot_components = {&ROTATION_X, &ROTATION_Y, &ROTATION_Z};
+            const std::array<const Variable<ComponentType>*, 3> ang_vel_components = {&ANGULAR_VELOCITY_X, &ANGULAR_VELOCITY_Y, &ANGULAR_VELOCITY_Z};
+            const std::array<const Variable<ComponentType>*, 3> ang_acc_components = {&ANGULAR_ACCELERATION_X, &ANGULAR_ACCELERATION_Y, &ANGULAR_ACCELERATION_Z};
+
+            block_for_each(rModelPart.Nodes(), fixed, [&](Node& rNode, std::array<bool,3>& rFixedTLS){
+                for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
+                    rFixedTLS[i_dim] = false;
+                }
+
+                if (angular_acc_pos > -1) {
+                    for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim){
+                        if(rNode.GetDof(*ang_acc_components[i_dim], angular_acc_pos + i_dim).IsFixed()){
+                            rNode.Fix(*rot_components[i_dim]);
+                            rFixedTLS[i_dim] = true;
+                        }
+                    }
+                }
+                if (angular_vel_pos > -1) {
+                    for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim){
+                        if(rNode.GetDof(*ang_vel_components[i_dim], angular_vel_pos + i_dim).IsFixed() && !rFixedTLS[i_dim]){
+                            rNode.Fix(*rot_components[i_dim]);
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update the NODAL_AREA (note that this strictly required only in the updated Lagrangian case)
         const bool oss_switch = r_current_process_info.Has(OSS_SWITCH) ? r_current_process_info[OSS_SWITCH] : false;
         if (oss_switch && mUpdateNodalArea) {
             CalculateNodalAreaProcess<false>(rModelPart).Execute();
         }
+
+        KRATOS_CATCH("")
     }
 
     void FinalizeNonLinIteration(
