@@ -68,6 +68,9 @@ public:
     /// Pointer type for the BaseType
     using BaseTypePointer = typename BaseType::Pointer;
 
+    /// Component type as 'double'
+    using ComponentType = double;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -125,6 +128,63 @@ public:
                 }
             });
         }
+    }
+
+    void Predict(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
+    {
+        KRATOS_TRY
+
+        // Call the base Predict method
+        BossakBaseType::Predict(rModelPart, rDofSet, rA, rDx, rb);
+
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const double delta_time = r_current_process_info[DELTA_TIME];
+
+        // Predicting angular time derivatives if they are available (nodally for efficiency)
+        if(rModelPart.HasNodalSolutionStepVariable(ROTATION) && rModelPart.Nodes().size() > 0)
+        {
+            const auto it_node_begin = rModelPart.Nodes().begin();
+
+            // Getting position
+            KRATOS_ERROR_IF_NOT(it_node_begin->HasDofFor(ROTATION_X)) << "StructuralMechanicsBossakScheme:: ROTATION is not added" << std::endl;
+            const int rot_pos = it_node_begin->GetDofPosition(ROTATION_X);
+
+            // Getting dimension
+            const std::size_t dimension = r_current_process_info.Has(DOMAIN_SIZE) ? r_current_process_info.GetValue(DOMAIN_SIZE) : 3;
+
+            //Auxiliar variable
+            const std::array<const Variable<ComponentType>*, 3> rot_components = {&ROTATION_X, &ROTATION_Y, &ROTATION_Z};
+
+            block_for_each(rModelPart.Nodes(), array_1d<double, 3>(), [&](Node& rNode, array_1d<double, 3>& rDeltaRotationTLS){
+                //Predicting
+                const array_1d<double, 3>& r_previous_rotation = rNode.FastGetSolutionStepValue(ROTATION, 1);
+                const array_1d<double, 3>& r_previous_angular_velocity = rNode.FastGetSolutionStepValue(ANGULAR_VELOCITY, 1);
+                const array_1d<double, 3>& r_previous_angular_acceleration = rNode.FastGetSolutionStepValue(ANGULAR_ACCELERATION, 1);
+                array_1d<double, 3>& r_current_rotation = rNode.FastGetSolutionStepValue(ROTATION);
+                array_1d<double, 3>& r_current_angular_velocity = rNode.FastGetSolutionStepValue(ANGULAR_VELOCITY);
+                array_1d<double, 3>& r_current_angular_acceleration = rNode.FastGetSolutionStepValue(ANGULAR_ACCELERATION);
+
+                for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
+                    if (!rNode.GetDof(*rot_components[i_dim], rot_pos + i_dim).IsFixed()) {
+                        r_current_rotation[i_dim] = r_previous_rotation[i_dim] + delta_time * r_previous_angular_velocity[i_dim] + 0.5 * std::pow(delta_time, 2) * r_previous_angular_acceleration[i_dim];
+                    }
+                }
+
+                // Updating
+                noalias(rDeltaRotationTLS) = r_current_rotation - r_previous_rotation;
+                UpdateAngularVelocity(r_current_angular_velocity, rDeltaRotationTLS, r_previous_angular_velocity, r_previous_angular_acceleration);
+                UpdateAngularAcceleration(r_current_angular_acceleration, rDeltaRotationTLS, r_previous_angular_velocity, r_previous_angular_acceleration);
+
+            });
+        }
+
+        KRATOS_CATCH("")
     }
 
     void Update(
