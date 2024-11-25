@@ -114,12 +114,13 @@ class KratosGeoMechanicsSettlementWorkflowCppRoute(KratosGeoMechanicsSettlementW
 
     def test_d_settlement_workflow(self):
         noop = lambda *args, **kwargs: None
+        dont_cancel = lambda: False
 
         times_to_check = [1.0, 2.0, 3.0, 3.2]
         node_ids = [1, 102, 1085, 1442]
         reader = test_helper.GiDOutputFileReader()
         for i in range(self.number_of_stages):
-            status = self.settlement_api.RunStage(self.test_path, self.project_parameters_filenames[i], noop, noop, noop, noop)
+            status = self.settlement_api.RunStage(self.test_path, self.project_parameters_filenames[i], noop, noop, noop, dont_cancel)
             self.assertEqual(status, 0)
 
             result_file_name = os.path.join(self.test_path, f'test_model_stage{i+1}.post.res')
