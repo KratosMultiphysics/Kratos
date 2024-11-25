@@ -1,4 +1,5 @@
 # Importing Kratos
+import re
 from weakref import ref
 import KratosMultiphysics
 import KratosMultiphysics.IgaApplication
@@ -82,10 +83,15 @@ class StructuralMechanicsAnalysis(AnalysisStage):
 
         # create property for shell elements
         load_properties = self.model.GetModelPart("IgaModelPart").GetProperties()[2]
+        output_properties = self.model.GetModelPart("IgaModelPart").GetProperties()[3]
 
         sub_model_part_bc = []
         sub_model_part_bc_param = []
         sub_model_part_bc_type = []
+
+
+        output_id = 0
+        sub_model_part_output = ""
         
         for item in PhysicsParameters["element_condition_list"]:
             if item["geometry_type"].GetString() == "GeometrySurface" and item["parameters"]["type"].GetString() == "element":
@@ -101,15 +107,29 @@ class StructuralMechanicsAnalysis(AnalysisStage):
                 local_parameters.append(item["parameters"]["local_parameters"][1].GetDouble())
                 sub_model_part_bc_type.append(item["geometry_type"].GetString())
                 sub_model_part_bc_param.append(local_parameters)
+            if item["geometry_type"].GetString() == "SurfacePoint" and item["parameters"]["type"].GetString() == "condition":
+                output_id = item["brep_ids"][0].GetInt()
+                sub_model_part_output = item["iga_model_part"].GetString()
 
         surface = self.model.GetModelPart("IgaModelPart").GetGeometry(surface_id) 
         nurbs_surface = surface.GetGeometryPart(KratosMultiphysics.Geometry.BACKGROUND_GEOMETRY_INDEX)
         print('Nurbs_surface: \n',nurbs_surface)
 
+        output_point = self.model.GetModelPart("IgaModelPart").GetGeometry(output_id) 
+        # nurbs_surface = surface.GetGeometryPart(KratosMultiphysics.Geometry.BACKGROUND_GEOMETRY_INDEX)
+        print('output_point: \n',output_point)
+
+
         ########################### Subdivision stuff ################################
     	#TO DO
         rows = 3
         cols = 3
+
+        # Formulate accessing the indice of the control point that is located at the mid
+        # of the control points of the face
+        mid_control_point = (rows + 1) * (cols + 1) + (rows + 1) * (cols + 1) // 2
+
+
         grid_size = (rows, cols)
         nGp = 2
         weight = 0.25
@@ -117,7 +137,7 @@ class StructuralMechanicsAnalysis(AnalysisStage):
             [0, 1, 4, 3],       # Face 1
             [1, 2, 5, 4],       # Face 2
             [3, 4, 7, 6],       # Face 3
-            [4, 5, 8, 7],       # Face 4
+            [4, 5, 8, 7]        # Face 4
         ]
 
         control_points = []
@@ -130,19 +150,32 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         # print(len(nurbs_surface))
         # print(nurbs_surface)
 
-        refined_control_points, refined_faces = catmull_clark_subdivision(control_points, faces)
-
-        refined_rows = 5
-        refined_cols = 5
-        refined_grid_size = (refined_rows, refined_cols)
-
+        # Initialize the refined ontrol points and faces with the initial geometry
+        refined_control_points = control_points
+        refined_faces = faces
+        refined_rows = rows
+        refined_cols = cols
+        refined_grid_size = grid_size
+        
+        # Catmull-Clark subdivision
+        numberOfSubdivision = 0    
+        
+        for i in range(numberOfSubdivision):
+            refined_control_points, refined_faces = catmull_clark_subdivision(refined_control_points, refined_faces)
+            refined_rows = refined_rows + 2**(i+1)
+            refined_cols = refined_cols + 2**(i+1)
+            refined_grid_size = (refined_rows, refined_cols)
+   
         #order control points in faces
         refined_faces = order_control_points_in_faces(refined_control_points, refined_faces)
 
         print('Refined Control Points:\n',refined_control_points)
         print('\n')
         print('Refined Faces:\n',refined_faces)
+        print(len(refined_control_points))
 
+
+    
         # Recreate nodes in model part to ensure correct assignment of dofs
         node_id = (self.model.GetModelPart("IgaModelPart").Nodes)[len(self.model.GetModelPart("IgaModelPart").Nodes)].Id
 
@@ -154,11 +187,14 @@ class StructuralMechanicsAnalysis(AnalysisStage):
 
         KratosMultiphysics.CreateQuadraturePointsUtility.SetInternals(surface, nodes)
 
-        
         ######################
         self.model.GetModelPart("IgaModelPart").CreateSubModelPart(sub_model_part)
         self.model.GetModelPart("IgaModelPart").CreateSubModelPart(sub_model_part_cond)
+        self.model.GetModelPart("IgaModelPart").CreateSubModelPart(sub_model_part_output)
 
+
+        ### Create point on geometry
+        print(self.model.GetModelPart("IgaModelPart"))
 
 
         # self._ModelersSetupModelPart() #3 skip iga_modeler
@@ -182,8 +218,6 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         print('\n')
         print('Element Control Points:\n',element_control_points)
         print('\n')
-
-       
         
         element_id = 1
         element_id_2 = 1
@@ -327,6 +361,111 @@ class StructuralMechanicsAnalysis(AnalysisStage):
 
                 element_id_2 += 1
             element_id += 1
+
+        #####################################################################################
+        ### create quadrature point for the output
+        _element_control_point = element_control_points[0]
+        element_control_point = KratosMultiphysics.Vector(len(_element_control_point))
+
+        for j in range(len(_element_control_point)):
+            element_control_point[j] = _element_control_point[j]
+
+        print("Element control point for the selected element: ", element_control_point)
+        print('\n')
+        ## check only one element!
+        integration_point = [1.0,1.0,0.0,0.25]
+        print("Integration points: ", integration_point)
+        
+        index_print = 1
+        # compute shape functions Subdivision
+        N = []
+        dN_dxi = []
+        dN_deta = []
+        d2N_dxi2 = []
+        d2N_deta2 = []
+        d2N_dxi_deta = []
+        d2N_deta_dxi = []
+        
+
+        _N, _dN_dxi, _dN_deta, _d2N_dxi2, _d2N_deta2, _d2N_dxi_deta, _d2N_deta_dxi = evaluate_shape_functions_and_derivatives(integration_point[0], integration_point[1], len(element_control_points[i]))
+        print(f"Shape functions N for Point {index_print}: ", _N) #2D
+        print('\n')
+        print(f"Shape function derivatives w.r.t to xi for Point {index_print}: ", _dN_dxi) # Now 2D
+        print('\n')
+        print(f"Shape function derivatives w.r.t to eta for Point {index_print}: ", _dN_deta) # Now 2D
+        print('\n')
+        index_print+=1
+        N.append(_N)
+        dN_dxi.append(_dN_dxi)
+        dN_deta.append(_dN_deta)
+        d2N_dxi2.append(_d2N_dxi2)
+        d2N_deta2.append(_d2N_deta2)
+        d2N_dxi_deta.append(_d2N_dxi_deta) #_d2N_dxi_deta = _d2N_deta_dxi
+        d2N_deta_dxi.append(_d2N_deta_dxi)
+        #CreateQuadraturePoint utility
+        
+        print('N\n: ', N)
+        print('\n')
+        print('dN_dxi\n: ', dN_dxi)
+        print('\n')
+        print('dN_deta\n: ', dN_deta)
+        print('\n')
+        print('d2N_dxi_deta\n: ', d2N_dxi_deta)
+        print('\n')
+        print('d2N_deta_dxi\n: ', d2N_deta_dxi)
+        print('\n')
+        
+
+        # create quadrature_point_geometries
+        index = 0
+        print(index)
+        # Convert shape functions and their derivatives to Kratos Matrix format
+        N1 = KratosMultiphysics.Matrix(1,len(element_control_points[0])) # Shape functions N for an element (N)
+        N2 = KratosMultiphysics.Matrix(1,len(element_control_points[0])) # Shape function derivatives w.r.t to xi for an element (dN_dxi)
+        N3 = KratosMultiphysics.Matrix(1,len(element_control_points[0])) # Shape function derivatives w.r.t to eta for an element (dN_deta)
+
+        N4 = KratosMultiphysics.Matrix(1,len(element_control_points[0])) # Shape function derivatives w.r.t to xi2 for an element (d2N_dxi2)
+        N5 = KratosMultiphysics.Matrix(1,len(element_control_points[0])) # Shape function derivatives w.r.t to xieta for an element (d2N_dxieta)
+        N6 = KratosMultiphysics.Matrix(1,len(element_control_points[0])) # Shape function derivatives w.r.t to eta2 for an element (d2N_deta2)
+
+        print(i)
+        print(element_control_points[0])#
+        for k in range(len(element_control_points[0])):
+            N1[0,k] = N[index][k]
+            N2[0,k] = dN_dxi[index][k]
+            N3[0,k] = dN_deta[index][k]
+            N4[0,k] = d2N_dxi2[index][k]
+            N5[0,k] = d2N_dxi_deta[index][k]
+            N6[0,k] = d2N_deta2[index][k]
+
+        print('N1\n: ', N1)
+        print('\n')
+        print('N2\n: ', N2)
+        print('\n')
+        print('N3\n: ', N3)
+        print(integration_point)
+        print(element_control_point)   
+            
+
+        quadrature_point_geometry_background = KratosMultiphysics.GeometriesVector()
+        quadrature_point_geometry_background = KratosMultiphysics.CreateQuadraturePointsUtility.CreateQuadraturePoint(surface,
+                                                                                                            3,
+                                                                                                            2,
+                                                                                                            integration_point,
+                                                                                                            #index,
+                                                                                                            element_control_point, 
+                                                                                                            N1, 
+                                                                                                            N2, 
+                                                                                                            N3, N4, N5, N6) #control_points, N, dN_dxi, dN_deta
+        print(quadrature_point_geometry_background)
+        
+        
+        quadrature_point_geometry = KratosMultiphysics.CreateQuadraturePointsUtility.CreateQuadraturePointVertex(output_point, quadrature_point_geometry_background)
+
+        self.model.GetModelPart("IgaModelPart").GetSubModelPart(sub_model_part_output).CreateNewCondition('OutputCondition', element_id_2+1, quadrature_point_geometry, output_properties)
+
+        #####################################################################################
+
         
 
         # Strong boundary conditions

@@ -28,6 +28,7 @@
 #include "includes/node.h"
 #include "geometries/geometry.h"
 #include "geometries/nurbs_surface_geometry.h"
+#include "geometries/quadrature_point_geometry.h"
 
 //Other utilities
 #include "utilities/function_parser_utility.h"
@@ -82,6 +83,7 @@ typedef Node NodeType;
 typedef PointerVector<NodeType> NodeContainerType;
 typedef Geometry<NodeType> GeometryType;
 typedef typename GeometryType::PointsArrayType PointsArrayType;
+typedef typename GeometryType::GeometriesArrayType GeometriesArrayType;
 
 typedef GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::IntegrationPointsContainerType IntegrationPointsContainerType;
 typedef GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::ShapeFunctionsValuesContainerType ShapeFunctionsValuesContainerType;
@@ -969,6 +971,20 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
 
             // return(CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePoint(WorkingSpaceDimension, LocalSpaceDimension, data_container, nonzero_control_points)); 
             return(CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePoint(WorkingSpaceDimension, LocalSpaceDimension, data_container, nonzero_control_points, &Geometry)); //nonzero_control_points
+        })
+        .def("CreateQuadraturePointVertex", [](
+        GeometryType& Geometry
+        ,typename GeometryType::Pointer& BackgroundQuadraturePointGeometries
+        ) 
+        {
+            GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container =  BackgroundQuadraturePointGeometries->GetGeometryData().GetGeometryShapeFunctionContainer();
+            return(CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePoint(3, 2,data_container, std::move(BackgroundQuadraturePointGeometries->Points()), &Geometry)); //nonzero_control_points
+
+            // return(Kratos::make_shared<
+            // QuadraturePointGeometry<NodeType, 3, 2, 0>>(
+            //     std::move(BackgroundQuadraturePointGeometries->Points()),
+            //     BackgroundQuadraturePointGeometries->GetGeometryData().GetGeometryShapeFunctionContainer(),
+            //     &Geometry)); 
         })
         .def("SetInternals", [](
         GeometryType& Geometry,
