@@ -49,7 +49,7 @@ from test_dirichlet_u import KratosGeoMechanicsDirichletUTests
 from test_normal_load_on_hexa_element import KratosGeoMechanicsNormalLoadHexaTests
 from test_pressure_line_element import KratosGeoMechanicsTransientPressureLineElementTests
 from test_pressure_point_flux import KratosGeoMechanicsTransientPressurePointFluxTests
-from settlement_workflow_py_route import KratosGeoMechanicsSettlementWorkflowPyRoute
+from settlement_workflow import KratosGeoMechanicsSettlementWorkflowPyRoute
 from test_compressibility import KratosGeoMechanicsCompressibilityTests
 from fixed_spatial_variation import KratosGeoMechanicsFixedSpatialVariationTests
 from test_integration_node_extrapolation import KratosGeoMechanicsExtrapolationTests
@@ -123,6 +123,7 @@ def AssembleTestSuites():
                         KratosGeoMechanicsTimeIntegrationTests,
                         KratosGeoMechanicsTransientPressureLineElementTests,
                         KratosGeoMechanicsTransientPressurePointFluxTests,
+                        KratosGeoMechanicsSettlementWorkflowCppRoute,
                         KratosGeoMechanicsSettlementWorkflowPyRoute
                         ]
     night_test_cases.extend(small_test_cases)
