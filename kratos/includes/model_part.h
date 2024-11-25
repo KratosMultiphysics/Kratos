@@ -1531,18 +1531,13 @@ public:
         for(TIteratorType it = GeometryBegin; it!=GeometriesEnd; it++) {
             auto it_found = p_root_model_part->Geometries().find(it->Id());
             if(it_found == p_root_model_part->GeometriesEnd()) { // Geometry does not exist in the top model part
-                aux_root.push_back(*(it.base()));
-                aux.push_back(*(it.base()));
+                aux_root.push_back( it.operator->() );
+                aux.push_back( it.operator->() );
             } else { // If it does exist verify it is the same geometry
-                if (GeometryType::HasSameGeometryType(*it, *it_found)) { // Check the geometry type and connectivities
-                    for (IndexType i_pt = 0; i_pt < it->PointsNumber(); ++i_pt) {
-                        KRATOS_ERROR_IF((*it)[i_pt].Id() != (*it_found)[i_pt].Id()) << "Attempting to add a new geometry with Id: " << it->Id() << ". A same type geometry with same Id but different connectivities already exists." << std::endl;
-                    }
-                    aux.push_back(*(it_found.base())); // If the Id, type and connectivities are the same add the existing geometry
-                } else if(&(*it_found) != &(*it)) { // Check if the pointee coincides
-                    KRATOS_ERROR << "Attempting to add a new geometry with Id: " << it_found->Id() << ". A different geometry with the same Id already exists." << std::endl;
+                if(&(*it_found) != &(*it)) { // Check if the pointee coincides
+                    KRATOS_ERROR << "Attempting to add a new geometry with Id :" << it_found->Id() << ", unfortunately a (different) element with the same Id already exists" << std::endl;
                 } else {
-                    aux.push_back(*(it.base()));
+                    aux.push_back( it.operator->() );
                 }
             }
         }
