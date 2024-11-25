@@ -16,7 +16,6 @@
 // External includes
 
 // Project includes
-#include "containers/geometry_container.h"
 #include "modeler/connectivity_preserve_modeler.h"
 #include "utilities/variable_utils.h"
 
