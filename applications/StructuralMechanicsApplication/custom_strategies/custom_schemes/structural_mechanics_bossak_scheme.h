@@ -130,6 +130,15 @@ public:
         }
     }
 
+    /**
+     * @brief Apply the predictor.
+     * @details @f[ x_{k+1} = x_{k} + \dot x_{k} \Delta t + \frac{1}{2} \ddot x_{k} \Delta t^2 @f]
+     * @param rModelPart @ref ModelPart to update.
+     * @param rDofSet Set of all primary variables.
+     * @param rA Left hand side matrix.
+     * @param rDx Primary variable updates.
+     * @param rb Right hand side vector.
+     */
     void Predict(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
@@ -147,8 +156,7 @@ public:
         const double delta_time = r_current_process_info[DELTA_TIME];
 
         // Updating angular time derivatives if they are available (nodally for efficiency)
-        if(rModelPart.HasNodalSolutionStepVariable(ROTATION))
-        {
+        if(rModelPart.HasNodalSolutionStepVariable(ROTATION)){
             const auto it_node_begin = rModelPart.Nodes().begin();
 
             // Getting position
@@ -221,6 +229,14 @@ public:
         KRATOS_CATCH("")
     }
 
+    /** @brief Update state variables and its time derivatives.
+     *  @details @f[ x_{n+1}^{k+1} = x_{n+1}^k+ \Delta x @f]
+     *  @param rModelPart @ref ModelPart to update.
+     *  @param rDofSet Set of all primary variables.
+     *  @param rA Left hand side matrix.
+     *  @param rDx Primary variable updates.
+     *  @param rb Right hand side vector.
+     */
     void Update(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
@@ -235,8 +251,7 @@ public:
         BossakBaseType::Update(rModelPart, rDofSet, rA, rDx, rb);
 
         // Updating angular time derivatives if they are available (nodally for efficiency)
-        if(rModelPart.HasNodalSolutionStepVariable(ROTATION))
-        {
+        if(rModelPart.HasNodalSolutionStepVariable(ROTATION)){
             block_for_each(rModelPart.Nodes(), array_1d<double,3>(), [&](Node& rNode, array_1d<double,3>& rDeltaRotationTLS){
                     noalias(rDeltaRotationTLS) = rNode.FastGetSolutionStepValue(ROTATION) - rNode.FastGetSolutionStepValue(ROTATION, 1);
 
@@ -269,8 +284,7 @@ public:
         const auto& r_current_process_info = rModelPart.GetProcessInfo();
 
         // Updating angular time derivatives if they are available (nodally for efficiency)
-        if(rModelPart.HasNodalSolutionStepVariable(ROTATION))
-        {
+        if(rModelPart.HasNodalSolutionStepVariable(ROTATION)){
             const auto it_node_begin = rModelPart.Nodes().begin();
 
             // Getting dimension
