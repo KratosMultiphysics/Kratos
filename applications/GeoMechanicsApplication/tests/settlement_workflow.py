@@ -34,10 +34,39 @@ class KratosGeoMechanicsSettlementWorkflow(KratosUnittest.TestCase):
         for filename in input_filenames:
             shutil.copy(os.path.join(self.test_root, filename), os.path.join(self.test_path, filename))
 
-        self.expected_displacements = [{"time": 1.0},
-                                       {"time": 2.0},
-                                       {"time": 3.0},
-                                       {"time": 3.2}]
+        # The expected values have been taken from a validated test run
+        self.expected_displacements = [{"output_filename": "test_model_stage1.post.res",
+                                        "time": 1.0,
+                                        "expected_values": [
+                                            {"node": 1, "DISPLACEMENT": [0.0, -0.123882, 0.0]},
+                                            {"node": 102, "DISPLACEMENT": [8.49409e-06, -0.119848, 0.0]},
+                                            {"node": 1085, "DISPLACEMENT": [-7.25396e-09, -0.101875, 0.0]},
+                                            {"node": 1442, "DISPLACEMENT": [0.0, 0.0, 0.0]}
+                                        ]},
+                                       {"output_filename": "test_model_stage2.post.res",
+                                        "time": 2.0,
+                                        "expected_values": [
+                                            {"node": 1, "DISPLACEMENT": [0.0, -0.000162389, 0.0]},
+                                            {"node": 102, "DISPLACEMENT": [8.50645e-05, -0.000467135, 0.0]},
+                                            {"node": 1085, "DISPLACEMENT": [-0.00012122, -0.00186572, 0.0]},
+                                            {"node": 1442, "DISPLACEMENT": [0.0, 0.0, 0.0]}
+                                        ]},
+                                       {"output_filename": "test_model_stage3.post.res",
+                                        "time": 3.0,
+                                        "expected_values": [
+                                            {"node": 1, "DISPLACEMENT": [0.0, -0.000526393, 0.0]},
+                                            {"node": 102, "DISPLACEMENT": [-4.47571e-05, -0.000954867, 0.0]},
+                                            {"node": 1085, "DISPLACEMENT": [-0.000330983, -0.00372074, 0.0]},
+                                            {"node": 1442, "DISPLACEMENT": [0.0, 0.0, 0.0]}
+                                        ]},
+                                       {"output_filename": "test_model_stage4.post.res",
+                                        "time": 3.2,
+                                        "expected_values": [
+                                            {"node": 1, "DISPLACEMENT": [0.0, 0.0200705, 0.0]},
+                                            {"node": 102, "DISPLACEMENT": [-0.000423281, 0.023303, 0.0]},
+                                            {"node": 1085, "DISPLACEMENT": [0.000927345, 0.00102933, 0.0]},
+                                            {"node": 1442, "DISPLACEMENT": [0.0, 0.0, 0.0]}
+                                        ]}]
 
     def get_test_dir_name(self):
         raise RuntimeError("This base class does not provide a generic test directory name")
@@ -55,6 +84,21 @@ class KratosGeoMechanicsSettlementWorkflowPyRoute(KratosGeoMechanicsSettlementWo
     def test_d_settlement_workflow(self):
         test_helper.run_stages(self.test_path, self.number_of_stages)
 
+        reader = test_helper.GiDOutputFileReader()
+        for item in self.expected_displacements:
+            time = item["time"]
+            node_ids = [sub_item["node"] for sub_item in item["expected_values"]]
+            expected_displacements = [sub_item["DISPLACEMENT"] for sub_item in item["expected_values"]]
+
+            actual_data = reader.read_output_from(os.path.join(self.test_path, item["output_filename"]))
+            actual_displacements = reader.nodal_values_at_time("DISPLACEMENT", time, actual_data, node_ids)
+
+            self.assertEqual(len(actual_displacements), len(expected_displacements))
+            for actual_displacement, expected_displacement in zip(actual_displacements, expected_displacements):
+                self.assertVectorAlmostEqual(actual_displacement, expected_displacement, 3)
+
+
+
         times_to_check = [item["time"] for item in self.expected_displacements]
 
         for i in range(self.number_of_stages):
@@ -66,17 +110,6 @@ class KratosGeoMechanicsSettlementWorkflowPyRoute(KratosGeoMechanicsSettlementWo
             # These node ids are at the top corner, at the bottom of the excavation,
             # in the middle of the model and at the bottom.
             node_ids = [1, 102, 1085, 1442]
-
-            actual_data = reader.read_output_from(result_file_name)
-            actual_nodal_values = reader.nodal_values_at_time("DISPLACEMENT", times_to_check[i], actual_data, node_ids)
-
-            expected_data = reader.read_output_from(expected_result_file_name)
-            expected_nodal_values = reader.nodal_values_at_time(
-                "DISPLACEMENT", times_to_check[i], expected_data, node_ids)
-
-            self.assertEqual(len(actual_nodal_values), len(expected_nodal_values))
-            for actual_displacement, expected_displacement in zip(actual_nodal_values, expected_nodal_values):
-                self.assertVectorAlmostEqual(actual_displacement, expected_displacement, 3)
 
             if i > 2:
                 self.check_stress_values(expected_result_file_name, times_to_check[i], node_ids, reader,
