@@ -184,6 +184,7 @@ class KratosGeoMechanicsSettlementWorkflowCppRoute(KratosGeoMechanicsSettlementW
             self.assertEqual(status, 0)
 
         self.check_displacements()
+        self.check_nodal_stresses()
 
         # Don't rely on the garbage collector to clean up the API object. Make sure it's destructor has run before
         # executing the test case's `tearDown` method (which will reload the relevant Kratos applications)
