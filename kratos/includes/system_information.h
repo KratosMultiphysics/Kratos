@@ -31,7 +31,8 @@ namespace Kratos
 /**
  * @class SystemInformation
  * @ingroup KratosCore
- * @brief This class provides
+ * @brief This class provides system information
+ * @details The implementations come from CppBenchmark, with MIT license, see https://github.com/chronoxor/CppBenchmark/
  * @author Vicente Mataix Ferrandiz
  */
 class KRATOS_API(KRATOS_CORE) SystemInformation 
