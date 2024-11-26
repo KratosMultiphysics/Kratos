@@ -36,9 +36,12 @@ class KratosGeoMechanicsSettlementWorkflow(KratosUnittest.TestCase):
 
         # The expected values have been taken from a validated test run
         self.define_expected_displacements()
+        self.define_expected_stresses()
 
 
     def define_expected_displacements(self):
+        # The selected nodes are at the top corner, at the bottom of the excavation, in the middle of the model,
+        # and at the bottom.
         self.expected_displacements = [{"output_filename": "test_model_stage1.post.res",
                                         "time": 1.0,
                                         "expected_values": [
@@ -72,6 +75,25 @@ class KratosGeoMechanicsSettlementWorkflow(KratosUnittest.TestCase):
                                             {"node": 1442, "DISPLACEMENT": [0.0, 0.0, 0.0]}
                                         ]}]
 
+
+    def define_expected_stresses(self):
+        self.expected_stresses = [{"output_filename": "test_model_stage4.post.res",
+                                   "time": 3.2,
+                                   "expected_values": [
+                                       {"node": 1,
+                                        "TOTAL_STRESS_TENSOR": [-7.69856, -0.127088, -1.56513, 0.127088, 0.0, 0.0],
+                                        "CAUCHY_STRESS_TENSOR": [-7.69856, -0.127088, -1.56513, 0.127088, 0.0, 0.0]},
+                                       {"node": 102,
+                                        "TOTAL_STRESS_TENSOR": [-53.8354, -21.2794, -38.6748, 0.755572, 0.0, 0.0],
+                                        "CAUCHY_STRESS_TENSOR": [-34.2154, -1.65944, -19.0548, 0.755572, 0.0, 0.0]},
+                                       {"node": 1085,
+                                        "TOTAL_STRESS_TENSOR": [-99.4165, -142.12, -102.597, -1.27531, 0.0, 0.0],
+                                        "CAUCHY_STRESS_TENSOR": [-47.0336, -89.7376, -50.2142, -1.27531, 0.0, 0.0]},
+                                       {"node": 1442,
+                                        "TOTAL_STRESS_TENSOR": [-245.877, -319.876, -245.89, 1.67524, 0.0, 0.0],
+                                        "CAUCHY_STRESS_TENSOR": [-108.537, -182.536, -108.55, 1.67524, 0.0, 0.0]}]
+                                 }]
+
     def get_test_dir_name(self):
         raise RuntimeError("This base class does not provide a generic test directory name")
 
@@ -92,6 +114,28 @@ class KratosGeoMechanicsSettlementWorkflow(KratosUnittest.TestCase):
                 self.assertVectorAlmostEqual(actual_displacement, expected_displacement, 3)
 
 
+    def _check_nodal_stresses_with_name(self, output_data, stress_tensor_name, expected_stress_item):
+        time = expected_stress_item["time"]
+        node_ids = [sub_item["node"] for sub_item in expected_stress_item["expected_values"]]
+        expected_nodal_stresses = [sub_item[stress_tensor_name] for sub_item in expected_stress_item["expected_values"]]
+
+        actual_nodal_stresses = test_helper.GiDOutputFileReader.nodal_values_at_time(stress_tensor_name, time, output_data, node_ids)
+
+        self.assertEqual(len(actual_nodal_stresses), len(expected_nodal_stresses))
+        for actual_total_stress, expected_total_stress in zip(actual_nodal_stresses, expected_nodal_stresses):
+            # Although the values are matrices, they are read as lists, meaning we can use assertVectorAlmostEqual
+            self.assertVectorAlmostEqual(actual_total_stress, expected_total_stress, 3)
+
+
+    def check_nodal_stresses(self):
+        reader = test_helper.GiDOutputFileReader()
+
+        for item in self.expected_stresses:
+            actual_data = reader.read_output_from(os.path.join(self.test_path, item["output_filename"]))
+            self._check_nodal_stresses_with_name(actual_data, "TOTAL_STRESS_TENSOR", item)
+            self._check_nodal_stresses_with_name(actual_data, "CAUCHY_STRESS_TENSOR", item)
+
+
 class KratosGeoMechanicsSettlementWorkflowPyRoute(KratosGeoMechanicsSettlementWorkflow):
     """
     This test class is used to check the settlement workflow test, same as test_settlement_workflow.cpp to
@@ -105,37 +149,8 @@ class KratosGeoMechanicsSettlementWorkflowPyRoute(KratosGeoMechanicsSettlementWo
         test_helper.run_stages(self.test_path, self.number_of_stages)
 
         self.check_displacements()
+        self.check_nodal_stresses()
 
-        times_to_check = [item["time"] for item in self.expected_displacements]
-
-        for i in range(self.number_of_stages):
-            result_file_name = os.path.join(self.test_path, f'test_model_stage{i+1}.post.res')
-            expected_result_file_name = os.path.join(self.test_root, f'test_model_stage{i+1}.post.orig.res')
-
-            reader = test_helper.GiDOutputFileReader()
-
-            # These node ids are at the top corner, at the bottom of the excavation,
-            # in the middle of the model and at the bottom.
-            node_ids = [1, 102, 1085, 1442]
-
-            if i > 2:
-                self.check_stress_values(expected_result_file_name, times_to_check[i], node_ids, reader,
-                                         result_file_name, "TOTAL_STRESS_TENSOR")
-                self.check_stress_values(expected_result_file_name, times_to_check[i], node_ids, reader,
-                                         result_file_name, "CAUCHY_STRESS_TENSOR")
-
-    def check_stress_values(self, expected_result_file_name, time_to_check, node_ids, reader, result_file_name,
-                            variable_name):
-        actual_data = reader.read_output_from(result_file_name)
-        actual_nodal_stress_values = reader.nodal_values_at_time(variable_name, time_to_check, actual_data, node_ids)
-        expected_data = reader.read_output_from(expected_result_file_name)
-        expected_nodal_stress_values = reader.nodal_values_at_time(
-            variable_name, time_to_check, expected_data, node_ids)
-        self.assertEqual(len(actual_nodal_stress_values), len(expected_nodal_stress_values))
-        for actual_total_stress, expected_total_stress in zip(actual_nodal_stress_values, expected_nodal_stress_values):
-            # Although the values are matrices, they are read as lists,
-            # meaning we can use assertVectorAlmostEqual
-            self.assertVectorAlmostEqual(actual_total_stress, expected_total_stress, 3)
 
 
 class KratosGeoMechanicsSettlementWorkflowCppRoute(KratosGeoMechanicsSettlementWorkflow):
