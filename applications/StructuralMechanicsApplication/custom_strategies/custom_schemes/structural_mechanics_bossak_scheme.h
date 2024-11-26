@@ -191,7 +191,6 @@ public:
                         if (rNode.GetDof(*ang_acc_components[i_dim], ang_acc_pos + i_dim).IsFixed()) {
                             r_delta_rotation[i_dim] = (r_current_angular_acceleration[i_dim] + this->mBossak.c3 * r_previous_angular_acceleration[i_dim] +  this->mBossak.c2 * r_previous_angular_velocity[i_dim])/(this->mBossak.c0);
                             r_current_rotation[i_dim] = r_previous_rotation[i_dim] + r_delta_rotation[i_dim];
-                            std::cout << "Updating rotation by angular acceleration" << std::endl;
                             r_predicted[i_dim] = true;
                         }
                     }
@@ -201,7 +200,6 @@ public:
                         if (rNode.GetDof(*ang_vel_components[i_dim], ang_vel_pos + i_dim).IsFixed() && !r_predicted[i_dim]) {
                             r_delta_rotation[i_dim] = (r_current_angular_velocity[i_dim] + this->mBossak.c4 * r_previous_angular_velocity[i_dim] + this->mBossak.c5 * r_previous_angular_acceleration[i_dim])/(this->mBossak.c1);
                             r_current_rotation[i_dim] = r_previous_rotation[i_dim] + r_delta_rotation[i_dim];
-                            std::cout << "Updating rotation by angular velocity" << std::endl;
                             r_predicted[i_dim] = true;
                         }
                     }
