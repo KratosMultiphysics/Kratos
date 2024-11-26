@@ -1175,7 +1175,7 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateDragForceCenter(
                 row(rData.PositiveInterfaceN, g),
                 rData.PositiveInterfaceDNDX[g]);
 
-            // Get the interface Gauss pt. unit noromal
+            // Get the interface Gauss pt. unit normal
             const auto &aux_unit_normal = rData.PositiveInterfaceUnitNormals[g];
 
             // Compute Gauss pt. pressure

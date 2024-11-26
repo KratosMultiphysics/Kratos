@@ -65,6 +65,8 @@
 #include "utilities/communication_coloring_utilities.h"
 #include "utilities/model_part_graph_utilities.h"
 #include "utilities/shifted_boundary_meshless_interface_utility.h"
+#include "utilities/shifted_boundary_meshless_discontinuous_interface_utility.h"
+#include "utilities/shifted_boundary_point_based_interface_utility.h"
 #include "utilities/particles_utilities.h"
 #include "utilities/string_utilities.h"
 #include "utilities/model_part_operation_utilities.h"
@@ -808,6 +810,22 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     py::class_<ShiftedBoundaryMeshlessInterfaceUtility, ShiftedBoundaryMeshlessInterfaceUtility::Pointer>(m,"ShiftedBoundaryMeshlessInterfaceUtility")
         .def(py::init<Model&, Parameters>())
         .def("CalculateExtensionOperator", &ShiftedBoundaryMeshlessInterfaceUtility::CalculateExtensionOperator)
+    ;
+
+    py::class_<ShiftedBoundaryMeshlessDiscontinuousInterfaceUtility, ShiftedBoundaryMeshlessDiscontinuousInterfaceUtility::Pointer>(m,"ShiftedBoundaryMeshlessDiscontinuousInterfaceUtility")
+        .def(py::init<Model&, Parameters>())
+        .def("CalculateExtensionOperator", &ShiftedBoundaryMeshlessDiscontinuousInterfaceUtility::CalculateExtensionOperator)
+    ;
+
+    py::class_<ShiftedBoundaryPointBasedInterfaceUtility, ShiftedBoundaryPointBasedInterfaceUtility::Pointer>(m,"ShiftedBoundaryPointBasedInterfaceUtility")
+        .def(py::init<Model&, Parameters>())
+        .def("ResetFlags", &ShiftedBoundaryPointBasedInterfaceUtility::ResetFlags)
+        .def("LocateSkinPoints", &ShiftedBoundaryPointBasedInterfaceUtility::LocateSkinPoints)
+        .def("SetTessellatedBoundaryFlags", &ShiftedBoundaryPointBasedInterfaceUtility::SetTessellatedBoundaryFlags)
+        .def("SetInterfaceFlags", &ShiftedBoundaryPointBasedInterfaceUtility::SetInterfaceFlags)
+        .def("DeactivateElementsAndNodes", &ShiftedBoundaryPointBasedInterfaceUtility::DeactivateElementsAndNodes)
+        .def("AddSkinIntegrationPointConditions", &ShiftedBoundaryPointBasedInterfaceUtility::AddSkinIntegrationPointConditions)
+        .def("FixEnclosedVolumesPressure", &ShiftedBoundaryPointBasedInterfaceUtility::FixEnclosedVolumesPressure)
     ;
 
     m.def_submodule("StringUtilities", "Free-floating utility functions for string manipulation.")
