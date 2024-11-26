@@ -1,6 +1,7 @@
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 import KratosMultiphysics.CoSimulationApplication as KMC
+import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 
 from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 
@@ -218,6 +219,8 @@ class FluidDynamicsCutFEMWrapper(kratos_base_wrapper.KratosBaseWrapper):
         self._interface_model_part.AddNodalSolutionStepVariable(KM.DISPLACEMENT)
         self._interface_model_part.AddNodalSolutionStepVariable(KM.VELOCITY)
         self._interface_model_part.AddNodalSolutionStepVariable(KM.POSITIVE_FACE_PRESSURE)
+        self._interface_model_part.AddNodalSolutionStepVariable(KM.NORMAL)
+        self._interface_model_part.AddNodalSolutionStepVariable(KratosStructural.LINE_LOAD)
         if self.level_set_type == "discontinuous":
             self._interface_model_part.AddNodalSolutionStepVariable(KM.NEGATIVE_FACE_PRESSURE)
         self._interface_model_part.AddNodalSolutionStepVariable(KM.REACTION)
@@ -284,7 +287,7 @@ class FluidDynamicsCutFEMWrapper(kratos_base_wrapper.KratosBaseWrapper):
             self.__GetPartitionedFSIUtility().CalculateTractionFromPressureValues(
                 self._interface_model_part,
                 KM.POSITIVE_FACE_PRESSURE,
-                KM.REACTION,
+                KratosStructural.LINE_LOAD,
                 False  # SwapTractionSign
             )
 
