@@ -677,7 +677,6 @@ void LinearTrussElement2D<TNNodes>::CalculateOnIntegrationPoints(
     if (rVariable == PK2_STRESS_VECTOR) {
         const auto &r_props = GetProperties();
         const auto &r_geometry = GetGeometry();
-        const double area = r_props[CROSS_AREA];
 
         ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rCurrentProcessInfo);
         auto &r_cl_options = cl_values.GetOptions();
