@@ -75,7 +75,7 @@ void GeoIncrementalLinearElasticInterfaceLaw::InitializeMaterial(const Propertie
 {
     if (mPreviousRelativeDisplacement.size() != GetStrainSize()) {
         mPreviousRelativeDisplacement = ZeroVector{GetStrainSize()};
-        mPreviousTraction = ZeroVector{GetStrainSize()};
+        mPreviousTraction             = ZeroVector{GetStrainSize()};
     }
 
     if (HasInitialState()) {
