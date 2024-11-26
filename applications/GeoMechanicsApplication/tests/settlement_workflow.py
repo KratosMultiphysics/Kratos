@@ -138,8 +138,7 @@ class KratosGeoMechanicsSettlementWorkflow(KratosUnittest.TestCase):
 
 class KratosGeoMechanicsSettlementWorkflowPyRoute(KratosGeoMechanicsSettlementWorkflow):
     """
-    This test class is used to check the settlement workflow test, same as test_settlement_workflow.cpp to
-    make sure the python workflow yields the same results as the c++ workflow.
+    This test class checks the settlement workflow using the Python route.
     """
     def get_test_dir_name(self):
         return "python"
@@ -155,8 +154,7 @@ class KratosGeoMechanicsSettlementWorkflowPyRoute(KratosGeoMechanicsSettlementWo
 
 class KratosGeoMechanicsSettlementWorkflowCppRoute(KratosGeoMechanicsSettlementWorkflow):
     """
-    This test class is used to check the settlement workflow test, same as test_settlement_workflow.cpp to
-    make sure the python workflow yields the same results as the c++ workflow.
+    This test class checks the settlement workflow using the C++ route.
     """
     def tearDown(self):
         # The `KratosGeoSettlement` instance used by this test removes all registered GeoMechanicsApplication
