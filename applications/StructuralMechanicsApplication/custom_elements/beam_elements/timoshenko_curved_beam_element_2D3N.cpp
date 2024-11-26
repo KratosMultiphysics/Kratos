@@ -801,8 +801,6 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateOnIntegrationPoints(
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
-    const double area = r_props[CROSS_AREA];
-
     // Let's initialize the constitutive law values
     VectorType strain_vector(StrainSize), stress_vector(StrainSize);
     MatrixType constitutive_matrix(StrainSize, StrainSize);
@@ -821,9 +819,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateOnIntegrationPoints(
     for (SizeType IP = 0; IP < r_integration_points.size(); ++IP) {
 
         const double xi     = r_integration_points[IP].X();
-        const double weight = r_integration_points[IP].Weight();
         const double J      = GetJacobian(xi);
-        const double jacobian_weight = weight * J;
 
         GetNodalValuesVector(nodal_values);
 
