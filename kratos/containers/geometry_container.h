@@ -18,7 +18,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "containers/pointer_hash_map_set.h"
+#include "containers/pointer_vector_set.h"
 
 
 namespace Kratos
@@ -51,15 +51,12 @@ public:
 
     typedef typename TGeometryType::Pointer GeometryPointerType;
 
-
-    /// Geometry Hash Map Container.
-    // Stores with hash of Ids to corresponding geometries.
-    typedef PointerHashMapSet<
+    /// Geometry pointer container
+    using GeometriesMapType = PointerVectorSet<
         TGeometryType,
-        std::hash<std::size_t>,
         GetGeometryId,
-        GeometryPointerType
-        > GeometriesMapType;
+        std::less<typename TGeometryType::IndexType>,
+        std::equal_to<typename TGeometryType::IndexType>>;
 
     /// Geometry Iterator
     typedef typename GeometriesMapType::iterator GeometryIterator;
@@ -152,7 +149,7 @@ public:
         auto i = mGeometries.find(GeometryId);
         KRATOS_ERROR_IF(i == mGeometries.end())
             << " geometry index not found: " << GeometryId << ".";
-        return (i.base()->second);
+        return *(i.base());
     }
 
     /// Returns the const Geometry::Pointer corresponding to its Id
@@ -161,7 +158,7 @@ public:
         auto i = mGeometries.find(GeometryId);
         KRATOS_ERROR_IF(i == mGeometries.end())
             << " geometry index not found: " << GeometryId << ".";
-        return (i.base()->second);
+        return *(i.base());
     }
 
     /// Returns the Geometry::Pointer corresponding to its name
@@ -171,7 +168,7 @@ public:
         auto i = mGeometries.find(hash_index);
         KRATOS_ERROR_IF(i == mGeometries.end())
             << " geometry index not found: " << GeometryName << ".";
-        return (i.base()->second);
+        return *(i.base());
     }
 
     /// Returns the Geometry::Pointer corresponding to its name
@@ -181,7 +178,7 @@ public:
         auto i = mGeometries.find(hash_index);
         KRATOS_ERROR_IF(i == mGeometries.end())
             << " geometry index not found: " << GeometryName << ".";
-        return (i.base()->second);
+        return *(i.base());
     }
 
     /// Returns a reference geometry corresponding to the id
