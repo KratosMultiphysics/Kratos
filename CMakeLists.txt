@@ -622,6 +622,7 @@ endif()
 
 # Configure kratos applications
 message(STATUS "Configuring applications (ENV):")
+set(ENV{KRATOS_APPLICATIONS} "applications/GeoMechanicsApplication")
 set_property(GLOBAL PROPERTY LIST_OF_APPLICATIONS_ADDED_THROUGH_DEPENDENCIES)
 if(DEFINED ENV{KRATOS_APPLICATIONS})
     foreach(APPLICATION_PATH $ENV{KRATOS_APPLICATIONS})
