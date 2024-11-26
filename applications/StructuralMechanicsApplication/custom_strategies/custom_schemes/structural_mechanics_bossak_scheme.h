@@ -135,7 +135,7 @@ public:
         DofsArrayType& rDofSet,
         TSystemMatrixType& rA,
         TSystemVectorType& rDx,
-        TSystemVectorType& rb
+        TSystemVectorType& rb 
         ) override
     {
         KRATOS_TRY
@@ -147,21 +147,37 @@ public:
         const double delta_time = r_current_process_info[DELTA_TIME];
 
         // Updating angular time derivatives if they are available (nodally for efficiency)
-        if(rModelPart.HasNodalSolutionStepVariable(ROTATION) && rModelPart.Nodes().size() > 0)
+        if(rModelPart.HasNodalSolutionStepVariable(ROTATION))
         {
             const auto it_node_begin = rModelPart.Nodes().begin();
 
             // Getting position
             KRATOS_ERROR_IF_NOT(it_node_begin->HasDofFor(ROTATION_X)) << "StructuralMechanicsBossakScheme:: ROTATION is not added" << std::endl;
             const int rot_pos = it_node_begin->GetDofPosition(ROTATION_X);
+            const int ang_vel_pos = it_node_begin->HasDofFor(ANGULAR_VELOCITY_X) ? static_cast<int>(it_node_begin->GetDofPosition(ANGULAR_VELOCITY_X)) : -1;
+            const int ang_acc_pos = it_node_begin->HasDofFor(ANGULAR_ACCELERATION_X) ? static_cast<int>(it_node_begin->GetDofPosition(ANGULAR_ACCELERATION_X)) : -1;
 
             // Getting dimension
             const std::size_t dimension = r_current_process_info.Has(DOMAIN_SIZE) ? r_current_process_info.GetValue(DOMAIN_SIZE) : 3;
 
             //Auxiliar variable
+            array_1d<double, 3> delta_rotation;
+            std::array<bool, 3> predicted = {false, false, false};
             const std::array<const Variable<ComponentType>*, 3> rot_components = {&ROTATION_X, &ROTATION_Y, &ROTATION_Z};
+            const std::array<const Variable<ComponentType>*, 3> ang_vel_components = {&ANGULAR_VELOCITY_X, &ANGULAR_VELOCITY_Y, &ANGULAR_VELOCITY_Z};
+            const std::array<const Variable<ComponentType>*, 3> ang_acc_components = {&ANGULAR_ACCELERATION_X, &ANGULAR_ACCELERATION_Y, &ANGULAR_ACCELERATION_Z};
 
-            block_for_each(rModelPart.Nodes(), array_1d<double, 3>(), [&](Node& rNode, array_1d<double, 3>& rDeltaRotationTLS){
+            typedef std::tuple<array_1d<double,3>, std::array<bool,3>> TLSContainerType;
+            TLSContainerType aux_TLS = std::make_tuple(delta_rotation, predicted);
+
+            block_for_each(rModelPart.Nodes(), aux_TLS, [&](Node& rNode, TLSContainerType& rAuxTLS){
+                auto& r_delta_rotation = std::get<0>(rAuxTLS);
+                auto& r_predicted = std::get<1>(rAuxTLS);
+
+                for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
+                    r_predicted[i_dim] = false;
+                }
+
                 //Predicting
                 const array_1d<double, 3>& r_previous_rotation = rNode.FastGetSolutionStepValue(ROTATION, 1);
                 const array_1d<double, 3>& r_previous_angular_velocity = rNode.FastGetSolutionStepValue(ANGULAR_VELOCITY, 1);
@@ -170,6 +186,24 @@ public:
                 array_1d<double, 3>& r_current_angular_velocity = rNode.FastGetSolutionStepValue(ANGULAR_VELOCITY);
                 array_1d<double, 3>& r_current_angular_acceleration = rNode.FastGetSolutionStepValue(ANGULAR_ACCELERATION);
 
+                if(ang_acc_pos > -1) {
+                    for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
+                        if (!rNode.GetDof(*ang_acc_components[i_dim], ang_acc_pos + i_dim).IsFixed()) {
+                            r_delta_rotation[i_dim] = (r_current_angular_acceleration[i_dim] + this->mBossak.c3 * r_previous_angular_acceleration[i_dim] +  this->mBossak.c2 * r_previous_angular_velocity[i_dim])/(this->mBossak.c0);
+                            r_current_rotation[i_dim] = r_previous_rotation[i_dim] + r_delta_rotation[i_dim];
+                            r_predicted[i_dim] = true;
+                        }
+                    }
+                }
+                if(ang_vel_pos > -1) {
+                    for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
+                        if (!rNode.GetDof(*ang_vel_components[i_dim], ang_vel_pos + i_dim).IsFixed() && !r_predicted[i_dim]) {
+                            r_delta_rotation[i_dim] = (r_current_angular_velocity[i_dim] + this->mBossak.c4 * r_previous_angular_velocity[i_dim] + this->mBossak.c5 * r_previous_angular_acceleration[i_dim])/(this->mBossak.c1);
+                            r_current_rotation[i_dim] = r_previous_rotation[i_dim] + r_delta_rotation[i_dim];
+                            r_predicted[i_dim] = true;
+                        }
+                    }
+                }
                 for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
                     if (!rNode.GetDof(*rot_components[i_dim], rot_pos + i_dim).IsFixed()) {
                         r_current_rotation[i_dim] = r_previous_rotation[i_dim] + delta_time * r_previous_angular_velocity[i_dim] + 0.5 * std::pow(delta_time, 2) * r_previous_angular_acceleration[i_dim];
@@ -177,9 +211,9 @@ public:
                 }
 
                 // Updating
-                noalias(rDeltaRotationTLS) = r_current_rotation - r_previous_rotation;
-                UpdateAngularVelocity(r_current_angular_velocity, rDeltaRotationTLS, r_previous_angular_velocity, r_previous_angular_acceleration);
-                UpdateAngularAcceleration(r_current_angular_acceleration, rDeltaRotationTLS, r_previous_angular_velocity, r_previous_angular_acceleration);
+                noalias(r_delta_rotation) = r_current_rotation - r_previous_rotation;
+                UpdateAngularVelocity(r_current_angular_velocity, r_delta_rotation, r_previous_angular_velocity, r_previous_angular_acceleration);
+                UpdateAngularAcceleration(r_current_angular_acceleration, r_delta_rotation, r_previous_angular_velocity, r_previous_angular_acceleration);
 
             });
         }
