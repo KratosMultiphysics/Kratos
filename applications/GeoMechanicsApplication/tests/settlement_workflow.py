@@ -34,6 +34,11 @@ class KratosGeoMechanicsSettlementWorkflow(KratosUnittest.TestCase):
         for filename in input_filenames:
             shutil.copy(os.path.join(self.test_root, filename), os.path.join(self.test_path, filename))
 
+        self.expected_displacements = [{"time": 1.0},
+                                       {"time": 2.0},
+                                       {"time": 3.0},
+                                       {"time": 3.2}]
+
     def get_test_dir_name(self):
         raise RuntimeError("This base class does not provide a generic test directory name")
 
@@ -50,7 +55,7 @@ class KratosGeoMechanicsSettlementWorkflowPyRoute(KratosGeoMechanicsSettlementWo
     def test_d_settlement_workflow(self):
         test_helper.run_stages(self.test_path, self.number_of_stages)
 
-        times_to_check = [1.0, 2.0, 3.0, 3.2]
+        times_to_check = [item["time"] for item in self.expected_displacements]
 
         for i in range(self.number_of_stages):
             result_file_name = os.path.join(self.test_path, f'test_model_stage{i+1}.post.res')
@@ -119,7 +124,7 @@ class KratosGeoMechanicsSettlementWorkflowCppRoute(KratosGeoMechanicsSettlementW
         no_progress_message = lambda msg: None
         dont_cancel = lambda: False
 
-        times_to_check = [1.0, 2.0, 3.0, 3.2]
+        times_to_check = [item["time"] for item in self.expected_displacements]
         node_ids = [1, 102, 1085, 1442]
         reader = test_helper.GiDOutputFileReader()
         for i in range(self.number_of_stages):
