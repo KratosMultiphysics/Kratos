@@ -72,19 +72,9 @@ class KratosGeoMechanicsSettlementWorkflow(KratosUnittest.TestCase):
         raise RuntimeError("This base class does not provide a generic test directory name")
 
 
-class KratosGeoMechanicsSettlementWorkflowPyRoute(KratosGeoMechanicsSettlementWorkflow):
-    """
-    This test class is used to check the settlement workflow test, same as test_settlement_workflow.cpp to
-    make sure the python workflow yields the same results as the c++ workflow.
-    """
-    def get_test_dir_name(self):
-        return "python"
-
-
-    def test_d_settlement_workflow(self):
-        test_helper.run_stages(self.test_path, self.number_of_stages)
-
+    def check_displacements(self):
         reader = test_helper.GiDOutputFileReader()
+
         for item in self.expected_displacements:
             time = item["time"]
             node_ids = [sub_item["node"] for sub_item in item["expected_values"]]
@@ -98,6 +88,19 @@ class KratosGeoMechanicsSettlementWorkflowPyRoute(KratosGeoMechanicsSettlementWo
                 self.assertVectorAlmostEqual(actual_displacement, expected_displacement, 3)
 
 
+class KratosGeoMechanicsSettlementWorkflowPyRoute(KratosGeoMechanicsSettlementWorkflow):
+    """
+    This test class is used to check the settlement workflow test, same as test_settlement_workflow.cpp to
+    make sure the python workflow yields the same results as the c++ workflow.
+    """
+    def get_test_dir_name(self):
+        return "python"
+
+
+    def test_d_settlement_workflow(self):
+        test_helper.run_stages(self.test_path, self.number_of_stages)
+
+        self.check_displacements()
 
         times_to_check = [item["time"] for item in self.expected_displacements]
 
@@ -157,26 +160,11 @@ class KratosGeoMechanicsSettlementWorkflowCppRoute(KratosGeoMechanicsSettlementW
         no_progress_message = lambda msg: None
         dont_cancel = lambda: False
 
-        times_to_check = [item["time"] for item in self.expected_displacements]
-        node_ids = [1, 102, 1085, 1442]
-        reader = test_helper.GiDOutputFileReader()
         for i in range(self.number_of_stages):
             status = settlement_api.RunStage(self.test_path, self.project_parameters_filenames[i], no_logging, no_progress_reporting, no_progress_message, dont_cancel)
             self.assertEqual(status, 0)
 
-            result_file_name = os.path.join(self.test_path, f'test_model_stage{i+1}.post.res')
-            expected_result_file_name = os.path.join(self.test_root, f'test_model_stage{i+1}.post.orig.res')
-
-            actual_data = reader.read_output_from(result_file_name)
-            actual_nodal_values = reader.nodal_values_at_time("DISPLACEMENT", times_to_check[i], actual_data, node_ids)
-
-            expected_data = reader.read_output_from(expected_result_file_name)
-            expected_nodal_values = reader.nodal_values_at_time(
-                "DISPLACEMENT", times_to_check[i], expected_data, node_ids)
-
-            self.assertEqual(len(actual_nodal_values), len(expected_nodal_values))
-            for actual_displacement, expected_displacement in zip(actual_nodal_values, expected_nodal_values):
-                self.assertVectorAlmostEqual(actual_displacement, expected_displacement, 3)
+        self.check_displacements()
 
         # Don't rely on the garbage collector to clean up the API object. Make sure it's destructor has run before
         # executing the test case's `tearDown` method (which will reload the relevant Kratos applications)
