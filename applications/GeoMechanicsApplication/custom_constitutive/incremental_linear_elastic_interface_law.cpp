@@ -74,8 +74,8 @@ void GeoIncrementalLinearElasticInterfaceLaw::InitializeMaterial(const Propertie
                                                                  const Vector&)
 {
     // Since this is an incremental law, we don't want to lose the history
-    // of the previous state, unless it is either the first time we initialize
-    // or an explicit initial state is set.
+    // of the previous state. This means we only set the members if it is
+    // either the first time we initialize or an explicit initial state is set.
     if (mPreviousRelativeDisplacement.size() != GetStrainSize()) {
         mPreviousRelativeDisplacement = ZeroVector{GetStrainSize()};
         mPreviousTraction             = ZeroVector{GetStrainSize()};
