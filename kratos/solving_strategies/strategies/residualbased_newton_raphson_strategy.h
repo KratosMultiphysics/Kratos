@@ -791,27 +791,7 @@ class ResidualBasedNewtonRaphsonStrategy
         // Set up the system, operation performed just once unless it is required
         // to reform the dof set at each iteration
         BuiltinTimer system_construction_time;
-        if (!p_builder_and_solver->GetDofSetIsInitializedFlag() || mReformDofSetAtEachStep)
-        {
-            // Setting up the list of the DOFs to be solved
-            BuiltinTimer setup_dofs_time;
-            p_builder_and_solver->SetUpDofSet(p_scheme, r_model_part);
-            KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0) << "Setup Dofs Time: "
-                << setup_dofs_time << std::endl;
-
-            // Shaping correctly the system
-            BuiltinTimer setup_system_time;
-            p_builder_and_solver->SetUpSystem(r_model_part);
-            KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0) << "Setup System Time: "
-                << setup_system_time << std::endl;
-
-            // Setting up the Vectors involved to the correct size
-            BuiltinTimer system_matrix_resize_time;
-            p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpA, mpDx, mpb,
-                                                                r_model_part);
-            KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0) << "System Matrix Resize Time: "
-                << system_matrix_resize_time << std::endl;
-        }
+        this->UpdateTopology();
 
         KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0) << "System Construction Time: "
             << system_construction_time << std::endl;
@@ -1012,6 +992,7 @@ class ResidualBasedNewtonRaphsonStrategy
                         TSparseSpace::SetToZero(rDx);
                         TSparseSpace::SetToZero(rb);
 
+                        this->UpdateTopology();
                         p_builder_and_solver->BuildAndSolve(p_scheme, r_model_part, rA, rDx, rb);
                     }
                     else
@@ -1019,6 +1000,7 @@ class ResidualBasedNewtonRaphsonStrategy
                         TSparseSpace::SetToZero(rDx);
                         TSparseSpace::SetToZero(rb);
 
+                        this->UpdateTopology();
                         p_builder_and_solver->BuildRHSAndSolve(p_scheme, r_model_part, rA, rDx, rb);
                     }
                 }
@@ -1027,6 +1009,7 @@ class ResidualBasedNewtonRaphsonStrategy
                     TSparseSpace::SetToZero(rDx);
                     TSparseSpace::SetToZero(rb);
 
+                    this->UpdateTopology();
                     p_builder_and_solver->BuildRHSAndSolve(p_scheme, r_model_part, rA, rDx, rb);
                 }
             }
@@ -1420,6 +1403,38 @@ class ResidualBasedNewtonRaphsonStrategy
         KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", this->GetEchoLevel() > 0)
             << "ATTENTION: max iterations ( " << mMaxIterationNumber
             << " ) exceeded!" << std::endl;
+    }
+
+    void UpdateTopology()
+    {
+        KRATOS_TRY
+        typename TSchemeType::Pointer p_scheme = GetScheme();
+        typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
+        ModelPart& r_model_part = BaseType::GetModelPart();
+
+        this->Clear();
+
+        if (!p_builder_and_solver->GetDofSetIsInitializedFlag() || mReformDofSetAtEachStep) {
+            // Setting up the list of the DOFs to be solved
+            BuiltinTimer setup_dofs_time;
+            p_builder_and_solver->SetUpDofSet(p_scheme, r_model_part);
+            KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0) << "Setup Dofs Time: "
+                << setup_dofs_time << std::endl;
+
+            // Shaping correctly the system
+            BuiltinTimer setup_system_time;
+            p_builder_and_solver->SetUpSystem(r_model_part);
+            KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0) << "Setup System Time: "
+                << setup_system_time << std::endl;
+
+            // Setting up the Vectors involved to the correct size
+            BuiltinTimer system_matrix_resize_time;
+            p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpA, mpDx, mpb,
+                                                                r_model_part);
+            KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0) << "System Matrix Resize Time: "
+                << system_matrix_resize_time << std::endl;
+        }
+        KRATOS_CATCH("")
     }
 
     /**

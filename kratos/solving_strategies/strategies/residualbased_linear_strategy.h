@@ -535,26 +535,7 @@ public:
             //set up the system, operation performed just once unless it is required
             //to reform the dof set at each iteration
             BuiltinTimer system_construction_time;
-            if (p_builder_and_solver->GetDofSetIsInitializedFlag() == false ||
-                    mReformDofSetAtEachStep == true)
-            {
-                //setting up the list of the DOFs to be solved
-                BuiltinTimer setup_dofs_time;
-                p_builder_and_solver->SetUpDofSet(p_scheme, BaseType::GetModelPart());
-                KRATOS_INFO_IF("ResidualBasedLinearStrategy", BaseType::GetEchoLevel() > 0) << "Setup Dofs Time: " << setup_dofs_time << std::endl;
-
-                //shaping correctly the system
-                BuiltinTimer setup_system_time;
-                p_builder_and_solver->SetUpSystem(BaseType::GetModelPart());
-                KRATOS_INFO_IF("ResidualBasedLinearStrategy", BaseType::GetEchoLevel() > 0) << "Setup System Time: " << setup_system_time << std::endl;
-
-                //setting up the Vectors involved to the correct size
-                BuiltinTimer system_matrix_resize_time;
-                p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpA, mpDx, mpb,
-                                                                 BaseType::GetModelPart());
-                KRATOS_INFO_IF("ResidualBasedLinearStrategy", BaseType::GetEchoLevel() > 0) << "System Matrix Resize Time: " << system_matrix_resize_time << std::endl;
-            }
-
+            this->UpdateTopology();
             KRATOS_INFO_IF("ResidualBasedLinearStrategy", BaseType::GetEchoLevel() > 0) << "System Construction Time: " << system_construction_time << std::endl;
 
             TSystemMatrixType& rA  = *mpA;
@@ -637,11 +618,13 @@ public:
             // passing smart pointers instead of references here
             // to prevent dangling pointer to system matrix when
             // reusing ml preconditioners in the trilinos tpl
+            this->UpdateTopology();
             p_builder_and_solver->BuildAndSolve(p_scheme, BaseType::GetModelPart(), rA, rDx, rb);
             BaseType::mStiffnessMatrixIsBuilt = true;
         }
         else
         {
+            this->UpdateTopology();
             TSparseSpace::SetToZero(rDx);
             TSparseSpace::SetToZero(rb);
             p_builder_and_solver->BuildRHSAndSolve(p_scheme, BaseType::GetModelPart(), rA, rDx, rb);
@@ -847,6 +830,34 @@ protected:
         if (ThisParameters["builder_and_solver_settings"].Has("name")) {
             KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
         }
+    }
+
+    void UpdateTopology()
+    {
+        KRATOS_TRY
+
+        typename TSchemeType::Pointer p_scheme = GetScheme();
+        typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
+
+        if (p_builder_and_solver->GetDofSetIsInitializedFlag() == false || mReformDofSetAtEachStep == true) {
+            //setting up the list of the DOFs to be solved
+            BuiltinTimer setup_dofs_time;
+            p_builder_and_solver->SetUpDofSet(p_scheme, BaseType::GetModelPart());
+            KRATOS_INFO_IF("ResidualBasedLinearStrategy", BaseType::GetEchoLevel() > 0) << "Setup Dofs Time: " << setup_dofs_time << std::endl;
+
+            //shaping correctly the system
+            BuiltinTimer setup_system_time;
+            p_builder_and_solver->SetUpSystem(BaseType::GetModelPart());
+            KRATOS_INFO_IF("ResidualBasedLinearStrategy", BaseType::GetEchoLevel() > 0) << "Setup System Time: " << setup_system_time << std::endl;
+
+            //setting up the Vectors involved to the correct size
+            BuiltinTimer system_matrix_resize_time;
+            p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpA, mpDx, mpb,
+                                                                BaseType::GetModelPart());
+            KRATOS_INFO_IF("ResidualBasedLinearStrategy", BaseType::GetEchoLevel() > 0) << "System Matrix Resize Time: " << system_matrix_resize_time << std::endl;
+        }
+
+        KRATOS_CATCH("")
     }
 
     ///@}
