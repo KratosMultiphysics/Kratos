@@ -3,7 +3,6 @@ import os
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
-from KratosMultiphysics.gid_output_process import GiDOutputProcess
 from KratosMultiphysics.testing.utilities import ReadModelPart
 
 def GetFilePath(fileName):
@@ -36,6 +35,21 @@ class TestSkinDetectionProcess(KratosUnittest.TestCase):
 
         for node in self.model_part.Nodes:
             self.assertEqual(node.Is(KratosMultiphysics.INTERFACE), node.Is(KratosMultiphysics.ACTIVE))
+
+        # The data communicator
+        data_comm = self.model_part.GetCommunicator().GetDataCommunicator()
+
+        # Construct and execute the Parallel fill communicator
+        if data_comm.IsDistributed():
+            import KratosMultiphysics.mpi as KratosMPI
+            parallel_fill_communicator = KratosMPI.ParallelFillCommunicator(self.model_part, data_comm)
+            parallel_fill_communicator.Execute()
+
+        # Check the number of conditions created
+        if data_comm.IsDistributed():
+            self.assertEqual(self.model_part.GetCommunicator().GlobalNumberOfConditions(), 128)
+        else:
+            self.assertEqual(self.model_part.NumberOfConditions(), 128)
 
     def test_SkinDetectionProcessWithAssign(self):
         skin_detection_parameters = KratosMultiphysics.Parameters("""
@@ -89,4 +103,5 @@ class TestSkinDetectionProcess(KratosUnittest.TestCase):
             self.assertEqual(self.model_part.NumberOfConditions(), 112)
 
 if __name__ == '__main__':
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.main()

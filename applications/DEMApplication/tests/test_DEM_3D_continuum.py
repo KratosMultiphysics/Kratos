@@ -28,16 +28,16 @@ class DEM3D_ContinuumTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis
     def CheckValues(self, x_vel, z_vel, x_force, z_force, dem_pressure, z_elastic, shear, x_tangential):
         tol = 1.0e-8
         # DEM reference values
-        x_vel_ref = 0.028907825348927448
-        z_vel_ref = -0.8757276957864403
-        x_force_ref = -26919.437972831598
-        z_force_ref = 1970950.3578554934
+        x_vel_ref = 0.02677117811730761
+        z_vel_ref = -0.8785947012104277
+        x_force_ref = -28004.11984689704
+        z_force_ref = 1976786.9183720595
 
         #FEM reference values
-        dem_pressure_ref = 21566.85065708402
-        z_elastic_ref = -273575.41245014494
-        shear_ref = 362.391011482587
-        x_tangential_ref = 6039.850191376444
+        dem_pressure_ref = 21615.368565335117
+        z_elastic_ref = -274076.08804810344
+        shear_ref = 368.8978792516498
+        x_tangential_ref = 6148.297987527496
 
         self.assertAlmostEqual(x_vel, x_vel_ref, delta=tol)
         self.assertAlmostEqual(z_vel, z_vel_ref, delta=tol)

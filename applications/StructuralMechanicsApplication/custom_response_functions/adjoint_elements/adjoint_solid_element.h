@@ -19,7 +19,7 @@
 #include "includes/define.h"
 #include "includes/element.h"
 #include "utilities/adjoint_extensions.h"
-#include "custom_elements/total_lagrangian.h"
+#include "custom_elements/solid_elements/total_lagrangian.h"
 
 namespace Kratos
 {

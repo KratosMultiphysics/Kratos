@@ -52,8 +52,6 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION)AdvanceInTimeHighCycleFatigueProc
     ///@name  Enum's
     ///@{
 
-protected:
-
 
 public:
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
@@ -98,10 +96,26 @@ public:
      */
     void TimeAndCyclesUpdate(const double Increment);
 
-protected:
+private:
     // Member Variables
-    ModelPart& mrModelPart;                     // The model part to compute
-    Parameters mThisParameters;
+    ModelPart& mrModelPart;      // The model part to compute
+    Parameters mThisParameters;  // The project parameters
+
+    friend class Serializer;
+
+    void save(Serializer &rSerializer) const override
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Process)
+        rSerializer.save("ModelPart", mrModelPart);
+        rSerializer.save("ThisParameters", mThisParameters);
+    }
+
+    void load(Serializer &rSerializer) override
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Process)
+        rSerializer.load("ModelPart", mrModelPart);
+        rSerializer.load("ThisParameters", mThisParameters);
+    }
 
 }; // Class AdvanceInTimeHighCycleFatigueProcess
 

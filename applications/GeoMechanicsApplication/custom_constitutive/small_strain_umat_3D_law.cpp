@@ -291,12 +291,12 @@ bool SmallStrainUMAT3DLaw::loadUMATLinux(const Properties& rMaterialProperties)
         return false;
     }
     if (rMaterialProperties[IS_FORTRAN_UDSM]) {
-        pUserMod = (f_UMATMod)dlsym(lib_handle, "umat_");
+        mpUserMod = (f_UMATMod)dlsym(lib_handle, "umat_");
     } else {
-        pUserMod = (f_UMATMod)dlsym(lib_handle, "umat");
+        mpUserMod = (f_UMATMod)dlsym(lib_handle, "umat");
     }
 
-    if (!pUserMod) {
+    if (!mpUserMod) {
         KRATOS_ERROR << "cannot load function User_Mod in the specified UMAT "
                      << rMaterialProperties[UDSM_NAME] << std::endl;
         return false;
@@ -333,8 +333,8 @@ bool SmallStrainUMAT3DLaw::loadUMATWindows(const Properties& rMaterialProperties
         KRATOS_ERROR << "cannot load the specified UMAT " << rMaterialProperties[UDSM_NAME] << std::endl;
     }
 
-    pUserMod = (f_UMATMod)GetProcAddress(hGetProcIDDLL, "umat");
-    if (!pUserMod) {
+    mpUserMod = (f_UMATMod)GetProcAddress(hGetProcIDDLL, "umat");
+    if (!mpUserMod) {
         KRATOS_INFO("Error in loadUMATWindows")
             << "cannot load function umat in the specified UMAT: " << rMaterialProperties[UDSM_NAME]
             << std::endl;
@@ -384,11 +384,12 @@ void SmallStrainUMAT3DLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Para
     // Get Values to compute the constitutive law:
     const Flags& rOptions = rValues.GetOptions();
 
-    // NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
-    if (rOptions.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-        Vector& rStrainVector = rValues.GetStrainVector();
-        CalculateCauchyGreenStrain(rValues, rStrainVector);
-    }
+    KRATOS_DEBUG_ERROR_IF(rOptions.IsDefined(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN) &&
+                          rOptions.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN))
+        << "The SmallStrainUMAT3DLaw needs an element provided strain" << std::endl;
+
+    KRATOS_ERROR_IF(!rValues.IsSetStrainVector() || rValues.GetStrainVector().size() != GetStrainSize())
+        << "Constitutive laws in the geomechanics application need a valid provided strain" << std::endl;
 
     if (rOptions.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
         Vector& rStressVector = rValues.GetStressVector();
@@ -514,12 +515,12 @@ void SmallStrainUMAT3DLaw::CallUMAT(ConstitutiveLaw::Parameters& rValues)
     // variable to check if an error happened in the model:
     const auto& MaterialParameters = rValues.GetMaterialProperties()[UMAT_PARAMETERS];
     auto        nProperties        = static_cast<int>(MaterialParameters.size());
-    pUserMod(&(mStressVector.data()[0]), &(mStateVariables.data()[0]), (double**)mMatrixD, &SSE,
-             &SPD, &SCD, nullptr, nullptr, nullptr, nullptr, &(mStrainVectorFinalized.data()[0]),
-             &(mDeltaStrainVector.data()[0]), &time, &deltaTime, nullptr, nullptr, nullptr, nullptr,
-             &materialName, &ndi, &nshr, &ntens, &nStateVariables, &(MaterialParameters.data()[0]),
-             &nProperties, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, &iElement,
-             &integrationNumber, nullptr, nullptr, &iStep, &iteration);
+    mpUserMod(&(mStressVector.data()[0]), &(mStateVariables.data()[0]), (double**)mMatrixD, &SSE,
+              &SPD, &SCD, nullptr, nullptr, nullptr, nullptr, &(mStrainVectorFinalized.data()[0]),
+              &(mDeltaStrainVector.data()[0]), &time, &deltaTime, nullptr, nullptr, nullptr,
+              nullptr, &materialName, &ndi, &nshr, &ntens, &nStateVariables,
+              &(MaterialParameters.data()[0]), &nProperties, nullptr, nullptr, nullptr, nullptr,
+              nullptr, nullptr, &iElement, &integrationNumber, nullptr, nullptr, &iStep, &iteration);
 
     KRATOS_CATCH("")
 }
@@ -593,24 +594,6 @@ void SmallStrainUMAT3DLaw::UpdateInternalStrainVectorFinalized(ConstitutiveLaw::
     this->SetInternalStrainVector(rStrainVector);
 }
 
-void SmallStrainUMAT3DLaw::CalculateCauchyGreenStrain(ConstitutiveLaw::Parameters& rValues, Vector& rStrainVector)
-{
-    const SizeType space_dimension = this->WorkingSpaceDimension();
-
-    //-Compute total deformation gradient
-    const Matrix& F = rValues.GetDeformationGradientF();
-    KRATOS_DEBUG_ERROR_IF(F.size1() != space_dimension || F.size2() != space_dimension)
-        << "expected size of F " << space_dimension << "x" << space_dimension << ", got "
-        << F.size1() << "x" << F.size2() << std::endl;
-
-    Matrix E_tensor = prod(trans(F), F);
-    for (unsigned int i = 0; i < space_dimension; ++i)
-        E_tensor(i, i) -= 1.0;
-    E_tensor *= 0.5;
-
-    noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector(E_tensor);
-}
-
 double& SmallStrainUMAT3DLaw::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
                                              const Variable<double>&      rThisVariable,
                                              double&                      rValue)
@@ -619,7 +602,6 @@ double& SmallStrainUMAT3DLaw::CalculateValue(ConstitutiveLaw::Parameters& rParam
     Vector& rStressVector = rParameterValues.GetStressVector();
 
     if (rThisVariable == STRAIN_ENERGY) {
-        this->CalculateCauchyGreenStrain(rParameterValues, rStrainVector);
         this->CalculateStress(rParameterValues, rStressVector);
 
         rValue = 0.5 * inner_prod(rStrainVector, rStressVector); // Strain energy = 0.5*E:C:E
@@ -632,12 +614,8 @@ Vector& SmallStrainUMAT3DLaw::CalculateValue(ConstitutiveLaw::Parameters& rParam
                                              const Variable<Vector>&      rThisVariable,
                                              Vector&                      rValue)
 {
-    if (rThisVariable == STRAIN || rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR ||
-        rThisVariable == ALMANSI_STRAIN_VECTOR) {
-        this->CalculateCauchyGreenStrain(rParameterValues, rValue);
-
-    } else if (rThisVariable == STRESSES || rThisVariable == CAUCHY_STRESS_VECTOR ||
-               rThisVariable == KIRCHHOFF_STRESS_VECTOR || rThisVariable == PK2_STRESS_VECTOR) {
+    if (rThisVariable == STRESSES || rThisVariable == CAUCHY_STRESS_VECTOR ||
+        rThisVariable == KIRCHHOFF_STRESS_VECTOR || rThisVariable == PK2_STRESS_VECTOR) {
         // Get Values to compute the constitutive law:
         Flags& rFlags = rParameterValues.GetOptions();
 

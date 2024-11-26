@@ -102,13 +102,6 @@ public:
      */
     StressMeasure GetStressMeasure() override { return StressMeasure_Cauchy; }
 
-    /**
-     * @brief It calculates the strain vector
-     * @param rValues The internal values of the law
-     * @param rStrainVector The strain vector in Voigt notation
-     */
-    void CalculateCauchyGreenStrain(ConstitutiveLaw::Parameters& rValues, Vector& rStrainVector) override;
-
     ///@}
     ///@name Inquiry
     ///@{

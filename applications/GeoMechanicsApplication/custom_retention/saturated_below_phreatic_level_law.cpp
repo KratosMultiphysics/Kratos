@@ -21,16 +21,13 @@
 
 namespace Kratos
 {
-//-------------------------------------------------------------------------------------------------
 SaturatedBelowPhreaticLevelLaw::SaturatedBelowPhreaticLevelLaw() : RetentionLaw() {}
 
-//-------------------------------------------------------------------------------------------------
 SaturatedBelowPhreaticLevelLaw::SaturatedBelowPhreaticLevelLaw(const SaturatedBelowPhreaticLevelLaw& rOther)
     : RetentionLaw(rOther)
 {
 }
 
-//-------------------------------------------------------------------------------------------------
 RetentionLaw::Pointer SaturatedBelowPhreaticLevelLaw::Clone() const
 {
     return Kratos::make_shared<SaturatedBelowPhreaticLevelLaw>(*this);
@@ -115,7 +112,6 @@ double& SaturatedBelowPhreaticLevelLaw::CalculateValue(RetentionLaw::Parameters&
     return rValue;
 }
 
-//------------------------- RETENSION LAW GENERAL FEATURES ----------------------------------------
 void SaturatedBelowPhreaticLevelLaw::InitializeMaterial(const Properties&   rMaterialProperties,
                                                         const GeometryType& rElementGeometry,
                                                         const Vector&       rShapeFunctionsValues)
@@ -123,13 +119,11 @@ void SaturatedBelowPhreaticLevelLaw::InitializeMaterial(const Properties&   rMat
     // nothing is needed
 }
 
-//-------------------------------------------------------------------------------------------------
 void SaturatedBelowPhreaticLevelLaw::Initialize(Parameters& rParameters)
 {
     // nothing is needed
 }
 
-//-------------------------------------------------------------------------------------------------
 void SaturatedBelowPhreaticLevelLaw::InitializeSolutionStep(Parameters& rParameters)
 {
     // nothing is needed

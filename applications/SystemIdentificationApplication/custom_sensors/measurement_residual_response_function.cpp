@@ -6,7 +6,8 @@
 //
 //  License:         SystemIdentificationApplication/license.txt
 //
-//  Main authors:    Suneth Warnakulasuriya
+//  Main authors:    Suneth Warnakulasuriya,
+//                   Ihar Antonau
 //
 
 // System includes
@@ -87,8 +88,9 @@ struct PartialSensitivity
 
 } // namespace MeasurementResidualResponseFunctionUtilities
 
-MeasurementResidualResponseFunction::MeasurementResidualResponseFunction()
-{
+MeasurementResidualResponseFunction::MeasurementResidualResponseFunction(const double PCoefficient)
+    : mPCoefficient(PCoefficient)
+    {
     mResponseGradientList.resize(ParallelUtilities::GetNumThreads());
 }
 
@@ -144,13 +146,21 @@ double MeasurementResidualResponseFunction::CalculateValue(ModelPart& rModelPart
 {
     KRATOS_TRY
 
-    double value = 0.0;
+    double sum = 0.0;
+
     for (auto& p_sensor : mpSensorsList) {
         const double sensor_value = p_sensor->CalculateValue(rModelPart);
-        value += p_sensor->GetWeight() * std::pow(sensor_value - p_sensor->GetValue(SENSOR_MEASURED_VALUE), 2) * 0.5;
+        const double current_sensor_error = sensor_value - p_sensor->GetValue(SENSOR_MEASURED_VALUE);
+
         p_sensor->SetSensorValue(sensor_value);
+        p_sensor->SetValue(SENSOR_ERROR, current_sensor_error);
+
+        sum += ( std::pow( 0.5 * pow(current_sensor_error, 2) * p_sensor->GetWeight(), mPCoefficient ) );
     }
-    return value;
+
+    mC1 = std::pow( sum, 1 / mPCoefficient - 1 ) / std::pow(2, mPCoefficient - 1);
+
+    return std::pow(sum, 1 / mPCoefficient);
 
     KRATOS_CATCH("");
 }
@@ -173,7 +183,7 @@ void MeasurementResidualResponseFunction::CalculateDerivative(
 
     for (auto& p_sensor : mpSensorsList) {
         TCalculationType::Calculate(*p_sensor, local_sensor_response_gradient, rResidualGradient, rArgs...);
-        noalias(rResponseGradient) += local_sensor_response_gradient * (p_sensor->GetWeight() * (p_sensor->GetSensorValue() - p_sensor->GetValue(SENSOR_MEASURED_VALUE)));
+        noalias(rResponseGradient) += local_sensor_response_gradient * mC1 * (std::pow(p_sensor->GetWeight(), mPCoefficient) * std::pow(p_sensor->GetValue(SENSOR_ERROR), mPCoefficient * 2 - 1 ) );
     }
 
     KRATOS_CATCH("");

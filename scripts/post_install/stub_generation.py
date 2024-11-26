@@ -1,6 +1,7 @@
 # STD imports
 import sys
 import re
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -74,11 +75,17 @@ class KratosPythonCppLib:
 
     @staticmethod
     def GetCppLibModuleName(cpp_lib_path: Path) -> str:
-        loc = cpp_lib_path.name.find(".cpython")
-        if loc == -1:
-            return ""
+        if os.name == 'nt': # This means "Windows"
+            if cpp_lib_path.name.endswith(".pyd"):
+                return cpp_lib_path.name.split(".")[0]
+            else:
+                return ""
         else:
-            return cpp_lib_path.name[:loc]
+            loc = cpp_lib_path.name.find(".cpython")
+            if loc == -1:
+                return ""
+            else:
+                return cpp_lib_path.name[:loc]
 
 def GetCppLibs(kratos_libs_path: Path) -> 'list[KratosPythonCppLib]':
     # generate list of cpp modules
@@ -130,6 +137,14 @@ def SetPythonModulesForCppModules(list_of_python_cpp_libs: 'list[KratosPythonCpp
 
         if all([v.IsPythonModuleDefined() for v in list_of_python_cpp_libs]):
             break
+
+    # there may be python libraries which are not directly imported by any application.
+    # hence removing them from the stub generation
+    i = len(list_of_python_cpp_libs) - 1
+    while (i >= 0):
+        if not list_of_python_cpp_libs[i].IsPythonModuleDefined():
+            del list_of_python_cpp_libs[i]
+        i -= 1
 
     # first add dependencies based on the python module name
     for kratos_module in list_of_python_cpp_libs:

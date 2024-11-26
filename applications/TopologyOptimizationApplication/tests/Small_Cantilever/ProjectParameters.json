@@ -38,8 +38,8 @@
             "max_iteration"       : 500,
             "tolerance"           : 1e-8,
             "scaling"             : false
-        } 
-               
+        }
+
 
     },
     "processes"        : {
@@ -59,7 +59,6 @@
             "kratos_module" : "KratosMultiphysics",
             "check"         : "DirectorVectorNonZero direction",
             "Parameters"    : {
-           	    "mesh_id"         : 0,
            	    "model_part_name" : "Structure.PointLoad3D_load",
             	"variable_name"   : "POINT_LOAD",
             	"modulus"         : "1",

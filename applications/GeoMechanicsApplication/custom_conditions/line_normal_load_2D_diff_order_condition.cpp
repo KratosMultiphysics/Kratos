@@ -25,15 +25,11 @@ LineNormalLoad2DDiffOrderCondition::LineNormalLoad2DDiffOrderCondition()
 {
 }
 
-//----------------------------------------------------------------------------------------
-
 // Constructor 1
 LineNormalLoad2DDiffOrderCondition::LineNormalLoad2DDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry)
     : LineLoad2DDiffOrderCondition(NewId, pGeometry)
 {
 }
-
-//----------------------------------------------------------------------------------------
 
 // Constructor 2
 LineNormalLoad2DDiffOrderCondition::LineNormalLoad2DDiffOrderCondition(IndexType NewId,
@@ -43,17 +39,20 @@ LineNormalLoad2DDiffOrderCondition::LineNormalLoad2DDiffOrderCondition(IndexType
 {
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 Condition::Pointer LineNormalLoad2DDiffOrderCondition::Create(IndexType             NewId,
                                                               NodesArrayType const& ThisNodes,
                                                               PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(
-        new LineNormalLoad2DDiffOrderCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Create(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Condition::Pointer LineNormalLoad2DDiffOrderCondition::Create(IndexType             NewId,
+                                                              GeometryType::Pointer pGeom,
+                                                              PropertiesType::Pointer pProperties) const
+{
+    return make_intrusive<LineNormalLoad2DDiffOrderCondition>(NewId, pGeom, pProperties);
+}
+
 void LineNormalLoad2DDiffOrderCondition::CalculateConditionVector(ConditionVariables& rVariables,
                                                                   unsigned int        PointNumber)
 {
@@ -78,7 +77,6 @@ void LineNormalLoad2DDiffOrderCondition::CalculateConditionVector(ConditionVaria
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 double LineNormalLoad2DDiffOrderCondition::CalculateIntegrationCoefficient(
     const IndexType                                 PointNumber,
     const GeometryType::JacobiansType&              JContainer,
@@ -92,7 +90,6 @@ double LineNormalLoad2DDiffOrderCondition::CalculateIntegrationCoefficient(
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 void LineNormalLoad2DDiffOrderCondition::CalculateAndAddConditionForce(VectorType& rRightHandSideVector,
                                                                        ConditionVariables& rVariables)
 {
@@ -107,6 +104,11 @@ void LineNormalLoad2DDiffOrderCondition::CalculateAndAddConditionForce(VectorTyp
         rRightHandSideVector[Index + 1] +=
             rVariables.Nu[i] * rVariables.ConditionVector[1] * rVariables.IntegrationCoefficient;
     }
+}
+
+std::string LineNormalLoad2DDiffOrderCondition::Info() const
+{
+    return "LineNormalLoad2DDiffOrderCondition";
 }
 
 } // Namespace Kratos.

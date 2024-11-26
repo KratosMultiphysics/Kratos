@@ -129,6 +129,7 @@ namespace Kratos {
         void CalculateInelasticViscodampingEnergyFEM(double& inelastic_viscodamping_energy,
                                                      double ViscoDampingLocalContactForce[3],
                                                      double LocalDeltDisp[3]);
+        double GetTangentialStiffness() override;
 
     private:
 

@@ -21,7 +21,8 @@ using namespace Kratos;
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(CheckOfBackboneLawThrowsWhenPropertiesDoesNotHaveYoungsModulus, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(CheckOfBackboneLawThrowsWhenPropertiesDoesNotHaveYoungsModulus,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto backbone_law = TrussBackboneConstitutiveLaw{};
     const auto properties   = Properties{};
@@ -60,7 +61,8 @@ KRATOS_TEST_CASE_IN_SUITE(CheckOfBackboneLawThrowsWhenPropertiesDoesNotHaveStres
         "Error: No STRESSES_OF_PIECEWISE_LINEAR_LAW found")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckOfBackboneLawThrowsWhenStressesAndStrainsHaveDifferentSizes, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(CheckOfBackboneLawThrowsWhenStressesAndStrainsHaveDifferentSizes,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto backbone_law = TrussBackboneConstitutiveLaw{};
     auto       properties   = Properties{};

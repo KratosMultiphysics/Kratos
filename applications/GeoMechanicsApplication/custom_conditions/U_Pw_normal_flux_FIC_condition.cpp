@@ -216,6 +216,12 @@ void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateAndAddBoundaryMassFlow
     GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, rVariables.PVector);
 }
 
+template <unsigned int TDim, unsigned int TNumNodes>
+std::string UPwNormalFluxFICCondition<TDim, TNumNodes>::Info() const
+{
+    return "UPwNormalFluxFICCondition";
+}
+
 template class UPwNormalFluxFICCondition<2, 2>;
 template class UPwNormalFluxFICCondition<3, 3>;
 template class UPwNormalFluxFICCondition<3, 4>;

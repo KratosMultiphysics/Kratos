@@ -27,7 +27,6 @@ GeoCrBeamElementLinear3D2N::GeoCrBeamElementLinear3D2N(IndexType NewId, Geometry
 {
 }
 
-//-------------------------------------------------------------------------------------------------
 GeoCrBeamElementLinear3D2N::GeoCrBeamElementLinear3D2N(IndexType               NewId,
                                                        GeometryType::Pointer   pGeometry,
                                                        PropertiesType::Pointer pProperties)
@@ -35,7 +34,6 @@ GeoCrBeamElementLinear3D2N::GeoCrBeamElementLinear3D2N(IndexType               N
 {
 }
 
-//-------------------------------------------------------------------------------------------------
 Element::Pointer GeoCrBeamElementLinear3D2N::Create(IndexType               NewId,
                                                     NodesArrayType const&   rThisNodes,
                                                     PropertiesType::Pointer pProperties) const
@@ -44,7 +42,6 @@ Element::Pointer GeoCrBeamElementLinear3D2N::Create(IndexType               NewI
     return Kratos::make_intrusive<GeoCrBeamElementLinear3D2N>(NewId, rGeom.Create(rThisNodes), pProperties);
 }
 
-//-------------------------------------------------------------------------------------------------
 Element::Pointer GeoCrBeamElementLinear3D2N::Create(IndexType               NewId,
                                                     GeometryType::Pointer   pGeom,
                                                     PropertiesType::Pointer pProperties) const
@@ -52,7 +49,6 @@ Element::Pointer GeoCrBeamElementLinear3D2N::Create(IndexType               NewI
     return Kratos::make_intrusive<GeoCrBeamElementLinear3D2N>(NewId, pGeom, pProperties);
 }
 
-//----------------------------------------------------------------------------------------
 void GeoCrBeamElementLinear3D2N::ResetConstitutiveLaw()
 {
     KRATOS_TRY
@@ -63,7 +59,6 @@ void GeoCrBeamElementLinear3D2N::ResetConstitutiveLaw()
     KRATOS_CATCH("")
 }
 
-//-------------------------------------------------------------------------------------------------
 void GeoCrBeamElementLinear3D2N::CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
                                                       VectorType&        rRightHandSideVector,
                                                       const ProcessInfo& rCurrentProcessInfo)
@@ -83,7 +78,6 @@ void GeoCrBeamElementLinear3D2N::CalculateLocalSystem(MatrixType&        rLeftHa
     KRATOS_CATCH("")
 }
 
-//-------------------------------------------------------------------------------------------------
 void GeoCrBeamElementLinear3D2N::CalculateRightHandSide(VectorType&        rRightHandSideVector,
                                                         const ProcessInfo& rCurrentProcessInfo)
 {
@@ -102,7 +96,6 @@ void GeoCrBeamElementLinear3D2N::CalculateRightHandSide(VectorType&        rRigh
     KRATOS_CATCH("")
 }
 
-//-------------------------------------------------------------------------------------------------
 void GeoCrBeamElementLinear3D2N::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
                                                               std::vector<array_1d<double, 3>>& rOutput,
                                                               const ProcessInfo& rCurrentProcessInfo)

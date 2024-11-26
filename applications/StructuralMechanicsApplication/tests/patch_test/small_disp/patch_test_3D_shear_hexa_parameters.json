@@ -75,7 +75,6 @@
         "check"         : "DirectorVectorNonZero direction",
         "process_name"  : "AssignVectorByDirectionToConditionProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.SurfaceLoad3D_Load_on_surfaces_Auto2",
             "variable_name"   : "SURFACE_LOAD",
             "modulus"         : 1.0,
@@ -89,7 +88,6 @@
         "check"         : "DirectorVectorNonZero direction",
         "process_name"  : "AssignVectorByDirectionToConditionProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.SurfaceLoad3D_Load_on_surfaces_Auto3",
             "variable_name"   : "SURFACE_LOAD",
             "modulus"         : 1.0,
@@ -103,7 +101,6 @@
         "check"         : "DirectorVectorNonZero direction",
         "process_name"  : "AssignVectorByDirectionToConditionProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.SurfaceLoad3D_Load_on_surfaces_Auto4",
             "variable_name"   : "SURFACE_LOAD",
             "modulus"         : 1.0,
@@ -117,7 +114,6 @@
         "check"         : "DirectorVectorNonZero direction",
         "process_name"  : "AssignVectorByDirectionToConditionProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.SurfaceLoad3D_Load_on_surfaces_Auto5",
             "variable_name"   : "SURFACE_LOAD",
             "modulus"         : 1.0,

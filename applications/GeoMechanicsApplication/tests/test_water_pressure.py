@@ -399,8 +399,6 @@ class KratosGeoMechanicsWaterPressureTests(KratosUnittest.TestCase):
         # get displacements
         displacements = test_helper.get_displacement(simulation)
         x_displacements = [displacement[0] for displacement in displacements]
-        if n_dim >= 2:
-            y_displacements = [displacement[1] for displacement in displacements]
         if n_dim >= 3:
             z_displacements = [displacement[2] for displacement in displacements]
 
@@ -412,19 +410,12 @@ class KratosGeoMechanicsWaterPressureTests(KratosUnittest.TestCase):
         gauss_coordinates = test_helper.get_gauss_coordinates(simulation)
 
         # get the coordinates of all gauss points in a list
-        gauss_coordinates_x = [integration_point[0] for element in gauss_coordinates for integration_point in
-                                         element]
         if n_dim >= 2:
             gauss_coordinates_y = [integration_point[1] for element in gauss_coordinates for integration_point in
-                                             element]
-        if n_dim >= 3:
-            gauss_coordinates_z = [integration_point[2] for element in gauss_coordinates for integration_point in
                                              element]
 
         # Calculate expected values
         expected_water_pressure = [coord[1] * 1e4 - 2e4 for coord in nodal_coordinates]
-        #todo correct this
-        expected_displacements_y = [coord[1] * 0.0001667 for coord in nodal_coordinates]
 
         expected_total_stress_xx = [gauss_coordinate_y * 1e4 - 2e4 for gauss_coordinate_y in gauss_coordinates_y]
         if n_dim >= 2:
@@ -458,9 +449,6 @@ class KratosGeoMechanicsWaterPressureTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(0.0, x_displacement)
 
         for node_idx in range(len(nodal_coordinates)):
-            #todo correct expected displacement
-            # if n_dim >= 2:
-            #     self.assertAlmostEqual(expected_displacements_y[node_idx], y_displacements[node_idx], 6)
             self.assertAlmostEqual(expected_water_pressure[node_idx], water_pressures[node_idx], 6)
 
         if n_dim >= 3:

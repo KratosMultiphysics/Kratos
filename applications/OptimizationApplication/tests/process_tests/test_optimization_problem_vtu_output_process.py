@@ -29,9 +29,7 @@ class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
             pass
         def Finalize(self) -> None:
             pass
-        def GetAnalysisModelPart(self) -> Kratos.ModelPart:
-            return None
-        def GetEvaluatedModelPart(self) -> Kratos.ModelPart:
+        def GetInfluencingModelPart(self) -> Kratos.ModelPart:
             return None
         def GetImplementedPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
             return []

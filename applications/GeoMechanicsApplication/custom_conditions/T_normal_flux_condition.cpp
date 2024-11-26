@@ -80,6 +80,12 @@ void GeoTNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(Vector&            r
     }
 }
 
+template <unsigned int TDim, unsigned int TNumNodes>
+std::string GeoTNormalFluxCondition<TDim, TNumNodes>::Info() const
+{
+    return "GeoTNormalFluxCondition";
+}
+
 template class GeoTNormalFluxCondition<2, 2>;
 template class GeoTNormalFluxCondition<2, 3>;
 template class GeoTNormalFluxCondition<2, 4>;

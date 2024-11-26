@@ -53,14 +53,14 @@ class TestMaterialPointEraseProcess(KratosUnittest.TestCase):
         initial_mp.CreateNewNode(8, -0.5,  0.5, 1.0)
 
     def _create_elements(self, initial_mp):
-        initial_mp.CreateNewElement("MPMUpdatedLagrangian3D8N", 1, [1,2,3,4,5,6,7,8], initial_mp.GetProperties()[1])
+        initial_mp.CreateNewElement("Element3D8N", 1, [1,2,3,4,5,6,7,8], initial_mp.GetProperties()[1])
         KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.ACTIVE, True, initial_mp.Elements)
 
     def _create_conditions(self, initial_mp):
         initial_mp.CreateNewCondition("SurfaceCondition3D4N", 1, [2,4,8,6], initial_mp.GetProperties()[1])
         KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.BOUNDARY, True, initial_mp.Conditions)
         for condition in initial_mp.Conditions:
-            condition.SetValue(KratosMPM.MATERIAL_POINTS_PER_CONDITION, 0)
+            condition.SetValue(KratosMPM.MATERIAL_POINTS_PER_CONDITION, 1)
             condition.SetValue(KratosMPM.MPC_BOUNDARY_CONDITION_TYPE, 1)
 
     def _search_material_point_elements_and_conditions(self, current_model):

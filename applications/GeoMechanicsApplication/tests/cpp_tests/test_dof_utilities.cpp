@@ -15,6 +15,8 @@
 #include <boost/range/algorithm/copy.hpp>
 
 #include "containers/model.h"
+#include "custom_elements/U_Pw_small_strain_element.hpp"
+#include "custom_elements/plane_strain_stress_state.h"
 #include "custom_utilities/dof_utilities.h"
 #include "geo_aliases.h"
 #include "geo_mechanics_application_variables.h"
@@ -148,37 +150,42 @@ KRATOS_TEST_CASE_IN_SUITE(ExtractingDofsFromEmptyNodeCollectionYieldsEmptyVector
     KRATOS_EXPECT_TRUE(Geo::DofUtilities::ExtractDofsFromNodes(empty_geometry, WATER_PRESSURE).empty())
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ExpectThrowWhenExtractingNonExistingDofsFromNodes, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ExpectThrowWhenExtractingNonExistingDofsFromNodes, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto  model        = Model{};
     auto& r_model_part = model.CreateModelPart("Dummy");
 
-    r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
-    r_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+    PointerVector<Node> nodes;
+    nodes.push_back(r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(3, 0.0, 1.0, 0.0));
 
-    const auto node_ids  = std::vector<ModelPart::IndexType>{1, 2, 3};
-    const auto p_element = r_model_part.CreateNewElement("UPwSmallStrainElement2D3N", 1, node_ids,
-                                                         r_model_part.CreateNewProperties(0));
+    auto p_element = make_intrusive<UPwSmallStrainElement<2, 3>>(
+        1, Kratos::make_shared<Triangle2D3<Node>>(nodes), r_model_part.CreateNewProperties(0),
+        std::make_unique<PlaneStrainStressState>());
+    r_model_part.AddElement(p_element);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         Geo::DofUtilities::ExtractDofsFromNodes(p_element->GetGeometry(), DISPLACEMENT_X),
         "Non-existent DOF in node #1 for variable : DISPLACEMENT_X")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(VariableTypeAndNodeIDsMustMatchWhenExtractingDofsFromNodes, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(VariableTypeAndNodeIDsMustMatchWhenExtractingDofsFromNodes, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto  model        = Model{};
     auto& r_model_part = model.CreateModelPart("Dummy");
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT_X);
 
-    AddNodeWithDof(r_model_part, 1, 0.0, 0.0, 0.0, DISPLACEMENT_X);
-    AddNodeWithDof(r_model_part, 2, 1.0, 0.0, 0.0, DISPLACEMENT_X);
-    AddNodeWithDof(r_model_part, 3, 0.0, 1.0, 0.0, DISPLACEMENT_X);
+    PointerVector<Node> nodes;
+    nodes.push_back(AddNodeWithDof(r_model_part, 1, 0.0, 0.0, 0.0, DISPLACEMENT_X));
+    nodes.push_back(AddNodeWithDof(r_model_part, 2, 1.0, 0.0, 0.0, DISPLACEMENT_X));
+    nodes.push_back(AddNodeWithDof(r_model_part, 3, 0.0, 1.0, 0.0, DISPLACEMENT_X));
 
     const auto node_ids  = std::vector<ModelPart::IndexType>{1, 2, 3};
-    const auto p_element = r_model_part.CreateNewElement("UPwSmallStrainElement2D3N", 1, node_ids,
-                                                         r_model_part.CreateNewProperties(0));
+    auto       p_element = make_intrusive<UPwSmallStrainElement<2, 3>>(
+        1, Kratos::make_shared<Triangle2D3<Node>>(nodes), r_model_part.CreateNewProperties(0),
+        std::make_unique<PlaneStrainStressState>());
+    r_model_part.AddElement(p_element);
 
     const auto dofs = Geo::DofUtilities::ExtractDofsFromNodes(p_element->GetGeometry(), DISPLACEMENT_X);
 
@@ -193,7 +200,8 @@ KRATOS_TEST_CASE_IN_SUITE(VariableTypeAndNodeIDsMustMatchWhenExtractingDofsFromN
     KRATOS_EXPECT_EQ(dofs[2]->GetId(), 3);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(UDofsPrecedePwDofsWhenExtractingUPwDofsFromNondiffOrder2DElement, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(UDofsPrecedePwDofsWhenExtractingUPwDofsFromNondiffOrder2DElement,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto       model           = Model{};
     const auto nodal_variables = Geo::ConstVariableRefs{
@@ -214,7 +222,8 @@ KRATOS_TEST_CASE_IN_SUITE(UDofsPrecedePwDofsWhenExtractingUPwDofsFromNondiffOrde
     ExpectDofsHaveThisNodeId({dofs[4], dofs[5], dofs[8]}, 3);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(UDofsPrecedePwDofsWhenExtractingUPwDofsFromNondiffOrder3DElement, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(UDofsPrecedePwDofsWhenExtractingUPwDofsFromNondiffOrder3DElement,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto       model = Model{};
     const auto nodal_variables =
@@ -238,7 +247,8 @@ KRATOS_TEST_CASE_IN_SUITE(UDofsPrecedePwDofsWhenExtractingUPwDofsFromNondiffOrde
     ExpectDofsHaveThisNodeId({dofs[9], dofs[10], dofs[11], dofs[15]}, 4);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(UDofsPrecedePwDofsWhenExtractingUPwDofsFromDiffOrder2DElement, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(UDofsPrecedePwDofsWhenExtractingUPwDofsFromDiffOrder2DElement,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto model = Model{};
     auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle2D6NUPwDiffOrderElement(model);
@@ -262,7 +272,8 @@ KRATOS_TEST_CASE_IN_SUITE(UDofsPrecedePwDofsWhenExtractingUPwDofsFromDiffOrder2D
     ExpectDofsHaveThisNodeId({dofs[10], dofs[11]}, 6);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(UDofsPrecedePwDofsWhenExtractingUPwDofsFromDiffOrder3DElement, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(UDofsPrecedePwDofsWhenExtractingUPwDofsFromDiffOrder3DElement,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto model = Model{};
     auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle3D10NUPwDiffOrderElement(model);
@@ -327,7 +338,8 @@ KRATOS_TEST_CASE_IN_SUITE(ExtractingValuesFromDofsYieldsNodalValues, KratosGeoMe
                               expected_values, abs_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ExtractingFirstDerivativeValuesFromDofsYieldsNodalFirstDerivativeValues, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(ExtractingFirstDerivativeValuesFromDofsYieldsNodalFirstDerivativeValues,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto& r_variable              = DISPLACEMENT_X;
     const auto& r_first_time_derivative = VELOCITY_X;

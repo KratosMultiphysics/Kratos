@@ -95,9 +95,7 @@ public:
         : VariableData(NewName, sizeof(TDataType)),
           mZero(Zero),
           mpTimeDerivativeVariable(pTimeDerivativeVariable)
-    {
-        RegisterThisVariable();
-    }
+    {}
     /**
      * @brief Constructor with specific name and zero value
      * @param NewName The name to be assigned to the new variable
@@ -110,9 +108,7 @@ public:
         : VariableData(NewName, sizeof(TDataType)),
           mZero(TDataType()),
           mpTimeDerivativeVariable(pTimeDerivativeVariable)
-    {
-         RegisterThisVariable();
-   }
+    {}
 
     /**
      * @brief Constructor for creating a component of other variable
@@ -128,9 +124,7 @@ public:
         )
         : VariableData(rNewName, sizeof(TDataType), pSourceVariable, ComponentIndex),
           mZero(Zero)
-    {
-        RegisterThisVariable();
-    }
+    {}
 
     /**
      * @brief Constructor for creating a component of other variable
@@ -149,9 +143,7 @@ public:
         : VariableData(rNewName, sizeof(TDataType), pSourceVariable, ComponentIndex),
           mZero(Zero),
           mpTimeDerivativeVariable(pTimeDerivativeVariable)
-    {
-        RegisterThisVariable();
-    }
+    {}
 
     /**
      * Copy constructor.
@@ -325,6 +317,19 @@ public:
         return GetValueByIndex(static_cast<TDataType*>(pSource),GetComponentIndex());
     }
 
+    /// Add the variable to the Kratos Registry
+    void Register() const {
+        const std::string variable_path("variables.all."+Name());
+        if (!Registry::HasItem(variable_path)) {
+            Registry::AddItem<VariableType>(variable_path, *this);
+            Registry::AddItem<VariableType>("variables."+Registry::GetCurrentSource()+"."+Name(), *this);
+        } else if(!Registry::GetItem(variable_path).IsSameType(*this)) {
+            KRATOS_ERROR << "Attempting to register " << Name()
+                << " but a variable with the same name and different type already exists"
+                << std::endl;
+        }
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -469,13 +474,6 @@ private:
     const TDataType& GetValueByIndex(const TValueType* pValue, std::size_t index) const
     {
         return *static_cast<const TDataType*>(pValue + index);
-    }
-
-    void RegisterThisVariable(){
-        std::string variable_path = "variables.all." + Name();
-        if(!Registry::HasItem(variable_path)){
-            Registry::AddItem<VariableType>(variable_path, *this);
-        }
     }
 
     ///@}

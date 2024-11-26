@@ -15,7 +15,8 @@
 
 using namespace Kratos;
 
-namespace Kratos::Testing {
+namespace Kratos::Testing
+{
 
 const std::string parameterString = R"(
 {
@@ -31,33 +32,39 @@ KRATOS_TEST_CASE_IN_SUITE(GetProcessList_ReturnsExpectedProcesses_ForAllListType
         [
             {
                 "process_name": "ConstraintProcess1",
-                "Parameters":)" + parameterString + R"(
+                "Parameters":)" + parameterString +
+                                     R"(
             },
             {
                 "process_name": "ConstraintProcess2",
-                "Parameters":)" + parameterString + R"(
+                "Parameters":)" + parameterString +
+                                     R"(
             }
         ],
         "loads_process_list":
         [
             {
                 "process_name": "LoadProcess1",
-                "Parameters":)" + parameterString + R"(
+                "Parameters":)" + parameterString +
+                                     R"(
             },
             {
                 "process_name": "LoadProcess2",
-                "Parameters":)" + parameterString + R"(
+                "Parameters":)" + parameterString +
+                                     R"(
             }
         ],
         "auxiliar_process_list":
         [
             {
                 "process_name": "AuxiliarProcess1",
-                "Parameters":)" + parameterString + R"(
+                "Parameters":)" + parameterString +
+                                     R"(
             },
             {
                 "process_name": "AuxiliarProcess2",
-                "Parameters":)" + parameterString + R"(
+                "Parameters":)" + parameterString +
+                                     R"(
             }
         ]
     }
@@ -65,20 +72,22 @@ KRATOS_TEST_CASE_IN_SUITE(GetProcessList_ReturnsExpectedProcesses_ForAllListType
 
     // When
     JsonProcessInfoParser parser;
-    const auto actual_result = parser.GetProcessList(process_list);
+    const auto            actual_result = parser.GetProcessList(process_list);
 
     // Then
-    const std::vector<ProcessParameters> expected_result = {ProcessParameters{"ConstraintProcess1", Parameters{parameterString}},
-                                                          ProcessParameters{"ConstraintProcess2", Parameters{parameterString}},
-                                                          ProcessParameters{"LoadProcess1", Parameters{parameterString}},
-                                                          ProcessParameters{"LoadProcess2", Parameters{parameterString}},
-                                                          ProcessParameters{"AuxiliarProcess1", Parameters{parameterString}},
-                                                          ProcessParameters{"AuxiliarProcess2", Parameters{parameterString}}};
+    const std::vector<ProcessParameters> expected_result = {
+        ProcessParameters{"ConstraintProcess1", Parameters{parameterString}},
+        ProcessParameters{"ConstraintProcess2", Parameters{parameterString}},
+        ProcessParameters{"LoadProcess1", Parameters{parameterString}},
+        ProcessParameters{"LoadProcess2", Parameters{parameterString}},
+        ProcessParameters{"AuxiliarProcess1", Parameters{parameterString}},
+        ProcessParameters{"AuxiliarProcess2", Parameters{parameterString}}};
 
     KRATOS_EXPECT_EQ(expected_result, actual_result);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GetProcessList_GivesDuplicates_ForProcessesWithIdenticalNames, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(GetProcessList_GivesDuplicates_ForProcessesWithIdenticalNames,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Given
     const std::string process_list_with_duplicate_names = R"(
@@ -99,11 +108,12 @@ KRATOS_TEST_CASE_IN_SUITE(GetProcessList_GivesDuplicates_ForProcessesWithIdentic
 
     // When
     JsonProcessInfoParser parser;
-    const auto actual_result = parser.GetProcessList(process_list_with_duplicate_names);
+    const auto            actual_result = parser.GetProcessList(process_list_with_duplicate_names);
 
     // Then
-    const std::vector<ProcessParameters> expected_result = {ProcessParameters{"ApplyVectorConstraintTableProcess", Parameters{parameterString}},
-                                                            ProcessParameters{"ApplyVectorConstraintTableProcess", Parameters{parameterString}}};
+    const std::vector<ProcessParameters> expected_result = {
+        ProcessParameters{"ApplyVectorConstraintTableProcess", Parameters{parameterString}},
+        ProcessParameters{"ApplyVectorConstraintTableProcess", Parameters{parameterString}}};
 
     KRATOS_EXPECT_EQ(expected_result, actual_result);
 }
@@ -124,7 +134,9 @@ KRATOS_TEST_CASE_IN_SUITE(GetProcessList_Throws_WhenProcessDoesNotHaveParameters
 
     // When
     JsonProcessInfoParser parser;
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parser.GetProcessList(process_without_parameters), "Getting a value that does not exist. entry string : Parameters")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        parser.GetProcessList(process_without_parameters),
+        "Getting a value that does not exist. entry string : Parameters")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GetProcessList_ReturnsEmptyList_WhenNoProcessesAreDefined, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -133,4 +145,4 @@ KRATOS_TEST_CASE_IN_SUITE(GetProcessList_ReturnsEmptyList_WhenNoProcessesAreDefi
     KRATOS_EXPECT_TRUE(parser.GetProcessList(Parameters{}).empty())
 }
 
-}
+} // namespace Kratos::Testing

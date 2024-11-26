@@ -18,6 +18,13 @@ class FsiAnalysis(AnalysisStage):
             fluid_restart_utility.LoadRestart()
             structure_restart_utility.LoadRestart()
         else:
+
+            # Modelers
+            self._CreateModelers()
+            self._ModelersSetupGeometryModel()
+            self._ModelersPrepareGeometryModel()
+            self._ModelersSetupModelPart()
+
             self._GetSolver().ImportModelPart()
             self._GetSolver().PrepareModelPart()
             self._GetSolver().AddDofs()
@@ -62,6 +69,8 @@ class FsiAnalysis(AnalysisStage):
             self.time = fluid_time
         else:
             self.time = self.project_parameters["problem_data"]["start_time"].GetDouble()
+            self.fluid_main_model_part.ProcessInfo[Kratos.TIME] = self.time
+            self.structure_main_model_part.ProcessInfo[Kratos.TIME] = self.time
 
         ## If the echo level is high enough, print the complete list of settings used to run the simulation
         if self.echo_level > 1:
@@ -113,7 +122,7 @@ class FsiAnalysis(AnalysisStage):
                 "fluid_auxiliar_process_list"]
 
     def _GetOrderOfOutputProcessesInitialization(self):
-        return ["gid_output"]
+        return ["gid_output","vtk_output"]
 
     def _SetUpRestart(self):
         """Initialize self.restart_utility as a RestartUtility instance and check if we need to initialize the problem from a restart file."""

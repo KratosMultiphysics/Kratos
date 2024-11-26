@@ -29,7 +29,7 @@ class SmoothJointModelTestSolution(KratosMultiphysics.DEMApplication.DEM_analysi
             angular_velocity = node.GetSolutionStepValue(Kratos.ANGULAR_VELOCITY)
             if node.Id == 1:
                 if self.time > 0.00098 and self.time < 0.000982:
-                    expected_value = -0.0007822842347468785
+                    expected_value = 0.0
                     self.CheckValues(velocity, 0, expected_value, tolerance)
                     expected_value = 0.0
                     self.CheckValues(velocity, 1, expected_value, tolerance)

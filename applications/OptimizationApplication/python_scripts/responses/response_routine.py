@@ -4,8 +4,7 @@ from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
-from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
-from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
+import math
 
 class ResponseRoutine:
     """A class which adds optimization-specific utilities to simplify routines
@@ -18,7 +17,6 @@ class ResponseRoutine:
         # set the response
         self.__response = response
         self.__response_value = None
-
         self.__contributing_controls_list: 'list[Control]' = []
         self.__required_physical_gradients: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]' = {}
 
@@ -49,19 +47,16 @@ class ResponseRoutine:
         for control in self.__master_control.GetListOfControls():
             # check whether control has keys given by required gradients
             if set(control.GetPhysicalKratosVariables()).intersection(self.__required_physical_gradients.keys()):
-                # check whether there is an intersection of model parts between respones domain and control domain.
-                #   1. in the case where response does not require an analysis, then intersection between evaluated and control domain is checked.
-                #   2. in the case where response require an analysis, then intersection between analysis and control domain is checked.
-                if self.__response.GetAnalysisModelPart() is None:
-                    checked_model_part: Kratos.ModelPart = self.__response.GetEvaluatedModelPart()
-                else:
-                    checked_model_part: Kratos.ModelPart = self.__response.GetAnalysisModelPart()
+                # check whether there is an intersection of model parts between response influencial domain and control domain.
+                checked_model_part: Kratos.ModelPart = self.__response.GetInfluencingModelPart()
 
                 if Kratos.ModelPartOperationUtilities.HasIntersection([checked_model_part, control.GetEmptyField().GetModelPart()]):
                     self.__contributing_controls_list.append(control)
 
         if not self.__contributing_controls_list:
             raise RuntimeError(f"The controls does not have any influence over the response {self.GetResponseName()}.")
+        
+        self.my_current_control_field = self.__master_control.GetEmptyField()
 
     def Check(self):
         self.__response.Check()
@@ -93,13 +88,14 @@ class ResponseRoutine:
         compute_response_value_flag = False
         if self.__response_value is None:
             self.my_current_control_field = control_field.Clone()
-        diff = self.my_current_control_field - control_field
-        norm = KratosOA.ExpressionUtils.NormInf(diff)
-        if norm > 1e-12:
+        if not math.isclose(KratosOA.ExpressionUtils.NormInf(self.my_current_control_field), 0.0, abs_tol=1e-16):
+            rel_diff = (self.my_current_control_field - control_field) / KratosOA.ExpressionUtils.NormInf(self.my_current_control_field)
+        else:
+            rel_diff = (self.my_current_control_field - control_field)
+        norm = KratosOA.ExpressionUtils.NormInf(rel_diff)
+        if not math.isclose(norm, 0.0, abs_tol=1e-16):
             compute_response_value_flag = True
-        compute_response_value_flag = compute_response_value_flag or self.__response_value is None
-
-        # TODO: In the case of having two analysis with the same mesh (model parts) for two different
+        compute_response_value_flag = compute_response_value_flag or self.__response_value is None        # TODO: In the case of having two analysis with the same mesh (model parts) for two different
         #       responses, we need to flag all the anayses which are affected by the control update_state
         #       from the first call, otherwise the second call will not update anything, hence no execution
         #       policies will be executed.
@@ -114,6 +110,12 @@ class ResponseRoutine:
 
         if compute_response_value_flag:
             self.__response_value = self.__response.CalculateValue()
+            Kratos.Logger.PrintInfo(f"Response value is calculated for {self.GetResponseName()}.")
+        else:
+            Kratos.Logger.PrintInfo(f"The control field is not updated, hence the response value is not computed for {self.GetResponseName()}.")
+
+        # Update current control field state
+        self.my_current_control_field = control_field.Clone()
 
         return self.__response_value
 
@@ -133,6 +135,9 @@ class ResponseRoutine:
         # calculate and return the control space gradients from respective controls
         self.__mapped_gradients = self.__master_control.MapGradient(self.__required_physical_gradients)
         return self.__mapped_gradients
+    
+    def GetMappedGradients(self):
+        return self.__mapped_gradients
 
     def GetRequiredPhysicalGradients(self) -> 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]':
         """Returns required physical gradients by this response
@@ -144,29 +149,8 @@ class ResponseRoutine:
             dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]: Required physical gradients.
         """
         return self.__required_physical_gradients
+    
+    def GetName(self):
+        return self.GetReponse().GetName()
 
-    def OutputGradientFields(self, optimization_problem: OptimizationProblem, is_gradients_computed: bool) -> None:
-        unbuffered_data = ComponentDataView(self.GetReponse(), optimization_problem).GetUnBufferedData()
-        if is_gradients_computed:
-            # save the physical gradients for post processing in unbuffered data container.
-            for physical_var, physical_gradient in self.GetRequiredPhysicalGradients().items():
-                variable_name = f"d{self.GetResponseName()}_d{physical_var.Name()}"
-                for physical_gradient_expression in physical_gradient.GetContainerExpressions():
-                    unbuffered_data.SetValue(variable_name, physical_gradient_expression.Clone(), overwrite=True)
-
-            # save the filtered gradients for post processing in unbuffered data container.
-            for gradient_container_expression, control in zip(self.__mapped_gradients.GetContainerExpressions(), self.GetMasterControl().GetListOfControls()):
-                variable_name = f"d{self.GetResponseName()}_d{control.GetName()}"
-                unbuffered_data.SetValue(variable_name, gradient_container_expression.Clone(), overwrite=True)
-        else:
-            # save the physical gradients for post processing in unbuffered data container.
-            for physical_var, physical_gradient in self.GetRequiredPhysicalGradients().items():
-                variable_name = f"d{self.GetResponseName()}_d{physical_var.Name()}"
-                for physical_gradient_expression in physical_gradient.GetContainerExpressions():
-                    unbuffered_data.SetValue(variable_name, physical_gradient_expression.Clone() * 0.0, overwrite=True)
-
-            # save the filtered gradients for post processing in unbuffered data container.
-            for control in self.GetMasterControl().GetListOfControls():
-                variable_name = f"d{self.GetResponseName()}_d{control.GetName()}"
-                unbuffered_data.SetValue(variable_name, control.GetEmptyField(), overwrite=True)
 

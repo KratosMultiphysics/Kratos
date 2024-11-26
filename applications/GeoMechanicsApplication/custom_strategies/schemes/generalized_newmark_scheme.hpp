@@ -149,7 +149,7 @@ protected:
         for (const auto& r_second_order_vector_variable : this->GetSecondOrderVectorVariables()) {
             if (!rNode.SolutionStepsDataHas(r_second_order_vector_variable.instance)) continue;
 
-            const auto updated_first_derivative =
+            const array_1d<double, 3> updated_first_derivative =
                 rNode.FastGetSolutionStepValue(r_second_order_vector_variable.first_time_derivative, 1) +
                 (1.0 - GetGamma()) * this->GetDeltaTime() *
                     rNode.FastGetSolutionStepValue(r_second_order_vector_variable.second_time_derivative, 1) +
@@ -166,7 +166,7 @@ protected:
         for (const auto& r_second_order_vector_variable : this->GetSecondOrderVectorVariables()) {
             if (!rNode.SolutionStepsDataHas(r_second_order_vector_variable.instance)) continue;
 
-            const auto updated_second_time_derivative =
+            const array_1d<double, 3> updated_second_time_derivative =
                 ((rNode.FastGetSolutionStepValue(r_second_order_vector_variable.instance, 0) -
                   rNode.FastGetSolutionStepValue(r_second_order_vector_variable.instance, 1)) -
                  this->GetDeltaTime() * rNode.FastGetSolutionStepValue(

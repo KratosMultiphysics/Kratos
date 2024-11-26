@@ -98,4 +98,8 @@ namespace Kratos {
         mKt = mKn / (2.0 * (equiv_poisson + 1.0));
     }
 
+    double DEM_D_Quadratic::GetTangentialStiffness() {
+        return mKt;
+    }
+
 } //namespace Kratos

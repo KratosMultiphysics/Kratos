@@ -288,8 +288,6 @@ void TransientPwElement<TDim, TNumNodes>::InitializeNonLinearIteration(const Pro
     // nothing
 }
 
-//----------------------------------------------------------------------------------------------------
-
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::FinalizeNonLinearIteration(const ProcessInfo&)
 {

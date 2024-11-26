@@ -93,7 +93,6 @@
         "check"         : "DirectorVectorNonZero direction",
         "process_name"  : "AssignVectorByDirectionToConditionProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.PointLoad3D_neumann_x",
             "variable_name"   : "POINT_LOAD",
             "modulus"         : 1.0,
@@ -107,7 +106,6 @@
         "check"         : "DirectorVectorNonZero direction",
         "process_name"  : "AssignVectorByDirectionToConditionProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.PointLoad3D_neumann_y",
             "variable_name"   : "POINT_LOAD",
             "modulus"         : 1.0,

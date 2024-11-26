@@ -22,15 +22,11 @@
 // Project includes
 #include "includes/define_python.h"
 
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
 
 void AddCustomConstitutiveLawsToPython(pybind11::module& m);
 
-} // namespace Python.
-} // namespace Kratos.
+} // namespace Kratos::Python.
 
 #endif // KRATOS_ADD_CONSTITUTIVE_LAWS_TO_PYTHON_H_INCLUDED  defined

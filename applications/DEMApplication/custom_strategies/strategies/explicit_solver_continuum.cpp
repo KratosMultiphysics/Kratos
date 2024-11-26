@@ -97,6 +97,11 @@ namespace Kratos {
             //RebuildListsOfPointersOfEachParticle(); //Serialized pointers are lost, so we rebuild them using Id's
         }
 
+        // Finding overlapping of initial configurations
+        if (r_process_info[CLEAN_INDENT_OPTION]) {
+            for (int i = 0; i < 10; i++) CalculateInitialMaxIndentations(r_process_info);
+        }
+
         if (fem_model_part.Nodes().size() > 0) {
             SetSearchRadiiWithFemOnAllParticles(r_model_part, mpDem_model_part->GetProcessInfo()[SEARCH_RADIUS_INCREMENT_FOR_WALLS], 1.0);
             SearchRigidFaceNeighbours();
@@ -125,11 +130,6 @@ namespace Kratos {
             SetInitialDemContacts();
             ComputeNewNeighboursHistoricalData();
         }
-
-
-
-
-
 
         AttachSpheresToStickyWalls();
 
@@ -681,7 +681,7 @@ namespace Kratos {
         p_creator_destructor->MarkDistantParticlesForErasing<SphericParticle>(r_model_part);
 
         if (r_process_info[IS_TIME_TO_PRINT] && r_process_info[CONTACT_MESH_OPTION] == 1) {
-            p_creator_destructor->MarkContactElementsForErasing(r_model_part, *mpContact_model_part);
+            p_creator_destructor->MarkContactElementsForErasingContinuum(r_model_part, *mpContact_model_part);
             p_creator_destructor->DestroyContactElements(*mpContact_model_part);
         }
         p_creator_destructor->DestroyParticles<SphericParticle>(r_model_part);

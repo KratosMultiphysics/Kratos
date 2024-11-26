@@ -94,28 +94,27 @@ using namespace Kratos;
 namespace Kratos::Testing
 {
 
-using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
-using DenseSpaceType = UblasSpace<double, Matrix, Vector>;
+using SparseSpaceType  = UblasSpace<double, CompressedMatrix, Vector>;
+using DenseSpaceType   = UblasSpace<double, Matrix, Vector>;
 using LinearSolverType = LinearSolver<SparseSpaceType, DenseSpaceType>;
 using SolvingStrategyFactoryType = SolvingStrategyFactory<SparseSpaceType, DenseSpaceType, LinearSolverType>;
 using SolvingStrategyWrapperType = SolvingStrategyWrapper<SparseSpaceType, DenseSpaceType>;
 
-
 SolvingStrategyWrapperType CreateWrapperWithDefaultProcessInfoEntries(ModelPart& rModelPart)
 {
-    auto info = std::make_shared<ProcessInfo>();
+    auto info                    = std::make_shared<ProcessInfo>();
     (*info)[NL_ITERATION_NUMBER] = 5;
-    (*info)[TIME] = 17.0;
-    (*info)[DELTA_TIME] = 3.4;
-    (*info)[STEP] = 3;
+    (*info)[TIME]                = 17.0;
+    (*info)[DELTA_TIME]          = 3.4;
+    (*info)[STEP]                = 3;
     rModelPart.SetProcessInfo(info);
     return SolvingStrategyWrapperType{SolvingStrategyFactoryType::Create(Parameters{testParameters}, rModelPart)};
 }
 
 ModelPart& CreateDummyModelPart(Model& rModel)
 {
-    const auto buffer_size = ModelPart::IndexType{2};
-    auto& r_model_part = rModel.CreateModelPart("dummy", buffer_size);
+    const auto buffer_size  = ModelPart::IndexType{2};
+    auto&      r_model_part = rModel.CreateModelPart("dummy", buffer_size);
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
     return r_model_part;
 }
@@ -123,14 +122,15 @@ ModelPart& CreateDummyModelPart(Model& rModel)
 SolvingStrategyWrapperType CreateWrapperWithEmptyProcessInfo(ModelPart& rModelPart)
 {
     const auto reset_displacements = true;
-    return SolvingStrategyWrapperType{SolvingStrategyFactoryType::Create(Parameters{testParameters}, rModelPart), reset_displacements};
+    return SolvingStrategyWrapperType{
+        SolvingStrategyFactoryType::Create(Parameters{testParameters}, rModelPart), reset_displacements};
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GetNumberOfIterationsFromStrategyWrapper_ReturnsCorrectNumber, KratosGeoMechanicsFastSuite)
 {
     Model model;
     auto& r_model_part = CreateDummyModelPart(model);
-    auto  wrapper     = CreateWrapperWithDefaultProcessInfoEntries(r_model_part);
+    auto  wrapper      = CreateWrapperWithDefaultProcessInfoEntries(r_model_part);
 
     KRATOS_EXPECT_EQ(wrapper.GetNumberOfIterations(), 5);
 }
@@ -215,19 +215,20 @@ KRATOS_TEST_CASE_IN_SUITE(SaveAndAccumulateTotalDisplacementField, KratosGeoMech
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
     r_model_part.AddNodalSolutionStepVariable(TOTAL_DISPLACEMENT);
 
-    auto p_node = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    const auto original_total_displacement = array_1d<double, 3>{1.0, 2.0, 3.0};
+    auto       p_node                                = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    const auto original_total_displacement           = array_1d<double, 3>{1.0, 2.0, 3.0};
     p_node->GetSolutionStepValue(TOTAL_DISPLACEMENT) = original_total_displacement;
 
     // Saving the total displacement field twice should still result in the same expected result.
     strategy_wrapper.SaveTotalDisplacementFieldAtStartOfTimeLoop();
     strategy_wrapper.SaveTotalDisplacementFieldAtStartOfTimeLoop();
 
-    const auto displacement_in_time_step = array_1d<double, 3>{3.0, 2.0, 1.0};
+    const auto displacement_in_time_step       = array_1d<double, 3>{3.0, 2.0, 1.0};
     p_node->GetSolutionStepValue(DISPLACEMENT) = displacement_in_time_step;
     strategy_wrapper.AccumulateTotalDisplacementField();
 
-    const auto expected_total_displacement = array_1d<double, 3>{original_total_displacement + displacement_in_time_step};
+    const auto expected_total_displacement =
+        array_1d<double, 3>{original_total_displacement + displacement_in_time_step};
 
     KRATOS_EXPECT_EQ(p_node->GetSolutionStepValue(TOTAL_DISPLACEMENT), expected_total_displacement);
 }
@@ -242,31 +243,34 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeIncrementalDisplacementField, KratosGeoMechanic
 
     auto p_node = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
 
-    const auto displacement_start_time_step = array_1d<double, 3>{3.0, 2.0, 1.0};
-    const auto displacement_end_time_step   = array_1d<double, 3>{6.0, 4.0, 2.0};
+    const auto displacement_start_time_step       = array_1d<double, 3>{3.0, 2.0, 1.0};
+    const auto displacement_end_time_step         = array_1d<double, 3>{6.0, 4.0, 2.0};
     p_node->GetSolutionStepValue(DISPLACEMENT, 1) = displacement_start_time_step;
     p_node->GetSolutionStepValue(DISPLACEMENT, 0) = displacement_end_time_step;
     strategy_wrapper.ComputeIncrementalDisplacementField();
 
-    const auto expected_incremental_displacement = array_1d<double, 3>{ displacement_end_time_step - displacement_start_time_step};
+    const auto expected_incremental_displacement =
+        array_1d<double, 3>{displacement_end_time_step - displacement_start_time_step};
     KRATOS_EXPECT_EQ(p_node->GetSolutionStepValue(INCREMENTAL_DISPLACEMENT), expected_incremental_displacement);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RestorePositionsAndDOFVectorToStartOfStep_UpdatesPosition, KratosGeoMechanicsFastSuite)
 {
     Model model;
-    auto& r_model_part       = CreateDummyModelPart(model);
+    auto& r_model_part     = CreateDummyModelPart(model);
     auto  strategy_wrapper = CreateWrapperWithEmptyProcessInfo(r_model_part);
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
 
     const auto initial_position = array_1d<double, 3>{1.0, 2.0, 3.0};
-    auto p_node = r_model_part.CreateNewNode(1, initial_position[0], initial_position[1], initial_position[2]);
+    auto       p_node =
+        r_model_part.CreateNewNode(1, initial_position[0], initial_position[1], initial_position[2]);
 
-    const auto displacement_in_time_step = array_1d<double, 3>{3.0, 2.0, 1.0};
+    const auto displacement_in_time_step          = array_1d<double, 3>{3.0, 2.0, 1.0};
     p_node->GetSolutionStepValue(DISPLACEMENT, 1) = displacement_in_time_step;
     strategy_wrapper.RestorePositionsAndDOFVectorToStartOfStep();
 
-    const auto expected_position_after_displacement = array_1d<double, 3>{initial_position + displacement_in_time_step};
+    const auto expected_position_after_displacement =
+        array_1d<double, 3>{initial_position + displacement_in_time_step};
 
     KRATOS_EXPECT_VECTOR_EQ(p_node->Coordinates(), expected_position_after_displacement)
 }
@@ -274,22 +278,22 @@ KRATOS_TEST_CASE_IN_SUITE(RestorePositionsAndDOFVectorToStartOfStep_UpdatesPosit
 KRATOS_TEST_CASE_IN_SUITE(RestoreNodalDisplacementsAndWaterPressuresOnRequest, KratosGeoMechanicsFastSuite)
 {
     Model model;
-    auto& r_model_part       = CreateDummyModelPart(model);
+    auto& r_model_part     = CreateDummyModelPart(model);
     auto  strategy_wrapper = CreateWrapperWithEmptyProcessInfo(r_model_part);
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
     r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
 
     // Define the old Degrees of Freedom
-    auto p_node = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    const auto old_displacement = array_1d<double, 3>{1.0, 2.0, 3.0};
-    p_node->GetSolutionStepValue(DISPLACEMENT, 1) = old_displacement;
-    const auto old_water_pressure = 4.0;
+    auto       p_node                               = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    const auto old_displacement                     = array_1d<double, 3>{1.0, 2.0, 3.0};
+    p_node->GetSolutionStepValue(DISPLACEMENT, 1)   = old_displacement;
+    const auto old_water_pressure                   = 4.0;
     p_node->GetSolutionStepValue(WATER_PRESSURE, 1) = old_water_pressure;
 
     // Set some new Degrees of Freedom (emulating a time step calculation)
-    const auto new_displacement = array_1d<double, 3>{10.0, 20.0, 30.0};
-    p_node->GetSolutionStepValue(DISPLACEMENT, 0) = new_displacement;
-    const auto new_water_pressure = 40.0;
+    const auto new_displacement                     = array_1d<double, 3>{10.0, 20.0, 30.0};
+    p_node->GetSolutionStepValue(DISPLACEMENT, 0)   = new_displacement;
+    const auto new_water_pressure                   = 40.0;
     p_node->GetSolutionStepValue(WATER_PRESSURE, 0) = new_water_pressure;
 
     strategy_wrapper.RestorePositionsAndDOFVectorToStartOfStep();
@@ -301,23 +305,23 @@ KRATOS_TEST_CASE_IN_SUITE(RestoreNodalDisplacementsAndWaterPressuresOnRequest, K
 KRATOS_TEST_CASE_IN_SUITE(RestoreNodalDisplacementsAndRotationsOnRequest, KratosGeoMechanicsFastSuite)
 {
     Model model;
-    auto& r_model_part       = CreateDummyModelPart(model);
+    auto& r_model_part     = CreateDummyModelPart(model);
     auto  strategy_wrapper = CreateWrapperWithEmptyProcessInfo(r_model_part);
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
     r_model_part.AddNodalSolutionStepVariable(ROTATION);
 
     // Define the old Degrees of Freedom
-    auto p_node = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    const auto old_displacement = array_1d<double, 3>{1.0, 2.0, 3.0};
+    auto       p_node                             = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    const auto old_displacement                   = array_1d<double, 3>{1.0, 2.0, 3.0};
     p_node->GetSolutionStepValue(DISPLACEMENT, 1) = old_displacement;
-    const auto old_rotation = array_1d<double, 3>{5.0, 6.0, 7.0};
-    p_node->GetSolutionStepValue(ROTATION, 1) = old_rotation;
+    const auto old_rotation                       = array_1d<double, 3>{5.0, 6.0, 7.0};
+    p_node->GetSolutionStepValue(ROTATION, 1)     = old_rotation;
 
     // Set some new Degrees of Freedom (emulating a time step calculation)
-    const auto new_displacement = array_1d<double, 3>{10.0, 20.0, 30.0};
+    const auto new_displacement                   = array_1d<double, 3>{10.0, 20.0, 30.0};
     p_node->GetSolutionStepValue(DISPLACEMENT, 0) = new_displacement;
-    const auto new_rotation = array_1d<double, 3>{50.0, 60.0, 70.0};
-    p_node->GetSolutionStepValue(ROTATION, 0) = new_rotation;
+    const auto new_rotation                       = array_1d<double, 3>{50.0, 60.0, 70.0};
+    p_node->GetSolutionStepValue(ROTATION, 0)     = new_rotation;
 
     strategy_wrapper.RestorePositionsAndDOFVectorToStartOfStep();
 
@@ -325,4 +329,4 @@ KRATOS_TEST_CASE_IN_SUITE(RestoreNodalDisplacementsAndRotationsOnRequest, Kratos
     KRATOS_EXPECT_VECTOR_EQ(p_node->GetSolutionStepValue(ROTATION, 0), old_rotation)
 }
 
-}
+} // namespace Kratos::Testing

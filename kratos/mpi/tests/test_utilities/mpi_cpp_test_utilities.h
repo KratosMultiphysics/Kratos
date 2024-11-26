@@ -38,6 +38,28 @@ static void GenerateDistributedBarStructure(
     );
 
 /**
+* @brief It generates a triangle mesh
+* @param rModelPart The model part to be filled
+* @param rDataCommunicator The data communicator
+*/
+static void GenerateDistributedTriangleMesh(
+    ModelPart& rModelPart,
+    const DataCommunicator& rDataCommunicator
+    );
+
+/**
+* @brief It generates a Triforce mesh
+* @details  ▲
+*          ▲ ▲
+* @param rModelPart The model part to be filled
+* @param rDataCommunicator The data communicator
+*/
+static void GenerateDistributedTriforceMesh(
+    ModelPart& rModelPart,
+    const DataCommunicator& rDataCommunicator
+    );
+
+/**
  * @brief Synchronizes local pointers to global pointers of the given ModelPart using the provided
  * @details DataCommunicator and returns a shared pointer to a GlobalPointerCommunicator<Node>.
  * @param rModelPart the ModelPart to be synchronized

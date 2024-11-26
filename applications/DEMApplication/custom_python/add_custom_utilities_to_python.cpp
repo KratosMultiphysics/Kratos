@@ -186,6 +186,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("CreateSphericParticle", CreateSphericParticle6)
         .def("DestroyMarkedParticles", &ParticleCreatorDestructor::DestroyMarkedParticles)
         .def("MarkContactElementsForErasing", &ParticleCreatorDestructor::MarkContactElementsForErasing)
+        .def("MarkContactElementsForErasingContinuum", &ParticleCreatorDestructor::MarkContactElementsForErasingContinuum)
         .def("DestroyContactElements", &ParticleCreatorDestructor::DestroyContactElements)
         .def("MarkIsolatedParticlesForErasing", &ParticleCreatorDestructor::MarkIsolatedParticlesForErasing)
         ;
@@ -236,6 +237,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("CalculateTotalMomentum", &SphericElementGlobalPhysicsCalculator::CalculateTotalMomentum)
         .def("CalulateTotalAngularMomentum", &SphericElementGlobalPhysicsCalculator::CalulateTotalAngularMomentum)
         .def("CalculateSumOfInternalForces", &SphericElementGlobalPhysicsCalculator::CalculateSumOfInternalForces)
+        .def("CalculateParticleNumberTimesMaxNormalBallToBallForceTimesRadius", &SphericElementGlobalPhysicsCalculator::CalculateParticleNumberTimesMaxNormalBallToBallForceTimesRadius)
         ;
 
     void (DemSearchUtilities::*SearchNodeNeigboursDistancesMM)(ModelPart&,ModelPart&,const double&,const Variable<double>&) = &DemSearchUtilities::SearchNodeNeigboursDistances<Variable<double> >;

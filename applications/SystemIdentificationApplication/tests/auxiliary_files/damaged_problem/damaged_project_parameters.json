@@ -71,7 +71,6 @@
                 "check": "DirectorVectorNonZero direction",
                 "process_name": "AssignModulusAndDirectionToConditionsProcess",
                 "Parameters": {
-                    "mesh_id": 0,
                     "model_part_name": "Structure.load_boundary_P2",
                     "variable_name": "LINE_LOAD",
                     "modulus": 1000000.0,

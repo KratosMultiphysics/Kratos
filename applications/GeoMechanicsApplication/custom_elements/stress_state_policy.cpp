@@ -10,7 +10,6 @@
 //  Main authors:    Richard Faasse
 //                   Marjan Fathian
 //
-#pragma once
 
 #include "stress_state_policy.h"
 

@@ -21,7 +21,8 @@ using LocalSpaceType  = UblasSpace<double, Matrix, Vector>;
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(BackwardEulerPwScheme_UpdatesVariablesDerivatives_WhenPredictIsCalled, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(BackwardEulerPwScheme_UpdatesVariablesDerivatives_WhenPredictIsCalled,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     BackwardEulerQuasistaticPwScheme<SparseSpaceType, LocalSpaceType> scheme;
 

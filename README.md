@@ -4,13 +4,13 @@
 
 [![Release][release-image]][releases]
 <a href="https://github.com/KratosMultiphysics/Kratos/releases/latest"><img src="https://img.shields.io/github/release-date/KratosMultiphysics/Kratos?label="></a>
-<a href="https://github.com/KratosMultiphysics/Kratos/compare/Release-9.5...master"><img src="https://img.shields.io/github/commits-since/KratosMultiphysics/Kratos/latest?label=commits%20since"></a>
+<a href="https://github.com/KratosMultiphysics/Kratos/compare/Release-10.1...master"><img src="https://img.shields.io/github/commits-since/KratosMultiphysics/Kratos/latest?label=commits%20since"></a>
 <a href="https://github.com/KratosMultiphysics/Kratos/commit/master"><img src="https://img.shields.io/github/last-commit/KratosMultiphysics/Kratos?label=latest%20commit"></a>
 
 [![PyPI pyversions](https://img.shields.io/pypi/pyversions/KratosMultiphysics.svg)](https://pypi.org/project/KratosMultiphysics/)
 [![Downloads](https://pepy.tech/badge/KratosMultiphysics/month)](https://pepy.tech/project/KratosMultiphysics)
 
-[release-image]: https://img.shields.io/badge/release-9.5-green.svg?style=flat
+[release-image]: https://img.shields.io/badge/release-10.1-green.svg?style=flat
 [releases]: https://github.com/KratosMultiphysics/Kratos/releases
 
 [license-image]: https://img.shields.io/badge/license-BSD-green.svg?style=flat
@@ -159,4 +159,4 @@ Some users of the technologies developed in Kratos are:
 Please, use the following references when citing Kratos in your work.
 - [Dadvand, P., Rossi, R. & Oñate, E. An Object-oriented Environment for Developing Finite Element Codes for Multi-disciplinary Applications. Arch Computat Methods Eng 17, 253–297 (2010). https://doi.org/10.1007/s11831-010-9045-2](https://doi.org/10.1007/s11831-010-9045-2)
 - [Dadvand, P., Rossi, R., Gil, M., Martorell, X., Cotela, J., Juanpere, E., Idelsohn, S., Oñate, E. (2013). Migration of a generic multi-physics framework to HPC environments. Computers & Fluids. 80. 301–309. 10.1016/j.compfluid.2012.02.004.](10.1016/j.compfluid.2012.02.004)
-- [Vicente Mataix Ferrándiz, Philipp Bucher, Rubén Zorrilla, Suneth Warnakulasuriya, Riccardo Rossi, Alejandro Cornejo, jcotela, Carlos Roig, Josep Maria, tteschemacher, Miguel Masó, Guillermo Casas, Marc Núñez, Pooyan Dadvand, Salva Latorre, Ignasi de Pouplana, Joaquín Irazábal González, AFranci, Ferran Arrufat, riccardotosi, Aditya Ghantasala, Klaus Bernd Sautter, Peter Wilson, dbaumgaertner, Bodhinanda Chandra, Armin Geiser, Inigo Lopez, lluís, jgonzalezusua, Javi Gárate. (2024). KratosMultiphysics/Kratos: Release 9.5 (v9.5). Zenodo. https://doi.org/10.5281/zenodo.3234644](https://zenodo.org/records/6926179)
+- [Vicente Mataix Ferrándiz, Philipp Bucher, Rubén Zorrilla, Suneth Warnakulasuriya, Riccardo Rossi, Alejandro Cornejo, jcotela, Carlos Roig, Josep Maria, tteschemacher, Miguel Masó, Guillermo Casas, Marc Núñez, Pooyan Dadvand, Salva Latorre, Ignasi de Pouplana, Joaquín Irazábal González, AFranci, Ferran Arrufat, riccardotosi, Aditya Ghantasala, Klaus Bernd Sautter, Peter Wilson, dbaumgaertner, Bodhinanda Chandra, Armin Geiser, Inigo Lopez, lluís, jgonzalezusua, Javi Gárate. (2024). KratosMultiphysics/Kratos: Release 10.1 (v10.1). Zenodo. https://doi.org/10.5281/zenodo.3234644](https://zenodo.org/records/6926179)

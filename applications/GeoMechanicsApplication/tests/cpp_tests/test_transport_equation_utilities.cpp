@@ -42,7 +42,8 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBiotModulusInverse_GivesExpectedResult, Krato
         expected_value);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateBiotModulusInverse_ReturnsLargeNumber_WhenIgnoreUndrained, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(CalculateBiotModulusInverse_ReturnsLargeNumber_WhenIgnoreUndrained,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Properties properties;
     properties[IGNORE_UNDRAINED]                       = true;
@@ -85,7 +86,8 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBulkModulus_Throws_WhenConstitutiveMatrixIsEm
         "Constitutive matrix is empty, aborting bulk modulus calculation.")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateBulkModulus_GivesExpectedResult_ForFilledConstitutiveMatrix, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(CalculateBulkModulus_GivesExpectedResult_ForFilledConstitutiveMatrix,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Matrix constitutive_matrix(3, 3);
     constitutive_matrix <<= 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0;
@@ -125,7 +127,8 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBiotCoefficients_GivesExpectedResults, Kratos
     KRATOS_CHECK_VECTOR_NEAR(expected_values, actual_values, 1e-12)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateBiotCoefficients_GivesInfResults_ForZeroBulkModulus, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(CalculateBiotCoefficients_GivesInfResults_ForZeroBulkModulus,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     std::vector<Matrix> constitutive_matrices;
     constitutive_matrices.emplace_back(ScalarMatrix(3, 3, 1.0));
@@ -142,7 +145,8 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBiotCoefficients_GivesInfResults_ForZeroBulkM
                                    [](const double value) { return std::isinf(value); }))
 }
 
-KRATOS_TEST_CASE_IN_SUITE(EachFluidPressureIsTheInnerProductOfShapeFunctionsAndPressure, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(EachFluidPressureIsTheInnerProductOfShapeFunctionsAndPressure,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto shape_function_values = Matrix{3, 3, 0.0};
     // clang-format off
@@ -160,7 +164,8 @@ KRATOS_TEST_CASE_IN_SUITE(EachFluidPressureIsTheInnerProductOfShapeFunctionsAndP
                               expected_fluid_pressures, tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(PermeabilityUpdateFactorEqualsOneWhenChangeInverseFactorIsNotGiven, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(PermeabilityUpdateFactorEqualsOneWhenChangeInverseFactorIsNotGiven,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto unused_strain_vectors = std::vector<Vector>(3, Vector{});
     auto       properties            = Properties{};
@@ -171,10 +176,11 @@ KRATOS_TEST_CASE_IN_SUITE(PermeabilityUpdateFactorEqualsOneWhenChangeInverseFact
                               expected_factors, tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(PermeabilityUpdateFactorEqualsOneWhenChangeInverseFactorIsNonPositive, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(PermeabilityUpdateFactorEqualsOneWhenChangeInverseFactorIsNonPositive,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto unused_strain_vectors = std::vector<Vector>(3, Vector{});
-    auto       properties            = Properties{};
+    const auto unused_strain_vectors               = std::vector<Vector>(3, Vector{});
+    auto       properties                          = Properties{};
     properties[PERMEABILITY_CHANGE_INVERSE_FACTOR] = -1.0;
 
     const auto expected_factors = std::vector<double>(unused_strain_vectors.size(), 1.0);
@@ -189,7 +195,8 @@ KRATOS_TEST_CASE_IN_SUITE(PermeabilityUpdateFactorEqualsOneWhenChangeInverseFact
                               expected_factors, tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(PermeabilityUpdateFactorIsComputedFromStrainsAndPropertiesWhenChangeInverseFactorIsPositive, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(PermeabilityUpdateFactorIsComputedFromStrainsAndPropertiesWhenChangeInverseFactorIsPositive,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto test_strains = Vector{3};
     test_strains <<= 0.001, 0.002, 0.0;
@@ -200,9 +207,9 @@ KRATOS_TEST_CASE_IN_SUITE(PermeabilityUpdateFactorIsComputedFromStrainsAndProper
     properties[POROSITY]                           = 0.2;
 
     const auto expected_factors = std::vector<double>{1.00433, 1.0087, 1.01753};
-    KRATOS_EXPECT_VECTOR_NEAR(GeoTransportEquationUtilities::CalculatePermeabilityUpdateFactors(
-                                  strain_vectors, properties),
-                              expected_factors, 1e-5)
+    KRATOS_EXPECT_VECTOR_NEAR(
+        GeoTransportEquationUtilities::CalculatePermeabilityUpdateFactors(strain_vectors, properties),
+        expected_factors, 1e-5)
 }
 
 } // namespace Kratos::Testing

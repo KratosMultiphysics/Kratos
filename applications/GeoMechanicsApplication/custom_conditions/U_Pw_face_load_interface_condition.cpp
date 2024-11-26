@@ -28,8 +28,6 @@ Condition::Pointer UPwFaceLoadInterfaceCondition<TDim, TNumNodes>::Create(IndexT
         NewId, this->GetGeometry().Create(ThisNodes), pProperties));
 }
 
-//----------------------------------------------------------------------------------------
-
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwFaceLoadInterfaceCondition<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
@@ -43,8 +41,6 @@ void UPwFaceLoadInterfaceCondition<TDim, TNumNodes>::Initialize(const ProcessInf
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 template <>
 void UPwFaceLoadInterfaceCondition<2, 2>::CalculateInitialGap(const GeometryType& Geom)
 {
@@ -54,8 +50,6 @@ void UPwFaceLoadInterfaceCondition<2, 2>::CalculateInitialGap(const GeometryType
     noalias(Vx)    = Geom.GetPoint(1) - Geom.GetPoint(0);
     mInitialGap[0] = norm_2(Vx);
 }
-
-//----------------------------------------------------------------------------------------
 
 template <>
 void UPwFaceLoadInterfaceCondition<3, 4>::CalculateInitialGap(const GeometryType& Geom)
@@ -69,8 +63,6 @@ void UPwFaceLoadInterfaceCondition<3, 4>::CalculateInitialGap(const GeometryType
     noalias(Vx)    = Geom.GetPoint(2) - Geom.GetPoint(1);
     mInitialGap[1] = norm_2(Vx);
 }
-
-//----------------------------------------------------------------------------------------
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwFaceLoadInterfaceCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rRightHandSideVector,
@@ -129,8 +121,6 @@ void UPwFaceLoadInterfaceCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rR
     }
 }
 
-//----------------------------------------------------------------------------------------
-
 template <>
 void UPwFaceLoadInterfaceCondition<2, 2>::CheckJointWidth(double& rJointWidth,
                                                           bool&   rComputeJointWidth,
@@ -184,8 +174,6 @@ void UPwFaceLoadInterfaceCondition<2, 2>::CheckJointWidth(double& rJointWidth,
         rComputeJointWidth = false;
     }
 }
-
-//----------------------------------------------------------------------------------------
 
 template <>
 void UPwFaceLoadInterfaceCondition<3, 4>::CheckJointWidth(double& rJointWidth,
@@ -243,8 +231,6 @@ void UPwFaceLoadInterfaceCondition<3, 4>::CheckJointWidth(double& rJointWidth,
     }
 }
 
-//----------------------------------------------------------------------------------------
-
 template <>
 void UPwFaceLoadInterfaceCondition<2, 2>::CalculateJointWidth(double& rJointWidth,
                                                               const BoundedMatrix<double, 2, 4>& Nu,
@@ -266,8 +252,6 @@ void UPwFaceLoadInterfaceCondition<2, 2>::CalculateJointWidth(double& rJointWidt
         rJointWidth = MinimumJointWidth;
     }
 }
-
-//----------------------------------------------------------------------------------------
 
 template <>
 void UPwFaceLoadInterfaceCondition<3, 4>::CalculateJointWidth(double& rJointWidth,
@@ -291,8 +275,6 @@ void UPwFaceLoadInterfaceCondition<3, 4>::CalculateJointWidth(double& rJointWidt
     }
 }
 
-//----------------------------------------------------------------------------------------
-
 template <>
 double UPwFaceLoadInterfaceCondition<2, 2>::CalculateIntegrationCoefficient(const Matrix& Jacobian,
                                                                             const double& Weight,
@@ -302,8 +284,6 @@ double UPwFaceLoadInterfaceCondition<2, 2>::CalculateIntegrationCoefficient(cons
     //       In a normal line load we would have |J| * w = L/2.0 * 2.0 = L
     return JointWidth;
 }
-
-//----------------------------------------------------------------------------------------
 
 template <>
 double UPwFaceLoadInterfaceCondition<3, 4>::CalculateIntegrationCoefficient(const Matrix& Jacobian,
@@ -318,7 +298,11 @@ double UPwFaceLoadInterfaceCondition<3, 4>::CalculateIntegrationCoefficient(cons
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+template <unsigned int TDim, unsigned int TNumNodes>
+std::string UPwFaceLoadInterfaceCondition<TDim, TNumNodes>::Info() const
+{
+    return "UPwFaceLoadInterfaceCondition";
+}
 
 template class UPwFaceLoadInterfaceCondition<2, 2>;
 template class UPwFaceLoadInterfaceCondition<3, 4>;

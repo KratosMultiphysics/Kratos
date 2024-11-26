@@ -30,7 +30,7 @@ The mesh with hexa elements is given in the following figure.
 
 The material is described using:
 
--   A linear elastic 3D model (LinearElastic3DLaw),
+-   A linear elastic 3D model (GeoIncrementalLinearElastic3DLaw),
 -   Young's modulus is $E$=10 $[MPa]$
 -   Poisson's ratio is $\nu$=0.2,
 -   Density of solid is $\rho$=2.65 $[ton/m^3]$,

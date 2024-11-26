@@ -122,7 +122,8 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_InitializesNodalArea, KratosG
     KRATOS_EXPECT_VECTOR_NEAR(actual_values, expected_values, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForConstantField, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForConstantField,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     //   This test uses the following two-element system.
     //   4------3------6
@@ -183,7 +184,8 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForTwoCo
     KRATOS_EXPECT_VECTOR_NEAR(actual_values, expected_values, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForLinearFields, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForLinearFields,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     //   This test uses the following two-element system.
     //   4------3------6
@@ -218,7 +220,8 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForLinea
     KRATOS_EXPECT_VECTOR_NEAR(actual_values, expected_values, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesMatrixCorrectlyForLinearFields, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesMatrixCorrectlyForLinearFields,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     //   This test uses the following two-element system.
     //   4------3------6
@@ -261,7 +264,8 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesMatrixCorrectlyFo
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesVectorCorrectlyForLinearFields, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesVectorCorrectlyForLinearFields,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     //   This test uses the following two-element system.
     //   4------3------6
@@ -303,7 +307,8 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesVectorCorrectlyFo
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesArrayCorrectlyForLinearFields, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesArrayCorrectlyForLinearFields,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     //   This test uses the following two-element system.
     //   4------3------6

@@ -6,7 +6,7 @@ import KratosMultiphysics
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from KratosMultiphysics.MPMApplication import particle_mechanics_analysis
+from KratosMultiphysics.MPMApplication import mpm_analysis
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
@@ -95,8 +95,8 @@ class MPMRestartTestFactory(KratosUnittest.TestCase):
 
             model_save = KratosMultiphysics.Model()
             model_load = KratosMultiphysics.Model()
-            particle_mechanics_analysis.ParticleMechanicsAnalysis(model_save, self.project_parameters_save).Run()
-            particle_mechanics_analysis.ParticleMechanicsAnalysis(model_load, self.project_parameters_load).Run()
+            mpm_analysis.MpmAnalysis(model_save, self.project_parameters_save).Run()
+            mpm_analysis.MpmAnalysis(model_load, self.project_parameters_load).Run()
 
 
 class MPMRestartTestDynamicCantilever2D(MPMRestartTestFactory):

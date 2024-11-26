@@ -11,7 +11,7 @@ A schematic depiction of the test case is shown below:
 -   Constraints:
     -   The X, Y and Z displacements in the bottom four nodes (1, 2, 3 and 4) are fixed.
 -   Material:
-    -   The material is described using a linear elastic material with a `LinearElastic3DLaw`, a Young's modulus
+    -   The material is described using a linear elastic material with a `GeoIncrementalLinearElastic3DLaw`, a Young's modulus
         of 3.0e7 [kPa] and a Poisson ratio of 0.0.
 -   Conditions:
     -   A UpwNormalFaceLoadCondition3D4N is added to the top of the cube (nodes 5, 6, 7 and 8).

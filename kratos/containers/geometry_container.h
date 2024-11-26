@@ -18,7 +18,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "containers/pointer_hash_map_set.h"
+#include "containers/pointer_vector_set.h"
 
 
 namespace Kratos
@@ -51,15 +51,12 @@ public:
 
     typedef typename TGeometryType::Pointer GeometryPointerType;
 
-
-    /// Geometry Hash Map Container.
-    // Stores with hash of Ids to corresponding geometries.
-    typedef PointerHashMapSet<
+    /// Geometry pointer container
+    using GeometriesMapType = PointerVectorSet<
         TGeometryType,
-        std::hash<std::size_t>,
         GetGeometryId,
-        GeometryPointerType
-        > GeometriesMapType;
+        std::less<typename TGeometryType::IndexType>,
+        std::equal_to<typename TGeometryType::IndexType>>;
 
     /// Geometry Iterator
     typedef typename GeometriesMapType::iterator GeometryIterator;
@@ -128,8 +125,17 @@ public:
             return mGeometries.insert(pNewGeometry);
         } else if (&(*i) == pNewGeometry.get()) { // check if the pointee coincides
             return i;
-        } else {
-            KRATOS_ERROR << "Attempting to add Geometry with Id: " << pNewGeometry->Id() << ", unfortunately a (different) geometry with the same Id already exists!" << std::endl;
+        } else { // Check if the connectivities coincide
+            // First check for the geometry type
+            KRATOS_ERROR_IF_NOT(TGeometryType::HasSameGeometryType(*i, *pNewGeometry)) << "Attempting to add geometry with Id: " << pNewGeometry->Id() << ". A different geometry with the same Id already exists." << std::endl;
+            // Check that the connectivities are the same
+            // note that we deliberately check the node ids and not the pointer adresses as there might be very rare situations
+
+            // (e.g., creating nodes bypassing the model part interface) with same connectivities but different pointer addresses
+            for (IndexType i_node = 0; i_node < i->PointsNumber(); ++i_node) {
+                KRATOS_ERROR_IF((*i)[i_node].Id() != (*pNewGeometry)[i_node].Id()) << "Attempting to add a new geometry with Id: " << pNewGeometry->Id() << ". A same type geometry with same Id but different connectivities already exists." << std::endl;
+            }
+            return i;
         }
     }
 
@@ -143,7 +149,7 @@ public:
         auto i = mGeometries.find(GeometryId);
         KRATOS_ERROR_IF(i == mGeometries.end())
             << " geometry index not found: " << GeometryId << ".";
-        return (i.base()->second);
+        return *(i.base());
     }
 
     /// Returns the const Geometry::Pointer corresponding to its Id
@@ -152,7 +158,7 @@ public:
         auto i = mGeometries.find(GeometryId);
         KRATOS_ERROR_IF(i == mGeometries.end())
             << " geometry index not found: " << GeometryId << ".";
-        return (i.base()->second);
+        return *(i.base());
     }
 
     /// Returns the Geometry::Pointer corresponding to its name
@@ -162,7 +168,7 @@ public:
         auto i = mGeometries.find(hash_index);
         KRATOS_ERROR_IF(i == mGeometries.end())
             << " geometry index not found: " << GeometryName << ".";
-        return (i.base()->second);
+        return *(i.base());
     }
 
     /// Returns the Geometry::Pointer corresponding to its name
@@ -172,7 +178,7 @@ public:
         auto i = mGeometries.find(hash_index);
         KRATOS_ERROR_IF(i == mGeometries.end())
             << " geometry index not found: " << GeometryName << ".";
-        return (i.base()->second);
+        return *(i.base());
     }
 
     /// Returns a reference geometry corresponding to the id

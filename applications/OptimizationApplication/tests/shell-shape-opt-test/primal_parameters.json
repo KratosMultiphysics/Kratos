@@ -36,7 +36,7 @@
                                 "block_size": 1,
                                 "use_block_matrices_if_possible" : true,
                                 "coarse_enough" : 5000
-                            } 
+                            }
     },
     "processes": {
         "constraints_process_list" : [{
@@ -57,7 +57,6 @@
             "help"                  : "This process fixes the selected components of a given vector variable",
             "process_name"          : "AssignVectorByDirectionToConditionProcess",
             "Parameters"            : {
-                "mesh_id"         : 0,
                 "model_part_name" : "shell.surface_load",
                 "variable_name"   : "SURFACE_LOAD",
                 "modulus"         : 1000.0,
@@ -77,7 +76,7 @@
             }
         }]
     },
-    
+
     "output_processes" : {
         "vtk_output" : [{
             "python_module" : "vtk_output_process",

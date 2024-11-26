@@ -47,7 +47,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckNewmarkTScheme_WithAllNecessaryParts_Returns0, Kr
 KRATOS_TEST_CASE_IN_SUITE(ForMissingNodalDof_CheckNewmarkTScheme_Throws, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     constexpr double theta = 0.75;
-    
+
     GeneralizedNewmarkTScheme<SparseSpaceType, LocalSpaceType> scheme(theta);
 
     Model model;
@@ -59,7 +59,8 @@ KRATOS_TEST_CASE_IN_SUITE(ForMissingNodalDof_CheckNewmarkTScheme_Throws, KratosG
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(scheme.Check(model_part), "missing TEMPERATURE dof on node ")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ForMissingDtTemperatureSolutionStepVariable_CheckNewmarkTScheme_Throws, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(ForMissingDtTemperatureSolutionStepVariable_CheckNewmarkTScheme_Throws,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     constexpr double theta = 0.75;
 
@@ -75,7 +76,8 @@ KRATOS_TEST_CASE_IN_SUITE(ForMissingDtTemperatureSolutionStepVariable_CheckNewma
                                       "DT_TEMPERATURE variable is not allocated for node 0")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ForMissingTemperatureSolutionStepVariable_CheckNewmarkTScheme_Throws, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(ForMissingTemperatureSolutionStepVariable_CheckNewmarkTScheme_Throws,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     constexpr double theta = 0.75;
 

@@ -396,6 +396,19 @@ double MPMParticleBaseCondition::GetIntegrationWeight()
     return m_area;
 }
 
+void MPMParticleBaseCondition::SetRotationUtility(const MPMParticleBaseCondition::RotationToolType *pRotationUtility)
+{
+    MPMParticleBaseCondition::p_rotation_tool = pRotationUtility;
+}
+
+const MPMParticleBaseCondition::RotationToolType& MPMParticleBaseCondition::GetRotationTool(){
+    if(p_rotation_tool){
+        return *p_rotation_tool;
+    } else {
+        KRATOS_ERROR << "Rotation tool must be set via SetRotationUtility() before use!" << std::endl;
+    }
+}
+
 } // Namespace Kratos
 
 

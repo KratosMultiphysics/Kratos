@@ -400,6 +400,12 @@ double GeoTMicroClimateFluxCondition<TDim, TNumNodes>::CalculateSurfaceRoughness
     return 1.0 / (1.0 + 15.0 * RichardsonBulkModulus * coefficient);
 }
 
+template <unsigned int TDim, unsigned int TNumNodes>
+std::string GeoTMicroClimateFluxCondition<TDim, TNumNodes>::Info() const
+{
+    return "GeoTMicroClimateFluxCondition";
+}
+
 template class GeoTMicroClimateFluxCondition<2, 2>;
 template class GeoTMicroClimateFluxCondition<2, 3>;
 template class GeoTMicroClimateFluxCondition<2, 4>;

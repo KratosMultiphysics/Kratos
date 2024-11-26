@@ -48,7 +48,7 @@ namespace Kratos {
 
         virtual void CalculateViscoDamping(double LocalRelVel[3],
                 double ViscoDampingLocalContactForce[3],
-                double indentation,
+                double indentation_particle,
                 double equiv_visco_damp_coeff_normal,
                 double equiv_visco_damp_coeff_tangential,
                 bool& sliding,
@@ -85,6 +85,10 @@ namespace Kratos {
                                                SphericContinuumParticle* element1,
                                                SphericContinuumParticle* element2, double indentation) {
             KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::CalculateElasticConstants) shouldn't be accessed, use derived class instead"<<std::endl;
+        };
+
+        virtual void GetGlobalJointNormal(double LocalJointNormal[3]){
+            KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::GetGlobalJointNormal) shouldn't be accessed, use derived class instead"<<std::endl;
         };
 
         virtual void CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,
@@ -128,6 +132,7 @@ namespace Kratos {
                                      double equiv_young,
                                      double equiv_shear,
                                      double indentation,
+                                     double indentation_particle,
                                      double calculation_area,
                                      double& acumulated_damage,
                                      SphericContinuumParticle* element1,
@@ -146,6 +151,7 @@ namespace Kratos {
                                            const double kn_el,
                                            double equiv_young,
                                            double indentation,
+                                           double indentation_particle,
                                            double calculation_area,
                                            double& acumulated_damage,
                                            SphericContinuumParticle* element1,
@@ -167,7 +173,7 @@ namespace Kratos {
                                                const double equiv_shear,
                                                double& contact_sigma,
                                                double& contact_tau,
-                                               double indentation,
+                                               double indentation_particle,
                                                double calculation_area,
                                                double& failure_criterion_state,
                                                SphericContinuumParticle* element1,
@@ -188,9 +194,9 @@ namespace Kratos {
                                       double ViscoLocalRotationalMoment[3], 
                                       double equiv_poisson, 
                                       double indentation, 
-                                      double LocalElasticContactForce[3],
+                                      double indentation_particle,
                                       double normalLocalContactForce,
-                                      double GlobalElasticContactForces[3],
+                                      double GlobalContactForce[3],
                                       double LocalCoordSystem_2[3],
                                       const int i_neighbor_count){
             KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::CalculateMoments) shouldn't be accessed, use derived class instead"<<std::endl;
@@ -205,8 +211,7 @@ namespace Kratos {
                                                 double ElasticLocalRotationalMoment[3],
                                                 double ViscoLocalRotationalMoment[3],
                                                 double equiv_poisson,
-                                                double indentation,
-                                                double LocalElasticContactForce[3]);
+                                                double indentation);
 
         virtual void AddPoissonContribution(const double equiv_poisson,
                                             double LocalCoordSystem[3][3],
@@ -224,6 +229,8 @@ namespace Kratos {
                                               SphericContinuumParticle* element2);
 
         virtual bool CheckRequirementsOfStressTensor();
+
+        virtual double GetTangentialStiffness();
 
     protected:
         Properties::Pointer mpProperties;

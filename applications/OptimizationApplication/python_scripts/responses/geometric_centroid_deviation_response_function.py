@@ -38,13 +38,10 @@ class GeometricCentroidDeviationResponseFunction(ResponseFunction):
     def GetImplementedPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
         return [KratosOA.SHAPE]
 
-    def GetEvaluatedModelPart(self) -> Kratos.ModelPart:
+    def GetInfluencingModelPart(self) -> Kratos.ModelPart:
         if self.model_part is None:
             raise RuntimeError("Please call GeometricCentroidDeviationResponseFunction::Initialize first.")
         return self.model_part
-
-    def GetAnalysisModelPart(self) -> None:
-        return None
 
     def Initialize(self) -> None:
         self.model_part = self.model_part_operation.GetModelPart()

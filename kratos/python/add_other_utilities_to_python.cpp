@@ -249,8 +249,10 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def_static("Start", &Timer::Start)
         .def_static("Stop", &Timer::Stop)
         .def_static("GetTime", &Timer::GetTime)
-        .def_static("SetOuputFile", &Timer::SetOuputFile)
-        .def_static("CloseOuputFile", &Timer::CloseOuputFile)
+        .def_static("SetOutputFile", &Timer::SetOutputFile)
+        .def_static("CloseOutputFile", &Timer::CloseOutputFile)
+        .def_static("SetOuputFile", &Timer::SetOuputFile) // TODO: Remove this line eventually, it is a typo
+        .def_static("CloseOuputFile", &Timer::CloseOuputFile) // TODO: Remove this line eventually, it is a typo
         .def_static("GetPrintOnScreen", &Timer::GetPrintOnScreen)
         .def_static("SetPrintOnScreen", &Timer::SetPrintOnScreen)
         .def_static("GetPrintIntervalInformation", &Timer::GetPrintIntervalInformation)

@@ -34,14 +34,12 @@ Condition::Pointer PwCondition<TDim, TNumNodes>::Create(IndexType NewId,
     return Condition::Pointer(new PwCondition(NewId, pGeom, pProperties));
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void PwCondition<TDim, TNumNodes>::GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo&) const
 {
     rConditionDofList = GetDofs();
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void PwCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
                                                         VectorType&        rRightHandSideVector,
@@ -66,8 +64,6 @@ void PwCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixType&        rLeft
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
-
 template <unsigned int TDim, unsigned int TNumNodes>
 void PwCondition<TDim, TNumNodes>::CalculateLeftHandSide(MatrixType&        rLeftHandSideMatrix,
                                                          const ProcessInfo& rCurrentProcessInfo)
@@ -79,7 +75,6 @@ void PwCondition<TDim, TNumNodes>::CalculateLeftHandSide(MatrixType&        rLef
     KRATOS_CATCH("");
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void PwCondition<TDim, TNumNodes>::CalculateRightHandSide(VectorType&        rRightHandSideVector,
                                                           const ProcessInfo& rCurrentProcessInfo)
@@ -98,14 +93,12 @@ void PwCondition<TDim, TNumNodes>::CalculateRightHandSide(VectorType&        rRi
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void PwCondition<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
 {
     rResult = Geo::DofUtilities::ExtractEquationIdsFrom(GetDofs());
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void PwCondition<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftHandSideMatrix,
                                                 VectorType&        rRightHandSideVector,
@@ -114,7 +107,6 @@ void PwCondition<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftHandSide
     this->CalculateRHS(rRightHandSideVector, CurrentProcessInfo);
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void PwCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo)
 {
@@ -133,7 +125,12 @@ Condition::DofsVectorType PwCondition<TDim, TNumNodes>::GetDofs() const
     return Geo::DofUtilities::ExtractDofsFromNodes(GetGeometry(), WATER_PRESSURE);
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+template <unsigned int TDim, unsigned int TNumNodes>
+std::string PwCondition<TDim, TNumNodes>::Info() const
+{
+    return "PwCondition";
+}
+
 template class PwCondition<2, 1>;
 template class PwCondition<2, 2>;
 template class PwCondition<2, 3>;

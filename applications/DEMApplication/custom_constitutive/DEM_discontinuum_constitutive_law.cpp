@@ -103,4 +103,9 @@ namespace Kratos {
         return 0.0;
     }
 
+    double DEMDiscontinuumConstitutiveLaw::GetTangentialStiffness(){
+        KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::GetTangentialStiffness) shouldn't be accessed, use derived class instead"<<std::endl;
+        return 0.0;
+    }
+
 } // KRATOS

@@ -516,21 +516,6 @@ private:
     }
 
     /**
-     * @brief Searchs in objects in the given cell for the ones with distance less than given radius + tolerance.
-     * @details This method takes a cell and a point and searchs in objects in the given cell for the ones with distance less than given radius + tolerance.
-     * @param rCell The cell to be checked
-     * @param rPoint The point to be checked
-     * @param Radius The radius to be considered
-     * @param rResults The results of the search
-     */
-    void SearchInRadiusInCell(
-        const CellType& rCell,
-        const PointType& rPoint,
-        const double Radius,
-        std::unordered_map<GeometricalObject*, double>& rResults
-        );
-
-    /**
      * @brief Searchs in objects in the given cell for the nearest one.
      * @details This method takes a cell and a point and searchs in objects in the given cell for the nearest one.
      * @param rCell The cell to be checked

@@ -8,7 +8,7 @@ from KratosMultiphysics.RomApplication.rom_database import RomDatabase
 from KratosMultiphysics.RomApplication.rom_testing_utilities import SetUpSimulationInstance
 from KratosMultiphysics.RomApplication.calculate_rom_basis_output_process import CalculateRomBasisOutputProcess
 from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition import RandomizedSingularValueDecomposition
-
+from KratosMultiphysics.RomApplication.rom_nn_interface import NN_ROM_Interface
 
 
 class RomManager(object):
@@ -45,14 +45,10 @@ class RomManager(object):
         if chosen_projection_strategy == "galerkin":
             if type_of_decoder =="ann_enhanced":
                 if any(item == "ROM" for item in training_stages):
-                    if self.rom_training_parameters["Parameters"]["print_singular_values"].GetBool() == False:
-                        err_msg = f'Data preparation for ann_enhanced ROM requires "print_singular_values" option to be True in the ROM parameters.'
-                        raise Exception(err_msg)
                     self._LaunchTrainROM(mu_train)
                     self._LaunchFOM(mu_validation) #What to do here with the gid and vtk results?
                     self.TrainAnnEnhancedROM(mu_train,mu_validation)
                     self._ChangeRomFlags(simulation_to_run = "GalerkinROM_ANN")
-                    NN_ROM_Interface = self._TryImportNNInterface()
                     nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
                     self._LaunchROM(mu_train, nn_rom_interface=nn_rom_interface)
                 if any(item == "HROM" for item in training_stages):
@@ -76,14 +72,10 @@ class RomManager(object):
         elif chosen_projection_strategy == "lspg":
             if type_of_decoder =="ann_enhanced":
                 if any(item == "ROM" for item in training_stages):
-                    if self.rom_training_parameters["Parameters"]["print_singular_values"].GetBool() == False:
-                        err_msg = f'Data preparation for ann_enhanced ROM requires "print_singular_values" option to be True in the ROM parameters.'
-                        raise Exception(err_msg)
                     self._LaunchTrainROM(mu_train)
                     self._LaunchFOM(mu_validation) #What to do here with the gid and vtk results?
                     self.TrainAnnEnhancedROM(mu_train,mu_validation)
                     self._ChangeRomFlags(simulation_to_run = "lspg_ANN")
-                    NN_ROM_Interface = self._TryImportNNInterface()
                     nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
                     self._LaunchROM(mu_train, nn_rom_interface=nn_rom_interface)
                 if any(item == "HROM" for item in training_stages):
@@ -149,7 +141,7 @@ class RomManager(object):
         self._LaunchTestNeuralNetworkReconstruction( mu_train, mu_validation)
 
 
-    def Test(self, mu_train=[None], mu_test=[None]):
+    def Test(self, mu_test=[None], mu_train=[None]):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         testing_stages = self.general_rom_manager_parameters["rom_stages_to_test"].GetStringArray()
         type_of_decoder = self.general_rom_manager_parameters["type_of_decoder"].GetString()
@@ -162,7 +154,6 @@ class RomManager(object):
                     self._LoadSolutionBasis(mu_train)
                     self._LaunchFOM(mu_test, gid_and_vtk_name='FOM_Test')
                     self._ChangeRomFlags(simulation_to_run = "GalerkinROM_ANN")
-                    NN_ROM_Interface = self._TryImportNNInterface()
                     nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
                     self._LaunchROM(mu_test, gid_and_vtk_name='ROM_Test', nn_rom_interface=nn_rom_interface)
                 if any(item == "HROM" for item in testing_stages):
@@ -189,7 +180,6 @@ class RomManager(object):
                     self._LoadSolutionBasis(mu_train)
                     self._LaunchFOM(mu_test, gid_and_vtk_name='FOM_Test')
                     self._ChangeRomFlags(simulation_to_run = "lspg_ANN")
-                    NN_ROM_Interface = self._TryImportNNInterface()
                     nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
                     self._LaunchROM(mu_test, gid_and_vtk_name='ROM_Test', nn_rom_interface=nn_rom_interface)
                 if any(item == "HROM" for item in testing_stages):
@@ -233,7 +223,7 @@ class RomManager(object):
         self._LaunchRunFOM(mu_run)
 
 
-    def RunROM(self, mu_train=[None], mu_run=[None]):
+    def RunROM(self, mu_run=[None], mu_train=[None]):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         type_of_decoder = self.general_rom_manager_parameters["type_of_decoder"].GetString()
         nn_rom_interface = None
@@ -243,7 +233,6 @@ class RomManager(object):
         if chosen_projection_strategy == "galerkin":
             if type_of_decoder =="ann_enhanced":
                 self._ChangeRomFlags(simulation_to_run = "GalerkinROM_ANN")
-                NN_ROM_Interface = self._TryImportNNInterface()
                 nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
             elif type_of_decoder =="linear":
                 self._ChangeRomFlags(simulation_to_run = "GalerkinROM")
@@ -252,7 +241,6 @@ class RomManager(object):
         elif chosen_projection_strategy == "lspg":
             if type_of_decoder =="ann_enhanced":
                 self._ChangeRomFlags(simulation_to_run = "lspg_ANN")
-                NN_ROM_Interface = self._TryImportNNInterface()
                 nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
             elif type_of_decoder =="linear":
                 self._ChangeRomFlags(simulation_to_run = "lspg")
@@ -273,7 +261,7 @@ class RomManager(object):
 
 
 
-    def RunHROM(self, mu_train=[None], mu_run=[None], use_full_model_part = False):
+    def RunHROM(self, mu_run=[None], mu_train=[None], use_full_model_part = False):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         type_of_decoder = self.general_rom_manager_parameters["type_of_decoder"].GetString()
         self._LoadSolutionBasis(mu_train)
@@ -371,7 +359,7 @@ class RomManager(object):
         This method should be parallel capable
         """
         self._LaunchFOM(mu_train)
-        self._LauchComputeSolutionBasis(mu_train)
+        self._LaunchComputeSolutionBasis(mu_train)
 
 
 
@@ -391,7 +379,7 @@ class RomManager(object):
                 self.UpdateMaterialParametersFile(materials_file_name, mu)
                 model = KratosMultiphysics.Model()
                 analysis_stage_class = self._GetAnalysisStageClass(parameters_copy)
-                simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
+                simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
                 if NonConvergedSolutionsGathering:
                     simulation = self.ActivateNonconvergedSolutionsGathering(simulation)
                 simulation.Run()
@@ -407,11 +395,14 @@ class RomManager(object):
 
 
 
-    def _LauchComputeSolutionBasis(self, mu_train):
+    def _LaunchComputeSolutionBasis(self, mu_train):
         in_database, hash_basis = self.data_base.check_if_in_database("RightBasis", mu_train)
         if not in_database:
             BasisOutputProcess = self.InitializeDummySimulationForBasisOutputProcess()
-            u,sigma = BasisOutputProcess._ComputeSVD(self.data_base.get_snapshots_matrix_from_database(mu_train)) #Calling the RomOutput Process for creating the RomParameter.json
+            if self.general_rom_manager_parameters["ROM"]["use_non_converged_sols"].GetBool():
+                u,sigma = BasisOutputProcess._ComputeSVD(self.data_base.get_snapshots_matrix_from_database(mu_train, table_name='NonconvergedFOM')) #TODO this might be too large for single opeartion, add partitioned svd
+            else:
+                u,sigma = BasisOutputProcess._ComputeSVD(self.data_base.get_snapshots_matrix_from_database(mu_train, table_name='FOM'))
             BasisOutputProcess._PrintRomBasis(u, sigma) #Calling the RomOutput Process for creating the RomParameter.json
             self.data_base.add_to_database("RightBasis", mu_train, u )
             self.data_base.add_to_database("SingularValues_Solution", mu_train, sigma )
@@ -458,7 +449,7 @@ class RomManager(object):
                 self.UpdateMaterialParametersFile(materials_file_name, mu)
                 model = KratosMultiphysics.Model()
                 analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy, nn_rom_interface=nn_rom_interface))
-                simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
+                simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
 
                 simulation.Run()
                 self.data_base.add_to_database("QoI_ROM", mu, simulation.GetFinalData())
@@ -491,7 +482,7 @@ class RomManager(object):
                     self.UpdateMaterialParametersFile(materials_file_name, mu)
                     model = KratosMultiphysics.Model()
                     analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
-                    simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
+                    simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
                     simulation.Run()
                     PetrovGalerkinTrainingUtility = simulation.GetPetrovGalerkinTrainUtility()
                     pretrov_galerkin_matrix = PetrovGalerkinTrainingUtility._GetSnapshotsMatrix() #TODO is the best way of extracting the Projected Residuals calling the HROM residuals utility?
@@ -532,13 +523,13 @@ class RomManager(object):
                     self.UpdateMaterialParametersFile(materials_file_name, mu)
                     model = KratosMultiphysics.Model()
                     analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
-                    simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
+                    simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
                     simulation.Run()
                     ResidualProjected = simulation.GetHROM_utility()._GetResidualsProjectedMatrix() #TODO flush intermediately the residuals projected to cope with large models.
                     self.data_base.add_to_database("ResidualsProjected", mu, ResidualProjected )
             RedidualsSnapshotsMatrix = self.data_base.get_snapshots_matrix_from_database(mu_train, table_name="ResidualsProjected")
             u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(RedidualsSnapshotsMatrix,
-            self.hrom_training_parameters["element_selection_svd_truncation_tolerance"].GetDouble()) #TODO load basis for residuals projected. Can we truncate it only, not compute the whole SVD but only return the respective number of singular vectors?
+            self.general_rom_manager_parameters["HROM"]["element_selection_svd_truncation_tolerance"].GetDouble()) #TODO load basis for residuals projected. Can we truncate it only, not compute the whole SVD but only return the respective number of singular vectors?
             if simulation is None:
                 HROM_utility = self.InitializeDummySimulationForHromTrainingUtility()
             else:
@@ -584,7 +575,7 @@ class RomManager(object):
                 self.UpdateMaterialParametersFile(materials_file_name, mu)
                 model = KratosMultiphysics.Model()
                 analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
-                simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
+                simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
                 simulation.Run()
                 self.data_base.add_to_database("QoI_HROM", mu, simulation.GetFinalData())
                 for process in simulation._GetListOfOutputProcesses():
@@ -609,7 +600,7 @@ class RomManager(object):
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
             analysis_stage_class = self._GetAnalysisStageClass(parameters_copy)
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
+            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
             simulation.Run()
             self.QoI_Run_FOM.append(simulation.GetFinalData())
 
@@ -627,7 +618,7 @@ class RomManager(object):
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy, nn_rom_interface=nn_rom_interface))
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
+            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
             simulation.Run()
             self.QoI_Run_ROM.append(simulation.GetFinalData())
 
@@ -649,7 +640,7 @@ class RomManager(object):
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
+            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
             simulation.Run()
             self.QoI_Run_HROM.append(simulation.GetFinalData())
 
@@ -706,14 +697,20 @@ class RomManager(object):
 
 
     def _AddHromParametersToRomParameters(self,f):
-        f["hrom_settings"]["element_selection_type"] = self.hrom_training_parameters["element_selection_type"].GetString()
-        f["hrom_settings"]["element_selection_svd_truncation_tolerance"] = self.hrom_training_parameters["element_selection_svd_truncation_tolerance"].GetDouble()
-        f["hrom_settings"]["create_hrom_visualization_model_part"] = self.hrom_training_parameters["create_hrom_visualization_model_part"].GetBool()
-        f["hrom_settings"]["echo_level"] = self.hrom_training_parameters["echo_level"].GetInt()
-        f["hrom_settings"]["include_condition_parents"] = self.hrom_training_parameters["include_condition_parents"].GetBool()
-        f["hrom_settings"]["initial_candidate_elements_model_part_list"] = self.hrom_training_parameters["initial_candidate_elements_model_part_list"].GetStringArray()
-        f["hrom_settings"]["initial_candidate_conditions_model_part_list"] = self.hrom_training_parameters["initial_candidate_conditions_model_part_list"].GetStringArray()
-        f["hrom_settings"]["constraint_sum_weights"] = self.hrom_training_parameters["constraint_sum_weights"].GetBool()
+        f["hrom_settings"]["hrom_format"] = self.general_rom_manager_parameters["HROM"]["hrom_format"].GetString()
+        f["hrom_settings"]["element_selection_type"] = self.general_rom_manager_parameters["HROM"]["element_selection_type"].GetString()
+        f["hrom_settings"]["element_selection_svd_truncation_tolerance"] = self.general_rom_manager_parameters["HROM"]["element_selection_svd_truncation_tolerance"].GetDouble()
+        f["hrom_settings"]["constraint_sum_weights"] = self.general_rom_manager_parameters["HROM"]["constraint_sum_weights"].GetBool()
+        f["hrom_settings"]["svd_type"] = self.general_rom_manager_parameters["HROM"]["svd_type"].GetString()
+        f["hrom_settings"]["create_hrom_visualization_model_part"] = self.general_rom_manager_parameters["HROM"]["create_hrom_visualization_model_part"].GetBool()
+        f["hrom_settings"]["include_elements_model_parts_list"] = self.general_rom_manager_parameters["HROM"]["include_elements_model_parts_list"].GetStringArray()
+        f["hrom_settings"]["include_conditions_model_parts_list"] = self.general_rom_manager_parameters["HROM"]["include_conditions_model_parts_list"].GetStringArray()
+        f["hrom_settings"]["initial_candidate_elements_model_part_list"] = self.general_rom_manager_parameters["HROM"]["initial_candidate_elements_model_part_list"].GetStringArray()
+        f["hrom_settings"]["initial_candidate_conditions_model_part_list"] = self.general_rom_manager_parameters["HROM"]["initial_candidate_conditions_model_part_list"].GetStringArray()
+        f["hrom_settings"]["include_nodal_neighbouring_elements_model_parts_list"] = self.general_rom_manager_parameters["HROM"]["include_nodal_neighbouring_elements_model_parts_list"].GetStringArray()
+        f["hrom_settings"]["include_minimum_condition"] = self.general_rom_manager_parameters["HROM"]["include_minimum_condition"].GetBool()
+        f["hrom_settings"]["include_condition_parents"] = self.general_rom_manager_parameters["HROM"]["include_condition_parents"].GetBool()
+        f["hrom_settings"]["echo_level"] = self.general_rom_manager_parameters["HROM"]["echo_level"].GetInt()
 
     def _ChangeRomFlags(self, simulation_to_run = 'ROM'):
         """
@@ -863,9 +860,10 @@ class RomManager(object):
         return defaults
 
     def _AddBasisCreationToProjectParameters(self, parameters):
-        #FIXME make sure no other rom_output already existed. If so, erase the prior and keep only the one in self.rom_training_parameters
+        #FIXME make sure no other rom_output already existed. If so, erase the prior and keep only the one in self.general_rom_manager_parameters["ROM"]
         parameters["output_processes"].AddEmptyArray("rom_output")
-        parameters["output_processes"]["rom_output"].Append(self.rom_training_parameters)
+        rom_basis_parameters = self._SetUpRomBasisParameters()
+        parameters["output_processes"]["rom_output"].Append(rom_basis_parameters)
 
         return parameters
 
@@ -961,24 +959,33 @@ class RomManager(object):
                 }
             },
             "HROM":{
+                "hrom_format": "numpy",                            //  "json", "numpy"
                 "element_selection_type": "empirical_cubature",
-                "element_selection_svd_truncation_tolerance": 0,
+                "element_selection_svd_truncation_tolerance": 1.0e-6,
+                "constraint_sum_weights": true,                   // if true, then sum(w) = num_elems (this avoids trivial solutions sum(w)=0)
+                "svd_type": "numpy_rsvd",                         //  "numpy_svd", "numpy_rsvd"
                 "create_hrom_visualization_model_part" : true,
-                "echo_level" : 0
+                "include_elements_model_parts_list": [],          //The elements of the submodel parts included in this list will be considered in the HROM model part
+                "include_conditions_model_parts_list": [],         //The conditions of the submodel parts included in this list will be considered in the HROM model part
+                "initial_candidate_elements_model_part_list" : [],        //These elements will be given priority when creating the HROM model part
+                "initial_candidate_conditions_model_part_list" : [],       //These conditions will be given priority when creating the HROM model part
+                "include_nodal_neighbouring_elements_model_parts_list":[],
+                "include_minimum_condition": false,       // if true, keep at least one condition per submodelpart
+                "include_condition_parents": false,       // if true, when a condition is chosen by the ECM algorithm, the parent element is also included
+                "echo_level" : 0                          // if >0, get hrom training status promts
             }
         }""")
 
         self.general_rom_manager_parameters.RecursivelyValidateAndAssignDefaults(default_settings)
 
-        self.rom_training_parameters = self._SetRomTrainingParameters()
-        self.hrom_training_parameters = self.SetHromTrainingParameters()
 
 
-    def DefaultCustomizeSimulation(self, cls, global_model, parameters):
+
+    def DefaultCustomizeSimulation(self, cls, global_model, parameters, mu=None):
         # Default function that does nothing special
         class DefaultCustomSimulation(cls):
-            def _init_(self, model, project_parameters):
-                super()._init_(model, project_parameters)
+            def __init__(self, model, project_parameters):
+                super().__init__(model, project_parameters)
 
             def Initialize(self):
                 super().Initialize()
@@ -1026,7 +1033,7 @@ class RomManager(object):
         #     json.dump(data, f, indent=4)
         #     f.truncate()
 
-    def _SetRomTrainingParameters(self):
+    def _SetUpRomBasisParameters(self):
         defaults = self._GetDefaulRomBasisOutputParameters()
         defaults["Parameters"]["rom_manager"].SetBool(True)  # Set the flag to true when inside the RomManager to trigger particular behavior for multiple parameters
 
@@ -1046,27 +1053,6 @@ class RomManager(object):
         for key in keys_to_copy:
             if key in rom_params.keys():
                 defaults["Parameters"][key] = rom_params[key]
-
-        return defaults
-
-
-
-
-    def SetHromTrainingParameters(self):
-        defaults = self._GetDefaulHromTrainingParameters()
-        hrom_params = self.general_rom_manager_parameters["HROM"]
-
-        keys_to_copy = [
-            "element_selection_type",
-            "element_selection_svd_truncation_tolerance",
-            "create_hrom_visualization_model_part",
-            "echo_level",
-            "constraint_sum_weights",
-        ]
-
-        for key in keys_to_copy:
-            if key in hrom_params.keys():
-                defaults[key] = hrom_params[key]
 
         return defaults
 
@@ -1105,26 +1091,6 @@ class RomManager(object):
                 }
             }""")
         return rom_training_parameters
-
-
-    def _GetDefaulHromTrainingParameters(self):
-        hrom_training_parameters = KratosMultiphysics.Parameters("""{
-                "hrom_format": "numpy",
-                "element_selection_type": "empirical_cubature",
-                "element_selection_svd_truncation_tolerance": 1.0e-6,
-                "echo_level" : 0,
-                "create_hrom_visualization_model_part" : true,
-                "projection_strategy": "galerkin",
-                "include_conditions_model_parts_list": [],
-                "include_elements_model_parts_list": [],
-                "initial_candidate_elements_model_part_list" : [],
-                "initial_candidate_conditions_model_part_list" : [],
-                "include_nodal_neighbouring_elements_model_parts_list":[],
-                "include_minimum_condition": false,
-                "include_condition_parents": false,
-                "constraint_sum_weights": true
-            }""")
-        return hrom_training_parameters
 
 
     def SetUpQuantityOfInterestContainers(self):
@@ -1176,12 +1142,4 @@ class RomManager(object):
             return RomNeuralNetworkTrainer
         except ImportError:
             err_msg = f'Failed to import the RomNeuralNetworkTrainer class. Make sure TensorFlow is properly installed.'
-            raise Exception(err_msg)
-
-    def _TryImportNNInterface(self):
-        try:
-            from KratosMultiphysics.RomApplication.rom_nn_trainer import NN_ROM_Interface
-            return NN_ROM_Interface
-        except ImportError:
-            err_msg = f'Failed to import the NN_ROM_Interface class. Make sure TensorFlow is properly installed.'
             raise Exception(err_msg)

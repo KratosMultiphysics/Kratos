@@ -177,6 +177,17 @@ class TestBufferedDict(kratos_unittest.TestCase):
         self.assertEqual(buffered_data.GetValue("data/sub_1/sub_sub").GetBufferSize(), 4)
         self.assertEqual(buffered_data.GetValue("data/sub_2").GetBufferSize(), 5)
 
+    def test_Unbuffered(self):
+        unbuffered_data = BufferedDict(1, False)
+        unbuffered_data.SetValue("data/sub_1/sub_sub/value", 4.0)
+        unbuffered_data.SetValue("data/sub_2/value", 2.0)
+
+        unbuffered_data.AdvanceStep()
+        unbuffered_data.AdvanceStep()
+
+        self.assertEqual(unbuffered_data.GetValue("data/sub_1/sub_sub/value"), 4.0)
+        self.assertEqual(unbuffered_data.GetValue("data/sub_2/value"), 2.0)
+
     def test_GetParent(self):
         buffered_data = BufferedDict(3)
         buffered_data.SetValue("data/sub_1/sub_sub", BufferedDict(4))

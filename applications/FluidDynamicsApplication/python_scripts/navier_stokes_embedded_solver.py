@@ -5,9 +5,12 @@ import numpy.linalg
 # Importing the Kratos Library
 import KratosMultiphysics
 
+# Import Kratos utilities
+from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
+from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
+
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
-from  KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 have_mesh_moving = CheckIfApplicationsAvailable("MeshMovingApplication")
 if have_mesh_moving:
     import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
@@ -557,7 +560,11 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         # Note that the distance modification process is applied to the volume model part
         distance_modification_settings = self.settings["distance_modification_settings"]
         distance_modification_settings.ValidateAndAssignDefaults(self.__GetDistanceModificationDefaultSettings(self.level_set_type))
-        aux_full_volume_part_name = self.settings["model_part_name"].GetString() + "." + self.settings["volume_model_part_name"].GetString()
+        if len(self.settings["volume_model_part_name"].GetString().split(".")) == 1:
+            aux_full_volume_part_name = self.settings["model_part_name"].GetString() + "." + self.settings["volume_model_part_name"].GetString()
+            IssueDeprecationWarning("NavierStokesEmbeddedMonolithicSolver", "Partial model part name found in 'volume_model_part_name'. Please provide full model part names.")
+        else:
+            aux_full_volume_part_name = self.settings["volume_model_part_name"].GetString()
         distance_modification_settings["model_part_name"].SetString(aux_full_volume_part_name)
         return KratosCFD.DistanceModificationProcess(self.model, distance_modification_settings)
 

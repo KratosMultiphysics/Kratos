@@ -9,6 +9,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 ## SMALL TESTS
 from convergence_accelerator_test import ConvergenceAcceleratorTest
 from convergence_accelerator_spring_test import ConvergenceAcceleratorSpringTest
+from embedded_fsi_test import EmbeddedFsiTest
 from fsi_coupling_interface_test import FSICouplingInterfaceTest
 from FSI_problem_emulator_test import FSIProblemEmulatorTest
 
@@ -34,6 +35,7 @@ def AssembleTestSuites():
     # Create a test suit with the selected tests (Small tests):
     smallSuite = suites['small']
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ConvergenceAcceleratorTest]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([EmbeddedFsiTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FSICouplingInterfaceTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FSIProblemEmulatorTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ConvergenceAcceleratorSpringTest]))

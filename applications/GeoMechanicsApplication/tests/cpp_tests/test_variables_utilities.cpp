@@ -16,14 +16,14 @@
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(TestVariablesUtilitiesGetsCorrectComponents, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TestVariablesUtilitiesGetsCorrectComponents, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto& component = VariablesUtilities::GetComponentFromVectorVariable(ACCELERATION.Name(), "X");
 
     KRATOS_EXPECT_EQ(component, ACCELERATION_X);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TestVariablesUtilitiesThrowsWhenComponentDoesNotExist, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TestVariablesUtilitiesThrowsWhenComponentDoesNotExist, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         VariablesUtilities::GetComponentFromVectorVariable(ACCELERATION.Name(), "?"),

@@ -86,7 +86,7 @@ void MPMParticlePenaltyDirichletCondition::InitializeSolutionStep( const Process
         {
             r_geometry[i].SetLock();
             r_geometry[i].Set(SLIP);
-            r_geometry[i].FastGetSolutionStepValue(IS_STRUCTURE) = 2.0;
+            r_geometry[i].SetValue(PARTICLE_BASED_SLIP, true);
             r_geometry[i].FastGetSolutionStepValue(NORMAL) += Variables.N[i] * m_normal;
             r_geometry[i].UnSetLock();
         }
@@ -203,12 +203,47 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
         {
             noalias(rLeftHandSideMatrix)  += prod(trans(shape_function), shape_function);
             rLeftHandSideMatrix  *= m_penalty * this->GetIntegrationWeight();
+
         }
 
         if ( CalculateResidualVectorFlag == true )
         {
             noalias(rRightHandSideVector) -= prod(prod(trans(shape_function), shape_function), gap_function);
             rRightHandSideVector *= m_penalty * this->GetIntegrationWeight();
+        }
+
+        if (Is(SLIP)){
+            // rotate to normal-tangential frame
+            if (CalculateStiffnessMatrixFlag == true){
+                GetRotationTool().Rotate(rLeftHandSideMatrix, rRightHandSideVector, GetGeometry());
+            } else {
+                GetRotationTool().Rotate(rRightHandSideVector, GetGeometry());
+            }
+
+            if (CalculateStiffnessMatrixFlag == true) {
+                for (unsigned int i = 0; i < matrix_size; ++i) {
+                    for (unsigned int j = 0; j < matrix_size; ++j) {
+                        // erase tangential DoFs
+                        if (j%block_size != 0 || i%block_size != 0)
+                            rLeftHandSideMatrix(i, j) = 0;
+                    }
+                }
+            }
+
+            if (CalculateResidualVectorFlag == true) {
+                for (unsigned int j = 0; j < matrix_size; j++) {
+                    if (j % block_size != 0) // tangential DoF
+                        rRightHandSideVector[j] = 0.0;
+                }
+            }
+
+            // rotate back to global frame
+            if (CalculateStiffnessMatrixFlag == true){
+                GetRotationTool().RevertRotate(rLeftHandSideMatrix, rRightHandSideVector, GetGeometry());
+            } else {
+                GetRotationTool().RevertRotate(rRightHandSideVector, GetGeometry());
+            }
+
         }
     }
 
@@ -266,12 +301,12 @@ void MPMParticlePenaltyDirichletCondition::FinalizeSolutionStep( const ProcessIn
         GeometryType& r_geometry = GetGeometry();
         const unsigned int number_of_nodes = r_geometry.PointsNumber();
 
-        // Here MPC normal vector and IS_STRUCTURE are reset
+        // Here MPC normal vector, SLIP, and PARTICLE_BASED_SLIP are reset
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
             r_geometry[i].SetLock();
             r_geometry[i].Reset(SLIP);
-            r_geometry[i].FastGetSolutionStepValue(IS_STRUCTURE) = 0.0;
+            r_geometry[i].SetValue(PARTICLE_BASED_SLIP, false);
             r_geometry[i].FastGetSolutionStepValue(NORMAL).clear();
             r_geometry[i].UnSetLock();
         }

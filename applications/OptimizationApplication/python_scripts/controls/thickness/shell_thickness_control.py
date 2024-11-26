@@ -11,6 +11,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities impor
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.filtering.filter import Factory as FilterFactory
+from KratosMultiphysics.OptimizationApplication.utilities.opt_projection import CreateProjection
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> Control:
     if not parameters.Has("name"):
@@ -35,18 +36,11 @@ class ShellThicknessControl(Control):
         self.optimization_problem = optimization_problem
 
         default_settings = Kratos.Parameters("""{
-            "controlled_model_part_names": [],
-            "filter_settings"            : {},
-            "penalty_power"              : 1,
-            "output_all_fields"          : false,
-            "physical_thicknesses"       : [],
-            "beta_settings": {
-                "initial_value": 5,
-                "max_value"    : 30,
-                "adaptive"     : true,
-                "increase_fac" : 1.05,
-                "update_period": 50
-            }
+            "controlled_model_part_names"  : [],
+            "filter_settings"              : {},
+            "output_all_fields"            : false,
+            "physical_thicknesses"         : [],
+            "thickness_projection_settings": {}
         }""")
 
         self.parameters.ValidateAndAssignDefaults(default_settings)
@@ -60,19 +54,10 @@ class ShellThicknessControl(Control):
 
         self.filter = FilterFactory(self.model, self.model_part_operation.GetModelPartFullName(), Kratos.THICKNESS, Kratos.Globals.DataLocation.Element, self.parameters["filter_settings"])
 
-        self.penalty_power = self.parameters["penalty_power"].GetInt()
         self.output_all_fields = self.parameters["output_all_fields"].GetBool()
         self.physical_thicknesses = self.parameters["physical_thicknesses"].GetVector()
 
-        # beta settings
-        beta_settings = parameters["beta_settings"]
-        beta_settings.ValidateAndAssignDefaults(default_settings["beta_settings"])
-        self.beta = beta_settings["initial_value"].GetDouble()
-        self.beta_max = beta_settings["max_value"].GetDouble()
-        self.beta_adaptive = beta_settings["adaptive"].GetBool()
-        self.beta_increase_frac = beta_settings["increase_fac"].GetDouble()
-        self.beta_update_period = beta_settings["update_period"].GetInt()
-        self.beta_computed_step = 1
+        self.thickness_projection = CreateProjection(parameters["thickness_projection_settings"], self.optimization_problem)
 
         num_phys_thick = len(self.physical_thicknesses)
         if num_phys_thick == 0:
@@ -90,16 +75,14 @@ class ShellThicknessControl(Control):
         self.filter.SetComponentDataView(ComponentDataView(self, self.optimization_problem))
         self.filter.Initialize()
 
+        # initialize the projections
+        self.thickness_projection.SetProjectionSpaces(self.filtered_thicknesses, self.physical_thicknesses)
+
         physical_thickness_field = Kratos.Expression.ElementExpression(self.model_part)
         KratosOA.PropertiesVariableExpressionIO.Read(physical_thickness_field, Kratos.THICKNESS)
 
         # project backward the uniform physical control field and assign it to the control field
-        self.physical_phi_field = KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectBackward(
-                                                physical_thickness_field,
-                                                self.filtered_thicknesses,
-                                                self.physical_thicknesses,
-                                                self.beta,
-                                                self.penalty_power)
+        self.physical_phi_field = self.thickness_projection.ProjectBackward(physical_thickness_field)
 
         # take the physical and control field the same
         self.control_phi_field = self.filter.UnfilterField(self.physical_phi_field)
@@ -162,17 +145,11 @@ class ShellThicknessControl(Control):
 
                 self.filter.Update()
 
-                self.__UpdateBeta()
+                self.thickness_projection.Update()
                 return True
-        return False
 
-    def __UpdateBeta(self) -> None:
-        if self.beta_adaptive:
-            step = self.optimization_problem.GetStep()
-            if step % self.beta_update_period == 0 and self.beta_computed_step != step:
-                self.beta_computed_step = step
-                self.beta = min(self.beta * self.beta_increase_frac, self.beta_max)
-                Kratos.Logger.PrintInfo(f"::{self.GetName()}::", f"Increased beta to {self.beta}.")
+        self.thickness_projection.Update()
+        return False
 
     def _UpdateAndOutputFields(self, update: ContainerExpressionTypes) -> None:
         # filter the control field
@@ -180,22 +157,12 @@ class ShellThicknessControl(Control):
         self.physical_phi_field = Kratos.Expression.Utils.Collapse(self.physical_phi_field + filtered_thickness_field_update)
 
         # project forward the filtered thickness field
-        projected_filtered_thickness_field = KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectForward(
-                                                self.physical_phi_field,
-                                                self.filtered_thicknesses,
-                                                self.physical_thicknesses,
-                                                self.beta,
-                                                self.penalty_power)
+        projected_filtered_thickness_field = self.thickness_projection.ProjectForward(self.physical_phi_field)
         # now update physical field
         KratosOA.PropertiesVariableExpressionIO.Write(projected_filtered_thickness_field, Kratos.THICKNESS)
 
         # compute and stroe projection derivatives for consistent filtering of the sensitivities
-        self.projection_derivative_field = KratosOA.ControlUtils.SigmoidalProjectionUtils.CalculateForwardProjectionGradient(
-                                                self.physical_phi_field,
-                                                self.filtered_thicknesses,
-                                                self.physical_thicknesses,
-                                                self.beta,
-                                                self.penalty_power)
+        self.projection_derivative_field = self.thickness_projection.ForwardProjectionGradient(self.physical_phi_field)
 
         # now output the fields
         un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()

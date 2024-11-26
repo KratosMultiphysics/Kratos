@@ -83,7 +83,7 @@
                 }
             },
           "structure": {
-            "type": "solver_wrappers.kratos.particle_mechanics_neumann_wrapper",
+            "type": "solver_wrappers.kratos.mpm_neumann_wrapper",
             "solver_wrapper_settings": {
               "input_file": "mpm_dem/ProjectParametersMPM",
               "interface_model_part_name": "MPM_Material.INTERFACE_coupling_to_dem"

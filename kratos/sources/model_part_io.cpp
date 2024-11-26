@@ -62,7 +62,7 @@ ModelPartIO::ModelPartIO(std::filesystem::path const& Filename, const Flags Opti
     // Store the pointer as a regular std::iostream
     mpStream = pFile;
 
-    if (mOptions.IsNot(IO::SKIP_TIMER)) Timer::SetOuputFile(time_file_name.string());
+    if (mOptions.IsNot(IO::SKIP_TIMER)) Timer::SetOutputFile(time_file_name.string());
 }
 
 /// Constructor with stream
@@ -81,7 +81,7 @@ ModelPartIO::ModelPartIO(Kratos::shared_ptr<std::iostream> Stream, const Flags O
 
 /// Destructor.
 ModelPartIO::~ModelPartIO() {
-    if (mOptions.IsNot(IO::SKIP_TIMER)) Timer::CloseOuputFile();
+    if (mOptions.IsNot(IO::SKIP_TIMER)) Timer::CloseOutputFile();
 }
 
 bool ModelPartIO::ReadNode(NodeType& rThisNode)
@@ -288,7 +288,7 @@ void ModelPartIO::WriteGeometries(GeometryContainerType const& rThisGeometries)
         (*mpStream) << "Begin Geometries\t" << geometry_name << std::endl;
         const auto it_geom_begin = rThisGeometries.Geometries().begin();
         (*mpStream) << "\t" << it_geom_begin->Id() << "\t";
-        auto& r_geometry = *(it_geom_begin.base()->second);
+        auto& r_geometry = *it_geom_begin;
         for (std::size_t i_node = 0; i_node < r_geometry.size(); i_node++)
             (*mpStream) << r_geometry[i_node].Id() << "\t";
         (*mpStream) << std::endl;
@@ -302,7 +302,7 @@ void ModelPartIO::WriteGeometries(GeometryContainerType const& rThisGeometries)
         for(std::size_t i = 1; i < rThisGeometries.NumberOfGeometries(); i++) {
             if(GeometryType::IsSame(*it_geom_previous, *it_geom_current)) {
                 (*mpStream) << "\t" << it_geom_current->Id() << "\t";
-                r_geometry = *(it_geom_current.base()->second);
+                r_geometry = *it_geom_current;
                 for (std::size_t i_node = 0; i_node < r_geometry.size(); i_node++)
                     (*mpStream) << r_geometry[i_node].Id() << "\t";
                 (*mpStream) << std::endl;
@@ -313,7 +313,7 @@ void ModelPartIO::WriteGeometries(GeometryContainerType const& rThisGeometries)
 
                 (*mpStream) << "Begin Geometries\t" << geometry_name << std::endl;
                 (*mpStream) << "\t" << it_geom_current->Id() << "\t";
-                r_geometry = *(it_geom_current.base()->second);
+                r_geometry = *it_geom_current;
                 for (std::size_t i_node = 0; i_node < r_geometry.size(); i_node++)
                     (*mpStream) << r_geometry[i_node].Id() << "\t";
                 (*mpStream) << std::endl;

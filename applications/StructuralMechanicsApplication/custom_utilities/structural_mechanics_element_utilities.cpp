@@ -364,6 +364,71 @@ void BuildRotationMatrixForBeam(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void BuildRotationMatrixForTruss(
+    BoundedMatrix<double, 2, 2>& rRotationMatrix,
+    const double AlphaAngle
+)
+{
+    rRotationMatrix.clear();
+    const double s = std::sin(AlphaAngle);
+    const double c = std::cos(AlphaAngle);
+    rRotationMatrix(0, 0) = c;
+    rRotationMatrix(0, 1) = -s;
+    rRotationMatrix(1, 0) = s;
+    rRotationMatrix(1, 1) = c;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BuildElementSizeRotationMatrixFor2D2NTruss(
+    const BoundedMatrix<double, 2, 2>& rRotationMatrix,
+    BoundedMatrix<double, 4, 4>& rElementSizeRotationMatrix
+)
+{
+    rElementSizeRotationMatrix.clear();
+
+    rElementSizeRotationMatrix(0, 0) = rRotationMatrix(0, 0);
+    rElementSizeRotationMatrix(0, 1) = rRotationMatrix(0, 1);
+    rElementSizeRotationMatrix(1, 0) = rRotationMatrix(1, 0);
+    rElementSizeRotationMatrix(1, 1) = rRotationMatrix(1, 1);
+
+
+    rElementSizeRotationMatrix(2, 2) = rRotationMatrix(0, 0);
+    rElementSizeRotationMatrix(2, 3) = rRotationMatrix(0, 1);
+    rElementSizeRotationMatrix(3, 2) = rRotationMatrix(1, 0);
+    rElementSizeRotationMatrix(3, 3) = rRotationMatrix(1, 1);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BuildElementSizeRotationMatrixFor2D3NTruss(
+    const BoundedMatrix<double, 2, 2>& rRotationMatrix,
+    BoundedMatrix<double, 6, 6>& rElementSizeRotationMatrix
+)
+{
+    rElementSizeRotationMatrix.clear();
+
+    rElementSizeRotationMatrix(0, 0) = rRotationMatrix(0, 0);
+    rElementSizeRotationMatrix(0, 1) = rRotationMatrix(0, 1);
+    rElementSizeRotationMatrix(1, 0) = rRotationMatrix(1, 0);
+    rElementSizeRotationMatrix(1, 1) = rRotationMatrix(1, 1);
+
+    rElementSizeRotationMatrix(2, 2) = rRotationMatrix(0, 0);
+    rElementSizeRotationMatrix(2, 3) = rRotationMatrix(0, 1);
+    rElementSizeRotationMatrix(3, 2) = rRotationMatrix(1, 0);
+    rElementSizeRotationMatrix(3, 3) = rRotationMatrix(1, 1);
+
+    rElementSizeRotationMatrix(4, 4) = rRotationMatrix(0, 0);
+    rElementSizeRotationMatrix(4, 5) = rRotationMatrix(0, 1);
+    rElementSizeRotationMatrix(5, 4) = rRotationMatrix(1, 0);
+    rElementSizeRotationMatrix(5, 5) = rRotationMatrix(1, 1);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 double GetReferenceRotationAngle2D2NBeam(const GeometryType& rGeometry)
 {
     const auto &r_node_1 = rGeometry[0];

@@ -212,4 +212,9 @@ void Sensor::PrintData(std::ostream& rOStream) const
     DataValueContainer::PrintData(rOStream);
 }
 
+// template instantiations
+template KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) void Sensor::AddContainerExpression<ModelPart::NodesContainerType>(const std::string&, typename ContainerExpression<ModelPart::NodesContainerType>::Pointer);
+template KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) void Sensor::AddContainerExpression<ModelPart::ConditionsContainerType>(const std::string&, typename ContainerExpression<ModelPart::ConditionsContainerType>::Pointer);
+template KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) void Sensor::AddContainerExpression<ModelPart::ElementsContainerType>(const std::string&, typename ContainerExpression<ModelPart::ElementsContainerType>::Pointer);
+
 } /* namespace Kratos.*/

@@ -39,8 +39,6 @@ public:
     using VectorType     = Vector;
     using MatrixType     = Matrix;
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     AxisymmetricUPwNormalFaceLoadCondition()
         : AxisymmetricUPwNormalFaceLoadCondition(0, nullptr, nullptr)
     {
@@ -56,31 +54,21 @@ public:
     {
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     Condition::Pointer Create(IndexType               NewId,
                               NodesArrayType const&   ThisNodes,
                               PropertiesType::Pointer pProperties) const override;
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    std::string Info() const override;
 
 protected:
     // Member Variables
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     double CalculateIntegrationCoefficient(const IndexType PointNumber,
                                            const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const override;
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 private:
-    // Member Variables
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     // Serialization
 
     friend class Serializer;

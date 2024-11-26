@@ -46,6 +46,7 @@
 #include "custom_processes/deactivate_conditions_on_inactive_elements_process.hpp"
 #include "custom_processes/find_neighbour_elements_of_conditions_process.hpp"
 #include "custom_processes/geo_extrapolate_integration_point_values_to_nodes_process.h"
+#include "custom_processes/reset_displacement_process.h"
 #include "custom_processes/set_absorbing_boundary_parameters_process.hpp"
 #include "custom_processes/set_multiple_moving_loads.h"
 #include "custom_processes/set_parameter_field_process.hpp"
@@ -175,6 +176,10 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<CalculateIncrementalDisplacementProcess, CalculateIncrementalDisplacementProcess::Pointer, Process>(
         m, "CalculateIncrementalDisplacementProcess")
+        .def(py::init<ModelPart&, const Parameters&>());
+
+    py::class_<ResetDisplacementProcess, ResetDisplacementProcess::Pointer, Process>(
+        m, "ResetDisplacementProcess")
         .def(py::init<ModelPart&, const Parameters&>());
 }
 

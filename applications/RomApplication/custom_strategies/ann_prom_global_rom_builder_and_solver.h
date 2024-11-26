@@ -257,6 +257,23 @@ public:
         r_nnLayers[layerIndex] = nnLayer;
     }
 
+    TSystemVectorType RunDecoder(
+        ModelPart &rModelPart,
+        TSystemVectorType xRom
+    )
+    {
+        auto& r_root_mp = rModelPart.GetRootModelPart();
+        vector<Matrix>& r_svdPhiMatrices = r_root_mp.GetValue(SVD_PHI_MATRICES);
+        vector<Matrix>& r_nnLayers = r_root_mp.GetValue(NN_LAYERS);
+        Vector& r_refSnapshot = r_root_mp.GetValue(SOLUTION_REFERENCE);
+
+        TSystemVectorType xFom = ZeroVector(r_refSnapshot.size());
+
+        RomNNUtility<TSparseSpace,TDenseSpace>::GetXFromDecoder(xRom, xFom, r_svdPhiMatrices, r_nnLayers, r_refSnapshot);
+
+        return xFom;
+    }
+
     void MonotonicityPreserving(
         TSystemMatrixType& rA,
         TSystemVectorType& rB

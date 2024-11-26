@@ -71,6 +71,113 @@ class TestDisplacementSensor(UnitTest.TestCase):
         cls.sensors = GetSensors(cls.model_part, parameters)
         cls.ref_values = [7/3, 3, (7/3 + 10/3)/sqrt(2), (3 + 4)/sqrt(2)]
 
+    def test_SensorsOnNodes(self):
+        parameters = [
+            Kratos.Parameters("""{
+
+                "type"         : "displacement_sensor",
+                "name"         : "disp_x_1",
+                "value"        : 0,
+                "location"     : [0.0, 0.0, 0.0],
+                "direction"    : [1.0, 0.0, 0.0],
+                "weight"       : 1.0,
+                "variable_data": {}
+            }"""),
+            Kratos.Parameters("""{
+
+                "type"         : "displacement_sensor",
+                "name"         : "disp_x_2",
+                "value"        : 0,
+                "location"     : [1.0, 0.0, 0.0],
+                "direction"    : [1.0, 0.0, 0.0],
+                "weight"       : 1.0,
+                "variable_data": {}
+            }"""),
+            Kratos.Parameters("""{
+
+                "type"         : "displacement_sensor",
+                "name"         : "disp_x_3",
+                "value"        : 0,
+                "location"     : [1.0, 1.0, 0.0],
+                "direction"    : [1.0, 0.0, 0.0],
+                "weight"       : 1.0,
+                "variable_data": {}
+            }"""),
+            Kratos.Parameters("""{
+
+                "type"         : "displacement_sensor",
+                "name"         : "disp_x_4",
+                "value"        : 0,
+                "location"     : [0.0, 1.0, 0.0],
+                "direction"    : [1.0, 0.0, 0.0],
+                "weight"       : 1.0,
+                "variable_data": {}
+            }""")
+        ]
+
+        sensors = GetSensors(self.model_part, parameters)
+        for sensor, ref_node_id in zip(sensors, [1, 2, 3, 4]):
+            self.assertAlmostEqual(sensor.CalculateValue(self.model_part), self.model_part.GetNode(ref_node_id).GetSolutionStepValue(Kratos.DISPLACEMENT_X))
+
+    def test_SensorsOnEdges(self):
+        parameters = [
+            Kratos.Parameters("""{
+
+                "type"         : "displacement_sensor",
+                "name"         : "disp_x_1",
+                "value"        : 0,
+                "location"     : [0.5, 0.0, 0.0],
+                "direction"    : [1.0, 0.0, 0.0],
+                "weight"       : 1.0,
+                "variable_data": {}
+            }"""),
+            Kratos.Parameters("""{
+
+                "type"         : "displacement_sensor",
+                "name"         : "disp_x_2",
+                "value"        : 0,
+                "location"     : [1.0, 0.5, 0.0],
+                "direction"    : [1.0, 0.0, 0.0],
+                "weight"       : 1.0,
+                "variable_data": {}
+            }"""),
+            Kratos.Parameters("""{
+
+                "type"         : "displacement_sensor",
+                "name"         : "disp_x_3",
+                "value"        : 0,
+                "location"     : [0.5, 0.5, 0.0],
+                "direction"    : [1.0, 0.0, 0.0],
+                "weight"       : 1.0,
+                "variable_data": {}
+            }"""),
+            Kratos.Parameters("""{
+
+                "type"         : "displacement_sensor",
+                "name"         : "disp_x_4",
+                "value"        : 0,
+                "location"     : [0.5, 1.0, 0.0],
+                "direction"    : [1.0, 0.0, 0.0],
+                "weight"       : 1.0,
+                "variable_data": {}
+            }"""),
+            Kratos.Parameters("""{
+
+                "type"         : "displacement_sensor",
+                "name"         : "disp_x_5",
+                "value"        : 0,
+                "location"     : [0.0, 0.5, 0.0],
+                "direction"    : [1.0, 0.0, 0.0],
+                "weight"       : 1.0,
+                "variable_data": {}
+            }""")
+        ]
+
+        sensors = GetSensors(self.model_part, parameters)
+        for sensor, (ref_node_id_1, ref_node_id_2) in zip(sensors, [(1, 2), (2, 3), (2, 4), (3, 4), (1, 4)]):
+            ref_value = (self.model_part.GetNode(ref_node_id_1).GetSolutionStepValue(Kratos.DISPLACEMENT_X) + self.model_part.GetNode(ref_node_id_2).GetSolutionStepValue(Kratos.DISPLACEMENT_X)) / 2.0
+            self.assertAlmostEqual(sensor.CalculateValue(self.model_part), ref_value)
+
     def test_CalculateValue(self):
         values = [sensor.CalculateValue(self.model_part) for sensor in self.sensors]
         self.assertVectorAlmostEqual(values, self.ref_values, 7)

@@ -135,7 +135,7 @@ class HRomTrainingUtility(object):
     def map_element_ids_to_numpy_indexes(self, this_modelpart_element_ids):
         this_modelpart_indexes_numpy = []
         for elem_id in this_modelpart_element_ids:
-            this_modelpart_indexes_numpy.append(self.condition_id_to_numpy_index_mapping[elem_id])
+            this_modelpart_indexes_numpy.append(self.element_id_to_numpy_index_mapping[elem_id])
         return np.array(this_modelpart_indexes_numpy)
 
 
@@ -347,7 +347,6 @@ class HRomTrainingUtility(object):
 
                 # Call the GetConditionIdsNotInHRomModelPart function
                 new_conditions = KratosROM.RomAuxiliaryUtilities.GetConditionIdsNotInHRomModelPart(
-                    root_model_part, # The complete model part
                     conditions_to_include_model_part, # The model part containing the conditions to be included
                     hrom_weights)
 
@@ -384,6 +383,7 @@ class HRomTrainingUtility(object):
 
                 # Call the GetNodalNeighbouringElementIdsNotInHRom function
                 new_nodal_neighbours = KratosROM.RomAuxiliaryUtilities.GetNodalNeighbouringElementIdsNotInHRom(
+                    root_model_part, # The complete model part
                     nodal_neighbours_model_part, # The model part containing the nodal neighbouring elements to be included
                     hrom_weights)
 

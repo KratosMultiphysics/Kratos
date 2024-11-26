@@ -69,13 +69,10 @@ class DiscreteValueResidualResponseFunction(ResponseFunction):
     def GetImplementedPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
         return [self.variable]
 
-    def GetEvaluatedModelPart(self) -> Kratos.ModelPart:
+    def GetInfluencingModelPart(self) -> Kratos.ModelPart:
         if self.model_part is None:
             raise RuntimeError("Please call DiscreteValueResidualResponseFunction::Initialize first.")
         return self.model_part
-
-    def GetAnalysisModelPart(self) -> None:
-        return None
 
     def Initialize(self) -> None:
         self.model_part = self.model_part_operation.GetModelPart()
@@ -133,4 +130,4 @@ class DiscreteValueResidualResponseFunction(ResponseFunction):
                             exp.SetExpression(exp.GetExpression() + (((values - value_i) ** (-2)) * (values - value_i) * 2.0).GetExpression())
                     exp.SetExpression(Kratos.Expression.Utils.Collapse(exp).GetExpression())
             else:
-                raise RuntimeError(f"Unsupported sensitivity w.r.t. {physical_variable.Name()} requested. Followings are supported sensitivity variables:\n\tSHAPE")
+                raise RuntimeError(f"Unsupported sensitivity w.r.t. {physical_variable.Name()} requested. Followings are supported sensitivity variables:\n\t{self.variable.Name()}")

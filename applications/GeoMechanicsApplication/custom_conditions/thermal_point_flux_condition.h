@@ -44,6 +44,8 @@ public:
             NewId, this->GetGeometry().Create(rThisNodes), pProperties);
     }
 
+    std::string Info() const override;
+
 protected:
     void CalculateRHS(Vector& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo) override;
 
