@@ -428,14 +428,14 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
         // Contributions to the RHS
         noalias(RHSu) -= w_gauss * prod(trans(kinematic_variables.B), constitutive_variables.StressVector);
         const Vector strain_diff = kinematic_variables.SymmGradientDispl - kinematic_variables.EquivalentStrain;
-        noalias(RHSe) -= w_gauss * prod(trans(kinematic_variables.N_epsilon), Vector(prod(D0, strain_diff)));
+        noalias(RHSe) -= w_gauss * prod(trans(kinematic_variables.N_epsilon), Vector(prod(constitutive_variables.D, strain_diff)));
 
         // Contributions to the LHS
         noalias(K) += w_gauss * prod(trans(kinematic_variables.B), Matrix(prod(constitutive_variables.D, kinematic_variables.B)));
         noalias(Q) += w_gauss * prod(trans(kinematic_variables.B), Matrix(prod(constitutive_variables.D, kinematic_variables.N_epsilon)));
 
-        noalias(M) += w_gauss * prod(trans(kinematic_variables.N_epsilon), Matrix(prod(D0, kinematic_variables.N_epsilon)));
-        noalias(G) += w_gauss * prod(trans(kinematic_variables.N_epsilon), Matrix(prod(D0, kinematic_variables.B)));
+        noalias(M) += w_gauss * prod(trans(kinematic_variables.N_epsilon), Matrix(prod(constitutive_variables.D, kinematic_variables.N_epsilon)));
+        noalias(G) += w_gauss * prod(trans(kinematic_variables.N_epsilon), Matrix(prod(constitutive_variables.D, kinematic_variables.B)));
     }
 
     K *= tau;
@@ -519,8 +519,8 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLeftHandSide(
         noalias(K) += w_gauss * prod(trans(kinematic_variables.B), Matrix(prod(constitutive_variables.D, kinematic_variables.B)));
         noalias(Q) += w_gauss * prod(trans(kinematic_variables.B), Matrix(prod(constitutive_variables.D, kinematic_variables.N_epsilon)));
 
-        noalias(M) += w_gauss * prod(trans(kinematic_variables.N_epsilon), Matrix(prod(D0, kinematic_variables.N_epsilon)));
-        noalias(G) += w_gauss * prod(trans(kinematic_variables.N_epsilon), Matrix(prod(D0, kinematic_variables.B)));
+        noalias(M) += w_gauss * prod(trans(kinematic_variables.N_epsilon), Matrix(prod(constitutive_variables.D, kinematic_variables.N_epsilon)));
+        noalias(G) += w_gauss * prod(trans(kinematic_variables.N_epsilon), Matrix(prod(constitutive_variables.D, kinematic_variables.B)));
     }
 
     K *= tau;
@@ -607,7 +607,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateRightHandSide(
         // Contributions to the RHS
         noalias(RHSu) -= w_gauss * prod(trans(kinematic_variables.B), constitutive_variables.StressVector);
         const Vector strain_diff = kinematic_variables.SymmGradientDispl - kinematic_variables.EquivalentStrain;
-        noalias(RHSe) -= w_gauss * prod(trans(kinematic_variables.N_epsilon), Vector(prod(D0, strain_diff)));
+        noalias(RHSe) -= w_gauss * prod(trans(kinematic_variables.N_epsilon), Vector(prod(constitutive_variables.D, strain_diff)));
     }
 
     AssembleRHS(rRHS, RHSu, RHSe);
