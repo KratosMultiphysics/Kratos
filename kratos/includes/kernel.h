@@ -4,15 +4,14 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
 //
 
-#if !defined(KRATOS_KERNEL_H_INCLUDED)
-#define KRATOS_KERNEL_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -150,6 +149,11 @@ class KRATOS_API(KRATOS_CORE) Kernel {
 
     void PrintParallelismSupportInfo() const;
 
+    /**
+     * @brief This method prints all the system hardware information
+     */
+    void PrintSystemInfo() const;
+
     ///@}
    protected:
    private:
@@ -200,5 +204,3 @@ inline std::ostream& operator<<(std::ostream& rOStream, const Kernel& rThis) {
 ///@}
 
 }  // namespace Kratos.
-
-#endif  // KRATOS_KERNEL_H_INCLUDED  defined

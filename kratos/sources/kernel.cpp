@@ -20,8 +20,10 @@
 #include "includes/kratos_version.h"
 #include "includes/data_communicator.h"
 #include "includes/parallel_environment.h"
+#include "includes/system_information.h"
 #include "input_output/logger.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/color_utilities.h"
 
 namespace Kratos {
 
@@ -49,6 +51,8 @@ void Kernel::PrintInfo() {
                     << "           Compiled for "  << Kernel::OSName()  << " and " << Kernel::PythonVersion() << " with " << Kernel::Compiler() << std::endl;
 
     PrintParallelismSupportInfo();
+
+    PrintSystemInfo();
 }
 
 void Kernel::Initialize() {
@@ -184,6 +188,21 @@ void Kernel::PrintParallelismSupportInfo() const
             logger << "Running without MPI." << std::endl;
         }
     }
+}
+
+void Kernel::PrintSystemInfo() const
+{
+    // TODO: Implement these methods
+    // const std::string hyper_threading = SystemInformation::CpuHyperThreading() ? "Enabled" : "Disabled";
+    // KRATOS_INFO("") << BOLDFONT(FWHT("System information:"))                                                                                                         << RST << "\n"
+    //                 << ITAFONT(FWHT("\tOS version:\t\t"))        << KCYN << SystemInformation::OSVersion()                                                           << RST << "\n"
+    //                 << ITAFONT(FWHT("\tCPU architecture:\t"))    << KGRN << SystemInformation::CpuArchitecture()                                                     << RST << "\n"
+    //                 << ITAFONT(FWHT("\tCPU logical cores:\t"))   << KGRN << std::to_string(SystemInformation::CpuLogicalCores())                                     << RST << "\n"
+    //                 << ITAFONT(FWHT("\tCPU physical cores:\t"))  << KGRN << std::to_string(SystemInformation::CpuPhysicalCores())                                    << RST << "\n"
+    //                 << ITAFONT(FWHT("\tCPU clock speed:\t"))     << KGRN << SystemInformation::GenerateClockSpeed(SystemInformation::CpuClockSpeed())                << RST << "\n"
+    //                 << ITAFONT(FWHT("\tCPU Hyper-Threading:\t")) << KGRN << hyper_threading                                                                          << RST << "\n"
+    //                 << ITAFONT(FWHT("\tRAM total:\t\t"))         << KYEL << SystemInformation::GenerateDataSize(SystemInformation::RamTotal())                       << RST << "\n"
+    //                 << ITAFONT(FWHT("\tRAM free:\t\t"))          << KYEL << SystemInformation::GenerateDataSize(SystemInformation::RamFree())                        << RST << std::endl;
 }
 
 bool Kernel::mIsDistributedRun = false;
