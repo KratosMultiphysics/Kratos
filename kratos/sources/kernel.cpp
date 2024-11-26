@@ -192,17 +192,16 @@ void Kernel::PrintParallelismSupportInfo() const
 
 void Kernel::PrintSystemInfo() const
 {
-    // TODO: Implement these methods
-    // const std::string hyper_threading = SystemInformation::CpuHyperThreading() ? "Enabled" : "Disabled";
-    // KRATOS_INFO("") << BOLDFONT(FWHT("System information:"))                                                                                                         << RST << "\n"
-    //                 << ITAFONT(FWHT("\tOS version:\t\t"))        << KCYN << SystemInformation::OSVersion()                                                           << RST << "\n"
-    //                 << ITAFONT(FWHT("\tCPU architecture:\t"))    << KGRN << SystemInformation::CpuArchitecture()                                                     << RST << "\n"
-    //                 << ITAFONT(FWHT("\tCPU logical cores:\t"))   << KGRN << std::to_string(SystemInformation::CpuLogicalCores())                                     << RST << "\n"
-    //                 << ITAFONT(FWHT("\tCPU physical cores:\t"))  << KGRN << std::to_string(SystemInformation::CpuPhysicalCores())                                    << RST << "\n"
-    //                 << ITAFONT(FWHT("\tCPU clock speed:\t"))     << KGRN << SystemInformation::GenerateClockSpeed(SystemInformation::CpuClockSpeed())                << RST << "\n"
-    //                 << ITAFONT(FWHT("\tCPU Hyper-Threading:\t")) << KGRN << hyper_threading                                                                          << RST << "\n"
-    //                 << ITAFONT(FWHT("\tRAM total:\t\t"))         << KYEL << SystemInformation::GenerateDataSize(SystemInformation::RamTotal())                       << RST << "\n"
-    //                 << ITAFONT(FWHT("\tRAM free:\t\t"))          << KYEL << SystemInformation::GenerateDataSize(SystemInformation::RamFree())                        << RST << std::endl;
+    const std::string hyper_threading = SystemInformation::CPUHyperThreading() ? "Enabled" : "Disabled";
+    KRATOS_INFO("") << BOLDFONT(FWHT("System information:"))                                                                                                         << RST << "\n"
+                    << ITAFONT(FWHT("\tOS version:\t\t"))        << KCYN << SystemInformation::OSVersion()                                                           << RST << "\n"
+                    << ITAFONT(FWHT("\tCPU architecture:\t"))    << KGRN << SystemInformation::CPUArchitecture()                                                     << RST << "\n"
+                    << ITAFONT(FWHT("\tCPU logical cores:\t"))   << KGRN << std::to_string(SystemInformation::CPULogicalCores())                                     << RST << "\n"
+                    << ITAFONT(FWHT("\tCPU physical cores:\t"))  << KGRN << std::to_string(SystemInformation::CPUPhysicalCores())                                    << RST << "\n"
+                    << ITAFONT(FWHT("\tCPU clock speed:\t"))     << KGRN << SystemInformation::GenerateClockSpeed(SystemInformation::CPUClockSpeed())                << RST << "\n"
+                    << ITAFONT(FWHT("\tCPU Hyper-Threading:\t")) << KGRN << hyper_threading                                                                          << RST << "\n"
+                    << ITAFONT(FWHT("\tRAM total:\t\t"))         << KYEL << SystemInformation::GenerateDataSize(SystemInformation::RamTotal())                       << RST << "\n"
+                    << ITAFONT(FWHT("\tRAM free:\t\t"))          << KYEL << SystemInformation::GenerateDataSize(SystemInformation::RamFree())                        << RST << std::endl;
 }
 
 bool Kernel::mIsDistributedRun = false;

@@ -54,6 +54,70 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief Get OS version string
+     * @return The OS version considered
+     */
+    static std::string OSVersion();
+
+    /**
+     * @brief CPU architecture string
+     * @return The CPU architecture of the current machine
+     */
+    static std::string CPUArchitecture();
+
+    /**
+     * @brief CPU logical cores count
+     * @return The number of logical CPU cores
+     */
+    static std::size_t CPULogicalCores();
+
+    /**
+     * @brief CPU physical cores count
+     * @return The number of physical CPU cores
+     */
+    static std::size_t CPUPhysicalCores();
+
+    /**
+     * @brief CPU clock speed in Hz
+     * @return The CPU clock speed
+     */
+    static std::size_t CPUClockSpeed();
+
+    /**
+     * @brief Is CPU Hyper-Threading enabled?
+     * @return If the hyperthreading is enabled
+     */
+    static bool CPUHyperThreading();
+
+    /**
+     * @brief Total RAM in bytes
+     * @return The total RAM in bytes
+     */
+    static std::size_t RamTotal();
+
+    /**
+     * @brief Free RAM in bytes
+     * @return The free RAM in bytes
+     */
+    static std::size_t RamFree();
+
+    /**
+     * @brief Generate clock speed string
+     * @details Will return a pretty string of Hz, kHz, MHz, GHz based on the given clock speed in hertz.
+     * @param Hertz Clock speed value in hertz
+     * @return String with clock speed representation
+     */
+    static std::string GenerateClockSpeed(const std::size_t Hertz);
+    
+    /**
+     * @brief Generate data size string
+     * @details Will return a pretty string of bytes, KiB, MiB, GiB, TiB based on the given bytes.
+     * @param Bytes Data size in bytes
+     * @return String with data size representation
+     */
+    static std::string GenerateDataSize(const std::size_t Bytes);
+
     ///@}
     ///@name Input and output
     ///@{
