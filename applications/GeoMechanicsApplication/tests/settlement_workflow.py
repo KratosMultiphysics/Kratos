@@ -1,7 +1,13 @@
 import os
 import shutil
+import importlib
+
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+
+# Import the Kratos applications that we need. We need to reload these later.
+import KratosMultiphysics.LinearSolversApplication
+import KratosMultiphysics.StructuralMechanicsApplication
 import KratosMultiphysics.GeoMechanicsApplication as GeoMechanicsApplication
 
 import test_helper
@@ -37,16 +43,6 @@ class KratosGeoMechanicsSettlementWorkflowPyRoute(KratosGeoMechanicsSettlementWo
     This test class is used to check the settlement workflow test, same as test_settlement_workflow.cpp to
     make sure the python workflow yields the same results as the c++ workflow.
     """
-    def setUp(self):
-        super().setUp()
-
-        # The Kratos kernel uses a **static** list of applications that is implicitly shared by all kernel objects.
-        # When a kernel object is destroyed, it will deregister all applications. Since the C++ route has its own
-        # kernel object, the Python route may no longer work when the C++ route test is run first. To work around
-        # this design flaw, explicitly import the GeoMechanicsApplication when a new test is about to be run:
-        self.geo_app = GeoMechanicsApplication.KratosGeoMechanicsApplication()
-        KratosMultiphysics._ImportApplication(self.geo_app, "KratosGeoMechanicsApplication")
-
     def get_test_dir_name(self):
         return "python"
 
@@ -102,10 +98,13 @@ class KratosGeoMechanicsSettlementWorkflowCppRoute(KratosGeoMechanicsSettlementW
     This test class is used to check the settlement workflow test, same as test_settlement_workflow.cpp to
     make sure the python workflow yields the same results as the c++ workflow.
     """
-    def setUp(self):
-        super().setUp()
-
-        self.settlement_api = GeoMechanicsApplication.CustomWorkflowFactory.CreateKratosGeoSettlement()
+    def tearDown(self):
+        # The `KratosGeoSettlement` instance used by this test removes all registered GeoMechanicsApplication
+        # components when it's destroyed. If no action is taken, any following tests will start to fail. It seems
+        # that reloading the relevant Kratos applications overcomes this problem.
+        importlib.reload(KratosMultiphysics.LinearSolversApplication)
+        importlib.reload(KratosMultiphysics.StructuralMechanicsApplication)
+        importlib.reload(KratosMultiphysics.GeoMechanicsApplication)
 
 
     def get_test_dir_name(self):
@@ -113,6 +112,8 @@ class KratosGeoMechanicsSettlementWorkflowCppRoute(KratosGeoMechanicsSettlementW
 
 
     def test_d_settlement_workflow(self):
+        settlement_api = GeoMechanicsApplication.CustomWorkflowFactory.CreateKratosGeoSettlement()
+
         noop = lambda *args, **kwargs: None
         dont_cancel = lambda: False
 
@@ -120,7 +121,7 @@ class KratosGeoMechanicsSettlementWorkflowCppRoute(KratosGeoMechanicsSettlementW
         node_ids = [1, 102, 1085, 1442]
         reader = test_helper.GiDOutputFileReader()
         for i in range(self.number_of_stages):
-            status = self.settlement_api.RunStage(self.test_path, self.project_parameters_filenames[i], noop, noop, noop, dont_cancel)
+            status = settlement_api.RunStage(self.test_path, self.project_parameters_filenames[i], noop, noop, noop, dont_cancel)
             self.assertEqual(status, 0)
 
             result_file_name = os.path.join(self.test_path, f'test_model_stage{i+1}.post.res')
@@ -136,6 +137,10 @@ class KratosGeoMechanicsSettlementWorkflowCppRoute(KratosGeoMechanicsSettlementW
             self.assertEqual(len(actual_nodal_values), len(expected_nodal_values))
             for actual_displacement, expected_displacement in zip(actual_nodal_values, expected_nodal_values):
                 self.assertVectorAlmostEqual(actual_displacement, expected_displacement, 3)
+
+        # Don't rely on the garbage collector to clean up the API object. Make sure it's destructor has run before
+        # executing the test case's `tearDown` method (which will reload the relevant Kratos applications)
+        del settlement_api
 
 
 if __name__ == '__main__':

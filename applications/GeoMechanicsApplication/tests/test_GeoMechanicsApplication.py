@@ -113,6 +113,8 @@ def AssembleTestSuites():
     # - testNightlySecondExample
 
     night_test_cases = [
+                        KratosGeoMechanicsSettlementWorkflowCppRoute,
+                        KratosGeoMechanicsSettlementWorkflowPyRoute,
                         KratosGeoMechanicsCPhiReductionProcess,
                         KratosGeoMechanicsInterfaceTests,
                         KratosGeoMechanicsDynamicsTests,
@@ -122,9 +124,7 @@ def AssembleTestSuites():
                         KratosGeoMechanicsTransientThermalTests,
                         KratosGeoMechanicsTimeIntegrationTests,
                         KratosGeoMechanicsTransientPressureLineElementTests,
-                        KratosGeoMechanicsTransientPressurePointFluxTests,
-                        KratosGeoMechanicsSettlementWorkflowCppRoute,
-                        KratosGeoMechanicsSettlementWorkflowPyRoute
+                        KratosGeoMechanicsTransientPressurePointFluxTests
                         ]
     night_test_cases.extend(small_test_cases)
 
