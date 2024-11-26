@@ -12,6 +12,7 @@
 
 // Project includes
 #include "constraints/link_constraint.h" // LinkConstraint
+#include "includes/define.h"
 #include "includes/process_info.h"
 #include "includes/variables.h" // DISPLACEMENT_X, DISPLACEMENT_Y, DISPLACEMENT_Z
 #include "utilities/atomic_utilities.h" // AtomicAdd
@@ -28,20 +29,14 @@ struct LinkConstraint::Impl
     using ValueType = double;
 
     static void ComputeRelationMatrix(LinkConstraint::MatrixType& rRelationMatrix,
-                                      LinkConstraint::VectorType& rConstraintGaps,
                                       LinkConstraint::DofPointerVectorType& rSlaves,
                                       LinkConstraint::DofPointerVectorType& rMasters,
                                       const std::array<Node*, 2> rNodePair,
+                                      const std::array<ValueType,6>& rLastPositions,
                                       const unsigned Dimensions)
     {
         // Make sure we don't try to allocate an underflown unsigned integer.
         KRATOS_ERROR_IF_NOT(Dimensions);
-
-        // Set output sizes.
-        rRelationMatrix.resize(1, 2 * Dimensions - 1);
-        rConstraintGaps.resize(1);
-        rSlaves.resize(1);
-        rMasters.resize(2 * Dimensions - 1);
 
         // Static stuff.
         const std::array<const Variable<ValueType>*,3> displacement_components {
@@ -63,13 +58,11 @@ struct LinkConstraint::Impl
         // Dof coefficients in the constraint equation, in the
         // same order as "dofs".
         std::array<ValueType,6> constraint_equation {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-        rConstraintGaps[0] = 0.0;
 
         for (unsigned i_component=0u; i_component<Dimensions; ++i_component) {
-            std::array<ValueType,2> initial_coordinate_pair, displacement_component_pair;
+            std::array<ValueType,2> displacement_component_pair;
 
             for (unsigned i_node=0u; i_node<2; ++i_node) {
-                initial_coordinate_pair[i_node] = rNodePair[i_node]->Coordinates()[i_component];
                 displacement_component_pair[i_node] = rNodePair[i_node]->GetSolutionStepValue(*displacement_components[i_component]);
 
                 // For some ungodly reason, the MasterSlaveConstraint interface demands mutable
@@ -80,10 +73,9 @@ struct LinkConstraint::Impl
                 dofs[iDof] = rNodePair[i_node]->GetDofs()[i_dof_in_node].get();
             } // for i_node in range(2)
 
-            constraint_equation[i_component] = 2 * (initial_coordinate_pair[0] + displacement_component_pair[0]
-                                                    - initial_coordinate_pair[1] - displacement_component_pair[1]);
+            constraint_equation[i_component] = rLastPositions[i_component] + displacement_component_pair[0]
+                                               - rLastPositions[i_component + Dimensions] - displacement_component_pair[1];
             constraint_equation[i_component + Dimensions] = -constraint_equation[i_component];
-            rConstraintGaps[i_component] += std::pow(initial_coordinate_pair[0] - initial_coordinate_pair[1], 2);
         } // for i_component in range(mDimensions)
 
         // Pick a slave.
@@ -102,6 +94,11 @@ struct LinkConstraint::Impl
         constexpr ValueType tolerance = 1e-16;
         KRATOS_ERROR_IF(std::abs(slave_coefficient) < tolerance)
             << "coincident nodes in LinkConstraint";
+
+        // Set output sizes.
+        rRelationMatrix.resize(1, 2 * Dimensions - 1);
+        rSlaves.resize(1);
+        rMasters.resize(2 * Dimensions - 1);
 
         // Fill the relation matrix and Dof vectors.
         unsigned i_master = 0u;
@@ -125,12 +122,26 @@ struct LinkConstraint::Impl
     }
 
 
+    void FetchNodePositions(std::array<ValueType,6>& rPositions) const {
+        KRATOS_TRY
+        for (unsigned i_component=0u; i_component<mDimensions; ++i_component) {
+            for (unsigned i_node=0u; i_node<2; ++i_node) {
+                const unsigned i_dof = i_component + (i_node ? mDimensions : 0u);
+                rPositions[i_dof] = mNodePair[i_node]->Coordinates()[i_component];
+            } // for i_node in range(2)
+        } // for i_component in range(mDimensions)
+        KRATOS_CATCH("")
+    }
+
+
     unsigned mDimensions;
 
     /// @details MasterSlaveConstraint::GetSlaveDofsVector and MasterSlaveConstraint::GetMasterDofsVector
     ///          require arrays of mutable Dof pointers, which are only obtainable from mutable nodes,
     ///          so the nodes pointers stored here cannot be immutable. Risky business.
     std::array<Node*,2> mNodePair;
+
+    std::array<ValueType,6> mLastPositions;
 
     /// @details Unfortunately, the MasterSlaveConstraint interface demands that
     ///          GetSlaveDofsVector and GetMasterDofsVector returns the array of
@@ -141,8 +152,6 @@ struct LinkConstraint::Impl
     std::array<DofPointerVectorType,2> mDofVectors; // {slave, masters}
 
     LinkConstraint::MatrixType mRelationMatrix;
-
-    LinkConstraint::VectorType mConstraintGaps;
 }; // struct LinkConstraint::Impl
 
 
@@ -153,18 +162,10 @@ LinkConstraint::LinkConstraint(const IndexType Id,
     : MasterSlaveConstraint(Id),
       mpImpl(new Impl{Dimensions,
                       {&rFirst, &rSecond},
-                      {},
+                      {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
                       {},
                       {}})
 {
-    KRATOS_TRY
-    Impl::ComputeRelationMatrix(mpImpl->mRelationMatrix,
-                                mpImpl->mConstraintGaps,
-                                mpImpl->mDofVectors.front(),
-                                mpImpl->mDofVectors.back(),
-                                mpImpl->mNodePair,
-                                mpImpl->mDimensions);
-    KRATOS_CATCH("")
 }
 
 
@@ -211,24 +212,56 @@ MasterSlaveConstraint::Pointer LinkConstraint::Clone(IndexType NewId) const
 }
 
 
+void LinkConstraint::Initialize([[maybe_unused]] const ProcessInfo&)
+{
+    mpImpl->FetchNodePositions(mpImpl->mLastPositions);
+    Impl::ComputeRelationMatrix(mpImpl->mRelationMatrix,
+                                mpImpl->mDofVectors.front(),
+                                mpImpl->mDofVectors.back(),
+                                mpImpl->mNodePair,
+                                mpImpl->mLastPositions,
+                                mpImpl->mDimensions);
+}
+
+
 void LinkConstraint::InitializeSolutionStep(const ProcessInfo& rProcessInfo)
 {
     KRATOS_TRY
+    // Store displacements before nonlinear iterations begin.
+    // At this point, displacements are at their last converged
+    // state, when the constraint is supposed to be still satisfied.
+    mpImpl->FetchNodePositions(mpImpl->mLastPositions);
     this->InitializeNonLinearIteration(rProcessInfo);
     KRATOS_CATCH("")
 }
 
 
-void LinkConstraint::InitializeNonLinearIteration(const ProcessInfo& rProcessInfo)
+void LinkConstraint::InitializeNonLinearIteration([[maybe_unused]] const ProcessInfo&)
 {
     KRATOS_TRY
     Impl::ComputeRelationMatrix(mpImpl->mRelationMatrix,
-                                mpImpl->mConstraintGaps,
                                 mpImpl->mDofVectors.front(),
                                 mpImpl->mDofVectors.back(),
                                 mpImpl->mNodePair,
+                                mpImpl->mLastPositions,
                                 mpImpl->mDimensions);
     KRATOS_CATCH("")
+}
+
+
+void LinkConstraint::FinalizeNonLinearIteration([[maybe_unused]] const ProcessInfo&)
+{
+    //const std::array<const Variable<Impl::ValueType>*,3> displacement_components {
+    //    &DISPLACEMENT_X,
+    //    &DISPLACEMENT_Y,
+    //    &DISPLACEMENT_Z
+    //};
+    //Impl::ValueType distance = 0;
+    //for (unsigned i_component=0u; i_component<mpImpl->mDimensions; ++i_component) {
+    //    distance += std::pow(mpImpl->mNodePair[0]->Coordinates()[i_component] + mpImpl->mNodePair[0]->GetSolutionStepValue(*displacement_components[i_component])
+    //                         - mpImpl->mNodePair[1]->Coordinates()[i_component] - mpImpl->mNodePair[1]->GetSolutionStepValue(*displacement_components[i_component]), 2);
+    //}
+    //std::cout << "LinkConstraint: distance is " << distance << "\n";
 }
 
 
@@ -250,9 +283,8 @@ void LinkConstraint::Apply(const ProcessInfo& rProcessInfo)
     }
 
     // Apply the constraint to the slave dofs
-    KRATOS_ERROR_IF_NOT(mpImpl->mRelationMatrix.size1() == mpImpl->mConstraintGaps.size());
     for (IndexType i = 0; i < mpImpl->mRelationMatrix.size1(); ++i) {
-        Impl::ValueType tmp = mpImpl->mConstraintGaps[i];
+        Impl::ValueType tmp = 0.0;
         for(IndexType j = 0; j < mpImpl->mRelationMatrix.size2(); ++j) {
             tmp += mpImpl->mRelationMatrix(i,j) * master_dofs_values[j];
         }
@@ -314,7 +346,7 @@ void LinkConstraint::CalculateLocalSystem(MatrixType& rRelationMatrix,
                                           [[maybe_unused]] const ProcessInfo& rProcessInfo) const
 {
     rRelationMatrix = mpImpl->mRelationMatrix;
-    rConstraintGaps = mpImpl->mConstraintGaps;
+    rConstraintGaps.resize(1); rConstraintGaps[0] = 0;
 }
 
 

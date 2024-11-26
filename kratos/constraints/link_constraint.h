@@ -46,9 +46,13 @@ public:
 
     MasterSlaveConstraint::Pointer Clone(IndexType NewId) const override;
 
+    void Initialize(const ProcessInfo& rProcessInfo) override;
+
     void InitializeSolutionStep(const ProcessInfo& rProcessInfo) override;
 
     void InitializeNonLinearIteration(const ProcessInfo& rProcessInfo) override;
+
+    void FinalizeNonLinearIteration(const ProcessInfo& rProcessInfo) override;
 
     void ResetSlaveDofs(const ProcessInfo& rProcessInfo) override;
 
