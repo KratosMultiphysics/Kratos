@@ -35,6 +35,10 @@ class KratosGeoMechanicsSettlementWorkflow(KratosUnittest.TestCase):
             shutil.copy(os.path.join(self.test_root, filename), os.path.join(self.test_path, filename))
 
         # The expected values have been taken from a validated test run
+        self.define_expected_displacements()
+
+
+    def define_expected_displacements(self):
         self.expected_displacements = [{"output_filename": "test_model_stage1.post.res",
                                         "time": 1.0,
                                         "expected_values": [
