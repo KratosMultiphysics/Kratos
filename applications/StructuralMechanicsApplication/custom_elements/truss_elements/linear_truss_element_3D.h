@@ -51,9 +51,9 @@ using SizeType = std::size_t;
  *  0         1            0     2     1
  * @author Alejandro Cornejo
  */
-template <SizeType TNNodes>
+template <SizeType TNNodes, SizeType TDimension>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearTrussElement3D
-    : public LinearTrussElement2D<TNNodes>
+    : public LinearTrussElement2D<TNNodes, TDimension>
 {
 
 public:
@@ -62,11 +62,7 @@ public:
     ///@{
 
     /// The base element type
-    using BaseType = LinearTrussElement2D<TNNodes>;
-    static constexpr SizeType NNodes = TNNodes;
-    static constexpr SizeType DofsPerNode = 3;
-    static constexpr SizeType SystemSize = DofsPerNode * NNodes;
-    // using SystemSizeBoundedArrayType = array_1d<double, SystemSize>;
+    using BaseType = LinearTrussElement2D<TNNodes, TDimension>;
 
     // Counted pointer of BaseSolidElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(LinearTrussElement3D);
@@ -85,7 +81,7 @@ public:
     LinearTrussElement3D(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : BaseType(NewId,pGeometry,pProperties) {}
 
     // Copy constructor
-    LinearTrussElement3D(LinearTrussElement2D const& rOther) : BaseType(rOther) {}
+    LinearTrussElement3D(LinearTrussElement3D const& rOther) : BaseType(rOther) {}
 
     // Create method
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override

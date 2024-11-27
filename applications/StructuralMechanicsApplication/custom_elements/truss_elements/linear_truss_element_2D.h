@@ -52,7 +52,7 @@ using SizeType = std::size_t;
  *  0         1            0     2     1
  * @author Alejandro Cornejo
  */
-template <SizeType TNNodes>
+template <SizeType TNNodes, SizeType TDimension>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearTrussElement2D
     : public Element
 {
@@ -65,8 +65,9 @@ public:
     /// The base element type
     using BaseType = Element;
     static constexpr SizeType NNodes = TNNodes;
-    static constexpr SizeType DofsPerNode = 2;
-    static constexpr SizeType SystemSize = DofsPerNode * NNodes;
+    static constexpr SizeType Dimension = TDimension;
+    static constexpr SizeType DofsPerNode = TDimension;
+    static constexpr SizeType SystemSize = TDimension * TNNodes;
     using SystemSizeBoundedArrayType = array_1d<double, SystemSize>;
 
     // Counted pointer of BaseSolidElement

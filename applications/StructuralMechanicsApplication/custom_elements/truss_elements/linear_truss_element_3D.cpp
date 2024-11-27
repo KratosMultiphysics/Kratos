@@ -27,15 +27,15 @@ namespace Kratos
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TNNodes>
-Element::Pointer LinearTrussElement3D<TNNodes>::Clone(
+template<SizeType TNNodes, SizeType TDimension>
+Element::Pointer LinearTrussElement3D<TNNodes, TDimension>::Clone(
     IndexType NewId,
     NodesArrayType const& rThisNodes
     ) const
 {
     KRATOS_TRY
 
-    LinearTrussElement3D<TNNodes>::Pointer p_new_elem = Kratos::make_intrusive<LinearTrussElement3D<TNNodes>>(NewId, GetGeometry().Create(rThisNodes), pGetProperties());
+    LinearTrussElement3D<TNNodes, TDimension>::Pointer p_new_elem = Kratos::make_intrusive<LinearTrussElement3D<TNNodes, TDimension>>(NewId, GetGeometry().Create(rThisNodes), pGetProperties());
     p_new_elem->SetData(this->GetData());
     p_new_elem->Set(Flags(*this));
 
@@ -53,8 +53,8 @@ Element::Pointer LinearTrussElement3D<TNNodes>::Clone(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TNNodes>
-void LinearTrussElement3D<TNNodes>::EquationIdVector(
+template<SizeType TNNodes, SizeType TDimension>
+void LinearTrussElement3D<TNNodes, TDimension>::EquationIdVector(
     EquationIdVectorType& rResult,
     const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -78,8 +78,8 @@ void LinearTrussElement3D<TNNodes>::EquationIdVector(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TNNodes>
-void LinearTrussElement3D<TNNodes>::GetDofList(
+template<SizeType TNNodes, SizeType TDimension>
+void LinearTrussElement3D<TNNodes, TDimension>::GetDofList(
     DofsVectorType& rElementalDofList,
     const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -103,8 +103,8 @@ void LinearTrussElement3D<TNNodes>::GetDofList(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TNNodes>
-void LinearTrussElement3D<TNNodes>::GetShapeFunctionsValues(
+template<SizeType TNNodes, SizeType TDimension>
+void LinearTrussElement3D<TNNodes, TDimension>::GetShapeFunctionsValues(
     SystemSizeBoundedArrayType& rN,
     const double Length,
     const double xi
@@ -130,8 +130,8 @@ void LinearTrussElement3D<TNNodes>::GetShapeFunctionsValues(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TNNodes>
-void LinearTrussElement3D<TNNodes>::GetShapeFunctionsValuesY(
+template<SizeType TNNodes, SizeType TDimension>
+void LinearTrussElement3D<TNNodes, TDimension>::GetShapeFunctionsValuesY(
     SystemSizeBoundedArrayType& rN,
     const double Length,
     const double xi
@@ -157,8 +157,8 @@ void LinearTrussElement3D<TNNodes>::GetShapeFunctionsValuesY(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TNNodes>
-void LinearTrussElement3D<TNNodes>::GetShapeFunctionsValuesZ(
+template<SizeType TNNodes, SizeType TDimension>
+void LinearTrussElement3D<TNNodes, TDimension>::GetShapeFunctionsValuesZ(
     SystemSizeBoundedArrayType& rN,
     const double Length,
     const double xi
@@ -184,8 +184,8 @@ void LinearTrussElement3D<TNNodes>::GetShapeFunctionsValuesZ(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TNNodes>
-void LinearTrussElement3D<TNNodes>::GetFirstDerivativesShapeFunctionsValues(
+template<SizeType TNNodes, SizeType TDimension>
+void LinearTrussElement3D<TNNodes, TDimension>::GetFirstDerivativesShapeFunctionsValues(
     SystemSizeBoundedArrayType& rdN_dX,
     const double Length,
     const double xi
@@ -211,8 +211,8 @@ void LinearTrussElement3D<TNNodes>::GetFirstDerivativesShapeFunctionsValues(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TNNodes>
-BoundedMatrix<double, 3, 3> LinearTrussElement3D<TNNodes>::GetFrenetSerretMatrix() const
+template<SizeType TNNodes, SizeType TDimension>
+BoundedMatrix<double, 3, 3> LinearTrussElement3D<TNNodes, TDimension>::GetFrenetSerretMatrix() const
 {
     const auto &r_geom = GetGeometry();
     BoundedMatrix<double, 3, 3> T;
@@ -258,8 +258,8 @@ BoundedMatrix<double, 3, 3> LinearTrussElement3D<TNNodes>::GetFrenetSerretMatrix
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TNNodes>
-void LinearTrussElement3D<TNNodes>::GetNodalValuesVector(SystemSizeBoundedArrayType& rNodalValues) const
+template<SizeType TNNodes, SizeType TDimension>
+void LinearTrussElement3D<TNNodes, TDimension>::GetNodalValuesVector(SystemSizeBoundedArrayType& rNodalValues) const
 {
     if (rNodalValues.size() != SystemSize)
         rNodalValues.resize(SystemSize, false);
@@ -291,8 +291,8 @@ void LinearTrussElement3D<TNNodes>::GetNodalValuesVector(SystemSizeBoundedArrayT
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TNNodes>
-array_1d<double, 3> LinearTrussElement3D<TNNodes>::GetLocalAxesBodyForce(
+template<SizeType TNNodes, SizeType TDimension>
+array_1d<double, 3> LinearTrussElement3D<TNNodes, TDimension>::GetLocalAxesBodyForce(
     const Element &rElement,
     const GeometryType::IntegrationPointsArrayType &rIntegrationPoints,
     const IndexType PointNumber
@@ -312,8 +312,8 @@ array_1d<double, 3> LinearTrussElement3D<TNNodes>::GetLocalAxesBodyForce(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TNNodes>
-void LinearTrussElement3D<TNNodes>::CalculateLocalSystem(
+template<SizeType TNNodes, SizeType TDimension>
+void LinearTrussElement3D<TNNodes, TDimension>::CalculateLocalSystem(
     MatrixType& rLHS,
     VectorType& rRHS,
     const ProcessInfo& rProcessInfo
@@ -387,8 +387,8 @@ void LinearTrussElement3D<TNNodes>::CalculateLocalSystem(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TNNodes>
-void LinearTrussElement3D<TNNodes>::CalculateLeftHandSide(
+template<SizeType TNNodes, SizeType TDimension>
+void LinearTrussElement3D<TNNodes, TDimension>::CalculateLeftHandSide(
     MatrixType& rLHS,
     const ProcessInfo& rProcessInfo
     )
@@ -448,8 +448,8 @@ void LinearTrussElement3D<TNNodes>::CalculateLeftHandSide(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TNNodes>
-void LinearTrussElement3D<TNNodes>::CalculateRightHandSide(
+template<SizeType TNNodes, SizeType TDimension>
+void LinearTrussElement3D<TNNodes, TDimension>::CalculateRightHandSide(
     VectorType& rRHS,
     const ProcessInfo& rProcessInfo
     )
@@ -514,8 +514,8 @@ void LinearTrussElement3D<TNNodes>::CalculateRightHandSide(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TNNodes>
-void LinearTrussElement3D<TNNodes>::RotateLHS(
+template<SizeType TNNodes, SizeType TDimension>
+void LinearTrussElement3D<TNNodes, TDimension>::RotateLHS(
     MatrixType& rLHS
 )
 {
@@ -539,8 +539,8 @@ void LinearTrussElement3D<TNNodes>::RotateLHS(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TNNodes>
-void LinearTrussElement3D<TNNodes>::RotateRHS(
+template<SizeType TNNodes, SizeType TDimension>
+void LinearTrussElement3D<TNNodes, TDimension>::RotateRHS(
     VectorType& rRHS
 )
 {
@@ -564,8 +564,8 @@ void LinearTrussElement3D<TNNodes>::RotateRHS(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TNNodes>
-void LinearTrussElement3D<TNNodes>::RotateAll(
+template<SizeType TNNodes, SizeType TDimension>
+void LinearTrussElement3D<TNNodes, TDimension>::RotateAll(
     MatrixType& rLHS,
     VectorType& rRHS
 )
@@ -594,8 +594,8 @@ void LinearTrussElement3D<TNNodes>::RotateAll(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TNNodes>
-void LinearTrussElement3D<TNNodes>::save(Serializer& rSerializer) const
+template<SizeType TNNodes, SizeType TDimension>
+void LinearTrussElement3D<TNNodes, TDimension>::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
 }
@@ -603,8 +603,8 @@ void LinearTrussElement3D<TNNodes>::save(Serializer& rSerializer) const
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TNNodes>
-void LinearTrussElement3D<TNNodes>::load(Serializer& rSerializer)
+template<SizeType TNNodes, SizeType TDimension>
+void LinearTrussElement3D<TNNodes, TDimension>::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
 }
@@ -612,7 +612,7 @@ void LinearTrussElement3D<TNNodes>::load(Serializer& rSerializer)
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class LinearTrussElement3D<2>;
-template class LinearTrussElement3D<3>;
+template class LinearTrussElement3D<2, 3>;
+template class LinearTrussElement3D<3, 3>;
 
 } // Namespace Kratos
