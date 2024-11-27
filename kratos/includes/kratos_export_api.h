@@ -21,7 +21,7 @@
 #undef KRATOS_API_EXPORT
 #undef KRATOS_API_IMPORT
 #if defined(_WIN32) || defined(_WIN64)
-    #if defined(__MINGW32__) || defined(__MINGW64__)
+    #if defined(__MINGW32__) || defined(__MINGW64__) || defined(__INTEL_LLVM_COMPILER )
         #define KRATOS_API_EXPORT __attribute__((visibility("default")))
         #define KRATOS_API_IMPORT __attribute__((visibility("default")))
     #else
@@ -59,7 +59,7 @@
 // Conditionally declare explicit template instances, since explicit instantiation does not play nice with dllexport
 #undef KRATOS_API_EXTERN
 #if defined(_WIN32) || defined(_WIN64)
-    #if defined(__MINGW32__) || defined(__MINGW64__) //|| defined(__INTEL_LLVM_COMPILER )
+    #if defined(__MINGW32__) || defined(__MINGW64__) || defined(__INTEL_LLVM_COMPILER )
         #define KRATOS_API_EXTERN extern
     #else
         #define KRATOS_API_EXTERN
