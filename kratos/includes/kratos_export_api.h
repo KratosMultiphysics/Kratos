@@ -15,7 +15,7 @@
 #undef KRATOS_API_EXPORT
 #undef KRATOS_API_IMPORT
 #if _WIN32
-    #if defined(__MINGW32__) || defined(__MINGW64__) || defined(__INTEL_LLVM_COMPILER )
+    #if defined(__MINGW32__) || defined(__MINGW64__)
         #define KRATOS_API_EXPORT __attribute__((visibility("default")))
         #define KRATOS_API_IMPORT __attribute__((visibility("default")))
     #else
@@ -36,8 +36,14 @@
 
 // If KRATOS_API_NO_DLL is defined ignore the DLL api
 #ifndef KRATOS_API_NO_DLL
-    #define KRATOS_API(...) \
-        KRATOS_EXPAND(KRATOS_API_CALL(,##__VA_ARGS__,KRATOS_API_EXPORT,KRATOS_API_IMPORT))
+    // Intel dpcpp and msvc treatment of __VA_ARGS__ is non-conforming
+    #if defined(_WIN32) && defined(__INTEL_LLVM_COMPILER )
+        #define KRATOS_API(...) \
+            KRATOS_EXPAND(KRATOS_API_CALL(,__VA_ARGS__,KRATOS_API_EXPORT,KRATOS_API_IMPORT))
+    #else
+        #define KRATOS_API(...) \
+            KRATOS_EXPAND(KRATOS_API_CALL(,##__VA_ARGS__,KRATOS_API_EXPORT,KRATOS_API_IMPORT))
+    #endif
     #define KRATOS_NO_EXPORT(...)
 #else
     #define KRATOS_API(...)
