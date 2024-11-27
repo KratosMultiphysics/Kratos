@@ -10,11 +10,17 @@
 //  Main authors:    Carlos A. Roig Pina
 //
 
+// System includes
+
+// External includes
+
+// Project includes
+
 #pragma once
 
 #undef KRATOS_API_EXPORT
 #undef KRATOS_API_IMPORT
-#if _WIN32
+#if defined(_WIN32) || defined(_WIN64)
     #if defined(__MINGW32__) || defined(__MINGW64__)
         #define KRATOS_API_EXPORT __attribute__((visibility("default")))
         #define KRATOS_API_IMPORT __attribute__((visibility("default")))
@@ -34,10 +40,10 @@
 // number of the arguments in API() call.
 #define KRATOS_API_CALL(x,T1,T2,T3,...) T3
 
-// If KRATOS_API_NO_DLL is defined ignore the DLL api
+// If KRATOS_API_NO_DLL is defined ignore the DLL API
 #ifndef KRATOS_API_NO_DLL
     // Intel dpcpp and msvc treatment of __VA_ARGS__ is non-conforming
-    #if defined(_WIN32) && defined(__INTEL_LLVM_COMPILER )
+    #if (defined(_WIN32) || defined(_WIN64)) && defined(__INTEL_LLVM_COMPILER )
         #define KRATOS_API(...) \
             KRATOS_EXPAND(KRATOS_API_CALL(,__VA_ARGS__,KRATOS_API_EXPORT,KRATOS_API_IMPORT))
     #else
@@ -50,10 +56,10 @@
     #define KRATOS_NO_EXPORT(...)
 #endif
 
-// Conditionally declare explicit template instances, since explicit instiation does not play nice with dllexport
+// Conditionally declare explicit template instances, since explicit instantiation does not play nice with dllexport
 #undef KRATOS_API_EXTERN
-#ifdef _WIN32
-    #if defined(__MINGW32__) || defined(__MINGW64__) || defined(__INTEL_LLVM_COMPILER )
+#if defined(_WIN32) || defined(_WIN64)
+    #if defined(__MINGW32__) || defined(__MINGW64__) //|| defined(__INTEL_LLVM_COMPILER )
         #define KRATOS_API_EXTERN extern
     #else
         #define KRATOS_API_EXTERN
