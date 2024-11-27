@@ -36,7 +36,7 @@ namespace Kratos
  * @details The implementations come from CppBenchmark, with MIT license, see https://github.com/chronoxor/CppBenchmark/
  * @author Vicente Mataix Ferrandiz
  */
-class KRATOS_API(KRATOS_CORE) SystemInformation 
+class KRATOS_API(KRATOS_CORE) SystemInformation
 {
 public:
     ///@name Type Definitions
@@ -48,8 +48,16 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
-    SystemInformation()
-    {}
+
+    /**
+     * @brief Default constructor.
+     */
+    SystemInformation() = default;
+
+    /**
+     * @brief Destructor.
+     */
+    virtual ~SystemInformation() = default;
 
     ///@}
     ///@name Operations
@@ -116,7 +124,7 @@ public:
      * @return String with clock speed representation
      */
     static std::string GenerateClockSpeed(const int64_t Hertz);
-    
+
     /**
      * @brief Generate data size string
      * @details Will return a pretty string of bytes, KiB, MiB, GiB, TiB based on the given bytes.
@@ -130,7 +138,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
+    std::string Info() const
     {
         std::stringstream buffer;
         buffer << "SystemInformation" ;
@@ -139,10 +147,16 @@ public:
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override {rOStream << "SystemInformation";}
+    void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "SystemInformation";
+    }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override {rOStream << "SystemInformation class";}
+    void PrintData(std::ostream& rOStream) const
+    {
+        rOStream << "SystemInformation class";
+    }
 
     ///@}
 }; // class SystemInformation

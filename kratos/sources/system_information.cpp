@@ -13,42 +13,43 @@
 
 // System includes
 #include <sstream>
-#include <chrono>
 #include <codecvt>
 #include <cstring>
 #include <locale>
-#include <sstream>
-#if defined(__APPLE__)
+#include <regex>
+
+// External includes
+
+// Project includes
+#include "input_output/logger.h"
+#include "includes/system_information.h"
+
+// OS specific includes
+#if defined(KRATOS_COMPILED_IN_OS)
 #include <mach/mach.h>
 #include <mach/mach_time.h>
 #include <sys/sysctl.h>
 #include <math.h>
 #include <pthread.h>
-#elif defined(unix) || defined(__unix) || defined(__unix__)
+#elif defined(KRATOS_COMPILED_IN_LINUX)
 #include <sys/stat.h>
 #include <sys/utsname.h>
 #include <pthread.h>
 #include <unistd.h>
 #include <fstream>
 #include <regex>
-#endif
-#if defined(_WIN32) || defined(_WIN64)
+#elif defined(KRATOS_COMPILED_IN_WINDOWS)
 #include <windows.h>
 #include <winternl.h>
 #include <memory>
 #define STATUS_SUCCESS 0x00000000
 #endif
 
-// External includes
-
-// Project includes
-#include "includes/system_information.h"
-
 namespace Kratos
 {
 std::string SystemInformation::OSVersion()
 {
-#if defined(__APPLE__)
+#if defined(KRATOS_COMPILED_IN_OS)
     char result[1024];
     std::size_t size = sizeof(result);
     if (sysctlbyname("kern.osrelease", result, &size, nullptr, 0) == 0) {
@@ -81,7 +82,7 @@ std::string SystemInformation::OSVersion()
     }
 
     return "<linux>";
-#elif defined(_WIN32) || defined(_WIN64)
+#elif defined(KRATOS_COMPILED_IN_WINDOWS)
     static NTSTATUS(__stdcall *RtlGetVersion)(OUT PRTL_OSVERSIONINFOEXW lpVersionInformation) = (NTSTATUS(__stdcall*)(PRTL_OSVERSIONINFOEXW))GetProcAddress(GetModuleHandle("ntdll.dll"), "RtlGetVersion");
     static void(__stdcall *GetNativeSystemInfo)(OUT LPSYSTEM_INFO lpSystemInfo) = (void(__stdcall*)(LPSYSTEM_INFO))GetProcAddress(GetModuleHandle("kernel32.dll"), "GetNativeSystemInfo");
     static BOOL(__stdcall *GetProductInfo)(IN DWORD dwOSMajorVersion, IN DWORD dwOSMinorVersion, IN DWORD dwSpMajorVersion, IN DWORD dwSpMinorVersion, OUT PDWORD pdwReturnedProductType) = (BOOL(__stdcall*)(DWORD, DWORD, DWORD, DWORD, PDWORD))GetProcAddress(GetModuleHandle("kernel32.dll"), "GetProductInfo");
@@ -332,7 +333,7 @@ std::string SystemInformation::OSVersion()
 
 std::string SystemInformation::CPUArchitecture()
 {
-#if defined(__APPLE__)
+#if defined(KRATOS_COMPILED_IN_OS)
     char result[1024];
     std::size_t size = sizeof(result);
     if (sysctlbyname("machdep.cpu.brand_string", result, &size, nullptr, 0) == 0) {
@@ -340,7 +341,7 @@ std::string SystemInformation::CPUArchitecture()
     }
 
     return "<unknown>";
-#elif defined(unix) || defined(__unix) || defined(__unix__)
+#elif defined(KRATOS_COMPILED_IN_LINUX)
     static std::regex pattern("model name(.*): (.*)");
 
     std::string line;
@@ -353,7 +354,7 @@ std::string SystemInformation::CPUArchitecture()
     }
 
     return "<unknown>";
-#elif defined(_WIN32) || defined(_WIN64)
+#elif defined(KRATOS_COMPILED_IN_WINDOWS)
     HKEY hKeyProcessor;
     LONG lError = RegOpenKeyExA(HKEY_LOCAL_MACHINE, "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0", 0, KEY_READ, &hKeyProcessor);
     if (lError != ERROR_SUCCESS)
@@ -385,6 +386,7 @@ std::size_t SystemInformation::CPULogicalCores()
     if (cpu_logical_cores > 0) {
         return static_cast<std::size_t>(cpu_logical_cores);
     } else {
+        KRATOS_WARNING("SystemInformation") << "The number of logical cores is not available" << std::endl;
         return 0;
     }
 }
@@ -398,6 +400,7 @@ std::size_t SystemInformation::CPUPhysicalCores()
     if (cpu_physical_cores > 0) {
         return static_cast<std::size_t>(cpu_physical_cores);
     } else {
+        KRATOS_WARNING("SystemInformation") << "The number of physical cores is not available" << std::endl;
         return 0;
     }
 }
@@ -407,7 +410,7 @@ std::size_t SystemInformation::CPUPhysicalCores()
 
 std::pair<int, int> SystemInformation::CPUTotalCores()
 {
-#if defined(__APPLE__)
+#if defined(KRATOS_COMPILED_IN_OS)
     int logical = 0;
     std::size_t logical_size = sizeof(logical);
     if (sysctlbyname("hw.logicalcpu", &logical, &logical_size, nullptr, 0) != 0) {
@@ -421,10 +424,10 @@ std::pair<int, int> SystemInformation::CPUTotalCores()
     }
 
     return std::make_pair(logical, physical);
-#elif defined(unix) || defined(__unix) || defined(__unix__)
+#elif defined(KRATOS_COMPILED_IN_LINUX)
     long processors = sysconf(_SC_NPROCESSORS_ONLN);
     return std::make_pair(processors, processors);
-#elif defined(_WIN32) || defined(_WIN64)
+#elif defined(KRATOS_COMPILED_IN_WINDOWS)
     BOOL allocated = FALSE;
     PSYSTEM_LOGICAL_PROCESSOR_INFORMATION pBuffer = nullptr;
     DWORD dwLength = 0;
@@ -482,14 +485,14 @@ std::pair<int, int> SystemInformation::CPUTotalCores()
 
 int64_t SystemInformation::CPUClockSpeed()
 {
-#if defined(__APPLE__)
+#if defined(KRATOS_COMPILED_IN_OS)
     uint64_t frequency = 0;
     size_t size = sizeof(frequency);
     if (sysctlbyname("hw.cpufrequency", &frequency, &size, nullptr, 0) == 0)
         return frequency;
 
     return -1;
-#elif defined(unix) || defined(__unix) || defined(__unix__)
+#elif defined(KRATOS_COMPILED_IN_LINUX)
     static std::regex pattern("cpu MHz(.*): (.*)");
 
     std::string line;
@@ -502,11 +505,12 @@ int64_t SystemInformation::CPUClockSpeed()
     }
 
     return -1;
-#elif defined(_WIN32) || defined(_WIN64)
+#elif defined(KRATOS_COMPILED_IN_WINDOWS)
     HKEY hKeyProcessor;
     long lError = RegOpenKeyExA(HKEY_LOCAL_MACHINE, "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0", 0, KEY_READ, &hKeyProcessor);
-    if (lError != ERROR_SUCCESS)
+    if (lError != ERROR_SUCCESS) {
         return -1;
+    }
 
     // Smart resource cleaner pattern
     auto clearer = [](HKEY hKey) { RegCloseKey(hKey); };
@@ -538,7 +542,7 @@ bool SystemInformation::CPUHyperThreading()
 
 int64_t SystemInformation::RamTotal()
 {
-#if defined(__APPLE__)
+#if defined(KRATOS_COMPILED_IN_OS)
     int64_t memsize = 0;
     std::size_t size = sizeof(memsize);
     if (sysctlbyname("hw.memsize", &memsize, &size, nullptr, 0) == 0) {
@@ -546,15 +550,15 @@ int64_t SystemInformation::RamTotal()
     }
 
     return -1;
-#elif defined(unix) || defined(__unix) || defined(__unix__)
-    int64_t pages = sysconf(_SC_PHYS_PAGES);
-    int64_t page_size = sysconf(_SC_PAGESIZE);
+#elif defined(KRATOS_COMPILED_IN_LINUX)
+    const int64_t pages = sysconf(_SC_PHYS_PAGES);
+    const int64_t page_size = sysconf(_SC_PAGESIZE);
     if ((pages > 0) && (page_size > 0)) {
         return pages * page_size;
     }
 
     return -1;
-#elif defined(_WIN32) || defined(_WIN64)
+#elif defined(KRATOS_COMPILED_IN_WINDOWS)
     MEMORYSTATUSEX status;
     status.dwLength = sizeof(status);
     GlobalMemoryStatusEx(&status);
@@ -569,7 +573,7 @@ int64_t SystemInformation::RamTotal()
 
 int64_t SystemInformation::RamFree()
 {
-#if defined(__APPLE__)
+#if defined(KRATOS_COMPILED_IN_OS)
     mach_port_t host_port = mach_host_self();
     if (host_port == MACH_PORT_NULL) {
         return -1;
@@ -588,15 +592,15 @@ int64_t SystemInformation::RamFree()
     [[maybe_unused]] int64_t used_mem = (vmstat.active_count + vmstat.inactive_count + vmstat.wire_count) * page_size;
     int64_t free_mem = vmstat.free_count * page_size;
     return free_mem;
-#elif defined(unix) || defined(__unix) || defined(__unix__)
-    int64_t pages = sysconf(_SC_AVPHYS_PAGES);
-    int64_t page_size = sysconf(_SC_PAGESIZE);
+#elif defined(KRATOS_COMPILED_IN_LINUX)
+    const int64_t pages = sysconf(_SC_AVPHYS_PAGES);
+    const int64_t page_size = sysconf(_SC_PAGESIZE);
     if ((pages > 0) && (page_size > 0)) {
         return pages * page_size;
     }
 
     return -1;
-#elif defined(_WIN32) || defined(_WIN64)
+#elif defined(KRATOS_COMPILED_IN_WINDOWS)
     MEMORYSTATUSEX status;
     status.dwLength = sizeof(status);
     GlobalMemoryStatusEx(&status);
@@ -628,10 +632,10 @@ std::string SystemInformation::GenerateClockSpeed(const int64_t Hertz)
         stream << megahertz << '.' << ((kilohertz < 100) ? "0" : "") << ((kilohertz < 10) ? "0" : "") << kilohertz << " MHz";
     } else if (abs_hertz >= 1000) {
         const std::size_t kilohertz = abs_hertz / 1000;
-        hertz = abs_hertz % 1000;
-        stream << kilohertz << '.' << ((hertz < 100) ? "0" : "") << ((hertz < 10) ? "0" : "") << hertz << " kHz";
+        const std::size_t hertz_1000 = abs_hertz % 1000;
+        stream << kilohertz << '.' << ((hertz_1000 < 100) ? "0" : "") << ((hertz_1000 < 10) ? "0" : "") << hertz_1000 << " kHz";
     } else {
-        stream << hertz << " Hz";
+        stream << abs_hertz << " Hz";
     }
 
     return stream.str();
