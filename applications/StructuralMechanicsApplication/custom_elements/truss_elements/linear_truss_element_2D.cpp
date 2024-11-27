@@ -679,7 +679,7 @@ int LinearTrussElement2D<TNNodes, TDimension>::Check(const ProcessInfo& rCurrent
     return mConstitutiveLawVector[0]->Check(GetProperties(), GetGeometry(), rCurrentProcessInfo);
     KRATOS_ERROR_IF_NOT(GetProperties().Has(CROSS_AREA)) << "CROSS_AREA not defined in the properties" << std::endl;
 
-    KRATOS_CATCH( "" );
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -731,5 +731,9 @@ array_1d<double, TNNodes> LinearTrussElement2D<TNNodes, TDimension>::GetBaseShap
 
 template class LinearTrussElement2D<2, 2>;
 template class LinearTrussElement2D<3, 2>;
+
+// In order to link
+template class LinearTrussElement2D<2, 3>;
+template class LinearTrussElement2D<3, 3>;
 
 } // Namespace Kratos
