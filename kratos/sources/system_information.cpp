@@ -8,6 +8,7 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
+//                   The implementations come from CppBenchmark, with MIT license, see https://github.com/chronoxor/CppBenchmark/
 //
 
 // System includes
