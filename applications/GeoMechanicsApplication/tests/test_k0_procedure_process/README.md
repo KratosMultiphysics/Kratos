@@ -3,6 +3,7 @@
 This folder contains the test cases:
 
 -   [K<sub>0</sub> procedure normal consolidation](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/GeoMechanicsApplication/tests/test_k0_procedure_process/test_k0_procedure_k0_nc/README.md)
+-   [K<sub>0</sub> procedure normal consolidation in 3D](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/GeoMechanicsApplication/tests/test_k0_procedure_process/test_k0_procedure_k0_nc_3D/README.md)
 -   [K<sub>0</sub> procedure normal consolidation with layers](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/GeoMechanicsApplication/tests/test_k0_procedure_process/test_k0_procedure_k0_nc_layers/README.md)
 -   [K<sub>0</sub> procedure normal consolidation with OCR](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/GeoMechanicsApplication/tests/test_k0_procedure_process/test_k0_procedure_k0_nc_ocr/README.md)
 -   [K<sub>0</sub> procedure normal consolidation with OCR_field](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/GeoMechanicsApplication/tests/test_k0_procedure_process/test_k0_procedure_k0_nc_ocr_field/README.md)

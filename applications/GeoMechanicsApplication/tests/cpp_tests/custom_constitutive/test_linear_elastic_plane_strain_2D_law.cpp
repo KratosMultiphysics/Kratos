@@ -10,7 +10,7 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "custom_constitutive/linear_elastic_plane_strain_2D_law.h"
+#include "custom_constitutive/incremental_linear_elastic_law.h"
 #include "custom_constitutive/plane_strain.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
@@ -21,7 +21,7 @@ namespace
 
 using namespace Kratos;
 
-Vector CalculateStress(GeoLinearElasticPlaneStrain2DLaw& rConstitutiveLaw)
+Vector CalculateStress(GeoIncrementalLinearElasticLaw& rConstitutiveLaw)
 {
     ConstitutiveLaw::Parameters parameters;
     parameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
@@ -46,9 +46,9 @@ Vector CalculateStress(GeoLinearElasticPlaneStrain2DLaw& rConstitutiveLaw)
     return stress;
 }
 
-GeoLinearElasticPlaneStrain2DLaw CreateLinearElasticPlaneStrainLaw()
+GeoIncrementalLinearElasticLaw CreateLinearElasticPlaneStrainLaw()
 {
-    return GeoLinearElasticPlaneStrain2DLaw{std::make_unique<PlaneStrain>()};
+    return GeoIncrementalLinearElasticLaw{std::make_unique<PlaneStrain>()};
 }
 
 } // namespace
@@ -61,7 +61,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsCloneOfCorrectT
     const auto law         = CreateLinearElasticPlaneStrainLaw();
     const auto p_law_clone = law.Clone();
     KRATOS_EXPECT_NE(&law, p_law_clone.get());
-    KRATOS_EXPECT_NE(dynamic_cast<const GeoLinearElasticPlaneStrain2DLaw*>(p_law_clone.get()), nullptr);
+    KRATOS_EXPECT_NE(dynamic_cast<const GeoIncrementalLinearElasticLaw*>(p_law_clone.get()), nullptr);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawRequiresInitializeResponse, KratosGeoMechanicsFastSuiteWithoutKernel)

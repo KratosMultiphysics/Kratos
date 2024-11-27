@@ -57,14 +57,15 @@ class GeoMechanicsAnalysisBase(AnalysisStage):
 
     def ResetIfHasNodalSolutionStepVariable(self, variable):
         if self._GetSolver().main_model_part.HasNodalSolutionStepVariable(variable):
-            KratosMultiphysics.VariableUtils().SetHistoricalVariableToZero(variable, self._GetSolver().GetComputingModelPart().Nodes)
-            for node in self._GetSolver().GetComputingModelPart().Nodes:
-                new_value = node.GetSolutionStepValue(variable, 0)
-                node.SetSolutionStepValue(variable, 1, new_value)
+            zero_vector = Kratos.Array3([0.0, 0.0, 0.0])
+            KratosGeo.NodeUtilities.AssignUpdatedVectorVariableToNonFixedComponentsOfNodes(
+                self._GetSolver().GetComputingModelPart().Nodes, variable, zero_vector, 0)
+            KratosGeo.NodeUtilities.AssignUpdatedVectorVariableToNonFixedComponentsOfNodes(
+                self._GetSolver().GetComputingModelPart().Nodes, variable, zero_vector, 1)
 
-    def ModifyInitialGeometry(self):
-        # Overrides the base class. Necessary to let reset_displacements function correctly i.c.w. prescribed displacements/rotations.
-        # The reset needs to take place befor the Initialize of the processes, as these will set the Dirichlet condition.
+    def Initialize(self):
+        super().Initialize()
+
         self._GetSolver().main_model_part.ProcessInfo[KratosGeo.RESET_DISPLACEMENTS] = self.reset_displacements
         if self.reset_displacements:
             self.ResetIfHasNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
