@@ -114,6 +114,9 @@ void LinearTrussElement3D<TNNodes>::GetShapeFunctionsValues(
         rN.resize(SystemSize, false);
 
     rN.clear();
+    array_1d<double, NNodes> base_N;
+    noalias(base_N) = GetBaseShapeFunctions(xi);
+
     if constexpr (NNodes == 2) {
         rN[0] = base_N[0];
         rN[3] = base_N[1];
@@ -166,7 +169,7 @@ void LinearTrussElement3D<TNNodes>::GetShapeFunctionsValuesZ(
 
     rN.clear();
     array_1d<double, NNodes> base_N;
-    noalias(base_N) = GetBaseShapeFunctions();
+    noalias(base_N) = GetBaseShapeFunctions(xi);
 
     if constexpr (NNodes == 2) {
         rN[2] = base_N[0];
