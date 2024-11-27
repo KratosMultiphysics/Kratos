@@ -74,9 +74,16 @@ public:
     ///@{
 
     // Constructor void
-    LinearTrussElement3D()
-    {
-    }
+    LinearTrussElement3D() {}
+
+    // Constructor using an array of nodes
+    LinearTrussElement3D(IndexType NewId, GeometryType::Pointer pGeometry) : BaseType(NewId, pGeometry) {}
+
+    // Constructor using an array of nodes with properties
+    LinearTrussElement3D(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : BaseType(NewId,pGeometry,pProperties) {}
+
+    // Copy constructor
+    LinearTrussElement3D(LinearTrussElement2D const& rOther) : BaseType(rOther) {}
 
     // Create method
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
@@ -85,7 +92,7 @@ public:
     }
 
     // Create method
-    Element::Pointer Create( IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const override
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
     {
         return Kratos::make_intrusive<LinearTrussElement3D>(NewId, pGeom, pProperties);
     }
@@ -112,12 +119,6 @@ public:
         // Same implementation for 2N and 3N
         return StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
     }
-
-    /**
-     * @brief Called to initialize the element.
-     * @warning Must be called before any calculation is done
-     */
-    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief It creates a new element pointer and clones the previous element data
