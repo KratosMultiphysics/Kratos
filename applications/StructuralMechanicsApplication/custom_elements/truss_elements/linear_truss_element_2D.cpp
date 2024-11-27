@@ -704,6 +704,25 @@ void LinearTrussElement2D<TNNodes>::load(Serializer& rSerializer)
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<SizeType TNNodes>
+array_1d<double, TNNodes> LinearTrussElement2D<TNNodes>GetBaseShapeFunctions()
+{
+    array_1d<double, NNodes> N;
+
+    if constexpr (NNodes == 2) {
+        N[0] = 0.5 * (1.0 - xi);
+        N[1] = 0.5 * (1.0 + xi);
+    } else {
+        N[0] = 0.5 * xi * (xi - 1.0);
+        N[1] = 0.5 * xi * (xi + 1.0);
+        N[2] = (1.0 - std::pow(xi, 2));
+    }
+    return N;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template class LinearTrussElement2D<2>;
 template class LinearTrussElement2D<3>;
 

@@ -47,7 +47,7 @@ using SizeType = std::size_t;
 /**
  * @class LinearTrussElement2D
  * @ingroup StructuralMechanicsApplication
- * @brief This is the Linear TRUSS element of 2 and 3 nodes.
+ * @brief This is the Linear 2D TRUSS element of 2 and 3 nodes.
  * @author Alejandro Cornejo
  */
 template <SizeType TNNodes>
@@ -141,15 +141,20 @@ public:
     }
 
     /**
+     * @brief This method returns the base shape functions in a reduced size vector (2 or 3 entries)
+     */
+    array_1d<double, NNodes> GetBaseShapeFunctions() const;
+
+    /**
      * @brief Returns a n component vector including the values of the DoFs
      * in LOCAL beam axes
      */
-    void GetNodalValuesVector(SystemSizeBoundedArrayType& rNodalValue) const;
+    virtual void GetNodalValuesVector(SystemSizeBoundedArrayType& rNodalValue) const;
 
     /**
      * @brief Computes the length of the FE and returns it
      */
-    double CalculateLength() const
+    virtual double CalculateLength() const
     {
         // Same implementation for 2N and 3N
         return StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
@@ -229,23 +234,24 @@ public:
     }
 
     /**
-     * @brief This function returns the 4 shape functions used for interpolating the transverse displacement v. (denoted as N)
-     * Also its derivatives
+     * @brief This function returns the 2/3 shape functions used for interpolating the displacements in x,y,z
+     * Also the derivatives of u to compute the longitudinal strain
      * @param rN reference to the shape functions (or derivatives)
      * @param Length The size of the beam element
      * @param Phi The shear slenderness parameter
      * @param xi The coordinate in the natural axes
     */
-    void GetShapeFunctionsValues(SystemSizeBoundedArrayType& rN, const double Length, const double xi) const;
-    void GetShapeFunctionsValuesY(SystemSizeBoundedArrayType& rN, const double Length, const double xi) const;
-    void GetFirstDerivativesShapeFunctionsValues(SystemSizeBoundedArrayType& rN, const double Length, const double xi) const;
+    virtual void GetShapeFunctionsValues(SystemSizeBoundedArrayType& rN, const double Length, const double xi) const;
+    virtual void GetShapeFunctionsValuesY(SystemSizeBoundedArrayType& rN, const double Length, const double xi) const;
+    virtual void GetShapeFunctionsValuesZ(SystemSizeBoundedArrayType& rN, const double Length, const double xi) const {};
+    virtual void GetFirstDerivativesShapeFunctionsValues(SystemSizeBoundedArrayType& rN, const double Length, const double xi) const;
 
     /**
      * @brief This function rotates the LHS from local to global coordinates
      * @param rLHS the left hand side
      * @param rGeometry the geometry of the FE
     */
-    void RotateLHS(
+    virtual void RotateLHS(
         MatrixType &rLHS);
 
     /**
@@ -253,7 +259,7 @@ public:
      * @param rRHS the right hand side
      * @param rGeometry the geometry of the FE
     */
-    void RotateRHS(
+    virtual void RotateRHS(
         VectorType &rRHS);
 
     /**
@@ -262,7 +268,7 @@ public:
      * @param rRHS the right hand side
      * @param rGeometry the geometry of the FE
     */
-    void RotateAll(
+    virtual void RotateAll(
         MatrixType &rLHS,
         VectorType &rRHS);
 
@@ -272,7 +278,7 @@ public:
      * @param rIntegrationPoints array of IP
      * @param PointNumber tthe IP to be evaluated
     */
-    array_1d<double, 3> GetLocalAxesBodyForce(
+    virtual array_1d<double, 3> GetLocalAxesBodyForce(
         const Element &rElement,
         const GeometryType::IntegrationPointsArrayType &rIntegrationPoints,
         const IndexType PointNumber) const;
