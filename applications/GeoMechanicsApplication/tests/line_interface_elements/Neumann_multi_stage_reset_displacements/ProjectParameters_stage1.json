@@ -40,7 +40,7 @@
         "strategy_type":                      "newton_raphson",
         "convergence_criterion":              "residual_criterion",
         "displacement_relative_tolerance":    1.0E-4,
-        "displacement_absolute_tolerance":    1.0E-4,
+        "displacement_absolute_tolerance":    1.0E-9,
         "residual_relative_tolerance":        1.0E-4,
         "residual_absolute_tolerance":        1.0E-9,
         "min_iterations":                      6,
@@ -129,11 +129,11 @@
             "process_name":  "ApplyNormalLoadTableProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.LoadedSide",
+                "fluid_pressure_type": "Uniform",
                 "variable_name":   "NORMAL_CONTACT_STRESS",
                 "active":          [true,false],
                 "value":           [0.0,0.0],
-                "table":           [2,0],
-                "fluid_pressure_type": "Uniform"
+                "table":           [2,0]
             }
         },{
             "python_module": "apply_normal_load_table_process",
@@ -141,11 +141,11 @@
             "process_name":  "ApplyNormalLoadTableProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.LoadedSide",
+                "fluid_pressure_type": "Uniform",
                 "variable_name":   "TANGENTIAL_CONTACT_STRESS",
                 "active":          [false,true],
-                "value":           [0.0,667.0],
-                "table":           [0,1],
-                "fluid_pressure_type": "Uniform"
+                "value":           [0.0,0.0],
+                "table":           [0,1]
             }
         }]
     }
