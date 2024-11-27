@@ -126,12 +126,11 @@ void ShiftedBoundaryWallCondition<TDim>::CalculateLocalSystem(
     noalias(rRightHandSideVector) = ZeroVector(local_size);
     noalias(rLeftHandSideMatrix) = ZeroMatrix(local_size, local_size);
 
-    //AddNitscheImposition(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+    AddNitscheImposition(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
 
-    AddDirichletPenalization(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+    //AddDirichletPenalization(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);  TODO
 
     KRATOS_CATCH("")
-    //KRATOS_ERROR << "STOP" << std::endl;
 }
 
 template<std::size_t TDim>
@@ -158,7 +157,10 @@ int ShiftedBoundaryWallCondition<TDim>::Check(const ProcessInfo& rCurrentProcess
     KRATOS_TRY;
 
     //TODO check certain variables as in NavierStokesWallCondition? like viscosity?
-    // SLIP_LENGTH, PENALTY_COEFFICIENT, constitutive law, EMBEDDED_VELOCITY
+    // SLIP_LENGTH and PENALTY_COEFFICIENT of ProcessInfo
+    // constitutive law
+    // EMBEDDED_VELOCITY as variable at nodes?
+    // check whether condition has ELEMENT_H, INTEGRATION_WEIGHT, SHAPE_FUNCTIONS_VECTOR, SHAPE_FUNCTIONS_GRADIENT_MATRIX and NORMAL
 
     /*int check = BaseType::Check(rCurrentProcessInfo);
     if (check != 0) {
@@ -231,7 +233,7 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
     CalculateStrainMatrix(r_DN_DX, n_nodes, B_matrix);  // see FluidElementUtilities
 
     // Get C Matrix from constitutive law, see FluidElementData and FluidElement::CalculateMaterialResponse
-    const auto p_constitutive_law =  this->GetProperties()[CONSTITUTIVE_LAW];  //this->GetValue(CONSTITUTIVE_LAW);
+    const auto p_constitutive_law =  this->GetProperties()[CONSTITUTIVE_LAW];
     ConstitutiveLaw::Parameters constitutive_law_values(r_geometry, this->GetProperties(), rCurrentProcessInfo);
     Vector strain_rate = prod(B_matrix, unknown_values);
     Vector shear_stress(VoigtSize);
@@ -247,7 +249,7 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
     constitutive_law_values.SetShapeFunctionsValues(r_N);
     constitutive_law_values.SetShapeFunctionsDerivatives(r_DN_DX);
     constitutive_law_values.SetStrainVector(strain_rate);
-    constitutive_law_values.SetStressVector(shear_stress);          //this is an ouput parameter
+    constitutive_law_values.SetStressVector(shear_stress);    //this is an ouput parameter
     constitutive_law_values.SetConstitutiveMatrix(C_matrix);  //this is an ouput parameter
 
     // Calculate material response and effective viscosity
@@ -352,7 +354,7 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
     //KRATOS_WATCH(aux_LHS);
 
     // Add Nitsche Navier-slip contributions of the integration point to the local system (residual-based formulation with RHS=f_gamma-LHS*previous_solution)
-    // NOTE for mesh movement (FM-ALE) the level set velocity contribution needs to be added here as well!
+    // NOTE for mesh movement (FM-ALE) the level set velocity contribution needs to be added here as well! TODO
     noalias(rLHS)  += aux_LHS;
     noalias(rRHS) -= prod(aux_LHS, unknown_values);
 }
@@ -397,7 +399,7 @@ void ShiftedBoundaryWallCondition<TDim>::AddDirichletPenalization(
                 }
             }
             // (p=0)
-            //aux_LHS(i_node * BlockSize + TDim, j_node * BlockSize + TDim) += pen_coeff * weight * r_N(i_node) * r_N(j_node);
+            //aux_LHS(i_node * BlockSize + TDim, j_node * BlockSize + TDim) += pen_coeff * weight * r_N(i_node) * r_N(j_node); TODO
         }
     }
 

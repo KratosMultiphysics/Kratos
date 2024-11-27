@@ -82,7 +82,7 @@ void ShiftedBoundaryFluidElement<TBaseElement>::Initialize(const ProcessInfo& rC
     // Initialize the ELEMENTAL_DISTANCES variable (make it threadsafe)
     //NOTE necessary for discontinuous level set ?!
     /*if (!this->Has(ELEMENTAL_DISTANCES)) {
-        Vector zero_vector(NumNodes, 0.0);
+        VectorType zero_vector(NumNodes, 0.0);
         this->SetValue(ELEMENTAL_DISTANCES, zero_vector);
     }*/
     KRATOS_CATCH("");
@@ -127,8 +127,8 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
 
             // Initialize counter for the surrogate integration point
             //TODO not necessary because integration point index is not used anyways?!
-            Vector volume_weights;
-            Matrix shape_functions;
+            VectorType volume_weights;
+            MatrixType shape_functions;
             GeometryData::ShapeFunctionsGradientsType shape_derivatives;
             this->CalculateGeometryData(volume_weights, shape_functions, shape_derivatives);
             std::size_t surrogate_pt_index = volume_weights.size();  // NOTE can be used for EmbeddedData: data.PositiveSideWeights.size();
@@ -176,9 +176,9 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
                     const double int_pt_weight = int_pt_detJs[i_int_pt] * r_integration_points[i_int_pt].Weight();
 
                     // Compute the local coordinates of the integration point in the parent element's geometry
-                    Geometry<Node>::CoordinatesArrayType aux_global_coords = ZeroVector(3);
+                    Geometry<NodeType>::CoordinatesArrayType aux_global_coords = ZeroVector(3);
                     r_bd_geom.GlobalCoordinates(aux_global_coords, r_integration_points[i_int_pt].Coordinates());
-                    Geometry<Node>::CoordinatesArrayType int_pt_local_coords_parent = ZeroVector(3);
+                    Geometry<NodeType>::CoordinatesArrayType int_pt_local_coords_parent = ZeroVector(3);
                     r_parent_geom.PointLocalCoordinates(int_pt_local_coords_parent, aux_global_coords);
 
                     // Get N of the element at the integration point
@@ -337,8 +337,8 @@ void ShiftedBoundaryFluidElement<TBaseElement>::Calculate(
 
 template <class TBaseElement>
 void ShiftedBoundaryFluidElement<TBaseElement>::Calculate(
-    const Variable<Vector> &rVariable,
-    Vector& rOutput,
+    const Variable<VectorType> &rVariable,
+    VectorType& rOutput,
     const ProcessInfo &rCurrentProcessInfo)
 {
     TBaseElement::Calculate(rVariable, rOutput, rCurrentProcessInfo);
@@ -346,8 +346,8 @@ void ShiftedBoundaryFluidElement<TBaseElement>::Calculate(
 
 template <class TBaseElement>
 void ShiftedBoundaryFluidElement<TBaseElement>::Calculate(
-    const Variable<Matrix> &rVariable,
-    Matrix& rOutput,
+    const Variable<MatrixType> &rVariable,
+    MatrixType& rOutput,
     const ProcessInfo &rCurrentProcessInfo)
 {
     TBaseElement::Calculate(rVariable, rOutput, rCurrentProcessInfo);

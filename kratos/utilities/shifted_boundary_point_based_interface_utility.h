@@ -121,6 +121,10 @@ public:
     ///@name Operations
     ///@{
 
+    //TODO
+    void CalculateAndAddPointBasedInterface();
+
+    //TODO
     void ResetFlags();
 
     /** TODO
@@ -139,8 +143,10 @@ public:
     // element ACTIVE : elements which are not BOUNDARY (the ones to be assembled)
     void DeactivateElementsAndNodes();
 
-    void AddSkinIntegrationPointConditions();
+    //TODO
+    void CalculateAndAddSkinIntegrationPointConditions();
 
+    //TODO
     void FixEnclosedVolumesPressure();
 
     ///@}

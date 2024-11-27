@@ -146,23 +146,61 @@ public:
         return Kratos::make_intrusive<ShiftedBoundaryWallCondition>(NewId, pGeom, pProperties);
     }
 
+    /**
+     * @brief This function calculates the LHS matrix and RHS vector of the local system.
+     * All terms should be added which are necessary for the imposition of a shifted-boundary wall condition 
+     * for the given geometry of an integration point to the system.
+     * The geometry should include all nodes that contribute to the calculation of the value at the integration point.
+     * AddNitscheImposition is called in order to use Nitsche imposition of a Navier-slip boundary condition at the integration point.
+     * @param rLeftHandSideMatrix reference to the LHS matrix
+     * @param rRightHandSideVector reference to the RHS vector
+     * @param rCurrentProcessInfo reference to the ProcessInfo
+     */
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo) override;
 
+    /**
+     * @brief This function calculates the LHS matrix of the local system.
+     * Inside the function CalculateLocalSystem is called.
+     * @param rLeftHandSideMatrix reference to the LHS matrix
+     * @param rRightHandSideVector reference to the RHS vector
+     * @param rCurrentProcessInfo reference to the ProcessInfo
+     */
     void CalculateLeftHandSide(
         MatrixType& rLeftHandSideMatrix,
         const ProcessInfo& rCurrentProcessInfo) override;
 
+    /**
+     * @brief This function calculates the RHS vector of the local system.
+     * Inside the function CalculateLocalSystem is called.
+     * @param rLeftHandSideMatrix reference to the LHS matrix
+     * @param rRightHandSideVector reference to the RHS vector
+     * @param rCurrentProcessInfo reference to the ProcessInfo
+     */
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo) override;
 
+    /**
+     * @brief This function collects the Equation IDs of all DOFs of all nodes of the condition's geometry.
+     * The geometry should include all nodes that contribute to the calculation of the value at the integration point.
+     * @param rLeftHandSideMatrix reference to the LHS matrix
+     * @param rRightHandSideVector reference to the RHS vector
+     * @param rCurrentProcessInfo reference to the ProcessInfo (unused)
+     */
     void EquationIdVector(
         EquationIdVectorType& rResult,
         const ProcessInfo& rCurrentProcessInfo) const override;
 
+    /**
+     * @brief This function collects the DOFs of all nodes of the condition's geometry.
+     * The geometry should include all nodes that contribute to the calculation of the value at the integration point.
+     * @param rLeftHandSideMatrix reference to the LHS matrix
+     * @param rRightHandSideVector reference to the RHS vector
+     * @param rCurrentProcessInfo reference to the ProcessInfo (unused)
+     */
     void GetDofList(
         DofsVectorType& ConditionalDofList,
         const ProcessInfo& CurrentProcessInfo) const override;
@@ -230,13 +268,17 @@ protected:
     ///@{
 
     /**
-     * @brief This function add the terms for imposing a Navier-slip boundary condition to the system.
+     * @brief This function adds the terms for imposing a Navier-slip boundary condition at an integration point to the system.
+     * NOTE that the condition does NOT account for mesh motion so far.
      * The stabilized Nitsche imposition of the Navier-slip boundary condition (Robin-type BC) consists of a
      * no penetration constraint in wall normal direction and a shear force imposition in tangential direction.
      * It behaves as a linear wall-law using the slip length parameter epsilon (no-slip for epsilon towards zero,
      * slip for epsilon towards infinity).
      * Reference: M. Winter, B. Schott, A. Massing, W. Wall, A nitsche cut finite element method for the oseen problem with general
      * navier boundary conditions, Comput. Methods Appl. Mech. Engrg. 330 (2018) 220–252, http://dx.doi.org/10.1016/j.cma.2017.10.023.
+     * @param rLeftHandSideMatrix reference to the LHS matrix
+     * @param rRightHandSideVector reference to the RHS vector
+     * @param rCurrentProcessInfo reference to the ProcessInfo
      */
     void AddNitscheImposition(
         MatrixType& rLHS,
@@ -244,7 +286,12 @@ protected:
         const ProcessInfo& rCurrentProcessInfo);
 
     /**
-     * @brief This function penalizes a violation of a Dirichlet boundary condition using a penalty constant.
+     * @brief This function penalizes a violation of a Dirichlet boundary condition at an integration point using a penalty constant.
+     * PENALTY_COEFFICIENT is taken as penalty constant from rCurrentProcessInfo.  
+     * Penalization is added to LHS and RHS as violation of a zero velocity constraint.
+     * @param rLeftHandSideMatrix reference to the LHS matrix
+     * @param rRightHandSideVector reference to the RHS vector
+     * @param rCurrentProcessInfo reference to the ProcessInfo
      */
     void AddDirichletPenalization(
         MatrixType& rLHS,
@@ -252,7 +299,7 @@ protected:
         const ProcessInfo& rCurrentProcessInfo);
 
     /**
-     * @brief This function builds the strain matrix from the shape function derivatives utilizing voigt notation.
+     * @brief This function builds the strain matrix from the shape function derivatives utilizing Voigt notation.
      * @param rDN_DX matrix of shape function derivatives at all cloud points
      * @param NumNodes number of nodes of the geometry (cloud points)
      * @param rB B_matrix/ strain matrix

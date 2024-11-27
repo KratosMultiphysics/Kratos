@@ -72,14 +72,6 @@ public:
 
     typedef std::size_t IndexType;
 
-    typedef std::size_t SizeType;
-
-    typedef std::vector<std::size_t> EquationIdVectorType;
-
-    typedef std::vector< Dof<double>::Pointer > DofsVectorType;
-
-    typedef PointerVectorSet< Dof<double>, IndexedObject > DofsArrayType;
-
     constexpr static std::size_t Dim = TBaseElement::Dim;
     constexpr static std::size_t NumNodes = TBaseElement::NumNodes;
     constexpr static std::size_t BlockSize = TBaseElement::BlockSize;
@@ -135,8 +127,6 @@ public:
     ///@name Operations
     ///@{
 
-
-    /// Create a new element of this type
     /**
      * Returns a pointer to a new ShiftedBoundaryFluidElement element, created using given input
      * @param NewId the ID of the new element
@@ -148,7 +138,6 @@ public:
                             NodesArrayType const& ThisNodes,
                             Properties::Pointer pProperties) const override;
 
-    /// Create a new element of this type using given geometry
     /**
      * Returns a pointer to a new FluidElement element, created using given input
      * @param NewId the ID of the new element
@@ -160,7 +149,6 @@ public:
                             Geometry<NodeType>::Pointer pGeom,
                             Properties::Pointer pProperties) const override;
 
-    /// Set up the element for solution.
     /** For discontinuous level set instead of point-based, this needs to initialize the discontinuous
      * level set distances (ELEMENTAL_DISTANCES) and the nodal imposed velocity (EMBEDDED_VELOCITY)
      */
@@ -223,7 +211,6 @@ public:
         array_1d<double, 3> &rOutput,
         const ProcessInfo &rCurrentProcessInfo) override;
 
-    /// Computes an elemental vector value
     /**
      * Given a vector variable, this function computes its value inside de element.
      * If the function has not implemented this variable computation, calls the base class one.
@@ -232,11 +219,10 @@ public:
      * @param rCurrentProcessInfo Reference to the process info
      */
     void Calculate(
-        const Variable<Vector> &rVariable,
-        Vector &rOutput,
+        const Variable<VectorType> &rVariable,
+        VectorType &rOutput,
         const ProcessInfo &rCurrentProcessInfo) override;
 
-    /// Computes an elemental matrix value
     /**
      * Given a matrix variable, this function computes its value inside de element.
      * If the function has not implemented this variable computation, calls the base class one.
@@ -245,8 +231,8 @@ public:
      * @param rCurrentProcessInfo Reference to the process info
      */
     void Calculate(
-        const Variable<Matrix> &rVariable,
-        Matrix &rOutput,
+        const Variable<MatrixType> &rVariable,
+        MatrixType &rOutput,
         const ProcessInfo &rCurrentProcessInfo) override;
 
     ///@}
