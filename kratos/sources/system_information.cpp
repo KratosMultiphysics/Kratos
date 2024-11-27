@@ -93,8 +93,9 @@ std::string SystemInformation::OSVersion()
 
     if (RtlGetVersion != nullptr) {
         NTSTATUS ntRtlGetVersionStatus = RtlGetVersion(&osvi);
-        if (ntRtlGetVersionStatus != STATUS_SUCCESS)
+        if (ntRtlGetVersionStatus != STATUS_SUCCESS) {
             return "<windows>";
+        }
     } else {
 #if defined(_MSC_VER)
 #pragma warning(push)
@@ -167,7 +168,7 @@ std::string SystemInformation::OSVersion()
             } else if (osvi.dwMinorVersion == 0) {
                 if (osvi.wProductType == VER_NT_WORKSTATION) {
                     os << "Windows Vista ";
-                } else
+                } else {
                     os << "Windows Server 2008 ";
                 }
             }
@@ -283,7 +284,7 @@ std::string SystemInformation::OSVersion()
     } else if ((osvi.dwMajorVersion == 5) && (osvi.dwMinorVersion == 0)) {
         os << "Windows 2000 ";
         if (osvi.wProductType == VER_NT_WORKSTATION) {
-            os <<  "Professional";
+            os << "Professional";
         } else {
             if (osvi.wSuiteMask & VER_SUITE_DATACENTER) {
                 os << "Datacenter Server";
@@ -407,6 +408,26 @@ std::size_t SystemInformation::CPUPhysicalCores()
 
 /***********************************************************************************/
 /***********************************************************************************/
+
+#if defined(KRATOS_COMPILED_IN_WINDOWS)
+namespace Internals
+{
+// Helper function to count set bits in the processor mask
+DWORD CountSetBits(ULONG_PTR pBitMask)
+{
+    DWORD dwLeftShift = sizeof(ULONG_PTR) * 8 - 1;
+    DWORD dwBitSetCount = 0;
+    ULONG_PTR pBitTest = (ULONG_PTR)1 << dwLeftShift;
+
+    for (DWORD i = 0; i <= dwLeftShift; ++i) {
+        dwBitSetCount += ((pBitMask & pBitTest) ? 1 : 0);
+        pBitTest /= 2;
+    }
+
+    return dwBitSetCount;
+}
+} // namespace Internals
+#endif
 
 std::pair<int, int> SystemInformation::CPUTotalCores()
 {
