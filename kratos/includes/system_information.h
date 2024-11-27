@@ -79,10 +79,16 @@ public:
     static std::size_t CPUPhysicalCores();
 
     /**
+     * @brief CPU logical and physical cores count
+     * @return The number of logical and physical CPU cores
+     */
+    static std::pair<int, int> CPUTotalCores();
+
+    /**
      * @brief CPU clock speed in Hz
      * @return The CPU clock speed
      */
-    static std::size_t CPUClockSpeed();
+    static int64_t CPUClockSpeed();
 
     /**
      * @brief Is CPU Hyper-Threading enabled?
@@ -94,13 +100,13 @@ public:
      * @brief Total RAM in bytes
      * @return The total RAM in bytes
      */
-    static std::size_t RamTotal();
+    static int64_t RamTotal();
 
     /**
      * @brief Free RAM in bytes
      * @return The free RAM in bytes
      */
-    static std::size_t RamFree();
+    static int64_t RamFree();
 
     /**
      * @brief Generate clock speed string
@@ -108,7 +114,7 @@ public:
      * @param Hertz Clock speed value in hertz
      * @return String with clock speed representation
      */
-    static std::string GenerateClockSpeed(const std::size_t Hertz);
+    static std::string GenerateClockSpeed(const int64_t Hertz);
     
     /**
      * @brief Generate data size string
@@ -116,7 +122,7 @@ public:
      * @param Bytes Data size in bytes
      * @return String with data size representation
      */
-    static std::string GenerateDataSize(const std::size_t Bytes);
+    static std::string GenerateDataSize(const int64_t Bytes);
 
     ///@}
     ///@name Input and output
@@ -138,7 +144,7 @@ public:
     void PrintData(std::ostream& rOStream) const override {rOStream << "SystemInformation class";}
 
     ///@}
-}; // class
+}; // class SystemInformation
 ///@}
 
 ///@} addtogroup block
