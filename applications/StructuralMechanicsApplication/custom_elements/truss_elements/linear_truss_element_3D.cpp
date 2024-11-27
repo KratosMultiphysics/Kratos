@@ -216,7 +216,7 @@ BoundedMatrix<double, 3, 3> LinearTrussElement3D<TNNodes>::GetFrenetSerretMatrix
 {
     const auto &r_geom = GetGeometry();
     BoundedMatrix<double, 3, 3> T;
-    T.clear();
+    T.clear(); // global to local
 
     array_1d<double, 3> t;
     array_1d<double, 3> n;
@@ -265,31 +265,27 @@ void LinearTrussElement3D<TNNodes>::GetNodalValuesVector(SystemSizeBoundedArrayT
         rNodalValues.resize(SystemSize, false);
     const auto &r_geom = GetGeometry();
 
-    // const double angle = GetAngle();
-
     BoundedVector<double, SystemSize> global_values;
 
-    // // We fill the vector with global values
-    // for (SizeType i = 0; i < NNodes; ++i) {
-    //     const auto& r_displ = r_geom[i].FastGetSolutionStepValue(DISPLACEMENT);
-    //     global_values[i * DofsPerNode]     = r_displ[0];
-    //     global_values[i * DofsPerNode + 1] = r_displ[1];
-    // }
+    // We fill the vector with global values
+    for (SizeType i = 0; i < NNodes; ++i) {
+        const auto& r_displ = r_geom[i].FastGetSolutionStepValue(DISPLACEMENT);
+        global_values[i * DofsPerNode]     = r_displ[0];
+        global_values[i * DofsPerNode + 1] = r_displ[1];
+        global_values[i * DofsPerNode + 2] = r_displ[2];
+    }
 
-    // if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
-    //     BoundedMatrix<double, DofsPerNode, DofsPerNode> T;
-    //     BoundedMatrix<double, SystemSize, SystemSize> global_size_T;
-    //     StructuralMechanicsElementUtilities::BuildRotationMatrixForTruss(T, angle);
-    //     if constexpr (NNodes == 2) {
-    //         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NTruss(T, global_size_T);
-    //     } else {
-    //         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NTruss(T, global_size_T);
-    //     }
-    //     // We rotate to local axes
-    //     noalias(rNodalValues) = prod(trans(global_size_T), global_values);
-    // } else {
-    //     noalias(rNodalValues) = global_values;
-    // }
+        BoundedMatrix<double, DofsPerNode, DofsPerNode> T;
+        noalias(T) = GetFrenetSerretMatrix(); // global to local
+        BoundedMatrix<double, SystemSize, SystemSize> global_size_T;
+
+        if constexpr (NNodes == 2) {
+            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D2NTruss(T, global_size_T);
+        } else {
+            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D3NTruss(T, global_size_T);
+        }
+
+        noalias(rNodalValues) = prod(global_size_T, global_values);
 }
 
 /***********************************************************************************/

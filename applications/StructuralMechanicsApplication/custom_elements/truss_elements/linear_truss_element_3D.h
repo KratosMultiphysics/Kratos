@@ -63,9 +63,9 @@ public:
 
     /// The base element type
     using BaseType = LinearTrussElement2D<TNNodes>;
-    // static constexpr SizeType NNodes = TNNodes;
+    static constexpr SizeType NNodes = TNNodes;
     static constexpr SizeType DofsPerNode = 3;
-    // static constexpr SizeType SystemSize = DofsPerNode * NNodes;
+    static constexpr SizeType SystemSize = DofsPerNode * NNodes;
     // using SystemSizeBoundedArrayType = array_1d<double, SystemSize>;
 
     // Counted pointer of BaseSolidElement
