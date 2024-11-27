@@ -206,13 +206,15 @@ for dim in dim_vector:
     convective_term = (vconv_gauss.transpose()*grad_v)
     # Convective past term definition
     convective_n_term = (vconv_old_gauss.transpose()*grad_v_old)
-    accel_n = bdf0*vn+bdf1*vnn+bdf2*vnnn
+    # accel_n = bdf0*vn+bdf1*vnn+bdf2*vnnn
+    accel_n = (vn-vnn)/dt
+
 
     accel_gauss_n = accel_n.transpose()*N
     # Fractional convective term
 
     convective_frac_term = vconv_fractional.transpose()*grad_v_fractional
-    convective_frac_term = vconv_fractional.transpose()*grad_v
+
 
 
     ## Galerkin Functional

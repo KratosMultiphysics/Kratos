@@ -76,18 +76,6 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
                     "tau_nodal":true
                 }
             },
-            "level_set_fct":false,
-            "level_set_fct_settings":{
-                "echo_level" : 1,
-                "model_part_name" : "",
-                "convected_variable_name" : "DISTANCE",
-                "convection_variable_name" : "VELOCITY",
-                "max_CFL" : 0.25,
-                "max_delta_time" : 1.0,
-                "diffusion_constant" : 1.0,
-                "time_scheme" : "RK3-TVD"
-            },
-
             "levelset_convection_settings": {
                 "max_CFL" : 1.0,
                 "max_substeps" : 0,
@@ -156,11 +144,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         #     self.settings["eulerian_fm_ale_settings"].AddEmptyValue("levelset_gradient_variable_name").SetString("CONVECTION_SCALAR_GRADIENT")
         #     self.settings["eulerian_fm_ale_settings"].AddEmptyValue("levelset_convection_variable_name").SetString("CONVECTION_VELOCITY")
         #     # self.settings["eulerian_fm_ale_settings"].AddEmptyValue("levelset_volume_source_variable_name").SetString("HEAT_FLUX")
-        self.level_set_fct = self.setting["level_set_fct"].GetBool()
-        if self.level_set_fct:
-            self.settings["level_set_fct_settings"].AddEmptyValue("convected_variable_name").SetString("DISTANCE")
-            self.settings["level_set_fct_settings"].AddEmptyValue("convection_variable_name").SetString("VELOCITY")
-            self.settings["level_set_fct_settings"].AddEmptyValue("model_part_name").SetString("FluidModelPart")
+
 
 
         dynamic_tau = self.settings["formulation"]["dynamic_tau"].GetDouble()
@@ -219,9 +203,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         # Añadir el nuevo DOF y su reacción
         dofs_and_reactions_to_add.append("FRACTIONAL_VELOCITY_X")
         dofs_and_reactions_to_add.append("FRACTIONAL_VELOCITY_Y")
-
         dofs_and_reactions_to_add.append("FRACTIONAL_VELOCITY_Z")
-        dofs_and_reactions_to_add.append("DISTANCE")
         # Utilizamos VariableUtils para añadir esta lista de nuevos DOFs al main_model_part
         KratosMultiphysics.VariableUtils.AddDofsList(
             dofs_and_reactions_to_add, self.main_model_part)
@@ -272,13 +254,6 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         # Note that is is required to do this in here in order to validate the defaults and set the corresponding distance gradient flag
         # Note that the nodal gradient of the distance is required either for the eulerian BFECC limiter or by the algebraic element antidiffusivity
         self._GetLevelSetConvectionProcess()
-
-        if self.level_set_fct:
-            self._GetEdgeBasedLevelSetConvectionProcess()
-        else:
-            self._GetLevelSetConvectionProcess()
-
-
 
         # Instantiate the eulerian historical data convection
         current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]  # Obtener el tiempo actual en Kratos
@@ -356,10 +331,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(KratosCFD.FRACTIONAL_VELOCITY,
                                                                  KratosMultiphysics.VELOCITY, self.main_model_part, self.main_model_part, 0, 0)
 
-        if self.levelset_fct:
-            self.__PerformEdgeBasedLevelSetConvection()
-        else:
-            self.__PerformLevelSetConvection()
+        self.__PerformLevelSetConvection()
         KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(KratosCFD.AUXILIAR_VECTOR_VELOCITY,
                                                                  KratosMultiphysics.VELOCITY, self.main_model_part, self.main_model_part, 0, 0)
 
@@ -515,9 +487,6 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             #     elem_artificial_viscosity = 0.0
 
             element.SetValue(KratosMultiphysics.ARTIFICIAL_DYNAMIC_VISCOSITY, elem_artificial_viscosity)
-
-    def __PerformEdgeBasedLevelSetConvection(self):
-        self._GetEdgeBasedLevelSetConvectionProcess().Execute()
 
     def __PerformLevelSetConvection(self):
 
@@ -681,25 +650,6 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         if not hasattr(self, '_level_set_convection_process'):
             self._level_set_convection_process = self._CreateLevelSetConvectionProcess()
         return self._level_set_convection_process
-    def _GetEdgeBasedLevelSetConvectionProcess(self):
-        if not hasattr(self, 'edge_based_level_set_convection_process'):
-            self.edge_based_level_set_convection_process = self._CreateEdgeBasedLevelSetConvectionProcess()
-        return self.edge_based_level_set_convection_process
-
-    def _CreateEdgeBasedLevelSetConvectionProcess(self):
-        # Construct the edge based level set convection process
-        domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        # computing_model_part = self.GetModelPart()
-        edge_based_level_set_convection_setttings = self.settings["level_set_fct_settings"]
-        if domain_size == 2:
-            edge_based_level_set_convection_process = KratosMultiphysics.FluxCorrectedTransportConvectionProcess2D(
-                self.model,
-                edge_based_level_set_convection_setttings)
-        else:
-            edge_based_level_set_convection_process = KratosMultiphysics.FluxCorrectedTransportConvectionProcess3D(
-                self.model,
-                edge_based_level_set_convection_setttings)
-        return edge_based_level_set_convection_process
 
     def _GetEulerianFmAleProcess(self):
         if not hasattr(self, '_eulerian_fm_convection_process'):

@@ -109,13 +109,13 @@ for dim in dim_vector:
 
     # Convective term definition
     convective_term = (vconv_gauss.transpose()*grad_vfrac)
-    # convective_term = (vn_gauss.transpose()*grad_vfrac)
 
 
 
     # Convective past term definition
     convective_n_term = (vconv_old_gauss.transpose()*grad_v_old)
-    accel_n = bdf0*vn + bdf1*vnn + bdf2*vnnn
+
+    accel_n = (vn-vnn)/dt
 
     accel_gauss_n = accel_n.transpose()*N
 
@@ -124,6 +124,7 @@ for dim in dim_vector:
 
     # Adding acceleration
     if adding_acceleration:
+        print("aaa")
         rv_galerkin+= w_gauss.transpose()*accel_gauss_n+ w_gauss.transpose()*convective_n_term.transpose()
 
 

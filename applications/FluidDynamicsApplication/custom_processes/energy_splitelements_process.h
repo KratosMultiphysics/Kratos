@@ -84,9 +84,11 @@ public:
 
     EnergyCheckProcess(
         ModelPart &rModelPart,
-        unsigned int DomainSize)
+        unsigned int DomainSize,
+        const std::string &FileName)
         : mrModelPart(rModelPart),
-          mDomainSize(DomainSize)
+          mDomainSize(DomainSize),
+          mFileName(FileName)
     {
     }
 
@@ -118,7 +120,7 @@ public:
     {
         KRATOS_WATCH("I am writting into file energy check")
         const double current_time = mrModelPart.GetProcessInfo()[TIME];
-        std::ofstream MyFile("energy.txt", std::ios::app);
+        std::ofstream MyFile(mFileName, std::ios::app);
         if (MyFile.is_open())
         {
             std::cout<< "success" << std::endl;
@@ -1000,7 +1002,7 @@ protected:
         const unsigned int n_nodes = rGeometry.PointsNumber();
 // It should be improve in order to have z_interpolated depending on the directions of the problem gravity
         for (unsigned int i_node = 0; i_node < n_nodes; ++i_node){
-            z_interpolated += rGeometry[i_node].Y() * rN[i_node];
+            z_interpolated += rGeometry[i_node].Z() * rN[i_node];
         }
         // Calculate and return Gauss pt. potential energy
         return (Density * gravity * z_interpolated) * Weight;
@@ -1015,7 +1017,7 @@ protected:
         double z_interpolated = 0.0;
         const unsigned int n_nodes = rGeometry.PointsNumber();
         for (unsigned int i_node = 0; i_node < n_nodes; ++i_node){
-            z_interpolated += rGeometry[i_node].Y() * rN[i_node];
+            z_interpolated += rGeometry[i_node].Z() * rN[i_node];
         }
 
         return (z_interpolated) * Weight;
@@ -1051,6 +1053,7 @@ private:
     ModelPart& mrModelPart;
     unsigned int mDomainSize;
 
+    std::string mFileName;
     ///@}
     ///@name Private Operators
     ///@{

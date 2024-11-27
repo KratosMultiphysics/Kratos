@@ -140,7 +140,7 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     bdf0 = BDFVector[0];
     bdf1 = BDFVector[1];
     bdf2 = BDFVector[2];
-    KRATOS_WATCH(BDFVector)
+
 
     noalias(lhs) = ZeroMatrix(TNumNodes*(TDim+1),TNumNodes*(TDim+1));
     noalias(rhs) = ZeroVector(TNumNodes*(TDim+1));
