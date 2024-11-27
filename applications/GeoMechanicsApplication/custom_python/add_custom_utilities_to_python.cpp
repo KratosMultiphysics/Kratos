@@ -30,8 +30,8 @@ void AddCustomUtilitiesToPython(const pybind11::module& rModule)
              &NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponentsOfNodes);
 
     pybind11::class_<CustomWorkflowFactory>(rModule, "CustomWorkflowFactory")
-        .def("CreateKratosGeoSettlement", &CustomWorkflowFactory::CreateKratosGeoSettlement,
-             pybind11::return_value_policy::take_ownership);
+        .def_static("CreateKratosGeoSettlement", &CustomWorkflowFactory::CreateKratosGeoSettlement,
+                    pybind11::return_value_policy::take_ownership);
 
     pybind11::class_<KratosGeoSettlement>(rModule, "KratosGeoSettlement").def("RunStage", &KratosGeoSettlement::RunStage);
 }
