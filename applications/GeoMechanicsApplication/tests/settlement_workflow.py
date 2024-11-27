@@ -39,6 +39,10 @@ class KratosGeoMechanicsSettlementWorkflow(KratosUnittest.TestCase):
         self.define_expected_stresses()
 
 
+    def get_test_dir_name(self):
+        raise RuntimeError("This base class does not provide a generic test directory name")
+
+
     def define_expected_displacements(self):
         # The selected nodes are at the top corner, at the bottom of the excavation, in the middle of the model,
         # and at the bottom.
@@ -93,9 +97,6 @@ class KratosGeoMechanicsSettlementWorkflow(KratosUnittest.TestCase):
                                         "TOTAL_STRESS_TENSOR": [-245.877, -319.876, -245.89, 1.67524, 0.0, 0.0],
                                         "CAUCHY_STRESS_TENSOR": [-108.537, -182.536, -108.55, 1.67524, 0.0, 0.0]}]
                                  }]
-
-    def get_test_dir_name(self):
-        raise RuntimeError("This base class does not provide a generic test directory name")
 
 
     def check_displacements(self):
