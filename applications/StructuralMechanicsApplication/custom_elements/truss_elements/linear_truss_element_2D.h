@@ -48,6 +48,8 @@ using SizeType = std::size_t;
  * @class LinearTrussElement2D
  * @ingroup StructuralMechanicsApplication
  * @brief This is the Linear 2D TRUSS element of 2 and 3 nodes.
+ * O---------O -> x'      O-----O-----O -> x'
+ *  0         1            0     2     1
  * @author Alejandro Cornejo
  */
 template <SizeType TNNodes>

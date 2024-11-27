@@ -47,6 +47,8 @@ using SizeType = std::size_t;
  * @class LinearTrussElement3D
  * @ingroup StructuralMechanicsApplication
  * @brief This is the Linear 3D TRUSS element of 2 and 3 nodes.
+ * O---------O -> x'      O-----O-----O -> x'
+ *  0         1            0     2     1
  * @author Alejandro Cornejo
  */
 template <SizeType TNNodes>
@@ -104,6 +106,14 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief This function builds the Frenet Serret matrix that rotates from global to local axes
+     * T = | <- t -> |  x, local
+     *     | <- n -> |  y, local
+     *     | <- m -> |  z, local
+    */
+    BoundedMatrix<double, 3, 3> GetFrenetSerretMatrix() const;
 
     /**
      * @brief Returns a n component vector including the values of the DoFs
