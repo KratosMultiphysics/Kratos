@@ -180,8 +180,8 @@ class KratosGeoMechanicsSettlementWorkflowCppRoute(KratosGeoMechanicsSettlementW
         no_progress_message = lambda msg: None
         dont_cancel = lambda: False
 
-        for i in range(self.number_of_stages):
-            status = settlement_api.RunStage(self.test_path, self.project_parameters_filenames[i], no_logging, no_progress_reporting, no_progress_message, dont_cancel)
+        for project_parameters_filename in self.project_parameters_filenames:
+            status = settlement_api.RunStage(self.test_path, project_parameters_filename, no_logging, no_progress_reporting, no_progress_message, dont_cancel)
             self.assertEqual(status, 0)
 
         self.check_displacements()
