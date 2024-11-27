@@ -162,13 +162,16 @@ void LinearTrussElement2D<TNNodes>::GetShapeFunctionsValues(
         rN.resize(SystemSize, false);
 
     rN.clear();
+    array_1d<double, NNodes> base_N;
+    noalias(base_N) = GetBaseShapeFunctions();
+
     if constexpr (NNodes == 2) {
-        rN[0] = 0.5 * (1.0 - xi);
-        rN[2] = 0.5 * (1.0 + xi);
+        rN[0] = base_N[0];
+        rN[2] = base_N[1];
     } else { // 3N
-        rN[0] = 0.5 * xi * (xi - 1.0);
-        rN[2] = 0.5 * xi * (xi + 1.0);
-        rN[4] = (1.0 - std::pow(xi, 2));
+        rN[0] = base_N[0];
+        rN[2] = base_N[1];
+        rN[4] = base_N[2];
     }
 }
 
@@ -186,13 +189,16 @@ void LinearTrussElement2D<TNNodes>::GetShapeFunctionsValuesY(
         rN.resize(SystemSize, false);
 
     rN.clear();
+    array_1d<double, NNodes> base_N;
+    noalias(base_N) = GetBaseShapeFunctions();
+
     if constexpr (NNodes == 2) {
-        rN[1] = 0.5 * (1.0 - xi);
-        rN[3] = 0.5 * (1.0 + xi);
+        rN[1] = base_N[0];
+        rN[3] = base_N[1];
     } else { // 3N
-        rN[1] = 0.5 * xi * (xi - 1.0);
-        rN[3] = 0.5 * xi * (xi + 1.0);
-        rN[5] = (1.0 - std::pow(xi, 2));
+        rN[1] = base_N[0];
+        rN[3] = base_N[1];
+        rN[5] = base_N[2];
     }
 }
 
