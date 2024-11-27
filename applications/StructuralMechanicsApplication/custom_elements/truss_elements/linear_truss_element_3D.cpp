@@ -139,7 +139,7 @@ void LinearTrussElement3D<TNNodes>::GetShapeFunctionsValuesY(
 
     rN.clear();
     array_1d<double, NNodes> base_N;
-    noalias(base_N) = GetBaseShapeFunctions();
+    noalias(base_N) = GetBaseShapeFunctions(xi);
 
     if constexpr (NNodes == 2) {
         rN[1] = base_N[0];

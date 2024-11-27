@@ -163,7 +163,7 @@ void LinearTrussElement2D<TNNodes>::GetShapeFunctionsValues(
 
     rN.clear();
     array_1d<double, NNodes> base_N;
-    noalias(base_N) = GetBaseShapeFunctions();
+    noalias(base_N) = GetBaseShapeFunctions(xi);
 
     if constexpr (NNodes == 2) {
         rN[0] = base_N[0];
@@ -190,7 +190,7 @@ void LinearTrussElement2D<TNNodes>::GetShapeFunctionsValuesY(
 
     rN.clear();
     array_1d<double, NNodes> base_N;
-    noalias(base_N) = GetBaseShapeFunctions();
+    noalias(base_N) = GetBaseShapeFunctions(xi);
 
     if constexpr (NNodes == 2) {
         rN[1] = base_N[0];
@@ -711,7 +711,7 @@ void LinearTrussElement2D<TNNodes>::load(Serializer& rSerializer)
 /***********************************************************************************/
 
 template<SizeType TNNodes>
-array_1d<double, TNNodes> LinearTrussElement2D<TNNodes>GetBaseShapeFunctions()
+array_1d<double, TNNodes> LinearTrussElement2D<TNNodes>::GetBaseShapeFunctions(const double xi) const
 {
     array_1d<double, NNodes> N;
 
