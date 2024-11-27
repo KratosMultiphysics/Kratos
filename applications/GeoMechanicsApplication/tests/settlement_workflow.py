@@ -164,6 +164,8 @@ class KratosGeoMechanicsSettlementWorkflowCppRoute(KratosGeoMechanicsSettlementW
         importlib.reload(KratosMultiphysics.StructuralMechanicsApplication)
         importlib.reload(KratosMultiphysics.GeoMechanicsApplication)
 
+        super().tearDown()
+
 
     def get_test_dir_name(self):
         return "cpp"
