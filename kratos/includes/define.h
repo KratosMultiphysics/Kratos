@@ -25,10 +25,10 @@
 #include "includes/exception.h"
 
 // Defining the OS
-#if defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__)
-    #define KRATOS_COMPILED_IN_LINUX
-#elif defined(__APPLE__) && defined(__MACH__)
+#if defined(__APPLE__) && defined(__MACH__)
     #define KRATOS_COMPILED_IN_OS
+#elif defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__) || defined(unix) || defined(__unix) || defined(__unix__)
+    #define KRATOS_COMPILED_IN_LINUX
 #elif defined(_WIN32) || defined(_WIN64)
     #define KRATOS_COMPILED_IN_WINDOWS
 #endif
