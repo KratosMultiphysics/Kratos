@@ -17,6 +17,9 @@
 #include <cstring>
 #include <locale>
 #include <regex>
+#include <fstream>
+#include <set>
+// #include <thread>
 
 // External includes
 
@@ -36,8 +39,6 @@
 #include <sys/utsname.h>
 #include <pthread.h>
 #include <unistd.h>
-#include <fstream>
-#include <regex>
 #elif defined(KRATOS_COMPILED_IN_WINDOWS)
 #include <windows.h>
 #include <winternl.h>
@@ -431,6 +432,9 @@ DWORD CountSetBits(ULONG_PTR pBitMask)
 
 std::pair<int, int> SystemInformation::CPUTotalCores()
 {
+    // This code is generic, cane be used to ant platform
+    // int logical = std::thread::hardware_concurrency();
+    
 #if defined(KRATOS_COMPILED_IN_OS)
     int logical = 0;
     std::size_t logical_size = sizeof(logical);
@@ -446,8 +450,18 @@ std::pair<int, int> SystemInformation::CPUTotalCores()
 
     return std::make_pair(logical, physical);
 #elif defined(KRATOS_COMPILED_IN_LINUX)
-    long processors = sysconf(_SC_NPROCESSORS_ONLN);
-    return std::make_pair(processors, processors);
+    std::set<int> unique_cores;
+    std::ifstream cpuinfo("/proc/cpuinfo");
+    std::string line;
+    while (std::getline(cpuinfo, line)) {
+        if (line.find("core id") != std::string::npos) {
+            const int core_id = std::stoi(line.substr(line.find(":") + 1));
+            unique_cores.insert(core_id);
+        }
+    }
+    const int physical = unique_cores.size();
+    const long logical = sysconf(_SC_NPROCESSORS_ONLN);
+    return std::make_pair(logical, physical);
 #elif defined(KRATOS_COMPILED_IN_WINDOWS)
     BOOL allocated = FALSE;
     PSYSTEM_LOGICAL_PROCESSOR_INFORMATION pBuffer = nullptr;
