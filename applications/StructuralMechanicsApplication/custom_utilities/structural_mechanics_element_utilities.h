@@ -322,6 +322,15 @@ void BuildElementSizeRotationMatrixFor3D2NTruss(
     BoundedMatrix<double, 6, 6>& rElementSizeRotationMatrix);
 
 /**
+ * @brief This function fills an element size rotation matrix a local rotation matrix
+ * @param rRotationMatrix The rotation matrix from local to global axes
+ * It assumes 2 dofs per node: u,v
+ */
+void BuildElementSizeRotationMatrixFor3D3NTruss(
+    const BoundedMatrix<double, 3, 3>& rRotationMatrix,
+    BoundedMatrix<double, 9, 9>& rElementSizeRotationMatrix);
+
+/**
  * @brief This function computes the inclination angle of a 2 noded beam
  * @param rGeometry The geometry of the beam
  * It assumes 3 dofs per node: u,v,theta
