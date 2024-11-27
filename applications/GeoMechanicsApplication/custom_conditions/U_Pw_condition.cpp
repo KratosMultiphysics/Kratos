@@ -24,7 +24,15 @@ Condition::Pointer UPwCondition<TDim, TNumNodes>::Create(IndexType              
                                                          NodesArrayType const&   ThisNodes,
                                                          PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(new UPwCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return this->Create(NewId, GetGeometry().Create(ThisNodes), pProperties);
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+Condition::Pointer UPwCondition<TDim, TNumNodes>::Create(IndexType               NewId,
+                                                         GeometryType::Pointer   pGeom,
+                                                         PropertiesType::Pointer pProperties) const
+{
+    return make_intrusive<UPwCondition<TDim, TNumNodes>>(NewId, pGeom, pProperties);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
