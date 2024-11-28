@@ -1156,6 +1156,11 @@ public:
         return GeometryData::KratosGeometryFamily::Kratos_Nurbs;
     }
 
+    /**
+     * @brief Gets the geometry type.
+     * @details This function returns the specific type of the geometry. The geometry type provides a more detailed classification of the geometry.
+     * @return GeometryData::KratosGeometryType The specific geometry type.
+     */
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::KratosGeometryType::Kratos_Nurbs_Volume;
