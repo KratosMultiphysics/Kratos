@@ -76,16 +76,16 @@ static void BM_Unordered_Map_Delete(benchmark::State& state) {
 }
 BENCHMARK(BM_Unordered_Map_Delete)->Range(1 << 10, 1 << 20);
 
-// Benchmark for rehashing
-static void BM_Unordered_Map_Rehash(benchmark::State& state) {
-    std::vector<int> data = generate_random_integers(state.range(0));
-    Kratos::unordered_map<int, int> umap;
-    for (auto _ : state) {
-        umap.insert(data.begin(), data.end());
-        umap.rehash(umap.size() * 2);
-    }
-}
-BENCHMARK(BM_Unordered_Map_Rehash)->Range(1 << 10, 1 << 20);
+// // Benchmark for rehashing
+// static void BM_Unordered_Map_Rehash(benchmark::State& state) {
+//     std::vector<int> data = generate_random_integers(state.range(0));
+//     Kratos::unordered_map<int, int> umap;
+//     for (auto _ : state) {
+//         umap.insert(data.begin(), data.end());
+//         umap.rehash(umap.size() * 2);
+//     }
+// }
+// BENCHMARK(BM_Unordered_Map_Rehash)->Range(1 << 10, 1 << 20);
 
 // Benchmark for iteration
 static void BM_Unordered_Map_Iteration(benchmark::State& state) {
