@@ -221,8 +221,6 @@ KRATOS_TEST_CASE_IN_SUITE(TableAccessorSimplePropertiesProcessInfo, KratosCoreFa
 
         r_model_part.GetProcessInfo().SetValue(TIME, 0.5);
         KRATOS_EXPECT_EQ(1.5, (*p_elem_prop).GetValue(YOUNG_MODULUS, *p_geom, N, r_model_part.GetProcessInfo()));
-
-
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TableTableAccessorSerialization, KratosCoreFastSuite)
