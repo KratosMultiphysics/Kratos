@@ -9,6 +9,7 @@ import os
 
 # Import base class file
 from KratosMultiphysics.FluidDynamicsApplication import navier_stokes_solver_vmsmonolithic
+import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
 def CreateSolver(main_model_part, custom_settings):
     return IGAFluidSolver(main_model_part, custom_settings)
@@ -138,33 +139,91 @@ class IGAFluidSolver(navier_stokes_solver_vmsmonolithic.NavierStokesSolverMonoli
     def AddDofs(self):
         super().AddDofs()
         # KratosMultiphysics.VariableUtils().AddDof(KratosConvDiff.SCALAR_LAGRANGE_MULTIPLIER, self.main_model_part)
+    
+    def _CreateScheme(self):
+        domain_size = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        # Cases in which the element manages the time integration
+        self.element_integrates_in_time = True
+        if self.element_integrates_in_time:
+            # "Fake" scheme for those cases in where the element manages the time integration
+            # It is required to perform the nodal update once the current time step is solved
+            scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(
+                domain_size,
+                domain_size + 1)
+            # In case the BDF2 scheme is used inside the element, the BDF time discretization utility is required to update the BDF coefficients
+            if (self.settings["time_scheme"].GetString() == "bdf2"):
+                time_order = 2
+                self.time_discretization = KratosMultiphysics.TimeDiscretization.BDF(time_order)
+            else:
+                if  (self.settings["time_scheme"].GetString()!= "crank_nicolson"):
+                    err_msg = "Requested elemental time scheme \"" + self.settings["time_scheme"].GetString()+ "\" is not available.\n"
+                    err_msg += "Available options are: \"bdf2\" and \"crank_nicolson\""
+                    raise Exception(err_msg)
+        # Cases in which a time scheme manages the time integration
+        else:
+            # Bossak time integration scheme
+            if self.settings["time_scheme"].GetString() == "bossak":
+                if self.settings["consider_periodic_conditions"].GetBool() == True:
+                    scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
+                        self.settings["alpha"].GetDouble(),
+                        domain_size,
+                        KratosCFD.PATCH_INDEX)
+                else:
+                    scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
+                        self.settings["alpha"].GetDouble(),
+                        self.settings["move_mesh_strategy"].GetInt(),
+                        domain_size)
+            # BDF2 time integration scheme
+            elif self.settings["time_scheme"].GetString() == "bdf2":
+                scheme = KratosCFD.BDF2TurbulentScheme()
+            # Time scheme for steady state fluid solver
+            elif self.settings["time_scheme"].GetString() == "steady":
+                scheme = KratosCFD.ResidualBasedSimpleSteadyScheme(
+                        self.settings["velocity_relaxation"].GetDouble(),
+                        self.settings["pressure_relaxation"].GetDouble(),
+                        domain_size)
+            else:
+                if  (self.settings["time_scheme"].GetString()!= "crank_nicolson"):
+                    err_msg = "Requested time scheme " + self.settings["time_scheme"].GetString() + " is not available.\n"
+                    err_msg += "Available options are: \"bossak\", \"bdf2\" ,\"steady\" and \"crank_nicolson\""
+                    raise Exception(err_msg)
 
+        return scheme
 
     def Initialize(self):
         super().Initialize()
+        # Variable defining the temporal scheme (0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson)
+        self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME_INTEGRATION_THETA] = 1.0
 
-        # main_model_part = self.GetComputingModelPart()
-        # for node in main_model_part.Nodes :
-        #     # if (node.X == 0):
-        #     if (node.X == 0 and node.Y == 0) or (node.X == 2 and node.Y == 0):
-        #         # node.SetSolutionStepValue(KratosMultiphysics.PRESSURE ,0 , 2*np.pi*(np.cos(2*np.pi*node.Y)-np.cos(2*np.pi*node.X)))
-        #         # node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , node.X*node.X + node.Y*node.Y)
-        #         node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , 0.0)
-        #         node.Fix(KratosMultiphysics.PRESSURE)
-
+        self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.USE_CONSTITUTIVE_LAW] = False
+        
 
         
     def InitializeSolutionStep(self):
+        
+        current_time = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]
+
+        main_model_part = self.GetComputingModelPart()
+        for node in main_model_part.Nodes :
+            # if (node.X == 0):
+
+            # if (node.X == 0.0 and node.Y == 2.0) or (node.X == 2.0 and node.Y == 2.0):
+            #     node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X , 0 , 1.0)
+            #     node.Fix(KratosMultiphysics.VELOCITY_X)
+
+            if (node.X == 0.0 and node.Y == 0.0) or (node.X == 2.0 and node.Y == 0.0):
+                # node.SetSolutionStepValue(KratosMultiphysics.PRESSURE ,0 , 2*np.pi*(np.cos(2*np.pi*node.Y)-np.cos(2*np.pi*node.X)))
+                # node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , node.X*node.X + node.Y*node.Y)
+                node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , 0.0)
+
+                # node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , 2*np.pi*(np.cos(2*np.pi*node.Y)-np.cos(2*np.pi*node.X)))
+                # node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , ((node.X)**2 + (node.Y)**2)*np.cos(current_time))
+                # node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , ((node.X)**2 + (node.Y)**2) * (current_time))
+                # node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , (node.X + node.Y) * (current_time))
+                # node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , (node.X + node.Y))
+                node.Fix(KratosMultiphysics.PRESSURE)
+        
         super().InitializeSolutionStep()
-
-        # main_model_part = self.GetComputingModelPart()
-        # mp = self.model["IgaModelPart"]
-
-        # for elem in mp.Elements:
-        #     geom = elem.GetGeometry()
-
-        #     N = geom.ShapeFunctionsValues()
-        # print('ciao')
 
         
     def FinalizeSolutionStep(self):

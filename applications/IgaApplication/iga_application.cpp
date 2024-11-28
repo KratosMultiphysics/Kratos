@@ -34,6 +34,10 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mStokesElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
+    , mStokesElementTransientTheta(0, Element::GeometryType::Pointer(
+        new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
+    , mStokesElementTransient(0, Element::GeometryType::Pointer(
+        new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mOutputCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mLoadCondition(0, Condition::GeometryType::Pointer(
@@ -72,6 +76,8 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSBMLoadPlainStressCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mSupportFluidDirichletConditionTheta(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSupportFluidDirichletCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSupportPressureDirichletCondition(0, Condition::GeometryType::Pointer(
@@ -102,6 +108,8 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_ELEMENT("PlainStressElement", mPlainStressElement)
     KRATOS_REGISTER_ELEMENT("ConvDiffIGAElement", mConvDiffIGAElement)
     KRATOS_REGISTER_ELEMENT("StokesElement", mStokesElement)
+    KRATOS_REGISTER_ELEMENT("StokesElementTransientTheta", mStokesElementTransientTheta)
+    KRATOS_REGISTER_ELEMENT("StokesElementTransient", mStokesElementTransient)
 
     // CONDITIONS
     KRATOS_REGISTER_CONDITION("OutputCondition", mOutputCondition)
@@ -123,6 +131,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_CONDITION("LoadPlainStressCondition", mLoadPlainStressCondition)
     KRATOS_REGISTER_CONDITION("SBMPlainStressCondition", mSBMPlainStressCondition)
     KRATOS_REGISTER_CONDITION("SBMLoadPlainStressCondition", mSBMLoadPlainStressCondition)
+    KRATOS_REGISTER_CONDITION("SupportFluidDirichletConditionTheta", mSupportFluidDirichletConditionTheta)
     KRATOS_REGISTER_CONDITION("SupportFluidDirichletCondition", mSupportFluidDirichletCondition)
     KRATOS_REGISTER_CONDITION("SupportPressureDirichletCondition", mSupportPressureDirichletCondition)
     KRATOS_REGISTER_CONDITION("SBMFluidCondition", mSBMFluidCondition)

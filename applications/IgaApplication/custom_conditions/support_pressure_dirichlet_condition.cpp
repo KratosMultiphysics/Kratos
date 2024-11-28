@@ -86,6 +86,17 @@ void SupportPressureDirichletCondition::CalculateAll(
     Matrix sigmaVoigt = Matrix(prod(r_D, B));
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+    // const Parameters refinements_parameters = ReadParamatersFile("refinements.iga.json");
+    // int insertions = refinements_parameters["refinements"][0]["parameters"]["insert_nb_per_span_u"].GetInt();
+    // double h = 2.0/(insertions+1) ;
+    // // const double h = norm_2(r_geometry[0].Coordinates()-r_geometry[1].Coordinates());
+    // double DynViscosity = 1.0;
+    // const double TauOne = std::pow(h, 2) / ( 4.0 * DynViscosity );
+    ///_________________________________________________________________________________________________________________
+
+
+    const double theta = rCurrentProcessInfo[TIME_INTEGRATION_THETA];
+
     Vector n_tensor(2);
     n_tensor(0) = normal_parameter_space(0); // Component in x direction
     n_tensor(1) = normal_parameter_space(1); // Component in y direction
@@ -99,7 +110,7 @@ void SupportPressureDirichletCondition::CalculateAll(
                 // rLeftHandSideMatrix(3*i+idim, 3*j+idim) -= N(0,i)*(
                 //         DN_DX(j, 0) * normal_parameter_space[0] + DN_DX(j, 1) * normal_parameter_space[1] )
                 //         * integration_points[0].Weight();
-                //// CONSTITUTIVE LAW
+                // // CONSTITUTIVE LAW
                 // for (IndexType jdim = 0; jdim < 2; jdim++) {
                 //     // Extract the 2x2 block for the control point i from the sigma matrix.
                 //     Matrix sigma_block = ZeroMatrix(2, 2);
@@ -109,7 +120,11 @@ void SupportPressureDirichletCondition::CalculateAll(
                 //     sigma_block(1, 1) = sigmaVoigt(1, 2*j+jdim);      // sigma(4 * j + 2*jdim + 1, 1); // sigma_yy for control point i.
                 //     // Compute the traction vector: sigma * n.
                 //     Vector traction = prod(sigma_block, n_tensor); // This results in a 2x1 vector.
-                //     rLeftHandSideMatrix(3*i+idim, 3*j+jdim) -= N(0, i) * traction(idim) * integration_points[0].Weight();
+                //     // rLeftHandSideMatrix(3*i+idim, 3*j+jdim) -= N(0, i) * traction(idim) * integration_points[0].Weight();
+
+                //     // Additional term form VMS
+                //     Vector traction_transpose = prod(trans(sigma_block), n_tensor);
+                //     // rLeftHandSideMatrix(3*i+idim, 3*j+jdim) -= TauOne * DN_DX(i,idim) * traction_transpose(idim) * integration_points[0].Weight();
                 // }
 
                 // // integration by parts PRESSURE is moved to the RHS
@@ -118,20 +133,37 @@ void SupportPressureDirichletCondition::CalculateAll(
 
             }
         }
+
+        // // --- RHS corresponding term ---
+        // // Compute the traction vector: sigma * n using r_stress_vector
+        // Matrix sigma_block = ZeroMatrix(2, 2);
+        // sigma_block(0, 0) = r_stress_vector[0];      sigma_block(0, 1) = r_stress_vector[2];      
+        // sigma_block(1, 0) = r_stress_vector[2];      sigma_block(1, 1) = r_stress_vector[1];    
+        // // Vector traction_previous = prod(sigma_block, n_tensor); // This results in a 2x1 vector.
+        // for (IndexType idim = 0; idim < 2; idim++) {
+        //     // Additional term form VMS
+        //     Vector traction_previous_transpose = prod(trans(sigma_block), n_tensor);
+        //     // rRightHandSideVector(3*i+idim) += TauOne * DN_DX(i,idim) * traction_previous_transpose(idim) * integration_points[0].Weight();
+        // }
     }
     
         
     double p_D = this->GetValue(PRESSURE);
+    double p_D_old = this->GetValue(PRESSURE_FOLLOWER_LOAD);
+    const double current_t = rCurrentProcessInfo[TIME];
+    const double delta_time = rCurrentProcessInfo[DELTA_TIME];
 
     for (IndexType j = 0; j < number_of_nodes; j++) {
         
         //// integration by parts PRESSURE < v dot n , p >
         for (IndexType idim = 0; idim < 2; idim++) {
-            rRightHandSideVector(3*j+idim) -= p_D * ( N(0,j) * normal_parameter_space[idim] ) * integration_points[0].Weight();
+            rRightHandSideVector(3*j+idim) -= theta * p_D * ( N(0,j) * normal_parameter_space[idim] ) * integration_points[0].Weight();
+            rRightHandSideVector(3*j+idim) -= (1.0 - theta) * p_D_old * ( N(0,j) * normal_parameter_space[idim] ) * integration_points[0].Weight();
         }
         
         // Neumann condition for the velocity
         Vector t_N = ZeroVector(2); 
+        Vector t_N_old = ZeroVector(2); 
         double x = r_geometry.Center().X(); 
         double y = r_geometry.Center().Y();
         const double pi = 3.14159265358979323846;
@@ -141,12 +173,16 @@ void SupportPressureDirichletCondition::CalculateAll(
         //          (-sin(2*pi * x)*2*pi*sin(2*pi * y)                   )*normal_parameter_space[1]; 
 
         // LINEAR -> laplacian
-        // t_N[0] = (1.0)*normal_parameter_space[0] + (0)*normal_parameter_space[1]; 
-        // t_N[1] = (0)*normal_parameter_space[0] + (-1.0)*normal_parameter_space[1]; 
+        // t_N[0] = 2*((1.0)*normal_parameter_space[0] + (0)*normal_parameter_space[1]); 
+        // t_N[1] = 2*((0)*normal_parameter_space[0] + (-1.0)*normal_parameter_space[1]); 
 
         // LINEAR -> constitutive law
         // t_N[0] = (2.0)*normal_parameter_space[0] + (0)*normal_parameter_space[1]; 
         // t_N[1] = (0)*normal_parameter_space[0] + (-2.0)*normal_parameter_space[1];  
+        // t_N[0] = ((2.0)*normal_parameter_space[0] + (0)*normal_parameter_space[1])*current_t; 
+        // t_N[1] = ((0)*normal_parameter_space[0] + (-2.0)*normal_parameter_space[1])*current_t;  
+        // t_N_old[0] = ((2.0)*normal_parameter_space[0] + (0)*normal_parameter_space[1])*(current_t-delta_time);
+        // t_N_old[1] = ((0)*normal_parameter_space[0] + (-2.0)*normal_parameter_space[1])*(current_t-delta_time);
 
         // QUADRATIC -> laplacian
         // t_N[0] = (2*x)*normal_parameter_space[0] + (-2*y)*normal_parameter_space[1]; 
@@ -157,52 +193,26 @@ void SupportPressureDirichletCondition::CalculateAll(
         // t_N[1] = (-4*y)*normal_parameter_space[0] + (-4*x)*normal_parameter_space[1]; 
 
         // CUBIC -> constitutive law
-        // t_N[0] = (6*x*x)*normal_parameter_space[0] + (-3*y*y-6*x*y)*normal_parameter_space[1]; 
-        // t_N[1] = (-3*y*y-6*x*y)*normal_parameter_space[0] + (-6*x*x)*normal_parameter_space[1]; 
-        
-        t_N[0] = 0;
-        t_N[1] = 0; 
+        t_N[0] = ((6*x*x)*normal_parameter_space[0] + (-3*y*y-6*x*y)*normal_parameter_space[1]); 
+        t_N[1] = ((-3*y*y-6*x*y)*normal_parameter_space[0] + (-6*x*x)*normal_parameter_space[1]); 
+        // t_N[0] = ((6*x*x)*normal_parameter_space[0] + (-3*y*y-6*x*y)*normal_parameter_space[1])*(current_t)*(current_t); 
+        // t_N[1] = ((-3*y*y-6*x*y)*normal_parameter_space[0] + (-6*x*x)*normal_parameter_space[1])*(current_t)*(current_t); 
+        // t_N_old[0] = ((6*x*x)*normal_parameter_space[0] + (-3*y*y-6*x*y)*normal_parameter_space[1])*(current_t-delta_time)*(current_t-delta_time); 
+        // t_N_old[1] = ((-3*y*y-6*x*y)*normal_parameter_space[0] + (-6*x*x)*normal_parameter_space[1])*(current_t-delta_time)*(current_t-delta_time); 
+        // cubic -> laplacian
+        // t_N[0] = 2 * ((3*x*x)*normal_parameter_space[0] + (-3*y*y-6*x*y)*normal_parameter_space[1]); 
+        // t_N[1] = 2 * ((-3*y*y-6*x*y)*normal_parameter_space[0] + (-3*x*x)*normal_parameter_space[1]); 
+
+        // t_N[0] = 0.0; 
+        // t_N[1] = 0.0; 
+
 
         for (IndexType idim = 0; idim < 2; idim++) {
-            rRightHandSideVector(3*j+idim) += N(0,j) * t_N[idim] * integration_points[0].Weight();
+            rRightHandSideVector(3*j+idim) += theta * N(0,j) * t_N[idim] * integration_points[0].Weight();
+            rRightHandSideVector(3*j+idim) += (1.0 - theta) * N(0,j) * t_N_old[idim] * integration_points[0].Weight();
         }
         
     }
-
-    // Add residual of previous iteration to RHS
-    VectorType temp = ZeroVector(number_of_nodes*3);
-    // RHS = ExtForces - K*temp;
-    unsigned int index = 0 ;
-    for (unsigned int i = 0; i < number_of_nodes; i++) {
-        temp[index++] = r_geometry[i].GetSolutionStepValue(VELOCITY_X);
-        temp[index++] = r_geometry[i].GetSolutionStepValue(VELOCITY_Y);
-        temp[index++] = r_geometry[i].GetSolutionStepValue(PRESSURE);
-    }
-    // // RHS = ExtForces - K*temp;
-    // noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);
-
-    // // RHS = ExtForces - IntForces;
-    // for (IndexType i = 0; i < number_of_nodes; ++i) {
-    //     r_stress_vector[0] -= r_geometry[i].GetSolutionStepValue(PRESSURE)*N(0,i); // σ_xx
-    //     r_stress_vector[1] -= r_geometry[i].GetSolutionStepValue(PRESSURE)*N(0,i); // σ_yy
-    //     r_stress_vector[2] -= 0.0*N(0,i);                                          // σ_xy
-    // }
-    // Vector internalForces = integration_points[0].Weight() * prod(trans(B), r_stress_vector);
-    // for (IndexType i = 0; i < number_of_nodes; ++i)
-    // {
-    //     // Add only to the velocity DOFs (i.e., positions 0, 1, 3, 4, 6, 7, ...)
-    //     for (IndexType idim = 0; idim < 2; ++idim)
-    //     {
-    //         // viscous + pressure term
-    //         rRightHandSideVector(i * 3 + idim) -= internalForces(i * 2 + idim);
-    //     }  
-    // }
-
-    // for (unsigned int i = 0; i < number_of_nodes; i++) {
-    //     std::ofstream outputFile("txt_files/Id_active_control_points_condition.txt", std::ios::app);
-    //     outputFile << r_geometry[i].GetId() << "  " << r_geometry[i].GetDof(TEMPERATURE).EquationId() <<"\n";
-    //     outputFile.close();
-    // }
     KRATOS_CATCH("")
 }
 
@@ -320,6 +330,30 @@ void SupportPressureDirichletCondition::GetValuesVector(
         rValues[index + 1] = velocity[1];
     }
 }
+
+void SupportPressureDirichletCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+{
+    const auto& r_geometry = GetGeometry();
+
+    double p_D_old = this->GetValue(PRESSURE);
+
+    // Set the u_D_old for the next time_step
+    SetValue(PRESSURE_FOLLOWER_LOAD, p_D_old);
+
+    
+}
+
+/// Reads in a json formatted file and returns its KratosParameters instance.
+Parameters SupportPressureDirichletCondition::ReadParamatersFile(
+    const std::string& rDataFileName) const
+{
+    std::ifstream infile(rDataFileName);
+
+    std::stringstream buffer;
+    buffer << infile.rdbuf();
+
+    return Parameters(buffer.str());
+};
 
 
 } // Namespace Kratos

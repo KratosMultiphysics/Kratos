@@ -110,41 +110,43 @@ void LaplacianIGAElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
     Matrix DN_DX(number_of_points,dim);
     Vector temp(number_of_points);
 
-    // Initialize Jacobian
-    // Matrix InvJ0(dim,dim);
-    // GeometryType::JacobiansType J0;
-    // r_geometry.Jacobian(J0,this->GetIntegrationMethod());
-
     const double heat_flux = this->GetValue(r_volume_source_var);
     const double conductivity = this->GetProperties().GetValue(r_diffusivity_var);
 
-    // double DetJ0;
-    // Matrix Jacobian = ZeroMatrix(dim,dim);
-    // Jacobian(0,0) = J0[0](0,0);
-    // Jacobian(0,1) = J0[0](0,1);
-    // Jacobian(1,0) = J0[0](1,0);
-    // Jacobian(1,1) = J0[0](1,1);
+    // Time-related variables
+    const double delta_t = r_process_info[DELTA_TIME];
+    const double theta = 1.0; 
+    const double heat_flux_old = this->GetValue(FACE_HEAT_FLUX);
+    
 
-    // if (dim > 2) {
-    //     Jacobian(0,2) = J0[0](0,2);
-    //     Jacobian(1,2) = J0[0](1,2);
-    //     Jacobian(2,0) = J0[0](2,0);
-    //     Jacobian(2,1) = J0[0](2,1);
-    //     Jacobian(2,2) = J0[0](2,2);
-    // }
-    // // Calculating inverse jacobian and jacobian determinant
-    // MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
+    noalias(DN_DX) = DN_De[0] ; //prod(DN_De[i_point],InvJ0);
+    auto N = row(N_gausspoint,0);
 
-    for(std::size_t i_point = 0; i_point < integration_points.size(); ++i_point)
+    double previous_temperature = 0.0;
+    Vector grad_T_previous = ZeroVector(dim);
+    for (unsigned int i = 0; i < number_of_points; ++i)
     {
-        noalias(DN_DX) = DN_De[i_point] ; //prod(DN_De[i_point],InvJ0);
-
-        auto N = row(N_gausspoint,i_point);
-        const double IntToReferenceWeight = integration_points[i_point].Weight(); // * std::abs(DetJ0);
-
-        noalias(rLeftHandSideMatrix) += IntToReferenceWeight * conductivity * prod(DN_DX, trans(DN_DX));
-        noalias(rRightHandSideVector) += IntToReferenceWeight * heat_flux * N;
+        previous_temperature += r_geometry[i].FastGetSolutionStepValue(r_unknown_var, 1) * N[i]; // T^(n)
+        for (unsigned int d = 0; d < dim; ++d)
+        {
+            grad_T_previous[d] += DN_DX(i, d) * r_geometry[i].FastGetSolutionStepValue(r_unknown_var, 1); // ∇T^(n)
+        }
     }
+    
+    const double IntToReferenceWeight = integration_points[0].Weight(); // * std::abs(DetJ0);
+
+    noalias(rLeftHandSideMatrix) += theta * IntToReferenceWeight * conductivity * prod(DN_DX, trans(DN_DX));
+    noalias(rRightHandSideVector)-= (1.0-theta) * IntToReferenceWeight * conductivity * prod(DN_DX, grad_T_previous);
+
+    noalias(rRightHandSideVector) += theta * IntToReferenceWeight * heat_flux * N;
+    noalias(rRightHandSideVector) += (1.0-theta) * IntToReferenceWeight * heat_flux_old * N;
+
+    // Add mass term to LHS
+    noalias(rLeftHandSideMatrix) += IntToReferenceWeight * (1.0 / delta_t) * outer_prod(N, N);
+    // Add mass term contribution to RHS
+    noalias(rRightHandSideVector) += IntToReferenceWeight * N * previous_temperature * 1.0 / delta_t;
+
+
 
 
     // RHS = ExtForces - K*temp;
@@ -298,6 +300,11 @@ void LaplacianIGAElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProces
         output_file.close();
         }   
     }  
+    SetValue(INTEGRATION_WEIGHT, integration_points[0].Weight() );
+
+    // Set value for the heat_flux_old for next time-step
+    const double heat_flux = this->GetValue(HEAT_FLUX);
+    SetValue(FACE_HEAT_FLUX, heat_flux);
 }
 
 void LaplacianIGAElement::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){

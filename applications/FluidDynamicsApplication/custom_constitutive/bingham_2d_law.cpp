@@ -101,22 +101,20 @@ void  Bingham2DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
 
     double Regularization = 1.0 - std::exp(-m*g);
     const double mu_effective = mu + Regularization * sigma_y / g;
-    // const double mu_effective = mu + S[1];
+    mMuEffective = mu_effective;
     
-    // KRATOS_WATCH( mu_effective )
-
     const double trS = S[0]+S[1];
     const double eps_vol = trS/3.0;
 
     //computation of stress
-    StressVector[0] = 2.0*mu_effective*(S[0] - eps_vol);
-    StressVector[1] = 2.0*mu_effective*(S[1] - eps_vol);
+    StressVector[0] = 2.0*mu_effective*(S[0]);
+    StressVector[1] = 2.0*mu_effective*(S[1]);
     StressVector[2] = mu_effective*S[2];
 
     if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
     {
-        // this->NewtonianConstitutiveMatrix2D(mu_effective,rValues.GetConstitutiveMatrix());
-        BinghamConstitutiveMatrix2D(g, m, sigma_y, mu_effective, S, rValues.GetConstitutiveMatrix());
+        this->NewtonianConstitutiveMatrix2D(mu_effective,rValues.GetConstitutiveMatrix());
+        // BinghamConstitutiveMatrix2D(g, m, sigma_y, mu_effective, S, rValues.GetConstitutiveMatrix());
 
     }
 
@@ -216,6 +214,9 @@ double& Bingham2DLaw::CalculateValue(
 
     if (rThisVariable == STRAIN_ENERGY) {
         rValue = yielded_state;
+    }
+    else if (rThisVariable == MU) {
+        rValue = mMuEffective;
     }
     return rValue;
 }

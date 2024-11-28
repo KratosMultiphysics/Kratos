@@ -28,6 +28,8 @@
 #include "custom_elements/plain_stress_element.h"
 #include "custom_elements/conv_diff_IGA_element.h"
 #include "custom_elements/stokes_element.h"
+#include "custom_elements/stokes_element_transient_theta.h"
+#include "custom_elements/stokes_element_transient.h"
 
 //conditions
 #include "custom_conditions/output_condition.h"
@@ -49,6 +51,7 @@
 #include "custom_conditions/sbm_plain_stress_condition.h"
 #include "custom_conditions/load_plain_stress_condition.h"
 #include "custom_conditions/sbm_load_plain_stress_condition.h"
+#include "custom_conditions/support_fluid_dirichlet_condition_theta.h"
 #include "custom_conditions/support_fluid_dirichlet_condition.h"
 #include "custom_conditions/support_pressure_dirichlet_condition.h"
 #include "custom_conditions/sbm_fluid_condition.h"
@@ -140,6 +143,8 @@ private:
     const PlainStressElement mPlainStressElement;
     const ConvDiffIGAElement mConvDiffIGAElement; 
     const StokesElement mStokesElement;
+    const StokesElementTransientTheta mStokesElementTransientTheta;
+    const StokesElementTransient mStokesElementTransient;
 
     //Conditions
     const OutputCondition mOutputCondition;
@@ -162,6 +167,7 @@ private:
     const LoadPlainStressCondition mLoadPlainStressCondition;
     const SBMPlainStressCondition mSBMPlainStressCondition;
     const SBMLoadPlainStressCondition mSBMLoadPlainStressCondition;
+    const SupportFluidDirichletConditionTheta mSupportFluidDirichletConditionTheta;
     const SupportFluidDirichletCondition mSupportFluidDirichletCondition;
     const SupportPressureDirichletCondition mSupportPressureDirichletCondition;
 

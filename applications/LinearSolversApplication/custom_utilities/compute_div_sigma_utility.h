@@ -85,13 +85,6 @@ public:
      * @param rSigmaValues A vector of stress vectors (sigma)
      * @param rCoordinates A vector of coordinates corresponding to each sigma
      */
-    void SetInputData(
-        const std::vector<std::vector<double>>& rSigmaValues,
-        const CoordinateArrayType& rCoordinates)
-    {
-        mSigmaValues = rSigmaValues;
-        mCoordinates = rCoordinates;
-    }
 
     void SetInputData2(
         const std::vector<std::vector<double>>& rSigmaValues,
@@ -229,12 +222,14 @@ public:
         const std::vector<double>& coefficients_D33 = collected_coefficients[8];
 
         for (size_t i = 0; i < mShapeFunctionValuesDx.size(); ++i)
+        // Loop pver each Gauss point of the knot span
         {
             Matrix constitutive_matrix_dx = ZeroMatrix(3, 3);
             Matrix constitutive_matrix_dy = ZeroMatrix(3, 3);
             
             // Compute derivatives for each component of the constitutive matrix
             for (size_t j = 0; j < coefficients_D11.size(); ++j)
+            // Loop over each coefficient
             {
                 // Derivatives with respect to x
                 constitutive_matrix_dx(0, 0) += coefficients_D11[j] * mShapeFunctionValuesDx[i][j];
@@ -268,9 +263,6 @@ public:
 
     std::vector<std::vector<double>> ComputeCoefficientsConstitutiveMatrix()
     {
-        KRATOS_ERROR_IF(mCollected_D_constitutive_matrix.size() != mShapeFunctionValues.size()) 
-            << "Mismatch between number of sigma values and N!" << std::endl;
-        
         std::vector<std::vector<double>> coefficients_results;
         int gauss_point_number = mCollected_D_constitutive_matrix.size();
         // Construct design matrix A and vector b for quadratic fit

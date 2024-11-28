@@ -63,15 +63,9 @@ public:
     ///@name Operations
     ///@{
 
-    void Execute() override;
+    void ExecuteInitializeSolutionStep() override;
 
-    // void ExecuteInitialize() override {
-    //     Execute();
-    // };
-
-    void ExecuteInitializeSolutionStep() override {
-        Execute();
-    };
+    void ExecuteInitialize() override;
 
     // void ExecuteBeforeSolutionLoop() override {
     //     Execute();

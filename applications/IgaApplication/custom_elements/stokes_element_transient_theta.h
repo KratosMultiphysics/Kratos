@@ -10,8 +10,8 @@
 //  Main authors:    Nicoló Antonelli
 //
 
-#if !defined(KRATOS_STOKES_ELEMENT_H_INCLUDED )
-#define  KRATOS_STOKES_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_STOKES_ELEMENT_TRANSIENT_THETA_H_INCLUDED )
+#define  KRATOS_STOKES_ELEMENT_TRANSIENT_THETA_H_INCLUDED
 
 // System includes
 
@@ -46,14 +46,14 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class StokesElement : public Element
+class StokesElementTransientTheta : public Element
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of StokesElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(StokesElement);
+    /// Counted pointer of StokesElementTransientTheta
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(StokesElementTransientTheta);
 
     typedef Element BaseType;
 
@@ -72,17 +72,17 @@ public:
     ///@{
 
     /// Default constructor.
-    StokesElement(
+    StokesElementTransientTheta(
         IndexType NewId,
         GeometryType::Pointer pGeometry);
 
-    StokesElement(
+    StokesElementTransientTheta(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    virtual ~StokesElement();
+    virtual ~StokesElementTransientTheta();
 
     ///@}
     ///@name Operators
@@ -122,7 +122,7 @@ public:
 
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
-    StokesElement() : Element()
+    StokesElementTransientTheta() : Element()
     {
     }
 
@@ -179,9 +179,7 @@ protected:
 
     virtual void CalculateTau(double& TauOne,
                               double& TauTwo,
-                              const double DynViscosity,
-                              const double h_element_size,
-                              double mu_effective);
+                              const double DynViscosity);
 
     double ElementSize();
 
@@ -190,32 +188,45 @@ protected:
             const double Density,
             const double Viscosity,
             const array_1d<double,3>& BodyForce,
+            const array_1d<double,3> &BodyForce_old,
             const double TauTwo,
             const ShapeFunctionsType &N,
             const ShapeDerivativesType &DN_DX,
             const double Weigth,
             const Matrix& r_D,
-            Vector& r_stress_vector);
+            Vector& r_stress_vector,
+            const double theta);
 
     void AddContinuityTerms(MatrixType &rLHS,
             VectorType &rRHS,
             const double Density,
             const array_1d<double,3>& BodyForce,
+            const array_1d<double,3> &BodyForce_old,
             const double TauOne,
             const ShapeFunctionsType &N,
             const ShapeDerivativesType &DN_DX,
-            const double Weight);
+            const double Weight,
+            const double theta);
+    
+    void AddTimeTerms(MatrixType &rLHS,
+            VectorType &rRHS,
+            const double Density,
+            const double TauOne,
+            const ShapeFunctionsType &N,
+            const ShapeDerivativesType &DN_DX,
+            const double Weight,
+            const double delta_t);
 
     void AddSecondOrderStabilizationTerms(MatrixType &rLHS,
             VectorType &rRHS,
             const double Density,
-            const array_1d<double,3>& BodyForce,
             const double TauOne,
             const ShapeFunctionsType &N,
             const ShapeDerivativesType &DN_DX,
             const double Weight,
             const Matrix& r_D,
-            Vector& r_stress_vector);
+            Vector& r_stress_vector,
+            const double theta);
     
     Vector CalculateStressAtIntegrationPoint(const ProcessInfo& rCurrentProcessInfo);
 
@@ -311,10 +322,6 @@ private:
         Matrix& rB,
         const ShapeDerivativesType& r_DN_DX) const;
 
-    void CalculateI(
-        const ShapeFunctionsType &N,
-        Matrix& rI) const;
-    
     void CalculateB_second_order(
         Matrix& B_second_order,
         const ShapeDerivativesType& r_DDN_DDX) const;
@@ -377,16 +384,16 @@ private:
     ///@{
 
     /// Assignment operator.
-    //StokesElement& operator=(const StokesElement& rOther);
+    //StokesElementTransientTheta& operator=(const StokesElementTransientTheta& rOther);
 
     /// Copy constructor.
-    //StokesElement(const StokesElement& rOther);
+    //StokesElementTransientTheta(const StokesElementTransientTheta& rOther);
 
     ///@}
     Parameters ReadParamatersFile(
         const std::string& rDataFileName) const;
 
-}; // Class StokesElement
+}; // Class StokesElementTransientTheta
 
 ///@}
 
@@ -401,11 +408,11 @@ private:
 
 /// input stream function
 /*  inline std::istream& operator >> (std::istream& rIStream,
-				    StokesElement& rThis);
+				    StokesElementTransientTheta& rThis);
 */
 /// output stream function
 /*  inline std::ostream& operator << (std::ostream& rOStream,
-				    const StokesElement& rThis)
+				    const StokesElementTransientTheta& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;

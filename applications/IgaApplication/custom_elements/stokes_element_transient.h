@@ -10,8 +10,8 @@
 //  Main authors:    Nicoló Antonelli
 //
 
-#if !defined(KRATOS_STOKES_ELEMENT_H_INCLUDED )
-#define  KRATOS_STOKES_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_STOKES_ELEMENT_TRANSIENT_H_INCLUDED )
+#define  KRATOS_STOKES_ELEMENT_TRANSIENT_H_INCLUDED
 
 // System includes
 
@@ -46,14 +46,14 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class StokesElement : public Element
+class StokesElementTransient : public Element
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of StokesElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(StokesElement);
+    /// Counted pointer of StokesElementTransient
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(StokesElementTransient);
 
     typedef Element BaseType;
 
@@ -72,17 +72,17 @@ public:
     ///@{
 
     /// Default constructor.
-    StokesElement(
+    StokesElementTransient(
         IndexType NewId,
         GeometryType::Pointer pGeometry);
 
-    StokesElement(
+    StokesElementTransient(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    virtual ~StokesElement();
+    virtual ~StokesElementTransient();
 
     ///@}
     ///@name Operators
@@ -108,6 +108,8 @@ public:
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
+
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
@@ -122,7 +124,7 @@ public:
 
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
-    StokesElement() : Element()
+    StokesElementTransient() : Element()
     {
     }
 
@@ -146,6 +148,8 @@ public:
         const Variable<Matrix>& rVariable,  
         std::vector<Matrix>& D_constitutive_matrix, 
         const ProcessInfo& rCurrentProcessInfo) override;   
+
+    void GetFirstDerivativesVector(Vector &rValues, int Step) const override;
 
     ///@}
     ///@name Input and output
@@ -177,11 +181,7 @@ protected:
         }
     }
 
-    virtual void CalculateTau(double& TauOne,
-                              double& TauTwo,
-                              const double DynViscosity,
-                              const double h_element_size,
-                              double mu_effective);
+    virtual void CalculateTau(const double DynViscosity);
 
     double ElementSize();
 
@@ -190,6 +190,7 @@ protected:
             const double Density,
             const double Viscosity,
             const array_1d<double,3>& BodyForce,
+            const array_1d<double,3> &BodyForce_old,
             const double TauTwo,
             const ShapeFunctionsType &N,
             const ShapeDerivativesType &DN_DX,
@@ -201,15 +202,24 @@ protected:
             VectorType &rRHS,
             const double Density,
             const array_1d<double,3>& BodyForce,
+            const array_1d<double,3> &BodyForce_old,
             const double TauOne,
             const ShapeFunctionsType &N,
             const ShapeDerivativesType &DN_DX,
             const double Weight);
+    
+    void AddTimeTerms(MatrixType &rLHS,
+            VectorType &rRHS,
+            const double Density,
+            const double TauOne,
+            const ShapeFunctionsType &N,
+            const ShapeDerivativesType &DN_DX,
+            const double Weight,
+            const double delta_t);
 
     void AddSecondOrderStabilizationTerms(MatrixType &rLHS,
             VectorType &rRHS,
             const double Density,
-            const array_1d<double,3>& BodyForce,
             const double TauOne,
             const ShapeFunctionsType &N,
             const ShapeDerivativesType &DN_DX,
@@ -294,6 +304,8 @@ private:
 
     // Dimension
     int mDim;
+    double mTauOne;
+    double mTauTwo;
 
     // Basis function order
     IndexType mBasisFunctionsOrder;
@@ -311,10 +323,6 @@ private:
         Matrix& rB,
         const ShapeDerivativesType& r_DN_DX) const;
 
-    void CalculateI(
-        const ShapeFunctionsType &N,
-        Matrix& rI) const;
-    
     void CalculateB_second_order(
         Matrix& B_second_order,
         const ShapeDerivativesType& r_DDN_DDX) const;
@@ -326,6 +334,14 @@ private:
     void CalculateB_derivative_y(
         Matrix& B_derivative_y,
         const ShapeDerivativesType& r_DDN_DDX) const;
+    
+    void CalculateDivSymmetrycGradient(
+        Matrix& DivSymmetrycGradient,
+        const ShapeDerivativesType& r_DDN_DDX) const;
+    
+    void CalculateGradientQ(
+        Matrix& GradientQ,
+        const ShapeDerivativesType& r_DN_DX) const;
 
     void GetValuesVector(
         Vector& rValues) const;
@@ -377,16 +393,16 @@ private:
     ///@{
 
     /// Assignment operator.
-    //StokesElement& operator=(const StokesElement& rOther);
+    //StokesElementTransient& operator=(const StokesElementTransient& rOther);
 
     /// Copy constructor.
-    //StokesElement(const StokesElement& rOther);
+    //StokesElementTransient(const StokesElementTransient& rOther);
 
     ///@}
     Parameters ReadParamatersFile(
         const std::string& rDataFileName) const;
 
-}; // Class StokesElement
+}; // Class StokesElementTransient
 
 ///@}
 
@@ -401,11 +417,11 @@ private:
 
 /// input stream function
 /*  inline std::istream& operator >> (std::istream& rIStream,
-				    StokesElement& rThis);
+				    StokesElementTransient& rThis);
 */
 /// output stream function
 /*  inline std::ostream& operator << (std::ostream& rOStream,
-				    const StokesElement& rThis)
+				    const StokesElementTransient& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;

@@ -235,6 +235,8 @@ public:
 
     void GetValuesVector(Vector& rValues) const;
 
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
     ///@}
 
 protected:
@@ -293,6 +295,9 @@ private:
     void CalculateB(
         Matrix& rB,
         const ShapeDerivativesType& r_DN_DX) const;
+    
+    Parameters ReadParamatersFile(
+        const std::string& rDataFileName) const;
 
     ///@}
 

@@ -487,6 +487,8 @@ namespace Kratos
 
     // SBM variables
     KRATOS_DEFINE_VARIABLE(bool, IS_SBM)
+
+    KRATOS_DEFINE_VARIABLE(bool, USE_CONSTITUTIVE_LAW)
 }  // namespace Kratos.
 
 #undef  KRATOS_EXPORT_MACRO

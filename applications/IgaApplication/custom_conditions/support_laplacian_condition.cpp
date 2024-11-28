@@ -62,107 +62,85 @@ namespace Kratos
         // Compute the normals
         array_1d<double, 3> normal_physical_space;
         array_1d<double, 3> normal_parameter_space;
-
-        // r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space !!
-        // double magnitude = std::sqrt(tangent_parameter_space[0] * tangent_parameter_space[0] + tangent_parameter_space[1] * tangent_parameter_space[1]);
-        
-        // KRATOS_WATCH(tangent_parameter_space)
-        // // NEW FOR GENERAL JACOBIAN
-        // normal_parameter_space[0] = + tangent_parameter_space[1] / magnitude;
-        // normal_parameter_space[1] = - tangent_parameter_space[0] / magnitude;  // By observations on the result of .Calculate(LOCAL_TANGENT
-        // normal_parameter_space[2] = 0;
-        
-        
-        // r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space !!
-        // double magnitude = std::sqrt(tangent_parameter_space[0] * tangent_parameter_space[0] + tangent_parameter_space[1] * tangent_parameter_space[1]);
-        
-        // KRATOS_WATCH(tangent_parameter_space)
-        // // NEW FOR GENERAL JACOBIAN
-        // normal_parameter_space[0] = + tangent_parameter_space[1] / magnitude;
-        // normal_parameter_space[1] = - tangent_parameter_space[0] / magnitude;  // By observations on the result of .Calculate(LOCAL_TANGENT
-        // normal_parameter_space[2] = 0;
-        
         r_geometry.Calculate(NORMAL, normal_parameter_space);
 
         normal_physical_space = normal_parameter_space; // prod(trans(J0[0]),normal_parameter_space);
         
-        for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number)
+        const Matrix& N = r_geometry.ShapeFunctionsValues();
+
+        // Time-related variables
+        const double theta = 1.0; 
+
+        // // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
+        noalias(DN_DX) = DN_De[0];
+        
+        Matrix H = ZeroMatrix(1, number_of_nodes);
+        Matrix DN_dot_n = ZeroMatrix(1, number_of_nodes);
+        Vector DN_dot_n_vec = ZeroVector(number_of_nodes);
+        Vector H_vector = ZeroVector(number_of_nodes);
+        for (IndexType i = 0; i < number_of_nodes; ++i)
         {
-            const Matrix& N = r_geometry.ShapeFunctionsValues();
+            H(0, i)            = N(0, i);
+            H_vector(i)        = N(0, i); 
 
-            // Matrix Jacobian = ZeroMatrix(dim,dim);
-            // Jacobian(0,0) = J0[0](0,0);
-            // Jacobian(0,1) = J0[0](0,1);
-            // Jacobian(1,0) = J0[0](1,0);
-            // Jacobian(1,1) = J0[0](1,1);
-            // if (dim > 2) {
-            //     Jacobian(0,2) = J0[0](0,2);
-            //     Jacobian(1,2) = J0[0](1,2);
-            //     Jacobian(2,0) = J0[0](2,0);
-            //     Jacobian(2,1) = J0[0](2,1);
-            //     Jacobian(2,2) = J0[0](2,2);
-            // }
-
-            // double DetJ0;
-            // // Calculating inverse jacobian and jacobian determinant
-            // MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
-
-            // // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
-            noalias(DN_DX) = DN_De[point_number]; // prod(DN_De[point_number],InvJ0);
+            for (IndexType idim = 0; idim < dim; idim++) {
+                DN_dot_n(0, i)   += DN_DX(i, idim) * normal_physical_space[idim];           
+                DN_dot_n_vec(i)  += DN_DX(i, idim) * normal_physical_space[idim];
+            } 
             
-            Matrix H = ZeroMatrix(1, number_of_nodes);
-            Matrix DN_dot_n = ZeroMatrix(1, number_of_nodes);
-            Vector DN_dot_n_vec = ZeroVector(number_of_nodes);
-            Vector H_vector = ZeroVector(number_of_nodes);
-            for (IndexType i = 0; i < number_of_nodes; ++i)
-            {
-                H(0, i)            = N(point_number, i);
-                H_vector(i)        = N(point_number, i); 
+        }
+        // Differential area
+        double penalty_integration = penalty * integration_points[0].Weight(); //  * std::abs(DetJ0);
 
-                for (IndexType idim = 0; idim < dim; idim++) {
-                    DN_dot_n(0, i)   += DN_DX(i, idim) * normal_physical_space[idim];           
-                    DN_dot_n_vec(i)  += DN_DX(i, idim) * normal_physical_space[idim];
-                } 
-                
-            }
-            // Differential area
-            double penalty_integration = penalty * integration_points[point_number].Weight(); //  * std::abs(DetJ0);
+        // Collins, Lozinsky & Scovazzi innovation
+        double Guglielmo_innovation = 1.0;  // = 1 -> Penalty approach
+                                            // = -1 -> Free-penalty approach
+        if (penalty == -1.0) {
+            penalty_integration = 0.0;
+            Guglielmo_innovation = -1.0;
+        }
+        
 
-            // Collins, Lozinsky & Scovazzi innovation
-            double Guglielmo_innovation = 1.0;  // = 1 -> Penalty approach
-                                                // = -1 -> Free-penalty approach
-            if (penalty == -1.0) {
-                penalty_integration = 0.0;
-                Guglielmo_innovation = -1.0;
-            }
-            
-
-            // Assembly
-            noalias(rLeftHandSideMatrix) -= prod(trans(H), H) * penalty_integration;
-            // Assembly of the integration by parts term -(w,GRAD_u * n) -> Fundamental !!
-            noalias(rLeftHandSideMatrix) -= prod(trans(H), DN_dot_n)                        * integration_points[point_number].Weight(); // * std::abs(DetJ0) ;
-            // Of the Dirichlet BCs -(GRAD_w* n,u) 
-            noalias(rLeftHandSideMatrix) -= Guglielmo_innovation * prod(trans(DN_dot_n), H) * integration_points[point_number].Weight(); // * std::abs(DetJ0) ;
+        // Assembly
+        noalias(rLeftHandSideMatrix) -= theta * prod(trans(H), H) * penalty_integration;
+        // Assembly of the integration by parts term -(w,GRAD_u * n) -> Fundamental !!
+        noalias(rLeftHandSideMatrix) -= theta * prod(trans(H), DN_dot_n)                        * integration_points[0].Weight(); // * std::abs(DetJ0) ;
+        // Of the Dirichlet BCs -(GRAD_w* n,u) 
+        noalias(rLeftHandSideMatrix) -= theta * Guglielmo_innovation * prod(trans(DN_dot_n), H) * integration_points[0].Weight(); // * std::abs(DetJ0) ;
 
 
-            if (CalculateResidualVectorFlag) {
-                
-                const double u_D_scalar = this->GetValue(TEMPERATURE);
+        const double u_D_scalar = this->GetValue(TEMPERATURE);
+        const double u_D_scalar_old = this->GetValue(TEMPERATURE_OLD_IT);
+        
+        noalias(rRightHandSideVector) -=  theta * H_vector * u_D_scalar * penalty_integration;
+        noalias(rRightHandSideVector) -=  (1.0-theta) * H_vector * u_D_scalar_old * penalty_integration;
+        // Of the Dirichlet BCs
+        noalias(rRightHandSideVector) -= theta * Guglielmo_innovation * DN_dot_n_vec * u_D_scalar * integration_points[0].Weight(); // * std::abs(DetJ0);
+        noalias(rRightHandSideVector) -= (1.0-theta) * Guglielmo_innovation * DN_dot_n_vec * u_D_scalar_old * integration_points[0].Weight();
 
-                noalias(rRightHandSideVector) -=  H_vector * u_D_scalar * penalty_integration;
-                // Of the Dirichlet BCs
-                noalias(rRightHandSideVector) -= Guglielmo_innovation * DN_dot_n_vec * u_D_scalar * integration_points[point_number].Weight(); // * std::abs(DetJ0);
-
-                Vector temp(number_of_nodes);
-                // RHS = ExtForces - K*temp;
-                for (unsigned int i = 0; i < number_of_nodes; i++) {
-                    temp[i] = r_geometry[i].GetSolutionStepValue(TEMPERATURE);
-                }
-                // RHS -= K*temp
-                noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);
-
+        // RHS contributions for (1 - theta)-weighted terms
+        double temperature_previous = 0.0;
+        double grad_u_previous_dot_normal = 0.0;
+        for (unsigned int i = 0; i < number_of_nodes; ++i) {
+            temperature_previous += r_geometry[i].FastGetSolutionStepValue(TEMPERATURE, 1) * N(0, i);     // T^(n)
+            for (unsigned int idim = 0; idim < dim; ++idim) {
+                grad_u_previous_dot_normal += DN_DX(i, idim) * normal_physical_space[idim] * r_geometry[i].FastGetSolutionStepValue(TEMPERATURE, 1);
             }
         }
+  
+        // Residual for (1 - theta)-weighted terms
+        noalias(rRightHandSideVector) += (1.0 - theta) * H_vector * temperature_previous * penalty_integration;
+        noalias(rRightHandSideVector) += (1.0 - theta) * H_vector * grad_u_previous_dot_normal * integration_points[0].Weight(); 
+        noalias(rRightHandSideVector) += (1.0 - theta) * Guglielmo_innovation * DN_dot_n_vec * temperature_previous * integration_points[0].Weight();
+
+        Vector temp(number_of_nodes);
+        // RHS = ExtForces - K*temp;
+        for (unsigned int i = 0; i < number_of_nodes; i++) {
+            temp[i] = r_geometry[i].GetSolutionStepValue(TEMPERATURE);
+        }
+        // RHS -= K*temp
+        noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);
+
         // for (unsigned int i = 0; i < number_of_nodes; i++) {
         //     std::ofstream outputFile("txt_files/Id_active_control_points_condition.txt", std::ios::app);
         //     outputFile << r_geometry[i].GetId() << "  " << r_geometry[i].GetDof(TEMPERATURE).EquationId() <<"\n";
@@ -212,6 +190,13 @@ namespace Kratos
             rElementalDofList.push_back(r_node.pGetDof(TEMPERATURE));
         }
     };
+
+    void SupportLaplacianCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+    {
+        const auto& r_geometry = GetGeometry();
+        const double u_D_scalar = this->GetValue(TEMPERATURE);
+        SetValue(TEMPERATURE_OLD_IT, u_D_scalar);
+    }
 
 
 } // Namespace Kratos

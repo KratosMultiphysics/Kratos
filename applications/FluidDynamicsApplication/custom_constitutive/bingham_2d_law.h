@@ -156,6 +156,8 @@ private:
     ///@name Member Variables
     ///@{
 
+    double mMuEffective;
+
 
     ///@}
     ///@name Private Operators

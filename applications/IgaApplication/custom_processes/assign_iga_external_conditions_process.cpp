@@ -32,7 +32,7 @@ namespace Kratos
         iga_physics_parameters = ReadParamatersFile(rDataFileName);
    }
 
-    void AssignIgaExternalConditionsProcess::Execute(){
+    void AssignIgaExternalConditionsProcess::ExecuteInitializeSolutionStep(){
 
         ModelPart& analysis_model_part = mpModel->GetModelPart(mParameters["analysis_model_part_name"].GetString());
 
@@ -130,12 +130,74 @@ namespace Kratos
                                 } else if (component_variable_name == "FORCE_Z") {
                                     i_cond->SetValue(FORCE_Z, value);
                                 } else if (component_variable_name == "PRESSURE") {
-                                    i_cond->SetValue(FORCE_Z, value);
+                                    i_cond->SetValue(PRESSURE, value);
                                 } else {
                                     KRATOS_ERROR << "No name found" ;
                                 }
                             } 
                         } else {KRATOS_ERROR << "AssignIgaExternalConditionsProcess : No Condition or Elements defined" ;}
+                    }
+                }
+            }
+        }
+    }
+
+
+    void AssignIgaExternalConditionsProcess::ExecuteInitialize(){
+
+        ModelPart& analysis_model_part = mpModel->GetModelPart(mParameters["analysis_model_part_name"].GetString());
+
+        const ProcessInfo& rProcessInfo = analysis_model_part.GetProcessInfo();
+        double t = rProcessInfo[TIME];
+        if (mParameters.Has("initial_variables")) {
+            const auto& initial_variables = mParameters["initial_variables"];
+
+            for (IndexType i_var = 0; i_var < initial_variables.size(); i_var++) {
+                std::string variable_name = initial_variables[i_var]["variable_name"].GetString();
+                bool isScalarValue = initial_variables[i_var]["initial_value"].IsString();
+
+                std::vector<std::string> components_array = {"_X", "_Y", "_Z"};
+                std::vector<std::string> variable_name_array;
+                std::vector<std::string> values_string;
+
+                if (isScalarValue) {
+                    values_string.push_back(initial_variables[i_var]["initial_value"].GetString());
+                    variable_name_array.push_back(variable_name);
+                } else {
+                    const int numberOfComponents = initial_variables[i_var]["initial_value"].size();
+                    for (IndexType i_component = 0; i_component < numberOfComponents; i_component++) {
+                        values_string.push_back(initial_variables[i_var]["initial_value"][i_component].GetString());
+                        std::string component_variable_name = variable_name + components_array[i_component];
+                        variable_name_array.push_back(component_variable_name);
+                    }
+                }
+                KRATOS_WATCH(variable_name_array)
+                for (auto i_element = analysis_model_part.ElementsBegin(); i_element != analysis_model_part.ElementsEnd(); i_element++) {
+                    const double x = i_element->GetGeometry().Center().X();
+                    const double y = i_element->GetGeometry().Center().Y();
+                    const double z = i_element->GetGeometry().Center().Z();
+
+                    for (IndexType i_component = 0; i_component < values_string.size(); i_component++) {
+                        Kratos::unique_ptr<GenericFunctionUtility> evalFunction = Kratos::make_unique<GenericFunctionUtility>(values_string[i_component]);
+                        const double value = evalFunction->CallFunction(x, y, z, t);
+
+                        if (variable_name_array[i_component] == "VELOCITY_X") {
+                            i_element->SetValue(VELOCITY_X, value);
+                        } else if (variable_name_array[i_component] == "VELOCITY_Y") {
+                            i_element->SetValue(VELOCITY_Y, value);
+                        } else if (variable_name_array[i_component] == "VELOCITY_Z") {
+                            i_element->SetValue(VELOCITY_Z, value);
+                        } else if (variable_name_array[i_component] == "PRESSURE") {
+                            i_element->SetValue(PRESSURE, value);
+                        } else if (variable_name_array[i_component] == "FORCE_X") {
+                            i_element->SetValue(FORCE_X, value);
+                        } else if (variable_name_array[i_component] == "FORCE_Y") {
+                            i_element->SetValue(FORCE_Y, value);
+                        } else if (variable_name_array[i_component] == "FORCE_Z") {
+                            i_element->SetValue(FORCE_Z, value);
+                        } else {
+                            KRATOS_ERROR << "Unsupported variable: " << variable_name_array[i_component];
+                        }
                     }
                 }
             }

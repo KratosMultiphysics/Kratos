@@ -233,7 +233,12 @@ public:
         // auto start = std::chrono::high_resolution_clock::now();
         
         // Compute the basis function order p
-        const unsigned int gauss_point_per_knot_span = el_begin->GetGeometry().size();
+        const unsigned int gauss_point_per_knot_span = el_begin->GetGeometry().size(); // * 4;
+        const unsigned int number_of_control_points = el_begin->GetGeometry().size();
+        KRATOS_WATCH(gauss_point_per_knot_span)
+        KRATOS_WATCH(number_of_control_points)
+        // exit(0);
+
         std::vector<std::vector<double>> collected_stress;
         std::vector<std::vector<double>> collected_shape_functions;
         std::vector<std::vector<double>> collected_shape_functions_dx;
@@ -274,7 +279,7 @@ public:
                 std::vector<double> element_shape_functions_dx;
                 std::vector<double> element_shape_functions_dy;
 
-                for (std::size_t cp = 0; cp < gauss_point_per_knot_span; ++cp) {
+                for (std::size_t cp = 0; cp < number_of_control_points; ++cp) {
                     // Collect the shape function value for the current Gauss point (assuming 1 value per Gauss point)
                     double shape_function_value_cp = shape_function_value(cp);
                     element_shape_functions.push_back(shape_function_value_cp);
@@ -314,7 +319,16 @@ public:
                         auto it_element_in_knot_span = it_elem - (gauss_point_per_knot_span-1) + i;
                         // Apply the divergence values back to the Gauss point
                         it_element_in_knot_span->SetValue(RECOVERED_STRESS, divergence_value);
+                        // The i-th matrix is dC/dx
+                        it_element_in_knot_span->SetValue(MATERIAL_STIFFNESS_MATRIX, collected_derivatives_constitutive_matrix[i]);
+                        // The (i+1)-th matrix is dC/dy
+                        it_element_in_knot_span->SetValue(GEOMETRIC_STIFFNESS_MATRIX, collected_derivatives_constitutive_matrix[i+1]);
+
+                        // KRATOS_WATCH(divergence_value)
+                        // KRATOS_WATCH(6*it_element_in_knot_span->GetGeometry().Center().X() - 6*it_element_in_knot_span->GetGeometry().Center().Y())
+                        // KRATOS_WATCH( - 6*it_element_in_knot_span->GetGeometry().Center().Y())
                     }
+                    
 
                     // Reset the collections for the next set of gauss points
                     collected_stress.clear();
@@ -322,6 +336,8 @@ public:
                     collected_shape_functions.clear();
                     collected_shape_functions_dx.clear();
                     collected_shape_functions_dy.clear();
+                    collected_D_constitutive_matrix.clear();
+                    collected_derivatives_constitutive_matrix.clear();
                     collected_count = 0;
                 }
             }

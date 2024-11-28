@@ -8,8 +8,8 @@
 //                   Kratos default license: kratos/license.txt
 //
 
-#if !defined(KRATOS_SUPPORT_FLUID_DIRICHLET_CONDITION_H_INCLUDED )
-#define  KRATOS_SUPPORT_FLUID_DIRICHLET_CONDITION_H_INCLUDED
+#if !defined(KRATOS_SUPPORT_FLUID_DIRICHLET_CONDITION_THETA_H_INCLUDED )
+#define  KRATOS_SUPPORT_FLUID_DIRICHLET_CONDITION_THETA_H_INCLUDED
 
 
 // System includes
@@ -25,15 +25,15 @@
 namespace Kratos
 {
     /// Condition for penalty support condition
-    class SupportFluidDirichletCondition
+    class SupportFluidDirichletConditionTheta
         : public Condition
     {
     public:
         ///@name Type Definitions
         ///@{
 
-        /// Counted pointer definition of SupportFluidDirichletCondition
-        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SupportFluidDirichletCondition);
+        /// Counted pointer definition of SupportFluidDirichletConditionTheta
+        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SupportFluidDirichletConditionTheta);
 
         /// Size types
         typedef std::size_t SizeType;
@@ -47,14 +47,14 @@ namespace Kratos
         ///@{
 
         /// Constructor with Id and geometry
-        SupportFluidDirichletCondition(
+        SupportFluidDirichletConditionTheta(
             IndexType NewId,
             GeometryType::Pointer pGeometry)
             : Condition(NewId, pGeometry)
         {};
 
         /// Constructor with Id, geometry and property
-        SupportFluidDirichletCondition(
+        SupportFluidDirichletConditionTheta(
             IndexType NewId,
             GeometryType::Pointer pGeometry,
             PropertiesType::Pointer pProperties)
@@ -62,11 +62,11 @@ namespace Kratos
         {};
 
         /// Default constructor
-        SupportFluidDirichletCondition() : Condition()
+        SupportFluidDirichletConditionTheta() : Condition()
         {};
 
         /// Destructor
-        virtual ~SupportFluidDirichletCondition() override
+        virtual ~SupportFluidDirichletConditionTheta() override
         {};
 
         ///@}
@@ -80,7 +80,7 @@ namespace Kratos
             PropertiesType::Pointer pProperties
         ) const override
         {
-            return Kratos::make_intrusive<SupportFluidDirichletCondition>(
+            return Kratos::make_intrusive<SupportFluidDirichletConditionTheta>(
                 NewId, pGeom, pProperties);
         };
 
@@ -91,7 +91,7 @@ namespace Kratos
             PropertiesType::Pointer pProperties
         ) const override
         {
-            return Kratos::make_intrusive<SupportFluidDirichletCondition>(
+            return Kratos::make_intrusive<SupportFluidDirichletConditionTheta>(
                 NewId, GetGeometry().Create(ThisNodes), pProperties);
         };
 
@@ -217,14 +217,14 @@ namespace Kratos
         std::string Info() const override
         {
             std::stringstream buffer;
-            buffer << "\"SupportFluidDirichletCondition\" #" << Id();
+            buffer << "\"SupportFluidDirichletConditionTheta\" #" << Id();
             return buffer.str();
         }
 
         /// Print information about this object.
         void PrintInfo(std::ostream& rOStream) const override
         {
-            rOStream << "\"SupportFluidDirichletCondition\" #" << Id();
+            rOStream << "\"SupportFluidDirichletConditionTheta\" #" << Id();
         }
 
         /// Print object's data.
@@ -301,7 +301,7 @@ namespace Kratos
 
         ///@}
 
-    }; // Class SupportFluidDirichletCondition
+    }; // Class SupportFluidDirichletConditionTheta
 
 }  // namespace Kratos.
 
