@@ -87,7 +87,7 @@ void Define3DWakeProcess::ExecuteInitialize()
     // Compute span direction as the cross product: mWakeNormal x mWakeDirection
     MathUtils<double>::CrossProduct(mSpanDirection, mWakeNormal, mWakeDirection);
 
-    MarkTrailingEdgeNodesAndFindWingtipNodes();
+    MarkTrailingEdgeNodesAndFindWingtiprootNodes();
 
     ComputeWingLowerSurfaceNormals();
 
@@ -175,7 +175,7 @@ void Define3DWakeProcess::InitializeWakeSubModelpart() const
 }
 
 // This function marks the trailing edge nodes and finds the wingtip nodes
-void Define3DWakeProcess::MarkTrailingEdgeNodesAndFindWingtipNodes()
+void Define3DWakeProcess::MarkTrailingEdgeNodesAndFindWingtiprootNodes()
 {
     double max_span_position = std::numeric_limits<double>::lowest();
     double min_span_position = std::numeric_limits<double>::max();
@@ -199,7 +199,7 @@ void Define3DWakeProcess::MarkTrailingEdgeNodesAndFindWingtipNodes()
         }
     }
 
-    // Marking wingtip nodes
+    // Marking wingtip and wingroot nodes
     p_right_wing_tip_node->SetValue(WING_TIP, true);
     p_left_wing_tip_node->SetValue(WING_ROOT, true);
 }

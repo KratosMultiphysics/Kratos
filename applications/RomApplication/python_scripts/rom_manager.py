@@ -600,11 +600,16 @@ class RomManager(object):
             BasisOutputProcess = self.InitializeDummySimulationForBasisOutputProcess()
             if self.general_rom_manager_parameters["ROM"]["use_non_converged_sols"].GetBool():
                 SnapshotsMatrix_c = self.data_base.get_snapshots_matrix_from_database(mu_train, table_name='FOM')
-                if len(mu_train) > 0:
-                    SnapshotsMatrix_nc = self.data_base.get_snapshots_matrix_from_database(mu_train, table_name='NonconvergedFOM')
-                    u,sigma = BasisOutputProcess._ComputeSVD(np.c_[SnapshotsMatrix_c, SnapshotsMatrix_nc]) #TODO this might be too large for single opeartion, add partitioned svd
-                else:
-                    u,sigma = BasisOutputProcess._ComputeSVD(SnapshotsMatrix_c) #TODO this might be too large for single opeartion, add partitioned svd
+                SnapshotsMatrix_nc = self.data_base.get_snapshots_matrix_from_database(mu_train, table_name='NonconvergedFOM')
+
+                phi_c,_,_,_= RandomizedSingularValueDecomposition().Calculate(SnapshotsMatrix_c, 1e-12)
+                S_nc = SnapshotsMatrix_nc
+                for k in range(5):
+                    S_nc = S_nc - (phi_c @ (phi_c.T @ S_nc))
+                phi_nc,_,_,_= RandomizedSingularValueDecomposition().Calculate(S_nc, 1e-12)
+
+                u,sigma = BasisOutputProcess._ComputeSVD(np.c_[phi_c, phi_nc])
+                
             else:
                 u,sigma = BasisOutputProcess._ComputeSVD(self.data_base.get_snapshots_matrix_from_database(mu_train, table_name='FOM'))
             BasisOutputProcess._PrintRomBasis(u, sigma) #Calling the RomOutput Process for creating the RomParameter.json
@@ -751,7 +756,22 @@ class RomManager(object):
             if self.rebuild_phiHROM:
                 self.data_base.delete_if_in_database("RightBasisHROM", mu_train)
             in_database_right_bases_hrom, hash_right_bases_hrom =  self.data_base.check_if_in_database("RightBasisHROM", mu_train)
-            if not in_database_right_bases_hrom and (not os.path.exists('PhiHROMMatrix.zarr') and self.general_rom_manager_parameters["HROM"]["use_dask"].GetBool()):
+            if in_database_right_bases_hrom or os.path.exists('PhiHROMMatrix.zarr'):
+                if self.general_rom_manager_parameters["HROM"]["use_dask"].GetBool():
+                    zarr_path = 'PhiHROMMatrix.zarr'
+                    if os.path.exists('PhiHROMMatrix.zarr'):
+                        u = da.from_zarr(zarr_path)
+                        u = u.compute()
+                    else:
+                        err_msg = f'Failed to import "PhiHROMMatrix.zarr".'
+                        raise Exception(err_msg)
+                else:
+                    try:
+                        u = self.data_base.get_single_numpy_from_database(hash_right_bases_hrom)
+                    except:
+                        err_msg = f'Failed to import hrom right bases from database.'
+                        raise Exception(err_msg)   
+            else:
                 with open(self.project_parameters_name,'r') as parameter_file:
                     parameters = KratosMultiphysics.Parameters(parameter_file.read())
                 simulation = None
@@ -869,13 +889,6 @@ class RomManager(object):
                     zarr_matrix[:] = u
                 else:
                     self.data_base.add_to_database("RightBasisHROM", mu_train, u)
-            else:
-                if self.general_rom_manager_parameters["HROM"]["use_dask"].GetBool():
-                    zarr_path = 'PhiHROMMatrix.zarr'
-                    u = da.from_zarr(zarr_path)
-                    u = u.compute()
-                else:
-                    u = self.data_base.get_single_numpy_from_database(hash_right_bases_hrom)
 
             # if simulation is None:
             HROM_utility = self.InitializeDummySimulationForHromTrainingUtility()

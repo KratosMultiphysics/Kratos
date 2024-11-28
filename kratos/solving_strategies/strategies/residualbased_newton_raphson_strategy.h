@@ -1044,14 +1044,19 @@ class ResidualBasedNewtonRaphsonStrategy
             p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
             mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
 
+            if (r_model_part.GetProcessInfo()[CONVERGENCE_RATIO] <= 0.001 &&
+                r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] > 1    &&
+                mSaved == false)
+            {
+                mSaved = true;
+            }
+            
+
             if (mStoreNonconvergedSolutionsFlag == true &&
-                mSaved == false &&
-                r_model_part.GetProcessInfo()[CONVERGENCE_RATIO] <= 0.001 &&
-                r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] > 1){
+                mSaved == true ){
                 Vector ith;
                 GetCurrentSolution(r_dof_set,ith);
                 NonconvergedSolutions.push_back(ith);
-                mSaved = true;
             }
 
             residual_is_updated = false;

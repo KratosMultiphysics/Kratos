@@ -120,7 +120,7 @@ private:
 
     void InitializeWakeSubModelpart() const;
 
-    void MarkTrailingEdgeNodesAndFindWingtipNodes();
+    void MarkTrailingEdgeNodesAndFindWingtiprootNodes();
 
     void ComputeWingLowerSurfaceNormals() const;
 
