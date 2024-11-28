@@ -228,13 +228,14 @@ void FindNeighbourElementsOfConditionsProcess::CheckForMultipleConditionsOnEleme
     for (hashmap::iterator it = face_pair.first; it != face_pair.second; ++it) {
         std::vector<Condition::Pointer>& r_conditions = it->second;
 
-        GlobalPointersVector<Element> vector_of_neighbours;
-        vector_of_neighbours.resize(1);
-        vector_of_neighbours(0) = Element::WeakPointer(*pItElem.base());
+        // GlobalPointersVector<Element> vector_of_neighbours;
+        // vector_of_neighbours.resize(1);
+        // vector_of_neighbours(0) = Element::WeakPointer(*pItElem.base());
 
         for (Condition::Pointer p_condition : r_conditions) {
             p_condition->Set(VISITED, true);
-            p_condition->SetValue(NEIGHBOUR_ELEMENTS, vector_of_neighbours);
+            // p_condition->SetValue(NEIGHBOUR_ELEMENTS, vector_of_neighbours);
+            p_condition->GetValue(NEIGHBOUR_ELEMENTS).push_back(Element::WeakPointer(*pItElem.base()));
         }
     }
 }
