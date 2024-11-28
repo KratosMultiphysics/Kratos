@@ -107,14 +107,13 @@ void ApplyK0ProcedureProcess::CheckK0(const Properties& rProperties, IndexType E
 
 void ApplyK0ProcedureProcess::CheckPhi(const Properties& rProperties, IndexType ElementId)
 {
-    if (rProperties.Has(INDEX_OF_UMAT_PHI_PARAMETER) &&
-        rProperties.Has(NUMBER_OF_UMAT_PARAMETERS) && rProperties.Has(UMAT_PARAMETERS)) {
+    if (rProperties.Has(INDEX_OF_UMAT_PHI_PARAMETER) && rProperties.Has(UMAT_PARAMETERS)) {
         const auto phi_index                 = rProperties[INDEX_OF_UMAT_PHI_PARAMETER];
-        const auto number_of_umat_parameters = rProperties[NUMBER_OF_UMAT_PARAMETERS];
+        const auto number_of_umat_parameters = rProperties[UMAT_PARAMETERS].size();
 
         KRATOS_ERROR_IF(phi_index < 1 || phi_index > number_of_umat_parameters)
-            << "INDEX_OF_UMAT_PHI_PARAMETER (" << phi_index << ") is not in range 1, NUMBER_OF_UMAT_PARAMETERS ("
-            << number_of_umat_parameters << ") for element " << ElementId << "." << std::endl;
+            << "INDEX_OF_UMAT_PHI_PARAMETER (" << phi_index
+            << ") is not in range 1, size of UMAT_PARAMETERS for element " << ElementId << "." << std::endl;
 
         const double phi = rProperties[UMAT_PARAMETERS][phi_index - 1];
         KRATOS_ERROR_IF(phi < 0.0 || phi > 90.0)
@@ -126,8 +125,7 @@ void ApplyK0ProcedureProcess::CheckPhi(const Properties& rProperties, IndexType 
 void ApplyK0ProcedureProcess::CheckOCRorPOP(const Properties& rProperties, IndexType ElementId)
 {
     if (rProperties.Has(K0_NC) ||
-        (rProperties.Has(INDEX_OF_UMAT_PHI_PARAMETER) &&
-         rProperties.Has(NUMBER_OF_UMAT_PARAMETERS) && rProperties.Has(UMAT_PARAMETERS))) {
+        (rProperties.Has(INDEX_OF_UMAT_PHI_PARAMETER) && rProperties.Has(UMAT_PARAMETERS))) {
         if (rProperties.Has(OCR)) {
             const double ocr = rProperties[OCR];
             KRATOS_ERROR_IF(ocr < 1.0) << "OCR (" << ocr << ") should be in the range [1.0,-> for element "
@@ -163,12 +161,10 @@ void ApplyK0ProcedureProcess::CheckSufficientMaterialParameters(const Properties
 {
     KRATOS_ERROR_IF_NOT(
         rProperties.Has(K0_NC) ||
-        (rProperties.Has(INDEX_OF_UMAT_PHI_PARAMETER) &&
-         rProperties.Has(NUMBER_OF_UMAT_PARAMETERS) && rProperties.Has(UMAT_PARAMETERS)) ||
+        (rProperties.Has(INDEX_OF_UMAT_PHI_PARAMETER) && rProperties.Has(UMAT_PARAMETERS)) ||
         (rProperties.Has(K0_VALUE_XX) && rProperties.Has(K0_VALUE_YY) && rProperties.Has(K0_VALUE_ZZ)))
         << "Insufficient material data for K0 procedure process for element " << ElementId << ". No K0_NC, "
-        << "(INDEX_OF_UMAT_PHI_PARAMETER, NUMBER_OF_UMAT_PARAMETERS and "
-           "UMAT_PARAMETERS) or (K0_VALUE_XX, _YY and _ZZ found)."
+        << "(INDEX_OF_UMAT_PHI_PARAMETER and UMAT_PARAMETERS) or (K0_VALUE_XX, _YY and _ZZ found)."
         << std::endl;
 }
 
@@ -197,8 +193,7 @@ array_1d<double, 3> ApplyK0ProcedureProcess::CreateK0Vector(const Element::Prope
     array_1d<double, 3> k0_vector;
     if (rProp.Has(K0_NC)) {
         std::fill(k0_vector.begin(), k0_vector.end(), rProp[K0_NC]);
-    } else if (rProp.Has(INDEX_OF_UMAT_PHI_PARAMETER) && rProp.Has(NUMBER_OF_UMAT_PARAMETERS) &&
-               rProp.Has(UMAT_PARAMETERS)) {
+    } else if (rProp.Has(INDEX_OF_UMAT_PHI_PARAMETER) && rProp.Has(UMAT_PARAMETERS)) {
         const auto phi = rProp[UMAT_PARAMETERS][rProp[INDEX_OF_UMAT_PHI_PARAMETER] - 1];
         std::fill(k0_vector.begin(), k0_vector.end(), 1.0 - std::sin(MathUtils<>::DegreesToRadians(phi)));
     } else {

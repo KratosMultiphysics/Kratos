@@ -58,7 +58,6 @@ ModelPart& PrepareCPhiTestModelPart(Model& rModel)
     r_model_part_properties.SetValue(UMAT_PARAMETERS, umat_parameters);
     r_model_part_properties.SetValue(INDEX_OF_UMAT_C_PARAMETER, 3);
     r_model_part_properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 4);
-    r_model_part_properties.SetValue(NUMBER_OF_UMAT_PARAMETERS, 6);
 
     return result;
 }
@@ -123,11 +122,6 @@ KRATOS_TEST_CASE_IN_SUITE(CheckFailureUmatInputsApplyCPhiReductionProcess, Krato
     Vector umat_parameters(6);
     umat_parameters <<= 10000000, 0.2, 10.0, 25.0, 25.0, 1000;
     r_model_part_properties.SetValue(UMAT_PARAMETERS, umat_parameters);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        (ApplyCPhiReductionProcess{r_model_part, {}}.ExecuteInitializeSolutionStep()),
-        "Missing required item NUMBER_OF_UMAT_PARAMETERS")
-
-    r_model_part_properties.SetValue(NUMBER_OF_UMAT_PARAMETERS, 6);
 
     // checking of Phi
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
