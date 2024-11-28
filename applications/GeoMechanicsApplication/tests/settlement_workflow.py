@@ -20,16 +20,13 @@ class KratosGeoMechanicsSettlementWorkflow(KratosUnittest.TestCase):
         self.test_root = test_helper.get_file_path("test_settlement_workflow")
         self.test_path = os.path.join(self.test_root, self.get_test_dir_name())
 
-        try:
-            shutil.rmtree(self.test_path)
-        except FileNotFoundError:
-            pass
+        shutil.rmtree(self.test_path, ignore_errors=True)
 
         os.makedirs(self.test_path)
 
         self.number_of_stages = 4
         self.project_parameters_filenames = [f"ProjectParameters_stage{i+1}.json" for i in range(self.number_of_stages)]
-        input_filenames = self.project_parameters_filenames[:] + ["MaterialParameters.json", "test_model.mdpa"]
+        input_filenames = self.project_parameters_filenames + ["MaterialParameters.json", "test_model.mdpa"]
 
         for filename in input_filenames:
             shutil.copy(os.path.join(self.test_root, filename), os.path.join(self.test_path, filename))
@@ -159,8 +156,9 @@ class KratosGeoMechanicsSettlementWorkflowCppRoute(KratosGeoMechanicsSettlementW
     """
     def tearDown(self):
         # The `KratosGeoSettlement` instance used by this test removes all registered GeoMechanicsApplication
-        # components when it's destroyed. If no action is taken, any following tests will start to fail. It seems
-        # that reloading the relevant Kratos applications overcomes this problem.
+        # components when it's destroyed. If no action is taken, any following tests will start to fail due to
+        # components not being registered. It seems that reloading the relevant Kratos applications overcomes this
+        # problem.
         importlib.reload(KratosMultiphysics.LinearSolversApplication)
         importlib.reload(KratosMultiphysics.StructuralMechanicsApplication)
         importlib.reload(KratosMultiphysics.GeoMechanicsApplication)
@@ -178,10 +176,10 @@ class KratosGeoMechanicsSettlementWorkflowCppRoute(KratosGeoMechanicsSettlementW
         no_logging = lambda msg: None
         no_progress_reporting = lambda fraction_done: None
         no_progress_message = lambda msg: None
-        dont_cancel = lambda: False
+        do_not_cancel = lambda: False
 
         for project_parameters_filename in self.project_parameters_filenames:
-            status = settlement_api.RunStage(self.test_path, project_parameters_filename, no_logging, no_progress_reporting, no_progress_message, dont_cancel)
+            status = settlement_api.RunStage(self.test_path, project_parameters_filename, no_logging, no_progress_reporting, no_progress_message, do_not_cancel)
             self.assertEqual(status, 0)
 
         self.check_displacements()
