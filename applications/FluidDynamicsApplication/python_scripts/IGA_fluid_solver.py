@@ -211,10 +211,10 @@ class IGAFluidSolver(navier_stokes_solver_vmsmonolithic.NavierStokesSolverMonoli
             #     node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X , 0 , 1.0)
             #     node.Fix(KratosMultiphysics.VELOCITY_X)
 
-            if (node.X == 0.0 and node.Y == 0.0) or (node.X == 2.0 and node.Y == 0.0):
+            if (node.X == 0.0 and node.Y == 0.0) : #or (node.X == 2.0 and node.Y == 0.0):
                 # node.SetSolutionStepValue(KratosMultiphysics.PRESSURE ,0 , 2*np.pi*(np.cos(2*np.pi*node.Y)-np.cos(2*np.pi*node.X)))
-                # node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , node.X*node.X + node.Y*node.Y)
-                node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , 0.0)
+                node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , node.X*node.X + node.Y*node.Y)
+                # node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , 0.0)
 
                 # node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , 2*np.pi*(np.cos(2*np.pi*node.Y)-np.cos(2*np.pi*node.X)))
                 # node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , ((node.X)**2 + (node.Y)**2)*np.cos(current_time))

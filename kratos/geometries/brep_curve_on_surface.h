@@ -284,6 +284,15 @@ public:
         return mCurveNurbsInterval;
     }
 
+    void DomainInterval(Vector& domainInterval) const override
+    {
+        
+        if (domainInterval.size() != 2) domainInterval.resize(2);
+        domainInterval[0] = mCurveNurbsInterval.MinParameter();
+        domainInterval[1] = mCurveNurbsInterval.MaxParameter();
+
+    }
+
     /*
     * @brief Indicates if the NURBS-curve is pointing in the same direction
     *        as the B-Rep curve.
@@ -453,6 +462,21 @@ public:
         return mpCurveOnSurface->GlobalCoordinates(rResult, rLocalCoordinates);
     }
 
+    /*
+    * @brief This method maps from dimension space to parameter space.
+    * @param rResult array_1d<double, 3> with the coordinates in parameter space
+    * @param LocalCoordinates The local coordinates in dimension space
+    * @return array_1d<double, 3> with the coordinates in parameter space
+    * @see PointLocalCoordinates
+    */
+    CoordinatesArrayType& LocalCoordinates(
+        CoordinatesArrayType& rResult,
+        const CoordinatesArrayType& rLocalCoordinates
+    ) const
+     {
+        return mpCurveOnSurface->LocalCoordinates(rResult, rLocalCoordinates);
+    }
+
     /**
     * @brief This method maps from local space to global/working space and computes the
     *        number of derivatives at the underlying nurbs curve on surface
@@ -472,6 +496,27 @@ public:
         const SizeType DerivativeOrder) const override
     {
         return mpCurveOnSurface->GlobalSpaceDerivatives(rGlobalSpaceDerivatives, rLocalCoordinates, DerivativeOrder);
+    }
+
+    /**
+    * @brief This method maps from local space to local/parameter space and computes the
+    *        number of derivatives at the underlying nurbs curve on surface
+    *        at the parameter rLocalCoordinates[0].
+    *
+    * @param LocalCoordinates The local coordinates in curve-paramater space
+    * @param Derivative Number of computed derivatives
+    *        0 -> Location = PointLocalCoordinates
+    *        1 -> Tangent
+    *        2 -> Curvature
+    *        ...
+    * @return std::vector<array_1d<double, 3>> with the parameter space derivatives
+    */
+    void LocalSpaceDerivatives(
+        std::vector<CoordinatesArrayType>& rGlobalSpaceDerivatives,
+        const CoordinatesArrayType& rLocalCoordinates,
+        const SizeType DerivativeOrder) const
+    {
+        return mpCurveOnSurface->LocalSpaceDerivatives(rGlobalSpaceDerivatives, rLocalCoordinates, DerivativeOrder);
     }
 
     /**
@@ -532,7 +577,7 @@ public:
         IntegrationInfo& rIntegrationInfo) const override
     {
         std::vector<double> spans;
-        SpansLocalSpace(spans);
+        SpansLocalSpace(spans); 
 
         IntegrationPointUtilities::CreateIntegrationPoints1D(
             rIntegrationPoints, spans, rIntegrationInfo);
@@ -597,6 +642,11 @@ public:
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::KratosGeometryType::Kratos_Brep_Curve_On_Surface;
+    }
+
+    array_1d<double, 3> Normal(const CoordinatesArrayType& local_coord) const override
+    {
+        return mpCurveOnSurface->Normal(local_coord);
     }
 
     ///@}

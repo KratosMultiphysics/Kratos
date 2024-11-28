@@ -154,8 +154,6 @@ private:
         bool case2 = rSurrogateModelPart_inner.Nodes().size() > 0;
         BrepCurveOnSurfaceLoopArrayType outer_loops, inner_loops;
 
-        if (case1 || case2) p_surface->SetValue(IS_SBM, true);
-
         // WITHOUT CLIPPER
         auto p_brep_surface =
             Kratos::make_shared<BrepSurfaceType>(
@@ -165,10 +163,10 @@ private:
                 rSurrogateModelPart_inner,
                 rSurrogateModelPart_outer);
 
-        p_surface->SetValue(IS_SBM, true);
-        
         /// Sets the brep as geometry parent of the nurbs surface.
         p_surface->SetGeometryParent(p_brep_surface.get());
+    
+        p_surface->SetValue(IS_SBM, true);
 
         SizeType last_geometry_id = rModelPart.GetParentModelPart().Geometries().size();
         p_brep_surface->SetId(1);
@@ -198,6 +196,8 @@ private:
 
         /// Sets the brep as geometry parent of the nurbs surface.
         p_volume->SetGeometryParent(p_brep_volume.get());
+
+        p_volume->SetValue(IS_SBM, true);
 
         SizeType last_geometry_id = 0;
         p_brep_volume->SetId(1);
@@ -687,7 +687,7 @@ private:
     static void CreateBrepCurvesOnRectangle(ModelPart& r_model_part, NurbsSurfaceGeometryPointerType p_surface_geometry, const Point& A_uvw, const Point& B_uvw, int &last_geometry_id) {
         Vector knot_vector = ZeroVector(2);
         knot_vector[0] = 0.0;
-        knot_vector[1] = 2.0;
+        knot_vector[1] = std::abs(B_uvw[0] - A_uvw[0]);
         int p = 1;
 
 
@@ -695,13 +695,22 @@ private:
         segment1.push_back(Point::Pointer(new Point(A_uvw[0], A_uvw[1])));
         segment1.push_back(Point::Pointer(new Point(B_uvw[0], A_uvw[1])));
 
+        // knot_vector[0] = 0.0;
+        // knot_vector[1] = std::abs(B_uvw[1] - A_uvw[1]);
+
         NurbsCurveGeometry<2, PointerVector<Point>>::PointsArrayType segment2;
         segment2.push_back(Point::Pointer(new Point(B_uvw[0], A_uvw[1])));
         segment2.push_back(Point::Pointer(new Point(B_uvw[0], B_uvw[1])));
+
+        // knot_vector[0] = 0.0;
+        // knot_vector[1] = -std::abs(B_uvw[0] - A_uvw[0]);
         
         NurbsCurveGeometry<2, PointerVector<Point>>::PointsArrayType segment3;
         segment3.push_back(Point::Pointer(new Point(B_uvw[0], B_uvw[1])));
         segment3.push_back(Point::Pointer(new Point(A_uvw[0], B_uvw[1])));
+
+        // knot_vector[0] = 0.0;
+        // knot_vector[1] = -std::abs(B_uvw[1] - A_uvw[1]);
         
         NurbsCurveGeometry<2, PointerVector<Point>>::PointsArrayType segment4;
         segment4.push_back(Point::Pointer(new Point(A_uvw[0], B_uvw[1])));

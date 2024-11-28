@@ -231,10 +231,10 @@ public:
     }
 
     /// Standard Constructor with a geometry Id
-    Geometry(IndexType GeomertyId)
+    Geometry(IndexType GeometryId)
         : mpGeometryData(&GeometryDataInstance())
     {
-        SetId(GeomertyId);
+        SetId(GeometryId);
     }
 
     /// Standard Constructor with a Name
@@ -1975,6 +1975,21 @@ public:
     {
         KRATOS_ERROR <<
             "Calling SpansLocalSpace of geometry base class. Please check derived definitions. "
+            << *this << std::endl;
+    }
+
+    ///@}
+
+    ///@name Spans
+    ///@{
+
+    /* @brief Provides Domain interval of Nubrs/curves
+     */
+    virtual void DomainInterval(
+        Vector& interval) const
+    {
+        KRATOS_ERROR <<
+            "Calling DomainInterval of geometry base class. Please check derived definitions. "
             << *this << std::endl;
     }
 
