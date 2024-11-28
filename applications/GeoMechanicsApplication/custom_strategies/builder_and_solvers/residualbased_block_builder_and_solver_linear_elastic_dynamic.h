@@ -165,7 +165,9 @@ public:
     void Build(typename TSchemeType::Pointer pScheme, ModelPart& rModelPart, TSystemMatrixType& rA, TSystemVectorType& rb) override
     {
         Timer::Start("Build");
+
         this->BuildLHS(pScheme, rModelPart, rA);
+		this->BuildRHSElementsNoDirichlet(pScheme, rModelPart);
         this->BuildRHSNoDirichlet(pScheme, rModelPart, rb);
 
         Timer::Stop("Build");
@@ -453,6 +455,7 @@ private:
     TSystemMatrixType mDampingMatrix;
     TSystemVectorType mPreviousExternalForceVector;
     TSystemVectorType mCurrentExternalForceVector;
+	TSystemVectorType mConstantElementForceVector;
 
     TSystemVectorType mPreviousOutOfBalanceVector;
     TSystemVectorType mCurrentOutOfBalanceVector;
@@ -465,12 +468,61 @@ private:
 
     //const std::string mRestartFileName = "restart_linear_elastic_builder_and_solver";
 
+    /// <summary>
+	/// Builds the rhs only for the elements. Note that internal forces are not calculated in this function, only external forces such as gravity. This is done by setting the 
+	/// displacement within the element to zero temporarily.
+    /// </summary>
+    void BuildRHSElementsNoDirichlet(typename TSchemeType::Pointer pScheme, ModelPart& rModelPart)
+    {
+        // getting the array of the elements
+        const ElementsArrayType& r_elements = rModelPart.Elements();
+
+        mConstantElementForceVector = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
+
+        // assemble all elements, note that this cannot be done in a mulththreaded blockforeach loop 
+        const auto& r_current_process_info = rModelPart.GetProcessInfo();
+        for (auto& r_element : r_elements) {
+
+            LocalSystemVectorType           local_body_force = LocalSystemVectorType(0);
+
+			// set displacement temporarily to zero to prevent the calculation of the internal forces
+			auto& r_geometry = r_element.GetGeometry();
+			std::vector<array_1d<double, 3>> current_displacements = std::vector<array_1d<double, 3>>();
+            std::vector<array_1d<double, 3>> current_rotations = std::vector<array_1d<double, 3>>();
+			for (std::size_t i = 0; i < r_geometry.size(); ++i) {
+				current_displacements.push_back(r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT));
+				current_rotations.push_back(r_geometry[i].FastGetSolutionStepValue(ROTATION));
+				r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT) = ZeroVector(3);
+				r_geometry[i].FastGetSolutionStepValue(ROTATION) = ZeroVector(3);
+			}
+
+
+            if (r_element.IsActive()) {
+                Element::EquationIdVectorType equation_ids;
+                r_element.CalculateRightHandSide(local_body_force, r_current_process_info); 
+                r_element.EquationIdVector(equation_ids, r_current_process_info);
+
+                // assemble the elemental contribution
+                BaseType::AssembleRHS(mConstantElementForceVector, local_body_force, equation_ids);
+            }
+
+			// reset displacement and rotation to original values
+            for (std::size_t i = 0; i < r_geometry.size(); ++i) {
+                r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT) = current_displacements[i];
+				r_geometry[i].FastGetSolutionStepValue(ROTATION) = current_rotations[i];
+            }
+        };
+        
+    }
+
     void BuildRHSNoDirichlet(typename TSchemeType::Pointer pScheme, ModelPart& rModelPart, TSystemVectorType& rb)
     {
         // getting the array of the conditions
         const ConditionsArrayType& r_conditions = rModelPart.Conditions();
 
-        mCurrentExternalForceVector = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
+		// current external force is initialized as the constant element force vector
+        TSparseSpace::Copy(mConstantElementForceVector, mCurrentExternalForceVector);
+
 
         // assemble all conditions
         const auto& r_current_process_info = rModelPart.GetProcessInfo();
@@ -509,14 +561,53 @@ private:
     template <typename TElementOrConditionArrayType>
     void CalculateGlobalMatrices(const TElementOrConditionArrayType& rEntities, TSystemMatrixType& rA, ModelPart& rModelPart)
     {
+        
         const auto& r_current_process_info = rModelPart.GetProcessInfo();
+    //    block_for_each(rEntities, [&rA,&r_current_process_info, this](auto& r_entity) {
+    //        LocalSystemMatrixType lhs_contribution(0, 0);
+    //        LocalSystemMatrixType mass_contribution(0, 0);
+    //        LocalSystemMatrixType damping_contribution(0, 0);
+    //        
 
-        block_for_each(rEntities, [&r_current_process_info, &rA, this](auto& r_entity) {
+    //        if (r_entity.IsActive()) {
+    //            std::vector<std::size_t> equation_ids;
+
+    //            r_entity.CalculateLeftHandSide(lhs_contribution, r_current_process_info);
+    //            r_entity.EquationIdVector(equation_ids, r_current_process_info);
+    //            if (lhs_contribution.size1() != 0) {
+    //                BaseType::AssembleLHS(rA, lhs_contribution, equation_ids);
+    //            }
+
+    //            r_entity.CalculateMassMatrix(mass_contribution, r_current_process_info);
+    //            r_entity.CalculateDampingMatrix(damping_contribution, r_current_process_info);
+
+    //            
+
+    //            if (mass_contribution.size1() != 0) {
+    //                BaseType::AssembleLHS(mMassMatrix, mass_contribution, equation_ids);
+    //            }
+    //            if (damping_contribution.size1() != 0) {
+    //                BaseType::AssembleLHS(mDampingMatrix, damping_contribution, equation_ids);
+    //            }
+    //            ////std::cout << "size: " << r_entity.GetGeometry().size() << std::endl;
+    //            //
+    ////                std::cout << std::fixed << std::setprecision(11);
+    //            //	std::cout << "lhs contribution: " << lhs_contribution << std::endl;
+    //            //	std::cout << "id(): " << r_entity.Id() << std::endl;
+    //            //
+    ////            // Assemble the entity contribution
+    //            //BaseType::AssembleLHS(rA, lhs_contribution, equation_ids);
+    //        }
+    //        });
+
+		// for some reason the above block_for_each does not work correctly, so we use a for loop instead. 
+        // (Different results can occur when running a 3D problem with a beam and soil, when running multithreaded)
+        for (auto& r_entity : rEntities) {
             LocalSystemMatrixType lhs_contribution(0, 0);
             LocalSystemMatrixType mass_contribution(0, 0);
             LocalSystemMatrixType damping_contribution(0, 0);
 
-            
+
             if (r_entity.IsActive()) {
                 std::vector<std::size_t> equation_ids;
 
@@ -536,7 +627,7 @@ private:
                 // Assemble the entity contribution
                 BaseType::AssembleLHS(rA, lhs_contribution, equation_ids);
             }
-        });
+        };
     }
 
 
