@@ -182,7 +182,6 @@ KRATOS_TEST_CASE_IN_SUITE(TableAccessorSimplePropertiesProcessInfo, KratosCoreFa
         // Set the element properties
         auto p_elem_prop = r_model_part.CreateNewProperties(0);
         p_elem_prop->SetValue(YOUNG_MODULUS, 2.0);
-        p_elem_prop->SetValue(POISSON_RATIO, 0.3);
 
         auto p_node_1 = r_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
         auto p_node_2 = r_model_part.CreateNewNode(2, 1.0 , 0.0 , 0.0);
