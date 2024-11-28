@@ -118,6 +118,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
 
     ## Other data definitions
     f = DefineMatrix('f',nnodes,dim)            # Forcing term
+    v_sol_frac = DefineMatrix('v_sol_frac',nnodes,dim) # Solid fraction velocity
 
     ## Constitutive matrix definition
     C = DefineSymmetricMatrix('C',strain_size,strain_size)
@@ -146,6 +147,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     ## Data interpolation to the Gauss points
     f_gauss = f.transpose()*N
     v_gauss = v.transpose()*N
+    v_sol_frac_gauss = v_sol_frac.transpose()*N
 
     ## Convective velocity definition
     if convective_term:
@@ -205,7 +207,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     ## Compute galerkin functional
     # Navier-Stokes functional
     if divide_by_rho:
-        rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss - grad_w_voigt.transpose()*stress + div_w*p_gauss - sigma*w_gauss.transpose()*v_gauss - q_gauss*div_v
+        rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss - grad_w_voigt.transpose()*stress + div_w*p_gauss - sigma*w_gauss.transpose()*(v_gauss-v_sol_frac_gauss) - q_gauss*div_v
         if artificial_compressibility:
             rv_galerkin -= (1/(rho*c*c))*q_gauss*pder_gauss
             if convective_term:
@@ -224,7 +226,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     ##  Stabilization functional terms
     # Momentum conservation residual
     # Note that the viscous stress term is dropped since linear elements are used
-    vel_residual = rho*f_gauss - rho*accel_gauss - grad_p - sigma*v_gauss
+    vel_residual = rho*f_gauss - rho*accel_gauss - grad_p - sigma*(v_gauss-v_sol_frac_gauss)
     if convective_term:
         vel_residual -= rho*convective_term_gauss.transpose()
 
