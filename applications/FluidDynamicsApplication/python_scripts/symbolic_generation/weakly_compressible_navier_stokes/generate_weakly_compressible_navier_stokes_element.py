@@ -166,10 +166,10 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
         for i in range(0, dim):
             stab_norm_a += vconv_gauss[i]**2
         stab_norm_a = sympy.sqrt(stab_norm_a)
-        tau1 = 1.0/(rho*dyn_tau/dt + stab_c2*rho*stab_norm_a/h + stab_c1*mu/h**2 + stab_c3*sigma/h**2) # Stabilization parameter 1
+        tau1 = 1.0/(rho*dyn_tau/dt + stab_c2*rho*stab_norm_a/h + stab_c1*mu/h**2 + stab_c3*sigma/h)    # Stabilization parameter 1
         tau2 = mu + (stab_c2*rho*stab_norm_a*h + stab_c3*sigma)/stab_c1                                # Stabilization parameter 2
     else:
-        tau1 = 1.0/(rho*dyn_tau/dt + stab_c1*mu/h**2 + stab_c3*sigma/h**2) # Stabilization parameter 1
+        tau1 = 1.0/(rho*dyn_tau/dt + stab_c1*mu/h**2 + stab_c3*sigma/h)    # Stabilization parameter 1
         tau2 = mu + stab_c3*sigma/stab_c1                                  # Stabilization parameter 2
 
     ## Compute the rest of magnitudes at the Gauss points
