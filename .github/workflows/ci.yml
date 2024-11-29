@@ -271,7 +271,7 @@ jobs:
     - name: Installing dependencies
       shell: cmd
       run: |
-        pip install numpy
+        pip install numpy=1.26.4
         pip install sympy
         pip install scipy
         pip install h5py
@@ -483,7 +483,7 @@ jobs:
     - name: Installing dependencies
       shell: cmd
       run: |
-        pip install numpy
+        pip install numpy=1.26.4
         pip install sympy
         pip install scipy
 
