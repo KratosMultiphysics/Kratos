@@ -479,10 +479,15 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureChecksIfProcessHasCorrectMaterialData, Krat
     p_element->GetProperties().Erase(K0_VALUE_YY);
     p_element->GetProperties().Erase(K0_VALUE_ZZ);
 
-    p_element->GetProperties().SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 1);
+    p_element->GetProperties().SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 2);
     Vector umat_parameters{1};
     umat_parameters[0] = -30.0;
     p_element->GetProperties().SetValue(UMAT_PARAMETERS, umat_parameters);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        process.Check(),
+        "INDEX_OF_UMAT_PHI_PARAMETER (2) is not in range 1, size of UMAT_PARAMETERS for element 1")
+    p_element->GetProperties().SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 1);
+
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(process.Check(),
                                       "Phi (-30) should be between 0 and 90 degrees for element 1.")
 

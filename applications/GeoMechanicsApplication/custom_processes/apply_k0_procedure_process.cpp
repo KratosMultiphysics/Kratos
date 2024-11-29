@@ -108,7 +108,7 @@ void ApplyK0ProcedureProcess::CheckK0(const Properties& rProperties, IndexType E
 void ApplyK0ProcedureProcess::CheckPhi(const Properties& rProperties, IndexType ElementId)
 {
     if (rProperties.Has(INDEX_OF_UMAT_PHI_PARAMETER) && rProperties.Has(UMAT_PARAMETERS)) {
-        const auto phi_index                 = rProperties[INDEX_OF_UMAT_PHI_PARAMETER];
+        const auto phi_index = rProperties[INDEX_OF_UMAT_PHI_PARAMETER];
         const auto number_of_umat_parameters = static_cast<int>(rProperties[UMAT_PARAMETERS].size());
 
         KRATOS_ERROR_IF(phi_index < 1 || phi_index > number_of_umat_parameters)
@@ -209,7 +209,7 @@ void ApplyK0ProcedureProcess::CalculateK0Stresses(Element& rElement) const
 {
     // Get K0 material parameters of this element ( probably there is something more efficient )
     const Element::PropertiesType& rProp             = rElement.GetProperties();
-    const auto                      k0_main_direction = rProp[K0_MAIN_DIRECTION];
+    const auto                     k0_main_direction = rProp[K0_MAIN_DIRECTION];
 
     auto k0_vector = CreateK0Vector(rProp);
 
