@@ -18,7 +18,7 @@
 // External includes
 
 // Project includes
-#include "../StructuralMechanicsApplication/custom_elements/cr_beam_element_linear_3D2N.hpp"
+#include "../StructuralMechanicsApplication/custom_elements/beam_elements/cr_beam_element_linear_3D2N.hpp"
 #include "custom_elements/geo_cr_beam_element_3D2N.hpp"
 #include "includes/define.h"
 #include "includes/variables.h"
@@ -49,11 +49,11 @@ public:
     using EquationIdVectorType = BaseType::EquationIdVectorType;
     using DofsVectorType       = BaseType::DofsVectorType;
 
-    GeoCrBeamElementLinear3D2N(){};
+    GeoCrBeamElementLinear3D2N() = default;
     GeoCrBeamElementLinear3D2N(IndexType NewId, GeometryType::Pointer pGeometry);
     GeoCrBeamElementLinear3D2N(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
-    ~GeoCrBeamElementLinear3D2N() override;
+    ~GeoCrBeamElementLinear3D2N() = default;
 
     /**
      * @brief Creates a new element
@@ -71,19 +71,20 @@ public:
      * @param pProperties The pointer to property
      * @return The pointer to the created element
      */
-    Element::Pointer Create(IndexType NewId,
-                            NodesArrayType const& ThisNodes,
+    Element::Pointer Create(IndexType               NewId,
+                            NodesArrayType const&   ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                              VectorType& rRightHandSideVector,
+    void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
+                              VectorType&        rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
-                                      std::vector<array_1d<double, 3>>& rOutput,
+                                      std::vector<array_1d<double, 3>>&    rOutput,
                                       const ProcessInfo& rCurrentProcessInfo) override;
+    using CrBeamElement3D2N::CalculateOnIntegrationPoints;
 
     void ResetConstitutiveLaw() override;
 

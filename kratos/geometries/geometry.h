@@ -75,7 +75,7 @@ public:
     ///@{
 
     /// This Geometry type.
-    typedef Geometry<TPointType> GeometryType;
+    using GeometryType = Geometry<TPointType>;
 
     /// Pointer definition of Geometry
     KRATOS_CLASS_POINTER_DEFINITION( Geometry );
@@ -231,10 +231,10 @@ public:
     }
 
     /// Standard Constructor with a geometry Id
-    Geometry(IndexType GeomertyId)
+    Geometry(IndexType GeometryId)
         : mpGeometryData(&GeometryDataInstance())
     {
-        SetId(GeomertyId);
+        SetId(GeometryId);
     }
 
     /// Standard Constructor with a Name
@@ -371,16 +371,36 @@ public:
     }
 
     /// Destructor. Do nothing!!!
-    virtual ~Geometry() {}
+    virtual ~Geometry() = default;
 
+    /**
+     * @brief Gets the geometry family.
+     * @details This function returns the family type of the geometry. The geometry family categorizes the geometry into a broader classification, aiding in its identification and processing.
+     * @return GeometryData::KratosGeometryFamily The geometry family.
+     */
     virtual GeometryData::KratosGeometryFamily GetGeometryFamily() const
     {
         return GeometryData::KratosGeometryFamily::Kratos_generic_family;
     }
 
+    /**
+     * @brief Gets the geometry type.
+     * @details This function returns the specific type of the geometry. The geometry type provides a more detailed classification of the geometry.
+     * @return GeometryData::KratosGeometryType The specific geometry type.
+     */
     virtual GeometryData::KratosGeometryType GetGeometryType() const
     {
         return GeometryData::KratosGeometryType::Kratos_generic_type;
+    }
+
+    /**
+     * @brief Gets the geometry order type.
+     * @details This function returns the order type of the geometry. The order type relates to the polynomial degree of the geometry.
+     * @return GeometryData::KratosGeometryOrderType The geometry order type.
+     */
+    virtual GeometryData::KratosGeometryOrderType GetGeometryOrderType() const
+    {
+        return GeometryData::KratosGeometryOrderType::Kratos_Unknown_Order;
     }
 
     ///@}

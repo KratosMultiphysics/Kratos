@@ -26,8 +26,7 @@ namespace Kratos
 {
 
 template <class TSparseSpace, class TDenseSpace>
-class BackwardEulerQuasistaticUPwScheme
-    : public BackwardEulerScheme<TSparseSpace, TDenseSpace>
+class BackwardEulerQuasistaticUPwScheme : public BackwardEulerScheme<TSparseSpace, TDenseSpace>
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(BackwardEulerQuasistaticUPwScheme);
@@ -40,10 +39,7 @@ public:
     }
 
 protected:
-    std::string Info() const override
-    {
-        return "BackwardEulerQuasistaticUPwScheme";
-    }
+    std::string Info() const override { return "BackwardEulerQuasistaticUPwScheme"; }
 }; // Class BackwardEulerQuasistaticUPwScheme
 
 } // namespace Kratos

@@ -12,10 +12,10 @@
 
 #pragma once
 
-#include <algorithm>
 #include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
+#include <algorithm>
 
 #include "geo_mechanics_application_variables.h"
 
@@ -24,19 +24,16 @@ namespace Kratos
 
 class ApplyConstantPhreaticLinePressureProcess : public Process
 {
-
 public:
-
     KRATOS_CLASS_POINTER_DEFINITION(ApplyConstantPhreaticLinePressureProcess);
 
-    ApplyConstantPhreaticLinePressureProcess(ModelPart& model_part,
-                                             Parameters rParameters
-                                             ) : Process(Flags()) , mrModelPart(model_part)
+    ApplyConstantPhreaticLinePressureProcess(ModelPart& model_part, Parameters rParameters)
+        : Process(Flags()), mrModelPart(model_part)
     {
         KRATOS_TRY
 
-        //only include validation with c++11 since raw_literals do not exist in c++03
-        Parameters default_parameters( R"(
+        // only include validation with c++11 since raw_literals do not exist in c++03
+        Parameters default_parameters(R"(
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
@@ -49,10 +46,10 @@ public:
                 "specific_weight" : 10000.0,
                 "pressure_tension_cut_off" : 0.0,
                 "table" : [0,1]
-            }  )" );
+            }  )");
 
-        // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
-        // So that an error is thrown if they don't exist
+        // Some values need to be mandatorily prescribed since no meaningful default value exist.
+        // For this reason try accessing to them So that an error is thrown if they don't exist
         rParameters["first_reference_coordinate"];
         rParameters["second_reference_coordinate"];
         rParameters["variable_name"];
@@ -70,30 +67,31 @@ public:
         mOutOfPlaneDirection = rParameters["out_of_plane_direction"].GetInt();
         if (mGravityDirection == mOutOfPlaneDirection)
             KRATOS_ERROR << "Gravity direction cannot be the same as Out-of-Plane directions"
-                         << rParameters
-                         << std::endl;
+                         << rParameters << std::endl;
 
         mHorizontalDirection = 0;
-        for (unsigned int i=0; i<N_DIM_3D; ++i)
-           if (i!=mGravityDirection && i!=mOutOfPlaneDirection) mHorizontalDirection = i;
+        for (unsigned int i = 0; i < N_DIM_3D; ++i)
+            if (i != mGravityDirection && i != mOutOfPlaneDirection) mHorizontalDirection = i;
 
         mFirstReferenceCoordinate  = rParameters["first_reference_coordinate"].GetVector();
         mSecondReferenceCoordinate = rParameters["second_reference_coordinate"].GetVector();
 
-        mMinHorizontalCoordinate = std::min(mFirstReferenceCoordinate[mHorizontalDirection], mSecondReferenceCoordinate[mHorizontalDirection]);
-        mMaxHorizontalCoordinate = std::max(mFirstReferenceCoordinate[mHorizontalDirection], mSecondReferenceCoordinate[mHorizontalDirection]);
+        mMinHorizontalCoordinate = std::min(mFirstReferenceCoordinate[mHorizontalDirection],
+                                            mSecondReferenceCoordinate[mHorizontalDirection]);
+        mMaxHorizontalCoordinate = std::max(mFirstReferenceCoordinate[mHorizontalDirection],
+                                            mSecondReferenceCoordinate[mHorizontalDirection]);
 
-        if (mMaxHorizontalCoordinate <= mMinHorizontalCoordinate)
-        {
-            KRATOS_ERROR << "First and second point on the phreatic line have the same horizontal coordinate"
-                         << rParameters
-                         << std::endl;
+        if (mMaxHorizontalCoordinate <= mMinHorizontalCoordinate) {
+            KRATOS_ERROR
+                << "First and second point on the phreatic line have the same horizontal coordinate"
+                << rParameters << std::endl;
         }
 
-        mSlope = (mSecondReferenceCoordinate[mGravityDirection]    - mFirstReferenceCoordinate[mGravityDirection])
-               / (mSecondReferenceCoordinate[mHorizontalDirection] - mFirstReferenceCoordinate[mHorizontalDirection]);
+        mSlope =
+            (mSecondReferenceCoordinate[mGravityDirection] - mFirstReferenceCoordinate[mGravityDirection]) /
+            (mSecondReferenceCoordinate[mHorizontalDirection] - mFirstReferenceCoordinate[mHorizontalDirection]);
 
-        mSpecificWeight = rParameters["specific_weight"].GetDouble();
+        mSpecificWeight        = rParameters["specific_weight"].GetDouble();
         mPressureTensionCutOff = rParameters["pressure_tension_cut_off"].GetDouble();
 
         KRATOS_CATCH("")
@@ -114,14 +112,15 @@ public:
             const double pressure = PORE_PRESSURE_SIGN_FACTOR * CalculatePressure(rNode);
 
             if (mIsSeepage) {
-                if (pressure < PORE_PRESSURE_SIGN_FACTOR * mPressureTensionCutOff) {  // Before 0. was used i.s.o. the tension cut off value -> no effect in any test.
+                if (pressure < PORE_PRESSURE_SIGN_FACTOR * mPressureTensionCutOff) { // Before 0. was used i.s.o. the tension cut off value -> no effect in any test.
                     rNode.FastGetSolutionStepValue(var) = pressure;
                     if (mIsFixed) rNode.Fix(var);
                 } else {
                     if (mIsFixedProvided) rNode.Free(var);
                 }
             } else {
-                rNode.FastGetSolutionStepValue(var) = std::min(pressure, PORE_PRESSURE_SIGN_FACTOR * mPressureTensionCutOff);
+                rNode.FastGetSolutionStepValue(var) =
+                    std::min(pressure, PORE_PRESSURE_SIGN_FACTOR * mPressureTensionCutOff);
                 if (mIsFixed) rNode.Fix(var);
                 else if (mIsFixedProvided) rNode.Free(var);
             }
@@ -131,39 +130,36 @@ public:
     }
 
     /// Turn back information as a string.
-    std::string Info() const override
-    {
-        return "ApplyConstantPhreaticLinePressureProcess";
-    }
+    std::string Info() const override { return "ApplyConstantPhreaticLinePressureProcess"; }
 
 protected:
     /// Member Variables
-    ModelPart& mrModelPart;
-    std::string mVariableName;
-    bool mIsFixed;
-    bool mIsFixedProvided;
-    bool mIsSeepage;
+    ModelPart&   mrModelPart;
+    std::string  mVariableName;
+    bool         mIsFixed;
+    bool         mIsFixedProvided;
+    bool         mIsSeepage;
     unsigned int mGravityDirection;
-    double mSpecificWeight;
+    double       mSpecificWeight;
     unsigned int mOutOfPlaneDirection;
     unsigned int mHorizontalDirection;
-    Vector3 mFirstReferenceCoordinate;
-    Vector3 mSecondReferenceCoordinate;
-    double mSlope;
-    double mMinHorizontalCoordinate;
-    double mMaxHorizontalCoordinate;
-    double mPressureTensionCutOff;
+    Vector3      mFirstReferenceCoordinate;
+    Vector3      mSecondReferenceCoordinate;
+    double       mSlope;
+    double       mMinHorizontalCoordinate;
+    double       mMaxHorizontalCoordinate;
+    double       mPressureTensionCutOff;
 
-    double CalculatePressure(const Node &rNode) const
+    double CalculatePressure(const Node& rNode) const
     {
-        double x = rNode.Coordinates()[mHorizontalDirection];
-        x = std::max(x, mMinHorizontalCoordinate);
-        x = std::min(x, mMaxHorizontalCoordinate);
-        const double height = mSlope * (x - mFirstReferenceCoordinate[mHorizontalDirection]) + mFirstReferenceCoordinate[mGravityDirection];
+        double x            = rNode.Coordinates()[mHorizontalDirection];
+        x                   = std::max(x, mMinHorizontalCoordinate);
+        x                   = std::min(x, mMaxHorizontalCoordinate);
+        const double height = mSlope * (x - mFirstReferenceCoordinate[mHorizontalDirection]) +
+                              mFirstReferenceCoordinate[mGravityDirection];
         const double distance = height - rNode.Coordinates()[mGravityDirection];
-        return - mSpecificWeight * distance;
+        return -mSpecificWeight * distance;
     }
-
 };
 
-}
+} // namespace Kratos

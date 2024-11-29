@@ -35,12 +35,6 @@ ThermalNonlocalDamage3DLaw::~ThermalNonlocalDamage3DLaw() {}
 int ThermalNonlocalDamage3DLaw::Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) const
 {
     int ierr = NonlocalDamage3DLaw::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
-    if(ierr != 0) return ierr;
-
-    if ( THERMAL_EXPANSION.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"THERMAL_EXPANSION Key is 0. Check if all applications were correctly registered.", "" )
-    if ( TEMPERATURE.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"TEMPERATURE Key is 0. Check if all applications were correctly registered.", "" )
 
     return ierr;
 }
@@ -113,7 +107,7 @@ void ThermalNonlocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters& rV
         Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
         Vector EffectiveStressVector(VoigtSize);
 
-        this->CalculateLocalReturnMapping(ReturnMappingVariables,AuxMatrix,EffectiveStressVector,LinearElasticMatrix,rStrainVector);
+        this->CalculateLocalReturnMapping(ReturnMappingVariables,AuxMatrix,EffectiveStressVector,LinearElasticMatrix,rStrainVector,rValues);
 
         this->CalculateConstitutiveTensor(rConstitutiveMatrix, ReturnMappingVariables, LinearElasticMatrix);
       }
@@ -123,7 +117,7 @@ void ThermalNonlocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters& rV
         Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
         Vector& rStressVector = rValues.GetStressVector();
 
-        this->CalculateLocalReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector);
+        this->CalculateLocalReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector,rValues);
 
         this->CalculateConstitutiveTensor(rConstitutiveMatrix, ReturnMappingVariables, LinearElasticMatrix);
       }
@@ -133,7 +127,7 @@ void ThermalNonlocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters& rV
       // COMPUTE_STRESS
       Vector& rStressVector = rValues.GetStressVector();
 
-      this->CalculateLocalReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector);
+      this->CalculateLocalReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector,rValues);
     }
   }
   else // NON LOCAL QUANTITIES
@@ -156,7 +150,7 @@ void ThermalNonlocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters& rV
         Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
         Vector EffectiveStressVector(VoigtSize);
 
-        this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,EffectiveStressVector,LinearElasticMatrix,rStrainVector);
+        this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,EffectiveStressVector,LinearElasticMatrix,rStrainVector,rValues);
 
         this->CalculateConstitutiveTensor(rConstitutiveMatrix, ReturnMappingVariables, LinearElasticMatrix);
       }
@@ -166,7 +160,7 @@ void ThermalNonlocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters& rV
         Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
         Vector& rStressVector = rValues.GetStressVector();
 
-        this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector);
+        this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector,rValues);
 
         this->CalculateConstitutiveTensor(rConstitutiveMatrix, ReturnMappingVariables, LinearElasticMatrix);
       }
@@ -182,7 +176,7 @@ void ThermalNonlocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters& rV
         noalias(AuxMatrix) = MathUtils<double>::StrainVectorToTensor(rStrainVector);
         noalias(ReturnMappingVariables.StrainMatrix) = AuxMatrix;
 
-        this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector);
+        this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector,rValues);
       }
       else if(Options.Is(ConstitutiveLaw::THERMAL_RESPONSE_ONLY))
       {
@@ -194,7 +188,7 @@ void ThermalNonlocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters& rV
         noalias(AuxMatrix) = MathUtils<double>::StrainVectorToTensor(rStrainVector);
         noalias(ReturnMappingVariables.StrainMatrix) = AuxMatrix;
 
-        this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector);
+        this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector,rValues);
       }
       else // Compute total stress
       {
@@ -209,7 +203,7 @@ void ThermalNonlocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters& rV
         noalias(AuxMatrix) = MathUtils<double>::StrainVectorToTensor(rStrainVector);
         noalias(ReturnMappingVariables.StrainMatrix) = AuxMatrix;
 
-        this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector);
+        this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector,rValues);
       }
     }
     else if(Options.Is(ConstitutiveLaw::VOLUMETRIC_TENSOR_ONLY))
@@ -279,13 +273,13 @@ void ThermalNonlocalDamage3DLaw::FinalizeMaterialResponseCauchy (Parameters& rVa
     {
         ReturnMappingVariables.Options.Set(FlowRule::RETURN_MAPPING_COMPUTED,false); // Restore sate variable = false
 
-        this->UpdateInternalStateVariables(ReturnMappingVariables,EffectiveStressVector,LinearElasticMatrix,rStrainVector);
+        this->UpdateInternalStateVariables(ReturnMappingVariables,EffectiveStressVector,LinearElasticMatrix,rStrainVector,rValues);
     }
     else // No convergence is achieved. Restore state variable to equilibrium
     {
         ReturnMappingVariables.Options.Set(FlowRule::RETURN_MAPPING_COMPUTED,true); // Restore sate variable = true
 
-        this->UpdateInternalStateVariables(ReturnMappingVariables,EffectiveStressVector,LinearElasticMatrix,rStrainVector);
+        this->UpdateInternalStateVariables(ReturnMappingVariables,EffectiveStressVector,LinearElasticMatrix,rStrainVector,rValues);
     }
 
     if(rValues.GetOptions().Is(ConstitutiveLaw::COMPUTE_STRESS))

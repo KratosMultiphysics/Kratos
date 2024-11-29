@@ -1,16 +1,16 @@
 <p align=center><img height="72.125%" width="72.125%" src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Home/kratos.png"></p>
 
-[![License][license-image]][license] [![C++][c++-image]][c++standard] [![Github CI][Nightly-Build]][Nightly-link] [![DOI][DOI-image]][DOI] [![GitHub stars][stars-image]][stars] [![Twitter][twitter-image]][twitter]
+[![License][license-image]][license] [![C++][c++-image]][c++standard] [![Github CI][Nightly-Build]][Nightly-link] [![DOI][DOI-image]][DOI] [![GitHub stars][stars-image]][stars] [![Twitter][twitter-image]][twitter] [![Youtube][youtube-image]][youtube]
 
 [![Release][release-image]][releases]
 <a href="https://github.com/KratosMultiphysics/Kratos/releases/latest"><img src="https://img.shields.io/github/release-date/KratosMultiphysics/Kratos?label="></a>
-<a href="https://github.com/KratosMultiphysics/Kratos/compare/Release-8.1...master"><img src="https://img.shields.io/github/commits-since/KratosMultiphysics/Kratos/latest?label=commits%20since"></a>
+<a href="https://github.com/KratosMultiphysics/Kratos/compare/Release-10.1...master"><img src="https://img.shields.io/github/commits-since/KratosMultiphysics/Kratos/latest?label=commits%20since"></a>
 <a href="https://github.com/KratosMultiphysics/Kratos/commit/master"><img src="https://img.shields.io/github/last-commit/KratosMultiphysics/Kratos?label=latest%20commit"></a>
 
 [![PyPI pyversions](https://img.shields.io/pypi/pyversions/KratosMultiphysics.svg)](https://pypi.org/project/KratosMultiphysics/)
 [![Downloads](https://pepy.tech/badge/KratosMultiphysics/month)](https://pepy.tech/project/KratosMultiphysics)
 
-[release-image]: https://img.shields.io/badge/release-9.3-green.svg?style=flat
+[release-image]: https://img.shields.io/badge/release-10.1-green.svg?style=flat
 [releases]: https://github.com/KratosMultiphysics/Kratos/releases
 
 [license-image]: https://img.shields.io/badge/license-BSD-green.svg?style=flat
@@ -30,6 +30,9 @@
 
 [twitter-image]: https://img.shields.io/twitter/follow/kratosmultiphys.svg?label=Follow&style=social
 [twitter]: https://twitter.com/kratosmultiphys
+
+[youtube-image]: https://badges.aleen42.com/src/youtube.svg
+[youtube]:https://www.youtube.com/@kratosmultiphysics3578
 
 _KRATOS Multiphysics_ ("Kratos") is a framework for building parallel, multi-disciplinary simulation software, aiming at modularity, extensibility, and high performance. Kratos is written in C++, and counts with an extensive Python interface. More in [Overview](https://github.com/KratosMultiphysics/Kratos/wiki/Overview)
 
@@ -154,6 +157,6 @@ Some users of the technologies developed in Kratos are:
 
 # How to cite Kratos?
 Please, use the following references when citing Kratos in your work.
-- Dadvand, P., Rossi, R. & Oñate, E. An Object-oriented Environment for Developing Finite Element Codes for Multi-disciplinary Applications. Arch Computat Methods Eng 17, 253–297 (2010). https://doi.org/10.1007/s11831-010-9045-2
-- Dadvand, P., Rossi, R., Gil, M., Martorell, X., Cotela, J., Juanpere, E., Idelsohn, S., Oñate, E. (2013). Migration of a generic multi-physics framework to HPC environments. Computers & Fluids. 80. 301–309. 10.1016/j.compfluid.2012.02.004.
-- Vicente Mataix Ferrándiz, Philipp Bucher, Rubén Zorrilla, Riccardo Rossi, Jordi Cotela, Alejandro Cornejo Velázquez, Miguel Angel Celigueta, Josep Maria, Tobias Teschemacher, Carlos Roig, Miguel Maso, Guillermo Casas, Suneth Warnakulasuriya, Marc Núñez, Pooyan Dadvand, Salva Latorre, Ignasi de Pouplana, Joaquín Irazábal González, Ferran Arrufat, … Javi Gárate. (2022). KratosMultiphysics/Kratos: Release 9.2 (v9.2). Zenodo. https://doi.org/10.5281/zenodo.3234644
+- [Dadvand, P., Rossi, R. & Oñate, E. An Object-oriented Environment for Developing Finite Element Codes for Multi-disciplinary Applications. Arch Computat Methods Eng 17, 253–297 (2010). https://doi.org/10.1007/s11831-010-9045-2](https://doi.org/10.1007/s11831-010-9045-2)
+- [Dadvand, P., Rossi, R., Gil, M., Martorell, X., Cotela, J., Juanpere, E., Idelsohn, S., Oñate, E. (2013). Migration of a generic multi-physics framework to HPC environments. Computers & Fluids. 80. 301–309. 10.1016/j.compfluid.2012.02.004.](10.1016/j.compfluid.2012.02.004)
+- [Vicente Mataix Ferrándiz, Philipp Bucher, Rubén Zorrilla, Suneth Warnakulasuriya, Riccardo Rossi, Alejandro Cornejo, jcotela, Carlos Roig, Josep Maria, tteschemacher, Miguel Masó, Guillermo Casas, Marc Núñez, Pooyan Dadvand, Salva Latorre, Ignasi de Pouplana, Joaquín Irazábal González, AFranci, Ferran Arrufat, riccardotosi, Aditya Ghantasala, Klaus Bernd Sautter, Peter Wilson, dbaumgaertner, Bodhinanda Chandra, Armin Geiser, Inigo Lopez, lluís, jgonzalezusua, Javi Gárate. (2024). KratosMultiphysics/Kratos: Release 10.1 (v10.1). Zenodo. https://doi.org/10.5281/zenodo.3234644](https://zenodo.org/records/6926179)

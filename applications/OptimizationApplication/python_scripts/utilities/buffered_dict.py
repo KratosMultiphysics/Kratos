@@ -183,7 +183,7 @@ class BufferedDict:
             current_key = key[:pos]
             if not current_key in self.__sub_items.keys():
                 # no existing key found then create it.
-                self.__AddSubItem(current_key, BufferedDict(self.GetBufferSize()))
+                self.__AddSubItem(current_key, BufferedDict(self.GetBufferSize(), self.__clear_buffer_when_advancing))
 
             self.__sub_items[current_key].SetValue(key[pos+1:], value, step_index, overwrite)
 

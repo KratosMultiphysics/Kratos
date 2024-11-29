@@ -136,12 +136,12 @@ static void WriteFromExpression(
 IntegrationPointExpressionIO::Input::Input(
     ModelPart& rModelPart,
     const VariableType& rVariable,
-    const ContainerType& rContainerType,
-    const MeshType& rMeshType)
+    Globals::DataLocation rCurrentLocation,
+    MeshType CurrentMeshType)
     : mpModelPart(&rModelPart),
       mpVariable(rVariable),
-      mContainerType(rContainerType),
-      mMeshType(rMeshType)
+      mDataLocation(rCurrentLocation),
+      mMeshType(CurrentMeshType)
 {
 }
 
@@ -150,13 +150,13 @@ Expression::Pointer IntegrationPointExpressionIO::Input::Execute() const
     auto& r_mesh = ExpressionIOUtils::GetMesh(mpModelPart->GetCommunicator(), mMeshType);
     const auto& r_data_communicator = mpModelPart->GetCommunicator().GetDataCommunicator();
 
-    switch (mContainerType) {
-        case ContainerType::ConditionNonHistorical:
+    switch (mDataLocation) {
+        case Globals::DataLocation::Condition:
             return IntegrationPointExpressionIOUtils::ReadToExpression<ModelPart::ConditionsContainerType, const VariableType>(r_mesh.Conditions(), mpVariable, r_data_communicator, mpModelPart->GetProcessInfo());
-        case ContainerType::ElementNonHistorical:
+        case Globals::DataLocation::Element:
             return IntegrationPointExpressionIOUtils::ReadToExpression<ModelPart::ElementsContainerType, const VariableType>(r_mesh.Elements(), mpVariable, r_data_communicator, mpModelPart->GetProcessInfo());
         default:
-            KRATOS_ERROR << "Invalid container type";
+            KRATOS_ERROR << "Invalid container type. Only supports Condition and Element.";
     }
 
     return nullptr;
@@ -165,12 +165,12 @@ Expression::Pointer IntegrationPointExpressionIO::Input::Execute() const
 IntegrationPointExpressionIO::Output::Output(
     ModelPart& rModelPart,
     const VariableType& rVariable,
-    const ContainerType& rContainerType,
-    MeshType  rMeshType)
+    Globals::DataLocation CurrentLocation,
+    MeshType  CurrentMeshType)
     : mpModelPart(&rModelPart),
       mpVariable(rVariable),
-      mContainerType(rContainerType),
-      mMeshType(rMeshType)
+      mDataLocation(CurrentLocation),
+      mMeshType(CurrentMeshType)
 {
 }
 
@@ -180,15 +180,15 @@ void IntegrationPointExpressionIO::Output::Execute(const Expression& rExpression
     auto& r_communicator = mpModelPart->GetCommunicator();
     auto& r_mesh = ExpressionIOUtils::GetMesh(r_communicator, mMeshType);
 
-    switch (mContainerType) {
-        case ContainerType::ConditionNonHistorical:
+    switch (mDataLocation) {
+        case Globals::DataLocation::Condition:
             IntegrationPointExpressionIOUtils::WriteFromExpression<ModelPart::ConditionsContainerType, const VariableType>(r_mesh.Conditions(), r_communicator, rExpression, mpModelPart->GetProcessInfo(), mpVariable);
             break;
-        case ContainerType::ElementNonHistorical:
+        case Globals::DataLocation::Element:
             IntegrationPointExpressionIOUtils::WriteFromExpression<ModelPart::ElementsContainerType, const VariableType>(r_mesh.Elements(), r_communicator, rExpression, mpModelPart->GetProcessInfo(), mpVariable);
             break;
         default:
-            KRATOS_ERROR << "Invalid container type";
+            KRATOS_ERROR << "Invalid container type. Only supports Condition and Element";
     }
     KRATOS_CATCH("");
 }
@@ -201,8 +201,8 @@ void IntegrationPointExpressionIO::Read(
     auto p_expression =
         Input(rContainerExpression.GetModelPart(), rVariable,
                                 std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>
-                                    ? ContainerType::ConditionNonHistorical
-                                    : ContainerType::ElementNonHistorical,
+                                    ? Globals::DataLocation::Condition
+                                    : Globals::DataLocation::Element,
                                 TMeshType)
             .Execute();
 
@@ -216,8 +216,8 @@ void IntegrationPointExpressionIO::Write(
 {
     Output(*rContainerExpression.pGetModelPart(), rVariable,
                              std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>
-                                 ? ContainerType::ConditionNonHistorical
-                                 : ContainerType::ElementNonHistorical,
+                                 ? Globals::DataLocation::Condition
+                                 : Globals::DataLocation::Element,
                              TMeshType)
         .Execute(rContainerExpression.GetExpression());
 }

@@ -13,28 +13,29 @@
 // Application includes
 #include "custom_elements/steady_state_Pw_piping_element.hpp"
 #include "custom_utilities/element_utilities.hpp"
+#include "custom_utilities/transport_equation_utilities.hpp"
 #include "utilities/math_utils.h"
+
 #include <cmath>
 
 namespace Kratos
 {
-
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer SteadyStatePwPipingElement<TDim, TNumNodes>::Create(IndexType NewId,
                                                                      NodesArrayType const& ThisNodes,
                                                                      PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(
-        new SteadyStatePwPipingElement(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+    return Element::Pointer(new SteadyStatePwPipingElement(
+        NewId, this->GetGeometry().Create(ThisNodes), pProperties, this->GetStressStatePolicy().Clone()));
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer SteadyStatePwPipingElement<TDim, TNumNodes>::Create(IndexType NewId,
+Element::Pointer SteadyStatePwPipingElement<TDim, TNumNodes>::Create(IndexType             NewId,
                                                                      GeometryType::Pointer pGeom,
                                                                      PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new SteadyStatePwPipingElement(NewId, pGeom, pProperties));
+    return Element::Pointer(new SteadyStatePwPipingElement(NewId, pGeom, pProperties,
+                                                           this->GetStressStatePolicy().Clone()));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -75,9 +76,15 @@ int SteadyStatePwPipingElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurre
         KRATOS_ERROR << "PIPE_MODEL_FACTOR has Key zero, is not defined or has "
                         "an invalid value at element "
                      << this->Id() << std::endl;
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 
     return ierr;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+std::string SteadyStatePwPipingElement<TDim, TNumNodes>::Info() const
+{
+    return "SteadyStatePwPipingElement";
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -102,7 +109,7 @@ void SteadyStatePwPipingElement<TDim, TNumNodes>::Initialize(const ProcessInfo& 
         this->SetValue(PIPE_ACTIVE, false);
     }
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 template <>
@@ -130,7 +137,6 @@ void SteadyStatePwPipingElement<3, 8>::CalculateLength(const GeometryType& Geom)
                  << std::endl;
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     const Variable<bool>& rVariable, std::vector<bool>& rValues, const ProcessInfo& rCurrentProcessInfo)
@@ -173,18 +179,17 @@ void SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHandSideMatrix,
                                                                VectorType& rRightHandSideVector,
                                                                const ProcessInfo& CurrentProcessInfo,
-                                                               const bool CalculateStiffnessMatrixFlag,
-                                                               const bool CalculateResidualVectorFlag)
+                                                               bool CalculateStiffnessMatrixFlag,
+                                                               bool CalculateResidualVectorFlag)
 {
     KRATOS_TRY
     // Previous definitions
-    const PropertiesType& Prop = this->GetProperties();
-    const GeometryType& Geom   = this->GetGeometry();
+    const PropertiesType&                           Prop = this->GetProperties();
+    const GeometryType&                             Geom = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
         Geom.IntegrationPoints(mThisIntegrationMethod);
     const unsigned int NumGPoints = IntegrationPoints.size();
@@ -208,10 +213,12 @@ void SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeft
 
     // Auxiliary variables
     array_1d<double, TDim> RelDispVector;
-    SFGradAuxVariables SFGradAuxVars;
+    SFGradAuxVariables     SFGradAuxVars;
 
-    // create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), CurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
+
+    const auto integration_coefficients =
+        this->CalculateIntegrationCoefficients(IntegrationPoints, detJContainer);
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
@@ -229,11 +236,9 @@ void SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeft
         InterfaceElementUtilities::FillPermeabilityMatrix(
             Variables.LocalPermeabilityMatrix, Variables.JointWidth, Prop[TRANSVERSAL_PERMEABILITY]);
 
-        CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
+        this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
-        // Compute weighting coefficient for integration
-        Variables.IntegrationCoefficient =
-            this->CalculateIntegrationCoefficient(IntegrationPoints, GPoint, detJContainer[GPoint]);
+        Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
         // Contributions to the left hand side
         if (CalculateStiffnessMatrixFlag) this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
@@ -248,8 +253,8 @@ void SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeft
 
 template <>
 double SteadyStatePwPipingElement<2, 4>::CalculateHeadGradient(const PropertiesType& Prop,
-                                                               const GeometryType& Geom,
-                                                               double dx)
+                                                               const GeometryType&   Geom,
+                                                               double                dx)
 {
     const auto nodalHead = GeoElementUtilities::CalculateNodalHydraulicHeadFromWaterPressures(Geom, Prop);
     return std::abs((nodalHead[3] + nodalHead[0]) / 2 - (nodalHead[2] + nodalHead[1]) / 2) / dx;
@@ -257,8 +262,8 @@ double SteadyStatePwPipingElement<2, 4>::CalculateHeadGradient(const PropertiesT
 
 template <>
 double SteadyStatePwPipingElement<3, 6>::CalculateHeadGradient(const PropertiesType& Prop,
-                                                               const GeometryType& Geom,
-                                                               double dx)
+                                                               const GeometryType&   Geom,
+                                                               double                dx)
 {
     KRATOS_ERROR << " head gradient calculation of "
                     "SteadyStatePwPipingElement3D6N element is not implemented"
@@ -267,29 +272,12 @@ double SteadyStatePwPipingElement<3, 6>::CalculateHeadGradient(const PropertiesT
 
 template <>
 double SteadyStatePwPipingElement<3, 8>::CalculateHeadGradient(const PropertiesType& Prop,
-                                                               const GeometryType& Geom,
-                                                               double dx)
+                                                               const GeometryType&   Geom,
+                                                               double                dx)
 {
     KRATOS_ERROR << " head gradient calculation of "
                     "SteadyStatePwPipingElement3D8N element is not implemented"
                  << std::endl;
-}
-
-/// <summary>
-///  Calculate the particle diameter for the particles in the pipe. The particle diameter equals d70,
-/// when the unmodified sellmeijer piping rule is used.
-/// </summary>
-/// <param name="Prop"></param>
-/// <param name="Geom"></param>
-/// <returns></returns>
-template <unsigned int TDim, unsigned int TNumNodes>
-double SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateParticleDiameter(const PropertiesType& Prop)
-{
-    double diameter;
-
-    if (Prop[PIPE_MODIFIED_D]) diameter = 2.08e-4 * pow((Prop[PIPE_D_70] / 2.08e-4), 0.4);
-    else diameter = Prop[PIPE_D_70];
-    return diameter;
 }
 
 /// <summary>
@@ -313,7 +301,7 @@ double SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateEquilibriumPipeHeig
     double dhdx = CalculateHeadGradient(Prop, Geom, pipe_length);
 
     // calculate particle diameter
-    double particle_d = CalculateParticleDiameter(Prop);
+    double particle_d = GeoTransportEquationUtilities::CalculateParticleDiameter(Prop);
 
     // todo calculate slope of pipe, currently pipe is assumed to be horizontal
     const double pipeSlope = 0;
@@ -343,5 +331,4 @@ bool SteadyStatePwPipingElement<TDim, TNumNodes>::InEquilibrium(const Properties
 template class SteadyStatePwPipingElement<2, 4>;
 template class SteadyStatePwPipingElement<3, 6>;
 template class SteadyStatePwPipingElement<3, 8>;
-
 } // Namespace Kratos
