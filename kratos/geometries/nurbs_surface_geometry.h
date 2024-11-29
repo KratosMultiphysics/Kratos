@@ -31,8 +31,6 @@
 
 #include "integration/integration_point_utilities.h"
 
-#include "../applications/IgaApplication/iga_application_variables.h"
-
 namespace Kratos {
 
 template <int TWorkingSpaceDimension, class TContainerPointType>
@@ -871,21 +869,11 @@ public:
     ///@name Geometry Family
     ///@{
 
-    /**
-     * @brief Gets the geometry family.
-     * @details This function returns the family type of the geometry. The geometry family categorizes the geometry into a broader classification, aiding in its identification and processing.
-     * @return GeometryData::KratosGeometryFamily The geometry family.
-     */
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::KratosGeometryFamily::Kratos_Nurbs;
     }
 
-    /**
-     * @brief Gets the geometry type.
-     * @details This function returns the specific type of the geometry. The geometry type provides a more detailed classification of the geometry.
-     * @return GeometryData::KratosGeometryType The specific geometry type.
-     */
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::KratosGeometryType::Kratos_Nurbs_Surface;
