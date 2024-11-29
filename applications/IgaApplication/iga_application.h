@@ -52,10 +52,6 @@
 #include "custom_conditions/load_solid_2D_condition.h"
 #include "custom_conditions/sbm_load_solid_2D_condition.h"
 #include "custom_conditions/support_contact_2D_condition.h"
-#include "custom_conditions/support_plain_stress_condition.h"
-#include "custom_conditions/sbm_plain_stress_condition.h"
-#include "custom_conditions/load_plain_stress_condition.h"
-#include "custom_conditions/sbm_load_plain_stress_condition.h"
 #include "custom_conditions/support_fluid_dirichlet_condition_theta.h"
 #include "custom_conditions/support_fluid_dirichlet_condition.h"
 #include "custom_conditions/support_pressure_dirichlet_condition.h"
@@ -174,10 +170,6 @@ private:
     const SBMSolid2DCondition mSBMSolid2DCondition;
     const SBMLoadSolid2DCondition mSBMLoadSolid2DCondition;
     const SupportContact2DCondition mSupportContact2DCondition;
-    const SupportPlainStressCondition mSupportPlainStressCondition;
-    const LoadPlainStressCondition mLoadPlainStressCondition;
-    const SBMPlainStressCondition mSBMPlainStressCondition;
-    const SBMLoadPlainStressCondition mSBMLoadPlainStressCondition;
     const SupportFluidDirichletConditionTheta mSupportFluidDirichletConditionTheta;
     const SupportFluidDirichletCondition mSupportFluidDirichletCondition;
     const SupportPressureDirichletCondition mSupportPressureDirichletCondition;

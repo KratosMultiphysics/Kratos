@@ -78,10 +78,8 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSBMLoadSolid2DCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
-<<<<<<< HEAD
     , mSupportContact2DCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1)))) 
-=======
     , mSupportFluidDirichletConditionTheta(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSupportFluidDirichletCondition(0, Condition::GeometryType::Pointer(
@@ -90,7 +88,6 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSBMFluidCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
->>>>>>> 3D_sbm
 {
 }
 
@@ -139,10 +136,6 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_CONDITION("SBMSolid2DCondition", mSBMSolid2DCondition)
     KRATOS_REGISTER_CONDITION("SBMLoadSolid2DCondition", mSBMLoadSolid2DCondition)
     KRATOS_REGISTER_CONDITION("SupportContact2DCondition", mSupportContact2DCondition)
-    KRATOS_REGISTER_CONDITION("SupportPlainStressCondition", mSupportPlainStressCondition)
-    KRATOS_REGISTER_CONDITION("LoadPlainStressCondition", mLoadPlainStressCondition)
-    KRATOS_REGISTER_CONDITION("SBMPlainStressCondition", mSBMPlainStressCondition)
-    KRATOS_REGISTER_CONDITION("SBMLoadPlainStressCondition", mSBMLoadPlainStressCondition)
     KRATOS_REGISTER_CONDITION("SupportFluidDirichletConditionTheta", mSupportFluidDirichletConditionTheta)
     KRATOS_REGISTER_CONDITION("SupportFluidDirichletCondition", mSupportFluidDirichletCondition)
     KRATOS_REGISTER_CONDITION("SupportPressureDirichletCondition", mSupportPressureDirichletCondition)
@@ -221,7 +214,6 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     // SBM Variables 
     KRATOS_REGISTER_VARIABLE(INTEGRATION_POINTS)
     KRATOS_REGISTER_VARIABLE(INTEGRATION_WEIGHTS)
-<<<<<<< HEAD
 
     // CONTACT Variables 
     KRATOS_REGISTER_VARIABLE(NORMAL_GAP )
@@ -240,9 +232,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
 
     //BC variables
     KRATOS_REGISTER_VARIABLE(MODULE)
-=======
     KRATOS_REGISTER_VARIABLE(BOUNDARY_CONDITION_TYPE)
->>>>>>> 3D_sbm
 }
 
 }  // namespace Kratos

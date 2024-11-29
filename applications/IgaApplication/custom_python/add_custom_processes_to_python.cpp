@@ -53,6 +53,10 @@ void AddCustomProcessesToPython(
     py::class_<AssignIntegrationPointsToBackgroundElementsProcess, AssignIntegrationPointsToBackgroundElementsProcess::Pointer, Process>(m, "AssignIntegrationPointsToBackgroundElementsProcess")
         .def(py::init<Model&, Parameters >())
         ;
+    
+    py::class_<AssignIgaExternalConditionsProcess, AssignIgaExternalConditionsProcess::Pointer, Process>(m, "AssignIgaExternalConditionsProcess")
+        .def(py::init<Model&, Parameters >())
+        ;
 
     py::class_<IgaContactProcess, IgaContactProcess::Pointer, Process>(m, "IgaContactProcess")
         .def(py::init<Model&, Parameters >())
