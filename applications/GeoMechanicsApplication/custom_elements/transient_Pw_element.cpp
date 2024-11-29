@@ -14,11 +14,11 @@
 #include "custom_elements/transient_Pw_element.hpp"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
+#include "includes/cfd_variables.h"
 
 namespace Kratos
 {
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer TransientPwElement<TDim, TNumNodes>::Create(IndexType             NewId,
                                                              NodesArrayType const& ThisNodes,
@@ -28,7 +28,6 @@ Element::Pointer TransientPwElement<TDim, TNumNodes>::Create(IndexType          
                                                    pProperties, this->GetStressStatePolicy().Clone()));
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer TransientPwElement<TDim, TNumNodes>::Create(IndexType             NewId,
                                                              GeometryType::Pointer pGeom,
@@ -38,21 +37,6 @@ Element::Pointer TransientPwElement<TDim, TNumNodes>::Create(IndexType          
         new TransientPwElement(NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone()));
 }
 
-//----------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
-void TransientPwElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const
-{
-    rElementalDofList = GetDofs();
-}
-
-//----------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
-void TransientPwElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
-{
-    rResult = Geo::DofUtilities::ExtractEquationIdsFrom(GetDofs());
-}
-
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMassMatrix,
                                                               const ProcessInfo& rCurrentProcessInfo)
@@ -68,7 +52,6 @@ void TransientPwElement<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMassM
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::CalculateDampingMatrix(MatrixType& rDampingMatrix,
                                                                  const ProcessInfo& rCurrentProcessInfo)
@@ -84,7 +67,6 @@ void TransientPwElement<TDim, TNumNodes>::CalculateDampingMatrix(MatrixType& rDa
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::GetValuesVector(Vector& rValues, int Step) const
 {
@@ -102,7 +84,6 @@ void TransientPwElement<TDim, TNumNodes>::GetValuesVector(Vector& rValues, int S
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::GetFirstDerivativesVector(Vector& rValues, int Step) const
 {
@@ -120,7 +101,6 @@ void TransientPwElement<TDim, TNumNodes>::GetFirstDerivativesVector(Vector& rVal
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::GetSecondDerivativesVector(Vector& rValues, int Step) const
 {
@@ -138,7 +118,6 @@ void TransientPwElement<TDim, TNumNodes>::GetSecondDerivativesVector(Vector& rVa
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
@@ -167,7 +146,6 @@ void TransientPwElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrent
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 int TransientPwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -276,10 +254,9 @@ int TransientPwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProces
 
     return 0;
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
@@ -305,14 +282,11 @@ void TransientPwElement<TDim, TNumNodes>::InitializeSolutionStep(const ProcessIn
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::InitializeNonLinearIteration(const ProcessInfo&)
 {
     // nothing
 }
-
-//----------------------------------------------------------------------------------------------------
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::FinalizeNonLinearIteration(const ProcessInfo&)
@@ -320,7 +294,6 @@ void TransientPwElement<TDim, TNumNodes>::FinalizeNonLinearIteration(const Proce
     // nothing
 }
 
-//----------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
@@ -343,7 +316,6 @@ void TransientPwElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessInfo
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
                                                                        std::vector<double>& rOutput,
@@ -365,7 +337,6 @@ void TransientPwElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Var
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
                                                                        std::vector<array_1d<double, 3>>& rOutput,
@@ -396,7 +367,6 @@ void TransientPwElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Var
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
                                                                        std::vector<Matrix>& rOutput,
@@ -419,7 +389,6 @@ void TransientPwElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Var
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftHandSideMatrix,
                                                        VectorType&        rRightHandSideVector,
@@ -484,7 +453,6 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftH
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::InitializeElementVariables(ElementVariables& rVariables,
                                                                      const ProcessInfo& rCurrentProcessInfo)
@@ -528,7 +496,6 @@ void TransientPwElement<TDim, TNumNodes>::InitializeElementVariables(ElementVari
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType&       rLeftHandSideMatrix,
                                                              ElementVariables& rVariables)
@@ -545,83 +512,67 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType&       r
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix,
-                                                                               ElementVariables& rVariables)
+                                                                               const ElementVariables& rVariables)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
-    rVariables.PPMatrix = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
+    const auto compressibility_matrix = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
         rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
 
-    // Distribute compressibility block matrix into the elemental matrix
-    rLeftHandSideMatrix += (rVariables.PPMatrix * rVariables.DtPressureCoefficient);
+    rLeftHandSideMatrix += compressibility_matrix * rVariables.DtPressureCoefficient;
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType&       rRightHandSideVector,
                                                              ElementVariables& rVariables,
                                                              unsigned int      GPoint)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     this->CalculateAndAddCompressibilityFlow(rRightHandSideVector, rVariables);
     this->CalculateAndAddPermeabilityFlow(rRightHandSideVector, rVariables);
     this->CalculateAndAddFluidBodyFlow(rRightHandSideVector, rVariables);
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector,
-                                                                          ElementVariables& rVariables)
+                                                                          const ElementVariables& rVariables)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
-    this->CalculatePermeabilityFlow(rVariables.PPMatrix, rVariables.PVector, rVariables);
+    rRightHandSideVector += this->CalculatePermeabilityFlow(rVariables);
 
-    // Distribute permeability block vector into elemental vector
-    rRightHandSideVector += rVariables.PVector;
-
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector,
-                                                                       ElementVariables& rVariables)
+                                                                       const ElementVariables& rVariables)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
-    this->CalculateFluidBodyFlow(rVariables.PDimMatrix, rVariables.PVector, rVariables);
+    rRightHandSideVector += this->CalculateFluidBodyFlow(rVariables);
 
-    // Distribute fluid body flow block vector into elemental vector
-    rRightHandSideVector += rVariables.PVector;
-
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::CalculateAndAddCompressibilityFlow(VectorType& rRightHandSideVector,
-                                                                             ElementVariables& rVariables)
+                                                                             const ElementVariables& rVariables)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
-    this->CalculateCompressibilityFlow(rVariables.PPMatrix, rVariables.PVector, rVariables);
+    rRightHandSideVector += this->CalculateCompressibilityFlow(rVariables);
 
-    // Distribute compressibility block vector into elemental vector
-    rRightHandSideVector += rVariables.PVector;
-
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::CalculateKinematics(ElementVariables& rVariables, unsigned int PointNumber)
 
@@ -637,9 +588,8 @@ void TransientPwElement<TDim, TNumNodes>::CalculateKinematics(ElementVariables& 
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-unsigned int TransientPwElement<TDim, TNumNodes>::GetNumberOfDOF() const
+std::size_t TransientPwElement<TDim, TNumNodes>::GetNumberOfDOF() const
 {
     return TNumNodes;
 }
@@ -649,8 +599,6 @@ Element::DofsVectorType TransientPwElement<TDim, TNumNodes>::GetDofs() const
 {
     return Geo::DofUtilities::ExtractDofsFromNodes(this->GetGeometry(), WATER_PRESSURE);
 }
-
-//----------------------------------------------------------------------------------------------------
 
 template class TransientPwElement<2, 3>;
 template class TransientPwElement<2, 4>;

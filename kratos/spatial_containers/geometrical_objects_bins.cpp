@@ -71,30 +71,46 @@ void GeometricalObjectsBins::SearchInRadius(
     std::vector<ResultType>& rResults
     )
 {
-    std::unordered_map<GeometricalObject*, double> results;
+    // Initialize the candidates
+    std::unordered_set<GeometricalObject*> candidates;
 
+    // Initialize the position bounds
     array_1d<std::size_t, Dimension> min_position;
     array_1d<std::size_t, Dimension> max_position;
 
+    // Calculate the position bounds
     for(unsigned int i = 0; i < Dimension; i++ ) {
         min_position[i] = CalculatePosition(rPoint[i] - Radius, i);
         max_position[i] = CalculatePosition(rPoint[i] + Radius, i) + 1;
     }
-    for(std::size_t k = min_position[2] ; k < max_position[2] ; k++){
-        for(std::size_t j = min_position[1] ; j < max_position[1] ; j++){
-            for(std::size_t i = min_position[0] ; i < max_position[0] ; i++){
-                auto& r_cell = GetCell(i,j,k);
-                SearchInRadiusInCell(r_cell, rPoint, Radius, results);
+
+    // Loop over the cells and gather candidates
+    for(std::size_t k = min_position[2]; k < max_position[2]; k++) {
+        for(std::size_t j = min_position[1]; j < max_position[1]; j++) {
+            for(std::size_t i = min_position[0]; i < max_position[0]; i++) {
+                auto& r_cell = GetCell(i, j, k);
+                for(auto p_geometrical_object : r_cell) {
+                    candidates.insert(p_geometrical_object);
+                }
             }
         }
     }
 
+    // Loop over the candidates and filter by distance and fill the results
     rResults.clear();
-    rResults.reserve(results.size());
-    for(auto& object : results){
-        rResults.push_back(ResultType(object.first));
-        rResults.back().SetDistance(object.second);
+    rResults.reserve(candidates.size());
+    for(auto& p_geometrical_object : candidates) {
+        auto& r_geometry = p_geometrical_object->GetGeometry();
+        const double distance = r_geometry.CalculateDistance(rPoint, mTolerance);
+        if((Radius + mTolerance) > distance) {
+            rResults.push_back(ResultType(p_geometrical_object));
+            rResults.back().SetDistance(distance);
+        }
     }
+
+    // NOTE: We avoid shrink_to_fit for performance potential issues
+    // // Shrink the results
+    // rResults.shrink_to_fit();
 }
 
 /***********************************************************************************/
@@ -199,7 +215,7 @@ bool GeometricalObjectsBins::PointIsInsideBoundingBoxWithTolerance(
     // Get the bounding box points
     auto max_point = mBoundingBox.GetMaxPoint();
     auto min_point = mBoundingBox.GetMinPoint();
-    
+
     // Apply Tolerances (only in non zero BB cases)
     const double epsilon = std::numeric_limits<double>::epsilon();
     if (norm_2(max_point) > epsilon && norm_2(min_point) > epsilon) {
@@ -269,26 +285,6 @@ std::size_t GeometricalObjectsBins::CalculatePosition(
                             ? mNumberOfCells[ ThisDimension ] - 1
                             : position;
     return result;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void GeometricalObjectsBins::SearchInRadiusInCell(
-    const CellType& rCell,
-    const PointType& rPoint,
-    const double Radius,
-    std::unordered_map<GeometricalObject*, double>& rResults
-    )
-{
-    double distance = 0.0;
-    for(auto p_geometrical_object : rCell){
-        auto& r_geometry = p_geometrical_object->GetGeometry();
-        distance = r_geometry.CalculateDistance(rPoint, mTolerance);
-        if((Radius + mTolerance) > distance){
-            rResults.insert({p_geometrical_object, distance});
-        }
-    }
 }
 
 /***********************************************************************************/

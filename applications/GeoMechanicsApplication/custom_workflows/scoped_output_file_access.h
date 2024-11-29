@@ -12,12 +12,14 @@
 
 #pragma once
 
+#include "includes/kratos_export_api.h"
+
 namespace Kratos
 {
 
 class StrategyWrapper;
 
-class ScopedOutputFileAccess
+class KRATOS_API(GEO_MECHANICS_APPLICATION) ScopedOutputFileAccess
 {
 public:
     explicit ScopedOutputFileAccess(StrategyWrapper& rStrategyWrapper);

@@ -82,24 +82,23 @@
 				"check_variables"              : ["DISPLACEMENT", "ROTATION"],
                 "gauss_points_check_variables" : ["BENDING_MOMENT","SHEAR_FORCE", "AXIAL_FORCE"],
                 "input_file_name"              : "TimoshenkoBeams/2D2N/timoshenko_beam_2d2N_test_results.json",
-                "model_part_name"              : "Structure.Parts_Beam_Beam_Auto1",
+                "model_part_name"              : "Structure.test",
                 "time_frequency"               : 1.0
             }
-        }
-        ]
-    // "_json_output_process" : [
-    // {
-    //     "python_module"   : "json_output_process",
-    //     "kratos_module" : "KratosMultiphysics",
-    //     "process_name"          : "JsonOutputProcess",
-    //     "Parameters"            : {
-    // 	       "output_variables"              : ["DISPLACEMENT", "ROTATION"],
-    //         "gauss_points_output_variables" : ["BENDING_MOMENT","SHEAR_FORCE", "AXIAL_FORCE"],
-    //         "output_file_name"              : "TimoshenkoBeams/2D2N/timoshenko_beam_2d2N_test_results.json",
-    //         "model_part_name"               : "Structure.Parts_Beam_Beam_Auto1",
-    //         "time_frequency"                : 1.0
-    //     }
-    // }]
+        }]
+    //"_json_output_process" : [
+    //{
+    //    "python_module"   : "json_output_process",
+    //    "kratos_module" : "KratosMultiphysics",
+    //    "process_name"          : "JsonOutputProcess",
+    //    "Parameters"            : {
+    //	       "output_variables"              : ["DISPLACEMENT", "ROTATION"],
+    //        "gauss_points_output_variables" : ["BENDING_MOMENT","SHEAR_FORCE", "AXIAL_FORCE"],
+    //        "output_file_name"              : "TimoshenkoBeams/2D2N/timoshenko_beam_2d2N_test_results.json",
+    //        "model_part_name"               : "Structure.test",
+    //        "time_frequency"                : 1.0
+    //    }
+    //}]
     },
     "output_processes" : {
         "gid_output" : [],

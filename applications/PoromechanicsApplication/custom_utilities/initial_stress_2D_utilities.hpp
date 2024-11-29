@@ -249,12 +249,8 @@ protected:
             }
             Vector nodal_initial_stress_vector(3); // voigt_size
             Matrix nodal_initial_stress_tensor(2,2); // dimension
-            KRATOS_WATCH("DINS UTILITAT INITIAL STRESS")
-            KRATOS_WATCH("LOOP NODES ELEMENT ANTIC")
             for(int j = 0; j < PointsNumber; j++) {
                 noalias(nodal_initial_stress_tensor) = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(INITIAL_STRESS_TENSOR);
-                KRATOS_WATCH(pElementOld->GetGeometry().GetPoint(j))
-                KRATOS_WATCH(nodal_initial_stress_tensor)
                 noalias(nodal_initial_stress_vector) = MathUtils<double>::StressTensorToVector(nodal_initial_stress_tensor);
                 for (int k= 0; k < 3; k++) { // voigt_size
                     ComponentsNodalVariableVector[k][j] = nodal_initial_stress_vector[k];
@@ -268,9 +264,6 @@ protected:
             if(rNodalStress.size1() != 2) // Dimension
                 rNodalStress.resize(2,2,false);
             noalias(rNodalStress) = nodal_initial_stress_tensor;
-            KRATOS_WATCH("NODE MALLA NOVA")
-            KRATOS_WATCH(*itNodeNew)
-            KRATOS_WATCH(rNodalStress)
         }
     }
 

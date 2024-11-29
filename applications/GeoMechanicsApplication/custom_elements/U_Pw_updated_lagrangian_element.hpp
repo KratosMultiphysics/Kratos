@@ -71,19 +71,17 @@ public:
 
     /// The definition of the sizetype
     using SizeType = std::size_t;
-    using UPwBaseElement<TDim, TNumNodes>::mConstitutiveLawVector;
-    using UPwBaseElement<TDim, TNumNodes>::mRetentionLawVector;
-    using UPwBaseElement<TDim, TNumNodes>::mStressVector;
-    using UPwBaseElement<TDim, TNumNodes>::mStateVariablesFinalized;
-    using UPwBaseElement<TDim, TNumNodes>::CalculateDerivativesOnInitialConfiguration;
-    using UPwBaseElement<TDim, TNumNodes>::mThisIntegrationMethod;
+    using UPwBaseElement::CalculateDerivativesOnInitialConfiguration;
+    using UPwBaseElement::mConstitutiveLawVector;
+    using UPwBaseElement::mRetentionLawVector;
+    using UPwBaseElement::mStateVariablesFinalized;
+    using UPwBaseElement::mStressVector;
+    using UPwBaseElement::mThisIntegrationMethod;
 
     using ElementVariables = typename UPwSmallStrainElement<TDim, TNumNodes>::ElementVariables;
 
     /// Counted pointer of UPwUpdatedLagrangianElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UPwUpdatedLagrangianElement);
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
     explicit UPwUpdatedLagrangianElement(IndexType NewId = 0)
@@ -172,18 +170,14 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        std::stringstream buffer;
-        buffer << "Updated Lagrangian U-Pw Element #" << this->Id()
-               << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
-        return buffer.str();
+        const std::string constitutive_info =
+            !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
+        return "Updated Lagrangian U-Pw Element #" + std::to_string(this->Id()) +
+               "\nConstitutive law: " + constitutive_info;
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << "Updated Lagrangian U-Pw Element #" << this->Id()
-                 << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
-    }
+    void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override
@@ -221,6 +215,8 @@ protected:
                       const ProcessInfo& rCurrentProcessInfo,
                       bool               CalculateStiffnessMatrixFlag,
                       bool               CalculateResidualVectorFlag) override;
+
+    std::vector<double> GetOptionalPermeabilityUpdateFactors(const std::vector<Vector>&) const override;
 
     ///@}
     ///@name Protected Operations
@@ -276,7 +272,9 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
     }
-}; // Class UPwUpdatedLagrangianElement
+};
+
+// Class UPwUpdatedLagrangianElement
 
 ///@}
 ///@name Type Definitions

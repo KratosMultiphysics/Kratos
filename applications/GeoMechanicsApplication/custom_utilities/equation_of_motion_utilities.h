@@ -23,7 +23,7 @@
 namespace Kratos
 {
 
-class GeoEquationOfMotionUtilities
+class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoEquationOfMotionUtilities
 {
 public:
     static Matrix CalculateMassMatrix(std::size_t                dimension,
@@ -49,5 +49,9 @@ public:
                                            const std::vector<Matrix>& rConstitutiveMatrices,
                                            const std::vector<double>& rIntegrationCoefficients);
 
-}; /* Class GeoTransportEquationUtilities*/
+    static Vector CalculateInternalForceVector(const std::vector<Matrix>& rBs,
+                                               const std::vector<Vector>& rStressVectors,
+                                               const std::vector<double>& rIntegrationCoefficients);
+
+}; /* Class GeoEquationOfMotionUtilities*/
 } /* namespace Kratos.*/

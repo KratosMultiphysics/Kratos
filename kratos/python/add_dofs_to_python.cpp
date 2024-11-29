@@ -18,6 +18,7 @@
 #include "includes/define_python.h"
 #include "includes/model_part.h"
 #include "python/add_dofs_to_python.h"
+#include "utilities/dof_utilities/block_build_dof_array_utility.h"
 
 namespace Kratos::Python {
 
@@ -88,6 +89,12 @@ void  AddDofsToPython(pybind11::module& m)
             }
         })
         ;
+
+    py::class_<BlockBuildDofArrayUtility>(m, "BlockBuildDofArrayUtility")
+        .def_static("SetUpDofArray", [](const ModelPart& rModelPart, BlockBuildDofArrayUtility::DofsArrayType& rDofArray){BlockBuildDofArrayUtility::SetUpDofArray(rModelPart, rDofArray);})
+        .def_static("SetUpDofArray", [](const ModelPart& rModelPart, BlockBuildDofArrayUtility::DofsArrayType& rDofArray, const unsigned int EchoLevel){BlockBuildDofArrayUtility::SetUpDofArray(rModelPart, rDofArray, EchoLevel);})
+        .def_static("SetUpDofArray", [](const ModelPart& rModelPart, BlockBuildDofArrayUtility::DofsArrayType& rDofArray, const unsigned int EchoLevel, const bool CheckReactionDofs){BlockBuildDofArrayUtility::SetUpDofArray(rModelPart, rDofArray, EchoLevel, CheckReactionDofs);})
+    ;
 
 }
 
