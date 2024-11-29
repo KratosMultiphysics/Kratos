@@ -502,7 +502,7 @@ void LinearTrussElement2D<TNNodes, TDimension>::RotateLHS(
         const double angle = GetAngle();
 
         if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
-            BoundedMatrix<double, DofsPerNode, DofsPerNode> T, Tt;
+            BoundedMatrix<double, DofsPerNode, DofsPerNode> T;
             BoundedMatrix<double, SystemSize, SystemSize> global_size_T, aux_product;
             StructuralMechanicsElementUtilities::BuildRotationMatrixForTruss(T, angle);
             if constexpr (NNodes == 2) {
