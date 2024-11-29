@@ -131,12 +131,12 @@ KRATOS_TEST_CASE_IN_SUITE(CheckFailureUmatInputsApplyCPhiReductionProcess, Krato
     r_model_part_properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         (ApplyCPhiReductionProcess{r_model_part, {}}.ExecuteInitializeSolutionStep()),
-        "invalid INDEX_OF_UMAT_PHI_PARAMETER: 0 (out-of-bounds index)")
+        "Invalid INDEX_OF_UMAT_PHI_PARAMETER: 0 (out-of-bounds index)")
 
     r_model_part_properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 7);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         (ApplyCPhiReductionProcess{r_model_part, {}}.ExecuteInitializeSolutionStep()),
-        "invalid INDEX_OF_UMAT_PHI_PARAMETER: 7 (out-of-bounds index)")
+        "Invalid INDEX_OF_UMAT_PHI_PARAMETER: 7 (out-of-bounds index)")
 
     r_model_part_properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 4);
     umat_parameters(3) = -0.0001;
