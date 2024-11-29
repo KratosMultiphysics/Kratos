@@ -96,7 +96,7 @@ class EmbeddedFormulation(object):
         self.level_set_type = formulation_settings["level_set_type"].GetString()
         self.element_integrates_in_time = True
         self.element_has_nodal_properties = True
-        self.historical_nodal_variables_list = [KratosMultiphysics.DENSITY]
+        self.historical_nodal_variables_list = [KratosMultiphysics.DENSITY, KratosCFD.SOLID_FRACTION_VELOCITY]
         self.non_historical_nodal_variables_list = [KratosMultiphysics.SOUND_VELOCITY]
 
         self.process_info_data[KratosMultiphysics.DYNAMIC_TAU] = formulation_settings["dynamic_tau"].GetDouble()
@@ -143,7 +143,7 @@ class EmbeddedFormulation(object):
         self.level_set_type = formulation_settings["level_set_type"].GetString()
         self.element_integrates_in_time = True
         self.element_has_nodal_properties = True
-        self.historical_nodal_variables_list = [KratosMultiphysics.DENSITY]
+        self.historical_nodal_variables_list = [KratosMultiphysics.DENSITY, KratosCFD.SOLID_FRACTION_VELOCITY]
         self.non_historical_nodal_variables_list = [KratosMultiphysics.SOUND_VELOCITY]
 
         self.process_info_data[KratosMultiphysics.DYNAMIC_TAU] = formulation_settings["dynamic_tau"].GetDouble()
