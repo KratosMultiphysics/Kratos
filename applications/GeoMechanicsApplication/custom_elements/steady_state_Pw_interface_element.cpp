@@ -12,6 +12,7 @@
 
 // Application includes
 #include "custom_elements/steady_state_Pw_interface_element.hpp"
+#include "includes/cfd_variables.h"
 
 namespace Kratos
 {
@@ -22,19 +23,18 @@ Element::Pointer SteadyStatePwInterfaceElement<TDim, TNumNodes>::Create(IndexTyp
                                                                         PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new SteadyStatePwInterfaceElement(
-        NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+        NewId, this->GetGeometry().Create(ThisNodes), pProperties, this->GetStressStatePolicy().Clone()));
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer SteadyStatePwInterfaceElement<TDim, TNumNodes>::Create(IndexType NewId,
+Element::Pointer SteadyStatePwInterfaceElement<TDim, TNumNodes>::Create(IndexType             NewId,
                                                                         GeometryType::Pointer pGeom,
                                                                         PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new SteadyStatePwInterfaceElement(NewId, pGeom, pProperties));
+    return Element::Pointer(new SteadyStatePwInterfaceElement(
+        NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone()));
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 int SteadyStatePwInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -44,7 +44,7 @@ int SteadyStatePwInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rCu
     if (ierr != 0) return ierr;
 
     const PropertiesType& Prop = this->GetProperties();
-    const GeometryType& Geom   = this->GetGeometry();
+    const GeometryType&   Geom = this->GetGeometry();
 
     if (this->Id() < 1)
         KRATOS_ERROR << "Element found with Id 0 or negative, element: " << this->Id() << std::endl;
@@ -107,22 +107,21 @@ int SteadyStatePwInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rCu
 
     return ierr;
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void SteadyStatePwInterfaceElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHandSideMatrix,
                                                                   VectorType& rRightHandSideVector,
                                                                   const ProcessInfo& CurrentProcessInfo,
-                                                                  const bool CalculateStiffnessMatrixFlag,
-                                                                  const bool CalculateResidualVectorFlag)
+                                                                  bool CalculateStiffnessMatrixFlag,
+                                                                  bool CalculateResidualVectorFlag)
 {
     KRATOS_TRY
 
     // Previous definitions
-    const PropertiesType& Prop = this->GetProperties();
-    const GeometryType& Geom   = this->GetGeometry();
+    const PropertiesType&                           Prop = this->GetProperties();
+    const GeometryType&                             Geom = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
         Geom.IntegrationPoints(mThisIntegrationMethod);
     const unsigned int NumGPoints = IntegrationPoints.size();
@@ -146,10 +145,12 @@ void SteadyStatePwInterfaceElement<TDim, TNumNodes>::CalculateAll(MatrixType& rL
 
     // Auxiliary variables
     array_1d<double, TDim> RelDispVector;
-    SFGradAuxVariables SFGradAuxVars;
+    SFGradAuxVariables     SFGradAuxVars;
 
-    // create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), CurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
+
+    const auto integration_coefficients =
+        this->CalculateIntegrationCoefficients(IntegrationPoints, detJContainer);
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
@@ -167,11 +168,9 @@ void SteadyStatePwInterfaceElement<TDim, TNumNodes>::CalculateAll(MatrixType& rL
         InterfaceElementUtilities::FillPermeabilityMatrix(
             Variables.LocalPermeabilityMatrix, Variables.JointWidth, Prop[TRANSVERSAL_PERMEABILITY]);
 
-        CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
+        this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
-        // Compute weighting coefficient for integration
-        Variables.IntegrationCoefficient =
-            this->CalculateIntegrationCoefficient(IntegrationPoints, GPoint, detJContainer[GPoint]);
+        Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
         // Contributions to the left hand side
         if (CalculateStiffnessMatrixFlag) this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
@@ -184,7 +183,6 @@ void SteadyStatePwInterfaceElement<TDim, TNumNodes>::CalculateAll(MatrixType& rL
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void SteadyStatePwInterfaceElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
                                                                         InterfaceElementVariables& rVariables)
@@ -196,7 +194,6 @@ void SteadyStatePwInterfaceElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixTy
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void SteadyStatePwInterfaceElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRightHandSideVector,
                                                                         InterfaceElementVariables& rVariables,
@@ -210,7 +207,6 @@ void SteadyStatePwInterfaceElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorTy
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------
 template class SteadyStatePwInterfaceElement<2, 4>;
 template class SteadyStatePwInterfaceElement<3, 6>;
 template class SteadyStatePwInterfaceElement<3, 8>;

@@ -21,23 +21,21 @@ namespace Kratos
 {
 
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer GeoCurvedBeamElement<TDim, TNumNodes>::Create(IndexType NewId,
+Element::Pointer GeoCurvedBeamElement<TDim, TNumNodes>::Create(IndexType             NewId,
                                                                NodesArrayType const& ThisNodes,
                                                                PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new GeoCurvedBeamElement(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer GeoCurvedBeamElement<TDim, TNumNodes>::Create(IndexType NewId,
+Element::Pointer GeoCurvedBeamElement<TDim, TNumNodes>::Create(IndexType             NewId,
                                                                GeometryType::Pointer pGeom,
                                                                PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new GeoCurvedBeamElement(NewId, pGeom, pProperties));
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 int GeoCurvedBeamElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -76,7 +74,6 @@ int GeoCurvedBeamElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProc
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <>
 void GeoCurvedBeamElement<3, 3>::SetRotationalInertiaVector(const PropertiesType& rProp, Vector& rRotationalInertia) const
 {
@@ -93,7 +90,6 @@ void GeoCurvedBeamElement<3, 3>::SetRotationalInertiaVector(const PropertiesType
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <>
 void GeoCurvedBeamElement<2, 3>::SetRotationalInertiaVector(const PropertiesType& rProp, Vector& rRotationalInertia) const
 {
@@ -107,7 +103,6 @@ void GeoCurvedBeamElement<2, 3>::SetRotationalInertiaVector(const PropertiesType
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMassMatrix,
                                                                 const ProcessInfo& rCurrentProcessInfo)
@@ -119,14 +114,14 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMas
         rMassMatrix.resize(N_DOF_ELEMENT, N_DOF_ELEMENT, false);
     noalias(rMassMatrix) = ZeroMatrix(N_DOF_ELEMENT, N_DOF_ELEMENT);
 
-    const PropertiesType& rProp = this->GetProperties();
-    const GeometryType& rGeom   = this->GetGeometry();
+    const PropertiesType&                           rProp = this->GetProperties();
+    const GeometryType&                             rGeom = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
         rGeom.IntegrationPoints(mThisIntegrationMethod);
 
     // Defining shape functions and the determinant of the jacobian at all integration points
     const Matrix& NContainer = rGeom.ShapeFunctionsValues(mThisIntegrationMethod);
-    Vector detJContainer(IntegrationPoints.size());
+    Vector        detJContainer(IntegrationPoints.size());
     rGeom.DeterminantOfJacobian(detJContainer, mThisIntegrationMethod);
 
     // Defining necessary variables
@@ -161,10 +156,9 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMas
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHandSideMatrix,
-                                                         VectorType& rRightHandSideVector,
+void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftHandSideMatrix,
+                                                         VectorType&        rRightHandSideVector,
                                                          const ProcessInfo& rCurrentProcessInfo,
                                                          const bool CalculateStiffnessMatrixFlag,
                                                          const bool CalculateResidualVectorFlag)
@@ -172,8 +166,8 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHandSi
     KRATOS_TRY
 
     // Previous definitions
-    const PropertiesType& rProp = this->GetProperties();
-    const GeometryType& rGeom   = this->GetGeometry();
+    const PropertiesType&                           rProp = this->GetProperties();
+    const GeometryType&                             rGeom = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPointsAlong =
         rGeom.IntegrationPoints(mThisIntegrationMethod);
 
@@ -213,7 +207,7 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHandSi
             BoundedMatrix<double, TDim, TDim> JacobianMatrix;
             this->CalculateJacobianMatrix(GPointCross, Variables, JacobianMatrix);
 
-            double detJacobian;
+            double                            detJacobian;
             BoundedMatrix<double, TDim, TDim> InvertJacobianMatrix;
             MathUtils<double>::InvertMatrix(JacobianMatrix, InvertJacobianMatrix, detJacobian);
 
@@ -242,11 +236,10 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHandSi
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoCurvedBeamElement<TDim, TNumNodes>::InitializeElementVariables(ElementVariables& rVariables,
                                                                        ConstitutiveLaw::Parameters& rConstitutiveParameters,
-                                                                       const GeometryType& rGeom,
+                                                                       const GeometryType&   rGeom,
                                                                        const PropertiesType& rProp,
                                                                        const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -298,7 +291,6 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::InitializeElementVariables(ElementVa
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
                                                                ElementVariables& rVariables) const
@@ -311,11 +303,10 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType& rLeft
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRightHandSideVector,
                                                                ElementVariables& rVariables,
-                                                               unsigned int GPoint) const
+                                                               unsigned int      GPoint) const
 {
     KRATOS_TRY
 
@@ -325,41 +316,35 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRigh
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateAndAddBodyForce(VectorType& rRightHandSideVector,
-                                                                     ElementVariables& rVariables) const
+                                                                     const ElementVariables& rVariables) const
 {
     KRATOS_TRY
 
     const PropertiesType& rProp = this->GetProperties();
-    const double& density       = rProp[DENSITY];
 
-    // Distribute body force block vector into elemental vector
-    noalias(rVariables.UVector) =
-        density * prod(trans(rVariables.NuTot), rVariables.GaussVolumeAcceleration) * rVariables.IntegrationCoefficient;
+    const array_1d<double, TNumNodes * TDim> body_force =
+        rProp[DENSITY] * prod(trans(rVariables.NuTot), rVariables.GaussVolumeAcceleration) *
+        rVariables.IntegrationCoefficient;
 
-    // Distribute body force block vector into elemental vector
-    GeoElementUtilities::AssembleUBlockVector<TDim, TNumNodes>(rRightHandSideVector, rVariables.UVector);
+    GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, body_force);
 
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateAndAddStiffnessForce(VectorType& rRightHandSideVector,
-                                                                          ElementVariables& rVariables,
+                                                                          const ElementVariables& rVariables,
                                                                           unsigned int GPoint) const
 {
     KRATOS_TRY
 
-    // Distribute stiffness block vector into elemental vector
     rRightHandSideVector -= prod(trans(rVariables.B), mStressVector[GPoint]) * rVariables.IntegrationCoefficient;
 
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 double GeoCurvedBeamElement<TDim, TNumNodes>::CalculateAngleAtNode(
     unsigned int GPoint, const BoundedMatrix<double, TNumNodes, TNumNodes>& DN_DeContainer) const
@@ -382,7 +367,6 @@ double GeoCurvedBeamElement<TDim, TNumNodes>::CalculateAngleAtNode(
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 double GeoCurvedBeamElement<TDim, TNumNodes>::CalculateAngleAtGaussPoint(const Matrix& GradNe) const
 {
@@ -403,9 +387,8 @@ double GeoCurvedBeamElement<TDim, TNumNodes>::CalculateAngleAtGaussPoint(const M
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <>
-void GeoCurvedBeamElement<2, 3>::CalculateTransformationMatrix(Matrix& TransformationMatrix,
+void GeoCurvedBeamElement<2, 3>::CalculateTransformationMatrix(Matrix&       TransformationMatrix,
                                                                const Matrix& GradNe) const
 {
     KRATOS_TRY
@@ -440,9 +423,8 @@ void GeoCurvedBeamElement<2, 3>::CalculateTransformationMatrix(Matrix& Transform
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <>
-void GeoCurvedBeamElement<3, 3>::CalculateTransformationMatrix(Matrix& TransformationMatrix,
+void GeoCurvedBeamElement<3, 3>::CalculateTransformationMatrix(Matrix&       TransformationMatrix,
                                                                const Matrix& GradNe) const
 {
     KRATOS_TRY
@@ -452,7 +434,6 @@ void GeoCurvedBeamElement<3, 3>::CalculateTransformationMatrix(Matrix& Transform
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateNodalCrossDirection(Matrix& NodalCrossDirection) const
 {
@@ -474,7 +455,6 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateNodalCrossDirection(Matrix&
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateJacobianMatrix(unsigned int GPointCross,
                                                                     const ElementVariables& rVariables,
@@ -485,8 +465,8 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateJacobianMatrix(unsigned int
     // "1. Geometrically non-linear formulation for the axisymmetric shell
     // elements" Eqs.(1), (20) - (22)
 
-    const GeometryType& rGeom = this->GetGeometry();
-    const double& t           = rVariables.HalfThickness;
+    const GeometryType&       rGeom = this->GetGeometry();
+    const double&             t     = rVariables.HalfThickness;
     const std::vector<double> CrossEta{-1.0 / sqrt(3), 1.0 / sqrt(3)};
 
     noalias(JacobianMatrix) = ZeroMatrix(TDim, TDim);
@@ -513,9 +493,8 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateJacobianMatrix(unsigned int
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateBMatrix(Matrix& BTransformed,
+void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateBMatrix(Matrix&      BTransformed,
                                                              unsigned int GPointCross,
                                                              const BoundedMatrix<double, TDim, TDim>& InvJ,
                                                              ElementVariables& rVariables) const
@@ -533,9 +512,8 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateBMatrix(Matrix& BTransforme
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateLocalBMatrix(Matrix& B,
+void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateLocalBMatrix(Matrix&      B,
                                                                   unsigned int GPointCross,
                                                                   const BoundedMatrix<double, TDim, TDim>& InvJ,
                                                                   ElementVariables& rVariables) const
@@ -548,7 +526,7 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateLocalBMatrix(Matrix& B,
     if (B.size1() != VoigtSize || B.size2() != N_DOF_ELEMENT)
         B.resize(VoigtSize, N_DOF_ELEMENT, false);
 
-    const double& t = rVariables.HalfThickness;
+    const double&             t = rVariables.HalfThickness;
     const std::vector<double> CrossEta{-1.0 / sqrt(3), 1.0 / sqrt(3)};
 
     noalias(B)        = ZeroMatrix(VoigtSize, N_DOF_ELEMENT);
@@ -562,8 +540,8 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateLocalBMatrix(Matrix& B,
         const unsigned int index   = N_DOF_NODE * node;
         const unsigned int index_x = index + INDEX_2D_BEAM_X;
         const unsigned int index_y = index + INDEX_2D_BEAM_Y;
-        const double& Fjx          = -rVariables.NodalCrossDirection(node, INDEX_Y);
-        const double& Fjy          = rVariables.NodalCrossDirection(node, INDEX_X);
+        const double&      Fjx     = -rVariables.NodalCrossDirection(node, INDEX_Y);
+        const double&      Fjy     = rVariables.NodalCrossDirection(node, INDEX_X);
 
         // Parts of B-matrix due to u_x and u_y (u, v)
         B(INDEX_2D_BEAM_XX, index_x) = rVariables.GradNe(node, 0) * A11;
@@ -589,7 +567,6 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateLocalBMatrix(Matrix& B,
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateStrainVector(ElementVariables& rVariables) const
 {
@@ -600,7 +577,6 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateStrainVector(ElementVariabl
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 double GeoCurvedBeamElement<TDim, TNumNodes>::CalculateIntegrationCoefficient(unsigned int GPointCross,
                                                                               double detJ,
@@ -611,21 +587,18 @@ double GeoCurvedBeamElement<TDim, TNumNodes>::CalculateIntegrationCoefficient(un
     return weight * CrossWeight[GPointCross] * detJ;
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 SizeType GeoCurvedBeamElement<TDim, TNumNodes>::GetAlongNumberIntegrationPoints() const
 {
     return this->GetGeometry().IntegrationPointsNumber(mThisIntegrationMethod);
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 SizeType GeoCurvedBeamElement<TDim, TNumNodes>::GetCrossNumberIntegrationPoints() const
 {
     return N_POINT_CROSS;
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateLocalInternalForce(VectorType& rInternalForceVector,
                                                                         const ProcessInfo& rCurrentProcessInfo)
@@ -633,8 +606,8 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateLocalInternalForce(VectorTy
     KRATOS_TRY
 
     // Previous definitions
-    const PropertiesType& rProp = this->GetProperties();
-    const GeometryType& rGeom   = this->GetGeometry();
+    const PropertiesType&                           rProp = this->GetProperties();
+    const GeometryType&                             rGeom = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPointsAlong =
         rGeom.IntegrationPoints(mThisIntegrationMethod);
 
@@ -667,7 +640,7 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateLocalInternalForce(VectorTy
             BoundedMatrix<double, TDim, TDim> JacobianMatrix;
             this->CalculateJacobianMatrix(GPointCross, Variables, JacobianMatrix);
 
-            double detJacobian;
+            double                            detJacobian;
             BoundedMatrix<double, TDim, TDim> InvertJacobianMatrix;
             MathUtils<double>::InvertMatrix(JacobianMatrix, InvertJacobianMatrix, detJacobian);
 
@@ -702,7 +675,6 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateLocalInternalForce(VectorTy
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
                                                                          std::vector<Matrix>& rOutput,
@@ -711,14 +683,14 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const V
     KRATOS_TRY
 
     // Defining necessary variables
-    const GeometryType& rGeom     = this->GetGeometry();
-    const unsigned int NumGPoints = rGeom.IntegrationPointsNumber(mThisIntegrationMethod);
+    const GeometryType& rGeom      = this->GetGeometry();
+    const unsigned int  NumGPoints = rGeom.IntegrationPointsNumber(mThisIntegrationMethod);
 
     if (rOutput.size() != NumGPoints) rOutput.resize(NumGPoints);
 
     if (rVariable == CAUCHY_STRESS_TENSOR) {
         // Previous definitions
-        const PropertiesType& rProp = this->GetProperties();
+        const PropertiesType&                           rProp = this->GetProperties();
         const GeometryType::IntegrationPointsArrayType& IntegrationPointsAlong =
             rGeom.IntegrationPoints(mThisIntegrationMethod);
 
@@ -727,13 +699,6 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const V
 
         // calculating the local gradients
         const ShapeFunctionsGradientsType& DN_De = rGeom.ShapeFunctionsLocalGradients(mThisIntegrationMethod);
-
-        // GiD accepts equally distributed points
-        // Matrix NContainer;
-        // GeoElementUtilities::CalculateEquallyDistributedPointsLineShapeFunctions3N(NContainer);
-
-        // ShapeFunctionsGradientsType DN_De;
-        // GeoElementUtilities::CalculateEquallyDistributedPointsLineGradientShapeFunctions3N(DN_De);
 
         // Constitutive Law parameters
         ConstitutiveLaw::Parameters ConstitutiveParameters(rGeom, rProp, rCurrentProcessInfo);
@@ -763,7 +728,7 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const V
                 BoundedMatrix<double, TDim, TDim> JacobianMatrix;
                 this->CalculateJacobianMatrix(GPointCross, Variables, JacobianMatrix);
 
-                double detJacobian;
+                double                            detJacobian;
                 BoundedMatrix<double, TDim, TDim> InvertJacobianMatrix;
                 MathUtils<double>::InvertMatrix(JacobianMatrix, InvertJacobianMatrix, detJacobian);
 
@@ -795,7 +760,7 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const V
         }
     } else if (rVariable == ENGINEERING_STRAIN_TENSOR) {
         // Previous definitions
-        const PropertiesType& rProp = this->GetProperties();
+        const PropertiesType&                           rProp = this->GetProperties();
         const GeometryType::IntegrationPointsArrayType& IntegrationPointsAlong =
             rGeom.IntegrationPoints(mThisIntegrationMethod);
 
@@ -831,7 +796,7 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const V
                 BoundedMatrix<double, TDim, TDim> JacobianMatrix;
                 this->CalculateJacobianMatrix(GPointCross, Variables, JacobianMatrix);
 
-                double detJacobian;
+                double                            detJacobian;
                 BoundedMatrix<double, TDim, TDim> InvertJacobianMatrix;
                 MathUtils<double>::InvertMatrix(JacobianMatrix, InvertJacobianMatrix, detJacobian);
 
@@ -872,7 +837,6 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const V
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoCurvedBeamElement<TDim, TNumNodes>::InterpolateOnOutputPoints(Matrix& ValuesMatrix) const
 {
@@ -891,7 +855,6 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::InterpolateOnOutputPoints(Matrix& Va
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoCurvedBeamElement<TDim, TNumNodes>::InterpolateOnOutputPoints(Vector& Values) const
 {
@@ -912,7 +875,6 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::InterpolateOnOutputPoints(Vector& Va
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
                                                                          std::vector<array_1d<double, 3>>& rOutput,
@@ -920,8 +882,8 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const V
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom     = this->GetGeometry();
-    const unsigned int NumGPoints = rGeom.IntegrationPointsNumber(mThisIntegrationMethod);
+    const GeometryType& rGeom      = this->GetGeometry();
+    const unsigned int  NumGPoints = rGeom.IntegrationPointsNumber(mThisIntegrationMethod);
     if (rOutput.size() != NumGPoints) rOutput.resize(NumGPoints);
 
     if (rVariable == FORCE || rVariable == MOMENT) {
@@ -964,8 +926,6 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const V
 
     KRATOS_CATCH("")
 }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template class GeoCurvedBeamElement<2, 3>;
 template class GeoCurvedBeamElement<3, 3>;

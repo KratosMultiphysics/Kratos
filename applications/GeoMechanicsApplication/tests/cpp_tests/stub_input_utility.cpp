@@ -10,13 +10,13 @@
 //  Main authors:    Richard Faasse
 //
 
-
 #include "stub_input_utility.h"
 
-namespace Kratos {
+namespace Kratos
+{
 
-StubInputUtility::StubInputUtility(const std::string& rParameterJsonString) :
-    mParameterJsonString{rParameterJsonString}
+StubInputUtility::StubInputUtility(const std::string& rParameterJsonString)
+    : mParameterJsonString{rParameterJsonString}
 {
 }
 
@@ -35,12 +35,8 @@ void StubInputUtility::AddMaterialsFromFile(const std::filesystem::path& rMateri
     ++mNumberOfMaterialCalls;
 }
 
-int StubInputUtility::NumberOfReadCalls() const {
-    return mNumberOfReadCalls;
-}
+int StubInputUtility::NumberOfReadCalls() const { return mNumberOfReadCalls; }
 
-int StubInputUtility::NumberOfMaterialCalls() const {
-    return mNumberOfMaterialCalls;
-}
+int StubInputUtility::NumberOfMaterialCalls() const { return mNumberOfMaterialCalls; }
 
-} // Kratos
+} // namespace Kratos

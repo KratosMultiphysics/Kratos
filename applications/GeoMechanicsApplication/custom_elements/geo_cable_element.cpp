@@ -17,7 +17,7 @@
 
 // Project includes
 #include "custom_elements/geo_cable_element.hpp"
-#include "custom_utilities/structural_mechanics_element_utilities.h"
+#include "../StructuralMechanicsApplication/custom_utilities/structural_mechanics_element_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/define.h"
 
@@ -31,41 +31,36 @@ GeoCableElement<TDim, TNumNodes>::GeoCableElement(IndexType NewId, GeometryType:
 {
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-GeoCableElement<TDim, TNumNodes>::GeoCableElement(IndexType NewId,
-                                                  GeometryType::Pointer pGeometry,
+GeoCableElement<TDim, TNumNodes>::GeoCableElement(IndexType               NewId,
+                                                  GeometryType::Pointer   pGeometry,
                                                   PropertiesType::Pointer pProperties)
     : GeoTrussElement<TDim, TNumNodes>(NewId, pGeometry, pProperties)
 {
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer GeoCableElement<TDim, TNumNodes>::Create(IndexType NewId,
-                                                          NodesArrayType const& rThisNodes,
+Element::Pointer GeoCableElement<TDim, TNumNodes>::Create(IndexType               NewId,
+                                                          NodesArrayType const&   rThisNodes,
                                                           PropertiesType::Pointer pProperties) const
 {
     const GeometryType& rGeom = this->GetGeometry();
     return Kratos::make_intrusive<GeoCableElement>(NewId, rGeom.Create(rThisNodes), pProperties);
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer GeoCableElement<TDim, TNumNodes>::Create(IndexType NewId,
-                                                          GeometryType::Pointer pGeom,
+Element::Pointer GeoCableElement<TDim, TNumNodes>::Create(IndexType               NewId,
+                                                          GeometryType::Pointer   pGeom,
                                                           PropertiesType::Pointer pProperties) const
 {
     return Kratos::make_intrusive<GeoCableElement>(NewId, pGeom, pProperties);
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 GeoCableElement<TDim, TNumNodes>::~GeoCableElement()
 {
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoCableElement<TDim, TNumNodes>::CreateElementStiffnessMatrix(MatrixType& rLocalStiffnessMatrix,
                                                                     const ProcessInfo& rCurrentProcessInfo)
@@ -75,19 +70,14 @@ void GeoCableElement<TDim, TNumNodes>::CreateElementStiffnessMatrix(MatrixType& 
 
     if (mIsCompressed) {
         rLocalStiffnessMatrix = ZeroMatrix(TDim * TNumNodes, TDim * TNumNodes);
-    } else {
-        this->CalculateElasticStiffnessMatrix(rLocalStiffnessMatrix, rCurrentProcessInfo);
-
-        FullDofMatrixType K_geo;
-        this->CalculateGeometricStiffnessMatrix(K_geo, rCurrentProcessInfo);
-
-        rLocalStiffnessMatrix += K_geo;
+        return;
     }
+
+    BaseType::CreateElementStiffnessMatrix(rLocalStiffnessMatrix, rCurrentProcessInfo);
 
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoCableElement<TDim, TNumNodes>::CalculateRightHandSide(VectorType& rRightHandSideVector,
                                                               const ProcessInfo& rCurrentProcessInfo)
@@ -110,7 +100,6 @@ void GeoCableElement<TDim, TNumNodes>::CalculateRightHandSide(VectorType& rRight
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoCableElement<TDim, TNumNodes>::UpdateInternalForces(BoundedVector<double, TDim * TNumNodes>& rInternalForces,
                                                             const ProcessInfo& rCurrentProcessInfo)
@@ -121,8 +110,8 @@ void GeoCableElement<TDim, TNumNodes>::UpdateInternalForces(BoundedVector<double
     FullDofMatrixType transformation_matrix;
     this->CreateTransformationMatrix(transformation_matrix);
 
-    const double l  = GeoStructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
-    const double L0 = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+    const double l  = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
+    const double L0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
     const double A  = this->GetProperties()[CROSS_AREA];
 
     double prestress = 0.00;
@@ -154,10 +143,9 @@ void GeoCableElement<TDim, TNumNodes>::UpdateInternalForces(BoundedVector<double
     f_local[TDim]                                   = 1.00 * normal_force;
     rInternalForces                                 = ZeroVector(TDim * TNumNodes);
     noalias(rInternalForces)                        = prod(transformation_matrix, f_local);
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoCableElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
                                                                     std::vector<array_1d<double, 3>>& rOutput,
@@ -171,7 +159,6 @@ void GeoCableElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variab
     }
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoCableElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
                                                                     std::vector<Vector>& rOutput,
@@ -186,7 +173,6 @@ void GeoCableElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variab
     }
 }
 
-//--------------------------------------------------------------------------------------------
 template class GeoCableElement<2, 2>;
 template class GeoCableElement<3, 2>;
 

@@ -32,34 +32,31 @@ public:
     void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 
     double& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
-                           const Variable<double>& rThisVariable,
-                           double& rValue) override;
+                           const Variable<double>&      rThisVariable,
+                           double&                      rValue) override;
     Vector& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
-                           const Variable<Vector>& rThisVariable,
-                           Vector& rValue) override;
+                           const Variable<Vector>&      rThisVariable,
+                           Vector&                      rValue) override;
     Matrix& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
-                           const Variable<Matrix>& rThisVariable,
-                           Matrix& rValue) override;
+                           const Variable<Matrix>&      rThisVariable,
+                           Matrix&                      rValue) override;
     using ConstitutiveLaw::CalculateValue;
 
     void SetValue(const Variable<double>&, const double&, const ProcessInfo&) override;
     void SetValue(const Variable<Vector>&, const Vector&, const ProcessInfo&) override;
     using ConstitutiveLaw::SetValue;
 
-    int Check(const Properties& rMaterialProperties,
+    int Check(const Properties&   rMaterialProperties,
               const GeometryType& rElementGeometry,
-              const ProcessInfo& rCurrentProcessInfo) const override;
+              const ProcessInfo&  rCurrentProcessInfo) const override;
 
-    void SetConsiderDiagonalEntriesOnlyAndNoShear(bool Whether);
+    void               SetConsiderDiagonalEntriesOnlyAndNoShear(bool Whether);
     [[nodiscard]] bool GetConsiderDiagonalEntriesOnlyAndNoShear() const;
 
 protected:
-    virtual void CalculateElasticMatrix(Matrix& rConstitutiveMatrix,
-                                        ConstitutiveLaw::Parameters& rValues) = 0;
-    virtual void CalculateCauchyGreenStrain(ConstitutiveLaw::Parameters& rValues,
-                                            Vector& rStrainVector) = 0;
-    virtual void CalculatePK2Stress(const Vector& rStrainVector,
-                                    Vector& rStressVector,
+    virtual void CalculateElasticMatrix(Matrix& rConstitutiveMatrix, ConstitutiveLaw::Parameters& rValues) = 0;
+    virtual void CalculatePK2Stress(const Vector&                rStrainVector,
+                                    Vector&                      rStressVector,
                                     ConstitutiveLaw::Parameters& rValues) = 0;
 
 private:

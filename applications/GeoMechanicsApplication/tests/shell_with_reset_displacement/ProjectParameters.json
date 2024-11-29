@@ -1,6 +1,6 @@
 {
     "problem_data": {
-        "problem_name":         "bodemplaat",
+        "problem_name":         "shell",
         "start_time":           0.0,
         "end_time":             1.0,
         "echo_level":           1,
@@ -13,7 +13,7 @@
         "domain_size":                        3,
         "model_import_settings":              {
             "input_type":       "mdpa",
-            "input_filename":   "bodemplaat"
+            "input_filename":   "shell"
         },
         "material_import_settings":              {
             "materials_filename":       "MaterialParameters.json"
@@ -69,9 +69,9 @@
             "scaling":             true,
             "preconditioner_type": "ilu0"
         },
-        "problem_domain_sub_model_part_list": ["bodemplaat"],
-        "processes_sub_model_part_list":      ["XZsupport","YZsupport","ZsupportLoadPoint"],
-        "body_domain_sub_model_part_list":    ["bodemplaat"]
+        "problem_domain_sub_model_part_list": ["shell"],
+        "processes_sub_model_part_list":      ["FixedNodes","ZsupportLoadPoint"],
+        "body_domain_sub_model_part_list":    ["shell"]
     },
     "output_processes": {
         "gid_output": [{
@@ -80,7 +80,7 @@
             "process_name": "GiDOutputProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.porous_computational_model_part",
-                "output_name": "bodemplaat",
+                "output_name": "shell",
                 "postprocess_parameters": {
                     "result_file_configuration": {
                         "gidpost_flags":       {
@@ -96,8 +96,8 @@
                         "node_output":         false,
                         "skin_output":         false,
                         "plane_output":        [],
-                        "nodal_results":       ["DISPLACEMENT","TOTAL_DISPLACEMENT","ROTATION"],
-                        "gauss_point_results": ["GREEN_LAGRANGE_STRAIN_TENSOR","ENGINEERING_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR"]
+                        "nodal_results":       ["DISPLACEMENT"],
+                        "gauss_point_results": []
                     },
                     "point_data_configuration":  []
                 }
@@ -110,10 +110,10 @@
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name":  "ApplyVectorConstraintTableProcess",
         "Parameters":    {
-            "model_part_name": "PorousDomain.XZsupport",
+            "model_part_name": "PorousDomain.FixedNodes",
             "variable_name":   "DISPLACEMENT",
-            "active":          [true,false,true],
-            "is_fixed":        [true,false,true],
+            "active":          [true,true,true],
+            "is_fixed":        [true,true,true],
             "value":           [0.0,0.0,0.0],
             "table":           [0,0,0]
         }
@@ -122,34 +122,10 @@
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name":  "ApplyVectorConstraintTableProcess",
         "Parameters":    {
-            "model_part_name": "PorousDomain.YZsupport",
-            "variable_name":   "DISPLACEMENT",
-            "active":          [false,true,true],
-            "is_fixed":        [false,true,true],
-            "value":           [0.0,0.0,0.0],
-            "table":           [0,0,0]
-        }
-    },{
-        "python_module": "apply_vector_constraint_table_process",
-        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name":  "ApplyVectorConstraintTableProcess",
-        "Parameters":    {
-            "model_part_name": "PorousDomain.XZsupport",
+            "model_part_name": "PorousDomain.FixedNodes",
             "variable_name":   "ROTATION",
             "active":          [true,true,true],
-            "is_fixed":        [false,true,false],
-            "value":           [0.0,0.0,0.0],
-            "table":           [0,0,0]
-        }
-    },{
-        "python_module": "apply_vector_constraint_table_process",
-        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name":  "ApplyVectorConstraintTableProcess",
-        "Parameters":    {
-            "model_part_name": "PorousDomain.YZsupport",
-            "variable_name":   "ROTATION",
-            "active":          [true,true,true],
-            "is_fixed":        [true,false,false],
+            "is_fixed":        [true,true,true],
             "value":           [0.0,0.0,0.0],
             "table":           [0,0,0]
         }

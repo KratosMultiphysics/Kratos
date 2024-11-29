@@ -32,8 +32,7 @@ public:
 
     BackwardEulerTScheme()
         : BackwardEulerScheme<TSparseSpace, TDenseSpace>(
-              {FirstOrderScalarVariable(TEMPERATURE, DT_TEMPERATURE, DT_TEMPERATURE_COEFFICIENT)},
-              {})
+              {FirstOrderScalarVariable(TEMPERATURE, DT_TEMPERATURE, DT_TEMPERATURE_COEFFICIENT)}, {})
     {
     }
 }; // Class BackwardEulerTScheme

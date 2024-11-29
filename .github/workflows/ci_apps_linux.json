@@ -20,7 +20,7 @@
     "HDF5Application",
     "ContactStructuralMechanicsApplication",
     "IgaApplication",
-    "ParticleMechanicsApplication",
+    "MPMApplication",
     "ChimeraApplication",
     "StatisticsApplication",
     "SwimmingDEMApplication",
