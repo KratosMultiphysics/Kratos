@@ -61,11 +61,6 @@ void AddCustomProcessesToPython(
     py::class_<IgaContactProcess, IgaContactProcess::Pointer, Process>(m, "IgaContactProcess")
         .def(py::init<Model&, Parameters >())
         ;
-
-    py::class_<AssignIgaExternalConditionsProcess, AssignIgaExternalConditionsProcess::Pointer, Process>(m, "AssignIgaExternalConditionsProcess")
-        .def(py::init<Model&, Parameters >())
-        ;
-
 }
 
 } // namespace Python

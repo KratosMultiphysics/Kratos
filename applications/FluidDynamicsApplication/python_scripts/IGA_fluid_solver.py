@@ -8,14 +8,14 @@ import json
 import os
 
 # Import base class file
-from KratosMultiphysics.FluidDynamicsApplication import navier_stokes_solver_vmsmonolithic
+from KratosMultiphysics.FluidDynamicsApplication import navier_stokes_monolithic_solver
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
 def CreateSolver(main_model_part, custom_settings):
     return IGAFluidSolver(main_model_part, custom_settings)
 
 
-class IGAFluidSolver(navier_stokes_solver_vmsmonolithic.NavierStokesSolverMonolithic):
+class IGAFluidSolver(navier_stokes_monolithic_solver.NavierStokesMonolithicSolver):
 
     # Write all the points of the skin boundary in an external file
     directory = "txt_files"
@@ -380,5 +380,4 @@ class IGAFluidSolver(navier_stokes_solver_vmsmonolithic.NavierStokesSolverMonoli
         # ax.gca().set_aspect('equal', adjustable='box')
 
         plt.show()
-
 
