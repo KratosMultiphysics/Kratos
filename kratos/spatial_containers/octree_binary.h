@@ -376,17 +376,15 @@ namespace Kratos {
 
                   double low[3];
                   double high[3];
-                  child->GetMinPoint(low);
-                  child->GetMaxPoint(high);
-                  if (Collides(coord1, coord2, low, high))
+                  child->GetMinPointNormalized(low);
+                  child->GetMaxPointNormalized(high);
+                  if (Collides(coord1, coord2, low, high)) {
                     cells_stack.push_back(cell->pGetChild(i));
+                  }
                 }
               } else
                 leaves.push_back(cell);
             }
-
-
-            return;
         }
 
 
@@ -400,6 +398,15 @@ namespace Kratos {
                    (Low2[2] <= High1[2]);
         }
 
+        bool Collides(const double* Low1, const double* High1, const double* Low2, const double* High2) const
+        {
+            return (Low1[0] <= High2[0]) &&
+                   (Low1[1] <= High2[1]) &&
+                   (Low1[2] <= High2[2]) &&
+                   (Low2[0] <= High1[0]) &&
+                   (Low2[1] <= High1[1]) &&
+                   (Low2[2] <= High1[2]);
+        }
 
         int GetAllLeavesVector(std::vector<cell_type*>& all_leaves) const {
           std::vector<cell_type*> cells_stack;
@@ -1154,5 +1161,3 @@ namespace Kratos {
     ///@} addtogroup block
 
 } // namespace Kratos.
-
-
