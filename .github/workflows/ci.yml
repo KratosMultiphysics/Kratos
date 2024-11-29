@@ -60,7 +60,9 @@ jobs:
 
     - name: CI configuration
       shell: bash
-      run: python3 kratos/python_scripts/testing/ci_utilities.py
+      run: |
+        python3 kratos/python_scripts/testing/ci_utilities.py
+        python3 -m pip install --upgrade numpy==1.26.4
 
     - name: Build
       shell: bash
@@ -271,7 +273,7 @@ jobs:
     - name: Installing dependencies
       shell: cmd
       run: |
-        pip install numpy=1.26.4
+        pip install numpy
         pip install sympy
         pip install scipy
         pip install h5py
@@ -483,7 +485,7 @@ jobs:
     - name: Installing dependencies
       shell: cmd
       run: |
-        pip install numpy=1.26.4
+        pip install numpy
         pip install sympy
         pip install scipy
 
