@@ -135,16 +135,6 @@ void FluidConstitutiveLaw::NewtonianConstitutiveMatrix2D(
     rC(2,0) = 0.0;
     rC(2,1) = 0.0;
     rC(2,2) = EffectiveViscosity;
-
-    // rC(0,0) = 2.0* EffectiveViscosity;
-    // rC(0,1) = 0.0;
-    // rC(0,2) = 0.0;
-    // rC(1,0) = 0.0;
-    // rC(1,1) = 2.0*EffectiveViscosity;
-    // rC(1,2) = 0.0;
-    // rC(2,0) = 0.0;
-    // rC(2,1) = 0.0;
-    // rC(2,2) = EffectiveViscosity;
 }
 
 void FluidConstitutiveLaw::NewtonianConstitutiveMatrix3D(

@@ -137,13 +137,9 @@ namespace TestCreationUtility
 
 
     inline typename Geometry<NodeType>::Pointer GetQuadraturePointGeometryOnCurve(
-<<<<<<< HEAD
         ModelPart& rModelPart,
         SizeType PolynomialDegree,
         IntegrationPoint<3> IntegrationPoint)
-=======
-        ModelPart& rModelPart, SizeType PolynomialDegree, IntegrationPoint<3> IntegrationPoint)
->>>>>>> 3D_sbm
     {
         typedef typename GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
         IntegrationPointsArrayType integration_points(1);
@@ -168,42 +164,6 @@ namespace TestCreationUtility
         // Create the 2D embedded curve
         auto curve = Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Node>>>(points_curve, p_curve, knot_vector_curve);
 
-<<<<<<< HEAD
-=======
-        // // Assign the points belonging to the surface
-        // PointerVector<Node> points_surface;
-        // points_surface.push_back(Node::Pointer(new Node( 0,  0,  0)));
-        // points_surface.push_back(Node::Pointer(new Node( 1,  0,  0)));
-        // points_surface.push_back(Node::Pointer(new Node( 2,  0,  0)));
-        // points_surface.push_back(Node::Pointer(new Node( 0,  1,  0)));
-        // points_surface.push_back(Node::Pointer(new Node( 1,  1,  0)));
-        // points_surface.push_back(Node::Pointer(new Node( 2,  2,  0)));
-        // points_surface.push_back(Node::Pointer(new Node( 0,  2,  0)));
-        // points_surface.push_back(Node::Pointer(new Node( 1,  2,  0)));
-        // points_surface.push_back(Node::Pointer(new Node( 2,  2,  0)));
-
-        // // Assign the surface's knot vectors
-        // Vector knot_vector_u_surface = ZeroVector(4);
-        // knot_vector_u_surface[0] = 0.0;
-        // knot_vector_u_surface[1] = 0.0;
-        // knot_vector_u_surface[2] = 2.0;
-        // knot_vector_u_surface[3] = 2.0;
-
-        // Vector knot_vector_v_surface = ZeroVector(4);
-        // knot_vector_v_surface[0] = 0.0;
-        // knot_vector_v_surface[1] = 0.0;
-        // knot_vector_v_surface[2] = 1.0;
-        // knot_vector_v_surface[3] = 1.0;
-
-        // // Polynomial degrees
-        // int p_surface = 2;
-        // int q_surface = 2;
-
-        // // Create a 3D surface
-        // auto p_nurbs_surface = Kratos::make_shared<NurbsSurfaceGeometry<3, PointerVector<NodeType>>>(points_surface, p_surface,
-        //     q_surface, knot_vector_u_surface, knot_vector_v_surface);
-
->>>>>>> 3D_sbm
         auto p_nurbs_surface = GenerateNurbsSurface(rModelPart, 3);
         p_nurbs_surface->SetId(1);
         IntegrationInfo integration_info_surface = p_nurbs_surface->GetDefaultIntegrationInfo();
@@ -214,11 +174,6 @@ namespace TestCreationUtility
 
         p_curve_nurbs_surface->SetId(2);
         IntegrationInfo integration_info = p_curve_nurbs_surface->GetDefaultIntegrationInfo();
-<<<<<<< HEAD
-=======
-
-        // p_curve_nurbs_surface->CreateIntegrationPoints(integration_points, integration_info);
->>>>>>> 3D_sbm
         
         p_curve_nurbs_surface->CreateQuadraturePointGeometries(result_geometries, 3, integration_points, integration_info);
 
