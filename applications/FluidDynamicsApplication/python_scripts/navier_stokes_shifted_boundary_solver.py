@@ -353,19 +353,16 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
                     sbm_interface_utility.LocateSkinPoints()
                     # To be done after locating the skin points because elements in which skin points are located
                     # might not be intersected by tessellated skin and might be marked as boundary here
-                    #sbm_interface_utility.SetInterfaceFlags()
+                    sbm_interface_utility.SetInterfaceFlags()
 
                 # Deactivate BOUNDARY elements and nodes which are surrounded by deactivated elements
-                #sbm_interface_utilities[0].DeactivateElementsAndNodes()
+                sbm_interface_utilities[0].DeactivateElementsAndNodes()
 
                 # Add Kratos conditions for points at the boundary based on extension operators
                 # NOTE that same boundary sub model part is being used here for all skin model parts and their utilities to add conditions
                 for i_skin, sbm_interface_utility in enumerate(sbm_interface_utilities):
                     sbm_interface_utility.CalculateAndAddSkinIntegrationPointConditions()
                     KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Integration point conditions added for skin model part " + skin_model_part_names[i_skin] + ".")
-
-                sbm_interface_utility.SetInterfaceFlags()
-                sbm_interface_utilities[0].DeactivateElementsAndNodes()
 
                 # Search for enclosed volumes and fix the pressure of one node if it has not been fixed yet
                 #sbm_interface_utilities[0].FixEnclosedVolumesPressure()

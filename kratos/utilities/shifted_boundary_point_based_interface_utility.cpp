@@ -154,12 +154,20 @@ namespace Kratos
         void ShiftedBoundaryPointBasedInterfaceUtility::CalculateAndAddPointBasedInterface()
     {
         // NOTE that its necessary to call these methods from outside for multiple interface utilities
-        ResetFlags();
-        if (mUseTessellatedBoundary) SetTessellatedBoundaryFlags();
-        LocateSkinPoints();
-        SetInterfaceFlags();
-        DeactivateElementsAndNodes();
 
+        // Reset all SBM flags
+        ResetFlags();
+        // Use tessellated boundary description of skin model part to find SBM_BOUNDARY element in which no skin points are located
+        // NOTE that nodes which are very close to the skin might be relocated here
+        if (mUseTessellatedBoundary) SetTessellatedBoundaryFlags();
+        // Locate skin points AFTER possible node relocation of SetTessellatedBoundaryFlags
+        LocateSkinPoints();
+        // Set the SBM_INTERFACE flag AFTER setting SBM_BOUNDARY flags is completed
+        SetInterfaceFlags();
+        // Deactivate SBM_BOUNDARY elements and nodes which are surrounded by deactivated elements
+        DeactivateElementsAndNodes();
+        // Calculate the extension operators for nodes of elements in which skin points are located 
+        // and add conditions for one or both sides of all skin points
         CalculateAndAddSkinIntegrationPointConditions();
 
         //if (mFindEnclosedVolumes) FixEnclosedVolumesPressure();
@@ -191,6 +199,8 @@ namespace Kratos
     void ShiftedBoundaryPointBasedInterfaceUtility::SetTessellatedBoundaryFlags()
     {
         //TODO SPEED UP
+        //TODO faster to only search in sub model part where it's likely that skin points are located?
+        // --> several layers of elements surrounding the previous SBM_BOUNDARY
 
         // Reset SELECTED flag
         block_for_each(mpModelPart->Elements(), [](ElementType& rElement){
@@ -214,11 +224,10 @@ namespace Kratos
         const std::size_t n_elements = (find_intersected_objects_process.GetModelPart1()).NumberOfElements();
         auto& r_elements = (find_intersected_objects_process.GetModelPart1()).ElementsArray();
 
-        // (Check for nodes that would be surrounded by SBM_BOUNDARY elements only, as these nodes are probably intersected by the skin)
         // Check for nodes that would be surrounded by SBM_BOUNDARY elements mostly to detect small cuts
-        //TODO do not move outer boundary elements
+        //TODO do not move outer boundary elements?
         const std::size_t n_dim = mpModelPart->GetProcessInfo()[DOMAIN_SIZE];
-        const double relocation_multiplier = 1e-2;  //1e-10 OR 1e-2*length
+        const double relocation_multiplier = 1e-2;  //1e-10 OR 1e-2*length for smoother SBM_BOUNDARY
         std::size_t n_relocated_nodes = 0;
         LockObject mutex;
         block_for_each(mpModelPart->Nodes(), [&](NodeType& rNode) {
@@ -233,13 +242,14 @@ namespace Kratos
                     if (p_neigh->Is(SELECTED)) {
                         n_selected++;
                     }
-                } //TODO else outer boundary??
+                }
             }
+            // TODO improve calculation for whether node should be relocated for 3D
             // n_neighbors/2 +1 works well for 2D - TODO: n_neighbors/2+2 as well?? 3D +4?
             const std::size_t n_critical = (n_dim == 2) ? n_neighbors-1 : n_neighbors;
-            bool majority_is_selected = false; //n_selected > n_neighbors/2 +1 && n_selected >= n_critical;
+            bool majority_is_selected = double(n_selected) > double(n_neighbors)/2.0 + 0.9;//  n_selected >= n_critical;
 
-            // If there are only intersected elements around the current node, we will check whether the node is intersected and get the intersecting object's normal
+            // If there are mostly intersected elements around the current node, we will move it into the direction of an intersecting object's normal
             bool relocate_node = false;
             array_1d<double,3> unit_normal;
             double length = 1e-8;
@@ -248,50 +258,52 @@ namespace Kratos
                 for (std::size_t i_neigh = 0; i_neigh < r_neigh_elems.size(); ++i_neigh) {
                     auto p_neigh = r_neigh_elems(i_neigh).get();
                     // Get intersected objects of boundary neighbor
-                    if (p_neigh->Is(SELECTED)) {
-                        for (std::size_t i = 0; i < n_elements; ++i) {
-                            if (r_elements[i]->Id() == p_neigh->Id()) {
-                                // Check whether node is intersected and get the intersected object's normal
-                                auto& r_int_obj = r_intersected_objects[i][0];
-                                array_1d<double, 3> local_coords;
-                                unit_normal = r_int_obj.GetGeometry().Normal(local_coords);
-                                unit_normal /= norm_2(unit_normal);
-                                length = p_neigh->GetGeometry().Length();
-                                relocate_node = true;
-                                break;
+                    if (p_neigh != nullptr) {
+                        if (p_neigh->Is(SELECTED)) {
+                            for (std::size_t i = 0; i < n_elements; ++i) {
+                                if (r_elements[i]->Id() == p_neigh->Id()) {
+                                    // Check whether node is intersected and get the intersected object's normal
+                                    auto& r_int_obj = r_intersected_objects[i][0];
+                                    array_1d<double, 3> local_coords;
+                                    unit_normal = r_int_obj.GetGeometry().Normal(local_coords);
+                                    unit_normal /= norm_2(unit_normal);
+                                    length = p_neigh->GetGeometry().Length();
+                                    relocate_node = true;
+                                    break;
+                                }
                             }
+                            break;
                         }
-                        break;
                     }
                 }
             }
 
-            // Relocate node (initial position) into the direction of the intersected object's normal
-            // TODO Set node position to initial position? - Only as long as structure is not moving?
+            // Relocate node into the direction of the intersected object's normal
             // TODO Change node positions only for calculation of intersections? -> no, because skin points should be found in intersected elements!
-            // NOTE that initial position is mesh output for visualization (ParaView)
+            // NOTE that initial position (X0,Y0,Z0) is mesh output for visualization (ParaView)
+            //TODO store also in deformation etc for visualization?
             if (relocate_node) {
-                const double relocation_distance = relocation_multiplier * length;
-                // rNode.X0() += relocation_distance * unit_normal[0];
-                // rNode.Y0() += relocation_distance * unit_normal[1];
-                // rNode.Z0() += relocation_distance * unit_normal[2];
+                const double relocation_distance = relocation_multiplier * length;  //--> 1e-3 (v works) vs. 1e-4 (v does not work)
+                rNode.X0()  += relocation_distance * unit_normal[0];
+                rNode.Y0()  += relocation_distance * unit_normal[1];
+                rNode.Z0()  += relocation_distance * unit_normal[2];
                 rNode.X()  += relocation_distance * unit_normal[0];
                 rNode.Y()  += relocation_distance * unit_normal[1];
                 rNode.Z()  += relocation_distance * unit_normal[2];
-                // TODO correction needed for acceleration of the node?? correction needed for FM-ALE??
+                //TODO correction needed for acceleration of the node?? correction needed for FM-ALE??
                 // mesh velocity += dx/dt (1st order approximation)
-
                 {
                     std::scoped_lock<LockObject> lock(mutex);
                     n_relocated_nodes++;
                 }
                 rNode.Set(MODIFIED, true);
             }
-            // TODO: Check detJ of surrounding elements - if negative, then revert?
+            //TODO: Check detJ of surrounding elements - if negative, then revert?
         });
 
-        // Recalculate intersections if nodes where moved
-        // NOTE that entirely new process is necessary for taking update node positions into consideration (TODO why??)
+        // Recalculate intersections if nodes were moved
+        // NOTE that entirely new process is necessary for taking update node positions into consideration (TODO change that??)
+        //TODO speed up by calculating intersections only for elements surrounding the relocated nodes?
         if (n_relocated_nodes > 0) {
             FindIntersectedGeometricalObjectsProcess new_find_intersected_objects_process = FindIntersectedGeometricalObjectsProcess(*mpModelPart, *mpSkinModelPart, find_intersected_options);
             new_find_intersected_objects_process.ExecuteInitialize();
@@ -406,6 +418,9 @@ namespace Kratos
 
     void ShiftedBoundaryPointBasedInterfaceUtility::CalculateAndAddSkinIntegrationPointConditions()
     {
+        // TODO NEXT simplify and get all point neighbors on other side!!
+        // TODO NEXT find edge elements!!
+
         // Iterate over the split elements to create a vector for each element defining both sides using the element's skin points normals and positions
         // The resulting vector is as long as the number of nodes of the element and a positive value stands for the positive side of the boundary, a negative one for the negative side.
         // Also store the average position and average normal of the skin points located in the element
@@ -659,12 +674,15 @@ namespace Kratos
         SkinPointsToElementsMapType& rSkinPointsMap)
     {
         //TODO SPEED UP
+        //TODO faster to only search in submodelpart where it's likely that skin points are located?
+        // --> several layers of elements surrounding the previous SBM_BOUNDARY
 
         // Check that the skin model part has elements
         KRATOS_ERROR_IF_NOT(mpSkinModelPart->NumberOfElements())
             << "There are no elements in skin model part (boundary) '" << mpSkinModelPart->FullName() << "'." << std::endl;
 
         // Set the bin-based fast point locator utility
+        //TODO faster to keep pointer_locator for all skin model parts and iterations? problem with node relocation?
         const std::size_t point_locator_max_results = 10000;
         const double point_locator_tolerance = 1.0e-5;
         BinBasedFastPointLocator<TDim> point_locator(*mpModelPart);
