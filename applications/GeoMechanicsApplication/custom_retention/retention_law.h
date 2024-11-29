@@ -67,8 +67,10 @@ public:
         */
 
     public:
-        Parameters(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo)
-            : mrCurrentProcessInfo(rCurrentProcessInfo), mrMaterialProperties(rMaterialProperties){};
+        explicit Parameters(const Properties& rMaterialProperties)
+            : mrMaterialProperties(rMaterialProperties)
+        {
+        }
 
         ~Parameters() = default;
 
@@ -82,13 +84,10 @@ public:
             return mFluidPressure.value();
         }
 
-        const ProcessInfo& GetProcessInfo() const { return mrCurrentProcessInfo; }
-
         const Properties& GetMaterialProperties() const { return mrMaterialProperties; }
 
     private:
         std::optional<double> mFluidPressure;
-        const ProcessInfo&    mrCurrentProcessInfo;
         const Properties&     mrMaterialProperties;
 
     }; // class Parameters end
@@ -115,15 +114,15 @@ public:
      */
     virtual double& CalculateValue(Parameters& rParameters, const Variable<double>& rThisVariable, double& rValue) = 0;
 
-    virtual double CalculateSaturation(Parameters& rParameters) = 0;
+    virtual double CalculateSaturation(Parameters& rParameters) const = 0;
 
-    virtual double CalculateEffectiveSaturation(Parameters& rParameters) = 0;
+    virtual double CalculateEffectiveSaturation(Parameters& rParameters) const = 0;
 
-    virtual double CalculateDerivativeOfSaturation(Parameters& rParameters) = 0;
+    virtual double CalculateDerivativeOfSaturation(Parameters& rParameters) const = 0;
 
-    virtual double CalculateRelativePermeability(Parameters& rParameters) = 0;
+    virtual double CalculateRelativePermeability(Parameters& rParameters) const = 0;
 
-    virtual double CalculateBishopCoefficient(Parameters& rParameters) = 0;
+    virtual double CalculateBishopCoefficient(Parameters& rParameters) const = 0;
 
     /**
      * This is to be called at the very beginning of the calculation

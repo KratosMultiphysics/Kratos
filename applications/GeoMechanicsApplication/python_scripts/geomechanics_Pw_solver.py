@@ -75,12 +75,12 @@ class PwSolver(GeoSolver):
             "block_builder"              : true,
             "search_neighbours_step"     : false,
             "linear_solver_settings":{
-                "solver_type": "AMGCL",
+                "solver_type": "amgcl",
                 "tolerance": 1.0e-6,
                 "max_iteration": 100,
                 "scaling": false,
                 "verbosity": 0,
-                "preconditioner_type": "ILU0Preconditioner",
+                "preconditioner_type": "amg",
                 "smoother_type": "ilu0",
                 "krylov_type": "gmres",
                 "coarsening_type": "aggregation"
@@ -102,6 +102,7 @@ class PwSolver(GeoSolver):
     def AddDofs(self):
         ## Fluid dofs
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.WATER_PRESSURE, KratosMultiphysics.REACTION_WATER_PRESSURE,self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosGeo.DT_WATER_PRESSURE, self.main_model_part)
 
         KratosMultiphysics.Logger.PrintInfo("GeoMechanics_Pw_Solver", "DOFs added correctly.")
 

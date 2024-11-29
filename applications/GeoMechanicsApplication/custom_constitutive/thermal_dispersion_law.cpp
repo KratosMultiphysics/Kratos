@@ -15,6 +15,8 @@
 #include "custom_constitutive/thermal_dispersion_law.h"
 #include "custom_retention/retention_law_factory.h"
 #include "geo_mechanics_application_variables.h"
+#include "includes/properties.h"
+#include "includes/variables.h"
 
 namespace Kratos
 {
@@ -26,12 +28,11 @@ GeoThermalDispersionLaw::GeoThermalDispersionLaw(std::size_t NumberOfDimensions)
         << "Got invalid number of dimensions: " << mNumberOfDimensions << std::endl;
 }
 
-Matrix GeoThermalDispersionLaw::CalculateThermalDispersionMatrix(const Properties& rProp,
-                                                                 const ProcessInfo& rProcessInfo) const
+Matrix GeoThermalDispersionLaw::CalculateThermalDispersionMatrix(const Properties& rProp) const
 {
     Matrix result = ZeroMatrix(mNumberOfDimensions, mNumberOfDimensions);
 
-    RetentionLaw::Parameters parameters(rProp, rProcessInfo);
+    RetentionLaw::Parameters parameters(rProp);
     auto                     retention_law  = RetentionLawFactory::Clone(rProp);
     const double             saturation     = retention_law->CalculateSaturation(parameters);
     const double             water_fraction = rProp[POROSITY] * saturation;

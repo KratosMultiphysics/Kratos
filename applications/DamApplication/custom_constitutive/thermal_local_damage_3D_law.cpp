@@ -35,12 +35,6 @@ ThermalLocalDamage3DLaw::~ThermalLocalDamage3DLaw() {}
 int ThermalLocalDamage3DLaw::Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) const
 {
     int ierr = LocalDamage3DLaw::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
-    if(ierr != 0) return ierr;
-
-    if ( THERMAL_EXPANSION.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"THERMAL_EXPANSION Key is 0. Check if all applications were correctly registered.", "" )
-    if ( TEMPERATURE.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"TEMPERATURE Key is 0. Check if all applications were correctly registered.", "" )
 
     return ierr;
 }

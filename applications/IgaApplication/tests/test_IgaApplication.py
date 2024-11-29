@@ -1,7 +1,6 @@
 # import Kratos
 from KratosMultiphysics import *
 from KratosMultiphysics.IgaApplication import *
-import run_cpp_unit_tests
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 # Import Kratos "wrapper" for unittests
