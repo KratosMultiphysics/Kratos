@@ -155,7 +155,7 @@ public:
             // copy external force vector if this is a restart
             if (rModelPart.GetProcessInfo()[STEP] > 1)
             {
-                TSparseSpace::Copy(mCurrentExternalForceVector, mPreviousExternalForceVector); 
+                TSparseSpace::Copy(mCurrentExternalForceVector, mPreviousExternalForceVector);
             } else {
                 mPreviousExternalForceVector = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
             }
@@ -198,7 +198,7 @@ public:
             << "\nRHS vector = " << rb << std::endl;
 
         if (mCalculateInitialSecondDerivative) {
-            this->CalculateInitialSecondDerivative(rModelPart, rA, rb, pScheme);
+            this->CalculateInitialSecondDerivative(rModelPart, rA, pScheme);
             mCopyExternalForceVector = true;
         }
 
@@ -642,7 +642,6 @@ private:
 
     void CalculateInitialSecondDerivative(ModelPart&                    rModelPart,
                                           TSystemMatrixType&            rStiffnessMatrix,
-                                          TSystemVectorType&            rExternalForce,
                                           typename TSchemeType::Pointer pScheme)
     {
         TSystemVectorType solution_step_values = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
@@ -665,9 +664,9 @@ private:
         TSystemVectorType damping_contribution = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
         TSparseSpace::Mult(mDampingMatrix, first_derivative_vector, damping_contribution);
 
-        // performs: initial_force_vector = rExternalForce - stiffness_contribution - damping_contribution;
+        // performs: initial_force_vector = mCurrentExternalForceVector - stiffness_contribution - damping_contribution;
         TSystemVectorType initial_force_vector = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
-        TSparseSpace::ScaleAndAdd(1.0, rExternalForce, -1.0, stiffness_contribution, initial_force_vector);
+        TSparseSpace::ScaleAndAdd(1.0, mCurrentExternalForceVector, -1.0, stiffness_contribution, initial_force_vector);
         TSparseSpace::UnaliasedAdd(initial_force_vector, -1.0, damping_contribution);
 
         // apply constraint to initial force vector, as the mMassmatrix is also constrained
