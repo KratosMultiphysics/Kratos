@@ -1,4 +1,4 @@
-﻿//    |  /           |
+//    |  /           |
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
@@ -928,7 +928,7 @@ namespace Kratos
         for (IndexType i = 0; i < number_of_control_points; ++i) {
             new_DN_De_bending(i, 0) = r_DN_De(i, 0) * (thickness/2) * zeta;  // Copy first column
             new_DN_De_bending(i, 1) = r_DN_De(i, 1) * (thickness/2) * zeta;  // Copy second column
-            new_DN_De_bending(i, 2) = r_N(i) * (thickness/2);            // Set third column to zero
+            new_DN_De_bending(i, 2) = 0.0;            // Set third column to zero
         }
         DN_De_Jn_bending = trans(prod(J_inv, trans(new_DN_De_bending)));
 
@@ -1343,7 +1343,7 @@ namespace Kratos
         double thickness = this->GetProperties().GetValue(THICKNESS);
         // double const det_J_zeta = thickness/2 ;
         
-        noalias(rLeftHandSideMatrix) +=  IntegrationWeight * IntegrationWeight_zeta * thickness/2  * (rKm + rKd );  
+        noalias(rLeftHandSideMatrix) +=  IntegrationWeight * IntegrationWeight_zeta * (rKm + rKd ); //* thickness/2   
 
         double weight = IntegrationWeight * IntegrationWeight_zeta * thickness/2;                               
     }
