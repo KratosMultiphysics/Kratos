@@ -72,6 +72,7 @@
                 "gauss_points_check_variables" : ["AXIAL_FORCE", "AXIAL_STRAIN"],
                 "input_file_name"              : "LinearTruss3D/linear_3d_truss_test_results.json",
                 "model_part_name"              : "Structure.Parts_Truss_Truss_Auto1",
+				"tolerance"                    : 1.0e-8,
                 "time_frequency"               : 1.0
             }
         }]
