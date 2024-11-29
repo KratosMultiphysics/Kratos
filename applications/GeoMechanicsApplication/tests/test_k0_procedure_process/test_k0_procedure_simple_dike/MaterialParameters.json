@@ -16,7 +16,7 @@
               "PERMEABILITY_XX"          :  4.5e-30,
               "PERMEABILITY_YY"          :  4.5e-30,
               "PERMEABILITY_XY"          :  0.0,
-	          "K0_MAIN_DIRECTION"        :  1,
+              "K0_MAIN_DIRECTION"        :  1,
               "DYNAMIC_VISCOSITY"        :  1.0e-3,
               "UDSM_NAME"                :  "../../MohrCoulombUMAT.dll",
               "IS_FORTRAN_UDSM"          :  true,
