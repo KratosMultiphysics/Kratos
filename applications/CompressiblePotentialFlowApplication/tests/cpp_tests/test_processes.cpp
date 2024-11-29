@@ -13,7 +13,7 @@
 
 // Project includes
 #include "containers/model.h"
-#include "testing/testing.h"
+#include "tests/cpp_tests/compressible_potential_flow_fast_suite.h"
 #include "compressible_potential_flow_application_variables.h"
 #include "custom_processes/move_model_part_process.h"
 #include "custom_processes/compute_embedded_lift_process.h"
