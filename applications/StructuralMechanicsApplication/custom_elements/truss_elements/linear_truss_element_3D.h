@@ -208,39 +208,6 @@ public:
         const GeometryType::IntegrationPointsArrayType &rIntegrationPoints,
         const IndexType PointNumber) const override;
 
-    /**
-     * @brief This function provides a more general interface to the element.
-     * @details It is designed so that rLHSvariables and rRHSvariables are passed to the element thus telling what is the desired output
-     * @param rLeftHandSideMatrix container with the output Left Hand Side matrix
-     * @param rRightHandSideVector container for the desired RHS output
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    void CalculateLocalSystem(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * @brief This is called during the assembling process in order to calculate the elemental left hand side matrix only
-     * @param rLeftHandSideMatrix the elemental left hand side matrix
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    void CalculateLeftHandSide(
-        MatrixType& rLeftHandSideMatrix,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-      * @brief This is called during the assembling process in order to calculate the elemental right hand side vector only
-      * @param rRightHandSideVector the elemental right hand side vector
-      * @param rCurrentProcessInfo the current process info instance
-      */
-    void CalculateRightHandSide(
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
     ///@}
     ///@name Access
     ///@{
