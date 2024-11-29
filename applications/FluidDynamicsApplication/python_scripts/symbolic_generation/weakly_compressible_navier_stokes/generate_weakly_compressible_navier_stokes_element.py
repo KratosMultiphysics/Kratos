@@ -118,7 +118,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
 
     ## Other data definitions
     f = DefineMatrix('f',nnodes,dim)            # Forcing term
-    v_sol_frac = DefineMatrix('v_sol_frac',nnodes,dim) # Solid fraction velocity
+    v_sol_frac = DefineMatrix('r_v_sol_frac',nnodes,dim) # Solid fraction velocity
 
     ## Constitutive matrix definition
     C = DefineSymmetricMatrix('C',strain_size,strain_size)
