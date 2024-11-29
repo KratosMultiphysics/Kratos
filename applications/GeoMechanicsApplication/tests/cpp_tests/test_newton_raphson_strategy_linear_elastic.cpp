@@ -227,7 +227,7 @@ void TestNewtonRaphsonLinearElasticDynamic(double                     DeltaTime,
     KRATOS_EXPECT_EQ(geo_custom_element.GetCountCalculateLeftHandSideCalled(), 1);
     KRATOS_EXPECT_EQ(geo_custom_element.GetCountCalculateMassMatrixCalled(), 1);
     KRATOS_EXPECT_EQ(geo_custom_element.GetCalculateDampingMatrixCalled(), 1);
-    KRATOS_EXPECT_EQ(geo_custom_element.GetCountCalculateRightHandSideCalled(), 0);
+    KRATOS_EXPECT_EQ(geo_custom_element.GetCountCalculateRightHandSideCalled(), 1);
 
     KRATOS_EXPECT_EQ(geo_custom_condition.GetCountCalculateLeftHandSideCalled(), 1);
     KRATOS_EXPECT_EQ(geo_custom_condition.GetCountCalculateMassMatrixCalled(), 1);
