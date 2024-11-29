@@ -75,6 +75,7 @@
                 "time_frequency"               : 1.0
             }
         }]
+		
 		//"_json_output_process" : [
 		//{
 		//	"python_module"   : "json_output_process",
