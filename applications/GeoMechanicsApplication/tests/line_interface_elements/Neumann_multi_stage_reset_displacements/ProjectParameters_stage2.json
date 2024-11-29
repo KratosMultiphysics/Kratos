@@ -1,8 +1,8 @@
 {
     "problem_data": {
         "problem_name":         "Neumann_multi_stage",
-        "start_time":           0.0,
-        "end_time":             2.0,
+        "start_time":           2.0,
+        "end_time":             4.0,
         "echo_level":           1,
         "parallel_type":        "OpenMP",
         "number_of_threads":    1
@@ -12,8 +12,7 @@
         "model_part_name":                    "PorousDomain",
         "domain_size":                        2,
         "model_import_settings":              {
-            "input_type":       "mdpa",
-            "input_filename":   "3+3_line"
+            "input_type":       "rest"
         },
         "material_import_settings":              {
             "materials_filename":       "../common/MaterialParameters.json"
@@ -31,7 +30,7 @@
         "block_builder":                      false,
         "solution_type":                      "Quasi-Static",
         "scheme_type":                        "Newmark",
-        "reset_displacements":                false,
+        "reset_displacements":                true,
         "newmark_beta":                       0.25,
         "newmark_gamma":                      0.5,
         "newmark_theta":                      0.5,
@@ -121,6 +120,13 @@
                 "is_fixed":        true,
                 "value":           0.0,
                 "table":           0
+            }
+        },{
+            "python_module" : "reset_displacement_process",
+            "kratos_module" : "KratosMultiphysics.GeoMechanicsApplication",
+            "process_name"  : "ResetDisplacementProcess",
+            "Parameters"    : {
+                "model_part_name": "PorousDomain.Interfaces"
             }
         }],
         "loads_process_list": [{
