@@ -46,11 +46,7 @@ class AnalysisStage(object):
         """This function executes the entire AnalysisStage
         It can be overridden by derived classes
         """
-        # file_name = "time_txt_files/prepro_time.txt"
-        # start_time = time.time()
         self.Initialize()
-        # with open(file_name, 'a') as file:
-        #     file.write(f"{time.time() - start_time}\n")
         
         self.RunSolutionLoop()
         
@@ -74,14 +70,8 @@ class AnalysisStage(object):
         while self.KeepAdvancingSolutionLoop():
             self.time = self._AdvanceTime()
             self.InitializeSolutionStep()
-            
-            file_name = "time_txt_files/RunSolutionLoop.txt"
-            start_time = time.time()
             self._GetSolver().Predict()
             is_converged = self._GetSolver().SolveSolutionStep()
-            with open(file_name, 'a') as file:
-                file.write(f"{time.time() - start_time}\n")
-
             self.__CheckIfSolveSolutionStepReturnsAValue(is_converged)
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()

@@ -41,9 +41,23 @@ namespace Kratos
         const unsigned int dim = DN_De[0].size2();
         Matrix DN_DX(number_of_nodes,dim);
 
-        // GeometryType::JacobiansType J0;
-        // Matrix InvJ0(dim,dim);
-        // r_geometry.Jacobian(J0,r_geometry.GetDefaultIntegrationMethod());
+        GeometryType::JacobiansType J0;
+        Matrix InvJ0(dim,dim);
+        r_geometry.Jacobian(J0,r_geometry.GetDefaultIntegrationMethod());
+        Matrix Jacobian = ZeroMatrix(3,3);
+        double DetJ0;
+        Jacobian(0,0) = J0[0](0,0);
+        Jacobian(0,1) = J0[0](0,1);
+        Jacobian(1,0) = J0[0](1,0);
+        Jacobian(1,1) = J0[0](1,1);
+        Jacobian(2,2) = 1.0;
+        // Calculating inverse jacobian and jacobian determinant
+        MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
+        array_1d<double, 3> tangent_parameter_space;
+        r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space !!
+        Vector add_factor = prod(Jacobian, tangent_parameter_space);
+        add_factor[2] = 0.0;
+        DetJ0 = norm_2(add_factor);
 
         //------------------------------------------------------
         // PRINT BOUNADRY GAUSS POINT TO FILE
@@ -90,7 +104,7 @@ namespace Kratos
             
         }
         // Differential area
-        double penalty_integration = penalty * integration_points[0].Weight(); //  * std::abs(DetJ0);
+        double penalty_integration = penalty * integration_points[0].Weight() * std::abs(DetJ0); //  * std::abs(DetJ0);
 
         // Collins, Lozinsky & Scovazzi innovation
         double Guglielmo_innovation = 1.0;  // = 1 -> Penalty approach
@@ -104,9 +118,9 @@ namespace Kratos
         // Assembly
         noalias(rLeftHandSideMatrix) -= theta * prod(trans(H), H) * penalty_integration;
         // Assembly of the integration by parts term -(w,GRAD_u * n) -> Fundamental !!
-        noalias(rLeftHandSideMatrix) -= theta * prod(trans(H), DN_dot_n)                        * integration_points[0].Weight(); // * std::abs(DetJ0) ;
+        noalias(rLeftHandSideMatrix) -= theta * prod(trans(H), DN_dot_n)                        * integration_points[0].Weight()*std::abs(DetJ0); // * std::abs(DetJ0) ;
         // Of the Dirichlet BCs -(GRAD_w* n,u) 
-        noalias(rLeftHandSideMatrix) -= theta * Guglielmo_innovation * prod(trans(DN_dot_n), H) * integration_points[0].Weight(); // * std::abs(DetJ0) ;
+        noalias(rLeftHandSideMatrix) -= theta * Guglielmo_innovation * prod(trans(DN_dot_n), H) * integration_points[0].Weight()*std::abs(DetJ0); // * std::abs(DetJ0) ;
 
 
         const double u_D_scalar = this->GetValue(TEMPERATURE);
@@ -115,8 +129,8 @@ namespace Kratos
         noalias(rRightHandSideVector) -=  theta * H_vector * u_D_scalar * penalty_integration;
         noalias(rRightHandSideVector) -=  (1.0-theta) * H_vector * u_D_scalar_old * penalty_integration;
         // Of the Dirichlet BCs
-        noalias(rRightHandSideVector) -= theta * Guglielmo_innovation * DN_dot_n_vec * u_D_scalar * integration_points[0].Weight(); // * std::abs(DetJ0);
-        noalias(rRightHandSideVector) -= (1.0-theta) * Guglielmo_innovation * DN_dot_n_vec * u_D_scalar_old * integration_points[0].Weight();
+        noalias(rRightHandSideVector) -= theta * Guglielmo_innovation * DN_dot_n_vec * u_D_scalar * integration_points[0].Weight()*std::abs(DetJ0); // * std::abs(DetJ0);
+        noalias(rRightHandSideVector) -= (1.0-theta) * Guglielmo_innovation * DN_dot_n_vec * u_D_scalar_old * integration_points[0].Weight()*std::abs(DetJ0);
 
         // RHS contributions for (1 - theta)-weighted terms
         double temperature_previous = 0.0;
@@ -130,8 +144,8 @@ namespace Kratos
   
         // Residual for (1 - theta)-weighted terms
         noalias(rRightHandSideVector) += (1.0 - theta) * H_vector * temperature_previous * penalty_integration;
-        noalias(rRightHandSideVector) += (1.0 - theta) * H_vector * grad_u_previous_dot_normal * integration_points[0].Weight(); 
-        noalias(rRightHandSideVector) += (1.0 - theta) * Guglielmo_innovation * DN_dot_n_vec * temperature_previous * integration_points[0].Weight();
+        noalias(rRightHandSideVector) += (1.0 - theta) * H_vector * grad_u_previous_dot_normal * integration_points[0].Weight()*std::abs(DetJ0); 
+        noalias(rRightHandSideVector) += (1.0 - theta) * Guglielmo_innovation * DN_dot_n_vec * temperature_previous * integration_points[0].Weight()*std::abs(DetJ0);
 
         Vector temp(number_of_nodes);
         // RHS = ExtForces - K*temp;

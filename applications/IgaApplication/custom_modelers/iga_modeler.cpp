@@ -375,25 +375,6 @@ namespace Kratos
                     << ". Possible types are \"element\" and \"condition\"." << std::endl;
             }
         }
-
-        if (searching_time > 1e-13) {
-            std::ofstream outputFile("time_txt_files/searching_time.txt", std::ios::app);
-            outputFile << std::scientific << std::setprecision(20);
-            outputFile << searching_time << "\n";
-            outputFile.close();
-        }
-        if (basis_functions_time > 1e-13) {
-            std::ofstream outputFile("time_txt_files/basis_functions_time.txt", std::ios::app);
-            outputFile << std::scientific << std::setprecision(20); 
-            outputFile << basis_functions_time << "\n";
-            outputFile.close();
-        }
-        if (element_pushback_time > 1e-13) {
-            std::ofstream outputFile("time_txt_files/element_pushback_time.txt", std::ios::app);
-            outputFile << std::scientific << std::setprecision(20); 
-            outputFile << element_pushback_time << "\n";
-            outputFile.close();
-        }
     }
 
     ///@}
