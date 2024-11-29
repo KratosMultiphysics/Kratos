@@ -106,7 +106,7 @@ double ApplyCPhiReductionProcess::GetAndCheckC(const Element::PropertiesType& rP
         << "Missing required item INDEX_OF_UMAT_C_PARAMETER" << std::endl;
 
     KRATOS_ERROR_IF(part_properties[INDEX_OF_UMAT_C_PARAMETER] < 1 ||
-                    part_properties[INDEX_OF_UMAT_C_PARAMETER] > part_properties[UMAT_PARAMETERS].size())
+                    part_properties[INDEX_OF_UMAT_C_PARAMETER] > static_cast<int>(part_properties[UMAT_PARAMETERS].size()))
         << "invalid INDEX_OF_UMAT_C_PARAMETER: " << part_properties[INDEX_OF_UMAT_C_PARAMETER]
         << " (out-of-bounds index)" << std::endl;
     const auto c = part_properties[UMAT_PARAMETERS][part_properties[INDEX_OF_UMAT_C_PARAMETER] - 1];
