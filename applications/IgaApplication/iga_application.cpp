@@ -34,6 +34,12 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mConvDiffIGAElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
+    , mStokesElement(0, Element::GeometryType::Pointer(
+        new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
+    , mStokesElementTransientTheta(0, Element::GeometryType::Pointer(
+        new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
+    , mStokesElementTransient(0, Element::GeometryType::Pointer(
+        new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mOutputCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mLoadCondition(0, Condition::GeometryType::Pointer(
@@ -72,8 +78,19 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSBMLoadSolid2DCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+<<<<<<< HEAD
     , mSupportContact2DCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1)))) 
+=======
+    , mSupportFluidDirichletConditionTheta(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mSupportFluidDirichletCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mSupportPressureDirichletCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mSBMFluidCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+>>>>>>> 3D_sbm
 {
 }
 
@@ -97,6 +114,9 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_ELEMENT("LaplacianIGAElement", mLaplacianIGAElement)
     KRATOS_REGISTER_ELEMENT("Solid2DElement", mSolid2DElement)
     KRATOS_REGISTER_ELEMENT("ConvDiffIGAElement", mConvDiffIGAElement)
+    KRATOS_REGISTER_ELEMENT("StokesElement", mStokesElement)
+    KRATOS_REGISTER_ELEMENT("StokesElementTransientTheta", mStokesElementTransientTheta)
+    KRATOS_REGISTER_ELEMENT("StokesElementTransient", mStokesElementTransient)
 
     // CONDITIONS
     KRATOS_REGISTER_CONDITION("OutputCondition", mOutputCondition)
@@ -119,6 +139,14 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_CONDITION("SBMSolid2DCondition", mSBMSolid2DCondition)
     KRATOS_REGISTER_CONDITION("SBMLoadSolid2DCondition", mSBMLoadSolid2DCondition)
     KRATOS_REGISTER_CONDITION("SupportContact2DCondition", mSupportContact2DCondition)
+    KRATOS_REGISTER_CONDITION("SupportPlainStressCondition", mSupportPlainStressCondition)
+    KRATOS_REGISTER_CONDITION("LoadPlainStressCondition", mLoadPlainStressCondition)
+    KRATOS_REGISTER_CONDITION("SBMPlainStressCondition", mSBMPlainStressCondition)
+    KRATOS_REGISTER_CONDITION("SBMLoadPlainStressCondition", mSBMLoadPlainStressCondition)
+    KRATOS_REGISTER_CONDITION("SupportFluidDirichletConditionTheta", mSupportFluidDirichletConditionTheta)
+    KRATOS_REGISTER_CONDITION("SupportFluidDirichletCondition", mSupportFluidDirichletCondition)
+    KRATOS_REGISTER_CONDITION("SupportPressureDirichletCondition", mSupportPressureDirichletCondition)
+    KRATOS_REGISTER_CONDITION("SBMFluidCondition", mSBMFluidCondition)
 
     KRATOS_REGISTER_MODELER("IgaModeler", mIgaModeler);
     KRATOS_REGISTER_MODELER("RefinementModeler", mRefinementModeler);
@@ -193,6 +221,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     // SBM Variables 
     KRATOS_REGISTER_VARIABLE(INTEGRATION_POINTS)
     KRATOS_REGISTER_VARIABLE(INTEGRATION_WEIGHTS)
+<<<<<<< HEAD
 
     // CONTACT Variables 
     KRATOS_REGISTER_VARIABLE(NORMAL_GAP )
@@ -211,6 +240,9 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
 
     //BC variables
     KRATOS_REGISTER_VARIABLE(MODULE)
+=======
+    KRATOS_REGISTER_VARIABLE(BOUNDARY_CONDITION_TYPE)
+>>>>>>> 3D_sbm
 }
 
 }  // namespace Kratos

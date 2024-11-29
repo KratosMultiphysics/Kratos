@@ -165,6 +165,8 @@ private:
 
         /// Sets the brep as geometry parent of the nurbs surface.
         p_surface->SetGeometryParent(p_brep_surface.get());
+    
+        p_surface->SetValue(IS_SBM, true);
 
         p_surface->SetValue(IS_SBM, true);
 

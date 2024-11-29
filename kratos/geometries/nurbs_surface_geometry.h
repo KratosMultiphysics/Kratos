@@ -31,6 +31,8 @@
 
 #include "integration/integration_point_utilities.h"
 
+#include "../applications/IgaApplication/iga_application_variables.h"
+
 namespace Kratos {
 
 template <int TWorkingSpaceDimension, class TContainerPointType>

@@ -1,0 +1,393 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Nicolò Antonelli
+//                  
+//
+
+// System includes
+
+// External includes
+
+// Project includes
+#include "custom_conditions/support_fluid_dirichlet_condition_theta.h"
+
+namespace Kratos
+{
+void SupportFluidDirichletConditionTheta::CalculateAll(
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo,
+    const bool CalculateStiffnessMatrixFlag,
+    const bool CalculateResidualVectorFlag
+)
+{
+    KRATOS_TRY
+    const double penalty = GetProperties()[PENALTY_FACTOR];
+
+    const auto& r_geometry = GetGeometry();
+    const SizeType number_of_nodes = r_geometry.size();
+
+    // Integration
+    const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
+    const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(r_geometry.GetDefaultIntegrationMethod());
+    
+    const unsigned int dim = DN_De[0].size2();
+    Matrix DN_DX(number_of_nodes,dim);
+    noalias(DN_DX) = DN_De[0]; // prod(DN_De[point_number],InvJ0);
+
+    const SizeType mat_size = number_of_nodes * (dim+1);
+    //resizing as needed the LHS
+    if(rLeftHandSideMatrix.size1() != mat_size)
+        rLeftHandSideMatrix.resize(mat_size,mat_size,false);
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size,mat_size); //resetting LHS
+    
+    // resizing as needed the RHS
+    if(rRightHandSideVector.size() != mat_size)
+        rRightHandSideVector.resize(mat_size,false);
+    noalias(rRightHandSideVector) = ZeroVector(mat_size); //resetting RHS
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // constitutive law
+    Matrix B = ZeroMatrix(3,number_of_nodes*dim);
+    CalculateB(B, DN_DX);
+
+    ConstitutiveLaw::Parameters Values(r_geometry, GetProperties(), rCurrentProcessInfo);
+
+    const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
+    // Set constitutive law flags:
+    Flags& ConstitutiveLawOptions=Values.GetOptions();
+
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+    ConstitutiveVariables this_constitutive_variables(strain_size);
+    Vector old_displacement(number_of_nodes*dim);
+    GetValuesVector(old_displacement);
+
+    Vector old_strain = prod(B,old_displacement);
+    Values.SetStrainVector(old_strain);
+    Values.SetStressVector(this_constitutive_variables.StressVector);
+    Values.SetConstitutiveMatrix(this_constitutive_variables.D);
+
+    //ATTENTION: here we assume that only one constitutive law is employed for all of the gauss points in the element.
+    //this is ok under the hypothesis that no history dependent behavior is employed
+    mpConstitutiveLaw->CalculateMaterialResponseCauchy(Values);
+
+    Vector& r_stress_vector = Values.GetStressVector();
+    const Matrix& r_D = Values.GetConstitutiveMatrix();
+    Matrix sigmaVoigt = Matrix(prod(r_D, B));
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // double h = 1.128379167 * sqrt(this->GetGeometry().DomainSize());
+    // Read the refinements.iga.json
+    const Parameters refinements_parameters = ReadParamatersFile("refinements.iga.json");
+    int insertions = refinements_parameters["refinements"][0]["parameters"]["insert_nb_per_span_u"].GetInt();
+    double h = 2.0/(insertions+1) ;
+    // const double h = norm_2(r_geometry[0].Coordinates()-r_geometry[1].Coordinates());
+    double DynViscosity = 1.0;
+    const double TauOne = std::pow(h, 2) / ( 4.0 * DynViscosity );
+    ///_________________________________________________________________________________________________________________
+    
+    // Compute the normals
+    array_1d<double, 3> normal_physical_space;
+    array_1d<double, 3> normal_parameter_space;
+
+    r_geometry.Calculate(NORMAL, normal_parameter_space);
+
+    normal_physical_space = normal_parameter_space;
+
+    const Matrix& H = r_geometry.ShapeFunctionsValues();
+    
+    double h_element_size = norm_2(r_geometry[0].Coordinates()-r_geometry[1].Coordinates());
+    double penalty_integration = penalty * integration_points[0].Weight() / h_element_size;
+
+    // Compute the pressure & velocity at the previous iteration
+    double pressure_current_iteration = 0.0;
+    Vector velocity_current_iteration = ZeroVector(2);
+    double pressure_previous_iteration = 0.0;
+    Vector velocity_previous_iteration = ZeroVector(2);
+    Matrix u_coeff_previous(number_of_nodes * 2, 1);
+    for(unsigned int j = 0; j < number_of_nodes; ++j) {
+        pressure_current_iteration    += r_geometry[j].GetSolutionStepValue(PRESSURE) * H(0,j);
+        velocity_current_iteration[0] += r_geometry[j].GetSolutionStepValue(VELOCITY_X) * H(0,j);
+        velocity_current_iteration[1] += r_geometry[j].GetSolutionStepValue(VELOCITY_Y) * H(0,j);
+        // Previous time-step
+        pressure_previous_iteration    += r_geometry[j].GetSolutionStepValue(PRESSURE, 1) * H(0,j);
+        velocity_previous_iteration[0] += r_geometry[j].GetSolutionStepValue(VELOCITY_X, 1) * H(0,j);
+        velocity_previous_iteration[1] += r_geometry[j].GetSolutionStepValue(VELOCITY_Y, 1) * H(0,j);
+        u_coeff_previous(j * 2, 0)     = r_geometry[j].GetSolutionStepValue(VELOCITY_X, 1); // X velocity at previous time step
+        u_coeff_previous(j * 2 + 1, 0) = r_geometry[j].GetSolutionStepValue(VELOCITY_Y, 1); // Y velocity at previous time step
+    }
+    // Compute sigma_previous = D * B * u_previous
+    Matrix sigma_previous = prod(sigmaVoigt, u_coeff_previous);
+
+    const double theta = rCurrentProcessInfo[TIME_INTEGRATION_THETA];
+
+    Vector n_tensor(2);
+    n_tensor(0) = normal_parameter_space(0); // Component in x direction
+    n_tensor(1) = normal_parameter_space(1); // Component in y direction
+
+    // Compute the traction vector: sigma * n using r_stress_vector
+    Matrix sigma_block = ZeroMatrix(2, 2);
+    sigma_block(0, 0) = r_stress_vector[0];      sigma_block(0, 1) = r_stress_vector[2];      
+    sigma_block(1, 0) = r_stress_vector[2];      sigma_block(1, 1) = r_stress_vector[1];         
+    Vector traction_current_iteration = prod(sigma_block, n_tensor); // This results in a 2x1 vector.
+    // Compute traction for the previous step: sigma_previous * n_tensor
+    Vector traction_previous = ZeroVector(2);
+    traction_previous[0] = sigma_previous(0,0) * n_tensor[0] + sigma_previous(2,0) * n_tensor[1]; // Traction_x
+    traction_previous[1] = sigma_previous(2,0) * n_tensor[0] + sigma_previous(1,0) * n_tensor[1]; // Traction_y
+
+    for (IndexType i = 0; i < number_of_nodes; i++) {
+        for (IndexType j = 0; j < number_of_nodes; j++) {
+            for (IndexType idim = 0; idim < 2; idim++) {
+
+                // Penalty term for the velocity
+                rLeftHandSideMatrix(3*i+idim, 3*j+idim) += theta * H(0,i)*H(0,j)* penalty_integration;
+                // // Nitsche flux term (VELOCITY)
+                // rLeftHandSideMatrix(3*i+idim, 3*j+idim) -= H(0,j)*(
+                //         DN_DX(i, 0) * normal_parameter_space[0] + DN_DX(i, 1) * normal_parameter_space[1] )
+                //         * integration_points[0].Weight();
+                // // Nitsche flux term (PRESSURE)
+                // rLeftHandSideMatrix(3*i+idim, 3*j+2) += H(0,i)* ( H(0,j) * normal_parameter_space[idim] )
+                //         * integration_points[0].Weight();
+                
+                // integration by parts velocity --> Laplacian problem
+                // rLeftHandSideMatrix(3*i+idim, 3*j+idim) -= H(0,i)*(
+                //         DN_DX(j, 0) * normal_parameter_space[0] + DN_DX(j, 1) * normal_parameter_space[1] ) * integration_points[0].Weight();
+                
+                for (IndexType jdim = 0; jdim < 2; jdim++) {
+                    // Extract the 2x2 block for the control point i from the sigma matrix.
+                    Matrix sigma_block = ZeroMatrix(2, 2);
+                    sigma_block(0, 0) = sigmaVoigt(0, 2*j+jdim);      // sigma(4 * j + 2*jdim, 0);     // sigma_xx for control point i.
+                    sigma_block(0, 1) = sigmaVoigt(2, 2*j+jdim);      // sigma(4 * j + 2*jdim, 1);     // sigma_xy for control point i.
+                    sigma_block(1, 0) = sigmaVoigt(2, 2*j+jdim);      // sigma(4 * j + 2*jdim + 1, 0); // sigma_yx (symmetric) for control point i.
+                    sigma_block(1, 1) = sigmaVoigt(1, 2*j+jdim);      // sigma(4 * j + 2*jdim + 1, 1); // sigma_yy for control point i.
+                    // Compute the traction vector: sigma * n.
+                    Vector traction = prod(sigma_block, n_tensor); // This results in a 2x1 vector.
+                    // integration by parts velocity --> With Constitutive law  < v cdot (DB cdot n) >
+                    rLeftHandSideMatrix(3*i+idim, 3*j+jdim) -= theta * H(0, i) * traction(idim) * integration_points[0].Weight();
+
+                    // Nitsche term --> With Constitutive law
+                    // rLeftHandSideMatrix(3*i+idim, 3*j+jdim) -= H(0, j) * traction(jdim) * integration_points[0].Weight();
+
+                    // Additional term form VMS
+                    // Vector traction_transpose = prod(trans(sigma_block), n_tensor);
+                    // rLeftHandSideMatrix(3*i+idim, 3*j+jdim) -= TauOne * DN_DX(i,idim) * traction_transpose(idim) * integration_points[0].Weight();
+                }
+
+                // integration by parts PRESSURE
+                rLeftHandSideMatrix(3*i+idim, 3*j+2) += theta * H(0,j)* ( H(0,i) * normal_parameter_space[idim] )
+                        * integration_points[0].Weight();
+            }
+        }
+
+        // --- RHS corresponding term ---
+        for (IndexType idim = 0; idim < 2; idim++) {
+            // Penalty term for the velocity
+            rRightHandSideVector(3*i+idim) -= theta * H(0,i)* velocity_current_iteration[idim] * penalty_integration;
+            rRightHandSideVector(3*i+idim) -= (1.0 - theta) * H(0,i) * velocity_previous_iteration[idim] * penalty_integration;
+            // integration by parts velocity --> With Constitutive law
+            rRightHandSideVector(3*i+idim) += theta * H(0,i) * traction_current_iteration(idim) * integration_points[0].Weight();
+            rRightHandSideVector(3*i+idim) += (1.0 - theta) * H(0,i) * traction_previous(idim) * integration_points[0].Weight();
+            // integration by parts PRESSURE
+            rRightHandSideVector(3*i+idim) -= theta * pressure_current_iteration * ( H(0,i) * normal_parameter_space[idim] ) * integration_points[0].Weight();
+            rRightHandSideVector(3*i+idim) -= (1.0 - theta) * pressure_previous_iteration * (H(0,i) * normal_parameter_space[idim]) * integration_points[0].Weight();
+
+            // Additional term form VMS
+            // Vector traction_previous_transpose = prod(trans(sigma_block), n_tensor);
+            // rRightHandSideVector(3*i+idim) += TauOne * DN_DX(i,idim) * traction_previous_transpose(idim) * integration_points[0].Weight();
+        }
+    }
+            
+    Vector u_D = ZeroVector(2); 
+    u_D[0] = this->GetValue(VELOCITY_X);
+    u_D[1] = this->GetValue(VELOCITY_Y);
+    Vector u_D_old = ZeroVector(2); 
+    u_D_old[0] = this->GetValue(ANGULAR_VELOCITY_X);
+    u_D_old[1] = this->GetValue(ANGULAR_VELOCITY_Y);
+
+    for (IndexType i = 0; i < number_of_nodes; i++) {
+
+        for (IndexType idim = 0; idim < 2; idim++) {
+            
+            // Penalty term for the velocity
+            rRightHandSideVector[3*i+idim] += theta * H(0,i) * u_D[idim] * penalty_integration;
+            rRightHandSideVector[3*i+idim] += (1.0 - theta) * H(0,i) * u_D_old[idim] * penalty_integration;
+
+            // // Extract the 2x2 block for the control point i from the sigma matrix.
+            // Matrix sigma_block = ZeroMatrix(2, 2);
+            // sigma_block(0, 0) = sigmaVoigt(0, 2*i+i);         // sigma(4 * j + 2*jdim, 0);     // sigma_xx for control point i.
+            // sigma_block(0, 1) = sigmaVoigt(2, 2*i+idim);      // sigma(4 * j + 2*jdim, 1);     // sigma_xy for control point i.
+            // sigma_block(1, 0) = sigmaVoigt(2, 2*i+idim);      // sigma(4 * j + 2*jdim + 1, 0); // sigma_yx (symmetric) for control point i.
+            // sigma_block(1, 1) = sigmaVoigt(1, 2*i+idim);      // sigma(4 * j + 2*jdim + 1, 1); // sigma_yy for control point i.
+            // // Compute the traction vector: sigma * n.
+            // Vector traction = prod(sigma_block, n_tensor); // This results in a 2x1 vector.
+
+            // Nitsche term --> With Constitutive law
+            // rRightHandSideVector[3*i+idim] -= u_D[idim] * traction(idim) * integration_points[0].Weight();
+
+
+            // // Nitsche flux term (VELOCITY)
+            // rRightHandSideVector[3*i+idim] -= (DN_DX(i, 0) * normal_parameter_space[0] + DN_DX(i, 1) * normal_parameter_space[1]) 
+            //                                     *u_D[idim]* integration_points[0].Weight();
+            // // Nitsche flux term (PRESSURE)
+            // rRightHandSideVector(3*i+idim) +=  N(0,i) * ( u_D[idim] * normal_parameter_space[idim] ) * integration_points[0].Weight();
+        }
+    }
+
+    KRATOS_CATCH("")
+}
+
+void SupportFluidDirichletConditionTheta::CalculateB(
+        Matrix& rB, 
+        const ShapeDerivativesType& r_DN_DX) const
+{
+    const SizeType number_of_control_points = GetGeometry().size();
+    const SizeType mat_size = number_of_control_points * 2; // Only 2 DOFs per node in 2D
+
+    // Resize B matrix to 3 rows (strain vector size) and appropriate number of columns
+    if (rB.size1() != 3 || rB.size2() != mat_size)
+        rB.resize(3, mat_size);
+
+    noalias(rB) = ZeroMatrix(3, mat_size);
+
+    for (IndexType i = 0; i < number_of_control_points; ++i)
+    {
+        // x-derivatives of shape functions -> relates to strain component ε_11 (xx component)
+        rB(0, 2 * i)     = r_DN_DX(i, 0); // ∂N_i / ∂x
+        // y-derivatives of shape functions -> relates to strain component ε_22 (yy component)
+        rB(1, 2 * i + 1) = r_DN_DX(i, 1); // ∂N_i / ∂y
+        // Symmetric shear strain component ε_12 (xy component)
+        rB(2, 2 * i)     = r_DN_DX(i, 1); // ∂N_i / ∂y
+        rB(2, 2 * i + 1) = r_DN_DX(i, 0); // ∂N_i / ∂x
+    }
+}
+
+void SupportFluidDirichletConditionTheta:: Initialize(const ProcessInfo& rCurrentProcessInfo)
+{
+    InitializeMaterial();
+}
+
+void SupportFluidDirichletConditionTheta::InitializeMaterial()
+{
+    KRATOS_TRY
+    if ( GetProperties()[CONSTITUTIVE_LAW] != nullptr ) {
+        const GeometryType& r_geometry = GetGeometry();
+        const Properties& r_properties = GetProperties();
+        const auto& N_values = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
+
+        mpConstitutiveLaw = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+        mpConstitutiveLaw->InitializeMaterial( r_properties, r_geometry, row(N_values , 0 ));
+
+    } else
+        KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
+
+    KRATOS_CATCH( "" );
+}
+
+int SupportFluidDirichletConditionTheta::Check(const ProcessInfo& rCurrentProcessInfo) const
+{
+    KRATOS_ERROR_IF_NOT(GetProperties().Has(PENALTY_FACTOR))
+        << "No penalty factor (PENALTY_FACTOR) defined in property of SupportFluidDirichletConditionTheta" << std::endl;
+    return 0;
+}
+
+
+void SupportFluidDirichletConditionTheta::EquationIdVector(EquationIdVectorType &rResult, const ProcessInfo &rCurrentProcessInfo) const
+{
+    const int dim = 2;
+    const GeometryType& rGeom = this->GetGeometry();
+    const SizeType number_of_control_points = GetGeometry().size();
+    const unsigned int LocalSize = (dim + 1) * number_of_control_points;
+
+    if (rResult.size() != LocalSize)
+        rResult.resize(LocalSize);
+
+    unsigned int Index = 0;
+
+    for (unsigned int i = 0; i < number_of_control_points; i++)
+    {
+        rResult[Index++] = rGeom[i].GetDof(VELOCITY_X).EquationId();
+        rResult[Index++] = rGeom[i].GetDof(VELOCITY_Y).EquationId();
+        if (dim > 2) rResult[Index++] = rGeom[i].GetDof(VELOCITY_Z).EquationId();
+        rResult[Index++] = rGeom[i].GetDof(PRESSURE).EquationId();
+    }
+}
+
+
+void SupportFluidDirichletConditionTheta::GetDofList(
+    DofsVectorType& rElementalDofList,
+    const ProcessInfo& rCurrentProcessInfo) const
+{
+    KRATOS_TRY;
+
+    const SizeType number_of_control_points = GetGeometry().size();
+
+    rElementalDofList.resize(0);
+    rElementalDofList.reserve(3 * number_of_control_points);
+
+    for (IndexType i = 0; i < number_of_control_points; ++i) {
+        rElementalDofList.push_back(GetGeometry()[i].pGetDof(VELOCITY_X));
+        rElementalDofList.push_back(GetGeometry()[i].pGetDof(VELOCITY_Y));
+        rElementalDofList.push_back(GetGeometry()[i].pGetDof(PRESSURE));
+    }
+
+    KRATOS_CATCH("")
+};
+
+
+void SupportFluidDirichletConditionTheta::GetValuesVector(
+        Vector& rValues) const
+{
+    const SizeType number_of_control_points = GetGeometry().size();
+    const SizeType mat_size = number_of_control_points * 2;
+
+    if (rValues.size() != mat_size)
+        rValues.resize(mat_size, false);
+
+    for (IndexType i = 0; i < number_of_control_points; ++i)
+    {
+        const array_1d<double, 2 >& velocity = GetGeometry()[i].GetSolutionStepValue(VELOCITY);
+        IndexType index = i * 2;
+
+        rValues[index] = velocity[0];
+        rValues[index + 1] = velocity[1];
+    }
+}
+
+void SupportFluidDirichletConditionTheta::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+{
+    const auto& r_geometry = GetGeometry();
+
+    Vector u_D = ZeroVector(2); 
+    u_D[0] = this->GetValue(VELOCITY_X);
+    u_D[1] = this->GetValue(VELOCITY_Y);
+
+    // Set the u_D_old for the next time_step
+    SetValue(ANGULAR_VELOCITY_X, u_D[0]);
+    SetValue(ANGULAR_VELOCITY_Y, u_D[1]);
+    
+}
+
+/// Reads in a json formatted file and returns its KratosParameters instance.
+Parameters SupportFluidDirichletConditionTheta::ReadParamatersFile(
+    const std::string& rDataFileName) const
+{
+    std::ifstream infile(rDataFileName);
+
+    std::stringstream buffer;
+    buffer << infile.rdbuf();
+
+    return Parameters(buffer.str());
+};
+
+
+} // Namespace Kratos

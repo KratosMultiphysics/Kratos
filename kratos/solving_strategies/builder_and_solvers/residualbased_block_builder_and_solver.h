@@ -38,6 +38,7 @@
 #include "spaces/ublas_space.h"
 
 #include "utilities/condition_number_utility.h"
+#include "../applications/LinearSolversApplication/custom_utilities/compute_div_sigma_utility.h"
 
 namespace Kratos
 {
@@ -229,6 +230,120 @@ public:
         // Assemble all elements
         const auto timer = BuiltinTimer();
 
+        // // TIME
+        // auto start = std::chrono::high_resolution_clock::now();
+        
+        // Compute the basis function order p
+        const unsigned int gauss_point_per_knot_span = el_begin->GetGeometry().size(); // * 4;
+        const unsigned int number_of_control_points = el_begin->GetGeometry().size();
+        KRATOS_WATCH(gauss_point_per_knot_span)
+        KRATOS_WATCH(number_of_control_points)
+        // exit(0);
+
+        std::vector<std::vector<double>> collected_stress;
+        std::vector<std::vector<double>> collected_shape_functions;
+        std::vector<std::vector<double>> collected_shape_functions_dx;
+        std::vector<std::vector<double>> collected_shape_functions_dy;
+        std::vector<array_1d<double, 3>> collected_coordinates;
+        std::vector<Matrix> collected_D_constitutive_matrix;
+        int collected_count = 0;
+
+        for (int k = 0; k < nelements; k++) {
+            auto it_elem = el_begin + k;
+
+            if (it_elem->IsActive()) {
+                std::vector<Vector> stress_vector;
+                std::vector<Matrix> D_constitutive_matrix;
+                it_elem->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, stress_vector, CurrentProcessInfo);
+                it_elem->CalculateOnIntegrationPoints(CONSTITUTIVE_MATRIX, D_constitutive_matrix, CurrentProcessInfo);
+
+                // Collect
+                std::vector<double> stress_vector_temp(3);
+                stress_vector_temp[0] = stress_vector[0][0];
+                stress_vector_temp[1] = stress_vector[0][1];
+                stress_vector_temp[2] = stress_vector[0][2];
+                
+                collected_stress.push_back(stress_vector_temp);
+                array_1d<double, 3> center_coord = it_elem->GetGeometry().Center();
+                collected_coordinates.push_back(center_coord);
+
+                collected_D_constitutive_matrix.push_back(D_constitutive_matrix[0]);
+
+                // Collect the shape function values and their derivatives at the Gauss points
+                auto integration_method = it_elem->GetGeometry().GetDefaultIntegrationMethod();
+                const auto& N_gausspoint = it_elem->GetGeometry().ShapeFunctionsValues(integration_method);
+                auto shape_function_value = row(N_gausspoint,0);
+                // Retrieve the shape function gradients (derivatives)
+                const GeometryData::ShapeFunctionsGradientsType& DN_De = it_elem->GetGeometry().ShapeFunctionsLocalGradients(integration_method);
+                // Assuming gauss_point_per_knot_span = 9, collect 9 basis function values
+                std::vector<double> element_shape_functions;
+                std::vector<double> element_shape_functions_dx;
+                std::vector<double> element_shape_functions_dy;
+
+                for (std::size_t cp = 0; cp < number_of_control_points; ++cp) {
+                    // Collect the shape function value for the current Gauss point (assuming 1 value per Gauss point)
+                    double shape_function_value_cp = shape_function_value(cp);
+                    element_shape_functions.push_back(shape_function_value_cp);
+                    auto DN_DX = DN_De[0];
+                    element_shape_functions_dx.push_back(DN_DX(cp, 0)); // Derivative w.r.t. local x (ξ)
+                    element_shape_functions_dy.push_back(DN_DX(cp, 1)); // Derivative w.r.t. local y (η)
+                }
+                // Store the collected shape function values and their derivatives
+                collected_shape_functions.push_back(element_shape_functions);
+                collected_shape_functions_dx.push_back(element_shape_functions_dx);
+                collected_shape_functions_dy.push_back(element_shape_functions_dy);        
+
+                // Increase the count of collected Gauss points
+                collected_count++;
+
+                // When the Gauss points are collected, call the utility and reset the containers
+                if (collected_count == gauss_point_per_knot_span) {
+                    // Call the utility passing the data of the GPs of the current knot span
+                    ComputeDivSigmaUtility div_sigma_utility;
+                    
+                    div_sigma_utility.SetInputData2(collected_stress, collected_coordinates, collected_shape_functions, 
+                        collected_shape_functions_dx, collected_shape_functions_dy, collected_D_constitutive_matrix);
+
+                    std::vector<std::vector<double>> collected_divergence = div_sigma_utility.ComputeDivergence() ;
+                    std::vector<Matrix> collected_derivatives_constitutive_matrix = div_sigma_utility.ComputeDerivativesOfConstitutiveMatrix() ;
+                    // KRATOS_WATCH(collected_D_constitutive_matrix)
+                    // KRATOS_WATCH(collected_derivatives_constitutive_matrix)
+                    // exit(0);
+                    // Need to implement the setValue for -> collected_derivatives_constitutive_matrix
+
+                    // setValue of DIVERGENCE(SIGMA) to the Gauss Point
+                    for (size_t i = 0; i < gauss_point_per_knot_span; ++i) {
+                        Vector divergence_value(2);
+                        divergence_value[0] = collected_divergence[i][0]; // div_sigma_1
+                        divergence_value[1] = collected_divergence[i][1]; // div_sigma_2
+                        
+                        auto it_element_in_knot_span = it_elem - (gauss_point_per_knot_span-1) + i;
+                        // Apply the divergence values back to the Gauss point
+                        it_element_in_knot_span->SetValue(RECOVERED_STRESS, divergence_value);
+                        // The i-th matrix is dC/dx
+                        it_element_in_knot_span->SetValue(MATERIAL_STIFFNESS_MATRIX, collected_derivatives_constitutive_matrix[i]);
+                        // The (i+1)-th matrix is dC/dy
+                        it_element_in_knot_span->SetValue(GEOMETRIC_STIFFNESS_MATRIX, collected_derivatives_constitutive_matrix[i+1]);
+
+                        // KRATOS_WATCH(divergence_value)
+                        // KRATOS_WATCH(6*it_element_in_knot_span->GetGeometry().Center().X() - 6*it_element_in_knot_span->GetGeometry().Center().Y())
+                        // KRATOS_WATCH( - 6*it_element_in_knot_span->GetGeometry().Center().Y())
+                    }
+                    
+
+                    // Reset the collections for the next set of gauss points
+                    collected_stress.clear();
+                    collected_coordinates.clear();
+                    collected_shape_functions.clear();
+                    collected_shape_functions_dx.clear();
+                    collected_shape_functions_dy.clear();
+                    collected_D_constitutive_matrix.clear();
+                    collected_derivatives_constitutive_matrix.clear();
+                    collected_count = 0;
+                }
+            }
+        }
+
         #pragma omp parallel firstprivate(nelements,nconditions, LHS_Contribution, RHS_Contribution, EquationId)
         {
             # pragma omp for  schedule(guided, 512) nowait
@@ -258,6 +373,16 @@ public:
                 }
             }
         }
+
+        // // TIME
+        // auto end = std::chrono::high_resolution_clock::now();
+        // std::chrono::duration<long double> duration = end - start;
+        // long double elapsedTime = duration.count();
+
+        // std::ofstream outputFile_time("time_txt_files/assemble_time.txt", std::ios::app);
+        // outputFile_time << std::scientific << std::setprecision(20); // Imposta la precisione a 10^-20
+        // outputFile_time << elapsedTime << "\n";
+        // outputFile_time.close();
 
         // // CONDITION NUMBER
         // ConditionNumberUtility mpConditionNumberUtility;

@@ -27,6 +27,9 @@
 #include "custom_elements/laplacian_IGA_element.h"
 #include "custom_elements/solid_2D_element.h"
 #include "custom_elements/conv_diff_IGA_element.h"
+#include "custom_elements/stokes_element.h"
+#include "custom_elements/stokes_element_transient_theta.h"
+#include "custom_elements/stokes_element_transient.h"
 
 //conditions
 #include "custom_conditions/output_condition.h"
@@ -49,6 +52,14 @@
 #include "custom_conditions/load_solid_2D_condition.h"
 #include "custom_conditions/sbm_load_solid_2D_condition.h"
 #include "custom_conditions/support_contact_2D_condition.h"
+#include "custom_conditions/support_plain_stress_condition.h"
+#include "custom_conditions/sbm_plain_stress_condition.h"
+#include "custom_conditions/load_plain_stress_condition.h"
+#include "custom_conditions/sbm_load_plain_stress_condition.h"
+#include "custom_conditions/support_fluid_dirichlet_condition_theta.h"
+#include "custom_conditions/support_fluid_dirichlet_condition.h"
+#include "custom_conditions/support_pressure_dirichlet_condition.h"
+#include "custom_conditions/sbm_fluid_condition.h"
 
 //modelers
 #include "custom_modelers/iga_modeler.h"
@@ -137,6 +148,9 @@ private:
     const LaplacianIGAElement mLaplacianIGAElement;
     const Solid2DElement mSolid2DElement;
     const ConvDiffIGAElement mConvDiffIGAElement; 
+    const StokesElement mStokesElement;
+    const StokesElementTransientTheta mStokesElementTransientTheta;
+    const StokesElementTransient mStokesElementTransient;
 
     //Conditions
     const OutputCondition mOutputCondition;
@@ -152,6 +166,7 @@ private:
     const SupportConvDiffCondition mSupportConvDiffCondition;
     const SBMLaplacianCondition mSBMLaplacianCondition;
     const SBMLaplacianNeumannCondition mSBMLaplacianNeumannCondition;
+    const SBMFluidCondition mSBMFluidCondition;
     const SBMSupportLagrangeCondition mSBMSupportLagrangeCondition;
     const SupportLaplacianLagrangeCondition mSupportLaplacianLagrangeCondition;
     const SupportSolid2DCondition mSupportSolid2DCondition;
@@ -159,6 +174,13 @@ private:
     const SBMSolid2DCondition mSBMSolid2DCondition;
     const SBMLoadSolid2DCondition mSBMLoadSolid2DCondition;
     const SupportContact2DCondition mSupportContact2DCondition;
+    const SupportPlainStressCondition mSupportPlainStressCondition;
+    const LoadPlainStressCondition mLoadPlainStressCondition;
+    const SBMPlainStressCondition mSBMPlainStressCondition;
+    const SBMLoadPlainStressCondition mSBMLoadPlainStressCondition;
+    const SupportFluidDirichletConditionTheta mSupportFluidDirichletConditionTheta;
+    const SupportFluidDirichletCondition mSupportFluidDirichletCondition;
+    const SupportPressureDirichletCondition mSupportPressureDirichletCondition;
 
     // Modelers
     const IgaModeler mIgaModeler;

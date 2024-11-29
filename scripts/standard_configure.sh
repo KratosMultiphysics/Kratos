@@ -44,6 +44,7 @@ add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication
 # add_app ${KRATOS_APP_DIR}/MeshingApplication
 # add_app ${KRATOS_APP_DIR}/ContactStructuralMechanicsApplication
 add_app ${KRATOS_APP_DIR}/IgaApplication
+add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication
 
 # Clean
 clear

@@ -453,33 +453,37 @@ public:
         IntegrationPointsArrayType& rIntegrationPoints,
         IntegrationInfo& rIntegrationInfo) const override
     {   
-        // IN ORDER TO CHECK IF YOU ARE USING TRIM OR SBM APPROACH
-        std::ifstream file("txt_files/input_data.txt");
-        std::string line;
-        int SBM_technique;
-        std::getline(file, line);
-        std::getline(file, line); // Read the second line
-        SBM_technique = std::stoi(line);
-        file.close();
-        // (SBM_technique == 0) 
-        if (SBM_technique == 1) {
-            if (!mIsTrimmed) {
+        bool is_sbm = mpNurbsSurface->GetValue(IS_SBM) ;
+
+        // // IN ORDER TO CHECK IF YOU ARE USING TRIM OR SBM APPROACH
+        // std::ifstream file("txt_files/input_data.txt");
+        // std::string line;
+        // int SBM_technique;
+        // std::getline(file, line);
+        // std::getline(file, line); // Read the second line
+        // SBM_technique = std::stoi(line);
+        // file.close();
+        // // (SBM_technique == 0) 
+        if (is_sbm == 0) {
+            // if (!mIsTrimmed) {
                 mpNurbsSurface->CreateIntegrationPoints(
                     rIntegrationPoints, rIntegrationInfo);
-            }
-            else
-            {
-                std::vector<double> spans_u;
-                std::vector<double> spans_v;
-                mpNurbsSurface->SpansLocalSpace(spans_u, 0);
-                mpNurbsSurface->SpansLocalSpace(spans_v, 1);
+            // }
+            // else
+            // {
+            //     KRATOS_WATCH('entra in trimming?')
+            //     exit(0);
+            //     std::vector<double> spans_u;
+            //     std::vector<double> spans_v;
+            //     mpNurbsSurface->SpansLocalSpace(spans_u, 0);
+            //     mpNurbsSurface->SpansLocalSpace(spans_v, 1);
 
-                BrepTrimmingUtilities::CreateBrepSurfaceTrimmingIntegrationPoints(
-                    rIntegrationPoints,
-                    mOuterLoopArray, mInnerLoopArray,
-                    spans_u, spans_v,
-                    rIntegrationInfo);
-            }
+            //     BrepTrimmingUtilities::CreateBrepSurfaceTrimmingIntegrationPoints(
+            //         rIntegrationPoints,
+            //         mOuterLoopArray, mInnerLoopArray,
+            //         spans_u, spans_v,
+            //         rIntegrationInfo);
+            // }
         }
         else {
             KRATOS_WATCH("CreateBrepSurfaceSBMIntegrationPoints");
@@ -518,14 +522,14 @@ public:
         const IntegrationPointsArrayType& rIntegrationPoints,
         IntegrationInfo& rIntegrationInfo) override
     {
-        KRATOS_WATCH("CreateQuadraturePointGeometries")
+        KRATOS_INFO("Start CreateQuadraturePointGeometries brep_surface \n");
         mpNurbsSurface->CreateQuadraturePointGeometries(
             rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationPoints, rIntegrationInfo);
 
         for (IndexType i = 0; i < rResultGeometries.size(); ++i) {
             rResultGeometries(i)->SetGeometryParent(this);
         }
-        KRATOS_WATCH("End CreateQuadraturePointGeometries")
+        KRATOS_INFO("End CreateQuadraturePointGeometries brep_surface \n");
     }
 
     ///@}

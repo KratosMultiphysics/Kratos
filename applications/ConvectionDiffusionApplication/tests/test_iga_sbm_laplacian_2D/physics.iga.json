@@ -1,0 +1,48 @@
+{
+  "element_condition_list": [
+    {
+      "brep_ids": [ 1 ],
+      "geometry_type": "GeometrySurface",
+      "iga_model_part": "ConvectionDiffusionDomain",
+      "parameters": {
+        "type": "element",
+        "name": "LaplacianIGAElement",
+        "shape_function_derivatives_order": 2,
+        "variables": [
+          {
+            "variable_name": "HEAT_FLUX",
+            "value": "0.0"
+          }]
+      }
+    },
+    {
+      "brep_ids": [2,3,4,5],
+      "geometry_type": "SurfaceEdge",
+      "iga_model_part": "SBM_Support_outer",
+      "parameters": {
+        "type": "condition",
+        "name": "SupportLaplacianCondition",
+        "boundary_condition_type": "dirichlet",
+        "shape_function_derivatives_order": 6,
+        "variables": [
+          {
+            "variable_name"   : "TEMPERATURE",
+            "value"           : "sin(x)*sinh(y)"
+          }
+        ],
+        "is_inner" : false
+      }
+    },
+    {
+      "geometry_type": "SurfaceEdge",
+      "iga_model_part": "SBM_Support_inner",
+      "parameters": {
+        "type": "condition",
+        "name": "SBMLaplacianCondition",
+        "boundary_condition_type": "dirichlet",
+        "shape_function_derivatives_order": 6,
+        "is_inner" : true
+      }
+    }
+  ]
+}

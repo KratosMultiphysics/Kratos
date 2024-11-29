@@ -1,0 +1,31 @@
+{
+  "properties" : [{
+      "model_part_name" : "IgaModelPart.ConvectionDiffusionDomain",
+      "properties_id"   : 2,
+      "Material"        : {
+          "Variables" : {
+              "DENSITY"       : 1.0,
+              "CONDUCTIVITY"  : 1.0,
+              "SPECIFIC_HEAT" : 1.0
+          },
+          "Tables"    : {}
+      }
+  },
+  {
+    "model_part_name": "IgaModelPart.SBM_Support_outer",
+    "properties_id": 1,
+    "Material": {
+      "Variables": { "PENALTY_FACTOR": -1},
+      "Tables": {}
+    }
+  },
+  {
+    "model_part_name": "IgaModelPart.SBM_Support_inner",
+    "properties_id": 4,
+    "Material": {
+      "Variables": { "PENALTY_FACTOR": -1},
+      "Tables": {}
+    }
+  }
+]
+}
