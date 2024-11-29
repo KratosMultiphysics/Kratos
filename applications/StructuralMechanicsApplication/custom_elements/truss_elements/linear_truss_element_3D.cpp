@@ -298,14 +298,14 @@ array_1d<double, 3> LinearTrussElement3D<TNNodes, TDimension>::GetLocalAxesBodyF
     const IndexType PointNumber
     ) const
 {
-    // const double angle = GetAngle();
-    // const auto body_force = StructuralMechanicsElementUtilities::GetBodyForce(*this, rIntegrationPoints, PointNumber);
+    const auto body_force = StructuralMechanicsElementUtilities::GetBodyForce(*this, rIntegrationPoints, PointNumber);
 
-    // const double c = std::cos(angle);
-    // const double s = std::sin(angle);
-    array_1d<double, 3> local_body_force = ZeroVector(3);
-    // local_body_force[0] = c * body_force[0] + s * body_force[1];
-    // local_body_force[1] = -s * body_force[0] + c * body_force[1];
+    array_1d<double, Dimension> local_body_force = ZeroVector(Dimension);
+    BoundedMatrix<double, Dimension, Dimension> T;
+    noalias(T) = GetFrenetSerretMatrix(); // global to local
+
+    noalias(local_body_force) = prod(T, body_force);
+
     return local_body_force;
 }
 
