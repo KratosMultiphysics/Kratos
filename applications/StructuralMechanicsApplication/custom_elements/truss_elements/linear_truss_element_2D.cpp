@@ -373,7 +373,7 @@ void LinearTrussElement2D<TNNodes, TDimension>::CalculateLocalSystem(
 
         noalias(rRHS) += N_shape  * local_body_forces[0] * jacobian_weight;
         noalias(rRHS) += N_shapeY * local_body_forces[1] * jacobian_weight;
-        noalias(rRHS) += N_shapeZ * local_body_forces[2] * jacobian_weight; // null in this class
+        noalias(rRHS) += N_shapeZ * local_body_forces[2] * jacobian_weight; // null in this class, full in derived one
     }
     RotateAll(rLHS, rRHS); // rotate to global
 
