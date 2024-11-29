@@ -162,7 +162,9 @@ Additionaly, Visual Studio is required to compile in *Windows*.
 
     ##### Using UCRT64
 
-    **UCRT** (Universal C Runtime) is a newer version which is also used by Microsoft Visual Studio by default, see https://www.msys2.org/docs/environments/. It should work and behave as if the code was compiled with MSVC.
+    **⚠️NOTE:** Right now **UCRT64** is giving linking issues and therefore is not recommended to compile *Kratos*.
+
+    **UCRT** (*Universal C Runtime*) is a newer version which is also used by Microsoft Visual Studio by default, see [*MSYS2*](https://www.msys2.org/docs/environments/). It should work and behave as if the code was compiled with **MSVC**.
 
     - Better compatibility with **MSVC**, both at build time and at run time.
     - It only ships by default on *Windows 10* and for older versions you have to provide it yourself or depend on the user having it installed.
