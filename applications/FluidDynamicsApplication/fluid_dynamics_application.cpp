@@ -163,6 +163,12 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mTwoFluidNavierStokesAlphaMethod3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
     mTwoFluidNavierStokesWallCondition2D(0, Element::GeometryType::Pointer(new Line2D2<Node>(Element::GeometryType::PointsArrayType(2)))),
     mTwoFluidNavierStokesWallCondition3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node>(Element::GeometryType::PointsArrayType(3)))),
+    mVectorialConvectionFractionalElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
+    mVectorialConvectionFractionalElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+    mTwoFluidNavierStokesFractional2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
+    mTwoFluidNavierStokesFractional3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+    mTwoFluidNavierStokesFractionalAlphaMethod2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
+    mTwoFluidNavierStokesFractionalAlphaMethod3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
     // Incompressbile Navier-Stokes div-stable elements
     mIncompressibleNavierStokesP2P1Continuous2D6N(0, Element::GeometryType::Pointer(new Triangle2D6<Node >(Element::GeometryType::PointsArrayType(6)))),
     mIncompressibleNavierStokesP2P1Continuous3D10N(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node >(Element::GeometryType::PointsArrayType(10)))),
@@ -195,7 +201,7 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(C_DES);
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SUBSCALE_VELOCITY);
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(COARSE_VELOCITY);
-
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(FRACTIONAL_VELOCITY);
     KRATOS_REGISTER_VARIABLE(VOLUME_ERROR);
     KRATOS_REGISTER_VARIABLE(CONVECTION_SCALAR);
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(CONVECTION_VELOCITY);
@@ -387,6 +393,12 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("TwoFluidNavierStokes3D4N", mTwoFluidNavierStokes3D4N);
     KRATOS_REGISTER_ELEMENT("TwoFluidNavierStokesAlphaMethod2D3N", mTwoFluidNavierStokesAlphaMethod2D3N);
     KRATOS_REGISTER_ELEMENT("TwoFluidNavierStokesAlphaMethod3D4N", mTwoFluidNavierStokesAlphaMethod3D4N);
+    KRATOS_REGISTER_ELEMENT("TwoFluidNavierStokesFractional2D3N", mTwoFluidNavierStokesFractional2D3N);
+    KRATOS_REGISTER_ELEMENT("TwoFluidNavierStokesFractional3D4N", mTwoFluidNavierStokesFractional3D4N);
+    KRATOS_REGISTER_ELEMENT("TwoFluidNavierStokesFractionalAlphaMethod2D3N", mTwoFluidNavierStokesFractionalAlphaMethod2D3N);
+    KRATOS_REGISTER_ELEMENT("TwoFluidNavierStokesFractionalAlphaMethod3D4N", mTwoFluidNavierStokesFractionalAlphaMethod3D4N);
+    KRATOS_REGISTER_ELEMENT("VectorialConvectionFractionalElement2D3N", mVectorialConvectionFractionalElement2D3N);
+    KRATOS_REGISTER_ELEMENT("VectorialConvectionFractionalElement3D4N", mVectorialConvectionFractionalElement3D4N);
 
     // Compressible Navier-Stokes symbolic elements
     KRATOS_REGISTER_ELEMENT("CompressibleNavierStokesExplicit2D3N",mCompressibleNavierStokesExplicit2D3N);

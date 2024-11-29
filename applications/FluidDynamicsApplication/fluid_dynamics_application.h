@@ -80,6 +80,9 @@
 #include "custom_elements/compressible_navier_stokes_explicit.h"
 #include "custom_elements/two_fluid_navier_stokes.h"
 #include "custom_elements/two_fluid_navier_stokes_alpha_method.h"
+#include "custom_elements/two_fluid_navier_stokes_fractional.h"
+#include "custom_elements/two_fluid_navier_stokes_fractional_alpha_method.h"
+#include "custom_elements/vectorial_convection_fractional_element.h"
 
 #include "custom_elements/data_containers/axisymmetric_navier_stokes/axisymmetric_navier_stokes_data.h"
 #include "custom_utilities/qsvms_data.h"
@@ -90,6 +93,9 @@
 #include "custom_utilities/symbolic_stokes_data.h"
 #include "custom_utilities/two_fluid_navier_stokes_data.h"
 #include "custom_utilities/two_fluid_navier_stokes_alpha_method_data.h"
+#include "custom_utilities/two_fluid_navier_stokes_fractional_data.h"
+#include "custom_utilities/two_fluid_navier_stokes_fractional_alpha_method_data.h"
+#include "custom_utilities/vectorial_convection_fractional_element_data.h"
 #include "custom_utilities/weakly_compressible_navier_stokes_data.h"
 
 #include "custom_constitutive/bingham_3d_law.h"
@@ -453,8 +459,15 @@ private:
     const TwoFluidNavierStokes< TwoFluidNavierStokesData<3, 4> > mTwoFluidNavierStokes3D4N;
     const TwoFluidNavierStokesAlphaMethod< TwoFluidNavierStokesAlphaMethodData<2, 3> > mTwoFluidNavierStokesAlphaMethod2D3N;
     const TwoFluidNavierStokesAlphaMethod< TwoFluidNavierStokesAlphaMethodData<3, 4> > mTwoFluidNavierStokesAlphaMethod3D4N;
+
     const TwoFluidNavierStokesWallCondition<2,2> mTwoFluidNavierStokesWallCondition2D;
     const TwoFluidNavierStokesWallCondition<3,3> mTwoFluidNavierStokesWallCondition3D;
+    const TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<2, 3>> mTwoFluidNavierStokesFractional2D3N;
+    const TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<3, 4>> mTwoFluidNavierStokesFractional3D4N;
+    const TwoFluidNavierStokesFractionalAlphaMethod<TwoFluidNavierStokesFractionalAlphaMethodData<2, 3>> mTwoFluidNavierStokesFractionalAlphaMethod2D3N;
+    const TwoFluidNavierStokesFractionalAlphaMethod<TwoFluidNavierStokesFractionalAlphaMethodData<3, 4>> mTwoFluidNavierStokesFractionalAlphaMethod3D4N;
+    const VectorialConvectionFractionalElement<VectorialConvectionFractionalElementData<3, 4>> mVectorialConvectionFractionalElement3D4N;
+    const VectorialConvectionFractionalElement<VectorialConvectionFractionalElementData<2, 3>> mVectorialConvectionFractionalElement2D3N;
 
     /// Incompressible Navier-Stokes div-stable element
     const IncompressibleNavierStokesP2P1Continuous<2> mIncompressibleNavierStokesP2P1Continuous2D6N;
