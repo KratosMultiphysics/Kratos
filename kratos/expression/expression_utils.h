@@ -213,39 +213,114 @@ public:
     }
 
     /**
-     * @brief Returns an expression which represents the absolute value of the given expression.
+     * @brief Returns an expression which represents the component wise absolute value of the given expression.
      *
+     * @details If the input @a rpExpression is \f$\underline{\mathbb{u}}\f$, where \f$u_{ij}\f$ represents \f$j^{th}\f$ component of the flattened entity data for \f$i^{th}\f$ entity
+     *          , then the returned expression \f$\left|\underline{\mathbb{u}}\right|\f$
+     *
+     *          \f[
+     *              \left|\underline{\mathbb{u}}\right| = \left|u_{ij}\right|
+     *          \f]
+     *
+     * @return Expression::ConstPointer Expression which computes component wise absolute value.
      */
     static Expression::ConstPointer Abs(const Expression::ConstPointer& rpExpression);
 
     /**
-     * @brief Returns an expression which raises the input expression to geven power.
+     * @brief Returns an expression which represents the component wise logarithmic value of the given expression.
      *
-     * @return Expression::ConstPointer
+     * @details If the input @a rpExpression is \f$\underline{\mathbb{u}}\f$, where \f$u_{ij}\f$ represents \f$j^{th}\f$ component of the flattened entity data for \f$i^{th}\f$ entity
+     *          , then the returned expression \f$\left|\underline{\mathbb{u}}\right|\f$
+     *
+     *          \f[
+     *              Log\left(\underline{\mathbb{u}}\right) = log\left(u_{ij}\right)
+     *          \f]
+     *
+     * @warning Returns nan if the given $\f$u_{ij}\f < 0.0$
+     * @warning Returns inf if the given $\f$u_{ij}\f = 0.0$
+     *
+     * @return Expression::ConstPointer Expression which computes component wise logarithmic value.
+     */
+    static Expression::ConstPointer Log(const Expression::ConstPointer& rpExpression);
+
+
+    /**
+     * @brief Returns an expression which raises each component to the given power.
+     *
+     * @details If the input @a rpExpression is \f$\underline{\mathbb{u}}\f$, where \f$u_{ij}\f$ represents \f$j^{th}\f$ component of the flattened entity data for \f$i^{th}\f$ entity
+     *          , where P is specified by @a Power.
+     *
+     *          \f[
+     *              Pow(\underline{\mathbb{u}}, P) = u_{ij}^P
+     *          \f]
+     *
+     * @return Expression::ConstPointer Expression which raises each component to specified power.
      */
     static Expression::ConstPointer Pow(
         const Expression::ConstPointer& rpExpression,
         const double Power);
 
     /**
-     * @brief Returns an expression which raises the input expression's each component to the specific powers in rPowerpExpression.
+     * @brief Returns an expression which raises each component to the given power from another expression.
      *
+     * @details If the input @a rpExpression is \f$\underline{\mathbb{u}}\f$, where \f$u_{ij}\f$ represents \f$j^{th}\f$ component of the flattened entity data for \f$i^{th}\f$ entity
+     *          and the @a rpPowerpExpression is \f$\underline{\mathbb{P}}\f$, where \f$p_{ij}\f$ represents \f$j^{th}\f$ component of the flattened entity data for \f$i^{th}\f$ entity
+     *          , then the returned expression can be illustrated as below.
+     *
+     *          \f[
+     *              Pow(\underline{\mathbb{u}}, \underline{\mathbb{p}}) = u_{ij}^{p_{ij}}
+     *          \f]
+     *
+     *          If the given @a rpPowerpExpression is a scalar expression then the following will be returned
+     *
+     *          \f[
+     *              Pow(\underline{\mathbb{u}}, \underline{\mathbb{p}}) = u_{ij}^{p_{i}}
+     *          \f]
+     * @throws If the number of entities mismatch between @a rpExpression and @a rpPowerpExpression
+     * @throws If the shape of the @a rpExpression and @a rpPowerpExpression does not match or @a rpPowerpExpression is not representing a scalar expression.
+     *
+     * @return Expression::ConstPointer Expression which raises each component to specified power given by the @a rpPowerpExpression.
      */
     static Expression::ConstPointer Pow(
         const Expression::ConstPointer& rpExpression,
         const Expression::ConstPointer& rpPowerpExpression);
 
     /**
-     * @brief Scales the given expression by a constant value.
+     * @brief Returns an expression which scales each component to the specified value
      *
+     * @details If the input @a rpExpression is \f$\underline{\mathbb{u}}\f$, where \f$u_{ij}\f$ represents \f$j^{th}\f$ component of the flattened entity data for \f$i^{th}\f$ entity
+     *          , where Scale is specified by @a Scale.
+     *
+     *          \f[
+     *              Scale(\underline{\mathbb{u}}, S) = u_{ij}^S
+     *          \f]
+     *
+     * @return Expression::ConstPointer Expression which scales the given expression by specified scale @a Scale
      */
     static Expression::ConstPointer Scale(
         const Expression::ConstPointer& rpExpression,
         const double Scale);
 
     /**
-     * @brief Scales the given expression by specific weights for each component given in @ref rScaleExpression.
+     * @brief Returns an expression which scales each component by a value from another expression.
      *
+     * @details If the input @a rpExpression is \f$\underline{\mathbb{u}}\f$, where \f$u_{ij}\f$ represents \f$j^{th}\f$ component of the flattened entity data for \f$i^{th}\f$ entity
+     *          and the @a rpScaleExpression is \f$\underline{\mathbb{s}}\f$, where \f$s_{ij}\f$ represents \f$j^{th}\f$ component of the flattened entity data for \f$i^{th}\f$ entity
+     *          , then the returned expression can be illustrated as below.
+     *
+     *          \f[
+     *              Scale(\underline{\mathbb{u}}, \underline{\mathbb{s}}) = u_{ij}^{s_{ij}}
+     *          \f]
+     *
+     *          If the given @a rpScaleExpression is a scalar expression then the following will be returned
+     *
+     *          \f[
+     *              Scale(\underline{\mathbb{u}}, \underline{\mathbb{s}}) = u_{ij}^{s_{i}}
+     *          \f]
+     * @throws If the number of entities mismatch between @a rpExpression and @a rpScaleExpression
+     * @throws If the shape of the @a rpExpression and @a rpScaleExpression does not match or @a rpScaleExpression is not representing a scalar expression.
+     *
+     * @return Expression::ConstPointer Expression which scales each component to specified value given by the @a rpScaleExpression.
      */
     static Expression::ConstPointer Scale(
         const Expression::ConstPointer& rpExpression,
@@ -254,18 +329,57 @@ public:
     /**
      * @brief Returns an expression having min value from all the components for each entity.
      *
+     * @details If the input @a rpExpression is \f$\underline{\mathbb{u}}\f$, where \f$u_{ij}\f$ represents \f$j^{th}\f$ component of the flattened (having \f$N\f$ total components) entity data for \f$i^{th}\f$ entity
+     *          , Following illustrates the returned expression which is always a scalar expression having \f$m_i\f$ representing the \f$i^{th}\f$ entity data.
+     *
+     *          \f[
+     *              EntityMin(\underline{\mathbb{u}}) = m_{i}
+     *          \f]
+     *
+     *          Where,
+     *          \f[
+     *              m_{i} = \min_{j\in \left[0, N\right)} u_{ij}
+     *          \f]
+     *
+     * @return Expression::ConstPointer Scalar expression having the minimum of all components for each entity in the input expression.
      */
     static Expression::ConstPointer EntityMin(const Expression::ConstPointer& rpExpression);
 
     /**
      * @brief Returns an expression having max value from all the components for each entity.
      *
+     * @details If the input @a rpExpression is \f$\underline{\mathbb{u}}\f$, where \f$u_{ij}\f$ represents \f$j^{th}\f$ component of the flattened (having \f$N\f$ total components) entity data for \f$i^{th}\f$ entity
+     *          , Following illustrates the returned expression which is always a scalar expression having \f$m_i\f$ representing the \f$i^{th}\f$ entity data.
+     *
+     *          \f[
+     *              EntityMax(\underline{\mathbb{u}}) = m_{i}
+     *          \f]
+     *
+     *          Where,
+     *          \f[
+     *              m_{i} = \max_{j\in \left[0, N\right)} u_{ij}
+     *          \f]
+     *
+     * @return Expression::ConstPointer Scalar expression having the maximum of all components for each entity in the input expression.
      */
     static Expression::ConstPointer EntityMax(const Expression::ConstPointer& rpExpression);
 
     /**
      * @brief Returns an expression having sum of component values for each entity.
      *
+     * @details If the input @a rpExpression is \f$\underline{\mathbb{u}}\f$, where \f$u_{ij}\f$ represents \f$j^{th}\f$ component of the flattened (having \f$N\f$ total components) entity data for \f$i^{th}\f$ entity
+     *          , Following illustrates the returned expression which is always a scalar expression having \f$m_i\f$ representing the \f$i^{th}\f$ entity data.
+     *
+     *          \f[
+     *              EntitySum(\underline{\mathbb{u}}) = m_{i}
+     *          \f]
+     *
+     *          Where,
+     *          \f[
+     *              m_{i} = \sum_{j\in \left[0, N\right)} u_{ij}
+     *          \f]
+     *
+     * @return Expression::ConstPointer Scalar expression having the sum of all components for each entity in the input expression.
      */
     static Expression::ConstPointer EntitySum(const Expression::ConstPointer& rpExpression);
 
@@ -276,14 +390,38 @@ public:
     /**
      * @brief Returns the sum of the expression assuming it is a flat vector [Shape is not considered].
      *
+     * @details If the input @a rpExpression is \f$\underline{\mathbb{u}}\f$, where \f$u_{ij}\f$ represents \f$j^{th}\f$ component of the flattened (having \f$N\f$ total components) entity data for \f$i^{th}\f$ entity (having \f$M\f$ entities)
+     *          , Following illustrates the returned value where the entity data is flattened.
+     *
+     *          \f[
+     *              Sum(\underline{\mathbb{u}}) = \sum_{i\in \left[0, M\right)} \sum_{j\in \left[0, N\right)} u_{ij}
+     *          \f]
+     *
+     *          This method is compatible with shared and distributed memory parallelized runs.
+     *
+     * @param rpExpression          Expressions to be summed.
+     * @param rDataCommunicator     Data communicator for MPI communication.
+     * @return double               The sum of all the components in all the entities.
      */
     static double Sum(
         const Expression::ConstPointer& rpExpression,
         const DataCommunicator& rDataCommunicator);
 
     /**
-     * @brief Returns the inf norm of the expression assuming it is a flat vector [Shape is not considered].
+     * @brief Returns the infinity norm of the expression assuming it is a flat vector [Shape is not considered].
      *
+     * @details If the input @a rpExpression is \f$\underline{\mathbb{u}}\f$, where \f$u_{ij}\f$ represents \f$j^{th}\f$ component of the flattened (having \f$N\f$ total components) entity data for \f$i^{th}\f$ entity (having \f$M\f$ entities)
+     *          , Following illustrates the returned value where the entity data is flattened.
+     *
+     *          \f[
+     *              NormInf(\underline{\mathbb{u}}) = \max_{(i,j)\in \left[0, M\right)\times \left[0, N\right)} \left|u_{ij}\right|
+     *          \f]
+     *
+     *          This method is compatible with shared and distributed memory parallelized runs.
+     *
+     * @param rpExpression          Expressions to be summed.
+     * @param rDataCommunicator     Data communicator for MPI communication.
+     * @return double               The infinity norm of all the components in all the entities.
      */
     static double NormInf(
         const Expression::ConstPointer& rpExpression,
@@ -292,6 +430,18 @@ public:
     /**
      * @brief Returns the L2 norm of the expression assuming it is a flat vector [Shape is not considered].
      *
+     * @details If the input @a rpExpression is \f$\underline{\mathbb{u}}\f$, where \f$u_{ij}\f$ represents \f$j^{th}\f$ component of the flattened (having \f$N\f$ total components) entity data for \f$i^{th}\f$ entity (having \f$M\f$ entities)
+     *          , Following illustrates the returned value where the entity data is flattened.
+     *
+     *          \f[
+     *              NormL2(\underline{\mathbb{u}}) = \sqrt {\sum_{i\in \left[0, M\right)} \sum_{j\in \left[0, N\right)} u_{ij}^2}
+     *          \f]
+     *
+     *          This method is compatible with shared and distributed memory parallelized runs.
+     *
+     * @param rpExpression          Expressions to be summed.
+     * @param rDataCommunicator     Data communicator for MPI communication.
+     * @return double               The L2 norm of all the components in all the entities.
      */
     static double NormL2(
         const Expression::ConstPointer& rpExpression,
@@ -300,6 +450,19 @@ public:
     /**
      * @brief Returns the P norm of the expression assuming it is a flat vector [Shape is not considered].
      *
+     * @details If the input @a rpExpression is \f$\underline{\mathbb{u}}\f$, where \f$u_{ij}\f$ represents \f$j^{th}\f$ component of the flattened (having \f$N\f$ total components) entity data for \f$i^{th}\f$ entity (having \f$M\f$ entities)
+     *          , Following illustrates the returned value where the entity data is flattened.
+     *
+     *          \f[
+     *              NormP(\underline{\mathbb{u}}, P) = \left(\sum_{i\in \left[0, M\right)} \sum_{j\in \left[0, N\right)} \left|u_{ij}\right|^P\right)^{1/P}
+     *          \f]
+     *
+     *          This method is compatible with shared and distributed memory parallelized runs.
+     *
+     * @param rpExpression          Expressions to be summed.
+     * @param rDataCommunicator     Data communicator for MPI communication.
+     * @param P                     P norm coefficent.
+     * @return double               The P norm of all the components in all the entities.
      */
     static double NormP(
         const Expression::ConstPointer& rpExpression,
@@ -309,11 +472,23 @@ public:
     /**
      * @brief Returns the inner product between two expressions.
      *
-     * @details This does not consider shapes of the expressions. They should have same size of flattened vectors.
+     * @details If the input @a rpExpression1 is \f$\underline{\mathbb{u}}\f$, where \f$u_{ij}\f$ represents \f$j^{th}\f$ component of the flattened (having \f$N\f$ total components) entity data for \f$i^{th}\f$ entity (having \f$M\f$ entities)
+     *          and the input @a rpExpression2 is \f$\underline{\mathbb{v}}\f$, where \f$v_{ij}\f$ represents \f$j^{th}\f$ component of the flattened (having \f$N\f$ total components) entity data for \f$i^{th}\f$ entity (having \f$M\f$ entities),
+     *          Following illustrates the returned value where the entity data is flattened. This does not consider shapes of the expressions. They should have same size of flattened vectors.
+     *
+     *          \f[
+     *              InnerProduct(\underline{\mathbb{u}}, \underline{\mathbb{v}}) = \sum_{i\in \left[0, M\right)} \sum_{j\in \left[0, N\right)} u_{ij} \times v_{ij}
+     *          \f]
+     *
+     *          This method is compatible with shared and distributed memory parallelized runs.
      *
      * @throws If the flattend size mismatch.
      * @throws If the number of entities mismatch.
      *
+     * @param rpExpression1         Expression1.
+     * @param rpExpression1         Expression2.
+     * @param rDataCommunicator     Data communicator for MPI communication.
+     * @return double               The inner product of @a rpExpression1 and @a rpExpression2
      */
     static double InnerProduct(
         const Expression::ConstPointer& rpExpression1,
@@ -326,6 +501,12 @@ public:
 
     #ifndef KRATOS_EXPRESSION_UTILS_CEXP_METHOD_1
     #define KRATOS_EXPRESSION_UTILS_CEXP_METHOD_1(METHOD_NAME)                      \
+        /**                                                                         \
+        @brief Returns a container expression having METHOD_NAME evaluated on the given @a rContainerExpression's expression. \
+        @see METHOD_NAME.                                           \
+        @tparam TContainerType Container type.                                     \
+        @param ContainerExpression<TContainerType> Container expression to apply METHOD_NAME.                    \
+        @return ContainerExpression<TContainerType> Resulting container expression. **/                          \
         template <class TContainerType>                                             \
         static ContainerExpression<TContainerType> METHOD_NAME(                     \
             const ContainerExpression<TContainerType>& rContainerExpression)        \
@@ -338,6 +519,12 @@ public:
 
     #ifndef KRATOS_EXPRESSION_UTILS_CEXP_METHOD_2
     #define KRATOS_EXPRESSION_UTILS_CEXP_METHOD_2(METHOD_NAME)                                     \
+        /**                                                                                        \
+        @brief Returns a reduced value by evaluating METHOD_NAME on the given @a rContainerExpression's expression.                                                                         \
+        @see METHOD_NAME.                                                          \
+        @tparam TContainerType Container type.                                                    \
+        @param ContainerExpression<TContainerType> Container expression to apply METHOD_NAME.                                                                                  \
+        @return double Resulting scalar value after evaluating METHOD_NAME on @a rContainerExpression. **/                                                                     \
         template <class TContainerType>                                                            \
         static double METHOD_NAME(const ContainerExpression<TContainerType>& rContainerExpression) \
         {                                                                                          \
@@ -349,6 +536,12 @@ public:
 
     #ifndef KRATOS_EXPRESSION_UTILS_CEXP_METHOD_3
     #define KRATOS_EXPRESSION_UTILS_CEXP_METHOD_3(METHOD_NAME)                                   \
+        /**                                                                                      \
+        @brief Returns a container expression by evaluating METHOD_NAME on the given @a rContainerExpression's expression using @a Value                                                      \
+        @see METHOD_NAME.                                                        \
+        @tparam TContainerType Container type.                                                  \
+        @param ContainerExpression<TContainerType> Container expression to apply METHOD_NAME.                                                                                \
+        @return ContainerExpression<TContainerType> Resulting container expression. **/                                                                                         \
         template <class TContainerType>                                                          \
         static ContainerExpression<TContainerType> METHOD_NAME(                                  \
             const ContainerExpression<TContainerType>& rContainerExpression, const double Value) \
@@ -357,6 +550,13 @@ public:
             copy.SetExpression(METHOD_NAME(rContainerExpression.pGetExpression(), Value));       \
             return copy;                                                                         \
         }                                                                                        \
+        /**                                                                                      \
+         @brief Returns a container expression by evaluating METHOD_NAME on the given @a rContainerExpression's expression using @a rContainerExpression2's expression                                      \
+        @see METHOD_NAME.                                                        \
+        @tparam TContainerType Container type.                                                  \
+        @param ContainerExpression<TContainerType> Container expression1 to apply METHOD_NAME.                                                                                \
+        @param ContainerExpression<TContainerType> Container expression1 to apply METHOD_NAME.                                                                                \
+        @return ContainerExpression<TContainerType> Resulting container expression. **/                                                                                         \
         template <class TContainerType>                                                          \
         static ContainerExpression<TContainerType> METHOD_NAME(                                  \
             const ContainerExpression<TContainerType>& rContainerExpression1,                    \
@@ -371,6 +571,7 @@ public:
 
     KRATOS_EXPRESSION_UTILS_CEXP_METHOD_1(Collapse)
     KRATOS_EXPRESSION_UTILS_CEXP_METHOD_1(Abs)
+    KRATOS_EXPRESSION_UTILS_CEXP_METHOD_1(Log)
     KRATOS_EXPRESSION_UTILS_CEXP_METHOD_1(EntityMin)
     KRATOS_EXPRESSION_UTILS_CEXP_METHOD_1(EntityMax)
     KRATOS_EXPRESSION_UTILS_CEXP_METHOD_1(EntitySum)
@@ -384,6 +585,15 @@ public:
     #undef KRATOS_EXPRESSION_UTILS_CEXP_METHOD_2
     #undef KRATOS_EXPRESSION_UTILS_CEXP_METHOD_3
 
+    /**
+     * @brief Slicing given container expression's expression.
+     * @see Slice.
+     * @tparam TContainerType Container type
+     * @param rContainerExpression  Container expression to be sliced.
+     * @param Offset Index of the first component to begin slicing at.
+     * @param Stride Number of components from the offset in the sliced item.
+     * @return ContainerExpression<TContainerType>      Resulting sliced container expression.
+     */
     template<class TContainerType>
     static ContainerExpression<TContainerType> Slice(
         const ContainerExpression<TContainerType>& rContainerExpression,
@@ -395,6 +605,16 @@ public:
         return copy;
     }
 
+    /**
+     * @brief Reshape the data in the given container expression's expression.
+     * @see Reshape.
+     * @tparam TContainerType Container type
+     * @tparam TIterator Iterator type for the shape.
+     * @param rContainerExpression  Container expression to be sliced.
+     * @param NewShapeBegin Starting iterator for the new shape.
+     * @param NewShapeEnd Ending iterator for the new shape
+     * @return ContainerExpression<TContainerType> Resulting reshaped container expression.
+     */
     template <class TContainerType, class TIterator>
     static ContainerExpression<TContainerType> Reshape(
         const ContainerExpression<TContainerType>& rContainerExpression,
@@ -406,6 +626,14 @@ public:
         return copy;
     }
 
+    /**
+     * @brief Reshape the data in the given container expression's expression.
+     * @see Reshape.
+     * @tparam TContainerType Container type
+     * @param rContainerExpression  Container expression to be sliced.
+     * @param rNewShape New shape.
+     * @return ContainerExpression<TContainerType> Resulting reshaped container expression.
+     */
     template<class TContainerType>
     static ContainerExpression<TContainerType> Reshape(
         const ContainerExpression<TContainerType>& rContainerExpression,
@@ -414,6 +642,13 @@ public:
         return Reshape(rContainerExpression, rNewShape.begin(), rNewShape.end());
     }
 
+    /** @brief Append the components of a set of container expressions' expression to the current container expression's expression components.
+     * @see Comb
+     * @throws If the @a rpContainerExpressions is empty.
+     * @tparam TContainerType Type of the data container
+     * @param rpContainerExpressions  List of container expressions to comb through.
+     * @return ContainerExpression<TContainerType>  Resulting container expression.
+     */
     template <class TContainerType>
     static ContainerExpression<TContainerType> Comb(const std::vector<typename ContainerExpression<TContainerType>::Pointer>& rpContainerExpressions)
     {
@@ -426,6 +661,14 @@ public:
         return copy;
     }
 
+    /**
+     * @brief Computes the P norm of the given container expression's expression.
+     * @see NormP
+     * @tparam TContainerType   Container type.
+     * @param rContainerExpression  Input container expression.
+     * @param P Norm coefficient.
+     * @return double   Resulting p norm.
+     */
     template <class TContainerType>
     static double NormP(
         const ContainerExpression<TContainerType>& rContainerExpression,
@@ -434,6 +677,14 @@ public:
         return NormP(rContainerExpression.pGetExpression(), P, rContainerExpression.GetModelPart().GetCommunicator().GetDataCommunicator());
     }
 
+    /**
+     * @brief Computes inner product between two container expressions's expressions.
+     * @see InnerProduct
+     * @tparam TContainerType Container type.
+     * @param rContainerExpression1    Container expression 1.
+     * @param rContainerExpression2    Container expression 2.
+     * @return double                  Inner product.
+     */
     template<class TContainerType>
     static double InnerProduct(
         const ContainerExpression<TContainerType>& rContainerExpression1,

@@ -76,7 +76,7 @@ void AddContainerExpressionToPython(pybind11::module& m, const std::string& rNam
         .def("__ipow__", [](container_expression_holder_base& rSelf, const container_expression_holder_base& rInput) { rSelf = ExpressionUtils::Pow(rSelf, rInput); return rSelf; })
         .def("__pow__", [](container_expression_holder_base& rSelf, const double Value) { container_expression_holder_base result(rSelf.GetModelPart()); result = ExpressionUtils::Pow(rSelf, Value); return result; })
         .def("__ipow__", [](container_expression_holder_base& rSelf, const double Value) { rSelf = ExpressionUtils::Pow(rSelf, Value); return rSelf; })
-        .def("__neg__", [](container_expression_holder_base& rSelf) { return rSelf *= -1.0; })
+        .def("__neg__", [](container_expression_holder_base& rSelf) { return rSelf * -1.0; })
         .def("PrintData", &container_expression_holder_base::PrintData)
         .def("__str__", &container_expression_holder_base::Info)
         ;
@@ -89,6 +89,7 @@ void AddContainerExpressionUtilsToPython(pybind11::module& m, const std::string&
 
      m.def("Collapse", &ExpressionUtils::Collapse<TContainerType>, py::arg(rName.c_str()));
      m.def("Abs", &ExpressionUtils::Abs<TContainerType>, py::arg(rName.c_str()));
+     m.def("Log", &ExpressionUtils::Log<TContainerType>, py::arg(rName.c_str()));
      m.def("EntityMin", &ExpressionUtils::EntityMin<TContainerType>, py::arg(rName.c_str()));
      m.def("EntityMax", &ExpressionUtils::EntityMax<TContainerType>, py::arg(rName.c_str()));
      m.def("EntitySum", &ExpressionUtils::EntitySum<TContainerType>, py::arg(rName.c_str()));

@@ -449,7 +449,7 @@ void ParallelFillCommunicator::GenerateMeshes(
     }
 
     std::vector<int> ids_to_send;
-    { // Syncronize how many nodes need to be sent/received.
+    { // Synchronize how many nodes need to be sent/received.
         int send_tag = Color;
         int receive_tag = Color;
         std::size_t recv_buf = r_data_communicator.SendRecv(ids_to_receive.size(), NeighbourPID, send_tag, NeighbourPID, receive_tag);

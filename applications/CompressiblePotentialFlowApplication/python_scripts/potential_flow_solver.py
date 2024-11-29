@@ -93,7 +93,7 @@ class PotentialFlowFormulation(object):
         self.element_name = "EmbeddedIncompressiblePotentialFlowElement"
         self.condition_name = "PotentialWallCondition"
         self.process_info_data[KratosMultiphysics.STABILIZATION_FACTOR] = formulation_settings["stabilization_factor"].GetDouble()
-        self.process_info_data[KratosMultiphysics.FluidDynamicsApplication.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
+        self.process_info_data[KratosMultiphysics.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
 
     def _SetUpEmbeddedCompressibleElement(self, formulation_settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
@@ -106,7 +106,7 @@ class PotentialFlowFormulation(object):
         self.element_name = "EmbeddedCompressiblePotentialFlowElement"
         self.condition_name = "PotentialWallCondition"
         self.process_info_data[KratosMultiphysics.STABILIZATION_FACTOR] = formulation_settings["stabilization_factor"].GetDouble()
-        self.process_info_data[KratosMultiphysics.FluidDynamicsApplication.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
+        self.process_info_data[KratosMultiphysics.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
 
     def _SetUpEmbeddedTransonicPerturbationElement(self, formulation_settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
@@ -119,7 +119,7 @@ class PotentialFlowFormulation(object):
         self.element_name = "EmbeddedTransonicPerturbationPotentialFlowElement"
         self.condition_name = "PotentialWallCondition"
         self.process_info_data[KratosMultiphysics.STABILIZATION_FACTOR] = formulation_settings["stabilization_factor"].GetDouble()
-        self.process_info_data[KratosMultiphysics.FluidDynamicsApplication.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
+        self.process_info_data[KratosMultiphysics.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
 
 
 def CreateSolver(model, custom_settings):
@@ -167,6 +167,8 @@ class PotentialFlowSolver(FluidSolver):
             "skin_parts":[""],
             "assign_neighbour_elements_to_conditions": false,
             "no_skin_parts": [""],
+            "scheme_settings" :{
+            },
             "time_stepping"                : {
                 "automatic_time_step" : false,
                 "CFL_number"          : 1,
@@ -185,7 +187,8 @@ class PotentialFlowSolver(FluidSolver):
     def __init__(self, model, custom_settings):
 
         self._validate_settings_in_baseclass=True # To be removed eventually
-        super(PotentialFlowSolver, self).__init__(model, custom_settings)
+        super().__init__(model, custom_settings)
+        self._enforce_element_and_conditions_replacement = False #TODO: Remove once we remove the I/O from the solver
 
         # Set the element and condition names for the replace settings
         self.formulation = PotentialFlowFormulation(self.settings["formulation"])
@@ -254,8 +257,13 @@ class PotentialFlowSolver(FluidSolver):
         return KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
 
     def _CreateScheme(self):
-        # Fake scheme creation to do the solution update
-        scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+        settings = self.settings["scheme_settings"]
+        settings.AddMissingParameters(self._GetDefaultTransonicParameters())
+        if (self.settings["formulation"]["element_type"].GetString() == "perturbation_transonic"
+            and settings["is_transonic"].GetBool() == False):
+            warn_msg = "Using 'perturbation_transonic' element without updating transonic parameters. You can enable it with 'is_transonic' flag in your 'scheme_settings'."
+            KratosMultiphysics.Logger.PrintWarning('PotentialFlowSolver', warn_msg)
+        scheme = KCPFApp.PotentialFlowResidualBasedIncrementalUpdateStaticScheme(settings)
         return scheme
 
     def _CreateConvergenceCriterion(self):
@@ -320,6 +328,19 @@ class PotentialFlowSolver(FluidSolver):
                 "min_alpha"                  : 0.1,
                 "max_alpha"                  : 2.0,
                 "line_search_tolerance"      : 0.5
+            }""")
+        return default_line_search_parameters
+    @classmethod
+
+    def _GetDefaultTransonicParameters(self):
+        default_line_search_parameters = KratosMultiphysics.Parameters(r"""{
+                "is_transonic"                   : false,
+                "initial_critical_mach"          : 0.92,
+                "initial_upwind_factor_constant" : 2.0,
+                "target_critical_mach"           : 0.92,
+                "target_upwind_factor_constant"  : 2.0,
+                "update_relative_residual_norm"  : 1e-3,
+                "mach_number_squared_limit"      : 3.0
             }""")
         return default_line_search_parameters
 

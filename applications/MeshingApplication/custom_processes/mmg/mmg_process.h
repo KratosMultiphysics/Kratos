@@ -61,13 +61,13 @@ namespace Kratos
 ///@{
 
     /// Index definition
-    typedef std::size_t                  IndexType;
+    using IndexType = std::size_t;
 
     /// Size definition
-    typedef std::size_t                   SizeType;
+    using SizeType = std::size_t;
 
     /// Index vector
-    typedef std::vector<IndexType> IndexVectorType;
+    using IndexVectorType = std::vector<IndexType>;
 
 ///@}
 ///@name  Enum's
@@ -101,23 +101,20 @@ public:
     /// Pointer definition of MmgProcess
     KRATOS_CLASS_POINTER_DEFINITION(MmgProcess);
 
-    /// Node definition
-    typedef Node                                                   NodeType;
     // Geometry definition
-    typedef Geometry<NodeType>                                     GeometryType;
+    using GeometryType = Geometry<Node>;
 
     /// Conditions array size
     static constexpr SizeType Dimension = (TMMGLibrary == MMGLibrary::MMG2D) ? 2 : 3;
 
     /// The type of array considered for the tensor
-    typedef typename std::conditional<Dimension == 2, array_1d<double, 3>, array_1d<double, 6>>::type TensorArrayType;
+    using TensorArrayType = typename std::conditional<Dimension == 2, array_1d<double, 3>, array_1d<double, 6>>::type;
 
     /// Colors map
-    typedef std::unordered_map<IndexType,IndexType> ColorsMapType;
+    using ColorsMapType = std::unordered_map<IndexType,IndexType>;
 
     /// Index pair
-    typedef std::pair<IndexType,IndexType> IndexPairType;
-
+    using IndexPairType = std::pair<IndexType,IndexType>;
 
     ///@}
     ///@name  Enum's
@@ -141,22 +138,6 @@ public:
 
     /// Destructor.
     ~MmgProcess() override = default;
-
-    ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    ///@}
-    ///@name Friends
-    ///@{
 
     ///@}
     ///@name Operators
@@ -242,7 +223,6 @@ public:
     ///@name Inquiry
     ///@{
 
-
     ///@}
     ///@name Input and output
     ///@{
@@ -265,7 +245,6 @@ public:
     }
 
 protected:
-
     ///@name Protected static Member Variables
     ///@{
 
@@ -275,7 +254,7 @@ protected:
 
     ModelPart& mrThisModelPart;                                      /// The model part to compute
     Parameters mThisParameters;                                      /// The parameters (can be used for general pourposes)
-    NodeType::DofsContainerType mDofs;                               /// Storage for the dof of the node
+    Node::DofsContainerType mDofs;                                   /// Storage for the dof of the node
 
     std::string mFilename;                                           /// I/O file name
     IndexType mEchoLevel;                                            /// The echo level
@@ -456,23 +435,9 @@ protected:
     void ApplyLocalParameters();
 
     ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
-
 
     ///@}
     ///@name Member Variables
@@ -506,16 +471,6 @@ private:
     void MarkConditionsSubmodelParts(ModelPart& rModelPart);
 
     ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
     ///@name Un accessible methods
     ///@{
 
@@ -526,7 +481,6 @@ private:
     MmgProcess(MmgProcess const& rOther);
 
     ///@}
-
 };// class MmgProcess
 ///@}
 

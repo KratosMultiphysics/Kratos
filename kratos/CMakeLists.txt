@@ -46,7 +46,7 @@ if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 endif(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 
 ## Kratos python interface code
-FILE(GLOB_RECURSE KRATOS_PYTHON_SOURCES "python/*.cpp") #all .cpp
+FILE(GLOB_RECURSE KRATOS_PYTHON_SOURCES "python/*.cpp")
 
 ## Kratos Version
 set( KRATOS_VERSION_SOURCES
@@ -62,11 +62,45 @@ file(GLOB KRATOS_EXPRESSION_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/expression/*.cpp
 
 ## Kratos tests sources. Enabled by default
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
-    file(GLOB_RECURSE KRATOS_TEST_SOURCES
+    include(GoogleTest)
+
+    file(GLOB_RECURSE KRATOS_TEST_UTILITIES_SOURCES 
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_utilities/*.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp
     )
+
+    file(GLOB_RECURSE KRATOS_TEST_SOURCES 
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/testing/*.cpp
+    )
+
+    add_library(KratosCoreTestUtilities SHARED ${KRATOS_TEST_UTILITIES_SOURCES})
+    add_executable(KratosCoreTest ${KRATOS_TEST_SOURCES})
+
+    target_link_libraries(KratosCoreTestUtilities KratosCore GTest::gtest GTest::gmock)
+    set_target_properties(KratosCoreTestUtilities PROPERTIES COMPILE_DEFINITIONS "KRATOS_TEST_UTILS=IMPORT,API")
+    target_link_libraries(KratosCoreTest PUBLIC KratosCoreTestUtilities GTest::gmock_main)
+    set_target_properties(KratosCoreTest PROPERTIES COMPILE_DEFINITIONS "KRATOS_TEST_CORE=IMPORT,API")
+
+    install(TARGETS KratosCoreTestUtilities DESTINATION libs)
+    install(TARGETS KratosCoreTest DESTINATION test)
+
+    gtest_discover_tests(KratosCoreTest DISCOVERY_MODE PRE_TEST)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
+
+## Kratos benchmark sources. Disabled by default
+if(${KRATOS_BUILD_BENCHMARK} MATCHES ON)
+    file(GLOB_RECURSE KRATOS_BENCHMARK_SOURCES 
+        ${CMAKE_CURRENT_SOURCE_DIR}/benchmarks/*.cpp
+    )
+
+    foreach(file ${KRATOS_BENCHMARK_SOURCES})
+        get_filename_component(filename ${file} NAME_WE)
+        add_executable(${filename} ${file})
+        target_link_libraries(${filename} PUBLIC KratosCore benchmark::benchmark)
+        set_target_properties(${filename} PROPERTIES COMPILE_DEFINITIONS "KRATOS_BENCHMARK=IMPORT,API")
+        install(TARGETS ${filename} DESTINATION benchmark)
+    endforeach(file ${KRATOS_BENCHMARK_SOURCES})
+endif(${KRATOS_BUILD_BENCHMARK} MATCHES ON)
 
 ## Define KratosVersion object
 add_library(KratosVersion OBJECT ${KRATOS_VERSION_SOURCES})
@@ -81,7 +115,7 @@ target_compile_definitions(KratosVersion PRIVATE
 )
 
 ## Define library KratosCore to be included in all of the others
-add_library(KratosCore SHARED ${KRATOS_CORE_SOURCES} ${KRATOS_CORE_TESTING_ENGINE_SOURCES} ${KRATOS_CORE_INPUT_OUTPUT_SOURCES} ${KRATOS_EXPRESSION_SOURCES} ${KRATOS_TEST_SOURCES} ${KRATOS_TPL_SOURCES} $<TARGET_OBJECTS:KratosVersion>)
+add_library(KratosCore SHARED ${KRATOS_CORE_SOURCES} ${KRATOS_CORE_INPUT_OUTPUT_SOURCES} ${KRATOS_EXPRESSION_SOURCES} ${KRATOS_TPL_SOURCES} $<TARGET_OBJECTS:KratosVersion>)
 
 # Set the shared external libraries for kratos (gidpost, tyniexpr, json, etc...)
 set(KRATOS_EXTERNAL_LIBRARIES gidpost tinyexpr clipper)
@@ -131,7 +165,7 @@ endif()
 
 ## Define library Kratos which defines the basic python interface
 pybind11_add_module(Kratos MODULE THIN_LTO ${KRATOS_PYTHON_SOURCES})
-target_link_libraries(Kratos PRIVATE ${KRATOS_TEST_LIBRARIES} KratosCore)
+target_link_libraries(Kratos PRIVATE KratosCore)
 
 # Precompile most demanding / widely included headers
 if(KRATOS_USE_PCH MATCHES ON)

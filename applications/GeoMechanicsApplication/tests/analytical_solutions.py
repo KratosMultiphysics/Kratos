@@ -1,11 +1,11 @@
-def calculate_1D_consolidation(y_coord, H, T_v):
+def calculate_pore_pressure_1d_consolidation(y_coord, height, t_v):
     """
-    Calculates the analytical solution for 1d consolidation on linear elastic soil [@@ref@@]
+    Calculates the analytical solution for water pressure in 1d consolidation on linear elastic soil [@@ref@@]
 
-    :param y_coord: vertical coordinate
-    :param H: sample height
-    :param T_v:  dimensionless time factor
-    :return: relative excess pore pressure
+    :param y_coord : vertical coordinate
+    :param height  : sample height
+    :param t_v     :  dimensionless time factor
+    :return        : relative excess pore pressure
     """
     from math import fabs, cos, pi, exp
 
@@ -15,43 +15,39 @@ def calculate_1D_consolidation(y_coord, H, T_v):
     rel_p_old = 1
     rel_p = 0
     max_iterations = 1001
-    min_iterations=20
-    min_iterations_reached = False
-    while fabs(rel_p_old - rel_p) > convergence_criterion and j < max_iterations or not min_iterations_reached:
+    min_iterations = 20
+    while fabs(rel_p_old - rel_p) > convergence_criterion and j < max_iterations or j > min_iterations:
 
         rel_p_old = rel_p
-        rel_p = (-1) ** (j - 1) / (2 * j - 1) * cos((2 * j - 1) * pi / 2 * y_coord / H) * exp(
-            -1 * (2 * j - 1) ** 2 * pi ** 2 / 4 * T_v) + rel_p_old
+        rel_p = (-1) ** (j - 1) / (2 * j - 1) * cos((2 * j - 1) * pi / 2 * y_coord / height) * exp(
+            -1 * (2 * j - 1) ** 2 * (pi ** 2) / 4 * t_v) + rel_p_old
         j += 1
 
-        if (j > min_iterations):
-            min_iterations_reached = True
-
-    rel_p = 4.0 / pi * rel_p
-    return rel_p
-
-
-def rigid_footing(x, B, delta, G, nu, settlement):
+    return 4.0 / pi * rel_p
+    
+def calculate_degree_of_1d_consolidation(t_v):
     """
-    Calculates analytical solution for reaction pressure of settlement controlled rigid footing on linear elastic soil
-    [@@ref@@]
+    Calculates the analytical solution for degree of consolidation in 1d consolidation on linear elastic soil [@@ref@@]
 
-    :param x: x-coordinate
-    :param B: width footing
-    :param delta: geometry dependent factor
-    :param G:  shear modulus
-    :param nu: poison ratio
-    :param settlement:  settlement
-
-    :return: vertical reaction pressure
+    :param t_v:  dimensionless time factor
+    :return   : degree of consolidation
     """
-    from math import pi, sqrt
+    from math import fabs, pi, exp
 
-    reaction_force = settlement * 2.0 * (1.0 + nu) * G / delta
-    sigma_v = -2.0 / pi * reaction_force / 2.0 / (B * sqrt(1.0 - (x / B) ** 2.0))
+    convergence_criterion = 1e-10
 
-    return sigma_v
+    j = 1
+    rel_d_old = 1
+    rel_d = 0
+    max_iterations = 1001
+    min_iterations = 20
+    while fabs(rel_d_old - rel_d) > convergence_criterion and j < max_iterations or j > min_iterations:
 
+        rel_d_old = rel_d
+        rel_d = 1 / (2 * j - 1) ** 2 * exp(-1 * (2 * j - 1) ** 2 * (pi ** 2) / 4 * t_v) + rel_d_old
+        j += 1
+
+    return 1.0 - 8.0 * rel_d / (pi ** 2)
 
 def calculate_max_deflections_ring(force, r, young, m_inertia):
     """

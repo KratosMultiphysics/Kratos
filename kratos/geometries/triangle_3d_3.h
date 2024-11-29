@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License          BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
@@ -297,14 +297,34 @@ public:
      */
     ~Triangle3D3() override {}
 
+    /**
+     * @brief Gets the geometry family.
+     * @details This function returns the family type of the geometry. The geometry family categorizes the geometry into a broader classification, aiding in its identification and processing.
+     * @return GeometryData::KratosGeometryFamily The geometry family.
+     */
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::KratosGeometryFamily::Kratos_Triangle;
     }
 
+    /**
+     * @brief Gets the geometry type.
+     * @details This function returns the specific type of the geometry. The geometry type provides a more detailed classification of the geometry.
+     * @return GeometryData::KratosGeometryType The specific geometry type.
+     */
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::KratosGeometryType::Kratos_Triangle3D3;
+    }
+
+    /**
+     * @brief Gets the geometry order type.
+     * @details This function returns the order type of the geometry. The order type relates to the polynomial degree of the geometry.
+     * @return GeometryData::KratosGeometryOrderType The geometry order type.
+     */
+    GeometryData::KratosGeometryOrderType GetGeometryOrderType() const override
+    {
+        return GeometryData::KratosGeometryOrderType::Kratos_Linear_Order;
     }
 
     ///@}
@@ -690,7 +710,7 @@ public:
         box_half_size[1] = 0.5 * std::abs(rHighPoint[1] - rLowPoint[1]);
         box_half_size[2] = 0.5 * std::abs(rHighPoint[2] - rLowPoint[2]);
 
-        return TriBoxOverlap(box_center, box_half_size);
+        return GeometryUtils::TriangleBoxOverlap(box_center, box_half_size, this->GetPoint(0), this->GetPoint(1), this->GetPoint(2));
     }
 
     /// Quality functions
@@ -973,6 +993,124 @@ public:
     ///@}
     ///@name Spatial Operations
     ///@{
+
+    /**
+    * @brief Projects a certain point on the geometry, or finds
+    *        the closest point, depending on the provided
+    *        initial guess. The external point does not necessary
+    *        lay on the geometry.
+    *        It shall deal as the interface to the mathematical
+    *        projection function e.g. the Newton-Raphson.
+    *        Thus, the breaking criteria does not necessarily mean
+    *        that it found a point on the surface, if it is really
+    *        the closest if or not. It shows only if the breaking
+    *        criteria, defined by the tolerance is reached.
+    *
+    *        This function requires an initial guess, provided by
+    *        rProjectedPointLocalCoordinates.
+    *        This function can be a very costly operation.
+    *
+    * @param rPointGlobalCoordinates the point to which the
+    *        projection has to be found.
+    * @param rProjectedPointGlobalCoordinates the location of the
+    *        projection in global coordinates.
+    * @param rProjectedPointLocalCoordinates the location of the
+    *        projection in local coordinates.
+    *        The variable is as initial guess!
+    * @param Tolerance accepted of orthogonal error to projection.
+    * @return It is chosen to take an int as output parameter to
+    *         keep more possibilities within the interface.
+    *         0 -> failed
+    *         1 -> converged
+    */
+    KRATOS_DEPRECATED_MESSAGE("This method is deprecated. Use either \'ProjectionPointLocalToLocalSpace\' or \'ProjectionPointGlobalToLocalSpace\' instead.")
+    int ProjectionPoint(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        KRATOS_WARNING("ProjectionPoint") << "This method is deprecated. Use either \'ProjectionPointLocalToLocalSpace\' or \'ProjectionPointGlobalToLocalSpace\' instead." << std::endl;
+
+        ProjectionPointGlobalToLocalSpace(rPointGlobalCoordinates, rProjectedPointLocalCoordinates, Tolerance);
+
+        this->GlobalCoordinates(rProjectedPointGlobalCoordinates, rProjectedPointLocalCoordinates);
+
+        return 1;
+    }
+
+    /**
+     * @brief Projects a point onto the geometry
+     * Projects a certain point on the geometry, or finds the closest point, depending on the provided initial guess.
+     * The external point does not necessary lay on the geometry.
+     * It shall deal as the interface to the mathematical projection function e.g. the Newton-Raphson.
+     * Thus, the breaking criteria does not necessarily mean that it found a point on the surface, if it is really
+     * the closest if or not.
+     * It shows only if the breaking criteria, defined by the tolerance is reached.
+     * This function requires an initial guess, provided by rProjectionPointLocalCoordinates.
+     * This function can be a very costly operation.
+     * @param rPointLocalCoordinates Local coordinates of the point to be projected
+     * @param rProjectionPointLocalCoordinates Projection point local coordinates. This should be initialized with the initial guess
+     * @param Tolerance Accepted orthogonal error
+     * @return int 0 -> failed
+     *             1 -> converged
+     */
+    int ProjectionPointLocalToLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        CoordinatesArrayType& rProjectionPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+	noalias(rProjectionPointLocalCoordinates) = rPointLocalCoordinates;
+        double sum_coordinates = 0.0;
+        for(unsigned int i = 0 ; i < 2 ; i++){ // It's a triangle, so only (local) xi and eta
+            if (rProjectionPointLocalCoordinates[i] < 0.0) { // Clipping to zero
+                rProjectionPointLocalCoordinates[i] = 0.0;
+            }
+            sum_coordinates += rProjectionPointLocalCoordinates[i];
+        }
+        
+        // Clipping to line y=1-x
+        if (sum_coordinates>1.0){
+            for(unsigned int i = 0 ; i < 2 ; i++){ 
+                rProjectionPointLocalCoordinates[i] /= sum_coordinates;
+            }
+        }
+
+        return 1;
+    }
+
+    /**
+     * @brief Projects a point onto the geometry
+     * Projects a certain point on the geometry, or finds the closest point, depending on the provided initial guess.
+     * The external point does not necessary lay on the geometry.
+     * It shall deal as the interface to the mathematical projection function e.g. the Newton-Raphson.
+     * Thus, the breaking criteria does not necessarily mean that it found a point on the surface, if it is really
+     * the closest if or not.
+     * It shows only if the breaking criteria, defined by the tolerance is reached.
+     * This function requires an initial guess, provided by rProjectionPointLocalCoordinates.
+     * This function can be a very costly operation.
+     * @param rPointLocalCoordinates Global coordinates of the point to be projected
+     * @param rProjectionPointLocalCoordinates Projection point local coordinates. This should be initialized with the initial guess
+     * @param Tolerance Accepted orthogonal error
+     * @return int 0 -> failed
+     *             1 -> converged
+     */
+    int ProjectionPointGlobalToLocalSpace(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectionPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        // Calculate the point of interest global coordinates
+        // Note that rProjectionPointLocalCoordinates is used as initial guess
+        PointLocalCoordinates(rProjectionPointLocalCoordinates, rPointGlobalCoordinates);
+
+        // Calculate the projection point local coordinates from the input point local coordinates
+        CoordinatesArrayType point_local_coordinates(rProjectionPointLocalCoordinates);
+        return ProjectionPointLocalToLocalSpace(point_local_coordinates, rProjectionPointLocalCoordinates);
+    }
 
     /**
     * @brief Computes the distance between an point in
@@ -1615,85 +1753,6 @@ public:
     }
 
     ///@}
-    ///@name Spatial Operations
-    ///@{
-
-    /**
-    * @brief Projects a certain point on the geometry, or finds
-    *        the closest point, depending on the provided
-    *        initial guess. The external point does not necessary
-    *        lay on the geometry.
-    *        It shall deal as the interface to the mathematical
-    *        projection function e.g. the Newton-Raphson.
-    *        Thus, the breaking criteria does not necessarily mean
-    *        that it found a point on the surface, if it is really
-    *        the closest if or not. It shows only if the breaking
-    *        criteria, defined by the tolerance is reached.
-    *
-    *        This function requires an initial guess, provided by
-    *        rProjectedPointLocalCoordinates.
-    *        This function can be a very costly operation.
-    *
-    * @param rPointGlobalCoordinates the point to which the
-    *        projection has to be found.
-    * @param rProjectedPointGlobalCoordinates the location of the
-    *        projection in global coordinates.
-    * @param rProjectedPointLocalCoordinates the location of the
-    *        projection in local coordinates.
-    *        The variable is as initial guess!
-    * @param Tolerance accepted of orthogonal error to projection.
-    * @return It is chosen to take an int as output parameter to
-    *         keep more possibilities within the interface.
-    *         0 -> failed
-    *         1 -> converged
-    */
-    KRATOS_DEPRECATED_MESSAGE("This method is deprecated. Use either \'ProjectionPointLocalToLocalSpace\' or \'ProjectionPointGlobalToLocalSpace\' instead.")
-    int ProjectionPoint(
-        const CoordinatesArrayType& rPointGlobalCoordinates,
-        CoordinatesArrayType& rProjectedPointGlobalCoordinates,
-        CoordinatesArrayType& rProjectedPointLocalCoordinates,
-        const double Tolerance = std::numeric_limits<double>::epsilon()
-        ) const override
-    {
-        KRATOS_WARNING("ProjectionPoint") << "This method is deprecated. Use either \'ProjectionPointLocalToLocalSpace\' or \'ProjectionPointGlobalToLocalSpace\' instead." << std::endl;
-
-        ProjectionPointGlobalToLocalSpace(rPointGlobalCoordinates, rProjectedPointLocalCoordinates, Tolerance);
-
-        this->GlobalCoordinates(rProjectedPointGlobalCoordinates, rProjectedPointLocalCoordinates);
-
-        return 1;
-    }
-
-    int ProjectionPointLocalToLocalSpace(
-        const CoordinatesArrayType& rPointLocalCoordinates,
-        CoordinatesArrayType& rProjectionPointLocalCoordinates,
-        const double Tolerance = std::numeric_limits<double>::epsilon()
-    ) const override
-    {
-        for (std::size_t  i = 0; i < 3; ++i) {
-            rProjectionPointLocalCoordinates[i] = (rPointLocalCoordinates[i] < 0.0) ? 0.0 : rPointLocalCoordinates[i];
-            rProjectionPointLocalCoordinates[i] = (rPointLocalCoordinates[i] > 1.0) ? 1.0 : rPointLocalCoordinates[i];
-        }
-
-        return 1;
-    }
-
-    int ProjectionPointGlobalToLocalSpace(
-        const CoordinatesArrayType& rPointGlobalCoordinates,
-        CoordinatesArrayType& rProjectionPointLocalCoordinates,
-        const double Tolerance = std::numeric_limits<double>::epsilon()
-    ) const override
-    {
-        // Calculate the point of interest global coordinates
-        // Note that rProjectionPointLocalCoordinates is used as initial guess
-        PointLocalCoordinates(rProjectionPointLocalCoordinates, rPointGlobalCoordinates);
-
-        // Calculate the projection point local coordinates from the input point local coordinates
-        CoordinatesArrayType point_local_coordinates(rProjectionPointLocalCoordinates);
-        return ProjectionPointLocalToLocalSpace(point_local_coordinates, rProjectionPointLocalCoordinates);
-    }
-
-    ///@}
     ///@name Friends
     ///@{
 
@@ -2259,205 +2318,13 @@ private:
         return false;
     }
 
-    /**
-     * @see HasIntersection
-     * use separating axis theorem to test overlap between triangle and box
-     * need to test for overlap in these directions:
-     * 1) the {x,y,(z)}-directions
-     * 2) normal of the triangle
-     * 3) crossproduct (edge from tri, {x,y,z}-direction) gives 3x3=9 more tests
-     */
-    inline bool TriBoxOverlap(Point& rBoxCenter, Point& rBoxHalfSize) const
-    {
-        double abs_ex, abs_ey, abs_ez, distance;
-        array_1d<double,3 > vert0, vert1, vert2;
-        array_1d<double,3 > edge0, edge1, edge2, normal;
-        std::pair<double, double> min_max;
-
-        // move everything so that the boxcenter is in (0,0,0)
-        noalias(vert0) = this->GetPoint(0) - rBoxCenter;
-        noalias(vert1) = this->GetPoint(1) - rBoxCenter;
-        noalias(vert2) = this->GetPoint(2) - rBoxCenter;
-
-        // compute triangle edges
-        noalias(edge0) = vert1 - vert0;
-        noalias(edge1) = vert2 - vert1;
-        noalias(edge2) = vert0 - vert2;
-
-        // Bullet 3:
-        // test the 9 tests first (this was faster)
-        abs_ex = std::abs(edge0[0]);
-        abs_ey = std::abs(edge0[1]);
-        abs_ez = std::abs(edge0[2]);
-        if (AxisTestX(edge0[1],edge0[2],abs_ey,abs_ez,vert0,vert2,rBoxHalfSize)) return false;
-        if (AxisTestY(edge0[0],edge0[2],abs_ex,abs_ez,vert0,vert2,rBoxHalfSize)) return false;
-        if (AxisTestZ(edge0[0],edge0[1],abs_ex,abs_ey,vert0,vert2,rBoxHalfSize)) return false;
-
-        abs_ex = std::abs(edge1[0]);
-        abs_ey = std::abs(edge1[1]);
-        abs_ez = std::abs(edge1[2]);
-        if (AxisTestX(edge1[1],edge1[2],abs_ey,abs_ez,vert1,vert0,rBoxHalfSize)) return false;
-        if (AxisTestY(edge1[0],edge1[2],abs_ex,abs_ez,vert1,vert0,rBoxHalfSize)) return false;
-        if (AxisTestZ(edge1[0],edge1[1],abs_ex,abs_ey,vert1,vert0,rBoxHalfSize)) return false;
-
-        abs_ex = std::abs(edge2[0]);
-        abs_ey = std::abs(edge2[1]);
-        abs_ez = std::abs(edge2[2]);
-        if (AxisTestX(edge2[1],edge2[2],abs_ey,abs_ez,vert2,vert1,rBoxHalfSize)) return false;
-        if (AxisTestY(edge2[0],edge2[2],abs_ex,abs_ez,vert2,vert1,rBoxHalfSize)) return false;
-        if (AxisTestZ(edge2[0],edge2[1],abs_ex,abs_ey,vert2,vert1,rBoxHalfSize)) return false;
-
-        // Bullet 1:
-        //  first test overlap in the {x,y,z}-directions
-        //  find min, max of the triangle for each direction, and test for
-        //  overlap in that direction -- this is equivalent to testing a minimal
-        //  AABB around the triangle against the AABB
-
-        // test in X-direction
-        min_max = std::minmax({vert0[0], vert1[0], vert2[0]});
-        if(min_max.first>rBoxHalfSize[0] || min_max.second<-rBoxHalfSize[0]) return false;
-
-        // test in Y-direction
-        min_max = std::minmax({vert0[1], vert1[1], vert2[1]});
-        if(min_max.first>rBoxHalfSize[1] || min_max.second<-rBoxHalfSize[1]) return false;
-
-        // test in Z-direction
-        min_max = std::minmax({vert0[2], vert1[2], vert2[2]});
-        if(min_max.first>rBoxHalfSize[2] || min_max.second<-rBoxHalfSize[2]) return false;
-
-        // Bullet 2:
-        //  test if the box intersects the plane of the triangle
-        //  compute plane equation of triangle: normal*x+distance=0
-        MathUtils<double>::CrossProduct(normal, edge0, edge1);
-        distance = -inner_prod(normal, vert0);
-        if(!PlaneBoxOverlap(normal, distance, rBoxHalfSize)) return false;
-
-        return true;  // box and triangle overlaps
-    }
-
-    /**
-     * Check if a plane intersects a box
-     * @see TriBoxOverlap
-     *
-     * @return bool intersection flagg
-     * @param rNormal the plane normal
-     * @param rDist   distance to origin
-     * @param rMaxBox box corner from the origin
-     *
-     * plane equation: rNormal*x+rDist=0
-     */
-    bool PlaneBoxOverlap(const array_1d<double,3>& rNormal, const double& rDist, const array_1d<double,3>& rMaxBox) const
-    {
-        array_1d<double,3> vmin, vmax;
-        for(int q = 0; q < 3; q++)
-        {
-            if(rNormal[q] > 0.00)
-            {
-                vmin[q] = -rMaxBox[q];
-                vmax[q] =  rMaxBox[q];
-            }
-            else
-            {
-                vmin[q] =  rMaxBox[q];
-                vmax[q] = -rMaxBox[q];
-            }
-        }
-        if(inner_prod(rNormal, vmin) + rDist >  0.00) return false;
-        if(inner_prod(rNormal, vmax) + rDist >= 0.00) return true;
-
-        return false;
-    }
-
-    /** AxisTestX
-     * This method returns true if there is a separating axis
-     *
-     * @param rEdgeY, rEdgeZ: i-edge corrdinates
-     * @param rAbsEdgeY, rAbsEdgeZ: i-edge abs coordinates
-     * @param rVertA: i   vertex
-     * @param rVertB: i+1 vertex (omitted, proj_a = proj_b)
-     * @param rVertC: i+2 vertex
-     * @param rBoxHalfSize
-     */
-    bool AxisTestX(double& rEdgeY, double& rEdgeZ,
-                   double& rAbsEdgeY, double& rAbsEdgeZ,
-                   array_1d<double,3>& rVertA,
-                   array_1d<double,3>& rVertC,
-                   Point& rBoxHalfSize) const
-    {
-        double proj_a, proj_c, rad;
-        proj_a = rEdgeY*rVertA[2] - rEdgeZ*rVertA[1];
-        proj_c = rEdgeY*rVertC[2] - rEdgeZ*rVertC[1];
-        std::pair<double, double> min_max = std::minmax(proj_a, proj_c);
-
-        rad = rAbsEdgeZ*rBoxHalfSize[1] + rAbsEdgeY*rBoxHalfSize[2];
-
-        if(min_max.first>rad || min_max.second<-rad) return true;
-        else return false;
-    }
-
-    /** AxisTestY
-     * This method returns true if there is a separating axis
-     *
-     * @param rEdgeX, rEdgeZ: i-edge corrdinates
-     * @param rAbsEdgeX, rAbsEdgeZ: i-edge fabs coordinates
-     * @param rVertA: i   vertex
-     * @param rVertB: i+1 vertex (omitted, proj_a = proj_b)
-     * @param rVertC: i+2 vertex
-     * @param rBoxHalfSize
-     */
-    bool AxisTestY(double& rEdgeX, double& rEdgeZ,
-                   double& rAbsEdgeX, double& rAbsEdgeZ,
-                   array_1d<double,3>& rVertA,
-                   array_1d<double,3>& rVertC,
-                   Point& rBoxHalfSize) const
-    {
-        double proj_a, proj_c, rad;
-        proj_a = rEdgeZ*rVertA[0] - rEdgeX*rVertA[2];
-        proj_c = rEdgeZ*rVertC[0] - rEdgeX*rVertC[2];
-        std::pair<double, double> min_max = std::minmax(proj_a, proj_c);
-
-        rad = rAbsEdgeZ*rBoxHalfSize[0] + rAbsEdgeX*rBoxHalfSize[2];
-
-        if(min_max.first>rad || min_max.second<-rad) return true;
-        else return false;
-    }
-
-    /** AxisTestZ
-     * This method returns true if there is a separating axis
-     *
-     * @param rEdgeX, rEdgeY: i-edge corrdinates
-     * @param rAbsEdgeX, rAbsEdgeY: i-edge fabs coordinates
-     * @param rVertA: i   vertex
-     * @param rVertB: i+1 vertex (omitted, proj_a = proj_b)
-     * @param rVertC: i+2 vertex
-     * @param rBoxHalfSize
-     */
-    bool AxisTestZ(double& rEdgeX, double& rEdgeY,
-                   double& rAbsEdgeX, double& rAbsEdgeY,
-                   array_1d<double,3>& rVertA,
-                   array_1d<double,3>& rVertC,
-                   Point& rBoxHalfSize) const
-    {
-        double proj_a, proj_c, rad;
-        proj_a = rEdgeX*rVertA[1] - rEdgeY*rVertA[0];
-        proj_c = rEdgeX*rVertC[1] - rEdgeY*rVertC[0];
-        std::pair<double, double> min_max = std::minmax(proj_a, proj_c);
-
-        rad = rAbsEdgeY*rBoxHalfSize[0] + rAbsEdgeX*rBoxHalfSize[1];
-
-        if(min_max.first>rad || min_max.second<-rad) return true;
-        else return false;
-    }
-
     ///@}
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
-
 
     ///@}
     ///@name Private Friends
@@ -2469,15 +2336,12 @@ private:
     ///@name Un accessible methods
     ///@{
 
-
-
     ///@}
 }; // Class Geometry
 
 ///@}
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name Input and output

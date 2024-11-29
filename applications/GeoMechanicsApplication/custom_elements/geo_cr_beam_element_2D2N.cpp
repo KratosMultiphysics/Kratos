@@ -26,33 +26,26 @@ GeoCrBeamElement2D2N::GeoCrBeamElement2D2N(IndexType NewId, GeometryType::Pointe
 {
 }
 
-//----------------------------------------------------------------------------------------------------
 GeoCrBeamElement2D2N::GeoCrBeamElement2D2N(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : CrBeamElement2D2N(NewId, pGeometry, pProperties)
 {
 }
 
-//----------------------------------------------------------------------------------------------------
-Element::Pointer GeoCrBeamElement2D2N::Create(IndexType NewId,
-                                              NodesArrayType const& rThisNodes,
+Element::Pointer GeoCrBeamElement2D2N::Create(IndexType               NewId,
+                                              NodesArrayType const&   rThisNodes,
                                               PropertiesType::Pointer pProperties) const
 {
     const GeometryType& rGeom = GetGeometry();
     return Kratos::make_intrusive<GeoCrBeamElement2D2N>(NewId, rGeom.Create(rThisNodes), pProperties);
 }
 
-//----------------------------------------------------------------------------------------------------
-Element::Pointer GeoCrBeamElement2D2N::Create(IndexType NewId,
-                                              GeometryType::Pointer pGeom,
+Element::Pointer GeoCrBeamElement2D2N::Create(IndexType               NewId,
+                                              GeometryType::Pointer   pGeom,
                                               PropertiesType::Pointer pProperties) const
 {
     return Kratos::make_intrusive<GeoCrBeamElement2D2N>(NewId, pGeom, pProperties);
 }
 
-//----------------------------------------------------------------------------------------------------
-GeoCrBeamElement2D2N::~GeoCrBeamElement2D2N() {}
-
-//----------------------------------------------------------------------------------------------------
 void GeoCrBeamElement2D2N::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -73,7 +66,6 @@ void GeoCrBeamElement2D2N::InitializeSolutionStep(const ProcessInfo& rCurrentPro
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 void GeoCrBeamElement2D2N::ResetConstitutiveLaw()
 {
     KRATOS_TRY
@@ -84,7 +76,6 @@ void GeoCrBeamElement2D2N::ResetConstitutiveLaw()
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------
 void GeoCrBeamElement2D2N::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -94,9 +85,8 @@ void GeoCrBeamElement2D2N::Initialize(const ProcessInfo& rCurrentProcessInfo)
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------
-void GeoCrBeamElement2D2N::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                                                VectorType& rRightHandSideVector,
+void GeoCrBeamElement2D2N::CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
+                                                VectorType&        rRightHandSideVector,
                                                 const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -123,7 +113,6 @@ void GeoCrBeamElement2D2N::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------
 void GeoCrBeamElement2D2N::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -156,7 +145,7 @@ void GeoCrBeamElement2D2N::CalculateOnIntegrationPoints(const Variable<array_1d<
 {
     KRATOS_TRY
     // Element with two nodes can only represent results at one node
-    const auto& r_geometry = GetGeometry();
+    const auto&                                     r_geometry = GetGeometry();
     const GeometryType::IntegrationPointsArrayType& r_integration_points =
         r_geometry.IntegrationPoints(Kratos::GeometryData::IntegrationMethod::GI_GAUSS_3);
     const SizeType write_points_number = r_integration_points.size();
@@ -205,13 +194,11 @@ void GeoCrBeamElement2D2N::CalculateOnIntegrationPoints(const Variable<array_1d<
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------
 void GeoCrBeamElement2D2N::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     noalias(mInternalGlobalForcesFinalized) = mInternalGlobalForces + mInternalGlobalForcesFinalizedPrevious;
 }
 
-//----------------------------------------------------------------------------------------------------
 void GeoCrBeamElement2D2N::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, CrBeamElement2D2N)
@@ -219,7 +206,6 @@ void GeoCrBeamElement2D2N::save(Serializer& rSerializer) const
     rSerializer.save("InternalGlobalForcesFinalizedPrevious", mInternalGlobalForcesFinalizedPrevious);
 }
 
-//----------------------------------------------------------------------------------------------------
 void GeoCrBeamElement2D2N::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, CrBeamElement2D2N)
