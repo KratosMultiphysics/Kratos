@@ -206,6 +206,22 @@ void LinearTrussElement2D<TNNodes, TDimension>::GetShapeFunctionsValuesY(
 /***********************************************************************************/
 
 template<SizeType TNNodes, SizeType TDimension>
+void LinearTrussElement2D<TNNodes, TDimension>::GetShapeFunctionsValuesZ(
+    SystemSizeBoundedArrayType& rN,
+    const double Length,
+    const double xi
+    ) const
+{
+    if (rN.size() != SystemSize)
+        rN.resize(SystemSize, false);
+
+    rN.clear();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TNNodes, SizeType TDimension>
 void LinearTrussElement2D<TNNodes, TDimension>::GetFirstDerivativesShapeFunctionsValues(
     SystemSizeBoundedArrayType& rdN_dX,
     const double Length,
@@ -335,7 +351,7 @@ void LinearTrussElement2D<TNNodes, TDimension>::CalculateLocalSystem(
     SystemSizeBoundedArrayType nodal_values(SystemSize);
     GetNodalValuesVector(nodal_values); // In local axes
 
-    SystemSizeBoundedArrayType B, N_shape, N_shapeY;
+    SystemSizeBoundedArrayType B, N_shape, N_shapeY, N_shapeZ;
 
     // Loop over the integration points
     for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
@@ -346,8 +362,8 @@ void LinearTrussElement2D<TNNodes, TDimension>::CalculateLocalSystem(
         const double jacobian_weight = weight * J * area;
         GetShapeFunctionsValues(N_shape, length, xi);
         GetShapeFunctionsValuesY(N_shapeY, length, xi);
+        GetShapeFunctionsValuesZ(N_shapeZ, length, xi);
         GetFirstDerivativesShapeFunctionsValues(B, length, xi);
-
 
         strain_vector[0] = inner_prod(B, nodal_values);
         mConstitutiveLawVector[IP]->CalculateMaterialResponsePK2(cl_values); // fills stress and const. matrix
@@ -355,8 +371,9 @@ void LinearTrussElement2D<TNNodes, TDimension>::CalculateLocalSystem(
         noalias(rLHS) += outer_prod(B, B) * constitutive_matrix(0, 0) * jacobian_weight;
         noalias(rRHS) -= B * stress_vector[0] * jacobian_weight;
 
-        noalias(rRHS) += N_shape * local_body_forces[0] * jacobian_weight;
+        noalias(rRHS) += N_shape  * local_body_forces[0] * jacobian_weight;
         noalias(rRHS) += N_shapeY * local_body_forces[1] * jacobian_weight;
+        noalias(rRHS) += N_shapeZ * local_body_forces[2] * jacobian_weight; // null in this class
     }
     RotateAll(rLHS, rRHS); // rotate to global
 
@@ -433,7 +450,7 @@ void LinearTrussElement2D<TNNodes, TDimension>::CalculateRightHandSide(
     const ProcessInfo& rProcessInfo
     )
 {
-   KRATOS_TRY;
+    KRATOS_TRY;
     const auto &r_props = GetProperties();
     const auto &r_geometry = GetGeometry();
 
@@ -464,7 +481,7 @@ void LinearTrussElement2D<TNNodes, TDimension>::CalculateRightHandSide(
     SystemSizeBoundedArrayType nodal_values(SystemSize);
     GetNodalValuesVector(nodal_values); // In local axes
 
-    SystemSizeBoundedArrayType B, N_shape, N_shapeY;
+    SystemSizeBoundedArrayType B, N_shape, N_shapeY, N_shapeZ;
 
     // Loop over the integration points
     for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
@@ -475,6 +492,7 @@ void LinearTrussElement2D<TNNodes, TDimension>::CalculateRightHandSide(
         const double jacobian_weight = weight * J * area;
         GetShapeFunctionsValues(N_shape, length, xi);
         GetShapeFunctionsValuesY(N_shapeY, length, xi);
+        GetShapeFunctionsValuesZ(N_shapeZ, length, xi);
         GetFirstDerivativesShapeFunctionsValues(B, length, xi);
 
         strain_vector[0] = inner_prod(B, nodal_values);
@@ -482,8 +500,9 @@ void LinearTrussElement2D<TNNodes, TDimension>::CalculateRightHandSide(
 
         noalias(rRHS) -= B * stress_vector[0] * jacobian_weight;
 
-        noalias(rRHS) += N_shape * local_body_forces[0] * jacobian_weight;
+        noalias(rRHS) += N_shape  * local_body_forces[0] * jacobian_weight;
         noalias(rRHS) += N_shapeY * local_body_forces[1] * jacobian_weight;
+        noalias(rRHS) += N_shapeZ * local_body_forces[2] * jacobian_weight;
     }
     RotateRHS(rRHS); // rotate to global
 
