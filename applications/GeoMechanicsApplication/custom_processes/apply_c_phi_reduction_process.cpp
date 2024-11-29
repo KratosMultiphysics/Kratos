@@ -77,7 +77,7 @@ double ApplyCPhiReductionProcess::GetAndCheckPhi(const Element::PropertiesType& 
         << "Missing required item INDEX_OF_UMAT_PHI_PARAMETER" << std::endl;
 
     KRATOS_ERROR_IF(part_properties[INDEX_OF_UMAT_PHI_PARAMETER] < 1 ||
-                    part_properties[INDEX_OF_UMAT_PHI_PARAMETER] > part_properties[UMAT_PARAMETERS].size())
+                    part_properties[INDEX_OF_UMAT_PHI_PARAMETER] > static_cast<int>(part_properties[UMAT_PARAMETERS].size()))
         << "invalid INDEX_OF_UMAT_PHI_PARAMETER: " << part_properties[INDEX_OF_UMAT_PHI_PARAMETER]
         << " (out-of-bounds index)" << std::endl;
     const double phi = part_properties[UMAT_PARAMETERS][part_properties[INDEX_OF_UMAT_PHI_PARAMETER] - 1];

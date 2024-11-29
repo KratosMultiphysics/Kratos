@@ -109,7 +109,7 @@ void ApplyK0ProcedureProcess::CheckPhi(const Properties& rProperties, IndexType 
 {
     if (rProperties.Has(INDEX_OF_UMAT_PHI_PARAMETER) && rProperties.Has(UMAT_PARAMETERS)) {
         const auto phi_index                 = rProperties[INDEX_OF_UMAT_PHI_PARAMETER];
-        const auto number_of_umat_parameters = rProperties[UMAT_PARAMETERS].size();
+        const auto number_of_umat_parameters = static_cast<int>(rProperties[UMAT_PARAMETERS].size());
 
         KRATOS_ERROR_IF(phi_index < 1 || phi_index > number_of_umat_parameters)
             << "INDEX_OF_UMAT_PHI_PARAMETER (" << phi_index
@@ -127,13 +127,13 @@ void ApplyK0ProcedureProcess::CheckOCRorPOP(const Properties& rProperties, Index
     if (rProperties.Has(K0_NC) ||
         (rProperties.Has(INDEX_OF_UMAT_PHI_PARAMETER) && rProperties.Has(UMAT_PARAMETERS))) {
         if (rProperties.Has(OCR)) {
-            const double ocr = rProperties[OCR];
+            const auto ocr = rProperties[OCR];
             KRATOS_ERROR_IF(ocr < 1.0) << "OCR (" << ocr << ") should be in the range [1.0,-> for element "
                                        << ElementId << "." << std::endl;
         }
 
         if (rProperties.Has(POP)) {
-            const double pop = rProperties[POP];
+            const auto pop = rProperties[POP];
             KRATOS_ERROR_IF(pop < 0.0) << "POP (" << pop << ") should be in the range [0.0,-> for element "
                                        << ElementId << "." << std::endl;
         }
@@ -209,7 +209,7 @@ void ApplyK0ProcedureProcess::CalculateK0Stresses(Element& rElement) const
 {
     // Get K0 material parameters of this element ( probably there is something more efficient )
     const Element::PropertiesType& rProp             = rElement.GetProperties();
-    const int                      k0_main_direction = rProp[K0_MAIN_DIRECTION];
+    const auto                      k0_main_direction = rProp[K0_MAIN_DIRECTION];
 
     auto k0_vector = CreateK0Vector(rProp);
 
