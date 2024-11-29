@@ -6,11 +6,11 @@
     - [Specific Application Dependencies](#specific-application-dependencies)
   - [Basic Configuration](#basic-configuration)
   - [Configuration scripts examples](#configuration-scripts-examples)
-    - [Linux/WSL](#gnulinux)
+    - [GNU/Linux](#gnulinux)
     - [Windows](#windows)
       - [Visual Studio](#visual-studio)
         - [Windows Visual Studio compilation configuration](#windows-visual-studio-compilation-configuration)
-    - [MinGW](#mingw)
+      - [MinGW](#mingw)
     - [MacOS](#macos)
   - [Adding Applications](#adding-applications)
   - [Post Compilation](#post-compilation)
@@ -59,7 +59,7 @@ git clone https://github.com/KratosMultiphysics/Kratos Kratos
 
 Additionaly, Visual Studio is required to compile in *Windows*.
 
-- #### Linux/WSL installation
+- #### GNU/Linux-WSL installation
 
     The command below will install all the packages needed.
 
@@ -106,13 +106,13 @@ Additionaly, Visual Studio is required to compile in *Windows*.
         Extract boost, and note the path as it will be needed in the configure stage to set the environmental variable `BOOST_ROOT`.
 
 - #### MinGW
-  MingGw compilation details are hidden by default to avoid confusion, please click the button below to show them.
+  *MingGw* compilation details are hidden by default to avoid confusion, please click the button below to show them.
   <details>
     <summary>Show MinGW compilation details</summary>
 
     *MinGW* means minimal GNU for *Windows*. There are different manners of installing, the simplest one using *MSYS2*.
 
-    - MSYS2
+    - *MSYS2*
 
         First, we download *MSYS2* in the following [link](https://www.msys2.org/). This will install *MinGW*, which allows to easiy install packages *a la* Arch-Linux (Pacman package manager). We install it, and with it the first thing we do is to update as follows ([in the *MSYS2* bash](https://www.msys2.org/docs/terminals/)):
         ![](https://www.msys2.org/docs/mintty.png) ![](https://www.msys2.org/docs/launchers.png)
@@ -141,7 +141,7 @@ Additionaly, Visual Studio is required to compile in *Windows*.
         You will need a series of packages with some *Kratos* dependencies. These include the compilers (*GCC*,*Clang/LLVM*), *CMake*, *Blas and Lapack* libraries and the *OpenMP* support. The command below will install all the packages needed. The command below will install all the packages needed.
 
         ```Shell
-        pacman -S mingw64/mingw-w64-x86_64-lapack mingw64/mingw-w64-x86_64-openblas mingw64/mingw-w64-x86_64-cmake mingw64/mingw-w64-x86_64-clang mingw64/mingw-w64-x86_64-gcc mingw64/mingw-w64-x86_64-gcc-fortran mingw-w64-x86_64-make mingw64/mingw-w64-x86_64-openmp mingw64/mingw-w64-x86_64-dlfcn
+        pacman -S mingw64/mingw-w64-x86_64-lapack mingw64/mingw-w64-x86_64-openblas mingw64/mingw-w64-x86_64-cmake mingw64/mingw-w64-x86_64-clang mingw64/mingw-w64-x86_64-gcc mingw64/mingw-w64-x86_64-gcc-fortran mingw-w64-x86_64-make mingw64/mingw-w64-x86_64-openmp mingw64/mingw-w64-x86_64-dlfcn mingw64/mingw-w64-x86_64-llvm-openmp
         ```
 
     - Python
@@ -162,15 +162,15 @@ Additionaly, Visual Studio is required to compile in *Windows*.
 
     ##### Using UCRT64
 
-    UCRT (Universal C Runtime) is a newer version which is also used by Microsoft Visual Studio by default, see https://www.msys2.org/docs/environments/. It should work and behave as if the code was compiled with MSVC.
+    **UCRT** (Universal C Runtime) is a newer version which is also used by Microsoft Visual Studio by default, see https://www.msys2.org/docs/environments/. It should work and behave as if the code was compiled with MSVC.
 
-    - Better compatibility with MSVC, both at build time and at run time.
-    - It only ships by default on Windows 10 and for older versions you have to provide it yourself or depend on the user having it installed.
+    - Better compatibility with **MSVC**, both at build time and at run time.
+    - It only ships by default on *Windows 10* and for older versions you have to provide it yourself or depend on the user having it installed.
 
-    If using UCRT64 the dependencies will be like:
+    If using **UCRT64** the dependencies will be like:
 
     ```Shell
-    pacman -S ucrt64/mingw-w64-ucrt-x86_64-lapack ucrt64/mingw-w64-ucrt-x86_64-openblas ucrt64/mingw-w64-ucrt-x86_64-cmake ucrt64/mingw-w64-ucrt-x86_64-clang ucrt64/mingw-w64-ucrt-x86_64-gcc ucrt64/mingw-w64-ucrt-x86_64-gcc-fortran mingw-w64-ucrt-x86_64-make ucrt64/mingw-w64-ucrt-x86_64-openmp ucrt64/mingw-w64-ucrt-x86_64-dlfcn ucrt64/mingw-w64-ucrt-x86_64-boost
+    pacman -S ucrt64/mingw-w64-ucrt-x86_64-lapack ucrt64/mingw-w64-ucrt-x86_64-openblas ucrt64/mingw-w64-ucrt-x86_64-cmake ucrt64/mingw-w64-ucrt-x86_64-clang ucrt64/mingw-w64-ucrt-x86_64-gcc ucrt64/mingw-w64-ucrt-x86_64-gcc-fortran mingw-w64-ucrt-x86_64-make ucrt64/mingw-w64-ucrt-x86_64-openmp ucrt64/mingw-w64-ucrt-x86_64-dlfcn ucrt64/mingw-w64-ucrt-x86_64-boost ucrt64/mingw-w64-ucrt-x86_64-llvm-openmp
     ```
   </details>
 
