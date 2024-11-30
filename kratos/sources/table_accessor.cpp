@@ -65,6 +65,9 @@ double TableAccessor::GetValueFromTable(
     } else if (mInputVariableType == Globals::DataLocation::Element) {
         KRATOS_DEBUG_ERROR_IF_NOT(rGeometry.Has(rIndependentVariable)) << "The Variable " << rIndependentVariable.Name() << " is not available at the Geometry to retrieve Table values." << std::endl;
         independent_at_gauss = rGeometry.GetValue(rIndependentVariable);
+    } else if (mInputVariableType == Globals::DataLocation::ProcessInfo) {
+        KRATOS_DEBUG_ERROR_IF_NOT(rProcessInfo.Has(rIndependentVariable)) << "The Variable " << rIndependentVariable.Name() << " is not available at the rProcessInfo to retrieve Table values." << std::endl;
+        independent_at_gauss = rProcessInfo.GetValue(rIndependentVariable);
     } else {
         KRATOS_ERROR << "The table_input_variable_type is incorrect or not supported. Types available are : nodal_historical, nodal_non_historical and elemental_non_historical" << std::endl;
     }
@@ -80,7 +83,7 @@ double TableAccessor::GetValueFromTable(
 void TableAccessor::save(Serializer& rSerializer) const
 {
     rSerializer.save("InputVariable", mpInputVariable->Name());
-    // // we must do the int cast to be able to compile
+    // we must do the int cast to be able to compile
     rSerializer.save("InputVariableType", static_cast<int>(mInputVariableType)); 
 }
 void TableAccessor::load(Serializer& rSerializer)
@@ -89,7 +92,7 @@ void TableAccessor::load(Serializer& rSerializer)
     rSerializer.load("InputVariable", variable_name);
     mpInputVariable = static_cast<Variable<double> *>(KratosComponents<VariableData>::pGet(variable_name));
 
-    // // we must do the int cast to be able to compile
+    // we must do the int cast to be able to compile
     int enum_value;
     rSerializer.load("InputVariableType", enum_value);
     mInputVariableType = static_cast<Globals::DataLocation>(enum_value);
