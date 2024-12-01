@@ -23,15 +23,11 @@ SurfaceLoad3DDiffOrderCondition::SurfaceLoad3DDiffOrderCondition() : GeneralUPwD
 {
 }
 
-//----------------------------------------------------------------------------------------
-
 // Constructor 1
 SurfaceLoad3DDiffOrderCondition::SurfaceLoad3DDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry)
     : GeneralUPwDiffOrderCondition(NewId, pGeometry)
 {
 }
-
-//----------------------------------------------------------------------------------------
 
 // Constructor 2
 SurfaceLoad3DDiffOrderCondition::SurfaceLoad3DDiffOrderCondition(IndexType             NewId,
@@ -41,17 +37,19 @@ SurfaceLoad3DDiffOrderCondition::SurfaceLoad3DDiffOrderCondition(IndexType      
 {
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 Condition::Pointer SurfaceLoad3DDiffOrderCondition::Create(IndexType             NewId,
                                                            NodesArrayType const& ThisNodes,
                                                            PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(
-        new SurfaceLoad3DDiffOrderCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Create(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Condition::Pointer SurfaceLoad3DDiffOrderCondition::Create(IndexType             NewId,
+                                                           GeometryType::Pointer pGeom,
+                                                           PropertiesType::Pointer pProperties) const
+{
+    return make_intrusive<SurfaceLoad3DDiffOrderCondition>(NewId, pGeom, pProperties);
+}
 
 void SurfaceLoad3DDiffOrderCondition::CalculateConditionVector(ConditionVariables& rVariables, unsigned int PointNumber)
 {
@@ -74,7 +72,6 @@ void SurfaceLoad3DDiffOrderCondition::CalculateConditionVector(ConditionVariable
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 double SurfaceLoad3DDiffOrderCondition::CalculateIntegrationCoefficient(
     const IndexType                                 PointNumber,
     const GeometryType::JacobiansType&              JContainer,
@@ -102,8 +99,6 @@ double SurfaceLoad3DDiffOrderCondition::CalculateIntegrationCoefficient(
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
-
 void SurfaceLoad3DDiffOrderCondition::CalculateAndAddConditionForce(VectorType& rRightHandSideVector,
                                                                     ConditionVariables& rVariables)
 {
@@ -120,6 +115,11 @@ void SurfaceLoad3DDiffOrderCondition::CalculateAndAddConditionForce(VectorType& 
         rRightHandSideVector[Index + 2] +=
             rVariables.Nu[i] * rVariables.ConditionVector[2] * rVariables.IntegrationCoefficient;
     }
+}
+
+std::string SurfaceLoad3DDiffOrderCondition::Info() const
+{
+    return "SurfaceLoad3DDiffOrderCondition";
 }
 
 } // Namespace Kratos.

@@ -11,6 +11,7 @@
 
 // System includes
 #include <cmath>
+#include <limits>
 
 // External includes
 
@@ -41,9 +42,57 @@ DisplacementSensor::DisplacementSensor(
         mDirection /= direction_norm;
     }
 
-    KRATOS_ERROR_IF_NOT(rElement.GetGeometry().IsInside(this->GetLocation(), mLocalPoint))
-        << "The point " << this->GetLocation() << " is not inside or on the boundary of the geometry of element with id "
-        << mElementId << ".";
+    const auto& r_geometry = rElement.GetGeometry();
+    const auto& current_sensor_location = this->GetLocation();
+
+    Point local_point;
+    if (r_geometry.IsInside(current_sensor_location, local_point)) {
+        // point is within the geometry. Use shape function evaluations
+        // from the element geometry to get the shape function values.
+        r_geometry.ShapeFunctionsValues(mNs, local_point);
+    } else {
+        // resize the shape functions
+        if (mNs.size() != r_geometry.size()) {
+            mNs.resize(r_geometry.size(), false);
+        }
+
+        // then first clear the shape functions
+        mNs.clear();
+
+        // point can be either on a node or on an edge
+        bool is_point_on_a_node{false}, is_point_on_an_edge{false};
+
+        // check if the point is on a node.
+        for (IndexType i_node = 0; i_node < r_geometry.size(); ++i_node) {
+            if (norm_2(r_geometry[i_node] - current_sensor_location) < std::numeric_limits<double>::epsilon()) {
+                mNs[i_node] = 1.0;
+                is_point_on_a_node = true;
+                break;
+            }
+        }
+
+        // point is not on a node, then check if it is on an edge.
+        if (!is_point_on_a_node) {
+            for (IndexType i_node = 0; i_node < r_geometry.size(); ++i_node) {
+                const auto& r_node_1 = r_geometry[i_node];
+                const auto& r_node_2 = r_geometry[(i_node + 1) % r_geometry.size()];
+
+                // compute the area of the triangle from the 3 points
+                const double area = r_node_1.X() * (r_node_2.Y() - current_sensor_location.Y()) + r_node_2.X() * (current_sensor_location.Y() - r_node_1.Y()) + current_sensor_location.X() * (r_node_1.Y() - r_node_2.Y());
+                if (std::abs(area) <= std::numeric_limits<double>::epsilon()) {
+                    const double r = norm_2(current_sensor_location - r_node_1) / norm_2(r_node_2 - r_node_1);
+                    mNs[i_node] = 1 - r;
+                    mNs[(i_node + 1) % r_geometry.size()] = r;
+                    is_point_on_an_edge = true;
+                    break;
+                }
+            }
+        }
+
+        KRATOS_ERROR_IF_NOT(is_point_on_a_node || is_point_on_an_edge)
+                << "The point " << this->GetLocation() << " is not inside or on the boundary of the geometry of element with id "
+                << mElementId << ".";
+    }
 
     this->SetValue(SENSOR_ELEMENT_ID, static_cast<int>(mElementId));
 }
@@ -88,14 +137,12 @@ double DisplacementSensor::CalculateValue(ModelPart& rModelPart)
         const auto& r_element = rModelPart.GetElement(mElementId);
         const auto& r_geometry = r_element.GetGeometry();
 
-        Vector Ns;
-        r_geometry.ShapeFunctionsValues(Ns, mLocalPoint);
         array_1d<double, 3> displacement = ZeroVector(3);
         for (IndexType i = 0; i < r_geometry.size(); ++i) {
-            displacement += r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT) * Ns[i];
+            displacement += r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT) * mNs[i];
         }
 
-        directional_displacement = this->GetWeight() * inner_prod(displacement, mDirection);
+        directional_displacement = inner_prod(displacement, mDirection);
     }
     return rModelPart.GetCommunicator().GetDataCommunicator().SumAll(directional_displacement);
 }
@@ -118,16 +165,12 @@ void DisplacementSensor::CalculateGradient(
         const auto& r_geometry = rAdjointElement.GetGeometry();
         const IndexType block_size = rResidualGradient.size1() / r_geometry.size();
 
-        Vector Ns;
-        r_geometry.ShapeFunctionsValues(Ns, mLocalPoint);
         for (IndexType i = 0; i < r_geometry.size(); ++i) {
-            rResponseGradient[i * block_size] = Ns[i] * mDirection[0];
-            rResponseGradient[i * block_size + 1] = Ns[i] * mDirection[1];
-            rResponseGradient[i * block_size + 2] = Ns[i] * mDirection[2];
+            rResponseGradient[i * block_size] = mNs[i] * mDirection[0];
+            rResponseGradient[i * block_size + 1] = mNs[i] * mDirection[1];
+            rResponseGradient[i * block_size + 2] = mNs[i] * mDirection[2];
         }
     }
-
-    rResponseGradient *= this->GetWeight();
 
     KRATOS_CATCH("");
 }

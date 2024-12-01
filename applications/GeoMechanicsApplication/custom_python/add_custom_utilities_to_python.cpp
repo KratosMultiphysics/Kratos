@@ -15,18 +15,25 @@
 
 // Project includes
 #include "custom_python/add_custom_utilities_to_python.h"
-#include "includes/kratos_parameters.h"
 
-#include "custom_utilities/condition_utilities.hpp"
-#include "custom_utilities/element_utilities.hpp"
-#include "custom_utilities/interface_element_utilities.hpp"
+#include "custom_utilities/node_utilities.h"
+#include "custom_workflows/custom_workflow_factory.h"
+#include "custom_workflows/dgeosettlement.h"
 
-namespace Kratos
-{
-namespace Python
+namespace Kratos::Python
 {
 
-void AddCustomUtilitiesToPython(pybind11::module& m) { namespace py = pybind11; }
+void AddCustomUtilitiesToPython(const pybind11::module& rModule)
+{
+    pybind11::class_<NodeUtilities>(rModule, "NodeUtilities")
+        .def("AssignUpdatedVectorVariableToNonFixedComponentsOfNodes",
+             &NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponentsOfNodes);
 
-} // Namespace Python.
-} // Namespace Kratos
+    pybind11::class_<CustomWorkflowFactory>(rModule, "CustomWorkflowFactory")
+        .def_static("CreateKratosGeoSettlement", &CustomWorkflowFactory::CreateKratosGeoSettlement,
+                    pybind11::return_value_policy::take_ownership);
+
+    pybind11::class_<KratosGeoSettlement>(rModule, "KratosGeoSettlement").def("RunStage", &KratosGeoSettlement::RunStage);
+}
+
+} // Namespace Kratos::Python.

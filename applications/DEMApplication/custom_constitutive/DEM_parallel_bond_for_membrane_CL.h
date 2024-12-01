@@ -46,8 +46,7 @@ namespace Kratos{
                                                 double ElasticLocalRotationalMoment[3],
                                                 double ViscoLocalRotationalMoment[3],
                                                 double equiv_poisson,
-                                                double indentation,
-                                                double LocalElasticContactForce[3]) override;       
+                                                double indentation) override;       
 
     protected:
 

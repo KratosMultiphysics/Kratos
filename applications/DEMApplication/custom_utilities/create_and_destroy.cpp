@@ -1454,6 +1454,26 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         // TODO: verify
         block_for_each(r_model_part.GetCommunicator().LocalMesh().Elements(), [&](ModelPart::ElementType& rElement) {
             if (rElement.GetGeometry()[0].Is(TO_ERASE)) {
+                SphericParticle& r_spheric_particle = dynamic_cast<SphericParticle&> (rElement);
+                std::vector<ParticleContactElement*>& array_of_bonds = r_spheric_particle.mBondElements;
+                for (unsigned int i = 0; i < array_of_bonds.size(); i++) {
+                    if (array_of_bonds[i] != NULL) { //NULL happens when the initial neighbor was a ghost and had a lower Id than the others
+                        array_of_bonds[i]->Set(TO_ERASE);
+                    }
+                }
+            }
+        });
+
+        KRATOS_CATCH("")
+    }
+
+    void ParticleCreatorDestructor::MarkContactElementsForErasingContinuum(ModelPart& r_model_part, ModelPart& mcontacts_model_part) {
+        
+        KRATOS_TRY
+
+        // TODO: verify
+        block_for_each(r_model_part.GetCommunicator().LocalMesh().Elements(), [&](ModelPart::ElementType& rElement) {
+            if (rElement.GetGeometry()[0].Is(TO_ERASE)) {
                 SphericContinuumParticle& r_continuum_spheric_particle = dynamic_cast<SphericContinuumParticle&> (rElement);
                 std::vector<ParticleContactElement*>& array_of_bonds = r_continuum_spheric_particle.mBondElements;
                 for (unsigned int i = 0; i < array_of_bonds.size(); i++) {
@@ -1535,6 +1555,7 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         KRATOS_CATCH("")
     }
 
+    //TODO:why we did not call this function anywhere?
     void ParticleCreatorDestructor::DestroyContactElementsOutsideBoundingBox(ModelPart& r_model_part, ModelPart& mcontacts_model_part) {
         KRATOS_TRY
         MarkContactElementsForErasing(r_model_part, mcontacts_model_part);

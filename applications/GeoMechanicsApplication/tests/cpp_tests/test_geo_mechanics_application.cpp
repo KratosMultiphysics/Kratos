@@ -13,6 +13,10 @@
 #include "geo_mechanics_application.h"
 #include "geo_mechanics_fast_suite.h"
 
+#include <string>
+
+using namespace std::string_literals;
+
 namespace Kratos::Testing
 {
 
@@ -55,4 +59,35 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalAnalysisVariablesExistAfterRegistration, Kratos
     }
 }
 
+KRATOS_TEST_CASE_IN_SUITE(IncrementalLinearElasticConstitutiveLawIsAvailableAfterGeoAppRegistration,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    KratosGeoMechanicsApplication geo_app;
+    const auto constitutive_law_name = "Geo_IncrementalLinearElasticInterfaceLaw"s;
+
+    KRATOS_EXPECT_FALSE(KratosComponents<ConstitutiveLaw>::Has(constitutive_law_name))
+
+    geo_app.Register();
+
+    KRATOS_EXPECT_TRUE(KratosComponents<ConstitutiveLaw>::Has(constitutive_law_name))
 }
+
+KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElementsAreAvailableAfterGeoAppRegistration, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    KratosGeoMechanicsApplication geo_app;
+    const auto                    element_type_names =
+        std::vector<std::string>{"Geo_ULineInterfacePlaneStrainElement2Plus2N",
+                                 "Geo_ULineInterfacePlaneStrainElement3Plus3N"};
+
+    for (const auto& r_name : element_type_names) {
+        KRATOS_EXPECT_FALSE(KratosComponents<Element>::Has(r_name))
+    }
+
+    geo_app.Register();
+
+    for (const auto& r_name : element_type_names) {
+        KRATOS_EXPECT_TRUE(KratosComponents<Element>::Has(r_name))
+    }
+}
+
+} // namespace Kratos::Testing
