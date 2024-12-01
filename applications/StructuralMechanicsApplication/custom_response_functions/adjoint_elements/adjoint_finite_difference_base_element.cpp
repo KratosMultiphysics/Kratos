@@ -18,12 +18,12 @@
 #include "custom_response_functions/response_utilities/stress_response_definitions.h"
 #include "custom_response_functions/response_utilities/finite_difference_utility.h"
 #include "includes/checks.h"
-#include "custom_elements/shell_thin_element_3D3N.hpp"
-#include "custom_elements/cr_beam_element_linear_3D2N.hpp"
-#include "custom_elements/truss_element_3D2N.hpp"
-#include "custom_elements/truss_element_linear_3D2N.hpp"
-#include "custom_elements/small_displacement.h"
-#include "custom_elements/spring_damper_element.hpp"
+#include "custom_elements/shell_elements/shell_thin_element_3D3N.hpp"
+#include "custom_elements/beam_elements/cr_beam_element_linear_3D2N.hpp"
+#include "custom_elements/truss_elements/truss_element_3D2N.hpp"
+#include "custom_elements/truss_elements/truss_element_linear_3D2N.hpp"
+#include "custom_elements/solid_elements/small_displacement.h"
+#include "custom_elements/nodal_elements/spring_damper_element.hpp"
 #include "utilities/indirect_scalar.h"
 
 
