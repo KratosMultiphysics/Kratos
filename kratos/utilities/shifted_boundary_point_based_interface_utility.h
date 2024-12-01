@@ -266,13 +266,7 @@ protected:
         NodesCloudMapType& rExtensionOperatorMap
     );
 
-    /*void SetLateralSupportCloud(
-        const NodeType::Pointer& rOtherSideNodes,
-        const array_1d<double,3>& rAvgSkinPosition,
-        const array_1d<double,3>& rAvgSkinNormal,
-        PointerVector<NodeType>& rCloudNodes,
-        Matrix& rCloudCoordinates);*/
-
+    //TODO
     /**
      * @brief Set the support cloud for the same side of the boundary of which the first nodes nodes are given.
      * For given nodes on one side of the boundary, this function creates a cloud of nodes around them on the same side of the boundary.
@@ -284,23 +278,21 @@ protected:
      * @param rCloudCoordinates Matrix containing the coordinates of the nodes of the cloud
      */
     void SetLateralSupportCloud(
-        const std::vector<NodeType::Pointer>& rSameSideNodes,
+        const NodeType::Pointer pOtherSideNode,
         const array_1d<double,3>& rAvgSkinPosition,
         const array_1d<double,3>& rAvgSkinNormal,
         PointerVector<NodeType>& rCloudNodes,
         Matrix& rCloudCoordinates,
-        const bool ConsiderPositiveSide);
+        const Kratos::Flags& rSearchSideFlag);
 
-    //TODO
+    //TODO without dot product
     void AddLateralSupportLayer(
-        const array_1d<double,3>& rAvgSkinPosition,
-        const array_1d<double,3>& rAvgSkinNormal,
         const std::vector<NodeType::Pointer>& PreviousLayerNodes,
         std::vector<NodeType::Pointer>& CurrentLayerNodes,
         NodesCloudSetType& SupportNodesSet);
 
-    //TODO
-    void AddLateralSupportLayerCrossingBoundary(
+    //TODO with dot product
+    void AddLateralSupportLayer(
         const array_1d<double,3>& rAvgSkinPosition,
         const array_1d<double,3>& rAvgSkinNormal,
         const std::vector<NodeType::Pointer>& PreviousLayerNodes,
@@ -334,7 +326,7 @@ protected:
 
     /* TODO */
     bool AddIntegrationPointCondition(
-        ElementType& rElement,
+        const ElementType& rElement,
         const Vector& rSidesVector,
         const double ElementSize,
         const array_1d<double,3>& rIntPtCoordinates,
@@ -344,7 +336,7 @@ protected:
         const Vector& rIntPtShapeFunctionValues,
         const Matrix& rIntPtShapeFunctionDerivatives,
         std::size_t& r_ConditionId,
-        bool ConsiderPositiveSide);
+        const bool ConsiderPositiveSide);
 
     bool SetEnclosedNodesPressure(
         ElementType& rElement,
@@ -370,8 +362,8 @@ protected:
     /**
      * @brief Calculates the kernel function radius
      * For the given cloud of points coordinates, this function calculates the maximum distance between
-     * the center of the kernel (origin) and the points. This is supposed to be used in the meshless
-     * approximants calculation.
+     * the center of the kernel (origin) and the points. This is supposed to be used in the MLS
+     * approximation calculation.
      * @param rCloudCoordinates Matrix containing the coordinates of the nodes of the cloud
      * @param rOrigin Coordinates of the point on which the kernel function is centered
      * @return double Kernel function radius
@@ -382,7 +374,7 @@ protected:
 
     /**
      * @brief Get the number of required points
-     * For the MLS approximants, this function returns the minimum number of required points according to
+     * For the MLS approximation, this function returns the minimum number of required points according to
      * dimension and order. If the cloud of points has less points than the value returned by this function
      * the case is ill-conditioned, meaning that the cloud needs to be enlarged.
      * @return std::size_t Number of required points
