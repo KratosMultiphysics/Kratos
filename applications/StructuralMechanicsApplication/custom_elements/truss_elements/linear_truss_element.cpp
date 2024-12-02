@@ -267,21 +267,15 @@ void LinearTrussElement<TDimension, TNNodes>::GetFirstDerivativesShapeFunctionsV
     GetGeometry().ShapeFunctionsLocalGradients(dN_de, coord);
 
     if constexpr (Dimension == 2) {
-        if constexpr (NNodes == 2) {
-            rdN_dX[0] = dN_de(0, 0);
-            rdN_dX[2] = dN_de(1, 0);
-        } else { // 3N
-            rdN_dX[0] = dN_de(0, 0);
-            rdN_dX[2] = dN_de(1, 0);
+        rdN_dX[0] = dN_de(0, 0);
+        rdN_dX[2] = dN_de(1, 0);
+        if constexpr (NNodes == 3) {
             rdN_dX[4] = dN_de(2, 0);
         }
     } else {
-        if constexpr (NNodes == 2) {
-            rdN_dX[0] = dN_de(0, 0);
-            rdN_dX[3] = dN_de(1, 0);
-        } else { // 3N
-            rdN_dX[0] = dN_de(0, 0);
-            rdN_dX[3] = dN_de(1, 0);
+        rdN_dX[0] = dN_de(0, 0);
+        rdN_dX[3] = dN_de(1, 0);
+        if constexpr (NNodes == 3) {
             rdN_dX[6] = dN_de(2, 0);
         }
     }
