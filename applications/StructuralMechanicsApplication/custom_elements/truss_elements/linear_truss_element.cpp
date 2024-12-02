@@ -260,29 +260,32 @@ void LinearTrussElement<TDimension, TNNodes>::GetFirstDerivativesShapeFunctionsV
 
     rdN_dX.clear();
 
+    Vector coord(3);
+    Matrix dN_de(NNodes, 1);
+    coord.clear();
+    coord[0] = xi;
+    GetGeometry().ShapeFunctionsLocalGradients(dN_de, coord);
+
     if constexpr (Dimension == 2) {
         if constexpr (NNodes == 2) {
-            const double inverse_l = 1.0 / Length;
-            rdN_dX[0] = -inverse_l;
-            rdN_dX[2] = inverse_l;
+            rdN_dX[0] = dN_de(0, 0);
+            rdN_dX[2] = dN_de(1, 0);
         } else { // 3N
-            rdN_dX[0] = xi - 0.5;
-            rdN_dX[2] = xi + 0.5;
-            rdN_dX[4] = -2.0 * xi;
-            rdN_dX *= 2.0 / Length; // The Jacobian
+            rdN_dX[0] = dN_de(0, 0);
+            rdN_dX[2] = dN_de(1, 0);
+            rdN_dX[4] = dN_de(2, 0);
         }
     } else {
         if constexpr (NNodes == 2) {
-            const double inverse_l = 1.0 / Length;
-            rdN_dX[0] = -inverse_l;
-            rdN_dX[3] = inverse_l;
+            rdN_dX[0] = dN_de(0, 0);
+            rdN_dX[3] = dN_de(1, 0);
         } else { // 3N
-            rdN_dX[0] = xi - 0.5;
-            rdN_dX[3] = xi + 0.5;
-            rdN_dX[6] = -2.0 * xi;
-            rdN_dX *= 2.0 / Length; // The Jacobian
+            rdN_dX[0] = dN_de(0, 0);
+            rdN_dX[3] = dN_de(1, 0);
+            rdN_dX[6] = dN_de(2, 0);
         }
     }
+    rdN_dX *= 2.0 / Length; // The Jacobian
 }
 
 /***********************************************************************************/
@@ -867,7 +870,7 @@ Vector LinearTrussElement<TDimension, TNNodes>::GetBaseShapeFunctions(const doub
     Vector coord(3), N(NNodes);
     coord.clear();
     coord[0] = xi;
-    N = GetGeometry().ShapeFunctionsValues(N, coord);
+    GetGeometry().ShapeFunctionsValues(N, coord);
     return N;
 }
 
