@@ -272,10 +272,10 @@ private:
     const TrussElement3D2N mTrussElement3D2N;
     const TrussElementLinear3D2N mTrussLinearElement3D2N;
     const CableElement3D2N mCableElement3D2N;
-    const LinearTrussElement2D<2, 2> mLinearTrussElement2D2N;
-    const LinearTrussElement2D<3, 2> mLinearTrussElement2D3N;
-    const LinearTrussElement3D<2, 3> mLinearTrussElement3D2N;
-    const LinearTrussElement3D<3, 3> mLinearTrussElement3D3N;
+    const LinearTrussElement<2, 2> mLinearTrussElement2D2N;
+    const LinearTrussElement<3, 2> mLinearTrussElement2D3N;
+    const LinearTrussElement<2, 3> mLinearTrussElement3D2N;
+    const LinearTrussElement<3, 3> mLinearTrussElement3D3N;
 
     // Adding the beam element
     const CrBeamElement3D2N mCrBeamElement3D2N;

@@ -47,7 +47,7 @@ using SizeType = std::size_t;
 /**
  * @class LinearTrussElement
  * @ingroup StructuralMechanicsApplication
- * @brief This is the Linear 2D TRUSS element of 2 and 3 nodes.
+ * @brief This is the Linear  TRUSS element of 2 and 3 nodes for 2D and 3D.
  * O---------O -> x'      O-----O-----O -> x'
  *  0         1            0     2     1
  * @author Alejandro Cornejo
@@ -64,11 +64,11 @@ public:
 
     /// The base element type
     using BaseType = Element;
-    static constexpr SizeType NNodes = TNNodes;
-    static constexpr SizeType Dimension = TDimension;
+    static constexpr SizeType NNodes      = TNNodes;
+    static constexpr SizeType Dimension   = TDimension;
     static constexpr SizeType DofsPerNode = TDimension;
-    static constexpr SizeType SystemSize = TDimension * TNNodes;
-    using SystemSizeBoundedArrayType = array_1d<double, SystemSize>;
+    static constexpr SizeType SystemSize  = TDimension * TNNodes;
+    using SystemSizeBoundedArrayType      = array_1d<double, SystemSize>;
 
     // Counted pointer of BaseSolidElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(LinearTrussElement);
@@ -125,11 +125,21 @@ public:
 
     /**
      * @brief This method returns the angle of the FE axis
+     * 2D calculations
      */
     double GetAngle() const
     {
         return StructuralMechanicsElementUtilities::GetReferenceRotationAngle2D2NBeam(GetGeometry());
     }
+
+    /**
+     * @brief This function builds the Frenet Serret matrix that rotates from global to local axes
+     * T = | <- t -> |  x, local
+     *     | <- n -> |  y, local
+     *     | <- m -> |  z, local
+     * 3D calculations
+    */
+    BoundedMatrix<double, 3, 3> GetFrenetSerretMatrix() const;
 
     /**
      * @brief This method returns the integration method depending on the Number of Nodes
@@ -152,15 +162,19 @@ public:
      * @brief Returns a n component vector including the values of the DoFs
      * in LOCAL beam axes
      */
-    virtual void GetNodalValuesVector(SystemSizeBoundedArrayType& rNodalValue) const;
+    void GetNodalValuesVector(SystemSizeBoundedArrayType& rNodalValue) const;
 
     /**
      * @brief Computes the length of the FE and returns it
      */
-    virtual double CalculateLength() const
+    double CalculateLength() const
     {
-        // Same implementation for 2N and 3N
-        return StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
+        if constexpr (Dimension == 2) {
+            // Same implementation for 2N and 3N
+            return StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
+        } else {
+            return StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+        }
     }
 
     /**
@@ -244,17 +258,17 @@ public:
      * @param Phi The shear slenderness parameter
      * @param xi The coordinate in the natural axes
     */
-    virtual void GetShapeFunctionsValues(SystemSizeBoundedArrayType& rN, const double Length, const double xi) const;
-    virtual void GetShapeFunctionsValuesY(SystemSizeBoundedArrayType& rN, const double Length, const double xi) const;
-    virtual void GetShapeFunctionsValuesZ(SystemSizeBoundedArrayType& rN, const double Length, const double xi) const;
-    virtual void GetFirstDerivativesShapeFunctionsValues(SystemSizeBoundedArrayType& rN, const double Length, const double xi) const;
+    void GetShapeFunctionsValues(SystemSizeBoundedArrayType& rN, const double Length, const double xi) const;
+    void GetShapeFunctionsValuesY(SystemSizeBoundedArrayType& rN, const double Length, const double xi) const;
+    void GetShapeFunctionsValuesZ(SystemSizeBoundedArrayType& rN, const double Length, const double xi) const;
+    void GetFirstDerivativesShapeFunctionsValues(SystemSizeBoundedArrayType& rN, const double Length, const double xi) const;
 
     /**
      * @brief This function rotates the LHS from local to global coordinates
      * @param rLHS the left hand side
      * @param rGeometry the geometry of the FE
     */
-    virtual void RotateLHS(
+    void RotateLHS(
         MatrixType &rLHS);
 
     /**
@@ -262,7 +276,7 @@ public:
      * @param rRHS the right hand side
      * @param rGeometry the geometry of the FE
     */
-    virtual void RotateRHS(
+    void RotateRHS(
         VectorType &rRHS);
 
     /**
@@ -271,7 +285,7 @@ public:
      * @param rRHS the right hand side
      * @param rGeometry the geometry of the FE
     */
-    virtual void RotateAll(
+    void RotateAll(
         MatrixType &rLHS,
         VectorType &rRHS);
 
@@ -281,7 +295,7 @@ public:
      * @param rIntegrationPoints array of IP
      * @param PointNumber tthe IP to be evaluated
     */
-    virtual array_1d<double, 3> GetLocalAxesBodyForce(
+    array_1d<double, 3> GetLocalAxesBodyForce(
         const Element &rElement,
         const GeometryType::IntegrationPointsArrayType &rIntegrationPoints,
         const IndexType PointNumber) const;

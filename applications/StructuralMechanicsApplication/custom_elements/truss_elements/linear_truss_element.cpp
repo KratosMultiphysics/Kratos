@@ -17,7 +17,7 @@
 // Project includes
 
 // Application includes
-#include "linear_truss_element_2D.h"
+#include "linear_truss_element.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "structural_mechanics_application_variables.h"
 
@@ -122,6 +122,9 @@ void LinearTrussElement<TNNodes, TDimension>::EquationIdVector(
     for (IndexType i = 0; i < number_of_nodes; ++i) {
         rResult[local_index++] = r_geometry[i].GetDof(DISPLACEMENT_X, xpos    ).EquationId();
         rResult[local_index++] = r_geometry[i].GetDof(DISPLACEMENT_Y, xpos + 1).EquationId();
+        if constexpr (Dimension == 3) {
+            rResult[local_index++] = r_geometry[i].GetDof(DISPLACEMENT_Z, xpos + 2).EquationId();
+        }
     }
 }
 
@@ -144,6 +147,9 @@ void LinearTrussElement<TNNodes, TDimension>::GetDofList(
         const SizeType index = i * DofsPerNode;
         rElementalDofList[index]     = r_geom[i].pGetDof(DISPLACEMENT_X);
         rElementalDofList[index + 1] = r_geom[i].pGetDof(DISPLACEMENT_Y);
+        if constexpr (Dimension == 3) {
+            rElementalDofList[index + 2] = r_geom[i].pGetDof(DISPLACEMENT_Z);
+        }
     }
     KRATOS_CATCH("")
 }
@@ -165,14 +171,26 @@ void LinearTrussElement<TNNodes, TDimension>::GetShapeFunctionsValues(
     array_1d<double, NNodes> base_N;
     noalias(base_N) = GetBaseShapeFunctions(xi);
 
-    if constexpr (NNodes == 2) {
-        rN[0] = base_N[0];
-        rN[2] = base_N[1];
-    } else { // 3N
-        rN[0] = base_N[0];
-        rN[2] = base_N[1];
-        rN[4] = base_N[2];
+    if constexpr (Dimension == 2) {
+        if constexpr (NNodes == 2) {
+            rN[0] = base_N[0];
+            rN[2] = base_N[1];
+        } else { // 3N
+            rN[0] = base_N[0];
+            rN[2] = base_N[1];
+            rN[4] = base_N[2];
+        }
+    } else {
+        if constexpr (NNodes == 2) {
+            rN[0] = base_N[0];
+            rN[3] = base_N[1];
+        } else { // 3N
+            rN[0] = base_N[0];
+            rN[3] = base_N[1];
+            rN[6] = base_N[2];
+        }
     }
+
 }
 
 /***********************************************************************************/
@@ -191,14 +209,25 @@ void LinearTrussElement<TNNodes, TDimension>::GetShapeFunctionsValuesY(
     rN.clear();
     array_1d<double, NNodes> base_N;
     noalias(base_N) = GetBaseShapeFunctions(xi);
-
-    if constexpr (NNodes == 2) {
-        rN[1] = base_N[0];
-        rN[3] = base_N[1];
-    } else { // 3N
-        rN[1] = base_N[0];
-        rN[3] = base_N[1];
-        rN[5] = base_N[2];
+    
+    if constexpr (Dimension == 2) {
+        if constexpr (NNodes == 2) {
+            rN[1] = base_N[0];
+            rN[3] = base_N[1];
+        } else { // 3N
+            rN[1] = base_N[0];
+            rN[3] = base_N[1];
+            rN[5] = base_N[2];
+        }
+    } else {
+        if constexpr (NNodes == 2) {
+            rN[1] = base_N[0];
+            rN[4] = base_N[1];
+        } else { // 3N
+            rN[1] = base_N[0];
+            rN[4] = base_N[1];
+            rN[7] = base_N[2];
+        }
     }
 }
 
@@ -216,6 +245,19 @@ void LinearTrussElement<TNNodes, TDimension>::GetShapeFunctionsValuesZ(
         rN.resize(SystemSize, false);
 
     rN.clear();
+    
+    if constexpr (Dimension == 3) {
+        array_1d<double, NNodes> base_N;
+        noalias(base_N) = GetBaseShapeFunctions(xi);
+        if constexpr (NNodes == 2) {
+            rN[2] = base_N[0];
+            rN[5] = base_N[1];
+        } else { // 3N
+            rN[2] = base_N[0];
+            rN[5] = base_N[1];
+            rN[8] = base_N[2];
+        }
+    }
 }
 
 /***********************************************************************************/
@@ -232,16 +274,77 @@ void LinearTrussElement<TNNodes, TDimension>::GetFirstDerivativesShapeFunctionsV
         rdN_dX.resize(SystemSize, false);
 
     rdN_dX.clear();
-    if constexpr (NNodes == 2) {
-        const double inverse_l = 1.0 / Length;
-        rdN_dX[0] = -inverse_l;
-        rdN_dX[2] = inverse_l;
-    } else { // 3N
-        rdN_dX[0] = xi - 0.5;
-        rdN_dX[2] = xi + 0.5;
-        rdN_dX[4] = -2.0 * xi;
-        rdN_dX *= 2.0 / Length; // The Jacobian
+
+    if constexpr (Dimension == 2) {
+        if constexpr (NNodes == 2) {
+            const double inverse_l = 1.0 / Length;
+            rdN_dX[0] = -inverse_l;
+            rdN_dX[2] = inverse_l;
+        } else { // 3N
+            rdN_dX[0] = xi - 0.5;
+            rdN_dX[2] = xi + 0.5;
+            rdN_dX[4] = -2.0 * xi;
+            rdN_dX *= 2.0 / Length; // The Jacobian
+        }
+    } else {
+        if constexpr (NNodes == 2) {
+            const double inverse_l = 1.0 / Length;
+            rdN_dX[0] = -inverse_l;
+            rdN_dX[3] = inverse_l;
+        } else { // 3N
+            rdN_dX[0] = xi - 0.5;
+            rdN_dX[3] = xi + 0.5;
+            rdN_dX[6] = -2.0 * xi;
+            rdN_dX *= 2.0 / Length; // The Jacobian
+        }
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TNNodes, SizeType TDimension>
+BoundedMatrix<double, 3, 3> LinearTrussElement<TNNodes, TDimension>::GetFrenetSerretMatrix() const
+{
+    const auto &r_geom = GetGeometry();
+    BoundedMatrix<double, 3, 3> T;
+    T.clear(); // global to local
+
+    array_1d<double, 3> t;
+    array_1d<double, 3> n;
+    array_1d<double, 3> m;
+
+    // t is the axis of the truss
+    noalias(t) = r_geom[1].GetInitialPosition() - r_geom[0].GetInitialPosition();
+    t /= norm_2(t);
+
+    n.clear();
+    n[1] = 1.0;
+
+    if (norm_2(t-n) <= 1.0e-8) { // colineal, hence we use another aux vector
+        n.clear();
+        n[2] = 1.0;
+    }
+
+    // Gram-Schmidt ortogonalization
+    n = n - inner_prod(t, n) / inner_prod(t, t) * t;
+    n /= norm_2(n);
+
+    noalias(m) = MathUtils<double>::CrossProduct(t, n);
+
+    T(0, 0) = t[0];
+    T(0, 1) = t[1];
+    T(0, 2) = t[2];
+
+    T(1, 0) = n[0];
+    T(1, 1) = n[1];
+    T(1, 2) = n[2];
+
+    T(2, 0) = m[0];
+    T(2, 1) = m[1];
+    T(2, 2) = m[2];
+
+    return T;
 }
 
 /***********************************************************************************/
@@ -250,15 +353,14 @@ void LinearTrussElement<TNNodes, TDimension>::GetFirstDerivativesShapeFunctionsV
 template<SizeType TNNodes, SizeType TDimension>
 void LinearTrussElement<TNNodes, TDimension>::GetNodalValuesVector(SystemSizeBoundedArrayType& rNodalValues) const
 {
+    if (rNodalValues.size() != SystemSize)
+        rNodalValues.resize(SystemSize, false);
+    const auto &r_geom = GetGeometry();
+    BoundedVector<double, SystemSize> global_values;
+
     if constexpr (TDimension == 2) {
-        if (rNodalValues.size() != SystemSize)
-            rNodalValues.resize(SystemSize, false);
-        const auto &r_geom = GetGeometry();
 
         const double angle = GetAngle();
-
-        BoundedVector<double, SystemSize> global_values;
-
         // We fill the vector with global values
         for (SizeType i = 0; i < NNodes; ++i) {
             const auto& r_displ = r_geom[i].FastGetSolutionStepValue(DISPLACEMENT);
@@ -280,6 +382,26 @@ void LinearTrussElement<TNNodes, TDimension>::GetNodalValuesVector(SystemSizeBou
         } else {
             noalias(rNodalValues) = global_values;
         }
+    } else {
+        // We fill the vector with global values
+        for (SizeType i = 0; i < NNodes; ++i) {
+            const auto& r_displ = r_geom[i].FastGetSolutionStepValue(DISPLACEMENT);
+            global_values[i * DofsPerNode]     = r_displ[0];
+            global_values[i * DofsPerNode + 1] = r_displ[1];
+            global_values[i * DofsPerNode + 2] = r_displ[2];
+        }
+
+        BoundedMatrix<double, DofsPerNode, DofsPerNode> T;
+        noalias(T) = GetFrenetSerretMatrix(); // global to local
+        BoundedMatrix<double, SystemSize, SystemSize> global_size_T;
+
+        if constexpr (NNodes == 2) {
+            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D2NTruss(T, global_size_T);
+        } else {
+            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D3NTruss(T, global_size_T);
+        }
+
+        noalias(rNodalValues) = prod(global_size_T, global_values);
     }
 }
 
@@ -293,15 +415,23 @@ array_1d<double, 3> LinearTrussElement<TNNodes, TDimension>::GetLocalAxesBodyFor
     const IndexType PointNumber
     ) const
 {
-    const double angle = GetAngle();
     const auto body_force = StructuralMechanicsElementUtilities::GetBodyForce(*this, rIntegrationPoints, PointNumber);
-
-    const double c = std::cos(angle);
-    const double s = std::sin(angle);
     array_1d<double, 3> local_body_force = ZeroVector(3);
-    local_body_force[0] = c * body_force[0] + s * body_force[1];
-    local_body_force[1] = -s * body_force[0] + c * body_force[1];
-    return local_body_force;
+    
+    if constexpr (Dimension == 2) {
+        const double angle = GetAngle();
+
+        const double c = std::cos(angle);
+        const double s = std::sin(angle);
+        local_body_force[0] = c * body_force[0] + s * body_force[1];
+        local_body_force[1] = -s * body_force[0] + c * body_force[1];
+        return local_body_force;
+    } else {
+        BoundedMatrix<double, Dimension, Dimension> T;
+        noalias(T) = GetFrenetSerretMatrix(); // global to local
+        noalias(local_body_force) = prod(T, body_force);
+        return local_body_force;
+    }
 }
 
 /***********************************************************************************/
@@ -517,23 +647,28 @@ void LinearTrussElement<TNNodes, TDimension>::RotateLHS(
     MatrixType& rLHS
 )
 {
+    BoundedMatrix<double, SystemSize, SystemSize> global_size_T, aux_product;
+    BoundedMatrix<double, DofsPerNode, DofsPerNode> T;
     if constexpr (TDimension == 2) {
         const double angle = GetAngle();
 
-        if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
-            BoundedMatrix<double, DofsPerNode, DofsPerNode> T;
-            BoundedMatrix<double, SystemSize, SystemSize> global_size_T, aux_product;
-            StructuralMechanicsElementUtilities::BuildRotationMatrixForTruss(T, angle);
-            if constexpr (NNodes == 2) {
-                StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NTruss(T, global_size_T);
-            } else {
-                StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NTruss(T, global_size_T);
-            }
+        StructuralMechanicsElementUtilities::BuildRotationMatrixForTruss(T, angle);
+        if constexpr (NNodes == 2) {
+            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NTruss(T, global_size_T);
+        } else {
+            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NTruss(T, global_size_T);
+        }
+    } else {
+        noalias(T) = trans(GetFrenetSerretMatrix()); // global to local
 
-            noalias(aux_product) = prod(rLHS, trans(global_size_T));
-            noalias(rLHS) = prod(global_size_T, aux_product);
+        if constexpr (NNodes == 2) {
+            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D2NTruss(T, global_size_T);
+        } else {
+            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D3NTruss(T, global_size_T);
         }
     }
+    noalias(aux_product) = prod(rLHS, trans(global_size_T));
+    noalias(rLHS) = prod(global_size_T, aux_product);
 }
 
 /***********************************************************************************/
@@ -544,23 +679,30 @@ void LinearTrussElement<TNNodes, TDimension>::RotateRHS(
     VectorType& rRHS
 )
 {
+    BoundedMatrix<double, DofsPerNode, DofsPerNode> T;
+    BoundedMatrix<double, SystemSize, SystemSize> global_size_T;
+    BoundedVector<double, SystemSize> local_rhs;
+    noalias(local_rhs) = rRHS;
+
     if constexpr (TDimension == 2) {
         const double angle = GetAngle();
-        if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
-            BoundedMatrix<double, DofsPerNode, DofsPerNode> T;
-            BoundedMatrix<double, SystemSize, SystemSize> global_size_T;
-            BoundedVector<double, SystemSize> local_rhs;
-            noalias(local_rhs) = rRHS;
-            StructuralMechanicsElementUtilities::BuildRotationMatrixForTruss(T, angle);
-            if constexpr (NNodes == 2) {
-                StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NTruss(T, global_size_T);
-            } else {
-                StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NTruss(T, global_size_T);
-            }
+        StructuralMechanicsElementUtilities::BuildRotationMatrixForTruss(T, angle);
+        if constexpr (NNodes == 2) {
+            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NTruss(T, global_size_T);
+        } else {
+            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NTruss(T, global_size_T);
+        }
 
-            noalias(rRHS) = prod(global_size_T, local_rhs);
+    } else {
+        noalias(T) = trans(GetFrenetSerretMatrix()); // global to local
+        if constexpr (NNodes == 2) {
+            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D2NTruss(T, global_size_T);
+        } else {
+            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D3NTruss(T, global_size_T);
         }
     }
+
+    noalias(rRHS) = prod(global_size_T, local_rhs);
 }
 
 /***********************************************************************************/
@@ -572,27 +714,33 @@ void LinearTrussElement<TNNodes, TDimension>::RotateAll(
     VectorType& rRHS
 )
 {
-    if constexpr (TDimension == 2) {
+    BoundedMatrix<double, DofsPerNode, DofsPerNode> T;
+    BoundedMatrix<double, SystemSize, SystemSize> global_size_T, aux_product;
+    BoundedVector<double, SystemSize> local_rhs;
+
+    if constexpr (Dimension == 2) {
         const double angle = GetAngle();
-        if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
-            BoundedMatrix<double, DofsPerNode, DofsPerNode> T;
-            BoundedMatrix<double, SystemSize, SystemSize> global_size_T, aux_product;
-            BoundedVector<double, SystemSize> local_rhs;
-            StructuralMechanicsElementUtilities::BuildRotationMatrixForTruss(T, angle);
+        StructuralMechanicsElementUtilities::BuildRotationMatrixForTruss(T, angle);
 
-            if constexpr (NNodes == 2) {
-                StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NTruss(T, global_size_T);
-            } else {
-                StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NTruss(T, global_size_T);
-            }
+        if constexpr (NNodes == 2) {
+            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NTruss(T, global_size_T);
+        } else {
+            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NTruss(T, global_size_T);
+        }
 
-            noalias(local_rhs) = rRHS;
-            noalias(rRHS) = prod(global_size_T, local_rhs);
-
-            noalias(aux_product) = prod(rLHS, trans(global_size_T));
-            noalias(rLHS) = prod(global_size_T, aux_product);
+    } else {
+        if constexpr (NNodes == 2) {
+            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D2NTruss(T, global_size_T);
+        } else {
+            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D3NTruss(T, global_size_T);
         }
     }
+
+    noalias(local_rhs) = rRHS;
+    noalias(rRHS) = prod(global_size_T, local_rhs);
+
+    noalias(aux_product) = prod(rLHS, trans(global_size_T));
+    noalias(rLHS) = prod(global_size_T, aux_product);
 }
 
 /***********************************************************************************/
@@ -758,8 +906,6 @@ array_1d<double, TNNodes> LinearTrussElement<TNNodes, TDimension>::GetBaseShapeF
 
 template class LinearTrussElement<2, 2>;
 template class LinearTrussElement<3, 2>;
-
-// In order to link
 template class LinearTrussElement<2, 3>;
 template class LinearTrussElement<3, 3>;
 
