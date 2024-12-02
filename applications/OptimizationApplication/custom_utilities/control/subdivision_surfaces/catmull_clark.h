@@ -74,48 +74,7 @@ public:
         const bool FixFreeEdges
     );
 
-    void RefineForQuadMesh(
-        ModelPart& rSubdividedControlPointsModelPart
-    );
-
-    // std::vector<NodeTypePointer> CreateRegularPatchForFeNode(
-    //     NodeType& rFeNode, 
-    //     IndexType KratosFaceId, 
-    //     ModelPart::MeshType& rControlGrid,
-    //     ModelPart::MeshType& rInputMesh, 
-    //     ModelPart& rInputModelPart, 
-    //     std::map<IndexType, Vector>& RefiningWeights,
-    //     std::map<IndexType, Point>& rLimitIntersectionPointsMap,
-    //     OpenSubdiv::Far::TopologyRefiner* refiner
-    // );
-
 };
-
-// IndexType GetOppositeIndex(ConstIndexArray IndexArray, const IndexType Index)
-// {
-//     IndexType opposite_vertex;
-//     SizeType max_index = IndexArray.size() - 1;
-//     if (Index + 2 > max_index) {
-//         return IndexArray[Index + 2 - max_index];
-//     }
-//     else return IndexArray[Index + 2];
-// }
-
-// std::vector<IndexType> ReorderIndicesToStartAtValue(const IndexType Value, ConstIndexArray ValueArray)
-// {
-//     SizeType starting_index = ValueArray.FindIndex(Value);
-//     SizeType max_index = ValueArray.size() - 1;
-//     std::vector<IndexType> ReturnArray;
-
-//     for (SizeType i = 0; i <= max_index - starting_index; ++i) {
-//         ReturnArray.push_back( ValueArray[starting_index + i] );
-//     }
-//     for (SizeType i = 0; i < starting_index; ++i) {
-//         ReturnArray.push_back( ValueArray[i] );
-//     }
-
-//     return ReturnArray;
-// }
 
 ///@}
 }

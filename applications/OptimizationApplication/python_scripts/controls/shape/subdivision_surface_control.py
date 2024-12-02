@@ -41,21 +41,15 @@ class SubdivisionSurfaceControl(Control):
             "control_polygon_model_part_name"   : "control_polygon",
             "controlled_model_part_names"       : [],
             "subdivision_type"                  : "catmull_clark",
-            "fix_boundary"                      : true,
-            "use_limit_surface"                 : true,
-            "output_all_fields"                 : false,
-            "fixed_model_parts"                 : [],
-            "utilities"                         : []
+            "fix_boundary"                      : true
         }
         """)
 
         self.parameters.ValidateAndAssignDefaults(default_settings)
 
-        self.output_all_fields = self.parameters["output_all_fields"].GetBool()
         self.subdivision_type = self.parameters["subdivision_type"].GetString()
 
         self.fix_boundary = self.parameters["fix_boundary"].GetBool()
-        self.use_limit_surface = self.parameters["use_limit_surface"].GetBool()
 
         self.supported_subdivision_types = ["catmull_clark"]    # only catmull_clark for now, but possibility to add others such as Loop scheme
         if self.subdivision_type not in self.supported_subdivision_types:
@@ -168,21 +162,26 @@ class SubdivisionSurfaceControl(Control):
         physical_gradient = physical_gradient_variable_container_expression_map[KOA.SHAPE]
         if not IsSameContainerExpression(physical_gradient, self.GetEmptyField()):
             raise RuntimeError(f"Gradients for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.controlled_model_part.FullName()}, given model part name: {physical_gradient.GetModelPart().FullName()} ]")
-
+        
+        field = KM.Expression.NodalExpression(self.controlled_model_part)
+        KM.Expression.LiteralExpressionIO.SetData(field, [0.0,0.0,0.1])
         # import pdb
         # pdb.set_trace()
+
+        print("MapGradient :: physical_gradient (KOA.SHAPE):\n", physical_gradient.Evaluate().shape)
+        #import pdb
+        #pdb.set_trace()
         control_gradient = self.ProjectBackward(physical_gradient)
         # KOA.ExpressionUtils.ComputeNodalVariableProductWithEntityMatrix(self.GetControlField(), physical_gradient, self.inverse_mapping_relation_matrix, self.control_polygon_model_part.Nodes)
         # KratosOA.ExpressionUtils.ComputeNodalVariableProductWithEntityMatrix(output_values, nodal_values, KratosOA.HELMHOLTZ_MASS_MATRIX, self.model_part.Elements)
+        print("MapGradient :: physical_gradient:\n", physical_gradient.Evaluate())
+        print("MapGradient :: control_gradient:\n", control_gradient.Evaluate())
 
         # filtered_gradient = self.filter.BackwardFilterIntegratedField(KOA.ExpressionUtils.ExtractData(physical_gradient, self.model_part))
 
         return KOA.ExpressionUtils.ExtractData(control_gradient, self.control_polygon_model_part.GetRootModelPart())
 
     def ProjectBackward(self, gradient):
-        # import pdb
-        # pdb.set_trace()
-
         # gradient_unit = np.zeros(self.inverse_mapping_relation.shape[1])
         # gradient_unit[0] = 1.0
         mapped_gradient = KM.Expression.NodalExpression(self.control_polygon_model_part)
@@ -191,38 +190,38 @@ class SubdivisionSurfaceControl(Control):
 
     @time_decorator(methodName="GetName")
     def Update(self, new_control_field: ContainerExpressionTypes) -> bool:
-        control_polygon_update = np.zeros((self.control_polygon_model_part.NumberOfNodes(), 3))
-        control_polygon_update[0,:] = np.array([0,0,0.25])
+        # control_polygon_update = np.zeros((self.control_polygon_model_part.NumberOfNodes(), 3))
+        # control_polygon_update[0,:] = np.array([0,0,0.25])    # artificial update for test
 
-        control_field_array = self.control_field.Evaluate()
+        # control_field_array = self.control_field.Evaluate()
 
-        new_control_field_array = control_field_array + control_polygon_update
-        print(new_control_field_array)
+        # new_control_field_array = control_field_array + control_polygon_update
 
-        KM.Expression.CArrayExpressionIO.Read(
-            self.control_field, new_control_field_array
-        )
-        print(self.control_field.PrintData())
+        print("Update :: new_control_field:\n", new_control_field.Evaluate())
+        print("Update :: self.control_field.PrintData():\n", self.control_field.Evaluate())
+        print("Update :: NormL2(self.control_field - new_control_field): ", KM.Expression.Utils.NormL2(self.control_field - new_control_field))
         
         if not IsSameContainerExpression(new_control_field, self.GetEmptyControlField()):
             raise RuntimeError(f"Updates for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.control_polygon_model_part.FullName()}, given model part name: {new_control_field.GetModelPart().FullName()} ]")
+        # import pdb
+        # pdb.set_trace()
         if KM.Expression.Utils.NormL2(self.control_field - new_control_field) > 1e-15:
             # update the control SHAPE field
             # control_update = new_control_field - self.control_field
             self.control_field = new_control_field
             # now update the physical field
-            new_phyisical_field = KM.Expression.NodalExpression(self.controlled_model_part)
-            KOA.ExpressionUtils.ProductWithEntityMatrix(new_phyisical_field, self.forward_matrix, self.control_field)
-
+            # new_physical_field = KM.Expression.NodalExpression(self.controlled_model_part)
+            new_physical_field = self.GetPhysicalField()
+            KOA.ExpressionUtils.ProductWithEntityMatrix(new_physical_field, self.forward_matrix, new_control_field)
             self._UpdateControlPolygon(self.control_field)
-            self._UpdateMesh(new_phyisical_field)
+            self._UpdateMesh(new_physical_field)
 
             return True
         return False  
     
-    def _UpdateControlPolygon(self, control_field) -> None:
-        KM.Expression.NodalPositionExpressionIO.Write(control_field, KM.Configuration.Initial)
-        KM.Expression.NodalPositionExpressionIO.Write(control_field, KM.Configuration.Current)
+    def _UpdateControlPolygon(self, new_control_field) -> None:
+        KM.Expression.NodalPositionExpressionIO.Write(new_control_field, KM.Configuration.Initial)
+        KM.Expression.NodalPositionExpressionIO.Write(new_control_field, KM.Configuration.Current)
 
     
     def _UpdateMesh(self, new_physical_field: ContainerExpressionTypes) -> None:
