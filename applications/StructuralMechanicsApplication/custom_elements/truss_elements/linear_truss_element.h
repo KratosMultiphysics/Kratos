@@ -156,7 +156,7 @@ public:
     /**
      * @brief This method returns the base shape functions in a reduced size vector (2 or 3 entries)
      */
-    array_1d<double, TNNodes> GetBaseShapeFunctions(const double xi) const;
+    Vector GetBaseShapeFunctions(const double xi) const;
 
     /**
      * @brief Returns a n component vector including the values of the DoFs

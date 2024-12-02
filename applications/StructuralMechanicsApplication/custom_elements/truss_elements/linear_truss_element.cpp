@@ -232,7 +232,7 @@ void LinearTrussElement<TDimension, TNNodes>::GetShapeFunctionsValuesZ(
         rN.resize(SystemSize, false);
 
     rN.clear();
-    
+
     if constexpr (Dimension == 3) {
         array_1d<double, NNodes> base_N;
         noalias(base_N) = GetBaseShapeFunctions(xi);
@@ -862,18 +862,12 @@ void LinearTrussElement<TDimension, TNNodes>::load(Serializer& rSerializer)
 /***********************************************************************************/
 
 template <SizeType TDimension, SizeType TNNodes>
-array_1d<double, TNNodes> LinearTrussElement<TDimension, TNNodes>::GetBaseShapeFunctions(const double xi) const
+Vector LinearTrussElement<TDimension, TNNodes>::GetBaseShapeFunctions(const double xi) const
 {
-    array_1d<double, TNNodes> N;
-
-    if constexpr (NNodes == 2) {
-        N[0] = 0.5 * (1.0 - xi);
-        N[1] = 0.5 * (1.0 + xi);
-    } else {
-        N[0] = 0.5 * xi * (xi - 1.0);
-        N[1] = 0.5 * xi * (xi + 1.0);
-        N[2] = (1.0 - std::pow(xi, 2));
-    }
+    Vector coord(3), N(NNodes);
+    coord.clear();
+    coord[0] = xi;
+    N = GetGeometry().ShapeFunctionsValues(N, coord);
     return N;
 }
 
