@@ -6,7 +6,7 @@
 //  License:         BSD License
 //                   license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors:  Alejandro Cornejo
+//  Main authors:    Alejandro Cornejo
 //
 //
 
@@ -357,8 +357,10 @@ void LinearTrussElement<TNNodes, TDimension>::GetNodalValuesVector(SystemSizeBou
         rNodalValues.resize(SystemSize, false);
     const auto &r_geom = GetGeometry();
     BoundedVector<double, SystemSize> global_values;
+    BoundedMatrix<double, DofsPerNode, DofsPerNode> T;
+    BoundedMatrix<double, SystemSize, SystemSize> global_size_T;
 
-    if constexpr (TDimension == 2) {
+    if constexpr (Dimension == 2) {
 
         const double angle = GetAngle();
         // We fill the vector with global values
@@ -368,19 +370,11 @@ void LinearTrussElement<TNNodes, TDimension>::GetNodalValuesVector(SystemSizeBou
             global_values[i * DofsPerNode + 1] = r_displ[1];
         }
 
-        if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
-            BoundedMatrix<double, DofsPerNode, DofsPerNode> T;
-            BoundedMatrix<double, SystemSize, SystemSize> global_size_T;
-            StructuralMechanicsElementUtilities::BuildRotationMatrixForTruss(T, angle);
-            if constexpr (NNodes == 2) {
-                StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NTruss(T, global_size_T);
-            } else {
-                StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NTruss(T, global_size_T);
-            }
-            // We rotate to local axes
-            noalias(rNodalValues) = prod(trans(global_size_T), global_values);
+        StructuralMechanicsElementUtilities::BuildRotationMatrixForTruss(T, angle);
+        if constexpr (NNodes == 2) {
+            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NTruss(T, global_size_T);
         } else {
-            noalias(rNodalValues) = global_values;
+            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NTruss(T, global_size_T);
         }
     } else {
         // We fill the vector with global values
@@ -391,18 +385,14 @@ void LinearTrussElement<TNNodes, TDimension>::GetNodalValuesVector(SystemSizeBou
             global_values[i * DofsPerNode + 2] = r_displ[2];
         }
 
-        BoundedMatrix<double, DofsPerNode, DofsPerNode> T;
         noalias(T) = GetFrenetSerretMatrix(); // global to local
-        BoundedMatrix<double, SystemSize, SystemSize> global_size_T;
-
         if constexpr (NNodes == 2) {
             StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D2NTruss(T, global_size_T);
         } else {
             StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D3NTruss(T, global_size_T);
         }
-
-        noalias(rNodalValues) = prod(global_size_T, global_values);
     }
+    noalias(rNodalValues) = prod(global_size_T, global_values);
 }
 
 /***********************************************************************************/
@@ -682,7 +672,6 @@ void LinearTrussElement<TNNodes, TDimension>::RotateRHS(
     BoundedMatrix<double, DofsPerNode, DofsPerNode> T;
     BoundedMatrix<double, SystemSize, SystemSize> global_size_T;
     BoundedVector<double, SystemSize> local_rhs;
-    noalias(local_rhs) = rRHS;
 
     if constexpr (TDimension == 2) {
         const double angle = GetAngle();
@@ -701,7 +690,7 @@ void LinearTrussElement<TNNodes, TDimension>::RotateRHS(
             StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D3NTruss(T, global_size_T);
         }
     }
-
+    noalias(local_rhs) = rRHS;
     noalias(rRHS) = prod(global_size_T, local_rhs);
 }
 
@@ -729,6 +718,7 @@ void LinearTrussElement<TNNodes, TDimension>::RotateAll(
         }
 
     } else {
+        noalias(T) = trans(GetFrenetSerretMatrix()); // global to local
         if constexpr (NNodes == 2) {
             StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D2NTruss(T, global_size_T);
         } else {
