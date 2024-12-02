@@ -171,21 +171,15 @@ void LinearTrussElement<TDimension, TNNodes>::GetShapeFunctionsValues(
     noalias(base_N) = GetBaseShapeFunctions(xi);
 
     if constexpr (Dimension == 2) {
-        if constexpr (NNodes == 2) {
-            rN[0] = base_N[0];
-            rN[2] = base_N[1];
-        } else { // 3N
-            rN[0] = base_N[0];
-            rN[2] = base_N[1];
+        rN[0] = base_N[0];
+        rN[2] = base_N[1];
+        if constexpr (NNodes == 3) {
             rN[4] = base_N[2];
         }
     } else {
-        if constexpr (NNodes == 2) {
-            rN[0] = base_N[0];
-            rN[3] = base_N[1];
-        } else { // 3N
-            rN[0] = base_N[0];
-            rN[3] = base_N[1];
+        rN[0] = base_N[0];
+        rN[3] = base_N[1];
+        if constexpr (NNodes == 3) {
             rN[6] = base_N[2];
         }
     }
@@ -210,21 +204,15 @@ void LinearTrussElement<TDimension, TNNodes>::GetShapeFunctionsValuesY(
     noalias(base_N) = GetBaseShapeFunctions(xi);
     
     if constexpr (Dimension == 2) {
-        if constexpr (NNodes == 2) {
-            rN[1] = base_N[0];
-            rN[3] = base_N[1];
-        } else { // 3N
-            rN[1] = base_N[0];
-            rN[3] = base_N[1];
+        rN[1] = base_N[0];
+        rN[3] = base_N[1];
+        if constexpr (NNodes == 3) {
             rN[5] = base_N[2];
         }
     } else {
-        if constexpr (NNodes == 2) {
-            rN[1] = base_N[0];
-            rN[4] = base_N[1];
-        } else { // 3N
-            rN[1] = base_N[0];
-            rN[4] = base_N[1];
+        rN[1] = base_N[0];
+        rN[4] = base_N[1];
+        if constexpr (NNodes == 3) {
             rN[7] = base_N[2];
         }
     }
@@ -248,12 +236,10 @@ void LinearTrussElement<TDimension, TNNodes>::GetShapeFunctionsValuesZ(
     if constexpr (Dimension == 3) {
         array_1d<double, NNodes> base_N;
         noalias(base_N) = GetBaseShapeFunctions(xi);
-        if constexpr (NNodes == 2) {
-            rN[2] = base_N[0];
-            rN[5] = base_N[1];
-        } else { // 3N
-            rN[2] = base_N[0];
-            rN[5] = base_N[1];
+
+        rN[2] = base_N[0];
+        rN[5] = base_N[1];
+        if constexpr (NNodes == 3) {
             rN[8] = base_N[2];
         }
     }
@@ -493,7 +479,7 @@ void LinearTrussElement<TDimension, TNNodes>::CalculateLocalSystem(
 
         noalias(rRHS) += N_shape  * local_body_forces[0] * jacobian_weight;
         noalias(rRHS) += N_shapeY * local_body_forces[1] * jacobian_weight;
-        noalias(rRHS) += N_shapeZ * local_body_forces[2] * jacobian_weight; // null in this class, full in derived one
+        noalias(rRHS) += N_shapeZ * local_body_forces[2] * jacobian_weight;
     }
     RotateAll(rLHS, rRHS); // rotate to global
 
