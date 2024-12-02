@@ -18,7 +18,6 @@
 
 // Application includes
 #include "linear_truss_element.h"
-#include "custom_utilities/constitutive_law_utilities.h"
 #include "structural_mechanics_application_variables.h"
 
 namespace Kratos
@@ -376,6 +375,7 @@ void LinearTrussElement<TNNodes, TDimension>::GetNodalValuesVector(SystemSizeBou
         } else {
             StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NTruss(T, global_size_T);
         }
+        noalias(rNodalValues) = prod(trans(global_size_T), global_values);
     } else {
         // We fill the vector with global values
         for (SizeType i = 0; i < NNodes; ++i) {
@@ -391,8 +391,8 @@ void LinearTrussElement<TNNodes, TDimension>::GetNodalValuesVector(SystemSizeBou
         } else {
             StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D3NTruss(T, global_size_T);
         }
+        noalias(rNodalValues) = prod(global_size_T, global_values);
     }
-    noalias(rNodalValues) = prod(global_size_T, global_values);
 }
 
 /***********************************************************************************/
@@ -639,7 +639,7 @@ void LinearTrussElement<TNNodes, TDimension>::RotateLHS(
 {
     BoundedMatrix<double, SystemSize, SystemSize> global_size_T, aux_product;
     BoundedMatrix<double, DofsPerNode, DofsPerNode> T;
-    if constexpr (TDimension == 2) {
+    if constexpr (Dimension == 2) {
         const double angle = GetAngle();
 
         StructuralMechanicsElementUtilities::BuildRotationMatrixForTruss(T, angle);
@@ -673,7 +673,7 @@ void LinearTrussElement<TNNodes, TDimension>::RotateRHS(
     BoundedMatrix<double, SystemSize, SystemSize> global_size_T;
     BoundedVector<double, SystemSize> local_rhs;
 
-    if constexpr (TDimension == 2) {
+    if constexpr (Dimension == 2) {
         const double angle = GetAngle();
         StructuralMechanicsElementUtilities::BuildRotationMatrixForTruss(T, angle);
         if constexpr (NNodes == 2) {

@@ -383,7 +383,7 @@ public:
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "Truss 2D Element #" << Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+        rOStream << "Truss Element #" << Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
     }
 
     /// Print object's data.
@@ -406,7 +406,6 @@ protected:
     ///@{
 
     IntegrationMethod mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2; /// Currently selected integration methods
-
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws
 
     ///@}
