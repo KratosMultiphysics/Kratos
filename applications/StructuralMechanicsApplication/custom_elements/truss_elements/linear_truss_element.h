@@ -45,7 +45,7 @@ using SizeType = std::size_t;
 ///@{
 
 /**
- * @class LinearTrussElement2D
+ * @class LinearTrussElement
  * @ingroup StructuralMechanicsApplication
  * @brief This is the Linear 2D TRUSS element of 2 and 3 nodes.
  * O---------O -> x'      O-----O-----O -> x'
@@ -53,7 +53,7 @@ using SizeType = std::size_t;
  * @author Alejandro Cornejo
  */
 template <SizeType TNNodes, SizeType TDimension>
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearTrussElement2D
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearTrussElement
     : public Element
 {
 
@@ -71,32 +71,32 @@ public:
     using SystemSizeBoundedArrayType = array_1d<double, SystemSize>;
 
     // Counted pointer of BaseSolidElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(LinearTrussElement2D);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(LinearTrussElement);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     // Constructor void
-    LinearTrussElement2D()
+    LinearTrussElement()
     {
     }
 
     // Constructor using an array of nodes
-    LinearTrussElement2D(IndexType NewId, GeometryType::Pointer pGeometry) : Element(NewId, pGeometry)
+    LinearTrussElement(IndexType NewId, GeometryType::Pointer pGeometry) : Element(NewId, pGeometry)
     {
         mThisIntegrationMethod = CalculateIntegrationMethod();
     }
 
     // Constructor using an array of nodes with properties
-    LinearTrussElement2D(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    LinearTrussElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : Element(NewId,pGeometry,pProperties)
     {
         mThisIntegrationMethod = CalculateIntegrationMethod();
     }
 
     // Copy constructor
-    LinearTrussElement2D(LinearTrussElement2D const& rOther)
+    LinearTrussElement(LinearTrussElement const& rOther)
         : BaseType(rOther),
         mThisIntegrationMethod(rOther.mThisIntegrationMethod),
         mConstitutiveLawVector(rOther.mConstitutiveLawVector)
@@ -106,13 +106,13 @@ public:
     // Create method
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_intrusive<LinearTrussElement2D>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive<LinearTrussElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
 
     // Create method
     Element::Pointer Create( IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const override
     {
-        return Kratos::make_intrusive<LinearTrussElement2D>(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive<LinearTrussElement>(NewId, pGeom, pProperties);
     }
 
     ///@}
@@ -474,7 +474,7 @@ private:
 
     void load(Serializer &rSerializer) override;
 
-}; // class LinearTrussElement2D.
+}; // class LinearTrussElement.
 
 ///@}
 ///@name Type Definitions

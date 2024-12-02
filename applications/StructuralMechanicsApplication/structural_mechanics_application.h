@@ -34,8 +34,7 @@
 #include "custom_elements/truss_elements/truss_element_3D2N.hpp"
 #include "custom_elements/truss_elements/truss_element_linear_3D2N.hpp"
 #include "custom_elements/truss_elements/cable_element_3D2N.hpp"
-#include "custom_elements/truss_elements/linear_truss_element_2D.h"
-#include "custom_elements/truss_elements/linear_truss_element_3D.h"
+#include "custom_elements/truss_elements/linear_truss_element.h"
 
 /* Adding beam element */
 #include "custom_elements/beam_elements/cr_beam_element_3D2N.hpp"
