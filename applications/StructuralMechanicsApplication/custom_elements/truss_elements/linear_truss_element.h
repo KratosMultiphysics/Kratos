@@ -52,7 +52,7 @@ using SizeType = std::size_t;
  *  0         1            0     2     1
  * @author Alejandro Cornejo
  */
-template <SizeType TNNodes, SizeType TDimension>
+template <SizeType TDimension, SizeType TNNodes>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearTrussElement
     : public Element
 {
