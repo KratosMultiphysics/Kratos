@@ -351,6 +351,7 @@ public:
         KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0) << "System Construction Time: "
             << system_construction_time << std::endl;
 
+
         TSystemMatrixType& rA  = *BaseType::mpA;
         TSystemVectorType& rDx = *BaseType::mpDx;
         TSystemVectorType& rb  = *BaseType::mpb;

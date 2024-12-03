@@ -209,7 +209,6 @@ public:
                                   const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY;
-
         BaseType::CalculateRHSContribution(rCurrentElement,RHS_Contribution,EquationId,CurrentProcessInfo);
 
         mpRotationTool->Rotate(RHS_Contribution,rCurrentElement.GetGeometry());

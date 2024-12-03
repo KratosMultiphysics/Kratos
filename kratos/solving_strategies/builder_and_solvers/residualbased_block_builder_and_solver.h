@@ -1199,6 +1199,7 @@ protected:
             const int nconditions = static_cast<int>(ConditionsArray.size());
             #pragma omp for schedule(guided, 512)
             for (int i = 0; i<nconditions; i++) {
+
                 auto it = ConditionsArray.begin() + i;
                 // If the condition is active
                 if(it->IsActive()) {
@@ -1208,7 +1209,9 @@ protected:
                     //assemble the elemental contribution
                     AssembleRHS(b, RHS_Contribution, EquationId);
                 }
+
             }
+
         }
 
         KRATOS_CATCH("")

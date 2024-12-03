@@ -273,6 +273,7 @@ public:
         ) override
     {
         KRATOS_TRY
+        // KRATOS_WATCH("SCHEME2")
 
         rCurrentCondition.CalculateRightHandSide(rRHSContribution, rCurrentProcessInfo);
 

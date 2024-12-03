@@ -88,7 +88,7 @@ namespace Kratos
         // Compute the normals
         array_1d<double, 3> tangent_parameter_space;
         array_1d<double, 2> normal_physical_space;
-        array_1d<double, 3> normal_parameter_space;
+        array_1d<double, 2> normal_parameter_space;
 
         r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space !!
         double magnitude = std::sqrt(tangent_parameter_space[0] * tangent_parameter_space[0] + tangent_parameter_space[1] * tangent_parameter_space[1]);
@@ -96,6 +96,11 @@ namespace Kratos
         // NEW FOR GENERAL JACOBIAN
         normal_parameter_space[0] = + tangent_parameter_space[1] / magnitude;
         normal_parameter_space[1] = - tangent_parameter_space[0] / magnitude;  // By observations on the result of .Calculate(LOCAL_TANGENT
+
+
+        Vector tangent_parameter_space_2D(2);
+        tangent_parameter_space_2D[0] = tangent_parameter_space[0];
+        tangent_parameter_space_2D[1] = tangent_parameter_space[1];
 
         const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
         r_geometry.Jacobian(J0,this->GetIntegrationMethod());
@@ -129,7 +134,7 @@ namespace Kratos
         // Calculating inverse jacobian and jacobian determinant
         MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
 
-        Vector add_factor = prod(Jacobian, tangent_parameter_space);
+        Vector add_factor = prod(Jacobian, tangent_parameter_space_2D);
 
         DetJ0 = norm_2(add_factor);
 
@@ -338,9 +343,9 @@ namespace Kratos
 
         for (IndexType i = 0; i < number_of_control_points; ++i)
         {
-            const array_1d<double, 2 >& displacement = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT);
+            const array_1d<double, 3 >& displacement = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT);
             IndexType index = i * 2;
-
+            // KRATOS_WATCH(displacement)
             rValues[index] = displacement[0];
             rValues[index + 1] = displacement[1];
         }
@@ -372,70 +377,15 @@ namespace Kratos
 
     void SupportSolid2DCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     {
+        KRATOS_WATCH("Are you passing through FinalizeSolutionStep? in Conditions")
+
         ConstitutiveLaw::Parameters constitutive_law_parameters(
             GetGeometry(), GetProperties(), rCurrentProcessInfo);
-
-        mpConstitutiveLaw->FinalizeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
-
-        //---------- SET STRESS VECTOR VALUE ----------------------------------------------------------------
-        const auto& r_geometry = GetGeometry();
-        const SizeType nb_nodes = r_geometry.size();
-        const SizeType mat_size = nb_nodes * 2;
-
-        // Shape function derivatives (NEW) 
-        // Initialize Jacobian
-        GeometryType::JacobiansType J0;
-        // Initialize DN_DX
-        const unsigned int dim = 2;
-        Matrix DN_DX(nb_nodes,2);
-        Matrix InvJ0(dim,dim);
-
-        // Compute the normals
-        array_1d<double, 3> tangent_parameter_space;
-        array_1d<double, 2> normal_physical_space;
-        array_1d<double, 3> normal_parameter_space;
-
-        r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space !!
-        double magnitude = std::sqrt(tangent_parameter_space[0] * tangent_parameter_space[0] + tangent_parameter_space[1] * tangent_parameter_space[1]);
-        
-        // NEW FOR GENERAL JACOBIAN
-        normal_parameter_space[0] = + tangent_parameter_space[1] / magnitude;
-        normal_parameter_space[1] = - tangent_parameter_space[0] / magnitude;  // By observations on the result of .Calculate(LOCAL_TANGENT
-
-        const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
-        r_geometry.Jacobian(J0,this->GetIntegrationMethod());
-        double DetJ0;
-        // MODIFIED
-        Vector old_displacement(mat_size);
-        GetValuesVector(old_displacement);
-        
-        Matrix Jacobian = ZeroMatrix(2,2);
-        Jacobian(0,0) = J0[0](0,0);
-        Jacobian(0,1) = J0[0](0,1);
-        Jacobian(1,0) = J0[0](1,0);
-        Jacobian(1,1) = J0[0](1,1);
-
-        // Calculating inverse jacobian and jacobian determinant
-        MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
-
-        // // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
-        noalias(DN_DX) = prod(DN_De[0],InvJ0);
-
-        // MODIFIED
-        Matrix B = ZeroMatrix(3,mat_size);
-
-        CalculateB(B, DN_DX);
-
-        normal_physical_space = prod(trans(InvJ0),normal_parameter_space);
-
-        normal_physical_space /= norm_2(normal_physical_space);
-
-        // GET STRESS VECTOR
-        ConstitutiveLaw::Parameters Values(r_geometry, GetProperties(), rCurrentProcessInfo);
+        KRATOS_WATCH("Are you passing through FinalizeSolutionStep?")
 
         const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
         // Set constitutive law flags:
-        Flags& ConstitutiveLawOptions=Values.GetOptions();
+        Flags& ConstitutiveLawOptions=constitutive_law_parameters.GetOptions();
 
         ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
@@ -444,20 +394,11 @@ namespace Kratos
 
         ConstitutiveVariables this_constitutive_variables(strain_size);
 
-        Vector old_strain = prod(B,old_displacement);
-    
-        // Values.SetStrainVector(this_constitutive_variables.StrainVector);
-        Values.SetStrainVector(old_strain);
+        constitutive_law_parameters.SetStrainVector(this_constitutive_variables.StrainVector);
+        constitutive_law_parameters.SetStressVector(this_constitutive_variables.StressVector);
+        constitutive_law_parameters.SetConstitutiveMatrix(this_constitutive_variables.D);
 
-        Values.SetStressVector(this_constitutive_variables.StressVector);
-        Values.SetConstitutiveMatrix(this_constitutive_variables.D);
-        mpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy);
-
-        const Vector sigma = Values.GetStressVector();
-        Vector sigma_n(2);
-
-        sigma_n[0] = sigma[0]*normal_physical_space[0] + sigma[2]*normal_physical_space[1];
-        sigma_n[1] = sigma[2]*normal_physical_space[0] + sigma[1]*normal_physical_space[1];
+        mpConstitutiveLaw->FinalizeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
 
         //-----------------------------------------
         // Vector sigma_n = ZeroVector(2);
@@ -474,7 +415,6 @@ namespace Kratos
         // }
         //2222222222222222222222222222222222222222222222222222222222222222222222222
 
-        SetValue(NORMAL_STRESS, sigma_n);
         // //---------------------
     }
 

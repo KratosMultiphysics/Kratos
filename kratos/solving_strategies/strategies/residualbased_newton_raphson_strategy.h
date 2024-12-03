@@ -787,7 +787,6 @@ class ResidualBasedNewtonRaphsonStrategy
         typename TSchemeType::Pointer p_scheme = GetScheme();
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
         ModelPart& r_model_part = BaseType::GetModelPart();
-
         // Set up the system, operation performed just once unless it is required
         // to reform the dof set at each iteration
         BuiltinTimer system_construction_time;
@@ -822,7 +821,7 @@ class ResidualBasedNewtonRaphsonStrategy
 
         // Initial operations ... things that are constant over the Solution Step
         p_builder_and_solver->InitializeSolutionStep(r_model_part, rA, rDx, rb);
-
+        KRATOS_WATCH(p_builder_and_solver)
         // Initial operations ... things that are constant over the Solution Step
         p_scheme->InitializeSolutionStep(r_model_part, rA, rDx, rb);
 
@@ -831,6 +830,7 @@ class ResidualBasedNewtonRaphsonStrategy
         {
             TSparseSpace::SetToZero(rb);
             p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
+
         }
 
         mpConvergenceCriteria->InitializeSolutionStep(r_model_part, p_builder_and_solver->GetDofSet(), rA, rDx, rb);
@@ -849,6 +849,7 @@ class ResidualBasedNewtonRaphsonStrategy
     void FinalizeSolutionStep() override
     {
         KRATOS_TRY;
+        KRATOS_WATCH("ResidualBasedNewtonRaphsonStrategy3")
 
         ModelPart& r_model_part = BaseType::GetModelPart();
 

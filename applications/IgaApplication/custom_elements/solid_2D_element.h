@@ -15,6 +15,7 @@
 // Application includes
 #include "iga_application_variables.h"
 
+
 namespace Kratos
 {
 ///@name Kratos Classes
@@ -302,7 +303,6 @@ public:
      */
     void CalculateKinematicVariables(
         KinematicVariables& rThisKinematicVariables,
-        const IndexType PointNumber,
         const GeometryType::IntegrationMethod& rIntegrationMethod
         ) ;
 
@@ -341,6 +341,32 @@ protected:
     ///@}
     ///@name Protected  Access
     ///@{
+    /**
+     * @brief This functions calculate the derivatives in the reference frame
+     * @param rJ0 The jacobian in the reference configuration
+     * @param rInvJ0 The inverse of the jacobian in the reference configuration
+     * @param rDN_DX The gradient derivative of the shape function
+     * @param PointNumber The id of the integration point considered
+     * @param ThisIntegrationMethod The integration method considered
+     * @return The determinant of the jacobian in the reference configuration
+     */
+    double CalculateDerivativesOnReferenceConfiguration(
+        Matrix& rJ0,
+        Matrix& rInvJ0,
+        Matrix& rDN_DX,
+        IntegrationMethod ThisIntegrationMethod
+        ) const;
+
+
+    /**
+     * @brief Calculation of the equivalent deformation gradient
+     * @param rF The deformation gradient F
+     * @param StrainVector The strain tensor (Voigt notation)
+     */
+    void ComputeEquivalentF(
+        Matrix& rF,
+        const Vector& StrainVector
+        ) const;
 
 
     ///@}

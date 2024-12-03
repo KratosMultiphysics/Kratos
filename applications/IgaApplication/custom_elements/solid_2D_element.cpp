@@ -23,7 +23,7 @@
 
 // Application includes
 #include "custom_elements/solid_2D_element.h"
-
+#include "../../StructuralMechanicsApplication/custom_utilities/structural_mechanics_element_utilities.h"
 #include "utilities/math_utils.h"
 #include "utilities/function_parser_utility.h"
 #include "custom_utilities/array_1d_max.h"
@@ -83,6 +83,7 @@ void Solid2DElement:: Initialize(const ProcessInfo& rCurrentProcessInfo)
 void Solid2DElement::InitializeMaterial()
 {
     KRATOS_TRY
+
     if ( GetProperties()[CONSTITUTIVE_LAW] != nullptr ) {
         const GeometryType& r_geometry = GetGeometry();
         const Properties& r_properties = GetProperties();
@@ -105,23 +106,24 @@ void Solid2DElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                             const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
+
     const auto& r_geometry = GetGeometry();
     const unsigned int number_of_points = r_geometry.size();
     const unsigned int dim = r_geometry.WorkingSpaceDimension(); // dim = 2
     const SizeType mat_size = number_of_points * 2;
 
-    array_1d<double, 3> center = r_geometry[0].GetInitialPosition().Coordinates();
-    // KRATOS_WATCH(center)
-    // array_1d<double, 3> rOutput{0.0, 0.0, 0.0};  // Initialize the output array
-    r_geometry.Calculate(CHARACTERISTIC_GEOMETRY_LENGTH, center);
-    double characteristic_length = Kratos::Array1DMax::FindMaxInArray1D(center);
-    KRATOS_WATCH(characteristic_length)
+    // array_1d<double, 3> center = r_geometry[0].GetInitialPosition().Coordinates();
+    // // KRATOS_WATCH(center)
+    // // array_1d<double, 3> rOutput{0.0, 0.0, 0.0};  // Initialize the output array
+    // r_geometry.Calculate(CHARACTERISTIC_GEOMETRY_LENGTH, center);
+    // double characteristic_length = Kratos::Array1DMax::FindMaxInArray1D(center);
+    // KRATOS_WATCH(characteristic_length)
 
     //resizing as needed the LHS
     if(rLeftHandSideMatrix.size1() != mat_size)
         rLeftHandSideMatrix.resize(mat_size,mat_size,false);
     noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size,mat_size); //resetting LHS
-    
+   
     // resizing as needed the RHS
     if(rRightHandSideVector.size() != mat_size)
         rRightHandSideVector.resize(mat_size,false);
@@ -145,6 +147,7 @@ void Solid2DElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
     const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
 
     const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
+
     const Matrix& N_gausspoint = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
 
     // Initialize DN_DX
@@ -157,6 +160,7 @@ void Solid2DElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
     r_geometry.Jacobian(J0,this->GetIntegrationMethod());
     Vector GP_parameter_coord(2); 
     GP_parameter_coord = prod(r_geometry.Center(),J0[0]); // check if we have tu put "GetInitialPosition"
+
 
 
     Vector volume_force_local(2);
@@ -222,7 +226,7 @@ void Solid2DElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
     Values.SetConstitutiveMatrix(this_constitutive_variables.D);
 
     mpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy); 
-
+    KRATOS_WATCH("CalculateMaterialResponse")
     const Vector& r_stress_vector = Values.GetStressVector();
     const Matrix& r_D = Values.GetConstitutiveMatrix();
     //-----------------------------------------------------------------------------------
@@ -247,7 +251,6 @@ void Solid2DElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
     // TO DO 
     // Should be _int{B^T * \sigma}
     noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,old_displacement); 
-
     KRATOS_CATCH("")
 }
 
@@ -265,6 +268,7 @@ void Solid2DElement::CalculateRightHandSide(VectorType& rRightHandSideVector, co
 {
     MatrixType temp(0,0);
     CalculateLocalSystem(temp, rRightHandSideVector, rCurrentProcessInfo);
+
 }
 
 
@@ -310,6 +314,7 @@ void Solid2DElement::EquationIdVector(
             rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
             rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
         }
+        // KRATOS_WATCH("GetDofList")
 
         KRATOS_CATCH("")
     };
@@ -340,7 +345,8 @@ int Solid2DElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 
 
 Element::IntegrationMethod Solid2DElement::GetIntegrationMethod() const
-{
+{        
+
     return GeometryData::IntegrationMethod::GI_GAUSS_1;
 }
 
@@ -348,10 +354,27 @@ Element::IntegrationMethod Solid2DElement::GetIntegrationMethod() const
 
 void Solid2DElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
+
     ConstitutiveLaw::Parameters constitutive_law_parameters(
         GetGeometry(), GetProperties(), rCurrentProcessInfo);
+    KRATOS_WATCH("Are you passing through FinalizeSolutionStep?")
 
-    mpConstitutiveLaw->FinalizeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_PK2);
+    const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
+    // Set constitutive law flags:
+    Flags& ConstitutiveLawOptions=constitutive_law_parameters.GetOptions();
+
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+    ConstitutiveVariables this_constitutive_variables(strain_size);
+
+    constitutive_law_parameters.SetStrainVector(this_constitutive_variables.StrainVector);
+    constitutive_law_parameters.SetStressVector(this_constitutive_variables.StressVector);
+    constitutive_law_parameters.SetConstitutiveMatrix(this_constitutive_variables.D);
+
+    mpConstitutiveLaw->FinalizeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
 
     // retrieve integration weight
     double integration_weight = GetValue(INTEGRATION_WEIGHT);
@@ -376,7 +399,6 @@ void Solid2DElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo
     double y_coord_gauss_point = 0;
     double rOutput_x = 0;
     double rOutput_y = 0;
-
     for (IndexType i = 0; i < nb_nodes; ++i)
     {
         // KRATOS_WATCH(r_geometry[i])
@@ -501,11 +523,26 @@ const IndexType PointNumber
 
 void Solid2DElement::CalculateKinematicVariables(
     KinematicVariables& rThisKinematicVariables,
-    const IndexType PointNumber,
     const GeometryType::IntegrationMethod& rIntegrationMethod
     )
 {
+    const auto& r_geometry = GetGeometry();
 
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(rIntegrationMethod);
+    // Shape functions
+    rThisKinematicVariables.N = r_geometry.ShapeFunctionsValues(rThisKinematicVariables.N, r_integration_points[0].Coordinates());
+
+    rThisKinematicVariables.detJ0 = CalculateDerivativesOnReferenceConfiguration(rThisKinematicVariables.J0, rThisKinematicVariables.InvJ0, rThisKinematicVariables.DN_DX, rIntegrationMethod);
+
+    // Compute B
+    CalculateB( rThisKinematicVariables.B, rThisKinematicVariables.DN_DX);
+
+    // Compute equivalent F
+    GetValuesVector(rThisKinematicVariables.Displacements);
+    Vector strain_vector(mpConstitutiveLaw->GetStrainSize());
+    noalias(strain_vector) = prod(rThisKinematicVariables.B, rThisKinematicVariables.Displacements);
+    ComputeEquivalentF(rThisKinematicVariables.F, strain_vector);
+    rThisKinematicVariables.detF = MathUtils<double>::Det(rThisKinematicVariables.F);
 }
 
 void Solid2DElement::CalculateB(
@@ -532,7 +569,19 @@ void Solid2DElement::CalculateB(
     }
 
 
+/***********************************************************************************/
+/***********************************************************************************/
 
+void Solid2DElement::ComputeEquivalentF(
+    Matrix& rF,
+    const Vector& rStrainTensor
+    ) const
+{
+    StructuralMechanicsElementUtilities::ComputeEquivalentF(*this, rStrainTensor, rF);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
 void Solid2DElement::GetValuesVector(
         Vector& rValues) const
     {
@@ -544,12 +593,33 @@ void Solid2DElement::GetValuesVector(
 
         for (IndexType i = 0; i < number_of_control_points; ++i)
         {
-            const array_1d<double, 2 >& displacement = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT);
+            const array_1d<double, 3 >& displacement = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT);
             IndexType index = i * 2;
 
             rValues[index] = displacement[0];
             rValues[index + 1] = displacement[1];
         }
     }
+    /***********************************************************************************/
+    /***********************************************************************************/
 
+    double Solid2DElement::CalculateDerivativesOnReferenceConfiguration(
+        Matrix& rJ0,
+        Matrix& rInvJ0,
+        Matrix& rDN_DX,
+        IntegrationMethod ThisIntegrationMethod
+        ) const
+    {
+        const GeometryType& r_geom = GetGeometry();
+        double detJ0;
+
+        const auto& integration_points =  r_geom.IntegrationPoints();
+        GeometryUtils::JacobianOnInitialConfiguration(r_geom, integration_points[0],rJ0);
+        MathUtils<double>::InvertMatrix(rJ0, rInvJ0, detJ0);
+        Matrix DN_De;
+        GetGeometry().ShapeFunctionsLocalGradients(DN_De, integration_points[0]);
+        GeometryUtils::ShapeFunctionsGradients(DN_De, rInvJ0, rDN_DX);
+    
+        return detJ0;
+    }
 } // Namespace Kratos
