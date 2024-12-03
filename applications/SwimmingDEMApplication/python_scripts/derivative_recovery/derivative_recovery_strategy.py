@@ -49,6 +49,7 @@ class DerivativeRecoveryStrategy:
             # return recoverer.EmptyGradientRecoverer(self.parameters, self.fluid_model_part)
             return recoverer.EmptyMaterialAccelerationRecoverer(self.parameters, self.fluid_model_part)
         elif self.mat_deriv_type == 1:
+            # print(f"self.parameters['compute_exact_L2'] = {self.parameters['compute_exact_L2'].GetBool()}")
             return standard_recoverer.StandardMaterialAccelerationRecoverer(self.parameters, self.fluid_model_part)
         elif self.mat_deriv_type == 2:
             if self.laplacian_type == 2:

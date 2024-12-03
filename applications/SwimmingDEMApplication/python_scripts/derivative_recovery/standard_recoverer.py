@@ -18,8 +18,12 @@ class StandardGradientRecoverer(recoverer.GradientRecoverer):
 class StandardMaterialAccelerationRecoverer(recoverer.MaterialAccelerationRecoverer):
     def __init__(self, project_parameters, model_part):
         recoverer.MaterialAccelerationRecoverer.__init__(self, project_parameters, model_part)
+        self.compute_exact_L2 = project_parameters['compute_exact_L2'].GetBool()
     def RecoverMaterialAcceleration(self):
-        self.cplusplus_recovery_tool.CalculateVectorMaterialDerivative(self.model_part, Kratos.VELOCITY, Kratos.ACCELERATION, Kratos.MATERIAL_ACCELERATION)
+        if self.compute_exact_L2:
+            self.cplusplus_recovery_tool.CalculateVectorMaterialDerivativeExactL2(self.model_part, Kratos.VELOCITY, Kratos.ACCELERATION, Kratos.MATERIAL_ACCELERATION)
+        else:
+            self.cplusplus_recovery_tool.CalculateVectorMaterialDerivative(self.model_part, Kratos.VELOCITY, Kratos.ACCELERATION, Kratos.MATERIAL_ACCELERATION)
 
 class StandardLaplacianRecoverer(recoverer.LaplacianRecoverer):
     def __init__(self, project_parameters, model_part):

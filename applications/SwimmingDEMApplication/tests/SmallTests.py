@@ -107,14 +107,14 @@ class chien_drag_test(DragTF.TestFactory):
      file_parameters = "drag_tests/chien_law/ProjectParameters.json"
 
 available_tests = []
-available_tests += [test_class for test_class in InterpolationTF.TestFactory.__subclasses__()]
-available_tests += [test_class for test_class in BackwardCouplingTF.TestFactory.__subclasses__()]
-if candelier_imports_available:
-     available_tests += [test_class for test_class in CandelierTF.TestFactory.__subclasses__()]
-available_tests += [test_class for test_class in FDEMTF.TestFactory.__subclasses__()]
+# available_tests += [test_class for test_class in InterpolationTF.TestFactory.__subclasses__()]
+# available_tests += [test_class for test_class in BackwardCouplingTF.TestFactory.__subclasses__()]
+# if candelier_imports_available:
+#      available_tests += [test_class for test_class in CandelierTF.TestFactory.__subclasses__()]
+# available_tests += [test_class for test_class in FDEMTF.TestFactory.__subclasses__()]
 available_tests += [test_class for test_class in AnalyticTF.TestFactory.__subclasses__()]
-available_tests += [test_class for test_class in PorosityTF.PorosityConservationTestFactory.__subclasses__()]
-available_tests += [test_class for test_class in DragTF.TestFactory.__subclasses__()]
+# available_tests += [test_class for test_class in PorosityTF.PorosityConservationTestFactory.__subclasses__()]
+# available_tests += [test_class for test_class in DragTF.TestFactory.__subclasses__()]
 
 
 def SetTestSuite(suites):

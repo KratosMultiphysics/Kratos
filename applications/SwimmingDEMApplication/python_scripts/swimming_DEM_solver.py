@@ -7,9 +7,14 @@ import KratosMultiphysics.SwimmingDEMApplication.parameters_tools as PT
 import KratosMultiphysics.SwimmingDEMApplication.CFD_DEM_coupling as CFD_DEM_coupling
 import KratosMultiphysics.SwimmingDEMApplication.derivative_recovery.derivative_recovery_strategy as derivative_recoverer
 import KratosMultiphysics as Kratos
+
+from MassDiffusion3D import Solution3D
+import numpy as np
+
 def Say(*args):
     Logger.PrintInfo("SwimmingDEM", *args)
     Logger.Flush()
+
 
 class SwimmingDEMSolver(PythonSolver):
 
@@ -79,6 +84,7 @@ class SwimmingDEMSolver(PythonSolver):
 
 
         "gradient_calculation_type" : 1,
+        "compute_exact_L2" : false,
         "gradient_calculation_type_comment" : "(Not calculated (0), volume-weighed average(1), Superconvergent recovery(2))",
         "material_acceleration_calculation_type" : 1,
         "laplacian_calculation_type" : 0,
@@ -194,6 +200,46 @@ class SwimmingDEMSolver(PythonSolver):
         self.ConstructHistoryForceUtility()
         # Call the base Python solver constructor
         super().__init__(model, project_parameters)
+
+        # ANALYTICAL SOLUTION #
+        microL_min_to_SI_units = (1e-6 / 1.) * 1e-3 / 60.  # Convert microliters / minute to SI units
+        fluxes = np.array([.5, 1.5, .5]) * microL_min_to_SI_units
+        densities = np.array([1060., 1030., 1000.])
+        self.analytical_solution = Solution3D(tol=1e-6)
+        self.analytical_solution.initialize_with_physical_variables(densities, fluxes)
+        self.analytical_solution.set_max_dims((80, 80))
+        x_min_dimless = self.analytical_solution.get_max_x_from_max_dims()
+        self.analytical_solution.compute_solution_at_points(x_min_dimless, np.array([0.]), np.array([0.]))
+
+        radius = .5e-3
+        length = 2e-2
+        peclet = 1e4
+        lambda_peclet = (radius / length) * peclet
+        v0 = sum(fluxes) / (np.pi * pow(.5e-3, 2))
+        physical_params = {
+            "rad": radius,
+            "v0" : v0
+        }
+        self.x_min_analytical = lambda_peclet * length * x_min_dimless
+        if self.x_min_analytical / length >= .5:
+            raise ValueError("Error: The analytical solution can not be imposed with this value of Peclet.")
+
+        self.physical_params = physical_params
+        print(f"Analytical solution initialized with x_min = {self.x_min_analytical / length}, x_dimless = {x_min_dimless}")
+
+        # Plot sol
+        # y_val = 0.
+        # z_lim = np.sqrt(1. - y_val * y_val)
+        # z_vals = np.linspace(-z_lim, z_lim, 300)
+        # r_vals = np.sqrt(z_vals * z_vals + y_val * y_val)
+        # phi_vals = np.arctan2(y_val, z_vals)
+        # rho_vals = self.analytical_solution.compute_solution_at_points(self.x_min_analytical, r_vals, phi_vals)
+
+        # import matplotlib.pyplot as plt
+        # plt.plot(z_vals, rho_vals)
+        # plt.plot(z_vals, self.analytical_solution.get_initial_solution(z_vals))
+        # plt.show()
+        # exit()
 
     def ConstructStationarityTool(self):
         self.stationarity = False
@@ -328,6 +374,25 @@ class SwimmingDEMSolver(PythonSolver):
 
     def ApplyForwardCoupling(self, alpha='None'):
         self._GetProjectionModule().ApplyForwardCoupling(alpha)
+    
+        # rad = self.physical_params["rad"]
+        # v0 = self.physical_params["v0"]
+        # nodes = [node for node in self.dem_solver.spheres_model_part.Nodes]
+        # for i, node in enumerate(nodes):
+        #     x, y, z = node.X, node.Y, node.Z
+        #     if x <= self.x_min_analytical:
+        #         r_coord = np.sqrt(y * y + z * z) / rad
+        #         phi_coords = np.array([np.arctan2(y, z)])
+
+        #         r_coords = np.array([r_coord])
+        #         v_exact = [v0 * (1. - pow(r_coord, 2)), 0., 0.]
+        #         rho_exact = self.analytical_solution.compute_solution_at_points(x, r_coords, phi_coords)
+        #     else:
+        #         rho_exact = self.analytical_solution.get_initial_solution(z / rad)
+
+        #     print(f"computed {i + 1} for {len(nodes)}")
+        #     node.SetSolutionStepValue(Kratos.FLUID_VEL_PROJECTED, v_exact)
+        #     node.SetSolutionStepValue(SDEM.NODAL_DENSITY_PROJECTED, rho_exact)
 
     def ApplyForwardCouplingOfVelocityToAuxVelocityOnly(self, alpha=None):
         self._GetProjectionModule().ApplyForwardCouplingOfVelocityToAuxVelocityOnly(alpha)

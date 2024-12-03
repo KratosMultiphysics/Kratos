@@ -125,6 +125,7 @@ def GetDefaultInputParameters():
 
 
             "gradient_calculation_type" : 1,
+            "compute_exact_L2" : false,
             "gradient_calculation_type_comment" : "(Not calculated (0), volume-weighed average(1), Superconvergent recovery(2))",
             "material_acceleration_calculation_type" : 1,
             "laplacian_calculation_type" : 0,

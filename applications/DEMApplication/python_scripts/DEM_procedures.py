@@ -1240,6 +1240,7 @@ class MultifileList():
         else:
             absolute_path_to_file = os.path.join(post_path, self.name + ".post.lst")
 
+        absolute_path_to_file = os.path.abspath(absolute_path_to_file)
         self.file = open(absolute_path_to_file, "w")
 
 class DEMIo():

@@ -39,7 +39,6 @@ namespace Kratos {
         const double fluid_mass = displaced_volume * fluid_density;
 
         noalias(undisturbed_flow_force) = fluid_mass * fluid_acc;
-        std::cout << "fluid_accel = " << fluid_acc << ", " << "f_u = " << .5 * undisturbed_flow_force << " * 2" << std::endl;
     }
 
 } // namespace Kratos

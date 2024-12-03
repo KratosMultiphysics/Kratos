@@ -105,6 +105,7 @@ DerivativeRecovery(ModelPart& r_model_part, Parameters& r_parameters):
     mFirstTimeAppending(true)
 {
     mStoreFullGradient = r_parameters.GetValue("store_full_gradient_option").GetBool();
+    mComputeExactL2 = r_parameters.GetValue("compute_exact_L2").GetBool();
 }
 
 /// Destructor.
@@ -138,6 +139,8 @@ void RecoverSuperconvergentVelocityLaplacianFromGradient(ModelPart& r_model_part
 void RecoverSuperconvergentMatDerivAndLaplacian(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& vector_rate_container, Variable<array_1d<double, 3> >& mat_deriv_container, Variable<array_1d<double, 3> >& laplacian_container);
 
 void CalculateVectorMaterialDerivative(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& vector_rate_container, Variable<array_1d<double, 3> >& material_derivative_container);
+
+void CalculateVectorMaterialDerivativeExactL2(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& vector_rate_container, Variable<array_1d<double, 3> >& material_derivative_container);
 
 void RecoverLagrangianAcceleration(ModelPart& r_model_part);
 
@@ -241,6 +244,7 @@ bool mCalculatingTheLaplacian;
 bool mCalculatingGradientAndLaplacian;
 bool mFirstTimeAppending;
 bool mStoreFullGradient;
+bool mComputeExactL2;
 double mLastMeasurementTime;
 double mLastPressureVariation;
 double mTotalVolume;

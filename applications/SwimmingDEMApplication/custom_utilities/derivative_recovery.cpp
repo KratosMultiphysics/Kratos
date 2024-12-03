@@ -46,6 +46,114 @@ void DerivativeRecovery<TDim>::AddTimeDerivativeComponent(ModelPart& r_model_par
 //***************************************************************************************************************
 //***************************************************************************************************************
 template <std::size_t TDim>
+void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeExactL2(ModelPart& r_model_part,
+                                                                 Variable<array_1d<double, 3> >& vector_container,
+                                                                 Variable<array_1d<double, 3> >& vector_rate_container,
+                                                                 Variable<array_1d<double, 3> >& material_derivative_container)
+{
+    KRATOS_INFO("SwimmingDEM") << "Constructing the material derivative by computing the L2 projection..." << std::endl;
+    std::map <std::size_t, unsigned int> id_to_position;
+    unsigned int entry = 0;
+    for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
+        noalias(inode->FastGetSolutionStepValue(material_derivative_container)) = ZeroVector(3);
+        id_to_position[inode->Id()] = entry;
+        ++entry;
+    }
+
+    // Convective part
+    std::vector<array_1d <double, 3> > convective_contributions_to_the_derivative;
+    convective_contributions_to_the_derivative.resize(entry);
+
+    // Declare the LHS matrix (mass matrix) and RHS vector of the L2 projection
+    Matrix LHSMatrix = ZeroMatrix(entry, entry);
+    Vector RHSVector = ZeroVector(entry);
+
+    // Iterate over each spatial component of the vector variable
+    std::vector<array_1d <double, 3> > convective_contributions_to_the_derivative;
+    convective_contributions_to_the_derivative.resize(entry);
+    array_1d <double, 3> grad = ZeroVector(3);
+    for (unsigned int j = 0; j < TDim; ++j){
+        for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ++ielem){
+            // Get the geometry information
+            Geometry<Node >& geom = ielem->GetGeometry();
+            GeometryData::IntegrationMethod integration_method = ielem->GetIntegrationMethod();
+
+            auto number_integration_points = geom.IntegrationPointsNumber(integration_method);
+            const std::vector<IntegrationPoint<3>>& IntegrationPoints = geom.IntegrationPoints(integration_method);
+            double NumNodes = geom.size();
+
+            // Element variables
+            Vector gauss_weights = ZeroVector(number_integration_points);
+            Matrix shape_functions = ZeroMatrix(number_integration_points,NumNodes);
+            DenseVector<Matrix> shape_derivatives;
+            Matrix LHSElement = ZeroMatrix(NumNodes, NumNodes);   // Local LHS matrix of the element
+            Matrix RHSMatrixElement = ZeroMatrix(NumNodes, TDim); // Local RHS matrix
+            Vector RHSElement = ZeroVector(NumNodes);             // Local RHS vector, defined as dot(RHSMatrixElement, elemental_values)
+            Vector elemental_values = ZeroVector(NumNodes);
+
+            // Interpolate the value of the derivative to the gauss points
+            for (unsigned int a = 0; a < NumNodes; ++a){
+                for (unsigned int b = 0; b < NumNodes; ++b){
+                    // Numerical integration of the LHS and the RHS
+                    for (unsigned int g = 0; g < number_integration_points; g++){
+                        gauss_weights[g] = DetJ[g] * IntegrationPoints[g].Weight();
+
+                        // Compute the LHS matrix
+                        LHSElement(a, b) += gauss_weights[g] * shape_functions(g, a) * shape_functions(g, b);
+
+                        // Compute the RHS matrix
+                        for (unsigned int i = 0; i < TDim; ++i) {
+                            RHSMatrixElement(b,i) += gauss_weights[g] * shape_functions(g,a) * shape_derivatives[g](b,i);
+                        }
+                    }
+                }
+                elemental_values[a] = geom[a].FastGetSolutionStepValue(vector_container)[j];
+            }
+
+            // Add the element contributions to the global LHS and RHS
+            for (unsigned int a = 0; a < NumNodes; ++a){
+                auto a_global = id_to_position[geom[a].Id()];
+                for (unsigned int b = 0; b < NumNodes; ++b){
+                    auto b_global = id_to_position[geom[b].Id()];
+                    LHSMatrix(a_global, b_global) += LHSElement(a, b);
+                }
+                RHSElement = prod(trans(RHSMatrixElement), elemental_values); // its dimension may be 2
+                RHSVector(a_global) += RHSElement(a);
+            }
+
+            // Invert the matrix
+            array_1d <double, 3>& stored_gradient_of_component_j = inode->FastGetSolutionStepValue(material_derivative_container);
+            AMGCLSolver<TSparseSpace, TDenseSpace > LinearSolver;
+            LinearSolver.Solve(LHSMatrix, stored_gradient_of_component_j, RHSVector);
+        }
+
+        // Add the node
+        for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
+            array_1d <double, 3>& stored_gradient_of_component_j = inode->FastGetSolutionStepValue(material_derivative_container);
+            stored_gradient_of_component_j /= inode->FastGetSolutionStepValue(NODAL_AREA);
+            if (mStoreFullGradient){
+                if (j == 0){
+                    array_1d <double, 3>& gradient = inode->FastGetSolutionStepValue(VELOCITY_X_GRADIENT);
+                    noalias(gradient) = stored_gradient_of_component_j;
+                }
+                else if (j == 1){
+                    array_1d <double, 3>& gradient = inode->FastGetSolutionStepValue(VELOCITY_Y_GRADIENT);
+                    noalias(gradient) = stored_gradient_of_component_j;
+                }
+                else {
+                    array_1d <double, 3>& gradient = inode->FastGetSolutionStepValue(VELOCITY_Z_GRADIENT);
+                    noalias(gradient) = stored_gradient_of_component_j;
+                }
+            }
+            const array_1d <double, 3>& velocity = inode->FastGetSolutionStepValue(VELOCITY);
+            convective_contributions_to_the_derivative[id_to_position[inode->Id()]][j] = DEM_INNER_PRODUCT_3(velocity, stored_gradient_of_component_j);
+            stored_gradient_of_component_j = ZeroVector(3);
+        }
+    }
+}
+//***************************************************************************************************************
+//***************************************************************************************************************
+template <std::size_t TDim>
 void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivative(ModelPart& r_model_part,
                                                                  Variable<array_1d<double, 3> >& vector_container,
                                                                  Variable<array_1d<double, 3> >& vector_rate_container,
@@ -89,9 +197,9 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivative(ModelPart& r_mo
             for (unsigned int g = 0; g < number_integration_points; g++){
                 gauss_weights[g] = DetJ[g] * IntegrationPoints[g].Weight();
                 for (unsigned int i = 0; i < NumNodes; ++i){
-                    for (unsigned int j = 0; j < NumNodes; ++j){
+                    for (unsigned int l = 0; l < NumNodes; ++l){
                         for (unsigned int d = 0; d < TDim; ++d)
-                            DN_DX(j,d) += gauss_weights[g] * shape_functions(g,i) * shape_derivatives[g](j,d);
+                            DN_DX(l,d) += gauss_weights[g] * shape_functions(g,i) * shape_derivatives[g](l,d);
                     }
                 }
             }
@@ -110,6 +218,7 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivative(ModelPart& r_mo
                 geom[i].FastGetSolutionStepValue(material_derivative_container) += grad/NumNodes; // we use material_derivative_container to store the gradient of one component at a time
             }
         }
+
         // normalizing the constributions to the gradient and getting the j-component of the material derivative
         for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
             array_1d <double, 3>& stored_gradient_of_component_j = inode->FastGetSolutionStepValue(material_derivative_container);

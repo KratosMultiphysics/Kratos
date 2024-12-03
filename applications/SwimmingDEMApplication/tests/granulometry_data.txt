@@ -1,0 +1,6 @@
+Number of spheres: 1
+Solid volume: 5.235987755982988e-07
+Voids volume: 0.9999994764012244
+Global porosity: 0.9999994764012244
+D50: 0.0
+Spheres per area unit: 1.0

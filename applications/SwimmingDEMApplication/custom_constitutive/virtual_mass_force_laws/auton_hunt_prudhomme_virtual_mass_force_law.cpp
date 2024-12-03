@@ -56,7 +56,6 @@ namespace Kratos {
         }
 
         noalias(virtual_mass_force) = fluid_mass * virtual_mass_coeff * minus_slip_acc;
-        std::cout << "fluid_accel = " << minus_slip_acc << ", " << "f_v = " << virtual_mass_force << " (faxen terms = " << mDoApplyFaxenCorrections << ")" << std::endl;
     }
 
 } // namespace Kratos
