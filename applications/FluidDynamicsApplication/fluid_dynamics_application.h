@@ -80,6 +80,7 @@
 #include "custom_elements/compressible_navier_stokes_explicit.h"
 #include "custom_elements/two_fluid_navier_stokes.h"
 #include "custom_elements/two_fluid_navier_stokes_alpha_method.h"
+#include "custom_elements/fluid_topology_optimization_element.h"
 
 #include "custom_elements/data_containers/axisymmetric_navier_stokes/axisymmetric_navier_stokes_data.h"
 #include "custom_utilities/qsvms_data.h"
@@ -91,6 +92,7 @@
 #include "custom_utilities/two_fluid_navier_stokes_data.h"
 #include "custom_utilities/two_fluid_navier_stokes_alpha_method_data.h"
 #include "custom_utilities/weakly_compressible_navier_stokes_data.h"
+#include "custom_utilities/fluid_topology_optimization_element_data.h"
 
 #include "custom_constitutive/bingham_3d_law.h"
 #include "custom_constitutive/euler_2d_law.h"
@@ -102,6 +104,7 @@
 #include "custom_constitutive/newtonian_two_fluid_3d_law.h"
 #include "custom_constitutive/newtonian_temperature_dependent_2d_law.h"
 #include "custom_constitutive/newtonian_temperature_dependent_3d_law.h"
+
 
 // Wall laws
 #include "custom_conditions/wall_laws/linear_log_wall_law.h"
@@ -484,6 +487,11 @@ private:
     /// Adjoint fluid conditions
     const AdjointMonolithicWallCondition<2, 2> mAdjointMonolithicWallCondition2D2N;
     const AdjointMonolithicWallCondition<3, 3> mAdjointMonolithicWallCondition3D3N;
+
+    // Topology Optimization Fluid Element
+    // Level set convection elements
+    const FluidTopologyOptimizationElement<FluidTopologyOptimizationElementData<2,3,true>> mFluidTopologyOptimizationElement2D3N;
+    const FluidTopologyOptimizationElement<FluidTopologyOptimizationElementData<3,4,true>> mFluidTopologyOptimizationElement3D4N;
 
     ///@}
     ///@name Private Operators

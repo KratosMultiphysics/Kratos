@@ -175,7 +175,12 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mQSVMSAdjoint3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node >(Element::GeometryType::PointsArrayType(8)))),
     // Adjoint fluid conditions
     mAdjointMonolithicWallCondition2D2N(0, Element::GeometryType::Pointer( new Line2D2<Node >( Element::GeometryType::PointsArrayType( 2 ) ) ) ),
-    mAdjointMonolithicWallCondition3D3N(0, Element::GeometryType::Pointer( new Triangle3D3<Node >( Element::GeometryType::PointsArrayType( 3 ) ) ) )
+    mAdjointMonolithicWallCondition3D3N(0, Element::GeometryType::Pointer( new Triangle3D3<Node >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
+
+    // Topology Optimization Fluid Element
+    mFluidTopologyOptimizationElement2D3N( 0, Element::GeometryType::Pointer(new Triangle2D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
+    mFluidTopologyOptimizationElement3D4N( 0, Element::GeometryType::Pointer(new Tetrahedra3D4<NodeType >(Element::GeometryType::PointsArrayType(4))))
+
 {}
 
 void KratosFluidDynamicsApplication::Register() {
@@ -281,6 +286,16 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE( DISTANCE_CORRECTION )
 
     KRATOS_REGISTER_VARIABLE( Y_PLUS )
+
+    // Fluid Topology Optimization Adjoint Variables
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( VELOCITY_ADJ )
+    KRATOS_REGISTER_VARIABLE( PRESSURE_ADJ )
+    KRATOS_REGISTER_VARIABLE( FLUID_TOP_OPT_PROBLEM_STAGE )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( ACCELERATION_ADJ )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MESH_VELOCITY_ADJ )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( BODY_FORCE_ADJ )
+    KRATOS_REGISTER_VARIABLE( FLUID_TOP_OPT_NS_STEP )
+    KRATOS_REGISTER_VARIABLE( FLUID_TOP_OPT_ADJ_NS_STEP )
 
     // Register Elements
     KRATOS_REGISTER_ELEMENT("VMS2D3N",mVMS2D); //this is the name the element should have according to the naming convention
@@ -406,6 +421,10 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("QSVMSAdjoint2D4N", mQSVMSAdjoint2D4N);
     KRATOS_REGISTER_ELEMENT("QSVMSAdjoint3D4N", mQSVMSAdjoint3D4N);
     KRATOS_REGISTER_ELEMENT("QSVMSAdjoint3D8N", mQSVMSAdjoint3D8N);
+
+    // Topology Optimization Fluid Element
+    KRATOS_REGISTER_ELEMENT("FluidTopologyOptimizationElement2D3N", mFluidTopologyOptimizationElement2D3N)
+    KRATOS_REGISTER_ELEMENT("FluidTopologyOptimizationElement3D4N", mFluidTopologyOptimizationElement3D4N)
 
     // Register Conditions
     KRATOS_REGISTER_CONDITION("WallCondition2D2N", mWallCondition2D);  //this is the name the element should have according to the naming convention
