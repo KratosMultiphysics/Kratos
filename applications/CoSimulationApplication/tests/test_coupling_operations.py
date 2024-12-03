@@ -202,6 +202,65 @@ class TestConversionOperation(KratosUnittest.TestCase):
 
         self.assertVectorAlmostEqual(expected_nodal_values, nodal_data_output.GetData())
 
+    def test_elemental_to_nodal_conversion_direct(self):
+        self.model = KM.Model()
+        self.model_part = self.model.CreateModelPart("default")
+        self.model_part.AddNodalSolutionStepVariable(KM.FORCE)
+        self.model_part.ProcessInfo[KM.DOMAIN_SIZE] = 3
+        props = self.model_part.CreateNewProperties(1)
+
+        self.model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
+        self.model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
+        self.model_part.CreateNewNode(3, 1.0, 1.0, 0.0)
+        self.model_part.CreateNewNode(4, 0.0, 1.0, 0.0)
+
+        new_element = self.model_part.CreateNewElement("Element2D4N", 1, [1,2,3,4], props)
+        new_element.SetValue(KM.FORCE, [12.0, 8.0, 0.0])
+
+        self.model_part.CreateNewNode(5, 2.0, 0.0, 0.0)
+        self.model_part.CreateNewNode(6, 2.0, 1.0, 0.0)
+        new_element = self.model_part.CreateNewElement("Element2D4N", 2, [2,5,6,3], props)
+        new_element.SetValue(KM.FORCE, [16.0, 4.0, 0.0])
+
+        elemental_data = KM.Parameters("""{
+            "model_part_name" : "default",
+            "location"        : "element",
+            "variable_name"   : "FORCE",
+            "dimension"       : 3
+        }""")
+
+        self.interface_data = CouplingInterfaceData(elemental_data, self.model)
+
+        self.solver_wrappers = {"dummy_solver" : DummySolverWrapper({"elemental_data" : self.interface_data})}
+
+        self.solver_process_info = KM.ProcessInfo()
+
+        conversion_op_settings = KM.Parameters("""{
+            "type"           : "elemental_data_to_nodal_data",
+            "solver"         : "dummy_solver",
+            "data_name"      : "elemental_data",
+            "echo_level"     : 0
+        }""")
+
+        conversion_operation = coupling_operation_factory.CreateCouplingOperation(conversion_op_settings, self.solver_wrappers, self.solver_process_info, KM.Testing.GetDefaultDataCommunicator())
+
+        conversion_operation.Check()
+
+        conversion_operation.Execute()
+
+        nodal_data_output_setting = KM.Parameters("""{
+            "model_part_name"       : "default",
+            "variable_name"         : "FORCE",
+            "location"              : "node_historical",
+            "dimension"             : 3
+        }""")
+
+        nodal_data_output = CouplingInterfaceData(nodal_data_output_setting,  self.model)
+
+        expected_nodal_values = [3, 2 ,0, 7, 3, 0, 7, 3 ,0, 3, 2 ,0, 4, 1 ,0, 4, 1 ,0 ]
+
+        self.assertVectorAlmostEqual(expected_nodal_values, nodal_data_output.GetData())
+
     def test_elemental_to_nodal_conversion(self):
         self.model = KM.Model()
         self.model_part = self.model.CreateModelPart("default")
@@ -256,6 +315,64 @@ class TestConversionOperation(KratosUnittest.TestCase):
         nodal_data_output = CouplingInterfaceData(nodal_data_output_setting,  self.model)
 
         expected_nodal_values = [3, 7, 7, 3, 4, 4]
+
+        self.assertVectorAlmostEqual(expected_nodal_values, nodal_data_output.GetData())
+
+    def test_elemental_to_nodal_conversion_direct(self):
+        self.model = KM.Model()
+        self.model_part = self.model.CreateModelPart("default")
+        self.model_part.AddNodalSolutionStepVariable(KM.HEAT_FLUX)
+        self.model_part.ProcessInfo[KM.DOMAIN_SIZE] = 3
+        props = self.model_part.CreateNewProperties(1)
+
+        self.model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
+        self.model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
+        self.model_part.CreateNewNode(3, 1.0, 1.0, 0.0)
+        self.model_part.CreateNewNode(4, 0.0, 1.0, 0.0)
+
+        new_element = self.model_part.CreateNewElement("Element2D4N", 1, [1,2,3,4], props)
+        new_element.SetValue(KM.HEAT_FLUX, 12.0)
+
+        self.model_part.CreateNewNode(5, 2.0, 0.0, 0.0)
+        self.model_part.CreateNewNode(6, 2.0, 1.0, 0.0)
+        new_element = self.model_part.CreateNewElement("Element2D4N", 2, [2,5,6,3], props)
+        new_element.SetValue(KM.HEAT_FLUX, 16.0)
+
+        elemental_data = KM.Parameters("""{
+            "model_part_name" : "default",
+            "location"        : "element",
+            "variable_name"   : "HEAT_FLUX"
+        }""")
+
+        self.interface_data = CouplingInterfaceData(elemental_data, self.model)
+
+        self.solver_wrappers = {"dummy_solver" : DummySolverWrapper({"elemental_data" : self.interface_data})}
+
+        self.solver_process_info = KM.ProcessInfo()
+
+        conversion_op_settings = KM.Parameters("""{
+            "type"           : "elemental_data_to_nodal_data",
+            "solver"         : "dummy_solver",
+            "data_name"      : "elemental_data",
+            "use_transpose"  : false,
+            "echo_level"     : 0
+        }""")
+
+        conversion_operation = coupling_operation_factory.CreateCouplingOperation(conversion_op_settings, self.solver_wrappers, self.solver_process_info, KM.Testing.GetDefaultDataCommunicator())
+
+        conversion_operation.Check()
+
+        conversion_operation.Execute()
+
+        nodal_data_output_setting = KM.Parameters("""{
+            "model_part_name"       : "default",
+            "variable_name"         : "HEAT_FLUX",
+            "location"              : "node_historical"
+        }""")
+
+        nodal_data_output = CouplingInterfaceData(nodal_data_output_setting,  self.model)
+
+        expected_nodal_values = [12, 14, 14, 12, 16, 16]
 
         self.assertVectorAlmostEqual(expected_nodal_values, nodal_data_output.GetData())
 

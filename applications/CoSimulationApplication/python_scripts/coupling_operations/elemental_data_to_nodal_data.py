@@ -53,6 +53,7 @@ class ElementalToNodalData(CoSimulationCouplingOperation):
         data_name = self.settings["data_name"].GetString()
         self.interface_data = solver_wrappers[solver_name].GetInterfaceData(data_name)
         self.variable = self.interface_data.variable
+        self.use_transpose = self.settings["use_transpose"].GetBool()
 
 
     def Execute(self):
@@ -80,7 +81,10 @@ class ElementalToNodalData(CoSimulationCouplingOperation):
             return
 
         model_part_interface = self.interface_data.GetModelPart()
-        ConversionUtilities.ConvertElementalDataToNodalData(model_part_interface, self.variable, self.variable) 
+        if self.use_transpose:
+            ConversionUtilities.ConvertElementalDataToNodalData(model_part_interface, self.variable, self.variable)
+        else:
+            ConversionUtilities.ConvertElementalDataToNodalDataDirect(model_part_interface, self.variable, self.variable)
 
         if self.echo_level > 0:
             cs_tools.cs_print_info("Elemental_data_to_Nodal_data", "Done")
@@ -95,9 +99,10 @@ class ElementalToNodalData(CoSimulationCouplingOperation):
     @classmethod
     def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
-            "solver"    : "UNSPECIFIED",
-            "data_name" : "UNSPECIFIED",
-            "interval"  : [0.0, 1e30]
+            "solver"           : "UNSPECIFIED",
+            "data_name"        : "UNSPECIFIED",
+            "use_transpose"    : true,
+            "interval"         : [0.0, 1e30]
         }""")
         this_defaults.AddMissingParameters(super()._GetDefaultParameters())
         return this_defaults

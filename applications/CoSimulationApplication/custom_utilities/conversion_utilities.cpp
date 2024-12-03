@@ -15,6 +15,7 @@
 #include <type_traits>
 
 // External includes
+#include <map>
 
 // Project includes
 #include "utilities/parallel_utilities.h"
@@ -47,6 +48,48 @@ void ConversionUtilities::ConvertElementalDataToNodalData(
                 static_assert(!std::is_same_v<TDataType, TDataType>, "Unsupported data type.");
             }
         }
+    });
+
+    rModelPart.GetCommunicator().AssembleCurrentData(rNodalVariable);
+}
+
+template<class TDataType>
+void ConversionUtilities::ConvertElementalDataToNodalDataDirect(
+    ModelPart& rModelPart,
+    const Variable<TDataType>& rElementalVariable,
+    const Variable<TDataType>& rNodalVariable )
+{
+    // prepare nodal variable
+    VariableUtils().SetHistoricalVariableToZero(rNodalVariable, rModelPart.Nodes());
+    std::map<int, int> node_element_count;
+
+    block_for_each(rModelPart.Elements(), [&](Element& rElement){
+        const auto& elem_rVariable =  rElement.GetValue(rElementalVariable);
+
+        const std::size_t num_nodes = rElement.GetGeometry().PointsNumber();
+
+        for (auto& r_node : rElement.GetGeometry().Points()){
+            if constexpr(std::is_same_v<TDataType, double>) {
+                AtomicAdd( r_node.FastGetSolutionStepValue(rNodalVariable), (elem_rVariable) );
+                node_element_count[r_node.Id()] += 1;
+
+            } else if constexpr(std::is_same_v<TDataType, array_1d<double, 3>>) {
+                AtomicAddVector( r_node.FastGetSolutionStepValue(rNodalVariable), (elem_rVariable) );
+                node_element_count[r_node.Id()] += 1;
+            } else {
+                static_assert(!std::is_same_v<TDataType, TDataType>, "Unsupported data type.");
+            }
+        }
+    });
+
+    block_for_each(rModelPart.Nodes(), [&](Node& rNode){
+        if (node_element_count.find(rNode.Id()) != node_element_count.end()){
+            rNode.FastGetSolutionStepValue(rNodalVariable) /= node_element_count[rNode.Id()];
+        }
+        else{
+            KRATOS_ERROR << "Node " << rNode.Id() << " has no associated elements." << std::endl;
+        }
+
     });
 
     rModelPart.GetCommunicator().AssembleCurrentData(rNodalVariable);
@@ -90,6 +133,9 @@ void ConversionUtilities::ConvertNodalDataToElementalData(
 // template instantiations
 template void ConversionUtilities::ConvertElementalDataToNodalData<double>(ModelPart&, const Variable<double>&,  const Variable<double>&);
 template void ConversionUtilities::ConvertElementalDataToNodalData<array_1d<double, 3>>(ModelPart&, const Variable<array_1d<double, 3>>&,  const Variable<array_1d<double, 3>>&);
+
+template void ConversionUtilities::ConvertElementalDataToNodalDataDirect<double>(ModelPart&, const Variable<double>&,  const Variable<double>&);
+template void ConversionUtilities::ConvertElementalDataToNodalDataDirect<array_1d<double, 3>>(ModelPart&, const Variable<array_1d<double, 3>>&,  const Variable<array_1d<double, 3>>&);
 
 template void ConversionUtilities::ConvertNodalDataToElementalData<double>(ModelPart&, const Variable<double>&,  const Variable<double>&);
 template void ConversionUtilities::ConvertNodalDataToElementalData<array_1d<double, 3>>(ModelPart&, const Variable<array_1d<double, 3>>&,  const Variable<array_1d<double, 3>>&);
