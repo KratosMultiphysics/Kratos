@@ -1896,7 +1896,7 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::UpdateDensity(ElementVariables& rV
 {
     //TODO. Ignasi
     // Gas density defined from the ideal gas law (Liakopoulos test in OGS)
-    const double ideal_gas_constant = 8.31446261815324;
+    const double ideal_gas_constant = 8.3144621;
     const double pg = inner_prod(rVariables.Np,rVariables.GasPressureVector);
     rVariables.GasDensity = pg*rVariables.GasMolarWeight/(ideal_gas_constant*rVariables.Temperature);
 
