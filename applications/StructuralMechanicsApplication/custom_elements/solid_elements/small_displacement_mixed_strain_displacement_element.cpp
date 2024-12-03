@@ -199,7 +199,6 @@ void SmallDisplacementMixedStrainDisplacementElement::Initialize(
         const auto &r_props = GetProperties();
 
         mThisIntegrationMethod     = GeometryData::IntegrationMethod::GI_LOBATTO_2;
-        mMassThisIntegrationMethod = GeometryData::IntegrationMethod::GI_LOBATTO_2;
 
         const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
@@ -397,9 +396,6 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
     noalias(Q) = ZeroMatrix(dim * n_nodes, n_nodes * strain_size);
     noalias(M) = ZeroMatrix(n_nodes * strain_size, n_nodes * strain_size);
 
-    Matrix D0(strain_size, strain_size);
-    mConstitutiveLawVector[0]->CalculateValue(cons_law_values, CONSTITUTIVE_MATRIX, D0);
-
     const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
     SizeType n_gauss = r_integration_points.size();
     // Gauss IP loop
@@ -494,9 +490,6 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLeftHandSide(
     noalias(Q) = ZeroMatrix(dim * n_nodes, n_nodes * strain_size);
     noalias(M) = ZeroMatrix(n_nodes * strain_size, n_nodes * strain_size);
 
-    Matrix D0(strain_size, strain_size);
-    mConstitutiveLawVector[0]->CalculateValue(cons_law_values, CONSTITUTIVE_MATRIX, D0);
-
     const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
     SizeType n_gauss = r_integration_points.size();
     // Gauss IP loop
@@ -578,8 +571,6 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateRightHandSide(
     noalias(RHSu) = ZeroVector(dim * n_nodes);
     noalias(RHSe) = ZeroVector(strain_size * n_nodes);
 
-    Matrix D0(strain_size, strain_size);
-    mConstitutiveLawVector[0]->CalculateValue(cons_law_values, CONSTITUTIVE_MATRIX, D0);
 
     // IP loop
     for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {

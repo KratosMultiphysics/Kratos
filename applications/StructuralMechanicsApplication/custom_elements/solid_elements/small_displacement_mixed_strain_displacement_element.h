@@ -444,28 +444,6 @@ public:
         pGetGeometry()->PrintData(rOStream);
     }
 
-
-    // const IntegrationPointsArrayType& GetIntegrationPoints()
-    // {
-    //     const auto &r_geometry = GetGeometry();
-    //     const SizeType nnodes = r_geometry.size();
-    //     const SizeType dim = r_geometry.WorkingSpaceDimension();
-
-        // if (dim == 2) {
-        //     if (nnodes == 4) { // quad
-        //         return QuadrilateralGaussLobattoIntegrationPoints2().IntegrationPoints();
-        //     } else { // triangle
-        //         return TriangleGaussLegendreIntegrationPoints1().IntegrationPoints();
-        //     }
-        // } else { // 3D
-        //     if (nnodes == 4) { // tets
-        //         return TetrahedronGaussLegendreIntegrationPoints1().IntegrationPoints();
-        //     } else { // hexas
-        //         return HexahedronGaussLobattoIntegrationPoints2().IntegrationPoints();
-        //     }
-        // }
-    // }
-
     ///@}
     ///@name Friends
     ///@{
@@ -479,8 +457,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    IntegrationMethod mThisIntegrationMethod;                     /// Integration method for stress related terms (Lobatto)
-    IntegrationMethod mMassThisIntegrationMethod;                 /// Integration method for the rest (Gauss)
+    IntegrationMethod mThisIntegrationMethod;                     /// Integration method
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws
 
     ///@}
