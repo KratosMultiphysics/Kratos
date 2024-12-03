@@ -87,10 +87,10 @@
 #include "custom_elements/solid_elements/small_displacement_mixed_volumetric_strain_oss_non_linear_element.h"
 #include "custom_elements/solid_elements/total_lagrangian_mixed_volumetric_strain_element.h"
 #include "custom_elements/solid_elements/total_lagrangian_q1p0_mixed_element.h"
+#include "custom_elements/solid_elements/small_displacement_mixed_strain_displacement_element.h"
 #include "custom_elements/beam_elements/timoshenko_beam_element_2D2N.h"
 #include "custom_elements/beam_elements/timoshenko_beam_element_2D3N.h"
 #include "custom_elements/beam_elements/timoshenko_curved_beam_element_2D3N.h"
-#include "custom_elements/small_displacement_mixed_strain_displacement_element.h"
 
 /* Conditions */
 #include "custom_conditions/base_load_condition.h"
