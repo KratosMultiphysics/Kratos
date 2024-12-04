@@ -1,7 +1,7 @@
 // KRATOS    ______            __             __  _____ __                  __                   __
 //          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
-//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
-//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ /
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
 //  License:         BSD License
@@ -128,7 +128,7 @@ Condition::Pointer MPCContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::Ad
 
     // Creating constraint
     if (p_cond.get() != nullptr) {
-        MasterSlaveConstraint::Pointer p_new_const = Kratos::make_shared<ContactMasterSlaveConstraint>(GetMaximumConstraintsIds() + 1);
+        MasterSlaveConstraint::Pointer p_new_const = Kratos::make_intrusive<ContactMasterSlaveConstraint>(GetMaximumConstraintsIds() + 1);
         p_new_const->Set(ACTIVE);
         const auto& r_process_info = rComputingModelPart.GetProcessInfo();
         p_new_const->Initialize(r_process_info);
