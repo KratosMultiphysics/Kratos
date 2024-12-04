@@ -56,10 +56,14 @@ namespace Kratos::Python {
             ;
 
         pybind11::class_< ConversionUtilities>(m, "ConversionUtilities")
-            .def_static("ConvertElementalDataToNodalData", &ConversionUtilities::ConvertElementalDataToNodalData<double>)
-            .def_static("ConvertElementalDataToNodalData", &ConversionUtilities::ConvertElementalDataToNodalData<array_1d<double, 3>>)
-            .def_static("ConvertNodalDataToElementalData", &ConversionUtilities::ConvertNodalDataToElementalData<double>)
-            .def_static("ConvertNodalDataToElementalData", &ConversionUtilities::ConvertNodalDataToElementalData<array_1d<double, 3>>)
+            .def_static("ConvertElementalDataToNodalDataTranspose", &ConversionUtilities::ConvertElementalDataToNodalDataTranspose<double>)
+            .def_static("ConvertElementalDataToNodalDataTranspose", &ConversionUtilities::ConvertElementalDataToNodalDataTranspose<array_1d<double, 3>>)
+            .def_static("ConvertElementalDataToNodalDataDirect", &ConversionUtilities::ConvertElementalDataToNodalDataDirect<double>)
+            .def_static("ConvertElementalDataToNodalDataDirect", &ConversionUtilities::ConvertElementalDataToNodalDataDirect<array_1d<double, 3>>)
+            .def_static("ConvertNodalDataToElementalDataDirect", &ConversionUtilities::ConvertNodalDataToElementalDataDirect<double>)
+            .def_static("ConvertNodalDataToElementalDataDirect", &ConversionUtilities::ConvertNodalDataToElementalDataDirect<array_1d<double, 3>>)
+            .def_static("ConvertNodalDataToElementalDataTranspose", &ConversionUtilities::ConvertNodalDataToElementalDataTranspose<double>)
+            .def_static("ConvertNodalDataToElementalDataTranspose", &ConversionUtilities::ConvertNodalDataToElementalDataTranspose<array_1d<double, 3>>)
             ;
 
     }
