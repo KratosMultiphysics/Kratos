@@ -125,7 +125,6 @@ public:
     //@name Life Cycle
     //@{
 
-    //----------------------------------------------------------------------------------------
     /**
      * @brief Default constructor.
      */
@@ -299,10 +298,11 @@ public:
     double& GetValue(const Variable<double>& rThisVariable, double& rValue) override;
     int&    GetValue(const Variable<int>& rThisVariable, int& rValue) override;
     Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
+    using ConstitutiveLaw::GetValue;
 
     void SetValue(const Variable<double>& rVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo) override;
-
     void SetValue(const Variable<Vector>& rVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo) override;
+    using ConstitutiveLaw::SetValue;
 
     ///@}
     ///@name Inquiry

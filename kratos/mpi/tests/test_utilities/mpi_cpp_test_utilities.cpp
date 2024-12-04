@@ -211,13 +211,13 @@ void MPICppTestUtilities::GenerateDistributedTriangleMesh(
         }
 
         auto pgeom1 = Kratos::make_shared<Triangle2D3<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode1, pnode2, pnode5})});
-        rModelPart.AddElement(Kratos::make_intrusive<Testing::TestBarElement>( 1, pgeom1, p_prop));
+        rModelPart.AddElement(Kratos::make_intrusive<Element>( 1, pgeom1, p_prop));
         auto pgeom2 = Kratos::make_shared<Triangle2D3<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode2, pnode3, pnode5})});
-        rModelPart.AddElement(Kratos::make_intrusive<Testing::TestBarElement>( 2, pgeom2, p_prop));
+        rModelPart.AddElement(Kratos::make_intrusive<Element>( 2, pgeom2, p_prop));
         auto pgeom3 = Kratos::make_shared<Triangle2D3<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode3, pnode4, pnode5})});
-        rModelPart.AddElement(Kratos::make_intrusive<Testing::TestBarElement>( 3, pgeom3, p_prop));
+        rModelPart.AddElement(Kratos::make_intrusive<Element>( 3, pgeom3, p_prop));
         auto pgeom4 = Kratos::make_shared<Triangle2D3<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode4, pnode1, pnode5})});
-        rModelPart.AddElement(Kratos::make_intrusive<Testing::TestBarElement>( 4, pgeom4, p_prop));
+        rModelPart.AddElement(Kratos::make_intrusive<Element>( 4, pgeom4, p_prop));
     } else { // if (world_size == 1) { // TODO: Do more than one partition
         if (rank == 0) {
             auto pnode1 = rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -233,11 +233,11 @@ void MPICppTestUtilities::GenerateDistributedTriangleMesh(
             pnode5->FastGetSolutionStepValue(PARTITION_INDEX) = 1;
 
             auto pgeom1 = Kratos::make_shared<Triangle2D3<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode1, pnode2, pnode5})});
-            rModelPart.AddElement(Kratos::make_intrusive<Testing::TestBarElement>( 1, pgeom1, p_prop));
+            rModelPart.AddElement(Kratos::make_intrusive<Element>( 1, pgeom1, p_prop));
             auto pgeom2 = Kratos::make_shared<Triangle2D3<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode2, pnode3, pnode5})});
-            rModelPart.AddElement(Kratos::make_intrusive<Testing::TestBarElement>( 2, pgeom2, p_prop));
-        auto pgeom4 = Kratos::make_shared<Triangle2D3<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode4, pnode1, pnode5})});
-        rModelPart.AddElement(Kratos::make_intrusive<Testing::TestBarElement>( 4, pgeom4, p_prop));
+            rModelPart.AddElement(Kratos::make_intrusive<Element>( 2, pgeom2, p_prop));
+            auto pgeom4 = Kratos::make_shared<Triangle2D3<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode4, pnode1, pnode5})});
+            rModelPart.AddElement(Kratos::make_intrusive<Element>( 4, pgeom4, p_prop));
         } else if (rank == 1) {
             auto pnode3 = rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
             auto pnode4 = rModelPart.CreateNewNode(4, 0.0, 1.0, 0.0);
@@ -250,7 +250,100 @@ void MPICppTestUtilities::GenerateDistributedTriangleMesh(
             pnode5->FastGetSolutionStepValue(PARTITION_INDEX) = 1;
 
             auto pgeom3 = Kratos::make_shared<Triangle2D3<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode3, pnode4, pnode5})});
-            rModelPart.AddElement(Kratos::make_intrusive<Testing::TestBarElement>( 3, pgeom3, p_prop));
+            rModelPart.AddElement(Kratos::make_intrusive<Element>( 3, pgeom3, p_prop));
+        }
+    }
+
+    // Detect skin
+    Parameters skin_process_parameters = Parameters(R"(
+    {
+        "name_auxiliar_model_part"              : "SkinModelPart",
+        "name_auxiliar_condition"               : "Condition",
+        "list_model_parts_to_assign_conditions" : [],
+        "echo_level"                            : 0
+    })");
+    auto skin_process = SkinDetectionProcess<2>(rModelPart, skin_process_parameters);
+    skin_process.Execute();
+
+    // Compute communication plan and fill communicator meshes correctly
+    auto filler = ParallelFillCommunicator(rModelPart, rDataCommunicator);
+    filler.Execute();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void MPICppTestUtilities::GenerateDistributedTriforceMesh(
+    ModelPart& rModelPart,
+    const DataCommunicator& rDataCommunicator
+    )
+{
+    // Add variables
+    rModelPart.AddNodalSolutionStepVariable(PARTITION_INDEX);
+
+    // Create properties
+    auto p_prop = rModelPart.CreateNewProperties(1, 0);
+
+    // MPI data
+    const int rank = rDataCommunicator.Rank();
+    const int world_size = rDataCommunicator.Size();
+
+    // Initially everything in one partition
+    if (world_size == 1) {
+        auto pnode1 = rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+        auto pnode2 = rModelPart.CreateNewNode(2, 0.5, 0.0, 0.0);
+        auto pnode3 = rModelPart.CreateNewNode(3, 1.0, 0.0, 0.0);
+        auto pnode4 = rModelPart.CreateNewNode(4, 0.25, 0.43301270189221932338, 0.0);
+        auto pnode5 = rModelPart.CreateNewNode(5, 0.75, 0.43301270189221932338, 0.0);
+        auto pnode6 = rModelPart.CreateNewNode(6, 0.50, 0.86602540378443864676, 0.0);
+
+        /// Add PARTITION_INDEX
+        for (auto& r_node : rModelPart.Nodes()) {
+            r_node.FastGetSolutionStepValue(PARTITION_INDEX) = rank;
+        }
+
+        auto pgeom1 = Kratos::make_shared<Triangle2D3<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode1, pnode2, pnode4})});
+        rModelPart.AddElement(Kratos::make_intrusive<Element>( 1, pgeom1, p_prop));
+        auto pgeom2 = Kratos::make_shared<Triangle2D3<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode2, pnode3, pnode5})});
+        rModelPart.AddElement(Kratos::make_intrusive<Element>( 2, pgeom2, p_prop));
+        auto pgeom3 = Kratos::make_shared<Triangle2D3<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode2, pnode5, pnode4})});
+        rModelPart.AddElement(Kratos::make_intrusive<Element>( 3, pgeom3, p_prop));
+        auto pgeom4 = Kratos::make_shared<Triangle2D3<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode4, pnode5, pnode6})});
+        rModelPart.AddElement(Kratos::make_intrusive<Element>( 4, pgeom4, p_prop));
+    } else { // if (world_size == 1) { // TODO: Do more than one partition
+        if (rank == 0) {
+            auto pnode1 = rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+            auto pnode2 = rModelPart.CreateNewNode(2, 0.5, 0.0, 0.0);
+            auto pnode3 = rModelPart.CreateNewNode(3, 1.0, 0.0, 0.0);
+            auto pnode4 = rModelPart.CreateNewNode(4, 0.25, 0.43301270189221932338, 0.0);
+            auto pnode5 = rModelPart.CreateNewNode(5, 0.75, 0.43301270189221932338, 0.0);
+            auto pnode6 = rModelPart.CreateNewNode(6, 0.50, 0.86602540378443864676, 0.0);
+
+            /// Add PARTITION_INDEX
+            for (auto& r_node : rModelPart.Nodes()) {
+                r_node.FastGetSolutionStepValue(PARTITION_INDEX) = 0;
+            }
+            pnode2->FastGetSolutionStepValue(PARTITION_INDEX) = 1;
+
+            auto pgeom1 = Kratos::make_shared<Triangle2D3<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode1, pnode2, pnode4})});
+            rModelPart.AddElement(Kratos::make_intrusive<Element>( 1, pgeom1, p_prop));
+            auto pgeom2 = Kratos::make_shared<Triangle2D3<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode2, pnode3, pnode5})});
+            rModelPart.AddElement(Kratos::make_intrusive<Element>( 2, pgeom2, p_prop));
+            auto pgeom4 = Kratos::make_shared<Triangle2D3<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode4, pnode5, pnode6})});
+            rModelPart.AddElement(Kratos::make_intrusive<Element>( 4, pgeom4, p_prop));
+        } else if (rank == 1) {
+            auto pnode2 = rModelPart.CreateNewNode(2, 0.5, 0.0, 0.0);
+            auto pnode4 = rModelPart.CreateNewNode(4, 0.25, 0.43301270189221932338, 0.0);
+            auto pnode5 = rModelPart.CreateNewNode(5, 0.75, 0.43301270189221932338, 0.0);
+
+            /// Add PARTITION_INDEX
+            for (auto& r_node : rModelPart.Nodes()) {
+                r_node.FastGetSolutionStepValue(PARTITION_INDEX) = 0;
+            }
+            pnode2->FastGetSolutionStepValue(PARTITION_INDEX) = 1;
+
+            auto pgeom3 = Kratos::make_shared<Triangle2D3<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode2, pnode5, pnode4})});
+            rModelPart.AddElement(Kratos::make_intrusive<Element>( 3, pgeom3, p_prop));
         }
     }
 

@@ -50,8 +50,6 @@ public:
     using InterfaceElementVariables =
         typename UPwSmallStrainInterfaceElement<TDim, TNumNodes>::InterfaceElementVariables;
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     // Default constructor
     UPwSmallStrainLinkInterfaceElement() : UPwSmallStrainInterfaceElement<TDim, TNumNodes>() {}
 
@@ -74,13 +72,9 @@ public:
 
     ~UPwSmallStrainLinkInterfaceElement() = default;
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     Element::Pointer Create(IndexType               NewId,
                             NodesArrayType const&   ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
                                       std::vector<array_1d<double, 3>>&    rOutput,
@@ -93,25 +87,17 @@ public:
     // Turn back information as a string.
     std::string Info() const override
     {
-        std::stringstream buffer;
-        buffer << "U-Pw small strain link interface Element #" << this->Id()
-               << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
-        return buffer.str();
+        const std::string constitutive_info =
+            !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
+        return "U-Pw small strain link interface Element #" + std::to_string(this->Id()) +
+               "\nConstitutive law: " + constitutive_info;
     }
 
     // Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << "U-Pw small strain link interface Element #" << this->Id()
-                 << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
-    }
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
 
 protected:
     // Member Variables
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void CalculateAll(MatrixType&        rLeftHandSideMatrix,
                       VectorType&        rRightHandSideVector,
@@ -119,13 +105,7 @@ protected:
                       bool               CalculateStiffnessMatrixFlag,
                       bool               CalculateResidualVectorFlag) override;
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 private:
-    // Member Variables
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     // Serialization
 
     friend class Serializer;

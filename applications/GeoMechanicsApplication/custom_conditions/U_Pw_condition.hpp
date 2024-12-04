@@ -37,8 +37,6 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwCondition : public Condition
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UPwCondition);
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     UPwCondition() : UPwCondition(0, nullptr, nullptr) {}
 
     UPwCondition(IndexType NewId, GeometryType::Pointer pGeometry)
@@ -53,19 +51,16 @@ public:
 
     ~UPwCondition() override = default;
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     Condition::Pointer Create(IndexType               NewId,
                               NodesArrayType const&   ThisNodes,
                               PropertiesType::Pointer pProperties) const override;
+    Condition::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     void GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo&) const override;
 
     IntegrationMethod GetIntegrationMethod() const override { return mThisIntegrationMethod; }
 
     void SetIntegrationMethod(IntegrationMethod method) { mThisIntegrationMethod = method; }
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
                               VectorType&        rRightHandSideVector,
@@ -77,8 +72,6 @@ public:
 
     std::string Info() const override;
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 protected:
     virtual void CalculateAll(MatrixType&        rLeftHandSideMatrix,
                               VectorType&        rRightHandSideVector,
@@ -87,8 +80,6 @@ protected:
     virtual void CalculateRHS(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 
     [[nodiscard]] DofsVectorType GetDofs() const;
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
     GeometryData::IntegrationMethod mThisIntegrationMethod{Condition::GetIntegrationMethod()};
