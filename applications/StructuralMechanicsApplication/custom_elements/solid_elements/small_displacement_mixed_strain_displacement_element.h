@@ -24,10 +24,6 @@
 // Application includes
 #include "structural_mechanics_application_variables.h"
 #include "utilities/geometry_utilities.h"
-// #include "integration/quadrilateral_gauss_lobatto_integration_points.h"
-// #include "integration/triangle_gauss_legendre_integration_points.h"
-// #include "integration/hexahedron_gauss_lobatto_integration_points.h"
-// #include "integration/tetrahedron_gauss_legendre_integration_points.h"
 
 
 namespace Kratos
