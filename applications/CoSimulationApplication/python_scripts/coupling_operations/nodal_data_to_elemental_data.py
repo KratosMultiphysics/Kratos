@@ -12,6 +12,25 @@ def Create(*args):
     return NodalToElementalData(*args)
 
 class NodalToElementalData(CoSimulationCouplingOperation):
+    """
+    This class is responsible for converting nodal data to elemental data in a co-simulation context.
+    Attributes:
+        settings (KM.Parameters): The settings for the operation.
+        solver_wrappers (dict): A dictionary containing solver wrappers.
+        process_info (KM.ProcessInfo): The process information.
+        data_communicator (KM.DataCommunicator): The data communicator.
+        interface_data (InterfaceData): The interface data object.
+        variable (KM.Variable): The variable to be converted.
+        dimension (int): The dimension of the data.
+        use_transpose (bool): Flag indicating whether to use transpose in conversion.
+    Methods:
+        __init__(settings, solver_wrappers, process_info, data_communicator):
+            Initializes the NodalToElementalData object with the given settings, solver wrappers, process info, and data communicator.
+        Execute():
+            Executes the conversion from nodal data to elemental data based on the settings and current time interval.
+        _GetDefaultParameters():
+            Returns the default parameters for the operation.
+    """
     def __init__(self, settings, solver_wrappers, process_info, data_communicator):
         super().__init__(settings, process_info, data_communicator)
         solver_name = self.settings["solver"].GetString()
@@ -22,6 +41,15 @@ class NodalToElementalData(CoSimulationCouplingOperation):
         self.use_transpose = self.settings["use_transpose"].GetBool()
 
     def Execute(self):
+        """
+        Executes the conversion of nodal data to elemental data.
+        This method performs the conversion of nodal data to elemental data for the
+        specified interface data. It checks if the data is defined on the current rank
+        and if the current time is within the specified interval. Depending on the
+        `use_transpose` flag, it either uses the transpose (the sum of nodal values = sum of element values) or direct (element value = SUM nodal_values / num_nodes) conversion method.
+        Returns:
+            None
+        """
         
         if not self.interface_data.IsDefinedOnThisRank(): return
 

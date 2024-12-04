@@ -136,24 +136,15 @@ void ConversionUtilities::ConvertNodalDataToElementalDataTranspose(
     // prepare elemental variable
     VariableUtils().SetNonHistoricalVariableToZero(rElementalVariable, rModelPart.Elements());
 
+    // count number of shared elements for each node
     std::map<int, int> node_element_count;
     block_for_each(rModelPart.Elements(), [&](Element& rElement){
-        const auto& elem_rVariable =  rElement.GetValue(rElementalVariable);
-
         for (auto& r_node : rElement.GetGeometry().Points()){
-            if constexpr(std::is_same_v<TDataType, double>) {
-                AtomicAdd( r_node.FastGetSolutionStepValue(rNodalVariable), (elem_rVariable) );
-                node_element_count[r_node.Id()] += 1;
-
-            } else if constexpr(std::is_same_v<TDataType, array_1d<double, 3>>) {
-                AtomicAddVector( r_node.FastGetSolutionStepValue(rNodalVariable), (elem_rVariable) );
-                node_element_count[r_node.Id()] += 1;
-            } else {
-                static_assert(!std::is_same_v<TDataType, TDataType>, "Unsupported data type.");
-            }
+            node_element_count[r_node.Id()] += 1;
         }
     });
 
+    // sum nodal value contributions to each element
     block_for_each(rModelPart.Elements(), [&](Element& rElement){
 
         if constexpr(std::is_same_v<TDataType, double>) {
