@@ -11,8 +11,7 @@
 //
 //
 
-#if !defined(KRATOS_TRIANGLE_GAUSS_LEGENDRE_INTEGRATION_POINTS_H_INCLUDED )
-#define  KRATOS_TRIANGLE_GAUSS_LEGENDRE_INTEGRATION_POINTS_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -101,6 +100,45 @@ public:
 
 }; // Class TriangleGaussLegendreIntegrationPoints2
 
+
+class TriangleGaussLobattoIntegrationPoints2
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(TriangleGaussLobattoIntegrationPoints2);
+    typedef std::size_t SizeType;
+
+    static const unsigned int Dimension = 2;
+
+    typedef IntegrationPoint<2> IntegrationPointType;
+
+    typedef std::array<IntegrationPointType, 3> IntegrationPointsArrayType;
+
+    typedef IntegrationPointType::PointType PointType;
+
+    static SizeType IntegrationPointsNumber()
+    {
+        return 3;
+    }
+
+    static const IntegrationPointsArrayType& IntegrationPoints()
+    {
+        static const IntegrationPointsArrayType s_integration_points{{
+            IntegrationPointType( 0.0, 0.0 , 1.00 / 6.00 ),
+            IntegrationPointType( 1.0, 0.0 , 1.00 / 6.00 ),
+            IntegrationPointType( 0.0, 1.0 , 1.00 / 6.00 )
+        }};
+        return s_integration_points;
+    }
+
+    std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "Triangle Gauss-Lobatto quadrature 2 ";
+        return buffer.str();
+    }
+
+
+}; // Class TriangleGaussLobattoIntegrationPoints2
 
 class TriangleGaussLegendreIntegrationPoints3
 {
@@ -266,7 +304,4 @@ public:
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_TRIANGLE_GAUSS_LEGENDRE_INTEGRATION_POINTS_H_INCLUDED  defined
-
 
