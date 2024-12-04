@@ -12,42 +12,35 @@ def Create(*args):
     return ElementalToNodalData(*args)
 
 class ElementalToNodalData(CoSimulationCouplingOperation):
-    '''
-    ElementalToNodalData is a CoSimulationCouplingOperation that maps Elemental Data to Nodal Data for a given ModelPart.
-        Attributes:
-        settings (KM.Parameters): Configuration settings for the operation.
-        solver_wrappers (dict): Dictionary containing solver wrappers.
-        process_info (KM.ProcessInfo): Process information.
-        data_communicator (KM.DataCommunicator): Data communicator for parallel execution.
-        interface_data (InterfaceData): Interface data object.
-        variable (KM.Variable): Variable to be mapped.
+    """"
+    ElementalToNodalData is a class that performs the conversion of elemental data to nodal data in a co-simulation context.
+
+    Attributes:
+        settings (KM.Parameters): The settings for the operation.
+        solver_wrappers (dict): A dictionary of solver wrappers.
+        process_info (KM.ProcessInfo): The process information.
+        data_communicator (KM.DataCommunicator): The data communicator.
+        interface_data (InterfaceData): The interface data object.
+        variable (KM.Variable): The variable to be converted.
+        use_transpose (bool): Flag indicating whether to use transpose in the conversion.
 
     Methods:
-        __init__(settings, solver_wrappers, process_info, data_communicator):
-            Initializes the ElementalToNodalData operation with the given settings, solver wrappers, process info, and data communicator.
-        
-        Execute():
-            Executes the operation to map Elemental Data to Nodal Data if the current time is within the specified interval.
-        
-        PrintInfo():
-            Prints information about the operation.
-        
-        Check():
-            Checks the validity of the operation. (Currently not implemented)
-        
-        _GetDefaultParameters():
-            Returns the default parameters for the operation.
-    '''
-    def __init__(self, settings, solver_wrappers, process_info, data_communicator):
-        """
-        Initializes the ElementalDataToNodalData object.
-        Args:
-            settings (KratosMultiphysics.Parameters): Configuration settings for the operation.
-            solver_wrappers (dict): Dictionary containing solver wrappers.
-            process_info (KratosMultiphysics.ProcessInfo): Process information.
-            data_communicator (KratosMultiphysics.DataCommunicator): Data communicator for parallel operations.
-        """
+        __init__(self, settings, solver_wrappers, process_info, data_communicator):
+            Initializes the ElementalToNodalData object with the given settings, solver wrappers, process information, and data communicator.
 
+        Execute(self):
+
+        PrintInfo(self):
+            Prints information about the operation.
+
+        Check(self):
+            Checks the validity of the operation. (Currently not implemented)
+
+        _GetDefaultParameters(cls):
+            Returns the default parameters for the operation.
+    """
+
+    def __init__(self, settings, solver_wrappers, process_info, data_communicator):
         super().__init__(settings, process_info, data_communicator)
         solver_name = self.settings["solver"].GetString()
         data_name = self.settings["data_name"].GetString()
@@ -60,12 +53,11 @@ class ElementalToNodalData(CoSimulationCouplingOperation):
         """
         Executes the conversion of elemental data to nodal data.
 
-        This method performs the following steps:
-        1. Checks if the interface data is defined on the current rank. If not, it returns immediately.
-        2. Retrieves the current time from the process information of the model part.
-        3. Checks if the current time is within the specified interval. If not, it logs a message and returns.
-        4. Converts the elemental data to nodal data for the specified variable.
-        5. Logs a completion message if the echo level is greater than 0.
+        This function performs the conversion of elemental data to nodal data
+        for the given interface data. It checks if the data is defined on the
+        current rank and if the current time is within the specified interval.
+        Depending on the `use_transpose` flag, it either uses the transpose (nodal value = elem value / num_nodes or
+        direct (simple distribution of the elemental values to nodes) method for the conversion.
 
         Returns:
             None
@@ -82,7 +74,7 @@ class ElementalToNodalData(CoSimulationCouplingOperation):
 
         model_part_interface = self.interface_data.GetModelPart()
         if self.use_transpose:
-            ConversionUtilities.ConvertElementalDataToNodalData(model_part_interface, self.variable, self.variable)
+            ConversionUtilities.ConvertElementalDataToNodalDataTranspose(model_part_interface, self.variable, self.variable)
         else:
             ConversionUtilities.ConvertElementalDataToNodalDataDirect(model_part_interface, self.variable, self.variable)
 

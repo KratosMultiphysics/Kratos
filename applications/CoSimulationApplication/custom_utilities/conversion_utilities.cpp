@@ -9,7 +9,7 @@
 //
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //                   Ashish Darekar
-//
+//                   Ihar Antonau
 
 // System includes
 #include <type_traits>
@@ -26,7 +26,7 @@
 namespace Kratos {
 
 template<class TDataType>
-void ConversionUtilities::ConvertElementalDataToNodalData(
+void ConversionUtilities::ConvertElementalDataToNodalDataTranspose(
     ModelPart& rModelPart,
     const Variable<TDataType>& rElementalVariable,
     const Variable<TDataType>& rNodalVariable )
@@ -66,8 +66,6 @@ void ConversionUtilities::ConvertElementalDataToNodalDataDirect(
     block_for_each(rModelPart.Elements(), [&](Element& rElement){
         const auto& elem_rVariable =  rElement.GetValue(rElementalVariable);
 
-        const std::size_t num_nodes = rElement.GetGeometry().PointsNumber();
-
         for (auto& r_node : rElement.GetGeometry().Points()){
             if constexpr(std::is_same_v<TDataType, double>) {
                 AtomicAdd( r_node.FastGetSolutionStepValue(rNodalVariable), (elem_rVariable) );
@@ -89,14 +87,13 @@ void ConversionUtilities::ConvertElementalDataToNodalDataDirect(
         else{
             KRATOS_ERROR << "Node " << rNode.Id() << " has no associated elements." << std::endl;
         }
-
     });
 
     rModelPart.GetCommunicator().AssembleCurrentData(rNodalVariable);
 }
 
 template<class TDataType>
-void ConversionUtilities::ConvertNodalDataToElementalData(
+void ConversionUtilities::ConvertNodalDataToElementalDataDirect(
     ModelPart& rModelPart,
     const Variable<TDataType>& rElementalVariable,
     const Variable<TDataType>& rNodalVariable )
@@ -130,15 +127,70 @@ void ConversionUtilities::ConvertNodalDataToElementalData(
     rModelPart.GetCommunicator().AssembleCurrentData(rElementalVariable);
 }
 
+template<class TDataType>
+void ConversionUtilities::ConvertNodalDataToElementalDataTranspose(
+    ModelPart& rModelPart,
+    const Variable<TDataType>& rElementalVariable,
+    const Variable<TDataType>& rNodalVariable )
+{
+    // prepare elemental variable
+    VariableUtils().SetNonHistoricalVariableToZero(rElementalVariable, rModelPart.Elements());
+
+    std::map<int, int> node_element_count;
+    block_for_each(rModelPart.Elements(), [&](Element& rElement){
+        const auto& elem_rVariable =  rElement.GetValue(rElementalVariable);
+
+        for (auto& r_node : rElement.GetGeometry().Points()){
+            if constexpr(std::is_same_v<TDataType, double>) {
+                AtomicAdd( r_node.FastGetSolutionStepValue(rNodalVariable), (elem_rVariable) );
+                node_element_count[r_node.Id()] += 1;
+
+            } else if constexpr(std::is_same_v<TDataType, array_1d<double, 3>>) {
+                AtomicAddVector( r_node.FastGetSolutionStepValue(rNodalVariable), (elem_rVariable) );
+                node_element_count[r_node.Id()] += 1;
+            } else {
+                static_assert(!std::is_same_v<TDataType, TDataType>, "Unsupported data type.");
+            }
+        }
+    });
+
+    block_for_each(rModelPart.Elements(), [&](Element& rElement){
+
+        if constexpr(std::is_same_v<TDataType, double>) {
+                double temp = 0.0;
+                for (auto& r_node : rElement.GetGeometry().Points()){
+                    temp += r_node.FastGetSolutionStepValue(rNodalVariable) / node_element_count[r_node.Id()];
+                } 
+                rElement.SetValue(rElementalVariable, temp);
+            }
+        else if constexpr(std::is_same_v<TDataType, array_1d<double, 3>>) {
+            array_1d<double, 3> temp = ZeroVector(3);
+            for (auto& r_node : rElement.GetGeometry().Points()){
+                temp += r_node.FastGetSolutionStepValue(rNodalVariable) / node_element_count[r_node.Id()];
+            }
+            rElement.SetValue(rElementalVariable, temp);
+        }
+        
+        else {
+                static_assert(!std::is_same_v<TDataType, TDataType>, "Unsupported data type.");
+            }
+    });
+
+    rModelPart.GetCommunicator().AssembleCurrentData(rElementalVariable);
+}
+
 // template instantiations
-template void ConversionUtilities::ConvertElementalDataToNodalData<double>(ModelPart&, const Variable<double>&,  const Variable<double>&);
-template void ConversionUtilities::ConvertElementalDataToNodalData<array_1d<double, 3>>(ModelPart&, const Variable<array_1d<double, 3>>&,  const Variable<array_1d<double, 3>>&);
+template void ConversionUtilities::ConvertElementalDataToNodalDataTranspose<double>(ModelPart&, const Variable<double>&,  const Variable<double>&);
+template void ConversionUtilities::ConvertElementalDataToNodalDataTranspose<array_1d<double, 3>>(ModelPart&, const Variable<array_1d<double, 3>>&,  const Variable<array_1d<double, 3>>&);
 
 template void ConversionUtilities::ConvertElementalDataToNodalDataDirect<double>(ModelPart&, const Variable<double>&,  const Variable<double>&);
 template void ConversionUtilities::ConvertElementalDataToNodalDataDirect<array_1d<double, 3>>(ModelPart&, const Variable<array_1d<double, 3>>&,  const Variable<array_1d<double, 3>>&);
 
-template void ConversionUtilities::ConvertNodalDataToElementalData<double>(ModelPart&, const Variable<double>&,  const Variable<double>&);
-template void ConversionUtilities::ConvertNodalDataToElementalData<array_1d<double, 3>>(ModelPart&, const Variable<array_1d<double, 3>>&,  const Variable<array_1d<double, 3>>&);
+template void ConversionUtilities::ConvertNodalDataToElementalDataDirect<double>(ModelPart&, const Variable<double>&,  const Variable<double>&);
+template void ConversionUtilities::ConvertNodalDataToElementalDataDirect<array_1d<double, 3>>(ModelPart&, const Variable<array_1d<double, 3>>&,  const Variable<array_1d<double, 3>>&);
+
+template void ConversionUtilities::ConvertNodalDataToElementalDataTranspose<double>(ModelPart&, const Variable<double>&,  const Variable<double>&);
+template void ConversionUtilities::ConvertNodalDataToElementalDataTranspose<array_1d<double, 3>>(ModelPart&, const Variable<array_1d<double, 3>>&,  const Variable<array_1d<double, 3>>&);
 
 
 }  // namespace Kratos.

@@ -71,7 +71,7 @@ public:
      * @param rNodalVariable The variable where the converted nodal data will be stored.
      */
     template<class TDataType>
-    static void ConvertElementalDataToNodalData(
+    static void ConvertElementalDataToNodalDataTranspose(
         ModelPart& rModelPart,
         const Variable<TDataType>& rElementalVariable,
         const Variable<TDataType>& rNodalVariable );
@@ -108,7 +108,24 @@ public:
      * @param rNodalVariable The variable containing the nodal data to be converted.
      */
     template<class TDataType>
-    static void ConvertNodalDataToElementalData(
+    static void ConvertNodalDataToElementalDataDirect(
+        ModelPart& rModelPart,
+        const Variable<TDataType>& rElementalVariable,
+        const Variable<TDataType>& rNodalVariable );
+
+        /**
+     * @brief Converts nodal data to elemental data using transpose operator. Element value is a sum of nodal value contribution, which is split equally to all neighbouring elements.
+     *
+     * This utility function transfers data from nodal variables to elemental variables
+     * within a given ModelPart. It is templated to work with various data types.
+     *
+     * @tparam TDataType The type of data to be converted.
+     * @param rModelPart The ModelPart containing the nodes and elements.
+     * @param rElementalVariable The variable to store the converted elemental data.
+     * @param rNodalVariable The variable containing the nodal data to be converted.
+     */
+    template<class TDataType>
+    static void ConvertNodalDataToElementalDataTranspose(
         ModelPart& rModelPart,
         const Variable<TDataType>& rElementalVariable,
         const Variable<TDataType>& rNodalVariable );

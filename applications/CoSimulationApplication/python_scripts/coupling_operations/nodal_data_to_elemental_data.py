@@ -12,8 +12,6 @@ def Create(*args):
     return NodalToElementalData(*args)
 
 class NodalToElementalData(CoSimulationCouplingOperation):
-    """This operation maps the Nodal Data to Elemental Data for a given ModelPart consistently. The elemental value is an averaged value of Nodal values.
-    """
     def __init__(self, settings, solver_wrappers, process_info, data_communicator):
         super().__init__(settings, process_info, data_communicator)
         solver_name = self.settings["solver"].GetString()
@@ -21,8 +19,10 @@ class NodalToElementalData(CoSimulationCouplingOperation):
         self.interface_data = solver_wrappers[solver_name].GetInterfaceData(data_name)
         self.variable = self.interface_data.variable
         self.dimension = self.interface_data.dimension
+        self.use_transpose = self.settings["use_transpose"].GetBool()
 
     def Execute(self):
+        
         if not self.interface_data.IsDefinedOnThisRank(): return
 
         process_info = self.interface_data.GetModelPart().ProcessInfo
@@ -35,7 +35,10 @@ class NodalToElementalData(CoSimulationCouplingOperation):
         
         model_part_interface:KM.ModelPart = self.interface_data.GetModelPart()
 
-        ConversionUtilities.ConvertNodalDataToElementalData(model_part_interface, self.variable, self.variable)
+        if self.use_transpose:
+            ConversionUtilities.ConvertNodalDataToElementalDataTranspose(model_part_interface, self.variable, self.variable)
+        else:   
+            ConversionUtilities.ConvertNodalDataToElementalDataDirect(model_part_interface, self.variable, self.variable)
         if self.echo_level > 0:
             cs_tools.cs_print_info("ConvertNodalDataToElementalData", "Done")
 
@@ -44,6 +47,7 @@ class NodalToElementalData(CoSimulationCouplingOperation):
         this_defaults = KM.Parameters("""{
             "solver"    : "UNSPECIFIED",
             "data_name" : "UNSPECIFIED",
+            "use_transpose" : true,
             "interval"  : [0.0, 1e30]
         }""")
         this_defaults.AddMissingParameters(super()._GetDefaultParameters())
