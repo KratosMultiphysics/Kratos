@@ -61,31 +61,21 @@ KRATOS_TEST_CASE_IN_SUITE(TimoshenkoBeamElasticConstitutiveLaw_CalculatesCauchyS
     TimoshenkoBeamElasticConstitutiveLaw law;
     ConstitutiveLaw::Parameters parameters;
     auto strain_vector = MakeStrainVectorForTesting();
-    const auto axial_strain = strain_vector[0];
-    const auto curvature = strain_vector[1];
-    const auto shear_strain = strain_vector[2];
     parameters.SetStrainVector(strain_vector);
     auto stress_vector = Vector{ZeroVector{number_of_strain_components}};
     parameters.SetStressVector(stress_vector);
 
-    auto properties = MakePropertiesForTesting();
-    const auto E = properties[YOUNG_MODULUS];
-    const auto nu = properties[POISSON_RATIO];
-    const auto A = properties[CROSS_AREA];
-    const auto I = properties[I33];
-    const auto As = properties[AREA_EFFECTIVE_Y];
+    const auto properties = MakePropertiesForTesting();
     parameters.SetMaterialProperties(properties);
-
-    const auto G = E / (2.0 * (1.0 + nu));
 
     parameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 
     law.CalculateMaterialResponseCauchy(parameters);
 
     auto expected_stress_vector = Vector{number_of_strain_components};
-    expected_stress_vector[0] = E * A * axial_strain;
-    expected_stress_vector[1] = E * I * curvature;
-    expected_stress_vector[2] = G * As * shear_strain;
+    expected_stress_vector[0] = 400.0;
+    expected_stress_vector[1] = 15000.0;
+    expected_stress_vector[2] = 500.0;
 
     constexpr auto relative_tolerance = 1.0e-6;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(parameters.GetStressVector(), expected_stress_vector, relative_tolerance);
@@ -95,22 +85,12 @@ KRATOS_TEST_CASE_IN_SUITE(TimoshenkoBeamElasticConstitutiveLaw_CalculatesCauchyS
     TimoshenkoBeamElasticConstitutiveLaw law;
     ConstitutiveLaw::Parameters parameters;
     auto strain_vector = MakeStrainVectorForTesting();
-    const auto axial_strain = strain_vector[0];
-    const auto curvature = strain_vector[1];
-    const auto shear_strain = strain_vector[2];
     parameters.SetStrainVector(strain_vector);
     auto stress_vector = Vector{ZeroVector{number_of_strain_components}};
     parameters.SetStressVector(stress_vector);
 
-    auto properties = MakePropertiesForTesting();
-    const auto E = properties[YOUNG_MODULUS];
-    const auto nu = properties[POISSON_RATIO];
-    const auto A = properties[CROSS_AREA];
-    const auto I = properties[I33];
-    const auto As = properties[AREA_EFFECTIVE_Y];
+    const auto properties = MakePropertiesForTesting();
     parameters.SetMaterialProperties(properties);
-
-    const auto G = E / (2.0 * (1.0 + nu));
 
     const auto initial_strain_vector = MakeInitialStrainVectorForTesting();
     const auto initial_stress_vector = MakeInitialStressVectorForTesting();
@@ -123,9 +103,9 @@ KRATOS_TEST_CASE_IN_SUITE(TimoshenkoBeamElasticConstitutiveLaw_CalculatesCauchyS
     law.CalculateMaterialResponseCauchy(parameters);
 
     auto expected_stress_vector = Vector{number_of_strain_components};
-    expected_stress_vector[0] = E * A * (axial_strain - initial_strain_vector[0]) + initial_stress_vector[0];
-    expected_stress_vector[1] = E * I * (curvature - initial_strain_vector[1]) + initial_stress_vector[1];
-    expected_stress_vector[2] = G * As * (shear_strain - initial_strain_vector[2]) + initial_stress_vector[2];
+    expected_stress_vector[0] = 4600.0;
+    expected_stress_vector[1] = -7000.0;
+    expected_stress_vector[2] = 2250.0;
 
     constexpr auto relative_tolerance = 1.0e-6;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(parameters.GetStressVector(), expected_stress_vector, relative_tolerance);
