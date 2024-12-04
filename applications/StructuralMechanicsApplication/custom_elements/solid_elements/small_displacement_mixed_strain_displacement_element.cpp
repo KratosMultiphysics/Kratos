@@ -212,6 +212,9 @@ void SmallDisplacementMixedStrainDisplacementElement::Initialize(
 
     }
 
+    KRATOS_WATCH(GetGeometry().IntegrationPoints(mThisIntegrationMethod).size())
+    KRATOS_WATCH(mConstitutiveLawVector.size())
+
     KRATOS_CATCH("")
 }
 
