@@ -126,20 +126,27 @@ public:
 
     static const IntegrationPointsArrayType& IntegrationPoints()
     {
-        const double one_over_nine  = 1.0 / 9.0;
-        const double four_over_nine = 4.0 * one_over_nine;
+        // Define weights for 3rd-order Lobatto quadrature
+        const double one_over_thirty_six  = 1.0 / 36.0;
+        const double four_over_thirty_six = 4.0 * one_over_thirty_six;  // = 1/9
+        const double sixteen_over_thirty_six = 16.0 * one_over_thirty_six;  // = 4/9
+
+        // Define the integration points and their weights
         static const IntegrationPointsArrayType s_integration_points{{
-            IntegrationPointType( -1.00 ,  1.00, one_over_nine ),
-            IntegrationPointType( -1.00 , -1.00, one_over_nine ),
-            IntegrationPointType(  1.00 , -1.00, one_over_nine ),
-            IntegrationPointType(  1.00 ,  1.00, one_over_nine ),
+            // Corner points
+            IntegrationPointType( -1.00 , -1.00, one_over_thirty_six ),
+            IntegrationPointType(  1.00 , -1.00, one_over_thirty_six ),
+            IntegrationPointType( -1.00 ,  1.00, one_over_thirty_six ),
+            IntegrationPointType(  1.00 ,  1.00, one_over_thirty_six ),
 
-            IntegrationPointType(  0.00 ,  1.00, four_over_nine ),
-            IntegrationPointType( -1.00 ,  0.00, four_over_nine ),
-            IntegrationPointType(  0.00 , -1.00, four_over_nine ),
-            IntegrationPointType(  1.00 ,  0.00, four_over_nine ),
+            // Edge midpoints
+            IntegrationPointType(  0.00 , -1.00, four_over_thirty_six ),
+            IntegrationPointType( -1.00 ,  0.00, four_over_thirty_six ),
+            IntegrationPointType(  1.00 ,  0.00, four_over_thirty_six ),
+            IntegrationPointType(  0.00 ,  1.00, four_over_thirty_six ),
 
-            IntegrationPointType(  0.00 , 0.00, 4.0*four_over_nine )
+            // Center point
+            IntegrationPointType(  0.00 ,  0.00, sixteen_over_thirty_six )
         }};
         return s_integration_points;
     }

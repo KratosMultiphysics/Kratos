@@ -83,11 +83,12 @@ public:
 
     static const IntegrationPointsArrayType& IntegrationPoints()
     {
+        const double one_over_sqrt_3 = 1.00 / std::sqrt(3.0);
         static const IntegrationPointsArrayType s_integration_points{{
-            IntegrationPointType( -1.00/std::sqrt(3.0) , -1.00/std::sqrt(3.0), 1.00 ),
-            IntegrationPointType(  1.00/std::sqrt(3.0) , -1.00/std::sqrt(3.0), 1.00 ),
-            IntegrationPointType(  1.00/std::sqrt(3.0) ,  1.00/std::sqrt(3.0), 1.00 ),
-            IntegrationPointType( -1.00/std::sqrt(3.0) ,  1.00/std::sqrt(3.0), 1.00 )
+            IntegrationPointType( -one_over_sqrt_3 , -one_over_sqrt_3, 1.00 ),
+            IntegrationPointType(  one_over_sqrt_3 , -one_over_sqrt_3, 1.00 ),
+            IntegrationPointType(  one_over_sqrt_3 ,  one_over_sqrt_3, 1.00 ),
+            IntegrationPointType( -one_over_sqrt_3 ,  one_over_sqrt_3, 1.00 )
         }};
         return s_integration_points;
     }
