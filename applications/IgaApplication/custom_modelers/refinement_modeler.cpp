@@ -337,9 +337,9 @@ namespace Kratos
                             << " by inserting knots in v, however insert_nb_per_span_v is set to 0." << std::endl;
                     }
                 }
-                array_1d<double, 3> rOutput{0.0, 0.0, 0.0};  // Initialize the output array
-                p_nurbs_surface->Calculate(CHARACTERISTIC_GEOMETRY_LENGTH, rOutput);
-                KRATOS_WATCH(rOutput)
+                // array_1d<double, 3> rOutput{0.0, 0.0, 0.0};  // Initialize the output array
+                // p_nurbs_surface->Calculate(CHARACTERISTIC_GEOMETRY_LENGTH, rOutput);
+                // KRATOS_WATCH(rOutput)
             }
         } 
         // ------------------------------------------------------------------------------------------

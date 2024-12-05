@@ -90,6 +90,8 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateMateri
     
     // ************************************
     const auto& r_geometry = rValues.GetElementGeometry();
+    const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints(r_geometry.GetIntegrationMethod());
+    KRATOS_WATCH(integration_points)
     // Determine the container point type (e.g., std::vector<NodeType>)
     using NodeType = Kratos::Node;  // Define the correct node type (2D nodes)
     using ContainerPointType = std::vector<NodeType>;  // Container type for geometry points (std::vector of nodes)
@@ -100,10 +102,10 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateMateri
 
     if (const auto* quadrature_geometry = dynamic_cast<const Kratos::QuadraturePointGeometry<Kratos::Node, 3, 2, 2>*>(&r_geometry)) {
         nurbs_geometry = quadrature_geometry;  // Assign the cast pointer
-        // std::cout << "Assigned QuadraturePointGeometry to nurbs_geometry." << std::endl;
+        std::cout << "Assigned QuadraturePointGeometry to nurbs_geometry." << std::endl;
     } else if (const auto* curve_on_surface_geometry = dynamic_cast<const Kratos::QuadraturePointCurveOnSurfaceGeometry<Kratos::Node>*>(&r_geometry)) {
         nurbs_geometry = curve_on_surface_geometry;  // Assign the cast pointer
-        // std::cout << "Assigned QuadraturePointCurveOnSurfaceGeometry to nurbs_geometry." << std::endl;
+        std::cout << "Assigned QuadraturePointCurveOnSurfaceGeometry to nurbs_geometry." << std::endl;
     } else {
         std::cout << "Unknown geometry type!" << std::endl;
     }
@@ -146,10 +148,7 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateMateri
         double uniaxial_stress;
         TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, uniaxial_stress, rValues);
         const double F = uniaxial_stress - threshold;
-        KRATOS_WATCH(F)
         
-        KRATOS_WATCH(threshold_tolerance)
-        KRATOS_WATCH(mDamage)
      
 
         if (F <= threshold_tolerance) { // Elastic case
@@ -162,19 +161,20 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateMateri
         } else { // Damage case
           
 
-            const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
-            KRATOS_WATCH(characteristic_length)
+            // const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
+            // KRATOS_WATCH(characteristic_length)
 
+            array_1d<double, 3> output={0.0, 0.0, 0.0};;
+            KRATOS_WATCH(output)  
 
+            nurbs_geometry->Calculate(CHARACTERISTIC_GEOMETRY_LENGTH, output); // Set the appropriate value
+            KRATOS_WATCH(output)  
+
+            const double characteristic_length = output[0];  // Or use the appropriate index if needed
+            KRATOS_WATCH(characteristic_length)  
+            
             // This routine updates the PredictiveStress to verify the yield surf
             TConstLawIntegratorType::IntegrateStressVector(predictive_stress_vector, uniaxial_stress, damage, threshold, rValues, characteristic_length);
-
-            // array_1d<double, 3> output;
-            // nurbs_geometry->Calculate(CHARACTERISTIC_GEOMETRY_LENGTH, output); // Set the appropriate value
-            // KRATOS_WATCH(output)  
-
-            // const double characteristic_length1 = output[0];  // Or use the appropriate index if needed
-            // KRATOS_WATCH(characteristic_length1)  
 
             // Updated Values
             noalias(r_integrated_stress_vector) = predictive_stress_vector;
@@ -282,7 +282,6 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::FinalizeMateria
 
     // We get the strain vector
     Vector& r_strain_vector = rValues.GetStrainVector();
-    KRATOS_WATCH("Finalize!")
 
     //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
     if (r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
@@ -299,19 +298,19 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::FinalizeMateria
         // S0 = C:(E-E0) + S0
         BoundedArrayType predictive_stress_vector = prod(r_constitutive_matrix, r_strain_vector);
         this->template AddInitialStressVectorContribution<BoundedArrayType>(predictive_stress_vector);
-
         // Initialize Plastic Parameters
         double uniaxial_stress;
         TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, uniaxial_stress, rValues);
 
         const double F = uniaxial_stress - mThreshold;
-
+        KRATOS_WATCH(F)
         if (F >= threshold_tolerance) { // Damage case
             const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
             // This routine updates the PredictiveStress to verify the yield surf
             TConstLawIntegratorType::IntegrateStressVector(predictive_stress_vector, uniaxial_stress, mDamage, mThreshold, rValues, characteristic_length);
             mThreshold = uniaxial_stress;
             KRATOS_WATCH(mDamage)
+
         }
     }
 }

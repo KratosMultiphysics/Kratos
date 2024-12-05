@@ -199,16 +199,16 @@ namespace Kratos
         Vector WeightsRefined(points.size(),1.0);
 
         // 2. Prepare the rVariable and rOutput
-        const Variable<array_1d<double, 3>>& rVariable = CHARACTERISTIC_GEOMETRY_LENGTH;  // This is likely predefined somewhere
+        // const Variable<array_1d<double, 3>>& rVariable = CHARACTERISTIC_GEOMETRY_LENGTH;  // This is likely predefined somewhere
         
-        array_1d<double, 3> rOutput{0.0, 5.0, 0.0};  // Initialize the output array
-        KRATOS_WATCH(rOutput);
+        // array_1d<double, 3> rOutput{0.0, 5.0, 0.0};  // Initialize the output array
+        // KRATOS_WATCH(rOutput);
 
         // 3. Call the Calculate method on the relevant object (assume p_surface_geometry or something similar)
-        p_surface_geometry->Calculate(rVariable, rOutput);
+        // p_surface_geometry->Calculate(rVariable, rOutput);
 
         // 4. Optionally, observe the output
-        KRATOS_WATCH(rOutput);
+        // KRATOS_WATCH(rOutput);
 
         KRATOS_INFO_IF("::[NurbsGeometryModeler]::", mEchoLevel > 0) << "Ending the CreateTheSnakeCoordinates" << std::endl;
 

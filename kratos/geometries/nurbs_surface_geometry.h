@@ -512,6 +512,8 @@ public:
         p1[1] = mKnotsV[SpanV];
         p1[2] = 0;
 
+        KRATOS_WATCH(p1)
+
         p2[0] = mKnotsU[SpanU + 1];
         p2[1] = mKnotsV[SpanV];
         p2[2] = 0;
@@ -533,6 +535,7 @@ public:
         rKnotLengthness[1] = (norm_2(gp1 - gp4) + norm_2(gp2 - gp3)) / 2;
         rKnotLengthness[2] = 0;
 
+        KRATOS_WATCH(rKnotLengthness)
         // else {
         //         KRATOS_ERROR
         //             << "Number of controls points and polynomial degrees and number of knots do not match! " << std::endl

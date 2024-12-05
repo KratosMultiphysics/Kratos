@@ -351,6 +351,53 @@ namespace Kratos
         }
     }
 
+    void SupportSolid2DCondition::CalculateKinematicVariables(
+        KinematicVariables& rThisKinematicVariables,
+        const GeometryType::IntegrationMethod& rIntegrationMethod
+        )
+    {
+        const auto& r_geometry = GetGeometry();
+        const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
+
+        const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(rIntegrationMethod);
+        
+        const unsigned int number_of_points = r_geometry.size();
+        // Initialize DN_DX
+        Matrix DN_DX(number_of_points,2);
+        Matrix InvJ0(2,2);
+        
+
+        // Initialize Jacobian
+        GeometryType::JacobiansType J0;
+        r_geometry.Jacobian(J0,this->GetIntegrationMethod());
+        Vector GP_parameter_coord(2); 
+        GP_parameter_coord = prod(r_geometry.Center(),J0[0]); // check if we have tu put "GetInitialPosition"
+
+
+    
+        double DetJ0;
+        Matrix Jacobian = ZeroMatrix(2,2);
+        Jacobian(0,0) = J0[0](0,0);
+        Jacobian(0,1) = J0[0](0,1);
+        Jacobian(1,0) = J0[0](1,0);
+        Jacobian(1,1) = J0[0](1,1);
+
+        // Calculating inverse jacobian and jacobian determinant
+        MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
+        
+        // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
+        noalias(DN_DX) = prod(DN_De[0],InvJ0);
+
+        // Compute B
+        // Matrix B = ZeroMatrix(3,mat_size);
+        CalculateB( rThisKinematicVariables.B, DN_DX);
+        // Compute equivalent F
+        GetValuesVector(rThisKinematicVariables.Displacements);
+        Vector strain_vector(mpConstitutiveLaw->GetStrainSize());
+        noalias(strain_vector) = prod(rThisKinematicVariables.B, rThisKinematicVariables.Displacements);
+
+    }
+
     void SupportSolid2DCondition::CalculateB(
         Matrix& rB, 
         Matrix& r_DN_DX) const
@@ -377,45 +424,34 @@ namespace Kratos
 
     void SupportSolid2DCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_WATCH("Are you passing through FinalizeSolutionStep? in Conditions")
+        const auto& r_geometry = GetGeometry();
+        const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
+        const SizeType nb_nodes = r_geometry.size();
+        const SizeType dimension = r_geometry.WorkingSpaceDimension();
+        
+        KinematicVariables this_kinematic_variables(strain_size, dimension, nb_nodes);
+        ConstitutiveVariables this_constitutive_variables(strain_size);
 
         ConstitutiveLaw::Parameters constitutive_law_parameters(
             GetGeometry(), GetProperties(), rCurrentProcessInfo);
-        KRATOS_WATCH("Are you passing through FinalizeSolutionStep?")
 
-        const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
         // Set constitutive law flags:
         Flags& ConstitutiveLawOptions=constitutive_law_parameters.GetOptions();
-
         ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
-        ConstitutiveVariables this_constitutive_variables(strain_size);
 
         constitutive_law_parameters.SetStrainVector(this_constitutive_variables.StrainVector);
         constitutive_law_parameters.SetStressVector(this_constitutive_variables.StressVector);
         constitutive_law_parameters.SetConstitutiveMatrix(this_constitutive_variables.D);
-
+        CalculateKinematicVariables(this_kinematic_variables, this->GetIntegrationMethod());
+        
+        noalias(this_constitutive_variables.StrainVector) = prod(this_kinematic_variables.B, this_kinematic_variables.Displacements);
+            
+        KRATOS_WATCH(this_constitutive_variables.StrainVector)
         mpConstitutiveLaw->FinalizeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
 
-        //-----------------------------------------
-        // Vector sigma_n = ZeroVector(2);
-        // const Matrix D = Values.GetConstitutiveMatrix();
-        // Matrix DB = prod(D,B);
-        // for (IndexType j = 0; j < r_geometry.size(); j++) {
-
-        //     for (IndexType jdim = 0; jdim < 2; jdim++) {
-        //         const int jglob = 2*j+jdim;
-
-        //         sigma_n[0] += (DB(0, jglob)* normal_physical_space[0] + DB(2, jglob)* normal_physical_space[1])*old_displacement[jglob];
-        //         sigma_n[1] += (DB(2, jglob)* normal_physical_space[0] + DB(1, jglob)* normal_physical_space[1])*old_displacement[jglob];
-        //     }
-        // }
-        //2222222222222222222222222222222222222222222222222222222222222222222222222
-
-        // //---------------------
     }
 
     void SupportSolid2DCondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){

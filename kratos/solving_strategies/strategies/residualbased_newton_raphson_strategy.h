@@ -821,7 +821,6 @@ class ResidualBasedNewtonRaphsonStrategy
 
         // Initial operations ... things that are constant over the Solution Step
         p_builder_and_solver->InitializeSolutionStep(r_model_part, rA, rDx, rb);
-        KRATOS_WATCH(p_builder_and_solver)
         // Initial operations ... things that are constant over the Solution Step
         p_scheme->InitializeSolutionStep(r_model_part, rA, rDx, rb);
 

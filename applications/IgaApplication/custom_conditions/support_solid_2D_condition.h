@@ -33,6 +33,94 @@ namespace Kratos
     class SupportSolid2DCondition
         : public Condition
     {
+    protected:
+    /**
+     * Internal variables used in the kinematic calculations
+     */
+    struct KinematicVariables
+    {
+        Vector  N;
+        Matrix  B;
+        double  detF;
+        Matrix  F;
+        double  detJ0;
+        Matrix  J0;
+        Matrix  InvJ0;
+        Matrix  DN_DX;
+        Vector Displacements;
+        // double characteristic_length;
+
+        /**
+         * The default constructor
+         * @param StrainSize The size of the strain vector in Voigt notation
+         * @param Dimension The problem dimension: 2D or 3D
+         * @param NumberOfNodes The number of nodes in the element
+         */
+        KinematicVariables(
+            const SizeType StrainSize,
+            const SizeType Dimension,
+            const SizeType NumberOfNodes
+            )
+        {
+            detF = 1.0;
+            detJ0 = 1.0;
+            N = ZeroVector(NumberOfNodes);
+            B = ZeroMatrix(StrainSize, Dimension * NumberOfNodes);
+            F = IdentityMatrix(Dimension);
+            DN_DX = ZeroMatrix(NumberOfNodes, Dimension);
+            J0 = ZeroMatrix(Dimension, Dimension);
+            InvJ0 = ZeroMatrix(Dimension, Dimension);
+            Displacements = ZeroVector(Dimension * NumberOfNodes);
+            // characteristic_length = 0.0;
+
+        }
+    };
+    
+    /**
+     * Internal variables used in the constitutive calculations
+     */
+    struct ConstitutiveVariables
+    {
+        ConstitutiveLaw::StrainVectorType StrainVector;
+        ConstitutiveLaw::StressVectorType StressVector;
+        ConstitutiveLaw::VoigtSizeMatrixType D;
+
+        /**
+         * The default constructor
+         * @param StrainSize The size of the strain vector in Voigt notation
+         */
+        ConstitutiveVariables(const SizeType StrainSize)
+        {
+            if (StrainVector.size() != StrainSize)
+                StrainVector.resize(StrainSize);
+
+            if (StressVector.size() != StrainSize)
+                StressVector.resize(StrainSize);
+
+            if (D.size1() != StrainSize || D.size2() != StrainSize)
+                D.resize(StrainSize, StrainSize);
+
+            noalias(StrainVector) = ZeroVector(StrainSize);
+            noalias(StressVector) = ZeroVector(StrainSize);
+            noalias(D)            = ZeroMatrix(StrainSize, StrainSize);
+        }
+    };
+
+    ///@name Protected static Member Variables
+    ///@{
+    void InitializeMaterial();
+
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
+    //@}
+    ///@name Protected member Variables
+    ///@{
+    ConstitutiveLaw::Pointer mpConstitutiveLaw; /// The pointer containing the constitutive laws
+
+    ///@}
+
     public:
         ///@name Type Definitions
         ///@{
@@ -204,6 +292,16 @@ namespace Kratos
         );
 
         void GetValuesVector(Vector& rValues) const;
+        /**
+         * @brief This functions updates the kinematics variables
+         * @param rThisKinematicVariables The kinematic variables to be calculated
+         * @param PointNumber The integration point considered
+         */
+        void CalculateKinematicVariables(
+            KinematicVariables& rThisKinematicVariables,
+            const GeometryType::IntegrationMethod& rIntegrationMethod
+            ) ;
+
 
         void CalculateB(
             Matrix& rB, 
@@ -241,53 +339,7 @@ namespace Kratos
 
         ///@}
 
-    protected:
 
-    
-    /**
-     * Internal variables used in the constitutive calculations
-     */
-    struct ConstitutiveVariables
-    {
-        ConstitutiveLaw::StrainVectorType StrainVector;
-        ConstitutiveLaw::StressVectorType StressVector;
-        ConstitutiveLaw::VoigtSizeMatrixType D;
-
-        /**
-         * The default constructor
-         * @param StrainSize The size of the strain vector in Voigt notation
-         */
-        ConstitutiveVariables(const SizeType StrainSize)
-        {
-            if (StrainVector.size() != StrainSize)
-                StrainVector.resize(StrainSize);
-
-            if (StressVector.size() != StrainSize)
-                StressVector.resize(StrainSize);
-
-            if (D.size1() != StrainSize || D.size2() != StrainSize)
-                D.resize(StrainSize, StrainSize);
-
-            noalias(StrainVector) = ZeroVector(StrainSize);
-            noalias(StressVector) = ZeroVector(StrainSize);
-            noalias(D)            = ZeroMatrix(StrainSize, StrainSize);
-        }
-    };
-
-    ///@name Protected static Member Variables
-    ///@{
-    void InitializeMaterial();
-
-    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-
-    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-
-    //@}
-    ///@name Protected member Variables
-    ///@{
-    ConstitutiveLaw::Pointer mpConstitutiveLaw; /// The pointer containing the constitutive laws
-
-    ///@}
 
     private:
         ///@name Serialization
