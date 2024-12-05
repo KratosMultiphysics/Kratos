@@ -20,7 +20,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/exception.h"
-#include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 namespace Kratos
 {
