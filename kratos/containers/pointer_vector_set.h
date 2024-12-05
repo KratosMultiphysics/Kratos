@@ -667,6 +667,20 @@ public:
         SortedInsert(first, last);
     }
 
+    /**
+     * @brief Insert elements from another PointerVectorSet range.
+     * @details This function inserts element pointers from another PointerVectorSet range specified by first and last into the current set.
+     * Since, PointerVectorSet is assumed to be sorted and unique, the incoming PointerVectorSet is not
+     * sorted and made unique again. This will not insert any elements in the incoming set, if there exists an element with a key
+     * which is equal to an element's key in the input range.
+     * @param first Other PointerVectorSet starting iterator
+     * @param last Other PointerVectorSet ending iterator
+     */
+    void insert(PointerVectorSet::iterator first, PointerVectorSet::iterator last)
+    {
+        SortedInsert(first, last);
+    }
+
     void insert(const PointerVectorSet& rOther)
     {
         insert(rOther.begin(), rOther.end());
@@ -1199,7 +1213,10 @@ private:
         // which is harder to guess, and cryptic. Hence, using the decltype.
         using iterator_value_type = std::decay_t<decltype(*Iterator)>;
 
-        if constexpr(std::is_same_v<iterator_value_type, std::remove_cv_t<TPointerType>>) {
+        if constexpr(std::is_same_v<TIteratorType, iterator> || std::is_same_v<TIteratorType, reverse_iterator>) {
+            // if the TIteratorType is of boost::indirect_iterator type, then we can get the pointer by dereferencing.
+            return *(Iterator.base());
+        } else if constexpr(std::is_same_v<iterator_value_type, std::remove_cv_t<TPointerType>>) {
             // this supports any type of pointers
             return *Iterator;
         } else if constexpr(std::is_same_v<iterator_value_type, std::remove_cv_t<value_type>> && std::is_same_v<TPointerType, Kratos::intrusive_ptr<std::decay_t<decltype(*Iterator)>>>) {
