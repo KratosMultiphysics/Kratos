@@ -451,7 +451,7 @@ public:
         TSystemVectorType& rb) override
     {
         BossakBaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
-
+        
         if(mFrictionIsActive) {
             block_for_each(mGridModelPart.Nodes(), [&](Node& rNode)
             {
@@ -461,18 +461,17 @@ public:
             });
             
             mRotationTool.ComputeFrictionAndResetFlags(rModelPart);
-            
-            block_for_each(mGridModelPart.Nodes(), [&](Node& rNode) {
-                const Node& rConstNode = rNode; // const Node reference to avoid issues with previously unset GetValue()
-
-                const double mu = rConstNode.GetValue(FRICTION_COEFFICIENT);
-
-                // rotate friction forces stored in REACTION to global coordinates on conforming boundaries
-                if (mRotationTool.IsConformingSlip(rNode) && mu > 0) {
-                    mRotationTool.RotateVector(rNode.FastGetSolutionStepValue(REACTION), rNode, true);
-                }
-            });
         }
+
+        block_for_each(mGridModelPart.Nodes(), [&](Node& rNode) {
+            const Node& rConstNode = rNode; // const Node reference to avoid issues with previously unset GetValue()
+
+            // rotate forces stored in REACTION to global coordinates on conforming boundaries
+            if (mRotationTool.IsConformingSlip(rNode) ) {
+                mRotationTool.RotateVector(rNode.FastGetSolutionStepValue(REACTION), rNode, true);
+            }
+        });
+        
     }
 
     /**
