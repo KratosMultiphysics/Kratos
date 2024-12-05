@@ -1355,13 +1355,25 @@ void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<2, 3>>::C
     constexpr double stab_c2 = 2.0;
 
     // Mass correction term
-    double volume_error_ratio = 0.0;
-    if (rData.IsCut()) {
-        const double volume_error =-rData.VolumeError;
-        volume_error_ratio = volume_error / dt;
-    }
-
+    // double volume_error_ratio = -rData.VolumeError/dt;
     auto &rhs = rData.rhs;
+    // OPCION 2
+    double volume_error_ratio = 0.0;
+    const auto &phi = rData.Distance;
+
+    //
+    if (rData.IsCut())
+    {
+        double volume_error=0.0;
+        double distance_gauss = N[0]*phi[1]+ N[1]*phi[1]+N[2]*phi[2];
+        if (distance_gauss<0.0){
+            volume_error = -rData.WaterVolumeError;
+        }
+        else if (distance_gauss>0.0){
+            volume_error = -rData.AirVolumeError;
+        }
+    volume_error_ratio = volume_error / dt;
+    }
 
     const double crhs0 = N[0]*p[0] + N[1]*p[1] + N[2]*p[2];
 const double crhs1 = rho*(N[0]*f(0,0) + N[1]*f(1,0) + N[2]*f(2,0));
@@ -1477,12 +1489,26 @@ void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<3, 4>>::C
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
 
-    // Mass correction term
+    // // Mass correction term
+    // double volume_error_ratio = -rData.VolumeError / dt;
+    // OPCION 2
     double volume_error_ratio = 0.0;
-    if (rData.IsCut()) {
-        const double volume_error = -rData.VolumeError;
-        volume_error_ratio = volume_error / dt;
+    const auto &phi = rData.Distance;
+    // //
+    if (rData.IsCut())
+    {
+        double volume_error = 0.0;
+        double distance_gauss = N[0]*phi[1]+ N[1]*phi[1]+N[2]*phi[2]+N[3]*phi[3];
+        if (distance_gauss<0.0){
+            volume_error = -rData.WaterVolumeError;
+        }
+        else if (distance_gauss>0.0){
+            volume_error = -rData.AirVolumeError;
+        }
+    volume_error_ratio = volume_error / dt;
     }
+
+
 
     auto &rhs = rData.rhs;
 
@@ -1635,16 +1661,25 @@ void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<2, 3>>::C
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
 
-    // Mass correction term
+
+    // double volume_error_ratio = -rData.VolumeError/dt;
+     // OPCION 2
     double volume_error_ratio = 0.0;
-    if (rData.IsAir())
+    const auto &phi = rData.Distance;
+    // //
+    if (rData.IsCut())
     {
-        volume_error_ratio=0.0;
+        double volume_error = 0.0;
+        double distance_gauss = N[0]*phi[1]+ N[1]*phi[1]+N[2]*phi[2];
+        if (distance_gauss<0.0){
+            volume_error = -rData.WaterVolumeError;
+        }
+        else if (distance_gauss>0.0){
+            volume_error = -rData.AirVolumeError;
+        }
+    volume_error_ratio = volume_error / dt;
     }
-    else{
-        const double volume_error = -rData.VolumeError;
-        volume_error_ratio = volume_error / dt;
-    }
+
     auto &V = rData.V;
     auto &H = rData.H;
     auto &Kee = rData.Kee;
@@ -1828,11 +1863,25 @@ void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<3, 4>>::C
     constexpr double stab_c2 = 2.0;
 
     // Mass correction term
+    // double volume_error_ratio = -rData.VolumeError / dt;
+    // KRATOS_WATCH(volume_error_ratio)
+    // OPCION 2
     double volume_error_ratio = 0.0;
-    if (rData.IsCut()) {
-        const double volume_error =-rData.VolumeError;
-        volume_error_ratio = volume_error / dt;
+    const auto &phi = rData.Distance;
+    // //
+    if (rData.IsCut())
+    {
+        double volume_error = 0.0;
+        double distance_gauss = N[0] * phi[1] + N[1] * phi[1] + N[2] * phi[2] + N[3] *phi[3];
+        if (distance_gauss<0.0){
+             volume_error = -rData.WaterVolumeError;
+        }
+        else if (distance_gauss>0.0){
+             volume_error = -rData.AirVolumeError;
+        }
+    volume_error_ratio = volume_error / dt;
     }
+
 
     auto &V = rData.V;
     auto &H = rData.H;

@@ -71,6 +71,8 @@ double LinearDarcyCoefficient;
 double NonLinearDarcyCoefficient;
 double DarcyTerm;
 double VolumeError;
+double AirVolumeError;
+double WaterVolumeError;
 double bdf0;
 double bdf1;
 double bdf2;
@@ -133,8 +135,12 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     this->FillFromProperties(LinearDarcyCoefficient, LIN_DARCY_COEF, r_properties);
     this->FillFromProperties(NonLinearDarcyCoefficient, NONLIN_DARCY_COEF, r_properties);
     this->FillFromProcessInfo(DeltaTime,DELTA_TIME,rProcessInfo);
-    this->FillFromProcessInfo(DynamicTau,DYNAMIC_TAU,rProcessInfo);
-    this->FillFromProcessInfo(VolumeError,VOLUME_ERROR,rProcessInfo);
+    this->FillFromProcessInfo(VolumeError, VOLUME_ERROR, rProcessInfo);
+    this->FillFromProcessInfo(DynamicTau, DYNAMIC_TAU, rProcessInfo);
+
+    this->FillFromProcessInfo(AirVolumeError, AIR_VOLUME_ERROR, rProcessInfo);
+    this->FillFromProcessInfo(WaterVolumeError, WATER_VOLUME_ERROR, rProcessInfo);
+
     const Vector& BDFVector = rProcessInfo[BDF_COEFFICIENTS];
 
     bdf0 = BDFVector[0];
@@ -151,20 +157,49 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
 
     NumPositiveNodes = 0;
     NumNegativeNodes = 0;
+    double previous_dt = rProcessInfo.GetPreviousTimeStepInfo()[DELTA_TIME];
 
-    for (unsigned int i = 0; i < TNumNodes; i++){
-        if(Distance[i] > 0)
+
+
+
+    for (unsigned int i = 0; i < TNumNodes; i++)
+    {
+        if (Distance[i] > 0)
             NumPositiveNodes++;
         else
             NumNegativeNodes++;
     }
-    if (NumPositiveNodes>0.0){
-        NotAirTraj= 0.0;
-    }
-    else{
-        NotAirTraj = 1.0;
-    }
 
+    // if (this->IsAir())
+    // {
+    //     this->FillFromProcessInfo(VolumeError, VOLUME_ERROR, rProcessInfo);
+    //     VolumeError*=-1.0;
+    // }
+    // else{
+    //             VolumeError = 0.0;
+
+    // }
+
+    // if (this->IsWater())
+    // {
+
+    //     this->FillFromProcessInfo(VolumeError,WATER_VOLUME_ERROR,rProcessInfo);
+
+    // }
+    // else if (this-> IsAir()) {
+    //     this->FillFromProcessInfo(VolumeError, AIR_VOLUME_ERROR, rProcessInfo);
+    // }
+    // else{
+    //     VolumeError = 0.0;
+    // }
+    // if (this->IsWater())
+    // {
+    //     this->FillFromProcessInfo(VolumeError, VOLUME_ERROR, rProcessInfo);
+    // }
+    // else{
+    //             VolumeError = 0.0;
+
+    // }
 }
 
 void UpdateGeometryValues(
@@ -215,6 +250,11 @@ bool IsCut() {
 
 bool IsAir() {
     return (NumPositiveNodes == TNumNodes);
+}
+
+bool IsWater()
+{
+    return (NumNegativeNodes == TNumNodes);
 }
 
 void CalculateAirMaterialResponse() {
