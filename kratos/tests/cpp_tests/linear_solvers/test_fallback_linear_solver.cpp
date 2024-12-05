@@ -82,7 +82,7 @@ using DummyLinearSolverType = DummyLinearSolver<SpaceType, LocalSpaceType>;
 using FallbackLinearSolverType = FallbackLinearSolver<SpaceType, LocalSpaceType>;
 using LinearSolverFactoryType = LinearSolverFactory<SpaceType, LocalSpaceType>;
 
-KRATOS_TEST_CASE_IN_SUITE(FallbackLinearSolverConstructorSolvers, AltairExtensionApplicationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(FallbackLinearSolverConstructorSolvers, KratosCoreFastSuite)
 {
     // Create the solvers
     auto p_solver1 = Kratos::make_shared<DummyLinearSolverType>();
@@ -127,7 +127,7 @@ KRATOS_TEST_CASE_IN_SUITE(FallbackLinearSolverConstructorSolvers, AltairExtensio
     KRATOS_EXPECT_EQ(simple_fallback_solver_2.GetCurrentSolverIndex(), 1);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(FallbackLinearSolverConstructorParameters, AltairExtensionApplicationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(FallbackLinearSolverConstructorParameters, KratosCoreFastSuite)
 {
     // Create the matrix and vectors
     const std::size_t size = 3;
