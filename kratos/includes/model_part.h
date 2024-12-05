@@ -1862,14 +1862,16 @@ private:
 
             ModelPart* p_root_model_part = &mpModelPart->GetRootModelPart();
 
-            block_for_each(begin, end, [p_root_model_part](const auto& prEntity) {
+            block_for_each(begin, end, [&](const auto& prEntity) {
                 const auto& r_entity = ReferenceGetter<typename TContainerType::value_type>::Execute(prEntity);
                 const auto& r_entities = Container<TContainerType>::GetContainer(p_root_model_part->GetMesh()); // TODO: This is only required to only trigger a find, not a sort. Once the find is fixed, then we can simplify this.
                 auto it_found = r_entities.find(r_entity.Id());
                 KRATOS_ERROR_IF_NOT(&r_entity == &*it_found)
                     << "attempting to add a new " << Container<TContainerType>::GetEntityName() << " with Id :"
-                    << r_entity.Id() << ", unfortunately a (different) " << Container<TContainerType>::GetEntityName()
-                    << " with the same Id already exists"
+                    << r_entity.Id() << " to root model part " << p_root_model_part->FullName()
+                    << ", unfortunately a (different) " << Container<TContainerType>::GetEntityName()
+                    << " with the same Id already exists. [ Occurred while adding " << Container<TContainerType>::GetEntityName()
+                    << " to " << mpModelPart->FullName() << " ]."
                     << std::endl;
             });
 
