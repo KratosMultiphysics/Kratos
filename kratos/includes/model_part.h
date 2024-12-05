@@ -39,6 +39,7 @@
 #include "includes/master_slave_constraint.h"
 #include "containers/variable.h"
 #include "containers/variable_data.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -94,6 +95,13 @@ public:
         Kratos_Ghost,
         Kratos_Ownership_Size
     };
+
+    ///@}
+    ///@name Class definitions
+    ///@{
+
+    template<class TContainerType>
+    struct Container {};
 
     ///@}
     ///@name Type Definitions
@@ -356,47 +364,8 @@ public:
     template<class TIteratorType >
     void AddNodes(TIteratorType nodes_begin,  TIteratorType nodes_end, IndexType ThisIndex = 0)
     {
-        KRATOS_TRY
-        ModelPart::NodesContainerType  aux;
-        ModelPart::NodesContainerType  aux_root; //they may not exist in the root
-        ModelPart* root_model_part = &this->GetRootModelPart();
-
-        for(TIteratorType it = nodes_begin; it!=nodes_end; it++)
-        {
-            auto it_found = root_model_part->Nodes().find(it->Id());
-            if(it_found == root_model_part->NodesEnd()) //node does not exist in the top model part
-            {
-                aux_root.push_back( *(it.base()) ); //node does not exist
-                aux.push_back( *(it.base()) );
-            }
-            else //if it does exist verify it is the same node
-            {
-                if(&(*it_found) != &(*it))//check if the pointee coincides
-                    KRATOS_ERROR << "attempting to add a new node with Id :" << it_found->Id() << ", unfortunately a (different) node with the same Id already exists" << std::endl;
-                else
-                    aux.push_back( *(it.base()) );
-            }
-        }
-
-        //now add to the root model part
-        for(auto it = aux_root.begin(); it!=aux_root.end(); it++)
-            root_model_part->Nodes().push_back( *(it.base()) );
-        root_model_part->Nodes().Unique();
-
-        //add to all of the leaves
-
-        ModelPart* current_part = this;
-        while(current_part->IsSubModelPart())
-        {
-            for(auto it = aux.begin(); it!=aux.end(); it++)
-                current_part->Nodes().push_back( *(it.base()) );
-
-            current_part->Nodes().Unique();
-
-            current_part = &(current_part->GetParentModelPart());
-        }
-
-        KRATOS_CATCH("")
+        EntityInserter<NodesContainerType> inserter{this};
+        inserter.operator()(nodes_begin, nodes_end);
     }
 
     /** Inserts a node in the current mesh.
@@ -694,46 +663,8 @@ public:
     template<class TIteratorType >
     void AddMasterSlaveConstraints(TIteratorType constraints_begin,  TIteratorType constraints_end, IndexType ThisIndex = 0)
     {
-        KRATOS_TRY
-        ModelPart::MasterSlaveConstraintContainerType  aux;
-        ModelPart::MasterSlaveConstraintContainerType  aux_root;
-        ModelPart* root_model_part = &this->GetRootModelPart();
-
-        for(TIteratorType it = constraints_begin; it!=constraints_end; it++)
-        {
-            auto it_found = root_model_part->MasterSlaveConstraints().find(it->Id());
-            if(it_found == root_model_part->MasterSlaveConstraintsEnd()) //node does not exist in the top model part
-            {
-                aux_root.push_back( *(it.base()) );
-                aux.push_back( *(it.base()) );
-            }
-            else //if it does exist verify it is the same node
-            {
-                if(&(*it_found) != &(*it))//check if the pointee coincides
-                    KRATOS_ERROR << "attempting to add a new master-slave constraint with Id :" << it_found->Id() << ", unfortunately a (different) master-slave constraint with the same Id already exists" << std::endl;
-                else
-                    aux.push_back( *(it.base()) );
-            }
-        }
-
-        for(auto it = aux_root.begin(); it!=aux_root.end(); it++)
-                root_model_part->MasterSlaveConstraints().push_back( *(it.base()) );
-        root_model_part->MasterSlaveConstraints().Unique();
-
-        //add to all of the leaves
-
-        ModelPart* current_part = this;
-        while(current_part->IsSubModelPart())
-        {
-            for(auto it = aux.begin(); it!=aux.end(); it++)
-                current_part->MasterSlaveConstraints().push_back( *(it.base()) );
-
-            current_part->MasterSlaveConstraints().Unique();
-
-            current_part = &(current_part->GetParentModelPart());
-        }
-
-        KRATOS_CATCH("")
+        EntityInserter<MasterSlaveConstraintContainerType> inserter{this};
+        inserter.operator()(constraints_begin, constraints_end);
     }
 
     /**
@@ -1042,46 +973,8 @@ public:
     template<class TIteratorType >
     void AddElements(TIteratorType elements_begin,  TIteratorType elements_end, IndexType ThisIndex = 0)
     {
-        KRATOS_TRY
-        ModelPart::ElementsContainerType  aux;
-        ModelPart::ElementsContainerType  aux_root;
-        ModelPart* root_model_part = &this->GetRootModelPart();
-
-        for(TIteratorType it = elements_begin; it!=elements_end; it++)
-        {
-            auto it_found = root_model_part->Elements().find(it->Id());
-            if(it_found == root_model_part->ElementsEnd()) //node does not exist in the top model part
-            {
-                aux_root.push_back( *(it.base()) );
-                aux.push_back( *(it.base()) );
-            }
-            else //if it does exist verify it is the same node
-            {
-                if(&(*it_found) != &(*it))//check if the pointee coincides
-                    KRATOS_ERROR << "attempting to add a new element with Id :" << it_found->Id() << ", unfortunately a (different) element with the same Id already exists" << std::endl;
-                else
-                    aux.push_back( *(it.base()) );
-            }
-        }
-
-        for(auto it = aux_root.begin(); it!=aux_root.end(); it++)
-                root_model_part->Elements().push_back( *(it.base()) );
-        root_model_part->Elements().Unique();
-
-        //add to all of the leaves
-
-        ModelPart* current_part = this;
-        while(current_part->IsSubModelPart())
-        {
-            for(auto it = aux.begin(); it!=aux.end(); it++)
-                current_part->Elements().push_back( *(it.base()) );
-
-            current_part->Elements().Unique();
-
-            current_part = &(current_part->GetParentModelPart());
-        }
-
-        KRATOS_CATCH("")
+        EntityInserter<ElementsContainerType> inserter{this};
+        inserter.operator()(elements_begin, elements_end);
     }
 
     /// Creates new element with a node ids list.
@@ -1228,52 +1121,13 @@ public:
      */
     void AddConditions(std::vector<IndexType> const& ConditionIds, IndexType ThisIndex = 0);
 
-    /** Inserts a list of pointers to nodes
+    /** Inserts a list of pointers to conditions
      */
     template<class TIteratorType >
     void AddConditions(TIteratorType conditions_begin,  TIteratorType conditions_end, IndexType ThisIndex = 0)
     {
-        KRATOS_TRY
-        ModelPart::ConditionsContainerType  aux;
-        ModelPart::ConditionsContainerType  aux_root;
-        ModelPart* root_model_part = &this->GetRootModelPart();
-
-        for(TIteratorType it = conditions_begin; it!=conditions_end; it++)
-        {
-            auto it_found = root_model_part->Conditions().find(it->Id());
-            if(it_found == root_model_part->ConditionsEnd()) //node does not exist in the top model part
-            {
-                aux.push_back( *(it.base()) );
-                aux_root.push_back( *(it.base()) );
-            }
-            else //if it does exist verify it is the same node
-            {
-                if(&(*it_found) != &(*it))//check if the pointee coincides
-                    KRATOS_ERROR << "attempting to add a new Condition with Id :" << it_found->Id() << ", unfortunately a (different) Condition with the same Id already exists" << std::endl;
-                else
-                    aux.push_back( *(it.base()) );
-            }
-        }
-
-        //now add to the root model part
-        for(auto it = aux_root.begin(); it!=aux_root.end(); it++)
-                root_model_part->Conditions().push_back( *(it.base()) );
-        root_model_part->Conditions().Unique();
-
-        //add to all of the leaves
-
-        ModelPart* current_part = this;
-        while(current_part->IsSubModelPart())
-        {
-            for(auto it = aux.begin(); it!=aux.end(); it++)
-                current_part->Conditions().push_back( *(it.base()) );
-
-            current_part->Conditions().Unique();
-
-            current_part = &(current_part->GetParentModelPart());
-        }
-
-        KRATOS_CATCH("")
+        EntityInserter<ConditionsContainerType> inserter{this};
+        inserter.operator()(conditions_begin, conditions_end);
     }
 
     /// Creates new condition with a node ids list.
@@ -1525,40 +1379,31 @@ public:
     void AddGeometries(TIteratorType GeometryBegin,  TIteratorType GeometriesEnd, IndexType ThisIndex = 0)
     {
         KRATOS_TRY
-        std::vector<GeometryType::Pointer> aux, aux_root;
+
         ModelPart* p_root_model_part = &this->GetRootModelPart();
 
-        for(TIteratorType it = GeometryBegin; it!=GeometriesEnd; it++) {
-            auto it_found = p_root_model_part->Geometries().find(it->Id());
-            if(it_found == p_root_model_part->GeometriesEnd()) { // Geometry does not exist in the top model part
-                aux_root.push_back(*(it.base()));
-                aux.push_back(*(it.base()));
-            } else { // If it does exist verify it is the same geometry
-                if (GeometryType::HasSameGeometryType(*it, *it_found)) { // Check the geometry type and connectivities
-                    for (IndexType i_pt = 0; i_pt < it->PointsNumber(); ++i_pt) {
-                        KRATOS_ERROR_IF((*it)[i_pt].Id() != (*it_found)[i_pt].Id()) << "Attempting to add a new geometry with Id: " << it->Id() << ". A same type geometry with same Id but different connectivities already exists." << std::endl;
+        block_for_each(GeometryBegin, GeometriesEnd, [p_root_model_part](const auto& prGeometry) {
+            const auto& r_geometry = ReferenceGetter<GeometriesMapType::value_type>::Execute(prGeometry);
+            const auto& r_geometries = p_root_model_part->Geometries();
+            auto it_found = r_geometries.find(r_geometry.Id());
+            if (it_found != p_root_model_part->GeometriesEnd()) {
+                if (GeometryType::HasSameGeometryType(r_geometry, *it_found)) { // Check the geometry type and connectivities
+                    for (IndexType i_pt = 0; i_pt < r_geometry.PointsNumber(); ++i_pt) {
+                        KRATOS_ERROR_IF((r_geometry)[i_pt].Id() != (*it_found)[i_pt].Id()) << "Attempting to add a new geometry with Id: " << r_geometry.Id() << ". A same type geometry with same Id but different connectivities already exists." << std::endl;
                     }
-                    aux.push_back(*(it_found.base())); // If the Id, type and connectivities are the same add the existing geometry
-                } else if(&(*it_found) != &(*it)) { // Check if the pointee coincides
+                } else if(&(*it_found) != &r_geometry) { // Check if the pointee coincides
                     KRATOS_ERROR << "Attempting to add a new geometry with Id: " << it_found->Id() << ". A different geometry with the same Id already exists." << std::endl;
-                } else {
-                    aux.push_back(*(it.base()));
                 }
             }
-        }
+        });
 
         // Add to root model part
-        for(auto& p_geom : aux_root) {
-            p_root_model_part->AddGeometry(p_geom);
-        }
+        p_root_model_part->Geometries().insert(GeometryBegin, GeometriesEnd);
 
         // Add to all of the leaves
         ModelPart* p_current_part = this;
         while(p_current_part->IsSubModelPart()) {
-            for(auto& p_geom : aux) {
-                p_current_part->AddGeometry(p_geom);
-            }
-
+            p_current_part->Geometries().insert(GeometryBegin, GeometriesEnd);
             p_current_part = &(p_current_part->GetParentModelPart());
         }
 
@@ -1988,6 +1833,60 @@ private:
     ///@name Private Operations
     ///@{
 
+    template<class TReturnValueType>
+    struct ReferenceGetter
+    {
+        template<class TInputValueType>
+        inline static const TReturnValueType& Execute(const TInputValueType& rInputValue) {
+            if constexpr(std::is_same_v<TReturnValueType, std::remove_cv_t<TInputValueType>>) {
+                return rInputValue;
+            } else if constexpr(std::is_same_v<TReturnValueType, std::remove_cv_t<std::decay_t<decltype(*rInputValue)>>>) {
+                return *rInputValue;
+            } else if constexpr(std::is_same_v<TReturnValueType, std::remove_cv_t<std::decay_t<decltype(**rInputValue)>>>) {
+                return **rInputValue;
+            } else {
+                static_assert(!std::is_same_v<TInputValueType, TInputValueType>, "Unsupported value type.");
+                return TReturnValueType{};
+            }
+        }
+    };
+
+    template<class TContainerType>
+    struct EntityInserter
+    {
+        ModelPart* mpModelPart;
+
+        template<class TIterator>
+        void operator()(TIterator begin, TIterator end) {
+            KRATOS_TRY
+
+            ModelPart* p_root_model_part = &mpModelPart->GetRootModelPart();
+
+            block_for_each(begin, end, [p_root_model_part](const auto& prEntity) {
+                const auto& r_entity = ReferenceGetter<typename TContainerType::value_type>::Execute(prEntity);
+                const auto& r_entities = Container<TContainerType>::GetContainer(p_root_model_part->GetMesh()); // TODO: This is only required to only trigger a find, not a sort. Once the find is fixed, then we can simplify this.
+                auto it_found = r_entities.find(r_entity.Id());
+                KRATOS_ERROR_IF_NOT(&r_entity == &*it_found)
+                    << "attempting to add a new " << Container<TContainerType>::GetEntityName() << " with Id :"
+                    << r_entity.Id() << ", unfortunately a (different) " << Container<TContainerType>::GetEntityName()
+                    << " with the same Id already exists"
+                    << std::endl;
+            });
+
+            //now add to the root model part
+            Container<TContainerType>::GetContainer(p_root_model_part->GetMesh()).insert(begin, end);
+
+            //add to all of the parents
+            ModelPart* p_current_part = mpModelPart;
+            while(p_current_part->IsSubModelPart()) {
+                Container<TContainerType>::GetContainer(p_current_part->GetMesh()).insert(begin, end);
+                p_current_part = &(p_current_part->GetParentModelPart());
+            }
+
+            KRATOS_CATCH("")
+        }
+    };
+
     /**
      * @brief This method trims a string in the different components to access recursively to any subproperty
      * @param rStringName The given name to be trimmed
@@ -2068,6 +1967,25 @@ private:
 ///@name Type Definitions
 ///@{
 
+template <> struct ModelPart::Container<ModelPart::NodesContainerType> {
+    static std::string GetEntityName() { return "node"; }
+    static NodesContainerType& GetContainer(ModelPart::MeshType& rMesh) { return rMesh.Nodes(); }
+};
+
+template <> struct ModelPart::Container<ModelPart::ConditionsContainerType> {
+    static std::string GetEntityName() { return "condition"; }
+    static ConditionsContainerType& GetContainer(ModelPart::MeshType& rMesh) { return rMesh.Conditions(); }
+};
+
+template <> struct ModelPart::Container<ModelPart::ElementsContainerType> {
+    static std::string GetEntityName() { return "element"; }
+    static ElementsContainerType& GetContainer(ModelPart::MeshType& rMesh) { return rMesh.Elements(); }
+};
+
+template <> struct ModelPart::Container<ModelPart::MasterSlaveConstraintContainerType> {
+    static std::string GetEntityName() { return "master-slave-constraint"; }
+    static MasterSlaveConstraintContainerType& GetContainer(ModelPart::MeshType& rMesh) { return rMesh.MasterSlaveConstraints(); }
+};
 
 ///@}
 ///@name Input and output

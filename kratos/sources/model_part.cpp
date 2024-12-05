@@ -28,6 +28,78 @@ namespace Kratos
 KRATOS_CREATE_LOCAL_FLAG(ModelPart, ALL_ENTITIES, 0);
 KRATOS_CREATE_LOCAL_FLAG(ModelPart, OVERWRITE_ENTITIES, 1);
 
+namespace ModelPartHelperUtilities
+{
+
+template<class TContainerType>
+void AddEntitiesFromIds(
+    ModelPart* pModelPart,
+    const std::vector<IndexType>& rEntityIds)
+{
+    KRATOS_TRY
+
+    if(pModelPart->IsSubModelPart()) { //does nothing if we are on the top model part
+        //obtain from the root model part the corresponding list of nodes
+        ModelPart* root_model_part = &pModelPart->GetRootModelPart();
+
+        std::vector<typename TContainerType::pointer> aux;
+        aux.reserve(rEntityIds.size());
+
+        const auto& r_container = ModelPart::Container<TContainerType>::GetContainer(root_model_part->GetMesh());
+
+        for(const auto entity_id : rEntityIds) {
+            auto it = r_container.find(entity_id);
+            if(it != r_container.end()) {
+                aux.push_back(*(it.base()));
+            } else {
+                KRATOS_ERROR << "while adding " << ModelPart::Container<TContainerType>::GetEntityName() << "s to submodelpart "
+                             << pModelPart->FullName() << ", the "
+                             << ModelPart::Container<TContainerType>::GetEntityName()
+                             << " with Id " << entity_id << " does not exist in the root model part";
+            }
+        }
+
+        ModelPart* current_part = pModelPart;
+        while(current_part->IsSubModelPart()) {
+            ModelPart::Container<TContainerType>::GetContainer(current_part->GetMesh()).insert(aux.begin(), aux.end());
+            current_part = &(current_part->GetParentModelPart());
+        }
+    }
+
+    KRATOS_CATCH("");
+}
+
+template<class TContainerType>
+void RemoveEntities(
+    ModelPart::MeshType& rMesh,
+    const Flags& rIdentifierFlag)
+{
+    KRATOS_TRY
+
+    auto& r_container = ModelPart::Container<TContainerType>::GetContainer(rMesh);
+
+    //count the nodes to be erase
+    const auto erase_count = block_for_each<SumReduction<unsigned int>>(r_container, [&rIdentifierFlag](const auto& rEntity) -> unsigned int {
+        return rEntity.Is(rIdentifierFlag);
+    });
+
+    TContainerType temp_entities;
+    temp_entities.reserve(r_container.size() - erase_count);
+    temp_entities.swap(r_container);
+
+    for(auto i_entity = temp_entities.begin() ; i_entity != temp_entities.end() ; ++i_entity) {
+        if (i_entity->IsNot(rIdentifierFlag)) {
+            // we can safely insert them at the end with the correct hint here since, the original r_mesh
+            // is sorted and unique.
+            r_container.insert(r_container.end(), std::move(*(i_entity.base())));
+        }
+    }
+
+    KRATOS_CATCH("");
+}
+
+} // namespace ModelPartHelperUtilities
+
 /// Default constructor.
 ModelPart::ModelPart(VariablesList::Pointer pVariablesList, Model& rOwnerModel) : ModelPart("Default", pVariablesList, rOwnerModel) { }
 
@@ -232,37 +304,9 @@ void ModelPart::AddNode(ModelPart::NodeType::Pointer pNewNode, ModelPart::IndexT
 
 /** Inserts a list of nodes in a submodelpart provided their Id. Does nothing if applied to the top model part
 */
-void ModelPart::AddNodes(std::vector<IndexType> const& NodeIds, IndexType ThisIndex)
+void ModelPart::AddNodes(std::vector<IndexType> const& rNodeIds, IndexType ThisIndex)
 {
-    KRATOS_TRY
-    if(IsSubModelPart()) //does nothing if we are on the top model part
-    {
-        //obtain from the root model part the corresponding list of nodes
-        ModelPart* root_model_part = &this->GetRootModelPart();
-        ModelPart::NodesContainerType  aux;
-        aux.reserve(NodeIds.size());
-        for(unsigned int i=0; i<NodeIds.size(); i++)
-        {
-            ModelPart::NodesContainerType::iterator it = root_model_part->Nodes().find(NodeIds[i]);
-            if(it!=root_model_part->NodesEnd())
-                aux.push_back(*(it.base()));
-            else
-                KRATOS_ERROR << "while adding nodes to submodelpart, the node with Id " << NodeIds[i] << " does not exist in the root model part";
-        }
-
-        ModelPart* current_part = this;
-        while(current_part->IsSubModelPart())
-        {
-            for(auto it = aux.begin(); it!=aux.end(); it++)
-                current_part->Nodes().push_back( *(it.base()) );
-
-            current_part->Nodes().Unique();
-
-            current_part = &(current_part->GetParentModelPart());
-        }
-    }
-
-    KRATOS_CATCH("");
+    ModelPartHelperUtilities::AddEntitiesFromIds<ModelPart::NodesContainerType>(this, rNodeIds);
 }
 
 /** Inserts a node in the mesh with ThisIndex.
@@ -444,34 +488,10 @@ void ModelPart::RemoveNodeFromAllLevels(ModelPart::NodeType::Pointer pThisNode, 
 
 void ModelPart::RemoveNodes(Flags IdentifierFlag)
 {
-    // Lambda to remove nodes from a mesh
-    auto remove_nodes_from_mesh = [&](ModelPart::MeshType& r_mesh) {
-        //count the nodes to be erase
-        const unsigned int nnodes = r_mesh.Nodes().size();
-        unsigned int erase_count = 0;
-        #pragma omp parallel for reduction(+:erase_count)
-        for(int i=0; i<static_cast<int>(nnodes); ++i) {
-            ModelPart::NodesContainerType::iterator i_node = r_mesh.NodesBegin() + i;
-
-            if( i_node->IsNot(IdentifierFlag) )
-                erase_count++;
-        }
-
-        ModelPart::NodesContainerType temp_nodes_container;
-        temp_nodes_container.reserve(r_mesh.Nodes().size() - erase_count);
-
-        temp_nodes_container.swap(r_mesh.Nodes());
-
-        for(ModelPart::NodesContainerType::iterator i_node = temp_nodes_container.begin() ; i_node != temp_nodes_container.end() ; ++i_node) {
-            if( i_node->IsNot(IdentifierFlag) )
-                (r_mesh.Nodes()).push_back(std::move(*(i_node.base())));
-        }
-    };
-
     // This method is optimized to free the memory
     // Loop over all the local meshes (Is this still necessary with Submodelparts?)
     for(auto& r_mesh: this->GetMeshes()) {
-        remove_nodes_from_mesh(r_mesh);
+        ModelPartHelperUtilities::RemoveEntities<ModelPart::NodesContainerType>(r_mesh, IdentifierFlag);
     }
 
     if (IsDistributed()) {
@@ -479,19 +499,19 @@ void ModelPart::RemoveNodes(Flags IdentifierFlag)
         this->GetCommunicator().SynchronizeOrNodalFlags(IdentifierFlag);
 
         // Remove the nodes from the mpi-interfaces in case there is any
-        remove_nodes_from_mesh(this->GetCommunicator().LocalMesh());
+        ModelPartHelperUtilities::RemoveEntities<ModelPart::NodesContainerType>(this->GetCommunicator().LocalMesh(), IdentifierFlag);
         for(auto& r_mesh: this->GetCommunicator().LocalMeshes()) {
-            remove_nodes_from_mesh(r_mesh);
+            ModelPartHelperUtilities::RemoveEntities<ModelPart::NodesContainerType>(r_mesh, IdentifierFlag);
         }
 
-        remove_nodes_from_mesh(this->GetCommunicator().GhostMesh());
+        ModelPartHelperUtilities::RemoveEntities<ModelPart::NodesContainerType>(this->GetCommunicator().GhostMesh(), IdentifierFlag);
         for(auto& r_mesh: this->GetCommunicator().GhostMeshes()) {
-            remove_nodes_from_mesh(r_mesh);
+            ModelPartHelperUtilities::RemoveEntities<ModelPart::NodesContainerType>(r_mesh, IdentifierFlag);
         }
 
-        remove_nodes_from_mesh(this->GetCommunicator().InterfaceMesh());
+        ModelPartHelperUtilities::RemoveEntities<ModelPart::NodesContainerType>(this->GetCommunicator().InterfaceMesh(), IdentifierFlag);
         for(auto& r_mesh: this->GetCommunicator().InterfaceMeshes()) {
-            remove_nodes_from_mesh(r_mesh);
+            ModelPartHelperUtilities::RemoveEntities<ModelPart::NodesContainerType>(r_mesh, IdentifierFlag);
         }
     }
 
@@ -940,34 +960,7 @@ void ModelPart::AddElement(ModelPart::ElementType::Pointer pNewElement, ModelPar
 */
 void ModelPart::AddElements(std::vector<IndexType> const& ElementIds, IndexType ThisIndex)
 {
-    KRATOS_TRY
-    if(IsSubModelPart()) //does nothing if we are on the top model part
-    {
-        //obtain from the root model part the corresponding list of nodes
-        ModelPart* root_model_part = &this->GetRootModelPart();
-        ModelPart::ElementsContainerType  aux;
-        aux.reserve(ElementIds.size());
-        for(unsigned int i=0; i<ElementIds.size(); i++)
-        {
-            ModelPart::ElementsContainerType::iterator it = root_model_part->Elements().find(ElementIds[i]);
-            if(it!=root_model_part->ElementsEnd())
-                aux.push_back(*(it.base()));
-            else
-                KRATOS_ERROR << "the element with Id " << ElementIds[i] << " does not exist in the root model part";
-        }
-
-        ModelPart* current_part = this;
-        while(current_part->IsSubModelPart())
-        {
-            for(auto it = aux.begin(); it!=aux.end(); it++)
-                current_part->Elements().push_back( *(it.base()) );
-
-            current_part->Elements().Unique();
-
-            current_part = &(current_part->GetParentModelPart());
-        }
-    }
-    KRATOS_CATCH("");
+    ModelPartHelperUtilities::AddEntitiesFromIds<ModelPart::ElementsContainerType>(this, ElementIds);
 }
 
 /** Inserts an element in the mesh with ThisIndex.
@@ -1128,36 +1121,14 @@ void ModelPart::RemoveElements(Flags IdentifierFlag)
 {
     // This method is optimized to free the memory
     //loop over all the meshes
-    auto& meshes = this->GetMeshes();
-    for(ModelPart::MeshesContainerType::iterator i_mesh = meshes.begin() ; i_mesh != meshes.end() ; i_mesh++)
-    {
-        //count the elements to be erase
-        const unsigned int nelements = i_mesh->Elements().size();
-        unsigned int erase_count = 0;
-        #pragma omp parallel for reduction(+:erase_count)
-        for(int i=0; i<static_cast<int>(nelements); ++i)
-        {
-            auto i_elem = i_mesh->ElementsBegin() + i;
-
-            if( i_elem->IsNot(IdentifierFlag) )
-                erase_count++;
-        }
-
-        ModelPart::ElementsContainerType temp_elements_container;
-        temp_elements_container.reserve(i_mesh->Elements().size() - erase_count);
-
-        temp_elements_container.swap(i_mesh->Elements());
-
-        for(ModelPart::ElementsContainerType::iterator i_elem = temp_elements_container.begin() ; i_elem != temp_elements_container.end() ; i_elem++)
-        {
-            if( i_elem->IsNot(IdentifierFlag) )
-                (i_mesh->Elements()).push_back(std::move(*(i_elem.base())));
-        }
+    for(auto& r_mesh : this->GetMeshes()) {
+        ModelPartHelperUtilities::RemoveEntities<ModelPart::ElementsContainerType>(r_mesh, IdentifierFlag);
     }
 
     //now recursively remove the elements in the submodelparts
-    for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
-        i_sub_model_part->RemoveElements(IdentifierFlag);
+    for (auto& r_sub_model_part : this->SubModelParts()) {
+        r_sub_model_part.RemoveElements(IdentifierFlag);
+    }
 }
 
 void ModelPart::RemoveElementsFromAllLevels(Flags IdentifierFlag)
@@ -1199,34 +1170,7 @@ void ModelPart::AddMasterSlaveConstraint(ModelPart::MasterSlaveConstraintType::P
  */
 void ModelPart::AddMasterSlaveConstraints(std::vector<IndexType> const& MasterSlaveConstraintIds, IndexType ThisIndex)
 {
-    KRATOS_TRY
-    if(IsSubModelPart()) //does nothing if we are on the top model part
-    {
-        //obtain from the root model part the corresponding list of constraints
-        ModelPart* root_model_part = &this->GetRootModelPart();
-        ModelPart::MasterSlaveConstraintContainerType  aux;
-        aux.reserve(MasterSlaveConstraintIds.size());
-        for(unsigned int i=0; i<MasterSlaveConstraintIds.size(); i++)
-        {
-            ModelPart::MasterSlaveConstraintContainerType::iterator it = root_model_part->MasterSlaveConstraints().find(MasterSlaveConstraintIds[i]);
-            if(it!=root_model_part->MasterSlaveConstraintsEnd())
-                aux.push_back(*(it.base()));
-            else
-                KRATOS_ERROR << "the master-slave constraint with Id " << MasterSlaveConstraintIds[i] << " does not exist in the root model part";
-        }
-
-        ModelPart* current_part = this;
-        while(current_part->IsSubModelPart())
-        {
-            for(auto it = aux.begin(); it!=aux.end(); it++)
-                current_part->MasterSlaveConstraints().push_back( *(it.base()) );
-
-            current_part->MasterSlaveConstraints().Unique();
-
-            current_part = &(current_part->GetParentModelPart());
-        }
-    }
-    KRATOS_CATCH("");
+    ModelPartHelperUtilities::AddEntitiesFromIds<ModelPart::MasterSlaveConstraintContainerType>(this, MasterSlaveConstraintIds);
 }
 
 /// @brief Construct a new @ref MasterSlaveConstraint and insert it into the specified @ref Mesh.
@@ -1394,33 +1338,14 @@ void ModelPart::RemoveMasterSlaveConstraintFromAllLevels(ModelPart::MasterSlaveC
 void ModelPart::RemoveMasterSlaveConstraints(Flags IdentifierFlag)
 {
     // This method is optimized to free the memory loop over all the meshes
-    auto& meshes = this->GetMeshes();
-    for(auto it_mesh = meshes.begin() ; it_mesh != meshes.end() ; it_mesh++) {
-        // Count the constraints to be erase
-        const SizeType nconstraints = it_mesh->MasterSlaveConstraints().size();
-        SizeType erase_count = 0;
-        #pragma omp parallel for reduction(+:erase_count)
-        for(int i=0; i<static_cast<int>(nconstraints); ++i) {
-            auto it_const = it_mesh->MasterSlaveConstraintsBegin() + i;
-
-            if( it_const->IsNot(IdentifierFlag) )
-                erase_count++;
-        }
-
-        ModelPart::MasterSlaveConstraintContainerType temp_constraints_container;
-        temp_constraints_container.reserve(it_mesh->MasterSlaveConstraints().size() - erase_count);
-
-        temp_constraints_container.swap(it_mesh->MasterSlaveConstraints());
-
-        for(auto it_const = temp_constraints_container.begin() ; it_const != temp_constraints_container.end(); it_const++) {
-            if( it_const->IsNot(IdentifierFlag) )
-                (it_mesh->MasterSlaveConstraints()).push_back(std::move(*(it_const.base())));
-        }
+    for(auto& r_mesh : this->GetMeshes()) {
+        ModelPartHelperUtilities::RemoveEntities<ModelPart::MasterSlaveConstraintContainerType>(r_mesh, IdentifierFlag);
     }
 
     // Now recursively remove the constraints in the submodelparts
-    for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
-        i_sub_model_part->RemoveMasterSlaveConstraints(IdentifierFlag);
+    for (auto& r_sub_model_part : this->SubModelParts()) {
+        r_sub_model_part.RemoveMasterSlaveConstraints(IdentifierFlag);
+    }
 }
 
 /***********************************************************************************/
@@ -1477,34 +1402,7 @@ void ModelPart::AddCondition(ModelPart::ConditionType::Pointer pNewCondition, Mo
 */
 void ModelPart::AddConditions(std::vector<IndexType> const& ConditionIds, IndexType ThisIndex)
 {
-    KRATOS_TRY
-    if(IsSubModelPart()) //does nothing if we are on the top model part
-    {
-        //obtain from the root model part the corresponding list of nodes
-        ModelPart* root_model_part = &this->GetRootModelPart();
-        ModelPart::ConditionsContainerType  aux;
-        aux.reserve(ConditionIds.size());
-        for(unsigned int i=0; i<ConditionIds.size(); i++)
-        {
-            ModelPart::ConditionsContainerType::iterator it = root_model_part->Conditions().find(ConditionIds[i]);
-            if(it!=root_model_part->ConditionsEnd())
-                aux.push_back(*(it.base()));
-            else
-                KRATOS_ERROR << "the condition with Id " << ConditionIds[i] << " does not exist in the root model part";
-        }
-
-        ModelPart* current_part = this;
-        while(current_part->IsSubModelPart())
-        {
-            for(auto it = aux.begin(); it!=aux.end(); it++)
-                current_part->Conditions().push_back( *(it.base()) );
-
-            current_part->Conditions().Unique();
-
-            current_part = &(current_part->GetParentModelPart());
-        }
-    }
-    KRATOS_CATCH("");
+    ModelPartHelperUtilities::AddEntitiesFromIds<ModelPart::ConditionsContainerType>(this, ConditionIds);
 }
 
 /** Inserts a condition in the mesh with ThisIndex.
@@ -1663,36 +1561,14 @@ void ModelPart::RemoveConditions(Flags IdentifierFlag)
 {
     // This method is optimized to free the memory
     //loop over all the meshes
-    auto& meshes = this->GetMeshes();
-    for(ModelPart::MeshesContainerType::iterator i_mesh = meshes.begin() ; i_mesh != meshes.end() ; i_mesh++)
-    {
-        //count the conditions to be erase
-        const unsigned int nconditions = i_mesh->Conditions().size();
-        unsigned int erase_count = 0;
-        #pragma omp parallel for reduction(+:erase_count)
-        for(int i=0; i<static_cast<int>(nconditions); ++i)
-        {
-            auto i_cond = i_mesh->ConditionsBegin() + i;
-
-            if( i_cond->IsNot(IdentifierFlag) )
-                erase_count++;
-        }
-
-        ModelPart::ConditionsContainerType temp_conditions_container;
-        temp_conditions_container.reserve(i_mesh->Conditions().size() - erase_count);
-
-        temp_conditions_container.swap(i_mesh->Conditions());
-
-        for(ModelPart::ConditionsContainerType::iterator i_cond = temp_conditions_container.begin() ; i_cond != temp_conditions_container.end() ; i_cond++)
-        {
-            if( i_cond->IsNot(IdentifierFlag) )
-                (i_mesh->Conditions()).push_back(std::move(*(i_cond.base())));
-        }
+    for(auto& r_mesh : this->GetMeshes())  {
+        ModelPartHelperUtilities::RemoveEntities<ModelPart::ConditionsContainerType>(r_mesh, IdentifierFlag);
     }
 
     //now recursively remove the conditions in the submodelparts
-    for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
-        i_sub_model_part->RemoveConditions(IdentifierFlag);
+    for (auto& r_sub_model_part : this->SubModelParts()) {
+        r_sub_model_part.RemoveConditions(IdentifierFlag);
+    }
 }
 
 void ModelPart::RemoveConditionsFromAllLevels(Flags IdentifierFlag)
@@ -2013,7 +1889,6 @@ void ModelPart::AddGeometry(
  */
 void ModelPart::AddGeometries(std::vector<IndexType> const& GeometriesIds)
 {
-    KRATOS_TRY
     if(IsSubModelPart()) { // Does nothing if we are on the top model part
         // Obtain from the root model part the corresponding list of geometries
         ModelPart* p_root_model_part = &this->GetRootModelPart();
@@ -2030,14 +1905,10 @@ void ModelPart::AddGeometries(std::vector<IndexType> const& GeometriesIds)
 
         ModelPart* p_current_part = this;
         while(p_current_part->IsSubModelPart()) {
-            for(auto& p_geom : aux) {
-                p_current_part->AddGeometry(p_geom);
-            }
-
+            p_current_part->Geometries().insert(aux.begin(), aux.end());
             p_current_part = &(p_current_part->GetParentModelPart());
         }
     }
-    KRATOS_CATCH("");
 }
 
 /// Removes a geometry by id.
