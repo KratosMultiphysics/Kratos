@@ -36,7 +36,7 @@ public:
         TDataType* pValue(std::size_t Index)
         {
             std::size_t offset = Index * mpVariable->Size()/sizeof(BlockType);
-            TDataType* p = static_cast<TDataType*>(mpValues + offset);
+            TDataType* p = reinterpret_cast<TDataType*>(mpValues + offset);
             return p;
         }
 
@@ -44,7 +44,7 @@ public:
         const TDataType* pValue(std::size_t Index) const
         {
             std::size_t offset = Index * mpVariable->Size()/sizeof(BlockType);
-            const TDataType* p = static_cast<const TDataType*>(mpValues + offset);
+            const TDataType* p = reinterpret_cast<const TDataType*>(mpValues + offset);
             return p;
         }
 
