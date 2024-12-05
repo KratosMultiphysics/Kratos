@@ -346,7 +346,7 @@ double& GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::GetValue(
     double& rValue
     )
 {
-    if (rThisVariable == DAMAGE || rThisVariable == LAMBDA_MAX) {
+    if (rThisVariable == DAMAGE) {
         rValue = mDamage;
     } else if (rThisVariable == THRESHOLD) {
         rValue = mThreshold;
@@ -428,13 +428,13 @@ Vector& GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateVal
 
 template <class TConstLawIntegratorType>
 Matrix& GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateValue(
-    ConstitutiveLaw::Parameters& rValues,
+    ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<Matrix>& rThisVariable,
     Matrix& rValue
     )
 {
 
-    return BaseType::CalculateValue(rValues, rThisVariable, rValue);
+    return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
 }
 
 /***********************************************************************************/

@@ -1,6 +1,5 @@
 # Importing Kratos
 import KratosMultiphysics
-import KratosMultiphysics.StructuralMechanicsApplication as SMApp
 from KratosMultiphysics.process_factory import KratosProcessFactory
 from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 from KratosMultiphysics.model_parameters_factory import KratosModelParametersFactory
