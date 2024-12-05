@@ -456,7 +456,9 @@ public:
                     r_friction_force[1] = tangent_force1;
                     r_friction_force[2] = tangent_force2;
                 }
-
+				
+				// reset flag as this function is called in InitializeNonLinearIteration
+				rNode.SetValue(FRICTION_ASSIGNED, false);
             }
         });
     }
