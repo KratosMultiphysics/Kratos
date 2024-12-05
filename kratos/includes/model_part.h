@@ -1383,7 +1383,7 @@ public:
         ModelPart* p_root_model_part = &this->GetRootModelPart();
 
         block_for_each(GeometryBegin, GeometriesEnd, [p_root_model_part](const auto& prGeometry) {
-            const auto& r_geometry = ReferenceGetter<GeometriesMapType::value_type>::Execute(prGeometry);
+            const auto& r_geometry = ReferenceGetter<GeometriesMapType::value_type>::Get(prGeometry);
             const auto& r_geometries = p_root_model_part->Geometries();
             auto it_found = r_geometries.find(r_geometry.Id());
             if (it_found != p_root_model_part->GeometriesEnd()) {
@@ -1837,7 +1837,7 @@ private:
     struct ReferenceGetter
     {
         template<class TInputValueType>
-        inline static const TReturnValueType& Execute(const TInputValueType& rInputValue) {
+        inline static const TReturnValueType& Get(const TInputValueType& rInputValue) {
             if constexpr(std::is_same_v<TReturnValueType, std::remove_cv_t<TInputValueType>>) {
                 return rInputValue;
             } else if constexpr(std::is_same_v<TReturnValueType, std::remove_cv_t<std::decay_t<decltype(*rInputValue)>>>) {
@@ -1863,7 +1863,7 @@ private:
             ModelPart* p_root_model_part = &mpModelPart->GetRootModelPart();
 
             block_for_each(begin, end, [&](const auto& prEntity) {
-                const auto& r_entity = ReferenceGetter<typename TContainerType::value_type>::Execute(prEntity);
+                const auto& r_entity = ReferenceGetter<typename TContainerType::value_type>::Get(prEntity);
                 const auto& r_entities = Container<TContainerType>::GetContainer(p_root_model_part->GetMesh()); // TODO: This is only required to only trigger a find, not a sort. Once the find is fixed, then we can simplify this.
                 auto it_found = r_entities.find(r_entity.Id());
                 KRATOS_ERROR_IF_NOT(&r_entity == &*it_found)
