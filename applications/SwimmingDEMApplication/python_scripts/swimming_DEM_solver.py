@@ -201,31 +201,31 @@ class SwimmingDEMSolver(PythonSolver):
         # Call the base Python solver constructor
         super().__init__(model, project_parameters)
 
-        # ANALYTICAL SOLUTION #
-        microL_min_to_SI_units = (1e-6 / 1.) * 1e-3 / 60.  # Convert microliters / minute to SI units
-        fluxes = np.array([.5, 1.5, .5]) * microL_min_to_SI_units
-        densities = np.array([1060., 1030., 1000.])
-        self.analytical_solution = Solution3D(tol=1e-6)
-        self.analytical_solution.initialize_with_physical_variables(densities, fluxes)
-        self.analytical_solution.set_max_dims((80, 80))
-        x_min_dimless = self.analytical_solution.get_max_x_from_max_dims()
-        self.analytical_solution.compute_solution_at_points(x_min_dimless, np.array([0.]), np.array([0.]))
+        # # ANALYTICAL SOLUTION #
+        # microL_min_to_SI_units = (1e-6 / 1.) * 1e-3 / 60.  # Convert microliters / minute to SI units
+        # fluxes = np.array([.5, 1.5, .5]) * microL_min_to_SI_units
+        # densities = np.array([1060., 1030., 1000.])
+        # self.analytical_solution = Solution3D(tol=1e-6)
+        # self.analytical_solution.initialize_with_physical_variables(densities, fluxes)
+        # self.analytical_solution.set_max_dims((80, 80))
+        # x_min_dimless = self.analytical_solution.get_max_x_from_max_dims()
+        # self.analytical_solution.compute_solution_at_points(x_min_dimless, np.array([0.]), np.array([0.]))
 
-        radius = .5e-3
-        length = 2e-2
-        peclet = 1e4
-        lambda_peclet = (radius / length) * peclet
-        v0 = sum(fluxes) / (np.pi * pow(.5e-3, 2))
-        physical_params = {
-            "rad": radius,
-            "v0" : v0
-        }
-        self.x_min_analytical = lambda_peclet * length * x_min_dimless
-        if self.x_min_analytical / length >= .5:
-            raise ValueError("Error: The analytical solution can not be imposed with this value of Peclet.")
+        # radius = .5e-3
+        # length = 2e-2
+        # peclet = 1e4
+        # lambda_peclet = (radius / length) * peclet
+        # v0 = sum(fluxes) / (np.pi * pow(.5e-3, 2))
+        # physical_params = {
+        #     "rad": radius,
+        #     "v0" : v0
+        # }
+        # self.x_min_analytical = lambda_peclet * length * x_min_dimless
+        # if self.x_min_analytical / length >= .5:
+        #     raise ValueError("Error: The analytical solution can not be imposed with this value of Peclet.")
 
-        self.physical_params = physical_params
-        print(f"Analytical solution initialized with x_min = {self.x_min_analytical / length}, x_dimless = {x_min_dimless}")
+        # self.physical_params = physical_params
+        # print(f"Analytical solution initialized with x_min = {self.x_min_analytical / length}, x_dimless = {x_min_dimless}")
 
         # Plot sol
         # y_val = 0.
