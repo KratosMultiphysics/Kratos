@@ -30,8 +30,9 @@ public:
         DataBlock(const DataBlock& rOther)
             : mpVariable(rOther.mpVariable)
             , mSize(rOther.mSize)
-            , mpValues(new BlockType[mSize*mpVariable->Size()/sizeof(BlockType)])
         {
+            const std::size_t allocation_size = mpVariable->Size() / sizeof(BlockType);
+            mpValues = new BlockType[mSize * allocation_size];
             for(std::size_t i = 0; i < mSize; i++) {
                 mpVariable->Assign(mpValues + i, rOther.mpValues + i);
             }
