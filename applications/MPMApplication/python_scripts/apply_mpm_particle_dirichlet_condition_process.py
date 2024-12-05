@@ -134,7 +134,7 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
 
                 ### Set necessary essential BC variables
                 if self.boundary_condition_type==1 or self.boundary_condition_type==2:
-                    condition.SetValue(KratosParticle.PENALTY_FACTOR, self.penalty_factor)
+                    condition.SetValue(KratosMPM.PENALTY_FACTOR, self.penalty_factor)
         else:
             err_msg = '\n::[ApplyMPMParticleDirichletConditionProcess]:: W-A-R-N-I-N-G: You have specified invalid "material_points_per_condition", '
             err_msg += 'or assigned negative values. \nPlease assign: "material_points_per_condition" > 0 or = 0 (for automatic value)!\n'
