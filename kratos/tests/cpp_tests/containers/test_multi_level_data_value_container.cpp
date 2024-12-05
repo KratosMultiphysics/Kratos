@@ -43,8 +43,8 @@ KRATOS_TEST_CASE_IN_SUITE(MultiLevelDataValueContainerSetValue, KratosCoreFastSu
 
     array_1d<double, 3> array = ZeroVector(3);
     array[0] = 1.0; array[1] = 2.0; array[2] = 3.0;
-    // container.SetValue(VELOCITY, accesor, {1,2}, array);
-    // KRATOS_WATCH(container.GetValue(VELOCITY, accesor, {1,2}));
+    container.SetValue(VELOCITY, accesor, {1,2}, array);
+    KRATOS_WATCH(container.GetValue(VELOCITY, accesor, {1,2}));
     KRATOS_WATCH("Im fine")
 }
 
