@@ -45,6 +45,7 @@ protected:
     {
         // covariant metric
         array_1d<double, 3> a_ab_covariant;
+        array_1d<double, 3> b_ab_covariant;
 
         //base vector 1
         array_1d<double, 3> a1;
@@ -72,6 +73,7 @@ protected:
         KinematicVariables(SizeType Dimension)
         {
             noalias(a_ab_covariant) = ZeroVector(Dimension);
+            noalias(b_ab_covariant) = ZeroVector(Dimension);
 
             noalias(a1) = ZeroVector(Dimension);
             noalias(a2) = ZeroVector(Dimension);
@@ -323,6 +325,9 @@ private:
     // Components of the metric coefficient tensor on the contravariant basis
     std::vector<array_1d<double, 3>> m_A_ab_covariant_vector_master;
     std::vector<array_1d<double, 3>> m_A_ab_covariant_vector_slave;
+    // Components of the curvature coefficient tensor on the contravariant basis
+    std::vector<array_1d<double, 3>> m_B_ab_covariant_vector_master;
+    std::vector<array_1d<double, 3>> m_B_ab_covariant_vector_slave;
 
     // Determinant of the geometrical Jacobian.
     Vector m_dA_vector_master;
@@ -397,6 +402,47 @@ private:
         array_1d<double, 3>& rSecondVariationTractionProductMasterSlave,
         const PatchType& rPatch);
     
+    // Moment-related functions
+    void CalculateMoment(
+        IndexType IntegrationPointIndex,
+        array_1d<double, 3>& rMoment,
+        const KinematicVariables& rActualKinematic,
+        ConstitutiveVariables& rThisConstitutiveVariablesCurvature, 
+        const PatchType& rPatch);
+
+    void CalculateFirstVariationMomentCovariant(
+        IndexType IntegrationPointIndex,
+        Matrix& rFirstVariationMomentCovariant,
+        const KinematicVariables& rActualKinematic,
+        ConstitutiveVariables& rThisConstitutiveVariablesCurvature, 
+        const PatchType& rPatch);
+
+    void CalculateFirstVariationMoment(
+        IndexType IntegrationPointIndex,
+        Matrix& rFirstVariationMoment,
+        Matrix& rFirstVariationMomentCovariant,
+        const KinematicVariables& rActualKinematic,
+        ConstitutiveVariables& rThisConstitutiveVariablesCurvature, 
+        const PatchType& rPatch);
+
+    void CalculateSecondVariationMomentProduct(
+        IndexType IntegrationPointIndex,
+        Matrix& rPi,
+        const KinematicVariables& rActualKinematic,
+        ConstitutiveVariables& rThisConstitutiveVariablesCurvature,
+        const PatchType& rPatch);
+
+    void CalculateSecondVariationMoment(
+        IndexType IntegrationPointIndex,
+        Matrix& rSecondVariationMoment,
+        const KinematicVariables& rActualKinematic,
+        Matrix& rFirstVariationMomentCovariant, 
+        array_1d<double, 3>& rRotationMaster,
+        array_1d<double, 3>& rRotationSlave,
+        array_1d<double, 3>& rSecondVariationMomentProduct,
+        array_1d<double, 3>& rSecondVariationMomentProductMasterSlave,
+        const PatchType& rPatch);
+    
     /**
     * This functions updates the constitutive variables
     * @param rActualMetric: The actual metric
@@ -408,6 +454,7 @@ private:
         IndexType IntegrationPointIndex,
         KinematicVariables& rActualMetric,
         ConstitutiveVariables& rThisConstitutiveVariablesMembrane,
+        ConstitutiveVariables& rThisConstitutiveVariablesCurvature,
         ConstitutiveLaw::Parameters& rValues,
         const ConstitutiveLaw::StressMeasure ThisStressMeasure,
         const PatchType& rPatch
@@ -428,6 +475,33 @@ private:
     //     PrestresstransVariables& rPrestresstransVariables
     //     );
 
+    // Compute rotational shape functions
+    void CalculateRotationalShapeFunctions(
+        IndexType IntegrationPointIndex,
+        Vector& phi_r,
+        Matrix& phi_rs,
+        array_1d<double, 2>& diff_phi);
+
+    // Compute rotation
+    void CalculateRotation(
+        IndexType IntegrationPointIndex,
+        const Matrix &rShapeFunctionGradientValues,
+        Vector &phi_r,
+        Matrix &phi_rs,
+        array_1d<double, 2> &phi,
+        array_1d<double, 3> &trim_tangent,
+        const Vector &local_tangent,
+        const bool master);
+
+    ///@}
+    ///@name Geometrical Functions
+    ///@{
+
+    void CalculateHessian(
+        Matrix& Hessian,
+        const Matrix& rDDN_DDe,
+        const PatchType& rPatch) const;
+
     ///@}
     ///@name Serialization
     ///@{
@@ -439,6 +513,8 @@ private:
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition);
         rSerializer.save("A_ab_covariant_vector_master", m_A_ab_covariant_vector_master);
         rSerializer.save("A_ab_covariant_vector_slave", m_A_ab_covariant_vector_slave);
+        rSerializer.save("B_ab_covariant_vector_master", m_B_ab_covariant_vector_master);
+        rSerializer.save("B_ab_covariant_vector_slave", m_B_ab_covariant_vector_slave);
         rSerializer.save("dA_vector_master", m_dA_vector_master);
         rSerializer.save("dA_vector_slave", m_dA_vector_slave);
         rSerializer.save("T_vector_master", m_T_vector_master);
@@ -452,6 +528,8 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition);
         rSerializer.load("A_ab_covariant_vector_master", m_A_ab_covariant_vector_master);
         rSerializer.load("A_ab_covariant_vector_slave", m_A_ab_covariant_vector_slave);
+        rSerializer.load("B_ab_covariant_vector_master", m_B_ab_covariant_vector_master);
+        rSerializer.load("B_ab_covariant_vector_slave", m_B_ab_covariant_vector_slave);
         rSerializer.load("dA_vector_master", m_dA_vector_master);
         rSerializer.load("dA_vector_slave", m_dA_vector_slave);
         rSerializer.load("T_vector_master", m_T_vector_master);
