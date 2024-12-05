@@ -15,8 +15,6 @@
 // External includes
 
 // Project includes
-#include "utilities/element_size_calculator.h"
-#include "utilities/math_utils.h"
 #include "includes/checks.h"
 
 // Application includes
@@ -223,7 +221,6 @@ void SmallDisplacementMixedStrainDisplacementElement::InitializeSolutionStep(
 {
     KRATOS_TRY
 
-
     bool required = false;
     for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number) {
         if (mConstitutiveLawVector[point_number]->RequiresInitializeMaterialResponse()) {
@@ -346,6 +343,8 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
     VectorType& rRHS,
     const ProcessInfo& rProcessInfo)
 {
+    KRATOS_TRY
+
     const auto& r_geometry = GetGeometry();
     auto &r_props          = GetProperties();
     const SizeType dim     = r_geometry.WorkingSpaceDimension();
@@ -445,6 +444,8 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
 
     AssembleRHS(rRHS, RHSu, RHSe);
     AssembleLHS(rLHS, K, Q, M, G);
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -454,6 +455,8 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLeftHandSide(
     MatrixType& rLHS,
     const ProcessInfo& rProcessInfo)
 {
+    KRATOS_TRY
+
     const auto& r_geometry = GetGeometry();
     auto &r_props          = GetProperties();
     const SizeType dim     = r_geometry.WorkingSpaceDimension();
@@ -529,6 +532,8 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLeftHandSide(
     M *= (tau - 1.0);
     G *= (1.0 - tau);
     AssembleLHS(rLHS, K, Q, M, G);
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -538,6 +543,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateRightHandSide(
     VectorType& rRHS,
     const ProcessInfo& rProcessInfo)
 {
+    KRATOS_TRY
     const auto& r_geometry = GetGeometry();
     auto &r_props          = GetProperties();
     const SizeType dim     = r_geometry.WorkingSpaceDimension();
@@ -613,6 +619,8 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateRightHandSide(
     }
 
     AssembleRHS(rRHS, RHSu, RHSe);
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -636,7 +644,7 @@ void SmallDisplacementMixedStrainDisplacementElement::InitializeMaterial()
         KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
     }
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -654,13 +662,14 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateN_EpsilonMatrix(
     Matrix &rN_Epsilon,
     const Vector &rN) const
 {
+    KRATOS_TRY
     const auto& r_geometry = GetGeometry();
     const SizeType dim     = r_geometry.WorkingSpaceDimension();
     const SizeType n_nodes = r_geometry.PointsNumber();
     const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
     rN_Epsilon.clear();
 
-    if(dim == 2) {
+    if (dim == 2) {
         for (IndexType i = 0; i < n_nodes; ++i) {
             const IndexType initial_index = i * strain_size;
             rN_Epsilon(0, initial_index    ) = rN[i];
@@ -678,6 +687,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateN_EpsilonMatrix(
             rN_Epsilon(5, initial_index + 5) = rN[i];
         }
     }
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -687,6 +697,7 @@ void SmallDisplacementMixedStrainDisplacementElement::GetNodalDoFsVectors(
     Vector &rU,
     Vector &rE)
 {
+    KRATOS_TRY
     const auto& r_geometry = GetGeometry();
     const SizeType dim     = r_geometry.WorkingSpaceDimension();
     const SizeType n_nodes = r_geometry.PointsNumber();
@@ -716,6 +727,8 @@ void SmallDisplacementMixedStrainDisplacementElement::GetNodalDoFsVectors(
             rE[index + 2] = r_nodal_strain[3]; // XY of the 6 components vector
         }
     }
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -726,6 +739,8 @@ void SmallDisplacementMixedStrainDisplacementElement::AssembleRHS(
     const Vector &rRHSu,
     const Vector &rRHSe)
 {
+    KRATOS_TRY
+
     const auto& r_geometry = GetGeometry();
     const SizeType dim     = r_geometry.WorkingSpaceDimension();
     const SizeType n_nodes = r_geometry.PointsNumber();
@@ -743,6 +758,8 @@ void SmallDisplacementMixedStrainDisplacementElement::AssembleRHS(
     for (IndexType i = 0; i < rRHSe.size(); ++i) {
         rRHS[i + displ_size] = rRHSe[i];
     }
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -755,24 +772,14 @@ void SmallDisplacementMixedStrainDisplacementElement::AssembleLHS(
     const Matrix &rM,
     const Matrix &rG)
 {
+    KRATOS_TRY
+
     const auto& r_geometry = GetGeometry();
     const SizeType dim     = r_geometry.WorkingSpaceDimension();
     const SizeType n_nodes = r_geometry.PointsNumber();
     const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
     const SizeType system_size = n_nodes * (strain_size + dim);
     const SizeType displ_size = n_nodes * dim;
-
-    // Matrix lumped_M = rM;
-    // const auto &r_props = GetProperties();
-    // const bool compute_lumped_mass = r_props.Has(COMPUTE_LUMPED_MASS_MATRIX) ? r_props[COMPUTE_LUMPED_MASS_MATRIX] : true;
-    // if (compute_lumped_mass) {
-    //     lumped_M.clear();
-    //     for (IndexType i = 0; i < lumped_M.size1(); ++i) {
-    //         for (IndexType j = 0; j < lumped_M.size2(); ++j) {
-    //             lumped_M(i, i) += rM(i, j);
-    //         }
-    //     }
-    // }
 
     // Assemble K
     for (IndexType i = 0; i < rK.size1(); ++i)
@@ -793,6 +800,8 @@ void SmallDisplacementMixedStrainDisplacementElement::AssembleLHS(
     for (IndexType i = 0; i < rG.size1(); ++i)
         for (IndexType j = 0; j < rG.size2(); ++j)
             rLHS(i + displ_size, j) = rG(i, j);
+    
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -806,6 +815,8 @@ void SmallDisplacementMixedStrainDisplacementElement::SetConstitutiveVariables(
     const IntegrationPointsArrayType& IntegrationPoints
     ) const
 {
+    KRATOS_TRY
+
     // Here we essentially set the input parameters
     rValues.SetShapeFunctionsValues(rThisKinematicVariables.N);
 
@@ -813,6 +824,8 @@ void SmallDisplacementMixedStrainDisplacementElement::SetConstitutiveVariables(
     rValues.SetConstitutiveMatrix(rThisConstitutiveVariables.D);
     rValues.SetStressVector(rThisConstitutiveVariables.StressVector);
     rValues.SetStrainVector(rThisConstitutiveVariables.StrainVector);
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -827,11 +840,15 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateConstitutiveVaria
     const ConstitutiveLaw::StressMeasure ThisStressMeasure
     ) const
 {
+    KRATOS_TRY
+
     // Set the constitutive variables
     SetConstitutiveVariables(rThisKinematicVariables, rThisConstitutiveVariables, rValues, PointNumber, IntegrationPoints);
 
     // Actually do the computations in the ConstitutiveLaw
     mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(rValues, ThisStressMeasure); // Here the calculations are actually done
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -841,6 +858,8 @@ Vector SmallDisplacementMixedStrainDisplacementElement::GetBodyForce(
     const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
     const IndexType PointNumber) const
 {
+    KRATOS_TRY
+
     const SizeType dim = GetGeometry().WorkingSpaceDimension();
     const auto aux_body_force = StructuralMechanicsElementUtilities::GetBodyForce(*this, rIntegrationPoints, PointNumber);
     Vector body_force(dim);
@@ -848,6 +867,8 @@ Vector SmallDisplacementMixedStrainDisplacementElement::GetBodyForce(
         body_force(d) = aux_body_force(d);
     }
     return body_force;
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -858,6 +879,8 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateKinematicVariable
     const IndexType IP,
     const GeometryType::IntegrationMethod& rIntegrationMethod) const
 {
+    KRATOS_TRY
+
     const auto& r_geometry = GetGeometry();
     const auto& r_integration_points = GetGeometry().IntegrationPoints(rIntegrationMethod);
 
@@ -888,6 +911,8 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateKinematicVariable
 
     // Calculate the equivalent total strain
     CalculateEquivalentStrain(rKinVariables);
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -898,11 +923,11 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateB(
     const Matrix& rDN_DX
     ) const
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     StructuralMechanicsElementUtilities::CalculateB(*this, rDN_DX, rB);
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -911,15 +936,19 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateB(
 void SmallDisplacementMixedStrainDisplacementElement::CalculateEquivalentStrain(
     KinematicVariables& rKinVars) const
 {
+    KRATOS_TRY
+
     const auto &r_props = GetProperties();
     const double tau = GetStabilizationFactor();
     noalias(rKinVars.EquivalentStrain) = (1.0 - tau) * rKinVars.NodalStrain + tau * rKinVars.SymmGradientDispl;
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-int  SmallDisplacementMixedStrainDisplacementElement::Check(const ProcessInfo& rCurrentProcessInfo) const
+int SmallDisplacementMixedStrainDisplacementElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -933,14 +962,11 @@ int  SmallDisplacementMixedStrainDisplacementElement::Check(const ProcessInfo& r
     for (IndexType i = 0; i < r_geometry.size(); i++) {
         const NodeType& r_node = r_geometry[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NODAL_STRAIN_VECTOR, r_node)
-        KRATOS_CHECK_DOF_IN_NODE(NODAL_STRAIN_VECTOR_XX, r_node)
-
-        // to improve................
     }
 
     return check;
 
-    KRATOS_CATCH( "" );
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -952,6 +978,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateOnIntegrationPoin
     const ProcessInfo& rCurrentProcessInfo
     )
 {
+    KRATOS_TRY
     const auto& r_geometry = GetGeometry();
     const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
@@ -965,10 +992,13 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateOnIntegrationPoin
         rOutput[i_gauss] = 0.0;
     }
 
-    if (mConstitutiveLawVector[0]->Has(rVariable))
+    if (mConstitutiveLawVector[0]->Has(rVariable)) {
         GetValueOnConstitutiveLaw(rVariable, rOutput);
-    else
+    } else {
         CalculateOnConstitutiveLaw(rVariable, rOutput, rCurrentProcessInfo);
+    }
+    
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/

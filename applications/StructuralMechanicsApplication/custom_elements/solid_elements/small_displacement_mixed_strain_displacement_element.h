@@ -61,6 +61,8 @@ namespace Kratos
  * @details This implements a small displacements element formulation with an extra strain nodal DOF, in total u (3) + E(6) Dofs in 3D
  * Reference: Finite element modeling of quasi-brittle cracks in 2D and 3D with enhanced strain accuracy, M. Cervera, G. Barbat and M. Chiumenti,
  * Computational Mechanics, (60) 767-796, 2017. DOI: https://doi.org/10.1007/s00466-017-1438-8
+ * The secant matrix multiplication in the strain compatibility equation has been modified to the elastic constitutive matrix for generality.
+ * The tangent tensor is used in the balance of linear momentum to get quadratic convergence rates in the Newton Raphson
  * @author Alejandro Cornejo
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallDisplacementMixedStrainDisplacementElement
