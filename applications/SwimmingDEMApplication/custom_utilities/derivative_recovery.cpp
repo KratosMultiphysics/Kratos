@@ -4,6 +4,7 @@
 //   Date:                $Date: 2016-03-08 08:56:42 $
 //
 //
+#include "utilities/math_utils.h"
 #include "derivative_recovery.h"
 #include "linear_solvers/amgcl_solver.h"
 namespace Kratos
@@ -60,17 +61,23 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeExactL2(ModelPar
         id_to_position[inode->Id()] = entry;
         ++entry;
     }
+    unsigned int total_number_of_nodes = entry;
 
     // Convective part
     std::vector<array_1d <double, 3> > convective_contributions_to_the_derivative;
-    convective_contributions_to_the_derivative.resize(entry);
+    convective_contributions_to_the_derivative.resize(total_number_of_nodes);
 
     // Declare the LHS matrix (mass matrix) and RHS vector of the L2 projection
-    DenseMatrix<double> mass_matrix_ij(entry, entry);
-    DenseMatrix<double> coefs_L2_j(entry, 3);
-    DenseMatrix<double> rhs_vector(entry, 1);
+    DenseMatrix<double> mass_matrix_ij(total_number_of_nodes, total_number_of_nodes);
+    DenseVector<double> rhs_vector_ij(total_number_of_nodes);
+    DenseVector<double> L2_coefs_ij(total_number_of_nodes);
 
-    // Iterate over each spatial component of the vector variable
+    Matrix gradient_component_j_matrix = ZeroMatrix(total_number_of_nodes, TDim);
+    Vector stored_gradient_of_component_j = ZeroVector(TDim);
+
+    // We denote j the j-th component of the material derivative,
+    // while i is the i-th component of the gradient of u_j, so
+    // that (D_t u)_j = \partial_t u_j + sum_i u_i \partial_i u_j
     for (unsigned int j = 0; j < TDim; ++j){
         for (unsigned int i = 0; i < TDim; ++i){
             for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ++ielem){
@@ -88,7 +95,7 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeExactL2(ModelPar
                 Vector N = ZeroVector(NumNodes);
 
                 Vector DetJ;
-                geom.ShapeFunctionsIntegrationPointsGradients(shape_derivatives,DetJ,integration_method);
+                geom.ShapeFunctionsIntegrationPointsGradients(shape_derivatives, DetJ, integration_method);
                 shape_functions = geom.ShapeFunctionsValues(integration_method);
 
                 // Iterate over the nodes of the element to compute the mass matrix for the element
@@ -101,45 +108,86 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeExactL2(ModelPar
                         {
                             unsigned int a_global = id_to_position[geom[a].Id()];
                             unsigned int b_global = id_to_position[geom[b].Id()];
-                            double node_value = geom[b].FastGetSolutionStepValue(vector_container)[j];
+                            double node_value_j = geom[b].FastGetSolutionStepValue(vector_container)[j];
 
                             mass_matrix_ij(a_global, b_global) += gauss_weights[g] * shape_functions(g, a) * shape_functions(g, b);
-                            rhs_vector(a_global, 0) += gauss_weights[g] * shape_functions(g, a) * shape_derivatives[g](b, i) * node_value;
+                            rhs_vector_ij(a_global) += gauss_weights[g] * shape_functions(g, a) * shape_derivatives[g](b, i) * node_value_j;
                         }
                     }
                 }
             }
 
-            // Invert the matrix
-            // AMGCLSolver<TSparseSpace, TDenseSpace > LinearSolver;
-            DenseVector< array_1d<double, entry> > L2_coefs_ij;
-            // LinearSolver.Solve(mass_matrix_ij, L2_coefs_ij, rhs_vector);
+            // Invert the matrix and get L2_coefs_ij = \partial_i u_j
+            MathUtils<double>::Solve(mass_matrix_ij, L2_coefs_ij, rhs_vector_ij);
 
-            // Add the value of \partial_i u_j to the nodes container
+            // Now compute the j-th column of the derivative material container, Dt u_j = sum_i u_i \partial_i * u_j (+ \partial_t u_j)
             unsigned int node_pos = 0;
             for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
-                array_1d <double, 3>& stored_gradient_of_component_j = inode->FastGetSolutionStepValue(material_derivative_container);
-                stored_gradient_of_component_j[i] = L2_coefs_ij[n];
+                double vel_component_i = inode->FastGetSolutionStepValue(vector_container)[i];
+                double vi_times_grad_uj = L2_coefs_ij(node_pos) * vel_component_i;  // v_i \partial_i u_j
+                inode->FastGetSolutionStepValue(material_derivative_container)[j] += vi_times_grad_uj;
 
-                // Store also the gradient variable if required
-                if (mStoreFullGradient){
-                    if (j == 0){
-                        array_1d <double, 3>& gradient = inode->FastGetSolutionStepValue(VELOCITY_X_GRADIENT);
-                        noalias(gradient[i]) = stored_gradient_of_component_j[i];
-                    }
-                    else if (j == 1){
-                        array_1d <double, 3>& gradient = inode->FastGetSolutionStepValue(VELOCITY_Y_GRADIENT);
-                        noalias(gradient[i]) = stored_gradient_of_component_j[i];
-                    }
-                    else {
-                        array_1d <double, 3>& gradient = inode->FastGetSolutionStepValue(VELOCITY_Z_GRADIENT);
-                        noalias(gradient[i]) = stored_gradient_of_component_j[i];
-                    }
+                if (vi_times_grad_uj >= 1.0) {
+                    std::cout << "Node " << inode->Id() << ", v_i * g_ij = " << vi_times_grad_uj<< ", node_sol = " << inode->FastGetSolutionStepValue(material_derivative_container)[j] << std::endl;
                 }
-                ++node_pos;
+
+                if (mStoreFullGradient) {
+                    gradient_component_j_matrix(node_pos, i) = L2_coefs_ij(node_pos);
+                }
+                node_pos++;
             }
         }
+
+        // Store full gradient
+        if (mStoreFullGradient) {
+            int n = 0;
+            for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
+                for (int k = 0; k < TDim; k++) stored_gradient_of_component_j[k] = gradient_component_j_matrix(n, k);
+
+                // if (stored_gradient_of_component_j >= 1.)
+                // {
+                //     std::cout << "Node " << inode->Id() << ", grad(u_" << j << ") = " << stored_gradient_of_component_j << std::endl;
+                // }
+
+                if (j == 0)  {
+                    array_1d <double, 3>& gradient = inode->FastGetSolutionStepValue(VELOCITY_X_GRADIENT);
+                    noalias(gradient) = stored_gradient_of_component_j;
+                }
+                if (j == 1)  {
+                    array_1d <double, 3>& gradient = inode->FastGetSolutionStepValue(VELOCITY_Y_GRADIENT);
+                    noalias(gradient) = stored_gradient_of_component_j;
+                }
+                if (j == 2)  {
+                    array_1d <double, 3>& gradient = inode->FastGetSolutionStepValue(VELOCITY_Z_GRADIENT);
+                    noalias(gradient) = stored_gradient_of_component_j;
+                }
+                n++;    
+                stored_gradient_of_component_j = ZeroVector(TDim);
+            }
+        }
+
+        // DenseMatrix<double> mass_matrix_ij(total_number_of_nodes, total_number_of_nodes);
+        // DenseVector<double> rhs_vector_ij(total_number_of_nodes);
+        // DenseVector<double> L2_coefs_ij(total_number_of_nodes);
+
+        // Matrix gradient_component_j_matrix = ZeroMatrix(total_number_of_nodes, TDim);
+        // Vector stored_gradient_of_component_j = ZeroVector(TDim);
+        mass_matrix_ij = ZeroMatrix(total_number_of_nodes, total_number_of_nodes);
+        rhs_vector_ij = ZeroVector(total_number_of_nodes);
+        L2_coefs_ij = ZeroVector(total_number_of_nodes);
+        gradient_component_j_matrix = ZeroMatrix(total_number_of_nodes, TDim);
     }
+
+    for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
+        std::cout << "Node " << inode->Id() << ", Dt u = " << inode->FastGetSolutionStepValue(material_derivative_container) << std::endl;
+    }
+
+    // Adding convective part
+    AddTimeDerivative(r_model_part, material_derivative_container);
+    KRATOS_INFO("SwimmingDEM") << "Finished constructing the material derivative by computing the L2 projection..." << std::endl;
+
+    exit(1);
+
 }
 //***************************************************************************************************************
 //***************************************************************************************************************
