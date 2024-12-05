@@ -27,6 +27,26 @@ public:
         {
         }
 
+        DataBlock(const DataBlock& rOther)
+            : mpVariable(rOther.mpVariable)
+            , mSize(rOther.mSize)
+            , mpValues(new BlockType[mSize*mpVariable->Size()/sizeof(BlockType)])
+        {
+            for(std::size_t i = 0; i < mSize; i++) {
+                mpVariable->Assign(mpValues + i, rOther.mpValues + i);
+            }
+        }
+
+        DataBlock(DataBlock&& rOther) noexcept
+            : mpVariable(rOther.mpVariable)
+            , mSize(rOther.mSize)
+            , mpValues(rOther.mpValues)
+        {
+            rOther.mpVariable = nullptr;
+            rOther.mSize = 0;
+            rOther.mpValues = nullptr;
+        }
+
         const VariableData& GetVariable() const
         {
             return *mpVariable;
@@ -51,8 +71,9 @@ public:
         // destructor
         ~DataBlock()
         {
-            for(std::size_t i = 0; i < mSize; i++)
+            for(std::size_t i = 0; i < mSize; i++) {
                 mpVariable->Delete(mpValues + i);
+            }
 
             delete[] mpValues;
         }
@@ -62,8 +83,6 @@ public:
         BlockType* Allocate(const VariableData* pVariable , std::size_t Size)
         {
             std::size_t allocation_size = pVariable->Size()/sizeof(BlockType);
-            KRATOS_WATCH(allocation_size)
-            KRATOS_WATCH(Size)
             return new BlockType[Size*allocation_size];
         }
 
