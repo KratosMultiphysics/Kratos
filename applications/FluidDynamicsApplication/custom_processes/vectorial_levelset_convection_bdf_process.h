@@ -758,7 +758,7 @@ namespace Kratos
             bool CalculateReactions = false;
             bool ReformDofAtEachIteration = false;
             bool CalculateNormDxFlag = false;
-            auto p_conv_criteria = Kratos::make_shared<DisplacementCriteria<TSparseSpace, TDenseSpace>>(1e-10, 1e-9);
+            auto p_conv_criteria = Kratos::make_shared<DisplacementCriteria<TSparseSpace, TDenseSpace>>(1e-4, 1e-3);
             auto p_scheme = Kratos::make_shared<ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace>>();
             const std::size_t max_it = 10;
             mpSolvingStrategy = Kratos::make_unique<ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>>(

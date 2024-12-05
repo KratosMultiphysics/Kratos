@@ -380,10 +380,10 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         # Accumulative water volume error ratio due to level set. Adding source term
         self._ComputeVolumeError()
 
-        if self.mass_levelset:
-            current_step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
-            if current_step>2:
-                self._CorrectLevelSet()
+        # if self.mass_levelset:
+        #     current_step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
+        #     if current_step>2:
+        #         self._CorrectLevelSet()
 
         if self.artificial_viscosity:
             self.__CalculateArtificialViscosity()
@@ -450,7 +450,9 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         if self.__initial_system_volume is None:
             self.__initial_system_volume = KratosCFD.FluidAuxiliaryUtilities.CalculateFluidNegativeVolume(
                 self.GetComputingModelPart())
+            self.__initial_air_system_volume = KratosCFD.FluidAuxiliaryUtilities.CalculateFluidPositiveVolume(self.GetComputingModelPart())
 
+        # This is done for the water
         # Calculate the inlet and outlet volume discharges
         outlet_discharge = KratosCFD.FluidAuxiliaryUtilities.CalculateFlowRateNegativeSkin(self.GetComputingModelPart(), KratosMultiphysics.OUTLET)
         inlet_discharge = KratosCFD.FluidAuxiliaryUtilities.CalculateFlowRateNegativeSkin(self.GetComputingModelPart(), KratosMultiphysics.INLET)
@@ -461,16 +463,65 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         # System water volume is calculated for current time step considering inlet and outlet discharge.
         system_volume = inlet_volume + self.__initial_system_volume - outlet_volume
         self.__initial_system_volume = system_volume
+        # TODO: we need to consider air entrance and outlet also BUT AFTER TRYING IT.
+
+
 
     def _ComputeVolumeError(self):
         if self.mass_source:
             water_volume_after_transport = KratosCFD.FluidAuxiliaryUtilities.CalculateFluidNegativeVolume(self.GetComputingModelPart())
+            # air_volume_after_transport = KratosCFD.FluidAuxiliaryUtilities.CalculateFluidPositiveVolume(self.GetComputingModelPart())
+            air_cut_volume_after_transport = KratosCFD.FluidAuxiliaryUtilities.CalculateFluidCutElementPositiveVolume(self.GetComputingModelPart())
+            water_cut_volume_after_transport = KratosCFD.FluidAuxiliaryUtilities.CalculateFluidCutElementNegativeVolume(self.GetComputingModelPart())
 
-            volume_error = (water_volume_after_transport -  self.__initial_system_volume) /  self.__initial_system_volume
+            absolute_water_volume_error = water_volume_after_transport -  self.__initial_system_volume
+            # absolute_air_volume_error =air_volume_after_transport-self.__initial_air_system_volume
+
+
+            # water_volume_error = absolute_water_volume_error/water_volume_after_transport
+            # water_volume_eror_b = absolute_water_volume_error / self.__initial_system_volume
+
+
+            # air_volume_error_water = -absolute_water_volume_error/self.__initial_air_system_volume
+            # air_volume_error = absolute_air_volume_error/self.__initial_air_system_volume
+            water_cut_element_error = absolute_water_volume_error /water_cut_volume_after_transport
+            air_cut_element_error = -absolute_water_volume_error / air_cut_volume_after_transport
+
+
         else:
-            volume_error=0
+            # water_volume_error = 0.0
+            # air_volume_error = 0.0
+            water_cut_element_error = 0.0
+            air_cut_element_error =0.0
 
-        self.main_model_part.ProcessInfo.SetValue(KratosCFD.VOLUME_ERROR, volume_error)
+        # self.main_model_part.ProcessInfo.SetValue(KratosCFD.WATER_VOLUME_ERROR, water_volume_error)
+
+        # ADDING AIR ELEMENTS
+        # self.main_model_part.ProcessInfo.SetValue(KratosCFD.VOLUME_ERROR, air_volume_error)
+
+        # ADDING WATER ELEMENTS
+        # self.main_model_part.ProcessInfo.SetValue(KratosCFD.VOLUME_ERROR, water_volume_error)
+
+        # ADDING SOURCE/SINK WATER/AIR
+        # self.main_model_part.ProcessInfo.SetValue(KratosCFD.WATER_VOLUME_ERROR, water_volume_error)
+        # self.main_model_part.ProcessInfo.SetValue(
+        #     KratosCFD.AIR_VOLUME_ERROR, air_volume_error)
+
+
+        # CUT ELEMENTS
+
+        self.main_model_part.ProcessInfo.SetValue(
+            KratosCFD.WATER_VOLUME_ERROR, water_cut_element_error)
+        self.main_model_part.ProcessInfo.SetValue(
+            KratosCFD.AIR_VOLUME_ERROR, air_cut_element_error)
+
+        # Escribir los valores en un archivo .txt
+        # Escribir los valores en columnas en un archivo .txt
+        # current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+        # with open("volume_errors.txt", "a") as file:
+        #     file.write(
+        #         f"{current_time} {water_volume_eror_b} {water_volume_error}\n")
+
     def __CalculateVolumeError(self):
         water_volume_after_transport = KratosCFD.FluidAuxiliaryUtilities.CalculateFluidNegativeVolume(self.GetComputingModelPart())
         print(water_volume_after_transport)
