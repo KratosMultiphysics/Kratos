@@ -38,13 +38,10 @@ public:
         }
 
         DataBlock(DataBlock&& rOther) noexcept
-            : mpVariable(rOther.mpVariable)
-            , mSize(rOther.mSize)
-            , mpValues(rOther.mpValues)
+            : mpVariable(std::exchange(rOther.mpVariable, nullptr))
+            , mSize(std::exchange(rOther.mSize, 0))
+            , mpValues(std::exchange(rOther.mpValues, nullptr))
         {
-            rOther.mpVariable = nullptr;
-            rOther.mSize = 0;
-            rOther.mpValues = nullptr;
         }
 
         const VariableData& GetVariable() const
