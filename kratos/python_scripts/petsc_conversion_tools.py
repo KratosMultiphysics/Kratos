@@ -18,17 +18,17 @@ class PetscCSRWrapper:
         N = A.GetColNumbering().Size()
 
         ##pointers to the kratos arrays of values
-        self.a = np.array(A.GetDiagonalBlock().value_data(), copy=False)
-        self.oa = np.array(A.GetOffDiagonalBlock().value_data(), copy=False)
+        self.a = np.asarray(A.GetDiagonalBlock().value_data())
+        self.oa = np.asarray(A.GetOffDiagonalBlock().value_data())
 
         if(type(m) == type(PETSc.IntType)): #we can avoid doing copies
             #indices of diagonal block
-            self.i = np.array(A.GetDiagonalBlock().index1_data(), copy=False)
-            self.j = np.array(A.GetDiagonalBlock().index2_data(), copy=False)
+            self.i = np.asarray(A.GetDiagonalBlock().index1_data())
+            self.j = np.asarray(A.GetDiagonalBlock().index2_data())
             
             #indices of offdiagonal block
-            self.oi = np.array(A.GetOffDiagonalBlock().index1_data(), copy=False)
-            self.oj = np.array(A.GetOffDiagonalIndex2DataInGlobalNumbering(), copy=False)        
+            self.oi = np.asarray(A.GetOffDiagonalBlock().index1_data())
+            self.oj = np.asarray(A.GetOffDiagonalIndex2DataInGlobalNumbering())        
 
         else: #WE NEED TO COPY INDICES! since the size of the IndexType is not compatible between Kratos and PETSc
             if(A.GetComm().Rank() == 0):

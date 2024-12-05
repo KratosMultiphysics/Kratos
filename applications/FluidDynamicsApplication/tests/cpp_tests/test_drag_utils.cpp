@@ -53,6 +53,7 @@ namespace Kratos {
             rModelPart.AddNodalSolutionStepVariable(SOUND_VELOCITY);
             rModelPart.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
             rModelPart.AddNodalSolutionStepVariable(REACTION_WATER_PRESSURE);
+            rModelPart.AddNodalSolutionStepVariable(SOLID_FRACTION_VELOCITY);
 
             // Process info creation
             double delta_time = 0.1;

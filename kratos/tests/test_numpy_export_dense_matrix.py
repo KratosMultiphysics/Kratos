@@ -10,7 +10,7 @@ class TestNumpyExportDenseMatrix(KratosUnittest.TestCase):
         KratosMatrix.fill(1.0)
 
         # Export it to numpy array (No copying is performed)
-        NumpyMatrix = np.array(KratosMatrix,copy=False)
+        NumpyMatrix = np.asarray(KratosMatrix)
 
         # Test correct creation
         for i in range(3):
@@ -35,7 +35,7 @@ class TestNumpyExportDenseMatrix(KratosUnittest.TestCase):
         KratosMatrix.fill(1.0+1.0j)
 
         # Export it to numpy array (No copying is performed)
-        NumpyMatrix = np.array(KratosMatrix,copy=False)
+        NumpyMatrix = np.asarray(KratosMatrix)
 
         # Test correct creation
         for i in range(3):

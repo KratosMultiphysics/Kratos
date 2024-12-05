@@ -60,7 +60,9 @@ jobs:
 
     - name: CI configuration
       shell: bash
-      run: python3 kratos/python_scripts/testing/ci_utilities.py
+      run: |
+        python3 kratos/python_scripts/testing/ci_utilities.py
+        python3 -m pip install --upgrade numpy==1.26.4
 
     - name: Build
       shell: bash
