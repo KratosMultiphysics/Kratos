@@ -920,7 +920,7 @@ class ResidualBasedNewtonRaphsonStrategy
             p_builder_and_solver->BuildRHSAndSolve(p_scheme, r_model_part, rA, rDx, rb);
         }
 
-        std::cout << "Here 1" << std::endl;
+        // std::cout << "Here 1" << std::endl;
 
         // Debugging info
         EchoInfo(iteration_number);
@@ -1023,7 +1023,7 @@ class ResidualBasedNewtonRaphsonStrategy
                 << mMaxIterationNumber << " iterations" << std::endl;
         }
 
-        std::cout << "Here 2"  << std::endl;
+        // std::cout << "Here 2"  << std::endl;
 
         //recalculate residual if needed
         //(note that some convergence criteria need it to be recalculated)
@@ -1043,7 +1043,7 @@ class ResidualBasedNewtonRaphsonStrategy
         if (mCalculateReactionsFlag == true)
             p_builder_and_solver->CalculateReactions(p_scheme, r_model_part, rA, rDx, rb);
 
-        std::cout << "Here 3" << std::endl;
+        // std::cout << "Here 3" << std::endl;
 
         return is_converged;
     }
