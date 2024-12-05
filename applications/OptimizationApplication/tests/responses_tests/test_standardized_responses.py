@@ -201,5 +201,4 @@ class TestStandardizedConstraint(TestStandardizedComponent):
         self.assertEqual(self.standardized_constraint.GetStandardizedReferenceValue(), -4.0)
 
 if __name__ == "__main__":
-    Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
     kratos_unittest.main()

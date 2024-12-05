@@ -15,13 +15,13 @@
 // External includes
 
 // Project includes
-#include "testing/testing.h"
 #include "containers/model.h"
-#include "contact_structural_mechanics_application_variables.h"
-// #include "includes/gid_io.h"
-// #include "input_output/vtk_output.h"
 #include "utilities/variable_utils.h"
+
+// Application includes
+#include "contact_structural_mechanics_application_variables.h"
 #include "custom_utilities/self_contact_utilities.h"
+#include "tests/cpp_tests/contact_structural_mechanics_fast_suite.h"
 
 namespace Kratos::Testing
 {

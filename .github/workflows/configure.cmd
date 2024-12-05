@@ -1,4 +1,4 @@
-call "%ProgramFiles%\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64 || goto :error
+call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64 || goto :error
 
 set CC=cl.exe
 set CXX=cl.exe
@@ -36,13 +36,14 @@ set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\GeoMechanicsApplic
 set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\DamApplication;
 set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\PoromechanicsApplication;
 set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\OptimizationApplication;
+set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\SystemIdentificationApplication;
 
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\cmake_install.cmake"
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeCache.txt"
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeFiles"
 
 cmake                                                 ^
-  -G"Visual Studio 17 2022"                           ^
+  -G"Visual Studio 16 2019"                           ^
   -H"%KRATOS_SOURCE%"                                 ^
   -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"              ^
   -DBOOST_ROOT="%TEMP%\boost"                         ^

@@ -97,7 +97,7 @@ void OptimizationUtils::CreateEntitySpecificPropertiesForContainer(
         return rEntity.GetProperties().Id();
     });
 
-    auto properties_id = block_for_each<MaxReduction<IndexType>>(rModelPart.PropertiesArray(), [](const auto pProperties) {
+    auto properties_id = block_for_each<MaxReduction<IndexType>>(rModelPart.GetRootModelPart().PropertiesArray(), [](const auto pProperties) {
         return pProperties->Id();
     });
 
@@ -131,11 +131,11 @@ KRATOS_API(OPTIMIZATION_APPLICATION) IndexType OptimizationUtils::GetVariableDim
     return DomainSize;
 }
 
-void OptimizationUtils::CopySolutionStepVariablesList(
+void OptimizationUtils::SetSolutionStepVariablesList(
     ModelPart& rDestinationModelPart,
     const ModelPart& rOriginModelPart)
 {
-    rDestinationModelPart.GetNodalSolutionStepVariablesList() = rOriginModelPart.GetNodalSolutionStepVariablesList();
+    rDestinationModelPart.SetNodalSolutionStepVariablesList(rOriginModelPart.pGetNodalSolutionStepVariablesList());
 }
 
 bool OptimizationUtils::IsSolutionStepVariablesListASubSet(
@@ -148,6 +148,19 @@ bool OptimizationUtils::IsSolutionStepVariablesListASubSet(
         }
     }
     return true;
+}
+
+std::vector<std::string> OptimizationUtils::GetSolutionStepVariableNamesList(const ModelPart& rModelPart)
+{
+    KRATOS_TRY
+
+    std::vector<std::string> result;
+    for (const auto& r_var : rModelPart.GetNodalSolutionStepVariablesList()) {
+        result.push_back(r_var.Name());
+    }
+    return result;
+
+    KRATOS_CATCH("");
 }
 
 std::vector<std::vector<ModelPart*>> OptimizationUtils::GetComponentWiseModelParts(

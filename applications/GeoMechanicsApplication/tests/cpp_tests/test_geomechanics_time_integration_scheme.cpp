@@ -10,7 +10,7 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "testing/testing.h"
+#include "geo_mechanics_fast_suite.h"
 
 #include "containers/model.h"
 #include "custom_strategies/schemes/geomechanics_time_integration_scheme.hpp"
@@ -38,16 +38,13 @@ public:
     }
 
 protected:
-    void UpdateVariablesDerivatives(ModelPart& rModelPart) override
-    {
-        // Intentionally left empty
-    }
+    MOCK_METHOD(void, UpdateVariablesDerivatives, (ModelPart&), (override));
 };
 
 class GeoMechanicsSchemeTester
 {
 public:
-    Model mModel;
+    Model                                     mModel;
     ConcreteGeoMechanicsTimeIntegrationScheme mScheme;
 
     void Setup()
@@ -57,39 +54,40 @@ public:
     }
 
     template <class T>
-    void TestFunctionCalledOnComponent_IsOnlyCalledWhenComponentIsActive()
+    void TestFunctionCalledOnComponent_IsCalledOnActiveAndInactiveComponents()
     {
         typename T::EquationIdVectorType r_equation_id_vector;
-        ProcessInfo r_process_info;
-        typename T::DofsVectorType r_dofs_vector;
+        ProcessInfo                      r_process_info;
+        typename T::DofsVectorType       r_dofs_vector;
 
-        auto functions_and_checks = CreateFunctionsAndChecksCalledOnASingleComponent<T>(
-            r_equation_id_vector, r_process_info, r_dofs_vector);
+        Setup();
+        auto active_component = Kratos::make_intrusive<T>();
+        active_component->SetId(0);
+        active_component->Set(ACTIVE, true);
 
-        for (const auto& [function_on_component, function_has_been_called_on_component] : functions_and_checks) {
-            Setup();
-            auto active_component = Kratos::make_intrusive<T>();
-            active_component->SetId(0);
-            active_component->Set(ACTIVE, true);
+        auto inactive_component = Kratos::make_intrusive<T>();
+        inactive_component->SetId(1);
+        inactive_component->Set(ACTIVE, false);
 
-            auto inactive_component = Kratos::make_intrusive<T>();
-            inactive_component->SetId(1);
-            inactive_component->Set(ACTIVE, false);
+        EXPECT_CALL(*active_component, EquationIdVector(testing::_, testing::_)).Times(1);
+        mScheme.EquationId(*active_component.get(), r_equation_id_vector, r_process_info);
 
-            function_on_component(active_component);
-            function_on_component(inactive_component);
+        EXPECT_CALL(*inactive_component, EquationIdVector(testing::_, testing::_)).Times(1);
+        mScheme.EquationId(*inactive_component.get(), r_equation_id_vector, r_process_info);
 
-            KRATOS_EXPECT_TRUE(function_has_been_called_on_component(active_component))
-            KRATOS_EXPECT_FALSE(function_has_been_called_on_component(inactive_component))
-        }
+        EXPECT_CALL(*active_component, GetDofList(testing::_, testing::_)).Times(1);
+        mScheme.GetDofList(*active_component.get(), r_dofs_vector, r_process_info);
+
+        EXPECT_CALL(*inactive_component, GetDofList(testing::_, testing::_)).Times(1);
+        mScheme.GetDofList(*inactive_component.get(), r_dofs_vector, r_process_info);
     }
 
     template <class T>
     void TestFunctionCallOnAllComponents_AreOnlyCalledForActiveComponents()
     {
         CompressedMatrix A;
-        Vector Dx;
-        Vector b;
+        Vector           Dx;
+        Vector           b;
 
         auto functions_and_checks = CreateFunctionsAndChecksCalledOnAllComponents<T>(A, Dx, b);
 
@@ -160,33 +158,6 @@ public:
         return functions_and_checks;
     }
 
-    template <typename T>
-    std::vector<std::pair<std::function<void(const Kratos::intrusive_ptr<T> Component)>, std::function<bool(const Kratos::intrusive_ptr<T> rElement)>>> CreateFunctionsAndChecksCalledOnASingleComponent(
-        typename T::EquationIdVectorType& rEquationIdVector, ProcessInfo& rProcessInfo, typename T::DofsVectorType& rDofsVector)
-    {
-        std::vector<std::pair<std::function<void(const Kratos::intrusive_ptr<T> Component)>, std::function<bool(const Kratos::intrusive_ptr<T> Component)>>> functions_and_checks;
-
-        auto equation_id = [this, &rEquationIdVector, &rProcessInfo](const Kratos::intrusive_ptr<T> Component) {
-            mScheme.EquationId(*Component.get(), rEquationIdVector, rProcessInfo);
-        };
-
-        auto equation_id_check = [](const Kratos::intrusive_ptr<T> Component) {
-            return Component->IsEquationIdRetrieved();
-        };
-
-        auto get_dofs_list = [this, &rDofsVector, &rProcessInfo](const Kratos::intrusive_ptr<T> Component) {
-            mScheme.GetDofList(*Component.get(), rDofsVector, rProcessInfo);
-        };
-
-        auto get_dofs_list_check = [](const Kratos::intrusive_ptr<T> Component) {
-            return Component->IsGetDofListCalled();
-        };
-
-        functions_and_checks.push_back({equation_id, equation_id_check});
-        functions_and_checks.push_back({get_dofs_list, get_dofs_list_check});
-        return functions_and_checks;
-    }
-
     void AddComponent(ModelPart::ElementType::Pointer element)
     {
         GetModelPart().AddElement(element);
@@ -200,37 +171,40 @@ public:
     ModelPart& GetModelPart() { return mModel.GetModelPart("dummy"); }
 };
 
-KRATOS_TEST_CASE_IN_SUITE(FunctionCallsOnAllElements_AreOnlyCalledForActiveElements, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(FunctionCallsOnAllElements_AreOnlyCalledForActiveElements, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     GeoMechanicsSchemeTester tester;
     tester.TestFunctionCallOnAllComponents_AreOnlyCalledForActiveComponents<SpyElement>();
 }
 
-KRATOS_TEST_CASE_IN_SUITE(FunctionCallsOnAllConditions_AreOnlyCalledForActiveConditions, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(FunctionCallsOnAllConditions_AreOnlyCalledForActiveConditions,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     GeoMechanicsSchemeTester tester;
     tester.TestFunctionCallOnAllComponents_AreOnlyCalledForActiveComponents<SpyCondition>();
 }
 
-KRATOS_TEST_CASE_IN_SUITE(FunctionCalledOnCondition_IsOnlyCalledWhenConditionIsActive, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(FunctionCalledOnCondition_IsCalledOnActiveAndInactiveConditions,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     GeoMechanicsSchemeTester tester;
-    tester.TestFunctionCalledOnComponent_IsOnlyCalledWhenComponentIsActive<SpyCondition>();
+    tester.TestFunctionCalledOnComponent_IsCalledOnActiveAndInactiveComponents<SpyCondition>();
 }
 
-KRATOS_TEST_CASE_IN_SUITE(FunctionCalledOnElement_IsOnlyCalledWhenElementIsActive, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(FunctionCalledOnElement_IsCalledOnActiveAndInactiveElements, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     GeoMechanicsSchemeTester tester;
-    tester.TestFunctionCalledOnComponent_IsOnlyCalledWhenComponentIsActive<SpyElement>();
+    tester.TestFunctionCalledOnComponent_IsCalledOnActiveAndInactiveComponents<SpyElement>();
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ForInvalidBufferSize_CheckGeoMechanicsTimeIntegrationScheme_Throws, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ForInvalidBufferSize_CheckGeoMechanicsTimeIntegrationScheme_Throws,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     ConcreteGeoMechanicsTimeIntegrationScheme scheme;
 
-    Model model;
+    Model         model;
     constexpr int invalid_buffer_size = 1;
-    const auto& model_part            = model.CreateModelPart("dummy", invalid_buffer_size);
+    const auto&   model_part          = model.CreateModelPart("dummy", invalid_buffer_size);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(scheme.Check(model_part),
                                       "insufficient buffer size. Buffer size "
@@ -242,9 +216,9 @@ void TestUpdateForNumberOfThreads(int NumberOfThreads)
 {
     GeoMechanicsSchemeTester tester;
     tester.Setup();
-    CompressedMatrix A;
-    Vector Dx = ZeroVector(3);
-    Vector b;
+    CompressedMatrix         A;
+    Vector                   Dx = ZeroVector(3);
+    Vector                   b;
     ModelPart::DofsArrayType dofs_array;
 
     ParallelUtilities::SetNumThreads(NumberOfThreads);
@@ -283,7 +257,8 @@ void TestUpdateForNumberOfThreads(int NumberOfThreads)
     KRATOS_EXPECT_DOUBLE_EQ((dofs_array.begin() + 2)->GetSolutionStepValue(DISPLACEMENT_Y, 0), 1.0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoMechanicsTimeIntegrationScheme_GivesCorrectDofs_WhenUpdateIsCalled, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(GeoMechanicsTimeIntegrationScheme_GivesCorrectDofs_WhenUpdateIsCalled,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     TestUpdateForNumberOfThreads(1);
     TestUpdateForNumberOfThreads(2);

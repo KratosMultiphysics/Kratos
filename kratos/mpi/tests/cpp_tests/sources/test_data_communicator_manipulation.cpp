@@ -22,11 +22,11 @@
 #include "includes/parallel_environment.h"
 #include "mpi/includes/mpi_data_communicator.h"
 #include "mpi/utilities/data_communicator_factory.h"
-#include "testing/testing.h"
+#include "mpi/testing/mpi_testing.h"
 
 namespace Kratos::Testing {
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorDuplicate, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorDuplicate, KratosMPICoreFastSuite)
 {
     const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
     const DataCommunicator& r_duplicate = DataCommunicatorFactory::DuplicateAndRegister(r_comm, "Duplicate");
@@ -38,7 +38,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorDuplicate, Kratos
     ParallelEnvironment::UnregisterDataCommunicator("Duplicate");
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorSplit, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorSplit, KratosMPICoreFastSuite)
 {
     const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
     const int global_rank = r_comm.Rank();
@@ -64,7 +64,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorSplit, KratosMPIC
     }
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorFromRanks, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorFromRanks, KratosMPICoreFastSuite)
 {
     const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
     const int global_size = r_comm.Size();
@@ -101,7 +101,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorFromRanks, Kratos
     }
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorUnion, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorUnion, KratosMPICoreFastSuite)
 {
     const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
     const int global_size = r_comm.Size();
@@ -139,7 +139,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorUnion, KratosMPIC
     }
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorIntersection, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorIntersection, KratosMPICoreFastSuite)
 {
     const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
     const int global_size = r_comm.Size();
@@ -184,7 +184,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorIntersection, Kra
     }
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(ParallelEnvironmentRegisterDataCommunicator, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ParallelEnvironmentRegisterDataCommunicator, KratosMPICoreFastSuite)
 {
     const DataCommunicator& r_comm = ParallelEnvironment::GetDefaultDataCommunicator();
 
@@ -204,7 +204,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(ParallelEnvironmentRegisterDataCommunicato
     ParallelEnvironment::UnregisterDataCommunicator("EvenOdd");
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(ParallelEnvironmentUnregister, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ParallelEnvironmentUnregister, KratosMPICoreFastSuite)
 {
     const DataCommunicator& r_comm = ParallelEnvironment::GetDefaultDataCommunicator();
 
@@ -217,7 +217,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(ParallelEnvironmentUnregister, KratosMPICo
     KRATOS_EXPECT_FALSE(ParallelEnvironment::HasDataCommunicator("EvenOdd"));
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(ParallelEnvironmentUnregisterDefault, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ParallelEnvironmentUnregisterDefault, KratosMPICoreFastSuite)
 {
     const DataCommunicator& r_comm = ParallelEnvironment::GetDefaultDataCommunicator();
     std::string current_default_name = ParallelEnvironment::GetDefaultDataCommunicatorName();

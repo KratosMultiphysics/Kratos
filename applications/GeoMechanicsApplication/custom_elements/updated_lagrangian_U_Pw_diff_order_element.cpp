@@ -21,7 +21,6 @@
 namespace Kratos
 {
 
-//----------------------------------------------------------------------------------------
 Element::Pointer UpdatedLagrangianUPwDiffOrderElement::Create(IndexType             NewId,
                                                               NodesArrayType const& ThisNodes,
                                                               PropertiesType::Pointer pProperties) const
@@ -30,7 +29,6 @@ Element::Pointer UpdatedLagrangianUPwDiffOrderElement::Create(IndexType         
         NewId, this->GetGeometry().Create(ThisNodes), pProperties, this->GetStressStatePolicy().Clone()));
 }
 
-//----------------------------------------------------------------------------------------
 Element::Pointer UpdatedLagrangianUPwDiffOrderElement::Create(IndexType             NewId,
                                                               GeometryType::Pointer pGeom,
                                                               PropertiesType::Pointer pProperties) const
@@ -39,7 +37,6 @@ Element::Pointer UpdatedLagrangianUPwDiffOrderElement::Create(IndexType         
         NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone()));
 }
 
-//----------------------------------------------------------------------------------------
 void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSideMatrix,
                                                         VectorType&        rRightHandSideVector,
                                                         const ProcessInfo& rCurrentProcessInfo,
@@ -48,110 +45,49 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType&        rLeft
 {
     KRATOS_TRY
 
-    const GeometryType&   rGeom = GetGeometry();
-    const PropertiesType& rProp = this->GetProperties();
+    SmallStrainUPwDiffOrderElement::CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,
+                                                 rCurrentProcessInfo, CalculateStiffnessMatrixFlag,
+                                                 CalculateResidualVectorFlag);
 
-    // Definition of variables
-    ElementVariables Variables;
-    this->InitializeElementVariables(Variables, rCurrentProcessInfo);
+    ElementVariables variables;
+    this->InitializeElementVariables(variables, rCurrentProcessInfo);
 
-    // Create constitutive law parameters:
-    ConstitutiveLaw::Parameters ConstitutiveParameters(rGeom, rProp, rCurrentProcessInfo);
-    ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+    if (CalculateStiffnessMatrixFlag && variables.ConsiderGeometricStiffness) {
+        const auto& integration_points = this->GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+        const auto integration_coefficients =
+            this->CalculateIntegrationCoefficients(integration_points, variables.detJuContainer);
 
-    // Stiffness matrix is always needed to calculate Biot coefficient
-    ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-    if (CalculateResidualVectorFlag)
-        ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
-
-    // create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(rProp, rCurrentProcessInfo);
-
-    // Loop over integration points
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
-        rGeom.IntegrationPoints(this->GetIntegrationMethod());
-
-    const auto b_matrices = this->CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
-    const auto deformation_gradients = this->CalculateDeformationGradients();
-    const auto integration_coefficients =
-        this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJuContainer);
-    auto strain_vectors = StressStrainUtilities::CalculateStrains(
-        deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain,
-        this->GetVoigtSize());
-    std::vector<Matrix> constitutive_matrices;
-    this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
-                                         Variables.NuContainer, Variables.DNu_DXContainer,
-                                         strain_vectors, mStressVector, constitutive_matrices);
-    const auto biot_coefficients = GeoTransportEquationUtilities::CalculateBiotCoefficients(
-        constitutive_matrices, this->GetProperties());
-
-    for (IndexType GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
-        this->CalculateKinematics(Variables, GPoint);
-        Variables.B = b_matrices[GPoint];
-
-        Variables.F                  = deformation_gradients[GPoint];
-        Variables.StrainVector       = strain_vectors[GPoint];
-        Variables.ConstitutiveMatrix = constitutive_matrices[GPoint];
-
-        CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
-
-        Variables.BiotCoefficient    = biot_coefficients[GPoint];
-        Variables.BiotModulusInverse = GeoTransportEquationUtilities::CalculateBiotModulusInverse(
-            Variables.BiotCoefficient, Variables.DegreeOfSaturation,
-            Variables.DerivativeOfSaturation, this->GetProperties());
-
-        Variables.IntegrationCoefficient = integration_coefficients[GPoint];
-
-        Variables.IntegrationCoefficientInitialConfiguration = this->CalculateIntegrationCoefficient(
-            IntegrationPoints[GPoint], Variables.detJInitialConfiguration);
-
-        if (CalculateStiffnessMatrixFlag) {
-            // Contributions to stiffness matrix calculated on the reference config
-            /* Material stiffness matrix */
-            this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
-
-            /* Geometric stiffness matrix */
-            if (Variables.ConsiderGeometricStiffness)
-                this->CalculateAndAddGeometricStiffnessMatrix(rLeftHandSideMatrix, Variables, GPoint);
-        }
-
-        if (CalculateResidualVectorFlag) {
-            // Contributions to the right hand side
-            this->CalculateAndAddRHS(rRightHandSideVector, Variables, GPoint);
+        for (IndexType GPoint = 0; GPoint < integration_points.size(); ++GPoint) {
+            this->CalculateAndAddGeometricStiffnessMatrix(rLeftHandSideMatrix, mStressVector[GPoint],
+                                                          variables.DNu_DXContainer[GPoint],
+                                                          integration_coefficients[GPoint]);
         }
     }
 
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
-void UpdatedLagrangianUPwDiffOrderElement::CalculateAndAddGeometricStiffnessMatrix(MatrixType& rLeftHandSideMatrix,
-                                                                                   ElementVariables& rVariables,
-                                                                                   unsigned int GPoint)
+void UpdatedLagrangianUPwDiffOrderElement::CalculateAndAddGeometricStiffnessMatrix(
+    MatrixType& rLeftHandSideMatrix, const Vector& rStressVector, const Matrix& rDNuDx, const double IntegrationCoefficient) const
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom     = GetGeometry();
-    const SizeType      NumUNodes = rGeom.PointsNumber();
-    const SizeType      Dim       = rGeom.WorkingSpaceDimension();
+    const GeometryType& r_geom      = GetGeometry();
+    const SizeType      num_U_nodes = r_geom.PointsNumber();
+    const SizeType      dimension   = r_geom.WorkingSpaceDimension();
 
-    Matrix StressTensor = MathUtils<double>::StressVectorToTensor(mStressVector[GPoint]);
+    const Matrix reduced_Kg_matrix =
+        prod(rDNuDx, Matrix(prod(MathUtils<double>::StressVectorToTensor(rStressVector), trans(rDNuDx)))) *
+        IntegrationCoefficient;
 
-    Matrix ReducedKgMatrix =
-        prod(rVariables.DNu_DX,
-             rVariables.IntegrationCoefficient * Matrix(prod(StressTensor, trans(rVariables.DNu_DX)))); // to be optimized
+    Matrix geometric_stiffness_matrix = ZeroMatrix(num_U_nodes * dimension, num_U_nodes * dimension);
+    MathUtils<double>::ExpandAndAddReducedMatrix(geometric_stiffness_matrix, reduced_Kg_matrix, dimension);
 
-    Matrix UUMatrix(NumUNodes * Dim, NumUNodes * Dim);
-    noalias(UUMatrix) = ZeroMatrix(NumUNodes * Dim, NumUNodes * Dim);
-    MathUtils<double>::ExpandAndAddReducedMatrix(UUMatrix, ReducedKgMatrix, Dim);
-
-    // Distribute stiffness block matrix into the elemental matrix
-    GeoElementUtilities::AssembleUUBlockMatrix(rLeftHandSideMatrix, UUMatrix);
+    GeoElementUtilities::AssembleUUBlockMatrix(rLeftHandSideMatrix, geometric_stiffness_matrix);
 
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 void UpdatedLagrangianUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
                                                                         std::vector<double>& rOutput,
                                                                         const ProcessInfo& rCurrentProcessInfo)
@@ -163,7 +99,6 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateOnIntegrationPoints(const Va
     }
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void UpdatedLagrangianUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
                                                                         std::vector<Vector>& rOutput,
                                                                         const ProcessInfo& rCurrentProcessInfo)
@@ -186,7 +121,6 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateOnIntegrationPoints(const Va
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 void UpdatedLagrangianUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
                                                                         std::vector<Matrix>& rOutput,
                                                                         const ProcessInfo& rCurrentProcessInfo)
@@ -200,13 +134,17 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateOnIntegrationPoints(const Va
     }
 }
 
-//----------------------------------------------------------------------------------------
+std::vector<double> Kratos::UpdatedLagrangianUPwDiffOrderElement::GetOptionalPermeabilityUpdateFactors(
+    const std::vector<Vector>&) const
+{
+    return {};
+}
+
 void UpdatedLagrangianUPwDiffOrderElement::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SmallStrainUPwDiffOrderElement)
 }
 
-//----------------------------------------------------------------------------------------
 void UpdatedLagrangianUPwDiffOrderElement::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SmallStrainUPwDiffOrderElement)
