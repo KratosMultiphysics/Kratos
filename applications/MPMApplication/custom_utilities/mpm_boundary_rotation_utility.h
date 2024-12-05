@@ -511,9 +511,6 @@ public:
                     r_friction_force[2] = tangent_force2;
                 }
 
-                // reset friction-related flags/variables
-                rNode.SetValue(FRICTION_ASSIGNED, false);
-                rNode.FastGetSolutionStepValue(STICK_FORCE).clear();
             }
         });
     }
