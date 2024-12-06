@@ -49,7 +49,7 @@ double SaturatedBelowPhreaticLevelLaw::CalculateEffectiveSaturation(Parameters& 
     return (CalculateSaturation(rParameters) - sat_min) / (sat_max - sat_min);
 }
 
-double SaturatedBelowPhreaticLevelLaw::CalculateDerivativeOfSaturation(Parameters& rParameters) const
+double SaturatedBelowPhreaticLevelLaw::CalculateDerivativeOfSaturation(Parameters&) const
 {
     return 0.0;
 }
