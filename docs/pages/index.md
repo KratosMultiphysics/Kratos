@@ -124,7 +124,7 @@ Looking forward to seeing your logo here!
 # Special Thanks To
 ## In Kratos Core:
 {:.no_toc}
-- [Boost](http://www.boost.org/) for ublas
+- [Boost](http://www.boost.org/) for uBLAS
 - [pybind11](https://github.com/pybind/pybind11) for exposing C++ to python
 - [GidPost](https://www.gidhome.com/gid-plus/tools/476/gidpost/) providing output to [GiD](https://www.gidhome.com/)
 - [AMGCL](https://github.com/ddemidov/amgcl) for its highly scalable multigrid solver
