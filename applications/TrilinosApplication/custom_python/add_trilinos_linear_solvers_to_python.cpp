@@ -76,7 +76,6 @@ void  AddLinearSolvers(pybind11::module& m)
     using TrilinosFallbackLinearSolverType = FallbackLinearSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType>;
     py::class_<TrilinosFallbackLinearSolverType, TrilinosFallbackLinearSolverType::Pointer, TrilinosLinearSolverType>(m, "TrilinosFallbackLinearSolver")
         .def(py::init<Parameters>())
-        .def(py::init<TrilinosLinearSolverType::Pointer, TrilinosLinearSolverType::Pointer, Parameters>())
         .def(py::init<const std::vector<TrilinosLinearSolverType::Pointer>&, Parameters>())
         .def("AddSolver", [](TrilinosFallbackLinearSolverType& rSelf, TrilinosLinearSolverType::Pointer pSolver) {
             rSelf.AddSolver(pSolver);

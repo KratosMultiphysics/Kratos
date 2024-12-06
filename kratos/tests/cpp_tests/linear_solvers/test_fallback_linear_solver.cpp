@@ -102,29 +102,17 @@ KRATOS_TEST_CASE_IN_SUITE(FallbackLinearSolverConstructorSolvers, KratosCoreFast
     VectorType x(size);
 
     // Create a simple fallback solver
-    FallbackLinearSolverType simple_fallback_solver_1(p_solver1, p_solver2);
-
-    // Solve the system
-    bool solved = simple_fallback_solver_1.Solve(A, x, b);
-
-    // Check that the system was solved
-    KRATOS_EXPECT_TRUE(solved);
-
-    // Check index is 1 (solve 0 failed)
-    KRATOS_EXPECT_EQ(simple_fallback_solver_1.GetCurrentSolverIndex(), 1);
-
-    // Create a simple fallback solver
     std::vector<LinearSolverType::Pointer> solvers = {p_solver1, p_solver2};
-    FallbackLinearSolverType simple_fallback_solver_2(solvers);
+    FallbackLinearSolverType simple_fallback_solver(solvers);
 
     // Solve the system
-    solved = simple_fallback_solver_2.Solve(A, x, b);
+    const auto solved = simple_fallback_solver.Solve(A, x, b);
 
     // Check that the system was solved
     KRATOS_EXPECT_TRUE(solved);
 
     // Check index is 1 (solve 0 failed)
-    KRATOS_EXPECT_EQ(simple_fallback_solver_2.GetCurrentSolverIndex(), 1);
+    KRATOS_EXPECT_EQ(simple_fallback_solver.GetCurrentSolverIndex(), 1);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(FallbackLinearSolverConstructorParameters, KratosCoreFastSuite)

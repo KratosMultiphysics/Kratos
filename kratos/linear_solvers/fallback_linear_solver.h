@@ -133,33 +133,6 @@ public:
     }
 
     /**
-     * @brief Constructor with two solvers
-     * @param pSolver1 The first LinearSolverPointer to set.
-     * @param pSolver2 The second LinearSolverPointer to set.
-     * @param ThisParameters The configuration parameters
-     */
-    FallbackLinearSolver(
-        LinearSolverPointer pSolver1,
-        LinearSolverPointer pSolver2,
-        Parameters ThisParameters = Parameters(R"({})")
-        ) : mSolvers({pSolver1, pSolver2}),
-            mParameters(ThisParameters)
-    {
-        // Verify that linear solvers are not defined in the parameters
-        KRATOS_ERROR_IF(mParameters.Has("solvers")) << "The solvers are already defined in the input parameters" << std::endl;
-
-        // Set the default parameters
-        mParameters.ValidateAndAssignDefaults(GetDefaultParameters());
-
-        // Fill the parameters with the solvers
-        FillParametersFromSolver(pSolver1);
-        FillParametersFromSolver(pSolver2);
-
-        // Set some member variables from the parameters
-        CommonSettingsFromParameters();
-    }
-
-    /**
      * @brief Constructor with a list of solvers
      * @param rSolvers A vector of LinearSolverPointer to set.
      * @param ThisParameters The configuration parameters

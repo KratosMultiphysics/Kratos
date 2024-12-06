@@ -241,7 +241,6 @@ void  AddLinearSolversToPython(pybind11::module& m)
     using FallbackLinearSolverType = FallbackLinearSolver<SpaceType, LocalSpaceType>;
     py::class_<FallbackLinearSolverType, FallbackLinearSolverType::Pointer, LinearSolverType>(m, "FallbackLinearSolver")
     .def(py::init<Parameters>())
-    .def(py::init<LinearSolverType::Pointer, LinearSolverType::Pointer, Parameters>())
     .def(py::init<const std::vector<LinearSolverType::Pointer>&, Parameters>())
     .def("AddSolver", [](FallbackLinearSolverType& rSelf, LinearSolverType::Pointer pSolver) {
         rSelf.AddSolver(pSolver);

@@ -18,6 +18,7 @@
 #include "testing/testing.h"
 #include "trilinos_space.h"
 #include "tests/cpp_tests/trilinos_cpp_test_utilities.h"
+#include "tests/cpp_tests/trilinos_fast_suite.h"
 #include "linear_solvers/fallback_linear_solver.h"
 
 namespace Kratos::Testing
@@ -82,7 +83,7 @@ using TrilinosDummyLinearSolverType = DummyLinearSolver<TrilinosSparseSpaceType,
 using TrilinosFallbackLinearSolverType = FallbackLinearSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType>;
 using TrilinosLinearSolverFactoryType = LinearSolverFactory<TrilinosSparseSpaceType, TrilinosLocalSpaceType>;
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosFallbackLinearSolverConstructorSolvers, ParallelComputingApplicationFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosFallbackLinearSolverConstructorSolvers, KratosTrilinosApplicationMPITestSuite)
 {
     // Create the solvers
     auto p_solver1 = Kratos::make_shared<TrilinosDummyLinearSolverType>();
@@ -101,32 +102,20 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosFallbackLinearSolverConstructorSol
     auto x = TrilinosCPPTestUtilities::GenerateDummySparseVector(r_comm, size);
 
     // Create a simple fallback solver
-    TrilinosFallbackLinearSolverType simple_fallback_solver_1(p_solver1, p_solver2);
-
-    // Solve the system
-    bool solved = simple_fallback_solver_1.Solve(A, x, b);
-
-    // Check that the system was solved
-    KRATOS_EXPECT_TRUE(solved);
-
-    // Check index is 1 (solve 0 failed)
-    KRATOS_EXPECT_EQ(simple_fallback_solver_1.GetCurrentSolverIndex(), 1);
-
-    // Create a simple fallback solver
     std::vector<TrilinosLinearSolverType::Pointer> solvers = {p_solver1, p_solver2};
-    TrilinosFallbackLinearSolverType simple_fallback_solver_2(solvers);
+    TrilinosFallbackLinearSolverType simple_fallback_solver(solvers);
 
     // Solve the system
-    solved = simple_fallback_solver_2.Solve(A, x, b);
+    const auto solved = simple_fallback_solver.Solve(A, x, b);
 
     // Check that the system was solved
     KRATOS_EXPECT_TRUE(solved);
 
     // Check index is 1 (solve 0 failed)
-    KRATOS_EXPECT_EQ(simple_fallback_solver_2.GetCurrentSolverIndex(), 1);
+    KRATOS_EXPECT_EQ(simple_fallback_solver.GetCurrentSolverIndex(), 1);
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosFallbackLinearSolverConstructorParameters, ParallelComputingApplicationFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosFallbackLinearSolverConstructorParameters, KratosTrilinosApplicationMPITestSuite)
 {
     // The data communicator
     const auto& r_comm = Testing::GetDefaultDataCommunicator();
