@@ -166,7 +166,7 @@ namespace Kratos
         SetInterfaceFlags();
         // Deactivate SBM_BOUNDARY elements and nodes which are surrounded by deactivated elements
         DeactivateElementsAndNodes();
-        // Calculate the extension operators for nodes of elements in which skin points are located 
+        // Calculate the extension operators for nodes of elements in which skin points are located
         // and add conditions for one or both sides of all skin points
         CalculateAndAddSkinIntegrationPointConditions();
 
@@ -247,7 +247,8 @@ namespace Kratos
             // TODO improve calculation for whether node should be relocated for 3D
             // n_neighbors/2 +1 works well for 2D - TODO: n_neighbors/2+2 as well?? 3D +4?
             //const std::size_t n_critical = (n_dim == 2) ? n_neighbors-1 : n_neighbors;
-            const bool majority_is_selected = double(n_selected) > double(n_neighbors)/2.0 + 0.9;//  n_selected >= n_critical;
+            //const bool majority_is_selected = double(n_selected) > double(n_neighbors)/2.0 + 0.9;//  n_selected >= n_critical;
+            const bool majority_is_selected = n_selected >= n_neighbors-1;
 
             // If there are mostly intersected elements around the current node, we will move it into the direction of an intersecting object's normal
             bool relocate_node = false;
@@ -361,6 +362,8 @@ namespace Kratos
         LockObject mutex;
         block_for_each(mpModelPart->Elements(), [&mutex](ElementType& rElement){
             if (rElement.Is(SBM_BOUNDARY)) {
+                //TODO for laplacian testing
+                rElement.Set(BOUNDARY, true);
                 const std::size_t n_faces = rElement.GetGeometry().FacesNumber();
                 auto& r_neigh_elems = rElement.GetValue(NEIGHBOUR_ELEMENTS);
                 for (std::size_t i_face = 0; i_face < n_faces; ++i_face) {
@@ -373,6 +376,8 @@ namespace Kratos
                             {
                                 std::scoped_lock<LockObject> lock(mutex);
                                 p_neigh_elem->Set(SBM_INTERFACE, true);
+                                //TODO for laplacian testing
+                                p_neigh_elem->Set(INTERFACE, true);
                             }
                         }
                     }
@@ -512,7 +517,7 @@ namespace Kratos
             KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility") << "Integration point conditions were NOT successfully added for at least one side of "
                 << n_skin_pt_conditions_not_added << " skin points." << std::endl;
         }
-        KRATOS_INFO("ShiftedBoundaryPointBasedInterfaceUtility") << mSkinModelPartName << " skin point conditions were added." << std::endl;
+        KRATOS_INFO("ShiftedBoundaryPointBasedInterfaceUtility") << "'" << mSkinModelPartName << "' skin point conditions were added." << std::endl;
     }
 
     void ShiftedBoundaryPointBasedInterfaceUtility::FixEnclosedVolumesPressure()
@@ -880,7 +885,7 @@ namespace Kratos
                         // Use and declare SBM_INTERFACE nodes on the negative side for the support cloud of a node on the positive side
                         SetLateralSupportCloud(p_node, avg_position, avg_normal, cloud_nodes, cloud_nodes_coordinates, SBM_INTERFACE);
                     }
-                    
+
                     // Continue if the number of support nodes is sufficient for the calculation of the extension operator
                     const std::size_t n_cloud_nodes = cloud_nodes.size();
                     if (n_cloud_nodes >= GetRequiredNumberOfPoints()) {
@@ -950,7 +955,7 @@ namespace Kratos
         }
 
         // Check number of first layer points
-        if (aux_set.size() == 0) {            
+        if (aux_set.size() == 0) {
             KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility")
                 << "No nodal neighbors on the other side where found for node " << pOtherSideNode->Id() << ". Extension basis can not be calculated." << std::endl;
             return;
@@ -1094,7 +1099,7 @@ namespace Kratos
         for (std::size_t i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
             NodeType::Pointer p_node = r_geom(i_node);
             //TODO edge node treatment
-            //if (p_node->Id() == 908 || p_node->Id() == 924 || p_node->Id() == 347 || p_node->Id() == 372) {  //p_node->Id() == 361 || p_node->Id() == 878 || 
+            //if (p_node->Id() == 908 || p_node->Id() == 924 || p_node->Id() == 347 || p_node->Id() == 372) {  //p_node->Id() == 361 || p_node->Id() == 878 ||
             //    cloud_nodes_set_pos.insert(p_node);
             //    cloud_nodes_set_neg.insert(p_node);
             //}
@@ -1184,7 +1189,7 @@ namespace Kratos
         const bool ConsiderPositiveSide)
     {
         const auto& r_geom = rElement.GetGeometry();
-        
+
         // Initialize the extension operator containers
         const std::size_t n_cl_nodes = rCloudNodeVector.size();
         const std::size_t n_dim = r_geom.WorkingSpaceDimension();
@@ -1201,7 +1206,11 @@ namespace Kratos
             if (ConsiderPositiveSide != (rSidesVector[i_node] <= 0.0)) {
                 // If a node on the side that is being considered is not active, then no wall condition is created
                 if (!p_node->Is(ACTIVE)) {
-                    KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility") << "No wall condition will be created for one side of the skin point because Node No." << p_node->Id() << " is not active." << std::endl;
+                    /*if (ConsiderPositiveSide) {
+                        KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility") << "No wall condition will be created for positive side of the skin point because Node No." << p_node->Id() << " is not active." << std::endl;
+                    } else {
+                        KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility") << "No wall condition will be created for negative side of the skin point because Node No." << p_node->Id() << " is not active." << std::endl;
+                    }*/
                     return false;
                 }
                 // Note that we need to check for the ids to match as we do not know the node's position in the node vector
@@ -1224,7 +1233,7 @@ namespace Kratos
                 // If node on the other side does not have an extension basis, then no wall condition is created
                 const std::size_t found = rExtensionOperatorMap.count(p_node);
                 if (!found) {
-                    KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility") << "No wall condition will be created for one side of the skin point because no extension operator was available for Node No." << p_node->Id() << std::endl;
+                    //KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility") << "No wall condition will be created for one side of the skin point because no extension operator was available for Node No." << p_node->Id() << std::endl;
                     return false;
                 }
 
@@ -1257,6 +1266,11 @@ namespace Kratos
         p_cond->Set(ACTIVE, true);
         mpBoundarySubModelPart->AddCondition(p_cond);
 
+        //TODO for laplacian static heat testing:
+        // Set Dirichlet boundary condition
+        //const double dirichlet_value = std::pow(rIntPtCoordinates(0),2) + std::pow(rIntPtCoordinates(1),2);
+        //p_cond->SetValue(TEMPERATURE, dirichlet_value);
+
         // Store the SBM BC data in the condition database
         p_cond->SetValue(ELEMENT_H, ElementSize);
         p_cond->SetValue(INTEGRATION_COORDINATES, rIntPtCoordinates);
@@ -1277,17 +1291,18 @@ namespace Kratos
         auto& r_geom = rElement.GetGeometry();
         const std::size_t n_nodes = r_geom.PointsNumber();
         for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
-            if ((mPositiveSideIsEnclosed && rSidesVector[i_node] > 0) or (mNegativeSideIsEnclosed && rSidesVector[i_node] < 0)) {
 
+            if ((mPositiveSideIsEnclosed && rSidesVector[i_node] > 0) or (mNegativeSideIsEnclosed && rSidesVector[i_node] < 0)) {
                 auto& r_node = r_geom[i_node];
                 // Calculate dot product of average skin normal of the element and the normalized vector between averaged skin point and the element's node
-                array_1d<double, 3> avg_skin_pt_to_node = r_node.Coordinates() - rAvgSkinPosition;
-                avg_skin_pt_to_node /= norm_2(avg_skin_pt_to_node);
-                double dot_product = inner_prod(avg_skin_pt_to_node, rAvgSkinNormal);
-                if (mNegativeSideIsEnclosed) {
-                    dot_product *= -1.0;
-                }
-                if (dot_product > 0.1 && r_node.Is(ACTIVE)) {
+                // array_1d<double, 3> avg_skin_pt_to_node = r_node.Coordinates() - rAvgSkinPosition;
+                // avg_skin_pt_to_node /= norm_2(avg_skin_pt_to_node);
+                // double dot_product = inner_prod(avg_skin_pt_to_node, rAvgSkinNormal);
+                // if (mNegativeSideIsEnclosed) {
+                //     dot_product *= -1.0;
+                // }
+                // if (dot_product > 0.1 &&
+                if (r_node.Is(ACTIVE)) {
                     r_node.Fix(PRESSURE);
                     r_node.FastGetSolutionStepValue(PRESSURE) = 0.0;
                     return true;

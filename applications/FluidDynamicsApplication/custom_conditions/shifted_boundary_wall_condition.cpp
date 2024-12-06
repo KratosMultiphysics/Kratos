@@ -127,8 +127,8 @@ void ShiftedBoundaryWallCondition<TDim>::CalculateLocalSystem(
     noalias(rLeftHandSideMatrix) = ZeroMatrix(local_size, local_size);
 
     AddNitscheImposition(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
-
-    //AddDirichletPenalization(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);  TODO
+    //NOTE that penalization is less stable
+    //AddDirichletPenalization(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);  //TODO
 
     KRATOS_CATCH("")
 }
