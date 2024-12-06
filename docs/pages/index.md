@@ -55,12 +55,12 @@ pip install KratosMultiphysics-all
 
 ## Tutorials
 {:.no_toc}
-* [Running an example from GiD](https://github.com/KratosMultiphysics/Kratos/wiki/Running-an-example-from-GiD)
-* [Kratos input files and I/O](https://github.com/KratosMultiphysics/Kratos/wiki/Kratos-input-files-and-IO)
-* [Data management](https://github.com/KratosMultiphysics/Kratos/wiki/Data-management)
-* [Solving strategies](https://github.com/KratosMultiphysics/Kratos/wiki/Solving-strategies)
-* [Manipulating solution values](https://github.com/KratosMultiphysics/Kratos/wiki/Manipulating-solution-values)
-* [Multiphysics](https://github.com/KratosMultiphysics/Kratos/wiki/Multiphysics-example)
+* [Running an example from GiD](https://kratosmultiphysics.github.io/Kratos/pages/Kratos/For_Users/Tutorials/Running_An_Example_From_GiD.html)
+* [Kratos input files and I/O](https://kratosmultiphysics.github.io/Kratos/pages/Kratos/For_Users/Tutorials/Kratos_Input_Files_And_Io.html)
+* [Data management](https://kratosmultiphysics.github.io/Kratos/pages/Kratos/For_Users/Tutorials/Data_Management.html)
+* [Solving strategies](https://kratosmultiphysics.github.io/Kratos/pages/Kratos/For_Users/Tutorials/Solving_Strategies.html)
+* [Manipulating solution values](https://kratosmultiphysics.github.io/Kratos/pages/Kratos/For_Developers/Tutorials/Manipulating-solution-values.html)
+* [Multiphysics](https://kratosmultiphysics.github.io/Kratos/pages/Kratos/For_Users/Tutorials/Multiphysics_Example.html)
 
 # Examples of use
 Kratos has been used for simulation of many different problems in a wide variety of disciplines ranging from wind over singular building to granular domain dynamics. Some examples and validation benchmarks simulated by Kratos can be found [here](https://kratosmultiphysics.github.io/Examples/)
