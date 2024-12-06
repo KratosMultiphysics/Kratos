@@ -44,8 +44,9 @@ public:
 
     static const IntegrationPointsArrayType& IntegrationPoints()
     {
+        const double one_third = 1.0 / 3.0;
         static const IntegrationPointsArrayType s_integration_points{{
-            IntegrationPointType( 1.00 / 3.00 , 1.00 / 3.00 , 1.00 / 2.00 )
+            IntegrationPointType( one_third , one_third , 0.5 )
         }};
         return s_integration_points;
     }
@@ -82,13 +83,20 @@ public:
 
     static const IntegrationPointsArrayType& IntegrationPoints()
     {
+        // Define auxiliary constants
+        const double one_sixth = 1.0 / 6.0;
+        const double two_thirds = 2.0 / 3.0;
+        const double weight = 1.0 / 6.0;
+
+        // Integration points using the auxiliary constants
         static const IntegrationPointsArrayType s_integration_points{{
-            IntegrationPointType( 1.00 / 6.00 , 1.00 / 6.00 , 1.00 / 6.00 ),
-            IntegrationPointType( 2.00 / 3.00 , 1.00 / 6.00 , 1.00 / 6.00 ),
-            IntegrationPointType( 1.00 / 6.00 , 2.00 / 3.00 , 1.00 / 6.00 )
+            IntegrationPointType(one_sixth, one_sixth, weight),
+            IntegrationPointType(two_thirds, one_sixth, weight),
+            IntegrationPointType(one_sixth, two_thirds, weight)
         }};
         return s_integration_points;
     }
+
 
     std::string Info() const
     {
@@ -122,10 +130,11 @@ public:
 
     static const IntegrationPointsArrayType& IntegrationPoints()
     {
+        const double one_over_six = 1.0 / 6.0;
         static const IntegrationPointsArrayType s_integration_points{{
-            IntegrationPointType( 0.0, 0.0 , 1.00 / 6.00 ),
-            IntegrationPointType( 1.0, 0.0 , 1.00 / 6.00 ),
-            IntegrationPointType( 0.0, 1.0 , 1.00 / 6.00 )
+            IntegrationPointType( 0.0, 0.0 , one_over_six ),
+            IntegrationPointType( 1.0, 0.0 , one_over_six ),
+            IntegrationPointType( 0.0, 1.0 , one_over_six )
         }};
         return s_integration_points;
     }
@@ -161,14 +170,24 @@ public:
 
     static const IntegrationPointsArrayType& IntegrationPoints()
     {
+        // Define auxiliary constants
+        const double one_fifth = 1.00 / 5.00;
+        const double three_fifths = 3.00 * one_fifth;
+        const double one_third = 1.00 / 3.00;
+
+        const double weight_positive = 25.00 / 96.00;
+        const double weight_negative = -27.00 / 96.00;
+
+        // Integration points using the auxiliary constants
         static const IntegrationPointsArrayType s_integration_points{{
-            IntegrationPointType( 1.00 / 5.00 , 1.00 / 5.00 , 25.00 / 96.00 ),
-            IntegrationPointType( 3.00 / 5.00 , 1.00 / 5.00 , 25.00 / 96.00 ),
-            IntegrationPointType( 1.00 / 5.00 , 3.00 / 5.00 , 25.00 / 96.00 ),
-            IntegrationPointType( 1.00 / 3.00 , 1.00 / 3.00 , -27.00 / 96.00 )
+            IntegrationPointType(one_fifth, one_fifth, weight_positive),
+            IntegrationPointType(three_fifths, one_fifth, weight_positive),
+            IntegrationPointType(one_fifth, three_fifths, weight_positive),
+            IntegrationPointType(one_third, one_third, weight_negative)
         }};
         return s_integration_points;
     }
+
 
     std::string Info() const
     {
