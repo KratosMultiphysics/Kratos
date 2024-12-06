@@ -763,7 +763,7 @@ protected:
         if (mCurrentSolverIndex < mSolvers.size()) {
             KRATOS_INFO("FallbackLinearSolver") << "Current solver " << GetCurrentSolver()->Info() << " failed with the following settings: " << mParameters["solvers"][mCurrentSolverIndex].PrettyPrintJsonString() << std::endl;
         } else {
-            KRATOS_WARNING("FallbackLinearSolver") << "Current solver index is out of bounds." << std::endl;
+            KRATOS_WARNING("FallbackLinearSolver") << "Solver index cannot be updated as all potential linear solvers has been already tried. Sticking to current solver "  << GetCurrentSolver()->Info() << std::endl;
             return;
         }
 
@@ -774,7 +774,7 @@ protected:
         if (mCurrentSolverIndex < mSolvers.size()) {
             KRATOS_INFO("FallbackLinearSolver") << "Switching to new solver " << GetCurrentSolver()->Info() << " with the following settings: " << mParameters["solvers"][mCurrentSolverIndex].PrettyPrintJsonString() << std::endl;
         } else {
-            KRATOS_WARNING("FallbackLinearSolver") << "New solver index is out of bounds." << std::endl;
+            KRATOS_WARNING("FallbackLinearSolver") << "Solver index cannot be updated as all potential linear solvers has been already tried. Sticking to current solver "  << GetCurrentSolver()->Info() << std::endl;
             return;
         }
     }
@@ -794,47 +794,6 @@ protected:
             KRATOS_ERROR << "Invalid solver index: " << mCurrentSolverIndex << std::endl;
         }
     }
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
-private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
 
     ///@}
 }; // Class FallbackLinearSolver
