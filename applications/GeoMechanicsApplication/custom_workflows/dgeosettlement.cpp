@@ -191,14 +191,6 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
         std::vector<std::shared_ptr<Process>> processes = GetProcesses(project_parameters);
         std::vector<std::weak_ptr<Process>> process_observables(processes.begin(), processes.end());
 
-        if (mpTimeLoopExecutor) {
-            mpTimeLoopExecutor->SetCancelDelegate(rShouldCancel);
-            mpTimeLoopExecutor->SetProgressDelegate(rProgressDelegate);
-            mpTimeLoopExecutor->SetProcessObservables(process_observables);
-            mpTimeLoopExecutor->SetTimeIncrementor(MakeTimeIncrementor(project_parameters));
-            mpTimeLoopExecutor->SetSolverStrategyWrapper(MakeStrategyWrapper(project_parameters, rWorkingDirectory));
-        }
-
         for (const auto& process : processes) {
             process->ExecuteInitialize();
         }
@@ -208,6 +200,12 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
         }
 
         if (mpTimeLoopExecutor) {
+            mpTimeLoopExecutor->SetCancelDelegate(rShouldCancel);
+            mpTimeLoopExecutor->SetProgressDelegate(rProgressDelegate);
+            mpTimeLoopExecutor->SetProcessObservables(process_observables);
+            mpTimeLoopExecutor->SetTimeIncrementor(MakeTimeIncrementor(project_parameters));
+            mpTimeLoopExecutor->SetSolverStrategyWrapper(MakeStrategyWrapper(project_parameters, rWorkingDirectory));
+
             // For now, pass a dummy state. THIS PROBABLY NEEDS TO BE REFINED AT SOME POINT!
             TimeStepEndState start_of_loop_state;
             start_of_loop_state.convergence_state = TimeStepEndState::ConvergenceState::converged;
@@ -341,10 +339,8 @@ std::shared_ptr<StrategyWrapper> KratosGeoSettlement::MakeStrategyWrapper(const 
     GetMainModelPart().CloneTimeStep();
 
     if (rProjectParameters["solver_settings"]["reset_displacements"].GetBool()) {
-        constexpr auto source_index      = std::size_t{0};
-        constexpr auto destination_index = std::size_t{1};
-        RestoreValuesOfNodalVariable(DISPLACEMENT, source_index, destination_index);
-        RestoreValuesOfNodalVariable(ROTATION, source_index, destination_index);
+        ResetValuesOfNodalVariable(DISPLACEMENT);
+        ResetValuesOfNodalVariable(ROTATION);
 
         VariableUtils{}.UpdateCurrentToInitialConfiguration(GetComputationalModelPart().Nodes());
     }

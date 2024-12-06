@@ -47,7 +47,7 @@ using GeometryType = Geometry<NodeType>;
 
 /**
  * @brief This method retrieves the first geometry from a model part
- * @param rModelPart The input model part 
+ * @param rModelPart The input model part
  * @return The first geometry of the model part
  */
 GeometryType::Pointer GetGeometryFromModelPart(const ModelPart& rModelPart)
@@ -85,9 +85,12 @@ unsigned int DetermineModelPartMaximumLocalDimension(ModelPart& rModelPart)
  * @brief This method determines the 2D model part
  * @param rFirstModelPart The first ModelPart
  * @param rSecondModelPart The second ModelPart
- * @return The 2D model part 
+ * @return The 2D model part
  */
-ModelPart& Determine2DModelPart(ModelPart& rFirstModelPart, ModelPart& rSecondModelPart)
+ModelPart& Determine2DModelPart(
+    ModelPart& rFirstModelPart,
+    ModelPart& rSecondModelPart
+    )
 {
     // Getting the maximum local space dimension
     const unsigned int max_local_space_dimension_1 = DetermineModelPartMaximumLocalDimension(rFirstModelPart);
@@ -110,9 +113,12 @@ ModelPart& Determine2DModelPart(ModelPart& rFirstModelPart, ModelPart& rSecondMo
  * @details The counter part of the previous method
  * @param rFirstModelPart The first ModelPart
  * @param rSecondModelPart The second ModelPart
- * @return The 3D model part 
+ * @return The 3D model part
  */
-ModelPart& Determine3DModelPart(ModelPart& rFirstModelPart, ModelPart& rSecondModelPart)
+ModelPart& Determine3DModelPart(
+    ModelPart& rFirstModelPart,
+    ModelPart& rSecondModelPart
+    )
 {
     // Getting the maximum local space dimension
     const unsigned int max_local_space_dimension_1 = DetermineModelPartMaximumLocalDimension(rFirstModelPart);
@@ -476,32 +482,41 @@ private:
             GeometryType::CoordinatesArrayType aux_coords;
             noalias(mPointPlane.Coordinates()) = p_geometry->Center();
             p_geometry->PointLocalCoordinates(aux_coords, mPointPlane);
-            noalias(mNormalPlane) = p_geometry->UnitNormal(aux_coords);
+            const bool is_pure_2d_geometry = p_geometry->LocalSpaceDimension() == p_geometry->WorkingSpaceDimension() ? true : false;
+            if (is_pure_2d_geometry) {
+                mNormalPlane[0] = 0.0;
+                mNormalPlane[1] = 0.0;
+                mNormalPlane[2] = 1.0;
+            } else {
+                noalias(mNormalPlane) = p_geometry->UnitNormal(aux_coords);
+            }
 
             // Doing a check that all normals are aligned
-            std::size_t check_normal;
-            const double numerical_limit = std::numeric_limits<double>::epsilon() * 1.0e4;
-            struct normal_check {
-                normal_check(array_1d<double, 3>& rNormal) : reference_normal(rNormal) {};
-                array_1d<double, 3> reference_normal;
-                GeometryType::CoordinatesArrayType aux_coords;
-            };
-            if (mEntityTypeMesh == EntityTypeMesh::CONDITIONS) {
-                check_normal = block_for_each<SumReduction<std::size_t>>(r_2d_model_part.Conditions(), normal_check(mNormalPlane), [&numerical_limit](auto& r_cond, normal_check& nc) {
-                    auto& r_geom = r_cond.GetGeometry();
-                    r_geom.PointLocalCoordinates(nc.aux_coords, r_geom.Center());
-                    const auto normal = r_geom.UnitNormal(nc.aux_coords);
-                    return (norm_2(normal - nc.reference_normal) > numerical_limit);
-                });
-            } else {
-                check_normal = block_for_each<SumReduction<std::size_t>>(r_2d_model_part.Elements(), normal_check(mNormalPlane), [&numerical_limit](auto& r_elem, normal_check& nc) {
-                    auto& r_geom = r_elem.GetGeometry();
-                    r_geom.PointLocalCoordinates(nc.aux_coords, r_geom.Center());
-                    const auto normal = r_geom.UnitNormal(nc.aux_coords);
-                    return (norm_2(normal - nc.reference_normal) > numerical_limit);
-                });
+            if (!is_pure_2d_geometry) {
+                std::size_t check_normal;
+                const double numerical_limit = std::numeric_limits<double>::epsilon() * 1.0e4;
+                struct normal_check {
+                    normal_check(array_1d<double, 3>& rNormal) : reference_normal(rNormal) {};
+                    array_1d<double, 3> reference_normal;
+                    GeometryType::CoordinatesArrayType aux_coords;
+                };
+                if (mEntityTypeMesh == EntityTypeMesh::CONDITIONS) {
+                    check_normal = block_for_each<SumReduction<std::size_t>>(r_2d_model_part.Conditions(), normal_check(mNormalPlane), [&numerical_limit](auto& r_cond, normal_check& nc) {
+                        auto& r_geom = r_cond.GetGeometry();
+                        r_geom.PointLocalCoordinates(nc.aux_coords, r_geom.Center());
+                        const auto normal = r_geom.UnitNormal(nc.aux_coords);
+                        return (norm_2(normal - nc.reference_normal) > numerical_limit);
+                    });
+                } else {
+                    check_normal = block_for_each<SumReduction<std::size_t>>(r_2d_model_part.Elements(), normal_check(mNormalPlane), [&numerical_limit](auto& r_elem, normal_check& nc) {
+                        auto& r_geom = r_elem.GetGeometry();
+                        r_geom.PointLocalCoordinates(nc.aux_coords, r_geom.Center());
+                        const auto normal = r_geom.UnitNormal(nc.aux_coords);
+                        return (norm_2(normal - nc.reference_normal) > numerical_limit);
+                    });
+                }
+                KRATOS_ERROR_IF_NOT(check_normal == 0) << "The 2D reference model part has not consistent normals. Please check that is properly aligned" << std::endl;
             }
-            KRATOS_ERROR_IF_NOT(check_normal == 0) << "The 2D reference model part has not consistent normals. Please check that is properly aligned" << std::endl;
 
             // The partition that sends
             if (is_distributed) {
