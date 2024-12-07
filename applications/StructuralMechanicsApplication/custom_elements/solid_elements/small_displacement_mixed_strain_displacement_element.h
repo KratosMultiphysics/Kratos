@@ -24,10 +24,6 @@
 // Application includes
 #include "structural_mechanics_application_variables.h"
 #include "utilities/geometry_utilities.h"
-// #include "integration/quadrilateral_gauss_lobatto_integration_points.h"
-// #include "integration/triangle_gauss_legendre_integration_points.h"
-// #include "integration/hexahedron_gauss_lobatto_integration_points.h"
-// #include "integration/tetrahedron_gauss_legendre_integration_points.h"
 
 
 namespace Kratos
@@ -65,6 +61,8 @@ namespace Kratos
  * @details This implements a small displacements element formulation with an extra strain nodal DOF, in total u (3) + E(6) Dofs in 3D
  * Reference: Finite element modeling of quasi-brittle cracks in 2D and 3D with enhanced strain accuracy, M. Cervera, G. Barbat and M. Chiumenti,
  * Computational Mechanics, (60) 767-796, 2017. DOI: https://doi.org/10.1007/s00466-017-1438-8
+ * The secant matrix multiplication in the strain compatibility equation has been modified to the elastic constitutive matrix for generality.
+ * The tangent tensor is used in the balance of linear momentum to get quadratic convergence rates in the Newton Raphson
  * @author Alejandro Cornejo
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallDisplacementMixedStrainDisplacementElement
@@ -444,28 +442,6 @@ public:
         pGetGeometry()->PrintData(rOStream);
     }
 
-
-    // const IntegrationPointsArrayType& GetIntegrationPoints()
-    // {
-    //     const auto &r_geometry = GetGeometry();
-    //     const SizeType nnodes = r_geometry.size();
-    //     const SizeType dim = r_geometry.WorkingSpaceDimension();
-
-        // if (dim == 2) {
-        //     if (nnodes == 4) { // quad
-        //         return QuadrilateralGaussLobattoIntegrationPoints2().IntegrationPoints();
-        //     } else { // triangle
-        //         return TriangleGaussLegendreIntegrationPoints1().IntegrationPoints();
-        //     }
-        // } else { // 3D
-        //     if (nnodes == 4) { // tets
-        //         return TetrahedronGaussLegendreIntegrationPoints1().IntegrationPoints();
-        //     } else { // hexas
-        //         return HexahedronGaussLobattoIntegrationPoints2().IntegrationPoints();
-        //     }
-        // }
-    // }
-
     ///@}
     ///@name Friends
     ///@{
@@ -479,8 +455,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    IntegrationMethod mThisIntegrationMethod;                     /// Integration method for stress related terms (Lobatto)
-    IntegrationMethod mMassThisIntegrationMethod;                 /// Integration method for the rest (Gauss)
+    IntegrationMethod mThisIntegrationMethod;                     /// Integration method
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws
 
     ///@}
