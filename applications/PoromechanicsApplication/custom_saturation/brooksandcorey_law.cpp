@@ -161,17 +161,17 @@ void BrooksAndCoreyLaw::CalculateGasRelativePermeability (SaturationLawVariables
 {
     double& rkrg = rValues.Getkrg();
 
-    if (rVariables.Se >= 1.0) {
-        // Fully saturated medium
-        rkrg = rVariables.krmin;
-    } else if (rVariables.Se <= 0.0) {
-        // Dry medium
-        rkrg = 1.0;
-    } else {
-        const double ng = (2.0 + rVariables.lambda)/rVariables.lambda;
-        rkrg = (1.0-rVariables.Se)*(1.0-rVariables.Se)*(1.0 - std::pow(rVariables.Se,ng));
-        rkrg = std::max(rkrg,rVariables.krmin);
-    }
+    // if (rVariables.Se >= 1.0) {
+    //     // Fully saturated medium
+    //     rkrg = rVariables.krmin;
+    // } else if (rVariables.Se <= 0.0) {
+    //     // Dry medium
+    //     rkrg = 1.0;
+    // } else {
+    //     const double ng = (2.0 + rVariables.lambda)/rVariables.lambda;
+    //     rkrg = (1.0-rVariables.Se)*(1.0-rVariables.Se)*(1.0 - std::pow(rVariables.Se,ng));
+    //     rkrg = std::max(rkrg,rVariables.krmin);
+    // }
 
 
     // TODO. Xavi
