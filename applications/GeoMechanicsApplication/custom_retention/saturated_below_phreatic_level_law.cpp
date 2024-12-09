@@ -33,11 +33,7 @@ SaturatedBelowPhreaticLevelLaw::~SaturatedBelowPhreaticLevelLaw() {}
 
 double SaturatedBelowPhreaticLevelLaw::CalculateSaturation(Parameters& rParameters) const
 {
-    if (rParameters.GetFluidPressure() < 0.0) {
-        return rParameters.GetMaterialProperties()[SATURATED_SATURATION];
-    } else {
-        return rParameters.GetMaterialProperties()[RESIDUAL_SATURATION];
-    }
+    return (rParameters.GetFluidPressure() < 0.0) ? rParameters.GetMaterialProperties()[SATURATED_SATURATION] : rParameters.GetMaterialProperties()[RESIDUAL_SATURATION];
 }
 
 double SaturatedBelowPhreaticLevelLaw::CalculateEffectiveSaturation(Parameters& rParameters) const
