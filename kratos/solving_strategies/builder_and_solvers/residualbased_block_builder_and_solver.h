@@ -450,8 +450,6 @@ public:
         else
             norm_b = 0.00;
 
-        KRATOS_INFO("ResidualBasedBlockBuilderAndSolver") << "Norm RHS = " << norm_b << std::endl;
-
         if (norm_b != 0.00) {
             //provide physical data as needed
             if(BaseType::mpLinearSystemSolver->AdditionalPhysicalDataIsNeeded() )
@@ -1199,7 +1197,6 @@ protected:
 
     virtual void ConstructMasterSlaveConstraintsStructure(ModelPart& rModelPart)
     {
-        KRATOS_INFO("ConstructMasterSlaveConstraintsStructure") << "Number of constraints: " << rModelPart.MasterSlaveConstraints().size() << std::endl;
         if (rModelPart.MasterSlaveConstraints().size() > 0) {
             Timer::Start("ConstraintsRelationMatrixStructure");
             const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();

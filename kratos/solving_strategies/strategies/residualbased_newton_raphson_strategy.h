@@ -938,9 +938,6 @@ class ResidualBasedNewtonRaphsonStrategy
 
         //initializing the parameters of the Newton-Raphson cycle
         unsigned int iteration_number = 1;
-        KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", this->GetEchoLevel() > 0)
-                    << "Started iteration  " << iteration_number << " of "
-                    << mMaxIterationNumber << " iterations" << std::endl;
         r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
         bool residual_is_updated = false;
         p_scheme->InitializeNonLinIteration(r_model_part, rA, rDx, rb);
@@ -994,9 +991,6 @@ class ResidualBasedNewtonRaphsonStrategy
         while (is_converged == false &&
                iteration_number++ < mMaxIterationNumber)
         {
-            KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", this->GetEchoLevel() > 0)
-                << "Started iteration  " << iteration_number << " of "
-                << mMaxIterationNumber << " iterations" << std::endl;
             //setting the number of iteration
             r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
 
