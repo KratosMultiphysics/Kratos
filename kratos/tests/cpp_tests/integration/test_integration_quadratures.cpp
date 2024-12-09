@@ -17,6 +17,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "integration/quadrilateral_gauss_lobatto_integration_points.h"
+#include "integration/triangle_gauss_lobatto_integration_points.h"
 
 namespace Kratos::Testing
 {
@@ -75,5 +76,30 @@ KRATOS_TEST_CASE_IN_SUITE(GaussLobattoQuadrilateralQuadraturesTest, KratosCoreFa
 
 }
 
+KRATOS_TEST_CASE_IN_SUITE(GaussLobattoQuadrilateralQuadraturesTest, KratosCoreFastSuite)
+{
+
+    // In This test we evaluate the Gauss-Lobatto quadratures for integrating
+    // f = (x+y) [0, 1]x[0, 1-x] triangle
+
+    const auto& r_lobatto_1 = TriangleGaussLobattoIntegrationPoints1();
+
+    // Analytical results, reference
+    const double integral_f = 1.0 / 3.0;
+
+    double quadrature_integral_f = 0.0;
+
+    // Integral for f with Lobatto 1
+    for (IndexType IP = 0; IP < r_lobatto_1.IntegrationPoints().size(); ++IP) {
+        const auto& r_IP = r_lobatto_1.IntegrationPoints()[IP];
+        const double X = r_IP.X();
+        const double Y = r_IP.Y();
+        const double w = r_IP.Weight();
+
+        quadrature_integral_f += w * (X + Y);
+    }
+
+    KRATOS_CHECK_NEAR(quadrature_integral_f, integral_f, 1.0E-6);
+}
 
 } // namespace Kratos::Testing
