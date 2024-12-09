@@ -12,8 +12,12 @@
 //
 
 // System includes
-#include "custom_retention/saturated_below_phreatic_level_law.h"
 #include <iostream>
+
+// External includes
+
+// Project includes
+#include "custom_retention/saturated_below_phreatic_level_law.h"
 
 namespace Kratos
 {

@@ -1493,7 +1493,7 @@ array_1d<double, TNumNodes> UPwSmallStrainElement<TDim, TNumNodes>::CalculateFlu
     const BoundedMatrix<double, TNumNodes, TDim> temp_matrix =
         prod(rVariables.GradNpT, rVariables.PermeabilityMatrix) * rVariables.IntegrationCoefficient;
 
-    return rVariables.DynamicViscosityInverse * this->GetProperties()[DENSITY_WATER] *
+    return rVariables.DynamicViscosityInverse * this->GetProperties()[DENSITY_WATER] * rVariables.BishopCoefficient *
            rVariables.RelativePermeability * prod(temp_matrix, rVariables.BodyAcceleration);
 
     KRATOS_CATCH("")
