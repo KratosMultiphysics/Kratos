@@ -9,6 +9,7 @@
 //
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //                   Ashish Darekar
+//                   Ihar Antonau
 //
 
 #if !defined(KRATOS_COSIM_CONVERSION_UTILITIES_H_INCLUDED )
