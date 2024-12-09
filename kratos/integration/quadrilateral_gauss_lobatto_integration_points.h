@@ -123,7 +123,6 @@ namespace Kratos
         {
             const double one_over_nine     = 1.0 / 9.0;
             const double four_over_nine    = 4.0 * one_over_nine;
-            const double sixteen_over_nine = 9.0 * one_over_nine
 
             // Define the integration points and their weights
             static const IntegrationPointsArrayType s_integration_points{{
@@ -140,7 +139,7 @@ namespace Kratos
                 IntegrationPointType(0.0, 1.0,  four_over_nine),
 
                 // Center point
-                IntegrationPointType(0.0, 0.0, sixteen_over_nine)}};
+                IntegrationPointType(0.0, 0.0, 16.0 / 9.0)}};
             return s_integration_points;
         }
 
