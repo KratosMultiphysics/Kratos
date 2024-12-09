@@ -128,7 +128,7 @@ void VanGenuchtenLaw::InitializeMaterial(const Properties&   rMaterialProperties
     // nothing is needed
 }
 
-void VanGenuchtenLaw::Initialize(Parameters& rParameters)
+void VanGenuchtenLaw::Initialize(Parameters&)
 {
     // nothing is needed
 }

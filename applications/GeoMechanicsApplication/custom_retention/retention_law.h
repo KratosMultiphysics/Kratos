@@ -27,17 +27,9 @@ namespace Kratos
 class KRATOS_API(GEO_MECHANICS_APPLICATION) RetentionLaw
 {
 public:
-    /**
-     * Type definitions
-     * NOTE: geometries are assumed to be of type Node for all problems
-     */
-    using ProcessInfoType = ProcessInfo;
-    using SizeType        = std::size_t;
-    using GeometryType    = Geometry<Node>;
+    using GeometryType = Geometry<Node>;
 
-    /**
-     * Counted pointer of RetentionLaw
-     */
+    // Counted pointer of RetentionLaw
     KRATOS_CLASS_POINTER_DEFINITION(RetentionLaw);
 
     class Parameters
@@ -46,19 +38,7 @@ public:
 
         /**
          * Structure "Parameters" to be used by the element to pass the parameters into the retention law *
-
-        * KINEMATIC PARAMETERS:
-
-        *** NOTE: Pointers are used only to point to a certain variable,
-        *   no "new" or "malloc" can be used for this Parameters ***
-
-        * MATERIAL PROPERTIES:
-        * @param mrMaterialProperties reference to the material's Properties object (input data)
-
-        * PROCESS PROPERTIES:
-        * @param mrCurrentProcessInfo reference to current ProcessInfo instance (input data)
-
-        */
+         */
 
     public:
         explicit Parameters(const Properties& rMaterialProperties)
@@ -70,7 +50,7 @@ public:
 
         void SetFluidPressure(double FluidPressure) { mFluidPressure = FluidPressure; };
 
-        double GetFluidPressure() const
+        [[nodiscard]] double GetFluidPressure() const
         {
             KRATOS_ERROR_IF_NOT(mFluidPressure.has_value())
                 << "Fluid pressure is not yet set in the retention "
@@ -78,7 +58,10 @@ public:
             return mFluidPressure.value();
         }
 
-        const Properties& GetMaterialProperties() const { return mrMaterialProperties; }
+        [[nodiscard]] const Properties& GetMaterialProperties() const
+        {
+            return mrMaterialProperties;
+        }
 
     private:
         std::optional<double> mFluidPressure;
@@ -97,11 +80,11 @@ public:
      *      RetentionLaw::Pointer p_clone(new RetentionLaw());
      *      return p_clone;
      */
-    virtual RetentionLaw::Pointer Clone() const = 0;
+    [[nodiscard]] virtual Pointer Clone() const = 0;
 
     /**
      * @brief Calculates the value of a specified variable (double)
-     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rParameters the needed parameters for the CL calculation
      * @param rThisVariable the variable to be returned
      * @param rValue a reference to the returned value
      * @param rValue output: the value of the specified variable
@@ -124,7 +107,7 @@ public:
      * attributes of the retention law
      * @param rMaterialProperties the Properties instance of the current element
      * @param rElementGeometry the geometry of the current element
-     * @param rCurrentProcessInfo process info
+     * @param rShapeFunctionsValues shape function values
      */
     virtual void InitializeMaterial(const Properties&   rMaterialProperties,
                                     const GeometryType& rElementGeometry,
@@ -156,7 +139,6 @@ public:
      * @param rMaterialProperties the Properties instance of the current element
      * @param rElementGeometry the geometry of the current element
      * @param rShapeFunctionsValues the shape functions values in the current integration point
-     * @param the current ProcessInfo instance
      */
     virtual void ResetMaterial(const Properties&   rMaterialProperties,
                                const GeometryType& rElementGeometry,
@@ -167,7 +149,6 @@ public:
      * needed on the input provided. Checks can be "expensive" as the function
      * is designed to catch user's errors.
      * @param rMaterialProperties
-     * @param rElementGeometry
      * @param rCurrentProcessInfo
      * @return
      */
@@ -190,10 +171,10 @@ public:
      */
     inline static bool HasSameType(const RetentionLaw* rLHS, const RetentionLaw* rRHS)
     {
-        return RetentionLaw::HasSameType(*rLHS, *rRHS);
+        return HasSameType(*rLHS, *rRHS);
     }
 
-    virtual std::string Info() const { return "RetentionLaw"; }
+    [[nodiscard]] virtual std::string Info() const { return "RetentionLaw"; }
 
     virtual void PrintInfo(std::ostream& rOStream) const { rOStream << Info(); }
 
@@ -207,9 +188,6 @@ private:
     virtual void load(Serializer& rSerializer);
 
 }; /* Class RetentionLaw */
-
-// input stream function
-inline std::istream& operator>>(std::istream& rIStream, RetentionLaw& rThis);
 
 // output stream function
 inline std::ostream& operator<<(std::ostream& rOStream, const RetentionLaw& rThis)

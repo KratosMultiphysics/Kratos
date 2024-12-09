@@ -18,17 +18,14 @@ namespace Kratos
 {
 SaturatedBelowPhreaticLevelLaw::SaturatedBelowPhreaticLevelLaw() : RetentionLaw() {}
 
-SaturatedBelowPhreaticLevelLaw::SaturatedBelowPhreaticLevelLaw(const SaturatedBelowPhreaticLevelLaw& rOther)
-    : RetentionLaw(rOther)
-{
-}
+SaturatedBelowPhreaticLevelLaw::SaturatedBelowPhreaticLevelLaw(const SaturatedBelowPhreaticLevelLaw& rOther) = default;
 
 RetentionLaw::Pointer SaturatedBelowPhreaticLevelLaw::Clone() const
 {
     return Kratos::make_shared<SaturatedBelowPhreaticLevelLaw>(*this);
 }
 
-SaturatedBelowPhreaticLevelLaw::~SaturatedBelowPhreaticLevelLaw() {}
+SaturatedBelowPhreaticLevelLaw::~SaturatedBelowPhreaticLevelLaw() = default;
 
 double SaturatedBelowPhreaticLevelLaw::CalculateSaturation(Parameters& rParameters) const
 {
