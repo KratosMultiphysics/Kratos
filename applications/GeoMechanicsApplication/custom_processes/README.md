@@ -134,7 +134,6 @@ The "apply_k0_procedure_process" needs the following material parameter input to
     "K0_NC":                       0.6,
     "UDSM_NAME"                :  "MohrCoulomb64.dll",
     "IS_FORTRAN_UDSM"          :  true,
-    "NUMBER_OF_UMAT_PARAMETERS":  6,
     "INDEX_OF_UMAT_PHI_PARAMETER": 4,
     "UMAT_PARAMETERS"          :  [30000000,
                                    0.2,
