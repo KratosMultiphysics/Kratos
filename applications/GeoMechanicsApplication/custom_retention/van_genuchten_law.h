@@ -12,19 +12,8 @@
 
 #pragma once
 
-// System includes
-#include "includes/define.h"
-#include <iostream>
-#include <string>
-
-// External includes
-
-// Project includes
 #include "custom_retention/retention_law.h"
 #include "includes/serializer.h"
-
-// Application includes
-#include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -38,15 +27,9 @@ namespace Kratos
 class KRATOS_API(GEO_MECHANICS_APPLICATION) VanGenuchtenLaw : public RetentionLaw
 {
 public:
-    /// The base class RetentionLaw type definition
-    using BaseType = RetentionLaw;
-
     using GeometryType = Geometry<Node>;
 
-    /// The size type definition
-    using SizeType = std::size_t;
-
-    /// Counted pointer of VanGenuchtenLaw
+    // Counted pointer of VanGenuchtenLaw
     KRATOS_CLASS_POINTER_DEFINITION(VanGenuchtenLaw);
 
     RetentionLaw::Pointer Clone() const override;

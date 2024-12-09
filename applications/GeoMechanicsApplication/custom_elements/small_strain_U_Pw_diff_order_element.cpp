@@ -1283,8 +1283,8 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingMatrix(MatrixType& r
         Matrix CouplingMatrix = GeoTransportEquationUtilities::CalculateCouplingMatrix(
             rVariables.B, GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
             rVariables.BiotCoefficient, rVariables.DegreeOfSaturation, rVariables.IntegrationCoefficient);
-        Matrix CouplingMatrixT = PORE_PRESSURE_SIGN_FACTOR *
-                                 rVariables.VelocityCoefficient * trans(CouplingMatrix);
+        Matrix CouplingMatrixT =
+            PORE_PRESSURE_SIGN_FACTOR * rVariables.VelocityCoefficient * trans(CouplingMatrix);
         GeoElementUtilities::AssemblePUBlockMatrix(rLeftHandSideMatrix, CouplingMatrixT);
     }
 
@@ -1388,9 +1388,10 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingTerms(VectorType& rR
         const Matrix coupling_matrix =
             (-1.0) * GeoTransportEquationUtilities::CalculateCouplingMatrix(
                          rVariables.B, GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
-                         rVariables.BiotCoefficient, rVariables.DegreeOfSaturation, rVariables.IntegrationCoefficient);
-        const Vector coupling_flow = PORE_PRESSURE_SIGN_FACTOR *
-                                     prod(trans(coupling_matrix), rVariables.VelocityVector);
+                         rVariables.BiotCoefficient, rVariables.DegreeOfSaturation,
+                         rVariables.IntegrationCoefficient);
+        const Vector coupling_flow =
+            PORE_PRESSURE_SIGN_FACTOR * prod(trans(coupling_matrix), rVariables.VelocityVector);
         GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, coupling_flow);
     }
 

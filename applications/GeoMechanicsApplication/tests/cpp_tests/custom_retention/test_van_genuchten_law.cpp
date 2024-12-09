@@ -11,6 +11,7 @@
 //
 
 #include "custom_retention/van_genuchten_law.h"
+#include "geo_mechanics_application_variables.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 namespace

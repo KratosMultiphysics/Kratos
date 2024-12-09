@@ -11,10 +11,8 @@
 //  Main authors:    Vahid Galavi
 //
 
-// System includes
-#include <iostream>
-
 #include "custom_retention/saturated_law.h"
+#include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {

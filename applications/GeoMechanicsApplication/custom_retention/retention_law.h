@@ -193,13 +193,10 @@ public:
         return RetentionLaw::HasSameType(*rLHS, *rRHS);
     }
 
-    /// Turn back information as a string.
     virtual std::string Info() const { return "RetentionLaw"; }
 
-    /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const { rOStream << Info(); }
 
-    /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const { rOStream << "RetentionLaw has no data"; }
 
 private:
@@ -211,10 +208,10 @@ private:
 
 }; /* Class RetentionLaw */
 
-/// input stream function
+// input stream function
 inline std::istream& operator>>(std::istream& rIStream, RetentionLaw& rThis);
 
-/// output stream function
+// output stream function
 inline std::ostream& operator<<(std::ostream& rOStream, const RetentionLaw& rThis)
 {
     rThis.PrintInfo(rOStream);
