@@ -11,8 +11,7 @@
 //
 //
 
-#if !defined(KRATOS_TRIANGLE_GAUSS_LEGENDRE_INTEGRATION_POINTS_H_INCLUDED )
-#define  KRATOS_TRIANGLE_GAUSS_LEGENDRE_INTEGRATION_POINTS_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -87,7 +86,7 @@ public:
         // Define auxiliary constants
         const double one_sixth = 1.0 / 6.0;
         const double two_thirds = 2.0 / 3.0;
-        const double weight = 1.0 / 6.0;
+        const double weight = one_sixth;
 
         // Integration points using the auxiliary constants
         static const IntegrationPointsArrayType s_integration_points{{
@@ -284,7 +283,4 @@ public:
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_TRIANGLE_GAUSS_LEGENDRE_INTEGRATION_POINTS_H_INCLUDED  defined
-
 
