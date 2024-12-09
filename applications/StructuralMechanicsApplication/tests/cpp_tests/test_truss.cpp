@@ -406,7 +406,7 @@ KRATOS_TEST_CASE_IN_SUITE(LienarTrussElement2D_CalculatesPK2Stress, KratosStruct
         AddDisplacementDofsElement(r_model_part);
 
         std::vector<ModelPart::IndexType> element_nodes {1,2};
-        auto p_element = r_model_part.CreateNewElement("LinearTrussElement2D", 1, element_nodes, p_elem_prop);
+        auto p_element = r_model_part.CreateNewElement("LinearTrussElement2D2N", 1, element_nodes, p_elem_prop);
         const auto& r_process_info = r_model_part.GetProcessInfo();
         p_element->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
 
