@@ -79,12 +79,12 @@ KRATOS_TEST_CASE_IN_SUITE(GaussLobattoQuadrilateralQuadraturesTest, KratosCoreFa
 KRATOS_TEST_CASE_IN_SUITE(GaussLobattoQuadrilateralQuadraturesTest, KratosCoreFastSuite)
 {
 
-    // In This test we evaluate the Gauss-Lobatto quadratures for integrating
-    // f = (x+y) [0, 1]x[0, 1-x] triangle
+    // In This test we evaluate the Gauss-Lobatto quadrature for integrating
+    // f = (x+y) over a [0, 1]x[0, 1-x] triangle
 
     const auto& r_lobatto_1 = TriangleGaussLobattoIntegrationPoints1();
 
-    // Analytical results, reference
+    // Analytical result, reference
     const double integral_f = 1.0 / 3.0;
 
     double quadrature_integral_f = 0.0;
