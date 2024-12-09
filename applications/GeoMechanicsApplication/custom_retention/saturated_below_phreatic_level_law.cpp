@@ -33,14 +33,16 @@ SaturatedBelowPhreaticLevelLaw::~SaturatedBelowPhreaticLevelLaw() {}
 
 double SaturatedBelowPhreaticLevelLaw::CalculateSaturation(Parameters& rParameters) const
 {
-    return (rParameters.GetFluidPressure() < 0.0) ? rParameters.GetMaterialProperties()[SATURATED_SATURATION] : rParameters.GetMaterialProperties()[RESIDUAL_SATURATION];
+    return (rParameters.GetFluidPressure() < 0.0)
+               ? rParameters.GetMaterialProperties()[SATURATED_SATURATION]
+               : rParameters.GetMaterialProperties()[RESIDUAL_SATURATION];
 }
 
 double SaturatedBelowPhreaticLevelLaw::CalculateEffectiveSaturation(Parameters& rParameters) const
 {
     const auto& r_material_properties = rParameters.GetMaterialProperties();
-    const auto& sat_max               = r_material_properties[SATURATED_SATURATION];
-    const auto& sat_min               = r_material_properties[RESIDUAL_SATURATION];
+    const auto  sat_max               = r_material_properties[SATURATED_SATURATION];
+    const auto  sat_min               = r_material_properties[RESIDUAL_SATURATION];
 
     return (CalculateSaturation(rParameters) - sat_min) / (sat_max - sat_min);
 }
@@ -52,11 +54,9 @@ double SaturatedBelowPhreaticLevelLaw::CalculateDerivativeOfSaturation(Parameter
 
 double SaturatedBelowPhreaticLevelLaw::CalculateRelativePermeability(Parameters& rParameters) const
 {
-    if (rParameters.GetFluidPressure() < 0.0) {
-        return 1.0;
-    } else {
-        return rParameters.GetMaterialProperties()[MINIMUM_RELATIVE_PERMEABILITY];
-    }
+    return rParameters.GetFluidPressure() < 0.0
+               ? 1.0
+               : rParameters.GetMaterialProperties()[MINIMUM_RELATIVE_PERMEABILITY];
 }
 
 double SaturatedBelowPhreaticLevelLaw::CalculateBishopCoefficient(Parameters& rParameters) const
