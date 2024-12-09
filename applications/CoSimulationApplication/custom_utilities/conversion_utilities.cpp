@@ -168,17 +168,17 @@ void ConversionUtilities::ConvertNodalDataToElementalDataTranspose(
 }
 
 // template instantiations
-template void ConversionUtilities::ConvertElementalDataToNodalDataTranspose<double>(ModelPart&, const Variable<double>&,  const Variable<double>&);
-template void ConversionUtilities::ConvertElementalDataToNodalDataTranspose<array_1d<double, 3>>(ModelPart&, const Variable<array_1d<double, 3>>&,  const Variable<array_1d<double, 3>>&);
+template void KRATOS_API(CO_SIMULATION_APPLICATION) ConversionUtilities::ConvertElementalDataToNodalDataTranspose<double>(ModelPart&, const Variable<double>&,  const Variable<double>&);
+template void KRATOS_API(CO_SIMULATION_APPLICATION) ConversionUtilities::ConvertElementalDataToNodalDataTranspose<array_1d<double, 3>>(ModelPart&, const Variable<array_1d<double, 3>>&,  const Variable<array_1d<double, 3>>&);
 
-template void ConversionUtilities::ConvertElementalDataToNodalDataDirect<double>(ModelPart&, const Variable<double>&,  const Variable<double>&);
-template void ConversionUtilities::ConvertElementalDataToNodalDataDirect<array_1d<double, 3>>(ModelPart&, const Variable<array_1d<double, 3>>&,  const Variable<array_1d<double, 3>>&);
+template void KRATOS_API(CO_SIMULATION_APPLICATION) ConversionUtilities::ConvertElementalDataToNodalDataDirect<double>(ModelPart&, const Variable<double>&,  const Variable<double>&);
+template void KRATOS_API(CO_SIMULATION_APPLICATION) ConversionUtilities::ConvertElementalDataToNodalDataDirect<array_1d<double, 3>>(ModelPart&, const Variable<array_1d<double, 3>>&,  const Variable<array_1d<double, 3>>&);
 
-template void ConversionUtilities::ConvertNodalDataToElementalDataDirect<double>(ModelPart&, const Variable<double>&,  const Variable<double>&);
-template void ConversionUtilities::ConvertNodalDataToElementalDataDirect<array_1d<double, 3>>(ModelPart&, const Variable<array_1d<double, 3>>&,  const Variable<array_1d<double, 3>>&);
+template void KRATOS_API(CO_SIMULATION_APPLICATION) ConversionUtilities::ConvertNodalDataToElementalDataDirect<double>(ModelPart&, const Variable<double>&,  const Variable<double>&);
+template void KRATOS_API(CO_SIMULATION_APPLICATION) ConversionUtilities::ConvertNodalDataToElementalDataDirect<array_1d<double, 3>>(ModelPart&, const Variable<array_1d<double, 3>>&,  const Variable<array_1d<double, 3>>&);
 
-template void ConversionUtilities::ConvertNodalDataToElementalDataTranspose<double>(ModelPart&, const Variable<double>&,  const Variable<double>&);
-template void ConversionUtilities::ConvertNodalDataToElementalDataTranspose<array_1d<double, 3>>(ModelPart&, const Variable<array_1d<double, 3>>&,  const Variable<array_1d<double, 3>>&);
+template void KRATOS_API(CO_SIMULATION_APPLICATION) ConversionUtilities::ConvertNodalDataToElementalDataTranspose<double>(ModelPart&, const Variable<double>&,  const Variable<double>&);
+template void KRATOS_API(CO_SIMULATION_APPLICATION) ConversionUtilities::ConvertNodalDataToElementalDataTranspose<array_1d<double, 3>>(ModelPart&, const Variable<array_1d<double, 3>>&,  const Variable<array_1d<double, 3>>&);
 
 
 }  // namespace Kratos.
