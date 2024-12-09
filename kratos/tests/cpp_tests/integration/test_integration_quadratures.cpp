@@ -76,7 +76,7 @@ KRATOS_TEST_CASE_IN_SUITE(GaussLobattoQuadrilateralQuadraturesTest, KratosCoreFa
 
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GaussLobattoQuadrilateralQuadraturesTest, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(GaussLobattoTriangleQuadraturesTest, KratosCoreFastSuite)
 {
 
     // In This test we evaluate the Gauss-Lobatto quadrature for integrating
