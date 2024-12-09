@@ -27,7 +27,7 @@ RetentionLaw::Pointer SaturatedLaw::Clone() const
 double SaturatedLaw::CalculateSaturation(Parameters& rParameters) const
 {
     const Properties& rMaterialProperties = rParameters.GetMaterialProperties();
-    return rMaterialProperties.Has(SATURATED_SATURATION) ? rMaterialProperties[SATURATED_SATURATION]: 1.0;
+    return rMaterialProperties.Has(SATURATED_SATURATION) ? rMaterialProperties[SATURATED_SATURATION] : 1.0;
 }
 
 double SaturatedLaw::CalculateEffectiveSaturation(Parameters& rParameters) const { return 1.0; }
@@ -90,9 +90,9 @@ int SaturatedLaw::Check(const Properties& rMaterialProperties, const ProcessInfo
 {
     if (rMaterialProperties.Has(SATURATED_SATURATION)) {
         KRATOS_ERROR_IF(rMaterialProperties[SATURATED_SATURATION] < 0.0 || rMaterialProperties[SATURATED_SATURATION] > 1.0)
-        << "SATURATED_SATURATION (" << rMaterialProperties[SATURATED_SATURATION]
-        << ") must be in the range [0.0, 1.0] for material " << rMaterialProperties.Id() << "."
-        << std::endl;
+            << "SATURATED_SATURATION (" << rMaterialProperties[SATURATED_SATURATION]
+            << ") must be in the range [0.0, 1.0] for material " << rMaterialProperties.Id() << "."
+            << std::endl;
     }
 
     return 0;

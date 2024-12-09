@@ -18,10 +18,7 @@ namespace
 
 using namespace Kratos;
 
-SaturatedLaw CreateSaturatedLaw()
-{
-    return SaturatedLaw{};
-}
+SaturatedLaw CreateSaturatedLaw() { return SaturatedLaw{}; }
 
 } // namespace
 
@@ -40,7 +37,7 @@ KRATOS_TEST_CASE_IN_SUITE(SaturatedLawReturnsCalculatedValues, KratosGeoMechanic
 {
     auto       law = CreateSaturatedLaw();
     Properties properties;
-    auto retention_law_parameters = RetentionLaw::Parameters{properties};
+    auto       retention_law_parameters = RetentionLaw::Parameters{properties};
 
     KRATOS_EXPECT_DOUBLE_EQ(law.CalculateSaturation(retention_law_parameters), 1.0);
     double value = 0.0;

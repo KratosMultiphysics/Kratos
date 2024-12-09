@@ -11,12 +11,6 @@
 //
 
 #pragma once
-
-/* System includes */
-
-/* External includes */
-
-/* Project includes */
 #include "geometries/geometry.h"
 #include "includes/define.h"
 #include "includes/process_info.h"

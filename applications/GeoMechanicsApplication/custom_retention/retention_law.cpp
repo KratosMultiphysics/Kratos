@@ -11,7 +11,7 @@
 //
 
 /* Project includes */
-#include "custom_retention/saturated_law.h"
+#include "custom_retention/retention_law.h"
 
 namespace Kratos
 {
