@@ -18,7 +18,6 @@ namespace
 
 using namespace Kratos;
 
-
 SaturatedBelowPhreaticLevelLaw CreateSaturatedBelowPhreaticLevelLaw()
 {
     return SaturatedBelowPhreaticLevelLaw{};
@@ -37,9 +36,9 @@ KRATOS_TEST_CASE_IN_SUITE(SaturatedBelowPhreaticLevelLawReturnsCloneOfCorrectTyp
     KRATOS_EXPECT_NE(dynamic_cast<const SaturatedBelowPhreaticLevelLaw*>(p_law_clone.get()), nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SaturatedBelowPhreaticLevelLawReturnsSaturation, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(SaturatedBelowPhreaticLevelLawReturnsCalculatedValues, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    auto law         = CreateSaturatedBelowPhreaticLevelLaw();
+    auto       law = CreateSaturatedBelowPhreaticLevelLaw();
     Properties properties;
     properties.SetValue(SATURATED_SATURATION, 0.9);
     properties.SetValue(RESIDUAL_SATURATION, 0.1);
@@ -72,4 +71,42 @@ KRATOS_TEST_CASE_IN_SUITE(SaturatedBelowPhreaticLevelLawReturnsSaturation, Krato
     KRATOS_EXPECT_DOUBLE_EQ(law.CalculateRelativePermeability(retention_law_parameters), 0.05);
     KRATOS_EXPECT_DOUBLE_EQ(law.CalculateValue(retention_law_parameters, RELATIVE_PERMEABILITY, value), 0.05);
 }
+
+KRATOS_TEST_CASE_IN_SUITE(SaturatedBelowPhreaticLevelLawChecksInputParameters, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    Properties properties;
+    properties.SetId(1);
+    const auto process_info = ProcessInfo{};
+    auto       law          = CreateSaturatedBelowPhreaticLevelLaw();
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        law.Check(properties, process_info),
+        "SATURATED_SATURATION is not available in the parameters of material 1.");
+    properties.SetValue(SATURATED_SATURATION, 1.1);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        law.Check(properties, process_info),
+        "SATURATED_SATURATION (1.1) must be in the range [0.0, 1.0] for material 1.");
+    properties.SetValue(SATURATED_SATURATION, 0.9);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        law.Check(properties, process_info),
+        "RESIDUAL_SATURATION is not available in the parameters of material 1.");
+    properties.SetValue(RESIDUAL_SATURATION, 1.1);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        law.Check(properties, process_info),
+        "RESIDUAL_SATURATION (1.1) must be in the range [0.0, 0.9> for material 1.");
+    properties.SetValue(RESIDUAL_SATURATION, 0.1);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        law.Check(properties, process_info),
+        "MINIMUM_RELATIVE_PERMEABILITY is not available in the parameters of material 1.");
+    properties.SetValue(MINIMUM_RELATIVE_PERMEABILITY, 1.1);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        law.Check(properties, process_info),
+        "MINIMUM_RELATIVE_PERMEABILITY (1.1) must be in the range [0.0, 1.0] for material 1.");
+    properties.SetValue(MINIMUM_RELATIVE_PERMEABILITY, 0.05);
+
+    KRATOS_EXPECT_EQ(law.Check(properties, process_info), 0);
+}
+
 } // namespace Kratos::Testing
