@@ -646,6 +646,54 @@ void LinearTrussElement2D<TNNodes>::CalculateOnIntegrationPoints(
 
 template<SizeType TNNodes>
 void LinearTrussElement2D<TNNodes>::CalculateOnIntegrationPoints(
+    const Variable<Vector>& rVariable,
+    std::vector<Vector>& rOutput,
+    const ProcessInfo& rProcessInfo
+    )
+{
+    const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
+    rOutput.resize(integration_points.size());
+
+    if (rVariable == PK2_STRESS_VECTOR) {
+        ConstitutiveLaw::Parameters cl_values(GetGeometry(), GetProperties(), rProcessInfo);
+        cl_values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
+        cl_values.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+        const double length = CalculateLength();
+
+        // Let's initialize the cl values
+        VectorType strain_vector(1), stress_vector(1);
+        MatrixType C(1,1);
+        strain_vector.clear();
+        cl_values.SetStrainVector(strain_vector);
+        cl_values.SetStressVector(stress_vector);
+        cl_values.SetConstitutiveMatrix(C);
+        SystemSizeBoundedArrayType nodal_values(SystemSize);
+        GetNodalValuesVector(nodal_values);
+
+        SystemSizeBoundedArrayType B;
+
+        // Loop over the integration points
+        for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
+            GetFirstDerivativesShapeFunctionsValues(B, length, integration_points[IP].X());
+
+            strain_vector[0] = inner_prod(B, nodal_values);
+
+            mConstitutiveLawVector[IP]->CalculateMaterialResponsePK2(cl_values);
+            auto stress = cl_values.GetStressVector()[0];
+            if (GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
+                stress += GetProperties()[TRUSS_PRESTRESS_PK2];
+            }
+
+            rOutput[IP] = ScalarVector(1, stress);
+        }
+    }
+}
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TNNodes>
+void LinearTrussElement2D<TNNodes>::CalculateOnIntegrationPoints(
     const Variable<ConstitutiveLaw::Pointer>& rVariable,
     std::vector<ConstitutiveLaw::Pointer>& rValues,
     const ProcessInfo& rCurrentProcessInfo
