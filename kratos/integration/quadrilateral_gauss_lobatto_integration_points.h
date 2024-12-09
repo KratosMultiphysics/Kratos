@@ -84,10 +84,10 @@ namespace Kratos
         static const IntegrationPointsArrayType &IntegrationPoints()
         {
             static const IntegrationPointsArrayType s_integration_points{{
-                IntegrationPointType(-1.00, -1.00, 1.0),
-                IntegrationPointType(1.00, -1.00, 1.0),
-                IntegrationPointType(1.00, 1.00, 1.0),
-                IntegrationPointType(-1.00, 1.00, 1.0)}};
+                IntegrationPointType(-1.0, -1.0, 1.0),
+                IntegrationPointType(1.0, -1.0, 1.0),
+                IntegrationPointType(1.0, 1.0, 1.0),
+                IntegrationPointType(-1.0, 1.0, 1.0)}};
             return s_integration_points;
         }
 
@@ -128,19 +128,19 @@ namespace Kratos
             // Define the integration points and their weights
             static const IntegrationPointsArrayType s_integration_points{{
                 // Corner points
-                IntegrationPointType(-1.00, -1.00, one_over_nine),
-                IntegrationPointType(1.00, -1.00,  one_over_nine),
-                IntegrationPointType(-1.00, 1.00,  one_over_nine),
-                IntegrationPointType(1.00, 1.00,   one_over_nine),
+                IntegrationPointType(-1.0, -1.0, one_over_nine),
+                IntegrationPointType(1.0, -1.0,  one_over_nine),
+                IntegrationPointType(-1.0, 1.0,  one_over_nine),
+                IntegrationPointType(1.0, 1.0,   one_over_nine),
 
                 // Edge midpoints
-                IntegrationPointType(0.00, -1.00, four_over_nine),
-                IntegrationPointType(-1.00, 0.00, four_over_nine),
-                IntegrationPointType(1.00, 0.00,  four_over_nine),
-                IntegrationPointType(0.00, 1.00,  four_over_nine),
+                IntegrationPointType(0.0, -1.0, four_over_nine),
+                IntegrationPointType(-1.0, 0.0, four_over_nine),
+                IntegrationPointType(1.0, 0.0,  four_over_nine),
+                IntegrationPointType(0.0, 1.0,  four_over_nine),
 
                 // Center point
-                IntegrationPointType(0.00, 0.00, sixteen_over_nine)}};
+                IntegrationPointType(0.0, 0.0, sixteen_over_nine)}};
             return s_integration_points;
         }
 
