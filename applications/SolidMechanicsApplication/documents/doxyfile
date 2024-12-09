@@ -9,6 +9,7 @@ EXCLUDE_PATTERNS       = */external_libraries/*         \
                          */custom_external_libraries/*  \
                          */tests/* *_test* *test_*
 HTML_EXTRA_STYLESHEET  = ../../../documents/doxygen-awesome.css
-TAGFILES               = ../../../documents/KratosCore.tag=../../../../documents/html
+TAGFILES               = ../../../documents/KratosCore.tag=../../../../documents/html \
+                         ../../ConstitutiveModelsApplication/documents/ConstitutiveModelsApplication.tag=../../../ConstitutiveModelsApplication/documents/html
 GENERATE_TAGFILE       = SolidMechanicsApplication.tag
 

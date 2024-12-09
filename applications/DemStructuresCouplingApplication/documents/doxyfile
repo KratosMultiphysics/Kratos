@@ -9,6 +9,9 @@ EXCLUDE_PATTERNS       = */external_libraries/*         \
                          */custom_external_libraries/*  \
                          */tests/* *_test* *test_*
 HTML_EXTRA_STYLESHEET  = ../../../documents/doxygen-awesome.css
-TAGFILES               = ../../../documents/KratosCore.tag=../../../../documents/html
+TAGFILES               = ../../../documents/KratosCore.tag=../../../../documents/html \
+                         ../../DEMApplication/documents/DEMApplication.tag=../../../DEMApplication/documents/html \
+                         ../../StructuralMechanicsApplication/documents/StructuralMechanicsApplication.tag=../../../StructuralMechanicsApplication/documents/html \
+                         ../../PoromechanicsApplication/documents/PoromechanicsApplication.tag=../../../PoromechanicsApplication/documents/html
 GENERATE_TAGFILE       = DemStructuresCouplingApplication.tag
 

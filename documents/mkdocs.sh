@@ -43,8 +43,8 @@ while getopts ":h a: A e: c C" arg; do
         e)  # Add an application from an external directory. The passed argument
             # must be an app name - app parent directory pair that are separated
             # by a comma.
-            app_name=$(cat $OPTARG | tr ";" " " | cut -d "," -f 1)
-            app_dir=$(cat $OPTARG | tr ";" " " | cut -d "," -f 2)
+            app_name=$(echo $OPTARG | cut -d "," -f 1)
+            app_dir=$(realpath $(echo $OPTARG | cut -d "," -f 2) )
 
             if ! [ -d "$app_dir" ]; then
                 >&2 echo "$app_dir is not a directory."
@@ -55,7 +55,7 @@ while getopts ":h a: A e: c C" arg; do
                 >&2 echo "no application named $app_name in $app_dir."
             fi
 
-            applications="$applications $OPTARG"
+            applications="$applications $app_name,$app_dir"
             ;;
         c)  # Add all compiled applications.
             if python3 -c "
@@ -130,12 +130,12 @@ for pair in $applications; do
         else
             # Error if no doxyfile is defined for the application.
             >&2 echo "Error: expecting a doxyfile for $application_name in $(pwd), but found none."
-            #exit 1
+            exit 1
         fi
     else
         # Error if the application has no directory for documentation.
-        >&2 echo "Error: $application_name lacks documentation!"
-        #exit 1
+        >&2 echo "Error: $application_name at $application_dir lacks documentation!"
+        exit 1
     fi
     cd "$kratos_root_dir"
 done
