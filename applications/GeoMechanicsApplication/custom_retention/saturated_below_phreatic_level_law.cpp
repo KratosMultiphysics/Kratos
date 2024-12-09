@@ -78,31 +78,6 @@ double& SaturatedBelowPhreaticLevelLaw::CalculateValue(Parameters&             r
     return rValue;
 }
 
-void SaturatedBelowPhreaticLevelLaw::InitializeMaterial(const Properties&, const GeometryType&, const Vector&)
-{
-    // nothing is needed
-}
-
-void SaturatedBelowPhreaticLevelLaw::Initialize(Parameters&)
-{
-    // nothing is needed
-}
-
-void SaturatedBelowPhreaticLevelLaw::InitializeSolutionStep(Parameters&)
-{
-    // nothing is needed
-}
-
-void SaturatedBelowPhreaticLevelLaw::Finalize(Parameters&)
-{
-    // nothing is needed
-}
-
-void SaturatedBelowPhreaticLevelLaw::FinalizeSolutionStep(Parameters&)
-{
-    // nothing is needed
-}
-
 int SaturatedBelowPhreaticLevelLaw::Check(const Properties& rMaterialProperties, const ProcessInfo&)
 {
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(SATURATED_SATURATION))

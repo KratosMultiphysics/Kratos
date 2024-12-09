@@ -102,9 +102,7 @@ double VanGenuchtenLaw::CalculateBishopCoefficient(Parameters& rParameters) cons
     return CalculateEffectiveSaturation(rParameters);
 }
 
-double& VanGenuchtenLaw::CalculateValue(RetentionLaw::Parameters& rParameterValues,
-                                        const Variable<double>&   rThisVariable,
-                                        double&                   rValue)
+double& VanGenuchtenLaw::CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue)
 {
     if (rThisVariable == DEGREE_OF_SATURATION) {
         rValue = this->CalculateSaturation(rParameterValues);
@@ -119,33 +117,6 @@ double& VanGenuchtenLaw::CalculateValue(RetentionLaw::Parameters& rParameterValu
     }
 
     return rValue;
-}
-
-void VanGenuchtenLaw::InitializeMaterial(const Properties&   rMaterialProperties,
-                                         const GeometryType& rElementGeometry,
-                                         const Vector&       rShapeFunctionsValues)
-{
-    // nothing is needed
-}
-
-void VanGenuchtenLaw::Initialize(Parameters&)
-{
-    // nothing is needed
-}
-
-void VanGenuchtenLaw::InitializeSolutionStep(Parameters& rParameters)
-{
-    // nothing is needed
-}
-
-void VanGenuchtenLaw::Finalize(Parameters& rParameters)
-{
-    // nothing is needed
-}
-
-void VanGenuchtenLaw::FinalizeSolutionStep(Parameters& rParameters)
-{
-    // nothing is needed
 }
 
 int VanGenuchtenLaw::Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo)

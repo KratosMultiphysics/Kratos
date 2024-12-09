@@ -283,8 +283,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeSolutionStep(const Proces
         noalias(Variables.StressVector) = mStressVector[GPoint];
         ConstitutiveParameters.SetStressVector(Variables.StressVector);
         mConstitutiveLawVector[GPoint]->InitializeMaterialResponseCauchy(ConstitutiveParameters);
-
-        mRetentionLawVector[GPoint]->InitializeSolutionStep(RetentionParameters);
     }
 
     // Reset hydraulic discharge
@@ -433,8 +431,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessI
         mConstitutiveLawVector[GPoint]->FinalizeMaterialResponseCauchy(ConstitutiveParameters);
         mStateVariablesFinalized[GPoint] =
             mConstitutiveLawVector[GPoint]->GetValue(STATE_VARIABLES, mStateVariablesFinalized[GPoint]);
-
-        mRetentionLawVector[GPoint]->FinalizeSolutionStep(RetentionParameters);
 
         if (rCurrentProcessInfo[NODAL_SMOOTHING])
             this->SaveGPStress(StressContainer, mStressVector[GPoint], GPoint);

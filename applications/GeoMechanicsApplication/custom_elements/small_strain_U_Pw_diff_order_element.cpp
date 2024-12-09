@@ -209,8 +209,6 @@ void SmallStrainUPwDiffOrderElement::InitializeSolutionStep(const ProcessInfo& r
         noalias(Variables.StressVector) = mStressVector[GPoint];
         ConstitutiveParameters.SetStressVector(Variables.StressVector);
         mConstitutiveLawVector[GPoint]->InitializeMaterialResponseCauchy(ConstitutiveParameters);
-
-        mRetentionLawVector[GPoint]->InitializeSolutionStep(RetentionParameters);
     }
 
     KRATOS_CATCH("")
@@ -286,8 +284,6 @@ void SmallStrainUPwDiffOrderElement::FinalizeSolutionStep(const ProcessInfo& rCu
         mConstitutiveLawVector[GPoint]->FinalizeMaterialResponseCauchy(ConstitutiveParameters);
         mStateVariablesFinalized[GPoint] =
             mConstitutiveLawVector[GPoint]->GetValue(STATE_VARIABLES, mStateVariablesFinalized[GPoint]);
-
-        mRetentionLawVector[GPoint]->FinalizeSolutionStep(RetentionParameters);
     }
 
     // Assign pressure values to the intermediate nodes for post-processing

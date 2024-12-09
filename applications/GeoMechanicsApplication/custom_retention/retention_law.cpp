@@ -16,40 +16,6 @@
 namespace Kratos
 {
 
-void RetentionLaw::InitializeMaterial(const Properties&   rMaterialProperties,
-                                      const GeometryType& rElementGeometry,
-                                      const Vector&       rShapeFunctionsValues)
-{
-    // nothing
-}
-
-void RetentionLaw::Initialize(Parameters& rParameters)
-{
-    // nothing
-}
-
-void RetentionLaw::InitializeSolutionStep(Parameters& rParameters)
-{
-    // nothing
-}
-
-void RetentionLaw::FinalizeSolutionStep(Parameters& rParameters)
-{
-    // nothing
-}
-
-void RetentionLaw::Finalize(Parameters& rParameters)
-{
-    // nothing
-}
-
-void RetentionLaw::ResetMaterial(const Properties&   rMaterialProperties,
-                                 const GeometryType& rElementGeometry,
-                                 const Vector&       rShapeFunctionsValues)
-{
-    // nothing
-}
-
 void RetentionLaw::save(Serializer& rSerializer) const
 {
     // there is no member variables to be saved

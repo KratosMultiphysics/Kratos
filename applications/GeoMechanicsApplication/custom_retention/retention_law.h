@@ -102,49 +102,6 @@ public:
     virtual double CalculateBishopCoefficient(Parameters& rParameters) const = 0;
 
     /**
-     * This is to be called at the very beginning of the calculation
-     * (e.g. from InitializeElement) in order to initialize all relevant
-     * attributes of the retention law
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues shape function values
-     */
-    virtual void InitializeMaterial(const Properties&   rMaterialProperties,
-                                    const GeometryType& rElementGeometry,
-                                    const Vector&       rShapeFunctionsValues);
-
-    virtual void Initialize(Parameters& rParameters);
-
-    /**
-     * to be called at the beginning of each solution step
-     * (e.g. from Element::InitializeSolutionStep)
-     */
-    virtual void InitializeSolutionStep(Parameters& rParameters);
-
-    /**
-     * to be called at the end of each solution step
-     * (e.g. from Element::FinalizeSolutionStep)
-     */
-    virtual void FinalizeSolutionStep(Parameters& rParameters);
-
-    /**
-     * Finalize the material response in terms of Cauchy stresses
-     * @see Parameters
-     */
-    virtual void Finalize(Parameters& rParameters);
-
-    /**
-     * This can be used in order to reset all internal variables of the
-     * retention law (e.g. if a model should be reset to its reference state)
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     */
-    virtual void ResetMaterial(const Properties&   rMaterialProperties,
-                               const GeometryType& rElementGeometry,
-                               const Vector&       rShapeFunctionsValues);
-
-    /**
      * This function is designed to be called once to perform all the checks
      * needed on the input provided. Checks can be "expensive" as the function
      * is designed to catch user's errors.

@@ -137,8 +137,6 @@ void UPwBaseElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
     mRetentionLawVector.resize(number_of_integration_points);
     for (unsigned int i = 0; i < mRetentionLawVector.size(); ++i) {
         mRetentionLawVector[i] = RetentionLawFactory::Clone(r_properties);
-        mRetentionLawVector[i]->InitializeMaterial(
-            r_properties, r_geometry, row(r_geometry.ShapeFunctionsValues(mThisIntegrationMethod), i));
     }
 
     if (mStressVector.size() != number_of_integration_points) {

@@ -57,33 +57,6 @@ double& SaturatedLaw::CalculateValue(RetentionLaw::Parameters& rParameterValues,
     return rValue;
 }
 
-void SaturatedLaw::InitializeMaterial(const Properties&   rMaterialProperties,
-                                      const GeometryType& rElementGeometry,
-                                      const Vector&       rShapeFunctionsValues)
-{
-    // nothing is needed
-}
-
-void SaturatedLaw::Initialize(Parameters& rParameters)
-{
-    // nothing is needed
-}
-
-void SaturatedLaw::InitializeSolutionStep(Parameters& rParameters)
-{
-    // nothing is needed
-}
-
-void SaturatedLaw::Finalize(Parameters& rParameters)
-{
-    // nothing is needed
-}
-
-void SaturatedLaw::FinalizeSolutionStep(Parameters& rParameters)
-{
-    // nothing is needed
-}
-
 int SaturatedLaw::Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rMaterialProperties.Has(SATURATED_SATURATION)) {

@@ -41,14 +41,6 @@ public:
 
     ~SaturatedBelowPhreaticLevelLaw() override;
 
-    void InitializeMaterial(const Properties&   rMaterialProperties,
-                            const GeometryType& rElementGeometry,
-                            const Vector&       rShapeFunctionsValues) override;
-
-    void Initialize(Parameters& rParameters) override;
-
-    void InitializeSolutionStep(Parameters& rParameters) override;
-
     double CalculateSaturation(Parameters& rParameters) const override;
 
     double CalculateEffectiveSaturation(Parameters& rParameters) const override;
@@ -58,10 +50,6 @@ public:
     double CalculateRelativePermeability(Parameters& rParameters) const override;
 
     double CalculateBishopCoefficient(Parameters& rParameters) const override;
-
-    void Finalize(Parameters& rParameters) override;
-
-    void FinalizeSolutionStep(Parameters& rParameters) override;
 
     /**
      * @brief It calculates the value of a specified variable (double case)
