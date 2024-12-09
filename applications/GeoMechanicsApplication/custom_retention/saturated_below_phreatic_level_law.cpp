@@ -14,7 +14,6 @@
 // System includes
 #include "custom_retention/saturated_below_phreatic_level_law.h"
 #include <iostream>
-#include <linear_solvers/amgcl_solver.h>
 
 namespace Kratos
 {
