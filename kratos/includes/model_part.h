@@ -1928,25 +1928,21 @@ private:
      *                      - If they are not a subset, then we insert them. That means, the range given for insertion did not originate from the current ModelPart, hence it will not
      *                        invalidate the range [begin, end).
      *                  If the iterator type not of the same PointerVectorSet::iterator, then we insert them in normal manner.
-     * @tparam TContainerGetter         Lambda function type to get the PointerVectorSet from a ModelPart*
-     * @tparam TIterator                Type of the iterator
-     * @param pModelPart                Model part to get the container from
-     * @param rContainerGetter          Lambda function type to get the PointerVectorSet from a ModelPart* [](ModelPart*) -> PointerVectorSet*
-     * @param begin                     Begining of the range
-     * @param end                       End of the range
-     * @return true                     If the given range is not a subset of the current PointerVectorSet given by rContainerGetter(pModelPart)
-     * @return false                    If the given range is a subset of the current PointerVectorSet given by rContainerGetter(pModelPart)
+     * @tparam TPointerVectorSetContainer   Type of the PointerVectorSet container
+     * @tparam TIterator                    Type of the iterator
+     * @param rContainer                    PointerVectorSet container to insert the given range.
+     * @param begin                         Begining of the range
+     * @param end                           End of the range
+     * @return true                         If the given range is not a subset of the current PointerVectorSet given by rContainerGetter(pModelPart)
+     * @return false                        If the given range is a subset of the current PointerVectorSet given by rContainerGetter(pModelPart)
      */
-    template<class TContainerGetter, class TIterator>
+    template<class TPointerVectorSetContainer, class TIterator>
     static bool InsertEntityRange(
-        ModelPart* pModelPart,
-        TContainerGetter&& rContainerGetter,
+        TPointerVectorSetContainer& rContainer,
         TIterator begin,
         TIterator end)
     {
         KRATOS_TRY
-
-        auto& current_pvs = *rContainerGetter(pModelPart);
 
         if constexpr(std::is_same_v<iterator, std::remove_cv<TIterator>>) {
             // do nothing if the given range is empty.
@@ -1958,32 +1954,32 @@ private:
             // new entities using a parent PointerVectorSet iterators.
 
             // check if the given [begin, end) range is a subset of the given PointerVectorSet.
-            auto current_pvs_begin_iterator = current_pvs.find(*begin->Id());
+            auto current_pvs_begin_iterator = rContainer.find(*begin->Id());
             // now we check whether the current_pvs_begin_iterator's pointing (the pointer, not the iterator) memory location
             // is same as the memory location of the pointer pointed by the begin
-            if (current_pvs_begin_iterator != current_pvs.end() && &current_pvs_begin_iterator->base() == &begin->base()) {
-                // memory location pointing to begin is in the current_pvs. then check the same for the end.
-                auto current_pvs_end_iterator = current_pvs.find(*(end - 1)->Id());
+            if (current_pvs_begin_iterator != rContainer.end() && &current_pvs_begin_iterator->base() == &begin->base()) {
+                // memory location pointing to begin is in the rContainer. then check the same for the end.
+                auto current_pvs_end_iterator = rContainer.find(*(end - 1)->Id());
 
                 // now we check whether the current_pvs_end_iterator's pointing (the pointer, not the iterator) memory location
                 // is same as the memory location of the pointer pointed by the end
-                if (current_pvs_end_iterator != current_pvs.end() && &current_pvs_end_iterator->base() == &end->base()) {
-                    // now we can safely assume that the given [begin, end) range is a subset of the current_pvs.
+                if (current_pvs_end_iterator != rContainer.end() && &current_pvs_end_iterator->base() == &end->base()) {
+                    // now we can safely assume that the given [begin, end) range is a subset of the rContainer.
                     // hence we don't have to add anything here.
                     // and we don't have to add it to the parents of the PVS, because they should be already there.
                     return false;
                 } else {
-                    // now we can safely assume that the given [begin, end) range is not a subset of the current_pvs.
+                    // now we can safely assume that the given [begin, end) range is not a subset of the rContainer.
                     // hence we have to add the given range
-                    current_pvs.insert(begin, end);
+                    rContainer.insert(begin, end);
                 }
             } else {
-                // now we can safely assume that the given [begin, end) range is not a subset of the current_pvs.
+                // now we can safely assume that the given [begin, end) range is not a subset of the rContainer.
                 // hence we have to add the given range
-                current_pvs.insert(begin, end);
+                rContainer.insert(begin, end);
             }
         } else {
-            current_pvs.insert(begin, end);
+            rContainer.insert(begin, end);
         }
 
         return true;
@@ -2011,13 +2007,13 @@ private:
         ModelPart* p_current_part = this;
         bool has_range_added = true;
         while (p_current_part->IsSubModelPart() && has_range_added) {
-            has_range_added = InsertEntityRange(p_current_part, rContainerGetter, begin, end);
+            has_range_added = InsertEntityRange(*rContainerGetter(p_current_part), begin, end);
             p_current_part = &(p_current_part->GetParentModelPart());
         }
 
         // now finally add to the root model part
         if (has_range_added) {
-            InsertEntityRange(&(p_current_part->GetRootModelPart()), rContainerGetter, begin, end);
+            InsertEntityRange(*rContainerGetter(&(p_current_part->GetRootModelPart())), begin, end);
         }
 
         KRATOS_CATCH("")
