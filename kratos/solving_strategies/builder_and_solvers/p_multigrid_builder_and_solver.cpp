@@ -19,6 +19,7 @@
 #include "utilities/atomic_utilities.h" // AtomicAdd
 #include "utilities/sparse_matrix_multiplication_utility.h"
 #include "utilities/reduction_utilities.h"
+#include "utilities/proxies.h" // MakeProxy
 
 // System includes
 #include <algorithm> // std::lower_bound
@@ -38,7 +39,16 @@ enum class DiagonalScaling
     AbsMax      = 1,
     Norm        = 2,
     Constant    = 3
-};
+}; // enum class DiagonalScaling
+
+
+enum class ConstraintImposition
+{
+    None        = 0,
+    MasterSlave = 1,
+    Lagrange    = 2,
+    Penalty     = 3
+}; // enum class ConstraintImposition
 
 
 template <class TSparse, class TDense, class TSolver>
@@ -54,7 +64,8 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
           mMasterIds(),
           mInactiveSlaveIds(),
           mDiagonalScaleFactor(1),
-          mDiagonalScaling(DiagonalScaling::None)
+          mDiagonalScaling(DiagonalScaling::None),
+          mMaxDepth(-1)
     {}
 
     void SystemSolveWithPhysics(typename Interface::TSystemMatrixType& rLhs,
@@ -390,6 +401,31 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
     // --------------------------------------------------------- //
 
 
+    template <class TProxy>
+    static void CollectDoFs(const TProxy& rEntities,
+                            const ProcessInfo& rProcessInfo,
+                            typename Interface::TSchemeType& rScheme,
+                            LockObject* pLockBegin,
+                            [[maybe_unused]] LockObject* pLockEnd,
+                            std::unordered_set<std::size_t>* pRowSetBegin,
+                            [[maybe_unused]] std::unordered_set<std::size_t>* pRowSetEnd)
+    {
+        using TLS = Element::EquationIdVectorType;
+        block_for_each(rEntities,
+                       TLS(),
+                       [&rScheme, &rProcessInfo, pLockBegin, pRowSetBegin](const auto& rEntity, TLS& rTls){
+            if (rEntity.GetEntity().IsActive()) {
+                rScheme.EquationId(rEntity.GetEntity(), rTls, rProcessInfo);
+                for (const auto equation_id : rTls) {
+                    [[maybe_unused]] std::scoped_lock<LockObject> lock(pLockBegin[equation_id]);
+                    auto& r_row_indices = pRowSetBegin[equation_id];
+                    r_row_indices.insert(rTls.begin(), rTls.end());
+                } // for equation_id in rTls
+            } // if rEntity.IsActive
+        });
+    }
+
+
     void MakeLhsStructure(const typename Interface::TSchemeType::Pointer& rpScheme,
                           typename Interface::TSystemMatrixType& rLhs,
                           ModelPart& rModelPart)
@@ -397,30 +433,28 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
         KRATOS_TRY
 
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-        std::vector<LockObject> lock_array(mpInterface->GetEquationSystemSize());
+        std::vector<LockObject> locks(mpInterface->GetEquationSystemSize());
         std::vector<std::unordered_set<std::size_t> > indices(mpInterface->GetEquationSystemSize());
-        Element::EquationIdVectorType ids;
 
-        block_for_each(rModelPart.Elements(), ids, [&](Element& rElem, Element::EquationIdVectorType& rIdsTLS){
-            rpScheme->EquationId(rElem, rIdsTLS, r_current_process_info);
-            for (std::size_t i = 0; i < rIdsTLS.size(); i++) {
-                lock_array[rIdsTLS[i]].lock();
-                auto& row_indices = indices[rIdsTLS[i]];
-                row_indices.insert(rIdsTLS.begin(), rIdsTLS.end());
-                lock_array[rIdsTLS[i]].unlock();
-            }
-        });
+        // Collect DoFs from elements.
+        Impl::CollectDoFs(MakeProxy<Globals::DataLocation::Element>(rModelPart),
+                          rModelPart.GetProcessInfo(),
+                          *rpScheme,
+                          locks.data(),
+                          locks.data() + locks.size(),
+                          indices.data(),
+                          indices.data() + indices.size());
 
-        block_for_each(rModelPart.Conditions(), ids, [&](Condition& rCond, Element::EquationIdVectorType& rIdsTLS){
-            rpScheme->EquationId(rCond, rIdsTLS, r_current_process_info);
-            for (std::size_t i = 0; i < rIdsTLS.size(); i++) {
-                lock_array[rIdsTLS[i]].lock();
-                auto& row_indices = indices[rIdsTLS[i]];
-                row_indices.insert(rIdsTLS.begin(), rIdsTLS.end());
-                lock_array[rIdsTLS[i]].unlock();
-            }
-        });
+        // Collect DoFs from conditions.
+        Impl::CollectDoFs(MakeProxy<Globals::DataLocation::Condition>(rModelPart),
+                          rModelPart.GetProcessInfo(),
+                          *rpScheme,
+                          locks.data(),
+                          locks.data() + locks.size(),
+                          indices.data(),
+                          indices.data() + indices.size());
 
+        // Collect DoFs from multifreedom constraints.
         if (rModelPart.MasterSlaveConstraints().size() != 0) {
             struct TLS
             {
@@ -431,24 +465,24 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
                 rConst.EquationIdVector(rTls.slave_ids, rTls.master_ids, r_current_process_info);
 
                 for (std::size_t i = 0; i < rTls.slave_ids.size(); i++) {
-                    lock_array[rTls.slave_ids[i]].lock();
+                    locks[rTls.slave_ids[i]].lock();
                     auto& row_indices = indices[rTls.slave_ids[i]];
                     row_indices.insert(rTls.slave_ids[i]);
-                    lock_array[rTls.slave_ids[i]].unlock();
+                    locks[rTls.slave_ids[i]].unlock();
                 }
 
                 for (std::size_t i = 0; i < rTls.master_ids.size(); i++) {
-                    lock_array[rTls.master_ids[i]].lock();
+                    locks[rTls.master_ids[i]].lock();
                     auto& row_indices = indices[rTls.master_ids[i]];
                     row_indices.insert(rTls.master_ids[i]);
-                    lock_array[rTls.master_ids[i]].unlock();
+                    locks[rTls.master_ids[i]].unlock();
                 }
             });
 
         }
 
         // Destroy locks
-        lock_array = std::vector<LockObject>();
+        locks = std::vector<LockObject>();
 
         // Count the row sizes
         const std::size_t nnz = block_for_each<SumReduction<std::size_t>>(indices, [](auto& rIndices) {return rIndices.size();});
@@ -503,7 +537,7 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
 
     DiagonalScaling mDiagonalScaling;
 
-    Flags mOptions;
+    int mMaxDepth;
 }; // class PMultigridBuilderAndSolver::Impl
 
 
@@ -1100,8 +1134,9 @@ template <class TSparse, class TDense, class TSolver>
 Parameters PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::GetDefaultParameters() const
 {
     Parameters parameters = Parameters(R"({
-        "name"              : "p_multigrid_builder_and_solver",
-        "diagonal_scaling"  : "abs_max"
+        "name"              : "p_multigrid",
+        "diagonal_scaling"  : "abs_max",
+        "max_depth"         : -1
     })");
     parameters.RecursivelyAddMissingParameters(Interface::GetDefaultParameters());
     return parameters;
