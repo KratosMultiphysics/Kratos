@@ -15,7 +15,7 @@
 #include <type_traits>
 
 // External includes
-#include <map>
+#include <unordered_map>
 
 // Project includes
 #include "utilities/parallel_utilities.h"
@@ -61,7 +61,13 @@ void ConversionUtilities::ConvertElementalDataToNodalDataDirect(
 {
     // prepare nodal variable
     VariableUtils().SetHistoricalVariableToZero(rNodalVariable, rModelPart.Nodes());
-    std::map<int, int> node_element_count;
+    std::unordered_map<int, int> node_element_count;
+
+    // Initialize entries in serial (using a loop)
+    for (const auto& r_node : rModelPart.Nodes()){
+        node_element_count[r_node.Id()] = 0;
+    }
+
 
     block_for_each(rModelPart.Elements(), [&](Element& rElement){
         const auto& elem_rVariable =  rElement.GetValue(rElementalVariable);
@@ -136,7 +142,13 @@ void ConversionUtilities::ConvertNodalDataToElementalDataTranspose(
     VariableUtils().SetNonHistoricalVariableToZero(rElementalVariable, rModelPart.Elements());
 
     // count number of shared elements for each node
-    std::map<int, int> node_element_count;
+    std::unordered_map<int, int> node_element_count;
+
+    // Initialize entries in serial (using a loop)
+    for (const auto& r_node : rModelPart.Nodes()){
+        node_element_count[r_node.Id()] = 0;
+    }
+
     block_for_each(rModelPart.Elements(), [&](Element& rElement){
         for (const auto& r_node : rElement.GetGeometry().Points()){
             AtomicAdd(node_element_count[r_node.Id()], 1);
