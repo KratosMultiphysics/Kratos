@@ -183,13 +183,17 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
 //
 //           KRATOS_CATCH("")
 
+          std::cout << "In omp_dem_search" << std::endl;
           KRATOS_TRY
 
           int MaxNumberOfElements = rStructureElements.size();
           ElementsContainerType::ContainerType& elements_array     = const_cast<ElementsContainerType::ContainerType&>(rElements.GetContainer());
           ElementsContainerType::ContainerType& elements_ModelPart = const_cast<ElementsContainerType::ContainerType&>(rStructureElements.GetContainer());
+
+          std::cout << "In omp_dem_search parallelization, trying to get the bins" << std::endl;
           BinsUniquePointerType p_bins = GetBins(elements_ModelPart);
 
+          std::cout << "In omp_dem_search parallelization" << std::endl;
           #pragma omp parallel
           {
               ResultElementsContainerType   localResults(MaxNumberOfElements);
@@ -210,6 +214,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
                   rResultsDistance[i].insert(rResultsDistance[i].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);
               }
           }
+          std::cout << "End omp_dem_search parallelization" << std::endl;
           //MAJOR TODO: creating and destroying (when leaving the function) this BINS is not parallel and takes a significant time if we search at every time step. Can we re-use a bins and avoid allocation and deallocation?? MA
           KRATOS_CATCH("")
       }
@@ -793,7 +798,9 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
             }
 
             else {
+                std::cout << "The memory error is here" << std::endl;
                 return std::unique_ptr<BinsType>(new BinsType(r_model_part_container.begin(), r_model_part_container.end()));
+                std::cout << "End the memory error is here" << std::endl;
             }
         }
 

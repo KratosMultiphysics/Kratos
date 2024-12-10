@@ -27,9 +27,11 @@ void SpatialSearch::SearchElementsInRadiusExclusive (
     VectorDistanceType& rResultsDistance
     )
 {
+    std::cout << "In SearchElementsInRadiusExclusive" << std::endl;
     this->SearchElementsInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().Elements(),
                                         rModelPart.GetCommunicator().LocalMesh().Elements(),
                                         rRadius,rResults,rResultsDistance);
+    std::cout << "End SearchElementsInRadiusExclusive" << std::endl;
 }
 
 /***********************************************************************************/

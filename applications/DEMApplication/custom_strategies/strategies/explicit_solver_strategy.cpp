@@ -421,6 +421,7 @@ namespace Kratos {
     }
 
     void ExplicitSolverStrategy::SearchDEMOperations(ModelPart& r_model_part, bool has_mpi) {
+        std::cout << "In SearchDEMOperations" << std::endl;
         KRATOS_TRY
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
         int time_step = r_process_info[TIME_STEPS];
@@ -431,6 +432,7 @@ namespace Kratos {
         BoundingBoxUtility(is_time_to_mark_and_remove);
 
         if (is_time_to_search_neighbours) {
+            std::cout << "In is_time_to_search_neighbours" << std::endl;
             if (!is_time_to_mark_and_remove) { //Just in case that some entities were marked as TO_ERASE without a bounding box (manual removal)
                 mpParticleCreatorDestructor->DestroyParticles<Cluster3D>(*mpCluster_model_part);
                 mpParticleCreatorDestructor->DestroyParticles<SphericParticle>(r_model_part);
@@ -439,7 +441,9 @@ namespace Kratos {
             RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
             RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
 
+            std::cout << "SearchNeighbours" << std::endl;
             SearchNeighbours();
+            std::cout << "End SearchNeighbours" << std::endl;
 
             RebuildListOfSphericParticles <SphericParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
             RebuildListOfSphericParticles <SphericParticle> (r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
@@ -453,17 +457,21 @@ namespace Kratos {
             mSearchControl = 2; // Search is active and has been performed during this time step
             //ReorderParticles();
         } else {
+            std::cout << "Skipped is_time_to_search_neighbours" << std::endl;
             mSearchControl = 1; // Search is active but no search has been done this time step;
         }
 
         if (is_time_to_print_results && r_process_info[CONTACT_MESH_OPTION] == 1) {
+            std::cout << "Printing" << std::endl;
             CreateContactElements();
             InitializeContactElements();
+            std::cout << "End printing" << std::endl;
         }
 
         //RebuildPropertiesProxyPointers(mListOfSphericParticles);
         //RebuildPropertiesProxyPointers(mListOfGhostSphericParticles);
         KRATOS_CATCH("")
+        std::cout << "End SearchDEMOperations" << std::endl;
     }//SearchDEMOperations;
 
     void ExplicitSolverStrategy::SearchFEMOperations(ModelPart& r_model_part, bool has_mpi) {
@@ -1329,20 +1337,24 @@ namespace Kratos {
 
         ModelPart& r_model_part = GetModelPart();
 
+        std::cout << "In ExplicitSolverStrategy::SearchNeighbours init" << std::endl;
         int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
         if (!number_of_elements) return;
 
         GetResults().resize(number_of_elements);
         GetResultsDistances().resize(number_of_elements);
 
+        std::cout << "In ExplicitSolverStrategy::SearchNeighbours SearchElementsInRadiusExclusive" << std::endl;
         mpSpSearch->SearchElementsInRadiusExclusive(r_model_part, this->GetArrayOfAmplifiedRadii(), this->GetResults(), this->GetResultsDistances());
 
         const int number_of_particles = (int) mListOfSphericParticles.size();
+        std::cout << "In ExplicitSolverStrategy::SearchNeighbours thread_map" << std::endl;
 
         typedef std::map<SphericParticle*,std::vector<SphericParticle*>> ConnectivitiesMap;
         std::vector<ConnectivitiesMap> thread_maps_of_connectivities;
         thread_maps_of_connectivities.resize(ParallelUtilities::GetNumThreads());
 
+        std::cout << "In ExplicitSolverStrategy::SearchNeighbours loop 1" << std::endl;
         #pragma omp parallel for schedule(dynamic, 100)
         for (int i = 0; i < number_of_particles; i++) {
             mListOfSphericParticles[i]->mNeighbourElements.clear();
@@ -1359,6 +1371,7 @@ namespace Kratos {
             this->GetResultsDistances()[i].clear();
         }
 
+        std::cout << "In ExplicitSolverStrategy::SearchNeighbours loop 2" << std::endl;
         // the next loop ensures consistency in neighbourhood (if A is neighbour of B, B must be neighbour of A)
         #pragma omp parallel for schedule(dynamic, 100)
         for (int i = 0; i < number_of_particles; i++) {
@@ -1383,6 +1396,7 @@ namespace Kratos {
                 }
             }
         }
+        std::cout << "End ExplicitSolverStrategy::SearchNeighbours" << std::endl;
         KRATOS_CATCH("")
     }
 

@@ -44,6 +44,7 @@ double AdamsBashforthStrategy::SolveSolutionStep() {
     KRATOS_TRY
     ModelPart& r_model_part = GetModelPart();
 
+    std::cout << "In adams bashforth" << std::endl;
     if (mFirstStep){
         mFirstStep = false;
         PerformTimeIntegrationOfMotion(1);
@@ -52,12 +53,16 @@ double AdamsBashforthStrategy::SolveSolutionStep() {
     else {
         mFirstStep = true;
 
+        std::cout << "Adams bashforth 1" << std::endl;
         SearchDEMOperations(r_model_part);
+        std::cout << "Adams bashforth 2" << std::endl;
         SearchFEMOperations(r_model_part);
+        std::cout << "Adams bashforth 3" << std::endl;
         ForceOperations(r_model_part);
         PerformTimeIntegrationOfMotion(2);
         ReconstructForces(r_model_part);
         FinalizeSolutionStep();
+        std::cout << "End adams bashforth" << std::endl;
     }
     return 0.00;
 
