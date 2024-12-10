@@ -384,7 +384,8 @@ namespace Kratos::Testing
         p_element->CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, stress_vector, r_process_info);
         KRATOS_EXPECT_DOUBLE_EQ(expected_stress + pre_stress, stress_vector[0][0]);
     }
-KRATOS_TEST_CASE_IN_SUITE(LienarTrussElement2D_CalculatesPK2Stress, KratosStructuralMechanicsFastSuite)
+
+    KRATOS_TEST_CASE_IN_SUITE(LinearTrussElement2D_CalculatesPK2Stress, KratosStructuralMechanicsFastSuite)
     {
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
