@@ -663,29 +663,29 @@ void LinearTrussElement2D<TNNodes>::CalculateOnIntegrationPoints(
 
         // Let's initialize the cl values
         VectorType strain_vector(1), stress_vector(1);
-        MatrixType C(1,1);
+        MatrixType constitutive_matrix(1,1);
         strain_vector.clear();
         cl_values.SetStrainVector(strain_vector);
         cl_values.SetStressVector(stress_vector);
-        cl_values.SetConstitutiveMatrix(C);
+        cl_values.SetConstitutiveMatrix(constitutive_matrix);
         SystemSizeBoundedArrayType nodal_values(SystemSize);
         GetNodalValuesVector(nodal_values);
 
-        SystemSizeBoundedArrayType B;
+        SystemSizeBoundedArrayType dN_dX;
 
         // Loop over the integration points
-        for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
-            GetFirstDerivativesShapeFunctionsValues(B, length, integration_points[IP].X());
+        for (SizeType integration_point = 0; integration_point < integration_points.size(); ++integration_point) {
+            GetFirstDerivativesShapeFunctionsValues(dN_dX, length, integration_points[integration_point].X());
 
-            strain_vector[0] = inner_prod(B, nodal_values);
+            strain_vector[0] = inner_prod(dN_dX, nodal_values);
 
-            mConstitutiveLawVector[IP]->CalculateMaterialResponsePK2(cl_values);
+            mConstitutiveLawVector[integration_point]->CalculateMaterialResponsePK2(cl_values);
             auto stress = cl_values.GetStressVector()[0];
             if (GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
                 stress += GetProperties()[TRUSS_PRESTRESS_PK2];
             }
 
-            rOutput[IP] = ScalarVector(1, stress);
+            rOutput[integration_point] = ScalarVector(1, stress);
         }
     }
 }
