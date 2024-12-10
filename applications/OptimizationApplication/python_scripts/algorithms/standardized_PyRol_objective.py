@@ -6,6 +6,7 @@ from KratosMultiphysics.OptimizationApplication.controls.master_control import M
 from pyrol import Objective
 import numpy as np
 from pyrol.vectors import NumPyVector as myVector
+from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 
 class StandardizedPyRolObjective(Objective):
     """Standardized objective response function
@@ -27,8 +28,13 @@ class StandardizedPyRolObjective(Objective):
             required_buffer_size (int, optional): The required buffer size. Defaults to 2.
 
         """
+        # backward compatibility
+        if parameters.Has("response_name"):
+            IssueDeprecationWarning(self.__class__.__name__, "\"response_name\" is deprecated. Please use \"response_expression\".")
+            parameters.AddString("response_expression", parameters["response_name"].GetString())
+            parameters.RemoveValue("response_name")
         default_parameters = Kratos.Parameters("""{
-            "response_name": "",
+            "response_expression": "",
             "type"         : "",
             "scaling"      : 1.0
         }""")
@@ -89,9 +95,6 @@ class StandardizedPyRolObjective(Objective):
 
         # I haven't found a good place to set next optimization step. As most methods do one gradeint calucation per iteration, I set it here.
         self.__optimization_problem.AdvanceStep()
-
-    def hessVec(self, hv, v, x, tol):
-        raise RuntimeError("Hessian-vector product is not implemented for the pyrol objective response function.")
 
     def Initialize(self):
         self.__objective.Initialize()

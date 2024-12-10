@@ -90,7 +90,7 @@
     "algorithm_settings": {
         "type": "PyRol_algorithms",
         "pyrol_settings": {
-            "input_filename": "input_lbfgs.xml"
+            "input_filename": "input.xml"
         },
         "controls": [
             "thickness_control"

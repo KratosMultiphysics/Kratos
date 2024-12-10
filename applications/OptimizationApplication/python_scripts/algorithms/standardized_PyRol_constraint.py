@@ -6,6 +6,7 @@ from KratosMultiphysics.OptimizationApplication.controls.master_control import M
 from pyrol import Constraint
 import numpy as np
 from pyrol.vectors import NumPyVector as myVector
+from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 
 class StandardizedPyRolConstraint(Constraint):
     """Standardized objective response function
@@ -26,6 +27,12 @@ class StandardizedPyRolConstraint(Constraint):
             required_buffer_size (int, optional): The required buffer size. Defaults to 2.
 
         """
+        # backward compatibility
+        if parameters.Has("response_name"):
+            IssueDeprecationWarning(self.__class__.__name__, "\"response_name\" is deprecated. Please use \"response_expression\".")
+            parameters.AddString("response_expression", parameters["response_name"].GetString())
+            parameters.RemoveValue("response_name")
+        
         default_parameters = Kratos.Parameters("""{
             "response_expression" : "",
             "type"                : "=",
@@ -34,6 +41,9 @@ class StandardizedPyRolConstraint(Constraint):
 
         if parameters.Has("scaled_ref_value") and parameters["scaled_ref_value"].IsDouble():
             default_parameters["scaled_ref_value"].SetDouble(0.0)
+
+        if parameters.Has("type") and not parameters["type"].GetString() == "=":
+            raise Exception("Only equality constraints are supported at the moment.")
 
         parameters.ValidateAndAssignDefaults(default_parameters)
 
@@ -61,11 +71,6 @@ class StandardizedPyRolConstraint(Constraint):
         shape = [c.GetItemShape() for c in control_field.GetContainerExpressions()]
         KratosOA.CollectiveExpressionIO.Read(control_field, numpy_x, shape)
         value = self.__objective.CalculateStandardizedValue(control_field, save_data)
-
-        if save_data:
-            for process in self.__optimization_problem.GetListOfProcesses("output_processes"):
-                if process.IsOutputStep():
-                    process.PrintOutput()
 
         c[0] = value
         
@@ -112,9 +117,6 @@ class StandardizedPyRolConstraint(Constraint):
             result = self.__objective.CalculateStandardizedGradient(save_field)
             gAux = result.Evaluate().reshape(-1) * self.__objective.GetScalingFactor()
             ajv[:] = [gAux[i] * v[0] for i in range(len(gAux))] 
-
-    def hessVec(self, hv, v, x, tol):
-        raise RuntimeError("Hessian-vector product is not implemented for the pyrol objective response function.")
 
     def Initialize(self):
         self.__objective.Initialize()

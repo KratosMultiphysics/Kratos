@@ -49,24 +49,6 @@ class PyRolAlgorithms(Algorithm):
         }"""
     
     def __init__(self, model:Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
-        """
-        Initializes the PyRol algorithm with the given model, parameters, and optimization problem.
-
-        Args:
-            model (Kratos.Model): The Kratos model to be used.
-            parameters (Kratos.Parameters): The parameters for the PyRol algorithm.
-            optimization_problem (OptimizationProblem): The optimization problem to be solved.
-
-        Attributes:
-            model (Kratos.Model): The Kratos model to be used.
-            parameters (Kratos.Parameters): The parameters for the PyRol algorithm.
-            _optimization_problem (OptimizationProblem): The optimization problem to be solved.
-            master_control (MasterControl): The master control object managing all controls.
-            __control_field (None): Placeholder for the control field, initially set to None.
-            settings (Kratos.Parameters): The settings for the PyRol algorithm.
-            method_settings (Kratos.Parameters): The method settings loaded from the input file.
-            __objective (StandardizedPyRolObjective): The standardized objective for the PyRol algorithm.
-        """
         self.model = model
         self.parameters = parameters
         self._optimization_problem = optimization_problem
@@ -99,30 +81,11 @@ class PyRolAlgorithms(Algorithm):
 
     @time_decorator()
     def Initialize(self):
-        """
-        Initializes the optimization algorithm.
-        This method sets up the initial state for the optimization algorithm, including
-        initializing the master control, objective, and constraints. It also prepares
-        the control field, algorithm data, design variables vector, and bounds for the
-        optimization problem.
-        Attributes:
-            converged (bool): Indicates whether the algorithm has converged.
-            master_control: The master control object responsible for managing the control field.
-            __objective: The objective function for the optimization problem.
-            __control_field: The control field used in the optimization process.
-            algorithm_data: Data view for storing algorithm-related data.
-            x0: Initial design variables vector.
-            grad: Gradient of the design variables vector.
-            lower_bounds: Lower bounds for the design variables.
-            upper_bounds: Upper bounds for the design variables.
-            bounds: Bounds object containing the lower and upper bounds.
-            problem: The optimization problem setup with the objective, design variables, gradient, and bounds.
-        """
         self.converged = False
         self.master_control.Initialize()
         self.__objective.Initialize()
         self.__objective.Check()
-        # CallOnAll(self.__kratos_constraints, StandardizedSciPyConstraint.Initialize)
+        CallOnAll(self.__constraints, StandardizedPyRolConstraint.Initialize)
         self.__control_field = self.master_control.GetControlField()
         self.algorithm_data = ComponentDataView("algorithm", self._optimization_problem)
         self.algorithm_data.SetDataBuffer(self.GetMinimumBufferSize())
@@ -141,14 +104,13 @@ class PyRolAlgorithms(Algorithm):
         self.problem = Problem(self.__objective, self.x0, self.grad)
         self.problem.addBoundConstraint(self.bounds)
         for constraint in self.__constraints:
-            l = myVector(np.array([0.0]))
-            self.problem.addConstraint(constraint.GetName(), constraint, l)
+            self.problem.addConstraint(constraint.GetName(), constraint, self.x0.dual())
 
     @time_decorator()
     def Finalize(self):
         self.__objective.Finalize()
-        # for constraint in self.__kratos_constraints:
-        #     constraint.Finalize()
+        for constraint in self.__constraints:
+            constraint.Finalize()
         self.master_control.Finalize()
 
     @time_decorator()
