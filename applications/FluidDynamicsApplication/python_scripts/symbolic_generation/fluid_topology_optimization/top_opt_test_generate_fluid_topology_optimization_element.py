@@ -26,8 +26,8 @@ outstring       = templatefile.read() # Initialize outstring
 output_filename = "fluid_topology_optimization_element.cpp" # Output file name
 
 ## Problem Settings
-convective_term = True # Convection or Not
-stabilization   = False # Include Stabilization
+convective_term = False # Convection or Not
+stabilization   = True # Include Stabilization
 
 # ## ARTIFICIAL COMPRESSIBILITY NOT YET IMPLEMENTED, AND POSSIBLY WILL NEVER BE
 # artificial_compressibility = False # Include Artificial Compressibility
@@ -85,10 +85,10 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
 
     # Derivatives evaluation
     # Gradient
-    grad_v = DfjDxi(DN,v)   # Velocity gradient (TRANSPOSED)
-    grad_p = DfjDxi(DN,p)   # Pressure gradient (VERTICAL VECTOR)
-    grad_w = DfjDxi(DN,w)   # Velocity test function gradient (TRNSPOSED)
-    grad_q = DfjDxi(DN,q)   # Pressure test function gradient (VERTICAL VECTOR)
+    grad_v = DfiDxj(DN,v)   # Velocity gradient
+    grad_p = DfjDxi(DN,p)   # Pressure gradient VERTICAL VECTOR
+    grad_w = DfiDxj(DN,w)   # Velocity test function gradient
+    grad_q = DfjDxi(DN,q)   # Pressure test function gradient VERTICAL VECTOR
 
     # Symmetric Gradient: 1/2*(grad(u)+grad(u)^T)
     grad_sym_v = grad_sym_voigtform(DN,v)     # Symmetric velocity gradient in Voigt notation
@@ -99,10 +99,10 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     div_w = div(DN,w)   # Velocity test function divergence
 
     ## BASE GALERKIN FUNCTIONAL RESIDUAL
-    rv_galerkin =  rho*w_gauss.transpose()*f_gauss # RHS forcing
-    rv_galerkin += -(grad_sym_w.transpose()*stress) # diffusion term, OBS--> A::B=A_sym::B_sym + A_asym::B_asym, but (grad(u)+grad(u)^T) is sym, so we can use the grad_sym(w)
+    rv_galerkin  = -(grad_sym_w.transpose()*stress) # diffusion term, OBS--> A::B=A_sym::B_sym + A_asym::B_asym, but (grad(u)+grad(u)^T) is sym, so we can use the grad_sym(w)
     rv_galerkin +=  div_w*p_gauss # pressure term
     rv_galerkin += -alpha*(w_gauss.transpose()*v_gauss) # resistance (alpha) term
+    rv_galerkin +=  rho*w_gauss.transpose()*f_gauss # RHS forcing
     rv_galerkin += -q_gauss*div_v # mass conservation term (divided by rho)
     rv = rv_galerkin # save BASE residual into TOTAL element residual
 
@@ -115,7 +115,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
         # Derivatives
         div_vconv = div(DN, vconv)                 # Divergence of the convective velocity
         # CONVECTIVE GALERKIN FUNCTIONAL RESIDUAL
-        rv_conv = -rho*w_gauss.transpose()*(vconv_gauss.transpose()*grad_v).transpose() # convection term
+        rv_conv = -rho*w_gauss.transpose()*(grad_v*vconv_gauss) # convection term
         rv += rv_conv # save CONVECTION residual into TOTAL element residual
     # END HANDLE CONVECTION
 
@@ -184,8 +184,6 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
         dofs[i*(dim+1)+dim] = p[i,0]
         testfunc[i*(dim+1)+dim] = q[i,0] 
 
-    rv = -(grad_sym_w.transpose()*stress)
-    
     # COMPUTE RHS AND LHS
     print(f"Computing {dim}D{nnodes}N NS RHS Gauss point contribution\n")
     rhs = Compute_RHS(rv.copy(), testfunc, do_simplifications)

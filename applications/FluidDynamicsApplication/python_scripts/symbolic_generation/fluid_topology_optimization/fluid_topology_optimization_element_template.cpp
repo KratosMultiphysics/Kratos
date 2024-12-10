@@ -986,12 +986,13 @@ void FluidTopologyOptimizationElement< FluidTopologyOptimizationElementData<2,3,
 {
     const double rho = rData.Density;
     const double mu = rData.EffectiveViscosity;
+    // const array_1d<double,3>& c = rData.SoundVelocity;
 
     const array_1d<double,3> alpha = rData.Resistance;
 
     const double h = rData.ElementSize;
-    const double dt = rData.DeltaTime;
-    const double bdf0 = rData.bdf0;
+    // const double dt = rData.DeltaTime;
+    // const double bdf0 = rData.bdf0;
     
     // Get constitutive matrix
     const BoundedMatrix<double,3,3>& C = rData.C;
@@ -1000,7 +1001,7 @@ void FluidTopologyOptimizationElement< FluidTopologyOptimizationElementData<2,3,
     const array_1d<double,3>& N = rData.N;
     const BoundedMatrix<double,3,2>& DN = rData.DN_DX;
 
-    const double dyn_tau = rData.DynamicTau;
+    // const double dyn_tau = rData.DynamicTau;
     // Stabilization parameters 
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
@@ -1022,13 +1023,13 @@ void FluidTopologyOptimizationElement<FluidTopologyOptimizationElementData<3,4,t
 {
     const double rho = rData.Density;
     const double mu = rData.EffectiveViscosity;
-    const array_1d<double,4>& c = rData.SoundVelocity;
+    // const array_1d<double,4>& c = rData.SoundVelocity;
 
     const array_1d<double,4> alpha = rData.Resistance;
 
     const double h = rData.ElementSize;
-    const double dt = rData.DeltaTime;
-    const double bdf0 = rData.bdf0;
+    // const double dt = rData.DeltaTime;
+    // const double bdf0 = rData.bdf0;
     
     // Get constitutive matrix
     const BoundedMatrix<double,4,4>& C = rData.C;
@@ -1037,7 +1038,7 @@ void FluidTopologyOptimizationElement<FluidTopologyOptimizationElementData<3,4,t
     const array_1d<double,4>& N = rData.N;
     const BoundedMatrix<double,4,3>& DN = rData.DN_DX;
 
-    const double dyn_tau = rData.DynamicTau;
+    // const double dyn_tau = rData.DynamicTau;
     // Stabilization parameters 
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
@@ -1059,21 +1060,21 @@ void FluidTopologyOptimizationElement<FluidTopologyOptimizationElementData<2,3,t
 {
     const double rho = rData.Density;
     const double mu = rData.EffectiveViscosity;
-    const array_1d<double,3>& c = rData.SoundVelocity;
+    // const array_1d<double,3>& c = rData.SoundVelocity;
 
     const array_1d<double,3> alpha = rData.Resistance;
 
     const double h = rData.ElementSize;
-    const double dt = rData.DeltaTime;
-    const double bdf0 = rData.bdf0;
-    const double bdf1 = rData.bdf1;
-    const double bdf2 = rData.bdf2;
+    // const double dt = rData.DeltaTime;
+    // const double bdf0 = rData.bdf0;
+    // const double bdf1 = rData.bdf1;
+    // const double bdf2 = rData.bdf2;
 
     // Get shape function values
     const array_1d<double,3>& N = rData.N;
     const BoundedMatrix<double,3,2>& DN = rData.DN_DX;
 
-    const double dyn_tau = rData.DynamicTau;
+    // const double dyn_tau = rData.DynamicTau;
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
@@ -1086,8 +1087,8 @@ void FluidTopologyOptimizationElement<FluidTopologyOptimizationElementData<2,3,t
     const BoundedMatrix<double,2,3> vconv = rData.Velocity - rData.MeshVelocity;
     const BoundedMatrix<double,2,3>& f = rData.BodyForce;
     const array_1d<double,3>& p = rData.Pressure;
-    const array_1d<double,3>& pn = rData.Pressure_OldStep1;
-    const array_1d<double,3>& pnn = rData.Pressure_OldStep2;
+    // const array_1d<double,3>& pn = rData.Pressure_OldStep1;
+    // const array_1d<double,3>& pnn = rData.Pressure_OldStep2;
     const array_1d<double,3>& stress = rData.ShearStress;
 
     // Assemble RHS contribution
@@ -1104,21 +1105,21 @@ void FluidTopologyOptimizationElement<FluidTopologyOptimizationElementData<3,4,t
 {
     const double rho = rData.Density;
     const double mu = rData.EffectiveViscosity;
-    const array_1d<double,4>& c = rData.SoundVelocity;
+    // const array_1d<double,4>& c = rData.SoundVelocity;
 
     const array_1d<double,4> alpha = rData.Resistance;
 
     const double h = rData.ElementSize;
-    const double dt = rData.DeltaTime;
-    const double bdf0 = rData.bdf0;
-    const double bdf1 = rData.bdf1;
-    const double bdf2 = rData.bdf2;
+    // const double dt = rData.DeltaTime;
+    // const double bdf0 = rData.bdf0;
+    // const double bdf1 = rData.bdf1;
+    // const double bdf2 = rData.bdf2;
 
     // Get shape function values
     const array_1d<double,4>& N = rData.N;
     const BoundedMatrix<double,4,3>& DN = rData.DN_DX;
 
-    const double dyn_tau = rData.DynamicTau;
+    // const double dyn_tau = rData.DynamicTau;
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
@@ -1131,8 +1132,8 @@ void FluidTopologyOptimizationElement<FluidTopologyOptimizationElementData<3,4,t
     const BoundedMatrix<double,3,4> vconv = rData.Velocity - rData.MeshVelocity;
     const BoundedMatrix<double,3,4>& f = rData.BodyForce;
     const array_1d<double,4>& p = rData.Pressure;
-    const array_1d<double,4>& pn = rData.Pressure_OldStep1;
-    const array_1d<double,4>& pnn = rData.Pressure_OldStep2;
+    // const array_1d<double,4>& pn = rData.Pressure_OldStep1;
+    // const array_1d<double,4>& pnn = rData.Pressure_OldStep2;
     const array_1d<double,4>& stress = rData.ShearStress;
 
     // Assemble RHS contribution
@@ -1149,13 +1150,13 @@ void FluidTopologyOptimizationElement< FluidTopologyOptimizationElementData<2,3,
 {
     const double rho = rData.Density;
     const double mu = rData.EffectiveViscosity;
-    const array_1d<double,3>& c = rData.SoundVelocity;
+    // const array_1d<double,3>& c = rData.SoundVelocity;
 
     const array_1d<double,3> alpha = rData.Resistance;
 
     const double h = rData.ElementSize;
-    const double dt = rData.DeltaTime;
-    const double bdf0 = rData.bdf0;
+    // const double dt = rData.DeltaTime;
+    // const double bdf0 = rData.bdf0;
     
     // Get constitutive matrix
     const BoundedMatrix<double,3,3>& C = rData.C;
@@ -1164,13 +1165,13 @@ void FluidTopologyOptimizationElement< FluidTopologyOptimizationElementData<2,3,
     const array_1d<double,3>& N = rData.N;
     const BoundedMatrix<double,3,2>& DN = rData.DN_DX;
 
-    const double dyn_tau = rData.DynamicTau;
+    // const double dyn_tau = rData.DynamicTau;
     // Stabilization parameters 
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
     constexpr double stab_c3 = 2.0;
 
-    const BoundedMatrix<double,2,3> vconv_adj = rData.Velocity; // CONVECTIVE VELOCITY FOR THE ADJOINT IS THE PRIMAL NS SOLUTION
+    const BoundedMatrix<double,2,3> v_ns = rData.Velocity; // CONVECTIVE VELOCITY FOR THE ADJOINT IS THE PRIMAL NS SOLUTION
 
     // Assemble LHS contribution
     const double gauss_weight = rData.Weight;
@@ -1186,13 +1187,13 @@ void FluidTopologyOptimizationElement<FluidTopologyOptimizationElementData<3,4,t
 {
     const double rho = rData.Density;
     const double mu = rData.EffectiveViscosity;
-    const array_1d<double,4>& c = rData.SoundVelocity;
+    // const array_1d<double,4>& c = rData.SoundVelocity;
 
     const array_1d<double,4> alpha = rData.Resistance;
 
     const double h = rData.ElementSize;
-    const double dt = rData.DeltaTime;
-    const double bdf0 = rData.bdf0;
+    // const double dt = rData.DeltaTime;
+    // const double bdf0 = rData.bdf0;
     
     // Get constitutive matrix
     const BoundedMatrix<double,4,4>& C = rData.C;
@@ -1201,13 +1202,13 @@ void FluidTopologyOptimizationElement<FluidTopologyOptimizationElementData<3,4,t
     const array_1d<double,4>& N = rData.N;
     const BoundedMatrix<double,4,3>& DN = rData.DN_DX;
 
-    const double dyn_tau = rData.DynamicTau;
+    // const double dyn_tau = rData.DynamicTau;
     // Stabilization parameters 
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
     constexpr double stab_c3 = 2.0;
 
-    const BoundedMatrix<double,3,4> vconv_adj = rData.Velocity; // CONVECTIVE VELOCITY FOR THE ADJOINT IS THE PRIMAL NS SOLUTION
+    const BoundedMatrix<double,3,4> v_ns = rData.Velocity; // CONVECTIVE VELOCITY FOR THE ADJOINT IS THE PRIMAL NS SOLUTION
 
     // Assemble LHS contribution
     const double gauss_weight = rData.Weight;
@@ -1223,35 +1224,37 @@ void FluidTopologyOptimizationElement<FluidTopologyOptimizationElementData<2,3,t
 {
     const double rho = rData.Density;
     const double mu = rData.EffectiveViscosity;
-    const array_1d<double,3>& c = rData.SoundVelocity;
+    // const array_1d<double,3>& c = rData.SoundVelocity;
 
     const array_1d<double,3> alpha = rData.Resistance;
 
     const double h = rData.ElementSize;
-    const double dt = rData.DeltaTime;
-    const double bdf0 = rData.bdf0;
-    const double bdf1 = rData.bdf1;
-    const double bdf2 = rData.bdf2;
+    // const double dt = rData.DeltaTime;
+    // const double bdf0 = rData.bdf0;
+    // const double bdf1 = rData.bdf1;
+    // const double bdf2 = rData.bdf2;
 
     // Get shape function values
     const array_1d<double,3>& N = rData.N;
     const BoundedMatrix<double,3,2>& DN = rData.DN_DX;
 
-    const double dyn_tau = rData.DynamicTau;
+    // const double dyn_tau = rData.DynamicTau;
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
     constexpr double stab_c3 = 2.0;
 
+    Vector functional_weights = rData.Functional_Weights; //  functional terms weights
+
     const BoundedMatrix<double,2,3>& v_adj = rData.Velocity_adj;
     const BoundedMatrix<double,2,3>& vn_adj = rData.Velocity_adj_OldStep1;
     const BoundedMatrix<double,2,3>& vnn_adj = rData.Velocity_adj_OldStep2;
     const BoundedMatrix<double,2,3>& vmesh_adj = rData.MeshVelocity_adj;
-    const BoundedMatrix<double,2,3> vconv_adj = rData.Velocity; // CONVECTIVE VELOCITY FOR THE ADJOINT IS THE PRIMAL NS SOLUTION
+    const BoundedMatrix<double,2,3> v_ns = rData.Velocity; // CONVECTIVE VELOCITY FOR THE ADJOINT IS THE PRIMAL NS SOLUTION
     const BoundedMatrix<double,2,3>& f_adj = rData.BodyForce_adj;
     const array_1d<double,3>& p_adj = rData.Pressure_adj;
-    const array_1d<double,3>& pn_adj = rData.Pressure_adj_OldStep1;
-    const array_1d<double,3>& pnn_adj = rData.Pressure_adj_OldStep2;
+    // const array_1d<double,3>& pn_adj = rData.Pressure_adj_OldStep1;
+    // const array_1d<double,3>& pnn_adj = rData.Pressure_adj_OldStep2;
     const array_1d<double,3>& stress_adj = rData.ShearStress;
 
     // Assemble RHS contribution
@@ -1268,35 +1271,37 @@ void FluidTopologyOptimizationElement<FluidTopologyOptimizationElementData<3,4,t
 {
     const double rho = rData.Density;
     const double mu = rData.EffectiveViscosity;
-    const array_1d<double,4>& c = rData.SoundVelocity;
+    // const array_1d<double,4>& c = rData.SoundVelocity;
 
     const array_1d<double,4> alpha = rData.Resistance;
 
     const double h = rData.ElementSize;
-    const double dt = rData.DeltaTime;
-    const double bdf0 = rData.bdf0;
-    const double bdf1 = rData.bdf1;
-    const double bdf2 = rData.bdf2;
+    // const double dt = rData.DeltaTime;
+    // const double bdf0 = rData.bdf0;
+    // const double bdf1 = rData.bdf1;
+    // const double bdf2 = rData.bdf2;
 
     // Get shape function values
     const array_1d<double,4>& N = rData.N;
     const BoundedMatrix<double,4,3>& DN = rData.DN_DX;
 
-    const double dyn_tau = rData.DynamicTau;
+    // const double dyn_tau = rData.DynamicTau;
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
     constexpr double stab_c3 = 2.0;
 
+    Vector functional_weights = rData.Functional_Weights; //  functional terms weights
+
     const BoundedMatrix<double,3,4>& v_adj = rData.Velocity_adj;
     const BoundedMatrix<double,3,4>& vn_adj = rData.Velocity_adj_OldStep1;
     const BoundedMatrix<double,3,4>& vnn_adj = rData.Velocity_adj_OldStep2;
     const BoundedMatrix<double,3,4>& vmesh_adj = rData.MeshVelocity_adj;
-    const BoundedMatrix<double,3,4> vconv_adj = rData.Velocity; // CONVECTIVE VELOCITY FOR THE ADJOINT IS THE PRIMAL NS SOLUTION
+    const BoundedMatrix<double,3,4> v_ns = rData.Velocity; // CONVECTIVE VELOCITY FOR THE ADJOINT IS THE PRIMAL NS SOLUTION
     const BoundedMatrix<double,3,4>& f_adj = rData.BodyForce_adj;
     const array_1d<double,4>& p_adj = rData.Pressure_adj;
-    const array_1d<double,4>& pn_adj = rData.Pressure_adj_OldStep1;
-    const array_1d<double,4>& pnn_adj = rData.Pressure_adj_OldStep2;
+    // const array_1d<double,4>& pn_adj = rData.Pressure_adj_OldStep1;
+    // const array_1d<double,4>& pnn_adj = rData.Pressure_adj_OldStep2;
     const array_1d<double,6>& stress_adj = rData.ShearStress;
 
     // Assemble RHS contribution

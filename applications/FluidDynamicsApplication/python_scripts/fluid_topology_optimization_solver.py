@@ -153,7 +153,7 @@ class FluidTopologyOptimizationSolver(NavierStokesMonolithicSolver):
     def SolveSolutionStep(self):
         problem_physiscs = self.GetComputingModelPart().ProcessInfo.GetValue(KratosCFD.FLUID_TOP_OPT_PROBLEM_STAGE)
         if (problem_physiscs == 1):
-            problem_phase_str = "NS"
+            problem_phase_str = "N-S"
         elif (problem_physiscs == 2):
             problem_phase_str = "ADJ"
         else: 

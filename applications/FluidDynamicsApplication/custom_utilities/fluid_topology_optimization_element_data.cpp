@@ -77,6 +77,17 @@ void FluidTopologyOptimizationElementData<TDim, TNumNodes, TElementIntegratesInT
     bdf1 = 1.0;
     bdf2 = 1.0;
 
+    // Functionals Database
+    // 0: resistance  : int_{\Omega}{alpha*||u||^2}
+    // 1: strain-rate : int_{\Omega}{2*mu*||S||^2} , with S = 1/2*(grad(u)+grad(u)^T) strain-rate tensor
+    // 2: vorticity   : int_{\Omega}{2*mu*||R||^2} = int_{\Omega}{mu*||curl(u)||^2} , curl(u) = vorticity vector, R = 1/2*(grad(u)-grad(u)^T) rotation-rate tensor
+    // 3: ...
+    // 4: ...
+    // 5: ...
+    // 5 is just a number big enough to contain the acutal database of functionals
+    Functional_Weights.resize(5, false);       // Resize to length 5
+    this->FillFromProcessInfo(Functional_Weights,FUNCTIONAL_WEIGHTS,rProcessInfo);
+
     // NAVIER-STOKES VARIABLES
     this->FillFromHistoricalNodalData(Velocity,VELOCITY,r_geometry);
     this->FillFromHistoricalNodalData(MeshVelocity,MESH_VELOCITY,r_geometry);
@@ -233,6 +244,12 @@ void FluidTopologyOptimizationElementData<TDim, TNumNodes, TElementIntegratesInT
 }
 
 template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>
+void FluidTopologyOptimizationElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromProcessInfo(Vector& rData,const Variable<Vector>& rVariable,const ProcessInfo& rProcessInfo)
+{
+    rData = rProcessInfo.GetValue(rVariable);
+}
+
+template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>
 void FluidTopologyOptimizationElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromProcessInfo(int& rData,
     const Variable<int>& rVariable, const ProcessInfo& rProcessInfo)
 {
@@ -272,26 +289,26 @@ void FluidTopologyOptimizationElementData<TDim, TNumNodes, TElementIntegratesInT
 }
 
 // Triangles
-template class FluidTopologyOptimizationElementData<2,3,false>;
+// template class FluidTopologyOptimizationElementData<2,3,false>;
 template class FluidTopologyOptimizationElementData<2,3,true>;
 
 // Quadrilaterals
-template class FluidTopologyOptimizationElementData<2,4,false>;
-template class FluidTopologyOptimizationElementData<2,6,false>;
-template class FluidTopologyOptimizationElementData<2,9,false>;
-template class FluidTopologyOptimizationElementData<2,4,true>;
+// template class FluidTopologyOptimizationElementData<2,4,false>;
+// template class FluidTopologyOptimizationElementData<2,6,false>;
+// template class FluidTopologyOptimizationElementData<2,9,false>;
+// template class FluidTopologyOptimizationElementData<2,4,true>;
 
 // Tetrahedra
-template class FluidTopologyOptimizationElementData<3,4,false>;
+// template class FluidTopologyOptimizationElementData<3,4,false>;
 template class FluidTopologyOptimizationElementData<3,4,true>;
 
 // Prism
-template class FluidTopologyOptimizationElementData<3,6,false>;
-template class FluidTopologyOptimizationElementData<3,6,true>;
+// template class FluidTopologyOptimizationElementData<3,6,false>;
+// template class FluidTopologyOptimizationElementData<3,6,true>;
 
 // Hexahedra
-template class FluidTopologyOptimizationElementData<3,8,false>;
-template class FluidTopologyOptimizationElementData<3,8,true>;
-template class FluidTopologyOptimizationElementData<3,27,false>;
+// template class FluidTopologyOptimizationElementData<3,8,false>;
+// template class FluidTopologyOptimizationElementData<3,8,true>;
+// template class FluidTopologyOptimizationElementData<3,27,false>;
 
 } // namespace Kratos

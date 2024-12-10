@@ -28,6 +28,8 @@ output_filename = "fluid_topology_optimization_element.cpp" # Output file name
 ## Problem Settings
 convective_term = True # Convection or Not
 stabilization   = True # Include Stabilization
+include_functionals = True # Include Functional Terms in the Adjoint Forcing Term
+n_functionals = 3 # Number of implemented functionals
 
 # ## ARTIFICIAL COMPRESSIBILITY NOT YET IMPLEMENTED, AND POSSIBLY WILL NEVER BE
 # artificial_compressibility = False # Include Artificial Compressibility
@@ -90,16 +92,16 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     grad_w = DfiDxj(DN,w)   # Velocity test function gradient
     grad_q = DfjDxi(DN,q)   # Pressure test function gradient VERTICAL VECTOR
 
-    # Symmetric Gradient: 1/2*(grad(u)+grad(u)^T)
-    grad_sym_v = grad_sym_voigtform(DN,v)     # Symmetric velocity gradient in Voigt notation
-    grad_sym_w = grad_sym_voigtform(DN,w)     # Symmetric velocity test function gradient of w in Voigt notation
+    # Voigt Notation Symmetric Gradient: 1/2*(grad(u)+grad(u)^T)
+    grad_sym_voigt_v = grad_sym_voigtform(DN,v)     # Symmetric velocity gradient in Voigt notation
+    grad_sym_voigt_w = grad_sym_voigtform(DN,w)     # Symmetric velocity test function gradient of w in Voigt notation
 
     #Divergence
     div_v = div(DN,v)   # Velocity divergence
     div_w = div(DN,w)   # Velocity test function divergence
 
     ## BASE GALERKIN FUNCTIONAL RESIDUAL
-    rv_galerkin  = -(grad_sym_w.transpose()*stress) # diffusion term, OBS--> A::B=A_sym::B_sym + A_asym::B_asym, but (grad(u)+grad(u)^T) is sym, so we can use the grad_sym(w)
+    rv_galerkin  = -(grad_sym_voigt_w.transpose()*stress) # diffusion term, OBS--> A::B=A_sym::B_sym + A_asym::B_asym, but (grad(u)+grad(u)^T) is sym, so we can use the grad_sym_voigt(w)
     rv_galerkin +=  div_w*p_gauss # pressure term
     rv_galerkin += -alpha*(w_gauss.transpose()*v_gauss) # resistance (alpha) term
     rv_galerkin +=  rho*w_gauss.transpose()*f_gauss # RHS forcing
@@ -189,7 +191,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     rhs = Compute_RHS(rv.copy(), testfunc, do_simplifications)
     rhs_out = OutputVector_CollectingFactors(gauss_weight*rhs, "rRHS", mode, assignment_op='+=')
     print(f"Computing {dim}D{nnodes}N NS LHS Gauss point contribution\n")
-    SubstituteMatrixValue(rhs, stress, C*grad_sym_v)
+    SubstituteMatrixValue(rhs, stress, C*grad_sym_voigt_v)
     lhs = Compute_LHS(rhs, testfunc, dofs, do_simplifications) # Compute the LHS (considering stress as C*(B*v) to derive w.r.t. v)
     lhs_out = OutputMatrix_CollectingFactors(gauss_weight*lhs, "rLHS", mode, assignment_op='+=')
     # print(OutputMatrix_CollectingFactors(lhs,"lhs",mode))
@@ -210,6 +212,9 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     # Forcing_adj definitions
     f_adj = DefineMatrix('f_adj', nnodes, dim)  # Forcing_adj
 
+    # Navier-Stokes velocity solution
+    v_ns = DefineMatrix('v_ns',nnodes,dim)    # NS velocity solution 
+
     # Stress_adj definition
     stress_adj = DefineVector('stress_adj',strain_size)
 
@@ -221,6 +226,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     v_adj_gauss = v_adj.transpose()*N           # Velocity_adj at gauss points
     p_adj_gauss = p_adj.transpose()*N           # Pressure_adj at gauss points
     f_adj_gauss = f_adj.transpose()*N           # Forcing_adj at gauss points
+    v_ns_gauss  = v_ns.transpose()*N            # NS velocity solution at gauss points
     w_adj_gauss = w_adj.transpose()*N           # Velocity_adj test function at gauss points
     q_adj_gauss = q_adj.transpose()*N           # Pressure_adj test function at gauss points
     # RESITANCE ALPHA IS THE SAME OF THE PRIMAL
@@ -228,44 +234,60 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
 
     # Derivatives evaluation
     # Gradient
-    grad_v_adj = DfiDxj(DN,v_adj)   # Velocity_adj gradient
-    grad_p_adj = DfjDxi(DN,p_adj)   # Pressure_adj gradient VERTICAL VECTOR
-    grad_w_adj = DfiDxj(DN,w_adj)   # Velocity_adj test function gradient
-    grad_q_adj = DfjDxi(DN,q_adj)   # Pressure_adj test function gradient VERTICAL VECTOR
+    grad_v_adj = DfiDxj(DN,v_adj)  # Velocity_adj gradient
+    grad_p_adj = DfjDxi(DN,p_adj)  # Pressure_adj gradient VERTICAL VECTOR
+    grad_w_adj = DfiDxj(DN,w_adj)  # Velocity_adj test function gradient
+    grad_q_adj = DfjDxi(DN,q_adj)  # Pressure_adj test function gradient VERTICAL VECTOR
+    grad_v_ns  = DfiDxj(DN,v_ns)   # Gradient of the NS velocity solution
 
     # Symmetric Gradient: 1/2*(grad(u)+grad(u)^T)
-    grad_sym_v_adj = grad_sym_voigtform(DN,v_adj)     # Symmetric velocity_adj gradient in Voigt notation
-    grad_sym_w_adj = grad_sym_voigtform(DN,w_adj)     # Symmetric velocity_adj test function gradient of w in Voigt notation
+    grad_sym_v_ns     = 1/2 * (grad_v_ns + grad_v_ns.transpose())
+    grad_antisym_v_ns = 1/2 * (grad_v_ns - grad_v_ns.transpose())
+
+    # Voigt Notation Symmetric Gradient: 1/2*(grad(u)+grad(u)^T)
+    grad_sym_voigt_v_adj = grad_sym_voigtform(DN,v_adj)   # Symmetric velocity_adj gradient in Voigt notation
+    grad_sym_voigt_w_adj = grad_sym_voigtform(DN,w_adj)   # Symmetric velocity_adj test function gradient of w in Voigt notation
+    grad_sym_voigt_v_ns  = grad_sym_voigtform(DN,v_ns)    # Symmetric NS velocity solution gradient in Voigt notation
 
     #Divergence
     div_v_adj = div(DN,v_adj)   # Velocity_adj divergence
     div_w_adj = div(DN,w_adj)   # Velocity_adj test function divergence
+    div_v_ns  = div(DN,v_ns)    # NS velocity solution divergence
 
     ## ADJOINT BASE GALERKIN FUNCTIONAL RESIDUAL
-    rv_galerkin_adj  = -(grad_sym_w_adj.transpose()*stress_adj) # diffusion term, OBS--> A::B=A_sym::B_sym + A_asym::B_asym, but (grad(u)+grad(u)^T) is sym, so we can use the grad_sym(w)
+    rv_galerkin_adj  = -(grad_sym_voigt_w_adj.transpose()*stress_adj) # diffusion term, OBS--> A:B=A_sym:B_sym + A_asym:B_asym, but (grad(u)+grad(u)^T) is sym, so we can use the grad_sym_voigt(w)
     rv_galerkin_adj +=  div_w_adj*p_adj_gauss # pressure term
     rv_galerkin_adj += -alpha*(w_adj_gauss.transpose()*v_adj_gauss) # resistance (alpha) term
     rv_galerkin_adj +=  rho*w_adj_gauss.transpose()*f_adj_gauss # RHS forcing
     rv_galerkin_adj += -q_adj_gauss*div_v_adj # mass conservation term
     rv_adj = rv_galerkin_adj # save BASE residual into TOTAL element residual
 
+    ## HANDLE ADJOINT FORCING TERMS  
+    if (include_functionals):
+        # Functionals Database
+        # 0: resistance  : int_{\Omega}{alpha*||u||^2}
+        # 1: strain-rate : int_{\Omega}{2*mu*||S||^2} , with S = 1/2*(grad(u)+grad(u)^T) strain-rate tensor
+        # 2: vorticity   : int_{\Omega}{2*mu*||R||^2} = int_{\Omega}{mu*||curl(u)||^2} , curl(u) = vorticity vector, R = 1/2*(grad(u)-grad(u)^T) rotation-rate tensor
+        # 3: ...
+        # 4: ...
+        # 5: ...
+        # 5 is just a number big enough to contain the acutal database of functionals
+        functional_weights = DefineVector('functional_weights', n_functionals) # Weights of the functionals terms
+        rv_funct_resistance  = -2*alpha*(w_adj_gauss.transpose()*v_ns_gauss)
+        rv_funct_strain_rate = sympy.Matrix([DoubleContraction(grad_sym_v_ns, grad_w_adj)])
+        rv_funct_vorticity   = sympy.Matrix([DoubleContraction(grad_antisym_v_ns, grad_w_adj)])
+        rv_adj += functional_weights[0]*rv_funct_resistance + functional_weights[1]*rv_funct_strain_rate + functional_weights[2]*rv_funct_vorticity
+
     ## HANDLE ADJOINT CONVECTION 
     if (convective_term):
-        # Definition
-        vconv_adj = DefineMatrix('vconv_adj',nnodes,dim)    # Convective_adj velocity 
-        # Gauss points
-        vconv_adj_gauss = vconv_adj.transpose()*N       # Convective_adj velocity on gauus points
-        # Derivatives
-        grad_vconv_adj = DfiDxj(DN,vconv_adj)           # Gradient of the convective_adj velocity
-        div_vconv_adj  = div(DN, vconv_adj)              # Divergence of the convective_adj velocity
         # CONVECTIVE ADJOINT GALERKIN FUNCTIONAL RESIDUAL
-        # Adjoint velocity convection driven by the vconv = NS velocity 
+        # Adjoint velocity convection driven by the vconv = NS velocity = v_ns
         # -> evaluated in a weak form such that the Neumann BC are imposed "naturally"
-        # from the Adjoint PDE its formulation should be: rv_galerkin  += rho*(w_gauss.transpose()*(grad_v*vconv_gauss))
-        rv_conv_adj   = -rho*(v_adj_gauss.transpose()*(grad_w_adj*vconv_adj_gauss)) 
+        # from the Adjoint PDE its formulation should be: rv_galerkin  += rho*(w_gauss.transpose()*(grad_v*v_ns_gauss))
+        rv_conv_adj   = -rho*(v_adj_gauss.transpose()*(grad_w_adj*v_ns_gauss)) 
         # Velocity convection driven by the adjoint velocity: called ADJOINT RESISTANCE caouse we can write (alphaI+grad(U))u_a * w
         # additional term appearing in the ADJ_NS system w.r.t. the NS eqs.
-        rv_conv_adj  += -rho*(w_adj_gauss.transpose()*(grad_vconv_adj*v_adj_gauss))
+        rv_conv_adj  += -rho*(w_adj_gauss.transpose()*(grad_v_ns*v_adj_gauss))
         rv_adj += rv_conv_adj # save CONVECTION residual into TOTAL element residual
     # END HANDLE CONVECTION
 
@@ -293,8 +315,8 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
             #           the term similar to the resistance term stabilization has been added to the Resistance stabilization using the frobenius norm of ||grad(U)||_frob
             # TRUE CONVECTION STABILIZATION
             stab_norm_a_adj = 0.0
-            for i in range(0, dim): # evaluate the vconv norm
-                stab_norm_a_adj += vconv_adj_gauss[i]**2
+            for i in range(0, dim): # evaluate the v_ns norm
+                stab_norm_a_adj += v_ns_gauss[i]**2
             stab_norm_a_adj = sympy.sqrt(stab_norm_a_adj)
             tau1_denominator_adj += stab_c2*rho*stab_norm_a_adj/h # convection contribution to tau_1
             tau2_factor_adj += stab_c2*rho*stab_norm_a_adj*h # convection contribution to tau_2
@@ -302,7 +324,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
             stab_norm_gradU_adj = 0.0
             for i in range(0,dim):
                 for j in range(0,dim):
-                    stab_norm_gradU_adj += grad_vconv_adj[i,j]**2
+                    stab_norm_gradU_adj += grad_v_ns[i,j]**2
             stab_norm_gradU_adj = sympy.sqrt(stab_norm_a_adj)
             tau1_denominator_adj += stab_c3*stab_norm_gradU_adj # convection contribution to tau_1
             tau2_factor_adj += stab_c3*stab_norm_gradU_adj*h*h # convection contribution to tau_2
@@ -316,8 +338,8 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
         # diffusion eliminates since it involves 2nd order derivatives for 1st order solutions
         momentum_residual_adj += -alpha*v_adj_gauss
         if (convective_term):
-            momentum_residual_adj +=  rho*grad_v_adj*vconv_adj_gauss
-            momentum_residual_adj += -rho*grad_vconv_adj*v_adj_gauss
+            momentum_residual_adj +=  rho*grad_v_adj*v_ns_gauss
+            momentum_residual_adj += -rho*grad_v_ns*v_adj_gauss
         # mass conservation residual
         mass_residual_adj = -div_v_adj
         # Velocity and Presure subscales
@@ -329,8 +351,8 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
         rv_stab_adj += -alpha*velocity_adj_subscale.transpose()*w_adj_gauss # stab resistance residual
         rv_stab_adj +=  pressure_adj_subscale*div_w_adj
         if (convective_term):
-            rv_stab_adj += -rho*velocity_adj_subscale.transpose()*(grad_w_adj*vconv_adj_gauss) # 1st stab convective residual: convective term
-            rv_stab_adj += -rho*w_adj_gauss.transpose()*(grad_vconv_adj*velocity_adj_subscale)  # 2nd stab convective residual: adjoint resistance term
+            rv_stab_adj += -rho*velocity_adj_subscale.transpose()*(grad_w_adj*v_ns_gauss) # 1st stab convective residual: convective term
+            rv_stab_adj += -rho*w_adj_gauss.transpose()*(grad_v_ns*velocity_adj_subscale)  # 2nd stab convective residual: adjoint resistance term
         rv_adj += rv_stab_adj # save STABILIZATION residual into TOTAL element residual
     # END HANDLE STABILIZATION
 
@@ -351,7 +373,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     rhs_adj = Compute_RHS(rv_adj.copy(), testfunc, do_simplifications)
     rhs_adj_out = OutputVector_CollectingFactors(gauss_weight*rhs_adj, "rRHS", mode, assignment_op='+=')
     print(f"Computing {dim}D{nnodes}N ADJ-NS LHS Gauss point contribution\n")
-    SubstituteMatrixValue(rhs_adj, stress_adj, C*grad_sym_v_adj)
+    SubstituteMatrixValue(rhs_adj, stress_adj, C*grad_sym_voigt_v_adj)
     lhs_adj = Compute_LHS(rhs_adj, testfunc, dofs, do_simplifications) # Compute the LHS (considering stress as C*(B*v) to derive w.r.t. v)
     lhs_adj_out = OutputMatrix_CollectingFactors(gauss_weight*lhs_adj, "rLHS", mode, assignment_op='+=')
     # print(OutputMatrix_CollectingFactors(lhs,"lhs",mode))

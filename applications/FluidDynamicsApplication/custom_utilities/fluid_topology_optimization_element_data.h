@@ -76,6 +76,8 @@ public:
     double bdf1;
     double bdf2;
 
+    Vector Functional_Weights; // weigths of the functional terms
+
     int TopOptProblemStage;
 
     // NAVIER-STOKES VARIABLES
@@ -225,6 +227,8 @@ protected:
     void FillFromProcessInfo(double& rData, const Variable<double>& rVariable, const ProcessInfo& rProcessInfo);
 
     void FillFromProcessInfo(int& rData, const Variable<int>& rVariable, const ProcessInfo& rProcessInfo);
+
+    void FillFromProcessInfo(Vector& rData, const Variable<Vector>& rVariable, const ProcessInfo& rProcessInfo);
 
     void FillFromElementData(double& rData, const Variable<double>& rVariable, const Element& rElement);
 
