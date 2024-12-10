@@ -1386,15 +1386,18 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingTerms(Vector
                      rVariables.B, this->GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
                      rVariables.BiotCoefficient, rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
 
-    const array_1d<double, TNumNodes * TDim> coupling_terms = prod(coupling_matrix, rVariables.PressureVector);
-    GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, coupling_terms);
+    const array_1d<double, TNumNodes * TDim> coupling_force = prod(coupling_matrix, rVariables.PressureVector);
+    GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, coupling_force);
 
     if (!rVariables.IgnoreUndrained) {
-        const double SaturationCoefficient = rVariables.DegreeOfSaturation / rVariables.BishopCoefficient;
-        const array_1d<double, TNumNodes> transposed_coupling_matrix =
-            PORE_PRESSURE_SIGN_FACTOR * SaturationCoefficient *
-            prod(trans(coupling_matrix), rVariables.VelocityVector);
-        GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, transposed_coupling_matrix);
+        const Matrix p_coupling_matrix =
+            (-1.0) * GeoTransportEquationUtilities::CalculateCouplingMatrix(
+                         rVariables.B, GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
+                         rVariables.BiotCoefficient, rVariables.DegreeOfSaturation,
+                         rVariables.IntegrationCoefficient);
+        const array_1d<double, TNumNodes> coupling_flow =
+            PORE_PRESSURE_SIGN_FACTOR * prod(trans(p_coupling_matrix), rVariables.VelocityVector);
+        GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, coupling_flow);
     }
 
     KRATOS_CATCH("")
