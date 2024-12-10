@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:          BSD License
+//                    Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
@@ -23,6 +23,7 @@
 // Project includes
 #include "geometries/triangle_3d_3.h"
 #include "integration/tetrahedron_gauss_legendre_integration_points.h"
+#include "integration/tetrahedron_gauss_lobatto_integration_points.h"
 #include "geometries/plane.h"
 #include "utilities/geometry_utilities.h"
 
@@ -1857,6 +1858,8 @@ private:
                 3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature<TetrahedronGaussLegendreIntegrationPoints5,
                 3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<TetrahedronGaussLobattoIntegrationPoints1,
+                3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
             }
         };
         return integration_points;
@@ -1876,7 +1879,9 @@ private:
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
                     GeometryData::IntegrationMethod::GI_GAUSS_4),
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::IntegrationMethod::GI_GAUSS_5)
+                    GeometryData::IntegrationMethod::GI_GAUSS_5),
+                Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                    GeometryData::IntegrationMethod::GI_LOBATTO_1)
             }
         };
         return shape_functions_values;
@@ -1897,7 +1902,9 @@ private:
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
                     GeometryData::IntegrationMethod::GI_GAUSS_4),
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::IntegrationMethod::GI_GAUSS_5)
+                    GeometryData::IntegrationMethod::GI_GAUSS_5),
+                Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
+                    GeometryData::IntegrationMethod::GI_LOBATTO_1)
             }
         };
         return shape_functions_local_gradients;
