@@ -68,6 +68,9 @@ public:
 
         ~DataBlock()
         {
+            if (mpValues == nullptr) {
+                return;
+            }
             const std::size_t allocation_size = mpVariable->Size()/sizeof(BlockType);
             for(std::size_t i = 0; i < mSize; i++) {
                 mpVariable->Destruct(mpValues + i * allocation_size);
