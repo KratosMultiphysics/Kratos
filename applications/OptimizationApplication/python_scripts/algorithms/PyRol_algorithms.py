@@ -26,8 +26,10 @@ def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_pro
 
 class PyRolAlgorithms(Algorithm):
     """
-    A PyRoll wrapper to use algorithms from PyRoll Library. Provide Method and its settings in the xtml file.
+    PyRolAlgorithms is a class that implements optimization algorithms using the PyRol library.
+    Provide Method and its settings in the xtml file.
     """
+
     @classmethod
     def GetDefaultParameters(cls):
         return Kratos.Parameters(cls.create_default_algorithm_config())
@@ -49,6 +51,25 @@ class PyRolAlgorithms(Algorithm):
         }"""
     
     def __init__(self, model:Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
+        """
+        Initializes the PyRol algorithm with the given model, parameters, and optimization problem.
+
+        Args:
+            model (Kratos.Model): The Kratos model to be used.
+            parameters (Kratos.Parameters): The parameters for the optimization algorithm.
+            optimization_problem (OptimizationProblem): The optimization problem to be solved.
+
+        Attributes:
+            model (Kratos.Model): The Kratos model to be used.
+            parameters (Kratos.Parameters): The parameters for the optimization algorithm.
+            _optimization_problem (OptimizationProblem): The optimization problem to be solved.
+            master_control (MasterControl): The master control object managing all controls.
+            __control_field (None): Placeholder for control field, initially set to None.
+            settings (Kratos.Parameters): The settings for the PyRol algorithm.
+            method_settings (Kratos.Parameters): The method settings loaded from an XML file.
+            __objective (StandardizedPyRolObjective): The standardized objective for the PyRol algorithm.
+            __constraints (list): A list of standardized constraints for the PyRol algorithm.
+        """
         self.model = model
         self.parameters = parameters
         self._optimization_problem = optimization_problem
