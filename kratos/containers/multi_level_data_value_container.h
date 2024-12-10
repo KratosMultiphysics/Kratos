@@ -25,6 +25,10 @@ public:
             , mSize(Size)
             , mpValues(Allocate(pVariable, Size))
         {
+            const std::size_t allocation_size = mpVariable->Size() / sizeof(BlockType);
+            for(std::size_t i = 0; i < mSize; i++) {
+                mpVariable->AssignZero(mpValues + i * allocation_size);
+            }
         }
 
         DataBlock(const DataBlock& rOther)
@@ -34,7 +38,7 @@ public:
             const std::size_t allocation_size = mpVariable->Size() / sizeof(BlockType);
             mpValues = new BlockType[mSize * allocation_size];
             for(std::size_t i = 0; i < mSize; i++) {
-                mpVariable->Assign(mpValues + i, rOther.mpValues + i);
+                mpVariable->Copy(mpValues + i * allocation_size, rOther.mpValues + i * allocation_size);
             }
         }
 
@@ -64,6 +68,12 @@ public:
             std::size_t offset = Index * mpVariable->Size()/sizeof(BlockType);
             const TDataType* p = reinterpret_cast<const TDataType*>(mpValues + offset);
             return p;
+        }
+
+        const BlockType* pPointer(std::size_t Index) const
+        {
+            std::size_t offset = Index * mpVariable->Size()/sizeof(BlockType);
+            return mpValues + offset;
         }
 
         ~DataBlock()
