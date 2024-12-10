@@ -109,7 +109,8 @@ int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo
         if (!r_node.SolutionStepsDataHas(DISPLACEMENT))
             KRATOS_ERROR << "missing variable DISPLACEMENT on node " << r_node.Id() << std::endl;
 
-        if (!r_node.HasDofFor(DISPLACEMENT_X) || !r_node.HasDofFor(DISPLACEMENT_Y) || !r_node.HasDofFor(DISPLACEMENT_Z))
+        if (!r_node.HasDofFor(DISPLACEMENT_X) || !r_node.HasDofFor(DISPLACEMENT_Y) ||
+            !r_node.HasDofFor(DISPLACEMENT_Z))
             KRATOS_ERROR << "missing one of the dofs for the variable DISPLACEMENT on node "
                          << r_node.Id() << std::endl;
 
@@ -117,8 +118,8 @@ int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo
             KRATOS_ERROR << "missing variable WATER_PRESSURE on node " << r_node.Id() << std::endl;
 
         if (!r_node.HasDofFor(WATER_PRESSURE))
-            KRATOS_ERROR << "missing the dof for the variable WATER_PRESSURE on node " << r_node.Id()
-                         << std::endl;
+            KRATOS_ERROR << "missing the dof for the variable WATER_PRESSURE on node "
+                         << r_node.Id() << std::endl;
     }
 
     // Verify that the constitutive law exists
@@ -1252,18 +1253,18 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingMatrix(MatrixType& r
 {
     KRATOS_TRY
 
-    Matrix coupling_matrix = GeoTransportEquationUtilities::CalculateCouplingMatrix(
+    const Matrix coupling_matrix_up = GeoTransportEquationUtilities::CalculateCouplingMatrix(
         rVariables.B, GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
         rVariables.BiotCoefficient, rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
-    GeoElementUtilities::AssembleUPBlockMatrix(rLeftHandSideMatrix, coupling_matrix);
+    GeoElementUtilities::AssembleUPBlockMatrix(rLeftHandSideMatrix, coupling_matrix_up);
 
     if (!rVariables.IgnoreUndrained) {
-        Matrix CouplingMatrix = GeoTransportEquationUtilities::CalculateCouplingMatrix(
+        const Matrix coupling_matrix_pu = GeoTransportEquationUtilities::CalculateCouplingMatrix(
             rVariables.B, GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
             rVariables.BiotCoefficient, rVariables.DegreeOfSaturation, rVariables.IntegrationCoefficient);
-        Matrix CouplingMatrixT =
-            PORE_PRESSURE_SIGN_FACTOR * rVariables.VelocityCoefficient * trans(CouplingMatrix);
-        GeoElementUtilities::AssemblePUBlockMatrix(rLeftHandSideMatrix, CouplingMatrixT);
+        GeoElementUtilities::AssemblePUBlockMatrix(
+            rLeftHandSideMatrix,
+            PORE_PRESSURE_SIGN_FACTOR * rVariables.VelocityCoefficient * trans(coupling_matrix_pu));
     }
 
     KRATOS_CATCH("")
