@@ -19,6 +19,7 @@
 #include "integration/quadrilateral_gauss_lobatto_integration_points.h"
 #include "integration/hexahedron_gauss_lobatto_integration_points.h"
 #include "integration/triangle_gauss_lobatto_integration_points.h"
+#include "integration/tetrahedron_gauss_lobatto_integration_points.h"
 
 namespace Kratos::Testing
 {
@@ -125,6 +126,28 @@ KRATOS_TEST_CASE_IN_SUITE(GaussLobattoTriangleQuadraturesTest, KratosCoreFastSui
         const double w = r_IP.Weight();
 
         quadrature_integral_f += w * (X + Y);
+    }
+
+    KRATOS_CHECK_NEAR(quadrature_integral_f, integral_f, 1.0E-6);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(GaussLobattoTetrahedronQuadraturesTest, KratosCoreFastSuite)
+{
+
+    // In This test we evaluate the Gauss-Lobatto quadrature for integrating
+    // f = 1.0 over an isoparametric tetrahedron
+
+    const auto& r_lobatto_1 = TetrahedronGaussLobattoIntegrationPoints1();
+
+    // Analytical result, reference
+    const double integral_f = 1.0 / 6.0;
+
+    double quadrature_integral_f = 0.0;
+
+    // Integral for f with Lobatto 1
+    for (IndexType IP = 0; IP < r_lobatto_1.IntegrationPoints().size(); ++IP) {
+        const double w = r_lobatto_1.IntegrationPoints()[IP].Weight();
+        quadrature_integral_f += w;
     }
 
     KRATOS_CHECK_NEAR(quadrature_integral_f, integral_f, 1.0E-6);
