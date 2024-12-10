@@ -8,6 +8,8 @@ from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities impor
 from KratosMultiphysics.OptimizationApplication.utilities.response_utilities import EvaluateResponseExpression
 from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 from KratosMultiphysics.OptimizationApplication.responses.response_routine import ResponseRoutine
+from KratosMultiphysics.OptimizationApplication.algorithms.standardized_objective import StandardizedObjective
+
 
 import numpy as np
 
@@ -37,6 +39,8 @@ class StandardizedSciPyObjective(ResponseRoutine):
 
         response = EvaluateResponseExpression(parameters["response_expression"].GetString(), optimization_problem)
 
+        self.objective = StandardizedObjective(parameters, master_control, optimization_problem, required_buffer_size)
+
         super().__init__(master_control, response)
 
         if required_buffer_size < 2:
@@ -64,61 +68,49 @@ class StandardizedSciPyObjective(ResponseRoutine):
         else:
             raise RuntimeError(f"Requesting unsupported type {self.__objective_type} for objective response function. Supported types are: \n\tminimization\n\tmaximization")
 
-    def GetInitialValue(self) -> float:
-        if self.__unbuffered_data.HasValue("initial_value"):
-            return self.__unbuffered_data["initial_value"] * self.__scaling
-        else:
-            raise RuntimeError(f"Response value for {self.GetResponseName()} is not calculated yet.")
-
     def CalculateStandardizedValue(self, x:np.array, save_data: bool = True) -> float:
 
         control_field = self.GetMasterControl().GetEmptyField()
         shape = [c.GetItemShape() for c in control_field.GetContainerExpressions()]
         KratosOA.CollectiveExpressionIO.Read(control_field, x, shape)
 
+        
+
         with TimeLogger(f"StandardizedObjective::Calculate {self.GetResponseName()} value", None, "Finished"):
             if not save_data:
                 Kratos.Logger.PrintInfo("call from CalculateStandardizedGradient")
-            response_value = self.CalculateValue(control_field)
+            response_value = self.objective.CalculateStandardizedValue(control_field, save_data)
+
+            from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
+
+
+        
+            algorithm_data = ComponentDataView("algorithm", self.__optimization_problem)
+            algorithm_data.GetBufferedData()["search_direction"] = self.GetMasterControl().GetEmptyField().Clone()
+            algorithm_data.GetBufferedData()["control_field_update"] = self.GetMasterControl().GetEmptyField().Clone()
+            algorithm_data.GetBufferedData()["control_field"] = control_field.Clone()
+
             standardized_response_value = response_value * self.__scaling
 
             if not self.__unbuffered_data.HasValue("initial_value"):
                 self.__unbuffered_data["initial_value"] = response_value
             
             if save_data:
-
-                if self.__buffered_data.HasValue("value"): del self.__buffered_data["value"]
-                self.__buffered_data["value"] = response_value
-                self.computed = True
-
-                DictLogger("Objective info",self.GetInfo())
-
-                        # SciPy calls it at the end of each optimization iterations. Sometime it doesn't call f(x) during iteration, hence to avoid lack of data in the buffer we have a flag "computed" here.
-
-                Kratos.Logger.PrintInfo(self.__class__.__name__, f"Output iteration {self.__optimization_problem.GetStep()}")
-
                 for process in self.__optimization_problem.GetListOfProcesses("output_processes"):
                     if process.IsOutputStep():
                         process.PrintOutput()
-                
-                # Advance in Optimization Iteration
                 self.__optimization_problem.AdvanceStep()
 
 
         return standardized_response_value
 
-    def GetValue(self, step_index: int = 0) -> float:
-        return self.__buffered_data.GetValue("value", step_index)
-
-    def GetStandardizedValue(self, step_index: int = 0) -> float:
-        return self.GetValue(step_index) * self.__scaling
-
     def CalculateStandardizedGradient(self, x:np.array, save_field: bool = True) -> np.array:
 
-        self.CalculateStandardizedValue(x, False)  # Compute new primal if x has changed. Does nothing if x the same
+        # self.CalculateStandardizedValue(x, False)  # Compute new primal if x has changed. Does nothing if x the same
 
         with TimeLogger(f"StandardizedObjective::Calculate {self.GetResponseName()} gradients", None, "Finished"):
-            gradient_collective_expression = self.CalculateGradient()
+            # gradient_collective_expression = self.CalculateGradient()
+            gradient_collective_expression = self.objective.CalculateStandardizedGradient(save_field)
             self.gradient_calculate_count+=1
             Kratos.Logger.PrintInfo(f"Gradient expression: {self.GetResponseName()}. Gradient calcultaion count is {self.gradient_calculate_count}")
             if save_field:
@@ -141,26 +133,20 @@ class StandardizedSciPyObjective(ResponseRoutine):
                     
         return gradient_collective_expression.Evaluate().reshape(-1) * self.__scaling
 
-    def GetRelativeChange(self) -> float:
-        if self.__optimization_problem.GetStep() > 0:
-            return self.GetStandardizedValue() / self.GetStandardizedValue(1) - 1.0 if abs(self.GetStandardizedValue(1)) > 1e-12 else self.GetStandardizedValue()
-        else:
-            return 0.0
+    def Initialize(self):
+        self.objective.Initialize()
 
-    def GetAbsoluteChange(self) -> float:
-        return self.GetValue() - self.GetInitialValue()
+    def Check(self):
+        self.objective.Check()
 
-    def GetInfo(self) -> dict:
-        info = {
-            "name": self.GetResponseName(),
-            "type": self.__objective_type,
-            "value": self.GetValue(),
-            "std_value": self.GetStandardizedValue(),
-            "abs_change": self.GetAbsoluteChange(),
-            "rel_change [%]": self.GetRelativeChange() * 100.0
-        }
-        init_value = self.GetInitialValue()
-        if init_value:
-            info["abs_change [%]"] = self.GetAbsoluteChange()/init_value * 100
+    def GetMasterControl(self) -> MasterControl:
+        return self.objective.GetMasterControl()
+                
+    def Finalize(self):
+        self.objective.Finalize()
 
-        return info
+    def GetStandartizedObjective(self):
+        return self.objective
+    
+    def GetScalingFactor(self):
+        return self.objective.GetScalingFactor()

@@ -92,7 +92,9 @@ class ResponseRoutine:
         if not math.isclose(KratosOA.ExpressionUtils.NormInf(self.my_current_control_field), 0.0, abs_tol=1e-16):
             rel_diff = (self.my_current_control_field - control_field) / KratosOA.ExpressionUtils.NormInf(self.my_current_control_field)
         else:
-            rel_diff = (self.my_current_control_field - control_field)
+            pass
+        rel_diff = (self.my_current_control_field - control_field)
+        Kratos.Logger.PrintInfo("Current x", self.my_current_control_field.Evaluate())
         norm = KratosOA.ExpressionUtils.NormInf(rel_diff)
         if not math.isclose(norm, 0.0, abs_tol=1e-16):
             compute_response_value_flag = True

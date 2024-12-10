@@ -72,3 +72,7 @@ class ComponentDataView:
             return self.__component
         else:
             return self.__component.GetName()
+        
+    def RemoveComponentData(self, data_name: str):
+        if self.__problem_data.HasValue( data_name):
+            del self.__problem_data[ data_name]

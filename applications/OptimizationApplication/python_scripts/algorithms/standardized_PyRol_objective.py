@@ -35,7 +35,7 @@ class StandardizedPyRolObjective(Objective):
 
         parameters.ValidateAndAssignDefaults(default_parameters)
 
-        self.__objective = StandardizedObjective(parameters, master_control, optimization_problem, required_buffer_size)
+        self.objective = StandardizedObjective(parameters, master_control, optimization_problem, required_buffer_size)
 
         self.__optimization_problem = optimization_problem
 
@@ -58,7 +58,25 @@ class StandardizedPyRolObjective(Objective):
         control_field = self.GetMasterControl().GetEmptyField()
         shape = [c.GetItemShape() for c in control_field.GetContainerExpressions()]
         KratosOA.CollectiveExpressionIO.Read(control_field, numpy_x, shape)
-        value = self.__objective.CalculateStandardizedValue(control_field, save_data)
+        value = self.objective.CalculateStandardizedValue(control_field, save_data)
+
+        from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
+
+
+        
+        algorithm_data = ComponentDataView("algorithm", self.__optimization_problem)
+        algorithm_data.GetBufferedData()["search_direction"] = self.GetMasterControl().GetEmptyField().Clone()
+        algorithm_data.GetBufferedData()["control_field_update"] = self.GetMasterControl().GetEmptyField().Clone()
+
+        # Convert x into numpy array (x is a NumPyVector)
+        list_x = [value for value in x]
+        numpy_x = np.array(list_x)  # Direct conversion using np.array() doesn't work, use list 
+        
+        control_field = self.GetMasterControl().GetEmptyField()
+        shape = [c.GetItemShape() for c in control_field.GetContainerExpressions()]
+        KratosOA.CollectiveExpressionIO.Read(control_field, numpy_x, shape)
+        algorithm_data.GetBufferedData()["control_field"] = control_field.Clone()
+
 
         if save_data:
             for process in self.__optimization_problem.GetListOfProcesses("output_processes"):
@@ -84,28 +102,28 @@ class StandardizedPyRolObjective(Objective):
 
         # self.value(x, tol, False)  # Compute new primal if x has changed. Does nothing if x the same
 
-        result = self.__objective.CalculateStandardizedGradient(save_field)
+        result = self.objective.CalculateStandardizedGradient(save_field)
 
-        gAux = result.Evaluate().reshape(-1) * self.__objective.GetScalingFactor()
+        gAux = result.Evaluate().reshape(-1) * self.objective.GetScalingFactor()
         g[:] = [gAux[i] for i in range(len(gAux))]  # Copy values from gAux to g
 
         # I haven't found a good place to set next optimization step. As most methods do one gradeint calucation per iteration, I set it here.
         # self.__optimization_problem.AdvanceStep()
 
     def Initialize(self):
-        self.__objective.Initialize()
+        self.objective.Initialize()
 
     def Check(self):
-        self.__objective.Check()
+        self.objective.Check()
 
     def GetMasterControl(self) -> MasterControl:
-        return self.__objective.GetMasterControl()
+        return self.objective.GetMasterControl()
                 
     def Finalize(self):
-        self.__objective.Finalize()
+        self.objective.Finalize()
 
     def GetStandartizedObjective(self):
-        return self.__objective
+        return self.objective
     
     def GetScalingFactor(self):
-        return self.__objective.GetScalingFactor()
+        return self.objective.GetScalingFactor()

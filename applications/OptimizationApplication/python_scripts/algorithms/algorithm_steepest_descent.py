@@ -137,11 +137,13 @@ class AlgorithmSteepestDescent(Algorithm):
 
                 self._FinalizeIteration()
 
+                self.converged = self.__convergence_criteria.IsConverged()
+                if self.converged:
+                    break
                 self.Output()
 
                 self.UpdateControl()
 
-                self.converged = self.__convergence_criteria.IsConverged()
 
                 self._optimization_problem.AdvanceStep()
 

@@ -108,6 +108,50 @@ class SciPyAlgorithms(Algorithm):
 
     @time_decorator()
     def Solve(self):
+
+    #     parameters = Kratos.Parameters("""{
+    #     "type": "algorithm_steepest_descent",
+    #     "settings": {
+    #         "echo_level": 0,
+    #         "line_search": {
+    #             "type": "BB_step",
+    #             "init_step": 5e-2,
+    #             "max_step": 2e-1,
+    #             "gradient_scaling": "l2_norm"
+    #         },
+    #         "conv_settings": {
+    #             "type": "target_value",
+    #             "max_iter": 100,
+    #             "target_value" : 6e-11
+    #         }
+    #     },
+    #     "controls": [
+    #         "material_control"
+    #     ],
+    #     "objective": {
+    #         "response_name": "damage_response",
+    #         "type": "minimization",
+    #         "scaling": 1.0
+    #     }
+    # }""")
+    #     from KratosMultiphysics.OptimizationApplication.algorithms.algorithm_steepest_descent import AlgorithmSteepestDescent
+    #     optimization_problem = self._optimization_problem 
+    #     sd_algorithm = AlgorithmSteepestDescent(self.model, parameters, optimization_problem)
+    #     sd_algorithm.Initialize()
+    #     sd_algorithm.Solve()
+
+    #     from KratosMultiphysics.OptimizationApplication.responses.response_routine import ResponseRoutine
+
+    #     self.__objective.objective = self._optimization_problem.GetComponent("damage_response", ResponseRoutine)
+    #     self.algorithm_data.RemoveComponentData("search_direction")
+
+    #     # create SciPy des variables vector
+    #     size = self.master_control.GetControlField().GetCollectiveFlattenedDataSize()
+    #     self.x0 = sd_algorithm.GetCurrentControlField().Evaluate().reshape(-1)
+
+    #     print("test value", self.__objective.objective.CalculateStandardizedValue(sd_algorithm.GetCurrentControlField(), False) )
+
+
         if not self.__scipy_constraints:
             res = scipy.optimize.minimize(self.__objective.CalculateStandardizedValue, self.x0, method=self.SciPy_settings["method"].GetString(), jac=self.__objective.CalculateStandardizedGradient, options=self.__GetOptions(), callback=self.Output, bounds=self.bounds)
         elif self.__scipy_constraints:

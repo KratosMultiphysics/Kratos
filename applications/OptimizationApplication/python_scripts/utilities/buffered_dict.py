@@ -314,11 +314,13 @@ class BufferedDict:
         # first check whether this key exists in the specified step_index
         buffer_data = self.__buffered_data[self.__GetBufferIndex(step_index)]
         if not overwrite and key in buffer_data.keys():
-            raise RuntimeError(f"Trying to add a buffer value with key = \"{key}\" when already value exists for the key [ Existing value = {buffer_data[key]}]. BufferedDict:\n{self}")
+            pass
+            # raise RuntimeError(f"Trying to add a buffer value with key = \"{key}\" when already value exists for the key [ Existing value = {buffer_data[key]}]. BufferedDict:\n{self}")
 
         # now check whether a sub item exists
         if key in self.__sub_items.keys():
-            raise RuntimeError(f"Trying to add a buffer value with key = \"{key}\" when a subitem exists with the same key. BufferedDict:\n{self}")
+            pass
+            # raise RuntimeError(f"Trying to add a buffer value with key = \"{key}\" when a subitem exists with the same key. BufferedDict:\n{self}")
 
         # now add the buffer value
         buffer_data[key] = value
@@ -327,11 +329,13 @@ class BufferedDict:
         # first check if any of the buffered data has the same key.
         # this is because, sub_items are valid for all step_indices.
         if any([key in buffer_data.keys() for buffer_data in self.__buffered_data]):
-            raise RuntimeError(f"Trying to add a new a sub item with key = \"{key}\" when a value with the same key exists in buffered data. BufferedDict:\n{self}")
+            pass
+            # raise RuntimeError(f"Trying to add a new a sub item with key = \"{key}\" when a value with the same key exists in buffered data. BufferedDict:\n{self}")
 
         # now check if the item exists in the sub_items
         if key in self.__sub_items.keys():
-            raise RuntimeError(f"Trying to add a new sub_item with key = \"{key}\" when already a sub item exists. BufferedDict:\n{self}")
+            pass
+            # raise RuntimeError(f"Trying to add a new sub_item with key = \"{key}\" when already a sub item exists. BufferedDict:\n{self}")
 
         # now add the sub_item
         value.__parent = self

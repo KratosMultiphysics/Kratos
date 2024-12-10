@@ -8,6 +8,7 @@ from KratosMultiphysics.OptimizationApplication.algorithms.standardized_PyRol_ob
 from KratosMultiphysics.OptimizationApplication.algorithms.standardized_PyRol_constraint import StandardizedPyRolConstraint
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.algorithms.algorithm import Algorithm
+from KratosMultiphysics.OptimizationApplication.algorithms.algorithm_steepest_descent import AlgorithmSteepestDescent
 
 try:
     import pyrol
@@ -167,11 +168,57 @@ class PyRolAlgorithms(Algorithm):
         # g = myVector(np.zeros(len(gAux)))
         # g[:] = [gAux[i] for i in range(len(gAux))]  # Copy values from gAux to g
         # self.problem.checkDerivatives(True, stream, g, 1e-2)
-        # # self.problem.check(True, stream)
-        # # Kratos.Logger.PrintInfo()
-        # # Kratos.Logger.PrintInfo(self.problem.check())
-        # # print(dir(self.__objective))
+        # self.problem.check(True, stream)
+        # Kratos.Logger.PrintInfo()
+        # Kratos.Logger.PrintInfo(self.problem.check())
+        # print(dir(self.__objective))
         # raise RuntimeError(1)
+
+        # warm start
+
+    #     parameters = Kratos.Parameters("""{
+    #     "type": "algorithm_steepest_descent",
+    #     "settings": {
+    #         "echo_level": 0,
+    #         "line_search": {
+    #             "type": "BB_step",
+    #             "init_step": 5e-2,
+    #             "max_step": 2e-1,
+    #             "gradient_scaling": "l2_norm"
+    #         },
+    #         "conv_settings": {
+    #             "type": "target_value",
+    #             "max_iter": 100,
+    #             "target_value" : 6e-11
+    #         }
+    #     },
+    #     "controls": [
+    #         "material_control"
+    #     ],
+    #     "objective": {
+    #         "response_name": "damage_response",
+    #         "type": "minimization",
+    #         "scaling": 1.0
+    #     }
+    # }""")
+    #     optimization_problem = self._optimization_problem 
+    #     sd_algorithm = AlgorithmSteepestDescent(self.model, parameters, optimization_problem)
+    #     sd_algorithm.Initialize()
+    #     sd_algorithm.Solve()
+
+    #     from KratosMultiphysics.OptimizationApplication.responses.response_routine import ResponseRoutine
+
+    #     self.__objective.objective = self._optimization_problem.GetComponent("damage_response", ResponseRoutine)
+    #     self.algorithm_data.RemoveComponentData("search_direction")
+
+    #     # create SciPy des variables vector
+    #     size = self.master_control.GetControlField().GetCollectiveFlattenedDataSize()
+    #     self.x0 = myVector(sd_algorithm.GetCurrentControlField().Evaluate().reshape(-1))
+    #     self.grad = self.x0.dual()
+
+    #     # setup the problem
+    #     self.problem = Problem(self.__objective, self.x0, self.grad)
+    #     self.problem.addBoundConstraint(self.bounds)
 
         solver = Solver(self.problem, self.method_settings)
         solver.solve(stream)

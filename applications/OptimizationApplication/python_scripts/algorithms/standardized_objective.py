@@ -57,6 +57,8 @@ class StandardizedObjective(ResponseRoutine):
             self.__scaling = -scaling
         else:
             raise RuntimeError(f"Requesting unsupported type {self.__objective_type} for objective response function. Supported types are: \n\tminimization\n\tmaximization")
+        
+        self.gradient_calculate_count=0
 
     def GetInitialValue(self) -> float:
         if self.__unbuffered_data.HasValue("initial_value"):
@@ -100,9 +102,10 @@ class StandardizedObjective(ResponseRoutine):
         return self.GetValue(step_index) * self.__scaling
 
     def CalculateStandardizedGradient(self, save_field: bool = True) -> KratosOA.CollectiveExpression:
-
         with TimeLogger(f"StandardizedObjective::Calculate {self.GetResponseName()} gradients", None, "Finished"):
             gradient_collective_expression = self.CalculateGradient()
+            self.gradient_calculate_count+=1
+            Kratos.Logger.PrintInfo(f"Gradient expression: {self.GetResponseName()}. Gradient calcultaion count is {self.gradient_calculate_count}")
             if save_field:
                 for physical_var, physical_gradient in self.GetRequiredPhysicalGradients().items():
                     variable_name = f"d{self.GetResponseName()}_d{physical_var.Name()}"

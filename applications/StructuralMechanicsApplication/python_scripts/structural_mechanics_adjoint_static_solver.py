@@ -15,6 +15,7 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
         # Construct the base solver.
         super().__init__(model, custom_settings)
         KratosMultiphysics.Logger.PrintInfo("::[AdjointMechanicalSolver]:: ", "Construction finished")
+        self.model_is_prepared = False
 
     @classmethod
     def GetDefaultParameters(cls):
@@ -35,6 +36,9 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
         KratosMultiphysics.Logger.PrintInfo("::[AdjointMechanicalSolver]:: ", "Variables ADDED")
 
     def PrepareModelPart(self):
+        if self.model_is_prepared:
+            return
+        self.model_is_prepared = True
         if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]!= 3):
             raise Exception("there are currently only 3D adjoint elements available")
         super().PrepareModelPart()
