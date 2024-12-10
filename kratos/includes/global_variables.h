@@ -50,6 +50,7 @@ namespace Kratos::Globals
         NodeNonHistorical,
         Element,
         Condition,
+        Constraint,
         ModelPart,
         ProcessInfo
     };
