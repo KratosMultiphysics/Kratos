@@ -53,7 +53,7 @@ KRATOS_TEST_CASE_IN_SUITE(MultiLevelDataValueContainerSetValue, KratosCoreFastSu
 
     Matrix matrix = ZeroMatrix(3, 3);
     matrix(0,0) = 5.7;
-    container.SetValue(CAUCHY_STRESS_TENSOR, accesor, {0,1}, matrix);
+    container.SetValue(CAUCHY_STRESS_TENSOR, accesor, {0,3}, matrix);
     KRATOS_EXPECT_MATRIX_NEAR(container.GetValue(CAUCHY_STRESS_TENSOR, accesor, {0,3}), matrix, 1e-12);
 }
 
