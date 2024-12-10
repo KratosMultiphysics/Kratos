@@ -119,6 +119,7 @@ class UPwSolver(GeoSolver):
 
         ## Fluid dofs
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.WATER_PRESSURE, KratosMultiphysics.REACTION_WATER_PRESSURE,self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosGeo.DT_WATER_PRESSURE, self.main_model_part)
 
         if self.settings["rotation_dofs"].GetBool():
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.REACTION_MOMENT_X,self.main_model_part)
@@ -186,20 +187,10 @@ class UPwSolver(GeoSolver):
             elif (solution_type.lower() == "dynamic"):
                 KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, scheme", "Dynamic.")
                 scheme = KratosGeo.NewmarkDynamicUPwScheme(beta,gamma,theta)
-            elif (solution_type.lower() == "k0-procedure" or solution_type.lower() == "k0_procedure"):
-                if (rayleigh_m < 1.0e-20 and rayleigh_k < 1.0e-20):
-                    KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, scheme", "Quasi-UnDamped.")
-                    scheme = KratosGeo.NewmarkQuasistaticUPwScheme(beta,gamma,theta)
-                else:
-                    KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, scheme", "Quasi-Damped.")
-                    scheme = KratosGeo.NewmarkQuasistaticDampedUPwScheme(beta,gamma,theta)
             else:
               raise RuntimeError(f"Undefined solution type '{solution_type}'")
         elif (scheme_type.lower() == "backward_euler"or scheme_type.lower() == "backward-euler"):
             if (solution_type.lower() == "quasi-static" or solution_type.lower() == "quasi_static"):
-                KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, scheme", "Backward Euler.")
-                scheme = KratosGeo.BackwardEulerQuasistaticUPwScheme()
-            elif (solution_type.lower() == "k0-procedure" or solution_type.lower() == "k0_procedure"):
                 KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, scheme", "Backward Euler.")
                 scheme = KratosGeo.BackwardEulerQuasistaticUPwScheme()
             else:

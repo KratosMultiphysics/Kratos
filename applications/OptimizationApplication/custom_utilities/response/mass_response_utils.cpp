@@ -230,7 +230,7 @@ void MassResponseUtils::CalculateMassShapeGradient(
     using VolumeDerivativeMethodType = std::function<double(IndexType, IndexType, GeometryType&)>;
 
     VolumeDerivativeMethodType volume_derivative_method;
-    bool is_parallel_computation_allowed = true;
+    bool is_analytical_derivatives_used = true;
     switch (rModelPart.Elements().begin()->GetGeometry().GetGeometryType()) {
         case GeometryData::KratosGeometryType::Kratos_Line2D2:
             volume_derivative_method = [](IndexType NodeIndex, IndexType DirectionIndex,  GeometryType& rGeometry) {
@@ -284,7 +284,7 @@ void MassResponseUtils::CalculateMassShapeGradient(
             };
             break;
         default:
-            is_parallel_computation_allowed = false;
+            is_analytical_derivatives_used = false;
             volume_derivative_method = [PerturbationSize](IndexType NodeIndex, IndexType DirectionIndex, GeometryType& rGeometry) {
                 auto& coordinates = rGeometry[NodeIndex].Coordinates();
                 coordinates[DirectionIndex] += PerturbationSize;
@@ -295,7 +295,7 @@ void MassResponseUtils::CalculateMassShapeGradient(
             break;
     }
 
-    if (is_parallel_computation_allowed) {
+    if (is_analytical_derivatives_used) {
         block_for_each(rModelPart.Elements(), [&](auto& rElement){
             auto& r_geometry = rElement.GetGeometry();
             const IndexType dimension = r_geometry.WorkingSpaceDimension();
@@ -314,25 +314,41 @@ void MassResponseUtils::CalculateMassShapeGradient(
             }
         });
     } else {
-        for (auto& r_element : rModelPart.Elements()) {
-            auto& r_geometry = r_element.GetGeometry();
+        block_for_each(rModelPart.Elements(), Node::Pointer(), [&](auto& rElement, auto& pThreadLocalNode){
+            if (!pThreadLocalNode) {
+                pThreadLocalNode = Kratos::make_intrusive<Node>(1, 0, 0, 0);
+            }
+
+            auto& r_geometry = rElement.GetGeometry();
             const IndexType dimension = r_geometry.WorkingSpaceDimension();
 
-            const double density = r_element.GetProperties()[DENSITY];
-            const double thickness = get_thickness(r_element);
-            const double cross_area = get_cross_area(r_element);
+            const double density = rElement.GetProperties()[DENSITY];
+            const double thickness = get_thickness(rElement);
+            const double cross_area = get_cross_area(rElement);
             const double initial_domain_size = r_geometry.DomainSize();
 
             for (IndexType c = 0; c < r_geometry.PointsNumber(); ++c) {
                 auto& r_derivative_value = r_geometry[c].GetValue(rOutputGradientVariable);
+
+                // get the geometry node pointer
+                auto& p_node = r_geometry(c);
+
+                // now copy the node data to thread local node using the operator= in Node
+                (*pThreadLocalNode) = (*p_node);
+
+                // now swap entity node with the thread local node
+                std::swap(p_node, pThreadLocalNode);
 
                 for (IndexType k = 0; k < dimension; ++k) {
                     const double perturbed_domain_size = volume_derivative_method(c, k, r_geometry);
                     const double domain_size_derivative = (perturbed_domain_size - initial_domain_size) * thickness * density * cross_area / PerturbationSize;
                     r_derivative_value[k] += domain_size_derivative;
                 }
+
+                // revert back the node change.
+                std::swap(p_node, pThreadLocalNode);
             }
-        };
+        });
     }
 
     rModelPart.GetCommunicator().AssembleNonHistoricalData(rOutputGradientVariable);

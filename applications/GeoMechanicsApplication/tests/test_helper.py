@@ -1,3 +1,4 @@
+from typing import Dict, Any
 import sys,os
 import math
 
@@ -419,6 +420,88 @@ def find_closest_index_greater_than_value(input_list, value):
     return None
 
 
+def are_values_almost_equal(expected: Any, actual: Any, abs_tolerance: float = 1e-7) -> bool:
+    """
+    Checks whether two values are almost equal.
+
+    Args:
+        - expected (Any): Expected value.
+        - actual (Any): Actual value.
+
+    Returns:
+        - True if the values are almost equal, False otherwise.
+
+    """
+    # check if the value is a dictionary and check the dictionary
+    if isinstance(expected, dict):
+        return are_dictionaries_almost_equal(expected, actual)
+    elif isinstance(expected, str):
+        return expected == actual
+    elif isinstance(expected, (list, tuple, set)):
+        return are_iterables_almost_equal(expected, actual)
+    elif expected is None:
+        return actual is None
+    elif isinstance(expected, (float, int, complex)):
+        return math.isclose(expected, actual, abs_tol=abs_tolerance)
+    else:
+        raise TypeError(f"Unsupported type {type(expected)}")
+
+
+def are_iterables_almost_equal(expected: (list, tuple, set), actual: (list, tuple, set),
+                               abs_tolerance: float = 1e-7) -> bool:
+    """
+    Checks whether two iterables are almost equal.
+
+    Args:
+        - expected (list, tuple, set): Expected iterable.
+        - actual (list, tuple, set): Actual iterable.
+
+    Returns:
+        - True if the iterables are almost equal, False otherwise.
+
+    """
+    # check if the value is a list, tuple or set and compare the values
+    if len(expected) != len(actual):
+        return False
+
+    for v_i, actual_i in zip(expected, actual):
+        if not are_values_almost_equal(v_i, actual_i, abs_tolerance):
+            return False
+
+    return True
+
+
+def are_dictionaries_almost_equal(expected: Dict[Any, Any],
+                                  actual: Dict[Any, Any],
+                                  abs_tolerance: float = 1e-7) -> bool:
+    """
+    Checks whether two dictionaries are equal.
+
+    Args:
+        - expected: Expected dictionary.
+        - actual: Actual dictionary.
+
+    Returns:
+        - True if the dictionaries are equal, False otherwise.
+
+    """
+    if len(expected) != len(actual):
+        return False
+
+    for k, v in expected.items():
+
+        # check if key is present in both dictionaries
+        if k not in actual:
+            return False
+
+        # check if values are almost equal
+        if not are_values_almost_equal(v, actual[k], abs_tolerance):
+            return False
+
+    # all checks passed
+    return True
+
+
 class GiDOutputFileReader:
     def __init__(self):
         self._reset_internal_state()
@@ -500,7 +583,7 @@ class GiDOutputFileReader:
         value = {"node": int(words[0])}
         if self.result_type == "Scalar":
             value["value"] = float(words[1])
-        elif self.result_type == "Vector":
+        elif self.result_type == "Vector" or self.result_type == "Matrix":
             value["value"] = [float(x) for x in words[1:]]
         self.output_data["results"][self.result_name][-1]["values"].append(value)
 
@@ -516,8 +599,10 @@ class GiDOutputFileReader:
         value = self.output_data["results"][self.result_name][-1]["values"][-1]["value"]
         if self.result_type == "Scalar":
             value.append(float(words[0]))
-        elif self.result_type == "Matrix":
+        elif self.result_type == "Matrix" or self.result_type == "Vector":
             value.append([float(x) for x in words])
+        else:
+            raise RuntimeError(f'Unsupported result type "{self.result_type}"')
 
     def _process_begin_of_block(self, line):
         assert(self.current_block_name is None)  # nested blocks are not supported
@@ -566,3 +651,32 @@ class GiDOutputFileReader:
             return [item["value"] for item in matching_item["values"]]
 
         return [item["value"] for item in matching_item["values"] if item["node"] in node_ids]
+
+    @staticmethod
+    def element_integration_point_values_at_time(result_item_name, time, output_data, element_ids=None, integration_point_indices=None):
+        if element_ids and element_ids != sorted(element_ids):
+            raise RuntimeError("Element IDs must be sorted")
+
+        matching_item = None
+        for item in output_data["results"][result_item_name]:
+            if math.isclose(item["time"], time):
+                matching_item = item
+                break
+        if matching_item is None:
+            raise RuntimeError(f"'{result_item_name}' does not have results at time {time}")
+
+        if matching_item["location"] != "OnGaussPoints":
+            raise RuntimeError(f"'{result_item_name}' is not an integration point result")
+
+        if element_ids:
+            element_results = [item["value"] for item in matching_item["values"] if item["element"] in element_ids]
+        else:
+            element_results = [item["value"] for item in matching_item["values"]]
+
+        if integration_point_indices:
+            result = []
+            for element_result in element_results:
+                result.append([item for index, item in enumerate(element_result) if index in integration_point_indices])
+            return result
+        else:
+            return element_results

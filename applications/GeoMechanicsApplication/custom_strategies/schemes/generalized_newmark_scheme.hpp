@@ -11,7 +11,10 @@
 //
 #pragma once
 
+#include "custom_utilities/node_utilities.h"
+#include "custom_utilities/variables_utilities.hpp"
 #include "geomechanics_time_integration_scheme.hpp"
+#include "includes/model_part.h"
 #include <optional>
 
 namespace Kratos
@@ -21,57 +24,88 @@ template <class TSparseSpace, class TDenseSpace>
 class GeneralizedNewmarkScheme : public GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>
 {
 public:
+    using BaseType          = Scheme<TSparseSpace, TDenseSpace>;
+    using TSystemMatrixType = typename BaseType::TSystemMatrixType;
+    using TSystemVectorType = typename BaseType::TSystemVectorType;
+
     GeneralizedNewmarkScheme(const std::vector<FirstOrderScalarVariable>& rFirstOrderScalarVariables,
                              const std::vector<SecondOrderVectorVariable>& rSecondOrderVectorVariables,
-                             std::optional<double> theta,
                              std::optional<double> beta,
-                             std::optional<double> gamma)
+                             std::optional<double> gamma,
+                             std::optional<double> theta)
         : GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>(rFirstOrderScalarVariables,
                                                                        rSecondOrderVectorVariables),
-          mTheta(theta),
           mBeta(beta),
-          mGamma(gamma)
+          mGamma(gamma),
+          mTheta(theta)
     {
-        KRATOS_ERROR_IF(!rFirstOrderScalarVariables.empty() && !mTheta.has_value())
-            << "Theta must be set when first order scalar variables are used\n";
         KRATOS_ERROR_IF(!rSecondOrderVectorVariables.empty() && !mBeta.has_value())
             << "Beta must be set when second order vector variables are used\n";
         KRATOS_ERROR_IF(!rSecondOrderVectorVariables.empty() && !mGamma.has_value())
             << "Gamma must be set when second order vector variables are used\n";
+        KRATOS_ERROR_IF(!rFirstOrderScalarVariables.empty() && !mTheta.has_value())
+            << "Theta must be set when first order scalar variables are used\n";
 
-        KRATOS_ERROR_IF(mTheta.has_value() && mTheta.value() <= 0)
-            << "Theta must be larger than zero, but got " << mTheta.value() << "\n";
         KRATOS_ERROR_IF(mBeta.has_value() && mBeta.value() <= 0)
             << "Beta must be larger than zero, but got " << mBeta.value() << "\n";
         KRATOS_ERROR_IF(mGamma.has_value() && mGamma.value() <= 0)
             << "Gamma must be larger than zero, but got " << mGamma.value() << "\n";
+        KRATOS_ERROR_IF(mTheta.has_value() && mTheta.value() <= 0)
+            << "Theta must be larger than zero, but got " << mTheta.value() << "\n";
     }
 
     GeneralizedNewmarkScheme(const std::vector<FirstOrderScalarVariable>& rFirstOrderScalarVariables, double theta)
         : GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>(
-              rFirstOrderScalarVariables, {}, theta, std::nullopt, std::nullopt)
+              rFirstOrderScalarVariables, {}, std::nullopt, std::nullopt, theta)
     {
     }
 
-protected:
-    inline void UpdateVariablesDerivatives(ModelPart& rModelPart) override
+    void FinalizeSolutionStep(ModelPart& rModelPart, TSystemMatrixType& A, TSystemVectorType& Dx, TSystemVectorType& b) override
     {
         KRATOS_TRY
 
-        block_for_each(rModelPart.Nodes(), [this](Node& rNode) {
-            // For the Newmark schemes the second derivatives should be updated before calculating the first derivatives
-            UpdateVectorSecondTimeDerivative(rNode);
-            UpdateVectorFirstTimeDerivative(rNode);
+        if (rModelPart.GetProcessInfo()[NODAL_SMOOTHING]) {
+            const unsigned int dim = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
+            const auto stress_tensor_size = dim == N_DIM_3D ? STRESS_TENSOR_SIZE_3D : STRESS_TENSOR_SIZE_2D;
 
-            for (const auto& r_first_order_scalar_variable : this->GetFirstOrderScalarVariables()) {
-                UpdateScalarTimeDerivative(rNode, r_first_order_scalar_variable.instance,
-                                           r_first_order_scalar_variable.first_time_derivative);
-            }
-        });
+            // Clear nodal variables
+            block_for_each(rModelPart.Nodes(), [&stress_tensor_size](Node& rNode) {
+                rNode.FastGetSolutionStepValue(NODAL_AREA) = 0.0;
+                Matrix& r_nodal_stress = rNode.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
+                if (r_nodal_stress.size1() != stress_tensor_size)
+                    r_nodal_stress.resize(stress_tensor_size, stress_tensor_size, false);
+                noalias(r_nodal_stress) = ZeroMatrix(stress_tensor_size, stress_tensor_size);
+                rNode.FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) = 0.0;
+                rNode.FastGetSolutionStepValue(NODAL_JOINT_AREA)      = 0.0;
+                rNode.FastGetSolutionStepValue(NODAL_JOINT_WIDTH)     = 0.0;
+                rNode.FastGetSolutionStepValue(NODAL_JOINT_DAMAGE)    = 0.0;
+            });
+
+            this->FinalizeSolutionStepActiveEntities(rModelPart, A, Dx, b);
+
+            // Compute smoothed nodal variables
+            block_for_each(rModelPart.Nodes(), [](Node& rNode) {
+                if (const double& nodal_area = rNode.FastGetSolutionStepValue(NODAL_AREA); nodal_area > 1.0e-20) {
+                    const double inv_nodal_area = 1.0 / nodal_area;
+                    rNode.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR) *= inv_nodal_area;
+                    rNode.FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) *= inv_nodal_area;
+                }
+
+                if (const double& nodal_joint_area = rNode.FastGetSolutionStepValue(NODAL_JOINT_AREA);
+                    nodal_joint_area > 1.0e-20) {
+                    const double inv_nodal_joint_area = 1.0 / nodal_joint_area;
+                    rNode.FastGetSolutionStepValue(NODAL_JOINT_WIDTH) *= inv_nodal_joint_area;
+                    rNode.FastGetSolutionStepValue(NODAL_JOINT_DAMAGE) *= inv_nodal_joint_area;
+                }
+            });
+        } else {
+            this->FinalizeSolutionStepActiveEntities(rModelPart, A, Dx, b);
+        }
 
         KRATOS_CATCH("")
     }
 
+protected:
     inline void SetTimeFactors(ModelPart& rModelPart) override
     {
         KRATOS_TRY
@@ -91,15 +125,16 @@ protected:
         KRATOS_CATCH("")
     }
 
-    double GetBeta() const { return mBeta.value(); }
+    [[nodiscard]] double GetBeta() const { return mBeta.value(); }
 
-    double GetGamma() const { return mGamma.value(); }
+    [[nodiscard]] double GetGamma() const { return mGamma.value(); }
 
-    double GetTheta() const { return mTheta.value(); }
+    [[nodiscard]] double GetTheta() const { return mTheta.value(); }
 
-private:
     void UpdateScalarTimeDerivative(Node& rNode, const Variable<double>& variable, const Variable<double>& dt_variable) const
     {
+        if (rNode.IsFixed(dt_variable)) return;
+
         const auto delta_variable =
             rNode.FastGetSolutionStepValue(variable, 0) - rNode.FastGetSolutionStepValue(variable, 1);
         const auto previous_dt_variable = rNode.FastGetSolutionStepValue(dt_variable, 1);
@@ -114,12 +149,15 @@ private:
         for (const auto& r_second_order_vector_variable : this->GetSecondOrderVectorVariables()) {
             if (!rNode.SolutionStepsDataHas(r_second_order_vector_variable.instance)) continue;
 
-            noalias(rNode.FastGetSolutionStepValue(r_second_order_vector_variable.first_time_derivative, 0)) =
+            const array_1d<double, 3> updated_first_derivative =
                 rNode.FastGetSolutionStepValue(r_second_order_vector_variable.first_time_derivative, 1) +
                 (1.0 - GetGamma()) * this->GetDeltaTime() *
                     rNode.FastGetSolutionStepValue(r_second_order_vector_variable.second_time_derivative, 1) +
                 GetGamma() * this->GetDeltaTime() *
                     rNode.FastGetSolutionStepValue(r_second_order_vector_variable.second_time_derivative, 0);
+
+            NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponents(
+                rNode, r_second_order_vector_variable.first_time_derivative, updated_first_derivative);
         }
     }
 
@@ -128,7 +166,7 @@ private:
         for (const auto& r_second_order_vector_variable : this->GetSecondOrderVectorVariables()) {
             if (!rNode.SolutionStepsDataHas(r_second_order_vector_variable.instance)) continue;
 
-            noalias(rNode.FastGetSolutionStepValue(r_second_order_vector_variable.second_time_derivative, 0)) =
+            const array_1d<double, 3> updated_second_time_derivative =
                 ((rNode.FastGetSolutionStepValue(r_second_order_vector_variable.instance, 0) -
                   rNode.FastGetSolutionStepValue(r_second_order_vector_variable.instance, 1)) -
                  this->GetDeltaTime() * rNode.FastGetSolutionStepValue(
@@ -136,12 +174,16 @@ private:
                  (0.5 - GetBeta()) * this->GetDeltaTime() * this->GetDeltaTime() *
                      rNode.FastGetSolutionStepValue(r_second_order_vector_variable.second_time_derivative, 1)) /
                 (GetBeta() * this->GetDeltaTime() * this->GetDeltaTime());
+
+            NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponents(
+                rNode, r_second_order_vector_variable.second_time_derivative, updated_second_time_derivative);
         }
     }
 
-    std::optional<double> mTheta;
+private:
     std::optional<double> mBeta;
     std::optional<double> mGamma;
+    std::optional<double> mTheta;
 };
 
 } // namespace Kratos

@@ -10,24 +10,24 @@
 //  Main authors:    Richard Faasse
 //
 #include "plane_strain_stress_state.h"
-#include "custom_utilities/stress_strain_utilities.hpp"
+#include "custom_utilities/stress_strain_utilities.h"
 
 namespace Kratos
 {
 
-Matrix PlaneStrainStressState::CalculateBMatrix(const Matrix& rGradNpT, const Vector&, const Geometry<Node>& rGeometry) const
+Matrix PlaneStrainStressState::CalculateBMatrix(const Matrix& rDN_DX, const Vector&, const Geometry<Node>& rGeometry) const
 {
     const auto dimension       = rGeometry.WorkingSpaceDimension();
     const auto number_of_nodes = rGeometry.size();
-    Matrix     result = ZeroMatrix(VOIGT_SIZE_2D_AXISYMMETRIC, dimension * number_of_nodes);
+    Matrix     result = ZeroMatrix(VOIGT_SIZE_2D_PLANE_STRAIN, dimension * number_of_nodes);
 
     for (unsigned int i = 0; i < number_of_nodes; ++i) {
         const auto offset = dimension * i;
 
-        result(INDEX_2D_PLANE_STRAIN_XX, offset + INDEX_X) = rGradNpT(i, INDEX_X);
-        result(INDEX_2D_PLANE_STRAIN_YY, offset + INDEX_Y) = rGradNpT(i, INDEX_Y);
-        result(INDEX_2D_PLANE_STRAIN_XY, offset + INDEX_X) = rGradNpT(i, INDEX_Y);
-        result(INDEX_2D_PLANE_STRAIN_XY, offset + INDEX_Y) = rGradNpT(i, INDEX_X);
+        result(INDEX_2D_PLANE_STRAIN_XX, offset + INDEX_X) = rDN_DX(i, INDEX_X);
+        result(INDEX_2D_PLANE_STRAIN_YY, offset + INDEX_Y) = rDN_DX(i, INDEX_Y);
+        result(INDEX_2D_PLANE_STRAIN_XY, offset + INDEX_X) = rDN_DX(i, INDEX_Y);
+        result(INDEX_2D_PLANE_STRAIN_XY, offset + INDEX_Y) = rDN_DX(i, INDEX_X);
     }
 
     return result;
@@ -60,5 +60,11 @@ Vector PlaneStrainStressState::ConvertStrainTensorToVector(const Matrix& rStrain
     result[INDEX_2D_PLANE_STRAIN_XY] = strain_vector[2];
     return result;
 }
+
+const Vector& PlaneStrainStressState::GetVoigtVector() const { return VoigtVector2D; }
+
+SizeType PlaneStrainStressState::GetVoigtSize() const { return GetVoigtSize2D(); }
+
+SizeType PlaneStrainStressState::GetStressTensorSize() const { return GetStressTensorSize2D(); }
 
 } // namespace Kratos

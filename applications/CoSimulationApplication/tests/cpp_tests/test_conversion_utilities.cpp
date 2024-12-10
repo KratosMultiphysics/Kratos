@@ -17,16 +17,16 @@
 // Project includes
 #include "includes/model_part.h"
 #include "containers/model.h"
-#include "testing/testing.h"
+#include "tests/cpp_tests/co_simulation_fast_suite.h"
 #include "custom_utilities/conversion_utilities.h"
 
 // Utilities
-#include "utilities/cpp_tests_utilities.h"
+#include "tests/test_utilities/cpp_tests_utilities.h"
 
 namespace Kratos {
 namespace Testing {
 
-KRATOS_TEST_CASE_IN_SUITE(ElementalDataToNodalDataForce, KratosCosimulationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ElementalDataToNodalDataForce, KratosCoSimulationFastSuite)
 {
     // Creating a Model
     Model model;

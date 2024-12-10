@@ -12,12 +12,12 @@
 
 #include "custom_constitutive/thermal_dispersion_law.h"
 #include "geo_mechanics_application.h"
+#include "geo_mechanics_fast_suite.h"
 #include "includes/ublas_interface.h"
-#include "testing/testing.h"
 
 namespace Kratos::Testing {
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateThermalDispersionMatrix2D, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CalculateThermalDispersionMatrix2D, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model current_model;
     auto& r_model_part = current_model.CreateModelPart("ModelPart");
@@ -33,11 +33,9 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateThermalDispersionMatrix2D, KratosGeoMechanics
 
     const SizeType dimension = 2;
     GeoThermalDispersionLaw geo_thermal_dispersion_2D_law(dimension);
-    ProcessInfo info;
 
     const Matrix thermal_dispersion_matrix =
-        geo_thermal_dispersion_2D_law.CalculateThermalDispersionMatrix(
-            *cond_prop, info);
+        geo_thermal_dispersion_2D_law.CalculateThermalDispersionMatrix(*cond_prop);
 
     Matrix expected_solution = ZeroMatrix(2, 2);
     expected_solution(0, 0) = 1125.0;
@@ -55,7 +53,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateThermalDispersionMatrix2D, KratosGeoMechanics
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateThermalDispersionMatrix3D, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CalculateThermalDispersionMatrix3D, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model current_model;
     auto& r_model_part = current_model.CreateModelPart("ModelPart");
@@ -74,11 +72,9 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateThermalDispersionMatrix3D, KratosGeoMechanics
 
     const SizeType dimension = 3;
     GeoThermalDispersionLaw geo_thermal_dispersion_3D_law(dimension);
-    ProcessInfo info;
 
     const Matrix thermal_dispersion_matrix =
-        geo_thermal_dispersion_3D_law.CalculateThermalDispersionMatrix(
-            *cond_prop, info);
+        geo_thermal_dispersion_3D_law.CalculateThermalDispersionMatrix(*cond_prop);
 
     Matrix expected_solution = ZeroMatrix(3, 3);
     expected_solution(0, 0) = 800.0;
@@ -101,12 +97,9 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateThermalDispersionMatrix3D, KratosGeoMechanics
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GetWorkingSpaceDimension_ReturnsCorrectValue, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TestDispersionLawThrowsWhenDimensionInvalid, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    constexpr SizeType dimension = 3;
-    GeoThermalDispersionLaw geo_thermal_dispersion_3D_law(dimension);
-
-    KRATOS_EXPECT_EQ(geo_thermal_dispersion_3D_law.WorkingSpaceDimension(), dimension);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(GeoThermalDispersionLaw law{0}, "Got invalid number of dimensions: 0")
 }
 
 } // namespace Kratos::Testing

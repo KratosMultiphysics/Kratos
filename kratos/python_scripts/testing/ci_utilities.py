@@ -72,4 +72,7 @@ def print_ci_information() -> None:
 
 
 if __name__ == "__main__":
-    print_ci_information()
+    try:
+        print_ci_information()
+    except Exception as e:
+        print("Unable to detect application changes in this configuration")

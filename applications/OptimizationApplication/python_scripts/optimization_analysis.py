@@ -4,8 +4,7 @@ from KratosMultiphysics.OptimizationApplication.algorithms.algorithm import Algo
 from KratosMultiphysics.OptimizationApplication.model_part_controllers.model_part_controller import ModelPartController
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy_decorator import ExecutionPolicyDecorator
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
-from KratosMultiphysics.OptimizationApplication.controls.control import Control
-from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import OptimizationComponentFactory
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem_utilities import OptimizationComponentFactory
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import CallOnAll
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import OptimizationAnalysisTimeLogger
@@ -142,3 +141,6 @@ class OptimizationAnalysis:
         algorithm_settings = self.project_parameters["algorithm_settings"]
         algorithm_settings.AddMissingParameters(default_settings)
         self.__algorithm = OptimizationComponentFactory(self.model, algorithm_settings, self.optimization_problem)
+
+    def GetAlgorithm(self):
+        return self.__algorithm

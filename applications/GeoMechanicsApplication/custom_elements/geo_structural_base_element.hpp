@@ -28,15 +28,13 @@ template <unsigned int TDim, unsigned int TNumNodes>
 class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoStructuralBaseElement : public Element
 {
 public:
-    /// The definition of the sizetype
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeoStructuralBaseElement);
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    /// Default Constructor
-    GeoStructuralBaseElement(IndexType NewId = 0) : Element(NewId) {}
+    explicit GeoStructuralBaseElement(IndexType NewId = 0) : Element(NewId) {}
 
     /// Constructor using an array of nodes
     GeoStructuralBaseElement(IndexType NewId, const NodesArrayType& ThisNodes)
@@ -57,8 +55,7 @@ public:
         mThisIntegrationMethod = this->GetIntegrationMethod();
     }
 
-    /// Destructor
-    virtual ~GeoStructuralBaseElement() {}
+    ~GeoStructuralBaseElement() = default;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -72,7 +69,7 @@ public:
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const override;
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
@@ -86,7 +83,7 @@ public:
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
 
     void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -121,7 +118,6 @@ protected:
         array_1d<double, TNumNodes * TDim> DisplacementVector;
         array_1d<double, TNumNodes * TDim> VelocityVector;
         array_1d<double, TNumNodes * TDim> NodalVolumeAcceleration;
-        array_1d<double, TNumNodes * TDim> UVector;
 
         Vector DofValuesVector;
 
@@ -190,6 +186,8 @@ private:
 
     /// Copy constructor.
     GeoStructuralBaseElement(GeoStructuralBaseElement const& rOther);
+
+    [[nodiscard]] DofsVectorType GetDofs() const;
 
     /// Serialization
 
