@@ -14,7 +14,6 @@
 
 // Project includes
 #include "includes/global_variables.h" // DataLocation
-#include "includes/kratos_export_api.h" // KRATOS_API
 #include "includes/node.h" // Node
 #include "includes/element.h" // Element
 #include "includes/condition.h" // Condition
@@ -24,7 +23,6 @@
 
 // System includes
 #include <type_traits> // remove_reference_t, is_const_v, is_same_v, decay_t
-#include <optional> // optional
 
 
 namespace Kratos {
@@ -67,12 +65,16 @@ private:
                 TLocation == Globals::DataLocation::Condition,
                 Condition,
                 std::conditional_t<
-                    TLocation == Globals::DataLocation::ProcessInfo,
-                    ProcessInfo,
+                    TLocation == Globals::DataLocation::Constraint,
+                    MasterSlaveConstraint,
                     std::conditional_t<
-                        TLocation == Globals::DataLocation::ModelPart,
-                        ModelPart,
-                        void // <== invalid fallback type; will throw a compile-time error
+                        TLocation == Globals::DataLocation::ProcessInfo,
+                        ProcessInfo,
+                        std::conditional_t<
+                            TLocation == Globals::DataLocation::ModelPart,
+                            ModelPart,
+                            void // <== invalid fallback type; will throw a compile-time error
+                        >
                     >
                 >
             >
@@ -170,7 +172,11 @@ private:
             std::conditional_t<
                 std::is_same_v<typename TEntityProxy::UnqualifiedEntity,Condition>,
                 ModelPart::ConditionsContainerType,
-                void // <== invalid fallback type; will throw a compile-time error
+                std::conditional_t<
+                    std::is_same_v<typename TEntityProxy::UnqualifiedEntity,MasterSlaveConstraint>,
+                    ModelPart::MasterSlaveConstraintContainerType,
+                    void // <== invalid fallback type; will throw a compile-time error
+                >
             >
         >
     >;
@@ -323,6 +329,8 @@ KRATOS_DEFINE_ENTITY_PROXY_FACTORY(Globals::DataLocation::Element, Element)
 
 KRATOS_DEFINE_ENTITY_PROXY_FACTORY(Globals::DataLocation::Condition, Condition)
 
+KRATOS_DEFINE_ENTITY_PROXY_FACTORY(Globals::DataLocation::Constraint, MasterSlaveConstraint)
+
 KRATOS_DEFINE_ENTITY_PROXY_FACTORY(Globals::DataLocation::ProcessInfo, ProcessInfo)
 
 KRATOS_DEFINE_ENTITY_PROXY_FACTORY(Globals::DataLocation::ModelPart, ModelPart)
@@ -371,6 +379,8 @@ KRATOS_DEFINE_CONTAINER_PROXY_FACTORY(Globals::DataLocation::NodeNonHistorical)
 KRATOS_DEFINE_CONTAINER_PROXY_FACTORY(Globals::DataLocation::Element)
 
 KRATOS_DEFINE_CONTAINER_PROXY_FACTORY(Globals::DataLocation::Condition)
+
+KRATOS_DEFINE_CONTAINER_PROXY_FACTORY(Globals::DataLocation::Constraint)
 
 #undef KRATOS_DEFINE_CONTAINER_PROXY_FACTORY
 
