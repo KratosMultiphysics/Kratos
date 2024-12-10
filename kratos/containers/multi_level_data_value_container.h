@@ -66,7 +66,6 @@ public:
             return p;
         }
 
-        // destructor
         ~DataBlock()
         {
             for(std::size_t i = 0; i < mSize; i++) {
@@ -76,7 +75,7 @@ public:
             delete[] mpValues;
         }
 
-        // private:
+    private:
 
         BlockType* Allocate(const VariableData* pVariable , std::size_t Size)
         {
