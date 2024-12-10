@@ -86,7 +86,7 @@ public:
         // Define auxiliary constants
         const double one_sixth = 1.0 / 6.0;
         const double two_thirds = 2.0 / 3.0;
-        const double weight = 1.0 / 6.0;
+        const double weight = one_sixth;
 
         // Integration points using the auxiliary constants
         static const IntegrationPointsArrayType s_integration_points{{
