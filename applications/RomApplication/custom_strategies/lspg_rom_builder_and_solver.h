@@ -387,6 +387,33 @@ public:
         KRATOS_CATCH("")
     }
 
+    /**
+     * Projects the reduced system of equations
+     */
+    void ProjectRHS_ROM(
+        ModelPart &rModelPart,
+        TSystemMatrixType &rA,
+        TSystemVectorType &rb,
+        TSystemVectorType &rb_rom)
+    {
+        KRATOS_TRY
+        if (mRightRomBasisInitialized==false){
+            mPhiGlobal = ZeroMatrix(BaseBuilderAndSolverType::mEquationSystemSize, BaseType::GetNumberOfROMModes());
+            mRightRomBasisInitialized = true;
+        }
+        BaseType::BuildRightROMBasis(rModelPart, mPhiGlobal);
+        auto a_wrapper = UblasWrapper<double>(rA);
+        const auto& eigen_rA = a_wrapper.matrix();
+        rb_rom.resize(BaseType::GetNumberOfROMModes(), false);
+        Eigen::Map<EigenDynamicVector> eigen_rb(rb.data().begin(), rb.size());
+        Eigen::Map<EigenDynamicMatrix> eigen_mPhiGlobal(mPhiGlobal.data().begin(), mPhiGlobal.size1(), mPhiGlobal.size2());
+        Eigen::Map<EigenDynamicVector> eigen_rb_rom(rb_rom.data().begin(), rb_rom.size());
+        EigenDynamicMatrix eigen_rA_times_mPhiGlobal = eigen_rA * eigen_mPhiGlobal; //TODO: Make it in parallel.
+        // Compute the matrix multiplication
+        eigen_rb_rom = eigen_rA_times_mPhiGlobal.transpose() * eigen_rb; //TODO: Make it in parallel.
+        KRATOS_CATCH("")
+    }
+
     void WriteReactionDataToMatrixMarket(
         ModelPart& rModelPart,
         const std::stringstream& MatrixMarketVectorName

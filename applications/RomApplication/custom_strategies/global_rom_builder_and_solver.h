@@ -327,7 +327,7 @@ public:
         );
     }
 
-    virtual void InitializeSolutionStep(
+    void InitializeSolutionStep(
         ModelPart& rModelPart,
         TSystemMatrixType& rA,
         TSystemVectorType& rDx,
@@ -338,7 +338,7 @@ public:
 
         // Reset the ROM solution increment in the root modelpart database
         auto& r_root_mp = rModelPart.GetRootModelPart();
-        r_root_mp.GetValue(ROM_SOLUTION_INCREMENT)       = ZeroVector(GetNumberOfROMModes());
+        r_root_mp.GetValue(ROM_SOLUTION_INCREMENT) = ZeroVector(GetNumberOfROMModes());
         r_root_mp.GetValue(ROM_SOLUTION_BASE) = ZeroVector(GetNumberOfROMModes());
     }
 
@@ -390,6 +390,7 @@ public:
     void BuildRomRHS(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
+        TSystemMatrixType &rA,
         TSystemVectorType& rb,
         TSystemVectorType& rbRom)
     {
@@ -401,7 +402,7 @@ public:
 
         Timer::Stop("BuildRomRHS");
 
-        ProjectRHS_ROM(rModelPart,rb,rbRom);
+        ProjectRHS_ROM(rModelPart,rA,rb,rbRom);
 
         KRATOS_CATCH("")
     }
@@ -912,6 +913,7 @@ protected:
      */
     void ProjectRHS_ROM(
         ModelPart &rModelPart,
+        TSystemMatrixType &rA,
         TSystemVectorType &rb,
         TSystemVectorType &rb_rom)
     {

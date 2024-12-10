@@ -763,10 +763,8 @@ class RomResidualBasedNewtonRaphsonStrategy
             TSparseSpace::SetToZero(rb);
             TSparseSpace::SetToZero(b_rom);
 
-            GetBuilderAndSolver()->BuildRomRHS(GetScheme(), BaseType::GetModelPart(), rb, b_rom);
+            GetBuilderAndSolver()->BuildRomRHS(GetScheme(), BaseType::GetModelPart(), rA, rb, b_rom);
         }
-
-        TSystemVectorType rDq = BaseType::GetModelPart().GetRootModelPart().GetValue(ROM_SOLUTION_INCREMENT);
 
         return mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), GetBuilderAndSolver()->GetDofSet(), rA, rDx, rb);
 
@@ -849,7 +847,7 @@ class RomResidualBasedNewtonRaphsonStrategy
         {
             TSparseSpace::SetToZero(rb);
             TSparseSpace::SetToZero(b_rom);
-            GetBuilderAndSolver()->BuildRomRHS(GetScheme(), BaseType::GetModelPart(), rb, b_rom);
+            GetBuilderAndSolver()->BuildRomRHS(GetScheme(), BaseType::GetModelPart(), rA, rb, b_rom);
         }
 
         mpConvergenceCriteria->InitializeSolutionStep(r_model_part, p_builder_and_solver->GetDofSet(), rA, rDx, rb);
@@ -980,7 +978,7 @@ class RomResidualBasedNewtonRaphsonStrategy
             TSparseSpace::SetToZero(rb);
 
             TSparseSpace::SetToZero(b_rom);
-            GetBuilderAndSolver()->BuildRomRHS(GetScheme(), BaseType::GetModelPart(), rb, b_rom);
+            GetBuilderAndSolver()->BuildRomRHS(GetScheme(), BaseType::GetModelPart(), rA, rb, b_rom);
         }
 
         // Debugging info
@@ -1007,10 +1005,8 @@ class RomResidualBasedNewtonRaphsonStrategy
 
                 TSparseSpace::SetToZero(b_rom);
 
-                GetBuilderAndSolver()->BuildRomRHS(GetScheme(), BaseType::GetModelPart(), rb, b_rom);
+                GetBuilderAndSolver()->BuildRomRHS(GetScheme(), BaseType::GetModelPart(), rA, rb, b_rom);
             }
-
-            TSystemVectorType rDq = BaseType::GetModelPart().GetRootModelPart().GetValue(ROM_SOLUTION_INCREMENT);
 
             is_converged = mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDx, rb);
         }
@@ -1089,11 +1085,9 @@ class RomResidualBasedNewtonRaphsonStrategy
 
                     TSparseSpace::SetToZero(b_rom);
 
-                    GetBuilderAndSolver()->BuildRomRHS(GetScheme(), BaseType::GetModelPart(), rb, b_rom);
+                    GetBuilderAndSolver()->BuildRomRHS(GetScheme(), BaseType::GetModelPart(), rA, rb, b_rom);
                     residual_is_updated = true;
                 }
-
-                TSystemVectorType rDq = BaseType::GetModelPart().GetRootModelPart().GetValue(ROM_SOLUTION_INCREMENT);
 
                 is_converged = mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDx, rb);
             }

@@ -471,7 +471,7 @@ protected:
         TSparseSpace::SetToZero(b);
         TSystemVectorType b_rom(pBuilderAndSolver->GetNumberOfROMModes());
         TSparseSpace::SetToZero(b_rom);
-        pBuilderAndSolver->BuildRomRHS(pScheme, BaseType::GetModelPart(), b, b_rom);
+        pBuilderAndSolver->BuildRomRHS(pScheme, BaseType::GetModelPart(), A, b, b_rom);
         double r1 = TSparseSpace::Dot(auxDq,b_rom);
 
         double rmax = std::abs(r1);
@@ -488,7 +488,7 @@ protected:
 
             TSparseSpace::SetToZero(b);
             TSparseSpace::SetToZero(b_rom);
-            pBuilderAndSolver->BuildRomRHS(pScheme, BaseType::GetModelPart(), b, b_rom);
+            pBuilderAndSolver->BuildRomRHS(pScheme, BaseType::GetModelPart(), A, b, b_rom);
             double r2 = TSparseSpace::Dot(auxDq,b_rom);
 
             if(it == 0) {
@@ -509,8 +509,10 @@ protected:
 
             //Perform final update
             if ((x-xprevious)<epsilon){
-                x = 0.1;
+                x = xprevious + 1e-2;
+                rDq += 1e-3*b_rom;
             }
+
             TSparseSpace::Assign(auxDq,x-xprevious, rDq);
             xprevious = x;
 
@@ -531,7 +533,7 @@ protected:
             //note that we compute the next residual only if it is strictly needed (we break on the line before if it is not needed)
             TSparseSpace::SetToZero(b);
             TSparseSpace::SetToZero(b_rom);
-            pBuilderAndSolver->BuildRomRHS(pScheme, BaseType::GetModelPart(), b, b_rom);
+            pBuilderAndSolver->BuildRomRHS(pScheme, BaseType::GetModelPart(), A, b, b_rom);
             double rf = TSparseSpace::Dot(auxDq,b_rom);
 
             KRATOS_INFO("RomLineSearchStrategy") << "LINE SEARCH it " << it << " coeff = " << x << " rf = " << rf << " r1 = " << r1 << " r2 = " << r2 << std::endl;

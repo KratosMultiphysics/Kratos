@@ -188,15 +188,47 @@ public:
     {
         KRATOS_TRY
 
+        // if (mIsTransonic){
+        //     // Update the upwind factor constant and critical mach with the user-defined values
+        //     if (rModelPart.GetProcessInfo()[CONVERGENCE_RATIO] <= mUpdateRelativeResidualNorm &&
+        //         rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] > 1){
+        //         rModelPart.GetProcessInfo()[CRITICAL_MACH]          = mTargetCriticalMach;
+        //         rModelPart.GetProcessInfo()[UPWIND_FACTOR_CONSTANT] = mTargetUpwindFactorConstant;
+        //     }
+        // }
+        BaseType::InitializeNonLinIteration(rModelPart,A,Dx,b);
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Function called once at the beginning of each solution step.
+     * @details The basic operations to be carried in there are the following:
+     * - managing variables to be kept constant over the time step (for example time-Scheme constants depending on the actual time step)
+     * @param rModelPart The model part of the problem to solve
+     * @param A LHS matrix
+     * @param Dx Incremental update of primary variables
+     * @param b RHS Vector
+     */
+    void InitializeSolutionStep(
+        ModelPart& rModelPart,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b
+    ) override
+    {
+        KRATOS_TRY
+
         if (mIsTransonic){
             // Update the upwind factor constant and critical mach with the user-defined values
-            if (rModelPart.GetProcessInfo()[CONVERGENCE_RATIO] <= mUpdateRelativeResidualNorm &&
-                rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] > 1){
+            if (rModelPart.GetProcessInfo()[STEP] > 1){
                 rModelPart.GetProcessInfo()[CRITICAL_MACH]          = mTargetCriticalMach;
                 rModelPart.GetProcessInfo()[UPWIND_FACTOR_CONSTANT] = mTargetUpwindFactorConstant;
             }
         }
-        BaseType::InitializeNonLinIteration(rModelPart,A,Dx,b);
+
+        // Initializes solution step for all of the elements, conditions and constraints
+        BaseType::InitializeSolutionStep(rModelPart,A,Dx,b);
 
         KRATOS_CATCH("")
     }

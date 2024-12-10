@@ -247,7 +247,7 @@ def CreateSolver(cls, model, custom_settings):
                     "first_alpha_value"          : 0.5,
                     "second_alpha_value"         : 1.0,
                     "min_alpha"                  : 0.1,
-                    "max_alpha"                  : 2.0,
+                    "max_alpha"                  : 1.0,
                     "line_search_tolerance"      : 0.5
                 }""")
             return default_line_search_parameters
