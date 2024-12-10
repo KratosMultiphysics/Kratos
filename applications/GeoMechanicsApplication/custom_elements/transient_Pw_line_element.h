@@ -75,8 +75,8 @@ public:
     {
         mRetentionLawVector.resize(GetGeometry().IntegrationPointsNumber(GetIntegrationMethod()));
 
-        for (unsigned int i = 0; i < mRetentionLawVector.size(); ++i) {
-            mRetentionLawVector[i] = RetentionLawFactory::Clone(GetProperties());
+        for (auto& r_retention_law : mRetentionLawVector) {
+            r_retention_law = RetentionLawFactory::Clone(GetProperties());
         }
     }
 

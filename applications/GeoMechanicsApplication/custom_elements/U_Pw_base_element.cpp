@@ -135,8 +135,8 @@ void UPwBaseElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
     }
 
     mRetentionLawVector.resize(number_of_integration_points);
-    for (unsigned int i = 0; i < mRetentionLawVector.size(); ++i) {
-        mRetentionLawVector[i] = RetentionLawFactory::Clone(r_properties);
+    for (auto& r_retention_law : mRetentionLawVector) {
+        r_retention_law = RetentionLawFactory::Clone(r_properties);
     }
 
     if (mStressVector.size() != number_of_integration_points) {
@@ -149,9 +149,8 @@ void UPwBaseElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 
     mStateVariablesFinalized.resize(number_of_integration_points);
     for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i) {
-        int nStateVariables = 0;
-        nStateVariables = mConstitutiveLawVector[i]->GetValue(NUMBER_OF_UMAT_STATE_VARIABLES, nStateVariables);
-        if (nStateVariables > 0) {
+        if (auto nStateVariables = 0;
+            mConstitutiveLawVector[i]->GetValue(NUMBER_OF_UMAT_STATE_VARIABLES, nStateVariables) > 0) {
             mConstitutiveLawVector[i]->SetValue(STATE_VARIABLES, mStateVariablesFinalized[i], rCurrentProcessInfo);
         }
     }
