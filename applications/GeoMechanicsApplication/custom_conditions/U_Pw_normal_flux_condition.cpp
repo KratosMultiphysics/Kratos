@@ -27,8 +27,6 @@ Condition::Pointer UPwNormalFluxCondition<TDim, TNumNodes>::Create(IndexType    
     return Condition::Pointer(new UPwNormalFluxCondition(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(VectorType&        rRightHandSideVector,
                                                            const ProcessInfo& CurrentProcessInfo)
@@ -73,9 +71,6 @@ void UPwNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(VectorType&        rR
         this->CalculateAndAddRHS(rRightHandSideVector, Variables);
     }
 }
-
-//----------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwNormalFluxCondition<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRightHandSideVector,

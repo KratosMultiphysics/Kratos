@@ -21,6 +21,7 @@
 // External includes
 
 // Project includes
+#include "includes/element.h"
 
 namespace Kratos
 {

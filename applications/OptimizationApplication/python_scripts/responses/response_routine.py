@@ -4,6 +4,7 @@ from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
+import math
 
 class ResponseRoutine:
     """A class which adds optimization-specific utilities to simplify routines
@@ -16,7 +17,6 @@ class ResponseRoutine:
         # set the response
         self.__response = response
         self.__response_value = None
-
         self.__contributing_controls_list: 'list[Control]' = []
         self.__required_physical_gradients: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]' = {}
 
@@ -55,6 +55,8 @@ class ResponseRoutine:
 
         if not self.__contributing_controls_list:
             raise RuntimeError(f"The controls does not have any influence over the response {self.GetResponseName()}.")
+        
+        self.my_current_control_field = self.__master_control.GetEmptyField()
 
     def Check(self):
         self.__response.Check()
@@ -86,13 +88,14 @@ class ResponseRoutine:
         compute_response_value_flag = False
         if self.__response_value is None:
             self.my_current_control_field = control_field.Clone()
-        diff = self.my_current_control_field - control_field
-        norm = KratosOA.ExpressionUtils.NormInf(diff)
-        if norm > 1e-12:
+        if not math.isclose(KratosOA.ExpressionUtils.NormInf(self.my_current_control_field), 0.0, abs_tol=1e-16):
+            rel_diff = (self.my_current_control_field - control_field) / KratosOA.ExpressionUtils.NormInf(self.my_current_control_field)
+        else:
+            rel_diff = (self.my_current_control_field - control_field)
+        norm = KratosOA.ExpressionUtils.NormInf(rel_diff)
+        if not math.isclose(norm, 0.0, abs_tol=1e-16):
             compute_response_value_flag = True
-        compute_response_value_flag = compute_response_value_flag or self.__response_value is None
-
-        # TODO: In the case of having two analysis with the same mesh (model parts) for two different
+        compute_response_value_flag = compute_response_value_flag or self.__response_value is None        # TODO: In the case of having two analysis with the same mesh (model parts) for two different
         #       responses, we need to flag all the anayses which are affected by the control update_state
         #       from the first call, otherwise the second call will not update anything, hence no execution
         #       policies will be executed.
@@ -107,6 +110,12 @@ class ResponseRoutine:
 
         if compute_response_value_flag:
             self.__response_value = self.__response.CalculateValue()
+            Kratos.Logger.PrintInfo(f"Response value is calculated for {self.GetResponseName()}.")
+        else:
+            Kratos.Logger.PrintInfo(f"The control field is not updated, hence the response value is not computed for {self.GetResponseName()}.")
+
+        # Update current control field state
+        self.my_current_control_field = control_field.Clone()
 
         return self.__response_value
 

@@ -21,15 +21,11 @@ namespace Kratos
 // Default Constructor
 LineLoad2DDiffOrderCondition::LineLoad2DDiffOrderCondition() : GeneralUPwDiffOrderCondition() {}
 
-//----------------------------------------------------------------------------------------
-
 // Constructor 1
 LineLoad2DDiffOrderCondition::LineLoad2DDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry)
     : GeneralUPwDiffOrderCondition(NewId, pGeometry)
 {
 }
-
-//----------------------------------------------------------------------------------------
 
 // Constructor 2
 LineLoad2DDiffOrderCondition::LineLoad2DDiffOrderCondition(IndexType               NewId,
@@ -39,16 +35,19 @@ LineLoad2DDiffOrderCondition::LineLoad2DDiffOrderCondition(IndexType            
 {
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 Condition::Pointer LineLoad2DDiffOrderCondition::Create(IndexType               NewId,
                                                         NodesArrayType const&   ThisNodes,
                                                         PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(new LineLoad2DDiffOrderCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Create(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Condition::Pointer LineLoad2DDiffOrderCondition::Create(IndexType               NewId,
+                                                        GeometryType::Pointer   pGeom,
+                                                        PropertiesType::Pointer pProperties) const
+{
+    return make_intrusive<LineLoad2DDiffOrderCondition>(NewId, pGeom, pProperties);
+}
 
 void LineLoad2DDiffOrderCondition::CalculateConditionVector(ConditionVariables& rVariables, unsigned int PointNumber)
 {
@@ -70,7 +69,6 @@ void LineLoad2DDiffOrderCondition::CalculateConditionVector(ConditionVariables& 
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 double LineLoad2DDiffOrderCondition::CalculateIntegrationCoefficient(
     const IndexType                                 PointNumber,
     const GeometryType::JacobiansType&              JContainer,
@@ -89,7 +87,6 @@ double LineLoad2DDiffOrderCondition::CalculateIntegrationCoefficient(
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 void LineLoad2DDiffOrderCondition::CalculateAndAddConditionForce(VectorType& rRightHandSideVector,
                                                                  ConditionVariables& rVariables)
 {
