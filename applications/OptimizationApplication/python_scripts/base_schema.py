@@ -29,12 +29,13 @@ class BaseSchema(BaseModel):
     processes: dict = Field(..., description="List of processes")
 
 def ValidateJSON(data):
+    valid = False
     try:
         valid_data = BaseSchema(**data)
-        print(valid_data)
+        valid = True
     except ValidationError as e:
         print(e)
 
-    return valid_data
+    return valid, valid_data
     
     

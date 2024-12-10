@@ -1,0 +1,414 @@
+{
+    "$defs": {
+        "Control": {
+            "properties": {
+                "name": {
+                    "description": "Name of the control",
+                    "title": "Name",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Type of the control",
+                    "title": "Type",
+                    "type": "string"
+                },
+                "settings": {
+                    "title": "Settings",
+                    "type": "object"
+                }
+            },
+            "required": [
+                "name",
+                "type",
+                "settings"
+            ],
+            "title": "Control",
+            "type": "object"
+        },
+        "FilterSettings": {
+            "properties": {
+                "filter_type": {
+                    "description": "Type of filter",
+                    "title": "Filter Type",
+                    "type": "string"
+                },
+                "filter_radius": {
+                    "description": "Radius of the filter",
+                    "title": "Filter Radius",
+                    "type": "number"
+                }
+            },
+            "required": [
+                "filter_type",
+                "filter_radius"
+            ],
+            "title": "FilterSettings",
+            "type": "object"
+        },
+        "LinearStrainEnergyResponse": {
+            "properties": {
+                "name": {
+                    "description": "Name of the response",
+                    "title": "Name",
+                    "type": "string"
+                },
+                "type": {
+                    "const": "linear_strain_energy_response_function",
+                    "default": "linear_strain_energy_response_function",
+                    "description": "Type of the response",
+                    "title": "Type",
+                    "type": "string"
+                },
+                "settings": {
+                    "$ref": "#/$defs/LinearStrainEnergyResponseSettings"
+                }
+            },
+            "required": [
+                "name",
+                "settings"
+            ],
+            "title": "LinearStrainEnergyResponse",
+            "type": "object"
+        },
+        "LinearStrainEnergyResponseSettings": {
+            "properties": {
+                "evaluated_model_part_names": {
+                    "description": "List of model part names to evaluate",
+                    "items": {
+                        "type": "string"
+                    },
+                    "title": "Evaluated Model Part Names",
+                    "type": "array"
+                },
+                "primal_analysis_name": {
+                    "description": "Name of the primal analysis",
+                    "title": "Primal Analysis Name",
+                    "type": "string"
+                },
+                "perturbation_size": {
+                    "description": "Perturbation size for the response",
+                    "title": "Perturbation Size",
+                    "type": "number"
+                }
+            },
+            "required": [
+                "evaluated_model_part_names",
+                "primal_analysis_name",
+                "perturbation_size"
+            ],
+            "title": "LinearStrainEnergyResponseSettings",
+            "type": "object"
+        },
+        "MassResponse": {
+            "properties": {
+                "name": {
+                    "description": "Name of the response",
+                    "title": "Name",
+                    "type": "string"
+                },
+                "type": {
+                    "const": "mass_response_function",
+                    "default": "mass_response_function",
+                    "description": "Type of the response",
+                    "title": "Type",
+                    "type": "string"
+                },
+                "settings": {
+                    "$ref": "#/$defs/MassResponseSettings"
+                }
+            },
+            "required": [
+                "name",
+                "settings"
+            ],
+            "title": "MassResponse",
+            "type": "object"
+        },
+        "MassResponseSettings": {
+            "properties": {
+                "evaluated_model_part_names": {
+                    "description": "List of model part names to evaluate",
+                    "items": {
+                        "type": "string"
+                    },
+                    "title": "Evaluated Model Part Names",
+                    "type": "array"
+                }
+            },
+            "required": [
+                "evaluated_model_part_names"
+            ],
+            "title": "MassResponseSettings",
+            "type": "object"
+        },
+        "ModelPartsSchema": {
+            "properties": {
+                "settings": {
+                    "$ref": "#/$defs/Settings"
+                }
+            },
+            "required": [
+                "settings"
+            ],
+            "title": "ModelPartsSchema",
+            "type": "object"
+        },
+        "ProblemDataSchema": {
+            "properties": {
+                "parallel_type": {
+                    "const": "OpenMP",
+                    "default": "OpenMP",
+                    "description": "Type of parallelism",
+                    "title": "Parallel Type",
+                    "type": "string"
+                },
+                "echo_level": {
+                    "default": 0,
+                    "description": "Verbosity level",
+                    "title": "Echo Level",
+                    "type": "integer"
+                }
+            },
+            "title": "ProblemDataSchema",
+            "type": "object"
+        },
+        "ProjectionSettings": {
+            "properties": {
+                "type": {
+                    "description": "Type of projection",
+                    "title": "Type",
+                    "type": "string"
+                },
+                "initial_value": {
+                    "description": "Initial value for projection",
+                    "title": "Initial Value",
+                    "type": "number"
+                },
+                "max_value": {
+                    "description": "Maximum value for projection",
+                    "title": "Max Value",
+                    "type": "number"
+                },
+                "increase_fac": {
+                    "description": "Increase factor for projection",
+                    "title": "Increase Fac",
+                    "type": "number"
+                },
+                "update_period": {
+                    "description": "Update period for projection",
+                    "title": "Update Period",
+                    "type": "integer"
+                },
+                "penalty_factor": {
+                    "description": "Penalty factor for projection",
+                    "title": "Penalty Factor",
+                    "type": "number"
+                }
+            },
+            "required": [
+                "type",
+                "initial_value",
+                "max_value",
+                "increase_fac",
+                "update_period",
+                "penalty_factor"
+            ],
+            "title": "ProjectionSettings",
+            "type": "object"
+        },
+        "Response": {
+            "properties": {
+                "name": {
+                    "description": "Name of the response",
+                    "title": "Name",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Type of the response",
+                    "title": "Type",
+                    "type": "string"
+                },
+                "settings": {
+                    "title": "Settings",
+                    "type": "object"
+                }
+            },
+            "required": [
+                "name",
+                "type",
+                "settings"
+            ],
+            "title": "Response",
+            "type": "object"
+        },
+        "Settings": {
+            "properties": {
+                "model_part_name": {
+                    "description": "Name of the model part",
+                    "title": "Model Part Name",
+                    "type": "string"
+                },
+                "domain_size": {
+                    "description": "Dimension of the model part",
+                    "enum": [
+                        2,
+                        3
+                    ],
+                    "title": "Domain Size",
+                    "type": "integer"
+                },
+                "input_filename": {
+                    "description": "Name of the input file",
+                    "title": "Input Filename",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "model_part_name",
+                "domain_size",
+                "input_filename"
+            ],
+            "title": "Settings",
+            "type": "object"
+        },
+        "ThicknessControl": {
+            "properties": {
+                "name": {
+                    "description": "Name of the control",
+                    "title": "Name",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Type of the control",
+                    "title": "Type",
+                    "type": "string"
+                },
+                "settings": {
+                    "$ref": "#/$defs/ThicknessControlSettings"
+                }
+            },
+            "required": [
+                "name",
+                "type",
+                "settings"
+            ],
+            "title": "ThicknessControl",
+            "type": "object"
+        },
+        "ThicknessControlSettings": {
+            "properties": {
+                "controlled_model_part_names": {
+                    "description": "List of model part names to control",
+                    "items": {
+                        "type": "string"
+                    },
+                    "title": "Controlled Model Part Names",
+                    "type": "array"
+                },
+                "filter_settings": {
+                    "$ref": "#/$defs/FilterSettings",
+                    "description": "Filter settings"
+                },
+                "output_all_fields": {
+                    "description": "Flag to output all fields",
+                    "title": "Output All Fields",
+                    "type": "boolean"
+                },
+                "physical_thicknesses": {
+                    "description": "List of physical thicknesses",
+                    "items": {
+                        "type": "number"
+                    },
+                    "title": "Physical Thicknesses",
+                    "type": "array"
+                },
+                "thickness_projection_settings": {
+                    "$ref": "#/$defs/ProjectionSettings"
+                }
+            },
+            "required": [
+                "controlled_model_part_names",
+                "filter_settings",
+                "output_all_fields",
+                "physical_thicknesses",
+                "thickness_projection_settings"
+            ],
+            "title": "ThicknessControlSettings",
+            "type": "object"
+        }
+    },
+    "properties": {
+        "problem_data": {
+            "$ref": "#/$defs/ProblemDataSchema",
+            "description": "Problem data"
+        },
+        "model_parts": {
+            "description": "List of model parts",
+            "items": {
+                "$ref": "#/$defs/ModelPartsSchema"
+            },
+            "title": "Model Parts",
+            "type": "array"
+        },
+        "analyses": {
+            "description": "List of responses",
+            "items": {},
+            "title": "Analyses",
+            "type": "array"
+        },
+        "responses": {
+            "description": "List of responses",
+            "items": {
+                "anyOf": [
+                    {
+                        "$ref": "#/$defs/Response"
+                    },
+                    {
+                        "$ref": "#/$defs/MassResponse"
+                    },
+                    {
+                        "$ref": "#/$defs/LinearStrainEnergyResponse"
+                    }
+                ]
+            },
+            "title": "Responses",
+            "type": "array"
+        },
+        "controls": {
+            "description": "List of controls",
+            "items": {
+                "anyOf": [
+                    {
+                        "$ref": "#/$defs/ThicknessControl"
+                    },
+                    {
+                        "$ref": "#/$defs/Control"
+                    }
+                ]
+            },
+            "title": "Controls",
+            "type": "array"
+        },
+        "algorithm_settings": {
+            "description": "Algorithm settings",
+            "title": "Algorithm Settings",
+            "type": "object"
+        },
+        "processes": {
+            "description": "List of processes",
+            "title": "Processes",
+            "type": "object"
+        }
+    },
+    "required": [
+        "problem_data",
+        "model_parts",
+        "analyses",
+        "responses",
+        "controls",
+        "algorithm_settings",
+        "processes"
+    ],
+    "title": "BaseSchema",
+    "type": "object"
+}
