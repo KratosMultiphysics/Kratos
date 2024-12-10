@@ -13,6 +13,9 @@ from KratosMultiphysics.FSIApplication import convergence_accelerator_factory
 # Importing the base class
 from KratosMultiphysics.python_solver import PythonSolver
 
+# Importing Kratos utilities
+from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
+
 def CreateSolver(main_model_part, custom_settings):
     return ConjugateHeatTransferSolver(main_model_part, custom_settings)
 
@@ -159,6 +162,22 @@ class ConjugateHeatTransferSolver(PythonSolver):
     def ImportModelPart(self):
         # Import the fluid domain in the fluid dynamics solver
         self.fluid_solver.ImportModelPart()
+
+        #TODO: Remove this after the deprecation period
+        # Keep this for a while for retrocompatibility (ConnectivityPreserveModeler must be called at the stage modelers section)
+        if not self.settings["fluid_domain_solver_settings"]["fluid_solver_settings"]["model_import_settings"]["input_type"].GetString() == "use_input_model_part":
+            IssueDeprecationWarning("ConjugateHeatTransferSolver", "Using the old I/O at the solver level. Please use the geometry-based one with modelers.")
+            modeler = KratosMultiphysics.ConnectivityPreserveModeler()
+            if(self.domain_size == 2):
+                modeler.GenerateModelPart(self.fluid_solver.main_model_part,
+                                        self.fluid_thermal_solver.main_model_part,
+                                        "Element2D3N",
+                                        "LineCondition2D2N")
+            else:
+                modeler.GenerateModelPart(self.fluid_solver.main_model_part,
+                                        self.fluid_thermal_solver.main_model_part,
+                                        "Element3D4N",
+                                        "SurfaceCondition3D3N")
 
         # Set the saved convection diffusion settings to the new thermal model part
         self.fluid_thermal_solver.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, self.fluid_convection_diffusion_settings_aux_copy)
@@ -376,6 +395,7 @@ class ConjugateHeatTransferSolver(PythonSolver):
         for node in self._get_dirichlet_coupling_interface().Nodes:
             node.Fix(KratosMultiphysics.TEMPERATURE)
 
+    #TODO: Use MappingApplication in here
     def _set_up_mappers(self):
         # Set mappers settings
         mappers_settings = self.settings["coupling_settings"]["mappers_settings"]
