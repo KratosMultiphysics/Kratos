@@ -20,6 +20,7 @@
 #include <sstream>
 #include <cstddef>
 #include <utility>
+#include <type_traits>
 
 // External includes
 #include <boost/iterator/indirect_iterator.hpp>
@@ -647,10 +648,23 @@ public:
     template <class InputIterator>
     void insert(InputIterator first, InputIterator last)
     {
-        // first sorts the input iterators and make the input unique.
-        std::sort(first, last, CompareKey());
-        auto new_last = std::unique(first, last, EqualKeyTo());
-        SortedInsert(first, new_last);
+        if constexpr(std::is_assignable_v<decltype(*std::declval<InputIterator>()), decltype(*std::declval<InputIterator>())>) {
+            // first sorts the input iterators and make the input unique if the iterators are assignable
+            std::sort(first, last, CompareKey());
+            auto new_last = std::unique(first, last, EqualKeyTo());
+            SortedInsert(first, new_last);
+        } else {
+            // the iterators are not assignable, hence they may be coming from a const vector, So, we need to make a copy
+            // to do the sort and unique.
+            std::vector<TPointerType> temp;
+            temp.reserve(std::distance(first, last));
+            for (auto it = first; it != last; ++it) {
+                temp.push_back(GetPointer(it));
+            }
+            std::sort(temp.begin(), temp.end(), CompareKey());
+            auto new_last = std::unique(temp.begin(), temp.end(), EqualKeyTo());
+            SortedInsert(temp.begin(), new_last);
+        }
     }
 
     /**
