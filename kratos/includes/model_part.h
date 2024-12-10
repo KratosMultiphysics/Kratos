@@ -1397,14 +1397,45 @@ public:
             }
         });
 
-        // Add to root model part
-        p_root_model_part->Geometries().insert(GeometryBegin, GeometriesEnd);
-
-        // Add to all of the leaves
         ModelPart* p_current_part = this;
-        while(p_current_part->IsSubModelPart()) {
-            p_current_part->Geometries().insert(GeometryBegin, GeometriesEnd);
-            p_current_part = &(p_current_part->GetParentModelPart());
+        if constexpr(std::is_same_v<iterator, std::remove_cv<TIteratorType>>) {
+            // if the given iterators are of PointerVectorSet::iterator, then they may be trying to add
+            // new entities using a parent PointerVectorSet iterators.
+            do {
+                // check if the given [GeometryBegin, end) range is a subset of the given PointerVectorSet.
+                auto& current_pvs = p_current_part->Geometries();
+
+                auto current_pvs_begin_iterator = current_pvs.find(*GeometryBegin->Id());
+                // now we check whether the current_pvs_begin_iterator's pointing (the pointer, not the iterator) memory location
+                // is same as the memory location of the pointer pointed by the GeometryBegin
+                if (current_pvs_begin_iterator != current_pvs.end() && &current_pvs_begin_iterator->base() == &GeometryBegin->base()) {
+                    // memory location pointing to GeometryBegin is in the current_pvs. then check the same for the end.
+                    auto current_pvs_end_iterator = current_pvs.find(*(GeometryBegin - 1) ->Id());
+
+                    // now we check whether the current_pvs_end_iterator's pointing (the pointer, not the iterator) memory location
+                    // is same as the memory location of the pointer pointed by the end
+                    if (current_pvs_end_iterator != current_pvs.end() && &current_pvs_end_iterator->base() == &GeometriesEnd->base()) {
+                        // now we can safely assume that the given [GeometryBegin, GeometriesEnd) range is a subset of the current_pvs.
+                        // hence we don't have to add anything here.
+                        // and we don't have to add it to the parents of the PVS, because they should be already there.
+                        break;
+                    } else {
+                        // now we can safely assume that the given [GeometryBegin, GeometriesEnd) range is not a subset of the current_pvs.
+                        // hence we have to add the given range
+                        current_pvs.insert(GeometryBegin, GeometriesEnd);
+                    }
+                } else {
+                    // now we can safely assume that the given [GeometryBegin, GeometriesEnd) range is not a subset of the current_pvs.
+                    // hence we have to add the given range
+                    current_pvs.insert(GeometryBegin, GeometriesEnd);
+                }
+                p_current_part = &(p_current_part->GetParentModelPart());
+            } while (p_current_part->IsSubModelPart());
+        } else {
+            do {
+                p_current_part->Geometries().insert(GeometryBegin, GeometriesEnd);
+                p_current_part = &(p_current_part->GetParentModelPart());
+            } while (p_current_part->IsSubModelPart());
         }
 
         KRATOS_CATCH("")
@@ -1860,13 +1891,18 @@ private:
         void operator()(TIterator begin, TIterator end) {
             KRATOS_TRY
 
+            // do nothing if the begin and end are the same
+            if (std::distance(begin, end) == 0) {
+                return;
+            }
+
             ModelPart* p_root_model_part = &mpModelPart->GetRootModelPart();
 
             block_for_each(begin, end, [&](const auto& prEntity) {
                 const auto& r_entity = ReferenceGetter<typename TContainerType::value_type>::Get(prEntity);
                 const auto& r_entities = Container<TContainerType>::GetContainer(p_root_model_part->GetMesh()); // TODO: This is only required to only trigger a find, not a sort. Once the find is fixed, then we can simplify this.
                 auto it_found = r_entities.find(r_entity.Id());
-                KRATOS_ERROR_IF_NOT(&r_entity == &*it_found)
+                KRATOS_ERROR_IF(it_found != r_entities.end() && &r_entity != &*it_found)
                     << "attempting to add a new " << Container<TContainerType>::GetEntityName() << " with Id :"
                     << r_entity.Id() << " to root model part " << p_root_model_part->FullName()
                     << ", unfortunately a (different) " << Container<TContainerType>::GetEntityName()
@@ -1875,15 +1911,46 @@ private:
                     << std::endl;
             });
 
-            //now add to the root model part
-            Container<TContainerType>::GetContainer(p_root_model_part->GetMesh()).insert(begin, end);
-
-            //add to all of the parents
             ModelPart* p_current_part = mpModelPart;
-            while(p_current_part->IsSubModelPart()) {
-                Container<TContainerType>::GetContainer(p_current_part->GetMesh()).insert(begin, end);
+            do {
+                auto& current_pvs = Container<TContainerType>::GetContainer(p_current_part->GetMesh());
+
+                if constexpr(std::is_same_v<iterator, std::remove_cv<TIterator>>) {
+                    // if the given iterators are of PointerVectorSet::iterator, then they may be trying to add
+                    // new entities using a parent PointerVectorSet iterators.
+
+                    // check if the given [begin, end) range is a subset of the given PointerVectorSet.
+                    auto current_pvs_begin_iterator = current_pvs.find(*begin->Id());
+                    // now we check whether the current_pvs_begin_iterator's pointing (the pointer, not the iterator) memory location
+                    // is same as the memory location of the pointer pointed by the begin
+                    if (current_pvs_begin_iterator != current_pvs.end() && &current_pvs_begin_iterator->base() == &begin->base()) {
+                        // memory location pointing to begin is in the current_pvs. then check the same for the end.
+                        auto current_pvs_end_iterator = current_pvs.find(*(end - 1)->Id());
+
+                        // now we check whether the current_pvs_end_iterator's pointing (the pointer, not the iterator) memory location
+                        // is same as the memory location of the pointer pointed by the end
+                        if (current_pvs_end_iterator != current_pvs.end() && &current_pvs_end_iterator->base() == &end->base()) {
+                            // now we can safely assume that the given [begin, end) range is a subset of the current_pvs.
+                            // hence we don't have to add anything here.
+                            // and we don't have to add it to the parents of the PVS, because they should be already there.
+                            break;
+                        } else {
+                            // now we can safely assume that the given [begin, end) range is not a subset of the current_pvs.
+                            // hence we have to add the given range
+                            current_pvs.insert(begin, end);
+                        }
+                    } else {
+                        // now we can safely assume that the given [begin, end) range is not a subset of the current_pvs.
+                        // hence we have to add the given range
+                        current_pvs.insert(begin, end);
+                    }
+                } else {
+                    current_pvs.insert(begin, end);
+                }
+
+                // now get the parent.
                 p_current_part = &(p_current_part->GetParentModelPart());
-            }
+            } while (p_current_part->IsSubModelPart());
 
             KRATOS_CATCH("")
         }
