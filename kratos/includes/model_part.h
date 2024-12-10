@@ -364,8 +364,12 @@ public:
     template<class TIteratorType >
     void AddNodes(TIteratorType nodes_begin,  TIteratorType nodes_end, IndexType ThisIndex = 0)
     {
-        EntityInserter<NodesContainerType> inserter{this};
-        inserter.operator()(nodes_begin, nodes_end);
+        EntityRangeChecker<NodesContainerType> checker{this};
+        checker.operator()(nodes_begin, nodes_end);
+
+        InsertEntityRange([](ModelPart* pModelPart) {
+            return &(pModelPart->GetMesh().Nodes());
+        }, nodes_begin, nodes_end);
     }
 
     /** Inserts a node in the current mesh.
@@ -663,8 +667,12 @@ public:
     template<class TIteratorType >
     void AddMasterSlaveConstraints(TIteratorType constraints_begin,  TIteratorType constraints_end, IndexType ThisIndex = 0)
     {
-        EntityInserter<MasterSlaveConstraintContainerType> inserter{this};
-        inserter.operator()(constraints_begin, constraints_end);
+        EntityRangeChecker<MasterSlaveConstraintContainerType> checker{this};
+        checker.operator()(constraints_begin, constraints_end);
+
+        InsertEntityRange([](ModelPart* pModelPart) {
+            return &(pModelPart->GetMesh().MasterSlaveConstraints());
+        }, constraints_begin, constraints_end);
     }
 
     /**
@@ -973,8 +981,12 @@ public:
     template<class TIteratorType >
     void AddElements(TIteratorType elements_begin,  TIteratorType elements_end, IndexType ThisIndex = 0)
     {
-        EntityInserter<ElementsContainerType> inserter{this};
-        inserter.operator()(elements_begin, elements_end);
+        EntityRangeChecker<ElementsContainerType> checker{this};
+        checker.operator()(elements_begin, elements_end);
+
+        InsertEntityRange([](ModelPart* pModelPart) {
+            return &(pModelPart->GetMesh().Elements());
+        }, elements_begin, elements_end);
     }
 
     /// Creates new element with a node ids list.
@@ -1126,8 +1138,12 @@ public:
     template<class TIteratorType >
     void AddConditions(TIteratorType conditions_begin,  TIteratorType conditions_end, IndexType ThisIndex = 0)
     {
-        EntityInserter<ConditionsContainerType> inserter{this};
-        inserter.operator()(conditions_begin, conditions_end);
+        EntityRangeChecker<ConditionsContainerType> checker{this};
+        checker.operator()(conditions_begin, conditions_end);
+
+        InsertEntityRange([](ModelPart* pModelPart) {
+            return &(pModelPart->GetMesh().Conditions());
+        }, conditions_begin, conditions_end);
     }
 
     /// Creates new condition with a node ids list.
@@ -1397,46 +1413,9 @@ public:
             }
         });
 
-        ModelPart* p_current_part = this;
-        if constexpr(std::is_same_v<iterator, std::remove_cv<TIteratorType>>) {
-            // if the given iterators are of PointerVectorSet::iterator, then they may be trying to add
-            // new entities using a parent PointerVectorSet iterators.
-            do {
-                // check if the given [GeometryBegin, end) range is a subset of the given PointerVectorSet.
-                auto& current_pvs = p_current_part->Geometries();
-
-                auto current_pvs_begin_iterator = current_pvs.find(*GeometryBegin->Id());
-                // now we check whether the current_pvs_begin_iterator's pointing (the pointer, not the iterator) memory location
-                // is same as the memory location of the pointer pointed by the GeometryBegin
-                if (current_pvs_begin_iterator != current_pvs.end() && &current_pvs_begin_iterator->base() == &GeometryBegin->base()) {
-                    // memory location pointing to GeometryBegin is in the current_pvs. then check the same for the end.
-                    auto current_pvs_end_iterator = current_pvs.find(*(GeometryBegin - 1) ->Id());
-
-                    // now we check whether the current_pvs_end_iterator's pointing (the pointer, not the iterator) memory location
-                    // is same as the memory location of the pointer pointed by the end
-                    if (current_pvs_end_iterator != current_pvs.end() && &current_pvs_end_iterator->base() == &GeometriesEnd->base()) {
-                        // now we can safely assume that the given [GeometryBegin, GeometriesEnd) range is a subset of the current_pvs.
-                        // hence we don't have to add anything here.
-                        // and we don't have to add it to the parents of the PVS, because they should be already there.
-                        break;
-                    } else {
-                        // now we can safely assume that the given [GeometryBegin, GeometriesEnd) range is not a subset of the current_pvs.
-                        // hence we have to add the given range
-                        current_pvs.insert(GeometryBegin, GeometriesEnd);
-                    }
-                } else {
-                    // now we can safely assume that the given [GeometryBegin, GeometriesEnd) range is not a subset of the current_pvs.
-                    // hence we have to add the given range
-                    current_pvs.insert(GeometryBegin, GeometriesEnd);
-                }
-                p_current_part = &(p_current_part->GetParentModelPart());
-            } while (p_current_part->IsSubModelPart());
-        } else {
-            do {
-                p_current_part->Geometries().insert(GeometryBegin, GeometriesEnd);
-                p_current_part = &(p_current_part->GetParentModelPart());
-            } while (p_current_part->IsSubModelPart());
-        }
+        InsertEntityRange([](ModelPart* pModelPart) {
+            return &(pModelPart->Geometries());
+        }, GeometryBegin, GeometriesEnd);
 
         KRATOS_CATCH("")
     }
@@ -1883,18 +1862,13 @@ private:
     };
 
     template<class TContainerType>
-    struct EntityInserter
-    {
+    struct EntityRangeChecker{
+
         ModelPart* mpModelPart;
 
         template<class TIterator>
         void operator()(TIterator begin, TIterator end) {
             KRATOS_TRY
-
-            // do nothing if the begin and end are the same
-            if (std::distance(begin, end) == 0) {
-                return;
-            }
 
             ModelPart* p_root_model_part = &mpModelPart->GetRootModelPart();
 
@@ -1910,51 +1884,120 @@ private:
                     << " to " << mpModelPart->FullName() << " ]."
                     << std::endl;
             });
-
-            ModelPart* p_current_part = mpModelPart;
-            do {
-                auto& current_pvs = Container<TContainerType>::GetContainer(p_current_part->GetMesh());
-
-                if constexpr(std::is_same_v<iterator, std::remove_cv<TIterator>>) {
-                    // if the given iterators are of PointerVectorSet::iterator, then they may be trying to add
-                    // new entities using a parent PointerVectorSet iterators.
-
-                    // check if the given [begin, end) range is a subset of the given PointerVectorSet.
-                    auto current_pvs_begin_iterator = current_pvs.find(*begin->Id());
-                    // now we check whether the current_pvs_begin_iterator's pointing (the pointer, not the iterator) memory location
-                    // is same as the memory location of the pointer pointed by the begin
-                    if (current_pvs_begin_iterator != current_pvs.end() && &current_pvs_begin_iterator->base() == &begin->base()) {
-                        // memory location pointing to begin is in the current_pvs. then check the same for the end.
-                        auto current_pvs_end_iterator = current_pvs.find(*(end - 1)->Id());
-
-                        // now we check whether the current_pvs_end_iterator's pointing (the pointer, not the iterator) memory location
-                        // is same as the memory location of the pointer pointed by the end
-                        if (current_pvs_end_iterator != current_pvs.end() && &current_pvs_end_iterator->base() == &end->base()) {
-                            // now we can safely assume that the given [begin, end) range is a subset of the current_pvs.
-                            // hence we don't have to add anything here.
-                            // and we don't have to add it to the parents of the PVS, because they should be already there.
-                            break;
-                        } else {
-                            // now we can safely assume that the given [begin, end) range is not a subset of the current_pvs.
-                            // hence we have to add the given range
-                            current_pvs.insert(begin, end);
-                        }
-                    } else {
-                        // now we can safely assume that the given [begin, end) range is not a subset of the current_pvs.
-                        // hence we have to add the given range
-                        current_pvs.insert(begin, end);
-                    }
-                } else {
-                    current_pvs.insert(begin, end);
-                }
-
-                // now get the parent.
-                p_current_part = &(p_current_part->GetParentModelPart());
-            } while (p_current_part->IsSubModelPart());
-
-            KRATOS_CATCH("")
+            KRATOS_CATCH("");
         }
     };
+
+    /**
+     * @brief
+     * @details Assume the following model part structure:
+     *                 MainModelPart
+     *                      -- SubModelPart1
+     *                          -- SubSubModelPart1
+     *                          -- SubSubModelPart2
+     *
+     *                  now we try to add nodes in the following order which are stored in std::vector<Node::Pointer> aux
+     *                      1. MainModelPart.insert(aux.begin(), aux.end());
+     *                      2. SubModelPart2.insert(MainModelPart.begin(), MainModelPart.end())
+     *
+     *                  In the second step, it will try to add the root model part nodes to the SubModelPart2. In this case,
+     *                  We need to be careful when inserting because:
+     *                      1. Every range insertion will invalidate the iterators of the respective PointerVectorSet because
+     *                         at the end of the range insertion, we do a swap between the underlying container of PointerVectorSet.
+     *                      2. We need valid iterators to insert for all the parent model parts.
+     *
+     *                  Therefore, in this method, if the iterator type is of the same PointerVectorSet::iterator (means, the iterator originated from
+     *                  a PointerVectorSet of the same type), then we check the raw memory pointed by the iterators [begin, end) (PointerVectorSet::pointer type object memory location,
+     *                  not the PointerVectorSet::value_type memory location) are a subset of the same memory range pointed by PointerVectorSet::begin and PointerVectorSet::end.
+     *                      - If they are a subset, we don't do anything, and we will avoid recursively filling parents as well because, at this point parents should be already filled.
+     *                      - If they are not a subset, then we insert them. That means, the range given for insertion did not originate from the current ModelPart, hence it will not
+     *                        invalidate the range [begin, end).
+     *                  If the iterator type not of the same PointerVectorSet::iterator, then we insert them in normal manner.
+     * @tparam TContainerGetter
+     * @tparam TIterator
+     * @param pModelPart
+     * @param rContainerGetter
+     * @param begin
+     * @param end
+     * @return true
+     * @return false
+     */
+    template<class TContainerGetter, class TIterator>
+    static bool InsertEntityRange(
+        ModelPart* pModelPart,
+        TContainerGetter&& rContainerGetter,
+        TIterator begin,
+        TIterator end)
+    {
+        KRATOS_TRY
+
+        auto& current_pvs = *rContainerGetter(pModelPart);
+
+        if constexpr(std::is_same_v<iterator, std::remove_cv<TIterator>>) {
+            // do nothing if the given range is empty.
+            if (std::distance(begin, end) == 0) {
+                return false;
+            }
+
+            // if the given iterators are of PointerVectorSet::iterator, then they may be trying to add
+            // new entities using a parent PointerVectorSet iterators.
+
+            // check if the given [begin, end) range is a subset of the given PointerVectorSet.
+            auto current_pvs_begin_iterator = current_pvs.find(*begin->Id());
+            // now we check whether the current_pvs_begin_iterator's pointing (the pointer, not the iterator) memory location
+            // is same as the memory location of the pointer pointed by the begin
+            if (current_pvs_begin_iterator != current_pvs.end() && &current_pvs_begin_iterator->base() == &begin->base()) {
+                // memory location pointing to begin is in the current_pvs. then check the same for the end.
+                auto current_pvs_end_iterator = current_pvs.find(*(end - 1)->Id());
+
+                // now we check whether the current_pvs_end_iterator's pointing (the pointer, not the iterator) memory location
+                // is same as the memory location of the pointer pointed by the end
+                if (current_pvs_end_iterator != current_pvs.end() && &current_pvs_end_iterator->base() == &end->base()) {
+                    // now we can safely assume that the given [begin, end) range is a subset of the current_pvs.
+                    // hence we don't have to add anything here.
+                    // and we don't have to add it to the parents of the PVS, because they should be already there.
+                    return false;
+                } else {
+                    // now we can safely assume that the given [begin, end) range is not a subset of the current_pvs.
+                    // hence we have to add the given range
+                    current_pvs.insert(begin, end);
+                }
+            } else {
+                // now we can safely assume that the given [begin, end) range is not a subset of the current_pvs.
+                // hence we have to add the given range
+                current_pvs.insert(begin, end);
+            }
+        } else {
+            current_pvs.insert(begin, end);
+        }
+
+        return true;
+
+        KRATOS_CATCH("");
+    }
+
+    template<class TContainerGetter, class TIterator>
+    void InsertEntityRange(
+        TContainerGetter&& rContainerGetter,
+        TIterator begin,
+        TIterator end)
+    {
+        KRATOS_TRY
+
+        ModelPart* p_current_part = this;
+        bool has_range_added = true;
+        while (p_current_part->IsSubModelPart() && has_range_added) {
+            has_range_added = InsertEntityRange(p_current_part, rContainerGetter, begin, end);
+            p_current_part = &(p_current_part->GetParentModelPart());
+        }
+
+        // now finally add to the root model part
+        if (has_range_added) {
+            InsertEntityRange(&(p_current_part->GetRootModelPart()), rContainerGetter, begin, end);
+        }
+
+        KRATOS_CATCH("")
+    }
 
     /**
      * @brief This method trims a string in the different components to access recursively to any subproperty
