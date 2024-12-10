@@ -1843,6 +1843,16 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief Provides a mechanism to get the reference from given input with some types.
+     * @details The range addition methods in the model parts are used with following types:
+     *              - std::vector<Entity::Pointer>::iterator -> dereference will give the Entity::Pointer
+     *              - PointerVectorSet<Entity>::iterator -> dereference will give the Entity
+     *              - PointerVectorSet<Entity>::ptr_iterator -> dereference will give the Entity::Pointer.
+     *          This functor generalizes and gives the reference from a given entity.
+     *
+     * @tparam TReturnValueType
+     */
     template<class TReturnValueType>
     struct ReferenceGetter
     {
@@ -1861,6 +1871,11 @@ private:
         }
     };
 
+    /**
+     * @brief Generalized checker to check whether if an item being inserted is already there, if so whether the item is the same.
+     *
+     * @tparam TContainerType
+     */
     template<class TContainerType>
     struct EntityRangeChecker{
 
@@ -1889,7 +1904,7 @@ private:
     };
 
     /**
-     * @brief
+     * @brief Insert a given range of entities to a model part container if the given range is not a subset.
      * @details Assume the following model part structure:
      *                 MainModelPart
      *                      -- SubModelPart1
@@ -1913,14 +1928,14 @@ private:
      *                      - If they are not a subset, then we insert them. That means, the range given for insertion did not originate from the current ModelPart, hence it will not
      *                        invalidate the range [begin, end).
      *                  If the iterator type not of the same PointerVectorSet::iterator, then we insert them in normal manner.
-     * @tparam TContainerGetter
-     * @tparam TIterator
-     * @param pModelPart
-     * @param rContainerGetter
-     * @param begin
-     * @param end
-     * @return true
-     * @return false
+     * @tparam TContainerGetter         Lambda function type to get the PointerVectorSet from a ModelPart*
+     * @tparam TIterator                Type of the iterator
+     * @param pModelPart                Model part to get the container from
+     * @param rContainerGetter          Lambda function type to get the PointerVectorSet from a ModelPart* [](ModelPart*) -> PointerVectorSet*
+     * @param begin                     Begining of the range
+     * @param end                       End of the range
+     * @return true                     If the given range is not a subset of the current PointerVectorSet given by rContainerGetter(pModelPart)
+     * @return false                    If the given range is a subset of the current PointerVectorSet given by rContainerGetter(pModelPart)
      */
     template<class TContainerGetter, class TIterator>
     static bool InsertEntityRange(
@@ -1976,6 +1991,15 @@ private:
         KRATOS_CATCH("");
     }
 
+    /**
+     * @brief Generalized method to add entities to the current model part and all the parent model parts.
+     *
+     * @tparam TContainerGetter
+     * @tparam TIterator
+     * @param rContainerGetter
+     * @param begin
+     * @param end
+     */
     template<class TContainerGetter, class TIterator>
     void InsertEntityRange(
         TContainerGetter&& rContainerGetter,
