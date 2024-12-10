@@ -69,11 +69,10 @@ void ConversionUtilities::ConvertElementalDataToNodalDataDirect(
         for (auto& r_node : rElement.GetGeometry().Points()){
             if constexpr(std::is_same_v<TDataType, double>) {
                 AtomicAdd( r_node.FastGetSolutionStepValue(rNodalVariable), (elem_rVariable) );
-                node_element_count[r_node.Id()] += 1;
-
+                AtomicAdd(node_element_count[r_node.Id()], 1);
             } else if constexpr(std::is_same_v<TDataType, array_1d<double, 3>>) {
                 AtomicAddVector( r_node.FastGetSolutionStepValue(rNodalVariable), (elem_rVariable) );
-                node_element_count[r_node.Id()] += 1;
+                AtomicAdd(node_element_count[r_node.Id()], 1);
             } else {
                 static_assert(!std::is_same_v<TDataType, TDataType>, "Unsupported data type.");
             }
@@ -106,14 +105,14 @@ void ConversionUtilities::ConvertNodalDataToElementalDataDirect(
 
         if constexpr(std::is_same_v<TDataType, double>) {
                 double temp = 0.0;
-                for (auto& r_node : rElement.GetGeometry().Points()){
+                for (const auto& r_node : rElement.GetGeometry().Points()){
                     temp += r_node.FastGetSolutionStepValue(rNodalVariable) / num_nodes;
                 } 
                 rElement.SetValue(rElementalVariable, temp);
             }
         else if constexpr(std::is_same_v<TDataType, array_1d<double, 3>>) {
             array_1d<double, 3> temp = ZeroVector(3);
-            for (auto& r_node : rElement.GetGeometry().Points()){
+            for (const auto& r_node : rElement.GetGeometry().Points()){
                 temp += r_node.FastGetSolutionStepValue(rNodalVariable) / num_nodes;
             }
             rElement.SetValue(rElementalVariable, temp);
@@ -139,8 +138,8 @@ void ConversionUtilities::ConvertNodalDataToElementalDataTranspose(
     // count number of shared elements for each node
     std::map<int, int> node_element_count;
     block_for_each(rModelPart.Elements(), [&](Element& rElement){
-        for (auto& r_node : rElement.GetGeometry().Points()){
-            node_element_count[r_node.Id()] += 1;
+        for (const auto& r_node : rElement.GetGeometry().Points()){
+            AtomicAdd(node_element_count[r_node.Id()], 1);
         }
     });
 
@@ -149,14 +148,14 @@ void ConversionUtilities::ConvertNodalDataToElementalDataTranspose(
 
         if constexpr(std::is_same_v<TDataType, double>) {
                 double temp = 0.0;
-                for (auto& r_node : rElement.GetGeometry().Points()){
+                for (const auto& r_node : rElement.GetGeometry().Points()){
                     temp += r_node.FastGetSolutionStepValue(rNodalVariable) / node_element_count[r_node.Id()];
                 } 
                 rElement.SetValue(rElementalVariable, temp);
             }
         else if constexpr(std::is_same_v<TDataType, array_1d<double, 3>>) {
             array_1d<double, 3> temp = ZeroVector(3);
-            for (auto& r_node : rElement.GetGeometry().Points()){
+            for (const auto& r_node : rElement.GetGeometry().Points()){
                 temp += r_node.FastGetSolutionStepValue(rNodalVariable) / node_element_count[r_node.Id()];
             }
             rElement.SetValue(rElementalVariable, temp);
