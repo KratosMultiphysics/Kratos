@@ -63,7 +63,7 @@ namespace Kratos
         mMPMUpdatedLagrangian(0, Element::GeometryType::Pointer(new GeometryType(Element::GeometryType::PointsArrayType(0)))),
         mMPMUpdatedLagrangianUP(0, Element::GeometryType::Pointer(new GeometryType(Element::GeometryType::PointsArrayType(0)))),
         mMPMUpdatedLagrangianPQ(0, Element::GeometryType::Pointer(new GeometryType(Element::GeometryType::PointsArrayType(0)))),
-
+        mMPMUpdatedLagrangianVPVMS(0, Element::GeometryType::Pointer(new GeometryType(Element::GeometryType::PointsArrayType(0)))),
 
         /// Deprecated Elements
         mMPMUpdatedLagrangian2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
@@ -117,11 +117,13 @@ namespace Kratos
         KRATOS_REGISTER_ELEMENT("MPMUpdatedLagrangianUP", mMPMUpdatedLagrangianUP)
         KRATOS_REGISTER_ELEMENT("MPMUpdatedLagrangianPQ", mMPMUpdatedLagrangianPQ)
         KRATOS_REGISTER_ELEMENT("MPMUpdatedLagrangianUPVMS", mMPMUpdatedLagrangianUPVMS)
+        KRATOS_REGISTER_ELEMENT("MPMUpdatedLagrangianVPVMS", mMPMUpdatedLagrangianVPVMS)
 
         // Deprecated elements
         KRATOS_REGISTER_ELEMENT( "MPMUpdatedLagrangian2D3N", mMPMUpdatedLagrangian2D3N )
         KRATOS_REGISTER_ELEMENT( "MPMUpdatedLagrangian3D4N", mMPMUpdatedLagrangian3D4N )
         KRATOS_REGISTER_ELEMENT( "MPMUpdatedLagrangianUP2D3N", mMPMUpdatedLagrangianUP2D3N )
+
         //KRATOS_REGISTER_ELEMENT( "MPMUpdatedLagrangianUP3D4N", mMPMUpdatedLagrangianUP3D4N )
         KRATOS_REGISTER_ELEMENT( "MPMUpdatedLagrangian2D4N", mMPMUpdatedLagrangian2D4N )
         KRATOS_REGISTER_ELEMENT( "MPMUpdatedLagrangian3D8N", mMPMUpdatedLagrangian3D8N )
@@ -177,6 +179,8 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE( NODAL_MPRESSURE )
         KRATOS_REGISTER_VARIABLE(IS_COMPRESSIBLE)
         KRATOS_REGISTER_VARIABLE(IS_MIXED_FORMULATION)
+        KRATOS_REGISTER_VARIABLE(IS_MIXED_VP)
+
 
         // Registering consitutive law variables
         KRATOS_REGISTER_VARIABLE( CONSTITUTIVE_LAW_POINTER )

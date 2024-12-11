@@ -68,7 +68,8 @@ namespace Kratos::MaterialPointGeneratorUtility
     void GenerateMaterialPointElement(  ModelPart& rBackgroundGridModelPart,
                                         ModelPart& rInitialModelPart,
                                         ModelPart& rMPMModelPart,
-                                        bool IsMixedFormulation=false);
+                                        bool IsMixedFormulation=false,
+                                        bool IsMixedVP=false);
     /**
      * @brief Function to Initiate material point condition.
      * @details Generating material point condition using a designated shape functions
@@ -76,7 +77,8 @@ namespace Kratos::MaterialPointGeneratorUtility
     template<SizeType TDimension>
     void GenerateMaterialPointCondition(ModelPart& rBackgroundGridModelPart,
                                             ModelPart& rInitialModelPart,
-                                            ModelPart& rMPMModelPart);
+                                            ModelPart& rMPMModelPart,
+                                            bool IsMixedVP=false);
     /**
      * @brief Function to Initiate material point condition.
      * @details Generating material point condition using a designated shape functions
@@ -84,6 +86,7 @@ namespace Kratos::MaterialPointGeneratorUtility
     void KRATOS_API(MPM_APPLICATION) GenerateMaterialPointCondition(
                                             ModelPart& rBackgroundGridModelPart,
                                             ModelPart& rInitialModelPart,
-                                            ModelPart& rMPMModelPart);
+                                            ModelPart& rMPMModelPart,
+                                            bool IsMixedVP=false);
 
 } // end namespace Kratos::MaterialPointGeneratorUtility

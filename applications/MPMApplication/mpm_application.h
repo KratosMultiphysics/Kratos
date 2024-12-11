@@ -16,7 +16,7 @@
 #define  KRATOS_MPM_APPLICATION_H_INCLUDED
 
 // System includes
-#include <string>
+#include <string> 
 #include <iostream>
 
 // External includes
@@ -51,8 +51,7 @@
 #include "custom_elements/mpm_updated_lagrangian_UP.hpp"
 #include "custom_elements/mpm_updated_lagrangian_PQ.hpp"
 #include "custom_elements/mpm_updated_lagrangian_UP_VMS.hpp"
-
-
+#include "custom_elements/mpm_updated_lagrangian_VP_VMS.hpp" 
 
 //---constitutive laws
 #include "custom_constitutive/linear_elastic_3D_law.hpp"
@@ -242,7 +241,7 @@ private:
     const MPMUpdatedLagrangianUP mMPMUpdatedLagrangianUP;
     const MPMUpdatedLagrangianPQ mMPMUpdatedLagrangianPQ;
     const MPMUpdatedLagrangianUPVMS mMPMUpdatedLagrangianUPVMS;
-
+    const MPMUpdatedLagrangianVPVMS mMPMUpdatedLagrangianVPVMS;
 
     // Deprecated Elements
     const MPMUpdatedLagrangian mMPMUpdatedLagrangian2D3N;

@@ -44,7 +44,8 @@ class MPMImplicitDynamicSolver(MPMSolver):
         self.grid_model_part.ProcessInfo.SetValue(KratosMPM.IS_MIXED_FORMULATION, is_mixed_formulation)
         if (is_mixed_formulation):
             block_size += 1
-
+        is_mixed_vp = self.settings["velocity_formulation"].GetBool()
+        self.grid_model_part.ProcessInfo.SetValue(KratosMPM.IS_MIXED_VP, is_mixed_vp)
         # Setting the time integration schemes
         scheme_type = self.settings["scheme_type"].GetString()
         if(scheme_type == "newmark"):
@@ -54,18 +55,30 @@ class MPMImplicitDynamicSolver(MPMSolver):
         elif(scheme_type == "bossak"):
             damp_factor_m = self.settings["damp_factor_m"].GetDouble()
             newmark_beta = self.settings["newmark_beta"].GetDouble()
+        elif(scheme_type == "bossakvelocity"):
+            damp_factor_m = self.settings["damp_factor_m"].GetDouble()
+            newmark_beta = self.settings["newmark_beta"].GetDouble()
+            grid_model_part.ProcessInfo.SetValue(KratosMPM.IS_DYNAMIC, True)
         else:
             err_msg = "The requested scheme type \"" + scheme_type + "\" is not available!\n"
-            err_msg += "Available options are: \"newmark\", \"bossak\""
+            err_msg += "Available options are: \"newmark\", \"bossak\", \"bossakvelocity\""
             raise Exception(err_msg)
 
         is_dynamic = self._IsDynamic()
 
-        return KratosMPM.MPMResidualBasedBossakScheme( grid_model_part,
-                                                            domain_size,
-                                                            block_size,
-                                                            damp_factor_m,
-                                                            newmark_beta,
-                                                            is_dynamic)
+        if (scheme_type == "bossakvelocity"):
+            return KratosMPM.MPMResidualBasedBossakVelocityScheme( grid_model_part,
+                                                                domain_size,
+                                                                block_size,
+                                                                damp_factor_m,
+                                                                newmark_beta,
+                                                                is_dynamic)
+        else:
+            return KratosMPM.MPMResidualBasedBossakScheme( grid_model_part,
+                                                                domain_size,
+                                                                block_size,
+                                                                damp_factor_m,
+                                                                newmark_beta,
+                                                                is_dynamic)
     def _IsDynamic(self):
         return True

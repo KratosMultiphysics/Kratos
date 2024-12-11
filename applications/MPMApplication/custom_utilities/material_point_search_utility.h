@@ -178,7 +178,6 @@ namespace Kratos::MPMSearchElementUtility
             bool is_found = false;
             std::vector<array_1d<double, 3>> xg;
             element_itr->CalculateOnIntegrationPoints(MP_COORD, xg, rBackgroundGridModelPart.GetProcessInfo());
-
             GeometryType& r_found_geom = FindGridGeom(element_itr->GetGeometry().GetGeometryParent(0),
                 rBackgroundGridModelPart, Tolerance, xg[0], local_coordinates,
                 rMPMModelPart.GetProcessInfo(), is_found);

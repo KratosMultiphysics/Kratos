@@ -56,6 +56,7 @@ class MPMSolver(PythonSolver):
             "residual_absolute_tolerance"        : 1.0E-9,
             "max_iteration"                      : 20,
             "pressure_dofs"                      : false,
+            "velocity_formulation"               : false,
             "stabilization"                      : "ppp",
             "compressible"                       : true,
             "axis_symmetric_flag"                : false,
@@ -212,6 +213,7 @@ class MPMSolver(PythonSolver):
 
     def _GenerateMaterialPoint(self):
         pressure_dofs          = self.settings["pressure_dofs"].GetBool()
+        velocity_formulation   = self.settings["velocity_formulation"].GetBool() #°
         axis_symmetric_flag    = self.settings["axis_symmetric_flag"].GetBool()
         stabilization_type     = self.settings["stabilization"].GetString()
 
@@ -231,7 +233,8 @@ class MPMSolver(PythonSolver):
             elif (stabilization =="osgs"):
                 stabilization_type = 3
             self.grid_model_part.ProcessInfo.SetValue(KratosMPM.STABILIZATION_TYPE, stabilization_type)
-
+        if velocity_formulation:
+            self.grid_model_part.ProcessInfo.SetValue(KratosMPM.IS_MIXED_VP, True) #°
         # Assigning extra information to the main model part
         self.material_point_model_part.SetNodes(self.grid_model_part.GetNodes())
 
@@ -239,8 +242,8 @@ class MPMSolver(PythonSolver):
             self.material_point_model_part.ProcessInfo = self.grid_model_part.ProcessInfo
 
             # Generate MP Element and Condition
-            KratosMPM.GenerateMaterialPointElement(self.grid_model_part, self.initial_mesh_model_part, self.material_point_model_part, pressure_dofs)
-            KratosMPM.GenerateMaterialPointCondition(self.grid_model_part, self.initial_mesh_model_part, self.material_point_model_part)
+            KratosMPM.GenerateMaterialPointElement(self.grid_model_part, self.initial_mesh_model_part, self.material_point_model_part, pressure_dofs, velocity_formulation) #°
+            KratosMPM.GenerateMaterialPointCondition(self.grid_model_part, self.initial_mesh_model_part, self.material_point_model_part, velocity_formulation)
         else:
             self.grid_model_part.ProcessInfo = self.material_point_model_part.ProcessInfo
 
@@ -286,8 +289,12 @@ class MPMSolver(PythonSolver):
 
 
     def _AddVariablesToModelPart(self, model_part):
-        # Add displacements and reaction
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        # Add displacements (or velocities) and reaction
+        #°
+        if self.settings["velocity_formulation"].GetBool():
+            model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+        else:
+            model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
 
         # Add specific variables for the problem conditions
@@ -315,7 +322,11 @@ class MPMSolver(PythonSolver):
             model_part.AddNodalSolutionStepVariable(KratosMPM.NODAL_MPRESSURE)
 
     def _AddDynamicVariables(self, model_part):
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+        #°
+        if self.settings["velocity_formulation"].GetBool():
+            model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        else:
+            model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
 
     def _ModelPartReading(self):
@@ -335,9 +346,15 @@ class MPMSolver(PythonSolver):
             raise Exception("Other input options are not implemented yet.")
 
     def _AddDofsToModelPart(self, model_part):
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X, model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y, model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z, model_part)
+        #°
+        if self.settings["velocity_formulation"].GetBool():
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_X, KratosMultiphysics.REACTION_X, model_part)
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Y, KratosMultiphysics.REACTION_Y, model_part)
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Z, KratosMultiphysics.REACTION_Z, model_part)            
+        else:
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X, model_part)
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y, model_part)
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z, model_part)
 
 
         if self.settings["pressure_dofs"].GetBool():
@@ -356,6 +373,7 @@ class MPMSolver(PythonSolver):
         conv_params = KratosMultiphysics.Parameters("{}")
         conv_params.AddValue("convergence_criterion",self.settings["convergence_criterion"])
         conv_params.AddValue("echo_level",self.settings["echo_level"])
+        #°
         conv_params.AddValue("displacement_relative_tolerance",self.settings["displacement_relative_tolerance"])
         conv_params.AddValue("displacement_absolute_tolerance",self.settings["displacement_absolute_tolerance"])
         conv_params.AddValue("residual_relative_tolerance",self.settings["residual_relative_tolerance"])
@@ -365,12 +383,13 @@ class MPMSolver(PythonSolver):
 
     def _CreateConvergenceCriteria(self):
         convergence_criterion_parameters = self._GetConvergenceCriteriaSettings()
+        #°
         if (convergence_criterion_parameters["convergence_criterion"].GetString() == "residual_criterion"):
             R_RT = convergence_criterion_parameters["residual_relative_tolerance"].GetDouble()
             R_AT = convergence_criterion_parameters["residual_absolute_tolerance"].GetDouble()
             convergence_criterion = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
             convergence_criterion.SetEchoLevel(convergence_criterion_parameters["echo_level"].GetInt())
-        elif (convergence_criterion_parameters["convergence_criterion"].GetString() == "displacement_criterion"):
+        elif (convergence_criterion_parameters["convergence_criterion"].GetString() == "displacement_criterion" and (not self.settings["velocity_formulation"].GetBool())):
             D_RT = convergence_criterion_parameters["displacement_relative_tolerance"].GetDouble()
             D_AT = convergence_criterion_parameters["displacement_absolute_tolerance"].GetDouble()
             convergence_criterion = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)

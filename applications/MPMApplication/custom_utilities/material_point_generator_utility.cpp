@@ -28,7 +28,8 @@ namespace Kratos::MaterialPointGeneratorUtility
     void GenerateMaterialPointElement(  ModelPart& rBackgroundGridModelPart,
                                         ModelPart& rInitialModelPart,
                                         ModelPart& rMPMModelPart,
-                                        bool IsMixedFormulation) {
+                                        bool IsMixedFormulation,
+                                        bool IsMixedVP) {
         const bool IsAxisSymmetry = (rBackgroundGridModelPart.GetProcessInfo().Has(IS_AXISYMMETRIC))
             ? rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_AXISYMMETRIC)
             : false;
@@ -41,7 +42,7 @@ namespace Kratos::MaterialPointGeneratorUtility
         std::vector<array_1d<double, 3>> mp_acceleration = { ZeroVector(3) };
         std::vector<array_1d<double, 3>> mp_volume_acceleration = { ZeroVector(3) };
 
-        std::vector<Vector> mp_cauchy_stress_vector = { ZeroVector(6) };
+        std::vector<Vector> mp_cauchy_stress_vector = { ZeroVector(6) }; //° ?
         std::vector<Vector> mp_almansi_strain_vector = { ZeroVector(6) };
         std::vector<double> mp_pressure = { 0.0 };
 
@@ -110,7 +111,13 @@ namespace Kratos::MaterialPointGeneratorUtility
 
                     // Set element type
                     std::string element_type_name = "MPMUpdatedLagrangian";
-                    if (IsMixedFormulation) {
+                    if (IsMixedFormulation && IsMixedVP) {
+                            if (background_geo_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3 || background_geo_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4) {
+                                element_type_name = "MPMUpdatedLagrangianVPVMS";
+                            }
+                            else KRATOS_ERROR << "Element for mixed V-P formulation is only implemented for 2D Triangle Elements." << std::endl;                        
+                    }
+                    else if (IsMixedFormulation) {
                         if ((rCurrentProcessInfo.GetValue(STABILIZATION_TYPE) == 0) || (rCurrentProcessInfo.GetValue(STABILIZATION_TYPE) == 1)){
                             if (background_geo_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3 || background_geo_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4) element_type_name = "MPMUpdatedLagrangianUP";
                             else KRATOS_ERROR << "Element for mixed U-P formulation is only implemented for 2D Triangle Elements." << std::endl;
@@ -131,7 +138,7 @@ namespace Kratos::MaterialPointGeneratorUtility
 
                     // Get new element
                     const Element& new_element = KratosComponents<Element>::Get(element_type_name);
-
+                    //new_element.Info();
                     // Loop over the material points that fall in each grid element
                     unsigned int new_element_id = 0;
                     for (unsigned int PointNumber = 0; PointNumber < integration_point_per_elements; PointNumber++)
@@ -185,7 +192,7 @@ namespace Kratos::MaterialPointGeneratorUtility
                         p_element->SetValuesOnIntegrationPoints(MP_VELOCITY, mp_velocity, process_info);
                         p_element->SetValuesOnIntegrationPoints(MP_ACCELERATION, mp_acceleration, process_info);
                         p_element->SetValuesOnIntegrationPoints(MP_VOLUME_ACCELERATION, mp_volume_acceleration, process_info);
-                        p_element->SetValuesOnIntegrationPoints(MP_CAUCHY_STRESS_VECTOR, mp_cauchy_stress_vector, process_info);
+                        p_element->SetValuesOnIntegrationPoints(MP_CAUCHY_STRESS_VECTOR, mp_cauchy_stress_vector, process_info); //°?
                         p_element->SetValuesOnIntegrationPoints(MP_ALMANSI_STRAIN_VECTOR, mp_almansi_strain_vector, process_info);
 
                         if (IsMixedFormulation)
@@ -211,12 +218,14 @@ namespace Kratos::MaterialPointGeneratorUtility
     template <SizeType TDimension>
     void GenerateMaterialPointCondition(ModelPart& rBackgroundGridModelPart,
                                             ModelPart& rInitialModelPart,
-                                            ModelPart& rMPMModelPart){
+                                            ModelPart& rMPMModelPart,
+                                            bool IsMixedVP){
         // Initialize zero the variables needed
         std::vector<array_1d<double, 3>> mpc_xg = { ZeroVector(3) };
         array_1d<double,3> mpc_normal = ZeroVector(3);
         std::vector<array_1d<double, 3>> mpc_displacement = { ZeroVector(3) };
-        std::vector<array_1d<double, 3>> mpc_delta_displacement = { ZeroVector(3) };
+        std::vector<array_1d<double, 3>> mpc_delta_velocity = { ZeroVector(3) }; //°
+        std::vector<array_1d<double, 3>> mpc_delta_displacement = { ZeroVector(3) }; //°
         std::vector<array_1d<double, 3>> mpc_imposed_displacement = { ZeroVector(3) };
         std::vector<array_1d<double, 3>> mpc_velocity = { ZeroVector(3) };
         std::vector<array_1d<double, 3>> mpc_imposed_velocity = { ZeroVector(3) };
@@ -964,17 +973,21 @@ namespace Kratos::MaterialPointGeneratorUtility
     template void GenerateMaterialPointElement<2>(ModelPart& rBackgroundGridModelPart,
                                         ModelPart& rInitialModelPart,
                                         ModelPart& rMPMModelPart,
-                                        bool IsMixedFormulation);
+                                        bool IsMixedFormulation,
+                                        bool IsMixedVP);
     template void GenerateMaterialPointElement<3>(ModelPart& rBackgroundGridModelPart,
                                         ModelPart& rInitialModelPart,
                                         ModelPart& rMPMModelPart,
-                                        bool IsMixedFormulation);
+                                        bool IsMixedFormulation,
+                                        bool IsMixedVP);
 
     template void GenerateMaterialPointCondition<2>(ModelPart& rBackgroundGridModelPart,
                                             ModelPart& rInitialModelPart,
-                                            ModelPart& rMPMModelPart);
+                                            ModelPart& rMPMModelPart,
+                                            bool IsMixedVP);
     template void GenerateMaterialPointCondition<3>(ModelPart& rBackgroundGridModelPart,
                                             ModelPart& rInitialModelPart,
-                                            ModelPart& rMPMModelPart);
+                                            ModelPart& rMPMModelPart,
+                                            bool IsMixedVP);
 
 } // end namespace Kratos::MaterialPointGeneratorUtility

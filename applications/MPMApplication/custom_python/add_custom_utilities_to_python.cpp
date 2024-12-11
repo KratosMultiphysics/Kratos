@@ -44,25 +44,27 @@ namespace Python{
         ModelPart& rBackgroundGridModelPart,
         ModelPart& rInitialModelPart,
         ModelPart& rMPMModelPart,
-        bool IsMixedFormulation)
+        bool IsMixedFormulation,
+        bool IsMixedVP)
     {
         const auto dimension = rBackgroundGridModelPart.GetProcessInfo()[DOMAIN_SIZE];
         if (dimension == 2) MaterialPointGeneratorUtility::GenerateMaterialPointElement<2>(
-            rBackgroundGridModelPart, rInitialModelPart, rMPMModelPart, IsMixedFormulation);
+            rBackgroundGridModelPart, rInitialModelPart, rMPMModelPart, IsMixedFormulation, IsMixedVP);
         else if (dimension == 3) MaterialPointGeneratorUtility::GenerateMaterialPointElement<3>(
-            rBackgroundGridModelPart, rInitialModelPart, rMPMModelPart, IsMixedFormulation);
+            rBackgroundGridModelPart, rInitialModelPart, rMPMModelPart, IsMixedFormulation, IsMixedVP);
     }
 
     void GenerateMaterialPointConditionAccordingToDimension(
         ModelPart& rBackgroundGridModelPart,
         ModelPart& rInitialModelPart,
-        ModelPart& rMPMModelPart)
+        ModelPart& rMPMModelPart,
+        bool IsMixedVP)
     {
         const auto dimension = rBackgroundGridModelPart.GetProcessInfo()[DOMAIN_SIZE];
         if (dimension == 2) MaterialPointGeneratorUtility::GenerateMaterialPointCondition<2>(
-            rBackgroundGridModelPart, rInitialModelPart, rMPMModelPart);
+            rBackgroundGridModelPart, rInitialModelPart, rMPMModelPart, IsMixedVP);
         else if (dimension == 3) MaterialPointGeneratorUtility::GenerateMaterialPointCondition<3>(
-            rBackgroundGridModelPart, rInitialModelPart, rMPMModelPart);
+            rBackgroundGridModelPart, rInitialModelPart, rMPMModelPart, IsMixedVP);
     }
 
     void  AddCustomUtilitiesToPython(pybind11::module& m)
