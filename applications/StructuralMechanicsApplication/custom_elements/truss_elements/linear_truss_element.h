@@ -6,7 +6,7 @@
 //  License:         BSD License
 //                   license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors:  Alejandro Cornejo
+//  Main authors:    Alejandro Cornejo
 //
 //
 
@@ -45,13 +45,15 @@ using SizeType = std::size_t;
 ///@{
 
 /**
- * @class LinearTrussElement2D
+ * @class LinearTrussElement
  * @ingroup StructuralMechanicsApplication
- * @brief This is the Linear TRUSS element of 2 and 3 nodes.
+ * @brief This is the Linear  TRUSS element of 2 and 3 nodes for 2D and 3D.
+ * O---------O -> x'      O-----O-----O -> x'
+ *  0         1            0     2     1
  * @author Alejandro Cornejo
  */
-template <SizeType TNNodes>
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearTrussElement2D
+template <SizeType TDimension, SizeType TNNodes>
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearTrussElement
     : public Element
 {
 
@@ -62,38 +64,39 @@ public:
 
     /// The base element type
     using BaseType = Element;
-    static constexpr SizeType NNodes = TNNodes;
-    static constexpr SizeType DofsPerNode = 2;
-    static constexpr SizeType SystemSize = DofsPerNode * NNodes;
-    using SystemSizeBoundedArrayType = array_1d<double, SystemSize>;
+    static constexpr SizeType NNodes      = TNNodes;
+    static constexpr SizeType Dimension   = TDimension;
+    static constexpr SizeType DofsPerNode = TDimension;
+    static constexpr SizeType SystemSize  = TDimension * TNNodes;
+    using SystemSizeBoundedArrayType      = array_1d<double, SystemSize>;
 
     // Counted pointer of BaseSolidElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(LinearTrussElement2D);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(LinearTrussElement);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     // Constructor void
-    LinearTrussElement2D()
+    LinearTrussElement()
     {
     }
 
     // Constructor using an array of nodes
-    LinearTrussElement2D(IndexType NewId, GeometryType::Pointer pGeometry) : Element(NewId, pGeometry)
+    LinearTrussElement(IndexType NewId, GeometryType::Pointer pGeometry) : Element(NewId, pGeometry)
     {
         mThisIntegrationMethod = CalculateIntegrationMethod();
     }
 
     // Constructor using an array of nodes with properties
-    LinearTrussElement2D(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    LinearTrussElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : Element(NewId,pGeometry,pProperties)
     {
         mThisIntegrationMethod = CalculateIntegrationMethod();
     }
 
     // Copy constructor
-    LinearTrussElement2D(LinearTrussElement2D const& rOther)
+    LinearTrussElement(LinearTrussElement const& rOther)
         : BaseType(rOther),
         mThisIntegrationMethod(rOther.mThisIntegrationMethod),
         mConstitutiveLawVector(rOther.mConstitutiveLawVector)
@@ -103,13 +106,13 @@ public:
     // Create method
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_intrusive<LinearTrussElement2D>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive<LinearTrussElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
 
     // Create method
     Element::Pointer Create( IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const override
     {
-        return Kratos::make_intrusive<LinearTrussElement2D>(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive<LinearTrussElement>(NewId, pGeom, pProperties);
     }
 
     ///@}
@@ -122,11 +125,21 @@ public:
 
     /**
      * @brief This method returns the angle of the FE axis
+     * 2D calculations
      */
     double GetAngle() const
     {
         return StructuralMechanicsElementUtilities::GetReferenceRotationAngle2D2NBeam(GetGeometry());
     }
+
+    /**
+     * @brief This function builds the Frenet Serret matrix that rotates from global to local axes
+     * T = | <- t -> |  x, local
+     *     | <- n -> |  y, local
+     *     | <- m -> |  z, local
+     * 3D calculations
+    */
+    BoundedMatrix<double, 3, 3> GetFrenetSerretMatrix() const;
 
     /**
      * @brief This method returns the integration method depending on the Number of Nodes
@@ -141,6 +154,11 @@ public:
     }
 
     /**
+     * @brief This method returns the base shape functions in a reduced size vector (2 or 3 entries)
+     */
+    Vector GetBaseShapeFunctions(const double xi) const;
+
+    /**
      * @brief Returns a n component vector including the values of the DoFs
      * in LOCAL beam axes
      */
@@ -151,8 +169,12 @@ public:
      */
     double CalculateLength() const
     {
-        // Same implementation for 2N and 3N
-        return StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
+        if constexpr (Dimension == 2) {
+            // Same implementation for 2N and 3N
+            return StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
+        } else {
+            return StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+        }
     }
 
     /**
@@ -229,8 +251,8 @@ public:
     }
 
     /**
-     * @brief This function returns the 4 shape functions used for interpolating the transverse displacement v. (denoted as N)
-     * Also its derivatives
+     * @brief This function returns the 2/3 shape functions used for interpolating the displacements in x,y,z
+     * Also the derivatives of u to compute the longitudinal strain
      * @param rN reference to the shape functions (or derivatives)
      * @param Length The size of the beam element
      * @param Phi The shear slenderness parameter
@@ -238,6 +260,7 @@ public:
     */
     void GetShapeFunctionsValues(SystemSizeBoundedArrayType& rN, const double Length, const double xi) const;
     void GetShapeFunctionsValuesY(SystemSizeBoundedArrayType& rN, const double Length, const double xi) const;
+    void GetShapeFunctionsValuesZ(SystemSizeBoundedArrayType& rN, const double Length, const double xi) const;
     void GetFirstDerivativesShapeFunctionsValues(SystemSizeBoundedArrayType& rN, const double Length, const double xi) const;
 
     /**
@@ -370,7 +393,7 @@ public:
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "Truss 2D Element #" << Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+        rOStream << "Truss Element #" << Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
     }
 
     /// Print object's data.
@@ -393,7 +416,6 @@ protected:
     ///@{
 
     IntegrationMethod mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2; /// Currently selected integration methods
-
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws
 
     ///@}
@@ -475,7 +497,7 @@ private:
 
     void load(Serializer &rSerializer) override;
 
-}; // class LinearTrussElement2D.
+}; // class LinearTrussElement.
 
 ///@}
 ///@name Type Definitions
