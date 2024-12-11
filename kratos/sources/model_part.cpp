@@ -293,9 +293,8 @@ void ModelPart::AddEntitiesFromIds(
         });
 
         ModelPart* current_part = pModelPart;
-        while(
-            current_part->IsSubModelPart() &&
-            InsertEntityRange(ModelPart::Container<TContainerType>::GetContainer(current_part->GetMesh()), aux.begin(), aux.end())) {
+        while(current_part->IsSubModelPart()) {
+            ModelPart::Container<TContainerType>::GetContainer(current_part->GetMesh()).insert(aux.begin(), aux.end());
             current_part = &(current_part->GetParentModelPart());
         }
     }
