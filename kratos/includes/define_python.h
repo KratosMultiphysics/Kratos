@@ -16,6 +16,7 @@
 
 // External includes
 #include <pybind11/pybind11.h>
+#define PYBIND11_NO_ASSERT_GIL_HELD_INCREF_DECREF // NOTE: This is the only way to run OMP loops with dynamic schedule without conflicting the GIL
 
 // Project includes
 #include "intrusive_ptr/intrusive_ptr.hpp"
