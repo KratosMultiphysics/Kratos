@@ -242,16 +242,16 @@ void  AddLinearSolversToPython(pybind11::module& m)
     py::class_<FallbackLinearSolverType, FallbackLinearSolverType::Pointer, LinearSolverType>(m, "FallbackLinearSolver")
     .def(py::init<Parameters>())
     .def(py::init<const std::vector<LinearSolverType::Pointer>&, Parameters>())
-    .def("AddSolver", [](FallbackLinearSolverType& rSelf, LinearSolverType::Pointer pSolver) {
-        rSelf.AddSolver(pSolver);
-    })
-    .def("AddSolver", [](FallbackLinearSolverType& rSelf, const Parameters ThisParameters) {
-        rSelf.AddSolver(ThisParameters);
-    })
+    // .def("AddSolver", [](FallbackLinearSolverType& rSelf, LinearSolverType::Pointer pSolver) {
+    //     rSelf.AddSolver(pSolver);
+    // })
+    // .def("AddSolver", [](FallbackLinearSolverType& rSelf, const Parameters ThisParameters) {
+    //     rSelf.AddSolver(ThisParameters);
+    // })
     .def("GetSolvers", &FallbackLinearSolverType::GetSolvers)
-    .def("SetSolvers", &FallbackLinearSolverType::SetSolvers)
+    // .def("SetSolvers", &FallbackLinearSolverType::SetSolvers)
     .def("GetResetSolverEachTry", &FallbackLinearSolverType::GetResetSolverEachTry)
-    .def("SetResetSolverIndexEachTry", &FallbackLinearSolverType::SetResetSolverIndexEachTry)
+    // .def("SetResetSolverIndexEachTry", &FallbackLinearSolverType::SetResetSolverIndexEachTry)
     .def("GetParameters", &FallbackLinearSolverType::GetParameters)
     .def("GetCurrentSolverIndex", &FallbackLinearSolverType::GetCurrentSolverIndex)
     .def("ClearCurrentSolverIndex", &FallbackLinearSolverType::ClearCurrentSolverIndex)
