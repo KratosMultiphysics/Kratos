@@ -1240,17 +1240,18 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType& rLef
     KRATOS_TRY
 
     this->CalculateAndAddStiffnessMatrix(rLeftHandSideMatrix, rVariables);
-    this->CalculateAndAddCompressibilityMatrix(rLeftHandSideMatrix, rVariables);
+
+    this->CalculateAndAddCouplingMatrix(rLeftHandSideMatrix, rVariables);
 
     if (!rVariables.IgnoreUndrained) {
-        this->CalculateAndAddCouplingMatrix(rLeftHandSideMatrix, rVariables);
-
         const auto permeability_matrix =
             GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
                 rVariables.GradNpT, rVariables.DynamicViscosityInverse, rVariables.PermeabilityMatrix,
                 rVariables.RelativePermeability, rVariables.IntegrationCoefficient);
         GeoElementUtilities::AssemblePPBlockMatrix(rLeftHandSideMatrix, permeability_matrix);
-    }
+
+        this->CalculateAndAddCompressibilityMatrix(rLeftHandSideMatrix, rVariables);
+}
 
     KRATOS_CATCH("")
 }
