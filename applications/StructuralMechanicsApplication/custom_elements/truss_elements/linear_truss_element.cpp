@@ -754,7 +754,6 @@ void LinearTrussElement<TDimension, TNNodes>::CalculateOnIntegrationPoints(
         }
     } else if (rVariable == AXIAL_STRAIN) {
         ConstitutiveLaw::Parameters cl_values(GetGeometry(), GetProperties(), rProcessInfo);
-        auto &r_cl_options = cl_values.GetOptions();
         VectorType strain_vector(1), stress_vector(1);
         MatrixType C(1,1);
         InitializeConstitutiveLawValues(cl_values, strain_vector, stress_vector, C);
