@@ -730,28 +730,17 @@ void LinearTrussElement<TDimension, TNNodes>::CalculateOnIntegrationPoints(
     rOutput.resize(integration_points.size());
 
     if (rVariable == AXIAL_FORCE) {
-        const auto &r_props = GetProperties();
-        const auto &r_geometry = GetGeometry();
-        const double area = r_props[CROSS_AREA];
-
-        ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
-        auto &r_cl_options = cl_values.GetOptions();
-        r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
-        r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-
-        const double length = CalculateLength();
-
-        // Let's initialize the cl values
+        ConstitutiveLaw::Parameters cl_values(GetGeometry(), GetProperties(), rProcessInfo);
         VectorType strain_vector(1), stress_vector(1);
         MatrixType C(1,1);
-        strain_vector.clear();
-        cl_values.SetStrainVector(strain_vector);
-        cl_values.SetStressVector(stress_vector);
-        cl_values.SetConstitutiveMatrix(C);
+        InitializeConstitutiveLawValues(cl_values, strain_vector, stress_vector, C);
+
+        const double length = CalculateLength();
         SystemSizeBoundedArrayType nodal_values(SystemSize);
         GetNodalValuesVector(nodal_values);
 
         SystemSizeBoundedArrayType B;
+        const double area = GetProperties()[CROSS_AREA];
 
         // Loop over the integration points
         for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
@@ -764,23 +753,13 @@ void LinearTrussElement<TDimension, TNNodes>::CalculateOnIntegrationPoints(
             rOutput[IP] = cl_values.GetStressVector()[0] * area;
         }
     } else if (rVariable == AXIAL_STRAIN) {
-        const auto &r_props = GetProperties();
-        const auto &r_geometry = GetGeometry();
-
-        ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
+        ConstitutiveLaw::Parameters cl_values(GetGeometry(), GetProperties(), rProcessInfo);
         auto &r_cl_options = cl_values.GetOptions();
-        r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
-        r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-
-        const double length = CalculateLength();
-
-        // Let's initialize the cl values
         VectorType strain_vector(1), stress_vector(1);
         MatrixType C(1,1);
-        strain_vector.clear();
-        cl_values.SetStrainVector(strain_vector);
-        cl_values.SetStressVector(stress_vector);
-        cl_values.SetConstitutiveMatrix(C);
+        InitializeConstitutiveLawValues(cl_values, strain_vector, stress_vector, C);
+
+        const double length = CalculateLength();
         SystemSizeBoundedArrayType nodal_values(SystemSize);
         GetNodalValuesVector(nodal_values);
 
@@ -793,6 +772,19 @@ void LinearTrussElement<TDimension, TNNodes>::CalculateOnIntegrationPoints(
             rOutput[IP] = inner_prod(B, nodal_values);
         }
     }
+}
+
+template <SizeType TDimension, SizeType TNNodes>
+void LinearTrussElement<TDimension, TNNodes>::InitializeConstitutiveLawValues(ConstitutiveLaw::Parameters& rValues,
+    VectorType& rStrainVector, VectorType& rStressVector, MatrixType rConstitutiveMatrix)
+{
+    rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
+    rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+    rStrainVector.clear();
+    rValues.SetStrainVector(rStrainVector);
+    rValues.SetStressVector(rStressVector);
+    rValues.SetConstitutiveMatrix(rConstitutiveMatrix);
 }
 
 /***********************************************************************************/
@@ -810,35 +802,24 @@ void LinearTrussElement<TDimension, TNNodes>::CalculateOnIntegrationPoints(
 
     if (rVariable == PK2_STRESS_VECTOR) {
         ConstitutiveLaw::Parameters cl_values(GetGeometry(), GetProperties(), rProcessInfo);
-        cl_values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
-        cl_values.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-
-        const double length = CalculateLength();
-
-        // Let's initialize the cl values
         VectorType strain_vector(1), stress_vector(1);
         MatrixType constitutive_matrix(1,1);
-        strain_vector.clear();
-        cl_values.SetStrainVector(strain_vector);
-        cl_values.SetStressVector(stress_vector);
-        cl_values.SetConstitutiveMatrix(constitutive_matrix);
+        InitializeConstitutiveLawValues(cl_values, strain_vector, stress_vector, constitutive_matrix);
+
+        const double length = CalculateLength();
         SystemSizeBoundedArrayType nodal_values(SystemSize);
         GetNodalValuesVector(nodal_values);
 
         SystemSizeBoundedArrayType dN_dX;
 
-        // Loop over the integration points
         for (SizeType integration_point = 0; integration_point < integration_points.size(); ++integration_point) {
             GetFirstDerivativesShapeFunctionsValues(dN_dX, length, integration_points[integration_point].X());
-
             strain_vector[0] = inner_prod(dN_dX, nodal_values);
-
             mConstitutiveLawVector[integration_point]->CalculateMaterialResponsePK2(cl_values);
             auto stress = cl_values.GetStressVector()[0];
             if (GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
                 stress += GetProperties()[TRUSS_PRESTRESS_PK2];
             }
-
             rOutput[integration_point] = ScalarVector(1, stress);
         }
     }
@@ -846,8 +827,8 @@ void LinearTrussElement<TDimension, TNNodes>::CalculateOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TNNodes>
-void LinearTrussElement2D<TNNodes>::CalculateOnIntegrationPoints(
+template <SizeType TDimension, SizeType TNNodes>
+void LinearTrussElement<TDimension, TNNodes>::CalculateOnIntegrationPoints(
     const Variable<ConstitutiveLaw::Pointer>& rVariable,
     std::vector<ConstitutiveLaw::Pointer>& rValues,
     const ProcessInfo& rCurrentProcessInfo

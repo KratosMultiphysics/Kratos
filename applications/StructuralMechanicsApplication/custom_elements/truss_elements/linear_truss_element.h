@@ -477,7 +477,8 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
+    void InitializeConstitutiveLawValues(ConstitutiveLaw::Parameters& rValues,
+    VectorType& rStrainVector, VectorType& rStressVector, MatrixType rConstitutiveMatrix);
 
     ///@}
     ///@name Private  Access
