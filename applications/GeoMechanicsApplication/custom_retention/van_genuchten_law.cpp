@@ -163,7 +163,7 @@ int VanGenuchtenLaw::Check(const Properties& rMaterialProperties, const ProcessI
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(VAN_GENUCHTEN_GL))
         << "VAN_GENUCHTEN_GL is not available in the parameters of material "
         << rMaterialProperties.Id() << "." << std::endl;
-    KRATOS_ERROR_IF_NOT((rMaterialProperties[VAN_GENUCHTEN_GL] > 0.0))
+    KRATOS_ERROR_IF_NOT((rMaterialProperties[VAN_GENUCHTEN_GL] >= 0.0))
         << "VAN_GENUCHTEN_GL (" << rMaterialProperties[VAN_GENUCHTEN_GL]
         << ") must be greater than 0 for material " << rMaterialProperties.Id() << "." << std::endl;
 

@@ -297,9 +297,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::ResetHydraulicDischarge()
     KRATOS_TRY
 
     // Reset hydraulic discharge
-    GeometryType& rGeom = this->GetGeometry();
-    for (unsigned int i = 0; i < TNumNodes; ++i) {
-        ThreadSafeNodeWrite(rGeom[i], HYDRAULIC_DISCHARGE, 0.0);
+    for (auto& r_node : this->GetGeometry()) {
+        ThreadSafeNodeWrite(r_node, HYDRAULIC_DISCHARGE, 0.0);
     }
 
     KRATOS_CATCH("")
@@ -355,8 +354,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeNonLinearIteration(const 
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom = this->GetGeometry();
-    ConstitutiveLaw::Parameters ConstitutiveParameters(rGeom, this->GetProperties(), rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters ConstitutiveParameters(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
     ConstitutiveParameters.Set(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE); // Note: this is for nonlocal damage

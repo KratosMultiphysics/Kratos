@@ -105,7 +105,7 @@ int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo
     }
 
     // verify that the dofs exist
-    for (auto& r_node : r_geom) {
+    for (const auto& r_node : r_geom) {
         if (!r_node.SolutionStepsDataHas(DISPLACEMENT))
             KRATOS_ERROR << "missing variable DISPLACEMENT on node " << r_node.Id() << std::endl;
 
@@ -153,7 +153,7 @@ int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo
             << " in element id: " << this->Id() << std::endl;
     }
 
-    // Check constitutive law
+    // Check retention law
     if (!mRetentionLawVector.empty()) {
         return mRetentionLawVector[0]->Check(r_prop, rCurrentProcessInfo);
     }
