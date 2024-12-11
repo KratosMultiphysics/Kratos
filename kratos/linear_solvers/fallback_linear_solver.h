@@ -397,35 +397,6 @@ public:
         }
     }
 
-    /**
-     * @brief Add a linear solver to the collection.
-     * @details This function adds a linear solver to the collection without extending parameters.
-     * @param pSolver Pointer to the linear solver to be added.
-     */
-    void AddSolver(LinearSolverPointer pSolver)
-    {
-        // Increase the solvers vector
-        mSolvers.push_back(pSolver);
-
-        // Extend the parameters
-        FillParametersFromSolver(pSolver);
-    }
-
-    /**
-     * @brief Add a linear solver to the collection with additional parameters.
-     * @details This function adds a linear solver to the collection and extends the parameters.
-     * @param ThisParameters Parameters associated with the linear solver.
-     */
-    void AddSolver(const Parameters ThisParameters)
-    {
-        // Create the solver
-        auto p_solver = ConstructLinearSolverFromSettings(ThisParameters);
-        mSolvers.push_back(p_solver);
-
-        // Add the new solver parameters to the collection
-        mParameters["solvers"].Append(ThisParameters);
-    }
-
     ///@}
     ///@name Access
     ///@{
@@ -440,25 +411,6 @@ public:
     }
 
     /**
-     * @brief Set the Solvers list.
-     * @param rSolvers A vector of LinearSolverPointer to set.
-     */
-    void SetSolvers(const std::vector<LinearSolverPointer>& rSolvers)
-    {
-        // Assign the solvers
-        mSolvers = rSolvers;
-
-        // Remove solvers and add again
-        mParameters.RemoveValue("solvers");
-        mParameters.AddEmptyArray("solvers");
-
-        // Fill the parameters with the solvers
-        for (auto& p_solver : mSolvers) {
-            FillParametersFromSolver(p_solver);
-        }
-    }
-
-    /**
      * @brief Check if the solver index should be reset for each try.
      * @return true If the solver index is reset for each try.
      * @return false Otherwise.
@@ -466,16 +418,6 @@ public:
     bool GetResetSolverEachTry() const
     {
         return mResetSolverEachTry;
-    }
-
-    /**
-     * @brief Set whether the solver index should be reset for each try.
-     * @param Reset Flag indicating whether to reset the solver index each try.
-     */
-    void SetResetSolverIndexEachTry(const bool Reset)
-    {
-        mResetSolverEachTry = Reset;
-        mParameters["reset_solver_each_try"].SetBool(Reset);
     }
 
     /**
@@ -654,6 +596,35 @@ protected:
     ///@{
 
     /**
+     * @brief Add a linear solver to the collection.
+     * @details This function adds a linear solver to the collection without extending parameters.
+     * @param pSolver Pointer to the linear solver to be added.
+     */
+    void AddSolver(LinearSolverPointer pSolver)
+    {
+        // Increase the solvers vector
+        mSolvers.push_back(pSolver);
+
+        // Extend the parameters
+        FillParametersFromSolver(pSolver);
+    }
+
+    /**
+     * @brief Add a linear solver to the collection with additional parameters.
+     * @details This function adds a linear solver to the collection and extends the parameters.
+     * @param ThisParameters Parameters associated with the linear solver.
+     */
+    void AddSolver(const Parameters ThisParameters)
+    {
+        // Create the solver
+        auto p_solver = ConstructLinearSolverFromSettings(ThisParameters);
+        mSolvers.push_back(p_solver);
+
+        // Add the new solver parameters to the collection
+        mParameters["solvers"].Append(ThisParameters);
+    }
+
+    /**
      * @brief Constructs a linear solver based on the provided settings.
      * @details This function is responsible for instantiating a linear solver object using the configuration specified in the `Settings` parameter. It leverages a factory pattern to select and construct the appropriate solver type based on the parameters provided. The selection process considers the solver type, tolerance, maximum iterations, and other solver-specific parameters contained within `Settings`.
      * The factory supports constructing various types of solvers, such as Conjugate Gradient, LU Decomposition, and others, depending on the `solver_type` parameter within `Settings`. It throws a `std::invalid_argument` exception if the settings specify an unsupported solver type or if required parameters for the selected solver type are missing or invalid.
@@ -793,6 +764,39 @@ protected:
         } else { // Throw an error if the index is out of bounds
             KRATOS_ERROR << "Invalid solver index: " << mCurrentSolverIndex << std::endl;
         }
+    }
+
+    ///@}
+    ///@name Protected Access
+    ///@{
+
+    /**
+     * @brief Set the Solvers list.
+     * @param rSolvers A vector of LinearSolverPointer to set.
+     */
+    void SetSolvers(const std::vector<LinearSolverPointer>& rSolvers)
+    {
+        // Assign the solvers
+        mSolvers = rSolvers;
+
+        // Remove solvers and add again
+        mParameters.RemoveValue("solvers");
+        mParameters.AddEmptyArray("solvers");
+
+        // Fill the parameters with the solvers
+        for (auto& p_solver : mSolvers) {
+            FillParametersFromSolver(p_solver);
+        }
+    }
+
+    /**
+     * @brief Set whether the solver index should be reset for each try.
+     * @param Reset Flag indicating whether to reset the solver index each try.
+     */
+    void SetResetSolverIndexEachTry(const bool Reset)
+    {
+        mResetSolverEachTry = Reset;
+        mParameters["reset_solver_each_try"].SetBool(Reset);
     }
 
     ///@}
