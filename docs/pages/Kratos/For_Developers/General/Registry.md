@@ -1,5 +1,5 @@
 ---
-title: `Registry` and `RegistryItem` in Kratos Multiphysics
+title: Registry and RegistryItem in Kratos Multiphysics
 keywords: Registry
 tags: [Registry]  
 sidebar: kratos_for_developers
