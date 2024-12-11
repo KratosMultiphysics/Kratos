@@ -68,7 +68,7 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeExactL2(ModelPar
         KRATOS_ERROR << "Found discrepancy on the number of nodes in the L2 projection." << std::endl;
     }
 
-    // For each j compute the gradient
+    // For each u_j compute the gradient
     Matrix massMatrix = ZeroMatrix(number_of_nodes * TDim, number_of_nodes * TDim);
     Vector rhs = ZeroVector(number_of_nodes * TDim);
     
@@ -100,7 +100,10 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeExactL2(ModelPar
                             // Mass matrix
                             unsigned int a_global = TDim * id_to_position[r_geometry[a].Id()] + d;
                             unsigned int b_global = TDim * id_to_position[r_geometry[b].Id()] + d;
-                            massMatrix(a_global, b_global) += Weight * NContainer(g, a) * NContainer(g, b);
+                            if (!mass_matrix_computed)
+                            {
+                                massMatrix(a_global, b_global) += Weight * NContainer(g, a) * NContainer(g, b);
+                            }
 
                             // RHS
                             double nodal_value_j = r_geometry[b].FastGetSolutionStepValue(vector_container)[j];
@@ -122,7 +125,6 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeExactL2(ModelPar
         MathUtils<double>::Solve(massMatrix, L2Projection, rhs);
 
         // Add values of material derivatives
-        Vector elemental_values = ZeroVector(number_of_nodes);
         for (unsigned int i = 0; i < number_of_nodes; i++) {
             ModelPart::NodesContainerType::iterator inode = r_model_part.NodesBegin() + i;
             array_1d <double, 3>& material_derivative_node = inode->FastGetSolutionStepValue(material_derivative_container);
@@ -131,11 +133,34 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeExactL2(ModelPar
             {
                 unsigned int index = TDim * id_to_position[inode->Id()] + d;
                 material_derivative_node[j] += elemental_values[d] * L2Projection(index);
+
+                // Store the gradient of u_j, i.e. \partial_d u_j, d = 0, 1, 2
+                if (mStoreFullGradient)
+                {
+                    if (j == 0)
+                    {
+                        array_1d<double, 3>& gradient = inode->FastGetSolutionStepValue(VELOCITY_X_GRADIENT);
+                        gradient[d] = L2Projection(index);
+                    } else if (j == 1)
+                    {
+                        array_1d<double, 3>& gradient = inode->FastGetSolutionStepValue(VELOCITY_Y_GRADIENT);
+                        gradient[d] = L2Projection(index);
+                    } else if (j == 2)
+                    {
+                        array_1d<double, 3>& gradient = inode->FastGetSolutionStepValue(VELOCITY_Z_GRADIENT);
+                        gradient[d] = L2Projection(index);
+                    }
+                }
+                
             }
         }
 
         // Reset variables
-        massMatrix = ZeroMatrix(TDim * number_of_nodes, TDim * number_of_nodes);
+        if (!mass_matrix_computed)
+        {
+            massMatrix = ZeroMatrix(TDim * number_of_nodes, TDim * number_of_nodes);
+            mass_matrix_computed = true;
+        }
         rhs = ZeroVector(TDim * number_of_nodes);
     }
 
