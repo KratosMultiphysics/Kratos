@@ -50,6 +50,12 @@ void PwPointFluxCondition<TDim, TNumNodes>::CalculateRHS(Vector& rRightHandSideV
     rRightHandSideVector[0] = this->GetGeometry()[0].FastGetSolutionStepValue(NORMAL_FLUID_FLUX);
 }
 
+template <unsigned int TDim, unsigned int TNumNodes>
+std::string PwPointFluxCondition<TDim, TNumNodes>::Info() const
+{
+    return "PwPointFluxCondition";
+}
+
 template class PwPointFluxCondition<2, 1>;
 template class PwPointFluxCondition<3, 1>;
 

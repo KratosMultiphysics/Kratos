@@ -18,6 +18,8 @@
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/triangle_2d_10.h"
 #include "geometries/triangle_2d_3.h"
+#include "geometries/triangle_2d_6.h"
+#include "includes/cfd_variables.h"
 #include "utilities/math_utils.h"
 
 // Application includes
@@ -58,6 +60,9 @@ int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo
 
     if (rGeom.DomainSize() < 1.0e-15)
         KRATOS_ERROR << "DomainSize < 1.0e-15 for the element " << this->Id() << std::endl;
+
+    // check pressure geometry pointer
+    KRATOS_DEBUG_ERROR_IF_NOT(mpPressureGeometry) << "Pressure Geometry is not defined\n";
 
     // verify that the variables are correctly initialized
     // Verify specific properties
@@ -162,113 +167,6 @@ int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo
     KRATOS_CATCH("")
 }
 
-void SmallStrainUPwDiffOrderElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    const auto& r_properties = GetProperties();
-    const auto& r_geometry   = GetGeometry();
-    const auto number_of_integration_points = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
-
-    mConstitutiveLawVector.resize(number_of_integration_points);
-
-    for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i) {
-        mConstitutiveLawVector[i] = r_properties[CONSTITUTIVE_LAW]->Clone();
-        mConstitutiveLawVector[i]->InitializeMaterial(
-            r_properties, r_geometry, row(r_geometry.ShapeFunctionsValues(GetIntegrationMethod()), i));
-    }
-
-    mRetentionLawVector.resize(number_of_integration_points);
-    for (unsigned int i = 0; i < mRetentionLawVector.size(); ++i) {
-        mRetentionLawVector[i] = RetentionLawFactory::Clone(r_properties);
-        mRetentionLawVector[i]->InitializeMaterial(
-            r_properties, r_geometry, row(r_geometry.ShapeFunctionsValues(GetIntegrationMethod()), i));
-    }
-
-    if (mStressVector.size() != number_of_integration_points) {
-        mStressVector.resize(number_of_integration_points);
-        for (unsigned int i = 0; i < mStressVector.size(); ++i) {
-            mStressVector[i].resize(GetStressStatePolicy().GetVoigtSize());
-            std::fill(mStressVector[i].begin(), mStressVector[i].end(), 0.0);
-        }
-    }
-
-    mStateVariablesFinalized.resize(number_of_integration_points);
-    for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i) {
-        int nStateVariables = 0;
-        nStateVariables = mConstitutiveLawVector[i]->GetValue(NUMBER_OF_UMAT_STATE_VARIABLES, nStateVariables);
-        if (nStateVariables > 0) {
-            mConstitutiveLawVector[i]->SetValue(STATE_VARIABLES, mStateVariablesFinalized[i], rCurrentProcessInfo);
-        }
-    }
-
-    const auto number_of_U_nodes = r_geometry.PointsNumber();
-    const auto dimension         = r_geometry.WorkingSpaceDimension();
-
-    switch (number_of_U_nodes) {
-    case 6: // 2D T6P3
-        mpPressureGeometry = make_shared<Triangle2D3<Node>>(r_geometry(0), r_geometry(1), r_geometry(2));
-        break;
-    case 8: // 2D Q8P4
-        mpPressureGeometry = make_shared<Quadrilateral2D4<Node>>(r_geometry(0), r_geometry(1),
-                                                                 r_geometry(2), r_geometry(3));
-        break;
-    case 9: // 2D Q9P4
-        mpPressureGeometry = make_shared<Quadrilateral2D4<Node>>(r_geometry(0), r_geometry(1),
-                                                                 r_geometry(2), r_geometry(3));
-        break;
-    case 10: // 3D T10P4  //2D T10P6
-        if (dimension == 3)
-            mpPressureGeometry = make_shared<Tetrahedra3D4<Node>>(r_geometry(0), r_geometry(1),
-                                                                  r_geometry(2), r_geometry(3));
-        else if (dimension == 2)
-            mpPressureGeometry = make_shared<Triangle2D6<Node>>(
-                r_geometry(0), r_geometry(1), r_geometry(2), r_geometry(3), r_geometry(4), r_geometry(5));
-        break;
-    case 15: // 2D T15P10
-        mpPressureGeometry = make_shared<Triangle2D10<Node>>(
-            r_geometry(0), r_geometry(1), r_geometry(2), r_geometry(3), r_geometry(4),
-            r_geometry(5), r_geometry(6), r_geometry(7), r_geometry(8), r_geometry(9));
-        break;
-    case 20: // 3D H20P8
-        mpPressureGeometry =
-            make_shared<Hexahedra3D8<Node>>(r_geometry(0), r_geometry(1), r_geometry(2), r_geometry(3),
-                                            r_geometry(4), r_geometry(5), r_geometry(6), r_geometry(7));
-        break;
-    case 27: // 3D H27P8
-        mpPressureGeometry =
-            make_shared<Hexahedra3D8<Node>>(r_geometry(0), r_geometry(1), r_geometry(2), r_geometry(3),
-                                            r_geometry(4), r_geometry(5), r_geometry(6), r_geometry(7));
-        break;
-    default:
-        KRATOS_ERROR << "Unexpected geometry type for different order "
-                        "interpolation element"
-                     << this->Id() << std::endl;
-    }
-
-    mIsInitialised = true;
-
-    KRATOS_CATCH("")
-}
-
-void SmallStrainUPwDiffOrderElement::ResetConstitutiveLaw()
-{
-    KRATOS_TRY
-
-    // erasing stress vectors
-    for (unsigned int i = 0; i < mStressVector.size(); ++i) {
-        mStressVector[i].clear();
-    }
-    mStressVector.clear();
-
-    for (unsigned int i = 0; i < mStateVariablesFinalized.size(); ++i) {
-        mStateVariablesFinalized[i].clear();
-    }
-    mStateVariablesFinalized.clear();
-
-    KRATOS_CATCH("")
-}
-
 void SmallStrainUPwDiffOrderElement::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -313,57 +211,6 @@ void SmallStrainUPwDiffOrderElement::InitializeSolutionStep(const ProcessInfo& r
     KRATOS_CATCH("")
 }
 
-void SmallStrainUPwDiffOrderElement::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const
-{
-    rElementalDofList = GetDofs();
-}
-
-void SmallStrainUPwDiffOrderElement::CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
-                                                          VectorType&        rRightHandSideVector,
-                                                          const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    rLeftHandSideMatrix                     = ZeroMatrix{GetNumberOfDOF(), GetNumberOfDOF()};
-    rRightHandSideVector                    = ZeroVector{GetNumberOfDOF()};
-    const auto CalculateStiffnessMatrixFlag = true;
-    const auto CalculateResidualVectorFlag  = true;
-    CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo,
-                 CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
-
-    KRATOS_CATCH("")
-}
-
-void SmallStrainUPwDiffOrderElement::CalculateLeftHandSide(MatrixType&        rLeftHandSideMatrix,
-                                                           const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    rLeftHandSideMatrix                     = ZeroMatrix{GetNumberOfDOF(), GetNumberOfDOF()};
-    auto       dummy_right_hand_side_vector = Vector{};
-    const auto CalculateStiffnessMatrixFlag = true;
-    const auto CalculateResidualVectorFlag  = false;
-    CalculateAll(rLeftHandSideMatrix, dummy_right_hand_side_vector, rCurrentProcessInfo,
-                 CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
-
-    KRATOS_CATCH("")
-}
-
-void SmallStrainUPwDiffOrderElement::CalculateRightHandSide(VectorType&        rRightHandSideVector,
-                                                            const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    auto dummy_left_hand_side_matrix        = Matrix{};
-    rRightHandSideVector                    = ZeroVector{GetNumberOfDOF()};
-    const auto CalculateStiffnessMatrixFlag = false;
-    const auto CalculateResidualVectorFlag  = true;
-    CalculateAll(dummy_left_hand_side_matrix, rRightHandSideVector, rCurrentProcessInfo,
-                 CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
-
-    KRATOS_CATCH("")
-}
-
 void SmallStrainUPwDiffOrderElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -395,41 +242,6 @@ void SmallStrainUPwDiffOrderElement::CalculateMassMatrix(MatrixType& rMassMatrix
     GeoElementUtilities::AssembleUUBlockMatrix(rMassMatrix, mass_matrix_u);
 
     KRATOS_CATCH("")
-}
-
-void SmallStrainUPwDiffOrderElement::CalculateDampingMatrix(MatrixType&        rDampingMatrix,
-                                                            const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    MatrixType mass_matrix = ZeroMatrix{GetNumberOfDOF(), GetNumberOfDOF()};
-    this->CalculateMassMatrix(mass_matrix, rCurrentProcessInfo);
-
-    MatrixType stiffness_matrix = ZeroMatrix{GetNumberOfDOF(), GetNumberOfDOF()};
-    this->CalculateMaterialStiffnessMatrix(stiffness_matrix, rCurrentProcessInfo);
-
-    const auto& r_prop = this->GetProperties();
-    rDampingMatrix     = GeoEquationOfMotionUtilities::CalculateDampingMatrix(
-        r_prop.Has(RAYLEIGH_ALPHA) ? r_prop[RAYLEIGH_ALPHA] : rCurrentProcessInfo[RAYLEIGH_ALPHA],
-        r_prop.Has(RAYLEIGH_BETA) ? r_prop[RAYLEIGH_BETA] : rCurrentProcessInfo[RAYLEIGH_BETA],
-        mass_matrix, stiffness_matrix);
-
-    KRATOS_CATCH("")
-}
-
-void SmallStrainUPwDiffOrderElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
-{
-    rResult = Geo::DofUtilities::ExtractEquationIdsFrom(GetDofs());
-}
-
-void SmallStrainUPwDiffOrderElement::GetFirstDerivativesVector(Vector& rValues, int Step) const
-{
-    rValues = Geo::DofUtilities::ExtractFirstTimeDerivativesOfUPwDofs(GetDofs(), Step);
-}
-
-void SmallStrainUPwDiffOrderElement::GetSecondDerivativesVector(Vector& rValues, int Step) const
-{
-    rValues = Geo::DofUtilities::ExtractSecondTimeDerivativesOfUPwDofs(GetDofs(), Step);
 }
 
 void SmallStrainUPwDiffOrderElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
@@ -666,19 +478,6 @@ void SmallStrainUPwDiffOrderElement::AssignPressureToIntermediateNodes()
     KRATOS_CATCH("")
 }
 
-void SmallStrainUPwDiffOrderElement::SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
-                                                                  const std::vector<double>& rValues,
-                                                                  const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i) {
-        mConstitutiveLawVector[i]->SetValue(rVariable, rValues[i], rCurrentProcessInfo);
-    }
-
-    KRATOS_CATCH("")
-}
-
 void SmallStrainUPwDiffOrderElement::SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable,
                                                                   const std::vector<Vector>& rValues,
                                                                   const ProcessInfo& rCurrentProcessInfo)
@@ -704,19 +503,6 @@ void SmallStrainUPwDiffOrderElement::SetValuesOnIntegrationPoints(const Variable
     KRATOS_CATCH("")
 }
 
-void SmallStrainUPwDiffOrderElement::SetValuesOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                                                                  const std::vector<Matrix>& rValues,
-                                                                  const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i) {
-        mConstitutiveLawVector[i]->SetValue(rVariable, rValues[i], rCurrentProcessInfo);
-    }
-
-    KRATOS_CATCH("")
-}
-
 void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable<int>& rVariable,
                                                                   std::vector<int>&    rValues,
                                                                   const ProcessInfo& rCurrentProcessInfo)
@@ -729,22 +515,6 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
     rValues.resize(number_of_integration_points);
     for (auto i = SizeType{0}; i < number_of_integration_points; ++i) {
         rValues[i] = mConstitutiveLawVector[i]->GetValue(rVariable, rValues[i]);
-    }
-
-    KRATOS_CATCH("")
-}
-
-void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
-                                                                  std::vector<ConstitutiveLaw::Pointer>& rValues,
-                                                                  const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    if (rVariable == CONSTITUTIVE_LAW) {
-        rValues.resize(mConstitutiveLawVector.size());
-        for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i) {
-            rValues[i] = mConstitutiveLawVector[i];
-        }
     }
 
     KRATOS_CATCH("")
@@ -1762,6 +1532,52 @@ Element::DofsVectorType SmallStrainUPwDiffOrderElement::GetDofs() const
 {
     return Geo::DofUtilities::ExtractUPwDofsFromNodes(GetGeometry(), *mpPressureGeometry,
                                                       GetGeometry().WorkingSpaceDimension());
+}
+
+void SmallStrainUPwDiffOrderElement::SetUpPressureGeometryPointer()
+{
+    const auto& r_geometry        = GetGeometry();
+    const auto  number_of_U_nodes = r_geometry.PointsNumber();
+    const auto  dimension         = r_geometry.WorkingSpaceDimension();
+    switch (number_of_U_nodes) {
+    case 6: // 2D T6P3
+        mpPressureGeometry = make_shared<Triangle2D3<Node>>(r_geometry(0), r_geometry(1), r_geometry(2));
+        break;
+    case 8: // 2D Q8P4
+        mpPressureGeometry = make_shared<Quadrilateral2D4<Node>>(r_geometry(0), r_geometry(1),
+                                                                 r_geometry(2), r_geometry(3));
+        break;
+    case 9: // 2D Q9P4
+        mpPressureGeometry = make_shared<Quadrilateral2D4<Node>>(r_geometry(0), r_geometry(1),
+                                                                 r_geometry(2), r_geometry(3));
+        break;
+    case 10:
+        if (dimension == 3) // 3D T10P4
+            mpPressureGeometry = make_shared<Tetrahedra3D4<Node>>(r_geometry(0), r_geometry(1),
+                                                                  r_geometry(2), r_geometry(3));
+        else if (dimension == 2) // 2D T10P6
+            mpPressureGeometry = make_shared<Triangle2D6<Node>>(
+                r_geometry(0), r_geometry(1), r_geometry(2), r_geometry(3), r_geometry(4), r_geometry(5));
+        break;
+    case 15: // 2D T15P10
+        mpPressureGeometry = make_shared<Triangle2D10<Node>>(
+            r_geometry(0), r_geometry(1), r_geometry(2), r_geometry(3), r_geometry(4),
+            r_geometry(5), r_geometry(6), r_geometry(7), r_geometry(8), r_geometry(9));
+        break;
+    case 20: // 3D H20P8
+        mpPressureGeometry =
+            make_shared<Hexahedra3D8<Node>>(r_geometry(0), r_geometry(1), r_geometry(2), r_geometry(3),
+                                            r_geometry(4), r_geometry(5), r_geometry(6), r_geometry(7));
+        break;
+    case 27: // 3D H27P8
+        mpPressureGeometry =
+            make_shared<Hexahedra3D8<Node>>(r_geometry(0), r_geometry(1), r_geometry(2), r_geometry(3),
+                                            r_geometry(4), r_geometry(5), r_geometry(6), r_geometry(7));
+        break;
+    default:
+        KRATOS_ERROR << "Unexpected geometry type for different order interpolation element "
+                     << this->Id() << std::endl;
+    }
 }
 
 Vector SmallStrainUPwDiffOrderElement::GetPressureSolutionVector()

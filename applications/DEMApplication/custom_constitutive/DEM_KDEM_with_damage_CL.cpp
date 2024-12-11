@@ -38,6 +38,7 @@ namespace Kratos {
                                 double equiv_young,
                                 double equiv_shear,
                                 double indentation,
+                                double indentation_particle,
                                 double calculation_area,
                                 double& acumulated_damage,
                                 SphericContinuumParticle* element1,
@@ -56,6 +57,7 @@ namespace Kratos {
                 kn_el,
                 equiv_young,
                 indentation,
+                indentation_particle,
                 calculation_area,
                 acumulated_damage,
                 element1,
@@ -108,6 +110,7 @@ namespace Kratos {
             const double kn_el,
             double equiv_young,
             double indentation,
+            double indentation_particle,
             double calculation_area,
             double& acumulated_damage,
             SphericContinuumParticle* element1,
@@ -367,8 +370,7 @@ namespace Kratos {
                                                     double ElasticLocalRotationalMoment[3],
                                                     double ViscoLocalRotationalMoment[3],
                                                     double equiv_poisson,
-                                                    double indentation,
-                                                    double LocalElasticContactForce[3]) {
+                                                    double indentation) {
 
         KRATOS_TRY
 
@@ -381,8 +383,7 @@ namespace Kratos {
                                                     ElasticLocalRotationalMoment,
                                                     ViscoLocalRotationalMoment,
                                                     equiv_poisson,
-                                                    indentation,
-                                                    LocalElasticContactForce);
+                                                    indentation);
 
         ElasticLocalRotationalMoment[0] *= (1.0 - mDamageMoment);
         ElasticLocalRotationalMoment[1] *= (1.0 - mDamageMoment);

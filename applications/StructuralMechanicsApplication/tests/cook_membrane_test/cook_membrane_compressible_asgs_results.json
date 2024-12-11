@@ -1,0 +1,38 @@
+{
+  "TIME": [
+    2.0
+  ],
+  "NODE_496": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "VOLUMETRIC_STRAIN": [
+      -0.0013444843981714272
+    ]
+  },
+  "NODE_573": {
+    "DISPLACEMENT_X": [
+      -0.0102084210808326
+    ],
+    "DISPLACEMENT_Y": [
+      0.028731539515315502
+    ],
+    "VOLUMETRIC_STRAIN": [
+      4.5625827302516245e-05
+    ]
+  },
+  "NODE_1089": {
+    "DISPLACEMENT_X": [
+      -0.08349173828180384
+    ],
+    "DISPLACEMENT_Y": [
+      0.11289584086088
+    ],
+    "VOLUMETRIC_STRAIN": [
+      4.937371560998736e-05
+    ]
+  }
+}

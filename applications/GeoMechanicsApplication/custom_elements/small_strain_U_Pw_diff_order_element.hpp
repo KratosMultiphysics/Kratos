@@ -49,6 +49,7 @@ public:
                                    std::unique_ptr<StressStatePolicy> pStressStatePolicy)
         : UPwBaseElement(NewId, pGeometry, std::move(pStressStatePolicy))
     {
+        SetUpPressureGeometryPointer();
     }
 
     SmallStrainUPwDiffOrderElement(IndexType                          NewId,
@@ -57,6 +58,7 @@ public:
                                    std::unique_ptr<StressStatePolicy> pStressStatePolicy)
         : UPwBaseElement(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
     {
+        SetUpPressureGeometryPointer();
     }
 
     ~SmallStrainUPwDiffOrderElement() override = default;
@@ -69,43 +71,14 @@ public:
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const override;
-
-    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
-
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void ResetConstitutiveLaw() override;
-
-    void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
-                              VectorType&        rRightHandSideVector,
-                              const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
-
     void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
-
-    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
-
-    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;
-    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
-
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo) override;
-
-    void SetValuesOnIntegrationPoints(const Variable<double>&    rVariable,
-                                      const std::vector<double>& rValues,
-                                      const ProcessInfo&         rCurrentProcessInfo) override;
 
     void SetValuesOnIntegrationPoints(const Variable<Vector>&    rVariable,
                                       const std::vector<Vector>& rValues,
-                                      const ProcessInfo&         rCurrentProcessInfo) override;
-
-    void SetValuesOnIntegrationPoints(const Variable<Matrix>&    rVariable,
-                                      const std::vector<Matrix>& rValues,
                                       const ProcessInfo&         rCurrentProcessInfo) override;
 
     using Element::SetValuesOnIntegrationPoints;
@@ -130,27 +103,19 @@ public:
                                       std::vector<Matrix>&    rOutput,
                                       const ProcessInfo&      rCurrentProcessInfo) override;
 
-    void CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
-                                      std::vector<ConstitutiveLaw::Pointer>&    rValues,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
-
     using Element::CalculateOnIntegrationPoints;
 
     // Turn back information as a string.
     std::string Info() const override
     {
-        std::stringstream buffer;
-        buffer << "U-Pw small strain different order Element #" << Id()
-               << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
-        return buffer.str();
+        const std::string constitutive_info =
+            !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
+        return "U-Pw small strain different order Element #" + std::to_string(Id()) +
+               "\nConstitutive law: " + constitutive_info;
     }
 
     // Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << "U-Pw small strain different order Element #" << Id()
-                 << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
-    }
+    void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
 
 protected:
     struct ElementVariables {
@@ -289,9 +254,16 @@ protected:
     [[nodiscard]] SizeType GetNumberOfDOF() const override;
 
 private:
-    [[nodiscard]] DofsVectorType GetDofs() const;
-
     GeometryType::Pointer mpPressureGeometry;
+
+    [[nodiscard]] DofsVectorType GetDofs() const override;
+
+    /**
+     * @brief Sets the up the pressure geometry pointer object
+     * This function sets the pointer for the auxiliary geometry for the pressure problem
+     * The pressure geometry pointer is set according to the element geometry number of nodes and dimension
+     */
+    void SetUpPressureGeometryPointer();
 
     // Serialization
 

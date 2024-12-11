@@ -33,11 +33,12 @@ file(GLOB_RECURSE KRATOS_FLUID_DYNAMICS_PYTHON_INTERFACE_SOURCES ${CMAKE_CURRENT
 ## define fluid dynamics test sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
  	file(GLOB_RECURSE KRATOS_FLUID_DYNAMICS_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+  kratos_add_gtests(TARGET KratosFluidDynamicsCore SOURCES "${KRATOS_FLUID_DYNAMICS_TESTING_SOURCES}")
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ###############################################################################
 ## FluidDynamicsApplication core library (C++ parts)
-add_library( KratosFluidDynamicsCore SHARED ${KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES} ${KRATOS_FLUID_DYNAMICS_TESTING_SOURCES} )
+add_library( KratosFluidDynamicsCore SHARED ${KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES} )
 target_link_libraries( KratosFluidDynamicsCore PUBLIC KratosCore)
 set_target_properties( KratosFluidDynamicsCore PROPERTIES COMPILE_DEFINITIONS "FLUID_DYNAMICS_APPLICATION=EXPORT,API")
 

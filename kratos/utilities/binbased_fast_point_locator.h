@@ -4,14 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//                       license: license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  License:          BSD License
-//  Main authors:     Riccardo Rossi
-//                    Pablo Becker
-//                    Carlos Roig
-//                    Vicente Mataix Ferrandiz
+//  Main authors:    Riccardo Rossi
+//                   Pablo Becker
+//                   Carlos Roig
+//                   Vicente Mataix Ferrandiz
 //
 
 #pragma once
@@ -21,9 +20,8 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/node.h"
-
+#include "includes/condition.h"
 #include "spatial_containers/spatial_containers.h"
 #include "spatial_containers/cell.h"
 #include "spatial_containers/bins_dynamic_objects.h"
@@ -86,11 +84,8 @@ public:
     typedef typename BinsObjectDynamic<ConfigureType>::CoordinateType BinsCoordinateType;
     typedef typename BinsObjectDynamic<ConfigureType>::PointType BinsPointType;
 
-    /// The definition of the node
-    typedef Node NodeType;
-
     /// The definition of the geometry
-    typedef Geometry<NodeType> GeometryType;
+    typedef Geometry<Node> GeometryType;
 
     /// The size definition
     typedef std::size_t SizeType;

@@ -11,8 +11,8 @@
 //
 
 #include "custom_strategies/schemes/generalized_newmark_scheme.hpp"
+#include "geo_mechanics_fast_suite.h"
 #include "spaces/ublas_space.h"
-#include "testing/testing.h"
 
 using namespace Kratos;
 using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
@@ -36,7 +36,7 @@ protected:
     }
 };
 
-KRATOS_TEST_CASE_IN_SUITE(ForInvalidTheta_CheckNewmarkScheme_Throws, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ForInvalidTheta_CheckNewmarkScheme_Throws, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     constexpr double invalid_theta = -2.0;
 
