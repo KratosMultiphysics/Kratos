@@ -294,6 +294,9 @@ include(KratosGTest)
 include(KratosGBenchmark)
 include(FetchContent)
 
+# This is the only way to run OMP loops with dynamic schedule without conflicting the GIL
+add_definitions(-DPYBIND11_NO_ASSERT_GIL_HELD_INCREF_DECREF)
+
 # Logger configuration
 if(KRATOS_COLORED_OUTPUT MATCHES ON)
   add_definitions(-DKRATOS_COLORED_OUTPUT)
