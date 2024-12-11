@@ -2019,6 +2019,11 @@ private:
         KRATOS_CATCH("")
     }
 
+    template<class TContainerType>
+    static void AddEntitiesFromIds(
+        ModelPart* pModelPart,
+        const std::vector<IndexType>& rEntityIds);
+
     /**
      * @brief This method trims a string in the different components to access recursively to any subproperty
      * @param rStringName The given name to be trimmed

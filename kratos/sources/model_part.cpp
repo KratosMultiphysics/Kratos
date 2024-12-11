@@ -32,44 +32,6 @@ namespace ModelPartHelperUtilities
 {
 
 template<class TContainerType>
-void AddEntitiesFromIds(
-    ModelPart* pModelPart,
-    const std::vector<IndexType>& rEntityIds)
-{
-    KRATOS_TRY
-
-    if(pModelPart->IsSubModelPart()) { //does nothing if we are on the top model part
-        //obtain from the root model part the corresponding list of nodes
-        ModelPart* root_model_part = &pModelPart->GetRootModelPart();
-
-        std::vector<typename TContainerType::pointer> aux;
-        aux.reserve(rEntityIds.size());
-
-        const auto& r_container = ModelPart::Container<TContainerType>::GetContainer(root_model_part->GetMesh());
-
-        for(const auto entity_id : rEntityIds) {
-            auto it = r_container.find(entity_id);
-            if(it != r_container.end()) {
-                aux.push_back(*(it.base()));
-            } else {
-                KRATOS_ERROR << "while adding " << ModelPart::Container<TContainerType>::GetEntityName() << "s to submodelpart "
-                             << pModelPart->FullName() << ", the "
-                             << ModelPart::Container<TContainerType>::GetEntityName()
-                             << " with Id " << entity_id << " does not exist in the root model part";
-            }
-        }
-
-        ModelPart* current_part = pModelPart;
-        while(current_part->IsSubModelPart()) {
-            ModelPart::Container<TContainerType>::GetContainer(current_part->GetMesh()).insert(aux.begin(), aux.end());
-            current_part = &(current_part->GetParentModelPart());
-        }
-    }
-
-    KRATOS_CATCH("");
-}
-
-template<class TContainerType>
 void RemoveEntities(
     ModelPart::MeshType& rMesh,
     const Flags& rIdentifierFlag)
@@ -302,11 +264,50 @@ void ModelPart::AddNode(ModelPart::NodeType::Pointer pNewNode, ModelPart::IndexT
     }
 }
 
+template<class TContainerType>
+void ModelPart::AddEntitiesFromIds(
+    ModelPart* pModelPart,
+    const std::vector<IndexType>& rEntityIds)
+{
+    KRATOS_TRY
+
+    if(pModelPart->IsSubModelPart()) { //does nothing if we are on the top model part
+        //obtain from the root model part the corresponding list of nodes
+        ModelPart* root_model_part = &pModelPart->GetRootModelPart();
+
+        std::vector<typename TContainerType::pointer> aux;
+        aux.resize(rEntityIds.size());
+
+        const auto& r_container = ModelPart::Container<TContainerType>::GetContainer(root_model_part->GetMesh());
+
+        IndexPartition<IndexType>(rEntityIds.size()).for_each([&r_container,  &rEntityIds, &aux, pModelPart](const auto Index) {
+            auto it = r_container.find(rEntityIds[Index]);
+
+            KRATOS_ERROR_IF(it == r_container.end())
+                << "while adding " << ModelPart::Container<TContainerType>::GetEntityName() << "s to submodelpart "
+                << pModelPart->FullName() << ", the "
+                << ModelPart::Container<TContainerType>::GetEntityName()
+                << " with Id " << rEntityIds[Index] << " does not exist in the root model part";
+
+            aux[Index] = *(it.base());
+        });
+
+        ModelPart* current_part = pModelPart;
+        while(
+            current_part->IsSubModelPart() &&
+            InsertEntityRange(ModelPart::Container<TContainerType>::GetContainer(current_part->GetMesh()), aux.begin(), aux.end())) {
+            current_part = &(current_part->GetParentModelPart());
+        }
+    }
+
+    KRATOS_CATCH("");
+}
+
 /** Inserts a list of nodes in a submodelpart provided their Id. Does nothing if applied to the top model part
 */
 void ModelPart::AddNodes(std::vector<IndexType> const& rNodeIds, IndexType ThisIndex)
 {
-    ModelPartHelperUtilities::AddEntitiesFromIds<ModelPart::NodesContainerType>(this, rNodeIds);
+    AddEntitiesFromIds<ModelPart::NodesContainerType>(this, rNodeIds);
 }
 
 /** Inserts a node in the mesh with ThisIndex.
@@ -960,7 +961,7 @@ void ModelPart::AddElement(ModelPart::ElementType::Pointer pNewElement, ModelPar
 */
 void ModelPart::AddElements(std::vector<IndexType> const& ElementIds, IndexType ThisIndex)
 {
-    ModelPartHelperUtilities::AddEntitiesFromIds<ModelPart::ElementsContainerType>(this, ElementIds);
+    AddEntitiesFromIds<ModelPart::ElementsContainerType>(this, ElementIds);
 }
 
 /** Inserts an element in the mesh with ThisIndex.
@@ -1170,7 +1171,7 @@ void ModelPart::AddMasterSlaveConstraint(ModelPart::MasterSlaveConstraintType::P
  */
 void ModelPart::AddMasterSlaveConstraints(std::vector<IndexType> const& MasterSlaveConstraintIds, IndexType ThisIndex)
 {
-    ModelPartHelperUtilities::AddEntitiesFromIds<ModelPart::MasterSlaveConstraintContainerType>(this, MasterSlaveConstraintIds);
+    AddEntitiesFromIds<ModelPart::MasterSlaveConstraintContainerType>(this, MasterSlaveConstraintIds);
 }
 
 /// @brief Construct a new @ref MasterSlaveConstraint and insert it into the specified @ref Mesh.
@@ -1402,7 +1403,7 @@ void ModelPart::AddCondition(ModelPart::ConditionType::Pointer pNewCondition, Mo
 */
 void ModelPart::AddConditions(std::vector<IndexType> const& ConditionIds, IndexType ThisIndex)
 {
-    ModelPartHelperUtilities::AddEntitiesFromIds<ModelPart::ConditionsContainerType>(this, ConditionIds);
+    AddEntitiesFromIds<ModelPart::ConditionsContainerType>(this, ConditionIds);
 }
 
 /** Inserts a condition in the mesh with ThisIndex.
