@@ -77,16 +77,16 @@ void  AddLinearSolvers(pybind11::module& m)
     py::class_<TrilinosFallbackLinearSolverType, TrilinosFallbackLinearSolverType::Pointer, TrilinosLinearSolverType>(m, "TrilinosFallbackLinearSolver")
         .def(py::init<Parameters>())
         .def(py::init<const std::vector<TrilinosLinearSolverType::Pointer>&, Parameters>())
-        .def("AddSolver", [](TrilinosFallbackLinearSolverType& rSelf, TrilinosLinearSolverType::Pointer pSolver) {
-            rSelf.AddSolver(pSolver);
-        })
-        .def("AddSolver", [](TrilinosFallbackLinearSolverType& rSelf, const Parameters ThisParameters) {
-            rSelf.AddSolver(ThisParameters);
-        })
+        // .def("AddSolver", [](TrilinosFallbackLinearSolverType& rSelf, TrilinosLinearSolverType::Pointer pSolver) {
+        //     rSelf.AddSolver(pSolver);
+        // })
+        // .def("AddSolver", [](TrilinosFallbackLinearSolverType& rSelf, const Parameters ThisParameters) {
+        //     rSelf.AddSolver(ThisParameters);
+        // })
         .def("GetSolvers", &TrilinosFallbackLinearSolverType::GetSolvers)
-        .def("SetSolvers", &TrilinosFallbackLinearSolverType::SetSolvers)
+        // .def("SetSolvers", &TrilinosFallbackLinearSolverType::SetSolvers)
         .def("GetResetSolverEachTry", &TrilinosFallbackLinearSolverType::GetResetSolverEachTry)
-        .def("SetResetSolverIndexEachTry", &TrilinosFallbackLinearSolverType::SetResetSolverIndexEachTry)
+        // .def("SetResetSolverIndexEachTry", &TrilinosFallbackLinearSolverType::SetResetSolverIndexEachTry)
         .def("GetParameters", &TrilinosFallbackLinearSolverType::GetParameters)
         .def("GetCurrentSolverIndex", &TrilinosFallbackLinearSolverType::GetCurrentSolverIndex)
         .def("ClearCurrentSolverIndex", &TrilinosFallbackLinearSolverType::ClearCurrentSolverIndex)
