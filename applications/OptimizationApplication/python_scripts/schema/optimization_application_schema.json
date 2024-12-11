@@ -1,5 +1,43 @@
 {
     "$defs": {
+        "AnalysisOutputSettings": {
+            "properties": {
+                "nodal_solution_step_data_variables": {
+                    "description": "List of nodal solution step data variables",
+                    "items": {
+                        "type": "string"
+                    },
+                    "title": "Nodal Solution Step Data Variables",
+                    "type": "array"
+                },
+                "nodal_data_value_variables": {
+                    "description": "List of nodal data value variables",
+                    "items": {
+                        "type": "string"
+                    },
+                    "title": "Nodal Data Value Variables",
+                    "type": "array"
+                },
+                "element_data_value_variables": {
+                    "description": "List of element data value variables",
+                    "items": {
+                        "type": "string"
+                    },
+                    "title": "Element Data Value Variables",
+                    "type": "array"
+                },
+                "condition_data_value_variables": {
+                    "description": "List of condition data value variables",
+                    "items": {
+                        "type": "string"
+                    },
+                    "title": "Condition Data Value Variables",
+                    "type": "array"
+                }
+            },
+            "title": "AnalysisOutputSettings",
+            "type": "object"
+        },
         "Control": {
             "properties": {
                 "name": {
@@ -43,6 +81,70 @@
                 "filter_radius"
             ],
             "title": "FilterSettings",
+            "type": "object"
+        },
+        "KratosAnalysisBase": {
+            "properties": {
+                "name": {
+                    "description": "Name of the analysis",
+                    "title": "Name",
+                    "type": "string"
+                },
+                "type": {
+                    "const": "kratos_analysis_execution_policy",
+                    "description": "Type of the analysis",
+                    "title": "Type",
+                    "type": "string"
+                },
+                "settings": {
+                    "$ref": "#/$defs/KratosAnalysisSettings"
+                }
+            },
+            "required": [
+                "name",
+                "type",
+                "settings"
+            ],
+            "title": "KratosAnalysisBase",
+            "type": "object"
+        },
+        "KratosAnalysisSettings": {
+            "properties": {
+                "model_part_names": {
+                    "description": "List of model part names",
+                    "items": {
+                        "type": "string"
+                    },
+                    "title": "Model Part Names",
+                    "type": "array"
+                },
+                "analysis_module": {
+                    "description": "Analysis module",
+                    "title": "Analysis Module",
+                    "type": "string"
+                },
+                "analysis_type": {
+                    "description": "Analysis type",
+                    "title": "Analysis Type",
+                    "type": "string"
+                },
+                "analysis_settings": {
+                    "description": "Analysis settings",
+                    "title": "Analysis Settings",
+                    "type": "object"
+                },
+                "analysis_output_settings": {
+                    "$ref": "#/$defs/AnalysisOutputSettings",
+                    "description": "Analysis output settings"
+                }
+            },
+            "required": [
+                "model_part_names",
+                "analysis_module",
+                "analysis_type",
+                "analysis_settings"
+            ],
+            "title": "KratosAnalysisSettings",
             "type": "object"
         },
         "LinearStrainEnergyResponse": {
@@ -352,7 +454,9 @@
         },
         "analyses": {
             "description": "List of responses",
-            "items": {},
+            "items": {
+                "$ref": "#/$defs/KratosAnalysisBase"
+            },
             "title": "Analyses",
             "type": "array"
         },

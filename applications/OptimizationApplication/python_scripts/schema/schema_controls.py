@@ -1,4 +1,3 @@
-import pydantic
 from pydantic import BaseModel, Field
 
 class FilterSettings(BaseModel):
