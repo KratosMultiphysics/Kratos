@@ -183,7 +183,7 @@ public:
     {
         KRATOS_PREPARE_CATCH_THREAD_EXCEPTION
 
-        #pragma omp parallel for
+        #pragma omp parallel for schedule(dynamic)
         for (int i=0; i<mNchunks; ++i) {
             KRATOS_TRY
             for (auto it = mBlockPartition[i]; it != mBlockPartition[i+1]; ++it) {
@@ -206,7 +206,7 @@ public:
         KRATOS_PREPARE_CATCH_THREAD_EXCEPTION
 
         TReducer global_reducer;
-        #pragma omp parallel for
+        #pragma omp parallel for schedule(dynamic)
         for (int i=0; i<mNchunks; ++i) {
             KRATOS_TRY
             TReducer local_reducer;
@@ -519,7 +519,7 @@ public:
     {
         KRATOS_PREPARE_CATCH_THREAD_EXCEPTION
 
-        #pragma omp parallel for
+        #pragma omp parallel for schedule(dynamic)
         for (int i=0; i<mNchunks; ++i) {
             KRATOS_TRY
             for (auto k = mBlockPartition[i]; k < mBlockPartition[i+1]; ++k) {
@@ -541,7 +541,7 @@ public:
         KRATOS_PREPARE_CATCH_THREAD_EXCEPTION
 
         TReducer global_reducer;
-        #pragma omp parallel for
+        #pragma omp parallel for schedule(dynamic)
         for (int i=0; i<mNchunks; ++i) {
             KRATOS_TRY
             TReducer local_reducer;
