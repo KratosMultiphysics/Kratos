@@ -18,6 +18,7 @@ class SetAbsorbingBoundaryParametersProcess(KratosMultiphysics.Process):
         params.AddValue("model_part_name",settings["model_part_name"])
         params.AddValue("absorbing_factors", settings["absorbing_factors"])
         params.AddValue("virtual_thickness", settings["virtual_thickness"])
+        params.AddValue("skip_internal_forces", settings["skip_internal_forces"])
 
         self.process = KratosGeo.SetAbsorbingBoundaryParametersProcess(model_part, params)
 

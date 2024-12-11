@@ -110,14 +110,21 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateRightHandSide(VectorType& rRightHandSideVector,
                                                                           const ProcessInfo& rCurrentProcessInfo)
 {
-    ElementMatrixType stiffness_matrix;
 
-    this->CalculateConditionStiffnessMatrix(stiffness_matrix, rCurrentProcessInfo);
+    if (this->GetValue(SKIP_INTERNAL_FORCES)) {
+        rRightHandSideVector = ZeroVector(CONDITION_SIZE);
+       
+	}
+	else {
+        ElementMatrixType stiffness_matrix;
 
-    MatrixType global_stiffness_matrix = ZeroMatrix(CONDITION_SIZE, CONDITION_SIZE);
-    GeoElementUtilities::AssembleUUBlockMatrix(global_stiffness_matrix, stiffness_matrix);
+        this->CalculateConditionStiffnessMatrix(stiffness_matrix, rCurrentProcessInfo);
 
-    this->CalculateAndAddRHS(rRightHandSideVector, global_stiffness_matrix);
+        MatrixType global_stiffness_matrix = ZeroMatrix(CONDITION_SIZE, CONDITION_SIZE);
+        GeoElementUtilities::AssembleUUBlockMatrix(global_stiffness_matrix, stiffness_matrix);
+
+        this->CalculateAndAddRHS(rRightHandSideVector, global_stiffness_matrix);
+	}
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -402,11 +409,13 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateAndAddRHS(VectorType
                                                                       const MatrixType& rStiffnessMatrix)
 {
     rRightHandSideVector = ZeroVector(CONDITION_SIZE);
+	// Only calculate internal forces if the flag is set, not all solvers need them to be calculated per element
 
     Vector displacements_vector = ZeroVector(CONDITION_SIZE);
     this->GetValuesVector(displacements_vector, 0);
 
     rRightHandSideVector -= prod(rStiffnessMatrix, displacements_vector);
+
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

@@ -36,7 +36,8 @@ public:
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "absorbing_factors": [1.0,1.0],
-                "virtual_thickness": 1e10
+                "virtual_thickness": 1e10,
+                "skip_internal_forces": false
             }  )");
 
         // Some values need to be mandatory prescribed since no meaningful default value exist. For
@@ -54,6 +55,9 @@ public:
         // get virtual thickness
         mVirtualThickness = rParameters["virtual_thickness"].GetDouble();
 
+        mSkipInternalForces = rParameters["skip_internal_forces"].GetBool();
+        std::cout << "mSkipInternalForces: " << mSkipInternalForces << std::endl;
+
         KRATOS_CATCH("")
     }
 
@@ -70,6 +74,7 @@ public:
         block_for_each(mrModelPart.Conditions(), [&](Condition& rCondition) {
             rCondition.SetValue(ABSORBING_FACTORS, mAbsorbingFactors);
             rCondition.SetValue(VIRTUAL_THICKNESS, mVirtualThickness);
+            rCondition.SetValue(SKIP_INTERNAL_FORCES, mSkipInternalForces);
         });
 
         KRATOS_CATCH("")
@@ -82,6 +87,7 @@ private:
     ModelPart& mrModelPart;
     Vector     mAbsorbingFactors;
     double     mVirtualThickness;
+	bool       mSkipInternalForces;
 };
 
 } // namespace Kratos
