@@ -22,20 +22,20 @@ void BrooksAndCoreyLaw::CalculateLiquidSaturationDegree (SaturationLawVariables&
     double& rSl = rValues.GetSl();
     double& rdSldPc = rValues.GetdSldPc();
 
-    // // If the capillar pressure is lower than the gas-entry pressure, the porous media is fully saturated with the wetting phase.
-    // rSl = 1.0 - rVariables.Sgr;
-    // rdSldPc = 0.0;
+    // If the capillar pressure is lower than the gas-entry pressure, the porous media is fully saturated with the wetting phase.
+    rSl = 1.0 - rVariables.Sgr;
+    rdSldPc = 0.0;
     
-    // if(rVariables.pc > rVariables.pb)
-    // {
-    //     // Liquid saturation degree
-    //     rSl = (1.0 - rVariables.Sgr - rVariables.Slr)*std::pow(rVariables.pb/rVariables.pc,rVariables.lambda)
-    //             + rVariables.Slr;
+    if(rVariables.pc > rVariables.pb)
+    {
+        // Liquid saturation degree
+        rSl = (1.0 - rVariables.Sgr - rVariables.Slr)*std::pow(rVariables.pb/rVariables.pc,rVariables.lambda)
+                + rVariables.Slr;
 
-    //     // Derivative of the liquid saturation degree with respect to the capillary pressure
-    //     rdSldPc = -rVariables.lambda * (1.0 - rVariables.Sgr - rVariables.Slr) * 
-    //                 std::pow(rVariables.pb,rVariables.lambda) / std::pow(rVariables.pc,rVariables.lambda+1.0);
-    // }
+        // Derivative of the liquid saturation degree with respect to the capillary pressure
+        rdSldPc = -rVariables.lambda * (1.0 - rVariables.Sgr - rVariables.Slr) * 
+                    std::pow(rVariables.pb,rVariables.lambda) / std::pow(rVariables.pc,rVariables.lambda+1.0);
+    }
 
 
     //TODO. Ignasi
@@ -58,26 +58,34 @@ void BrooksAndCoreyLaw::CalculateLiquidSaturationDegree (SaturationLawVariables&
 
     // TODO. Xavi
     // // NOTE. This implementation is just done to validate the Khoei 1st example
-    // // B = 5e5
+    // // B = 5e5, 50e5
     
-    if (rVariables.pc < 0.0) {
-        rSl = 1.0;
-    } else {
-        rSl = std::exp(-rVariables.pc/5e5);
-    }
+    // const PropertiesType& Prop = this->GetProperties();
+
+    // if (rVariables.pc < 0.0) {
+    //     rSl = 1.0;
+    // } else {
+    //     // rSl = std::exp(-rVariables.pc/5e5);
+    //     if (PERMEABILITY_XX.Key() <= 1e-15) {
+    //         rSl = 1.0/(std::pow(10,(rVariables.pc/5e5)));
+    //     } else if (PERMEABILITY_XX.Key() > 1e-15) {
+    //         rSl = 1.0/(std::pow(10,(rVariables.pc/50e5)));
+    //     }
+        
+    // }
     
-    if (rVariables.pc < 0.0) {
-        rdSldPc = 0.0;
-    } else {
-        rdSldPc = (-1.0/5e5)*std::exp(-rVariables.pc/5e5);
-    }
+    // if (rVariables.pc < 0.0) {
+    //     rdSldPc = 0.0;
+    // } else {
+    //     rdSldPc = (-1.0/5e5)*std::exp(-rVariables.pc/5e5);
+    // }
 
 
 
     // TODO. Xavi
-    // // NOTE. This implementation is just done to validate the Khoei 2nd example
-    // // B = 101325
-    // // v = 5; 
+    // NOTE. This implementation is just done to validate the Khoei 2nd example
+    // B = 101325
+    // v = 5; 
     
     // if (rVariables.pc < 0.0) {
     //     rSl = 1.0;
@@ -130,17 +138,17 @@ void BrooksAndCoreyLaw::CalculateLiquidRelativePermeability (SaturationLawVariab
     // TODO. Xavi
     // NOTE. This implementation is just done to validate the Khoei 1st example
     // B = 5e5
-    double& rSl = rValues.GetSl();
-    if (rSl <= rVariables.Slr) { 
-        rkrl = 0.0;
-    } else if (rSl >= 1.0) {
-        rkrl = 1.0;
-    } else {
-        rkrl = std::pow(rSl, 2);
-    }
+    // double& rSl = rValues.GetSl();
+    // if (rSl <= rVariables.Slr) { 
+    //     rkrl = 0.0;
+    // } else if (rSl >= 1.0) {
+    //     rkrl = 1.0;
+    // } else {
+    //     rkrl = std::pow(rSl, 2);
+    // }
 
 
-    // // NOTE. This implementation is just done to validate the Khoei example
+    // // NOTE. This implementation is just done to validate the Khoei 2nd example
     // // B = 101325
     // // v = 5;
     // double& rSl = rValues.GetSl();
@@ -161,30 +169,30 @@ void BrooksAndCoreyLaw::CalculateGasRelativePermeability (SaturationLawVariables
 {
     double& rkrg = rValues.Getkrg();
 
-    // if (rVariables.Se >= 1.0) {
-    //     // Fully saturated medium
-    //     rkrg = rVariables.krmin;
-    // } else if (rVariables.Se <= 0.0) {
-    //     // Dry medium
-    //     rkrg = 1.0;
-    // } else {
-    //     const double ng = (2.0 + rVariables.lambda)/rVariables.lambda;
-    //     rkrg = (1.0-rVariables.Se)*(1.0-rVariables.Se)*(1.0 - std::pow(rVariables.Se,ng));
-    //     rkrg = std::max(rkrg,rVariables.krmin);
-    // }
+    if (rVariables.Se >= 1.0) {
+        // Fully saturated medium
+        rkrg = rVariables.krmin;
+    } else if (rVariables.Se <= 0.0) {
+        // Dry medium
+        rkrg = 1.0;
+    } else {
+        const double ng = (2.0 + rVariables.lambda)/rVariables.lambda;
+        rkrg = (1.0-rVariables.Se)*(1.0-rVariables.Se)*(1.0 - std::pow(rVariables.Se,ng));
+        rkrg = std::max(rkrg,rVariables.krmin);
+    }
 
 
     // TODO. Xavi
     // NOTE. This implementation is just done to validate the Khoei 1st example
     // B = 5e5
-    const double& rSl = rValues.GetSl();
-    if (rVariables.Se >= 1.0) {
-        rkrg = rVariables.krmin;
-    } else if (rVariables.Se <= 0.0) {
-        rkrg = 1.0;
-    } else {
-        rkrg = std::pow((1.0 - rSl), 2);
-    }
+    // const double& rSl = rValues.GetSl();
+    // if (rVariables.Se >= 1.0) {
+    //     rkrg = rVariables.krmin;
+    // } else if (rVariables.Se <= 0.0) {
+    //     rkrg = 1.0;
+    // } else {
+    //     rkrg = std::pow((1.0 - rSl), 2);
+    // }
  
 
 
