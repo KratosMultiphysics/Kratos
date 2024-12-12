@@ -39,7 +39,7 @@ namespace Kratos
  * @brief The BrepSurface acts as topology for faces. Those
  *        can be enclosed by a certain set of brep face curves.
  */
-template<class TContainerPointType, class TContainerPointEmbeddedType = TContainerPointType>
+template<class TContainerPointType, bool TShiftedBoundary, class TContainerPointEmbeddedType = TContainerPointType>
 class BrepSurface
     : public Geometry<typename TContainerPointType::value_type>
 {
@@ -60,7 +60,7 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     typedef NurbsSurfaceGeometry<3, TContainerPointType> NurbsSurfaceType;
-    typedef BrepCurveOnSurface<TContainerPointType, TContainerPointEmbeddedType> BrepCurveOnSurfaceType;
+    typedef BrepCurveOnSurface<TContainerPointType, TShiftedBoundary, TContainerPointEmbeddedType> BrepCurveOnSurfaceType;
 
     typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceArrayType;
     typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceLoopType;
@@ -134,7 +134,7 @@ public:
     /// Copy constructor from a geometry with different point type.
     template<class TOtherContainerPointType, class TOtherContainerPointEmbeddedType>
     explicit BrepSurface(
-        BrepSurface<TOtherContainerPointType, TOtherContainerPointEmbeddedType> const& rOther )
+        BrepSurface<TOtherContainerPointType, TShiftedBoundary, TOtherContainerPointEmbeddedType> const& rOther )
         : BaseType( rOther )
         , mpNurbsSurface(rOther.mpNurbsSurface)
         , mOuterLoopArray(rOther.mOuterLoopArray)
@@ -165,7 +165,7 @@ public:
 
     /// Assignment operator for geometries with different point type.
     template<class TOtherContainerPointType, class TOtherContainerPointEmbeddedType>
-    BrepSurface& operator=( BrepSurface<TOtherContainerPointType, TOtherContainerPointEmbeddedType> const & rOther )
+    BrepSurface& operator=( BrepSurface<TOtherContainerPointType, TShiftedBoundary, TOtherContainerPointEmbeddedType> const & rOther )
     {
         BaseType::operator=( rOther );
         mpNurbsSurface = rOther.mpNurbsSurface;
@@ -435,9 +435,19 @@ public:
         IntegrationInfo& rIntegrationInfo) const override
     {
         if (!mIsTrimmed) {
-            mpNurbsSurface->CreateIntegrationPoints(
-                rIntegrationPoints, rIntegrationInfo);
+            // sbm case
+            if constexpr (TShiftedBoundary) {
+                // TODO: Next PR -> Call  "BrepSBMUtilities::CreateBrepSurfaceSBMIntegrationPoints"
+                mpNurbsSurface->CreateIntegrationPoints(
+                    rIntegrationPoints, rIntegrationInfo);
+            }
+            // body-fitted case
+            else {
+                mpNurbsSurface->CreateIntegrationPoints(
+                    rIntegrationPoints, rIntegrationInfo);
+            }
         }
+        // trimmed case
         else
         {
             std::vector<double> spans_u;
@@ -605,14 +615,14 @@ private:
 ///@{
 
 /// input stream functions
-template<class TContainerPointType, class TContainerPointEmbeddedType = TContainerPointType> inline std::istream& operator >> (
+template<class TContainerPointType, bool TShiftedBoundary, class TContainerPointEmbeddedType = TContainerPointType> inline std::istream& operator >> (
     std::istream& rIStream,
-    BrepSurface<TContainerPointType, TContainerPointEmbeddedType>& rThis );
+    BrepSurface<TContainerPointType, TShiftedBoundary, TContainerPointEmbeddedType>& rThis );
 
 /// output stream functions
-template<class TContainerPointType, class TContainerPointEmbeddedType = TContainerPointType> inline std::ostream& operator << (
+template<class TContainerPointType, bool TShiftedBoundary, class TContainerPointEmbeddedType = TContainerPointType> inline std::ostream& operator << (
     std::ostream& rOStream,
-    const BrepSurface<TContainerPointType, TContainerPointEmbeddedType>& rThis )
+    const BrepSurface<TContainerPointType, TShiftedBoundary, TContainerPointEmbeddedType>& rThis )
 {
     rThis.PrintInfo( rOStream );
     rOStream << std::endl;
@@ -624,14 +634,14 @@ template<class TContainerPointType, class TContainerPointEmbeddedType = TContain
 ///@name Static Type Declarations
 ///@{
 
-template<class TContainerPointType, class TContainerPointEmbeddedType> const
-GeometryData BrepSurface<TContainerPointType, TContainerPointEmbeddedType>::msGeometryData(
+template<class TContainerPointType, bool TShiftedBoundary, class TContainerPointEmbeddedType> const
+GeometryData BrepSurface<TContainerPointType, TShiftedBoundary, TContainerPointEmbeddedType>::msGeometryData(
     &msGeometryDimension,
     GeometryData::IntegrationMethod::GI_GAUSS_1,
     {}, {}, {});
 
-template<class TContainerPointType, class TContainerPointEmbeddedType>
-const GeometryDimension BrepSurface<TContainerPointType, TContainerPointEmbeddedType>::msGeometryDimension(3, 2);
+template<class TContainerPointType, bool TShiftedBoundary, class TContainerPointEmbeddedType>
+const GeometryDimension BrepSurface<TContainerPointType, TShiftedBoundary, TContainerPointEmbeddedType>::msGeometryDimension(3, 2);
 
 ///@}
 }// namespace Kratos.
