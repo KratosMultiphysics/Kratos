@@ -131,13 +131,20 @@ jobs:
         bash configure.sh
         rm -r ${GITHUB_WORKSPACE}/build       
 
+    - name: Running C++ tests
+      run: |
+        source /opt/intel/oneapi/setvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
+        python3 kratos/python_scripts/testing/run_cpp_tests.py
+
     - name: Running tests
       shell: bash
       run: |
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
-        python3 kratos/python_scripts/testing/run_tests.py -l nightly -c python3
+        python3 kratos/python_scripts/testing/run_python_tests.py -l nightly -c python3
 
     - name: Running Python MPI tests (2 Cores)
       shell: bash
@@ -201,12 +208,18 @@ jobs:
         copy .\.github\workflows\configure.cmd
         configure.cmd
 
+    - name: Running C++ tests
+      run: |
+        set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
+        set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
+        python kratos/python_scripts/testing/run_cpp_tests.py
+
     - name: Running nightly tests
       shell: cmd
       run: |
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
         set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
-        python kratos/python_scripts/testing/run_tests.py -l nightly -c python
+        python kratos/python_scripts/testing/run_python_tests.py -l nightly -c python
 
   rocky-nightly:
     runs-on: ubuntu-latest
@@ -230,8 +243,14 @@ jobs:
         cp .github/workflows/rocky_configure.sh rocky_configure.sh
         bash rocky_configure.sh
 
+    - name: Running C++ tests
+      run: |
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
+        python3.8 kratos/python_scripts/testing/run_cpp_tests.py
+
     - name: Running nightly tests
       run: |
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3.8 kratos/python_scripts/testing/run_tests.py -l nightly -c python3.8
+        python3.8 kratos/python_scripts/testing/run_python_tests.py -l nightly -c python3.8
