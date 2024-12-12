@@ -87,9 +87,9 @@
 #include "custom_elements/data_containers/qs_vms_dem_coupled/qs_vms_dem_coupled_data.h"
 #include "custom_elements/data_containers/fic/fic_data.h"
 #include "custom_elements/data_containers/time_integrated_fic/time_integrated_fic_data.h"
-#include "custom_utilities/symbolic_stokes_data.h"
-#include "custom_utilities/two_fluid_navier_stokes_data.h"
-#include "custom_utilities/two_fluid_navier_stokes_alpha_method_data.h"
+#include "custom_elements/data_containers/stokes/stokes_data.h"
+#include "custom_elements/data_containers/two_fluid_navier_stokes/two_fluid_navier_stokes_data.h"
+#include "custom_elements/data_containers/two_fluid_navier_stokes_alpha_method/two_fluid_navier_stokes_alpha_method_data.h"
 #include "custom_elements/data_containers/weakly_compressible_navier_stokes/weakly_compressible_navier_stokes_data.h"
 
 #include "custom_constitutive/bingham_3d_law.h"
