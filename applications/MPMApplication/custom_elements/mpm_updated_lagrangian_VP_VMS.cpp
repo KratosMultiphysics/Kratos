@@ -1277,7 +1277,7 @@ void MPMUpdatedLagrangianVPVMS::CalculateAndAddLHS(
 
     // Operations performed: add Kpu stabilization to the rLefsHandSideMatrix
     CalculateAndAddS2( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
-    KRATOS_WATCH(rLeftHandSideMatrix);
+    //KRATOS_WATCH(rLeftHandSideMatrix);
 
 }
 
@@ -1337,30 +1337,40 @@ void MPMUpdatedLagrangianVPVMS::CalculateAndAddK(MatrixType& rLeftHandSideMatrix
     const int size = number_of_nodes * dimension;
 
     //Matrix stress_tensor = MathUtils<double>::StressVectorToTensor( rVariables.StressVector );
-    Matrix reduced_K = prod( rVariables.DN_DX, trans( rVariables.DN_DX ) ); //to be optimized
-    Matrix K = ZeroMatrix(size, size);
-    MathUtils<double>::ExpandAndAddReducedMatrix( K, reduced_K, dimension );
+    //Matrix reduced_K = prod( rVariables.DN_DX, trans( rVariables.DN_DX ) ); //to be optimized
+    //Matrix K = ZeroMatrix(size, size);
+    //MathUtils<double>::ExpandAndAddReducedMatrix( K, reduced_K, dimension );
 
     // Assemble components considering added DOF matrix system
-    unsigned int indexi = 0;
-    unsigned int indexj = 0;
+    //unsigned int indexi = 0;
+    //unsigned int indexj = 0;
+    unsigned int indexk = 0;
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
+        indexk=0;
         for ( unsigned int idim = 0; idim < dimension ; idim ++)
         {
-            indexj=0;
+            //indexj=0;
             for ( unsigned int j = 0; j < number_of_nodes; j++ )
             {
                 for ( unsigned int jdim = 0; jdim < dimension ; jdim ++)
                 {
-                    rLeftHandSideMatrix(indexi+i,indexj+j)+=rVariables.ShearModulus * K(indexi,indexj);
-                    indexj++;
+                    //rLeftHandSideMatrix(indexi+i,indexj+j)+=rVariables.ShearModulus * K(indexi,indexj);
+                    rLeftHandSideMatrix(i*(1+dimension)+indexk, j*(1+dimension)+indexk)+= rVariables.DN_DX(i, jdim) * rVariables.DN_DX(j, jdim) * rIntegrationWeight;
+                    //KRATOS_WATCH(i);
+                    //KRATOS_WATCH(j);
+                    //KRATOS_WATCH(i*(1+dimension)+indexk);
+                    //KRATOS_WATCH(j*(1+dimension)+indexk);
+                    //KRATOS_WATCH(rLeftHandSideMatrix(i*(1+dimension)+indexk, j*(1+dimension)+indexk));
+                    //KRATOS_WATCH(rLeftHandSideMatrix);                    
+                    //indexj++;
                 }
             }
-            indexi++;
+            //indexi++;
+            indexk++;
         }
     }
-
+    //KRATOS_WATCH(rLeftHandSideMatrix); 
     KRATOS_CATCH( "" )
 }
 
