@@ -51,12 +51,8 @@ void BrooksAndCoreyLaw::CalculateLiquidSaturationDegree (SaturationLawVariables&
     // } else {
     //     rdSldPc = -1.9722e-11*2.4279*std::pow(pc_restr,1.4279);
     // }
-    // rSl = 1.0 - 0.10152*std::pow(rVariables.pc/(9806.0),2.4279);
-    // rdSldPc = (-2.4279*0.10152/std::pow(9806.0,2.4279))*std::pow(rVariables.pc,1.4279);
 
-
-
-    // // NOTE. This implementation is just done to validate the Khoei example
+    // // TODO. Xavi. This implementation is just done to validate the Khoei example
     // // B = 101325
     // // v = 5; 
     
@@ -90,6 +86,7 @@ void BrooksAndCoreyLaw::CalculateLiquidRelativePermeability (SaturationLawVariab
     } else {
         const double nl = (2.0 + 3.0*rVariables.lambda)/rVariables.lambda;
         rkrl = std::pow(rVariables.Se,nl);
+        rkrl = std::max(rkrl,rVariables.krmin);
     }
 
     //TODO. Ignasi
@@ -103,12 +100,8 @@ void BrooksAndCoreyLaw::CalculateLiquidRelativePermeability (SaturationLawVariab
     //     rkrl = 1.0 - 2.207*std::pow(1.0-rSl,1.0121);
     //     rkrl = std::max(rkrl,0.0);
     // }
-    // rkrl = 1.0 - 2.207*std::pow(1.0-rSl,1.0121);
-    // rkrl = std::max(rkrl,rVariables.krmin);
 
-
-
-    // // NOTE. This implementation is just done to validate the Khoei example
+    // // TODO. Xavi. This implementation is just done to validate the Khoei example
     // // B = 101325
     // // v = 5;
     // double& rSl = rValues.GetSl();
@@ -119,8 +112,6 @@ void BrooksAndCoreyLaw::CalculateLiquidRelativePermeability (SaturationLawVariab
     // } else {
     //     rkrl = std::pow(rSl, 5);
     // }
-    
-
 }
 
 //------------------------------------------------------------------------------------------------
