@@ -430,8 +430,11 @@ if (KRATOS_SHARED_MEMORY_PARALLELIZATION STREQUAL "OpenMP")
         # Set the already defined one
         set(KRATOS_OMP_SCHEDULE $ENV{OMP_SCHEDULE})
     else(DEFINED ENV{OMP_SCHEDULE})
-        # Add an option for the default KRATOS_OMP_SCHEDULE value
-        option(KRATOS_OMP_SCHEDULE "Set the default value for KRATOS_OMP_SCHEDULE (e.g., dynamic,4)" "dynamic")
+        # If not defined set the default value
+        if(NOT DEFINED KRATOS_OMP_SCHEDULE)
+            message(STATUS "OMP_SCHEDULE is not defined, setting to dynamic. You can also set it with the environment variable OMP_SCHEDULE or with the CMake variable KRATOS_OMP_SCHEDULE (e.g., dynamic,4)")
+            set(KRATOS_OMP_SCHEDULE "dynamic")
+        endif(NOT DEFINED KRATOS_OMP_SCHEDULE)
     endif((DEFINED ENV{OMP_SCHEDULE}))
 
     # Display the selected schedule in the build output
