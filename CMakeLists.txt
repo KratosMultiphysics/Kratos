@@ -304,6 +304,9 @@ if(KRATOS_BUILD_TESTING MATCHES ON)
   # retrieve a copy of the current directory's `COMPILE_OPTIONS`
   get_directory_property(kratos_root_compile_options COMPILE_OPTIONS)
 
+  # Disable warnings (needed by Intel Compiler Legacy)
+  add_compile_options(-w)
+
   FetchContent_Declare(
     googletest
     URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
