@@ -255,6 +255,7 @@ void KratosApplication::RegisterKratosCore() {
 
     KRATOS_REGISTER_MODELER("Modeler", mModeler);
     KRATOS_REGISTER_MODELER("CadIoModeler", mCadIoModeler);
+    KRATOS_REGISTER_MODELER("CadIoThbModeler", mCadIoThbModeler);
 #if USE_TRIANGLE_NONFREE_TPL
     KRATOS_REGISTER_MODELER("CadTessellationModeler", mCadTessellationModeler);
 #endif
