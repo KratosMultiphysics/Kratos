@@ -99,11 +99,8 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
         gravity = 9.81
         phreatic_level = -2.0
         result = gravity * water_density * (y_coord - phreatic_level)
-        result = min([result, 0.0])
-        return result
-        return 0.0
-        
-        
+        return min([result, 0.0])
+ 
         
 if __name__ == '__main__':
     KratosUnittest.main()
