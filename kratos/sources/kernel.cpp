@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
@@ -141,33 +141,53 @@ void Kernel::SetPythonVersion(std::string pyVersion) {
 
 void Kernel::PrintParallelismSupportInfo() const
 {
-    #ifdef KRATOS_SMP_NONE
+#ifdef KRATOS_SMP_NONE
     constexpr bool threading_support = false;
-    #else
+    constexpr auto smp = "None";
+#else
     constexpr bool threading_support = true;
-    #endif
+    std::string scheduling_str;
+    #ifdef KRATOS_SMP_OPENMP
+        // Check if the environment variable is defined
+        const char* var_name = "OMP_SCHEDULE";
+        const char* scheduling = getenv(var_name);
 
-    #ifdef KRATOS_USING_MPI
-    constexpr bool mpi_support = true;
+        if (scheduling != nullptr) { // Correct variable name and nullptr comparison
+            scheduling_str = scheduling;
+        } else {
+    #ifdef KRATOS_OMP_SCHEDULE
+            scheduling_str = KRATOS_OMP_SCHEDULE; // Use the preprocessor-defined value
     #else
-    constexpr bool mpi_support = false;
+            scheduling_str = "dynamic"; // NOTE: This should not happen as defined in compiling time
     #endif
+        }
+
+        const auto smp = "OpenMP, scheduling " + scheduling_str; // Use `std::string` for concatenation
+    #elif defined(KRATOS_SMP_CXX11)
+        constexpr auto smp = "C++11";
+    #else
+        constexpr auto smp = "Unknown";
+    #endif
+#endif
+
+#ifdef KRATOS_USING_MPI
+    constexpr bool mpi_support = true;
+#else
+    constexpr bool mpi_support = false;
+#endif
 
     Logger logger("");
     logger << LoggerMessage::Severity::INFO;
 
     if (threading_support) {
         if (mpi_support) {
-            logger << "Compiled with threading and MPI support." << std::endl;
+            logger << "Compiled with threading and MPI support. Threading support with " << smp << "." << std::endl;
+        } else {
+            logger << "Compiled with threading support. Threading support with " << smp << "." << std::endl;
         }
-        else {
-            logger << "Compiled with threading support." << std::endl;
-        }
-    }
-    else if (mpi_support) {
+    } else if (mpi_support) {
         logger << "Compiled with MPI support." << std::endl;
-    }
-    else {
+    } else {
         logger << "Serial compilation." << std::endl;
     }
 
@@ -179,8 +199,7 @@ void Kernel::PrintParallelismSupportInfo() const
         if (mIsDistributedRun) {
             const DataCommunicator& r_world = ParallelEnvironment::GetDataCommunicator("World");
             logger << "MPI world size:         " << r_world.Size() << "." << std::endl;
-        }
-        else {
+        } else {
             logger << "Running without MPI." << std::endl;
         }
     }

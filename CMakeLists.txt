@@ -294,9 +294,6 @@ include(KratosGTest)
 include(KratosGBenchmark)
 include(FetchContent)
 
-# This is the only way to run OMP loops with dynamic schedule without conflicting the GIL
-add_definitions(-DPYBIND11_NO_ASSERT_GIL_HELD_INCREF_DECREF)
-
 # Logger configuration
 if(KRATOS_COLORED_OUTPUT MATCHES ON)
   add_definitions(-DKRATOS_COLORED_OUTPUT)
@@ -427,6 +424,24 @@ if (KRATOS_SHARED_MEMORY_PARALLELIZATION STREQUAL "OpenMP")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+
+    # Check if the environment variable OMP_SCHEDULE is defined
+    if(DEFINED ENV{OMP_SCHEDULE})
+        # Set the already defined one
+        set(KRATOS_OMP_SCHEDULE $ENV{OMP_SCHEDULE})
+    else(DEFINED ENV{OMP_SCHEDULE})
+        # Add an option for the default KRATOS_OMP_SCHEDULE value
+        option(KRATOS_OMP_SCHEDULE "Set the default value for KRATOS_OMP_SCHEDULE (e.g., dynamic,4)" "dynamic")
+    endif((DEFINED ENV{OMP_SCHEDULE}))
+
+    # Display the selected schedule in the build output
+    message(STATUS "KRATOS_OMP_SCHEDULE is set to: ${KRATOS_OMP_SCHEDULE}")
+
+    # Define the OMP_SCHEDULE as a preprocessor macro
+    add_definitions(-DKRATOS_OMP_SCHEDULE="${KRATOS_OMP_SCHEDULE}")
+
+    # This is the only way to run OMP loops with dynamic schedule without conflicting the GIL
+    add_definitions(-DPYBIND11_NO_ASSERT_GIL_HELD_INCREF_DECREF
   else (OPENMP_FOUND)
     message(FATAL_ERROR "OpenMP could not be found!")
     # fallback solution => in future once better supported we can use the C++11 based parallelization instead
