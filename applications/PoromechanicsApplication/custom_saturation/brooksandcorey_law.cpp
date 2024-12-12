@@ -52,8 +52,6 @@ void BrooksAndCoreyLaw::CalculateLiquidSaturationDegree (SaturationLawVariables&
     } else {
         rdSldPc = -1.9722e-11*2.4279*std::pow(pc_restr,1.4279);
     }
-    rSl = 1.0 - 0.10152*std::pow(rVariables.pc/(9806.0),2.4279);
-    rdSldPc = (-2.4279*0.10152/std::pow(9806.0,2.4279))*std::pow(rVariables.pc,1.4279);
 
 
     // TODO. Xavi
