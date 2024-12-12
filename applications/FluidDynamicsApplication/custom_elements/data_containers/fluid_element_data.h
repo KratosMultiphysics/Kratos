@@ -57,6 +57,9 @@ public:
     /// Number of nodes of the element.
     constexpr static unsigned int NumNodes = TNumNodes;
 
+    /// Number of local unknowns (assuming velocity and pressure)
+    constexpr static unsigned int BlockSize = TDim + 1;
+
     /// Size of the strain and stress vectors (in Voigt notation) for the formulation
     constexpr static unsigned int StrainSize = (TDim-1)*3; // 3 in 2D, 6 in 3D
 

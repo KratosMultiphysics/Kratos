@@ -22,7 +22,7 @@
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
-#include "custom_utilities/fluid_element_data.h"
+#include "custom_elements/data_containers/fluid_element_data.h"
 #include "utilities/element_size_calculator.h"
 
 namespace Kratos {

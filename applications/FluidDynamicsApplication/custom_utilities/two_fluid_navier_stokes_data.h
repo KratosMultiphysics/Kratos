@@ -17,7 +17,7 @@
 #include "includes/constitutive_law.h"
 
 #include "fluid_dynamics_application_variables.h"
-#include "custom_utilities/fluid_element_data.h"
+#include "custom_elements/data_containers/fluid_element_data.h"
 #include "utilities/element_size_calculator.h"
 #include "custom_utilities/fluid_element_utilities.h"
 
@@ -128,7 +128,7 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     this->FillFromProcessInfo(DeltaTime,DELTA_TIME,rProcessInfo);
     this->FillFromProcessInfo(DynamicTau,DYNAMIC_TAU,rProcessInfo);
     this->FillFromProcessInfo(VolumeError,VOLUME_ERROR,rProcessInfo);
-    
+
     const Vector& BDFVector = rProcessInfo[BDF_COEFFICIENTS];
     bdf0 = BDFVector[0];
     bdf1 = BDFVector[1];
@@ -328,7 +328,7 @@ void CalculateEffectiveViscosityAtGaussPoint()
         }
     }
     DynamicViscosity = dynamic_viscosity / navg;
-    
+
     if (SmagorinskyConstant > 0.0)
     {
         const double strain_rate_norm = ComputeStrainNorm();

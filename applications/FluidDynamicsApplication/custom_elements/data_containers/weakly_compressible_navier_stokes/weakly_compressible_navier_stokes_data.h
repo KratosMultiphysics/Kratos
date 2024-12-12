@@ -25,7 +25,7 @@
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
-#include "custom_utilities/fluid_element_data.h"
+#include "custom_elements/data_containers/fluid_element_data.h"
 #include "utilities/element_size_calculator.h"
 
 namespace Kratos {
@@ -48,8 +48,6 @@ using NodalScalarData = typename FluidElementData<TDim,TNumNodes, true>::NodalSc
 using NodalVectorData = typename FluidElementData<TDim,TNumNodes, true>::NodalVectorData;
 using ShapeFunctionsType = typename FluidElementData<TDim,TNumNodes, true>::ShapeFunctionsType;
 using MatrixRowType = typename FluidElementData<TDim,TNumNodes, true>::MatrixRowType;
-
-static constexpr std::size_t BlockSize = TDim + 1;
 
 ///@}
 ///@name Public Members

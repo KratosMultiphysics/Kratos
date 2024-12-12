@@ -14,7 +14,7 @@
 #define KRATOS_EMBEDDED_DATA_H
 
 #include "fluid_dynamics_application_variables.h"
-#include "custom_utilities/fluid_element_data.h"
+#include "custom_elements/data_containers/fluid_element_data.h"
 
 namespace Kratos {
 

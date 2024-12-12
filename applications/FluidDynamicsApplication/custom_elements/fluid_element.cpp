@@ -18,7 +18,7 @@
 #include "custom_elements/data_containers/qs_vms/qs_vms_data.h"
 #include "custom_utilities/time_integrated_qsvms_data.h"
 #include "custom_utilities/qsvms_dem_coupled_data.h"
-#include "custom_utilities/fic_data.h"
+#include "custom_elements/data_containers/fic/fic_data.h"
 #include "custom_utilities/time_integrated_fic_data.h"
 #include "custom_utilities/symbolic_stokes_data.h"
 #include "custom_utilities/two_fluid_navier_stokes_data.h"
