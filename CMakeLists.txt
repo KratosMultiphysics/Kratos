@@ -441,7 +441,7 @@ if (KRATOS_SHARED_MEMORY_PARALLELIZATION STREQUAL "OpenMP")
     add_definitions(-DKRATOS_OMP_SCHEDULE="${KRATOS_OMP_SCHEDULE}")
 
     # This is the only way to run OMP loops with dynamic schedule without conflicting the GIL
-    add_definitions(-DPYBIND11_NO_ASSERT_GIL_HELD_INCREF_DECREF
+    add_definitions(-DPYBIND11_NO_ASSERT_GIL_HELD_INCREF_DECREF)
   else (OPENMP_FOUND)
     message(FATAL_ERROR "OpenMP could not be found!")
     # fallback solution => in future once better supported we can use the C++11 based parallelization instead
