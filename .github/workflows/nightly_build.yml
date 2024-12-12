@@ -6,7 +6,7 @@ on:
     - '.github/workflows/nightly_build.yml'
     - '.github/workflows/configure.sh'
     - '.github/workflows/configure.cmd'
-    - '.github/workflows/centos_configure.sh'
+    - '.github/workflows/rocky_configure.sh'
 
   schedule:
     - cron:  '0 1 * * *'
@@ -208,13 +208,13 @@ jobs:
         set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
         python kratos/python_scripts/testing/run_tests.py -l nightly -c python
 
-  centos-nightly:
+  rocky-nightly:
     runs-on: ubuntu-latest
     env:
       KRATOS_BUILD_TYPE: Custom
 
     container:
-      image: kratosmultiphysics/kratos-image-ci-centos7:latest
+      image: kratosmultiphysics/kratos-image-ci-rockylinux-8:latest
       options: --user 1001
 
     steps:
@@ -227,8 +227,8 @@ jobs:
 
     - name: Build
       run: |
-        cp .github/workflows/centos_configure.sh centos_configure.sh
-        bash centos_configure.sh
+        cp .github/workflows/rocky_configure.sh rocky_configure.sh
+        bash rocky_configure.sh
 
     - name: Running nightly tests
       run: |
