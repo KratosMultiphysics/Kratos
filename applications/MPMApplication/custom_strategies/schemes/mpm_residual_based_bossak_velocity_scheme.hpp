@@ -251,7 +251,7 @@ public:
 //    }
 
     explicit MPMResidualBasedBossakVelocityScheme(ModelPart& rGridModelPart, unsigned int DomainSize,
-        unsigned int BlockSize, const double Alpha = 0.0, const double NewmarkBeta = 0.25, bool IsDynamic = true)
+        unsigned int BlockSize, bool IsDynamic, const double Alpha = 0.0, const double NewmarkBeta = 0.25)
             : ImplicitBaseType(),
             mGridModelPart(rGridModelPart), mRotationTool(DomainSize, BlockSize, IS_STRUCTURE)
     {
@@ -361,6 +361,7 @@ public:
                 UpdateDisplacement(r_current_displacement, r_current_velocity, r_previous_velocity, r_previous_acceleration);
                 UpdateAcceleration(r_current_acceleration, r_current_velocity, r_previous_velocity, r_previous_acceleration);
             }
+            // add update displacement for static case
         }
 
         KRATOS_CATCH( "" );
@@ -430,7 +431,9 @@ public:
             if (mIsDynamic){
                 UpdateDisplacement(current_displacement, r_current_velocity, r_previous_velocity, r_previous_acceleration);
                 UpdateAcceleration(current_acceleration, r_current_velocity, r_previous_velocity, r_previous_acceleration);
-            }
+            } //else {
+            //    update displcement
+            //}
 
 		}
 

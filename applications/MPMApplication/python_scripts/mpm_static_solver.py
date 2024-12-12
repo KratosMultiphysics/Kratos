@@ -27,4 +27,7 @@ class MPMStaticSolver(MPMSolver):
     def _CreateSolutionScheme(self):
         grid_model_part = self.GetGridModelPart()
         #return KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        return KratosMPM.MPMResidualBasedSimpleSteadyScheme(grid_model_part)
+        if self.settings["velocity_formulation"].GetBool():
+            return KratosMPM.MPMResidualBasedSimpleSteadyVelocityScheme(grid_model_part)
+        else:
+            return KratosMPM.MPMResidualBasedSimpleSteadyScheme(grid_model_part)

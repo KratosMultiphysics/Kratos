@@ -37,6 +37,7 @@ class MPMSolver(PythonSolver):
             "time_stepping"   : { },
             "time_integration_method"   : "implicit",
             "analysis_type"   : "non_linear",
+            "scheme_type"     : "newmark",
             "grid_model_import_settings" : {
                 "input_type"     : "mdpa",
                 "input_filename" : "unknown_name_Grid"

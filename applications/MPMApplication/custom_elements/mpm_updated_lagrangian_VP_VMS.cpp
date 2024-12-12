@@ -993,7 +993,7 @@ void MPMUpdatedLagrangianVPVMS::SetSpecificVariables(GeneralVariables& rVariable
         ? rCurrentProcessInfo.GetValue(IS_DYNAMIC)
         : false;
     const int current_step = rCurrentProcessInfo.GetValue(STEP);
-//     if (is_dynamic && current_step > 1) ComputeDynamicTerms(rVariables,rCurrentProcessInfo);
+    if (is_dynamic && current_step > 1) ComputeDynamicTerms(rVariables,rCurrentProcessInfo);
 
 
     // Compute Residual Projection in integration points
@@ -1064,67 +1064,67 @@ void MPMUpdatedLagrangianVPVMS::CalculateTaus(const int& stabilization_type,
     KRATOS_CATCH( "" )
 }
 
-//void MPMUpdatedLagrangianVPVMS::ComputeDynamicTerms(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)//°
-//{
-//    // ONLY FOR NEWMARK APPROACH
-//
-//    KRATOS_TRY
-//    GeometryType& r_geometry = GetGeometry();
-//    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-//    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-//    const Matrix& r_N = r_geometry.ShapeFunctionsValues();
-//    const double delta_time = rCurrentProcessInfo[DELTA_TIME];
-//    const double beta = 0.25; // Should be read from the general scheme mpm_residual_based_bossak_scheme
-//
-//    array_1d<double,3> aux_MP_velocity = ZeroVector(3);
-//    array_1d<double,3> aux_MP_acceleration = ZeroVector(3);
-//    array_1d<double,3> aux_MP_displacement = ZeroVector(3);
-//    array_1d<double,3> current_MP_velocity = ZeroVector(3);
-//
-//
-//    for (unsigned int j=0; j<number_of_nodes; j++)
-//    {
-//        // These are the values of nodal displacement and nodal acceleration evaluated in the initialize solution step
-//        array_1d<double, 3 > previous_acceleration = ZeroVector(3);
-//        //if (r_geometry[j].SolutionStepsDataHas(ACCELERATION))
-//            previous_acceleration = r_geometry[j].FastGetSolutionStepValue(ACCELERATION,1);
-//
-//        array_1d<double, 3 > previous_velocity = ZeroVector(3);
-//        //if (r_geometry[j].SolutionStepsDataHas(VELOCITY))
-//            previous_velocity = r_geometry[j].FastGetSolutionStepValue(VELOCITY,1);
-//
-//        array_1d<double, 3 > previous_displacement = ZeroVector(3);
-//        previous_displacement = r_geometry[j].FastGetSolutionStepValue(DISPLACEMENT,1);
-//
-//        for (unsigned int k = 0; k < dimension; k++)
-//        {
-//            aux_MP_velocity[k] += r_N(0, j) * previous_velocity[k];
-//            aux_MP_acceleration[k] += r_N(0, j) * previous_acceleration[k];
-//            aux_MP_displacement[k] += r_N(0, j) * previous_displacement[k];
-//        }
-//    }
-//
-//    rVariables.DynamicCoefficient = 1 / (beta * delta_time * delta_time);
-//    const double coeff1 = 1 / (delta_time * 0.25);
-//    const double coeff2 = (0.5 - beta) / beta;
-//
-//    rVariables.DynamicRHS =ZeroVector(3);
-//
-//    for (unsigned int idime = 0; idime < dimension; idime++)
-//    {
-//           rVariables.DynamicRHS[idime] -= rVariables.DynamicCoefficient * aux_MP_displacement[idime];
-//           rVariables.DynamicRHS[idime] -= coeff1 * aux_MP_displacement[idime];
-//           rVariables.DynamicRHS[idime] += coeff1 * aux_MP_velocity[idime] + coeff2 * aux_MP_acceleration[idime];
-///*
-//        rVariables.DynamicRHS[idime] -= rVariables.DynamicCoefficient * mMP.displacement[idime];
-//        rVariables.DynamicRHS[idime] -= coeff1 * mMP.displacement[idime];
-//        rVariables.DynamicRHS[idime] += coeff1 * mMP.velocity[idime] + coeff2 * mMP.acceleration[idime];*/
-//    }
-//
-////     rVariables.DynamicCoefficient =0;
-//
-// KRATOS_CATCH( "" )
-//}
+void MPMUpdatedLagrangianVPVMS::ComputeDynamicTerms(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)//°
+{
+    // ONLY FOR NEWMARK APPROACH
+
+    KRATOS_TRY
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    const Matrix& r_N = r_geometry.ShapeFunctionsValues();
+    const double delta_time = rCurrentProcessInfo[DELTA_TIME];
+    const double beta = 0.25; // Should be read from the general scheme mpm_residual_based_bossak_scheme
+
+    array_1d<double,3> aux_MP_velocity = ZeroVector(3);
+    array_1d<double,3> aux_MP_acceleration = ZeroVector(3);
+    array_1d<double,3> aux_MP_displacement = ZeroVector(3);
+    array_1d<double,3> current_MP_velocity = ZeroVector(3);
+
+
+    for (unsigned int j=0; j<number_of_nodes; j++)
+    {
+        // These are the values of nodal displacement and nodal acceleration evaluated in the initialize solution step
+        array_1d<double, 3 > previous_acceleration = ZeroVector(3);
+        //if (r_geometry[j].SolutionStepsDataHas(ACCELERATION))
+            previous_acceleration = r_geometry[j].FastGetSolutionStepValue(ACCELERATION,1);
+
+        array_1d<double, 3 > previous_velocity = ZeroVector(3);
+        //if (r_geometry[j].SolutionStepsDataHas(VELOCITY))
+            previous_velocity = r_geometry[j].FastGetSolutionStepValue(VELOCITY,1);
+
+        array_1d<double, 3 > previous_displacement = ZeroVector(3);
+        previous_displacement = r_geometry[j].FastGetSolutionStepValue(DISPLACEMENT,1);
+
+        for (unsigned int k = 0; k < dimension; k++)
+        {
+            aux_MP_velocity[k] += r_N(0, j) * previous_velocity[k];
+            aux_MP_acceleration[k] += r_N(0, j) * previous_acceleration[k];
+            aux_MP_displacement[k] += r_N(0, j) * previous_displacement[k];
+        }
+    }
+
+    rVariables.DynamicCoefficient = 1 / (beta * delta_time * delta_time);
+    const double coeff1 = 1 / (delta_time * 0.25);
+    const double coeff2 = (0.5 - beta) / beta;
+
+    rVariables.DynamicRHS =ZeroVector(3);
+
+    for (unsigned int idime = 0; idime < dimension; idime++)
+    {
+           rVariables.DynamicRHS[idime] -= rVariables.DynamicCoefficient * aux_MP_displacement[idime];
+           rVariables.DynamicRHS[idime] -= coeff1 * aux_MP_displacement[idime];
+           rVariables.DynamicRHS[idime] += coeff1 * aux_MP_velocity[idime] + coeff2 * aux_MP_acceleration[idime];
+/*
+        rVariables.DynamicRHS[idime] -= rVariables.DynamicCoefficient * mMP.displacement[idime];
+        rVariables.DynamicRHS[idime] -= coeff1 * mMP.displacement[idime];
+        rVariables.DynamicRHS[idime] += coeff1 * mMP.velocity[idime] + coeff2 * mMP.acceleration[idime];*/
+    }
+
+//     rVariables.DynamicCoefficient =0;
+
+ KRATOS_CATCH( "" )
+}
 
 
 

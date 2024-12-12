@@ -70,9 +70,10 @@ class MPMImplicitDynamicSolver(MPMSolver):
             return KratosMPM.MPMResidualBasedBossakVelocityScheme( grid_model_part,
                                                                 domain_size,
                                                                 block_size,
+                                                                is_dynamic,
                                                                 damp_factor_m,
-                                                                newmark_beta,
-                                                                is_dynamic)
+                                                                newmark_beta
+                                                                )
         else:
             return KratosMPM.MPMResidualBasedBossakScheme( grid_model_part,
                                                                 domain_size,
@@ -81,4 +82,8 @@ class MPMImplicitDynamicSolver(MPMSolver):
                                                                 newmark_beta,
                                                                 is_dynamic)
     def _IsDynamic(self):
-        return True
+        solver_type = self.settings["solver_type"].GetString()
+        if (solver_type == "dynamic" or solver_type == "Dynamic"):
+            return True
+        else:
+            return False
