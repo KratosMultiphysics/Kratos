@@ -45,6 +45,8 @@ using MatrixRowType = typename FluidElementData<TDim, TNumNodes, true>::MatrixRo
 typedef Geometry<Node> GeometryType;
 typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
 
+static constexpr std::size_t BlockSize = TDim + 1;
+
 ///@}
 ///@name Public Members
 ///@{

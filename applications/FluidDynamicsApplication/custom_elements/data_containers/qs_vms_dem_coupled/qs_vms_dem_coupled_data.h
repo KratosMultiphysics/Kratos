@@ -46,8 +46,7 @@ public:
 
 constexpr static unsigned int Dim = TDim;
 constexpr static unsigned int NumNodes = TNumNodes;
-constexpr static unsigned int BlockSize = Dim + 2;
-constexpr static unsigned int DofSize = NumNodes * BlockSize;
+constexpr static unsigned int BlockSize = Dim + 1;
 constexpr static bool ElementIntegratesInTime = TElementIntegratesInTime;
 
 using NodalScalarData = typename FluidElementData<TDim,TNumNodes, false>::NodalScalarData;

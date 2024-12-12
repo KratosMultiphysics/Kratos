@@ -46,6 +46,8 @@ using NodalVectorData = typename FluidElementData<TDim, TNumNodes, true>::NodalV
 using ShapeFunctionsType = typename FluidElementData<TDim, TNumNodes, true>::ShapeFunctionsType;
 using MatrixRowType = typename FluidElementData<TDim, TNumNodes, true>::MatrixRowType;
 
+static constexpr std::size_t BlockSize = TDim + 1;
+
 ///@}
 ///@name Public Members
 ///@{

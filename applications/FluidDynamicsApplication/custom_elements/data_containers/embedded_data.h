@@ -38,6 +38,8 @@ using NodalVectorData = typename TFluidData::NodalVectorData;
 typedef GeometryData::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
 typedef std::vector<array_1d<double,3>> InterfaceNormalsType;
 
+static constexpr std::size_t BlockSize = TFluidData::BlockSize;
+
 ///@}
 ///@name Public Members
 ///@{
