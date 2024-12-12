@@ -22,38 +22,38 @@ void BrooksAndCoreyLaw::CalculateLiquidSaturationDegree (SaturationLawVariables&
     double& rSl = rValues.GetSl();
     double& rdSldPc = rValues.GetdSldPc();
 
-    // If the capillar pressure is lower than the gas-entry pressure, the porous media is fully saturated with the wetting phase.
-    rSl = 1.0 - rVariables.Sgr;
-    rdSldPc = 0.0;
+    // // If the capillar pressure is lower than the gas-entry pressure, the porous media is fully saturated with the wetting phase.
+    // rSl = 1.0 - rVariables.Sgr;
+    // rdSldPc = 0.0;
     
-    if(rVariables.pc > rVariables.pb)
-    {
-        // Liquid saturation degree
-        rSl = (1.0 - rVariables.Sgr - rVariables.Slr)*std::pow(rVariables.pb/rVariables.pc,rVariables.lambda)
-                + rVariables.Slr;
+    // if(rVariables.pc > rVariables.pb)
+    // {
+    //     // Liquid saturation degree
+    //     rSl = (1.0 - rVariables.Sgr - rVariables.Slr)*std::pow(rVariables.pb/rVariables.pc,rVariables.lambda)
+    //             + rVariables.Slr;
 
-        // Derivative of the liquid saturation degree with respect to the capillary pressure
-        rdSldPc = -rVariables.lambda * (1.0 - rVariables.Sgr - rVariables.Slr) * 
-                    std::pow(rVariables.pb,rVariables.lambda) / std::pow(rVariables.pc,rVariables.lambda+1.0);
-    }
+    //     // Derivative of the liquid saturation degree with respect to the capillary pressure
+    //     rdSldPc = -rVariables.lambda * (1.0 - rVariables.Sgr - rVariables.Slr) * 
+    //                 std::pow(rVariables.pb,rVariables.lambda) / std::pow(rVariables.pc,rVariables.lambda+1.0);
+    // }
 
 
     //TODO. Ignasi
     // Provisional OGS implementation. This is only used in the Liakopoulos test
-    // if (rVariables.pc < 0.0) {
-    //     rSl = 1.0;
-    // } else {
-    //     rSl = std::max(rVariables.Slr,1.0 - 1.9722e-11*std::pow(rVariables.pc,2.4279));
-    // }
-    // double pc_max = std::pow((1.0-rVariables.Slr)/1.9722e-11,(1.0/2.4279));
-    // double pc_restr = std::min(rVariables.pc,pc_max);
-    // if (rVariables.pc <= 0.0) {
-    //     rdSldPc = 0.0;
-    // } else {
-    //     rdSldPc = -1.9722e-11*2.4279*std::pow(pc_restr,1.4279);
-    // }
-    // rSl = 1.0 - 0.10152*std::pow(rVariables.pc/(9806.0),2.4279);
-    // rdSldPc = (-2.4279*0.10152/std::pow(9806.0,2.4279))*std::pow(rVariables.pc,1.4279);
+    if (rVariables.pc < 0.0) {
+        rSl = 1.0;
+    } else {
+        rSl = std::max(rVariables.Slr,1.0 - 1.9722e-11*std::pow(rVariables.pc,2.4279));
+    }
+    double pc_max = std::pow((1.0-rVariables.Slr)/1.9722e-11,(1.0/2.4279));
+    double pc_restr = std::min(rVariables.pc,pc_max);
+    if (rVariables.pc <= 0.0) {
+        rdSldPc = 0.0;
+    } else {
+        rdSldPc = -1.9722e-11*2.4279*std::pow(pc_restr,1.4279);
+    }
+    rSl = 1.0 - 0.10152*std::pow(rVariables.pc/(9806.0),2.4279);
+    rdSldPc = (-2.4279*0.10152/std::pow(9806.0,2.4279))*std::pow(rVariables.pc,1.4279);
 
 
     // TODO. Xavi
@@ -108,32 +108,29 @@ void BrooksAndCoreyLaw::CalculateLiquidRelativePermeability (SaturationLawVariab
 {
     double& rkrl = rValues.Getkrl();
 
-    if (rVariables.Se >= 1.0) {
-        // Fully saturated medium
-        rkrl = 1.0;
-    } else if (rVariables.Se <= 0.0) {
-        // Dry medium
-        rkrl = rVariables.krmin;
-    } else {
-        const double nl = (2.0 + 3.0*rVariables.lambda)/rVariables.lambda;
-        rkrl = std::pow(rVariables.Se,nl);
-    }
-
+    // if (rVariables.Se >= 1.0) {
+    //     // Fully saturated medium
+    //     rkrl = 1.0;
+    // } else if (rVariables.Se <= 0.0) {
+    //     // Dry medium
+    //     rkrl = rVariables.krmin;
+    // } else {
+    //     const double nl = (2.0 + 3.0*rVariables.lambda)/rVariables.lambda;
+    //     rkrl = std::pow(rVariables.Se,nl);
+    // }
+    // rkrl = std::max(rkrl,rVariables.krmin);
 
     //TODO. Ignasi
     // Provisional OGS implementation. This is only used in the Liakopoulos test
-    // double& rSl = rValues.GetSl();
-    // if (rSl <= rVariables.Slr) {
-    //     rkrl = 0.0;
-    // } else if (rSl >= 1.0) {
-    //     rkrl = 1.0;
-    // } else {
-    //     rkrl = 1.0 - 2.207*std::pow(1.0-rSl,1.0121);
-    //     rkrl = std::max(rkrl,0.0);
-    // }
-    // rkrl = 1.0 - 2.207*std::pow(1.0-rSl,1.0121);
-    // rkrl = std::max(rkrl,rVariables.krmin);
-
+    double& rSl = rValues.GetSl();
+    if (rSl <= rVariables.Slr) {
+        rkrl = 0.0;
+    } else if (rSl >= 1.0) {
+        rkrl = 1.0;
+    } else {
+        rkrl = 1.0 - 2.207*std::pow(1.0-rSl,1.0121);
+        rkrl = std::max(rkrl,0.0);
+    }
 
     // TODO. Xavi
     // NOTE. This implementation is just done to validate the Khoei 1st example
