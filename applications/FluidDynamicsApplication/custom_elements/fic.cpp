@@ -16,7 +16,7 @@
 #include "includes/checks.h"
 
 #include "custom_elements/data_containers/fic/fic_data.h"
-#include "custom_utilities/time_integrated_fic_data.h"
+#include "custom_elements/data_containers/time_integrated_fic/time_integrated_fic_data.h"
 #include "custom_utilities/fluid_element_utilities.h"
 #include "utilities/element_size_calculator.h"
 #include "custom_utilities/fluid_element_time_integration_detail.h"

@@ -83,10 +83,10 @@
 
 #include "custom_elements/data_containers/axisymmetric_navier_stokes/axisymmetric_navier_stokes_data.h"
 #include "custom_elements/data_containers/qs_vms/qs_vms_data.h"
-#include "custom_utilities/time_integrated_qsvms_data.h"
+#include "custom_elements/data_containers/time_integrated_qs_vms/time_integrated_qs_vms_data.h"
 #include "custom_elements/data_containers/qs_vms_dem_coupled/qs_vms_dem_coupled_data.h"
 #include "custom_elements/data_containers/fic/fic_data.h"
-#include "custom_utilities/time_integrated_fic_data.h"
+#include "custom_elements/data_containers/time_integrated_fic/time_integrated_fic_data.h"
 #include "custom_utilities/symbolic_stokes_data.h"
 #include "custom_utilities/two_fluid_navier_stokes_data.h"
 #include "custom_utilities/two_fluid_navier_stokes_alpha_method_data.h"
