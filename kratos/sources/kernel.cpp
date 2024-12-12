@@ -147,7 +147,7 @@ void Kernel::PrintParallelismSupportInfo() const
 #else
     constexpr bool threading_support = true;
     std::string scheduling_str;
-    #ifdef KRATOS_SMP_OPENMP
+    #if defined(KRATOS_SMP_OPENMP)
         // Check if the environment variable is defined
         const char* var_name = "OMP_SCHEDULE";
         const char* scheduling = getenv(var_name);
@@ -155,11 +155,11 @@ void Kernel::PrintParallelismSupportInfo() const
         if (scheduling != nullptr) { // Correct variable name and nullptr comparison
             scheduling_str = scheduling;
         } else {
-    #ifdef KRATOS_OMP_SCHEDULE
+        #ifdef KRATOS_OMP_SCHEDULE
             scheduling_str = KRATOS_OMP_SCHEDULE; // Use the preprocessor-defined value
-    #else
+        #else
             scheduling_str = "dynamic"; // NOTE: This should not happen as defined in compiling time
-    #endif
+        #endif
         }
 
         const auto smp = "OpenMP, scheduling " + scheduling_str; // Use `std::string` for concatenation
