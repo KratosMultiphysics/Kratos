@@ -160,8 +160,18 @@ void Kernel::PrintParallelismSupportInfo() const
         #else
             scheduling_str = "dynamic"; // NOTE: This should not happen as defined in compiling time
         #endif
+        #ifdef KRATOS_COMPILED_IN_WINDOWS
+        #else
             const int overwrite = 1; // Overwrite if it exists, a priori not, that's why we are setting it
             const int output_setenv = setenv(var_name, scheduling_str.c_str(), overwrite);
+            KRATOS_ERROR_IF_NOT(output_setenv == 0) << "Error setting environment variable " << var_name << std::endl;
+        #endif
+        #ifdef KRATOS_COMPILED_IN_WINDOWS
+            const int output_setenv = _putenv_s(var_name, scheduling_str.c_str());
+        #else
+            const int overwrite = 1; // Overwrite if it exists, a priori not, that's why we are setting it
+            const int output_setenv = setenv(var_name, scheduling_str.c_str(), overwrite);
+        #endif
             KRATOS_ERROR_IF_NOT(output_setenv == 0) << "Error setting environment variable " << var_name << std::endl;
             scheduling_str = "\"" + scheduling_str + "\"";
             scheduling_str += " (retrieving from KRATOS_OMP_SCHEDULE)";
