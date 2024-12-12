@@ -610,11 +610,10 @@ public:
         SizeType NumPointsPerSpanU,
         SizeType NumPointsPerSpanV) const
     {
-        auto knot_span_intervals_u = KnotSpanIntervalsU();
-        auto knot_span_intervals_v = KnotSpanIntervalsV();
+        auto element_iterator = mThb.makeDomainIterator();
 
         const SizeType number_of_integration_points =
-            knot_span_intervals_u.size() * knot_span_intervals_v.size()
+            element_iterator->numElements() 
             * NumPointsPerSpanU * NumPointsPerSpanV;
 
         if (rIntegrationPoints.size() != number_of_integration_points) {
@@ -623,14 +622,13 @@ public:
 
         typename IntegrationPointsArrayType::iterator integration_point_iterator = rIntegrationPoints.begin();
 
-        for (IndexType i = 0; i < knot_span_intervals_u.size(); ++i) {
-            for (IndexType j = 0; j < knot_span_intervals_v.size(); ++j) {
+        for(;element_iterator->good();element_iterator->next())
+        {
                 IntegrationPointUtilities::IntegrationPoints2D(
                     integration_point_iterator,
                     NumPointsPerSpanU, NumPointsPerSpanV,
-                    knot_span_intervals_u[i].GetT0(), knot_span_intervals_u[i].GetT1(),
-                    knot_span_intervals_v[j].GetT0(), knot_span_intervals_v[j].GetT1());
-            }
+                element_iterator->lowerCorner()[0], element_iterator->upperCorner()[0],
+                element_iterator->lowerCorner()[1], element_iterator->upperCorner()[1]);
         }
     }
 
@@ -671,27 +669,33 @@ public:
             shape_function_derivatives[i].resize(num_nonzero_cps, i + 2);
         }
 
+        gismo::gsMatrix<> ThbResult;
+        gismo::gsMatrix<> ThbResultDeriv;
+        gismo::gsMatrix<int> ThbIndices;
+        gismo::gsMatrix<int> ThbIndicesDeriv;
+        gismo::gsMatrix<> rLocalCoordinateThb(2,1);
+
+
         for (IndexType i = 0; i < rIntegrationPoints.size(); ++i)
         {
-            if (IsRational()) {
-                shape_function_container.ComputeNurbsShapeFunctionValues(
-                    mKnotsU, mKnotsV, mWeights, rIntegrationPoints[i][0], rIntegrationPoints[i][1]);
-            }
-            else {
-                shape_function_container.ComputeBSplineShapeFunctionValues(
-                    mKnotsU, mKnotsV, rIntegrationPoints[i][0], rIntegrationPoints[i][1]);
-            }
+            //G+Smo
+            rLocalCoordinateThb(0,0) = rIntegrationPoints[i][0];
+            rLocalCoordinateThb(1,0) = rIntegrationPoints[i][1];
+            
+            mThb.active_into(rLocalCoordinateThb,ThbIndices);
+            mThb.eval_into(rLocalCoordinateThb,ThbResult);
+
+            mThb.active_into(rLocalCoordinateThb,ThbIndicesDeriv);
+            mThb.deriv_into(rLocalCoordinateThb,ThbResultDeriv);
 
             /// Get List of Control Points
             PointsArrayType nonzero_control_points(num_nonzero_cps);
-            auto cp_indices = shape_function_container.ControlPointIndices(
-                NumberOfControlPointsU(), NumberOfControlPointsV());
             for (IndexType j = 0; j < num_nonzero_cps; j++) {
-                nonzero_control_points(j) = pGetPoint(cp_indices[j]);
+                nonzero_control_points(j) = pGetPoint(ThbIndices(j,0));
             }
             /// Get Shape Functions N
             for (IndexType j = 0; j < num_nonzero_cps; j++) {
-                N(0, j) = shape_function_container(j, 0);
+                N(0, j) = ThbResult(j, 0);
             }
 
             /// Get Shape Function Derivatives DN_De, ...
@@ -700,7 +704,7 @@ public:
                 for (IndexType n = 0; n < NumberOfShapeFunctionDerivatives - 1; n++) {
                     for (IndexType k = 0; k < n + 2; k++) {
                         for (IndexType j = 0; j < num_nonzero_cps; j++) {
-                            shape_function_derivatives[n](j, k) = shape_function_container(j, shape_derivative_index + k);
+                            shape_function_derivatives[n](j, k) = ThbResultDeriv(j*2 + k , 0);
                         }
                     }
                     shape_derivative_index += n + 2;
