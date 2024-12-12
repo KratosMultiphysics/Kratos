@@ -67,6 +67,24 @@ public:
         mPipingIterations = rParameters["max_piping_iterations"].GetInt();
     }
 
+    template <typename PipingElementType>
+    std::optional<std::vector<PipingElementType*>> TryDownCastToPipingElement(const std::vector<Element*>& rPipeElements)
+    {
+        std::vector<PipingElementType*> result;
+        std::transform(rPipeElements.begin(), rPipeElements.end(), std::back_inserter(result),
+                       [](auto p_element) { return dynamic_cast<PipingElementType*>(p_element); });
+
+        const auto number_of_piping_elements = static_cast<std::size_t>(std::count_if(
+            result.begin(), result.end(), [](auto p_element) { return p_element != nullptr; }));
+        if (number_of_piping_elements == 0) return std::nullopt;
+
+        KRATOS_ERROR_IF(number_of_piping_elements != rPipeElements.size())
+            << "Unexpected number of piping elements of type " << rPipeElements[0]->Info() << ": expected "
+            << rPipeElements.size() << " but got " << number_of_piping_elements << std::endl;
+
+        return result;
+    }
+
     void FinalizeSolutionStep() override
     {
         KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0)
@@ -80,42 +98,28 @@ public:
             return;
         }
 
-        auto piping_interface_elements = std::vector<SteadyStatePwPipingElement<2, 4>*>{};
-        std::transform(piping_elements.begin(), piping_elements.end(),
-                       std::back_inserter(piping_interface_elements), [](auto p_element) {
-            return dynamic_cast<SteadyStatePwPipingElement<2, 4>*>(p_element);
-        });
-
-        const auto number_of_piping_interface_elements = static_cast<std::size_t>(
-            std::count_if(piping_interface_elements.begin(), piping_interface_elements.end(),
-                          [](auto p_element) { return p_element != nullptr; }));
-        KRATOS_ERROR_IF(number_of_piping_interface_elements != 0 &&
-                        number_of_piping_interface_elements != piping_interface_elements.size())
-            << "Unexpected number of piping interface elements: expected either 0 or "
-            << piping_interface_elements.size() << " but got "
-            << number_of_piping_interface_elements << std::endl;
-
-        if (number_of_piping_interface_elements > 0) {
-            this->DetermineOpenPipingElements(piping_interface_elements);
+        if (const auto piping_interface_elements =
+                TryDownCastToPipingElement<SteadyStatePwPipingElement<2, 4>>(piping_elements)) {
+            this->DetermineOpenPipingElements(piping_interface_elements.value());
             this->BaseClassFinalizeSolutionStep();
             return;
         }
 
-        auto piping_line_elements = std::vector<GeoSteadyStatePwPipingElement<2, 2>*>{};
-        std::transform(piping_elements.begin(), piping_elements.end(),
-                       std::back_inserter(piping_line_elements), [](auto p_element) {
-            return dynamic_cast<GeoSteadyStatePwPipingElement<2, 2>*>(p_element);
-        });
+        if (const auto piping_2D_line_elements =
+                TryDownCastToPipingElement<GeoSteadyStatePwPipingElement<2, 2>>(piping_elements)) {
+            this->DetermineOpenPipingElements(piping_2D_line_elements.value());
+            this->BaseClassFinalizeSolutionStep();
+            return;
+        }
 
-        const auto number_of_piping_line_elements = static_cast<std::size_t>(
-            std::count_if(piping_line_elements.begin(), piping_line_elements.end(),
-                          [](auto p_element) { return p_element != nullptr; }));
-        KRATOS_ERROR_IF(number_of_piping_line_elements != piping_line_elements.size())
-            << "Unexpected number of piping line elements: expected " << piping_line_elements.size()
-            << " but got " << number_of_piping_line_elements << std::endl;
+        if (const auto piping_3D_line_elements =
+                TryDownCastToPipingElement<GeoSteadyStatePwPipingElement<3, 2>>(piping_elements)) {
+            this->DetermineOpenPipingElements(piping_3D_line_elements.value());
+            this->BaseClassFinalizeSolutionStep();
+            return;
+        }
 
-        this->DetermineOpenPipingElements(piping_line_elements);
-        this->BaseClassFinalizeSolutionStep();
+        KRATOS_ERROR << "Unexpected type of piping element\n";
     }
 
     /**
@@ -323,6 +327,7 @@ private:
             }
             ++piping_iteration;
         }
+
         return equilibrium;
     }
 

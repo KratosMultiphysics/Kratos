@@ -161,7 +161,7 @@ void LineInterfaceElement::CalculateOnIntegrationPoints(const Variable<Vector>& 
     if (rVariable == STRAIN) {
         const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
         rOutput = CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices);
-    } else if (rVariable == CAUCHY_STRESS_VECTOR || rVariable == PK2_STRESS_VECTOR) {
+    } else if (rVariable == CAUCHY_STRESS_VECTOR) {
         const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
         const auto relative_displacements = CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices);
         rOutput = CalculateTractionsAtIntegrationPoints(relative_displacements);
@@ -180,20 +180,6 @@ void LineInterfaceElement::CalculateOnIntegrationPoints(const Variable<Constitut
     rOutput = mConstitutiveLaws;
 }
 
-void LineInterfaceElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
-{
-    // const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
-    // auto relative_displacements = CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices);
-    // auto tractions = CalculateTractionsAtIntegrationPoints(relative_displacements);
-    //
-    // for (std::size_t i = 0; i < mConstitutiveLaws.size(); ++i) {
-    //     auto law_parameters = ConstitutiveLaw::Parameters{};
-    //     law_parameters.SetStrainVector(relative_displacements[i]);
-    //     law_parameters.SetStressVector(tractions[i]);
-    //     mConstitutiveLaws[i]->FinalizeMaterialResponseCauchy(law_parameters);
-    // }
-}
-
 void LineInterfaceElement::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const
 {
     rElementalDofList = GetDofs();
@@ -206,17 +192,18 @@ void LineInterfaceElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
     const auto shape_function_values_at_integration_points =
         GeoElementUtilities::EvaluateShapeFunctionsAtIntegrationPoints(
             mIntegrationScheme->GetIntegrationPoints(), GetGeometry());
-    if (!rCurrentProcessInfo[IS_RESTARTED] ||
-        mConstitutiveLaws.size() != shape_function_values_at_integration_points.size()) {
+
+    if (rCurrentProcessInfo[IS_RESTARTED] &&
+        mConstitutiveLaws.size() == shape_function_values_at_integration_points.size()) {
+        for (std::size_t i = 0; i < mConstitutiveLaws.size(); ++i) {
+            mConstitutiveLaws[i]->InitializeMaterial(
+                GetProperties(), GetGeometry(), shape_function_values_at_integration_points[i]);
+        }
+    } else {
         mConstitutiveLaws.clear();
         for (const auto& r_shape_function_values : shape_function_values_at_integration_points) {
             mConstitutiveLaws.push_back(GetProperties()[CONSTITUTIVE_LAW]->Clone());
             mConstitutiveLaws.back()->InitializeMaterial(GetProperties(), GetGeometry(), r_shape_function_values);
-        }
-    }
-    else {
-        for (std::size_t i = 0; i < mConstitutiveLaws.size(); ++i) {
-            mConstitutiveLaws[i]->InitializeMaterial(GetProperties(), GetGeometry(), shape_function_values_at_integration_points[i]);
         }
     }
 }

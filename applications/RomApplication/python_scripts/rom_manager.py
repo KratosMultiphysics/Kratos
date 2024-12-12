@@ -1008,7 +1008,7 @@ class RomManager(object):
 
         def GetNonconvergedSolutions(cls):
             a,_ = cls._GetSolver()._GetSolutionStrategy().GetNonconvergedSolutions()
-            return np.array(a, copy=False)
+            return np.asarray(a)
 
         simulation.Initialize  = types.MethodType(Initialize, simulation)
         simulation.GetNonconvergedSolutions  = types.MethodType(GetNonconvergedSolutions, simulation)

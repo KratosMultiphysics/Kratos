@@ -17,7 +17,7 @@ Use `MED_ROOT` to specify the path to the MED installation in the CMake of Krato
 
 Packages related to *Salome* and *MED* for arch-based distros can be installed from the [AUR](https://en.wikipedia.org/wiki/Arch_Linux#Arch_User_Repository_(AUR)). The MedApplication requires [med-serial](https://aur.archlinux.org/packages/med-serial) (for non-MPI builds) or [med-openmpi](https://archlinux.org/packages/extra/x86_64/med-openmpi/) (for MPI builds with OpenMPI).
 ```
-sudo pacman -S med-serial med-openmpi
+yay -S med-serial med-openmpi
 ```
 
 ## Usage

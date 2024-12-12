@@ -82,6 +82,12 @@ int SteadyStatePwPipingElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurre
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
+std::string SteadyStatePwPipingElement<TDim, TNumNodes>::Info() const
+{
+    return "SteadyStatePwPipingElement";
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
 void SteadyStatePwPipingElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY

@@ -107,6 +107,25 @@ void ConnectivityPreserveModeler::GenerateModelPart(
     KRATOS_CATCH("");
 }
 
+void ConnectivityPreserveModeler::GenerateModelPart(
+    ModelPart& rOriginModelPart,
+    ModelPart& rDestinationModelPart)
+{
+    KRATOS_TRY;
+
+    this->CheckVariableLists(rOriginModelPart, rDestinationModelPart);
+
+    this->ResetModelPart(rDestinationModelPart);
+
+    this->CopyCommonData(rOriginModelPart, rDestinationModelPart);
+
+    this->DuplicateCommunicatorData(rOriginModelPart,rDestinationModelPart);
+
+    this->DuplicateSubModelParts(rOriginModelPart, rDestinationModelPart);
+
+    KRATOS_CATCH("");
+}
+
 
 void ConnectivityPreserveModeler::SetupModelPart()
 {
@@ -140,7 +159,7 @@ void ConnectivityPreserveModeler::SetupModelPart()
             r_destination_model_part,
             KratosComponents<Condition>::Get(condition_name));
     } else {
-        KRATOS_ERROR << "At least one of reference_element or reference_condition is required." << std::endl;
+        GenerateModelPart(r_origin_model_part, r_destination_model_part);
     }
 }
 
@@ -218,6 +237,9 @@ void ConnectivityPreserveModeler::CopyCommonData(
 
     // Assign the nodes to the new model part
     rDestinationModelPart.AddNodes(rOriginModelPart.NodesBegin(), rOriginModelPart.NodesEnd());
+
+    // Assign the geometries to the new model part
+    rDestinationModelPart.Geometries() = rOriginModelPart.Geometries();
 }
 
 void ConnectivityPreserveModeler::DuplicateElements(
@@ -337,6 +359,15 @@ ModelPart& rDestinationModelPart) const
             for(auto it=i_part->ConditionsBegin(); it!=i_part->ConditionsEnd(); ++it)
                 ids.push_back(it->Id());
             destination_part.AddConditions(ids, 0);
+        }
+
+        // Execute only if there are geometries in the destination
+        if (rDestinationModelPart.NumberOfGeometries() > 0) {
+            ids.reserve(i_part->NumberOfGeometries());
+            for (const auto& r_geom : i_part->Geometries()) {
+                ids.push_back(r_geom.Id());
+            }
+            destination_part.AddGeometries(ids);
         }
 
         // Duplicate the Communicator for this SubModelPart

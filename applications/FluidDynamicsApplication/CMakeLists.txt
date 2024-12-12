@@ -42,6 +42,21 @@ add_library( KratosFluidDynamicsCore SHARED ${KRATOS_FLUID_DYNAMICS_APPLICATION_
 target_link_libraries( KratosFluidDynamicsCore PUBLIC KratosCore)
 set_target_properties( KratosFluidDynamicsCore PROPERTIES COMPILE_DEFINITIONS "FLUID_DYNAMICS_APPLICATION=EXPORT,API")
 
+## FluidDynamicsApplication benchmark sources. Disabled by default
+if(${KRATOS_BUILD_BENCHMARK} MATCHES ON)
+    file(GLOB_RECURSE KRATOS_BENCHMARK_SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/benchmarks/*.cpp
+    )
+
+    foreach(file ${KRATOS_BENCHMARK_SOURCES})
+        get_filename_component(filename ${file} NAME_WE)
+        add_executable(${filename} ${file})
+        target_link_libraries(${filename} PUBLIC KratosFluidDynamicsCore benchmark::benchmark)
+        set_target_properties(${filename} PROPERTIES COMPILE_DEFINITIONS "KRATOS_BENCHMARK=IMPORT,API")
+        install(TARGETS ${filename} DESTINATION benchmark)
+    endforeach(file ${KRATOS_BENCHMARK_SOURCES})
+endif(${KRATOS_BUILD_BENCHMARK} MATCHES ON)
+
 ## FluidDynamicsApplication python module
 pybind11_add_module( KratosFluidDynamicsApplication MODULE THIN_LTO ${KRATOS_FLUID_DYNAMICS_PYTHON_INTERFACE_SOURCES} )
 target_link_libraries( KratosFluidDynamicsApplication PRIVATE KratosFluidDynamicsCore)

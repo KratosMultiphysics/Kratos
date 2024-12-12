@@ -73,13 +73,13 @@ double ApplyCPhiReductionProcess::GetAndCheckPhi(const Element::PropertiesType& 
 
     KRATOS_ERROR_IF_NOT(part_properties.Has(UMAT_PARAMETERS))
         << "Missing required item UMAT_PARAMETERS" << std::endl;
-    KRATOS_ERROR_IF_NOT(part_properties.Has(NUMBER_OF_UMAT_PARAMETERS))
-        << "Missing required item NUMBER_OF_UMAT_PARAMETERS" << std::endl;
     KRATOS_ERROR_IF_NOT(part_properties.Has(INDEX_OF_UMAT_PHI_PARAMETER))
         << "Missing required item INDEX_OF_UMAT_PHI_PARAMETER" << std::endl;
 
-    KRATOS_ERROR_IF(part_properties[INDEX_OF_UMAT_PHI_PARAMETER] < 1 || part_properties[INDEX_OF_UMAT_PHI_PARAMETER] > part_properties[NUMBER_OF_UMAT_PARAMETERS])
-        << "invalid INDEX_OF_UMAT_PHI_PARAMETER: " << part_properties[INDEX_OF_UMAT_PHI_PARAMETER]
+    KRATOS_ERROR_IF(part_properties[INDEX_OF_UMAT_PHI_PARAMETER] < 1 ||
+                    part_properties[INDEX_OF_UMAT_PHI_PARAMETER] >
+                        static_cast<int>(part_properties[UMAT_PARAMETERS].size()))
+        << "Invalid INDEX_OF_UMAT_PHI_PARAMETER: " << part_properties[INDEX_OF_UMAT_PHI_PARAMETER]
         << " (out-of-bounds index)" << std::endl;
     const double phi = part_properties[UMAT_PARAMETERS][part_properties[INDEX_OF_UMAT_PHI_PARAMETER] - 1];
     KRATOS_ERROR_IF(phi < 0. || phi > 90.) << "Friction angle Phi out of range: " << phi << std::endl;
@@ -103,12 +103,12 @@ double ApplyCPhiReductionProcess::GetAndCheckC(const Element::PropertiesType& rP
 
     KRATOS_ERROR_IF_NOT(part_properties.Has(UMAT_PARAMETERS))
         << "Missing required item UMAT_PARAMETERS" << std::endl;
-    KRATOS_ERROR_IF_NOT(part_properties.Has(NUMBER_OF_UMAT_PARAMETERS))
-        << "Missing required item NUMBER_OF_UMAT_PARAMETERS" << std::endl;
     KRATOS_ERROR_IF_NOT(part_properties.Has(INDEX_OF_UMAT_C_PARAMETER))
         << "Missing required item INDEX_OF_UMAT_C_PARAMETER" << std::endl;
 
-    KRATOS_ERROR_IF(part_properties[INDEX_OF_UMAT_C_PARAMETER] < 1 || part_properties[INDEX_OF_UMAT_C_PARAMETER] > part_properties[NUMBER_OF_UMAT_PARAMETERS])
+    KRATOS_ERROR_IF(part_properties[INDEX_OF_UMAT_C_PARAMETER] < 1 ||
+                    part_properties[INDEX_OF_UMAT_C_PARAMETER] >
+                        static_cast<int>(part_properties[UMAT_PARAMETERS].size()))
         << "invalid INDEX_OF_UMAT_C_PARAMETER: " << part_properties[INDEX_OF_UMAT_C_PARAMETER]
         << " (out-of-bounds index)" << std::endl;
     const auto c = part_properties[UMAT_PARAMETERS][part_properties[INDEX_OF_UMAT_C_PARAMETER] - 1];
