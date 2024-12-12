@@ -76,9 +76,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
         # assert if average error in all stages is below 1 percent
         accuracy = 1.0e-7
         self.assertLess(rmse_stages, accuracy)
-    
-    
-    
+
     
     def test_saturated_below_phreatic_level_pw_triangle3N(self):
         self.__test_saturated_below_phreatic_level_pw('test_saturated_below_phreatic_level_pw_triangle3N')
@@ -86,6 +84,8 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
     def test_saturated_below_phreatic_level_pw_triangle6N(self):
         self.__test_saturated_below_phreatic_level_pw('test_saturated_below_phreatic_level_pw_triangle6N')
         
+    def test_saturated_below_phreatic_level_upw_difforder_triangle6n(self):
+        self.__test_saturated_below_phreatic_level_pw('test_saturated_below_phreatic_level_upw_difforder_triangle6n')
 
 
     def __calculate_column_saturated_under_phreatic_level(self, y_coord):
