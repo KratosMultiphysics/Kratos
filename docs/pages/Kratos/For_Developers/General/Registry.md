@@ -8,7 +8,7 @@ summary: Introduction to registry framework
 
 ## Overview
 
-The `Registry` and `RegistryItem` classes in *Kratos Multiphysics* provide a flexible, hierarchical, and type-safe registry system. This system enables efficient storage and retrieval of shared objects, prototypes, and configurations across the application. The design is optimized for extensibility, thread-safety, and integration with Kratos's infrastructure.
+The `Registry` and `RegistryItem` classes in *Kratos Multiphysics* provide a flexible, hierarchical, and type-safe registry system. This system enables efficient storage and retrieval of shared objects, prototypes, and configurations across the application.
 
 ## Key Features
 
@@ -16,8 +16,7 @@ The `Registry` and `RegistryItem` classes in *Kratos Multiphysics* provide a fle
 - **Type-Safe Access**: Supports type-erased storage using `std::any` and allows type-safe retrieval.
 - **Thread-Safe Operations**: Thread safety is ensured using locks for global operations.
 - **Prototype Registration**: Facilitates the registration of class prototypes, enabling factory-like usage for dynamic object creation.
-- **Integration with Python**: Python bindings expose key features for scripting and automation.
-- **Custom Serialization**: Items can be serialized into JSON for debugging and reporting.
+- **Integration with Python**: Python bindings expose key features.
 
 ## Usage
 
