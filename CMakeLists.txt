@@ -616,6 +616,8 @@ endif()
 
 # Compiling the gismo library
 add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/gismo)
+link_directories   (${GISMO_LIBRARY_DIR})
+
 
 # Compile Kratos Core
 if(${EXCLUDE_KRATOS_CORE} MATCHES OFF)

@@ -12,6 +12,7 @@ include_directories(
 message(STATUS "G+Smo include: ${GISMO_INCLUDE_DIRS}")
 
 include_directories(${GISMO_INCLUDE_DIRS})
+# link_directories   (${GISMO_LIBRARY_DIR})
 
 # Define application core sources (pure C++ parts)
 file(GLOB_RECURSE KRATOS_IGA_APPLICATION_CORE

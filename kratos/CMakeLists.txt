@@ -107,7 +107,7 @@ target_compile_definitions(KratosVersion PRIVATE
 add_library(KratosCore SHARED ${KRATOS_CORE_SOURCES} ${KRATOS_CORE_INPUT_OUTPUT_SOURCES} ${KRATOS_EXPRESSION_SOURCES} ${KRATOS_TPL_SOURCES} $<TARGET_OBJECTS:KratosVersion>)
 
 # Set the shared external libraries for kratos (gidpost, tyniexpr, json, etc...)
-set(KRATOS_EXTERNAL_LIBRARIES gidpost tinyexpr clipper ${GISMO_LIBRARY})
+set(KRATOS_EXTERNAL_LIBRARIES gidpost tinyexpr clipper ${GISMO_LIBRARIES})
 
 # Set the TPL libraries if enabled (triangle, tetgen, etc...)
 if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
