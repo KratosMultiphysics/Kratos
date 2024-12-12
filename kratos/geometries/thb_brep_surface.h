@@ -22,7 +22,7 @@
 
 // Project includes
 #include "geometries/geometry.h"
-#include "geometries/brep_curve_on_surface.h"
+#include "geometries/thb_brep_curve_on_surface.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_interval.h"
 
 // trimming integration
@@ -59,12 +59,12 @@ public:
 
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
-    typedef NurbsSurfaceGeometry<3, TContainerPointType> NurbsSurfaceType;
-    typedef BrepCurveOnSurface<TContainerPointType, TContainerPointEmbeddedType> BrepCurveOnSurfaceType;
+    typedef THBSurfaceGeometry<3, TContainerPointType> THBSurfaceType;
+    typedef THBBrepCurveOnSurface<TContainerPointType, TContainerPointEmbeddedType> THBBrepCurveOnSurfaceType;
 
-    typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceArrayType;
-    typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceLoopType;
-    typedef DenseVector<DenseVector<typename BrepCurveOnSurfaceType::Pointer>> BrepCurveOnSurfaceLoopArrayType;
+    typedef DenseVector<typename THBBrepCurveOnSurfaceType::Pointer> THBBrepCurveOnSurfaceArrayType;
+    typedef DenseVector<typename THBBrepCurveOnSurfaceType::Pointer> THBBrepCurveOnSurfaceLoopType;
+    typedef DenseVector<DenseVector<typename THBBrepCurveOnSurfaceType::Pointer>> THBBrepCurveOnSurfaceLoopArrayType;
 
     typedef typename BaseType::GeometriesArrayType GeometriesArrayType;
 
@@ -81,7 +81,7 @@ public:
 
     /// Constructor for untrimmed patch
     THBBrepSurface(
-        typename NurbsSurfaceType::Pointer pSurface)
+        typename THBSurfaceType::Pointer pSurface)
         : BaseType(PointsArrayType(), &msGeometryData)
         , mpNurbsSurface(pSurface)
     {
@@ -90,9 +90,9 @@ public:
 
     /// Constructor for trimmed patch
     THBBrepSurface(
-        typename NurbsSurfaceType::Pointer pSurface,
-        BrepCurveOnSurfaceLoopArrayType& BrepOuterLoopArray,
-        BrepCurveOnSurfaceLoopArrayType& BrepInnerLoopArray)
+        typename THBSurfaceType::Pointer pSurface,
+        THBBrepCurveOnSurfaceLoopArrayType& BrepOuterLoopArray,
+        THBBrepCurveOnSurfaceLoopArrayType& BrepInnerLoopArray)
         : BaseType(PointsArrayType(), &msGeometryData)
         , mpNurbsSurface(pSurface)
         , mOuterLoopArray(BrepOuterLoopArray)
@@ -103,9 +103,9 @@ public:
 
     /// Constructor for trimmed patch including IsTrimmed
     THBBrepSurface(
-        typename NurbsSurfaceType::Pointer pSurface,
-        BrepCurveOnSurfaceLoopArrayType& BrepOuterLoopArray,
-        BrepCurveOnSurfaceLoopArrayType& BrepInnerLoopArray,
+        typename THBSurfaceType::Pointer pSurface,
+        THBBrepCurveOnSurfaceLoopArrayType& BrepOuterLoopArray,
+        THBBrepCurveOnSurfaceLoopArrayType& BrepInnerLoopArray,
         bool IsTrimmed)
         : BaseType(PointsArrayType(), &msGeometryData)
         , mpNurbsSurface(pSurface)
@@ -282,23 +282,23 @@ public:
     }
 
     /// @brief Used to add the embedded edges to the brep surface.
-    void AddEmbeddedEdges(BrepCurveOnSurfaceArrayType EmbeddedEdges)
+    void AddEmbeddedEdges(THBBrepCurveOnSurfaceArrayType EmbeddedEdges)
     {
         mEmbeddedEdgesArray = EmbeddedEdges;
     }
 
     /// Access the nested loop of outer loops.
-    const BrepCurveOnSurfaceLoopArrayType& GetOuterLoops() const {
+    const THBBrepCurveOnSurfaceLoopArrayType& GetOuterLoops() const {
         return mOuterLoopArray;
     }
 
     /// Access the nested loop of inner loops.
-    const BrepCurveOnSurfaceLoopArrayType& GetInnerLoops() const {
+    const THBBrepCurveOnSurfaceLoopArrayType& GetInnerLoops() const {
         return mInnerLoopArray;
     }
 
     /// Access the array of embedded edges.
-    const BrepCurveOnSurfaceArrayType& GetEmbeddedEdges() const {
+    const THBBrepCurveOnSurfaceArrayType& GetEmbeddedEdges() const {
         return mEmbeddedEdgesArray;
     }
 
@@ -434,23 +434,23 @@ public:
         IntegrationPointsArrayType& rIntegrationPoints,
         IntegrationInfo& rIntegrationInfo) const override
     {
-        if (!mIsTrimmed) {
+        // if (!mIsTrimmed) {
             mpNurbsSurface->CreateIntegrationPoints(
                 rIntegrationPoints, rIntegrationInfo);
-        }
-        else
-        {
-            std::vector<double> spans_u;
-            std::vector<double> spans_v;
-            mpNurbsSurface->SpansLocalSpace(spans_u, 0);
-            mpNurbsSurface->SpansLocalSpace(spans_v, 1);
+        // }
+        // else
+        // {
+        //     std::vector<double> spans_u;
+        //     std::vector<double> spans_v;
+        //     mpNurbsSurface->SpansLocalSpace(spans_u, 0);
+        //     mpNurbsSurface->SpansLocalSpace(spans_v, 1);
 
-            BrepTrimmingUtilities::CreateBrepSurfaceTrimmingIntegrationPoints(
-                rIntegrationPoints,
-                mOuterLoopArray, mInnerLoopArray,
-                spans_u, spans_v,
-                rIntegrationInfo);
-        }
+        //     BrepTrimmingUtilities::CreateBrepSurfaceTrimmingIntegrationPoints(
+        //         rIntegrationPoints,
+        //         mOuterLoopArray, mInnerLoopArray,
+        //         spans_u, spans_v,
+        //         rIntegrationInfo);
+        // }
     }
 
     ///@}
@@ -555,12 +555,12 @@ private:
     ///@name Member Variables
     ///@{
 
-    typename NurbsSurfaceType::Pointer mpNurbsSurface;
+    typename THBSurfaceType::Pointer mpNurbsSurface;
 
-    BrepCurveOnSurfaceLoopArrayType mOuterLoopArray;
-    BrepCurveOnSurfaceLoopArrayType mInnerLoopArray;
+    THBBrepCurveOnSurfaceLoopArrayType mOuterLoopArray;
+    THBBrepCurveOnSurfaceLoopArrayType mInnerLoopArray;
 
-    BrepCurveOnSurfaceArrayType mEmbeddedEdgesArray;
+    THBBrepCurveOnSurfaceArrayType mEmbeddedEdgesArray;
 
     /** IsTrimmed is used to optimize processes as
     *   e.g. creation of integration domain.
