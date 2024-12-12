@@ -823,8 +823,8 @@ void LinearTrussElement<TDimension, TNNodes>::CalculateOnIntegrationPoints(
     }
   }
 }
-template <SizeType TNNodes>
-void LinearTrussElement2D<TNNodes>::CalculateOnIntegrationPoints(
+template <SizeType TDimension, SizeType TNNodes>
+void LinearTrussElement<TDimension, TNNodes>::CalculateOnIntegrationPoints(
     const Variable<Vector> &rVariable, std::vector<Vector> &rOutput,
     const ProcessInfo &rCurrentProcessInfo) {
 
