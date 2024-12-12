@@ -57,10 +57,11 @@ def __ModuleInitDetail():
         or "MPI_LOCALNRANKS" in os.environ   # Recent mpich detected
     )
     mpi_requested = "--using-mpi" in sys.argv[1:] # Forcing MPI initialization through command-line flag
+    mpi_disabled = "--not-using-mpi" in sys.argv[1:] # Forcing MPI disabled through command-line flag
 
     using_mpi = False
 
-    if mpi_detected or mpi_requested:
+    if (mpi_detected or mpi_requested) and not mpi_disabled:
         from KratosMultiphysics.kratos_utilities import IsMPIAvailable
         if IsMPIAvailable():
             import KratosMultiphysics.mpi
