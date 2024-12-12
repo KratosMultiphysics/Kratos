@@ -82,7 +82,7 @@
 #include "custom_elements/two_fluid_navier_stokes_alpha_method.h"
 
 #include "custom_elements/data_containers/axisymmetric_navier_stokes/axisymmetric_navier_stokes_data.h"
-#include "custom_utilities/qsvms_data.h"
+#include "custom_elements/data_containers/qs_vms/qs_vms_data.h"
 #include "custom_utilities/time_integrated_qsvms_data.h"
 #include "custom_utilities/qsvms_dem_coupled_data.h"
 #include "custom_utilities/fic_data.h"

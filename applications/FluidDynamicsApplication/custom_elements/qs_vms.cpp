@@ -14,7 +14,7 @@
 #include "includes/cfd_variables.h"
 #include "includes/checks.h"
 
-#include "custom_utilities/qsvms_data.h"
+#include "custom_elements/data_containers/qs_vms/qs_vms_data.h"
 #include "custom_utilities/time_integrated_qsvms_data.h"
 #include "custom_utilities/qsvms_dem_coupled_data.h"
 #include "custom_utilities/fluid_element_utilities.h"
