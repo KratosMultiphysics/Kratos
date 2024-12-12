@@ -7,7 +7,12 @@
 
 ## Case Specification
 In this test case, a column of 1 x 5 m soil is considered (set between -5 m and 0 m). A phreatic line is set at the level of $y = -2$ m. The water pore pressure field is then calculated.
-The simulation is done on a double stage process, and steady state Pw and U-Pw elements are considered. This test is conducted for various configurations, including 2D3N (for Pw) and 2D6N(for Pw and U-Pw) triangular elements. The pressure distribution along the column is then evaluated with its alalytical result.
+The simulation is done on a double stage process, and steady state Pw and U-Pw elements are considered. This test is conducted for various configurations, including
+
+- 2D3N: for Pw and U-Pw small strain elements
+- 2D6N: for Pw and U-Pw small strain and U-Pw different order elements.
+
+The pressure distribution along the column is then evaluated with its alalytical result.
 
 ## Results
 

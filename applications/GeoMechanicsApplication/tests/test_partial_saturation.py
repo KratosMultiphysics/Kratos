@@ -86,6 +86,12 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
         
     def test_saturated_below_phreatic_level_upw_difforder_triangle6n(self):
         self.__test_saturated_below_phreatic_level_pw('test_saturated_below_phreatic_level_upw_difforder_triangle6n')
+        
+    def test_saturated_below_phreatic_level_upw_smallstrain_triangle3n(self):
+        self.__test_saturated_below_phreatic_level_pw('test_saturated_below_phreatic_level_upw_smallstrain_triangle3n')
+        
+    def test_saturated_below_phreatic_level_upw_smallstrain_triangle6n(self):
+        self.__test_saturated_below_phreatic_level_pw('test_saturated_below_phreatic_level_upw_smallstrain_triangle6n')
 
 
     def __calculate_column_saturated_under_phreatic_level(self, y_coord):

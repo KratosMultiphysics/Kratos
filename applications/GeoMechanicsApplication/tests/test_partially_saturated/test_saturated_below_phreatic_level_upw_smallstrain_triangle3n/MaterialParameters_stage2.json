@@ -1,0 +1,34 @@
+{
+  "properties": [
+    {
+      "properties_id": 0,
+      "model_part_name": "PorousDomain.Parts_Solid_Grond",
+      "Material": {
+        "constitutive_law": {
+          "name": "GeoLinearElasticPlaneStrain2DLaw"
+        },
+        "Variables": {
+          "IGNORE_UNDRAINED": false,
+          "BIOT_COEFFICIENT": 1.0,
+          "DENSITY_SOLID": 2038.735983690112,
+          "DENSITY_WATER": 1019.367991845056,
+          "POROSITY": 0.3,
+          "BULK_MODULUS_SOLID": 20000000000.0,
+          "BULK_MODULUS_FLUID": 2200000000.0,
+          "PERMEABILITY_XX": 1.157E-05,
+          "PERMEABILITY_YY": 1.157E-05,
+          "PERMEABILITY_XY": 0.0,
+          "DYNAMIC_VISCOSITY": 0.001,
+          "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
+          "RESIDUAL_SATURATION": 0.001,
+          "SATURATED_SATURATION": 1.0,
+          "MINIMUM_RELATIVE_PERMEABILITY": 0.001,
+          "K0_MAIN_DIRECTION": 1,
+          "K0_NC": 0.6,
+          "YOUNG_MODULUS": 1000000000.0,
+          "POISSON_RATIO": 0.2
+        }
+      }
+    }
+  ]
+}
