@@ -40,30 +40,49 @@ class RomManager(object):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
         type_of_decoder = self.general_rom_manager_parameters["type_of_decoder"].GetString()
+
+        # Allowed types
+        allowed_decoders = ["linear", "ann_enhanced", "rbf_enhanced"]
+
+        # Check if the value is valid
+        if type_of_decoder not in allowed_decoders:
+            raise ValueError(f"Unsupported type_of_decoder: '{type_of_decoder}'. Supported types are: {', '.join(allowed_decoders)}")
+
         #######################
         ######  Galerkin ######
         if chosen_projection_strategy == "galerkin":
-            if type_of_decoder =="ann_enhanced":
-                if any(item == "ROM" for item in training_stages):
-                    self._LaunchTrainROM(mu_train)
-                    self._LaunchFOM(mu_validation) #What to do here with the gid and vtk results?
-                    self.TrainAnnEnhancedROM(mu_train,mu_validation)
-                    self._ChangeRomFlags(simulation_to_run = "GalerkinROM_ANN")
+            # Define the allowed decoders and their specific training functions
+            decoder_functions = {
+                "ann_enhanced": self.TrainAnnEnhancedROM,
+                "rbf_enhanced": self.TrainRbfEnhancedROM,
+                "linear": None  # No additional training function for linear
+            }
+
+            if type_of_decoder not in decoder_functions:
+                raise ValueError(f"Unsupported type_of_decoder: '{type_of_decoder}'. Supported types are: {', '.join(decoder_functions.keys())}")
+
+            # Handle ROM training and validation
+            if any(item == "ROM" for item in training_stages):
+                self._LaunchTrainROM(mu_train)
+
+                if type_of_decoder in ["ann_enhanced", "rbf_enhanced"]:
+                    self._LaunchFOM(mu_validation)  # What to do here with the GID and VTK results?
+                    decoder_functions[type_of_decoder](mu_train, mu_validation)
+                    self._ChangeRomFlags(simulation_to_run=f"GalerkinROM_{type_of_decoder.upper()}")
                     nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
                     self._LaunchROM(mu_train, nn_rom_interface=nn_rom_interface)
-                if any(item == "HROM" for item in training_stages):
-                    err_msg = f'HROM is not available yet for ann_enhanced decoders.'
-                    raise Exception(err_msg)
-            elif type_of_decoder =="linear":
-                if any(item == "ROM" for item in training_stages):
-                    self._LaunchTrainROM(mu_train)
-                    self._ChangeRomFlags(simulation_to_run = "GalerkinROM")
+                elif type_of_decoder == "linear":
+                    self._ChangeRomFlags(simulation_to_run="GalerkinROM")
                     self._LaunchROM(mu_train)
-                if any(item == "HROM" for item in training_stages):
-                    #FIXME there will be an error if we only train HROM, but not ROM
-                    self._ChangeRomFlags(simulation_to_run = "trainHROMGalerkin")
+
+            # Handle HROM training
+            if any(item == "HROM" for item in training_stages):
+                if type_of_decoder in ["ann_enhanced", "rbf_enhanced"]:
+                    raise Exception(f"HROM is not available yet for {type_of_decoder} decoders.")
+                elif type_of_decoder == "linear":
+                    self._ChangeRomFlags(simulation_to_run="trainHROMGalerkin")
                     self._LaunchTrainHROM(mu_train)
-                    self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
+                    self._ChangeRomFlags(simulation_to_run="runHROMGalerkin")
                     self._LaunchHROM(mu_train)
         #######################
 
