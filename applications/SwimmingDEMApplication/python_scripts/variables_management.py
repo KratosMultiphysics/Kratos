@@ -349,7 +349,7 @@ class VariablesManager:
         self.coupling_fluid_vars += [Kratos.MATERIAL_ACCELERATION]
         self.coupling_fluid_vars += [Fluid.MASS_SOURCE]
         #self.coupling_fluid_vars += [Kratos.EXACT_VELOCITY]
-        self.coupling_fluid_vars += [SDEM.VECTORIAL_ERROR]
+        # self.coupling_fluid_vars += [SDEM.VECTORIAL_ERROR]
         self.coupling_fluid_vars += [SDEM.ERROR_X]
         self.coupling_fluid_vars += [SDEM.ERROR_Y]
         self.coupling_fluid_vars += [SDEM.ERROR_Z]
@@ -360,6 +360,8 @@ class VariablesManager:
         self.coupling_fluid_vars += [Kratos.KratosGlobals.GetVariable(parameters["body_force_per_unit_mass_variable_name"].GetString() )]
 
         # Nodal density
+        if 'EXACT_MATERIAL_ACCELERATION' in self.dem_nodal_results:
+            self.coupling_fluid_vars += [SDEM.EXACT_MATERIAL_ACCELERATION]
         self.coupling_fluid_vars += [SDEM.NODAL_DENSITY]
 
         if parameters["custom_fluid"]["fluid_model_type"].GetInt() == 0:
@@ -408,6 +410,8 @@ class VariablesManager:
         # Nodal density
         self.coupling_dem_vars += [SDEM.NODAL_DENSITY_PROJECTED]
         self.coupling_dem_vars += [SDEM.NODAL_DENSITY]
+        if 'EXACT_MATERIAL_ACCELERATION' in self.dem_nodal_results:
+            self.coupling_dem_vars += [SDEM.EXACT_MATERIAL_ACCELERATION]
 
         if parameters["coupling"]["coupling_level_type"].GetInt() > 0:
             self.coupling_dem_vars += [Kratos.FLUID_VEL_PROJECTED]
