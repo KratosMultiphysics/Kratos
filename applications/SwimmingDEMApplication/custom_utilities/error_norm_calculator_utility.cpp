@@ -49,48 +49,53 @@ void ErrorNormCalculator::ComputeDofsErrors(ModelPart& r_model_part)
     });
 }
 
-double ErrorNormCalculator::GetL2VectorErrorNorm(ModelPart& r_model_part, const Variable<array_1d<double,3>>& rVariable, const Variable<Vector>& rExact_Variable)
+double ErrorNormCalculator::GetL2VectorErrorNorm(ModelPart& r_model_part, const Variable<array_1d<double,3>>& rVariable, const Variable<array_1d<double,3>>& rExact_Variable)
 {
     double total_area = 0.0, result = 0.0;
     ProcessInfo process_info = r_model_part.GetProcessInfo();
     const unsigned int dim = process_info[DOMAIN_SIZE];
     const int number_of_elements = r_model_part.NumberOfElements();
 
-    for (int e = 0; e < number_of_elements; e++){
+    // Compute L2 error = sum_e sum_g sum_d W_g * (u_d(x_g) - u_d,exact(x_g))^2,
+    // where u_d and u_d,exact are the piecewise functions of the variable and the exact variable, respectively
+    for (int e = 0; e < number_of_elements; e++)
+    {
         ModelPart::ElementsContainerType::iterator rElement = r_model_part.ElementsBegin() + e;
 
         const GeometryType& r_geometry = rElement->GetGeometry();
+        unsigned int num_nodes = r_geometry.size();
         const GeometryData::IntegrationMethod integration_method = rElement->GetIntegrationMethod();
         const auto& integration_points = r_geometry.IntegrationPoints(integration_method);
         const auto& r_number_integration_points = r_geometry.IntegrationPointsNumber(integration_method);
-
-        std::vector<Vector> exact_vector;
-        std::vector<array_1d<double,3>> computed_vector;
-        std::vector<double> vectorial_error(r_number_integration_points,0.0);
-
-        total_area += r_geometry.Area();
+        Matrix NContainer = r_geometry.ShapeFunctionsValues(integration_method);
 
         ShapeFunctionDerivativesArrayType shape_derivatives;
         Vector DetJ;
-        Vector gauss_weights;
-        r_geometry.ShapeFunctionsIntegrationPointsGradients(shape_derivatives,DetJ,integration_method);
+        r_geometry.ShapeFunctionsIntegrationPointsGradients(shape_derivatives, DetJ, integration_method);
 
-        rElement->CalculateOnIntegrationPoints(rVariable,computed_vector,process_info);
-
-        rElement->CalculateOnIntegrationPoints(rExact_Variable,exact_vector,process_info);
-
-        if (gauss_weights.size() != r_number_integration_points)
-            gauss_weights.resize(r_number_integration_points,false);
+        double variables_diff_gauss_point = 0.0;
 
         for (unsigned int g = 0; g < r_number_integration_points; g++){
-            gauss_weights[g] = DetJ[g] * integration_points[g].Weight();
-            for (unsigned int d = 0; d < dim; d++){
-                vectorial_error[g] += std::pow(exact_vector[g][d] - computed_vector[g][d], 2.0);
+            double weight = DetJ[g] * integration_points[g].Weight();
+            for (unsigned int d = 0; d < dim; d++)
+            {
+                // Interpolate the difference of the values of the variables at the integration points
+                for (unsigned int a = 0; a < num_nodes; a++)
+                {
+                    array_1d<double, 3> var_nodal_values = r_geometry[a].FastGetSolutionStepValue(rVariable);
+                    array_1d<double, 3> exact_var_nodal_values = r_geometry[a].FastGetSolutionStepValue(rExact_Variable);
+                    // variables_diff_gauss_point(d) += (var_nodal_values[d] - exact_var_nodal_values[d]) * NContainer(g, a);
+                    variables_diff_gauss_point += (var_nodal_values[d] - exact_var_nodal_values[d]) * NContainer(g, a);
+                }
+
+                // Integrate the difference between exact and computed variable
+                result += weight * std::pow(variables_diff_gauss_point, 2.0);
+                variables_diff_gauss_point = 0.0;
             }
-            result += gauss_weights[g] * vectorial_error[g];
         }
+        total_area += r_geometry.Area();
     }
-    return std::sqrt(result/total_area);
+    return std::sqrt(result / total_area);
 }
 
 double ErrorNormCalculator::GetL2ScalarErrorNorm(ModelPart& r_model_part, const Variable<double>& rVariable, const Variable<double>& rExact_Variable)

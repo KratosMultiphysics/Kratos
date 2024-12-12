@@ -52,7 +52,7 @@ virtual ~ErrorNormCalculator(){}
 
 void ComputeDofsErrors(ModelPart& r_model_part);
 
-double GetL2VectorErrorNorm(ModelPart& r_model_part, const Variable<array_1d<double,3>>& rVariable, const Variable<Vector>& rExact_Variable);
+double GetL2VectorErrorNorm(ModelPart& r_model_part, const Variable<array_1d<double,3>>& rVariable, const Variable<array_1d<double,3>>& rExact_Variable);
 
 double GetL2ScalarErrorNorm(ModelPart& r_model_part, const Variable<double>& rVariable, const Variable<double>& rExact_Variable);
 
