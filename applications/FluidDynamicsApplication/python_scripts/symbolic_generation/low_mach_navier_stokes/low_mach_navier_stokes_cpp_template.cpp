@@ -189,12 +189,6 @@ void LowMachNavierStokes<TElementData>::PrintInfo(std::ostream& rOStream) const
 // Protected operations
 
 template <class TElementData>
-void LowMachNavierStokes<TElementData>::CalculateMaterialResponse(TElementData &rData) const
-{
-    rData.EffectiveViscosity = this->GetProperties()[DYNAMIC_VISCOSITY];
-}
-
-template <class TElementData>
 void LowMachNavierStokes<TElementData>::AddTimeIntegratedSystem(
     TElementData& rData,
     MatrixType& rLHS,
