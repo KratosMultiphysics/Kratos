@@ -19,7 +19,7 @@
 
 // External includes
 #include <gismo.h>
-// using namespace gismo;
+using namespace gismo;
 
 // Project includes
 #include "geometries/geometry.h"
@@ -28,12 +28,49 @@
 #include "geometries/nurbs_shape_function_utilities/nurbs_interval.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_utilities.h"
 
-#include "utilities/nurbs_utilities/projection_nurbs_geometry_utilities.h"
+#include "utilities/nurbs_utilities/projection_THB_geometry_utilities.h"
 #include "utilities/quadrature_points_utility.h"
 
 #include "integration/integration_point_utilities.h"
 
 namespace Kratos {
+
+inline void ControlPointsFromGismo(const gismo::gsMatrix<>& input, PointerVector<Node>& output)
+{
+    IndexType node_id = output(output.size()-1)->Id();
+    auto variable_list = output(output.size()-1)->pGetVariablesList();
+
+    output.clear();
+    output.resize(input.rows());
+
+    PointerVector<Node> PointsRefined;
+    PointsRefined.resize(input.rows());
+    array_1d<double, 3> cp_coordinates = ZeroVector(3);  
+
+
+    for(int i = 0; i<input.rows(); i++)
+    {
+        cp_coordinates[0] = input(i,0);
+        cp_coordinates[1] = input(i,1);
+        cp_coordinates[2] = input(i,2);
+
+        PointsRefined(i) = Kratos::make_intrusive<Node>(node_id+i+1, cp_coordinates); 
+        PointsRefined(i)->SetSolutionStepVariablesList(variable_list);
+    }
+    output = PointsRefined;
+}
+
+inline void ControlPointsToGismo(const PointerVector<Node>& input, gismo::gsMatrix<>& output)
+{
+    output.resize(input.size(),3);    
+
+    for(int i = 0; i<input.size(); i++)
+    {
+        output(i,0) = input[i].X();
+        output(i,1) = input[i].Y();
+        output(i,2) = input[i].Z();
+    }
+}
 
 template <int TWorkingSpaceDimension, class TContainerPointType>
 class THBSurfaceGeometry : public Geometry<typename TContainerPointType::value_type>
@@ -80,6 +117,37 @@ public:
         , mKnotsV(rKnotsV)
     {
         CheckAndFitKnotVectors();
+
+        gismo::gsKnotVector<> UKnotVector(PolynomialDegreeU,rKnotsU.begin(),rKnotsU.end());
+        gismo::gsKnotVector<> VKnotVector(PolynomialDegreeV,rKnotsV.begin(),rKnotsV.end());
+
+        gismo::gsTensorBSplineBasis<2> BSplineBasis(UKnotVector,VKnotVector);
+        mThb = gismo::gsTHBSplineBasis<2>(BSplineBasis);
+        
+        gsMatrix<> controlPoints;
+        ControlPointsToGismo(this->Points(),controlPoints);
+       
+        gismo::gsTHBSpline<2> ThbGeoemtry(mThb,controlPoints);
+
+        // test case:
+        std::vector<int> refBoxes(5);
+        refBoxes[0] = 3;
+        refBoxes[1] = 0;
+        refBoxes[2] = 0;
+        refBoxes[3] = 1;
+        refBoxes[4] = 1;
+        // refBoxes[5] = 2;
+        // refBoxes[6] = 0;
+        // refBoxes[7] = 0;
+        // refBoxes[8] = 2;
+        // refBoxes[9] = 2;
+
+        ThbGeoemtry.refineElements(refBoxes);
+
+        ControlPointsFromGismo(ThbGeoemtry.coefs(),this->Points());
+        mThb = ThbGeoemtry.basis();
+
+        // gsInfo << mThb.detail() << "\n";
     }
 
     /// Conctructor for NURBS surfaces
@@ -687,7 +755,7 @@ public:
     {
         CoordinatesArrayType point_global_coordinates;
 
-        return ProjectionNurbsGeometryUtilities::NewtonRaphsonSurface(
+        return ProjectionTHBGeometryUtilities::NewtonRaphsonSurface(
             rProjectedPointLocalCoordinates,
             rPointGlobalCoordinates,
             point_global_coordinates,
@@ -884,6 +952,7 @@ private:
     Vector mKnotsU;
     Vector mKnotsV;
     Vector mWeights;
+    gismo::gsTHBSplineBasis<2> mThb;
 
     /// A NurbsSurface may refer to the BrepSurface as geometry parent.
     BaseType* mpGeometryParent = nullptr;
