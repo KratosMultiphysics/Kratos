@@ -160,9 +160,14 @@ void Kernel::PrintParallelismSupportInfo() const
         #else
             scheduling_str = "dynamic"; // NOTE: This should not happen as defined in compiling time
         #endif
+            const int overwrite = 1; // Overwrite if it exists, a priori not, that's why we are setting it
+            const int output_setenv = setenv(var_name, scheduling_str.c_str(), overwrite);
+            KRATOS_ERROR_IF_NOT(output_setenv == 0) << "Error setting environment variable " << var_name << std::endl;
+            scheduling_str = "\"" + scheduling_str + "\"";
+            scheduling_str += " (retrieving from KRATOS_OMP_SCHEDULE)";
         }
 
-        const auto smp = "OpenMP, scheduling " + scheduling_str; // Use `std::string` for concatenation
+        const auto smp = "OpenMP, scheduling type is " + scheduling_str; // Use `std::string` for concatenation
     #elif defined(KRATOS_SMP_CXX11)
         constexpr auto smp = "C++11";
     #else
