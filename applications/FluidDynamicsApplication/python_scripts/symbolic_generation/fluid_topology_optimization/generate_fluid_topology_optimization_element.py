@@ -54,7 +54,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     gauss_weight = sympy.Symbol('gauss_weight', positive = True)
 
     ## Material properties
-    rho    = sympy.Symbol('rho', positive = True)   # Dynamic viscosity
+    rho    = sympy.Symbol('rho', positive = True)   # Density
     mu    = sympy.Symbol('mu', positive = True)     # Dynamic viscosity
     alpha = DefineVector('alpha', nnodes)           # Resistance term
     alpha_gauss = alpha.transpose()*N               # Resistance at gauss points
@@ -273,9 +273,9 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
         # 5: ...
         # 5 is just a number big enough to contain the acutal database of functionals
         functional_weights = DefineVector('functional_weights', n_functionals) # Weights of the functionals terms
-        rv_funct_resistance  = -2*alpha*(w_adj_gauss.transpose()*v_ns_gauss)
-        rv_funct_strain_rate = sympy.Matrix([DoubleContraction(grad_sym_v_ns, grad_w_adj)])
-        rv_funct_vorticity   = sympy.Matrix([DoubleContraction(grad_antisym_v_ns, grad_w_adj)])
+        rv_funct_resistance  = -2.0*alpha*(w_adj_gauss.transpose()*v_ns_gauss)
+        rv_funct_strain_rate = -4.0*mu*(sympy.Matrix([DoubleContraction(grad_sym_v_ns, grad_w_adj)]))
+        rv_funct_vorticity   = -4.0*mu*(sympy.Matrix([DoubleContraction(grad_antisym_v_ns, grad_w_adj)]))
         rv_adj += functional_weights[0]*rv_funct_resistance + functional_weights[1]*rv_funct_strain_rate + functional_weights[2]*rv_funct_vorticity
 
     ## HANDLE ADJOINT CONVECTION 
