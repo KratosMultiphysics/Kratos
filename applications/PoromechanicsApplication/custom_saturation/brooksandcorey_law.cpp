@@ -117,8 +117,8 @@ void BrooksAndCoreyLaw::CalculateLiquidRelativePermeability (SaturationLawVariab
     // } else {
     //     const double nl = (2.0 + 3.0*rVariables.lambda)/rVariables.lambda;
     //     rkrl = std::pow(rVariables.Se,nl);
+    //     rkrl = std::max(rkrl,rVariables.krmin);
     // }
-    // rkrl = std::max(rkrl,rVariables.krmin);
 
     //TODO. Ignasi
     // Provisional OGS implementation. This is only used in the Liakopoulos test
