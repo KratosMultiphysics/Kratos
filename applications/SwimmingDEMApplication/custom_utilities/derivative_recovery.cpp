@@ -97,31 +97,24 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeExactL2(ModelPar
                     for (unsigned int b = 0; b < NumNodes; ++b){
                         for (unsigned int d = 0; d < TDim; d++)
                         {
-                            // Mass matrix
+                            // Mass matrix (LHS)
                             unsigned int a_global = TDim * id_to_position[r_geometry[a].Id()] + d;
                             unsigned int b_global = TDim * id_to_position[r_geometry[b].Id()] + d;
-                            if (!mass_matrix_computed)
-                            {
-                                massMatrix(a_global, b_global) += Weight * NContainer(g, a) * NContainer(g, b);
-                            }
+                            // if (!mass_matrix_computed)
+                            // {
+                            massMatrix(a_global, b_global) += Weight * NContainer(g, a) * NContainer(g, b);
+                            // }
 
                             // RHS
                             double nodal_value_j = r_geometry[b].FastGetSolutionStepValue(vector_container)[j];
                             rhs(a_global) += Weight * nodal_value_j * NContainer(g, a) * shape_derivatives[g](b, d);
-
-                            if (a_global >= number_of_nodes * TDim || b_global >= number_of_nodes * TDim)
-                            {
-                                KRATOS_ERROR << "a_global = " << a_global << ", b_global = " << b_global << ", num_nodes = " << number_of_nodes << std::endl;
-                            }
                         }
                     }
                 }
             }
-            
         }
 
         // Solve system
-        // std::cout << "Solving system for j = " << j << std::endl;
         MathUtils<double>::Solve(massMatrix, L2Projection, rhs);
 
         // Add values of material derivatives
@@ -151,16 +144,15 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeExactL2(ModelPar
                         gradient[d] = L2Projection(index);
                     }
                 }
-                
             }
         }
 
         // Reset variables
-        if (!mass_matrix_computed)
-        {
-            massMatrix = ZeroMatrix(TDim * number_of_nodes, TDim * number_of_nodes);
-            mass_matrix_computed = true;
-        }
+        // if (!mass_matrix_computed)
+        // {
+        massMatrix = ZeroMatrix(TDim * number_of_nodes, TDim * number_of_nodes);
+        mass_matrix_computed = true;
+        // }
         rhs = ZeroVector(TDim * number_of_nodes);
     }
 
