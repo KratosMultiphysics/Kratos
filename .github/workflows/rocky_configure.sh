@@ -35,14 +35,10 @@ rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
 
 echo "Kratos build type is ${KRATOS_BUILD_TYPE}"
 
-# Enable devtoolset-8
-source scl_source enable devtoolset-8
-
 # Configure
 cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 ${KRATOS_CMAKE_OPTIONS_FLAGS}                                       \
 -DUSE_MPI=OFF                                                       \
--DPYBIND11_PYTHON_VERSION="3.8"                                     \
 -DCMAKE_CXX_FLAGS="${KRATOS_CMAKE_CXX_FLAGS} -O0 -Wall"             \
 -DCMAKE_UNITY_BUILD=ON                                              \
 
