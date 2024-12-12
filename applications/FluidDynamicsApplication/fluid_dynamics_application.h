@@ -90,7 +90,7 @@
 #include "custom_utilities/symbolic_stokes_data.h"
 #include "custom_utilities/two_fluid_navier_stokes_data.h"
 #include "custom_utilities/two_fluid_navier_stokes_alpha_method_data.h"
-#include "custom_utilities/weakly_compressible_navier_stokes_data.h"
+#include "custom_elements/data_containers/weakly_compressible_navier_stokes/weakly_compressible_navier_stokes_data.h"
 
 #include "custom_constitutive/bingham_3d_law.h"
 #include "custom_constitutive/euler_2d_law.h"
