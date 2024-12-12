@@ -8,8 +8,9 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Danilo Cavalcanti
-//                   Lorena Casallas
 //                   Ignasi de Pouplana
+//                   Xavier Tort
+//                   Lorena Casallas
 //
 
 
@@ -74,6 +75,8 @@ public:
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -169,8 +172,6 @@ protected:
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void CalculateStiffnessMatrix( MatrixType& rStiffnessMatrix, const ProcessInfo& rCurrentProcessInfo ) override;
-
-    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLumpedMassMatrix( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo ) override;
 

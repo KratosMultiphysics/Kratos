@@ -8,8 +8,9 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Danilo Cavalcanti
-//                   Lorena Casallas
 //                   Ignasi de Pouplana
+//                   Xavier Tort
+//                   Lorena Casallas
 //
 
 
