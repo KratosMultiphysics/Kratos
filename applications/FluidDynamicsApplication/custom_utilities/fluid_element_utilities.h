@@ -20,7 +20,7 @@
 #include "includes/define.h"
 
 // Application includes
-#include "custom_elements/data_containers/fluid_element_data.h"
+#include "data_containers/fluid_element_data.h"
 
 
 namespace Kratos
