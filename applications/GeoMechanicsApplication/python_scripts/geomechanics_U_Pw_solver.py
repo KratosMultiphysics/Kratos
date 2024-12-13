@@ -214,8 +214,7 @@ class UPwSolver(GeoSolver):
             displacement_criterion = self._MakeDisplacementCriterion()
             R_RT = self.settings["residual_relative_tolerance"].GetDouble()
             R_AT = self.settings["residual_absolute_tolerance"].GetDouble()
-            other_dof_name = "WATER_PRESSURE"
-            residual_criterion = KratosStructure.ResidualDisplacementAndOtherDoFCriteria(R_RT, R_AT, other_dof_name)
+            residual_criterion = KratosStructure.ResidualDisplacementAndOtherDoFCriteria(R_RT, R_AT, "WATER_PRESSURE")
             echo_level = self.settings["echo_level"].GetInt()
             residual_criterion.SetEchoLevel(echo_level)
             convergence_criterion = KratosMultiphysics.OrCriteria(residual_criterion, displacement_criterion)
@@ -232,7 +231,7 @@ class UPwSolver(GeoSolver):
         else:
             err_msg =  "The requested convergence criterion \"" + convergence_criterion + "\" is not available!\n"
             err_msg += "Available options are: \"displacement_criterion\", \"residual_criterion\", \"and_criterion\", \"or_criterion\", \"water_pressure_criterion\", \"displacement_and_water_pressure_criterion\""
-            raise Exception(err_msg)
+            raise RuntimeError(err_msg)
 
         return convergence_criterion
 
@@ -240,10 +239,10 @@ class UPwSolver(GeoSolver):
         relative_tolerance = self.settings["displacement_relative_tolerance"].GetDouble()
         absolute_tolerance = self.settings["displacement_absolute_tolerance"].GetDouble()
 
-        displacement = KratosMultiphysics.DisplacementCriteria(relative_tolerance, absolute_tolerance)
-        displacement.SetEchoLevel(self.settings["echo_level"].GetInt())
+        displacement_criterion = KratosMultiphysics.DisplacementCriteria(relative_tolerance, absolute_tolerance)
+        displacement_criterion.SetEchoLevel(self.settings["echo_level"].GetInt())
 
-        return displacement
+        return displacement_criterion
 
     def _CreateBuilderAndSolver(self):
         block_builder = self.settings["block_builder"].GetBool()
