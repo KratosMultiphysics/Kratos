@@ -301,17 +301,17 @@ jobs:
         python kratos/python_scripts/testing/run_python_tests.py -l nightly -c python
 
 
-  centos:
+  rocky:
     runs-on: ubuntu-latest
     needs: changed-files
     env:
       KRATOS_BUILD_TYPE: Custom
       KRATOS_CI_CHANGED_FILES: ${{needs.changed-files.outputs.files}}
-      KRATOS_CI_APPLICATIONS: ".github/workflows/ci_apps_centos.json"
+      KRATOS_CI_APPLICATIONS: ".github/workflows/ci_apps_rocky.json"
       ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
 
     container:
-      image: kratosmultiphysics/kratos-image-ci-centos7:latest
+      image: kratosmultiphysics/kratos-image-ci-rockylinux-8:latest
       options: --user 1001
 
     steps:
@@ -327,8 +327,8 @@ jobs:
     - name: Build
       run: |
         export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations -Wignored-qualifiers"
-        cp .github/workflows/centos_configure.sh centos_configure.sh
-        bash centos_configure.sh
+        cp .github/workflows/rocky_configure.sh rocky_configure.sh
+        bash rocky_configure.sh
 
     - name: Running C++ tests
       run: |

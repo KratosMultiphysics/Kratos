@@ -25,7 +25,7 @@
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
-#include "custom_utilities/fluid_element_data.h"
+#include "custom_elements/data_containers/fluid_element_data.h"
 #include "utilities/element_size_calculator.h"
 
 namespace Kratos {
@@ -49,6 +49,8 @@ using NodalVectorData = typename FluidElementData<TDim,TNumNodes, true>::NodalVe
 using ShapeFunctionsType = typename FluidElementData<TDim,TNumNodes, true>::ShapeFunctionsType;
 using MatrixRowType = typename FluidElementData<TDim,TNumNodes, true>::MatrixRowType;
 
+static constexpr std::size_t BlockSize = TDim + 1;
+
 ///@}
 ///@name Public Members
 ///@{
@@ -58,6 +60,7 @@ NodalVectorData Velocity_OldStep1;
 NodalVectorData Velocity_OldStep2;
 NodalVectorData MeshVelocity;
 NodalVectorData BodyForce;
+NodalVectorData SolidFractionVelocity;
 
 NodalScalarData Pressure;
 NodalScalarData Pressure_OldStep1;
@@ -100,6 +103,7 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     this->FillFromHistoricalNodalData(Density,DENSITY,r_geometry);
     this->FillFromHistoricalNodalData(Pressure_OldStep1,PRESSURE,r_geometry,1);
     this->FillFromHistoricalNodalData(Pressure_OldStep2,PRESSURE,r_geometry,2);
+    this->FillFromHistoricalNodalData(SolidFractionVelocity, SOLID_FRACTION_VELOCITY, r_geometry);
     this->FillFromNonHistoricalNodalData(SoundVelocity, SOUND_VELOCITY, r_geometry);
     this->FillFromProperties(DynamicViscosity,DYNAMIC_VISCOSITY,r_properties); //TODO: This needs to be retrieved from the EffectiveViscosity of the constitutive law
     this->FillFromProcessInfo(DeltaTime,DELTA_TIME,rProcessInfo);
@@ -136,6 +140,7 @@ static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MESH_VELOCITY,r_geometry[i]);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(BODY_FORCE,r_geometry[i]);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE,r_geometry[i]);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DENSITY,r_geometry[i]);
     }
 
     return 0;
