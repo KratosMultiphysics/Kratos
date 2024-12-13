@@ -41,6 +41,7 @@ public:
     ///@name Type Definitions
     ///@{
 
+
     using SizeType = std::size_t;
 
     using IndexType = std::size_t;
@@ -52,6 +53,12 @@ public:
     using PointsArrayType = typename GeometryType::PointsArrayType;
 
     using ModifiedShapeFunctionsFactoryType = std::function<ModifiedShapeFunctions::UniquePointer(const GeometryType::Pointer, const Vector&)>;
+    struct NodeConditionDataStruct
+    {
+
+        NodeType Node;                 // Condition normal
+        double CornerNode; // Gauss point shape functions values
+    };
 
     ///@}
     ///@name Static Operations
@@ -63,7 +70,7 @@ public:
      * @param rSkinFlag Flag that marks the conditions to be included in the calculation
      * @param rDistanceVariable Reference to the variable containing the distance
      * @param IsHistorical True if the distance is in the historical database, false otherwise
-     * @return Wetted perimeter 
+     * @return Wetted perimeter
      */
     static double CalculateWettedPetimeter(
         ModelPart &rModelPart,
@@ -116,18 +123,45 @@ public:
      * @param  rDistancesVariable Variable name of the inlet distance.
      */
     static void SetInletFreeSurface(ModelPart &rModelPart, const Flags &rSkinFlag, const Variable<double> &rDistanceVariable);
-     
 
+    /**
+     * @brief For all elements that are completly air the gravity is turned off.
+     * @param  rModelPart FluidModelPart
+     */
+    static void TurnOffGravityOnAirElements(ModelPart &rModelPart);
+
+    /**
+     * @brief For all elements that are completly air the gravity is turned off.
+     * @param  rModelPart FluidModelPart
+     * @param  CornerAngle Minimum angle for considering corner.
+     */
+
+    static void FixCornerNodeVelocity(ModelPart &rModelPart, double angle_corner);
+
+
+    /**
+     * @brief  Set the free surface (DISTANCE) in the rModelPart equal to the water depth corresponding to Froude 1
+     * @param  rModelPart Inlet Model Part
+     * @param  rSkinFlag Flag that marks the conditions to be included in the calculation
+     * @param  rDistancesVariable Variable name of the inlet distance.
+     */
+    static bool MaximumWaterDepthChange(ModelPart &rModelPart);
+    /**
+     * @brief  Set the free surface (DISTANCE) in the rModelPart equal to the water depth corresponding to Froude 1
+     * @param  rModelPart Inlet Model Part
+     * @param  rSkinFlag Flag that marks the conditions to be included in the calculation
+     * @param  rDistancesVariable Variable name of the inlet distance.
+     */
+    static void CalculateArtificialViscosity(ModelPart &rModelPart, double WaterDynamicViscosityMax);
     ///@}
 
-private :
-
+private:
     struct EdgeDataContainer
     {
         NodeType::Pointer pNodeI = nullptr;
         NodeType::Pointer pNodeJ = nullptr;
         SizeType NumberOfRepetitions = 0;
-    };
+        };
 
-}; // namespace Kratos
+    }; // namespace Kratos
 }

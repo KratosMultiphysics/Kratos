@@ -175,6 +175,7 @@ double HydraulicFluidAuxiliaryUtilities::CalculateWettedArea(
             std::vector<ModelPart::IndexType> elem_nodes_id;
             auto &r_geom = r_cond.GetGeometry();
 
+
             // Fill the points array and distances vector
             Vector aux_distances(3);
             for (IndexType i_nodes = 0; i_nodes < r_geom.PointsNumber(); i_nodes++)
@@ -282,6 +283,10 @@ void HydraulicFluidAuxiliaryUtilities::SetInletVelocity(
             rNode.Fix(VELOCITY_X);
             rNode.Fix(VELOCITY_Y);
             rNode.Fix(VELOCITY_Z);
+            // rNode.FastGetSolutionStepValue(VELOCITY) = inlet_velocity;
+            // rNode.Fix(VELOCITY_X);
+            // rNode.Fix(VELOCITY_Y);
+            // rNode.Fix(VELOCITY_Z);
         }
     });
 }
@@ -302,8 +307,323 @@ void HydraulicFluidAuxiliaryUtilities::SetInletFreeSurface(ModelPart &rModelPart
         if (rNode.Is(rSkinFlag)){
             double inlet_dist = rNode.GetValue(rDistanceVariable);
             rNode.FastGetSolutionStepValue(DISTANCE) = inlet_dist;
-            rNode.Fix(DISTANCE);
+            if (inlet_dist<0.0){
+                rNode.Fix(DISTANCE);
+            }
         }
+    });
+}
+void HydraulicFluidAuxiliaryUtilities::TurnOffGravityOnAirElements(ModelPart &rModelPart){
+    block_for_each(rModelPart.Elements(), [&](Element &rElement){
+        auto &r_geom = rElement.GetGeometry();
+        Vector distances(3);
+        Vector gravity = ZeroVector(3);
+        for (IndexType i_nodes = 0; i_nodes < r_geom.PointsNumber(); i_nodes++){
+            distances[i_nodes] = r_geom[i_nodes].FastGetSolutionStepValue(DISTANCE);
+        }
+        if (FluidAuxiliaryUtilities::IsPositive(distances)){
+            for (IndexType i_nodes = 0; i_nodes < r_geom.PointsNumber(); i_nodes++){
+                r_geom[i_nodes].FastGetSolutionStepValue(BODY_FORCE) =gravity;
+            }
+        }
+    });
+}
+// void HydraulicFluidAuxiliaryUtilities::FixCornerNodeVelocity(ModelPart &rModelPart, double angle_corner)
+// {
+//     // Obtain for each condition each neighbor condition
+//         block_for_each(rModelPart.Nodes(), [&](NodeType &rNode){
+//             rNode.SetValue(AUX_INDEX,0);
+//         });
+//     ModelPart::ConditionsContainerType &r_cond = rModelPart.Conditions();
+//     double angle_corner_rad = angle_corner / 180.0 * 3.14159; //
+//     double acceptable_cos = cos(angle_corner_rad);
+
+//     for (ModelPart::ConditionsContainerType::iterator cond_it = r_cond.begin(); cond_it != r_cond.end(); cond_it++)
+//     {
+
+//         // get geometry data of the face
+//         Geometry<Node> &face_geometry = cond_it->GetGeometry();
+//         // reference for area normal of the face
+//         const array_1d<double, 3> &face_normal = cond_it->GetValue(NORMAL);
+//         double An = norm_2(face_normal);
+//         const GlobalPointersVector<Condition> &neighb = cond_it->GetValue(NEIGHBOUR_CONDITIONS);
+//         KRATOS_WATCH(neighb.size())
+//         for (unsigned int c_itr = 0; c_itr < neighb.size(); c_itr++)
+//         {
+//             Condition rCondition = neighb[c_itr];
+
+//             const array_1d<double, 3> &face_neig_normal = rCondition.GetValue(NORMAL);
+//             double cos_angle = 1 / (An * norm_2(face_neig_normal)) * inner_prod(face_normal,face_neig_normal);
+//             if (cos_angle <acceptable_cos)
+//             {
+//                 //it is considered corner angle
+//                 for (auto &node:face_geometry){
+//                     double repeated = node.GetValue(AUX_INDEX);
+//                     repeated+=1;
+//                     node.SetValue(AUX_INDEX, repeated);
+//                 }
+//             }
+//         }
+//      }
+//      block_for_each(rModelPart.Nodes(), [&](NodeType &rNode){
+//         if (rNode.GetValue(AUX_INDEX)>=6){
+
+//             // std::cout << rNode.GetValue(AUX_INDEX) << " " << rNode.Id() << std::endl;
+//             Vector veloctiy = ZeroVector(3);
+//             rNode.FastGetSolutionStepValue(VELOCITY) = veloctiy;
+//             rNode.Fix(VELOCITY_X);
+//             rNode.Fix(VELOCITY_Y);
+//             rNode.Fix(VELOCITY_Z);
+
+//         } });
+// }
+
+void HydraulicFluidAuxiliaryUtilities::FixCornerNodeVelocity(ModelPart &rModelPart, double angle_corner)
+{
+    // Obtain for each condition each neighbor condition
+    block_for_each(rModelPart.Nodes(), [&](NodeType &rNode)
+                   { rNode.SetValue(AUX_INDEX, 0); });
+    ModelPart::ConditionsContainerType &r_cond = rModelPart.Conditions();
+    double angle_corner_rad = angle_corner / 180.0 * 3.14159; //
+    double acceptable_cos = cos(angle_corner_rad);
+    double max_height = block_for_each<MaxReduction<double>>(rModelPart.Nodes(), [&](NodeType &rNode){
+       return rNode.Z();
+    });
+    block_for_each(rModelPart.Nodes(),[&](NodeType &rNode){
+       if(rNode.Z() >=max_height){
+         rNode.Set(MARKER,true);
+       }
+    });
+
+    for (ModelPart::ConditionsContainerType::iterator cond_it = r_cond.begin(); cond_it != r_cond.end(); cond_it++)
+    {
+
+
+        // auto r_geom = cond_it->GetGeometry();
+        // auto edgelist = r_geom.GenerateEdges();
+        // get geometry data of the face
+        // Geometry<Node> &face_geometry = cond_it->GetGeometry();
+        // reference for area normal of the face
+        const array_1d<double, 3> &face_normal = cond_it->GetValue(NORMAL);
+        double An = norm_2(face_normal);
+        const GlobalPointersVector<Condition> &neighb = cond_it->GetValue(NEIGHBOUR_CONDITIONS);
+        const GeometryType &r_geom = cond_it->GetGeometry();
+        auto edgelist = r_geom.GenerateEdges();
+
+
+        // auto r_geom = cond_it->GetGeometry();
+        // auto edgelist = r_geom.GenerateEdges();
+        // // get geometry data of the face
+        // // // Geometry<Node> &face_geometry = cond_it->GetGeometry();
+
+        // // // reference for area normal of the face
+        // // const array_1d<double, 3> &face_normal = cond_it->GetValue(NORMAL);
+        // // double An = norm_2(face_normal);
+        // // const GlobalPointersVector<Condition> &neighb = cond_it->GetValue(NEIGHBOUR_CONDITIONS);
+
+        // KRATOS_WATCH(neighb.size())
+        for (unsigned int c_itr = 0; c_itr < neighb.size(); c_itr++)
+        {
+            auto rCondition = neighb[c_itr];
+            const array_1d<double, 3> &face_neig_normal = rCondition.GetValue(NORMAL);
+            double cos_angle = 1 / (An * norm_2(face_neig_normal)) * inner_prod(face_normal, face_neig_normal);
+            auto &r_geom_neig = rCondition.GetGeometry();
+            auto edgelist_neig = r_geom_neig.GenerateEdges();
+
+            array_1d<double, 2> ids_neig;
+            array_1d<double, 2> ids_cond;
+            if (cos_angle < acceptable_cos)
+            {
+                for (IndexType edge = 0; edge < edgelist.size(); edge++)
+                {
+                    for (IndexType i = 0; i < edgelist[edge].size(); i++)
+                    {
+                        ids_cond[i] = edgelist[edge][i].Id();
+                    }
+                    std::sort(ids_cond.begin(), ids_cond.end());
+
+                    for (IndexType edge_neg = 0; edge_neg < edgelist_neig.size(); edge_neg++)
+                    {
+                        for (IndexType i = 0; i < edgelist_neig[edge_neg].size(); i++)
+                        {
+                            ids_neig[i] = edgelist_neig[edge_neg][i].Id();
+                        }
+                        std::sort(ids_neig.begin(), ids_neig.end());
+
+                        if (ids_cond == ids_neig)
+                        {
+
+                            for (IndexType i = 0; i < edgelist[edge].size(); i++){
+
+                                double repeated = edgelist[edge][i].GetValue(AUX_INDEX);
+                                repeated += 1;
+                                edgelist[edge][i].SetValue(AUX_INDEX, repeated);
+                                if (edgelist[edge][i].Id()==1031)
+                                {
+                                    auto geom = cond_it->GetGeometry();
+                                }
+
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    block_for_each(rModelPart.Nodes(),[&](NodeType &rNode){
+        if (rNode.GetValue(AUX_INDEX)*0.5>=3 && rNode.Is(MARKER)){
+
+            // std::cout << rNode.GetValue(AUX_INDEX) << " " << rNode.Id() << std::endl;
+            std::cout  << rNode.Id() << std::endl;
+            Vector veloctiy = ZeroVector(3);
+            rNode.FastGetSolutionStepValue(VELOCITY) = veloctiy;
+            rNode.Fix(VELOCITY_X);
+            rNode.Fix(VELOCITY_Y);
+            rNode.Fix(VELOCITY_Z);
+            double value= rNode.GetValue(AUX_INDEX);
+            rNode.SetValue(AUX_INDEX,value*0.5);
+        }
+             else{
+            rNode.SetValue(AUX_INDEX,0.0);
+        }
+    });
+}
+
+                    // void HydraulicFluidAuxiliaryUtilities::FixCornerNodeVelocity(ModelPart &rModelPart, double angle_corner)
+                    // {
+                    //     // Obtain for each condition each neighbor condition
+                    //     block_for_each(rModelPart.Nodes(), [&](NodeType &rNode){ rNode.SetValue(AUX_INDEX, 0); });
+                    //     ModelPart::ConditionsContainerType &r_cond = rModelPart.Conditions();
+                    //     double angle_corner_rad = angle_corner / 180.0 * 3.14159; //
+                    //     double acceptable_cos = cos(angle_corner_rad);
+
+                    //     for (ModelPart::ConditionsContainerType::iterator cond_it = r_cond.begin(); cond_it != r_cond.end(); cond_it++){
+                    //         auto &r_geom = cond_it->GetGeometry();
+                    //         // KRATOS_WATCH("ENTRA LA PRIMERA CONDICION")
+                    //         r_geom = cond_it->GetGeometry();
+                    //         // KRATOS_WATCH(r_geom)
+                    //         auto edgelist = r_geom.GenerateEdges();
+                    //         // reference for area normal of the face
+                    //         const array_1d<double, 3> &face_normal = cond_it->GetValue(NORMAL);
+                    //         double An = norm_2(face_normal);
+                    //         const GlobalPointersVector<Condition> &neighb = cond_it->GetValue(NEIGHBOUR_CONDITIONS);
+                    //         for (unsigned int c_itr = 0; c_itr < neighb.size(); c_itr++){
+
+                    // auto rCondition = neighb[c_itr];
+                    // const array_1d<double, 3> &face_neig_normal = rCondition.GetValue(NORMAL);
+                    // double cos_angle = 1 / (An * norm_2(face_neig_normal)) * inner_prod(face_normal, face_neig_normal);
+                    // auto &r_geom_neig = rCondition.GetGeometry();
+                    // auto edgelist_neig = r_geom_neig.GenerateEdges();
+                    // KRATOS_WATCH("VAMOS POR CADA NEIGHBOUR")
+                    // KRATOS_WATCH(r_geom_neig)
+                    // array_1d<double, 2> ids_neig;
+                    // array_1d<double, 2> ids_cond;
+                    // if (cos_angle < acceptable_cos)
+                    // {
+                    //     KRATOS_WATCH("EL ANGULO ES MAYOR DEL QUE HEMOS DICHO")
+                    //     for (IndexType edge = 0; edge < edgelist.size(); edge++)
+                    //     {
+                    //         for (IndexType i = 0; i < edgelist[edge].size(); i++)
+                    //         {
+                    //             ids_cond[i] = edgelist[edge][i].Id();
+                    //         }
+                    //         std::sort(ids_cond.begin(), ids_cond.end());
+                    //         KRATOS_WATCH("CADA EDGE CONDICION")
+                    //         KRATOS_WATCH(ids_cond)
+                    //         for (IndexType edge_neg = 0; edge_neg < edgelist_neig.size(); edge_neg++)
+                    //         {
+                    //             for (IndexType i = 0; i < edgelist_neig[edge_neg].size(); i++)
+                    //             {
+                    //                 ids_neig[i] = edgelist_neig[edge_neg][i].Id();
+                    //             }
+                    //             std::sort(ids_neig.begin(), ids_neig.end());
+                    //             KRATOS_WATCH("CADA EDGE NEIG")
+                    //             KRATOS_WATCH(ids_neig)
+                    //             if (ids_cond == ids_neig)
+                    //             {
+                    //                 KRATOS_WATCH("CUMPLE")
+                    //                 KRATOS_WATCH(ids_cond)
+                    //                 KRATOS_WATCH(ids_neig)
+                    //                 for (IndexType i = 0; i < edgelist[edge].size(); i++)
+                    //                 {
+                    //                     double repeated = edgelist[edge][i].GetValue(AUX_INDEX);
+                    //                     repeated += 1;
+                    //                     edgelist[edge][i].SetValue(AUX_INDEX, repeated);
+                                        //                             }
+                                        //                         }
+                                        //                     }
+                                        //                 }
+                                        //             }
+                                        //         }
+                                        //     }
+
+                                        //     block_for_each(rModelPart.Nodes(), [&](NodeType &rNode){
+                                        //         if (rNode.GetValue(AUX_INDEX)>2){
+                                        //             std::cout << rNode.GetValue(AUX_INDEX) << " " << rNode.Id() << std::endl;
+                                        //             Vector veloctiy = ZeroVector(3);
+                                        //             rNode.FastGetSolutionStepValue(VELOCITY) = veloctiy;
+                                        //             rNode.Fix(VELOCITY_X);
+                                        //             rNode.Fix(VELOCITY_Y);
+                                        //             rNode.Fix(VELOCITY_Z);
+                                        //         }
+                                        //     });
+                                        // }
+bool HydraulicFluidAuxiliaryUtilities::MaximumWaterDepthChange(ModelPart &rModelPart)
+{
+    // make sure the Ids of the Nodes start with one
+    auto min_Z = block_for_each<MinReduction<double>>(rModelPart.Nodes(), [&](const auto &rNode)
+                                                      { return rNode.Z(); });
+
+    ;
+    double maximum_water_depth_change = false;
+    block_for_each(rModelPart.Nodes(), [&](Node &rNode)
+                   {
+        if (rNode.Z() == min_Z) {
+
+            double inlet_phi = rNode.GetValue(AUX_DISTANCE);
+            double domain_phi = rNode.FastGetSolutionStepValue(DISTANCE);
+            if (std::abs(domain_phi) > std::abs(inlet_phi))
+            {
+                maximum_water_depth_change=true;
+            }
+            else
+            {
+                maximum_water_depth_change = false;
+            }
+
+
+        } });
+    return maximum_water_depth_change;
+}
+                                    
+
+void HydraulicFluidAuxiliaryUtilities::CalculateArtificialViscosity(ModelPart &rModelPart,double WaterDynamicViscosityMax){
+    const auto &r_process_info = rModelPart.GetProcessInfo();
+    block_for_each(rModelPart.Elements(), [&](Element &rElement)
+    {
+    double artificial_viscosity;
+    rElement.Calculate(ARTIFICIAL_DYNAMIC_VISCOSITY,artificial_viscosity ,r_process_info);
+        if (artificial_viscosity > WaterDynamicViscosityMax)
+        {
+            artificial_viscosity = WaterDynamicViscosityMax;
+        }
+        double neg_nodes = 0.0;
+        double pos_nodes=0.0;
+        for (auto &r_node : rElement.GetGeometry())
+        {
+            double distance = r_node.FastGetSolutionStepValue(DISTANCE);
+            
+            if (distance > 0){
+                pos_nodes += 1;
+            }
+            else{
+                neg_nodes += 1;
+            }
+        }
+        if (neg_nodes > 0 && pos_nodes > 0){
+            artificial_viscosity = 0.0;
+            }
+            rElement.SetValue(ARTIFICIAL_DYNAMIC_VISCOSITY, artificial_viscosity);
     });
 }
 
