@@ -337,7 +337,7 @@ class RomDatabase(object):
             tuple: Various parameters.
         """
         tol_sol = self.general_rom_manager_parameters["ROM"]["svd_truncation_tolerance"].GetDouble()
-        tol_res =  self.general_rom_manager_parameters["HROM"]["element_selection_svd_truncation_tolerance"].GetDouble()
+        tol_res = self.general_rom_manager_parameters["HROM"]["element_selection_svd_truncation_tolerance"].GetDouble()
         projection_type = self.general_rom_manager_parameters["projection_strategy"].GetString()
         decoder_type = self.general_rom_manager_parameters["type_of_decoder"].GetString()
         pg_data1_str = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["basis_strategy"].GetString()
@@ -345,6 +345,7 @@ class RomDatabase(object):
         pg_data3_double = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["svd_truncation_tolerance"].GetDouble()
         pg_data4_str = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["solving_technique"].GetString()
         pg_data5_bool = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["monotonicity_preserving"].GetBool()
+        
         nn_data6_str = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["modes"].WriteJsonString()
         nn_data7_str = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["layers_size"].WriteJsonString()
         nn_data8_int = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["batch_size"].GetInt()
@@ -354,10 +355,20 @@ class RomDatabase(object):
         nn_data12_str = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["lr_strategy"]["additional_params"].WriteJsonString()
         nn_data13_int = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["online"]["model_number"].GetInt()
         nn_data14_double = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["NN_gradient_regularisation_weight"].GetDouble()
+        
+        # New RBF-enhanced parameters
+        rbf_data15_str = self.general_rom_manager_parameters["ROM"]["rbf_enhanced_settings"]["kernel"].GetString()
+        rbf_data16_double = self.general_rom_manager_parameters["ROM"]["rbf_enhanced_settings"]["epsilon"].GetDouble()
+        
         non_converged_fom_14_bool = self.general_rom_manager_parameters["ROM"]["use_non_converged_sols"].GetBool()
 
-        return tol_sol, tol_res, projection_type, decoder_type, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, nn_data14_double, non_converged_fom_14_bool
-
+        return (
+            tol_sol, tol_res, projection_type, decoder_type, pg_data1_str, pg_data2_bool, 
+            pg_data3_double, pg_data4_str, pg_data5_bool, nn_data6_str, nn_data7_str, 
+            nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, 
+            nn_data13_int, nn_data14_double, non_converged_fom_14_bool, 
+            rbf_data15_str, rbf_data16_double
+        )
 
 
     def check_if_in_database(self, table_name, mu):
