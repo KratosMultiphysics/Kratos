@@ -214,11 +214,7 @@ class UPwSolver(GeoSolver):
             return KratosMultiphysics.AndCriteria(self._MakeResidualCriterion(), self._MakeDisplacementCriterion())
 
         if convergence_criterion.lower() == "or_criterion":
-            R_RT = self.settings["residual_relative_tolerance"].GetDouble()
-            R_AT = self.settings["residual_absolute_tolerance"].GetDouble()
-            residual_criterion = KratosStructure.ResidualDisplacementAndOtherDoFCriteria(R_RT, R_AT, "WATER_PRESSURE")
-            residual_criterion.SetEchoLevel(self.settings["echo_level"].GetInt())
-            return KratosMultiphysics.OrCriteria(residual_criterion,  self._MakeDisplacementCriterion())
+            return KratosMultiphysics.OrCriteria(self._MakeResidualCriterion(),  self._MakeDisplacementCriterion())
 
         if convergence_criterion.lower() == "water_pressure_criterion":
             return self._MakeWaterPressureCriterion()
