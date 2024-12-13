@@ -57,7 +57,7 @@ class TestLinearStrainEnergyResponseFunction(kratos_unittest.TestCase):
             cls.response_function.Initialize()
 
             # now replace the properties
-            KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(cls.model["Structure.structure"], cls.model_part.Elements)
+            KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(cls.model["Structure.structure"], cls.model_part.Elements, False)
 
             cls.execution_policy_decorator.Execute()
             cls.ref_value = cls.response_function.CalculateValue()
