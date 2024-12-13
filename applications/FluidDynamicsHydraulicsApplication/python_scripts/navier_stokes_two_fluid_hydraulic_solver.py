@@ -132,6 +132,8 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         self.mass_levelset = self.settings["formulation"]["mass_levelset"].GetBool()
         self.element_type = self.settings["formulation"]["element_type"].GetString()
         if self.element_type == "bdf2" :
+            self.time_discretization = KratosMultiphysics.TimeDiscretization.BDF(
+                2)
             if self.fractional_splitting:
                 self.element_name = "TwoFluidNavierStokesFractional"
                 self.min_buffer_size = 4
@@ -145,7 +147,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
                 self.element_name = "TwoFluidNavierStokesFractionalAlphaMethod"
                 self.min_buffer_size = 2
             else:
-                self.element_type = "TwoFluidNavierStokesAlphaMethod"
+                self.element_name = "TwoFluidNavierStokesAlphaMethod"
                 self.min_buffer_size = 2
 
         else:
@@ -279,11 +281,12 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             computing_model_part)
         elemental_neighbour_search.Execute()
         #TODO: OJO CON EL TIME STEP ADAPTATIVO.
-        delta_time = self.main_model_part.ProcessInfo.GetValue(KratosMultiphysics.DELTA_TIME)
-        print(delta_time)
-        bdf_vec = [1.5/delta_time, -2.0/delta_time, 0.5/delta_time]
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.BDF_COEFFICIENTS, bdf_vec)
-
+        # delta_time = self.main_model_part.ProcessInfo.GetValue(KratosMultiphysics.DELTA_TIME)
+        # print(delta_time)
+        # bdf_vec = [1.5/delta_time, -2.0/delta_time, 0.5/delta_time]
+        # self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.BDF_COEFFICIENTS, bdf_vec)
+        (self.time_discretization).ComputeAndSaveBDFCoefficients(
+            self.GetComputingModelPart().ProcessInfo)
 
         # Set and initialize the solution strategy
         solution_strategy = self._GetSolutionStrategy()
@@ -337,6 +340,11 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         self._HydraulicBoundaryConditionCheck(KratosMultiphysics.OUTLET,"OUTLET")
 
     def InitializeSolutionStep(self):
+        # Recompute the BDF2 coefficients
+        (self.time_discretization).ComputeAndSaveBDFCoefficients(
+            self.GetComputingModelPart().ProcessInfo)
+
+
 
         self._ComputeStepInitialWaterVolume()
         # Inlet and outlet water discharge is calculated for current time step, first discharge and the considering the time step inlet and outlet volume is calculated
@@ -398,7 +406,27 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
 
     # TODO:This is a test for do nothing outlet condition.
 
+
+
+    def SolveSolutionStep(self):
+        self._GetSolutionStrategy()
+        it = self.main_model_part.ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER]
+
+        it_max_ct_dt = 5
+        alpha_max = 1.0
+        alpha_min = 0.01
+        if it> it_max_ct_dt:
+            alpha *=0.5
+            if alpha<alpha_min or alpha>alpha_max:
+                alpha/=0.5
+            oiginal_dt = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, alpha*oiginal_dt )
+
+        super().SolveSolutionStep()
+
+
     # def SolveSolutionStep(self):
+
     #     n_it =5
 
     #     for k in range(n_it):

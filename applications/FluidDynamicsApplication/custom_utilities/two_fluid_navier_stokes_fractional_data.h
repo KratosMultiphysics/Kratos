@@ -65,6 +65,7 @@ NodalScalarData NodalDynamicViscosity;
 double Density;
 double DynamicViscosity;
 double DeltaTime;		   // Time increment
+double PreviousDeltaTime;
 double DynamicTau;         // Dynamic tau considered in ASGS stabilization coefficients
 double SmagorinskyConstant;
 double LinearDarcyCoefficient;
@@ -147,7 +148,7 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     bdf1 = BDFVector[1];
     bdf2 = BDFVector[2];
 
-
+    PreviousDeltaTime = rProcessInfo.GetPreviousTimeStepInfo()[DELTA_TIME];
     noalias(lhs) = ZeroMatrix(TNumNodes*(TDim+1),TNumNodes*(TDim+1));
     noalias(rhs) = ZeroVector(TNumNodes*(TDim+1));
     noalias(V) = ZeroMatrix(TNumNodes*(TDim + 1), TNumNodes);
@@ -157,7 +158,7 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
 
     NumPositiveNodes = 0;
     NumNegativeNodes = 0;
-    double previous_dt = rProcessInfo.GetPreviousTimeStepInfo()[DELTA_TIME];
+
 
 
 

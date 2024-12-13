@@ -255,10 +255,15 @@ namespace Kratos
             // block_for_each(mpDistanceModelPart->Nodes(), [&](Node &rNode){ rNode.FastGetSolutionStepValue(*mpVolumeSourceVar, 0.0); });
             mpSolvingStrategy->SolveSolutionStep(); // forward convection to reach phi_n+1
             mpSolvingStrategy->FinalizeSolutionStep();
+
+            // Error Compensation and Correction
+            // if (mIsBfecc)
+            // {
+            //     ErrorCalculationAndCorrection();
+            // }
             // NodalAccelerationProjection();
 
-            // Reset the processinfo to the original settings
-            // process_info_data.RestoreProcessInfoData(mpDistanceModelPart->GetProcessInfo());
+
 
             // Reset the velocities and levelset values to the one saved before the solution process
             // IndexPartition<int>(mpDistanceModelPart->NumberOfNodes()).for_each([&](int i_node)
@@ -300,6 +305,7 @@ namespace Kratos
             "convection_model_part_name" : "",
             "max_CFL" : 1.0,
             "element_type" : "levelset_convection_bdf",
+            "eulerian_error_compensation": true,
             "element_settings" : {}
         })");
 
@@ -614,7 +620,7 @@ namespace Kratos
             // Convection related settings
             mMaxAllowedCFL = ThisParameters["max_CFL"].GetDouble();
             // mMaxSubsteps = ThisParameters["max_substeps"].GetInt();
-
+            mIsBfecc = ThisParameters["eulerian_error_compensation"].GetBool();
 
             mMaxAllowedCFL = ThisParameters["max_CFL"].GetDouble();
             mpLevelSetVar = &KratosComponents<Variable<array_1d<double, 3>>>::Get("FRACTIONAL_VELOCITY");
@@ -773,7 +779,48 @@ namespace Kratos
             mpSolvingStrategy->SetEchoLevel(1);
             mpSolvingStrategy->Check();
             mpSolvingStrategy->Solve();
+
         }
+        /**
+         * @brief Eulerian error calculation and correction
+         * This function implements the Backward Forward Error Compensation and Correction (BFECC) algorithm
+         * Note that this assumes that the first forward convection to n+1 has been completed. Then we go backwards
+         * to n* to calculate and apply the convection error.
+         */
+        // void ErrorCalculationAndCorrection()
+        // {
+        //     block_for_each(mpDistanceModelPart->Nodes(), [this](Node &rNode)
+        //                    {
+        //     noalias(rNode.FastGetSolutionStepValue(*mpConvectVar)) = -1.0 * rNode.FastGetSolutionStepValue(*mpConvectVar);
+        //     noalias(rNode.FastGetSolutionStepValue(*mpConvectVar, 1)) = -1.0 * rNode.FastGetSolutionStepValue(*mpConvectVar, 1);
+        //     rNode.FastGetSolutionStepValue(*mpLevelSetVar, 1) = rNode.FastGetSolutionStepValue(*mpLevelSetVar); });
+
+        //     mpSolvingStrategy->InitializeSolutionStep();
+        //     mpSolvingStrategy->Predict();
+        //     mpSolvingStrategy->SolveSolutionStep(); // backward convetion to obtain phi_n*
+        //     mpSolvingStrategy->FinalizeSolutionStep();
+
+        //     // Calculating the raw error without a limiter, etc.
+        //     IndexPartition<int>(mpDistanceModelPart->NumberOfNodes()).for_each([&](int i_node)
+        //                                                                        {
+        //     auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
+        //     mError[i_node] =
+        //         0.5*(it_node->GetValue(*mpLevelSetVar) - it_node->FastGetSolutionStepValue(*mpLevelSetVar)); });
+
+        //     IndexPartition<int>(mpDistanceModelPart->NumberOfNodes()).for_each([&](int i_node)
+        //                                                                        {
+        //     auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
+        //     noalias(it_node->FastGetSolutionStepValue(*mpConvectVar)) = -1.0 * it_node->FastGetSolutionStepValue(*mpConvectVar);
+        //     noalias(it_node->FastGetSolutionStepValue(*mpConvectVar, 1)) = -1.0 * it_node->FastGetSolutionStepValue(*mpConvectVar, 1);
+        //     const double phi_n_star = it_node->GetValue(*mpLevelSetVar) + mLimiter[i_node]*mError[i_node];
+        //     it_node->FastGetSolutionStepValue(*mpLevelSetVar) = phi_n_star;
+        //     it_node->FastGetSolutionStepValue(*mpLevelSetVar, 1) = phi_n_star; });
+
+        //     mpSolvingStrategy->InitializeSolutionStep();
+        //     mpSolvingStrategy->Predict();
+        //     mpSolvingStrategy->SolveSolutionStep(); // forward convection to obtain the corrected phi_n+1
+        //     mpSolvingStrategy->FinalizeSolutionStep();
+        // }
 
         ///@}
         ///@name Private  Access

@@ -1360,8 +1360,7 @@ void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<2, 3>>::C
     // OPCION 2
     double volume_error_ratio = 0.0;
     const auto &phi = rData.Distance;
-
-    //
+    const double previous_dt = rData.PreviousDeltaTime;
     if (rData.IsCut())
     {
         double volume_error=0.0;
@@ -1372,7 +1371,7 @@ void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<2, 3>>::C
         else if (distance_gauss>0.0){
             volume_error = -rData.AirVolumeError;
         }
-    volume_error_ratio = volume_error / dt;
+        volume_error_ratio = volume_error / previous_dt;
     }
 
     const double crhs0 = N[0]*p[0] + N[1]*p[1] + N[2]*p[2];
@@ -1495,21 +1494,21 @@ void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<3, 4>>::C
     double volume_error_ratio = 0.0;
     const auto &phi = rData.Distance;
     // //
+    const double previous_dt = rData.PreviousDeltaTime;
     if (rData.IsCut())
     {
         double volume_error = 0.0;
-        double distance_gauss = N[0]*phi[1]+ N[1]*phi[1]+N[2]*phi[2]+N[3]*phi[3];
-        if (distance_gauss<0.0){
+        double distance_gauss = N[0] * phi[1] + N[1] * phi[1] + N[2] * phi[2];
+        if (distance_gauss < 0.0)
+        {
             volume_error = -rData.WaterVolumeError;
         }
-        else if (distance_gauss>0.0){
+        else if (distance_gauss > 0.0)
+        {
             volume_error = -rData.AirVolumeError;
         }
-    volume_error_ratio = volume_error / dt;
+        volume_error_ratio = volume_error / previous_dt;
     }
-
-
-
     auto &rhs = rData.rhs;
 
     const double crhs0 = N[0]*p[0] + N[1]*p[1] + N[2]*p[2] + N[3]*p[3];
@@ -1666,18 +1665,20 @@ void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<2, 3>>::C
      // OPCION 2
     double volume_error_ratio = 0.0;
     const auto &phi = rData.Distance;
-    // //
+    const double previous_dt = rData.PreviousDeltaTime;
     if (rData.IsCut())
     {
         double volume_error = 0.0;
-        double distance_gauss = N[0]*phi[1]+ N[1]*phi[1]+N[2]*phi[2];
-        if (distance_gauss<0.0){
+        double distance_gauss = N[0] * phi[1] + N[1] * phi[1] + N[2] * phi[2];
+        if (distance_gauss < 0.0)
+        {
             volume_error = -rData.WaterVolumeError;
         }
-        else if (distance_gauss>0.0){
+        else if (distance_gauss > 0.0)
+        {
             volume_error = -rData.AirVolumeError;
         }
-    volume_error_ratio = volume_error / dt;
+        volume_error_ratio = volume_error / previous_dt;
     }
 
     auto &V = rData.V;
@@ -1868,20 +1869,21 @@ void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<3, 4>>::C
     // OPCION 2
     double volume_error_ratio = 0.0;
     const auto &phi = rData.Distance;
-    // //
+    const double previous_dt = rData.PreviousDeltaTime;
     if (rData.IsCut())
     {
         double volume_error = 0.0;
-        double distance_gauss = N[0] * phi[1] + N[1] * phi[1] + N[2] * phi[2] + N[3] *phi[3];
-        if (distance_gauss<0.0){
-             volume_error = -rData.WaterVolumeError;
+        double distance_gauss = N[0] * phi[1] + N[1] * phi[1] + N[2] * phi[2];
+        if (distance_gauss < 0.0)
+        {
+            volume_error = -rData.WaterVolumeError;
         }
-        else if (distance_gauss>0.0){
-             volume_error = -rData.AirVolumeError;
+        else if (distance_gauss > 0.0)
+        {
+            volume_error = -rData.AirVolumeError;
         }
-    volume_error_ratio = volume_error / dt;
+        volume_error_ratio = volume_error / previous_dt;
     }
-
 
     auto &V = rData.V;
     auto &H = rData.H;
