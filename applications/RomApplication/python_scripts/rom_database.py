@@ -400,7 +400,11 @@ class RomDatabase(object):
             numpy_array: Numpy array to store.
         """
         file_name, serialized_mu = self.get_hashed_file_name_for_table(table_name, mu)
-        tol_sol, tol_res, projection_type, decoder_type, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, nn_data14_double, non_converged_fom_14_bool = self.get_curret_params()
+        (tol_sol, tol_res, projection_type, decoder_type, pg_data1_str, pg_data2_bool, 
+        pg_data3_double, pg_data4_str, pg_data5_bool, nn_data6_str, nn_data7_str, 
+        nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, 
+        nn_data13_int, nn_data14_double, non_converged_fom_14_bool, rbf_data15_str, 
+        rbf_data16_double) = self.get_curret_params()
 
         queries = {
             'FOM': 'INSERT INTO {table} (parameters, file_name) VALUES (?, ?)',
@@ -418,6 +422,7 @@ class RomDatabase(object):
             'HROM_Elements': 'INSERT INTO {table} (tol_sol , tol_res , type_of_projection, type_of_decoder, using_non_converged_sols, file_name) VALUES (?, ?, ?, ?, ?, ?)',
             'HROM_Weights': 'INSERT INTO {table} (tol_sol , tol_res , type_of_projection, type_of_decoder, using_non_converged_sols, file_name) VALUES (?, ?, ?, ?, ?, ?)',
             'Neural_Network': 'INSERT INTO {table} (tol_sol , modes , layers_size, batch_size, epochs, scheduler, base_lr, additional_params, model_number, NNgrad_regularisation_weight, file_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'RBF_Model': 'INSERT INTO {table} (parameters, tol_sol, type_of_projection, type_of_decoder, using_non_converged_sols, kernel, epsilon, file_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
             'QoI_FOM': 'INSERT INTO {table} (parameters, file_name, is_active) VALUES (?, ?, ?)',
             'QoI_ROM': 'INSERT INTO {table} (parameters, tol_sol, type_of_projection, type_of_decoder, using_non_converged_sols, file_name, is_active) VALUES (?, ?, ?, ?, ?, ?, ?)',
             'QoI_HROM': 'INSERT INTO {table} (parameters, tol_sol, tol_res, type_of_projection, type_of_decoder, using_non_converged_sols, file_name, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
@@ -450,6 +455,8 @@ class RomDatabase(object):
                 cursor.execute(query, (tol_sol, tol_res, projection_type, decoder_type, non_converged_fom_14_bool, file_name))
             elif table_name == 'Neural_Network':
                 cursor.execute(query, (tol_sol, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, nn_data14_double, file_name))
+            elif table_name == 'RBF_Model':
+                cursor.execute(query, (serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, rbf_data15_str, rbf_data16_double, file_name))
             elif table_name == 'QoI_FOM':
                 if len(numpy_array) > 0:
                     cursor.execute(query, (serialized_mu, file_name, True))
@@ -487,10 +494,11 @@ class RomDatabase(object):
                 else:
                     cursor.execute(query, (serialized_mu, tol_sol, tol_res, projection_type, decoder_type, non_converged_fom_14_bool, file_name, False))
 
-        if table_name in ["RBF_Model", "Neural_Network", 'QoI_FOM' , 'QoI_ROM' ,'QoI_HROM']:
+        if table_name in ["RBF_Model", "Neural_Network", 'QoI_FOM', 'QoI_ROM', 'QoI_HROM']:
             pass
         else:
             self.save_as_npy(numpy_array, file_name)
+
 
 
 
