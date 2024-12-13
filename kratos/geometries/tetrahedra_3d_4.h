@@ -1859,7 +1859,7 @@ private:
                 Quadrature<TetrahedronGaussLegendreIntegrationPoints5,
                 3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature<TetrahedronGaussLobattoIntegrationPoints1,
-                3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                3, IntegrationPoint<3> >::GenerateIntegrationPoints()
             }
         };
         return integration_points;
