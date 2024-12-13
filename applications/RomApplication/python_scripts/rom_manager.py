@@ -89,51 +89,62 @@ class RomManager(object):
         #######################################
         ##  Least-Squares Petrov Galerkin   ###
         elif chosen_projection_strategy == "lspg":
-            if type_of_decoder =="ann_enhanced":
-                if any(item == "ROM" for item in training_stages):
-                    self._LaunchTrainROM(mu_train)
-                    self._LaunchFOM(mu_validation) #What to do here with the gid and vtk results?
-                    self.TrainAnnEnhancedROM(mu_train,mu_validation)
-                    self._ChangeRomFlags(simulation_to_run = "lspg_ANN")
+            # Define the allowed decoders and their specific training functions
+            decoder_functions = {
+                "ann_enhanced": self.TrainAnnEnhancedROM,
+                "rbf_enhanced": self.TrainRbfEnhancedROM,
+                "linear": None  # No additional training function for linear
+            }
+
+            if type_of_decoder not in decoder_functions:
+                raise ValueError(f"Unsupported type_of_decoder: '{type_of_decoder}'. Supported types are: {', '.join(decoder_functions.keys())}")
+
+            # Handle ROM training and validation
+            if any(item == "ROM" for item in training_stages):
+                self._LaunchTrainROM(mu_train)
+
+                if type_of_decoder in ["ann_enhanced", "rbf_enhanced"]:
+                    self._LaunchFOM(mu_validation)  # What to do here with the GID and VTK results?
+                    decoder_functions[type_of_decoder](mu_train, mu_validation)
+                    self._ChangeRomFlags(simulation_to_run=f"lspg_{type_of_decoder.upper()}")
                     nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
                     self._LaunchROM(mu_train, nn_rom_interface=nn_rom_interface)
-                if any(item == "HROM" for item in training_stages):
-                    err_msg = f'HROM is not available yet for ann_enhanced decoders.'
-                    raise Exception(err_msg)
-            elif type_of_decoder =="linear":
-                if any(item == "ROM" for item in training_stages):
-                    self._LaunchTrainROM(mu_train)
-                    self._ChangeRomFlags(simulation_to_run = "lspg")
+                elif type_of_decoder == "linear":
+                    self._ChangeRomFlags(simulation_to_run="lspg")
                     self._LaunchROM(mu_train)
-                if any(item == "HROM" for item in training_stages):
+
+            # Handle HROM training
+            if any(item == "HROM" for item in training_stages):
+                if type_of_decoder in ["ann_enhanced", "rbf_enhanced"]:
+                    raise Exception(f"HROM is not available yet for {type_of_decoder} decoders.")
+                elif type_of_decoder == "linear":
                     # Change the flags to train the HROM for LSPG
-                    self._ChangeRomFlags(simulation_to_run = "trainHROMLSPG")
+                    self._ChangeRomFlags(simulation_to_run="trainHROMLSPG")
                     self._LaunchTrainHROM(mu_train)
                     # Change the flags to run the HROM for LSPG
-                    self._ChangeRomFlags(simulation_to_run = "runHROMLSPG")
+                    self._ChangeRomFlags(simulation_to_run="runHROMLSPG")
                     self._LaunchHROM(mu_train)
         #######################################
 
         ##########################
         ###  Petrov Galerkin   ###
         elif chosen_projection_strategy == "petrov_galerkin":
-            if type_of_decoder =="ann_enhanced":
-                err_msg = f'ann_enhanced rom only available for Galerkin Rom and LSPG ROM for the moment'
+            if type_of_decoder in ["ann_enhanced", "rbf_enhanced"]:
+                err_msg = f'{type_of_decoder} rom only available for Galerkin ROM and LSPG ROM for the moment'
                 raise Exception(err_msg)
-            elif type_of_decoder =="linear":
-            ##########################
+            elif type_of_decoder == "linear":
                 if any(item == "ROM" for item in training_stages):
                     self._LaunchTrainROM(mu_train)
-                    self._ChangeRomFlags(simulation_to_run = "TrainPG")
+                    self._ChangeRomFlags(simulation_to_run="TrainPG")
                     self._LaunchTrainPG(mu_train)
-                    self._ChangeRomFlags(simulation_to_run = "PG")
+                    self._ChangeRomFlags(simulation_to_run="PG")
                     self._LaunchROM(mu_train)
 
                 if any(item == "HROM" for item in training_stages):
-                    #FIXME there will be an error if we only train HROM, but not ROM
-                    self._ChangeRomFlags(simulation_to_run = "trainHROMPetrovGalerkin")
+                    # FIXME there will be an error if we only train HROM, but not ROM
+                    self._ChangeRomFlags(simulation_to_run="trainHROMPetrovGalerkin")
                     self._LaunchTrainHROM(mu_train)
-                    self._ChangeRomFlags(simulation_to_run = "runHROMPetrovGalerkin")
+                    self._ChangeRomFlags(simulation_to_run="runHROMPetrovGalerkin")
                     self._LaunchHROM(mu_train)
             ##########################
         else:
@@ -164,81 +175,91 @@ class RomManager(object):
         
         if not in_database:
             self._LaunchTrainRbfModel(mu_train, mu_validation)
-        #elif in_database and self.general_rom_manager_parameters["ROM"]["rbf_enhanced_settings"]["training"]["retrain_if_exists"].GetBool():
-        #    self._LaunchTrainRbfModel(mu_train, mu_validation)
-
+        elif in_database and self.general_rom_manager_parameters["ROM"]["rbf_enhanced_settings"]["training"]["retrain_if_exists"].GetBool():
+            self._LaunchTrainRbfModel(mu_train, mu_validation)
 
     def Test(self, mu_test=[None], mu_train=[None]):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         testing_stages = self.general_rom_manager_parameters["rom_stages_to_test"].GetStringArray()
         type_of_decoder = self.general_rom_manager_parameters["type_of_decoder"].GetString()
 
+        # Mapping for type_of_decoder to abbreviations
+        decoder_abbreviations = {
+            "ann_enhanced": "ANN",
+            "rbf_enhanced": "RBF",
+            "linear": "linear"
+        }
+
+        if type_of_decoder not in decoder_abbreviations:
+            raise ValueError(f"Unsupported type_of_decoder: '{type_of_decoder}'. Supported types are: {', '.join(decoder_abbreviations.keys())}")
+
         #######################
         ######  Galerkin ######
         if chosen_projection_strategy == "galerkin":
-            if type_of_decoder =="ann_enhanced":
+            if type_of_decoder in ["ann_enhanced", "rbf_enhanced"]:
                 if any(item == "ROM" for item in testing_stages):
                     self._LoadSolutionBasis(mu_train)
                     self._LaunchFOM(mu_test, gid_and_vtk_name='FOM_Test')
-                    self._ChangeRomFlags(simulation_to_run = "GalerkinROM_ANN")
+                    self._ChangeRomFlags(simulation_to_run=f"GalerkinROM_{decoder_abbreviations[type_of_decoder]}")
                     nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
                     self._LaunchROM(mu_test, gid_and_vtk_name='ROM_Test', nn_rom_interface=nn_rom_interface)
                 if any(item == "HROM" for item in testing_stages):
-                    err_msg = f'HROM is not available yet for ann_enhanced decoders.'
+                    err_msg = f'HROM is not available yet for {type_of_decoder} decoders.'
                     raise Exception(err_msg)
-            elif type_of_decoder =="linear":
+            elif type_of_decoder == "linear":
                 if any(item == "ROM" for item in testing_stages):
                     self._LoadSolutionBasis(mu_train)
                     self._LaunchFOM(mu_test, gid_and_vtk_name='FOM_Test')
-                    self._ChangeRomFlags(simulation_to_run = "GalerkinROM")
+                    self._ChangeRomFlags(simulation_to_run="GalerkinROM")
                     self._LaunchROM(mu_test, gid_and_vtk_name='ROM_Test')
                 if any(item == "HROM" for item in testing_stages):
-                    #FIXME there will be an error if we only test HROM, but not ROM
-                    self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
-                    self._LaunchHROM(mu_test,gid_and_vtk_name='HROM_Test')
-
+                    # FIXME there will be an error if we only test HROM, but not ROM
+                    self._ChangeRomFlags(simulation_to_run="runHROMGalerkin")
+                    self._LaunchHROM(mu_test, gid_and_vtk_name='HROM_Test')
         #######################
 
         #######################################
         ##  Least-Squares Petrov Galerkin   ###
         elif chosen_projection_strategy == "lspg":
-            if type_of_decoder =="ann_enhanced":
+            if type_of_decoder in ["ann_enhanced", "rbf_enhanced"]:
                 if any(item == "ROM" for item in testing_stages):
                     self._LoadSolutionBasis(mu_train)
                     self._LaunchFOM(mu_test, gid_and_vtk_name='FOM_Test')
-                    self._ChangeRomFlags(simulation_to_run = "lspg_ANN")
+                    self._ChangeRomFlags(simulation_to_run=f"lspg_{decoder_abbreviations[type_of_decoder]}")
                     nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
                     self._LaunchROM(mu_test, gid_and_vtk_name='ROM_Test', nn_rom_interface=nn_rom_interface)
                 if any(item == "HROM" for item in testing_stages):
-                    err_msg = f'HROM is not available yet for ann_enhanced decoders.'
-            elif type_of_decoder =="linear":
+                    err_msg = f'HROM is not available yet for {type_of_decoder} decoders.'
+                    raise Exception(err_msg)
+            elif type_of_decoder == "linear":
                 if any(item == "ROM" for item in testing_stages):
                     self._LoadSolutionBasis(mu_train)
-                    self._LaunchFOM(mu_test,gid_and_vtk_name='FOM_Test')
-                    self._ChangeRomFlags(simulation_to_run = "lspg")
-                    self._LaunchROM(mu_test,gid_and_vtk_name='ROM_Test')
+                    self._LaunchFOM(mu_test, gid_and_vtk_name='FOM_Test')
+                    self._ChangeRomFlags(simulation_to_run="lspg")
+                    self._LaunchROM(mu_test, gid_and_vtk_name='ROM_Test')
                 if any(item == "HROM" for item in testing_stages):
-                    self._ChangeRomFlags(simulation_to_run = "runHROMLSPG")
-                    self._LaunchHROM(mu_test,gid_and_vtk_name='HROM_Test')
+                    self._ChangeRomFlags(simulation_to_run="runHROMLSPG")
+                    self._LaunchHROM(mu_test, gid_and_vtk_name='HROM_Test')
+
         #######################################
 
 
         ##########################
         ###  Petrov Galerkin   ###
         elif chosen_projection_strategy == "petrov_galerkin":
-            if type_of_decoder =="ann_enhanced":
-                err_msg = f'ann_enhanced rom only available for Galerkin Rom and LSPG ROM for the moment'
+            if type_of_decoder in ["ann_enhanced", "rbf_enhanced"]:
+                err_msg = f'{type_of_decoder} ROM is only available for Galerkin ROM and LSPG ROM for the moment.'
                 raise Exception(err_msg)
-            elif type_of_decoder =="linear":
+            elif type_of_decoder == "linear":
                 if any(item == "ROM" for item in testing_stages):
                     self._LoadSolutionBasis(mu_train)
-                    self._LaunchFOM(mu_test,gid_and_vtk_name='FOM_Test')
-                    self._ChangeRomFlags(simulation_to_run = "PG")
-                    self._LaunchROM(mu_test,gid_and_vtk_name='ROM_Test')
+                    self._LaunchFOM(mu_test, gid_and_vtk_name='FOM_Test')
+                    self._ChangeRomFlags(simulation_to_run="PG")
+                    self._LaunchROM(mu_test, gid_and_vtk_name='ROM_Test')
                 if any(item == "HROM" for item in testing_stages):
-                    #FIXME there will be an error if we only train HROM, but not ROM
-                    self._ChangeRomFlags(simulation_to_run = "runHROMPetrovGalerkin")
-                    self._LaunchHROM(mu_test,gid_and_vtk_name='HROM_Test')
+                    # FIXME there will be an error if we only train HROM, but not ROM
+                    self._ChangeRomFlags(simulation_to_run="runHROMPetrovGalerkin")
+                    self._LaunchHROM(mu_test, gid_and_vtk_name='HROM_Test')
         ##########################
         else:
             err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
@@ -258,34 +279,38 @@ class RomManager(object):
         #######################
         ######  Galerkin ######
         if chosen_projection_strategy == "galerkin":
-            if type_of_decoder =="ann_enhanced":
-                self._ChangeRomFlags(simulation_to_run = "GalerkinROM_ANN")
+            if type_of_decoder == "ann_enhanced":
+                self._ChangeRomFlags(simulation_to_run="GalerkinROM_ANN")
                 nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
-            elif type_of_decoder =="linear":
-                self._ChangeRomFlags(simulation_to_run = "GalerkinROM")
+            elif type_of_decoder == "rbf_enhanced":
+                self._ChangeRomFlags(simulation_to_run="GalerkinROM_RBF")
+                nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
+            elif type_of_decoder == "linear":
+                self._ChangeRomFlags(simulation_to_run="GalerkinROM")
         #######################################
         ##  Least-Squares Petrov Galerkin   ###
         elif chosen_projection_strategy == "lspg":
-            if type_of_decoder =="ann_enhanced":
-                self._ChangeRomFlags(simulation_to_run = "lspg_ANN")
+            if type_of_decoder == "ann_enhanced":
+                self._ChangeRomFlags(simulation_to_run="lspg_ANN")
                 nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
-            elif type_of_decoder =="linear":
-                self._ChangeRomFlags(simulation_to_run = "lspg")
+            elif type_of_decoder == "rbf_enhanced":
+                self._ChangeRomFlags(simulation_to_run="lspg_RBF")
+                nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
+            elif type_of_decoder == "linear":
+                self._ChangeRomFlags(simulation_to_run="lspg")
         ##########################
         ###  Petrov Galerkin   ###
         elif chosen_projection_strategy == "petrov_galerkin":
-            if type_of_decoder =="ann_enhanced":
-                err_msg = f'ann_enhanced rom only available for Galerkin Rom and LSPG ROM for the moment'
+            if type_of_decoder in ["ann_enhanced", "rbf_enhanced"]:
+                err_msg = f'{type_of_decoder} ROM only available for Galerkin ROM and LSPG ROM for the moment'
                 raise Exception(err_msg)
-            elif type_of_decoder =="linear":
-                self._ChangeRomFlags(simulation_to_run = "PG")
+            elif type_of_decoder == "linear":
+                self._ChangeRomFlags(simulation_to_run="PG")
         #########################################
         else:
             err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
             raise Exception(err_msg)
         self._LaunchRunROM(mu_run, nn_rom_interface=nn_rom_interface)
-
-
 
 
     def RunHROM(self, mu_run=[None], mu_train=[None], use_full_model_part = False):
@@ -943,7 +968,7 @@ class RomManager(object):
             "rom_stages_to_test" : [],              // ["ROM","HROM"]
             "paralellism" : null,                        // null, TODO: add "compss"
             "projection_strategy": "galerkin",            // "lspg", "galerkin", "petrov_galerkin"
-            "type_of_decoder" : "linear",               // "linear" "ann_enhanced",  TODO: add "quadratic"
+            "type_of_decoder" : "linear",               // "linear" "ann_enhanced", "rbf_enhanced" TODO: add "quadratic"
             "assembling_strategy": "global",            // "global", "elemental"
             "save_gid_output": false,                    // false, true #if true, it must exits previously in the ProjectParameters.json
             "save_vtk_output": false,                    // false, true #if true, it must exits previously in the ProjectParameters.json
@@ -990,6 +1015,14 @@ class RomManager(object):
                     },
                     "online":{
                         "model_number": 0   // out of the models existing for the same parameters, this is the model that will be lauched
+                    }
+                },
+                "rbf_enhanced_settings": {
+                    "modes": [5, 50], // The number of modes (POD modes) used for RBF interpolation
+                    "kernel": "gaussian", // The type of RBF kernel to use (options: "gaussian", "multiquadric", "inverse_multiquadric", "linear", etc.)
+                    "epsilon": 1.0, // The shape parameter for the RBF kernel
+                    "training": {
+                        "retrain_if_exists": false // If false, avoids retraining if an existing model with the same parameters exists
                     }
                 }
             },
