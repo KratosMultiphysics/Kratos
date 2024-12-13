@@ -102,9 +102,9 @@ public:
     /// Type for an array of shape function gradient matrices
     using ShapeFunctionDerivativesArrayType = typename BaseType::ShapeFunctionDerivativesType;
 
-    constexpr static SizeType Dim = BaseType::Dim;
-    constexpr static SizeType NumNodes = BaseType::NumNodes;
-    constexpr static SizeType BlockSize = BaseType::BlockSize;
+    constexpr static SizeType Dim = TElementData::Dim;
+    constexpr static SizeType NumNodes = TElementData::NumNodes;
+    constexpr static SizeType BlockSize = TElementData::BlockSize;
     constexpr static SizeType LocalSize = BaseType::LocalSize;
     constexpr static SizeType StrainSize = (Dim-1)*3;
 
@@ -211,8 +211,6 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-
-    void CalculateMaterialResponse(TElementData &rData) const override;
 
     void AddTimeIntegratedSystem(
         TElementData& rData,

@@ -39,6 +39,8 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
     u_nn = DefineMatrix('r_u_nn',n_nodes,dim)      # 2 previous step velocity
 
     p = DefineVector('r_p',n_nodes)                # Pressure
+    p_n = DefineVector('r_p_N',n_nodes)            # Previous step pressure
+    p_nn = DefineVector('r_p_nn',n_nodes)          # 2 previous step pressure
 
     t = DefineVector('r_t',n_nodes)                # Temperature
     t_n = DefineVector('r_t_n',n_nodes)            # Previous step temperature
@@ -51,11 +53,9 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
     ## Fluid properties
     mu = sympy.Symbol('mu', positive = True)       # Dynamic viscosity
     c_p = sympy.Symbol('c_p', positive = True)     # Specific heat at constant pressure
+    gamma = sympy.Symbol('gamma', positive = True) # Heat capacity ratio
     kappa = sympy.Symbol('kappa', positive = True) # Thermal conductivity
     alpha = sympy.Symbol('alpha', positive = True) # Thermal expansion coefficient
-    rho = DefineVector('r_rho',n_nodes)              # Density
-    rho_n = DefineVector('r_rho_n',n_nodes)            # Previous step density
-    rho_nn = DefineVector('r_rho_nn',n_nodes)           # 2 previous step density
 
     ## Test functions definition
     v = DefineMatrix('v',n_nodes, dim)             # Velocity field test function
@@ -84,6 +84,10 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
     bdf1 = sympy.Symbol('bdf1')
     bdf2 = sympy.Symbol('bdf2')
 
+    ## Symbols for linearised variables
+    rho_lin = sympy.Symbol('rho_lin', positive = True) # Density defined as a symbol (to avoid differentiation in the stabilization taus)
+    u_conv = DefineMatrix('u_conv', n_nodes, dim) # Convective velocity defined as a symbol (to avoid its differentiation in the convective terms)
+
     ## Data interpolation to the Gauss points
     # Note that in this interpolation we do not interpolate the momentum (rho*v product) as we do not expect shocks in here
     # In other words, doing the product of the interpolations is equivalent to the interpolation of the product
@@ -98,27 +102,12 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
     g_gauss = g.transpose()*N
     heat_fl_gauss = heat_fl.transpose()*N
 
-    rho_gauss = (rho.transpose()*N)[0]
-
     ## Convective velocity definition
     #TODO: Note that we can include the linearised subscale in here to make it "more LES"
-    u_conv = DefineMatrix('u_conv', n_nodes, dim) # Convective velocity defined a symbol (this is required to avoid its differentiation)
     u_conv_gauss = u_conv.transpose()*N
 
-    ## Compute the stabilization parameters
-    stab_norm_a = 0.0
-    for i in range(0, dim):
-        stab_norm_a += u_conv_gauss[i]**2
-    stab_norm_a = sympy.sqrt(stab_norm_a)
-    tau_c = 0.0 # Stabilization parameter 1
-    tau_u = 0.0                                  # Stabilization parameter 2
-    tau_t = 0.0                                  # Stabilization parameter 3
-    # tau1 = 1.0/((rho*dyn_tau)/dt + (stab_c2*rho*stab_norm_a)/h + (stab_c1*mu)/(h*h)) # Stabilization parameter 1
-    # tau2 = mu + (stab_c2*rho*stab_norm_a*h)/stab_c1                                  # Stabilization parameter 2
-    # tau3 = mu + (stab_c2*rho*stab_norm_a*h)/stab_c1                                  # Stabilization parameter 3
-
     ## Compute the rest of magnitudes at the Gauss points
-    drho_dt_gauss = ((bdf0*rho + bdf1*rho_n + bdf2*rho_nn).transpose()*N)
+    dp_dt_gauss = (bdf0*p + bdf1*p_n + bdf2*p_nn).transpose()*N
     du_dt_gauss = (bdf0*u + bdf1*u_n + bdf2*u_nn).transpose()*N
     dt_dt_gauss = (bdf0*t + bdf1*t_n + bdf2*t_nn).transpose()*N
 
@@ -131,8 +120,6 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
     grad_v = DfjDxi(DN,v)
     grad_w = DfjDxi(DN,w)
 
-    grad_rho = DfjDxi(DN,rho)
-
     ## Symmetric gradients calculation (already in Voigt notation)
     grad_sym_u = grad_sym_voigtform(DN,u) # Symmetric gradient of u in Voigt notation
     grad_sym_v = grad_sym_voigtform(DN,v) # Symmetric gradient of v in Voigt notation
@@ -140,11 +127,19 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
     ## Divergences calculation
     div_u = div(DN,u)
     div_v = div(DN,v)
+    div_u_conv = div(DN,u_conv)
+
+    ## Define state equation (ideal gases) values at Gauss point
+    aux_state_eq = gamma / (c_p * (gamma - 1.0))
+    rho_gauss = aux_state_eq * (p_gauss[0] / t_gauss[0])
+    grad_rho = aux_state_eq * (grad_p / t_gauss[0] - (p_gauss[0] / t_gauss[0]**2) * grad_t)
+    drho_dt_gauss = aux_state_eq * (dp_dt_gauss[0] / t_gauss[0] - (p_gauss[0] / t_gauss[0]**2) * dt_dt_gauss[0])
 
     ## Navier-Stokes functional
     # Mass conservation residual
     galerkin_functional = -q_gauss * drho_dt_gauss
-    galerkin_functional += grad_q.transpose() * (rho_gauss * u_gauss)
+    galerkin_functional -= q_gauss * (grad_rho.transpose() * u_gauss)
+    galerkin_functional -= q_gauss * rho_gauss * div_u
 
     # Momentum conservation residual
     conv_term_u_gauss = u_conv_gauss.transpose() * grad_u
@@ -152,6 +147,7 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
     galerkin_functional -= v_gauss.transpose() * (rho_gauss * du_dt_gauss)
     galerkin_functional -= v_gauss.transpose() * (rho_gauss * conv_term_u_gauss.transpose())
     galerkin_functional -= grad_sym_v.transpose() * stress
+    galerkin_functional -= div_v * (rho_gauss * div_u)
     galerkin_functional += div_v * p_gauss
 
     # Energy conservation residual
@@ -159,11 +155,21 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
     galerkin_functional += w_gauss * heat_fl_gauss
     galerkin_functional -= w_gauss * (rho_gauss * c_p * dt_dt_gauss)
     galerkin_functional -= w_gauss * (rho_gauss * c_p * conv_term_t_gauss)
-    galerkin_functional -= w_gauss * kappa * grad_w.transpose() * grad_t
+    galerkin_functional -= grad_w.transpose() * (kappa * grad_t)
     galerkin_functional += w_gauss * alpha * t_gauss * dp_th_dt
 
+    ## Compute the stabilization parameters
+    #TODO: most probably is easier to calculate these directly in the cpp
+    stab_norm_a = 0.0
+    for i in range(0, dim):
+        stab_norm_a += u_conv_gauss[i]**2
+    stab_norm_a = sympy.sqrt(stab_norm_a)
+    tau_c = mu / rho_lin + stab_c2 * stab_norm_a * h / stab_c1 # Pressure subscale stabilization operator
+    tau_u = 1.0 / (stab_c1 * mu / h**2 + stab_c2 * h * stab_norm_a / h) # Velocity subscale stabilization operator
+    tau_t = 1.0 / (stab_c1 * kappa / h**2 + stab_c2 * rho_lin * c_p * stab_norm_a / h) # Temperature subscale stabilization operator
+
     ## Subscales definition
-    R_c = - drho_dt_gauss - rho_gauss * div_u - grad_rho.transpose() * u_gauss
+    R_c = - drho_dt_gauss - rho_gauss * div_u - (grad_rho.transpose() * u_gauss)[0]
     R_u = rho_gauss * (g_gauss - du_dt_gauss - conv_term_u_gauss.transpose()) - grad_p
     R_t = heat_fl_gauss - rho_gauss * c_p * (dt_dt_gauss + conv_term_t_gauss) + alpha * t_gauss * dp_th_dt
 
@@ -177,15 +183,17 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
 
     # Momentum conservation residual
     conv_term_v_gauss = u_conv_gauss.transpose() * grad_v
-    stabilization_functional -= drho_dt_gauss * v_gauss.transpose() * u_subscale
-    stabilization_functional += rho_gauss * conv_term_v_gauss * u_subscale
+    stabilization_functional += (grad_rho.transpose() * u_conv_gauss) * v_gauss.transpose() * u_subscale
+    stabilization_functional += (rho_gauss * div_u_conv) * v_gauss.transpose() * u_subscale
+    stabilization_functional += rho_gauss * conv_term_v_gauss.transpose() * u_subscale
     stabilization_functional += div_v * p_subscale
 
     # Energy conservation residual
     conv_term_w_gauss = u_conv_gauss.transpose() * grad_w
+    stabilization_functional += grad_w.transpose() * (rho_gauss * c_p * u_conv_gauss) * t_subscale
+    stabilization_functional += w_gauss * c_p * (grad_rho.transpose() * u_conv_gauss) * t_subscale
+    stabilization_functional += w_gauss * rho_gauss * c_p * div_u_conv * t_subscale
     stabilization_functional += w_gauss * alpha * t_subscale * dp_th_dt
-    stabilization_functional -= c_p * drho_dt_gauss * w_gauss * t_subscale
-    stabilization_functional += rho_gauss * c_p * conv_term_w_gauss * t_subscale
 
     ## Add the stabilization terms to the original residual terms
     functional = galerkin_functional

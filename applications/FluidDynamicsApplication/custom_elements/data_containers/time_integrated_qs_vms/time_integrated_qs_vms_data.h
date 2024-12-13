@@ -14,7 +14,7 @@
 #define KRATOS_TIME_INTEGRATED_QSVMS_DATA_H
 
 #include "fluid_dynamics_application_variables.h"
-#include "data_containers/qs_vms/qs_vms_data.h"
+#include "custom_elements/data_containers/qs_vms/qs_vms_data.h"
 
 namespace Kratos {
 
