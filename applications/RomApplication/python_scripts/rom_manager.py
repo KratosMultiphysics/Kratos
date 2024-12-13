@@ -159,6 +159,14 @@ class RomManager(object):
     def TestNeuralNetworkReconstruction(self, mu_train, mu_validation):
         self._LaunchTestNeuralNetworkReconstruction( mu_train, mu_validation)
 
+    def TrainRbfEnhancedROM(self, mu_train, mu_validation):
+        in_database, _ = self.data_base.check_if_in_database("RBF_Model", mu_train)
+        
+        if not in_database:
+            self._LaunchTrainRbfModel(mu_train, mu_validation)
+        #elif in_database and self.general_rom_manager_parameters["ROM"]["rbf_enhanced_settings"]["training"]["retrain_if_exists"].GetBool():
+        #    self._LaunchTrainRbfModel(mu_train, mu_validation)
+
 
     def Test(self, mu_test=[None], mu_train=[None]):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
@@ -676,6 +684,14 @@ class RomManager(object):
         rom_nn_trainer = RomNeuralNetworkTrainer(self.general_rom_manager_parameters, mu_train, mu_validation, self.data_base)
         rom_nn_trainer.EvaluateNetwork()
 
+    def _LaunchTrainRBF(self, mu_train, mu_validation):
+        RomRBFTrainer = self._TryImportRBFTrainer()
+        rom_rbf_trainer = RomRBFTrainer(self.general_rom_manager_parameters, mu_train, mu_validation, self.data_base)
+        rom_rbf_trainer.TrainRBFModel()
+        self.data_base.add_to_database("RBF_Model", mu_train, None)
+        rom_rbf_trainer.EvaluateRBFModel()
+
+
     def InitializeDummySimulationForBasisOutputProcess(self):
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
@@ -1161,4 +1177,12 @@ class RomManager(object):
             return RomNeuralNetworkTrainer
         except ImportError:
             err_msg = f'Failed to import the RomNeuralNetworkTrainer class. Make sure TensorFlow is properly installed.'
+            raise Exception(err_msg)
+    
+    def _TryImportRBFTrainer(self):
+        try:
+            from KratosMultiphysics.RomApplication.rom_rbf_trainer import RomRBFTrainer
+            return RomRBFTrainer
+        except ImportError:
+            err_msg = f'Failed to import the RomRBFTrainer class. Ensure all required dependencies for RBF-based training are properly installed.'
             raise Exception(err_msg)

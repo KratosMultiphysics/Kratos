@@ -70,7 +70,7 @@ class RomDatabase(object):
                         (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, tol_res REAL, type_of_projection TEXT, type_of_decoder TEXT, using_non_converged_sols REAL, file_name TEXT)''',
             "RightBasis": '''CREATE TABLE IF NOT EXISTS RightBasis
                         (id INTEGER PRIMARY KEY, tol_sol REAL, using_non_converged_sols INTEGER,  file_name TEXT)''',
-            "SingularValues_Solution":'''CREATE TABLE IF NOT EXISTS SingularValues_Solution
+            "SingularValues_Solution": '''CREATE TABLE IF NOT EXISTS SingularValues_Solution
                         (id INTEGER PRIMARY KEY, tol_sol REAL, using_non_converged_sols INTEGER, file_name TEXT)''',
             "LeftBasis": '''CREATE TABLE IF NOT EXISTS LeftBasis
                         (id INTEGER PRIMARY KEY, tol_sol REAL, type_of_projection TEXT, type_of_decoder TEXT, using_non_converged_sols REAL, basis_strategy TEXT, include_phi INTEGER, tol_pg REAL, solving_technique TEXT, monotonicity_preserving INTEGER , file_name TEXT)''',
@@ -78,7 +78,7 @@ class RomDatabase(object):
                         (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, type_of_projection TEXT, type_of_decoder TEXT, using_non_converged_sols REAL, basis_strategy TEXT, include_phi INTEGER, tol_pg REAL, solving_technique TEXT, monotonicity_preserving INTEGER , file_name TEXT)''',
             "ResidualsProjected": '''CREATE TABLE IF NOT EXISTS ResidualsProjected
                         (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, tol_res REAL, type_of_projection TEXT, type_of_decoder TEXT, using_non_converged_sols REAL, file_name TEXT)''',
-            "SingularValues_Residuals":'''CREATE TABLE IF NOT EXISTS SingularValues_Residuals
+            "SingularValues_Residuals": '''CREATE TABLE IF NOT EXISTS SingularValues_Residuals
                         (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, tol_res REAL, type_of_projection TEXT, type_of_decoder TEXT, using_non_converged_sols REAL, file_name TEXT)''',
             "HROM_Elements": '''CREATE TABLE IF NOT EXISTS HROM_Elements
                         (id INTEGER PRIMARY KEY, tol_sol REAL, tol_res REAL, type_of_projection TEXT, type_of_decoder TEXT, using_non_converged_sols REAL, file_name TEXT)''',
@@ -91,7 +91,9 @@ class RomDatabase(object):
             "QoI_ROM": '''CREATE TABLE IF NOT EXISTS QoI_ROM
                         (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL,  type_of_projection TEXT, type_of_decoder TEXT, using_non_converged_sols REAL, is_active INTEGER , file_name TEXT)''',
             "QoI_HROM": '''CREATE TABLE IF NOT EXISTS QoI_HROM
-                        (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, tol_res REAL, type_of_projection TEXT, type_of_decoder TEXT, using_non_converged_sols REAL, is_active INTEGER  , file_name TEXT)'''
+                        (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, tol_res REAL, type_of_projection TEXT, type_of_decoder TEXT, using_non_converged_sols REAL, is_active INTEGER  , file_name TEXT)''',
+            "RBF_Model": '''CREATE TABLE IF NOT EXISTS RBF_Model
+                        (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, type_of_projection TEXT, type_of_decoder TEXT, using_non_converged_sols REAL, kernel TEXT, epsilon REAL, neighbors INTEGER, file_name TEXT)'''
         }
 
         self.table_names = table_definitions.keys()
@@ -103,6 +105,7 @@ class RomDatabase(object):
                     print(f"Table {table_name} created successfully.")
         except sqlite3.OperationalError as e:
             print(f"Error creating tables: {e}")
+
 
 
     def hash_parameters(self, *args):
@@ -347,7 +350,7 @@ class RomDatabase(object):
                 else:
                     cursor.execute(query, (serialized_mu, tol_sol, tol_res, projection_type, decoder_type, non_converged_fom_14_bool, file_name, False))
 
-        if table_name in ["Neural_Network", 'QoI_FOM' , 'QoI_ROM' ,'QoI_HROM']:
+        if table_name in ["RBF_Model", "Neural_Network", 'QoI_FOM' , 'QoI_ROM' ,'QoI_HROM']:
             pass
         else:
             self.save_as_npy(numpy_array, file_name)
