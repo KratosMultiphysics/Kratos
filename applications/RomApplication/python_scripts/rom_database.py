@@ -133,74 +133,200 @@ class RomDatabase(object):
             tuple: Hashed file name and serialized parameters.
         """
         type_of_list = self.identify_list_type(mu)
-        if type_of_list=="mu":
+        if type_of_list == "mu":
             serialized_mu = self.serialize_mu(self.make_mu_dictionary(mu))
-        elif type_of_list=="complete_mu":
+        elif type_of_list == "complete_mu":
             serialized_mu = self.serialize_entire_mu_train(mu)
-        elif type_of_list=="Empty list":
+        elif type_of_list == "Empty list":
             serialized_mu = 'No mu provided, running single case as described by the ProjectParameters.json'
         else:
             err_msg = f'Error: {self.identify_list_type(mu)}'
             raise Exception(err_msg)
-        tol_sol, tol_res, projection_type, decoder_type, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, nn_data14_double, non_converged_fom_14_bool = self.get_curret_params()
+
+        # Retrieve current parameters
+        (
+            tol_sol, tol_res, projection_type, decoder_type, 
+            pg_data1_str, pg_data2_bool, pg_data3_double, 
+            pg_data4_str, pg_data5_bool, nn_data6_str, nn_data7_str, 
+            nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, 
+            nn_data12_str, nn_data13_int, nn_data14_double, 
+            non_converged_fom_14_bool, rbf_data15_str, rbf_data16_double
+        ) = self.get_curret_params()
+
         if table_name == 'FOM':
             hash_mu = self.hash_parameters(serialized_mu, table_name)
         elif table_name == 'ROM':
-            if decoder_type=="ann_enhanced":
-                ann_params = self.hash_parameters(serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, nn_data14_double, table_name)
-                hash_mu = self.hash_parameters(serialized_mu, tol_sol, projection_type, decoder_type, ann_params ,non_converged_fom_14_bool,table_name)
+            if decoder_type == "ann_enhanced":
+                ann_params = self.hash_parameters(
+                    serialized_mu, tol_sol, projection_type, decoder_type, 
+                    non_converged_fom_14_bool, nn_data6_str, nn_data7_str, 
+                    nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, 
+                    nn_data12_str, nn_data13_int, nn_data14_double, table_name
+                )
+                hash_mu = self.hash_parameters(
+                    serialized_mu, tol_sol, projection_type, decoder_type, 
+                    ann_params, non_converged_fom_14_bool, table_name
+                )
+            elif decoder_type == "rbf_enhanced":
+                rbf_params = self.hash_parameters(
+                    serialized_mu, tol_sol, projection_type, decoder_type, 
+                    non_converged_fom_14_bool, rbf_data15_str, rbf_data16_double, 
+                    table_name
+                )
+                hash_mu = self.hash_parameters(
+                    serialized_mu, tol_sol, projection_type, decoder_type, 
+                    rbf_params, non_converged_fom_14_bool, table_name
+                )
             else:
-                hash_mu = self.hash_parameters(serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool,table_name)
+                hash_mu = self.hash_parameters(
+                    serialized_mu, tol_sol, projection_type, decoder_type, 
+                    non_converged_fom_14_bool, table_name
+                )
         elif table_name == 'HROM':
-            if decoder_type=="ann_enhanced":
-                ann_params = self.hash_parameters(serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, nn_data14_double, table_name)
-                hash_mu = self.hash_parameters(serialized_mu, tol_sol, tol_res, projection_type, decoder_type, ann_params, non_converged_fom_14_bool, table_name)
+            if decoder_type == "ann_enhanced":
+                ann_params = self.hash_parameters(
+                    serialized_mu, tol_sol, projection_type, decoder_type, 
+                    non_converged_fom_14_bool, nn_data6_str, nn_data7_str, 
+                    nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, 
+                    nn_data12_str, nn_data13_int, nn_data14_double, table_name
+                )
+                hash_mu = self.hash_parameters(
+                    serialized_mu, tol_sol, tol_res, projection_type, decoder_type, 
+                    ann_params, non_converged_fom_14_bool, table_name
+                )
+            elif decoder_type == "rbf_enhanced":
+                rbf_params = self.hash_parameters(
+                    serialized_mu, tol_sol, projection_type, decoder_type, 
+                    non_converged_fom_14_bool, rbf_data15_str, rbf_data16_double, 
+                    table_name
+                )
+                hash_mu = self.hash_parameters(
+                    serialized_mu, tol_sol, tol_res, projection_type, decoder_type, 
+                    rbf_params, non_converged_fom_14_bool, table_name
+                )
             else:
-                hash_mu = self.hash_parameters(serialized_mu, tol_sol, tol_res, projection_type, decoder_type, non_converged_fom_14_bool, table_name)
+                hash_mu = self.hash_parameters(
+                    serialized_mu, tol_sol, tol_res, projection_type, decoder_type, 
+                    non_converged_fom_14_bool, table_name
+                )
         elif table_name == 'NonconvergedFOM':
             hash_mu = self.hash_parameters(serialized_mu, table_name)
         elif table_name == 'NonconvergedROM':
-            hash_mu = self.hash_parameters(serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool,table_name)
+            hash_mu = self.hash_parameters(
+                serialized_mu, tol_sol, projection_type, decoder_type, 
+                non_converged_fom_14_bool, table_name
+            )
         elif table_name == 'NonconvergedHROM':
-            hash_mu = self.hash_parameters(serialized_mu, tol_sol, tol_res, projection_type, decoder_type, non_converged_fom_14_bool,table_name)
+            hash_mu = self.hash_parameters(
+                serialized_mu, tol_sol, tol_res, projection_type, decoder_type, 
+                non_converged_fom_14_bool, table_name
+            )
         elif table_name == 'ResidualsProjected':
-            hash_mu = self.hash_parameters(serialized_mu, tol_sol, tol_res, projection_type, decoder_type, non_converged_fom_14_bool,table_name)
+            hash_mu = self.hash_parameters(
+                serialized_mu, tol_sol, tol_res, projection_type, decoder_type, 
+                non_converged_fom_14_bool, table_name
+            )
         elif table_name == 'SingularValues_Residuals':
-            hash_mu = self.hash_parameters(serialized_mu, tol_sol, tol_res, projection_type, decoder_type, non_converged_fom_14_bool,table_name)
+            hash_mu = self.hash_parameters(
+                serialized_mu, tol_sol, tol_res, projection_type, decoder_type, 
+                non_converged_fom_14_bool, table_name
+            )
         elif table_name == 'PetrovGalerkinSnapshots':
-            hash_mu = self.hash_parameters(serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, pg_data1_str,pg_data2_bool,pg_data3_double,pg_data4_str,pg_data5_bool,table_name)
+            hash_mu = self.hash_parameters(
+                serialized_mu, tol_sol, projection_type, decoder_type, 
+                non_converged_fom_14_bool, pg_data1_str, pg_data2_bool, 
+                pg_data3_double, pg_data4_str, pg_data5_bool, table_name
+            )
         elif table_name == 'RightBasis':
             hash_mu = self.hash_parameters(serialized_mu, tol_sol, non_converged_fom_14_bool, table_name)
         elif table_name == 'SingularValues_Solution':
             hash_mu = self.hash_parameters(serialized_mu, tol_sol, non_converged_fom_14_bool, table_name)
-        #TODO some other params might need to be added the "ann_enhanced" part to notice when they are generated with it. To be added in PR including online AnnEnhanced PROM
         elif table_name == 'LeftBasis':
-            hash_mu = self.hash_parameters(serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, pg_data1_str,pg_data2_bool,pg_data3_double,pg_data4_str,pg_data5_bool,table_name)
+            hash_mu = self.hash_parameters(
+                serialized_mu, tol_sol, projection_type, decoder_type, 
+                non_converged_fom_14_bool, pg_data1_str, pg_data2_bool, 
+                pg_data3_double, pg_data4_str, pg_data5_bool, table_name
+            )
         elif table_name == "HROM_Elements":
-            hash_mu= self.hash_parameters(serialized_mu, tol_sol,tol_res,projection_type, decoder_type, non_converged_fom_14_bool,table_name)
+            hash_mu = self.hash_parameters(
+                serialized_mu, tol_sol, tol_res, projection_type, decoder_type, 
+                non_converged_fom_14_bool, table_name
+            )
         elif table_name == "HROM_Weights":
-            hash_mu= self.hash_parameters(serialized_mu, tol_sol,tol_res,projection_type, decoder_type, non_converged_fom_14_bool,table_name)
+            hash_mu = self.hash_parameters(
+                serialized_mu, tol_sol, tol_res, projection_type, decoder_type, 
+                non_converged_fom_14_bool, table_name
+            )
         elif table_name == "Neural_Network":
-            hash_mu = self.hash_parameters(serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, nn_data14_double, table_name)
+            hash_mu = self.hash_parameters(
+                serialized_mu, tol_sol, projection_type, decoder_type, 
+                non_converged_fom_14_bool, nn_data6_str, nn_data7_str, 
+                nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, 
+                nn_data12_str, nn_data13_int, nn_data14_double, table_name
+            )
         elif table_name == "QoI_FOM":
             hash_mu = self.hash_parameters(serialized_mu, table_name)
         elif table_name == "QoI_ROM":
-            if decoder_type=="ann_enhanced":
-                ann_params = self.hash_parameters(serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, nn_data14_double, table_name)
-                hash_mu = self.hash_parameters(serialized_mu, tol_sol,projection_type,decoder_type, ann_params, non_converged_fom_14_bool, table_name)
+            if decoder_type == "ann_enhanced":
+                ann_params = self.hash_parameters(
+                    serialized_mu, tol_sol, projection_type, decoder_type, 
+                    non_converged_fom_14_bool, nn_data6_str, nn_data7_str, 
+                    nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, 
+                    nn_data12_str, nn_data13_int, nn_data14_double, table_name
+                )
+                hash_mu = self.hash_parameters(
+                    serialized_mu, tol_sol, projection_type, decoder_type, 
+                    ann_params, non_converged_fom_14_bool, table_name
+                )
+            elif decoder_type == "rbf_enhanced":
+                rbf_params = self.hash_parameters(
+                    serialized_mu, tol_sol, projection_type, decoder_type, 
+                    non_converged_fom_14_bool, rbf_data15_str, rbf_data16_double, 
+                    table_name
+                )
+                hash_mu = self.hash_parameters(
+                    serialized_mu, tol_sol, projection_type, decoder_type, 
+                    rbf_params, non_converged_fom_14_bool, table_name
+                )
             else:
-                hash_mu = self.hash_parameters(serialized_mu, tol_sol,projection_type,decoder_type, non_converged_fom_14_bool, table_name)
+                hash_mu = self.hash_parameters(
+                    serialized_mu, tol_sol, projection_type, decoder_type, 
+                    non_converged_fom_14_bool, table_name
+                )
         elif table_name == "QoI_HROM":
-            if decoder_type=="ann_enhanced":
-                ann_params = self.hash_parameters(serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, nn_data14_double, table_name)
-                hash_mu = self.hash_parameters(serialized_mu, tol_sol, tol_res,projection_type,decoder_type, ann_params, non_converged_fom_14_bool,table_name)
+            if decoder_type == "ann_enhanced":
+                ann_params = self.hash_parameters(
+                    serialized_mu, tol_sol, projection_type, decoder_type, 
+                    non_converged_fom_14_bool, nn_data6_str, nn_data7_str, 
+                    nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, 
+                    nn_data12_str, nn_data13_int, nn_data14_double, table_name
+                )
+                hash_mu = self.hash_parameters(
+                    serialized_mu, tol_sol, tol_res, projection_type, decoder_type, 
+                    ann_params, non_converged_fom_14_bool, table_name
+                )
+            elif decoder_type == "rbf_enhanced":
+                rbf_params = self.hash_parameters(
+                    serialized_mu, tol_sol, projection_type, decoder_type, 
+                    non_converged_fom_14_bool, rbf_data15_str, rbf_data16_double, 
+                    table_name
+                )
+                hash_mu = self.hash_parameters(
+                    serialized_mu, tol_sol, tol_res, projection_type, decoder_type, 
+                    rbf_params, non_converged_fom_14_bool, table_name
+                )
             else:
-                hash_mu = self.hash_parameters(serialized_mu, tol_sol, tol_res,projection_type,decoder_type, non_converged_fom_14_bool,table_name)
+                hash_mu = self.hash_parameters(
+                    serialized_mu, tol_sol, tol_res, projection_type, decoder_type, 
+                    non_converged_fom_14_bool, table_name
+                )
         else:
             err_msg = f'Error: table_name: {table_name} not available. Available options are: {", ".join(self.table_names)}'
             raise Exception(err_msg)
 
         return hash_mu, serialized_mu
+
+
 
 
     def get_curret_params(self):
