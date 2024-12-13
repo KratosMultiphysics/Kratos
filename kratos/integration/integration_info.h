@@ -61,6 +61,7 @@ public:
         Default,
         GAUSS,
         EXTENDED_GAUSS,
+        LOBATTO,
         GRID
     };
 
@@ -135,8 +136,11 @@ public:
             if (ThisQuadratureMethod == QuadratureMethod::GAUSS) {
                 return IntegrationMethod::GI_GAUSS_2;
             }
-            else {
+            else if (ThisQuadratureMethod == QuadratureMethod::EXTENDED_GAUSS) {
                 return IntegrationMethod::GI_EXTENDED_GAUSS_2;
+            } 
+            else {
+                return IntegrationMethod::GI_LOBATTO_1;
             }
             break;
         case 3:
