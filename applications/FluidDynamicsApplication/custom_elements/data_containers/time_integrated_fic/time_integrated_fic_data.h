@@ -14,7 +14,7 @@
 #define KRATOS_TIME_INTEGRATED_FIC_DATA_H
 
 #include "fluid_dynamics_application_variables.h"
-#include "custom_elements/data_containers/fic/fic_data.h"
+#include "data_containers/fic/fic_data.h"
 
 namespace Kratos {
 
