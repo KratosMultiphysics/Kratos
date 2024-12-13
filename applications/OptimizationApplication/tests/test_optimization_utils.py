@@ -1,4 +1,5 @@
 
+import numpy
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 
@@ -66,6 +67,107 @@ class TestOptimizationUtils(kratos_unittest.TestCase):
         values = KratosOA.OptimizationUtils.GetComponentWiseModelParts(self.model, params)
         self.assertEqual(values[0], [self.model.GetModelPart("test.sub_1"), self.model.GetModelPart("test.sub_2")])
         self.assertEqual(values[1], [self.model.GetModelPart("test.sub_2")])
+
+    def test_CreateEntitySpecificPropertiesForContainer(self):
+        model = Kratos.Model()
+        model_part = model.CreateModelPart("test_model_part")
+
+        def create_properties(properties_id: int) -> Kratos.Properties:
+            properties: Kratos.Properties = model_part.CreateNewProperties(properties_id)
+            properties.SetValue(Kratos.PRESSURE, properties_id)
+            return properties
+
+        properties = create_properties(1)
+        properties.AddSubProperties(create_properties(2))
+        properties.AddSubProperties(create_properties(3))
+        properties.AddSubProperties(create_properties(4))
+
+        properties.GetSubProperties(2).AddSubProperties(create_properties(5))
+        properties.GetSubProperties(3).AddSubProperties(create_properties(6))
+        properties.GetSubProperties(4).AddSubProperties(create_properties(7))
+
+        properties.GetSubProperties(4).GetSubProperties(7).AddSubProperties(create_properties(8))
+
+        for i in range(50):
+            model_part.CreateNewNode(i + 1, 0, 0, 0)
+            element: Kratos.Element = model_part.CreateNewElement("Element3D1N", i + 1, [i+1], properties)
+
+        KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(model_part, model_part.Elements, False)
+
+        values = numpy.arange(50, dtype=numpy.float64)
+        expression = Kratos.Expression.ElementExpression(model_part)
+        Kratos.Expression.CArrayExpressionIO.Read(expression, values)
+        KratosOA.PropertiesVariableExpressionIO.Write(expression, Kratos.YOUNG_MODULUS)
+
+        for element in model_part.Elements:
+            self.assertEqual(element.Properties.Id, element.Id + 8)
+            self.assertEqual(element.Properties[Kratos.PRESSURE], 1)
+            self.assertEqual(element.Properties[Kratos.YOUNG_MODULUS], element.Id - 1)
+
+    def test_CreateEntitySpecificPropertiesForContainerRecursive(self):
+        model = Kratos.Model()
+        model_part = model.CreateModelPart("test_model_part")
+
+        def create_properties(properties_id: int) -> Kratos.Properties:
+            properties: Kratos.Properties = model_part.CreateNewProperties(properties_id)
+            properties.SetValue(Kratos.PRESSURE, properties_id)
+            properties.SetValue(Kratos.YOUNG_MODULUS, 10)
+            return properties
+
+        properties = create_properties(1)
+        properties.AddSubProperties(create_properties(2))
+        properties.AddSubProperties(create_properties(3))
+        properties.AddSubProperties(create_properties(4))
+
+        properties.GetSubProperties(2).AddSubProperties(create_properties(5))
+        properties.GetSubProperties(3).AddSubProperties(create_properties(6))
+        properties.GetSubProperties(4).AddSubProperties(create_properties(7))
+
+        properties.GetSubProperties(4).GetSubProperties(7).AddSubProperties(create_properties(8))
+
+        for i in range(50):
+            model_part.CreateNewNode(i + 1, 0, 0, 0)
+            element: Kratos.Element = model_part.CreateNewElement("Element3D1N", i + 1, [i+1], properties)
+
+        KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(model_part, model_part.Elements, True)
+
+        values = numpy.arange(50, dtype=numpy.float64)
+        expression = Kratos.Expression.ElementExpression(model_part)
+        Kratos.Expression.CArrayExpressionIO.Read(expression, values)
+        KratosOA.PropertiesVariableExpressionIO.Write(expression, Kratos.YOUNG_MODULUS)
+
+        def check_properties_value_recursively(properties: Kratos.Properties, value: float):
+            self.assertEqual(properties[Kratos.YOUNG_MODULUS], value)
+            for sub_properties in properties.GetSubProperties():
+                check_properties_value_recursively(sub_properties, value)
+
+        check_id = 9
+        for element in model_part.Elements:
+            properties = element.Properties
+
+            self.assertEqual(properties.Id, check_id)
+            self.assertEqual(properties[Kratos.YOUNG_MODULUS], element.Id - 1)
+
+            sub_properties_itr = iter(properties.GetSubProperties())
+
+            self.assertEqual(next(sub_properties_itr).Id, check_id + 1)
+            self.assertEqual(next(iter(properties.GetSubProperties()[check_id + 1].GetSubProperties())).Id, check_id + 2)
+            check_properties_value_recursively(properties.GetSubProperties()[check_id + 1], 10)
+
+            self.assertEqual(next(sub_properties_itr).Id, check_id + 3)
+            self.assertEqual(next(iter(properties.GetSubProperties()[check_id + 3].GetSubProperties())).Id, check_id + 4)
+            check_properties_value_recursively(properties.GetSubProperties()[check_id + 3], 10)
+
+            self.assertEqual(next(sub_properties_itr).Id, check_id + 5)
+            self.assertEqual(next(iter(properties.GetSubProperties()[check_id + 5].GetSubProperties())).Id, check_id + 6)
+            self.assertEqual(next(iter(properties.GetSubProperties()[check_id + 5].GetSubProperties()[check_id + 6].GetSubProperties())).Id, check_id + 7)
+            check_properties_value_recursively(properties.GetSubProperties()[check_id + 5], 10)
+
+            check_id += 8
+
+        KratosOA.OptimizationUtils.UpdatePropertiesVariableWithRootValueRecursively(model_part.Elements, Kratos.YOUNG_MODULUS)
+        for element in model_part.Elements:
+            check_properties_value_recursively(element.Properties, element.Id - 1)
 
 if __name__ == "__main__":
     kratos_unittest.main()
