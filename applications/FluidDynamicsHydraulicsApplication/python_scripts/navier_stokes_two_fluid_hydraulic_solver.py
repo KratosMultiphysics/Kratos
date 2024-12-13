@@ -4,6 +4,7 @@ import KratosMultiphysics.kratos_utilities as KratosUtilities
 import math
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
+import KratosMultiphysics.FluidDynamicsHydraulicsApplication as KratosHydraulics
 
 # Import base class file
 from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
@@ -62,6 +63,11 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
                 "mass_source":true,
                 "element_type":"bdf2",
                 "mass_levelset":false
+            },
+            "turn_off_air_gravity": false,
+            "corner_detection":{
+                "apply_fixity":true,
+                "maximum_angle": 10
             },
             "artificial_viscosity": false,
             "artificial_visocosity_settings":{
@@ -191,6 +197,13 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
 
         dynamic_tau = self.settings["formulation"]["dynamic_tau"].GetDouble()
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, dynamic_tau)
+
+
+        self.apply_fixity_to_corner = self.settings["corner_detection"]["apply_fixity"].GetBool()
+        if self.apply_fixity_to_corner:
+            self.maximum_angle= self.settings["corner_detection"]["maximum_angle"].GetDouble()
+            KratosMultiphysics.FindConditionsNeighboursProcess(self.main_model_part, self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE], 3).Execute()
+            KratosHydraulics.HydraulicFluidAuxiliaryUtilities.FixCornerNodeVelocity(self.main_model_part,self.maximum_angle)
 
         self.artificial_viscosity = self.settings["artificial_viscosity"].GetBool()
         if self.artificial_viscosity:
@@ -337,6 +350,32 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         self._HydraulicBoundaryConditionCheck(KratosMultiphysics.OUTLET,"OUTLET")
 
     def InitializeSolutionStep(self):
+        
+        #TODO: TESTIG
+        self.DetectedCutElements()
+
+        if self.initialize_flaging:
+            self.FlagingPreBlock()
+            self.initialize_flaging= False
+
+        self.current_step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
+        print(self.current_step)
+        self.air_steps=0
+        self.water_steps=0
+
+        self.air_bloqued = False
+        self.water_bloqued = False
+
+        if self.current_step <= self.air_steps:
+            self.air_bloqued = True
+        elif self.air_bloqued < self.current_step <= self.water_steps:
+            self.water_bloqued = True
+            self.air_bloqued = False
+        else:
+           self.water_bloqued = False
+
+        # self.BlockingControl(self.air_steps, self.water_steps, self.current_step,self.air_bloqued,self.water_bloqued)
+        self.PreBloquedProcess()
 
         self._ComputeStepInitialWaterVolume()
         # Inlet and outlet water discharge is calculated for current time step, first discharge and the considering the time step inlet and outlet volume is calculated
@@ -361,10 +400,14 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
 
 
         # Perform the level-set convection according to the previous step velocity
-        if self.level_set_fct:
-            self.__PerformEdgeBasedLevelSetConvection()
-        else:
-            self.__PerformLevelSetConvection()
+        if self.current_step > self.water_steps:
+            if self.level_set_fct:
+                self.__PerformEdgeBasedLevelSetConvection()
+            else:
+                self.__PerformLevelSetConvection()
+    
+        for node in self.main_model_part.Nodes:
+            node.Free(KratosMultiphysics.DISTANCE)
 
         if self.fractional_splitting:
             KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(KratosCFD.AUXILIAR_VECTOR_VELOCITY,KratosMultiphysics.VELOCITY, self.main_model_part, self.main_model_part, 0, 0)
@@ -373,6 +416,10 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
 
         # Perform distance correction to prevent ill-conditioned cuts
         self._GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
+
+        # Turn off the gravity of the air fluid.
+        if self.settings["formulation"].Has("turn_off_air_gravity"):
+            KratosHydraulics.HydraulicFluidAuxiliaryUtilities.TurnOffGravityOnAirElements(self.main_model_part)
 
         # Update the DENSITY and DYNAMIC_VISCOSITY values according to the new level-set
         self._SetNodalProperties()
@@ -422,12 +469,13 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Mass and momentum conservation equations are solved.")
 
         # Recompute the distance field according to the new level-set position
-        if self._reinitialization_type != "none":
-            self._GetDistanceReinitializationProcess().Execute()
-            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Redistancing process is finished.")
+        if self.current_step > self.water_steps:
+            if self._reinitialization_type != "none":
+                self._GetDistanceReinitializationProcess().Execute()
+                KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Redistancing process is finished.")
 
-        # Prepare distance correction for next step
-        self._GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
+            # Prepare distance correction for next step
+            self._GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
 
 
         # Finalize the solver current step
@@ -552,30 +600,12 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             acceleration_alpha_method=(v-vn)/(gamma*dt)+((gamma-1)/gamma)*acceleration_n
             node.SetValue(KratosMultiphysics.ACCELERATION,acceleration_alpha_method)
 
+
     def __CalculateArtificialViscosity(self):
 
         properties_1 = self.main_model_part.Properties[1]
         water_dynamic_viscosity_max = self.artificial_limiter_coefficient * properties_1.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)
-        for element in self.GetComputingModelPart().Elements:
-            elem_artificial_viscosity = element.Calculate(KratosMultiphysics.ARTIFICIAL_DYNAMIC_VISCOSITY, self.main_model_part.ProcessInfo)
-
-            if elem_artificial_viscosity > water_dynamic_viscosity_max:
-                elem_artificial_viscosity = water_dynamic_viscosity_max
-            nodes = element.GetNodes()
-            neg_nodes=0
-            pos_nodes=0
-            for node in nodes:
-                distance=node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
-                if distance>0:
-                    pos_nodes += 1
-                else:
-                    neg_nodes+=1
-            if neg_nodes>0 and pos_nodes>0:
-                elem_artificial_viscosity= 0.0
-            # elif pos_nodes==3:
-            #     elem_artificial_viscosity = 0.0
-
-            element.SetValue(KratosMultiphysics.ARTIFICIAL_DYNAMIC_VISCOSITY, elem_artificial_viscosity)
+        KratosHydraulics.HydraulicFluidAuxiliaryUtilities.CalculateArtificialViscosity(self.main_model_part, water_dynamic_viscosity_max)
 
     def __PerformEdgeBasedLevelSetConvection(self):
         self._GetEdgeBasedLevelSetConvectionProcess().Execute()
@@ -931,3 +961,72 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         not_boundary_nodes=any([node.Is(boundary) for node in computing_model_part.Nodes])
         if not not_boundary_nodes:
             KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, name +" condition is not defined in the model part.")
+    
+
+    def FlagingPreBlock(self):
+        for node in self.main_model_part.Nodes:
+            if node.IsFixed(KratosMultiphysics.VELOCITY_X):
+                node.Set(KratosMultiphysics.RIGID, True)
+            elif node.IsFixed(KratosMultiphysics.VELOCITY_Y):
+                node.Set(KratosMultiphysics.RIGID, True)
+            elif node.IsFixed(KratosMultiphysics.VELOCITY_Z):
+                node.Set(KratosMultiphysics.RIGID, True)
+
+    def BlockAndFix(self, velocity, pressure,node):
+        if node.IsNot(KratosMultiphysics.RIGID):
+            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, velocity)
+            node.SetSolutionStepValue(KratosMultiphysics.PRESSURE, pressure)
+            node.Fix(KratosMultiphysics.VELOCITY_X)
+            node.Fix(KratosMultiphysics.VELOCITY_Y)
+            node.Fix(KratosMultiphysics.VELOCITY_Z)
+
+    def FreeAll(self,node):
+        if node.IsNot(KratosMultiphysics.RIGID):
+            node.Free(KratosMultiphysics.VELOCITY_X)
+            node.Free(KratosMultiphysics.VELOCITY_Y)
+            node.Free(KratosMultiphysics.VELOCITY_Z)
+    def DetectedCutElements(self):
+        for element in self.main_model_part.Elements:
+            pos_node=0.0
+            neg_node=0.0
+            nodes= element.GetNodes()
+            for node in nodes:
+                phi =node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+                if phi>0.0:
+                    pos_node+=1
+                else:
+                    neg_node+=1
+            if neg_node>0 and pos_node>0:
+                # cut element
+                for node in nodes:
+                    node.Set(KratosMultiphysics.SOLID,True)
+
+
+    def PreBloquedProcess(self):
+        for node in self.main_model_part.Nodes:
+            phi = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+            if self.air_bloqued:
+                if phi>0:
+                    velocity=[0.0,0.0,0.0]
+                    pressure=0.0
+                    self.BlockAndFix(velocity, pressure, node)
+
+            elif self.water_bloqued:
+                if phi<0:
+                    velocity = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,1)
+                    pressure = node.GetSolutionStepValue(KratosMultiphysics.PRESSURE, 1)
+                    self.BlockAndFix(velocity,pressure,node)
+                    node.Fix(KratosMultiphysics.PRESSURE)
+
+                elif phi>0.0:
+                    self.FreeAll(node)
+            # elif node.Is(KratosMultiphysics.SOLID):
+            #     if self.current_step<self.air_steps:
+            #         velocity = [0.0, 0.0, 0.0]
+            #         pressure=0.0
+            #         self.BlockAndFix(velocity, pressure, node)
+
+
+            else:
+                self.FreeAll(node)
+                node.Free(KratosMultiphysics.PRESSURE)
