@@ -32,7 +32,7 @@ namespace Kratos
 class ModelPartUtils
 {
 public:
-    /// @brief Templated interface for getting nodes, elements, conditions or @ref ProcessInfo from a @ref ModelPart.
+    /// @brief Templated interface for getting nodes, elements, conditions, @ref MasterSlaveConstraint "constraints" or @ref ProcessInfo from a @ref ModelPart.
     template <Globals::DataLocation TLocation>
     static const auto& GetContainer(const ModelPart& rModelPart)
     {
@@ -42,6 +42,8 @@ public:
             return rModelPart.Elements();
         } else if constexpr (TLocation == Globals::DataLocation::Condition) {
             return rModelPart.Conditions();
+        } else if constexpr (TLocation == Globals::DataLocation::Constraint) {
+            return rModelPart.MasterSlaveConstraints();
         } else if constexpr (TLocation == Globals::DataLocation::ProcessInfo) {
             return rModelPart.GetProcessInfo();
         } else if constexpr (TLocation == Globals::DataLocation::ModelPart) {
@@ -49,7 +51,7 @@ public:
         }
     }
 
-    /// @brief Templated interface for getting nodes, elements, conditions or @ref ProcessInfo from a @ref ModelPart.
+    /// @brief Templated interface for getting nodes, elements, conditions, @ref MasterSlaveConstraint "constraints" or @ref ProcessInfo from a @ref ModelPart.
     template <Globals::DataLocation TLocation>
     static auto& GetContainer(ModelPart& rModelPart)
     {
@@ -59,6 +61,8 @@ public:
             return rModelPart.Elements();
         } else if constexpr (TLocation == Globals::DataLocation::Condition) {
             return rModelPart.Conditions();
+        } else if constexpr (TLocation == Globals::DataLocation::Constraint) {
+            return rModelPart.MasterSlaveConstraints();
         } else if constexpr (TLocation == Globals::DataLocation::ProcessInfo) {
             return rModelPart.GetProcessInfo();
         } else if constexpr (TLocation == Globals::DataLocation::ModelPart) {
@@ -66,7 +70,7 @@ public:
         }
     }
 
-    /// @brief Templated interface to get nodes, elements and conditions from a @ref ModelPart
+    /// @brief Templated interface to get nodes, elements, conditions and @ref MasterSlaveConstraint "constraints" from a @ref ModelPart
     template<class TContainerType>
     static const auto& GetContainer(const ModelPart& rModelPart)
     {
@@ -76,13 +80,15 @@ public:
             return GetContainer<Globals::DataLocation::Condition>(rModelPart);
         } else if constexpr(std::is_same_v<TContainerType, ModelPart::ElementsContainerType>) {
             return GetContainer<Globals::DataLocation::Element>(rModelPart);
+        } else if constexpr(std::is_same_v<TContainerType, ModelPart::MasterSlaveConstraintContainerType>) {
+            return GetContainer<Globals::DataLocation::Constraint>(rModelPart);
         } else {
             static_assert(!std::is_same_v<TContainerType, TContainerType>, "Unsupported container type.");
             return 0;
         }
     }
 
-    /// @brief Templated interface to get nodes, elements and conditions from a @ref ModelPart
+    /// @brief Templated interface to get nodes, elements, conditions, @ref MasterSlaveConstraint "constraints" from a @ref ModelPart
     template<class TContainerType>
     static auto& GetContainer(ModelPart& rModelPart)
     {
@@ -92,6 +98,8 @@ public:
             return GetContainer<Globals::DataLocation::Condition>(rModelPart);
         } else if constexpr(std::is_same_v<TContainerType, ModelPart::ElementsContainerType>) {
             return GetContainer<Globals::DataLocation::Element>(rModelPart);
+        } else if constexpr(std::is_same_v<TContainerType, ModelPart::MasterSlaveConstraintContainerType>) {
+            return GetContainer<Globals::DataLocation::Constraint>(rModelPart);
         } else {
             static_assert(!std::is_same_v<TContainerType, TContainerType>, "Unsupported container type.");
             return 0;
@@ -99,7 +107,7 @@ public:
     }
 
     /**
-     * @brief Add nodes to ModelPart from an ordered container. 
+     * @brief Add nodes to ModelPart from an ordered container.
      * @details By assuming that the input is ordered (by increasing Id), the nodes can be added more efficiently. Note that the function makes no check of the ordering, it is the responsability of the caller to ensure that it is correct.
      * @tparam TIteratorType Iterator type for the nodes to add.
      * @param rTargetModelPart ModelPart the nodes will be added to.
@@ -315,9 +323,9 @@ private:
    */
     template<class TIteratorType >
     static typename ModelPart::NodesContainerType JoinOrderedNodesContainerType(
-        TIteratorType iC1Begin,  
-        TIteratorType iC1End, 
-        TIteratorType iC2Begin,  
+        TIteratorType iC1Begin,
+        TIteratorType iC1End,
+        TIteratorType iC2Begin,
         TIteratorType iC2End
         )
     {
@@ -361,14 +369,14 @@ private:
 
         return aux;
     }
-  
+
     /**
     * @brief Checks if an entity is registered in Kratos and returns a reference to it.
     * @details This function checks if a given entity (either an Element or a Condition) is registered in Kratos. If the entity is registered, it returns a constant reference to it. If the entity is not registered, it throws an error with a descriptive message. Template parameter `TEntity` can be either `Element` or `Condition`. The function utilizes compile-time checks to generate appropriate error messages based on the entity type.
     * @tparam TEntity The type of the entity to check. Must be either `Element` or `Condition`.
     * @param rEntityName The name of the entity to check.
     * @return const TEntity& A constant reference to the entity.
-    * @throw Kratos::Exception If the entity is not registered in Kratos. The exception message will specify 
+    * @throw Kratos::Exception If the entity is not registered in Kratos. The exception message will specify
     * whether the missing entity is an Element or a Condition and remind to check the spelling and registration of the application.
     */
     template<class TEntity>
