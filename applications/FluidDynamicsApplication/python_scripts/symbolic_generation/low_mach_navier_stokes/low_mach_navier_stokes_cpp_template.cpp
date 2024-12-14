@@ -273,8 +273,6 @@ void LowMachNavierStokes< LowMachNavierStokesData<2,3> >::ComputeGaussPointLHSCo
 {
     // Material parameters
     const auto& r_rho = rData.Density;
-    const auto& r_rho_n = rData.DensityOldStep1;
-    const auto& r_rho_nn = rData.DensityOldStep2;
     const double c_p = rData.SpecificHeat;
     const double kappa = rData.Conductivity;
     const double mu = rData.EffectiveViscosity;
@@ -315,8 +313,6 @@ void LowMachNavierStokes<LowMachNavierStokesData<2,4>>::ComputeGaussPointLHSCont
 {
     // Material parameters
     const auto& r_rho = rData.Density;
-    const auto& r_rho_n = rData.DensityOldStep1;
-    const auto& r_rho_nn = rData.DensityOldStep2;
     const double c_p = rData.SpecificHeat;
     const double kappa = rData.Conductivity;
     const double mu = rData.EffectiveViscosity;
@@ -357,8 +353,6 @@ void LowMachNavierStokes<LowMachNavierStokesData<2,3>>::ComputeGaussPointRHSCont
 {
     // Material parameters
     const auto& r_rho = rData.Density;
-    const auto& r_rho_n = rData.DensityOldStep1;
-    const auto& r_rho_nn = rData.DensityOldStep2;
     const double c_p = rData.SpecificHeat;
     const double kappa = rData.Conductivity;
     const double mu = rData.EffectiveViscosity;
@@ -408,8 +402,6 @@ void LowMachNavierStokes<LowMachNavierStokesData<2,4>>::ComputeGaussPointRHSCont
 {
     // Material parameters
     const auto& r_rho = rData.Density;
-    const auto& r_rho_n = rData.DensityOldStep1;
-    const auto& r_rho_nn = rData.DensityOldStep2;
     const double c_p = rData.SpecificHeat;
     const double kappa = rData.Conductivity;
     const double mu = rData.EffectiveViscosity;

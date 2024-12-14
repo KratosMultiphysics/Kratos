@@ -63,14 +63,14 @@ public:
     NodalVectorData BodyForce;
 
     NodalScalarData Pressure;
+    NodalScalarData PressureOldStep1;
+    NodalScalarData PressureOldStep2;
 
     NodalScalarData Temperature;
     NodalScalarData TemperatureOldStep1;
     NodalScalarData TemperatureOldStep2;
 
     NodalScalarData Density;
-    NodalScalarData DensityOldStep1;
-    NodalScalarData DensityOldStep2;
 
     double Conductivity;
 
@@ -106,12 +106,12 @@ public:
         this->FillFromHistoricalNodalData(HeatFlux, HEAT_FLUX, r_geometry);
         this->FillFromHistoricalNodalData(BodyForce, BODY_FORCE, r_geometry);
         this->FillFromHistoricalNodalData(Pressure, PRESSURE, r_geometry);
+        this->FillFromHistoricalNodalData(PressureOldStep1, PRESSURE, r_geometry, 1);
+        this->FillFromHistoricalNodalData(PressureOldStep2, PRESSURE, r_geometry, 2);
         this->FillFromHistoricalNodalData(Temperature, TEMPERATURE, r_geometry);
         this->FillFromHistoricalNodalData(TemperatureOldStep1, TEMPERATURE, r_geometry, 1);
         this->FillFromHistoricalNodalData(TemperatureOldStep2, TEMPERATURE, r_geometry, 2);
         this->FillFromHistoricalNodalData(Density, DENSITY, r_geometry);
-        this->FillFromHistoricalNodalData(DensityOldStep1, DENSITY, r_geometry, 1);
-        this->FillFromHistoricalNodalData(DensityOldStep2, DENSITY, r_geometry, 2);
 
         // Fill data from properties
         const auto& r_properties = rElement.GetProperties();

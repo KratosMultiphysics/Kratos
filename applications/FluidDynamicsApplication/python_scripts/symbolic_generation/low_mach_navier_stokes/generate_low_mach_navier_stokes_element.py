@@ -130,10 +130,12 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
     div_u_conv = div(DN,u_conv)
 
     ## Define state equation (ideal gases) values at Gauss point
+    ## TODO: Maybe we should define rho as rho_0 + delta rho
+    ## TODO: Maybe we want to also linearise this
     aux_state_eq = gamma / (c_p * (gamma - 1.0))
-    rho_gauss = aux_state_eq * (p_gauss[0] / t_gauss[0])
-    grad_rho = aux_state_eq * (grad_p / t_gauss[0] - (p_gauss[0] / t_gauss[0]**2) * grad_t)
-    drho_dt_gauss = aux_state_eq * (dp_dt_gauss[0] / t_gauss[0] - (p_gauss[0] / t_gauss[0]**2) * dt_dt_gauss[0])
+    rho_gauss = aux_state_eq * p_th * (t_gauss**-1)
+    grad_rho = - aux_state_eq * p_th * (t_gauss[0]**-2) * grad_t
+    drho_dt_gauss = aux_state_eq * (dp_th_dt * (t_gauss**-1) - p_th * (t_gauss[0]**-2) * dt_dt_gauss)
 
     ## Navier-Stokes functional
     # Mass conservation residual
@@ -143,9 +145,9 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
 
     # Momentum conservation residual
     conv_term_u_gauss = u_conv_gauss.transpose() * grad_u
-    galerkin_functional += v_gauss.transpose() * (rho_gauss * g_gauss)
-    galerkin_functional -= v_gauss.transpose() * (rho_gauss * du_dt_gauss)
-    galerkin_functional -= v_gauss.transpose() * (rho_gauss * conv_term_u_gauss.transpose())
+    galerkin_functional += rho_gauss * v_gauss.transpose() * g_gauss
+    galerkin_functional -= rho_gauss * v_gauss.transpose() * du_dt_gauss
+    galerkin_functional -= rho_gauss * v_gauss.transpose() * conv_term_u_gauss.transpose()
     galerkin_functional -= grad_sym_v.transpose() * stress
     galerkin_functional -= div_v * (rho_gauss * div_u)
     galerkin_functional += div_v * p_gauss
@@ -169,8 +171,8 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
     tau_t = 1.0 / (stab_c1 * kappa / h**2 + stab_c2 * rho_lin * c_p * stab_norm_a / h) # Temperature subscale stabilization operator
 
     ## Subscales definition
-    R_c = - drho_dt_gauss - rho_gauss * div_u - (grad_rho.transpose() * u_gauss)[0]
-    R_u = rho_gauss * (g_gauss - du_dt_gauss - conv_term_u_gauss.transpose()) - grad_p
+    R_c = - drho_dt_gauss - rho_gauss * div_u - grad_rho.transpose() * u_gauss
+    R_u = (g_gauss - du_dt_gauss - conv_term_u_gauss.transpose()) * rho_gauss - grad_p
     R_t = heat_fl_gauss - rho_gauss * c_p * (dt_dt_gauss + conv_term_t_gauss) + alpha * t_gauss * dp_th_dt
 
     p_subscale = tau_c * R_c
@@ -179,18 +181,18 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
 
     ##  Stabilization functional terms
     # Mass conservation residual
-    stabilization_functional = grad_q.transpose() * (rho_gauss * u_subscale)
+    stabilization_functional = rho_gauss * grad_q.transpose() * u_subscale
 
     # Momentum conservation residual
     conv_term_v_gauss = u_conv_gauss.transpose() * grad_v
     stabilization_functional += (grad_rho.transpose() * u_conv_gauss) * v_gauss.transpose() * u_subscale
     stabilization_functional += (rho_gauss * div_u_conv) * v_gauss.transpose() * u_subscale
-    stabilization_functional += rho_gauss * conv_term_v_gauss.transpose() * u_subscale
+    stabilization_functional += rho_gauss * conv_term_v_gauss * u_subscale
     stabilization_functional += div_v * p_subscale
 
     # Energy conservation residual
     conv_term_w_gauss = u_conv_gauss.transpose() * grad_w
-    stabilization_functional += grad_w.transpose() * (rho_gauss * c_p * u_conv_gauss) * t_subscale
+    stabilization_functional += rho_gauss * c_p * grad_w.transpose() * u_conv_gauss * t_subscale
     stabilization_functional += w_gauss * c_p * (grad_rho.transpose() * u_conv_gauss) * t_subscale
     stabilization_functional += w_gauss * rho_gauss * c_p * div_u_conv * t_subscale
     stabilization_functional += w_gauss * alpha * t_subscale * dp_th_dt
