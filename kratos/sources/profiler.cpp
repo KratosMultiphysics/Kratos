@@ -24,6 +24,7 @@
 #include <fstream>
 #include <sstream>
 #include <atomic>
+#include <limits> // std::numeric_limits
 
 
 namespace Kratos::Internals {
@@ -59,11 +60,11 @@ std::string GetTimeUnit<std::chrono::nanoseconds>()
 
 template <class T>
 Profiler<T>::Item::Item(CodeLocation&& rLocation)
-    : Item(0,
-           Duration(0),
-           Duration(0),
-           Duration(0),
-           std::move(rLocation))
+    : Item(0,                                                               // <== .mCallCount
+           Duration(0),                                                     // <== .mCumulative
+           Duration(std::numeric_limits<typename Duration::rep>::max()),    // <== .mMin
+           Duration(0),                                                     // <== .mMax
+           std::move(rLocation))                                            // <== .mLocation
 {
 }
 
