@@ -276,7 +276,11 @@ void LowMachNavierStokes< LowMachNavierStokesData<2,3> >::ComputeGaussPointLHSCo
     const double c_p = rData.SpecificHeat;
     const double kappa = rData.Conductivity;
     const double mu = rData.EffectiveViscosity;
+    const double gamma = rData.HeatCapacityRatio;
     const double alpha = rData.ThermalExpansionCoefficient;
+
+    // Thermodynamic pressure
+    const double p_th = rData.ThermodynamicPressure;
 
     // Material response parameters
     const auto& r_C = rData.C;
@@ -288,6 +292,7 @@ void LowMachNavierStokes< LowMachNavierStokesData<2,3> >::ComputeGaussPointLHSCo
     const double bdf2 = rData.bdf2;
 
     // Nodal data
+    const auto& r_t_lin = rData.Temperature;
     const BoundedMatrix<double,2,3> u_conv = rData.Velocity - rData.MeshVelocity;
 
     // Get shape function values
@@ -295,10 +300,9 @@ void LowMachNavierStokes< LowMachNavierStokesData<2,3> >::ComputeGaussPointLHSCo
     const auto& r_DN = rData.DN_DX;
 
     // Stabilization parameters
-    constexpr double stab_c1 = 4.0;
-    constexpr double stab_c2 = 2.0;
-    const double h = rData.ElementSize;
-    const double dyn_tau = rData.DynamicTau;
+    const double tau_c = CalculateTauPressure(rData);
+    const double tau_u = CalculateTauVelocity(rData);
+    const double tau_t = CalculateTauTemperature(rData);
 
     // Add LHS Gauss point contribution
     const double gauss_weight = rData.Weight;
@@ -316,7 +320,11 @@ void LowMachNavierStokes<LowMachNavierStokesData<2,4>>::ComputeGaussPointLHSCont
     const double c_p = rData.SpecificHeat;
     const double kappa = rData.Conductivity;
     const double mu = rData.EffectiveViscosity;
+    const double gamma = rData.HeatCapacityRatio;
     const double alpha = rData.ThermalExpansionCoefficient;
+
+    // Thermodynamic pressure
+    const double p_th = rData.ThermodynamicPressure;
 
     // Material response parameters
     const auto& r_C = rData.C;
@@ -328,6 +336,7 @@ void LowMachNavierStokes<LowMachNavierStokesData<2,4>>::ComputeGaussPointLHSCont
     const double bdf2 = rData.bdf2;
 
     // Nodal data
+    const auto& r_t_lin = rData.Temperature;
     const BoundedMatrix<double,2,4> u_conv = rData.Velocity - rData.MeshVelocity;
 
     // Get shape function values
@@ -335,10 +344,9 @@ void LowMachNavierStokes<LowMachNavierStokesData<2,4>>::ComputeGaussPointLHSCont
     const auto& r_DN = rData.DN_DX;
 
     // Stabilization parameters
-    constexpr double stab_c1 = 4.0;
-    constexpr double stab_c2 = 2.0;
-    const double h = rData.ElementSize;
-    const double dyn_tau = rData.DynamicTau;
+    const double tau_c = CalculateTauPressure(rData);
+    const double tau_u = CalculateTauVelocity(rData);
+    const double tau_t = CalculateTauTemperature(rData);
 
     // Add LHS Gauss point contribution
     const double gauss_weight = rData.Weight;
@@ -356,7 +364,12 @@ void LowMachNavierStokes<LowMachNavierStokesData<2,3>>::ComputeGaussPointRHSCont
     const double c_p = rData.SpecificHeat;
     const double kappa = rData.Conductivity;
     const double mu = rData.EffectiveViscosity;
+    const double gamma = rData.HeatCapacityRatio;
     const double alpha = rData.ThermalExpansionCoefficient;
+
+    // Thermodynamic pressure
+    const double p_th = rData.ThermodynamicPressure;
+    const double dp_th_dt = rData.ThermodynamicPressureDerivative;
 
     // Material response parameters
     const auto& r_stress = rData.ShearStress;
@@ -373,9 +386,12 @@ void LowMachNavierStokes<LowMachNavierStokesData<2,3>>::ComputeGaussPointRHSCont
     const auto& r_u_n = rData.VelocityOldStep1;
     const auto& r_u_nn = rData.VelocityOldStep2;
     const auto& r_t = rData.Temperature;
+    const auto& r_t_n = rData.TemperatureOldStep1;
+    const auto& r_t_nn = rData.TemperatureOldStep2;
     const auto& r_g = rData.BodyForce;
     const auto& r_heat_fl = rData.HeatFlux;
 
+    const auto& r_t_lin = rData.Temperature;
     const auto& r_u_mesh = rData.MeshVelocity;
     const BoundedMatrix<double, 2, 3> u_conv = r_u - r_u_mesh;
 
@@ -384,10 +400,9 @@ void LowMachNavierStokes<LowMachNavierStokesData<2,3>>::ComputeGaussPointRHSCont
     const auto& r_DN = rData.DN_DX;
 
     // Stabilization parameters
-    constexpr double stab_c1 = 4.0;
-    constexpr double stab_c2 = 2.0;
-    const double h = rData.ElementSize;
-    const double dyn_tau = rData.DynamicTau;
+    const double tau_c = CalculateTauPressure(rData);
+    const double tau_u = CalculateTauVelocity(rData);
+    const double tau_t = CalculateTauTemperature(rData);
 
     // Add RHS Gauss point contribution
     const double gauss_weight = rData.Weight;
@@ -405,7 +420,12 @@ void LowMachNavierStokes<LowMachNavierStokesData<2,4>>::ComputeGaussPointRHSCont
     const double c_p = rData.SpecificHeat;
     const double kappa = rData.Conductivity;
     const double mu = rData.EffectiveViscosity;
+    const double gamma = rData.HeatCapacityRatio;
     const double alpha = rData.ThermalExpansionCoefficient;
+
+    // Thermodynamic pressure
+    const double p_th = rData.ThermodynamicPressure;
+    const double dp_th_dt = rData.ThermodynamicPressureDerivative;
 
     // Material response parameters
     const auto& r_stress = rData.ShearStress;
@@ -422,9 +442,12 @@ void LowMachNavierStokes<LowMachNavierStokesData<2,4>>::ComputeGaussPointRHSCont
     const auto& r_u_n = rData.VelocityOldStep1;
     const auto& r_u_nn = rData.VelocityOldStep2;
     const auto& r_t = rData.Temperature;
+    const auto& r_t_n = rData.TemperatureOldStep1;
+    const auto& r_t_nn = rData.TemperatureOldStep2;
     const auto& r_g = rData.BodyForce;
     const auto& r_heat_fl = rData.HeatFlux;
 
+    const auto& r_t_lin = rData.Temperature;
     const auto& r_u_mesh = rData.MeshVelocity;
     const BoundedMatrix<double, 2, 4> u_conv = r_u - r_u_mesh;
 
@@ -433,10 +456,9 @@ void LowMachNavierStokes<LowMachNavierStokesData<2,4>>::ComputeGaussPointRHSCont
     const auto& r_DN = rData.DN_DX;
 
     // Stabilization parameters
-    constexpr double stab_c1 = 4.0;
-    constexpr double stab_c2 = 2.0;
-    const double h = rData.ElementSize;
-    const double dyn_tau = rData.DynamicTau;
+    const double tau_c = CalculateTauPressure(rData);
+    const double tau_u = CalculateTauVelocity(rData);
+    const double tau_t = CalculateTauTemperature(rData);
 
     // Add RHS Gauss point contribution
     const double gauss_weight = rData.Weight;

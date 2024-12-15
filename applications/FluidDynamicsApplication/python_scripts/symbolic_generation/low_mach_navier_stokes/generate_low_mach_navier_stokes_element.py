@@ -71,13 +71,18 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
     g = DefineMatrix('r_g',n_nodes,dim)              # Gravity (velocity volume forcing term)
     heat_fl = DefineVector('r_heat_fl', n_nodes) # Heat flux (temperature volume forcing term)
 
-    ## Other simbols definition
-    h = sympy.Symbol('h', positive = True)      # Element size
-    dt  = sympy.Symbol('dt', positive = True)   # Time increment
-    dyn_tau = sympy.Symbol('dyn_tau', positive = True)
-    stab_c1 = sympy.Symbol('stab_c1', positive = True)
-    stab_c2 = sympy.Symbol('stab_c2', positive = True)
-    stab_c3 = sympy.Symbol('stab_c3', positive = True)
+    # ## Other simbols definition
+    # h = sympy.Symbol('h', positive = True)      # Element size
+    # dt  = sympy.Symbol('dt', positive = True)   # Time increment
+    # dyn_tau = sympy.Symbol('dyn_tau', positive = True)
+    # stab_c1 = sympy.Symbol('stab_c1', positive = True)
+    # stab_c2 = sympy.Symbol('stab_c2', positive = True)
+    # stab_c3 = sympy.Symbol('stab_c3', positive = True)
+
+    ## Stabilization operators defined as a symbol
+    tau_c = sympy.Symbol('tau_c', positive = True)
+    tau_u = sympy.Symbol('tau_u', positive = True)
+    tau_t = sympy.Symbol('tau_t', positive = True)
 
     ## Backward differences coefficients
     bdf0 = sympy.Symbol('bdf0')
@@ -85,7 +90,8 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
     bdf2 = sympy.Symbol('bdf2')
 
     ## Symbols for linearised variables
-    rho_lin = sympy.Symbol('rho_lin', positive = True) # Density defined as a symbol (to avoid differentiation in the stabilization taus)
+    t_lin = DefineVector('r_t_lin', n_nodes) # Temperature defined as a symbol (to avoid differentiation in the equation of state)
+    rho_lin = DefineVector('rho_lin', n_nodes) # Density defined as a symbol (to avoid differentiation in the stabilization taus)
     u_conv = DefineMatrix('u_conv', n_nodes, dim) # Convective velocity defined as a symbol (to avoid its differentiation in the convective terms)
 
     ## Data interpolation to the Gauss points
@@ -131,11 +137,12 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
 
     ## Define state equation (ideal gases) values at Gauss point
     ## TODO: Maybe we should define rho as rho_0 + delta rho
-    ## TODO: Maybe we want to also linearise this
+    t_lin_gauss = t_lin.transpose()*N
+    grad_t_lin = DfjDxi(DN, t_lin)
     aux_state_eq = gamma / (c_p * (gamma - 1.0))
-    rho_gauss = aux_state_eq * p_th * (t_gauss**-1)
-    grad_rho = - aux_state_eq * p_th * (t_gauss[0]**-2) * grad_t
-    drho_dt_gauss = aux_state_eq * (dp_th_dt * (t_gauss**-1) - p_th * (t_gauss[0]**-2) * dt_dt_gauss)
+    rho_gauss = aux_state_eq * p_th * (t_lin_gauss**-1)
+    grad_rho = - grad_t_lin * (aux_state_eq * p_th * (t_lin_gauss**-2))
+    drho_dt_gauss = aux_state_eq * (dp_th_dt * (t_lin_gauss**-1) - p_th * dt_dt_gauss[0] * (t_lin_gauss**-2))
 
     ## Navier-Stokes functional
     # Mass conservation residual
@@ -160,15 +167,15 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
     galerkin_functional -= grad_w.transpose() * (kappa * grad_t)
     galerkin_functional += w_gauss * alpha * t_gauss * dp_th_dt
 
-    ## Compute the stabilization parameters
-    #TODO: most probably is easier to calculate these directly in the cpp
-    stab_norm_a = 0.0
-    for i in range(0, dim):
-        stab_norm_a += u_conv_gauss[i]**2
-    stab_norm_a = sympy.sqrt(stab_norm_a)
-    tau_c = mu / rho_lin + stab_c2 * stab_norm_a * h / stab_c1 # Pressure subscale stabilization operator
-    tau_u = 1.0 / (stab_c1 * mu / h**2 + stab_c2 * h * stab_norm_a / h) # Velocity subscale stabilization operator
-    tau_t = 1.0 / (stab_c1 * kappa / h**2 + stab_c2 * rho_lin * c_p * stab_norm_a / h) # Temperature subscale stabilization operator
+    # ## Compute the stabilization parameters
+    # #TODO: most probably is easier to calculate these directly in the cpp
+    # stab_norm_a = 0.0
+    # for i in range(0, dim):
+    #     stab_norm_a += u_conv_gauss[i]**2
+    # stab_norm_a = sympy.sqrt(stab_norm_a)
+    # tau_c = mu / rho_lin + stab_c2 * stab_norm_a * h / stab_c1 # Pressure subscale stabilization operator
+    # tau_u = 1.0 / (stab_c1 * mu / h**2 + stab_c2 * h * stab_norm_a / h) # Velocity subscale stabilization operator
+    # tau_t = 1.0 / (stab_c1 * kappa / h**2 + stab_c2 * rho_lin * c_p * stab_norm_a / h) # Temperature subscale stabilization operator
 
     ## Subscales definition
     R_c = - drho_dt_gauss - rho_gauss * div_u - grad_rho.transpose() * u_gauss

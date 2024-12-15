@@ -58,9 +58,9 @@ public:
 
     NodalVectorData MeshVelocity;
 
-    NodalScalarData HeatFlux;
-
     NodalVectorData BodyForce;
+
+    NodalScalarData HeatFlux;
 
     NodalScalarData Pressure;
     NodalScalarData PressureOldStep1;
@@ -72,9 +72,15 @@ public:
 
     NodalScalarData Density;
 
+    double ThermodynamicPressure;
+
+    double ThermodynamicPressureDerivative;
+
     double Conductivity;
 
     double SpecificHeat;
+
+    double HeatCapacityRatio;
 
     double ThermalExpansionCoefficient;
 
@@ -117,10 +123,18 @@ public:
         const auto& r_properties = rElement.GetProperties();
         this->FillFromProperties(Conductivity, CONDUCTIVITY, r_properties);
         this->FillFromProperties(SpecificHeat, SPECIFIC_HEAT, r_properties);
+        this->FillFromProperties(HeatCapacityRatio, HEAT_CAPACITY_RATIO, r_properties);
 
         // Fill data from ProcessInfo container
         this->FillFromProcessInfo(DeltaTime, DELTA_TIME, rProcessInfo);
         this->FillFromProcessInfo(DynamicTau, DYNAMIC_TAU, rProcessInfo);
+        if (rProcessInfo.Has(PRESSURE)) {
+            this->FillFromProcessInfo(ThermodynamicPressure, PRESSURE, rProcessInfo);
+            ThermodynamicPressureDerivative = 0.0;
+        } else {
+            ThermodynamicPressure = 0.0;
+            ThermodynamicPressureDerivative = 0.0;
+        }
 
         const auto& r_BDF_vector = rProcessInfo[BDF_COEFFICIENTS];
         bdf0 = r_BDF_vector[0];
