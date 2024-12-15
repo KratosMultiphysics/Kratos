@@ -73,7 +73,9 @@
 namespace Kratos::Python {
 
 /**
- * @brief A thin wrapper for GetSortedListOfFileNameData. The reason for having the wrapper is to replace the original lambda implementation as it causes gcc 4.8 to generate bad code on Centos7 which leads to memory corruption.
+ * @brief A thin wrapper for GetSortedListOfFileNameData. 
+ * @note The reason for having the wrapper is to replace the original lambda implementation as it causes gcc 4.8 to generate bad code on Centos7 which leads to memory corruption.
+ * @todo Now that Centos support is dropped this cna be removed
  */
 pybind11::list GetSortedListOfFileNameDataHelper(
     std::vector<FileNameDataCollector::FileNameData>& rFileNameDataList,

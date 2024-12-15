@@ -18,7 +18,7 @@
 
 // Aplication includes
 #include "alternative_d_vms_dem_coupled.h"
-#include "custom_utilities/qsvms_dem_coupled_data.h"
+#include "custom_elements/data_containers/qs_vms_dem_coupled/qs_vms_dem_coupled_data.h"
 #include "custom_utilities/fluid_element_utilities.h"
 #include "fluid_dynamics_application_variables.h"
 
