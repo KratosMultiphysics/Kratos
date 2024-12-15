@@ -42,7 +42,7 @@ private:
     class Item
     {
     public:
-        Item(CodeLocation&& rLocation);
+        explicit Item(CodeLocation&& rLocation);
 
     private:
         Item(std::size_t CallCount,
