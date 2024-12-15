@@ -71,20 +71,19 @@ private:
 
     struct SourceLocationHash
     {
-        std::size_t operator()(const CodeLocation& r_argument) const
+        std::size_t operator()(const CodeLocation& rArgument) const
         {
-            std::string string(r_argument.GetFileName());
-            string.append(std::to_string(r_argument.GetLineNumber()));
-            return std::hash<std::string>()(string);
+            return std::hash<std::string>()(rArgument.GetFileName() + rArgument.GetFunctionName());
         }
     };
 
     struct SourceLocationEquality
     {
-        bool operator()(const CodeLocation& r_lhs,
-                        const CodeLocation& r_rhs) const
+        bool operator()(const CodeLocation& rLhs,
+                        const CodeLocation& rRhs) const
         {
-            return (std::string(r_lhs.GetFileName()) == std::string(r_rhs.GetFileName())) && (r_lhs.GetLineNumber() == r_rhs.GetLineNumber());
+            return (rLhs.GetFileName() == rRhs.GetFileName())
+                   && (rLhs.GetFunctionName() == rRhs.GetFunctionName());
         }
     };
 
