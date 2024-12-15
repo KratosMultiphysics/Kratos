@@ -207,7 +207,8 @@ void Profiler<T>::Write(std::ostream& rStream) const
         const auto& r_location = p_item->mLocation;
         result.AddString("file", std::string(r_location.GetFileName()));
         result.AddInt("line", int(r_location.GetLineNumber()));
-        result.AddString("function", std::string(r_location.GetFunctionName()));
+        result.AddString("signature", std::string(r_location.GetFunctionName()));
+        result.AddString("function", std::string(r_location.CleanFunctionName()));
         result.AddInt("callCount", p_item->mCallCount);
 
         std::stringstream stream;
