@@ -21,13 +21,40 @@
 #include <algorithm>
 #include <thread>
 #include <vector>
-#include <tuple>
 #include <fstream>
 #include <sstream>
 #include <atomic>
 
 
 namespace Kratos::Internals {
+
+
+namespace {
+template <class TTimeUnit>
+std::string GetTimeUnit()
+{
+    KRATOS_ERROR << "Unsupported time unit";
+}
+
+template <>
+std::string GetTimeUnit<std::chrono::milliseconds>()
+{
+    return "ms";
+}
+
+template <>
+std::string GetTimeUnit<std::chrono::microseconds>()
+{
+    return "us";
+}
+
+template <>
+
+std::string GetTimeUnit<std::chrono::nanoseconds>()
+{
+    return "ns";
+}
+} // unnamed namespace
 
 
 template <class T>
@@ -70,7 +97,7 @@ typename Profiler<T>::Item& Profiler<T>::Item::operator+=(const Item& rOther)
 
 template <class T>
 Profiler<T>::Profiler()
-    : Profiler("kratos_profiler_output.json")
+    : Profiler("kratos_profiler_output_" + GetTimeUnit<T>() + ".json")
 {
 }
 
@@ -110,34 +137,6 @@ typename Profiler<T>::Item& Profiler<T>::Create(CodeLocation&& r_item)
     r_list.emplace_back(std::move(r_item));
     return r_list.back();
 }
-
-
-namespace {
-template <class TTimeUnit>
-std::string GetTimeUnit()
-{
-    KRATOS_ERROR << "Unknown time unit";
-}
-
-template <>
-std::string GetTimeUnit<std::chrono::milliseconds>()
-{
-    return "ms";
-}
-
-template <>
-std::string GetTimeUnit<std::chrono::microseconds>()
-{
-    return "us";
-}
-
-template <>
-
-std::string GetTimeUnit<std::chrono::nanoseconds>()
-{
-    return "ns";
-}
-} // unnamed namespace
 
 
 template <class T>
