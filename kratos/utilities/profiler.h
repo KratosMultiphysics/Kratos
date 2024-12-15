@@ -32,10 +32,13 @@ template <class TTimeUnit>
 class KRATOS_API(KRATOS_CORE) Profiler
 {
 private:
+    /// @brief Absolute time type.
     using TimeUnit = TTimeUnit;
 
+    /// @brief Relative time type.
     using Duration = TimeUnit;
 
+    /// @brief  Clock type used for measuring durations.
     using Clock = std::chrono::high_resolution_clock;
 
     /// @brief Class for identifying a profiled scope and aggregating its stats.
@@ -51,21 +54,31 @@ private:
              Duration MaxDuration,
              CodeLocation&& rLocation);
 
+        /// @brief Aggregate profiled data from another @ref Item in the same scope.
         Item& operator+=(const Item& rOther);
 
     private:
         friend class Profiler;
 
+        /// @brief Counter for keeping track of recursive calls.
+        /// @details Recursive function calls are aggregated onto the top
+        ///          level call. To do that, the @ref Item must keep track
+        ///          of its recursion depth.
         unsigned mRecursionLevel;
 
+        /// @brief Counter tracking total number of calls to a function during the program's entire execution time.
         std::size_t mCallCount;
 
+        /// @brief Counter summing the duration of each call to the profiled scope.
         Duration mCumulative;
 
+        /// @brief Minimum time spent in the profiled scope.
         Duration mMin;
 
+        /// @brief Maximum time spent in the profiled scope.
         Duration mMax;
 
+        /// @brief Source information about the profiled scope.
         CodeLocation mLocation;
     }; // class Item
 
