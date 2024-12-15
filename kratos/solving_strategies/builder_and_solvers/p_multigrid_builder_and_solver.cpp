@@ -20,6 +20,7 @@
 #include "utilities/sparse_matrix_multiplication_utility.h"
 #include "utilities/reduction_utilities.h"
 #include "utilities/proxies.h" // MakeProxy
+#include "utilities/profiler.h"
 
 // System includes
 #include <algorithm> // std::lower_bound
@@ -181,6 +182,7 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
 
     void MakeConstraintStructure(ModelPart& rModelPart)
     {
+        KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
         KRATOS_TRY
         if (!rModelPart.MasterSlaveConstraints().empty()) {
             const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
@@ -264,6 +266,7 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
 
     void MakeConstraints(ModelPart& rModelPart)
     {
+        KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
         KRATOS_TRY
 
         TSparse::SetToZero(mRelationMatrix);
@@ -347,6 +350,7 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
                                       ModelPart& rModelPart,
                                       typename Interface::TSystemVectorType& rRhs)
     {
+        KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
         KRATOS_TRY
 
         auto& r_elements = rModelPart.Elements();
@@ -410,6 +414,7 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
                             std::unordered_set<std::size_t>* pRowSetBegin,
                             [[maybe_unused]] std::unordered_set<std::size_t>* pRowSetEnd)
     {
+        KRATOS_PROFILE_SCOPE(KRATOS_CODE_LOCATION);
         using TLS = Element::EquationIdVectorType;
         block_for_each(rEntities,
                        TLS(),
@@ -430,6 +435,7 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
                           typename Interface::TSystemMatrixType& rLhs,
                           ModelPart& rModelPart)
     {
+        KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
         KRATOS_TRY
 
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
@@ -660,6 +666,7 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Build(typename Interfac
                                                                typename Interface::TSystemMatrixType& rLhs,
                                                                typename Interface::TSystemVectorType& rRhs)
 {
+    KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
     KRATOS_TRY
 
     KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
@@ -716,6 +723,7 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::BuildLHS(typename Inter
                                                                   ModelPart& rModelPart,
                                                                   typename Interface::TSystemMatrixType& rLhs)
 {
+    KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
     KRATOS_TRY
 
     KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
@@ -776,6 +784,7 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::BuildRHS(typename Inter
                                                                   ModelPart& rModelPart,
                                                                   typename Interface::TSystemVectorType& rRhs)
 {
+    KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
     KRATOS_TRY
 
     mpImpl->BuildUnconstrainedRHS(pScheme,rModelPart,rRhs);
@@ -802,6 +811,7 @@ void GetDiagonalScaleFactor(typename TSparse::DataType& rDiagonalScaleFactor,
                             const DiagonalScaling ScalingStrategy,
                             [[maybe_unused]] const ProcessInfo& rProcessInfo)
 {
+    KRATOS_PROFILE_SCOPE(KRATOS_CODE_LOCATION);
     KRATOS_TRY
     switch (ScalingStrategy) {
         case DiagonalScaling::None:
@@ -861,6 +871,7 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::ApplyDirichletCondition
                                                                                   typename Interface::TSystemVectorType& rSolution,
                                                                                   typename Interface::TSystemVectorType& rRhs)
 {
+    KRATOS_PROFILE_SCOPE(KRATOS_CODE_LOCATION);
     const std::size_t system_size = rLhs.size1();
     Vector scaling_factors (system_size);
 
@@ -911,6 +922,7 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::ApplyRHSConstraints(typ
                                                                              ModelPart& rModelPart,
                                                                              typename Interface::TSystemVectorType& rRhs)
 {
+    KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
     KRATOS_TRY
 
     if (rModelPart.MasterSlaveConstraints().size() != 0) {
@@ -944,6 +956,7 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::ApplyConstraints(typena
                                                                           typename Interface::TSystemMatrixType& rLhs,
                                                                           typename Interface::TSystemVectorType& rRhs)
 {
+    KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
     KRATOS_TRY
 
     if (rModelPart.MasterSlaveConstraints().size() != 0) {
@@ -1075,6 +1088,7 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::CalculateReactions(type
                                                                             typename Interface::TSystemVectorType& rSolution,
                                                                             typename Interface::TSystemVectorType& rRhs)
 {
+    KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
     TSparse::SetToZero(rRhs);
 
     //refresh RHS to have the correct reactions
