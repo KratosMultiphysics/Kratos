@@ -29,7 +29,7 @@ namespace Kratos::Internals {
 
 
 template <class TTimeUnit>
-class Profiler
+class KRATOS_API(KRATOS_CORE) Profiler
 {
 private:
     using TimeUnit = TTimeUnit;
@@ -180,11 +180,11 @@ private:
 
 
 template <class T>
-std::ostream& operator<<(std::ostream& rStream, const Profiler<T>& rProfiler);
+KRATOS_API(KRATOS_CORE) std::ostream& operator<<(std::ostream& rStream, const Profiler<T>& rProfiler);
 
 
 template <class TTimeUnit>
-class ProfilerSingleton
+class KRATOS_API(KRATOS_CORE) ProfilerSingleton
 {
 public:
     static Profiler<TTimeUnit>& Get() noexcept;
