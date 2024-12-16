@@ -20,9 +20,11 @@
 #include "utilities/sparse_matrix_multiplication_utility.h"
 #include "utilities/reduction_utilities.h"
 #include "utilities/proxies.h" // MakeProxy
+#include "utilities/profiler.h"
 
 // System includes
 #include <algorithm> // std::lower_bound
+#include <optional> // std::optional
 
 
 namespace Kratos {
@@ -121,57 +123,197 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
         const auto i_row_begin = r_row_extents[iRow];
         const auto i_row_end = r_row_extents[iRow + 1];
 
-        for (unsigned int iLocalColumn=0; iLocalColumn<rEquationIds.size(); iLocalColumn++) {
-            const unsigned int iColumn = rEquationIds[iLocalColumn];
+        for (unsigned int i_local_column=0; i_local_column<rEquationIds.size(); i_local_column++) {
+            const unsigned int iColumn = rEquationIds[i_local_column];
             const auto it = std::lower_bound(r_column_indices.begin() + i_row_begin,
                                              r_column_indices.begin() + i_row_end,
                                              iColumn);
-            AtomicAdd(r_entries[std::distance(r_column_indices.begin(), it)],  rLocalLhs(iLocalRow, iLocalColumn));
+            r_entries[std::distance(r_column_indices.begin(), it)] += rLocalLhs(iLocalRow, i_local_column);
         }
     }
 
 
-    static void MapLhsContribution(typename Interface::TSystemMatrixType& rLhs,
-                                   const typename Interface::LocalSystemMatrixType& rContribution,
-                                   const Element::EquationIdVectorType& rEquationIds) noexcept
+    /// @brief Map RHS contributions from local to global space.
+    static void MapContribution(typename Interface::TSystemVectorType& rRhs,
+                                const typename Interface::LocalSystemVectorType& rContribution,
+                                const Element::EquationIdVectorType& rEquationIds) noexcept
     {
-        const std::size_t local_size = rContribution.size1();
-        for (IndexType i_local = 0; i_local < local_size; i_local++) {
-            const IndexType i_global = rEquationIds[i_local];
-            Impl::MapRowContribution(rLhs, rContribution, i_global, i_local, rEquationIds);
-        }
-    }
+        const unsigned local_size = rContribution.size();
 
-
-    static void MapRhsContribution(typename Interface::TSystemVectorType& rRhs,
-                                   const typename Interface::LocalSystemVectorType& rContribution,
-                                   const Element::EquationIdVectorType& rEquationIds) noexcept
-    {
-        unsigned int local_size = rContribution.size();
-
-        for (unsigned int i_local = 0; i_local < local_size; i_local++) {
-            unsigned int i_global = rEquationIds[i_local];
+        for (unsigned i_local = 0; i_local < local_size; i_local++) {
+            const unsigned i_global = rEquationIds[i_local];
             AtomicAdd(rRhs[i_global], rContribution[i_local]);
         }
     }
 
 
-    static void MapContributions(typename Interface::TSystemMatrixType& rLhs,
-                                 typename Interface::TSystemVectorType& rRhs,
-                                 const typename Interface::LocalSystemMatrixType& rLhsContribution,
-                                 const typename Interface::LocalSystemVectorType& rRhsContribution,
-                                 const Element::EquationIdVectorType& rEquationIds) noexcept
+    /// @brief Map LHS contributions from local to global space.
+    static void MapContribution(typename Interface::TSystemMatrixType& rLhs,
+                                const typename Interface::LocalSystemMatrixType& rContribution,
+                                const Element::EquationIdVectorType& rEquationIds,
+                                LockObject* pLockBegin) noexcept
     {
-        const unsigned int local_size = rLhsContribution.size1();
-        for (unsigned int i_local = 0; i_local < local_size; i_local++) {
-            unsigned int i_global = rEquationIds[i_local];
-            AtomicAdd(rRhs[i_global], rRhsContribution[i_local]);
+        const std::size_t local_size = rContribution.size1();
+        for (IndexType i_local = 0; i_local < local_size; i_local++) {
+            const IndexType i_global = rEquationIds[i_local];
+            std::scoped_lock<LockObject> lock(pLockBegin[i_global]);
+            Impl::MapRowContribution(rLhs, rContribution, i_global, i_local, rEquationIds);
+        }
+    }
+
+
+    /// @brief Map LHS and RHS contributions from local to global space.
+    static void MapContribution(typename Interface::TSystemMatrixType& rLhs,
+                                typename Interface::TSystemVectorType& rRhs,
+                                const typename Interface::LocalSystemMatrixType& rLhsContribution,
+                                const typename Interface::LocalSystemVectorType& rRhsContribution,
+                                const Element::EquationIdVectorType& rEquationIds,
+                                LockObject* pLockBegin) noexcept
+    {
+        const unsigned local_size = rLhsContribution.size1();
+        for (unsigned i_local = 0; i_local < local_size; i_local++) {
+            const unsigned i_global = rEquationIds[i_local];
+            std::scoped_lock<LockObject> lock(pLockBegin[i_global]);
+            rRhs[i_global] += rRhsContribution[i_local];
             Impl::MapRowContribution(rLhs,
                                      rLhsContribution,
                                      i_global,
                                      i_local,
                                      rEquationIds);
         }
+    }
+
+
+    /// @brief Compute the local contributions of an @ref Element or @ref Condition and assemble them into the global system.
+    /// @details Whether from elements or conditions, whether assembling into the LHS, RHS, or both,
+    ///          all cases are handled in this one function to reduce code duplication and have logically
+    ///          coherent parts of the code in one place.
+    template <bool AssembleLHS,
+              bool AssembleRHS,
+              class TEntity>
+    static void MapEntityContribution(TEntity& rEntity,
+                                      typename Interface::TSchemeType& rScheme,
+                                      const ProcessInfo& rProcessInfo,
+                                      Element::EquationIdVectorType& rEquationIndices,
+                                      typename Interface::LocalSystemMatrixType* pLhsContribution,
+                                      typename Interface::LocalSystemVectorType* pRhsContribution,
+                                      typename Interface::TSystemMatrixType* pLhs,
+                                      typename Interface::TSystemVectorType* pRhs,
+                                      LockObject* pLockBegin)
+    {
+        if constexpr (AssembleLHS || AssembleRHS) {
+            if (rEntity.IsActive()) {
+                if constexpr (AssembleLHS) {
+                    if constexpr (AssembleRHS) {
+                        // Assemble LHS and RHS.
+                        rScheme.CalculateSystemContributions(rEntity,
+                                                             *pLhsContribution,
+                                                             *pRhsContribution,
+                                                             rEquationIndices,
+                                                             rProcessInfo);
+                        Impl::MapContribution(*pLhs,
+                                              *pRhs,
+                                              *pLhsContribution,
+                                              *pRhsContribution,
+                                              rEquationIndices,
+                                              pLockBegin);
+                    } /*if AssembleRHS*/ else {
+                        // Assemble LHS only.
+                        rScheme.CalculateLHSContribution(rEntity,
+                                                        *pLhsContribution,
+                                                        rEquationIndices,
+                                                        rProcessInfo);
+                        Impl::MapContribution(*pLhs,
+                                              *pLhsContribution,
+                                              rEquationIndices,
+                                              pLockBegin);
+                    } // if !AssembleRHS
+                } /*if AssembleLHS*/ else {
+                    // Assemble RHS only.
+                    rScheme.CalculateRHSContribution(rEntity,
+                                                     *pRhsContribution,
+                                                     rEquationIndices,
+                                                     rProcessInfo);
+                    Impl::MapContribution(*pRhs,
+                                          *pRhsContribution,
+                                          rEquationIndices);
+                } // if !AssembleLHS
+            } // if rEntity.IsActive
+        } // if AssembleLHS or AssembleRHS
+    }
+
+
+    /// @brief Compute and assemble local contributions from elements and conditions into the global system.
+    /// @details This function body mainly handles looping over elements/conditions and its parallelization.
+    ///          The actual local system calculation, as well as assembly, is deferred to @ref MapEntityContribution.
+    template <bool AssembleLHS,
+              bool AssembleRHS>
+    static void Assemble(ModelPart& rModelPart,
+                         typename Interface::TSchemeType& rScheme,
+                         std::optional<typename Interface::TSystemMatrixType*> pMaybeLhs,
+                         std::optional<typename Interface::TSystemVectorType*> pMaybeRhs)
+    {
+        KRATOS_TRY
+
+        // Sanity checks.
+        if constexpr (AssembleLHS) {
+            KRATOS_ERROR_IF_NOT(pMaybeLhs.has_value() && pMaybeLhs.value() != nullptr)
+                << "Requested an assembly of the left hand side, but no matrix is provided to assemble into.";
+        }
+
+        if constexpr (AssembleRHS) {
+            KRATOS_ERROR_IF_NOT(pMaybeRhs.has_value() && pMaybeRhs.value() != nullptr)
+                << "Requested an assembly of the right hand side, but no vector is provided to assemble into.";
+        }
+
+        // Global variables.
+        const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+        typename Interface::TSystemMatrixType* pLhs = pMaybeLhs.has_value() ? pMaybeLhs.value() : nullptr;
+        typename Interface::TSystemVectorType* pRhs = pMaybeRhs.has_value() ? pMaybeRhs.value() : nullptr;
+        auto p_locks = std::make_unique<std::vector<LockObject>>(AssembleLHS ? pLhs->size1() : 0ul);
+
+        [[maybe_unused]] const int element_count = rModelPart.Elements().size();
+        [[maybe_unused]] const int condition_count = rModelPart.Conditions().size();
+        [[maybe_unused]] const auto it_element_begin = rModelPart.Elements().begin();
+        [[maybe_unused]] const auto it_condition_begin = rModelPart.Conditions().begin();
+
+        #pragma omp parallel
+        {
+            // Thread-local variables.
+            Element::EquationIdVectorType equation_indices;
+            typename Interface::LocalSystemMatrixType lhs_contribution;
+            typename Interface::LocalSystemVectorType rhs_contribution;
+
+            // Collect contributions from elements.
+            #pragma omp for schedule(guided, 512) nowait
+            for (int i_entity=0; i_entity<element_count; ++i_entity) {
+                Impl::MapEntityContribution<AssembleLHS,AssembleRHS>(*(it_element_begin + i_entity),
+                                                                     rScheme,
+                                                                     r_process_info,
+                                                                     equation_indices,
+                                                                     &lhs_contribution,
+                                                                     &rhs_contribution,
+                                                                     pLhs,
+                                                                     pRhs,
+                                                                     p_locks->data());
+            } // pragma omp for
+
+            // Collect contributions from conditions.
+            #pragma omp for schedule(guided, 512)
+            for (int i_entity=0; i_entity<condition_count; ++i_entity) {
+                Impl::MapEntityContribution<AssembleLHS,AssembleRHS>(*(it_condition_begin + i_entity),
+                                                                     rScheme,
+                                                                     r_process_info,
+                                                                     equation_indices,
+                                                                     &lhs_contribution,
+                                                                     &rhs_contribution,
+                                                                     pLhs,
+                                                                     pRhs,
+                                                                     p_locks->data());
+            } // pragma omp for
+        } // pragma omp parallel
+
+        KRATOS_CATCH("")
     }
 
 
@@ -182,6 +324,7 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
 
     void MakeConstraintStructure(ModelPart& rModelPart)
     {
+        KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
         KRATOS_TRY
         if (!rModelPart.MasterSlaveConstraints().empty()) {
             const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
@@ -265,6 +408,7 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
 
     void MakeConstraints(ModelPart& rModelPart)
     {
+        KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
         KRATOS_TRY
 
         TSparse::SetToZero(mRelationMatrix);
@@ -340,64 +484,6 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
 
 
     // --------------------------------------------------------- //
-    // Right Hand Side Assembly
-    // --------------------------------------------------------- //
-
-
-    static void BuildUnconstrainedRHS(const typename Interface::TSchemeType::Pointer& rpScheme,
-                                      ModelPart& rModelPart,
-                                      typename Interface::TSystemVectorType& rRhs)
-    {
-        KRATOS_TRY
-
-        auto& r_elements = rModelPart.Elements();
-        auto& r_conditions = rModelPart.Conditions();
-        const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
-
-        // Local containers.
-        typename Interface::LocalSystemVectorType local_rhs;
-        Element::EquationIdVectorType equation_ids;
-
-        // Assemble elements.
-        const int nelements = static_cast<int>(r_elements.size());
-        #pragma omp parallel firstprivate(nelements, local_rhs, equation_ids)
-        {
-            #pragma omp for schedule(guided, 512) nowait
-            for (int i=0; i<nelements; i++) {
-                auto it = r_elements.begin() + i;
-                // If the element is active
-                if(it->IsActive()) {
-                    //calculate elemental Right Hand Side Contribution
-                    rpScheme->CalculateRHSContribution(*it, local_rhs, equation_ids, r_process_info);
-
-                    //assemble the elemental contribution
-                    Impl::MapRhsContribution(rRhs, local_rhs, equation_ids);
-                }
-            }
-
-            local_rhs.resize(0, false);
-
-            // assemble all conditions
-            const int nconditions = static_cast<int>(r_conditions.size());
-            #pragma omp for schedule(guided, 512)
-            for (int i = 0; i<nconditions; i++) {
-                auto it = r_conditions.begin() + i;
-                // If the condition is active
-                if(it->IsActive()) {
-                    //calculate elemental contribution
-                    rpScheme->CalculateRHSContribution(*it, local_rhs, equation_ids, r_process_info);
-
-                    //assemble the elemental contribution
-                    Impl::MapRhsContribution(rRhs, local_rhs, equation_ids);
-                }
-            }
-        }
-
-        KRATOS_CATCH("")
-    }
-
-
-    // --------------------------------------------------------- //
     // Left Hand Side Assembly
     // --------------------------------------------------------- //
 
@@ -411,6 +497,7 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
                             std::unordered_set<std::size_t>* pRowSetBegin,
                             [[maybe_unused]] std::unordered_set<std::size_t>* pRowSetEnd)
     {
+        KRATOS_PROFILE_SCOPE(KRATOS_CODE_LOCATION);
         using TLS = Element::EquationIdVectorType;
         block_for_each(rEntities,
                        TLS(),
@@ -431,6 +518,7 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
                           typename Interface::TSystemMatrixType& rLhs,
                           ModelPart& rModelPart)
     {
+        KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
         KRATOS_TRY
 
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
@@ -466,21 +554,18 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
                 rConst.EquationIdVector(rTls.slave_ids, rTls.master_ids, r_current_process_info);
 
                 for (std::size_t i = 0; i < rTls.slave_ids.size(); i++) {
-                    locks[rTls.slave_ids[i]].lock();
                     auto& row_indices = indices[rTls.slave_ids[i]];
+                    std::scoped_lock<LockObject> lock(locks[rTls.slave_ids[i]]);
                     row_indices.insert(rTls.slave_ids[i]);
-                    locks[rTls.slave_ids[i]].unlock();
                 }
 
                 for (std::size_t i = 0; i < rTls.master_ids.size(); i++) {
-                    locks[rTls.master_ids[i]].lock();
                     auto& row_indices = indices[rTls.master_ids[i]];
+                    std::scoped_lock<LockObject> lock(locks[rTls.master_ids[i]]);
                     row_indices.insert(rTls.master_ids[i]);
-                    locks[rTls.master_ids[i]].unlock();
                 }
             });
-
-        }
+        } // if rModelPart.MasterSlaveConstraints
 
         // Destroy locks
         locks = std::vector<LockObject>();
@@ -509,8 +594,10 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
                 k++;
             }
 
-            indices[i] = decltype(indices)::value_type();
             std::sort(&r_column_indices[i_row_begin], &r_column_indices[i_row_end]);
+
+            // Deallocate row
+            indices[i] = decltype(indices)::value_type();
         });
 
         rLhs.set_filled(indices.size()+1, nnz);
@@ -663,53 +750,13 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Build(typename Interfac
                                                                typename Interface::TSystemMatrixType& rLhs,
                                                                typename Interface::TSystemVectorType& rRhs)
 {
+    KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
+    KRATOS_ERROR_IF(!pScheme) << "missing scheme" << std::endl;
     KRATOS_TRY
-
-    KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
-
-    const int nelements = static_cast<int>(rModelPart.Elements().size());
-    const int nconditions = static_cast<int>(rModelPart.Conditions().size());
-
-    const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
-    const auto el_begin = rModelPart.Elements().begin();
-    const auto cond_begin = rModelPart.Conditions().begin();
-
-    //contributions to the system
-    typename Interface::LocalSystemMatrixType lhs_contribution;
-    typename Interface::LocalSystemVectorType rhs_contribution;
-
-    // Assemble all elements
-    #pragma omp parallel private(lhs_contribution, rhs_contribution)
-    {
-        Element::EquationIdVectorType EquationIds;
-
-        # pragma omp for  schedule(guided, 512) nowait
-        for (int k = 0; k < nelements; k++) {
-            auto it_elem = el_begin + k;
-
-            if (it_elem->IsActive()) {
-                // Calculate elemental contribution
-                pScheme->CalculateSystemContributions(*it_elem, lhs_contribution, rhs_contribution, EquationIds, CurrentProcessInfo);
-
-                // Assemble the elemental contribution
-                mpImpl->MapContributions(rLhs, rRhs, lhs_contribution, rhs_contribution, EquationIds);
-            }
-
-        }
-
-        #pragma omp for  schedule(guided, 512)
-        for (int k = 0; k < nconditions; k++) {
-            auto it_cond = cond_begin + k;
-
-            if (it_cond->IsActive()) {
-                // Calculate elemental contribution
-                pScheme->CalculateSystemContributions(*it_cond, lhs_contribution, rhs_contribution, EquationIds, CurrentProcessInfo);
-
-                // Assemble the elemental contribution
-                mpImpl->MapContributions(rLhs, rRhs, lhs_contribution, rhs_contribution, EquationIds);
-            }
-        }
-    }
+    Impl::template Assemble</*AssembleLHS=*/true,/*AssembleRHS=*/true>(rModelPart,
+                                                                       *pScheme,
+                                                                       &rLhs,
+                                                                       &rRhs);
     KRATOS_CATCH("")
 }
 
@@ -719,57 +766,13 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::BuildLHS(typename Inter
                                                                   ModelPart& rModelPart,
                                                                   typename Interface::TSystemMatrixType& rLhs)
 {
+    KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
     KRATOS_TRY
-
-    KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
-
-    // Getting the elements from the model
-    const int nelements = static_cast<int>(rModelPart.Elements().size());
-
-    // Getting the array of the conditions
-    const int nconditions = static_cast<int>(rModelPart.Conditions().size());
-
-    const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-    const auto it_elem_begin = rModelPart.ElementsBegin();
-    const auto it_cond_begin = rModelPart.ConditionsBegin();
-
-    // Contributions to the system
-    typename Interface::LocalSystemMatrixType lhs_contribution;
-
-    // Vector containing the localization in the system of the different terms
-    Element::EquationIdVectorType equation_id;
-
-    // Assemble all elements
-    #pragma omp parallel firstprivate(nelements, nconditions, lhs_contribution, equation_id )
-    {
-        # pragma omp for  schedule(guided, 512) nowait
-        for (int k = 0; k < nelements; ++k) {
-            auto it_elem = it_elem_begin + k;
-
-            // Detect if the element is active or not. If the user did not make any choice the element is active by default
-            if (it_elem->IsActive()) {
-                // Calculate elemental contribution
-                pScheme->CalculateLHSContribution(*it_elem, lhs_contribution, equation_id, r_current_process_info);
-
-                // Assemble the elemental contribution
-                mpImpl->MapLhsContribution(rLhs, lhs_contribution, equation_id);
-            }
-        }
-
-        #pragma omp for schedule(guided, 512)
-        for (int k = 0; k < nconditions; ++k) {
-            auto it_cond = it_cond_begin + k;
-
-            // Detect if the element is active or not. If the user did not make any choice the element is active by default
-            if (it_cond->IsActive()) {
-                // Calculate elemental contribution
-                pScheme->CalculateLHSContribution(*it_cond, lhs_contribution, equation_id, r_current_process_info);
-
-                // Assemble the elemental contribution
-                mpImpl->MapLhsContribution(rLhs, lhs_contribution, equation_id);
-            }
-        }
-    }
+    KRATOS_ERROR_IF(!pScheme) << "missing scheme" << std::endl;
+    Impl::template Assemble</*AssembleLHS=*/true,/*AssembleRHS=*/false>(rModelPart,
+                                                                        *pScheme,
+                                                                        &rLhs,
+                                                                        nullptr);
     KRATOS_CATCH("")
 }
 
@@ -779,14 +782,15 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::BuildRHS(typename Inter
                                                                   ModelPart& rModelPart,
                                                                   typename Interface::TSystemVectorType& rRhs)
 {
+    KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
     KRATOS_TRY
-
-    mpImpl->BuildUnconstrainedRHS(pScheme,rModelPart,rRhs);
-    block_for_each(this->mDofSet, [&](Dof<double>& rDof){
-        const std::size_t i = rDof.EquationId();
-
+    Impl::template Assemble</*AssembleLHS=*/false,/*AssembleRHS=*/true>(rModelPart,
+                                                                        *pScheme,
+                                                                        nullptr,
+                                                                        &rRhs);
+    block_for_each(this->mDofSet, [&rRhs](Dof<double>& rDof){
         if (rDof.IsFixed())
-            rRhs[i] = 0.0;
+            rRhs[rDof.EquationId()] = 0.0;
     });
 
     KRATOS_CATCH("")
@@ -805,6 +809,7 @@ void GetDiagonalScaleFactor(typename TSparse::DataType& rDiagonalScaleFactor,
                             const DiagonalScaling ScalingStrategy,
                             [[maybe_unused]] const ProcessInfo& rProcessInfo)
 {
+    KRATOS_PROFILE_SCOPE(KRATOS_CODE_LOCATION);
     KRATOS_TRY
     switch (ScalingStrategy) {
         case DiagonalScaling::None:
@@ -864,6 +869,7 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::ApplyDirichletCondition
                                                                                   typename Interface::TSystemVectorType& rSolution,
                                                                                   typename Interface::TSystemVectorType& rRhs)
 {
+    KRATOS_PROFILE_SCOPE(KRATOS_CODE_LOCATION);
     const std::size_t system_size = rLhs.size1();
     Vector scaling_factors (system_size);
 
@@ -914,6 +920,7 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::ApplyRHSConstraints(typ
                                                                              ModelPart& rModelPart,
                                                                              typename Interface::TSystemVectorType& rRhs)
 {
+    KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
     KRATOS_TRY
 
     if (rModelPart.MasterSlaveConstraints().size() != 0) {
@@ -947,38 +954,42 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::ApplyConstraints(typena
                                                                           typename Interface::TSystemMatrixType& rLhs,
                                                                           typename Interface::TSystemVectorType& rRhs)
 {
+    KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
     KRATOS_TRY
 
     if (rModelPart.MasterSlaveConstraints().size() != 0) {
         mpImpl->MakeConstraints(rModelPart);
 
         // We compute the transposed matrix of the global relation matrix
-        typename Interface::TSystemMatrixType T_transpose_matrix(mpImpl->mRelationMatrix.size2(), mpImpl->mRelationMatrix.size1());
-        SparseMatrixMultiplicationUtility::TransposeMatrix<typename Interface::TSystemMatrixType, typename Interface::TSystemMatrixType>(T_transpose_matrix, mpImpl->mRelationMatrix, 1.0);
+        {
+            // Storage for an intermediate matrix transpose(relation_matrix) * lhs_matrix
+            typename Interface::TSystemMatrixType left_multiplied_lhs(mpImpl->mRelationMatrix.size2(), rLhs.size2());
+            {
+                // Transpose the relation matrix
+                typename Interface::TSystemMatrixType transposed_relation_matrix(mpImpl->mRelationMatrix.size2(), mpImpl->mRelationMatrix.size1());
+                SparseMatrixMultiplicationUtility::TransposeMatrix(transposed_relation_matrix, mpImpl->mRelationMatrix, 1.0);
 
-        typename Interface::TSystemVectorType b_modified(rRhs.size());
-        TSparse::Mult(T_transpose_matrix, rRhs, b_modified);
-        TSparse::Copy(b_modified, rRhs);
+                typename Interface::TSystemVectorType b_modified(rRhs.size());
+                TSparse::Mult(transposed_relation_matrix, rRhs, b_modified);
+                TSparse::Copy(b_modified, rRhs);
 
-        typename Interface::TSystemMatrixType auxiliar_A_matrix(mpImpl->mRelationMatrix.size2(), rLhs.size2());
-        SparseMatrixMultiplicationUtility::MatrixMultiplication(T_transpose_matrix, rLhs, auxiliar_A_matrix); //auxiliar = T_transpose * rLhs
-        T_transpose_matrix.resize(0, 0, false);                                                             //free memory
+                SparseMatrixMultiplicationUtility::MatrixMultiplication(transposed_relation_matrix, rLhs, left_multiplied_lhs);
+            } // deallocate transposed_relation_matrix
 
-        SparseMatrixMultiplicationUtility::MatrixMultiplication(auxiliar_A_matrix, mpImpl->mRelationMatrix, rLhs); //A = auxilar * T   NOTE: here we are overwriting the old A matrix!
-        auxiliar_A_matrix.resize(0, 0, false);                                              //free memory
+            SparseMatrixMultiplicationUtility::MatrixMultiplication(left_multiplied_lhs, mpImpl->mRelationMatrix, rLhs);
+        } // deallocate left_multiplied_lhs
 
-        // Compute the scale factor value
+        // Compute the scale factor for slave DoFs.
         GetDiagonalScaleFactor<TSparse>(mpImpl->mDiagonalScaleFactor,
                                         rLhs,
                                         mpImpl->mDiagonalScaling,
                                         rModelPart.GetProcessInfo());
 
         // Apply diagonal values on slaves
-        IndexPartition<std::size_t>(mpImpl->mSlaveIds.size()).for_each([&](std::size_t Index){
-            const IndexType slave_equation_id = mpImpl->mSlaveIds[Index];
-            if (mpImpl->mInactiveSlaveIds.find(slave_equation_id) == mpImpl->mInactiveSlaveIds.end()) {
-                rLhs(slave_equation_id, slave_equation_id) = mpImpl->mDiagonalScaleFactor;
-                rRhs[slave_equation_id] = 0.0;
+        block_for_each(mpImpl->mSlaveIds, [this, &rLhs, &rRhs](const auto iSlave){
+            if (mpImpl->mInactiveSlaveIds.find(iSlave) == mpImpl->mInactiveSlaveIds.end()) {
+                rLhs(iSlave, iSlave) = mpImpl->mDiagonalScaleFactor;
+                rRhs[iSlave] = 0.0;
             }
         });
     }
@@ -1039,7 +1050,6 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::BuildAndSolve(typename 
     ApplyDirichletConditions(pScheme, rModelPart, rLhs, rSolution, rRhs);
 
     // Solve constrained assembled system.
-    TSparse::WriteMatrixMarketMatrix("test.mm", rLhs, false);
     mpImpl->SystemSolveWithPhysics(rLhs, rSolution, rRhs, rModelPart, *this);
     KRATOS_CATCH("")
 }
@@ -1078,10 +1088,12 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::CalculateReactions(type
                                                                             typename Interface::TSystemVectorType& rSolution,
                                                                             typename Interface::TSystemVectorType& rRhs)
 {
+    KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
     TSparse::SetToZero(rRhs);
-
-    //refresh RHS to have the correct reactions
-    mpImpl->BuildUnconstrainedRHS(pScheme, rModelPart, rRhs);
+    Impl::template Assemble</*AssembleLHS=*/false,/*AssembleRHS=*/true>(rModelPart,
+                                                                        *pScheme,
+                                                                        nullptr,
+                                                                        &rRhs);
     block_for_each(this->mDofSet, [&rRhs](Dof<double>& rDof){
         rDof.GetSolutionStepReactionValue() = -rRhs[rDof.EquationId()];
     });
