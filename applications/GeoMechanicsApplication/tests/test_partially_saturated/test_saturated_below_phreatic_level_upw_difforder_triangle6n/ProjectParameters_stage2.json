@@ -13,7 +13,7 @@
     "domain_size"                      : 2,
     "model_import_settings": {
       "input_type"                     : "mdpa",
-      "input_filename"                 : "kolom_stage2"
+      "input_filename"                 : "column"
     },
     "material_import_settings": {
       "materials_filename"             : "MaterialParameters_stage2.json"
