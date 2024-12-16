@@ -341,6 +341,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             self.post_file_name = self.settings["file_name"].GetString()
             domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
             self.my_energy_process = KratosCFD.EnergyCheckProcess(self.main_model_part, domain_size, self.post_file_name)
+        self.initialize_flaging = True
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
     def Check(self):
@@ -621,6 +622,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         for i in range(domain_size):
             self.VelocityBoundaryConditionFractional(fractional_velocity_componentes[i], velocity_components[i])
         self._GetNSFractionalSplittingProcess().Execute()
+        self.__SlipConditionFractionalFixity()
 
     def __PerformEulerianFmAleVelocity(self):
         # Solve the historical data convection problem
@@ -643,7 +645,9 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
 
     def VelocityBoundaryConditionFractional(self, fractional_velocity_componentes, velocity_components):
         for node in self.GetComputingModelPart().Nodes:
-            if node.IsFixed(velocity_components):
+            if node.Is(KratosMultiphysics.SLIP):
+                pass
+            elif node.IsFixed(velocity_components):
                 v_fix = node.GetSolutionStepValue(velocity_components)
                 node.SetSolutionStepValue(fractional_velocity_componentes,v_fix)
                 node.Fix(fractional_velocity_componentes)
@@ -679,6 +683,16 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
                     node.SetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY, v)
                     node.SetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY, 1,v)
 
+    def __SlipConditionFractionalFixity(self):
+        for node in self.GetComputingModelPart().Nodes:
+            if node.Is(KratosMultiphysics.SLIP):
+                    n = node.GetSolutionStepValue(KratosMultiphysics.NORMAL)
+                    n/=math.sqrt(n[0]**2+n[1]**2+n[2]**2)
+                    v = node.GetSolutionStepValue(KratosCFD.FRACTIONAL_VELOCITY)
+                    v_prooj = self.DotProduct(v,n)
+                    v -= v_prooj * n
+                    node.SetSolutionStepValue(KratosCFD.FRACTIONAL_VELOCITY, v)
+                    
     # TODO: Remove this method as soon as the subproperties are available
     def _SetPhysicalProperties(self):
 
