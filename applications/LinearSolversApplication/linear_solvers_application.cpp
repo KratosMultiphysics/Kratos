@@ -46,7 +46,9 @@ void KratosLinearSolversApplication::Register()
                     << "Initializing KratosLinearSolversApplication..." << std::endl;
 
     // Adding the eigen library to the list of registered libraries
-    Registry::AddItem<std::string>("libraries.eigen");
+    if (!Registry::HasItem("libraries.eigen")) {
+        Registry::AddItem<std::string>("libraries.eigen");
+    }
 
     #if defined USE_EIGEN_MKL
     MKLVersion mkl_version;
