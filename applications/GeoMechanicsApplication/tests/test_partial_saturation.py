@@ -1,10 +1,6 @@
-# from KratosMultiphysics import * as Kratos
-
-import sys
 import os
 
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 import KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis as analysis
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -25,19 +21,9 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
         pass
 
     def __test_saturated_below_phreatic_level_pw(self, test_name):
-        """
-        test 1D consolidation on elastic soil.
-
-        :return:
-        """
-        from math import fabs
-        #from analytical_solutions import calculate_column_saturated_under_phreatic_level
-        
-        # define number of stages
         n_stages = 2
 
         # get the parameter file names for all stages
-        #test_name = test_name
         file_path = test_helper.get_file_path(os.path.join('.', 'test_partially_saturated', test_name))
         parameter_file_names = [os.path.join(file_path, 'ProjectParameters_stage' + str(i + 1) + '.json') for i in
                                 range(n_stages)]
@@ -61,11 +47,8 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
         # get y coords of all the nodes
         coords = test_helper.get_nodal_coordinates(stages[1])
         y_coords = [coord[1] for coord in coords]
-        
-        
 
         # calculate water pressure analytical solution for all stages and calculate the error
-        #rmse_stages = [None] * (n_stages - 1)
         rel_p_stage  = [self.__calculate_column_saturated_under_phreatic_level(y_coord) for y_coord in y_coords]
         print(rel_p_stage)
         
@@ -77,7 +60,6 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
         accuracy = 1.0e-7
         self.assertLess(rmse_stages, accuracy)
 
-    
     def test_saturated_below_phreatic_level_pw_triangle3N(self):
         self.__test_saturated_below_phreatic_level_pw('test_saturated_below_phreatic_level_pw_triangle3N')
         
@@ -93,12 +75,11 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
     def test_saturated_below_phreatic_level_upw_smallstrain_triangle6n(self):
         self.__test_saturated_below_phreatic_level_pw('test_saturated_below_phreatic_level_upw_smallstrain_triangle6n')
 
-
     def __calculate_column_saturated_under_phreatic_level(self, y_coord):
         water_density = 1019.367991845056
-        gravity = 9.81
+        gravity = -9.81
         phreatic_level = -2.0
-        result = gravity * water_density * (y_coord - phreatic_level)
+        result = gravity * water_density * (phreatic_level - y_coord)
         return min([result, 0.0])
  
         
