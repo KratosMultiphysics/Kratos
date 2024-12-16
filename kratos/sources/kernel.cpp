@@ -20,6 +20,7 @@
 #include "includes/kratos_version.h"
 #include "includes/data_communicator.h"
 #include "includes/parallel_environment.h"
+#include "includes/registry.h"
 #include "input_output/logger.h"
 #include "utilities/parallel_utilities.h"
 
@@ -57,8 +58,41 @@ void Kernel::PrintInfo() {
 }
 
 void Kernel::Initialize() {
+    // Print kernel info
     this->PrintInfo();
 
+    // Boost is always available
+    Registry::AddItem<std::string>("libraries.boost");
+
+    // When using the nonfree version of TRIANGLE, add it to the list of libraries
+#if USE_TRIANGLE_NONFREE_TPL
+    Registry::AddItem<std::string>("libraries.triangle");
+#else
+    // Open-source version alternative to TRIANGLE
+    Registry::AddItem<std::string>("libraries.delaunator-cpp");
+#endif
+
+    // When using the nonfree version of TETGEN, add it to the list of libraries
+#if USE_TETGEN_NONFREE_TPL
+    Registry::AddItem<std::string>("libraries.tetgen");
+#endif
+
+    // Add the libraries that are always available
+    Registry::AddItem<std::string>("libraries.amgcl");
+    Registry::AddItem<std::string>("libraries.benchmark");
+    Registry::AddItem<std::string>("libraries.clipper");
+    Registry::AddItem<std::string>("libraries.concurrentqueue");
+    Registry::AddItem<std::string>("libraries.ghc");
+    Registry::AddItem<std::string>("libraries.gidpost");
+    Registry::AddItem<std::string>("libraries.intrusive_ptr");
+    Registry::AddItem<std::string>("libraries.json");
+    Registry::AddItem<std::string>("libraries.pybind11");
+    Registry::AddItem<std::string>("libraries.span");
+    Registry::AddItem<std::string>("libraries.tinyexpr");
+    Registry::AddItem<std::string>("libraries.vexcl");
+    Registry::AddItem<std::string>("libraries.zlib");
+
+    // Import the Kratos core application (if not already imported)
     if (!IsImported("KratosMultiphysics")) {
         this->ImportApplication(mpKratosCoreApplication);
     }
@@ -69,32 +103,14 @@ std::unordered_set<std::string>& Kernel::GetApplicationsList() {
     return application_list;
 }
 
-std::unordered_set<std::string>& Kernel::GetLibrayList() {
-    // TODO: add more libraries if required
-    static std::unordered_set<std::string> library_list = {
-    #if USE_TRIANGLE_NONFREE_TPL
-            "triangle",
-    #else
-            "delaunator-cpp",
-    #endif
-    #if USE_TETGEN_NONFREE_TPL
-            "tetgen",
-    #endif
-    #if KRATOS_USE_AMATRIX
-            "a_matrix",
-    #endif
-            "amgcl",
-            "concurrentqueue",
-            "ghc",
-            "gidpost",
-            "intrusive_ptr",
-            "json",
-            "pybind11",
-            "span",
-            "tinyexpr",
-            "vexcl",
-            "zlib"
-    };
+std::unordered_set<std::string> Kernel::GetLibraryList() {
+    std::unordered_set<std::string> library_list;
+
+    const auto& r_item = Registry::GetItem("libraries");
+    for (auto it_item = r_item.cbegin(); it_item != r_item.cend(); ++it_item) {
+        library_list.insert((it_item->second)->Name());
+    }
+
     return library_list;
 }
 
@@ -103,7 +119,7 @@ bool Kernel::IsImported(const std::string& rApplicationName) const {
 }
 
 bool Kernel::IsLibraryAvailable(const std::string& rLibraryName) const {
-    return GetLibrayList().find(rLibraryName) != GetLibrayList().end();
+    return GetLibraryList().find(rLibraryName) != GetLibraryList().end();
 }
 
 bool Kernel::IsDistributedRun() {
