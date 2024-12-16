@@ -1140,7 +1140,10 @@ void MPMUpdatedLagrangianVPVMS::CalculateAndAddRHS(
 {
 
     // Operation performed: rRightHandSideVector += ExtForce*IntegrationWeight
-    CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight );
+    //CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight );
+
+    // Add incremental terms. Questa operazione non era necessaria nel caso UP in quanto u_k = 0, ma qui, v_k != 0 (?)
+    //CalculateAndAddIncrementalTerms( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight);
 
     // Operation performed: rRightHandSideVector -= Stabilized terms of the momentum equation
     CalculateAndAddStabilizedVelocity( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight);
@@ -1166,11 +1169,48 @@ void MPMUpdatedLagrangianVPVMS::CalculateAndAddExternalForces(VectorType& rRight
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        int index_up = dimension * i + i;
+        int index_i = dimension * i + i;
 
         for ( unsigned int j = 0; j < dimension; j++ )
         {
-            rRightHandSideVector[index_up + j] += r_N(0, i) * rVolumeForce[j];
+            rRightHandSideVector[index_i + j] += r_N(0, i) * rVolumeForce[j]; //???
+        }
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void MPMUpdatedLagrangianVPVMS::CalculateAndAddIncrementalTerms(VectorType& rRightHandSideVector,
+        GeneralVariables& rVariables,
+        Vector& rVolumeForce,
+        const double& rIntegrationWeight)
+{
+    KRATOS_TRY
+
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
+    
+    array_1d<double, 3 > previous_velocity = ZeroVector(3);
+    double previous_pressure = 0.0;
+
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        int index_i = dimension * i + i;
+        previous_velocity = r_geometry[i].FastGetSolutionStepValue(VELOCITY,1);
+        previous_pressure = r_geometry[i].FastGetSolutionStepValue(PRESSURE,1);  
+
+        for ( unsigned int j = 0; j < dimension; j++ )
+        {
+            for (unsigned int jdim = 0; jdim < dimension; jdim++) {
+                rRightHandSideVector[index_i + j] -= rVariables.ShearModulus * previous_velocity[j] * rVariables.DN_DX(i, jdim) * rVariables.DN_DX(i, jdim) * rIntegrationWeight;
+            }
+            rRightHandSideVector[index_i + j] += (1 / mMP.density) * previous_pressure * r_N(0, i) * rVariables.DN_DX(i, j);
+            rRightHandSideVector[index_i + dimension] -= (1 / mMP.density) * previous_velocity[j] * r_N(0, i) * rVariables.DN_DX(i, j);
         }
     }
 
@@ -1190,16 +1230,18 @@ void MPMUpdatedLagrangianVPVMS::CalculateAndAddStabilizedVelocity(VectorType& rR
     GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
+    double previous_pressure = 0.0;
 
     unsigned int indexi  = 0;
-    //° da ricontrollare gli indici (in teoria sono ok)
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        unsigned int index_up = dimension * i + i;
-        for ( unsigned int jdim = 0; jdim < dimension; jdim ++ )
-        {
-            rRightHandSideVector[index_up + jdim] -= rVariables.tau1 / mMP.density * (rVolumeForce[jdim] + (1/mMP.density) * rVariables.PressureGradient[jdim]) * rIntegrationWeight * rVariables.DN_DX(i,jdim);//manca termine dinamico 'a'
+        unsigned int index_i = dimension * i + i;
+        previous_pressure = r_geometry[i].FastGetSolutionStepValue(PRESSURE,1);
 
+        for ( unsigned int idim = 0; idim < dimension; idim ++ )
+        {
+            rRightHandSideVector[index_i + idim] -= rVariables.tau1 / mMP.density * rVolumeForce[idim] * rVariables.DN_DX(i, idim);
+            rRightHandSideVector[index_i + idim] -= rVariables.tau1 / (mMP.density * mMP.density) * previous_pressure * rVariables.DN_DX(i, idim) * rVariables.DN_DX(i, idim) * rIntegrationWeight;
             indexi++;
         }
     }
@@ -1222,23 +1264,23 @@ void MPMUpdatedLagrangianVPVMS::CalculateAndAddStabilizedPressure(VectorType& rR
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
-    unsigned int index_p = dimension;
-
-    double innerProductLeftHandSide = 0.0;
-    double innerProductRightHandSide= 0.0;
+    unsigned int index_i = dimension;
+    double div1;
+    double div2;
+    array_1d<double, 3 > previous_velocity = ZeroVector(3);   
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        for ( unsigned int idime = 0; idime < dimension; idime++ ) {
-        //    rRightHandSideVector[index_p] -= rVariables.tau1  * functionJ * rVariables.DN_DX(i,idime)*(-rVariables.PressureGradient[idime] - rVolumeForce[idime] + rVariables.DynamicRHS[idime] + rVariables.ResProjDisplGP[idime]) * rIntegrationWeight;
-            //innerProductLetHandSide += rVariables. [per proseguire serve una variabile previous velocity]
+        previous_velocity = r_geometry[i].FastGetSolutionStepValue(VELOCITY,1);
+        div1 = 0.0;
+        div2 = 0.0;
+        for ( unsigned int idim = 0; idim < dimension; idim++ ) {
+            div1 += previous_velocity[idim] * rVariables.DN_DX(i, idim);
+            div2 += rVariables.DN_DX(i, idim);
         }
-
-        //rRightHandSideVector[index_p] -= rVariables.tau2  * ((rVariables.PressureGP/rVariables.BulkModulus) - VolumetricStrainFunction + rVariables.ResProjPressGP) * r_N(0, i) * (1/rVariables.BulkModulus) * rIntegrationWeight;
         
-        //rRightHandSideVector[index_p] -= rVariables.tau2 / (pow(mMP.density, 2)) * () * () * rIntegrationWeight; [per completarla servono i termini fra parentesi; nel caso statico è zero]
-        
-        index_p += (dimension + 1);
+        rRightHandSideVector[index_i] -= div1 * div2;
+        index_i += (dimension + 1);
     }
 
     KRATOS_CATCH( "" )
@@ -1260,19 +1302,19 @@ void MPMUpdatedLagrangianVPVMS::CalculateAndAddLHS(
     CalculateAndAddK( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
     //KRATOS_WATCH(rLeftHandSideMatrix);
 
-    // Operation performed: add Bv to the rLefsHandSideMatrix
-    CalculateAndAddBv( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
-    //KRATOS_WATCH(rLeftHandSideMatrix);
-
     // Operation performed: add Bp to the rLefsHandSideMatrix
     CalculateAndAddBp( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
     //KRATOS_WATCH(rLeftHandSideMatrix);
     
+    // Operation performed: add Bv to the rLefsHandSideMatrix
+    CalculateAndAddBv( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+    //KRATOS_WATCH(rLeftHandSideMatrix);
+
     // Operation performed: add Kuu stabilization to the rLefsHandSideMatrix
-    CalculateAndAddS1v( rLeftHandSideMatrix, rVariables, rIntegrationWeight, rCurrentProcessInfo ); //°solo caso dinamico
+    //CalculateAndAddS1v( rLeftHandSideMatrix, rVariables, rIntegrationWeight, rCurrentProcessInfo ); //°solo caso dinamico; questa funzione non va chiamata qui, ma nel time scheme
     
     // Operation performed: add Kup stabilization to the rLefsHandSideMatrix
-    CalculateAndAddS1p( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+    CalculateAndAddS1p( rLeftHandSideMatrix, rVariables, rIntegrationWeight ); //controllare che sia corretta
     //KRATOS_WATCH(rLeftHandSideMatrix);
 
     // Operations performed: add Kpu stabilization to the rLefsHandSideMatrix
@@ -1284,47 +1326,6 @@ void MPMUpdatedLagrangianVPVMS::CalculateAndAddLHS(
 //************************************************************************************
 //************************************************************************************
 
-//°
-//void MPMUpdatedLagrangianVPVMS::CalculateAndAddK (MatrixType& rLeftHandSideMatrix,
-//        GeneralVariables& rVariables,
-//        const double& rIntegrationWeight)
-//{
-//    KRATOS_TRY
-//    const unsigned int number_of_nodes = GetGeometry().size();
-//    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-//    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
-//    
-//    unsigned int indexi = 0;
-//    unsigned int indexj = 0;
-//
-//    double dotProduct = 0.0;
-//
-//    // Assemble components considering added DOF matrix system
-//    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-//    {
-//        for ( unsigned int idim = 0; idim < dimension ; idim ++)
-//        {
-//            indexj = 0;
-//            for ( unsigned int j = 0; j < number_of_nodes; j++ )
-//            {
-//                for ( unsigned int jdim = 0; jdim < dimension ; jdim ++)
-//                {
-//                    dotProduct = 0.0;
-//                    for ( unsigned int dotProdDim = 0; dotProdDim < dimension ; dotProdDim ++)//°
-//                    {
-//                        dotProduct += rVariables.DN_DX(i, dotProdDim)*rVariables.DN_DX(j, dotProdDim);
-//                    }
-//                    rLeftHandSideMatrix(indexi+i,indexj+j)+= dotProduct * rIntegrationWeight;
-//                    indexj++;
-//                }
-//            }
-//            indexi++;
-//        }
-//    }
-//
-//    KRATOS_CATCH( "" )
-//}
-
 void MPMUpdatedLagrangianVPVMS::CalculateAndAddK(MatrixType& rLeftHandSideMatrix,
         GeneralVariables& rVariables,
         const double& rIntegrationWeight
@@ -1334,76 +1335,23 @@ void MPMUpdatedLagrangianVPVMS::CalculateAndAddK(MatrixType& rLeftHandSideMatrix
 
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    const int size = number_of_nodes * dimension;
-
-    //Matrix stress_tensor = MathUtils<double>::StressVectorToTensor( rVariables.StressVector );
-    //Matrix reduced_K = prod( rVariables.DN_DX, trans( rVariables.DN_DX ) ); //to be optimized
-    //Matrix K = ZeroMatrix(size, size);
-    //MathUtils<double>::ExpandAndAddReducedMatrix( K, reduced_K, dimension );
 
     // Assemble components considering added DOF matrix system
-    //unsigned int indexi = 0;
-    //unsigned int indexj = 0;
-    unsigned int indexk = 0;
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        indexk=0;
         for ( unsigned int idim = 0; idim < dimension ; idim ++)
         {
-            //indexj=0;
             for ( unsigned int j = 0; j < number_of_nodes; j++ )
             {
                 for ( unsigned int jdim = 0; jdim < dimension ; jdim ++)
                 {
-                    //rLeftHandSideMatrix(indexi+i,indexj+j)+=rVariables.ShearModulus * K(indexi,indexj);
-                    rLeftHandSideMatrix(i*(1+dimension)+indexk, j*(1+dimension)+indexk)+= rVariables.DN_DX(i, jdim) * rVariables.DN_DX(j, jdim) * rIntegrationWeight;
-                    //KRATOS_WATCH(i);
-                    //KRATOS_WATCH(j);
-                    //KRATOS_WATCH(i*(1+dimension)+indexk);
-                    //KRATOS_WATCH(j*(1+dimension)+indexk);
-                    //KRATOS_WATCH(rLeftHandSideMatrix(i*(1+dimension)+indexk, j*(1+dimension)+indexk));
-                    //KRATOS_WATCH(rLeftHandSideMatrix);                    
-                    //indexj++;
+                    rLeftHandSideMatrix(i*(1+dimension)+idim, j*(1+dimension)+idim)+= rVariables.ShearModulus * rVariables.DN_DX(i, jdim) * rVariables.DN_DX(j, jdim) * rIntegrationWeight;
                 }
             }
-            //indexi++;
-            indexk++;
         }
     }
-    //KRATOS_WATCH(rLeftHandSideMatrix); 
     KRATOS_CATCH( "" )
 }
-
-//void MPMUpdatedLagrangianVPVMS::CalculateAndAddBv (MatrixType& rLeftHandSideMatrix,
-//        GeneralVariables& rVariables,
-//        const double& rIntegrationWeight)
-//
-//{
-//    KRATOS_TRY
-//
-//    const unsigned int number_of_nodes = GetGeometry().size();
-//    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-//    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
-//
-//    // Assemble components considering added DOF matrix system
-//    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-//    {
-//        unsigned int index_p  = dimension;
-//        unsigned int index_up = dimension * i + i;
-//
-//        for ( unsigned int j = 0; j < number_of_nodes; j++ )
-//        {
-//            for ( unsigned int k = 0; k < dimension; k++ )
-//            {
-//                rLeftHandSideMatrix(index_up + k, index_p) += rVariables.DN_DX(j, k) * r_N(0,i) * rIntegrationWeight;
-//            }
-//            index_p += (dimension + 1);
-//        }
-//    }
-//
-//
-//    KRATOS_CATCH( "" )
-//}
 
 void MPMUpdatedLagrangianVPVMS::CalculateAndAddBp (MatrixType& rLeftHandSideMatrix,
         GeneralVariables& rVariables,
@@ -1414,53 +1362,25 @@ void MPMUpdatedLagrangianVPVMS::CalculateAndAddBp (MatrixType& rLeftHandSideMatr
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
-
+    unsigned int index_j;
+    unsigned int index_i; 
     // Assemble components considering added DOF matrix system
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        unsigned int index_p  = dimension;
-        unsigned int index_up = dimension * i + i;
+        index_j  = dimension;
+        index_i = dimension * i + i;
         for ( unsigned int j = 0; j < number_of_nodes; j++ )
         {
             for ( unsigned int k = 0; k < dimension; k++ )
             {
-                rLeftHandSideMatrix(index_up+k,index_p) += rVariables.DN_DX ( i, k ) * r_N(0, j) * rIntegrationWeight;
+                rLeftHandSideMatrix(index_i+k, index_j) += rVariables.DN_DX ( i, k ) * r_N(0, j) * rIntegrationWeight;
             }
-            index_p += (dimension + 1);
+            index_j += (dimension + 1);
         }
     }
 
     KRATOS_CATCH( "" )
 }
-
-//void MPMUpdatedLagrangianVPVMS::CalculateAndAddBp (MatrixType& rLeftHandSideMatrix,
-//        GeneralVariables& rVariables,
-//        const double& rIntegrationWeight)
-//
-//{
-//    KRATOS_TRY
-//
-//    const unsigned int number_of_nodes = GetGeometry().size();
-//    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-//    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
-//
-//    // Assemble components considering added DOF matrix system
-//    unsigned int index_p = dimension;
-//    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-//    {
-//        for ( unsigned int j = 0; j < number_of_nodes; j++ )
-//        {
-//            unsigned int index_up = dimension*j + j;
-//            for ( unsigned int k = 0; k < dimension; k++ )
-//            {
-//                rLeftHandSideMatrix(index_p, index_up + k) += rVariables.DN_DX(i, k) * r_N(0,j) * rIntegrationWeight; //° indici invertiti essendo trasposto (?)
-//            }
-//        }
-//        index_p += (dimension + 1);
-//    }
-//
-//    KRATOS_CATCH( "" )
-//}
 
 void MPMUpdatedLagrangianVPVMS::CalculateAndAddBv (MatrixType& rLeftHandSideMatrix,
         GeneralVariables& rVariables,
@@ -1473,23 +1393,23 @@ void MPMUpdatedLagrangianVPVMS::CalculateAndAddBv (MatrixType& rLeftHandSideMatr
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
 
     // Assemble components considering added DOF matrix system
-    unsigned int index_p = dimension;
+    unsigned int indexi = dimension;
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         for ( unsigned int j = 0; j < number_of_nodes; j++ )
         {
-            unsigned int index_up = dimension*j + j;
+            unsigned int indexj = dimension*j + j;
             for ( unsigned int k = 0; k < dimension; k++ )
             {
-                rLeftHandSideMatrix(index_p,index_up+k) += r_N(0, i) * rVariables.DN_DX ( j, k ) * rIntegrationWeight;
+                rLeftHandSideMatrix(indexi,indexj+k) += r_N(0, i) * rVariables.DN_DX ( j, k ) * rIntegrationWeight;
             }
         }
-        index_p += (dimension + 1);
+        indexi += (dimension + 1);
     }
 
     KRATOS_CATCH( "" )
 }
-
+// !! da riscrivere secondo metodo alternativo
 void MPMUpdatedLagrangianVPVMS::CalculateAndAddS1p (MatrixType& rLeftHandSideMatrix,
         GeneralVariables& rVariables,
         const double& rIntegrationWeight)
@@ -1499,26 +1419,25 @@ void MPMUpdatedLagrangianVPVMS::CalculateAndAddS1p (MatrixType& rLeftHandSideMat
 
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
 
     // Assemble components considering added DOF matrix system
-    unsigned int index_p = dimension;
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        for ( unsigned int j = 0; j < number_of_nodes; j++ )
+        for ( unsigned int idim = 0; idim < dimension ; idim ++)
         {
-            unsigned int index_up = dimension*j + j;
-            for ( unsigned int k = 0; k < dimension; k++ )
+            for ( unsigned int j = 0; j < number_of_nodes; j++ )
             {
-                rLeftHandSideMatrix(index_p, index_up + k) -= ( rVariables.tau1 / pow(mMP.density, 2) ) * rVariables.DN_DX(i, k) * rVariables.DN_DX(j, k) * rIntegrationWeight;
+                for ( unsigned int jdim = 0; jdim < dimension ; jdim ++)
+                {
+                    rLeftHandSideMatrix(i*(1+dimension)+idim, j*(1+dimension)+dimension) -= ( rVariables.tau1 / pow(mMP.density, 2) ) * rVariables.DN_DX(i, jdim) * rVariables.DN_DX(j, jdim) * rIntegrationWeight;
+                }
             }
         }
-        index_p += (dimension + 1);
     }
-
     KRATOS_CATCH( "" )
 }
 
+//dynamic
 void MPMUpdatedLagrangianVPVMS::CalculateAndAddS1v (MatrixType& rLeftHandSideMatrix,
         GeneralVariables& rVariables,
         const double& rIntegrationWeight,
@@ -1563,32 +1482,23 @@ void MPMUpdatedLagrangianVPVMS::CalculateAndAddS2 (MatrixType& rLeftHandSideMatr
 
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
-
-    double divergence = 0.0;
 
     // Assemble components considering added DOF matrix system
-    unsigned int index_p = dimension;
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        for ( unsigned int j = 0; j < number_of_nodes; j++ )
+        for ( unsigned int idim = 0; idim < dimension ; idim ++)
         {
-            unsigned int index_up = dimension*j + j;
-            for ( unsigned int k = 0; k < dimension; k++ )
+            for ( unsigned int j = 0; j < number_of_nodes; j++ )
             {
-                divergence = 0.0;
-                for (unsigned int l = 0; l < dimension; l++) {
-                    divergence += rVariables.DN_DX(j, l);
+                for ( unsigned int jdim = 0; jdim < dimension ; jdim ++)
+                {
+                    rLeftHandSideMatrix(i*(1+dimension)+dimension, j*(1+dimension)+idim) -= ( rVariables.tau2 / pow(mMP.density, 2) ) * rVariables.DN_DX(i, idim) * rVariables.DN_DX(j, jdim) * rIntegrationWeight;
                 }
-                rLeftHandSideMatrix(index_p, index_up + k) -= ( rVariables.tau2 / pow(mMP.density, 2) ) * rVariables.DN_DX(i, k) * divergence * rIntegrationWeight;
             }
         }
-        index_p += (dimension + 1);
     }
-
     KRATOS_CATCH( "" )
 }
-
 //************************************************************************************
 //************************************************************************************
 

@@ -659,6 +659,14 @@ protected:
             GeneralVariables& rVariables,
             Vector& rVolumeForce,
             const double& rIntegrationWeight);
+    
+    /**
+     * Calculation of the incremental terms
+     */
+    virtual void CalculateAndAddIncrementalTerms(VectorType& rRightHandSideVector,
+            GeneralVariables& rVariables,
+            Vector& rVolumeForce,
+            const double& rIntegrationWeight);    
 
     /**
      * Calculation of stabilization terms for the continuity equation
