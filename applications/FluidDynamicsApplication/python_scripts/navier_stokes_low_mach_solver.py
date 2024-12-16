@@ -92,7 +92,7 @@ class NavierStokesLowMachSolver(NavierStokesMonolithicSolver):
             "relative_pressure_tolerance": 1e-3,
             "absolute_pressure_tolerance": 1e-5,
             "linear_solver_settings"        : {
-                "solver_type" : "sparse_lu"
+                "solver_type" : "skyline_lu_factorization"
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
@@ -105,7 +105,11 @@ class NavierStokesLowMachSolver(NavierStokesMonolithicSolver):
                 "time_step"           : 0.0
             },
             "time_scheme":"bdf2",
-            "move_mesh_flag": false
+            "move_mesh_flag": false,
+            "thermodynamic_pressure_settings" : {
+                "flow_type" : "open",
+                "value" : 101325.0
+            }
         }""")
 
         default_settings.AddMissingParameters(super().GetDefaultParameters())
@@ -156,3 +160,38 @@ class NavierStokesLowMachSolver(NavierStokesMonolithicSolver):
         self.element_has_nodal_properties = self.formulation.element_has_nodal_properties
         self.historical_nodal_variables_list = self.formulation.historical_nodal_variables_list
         self.non_historical_nodal_variables_list = self.formulation.non_historical_nodal_variables_list
+
+    def _SetThermodynamicPressureSettings(self):
+        th_pres_settings = self.settings["thermodynamic_pressure_settings"]
+        flow_type = th_pres_settings["flow_type"].GetString()
+        if flow_type == "open":
+            self._GetComputingModelPart().ProcessInfo[KratosMultiphysics.PRESSURE] = th_pres_settings["value"].GetDouble()
+        elif flow_type == "closed":
+            raise Exception("Not implemented yet.")
+        elif flow_type == "closed_with_inflow_outflow":
+            raise Exception("Not implemented yet.")
+        else:
+            err_msg = f"Wrong value for 'flow_type'. Provided value is '{flow_type}'. Available options are:\n"
+            err_msg += "\t- 'open'\n"
+            err_msg += "\t- 'closed'\n"
+            err_msg += "\t- 'closed_with_inflow_outflow'\n"
+
+    #FIXME: We should fix the issue with the rotations
+    def _CreateScheme(self):
+        # "Fake" scheme for those cases in where the element manages the time integration
+        # It is required to perform the nodal update once the current time step is solved
+        domain_size = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        block_size = domain_size + 2
+        # scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(
+        scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+
+        # In case the BDF2 scheme is used inside the element, the BDF time discretization utility is required to update the BDF coefficients
+        if (self.settings["time_scheme"].GetString() == "bdf2"):
+            time_order = 2
+            self.time_discretization = KratosMultiphysics.TimeDiscretization.BDF(time_order)
+        else:
+            err_msg = "Requested elemental time scheme \"" + self.settings["time_scheme"].GetString()+ "\" is not available.\n"
+            err_msg += "Available option is: \"bdf2\"."
+            raise Exception(err_msg)
+
+        return scheme
