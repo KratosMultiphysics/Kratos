@@ -14,7 +14,7 @@ namespace
 namespace adjoint_test_model_part_factory_cpp
 { // unity build unity guard
 void AddVariables(ModelPart* pAdjointModelPart, const VariablesList& rCustomVariables = {});
-void CopyNodes(ModelPart* pModelPart, const PointerVectorSet<Node<3>, IndexedObject>& rNodes);
+void CopyNodes(ModelPart* pModelPart, const PointerVectorSet<Node, IndexedObject>& rNodes);
 void CopyProperties(ModelPart* pModelPart,
                     const PointerVectorSet<Properties, IndexedObject>& rProperties);
 void CreateAdjointElements(ModelPart* pAdjointModelPart,
@@ -22,7 +22,7 @@ void CreateAdjointElements(ModelPart* pAdjointModelPart,
 void AddDofs(ModelPart* pAdjointModelPart);
 void AssignBCs(ModelPart* pAdjointModelPart, const ModelPart& rPrimalModelPart);
 void CopySolutionStepData(ModelPart* pDestinationModelPart,
-                          const PointerVectorSet<Node<3>, IndexedObject>& rNodes);
+                          const PointerVectorSet<Node, IndexedObject>& rNodes);
 } // namespace adjoint_test_model_part_factory_cpp
 } // namespace
 
@@ -66,7 +66,7 @@ void AddVariables(ModelPart* pAdjointModelPart, const VariablesList& rCustomVari
     pAdjointModelPart->AddNodalSolutionStepVariable(SHAPE_SENSITIVITY);
 }
 
-void CopyNodes(ModelPart* pModelPart, const PointerVectorSet<Node<3>, IndexedObject>& rNodes)
+void CopyNodes(ModelPart* pModelPart, const PointerVectorSet<Node, IndexedObject>& rNodes)
 {
     for (const auto& r_node : rNodes)
     {
@@ -152,7 +152,7 @@ void AssignBCs(ModelPart* pAdjointModelPart, const ModelPart& rPrimalModelPart)
 }
 
 void CopySolutionStepData(ModelPart* pDestinationModelPart,
-                          const PointerVectorSet<Node<3>, IndexedObject>& rNodes)
+                          const PointerVectorSet<Node, IndexedObject>& rNodes)
 {
     KRATOS_TRY;
     for (const auto& r_primal_node : rNodes)

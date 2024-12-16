@@ -180,7 +180,7 @@ class UpdateThermalModelPartProcess : public Process {
           for (auto i_cond(i_mp->ConditionsBegin()); i_cond != i_mp->ConditionsEnd(); ++i_cond)
           {
             // Get condition nodes
-            Geometry<Node<3>>& r_geometry = i_cond->GetGeometry();
+            Geometry<Node>& r_geometry = i_cond->GetGeometry();
             Condition::NodesArrayType cond_nodes;
             cond_nodes.reserve(r_geometry.size());
             for (unsigned int i = 0; i < r_geometry.size(); i++)
@@ -210,7 +210,7 @@ class UpdateThermalModelPartProcess : public Process {
       for (auto i_cond(rComputingModelPart.ConditionsBegin()); i_cond != rComputingModelPart.ConditionsEnd(); ++i_cond)
       {
         // Loop over each condition node
-        Geometry<Node<3>>& cond_geometry = i_cond->GetGeometry();
+        Geometry<Node>& cond_geometry = i_cond->GetGeometry();
         for (unsigned int i = 0; i < cond_geometry.size(); i++)
         {
           // Loop over neighbour elements
@@ -227,7 +227,7 @@ class UpdateThermalModelPartProcess : public Process {
           }
           // Fix DOF if it is not connected to fluid elements
           if (fix) {
-            const Node<3>::DofType::Pointer dof = cond_geometry(i)->pGetDof(TEMPERATURE);
+            const Node::DofType::Pointer dof = cond_geometry(i)->pGetDof(TEMPERATURE);
             if (!dof->IsFixed())
               dof->FixDof();
           }

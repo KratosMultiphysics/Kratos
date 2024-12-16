@@ -64,7 +64,7 @@ namespace Kratos
     CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateDiscontinuousDistanceToSkinProcess(
         ModelPart& rVolumePart,
         ModelPart& rSkinPart,
-        Parameters& rParameters )
+        Parameters rParameters )
         : mFindIntersectedObjectsProcess(rVolumePart, rSkinPart)
         , mrSkinPart(rSkinPart)
         , mrVolumePart(rVolumePart)
@@ -348,7 +348,7 @@ namespace Kratos
             aux_pts.clear();
 
             // Check against all candidates to count the number of current edge intersections
-            const double edge_tolerance = 1e-6*norm_2(rEdgesContainer[i_edge][0] - rEdgesContainer[i_edge][1]);
+            const double edge_tolerance = 1e-6* rEdgesContainer[i_edge][0].Distance(rEdgesContainer[i_edge][1]);
             for (const auto &r_int_obj : rIntersectedObjects){
                 // Call the compute intersection method
                 Point int_pt;
@@ -664,8 +664,7 @@ namespace Kratos
 
         // Compute the domain characteristic length
         typedef CombinedReduction<MaxReduction<double>,MaxReduction<double>,MaxReduction<double>,MinReduction<double>,MinReduction<double>,MinReduction<double>> CustomReduction;
-        double max_x, max_y, max_z, min_x, min_y, min_z;
-        std::tie(max_x,max_y,max_z,min_x,min_y,min_z) = block_for_each<CustomReduction>(r_model_part.Nodes(),[](const Node<3>& rNode){
+        auto [max_x,max_y,max_z,min_x,min_y,min_z] = block_for_each<CustomReduction>(r_model_part.Nodes(),[](const Node& rNode){
             return std::make_tuple(rNode[0],rNode[1],rNode[2],rNode[0],rNode[1],rNode[2]);}
         );
         auto max_vector = r_model_part.GetCommunicator().GetDataCommunicator().MaxAll(std::vector<double>{max_x, max_y, max_z});
@@ -683,8 +682,8 @@ namespace Kratos
         const Element::GeometryType &rGeometry,
         array_1d<double,3> &rIntObjNormal)
     {
-        rIntObjNormal[0] = rGeometry[0].Y() - rGeometry[1].Y();
-        rIntObjNormal[1] = rGeometry[1].X() - rGeometry[0].X();
+        rIntObjNormal[0] = rGeometry[1].Y() - rGeometry[0].Y();
+        rIntObjNormal[1] = rGeometry[0].X() - rGeometry[1].X();
         rIntObjNormal[2] = 0.0;
     }
 
@@ -812,7 +811,7 @@ namespace Kratos
 
     template<std::size_t TDim>
     double CalculateDiscontinuousDistanceToSkinProcess<TDim>::ConvertIntersectionPointToEdgeRatio(
-        const Geometry<Node<3> >& rEdge,
+        const Geometry<Node >& rEdge,
         const array_1d<double,3>& rIntersectionPoint)
     {
         const double edge_length = rEdge.Length();
@@ -824,7 +823,7 @@ namespace Kratos
 
     template<std::size_t TDim>
     array_1d<double,3> CalculateDiscontinuousDistanceToSkinProcess<TDim>::ConvertEdgeRatioToIntersectionPoint(
-        const Geometry<Node<3> >& rEdge,
+        const Geometry<Node >& rEdge,
         const double& rEdgeRatio)
     {
         return rEdge[0] + rEdgeRatio * (rEdge[1] - rEdge[0]);

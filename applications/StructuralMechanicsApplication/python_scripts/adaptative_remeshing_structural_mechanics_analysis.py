@@ -3,7 +3,6 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.StructuralMechanicsApplication as SMA
 
 # Other imports
-import sys
 from KratosMultiphysics.StructuralMechanicsApplication import python_solvers_wrapper_adaptative_remeshing_structural
 
 # Import the base structural analysis
@@ -34,10 +33,10 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
         else:
             project_parameters["solver_settings"].AddValue("analysis_type", default_params["analysis_type"])
         self.process_remesh = False
-        if project_parameters.Has("recursive_remeshing_process"):
+        if project_parameters.Has("mesh_adaptivity_processes"):
             self.process_remesh = True
         if project_parameters.Has("processes"):
-            if project_parameters["processes"].Has("recursive_remeshing_process"):
+            if project_parameters["processes"].Has("mesh_adaptivity_processes"):
                 self.process_remesh = True
         super().__init__(model, project_parameters)
 
@@ -121,10 +120,13 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
                         self._GetSolver().Predict()
                         computing_model_part.Set(KM.MODIFIED, False)
                     computing_model_part.ProcessInfo.SetValue(KM.NL_ITERATION_NUMBER, non_linear_iteration)
+                    reform_dofs = mechanical_solution_strategy.GetReformDofSetAtEachStepFlag()
+                    mechanical_solution_strategy.SetReformDofSetAtEachStepFlag(True)
                     is_converged = convergence_criteria.PreCriteria(computing_model_part, builder_and_solver.GetDofSet(), mechanical_solution_strategy.GetSystemMatrix(), mechanical_solution_strategy.GetSolutionVector(), mechanical_solution_strategy.GetSystemVector())
                     self._GetSolver().SolveSolutionStep()
                     is_converged = convergence_criteria.PostCriteria(computing_model_part, builder_and_solver.GetDofSet(), mechanical_solution_strategy.GetSystemMatrix(), mechanical_solution_strategy.GetSolutionVector(), mechanical_solution_strategy.GetSystemVector())
                     self.FinalizeSolutionStep()
+                    mechanical_solution_strategy.SetReformDofSetAtEachStepFlag(reform_dofs)
                     if is_converged:
                         KM.Logger.PrintInfo(self._GetSimulationName(), "Adaptative strategy converged in ", non_linear_iteration, "iterations" )
                         break
@@ -157,7 +159,7 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
         list_of_processes = super()._CreateProcesses(parameter_name, initialization_order)
 
         if parameter_name == "processes":
-            processes_block_names = ["recursive_remeshing_process"]
+            processes_block_names = ["mesh_adaptivity_processes"]
             if len(list_of_processes) == 0: # Processes are given in the old format
                 KM.Logger.PrintWarning("AdaptativeRemeshingStructuralMechanicsAnalysis", "Using the old way to create the processes, this will be removed!")
                 from process_factory import KratosProcessFactory

@@ -11,8 +11,7 @@
 //  Main authors:    Sergio Jimenez Reyes
 //
 
-#if !defined(KRATOS_ADVANCE_IN_TIME_HIGH_CYCLE_FATIGUE_PROCESS)
-#define KRATOS_ADVANCE_IN_TIME_HIGH_CYCLE_FATIGUE_PROCESS
+#pragma once
 
 #include "processes/process.h"
 #include "includes/model_part.h"
@@ -52,8 +51,6 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION)AdvanceInTimeHighCycleFatigueProc
     ///@}
     ///@name  Enum's
     ///@{
-
-protected:
 
 
 public:
@@ -99,12 +96,27 @@ public:
      */
     void TimeAndCyclesUpdate(const double Increment);
 
-protected:
+private:
     // Member Variables
-    ModelPart& mrModelPart;                     // The model part to compute
-    Parameters mThisParameters;
+    ModelPart& mrModelPart;      // The model part to compute
+    Parameters mThisParameters;  // The project parameters
+
+    friend class Serializer;
+
+    void save(Serializer &rSerializer) const override
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Process)
+        rSerializer.save("ModelPart", mrModelPart);
+        rSerializer.save("ThisParameters", mThisParameters);
+    }
+
+    void load(Serializer &rSerializer) override
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Process)
+        rSerializer.load("ModelPart", mrModelPart);
+        rSerializer.load("ThisParameters", mThisParameters);
+    }
 
 }; // Class AdvanceInTimeHighCycleFatigueProcess
 
 } // namespace Kratos
-#endif

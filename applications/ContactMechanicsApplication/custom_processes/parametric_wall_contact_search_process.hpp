@@ -708,7 +708,7 @@ namespace Kratos
     //**************************************************************************
     //**************************************************************************
 
-    Condition::Pointer FindPointCondition(ModelPart& rModelPart, Node<3>::Pointer pPoint)
+    Condition::Pointer FindPointCondition(ModelPart& rModelPart, Node::Pointer pPoint)
     {
 
      KRATOS_TRY

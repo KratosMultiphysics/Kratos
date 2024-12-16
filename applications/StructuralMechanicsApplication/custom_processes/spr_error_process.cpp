@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Anna Rehr
 //  Co-author   :    Vicente Mataix Ferrandiz
@@ -15,6 +15,8 @@
 // External includes
 
 // Project includes
+#include "structural_mechanics_application_variables.h"
+#include "utilities/math_utils.h"
 #include "processes/find_nodal_neighbours_process.h"
 #include "custom_processes/spr_error_process.h"
 #include "utilities/variable_utils.h"
@@ -150,7 +152,7 @@ void SPRErrorProcess<TDim>::CalculateErrorEstimation(
     double error_overall= 0.0;
     double energy_norm_overall = 0.0;
 
-    // Auxiliar GP vectors
+    // Auxiliary GP vectors
     std::vector<double> error_integration_point, strain_energy;
 
     #pragma omp parallel for reduction(+:error_overall, energy_norm_overall) firstprivate(error_integration_point,strain_energy)
@@ -293,7 +295,7 @@ inline void SPRErrorProcess<TDim>::FindNodalNeighbours(ModelPart& rModelPart)
         #pragma omp parallel for
         for(int i=0; i<static_cast<int>(r_nodes_array.size()); ++i) {
             auto it_node = it_node_begin + i;
-            it_node->SetValue(NEIGHBOUR_NODES, GlobalPointersVector<Node<3>>());
+            it_node->SetValue(NEIGHBOUR_NODES, GlobalPointersVector<Node>());
             it_node->SetValue(NEIGHBOUR_ELEMENTS, GlobalPointersVector<Element>());
         }
     }

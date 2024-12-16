@@ -14,7 +14,6 @@ from KratosMultiphysics.CoSimulationApplication.coupling_interface_data import B
 # Other imports
 from collections import OrderedDict
 
-
 class UndefinedSolver:
     def __init__(self, name, settings):
         self.name = name
@@ -155,7 +154,6 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
         # not all solvers provide time (e.g. external solvers or steady solvers)
         # hence we have to check first if they return time (i.e. time != 0.0)
         # and then if the times are matching, since currently no interpolation in time is possible
-
         self.time = 0.0
         for solver in self.solver_wrappers.values():
             # TODO maybe do a check to make sure all ranks have the same time?
@@ -261,20 +259,20 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             cs_tools.cs_print_info(self._ClassName(), 'End Synchronizing Output for solver "{}"'.format(colors.blue(solver_name)))
 
     def __SynchronizeData(self, i_data, from_solver_data, to_solver_data):
-            # check if data-exchange is specified for current time
-            if not KM.IntervalUtility(i_data).IsInInterval(self.time):
-                if self.echo_level > 2:
-                    cs_tools.cs_print_info("  Skipped", 'not in interval')
-                return
+        # Check if data-exchange is specified for current time
+        if not KM.IntervalUtility(i_data).IsInInterval(self.time):
+            if self.echo_level > 2:
+                cs_tools.cs_print_info("  Skipped", 'not in interval')
+            return
 
-            # perform the data transfer
-            self.__ExecuteCouplingOperations(i_data["before_data_transfer_operations"])
+        # Perform the data transfer
+        self.__ExecuteCouplingOperations(i_data["before_data_transfer_operations"])
 
-            data_transfer_operator_name = i_data["data_transfer_operator"].GetString()
-            # TODO check the order of solvers!
-            self.__GetDataTransferOperator(data_transfer_operator_name).TransferData(from_solver_data, to_solver_data, i_data["data_transfer_operator_options"])
+        data_transfer_operator_name = i_data["data_transfer_operator"].GetString()
+        # TODO check the order of solvers!
+        self.__GetDataTransferOperator(data_transfer_operator_name).TransferData(from_solver_data, to_solver_data, i_data["data_transfer_operator_options"])
 
-            self.__ExecuteCouplingOperations(i_data["after_data_transfer_operations"])
+        self.__ExecuteCouplingOperations(i_data["after_data_transfer_operations"])
 
     def __GetInterfaceDataFromSolver(self, solver_name, interface_data_name):
         solver = self.solver_wrappers[solver_name]
@@ -285,7 +283,6 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             return self.data_transfer_operators_dict[data_transfer_operator_name]
         except KeyError:
             raise NameError('The data-transfer-operator "{}" does not exist!'.format(data_transfer_operator_name))
-
 
     def __ExecuteCouplingOperations(self, settings):
         for coupling_operation_name in settings.GetStringArray():
@@ -327,6 +324,7 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             else:
                 solver_model = models.get(solver_name) # returns None if "solver_name" is not in models
             solvers[solver_name] = solver_wrapper_factory.CreateSolverWrapper(solver_settings, solver_model, solver_name)
+            solvers[solver_name]._parent_process_info = self.process_info
 
         # then order them according to the coupling-loop
         solvers_map = OrderedDict()
@@ -380,7 +378,6 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             ValidateAndAssignDefaultsDataList(solver_settings["output_data_list"], GetOutputDataDefaults())
 
         return solver_cosim_details
-
 
     @classmethod
     def _GetDefaultParameters(cls):

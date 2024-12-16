@@ -3,12 +3,18 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Massimo Petracca
 //                   Philipp Bucher
 //
+
+// System includes
+
+// External includes
+
+// Project includes
 #include "includes/element.h"
 #include "shell_cross_section.hpp"
 #include "structural_mechanics_application_variables.h"

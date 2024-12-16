@@ -4,8 +4,8 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -57,12 +57,12 @@ void MPCContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckContactMode
 
     const SizeType total_number_constraints = BaseType::mrMainModelPart.GetRootModelPart().NumberOfMasterSlaveConstraints();
 
-    std::vector<MasterSlaveConstraint::Pointer> auxiliar_constraints_vector;
+    std::vector<MasterSlaveConstraint::Pointer> auxiliary_constraints_vector;
 
     #pragma omp parallel
     {
         // Buffer for new constraints if created
-        std::vector<MasterSlaveConstraint::Pointer> auxiliar_constraints_vector_buffer;
+        std::vector<MasterSlaveConstraint::Pointer> auxiliary_constraints_vector_buffer;
 
         #pragma omp for
         for(int i = 0; i < static_cast<int>(r_constraints_array.size()); ++i) {
@@ -74,7 +74,7 @@ void MPCContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckContactMode
 
                 // Creating new condition
                 MasterSlaveConstraint::Pointer p_new_const = it_const->Clone(total_number_constraints + it_const->Id());
-                auxiliar_constraints_vector_buffer.push_back(p_new_const);
+                auxiliary_constraints_vector_buffer.push_back(p_new_const);
 
                 p_new_const->SetData(it_const->GetData()); // TODO: Remove when fixed on the core
                 p_new_const->Set(Flags(*it_const));
@@ -88,18 +88,18 @@ void MPCContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckContactMode
         // Combine buffers together
         #pragma omp critical
         {
-            std::move(auxiliar_constraints_vector_buffer.begin(),auxiliar_constraints_vector_buffer.end(),back_inserter(auxiliar_constraints_vector));
+            std::move(auxiliary_constraints_vector_buffer.begin(),auxiliary_constraints_vector_buffer.end(),back_inserter(auxiliary_constraints_vector));
         }
     }
 
     // Finally we add the new constraints to the model part
     r_sub_contact_model_part.RemoveMasterSlaveConstraints(TO_ERASE);
     // Reorder ids (in order to keep the ids consistent)
-    for (int i = 0; i < static_cast<int>(auxiliar_constraints_vector.size()); ++i) {
-        auxiliar_constraints_vector[i]->SetId(total_number_constraints + i + 1);
+    for (int i = 0; i < static_cast<int>(auxiliary_constraints_vector.size()); ++i) {
+        auxiliary_constraints_vector[i]->SetId(total_number_constraints + i + 1);
     }
     ModelPart::MasterSlaveConstraintContainerType aux_conds;
-    aux_conds.GetContainer() = auxiliar_constraints_vector;
+    aux_conds.GetContainer() = auxiliary_constraints_vector;
     r_sub_contact_model_part.AddMasterSlaveConstraints(aux_conds.begin(), aux_conds.end());
 
     // Unsetting TO_ERASE
@@ -192,7 +192,7 @@ void MPCContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ResetContactOper
     NodesArrayType& r_nodes_array = r_sub_contact_model_part.Nodes();
 
     if (BaseType::mrMainModelPart.Is(MODIFIED)) { // It has been remeshed. We remove everything
-        block_for_each(r_nodes_array, [&](NodeType& rNode) {
+        block_for_each(r_nodes_array, [&](Node& rNode) {
             if (rNode.Is(MASTER)) {
                 IndexMap::Pointer p_indexes_pairs = rNode.GetValue(INDEX_MAP);
 

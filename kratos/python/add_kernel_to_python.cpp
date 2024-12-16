@@ -4,25 +4,42 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Pooyan Dadvand
 //
 
-// External includes
-
-// Project includes
-#include "includes/define_python.h"
-#include "includes/kernel.h"
-#include "python/add_kernel_to_python.h"
-
 // System includes
 #include <sstream>
 
-namespace Kratos {
-namespace Python {
+// External includes
+
+// Project includes
+#include "includes/kernel.h"
+#include "includes/define_python.h"
+#include "python/add_kernel_to_python.h"
+
+// String macros
+#ifndef KRATOS_TO_STRING_
+    #define KRATOS_TO_STRING_(X) #X
+#endif
+#ifndef KRATOS_TO_STRING
+    #define KRATOS_TO_STRING(X) KRATOS_TO_STRING_(X)
+#endif
+
+// Define Python version
+#if defined(PYTHON_VERSION_MAJOR) && defined(PYTHON_VERSION_MINOR)
+    #define KRATOS_PYTHON_VERSION "Python" \
+    KRATOS_TO_STRING(PYTHON_VERSION_MAJOR) \
+    "." \
+    KRATOS_TO_STRING(PYTHON_VERSION_MINOR)
+#else
+    #define KRATOS_PYTHON_VERSION "Unknown Python Version"
+#endif
+
+namespace Kratos::Python {
 
 bool HasFlag(Kernel& rKernel, const std::string& flag_name)
 {
@@ -76,40 +93,6 @@ std::string GetVariableNames(Kernel& rKernel)
     return buffer.str();
 }
 
-void RegisterInPythonKernelVariables()
-{
-    auto comp = KratosComponents<VariableData>::GetComponents();
-    auto m = pybind11::module::import("KratosMultiphysics"); //Note that this is added to KratosMultiphysics not to
-
-    for(auto item = comp.begin(); item!=comp.end(); item++) {
-        auto& var = (item->second);
-        std::string name = item->first;
-
-        m.attr(name.c_str()) = var;
-    }
-}
-
-void RegisterInPythonApplicationVariables(KratosApplication& Application)
-{
-    auto comp = KratosComponents<VariableData>::GetComponents();
-    auto kernel_module = pybind11::module::import("KratosMultiphysics");
-    auto app_module = pybind11::module::import((std::string("KratosMultiphysics.")+Application.Name()).c_str());
-
-    KRATOS_INFO("")
-    << "****************************************" << std::endl
-    << "Application Name" << Application.Name() << std::endl
-    << "****************************************" << std::endl;
-
-    for(auto item = comp.begin(); item!=comp.end(); item++) {
-        auto& var = (item->second);
-        std::string var_name = item->first;
-        KRATOS_INFO("Variable Name") << var_name << std::endl;
-
-        if(! hasattr(kernel_module,var_name.c_str()) ) //variable not present in kernel
-            app_module.attr(var_name.c_str()) = var;
-    }
-}
-
 void AddKernelToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -117,12 +100,9 @@ void AddKernelToPython(pybind11::module& m)
     py::class_<Kernel, Kernel::Pointer>(m,"Kernel")
         .def(py::init<>())
         .def(py::init<bool>())
-        .def("Initialize", [](Kernel& self){ self.Initialize();
-        /*RegisterInPythonKernelVariables();*/ }) //&Kernel::Initialize)
+        .def("Initialize", [](Kernel& self){ self.Initialize(); })
         .def("ImportApplication", &Kernel::ImportApplication)
-        .def("InitializeApplication",  [](Kernel& self, KratosApplication& App){ self.Initialize();
-        /*RegisterInPythonApplicationVariables(App);*/ }) //&Kernel::InitializeApplication)
-        //.def(""A,&Kernel::Initialize)
+        .def("InitializeApplication",  [](Kernel& self, KratosApplication& App){ self.Initialize(); })
         .def("IsImported", &Kernel::IsImported)
         .def("IsLibraryAvailable", &Kernel::IsLibraryAvailable)
         .def_static("IsDistributedRun", &Kernel::IsDistributedRun)
@@ -184,8 +164,11 @@ void AddKernelToPython(pybind11::module& m)
         .def("GetConstitutiveLaw", GetConstitutiveLaw, py::return_value_policy::reference_internal)
         .def_static("Version", &Kernel::Version)
         .def_static("BuildType", &Kernel::BuildType)
+        .def_static("RegisterPythonVersion", [](){Kernel::SetPythonVersion(KRATOS_PYTHON_VERSION);})
+        .def_static("OSName", &Kernel::OSName)
+        .def_static("PythonVersion", &Kernel::PythonVersion)
+        .def_static("Compiler", &Kernel::Compiler)
         ;
 }
 
-}  // namespace Python.
-}  // Namespace Kratos
+}  // namespace Kratos::Python.

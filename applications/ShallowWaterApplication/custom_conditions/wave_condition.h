@@ -55,7 +55,7 @@ public:
 
     typedef std::size_t IndexType;
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     typedef array_1d<double, 3*TNumNodes> LocalVectorType;
 
@@ -276,10 +276,9 @@ protected:
         double height;
         array_1d<double,3> velocity;
 
-        BoundedMatrix<double,3,3> A1;
-        BoundedMatrix<double,3,3> A2;
-        array_1d<double,3> b1;
-        array_1d<double,3> b2;
+        double v_neumann;
+        double h_dirichlet;
+        array_1d<double,3> flux;
 
         array_1d<double,TNumNodes> nodal_f;
         array_1d<double,TNumNodes> nodal_h;
@@ -316,12 +315,6 @@ protected:
         const array_1d<array_1d<double,3>,TNumNodes>& rV,
         const array_1d<double,TNumNodes>& rN);
 
-    void AddWaveTerms(
-        LocalMatrixType& rMatrix,
-        LocalVectorType& rVector,
-        const ConditionData& rData,
-        const array_1d<double,TNumNodes>& rN,
-        const double Weight = 1.0);
 
     void AddFluxTerms(
         LocalVectorType& rVector,

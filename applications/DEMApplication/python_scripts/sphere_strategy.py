@@ -66,14 +66,24 @@ class ExplicitStrategy():
         #self.time_integration_scheme.SetRotationOption(self.rotation_option)
 
         self.clean_init_indentation_option = DEM_parameters["CleanIndentationsOption"].GetBool()
+        self.clean_init_indentation_v2_option = DEM_parameters["CleanIndentationsV2Option"].GetBool()
 
         if self.clean_init_indentation_option and self._GetInputType() == 'rest':
             Logger.PrintWarning("DEM", '\nWARNING!: \'clean_indentations_option\' is set to true in a restarted simulation. The particles\' radii could be modified before the first time step.\n' * 50)
 
-        self.contact_mesh_option           = 0
+        if self.clean_init_indentation_option and self.clean_init_indentation_v2_option:
+            Logger.PrintWarning("DEM", '\nWARNING!:  "CleanIndentationsOption" and "CleanIndentationsV2Option" can not both be "True" at the same time.\n')
+            from sys import exit
+            exit(0)
+        
+        self.contact_mesh_option = 0
         if "ContactMeshOption" in DEM_parameters.keys():
             self.contact_mesh_option      = DEM_parameters["ContactMeshOption"].GetBool()
         self.automatic_bounding_box_option = DEM_parameters["AutomaticBoundingBoxOption"].GetBool()
+
+        self.bounding_box_servo_loading_option = 0
+        if "BoundingBoxServoLoadingOption" in DEM_parameters.keys():
+            self.bounding_box_servo_loading_option = DEM_parameters["BoundingBoxServoLoadingOption"].GetBool()
 
         self.delta_option = DEM_parameters["DeltaOption"].GetString() #TODO: this is not an option (bool) let's change the name to something including 'type'
 
@@ -81,7 +91,6 @@ class ExplicitStrategy():
         self.search_increment_for_walls = 0.0
         self.search_increment_for_bonds_creation = 0.0
         self.coordination_number = 10.0
-        self.case_option = 3
 
         if self._GetInputType() == 'rest':
             self.search_control = 2
@@ -114,6 +123,15 @@ class ExplicitStrategy():
             self.delta_option = 2
             self.coordination_number = DEM_parameters["CoordinationNumber"].GetDouble()
             self.search_increment = 0.01 * 0.0001 #DEM_parameters-MeanRadius
+
+        elif DEM_parameters["DeltaOption"].GetString() == "Relative":
+            # "Relative" means you will set a added_search_distance = DEM_parameters["SearchToleranceMultiplier"] * particle_radius
+            self.delta_option = 3  ##this variable is not so important
+            self.search_increment = DEM_parameters["SearchToleranceMultiplier"].GetDouble()
+            if not "SearchToleranceForBondsCreationMultiplier" in DEM_parameters.keys():
+                self.search_increment_for_bonds_creation  = self.search_increment
+            else:
+                self.search_increment_for_bonds_creation = DEM_parameters["SearchToleranceForBondsCreationMultiplier"].GetDouble()
 
         self.search_increment_for_walls = DEM_parameters["search_tolerance_against_walls"].GetDouble()
 
@@ -163,6 +181,33 @@ class ExplicitStrategy():
         else:
             self.global_damping = DEM_parameters["GlobalDamping"].GetDouble()
 
+        if not "GlobalViscousDamping" in DEM_parameters.keys():
+            self.global_viscous_damping = 0.0
+            Logger.PrintWarning("DEM", "\nGlobal Viscous Damping parameter not found! No damping will be applied...\n")
+        else:
+            self.global_viscous_damping = DEM_parameters["GlobalViscousDamping"].GetDouble()
+
+        if "RadiusExpansionOption" in DEM_parameters.keys():
+            self.radius_expansion_option = DEM_parameters["RadiusExpansionOption"].GetBool()
+
+        if "RadiusExpansionRate" in DEM_parameters.keys():
+            self.radius_expansion_rate = DEM_parameters["RadiusExpansionRate"].GetDouble()
+
+        if "RadiusMultiplierMax" in DEM_parameters.keys():
+            self.radius_multiplier_max = DEM_parameters["RadiusMultiplierMax"].GetDouble()
+
+        if "RadiusExpansionRateChangeOption" in DEM_parameters.keys():
+            self.radius_expansion_rate_change_option = DEM_parameters["RadiusExpansionRateChangeOption"].GetBool()
+
+        if "RadiusExpansionAcceleration" in DEM_parameters.keys():
+            self.radius_expansion_acceleration = DEM_parameters["RadiusExpansionAcceleration"].GetDouble()
+
+        if "RadiusExpansionRateMin" in DEM_parameters.keys():
+            self.radius_expansion_rate_min = DEM_parameters["RadiusExpansionRateMin"].GetDouble()
+
+        if "EnergyCalculationOption" in DEM_parameters.keys():
+            self.energy_calculation_option = DEM_parameters["EnergyCalculationOption"].GetBool()
+        
         # PRINTING VARIABLES
         self.print_export_id = DEM_parameters["PostExportId"].GetBool()
         self.print_export_skin_sphere = 0
@@ -230,7 +275,6 @@ class ExplicitStrategy():
         # SIMULATION FLAGS
         self.spheres_model_part.ProcessInfo.SetValue(IS_TIME_TO_PRINT, False)
         self.spheres_model_part.ProcessInfo.SetValue(VIRTUAL_MASS_OPTION, self.virtual_mass_option)
-        self.spheres_model_part.ProcessInfo.SetValue(CASE_OPTION, self.case_option)
         self.spheres_model_part.ProcessInfo.SetValue(TRIHEDRON_OPTION, self.trihedron_option)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, ROTATION_OPTION, self.rotation_option)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, BOUNDING_BOX_OPTION, self.bounding_box_option)
@@ -238,6 +282,7 @@ class ExplicitStrategy():
         self.spheres_model_part.ProcessInfo.SetValue(FIX_VELOCITIES_FLAG, self.fix_velocities_flag)
         self.spheres_model_part.ProcessInfo.SetValue(NEIGH_INITIALIZED, 0)
         self.spheres_model_part.ProcessInfo.SetValue(CLEAN_INDENT_OPTION, self.clean_init_indentation_option)
+        self.spheres_model_part.ProcessInfo.SetValue(CLEAN_INDENT_V2_OPTION, self.clean_init_indentation_v2_option)
         self.spheres_model_part.ProcessInfo.SetValue(BOUNDING_BOX_START_TIME, self.bounding_box_start_time)
         self.spheres_model_part.ProcessInfo.SetValue(BOUNDING_BOX_STOP_TIME, self.bounding_box_stop_time)
         self.spheres_model_part.ProcessInfo.SetValue(COMPUTE_STRESS_TENSOR_OPTION, self.compute_stress_tensor_option)
@@ -258,6 +303,17 @@ class ExplicitStrategy():
         self.spheres_model_part.ProcessInfo.SetValue(NODAL_MASS_COEFF, self.nodal_mass_coeff)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, ROLLING_FRICTION_OPTION, self.rolling_friction_option)
         self.spheres_model_part.ProcessInfo.SetValue(GLOBAL_DAMPING, self.global_damping)
+        self.spheres_model_part.ProcessInfo.SetValue(GLOBAL_VISCOUS_DAMPING, self.global_viscous_damping)
+
+        #Radius expansion method
+        self.spheres_model_part.ProcessInfo.SetValue(IS_RADIUS_EXPANSION, self.radius_expansion_option)
+        self.spheres_model_part.ProcessInfo.SetValue(RADIUS_EXPANSION_RATE, self.radius_expansion_rate)
+        self.spheres_model_part.ProcessInfo.SetValue(RADIUS_MULTIPLIER_MAX, self.radius_multiplier_max)
+        self.spheres_model_part.ProcessInfo.SetValue(IS_RADIUS_EXPANSION_RATE_CHANGE, self.radius_expansion_rate_change_option)
+        self.spheres_model_part.ProcessInfo.SetValue(RADIUS_EXPANSION_ACCELERATION, self.radius_expansion_acceleration)
+        self.spheres_model_part.ProcessInfo.SetValue(RADIUS_EXPANSION_RATE_MIN, self.radius_expansion_rate_min)
+
+        self.spheres_model_part.ProcessInfo.SetValue(ENERGY_CALCULATION_OPTION, self.energy_calculation_option)
 
         # SEARCH-RELATED
         self.spheres_model_part.ProcessInfo.SetValue(SEARCH_RADIUS_INCREMENT, self.search_increment)
@@ -269,6 +325,11 @@ class ExplicitStrategy():
             self.spheres_model_part.ProcessInfo.SetValue(CONTACT_MESH_OPTION, 1)
         else:
             self.spheres_model_part.ProcessInfo.SetValue(CONTACT_MESH_OPTION, 0)
+
+        if self.bounding_box_servo_loading_option:
+            self.spheres_model_part.ProcessInfo.SetValue(BOUNDING_BOX_SERVO_LOADING_OPTION, 1)
+        else:
+            self.spheres_model_part.ProcessInfo.SetValue(BOUNDING_BOX_SERVO_LOADING_OPTION, 0)
 
         # PRINTING VARIABLES
 
@@ -282,7 +343,7 @@ class ExplicitStrategy():
         for properties in self.spheres_model_part.Properties:
             self.ModifyProperties(properties)
             for subproperties in properties.GetSubProperties():
-                self.ModifySubProperties(subproperties)
+                self.ModifySubProperties(subproperties, properties.Id)
 
         for submp in self.inlet_model_part.SubModelParts:
             if submp.Has(CLUSTER_FILE_NAME):
@@ -307,8 +368,8 @@ class ExplicitStrategy():
         self.settings.contact_model_part = self.contact_model_part
         self.settings.fem_model_part = self.fem_model_part
         self.settings.inlet_model_part = self.inlet_model_part
-        self.settings.cluster_model_part = self.cluster_model_part
-
+        self.settings.cluster_model_part = self.cluster_model_part  
+    
     def CheckMomentumConservation(self):
 
         previous_discontinuum_constitutive_law_string = ""
@@ -336,6 +397,17 @@ class ExplicitStrategy():
     def CreateCPlusPlusStrategy(self):
 
         self.SetVariablesAndOptions()
+
+        if (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet'):
+            self.cplusplus_strategy = IterativeSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
+                                                              self.delta_option, self.creator_destructor, self.dem_fem_search,
+                                                              self.search_strategy, self.solver_settings)
+        else:
+            self.cplusplus_strategy = ExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
+                                                             self.delta_option, self.creator_destructor, self.dem_fem_search,
+                                                             self.search_strategy, self.solver_settings)
+            
+    def UpdateCPlusPlusStrategy(self):
 
         if (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet'):
             self.cplusplus_strategy = IterativeSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
@@ -431,7 +503,7 @@ class ExplicitStrategy():
         self.cplusplus_strategy.InitializeSolutionStep()
 
     def SetNormalRadiiOnAllParticles(self):
-        self.cplusplus_strategy.SetNormalRadiiOnAllParticles(self.spheres_model_part)
+        self.cplusplus_strategy.SetNormalRadiiOnAllParticlesBeforeInitilization(self.spheres_model_part)
 
     def SetSearchRadiiOnAllParticles(self):
 
@@ -542,6 +614,20 @@ class ExplicitStrategy():
         alpha = e*(h1+e*(h2+e*(h3+e*(h4+e*(h5+e*(h6+e*(h7+e*(h8+e*(h9+e*h10)))))))))
 
         return math.sqrt(1.0/(1.0 - (1.0+e)*(1.0+e) * math.exp(alpha)) - 1.0)
+
+    def GammaCritical(self, e):
+        # Traken from 'Determination of the normal spring stiffness coefficient
+        # in the linear spring–dashpot contact model of discrete element method'
+        # https://www.sciencedirect.com/science/article/pii/S0032591013004178
+        if e < 0.001:
+            e = 0.001
+
+        if e > 0.999:
+            return 0.0
+
+        aux = math.log(e)
+
+        return -aux / math.sqrt(math.pi ** 2 + aux ** 2)
 
     def SinAlphaConicalDamage(self, e):
 
@@ -665,7 +751,12 @@ class ExplicitStrategy():
         rotational_scheme, error_status, summary_mssg = self.GetRotationalScheme(translational_scheme_name, rotational_scheme_name)
         rotational_scheme.SetRotationalIntegrationSchemeInProperties(properties, True)
 
-    def ModifySubProperties(self, properties, param = 0):
+        if self.DEM_parameters["RotationOption"].GetBool() and self.DEM_parameters["RollingFrictionOption"].GetBool():
+            #The function is to transfer the Rolling Friction Model Name from subProperties to Properties or set a default name
+            #Because some rolling friction models depend the particle but not the contact between particles
+            self.TransferRollingFrictionModelNameOrSetDefault(properties)
+
+    def ModifySubProperties(self, properties, parent_id, param = 0):
 
         DiscontinuumConstitutiveLaw = globals().get(properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME])()
         coefficient_of_restitution = properties[COEFFICIENT_OF_RESTITUTION]
@@ -682,6 +773,10 @@ class ExplicitStrategy():
 
         elif (type_of_law == 'Hertz'):
             gamma = self.GammaForHertzThornton(coefficient_of_restitution)
+            write_gamma = True
+
+        elif (type_of_law == 'Stress_dependent'):
+            gamma = self.GammaCritical(coefficient_of_restitution)
             write_gamma = True
 
         elif (type_of_law == 'Conical_damage'):
@@ -720,6 +815,13 @@ class ExplicitStrategy():
         if not properties.Has(ROLLING_FRICTION_WITH_WALLS):
             properties[ROLLING_FRICTION_WITH_WALLS] = properties[ROLLING_FRICTION]
 
+        if not properties.Has(DEM_ROLLING_FRICTION_MODEL_NAME):
+            properties[DEM_ROLLING_FRICTION_MODEL_NAME] = "DEMRollingFrictionModelConstantTorque"
+            self.Procedures.KratosPrintWarning("Using a default rolling friction model [DEMRollingFrictionModelConstantTorque] for material relation with parameter \"material_ids_list\": [" + str(parent_id) + ", " + str(properties.Id) + "]")
+
+        rolling_friction_model = globals().get(properties[DEM_ROLLING_FRICTION_MODEL_NAME])()
+        rolling_friction_model.SetAPrototypeOfThisInProperties(properties, False)
+
     def ImportModelPart(self): #TODO: for the moment, provided for compatibility
         pass
 
@@ -728,3 +830,28 @@ class ExplicitStrategy():
 
     def GetComputingModelPart(self):
         return self.spheres_model_part
+
+    def TransferRollingFrictionModelNameOrSetDefault(self, properties):
+
+        has_subproperties = False
+        has_rolling_friction_model_name = False
+
+        for subproperties in properties.GetSubProperties():
+            has_subproperties = True
+            if subproperties.Has(DEM_ROLLING_FRICTION_MODEL_NAME):
+                has_rolling_friction_model_name = True
+
+        for subproperties in properties.GetSubProperties():
+            if not subproperties.Has(DEM_ROLLING_FRICTION_MODEL_NAME) and has_rolling_friction_model_name is False:
+                properties[DEM_ROLLING_FRICTION_MODEL_NAME] = "DEMRollingFrictionModelBounded"
+                self.Procedures.KratosPrintWarning("Using a default rolling friction model [DEMRollingFrictionModelBounded] for material property with parameter \"material_id\": [" + str(properties.Id) + "]")
+            else:
+                properties[DEM_ROLLING_FRICTION_MODEL_NAME] = subproperties[DEM_ROLLING_FRICTION_MODEL_NAME]
+
+        if has_subproperties is False and properties.Id != 0:
+            properties[DEM_ROLLING_FRICTION_MODEL_NAME] = "DEMRollingFrictionModelBounded"
+            self.Procedures.KratosPrintWarning("Using a default rolling friction model [DEMRollingFrictionModelBounded] for material property with parameter \"material_id\": [" + str(properties.Id) + "]")
+
+        if properties.Id != 0:
+            rolling_friction_model = globals().get(properties[DEM_ROLLING_FRICTION_MODEL_NAME])()
+            rolling_friction_model.SetAPrototypeOfThisInProperties(properties, False)

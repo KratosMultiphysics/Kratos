@@ -4,7 +4,7 @@
         "properties_id"   : 1,
         "Material"        : {
             "constitutive_law" : {
-                "name" : "PapanastasiouMuIRheology2DLaw"
+                "name" : "MuIRheology2DLaw"
             },
             "Variables" : {
                 "DENSITY"                    : 1550.0,

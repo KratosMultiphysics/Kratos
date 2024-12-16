@@ -12,87 +12,70 @@
 //                   Vahid Galavi
 //
 
-
-#if !defined(KRATOS_GEO_SURFACE_NORMAL_FLUID_FLUX_3D_DIFF_ORDER_CONDITION_H_INCLUDED )
-#define  KRATOS_GEO_SURFACE_NORMAL_FLUID_FLUX_3D_DIFF_ORDER_CONDITION_H_INCLUDED
+#pragma once
 
 // Project includes
-#include "includes/serializer.h"
 #include "custom_conditions/surface_load_3D_diff_order_condition.hpp"
+#include "includes/serializer.h"
 
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION)
-    SurfaceNormalFluidFlux3DDiffOrderCondition : public SurfaceLoad3DDiffOrderCondition
+class KRATOS_API(GEO_MECHANICS_APPLICATION) SurfaceNormalFluidFlux3DDiffOrderCondition : public SurfaceLoad3DDiffOrderCondition
 {
-
 public:
+    using IndexType      = std::size_t;
+    using PropertiesType = Properties;
+    using NodeType       = Node;
+    using GeometryType   = Geometry<NodeType>;
+    using NodesArrayType = GeometryType::PointsArrayType;
+    using VectorType     = Vector;
+    using MatrixType     = Matrix;
 
-    typedef std::size_t IndexType;
-	typedef Properties PropertiesType;
-    typedef Node <3> NodeType;
-    typedef Geometry<NodeType> GeometryType;
-    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
-    typedef Vector VectorType;
-    typedef Matrix MatrixType;
-
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( SurfaceNormalFluidFlux3DDiffOrderCondition );
-    
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SurfaceNormalFluidFlux3DDiffOrderCondition);
 
     // Default constructor
     SurfaceNormalFluidFlux3DDiffOrderCondition();
-    
+
     // Constructor 1
-    SurfaceNormalFluidFlux3DDiffOrderCondition( IndexType NewId, GeometryType::Pointer pGeometry );
-    
+    SurfaceNormalFluidFlux3DDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry);
+
     // Constructor 2
-    SurfaceNormalFluidFlux3DDiffOrderCondition( IndexType NewId,
-                                                GeometryType::Pointer pGeometry,
-                                                PropertiesType::Pointer pProperties );
+    SurfaceNormalFluidFlux3DDiffOrderCondition(IndexType               NewId,
+                                               GeometryType::Pointer   pGeometry,
+                                               PropertiesType::Pointer pProperties);
 
-    // Destructor
-    ~SurfaceNormalFluidFlux3DDiffOrderCondition() override;
+    Condition::Pointer Create(IndexType               NewId,
+                              NodesArrayType const&   ThisNodes,
+                              PropertiesType::Pointer pProperties) const override;
+    Condition::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const override;
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    std::string Info() const override;
 
 protected:
-
     // Member Variables
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     void CalculateConditionVector(ConditionVariables& rVariables, unsigned int PointNumber) override;
-    
+
     void CalculateAndAddConditionForce(VectorType& rRightHandSideVector, ConditionVariables& rVariables) override;
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 private:
-    
     // Serialization
-    
+
     friend class Serializer;
-    
+
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, SurfaceLoad3DDiffOrderCondition )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SurfaceLoad3DDiffOrderCondition)
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, SurfaceLoad3DDiffOrderCondition )
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SurfaceLoad3DDiffOrderCondition)
     }
 
 }; // class SurfaceNormalFluidFlux3DDiffOrderCondition.
 
 } // namespace Kratos.
-
-#endif // KRATOS_GEO_SURFACE_NORMAL_FLUID_FLUX_3D_DIFF_ORDER_CONDITION_H_INCLUDED defined 

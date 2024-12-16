@@ -126,9 +126,6 @@ ModelPart& CreateTestModelPart(
 
     RansVariableUtilities::SetElementConstitutiveLaws(r_model_part.Elements());
 
-    r_element.Check(r_model_part.GetProcessInfo());
-    r_model_part.Conditions().front().Check(r_model_part.GetProcessInfo());
-
     return r_model_part;
 }
 
@@ -227,17 +224,30 @@ void TestGetDofList(
     }
 }
 
+void CheckElementsAndConditions(
+    const ModelPart& rModelPart)
+{
+    const auto& r_process_info = rModelPart.GetProcessInfo();
+    for (const auto& r_element : rModelPart.Elements()) {
+        r_element.Check(r_process_info);
+    }
+
+    for (const auto& r_condition : rModelPart.Conditions()) {
+        r_condition.Check(r_process_info);
+    }
+}
+
 // template instantiations
-template void TestEquationIdVector<ModelPart::ElementsContainerType>(
+template KRATOS_API(RANS_APPLICATION) void TestEquationIdVector<ModelPart::ElementsContainerType>(
     ModelPart&);
-template void TestEquationIdVector<ModelPart::ConditionsContainerType>(
+template KRATOS_API(RANS_APPLICATION) void TestEquationIdVector<ModelPart::ConditionsContainerType>(
     ModelPart&);
 
-template void TestGetDofList<ModelPart::ElementsContainerType>(
+template KRATOS_API(RANS_APPLICATION) void TestGetDofList<ModelPart::ElementsContainerType>(
     ModelPart&,
     const Variable<double>&);
 
-template void TestGetDofList<ModelPart::ConditionsContainerType>(
+template KRATOS_API(RANS_APPLICATION) void TestGetDofList<ModelPart::ConditionsContainerType>(
     ModelPart&,
     const Variable<double>&);
 

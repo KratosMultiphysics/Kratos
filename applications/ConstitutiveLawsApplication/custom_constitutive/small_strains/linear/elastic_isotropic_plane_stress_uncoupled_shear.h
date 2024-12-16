@@ -11,8 +11,7 @@
 //  Main authors:    Philippe Bussetta
 //
 
-#if !defined (KRATOS_ELASTIC_ISOTROPIC_PLANE_STRESS_UNCOUPLED_SHEAR_LAW_H_INCLUDED)
-#define  KRATOS_ELASTIC_ISOTROPIC_PLANE_STRESS_UNCOUPLED_SHEAR_LAW_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -213,4 +212,3 @@ private:
 
 }; // Class ElasticIsotropicPlaneStressUncoupledShear
 }  // namespace Kratos.
-#endif // KRATOS_ELASTIC_ISOTROPIC_PLANE_STRESS_UNCOUPLED_SHEAR_LAW_H_INCLUDED  defined

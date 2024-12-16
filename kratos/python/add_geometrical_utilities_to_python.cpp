@@ -12,8 +12,9 @@
 //
 
 // System includes
- 
+
 // External includes
+#include <pybind11/numpy.h>
 
 // Project includes
 #include "includes/define_python.h"
@@ -39,9 +40,51 @@
 #include "utilities/mls_shape_functions_utility.h"
 #include "utilities/tessellation_utilities/delaunator_utilities.h"
 #include "utilities/rbf_shape_functions_utility.h"
+#include "utilities/assign_master_slave_constraints_to_neighbours_utility.h"
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
+
+template<std::size_t TDim>
+    std::tuple<pybind11::array_t<int>, pybind11::array_t<int>, pybind11::array_t<double> >
+    VectorizedFindHelper(BinBasedFastPointLocator < TDim >& rSelf, const Matrix& rCoords )
+        {
+            pybind11::array_t<int> element_ids_container(rCoords.size1());
+            auto element_ids = element_ids_container.mutable_unchecked<1>();
+
+            unsigned int nnodes=TDim+1; //only for triangles and tets
+            unsigned int ncoords=rCoords.size1();
+            KRATOS_ERROR_IF(rCoords.size2() != TDim) << "the expected size of coordinates is not correct ";
+
+            pybind11::array_t<int> node_ids_container({ncoords,nnodes}); //this is designed to work with Tets
+            pybind11::array_t<double> shape_function_values_container({ncoords,nnodes});
+            auto node_ids = node_ids_container.mutable_unchecked<2>();
+            auto shape_function_values = shape_function_values_container.mutable_unchecked<2>();
+
+            Vector N(nnodes);
+            IndexPartition(ncoords).for_each(N,[&](unsigned int i, Vector& N)
+            {
+                Element::Pointer pelem;
+                const bool is_found = rSelf.FindPointOnMeshSimplified(row(rCoords,i),N,pelem);
+
+                if(is_found){
+                    const auto& r_geom = pelem->GetGeometry();
+                    for(unsigned int k = 0; k<nnodes; ++k){
+                        node_ids(i,k) = r_geom[k].Id();
+                        shape_function_values(i,k) = N[k];
+                        element_ids[i] = pelem->Id();
+                    }
+                }
+                else
+                {
+                    for(unsigned int k = 0; k<nnodes; ++k){
+                        node_ids(i,k) = 1; //deliberately set to 1
+                        shape_function_values(i,k) = 0.0;
+                        element_ids[i] = -1;
+                    }
+                }
+            });
+            return std::tuple{element_ids_container, node_ids_container, shape_function_values_container};
+        }
 
 // Embedded skin utility auxiliar functions
 template<std::size_t TDim>
@@ -80,6 +123,89 @@ void InterpolateDiscontinuousMeshVariableToSkinArray(
     const std::string &rInterfaceSide)
 {
     rEmbeddedSkinUtility.InterpolateDiscontinuousMeshVariableToSkin(rVariable, rEmbeddedVariable, rInterfaceSide);
+}
+
+// MLS shape functions utility
+void AuxiliaryCalculateMLSShapeFunctions(
+    const std::size_t Dim,
+    const std::size_t Order,
+    const Matrix& rPoints,
+    const array_1d<double,3>& rX,
+    const double h,
+    Vector& rN)
+{
+    switch (Dim)
+    {
+    case 2:
+        switch (Order)
+        {
+        case 1:
+            MLSShapeFunctionsUtility::CalculateShapeFunctions<2,1>(rPoints, rX, h, rN);
+            break;
+        case 2:
+            MLSShapeFunctionsUtility::CalculateShapeFunctions<2,2>(rPoints, rX, h, rN);
+            break;
+        default:
+            KRATOS_ERROR << "Wrong order: " << Order << ". Only \'1\' and \'2\' are supported." << std::endl;
+            break;
+        }
+    case 3:
+        switch (Order)
+        {
+        case 1:
+            MLSShapeFunctionsUtility::CalculateShapeFunctions<3,1>(rPoints, rX, h, rN);
+            break;
+        case 2:
+            MLSShapeFunctionsUtility::CalculateShapeFunctions<3,2>(rPoints, rX, h, rN);
+            break;
+        default:
+            KRATOS_ERROR << "Wrong order: " << Order << ". Only \'1\' and \'2\' are supported." << std::endl;
+            break;
+        }
+    default:
+        KRATOS_ERROR << "Wrong dimension: " << Dim << std::endl;
+        break;
+    }
+}
+
+void AuxiliaryCalculateMLSShapeFunctionsAndGradients(
+    const std::size_t Dim,
+    const std::size_t Order,
+    const Matrix& rPoints,
+    const array_1d<double,3>& rX,
+    const double h,
+    Vector& rN,
+    Matrix& rDNDX)
+{
+    if (Dim == 2) {
+        switch (Order)
+        {
+        case 1:
+            MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<2,1>(rPoints, rX, h, rN, rDNDX);
+            break;
+        case 2:
+            MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<2,2>(rPoints, rX, h, rN, rDNDX);
+            break;
+        default:
+            KRATOS_ERROR << "Wrong order: " << Order << ". Only \'1\' and \'2\' are supported." << std::endl;
+            break;
+        }
+    } else if (Dim == 3) {
+        switch (Order)
+        {
+        case 1:
+            MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<3,1>(rPoints, rX, h, rN, rDNDX);
+            break;
+        case 2:
+            MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<3,2>(rPoints, rX, h, rN, rDNDX);
+            break;
+        default:
+            KRATOS_ERROR << "Wrong order: " << Order << ". Only \'1\' and \'2\' are supported." << std::endl;
+            break;
+        }
+    } else {
+        KRATOS_ERROR << "Wrong dimension: " << Dim << std::endl;
+    }
 }
 
 void AddGeometricalUtilitiesToPython(pybind11::module &m)
@@ -203,6 +329,7 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
             const bool is_found = rSelf.FindPointOnMeshSimplified(rCoords,N,p_elem);
             return std::tuple<bool,Vector,Element::Pointer>{is_found,N,p_elem};
         })
+        .def("VectorizedFind", &VectorizedFindHelper<2>)
         ;
 
     py::class_< BinBasedFastPointLocator < 3 >, BinBasedFastPointLocator < 3 >::Pointer >(m,"BinBasedFastPointLocator3D")
@@ -215,6 +342,7 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
             const bool is_found = rSelf.FindPointOnMeshSimplified(rCoords,N,p_elem);
             return std::tuple<bool,Vector,Element::Pointer>{is_found,N,p_elem};
         })
+        .def("VectorizedFind", &VectorizedFindHelper<3>)
         ;
 
     py::class_< BinBasedFastPointLocatorConditions < 2 > >(m,"BinBasedFastPointLocatorConditions2D")
@@ -255,7 +383,10 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
         .def("UpdateSearchDatabaseAssignedSize", &BinBasedNodesInElementLocator < 3 > ::UpdateSearchDatabaseAssignedSize)
         ;
 
-    //embeded skin utilities
+
+
+
+    //embedded skin utilities
     py::class_< EmbeddedSkinUtility < 2 > >(m,"EmbeddedSkinUtility2D")
         .def(py::init< ModelPart&, ModelPart&, const std::string >())
         .def("GenerateSkin", &EmbeddedSkinUtility < 2 > ::GenerateSkin)
@@ -333,10 +464,8 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
 
     // MLS shape functions utility
     py::class_<MLSShapeFunctionsUtility>(m,"MLSShapeFunctionsUtility")
-        .def_static("CalculateShapeFunctions2D", &MLSShapeFunctionsUtility::CalculateShapeFunctions<2>)
-        .def_static("CalculateShapeFunctions3D", &MLSShapeFunctionsUtility::CalculateShapeFunctions<3>)
-        .def_static("CalculateShapeFunctionsAndGradients2D", &MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<2>)
-        .def_static("CalculateShapeFunctionsAndGradients3D", &MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<3>)
+        .def_static("CalculateShapeFunctions", &AuxiliaryCalculateMLSShapeFunctions)
+        .def_static("CalculateShapeFunctionsAndGradients", &AuxiliaryCalculateMLSShapeFunctionsAndGradients)
         ;
 
     // Radial Basis FUnctions utility
@@ -351,7 +480,14 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
         .def_static("CalculateShapeFunctions", [](const Matrix& rPoints, const array_1d<double,3>& rX, const double h, Vector& rN, DenseQRPointerType pDenseQR){
             return RBFShapeFunctionsUtility::CalculateShapeFunctions(rPoints, rX, h, rN, pDenseQR);})
         ;
+
+    // Radial Node Search and MasterSlaveConstraints Assignation Utility
+    using NodesContainerType = typename AssignMasterSlaveConstraintsToNeighboursUtility::NodesContainerType;
+    py::class_<AssignMasterSlaveConstraintsToNeighboursUtility>(m, "AssignMasterSlaveConstraintsToNeighboursUtility")
+        .def(py::init<ModelPart::NodesContainerType&>())
+        .def("AssignMasterSlaveConstraintsToNodes", [](AssignMasterSlaveConstraintsToNeighboursUtility& rAssignMasterSlaveConstraintsToNeighboursUtility, NodesContainerType pNodes, double const Radius, ModelPart& rComputingModelPart, const std::vector<std::reference_wrapper<const Kratos::Variable<double>>>& rVariableList, double const MinNumOfNeighNodes){
+            return rAssignMasterSlaveConstraintsToNeighboursUtility.AssignMasterSlaveConstraintsToNodes(pNodes, Radius, rComputingModelPart, rVariableList, MinNumOfNeighNodes);})
+        ;
 }
 
-} // namespace Python.
-} // Namespace Kratos
+} // namespace Kratos::Python.

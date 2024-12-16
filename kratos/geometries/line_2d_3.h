@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
@@ -14,8 +14,7 @@
 //                   Josep Maria Carbonell
 //
 
-#if !defined(KRATOS_LINE_2D_3_H_INCLUDED )
-#define  KRATOS_LINE_2D_3_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -232,14 +231,34 @@ public:
     /// Destructor. Do nothing!!!
     ~Line2D3() override {}
 
+    /**
+     * @brief Gets the geometry family.
+     * @details This function returns the family type of the geometry. The geometry family categorizes the geometry into a broader classification, aiding in its identification and processing.
+     * @return GeometryData::KratosGeometryFamily The geometry family.
+     */
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::KratosGeometryFamily::Kratos_Linear;
     }
 
+    /**
+     * @brief Gets the geometry type.
+     * @details This function returns the specific type of the geometry. The geometry type provides a more detailed classification of the geometry.
+     * @return GeometryData::KratosGeometryType The specific geometry type.
+     */
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::KratosGeometryType::Kratos_Line2D3;
+    }
+
+    /**
+     * @brief Gets the geometry order type.
+     * @details This function returns the order type of the geometry. The order type relates to the polynomial degree of the geometry.
+     * @return GeometryData::KratosGeometryOrderType The geometry order type.
+     */
+    GeometryData::KratosGeometryOrderType GetGeometryOrderType() const override
+    {
+        return GeometryData::KratosGeometryOrderType::Kratos_Quadratic_Order;
     }
 
     ///@}
@@ -350,17 +369,8 @@ public:
     */
     double Length() const override
     {
-        Vector temp;
         const IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(*this);
-        this->DeterminantOfJacobian( temp, integration_method );
-        const IntegrationPointsArrayType& r_integration_points = this->IntegrationPoints( integration_method );
-        double length = 0.0;
-
-        for (std::size_t i = 0; i < r_integration_points.size(); ++i) {
-            length += temp[i] * r_integration_points[i].Weight();
-        }
-
-        return length;
+        return IntegrationUtilities::ComputeDomainSize(*this, integration_method);
     }
 
     /** This method calculate and return area or surface area of
@@ -504,6 +514,7 @@ public:
      *
      * @see DeterminantOfJacobian
      * @see InverseOfJacobian
+     * @todo We must check if this override methods are faster than the base class methods
      */
     JacobiansType& Jacobian( JacobiansType& rResult, IntegrationMethod ThisMethod ) const override
     {
@@ -548,6 +559,7 @@ public:
      *
      * @see DeterminantOfJacobian
      * @see InverseOfJacobian
+     * @todo We must check if this override methods are faster than the base class methods
      */
     JacobiansType& Jacobian( JacobiansType& rResult, IntegrationMethod ThisMethod, Matrix& rDeltaPosition ) const override
     {
@@ -594,6 +606,7 @@ public:
      * integration method.
      * @see DeterminantOfJacobian
      * @see InverseOfJacobian
+     * @todo We must check if this override methods are faster than the base class methods
      */
     Matrix& Jacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const override
     {
@@ -630,6 +643,7 @@ public:
      *
      * @see DeterminantOfJacobian
      * @see InverseOfJacobian
+     * @todo We must check if this override methods are faster than the base class methods
      */
     Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const override
     {
@@ -702,6 +716,10 @@ public:
         return std::sqrt(std::pow(J(0,0), 2) + std::pow(J(1,0), 2));
     }
 
+    ///@}
+    ///@name Edges and faces
+    ///@{
+
     /** EdgesNumber
     @return SizeType containes number of this geometry edges.
     */
@@ -712,11 +730,11 @@ public:
 
 
     /** FacesNumber
-    @return SizeType containes number of this geometry edges/faces.
+    @return SizeType containes number of this geometry faces.
     */
     SizeType FacesNumber() const override
     {
-      return EdgesNumber();
+      return 0;
     }
 
     ///@}
@@ -777,25 +795,6 @@ public:
     }
 
     ///@}
-    ///@name Shape Function Integration Points Gradient
-    ///@{
-
-    void ShapeFunctionsIntegrationPointsGradients(
-        ShapeFunctionsGradientsType &rResult,
-        IntegrationMethod ThisMethod) const override
-    {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
-    }
-
-    void ShapeFunctionsIntegrationPointsGradients(
-        ShapeFunctionsGradientsType &rResult,
-        Vector &rDeterminantsOfJacobian,
-        IntegrationMethod ThisMethod) const override
-    {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
-    }
-
-    ///@}
     ///@name Input and output
     ///@{
 
@@ -831,11 +830,16 @@ public:
     */
     void PrintData( std::ostream& rOStream ) const override
     {
+        // Base Geometry class PrintData call
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
-        Matrix jacobian;
-        Jacobian( jacobian, PointType() );
-        rOStream << "    Jacobian\t : " << jacobian;
+
+        // If the geometry has valid points, calculate and output its data
+        if (this->AllPointsAreValid()) {
+            Matrix jacobian;
+            this->Jacobian( jacobian, PointType() );
+            rOStream << "    Jacobian\t : " << jacobian;
+        }
     }
 
     /**
@@ -1168,9 +1172,6 @@ const GeometryData Line2D3<TPointType>::msGeometryData(
         AllShapeFunctionsLocalGradients() );
 
 template<class TPointType>
-const GeometryDimension Line2D3<TPointType>::msGeometryDimension(
-    2, 2, 1);
+const GeometryDimension Line2D3<TPointType>::msGeometryDimension(2, 1);
 
 }  // namespace Kratos.
-
-#endif // KRATOS_LINE_2D_3_H_INCLUDED  defined

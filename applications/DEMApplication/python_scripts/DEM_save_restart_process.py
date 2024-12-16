@@ -34,7 +34,7 @@ class DEMSaveRestartProcess(SaveRestartProcess):
         params.RemoveValue("help")
         params.RemoveValue("remove_restart_folder_after_reading")
         params_dict = json.loads(params.PrettyPrintJsonString())
-        params_dict["input_filenames"] = [mp.GetString() for mp in params["model_part_names"]]
+        params_dict["input_filenames"] = [mp.GetString() for mp in params["model_part_names"].values()]
         params = Kratos.Parameters(json.dumps(params_dict))
 
         params.RemoveValue("model_part_names")

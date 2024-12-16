@@ -63,7 +63,7 @@ class DistributedImportModelPartUtility:
 
                 # Partition of the original .mdpa file
                 number_of_partitions = self.comm.Size() # Number of partitions equals the number of processors
-                domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+                domain_size = 0 # this is not used by Metis, it will be refactored in the future
                 verbosity = self.settings["echo_level"].GetInt()
 
                 # Make sure that the condition goes to the same partition as the element is a face of

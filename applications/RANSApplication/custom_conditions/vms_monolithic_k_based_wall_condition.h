@@ -47,7 +47,7 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(VMSMonolithicKBasedWallCondition);
 
     using BaseType = MonolithicWallCondition<TDim, TNumNodes>;
-    using NodeType = Node<3>;
+    using NodeType = Node;
     using PropertiesType = Properties;
     using GeometryType = Geometry<NodeType>;
     using NodesArrayType = Geometry<NodeType>::PointsArrayType;

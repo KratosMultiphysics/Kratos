@@ -1,5 +1,5 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import sys
+import copy
 
 # Importing the Kratos Library
 import KratosMultiphysics
@@ -12,6 +12,9 @@ from KratosMultiphysics.FSIApplication import convergence_accelerator_factory
 
 # Importing the base class
 from KratosMultiphysics.python_solver import PythonSolver
+
+# Importing Kratos utilities
+from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 
 def CreateSolver(main_model_part, custom_settings):
     return ConjugateHeatTransferSolver(main_model_part, custom_settings)
@@ -151,42 +154,34 @@ class ConjugateHeatTransferSolver(PythonSolver):
         self.solid_thermal_solver.main_model_part.AddNodalSolutionStepVariable(KratosConvDiff.AUX_TEMPERATURE)
         self.solid_thermal_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SCALAR_INTERFACE_RESIDUAL)
 
-    def ImportModelPart(self):
-        # Check that both thermal solvers have a different model part name. If
-        # both model part names coincide the solver will fail to acces them. This
-        # is the case if the default one in the convection diffusion is taken.
-        fluid_thermal_model_part_name = self.settings["fluid_domain_solver_settings"]["thermal_solver_settings"]["model_part_name"].GetString()
-        solid_thermal_model_part_name = self.settings["solid_domain_solver_settings"]["thermal_solver_settings"]["model_part_name"].GetString()
-        if fluid_thermal_model_part_name == solid_thermal_model_part_name:
-            err_msg = "\nFluid thermal solver settings model_part_name and solid thermal solver settings model_part_name can not coincide.\n"
-            err_msg += "- fluid model_part_name: " + fluid_thermal_model_part_name + "\n"
-            err_msg += "- solid model_part_name: " + solid_thermal_model_part_name + "\n"
-            err_msg += "Provide different model_part_names in the JSON settings file."
-            raise Exception(err_msg)
-
-        # Import the fluid domain in the fluid dynamics solver
-        self.fluid_solver.ImportModelPart()
-
         # In order to consider the buoyancy effects, the nodes in the fluid model part must
         # be shared with the nodes in the fluid thermal model part. To do that, we use the modeler
         # Save the convection diffusion settings
-        convection_diffusion_settings = self.fluid_thermal_solver.main_model_part.ProcessInfo.GetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS)
+        self.fluid_convection_diffusion_settings_aux_copy = self.fluid_thermal_solver.main_model_part.ProcessInfo.GetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS)
 
-        # Here the fluid model part is cloned to be thermal model part so that the nodes are shared
-        modeler = KratosMultiphysics.ConnectivityPreserveModeler()
-        if(self.domain_size == 2):
-            modeler.GenerateModelPart(self.fluid_solver.main_model_part,
-                                      self.fluid_thermal_solver.main_model_part,
-                                      "Element2D3N",
-                                      "LineCondition2D2N")
-        else:
-            modeler.GenerateModelPart(self.fluid_solver.main_model_part,
-                                      self.fluid_thermal_solver.main_model_part,
-                                      "Element3D4N",
-                                      "SurfaceCondition3D3N")
+    def ImportModelPart(self):
+        # Import the fluid domain in the fluid dynamics solver
+        self.fluid_solver.ImportModelPart()
+
+        #TODO: Remove this after the deprecation period
+        # Keep this for a while for retrocompatibility (ConnectivityPreserveModeler must be called at the stage modelers section)
+        if not self.settings["fluid_domain_solver_settings"]["fluid_solver_settings"]["model_import_settings"]["input_type"].GetString() == "use_input_model_part":
+            IssueDeprecationWarning("ConjugateHeatTransferSolver", "Using the old I/O at the solver level. Please use the geometry-based one with modelers.")
+            modeler = KratosMultiphysics.ConnectivityPreserveModeler()
+            if(self.domain_size == 2):
+                modeler.GenerateModelPart(self.fluid_solver.main_model_part,
+                                        self.fluid_thermal_solver.main_model_part,
+                                        "Element2D3N",
+                                        "LineCondition2D2N")
+            else:
+                modeler.GenerateModelPart(self.fluid_solver.main_model_part,
+                                        self.fluid_thermal_solver.main_model_part,
+                                        "Element3D4N",
+                                        "SurfaceCondition3D3N")
 
         # Set the saved convection diffusion settings to the new thermal model part
-        self.fluid_thermal_solver.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, convection_diffusion_settings)
+        self.fluid_thermal_solver.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, self.fluid_convection_diffusion_settings_aux_copy)
+        self.fluid_convection_diffusion_settings_aux_copy = None
 
         # Confirm that the buffer size in the shared nodes is the maximum required one
         fluid_solver_buffer = self.fluid_solver.GetMinimumBufferSize()
@@ -250,6 +245,18 @@ class ConjugateHeatTransferSolver(PythonSolver):
         (self.solid_thermal_solver).Clear()
 
     def Check(self):
+        # Check that both thermal solvers have a different model part name. If
+        # both model part names coincide the solver will fail to acces them. This
+        # is the case if the default one in the convection diffusion is taken.
+        fluid_thermal_model_part_name = self.settings["fluid_domain_solver_settings"]["thermal_solver_settings"]["model_part_name"].GetString()
+        solid_thermal_model_part_name = self.settings["solid_domain_solver_settings"]["thermal_solver_settings"]["model_part_name"].GetString()
+        if fluid_thermal_model_part_name == solid_thermal_model_part_name:
+            err_msg = "\nFluid thermal solver settings model_part_name and solid thermal solver settings model_part_name can not coincide.\n"
+            err_msg += "- fluid model_part_name: " + fluid_thermal_model_part_name + "\n"
+            err_msg += "- solid model_part_name: " + solid_thermal_model_part_name + "\n"
+            err_msg += "Provide different model_part_names in the JSON settings file."
+            raise Exception(err_msg)
+
         (self.fluid_solver).Check()
         (self.fluid_thermal_solver).Check()
         (self.solid_thermal_solver).Check()
@@ -298,7 +305,7 @@ class ConjugateHeatTransferSolver(PythonSolver):
             redistribution_max_iterations = self.settings["coupling_settings"]["variable_redistribution_settings"]["max_iterations"].GetInt()
 
             # Solve the buoyancy solver
-            self.fluid_solver.SolveSolutionStep()
+            fluid_is_converged = self.fluid_solver.SolveSolutionStep()
 
             # Interface temperature prediction
             self._temperature_coupling_prediction()
@@ -308,6 +315,7 @@ class ConjugateHeatTransferSolver(PythonSolver):
 
             # Couple the solid and fluid thermal problems
             iteration = 0
+            coupling_is_converged = False
             KratosMultiphysics.Logger.PrintInfo("::[ConjugateHeatTransferSolver]::", "Starting non-linear temperature coupling")
             while iteration < max_iteration:
                 # Initialize non-linear iteration
@@ -323,6 +331,7 @@ class ConjugateHeatTransferSolver(PythonSolver):
                 # Map reactions to the solid interface. Note that we first call the redistribution utility to convert the point values to distributed ones
                 KratosMultiphysics.VariableRedistributionUtility.DistributePointValues(
                     self._get_dirichlet_coupling_interface(),
+                    self._get_dirichlet_coupling_interface().Conditions,
                     KratosMultiphysics.REACTION_FLUX,
                     KratosConvDiff.AUX_FLUX,
                     redistribution_tolerance,
@@ -366,10 +375,13 @@ class ConjugateHeatTransferSolver(PythonSolver):
 
                 # Check convergence
                 if rel_res_norm <= temp_rel_tol:
+                    coupling_is_converged = True
                     KratosMultiphysics.Logger.PrintInfo("::[ConjugateHeatTransferSolver]::", "Converged in " + str(iteration) + " iterations.")
                     break
                 elif iteration == max_iteration:
                     KratosMultiphysics.Logger.PrintInfo("::[ConjugateHeatTransferSolver]::", "Did not converge in " + str(iteration) + " iterations.")
+
+        return fluid_is_converged and coupling_is_converged
 
     def FinalizeSolutionStep(self):
         if self._time_buffer_is_initialized():
@@ -383,6 +395,7 @@ class ConjugateHeatTransferSolver(PythonSolver):
         for node in self._get_dirichlet_coupling_interface().Nodes:
             node.Fix(KratosMultiphysics.TEMPERATURE)
 
+    #TODO: Use MappingApplication in here
     def _set_up_mappers(self):
         # Set mappers settings
         mappers_settings = self.settings["coupling_settings"]["mappers_settings"]

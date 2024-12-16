@@ -374,17 +374,17 @@ ContainerComponentIO<TContainerType, TContainerItemType, TComponents...>::Contai
             "list_of_variables": []
         })");
 
-    Settings.ValidateAndAssignDefaults(default_params);
+    Settings.AddMissingParameters(default_params);
 
     mComponentPath = Settings["prefix"].GetString() + rComponentPath;
+    mComponentNames = Settings["list_of_variables"].GetStringArray();
 
-    const std::size_t num_components = Settings["list_of_variables"].size();
-
-    if (mComponentNames.size() != num_components)
-        mComponentNames.resize(num_components);
-
-    for (std::size_t i = 0; i < num_components; ++i)
-        mComponentNames[i] = Settings["list_of_variables"].GetArrayItem(i).GetString();
+    // Sort component names to make sure they're in the same order on each rank.
+    // The basic assumption is that the set of components is identical on every
+    // rank, but they may not be in the same order (which would lead to ranks
+    // trying to write different variables at the same time, resulting in
+    // a deadlock), hence the sorting.
+    std::sort(mComponentNames.begin(), mComponentNames.end());
 
     KRATOS_CATCH("");
 }

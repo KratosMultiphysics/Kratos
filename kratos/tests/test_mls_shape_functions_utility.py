@@ -1,5 +1,3 @@
-import os
-
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.gid_output_process import GiDOutputProcess
@@ -50,7 +48,7 @@ class TestMLSShapeFunctionsUtility(KratosUnittest.TestCase):
 
         KratosMultiphysics.StructuredMeshGeneratorProcess(problem_domain, self.main_model_part, mesh_parameters).Execute()
 
-    def test_mls_shape_functions_utility_1x1_square(self):
+    def testMLSShapeFunctionsUtility1x1Square1stOrder(self):
         # Create the sample points array
         n_nodes = self.main_model_part.NumberOfNodes()
         pts_coord = KratosMultiphysics.Matrix(n_nodes, 3, 0.0)
@@ -62,13 +60,17 @@ class TestMLSShapeFunctionsUtility(KratosUnittest.TestCase):
 
         # Calculate the MLS shape functions in the square midpoint
         h = 0.2
+        dim = 2
+        order = 1
         midpoint = KratosMultiphysics.Vector(3)
         midpoint[0] = 0.5
         midpoint[1] = 0.5
         midpoint[2] = 0.0
         N_container = KratosMultiphysics.Vector()
         DN_DX_container = KratosMultiphysics.Matrix()
-        KratosMultiphysics.MLSShapeFunctionsUtility.CalculateShapeFunctionsAndGradients2D(
+        KratosMultiphysics.MLSShapeFunctionsUtility.CalculateShapeFunctionsAndGradients(
+            dim,
+            order,
             pts_coord,
             midpoint,
             h,
@@ -84,17 +86,73 @@ class TestMLSShapeFunctionsUtility(KratosUnittest.TestCase):
                 node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0, DN_DX_container[i,0])
                 node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0, DN_DX_container[i,1])
                 i += 1
-            PostProcess(self.main_model_part, "test_mls_shape_functions_utility_1x1_square")
+            PostProcess(self.main_model_part, "testMLSShapeFunctionsUtility1x1Square1stOrder")
 
         # Check results
         N_tot = sum(N_container)
         self.assertAlmostEqual(N_tot, 1.0, 8)
-        self.assertAlmostEqual(N_container[0], 7.416763267830596e-08, 8)
-        self.assertAlmostEqual(DN_DX_container[0,0], -1.8594873082432379e-06, 8)
-        self.assertAlmostEqual(DN_DX_container[0,1], -1.859487308243242e-06, 8)
-        self.assertAlmostEqual(N_container[221], 0.018696143633106455, 8)
+        self.assertAlmostEqual(N_container[0], 7.416763267826954e-08, 8)
+        self.assertAlmostEqual(DN_DX_container[0,0], 4.6903874434833715e-06, 8)
+        self.assertAlmostEqual(DN_DX_container[0,1], 4.690387443475345e-06, 8)
+        self.assertAlmostEqual(N_container[220], 0.019901941300573312, 8)
+        self.assertAlmostEqual(DN_DX_container[220,0], 0.0, 8)
+        self.assertAlmostEqual(DN_DX_container[220,1], 0.0, 8)
+        self.assertAlmostEqual(N_container[221], 0.01869614363310557, 8)
         self.assertAlmostEqual(DN_DX_container[221,0], 0.0, 8)
-        self.assertAlmostEqual(DN_DX_container[221,1], 0.046873872797914065, 8)
+        self.assertAlmostEqual(DN_DX_container[221,1], 0.24155121872335386, 8)
+
+    def testMLSShapeFunctionsUtility1x1Square2ndOrder(self):
+        # Create the sample points array
+        n_nodes = self.main_model_part.NumberOfNodes()
+        pts_coord = KratosMultiphysics.Matrix(n_nodes, 3, 0.0)
+        i = 0
+        for node in self.main_model_part.Nodes:
+            pts_coord[i,0] = node.X
+            pts_coord[i,1] = node.Y
+            i += 1
+
+        # Calculate the MLS shape functions in the square midpoint
+        h = 0.2
+        dim = 2
+        order = 2
+        midpoint = KratosMultiphysics.Vector(3)
+        midpoint[0] = 0.5
+        midpoint[1] = 0.5
+        midpoint[2] = 0.0
+        N_container = KratosMultiphysics.Vector()
+        DN_DX_container = KratosMultiphysics.Matrix()
+        KratosMultiphysics.MLSShapeFunctionsUtility.CalculateShapeFunctionsAndGradients(
+            dim,
+            order,
+            pts_coord,
+            midpoint,
+            h,
+            N_container,
+            DN_DX_container)
+
+        # Save the obtained results in TEMPERATURE variable and visualize
+        output_results = False
+        if output_results:
+            i = 0
+            for node in self.main_model_part.Nodes:
+                node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0, N_container[i])
+                node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0, DN_DX_container[i,0])
+                node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0, DN_DX_container[i,1])
+                i += 1
+            PostProcess(self.main_model_part, "testMLSShapeFunctionsUtility1x1Square2ndOrder")
+
+        # Check results
+        N_tot = sum(N_container)
+        self.assertAlmostEqual(N_tot, 1.0, 8)
+        self.assertAlmostEqual(N_container[0], -7.951619456545074e-07, 8)
+        self.assertAlmostEqual(DN_DX_container[0,0], 2.775864113372096e-06, 8)
+        self.assertAlmostEqual(DN_DX_container[0,1], 2.775864113372096e-06, 8)
+        self.assertAlmostEqual(N_container[220], 0.04012381031655152, 8)
+        self.assertAlmostEqual(DN_DX_container[220,0], 0.0, 8)
+        self.assertAlmostEqual(DN_DX_container[220,1], 0.0, 8)
+        self.assertAlmostEqual(N_container[221], 0.036502147047586114, 8)
+        self.assertAlmostEqual(DN_DX_container[221,0], 0.0, 8)
+        self.assertAlmostEqual(DN_DX_container[221,1], 0.6415689416490207, 8)
 
 if __name__ == '__main__':
     KratosUnittest.main()

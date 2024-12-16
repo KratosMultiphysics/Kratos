@@ -32,7 +32,7 @@ public:
     /// Pointer definition of Define3DWakeProcess
     KRATOS_CLASS_POINTER_DEFINITION(Define3DWakeProcess);
 
-    typedef Node <3> NodeType;
+    typedef Node NodeType;
 
     ///@}
     ///@name Life Cycle

@@ -44,8 +44,8 @@ class BinBasedNodesInElementLocator
 {
 public:
 
-    typedef Node<3> PointType;
-    typedef Node<3>::Pointer PointTypePointer;
+    typedef Node PointType;
+    typedef Node::Pointer PointTypePointer;
     typedef std::vector<PointType::Pointer >           PointVector;
     typedef typename std::vector<PointType::Pointer >::iterator PointIterator;
     typedef std::vector<double>               DistanceVector;
@@ -76,7 +76,7 @@ public:
                 node_it != mr_model_part.NodesEnd(); ++node_it)
         {
             //PointType::Pointer pnode(new PointType(*node_it));
-            Node<3>::Pointer pnode = *(node_it.base());
+            Node::Pointer pnode = *(node_it.base());
 
             //putting the nodes of the destination_model part in an auxiliary list
             mlist_of_new_nodes.push_back( pnode );
@@ -106,7 +106,7 @@ public:
                 node_it != mr_model_part.NodesEnd(); ++node_it)
         {
             //PointType::Pointer pnode(new PointType(*node_it));
-            Node<3>::Pointer pnode = *(node_it.base());
+            Node::Pointer pnode = *(node_it.base());
 
             //putting the nodes of the destination_model part in an auxiliary list
             mlist_of_new_nodes.push_back( pnode );
@@ -136,10 +136,10 @@ public:
                                     const unsigned int max_results,
                                     PointIterator work_results,
                                     DistanceIterator work_distances,
-                                    Node<3>& work_point  // is it needed from outside???????????????
+                                    Node& work_point  // is it needed from outside???????????????
                                    )
     {
-        Geometry<Node<3> >&geom = pelement->GetGeometry();
+        Geometry<Node >&geom = pelement->GetGeometry();
         array_1d<double,TDim+1> N;
 
         double xc, yc, zc,  radius;
@@ -188,7 +188,7 @@ private:
      * @param N The shape function
      */
     inline void CalculateCenterAndSearchRadius(
-        Geometry<Node<3> >&geom,
+        Geometry<Node >&geom,
         double& xc, 
         double& yc, 
         double& zc, 
@@ -227,7 +227,7 @@ private:
      * @param N The shape function
      */
     inline void CalculateCenterAndSearchRadius(
-        Geometry<Node<3> >&geom,
+        Geometry<Node >&geom,
         double& xc, 
         double& yc, 
         double& zc, 
@@ -275,7 +275,7 @@ private:
      * @return False if is not possible to compute, true if it is  
      */
     inline bool CalculatePosition(
-        Geometry<Node < 3 > >&geom,
+        Geometry<Node >&geom,
         const double xc, 
         const double yc, 
         const double zc,
@@ -321,7 +321,7 @@ private:
      * @return False if is not possible to compute, true if it is  
      */
     inline bool CalculatePosition(
-        Geometry<Node < 3 > >&geom,
+        Geometry<Node >&geom,
         const double xc,
          const double yc, 
          const double zc,

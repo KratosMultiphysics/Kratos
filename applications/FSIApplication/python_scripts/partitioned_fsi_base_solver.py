@@ -210,10 +210,6 @@ class PartitionedFSIBaseSolver(PythonSolver):
         pass
 
     def SolveSolutionStep(self):
-        ## Safe ward to avoid coupling if fluid problem is not initialized
-        if not self.fluid_solver._TimeBufferIsInitialized():
-            return True
-
         ## Initialize residual
         dis_residual_norm = self._ComputeInitialResidual()
 

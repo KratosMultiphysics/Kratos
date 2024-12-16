@@ -31,7 +31,7 @@ namespace Kratos {
     }
 
     std::string DEM_D_Stress_Dependent_Cohesive::GetTypeOfLaw() {
-        std::string type_of_law = "Linear";
+        std::string type_of_law = "Stress_dependent";
         return type_of_law;
     }
 
@@ -61,29 +61,29 @@ namespace Kratos {
 
         KRATOS_TRY
 
-        //Particles Radius Sum
+        // Particles Radius Sum
         const double radius = element1->GetRadius();
         const double other_radius = element2->GetRadius();
         const double radius_sum = radius + other_radius;
 
-        //Get equivalent Young's Modulus
-        const double my_young        = element1->GetYoung();
-        const double other_young     = element2->GetYoung();
-        const double my_poisson      = element1->GetPoisson();
-        const double other_poisson   = element2->GetPoisson();
-        const double equiv_young     = my_young * other_young / (other_young * (1.0 - my_poisson * my_poisson) + my_young * (1.0 - other_poisson * other_poisson));
+        // Get equivalent Young's Modulus
+        const double my_young = element1->GetYoung();
+        const double other_young = element2->GetYoung();
+        const double equiv_young = my_young * other_young / (other_young + my_young);
 
-        //Get equivalent Shear Modulus
-        const double my_shear_modulus = 0.5 * my_young / (1.0 + my_poisson);
-        const double other_shear_modulus = 0.5 * other_young / (1.0 + other_poisson);
-        const double equiv_shear = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - other_poisson)/other_shear_modulus);
+        // Get equivalent Poisson
+        const double my_poisson = element1->GetPoisson();
+        const double other_poisson = element2->GetPoisson();
+        const double equiv_poisson = 2.0 * my_poisson * other_poisson / (my_poisson + other_poisson);
 
         double contact_area = 0.0;
         CalculateIndentedContactArea(radius, other_radius, indentation, contact_area);
 
-        //Normal and Tangent elastic constants
+        // Normal and Tangent elastic constants
+        // Taken from 'A methodology for calibrating parameters in discrete element models based on machine learning surrogates.'
+        // https://link.springer.com/article/10.1007/s40571-022-00550-1
         mKn = contact_area * equiv_young / (radius_sum - indentation);
-        mKt = 4.0 * equiv_shear * mKn / equiv_young;
+        mKt = mKn * (2.0 * (1.0 - equiv_poisson) / (2.0 - equiv_poisson));
 
         KRATOS_CATCH("")
     }
@@ -210,25 +210,26 @@ namespace Kratos {
         KRATOS_TRY
 
         //Particle Radius
-        const double radius           = element->GetRadius();
+        const double radius = element->GetRadius();
 
         //Get equivalent Young's Modulus
-        const double my_young            = element->GetYoung();
-        const double walls_young         = wall->GetProperties()[YOUNG_MODULUS];
-        const double my_poisson          = element->GetPoisson();
-        const double walls_poisson       = wall->GetProperties()[POISSON_RATIO];
-        const double equiv_young         = my_young * walls_young / (walls_young * (1.0 - my_poisson * my_poisson) + my_young * (1.0 - walls_poisson * walls_poisson));
+        const double my_young = element->GetYoung();
+        const double walls_young = wall->GetProperties()[YOUNG_MODULUS];
+        const double equiv_young = my_young * walls_young / (walls_young + my_young);
 
-        //Get equivalent Shear Modulus
-        const double my_shear_modulus    = 0.5 * my_young / (1.0 + my_poisson);
-        const double walls_shear_modulus = 0.5 * walls_young / (1.0 + walls_poisson);
-        const double equiv_shear         = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - walls_poisson)/walls_shear_modulus);
+        //Get equivalent Poisson
+        const double my_poisson = element->GetPoisson();
+        const double walls_poisson = wall->GetProperties()[POISSON_RATIO];
+        const double equiv_poisson = 0.5 * (my_poisson + walls_poisson);
 
         double contact_area = 0.0;
         CalculateIndentedContactAreaWithFEM(radius, indentation, contact_area);
 
+        // Normal and Tangent elastic constants
+        // Taken from 'A methodology for calibrating parameters in discrete element models based on machine learning surrogates.'
+        // https://link.springer.com/article/10.1007/s40571-022-00550-1
         mKn = contact_area * equiv_young / (radius - indentation);
-        mKt = 4.0 * equiv_shear * mKn / equiv_young;
+        mKt = mKn * (2.0 * (1.0 - equiv_poisson) / (2.0 - equiv_poisson));
 
         KRATOS_CATCH("")
     }

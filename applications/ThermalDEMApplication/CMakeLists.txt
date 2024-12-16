@@ -43,46 +43,47 @@ endif(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 set( KRATOS_THERMAL_DEM_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/thermal_dem_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/thermal_dem_application_variables.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/heat_exchange_mechanism.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/heat_generation_mechanism.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/sintering_continuum.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction/direct_conduction_model.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction/direct_conduction_bob_complete.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction/direct_conduction_bob_modified.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction/direct_conduction_bob_simple.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction/direct_conduction_collision.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction/direct_conduction_pipe.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction/indirect_conduction_model.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction/indirect_conduction_surround_layer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction/indirect_conduction_vargas.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction/indirect_conduction_voronoi_a.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction/indirect_conduction_voronoi_b.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/convection/convection_model.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/convection/nusselt_gunn.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/convection/nusselt_hanz_marshall.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/convection/nusselt_li_mason.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/convection/nusselt_whitaker.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/generation/generation_model.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/generation/generation_dissipation.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/radiation/radiation_model.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/radiation/radiation_continuum_krause.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/radiation/radiation_continuum_zhou.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/real_contact/real_contact_model.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/real_contact/real_contact_lu.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/real_contact/real_contact_morris.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/real_contact/real_contact_zhou.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/thermal_spheric_particle.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/thermal_spheric_continuum_particle.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/sintering_spheric_continuum_particle.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/strategies/thermal_explicit_solver_strategy.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/heat_exchange_mechanism.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/heat_generation_mechanism.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/sintering_continuum.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction/direct_conduction_model.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction/direct_conduction_bob_complete.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction/direct_conduction_bob_modified.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction/direct_conduction_bob_simple.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction/direct_conduction_collision.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction/direct_conduction_pipe.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction/indirect_conduction_model.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction/indirect_conduction_surround_layer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction/indirect_conduction_vargas.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction/indirect_conduction_voronoi_a.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction/indirect_conduction_voronoi_b.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/convection/convection_model.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/convection/nusselt_gunn.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/convection/nusselt_hanz_marshall.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/convection/nusselt_li_mason.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/convection/nusselt_whitaker.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/generation/generation_model.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/generation/generation_dissipation.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/radiation/radiation_model.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/radiation/radiation_continuum_krause.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/radiation/radiation_continuum_zhou.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/real_contact/real_contact_model.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/real_contact/real_contact_lu.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/real_contact/real_contact_morris.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/real_contact/real_contact_zhou.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/thermal_spheric_particle.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/thermal_spheric_continuum_particle.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/sintering_spheric_continuum_particle.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/strategies/thermal_explicit_solver_strategy.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/thermal_dem_integration_scheme.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/thermal_forward_euler_scheme.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/graph_utilities.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/set_thermal_data_utilities.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/tesselation_utilities_2d.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/tesselation_utilities_3d.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/numerical_integration_method.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/numerical_integration_adaptive_simpson.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/set_thermal_data_utilities.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/numerical_integration_method.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/numerical_integration_adaptive_simpson.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/tesselation_utilities_2d.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/tesselation_utilities_3d.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/graph_utilities.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/heat_map_utilities.cpp
 )
 
 ## Define python interface sources

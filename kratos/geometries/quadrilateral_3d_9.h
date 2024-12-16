@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
@@ -14,8 +14,7 @@
 //                   Josep Maria Carbonell
 //
 
-#if !defined(KRATOS_QUADRILATERAL_3D_9_H_INCLUDED )
-#define  KRATOS_QUADRILATERAL_3D_9_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -23,8 +22,8 @@
 
 // Project includes
 #include "geometries/line_3d_3.h"
+#include "utilities/integration_utilities.h"
 #include "integration/quadrilateral_gauss_legendre_integration_points.h"
-
 
 namespace Kratos
 {
@@ -287,14 +286,34 @@ public:
      */
     ~Quadrilateral3D9() override {}
 
+    /**
+     * @brief Gets the geometry family.
+     * @details This function returns the family type of the geometry. The geometry family categorizes the geometry into a broader classification, aiding in its identification and processing.
+     * @return GeometryData::KratosGeometryFamily The geometry family.
+     */
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::KratosGeometryFamily::Kratos_Quadrilateral;
     }
 
+    /**
+     * @brief Gets the geometry type.
+     * @details This function returns the specific type of the geometry. The geometry type provides a more detailed classification of the geometry.
+     * @return GeometryData::KratosGeometryType The specific geometry type.
+     */
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::KratosGeometryType::Kratos_Quadrilateral3D9;
+    }
+
+    /**
+     * @brief Gets the geometry order type.
+     * @details This function returns the order type of the geometry. The order type relates to the polynomial degree of the geometry.
+     * @return GeometryData::KratosGeometryOrderType The geometry order type.
+     */
+    GeometryData::KratosGeometryOrderType GetGeometryOrderType() const override
+    {
+        return GeometryData::KratosGeometryOrderType::Kratos_Quadratic_Order;
     }
 
     /**
@@ -422,35 +441,24 @@ public:
      */
     double Area() const override
     {
-        Vector temp;
-        this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
-        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
-        double Area = 0.0;
-
-        for ( unsigned int i = 0; i < integration_points.size(); i++ ) {
-            Area += temp[i] * integration_points[i].Weight();
-        }
-
-        return Area;
+        const IntegrationMethod integration_method = msGeometryData.DefaultIntegrationMethod();
+        return IntegrationUtilities::ComputeDomainSize(*this, integration_method);
     }
 
     /**
-     * This method calculates and returns the volume of this geometry.
-     * This method calculates and returns the volume of this geometry.
-     *
-     * This method uses the V = (A x B) * C / 6 formula.
-     *
-     * @return double value contains length, area or volume.
-     *
+     * @brief This method calculates and returns the volume of this geometry.
+     * @return Error, the volume of a 2D geometry is not defined (In June 2023)
      * @see Length()
      * @see Area()
      * @see Volume()
-     *
-     * @todo might be necessary to reimplement
      */
     double Volume() const override
     {
+        KRATOS_WARNING("Quadrilateral3D9") << "Method not well defined. Replace with DomainSize() instead. This method preserves current behaviour but will be changed in June 2023 (returning error instead)" << std::endl;
         return Area();
+        // TODO: Replace in June 2023
+        // KRATOS_ERROR << "Quadrilateral3D9:: Method not well defined. Replace with DomainSize() instead." << std::endl;
+        // return 0.0;
     }
 
     /** This method calculates and returns length, area or volume of
@@ -558,9 +566,9 @@ public:
             rResult.resize( 2, false );
 
         //starting with xi = 0
-        rResult = ZeroVector( 2 );
+        rResult = ZeroVector( 3 );
 
-        Vector DeltaXi = ZeroVector( 2 );
+        Vector DeltaXi = ZeroVector( 3 );
 
         CoordinatesArrayType CurrentGlobalCoords( ZeroVector( 3 ) );
 
@@ -833,12 +841,13 @@ public:
         //loop over all nodes
         for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
         {
-            rResult( 0, 0 ) += ( this->GetPoint( i ).X() ) * ( shape_functions_gradients( i, 0 ) );
-            rResult( 0, 1 ) += ( this->GetPoint( i ).X() ) * ( shape_functions_gradients( i, 1 ) );
-            rResult( 1, 0 ) += ( this->GetPoint( i ).Y() ) * ( shape_functions_gradients( i, 0 ) );
-            rResult( 1, 1 ) += ( this->GetPoint( i ).Y() ) * ( shape_functions_gradients( i, 1 ) );
-            rResult( 2, 0 ) += ( this->GetPoint( i ).Y() ) * ( shape_functions_gradients( i, 0 ) );
-            rResult( 2, 1 ) += ( this->GetPoint( i ).Y() ) * ( shape_functions_gradients( i, 1 ) );
+            const auto& coordinates = this->GetPoint(i).Coordinates();
+            rResult( 0, 0 ) += ( coordinates[0] ) * ( shape_functions_gradients( i, 0 ) );
+            rResult( 0, 1 ) += ( coordinates[0] ) * ( shape_functions_gradients( i, 1 ) );
+            rResult( 1, 0 ) += ( coordinates[1] ) * ( shape_functions_gradients( i, 0 ) );
+            rResult( 1, 1 ) += ( coordinates[1] ) * ( shape_functions_gradients( i, 1 ) );
+            rResult( 2, 0 ) += ( coordinates[2] ) * ( shape_functions_gradients( i, 0 ) );
+            rResult( 2, 1 ) += ( coordinates[2] ) * ( shape_functions_gradients( i, 1 ) );
         }
 
         return rResult;
@@ -875,10 +884,10 @@ public:
     GeometriesArrayType GenerateEdges() const override
     {
         GeometriesArrayType edges = GeometriesArrayType();
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 4 ), this->pGetPoint( 1 ) ) );
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 5 ), this->pGetPoint( 2 ) ) );
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 6 ), this->pGetPoint( 3 ) ) );
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 3 ), this->pGetPoint( 7 ), this->pGetPoint( 0 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ), this->pGetPoint( 4 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 2 ), this->pGetPoint( 5 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 3 ), this->pGetPoint( 6 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 3 ), this->pGetPoint( 0 ), this->pGetPoint( 7 ) ) );
         return edges;
     }
 
@@ -971,25 +980,6 @@ public:
     }
 
     ///@}
-    ///@name Shape Function Integration Points Gradient
-    ///@{
-
-    void ShapeFunctionsIntegrationPointsGradients(
-        ShapeFunctionsGradientsType& rResult,
-        IntegrationMethod ThisMethod) const override
-    {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
-    }
-
-    void ShapeFunctionsIntegrationPointsGradients(
-        ShapeFunctionsGradientsType &rResult,
-        Vector &rDeterminantsOfJacobian,
-        IntegrationMethod ThisMethod) const override
-    {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
-    }
-
-    ///@}
 
     /**
      * Input and Output
@@ -1029,18 +1019,16 @@ public:
      */
     void PrintData( std::ostream& rOStream ) const override
     {
+        // Base Geometry class PrintData call
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
 
-        for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
-        {
-            rOStream << this->Points()[i] << "\t";
+        // If the geometry has valid points, calculate and output its data
+        if (this->AllPointsAreValid()) {
+            Matrix jacobian;
+            this->Jacobian( jacobian, PointType() );
+            rOStream << "    Jacobian in the origin\t : " << jacobian;
         }
-
-//                 Matrix jacobian;
-//                 Jacobian(jacobian, PointType());
-//                 rOStream << "    Jacobian in the origin\t : " << jacobian;
-        rOStream << std::endl;
     }
 
     /**
@@ -1785,9 +1773,6 @@ const GeometryData Quadrilateral3D9<TPointType>::msGeometryData(
 );
 
 template<class TPointType>
-const GeometryDimension Quadrilateral3D9<TPointType>::msGeometryDimension(
-    2, 3, 2);
+const GeometryDimension Quadrilateral3D9<TPointType>::msGeometryDimension(3, 2);
 
 }  // namespace Kratos.
-
-#endif // KRATOS_QUADRILATERAL_3D_9_H_INCLUDED  defined

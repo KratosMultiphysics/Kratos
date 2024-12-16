@@ -7,12 +7,6 @@ from KratosMultiphysics.testing.utilities import GetPython3Command
 import co_simulation_test_case
 import os
 
-try:
-    import numpy
-    numpy_available = True
-except ImportError:
-    numpy_available = False
-
 have_fsi_dependencies = kratos_utils.CheckIfApplicationsAvailable("FluidDynamicsApplication", "StructuralMechanicsApplication", "MappingApplication", "MeshMovingApplication", "LinearSolversApplication")
 
 def GetFilePath(fileName):
@@ -22,8 +16,6 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
     cfd_tes_file_name = "fsi_mok/ProjectParametersCFD_for_test.json"
 
     def setUp(self):
-        if not numpy_available:
-            self.skipTest("Numpy not available")
         if not have_fsi_dependencies:
             self.skipTest("FSI dependencies are not available!")
 

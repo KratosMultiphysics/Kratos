@@ -11,7 +11,7 @@ namespace Kratos {
     class KRATOS_API(SWIMMING_DEM_APPLICATION) HaiderAndLevenspielDragLaw : public StokesDragLaw {
 
     public:
-        typedef Node <3> NodeType;
+        typedef Node NodeType;
         KRATOS_CLASS_POINTER_DEFINITION(HaiderAndLevenspielDragLaw);
 
         HaiderAndLevenspielDragLaw(): StokesDragLaw(){}

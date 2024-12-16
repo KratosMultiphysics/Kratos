@@ -31,7 +31,7 @@
 #include "geometries/triangle_3d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "meshing_application_variables.h"
-#include "processes/node_erase_process.h"
+#include "processes/entity_erase_process.h"
 
 #include "utilities/binbased_fast_point_locator.h"
 
@@ -145,10 +145,10 @@ namespace Kratos
                     if ( it4 == ThisModelPart.Nodes().end() )
                         KRATOS_THROW_ERROR(std::logic_error,"trying to use an inexisting node with id ",it4->Id());
 
-                    Node<3>::Pointer pn1 =  *it1.base();
-                    Node<3>::Pointer pn2 =  *it2.base();
-                    Node<3>::Pointer pn3 =  *it3.base();
-                    Node<3>::Pointer pn4 =  *it4.base();
+                    Node::Pointer pn1 =  *it1.base();
+                    Node::Pointer pn2 =  *it2.base();
+                    Node::Pointer pn3 =  *it3.base();
+                    Node::Pointer pn4 =  *it4.base();
 
                     double prescribed_h = (pn1)->FastGetSolutionStepValue(NODAL_H);
                     prescribed_h += (pn2)->FastGetSolutionStepValue(NODAL_H);
@@ -182,7 +182,7 @@ namespace Kratos
                 //here we create and interpolate the new kratos nodes
                 ModelPart::NodesContainerType list_of_new_nodes;
 
-                //Node<3>::DofsContainerType& reference_dofs = (ThisModelPart.NodesBegin())->GetDofs();
+                //Node::DofsContainerType& reference_dofs = (ThisModelPart.NodesBegin())->GetDofs();
 
                 int n_points_before_refinement = ThisModelPart.Nodes().size();
 
@@ -229,7 +229,7 @@ namespace Kratos
                 inode->FastGetSolutionStepValue(IS_BOUNDARY) = 1.0;
             for (ModelPart::ConditionsContainerType::iterator icond = ThisModelPart.ConditionsBegin(); icond!=ThisModelPart.ConditionsEnd(); icond++)
             {
-                Geometry<Node<3> >& geom = icond->GetGeometry();
+                Geometry<Node >& geom = icond->GetGeometry();
                 for (unsigned int i=0; i<geom.size(); i++)
                     geom[i].FastGetSolutionStepValue(IS_BOUNDARY) = 1.0;
             }
@@ -309,7 +309,7 @@ namespace Kratos
                 f->numberofholes = 0;
                 f->holelist = nullptr;
 
-                Geometry<Node<3> >& geom = (it)->GetGeometry();
+                Geometry<Node >& geom = (it)->GetGeometry();
 
                 p = &f->polygonlist[0];
                 p->numberofvertices = 3;
@@ -488,12 +488,12 @@ namespace Kratos
                 if ( it4 == rModelPart.Nodes().end() )
                     KRATOS_THROW_ERROR(std::logic_error,"trying to use an inexisting node with id ",it4->Id());
 
-                Node<3>::Pointer pn1 =  *it1.base();
-                Node<3>::Pointer pn2 =  *it2.base();
-                Node<3>::Pointer pn3 =  *it3.base();
-                Node<3>::Pointer pn4 =  *it4.base();
+                Node::Pointer pn1 =  *it1.base();
+                Node::Pointer pn2 =  *it2.base();
+                Node::Pointer pn3 =  *it3.base();
+                Node::Pointer pn4 =  *it4.base();
 
-                Tetrahedra3D4<Node<3> > geom( pn1,pn2,pn3,pn4  );
+                Tetrahedra3D4<Node > geom( pn1,pn2,pn3,pn4  );
 
                 Element::Pointer p_element = rReferenceElement.Create(id, geom, properties);
                 (rModelPart.Elements()).push_back(p_element);
@@ -513,13 +513,13 @@ namespace Kratos
             if (static_cast<unsigned int>(tet.numberofpoints)>n_points_before_refinement)
             {
                 //defintions for spatial search
-//                 typedef Node < 3 > PointType;
-//                 typedef Node < 3 > ::Pointer PointTypePointer;
+//                 typedef Node PointType;
+//                 typedef Node ::Pointer PointTypePointer;
                 array_1d<double, 4 > N;
                 const int max_results = 10000;
                 BinBasedFastPointLocator<3>::ResultContainerType results(max_results);
 
-                Node<3>::DofsContainerType& reference_dofs = (rModelPart.NodesBegin())->GetDofs();
+                Node::DofsContainerType& reference_dofs = (rModelPart.NodesBegin())->GetDofs();
 
                 int step_data_size = rModelPart.GetNodalSolutionStepDataSize();
 
@@ -532,7 +532,7 @@ namespace Kratos
                     double& y= tet.pointlist[base+1];
                     double& z= tet.pointlist[base+2];
 
-                    Node<3>::Pointer pnode = rModelPart.CreateNewNode(id,x,y,z);
+                    Node::Pointer pnode = rModelPart.CreateNewNode(id,x,y,z);
 
                     //putting the new node also in an auxiliary list
                     //KRATOS_WATCH("adding nodes to list")
@@ -540,10 +540,10 @@ namespace Kratos
 
                     //std::cout << "new node id = " << pnode->Id() << std::endl;
                     //generating the dofs
-                    for (Node<3>::DofsContainerType::iterator iii = reference_dofs.begin();    iii != reference_dofs.end(); iii++)
+                    for (Node::DofsContainerType::iterator iii = reference_dofs.begin();    iii != reference_dofs.end(); iii++)
                     {
-                        Node<3>::DofType &rDof = **iii;
-                        Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
+                        Node::DofType &rDof = **iii;
+                        Node::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
 
                         (p_new_dof)->FreeDof();
                     }
@@ -557,7 +557,7 @@ namespace Kratos
 
                     if (is_found == true)
                     {
-                        Geometry<Node<3> >& geom = pelement->GetGeometry();
+                        Geometry<Node >& geom = pelement->GetGeometry();
 
                         Interpolate( geom, N, step_data_size, pnode);
                     }
@@ -571,9 +571,9 @@ namespace Kratos
 
         //////////////////////////////////////////////////////////////////////////////////////
         //////////////////////////////////////////////////////////////////////////////////////
-        void Interpolate( Geometry<Node<3> >& geom, const array_1d<double,4>& N,
+        void Interpolate( Geometry<Node >& geom, const array_1d<double,4>& N,
             unsigned int step_data_size,
-            Node<3>::Pointer pnode)
+            Node::Pointer pnode)
         {
             unsigned int buffer_size = pnode->GetBufferSize();
 

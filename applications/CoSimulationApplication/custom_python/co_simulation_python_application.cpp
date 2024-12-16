@@ -3,11 +3,11 @@
 //        | |__| (_) |__) | | | | | | | |_| | | (_| | |_| | (_) | | | |
 //         \____\___/____/|_|_| |_| |_|\__,_|_|\__,_|\__|_|\___/|_| |_|
 //
-//  License:		 BSD License
-//					 license: CoSimulationApplication/license.txt
+//  License:         BSD License
+//                   license: CoSimulationApplication/license.txt
 //
-//  Main authors:    Aditya Ghantasala
-//                   Philipp Bucher
+//  Main authors:    Aditya Ghantasala 
+//                   Philipp Bucher (https://github.com/philbucher)
 //
 
 // System includes
@@ -23,9 +23,9 @@
 #include "custom_python/add_co_sim_io_to_python.h"
 #include "custom_python/add_custom_io_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_python/add_custom_processes_to_python.h"
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 PYBIND11_MODULE(KratosCoSimulationApplication,m)
 {
@@ -40,6 +40,7 @@ PYBIND11_MODULE(KratosCoSimulationApplication,m)
     AddCoSimIOToPython(m);
     AddCustomIOToPython(m);
     AddCustomUtilitiesToPython(m);
+    AddCustomProcessesToPython(m);
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SCALAR_DISPLACEMENT );
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SCALAR_ROOT_POINT_DISPLACEMENT );
@@ -48,11 +49,8 @@ PYBIND11_MODULE(KratosCoSimulationApplication,m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SCALAR_VOLUME_ACCELERATION );
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, COUPLING_ITERATION_NUMBER);
-
-
 }
 
-} // namespace Python.
-} // namespace Kratos.
+} // namespace Kratos::Python.
 
 #endif // KRATOS_PYTHON defined

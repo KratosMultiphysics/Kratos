@@ -12,8 +12,7 @@
 //  Collaborator:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_GENERIC_SMALL_STRAIN_ISOTROPIC_DAMAGE_H_INCLUDED)
-#define KRATOS_GENERIC_SMALL_STRAIN_ISOTROPIC_DAMAGE_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -70,11 +69,13 @@ public:
     /// Definition of the base class
     typedef typename std::conditional<VoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type BaseType;
 
+    typedef array_1d<double, VoigtSize> BoundedArrayType;
+
     /// Counted pointer of GenericYieldSurface
     KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainIsotropicDamage);
 
     /// The node definition
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /// The geometry definition
     typedef Geometry<NodeType> GeometryType;
@@ -255,17 +256,6 @@ public:
         ) override;
 
     /**
-     * @brief Returns the value of a specified variable (matrix)
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    Matrix& GetValue(
-        const Variable<Matrix>& rThisVariable,
-        Matrix& rValue
-        ) override;
-
-    /**
      * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
      */
     bool RequiresFinalizeMaterialResponse() override
@@ -405,7 +395,6 @@ private:
     // Converged values
     double mDamage = 0.0;
     double mThreshold = 0.0;
-    double mUniaxialStress = 0.0;
 
     ///@}
     ///@name Private Operators
@@ -450,4 +439,3 @@ private:
 }; // Class GenericYieldSurface
 
 } // namespace Kratos
-#endif

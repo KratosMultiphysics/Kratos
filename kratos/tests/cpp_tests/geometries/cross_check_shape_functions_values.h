@@ -25,7 +25,7 @@
 
 namespace Kratos {
 namespace Testing {
-void CrossCheckShapeFunctionsValues(Geometry<Node<3>> const& rGeom);
+void CrossCheckShapeFunctionsValues(Geometry<Node> const& rGeom);
 }
 }
 

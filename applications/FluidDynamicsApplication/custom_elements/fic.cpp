@@ -15,8 +15,8 @@
 #include "includes/cfd_variables.h"
 #include "includes/checks.h"
 
-#include "custom_utilities/fic_data.h"
-#include "custom_utilities/time_integrated_fic_data.h"
+#include "custom_elements/data_containers/fic/fic_data.h"
+#include "custom_elements/data_containers/time_integrated_fic/time_integrated_fic_data.h"
 #include "custom_utilities/fluid_element_utilities.h"
 #include "utilities/element_size_calculator.h"
 #include "custom_utilities/fluid_element_time_integration_detail.h"
@@ -71,21 +71,40 @@ Element::Pointer FIC<TElementData>::Create(IndexType NewId,GeometryType::Pointer
 }
 
 template <class TElementData>
-void FIC<TElementData>::Calculate(const Variable<double>& rVariable,
-    double& rOutput, const ProcessInfo& rCurrentProcessInfo) {}
+void FIC<TElementData>::Calculate(
+    const Variable<double>& rVariable,
+    double& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    BaseType::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+}
 
 template <class TElementData>
 void FIC<TElementData>::Calculate(
     const Variable<array_1d<double, 3>>& rVariable,
-    array_1d<double, 3>& rOutput, const ProcessInfo& rCurrentProcessInfo) {}
+    array_1d<double, 3>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    BaseType::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+}
 
 template <class TElementData>
-void FIC<TElementData>::Calculate(const Variable<Vector>& rVariable,
-    Vector& rOutput, const ProcessInfo& rCurrentProcessInfo) {}
+void FIC<TElementData>::Calculate(
+    const Variable<Vector>& rVariable,
+    Vector& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    BaseType::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+}
 
 template <class TElementData>
-void FIC<TElementData>::Calculate(const Variable<Matrix>& rVariable,
-    Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) {}
+void FIC<TElementData>::Calculate(
+    const Variable<Matrix>& rVariable,
+    Matrix& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    BaseType::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Inquiry
@@ -510,7 +529,7 @@ void FIC<TElementData>::CalculateTau(
     double &TauMomentum,
     array_1d<double,3> &TauGrad) const
 {
-    const Geometry< Node<3> >& r_geometry = this->GetGeometry();
+    const Geometry< Node >& r_geometry = this->GetGeometry();
 
     constexpr double c1 = 8.0;
     constexpr double c2 = 2.0;
@@ -581,7 +600,7 @@ void FIC<TElementData>::CalculateTauGrad(
     }
 
     // Calculate characteristic lenghts on the gradient directions and gradient norms
-    const Geometry< Node<3> >& r_geometry = this->GetGeometry();
+    const Geometry< Node >& r_geometry = this->GetGeometry();
     array_1d<double,3> Hg = ZeroVector(3);
     array_1d<double,3> GradNorm;
     for (unsigned int d = 0; d < Dim; d++)

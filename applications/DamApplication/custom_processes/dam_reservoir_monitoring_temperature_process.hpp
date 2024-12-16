@@ -162,7 +162,7 @@ class DamReservoirMonitoringTemperatureProcess : public Process
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
                 double aux = it->Coordinates()[direction];
-                if (aux < (mReferenceCoordinate + mWaterLevel))
+                if (aux < mWaterLevel)
                 {
                     if (mIsFixed)
                     {
@@ -170,7 +170,7 @@ class DamReservoirMonitoringTemperatureProcess : public Process
                     }
                     if (aux > mZCoord1)
                     {
-                        double Temperature = ((mAmbientTemp - mWaterTemp1)/((mReferenceCoordinate + mWaterLevel) - mZCoord1)) * (aux - mZCoord1) + mWaterTemp1;
+                        double Temperature = ((mAmbientTemp - mWaterTemp1)/(mWaterLevel - mZCoord1)) * (aux - mZCoord1) + mWaterTemp1;
                         it->FastGetSolutionStepValue(var) = Temperature;
                     }
                     else if ((aux <= mZCoord1) && (aux > mZCoord2))
@@ -260,7 +260,7 @@ class DamReservoirMonitoringTemperatureProcess : public Process
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
                 double aux = it->Coordinates()[direction];
-                if (aux < (mReferenceCoordinate + mWaterLevel))
+                if (aux < mWaterLevel)
                 {
                     if (mIsFixed)
                     {
@@ -268,7 +268,7 @@ class DamReservoirMonitoringTemperatureProcess : public Process
                     }
                     if (aux > mZCoord1)
                     {
-                        double Temperature = ((mAmbientTemp - mWaterTemp1)/((mReferenceCoordinate + mWaterLevel) - mZCoord1)) * (aux - mZCoord1) + mWaterTemp1;
+                        double Temperature = ((mAmbientTemp - mWaterTemp1)/(mWaterLevel - mZCoord1)) * (aux - mZCoord1) + mWaterTemp1;
                         it->FastGetSolutionStepValue(var) = Temperature;
                     }
                     else if ((aux <= mZCoord1) && (aux > mZCoord2))

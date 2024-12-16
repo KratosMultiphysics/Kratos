@@ -16,6 +16,9 @@
 #include "custom_utilities/post_process_utilities.hpp"
 #include "custom_utilities/sand_production_utilities.hpp"
 #include "custom_utilities/multiaxial_control_module_fem_dem_generalized_2d_utilities.hpp"
+#include "custom_utilities/effective_stresses_communicator_utility.hpp"
+#include "custom_utilities/pore_pressure_communicator_utility.hpp"
+#include "custom_utilities/permeability_tensor_communicator_utility.hpp"
 
 namespace Kratos {
 
@@ -41,6 +44,26 @@ namespace Kratos {
                 .def(init<>())
                 .def("ClearDEMFaceLoads", &ComputeDEMFaceLoadUtility::ClearDEMFaceLoads)
                 .def("CalculateDEMFaceLoads", &ComputeDEMFaceLoadUtility::CalculateDEMFaceLoads)
+            ;
+
+            class_<EffectiveStressesCommunicatorUtility> (m, "EffectiveStressesCommunicatorUtility")
+                .def(init<ModelPart&,ModelPart&>())
+                .def("Initialize", &EffectiveStressesCommunicatorUtility::Initialize)
+                .def("CopyWallCurrentEffectiveStressesToOldEffectiveStresses", &EffectiveStressesCommunicatorUtility::CopyWallCurrentEffectiveStressesToOldEffectiveStresses)
+                .def("CommunicateCurrentRadialEffectiveStressesToDemWalls", &EffectiveStressesCommunicatorUtility::CommunicateCurrentRadialEffectiveStressesToDemWalls)
+                .def("CommunicateGivenRadialEffectiveStressesToDemWalls", &EffectiveStressesCommunicatorUtility::CommunicateGivenRadialEffectiveStressesToDemWalls)
+            ;
+
+            class_<PorePressureCommunicatorUtility> (m, "PorePressureCommunicatorUtility")
+                .def(init<ModelPart&,ModelPart&>())
+                .def("Initialize", &PorePressureCommunicatorUtility::Initialize)
+                .def("ComputeForceOnParticlesDueToPorePressureGradient", &PorePressureCommunicatorUtility::ComputeForceOnParticlesDueToPorePressureGradient)
+            ;
+
+            class_<PermeabilityTensorCommunicatorUtility> (m, "PermeabilityTensorCommunicatorUtility")
+                .def(init<ModelPart&,ModelPart&>())
+                .def("Initialize", &PermeabilityTensorCommunicatorUtility::Initialize)
+                .def("TrasferUpdatedPermeabilityTensor", &PermeabilityTensorCommunicatorUtility::TrasferUpdatedPermeabilityTensor)
             ;
 
             class_<InterpolateStructuralSolutionForDEM> (m, "InterpolateStructuralSolutionForDEM")

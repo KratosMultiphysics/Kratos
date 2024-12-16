@@ -11,91 +11,70 @@
 //  Main authors:    Vahid Galavi
 //
 
-
-#if !defined(KRATOS_GEO_AXISYMMETRIC_LINE_NORMAL_LOAD_2D_DIFF_ORDER_CONDITION_H_INCLUDED)
-#define  KRATOS_GEO_AXISYMMETRIC_LINE_NORMAL_LOAD_2D_DIFF_ORDER_CONDITION_H_INCLUDED
+#pragma once
 
 // Project includes
-#include "includes/serializer.h"
 #include "custom_conditions/line_normal_load_2D_diff_order_condition.hpp"
+#include "includes/serializer.h"
 
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION)
-    AxisymmetricLineNormalLoad2DDiffOrderCondition : public LineNormalLoad2DDiffOrderCondition
+class KRATOS_API(GEO_MECHANICS_APPLICATION) AxisymmetricLineNormalLoad2DDiffOrderCondition : public LineNormalLoad2DDiffOrderCondition
 {
-
 public:
+    using IndexType      = std::size_t;
+    using PropertiesType = Properties;
+    using NodeType       = Node;
+    using GeometryType   = Geometry<NodeType>;
+    using NodesArrayType = GeometryType::PointsArrayType;
+    using VectorType     = Vector;
+    using MatrixType     = Matrix;
 
-    typedef std::size_t IndexType;
-	typedef Properties PropertiesType;
-    typedef Node <3> NodeType;
-    typedef Geometry<NodeType> GeometryType;
-    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
-    typedef Vector VectorType;
-    typedef Matrix MatrixType;
-
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( AxisymmetricLineNormalLoad2DDiffOrderCondition );
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AxisymmetricLineNormalLoad2DDiffOrderCondition);
 
     // Default constructor
     AxisymmetricLineNormalLoad2DDiffOrderCondition();
 
     // Constructor 1
-    AxisymmetricLineNormalLoad2DDiffOrderCondition( IndexType NewId,
-                                                    GeometryType::Pointer pGeometry );
+    AxisymmetricLineNormalLoad2DDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry);
 
     // Constructor 2
-    AxisymmetricLineNormalLoad2DDiffOrderCondition( IndexType NewId,
-                                                    GeometryType::Pointer pGeometry,
-                                                    PropertiesType::Pointer pProperties );
+    AxisymmetricLineNormalLoad2DDiffOrderCondition(IndexType               NewId,
+                                                   GeometryType::Pointer   pGeometry,
+                                                   PropertiesType::Pointer pProperties);
 
-    // Destructor
-    ~AxisymmetricLineNormalLoad2DDiffOrderCondition() override;
+    Condition::Pointer Create(IndexType               NewId,
+                              NodesArrayType const&   ThisNodes,
+                              PropertiesType::Pointer pProperties) const override;
+    Condition::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    Condition::Pointer
-        Create(IndexType NewId,
-               NodesArrayType const& ThisNodes,
-               PropertiesType::Pointer pProperties ) const override;
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    std::string Info() const override;
 
 protected:
-
     // Member Variables
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    double CalculateIntegrationCoefficient(const IndexType PointNumber,
+    double CalculateIntegrationCoefficient(const IndexType                    PointNumber,
                                            const GeometryType::JacobiansType& JContainer,
                                            const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const override;
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 private:
-
     // Serialization
 
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LineNormalLoad2DDiffOrderCondition )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, LineNormalLoad2DDiffOrderCondition)
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LineNormalLoad2DDiffOrderCondition )
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, LineNormalLoad2DDiffOrderCondition)
     }
 
 }; // class AxisymmetricLineNormalLoad2DDiffOrderCondition.
 
 } // namespace Kratos.
-
-#endif // KRATOS_GEO_AXISYMMETRIC_LINE_NORMAL_LOAD_2D_DIFF_ORDER_CONDITION_H_INCLUDED defined

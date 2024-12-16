@@ -8,13 +8,13 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//
+//                   Philipp Bucher (https://github.com/philbucher)
 //
 
-#if !defined(KRATOS_LOCK_OBJECT_H_INCLUDED)
-#define KRATOS_LOCK_OBJECT_H_INCLUDED
+#pragma once
 
 // System includes
+#include <mutex>
 
 // External includes
 #ifdef KRATOS_SMP_OPENMP
@@ -45,30 +45,18 @@ public:
     ///@{
 
     /// Default constructor.
-    LockObject() noexcept {
+    LockObject() noexcept
+    {
 #ifdef KRATOS_SMP_OPENMP
-			omp_init_lock(&mLock);
+        omp_init_lock(&mLock);
 #endif
     }
 
     /// Copy constructor.
     LockObject(LockObject const& rOther) = delete;
 
-    /// Move constructor.
-    KRATOS_DEPRECATED_MESSAGE("The move constructor is deprecated and will be removed in the future!")
-    LockObject(LockObject&& rOther) noexcept
-#ifdef KRATOS_SMP_OPENMP
-			: mLock(rOther.mLock)
-#endif
-    {
-#ifdef KRATOS_SMP_OPENMP
-        static_assert(std::is_move_constructible<omp_lock_t>::value, "omp_lock_t is not move constructible!");
-			omp_init_lock(&mLock);
-#endif
-    }
-
     /// Destructor.
-    virtual ~LockObject() noexcept
+    ~LockObject() noexcept
     {
 #ifdef KRATOS_SMP_OPENMP
         omp_destroy_lock(&mLock);
@@ -88,8 +76,9 @@ public:
 
     inline void lock() const
     {
-        //does nothing if openMP is not present
-#ifdef KRATOS_SMP_OPENMP
+#ifdef KRATOS_SMP_CXX11
+        mLock.lock();
+#elif KRATOS_SMP_OPENMP
         omp_set_lock(&mLock);
 #endif
     }
@@ -102,8 +91,9 @@ public:
 
     inline void unlock() const
     {
-        //does nothing if openMP is not present
-#ifdef KRATOS_SMP_OPENMP
+#ifdef KRATOS_SMP_CXX11
+        mLock.unlock();
+#elif KRATOS_SMP_OPENMP
         omp_unset_lock(&mLock);
 #endif
     }
@@ -116,7 +106,9 @@ public:
 
     inline bool try_lock() const
     {
-#ifdef KRATOS_SMP_OPENMP
+#ifdef KRATOS_SMP_CXX11
+        return mLock.try_lock();
+#elif KRATOS_SMP_OPENMP
         return omp_test_lock(&mLock);
 #endif
         return true;
@@ -128,7 +120,9 @@ private:
     ///@name Member Variables
     ///@{
 
-#ifdef KRATOS_SMP_OPENMP
+#ifdef KRATOS_SMP_CXX11
+        mutable std::mutex mLock;
+#elif KRATOS_SMP_OPENMP
 	    mutable omp_lock_t mLock;
 #endif
 
@@ -141,5 +135,3 @@ private:
 ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_LOCK_OBJECT_H_INCLUDED defined

@@ -156,7 +156,6 @@ class ImplicitMechanicalSolver(BaseSolver.FemDemMechanicalSolver):
                                                                          self.settings["reform_dofs_at_each_step"].GetBool(),
                                                                          self.settings["move_mesh_flag"].GetBool())
 
-
     def _create_ramm_arc_length_strategy(self):
         # Create list of sub sub model parts (it is a copy of the standard lists with a different name)
         import json

@@ -1,5 +1,6 @@
 # Importing the Kratos Library
 import KratosMultiphysics
+from KratosMultiphysics import auxiliary_solver_utilities
 from KratosMultiphysics.python_solver import PythonSolver
 import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
 
@@ -44,6 +45,7 @@ class FluidSolver(PythonSolver):
         self.element_name = None
         self.condition_name = None
         self.min_buffer_size = 3
+        self._enforce_element_and_conditions_replacement = False #TODO: Remove once we remove the I/O from the solver
 
         # Either retrieve the model part from the model or create a new one
         model_part_name = self.settings["model_part_name"].GetString()
@@ -92,9 +94,11 @@ class FluidSolver(PythonSolver):
             if not materials_imported:
                 KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, "Material properties have not been imported. Check \'material_import_settings\' in your ProjectParameters.json.")
             ## Replace default elements and conditions
-            self._ReplaceElementsAndConditions()
-            ## Set buffer size
-            self.main_model_part.SetBufferSize(self.min_buffer_size)
+            use_input_model_part = self.settings["model_import_settings"]["input_type"].GetString() == "use_input_model_part"
+            if not (use_input_model_part and self._enforce_element_and_conditions_replacement):
+                self._ReplaceElementsAndConditions()
+            ## Set and fill buffer
+            self._SetAndFillBuffer()
 
         ## Executes the check and prepare model process. Always executed as it also assigns neighbors which are not saved in a restart
         self._ExecuteCheckAndPrepare()
@@ -124,27 +128,21 @@ class FluidSolver(PythonSolver):
         return new_time
 
     def InitializeSolutionStep(self):
-        if self._TimeBufferIsInitialized():
-            self._GetSolutionStrategy().InitializeSolutionStep()
+        self._GetSolutionStrategy().InitializeSolutionStep()
 
     def Predict(self):
-        if self._TimeBufferIsInitialized():
-            self._GetSolutionStrategy().Predict()
+        self._GetSolutionStrategy().Predict()
 
     def SolveSolutionStep(self):
-        if self._TimeBufferIsInitialized():
-            is_converged = self._GetSolutionStrategy().SolveSolutionStep()
-            if not is_converged:
-                msg  = "Fluid solver did not converge for step " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]) + "\n"
-                msg += "corresponding to time " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]) + "\n"
-                KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, msg)
-            return is_converged
-        else:
-            return True
+        is_converged = self._GetSolutionStrategy().SolveSolutionStep()
+        if not is_converged:
+            msg  = "Fluid solver did not converge for step " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]) + "\n"
+            msg += "corresponding to time " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]) + "\n"
+            KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, msg)
+        return is_converged
 
     def FinalizeSolutionStep(self):
-        if self._TimeBufferIsInitialized():
-            self._GetSolutionStrategy().FinalizeSolutionStep()
+        self._GetSolutionStrategy().FinalizeSolutionStep()
 
     def Check(self):
         self._GetSolutionStrategy().Check()
@@ -158,41 +156,32 @@ class FluidSolver(PythonSolver):
         return self.main_model_part.GetSubModelPart("fluid_computational_model_part")
 
     ## FluidSolver specific methods.
-
-    def _TimeBufferIsInitialized(self):
-        # We always have one extra old step (step 0, read from input)
-        return self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] + 1 >= self.GetMinimumBufferSize()
-
     def _ReplaceElementsAndConditions(self):
         ## Get number of nodes and domain size
         elem_num_nodes = self._GetElementNumNodes()
         cond_num_nodes = self._GetConditionNumNodes()
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
 
-        ## If there are no elements and/or conditions, default to triangles/tetra meshes to avoid breaking the ReplaceElementsAndConditionsProcess
-        ## This only affects the input name (if there are no elements or conditions to replace, nothing is replaced).
-        if elem_num_nodes == 0:
-            elem_num_nodes = domain_size + 1
-        if cond_num_nodes == 0:
-            cond_num_nodes = domain_size
-
-        ## Complete the element name
-        if (self.element_name is not None):
-            new_elem_name = self.element_name + str(int(domain_size)) + "D" + str(int(elem_num_nodes)) + "N"
-        else:
-            raise Exception("There is no element name. Define the self.element_name string variable in your derived solver.")
-
-        ## Complete the condition name
-        if (self.condition_name is not None):
-            new_cond_name = self.condition_name + str(int(domain_size)) + "D" + str(int(cond_num_nodes)) + "N"
-        else:
-            raise Exception("There is no condition name. Define the self.condition_name string variable in your derived solver.")
-
         ## Set the element and condition names in the Json parameters
-        #self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""{}""")
         self.settings.AddValue("element_replace_settings", KratosMultiphysics.Parameters("""{}"""))
-        self.settings["element_replace_settings"].AddEmptyValue("element_name").SetString(new_elem_name)
-        self.settings["element_replace_settings"].AddEmptyValue("condition_name").SetString(new_cond_name)
+
+        ## If there are no elements and/or conditions, we keep ReplaceElementsAndConditionsProcess settings empty
+        ## Note that if there are no element_name or condition_name replace settings, nothing is done internally
+        if elem_num_nodes != 0:
+            ## Complete the element name
+            if (self.element_name is not None):
+                new_elem_name = self.element_name + str(int(domain_size)) + "D" + str(int(elem_num_nodes)) + "N"
+            else:
+                raise Exception("There is no element name. Define the self.element_name string variable in your derived solver.")
+            self.settings["element_replace_settings"].AddEmptyValue("element_name").SetString(new_elem_name)
+
+        if cond_num_nodes != 0:
+            ## Complete the condition name
+            if (self.condition_name is not None):
+                new_cond_name = self.condition_name + str(int(domain_size)) + "D" + str(int(cond_num_nodes)) + "N"
+            else:
+                raise Exception("There is no condition name. Define the self.condition_name string variable in your derived solver.")
+            self.settings["element_replace_settings"].AddEmptyValue("condition_name").SetString(new_cond_name)
 
         ## Call the replace elements and conditions process
         KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
@@ -222,7 +211,12 @@ class FluidSolver(PythonSolver):
         prepare_model_part_settings.AddValue("skin_parts",self.settings["skin_parts"])
         prepare_model_part_settings.AddValue("assign_neighbour_elements_to_conditions",self.settings["assign_neighbour_elements_to_conditions"])
 
-        check_and_prepare_model_process_fluid.CheckAndPrepareModelProcess(self.main_model_part, prepare_model_part_settings).Execute()
+        check_and_prepare_model_process_fluid.CheckAndPrepareModelProcessFluid(self.main_model_part, prepare_model_part_settings).Execute()
+
+    def _SetAndFillBuffer(self):
+        init_dt = self._ComputeInitialDeltaTime()
+        required_buffer_size = self.GetMinimumBufferSize()
+        auxiliary_solver_utilities.SetAndFillBuffer(self.main_model_part, required_buffer_size, init_dt)
 
     def _ComputeDeltaTime(self):
         # Automatic time step computation according to user defined CFL number
@@ -233,6 +227,16 @@ class FluidSolver(PythonSolver):
             delta_time = self.settings["time_stepping"]["time_step"].GetDouble()
 
         return delta_time
+
+    def _ComputeInitialDeltaTime(self):
+        # Automatic time step computation according to user defined CFL number
+        if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
+            initial_delta_time = self.settings["time_stepping"]["minimum_delta_time"].GetDouble()
+        # User-defined delta time
+        else:
+            initial_delta_time = self.settings["time_stepping"]["time_step"].GetDouble()
+
+        return initial_delta_time
 
     def _SetPhysicalProperties(self):
         # Check if the fluid properties are provided using a .json file
@@ -385,6 +389,7 @@ class FluidSolver(PythonSolver):
             err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
             err_msg += "Available options are: \"linear\", \"non_linear\""
             raise Exception(err_msg)
+        solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
         return solution_strategy
 
     def _CreateLinearStrategy(self):

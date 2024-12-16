@@ -4,8 +4,8 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix
 //
@@ -19,7 +19,7 @@
 
 namespace Kratos
 {
-typedef Geometry<Node<3>> GeometryType;
+using GeometryType = Geometry<Node>;
 
 // VARIABLES
 // MPC Contact related variables
@@ -34,7 +34,7 @@ KRATOS_CREATE_VARIABLE( double, DISTANCE_THRESHOLD )                            
 KRATOS_CREATE_VARIABLE( double, ZERO_TOLERANCE_FACTOR )                           // The epsilon factor considered
 KRATOS_CREATE_VARIABLE( double, ACTIVE_CHECK_FACTOR )                             // The factor employed to search an active/inactive node
 KRATOS_CREATE_VARIABLE( double, SLIP_THRESHOLD )                                  // The threshold employed to search an slip/stick node
-KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( AUXILIAR_COORDINATES )                 // Auxiliar coordinates used to map
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( AUXILIAR_COORDINATES )                 // Auxiliary coordinates used to map
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( DELTA_COORDINATES )                    // Delta coordinates used to map
 KRATOS_CREATE_VARIABLE( double, NORMAL_GAP )                                      // The normal gap employed in contact formulation
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( TANGENT_SLIP )                         // The tangent slip gap employed in contact formulation
@@ -61,6 +61,7 @@ KRATOS_CREATE_VARIABLE( double, MAX_GAP_FACTOR )                                
 
 /* For mesh tying mortar condition */
 KRATOS_CREATE_VARIABLE( std::string, TYING_VARIABLE )                             // The variable name for the mesh tying
+KRATOS_CREATE_VARIABLE( Element::Pointer, PARENT_ELEMENT )                        // The parent element considered in the mesh tying with static condensation
 
 /* Explicit simulation */
 KRATOS_CREATE_VARIABLE( double, MAX_GAP_THRESHOLD )                               // The gap considered as threshold to rescale penalty

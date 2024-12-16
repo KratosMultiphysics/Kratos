@@ -11,11 +11,9 @@
 //
 //
 
-
 // System includes
 
 // External includes
-
 
 // Project includes
 #include "includes/define_python.h"
@@ -33,6 +31,7 @@
 #include "linear_solvers/skyline_lu_factorization_solver.h"
 #include "linear_solvers/skyline_lu_custom_scalar_solver.h"
 #include "linear_solvers/scaling_solver.h"
+#include "linear_solvers/fallback_linear_solver.h"
 
 #include "linear_solvers/preconditioner.h"
 #include "linear_solvers/diagonal_preconditioner.h"
@@ -42,10 +41,7 @@
 #include "linear_solvers/power_iteration_highest_eigenvalue_solver.h"
 #include "linear_solvers/rayleigh_quotient_iteration_eigenvalue_solver.h"
 
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
     template <class TDataType>
     using TSpaceType = UblasSpace<TDataType, boost::numeric::ublas::compressed_matrix<TDataType>, boost::numeric::ublas::vector<TDataType>>;
@@ -60,26 +56,26 @@ void  AddLinearSolversToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    typedef TUblasSparseSpace<std::complex<double>> ComplexSpaceType;
-    typedef TUblasDenseSpace<std::complex<double>> ComplexLocalSpaceType;
+    using SpaceType = UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>>;
+    using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+    using ComplexSpaceType = TUblasSparseSpace<std::complex<double>>;
+    using ComplexLocalSpaceType = TUblasDenseSpace<std::complex<double>>;
 
-    typedef LinearSolver<SpaceType,  LocalSpaceType> LinearSolverType;
-    typedef IterativeSolver<SpaceType,  LocalSpaceType> IterativeSolverType;
-    typedef CGSolver<SpaceType,  LocalSpaceType> CGSolverType;
-    typedef DeflatedCGSolver<SpaceType,  LocalSpaceType> DeflatedCGSolverType;
-    typedef BICGSTABSolver<SpaceType,  LocalSpaceType> BICGSTABSolverType;
-    typedef TFQMRSolver<SpaceType,  LocalSpaceType> TFQMRSolverType;
-    typedef ScalingSolver<SpaceType,  LocalSpaceType> ScalingSolverType;
-    typedef PowerIterationEigenvalueSolver<SpaceType, LocalSpaceType, LinearSolverType> PowerIterationEigenvalueSolverType;
-    typedef PowerIterationHighestEigenvalueSolver<SpaceType, LocalSpaceType, LinearSolverType> PowerIterationHighestEigenvalueSolverType;
-    typedef RayleighQuotientIterationEigenvalueSolver<SpaceType, LocalSpaceType, LinearSolverType> RayleighQuotientIterationEigenvalueSolverType;
+    using LinearSolverType = LinearSolver<SpaceType, LocalSpaceType>;
+    using IterativeSolverType = IterativeSolver<SpaceType, LocalSpaceType>;
+    using CGSolverType = CGSolver<SpaceType, LocalSpaceType>;
+    using DeflatedCGSolverType = DeflatedCGSolver<SpaceType, LocalSpaceType>;
+    using BICGSTABSolverType = BICGSTABSolver<SpaceType, LocalSpaceType>;
+    using TFQMRSolverType = TFQMRSolver<SpaceType, LocalSpaceType>;
+    using ScalingSolverType = ScalingSolver<SpaceType, LocalSpaceType>;
+    using PowerIterationEigenvalueSolverType = PowerIterationEigenvalueSolver<SpaceType, LocalSpaceType, LinearSolverType>;
+    using PowerIterationHighestEigenvalueSolverType = PowerIterationHighestEigenvalueSolver<SpaceType, LocalSpaceType, LinearSolverType>;
+    using RayleighQuotientIterationEigenvalueSolverType = RayleighQuotientIterationEigenvalueSolver<SpaceType, LocalSpaceType, LinearSolverType>;
 
-    typedef TLinearSolverType<std::complex<double>, std::complex<double>> ComplexLinearSolverType;
-    typedef TLinearSolverType<double, std::complex<double>> MixedLinearSolverType;
-    typedef TDirectSolverType<std::complex<double>> ComplexDirectSolverType;
-    typedef SkylineLUCustomScalarSolver<ComplexSpaceType, ComplexLocalSpaceType> ComplexSkylineLUSolverType;
+    using ComplexLinearSolverType = TLinearSolverType<std::complex<double>, std::complex<double>>;
+    using MixedLinearSolverType = TLinearSolverType<double, std::complex<double>>;
+    using ComplexDirectSolverType = TDirectSolverType<std::complex<double>>;
+    using ComplexSkylineLUSolverType = SkylineLUCustomScalarSolver<ComplexSpaceType, ComplexLocalSpaceType>;
 
     bool (LinearSolverType::*pointer_to_solve)(LinearSolverType::SparseMatrixType& rA, LinearSolverType::VectorType& rX, LinearSolverType::VectorType& rB) = &LinearSolverType::Solve;
     void (LinearSolverType::*pointer_to_solve_eigen)(LinearSolverType::SparseMatrixType& rK, LinearSolverType::SparseMatrixType& rM,LinearSolverType::DenseVectorType& Eigenvalues, LinearSolverType::DenseMatrixType& Eigenvectors) = &LinearSolverType::Solve;
@@ -90,26 +86,26 @@ void  AddLinearSolversToPython(pybind11::module& m)
     //****************************************************************************************************
     //preconditioners
     //****************************************************************************************************
-    typedef Preconditioner<SpaceType,  LocalSpaceType> PreconditionerType;
+    using PreconditionerType = Preconditioner<SpaceType,  LocalSpaceType>;
 
     py::class_<PreconditionerType, PreconditionerType::Pointer>(m,"Preconditioner")
     .def(py::init< >() )
     .def("__str__", PrintObject<PreconditionerType>)
     ;
 
-    typedef DiagonalPreconditioner<SpaceType,  LocalSpaceType> DiagonalPreconditionerType;
+    using DiagonalPreconditionerType = DiagonalPreconditioner<SpaceType,  LocalSpaceType>;
     py::class_<DiagonalPreconditionerType, DiagonalPreconditionerType::Pointer, PreconditionerType>(m,"DiagonalPreconditioner")
     .def(py::init< >() )
     .def("__str__", PrintObject<DiagonalPreconditionerType>)
     ;
 
-    typedef ILUPreconditioner<SpaceType,  LocalSpaceType> ILUPreconditionerType;
+    using ILUPreconditionerType = ILUPreconditioner<SpaceType,  LocalSpaceType>;
     py::class_<ILUPreconditionerType, ILUPreconditionerType::Pointer, PreconditionerType>(m,"ILUPreconditioner")
     .def(py::init< >() )
     .def("__str__", PrintObject<ILUPreconditionerType>)
     ;
 
-    typedef ILU0Preconditioner<SpaceType,  LocalSpaceType> ILU0PreconditionerType;
+    using ILU0PreconditionerType = ILU0Preconditioner<SpaceType,  LocalSpaceType>;
     py::class_<ILU0PreconditionerType, ILU0PreconditionerType::Pointer, PreconditionerType>(m,"ILU0Preconditioner")
     .def(py::init< >() )
     .def("__str__", PrintObject<ILU0PreconditionerType>)
@@ -196,9 +192,9 @@ void  AddLinearSolversToPython(pybind11::module& m)
     .def(py::init<Parameters, LinearSolverType::Pointer>())
     ;
 
-    typedef Reorderer<SpaceType,  LocalSpaceType > ReordererType;
-    typedef DirectSolver<SpaceType,  LocalSpaceType, ReordererType > DirectSolverType;
-    typedef SkylineLUFactorizationSolver<SpaceType,  LocalSpaceType, ReordererType > SkylineLUFactorizationSolverType;
+    using ReordererType = Reorderer<SpaceType, LocalSpaceType>;
+    using DirectSolverType = DirectSolver<SpaceType, LocalSpaceType, ReordererType>;
+    using SkylineLUFactorizationSolverType = SkylineLUFactorizationSolver<SpaceType, LocalSpaceType, ReordererType>;
 
     py::class_<ReordererType, ReordererType::Pointer>(m,"Reorderer")
     .def(py::init< >() )
@@ -242,8 +238,25 @@ void  AddLinearSolversToPython(pybind11::module& m)
     .def("__str__", PrintObject<DeflatedCGSolverType>)
     ;
 
+    using FallbackLinearSolverType = FallbackLinearSolver<SpaceType, LocalSpaceType>;
+    py::class_<FallbackLinearSolverType, FallbackLinearSolverType::Pointer, LinearSolverType>(m, "FallbackLinearSolver")
+    .def(py::init<Parameters>())
+    .def(py::init<const std::vector<LinearSolverType::Pointer>&, Parameters>())
+    // .def("AddSolver", [](FallbackLinearSolverType& rSelf, LinearSolverType::Pointer pSolver) {
+    //     rSelf.AddSolver(pSolver);
+    // })
+    // .def("AddSolver", [](FallbackLinearSolverType& rSelf, const Parameters ThisParameters) {
+    //     rSelf.AddSolver(ThisParameters);
+    // })
+    .def("GetSolvers", &FallbackLinearSolverType::GetSolvers)
+    // .def("SetSolvers", &FallbackLinearSolverType::SetSolvers)
+    .def("GetResetSolverEachTry", &FallbackLinearSolverType::GetResetSolverEachTry)
+    // .def("SetResetSolverIndexEachTry", &FallbackLinearSolverType::SetResetSolverIndexEachTry)
+    .def("GetParameters", &FallbackLinearSolverType::GetParameters)
+    .def("GetCurrentSolverIndex", &FallbackLinearSolverType::GetCurrentSolverIndex)
+    .def("ClearCurrentSolverIndex", &FallbackLinearSolverType::ClearCurrentSolverIndex)
+    ;
+
 }
 
-}  // namespace Python.
-
-} // Namespace Kratos
+}  // namespace Kratos::Python.

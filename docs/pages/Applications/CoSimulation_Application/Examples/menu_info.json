@@ -1,0 +1,16 @@
+{
+    "custom_entries": [
+        {
+            "type": "kratos_example",
+            "raw_url": "https://raw.githubusercontent.com/KratosMultiphysics/Examples/master/co_simulation/validation/fsi_mok/README.md",
+            "source_url": "https://github.com/KratosMultiphysics/Examples/blob/master/co_simulation/validation/fsi_mok",
+            "file_name": "CoSim_Mok_FSI.md"
+        },
+        {
+            "type": "kratos_example",
+            "raw_url": "https://raw.githubusercontent.com/KratosMultiphysics/Examples/master/co_simulation/validation/fsi_mok/README.md",
+            "source_url": "https://github.com/KratosMultiphysics/Examples/tree/master/co_simulation/validation/dam_break_flex_wall",
+            "file_name": "CoSim_Dam_Break_Flex_Wall.md"
+        }
+    ]
+}

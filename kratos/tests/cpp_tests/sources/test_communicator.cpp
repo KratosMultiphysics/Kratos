@@ -27,11 +27,11 @@ namespace Kratos {
 
         r_model_part.GetCommunicator().SetNumberOfColors(2);
 
-        KRATOS_CHECK_EQUAL(r_model_part.GetCommunicator().GetNumberOfColors(), 2);
+        KRATOS_EXPECT_EQ(r_model_part.GetCommunicator().GetNumberOfColors(), 2);
 
         r_model_part.GetCommunicator().AddColors(2);
 
-        KRATOS_CHECK_EQUAL(r_model_part.GetCommunicator().GetNumberOfColors(), 4);
+        KRATOS_EXPECT_EQ(r_model_part.GetCommunicator().GetNumberOfColors(), 4);
     }
 
   }  // namespace Testing.

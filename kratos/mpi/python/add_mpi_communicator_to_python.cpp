@@ -20,8 +20,7 @@
 #include "add_mpi_communicator_to_python.h"
 #include "mpi/includes/mpi_communicator.h"
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 void AddMPICommunicatorToPython(pybind11::module& m)
 {
@@ -32,6 +31,5 @@ void AddMPICommunicatorToPython(pybind11::module& m)
     ;
 }
 
-} // namespace Python
-} // namespace Kratos
+} // namespace Kratos::Python
 

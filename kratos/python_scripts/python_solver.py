@@ -2,8 +2,6 @@
 import KratosMultiphysics
 from KratosMultiphysics.restart_utility import RestartUtility
 
-# Other imports
-import os
 
 class PythonSolver:
     """The base class for the Python Solvers in the applications

@@ -1,67 +1,66 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+import sys
+import importlib
 
 import KratosMultiphysics
-from importlib import import_module
+from KratosMultiphysics import kratos_utilities
+from KratosMultiphysics.RomApplication import rom_solver
 
-def CreateSolverByParameters(model, solver_settings, parallelism):
 
-    KratosMultiphysics.Logger.PrintWarning('\x1b[1;31m[DEPRECATED CLASS] \x1b[0m',"\'python_solvers_wrapper_rom\'", "module is deprecated. Use the generic\'new_python_solvers_wrapper_rom\' one instead.")
+def _GetAvailableSolverWrapperModules():
+    return {
+        "KratosMultiphysics.FluidDynamicsApplication"       : "python_solvers_wrapper_fluid",
+        "KratosMultiphysics.StructuralMechanicsApplication" : "python_solvers_wrapper_structural",
+        "KratosMultiphysics.ConvectionDiffusionApplication" : "python_solvers_wrapper_convection_diffusion",
+        "KratosMultiphysics.CompressiblePotentialFlowApplication" : "python_solvers_wrapper_compressible_potential",
+        "KratosMultiphysics.GeoMechanicsApplication" : "geomechanics_solvers_wrapper"
+    }
 
-    if (type(model) != KratosMultiphysics.Model):
+
+def CreateSolverByParameters(model, solver_settings, parallelism, analysis_stage_module_name):
+
+    if not isinstance(model, KratosMultiphysics.Model):
         raise Exception("input is expected to be provided as a Kratos Model object")
 
-    if (type(solver_settings) != KratosMultiphysics.Parameters):
+    if not isinstance(solver_settings, KratosMultiphysics.Parameters):
         raise Exception("input is expected to be provided as a Kratos Parameters object")
 
-    solver_type = solver_settings["solver_type"].GetString()
+    # Get the corresponding application from the analysis_stage path
+    split_analysis_stage_module_name = analysis_stage_module_name.split('.')
+    application_module_name = split_analysis_stage_module_name[0] + "." + split_analysis_stage_module_name[1]
+    if not kratos_utilities.CheckIfApplicationsAvailable(split_analysis_stage_module_name[1]):
+        raise Exception("Module {} is not available.".format(application_module_name))
 
+    # Filter and retrieve the Python solvers wrapper from the corresponding application
+    #TODO: This filtering wouldn't be required if we were using a unified solvers wrapper module name
+    available_modules = _GetAvailableSolverWrapperModules()
 
-    if solver_settings.Has("time_integration_method"):
-        time_integration_method = solver_settings["time_integration_method"].GetString()
+    if application_module_name in available_modules:
+        solvers_wrapper_module_module_name = available_modules[application_module_name]
     else:
-        time_integration_method = "implicit" # defaulting to implicit time-integration
-
-    # Solvers for OpenMP parallelism
-    if (parallelism == "OpenMP"):
-        if (solver_type == "transient" or solver_type == "Transient"):
-            solver_module_name = "convection_diffusion_transient_rom_solver"
-
-        elif (solver_type == "dynamic" or solver_type == "Dynamic"):
-            if time_integration_method == "implicit":
-                solver_module_name = "structural_mechanics_implicit_dynamic_rom_solver"
-            else:
-                err_msg =  "The requested time integration method \"" + time_integration_method + "\" is not in the python solvers wrapper\n"
-                err_msg += "Available options are: \"implicit\""
-                raise Exception(err_msg)
-
-        elif solver_type == "static" or solver_type == "Static":
-            solver_module_name = "structural_mechanics_static_rom_solver"
-
-        elif (solver_type == "stationary" or solver_type == "Stationary"):
-            solver_module_name = "convection_diffusion_stationary_rom_solver"
-
-        elif (solver_type == "monolithic" or solver_type == "Monolithic"):
-            solver_module_name = "navier_stokes_solver_vmsmonolithic_rom"
-
-        else:
-            err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
-            err_msg += "Available options are: \"transient\", \"stationary\""
-            raise Exception(err_msg)
-
-    # Solvers for MPI parallelism
-    elif (parallelism == "MPI"):
-        err_msg =  "The requested parallel type MPI is not yet available!\n"
+        err_msg = "Python module \'{0}\' is not available. Make sure \'{1}\' is compiled and implemented.\n".format(
+            application_module_name, split_analysis_stage_module_name[1])
+        err_msg += "Currently implemented applications are:\n"
+        err_msg += "".join(" - {}\n".format(key) for key in available_modules)
+        err_msg += "To add a new implementation, do so in '{}' in {}".format(
+            _GetAvailableSolverWrapperModules.__name__, __file__)
         raise Exception(err_msg)
+    solvers_wrapper_module = importlib.import_module(application_module_name + "." + solvers_wrapper_module_module_name)
 
-    else:
-        err_msg =  "The requested parallel type \"" + parallelism + "\" is not available!\n"
-        err_msg += "Available options are: \"OpenMP\", \"MPI\""
-        raise Exception(err_msg)
+    # Create a prototype class instance and get the module and name of the solver to be used as base
+    # Note that an auxiliary Kratos parameter settings without the rom_settings field is created to avoid the defaults error thrown
+    # Note that an auxiliary Kratos model is also created to avoid creating the main_model_part in the prototype class instance
+    #TODO: We could do the same exercise as we do in the stage (module_name to ClassName equal to ModuleName if we standarize the solver names)
+    aux_solver_settings = solver_settings.Clone()
+    aux_solver_settings.RemoveValue("rom_settings")
+    aux_solver_settings.RemoveValue("projection_strategy")
+    aux_solver_settings.RemoveValue("assembling_strategy")
+    aux_solver_settings.RemoveValue("monotonicity_preserving")
+    aux_base_solver_instance = solvers_wrapper_module.CreateSolverByParameters(KratosMultiphysics.Model(), aux_solver_settings, parallelism)
 
-    module_full = 'KratosMultiphysics.RomApplication.' + solver_module_name
-    solver = import_module(module_full).CreateSolver(model, solver_settings)
+    # Create the ROM solver from the base solver
+    rom_solver_instance = rom_solver.CreateSolver(type(aux_base_solver_instance), model, solver_settings)
 
-    return solver
+    return rom_solver_instance
 
 def CreateSolver(model, custom_settings):
 
@@ -72,7 +71,8 @@ def CreateSolver(model, custom_settings):
         raise Exception("input is expected to be provided as a Kratos Parameters object")
 
     parallelism = custom_settings["problem_data"]["parallel_type"].GetString()
+    analysis_stage = custom_settings["analysis_stage"].GetString()
     solver_settings = custom_settings["solver_settings"]
 
-    return CreateSolverByParameters(model, solver_settings, parallelism)
+    return CreateSolverByParameters(model, solver_settings, parallelism, analysis_stage)
 

@@ -245,7 +245,7 @@ void VariableRedistributionUtility::CallSpecializedConvertDistributedValuesToPoi
     // If there is conditions, this function dispatches the call to the correct specialization
     if (n_tot_entities != 0){
         if (n_loc_entities != 0){
-            Geometry< Node<3> >& rReferenceGeometry = rEntitiesContainer.begin()->GetGeometry();
+            Geometry< Node >& rReferenceGeometry = rEntitiesContainer.begin()->GetGeometry();
             const GeometryData::KratosGeometryFamily GeometryFamily = rReferenceGeometry.GetGeometryFamily();
             const unsigned int PointsNumber = rReferenceGeometry.PointsNumber();
 
@@ -295,7 +295,7 @@ void VariableRedistributionUtility::CallSpecializedDistributePointValues(
     // If there is conditions, this function dispatches the call to the correct specialization
     if (n_tot_entities != 0){
         if (n_loc_entities != 0){
-            Geometry< Node<3> >& rReferenceGeometry = rEntitiesContainer.begin()->GetGeometry();
+            Geometry< Node >& rReferenceGeometry = rEntitiesContainer.begin()->GetGeometry();
             const GeometryData::KratosGeometryFamily GeometryFamily = rReferenceGeometry.GetGeometryFamily();
             const unsigned int PointsNumber = rReferenceGeometry.PointsNumber();
 
@@ -633,11 +633,10 @@ double VariableRedistributionUtility::SolveDistributionIteration(
     ModelPart& rModelPart,
     const Variable< TValueType >& rDistributedVariable)
 {
-    double domain_size, error_l2_norm;
     TValueType delta = rDistributedVariable.Zero();
     const auto& r_rhs_variable = GetRHSVariable(rDistributedVariable);
     typedef CombinedReduction<SumReduction<double>,SumReduction<double>> TwoSumReduction;
-    std::tie(domain_size, error_l2_norm) = block_for_each<TwoSumReduction>(rModelPart.Nodes(), delta, [&](NodeType& rNode, TValueType& rDelta){
+    auto [domain_size, error_l2_norm] = block_for_each<TwoSumReduction>(rModelPart.Nodes(), delta, [&](NodeType& rNode, TValueType& rDelta){
         // Add correction to the current distributed nodal values
         const double size = rNode.GetValue(NODAL_MAUX);
         rDelta = rNode.GetValue(r_rhs_variable) / size;

@@ -287,6 +287,11 @@ public:
     ///@name Geometry Family
     ///@{
 
+    /**
+     * @brief Gets the geometry family.
+     * @details This function returns the family type of the geometry. The geometry family categorizes the geometry into a broader classification, aiding in its identification and processing.
+     * @return GeometryData::KratosGeometryFamily The geometry family.
+     */
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::KratosGeometryFamily::Kratos_Point;
@@ -402,8 +407,7 @@ GeometryData PointOnGeometry<TContainerPointType, TWorkingSpaceDimension, TLocal
     {}, {}, {});
 
 template<class TContainerPointType, int TWorkingSpaceDimension, int TLocalSpaceDimensionOfBackground>
-const GeometryDimension PointOnGeometry<TContainerPointType, TWorkingSpaceDimension, TLocalSpaceDimensionOfBackground>::msGeometryDimension(
-    0, TWorkingSpaceDimension, TLocalSpaceDimensionOfBackground);
+const GeometryDimension PointOnGeometry<TContainerPointType, TWorkingSpaceDimension, TLocalSpaceDimensionOfBackground>::msGeometryDimension(TWorkingSpaceDimension, TLocalSpaceDimensionOfBackground);
 
 ///@}
 }// namespace Kratos.

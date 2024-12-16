@@ -4,7 +4,7 @@
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:         BSD License
-//                     license: structural_mechanics_application/license.txt
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //                   Alejandro Cornejo
@@ -103,12 +103,12 @@ void ConstitutiveLawUtilities<6>::CalculateProjectionOperator(
 
     std::vector<Vector> eigen_vectors_container;
 
-    Vector auxiliar_vector = ZeroVector(Dimension);
+    Vector auxiliary_vector = ZeroVector(Dimension);
     for (IndexType i = 0; i < Dimension; ++i) {
-        auxiliar_vector[0] = eigen_vectors_matrix(i, 0);
-        auxiliar_vector[1] = eigen_vectors_matrix(i, 1);
-        auxiliar_vector[2] = eigen_vectors_matrix(i, 2);
-        eigen_vectors_container.push_back(auxiliar_vector);
+        auxiliary_vector[0] = eigen_vectors_matrix(i, 0);
+        auxiliary_vector[1] = eigen_vectors_matrix(i, 1);
+        auxiliary_vector[2] = eigen_vectors_matrix(i, 2);
+        eigen_vectors_container.push_back(auxiliary_vector);
     }
 
     Vector sigma_tension_vector;
@@ -172,11 +172,11 @@ void ConstitutiveLawUtilities<3>::CalculateProjectionOperator(
 
     std::vector<Vector> eigen_vectors_container;
 
-    Vector auxiliar_vector = ZeroVector(Dimension);
+    Vector auxiliary_vector = ZeroVector(Dimension);
     for (IndexType i = 0; i < Dimension; ++i) {
-        auxiliar_vector[0] = eigen_vectors_matrix(i, 0);
-        auxiliar_vector[1] = eigen_vectors_matrix(i, 1);
-        eigen_vectors_container.push_back(auxiliar_vector);
+        auxiliary_vector[0] = eigen_vectors_matrix(i, 0);
+        auxiliary_vector[1] = eigen_vectors_matrix(i, 1);
+        eigen_vectors_container.push_back(auxiliary_vector);
     }
 
     Vector sigma_tension_vector;
@@ -208,108 +208,98 @@ void ConstitutiveLawUtilities<3>::CalculateProjectionOperator(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<>
-void ConstitutiveLawUtilities<6>::CalculateRotationOperatorVoigt(
-    const BoundedMatrixType& rEulerOperator,
-    BoundedMatrixVoigtType& rVoigtOperator
-    )
-{
-    rVoigtOperator.clear();
-
-    const double l1 = rEulerOperator(0, 0);
-    const double l2 = rEulerOperator(1, 0);
-    const double l3 = rEulerOperator(2, 0);
-    const double m1 = rEulerOperator(0, 1);
-    const double m2 = rEulerOperator(1, 1);
-    const double m3 = rEulerOperator(2, 1);
-    const double n1 = rEulerOperator(0, 2);
-    const double n2 = rEulerOperator(1, 2);
-    const double n3 = rEulerOperator(2, 2);
-
-    rVoigtOperator(0, 0) = std::pow(l1, 2);
-    rVoigtOperator(0, 1) = std::pow(m1, 2);
-    rVoigtOperator(0, 2) = std::pow(n1, 2);
-    rVoigtOperator(0, 3) = l1 * m1;
-    rVoigtOperator(0, 4) = m1 * n1;
-    rVoigtOperator(0, 5) = n1 * l1;
-
-    rVoigtOperator(1, 0) = std::pow(l2, 2);
-    rVoigtOperator(1, 1) = std::pow(m2, 2);
-    rVoigtOperator(1, 2) = std::pow(n2, 2);
-    rVoigtOperator(1, 3) = l2 * m2;
-    rVoigtOperator(1, 4) = m2 * n2;
-    rVoigtOperator(1, 5) = n2 * l2;
-
-    rVoigtOperator(2, 0) = std::pow(l3, 2);
-    rVoigtOperator(2, 1) = std::pow(m3, 2);
-    rVoigtOperator(2, 2) = std::pow(n3, 2);
-    rVoigtOperator(2, 3) = l3 * m3;
-    rVoigtOperator(2, 4) = m3 * n3;
-    rVoigtOperator(2, 5) = n3 * l3;
-
-    rVoigtOperator(3, 0) = 2.0 * l1 * l2;
-    rVoigtOperator(3, 1) = 2.0 * m1 * m2;
-    rVoigtOperator(3, 2) = 2.0 * n1 * n2;
-    rVoigtOperator(3, 3) = l1 * m2 + l2 * m1;
-    rVoigtOperator(3, 4) = m1 * n2 + m2 * n1;
-    rVoigtOperator(3, 5) = n1 * l2 + n2 * l1;
-
-    rVoigtOperator(4, 0) = 2.0 * l2 * l3;
-    rVoigtOperator(4, 1) = 2.0 * m2 * m3;
-    rVoigtOperator(4, 2) = 2.0 * n2 * n3;
-    rVoigtOperator(4, 3) = l2 * m3 + l3 * m2;
-    rVoigtOperator(4, 4) = m2 * n3 + m3 * n2;
-    rVoigtOperator(4, 5) = n2 * l3 + n3 * l2;
-
-    rVoigtOperator(5, 0) = 2.0 * l3 * l1;
-    rVoigtOperator(5, 1) = 2.0 * m3 * m1;
-    rVoigtOperator(5, 2) = 2.0 * n3 * n1;
-    rVoigtOperator(5, 3) = l3 * m1 + l1 * m3;
-    rVoigtOperator(5, 4) = m3 * n1 + m1 * n3;
-    rVoigtOperator(5, 5) = n3 * l1 + n1 * l3;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-void ConstitutiveLawUtilities<3>::CalculateRotationOperatorVoigt(
-    const BoundedMatrixType& rEulerOperator,
-    BoundedMatrixVoigtType& rVoigtOperator
-    )
-{
-    const double c = rEulerOperator(0, 0);
-    const double s = rEulerOperator(0, 1);
-
-    rVoigtOperator(0, 0) = std::pow(c, 2);
-    rVoigtOperator(0, 1) = std::pow(s, 2);
-    rVoigtOperator(0, 2) = c * s;
-
-    rVoigtOperator(1, 0) = std::pow(s, 2);
-    rVoigtOperator(1, 1) = std::pow(c, 2);
-    rVoigtOperator(1, 2) = -c * s;
-
-    rVoigtOperator(2, 0) = -2.0 * c * s;
-    rVoigtOperator(2, 1) = 2.0 * c * s;
-    rVoigtOperator(2, 2) = std::pow(c, 2) - std::pow(s, 2);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
 template<SizeType TVoigtSize>
-void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrixPlaneStress(MatrixType& rC, ConstitutiveLaw::Parameters& rValues)
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorVoigt(
+    const BoundedMatrixType& rEulerOperator,
+    BoundedMatrixVoigtType& rVoigtOperator
+    )
 {
-    const Properties& r_material_properties = rValues.GetMaterialProperties();
-    const double E = r_material_properties[YOUNG_MODULUS];
-    const double NU = r_material_properties[POISSON_RATIO];
+    if constexpr (Dimension == 2) {
+        const double c = rEulerOperator(0, 0);
+        const double s = rEulerOperator(0, 1);
 
-    if (rC.size1() != VoigtSize)
+        rVoigtOperator(0, 0) = std::pow(c, 2);
+        rVoigtOperator(0, 1) = std::pow(s, 2);
+        rVoigtOperator(0, 2) = c * s;
+
+        rVoigtOperator(1, 0) = std::pow(s, 2);
+        rVoigtOperator(1, 1) = std::pow(c, 2);
+        rVoigtOperator(1, 2) = -c * s;
+
+        rVoigtOperator(2, 0) = -2.0 * c * s;
+        rVoigtOperator(2, 1) = 2.0 * c * s;
+        rVoigtOperator(2, 2) = std::pow(c, 2) - std::pow(s, 2);
+    } else {
+        const double l1 = rEulerOperator(0, 0);
+        const double l2 = rEulerOperator(1, 0);
+        const double l3 = rEulerOperator(2, 0);
+        const double m1 = rEulerOperator(0, 1);
+        const double m2 = rEulerOperator(1, 1);
+        const double m3 = rEulerOperator(2, 1);
+        const double n1 = rEulerOperator(0, 2);
+        const double n2 = rEulerOperator(1, 2);
+        const double n3 = rEulerOperator(2, 2);
+
+        rVoigtOperator(0, 0) = std::pow(l1, 2);
+        rVoigtOperator(0, 1) = std::pow(m1, 2);
+        rVoigtOperator(0, 2) = std::pow(n1, 2);
+        rVoigtOperator(0, 3) = l1 * m1;
+        rVoigtOperator(0, 4) = m1 * n1;
+        rVoigtOperator(0, 5) = n1 * l1;
+
+        rVoigtOperator(1, 0) = std::pow(l2, 2);
+        rVoigtOperator(1, 1) = std::pow(m2, 2);
+        rVoigtOperator(1, 2) = std::pow(n2, 2);
+        rVoigtOperator(1, 3) = l2 * m2;
+        rVoigtOperator(1, 4) = m2 * n2;
+        rVoigtOperator(1, 5) = n2 * l2;
+
+        rVoigtOperator(2, 0) = std::pow(l3, 2);
+        rVoigtOperator(2, 1) = std::pow(m3, 2);
+        rVoigtOperator(2, 2) = std::pow(n3, 2);
+        rVoigtOperator(2, 3) = l3 * m3;
+        rVoigtOperator(2, 4) = m3 * n3;
+        rVoigtOperator(2, 5) = n3 * l3;
+
+        rVoigtOperator(3, 0) = 2.0 * l1 * l2;
+        rVoigtOperator(3, 1) = 2.0 * m1 * m2;
+        rVoigtOperator(3, 2) = 2.0 * n1 * n2;
+        rVoigtOperator(3, 3) = l1 * m2 + l2 * m1;
+        rVoigtOperator(3, 4) = m1 * n2 + m2 * n1;
+        rVoigtOperator(3, 5) = n1 * l2 + n2 * l1;
+
+        rVoigtOperator(4, 0) = 2.0 * l2 * l3;
+        rVoigtOperator(4, 1) = 2.0 * m2 * m3;
+        rVoigtOperator(4, 2) = 2.0 * n2 * n3;
+        rVoigtOperator(4, 3) = l2 * m3 + l3 * m2;
+        rVoigtOperator(4, 4) = m2 * n3 + m3 * n2;
+        rVoigtOperator(4, 5) = n2 * l3 + n3 * l2;
+
+        rVoigtOperator(5, 0) = 2.0 * l3 * l1;
+        rVoigtOperator(5, 1) = 2.0 * m3 * m1;
+        rVoigtOperator(5, 2) = 2.0 * n3 * n1;
+        rVoigtOperator(5, 3) = l3 * m1 + l1 * m3;
+        rVoigtOperator(5, 4) = m3 * n1 + m1 * n3;
+        rVoigtOperator(5, 5) = n3 * l1 + n1 * l3;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrixPlaneStress(
+    MatrixType& rC,
+    const double YoungModulus,
+    const double PoissonRatio)
+{
+    if (rC.size1() != VoigtSize || rC.size2() != VoigtSize)
         rC.resize(VoigtSize, VoigtSize, false);
-    noalias(rC) = ZeroMatrix(VoigtSize, VoigtSize);
+    rC.clear();
 
-    const double c1 = E / (1.0 - NU * NU);
-    const double c2 = c1 * NU;
-    const double c3 = 0.5 * E / (1.0 + NU);
+    const double c1 = YoungModulus / (1.0 - PoissonRatio * PoissonRatio);
+    const double c2 = c1 * PoissonRatio;
+    const double c3 = 0.5 * YoungModulus / (1.0 + PoissonRatio);
 
     rC(0, 0) = c1;
     rC(0, 1) = c2;
@@ -321,20 +311,19 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrixPlaneStress(Mat
 /***********************************************************************************/
 /***********************************************************************************/
 template<SizeType TVoigtSize>
-void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrixPlaneStrain(MatrixType& rC, ConstitutiveLaw::Parameters& rValues)
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrixPlaneStrain(
+    MatrixType& rC,
+    const double YoungModulus,
+    const double PoissonRatio)
 {
-    const Properties& r_material_properties = rValues.GetMaterialProperties();
-    const double E = r_material_properties[YOUNG_MODULUS];
-    const double NU = r_material_properties[POISSON_RATIO];
-
-    if (rC.size1() != VoigtSize)
+    if (rC.size1() != VoigtSize || rC.size2() != VoigtSize)
         rC.resize(VoigtSize, VoigtSize, false);
-    noalias(rC) = ZeroMatrix(VoigtSize, VoigtSize);
+    rC.clear();
 
-    const double c0 = E / ((1.0 + NU) * (1.0 - 2.0 * NU));
-    const double c1 = (1.0 - NU) * c0;
-    const double c2 = c0 * NU;
-    const double c3 = (0.5 - NU) * c0;
+    const double c0 = YoungModulus / ((1.0 + PoissonRatio) * (1.0 - 2.0 * PoissonRatio));
+    const double c1 = (1.0 - PoissonRatio) * c0;
+    const double c2 = c0 * PoissonRatio;
+    const double c3 = (0.5 - PoissonRatio) * c0;
 
     rC(0, 0) = c1;
     rC(0, 1) = c2;
@@ -346,20 +335,19 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrixPlaneStrain(Mat
 /***********************************************************************************/
 /***********************************************************************************/
 template<SizeType TVoigtSize>
-void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrix(MatrixType& rC, ConstitutiveLaw::Parameters& rValues)
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrix(
+    MatrixType& rC,
+    const double YoungModulus,
+    const double PoissonRatio)
 {
-    const Properties& r_material_properties = rValues.GetMaterialProperties();
-    const double E  = r_material_properties[YOUNG_MODULUS];
-    const double NU = r_material_properties[POISSON_RATIO];
-
-    if (rC.size1() != VoigtSize)
+    if (rC.size1() != VoigtSize || rC.size2() != VoigtSize)
         rC.resize(VoigtSize, VoigtSize, false);
-    noalias(rC) = ZeroMatrix(VoigtSize, VoigtSize);
+    rC.clear();
 
-    const double c1 = E / ((1.0 + NU) * (1.0 - 2.0 * NU));
-    const double c2 = c1 * (1.0 - NU);
-    const double c3 = c1 * NU;
-    const double c4 = c1 * 0.5 * (1.0 - 2.0 * NU);
+    const double c1 = YoungModulus / ((1.0 + PoissonRatio) * (1.0 - 2.0 * PoissonRatio));
+    const double c2 = c1 * (1.0 - PoissonRatio);
+    const double c3 = c1 * PoissonRatio;
+    const double c4 = c1 * 0.5 * (1.0 - 2.0 * PoissonRatio);
 
     rC(0, 0) = c2;
     rC(0, 1) = c3;
@@ -377,6 +365,129 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrix(MatrixType& rC
 
 /***********************************************************************************/
 /***********************************************************************************/
+
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateCauchyGreenStrain(
+    ConstitutiveLaw::Parameters& rValues,
+    Vector& rStrainVector
+    )
+{
+    if constexpr (Dimension == 2) {
+        //1.-Compute total deformation gradient
+        const ConstitutiveLaw::DeformationGradientMatrixType& F = rValues.GetDeformationGradientF();
+
+        // for shells/membranes in case the DeformationGradient is of size 3x3
+        BoundedMatrix<double,2,2> F2x2;
+        for (unsigned int i = 0; i<2; ++i)
+            for (unsigned int j = 0; j<2; ++j)
+                F2x2(i, j) = F(i, j);
+
+        BoundedMatrix<double,2,2> E_tensor = prod(trans(F2x2), F2x2);
+
+        for (unsigned int i = 0; i<2; ++i)
+            E_tensor(i, i) -= 1.0;
+
+        E_tensor *= 0.5;
+
+        noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector(E_tensor);
+    } else {
+        const SizeType space_dimension = rValues.GetElementGeometry().WorkingSpaceDimension();
+        //1.-Compute total deformation gradient
+        const ConstitutiveLaw::DeformationGradientMatrixType& F = rValues.GetDeformationGradientF();
+        KRATOS_DEBUG_ERROR_IF(F.size1()!= space_dimension || F.size2() != space_dimension)
+            << "expected size of F " << space_dimension << "x" << space_dimension << ", got " << F.size1() << "x" << F.size2() << std::endl;
+
+        ConstitutiveLaw::DeformationGradientMatrixType E_tensor = prod(trans(F),F);
+        for(unsigned int i = 0; i < space_dimension; ++i)
+            E_tensor(i,i) -= 1.0;
+        E_tensor *= 0.5;
+
+        noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector(E_tensor);
+    }
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::CalculatePK2StressFromStrain(
+    ConstitutiveLaw::StrainVectorType& rStressVector,
+    const ConstitutiveLaw::StressVectorType &rStrainVector,
+    const double E,
+    const double NU
+    )
+{
+    const double c1 = E / ((1.0 + NU) * (1.0 - 2.0 * NU));
+    const double c2 = c1 * (1 - NU);
+    const double c3 = c1 * NU;
+    const double c4 = c1 * 0.5 * (1 - 2 * NU);
+
+    rStressVector[0] = c2 * rStrainVector[0] + c3 * rStrainVector[1] + c3 * rStrainVector[2];
+    rStressVector[1] = c3 * rStrainVector[0] + c2 * rStrainVector[1] + c3 * rStrainVector[2];
+    rStressVector[2] = c3 * rStrainVector[0] + c3 * rStrainVector[1] + c2 * rStrainVector[2];
+    rStressVector[3] = c4 * rStrainVector[3];
+    rStressVector[4] = c4 * rStrainVector[4];
+    rStressVector[5] = c4 * rStrainVector[5];
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::CalculatePK2StressFromStrainPlaneStress(
+    ConstitutiveLaw::StrainVectorType& rStressVector,
+    const ConstitutiveLaw::StressVectorType &rStrainVector,
+    const double E,
+    const double NU
+    )
+{
+    const double c1 = E / (1.0 - NU * NU);
+    const double c2 = c1 * NU;
+    const double c3 = 0.5 * E / (1.0 + NU);
+
+    rStressVector[0] = c1 * rStrainVector[0] + c2 * rStrainVector[1];
+    rStressVector[1] = c2 * rStrainVector[0] + c1 * rStrainVector[1];
+    rStressVector[2] = c3 * rStrainVector[2];
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::CalculatePK2StressFromStrainPlaneStrain(
+    ConstitutiveLaw::StrainVectorType& rStressVector,
+    const ConstitutiveLaw::StressVectorType &rStrainVector,
+    const double E,
+    const double NU
+    )
+{
+    const double c0 = E / ((1.0 + NU)*(1.0 - 2.0 * NU));
+    const double c1 = (1.0 - NU)*c0;
+    const double c2 = c0 * NU;
+    const double c3 = (0.5 - NU)*c0;
+
+    rStressVector[0] = c1 * rStrainVector[0] + c2 * rStrainVector[1];
+    rStressVector[1] = c2 * rStrainVector[0] + c1 * rStrainVector[1];
+    rStressVector[2] = c3 * rStrainVector[2];
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+double ConstitutiveLawUtilities<TVoigtSize>::CalculateShearModulus(
+    const Properties& rProperties
+    )
+{
+    const double E  = rProperties[YOUNG_MODULUS];
+    const double nu = rProperties[POISSON_RATIO];
+    return E / (2.0 * (1.0 + nu));
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 
 template class ConstitutiveLawUtilities<3>;
 template class ConstitutiveLawUtilities<6>;

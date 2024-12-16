@@ -4,17 +4,17 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
+#if defined(KRATOS_PYTHON)
+
 // System includes
 
-#if defined(KRATOS_PYTHON)
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -27,9 +27,7 @@
 #include "custom_python/add_custom_linear_solvers_to_python.h"
 #include "custom_python/add_custom_frictional_laws_to_python.h"
 
-namespace Kratos
-{
-namespace Python
+namespace Kratos::Python
 {
 namespace py = pybind11;
 
@@ -49,10 +47,10 @@ PYBIND11_MODULE(KratosContactStructuralMechanicsApplication, m)
 
     // Adding enums
     py::enum_<NormalDerivativesComputation>(m, "NormalDerivativesComputation")
-    .value("NO_DERIVATIVES_COMPUTATION",NO_DERIVATIVES_COMPUTATION)
-    .value("ELEMENTAL_DERIVATIVES",ELEMENTAL_DERIVATIVES)
-    .value("NODAL_ELEMENTAL_DERIVATIVES",NODAL_ELEMENTAL_DERIVATIVES)
-    .value("NO_DERIVATIVES_COMPUTATION_WITH_NORMAL_UPDATE",NO_DERIVATIVES_COMPUTATION_WITH_NORMAL_UPDATE)
+    .value("NO_DERIVATIVES_COMPUTATION",NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION)
+    .value("ELEMENTAL_DERIVATIVES",NormalDerivativesComputation::ELEMENTAL_DERIVATIVES)
+    .value("NODAL_ELEMENTAL_DERIVATIVES",NormalDerivativesComputation::NODAL_ELEMENTAL_DERIVATIVES)
+    .value("NO_DERIVATIVES_COMPUTATION_WITH_NORMAL_UPDATE",NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION_WITH_NORMAL_UPDATE)
     ;
 
     //Registering variables in python
@@ -64,7 +62,7 @@ PYBIND11_MODULE(KratosContactStructuralMechanicsApplication, m)
     /* Mortar contact */
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CONSIDER_TESSELLATION )                                 // If we consider tesellation when doing the mortar segmentation
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INNER_LOOP_ITERATION )                                  // The number of loops in the simplified semi-smooth inner iteration
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, AUXILIAR_COORDINATES )               // Auxiliar coordinates used to map
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, AUXILIAR_COORDINATES )               // Auxiliary coordinates used to map
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DELTA_COORDINATES )                  // Delta coordinates used to map
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INTEGRATION_ORDER_CONTACT )                             // The integration order considered
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DISTANCE_THRESHOLD )                                    // The distance threshold considered
@@ -97,8 +95,6 @@ PYBIND11_MODULE(KratosContactStructuralMechanicsApplication, m)
 }
 
 
-}  // namespace Python.
-
-}  // namespace Kratos.
+}  // namespace Python::Kratos.
 
 #endif // KRATOS_PYTHON defined

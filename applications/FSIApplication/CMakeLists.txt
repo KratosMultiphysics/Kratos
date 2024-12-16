@@ -8,9 +8,6 @@ include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 set( KRATOS_FSI_APPLICATION_CORE_SOURCES
 	# application class
 	${CMAKE_CURRENT_SOURCE_DIR}/fsi_application.cpp
-
-	# utilities
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/AdvancedNMPointsMapper.cpp
 )
 
 ## define python interface sources
@@ -24,11 +21,12 @@ set( KRATOS_FSI_APPLICATION_PYTHON_INTERFACE_SOURCES
 ## define fsi test sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
  	file(GLOB_RECURSE KRATOS_FSI_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+    kratos_add_gtests(TARGET KratosFSICore SOURCES "${KRATOS_FSI_TESTING_SOURCES}" USE_CUSTOM_MAIN)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ###############################################################################
 ## FSIApplication core library (C++ parts)
-add_library( KratosFSICore SHARED ${KRATOS_FSI_APPLICATION_CORE_SOURCES} ${KRATOS_FSI_TESTING_SOURCES} )
+add_library( KratosFSICore SHARED ${KRATOS_FSI_APPLICATION_CORE_SOURCES})
 target_link_libraries( KratosFSICore PUBLIC KratosCore)
 set_target_properties( KratosFSICore PROPERTIES COMPILE_DEFINITIONS "FSI_APPLICATION=EXPORT,API")
 

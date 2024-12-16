@@ -4,19 +4,17 @@
 //           | || |  | | | | | | | (_) \__
 //           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
 //
-//  License:             BSD License
-//                                       Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
 
+#if defined(KRATOS_PYTHON)
+
 // System includes
 
-#if defined(KRATOS_PYTHON)
 // External includes
-
-// Trilinos includes
-#include "Epetra_FEVector.h"
 
 // Project includes
 #include "includes/define_python.h"
@@ -26,6 +24,7 @@
 
 // Linear solvers
 #include "linear_solvers/linear_solver.h"
+#include "linear_solvers/fallback_linear_solver.h"
 #include "custom_factories/trilinos_linear_solver_factory.h"
 
 //teuchos parameter list
@@ -50,17 +49,14 @@
 #include "external_includes/amgcl_mpi_solver.h"
 #include "external_includes/amgcl_mpi_schur_complement_solver.h"
 
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
 
 namespace py = pybind11;
 
-typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
-typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
-typedef LinearSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosLinearSolverType;
+using TrilinosSparseSpaceType = TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>;
+using TrilinosLocalSpaceType = UblasSpace<double, Matrix, Vector>;
+using TrilinosLinearSolverType = LinearSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType>;
 
 void Solve(TrilinosLinearSolverType& solver,
            TrilinosSparseSpaceType::MatrixType& rA,
@@ -74,7 +70,27 @@ void  AddLinearSolvers(pybind11::module& m)
 {
     py::class_<TrilinosLinearSolverType, TrilinosLinearSolverType::Pointer > (m,"TrilinosLinearSolver")
         .def(py::init<>())
-        .def("Solve", Solve);
+        .def("Solve", Solve)
+        ;
+
+    using TrilinosFallbackLinearSolverType = FallbackLinearSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType>;
+    py::class_<TrilinosFallbackLinearSolverType, TrilinosFallbackLinearSolverType::Pointer, TrilinosLinearSolverType>(m, "TrilinosFallbackLinearSolver")
+        .def(py::init<Parameters>())
+        .def(py::init<const std::vector<TrilinosLinearSolverType::Pointer>&, Parameters>())
+        // .def("AddSolver", [](TrilinosFallbackLinearSolverType& rSelf, TrilinosLinearSolverType::Pointer pSolver) {
+        //     rSelf.AddSolver(pSolver);
+        // })
+        // .def("AddSolver", [](TrilinosFallbackLinearSolverType& rSelf, const Parameters ThisParameters) {
+        //     rSelf.AddSolver(ThisParameters);
+        // })
+        .def("GetSolvers", &TrilinosFallbackLinearSolverType::GetSolvers)
+        // .def("SetSolvers", &TrilinosFallbackLinearSolverType::SetSolvers)
+        .def("GetResetSolverEachTry", &TrilinosFallbackLinearSolverType::GetResetSolverEachTry)
+        // .def("SetResetSolverIndexEachTry", &TrilinosFallbackLinearSolverType::SetResetSolverIndexEachTry)
+        .def("GetParameters", &TrilinosFallbackLinearSolverType::GetParameters)
+        .def("GetCurrentSolverIndex", &TrilinosFallbackLinearSolverType::GetCurrentSolverIndex)
+        .def("ClearCurrentSolverIndex", &TrilinosFallbackLinearSolverType::ClearCurrentSolverIndex)
+        ;
 
 #ifndef TRILINOS_EXCLUDE_AZTEC_SOLVER
     typedef AztecSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AztecSolverType;
@@ -153,8 +169,6 @@ void  AddLinearSolvers(pybind11::module& m)
         ;
 }
 
-} // namespace Python.
-
-} // namespace Kratos.
+} // namespace Python:: Kratos.
 
 #endif // KRATOS_PYTHON defined

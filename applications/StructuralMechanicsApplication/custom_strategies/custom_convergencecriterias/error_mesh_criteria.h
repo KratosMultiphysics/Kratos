@@ -3,21 +3,20 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Anna Rehr
 //                   Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_ERROR_MESH_CRITERIA_H)
-#define  KRATOS_ERROR_MESH_CRITERIA_H
+#pragma once
 
-/* System includes */
+// System includes
 
-/* External includes */
+// External includes
 
-/* Project includes */
+// Project includes
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "utilities/color_utilities.h"
@@ -285,6 +284,4 @@ private:
 ///@{
 
 }  // namespace Kratos
-
-#endif /* KRATOS_ERROR_MESH_CRITERIA_H  defined */
 

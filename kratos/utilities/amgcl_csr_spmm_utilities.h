@@ -45,13 +45,13 @@ public:
         const CsrMatrix<TDataType, TIndexType>& rB
     )
     {
-        auto pAamgcl = AmgclCSRConversionUtilities::ConvertToAmgcl<TDataType,IndexType>(rA);
-        auto pBamgcl = AmgclCSRConversionUtilities::ConvertToAmgcl<TDataType,IndexType>(rB);
+        auto pAamgcl = AmgclCSRConversionUtilities::ConvertToAmgcl<TDataType,TIndexType>(rA);
+        auto pBamgcl = AmgclCSRConversionUtilities::ConvertToAmgcl<TDataType,TIndexType>(rB);
 
         auto Camgcl = amgcl::backend::product(*pAamgcl, *pBamgcl);
         amgcl::backend::sort_rows(*Camgcl);
 
-        return AmgclCSRConversionUtilities::ConvertToCsrMatrix<TDataType,IndexType>(*Camgcl);
+        return AmgclCSRConversionUtilities::ConvertToCsrMatrix<TDataType,TIndexType>(*Camgcl);
     }
 
 

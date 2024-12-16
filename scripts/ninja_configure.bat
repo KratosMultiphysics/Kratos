@@ -44,7 +44,7 @@ cmake -G"Ninja"                                                         ^
 -DCMAKE_BUILD_TYPE=%KRATOS_BUILD_TYPE%                                  ^
 -DCMAKE_PDB_OUTPUT_DIRECTORY=%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%/PDB     ^
 -DUSE_EIGEN_MKL=OFF                                                     ^
--DKRATOS_GENERATE_PYTHON_STUBS=ON                                       ^
+-DKRATOS_GENERATE_PYTHON_STUBS=ON
 
 rem Build
 cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target install

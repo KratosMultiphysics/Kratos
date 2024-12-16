@@ -30,6 +30,11 @@ namespace Kratos {
 #define KRATOS_SHA1_NUMBER "0"
 #endif
 
+// GiT branch name at configure
+#ifndef KRATOS_BRANCH_NAME
+#define KRATOS_BRANCH_NAME ""
+#endif
+
 // Build type
 #ifndef KRATOS_BUILD_TYPE
 #define KRATOS_BUILD_TYPE "Release"
@@ -49,12 +54,17 @@ namespace Kratos {
 #endif
 
 // Full version
-#define KRATOS_TO_STRING_(X) #X
-#define KRATOS_TO_STRING(X) KRATOS_TO_STRING_(X)
+#ifndef KRATOS_TO_STRING_
+    #define KRATOS_TO_STRING_(X) #X
+#endif
+#ifndef KRATOS_TO_STRING
+    #define KRATOS_TO_STRING(X) KRATOS_TO_STRING_(X)
+#endif
 #define KRATOS_VERSION_STRING \
 KRATOS_TO_STRING(KRATOS_MAJOR_VERSION) "." \
 KRATOS_TO_STRING(KRATOS_MINOR_VERSION) "." \
 KRATOS_TO_STRING(KRATOS_PATCH_VERSION) "-" \
+KRATOS_BRANCH_NAME "-" \
 KRATOS_SHA1_NUMBER "-" \
 KRATOS_BUILD_TYPE  "-" \
 KRATOS_ARCH_TYPE
@@ -65,23 +75,18 @@ KRATOS_ARCH_TYPE
 #elif defined(__APPLE__) && defined(__MACH__)
     #define KRATOS_OS_NAME "Mac OS"
 #elif defined(_WIN32) || defined(_WIN64)
-    #define KRATOS_OS_NAME "Windows" 
+    #define KRATOS_OS_NAME "Windows"
 #else
     #define KRATOS_OS_NAME "Unknown OS"
 #endif
 
-// Define Python version
-#if defined(PYTHON_VERSION_MAJOR) && defined(PYTHON_VERSION_MINOR)
-    #define KRATOS_PYTHON_VERSION "Python" \
-    KRATOS_TO_STRING(PYTHON_VERSION_MAJOR) \
-    "." \
-    KRATOS_TO_STRING(PYTHON_VERSION_MINOR)
-#else
-    #define KRATOS_PYTHON_VERSION "Unknown Python Version"
-#endif
-
 // Define compiler label
-#if defined(__clang__)
+#if defined(__INTEL_COMPILER) || defined(__INTEL_LLVM_COMPILER)
+    // the intel compiler internally uses gcc or clang
+    // therefore must check it first, otherwise it detects wrong compiler
+    #define KRATOS_COMPILER_LABEL "Intel-" \
+    KRATOS_TO_STRING(__VERSION__)
+#elif defined(__clang__)
     #define KRATOS_COMPILER_LABEL "Clang-" \
     KRATOS_TO_STRING(__clang_major__) \
     "." \
@@ -102,8 +107,12 @@ std::string GetPatchVersion() {
     return KRATOS_PATCH_VERSION;
 }
 
-std::string GetCommitVersion() {
+std::string GetCommit() {
     return KRATOS_SHA1_NUMBER;
+}
+
+std::string GetBranchName() {
+    return KRATOS_BRANCH_NAME;
 }
 
 std::string GetBuildType() {
@@ -116,10 +125,6 @@ std::string GetVersionString() {
 
 std::string GetOSName() {
     return KRATOS_OS_NAME;
-}
-
-std::string GetPythonVersion() {
-    return KRATOS_PYTHON_VERSION;
 }
 
 std::string GetCompiler() {

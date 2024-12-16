@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import os
 import KratosMultiphysics
 import KratosMultiphysics.LinearSolversApplication
@@ -17,9 +16,9 @@ if __name__ == "__main__":
 	]
 
 	model = KratosMultiphysics.Model()
-	for project_path in project_paths: 
+	for project_path in project_paths:
 		os.chdir(project_path)
-		
+
 		with open("ProjectParameters.json",'r') as parameter_file:
 			parameters = KratosMultiphysics.Parameters(parameter_file.read())
 

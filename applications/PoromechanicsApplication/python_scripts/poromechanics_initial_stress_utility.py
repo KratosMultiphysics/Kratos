@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Import kratos core and applications
 import KratosMultiphysics
@@ -46,7 +45,10 @@ class InitialStressUtility(object):
         # Mapping between initial and current model parts
         initial_model_part = self.model.GetModelPart(initial_model_part_name)
 
-        self.initial_stress_utility.TransferInitialStresses(initial_model_part,self.current_model_part)
+        #Is the mesh the same as in the save phase?
+        constant_discretization = self.parameters["problem_data"]["initial_stress_utility_settings"]["constant_discretization"].GetBool()
+        
+        self.initial_stress_utility.TransferInitialStresses(initial_model_part,self.current_model_part,constant_discretization)
 
         # Delete initial_model_part
         self.model.DeleteModelPart(initial_model_part_name)

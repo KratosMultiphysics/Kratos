@@ -4,20 +4,19 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_BASE_MORTAR_CRITERIA_H)
-#define  KRATOS_BASE_MORTAR_CRITERIA_H
+#pragma once
 
-/* System includes */
+// System includes
 
-/* External includes */
+// External includes
 
-/* Project includes */
+// Project includes
 #include "contact_structural_mechanics_application_variables.h"
 #include "custom_utilities/contact_utilities.h"
 #include "utilities/mortar_utilities.h"
@@ -77,22 +76,22 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( PURE_SLIP );
 
     /// The base class definition
-    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace >            BaseType;
+    using BaseType = ConvergenceCriteria<TSparseSpace, TDenseSpace>;
 
     /// The definition of the current class
-    typedef BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace > ClassType;
+    using ClassType = BaseMortarConvergenceCriteria<TSparseSpace, TDenseSpace>;
 
     /// The dofs array type
-    typedef typename BaseType::DofsArrayType                       DofsArrayType;
+    using DofsArrayType = typename BaseType::DofsArrayType;
 
     /// The sparse matrix type
-    typedef typename BaseType::TSystemMatrixType               TSystemMatrixType;
+    using TSystemMatrixType = typename BaseType::TSystemMatrixType;
 
     /// The dense vector type
-    typedef typename BaseType::TSystemVectorType               TSystemVectorType;
+    using TSystemVectorType = typename BaseType::TSystemVectorType;
 
     /// The GidIO type
-    typedef GidIO<>                                                GidIOBaseType;
+    using GidIOBaseType = GidIO<>;
 
     ///@}
     ///@name Life Cycle
@@ -181,8 +180,8 @@ public:
         ModelPart& r_contact_model_part = rModelPart.GetSubModelPart("Contact");
 
         // We update the normals if necessary
-        const auto normal_variation = r_process_info.Has(CONSIDER_NORMAL_VARIATION) ? static_cast<NormalDerivativesComputation>(r_process_info.GetValue(CONSIDER_NORMAL_VARIATION)) : NO_DERIVATIVES_COMPUTATION;
-        if (normal_variation != NO_DERIVATIVES_COMPUTATION) {
+        const auto normal_variation = r_process_info.Has(CONSIDER_NORMAL_VARIATION) ? static_cast<NormalDerivativesComputation>(r_process_info.GetValue(CONSIDER_NORMAL_VARIATION)) : NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION;
+        if (normal_variation != NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION) {
             ComputeNodesMeanNormalModelPartWithPairedNormal(rModelPart); // Update normal of the conditions
         }
 
@@ -243,7 +242,7 @@ public:
     {
         // We save the current WEIGHTED_GAP in the buffer
         auto& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
-        block_for_each(r_nodes_array, [&](NodeType& rNode) {
+        block_for_each(r_nodes_array, [&](Node& rNode) {
             rNode.FastGetSolutionStepValue(WEIGHTED_GAP, 1) = rNode.FastGetSolutionStepValue(WEIGHTED_GAP);
         });
 
@@ -451,11 +450,7 @@ public:
     }
 
     ///@}
-    ///@name Friends
-    ///@{
-
 protected:
-
     ///@name Protected static Member Variables
     ///@{
 
@@ -502,18 +497,6 @@ protected:
     }
 
     ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-    ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -557,21 +540,6 @@ private:
     }
 
     ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Serialization
-    ///@{
-
-    ///@name Private Inquiry
-    ///@{
-    ///@}
-
-    ///@name Unaccessible methods
-    ///@{
-    ///@}
-
 }; // Class BaseMortarConvergenceCriteria
 
 ///@name Local flags creation
@@ -586,5 +554,3 @@ template<class TSparseSpace, class TDenseSpace>
 const Kratos::Flags BaseMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::PURE_SLIP(Kratos::Flags::Create(2));
 
 }  // namespace Kratos
-
-#endif /* KRATOS_BASE_MORTAR_CRITERIA_H  defined */

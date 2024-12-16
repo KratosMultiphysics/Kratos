@@ -46,7 +46,7 @@ namespace HDF5
  * previous time step according to the Bossak scheme.
  *
  */
-class NodalSolutionStepBossakIO : private NodalSolutionStepDataIO
+class KRATOS_API(HDF5_APPLICATION) NodalSolutionStepBossakIO : private NodalSolutionStepDataIO
 {
 public:
     ///@name Type Definitions

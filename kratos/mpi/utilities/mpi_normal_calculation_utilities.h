@@ -196,18 +196,18 @@ private:
                      const int MaxNeighs);
 
 
-    bool OrientElement(Geometry< Node<3> >& rGeom);
+    bool OrientElement(Geometry< Node >& rGeom);
 
 
-    void NormalContribution(Geometry< Node<3> >&rGeom);
+    void NormalContribution(Geometry< Node >&rGeom);
 
 
     void FaceNormal2D(array_1d<double,3>& An,
-                      Geometry<Node<3> >& rGeometry);
+                      Geometry<Node >& rGeometry);
 
 
     void FaceNormal3D(array_1d<double,3>& An,
-                      Geometry<Node<3> >& rGeometry);
+                      Geometry<Node >& rGeometry);
 
     void UpdateNodeNormals(ModelPart& rModelPart,
                            const unsigned int Dimension,

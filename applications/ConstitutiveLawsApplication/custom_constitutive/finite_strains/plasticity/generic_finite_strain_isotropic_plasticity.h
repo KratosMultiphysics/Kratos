@@ -13,8 +13,7 @@
 //
 //
 
-#if !defined(KRATOS_GENERIC_FINITE_STRAIN_ISOTROPIC_PLASTICITY_3D_H_INCLUDED)
-#define KRATOS_GENERIC_FINITE_STRAIN_ISOTROPIC_PLASTICITY_3D_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -83,7 +82,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(GenericFiniteStrainIsotropicPlasticity);
 
     /// The node definition
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /// The geometry definition
     typedef Geometry<NodeType> GeometryType;
@@ -316,7 +315,8 @@ protected:
      */
     void CalculateTangentTensor(
         ConstitutiveLaw::Parameters &rValues,
-        const ConstitutiveLaw::StressMeasure& rStressMeasure = ConstitutiveLaw::StressMeasure_Cauchy
+        const ConstitutiveLaw::StressMeasure& rStressMeasure,
+        const Vector& rPlasticStrain
         );
 
     ///@}
@@ -337,4 +337,3 @@ protected:
 }; // Class GenericYieldSurface
 
 } // namespace Kratos
-#endif

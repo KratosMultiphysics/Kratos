@@ -25,6 +25,8 @@
 #include "geometries/brep_curve_on_surface.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_interval.h"
 
+// trimming integration
+#include "utilities/geometry_utilities/brep_trimming_utilities.h"
 
 namespace Kratos
 {
@@ -432,8 +434,23 @@ public:
         IntegrationPointsArrayType& rIntegrationPoints,
         IntegrationInfo& rIntegrationInfo) const override
     {
-        mpNurbsSurface->CreateIntegrationPoints(
-            rIntegrationPoints, rIntegrationInfo);
+        if (!mIsTrimmed) {
+            mpNurbsSurface->CreateIntegrationPoints(
+                rIntegrationPoints, rIntegrationInfo);
+        }
+        else
+        {
+            std::vector<double> spans_u;
+            std::vector<double> spans_v;
+            mpNurbsSurface->SpansLocalSpace(spans_u, 0);
+            mpNurbsSurface->SpansLocalSpace(spans_v, 1);
+
+            BrepTrimmingUtilities::CreateBrepSurfaceTrimmingIntegrationPoints(
+                rIntegrationPoints,
+                mOuterLoopArray, mInnerLoopArray,
+                spans_u, spans_v,
+                rIntegrationInfo);
+        }
     }
 
     ///@}
@@ -458,29 +475,6 @@ public:
     {
         mpNurbsSurface->CreateQuadraturePointGeometries(
             rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationPoints, rIntegrationInfo);
-
-        for (IndexType i = 0; i < rResultGeometries.size(); ++i) {
-            rResultGeometries(i)->SetGeometryParent(this);
-        }
-    }
-
-    /* @brief calls function of undelying nurbs surface,
-     *        which itself is not implented and thus is calling the
-     *        geometry base class and updates the parent to itself.
-     *
-     * @param rResultGeometries list of quadrature point geometries.
-     * @param NumberOfShapeFunctionDerivatives the number of evaluated
-     *        derivatives of shape functions at the quadrature point geometries.
-     *
-     * @see quadrature_point_geometry.h
-     */
-    void CreateQuadraturePointGeometries(
-        GeometriesArrayType& rResultGeometries,
-        IndexType NumberOfShapeFunctionDerivatives,
-        IntegrationInfo& rIntegrationInfo) override
-    {
-        mpNurbsSurface->CreateQuadraturePointGeometries(
-            rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationInfo);
 
         for (IndexType i = 0; i < rResultGeometries.size(); ++i) {
             rResultGeometries(i)->SetGeometryParent(this);
@@ -513,11 +507,21 @@ public:
     ///@name Geometry Family
     ///@{
 
+    /**
+     * @brief Gets the geometry family.
+     * @details This function returns the family type of the geometry. The geometry family categorizes the geometry into a broader classification, aiding in its identification and processing.
+     * @return GeometryData::KratosGeometryFamily The geometry family.
+     */
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::KratosGeometryFamily::Kratos_Brep;
     }
 
+    /**
+     * @brief Gets the geometry type.
+     * @details This function returns the specific type of the geometry. The geometry type provides a more detailed classification of the geometry.
+     * @return GeometryData::KratosGeometryType The specific geometry type.
+     */
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::KratosGeometryType::Kratos_Brep_Surface;
@@ -637,8 +641,7 @@ GeometryData BrepSurface<TContainerPointType, TContainerPointEmbeddedType>::msGe
     {}, {}, {});
 
 template<class TContainerPointType, class TContainerPointEmbeddedType>
-const GeometryDimension BrepSurface<TContainerPointType, TContainerPointEmbeddedType>::msGeometryDimension(
-    2, 3, 2);
+const GeometryDimension BrepSurface<TContainerPointType, TContainerPointEmbeddedType>::msGeometryDimension(3, 2);
 
 ///@}
 }// namespace Kratos.

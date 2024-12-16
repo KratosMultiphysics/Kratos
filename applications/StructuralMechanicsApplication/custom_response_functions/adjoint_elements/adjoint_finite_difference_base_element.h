@@ -3,14 +3,13 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Armin Geiser, https://github.com/armingeiser
 //
 
-#if !defined(ADJOINT_FINITE_DIFFERENCE_BASE_ELEMENT_H_INCLUDED )
-#define  ADJOINT_FINITE_DIFFERENCE_BASE_ELEMENT_H_INCLUDED
+#pragma once
 
 
 // System includes
@@ -414,7 +413,7 @@ protected:
         KRATOS_TRY;
 
         KRATOS_WARNING_IF("CalculateAdjointFieldOnIntegrationPoints", OpenMPUtils::IsInParallel() != 0)
-                << "The call of this non omp-parallelized function within a parallel section should be avoided for efficiency reasons!" << std::endl;
+                << "The call of this non shared-memory-parallelized function within a parallel section should be avoided for efficiency reasons!" << std::endl;
 
         const SizeType num_nodes = mpPrimalElement->GetGeometry().PointsNumber();
         const SizeType dimension = mpPrimalElement->GetGeometry().WorkingSpaceDimension();
@@ -543,4 +542,3 @@ private:
 };
 
 }
-#endif // ADJOINT_FINITE_DIFFERENCE_BASE_ELEMENT_H_INCLUDED

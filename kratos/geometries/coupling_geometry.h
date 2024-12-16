@@ -321,7 +321,7 @@ public:
     {
         const double model_tolerance = 1e-2;
 
-        if (this->Dimension() == 1) {
+        if (this->LocalSpaceDimension() == 1) {
             std::vector<double> master_span_intersections_in_master_local_space;
             std::vector<double> slave_span_intersections_in_master_local_space;
 
@@ -407,7 +407,7 @@ public:
         IntegrationPointsArrayType& rIntegrationPoints,
         IntegrationInfo& rIntegrationInfo) const override
     {
-        if (this->Dimension() == 1) {
+        if (this->LocalSpaceDimension() == 1) {
             std::vector<double> spans;
             this->SpansLocalSpace(spans, 0);
 
@@ -464,7 +464,7 @@ public:
         CoordinatesArrayType global_slave_coords = ZeroVector(3);
 
         if (!rIntegrationInfo.Is(IntegrationInfo::DO_NOT_CREATE_TESSELLATION_ON_SLAVE)) {
-            if (this->Dimension() == 1) {
+            if (this->LocalSpaceDimension() == 1) {
                 CurveTessellation<PointerVector<TPointType>> curve_tesselation;
                 curve_tesselation.Tessellate(*(mpGeometries[1].get()), 1e-2, mpGeometries[1]->PolynomialDegree(0));
 
@@ -484,8 +484,8 @@ public:
                 }
             }
             else {
-                KRATOS_ERROR << "Tessellation for " << this->Dimension()
-                    << "-dimensional objects is not implement." << std::endl;
+                KRATOS_ERROR << "Tessellation for " << this->LocalSpaceDimension()
+                    << "-dimensional objects is not implemented." << std::endl;
             }
         }
         else {
@@ -530,7 +530,7 @@ public:
     {
         const double model_tolerance = 1e-3;
 
-        if (this->Dimension() != 0) {
+        if (this->LocalSpaceDimension() != 0) {
             BaseType::CreateQuadraturePointGeometries(rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationInfo);
         }
         else {
@@ -622,11 +622,21 @@ public:
     ///@name Geometry Family
     ///@{
 
+    /**
+     * @brief Gets the geometry family.
+     * @details This function returns the family type of the geometry. The geometry family categorizes the geometry into a broader classification, aiding in its identification and processing.
+     * @return GeometryData::KratosGeometryFamily The geometry family.
+     */
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::KratosGeometryFamily::Kratos_Composite;
     }
 
+    /**
+     * @brief Gets the geometry type.
+     * @details This function returns the specific type of the geometry. The geometry type provides a more detailed classification of the geometry.
+     * @return GeometryData::KratosGeometryType The specific geometry type.
+     */
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::KratosGeometryType::Kratos_Coupling_Geometry;

@@ -21,7 +21,7 @@
 #include "geometries/geometry.h"
 
 #include "includes/cfd_variables.h"
-#include "custom_utilities/fluid_element_data.h"
+#include "custom_elements/data_containers/fluid_element_data.h"
 #include "fluid_dynamics_application_variables.h"
 
 
@@ -66,8 +66,8 @@ public:
     /// Pointer definition of FluidElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(FluidElement);
 
-    /// Node type (default is: Node<3>)
-    typedef Node<3> NodeType;
+    /// Node type (default is: Node)
+    typedef Node NodeType;
 
     /// Geometry type (using with given NodeType)
     typedef Geometry<NodeType> GeometryType;
@@ -106,7 +106,7 @@ public:
 
     static constexpr unsigned int NumNodes = TElementData::NumNodes;
 
-    static constexpr unsigned int BlockSize = Dim + 1;
+    static constexpr unsigned int BlockSize = TElementData::BlockSize;
 
     static constexpr unsigned int LocalSize = NumNodes * BlockSize;
 

@@ -59,7 +59,7 @@ def clear_element_data_from_mdpa(mdpa_data,nr_element_types, line=0):
     :return:
     """
 
-    for i in range(nr_element_types):
+    for _ in range(nr_element_types):
         while ('Begin Elements' not in mdpa_data[line]) and line < len(mdpa_data):
             line += 1
 
@@ -246,7 +246,6 @@ def update_project_parameters_files(all_project_parameters):
         if project_parameters["problem_data"]["start_time"] < previous_end_time:
             dt = project_parameters["problem_data"]["end_time"] - project_parameters["problem_data"]["start_time"]
             project_parameters["problem_data"]["start_time"] = previous_end_time
-            project_parameters["solver_settings"]["start_time"] = previous_end_time
             project_parameters["problem_data"]["end_time"] = previous_end_time + dt
 
         previous_end_time = project_parameters["problem_data"]["end_time"]

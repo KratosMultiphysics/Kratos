@@ -297,14 +297,34 @@ public:
      */
     virtual ~QuadrilateralInterface3D4() {}
 
+    /**
+     * @brief Gets the geometry family.
+     * @details This function returns the family type of the geometry. The geometry family categorizes the geometry into a broader classification, aiding in its identification and processing.
+     * @return GeometryData::KratosGeometryFamily The geometry family.
+     */
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::KratosGeometryFamily::Kratos_Quadrilateral;
     }
 
+    /**
+     * @brief Gets the geometry type.
+     * @details This function returns the specific type of the geometry. The geometry type provides a more detailed classification of the geometry.
+     * @return GeometryData::KratosGeometryType The specific geometry type.
+     */
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4;
+    }
+
+    /**
+     * @brief Gets the geometry order type.
+     * @details This function returns the order type of the geometry. The order type relates to the polynomial degree of the geometry.
+     * @return GeometryData::KratosGeometryOrderType The geometry order type.
+     */
+    GeometryData::KratosGeometryOrderType GetGeometryOrderType() const override
+    {
+        return GeometryData::KratosGeometryOrderType::Kratos_Linear_Order;
     }
 
     ///@}
@@ -446,10 +466,20 @@ public:
 		return Area();
     }
 
-
+    /**
+     * @brief This method calculates and returns the volume of this geometry.
+     * @return Error, the volume of a 2D geometry is not defined (In June 2023)
+     * @see Length()
+     * @see Area()
+     * @see Volume()
+     */
     double Volume() const override
     {
-		return Area();
+        KRATOS_WARNING("QuadrilateralInterface3D4") << "Method not well defined. Replace with DomainSize() instead. This method preserves current behaviour but will be changed in June 2023 (returning error instead)" << std::endl;
+        return Area();
+        // TODO: Replace in June 2023
+        // KRATOS_ERROR << "QuadrilateralInterface3D4:: Method not well defined. Replace with DomainSize() instead." << std::endl;
+        // return 0.0;
     }
 
     /**
@@ -1046,11 +1076,16 @@ public:
      */
     void PrintData( std::ostream& rOStream ) const override
     {
+        // Base Geometry class PrintData call
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
-        Matrix jacobian;
-        Jacobian( jacobian, PointType() );
-        rOStream << "    Jacobian in the origin\t : " << jacobian;
+
+        // If the geometry has valid points, calculate and output its data
+        if (this->AllPointsAreValid()) {
+            Matrix jacobian;
+            this->Jacobian( jacobian, PointType() );
+            rOStream << "    Jacobian in the origin\t : " << jacobian;
+        }
     }
 
     /**
@@ -1424,8 +1459,7 @@ GeometryData QuadrilateralInterface3D4<TPointType>::msGeometryData(
 );
 
 template<class TPointType>
-const GeometryDimension QuadrilateralInterface3D4<TPointType>::msGeometryDimension(
-    2, 3, 1);
+const GeometryDimension QuadrilateralInterface3D4<TPointType>::msGeometryDimension(3, 1);
 
 }// namespace Kratos.
 

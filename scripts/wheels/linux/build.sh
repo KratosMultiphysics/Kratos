@@ -1,6 +1,6 @@
 #!/bin/bash
-PYTHONS=("cp36" "cp37" "cp38" "cp39" "cp310")
-export KRATOS_VERSION="9.2.0"
+PYTHONS=("cp38" "cp39" "cp310" "cp311" "cp12")
+export KRATOS_VERSION="10.1.0"
 
 BASE_LD_LIBRARY_PATH=$LD_LIBRARY_PATH
 export KRATOS_ROOT="/workspace/kratos/Kratos"
@@ -28,7 +28,6 @@ build_core_wheel () {
 
     cp ${PREFIX_LOCATION}/KratosMultiphysics/*       ${WHEEL_ROOT}/KratosMultiphysics
     cp ${KRATOS_ROOT}/kratos/KratosMultiphysics.json ${WHEEL_ROOT}/wheel.json
-    cp ${KRATOS_ROOT}/scripts/wheels/__init__.py     ${WHEEL_ROOT}/KratosMultiphysics/__init__.py
 
     cd $WHEEL_ROOT
 
@@ -146,7 +145,7 @@ build_interface () {
 # Core can be build independently of the python version.
 # Install path should be useless here.
 echo "Starting core build"
-build_core python3.6 ${KRATOS_ROOT}/bin/core
+build_core python3.8 ${KRATOS_ROOT}/bin/core
 echo "Finished core build"
 
 for PYTHON_VERSION in  "${PYTHONS[@]}"

@@ -14,17 +14,17 @@ RUN apt-get update -y && apt-get upgrade -y && \
     add-apt-repository ppa:git-core/ppa && \
     apt-get -y update && \
     apt-get install -y --no-install-recommends \
+        sudo \
         build-essential \
-        ccache \
-        gcc-12 \
-        clang \
+        g++-12 \
+        gfortran-12 \
+        clang-14 \
         libomp-dev \
         cmake \
         gfortran \
         git \
-        intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic \
+        intel-oneapi-compiler-dpcpp-cpp \
         intel-oneapi-mkl-devel \
-        valgrind \
         libboost-dev \
         libhdf5-dev \
         libhdf5-openmpi-dev \
@@ -43,17 +43,17 @@ RUN apt-get update -y && apt-get upgrade -y && \
         libtrilinos-kokkos-dev \
         libtrilinos-kokkos-kernels-dev \
         libtrilinos-shylu-dev \
+        libmedc-dev \
         openmpi-bin \
         python3-dev \
         python3-h5py \
         python3-pip && \
-    /usr/sbin/update-ccache-symlinks && \
-    echo 'export PATH="/usr/lib/ccache:$PATH"' | tee -a ~/.bashrc && \
     python3 -m pip install --upgrade pip && \
     pip3 install \
         numpy \
         scipy \
-        sympy && \
+        sympy \
+        parameterized && \
     # install MMG 5.5
     git clone -b 'v5.5.1' --depth 1 https://github.com/MmgTools/mmg /tmp/mmg_5_5_1 && \
     mkdir /tmp/mmg_5_5_1/build && \

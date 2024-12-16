@@ -52,7 +52,7 @@ namespace Kratos
  * the end of the system ordered in reverse order with respect to the DofSet.
  * Imposition of the dirichlet conditions is naturally dealt with as the residual already contains
  * this information.
- * Calculation of the reactions involves a cost very similiar to the calculation of the total residual
+ * Calculation of the reactions involves a cost very similar to the calculation of the total residual
  * Additionally the constraints are solver considering Lagrange multiplier (or double Lagrange multiplier)
  * @note Based on https://www.code-aster.org/V2/doc/default/en/man_r/r3/r3.03.01.pdf
  * @tparam TSparseSpace The sparse system considered
@@ -113,7 +113,7 @@ public:
     typedef Element::DofsVectorType DofsVectorType;
 
     /// DoF types definition
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
     typedef typename NodeType::DofType DofType;
     typedef typename DofType::Pointer DofPointerType;
 
@@ -148,7 +148,7 @@ public:
         : BaseType(pNewLinearSystemSolver)
     {
         // Setting flags
-        BaseType::mScalingDiagonal = BaseType::SCALING_DIAGONAL::NO_SCALING;
+        BaseType::mScalingDiagonal = SCALING_DIAGONAL::NO_SCALING;
         BaseType::mOptions.Set(BaseType::SILENT_WARNINGS, false);
         mConstraintFactorConsidered = CONSTRAINT_FACTOR::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR;
         mAuxiliarConstraintFactorConsidered = AUXILIAR_CONSTRAINT_FACTOR::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR;
@@ -227,7 +227,7 @@ public:
             TSparseSpace::SetToZero(rDx);
         }
 
-        // Prints informations about the current time
+        // Prints information about the current time
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier", this->GetEchoLevel() > 1) << *(BaseType::mpLinearSystemSolver) << std::endl;
 
         KRATOS_CATCH("")
@@ -391,9 +391,9 @@ public:
 
     /**
      * @brief Applies the dirichlet conditions. This operation may be very heavy or completely
-     * unexpensive depending on the implementation choosen and on how the System Matrix is built.
+     * unexpensive depending on the implementation chosen and on how the System Matrix is built.
      * @details For explanation of how it works for a particular implementation the user
-     * should refer to the particular Builder And Solver choosen
+     * should refer to the particular Builder And Solver chosen
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
      * @param rA The LHS matrix
@@ -436,8 +436,11 @@ public:
         std::size_t* Arow_indices = rA.index1_data().begin();
         std::size_t* Acol_indices = rA.index2_data().begin();
 
+        // Define  zero value tolerance
+        const double zero_tolerance = std::numeric_limits<double>::epsilon();
+
         // The diagonal considered
-        BaseType::mScaleFactor = this->GetScaleNorm(rModelPart, rA);
+        BaseType::mScaleFactor = TSparseSpace::GetScaleNorm(rModelPart.GetProcessInfo(), rA, BaseType::mScalingDiagonal);
 
         // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
         IndexPartition<std::size_t>(system_size).for_each([&](std::size_t Index){
@@ -448,7 +451,7 @@ public:
             col_end = Arow_indices[Index + 1];
             empty = true;
             for (std::size_t j = col_begin; j < col_end; ++j) {
-                if(Avalues[j] != 0.0) {
+                if(std::abs(Avalues[j]) > zero_tolerance) {
                     empty = false;
                     break;
                 }
@@ -461,8 +464,8 @@ public:
         });
 
         IndexPartition<std::size_t>(system_size).for_each([&](std::size_t Index){
-            std::size_t col_begin = Arow_indices[Index];
-            std::size_t col_end = Arow_indices[Index+1];
+            const std::size_t col_begin = Arow_indices[Index];
+            const std::size_t col_end = Arow_indices[Index+1];
             const double k_factor = scaling_factors[Index];
             if (k_factor == 0.0) {
                 // Zero out the whole row, except the diagonal
@@ -501,7 +504,7 @@ public:
                 TSystemMatrixType A(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize);
                 BaseType::ConstructMatrixStructure(pScheme, A, rModelPart);
                 this->BuildLHS(pScheme, rModelPart, A);
-                const double constraint_scale_factor = mConstraintFactorConsidered == CONSTRAINT_FACTOR::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR ? this->GetDiagonalNorm(A) : this->GetDiagonalNorm(A);
+                const double constraint_scale_factor = mConstraintFactorConsidered == CONSTRAINT_FACTOR::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR ? TSparseSpace::GetMaxDiagonal(A) : TSparseSpace::GetDiagonalNorm(A);
                 mConstraintFactor = constraint_scale_factor;
             }
 
@@ -615,7 +618,7 @@ public:
             // Definition of the auxiliar values
             const bool has_constraint_scale_factor = mConstraintFactorConsidered == CONSTRAINT_FACTOR::CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR ? true : false;
             KRATOS_ERROR_IF(has_constraint_scale_factor && !r_current_process_info.Has(CONSTRAINT_SCALE_FACTOR)) << "Constraint scale factor not defined at process info" << std::endl;
-            const double constraint_scale_factor = has_constraint_scale_factor ? r_current_process_info.GetValue(CONSTRAINT_SCALE_FACTOR) : mConstraintFactorConsidered == CONSTRAINT_FACTOR::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR ? this->GetDiagonalNorm(copy_of_A) : this->GetAveragevalueDiagonal(copy_of_A);
+            const double constraint_scale_factor = has_constraint_scale_factor ? r_current_process_info.GetValue(CONSTRAINT_SCALE_FACTOR) : mConstraintFactorConsidered == CONSTRAINT_FACTOR::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR ? TSparseSpace::GetDiagonalNorm(copy_of_A) : TSparseSpace::GetAveragevalueDiagonal(copy_of_A);
             mConstraintFactor = constraint_scale_factor;
 
             /* Fill common blocks */
@@ -641,7 +644,7 @@ public:
                 // Definition of the build scale factor auxiliar value
                 const bool has_auxiliar_constraint_scale_factor = mAuxiliarConstraintFactorConsidered == AUXILIAR_CONSTRAINT_FACTOR::CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR ? true : false;
                 KRATOS_ERROR_IF(has_auxiliar_constraint_scale_factor && !r_current_process_info.Has(AUXILIAR_CONSTRAINT_SCALE_FACTOR)) << "Auxiliar constraint scale factor not defined at process info" << std::endl;
-                const double auxiliar_constraint_scale_factor = has_auxiliar_constraint_scale_factor ? r_current_process_info.GetValue(AUXILIAR_CONSTRAINT_SCALE_FACTOR) : mAuxiliarConstraintFactorConsidered == AUXILIAR_CONSTRAINT_FACTOR::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR ? this->GetDiagonalNorm(copy_of_A) : this->GetAveragevalueDiagonal(copy_of_A);
+                const double auxiliar_constraint_scale_factor = has_auxiliar_constraint_scale_factor ? r_current_process_info.GetValue(AUXILIAR_CONSTRAINT_SCALE_FACTOR) : mAuxiliarConstraintFactorConsidered == AUXILIAR_CONSTRAINT_FACTOR::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR ? TSparseSpace::GetDiagonalNorm(copy_of_A) : TSparseSpace::GetAveragevalueDiagonal(copy_of_A);
                 mAuxiliarConstraintFactor = auxiliar_constraint_scale_factor;
 
                 // Create auxiliar identity matrix
@@ -851,14 +854,8 @@ protected:
                 for (int i_const = 0; i_const < static_cast<int>(rModelPart.MasterSlaveConstraints().size()); ++i_const) {
                     auto it_const = it_const_begin + i_const;
 
-                    // Detect if the constraint is active or not. If the user did not make any choice the constraint
-                    // It is active by default
-                    bool constraint_is_active = true;
-                    if( it_const->IsDefined(ACTIVE) ) {
-                        constraint_is_active = it_const->Is(ACTIVE);
-                    }
-
-                    if(constraint_is_active) {
+                    // If the constraint is active
+                    if(it_const->IsActive()) {
                         it_const->EquationIdVector(slave_ids, master_ids, r_current_process_info);
 
                         // Slave DoFs
@@ -974,13 +971,8 @@ protected:
             for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
                 auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
 
-                // Detect if the constraint is active or not. If the user did not make any choice the constraint
-                // It is active by default
-                bool constraint_is_active = true;
-                if (it_const->IsDefined(ACTIVE))
-                    constraint_is_active = it_const->Is(ACTIVE);
-
-                if (constraint_is_active) {
+                // If the constraint is active
+                if (it_const->IsActive()) {
                     it_const->CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
                     it_const->EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
 

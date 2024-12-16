@@ -15,7 +15,7 @@ class ArtificialCompressibilityTest(UnitTest.TestCase):
 
     def setUp(self):
         self.check_tolerance = 1e-6
-        self.print_output = True
+        self.print_output = False
         self.print_reference_values = False
         self.work_folder = "ArtificialCompressibilityTest"
         self.reference_file = "reference_cavity_compressibility"
@@ -140,9 +140,4 @@ class ArtificialCompressibilityTest(UnitTest.TestCase):
                         self.fail("The number of nodes in the mdpa is smaller than the number of nodes in the output file")
 
 if __name__ == '__main__':
-    test = ArtificialCompressibilityTest()
-    test.setUp()
-    test.setUpProblem()
-    test.runTest()
-    test.tearDown()
-    test.checkResults()
+    UnitTest.main()

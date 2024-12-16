@@ -23,7 +23,7 @@
 #include "includes/cfd_variables.h"
 #include "custom_elements/fluid_element.h"
 
-#include "custom_utilities/embedded_discontinuous_data.h"
+#include "custom_elements/data_containers/embedded_discontinuous_data.h"
 
 namespace Kratos
 {
@@ -60,8 +60,8 @@ public:
     /// Pointer definition of EmbeddedFluidElementDiscontinuous
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(EmbeddedFluidElementDiscontinuous);
 
-    /// Node type (default is: Node<3>)
-    typedef Node<3> NodeType;
+    /// Node type (default is: Node)
+    typedef Node NodeType;
 
     /// Definition of nodes container type, redefined from GeometryType
     typedef Geometry<NodeType>::PointsArrayType NodesArrayType;

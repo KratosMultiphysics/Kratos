@@ -11,7 +11,7 @@ BOOST_AUTO_TEST_CASE(image1d)
 {
     if (!vex::Filter::CC(3, 0)(ctx.device(0))) return;
 
-    VEX_FUNCTION(float, imread, (CUtexObject, tex)(int, i),
+    VEX_FUNCTION(float, imread, (vex::cuda_tex_object, tex)(int, i),
             return tex1Dfetch<float>(tex, i);
             );
 
@@ -41,7 +41,7 @@ BOOST_AUTO_TEST_CASE(image1d)
 
     vex::vector<float> x(q1, n);
 
-    x = imread(tex, p);
+    x = imread(vex::wrap(tex), p);
 
     check_sample(x, [](size_t, float a) {
             BOOST_CHECK_EQUAL(a, 42);

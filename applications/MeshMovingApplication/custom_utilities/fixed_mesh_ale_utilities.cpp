@@ -345,7 +345,7 @@ namespace Kratos
         // in case the CloneTimeStep() is done in the virtual model part, since the method
         // assumes that the mesh is in the origin position when computing the MESH_VELOCITY.
         block_for_each( mrVirtualModelPart.Nodes(),
-            []( Node<3>& rNode )
+            []( Node& rNode )
             {
                 rNode.FastGetSolutionStepValue(MESH_VELOCITY, 0) = ZeroVector(3);
                 rNode.FastGetSolutionStepValue(MESH_VELOCITY, 1) = ZeroVector(3);
@@ -357,7 +357,7 @@ namespace Kratos
     void FixedMeshALEUtilities::InitializeMeshDisplacementFixity()
     {
         block_for_each( mrVirtualModelPart.Nodes(),
-            []( Node<3>& rNode )
+            []( Node& rNode )
             {
                 rNode.Free(MESH_DISPLACEMENT_X);
                 rNode.Free(MESH_DISPLACEMENT_Y);
@@ -389,7 +389,7 @@ namespace Kratos
     {
         // Initialize the DISPLACEMENT variable values
         block_for_each( mrVirtualModelPart.Nodes(),
-        []( Node<3>& rNode )
+        []( Node& rNode )
         {
             rNode.FastGetSolutionStepValue(DISPLACEMENT, 0) = ZeroVector(3);
             rNode.FastGetSolutionStepValue(DISPLACEMENT, 1) = ZeroVector(3);
@@ -397,7 +397,7 @@ namespace Kratos
 
         // Place the structure in its previous position
         block_for_each( mrStructureModelPart.Nodes(),
-        []( Node<3>& rNode )
+        []( Node& rNode )
         {
             const auto d_1 = rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
             rNode.X() = rNode.X0() + d_1[0];
@@ -461,7 +461,7 @@ namespace Kratos
 
         // Revert the structure movement to its current position
         block_for_each( mrStructureModelPart.Nodes(),
-        []( Node<3>& rNode )
+        []( Node& rNode )
         {
             const auto d_0 = rNode.FastGetSolutionStepValue(DISPLACEMENT, 0);
             rNode.X() = rNode.X0() + d_0[0];
@@ -492,7 +492,7 @@ namespace Kratos
     void FixedMeshALEUtilities::RevertMeshDisplacementFixity()
     {
         block_for_each( mrVirtualModelPart.Nodes(),
-        []( Node<3>& rNode )
+        []( Node& rNode )
         {
             if (rNode.IsFixed(MESH_DISPLACEMENT_X)) {
                 rNode.Free(MESH_DISPLACEMENT_X);

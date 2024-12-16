@@ -15,7 +15,7 @@ class InterpolationTestSolver(BaseSolver):
     def ReturnExactVelocity(self, t, x, y, z):
         interpolate_process_data = self.project_parameters['processes']['check_interpolated_fluid_velocity'][0]
         interpolate_process_parameters = interpolate_process_data['Parameters']
-        field_def = [entry.GetString() for entry in interpolate_process_parameters['value']]
+        field_def = [entry.GetString() for entry in interpolate_process_parameters['value'].values()]
         field = [eval(field_def[0]),
                 eval(field_def[1]),
                 eval(field_def[2])]

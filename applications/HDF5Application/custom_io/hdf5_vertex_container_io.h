@@ -34,7 +34,7 @@ namespace HDF5
  *  @note Derived classes take care of writing coordinates and variables of the vertices
  *  separately (see @ref{VertexContainerCoordinateIO} and @ref{VertexContainerVariableIO} respectively).
  */
-class VertexContainerIO : protected ContainerComponentIO<Detail::VertexContainerType,
+class KRATOS_API(HDF5_APPLICATION) VertexContainerIO : protected ContainerComponentIO<Detail::VertexContainerType,
                                                          Detail::Vertex,
                                                          Variable<array_1d<double, 3>>,
                                                          Variable<double>,
@@ -98,7 +98,7 @@ private:
  *      "write_vertex_ids" : false
  *  }
  */
-class VertexContainerCoordinateIO final : public VertexContainerIO
+class KRATOS_API(HDF5_APPLICATION) VertexContainerCoordinateIO final : public VertexContainerIO
 {
 public:
     ///@name Type Definitions
@@ -158,7 +158,7 @@ private:
  *      "list_of_variables" : []
  *  }
  */
-class VertexContainerVariableIO final : public VertexContainerIO
+class KRATOS_API(HDF5_APPLICATION) VertexContainerVariableIO final : public VertexContainerIO
 {
 public:
     ///@name Type Definitions

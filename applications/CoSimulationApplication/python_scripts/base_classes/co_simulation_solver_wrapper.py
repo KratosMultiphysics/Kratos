@@ -50,6 +50,8 @@ class CoSimulationSolverWrapper:
         # The IO is only used if the corresponding solver is used in coupling and it initialized from the "higher instance, i.e. the coupling-solver
         self.__io = None
 
+        self._parent_process_info = None
+
     def _GetSolver(self, solver_name):
         raise Exception('Trying to get SolverWrapper "{}" of "{}" which is not a coupled solver!'.format(solver_name, self.name))
 
@@ -118,7 +120,7 @@ class CoSimulationSolverWrapper:
     def IsDefinedOnThisRank(self):
         return self.data_communicator.IsDefinedOnThisRank()
 
-    def GetInterfaceData(self, data_name):
+    def GetInterfaceData(self, data_name) -> CouplingInterfaceData:
         try:
             return self.data_dict[data_name]
         except KeyError:

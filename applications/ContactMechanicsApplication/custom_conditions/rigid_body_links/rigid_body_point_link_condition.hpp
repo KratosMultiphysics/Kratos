@@ -51,9 +51,9 @@ class KRATOS_API(CONTACT_MECHANICS_APPLICATION) RigidBodyPointLinkCondition
 
   typedef Vector                                VectorType;
   typedef Element                              ElementType;
-  typedef Node<3>::Pointer                PointPointerType;
+  typedef Node::Pointer                PointPointerType;
   typedef Quaternion<double>                QuaternionType;
-  typedef Node<3>::DofsContainerType     DofsContainerType;
+  typedef Node::DofsContainerType     DofsContainerType;
   typedef GeometryData::SizeType                  SizeType;
   typedef BeamMathUtils<double>          BeamMathUtilsType;
 

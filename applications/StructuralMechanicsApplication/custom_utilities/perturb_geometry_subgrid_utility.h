@@ -3,14 +3,13 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Manuel Messmer
 //
 
-#if !defined(KRATOS_PERTURB_GEOMETRY_SUBGRID_UTILITY)
-#define KRATOS_PERTURB_GEOMETRY_SUBGRID_UTILITY
+#pragma once
 
 // System includes
 
@@ -122,4 +121,3 @@ private:
 
 ///@} addtogroup block
 }
-#endif /* KRATOS_PERTURB_GEOMETRY_SUBGRID_UTILITY defined */

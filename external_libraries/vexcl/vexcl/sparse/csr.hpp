@@ -63,9 +63,9 @@ class csr {
                 bool /*fast_setup*/ = true
            )
             : q(q[0]), n(nrows), m(ncols), nnz(boost::size(val)),
-              ptr(q[0], boost::size(ptr), &ptr[0]),
-              col(q[0], boost::size(col), &col[0]),
-              val(q[0], boost::size(val), &val[0])
+              ptr(q[0], boost::size(ptr), boost::size(ptr) ? &ptr[0] : nullptr),
+              col(q[0], boost::size(col), boost::size(col) ? &col[0] : nullptr),
+              val(q[0], boost::size(val), boost::size(val) ? &val[0] : nullptr)
         {
             precondition(q.size() == 1,
                     "sparse::csr is only supported for single-device contexts");

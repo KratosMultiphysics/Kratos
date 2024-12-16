@@ -46,7 +46,8 @@ public:
                 "angular_velocity": 0.0,
                 "rotation_axis_initial_point": [0.0,0.0,0.0],
                 "rotation_axis_final_point": [0.0,0.0,1.0],
-                "initial_time": 0.0
+                "initial_time": 0.0,
+                "final_time": 10.0
             }  )");
 
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
@@ -60,6 +61,7 @@ public:
         maxis_initial_point = rParameters["rotation_axis_initial_point"].GetVector();
         maxis_final_point = rParameters["rotation_axis_final_point"].GetVector();
         minitial_time = rParameters["initial_time"].GetDouble();
+        mfinal_time = rParameters["final_time"].GetDouble();
 
         KRATOS_CATCH("");
     }
@@ -253,6 +255,7 @@ protected:
 
     double mangular_velocity;
     double minitial_time;
+    double mfinal_time;
     array_1d<double, 3> maxis_initial_point;
     array_1d<double, 3> maxis_final_point;
     BoundedMatrix<double, 3, 3> midentity_matrix;
@@ -267,11 +270,16 @@ private:
     void CalculateRodriguesMatrices(const double current_time)
     {
         const double delta_time = mr_model_part.GetProcessInfo()[DELTA_TIME];
-        double current_angular_velocity = mangular_velocity * current_time / minitial_time;
+        double current_angular_velocity = mangular_velocity * current_time / minitial_time; // before the initial time, a linear law is used
 
         if (current_time >= minitial_time)
         {
             current_angular_velocity = mangular_velocity;
+        }
+
+        if (current_time > mfinal_time)
+        {
+            current_angular_velocity = 0;
         }
 
         double sin_theta = std::sin(delta_time * current_angular_velocity);

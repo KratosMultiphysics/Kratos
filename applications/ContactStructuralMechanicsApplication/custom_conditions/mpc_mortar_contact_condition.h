@@ -4,15 +4,13 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-
-#if !defined(KRATOS_MPC_MORTAR_CONTACT_CONDITION_H_INCLUDED )
-#define  KRATOS_MPC_MORTAR_CONTACT_CONDITION_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -45,7 +43,7 @@ namespace Kratos
 ///@{
 
     /// The definition of the size type
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
 ///@}
 ///@name  Enum's
@@ -81,58 +79,66 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( MPCMortarContactCondition );
 
     /// Base class definitions
-    typedef PairedCondition                                                                      BaseType;
+    using BaseType = PairedCondition;
 
     /// Vector type definition
-    typedef typename BaseType::VectorType                                                      VectorType;
+    using VectorType = typename BaseType::VectorType;
 
     /// Matrix type definition
-    typedef typename BaseType::MatrixType                                                      MatrixType;
+    using MatrixType = typename BaseType::MatrixType;
 
     /// Index type definition
-    typedef typename BaseType::IndexType                                                        IndexType;
+    using IndexType = typename BaseType::IndexType;
 
     /// Geometry pointer definition
-    typedef typename BaseType::GeometryType::Pointer                                  GeometryPointerType;
+    using GeometryPointerType = typename BaseType::GeometryType::Pointer;
 
     /// Nodes array type definition
-    typedef typename BaseType::NodesArrayType                                              NodesArrayType;
+    using NodesArrayType = typename BaseType::NodesArrayType;
 
     /// Properties pointer definition
-    typedef typename BaseType::PropertiesType::Pointer                              PropertiesPointerType;
+    using PropertiesPointerType = typename BaseType::PropertiesType::Pointer;
 
     /// Point definition
-    typedef Point                                                                               PointType;
+    using PointType = Point;
 
-    typedef array_1d<Point,TDim>                                                       ConditionArrayType;
+    /// Array type for condition with points
+    using ConditionArrayType = array_1d<Point, TDim>;
 
-    typedef typename std::vector<ConditionArrayType>                               ConditionArrayListType;
+    /// Type definition for a list of condition arrays
+    using ConditionArrayListType = typename std::vector<ConditionArrayType>;
 
-    /// Node type definition
-    typedef Node<3>                                                                              NodeType;
-
-    /// Geoemtry type definition
-    typedef Geometry<NodeType>                                                               GeometryType;
+    /// Geometry type definition
+    using GeometryType = Geometry<Node>;
 
     // Type definition for integration methods
-    typedef GeometryType::IntegrationPointsArrayType                                IntegrationPointsType;
+    using IntegrationPointsType = typename GeometryType::IntegrationPointsArrayType;
 
-    typedef Line2D2<PointType>                                                                   LineType;
+    /// Line type definition
+    using LineType = Line2D2<PointType>;
 
-    typedef Triangle3D3<PointType>                                                           TriangleType;
+    /// Triangle type definition
+    using TriangleType = Triangle3D3<PointType>;
 
-    typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type         DecompositionType;
+    /// Type definition for decomposition based on dimension
+    using DecompositionType = typename std::conditional<TDim == 2, LineType, TriangleType>::type;
 
-    typedef MortarKinematicVariables<TNumNodes, TNumNodesMaster>                         GeneralVariables;
+    /// Type definition for general variables
+    using GeneralVariables = MortarKinematicVariables<TNumNodes, TNumNodesMaster>;
 
-    typedef DualLagrangeMultiplierOperators<TNumNodes, TNumNodesMaster>                            AeData;
+    /// Type definition for AE data
+    using AeData = DualLagrangeMultiplierOperators<TNumNodes, TNumNodesMaster>;
 
-    typedef MortarOperator<TNumNodes, TNumNodesMaster>                            MortarConditionMatrices;
+    /// Type definition for mortar condition matrices
+    using MortarConditionMatrices = MortarOperator<TNumNodes, TNumNodesMaster>;
 
-    typedef ExactMortarIntegrationUtility<TDim, TNumNodes, false, TNumNodesMaster>     IntegrationUtility;
+    /// Type definition for integration utility
+    using IntegrationUtility = ExactMortarIntegrationUtility<TDim, TNumNodes, false, TNumNodesMaster>;
 
-    typedef DerivativesUtilities<TDim, TNumNodes, false, false, TNumNodesMaster> DerivativesUtilitiesType;
+    /// Type definition for derivatives utilities
+    using DerivativesUtilitiesType = DerivativesUtilities<TDim, TNumNodes, false, false, TNumNodesMaster>;
 
+    /// Constant expression for matrix size
     static constexpr IndexType MatrixSize = TDim * (TNumNodes + TNumNodesMaster);
 
     ///@}
@@ -457,7 +463,7 @@ protected:
      */
     IntegrationMethod GetIntegrationMethod() const override
     {
-        // Setting the auxiliar integration points
+        // Setting the auxiliary integration points
         const IndexType integration_order = GetProperties().Has(INTEGRATION_ORDER_CONTACT) ? GetProperties().GetValue(INTEGRATION_ORDER_CONTACT) : 2;
         switch (integration_order) {
         case 1: return GeometryData::IntegrationMethod::GI_GAUSS_1;
@@ -610,5 +616,3 @@ private:
 ///@}
 
 }// namespace Kratos.
-
-#endif // KRATOS_MPC_MORTAR_CONTACT_CONDITION_H_INCLUDED  defined

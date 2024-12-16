@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
@@ -14,17 +14,18 @@
 //                   Josep Maria Carbonell
 //
 
-#if !defined(KRATOS_HEXAHEDRA_3D_27_H_INCLUDED )
-#define  KRATOS_HEXAHEDRA_3D_27_H_INCLUDED
+#pragma once
 
 // System includes
+#include <numeric>
 
 // External includes
 
 // Project includes
 #include "geometries/quadrilateral_3d_9.h"
+#include "geometries/triangle_3d_3.h"
+#include "utilities/integration_utilities.h"
 #include "integration/hexahedron_gauss_legendre_integration_points.h"
-
 
 namespace Kratos
 {
@@ -157,6 +158,14 @@ public:
      * type as its result.
      */
     typedef typename BaseType::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
+
+    /**
+     * A third order tensor to hold shape functions' local second derivatives.
+     * ShapefunctionsLocalGradients function return this
+     * type as its result.
+     */
+    typedef typename BaseType::ShapeFunctionsSecondDerivativesType
+    ShapeFunctionsSecondDerivativesType;
 
     /**
      * Type of the normal vector used for normal to edges in geomety.
@@ -336,14 +345,34 @@ public:
     /// Destructor. Does nothing!!!
     ~Hexahedra3D27() override {}
 
+    /**
+     * @brief Gets the geometry family.
+     * @details This function returns the family type of the geometry. The geometry family categorizes the geometry into a broader classification, aiding in its identification and processing.
+     * @return GeometryData::KratosGeometryFamily The geometry family.
+     */
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::KratosGeometryFamily::Kratos_Hexahedra;
     }
 
+    /**
+     * @brief Gets the geometry type.
+     * @details This function returns the specific type of the geometry. The geometry type provides a more detailed classification of the geometry.
+     * @return GeometryData::KratosGeometryType The specific geometry type.
+     */
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::KratosGeometryType::Kratos_Hexahedra3D27;
+    }
+
+    /**
+     * @brief Gets the geometry order type.
+     * @details This function returns the order type of the geometry. The order type relates to the polynomial degree of the geometry.
+     * @return GeometryData::KratosGeometryOrderType The geometry order type.
+     */
+    GeometryData::KratosGeometryOrderType GetGeometryOrderType() const override
+    {
+        return GeometryData::KratosGeometryOrderType::Kratos_Quadratic_Order;
     }
 
     /**
@@ -466,27 +495,18 @@ public:
         return Volume();
     }
 
-
-
-    double Volume() const override  //Not a closed formula for a hexahedra
+    /**
+     * @brief This method calculate and return volume of this geometry.
+     * @details For one and two dimensional geometry it returns zero and for three dimensional it gives volume of geometry.
+     * @return double value contains volume.
+     * @see Length()
+     * @see Area()
+     * @see DomainSize()
+     */
+    double Volume() const override
     {
-
-        Vector temp;
-        this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
-        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
-        double Volume = 0.00;
-
-        for ( unsigned int i = 0; i < integration_points.size(); i++ )
-        {
-            Volume += temp[i] * integration_points[i].Weight();
-        }
-
-        //KRATOS_WATCH(temp)
-        return Volume;
+        return IntegrationUtilities::ComputeVolume3DGeometry(*this);
     }
-
-
-
 
     /**
      * This method calculate and return length, area or volume of
@@ -505,6 +525,127 @@ public:
     double DomainSize() const override
     {
         return Volume();
+    }
+
+        /**
+     * Returns a matrix of the local coordinates of all points
+     * @param rResult a Matrix that will be overwritten by the results
+     * @return the coordinates of all points of the current geometry
+     */
+    Matrix& PointsLocalCoordinates( Matrix& rResult ) const override
+    {
+        if ( rResult.size1() != 27 || rResult.size2() != 3 )
+            rResult.resize( 27, 3, false );
+
+        rResult( 0, 0 ) = -1.0;
+        rResult( 0, 1 ) = -1.0;
+        rResult( 0, 2 ) = -1.0;
+
+        rResult( 1, 0 ) = 1.0;
+        rResult( 1, 1 ) = -1.0;
+        rResult( 1, 2 ) = -1.0;
+
+        rResult( 2, 0 ) = 1.0;
+        rResult( 2, 1 ) = 1.0;
+        rResult( 2, 2 ) = -1.0;
+
+        rResult( 3, 0 ) = -1.0;
+        rResult( 3, 1 ) = 1.0;
+        rResult( 3, 2 ) = -1.0;
+
+        rResult( 4, 0 ) = -1.0;
+        rResult( 4, 1 ) = -1.0;
+        rResult( 4, 2 ) = 1.0;
+
+        rResult( 5, 0 ) = 1.0;
+        rResult( 5, 1 ) = -1.0;
+        rResult( 5, 2 ) = 1.0;
+
+        rResult( 6, 0 ) = 1.0;
+        rResult( 6, 1 ) = 1.0;
+        rResult( 6, 2 ) = 1.0;
+
+        rResult( 7, 0 ) = -1.0;
+        rResult( 7, 1 ) = 1.0;
+        rResult( 7, 2 ) = 1.0;
+
+        rResult( 8, 0 ) = 0.0;
+        rResult( 8, 1 ) = -1.0;
+        rResult( 8, 2 ) = -1.0;
+
+        rResult( 9, 0 ) = 1.0;
+        rResult( 9, 1 ) = 0.0;
+        rResult( 9, 2 ) = -1.0;
+
+        rResult( 10, 0 ) = 0.0;
+        rResult( 10, 1 ) = 1.0;
+        rResult( 10, 2 ) = -1.0;
+
+        rResult( 11, 0 ) = -1.0;
+        rResult( 11, 1 ) = 0.0;
+        rResult( 11, 2 ) = -1.0;
+
+        rResult( 12, 0 ) = -1.0;
+        rResult( 12, 1 ) = -1.0;
+        rResult( 12, 2 ) = 0.0;
+
+        rResult( 13, 0 ) = 1.0;
+        rResult( 13, 1 ) = -1.0;
+        rResult( 13, 2 ) = 0.0;
+
+        rResult( 14, 0 ) = 1.0;
+        rResult( 14, 1 ) = 1.0;
+        rResult( 14, 2 ) = 0.0;
+
+        rResult( 15, 0 ) = -1.0;
+        rResult( 15, 1 ) = 1.0;
+        rResult( 15, 2 ) = 0.0;
+
+        rResult( 16, 0 ) = 0.0;
+        rResult( 16, 1 ) = -1.0;
+        rResult( 16, 2 ) = 1.0;
+
+        rResult( 17, 0 ) = 1.0;
+        rResult( 17, 1 ) = 0.0;
+        rResult( 17, 2 ) = 1.0;
+
+        rResult( 18, 0 ) = 0.0;
+        rResult( 18, 1 ) = 1.0;
+        rResult( 18, 2 ) = 1.0;
+
+        rResult( 19, 0 ) = -1.0;
+        rResult( 19, 1 ) = 0.0;
+        rResult( 19, 2 ) = 1.0;
+
+        rResult( 20, 0 ) = 0.0;
+        rResult( 20, 1 ) = 0.0;
+        rResult( 20, 2 ) = -1.0;
+
+        rResult( 21, 0 ) = 0.0;
+        rResult( 21, 1 ) = -1.0;
+        rResult( 21, 2 ) = 0.0;
+
+        rResult( 22, 0 ) = 1.0;
+        rResult( 22, 1 ) = 0.0;
+        rResult( 22, 2 ) = 0.0;
+
+        rResult( 23, 0 ) = 0.0;
+        rResult( 23, 1 ) = 1.0;
+        rResult( 23, 2 ) = 0.0;
+
+        rResult( 24, 0 ) = -1.0;
+        rResult( 24, 1 ) = 0.0;
+        rResult( 24, 2 ) = 0.0;
+
+        rResult( 25, 0 ) = 0.0;
+        rResult( 25, 1 ) = 0.0;
+        rResult( 25, 2 ) = 1.0;
+
+        rResult( 26, 0 ) = 0.0;
+        rResult( 26, 1 ) = 0.0;
+        rResult( 26, 2 ) = 0.0;
+
+        return rResult;
     }
 
     /**
@@ -572,57 +713,74 @@ public:
         //0
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 0 ),
-                                              this->pGetPoint( 8 ),
-                                              this->pGetPoint( 1 ) ) ) );
+                                              this->pGetPoint( 1 ),
+                                              this->pGetPoint( 8 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 1 ),
-                                              this->pGetPoint( 9 ),
-                                              this->pGetPoint( 2 ) ) ) );
+                                              this->pGetPoint( 2 ),
+                                              this->pGetPoint( 9 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 2 ),
-                                              this->pGetPoint( 10 ),
-                                              this->pGetPoint( 3 ) ) ) );
+                                              this->pGetPoint( 3 ),
+                                              this->pGetPoint( 10 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 3 ),
-                                              this->pGetPoint( 11 ),
-                                              this->pGetPoint( 0 ) ) ) );
+                                              this->pGetPoint( 0 ),
+                                              this->pGetPoint( 11 ) ) ) );
 
         //4
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 4 ),
-                                              this->pGetPoint( 16 ),
-                                              this->pGetPoint( 5 ) ) ) );
+                                              this->pGetPoint( 5 ),
+                                              this->pGetPoint( 16 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 5 ),
-                                              this->pGetPoint( 17 ),
-                                              this->pGetPoint( 6 ) ) ) );
+                                              this->pGetPoint( 6 ),
+                                              this->pGetPoint( 17 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 6 ),
-                                              this->pGetPoint( 18 ),
-                                              this->pGetPoint( 7 ) ) ) );
+                                              this->pGetPoint( 7 ),
+                                              this->pGetPoint( 18 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 7 ),
-                                              this->pGetPoint( 19 ),
-                                              this->pGetPoint( 4 ) ) ) );
+                                              this->pGetPoint( 4 ),
+                                              this->pGetPoint( 19 ) ) ) );
 
         //8
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 0 ),
-                                              this->pGetPoint( 12 ),
-                                              this->pGetPoint( 4 ) ) ) );
+                                              this->pGetPoint( 4 ),
+                                              this->pGetPoint( 12 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 1 ),
-                                              this->pGetPoint( 13 ),
-                                              this->pGetPoint( 5 ) ) ) );
+                                              this->pGetPoint( 5 ),
+                                              this->pGetPoint( 13 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 2 ),
-                                              this->pGetPoint( 14 ),
-                                              this->pGetPoint( 6 ) ) ) );
+                                              this->pGetPoint( 6 ),
+                                              this->pGetPoint( 14 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 3 ),
-                                              this->pGetPoint( 15 ),
-                                              this->pGetPoint( 7 ) ) ) );
+                                              this->pGetPoint( 7 ),
+                                              this->pGetPoint( 15 ) ) ) );
         return edges;
+    }
+
+    /** This method calculates and returns the average edge length of the geometry
+    *
+    * @return double value with the average edge length
+    *
+    */
+    double AverageEdgeLength() const override
+    {
+        constexpr double w = 1.0/12.0;
+        const GeometriesArrayType edges = this->GenerateEdges();
+        return std::accumulate(
+            edges.begin(),
+            edges.end(),
+            0.0,
+            [](double sum, const auto& rEdge) {return sum + rEdge.Length();}
+        ) * w;
     }
 
     ///@}
@@ -689,8 +847,8 @@ public:
                                               this->pGetPoint( 6 ),
                                               this->pGetPoint( 2 ),
                                               this->pGetPoint( 3 ),
-                                              this->pGetPoint( 14 ),
                                               this->pGetPoint( 18 ),
+                                              this->pGetPoint( 14 ),
                                               this->pGetPoint( 10 ),
                                               this->pGetPoint( 15 ),
                                               this->pGetPoint( 23 ) ) ) );
@@ -864,6 +1022,29 @@ public:
 
         return rResult;
     }
+
+    bool HasIntersection(const Point& rLowPoint, const Point& rHighPoint) const override
+    {
+        constexpr std::array<std::array<std::size_t, 3>, 48> triangle_faces{{
+            { 0, 11,  8}, {11, 20,  8}, { 8, 20,  1}, {20,  9,  1}, {11,  3, 20}, { 3, 10, 20}, {20, 10,  9}, {10,  2,  9},
+            { 0, 12, 24}, {24, 11,  0}, {11, 24, 15}, {15,  3, 11}, {12,  4, 19}, {19, 24, 12}, {24, 19,  7}, { 7, 15, 24},
+            { 3, 15, 23}, {23, 10,  3}, {10, 23, 14}, {14,  2, 10}, {15,  7, 18}, {18, 23, 15}, {23, 18,  6}, { 6, 14, 23},
+            { 2, 14, 22}, {22,  9,  2}, { 9, 22, 13}, {13,  1,  9}, {14,  6, 17}, {17, 22, 14}, {22, 17,  5}, { 5, 13, 22},
+            {12,  0,  8}, {21, 12,  8}, {21,  8,  1}, {13, 21,  1}, { 4, 12, 21}, {21, 16,  4}, {16, 21, 13}, {13,  5, 16},
+            { 4, 16, 19}, {16, 25, 19}, {16,  5, 25}, { 5, 17, 25}, {19, 25,  7}, {25, 18,  7}, {25, 17, 18}, {17,  6, 18}
+        }};
+
+        for (const auto& r_nodes: triangle_faces) {
+            // TODO: Replace the construction of a heavy object defining the HasIntersection method externally as a static method
+            auto face = Triangle3D3<TPointType>(this->pGetPoint(r_nodes[0]), this->pGetPoint(r_nodes[1]),  this->pGetPoint(r_nodes[2]));
+            if (face.HasIntersection(rLowPoint, rHighPoint)) return true;
+        }
+
+        // if there are no faces intersecting the box then or the box is inside the tetrahedron or it does not have intersection
+        CoordinatesArrayType local_coordinates;
+        return IsInside(rLowPoint,local_coordinates);
+    }
+
     /**
      * Input and output
      */
@@ -903,11 +1084,16 @@ public:
      */
     void PrintData( std::ostream& rOStream ) const override
     {
+        // Base Geometry class PrintData call
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
-        Matrix jacobian;
-        this->Jacobian( jacobian, PointType() );
-        rOStream << "Jacobian in the origin\t : " << jacobian;
+
+        // If the geometry has valid points, calculate and output its data
+        if (this->AllPointsAreValid()) {
+            Matrix jacobian;
+            this->Jacobian( jacobian, PointType() );
+            rOStream << "    Jacobian in the origin\t : " << jacobian;
+        }
     }
 
     /**
@@ -1376,6 +1562,327 @@ private:
         return d_shape_f_values;
     }
 
+       /**
+     * returns the second order derivatives of all shape functions
+     * in given arbitrary points
+     * @param rResult a third order tensor which contains the second derivatives
+     * @param rPoint the given point the second order derivatives are calculated in
+     */
+    ShapeFunctionsSecondDerivativesType& ShapeFunctionsSecondDerivatives( ShapeFunctionsSecondDerivativesType& rResult, const CoordinatesArrayType& rPoint ) const override
+    {
+        if ( rResult.size() != this->PointsNumber() ) {
+            rResult.resize(this->PointsNumber());
+        }
+
+        for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
+        {
+            rResult[i].resize( 3, 3, false );
+        }
+
+        const double fx1 = 0.5 * ( rPoint[0] - 1 ) * rPoint[0];
+        const double fx2 = 0.5 * ( rPoint[0] + 1 ) * rPoint[0];
+        const double fx3 = 1 - rPoint[0] * rPoint[0];
+        const double fy1 = 0.5 * ( rPoint[1] - 1 ) * rPoint[1];
+        const double fy2 = 0.5 * ( rPoint[1] + 1 ) * rPoint[1];
+        const double fy3 = 1 - rPoint[1] * rPoint[1];
+        const double fz1 = 0.5 * ( rPoint[2] - 1 ) * rPoint[2];
+        const double fz2 = 0.5 * ( rPoint[2] + 1 ) * rPoint[2];
+        const double fz3 = 1 - rPoint[2] * rPoint[2];
+
+        const double gx1 = 0.5 * ( 2 * rPoint[0] - 1 );
+        const double gx2 = 0.5 * ( 2 * rPoint[0] + 1 );
+        const double gx3 = -2.0 * rPoint[0];
+        const double gy1 = 0.5 * ( 2 * rPoint[1] - 1 );
+        const double gy2 = 0.5 * ( 2 * rPoint[1] + 1 );
+        const double gy3 = -2.0 * rPoint[1];
+        const double gz1 = 0.5 * ( 2 * rPoint[2] - 1 );
+        const double gz2 = 0.5 * ( 2 * rPoint[2] + 1 );
+        const double gz3 = -2.0 * rPoint[2];
+
+        const double hx1 = 1.0;
+        const double hx2 = 1.0;
+        const double hx3 = -2.0;
+        const double hy1 = 1.0;
+        const double hy2 = 1.0;
+        const double hy3 = -2.0;
+        const double hz1 = 1.0;
+        const double hz2 = 1.0;
+        const double hz3 = -2.0;
+
+        rResult[0]( 0, 0 ) = hx1 * fy1 * fz1;
+        rResult[0]( 0, 1 ) = gx1 * gy1 * fz1;
+        rResult[0]( 0, 2 ) = gx1 * fy1 * gz1;
+        rResult[0]( 1, 0 ) = gx1 * gy1 * fz1;
+        rResult[0]( 1, 1 ) = fx1 * hy1 * fz1;
+        rResult[0]( 1, 2 ) = fx1 * gy1 * gz1;
+        rResult[0]( 2, 0 ) = gx1 * fy1 * gz1;
+        rResult[0]( 2, 1 ) = fx1 * gy1 * gz1;
+        rResult[0]( 2, 2 ) = fx1 * fy1 * hz1;
+
+        rResult[1]( 0, 0 ) = hx2 * fy1 * fz1;
+        rResult[1]( 0, 1 ) = gx2 * gy1 * fz1;
+        rResult[1]( 0, 2 ) = gx2 * fy1 * gz1;
+        rResult[1]( 1, 0 ) = gx2 * gy1 * fz1;
+        rResult[1]( 1, 1 ) = fx2 * hy1 * fz1;
+        rResult[1]( 1, 2 ) = fx2 * gy1 * gz1;
+        rResult[1]( 2, 0 ) = gx2 * fy1 * gz1;
+        rResult[1]( 2, 1 ) = fx2 * gy1 * gz1;
+        rResult[1]( 2, 2 ) = fx2 * fy1 * hz1;
+
+        rResult[2]( 0, 0 ) = hx2 * fy2 * fz1;
+        rResult[2]( 0, 1 ) = gx2 * gy2 * fz1;
+        rResult[2]( 0, 2 ) = gx2 * fy2 * gz1;
+        rResult[2]( 1, 0 ) = gx2 * gy2 * fz1;
+        rResult[2]( 1, 1 ) = fx2 * hy2 * fz1;
+        rResult[2]( 1, 2 ) = fx2 * gy2 * gz1;
+        rResult[2]( 2, 0 ) = gx2 * fy2 * gz1;
+        rResult[2]( 2, 1 ) = fx2 * gy2 * gz1;
+        rResult[2]( 2, 2 ) = fx2 * fy2 * hz1;
+
+        rResult[3]( 0, 0 ) = hx1 * fy2 * fz1;
+        rResult[3]( 0, 1 ) = gx1 * gy2 * fz1;
+        rResult[3]( 0, 2 ) = gx1 * fy2 * gz1;
+        rResult[3]( 1, 0 ) = gx1 * gy2 * fz1;
+        rResult[3]( 1, 1 ) = fx1 * hy2 * fz1;
+        rResult[3]( 1, 2 ) = fx1 * gy2 * gz1;
+        rResult[3]( 2, 0 ) = gx1 * fy2 * gz1;
+        rResult[3]( 2, 1 ) = fx1 * gy2 * gz1;
+        rResult[3]( 2, 2 ) = fx1 * fy2 * hz1;
+
+        rResult[4]( 0, 0 ) = hx1 * fy1 * fz2;
+        rResult[4]( 0, 1 ) = gx1 * gy1 * fz2;
+        rResult[4]( 0, 2 ) = gx1 * fy1 * gz2;
+        rResult[4]( 1, 0 ) = gx1 * gy1 * fz2;
+        rResult[4]( 1, 1 ) = fx1 * hy1 * fz2;
+        rResult[4]( 1, 2 ) = fx1 * gy1 * gz2;
+        rResult[4]( 2, 0 ) = gx1 * fy1 * gz2;
+        rResult[4]( 2, 1 ) = fx1 * gy1 * gz2;
+        rResult[4]( 2, 2 ) = fx1 * fy1 * hz2;
+
+        rResult[5]( 0, 0 ) = hx2 * fy1 * fz2;
+        rResult[5]( 0, 1 ) = gx2 * gy1 * fz2;
+        rResult[5]( 0, 2 ) = gx2 * fy1 * gz2;
+        rResult[5]( 1, 0 ) = gx2 * gy1 * fz2;
+        rResult[5]( 1, 1 ) = fx2 * hy1 * fz2;
+        rResult[5]( 1, 2 ) = fx2 * gy1 * gz2;
+        rResult[5]( 2, 0 ) = gx2 * fy1 * gz2;
+        rResult[5]( 2, 1 ) = fx2 * gy1 * gz2;
+        rResult[5]( 2, 2 ) = fx2 * fy1 * hz2;
+
+        rResult[6]( 0, 0 ) = hx2 * fy2 * fz2;
+        rResult[6]( 0, 1 ) = gx2 * gy2 * fz2;
+        rResult[6]( 0, 2 ) = gx2 * fy2 * gz2;
+        rResult[6]( 1, 0 ) = gx2 * gy2 * fz2;
+        rResult[6]( 1, 1 ) = fx2 * hy2 * fz2;
+        rResult[6]( 1, 2 ) = fx2 * gy2 * gz2;
+        rResult[6]( 2, 0 ) = gx2 * fy2 * gz2;
+        rResult[6]( 2, 1 ) = fx2 * gy2 * gz2;
+        rResult[6]( 2, 2 ) = fx2 * fy2 * hz2;
+
+        rResult[7]( 0, 0 ) = hx1 * fy2 * fz2;
+        rResult[7]( 0, 1 ) = gx1 * gy2 * fz2;
+        rResult[7]( 0, 2 ) = gx1 * fy2 * gz2;
+        rResult[7]( 1, 0 ) = gx1 * gy2 * fz2;
+        rResult[7]( 1, 1 ) = fx1 * hy2 * fz2;
+        rResult[7]( 1, 2 ) = fx1 * gy2 * gz2;
+        rResult[7]( 2, 0 ) = gx1 * fy2 * gz2;
+        rResult[7]( 2, 1 ) = fx1 * gy2 * gz2;
+        rResult[7]( 2, 2 ) = fx1 * fy2 * hz2;
+
+        rResult[8]( 0, 0 ) = hx3 * fy1 * fz1;
+        rResult[8]( 0, 1 ) = gx3 * gy1 * fz1;
+        rResult[8]( 0, 2 ) = gx3 * fy1 * gz1;
+        rResult[8]( 1, 0 ) = gx3 * gy1 * fz1;
+        rResult[8]( 1, 1 ) = fx3 * hy1 * fz1;
+        rResult[8]( 1, 2 ) = fx3 * gy1 * gz1;
+        rResult[8]( 2, 0 ) = gx3 * fy1 * gz1;
+        rResult[8]( 2, 1 ) = fx3 * gy1 * gz1;
+        rResult[8]( 2, 2 ) = fx3 * fy1 * hz1;
+
+        rResult[9]( 0, 0 ) = hx2 * fy3 * fz1;
+        rResult[9]( 0, 1 ) = gx2 * gy3 * fz1;
+        rResult[9]( 0, 2 ) = gx2 * fy3 * gz1;
+        rResult[9]( 1, 0 ) = gx2 * gy3 * fz1;
+        rResult[9]( 1, 1 ) = fx2 * hy3 * fz1;
+        rResult[9]( 1, 2 ) = fx2 * gy3 * gz1;
+        rResult[9]( 2, 0 ) = gx2 * fy3 * gz1;
+        rResult[9]( 2, 1 ) = fx2 * gy3 * gz1;
+        rResult[9]( 2, 2 ) = fx2 * fy3 * hz1;
+
+        rResult[10]( 0, 0 ) = hx3 * fy2 * fz1;
+        rResult[10]( 0, 1 ) = gx3 * gy2 * fz1;
+        rResult[10]( 0, 2 ) = gx3 * fy2 * gz1;
+        rResult[10]( 1, 0 ) = gx3 * gy2 * fz1;
+        rResult[10]( 1, 1 ) = fx3 * hy2 * fz1;
+        rResult[10]( 1, 2 ) = fx3 * gy2 * gz1;
+        rResult[10]( 2, 0 ) = gx3 * fy2 * gz1;
+        rResult[10]( 2, 1 ) = fx3 * gy2 * gz1;
+        rResult[10]( 2, 2 ) = fx3 * fy2 * hz1;
+
+        rResult[11]( 0, 0 ) = hx1 * fy3 * fz1;
+        rResult[11]( 0, 1 ) = gx1 * gy3 * fz1;
+        rResult[11]( 0, 2 ) = gx1 * fy3 * gz1;
+        rResult[11]( 1, 0 ) = gx1 * gy3 * fz1;
+        rResult[11]( 1, 1 ) = fx1 * hy3 * fz1;
+        rResult[11]( 1, 2 ) = fx1 * gy3 * gz1;
+        rResult[11]( 2, 0 ) = gx1 * fy3 * gz1;
+        rResult[11]( 2, 1 ) = fx1 * gy3 * gz1;
+        rResult[11]( 2, 2 ) = fx1 * fy3 * hz1;
+
+        rResult[12]( 0, 0 ) = hx1 * fy1 * fz3;
+        rResult[12]( 0, 1 ) = gx1 * gy1 * fz3;
+        rResult[12]( 0, 2 ) = gx1 * fy1 * gz3;
+        rResult[12]( 1, 0 ) = gx1 * gy1 * fz3;
+        rResult[12]( 1, 1 ) = fx1 * hy1 * fz3;
+        rResult[12]( 1, 2 ) = fx1 * gy1 * gz3;
+        rResult[12]( 2, 0 ) = gx1 * fy1 * gz3;
+        rResult[12]( 2, 1 ) = fx1 * gy1 * gz3;
+        rResult[12]( 2, 2 ) = fx1 * fy1 * hz3;
+
+        rResult[13]( 0, 0 ) = hx2 * fy1 * fz3;
+        rResult[13]( 0, 1 ) = gx2 * gy1 * fz3;
+        rResult[13]( 0, 2 ) = gx2 * fy1 * gz3;
+        rResult[13]( 1, 0 ) = gx2 * gy1 * fz3;
+        rResult[13]( 1, 1 ) = fx2 * hy1 * fz3;
+        rResult[13]( 1, 2 ) = fx2 * gy1 * gz3;
+        rResult[13]( 2, 0 ) = gx2 * fy1 * gz3;
+        rResult[13]( 2, 1 ) = fx2 * gy1 * gz3;
+        rResult[13]( 2, 2 ) = fx2 * fy1 * hz3;
+
+        rResult[14]( 0, 0 ) = hx2 * fy2 * fz3;
+        rResult[14]( 0, 1 ) = gx2 * gy2 * fz3;
+        rResult[14]( 0, 2 ) = gx2 * fy2 * gz3;
+        rResult[14]( 1, 0 ) = gx2 * gy2 * fz3;
+        rResult[14]( 1, 1 ) = fx2 * hy2 * fz3;
+        rResult[14]( 1, 2 ) = fx2 * gy2 * gz3;
+        rResult[14]( 2, 0 ) = gx2 * fy2 * gz3;
+        rResult[14]( 2, 1 ) = fx2 * gy2 * gz3;
+        rResult[14]( 2, 2 ) = fx2 * fy2 * hz3;
+
+        rResult[15]( 0, 0 ) = hx1 * fy2 * fz3;
+        rResult[15]( 0, 1 ) = gx1 * gy2 * fz3;
+        rResult[15]( 0, 2 ) = gx1 * fy2 * gz3;
+        rResult[15]( 1, 0 ) = gx1 * gy2 * fz3;
+        rResult[15]( 1, 1 ) = fx1 * hy2 * fz3;
+        rResult[15]( 1, 2 ) = fx1 * gy2 * gz3;
+        rResult[15]( 2, 0 ) = gx1 * fy2 * gz3;
+        rResult[15]( 2, 1 ) = fx1 * gy2 * gz3;
+        rResult[15]( 2, 2 ) = fx1 * fy2 * hz3;
+
+        rResult[16]( 0, 0 ) = hx3 * fy1 * fz2;
+        rResult[16]( 0, 1 ) = gx3 * gy1 * fz2;
+        rResult[16]( 0, 2 ) = gx3 * fy1 * gz2;
+        rResult[16]( 1, 0 ) = gx3 * gy1 * fz2;
+        rResult[16]( 1, 1 ) = fx3 * hy1 * fz2;
+        rResult[16]( 1, 2 ) = fx3 * gy1 * gz2;
+        rResult[16]( 2, 0 ) = gx3 * fy1 * gz2;
+        rResult[16]( 2, 1 ) = fx3 * gy1 * gz2;
+        rResult[16]( 2, 2 ) = fx3 * fy1 * hz2;
+
+        rResult[17]( 0, 0 ) = hx2 * fy3 * fz2;
+        rResult[17]( 0, 1 ) = gx2 * gy3 * fz2;
+        rResult[17]( 0, 2 ) = gx2 * fy3 * gz2;
+        rResult[17]( 1, 0 ) = gx2 * gy3 * fz2;
+        rResult[17]( 1, 1 ) = fx2 * hy3 * fz2;
+        rResult[17]( 1, 2 ) = fx2 * gy3 * gz2;
+        rResult[17]( 2, 0 ) = gx2 * fy3 * gz2;
+        rResult[17]( 2, 1 ) = fx2 * gy3 * gz2;
+        rResult[17]( 2, 2 ) = fx2 * fy3 * hz2;
+
+        rResult[18]( 0, 0 ) = hx3 * fy2 * fz2;
+        rResult[18]( 0, 1 ) = gx3 * gy2 * fz2;
+        rResult[18]( 0, 2 ) = gx3 * fy2 * gz2;
+        rResult[18]( 1, 0 ) = gx3 * gy2 * fz2;
+        rResult[18]( 1, 1 ) = fx3 * hy2 * fz2;
+        rResult[18]( 1, 2 ) = fx3 * gy2 * gz2;
+        rResult[18]( 2, 0 ) = gx3 * fy2 * gz2;
+        rResult[18]( 2, 1 ) = fx3 * gy2 * gz2;
+        rResult[18]( 2, 2 ) = fx3 * fy2 * hz2;
+
+        rResult[19]( 0, 0 ) = hx1 * fy3 * fz2;
+        rResult[19]( 0, 1 ) = gx1 * gy3 * fz2;
+        rResult[19]( 0, 2 ) = gx1 * fy3 * gz2;
+        rResult[19]( 1, 0 ) = gx1 * gy3 * fz2;
+        rResult[19]( 1, 1 ) = fx1 * hy3 * fz2;
+        rResult[19]( 1, 2 ) = fx1 * gy3 * gz2;
+        rResult[19]( 2, 0 ) = gx1 * fy3 * gz2;
+        rResult[19]( 2, 1 ) = fx1 * gy3 * gz2;
+        rResult[19]( 2, 2 ) = fx1 * fy3 * hz2;
+
+        rResult[20]( 0, 0 ) = hx3 * fy3 * fz1;
+        rResult[20]( 0, 1 ) = gx3 * gy3 * fz1;
+        rResult[20]( 0, 2 ) = gx3 * fy3 * gz1;
+        rResult[20]( 1, 0 ) = gx3 * gy3 * fz1;
+        rResult[20]( 1, 1 ) = fx3 * hy3 * fz1;
+        rResult[20]( 1, 2 ) = fx3 * gy3 * gz1;
+        rResult[20]( 2, 0 ) = gx3 * fy3 * gz1;
+        rResult[20]( 2, 1 ) = fx3 * gy3 * gz1;
+        rResult[20]( 2, 2 ) = fx3 * fy3 * hz1;
+
+        rResult[21]( 0, 0 ) = hx3 * fy1 * fz3;
+        rResult[21]( 0, 1 ) = gx3 * gy1 * fz3;
+        rResult[21]( 0, 2 ) = gx3 * fy1 * gz3;
+        rResult[21]( 1, 0 ) = gx3 * gy1 * fz3;
+        rResult[21]( 1, 1 ) = fx3 * hy1 * fz3;
+        rResult[21]( 1, 2 ) = fx3 * gy1 * gz3;
+        rResult[21]( 2, 0 ) = gx3 * fy1 * gz3;
+        rResult[21]( 2, 1 ) = fx3 * gy1 * gz3;
+        rResult[21]( 2, 2 ) = fx3 * fy1 * hz3;
+
+        rResult[22]( 0, 0 ) = hx2 * fy3 * fz3;
+        rResult[22]( 0, 1 ) = gx2 * gy3 * fz3;
+        rResult[22]( 0, 2 ) = gx2 * fy3 * gz3;
+        rResult[22]( 1, 0 ) = gx2 * gy3 * fz3;
+        rResult[22]( 1, 1 ) = fx2 * hy3 * fz3;
+        rResult[22]( 1, 2 ) = fx2 * gy3 * gz3;
+        rResult[22]( 2, 0 ) = gx2 * fy3 * gz3;
+        rResult[22]( 2, 1 ) = fx2 * gy3 * gz3;
+        rResult[22]( 2, 2 ) = fx2 * fy3 * hz3;
+
+        rResult[23]( 0, 0 ) = hx3 * fy2 * fz3;
+        rResult[23]( 0, 1 ) = gx3 * gy2 * fz3;
+        rResult[23]( 0, 2 ) = gx3 * fy2 * gz3;
+        rResult[23]( 1, 0 ) = gx3 * gy2 * fz3;
+        rResult[23]( 1, 1 ) = fx3 * hy2 * fz3;
+        rResult[23]( 1, 2 ) = fx3 * gy2 * gz3;
+        rResult[23]( 2, 0 ) = gx3 * fy2 * gz3;
+        rResult[23]( 2, 1 ) = fx3 * gy2 * gz3;
+        rResult[23]( 2, 2 ) = fx3 * fy2 * hz3;
+
+        rResult[24]( 0, 0 ) = hx1 * fy3 * fz3;
+        rResult[24]( 0, 1 ) = gx1 * gy3 * fz3;
+        rResult[24]( 0, 2 ) = gx1 * fy3 * gz3;
+        rResult[24]( 1, 0 ) = gx1 * gy3 * fz3;
+        rResult[24]( 1, 1 ) = fx1 * hy3 * fz3;
+        rResult[24]( 1, 2 ) = fx1 * gy3 * gz3;
+        rResult[24]( 2, 0 ) = gx1 * fy3 * gz3;
+        rResult[24]( 2, 1 ) = fx1 * gy3 * gz3;
+        rResult[24]( 2, 2 ) = fx1 * fy3 * hz3;
+
+        rResult[25]( 0, 0 ) = hx3 * fy3 * fz2;
+        rResult[25]( 0, 1 ) = gx3 * gy3 * fz2;
+        rResult[25]( 0, 2 ) = gx3 * fy3 * gz2;
+        rResult[25]( 1, 0 ) = gx3 * gy3 * fz2;
+        rResult[25]( 1, 1 ) = fx3 * hy3 * fz2;
+        rResult[25]( 1, 2 ) = fx3 * gy3 * gz2;
+        rResult[25]( 2, 0 ) = gx3 * fy3 * gz2;
+        rResult[25]( 2, 1 ) = fx3 * gy3 * gz2;
+        rResult[25]( 2, 2 ) = fx3 * fy3 * hz2;
+
+        rResult[26]( 0, 0 ) = hx3 * fy3 * fz3;
+        rResult[26]( 0, 1 ) = gx3 * gy3 * fz3;
+        rResult[26]( 0, 2 ) = gx3 * fy3 * gz3;
+        rResult[26]( 1, 0 ) = gx3 * gy3 * fz3;
+        rResult[26]( 1, 1 ) = fx3 * hy3 * fz3;
+        rResult[26]( 1, 2 ) = fx3 * gy3 * gz3;
+        rResult[26]( 2, 0 ) = gx3 * fy3 * gz3;
+        rResult[26]( 2, 1 ) = fx3 * gy3 * gz3;
+        rResult[26]( 2, 2 ) = fx3 * fy3 * hz3;
+
+        return rResult;
+    }
+
+
     /**
      * TODO: TO BE VERIFIED
      */
@@ -1488,9 +1995,6 @@ GeometryData Hexahedra3D27<TPointType>::msGeometryData(
 );
 
 template<class TPointType>
-const GeometryDimension Hexahedra3D27<TPointType>::msGeometryDimension(
-    3, 3, 3);
+const GeometryDimension Hexahedra3D27<TPointType>::msGeometryDimension(3, 3);
 
 }// namespace Kratos.
-
-#endif // KRATOS_HEXAHEDRA_3D_27_H_INCLUDED  defined

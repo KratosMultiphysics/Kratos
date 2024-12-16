@@ -4,7 +4,7 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
+//  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher
@@ -20,10 +20,9 @@
 #include "custom_utilities/projection_utilities.h"
 #include "mapping_application_variables.h"
 
-namespace Kratos {
-namespace Testing {
+namespace Kratos::Testing {
 
-typedef Node<3> NodeType;
+typedef Node NodeType;
 typedef Geometry<NodeType> GeometryType;
 
 namespace {
@@ -32,7 +31,7 @@ template<std::size_t TSize>
 void SetEqIdsOnNodes(GeometryType& rGeometry,
                      const std::array<int, TSize>& rExpEquationIds)
 {
-    KRATOS_CHECK_EQUAL(TSize, rGeometry.PointsNumber());
+    KRATOS_EXPECT_EQ(TSize, rGeometry.PointsNumber());
 
     std::size_t node_idx = 0;
     for (auto& r_node : rGeometry.Points()) {
@@ -58,18 +57,18 @@ void TestComputeProjection(const GeometryType& rGeometry,
 
     const bool is_full_projection = ProjectionUtilities::ComputeProjection(rGeometry, rPointToProject, LocalCoordTol, sf_values, eq_ids, proj_dist, pairing_index, ComputeApproximation);
 
-    KRATOS_CHECK_EQUAL(FullProjection, is_full_projection);
-    KRATOS_CHECK_EQUAL(ExpPairingIndex, pairing_index);
+    KRATOS_EXPECT_EQ(FullProjection, is_full_projection);
+    KRATOS_EXPECT_EQ(ExpPairingIndex, pairing_index);
 
     if (pairing_index != ProjectionUtilities::PairingIndex::Unspecified) {
-        KRATOS_CHECK_DOUBLE_EQUAL(ExpProjectionDistance, proj_dist);
+        KRATOS_EXPECT_DOUBLE_EQ(ExpProjectionDistance, proj_dist);
 
-        KRATOS_CHECK_EQUAL(rExpSFValues.size(), sf_values.size());
-        KRATOS_CHECK_EQUAL(rExpEquationIds.size(), rExpEquationIds.size());
+        KRATOS_EXPECT_EQ(rExpSFValues.size(), sf_values.size());
+        KRATOS_EXPECT_EQ(rExpEquationIds.size(), rExpEquationIds.size());
 
         for (std::size_t i=0; i<TSize; ++i) {
-            KRATOS_CHECK_NEAR(rExpSFValues[i], sf_values[i], 1E-13);
-            KRATOS_CHECK_EQUAL(rExpEquationIds[i], eq_ids[i]);
+            KRATOS_EXPECT_NEAR(rExpSFValues[i], sf_values[i], 1E-13);
+            KRATOS_EXPECT_EQ(rExpEquationIds[i], eq_ids[i]);
         }
     }
 }
@@ -390,5 +389,4 @@ KRATOS_TEST_CASE_IN_SUITE(ProjectionUtils_Hexahedra_Outside, KratosMappingApplic
     TestComputeProjection(*p_geom, point_to_project, local_coord_tol, exp_sf_values, exp_eq_ids, proj_dist, pairing_index, compute_approximation, full_projection);
 }
 
-}  // namespace Testing
-}  // namespace Kratos
+}  // namespace Kratos::Testing

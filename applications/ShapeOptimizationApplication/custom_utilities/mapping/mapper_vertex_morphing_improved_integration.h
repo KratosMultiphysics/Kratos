@@ -196,9 +196,9 @@ private:
     void FindNeighbourConditions();
 
     // --------------------------------------------------------------------------
-    void ComputeWeightForAllNeighbors(  ModelPart::NodeType& node_i,
-                                        NodeVector& neighbor_nodes,
-                                        unsigned int number_of_neighbors,
+    virtual void ComputeWeightForAllNeighbors(  const ModelPart::NodeType& node_i,
+                                        const NodeVector& neighbor_nodes,
+                                        const unsigned int number_of_neighbors,
                                         std::vector<double>& list_of_weights,
                                         double& sum_of_weights ) override;
 

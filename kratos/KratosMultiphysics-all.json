@@ -8,20 +8,21 @@
         "KratosConvectionDiffusionApplication==${KRATOS_VERSION}",
         "KratosConstitutiveLawsApplication==${KRATOS_VERSION}",
         "KratosCoSimulationApplication==${KRATOS_VERSION}",
-        "KratosDamApplication==${KRATOS_VERSION}",
         "KratosDEMApplication==${KRATOS_VERSION}",
+        "KratosDamApplication==${KRATOS_VERSION}",
         "KratosFluidDynamicsApplication==${KRATOS_VERSION}",
         "KratosFSIApplication==${KRATOS_VERSION}",
         "KratosLinearSolversApplication==${KRATOS_VERSION}",
         "KratosMappingApplication==${KRATOS_VERSION}",
         "KratosMeshingApplication==${KRATOS_VERSION}",
-        "KratosParticleMechanicsApplication==${KRATOS_VERSION}",
+        "KratosMPMApplication==${KRATOS_VERSION}",
         "KratosPoroMechanicsApplication==${KRATOS_VERSION}",
         "KratosShallowWaterApplication==${KRATOS_VERSION}",
-        "KratosStructuralMechanicsApplication==${KRATOS_VERSION}"
+        "KratosStructuralMechanicsApplication==${KRATOS_VERSION}",
+        "KratosGeoMechanicsApplication==${KRATOS_VERSION}"
     ],
 	"author": "Kratos Team",
 	"author_email": "kratos@listas.cimne.upc.edu",
 	"description": "KRATOS Multiphysics (\"Kratos\") is a framework for building parallel, multi-disciplinary simulation software, aiming at modularity, extensibility, and high performance. Kratos is written in C++, and counts with an extensive Python interface.",
-	"readme": "scripts/wheels/README.md"
+	"readme": "README.md"
 }

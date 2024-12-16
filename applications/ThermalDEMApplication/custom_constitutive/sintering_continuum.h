@@ -104,6 +104,7 @@ namespace Kratos
                            double             equiv_young,
                            double             equiv_shear,
                            double             indentation,
+                           double             indentation_particle,
                            double             calculation_area,
                            double&            acumulated_damage,
                            SphericContinuumParticle* element1,
@@ -131,16 +132,16 @@ namespace Kratos
 				                     double& kn,
 				                     double  sintering_displ);
 
-			void ComputeParticleRotationalMoments(SphericContinuumParticle* element,
-                                            SphericContinuumParticle* neighbor,
-                                            double equiv_young,
-                                            double distance,
-                                            double calculation_area,
-                                            double LocalCoordSystem[3][3],
-                                            double ElasticLocalRotationalMoment[3],
-                                            double ViscoLocalRotationalMoment[3],
-                                            double equiv_poisson,
-                                            double indentation) override;
+    // void ComputeParticleRotationalMoments(SphericContinuumParticle* element,
+    //                                       SphericContinuumParticle* neighbor,
+    //                                       double equiv_young,
+    //                                       double distance,
+    //                                       double calculation_area,
+    //                                       double LocalCoordSystem[3][3],
+    //                                       double ElasticLocalRotationalMoment[3],
+    //                                       double ViscoLocalRotationalMoment[3],
+    //                                       double equiv_poisson,
+    //                                       double indentation) override;
 
 		private:
 

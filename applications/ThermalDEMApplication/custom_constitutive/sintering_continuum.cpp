@@ -180,6 +180,7 @@ namespace Kratos
 		                                       double       equiv_young,
 		                                       double       equiv_shear,
 		                                       double       indentation,
+		                                       double       indentation_particle,
 		                                       double       calculation_area,
 		                                       double&      acumulated_damage,
 		                                       SphericContinuumParticle* element1,
@@ -305,29 +306,29 @@ namespace Kratos
 		kn = 2.0 * equiv_young * sqrt_equiv_radius * sqrt_indentation_with_sintering_displ;
 	}
 
-	void SinteringContinuum::ComputeParticleRotationalMoments(SphericContinuumParticle* element,
-	                                                          SphericContinuumParticle* neighbor,
-	                                                          double equiv_young,
-	                                                          double distance,
-	                                                          double calculation_area,
-	                                                          double LocalCoordSystem[3][3],
-	                                                          double ElasticLocalRotationalMoment[3],
-	                                                          double ViscoLocalRotationalMoment[3],
-	                                                          double equiv_poisson,
-	                                                          double indentation) {
+	//void SinteringContinuum::ComputeParticleRotationalMoments(SphericContinuumParticle* element,
+	//                                                          SphericContinuumParticle* neighbor,
+	//                                                          double equiv_young,
+	//                                                          double distance,
+	//                                                          double calculation_area,
+	//                                                          double LocalCoordSystem[3][3],
+	//                                                          double ElasticLocalRotationalMoment[3],
+	//                                                          double ViscoLocalRotationalMoment[3],
+	//                                                          double equiv_poisson,
+	//                                                          double indentation) {
 
-		if (element->Is(DEMThermalFlags::IS_SINTERING)) return;
+	//	if (element->Is(DEMThermalFlags::IS_SINTERING)) return;
 
-		DEM_KDEM::ComputeParticleRotationalMoments(element,
-			                                         neighbor,
-			                                         equiv_young,
-			                                         distance,
-			                                         calculation_area,
-			                                         LocalCoordSystem,
-		                                           ElasticLocalRotationalMoment,
-			                                         ViscoLocalRotationalMoment,
-			                                         equiv_poisson,
-			                                         indentation);
-	}
+	//	DEM_KDEM::ComputeParticleRotationalMoments(element,
+	//		                                         neighbor,
+	//		                                         equiv_young,
+	//		                                         distance,
+	//		                                         calculation_area,
+	//		                                         LocalCoordSystem,
+	//	                                           ElasticLocalRotationalMoment,
+	//		                                         ViscoLocalRotationalMoment,
+	//		                                         equiv_poisson,
+	//		                                         indentation);
+	//}
 
 } // namespace Kratos

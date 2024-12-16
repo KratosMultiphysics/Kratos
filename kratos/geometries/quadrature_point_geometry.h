@@ -10,8 +10,7 @@
 //  Main authors:    Tobias Teschemacher
 //
 
-#if !defined(KRATOS_QUADRATURE_POINT_GEOMETRY_H_INCLUDED )
-#define  KRATOS_QUADRATURE_POINT_GEOMETRY_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -21,6 +20,7 @@
 #include "includes/variables.h"
 #include "geometries/geometry.h"
 #include "geometries/geometry_dimension.h"
+#include "utilities/integration_utilities.h"
 
 namespace Kratos
 {
@@ -338,15 +338,7 @@ public:
     /// Returns the domain size of this quadrature point.
     double DomainSize() const override
     {
-        Vector temp;
-        temp = this->DeterminantOfJacobian(temp);
-        const IntegrationPointsArrayType& r_integration_points = this->IntegrationPoints();
-        double domain_size = 0.0;
-
-        for (std::size_t i = 0; i < r_integration_points.size(); ++i) {
-            domain_size += temp[i] * r_integration_points[i].Weight();
-        }
-        return domain_size;
+        return IntegrationUtilities::ComputeDomainSize(*this);
     }
 
     /**
@@ -530,11 +522,21 @@ public:
     ///@name Kratos Geometry Families
     ///@{
 
+    /**
+     * @brief Gets the geometry family.
+     * @details This function returns the family type of the geometry. The geometry family categorizes the geometry into a broader classification, aiding in its identification and processing.
+     * @return GeometryData::KratosGeometryFamily The geometry family.
+     */
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::KratosGeometryFamily::Kratos_Quadrature_Geometry;
     }
 
+    /**
+     * @brief Gets the geometry type.
+     * @details This function returns the specific type of the geometry. The geometry type provides a more detailed classification of the geometry.
+     * @return GeometryData::KratosGeometryType The specific geometry type.
+     */
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Geometry;
@@ -677,12 +679,9 @@ const GeometryDimension QuadraturePointGeometry<
     TWorkingSpaceDimension,
     TLocalSpaceDimension,
     TDimension>::msGeometryDimension(
-        TDimension,
         TWorkingSpaceDimension,
         TLocalSpaceDimension);
 
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS_QUADRATURE_POINT_GEOMETRY_H_INCLUDED  defined

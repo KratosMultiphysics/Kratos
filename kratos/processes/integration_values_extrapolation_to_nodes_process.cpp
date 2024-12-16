@@ -108,10 +108,8 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
     };
 
     block_for_each(r_elements_array, TLSType(), [&](Element& rElem, TLSType& rTls){
-        // Only active elements. Detect if the element is active or not. If the user did not make any choice the element
-        // NOTE: Is active by default
-        const bool element_is_active = rElem.IsDefined(ACTIVE) ? rElem.Is(ACTIVE) : true;
-        if (element_is_active) {
+        // Only active elements
+        if (rElem.IsActive()) {
             auto& r_this_geometry = rElem.GetGeometry();
 
             // Auxiliar values
@@ -120,19 +118,29 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
             const SizeType integration_points_number = integration_points.size();
             const SizeType number_of_nodes = r_this_geometry.size();
 
-            // Definition of node coefficient
-            rTls.vector_J = r_this_geometry.DeterminantOfJacobian(rTls.vector_J , this_integration_method );
+            // Prepare matrix of coeffients
             Matrix node_coefficient(number_of_nodes, integration_points_number);
-            if (rTls.N.size() != number_of_nodes )
-                rTls.N.resize(number_of_nodes);
-            for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
-                const double area_coeff = mAreaAverage ? integration_points[i_gauss_point].Weight() * rTls.vector_J[i_gauss_point] : 1.0;
-                const array_1d<double, 3>& r_local_coordinates = integration_points[i_gauss_point].Coordinates();
-                r_this_geometry.ShapeFunctionsValues( rTls.N, r_local_coordinates );
-                for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
-                    const double average_variable_value = r_this_geometry[i_node].GetValue(*mpAverageVariable);
-                    const double coeff_coincident_node = std::abs(average_variable_value) > std::numeric_limits<double>::epsilon() ? area_coeff/average_variable_value : area_coeff;
-                    node_coefficient(i_node, i_gauss_point) = coeff_coincident_node * std::abs(rTls.N[i_node]);
+
+            // Point elements only have one node
+            if (r_this_geometry.GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Point) {
+                // Definition of node coefficient
+                rTls.vector_J = r_this_geometry.DeterminantOfJacobian(rTls.vector_J , this_integration_method );
+                if (rTls.N.size() != number_of_nodes )
+                    rTls.N.resize(number_of_nodes);
+                for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
+                    const double area_coeff = mAreaAverage ? integration_points[i_gauss_point].Weight() * rTls.vector_J[i_gauss_point] : 1.0;
+                    const array_1d<double, 3>& r_local_coordinates = integration_points[i_gauss_point].Coordinates();
+                    r_this_geometry.ShapeFunctionsValues( rTls.N, r_local_coordinates );
+                    for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
+                        const double average_variable_value = r_this_geometry[i_node].GetValue(*mpAverageVariable);
+                        const double coeff_coincident_node = std::abs(average_variable_value) > std::numeric_limits<double>::epsilon() ? area_coeff/average_variable_value : area_coeff;
+                        node_coefficient(i_node, i_gauss_point) = coeff_coincident_node * std::abs(rTls.N[i_node]);
+                    }
+                }
+            } else { // Point geometry, only one node
+                const double gp_coefficient = 1.0/static_cast<double>(integration_points_number);
+                for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
+                    node_coefficient(0, i_gauss_point) = gp_coefficient;
                 }
             }
 
@@ -238,7 +246,7 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalize()
     auto& r_nodes_array = mrModelPart.Nodes();
 
     // Remove average variable
-    block_for_each(r_nodes_array, [&](Node<3>& rNode){
+    block_for_each(r_nodes_array, [&](Node& rNode){
         auto& data = rNode.GetData();
         data.Erase(*mpAverageVariable);
 
@@ -298,29 +306,30 @@ void IntegrationValuesExtrapolationToNodesProcess::InitializeMaps()
 
     // Fill the average value
     block_for_each(r_elements_array, TLSType(), [&](Element& rElem, TLSType& rTls){
-        // Only active elements. Detect if the element is active or not. If the user did not make any choice the element
-        // NOTE: Is active by default
-        const bool element_is_active = rElem.IsDefined(ACTIVE) ? rElem.Is(ACTIVE) : true;
-        if (element_is_active) {
+        // Only active elements
+        if (rElem.IsActive()) {
             // The geometry of the element
             auto& r_this_geometry = rElem.GetGeometry();
 
-            // Auxiliar values
-            const GeometryData::IntegrationMethod this_integration_method = rElem.GetIntegrationMethod();
-            const GeometryType::IntegrationPointsArrayType& integration_points = r_this_geometry.IntegrationPoints(this_integration_method);
-            const SizeType integration_points_number = integration_points.size();
-            const SizeType number_of_nodes = r_this_geometry.size();
+            // Point elements only have one node
+            if (r_this_geometry.GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Point) {
+                // Auxiliar values
+                const GeometryData::IntegrationMethod this_integration_method = rElem.GetIntegrationMethod();
+                const GeometryType::IntegrationPointsArrayType& integration_points = r_this_geometry.IntegrationPoints(this_integration_method);
+                const SizeType integration_points_number = integration_points.size();
+                const SizeType number_of_nodes = r_this_geometry.size();
 
-            // The jacobian of the geometry
-            rTls.vector_J = r_this_geometry.DeterminantOfJacobian(rTls.vector_J , this_integration_method );
-            for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
-                const array_1d<double, 3>& r_local_coordinates = integration_points[i_gauss_point].Coordinates();
-                if (rTls.N.size() != number_of_nodes )
-                    rTls.N.resize(number_of_nodes);
-                r_this_geometry.ShapeFunctionsValues( rTls.N, r_local_coordinates );
-                const double area_coeff = mAreaAverage ? integration_points[i_gauss_point].Weight() * rTls.vector_J[i_gauss_point] : 1.0;
-                for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
-                    AtomicAdd(r_this_geometry[i_node].GetValue(*mpAverageVariable), std::abs(rTls.N[i_node]) * area_coeff);
+                // The jacobian of the geometry
+                rTls.vector_J = r_this_geometry.DeterminantOfJacobian(rTls.vector_J , this_integration_method );
+                for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
+                    const array_1d<double, 3>& r_local_coordinates = integration_points[i_gauss_point].Coordinates();
+                    if (rTls.N.size() != number_of_nodes )
+                        rTls.N.resize(number_of_nodes);
+                    r_this_geometry.ShapeFunctionsValues( rTls.N, r_local_coordinates );
+                    const double area_coeff = mAreaAverage ? integration_points[i_gauss_point].Weight() * rTls.vector_J[i_gauss_point] : 1.0;
+                    for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
+                        AtomicAdd(r_this_geometry[i_node].GetValue(*mpAverageVariable), std::abs(rTls.N[i_node]) * area_coeff);
+                    }
                 }
             }
         }
@@ -370,7 +379,7 @@ void IntegrationValuesExtrapolationToNodesProcess::InitializeVariables()
     auto& r_nodes_array = mrModelPart.Nodes();
 
     // Initialize values
-    block_for_each(r_nodes_array, [&](Node<3>& rNode){
+    block_for_each(r_nodes_array, [&](Node& rNode){
         if (mExtrapolateNonHistorical)
         {
             // We initialize the doubles values

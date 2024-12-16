@@ -9,11 +9,10 @@
 //
 //  Main authors:    Riccardo Rossi
 //                   Denis Demidov
+//                   Philipp Bucher (https://github.com/philbucher)
 //
 
-#if !defined(KRATOS_REDUCTION_UTILITIES_H_INCLUDED )
-#define  KRATOS_REDUCTION_UTILITIES_H_INCLUDED
-
+#pragma once
 
 // System includes
 #include <tuple>
@@ -147,8 +146,39 @@ public:
     /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const MaxReduction<TDataType, TReturnType>& rOther)
     {
-        const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
-        mValue = std::max(mValue,rOther.mValue);
+        KRATOS_CRITICAL_SECTION
+        LocalReduce(rOther.mValue);
+    }
+};
+
+//***********************************************************************************
+//***********************************************************************************
+//***********************************************************************************
+template<class TDataType, class TReturnType = TDataType>
+class AbsMaxReduction
+{
+public:
+    typedef TDataType   value_type;
+    typedef TReturnType return_type;
+
+    TReturnType mValue = std::numeric_limits<TReturnType>::lowest(); // deliberately making the member value public, to allow one to change it as needed
+
+    /// access to reduced value
+    TReturnType GetValue() const
+    {
+        return mValue;
+    }
+
+    /// NON-THREADSAFE (fast) value of reduction, to be used within a single thread
+    void LocalReduce(const TDataType value){
+        mValue = (std::abs(mValue) < std::abs(value)) ? value : mValue;
+    }
+
+    /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
+    void ThreadSafeReduce(const AbsMaxReduction<TDataType, TReturnType>& rOther)
+    {
+        KRATOS_CRITICAL_SECTION
+        LocalReduce(rOther.mValue);
     }
 };
 
@@ -178,23 +208,24 @@ public:
     /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const MinReduction<TDataType, TReturnType>& rOther)
     {
-        const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
-        mValue = std::min(mValue,rOther.mValue);
+        KRATOS_CRITICAL_SECTION
+        LocalReduce(rOther.mValue);
     }
 };
 
+
 //***********************************************************************************
 //***********************************************************************************
 //***********************************************************************************
 
-template<class TDataType, class TReturnType = std::vector<TDataType>>
-class AccumReduction
+template<class TDataType, class TReturnType = TDataType>
+class AbsMinReduction
 {
 public:
     typedef TDataType   value_type;
     typedef TReturnType return_type;
 
-    TReturnType mValue = TReturnType(); // deliberately making the member value public, to allow one to change it as needed
+    TReturnType mValue = std::numeric_limits<TReturnType>::max(); // deliberately making the member value public, to allow one to change it as needed
 
     /// access to reduced value
     TReturnType GetValue() const
@@ -204,14 +235,109 @@ public:
 
     /// NON-THREADSAFE (fast) value of reduction, to be used within a single thread
     void LocalReduce(const TDataType value){
-        mValue.push_back(value);
+        mValue = (std::abs(mValue) < std::abs(value)) ? mValue : value;
     }
 
     /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
+    void ThreadSafeReduce(const AbsMinReduction<TDataType, TReturnType>& rOther)
+    {
+        KRATOS_CRITICAL_SECTION
+        LocalReduce(rOther.mValue);
+    }
+};
+
+//***********************************************************************************
+//***********************************************************************************
+//***********************************************************************************
+
+/**
+ * @brief A template class for accumulating values into a collection in a modifiable way.
+ * @tparam TDataType Type of the data to be accumulated.
+ * @tparam TReturnType Type of the container used to store the data, defaults to std::vector<TDataType>.
+ */
+template<class TDataType, class TReturnType = std::vector<TDataType>>
+class AccumReduction
+{
+public:
+    using value_type = TDataType; ///< Alias for the type of data being reduced.
+    using return_type = TReturnType; ///< Alias for the type of the container used for reduction.
+
+    TReturnType mValue = TReturnType(); ///< Public member variable for the accumulation storage, modifiable as needed.
+
+    /**
+     * @brief Accessor for the reduced value.
+     * @return The current accumulated value.
+     */
+    TReturnType GetValue() const
+    {
+        return mValue;
+    }
+
+    /**
+     * @brief Performs a non-thread-safe reduction by adding a single value to the end of the accumulation.
+     * @param value The value to add to the accumulation.
+     */
+    void LocalReduce(const TDataType value){
+        mValue.insert(mValue.end(), value);
+    }
+
+    /**
+     * @brief Performs a thread-safe reduction by merging another AccumReduction's values into this one.
+     * @param rOther Reference to another AccumReduction object of the same type.
+     */
     void ThreadSafeReduce(const AccumReduction<TDataType, TReturnType>& rOther)
     {
-        const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
-        mValue.insert(mValue.end(), rOther.mValue.begin(), rOther.mValue.end());
+        KRATOS_CRITICAL_SECTION
+        std::copy(rOther.mValue.begin(), rOther.mValue.end(), std::inserter(mValue, mValue.end()));
+    }
+};
+
+/**
+ * @brief A derived template class from AccumReduction that only accumulates values based on a filtering condition.
+ * @tparam TDataType Type of the data to be accumulated.
+ * @tparam TReturnType Type of the container used to store the data, defaults to std::vector<TDataType>.
+ */
+template<class TDataType, class TReturnType = std::vector<TDataType>>
+class FilteredAccumReduction : public AccumReduction<TDataType, TReturnType>
+{
+public:
+    /**
+     * @brief Performs a non-thread-safe reduction by adding a value to the accumulation only if a specified condition is true.
+     * @param ValuePair A pair consisting of a boolean (the condition) and the value to be potentially added.
+     */
+    void LocalReduce(const std::pair<bool, TDataType> ValuePair)
+    {
+        if (ValuePair.first) {
+            this->mValue.push_back(ValuePair.second);
+        }
+    }
+};
+
+template<class MapType>
+class MapReduction
+{
+public:
+    using value_type = typename MapType::value_type;
+    using return_type = MapType;
+
+    return_type mValue;
+
+    /// access to reduced value
+    return_type GetValue() const
+    {
+        return mValue;
+    }
+
+    /// NON-THREADSAFE (fast) value of reduction, to be used within a single thread
+    void LocalReduce(const value_type rValue){
+        mValue.emplace(rValue);
+    }
+
+    /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
+    void ThreadSafeReduce(MapReduction<MapType>& rOther)
+    {
+        KRATOS_CRITICAL_SECTION
+        mValue.merge(rOther.mValue);
     }
 };
 
@@ -284,5 +410,3 @@ struct CombinedReduction {
 };
 
 }  // namespace Kratos.
-
-#endif // KRATOS_REDUCTION_UTILITIES_H_INCLUDED  defined

@@ -128,7 +128,7 @@ class DamReservoirConstantTemperatureProcess : public Process
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                double aux = (mReferenceCoordinate + mWaterLevel) - it->Coordinates()[direction];
+                double aux = mWaterLevel - it->Coordinates()[direction];
                 if (aux >= 0.0)
                 {
                     if (mIsFixed)
@@ -187,7 +187,7 @@ class DamReservoirConstantTemperatureProcess : public Process
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                double aux = (mReferenceCoordinate + mWaterLevel) - it->Coordinates()[direction];
+                double aux = mWaterLevel - it->Coordinates()[direction];
                 if (aux >= 0.0)
                 {
                     if (mIsFixed)

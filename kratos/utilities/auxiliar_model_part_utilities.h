@@ -4,22 +4,21 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 //
 
-#if !defined(KRATOS_AUXILIAR_MODEL_PART_UTILITIES)
-#define KRATOS_AUXILIAR_MODEL_PART_UTILITIES
+#pragma once
 
 // System includes
+#include <unordered_set>
 
 // External includes
 
 // Project includes
-#include "includes/serializer.h"
 #include "includes/model_part.h"
 #include "utilities/parallel_utilities.h"
 
@@ -32,30 +31,19 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-    /// The index type definition
-    typedef std::size_t IndexType;
-
-///@}
-///@name  Enum's
-///@{
-
-enum class DataLocation {
-    NodeHistorical,
-    NodeNonHistorical,
-    Element,
-    Condition,
-    ModelPart,
-    ProcessInfo
-};
-
 ///@}
 ///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
 ///@{
 
 /**
  * @class AuxiliarModelPartUtilities
  * @ingroup KratosCore
  * @brief This utility includes auxiliar methods not included in the model part to avoid increase more than necessary the API
+ * @todo Typo, Auxiliar is not English, it is Auxiliary, please replace it.
  * @author Vicente Mataix Ferrandiz
  */
 class KRATOS_API(KRATOS_CORE) AuxiliarModelPartUtilities
@@ -64,8 +52,13 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /// The index type definition
+    using IndexType = std::size_t;
+
     /// Counted pointer of AuxiliarModelPartUtilities
     KRATOS_CLASS_POINTER_DEFINITION( AuxiliarModelPartUtilities );
+
+    using DataLocation = Globals::DataLocation;
 
     ///@}
     ///@name Life Cycle
@@ -82,24 +75,106 @@ public:
     virtual ~AuxiliarModelPartUtilities()= default;
 
     ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    ///@}
-    ///@name Friends
+    ///@name Operators
     ///@{
 
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief This method adds the given element and the belonging nodes
+     * @param pNewElement The new element added
+     */
+    void AddElementWithNodes(Element::Pointer pNewElement);
+
+    /**
+     * @brief Inserts a list of elements and the belonging nodes to a submodelpart provided their Id. Does nothing if applied to the top model part
+     * @param rElementIds The ids of the elements
+     */
+    void AddElementsWithNodes(const std::vector<IndexType>& rElementIds);
+
+    /**
+     * @brief Inserts a list of pointers to elements and the belonging nodes
+     * @param ItElementsBegin The begin iterator
+     * @param ItElementsEnd The end iterator
+     * @tparam TIteratorType The class of iterator considered
+     */
+    template<class TIteratorType >
+    void AddElementsWithNodes(
+        TIteratorType ItElementsBegin,
+        TIteratorType ItElementsEnd
+        )
+    {
+        KRATOS_TRY
+
+        // Using auxiliay method
+        ModelPart* p_root_model_part = &mrModelPart.GetRootModelPart();
+        std::vector<IndexType> list_of_nodes;
+        ModelPart::ElementsContainerType new_elements_to_add ;
+        AuxiliaryAddEntitiesWithNodes<ModelPart::ElementsContainerType, TIteratorType>(p_root_model_part->Elements(), new_elements_to_add , list_of_nodes, ItElementsBegin, ItElementsEnd);
+
+        // Add to all of the leaves
+        ModelPart* p_current_part = &mrModelPart;
+        while(p_current_part->IsSubModelPart()) {
+            for(auto it_elem = new_elements_to_add.begin(); it_elem!=new_elements_to_add.end(); ++it_elem) {
+                p_current_part->Elements().push_back( *(it_elem.base()) );
+            }
+            p_current_part->AddNodes(list_of_nodes);
+
+            p_current_part->Elements().Unique();
+            p_current_part = &(p_current_part->GetParentModelPart());
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief This method adds the given condition and the belonging nodes
+     * @param pNewCondition The new condition added
+     */
+    void AddConditionWithNodes(Condition::Pointer pNewCondition);
+
+    /**
+     * @brief Inserts a list of conditions and the belonging nodes to a submodelpart provided their Id. Does nothing if applied to the top model part
+     * @param rConditionIds The ids of the conditions
+     */
+    void AddConditionsWithNodes(const std::vector<IndexType>& rConditionIds);
+
+    /**
+     * @brief Inserts a list of pointers to conditions and the belonging nodes
+     * @param ItConditionsBegin The begin iterator
+     * @param ItConditionsEnd The end iterator
+     * @tparam TIteratorType The class of iterator considered
+     */
+    template<class TIteratorType >
+    void AddConditionsWithNodes(
+        TIteratorType ItConditionsBegin,
+        TIteratorType ItConditionsEnd
+        )
+    {
+        KRATOS_TRY
+
+        // Using auxiliay method
+        ModelPart* p_root_model_part = &mrModelPart.GetRootModelPart();
+        std::vector<IndexType> list_of_nodes;
+        ModelPart::ConditionsContainerType new_conditions_to_add ;
+        AuxiliaryAddEntitiesWithNodes<ModelPart::ConditionsContainerType, TIteratorType>(p_root_model_part->Conditions(), new_conditions_to_add, list_of_nodes, ItConditionsBegin, ItConditionsEnd);
+
+        // Add to all of the leaves
+        ModelPart* p_current_part = &mrModelPart;
+        while(p_current_part->IsSubModelPart()) {
+            for(auto it_cond = new_conditions_to_add.begin(); it_cond!=new_conditions_to_add.end(); ++it_cond) {
+                p_current_part->Conditions().push_back( *(it_cond.base()) );
+            }
+            p_current_part->AddNodes(list_of_nodes);
+
+            p_current_part->Conditions().Unique();
+            p_current_part = &(p_current_part->GetParentModelPart());
+        }
+
+        KRATOS_CATCH("")
+    }
 
     /**
      * @brief This method copies the structure of submodelparts
@@ -290,14 +365,20 @@ public:
      */
     void RemoveConditionsAndBelongingsFromAllLevels(const Flags IdentifierFlag = TO_ERASE);
 
+    /**
+     * @brief This method removed nodes from submodelparts not contained neither in the elements or conditions
+     */
+    void RemoveOrphanNodesFromSubModelParts();
 
     /// To Export a Scalar data (Double/int/...)
-    template<typename TDataType>
+    template<class TContainerType>
     void GetScalarData(
-        const Variable<TDataType>& rVariable,
+        const Variable<typename TContainerType::value_type>& rVariable,
         const DataLocation DataLoc,
-        std::vector<TDataType>& data) const
+        TContainerType& data) const
     {
+        KRATOS_TRY
+
         switch (DataLoc)
         {
         case (DataLocation::NodeHistorical):{
@@ -346,15 +427,19 @@ public:
             break;
         }
         }
+
+        KRATOS_CATCH("")
     }
 
     /// To Export a Vector data (std::vector/array/..)
-    template<class TDataType>
+    template<class TContainerType, class TVarType>
     void GetVectorData(
-        const Variable<TDataType>& rVariable,
+        const Variable<TVarType>& rVariable,
         const DataLocation DataLoc,
-        std::vector<double>& data) const
+        TContainerType& data) const
     {
+        KRATOS_TRY
+
         switch (DataLoc)
         {
         case (DataLocation::NodeHistorical):{
@@ -433,20 +518,22 @@ public:
             break;
         }
         }
+
+        KRATOS_CATCH("")
     }
 
     /// To Import a Scalar data (Double/int/...)
-    template<typename TDataType>
+    template<class TContainerType>
     void SetScalarData(
-        const Variable<TDataType>& rVariable,
+        const Variable<typename TContainerType::value_type>& rVariable,
         const DataLocation DataLoc,
-        const std::vector<TDataType>& rData)
+        const TContainerType& rData)
     {
+        KRATOS_TRY
+
         switch (DataLoc)
         {
         case (DataLocation::NodeHistorical):{
-            ImportDataSizeCheck(mrModelPart.NumberOfNodes(), rData.size());
-
             auto inodebegin = mrModelPart.NodesBegin();
             IndexPartition<IndexType>(mrModelPart.NumberOfNodes()).for_each([&](IndexType Index){
                 auto inode = inodebegin + Index;
@@ -458,20 +545,14 @@ public:
             break;
         }
         case (DataLocation::NodeNonHistorical):{
-            ImportDataSizeCheck(mrModelPart.NumberOfNodes(), rData.size());
-
             SetScalarDataFromContainer(mrModelPart.Nodes(), rVariable, rData);
             break;
         }
         case (DataLocation::Element):{
-            ImportDataSizeCheck(mrModelPart.NumberOfElements(), rData.size());
-
             SetScalarDataFromContainer(mrModelPart.Elements(), rVariable, rData);
             break;
         }
         case (DataLocation::Condition):{
-            ImportDataSizeCheck(mrModelPart.NumberOfConditions(), rData.size());
-
             SetScalarDataFromContainer(mrModelPart.Conditions(), rVariable, rData);
             break;
         }
@@ -489,22 +570,24 @@ public:
         }
         }
 
+        KRATOS_CATCH("")
     }
 
     /// To Import a Vector data (std::vector/array/..)
-    template<class TDataType>
+    template<class TContainerType, class TVarType>
     void SetVectorData(
-        const Variable<TDataType>& rVariable,
+        const Variable<TVarType>& rVariable,
         const DataLocation DataLoc,
-        const std::vector<double>& rData)
+        const TContainerType& rData)
     {
+        KRATOS_TRY
+
         switch (DataLoc)
         {
         case (DataLocation::NodeHistorical):{
             unsigned int size = mrModelPart.NumberOfNodes() > 0 ? mrModelPart.NodesBegin()->FastGetSolutionStepValue(rVariable).size() : 0;
 
             size = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(size);
-            ImportDataSizeCheckVector(mrModelPart.NumberOfNodes()*size , rData.size());
 
             auto inodebegin = mrModelPart.NodesBegin();
             IndexPartition<IndexType>(mrModelPart.NumberOfNodes()).for_each([&](IndexType Index){
@@ -525,8 +608,6 @@ public:
 
             size = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(size);
 
-            ImportDataSizeCheckVector(mrModelPart.NumberOfNodes()*size , rData.size());
-
             SetVectorDataFromContainer(mrModelPart.Nodes(), size, rVariable, rData);
             break;
         }
@@ -535,8 +616,6 @@ public:
 
             size = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(size);
 
-            ImportDataSizeCheckVector(mrModelPart.NumberOfElements()*size , rData.size());
-
             SetVectorDataFromContainer(mrModelPart.Elements(), size, rVariable, rData);
             break;
         }
@@ -544,8 +623,6 @@ public:
             unsigned int size = mrModelPart.NumberOfConditions() > 0 ? mrModelPart.ConditionsBegin()->GetValue(rVariable).size() : 0;
 
             size = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(size);
-
-            ImportDataSizeCheckVector(mrModelPart.NumberOfConditions()*size , rData.size());
 
             SetVectorDataFromContainer(mrModelPart.Conditions(), size, rVariable, rData);
             break;
@@ -577,7 +654,95 @@ public:
 
         }
 
+        KRATOS_CATCH("")
     }
+
+    /**
+     * @brief This method deep copies a whole model part
+     * @details When a pointer to Model is provided the provided Model will be considered for the copy, otherwise the Model of the current ModelPart will be considered. The last is the default behaviour.
+     * This is deep copy, meaning that every entity is deep copied, so created from scratch. The only thing that would be equal will be the Model if not custom Model is provided
+     * @param rNewModelPartName The name of the new model part
+     * @param pModel The pointer to the Model that will host the new ModelPart, if nullptr, the current Model will be used.
+     * @return The deep copied model part
+     */
+    ModelPart& DeepCopyModelPart(
+        const std::string& rNewModelPartName,
+        Model* pModel = nullptr
+        );
+
+    /**
+     * @brief This method deep copies a entities
+     * @details Only works with Element and Condition due to the lack of consistency of the entities Clone methods
+     * @param rModelPart The model part to copy the entities
+     * @param rEntities The entities to be copied
+     * @param rReferenceEntities The entities to be copied
+     * @param rGeometryPointerDatabase The database of geometries
+     * @tparam TClassContainer rEntities type
+     * @tparam TReferenceClassContainer rReferenceEntities type
+     */
+    template<class TClassContainer, class TReferenceClassContainer>
+    void DeepCopyEntities(
+        ModelPart& rModelPart,
+        TClassContainer& rEntities,
+        TReferenceClassContainer& rReferenceEntities,
+        std::unordered_map<Geometry<Node>::Pointer,Geometry<Node>::Pointer>& rGeometryPointerDatabase
+        )
+    {
+        KRATOS_TRY
+
+        auto& r_properties= rModelPart.rProperties();
+        rEntities.SetMaxBufferSize(rReferenceEntities.GetMaxBufferSize());
+        rEntities.SetSortedPartSize(rReferenceEntities.GetSortedPartSize());
+        const auto& r_reference_entities_container = rReferenceEntities.GetContainer();
+        auto& r_entities_container = rEntities.GetContainer();
+        const IndexType number_entities = r_reference_entities_container.size();
+        r_entities_container.resize(number_entities);
+        const auto it_ent_begin = r_reference_entities_container.begin();
+        IndexPartition<std::size_t>(number_entities).for_each([&it_ent_begin,&r_entities_container,&rGeometryPointerDatabase,&r_properties](std::size_t i) {
+            auto it_ent = it_ent_begin + i;
+            auto& p_old_ent = (*it_ent);
+            auto p_new_ent = p_old_ent->Create(p_old_ent->Id(), rGeometryPointerDatabase[p_old_ent->pGetGeometry()], r_properties(p_old_ent->pGetProperties()->Id()));
+            p_new_ent->SetData(p_old_ent->GetData());
+            p_new_ent->Set(Flags(*p_old_ent));
+            r_entities_container[i] = p_new_ent;
+        });
+
+        KRATOS_CATCH("")
+    }
+
+    ///@}
+    ///@name Access
+    ///@{
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+    ///@}
+    ///@name Input and output
+    ///@{
+  
+    /**
+    * @brief Retrieve the IDs of neighboring elements for each element.
+    * @details This function retrieves the IDs of neighboring elements for each element in the model part.
+    * The IDs are stored in an unordered map where the key is the ID of the element and the value
+    * is a vector containing the IDs of its neighboring elements.
+    * @return An unordered map containing the IDs of neighboring elements for each element.
+    */
+    std::unordered_map<IndexType, std::vector<IndexType>> RetrieveElementsNeighbourElementsIds();
+
+    /**
+    * @brief Retrieve the IDs of neighboring conditions for each condition.
+    * @details This function retrieves the IDs of neighboring conditions for each condition in the model part.
+    * The IDs are stored in an unordered map where the key is the ID of the condition and the value
+    * is a vector containing the IDs of its neighboring conditions.
+    * @return An unordered map containing the IDs of neighboring conditions for each condition.
+    */
+    std::unordered_map<IndexType, std::vector<IndexType>> RetrieveConditionsNeighbourConditionsIds();
 
     /// Turn back information as a string.
     virtual std::string Info() const
@@ -597,39 +762,10 @@ public:
         rOStream << Info() << std::endl;
     }
 
-protected:
-
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-    ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
+
     ///@}
     ///@name Member Variables
     ///@{
@@ -644,84 +780,215 @@ private:
     ///@name Private Operations
     ///@{
 
-    template<typename TDataType, class TContainerType>
-    void GetScalarDataFromContainer(const TContainerType& rContainer, const Variable<TDataType>& rVariable, std::vector<TDataType>& data) const
+    template<typename TDataType, class TContainerType, class TDataContainerType>
+    void GetScalarDataFromContainer(
+        const TContainerType& rContainer,
+        const Variable<TDataType>& rVariable,
+        TDataContainerType& data) const
     {
+        KRATOS_TRY
+
+        DataSizeCheck(rContainer.size(), data.size());
+
         IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t index){
             const auto& r_entity = *(rContainer.begin() + index);
             data[index] = r_entity.GetValue(rVariable);
         });
+
+        KRATOS_CATCH("")
     }
 
-    template<typename TDataType, class TContainerType>
-    void GetVectorDataFromContainer(const TContainerType& rContainer, const std::size_t TSize, const Variable<TDataType>& rVariable, std::vector<double>& data) const
+    template<typename TDataType, class TContainerType, class TDataContainerType>
+    void GetVectorDataFromContainer(
+        const TContainerType& rContainer,
+        const std::size_t VectorSize,
+        const Variable<TDataType>& rVariable,
+        TDataContainerType& data) const
     {
+        KRATOS_TRY
+
+        DataSizeCheck(rContainer.size()*VectorSize, data.size());
+
         IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t index){
             const auto& r_entity = *(rContainer.begin() + index);
             const auto& r_val = r_entity.GetValue(rVariable);
-            for(std::size_t dim = 0 ; dim < TSize ; dim++){
-                data[(TSize*index) + dim] = r_val[dim];
+            for(std::size_t dim = 0 ; dim < VectorSize ; dim++){
+                data[(VectorSize*index) + dim] = r_val[dim];
             }
         });
+
+        KRATOS_CATCH("")
     }
 
-    template<typename TDataType, class TContainerType>
-    void SetScalarDataFromContainer(TContainerType& rContainer, const Variable<TDataType>& rVariable, const std::vector<TDataType>& rData)
+    template<typename TDataType, class TContainerType, class TDataContainerType>
+    void SetScalarDataFromContainer(
+        TContainerType& rContainer,
+        const Variable<TDataType>& rVariable,
+        const TDataContainerType& rData) const
     {
+        KRATOS_TRY
+
+        DataSizeCheck(rContainer.size(), rData.size());
+
         IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t index){
             auto& r_entity = *(rContainer.begin() + index);
-            r_entity.SetValue(rVariable,rData[index]);
+            r_entity.SetValue(rVariable, rData[index]);
         });
+
+        KRATOS_CATCH("")
     }
 
-    template<typename TDataType, class TContainerType>
-    void SetVectorDataFromContainer(TContainerType& rContainer, const std::size_t size, const Variable<TDataType>& rVariable, const std::vector<double>& rData)
+    template<typename TDataType, class TContainerType, class TDataContainerType>
+    void SetVectorDataFromContainer(
+        TContainerType& rContainer,
+        const std::size_t VectorSize,
+        const Variable<TDataType>& rVariable,
+        const TDataContainerType& rData) const
     {
+        KRATOS_TRY
+
+        DataSizeCheck(rContainer.size()*VectorSize, rData.size());
+
         IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t index){
             auto& r_entity = *(rContainer.begin() + index);
             TDataType aux;
-            KRATOS_DEBUG_ERROR_IF(aux.size() != size) << "mismatch in size!" << std::endl;
-            for(std::size_t dim = 0 ; dim < size ; dim++){
-                aux[dim] = rData[(size*index) + dim];
+            KRATOS_DEBUG_ERROR_IF(aux.size() != VectorSize) << "mismatch in size!" << std::endl;
+            for(std::size_t dim = 0 ; dim < VectorSize ; dim++){
+                aux[dim] = rData[(VectorSize*index) + dim];
             }
             r_entity.SetValue(rVariable, aux);
         });
+
+        KRATOS_CATCH("")
     }
 
-    // Only for SetScalarData()
-    void ImportDataSizeCheck(std::size_t rContainerSize, std::size_t rSize){
-        KRATOS_ERROR_IF(rContainerSize != rSize) << "mismatch in size! Expected size: " << rContainerSize << std::endl;
+    void DataSizeCheck(
+        const std::size_t ContainerSize,
+        const std::size_t DataSize) const
+    {
+        KRATOS_ERROR_IF(ContainerSize != DataSize) << "Mismatch in size! Container size: " << ContainerSize << " | Data size: " << DataSize << std::endl;
     }
 
-    // Only for SetVectorData()
-    void ImportDataSizeCheckVector(std::size_t rContainerSize, std::size_t rSize){
-        KRATOS_ERROR_IF(rContainerSize != rSize) << "mismatch in size! Expected size: " << rContainerSize << std::endl;
+    /**
+     * @brief Inserts a list of entities and the belonging nodes to a submodelpart provided their Id. Does nothing if applied to the top model part
+	 * @param rEntitiesContainer The entities to be added
+     * @param rEntitiesIds The ids of the entities
+     */
+    template<class TEntitiesContainer>
+    void AuxiliaryAddEntitiesWithNodes(
+        TEntitiesContainer& rEntitiesContainer,
+        const std::vector<IndexType>& rEntitiesIds
+        )
+    {
+        KRATOS_TRY
+        
+        // Obtain from the root model part the corresponding list of nodes
+        const auto it_ent_end = rEntitiesContainer.end();
+        std::unordered_set<IndexType> set_of_node_ids;
+        for(IndexType i=0; i<rEntitiesIds.size(); ++i) {
+          auto it_ent = rEntitiesContainer.find(rEntitiesIds[i]);
+          if(it_ent!=it_ent_end) {
+            const auto& r_geom = it_ent->GetGeometry();
+            for (IndexType j = 0; j < r_geom.size(); ++j) {
+              set_of_node_ids.insert(r_geom[j].Id());
+            }
+          } else {
+            KRATOS_ERROR << "The entity with Id " << rEntitiesIds[i] << " does not exist in the root model part";
+          }
+        }
+
+        // Adding nodes
+        std::vector<IndexType> list_of_nodes;
+        list_of_nodes.insert(list_of_nodes.end(), set_of_node_ids.begin(), set_of_node_ids.end());
+        mrModelPart.AddNodes(list_of_nodes);
+
+        // Add to all of the leaves
+        ModelPart* p_current_part = &mrModelPart;
+        while(p_current_part->IsSubModelPart()) {
+          p_current_part->AddNodes(list_of_nodes);
+          p_current_part = &(p_current_part->GetParentModelPart());
+        }
+
+        KRATOS_CATCH("")
     }
 
+    /**
+     * @brief Inserts a list of pointers to elements and the belonging nodes
+     * @param rEntitiesContainer The entities to be added
+     * @param ItElementsBegin The begin iterator
+     * @param ItElementsEnd The end iterator
+     * @tparam TEntitiesContainer The class of entities considered
+     * @tparam TIteratorType The class of iterator considered
+     */
+    template<class TEntitiesContainer, class TIteratorType>
+    void AuxiliaryAddEntitiesWithNodes(
+        TEntitiesContainer& rEntitiesContainer,
+        TEntitiesContainer& rAux,
+        std::vector<IndexType>& rListOfNodes,
+        TIteratorType ItEntitiesBegin,
+        TIteratorType ItEntitiesEnd
+        )
+    {
+        KRATOS_TRY
+        
+        TEntitiesContainer aux_root;
+        std::unordered_set<IndexType> set_of_nodes;
+        
+        const auto it_ent_end = rEntitiesContainer.end();
+        for(TIteratorType it_ent = ItEntitiesBegin; it_ent!=ItEntitiesEnd; ++it_ent) {
+            auto it_ent_found = rEntitiesContainer.find(it_ent->Id());
+            if(it_ent_found == it_ent_end) { // Entity does not exist in the top model part
+                aux_root.push_back( *(it_ent.base()) );
+                rAux.push_back( *(it_ent.base()) );
+                const auto& r_geom = it_ent->GetGeometry();
+                for (IndexType i = 0; i < r_geom.size(); ++i) {
+                    set_of_nodes.insert(r_geom[i].Id());
+                }
+            } else { // If it_ent does exist verify it_ent is the same entity
+                if(&(*it_ent_found) != &(*it_ent)) { //check if the pointee coincides
+                    KRATOS_ERROR << "Attempting to add a new entity wit_enth Id :" << it_ent_found->Id() << ", unfortunately a (different) entity wit_enth the same Id already exists" << std::endl;
+                } else {
+                    rAux.push_back( *(it_ent.base()) );
+                    const auto& r_geom = it_ent->GetGeometry();
+                    for (IndexType i = 0; i < r_geom.size(); ++i) {
+                        set_of_nodes.insert(r_geom[i].Id());
+                    }
+                }
+            }
+        }
+
+        // Adding nodes
+        rListOfNodes.insert(rListOfNodes.end(), set_of_nodes.begin(), set_of_nodes.end());
+        mrModelPart.AddNodes(rListOfNodes);
+
+        for(auto it_ent = aux_root.begin(); it_ent!=aux_root.end(); ++it_ent) {
+            rEntitiesContainer.push_back( *(it_ent.base()) );
+        }
+        rEntitiesContainer.Unique();
+
+        KRATOS_CATCH("")
+    }
+    
+    /**
+     * @brief This method copies the submodelpart structure from the original model part to the new one.
+     * @details This method is called recursively
+     * @param rOriginalModelPart The original model part
+     * @param rNewModelPart The new model part
+     */
+    void DeepCopySubModelPart(
+        const ModelPart& rOldModelPart,
+        ModelPart& rNewModelPart
+        );
 
     ///@}
     ///@name Private  Access
     ///@{
-    ///@}
 
     ///@}
-    ///@name Serialization
-    ///@{
-
-    friend class Serializer;
-
-    void save(Serializer& rSerializer) const
-    {
-    }
-
-    void load(Serializer& rSerializer)
-    {
-    }
-
     ///@name Private Inquiry
     ///@{
-    ///@}
 
+    ///@}
     ///@name Unaccessible methods
     ///@{
     ///@}
@@ -731,7 +998,6 @@ private:
 ///@name Type Definitions
 ///@{
 
-
 ///@}
 ///@name Input and output
 ///@{
@@ -739,4 +1005,3 @@ private:
 ///@}
 
 }  // namespace Kratos.
-#endif /* KRATOS_AUXILIAR_MODEL_PART_UTILITIES defined */

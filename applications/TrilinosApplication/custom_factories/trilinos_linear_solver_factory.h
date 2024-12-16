@@ -4,21 +4,18 @@
 //           | || |  | | | | | | | (_) \__
 //           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
 //
-//  License:             BSD License
-//                                       Kratos default license: kratos/license.txt
+//  License:        BSD License
+//                  Kratos default license: kratos/license.txt
 //
 //  Main authors:   Vicente Mataix Ferrandiz
 //                  Philipp Bucher
 //
 
-#if !defined(KRATOS_TRILINOS_LINEAR_SOLVER_FACTORY_H_INCLUDED )
-#define  KRATOS_TRILINOS_LINEAR_SOLVER_FACTORY_H_INCLUDED
+#pragma once
 
 // System includes
 
 // External includes
-#include "Epetra_FECrsMatrix.h"
-#include "Epetra_FEVector.h"
 
 // Project includes
 #include "includes/define.h"
@@ -121,5 +118,3 @@ typedef LinearSolverFactory<TrilinosSparseSpaceType,  TrilinosLocalSpaceType> Tr
 KRATOS_API_EXTERN template class KRATOS_API(TRILINOS_APPLICATION) KratosComponents<TrilinosLinearSolverFactoryType>;
 
 }  // namespace Kratos.
-
-#endif // KRATOS_TRILINOS_LINEAR_SOLVER_FACTORY_H_INCLUDED  defined

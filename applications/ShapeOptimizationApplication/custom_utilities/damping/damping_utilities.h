@@ -111,7 +111,7 @@ public:
     void SetDampingFactorsForAllDampingRegions();
 
     // --------------------------------------------------------------------------
-    FilterFunction::Pointer CreateDampingFunction( std::string damping_type, double damping_radius ) const;
+    FilterFunction::Pointer CreateDampingFunction( std::string damping_type ) const;
 
     // --------------------------------------------------------------------------
     void ThrowWarningIfNodeNeighborsExceedLimit( const ModelPart::NodeType& given_node, const unsigned int number_of_neighbors ) const;

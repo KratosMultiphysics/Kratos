@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
@@ -14,8 +14,7 @@
 //                   Josep Maria Carbonell
 //
 
-#if !defined(KRATOS_PRISM_3D_6_H_INCLUDED )
-#define  KRATOS_PRISM_3D_6_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -24,7 +23,9 @@
 // Project includes
 #include "geometries/triangle_3d_3.h"
 #include "geometries/quadrilateral_3d_4.h"
+#include "utilities/integration_utilities.h"
 #include "integration/prism_gauss_legendre_integration_points.h"
+#include "utilities/geometry_utilities.h"
 
 namespace Kratos
 {
@@ -275,14 +276,34 @@ public:
     /// Destructor. Does nothing!!!
     ~Prism3D6() override {}
 
+    /**
+     * @brief Gets the geometry family.
+     * @details This function returns the family type of the geometry. The geometry family categorizes the geometry into a broader classification, aiding in its identification and processing.
+     * @return GeometryData::KratosGeometryFamily The geometry family.
+     */
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::KratosGeometryFamily::Kratos_Prism;
     }
 
+    /**
+     * @brief Gets the geometry type.
+     * @details This function returns the specific type of the geometry. The geometry type provides a more detailed classification of the geometry.
+     * @return GeometryData::KratosGeometryType The specific geometry type.
+     */
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::KratosGeometryType::Kratos_Prism3D6;
+    }
+
+    /**
+     * @brief Gets the geometry order type.
+     * @details This function returns the order type of the geometry. The order type relates to the polynomial degree of the geometry.
+     * @return GeometryData::KratosGeometryOrderType The geometry order type.
+     */
+    GeometryData::KratosGeometryOrderType GetGeometryOrderType() const override
+    {
+        return GeometryData::KratosGeometryOrderType::Kratos_Linear_Order;
     }
 
     /**
@@ -406,33 +427,17 @@ public:
         return std::abs( this->DeterminantOfJacobian( PointType() ) ) * 0.5;
     }
 
-
     /**
-     * This method calculates and returns the volume of this geometry.
-     * This method calculates and returns the volume of this geometry.
-     *
-     * This method uses the V = (A x B) * C / 6 formula.
-     *
-     * @return double value contains length, area or volume.
-     *
+     * @brief This method calculate and return volume of this geometry.
+     * @details For one and two dimensional geometry it returns zero and for three dimensional it gives volume of geometry.
+     * @return double value contains volume.
      * @see Length()
      * @see Area()
-     * @see Volume()
-     *
-     * :TODO: might be necessary to reimplement
+     * @see DomainSize()
      */
     double Volume() const override
     {
-        Vector temp;
-        this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
-        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
-        double volume = 0.0;
-
-        for ( unsigned int i = 0; i < integration_points.size(); i++ ) {
-            volume += temp[i] * integration_points[i].Weight();
-        }
-
-        return volume;
+        return IntegrationUtilities::ComputeVolume3DGeometry(*this);
     }
 
     /**
@@ -737,10 +742,50 @@ public:
         return rResult;
     }
 
+    ///@}
+    ///@name Spatial Operations
+    ///@{
 
     /**
-     * Input and output
-     */
+    * @brief Computes the distance between an point in
+    *        global coordinates and the closest point
+    *        of this geometry.
+    *        If projection fails, double::max will be returned.
+    * @param rPointGlobalCoordinates the point to which the
+    *        closest point has to be found.
+    * @param Tolerance accepted orthogonal error.
+    * @return Distance to geometry.
+    *         positive -> outside of to the geometry (for 2D and solids)
+    *         0        -> on/ in the geometry.
+    */
+    double CalculateDistance(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        // Point to compute distance to
+        const Point point(rPointGlobalCoordinates);
+
+        // Check if point is inside
+        CoordinatesArrayType aux_coordinates;
+        if (this->IsInside(rPointGlobalCoordinates, aux_coordinates, Tolerance)) {
+            return 0.0;
+        }
+
+        // Compute distance to faces
+        std::array<double, 5> distances;
+        distances[0] = GeometryUtils::PointDistanceToTriangle3D(this->GetPoint(0), this->GetPoint(2), this->GetPoint(1), point);
+        distances[1] = GeometryUtils::PointDistanceToTriangle3D(this->GetPoint(3), this->GetPoint(4), this->GetPoint(5), point);
+        distances[2] = GeometryUtils::PointDistanceToQuadrilateral3D(this->GetPoint(1), this->GetPoint(2), this->GetPoint(5), this->GetPoint(4), point);
+        distances[3] = GeometryUtils::PointDistanceToQuadrilateral3D(this->GetPoint(0), this->GetPoint(3), this->GetPoint(5), this->GetPoint(2), point);
+        distances[4] = GeometryUtils::PointDistanceToQuadrilateral3D(this->GetPoint(0), this->GetPoint(1), this->GetPoint(4), this->GetPoint(3), point);
+        const auto min = std::min_element(distances.begin(), distances.end());
+        return *min;
+    }
+
+    ///@}
+    ///@name Input and output
+    ///@{
 
     /**
      * Turn back information as a string.
@@ -777,11 +822,16 @@ public:
      */
     void PrintData( std::ostream& rOStream ) const override
     {
+        // Base Geometry class PrintData call
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
-        Matrix jacobian;
-        this->Jacobian( jacobian, PointType() );
-        rOStream << "    Jacobian in the origin\t : " << jacobian;
+
+        // If the geometry has valid points, calculate and output its data
+        if (this->AllPointsAreValid()) {
+            Matrix jacobian;
+            this->Jacobian( jacobian, PointType() );
+            rOStream << "    Jacobian in the origin\t : " << jacobian;
+        }
     }
 
 protected:
@@ -1092,9 +1142,6 @@ GeometryData Prism3D6<TPointType>::msGeometryData(
 );
 
 template<class TPointType> const
-GeometryDimension Prism3D6<TPointType>::msGeometryDimension(
-    3, 3, 3);
+GeometryDimension Prism3D6<TPointType>::msGeometryDimension(3, 3);
 
 }// namespace Kratos.
-
-#endif // KRATOS_PRISM_3D_6_H_INCLUDED  defined

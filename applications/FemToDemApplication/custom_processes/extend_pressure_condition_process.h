@@ -16,7 +16,6 @@
 
 #include "includes/model_part.h"
 #include "processes/process.h"
-#include <pybind11/pybind11.h>
 #include <list>
 #include "fem_to_dem_application_variables.h"
 #include "includes/define.h"
@@ -35,7 +34,7 @@ typedef std::size_t SizeType;
  * @author Alejandro Cornejo
  */
 template <SizeType TDim = 2>
-class ExtendPressureConditionProcess : public Process
+class KRATOS_API(FEM_TO_DEM_APPLICATION) ExtendPressureConditionProcess : public Process
 {
 
 public:

@@ -62,11 +62,11 @@ namespace Testing {
    * Generates a point type right triangle with origin in the origin and leg size 1.
    * @return  Pointer to a triangle2D3
    */
-  Triangle2D3<Node<3>>::Pointer GenerateNodesRightTriangle2D3() {
-    return Triangle2D3<Node<3>>::Pointer(new Triangle2D3<Node<3>>(
-      Node<3>::Pointer(new Node<3>(1, 0.0, 0.0, 0.0)),
-      Node<3>::Pointer(new Node<3>(2, 1.0, 0.0, 0.0)),
-      Node<3>::Pointer(new Node<3>(3, 0.0, 1.0, 0.0))
+  Triangle2D3<Node>::Pointer GenerateNodesRightTriangle2D3() {
+    return Triangle2D3<Node>::Pointer(new Triangle2D3<Node>(
+      Node::Pointer(new Node(1, 0.0, 0.0, 0.0)),
+      Node::Pointer(new Node(2, 1.0, 0.0, 0.0)),
+      Node::Pointer(new Node(3, 0.0, 1.0, 0.0))
     ));
   }
 
@@ -86,11 +86,11 @@ namespace Testing {
    * Generates a node irregular triangle.
    * @return  Pointer to a triangle2D3
    */
-  Triangle2D3<Node<3>>::Pointer GenerateNodesIrregularTriangle2D3() {
-    return Triangle2D3<Node<3>>::Pointer(new Triangle2D3<Node<3>>(
-      Node<3>::Pointer(new Node<3>(1, 1.0, 1.0, 0.0)),
-      Node<3>::Pointer(new Node<3>(2, 3.0, 0.5, 0.0)),
-      Node<3>::Pointer(new Node<3>(3, 2.5, 2.0, 0.0))
+  Triangle2D3<Node>::Pointer GenerateNodesIrregularTriangle2D3() {
+    return Triangle2D3<Node>::Pointer(new Triangle2D3<Node>(
+      Node::Pointer(new Node(1, 1.0, 1.0, 0.0)),
+      Node::Pointer(new Node(2, 3.0, 0.5, 0.0)),
+      Node::Pointer(new Node(3, 2.5, 2.0, 0.0))
     ));
   }
 
@@ -102,7 +102,7 @@ namespace Testing {
   KRATOS_TEST_CASE_IN_SUITE(Triangle2D3EdgesNumber, KratosCoreGeometriesFastSuite) {
     auto geom = GeneratePointsRightTriangle2D3();
 
-    KRATOS_CHECK_EQUAL(geom->EdgesNumber(), 3);
+    KRATOS_EXPECT_EQ(geom->EdgesNumber(), 3);
   }
 
   /** Checks if the edges are correct.
@@ -113,29 +113,29 @@ namespace Testing {
 
       const auto& r_edges = p_geom->GenerateEdges();
 
-      KRATOS_CHECK_NEAR((r_edges[0])[0].X(), (p_geom->pGetPoint(1))->X(), TOLERANCE);
-      KRATOS_CHECK_NEAR((r_edges[0])[0].Y(), (p_geom->pGetPoint(1))->Y(), TOLERANCE);
-      KRATOS_CHECK_NEAR((r_edges[0])[0].Z(), (p_geom->pGetPoint(1))->Z(), TOLERANCE);
+      KRATOS_EXPECT_NEAR((r_edges[0])[0].X(), (p_geom->pGetPoint(1))->X(), TOLERANCE);
+      KRATOS_EXPECT_NEAR((r_edges[0])[0].Y(), (p_geom->pGetPoint(1))->Y(), TOLERANCE);
+      KRATOS_EXPECT_NEAR((r_edges[0])[0].Z(), (p_geom->pGetPoint(1))->Z(), TOLERANCE);
 
-      KRATOS_CHECK_NEAR((r_edges[0])[1].X(), (p_geom->pGetPoint(2))->X(), TOLERANCE);
-      KRATOS_CHECK_NEAR((r_edges[0])[1].Y(), (p_geom->pGetPoint(2))->Y(), TOLERANCE);
-      KRATOS_CHECK_NEAR((r_edges[0])[1].Z(), (p_geom->pGetPoint(2))->Z(), TOLERANCE);
+      KRATOS_EXPECT_NEAR((r_edges[0])[1].X(), (p_geom->pGetPoint(2))->X(), TOLERANCE);
+      KRATOS_EXPECT_NEAR((r_edges[0])[1].Y(), (p_geom->pGetPoint(2))->Y(), TOLERANCE);
+      KRATOS_EXPECT_NEAR((r_edges[0])[1].Z(), (p_geom->pGetPoint(2))->Z(), TOLERANCE);
 
-      KRATOS_CHECK_NEAR((r_edges[1])[0].X(), (p_geom->pGetPoint(2))->X(), TOLERANCE);
-      KRATOS_CHECK_NEAR((r_edges[1])[0].Y(), (p_geom->pGetPoint(2))->Y(), TOLERANCE);
-      KRATOS_CHECK_NEAR((r_edges[1])[0].Z(), (p_geom->pGetPoint(2))->Z(), TOLERANCE);
+      KRATOS_EXPECT_NEAR((r_edges[1])[0].X(), (p_geom->pGetPoint(2))->X(), TOLERANCE);
+      KRATOS_EXPECT_NEAR((r_edges[1])[0].Y(), (p_geom->pGetPoint(2))->Y(), TOLERANCE);
+      KRATOS_EXPECT_NEAR((r_edges[1])[0].Z(), (p_geom->pGetPoint(2))->Z(), TOLERANCE);
 
-      KRATOS_CHECK_NEAR((r_edges[1])[1].X(), (p_geom->pGetPoint(0))->X(), TOLERANCE);
-      KRATOS_CHECK_NEAR((r_edges[1])[1].Y(), (p_geom->pGetPoint(0))->Y(), TOLERANCE);
-      KRATOS_CHECK_NEAR((r_edges[1])[1].Z(), (p_geom->pGetPoint(0))->Z(), TOLERANCE);
+      KRATOS_EXPECT_NEAR((r_edges[1])[1].X(), (p_geom->pGetPoint(0))->X(), TOLERANCE);
+      KRATOS_EXPECT_NEAR((r_edges[1])[1].Y(), (p_geom->pGetPoint(0))->Y(), TOLERANCE);
+      KRATOS_EXPECT_NEAR((r_edges[1])[1].Z(), (p_geom->pGetPoint(0))->Z(), TOLERANCE);
 
-      KRATOS_CHECK_NEAR((r_edges[2])[0].X(), (p_geom->pGetPoint(0))->X(), TOLERANCE);
-      KRATOS_CHECK_NEAR((r_edges[2])[0].Y(), (p_geom->pGetPoint(0))->Y(), TOLERANCE);
-      KRATOS_CHECK_NEAR((r_edges[2])[0].Z(), (p_geom->pGetPoint(0))->Z(), TOLERANCE);
+      KRATOS_EXPECT_NEAR((r_edges[2])[0].X(), (p_geom->pGetPoint(0))->X(), TOLERANCE);
+      KRATOS_EXPECT_NEAR((r_edges[2])[0].Y(), (p_geom->pGetPoint(0))->Y(), TOLERANCE);
+      KRATOS_EXPECT_NEAR((r_edges[2])[0].Z(), (p_geom->pGetPoint(0))->Z(), TOLERANCE);
 
-      KRATOS_CHECK_NEAR((r_edges[2])[1].X(), (p_geom->pGetPoint(1))->X(), TOLERANCE);
-      KRATOS_CHECK_NEAR((r_edges[2])[1].Y(), (p_geom->pGetPoint(1))->Y(), TOLERANCE);
-      KRATOS_CHECK_NEAR((r_edges[2])[1].Z(), (p_geom->pGetPoint(1))->Z(), TOLERANCE);
+      KRATOS_EXPECT_NEAR((r_edges[2])[1].X(), (p_geom->pGetPoint(1))->X(), TOLERANCE);
+      KRATOS_EXPECT_NEAR((r_edges[2])[1].Y(), (p_geom->pGetPoint(1))->Y(), TOLERANCE);
+      KRATOS_EXPECT_NEAR((r_edges[2])[1].Z(), (p_geom->pGetPoint(1))->Z(), TOLERANCE);
   }
 
   /** Checks if the number of faces is correct.
@@ -146,7 +146,7 @@ namespace Testing {
 
     // Charlie: I will let this to 3 but probably 'FacesNumber' needs to be documented to state
     // that for planar geometries it also return the number of edges.
-    KRATOS_CHECK_EQUAL(geom->FacesNumber(), 3);
+    KRATOS_EXPECT_EQ(geom->FacesNumber(), 3);
   }
 
   /** Checks if the area of the triangle is calculated correctly.
@@ -155,7 +155,7 @@ namespace Testing {
   KRATOS_TEST_CASE_IN_SUITE(Triangle2D3Area, KratosCoreGeometriesFastSuite) {
     auto geom = GeneratePointsRightTriangle2D3();
 
-    KRATOS_CHECK_NEAR(geom->Area(), 0.5, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->Area(), 0.5, TOLERANCE);
   }
 
   /** Checks if the area of the triangle is calculated correctly.
@@ -171,7 +171,7 @@ namespace Testing {
 
     GeometryUtils::CalculateGeometryData(*geom, DN_DX, N, Area);
 
-		KRATOS_CHECK_NEAR(Area, 0.5, TOLERANCE);
+		KRATOS_EXPECT_NEAR(Area, 0.5, TOLERANCE);
 	}
 
   /** Checks if the volume of the triangle is calculated correctly.
@@ -181,7 +181,10 @@ namespace Testing {
   KRATOS_TEST_CASE_IN_SUITE(Triangle2D3Volume, KratosCoreGeometriesFastSuite) {
     auto geom = GeneratePointsRightTriangle2D3();
 
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->Volume(), "Calling base class 'Volume' method instead of derived class one.");
+    // TODO: Remove code in June 2023
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(geom->Volume(), "Calling base class 'Volume' method instead of derived class one.");
+    // TODO: Activate code in June 2023
+    //KRATOS_EXPECT_EXCEPTION_IS_THROWN(geom->Volume(), "Triangle2D3:: Method not well defined. Replace with DomainSize() instead.");
 	}
 
   /** Checks if the minimum edge length is calculated correctly.
@@ -190,7 +193,7 @@ namespace Testing {
   KRATOS_TEST_CASE_IN_SUITE(Triangle2D3MinEdgeLength, KratosCoreGeometriesFastSuite) {
     auto geom = GeneratePointsRightTriangle2D3();
 
-    KRATOS_CHECK_NEAR(geom->MinEdgeLength(), 1.0, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->MinEdgeLength(), 1.0, TOLERANCE);
   }
 
   /** Checks if the maximum edge length is calculated correctly.
@@ -199,7 +202,7 @@ namespace Testing {
   KRATOS_TEST_CASE_IN_SUITE(Triangle2D3MaxEdgeLength, KratosCoreGeometriesFastSuite) {
     auto geom = GeneratePointsRightTriangle2D3();
 
-    KRATOS_CHECK_NEAR(geom->MaxEdgeLength(), 1.414213, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->MaxEdgeLength(), 1.414213, TOLERANCE);
   }
 
   /** Checks if the average edge length is calculated correctly.
@@ -208,7 +211,7 @@ namespace Testing {
   KRATOS_TEST_CASE_IN_SUITE(Triangle2D3AverageEdgeLength, KratosCoreGeometriesFastSuite) {
     auto geom = GeneratePointsRightTriangle2D3();
 
-    KRATOS_CHECK_NEAR(geom->AverageEdgeLength(), 1.138071, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->AverageEdgeLength(), 1.138071, TOLERANCE);
   }
 
   /** Checks if the circumradius is calculated correctly.
@@ -217,7 +220,7 @@ namespace Testing {
   KRATOS_TEST_CASE_IN_SUITE(Triangle2D3Circumradius, KratosCoreGeometriesFastSuite) {
     auto geom = GeneratePointsRightTriangle2D3();
 
-    KRATOS_CHECK_NEAR(geom->Circumradius(), 0.707107, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->Circumradius(), 0.707107, TOLERANCE);
   }
 
   /** Checks if the inradius is calculated correctly.
@@ -226,7 +229,7 @@ namespace Testing {
   KRATOS_TEST_CASE_IN_SUITE(Triangle2D3Inradius, KratosCoreGeometriesFastSuite) {
     auto geom = GeneratePointsRightTriangle2D3();
 
-    KRATOS_CHECK_NEAR(geom->Inradius(), 0.292893, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->Inradius(), 0.292893, TOLERANCE);
   }
 
   /** Checks the inside test for a given point respect to the triangle
@@ -247,10 +250,10 @@ namespace Testing {
 
     Point LocalCoords;
 
-    KRATOS_CHECK(geom->IsInside(PointInside, LocalCoords, EPSILON));
-    KRATOS_CHECK_IS_FALSE(geom->IsInside(PointOutside, LocalCoords, EPSILON));
-    KRATOS_CHECK(geom->IsInside(PointInVertex, LocalCoords, EPSILON));
-    KRATOS_CHECK(geom->IsInside(PointInEdge, LocalCoords, EPSILON));
+    KRATOS_EXPECT_TRUE(geom->IsInside(PointInside, LocalCoords, EPSILON));
+    KRATOS_EXPECT_FALSE(geom->IsInside(PointOutside, LocalCoords, EPSILON));
+    KRATOS_EXPECT_TRUE(geom->IsInside(PointInVertex, LocalCoords, EPSILON));
+    KRATOS_EXPECT_TRUE(geom->IsInside(PointInEdge, LocalCoords, EPSILON));
   }
 
   /** Checks the point local coordinates for a given point respect to the
@@ -269,9 +272,9 @@ namespace Testing {
     array_1d<double, 3> baricentre_local_coords;
     geom->PointLocalCoordinates(baricentre_local_coords, baricentre);
 
-    KRATOS_CHECK_NEAR(baricentre_local_coords(0), 1.0/3.0, TOLERANCE);
-    KRATOS_CHECK_NEAR(baricentre_local_coords(1), 1.0/3.0, TOLERANCE);
-    KRATOS_CHECK_NEAR(baricentre_local_coords(2), 0.0, TOLERANCE);
+    KRATOS_EXPECT_NEAR(baricentre_local_coords(0), 1.0/3.0, TOLERANCE);
+    KRATOS_EXPECT_NEAR(baricentre_local_coords(1), 1.0/3.0, TOLERANCE);
+    KRATOS_EXPECT_NEAR(baricentre_local_coords(2), 0.0, TOLERANCE);
   }
 
   /** Tests the area using 'GI_GAUSS_1' integration method.
@@ -286,7 +289,7 @@ namespace Testing {
 
     GeometryUtils::CalculateGeometryData(*geom, DN_DX, N, ExpectedArea);
 
-    KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_1), ExpectedArea, TOLERANCE);
+    KRATOS_EXPECT_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_1), ExpectedArea, TOLERANCE);
     VerifyStrainExactness(*geom, GeometryData::IntegrationMethod::GI_GAUSS_1);
   }
 
@@ -302,7 +305,7 @@ namespace Testing {
 
     GeometryUtils::CalculateGeometryData(*geom, DN_DX, N, ExpectedArea);
 
-    KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_2), ExpectedArea, TOLERANCE);
+    KRATOS_EXPECT_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_2), ExpectedArea, TOLERANCE);
     VerifyStrainExactness(*geom, GeometryData::IntegrationMethod::GI_GAUSS_2);
   }
 
@@ -318,7 +321,7 @@ namespace Testing {
 
     GeometryUtils::CalculateGeometryData(*geom, DN_DX, N, ExpectedArea);
 
-    KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_3), ExpectedArea, TOLERANCE);
+    KRATOS_EXPECT_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_3), ExpectedArea, TOLERANCE);
     VerifyStrainExactness(*geom, GeometryData::IntegrationMethod::GI_GAUSS_3);
   }
 
@@ -334,7 +337,7 @@ namespace Testing {
 
     GeometryUtils::CalculateGeometryData(*geom, DN_DX, N, ExpectedArea);
 
-    KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_4), ExpectedArea, TOLERANCE);
+    KRATOS_EXPECT_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_4), ExpectedArea, TOLERANCE);
     VerifyStrainExactness(*geom, GeometryData::IntegrationMethod::GI_GAUSS_4);
   }
 
@@ -350,7 +353,7 @@ namespace Testing {
 
     GeometryUtils::CalculateGeometryData(*geom, DN_DX, N, ExpectedArea);
 
-    KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_5), ExpectedArea, TOLERANCE);
+    KRATOS_EXPECT_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_5), ExpectedArea, TOLERANCE);
     VerifyStrainExactness(*geom, GeometryData::IntegrationMethod::GI_GAUSS_5);
   }
 
@@ -366,7 +369,7 @@ namespace Testing {
 
     for (unsigned int i=0; i<JacobianDeterminants.size(); ++i)
     {
-        KRATOS_CHECK_NEAR(JacobianDeterminants[i], ExpectedJacobian, TOLERANCE);
+        KRATOS_EXPECT_NEAR(JacobianDeterminants[i], ExpectedJacobian, TOLERANCE);
     }
   }
 
@@ -382,7 +385,7 @@ namespace Testing {
 
     for (unsigned int i=0; i<JacobianDeterminants.size(); ++i)
     {
-        KRATOS_CHECK_NEAR(JacobianDeterminants[i], ExpectedJacobian, TOLERANCE);
+        KRATOS_EXPECT_NEAR(JacobianDeterminants[i], ExpectedJacobian, TOLERANCE);
     }
   }
 
@@ -398,7 +401,7 @@ namespace Testing {
 
     for (unsigned int i=0; i<JacobianDeterminants.size(); ++i)
     {
-        KRATOS_CHECK_NEAR(JacobianDeterminants[i], ExpectedJacobian, TOLERANCE);
+        KRATOS_EXPECT_NEAR(JacobianDeterminants[i], ExpectedJacobian, TOLERANCE);
     }
   }
 
@@ -414,7 +417,7 @@ namespace Testing {
 
     for (unsigned int i=0; i<JacobianDeterminants.size(); ++i)
     {
-        KRATOS_CHECK_NEAR(JacobianDeterminants[i], ExpectedJacobian, TOLERANCE);
+        KRATOS_EXPECT_NEAR(JacobianDeterminants[i], ExpectedJacobian, TOLERANCE);
     }
   }
 
@@ -430,7 +433,7 @@ namespace Testing {
 
     for (unsigned int i=0; i<JacobianDeterminants.size(); ++i)
     {
-        KRATOS_CHECK_NEAR(JacobianDeterminants[i], ExpectedJacobian, TOLERANCE);
+        KRATOS_EXPECT_NEAR(JacobianDeterminants[i], ExpectedJacobian, TOLERANCE);
     }
   }
 
@@ -442,7 +445,7 @@ namespace Testing {
     const double ExpectedJacobian = 1.0;
 
     double JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::IntegrationMethod::GI_GAUSS_1 );
-    KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
+    KRATOS_EXPECT_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
   }
 
   /** Tests the Jacobian determinants using 'GI_GAUSS_2' integration method.
@@ -454,10 +457,10 @@ namespace Testing {
     const double ExpectedJacobian = 1.0;
 
     JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::IntegrationMethod::GI_GAUSS_2 );
-    KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
+    KRATOS_EXPECT_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
 
     JacobianDeterminant = geom->DeterminantOfJacobian( 2, GeometryData::IntegrationMethod::GI_GAUSS_2 );
-    KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
+    KRATOS_EXPECT_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
   }
 
   /** Tests the Jacobian determinants using 'GI_GAUSS_3' integration method.
@@ -469,13 +472,13 @@ namespace Testing {
     const double ExpectedJacobian = 1.0;
 
     JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::IntegrationMethod::GI_GAUSS_3 );
-    KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
+    KRATOS_EXPECT_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
 
     JacobianDeterminant = geom->DeterminantOfJacobian( 2, GeometryData::IntegrationMethod::GI_GAUSS_3 );
-    KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
+    KRATOS_EXPECT_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
 
     JacobianDeterminant = geom->DeterminantOfJacobian( 3, GeometryData::IntegrationMethod::GI_GAUSS_3 );
-    KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
+    KRATOS_EXPECT_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
   }
 
   /** Tests the Jacobian determinants using 'GI_GAUSS_4' integration method.
@@ -487,16 +490,16 @@ namespace Testing {
     const double ExpectedJacobian = 1.0;
 
     JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::IntegrationMethod::GI_GAUSS_4 );
-    KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
+    KRATOS_EXPECT_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
 
     JacobianDeterminant = geom->DeterminantOfJacobian( 2, GeometryData::IntegrationMethod::GI_GAUSS_4 );
-    KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
+    KRATOS_EXPECT_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
 
     JacobianDeterminant = geom->DeterminantOfJacobian( 3, GeometryData::IntegrationMethod::GI_GAUSS_4 );
-    KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
+    KRATOS_EXPECT_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
 
     JacobianDeterminant = geom->DeterminantOfJacobian( 4, GeometryData::IntegrationMethod::GI_GAUSS_4 );
-    KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
+    KRATOS_EXPECT_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
   }
 
   /** Tests the Jacobian determinants using 'GI_GAUSS_4' integration method.
@@ -508,19 +511,19 @@ namespace Testing {
     const double ExpectedJacobian = 1.0;
 
     JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::IntegrationMethod::GI_GAUSS_5 );
-    KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
+    KRATOS_EXPECT_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
 
     JacobianDeterminant = geom->DeterminantOfJacobian( 2, GeometryData::IntegrationMethod::GI_GAUSS_5 );
-    KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
+    KRATOS_EXPECT_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
 
     JacobianDeterminant = geom->DeterminantOfJacobian( 3, GeometryData::IntegrationMethod::GI_GAUSS_5 );
-    KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
+    KRATOS_EXPECT_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
 
     JacobianDeterminant = geom->DeterminantOfJacobian( 4, GeometryData::IntegrationMethod::GI_GAUSS_5 );
-    KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
+    KRATOS_EXPECT_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
 
     JacobianDeterminant = geom->DeterminantOfJacobian( 5, GeometryData::IntegrationMethod::GI_GAUSS_5 );
-    KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
+    KRATOS_EXPECT_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
   }
 
     /**
@@ -530,15 +533,15 @@ namespace Testing {
         auto geom = GeneratePointsRightTriangle2D3();
         Point point_1(-0.1, 0.1, 0.0);
         Point point_2( 0.1, 0.3, 0.0);
-        KRATOS_CHECK(geom->HasIntersection(point_1, point_2));
+        KRATOS_EXPECT_TRUE(geom->HasIntersection(point_1, point_2));
 
         Point point_3( 0.1,-0.1, 0.0);
         Point point_4( 0.3, 0.1, 0.0);
-        KRATOS_CHECK(geom->HasIntersection(point_3, point_4));
+        KRATOS_EXPECT_TRUE(geom->HasIntersection(point_3, point_4));
 
         Point point_5( 0.3, 0.2, 0.0);
         Point point_6( 1.0, 1.0, 0.0);
-        KRATOS_CHECK(geom->HasIntersection(point_5, point_6));
+        KRATOS_EXPECT_TRUE(geom->HasIntersection(point_5, point_6));
     }
 
     /**
@@ -548,15 +551,15 @@ namespace Testing {
         auto geom = GeneratePointsRightTriangle2D3();
         Point point_1(-0.5, 0.8, 0.0);
         Point point_2( 0.5, 1.2, 0.0);
-        KRATOS_CHECK(geom->HasIntersection(point_1, point_2));
+        KRATOS_EXPECT_TRUE(geom->HasIntersection(point_1, point_2));
 
         Point point_3( 0.3,-0.5, 0.0);
         Point point_4( 1.2, 0.5, 0.0);
-        KRATOS_CHECK(geom->HasIntersection(point_3, point_4));
+        KRATOS_EXPECT_TRUE(geom->HasIntersection(point_3, point_4));
 
         Point point_5( 0.2, 0.3, 0.0);
         Point point_6(-0.8,-0.3, 0.0);
-        KRATOS_CHECK(geom->HasIntersection(point_5, point_6));
+        KRATOS_EXPECT_TRUE(geom->HasIntersection(point_5, point_6));
     }
 
     /**
@@ -566,7 +569,7 @@ namespace Testing {
         auto geom = GeneratePointsRightTriangle2D3();
         Point point_1( 0.1, 0.1, 0.0);
         Point point_2( 0.3, 0.4, 0.0);
-        KRATOS_CHECK(geom->HasIntersection(point_1, point_2));
+        KRATOS_EXPECT_TRUE(geom->HasIntersection(point_1, point_2));
     }
 
     /**
@@ -576,7 +579,7 @@ namespace Testing {
         auto geom = GeneratePointsRightTriangle2D3();
         Point point_1( 0.6, 0.5, 0.0);
         Point point_2( 1.0, 1.0, 0.0);
-        KRATOS_CHECK_IS_FALSE(geom->HasIntersection(point_1, point_2));
+        KRATOS_EXPECT_FALSE(geom->HasIntersection(point_1, point_2));
     }
 
     /**
@@ -587,7 +590,7 @@ namespace Testing {
         auto geom = GeneratePointsRightTriangle2D3();
         Point point_1( 0.2, 0.1, 0.1);
         Point point_2( 0.3, 0.5, 1.0);
-        KRATOS_CHECK(geom->HasIntersection(point_1, point_2));
+        KRATOS_EXPECT_TRUE(geom->HasIntersection(point_1, point_2));
     }
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle2D3ShapeFunctionsValues, KratosCoreGeometriesFastSuite) {
@@ -596,9 +599,9 @@ namespace Testing {
       coord[0] = 1.0 / 2.0;
       coord[1] = 1.0 / 8.0;
       coord[2] = 0.0;
-      KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(0, coord), 0.375, TOLERANCE);
-      KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(1, coord), 0.5, TOLERANCE);
-      KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(2, coord), 0.125, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(0, coord), 0.375, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(1, coord), 0.5, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(2, coord), 0.125, TOLERANCE);
       CrossCheckShapeFunctionsValues(*geom);
     }
 
@@ -614,9 +617,9 @@ namespace Testing {
         LocalCoord.clear();
         auto normal = geom->Normal(LocalCoord);
 
-        KRATOS_CHECK_NEAR(normal[0], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(normal[1], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(normal[2], 0.5, TOLERANCE);
+        KRATOS_EXPECT_NEAR(normal[0], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(normal[1], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(normal[2], 0.5, TOLERANCE);
 
         array_1d<double, 3> cross_norm;
         cross_norm[0] = 0.0;
@@ -625,21 +628,21 @@ namespace Testing {
         array_1d<double, 3> cross;
         MathUtils<double>::CrossProduct(cross, cross_norm, normal);
 
-        KRATOS_CHECK_NEAR(cross[0], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(cross[1], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(cross[2], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(cross[0], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(cross[1], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(cross[2], 0.0, TOLERANCE);
 
         normal /= norm_2(normal);
 
         auto unit_normal = geom->UnitNormal(LocalCoord);
 
-        KRATOS_CHECK_NEAR(unit_normal[0], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(unit_normal[1], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(unit_normal[2], 1.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(unit_normal[0], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(unit_normal[1], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(unit_normal[2], 1.0, TOLERANCE);
 
-        KRATOS_CHECK_NEAR(unit_normal[0], normal[0], TOLERANCE);
-        KRATOS_CHECK_NEAR(unit_normal[1], normal[1], TOLERANCE);
-        KRATOS_CHECK_NEAR(unit_normal[2], normal[2], TOLERANCE);
+        KRATOS_EXPECT_NEAR(unit_normal[0], normal[0], TOLERANCE);
+        KRATOS_EXPECT_NEAR(unit_normal[1], normal[1], TOLERANCE);
+        KRATOS_EXPECT_NEAR(unit_normal[2], normal[2], TOLERANCE);
     }
 
 } // namespace Testing.

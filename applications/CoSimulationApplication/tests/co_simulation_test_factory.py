@@ -7,17 +7,11 @@ data_comm = KM.Testing.GetDefaultDataCommunicator()
 import co_simulation_test_case
 import os
 
-try:
-    import numpy
-    numpy_available = True
-except ImportError:
-    numpy_available = False
-
 have_fsi_dependencies = kratos_utils.CheckIfApplicationsAvailable("FluidDynamicsApplication", "StructuralMechanicsApplication", "MappingApplication", "MeshMovingApplication", "LinearSolversApplication")
 have_potential_fsi_dependencies = kratos_utils.CheckIfApplicationsAvailable("CompressiblePotentialFlowApplication", "StructuralMechanicsApplication", "MappingApplication", "MeshMovingApplication", "LinearSolversApplication")
-have_mpm_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("ParticleMechanicsApplication", "StructuralMechanicsApplication", "MappingApplication", "LinearSolversApplication", "ConstitutiveLawsApplication")
+have_mpm_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("MPMApplication", "StructuralMechanicsApplication", "MappingApplication", "LinearSolversApplication", "ConstitutiveLawsApplication")
 have_dem_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("DEMApplication", "StructuralMechanicsApplication", "MappingApplication", "LinearSolversApplication")
-have_mpm_dem_dependencies = kratos_utils.CheckIfApplicationsAvailable("DEMApplication", "ParticleMechanicsApplication", "MappingApplication", "LinearSolversApplication")
+have_mpm_dem_dependencies = kratos_utils.CheckIfApplicationsAvailable("DEMApplication", "MPMApplication", "MappingApplication", "LinearSolversApplication")
 have_fem_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("StructuralMechanicsApplication", "MappingApplication")
 have_pfem_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("PfemFluidDynamicsApplication", "StructuralMechanicsApplication", "MappingApplication", "LinearSolversApplication", "ConstitutiveLawsApplication")
 
@@ -28,8 +22,6 @@ class TestTinyFetiCoSimulationCases(co_simulation_test_case.CoSimulationTestCase
     '''This class contains "tiny" FETI CoSimulation-Cases, small enough to run in the CI
     '''
     def test_FEM_FEM_small_2d_plate_feti_explict_explicit(self):
-        if not numpy_available:
-            self.skipTest("Numpy not available")
         if not have_fem_fem_dependencies:
             self.skipTest("FEM-FEM dependencies are not available!")
 
@@ -39,8 +31,6 @@ class TestTinyFetiCoSimulationCases(co_simulation_test_case.CoSimulationTestCase
             self._runTest()
 
     def test_FEM_FEM_small_2d_plate_feti_implict_explicit(self):
-        if not numpy_available:
-            self.skipTest("Numpy not available")
         if not have_fem_fem_dependencies:
             self.skipTest("FEM-FEM dependencies are not available!")
 
@@ -50,8 +40,6 @@ class TestTinyFetiCoSimulationCases(co_simulation_test_case.CoSimulationTestCase
             self._runTest()
 
     def test_FEM_FEM_small_2d_plate_feti_implict_implicit(self):
-        if not numpy_available:
-            self.skipTest("Numpy not available")
         if not have_fem_fem_dependencies:
             self.skipTest("FEM-FEM dependencies are not available!")
 
@@ -61,8 +49,6 @@ class TestTinyFetiCoSimulationCases(co_simulation_test_case.CoSimulationTestCase
             self._runTest()
 
     def test_FEM_FEM_small_2d_plate_feti_implict_explicit_mixed(self):
-        if not numpy_available:
-            self.skipTest("Numpy not available")
         if not have_fem_fem_dependencies:
             self.skipTest("FEM-FEM dependencies are not available!")
 
@@ -72,8 +58,6 @@ class TestTinyFetiCoSimulationCases(co_simulation_test_case.CoSimulationTestCase
             self._runTest()
 
     def test_MPMDEMCoupling(self):
-        if not numpy_available:
-            self.skipTest("Numpy not available")
         if not have_mpm_dem_dependencies:
             self.skipTest("MPM DEM dependencies are not available!")
 
@@ -94,8 +78,6 @@ class TestSmallCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
     '''
 
     def test_FEM_FEM_small_2d_plate_dual_mortar(self):
-        if not numpy_available:
-            self.skipTest("Numpy not available")
         if not have_fem_fem_dependencies:
             self.skipTest("FEM-FEM dependencies are not available!")
 
@@ -105,8 +87,6 @@ class TestSmallCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
             self._runTest()
 
     def test_FEM_FEM_small_2d_plate_full_mortar(self):
-        if not numpy_available:
-            self.skipTest("Numpy not available")
         if not have_fem_fem_dependencies:
             self.skipTest("FEM-FEM dependencies are not available!")
 
@@ -116,8 +96,6 @@ class TestSmallCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
             self._runTest()
 
     def test_FEM_FEM_Neumann_Neumann_Jacobi_Solver(self):
-        if not numpy_available:
-            self.skipTest("Numpy not available")
         if not have_fem_fem_dependencies:
             self.skipTest("FEM-FEM dependencies are not available!")
 
@@ -127,8 +105,6 @@ class TestSmallCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
             self._runTest()
 
     #def test_FEM_FEM_dynamic_2d_cantilever_implicit_implicit(self):
-    #    if not numpy_available:
-    #        self.skipTest("Numpy not available")
     #    if not have_fem_fem_dependencies:
     #        self.skipTest("FEM-FEM dependencies are not available!")
     #
@@ -138,8 +114,6 @@ class TestSmallCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
     #        self._runTest()
     #
     #def test_FEM_FEM_dynamic_2d_cantilever_implicit_implicit_nonconforming(self):
-    #    if not numpy_available:
-    #        self.skipTest("Numpy not available")
     #    if not have_fem_fem_dependencies:
     #        self.skipTest("FEM-FEM dependencies are not available!")
     #
@@ -149,8 +123,6 @@ class TestSmallCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
     #        self._runTest()
     #
     #def test_FEM_FEM_dynamic_2d_cantilever_implicit_implicit_mixed_timestep(self):
-    #    if not numpy_available:
-    #        self.skipTest("Numpy not available")
     #    if not have_fem_fem_dependencies:
     #        self.skipTest("FEM-FEM dependencies are not available!")
     #
@@ -160,8 +132,6 @@ class TestSmallCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
     #        self._runTest()
     #
     #def test_FEM_FEM_dynamic_2d_cantilever_implicit_explicit_mixed_nonconforming(self):
-    #    if not numpy_available:
-    #        self.skipTest("Numpy not available")
     #    if not have_fem_fem_dependencies:
     #        self.skipTest("FEM-FEM dependencies are not available!")
     #
@@ -171,8 +141,6 @@ class TestSmallCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
     #        self._runTest()
 
     def test_sdof_static_fsi(self):
-        if not numpy_available:
-            self.skipTest("Numpy not available")
         if not have_potential_fsi_dependencies:
             self.skipTest("FSI dependencies are not available!")
 
@@ -187,8 +155,6 @@ class TestCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
     '''
 
     def test_MPM_FEM_beam_penalty(self):
-        if not numpy_available:
-            self.skipTest("Numpy not available")
         if not have_mpm_fem_dependencies:
             self.skipTest("MPM-FEM dependencies are not available!")
 
@@ -198,8 +164,6 @@ class TestCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
             self._runTest()
 
     def test_WallFSI(self):
-        if not numpy_available:
-            self.skipTest("Numpy not available")
         if not have_fsi_dependencies:
             self.skipTest("FSI dependencies are not available!")
 
@@ -208,8 +172,6 @@ class TestCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
             self._runTest()
 
     def test_DEMFEMCableNet(self):
-        if not numpy_available:
-            self.skipTest("Numpy not available")
         if not have_dem_fem_dependencies:
             self.skipTest("DEM FEM dependencies are not available!")
 
@@ -225,8 +187,6 @@ class TestCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
         self.addCleanup(kratos_utils.DeleteDirectoryIfExisting, GetFilePath("dem_fem_cable_net/cableNet_Results_and_Data"))
 
     def test_sdof_fsi(self):
-        if not numpy_available:
-            self.skipTest("Numpy not available")
         if not have_fsi_dependencies:
             self.skipTest("FSI dependencies are not available!")
 
@@ -245,8 +205,6 @@ class TestCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
 
     @KratosUnittest.skipUnless(False, "this test result is not evaluated")
     def test_PFEM_FEM_water_slide_2d(self):
-        if not numpy_available:
-            self.skipTest("Numpy not available")
         if not have_pfem_fem_dependencies:
             self.skipTest("PFEM FEM dependencies are not available!")
 

@@ -59,7 +59,7 @@ public:
 
     typedef std::size_t IndexType;
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     typedef array_1d<double, 3*TNumNodes> LocalVectorType;
 
@@ -234,6 +234,12 @@ public:
     ///@{
 
     /**
+     * @brief GetIntegrationMethod Return the integration order to be used.
+     * @return Gauss Order
+     */
+    GeometryData::IntegrationMethod GetIntegrationMethod() const override;
+
+    /**
      * @brief This method provides the specifications/requirements of the element
      * @return specifications The required specifications/requirements
      */
@@ -316,8 +322,9 @@ protected:
         array_1d<array_1d<double,3>,TNumNodes> nodal_v;
         array_1d<array_1d<double,3>,TNumNodes> nodal_q;
         array_1d<array_1d<double,3>,TNumNodes> nodal_a;
-        array_1d<array_1d<double,3>,TNumNodes> nodal_v_lap;
-        array_1d<array_1d<double,3>,TNumNodes> nodal_q_lap;
+        array_1d<array_1d<double,3>,TNumNodes> nodal_Jh;
+        array_1d<array_1d<double,3>,TNumNodes> nodal_Ju;
+        array_1d<array_1d<double,3>,TNumNodes> nodal_v_mesh;
 
         FrictionLaw::Pointer p_bottom_friction;
     };
@@ -336,7 +343,7 @@ protected:
 
     virtual void UpdateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN);
 
-    static void CalculateGeometryData(
+    void CalculateGeometryData(
         const GeometryType& rGeometry,
         Vector &rGaussWeights,
         Matrix &rNContainer,

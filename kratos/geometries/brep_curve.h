@@ -8,8 +8,7 @@
 //                   Kratos default license: kratos/license.txt
 //
 
-#if !defined(KRATOS_BREP_CURVE_3D_H_INCLUDED )
-#define  KRATOS_BREP_CURVE_3D_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -17,6 +16,7 @@
 
 // Project includes
 #include "geometries/geometry.h"
+#include "geometries/nurbs_curve_geometry.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_interval.h"
 
 
@@ -373,11 +373,21 @@ public:
     ///@name Geometry Classification
     ///@{
 
+    /**
+     * @brief Gets the geometry family.
+     * @details This function returns the family type of the geometry. The geometry family categorizes the geometry into a broader classification, aiding in its identification and processing.
+     * @return GeometryData::KratosGeometryFamily The geometry family.
+     */
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::KratosGeometryFamily::Kratos_Brep;
     }
 
+    /**
+     * @brief Gets the geometry type.
+     * @details This function returns the specific type of the geometry. The geometry type provides a more detailed classification of the geometry.
+     * @return GeometryData::KratosGeometryType The specific geometry type.
+     */
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::KratosGeometryType::Kratos_Brep_Curve;
@@ -486,10 +496,7 @@ GeometryData BrepCurve<TContainerPointType, TContainerPointEmbeddedType>::msGeom
     {}, {}, {});
 
 template<class TContainerPointType, class TContainerPointEmbeddedType>
-const GeometryDimension BrepCurve<TContainerPointType, TContainerPointEmbeddedType>::msGeometryDimension(
-    1, 3, 1);
+const GeometryDimension BrepCurve<TContainerPointType, TContainerPointEmbeddedType>::msGeometryDimension(3, 1);
 
 ///@}
 }// namespace Kratos.
-
-#endif // KRATOS_BREP_CURVE_3D_H_INCLUDED  defined

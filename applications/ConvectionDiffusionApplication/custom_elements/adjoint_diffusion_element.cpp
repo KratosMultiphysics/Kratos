@@ -72,7 +72,7 @@ void AdjointDiffusionElement<PrimalElement>::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    const Geometry<Node<3>>& r_geom = this->GetGeometry();
+    const Geometry<Node>& r_geom = this->GetGeometry();
     const unsigned int num_nodes = r_geom.PointsNumber();
 
     if (rRightHandSideVector.size() != num_nodes)

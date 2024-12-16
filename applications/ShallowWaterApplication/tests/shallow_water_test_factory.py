@@ -4,12 +4,6 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.ShallowWaterApplication.shallow_water_analysis import ShallowWaterAnalysis
 
 try:
-    import numpy
-    numpy_available = True
-except ImportError:
-    numpy_available = False
-
-try:
     import scipy
     scipy_available = True
 except ImportError:
@@ -19,8 +13,6 @@ class ShallowWaterTestFactory(KratosUnittest.TestCase):
     need_numpy = False
     need_scipy = False
     def test_execution(self):
-        if self.need_numpy and not numpy_available:
-            self.skipTest("numpy not available")
         if self.need_scipy and not scipy_available:
             self.skipTest("scipy not available")
         with KratosUnittest.WorkFolderScope(self.execution_directory, __file__):
@@ -41,6 +33,10 @@ class TestConservativeGradientJump2D3NElement(ShallowWaterTestFactory):
 class TestConservativeFluxCorrected2D3NElement(ShallowWaterTestFactory):
     execution_directory = "elements_tests"
     execution_file = "conservative_flux_corrected_2d_3n"
+
+class TestPrimitive2D3NElement(ShallowWaterTestFactory):
+    execution_directory = "elements_tests"
+    execution_file = "primitive_2d_3n"
 
 class TestBoussinesq2D3NElement(ShallowWaterTestFactory):
     execution_directory = "elements_tests"
@@ -89,3 +85,20 @@ class TestSolitaryWaveBenchmark(ShallowWaterTestFactory):
 class TestMeshMovingStrategy(ShallowWaterTestFactory):
     execution_directory = "nightly_tests"
     execution_file = "mesh_moving_strategy"
+
+class TestDamBreakValidation(ShallowWaterTestFactory):
+    execution_directory = "validation_tests"
+    execution_file = "dam_break_validation"
+    need_scipy = True
+
+class TestMacDonaldShockValidation(ShallowWaterTestFactory):
+    execution_directory = "validation_tests"
+    execution_file = "mac_donald_shock_validation"
+    need_scipy = True
+    need_numpy = True
+
+class TestSolitaryWaveValidation(ShallowWaterTestFactory):
+    execution_directory = "validation_tests"
+    execution_file = "solitary_wave_validation"
+    need_scipy = True
+    need_numpy = True

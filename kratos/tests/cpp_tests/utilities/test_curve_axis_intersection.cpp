@@ -63,10 +63,10 @@ namespace Kratos {
                 surface_spans_u, surface_spans_v,
                 1e-6);
                 
-            KRATOS_CHECK_EQUAL(spans.size(), 3);
-            KRATOS_CHECK_NEAR(spans[0], -0.23561944901923448, TOLERANCE);
-            KRATOS_CHECK_NEAR(spans[1], -0.17671458676442586, TOLERANCE);
-            KRATOS_CHECK_NEAR(spans[2], -0.11780972450961724, TOLERANCE);
+            KRATOS_EXPECT_EQ(spans.size(), 3);
+            KRATOS_EXPECT_NEAR(spans[0], -0.23561944901923448, TOLERANCE);
+            KRATOS_EXPECT_NEAR(spans[1], -0.17671458676442586, TOLERANCE);
+            KRATOS_EXPECT_NEAR(spans[2], -0.11780972450961724, TOLERANCE);
         }
 
     } // namespace Testing.

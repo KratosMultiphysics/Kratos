@@ -1,5 +1,9 @@
+# Core imports
+import KratosMultiphysics
+
 # CoSimulation imports
 from KratosMultiphysics.CoSimulationApplication.factories.convergence_accelerator_factory import CreateConvergenceAccelerator
+from ..coupling_interface_data import CouplingInterfaceData
 
 # Other imports
 import numpy as np
@@ -12,13 +16,17 @@ class ConvergenceAcceleratorWrapper:
     In case of distributed data, it is checked whether the convergence accelerator supports it.
     If not, the data is gathered / scattered and the accelerator is executed on only one rank
     """
-    def __init__(self, settings, solver_wrapper, parent_coupled_solver_data_communicator):
-        self.interface_data = solver_wrapper.GetInterfaceData(settings["data_name"].GetString())
-        self.residual_computation = CreateResidualComputation(settings, solver_wrapper)
+    def __init__(self,
+                 settings: KratosMultiphysics.Parameters,
+                 interface_data_dict: "dict[str,CouplingInterfaceData]",
+                 parent_coupled_solver_data_communicator: KratosMultiphysics.DataCommunicator):
+        self.interface_data = interface_data_dict[settings["data_name"].GetString()]
+        self.residual_computation = CreateResidualComputation(settings, interface_data_dict)
 
-        settings.RemoveValue("data_name")
-        settings.RemoveValue("solver")
-        settings.RemoveValue("residual_computation")
+        # Remove extra entries from accelerator parameters
+        for key in ("data_name", "solver", "residual_computation"):
+            if settings.Has(key):
+                settings.RemoveValue(key)
 
         self.conv_acc = CreateConvergenceAccelerator(settings)
         self.data_communicator = parent_coupled_solver_data_communicator
@@ -88,29 +96,34 @@ class ConvergenceAcceleratorResidual(metaclass=ABCMeta):
     def ComputeResidual(self, input_data): pass
 
 class DataDifferenceResidual(ConvergenceAcceleratorResidual):
-    def __init__(self, settings, solver_wrapper):
-        self.interface_data = solver_wrapper.GetInterfaceData(settings["data_name"].GetString())
+    def __init__(self,
+                 settings: KratosMultiphysics.Parameters,
+                 interface_data_dict: "dict[str,CouplingInterfaceData]"):
+        self.interface_data = interface_data_dict[settings["data_name"].GetString()]
 
     def ComputeResidual(self, input_data):
         return self.interface_data.GetData() - input_data
 
 class DifferentDataDifferenceResidual(ConvergenceAcceleratorResidual):
-    def __init__(self, settings, solver_wrapper):
-        self.interface_data = solver_wrapper.GetInterfaceData(settings["data_name"].GetString())
-        self.interface_data1 = solver_wrapper.GetInterfaceData(settings["residual_computation"]["data_name1"].GetString())
-        self.interface_data2 = solver_wrapper.GetInterfaceData(settings["residual_computation"]["data_name2"].GetString())
+    def __init__(self,
+                 settings: KratosMultiphysics.Parameters,
+                 interface_data_dict: "dict[str,CouplingInterfaceData]"):
+        self.interface_data =  interface_data_dict[settings["data_name"].GetString()]
+        self.interface_data1 = interface_data_dict[settings["residual_computation"]["data_name1"].GetString()]
+        self.interface_data2 = interface_data_dict[settings["residual_computation"]["data_name2"].GetString()]
 
     def ComputeResidual(self, input_data):
         return self.interface_data1.GetData() - self.interface_data2.GetData()
 
-def CreateResidualComputation(settings, solver_wrapper):
+def CreateResidualComputation(settings: KratosMultiphysics.Parameters,
+                              interface_data_dict: "dict[str,CouplingInterfaceData]"):
     residual_computation_type = "data_difference"
     if settings.Has("residual_computation"):
         residual_computation_type = settings["residual_computation"]["type"].GetString()
 
     if residual_computation_type == "data_difference":
-        return DataDifferenceResidual(settings, solver_wrapper)
+        return DataDifferenceResidual(settings, interface_data_dict)
     elif residual_computation_type == "different_data_difference":
-        return DifferentDataDifferenceResidual(settings, solver_wrapper)
+        return DifferentDataDifferenceResidual(settings, interface_data_dict)
     else:
         raise Exception('The specified residual computation "{}" is not available!'.format(residual_computation_type))

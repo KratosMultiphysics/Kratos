@@ -35,8 +35,8 @@ ShockCapturingEntropyViscosityProcess::ShockCapturingEntropyViscosityProcess(
     mEntropyConstant = rParameters["entropy_constant"].GetDouble();     // In the article: c_e
     mEnergyConstant = rParameters["energy_constant"].GetDouble();       // In the article: c_max
 
-    mArtificialMassDiffusivityPrandtl = rParameters["artificial_mass_viscosity_Prandtl"].GetDouble();
-    mArtificialConductivityPrandtl = rParameters["artificial_conductivity_Prandtl"].GetDouble();
+    mArtificialMassDiffusivityPrandtl = rParameters["artificial_mass_viscosity_Prandtl"].GetDouble();   // In the article: p rho
+    mArtificialConductivityPrandtl = rParameters["artificial_conductivity_Prandtl"].GetDouble();        // In the article: p
 
     KRATOS_CATCH("")
 }
@@ -258,13 +258,14 @@ void ShockCapturingEntropyViscosityProcess::ComputeArtificialMagnitudes()
     if(mrModelPart.GetCommunicator().LocalMesh().NumberOfElements() == 0) return; // Empty modelpart
 
     const double heat_capacity_ratio = mrModelPart.ElementsBegin()->GetProperties().GetValue(HEAT_CAPACITY_RATIO);
+    const double specific_heat_c_v = mrModelPart.ElementsBegin()->GetProperties().GetValue(SPECIFIC_HEAT);
 
     const unsigned int ndim = mrModelPart.ElementsBegin()->GetGeometry().LocalSpaceDimension();
     
-    const auto geometry_size = [&ndim]() -> std::function<double(Geometry<Node<3>>*)>
+    const auto geometry_size = [&ndim]() -> std::function<double(Geometry<Node>*)>
     {
-        if(ndim == 2) return [](const Geometry<Node<3>> * const p_geom) { return p_geom->Area(); };
-        if(ndim == 3) return [](const Geometry<Node<3>> * const p_geom) { return p_geom->Volume(); };
+        if(ndim == 2) return [](const Geometry<Node> * const p_geom) { return p_geom->Area(); };
+        if(ndim == 3) return [](const Geometry<Node> * const p_geom) { return p_geom->Volume(); };
         KRATOS_ERROR << "Invalid number of dimensions (" << ndim <<"). Only 2D and 3D are supported" << std::endl;
     }(); // The simpler "const auto var = condition ? lambda1 : lambda2;" does not compile with MSVC
 
@@ -277,7 +278,7 @@ void ShockCapturingEntropyViscosityProcess::ComputeArtificialMagnitudes()
 
     block_for_each(mrModelPart.Elements(), [&](Element& r_element)
     {
-        const auto inf_norm = ComputeElementalInfNormData(r_element, delta_time, heat_capacity_ratio);
+        const auto inf_norm = ComputeElementalInfNormData(r_element, delta_time, heat_capacity_ratio, specific_heat_c_v);
         const double h2 = minimum_edge_squared(r_element);
 
         r_element.SetValue(SHOCK_SENSOR, inf_norm.EntropyResidual);
@@ -301,7 +302,7 @@ void ShockCapturingEntropyViscosityProcess::DistributeVariablesToNodes(
     const double ArtificialDynamicViscosity,
     const double ArtificialMassDiffusivity,
     const double ArtificialConductivity,
-    const std::function<double(Geometry<Node<3>>*)>& rGeometrySize) const
+    const std::function<double(Geometry<Node>*)>& rGeometrySize) const
 {
     auto& r_geometry = rElement.GetGeometry();
     const double element_volume = rGeometrySize(&r_geometry);
@@ -322,13 +323,14 @@ void ShockCapturingEntropyViscosityProcess::DistributeVariablesToNodes(
 ShockCapturingEntropyViscosityProcess::InfNormData ShockCapturingEntropyViscosityProcess::ComputeElementalInfNormData(
     const Element& rElement,
     const double DeltaTime,
-    const double HeatCapacityRatio)
+    const double HeatCapacityRatio,
+    const double SpecificHeatCV)
 {
     TotalDerivativeUtil entropy_td;
     TotalDerivativeUtil density_td;
     Vector total_velocities;
 
-    std::tie(entropy_td, density_td, total_velocities) = BuildTotalDerivativeUtils(rElement, DeltaTime, HeatCapacityRatio);
+    std::tie(entropy_td, density_td, total_velocities) = BuildTotalDerivativeUtils(rElement, DeltaTime, HeatCapacityRatio, SpecificHeatCV);
     return ComputeInfNorms(rElement.GetGeometry(), entropy_td, density_td, total_velocities);
 }
 
@@ -337,7 +339,8 @@ std::tuple<ShockCapturingEntropyViscosityProcess::TotalDerivativeUtil, ShockCapt
 ShockCapturingEntropyViscosityProcess::BuildTotalDerivativeUtils(
     const Element& rElement,
     const double DeltaTime,
-    const double HeatCapacityRatio)
+    const double HeatCapacityRatio,
+    const double SpecificHeatCV)
 {
     KRATOS_TRY
 
@@ -355,7 +358,7 @@ ShockCapturingEntropyViscosityProcess::BuildTotalDerivativeUtils(
         const auto& velocity = r_node.FastGetSolutionStepValue(VELOCITY);
         const double temperature = r_node.FastGetSolutionStepValue(TEMPERATURE);
 
-        total_velocities[i] = norm_2(velocity) + std::sqrt(HeatCapacityRatio * temperature);
+        total_velocities[i] = norm_2(velocity) + std::sqrt(HeatCapacityRatio * (HeatCapacityRatio - 1) * SpecificHeatCV * temperature); 
 
         entropy_total_derivative.LoadNodalValues(NUMERICAL_ENTROPY, r_node, i, velocity, DeltaTime);
         density_total_derivative.LoadNodalValues(DENSITY, r_node, i, velocity, DeltaTime);

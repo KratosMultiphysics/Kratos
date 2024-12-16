@@ -148,7 +148,7 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
         unsigned int pos_counter = 0;
         unsigned int neg_counter = 0;
         for (int i_node = 0; i_node < static_cast<int>(it_cond->GetGeometry().PointsNumber()); i_node++){
-            const Node<3>& rNode = (it_cond->GetGeometry())[i_node];
+            const Node& rNode = (it_cond->GetGeometry())[i_node];
             // const double inlet_dist = ComputeNodalDistanceInInletDistanceField( rNode );
             const double inlet_dist = inner_prod( ( rNode.Coordinates() - mInterfacePoint ), mInterfaceNormal );
 

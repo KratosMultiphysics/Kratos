@@ -28,7 +28,7 @@ namespace Detail
 {
 
 
-class KRATOS_API(HDF5Application) Vertex : public Point
+class KRATOS_API(HDF5_APPLICATION) Vertex : public Point
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(Vertex);
