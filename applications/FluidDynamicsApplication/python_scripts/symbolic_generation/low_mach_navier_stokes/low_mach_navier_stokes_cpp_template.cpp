@@ -103,15 +103,14 @@ int LowMachNavierStokes<TElementData>::Check(const ProcessInfo &rCurrentProcessI
         << this->Info() << std::endl;
 
     // Check nodes
-    const double check_tolerance = 1.0e-8;
     const auto& r_geometry = this->GetGeometry();
     for (const auto& r_node : r_geometry) {
         // Check nodal DOFs
-        KRATOS_CHECK_DOF_IN_NODE(PRESSURE,r_node);
-        KRATOS_CHECK_DOF_IN_NODE(VELOCITY_X,r_node);
-        KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Y,r_node);
-        KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Z,r_node);
-        KRATOS_CHECK_DOF_IN_NODE(TEMPERATURE,r_node);
+        KRATOS_CHECK_DOF_IN_NODE(PRESSURE, r_node);
+        KRATOS_CHECK_DOF_IN_NODE(VELOCITY_X, r_node);
+        KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Y, r_node);
+        KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Z, r_node);
+        KRATOS_CHECK_DOF_IN_NODE(TEMPERATURE, r_node);
     }
 
     return 0;
@@ -314,20 +313,17 @@ void LowMachNavierStokes< LowMachNavierStokesData<2,3> >::ComputeGaussPointLHSCo
     // Material parameters
     const double c_p = rData.SpecificHeat;
     const double kappa = rData.Conductivity;
-    const double mu = rData.EffectiveViscosity;
     const double gamma = rData.HeatCapacityRatio;
 
     // Thermodynamic pressure
     const double p_th = rData.ThermodynamicPressure;
+    const double dp_th_dt = rData.ThermodynamicPressureDerivative;
 
     // Material response parameters
     const auto& r_C = rData.C;
 
     // Dynamic parameters
-    const double dt = rData.DeltaTime;
     const double bdf0 = rData.bdf0;
-    const double bdf1 = rData.bdf1;
-    const double bdf2 = rData.bdf2;
 
     // Nodal data
     const auto& r_t_lin = rData.Temperature;
@@ -357,20 +353,17 @@ void LowMachNavierStokes<LowMachNavierStokesData<2,4>>::ComputeGaussPointLHSCont
     // Material parameters
     const double c_p = rData.SpecificHeat;
     const double kappa = rData.Conductivity;
-    const double mu = rData.EffectiveViscosity;
     const double gamma = rData.HeatCapacityRatio;
 
     // Thermodynamic pressure
     const double p_th = rData.ThermodynamicPressure;
+    const double dp_th_dt = rData.ThermodynamicPressureDerivative;
 
     // Material response parameters
     const auto& r_C = rData.C;
 
     // Dynamic parameters
-    const double dt = rData.DeltaTime;
     const double bdf0 = rData.bdf0;
-    const double bdf1 = rData.bdf1;
-    const double bdf2 = rData.bdf2;
 
     // Nodal data
     const auto& r_t_lin = rData.Temperature;
@@ -400,7 +393,6 @@ void LowMachNavierStokes<LowMachNavierStokesData<2,3>>::ComputeGaussPointRHSCont
     // Material parameters
     const double c_p = rData.SpecificHeat;
     const double kappa = rData.Conductivity;
-    const double mu = rData.EffectiveViscosity;
     const double gamma = rData.HeatCapacityRatio;
 
     // Thermodynamic pressure
@@ -411,7 +403,6 @@ void LowMachNavierStokes<LowMachNavierStokesData<2,3>>::ComputeGaussPointRHSCont
     const auto& r_stress = rData.ShearStress;
 
     // Dynamic parameters
-    const double dt = rData.DeltaTime;
     const double bdf0 = rData.bdf0;
     const double bdf1 = rData.bdf1;
     const double bdf2 = rData.bdf2;
@@ -455,7 +446,6 @@ void LowMachNavierStokes<LowMachNavierStokesData<2,4>>::ComputeGaussPointRHSCont
     // Material parameters
     const double c_p = rData.SpecificHeat;
     const double kappa = rData.Conductivity;
-    const double mu = rData.EffectiveViscosity;
     const double gamma = rData.HeatCapacityRatio;
 
     // Thermodynamic pressure
@@ -466,7 +456,6 @@ void LowMachNavierStokes<LowMachNavierStokesData<2,4>>::ComputeGaussPointRHSCont
     const auto& r_stress = rData.ShearStress;
 
     // Dynamic parameters
-    const double dt = rData.DeltaTime;
     const double bdf0 = rData.bdf0;
     const double bdf1 = rData.bdf1;
     const double bdf2 = rData.bdf2;
@@ -516,7 +505,8 @@ void LowMachNavierStokes<TElementData>::CalculateStabilizationConstants(
     const double h = rData.ElementSize;
     const double c_p = rData.SpecificHeat;
     const double kappa = rData.Conductivity;
-    const double dyn_tau = rData.DynamicTau;
+    // const double dt = rData.DeltaTime;
+    // const double dyn_tau = rData.DynamicTau;
     const double mu = rData.EffectiveViscosity;
     const double gamma = rData.HeatCapacityRatio;
     const double p_th = rData.ThermodynamicPressure;

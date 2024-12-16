@@ -192,9 +192,6 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
     if ASGS_stabilization:
         functional += stabilization_functional
 
-    ## Multiply the functional by the corresponding integration point weight
-    functional *= gauss_weight
-
     ## Define DOFs and test function vectors
     dofs = sympy.zeros(n_nodes*(dim+2), 1)
     test_func = sympy.zeros(n_nodes*(dim+2), 1)
@@ -211,10 +208,11 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
         for k in range(dim):
             dofs[u_row + k] = u[i,k]
             test_func[u_row + k] = v[i,k]
+
         # Temperature DOFs and test functions
         t_row = i * block_size + (dim + 1)
-        dofs[t_row] = p[i,0]
-        test_func[t_row] = q[i,0]
+        dofs[t_row] = t[i,0]
+        test_func[t_row] = w[i,0]
 
     ## Compute LHS and RHS
     print(f"Computing {dim}D{n_nodes}N RHS Gauss point contribution\n")

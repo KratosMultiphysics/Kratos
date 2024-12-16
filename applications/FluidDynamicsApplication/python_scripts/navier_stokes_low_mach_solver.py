@@ -91,6 +91,8 @@ class NavierStokesLowMachSolver(NavierStokesMonolithicSolver):
             "absolute_velocity_tolerance": 1e-5,
             "relative_pressure_tolerance": 1e-3,
             "absolute_pressure_tolerance": 1e-5,
+            "relative_temperature_tolerance": 1e-3,
+            "absolute_temperature_tolerance": 1e-5,
             "linear_solver_settings"        : {
                 "solver_type" : "skyline_lu_factorization"
             },
@@ -152,6 +154,13 @@ class NavierStokesLowMachSolver(NavierStokesMonolithicSolver):
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid solver DOFs added correctly.")
 
+    def Initialize(self):
+        # Call base monolithic solver Initialize()
+        super().Initialize()
+
+        # Set the thermodynamic pressure values
+        self._SetThermodynamicPressureValues()
+
     def _SetFormulation(self):
         self.formulation = LowMachFormulation(self.settings["formulation"])
         self.element_name = self.formulation.element_name
@@ -161,11 +170,11 @@ class NavierStokesLowMachSolver(NavierStokesMonolithicSolver):
         self.historical_nodal_variables_list = self.formulation.historical_nodal_variables_list
         self.non_historical_nodal_variables_list = self.formulation.non_historical_nodal_variables_list
 
-    def _SetThermodynamicPressureSettings(self):
+    def _SetThermodynamicPressureValues(self):
         th_pres_settings = self.settings["thermodynamic_pressure_settings"]
         flow_type = th_pres_settings["flow_type"].GetString()
         if flow_type == "open":
-            self._GetComputingModelPart().ProcessInfo[KratosMultiphysics.PRESSURE] = th_pres_settings["value"].GetDouble()
+            self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.PRESSURE] = th_pres_settings["value"].GetDouble()
         elif flow_type == "closed":
             raise Exception("Not implemented yet.")
         elif flow_type == "closed_with_inflow_outflow":
@@ -195,3 +204,11 @@ class NavierStokesLowMachSolver(NavierStokesMonolithicSolver):
             raise Exception(err_msg)
 
         return scheme
+
+    def _CreateConvergenceCriterion(self):
+        convergence_criterion = KratosMultiphysics.MixedGenericCriteria([
+            (KratosMultiphysics.VELOCITY, self.settings["relative_velocity_tolerance"].GetDouble(), self.settings["absolute_velocity_tolerance"].GetDouble()),
+            (KratosMultiphysics.PRESSURE, self.settings["relative_pressure_tolerance"].GetDouble(), self.settings["absolute_pressure_tolerance"].GetDouble()),
+            (KratosMultiphysics.TEMPERATURE, self.settings["relative_temperature_tolerance"].GetDouble(), self.settings["absolute_temperature_tolerance"].GetDouble())])
+        convergence_criterion.SetEchoLevel(self.settings["echo_level"].GetInt())
+        return convergence_criterion
