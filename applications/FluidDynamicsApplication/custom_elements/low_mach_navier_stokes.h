@@ -176,8 +176,6 @@ public:
         typename GeometryType::Pointer pGeometry,
         Properties::Pointer pProperties) const override;
 
-    void Initialize(const ProcessInfo &rCurrentProcessInfo) override;
-
     ///@}
     ///@name Inquiry
     ///@{
@@ -259,9 +257,9 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    static constexpr double stab_c1 = 0.0;
+    static constexpr double stab_c1 = 4.0;
 
-    static constexpr double stab_c2 = 0.0;
+    static constexpr double stab_c2 = 2.0;
 
     ///@}
     ///@name Member Variables
@@ -286,32 +284,11 @@ private:
     ///@name Private Operations
     ///@{
 
-    //TODO: move implementation to cpp
-    double CalculateTauPressure(const TElementData& rData)
-    {
-        const double h = rData.ElementSize;
-        const double dyn_tau = rData.DynamicTau;
-
-        return 0.0;
-    }
-
-    //TODO: move implementation to cpp
-    double CalculateTauVelocity(const TElementData& rData)
-    {
-        const double h = rData.ElementSize;
-        const double dyn_tau = rData.DynamicTau;
-
-        return 0.0;
-    }
-
-    //TODO: move implementation to cpp
-    double CalculateTauTemperature(const TElementData& rData)
-    {
-        const double h = rData.ElementSize;
-        const double dyn_tau = rData.DynamicTau;
-
-        return 0.0;
-    }
+    void CalculateStabilizationConstants(
+        const TElementData& rData,
+        double& rTauPressure,
+        double& rTauVelocity,
+        double& rTauTemperature);
 
     ///@}
     ///@name Private  Access

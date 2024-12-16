@@ -82,21 +82,6 @@ Element::Pointer LowMachNavierStokes<TElementData>::Create(
     return Kratos::make_intrusive<LowMachNavierStokes>(NewId, pGeometry, pProperties);
 }
 
-template <class TElementData>
-void LowMachNavierStokes<TElementData>::Initialize(const ProcessInfo &rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-
-    //TODO: We want to use the constitutive law in the low Mach
-
-    // // Set the constitutive law pointer to null as the axisymmetric element hardcodes a Newtonian fluid viscous behavior
-    // // Note that to use a constitutive law the gradient in cylindrical coordinates would require the corresponding stress
-    // // implementation in cylindrical coordinates within the mechanical response calculation
-    // this->GetConstitutiveLaw() = nullptr;
-
-    KRATOS_CATCH("");
-}
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Inquiry
 
@@ -149,23 +134,23 @@ const Parameters LowMachNavierStokes<TElementData>::GetSpecifications() const
         "positive_definite_lhs"      : true,
         "output"                     : {
             "gauss_point"            : [],
-            "nodal_historical"       : ["VELOCITY","PRESSURE","DENSITY","DYNAMIC_VISCOSITY"],
+            "nodal_historical"       : ["VELOCITY","PRESSURE","TEMPERATURE","DENSITY"],
             "nodal_non_historical"   : [],
             "entity"                 : []
         },
-        "required_variables"         : ["VELOCITY","ACCELERATION","MESH_VELOCITY","PRESSURE","IS_STRUCTURE","DISPLACEMENT","BODY_FORCE","NODAL_AREA","NODAL_H","ADVPROJ","DIVPROJ","REACTION","REACTION_WATER_PRESSURE","EXTERNAL_PRESSURE","NORMAL","Y_WALL","Q_VALUE"]
-        "required_dofs"              : ["VELOCITY_X","VELOCITY_Y","PRESSURE"],
+        "required_variables"         : ["VELOCITY","ACCELERATION","MESH_VELOCITY","PRESSURE","TEMPERATURE","BODY_FORCE","HEAT_FLUX","REACTION","REACTION_WATER_PRESSURE","REACTION_FLUX","EXTERNAL_PRESSURE","NORMAL"]
+        "required_dofs"              : ["VELOCITY_X","VELOCITY_Y","PRESSURE","TEMPERATURE"],
         "flags_used"                 : [],
         "compatible_geometries"      : ["Triangle2D3","Quadrilateral2D4"],
         "element_integrates_in_time" : true,
         "compatible_constitutive_laws": {
-            "type"        : [],
-            "dimension"   : [],
-            "strain_size" : [3]
+           "type"        : ["Newtonian2DLaw","Newtonian3DLaw"],
+            "dimension"   : ["2D","3D"],
+            "strain_size" : [3,6]
         },
         "required_polynomial_degree_of_geometry" : 1,
         "documentation"   :
-            "This implements an axisymmetric Navier-Stokes element with quasi-static Variational MultiScales (VMS) stabilization. Viscous behavior is hardcoded to a Newtonian constitutive model. x-direction is assumed to be aligned with the revolution axis meaning that y-direction represents the radial one."
+            "This implements a low Mach approximation Navier-Stokes element with quasi-static Variational MultiScales (VMS) stabilization."
     })");
 
     return specifications;
@@ -277,7 +262,6 @@ void LowMachNavierStokes< LowMachNavierStokesData<2,3> >::ComputeGaussPointLHSCo
     const double kappa = rData.Conductivity;
     const double mu = rData.EffectiveViscosity;
     const double gamma = rData.HeatCapacityRatio;
-    const double alpha = rData.ThermalExpansionCoefficient;
 
     // Thermodynamic pressure
     const double p_th = rData.ThermodynamicPressure;
@@ -300,9 +284,10 @@ void LowMachNavierStokes< LowMachNavierStokesData<2,3> >::ComputeGaussPointLHSCo
     const auto& r_DN = rData.DN_DX;
 
     // Stabilization parameters
-    const double tau_c = CalculateTauPressure(rData);
-    const double tau_u = CalculateTauVelocity(rData);
-    const double tau_t = CalculateTauTemperature(rData);
+    double tau_c;
+    double tau_u;
+    double tau_t;
+    CalculateStabilizationConstants(rData, tau_c, tau_u, tau_t);
 
     // Add LHS Gauss point contribution
     const double gauss_weight = rData.Weight;
@@ -321,7 +306,6 @@ void LowMachNavierStokes<LowMachNavierStokesData<2,4>>::ComputeGaussPointLHSCont
     const double kappa = rData.Conductivity;
     const double mu = rData.EffectiveViscosity;
     const double gamma = rData.HeatCapacityRatio;
-    const double alpha = rData.ThermalExpansionCoefficient;
 
     // Thermodynamic pressure
     const double p_th = rData.ThermodynamicPressure;
@@ -344,9 +328,10 @@ void LowMachNavierStokes<LowMachNavierStokesData<2,4>>::ComputeGaussPointLHSCont
     const auto& r_DN = rData.DN_DX;
 
     // Stabilization parameters
-    const double tau_c = CalculateTauPressure(rData);
-    const double tau_u = CalculateTauVelocity(rData);
-    const double tau_t = CalculateTauTemperature(rData);
+    double tau_c;
+    double tau_u;
+    double tau_t;
+    CalculateStabilizationConstants(rData, tau_c, tau_u, tau_t);
 
     // Add LHS Gauss point contribution
     const double gauss_weight = rData.Weight;
@@ -365,7 +350,6 @@ void LowMachNavierStokes<LowMachNavierStokesData<2,3>>::ComputeGaussPointRHSCont
     const double kappa = rData.Conductivity;
     const double mu = rData.EffectiveViscosity;
     const double gamma = rData.HeatCapacityRatio;
-    const double alpha = rData.ThermalExpansionCoefficient;
 
     // Thermodynamic pressure
     const double p_th = rData.ThermodynamicPressure;
@@ -400,9 +384,10 @@ void LowMachNavierStokes<LowMachNavierStokesData<2,3>>::ComputeGaussPointRHSCont
     const auto& r_DN = rData.DN_DX;
 
     // Stabilization parameters
-    const double tau_c = CalculateTauPressure(rData);
-    const double tau_u = CalculateTauVelocity(rData);
-    const double tau_t = CalculateTauTemperature(rData);
+    double tau_c;
+    double tau_u;
+    double tau_t;
+    CalculateStabilizationConstants(rData, tau_c, tau_u, tau_t);
 
     // Add RHS Gauss point contribution
     const double gauss_weight = rData.Weight;
@@ -421,7 +406,6 @@ void LowMachNavierStokes<LowMachNavierStokesData<2,4>>::ComputeGaussPointRHSCont
     const double kappa = rData.Conductivity;
     const double mu = rData.EffectiveViscosity;
     const double gamma = rData.HeatCapacityRatio;
-    const double alpha = rData.ThermalExpansionCoefficient;
 
     // Thermodynamic pressure
     const double p_th = rData.ThermodynamicPressure;
@@ -456,9 +440,10 @@ void LowMachNavierStokes<LowMachNavierStokesData<2,4>>::ComputeGaussPointRHSCont
     const auto& r_DN = rData.DN_DX;
 
     // Stabilization parameters
-    const double tau_c = CalculateTauPressure(rData);
-    const double tau_u = CalculateTauVelocity(rData);
-    const double tau_t = CalculateTauTemperature(rData);
+    double tau_c;
+    double tau_u;
+    double tau_t;
+    CalculateStabilizationConstants(rData, tau_c, tau_u, tau_t);
 
     // Add RHS Gauss point contribution
     const double gauss_weight = rData.Weight;
@@ -468,6 +453,36 @@ void LowMachNavierStokes<LowMachNavierStokesData<2,4>>::ComputeGaussPointRHSCont
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Private operations
+
+template< class TElementData >
+void LowMachNavierStokes<TElementData>::CalculateStabilizationConstants(
+    const TElementData& rData,
+    double& rTauPressure,
+    double& rTauVelocity,
+    double& rTauTemperature)
+{
+    const double h = rData.ElementSize;
+    const double c_p = rData.SpecificHeat;
+    const double kappa = rData.Conductivity;
+    const double dyn_tau = rData.DynamicTau;
+    const double mu = rData.EffectiveViscosity;
+
+    double rho_gauss = 0.0;
+    array_1d<double,3> u_conv_gauss = ZeroVector(3);
+    for (IndexType i_node = 0; i_node < TElementData::NumNodes; ++i_node) {
+        rho_gauss += rData.N[i_node] * rData.Density[i_node];
+        const auto& r_u_i = row(rData.Velocity, i_node);
+        const auto& r_u_m_i = row(rData.MeshVelocity, i_node);
+        for (IndexType d = 0; d < TElementData::Dim; ++d) {
+            u_conv_gauss[d] += rData.N[i_node] * (r_u_i[d] - r_u_m_i[d]);
+        }
+    }
+    const double norm_u_conv = norm_2(u_conv_gauss);
+
+    rTauPressure = mu / rho_gauss + stab_c2 * norm_u_conv * h / stab_c1; // Pressure subscale stabilization operator
+    rTauVelocity = 1.0 / (stab_c1 * mu / std::pow(h, 2) + stab_c2 * h * norm_u_conv / h); // Velocity subscale stabilization operator
+    rTauTemperature = 1.0 / (stab_c1 * kappa / std::pow(h, 2) + stab_c2 * rho_gauss * c_p * norm_u_conv / h); // Temperature subscale stabilization operator;
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

@@ -55,7 +55,6 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
     c_p = sympy.Symbol('c_p', positive = True)     # Specific heat at constant pressure
     gamma = sympy.Symbol('gamma', positive = True) # Heat capacity ratio
     kappa = sympy.Symbol('kappa', positive = True) # Thermal conductivity
-    alpha = sympy.Symbol('alpha', positive = True) # Thermal expansion coefficient
 
     ## Test functions definition
     v = DefineMatrix('v',n_nodes, dim)             # Velocity field test function
@@ -70,14 +69,6 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
     ## Other data definitions
     g = DefineMatrix('r_g',n_nodes,dim)              # Gravity (velocity volume forcing term)
     heat_fl = DefineVector('r_heat_fl', n_nodes) # Heat flux (temperature volume forcing term)
-
-    # ## Other simbols definition
-    # h = sympy.Symbol('h', positive = True)      # Element size
-    # dt  = sympy.Symbol('dt', positive = True)   # Time increment
-    # dyn_tau = sympy.Symbol('dyn_tau', positive = True)
-    # stab_c1 = sympy.Symbol('stab_c1', positive = True)
-    # stab_c2 = sympy.Symbol('stab_c2', positive = True)
-    # stab_c3 = sympy.Symbol('stab_c3', positive = True)
 
     ## Stabilization operators defined as a symbol
     tau_c = sympy.Symbol('tau_c', positive = True)
@@ -136,13 +127,15 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
     div_u_conv = div(DN,u_conv)
 
     ## Define state equation (ideal gases) values at Gauss point
-    ## TODO: Maybe we should define rho as rho_0 + delta rho
     t_lin_gauss = t_lin.transpose()*N
     grad_t_lin = DfjDxi(DN, t_lin)
+
     aux_state_eq = gamma / (c_p * (gamma - 1.0))
     rho_gauss = aux_state_eq * p_th * (t_lin_gauss**-1)
     grad_rho = - grad_t_lin * (aux_state_eq * p_th * (t_lin_gauss**-2))
     drho_dt_gauss = aux_state_eq * (dp_th_dt * (t_lin_gauss**-1) - p_th * dt_dt_gauss[0] * (t_lin_gauss**-2))
+
+    alpha = t_lin_gauss**-1
 
     ## Navier-Stokes functional
     # Mass conservation residual
@@ -166,16 +159,6 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
     galerkin_functional -= w_gauss * (rho_gauss * c_p * conv_term_t_gauss)
     galerkin_functional -= grad_w.transpose() * (kappa * grad_t)
     galerkin_functional += w_gauss * alpha * t_gauss * dp_th_dt
-
-    # ## Compute the stabilization parameters
-    # #TODO: most probably is easier to calculate these directly in the cpp
-    # stab_norm_a = 0.0
-    # for i in range(0, dim):
-    #     stab_norm_a += u_conv_gauss[i]**2
-    # stab_norm_a = sympy.sqrt(stab_norm_a)
-    # tau_c = mu / rho_lin + stab_c2 * stab_norm_a * h / stab_c1 # Pressure subscale stabilization operator
-    # tau_u = 1.0 / (stab_c1 * mu / h**2 + stab_c2 * h * stab_norm_a / h) # Velocity subscale stabilization operator
-    # tau_t = 1.0 / (stab_c1 * kappa / h**2 + stab_c2 * rho_lin * c_p * stab_norm_a / h) # Temperature subscale stabilization operator
 
     ## Subscales definition
     R_c = - drho_dt_gauss - rho_gauss * div_u - grad_rho.transpose() * u_gauss

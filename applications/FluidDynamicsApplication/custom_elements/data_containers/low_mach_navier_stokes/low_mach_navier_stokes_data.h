@@ -82,8 +82,6 @@ public:
 
     double HeatCapacityRatio;
 
-    double ThermalExpansionCoefficient;
-
     double DeltaTime; // Time increment
 
     double DynamicTau; // Dynamic tau considered in ASGS stabilization coefficients
