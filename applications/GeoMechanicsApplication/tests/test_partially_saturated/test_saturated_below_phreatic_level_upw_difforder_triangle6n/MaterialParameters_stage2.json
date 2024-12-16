@@ -23,8 +23,6 @@
           "RESIDUAL_SATURATION": 0.001,
           "SATURATED_SATURATION": 1.0,
           "MINIMUM_RELATIVE_PERMEABILITY": 0.001,
-          "K0_MAIN_DIRECTION": 1,
-          "K0_NC": 0.6,
           "YOUNG_MODULUS": 1000000000.0,
           "POISSON_RATIO": 0.2
         }
