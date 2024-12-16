@@ -180,9 +180,9 @@ class NavierStokesLowMachSolver(NavierStokesMonolithicSolver):
     def _CreateScheme(self):
         # "Fake" scheme for those cases in where the element manages the time integration
         # It is required to perform the nodal update once the current time step is solved
-        domain_size = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        block_size = domain_size + 2
-        # scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(
+        # domain_size = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        # block_size = domain_size + 2
+        # scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(domain_size, block_size)
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
 
         # In case the BDF2 scheme is used inside the element, the BDF time discretization utility is required to update the BDF coefficients
