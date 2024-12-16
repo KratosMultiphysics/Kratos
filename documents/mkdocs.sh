@@ -79,6 +79,17 @@ with open('compiled_kratos_applications.csv', 'w') as file:
     esac
 done
 
+# Check dependencies.
+if ! command -v doxygen &>/dev/null; then
+    >&2 echo "This script requires doxygen."
+    exit 1
+fi
+
+if ! command -v dot &>/dev/null; then
+    >&2 echo "This script requires graphviz."
+    exit 1
+fi
+
 # Clear existing output if requested, then exit.
 if [ $clean -ne 0 ]; then
     if [ -d "$kratos_root_dir/documents/html" ]; then
