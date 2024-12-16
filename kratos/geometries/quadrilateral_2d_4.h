@@ -1055,7 +1055,7 @@ private:
                 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature < QuadrilateralCollocationIntegrationPoints5,
                 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature < QuadrilateralGaussLobattoIntegrationPoints2,
+                Quadrature < QuadrilateralGaussLobattoIntegrationPoints1,
                 2, IntegrationPoint<3> >::GenerateIntegrationPoints()
             }
         };

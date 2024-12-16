@@ -30,9 +30,9 @@ KRATOS_TEST_CASE_IN_SUITE(GaussLobattoQuadrilateralQuadraturesTest, KratosCoreFa
     // In This test we evaluate the Gauss-Lobatto quadratures for integrating
     // f = (x+y) and g = (x+y)^2 over a [-1, 1] quadrilateral
 
-    const auto& r_lobatto_1 = QuadrilateralGaussLobattoIntegrationPoints1();
-    const auto& r_lobatto_2 = QuadrilateralGaussLobattoIntegrationPoints2();
-    const auto& r_lobatto_3 = QuadrilateralGaussLobattoIntegrationPoints3();
+    const auto& r_lobatto_1 = QuadrilateralGaussLobattoIntegrationPoints0();
+    const auto& r_lobatto_2 = QuadrilateralGaussLobattoIntegrationPoints1();
+    const auto& r_lobatto_3 = QuadrilateralGaussLobattoIntegrationPoints2();
 
     // Analytical results, reference
     const double integral_f = 0.0;
@@ -84,7 +84,7 @@ KRATOS_TEST_CASE_IN_SUITE(GaussLobattoHexaQuadraturesTest, KratosCoreFastSuite)
     // In This test we evaluate the Gauss-Lobatto quadratures for integrating
     // f = (x+y+z+5) over a [-1, 1] hexa
 
-    const auto& r_lobatto = HexahedronGaussLobattoIntegrationPoints2();
+    const auto& r_lobatto = HexahedronGaussLobattoIntegrationPoints1();
 
     // Analytical results, reference
     const double integral_f = 40.0;
