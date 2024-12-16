@@ -225,7 +225,7 @@ protected:
                                            const Matrix& rNContainer) const;
 
     Vector GetPressures(size_t n_nodes);
-    void AssignPressureToIntermediateNodes();
+    void   AssignPressureToIntermediateNodes();
 
     virtual Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const;
 
