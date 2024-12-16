@@ -230,7 +230,7 @@ static void BM_ModelPartAddNodesToSubSubFromId1(benchmark::State& state) {
         auto& r_root_model_part = model.CreateModelPart("test");
         auto& r_sub_sub_model_part = r_root_model_part.CreateSubModelPart("sub_test").CreateSubModelPart("sub_sub_test");
 
-        std::vector<ModelPart::NodeType::Pointer> nodes;
+        PointerVectorSet<ModelPart::NodeType, IndexedObject> nodes;
         std::vector<IndexType> node_ids_to_add, existing_node_ids;
         if (!fill_existing) {
             node_ids_to_add.reserve(input_size);
@@ -239,9 +239,12 @@ static void BM_ModelPartAddNodesToSubSubFromId1(benchmark::State& state) {
             existing_node_ids.reserve(input_size / 2 + 1);
         }
 
+        for (IndexType i = 0; i < input_size; ++i) {
+            nodes.insert(nodes.end(), Kratos::make_intrusive<NodeType>(i + 1, 0.0, 0.0, 0.0));
+        }
+
         // doing it in reverse to make sure a proper sort is done always
         for (IndexType i = input_size; i > 0; --i) {
-            nodes.push_back(Kratos::make_intrusive<NodeType>(i, 0.0, 0.0, 0.0));
             if (!fill_existing || i % 2 == 0) {
                 node_ids_to_add.push_back(i);
             } else {
