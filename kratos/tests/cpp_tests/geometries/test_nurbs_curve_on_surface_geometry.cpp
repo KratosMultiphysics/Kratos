@@ -600,7 +600,7 @@ typedef Node NodeType;
         brep_coordinates[1][0] = 0.0;
         brep_coordinates[1][1] = 3.0;
         
-        NurbsCurveOnSurfaceGeometry<3, PointerVector<Point>, PointerVector<Point>> curve_on_surface = GenerateReferenceNurbs2dforKnotIntersections(brep_coordinates);
+        auto curve_on_surface = GenerateReferenceNurbs2dforKnotIntersections(brep_coordinates);
 
         auto p_surface = curve_on_surface.pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX);
 
@@ -636,7 +636,7 @@ typedef Node NodeType;
         brep_coordinates[1][0] = 2.0;
         brep_coordinates[1][1] = 0.0;
         
-        NurbsCurveOnSurfaceGeometry<3, PointerVector<Point>, PointerVector<Point>> curve_on_surface = GenerateReferenceNurbs2dforKnotIntersections(brep_coordinates);
+        auto curve_on_surface = GenerateReferenceNurbs2dforKnotIntersections(brep_coordinates);
 
         auto p_surface = curve_on_surface.pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX);
 
@@ -670,7 +670,7 @@ typedef Node NodeType;
         brep_coordinates[1][0] = 2.0;
         brep_coordinates[1][1] = 1.0;
         
-        NurbsCurveOnSurfaceGeometry<3, PointerVector<Point>, PointerVector<Point>> curve_on_surface = GenerateReferenceNurbs2dforKnotIntersections(brep_coordinates);
+        auto curve_on_surface = GenerateReferenceNurbs2dforKnotIntersections(brep_coordinates);
         auto p_surface = curve_on_surface.pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX);
 
         std::vector<double> spans;
@@ -703,7 +703,7 @@ typedef Node NodeType;
         brep_coordinates[1][0] = 2.0;
         brep_coordinates[1][1] = 1.0;
         
-        NurbsCurveOnSurfaceGeometry<3, PointerVector<Point>, PointerVector<Point>> curve_on_surface = GenerateReferenceNurbs2dforKnotIntersections(brep_coordinates);
+        auto curve_on_surface = GenerateReferenceNurbs2dforKnotIntersections(brep_coordinates);
         auto p_surface = curve_on_surface.pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX);
 
         // Check general information, input to ouput
@@ -766,7 +766,7 @@ typedef Node NodeType;
         brep_coordinates[1][0] = 2.0;
         brep_coordinates[1][1] = 0.0;
         
-        NurbsCurveOnSurfaceGeometry<3, PointerVector<Point>, PointerVector<Point>> curve_on_surface = GenerateReferenceNurbs2dforKnotIntersections(brep_coordinates);
+        auto curve_on_surface = GenerateReferenceNurbs2dforKnotIntersections(brep_coordinates);
         auto p_surface = curve_on_surface.pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX);
 
         // Check general information, input to ouput

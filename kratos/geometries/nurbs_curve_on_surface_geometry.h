@@ -243,7 +243,9 @@ public:
      * @param vector of span intervals.
      * @param index of chosen direction, for curves always 0.
      */
-    void SpansLocalSpace(std::vector<double>& rSpans, IndexType DirectionIndex = 0) const override
+    void SpansLocalSpace(
+        std::vector<double>& rSpans, 
+        IndexType DirectionIndex = 0) const override
     {
         auto interval = mpNurbsCurve->DomainInterval();
         this->SpansLocalSpace(rSpans, interval.GetT0(), interval.GetT1());
@@ -254,7 +256,9 @@ public:
      * @param vector of span intervals.
      * @param index of chosen direction, for curves always 0.
      */
-    void SpansLocalSpaceSBM(std::vector<double>& rSpans, IndexType DirectionIndex = 0) const
+    void SpansLocalSpaceSBM(
+        std::vector<double>& rSpans, 
+        IndexType DirectionIndex = 0) const
     {
         auto interval = mpNurbsCurve->DomainInterval();
         this->SpansLocalSpaceSBM(rSpans, interval.GetT0(), interval.GetT1());
@@ -263,8 +267,10 @@ public:
     /* @brief  Provides intersections of the nurbs curve with the knots of the surface.
      * @return vector of interval limitations.
      */
-    void SpansLocalSpace(std::vector<double>& rSpans,
-        double Start, double End) const
+    void SpansLocalSpace(
+        std::vector<double>& rSpans,
+        double Start, 
+        double End) const
     {
         std::vector<double> surface_spans_u;
         std::vector<double> surface_spans_v;
@@ -282,8 +288,10 @@ public:
     /* @brief  Provides intersections of the nurbs curve with the knots of the surface in the SBM case.
      * @return vector of interval limitations.
      */
-    void SpansLocalSpaceSBM(std::vector<double>& rSpans,
-        double Start, double End) const
+    void SpansLocalSpaceSBM(
+        std::vector<double>& rSpans,
+        double Start, 
+        double End) const
     {
         std::vector<double> surface_spans_u;
         std::vector<double> surface_spans_v;
