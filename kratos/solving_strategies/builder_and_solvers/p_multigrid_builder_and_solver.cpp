@@ -65,7 +65,8 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
           mInactiveSlaveIds(),
           mDiagonalScaleFactor(1),
           mDiagonalScaling(DiagonalScaling::None),
-          mMaxDepth(-1)
+          mMaxDepth(-1),
+          mVerbosity(0)
     {}
 
     void SystemSolveWithPhysics(typename Interface::TSystemMatrixType& rLhs,
@@ -538,6 +539,8 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
     DiagonalScaling mDiagonalScaling;
 
     int mMaxDepth;
+
+    int mVerbosity;
 }; // class PMultigridBuilderAndSolver::Impl
 
 
@@ -1093,8 +1096,12 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::CalculateReactions(type
 template <class TSparse, class TDense, class TSolver>
 void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::AssignSettings(const Parameters Settings)
 {
+    KRATOS_TRY
     Interface::AssignSettings(Settings);
+    KRATOS_CATCH("")
 
+    // Set the scaling strategy for the diagonal entries of constrained DoFs.
+    KRATOS_TRY
     if (Settings["diagonal_scaling"].Is<std::string>()) {
         const auto diagonal_scaling_strategy = Settings["diagonal_scaling"].Get<std::string>();
         if (diagonal_scaling_strategy == "none") {
@@ -1115,6 +1122,13 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::AssignSettings(const Pa
         mpImpl->mDiagonalScaling = DiagonalScaling::Constant;
         mpImpl->mDiagonalScaleFactor = Settings["diagonal_scaling"].Get<double>();
     }
+    KRATOS_CATCH("")
+
+    // Other settings.
+    KRATOS_TRY
+    mpImpl->mMaxDepth = Settings["max_depth"].Get<int>();
+    mpImpl->mVerbosity = Settings["verbosity"].Get<int>();
+    KRATOS_CATCH("")
 }
 
 
@@ -1136,7 +1150,8 @@ Parameters PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::GetDefaultParamet
     Parameters parameters = Parameters(R"({
         "name"              : "p_multigrid",
         "diagonal_scaling"  : "abs_max",
-        "max_depth"         : -1
+        "max_depth"         : -1,
+        "verbosity"         : 0
     })");
     parameters.RecursivelyAddMissingParameters(Interface::GetDefaultParameters());
     return parameters;
