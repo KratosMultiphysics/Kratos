@@ -67,6 +67,7 @@
 #include "custom_conditions/two_fluid_navier_stokes_wall_condition.h"
 #include "custom_conditions/fs_periodic_condition.h"
 #include "custom_conditions/navier_stokes_wall_condition.h"
+#include "custom_conditions/low_mach_navier_stokes_wall_condition.h"
 #include "custom_conditions/navier_stokes_p2_p1_continuous_wall_condition.h"
 #include "custom_conditions/embedded_ausas_navier_stokes_wall_condition.h"
 
@@ -447,6 +448,9 @@ private:
 
     /// Low Mach Navier-Stokes element
     const LowMachNavierStokes<LowMachNavierStokesData<2,3>> mLowMachNavierStokes2D3N;
+
+    /// Low Mach Navier-Stokes condition
+    const LowMachNavierStokesWallCondition<2,2> mLowMachNavierStokesWallCondition2D2N;
 
     /// Compressible Navier-Stokes symbolic element
     const CompressibleNavierStokesExplicit<2, 3> mCompressibleNavierStokesExplicit2D3N;

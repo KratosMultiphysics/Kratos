@@ -41,7 +41,6 @@ KRATOS_TEST_CASE_IN_SUITE(LowMachNavierStokes2D3N, FluidDynamicsApplicationFastS
     r_model_part.AddNodalSolutionStepVariable(REACTION_WATER_PRESSURE);
     r_model_part.AddNodalSolutionStepVariable(REACTION_FLUX);
     r_model_part.AddNodalSolutionStepVariable(MESH_VELOCITY);
-    r_model_part.AddNodalSolutionStepVariable(DENSITY);
     r_model_part.AddNodalSolutionStepVariable(BODY_FORCE);
     r_model_part.AddNodalSolutionStepVariable(HEAT_FLUX);
 
@@ -107,7 +106,6 @@ KRATOS_TEST_CASE_IN_SUITE(LowMachNavierStokes2D3N, FluidDynamicsApplicationFastS
             r_geometry[i].FastGetSolutionStepValue(VELOCITY, 1)[k] = 0.9 * reference_velocity(i,k);
             r_geometry[i].FastGetSolutionStepValue(VELOCITY, 2)[k] = 0.7 * reference_velocity(i,k);
         }
-        r_geometry[i].FastGetSolutionStepValue(DENSITY) = gamma * p_th / c_p / (gamma - 1.0) / temp;
     }
 
     // Calculate RHS and LHS

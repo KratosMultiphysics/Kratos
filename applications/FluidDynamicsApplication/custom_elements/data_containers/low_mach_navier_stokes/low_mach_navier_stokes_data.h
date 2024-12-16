@@ -70,8 +70,6 @@ public:
     NodalScalarData TemperatureOldStep1;
     NodalScalarData TemperatureOldStep2;
 
-    NodalScalarData Density;
-
     double ThermodynamicPressure;
 
     double ThermodynamicPressureDerivative;
@@ -115,7 +113,6 @@ public:
         this->FillFromHistoricalNodalData(Temperature, TEMPERATURE, r_geometry);
         this->FillFromHistoricalNodalData(TemperatureOldStep1, TEMPERATURE, r_geometry, 1);
         this->FillFromHistoricalNodalData(TemperatureOldStep2, TEMPERATURE, r_geometry, 2);
-        this->FillFromHistoricalNodalData(Density, DENSITY, r_geometry);
 
         // Fill data from properties
         const auto& r_properties = rElement.GetProperties();
@@ -163,7 +160,6 @@ public:
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MESH_VELOCITY, r_geometry[i]);
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(BODY_FORCE, r_geometry[i]);
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE, r_geometry[i]);
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DENSITY, r_geometry[i]);
         }
 
         return 0;

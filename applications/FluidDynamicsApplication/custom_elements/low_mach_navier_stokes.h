@@ -103,9 +103,13 @@ public:
     using ShapeFunctionDerivativesArrayType = typename BaseType::ShapeFunctionDerivativesType;
 
     constexpr static SizeType Dim = TElementData::Dim;
+
     constexpr static SizeType NumNodes = TElementData::NumNodes;
+
     constexpr static SizeType BlockSize = TElementData::BlockSize;
+
     constexpr static SizeType LocalSize = BaseType::LocalSize;
+
     constexpr static SizeType StrainSize = (Dim-1)*3;
 
     ///@}
@@ -175,6 +179,14 @@ public:
         IndexType NewId,
         typename GeometryType::Pointer pGeometry,
         Properties::Pointer pProperties) const override;
+
+    void EquationIdVector(
+        EquationIdVectorType& rResult,
+        const ProcessInfo& rCurrentProcessInfo) const override;
+
+    void GetDofList(
+        DofsVectorType& rElementalDofList,
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Inquiry

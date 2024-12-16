@@ -107,13 +107,11 @@ int LowMachNavierStokes<TElementData>::Check(const ProcessInfo &rCurrentProcessI
     const auto& r_geometry = this->GetGeometry();
     for (const auto& r_node : r_geometry) {
         // Check nodal DOFs
+        KRATOS_CHECK_DOF_IN_NODE(PRESSURE,r_node);
         KRATOS_CHECK_DOF_IN_NODE(VELOCITY_X,r_node);
         KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Y,r_node);
-        KRATOS_CHECK_DOF_IN_NODE(PRESSURE,r_node);
-        // Axisymmetry: nodes are in XY plane
-        KRATOS_ERROR_IF(std::abs(r_node.Z()) > check_tolerance ) << "Node " << r_node.Id() << "has non-zero Z coordinate." << std::endl;
-        // Axisymmetry: check that there are no negative y-coordinates (radius is always positive)
-        KRATOS_ERROR_IF(r_node.Y() < 0.0) << "Negative y-coordinate found in node " << r_node.Id() << ". Axisymmetric radius must be positive." << std::endl;
+        KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Z,r_node);
+        KRATOS_CHECK_DOF_IN_NODE(TEMPERATURE,r_node);
     }
 
     return 0;
@@ -168,6 +166,63 @@ template <class TElementData>
 void LowMachNavierStokes<TElementData>::PrintInfo(std::ostream& rOStream) const
 {
     rOStream << this->Info() << std::endl;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Public operations
+
+template< class TElementData >
+void LowMachNavierStokes<TElementData>::EquationIdVector(
+    EquationIdVectorType& rResult,
+    const ProcessInfo& rCurrentProcessInfo) const
+{
+    const auto& r_geometry = this->GetGeometry();
+
+    if (rResult.size() != LocalSize) {
+        rResult.resize(LocalSize, false);
+    }
+
+    const unsigned int p_pos = this->GetGeometry()[0].GetDofPosition(PRESSURE);
+    const unsigned int x_pos = this->GetGeometry()[0].GetDofPosition(VELOCITY_X);
+    const unsigned int t_pos = this->GetGeometry()[0].GetDofPosition(TEMPERATURE);
+
+    unsigned int local_index = 0;
+    for (unsigned int i = 0; i < NumNodes; ++i) {
+        rResult[local_index++] = r_geometry[i].GetDof(PRESSURE, p_pos).EquationId();
+        rResult[local_index++] = r_geometry[i].GetDof(VELOCITY_X, x_pos).EquationId();
+        rResult[local_index++] = r_geometry[i].GetDof(VELOCITY_Y, x_pos+1).EquationId();
+        if constexpr (Dim == 3) {
+            rResult[local_index++] = r_geometry[i].GetDof(VELOCITY_Z, x_pos+2).EquationId();
+        }
+        rResult[local_index++] = r_geometry[i].GetDof(TEMPERATURE, t_pos).EquationId();
+    }
+}
+
+template< class TElementData >
+void LowMachNavierStokes<TElementData>::GetDofList(
+    DofsVectorType& rElementalDofList,
+    const ProcessInfo& rCurrentProcessInfo) const
+{
+    const auto& r_geometry = this->GetGeometry();
+
+    if (rElementalDofList.size() != LocalSize) {
+         rElementalDofList.resize(LocalSize);
+    }
+
+    const unsigned int p_pos = this->GetGeometry()[0].GetDofPosition(PRESSURE);
+    const unsigned int x_pos = this->GetGeometry()[0].GetDofPosition(VELOCITY_X);
+    const unsigned int t_pos = this->GetGeometry()[0].GetDofPosition(TEMPERATURE);
+
+    unsigned int local_index = 0;
+    for (unsigned int i = 0; i < NumNodes; ++i) {
+        rElementalDofList[local_index++] = r_geometry[i].pGetDof(PRESSURE, p_pos);
+        rElementalDofList[local_index++] = r_geometry[i].pGetDof(VELOCITY_X, x_pos);
+        rElementalDofList[local_index++] = r_geometry[i].pGetDof(VELOCITY_Y, x_pos+1);
+        if constexpr (Dim == 3) {
+            rElementalDofList[local_index++] = r_geometry[i].pGetDof(VELOCITY_Z,x_pos+2);
+        }
+        rElementalDofList[local_index++] = r_geometry[i].pGetDof(TEMPERATURE, t_pos);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -257,7 +312,6 @@ void LowMachNavierStokes< LowMachNavierStokesData<2,3> >::ComputeGaussPointLHSCo
     MatrixType& rLHS)
 {
     // Material parameters
-    const auto& r_rho = rData.Density;
     const double c_p = rData.SpecificHeat;
     const double kappa = rData.Conductivity;
     const double mu = rData.EffectiveViscosity;
@@ -656,7 +710,6 @@ void LowMachNavierStokes<LowMachNavierStokesData<2,4>>::ComputeGaussPointLHSCont
     MatrixType& rLHS)
 {
     // Material parameters
-    const auto& r_rho = rData.Density;
     const double c_p = rData.SpecificHeat;
     const double kappa = rData.Conductivity;
     const double mu = rData.EffectiveViscosity;
@@ -1280,7 +1333,6 @@ void LowMachNavierStokes<LowMachNavierStokesData<2,3>>::ComputeGaussPointRHSCont
     VectorType& rRHS)
 {
     // Material parameters
-    const auto& r_rho = rData.Density;
     const double c_p = rData.SpecificHeat;
     const double kappa = rData.Conductivity;
     const double mu = rData.EffectiveViscosity;
@@ -1406,7 +1458,6 @@ void LowMachNavierStokes<LowMachNavierStokesData<2,4>>::ComputeGaussPointRHSCont
     VectorType& rRHS)
 {
     // Material parameters
-    const auto& r_rho = rData.Density;
     const double c_p = rData.SpecificHeat;
     const double kappa = rData.Conductivity;
     const double mu = rData.EffectiveViscosity;
@@ -1547,23 +1598,30 @@ void LowMachNavierStokes<TElementData>::CalculateStabilizationConstants(
     double& rTauVelocity,
     double& rTauTemperature)
 {
+    // Get values from data container
     const double h = rData.ElementSize;
     const double c_p = rData.SpecificHeat;
     const double kappa = rData.Conductivity;
     const double dyn_tau = rData.DynamicTau;
     const double mu = rData.EffectiveViscosity;
+    const double gamma = rData.HeatCapacityRatio;
+    const double p_th = rData.ThermodynamicPressure;
 
-    double rho_gauss = 0.0;
+    // Data (temperature and convective velocity) interpolation to Gauss points
+    double t_gauss = 0.0;
     array_1d<double,3> u_conv_gauss = ZeroVector(3);
     for (IndexType i_node = 0; i_node < TElementData::NumNodes; ++i_node) {
-        rho_gauss += rData.N[i_node] * rData.Density[i_node];
+        t_gauss += rData.N[i_node] * rData.Temperature[i_node];
         const auto& r_u_i = row(rData.Velocity, i_node);
         const auto& r_u_m_i = row(rData.MeshVelocity, i_node);
         for (IndexType d = 0; d < TElementData::Dim; ++d) {
             u_conv_gauss[d] += rData.N[i_node] * (r_u_i[d] - r_u_m_i[d]);
         }
     }
-    const double norm_u_conv = norm_2(u_conv_gauss);
+
+    // Calculate stabilization constants at Gauss points
+    const double norm_u_conv = norm_2(u_conv_gauss); // Convective velocity norm
+    const double rho_gauss = (gamma / c_p / (gamma - 1.0)) * p_th / t_gauss; // Density (from equation of state)
 
     rTauPressure = mu / rho_gauss + stab_c2 * norm_u_conv * h / stab_c1; // Pressure subscale stabilization operator
     rTauVelocity = 1.0 / (stab_c1 * mu / std::pow(h, 2) + stab_c2 * h * norm_u_conv / h); // Velocity subscale stabilization operator
