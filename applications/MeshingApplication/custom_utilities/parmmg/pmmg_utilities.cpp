@@ -1184,9 +1184,9 @@ void ParMmgUtilities<TPMMGLibrary>::WriteMeshDataToModelPart(
     std::unordered_map<IndexType, IndexVectorType> color_nodes, first_color_cond, second_color_cond, first_color_elem, second_color_elem;
 
     // The tempotal store of
-    ConditionsArrayType created_conditions_vector;
-    ElementsArrayType created_elements_vector;
-    NodesArrayType created_nodes_vector;
+    std::vector<Condition::Pointer> created_conditions_vector;
+    std::vector<Element::Pointer> created_elements_vector;
+    std::vector<Node::Pointer> created_nodes_vector;
 
     // Auxiliar values
     int ref, is_required;
