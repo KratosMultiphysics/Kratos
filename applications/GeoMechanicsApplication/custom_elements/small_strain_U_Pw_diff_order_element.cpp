@@ -542,18 +542,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
             RetentionParameters.SetFluidPressure(GeoTransportEquationUtilities::CalculateFluidPressure(
                 Variables.Np, Variables.PressureVector));
 
-            if (rVariable == DEGREE_OF_SATURATION)
-                rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateSaturation(RetentionParameters);
-            else if (rVariable == EFFECTIVE_SATURATION)
-                rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateEffectiveSaturation(RetentionParameters);
-            else if (rVariable == BISHOP_COEFFICIENT)
-                rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateBishopCoefficient(RetentionParameters);
-            else if (rVariable == DERIVATIVE_OF_SATURATION)
-                rOutput[GPoint] =
-                    mRetentionLawVector[GPoint]->CalculateDerivativeOfSaturation(RetentionParameters);
-            else if (rVariable == RELATIVE_PERMEABILITY)
-                rOutput[GPoint] =
-                    mRetentionLawVector[GPoint]->CalculateRelativePermeability(RetentionParameters);
+            rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateValue(RetentionParameters, rVariable, rOutput[GPoint]);
         }
     } else if (rVariable == HYDRAULIC_HEAD) {
         constexpr double      NumericalLimit = std::numeric_limits<double>::epsilon();

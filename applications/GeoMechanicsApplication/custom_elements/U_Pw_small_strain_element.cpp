@@ -397,8 +397,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessI
     ElementVariables Variables;
     this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
-
     const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
     const auto deformation_gradients = CalculateDeformationGradients();
     const auto determinants_of_deformation_gradients =
@@ -614,19 +612,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
 
             RetentionParameters.SetFluidPressure(GeoTransportEquationUtilities::CalculateFluidPressure(
                 Variables.Np, Variables.PressureVector));
-
-            if (rVariable == DEGREE_OF_SATURATION)
-                rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateSaturation(RetentionParameters);
-            else if (rVariable == EFFECTIVE_SATURATION)
-                rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateEffectiveSaturation(RetentionParameters);
-            else if (rVariable == BISHOP_COEFFICIENT)
-                rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateBishopCoefficient(RetentionParameters);
-            else if (rVariable == DERIVATIVE_OF_SATURATION)
-                rOutput[GPoint] =
-                    mRetentionLawVector[GPoint]->CalculateDerivativeOfSaturation(RetentionParameters);
-            else if (rVariable == RELATIVE_PERMEABILITY)
-                rOutput[GPoint] =
-                    mRetentionLawVector[GPoint]->CalculateRelativePermeability(RetentionParameters);
+            rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateValue(RetentionParameters, rVariable, rOutput[GPoint]);
         }
     } else if (rVariable == HYDRAULIC_HEAD) {
         const PropertiesType& rProp = this->GetProperties();
