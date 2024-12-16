@@ -16,7 +16,7 @@
       "input_filename"                 : "column"
     },
     "material_import_settings": {
-      "materials_filename"             : "MaterialParameters_stage2.json"
+      "materials_filename"             : "../Common/MaterialParameters_stage2.json"
     },
     "time_stepping": {
       "time_step"                      : 0.1,
