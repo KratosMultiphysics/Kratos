@@ -45,8 +45,8 @@ void GenerateTriangularConditionsWithFaceColor::Generate(ModelPart& rModelPart, 
 
     array_1d<std::size_t, 3> number_of_cells = GetNumberOfCells();
 
-    ModelPart::NodesContainerType new_nodes;
-    ModelPart::ConditionsContainerType new_conditions;
+    std::vector<ModelPart::NodeType::Pointer> new_nodes;
+    std::vector<ModelPart::ConditionType::Pointer> new_conditions;
     auto& r_prototype_condition = KratosComponents<Condition>::Get(
         parameters["generated_entity"].GetString());
 
@@ -77,7 +77,7 @@ void GenerateTriangularConditionsWithFaceColor::Generate(ModelPart& rModelPart, 
         }
     }
 
-    AddNodesToModelPart(rModelPart, new_nodes);
+    rModelPart.AddNodes(new_nodes.begin(), new_nodes.end());
     rModelPart.AddConditions(new_conditions.begin(), new_conditions.end());
 }
 
