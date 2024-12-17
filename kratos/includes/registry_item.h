@@ -296,6 +296,16 @@ public:
     }
 
     ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Returns the sub items name list available in the registry item (for error messaged).
+     * @return std::vector<std::string> The sub items name list.
+     */
+    std::vector<std::string> GetSubItemAvailableList() const;
+
+    ///@}
     ///@name Input and output
     ///@{
 
@@ -339,12 +349,6 @@ private:
         buffer << this->GetValue<TItemType>();
         return buffer.str();
     }
-
-    /**
-     * @brief Returns the sub items name list available in the registry item (for error messaged).
-     * @return std::vector<std::string> The sub items name list.
-     */
-    std::vector<std::string> GetSubItemAvailableList() const;
 
     /**
      * @brief This method throws an error message for a not found item.

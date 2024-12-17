@@ -106,12 +106,12 @@ namespace Kratos
     void RegistryItem::NotFoundError(const std::string& rItemName) const
     {
         const std::vector<std::string> available_list = GetSubItemAvailableList();
-        std::stringstream available_list_str;
-        available_list_str << "The RegistryItem " << this->Name() << " does not have an item with name " << rItemName << ". The available objects are: \n";
+        std::stringstream error_message_buffer;
+        error_message_buffer << "The RegistryItem " << this->Name() << " does not have an item with name " << rItemName << ". The available objects are: \n";
         for (std::string const& item : available_list) {
-            available_list_str << "\t\t" << item << "\n";
+            error_message_buffer << "\t\t" << item << "\n";
         }
-        KRATOS_ERROR << available_list_str.str() << std::endl;
+        KRATOS_ERROR << error_message_buffer.str() << std::endl;
     }
 
     std::string RegistryItem::GetValueString() const
