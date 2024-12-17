@@ -425,7 +425,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    double mReferenceDamage = 0.0; // Damage parameter used to compute B0 in the low cycle regime (maximum predictive stress great or equal to the Uts)
     double mFatigueReductionFactor = 1.0; // Fatigue reduction factor
     Vector mPreviousStresses = ZeroVector(2); // [S_t-2, S_t-1]
     double mPreviousMaxStress = 0.0; // Previous maximun stress detected in the current cycle
@@ -436,8 +435,6 @@ private:
     unsigned int mNumberOfCyclesLocal = 1; // Local number of cycles in the whole analysis
     double mFatigueReductionParameter = 0.0; // B0
     Vector mStressVector = ZeroVector(VoigtSize); // Stress tensor
-    bool mFirstMaxDetected = true; // First maximum's indicator in the current cycle
-    bool mFirstMinDetected = true; // First minimum's indicator in the current cycle
     bool mMaxDetected = false; // Detects the global maximum stress in the current cycle when it is not the one detected by the first maximum indicator 
     bool mMinDetected = false; // Detects the global minimum stress in the current cycle when it is not the one detected by the first minimum indicator 
     double mThresholdStress = 0.0; // Endurance limit of the fatigue model
@@ -451,9 +448,11 @@ private:
     double mInitialTherhold = 0.0; // Initial damage threshold
     bool mFirstCycleNonlinearity = true; // Indicator of first nonlinearity
     double mRelaxationFactor = 1.0; // Relaxation factor of the residual stresses
+    double mDirectionalUniaxialResidualStress = 0.0; // Uniaxial measure of the residual stress at the plane in which the stress norm is maximum
+    double mDirectionalFactor = 1.0; // Factor that accounts for the influence of the load diretion on the material fatigue limit
     double mStressConcentrationFactor = 1.0; // Stress concentratation factor applied to the maximum stress
     bool mLinearCycleJumpIndicator = false; // Indicator of the cycle jump in the linear phase
-
+    bool mDirectionalFactorIndicator = true; // Indicator of the cycle used to compute the directional factor and directional uniaxial residual stress
 
     ///@}
     ///@name Private Operators
@@ -474,7 +473,6 @@ private:
     void save(Serializer &rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
-        rSerializer.save("ReferenceDamage", mReferenceDamage);
         rSerializer.save("FatigueReductionFactor", mFatigueReductionFactor);
         rSerializer.save("PreviousStresses", mPreviousStresses);
         rSerializer.save("PreviousMaxStress", mPreviousMaxStress);
@@ -485,8 +483,6 @@ private:
         rSerializer.save("NumberOfCyclesLocal", mNumberOfCyclesLocal);
         rSerializer.save("FatigueReductionParameter", mFatigueReductionParameter);
         rSerializer.save("StressVector", mStressVector);
-        rSerializer.save("FirstMaxDetected", mFirstMaxDetected);
-        rSerializer.save("FirstMinDetected", mFirstMinDetected);
         rSerializer.save("MaxDetected", mMaxDetected);
         rSerializer.save("MinDetected", mMinDetected);
         rSerializer.save("ThresholdStress", mThresholdStress);
@@ -500,14 +496,16 @@ private:
         rSerializer.save("InitialTherhold", mInitialTherhold);
         rSerializer.save("FirstCycleNonlinearity", mFirstCycleNonlinearity);
         rSerializer.save("RelaxationFactor", mRelaxationFactor);
+        rSerializer.save("DirectionalUniaxialResidualStress", mDirectionalUniaxialResidualStress);
+        rSerializer.save("DirectionalFactor", mDirectionalFactor);
         rSerializer.save("StressConcentrationFactor", mStressConcentrationFactor);
         rSerializer.save("LinearCycleJumpIndicator", mLinearCycleJumpIndicator);
+        rSerializer.save("DirectionalFactorIndicator", mDirectionalFactorIndicator);
     }
 
     void load(Serializer &rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
-        rSerializer.load("ReferenceDamage", mReferenceDamage);
         rSerializer.load("FatigueReductionFactor", mFatigueReductionFactor);
         rSerializer.load("PreviousStresses", mPreviousStresses);
         rSerializer.load("PreviousMaxStress", mPreviousMaxStress);
@@ -518,8 +516,6 @@ private:
         rSerializer.load("NumberOfCyclesLocal", mNumberOfCyclesLocal);
         rSerializer.load("FatigueReductionParameter", mFatigueReductionParameter);
         rSerializer.load("StressVector", mStressVector);
-        rSerializer.load("FirstMaxDetected", mFirstMaxDetected);
-        rSerializer.load("FirstMinDetected", mFirstMinDetected);
         rSerializer.load("MaxDetected", mMaxDetected);
         rSerializer.load("MinDetected", mMinDetected);
         rSerializer.load("ThresholdStress", mThresholdStress);
@@ -533,8 +529,11 @@ private:
         rSerializer.load("InitialTherhold", mInitialTherhold);
         rSerializer.save("FirstCycleNonlinearity", mFirstCycleNonlinearity);
         rSerializer.load("RelaxationFactor", mRelaxationFactor);
+        rSerializer.load("DirectionalUniaxialResidualStress", mDirectionalUniaxialResidualStress);
+        rSerializer.load("DirectionalFactor", mDirectionalFactor);
         rSerializer.load("StressConcentrationFactor", mStressConcentrationFactor);
-        rSerializer.load("mLinearCycleJumpIndicator", mLinearCycleJumpIndicator);
+        rSerializer.load("LinearCycleJumpIndicator", mLinearCycleJumpIndicator);
+        rSerializer.load("DirectionalFactorIndicator", mDirectionalFactorIndicator);
     }
     ///@}
 

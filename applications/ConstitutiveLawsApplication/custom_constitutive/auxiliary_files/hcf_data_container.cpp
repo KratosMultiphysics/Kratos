@@ -34,11 +34,9 @@ void HCFDataContainer::CalculateSminAndSmax(const double CurrentStress,
                         HCFDataContainer::FatigueVariables &rFatigueVariables)
 {
     HighCycleFatigueLawIntegrator<6>::CalculateMaximumAndMinimumStresses(CurrentStress,
-                                                                        rFatigueVariables.PreviousStresses,
                                                                         rFatigueVariables.MaxStress,
                                                                         rFatigueVariables.MinStress,
-                                                                        rFatigueVariables.FirstMaxIndicator,
-                                                                        rFatigueVariables.FirstMinIndicator,
+                                                                        rFatigueVariables.PreviousStresses,
                                                                         rFatigueVariables.MaxIndicator,
                                                                         rFatigueVariables.MinIndicator);
     const Vector& r_aux_stresses = mPreviousStresses;
