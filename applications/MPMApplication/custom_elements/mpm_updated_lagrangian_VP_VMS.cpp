@@ -1140,16 +1140,16 @@ void MPMUpdatedLagrangianVPVMS::CalculateAndAddRHS(
 {
 
     // Operation performed: rRightHandSideVector += ExtForce*IntegrationWeight
-    //CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight );
+    CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight );
 
     // Add incremental terms. Questa operazione non era necessaria nel caso UP in quanto u_k = 0, ma qui, v_k != 0 (?)
-    //CalculateAndAddIncrementalTerms( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight);
+    CalculateAndAddIncrementalTerms( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight);
 
     // Operation performed: rRightHandSideVector -= Stabilized terms of the momentum equation
     CalculateAndAddStabilizedVelocity( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight);
 
     // Operation performed: rRightHandSideVector -= Stabilized Pressure Forces
-    //CalculateAndAddStabilizedPressure( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight);
+    CalculateAndAddStabilizedPressure( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight);
 
 }
 
@@ -1311,7 +1311,7 @@ void MPMUpdatedLagrangianVPVMS::CalculateAndAddLHS(
     //KRATOS_WATCH(rLeftHandSideMatrix);
 
     // Operation performed: add Kuu stabilization to the rLefsHandSideMatrix
-    //CalculateAndAddS1v( rLeftHandSideMatrix, rVariables, rIntegrationWeight, rCurrentProcessInfo ); //°solo caso dinamico; questa funzione non va chiamata qui, ma nel time scheme
+    CalculateAndAddS1v( rLeftHandSideMatrix, rVariables, rIntegrationWeight, rCurrentProcessInfo ); //°solo caso dinamico; questa funzione non va chiamata qui, ma nel time scheme
     
     // Operation performed: add Kup stabilization to the rLefsHandSideMatrix
     CalculateAndAddS1p( rLeftHandSideMatrix, rVariables, rIntegrationWeight ); //controllare che sia corretta
@@ -1409,7 +1409,7 @@ void MPMUpdatedLagrangianVPVMS::CalculateAndAddBv (MatrixType& rLeftHandSideMatr
 
     KRATOS_CATCH( "" )
 }
-// !! da riscrivere secondo metodo alternativo
+
 void MPMUpdatedLagrangianVPVMS::CalculateAndAddS1p (MatrixType& rLeftHandSideMatrix,
         GeneralVariables& rVariables,
         const double& rIntegrationWeight)
@@ -1427,10 +1427,7 @@ void MPMUpdatedLagrangianVPVMS::CalculateAndAddS1p (MatrixType& rLeftHandSideMat
         {
             for ( unsigned int j = 0; j < number_of_nodes; j++ )
             {
-                for ( unsigned int jdim = 0; jdim < dimension ; jdim ++)
-                {
-                    rLeftHandSideMatrix(i*(1+dimension)+idim, j*(1+dimension)+dimension) -= ( rVariables.tau1 / pow(mMP.density, 2) ) * rVariables.DN_DX(i, jdim) * rVariables.DN_DX(j, jdim) * rIntegrationWeight;
-                }
+                rLeftHandSideMatrix(i*(1+dimension)+idim, j*(1+dimension)+dimension) -= ( rVariables.tau1 / pow(mMP.density, 2) ) * rVariables.DN_DX(i, idim) * rVariables.DN_DX(j, idim) * rIntegrationWeight;
             }
         }
     }

@@ -82,8 +82,4 @@ class MPMImplicitDynamicSolver(MPMSolver):
                                                                 newmark_beta,
                                                                 is_dynamic)
     def _IsDynamic(self):
-        solver_type = self.settings["solver_type"].GetString()
-        if (solver_type == "dynamic" or solver_type == "Dynamic"):
-            return True
-        else:
-            return False
+        return True
