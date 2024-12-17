@@ -546,7 +546,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
             mRelaxationFactor = relaxation_factor;
         }
 
-        if (max_indicator && directional_factor_indicator){
+        if (max_indicator && directional_factor_indicator && rValues.GetElementGeometry().Has(INITIAL_STRESS_VECTOR)){
             HighCycleFatigueLawIntegrator<6>::CalculateDirectionalFactor(stress_vector,
                                                                         residual_stress_vector,          
                                                                         directional_uniaxial_residual_stress,

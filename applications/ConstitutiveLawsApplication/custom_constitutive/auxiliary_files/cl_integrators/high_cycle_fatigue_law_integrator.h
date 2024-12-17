@@ -388,7 +388,6 @@ public:
             }
 
             rSth *= (k_residual_stress * k_roughness);
-            // MaxStress /= std::pow(StressConcentrationFactor, (1 - h_stress_concentration));
 
             const double square_betaf = std::pow(BETAF, 2.0);
             double nf_tolerance = 0.1;
