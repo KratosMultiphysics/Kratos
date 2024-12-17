@@ -1100,6 +1100,45 @@ void AddKuttaConditionPenaltyPerturbationLHS(const Element& rElement,
     }
 }
 
+template <int Dim, int NumNodes>
+void Add2timesQuadraticMatrixLHS(const Element& rElement,
+        Matrix& rLeftHandSideMatrix,
+        const ProcessInfo& rCurrentProcessInfo)
+{
+    auto& r_geometry = rElement.GetGeometry();
+    const auto& r_integration_method = r_geometry.GetDefaultIntegrationMethod();
+    const unsigned int num_gauss_points = r_geometry.IntegrationPointsNumber(r_integration_method);
+
+    Vector detJ0(num_gauss_points);
+    r_geometry.DeterminantOfJacobian(detJ0, r_integration_method);
+
+    PotentialFlowUtilities::ElementalData<NumNodes,Dim> data{rElement.GetGeometry()};
+
+    array_1d<double, NumNodes> potential;
+    potential = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim, NumNodes>(rElement);
+
+    array_1d<double, 3> grad_phi = ZeroVector(3);
+    BoundedMatrix<double, NumNodes, NumNodes> lhs_contribution = ZeroMatrix(NumNodes, NumNodes);
+
+    for (unsigned int g = 0; g < num_gauss_points; ++g) {
+        for (unsigned int i = 0; i < NumNodes; ++i) {
+            for (unsigned int k = 0; k < Dim; ++k) {
+                grad_phi[k] += data.DN_DX(i, k) * potential[i];
+            }
+        }
+
+        double grad_phi_squared = inner_prod(grad_phi, grad_phi);
+        double detJ = detJ0[g];
+
+        for (unsigned int i = 0; i < NumNodes; ++i) {
+            for (unsigned int j = 0; j < NumNodes; ++j) {
+                lhs_contribution(i, j) += grad_phi_squared * data.DN_DX(i, 0) * data.DN_DX(j, 0) * detJ;
+            }
+        }
+    }
+
+    noalias(rLeftHandSideMatrix) +=  2*lhs_contribution;
+}
 
 template <int Dim, int NumNodes>
 void AddKuttaConditionPenaltyPerturbationRHS(const Element& rElement,
@@ -1351,6 +1390,8 @@ template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void AddKuttaCondit
 template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void AddKuttaConditionPenaltyPerturbationRHS<3, 4>(const Element& rElement, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void AddKuttaConditionPenaltyPerturbationLHS<2, 3>(const Element& rElement, Matrix& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo);
 template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void AddKuttaConditionPenaltyPerturbationLHS<3, 4>(const Element& rElement, Matrix& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void Add2timesQuadraticMatrixLHS<2, 3>(const Element& rElement, Matrix& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void Add2timesQuadraticMatrixLHS<3, 4>(const Element& rElement, Matrix& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo);
 template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void AddPotentialGradientStabilizationTerm<2, 3>(Element& rElement, Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void AddPotentialGradientStabilizationTerm<3, 4>(Element& rElement, Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void ComputePotentialJump<2,3>(ModelPart& rWakeModelPart);

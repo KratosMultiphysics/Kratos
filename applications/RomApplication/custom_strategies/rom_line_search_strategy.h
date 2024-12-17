@@ -509,8 +509,8 @@ protected:
 
             //Perform final update
             if ((x-xprevious)<epsilon){
-                x = xprevious + 1e-2;
-                rDq += 1e-3*b_rom;
+                x = std::abs(xprevious - 1e-2);
+                rDq += 1e-2*b_rom;
             }
 
             TSparseSpace::Assign(auxDq,x-xprevious, rDq);

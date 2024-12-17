@@ -421,9 +421,9 @@ class RomManager(object):
             # buscar la carpeta que le corresponde por mu con clusters ----
             phi = np.load(f'{self.general_rom_manager_parameters["ROM"]["rom_basis_output_folder"].GetString()}/RightBasisMatrix.npy') 
             rom_q_snapshots = phi @ q
-            # error_rom_q_fom = np.linalg.norm(fom_snapshots - rom_q_snapshots) / np.linalg.norm(fom_snapshots)
+            error_rom_q_fom = np.linalg.norm(fom_snapshots - rom_q_snapshots) / np.linalg.norm(fom_snapshots)
 
-            # self.ROM_q_vsFOM[case] = error_rom_q_fom
+            self.ROM_q_vsFOM[case] = error_rom_q_fom
 
         if "HROM" in stages:
             if rom_snapshots is None:  # Only fetch if not already fetched
@@ -439,13 +439,13 @@ class RomManager(object):
             phi = np.load(f'{self.general_rom_manager_parameters["ROM"]["rom_basis_output_folder"].GetString()}/RightBasisMatrix.npy')
             hrom_q_snapshots = phi @ q
             error_rom_hrom = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
-            # error_rom_q_hrom_q = np.linalg.norm(rom_q_snapshots - hrom_q_snapshots) / np.linalg.norm(rom_q_snapshots)
+            error_rom_q_hrom_q = np.linalg.norm(rom_q_snapshots - hrom_q_snapshots) / np.linalg.norm(rom_q_snapshots)
             error_fom_hrom = np.linalg.norm(fom_snapshots - hrom_snapshots) / np.linalg.norm(fom_snapshots)
-            # error_fom_hrom_q = np.linalg.norm(fom_snapshots - hrom_q_snapshots) / np.linalg.norm(fom_snapshots)
+            error_fom_hrom_q = np.linalg.norm(fom_snapshots - hrom_q_snapshots) / np.linalg.norm(fom_snapshots)
             self.ROMvsHROM[case] = error_rom_hrom
-            # self.ROM_q_vsHROM_q[case] = error_rom_q_hrom_q
+            self.ROM_q_vsHROM_q[case] = error_rom_q_hrom_q
             self.FOMvsHROM[case] = error_fom_hrom
-            # self.FOMvsHROM_q[case] = error_fom_hrom_q
+            self.FOMvsHROM_q[case] = error_fom_hrom_q
         if "HHROM" in stages:
             if rom_snapshots is None:  # Only fetch if not already fetched
                 rom_snapshots = self.data_base.get_snapshots_matrix_from_database(mu_list, table_name=f'ROM')
@@ -458,13 +458,13 @@ class RomManager(object):
             if (q.shape[0] == 1): q = q.T
             phi = np.load(f'{self.general_rom_manager_parameters["ROM"]["rom_basis_output_folder"].GetString()}/RightBasisMatrix.npy')
             hhrom_q_snapshots = phi @ q
-            # error_fom_hhrom_q = np.linalg.norm(fom_snapshots - hhrom_q_snapshots) / np.linalg.norm(fom_snapshots)
-            # self.FOMvsHHROM_q[case] = error_fom_hhrom_q
-            # error_rom_hhrom_q = np.linalg.norm(rom_snapshots - hhrom_q_snapshots) / np.linalg.norm(rom_snapshots)
-            # self.ROMvsHHROM_q[case] = error_rom_hhrom_q
-            # if "HROM" in stages:
-            #     error_hhrom_q_hrom_q = np.linalg.norm(hrom_q_snapshots - hhrom_q_snapshots) / np.linalg.norm(hrom_q_snapshots)
-            #     self.HROM_q_vsHHROM_q[case] = error_hhrom_q_hrom_q
+            error_fom_hhrom_q = np.linalg.norm(fom_snapshots - hhrom_q_snapshots) / np.linalg.norm(fom_snapshots)
+            self.FOMvsHHROM_q[case] = error_fom_hhrom_q
+            error_rom_hhrom_q = np.linalg.norm(rom_snapshots - hhrom_q_snapshots) / np.linalg.norm(rom_snapshots)
+            self.ROMvsHHROM_q[case] = error_rom_hhrom_q
+            if "HROM" in stages:
+                error_hhrom_q_hrom_q = np.linalg.norm(hrom_q_snapshots - hhrom_q_snapshots) / np.linalg.norm(hrom_q_snapshots)
+                self.HROM_q_vsHHROM_q[case] = error_hhrom_q_hrom_q
 
 
 

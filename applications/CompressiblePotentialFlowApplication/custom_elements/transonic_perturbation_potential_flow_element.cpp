@@ -71,6 +71,11 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLocalS
     CalculateRightHandSide(rRightHandSideVector,rCurrentProcessInfo);
     CalculateLeftHandSide(rLeftHandSideMatrix,rCurrentProcessInfo);
 
+    // const TransonicPerturbationPotentialFlowElement& r_this = *this;
+    // if (r_this.GetValue(SAVE_UPWIND_ELEMENT)){
+    //     PotentialFlowUtilities::Add2timesQuadraticMatrixLHS<TDim,TNumNodes>(*this, rLeftHandSideMatrix, rCurrentProcessInfo);
+    // }
+
     // TODO: Move from here
     const TransonicPerturbationPotentialFlowElement& r_this = *this;
     if (r_this.GetValue(SAVE_UPWIND_ELEMENT)){
@@ -86,6 +91,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLocalS
                 const auto& r_upstream_element = *pGetUpwindElement();
                 const auto& id_upwind_element = r_upstream_element.Id();
                 this->SetValue(ID_UPWIND_ELEMENT, id_upwind_element);
+                this->SetValue(ACTIVATION_LEVEL, 1);
             }
         }
     }
@@ -319,6 +325,10 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateOnInte
     else if (rVariable == SAVE_UPWIND_ELEMENT)
     {
         rValues[0] = this->GetValue(SAVE_UPWIND_ELEMENT);
+    }
+    else if (rVariable == ACTIVATION_LEVEL)
+    {
+        rValues[0] = this->GetValue(ACTIVATION_LEVEL);
     }
 }
 

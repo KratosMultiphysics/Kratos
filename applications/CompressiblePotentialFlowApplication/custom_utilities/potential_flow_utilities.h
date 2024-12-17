@@ -215,6 +215,11 @@ KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void AddKuttaConditionPenalt
                               const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void Add2timesQuadraticMatrixLHS(const Element& rElement,
+                              Matrix& rLeftHandSideMatrix,
+                              const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
 KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void AddPotentialGradientStabilizationTerm(Element& rElement,
                               Matrix& rLeftHandSideMatrix,
                               Vector& rRightHandSideVector,

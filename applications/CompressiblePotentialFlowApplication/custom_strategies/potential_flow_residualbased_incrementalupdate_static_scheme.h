@@ -188,14 +188,14 @@ public:
     {
         KRATOS_TRY
 
-        // if (mIsTransonic){
-        //     // Update the upwind factor constant and critical mach with the user-defined values
-        //     if (rModelPart.GetProcessInfo()[CONVERGENCE_RATIO] <= mUpdateRelativeResidualNorm &&
-        //         rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] > 1){
-        //         rModelPart.GetProcessInfo()[CRITICAL_MACH]          = mTargetCriticalMach;
-        //         rModelPart.GetProcessInfo()[UPWIND_FACTOR_CONSTANT] = mTargetUpwindFactorConstant;
-        //     }
-        // }
+        if (mIsTransonic && mStepsStrategy == 1){
+            // Update the upwind factor constant and critical mach with the user-defined values
+            if (rModelPart.GetProcessInfo()[CONVERGENCE_RATIO] <= mUpdateRelativeResidualNorm &&
+                rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] > 1){
+                rModelPart.GetProcessInfo()[CRITICAL_MACH]          = mTargetCriticalMach;
+                rModelPart.GetProcessInfo()[UPWIND_FACTOR_CONSTANT] = mTargetUpwindFactorConstant;
+            }
+        }
         BaseType::InitializeNonLinIteration(rModelPart,A,Dx,b);
 
         KRATOS_CATCH("")
@@ -219,14 +219,19 @@ public:
     {
         KRATOS_TRY
 
-        if (mIsTransonic){
+        if (mIsTransonic && mStepsStrategy > 1){
             // Update the upwind factor constant and critical mach with the user-defined values
-            if (rModelPart.GetProcessInfo()[STEP] > 1){
-                rModelPart.GetProcessInfo()[CRITICAL_MACH]          = mTargetCriticalMach;
-                rModelPart.GetProcessInfo()[UPWIND_FACTOR_CONSTANT] = mTargetUpwindFactorConstant;
+            double current_step = rModelPart.GetProcessInfo()[STEP];
+            double critical_mach = mInitialCriticalMach + (mTargetCriticalMach-mInitialCriticalMach)*(current_step-1)/(mStepsStrategy-1);
+            double upwind_factor_constant = mInitialUpwindFactorConstant + (mTargetUpwindFactorConstant-mInitialUpwindFactorConstant)*(current_step-1)/(mStepsStrategy-1);
+            rModelPart.GetProcessInfo()[CRITICAL_MACH]          = critical_mach;
+            rModelPart.GetProcessInfo()[UPWIND_FACTOR_CONSTANT] = upwind_factor_constant;
+            if (mEchoLevel > 0)
+            {
+                KRATOS_INFO("TransonicPotentialFlowScheme(StepsStrategy): ")<< "Step: " << current_step << " Critical Mach: " << critical_mach << " Upwind Factor Constant:" << upwind_factor_constant << std::endl;
             }
+            
         }
-
         // Initializes solution step for all of the elements, conditions and constraints
         BaseType::InitializeSolutionStep(rModelPart,A,Dx,b);
 
@@ -247,7 +252,9 @@ public:
             "target_critical_mach"           : 0.92,
             "target_upwind_factor_constant"  : 2.0,
             "update_relative_residual_norm"  : 1e-3,
-            "mach_number_squared_limit"      : 3.0
+            "mach_number_squared_limit"      : 3.0,
+            "steps_strategy"                 : 1,
+            "echo_level"                     : 0
         })");
 
         // Getting base class default parameters
@@ -269,6 +276,8 @@ public:
         mTargetUpwindFactorConstant  = ThisParameters["target_upwind_factor_constant"].GetDouble();
         mUpdateRelativeResidualNorm  = ThisParameters["update_relative_residual_norm"].GetDouble();
         mMachNumberSquaredLimit      = ThisParameters["mach_number_squared_limit"].GetDouble();
+        mStepsStrategy               = ThisParameters["steps_strategy"].GetInt();
+        mEchoLevel                   = ThisParameters["echo_level"].GetInt();
     }
 
     /**
@@ -339,6 +348,8 @@ private:
     double mTargetUpwindFactorConstant  = 0.0;
     double mUpdateRelativeResidualNorm  = 0.0;
     double mMachNumberSquaredLimit      = 0.0;
+    int mStepsStrategy                  = 0;
+    int mEchoLevel                      = 0;
 
     ///@}
     ///@name Private Operators

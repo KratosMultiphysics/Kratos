@@ -19,20 +19,20 @@ def CreateSolver(cls, model, custom_settings):
 
             this_analysis_stage = self.settings["rom_settings"]["analysis_stage"].GetString() #TODO Could we simply use the model part name or other settings as proxi here?
 
-            if this_analysis_stage == "KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis":
-                self._CreateSolutionStrategy = self.Rom_Structural_CreateSolutionStrategy
-            elif this_analysis_stage == "KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis":
-                self._CreateSolutionStrategy = self.Rom_Fluid_CreateSolutionStrategy
-            elif this_analysis_stage == "KratosMultiphysics.CompressiblePotentialFlowApplication.potential_flow_analysis":
-                self._CreateSolutionStrategy = self.Rom_CompressiblePotential_CreateSolutionStrategy
-            else:
-                error
-            # elif this_analysis_stage == "KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis":
-            #     pass
-            # elif this_analysis_stage == "KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis":
-            #     pass
+            # if this_analysis_stage == "KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis":
+            #     self._CreateSolutionStrategy = self.Rom_Structural_CreateSolutionStrategy
+            # elif this_analysis_stage == "KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis":
+            #     self._CreateSolutionStrategy = self.Rom_Fluid_CreateSolutionStrategy
+            # elif this_analysis_stage == "KratosMultiphysics.CompressiblePotentialFlowApplication.potential_flow_analysis":
+            #     self._CreateSolutionStrategy = self.Rom_CompressiblePotential_CreateSolutionStrategy
+            # else:
+            #     error
+            # # elif this_analysis_stage == "KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis":
+            # #     pass
+            # # elif this_analysis_stage == "KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis":
+            # #     pass
 
-            #eliminate from parameters so that it doesnt botther the B&S
+            # #eliminate from parameters so that it doesnt botther the B&S
             self.settings["rom_settings"].RemoveValue("analysis_stage")
 
 
@@ -127,163 +127,163 @@ def CreateSolver(cls, model, custom_settings):
             if projection_strategy in ("global_galerkin", "lspg", "global_petrov_galerkin", "galerkin_ann", "lspg_ann"):
                 self.settings["rom_settings"]["rom_bns_settings"].AddBool("monotonicity_preserving", monotonicity_preserving)
 
-        #####################################################
-        #  Setting strategy for Structural Mechanics App   #
-        #####################################################
+        # #####################################################
+        # #  Setting strategy for Structural Mechanics App   #
+        # #####################################################
 
-        def Rom_Structural_CreateSolutionStrategy(self):
-            analysis_type = self.settings["analysis_type"].GetString()
-            if analysis_type == "linear":
-                mechanical_solution_strategy = self._create_linear_strategy() #TODO should this stay as is
-            elif analysis_type == "non_linear":
-                # Create strategy
-                if self.settings["solving_strategy_settings"]["type"].GetString() == "newton_raphson":
-                    mechanical_solution_strategy = self._structural_create_newton_raphson_strategy_ROM()
-                elif self.settings["solving_strategy_settings"]["type"].GetString() == "line_search":
-                    error #TODO implement
-                    #mechanical_solution_strategy = self._create_line_search_strategy_ROM()
-                elif self.settings["solving_strategy_settings"]["type"].GetString() == "arc_length":
-                    error #TODO implement
-                    #mechanical_solution_strategy = self._create_arc_length_strategy()
-            else:
-                err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
-                err_msg += "Available options are: \"linear\", \"non_linear\""
-                raise Exception(err_msg)
-            return mechanical_solution_strategy
-
-
-        def _structural_create_newton_raphson_strategy_ROM(self):
-            computing_model_part = self.GetComputingModelPart()
-            mechanical_scheme = self._GetScheme()
-            mechanical_convergence_criterion = self._GetConvergenceCriterion()
-            builder_and_solver = self._GetBuilderAndSolver()
-            #this calls the ROM strategy
-            strategy = KratosMultiphysics.RomApplication.RomResidualBasedNewtonRaphsonStrategy(computing_model_part,
-                                                                        mechanical_scheme,
-                                                                        mechanical_convergence_criterion,
-                                                                        builder_and_solver,
-                                                                        self.settings["max_iteration"].GetInt(),
-                                                                        self.settings["compute_reactions"].GetBool(),
-                                                                        self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                                        self.settings["move_mesh_flag"].GetBool())
-            strategy.SetUseOldStiffnessInFirstIterationFlag(self.settings["use_old_stiffness_in_first_iteration"].GetBool())
-            return strategy
+        # def Rom_Structural_CreateSolutionStrategy(self):
+        #     analysis_type = self.settings["analysis_type"].GetString()
+        #     if analysis_type == "linear":
+        #         mechanical_solution_strategy = self._create_linear_strategy() #TODO should this stay as is
+        #     elif analysis_type == "non_linear":
+        #         # Create strategy
+        #         if self.settings["solving_strategy_settings"]["type"].GetString() == "newton_raphson":
+        #             mechanical_solution_strategy = self._structural_create_newton_raphson_strategy_ROM()
+        #         elif self.settings["solving_strategy_settings"]["type"].GetString() == "line_search":
+        #             error #TODO implement
+        #             #mechanical_solution_strategy = self._create_line_search_strategy_ROM()
+        #         elif self.settings["solving_strategy_settings"]["type"].GetString() == "arc_length":
+        #             error #TODO implement
+        #             #mechanical_solution_strategy = self._create_arc_length_strategy()
+        #     else:
+        #         err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
+        #         err_msg += "Available options are: \"linear\", \"non_linear\""
+        #         raise Exception(err_msg)
+        #     return mechanical_solution_strategy
 
 
+        # def _structural_create_newton_raphson_strategy_ROM(self):
+        #     computing_model_part = self.GetComputingModelPart()
+        #     mechanical_scheme = self._GetScheme()
+        #     mechanical_convergence_criterion = self._GetConvergenceCriterion()
+        #     builder_and_solver = self._GetBuilderAndSolver()
+        #     #this calls the ROM strategy
+        #     strategy = KratosMultiphysics.RomApplication.RomResidualBasedNewtonRaphsonStrategy(computing_model_part,
+        #                                                                 mechanical_scheme,
+        #                                                                 mechanical_convergence_criterion,
+        #                                                                 builder_and_solver,
+        #                                                                 self.settings["max_iteration"].GetInt(),
+        #                                                                 self.settings["compute_reactions"].GetBool(),
+        #                                                                 self.settings["reform_dofs_at_each_step"].GetBool(),
+        #                                                                 self.settings["move_mesh_flag"].GetBool())
+        #     strategy.SetUseOldStiffnessInFirstIterationFlag(self.settings["use_old_stiffness_in_first_iteration"].GetBool())
+        #     return strategy
 
-        #####################################################
-        #      Setting strategy for Fluid Dynamics App      #
-        #####################################################
-
-        def Rom_Fluid_CreateSolutionStrategy(self):
-            analysis_type = self.settings["analysis_type"].GetString()
-            if analysis_type == "linear":
-                solution_strategy = self._CreateLinearStrategy() #TODO should this stay as is
-            elif analysis_type == "non_linear":
-                solution_strategy = self._fluid_CreateNewtonRaphsonStrategy_ROM()
-            else:
-                err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
-                err_msg += "Available options are: \"linear\", \"non_linear\""
-                raise Exception(err_msg)
-            solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
-            return solution_strategy
 
 
-        def _CreateLinearStrategy(self):
-            computing_model_part = self.GetComputingModelPart()
-            time_scheme = self._GetScheme()
-            builder_and_solver = self._GetBuilderAndSolver()
-            calculate_norm_dx = False
-            return KratosMultiphysics.ResidualBasedLinearStrategy(
-                computing_model_part,
-                time_scheme,
-                builder_and_solver,
-                self.settings["compute_reactions"].GetBool(),
-                self.settings["reform_dofs_at_each_step"].GetBool(),
-                calculate_norm_dx,
-                self.settings["move_mesh_flag"].GetBool())
+        # #####################################################
+        # #      Setting strategy for Fluid Dynamics App      #
+        # #####################################################
+
+        # def Rom_Fluid_CreateSolutionStrategy(self):
+        #     analysis_type = self.settings["analysis_type"].GetString()
+        #     if analysis_type == "linear":
+        #         solution_strategy = self._CreateLinearStrategy() #TODO should this stay as is
+        #     elif analysis_type == "non_linear":
+        #         solution_strategy = self._fluid_CreateNewtonRaphsonStrategy_ROM()
+        #     else:
+        #         err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
+        #         err_msg += "Available options are: \"linear\", \"non_linear\""
+        #         raise Exception(err_msg)
+        #     solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
+        #     return solution_strategy
+
+
+        # def _CreateLinearStrategy(self):
+        #     computing_model_part = self.GetComputingModelPart()
+        #     time_scheme = self._GetScheme()
+        #     builder_and_solver = self._GetBuilderAndSolver()
+        #     calculate_norm_dx = False
+        #     return KratosMultiphysics.ResidualBasedLinearStrategy(
+        #         computing_model_part,
+        #         time_scheme,
+        #         builder_and_solver,
+        #         self.settings["compute_reactions"].GetBool(),
+        #         self.settings["reform_dofs_at_each_step"].GetBool(),
+        #         calculate_norm_dx,
+        #         self.settings["move_mesh_flag"].GetBool())
     
-        def _fluid_CreateNewtonRaphsonStrategy_ROM(self):
-            computing_model_part = self.GetComputingModelPart()
-            time_scheme = self._GetScheme()
-            convergence_criterion = self._GetConvergenceCriterion()
-            builder_and_solver = self._GetBuilderAndSolver()
-            return KratosMultiphysics.RomApplication.RomResidualBasedNewtonRaphsonStrategy(
-                computing_model_part,
-                time_scheme,
-                convergence_criterion,
-                builder_and_solver,
-                self.settings["maximum_iterations"].GetInt(),
-                self.settings["compute_reactions"].GetBool(),
-                self.settings["reform_dofs_at_each_step"].GetBool(),
-                self.settings["move_mesh_flag"].GetBool())
+        # def _fluid_CreateNewtonRaphsonStrategy_ROM(self):
+        #     computing_model_part = self.GetComputingModelPart()
+        #     time_scheme = self._GetScheme()
+        #     convergence_criterion = self._GetConvergenceCriterion()
+        #     builder_and_solver = self._GetBuilderAndSolver()
+        #     return KratosMultiphysics.RomApplication.RomResidualBasedNewtonRaphsonStrategy(
+        #         computing_model_part,
+        #         time_scheme,
+        #         convergence_criterion,
+        #         builder_and_solver,
+        #         self.settings["maximum_iterations"].GetInt(),
+        #         self.settings["compute_reactions"].GetBool(),
+        #         self.settings["reform_dofs_at_each_step"].GetBool(),
+        #         self.settings["move_mesh_flag"].GetBool())
         
 
-        def _CreateLineSearchStrategy(self):
-            if self.settings["solving_strategy_settings"].Has("advanced_settings"):
-                settings = self.settings["solving_strategy_settings"]["advanced_settings"]
-                settings.AddMissingParameters(self._GetDefaultLineSearchParameters())
-            else:
-                settings = self._GetDefaultLineSearchParameters()
-            settings.AddValue("max_iteration", self.settings["maximum_iterations"])
-            settings.AddValue("compute_reactions", self.settings["compute_reactions"])
-            settings.AddValue("reform_dofs_at_each_step", self.settings["reform_dofs_at_each_step"])
-            settings.AddValue("move_mesh_flag", self.settings["move_mesh_flag"])
-            computing_model_part = self.GetComputingModelPart()
-            time_scheme = self._GetScheme()
-            convergence_criterion = self._GetConvergenceCriterion()
-            builder_and_solver = self._GetBuilderAndSolver()
-            solution_strategy = KratosROM.RomLineSearchStrategy(computing_model_part,
-                time_scheme,
-                convergence_criterion,
-                builder_and_solver,
-                settings)
-            return solution_strategy
+        # def _CreateLineSearchStrategy(self):
+        #     if self.settings["solving_strategy_settings"].Has("advanced_settings"):
+        #         settings = self.settings["solving_strategy_settings"]["advanced_settings"]
+        #         settings.AddMissingParameters(self._GetDefaultLineSearchParameters())
+        #     else:
+        #         settings = self._GetDefaultLineSearchParameters()
+        #     settings.AddValue("max_iteration", self.settings["maximum_iterations"])
+        #     settings.AddValue("compute_reactions", self.settings["compute_reactions"])
+        #     settings.AddValue("reform_dofs_at_each_step", self.settings["reform_dofs_at_each_step"])
+        #     settings.AddValue("move_mesh_flag", self.settings["move_mesh_flag"])
+        #     computing_model_part = self.GetComputingModelPart()
+        #     time_scheme = self._GetScheme()
+        #     convergence_criterion = self._GetConvergenceCriterion()
+        #     builder_and_solver = self._GetBuilderAndSolver()
+        #     solution_strategy = KratosROM.RomLineSearchStrategy(computing_model_part,
+        #         time_scheme,
+        #         convergence_criterion,
+        #         builder_and_solver,
+        #         settings)
+        #     return solution_strategy
         
-        @classmethod
-        def _GetDefaultLineSearchParameters(self):
-            default_line_search_parameters = KratosMultiphysics.Parameters(r"""{
-                    "max_line_search_iterations" : 5,
-                    "first_alpha_value"          : 0.5,
-                    "second_alpha_value"         : 1.0,
-                    "min_alpha"                  : 0.1,
-                    "max_alpha"                  : 1.0,
-                    "line_search_tolerance"      : 0.5
-                }""")
-            return default_line_search_parameters
+        # @classmethod
+        # def _GetDefaultLineSearchParameters(self):
+        #     default_line_search_parameters = KratosMultiphysics.Parameters(r"""{
+        #             "max_line_search_iterations" : 5,
+        #             "first_alpha_value"          : 0.5,
+        #             "second_alpha_value"         : 1.0,
+        #             "min_alpha"                  : 0.1,
+        #             "max_alpha"                  : 1.0,
+        #             "line_search_tolerance"      : 0.5
+        #         }""")
+        #     return default_line_search_parameters
 
 
 
-        ############################################################
-        #      Setting strategy for  Compressible Potential App    #
-        ############################################################
+        # ############################################################
+        # #      Setting strategy for  Compressible Potential App    #
+        # ############################################################
 
-        def _GetAnalysisType(self):
-            if self.settings["formulation"].Has("element_type"):
-                element_type = self.settings["formulation"]["element_type"].GetString()
-                if (element_type == "perturbation_incompressible"):
-                    return "linear"
-                elif (element_type == "perturbation_compressible"
-                    or element_type == "perturbation_transonic"):
-                    return "non_linear"
-                else:
-                    raise RuntimeError(f"Argument {element_type} not found in formulation settings.")
+        # def _GetAnalysisType(self):
+        #     if self.settings["formulation"].Has("element_type"):
+        #         element_type = self.settings["formulation"]["element_type"].GetString()
+        #         if (element_type == "perturbation_incompressible"):
+        #             return "linear"
+        #         elif (element_type == "perturbation_compressible"
+        #             or element_type == "perturbation_transonic"):
+        #             return "non_linear"
+        #         else:
+        #             raise RuntimeError(f"Argument {element_type} not found in formulation settings.")
 
 
-        def Rom_CompressiblePotential_CreateSolutionStrategy(self):
-            analysis_type = self._GetAnalysisType()
-            if analysis_type == "linear":
-                # Create strategy
-                solution_strategy = self._CreateLinearStrategy()
-            elif analysis_type == "non_linear":
-                # Create strategy
-                if self.settings["solving_strategy_settings"]["type"].GetString() == "newton_raphson":
-                    solution_strategy = self._fluid_CreateNewtonRaphsonStrategy_ROM() #same as in regular fluid
-                elif self.settings["solving_strategy_settings"]["type"].GetString() == "line_search":
-                    solution_strategy = self._CreateLineSearchStrategy()
-            else:
-                err_msg = f"Unknown strategy type: {analysis_type}. Valid options are 'linear' and 'non_linear'."
-                raise Exception(err_msg)
-            return solution_strategy
+        # def Rom_CompressiblePotential_CreateSolutionStrategy(self):
+        #     analysis_type = self._GetAnalysisType()
+        #     if analysis_type == "linear":
+        #         # Create strategy
+        #         solution_strategy = self._CreateLinearStrategy()
+        #     elif analysis_type == "non_linear":
+        #         # Create strategy
+        #         if self.settings["solving_strategy_settings"]["type"].GetString() == "newton_raphson":
+        #             solution_strategy = self._fluid_CreateNewtonRaphsonStrategy_ROM() #same as in regular fluid
+        #         elif self.settings["solving_strategy_settings"]["type"].GetString() == "line_search":
+        #             solution_strategy = self._CreateLineSearchStrategy()
+        #     else:
+        #         err_msg = f"Unknown strategy type: {analysis_type}. Valid options are 'linear' and 'non_linear'."
+        #         raise Exception(err_msg)
+        #     return solution_strategy
 
     return ROMSolver(model, custom_settings)

@@ -718,6 +718,19 @@ protected:
         KRATOS_CATCH("")
     }
 
+    void LoadSelectedElementIds(const std::string& filename)
+    {
+        std::ifstream file(filename);
+        KRATOS_ERROR_IF_NOT(file.is_open()) << "No se pudo abrir el archivo: " << filename << std::endl;
+
+        IndexType id;
+        while (file >> id) {
+            mUpwindElementIds.insert(id);
+        }
+
+        KRATOS_INFO("GlobalROMBuilderAndSolver") << "Cargados " << mUpwindElementIds.size() << " IDs desde " << filename << std::endl;
+    }
+
     /**
      * @brief Function to perform the build of the LHS and RHS multiplied by its corresponding hrom weight.
      * @param pScheme The integration scheme considered
@@ -734,6 +747,28 @@ protected:
         KRATOS_TRY
 
         KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
+
+        if (mWeightedMatrixInitilized==false)
+        {
+            mWeightMatrix = EigenSparseMatrix(0, 0);
+            mWeightedMatrixInitilized = true;
+        }
+
+        if (mUpwindElementsIdsInitilized==false)
+        {
+            // Cargar IDs de elementos
+            LoadSelectedElementIds("selected_elements_list.txt");
+        }
+
+        const SizeType system_size = BaseType::GetEquationSystemSize();
+        if (mWeightMatrix.rows() != static_cast<Eigen::Index>(system_size) || 
+            mWeightMatrix.cols() != static_cast<Eigen::Index>(system_size)) {
+            mWeightMatrix.resize(system_size, system_size);
+            mWeightMatrix.setZero();
+        }
+
+        const double weight_constant = rModelPart.GetProcessInfo()[CONSTRAINT_SCALE_FACTOR];
+        double element_weight = 1.0;
 
         // // Getting the elements from the model
         const int nelements = mHromSimulation ? mSelectedElements.size() : rModelPart.Elements().size();
@@ -756,7 +791,7 @@ protected:
         // Assemble all elements
         const auto timer = BuiltinTimer();
 
-        #pragma omp parallel firstprivate(nelements,nconditions, LHS_Contribution, RHS_Contribution, EquationId )
+        #pragma omp parallel firstprivate(nelements,nconditions, LHS_Contribution, RHS_Contribution, EquationId)
         {
             # pragma omp for  schedule(guided, 512) nowait
             for (int k = 0; k < nelements; k++) {
@@ -765,6 +800,25 @@ protected:
                 if (it_elem->IsActive()) {
                     // Calculate elemental contribution
                     pScheme->CalculateSystemContributions(*it_elem, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+
+                    // Determinar el peso basado en el ID del elemento
+                    if (rModelPart.GetProcessInfo()[PRINTED_STEP])
+                    {
+                        // KRATOS_INFO("GlobalROMResidualBasedBlockBuilderAndSolver") << "Using read element ids." << std::endl;
+                        element_weight = (mUpwindElementIds.find(it_elem->Id()) != mUpwindElementIds.end()) ? weight_constant : 1.0;
+                    }else
+                    {
+                        element_weight = (it_elem->GetValue(ACTIVATION_LEVEL) == 1) ? weight_constant : 1.0; // This give problems in multithread
+                    }
+                    
+                    // Ensamblar matriz de pesos (diagonal)
+                    #pragma omp critical
+                    {
+                        for (auto dof_id : EquationId) {
+                            KRATOS_ERROR_IF(dof_id >= system_size) << "DOF ID fuera de rango: " << dof_id << std::endl;
+                            mWeightMatrix.coeffRef(dof_id, dof_id) = element_weight;
+                        }
+                    }
 
                     //Get HROM weight and multiply it by its contribution
                     const double h_rom_weight = mHromSimulation ? it_elem->GetValue(HROM_WEIGHT) : 1.0;
@@ -825,11 +879,40 @@ protected:
         Eigen::Map<EigenDynamicVector> eigen_rb(rb.data().begin(), rb.size());
         Eigen::Map<EigenDynamicMatrix> eigen_mPhiGlobal(mPhiGlobal.data().begin(), mPhiGlobal.size1(), mPhiGlobal.size2());
 
-        EigenDynamicMatrix eigen_rA_times_mPhiGlobal = eigen_rA * eigen_mPhiGlobal; //TODO: Make it in parallel.
+        // EigenDynamicMatrix eigen_rA_times_mPhiGlobal = eigen_rA * eigen_mPhiGlobal; //TODO: Make it in parallel.
 
-        // Compute the matrix multiplication
-        mEigenRomA = eigen_mPhiGlobal.transpose() * eigen_rA_times_mPhiGlobal; //TODO: Make it in parallel.
-        mEigenRomB = eigen_mPhiGlobal.transpose() * eigen_rb; //TODO: Make it in parallel.
+        // // Compute the matrix multiplication
+        // mEigenRomA = eigen_mPhiGlobal.transpose() * eigen_rA_times_mPhiGlobal; //TODO: Make it in parallel.
+        // mEigenRomB = eigen_mPhiGlobal.transpose() * eigen_rb; //TODO: Make it in parallel.
+
+
+        // // Incorporar la matriz de ponderación W
+        // Eigen::SparseMatrix<double> eigen_weighted_rA = mWeightMatrix * eigen_rA;
+        // Eigen::VectorXd eigen_weighted_rb = mWeightMatrix * eigen_rb;
+
+        // // Proyección al sistema reducido
+        // EigenDynamicMatrix eigen_weighted_rA_times_mPhiGlobal = eigen_weighted_rA * eigen_mPhiGlobal;
+        // EigenDynamicMatrix eigen_WeightedNatrix_times_mPhiGlobal = mWeightMatrix * eigen_mPhiGlobal;
+        // mEigenRomA = eigen_WeightedNatrix_times_mPhiGlobal.transpose() * eigen_weighted_rA_times_mPhiGlobal;
+        // mEigenRomB = eigen_WeightedNatrix_times_mPhiGlobal.transpose() * eigen_weighted_rb;
+
+        // Incorporar la matriz de ponderación W
+        Eigen::SparseMatrix<double> eigen_weighted_rA = mWeightMatrix * eigen_rA;
+        Eigen::VectorXd eigen_weighted_rb = mWeightMatrix * eigen_rb;
+
+        // Proyección al sistema reducido
+        EigenDynamicMatrix eigen_weighted_rA_times_mPhiGlobal = eigen_weighted_rA * eigen_mPhiGlobal;
+        EigenDynamicMatrix eigen_WeightedNatrix_times_mPhiGlobal = mWeightMatrix * eigen_mPhiGlobal;
+        mEigenRomA = eigen_WeightedNatrix_times_mPhiGlobal.transpose() * eigen_weighted_rA_times_mPhiGlobal;
+        mEigenRomB = eigen_WeightedNatrix_times_mPhiGlobal.transpose() * eigen_weighted_rb;
+
+        // // Calculate condition number of A_r
+        // Eigen::JacobiSVD<Eigen::MatrixXd> svd(mEigenRomA, Eigen::ComputeThinU | Eigen::ComputeThinV);
+        // double condition_number = svd.singularValues()(0) / svd.singularValues()(svd.singularValues().size() - 1);
+
+        // if (condition_number > 1e5) {
+        //     KRATOS_WARNING("GlobalROMBuilderAndSolver") << "Matrix is poorly conditioned with condition number: " << condition_number << std::endl;
+        // }
 
         KRATOS_CATCH("")
     }
@@ -994,6 +1077,10 @@ private:
     EigenDynamicVector mEigenRomB;
     Matrix mPhiGlobal;
     bool mMonotonicityPreservingFlag;
+    bool mWeightedMatrixInitilized=false;
+    bool mUpwindElementsIdsInitilized=false;
+    EigenSparseMatrix mWeightMatrix; // Matriz de ponderación para priorizar nodos/elementos
+    std::unordered_set<IndexType> mUpwindElementIds; // IDs de los elementos priorizados
 
     ///@}
     ///@name Private operations

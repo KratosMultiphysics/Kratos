@@ -340,7 +340,9 @@ class PotentialFlowSolver(FluidSolver):
                 "target_critical_mach"           : 0.92,
                 "target_upwind_factor_constant"  : 2.0,
                 "update_relative_residual_norm"  : 1e-3,
-                "mach_number_squared_limit"      : 3.0
+                "mach_number_squared_limit"      : 3.0,
+                "steps_strategy"                 : 1,
+                "echo_level"                     : 0
             }""")
         return default_line_search_parameters
 
