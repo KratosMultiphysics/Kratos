@@ -15,12 +15,17 @@
 // System includes
 #include <string>
 #include <vector>
+#include <limits>
+#include <algorithm>
+#include <iterator>
 
 // External includes
 
 // Project includes
+#include "includes/indexed_object.h"
 #include "includes/key_hash.h"
 #include "includes/model_part.h"
+#include "utilities/reduction_utilities.h"
 #include "utilities/model_part_operator_utilities.h"
 
 namespace Kratos {
@@ -35,7 +40,10 @@ public:
 
     using IndexType = std::size_t;
 
-    using CNodePointersType = std::vector<ModelPart::NodeType const*>;
+    template<class TValueType>
+    using IndexedSetType = std::set<typename TValueType::Pointer, std::less<IndexedObject>>;
+
+    using CNodePointersType = std::vector<IndexType>;
 
     template<class KeyType, class ValueType>
     using RangedKeyMapType = std::unordered_map<KeyType, ValueType, KeyHasherRange<KeyType>, KeyComparorRange<KeyType>>;
@@ -68,7 +76,7 @@ public:
      *
      * This method finds all the nodes, geometries in @ref rOperands in the @ref rMainModelPart
      * which satisfies the specified @ref TModelPartOperation and adds them to a given @ref rOutputSubModelPart.
-     * The @ref TModelPartOperation check is done based on the memory locations of the entities.
+     * The @ref TModelPartOperation check is done based on the ids of the entities.
      * The corresponding entities from @ref rMainModelPart are used to populate the sub model part.
      * @ref rOutputSubModelPart must be a sub model part of @ref rMainModelPart, but does not
      * necessarily have to be an immediate sub model part.
@@ -95,9 +103,9 @@ public:
         const std::vector<ModelPart const*>& rOperands,
         const bool AddNeighbourEntities)
     {
-        std::vector<ModelPart::NodeType*> output_nodes;
-        std::vector<ModelPart::ConditionType*> output_conditions;
-        std::vector<ModelPart::ElementType*> output_elements;
+        ModelPart::NodesContainerType output_nodes;
+        ModelPart::ConditionsContainerType output_conditions;
+        ModelPart::ElementsContainerType output_elements;
 
         // check whether the given rOutputSubModelPart is a sub model part of rMainModelPart
         // This is done based on pointers to avoid having same names in model parts
@@ -115,7 +123,7 @@ public:
         ModelPartOperation<TModelPartOperation>(output_nodes, output_conditions, output_elements, *p_parent_model_part, rOperands, AddNeighbourEntities);
 
         // now fill the sub model part
-        FillOutputSubModelPart(rOutputSubModelPart, *p_parent_model_part, output_nodes, output_conditions, output_elements);
+        // FillOutputSubModelPart(rOutputSubModelPart, *p_parent_model_part, output_nodes, output_conditions, output_elements);
     }
 
     /**
@@ -136,164 +144,145 @@ private:
     ///@name Private static operations
     ///@{
 
-    template<class TUnaryFunc>
-    static void AddNodes(
-        std::vector<ModelPart::NodeType*>& rNodesOutput,
-        ModelPart::NodesContainerType& rNodesContainer,
-        TUnaryFunc&& rIsValidEntity)
-    {
-        using p_entity_type = ModelPart::NodeType*;
-
-        const auto& result = block_for_each<AccumReduction<p_entity_type>>(rNodesContainer, [&rIsValidEntity](auto& rMainEntity) -> p_entity_type {
-            ModelPart::NodeType const* p_entity = &rMainEntity;
-            if (rIsValidEntity(p_entity)) {
-                return &rMainEntity;
-            } else {
-                return nullptr;
-            }
-        });
-
-        std::for_each(result.begin(), result.end(), [&rNodesOutput](auto pEntity) {
-            if (pEntity != nullptr) {
-                rNodesOutput.push_back(pEntity);
-            }
-        });
-    }
-
-    template<class TContainerType, class TUnaryFunc>
+    template<class TModelPartOperation, class TContainer>
     static void AddEntities(
-        std::vector<typename TContainerType::value_type*>& rEntitiesOutput,
-        TContainerType& rMainEntityContainer,
-        TUnaryFunc&& rIsValidEntity)
+        TContainer& rOutputEntities,
+        const TContainer& rMainEntityContainer,
+        const std::vector<TContainer const *>& rSetOperands)
     {
-        using p_entity_type = typename TContainerType::value_type*;
-        const auto& result = block_for_each<AccumReduction<p_entity_type>>(rMainEntityContainer, CNodePointersType(), [&rIsValidEntity](auto& rMainEntity, CNodePointersType& rTLS) -> p_entity_type {
-            const auto& r_geometry = rMainEntity.GetGeometry();
-            const IndexType number_of_nodes = r_geometry.size();
-
-            if (rTLS.size() != number_of_nodes) {
-                rTLS.resize(number_of_nodes);
+        for (auto itr_main = rMainEntityContainer.ptr_begin(); itr_main != rMainEntityContainer.ptr_end(); ++itr_main) {
+            TContainer temp;
+            temp.reserve(rMainEntityContainer.size());
+            if (TModelPartOperation::IsValid((*itr_main)->Id(), rSetOperands)) {
+                temp.insert(temp.end(), *itr_main);
             }
 
-            for (IndexType i = 0; i < number_of_nodes; ++i) {
-                rTLS[i] = &r_geometry[i];
-            }
-
-            std::sort(rTLS.begin(), rTLS.end());
-
-            if (rIsValidEntity(rTLS)) {
-                return &rMainEntity;
-            } else {
-                return nullptr;
-            }
-        });
-
-        std::for_each(result.begin(), result.end(), [&rEntitiesOutput](auto pEntity) {
-            if (pEntity != nullptr) {
-                rEntitiesOutput.push_back(pEntity);
-            }
-        });
+            rOutputEntities.insert(temp.begin(), temp.end());
+        }
     }
 
     template<class TModelPartOperation>
     static void ModelPartOperation(
-        std::vector<ModelPart::NodeType*>& rOutputNodes,
-        std::vector<ModelPart::ConditionType*>& rOutputConditions,
-        std::vector<ModelPart::ElementType*>& rOutputElements,
+        ModelPart::NodesContainerType& rOutputNodes,
+        ModelPart::ConditionsContainerType& rOutputConditions,
+        ModelPart::ElementsContainerType& rOutputElements,
         ModelPart& rMainModelPart,
-        const std::vector<ModelPart const*>& rOperands,
+        const std::vector<ModelPart const *>& rOperands,
         const bool AddNeighbourEntities)
     {
         const IndexType number_of_operation_model_parts = rOperands.size();
 
-        std::vector<std::set<ModelPart::NodeType const*>> set_operation_node_sets(number_of_operation_model_parts);
-        std::vector<std::set<CNodePointersType>> set_operation_condition_sets(number_of_operation_model_parts);
-        std::vector<std::set<CNodePointersType>> set_operation_element_sets(number_of_operation_model_parts);
+        std::vector<ModelPart::NodesContainerType const *> set_operation_nodes(number_of_operation_model_parts);
+        std::vector<ModelPart::ConditionsContainerType const *> set_operation_conditions(number_of_operation_model_parts);
+        std::vector<ModelPart::ElementsContainerType const *> set_operation_elements(number_of_operation_model_parts);
 
-        // now iterate through model parts' conditions/elements containers and get available main model part entities.
-        for (IndexType i = 0; i < number_of_operation_model_parts; ++i) {
-            auto p_model_part = rOperands[i];
+        // get the nodes sets for set operations
+        std::transform(rOperands.begin(), rOperands.end(), set_operation_nodes.begin(), [](const auto& pModelPart) { return &(pModelPart->Nodes()); });
 
-            // fill the set_operation nodes
-            FillNodesPointerSet(set_operation_node_sets[i], p_model_part->Nodes());
+        // get the condition sets for set operations
+        std::transform(rOperands.begin(), rOperands.end(), set_operation_conditions.begin(), [](const auto& pModelPart) { return &(pModelPart->Conditions()); });
 
-            // fill the set_operation conditions
-            FillNodePointersForEntities(set_operation_condition_sets[i], p_model_part->Conditions());
+        // get the element sets for set operations
+        std::transform(rOperands.begin(), rOperands.end(), set_operation_elements.begin(), [](const auto& pModelPart) { return &(pModelPart->Elements()); });
 
-            // fill the set_operation elements
-            FillNodePointersForEntities(set_operation_element_sets[i], p_model_part->Elements());
-        }
+        AddEntities<TModelPartOperation, ModelPart::NodesContainerType>(rOutputNodes, rMainModelPart.Nodes(), set_operation_nodes);
 
-        AddNodes(rOutputNodes, rMainModelPart.Nodes(), [&set_operation_node_sets](auto& rEntity) {
-            return TModelPartOperation::IsValid(rEntity, set_operation_node_sets);
-        });
+        AddEntities<TModelPartOperation, ModelPart::ConditionsContainerType>(rOutputConditions, rMainModelPart.Conditions(), set_operation_conditions);
 
-        AddEntities(rOutputConditions, rMainModelPart.Conditions(), [&set_operation_condition_sets](auto& rEntity) {
-            return TModelPartOperation::IsValid(rEntity, set_operation_condition_sets);
-        });
+        AddEntities<TModelPartOperation, ModelPart::ElementsContainerType>(rOutputElements, rMainModelPart.Elements(), set_operation_elements);
 
-        AddEntities(rOutputElements, rMainModelPart.Elements(), [&set_operation_element_sets](auto& rEntity) {
-            return TModelPartOperation::IsValid(rEntity, set_operation_element_sets);
-        });
+        // AddEntities(rOutputNodes, rMainModelPart.Nodes(), [&set_operation_node_sets](auto& rEntity) {
+        //     return TModelPartOperation::IsValid(rEntity.Id(), set_operation_node_sets);
+        // });
 
-        // now we have all the nodes to find and add neighbour entities.
-        if (AddNeighbourEntities) {
-            // we need to fill the boundary nodes for elements and conditions
-            FillNodesFromEntities<ModelPart::ConditionType>(rOutputNodes, rOutputConditions.begin(), rOutputConditions.end());
-            FillNodesFromEntities<ModelPart::ElementType>(rOutputNodes, rOutputElements.begin(), rOutputElements.end());
+        // if (!AddNeighbourEntities) {
+        //     AddEntities(rOutputConditions, rMainModelPart.Conditions(), [&set_operation_condition_sets](auto& rEntity) {
+        //         return TModelPartOperation::IsValid(rEntity.Id(), set_operation_condition_sets);
+        //     });
 
-            // now add all the neighbours
-            AddNeighbours(rOutputNodes, rOutputConditions, rOutputElements, rMainModelPart);
-        }
+        //     AddEntities(rOutputElements, rMainModelPart.Elements(), [&set_operation_element_sets](auto& rEntity) {
+        //         return TModelPartOperation::IsValid(rEntity.Id(), set_operation_element_sets);
+        //     });
+        // } else {
+        //     AddEntities(rOutputConditions, rMainModelPart.Conditions(), [&set_operation_condition_sets, &rOutputNodes](auto& rEntity) {
+        //         const auto is_valid = TModelPartOperation::IsValid(rEntity.Id(), set_operation_condition_sets);
+        //         if (is_valid) {
+        //             for (const auto& r_node : rEntity.GetGeometry()) {
+        //                 rOutputNodes.push_back((r_node.Id()));
+        //             }
+        //         }
+        //         return is_valid;
+        //     });
+
+        //     AddEntities(rOutputElements, rMainModelPart.Elements(), [&set_operation_element_sets, &rOutputNodes](auto& rEntity) {
+        //         const auto is_valid = TModelPartOperation::IsValid(rEntity.Id(), set_operation_element_sets);
+        //         if (is_valid) {
+        //             for (const auto& r_node : rEntity.GetGeometry()) {
+        //                 rOutputNodes.push_back((r_node.Id()));
+        //             }
+        //         }
+        //         return is_valid;
+        //     });
+        // }
+
+        // // now we have all the nodes to find and add neighbour entities.
+        // if (AddNeighbourEntities) {
+        //     // we need to fill the boundary nodes for elements and conditions
+        //     FillNodesFromEntities<ModelPart::ConditionType>(rOutputNodes, rOutputConditions.begin(), rOutputConditions.end());
+        //     FillNodesFromEntities<ModelPart::ElementType>(rOutputNodes, rOutputElements.begin(), rOutputElements.end());
+
+        //     // now add all the neighbours
+        //     AddNeighbours(rOutputNodes, rOutputConditions, rOutputElements, rMainModelPart);
+        // }
     }
 
     static void FillNodesPointerSet(
-        std::set<ModelPart::NodeType const*>& rOutput,
+        std::set<IndexType>& rOutput,
         const ModelPart::NodesContainerType& rNodes);
 
-    template <class TContainerType>
-    static void FillNodePointersForEntities(
-        std::set<CNodePointersType>& rOutput,
-        const TContainerType& rEntityContainer);
+    // template <class TContainerType>
+    // static void FillNodePointersForEntities(
+    //     std::set<CNodePointersType>& rOutput,
+    //     const TContainerType& rEntityContainer);
 
-    static void FillCommonNodes(
-        ModelPart::NodesContainerType& rOutput,
-        ModelPart::NodesContainerType& rMainNodes,
-        const std::set<ModelPart::NodeType const*>& rNodesSet);
+    // static void FillCommonNodes(
+    //     ModelPart::NodesContainerType& rOutput,
+    //     ModelPart::NodesContainerType& rMainNodes,
+    //     const std::set<ModelPart::NodeType const*>& rNodesSet);
 
-    template<class TEntityType>
-    static void FillNodesFromEntities(
-        std::vector<ModelPart::NodeType*>& rOutput,
-        typename std::vector<TEntityType*>::iterator pEntityBegin,
-        typename std::vector<TEntityType*>::iterator pEntityEnd);
+    // template<class TEntityType>
+    // static void FillNodesFromEntities(
+    //     std::vector<ModelPart::NodeType*>& rOutput,
+    //     typename std::vector<TEntityType*>::iterator pEntityBegin,
+    //     typename std::vector<TEntityType*>::iterator pEntityEnd);
 
-    template<class TContainerType>
-    static void FindNeighbourEntities(
-        std::vector<typename TContainerType::value_type*>& rOutputEntities,
-        const Flags& rNodeSelectionFlag,
-        TContainerType& rMainEntities);
+    // template<class TContainerType>
+    // static void FindNeighbourEntities(
+    //     std::vector<typename TContainerType::value_type*>& rOutputEntities,
+    //     const Flags& rNodeSelectionFlag,
+    //     TContainerType& rMainEntities);
 
-    static void AddNeighbours(
-        std::vector<ModelPart::NodeType*>& rOutputNodes,
-        std::vector<ModelPart::ConditionType*>& rOutputConditions,
-        std::vector<ModelPart::ElementType*>& rOutputElements,
-        ModelPart& rMainModelPart);
+    // static void AddNeighbours(
+    //     std::vector<ModelPart::NodeType*>& rOutputNodes,
+    //     std::vector<ModelPart::ConditionType*>& rOutputConditions,
+    //     std::vector<ModelPart::ElementType*>& rOutputElements,
+    //     ModelPart& rMainModelPart);
 
-    static void FillWithMainNodesFromSearchNodes(
-        ModelPart::NodesContainerType& rOutput,
-        ModelPart::NodesContainerType& rMainNodes,
-        ModelPart::NodesContainerType& rSearchedNodes);
+    // static void FillWithMainNodesFromSearchNodes(
+    //     ModelPart::NodesContainerType& rOutput,
+    //     ModelPart::NodesContainerType& rMainNodes,
+    //     ModelPart::NodesContainerType& rSearchedNodes);
 
-    static void SetCommunicator(
-        ModelPart& rOutputModelPart,
-        ModelPart& rMainModelPart);
+    // static void SetCommunicator(
+    //     ModelPart& rOutputModelPart,
+    //     ModelPart& rMainModelPart);
 
-    static void FillOutputSubModelPart(
-        ModelPart& rOutputSubModelPart,
-        ModelPart& rMainModelPart,
-        std::vector<ModelPart::NodeType*>& rOutputNodes,
-        std::vector<ModelPart::ConditionType*>& rOutputConditions,
-        std::vector<ModelPart::ElementType*>& rOutputElements);
+    // static void FillOutputSubModelPart(
+    //     ModelPart& rOutputSubModelPart,
+    //     ModelPart& rMainModelPart,
+    //     std::vector<ModelPart::NodeType*>& rOutputNodes,
+    //     std::vector<ModelPart::ConditionType*>& rOutputConditions,
+    //     std::vector<ModelPart::ElementType*>& rOutputElements);
 
     static void CheckNodes(
         std::vector<IndexType>& rNodeIdsWithIssues,

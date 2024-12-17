@@ -26,15 +26,15 @@ namespace Kratos {
 ///@{
 
 struct ModelPartUnionOperator {
-    template <class TCheckType>
+    template <class TCheck, class TContainerPointer>
     static bool IsValid(
-        const TCheckType& rEntity,
-        const std::vector<std::set<TCheckType>>& mUnionSets)
+        const TCheck& rEntity,
+        const std::vector<TContainerPointer>& mUnionSets)
     {
         bool is_valid = false;
 
         for (const auto& r_set : mUnionSets) {
-            if (r_set.find(rEntity) != r_set.end()) {
+            if (r_set->find(rEntity) != r_set->end()) {
                 is_valid = true;
                 break;
             }
@@ -45,15 +45,15 @@ struct ModelPartUnionOperator {
 };
 
 struct ModelPartSubstractionOperator {
-    template <class TCheckType>
+    template <class TCheck, class TContainerPointer>
     static bool IsValid(
-        const TCheckType& rEntity,
-        const std::vector<std::set<TCheckType>>& mSubstractionSets)
+        const TCheck& rEntity,
+        const std::vector<TContainerPointer>& mSubstractionSets)
     {
         bool is_valid = true;
 
         for (const auto& r_set : mSubstractionSets) {
-            if (r_set.find(rEntity) != r_set.end()) {
+            if (r_set->find(rEntity) != r_set->end()) {
                 is_valid = false;
                 break;
             }
@@ -64,15 +64,15 @@ struct ModelPartSubstractionOperator {
 };
 
 struct ModelPartIntersectionOperator {
-    template <class TCheckType>
+    template <class TCheck, class TContainerPointer>
     static bool IsValid(
-        const TCheckType& rEntity,
-        const std::vector<std::set<TCheckType>>& mIntersectionSets)
+        const TCheck& rEntity,
+        const std::vector<TContainerPointer>& mIntersectionSets)
     {
         bool is_valid = true;
 
         for (const auto& r_set : mIntersectionSets) {
-            if (r_set.find(rEntity) == r_set.end()) {
+            if (r_set->find(rEntity) == r_set->end()) {
                 is_valid = false;
                 break;
             }
