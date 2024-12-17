@@ -14,7 +14,7 @@
 #define KRATOS_TIME_INTEGRATED_FIC_DATA_H
 
 #include "fluid_dynamics_application_variables.h"
-#include "custom_utilities/fic_data.h"
+#include "custom_elements/data_containers/fic/fic_data.h"
 
 namespace Kratos {
 
@@ -34,6 +34,8 @@ public:
 
 using NodalScalarData = typename FluidElementData<TDim,TNumNodes, false>::NodalScalarData;
 using NodalVectorData = typename FluidElementData<TDim,TNumNodes, false>::NodalVectorData;
+
+static constexpr std::size_t BlockSize = TDim + 1;
 
 ///@}
 ///@name Public Members

@@ -14,7 +14,7 @@
 #define KRATOS_EMBEDDED_DATA_H
 
 #include "fluid_dynamics_application_variables.h"
-#include "custom_utilities/fluid_element_data.h"
+#include "custom_elements/data_containers/fluid_element_data.h"
 
 namespace Kratos {
 
@@ -37,6 +37,8 @@ using NodalVectorData = typename TFluidData::NodalVectorData;
 
 typedef GeometryData::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
 typedef std::vector<array_1d<double,3>> InterfaceNormalsType;
+
+static constexpr std::size_t BlockSize = TFluidData::BlockSize;
 
 ///@}
 ///@name Public Members

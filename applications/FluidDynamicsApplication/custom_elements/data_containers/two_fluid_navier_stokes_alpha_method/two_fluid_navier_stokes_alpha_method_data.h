@@ -1,4 +1,4 @@
-//    |  /           |
+    //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
@@ -7,17 +7,17 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Daniel Diez, Jordi Cotela
+//  Main authors:    Uxue Chasco
 //
 
 
-#if !defined(KRATOS_TWO_FLUID_NAVIER_STOKES_DATA_H)
-#define KRATOS_TWO_FLUID_NAVIER_STOKES_DATA_H
+#if !defined(KRATOS_TWO_FLUID_NAVIER_STOKES_DATA_ALPHA_METHOD_H)
+#define KRATOS_TWO_FLUID_NAVIER_STOKES_DATA_ALPHA_METHOD_H
 
 #include "includes/constitutive_law.h"
 
 #include "fluid_dynamics_application_variables.h"
-#include "custom_utilities/fluid_element_data.h"
+#include "custom_elements/data_containers/fluid_element_data.h"
 #include "utilities/element_size_calculator.h"
 #include "custom_utilities/fluid_element_utilities.h"
 
@@ -30,7 +30,7 @@ namespace Kratos {
 ///@{
 
 template< size_t TDim, size_t TNumNodes >
-class TwoFluidNavierStokesData : public FluidElementData<TDim,TNumNodes, true>
+class TwoFluidNavierStokesAlphaMethodData : public FluidElementData<TDim,TNumNodes, true>
 {
 public:
 
@@ -45,33 +45,39 @@ using MatrixRowType = typename FluidElementData<TDim, TNumNodes, true>::MatrixRo
 typedef Geometry<Node> GeometryType;
 typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
 
+static constexpr std::size_t BlockSize = TDim + 1;
+
 ///@}
 ///@name Public Members
 ///@{
 
 NodalVectorData Velocity;
 NodalVectorData Velocity_OldStep1;
-NodalVectorData Velocity_OldStep2;
-NodalVectorData MeshVelocity;
-NodalVectorData BodyForce;
-
 NodalScalarData Pressure;
+NodalVectorData AccelerationAlphaMethod;
+
+NodalVectorData MeshVelocity;
+NodalVectorData MeshVelocityOldStep;
+
+NodalVectorData BodyForce;
+NodalVectorData BodyForce_OldStep1;
+
 NodalScalarData Distance;
+
 NodalScalarData NodalDensity;
+NodalScalarData NodalDensityOldStep;
 NodalScalarData NodalDynamicViscosity;
+NodalScalarData NodalDynamicViscosityOldStep;
+
+Vector ShearStressOldStep;
 
 double Density;
 double DynamicViscosity;
 double DeltaTime;		   // Time increment
 double DynamicTau;         // Dynamic tau considered in ASGS stabilization coefficients
-double SmagorinskyConstant;
-double LinearDarcyCoefficient;
-double NonLinearDarcyCoefficient;
-double DarcyTerm;
-double VolumeError;
-double bdf0;
-double bdf1;
-double bdf2;
+double VolumeErrorRate;    // Mass loss time rate (m^3/s) to be used as source term in the mass conservation equation
+double MaxSpectralRadius;
+double ArtificialDynamicViscosity;
 
 // Auxiliary containers for the symbolically-generated matrices
 BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)> lhs;
@@ -112,27 +118,28 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     FluidElementData<TDim,TNumNodes, true>::Initialize(rElement,rProcessInfo);
 
     const Geometry< Node >& r_geometry = rElement.GetGeometry();
-    const Properties& r_properties = rElement.GetProperties();
+
     this->FillFromHistoricalNodalData(Velocity,VELOCITY,r_geometry);
     this->FillFromHistoricalNodalData(Velocity_OldStep1,VELOCITY,r_geometry,1);
-    this->FillFromHistoricalNodalData(Velocity_OldStep2,VELOCITY,r_geometry,2);
-    this->FillFromHistoricalNodalData(Distance, DISTANCE, r_geometry);
-    this->FillFromHistoricalNodalData(MeshVelocity,MESH_VELOCITY,r_geometry);
-    this->FillFromHistoricalNodalData(BodyForce,BODY_FORCE,r_geometry);
     this->FillFromHistoricalNodalData(Pressure,PRESSURE,r_geometry);
+
+    this->FillFromHistoricalNodalData(Distance, DISTANCE, r_geometry);
+
+    this->FillFromHistoricalNodalData(MeshVelocity,MESH_VELOCITY,r_geometry);
+    this->FillFromHistoricalNodalData(MeshVelocityOldStep,MESH_VELOCITY,r_geometry,1);
+
+    this->FillFromHistoricalNodalData(BodyForce,BODY_FORCE,r_geometry);
+    this->FillFromHistoricalNodalData(BodyForce_OldStep1,BODY_FORCE,r_geometry,1);
+
     this->FillFromHistoricalNodalData(NodalDensity, DENSITY, r_geometry);
+    this->FillFromHistoricalNodalData(NodalDensityOldStep, DENSITY, r_geometry, 1);
     this->FillFromHistoricalNodalData(NodalDynamicViscosity, DYNAMIC_VISCOSITY, r_geometry);
-    this->FillFromProperties(SmagorinskyConstant, C_SMAGORINSKY, r_properties);
-    this->FillFromProperties(LinearDarcyCoefficient, LIN_DARCY_COEF, r_properties);
-    this->FillFromProperties(NonLinearDarcyCoefficient, NONLIN_DARCY_COEF, r_properties);
+    this->FillFromHistoricalNodalData(NodalDynamicViscosityOldStep, DYNAMIC_VISCOSITY, r_geometry, 1);
+    this->FillFromNonHistoricalNodalData(AccelerationAlphaMethod,ACCELERATION,r_geometry);
     this->FillFromProcessInfo(DeltaTime,DELTA_TIME,rProcessInfo);
     this->FillFromProcessInfo(DynamicTau,DYNAMIC_TAU,rProcessInfo);
-    this->FillFromProcessInfo(VolumeError,VOLUME_ERROR,rProcessInfo);
-    
-    const Vector& BDFVector = rProcessInfo[BDF_COEFFICIENTS];
-    bdf0 = BDFVector[0];
-    bdf1 = BDFVector[1];
-    bdf2 = BDFVector[2];
+    this->FillFromProcessInfo(MaxSpectralRadius,SPECTRAL_RADIUS_LIMIT,rProcessInfo);
+
 
     noalias(lhs) = ZeroMatrix(TNumNodes*(TDim+1),TNumNodes*(TDim+1));
     noalias(rhs) = ZeroVector(TNumNodes*(TDim+1));
@@ -150,6 +157,25 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
         else
             NumNegativeNodes++;
     }
+
+    ArtificialDynamicViscosity = r_geometry.Has(ARTIFICIAL_DYNAMIC_VISCOSITY) ? r_geometry.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY) : 0.0;
+
+    // In here we calculate the volume error temporary ratio (note that the input value is a relative measure of the volume loss)
+    // Also note that we do consider time varying time step but a constant theta (we incur in a small error when switching from BE to CN)
+    // Note as well that there is a minus sign (this comes from the divergence sign)
+    if (IsCut()) {
+        // Get the previous time increment. Note that we check its value in case the previous ProcessInfo is empty (e.g. first step)
+        double previous_dt = rProcessInfo.GetPreviousTimeStepInfo()[DELTA_TIME];
+        if (previous_dt < 1.0e-12) {
+            previous_dt = rProcessInfo[DELTA_TIME];
+        }
+        // Get the absolute volume error from the ProcessInfo and calculate the time rate
+        this->FillFromProcessInfo(VolumeErrorRate,VOLUME_ERROR,rProcessInfo);
+        VolumeErrorRate /= -previous_dt;
+    } else {
+        VolumeErrorRate = 0.0;
+    }
+
 }
 
 void UpdateGeometryValues(
@@ -251,7 +277,9 @@ void CalculateAirMaterialResponse() {
 
 void ComputeStrain()
 {
-    const BoundedMatrix<double, TNumNodes, TDim>& v = Velocity;
+    const double rho_inf=this->MaxSpectralRadius;
+    const double alpha_f= 1/(rho_inf+1);
+    const BoundedMatrix<double, TNumNodes, TDim>& v = Velocity_OldStep1+alpha_f*(Velocity-Velocity_OldStep1);
     const BoundedMatrix<double, TNumNodes, TDim>& DN = this->DN_DX;
 
     // Compute strain (B*v)
@@ -327,35 +355,18 @@ void CalculateEffectiveViscosityAtGaussPoint()
             dynamic_viscosity += NodalDynamicViscosity[i];
         }
     }
-    DynamicViscosity = dynamic_viscosity / navg;
-    
-    if (SmagorinskyConstant > 0.0)
-    {
-        const double strain_rate_norm = ComputeStrainNorm();
 
-        double length_scale = SmagorinskyConstant*ElementSize;
-        length_scale *= length_scale; // square
-        this->EffectiveViscosity = DynamicViscosity + 2.0*length_scale*strain_rate_norm;
-    }
-    else this->EffectiveViscosity = DynamicViscosity;
+    DynamicViscosity = dynamic_viscosity / navg;
+    this->EffectiveViscosity = DynamicViscosity + ArtificialDynamicViscosity;
 }
 
 void ComputeDarcyTerm()
 {
-    array_1d<double, 3> convective_velocity(3, 0.0);
-    for (size_t i = 0; i < TNumNodes; i++) {
-        for (size_t j = 0; j < TDim; j++) {
-            convective_velocity[j] += this->N[i] * (Velocity(i, j) - MeshVelocity(i, j));
-        }
-    }
-    const double convective_velocity_norm = MathUtils<double>::Norm(convective_velocity);
-    DarcyTerm = this->EffectiveViscosity * LinearDarcyCoefficient + Density * NonLinearDarcyCoefficient * convective_velocity_norm;
+    //TODO: We need to implement this in order to do the explicit template instantiation in the base TwoFluidNavierStokesElement
+    //TODO: Properly implement it (with the required member variables) once we add the Darcy contribution to the Alpha method element
 }
+
 ///@}
-
-
-
-
 
 };
 

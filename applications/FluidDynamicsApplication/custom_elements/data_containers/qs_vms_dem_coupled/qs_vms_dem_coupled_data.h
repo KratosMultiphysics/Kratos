@@ -24,8 +24,8 @@
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
-#include "custom_utilities/fluid_element_data.h"
-#include "custom_utilities/qsvms_data.h"
+#include "custom_elements/data_containers/fluid_element_data.h"
+#include "custom_elements/data_containers/qs_vms/qs_vms_data.h"
 
 namespace Kratos {
 
@@ -46,8 +46,7 @@ public:
 
 constexpr static unsigned int Dim = TDim;
 constexpr static unsigned int NumNodes = TNumNodes;
-constexpr static unsigned int BlockSize = Dim + 2;
-constexpr static unsigned int DofSize = NumNodes * BlockSize;
+constexpr static unsigned int BlockSize = Dim + 1;
 constexpr static bool ElementIntegratesInTime = TElementIntegratesInTime;
 
 using NodalScalarData = typename FluidElementData<TDim,TNumNodes, false>::NodalScalarData;

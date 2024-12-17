@@ -304,7 +304,7 @@ if(KRATOS_BUILD_TESTING MATCHES ON)
   # retrieve a copy of the current directory's `COMPILE_OPTIONS`
   get_directory_property(kratos_root_compile_options COMPILE_OPTIONS)
 
-  # Disable warnings (needed by centos. We should all love centos, it clearly needs some affection)
+  # Disable warnings (needed by Intel Compiler Legacy)
   add_compile_options(-w)
 
   FetchContent_Declare(
