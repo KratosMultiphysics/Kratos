@@ -10,6 +10,7 @@
 //  Main authors:    Riccardo Rossi
 //                   Denis Demidov
 //                   Philipp Bucher (https://github.com/philbucher)
+//                   Vicente Mataix Ferrandiz
 //
 
 #pragma once
