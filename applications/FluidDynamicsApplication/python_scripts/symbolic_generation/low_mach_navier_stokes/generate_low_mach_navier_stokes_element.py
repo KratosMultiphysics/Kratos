@@ -51,7 +51,6 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
     dp_th_dt = sympy.Symbol('dp_th_dt', positive = True) # Thermodynamic pressure time derivative
 
     ## Fluid properties
-    mu = sympy.Symbol('mu', positive = True)       # Dynamic viscosity
     c_p = sympy.Symbol('c_p', positive = True)     # Specific heat at constant pressure
     gamma = sympy.Symbol('gamma', positive = True) # Heat capacity ratio
     kappa = sympy.Symbol('kappa', positive = True) # Thermal conductivity
@@ -151,7 +150,6 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
     galerkin_functional -= rho_gauss * v_gauss.transpose() * du_dt_gauss
     galerkin_functional -= rho_gauss * v_gauss.transpose() * lin_conv_term_u_gauss.transpose()
     galerkin_functional -= grad_sym_v.transpose() * stress
-    galerkin_functional -= div_v * (rho_gauss * div_u)
     galerkin_functional += div_v * p_gauss
 
     # Energy conservation residual
