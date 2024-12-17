@@ -122,11 +122,12 @@ bool Kernel::IsImported(const std::string& rApplicationName) const {
 }
 
 bool Kernel::IsLibraryAvailable(const std::string& rLibraryName) const {
-    const bool is_available = GetLibrayList().find(rLibraryName) != GetLibrayList().end();
+    const auto library_list = GetLibraryList();
+    const bool is_available = library_list.find(rLibraryName) != library_list.end();
     if (!is_available) {
         std::stringstream available_list_str;
         available_list_str << "Library " << rLibraryName << " is not available. The following libraries are available: ";
-        for (const std::string& library : GetLibrayList()) {
+        for (const std::string& library : library_list) {
             available_list_str << library << "\n";
         }
         KRATOS_WARNING("Kernel") << available_list_str.str() << std::endl;
