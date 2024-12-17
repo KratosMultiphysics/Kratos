@@ -91,6 +91,29 @@ namespace Kratos
         }
     }
 
+    std::vector<std::string> RegistryItem::GetSubItemAvailableList() const
+    {
+        std::vector<std::string> available_list;
+        auto it_item_begin = this->cbegin();
+        auto it_item_end = this->cend();
+        available_list.reserve(std::distance(it_item_begin, it_item_end));
+        for (auto it_item = it_item_begin; it_item != it_item_end; ++it_item) {
+            available_list.push_back((it_item->second)->Name());
+        }
+        return available_list;
+    }
+
+    void RegistryItem::NotFoundError(const std::string& rItemName) const
+    {
+        const std::vector<std::string> available_list = GetSubItemAvailableList();
+        std::stringstream available_list_str;
+        available_list_str << "The RegistryItem " << this->Name() << " does not have an item with name " << rItemName << ". The available objects are: \n";
+        for (std::string const& item : available_list) {
+            available_list_str << "\t\t" << item << "\n";
+        }
+        KRATOS_ERROR << available_list_str.str() << std::endl;
+    }
+
     std::string RegistryItem::GetValueString() const
     {
         return (this->*(this->mGetValueStringMethod))();
@@ -163,7 +186,9 @@ namespace Kratos
     {
         SubRegistryItemType& r_map = GetSubRegistryItemMap();
         auto iterator = r_map.find(rItemName);
-        KRATOS_ERROR_IF(iterator == r_map.end()) << "The RegistryItem " << this->Name() << " does not have an item with name " << rItemName << std::endl;
+        if (iterator == r_map.end()) {
+            NotFoundError(rItemName);
+        }
         return *(iterator->second);
     }
 
@@ -171,7 +196,9 @@ namespace Kratos
     {
         SubRegistryItemType& r_map = GetSubRegistryItemMap();
         auto iterator = r_map.find(rItemName);
-        KRATOS_ERROR_IF(iterator == r_map.end()) << "The RegistryItem " << this->Name() << " does not have an item with name " << rItemName << std::endl;
+        if (iterator == r_map.end()) {
+            NotFoundError(rItemName);
+        }
         return *(iterator->second);
     }
 
@@ -179,7 +206,9 @@ namespace Kratos
     {
         SubRegistryItemType& r_map = GetSubRegistryItemMap();
         auto iterator = r_map.find(rItemName);
-        KRATOS_ERROR_IF(iterator == r_map.end()) << "The RegistryItem " << this->Name() << " does not have an item with name " << rItemName << std::endl;
+        if (iterator == r_map.end()) {
+            NotFoundError(rItemName);
+        }
         r_map.erase(iterator);
     }
 
