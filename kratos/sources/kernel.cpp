@@ -20,19 +20,25 @@
 #include "includes/kratos_version.h"
 #include "includes/data_communicator.h"
 #include "includes/parallel_environment.h"
+#include "includes/registry.h"
 #include "input_output/logger.h"
 #include "utilities/parallel_utilities.h"
 
 namespace Kratos {
 
-Kernel::Kernel() : mpKratosCoreApplication(Kratos::make_shared<KratosApplication>(
-                std::string("KratosMultiphysics"))) {
+Kernel::Kernel() 
+    : mpKratosCoreApplication(Kratos::make_shared<KratosApplication>(std::string("KratosMultiphysics"))) 
+{
     Initialize();
 }
 
-Kernel::Kernel(bool IsDistributedRun) : mpKratosCoreApplication(Kratos::make_shared<KratosApplication>(
-                std::string("KratosMultiphysics"))) {
+Kernel::Kernel(bool IsDistributedRun) 
+        : mpKratosCoreApplication(Kratos::make_shared<KratosApplication>(std::string("KratosMultiphysics")))
+{
+    // Distributed run definition
     mIsDistributedRun = IsDistributedRun;
+
+    // Initialize kernel
     Initialize();
 }
 
@@ -52,24 +58,81 @@ void Kernel::PrintInfo() {
 }
 
 void Kernel::Initialize() {
+    // Print kernel info
     this->PrintInfo();
 
+    // Import the Kratos core application (if not already imported)
     if (!IsImported("KratosMultiphysics")) {
+        // Boost is always available
+        if (!Registry::HasItem("libraries.boost")) {
+            Registry::AddItem<std::string>("libraries.boost");
+
+            // When using the nonfree version of TRIANGLE, add it to the list of libraries
+        #if USE_TRIANGLE_NONFREE_TPL
+            Registry::AddItem<std::string>("libraries.triangle");
+        #else
+            // Open-source version alternative to TRIANGLE
+            Registry::AddItem<std::string>("libraries.delaunator-cpp");
+        #endif
+
+            // When using the nonfree version of TETGEN, add it to the list of libraries
+        #if USE_TETGEN_NONFREE_TPL
+            Registry::AddItem<std::string>("libraries.tetgen");
+        #endif
+
+            // Add the libraries that are always available
+            Registry::AddItem<std::string>("libraries.amgcl");
+            Registry::AddItem<std::string>("libraries.benchmark");
+            Registry::AddItem<std::string>("libraries.clipper");
+            Registry::AddItem<std::string>("libraries.concurrentqueue");
+            Registry::AddItem<std::string>("libraries.ghc");
+            Registry::AddItem<std::string>("libraries.gidpost");
+            Registry::AddItem<std::string>("libraries.intrusive_ptr");
+            Registry::AddItem<std::string>("libraries.json");
+            Registry::AddItem<std::string>("libraries.pybind11");
+            Registry::AddItem<std::string>("libraries.span");
+            Registry::AddItem<std::string>("libraries.tinyexpr");
+            Registry::AddItem<std::string>("libraries.vexcl");
+            Registry::AddItem<std::string>("libraries.zlib");
+        }
+
+        // Import core application
         this->ImportApplication(mpKratosCoreApplication);
     }
 }
 
-std::unordered_set<std::string> &Kernel::GetApplicationsList() {
-  static std::unordered_set<std::string> application_list;
-  return application_list;
+std::unordered_set<std::string>& Kernel::GetApplicationsList() {
+    static std::unordered_set<std::string> application_list;
+    return application_list;
 }
 
-bool Kernel::IsImported(const std::string& ApplicationName) const {
-    if (GetApplicationsList().find(ApplicationName) !=
-        GetApplicationsList().end())
-        return true;
-    else
-        return false;
+std::unordered_set<std::string> Kernel::GetLibraryList() {
+    std::unordered_set<std::string> library_list;
+
+    const auto& r_item = Registry::GetItem("libraries");
+    for (auto it_item = r_item.cbegin(); it_item != r_item.cend(); ++it_item) {
+        library_list.insert((it_item->second)->Name());
+    }
+
+    return library_list;
+}
+
+bool Kernel::IsImported(const std::string& rApplicationName) const {
+    return GetApplicationsList().find(rApplicationName) != GetApplicationsList().end();
+}
+
+bool Kernel::IsLibraryAvailable(const std::string& rLibraryName) const {
+    const auto library_list = GetLibraryList();
+    const bool is_available = library_list.find(rLibraryName) != library_list.end();
+    if (!is_available) {
+        std::stringstream available_list_str;
+        available_list_str << "Library " << rLibraryName << " is not available. The following libraries are available: ";
+        for (const std::string& library : library_list) {
+            available_list_str << library << "\n";
+        }
+        KRATOS_WARNING("Kernel") << available_list_str.str() << std::endl;
+    }
+    return is_available;
 }
 
 bool Kernel::IsDistributedRun() {
