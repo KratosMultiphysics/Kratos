@@ -27,7 +27,7 @@ namespace Kratos
 
         // this->Set(ACTIVE, true);
 
-        SetValue(ACTIVATION_LEVEL, 0);
+        // SetValue(OLD_ACTIVATION_LEVEL, 0);
     }
 
 
@@ -72,24 +72,37 @@ namespace Kratos
 
         // //----------------------------------------------
         // {
-        //     double normal_gap = this->GetValue(NORMAL_GAP);
-        //     Vector normal_stress = this->GetValue(STRESS_MASTER);
-        //     Vector normal = this->GetValue(NORMAL_MASTER);
+        //     const double toll = 1e-8;
+        //     Vector normal_stress_slave = this->GetValue(STRESS_SLAVE);
+        //     Vector normal_slave = this->GetValue(NORMAL_SLAVE);
+        //     Vector normal_stress_master = this->GetValue(STRESS_MASTER);
+        //     Vector normal_master = this->GetValue(NORMAL_MASTER);
+
+        //     Vector gap = this->GetValue(GAP);
+        //     double normal_gap_master = inner_prod(gap, normal_master);
+        //     double normal_gap_slave = -inner_prod(gap, normal_slave);
+
         //     double weight = this->GetValue(INTEGRATION_WEIGHT);
  
         //     // KRATOS_WATCH(i_cond->GetProperties()[YOUNG_MODULUS])
-        //     double yound_modulus = 10.0;
+        //     double yound_modulus = 200.0;
 
+        //     double true_normal_stress_master = (normal_stress_master[0]* normal_master[0] + normal_stress_master[2]* normal_master[1])*normal_master[0] +
+        //                                        (normal_stress_master[2]* normal_master[0] + normal_stress_master[1]* normal_master[1])*normal_master[1];
 
-        //     // double true_normal_stress = inner_prod(normal_stress, normal);
+        //     double true_normal_stress_slave = (normal_stress_slave[0]* normal_slave[0] + normal_stress_slave[2]* normal_slave[1])*normal_slave[0] +
+        //                                       (normal_stress_slave[2]* normal_slave[0] + normal_stress_slave[1]* normal_slave[1])*normal_slave[1];
 
-        //     double true_normal_stress = (normal_stress[0]* normal[0] + normal_stress[2]* normal[1])*normal[0] +
-        //                               (normal_stress[2]* normal[0] + normal_stress[1]* normal[1])*normal[1];
+        //     double check_value = -(true_normal_stress_master+yound_modulus*normal_gap_master);
 
-        //     double check_value = -(true_normal_stress+yound_modulus*normal_gap);
+        //     Vector stress_master = GetValue(STRESS_MASTER);
 
-        //     if (check_value > 0) SetValue(ACTIVATION_LEVEL, 1);
-        //     else SetValue(ACTIVATION_LEVEL, 0);
+        //     double check_value_gap = -(normal_gap_master); // + normal_gap_slave)/2;
+        //     double check_value_stress = -(true_normal_stress_master); // + true_normal_stress_slave)/2;
+
+        //     if (check_value_gap > toll) SetValue(ACTIVATION_LEVEL, 1);
+
+        //     if (check_value_stress < -toll) SetValue(ACTIVATION_LEVEL, 0);
         // }
         //----------------------------------------------------------------------
 
@@ -181,6 +194,10 @@ namespace Kratos
 
         Vector normal_physical_space(2); normal_physical_space[0] = normal_physical_space_3D[0]; normal_physical_space[1] = normal_physical_space_3D[1];
 
+        const Vector slave_normal_physical_space_3D = GetValue(NORMAL_SLAVE); 
+
+        Vector slave_normal_physical_space(2); slave_normal_physical_space[0] = slave_normal_physical_space_3D[0]; slave_normal_physical_space[1] = slave_normal_physical_space_3D[1];
+
         //------------------- DB MATRICES 
 
         // MODIFIED
@@ -223,8 +240,6 @@ namespace Kratos
 
         // bool temp_contact_is_active = false;
 
-        Matrix DB_master = prod(r_D_master,B_master);
-                
         Matrix H_master = ZeroMatrix(1, number_of_nodes_master);
         for (IndexType i = 0; i < number_of_nodes_master; ++i)
         {
@@ -253,6 +268,12 @@ namespace Kratos
         // if (this->Is(ACTIVE)) {
         // KRATOS_WATCH(this->GetValue(ACTIVATION_LEVEL))
         // KRATOS_WATCH(GetValue(ACTIVATION_LEVEL))
+
+        // const double gamma = this->GetValue(GAMMA_CONTACT);
+        const double gamma = (*mpPropSlave)[YOUNG_MODULUS]/((*mpPropSlave)[YOUNG_MODULUS] + (*mpPropMaster)[YOUNG_MODULUS]);
+
+        Vector normal_mean = normal_physical_space; // - (1-gamma)*slave_normal_physical_space;
+
         if (this->GetValue(ACTIVATION_LEVEL) == 1) {
 
             // MASTER
@@ -278,17 +299,17 @@ namespace Kratos
 
                             // double sigma_w_n_dot_n = sigma_w_n[idim] * normal_physical_space[idim];
 
-                            double sigma_w_n_dot_n = inner_prod(sigma_w_n, normal_physical_space);
+                            double sigma_w_n_dot_n = inner_prod(sigma_w_n, normal_mean);
 
                             // u_1 \dot n = H_master[j] * n[jdim]
                             //----------------------------------
-                            rLeftHandSideMatrix(iglob, jglob) -= Guglielmo_innovation*sigma_w_n_dot_n * H_master(0,j) * normal_physical_space[jdim] * IntToReferenceWeight;
+                            rLeftHandSideMatrix(iglob, jglob) -= gamma*Guglielmo_innovation*sigma_w_n_dot_n * H_master(0,j) * normal_mean[jdim] * IntToReferenceWeight;
                             
 
                             // // PENALTY g_n = 0
                             // //*********************************************** */
-                            rLeftHandSideMatrix(iglob, jglob) -= H_master(0,i)*normal_physical_space[idim]
-                                                                *H_master(0,j)*normal_physical_space[jdim]*penalty_integration;
+                            rLeftHandSideMatrix(iglob, jglob) -= H_master(0,i)*normal_mean[idim]
+                                                                *H_master(0,j)*normal_mean[jdim]*penalty_integration;
 
                             // FLUX 
                             // [sigma_1(u) \dot n] \dot n * (-w_1 \dot n)
@@ -297,34 +318,11 @@ namespace Kratos
                             sigma_u_n[0] = (DB_master(0, jglob)* normal_physical_space[0] + DB_master(2, jglob)* normal_physical_space[1]);
                             sigma_u_n[1] = (DB_master(2, jglob)* normal_physical_space[0] + DB_master(1, jglob)* normal_physical_space[1]);
 
-                            double sigma_u_n_dot_n = inner_prod(sigma_u_n, normal_physical_space);
+                            double sigma_u_n_dot_n = inner_prod(sigma_u_n, normal_mean);
 
                             // w_1 \dot n = H_master[i] * n[idim]
                             //----------------------------------
-                            rLeftHandSideMatrix(iglob, jglob) -= sigma_u_n_dot_n * H_master(0,i) * normal_physical_space[idim] * IntToReferenceWeight;
-
-
-                //##########################################################################33
-                            // const double sigma_n_u_kdim = (DB_master(id1, jglob)* normal_physical_space[0] + DB_master(id2, jglob)* normal_physical_space[1]);
-
-                            // const double sigma_n_u_dot_n = sigma_n_u_kdim*normal_physical_space[jdim];
-                            // // const double sigma_n_u_dot_tau = sigma_n_u_kdim*tangent_physical_space[jdim]; // eventually for imposed forces on tangent direction
-
-                            // // sigma(w) \dot n
-                            // const double sigma_n_w_kdim = (DB_master(id1, 2*i+jdim)* normal_physical_space[0] + DB_master(id2, 2*i+jdim)* normal_physical_space[1]);
-
-                            // // (sigma(w) \dot n) \dot n 
-                            // const double sigma_n_w_dot_n = sigma_n_w_kdim*normal_physical_space[jdim]; 
-
-                            // // const double sigma_n_w_dot_tau = sigma_n_w_kdim*tangent_physical_space[jdim];//eventually for friction
-
-
-                            // // rLeftHandSideMatrix(iglob, jglob) -= H_master(0,i)*normal_physical_space[idim]
-                            // //                                     *H_master(0,j)*normal_physical_space[jdim]*penalty_integration;
-
-                            // // rLeftHandSideMatrix(iglob, jglob) -= H_master(0,i)*sigma_n_u_dot_n* normal_physical_space[jdim] * IntToReferenceWeight;
-
-                            // rLeftHandSideMatrix(iglob, jglob) -= Guglielmo_innovation*H_master(0,j)* normal_physical_space[jdim]*sigma_n_w_dot_n* normal_physical_space[idim]* IntToReferenceWeight;
+                            rLeftHandSideMatrix(iglob, jglob) -= gamma*sigma_u_n_dot_n * H_master(0,i) * normal_mean[idim] * IntToReferenceWeight;
                         }
 
                     }
@@ -344,6 +342,7 @@ namespace Kratos
                         for (IndexType jdim = 0; jdim < 2; jdim++) {
                             const int id2 = (id1+2)%3;
                             const int jglob = 2*j+jdim + shift;
+                            const int jglob_local = 2*j+jdim;
 
                             // PENALTY FREE g_n = 0
                             // [\sigma_1(w) \dot n] \dot n (+u_2 \dot n)
@@ -352,38 +351,32 @@ namespace Kratos
                             sigma_w_n[0] = (DB_master(0, iglob)* normal_physical_space[0] + DB_master(2, iglob)* normal_physical_space[1]);
                             sigma_w_n[1] = (DB_master(2, iglob)* normal_physical_space[0] + DB_master(1, iglob)* normal_physical_space[1]);
 
-                            // double sigma_w_n_dot_n = sigma_w_n[idim] * normal_physical_space[idim];; 
+                            // double sigma_w_n_dot_n = sigma_w_n[idim] * normal_physical_space[idim]; 
                             
-                            double sigma_w_n_dot_n = inner_prod(sigma_w_n, normal_physical_space);
+                            double sigma_w_n_dot_n = inner_prod(sigma_w_n, normal_mean);
 
                             // u_1 \dot n = H_slave[j] * n[jdim]
                             //----------------------------------
-                            rLeftHandSideMatrix(iglob, jglob) += Guglielmo_innovation*sigma_w_n_dot_n * H_slave(0,j) * normal_physical_space[jdim] * IntToReferenceWeight;
+                            rLeftHandSideMatrix(iglob, jglob) += gamma * Guglielmo_innovation*sigma_w_n_dot_n * H_slave(0,j) * normal_mean[jdim] * IntToReferenceWeight;
                             
 
                             // PENALTY g_n = 0
                             //*********************************************** */
-                            rLeftHandSideMatrix(iglob, jglob) += H_master(0,i)*normal_physical_space[idim]
-                                                                *H_slave(0,j)*normal_physical_space[jdim]*penalty_integration;
+                            rLeftHandSideMatrix(iglob, jglob) += H_master(0,i)*normal_mean[idim]
+                                                                *H_slave(0,j)*normal_mean[jdim]*penalty_integration;
 
+                            
+                            // FLUX TERM 
+                            // [(1-gamma) * sigma_2(u) \dot n_2] \dot n_2 * (-w_1 \dot n)
+                            Vector sigma_u_2_n(2);
+                            sigma_u_2_n[0] = (DB_slave(0, jglob_local)* slave_normal_physical_space[0] + DB_slave(2, jglob_local)* slave_normal_physical_space[1]);
+                            sigma_u_2_n[1] = (DB_slave(2, jglob_local)* slave_normal_physical_space[0] + DB_slave(1, jglob_local)* slave_normal_physical_space[1]);
 
+                            // double sigma_w_n_dot_n = sigma_w_n[idim] * normal_physical_space[idim]; 
+                            
+                            double sigma_u_2_n_dot_n = inner_prod(sigma_u_2_n, normal_mean);
 
-
-
-                            // double sigma_n_w_dot_n = 0.0;
-                            // double sigma_n_w_dot_tau = 0.0;
-                            // for (IndexType kdim = 0; kdim < 2; kdim++) {
-                            //     const double sigma_n_w_kdim = (DB_master(id1, 2*i+kdim)* normal_physical_space[0] + DB_master(id2, 2*i+kdim)* normal_physical_space[1]);
-
-                            //     sigma_n_w_dot_n += sigma_n_w_kdim*normal_physical_space[kdim]; 
-                            //     // sigma_n_w_dot_tau += sigma_n_w_kdim*tangent_physical_space[kdim];//eventually for friction
-                            // }
-
-
-                            // // rLeftHandSideMatrix(iglob, jglob) += H_master(0,i)*normal_physical_space[idim]
-                            // //                                     *H_slave(0,j)*normal_physical_space[jdim]*penalty_integration;
-
-                            // rLeftHandSideMatrix(iglob, jglob) += Guglielmo_innovation*H_slave(0,j)* normal_physical_space[jdim]*sigma_n_w_dot_n* normal_physical_space[idim]* IntToReferenceWeight;
+                            rLeftHandSideMatrix(iglob, jglob) += (1-gamma)*sigma_u_2_n_dot_n * H_master(0,i) * normal_mean[idim] * IntToReferenceWeight;
 
                         }
 
@@ -395,16 +388,21 @@ namespace Kratos
             //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
             // ONLY SLAVE (substitute /sigma_1 *n  =sigma_2*n)
             
+            // MASTER
             for (IndexType i = 0; i < number_of_nodes_slave; i++) {
                 for (IndexType j = 0; j < number_of_nodes_master; j++) {
                     
                     for (IndexType idim = 0; idim < 2; idim++) {
-                        const int id1 = 2*idim;
                         const int iglob = 2*i+idim + shift;
+                        const int iglob_local = 2*i+idim;
 
                         for (IndexType jdim = 0; jdim < 2; jdim++) {
-                            const int id2 = (id1+2)%3;
                             const int jglob = 2*j+jdim;
+
+                            // // PENALTY g_n = 0
+                            // //*********************************************** */
+                            rLeftHandSideMatrix(iglob, jglob) += H_slave(0,i)*normal_mean[idim]
+                                                                *H_master(0,j)*normal_mean[jdim]*penalty_integration;
 
                             // // // FLUX 
                             // // [\sigma_1(u) \dot n] \dot n * (w_2 \dot n)
@@ -412,28 +410,81 @@ namespace Kratos
                             sigma_u_n[0] = (DB_master(0, jglob)* normal_physical_space[0] + DB_master(2, jglob)* normal_physical_space[1]);
                             sigma_u_n[1] = (DB_master(2, jglob)* normal_physical_space[0] + DB_master(1, jglob)* normal_physical_space[1]);
 
-                            double sigma_u_n_dot_n = inner_prod(sigma_u_n, normal_physical_space);
+                            double sigma_u_n_dot_n = inner_prod(sigma_u_n, normal_mean);
 
                             // w_2 \dot n = H_slave[i] * n[idim]
                             //----------------------------------
-                            rLeftHandSideMatrix(iglob, jglob) += sigma_u_n_dot_n * H_slave(0, i) * normal_physical_space[idim] * IntToReferenceWeight;
+                            rLeftHandSideMatrix(iglob, jglob) += (gamma) * sigma_u_n_dot_n * H_slave(0, i) * normal_mean[idim] * IntToReferenceWeight;
 
 
 
+                            // PENALTY FREE g_n = 0
+                            // [gamma * \sigma_1(w) \dot n] \dot n (-u_1 \dot n)
+                            //*********************************************** */
+                            Vector sigma_w_2_n(2);
+                            sigma_w_2_n[0] = (DB_slave(0, iglob_local)* slave_normal_physical_space[0] + DB_slave(2, iglob_local)* slave_normal_physical_space[1]);
+                            sigma_w_2_n[1] = (DB_slave(2, iglob_local)* slave_normal_physical_space[0] + DB_slave(1, iglob_local)* slave_normal_physical_space[1]);
+
+                            // double sigma_w_n_dot_n = sigma_w_n[idim] * normal_physical_space[idim]; 
                             
-                            // double sigma_n_u_dot_n = 0.0;
-                            // double sigma_n_u_dot_tau = 0.0;
-                            // for (IndexType kdim = 0; kdim < 2; kdim++) {
-                            //     const int kglob = 2*j+kdim;
-                            //     const double sigma_n_u_kdim = -(DB_master(id1, kglob)* normal_physical_space[0] + DB_master(id2, kglob)* normal_physical_space[1]);
+                            double sigma_w_2_n_dot_n = inner_prod(sigma_w_2_n, normal_mean);
 
-                            //     sigma_n_u_dot_n += sigma_n_u_kdim*normal_physical_space[kdim];
-                            //     // sigma_n_u_dot_tau += sigma_n_u_kdim*tangent_physical_space[kdim]; // eventually for imposed forces on tangent direction
-                            // }
+                            // u_1 \dot n = H_slave[j] * n[jdim]
+                            //----------------------------------
+                            rLeftHandSideMatrix(iglob, jglob) += (1-gamma) * Guglielmo_innovation*sigma_w_2_n_dot_n * H_master(0,j) * normal_mean[jdim] * IntToReferenceWeight;
+                            
+                            
+                        }
 
-                            // // i am imposing zero in the other direction
+                    }
+                }
+            }
+            
+            // SLAVE
+            for (IndexType i = 0; i < number_of_nodes_slave; i++) {
+                for (IndexType j = 0; j < number_of_nodes_slave; j++) {
+                    
+                    for (IndexType idim = 0; idim < 2; idim++) {
+                        const int iglob = 2*i+idim + shift;
+                        const int iglob_local = 2*i+idim;
 
-                            // rLeftHandSideMatrix(iglob, jglob) -= H_slave(0,i)*sigma_n_u_dot_n* normal_physical_space[jdim] * IntToReferenceWeight;
+                        for (IndexType jdim = 0; jdim < 2; jdim++) {
+                            const int jglob = 2*j+jdim + shift;
+                            const int jglob_local = 2*j+jdim;
+
+                            // PENALTY g_n = 0
+                            //*********************************************** */
+                            rLeftHandSideMatrix(iglob, jglob) -= H_slave(0,i)*normal_mean[idim]
+                                                                *H_slave(0,j)*normal_mean[jdim]*penalty_integration;
+
+                            // // // FLUX 
+                            // // [(1-gamma)*\sigma_2(u) \dot n] \dot n * (w_2 \dot n)
+                            Vector sigma_u_2_n(2);
+                            sigma_u_2_n[0] = (DB_slave(0, jglob_local)* slave_normal_physical_space[0] + DB_slave(2, jglob_local)* slave_normal_physical_space[1]);
+                            sigma_u_2_n[1] = (DB_slave(2, jglob_local)* slave_normal_physical_space[0] + DB_slave(1, jglob_local)* slave_normal_physical_space[1]);
+
+                            double sigma_u_2_n_dot_n = inner_prod(sigma_u_2_n, normal_mean);
+
+                            // w_2 \dot n = H_slave[i] * n[idim]
+                            //----------------------------------
+                            rLeftHandSideMatrix(iglob, jglob) -= (1-gamma) * sigma_u_2_n_dot_n * H_slave(0, i) * normal_mean[idim] * IntToReferenceWeight;
+
+
+
+                            // PENALTY FREE g_n = 0
+                            // [(1-gamma) * \sigma_2(w) \dot n] \dot n (+u_2 \dot n)
+                            //*********************************************** */
+                            Vector sigma_w_2_n(2);
+                            sigma_w_2_n[0] = (DB_slave(0, iglob_local)* slave_normal_physical_space[0] + DB_slave(2, iglob_local)* slave_normal_physical_space[1]);
+                            sigma_w_2_n[1] = (DB_slave(2, iglob_local)* slave_normal_physical_space[0] + DB_slave(1, iglob_local)* slave_normal_physical_space[1]);
+
+                            // double sigma_w_n_dot_n = sigma_w_n[idim] * normal_physical_space[idim]; 
+                            
+                            double sigma_w_2_n_dot_n = inner_prod(sigma_w_2_n, normal_mean);
+
+                            // u_1 \dot n = H_slave[j] * n[jdim]
+                            //----------------------------------
+                            rLeftHandSideMatrix(iglob, jglob) -= (1-gamma) * Guglielmo_innovation*sigma_w_2_n_dot_n * H_slave(0,j) * normal_mean[jdim] * IntToReferenceWeight;
                             
                         }
 
@@ -441,85 +492,28 @@ namespace Kratos
                 }
             }
 
-            //#################
-            // MASTER
-            // for (IndexType i = 0; i < number_of_nodes_slave; i++) {
-            //     for (IndexType j = 0; j < number_of_nodes_master; j++) {
-                    
-            //         for (IndexType idim = 0; idim < 2; idim++) {
-            //             // rLeftHandSideMatrix(2*i+idim, 2*j+idim) -= H_master(0,i)*H_master(0,j)* penalty_integration;
-            //             const int id1 = 2*idim;
-            //             const int iglob = 2*i+idim + shift;
-
-            //             for (IndexType jdim = 0; jdim < 2; jdim++) {
-            //                 const int id2 = (id1+2)%3;
-            //                 const int jglob = 2*j+jdim;
-
-            //                 const double sigma_n_w_kdim = (DB_slave(id1, 2*i+jdim)* normal_physical_space[0] + DB_slave(id2, 2*i+jdim)* normal_physical_space[1]);
-
-            //                 const double sigma_n_w_dot_n = sigma_n_w_kdim*normal_physical_space[jdim]; 
-            //                 const double sigma_n_w_dot_tau = sigma_n_w_kdim*tangent_physical_space[jdim];//eventually for friction
-
-
-            //                 rLeftHandSideMatrix(iglob, jglob) += H_slave(0,i)*normal_physical_space[idim]
-            //                                                     *H_master(0,j)*normal_physical_space[jdim]*penalty_integration;
-
-            //                 rLeftHandSideMatrix(iglob, jglob) += Guglielmo_innovation*H_master(0,j)* normal_physical_space[jdim]*sigma_n_w_dot_n* normal_physical_space[idim]* IntToReferenceWeight;
-            //             }
-
-            //         }
-            //     }
-            // }
-
-            // // SLAVE
-            // for (IndexType i = 0; i < number_of_nodes_slave; i++) {
-            //     for (IndexType j = 0; j < number_of_nodes_slave; j++) {
-                    
-            //         for (IndexType idim = 0; idim < 2; idim++) {
-            //             const int id1 = 2*idim;
-            //             const int iglob = 2*i+idim + shift;
-
-            //             for (IndexType jdim = 0; jdim < 2; jdim++) {
-            //                 const int id2 = (id1+2)%3;
-            //                 const int jglob = 2*j+jdim + shift;
-
-            //                 double sigma_n_w_dot_n = 0.0;
-            //                 double sigma_n_w_dot_tau = 0.0;
-            //                 for (IndexType kdim = 0; kdim < 2; kdim++) {
-            //                     const double sigma_n_w_kdim = (DB_slave(id1, 2*i+kdim)* normal_physical_space[0] + DB_slave(id2, 2*i+kdim)* normal_physical_space[1]);
-
-            //                     sigma_n_w_dot_n += sigma_n_w_kdim*normal_physical_space[kdim]; 
-            //                     sigma_n_w_dot_tau += sigma_n_w_kdim*tangent_physical_space[kdim];//eventually for friction
-            //                 }
-
-
-            //                 rLeftHandSideMatrix(iglob, jglob) -= H_slave(0,i)*normal_physical_space[idim]
-            //                                                     *H_slave(0,j)*normal_physical_space[jdim]*penalty_integration;
-
-            //                 rLeftHandSideMatrix(iglob, jglob) -= Guglielmo_innovation*H_slave(0,j)* normal_physical_space[jdim]*sigma_n_w_dot_n* normal_physical_space[idim]* IntToReferenceWeight;
-
-            //             }
-
-            //         }
-                // }
-            // }
-            //#####################3
-
 
             if (CalculateResidualVectorFlag) {
                 
                 Vector gn = ZeroVector(2); 
 
-                gn[0] = normal_gap*normal_physical_space[0];
-                gn[1] = normal_gap*normal_physical_space[1];
+                gn[0] = normal_gap*normal_mean[0];
+                gn[1] = normal_gap*normal_mean[1];
+
+                const double normal_gap_slave = inner_prod(GP_parameter_coord_on_slave - GP_parameter_coord, slave_normal_physical_space_3D);
+
+                double mean_normal_gap = gamma*normal_gap - (1-gamma)*normal_gap_slave;
 
                 for (IndexType i = 0; i < number_of_nodes_master; i++) {
 
                     for (IndexType idim = 0; idim < 2; idim++) {
-
-                        rRightHandSideVector[2*i+idim] -= H_master(0,i)*gn[idim]* penalty_integration;
-                        const int id1 = idim*2;
+                        
                         const int iglob = 2*i+idim;
+
+                        // // PENALTY TERM
+                        // //*********************************************** */
+                        rRightHandSideVector[iglob] -= H_master(0,i)*gn[idim]* penalty_integration;
+                        
 
                         // // PENALTY FREE g_n = 0
                         // // rhs -> [\sigma_1(w) \dot n] \dot n (-g_{n,0})
@@ -528,39 +522,39 @@ namespace Kratos
                         sigma_w_n[0] = (DB_master(0, iglob)* normal_physical_space[0] + DB_master(2, iglob)* normal_physical_space[1]);
                         sigma_w_n[1] = (DB_master(2, iglob)* normal_physical_space[0] + DB_master(1, iglob)* normal_physical_space[1]);
 
-                        double sigma_w_n_dot_n = inner_prod(sigma_w_n, normal_physical_space);
+                        double sigma_w_n_dot_n = inner_prod(sigma_w_n, normal_mean);
                         // double sigma_w_n_dot_n = sigma_w_n[idim] * normal_physical_space[idim];
 
-                        rRightHandSideVector(iglob) -= Guglielmo_innovation*sigma_w_n_dot_n * IntToReferenceWeight *normal_gap;
+                        rRightHandSideVector(iglob) -= gamma* Guglielmo_innovation*sigma_w_n_dot_n * IntToReferenceWeight *mean_normal_gap;
                                                         //  * gn[jdim];
+                    }
+                }
 
+                //
 
-                                            
+                for (IndexType i = 0; i < number_of_nodes_slave; i++) {
 
+                    for (IndexType idim = 0; idim < 2; idim++) {
 
-                        // for (IndexType jdim = 0; jdim < 2; jdim++) {
-                        //     const int id2 = (id1+2)%3;
+                        const int iglob = 2*i+idim + shift;
+                        const int iglob_local = 2*i+idim;
 
-                            // double sigma_n_w_dot_n = 0.0;
-                            // double sigma_n_w_dot_tau = 0.0;
+                         // // PENALTY TERM
+                        // //*********************************************** */
+                        rRightHandSideVector[iglob] += H_slave(0,i)*gn[idim]* penalty_integration;
 
-                            // // const double sigma_n_w_kdim = (DB_master(id1, 2*i+jdim)* normal_physical_space[0] + DB_master(id2, 2*i+jdim)* normal_physical_space[1]);
-                            // // sigma_n_w_dot_n = sigma_n_w_kdim*normal_physical_space[jdim]; 
+                        // // PENALTY FREE g_n = 0
+                        // // rhs -> [\sigma_1(w) \dot n] \dot n (-g_{n,0})
+                        // //*********************************************** */
+                        Vector sigma_w_2_n(2);
+                        sigma_w_2_n[0] = (DB_slave(0, iglob_local)* slave_normal_physical_space[0] + DB_slave(2, iglob_local)* slave_normal_physical_space[1]);
+                        sigma_w_2_n[1] = (DB_slave(2, iglob_local)* slave_normal_physical_space[0] + DB_slave(1, iglob_local)* slave_normal_physical_space[1]);
 
-                            // Vector sigma_n_w(2);
-                            // sigma_n_w[0] = (DB_master(0, 2*i+jdim)* normal_physical_space[0] + DB_master(2, 2*i+jdim)* normal_physical_space[1]);
-                            // sigma_n_w[1] = (DB_master(2, 2*i+jdim)* normal_physical_space[0] + DB_master(1, 2*i+jdim)* normal_physical_space[1]);
+                        double sigma_w_2_n_dot_n = inner_prod(sigma_w_2_n, normal_mean);
+                        // double sigma_w_n_dot_n = sigma_w_n[idim] * normal_physical_space[idim];
 
-                            // const double sigma_n_dot_n_w = inner_prod(sigma_n_w, normal_physical_space); 
-
-                            // const double sigma_n_dot_n_n_w_jdim = sigma_n_dot_n_w * normal_physical_space[jdim];
-                            
-                            // // sigma_n_w_dot_tau += sigma_n_w_kdim*tangent_physical_space[jdim];//eventually for friction
-
-
-                            // rRightHandSideVector(2*i+idim) -= Guglielmo_innovation*gn[jdim]*sigma_n_dot_n_n_w_jdim * normal_physical_space[idim] * IntToReferenceWeight;
-                        // }
-
+                        rRightHandSideVector(iglob) += (1-gamma)* Guglielmo_innovation*sigma_w_2_n_dot_n * IntToReferenceWeight *mean_normal_gap;
+                                                        //  * gn[jdim];
                     }
                 }
             }
@@ -572,10 +566,187 @@ namespace Kratos
 
             // RHS = ExtForces - K*temp;
             noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);
-        } else { // CONTACT NOT ACTIVE FOR THE PAIR
 
-            // KRATOS_WATCH("NOT ACTIVE CONTACT")
+        } else { // CONTACT NOT ACTIVE FOR THE PAIR
+            if (penalty_integration != 0)
+            {
+                Matrix DB_master = prod(r_D_master,B_master);
+                for (IndexType i = 0; i < number_of_nodes_master; i++) {
+                    for (IndexType j = 0; j < number_of_nodes_master; j++) {
+                        
+                        for (IndexType idim = 0; idim < 2; idim++) {
+                            const int id1 = 2*idim;
+                            const int iglob = 2*i+idim;
+
+                            for (IndexType jdim = 0; jdim < 2; jdim++) {
+                                const int id2 = (id1+2)%3;
+                                const int jglob = 2*j+jdim;
+
+                                // //
+                                // // [\sigma_1(w) \dot n] \dot n (-u_1 \dot n)
+                                // //*********************************************** */
+                                Vector sigma_w_n(2);
+                                sigma_w_n[0] = (DB_master(0, iglob)* normal_physical_space[0] + DB_master(2, iglob)* normal_physical_space[1]);
+                                sigma_w_n[1] = (DB_master(2, iglob)* normal_physical_space[0] + DB_master(1, iglob)* normal_physical_space[1]);
+
+                                double sigma_w_n_dot_n = inner_prod(sigma_w_n, normal_mean);
+
+                                // FLUX NITSCHE
+                                // [sigma_1(u) \dot n] \dot n * (-w_1 \dot n)
+                                //*********************************************** */
+                                Vector sigma_u_n(2);
+                                sigma_u_n[0] = (DB_master(0, jglob)* normal_physical_space[0] + DB_master(2, jglob)* normal_physical_space[1]);
+                                sigma_u_n[1] = (DB_master(2, jglob)* normal_physical_space[0] + DB_master(1, jglob)* normal_physical_space[1]);
+
+                                double sigma_u_n_dot_n = inner_prod(sigma_u_n, normal_mean);
+
+                                // w_1 \dot n = H_master[i] * n[idim]
+                                //----------------------------------
+                                rLeftHandSideMatrix(iglob, jglob) -= gamma*sigma_u_n_dot_n * gamma * sigma_w_n_dot_n * IntToReferenceWeight / penalty;
+                            }
+
+                        }
+                    }
+                }
+
+                // SLAVE
+                Matrix DB_slave = prod(r_D_slave,B_slave);
+                const int shift = number_of_nodes_master*2;
+                for (IndexType i = 0; i < number_of_nodes_master; i++) {
+                    for (IndexType j = 0; j < number_of_nodes_slave; j++) {
+                        
+                        for (IndexType idim = 0; idim < 2; idim++) {
+                            const int id1 = 2*idim;
+                            const int iglob = 2*i+idim;
+
+                            for (IndexType jdim = 0; jdim < 2; jdim++) {
+                                const int id2 = (id1+2)%3;
+                                const int jglob = 2*j+jdim + shift;
+                                const int jglob_local = 2*j+jdim;
+
+                                // PENALTY FREE g_n = 0
+                                // [\sigma_1(w) \dot n] \dot n (+u_2 \dot n)
+                                //*********************************************** */
+                                Vector sigma_w_n(2);
+                                sigma_w_n[0] = (DB_master(0, iglob)* normal_physical_space[0] + DB_master(2, iglob)* normal_physical_space[1]);
+                                sigma_w_n[1] = (DB_master(2, iglob)* normal_physical_space[0] + DB_master(1, iglob)* normal_physical_space[1]);
+                                
+                                double sigma_w_n_dot_n = inner_prod(sigma_w_n, normal_mean);                    
+   
+                                // FLUX NITSCHE TERM 
+                                // [(1-gamma) * sigma_2(u) \dot n_2] \dot n_2 * (-w_1 \dot n)
+                                Vector sigma_u_2_n(2);
+                                sigma_u_2_n[0] = (DB_slave(0, jglob_local)* slave_normal_physical_space[0] + DB_slave(2, jglob_local)* slave_normal_physical_space[1]);
+                                sigma_u_2_n[1] = (DB_slave(2, jglob_local)* slave_normal_physical_space[0] + DB_slave(1, jglob_local)* slave_normal_physical_space[1]);
+
+                                // double sigma_w_n_dot_n = sigma_w_n[idim] * normal_physical_space[idim]; 
+                                
+                                double sigma_u_2_n_dot_n = inner_prod(sigma_u_2_n, normal_mean);
+
+                                rLeftHandSideMatrix(iglob, jglob) += (1-gamma)*sigma_u_2_n_dot_n * gamma * sigma_w_n_dot_n * IntToReferenceWeight/penalty;
+
+                            }
+
+                        }
+                    }
+                }
+                // //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                // // INTEGRATION ON SLAVE
+                // //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                // // ONLY SLAVE (substitute /sigma_1 *n  =sigma_2*n)
+                
+                // MASTER
+                for (IndexType i = 0; i < number_of_nodes_slave; i++) {
+                    for (IndexType j = 0; j < number_of_nodes_master; j++) {
+                        
+                        for (IndexType idim = 0; idim < 2; idim++) {
+                            const int iglob = 2*i+idim + shift;
+                            const int iglob_local = 2*i+idim;
+
+                            for (IndexType jdim = 0; jdim < 2; jdim++) {
+                                const int jglob = 2*j+jdim;
+
+                                // //*********************************************** */
+                                // // // FLUX NITSCHE
+                                // // [\sigma_1(u) \dot n] \dot n * (w_2 \dot n)
+                                Vector sigma_u_n(2);
+                                sigma_u_n[0] = (DB_master(0, jglob)* normal_physical_space[0] + DB_master(2, jglob)* normal_physical_space[1]);
+                                sigma_u_n[1] = (DB_master(2, jglob)* normal_physical_space[0] + DB_master(1, jglob)* normal_physical_space[1]);
+
+                                double sigma_u_n_dot_n = inner_prod(sigma_u_n, normal_mean);
+
+                                Vector sigma_w_2_n(2);
+                                sigma_w_2_n[0] = (DB_slave(0, iglob_local)* slave_normal_physical_space[0] + DB_slave(2, iglob_local)* slave_normal_physical_space[1]);
+                                sigma_w_2_n[1] = (DB_slave(2, iglob_local)* slave_normal_physical_space[0] + DB_slave(1, iglob_local)* slave_normal_physical_space[1]);
+
+                                // double sigma_w_n_dot_n = sigma_w_n[idim] * normal_physical_space[idim]; 
+                                
+                                double sigma_w_2_n_dot_n = inner_prod(sigma_w_2_n, normal_mean);
+
+                                // u_1 \dot n = H_slave[j] * n[jdim]
+                                //----------------------------------
+                                rLeftHandSideMatrix(iglob, jglob) += (1-gamma) *sigma_w_2_n_dot_n * gamma * sigma_u_n_dot_n * IntToReferenceWeight/penalty;
+                                
+                                
+                            }
+
+                        }
+                    }
+                }
+                
+                // SLAVE
+                for (IndexType i = 0; i < number_of_nodes_slave; i++) {
+                    for (IndexType j = 0; j < number_of_nodes_slave; j++) {
+                        
+                        for (IndexType idim = 0; idim < 2; idim++) {
+                            const int iglob = 2*i+idim + shift;
+                            const int iglob_local = 2*i+idim;
+
+                            for (IndexType jdim = 0; jdim < 2; jdim++) {
+                                const int jglob = 2*j+jdim + shift;
+                                const int jglob_local = 2*j+jdim;
+
+                                // // // FLUX NITSCHE
+                                // // [(1-gamma)*\sigma_2(u) \dot n] \dot n * (w_2 \dot n)
+                                Vector sigma_u_2_n(2);
+                                sigma_u_2_n[0] = (DB_slave(0, jglob_local)* slave_normal_physical_space[0] + DB_slave(2, jglob_local)* slave_normal_physical_space[1]);
+                                sigma_u_2_n[1] = (DB_slave(2, jglob_local)* slave_normal_physical_space[0] + DB_slave(1, jglob_local)* slave_normal_physical_space[1]);
+
+                                double sigma_u_2_n_dot_n = inner_prod(sigma_u_2_n, normal_mean);
+
+                                // PENALTY FREE g_n = 0
+                                // [(1-gamma) * \sigma_2(w) \dot n] \dot n (+u_2 \dot n)
+                                //*********************************************** */
+                                Vector sigma_w_2_n(2);
+                                sigma_w_2_n[0] = (DB_slave(0, iglob_local)* slave_normal_physical_space[0] + DB_slave(2, iglob_local)* slave_normal_physical_space[1]);
+                                sigma_w_2_n[1] = (DB_slave(2, iglob_local)* slave_normal_physical_space[0] + DB_slave(1, iglob_local)* slave_normal_physical_space[1]);
+
+                                
+                                double sigma_w_2_n_dot_n = inner_prod(sigma_w_2_n, normal_mean);
+
+                                rLeftHandSideMatrix(iglob, jglob) -= (1-gamma) *sigma_w_2_n_dot_n * (1-gamma) * sigma_u_2_n_dot_n * IntToReferenceWeight/penalty;
+                                
+                            }
+
+                        }
+                    }
+                }
+
+                Vector temp = ZeroVector(mat_size_2);
+
+                GetValuesVector(temp, 2);
+
+                // RHS = ExtForces - K*temp;
+                noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);
+            }
         }
+
+        /////////////////////////////////////////////////////////////////////////////////////////
+        
+        int curr_activation_level = this->GetValue(ACTIVATION_LEVEL);
+        // this->SetValue(OLD_ACTIVATION_LEVEL, curr_activation_level);
+        
+
         KRATOS_CATCH("")
     }
 
@@ -808,7 +979,7 @@ namespace Kratos
         
     }
 
-    void SupportContact2DCondition::SetNormalGap() 
+    void SupportContact2DCondition::SetGap() 
     {
         Vector normal_physical_space_master = this->GetValue(NORMAL_MASTER);
 
@@ -819,6 +990,10 @@ namespace Kratos
 
         SetValue(NORMAL_GAP, normal_gap);
         // double tangential_gap = norm_2((deformed_pos_slave - deformed_pos_master) - normal_gap * normal_physical_space);
+
+
+        Vector gap_deformed = GP_slave_coord_deformed - GP_master_coord_deformed;
+        SetValue(GAP, gap_deformed);
     }
 
     void SupportContact2DCondition::CalculateB(
@@ -888,6 +1063,24 @@ namespace Kratos
 
         this->InitializeNonLinearIteration(rCurrentProcessInfo);
 
+        // #############################################################
+        SetValue(OLD_ACTIVATION_LEVEL, 0);  
+        SetValue(ACTIVATION_LEVEL, 0);  
+
+
+        const auto& r_geometry_master = GetMasterGeometry();
+        const SizeType number_of_nodes_master = r_geometry_master.size();
+
+        const auto& r_geometry_slave = GetSlaveGeometry();
+        const SizeType number_of_nodes_slave = r_geometry_slave.size();
+
+        const SizeType mat_size_1 = (number_of_nodes_master+number_of_nodes_slave) * 2;
+        const SizeType mat_size_2 = (number_of_nodes_master+number_of_nodes_slave) * 2;
+
+        Vector temp = ZeroVector(mat_size_2);
+
+        GetValuesVector(temp, 2);
+        this->SetValue(BDF_COEFFICIENTS, temp);
     }
 
     /**
@@ -976,6 +1169,7 @@ namespace Kratos
         DetJ0_master = norm_2(add_factor);
 
         // ##
+        // normal_physical_space[0] = 1; normal_physical_space[1] = 0;
         this->SetValue(NORMAL_MASTER, normal_physical_space);
         // ##
         // slave
@@ -994,6 +1188,8 @@ namespace Kratos
         tangent_physical_space[2] = 0.0;
         tangent_physical_space /= norm_2(tangent_physical_space);
         // ##
+
+        // normal_physical_space[0] = -1; normal_physical_space[1] = 0;
         this->SetValue(NORMAL_SLAVE, normal_physical_space);
         // ##
 
@@ -1078,8 +1274,7 @@ namespace Kratos
         this->SetConstitutiveVariables(strain_vector_slave, 1, rCurrentProcessInfo);
         // ##
 
-        SetNormalGap();
-    
+        SetGap();
     }
 
     /**
@@ -1153,130 +1348,130 @@ namespace Kratos
         deformed_position[1] = reference_position[1] + displacement_y;
     }
 
-    //--------------- CHECK CRITERIA
-    bool SupportContact2DCondition::CheckCriteria(const Vector& deformed_pos_master, 
-                                                  const Vector& deformed_pos_slave, const Vector& displacement_master,
-                                                  const Vector& normal, const Matrix& DB_master,
-                                                  array_1d<double, 3>& local_tangent, array_1d<double, 2>& old_normal,
-                                                  const Vector stress_vector_master){
-        const double toll = 1e-12;
+    // //--------------- CHECK CRITERIA
+    // bool SupportContact2DCondition::CheckCriteria(const Vector& deformed_pos_master, 
+    //                                               const Vector& deformed_pos_slave, const Vector& displacement_master,
+    //                                               const Vector& normal, const Matrix& DB_master,
+    //                                               array_1d<double, 3>& local_tangent, array_1d<double, 2>& old_normal,
+    //                                               const Vector stress_vector_master){
+    //     const double toll = 1e-12;
 
-        const double toll_tangential_distance = 1e-1;
+    //     const double toll_tangential_distance = 1e-1;
 
-        double flag_normal_gap = inner_prod(deformed_pos_slave - deformed_pos_master, normal);
+    //     double flag_normal_gap = inner_prod(deformed_pos_slave - deformed_pos_master, normal);
 
-        SetValue(NORMAL_GAP, flag_normal_gap);
+    //     SetValue(NORMAL_GAP, flag_normal_gap);
 
-        double tangential_gap = norm_2((deformed_pos_slave - deformed_pos_master) - flag_normal_gap * normal);
+    //     double tangential_gap = norm_2((deformed_pos_slave - deformed_pos_master) - flag_normal_gap * normal);
 
 
-        // COMPUTE THE UPDATED NORMAL
-        //need du/dt = du/dx dx_curve/dt + du/dx dx_curve/dt (for each component)
-        int nNodesMaster = GetMasterGeometry().size();
-        Vector old_displacement_master(nNodesMaster*2);
-        GetValuesVector(old_displacement_master, QuadraturePointCouplingGeometry2D<Point>::Master);
+    //     // COMPUTE THE UPDATED NORMAL
+    //     //need du/dt = du/dx dx_curve/dt + du/dx dx_curve/dt (for each component)
+    //     int nNodesMaster = GetMasterGeometry().size();
+    //     Vector old_displacement_master(nNodesMaster*2);
+    //     GetValuesVector(old_displacement_master, QuadraturePointCouplingGeometry2D<Point>::Master);
 
-        Vector new_normal(3);
-        new_normal = old_normal;
-        if ( (norm_2(old_displacement_master) > 1e-12 && GetGeometry().GetValue(ACTIVATION_LEVEL) == 0)) {
+    //     Vector new_normal(3);
+    //     new_normal = old_normal;
+    //     if ( (norm_2(old_displacement_master) > 1e-12 && GetGeometry().GetValue(ACTIVATION_LEVEL) == 0)) {
 
-            const int derivative_order = 1;
-            Matrix shapeFunctionDerivatives_master = GetMasterGeometry().ShapeFunctionDerivatives(derivative_order, 0, this->GetIntegrationMethod());
+    //         const int derivative_order = 1;
+    //         Matrix shapeFunctionDerivatives_master = GetMasterGeometry().ShapeFunctionDerivatives(derivative_order, 0, this->GetIntegrationMethod());
 
-            //compute du/dx 
-            double dux_dx = 0.0; double dux_dy = 0.0;
-            double duy_dx = 0.0; double duy_dy = 0.0;
-            for (int i = 0; i < nNodesMaster; i++) {
-                dux_dx += old_displacement_master[2*i]*shapeFunctionDerivatives_master(i, 0);
-                dux_dy += old_displacement_master[2*i]*shapeFunctionDerivatives_master(i ,1);
+    //         //compute du/dx 
+    //         double dux_dx = 0.0; double dux_dy = 0.0;
+    //         double duy_dx = 0.0; double duy_dy = 0.0;
+    //         for (int i = 0; i < nNodesMaster; i++) {
+    //             dux_dx += old_displacement_master[2*i]*shapeFunctionDerivatives_master(i, 0);
+    //             dux_dy += old_displacement_master[2*i]*shapeFunctionDerivatives_master(i ,1);
 
-                duy_dx += old_displacement_master[2*i+1]*shapeFunctionDerivatives_master(i, 0);
-                duy_dy += old_displacement_master[2*i+1]*shapeFunctionDerivatives_master(i ,1);
-            }
+    //             duy_dx += old_displacement_master[2*i+1]*shapeFunctionDerivatives_master(i, 0);
+    //             duy_dy += old_displacement_master[2*i+1]*shapeFunctionDerivatives_master(i ,1);
+    //         }
 
-            Vector du_dt = ZeroVector(3);
-            du_dt[0] = dux_dx * local_tangent[0] + dux_dy * local_tangent[1];
-            du_dt[1] = duy_dx * local_tangent[0] + duy_dy * local_tangent[1];
+    //         Vector du_dt = ZeroVector(3);
+    //         du_dt[0] = dux_dx * local_tangent[0] + dux_dy * local_tangent[1];
+    //         du_dt[1] = duy_dx * local_tangent[0] + duy_dy * local_tangent[1];
 
-            // remove and make it general !!!!!!!!!!! (ONLY WORKS FOR THE SQUARE/RECTANGULAR CASE)
-            double magnitude = std::sqrt(local_tangent[0] * local_tangent[0] + local_tangent[1] * local_tangent[1]);
-            //----
-            Vector normal_displacement(3);
+    //         // remove and make it general !!!!!!!!!!! (ONLY WORKS FOR THE SQUARE/RECTANGULAR CASE)
+    //         double magnitude = std::sqrt(local_tangent[0] * local_tangent[0] + local_tangent[1] * local_tangent[1]);
+    //         //----
+    //         Vector normal_displacement(3);
 
-            Vector out_of_plane = ZeroVector(3); out_of_plane[2] = 1.0;
+    //         Vector out_of_plane = ZeroVector(3); out_of_plane[2] = 1.0;
 
-            // KRATOS_WATCH(deformed_pos_master)
-            // KRATOS_WATCH(duy_dx)
+    //         // KRATOS_WATCH(deformed_pos_master)
+    //         // KRATOS_WATCH(duy_dx)
 
-            MathUtils<double>::CrossProduct(normal_displacement, du_dt, out_of_plane);
+    //         MathUtils<double>::CrossProduct(normal_displacement, du_dt, out_of_plane);
 
-            // KRATOS_WATCH(normal_displacement)
+    //         // KRATOS_WATCH(normal_displacement)
 
             
-            // new_normal = old_normal *magnitude  + normal_displacement;
+    //         // new_normal = old_normal *magnitude  + normal_displacement;
 
-            // new_normal = new_normal / norm_2(new_normal);
+    //         // new_normal = new_normal / norm_2(new_normal);
 
-            new_normal = old_normal;
+    //         new_normal = old_normal;
 
-            // KRATOS_WATCH(new_normal)
+    //         // KRATOS_WATCH(new_normal)
 
-            std::ofstream output_file("txt_files/new_normal.txt", std::ios::app);
-            output_file << std::scientific << std::setprecision(14);
+    //         std::ofstream output_file("txt_files/new_normal.txt", std::ios::app);
+    //         output_file << std::scientific << std::setprecision(14);
 
-            output_file << deformed_pos_master[0] << " " << deformed_pos_master[1] << " " <<
-                           new_normal[0] << " " << new_normal[1] << std::endl;
+    //         output_file << deformed_pos_master[0] << " " << deformed_pos_master[1] << " " <<
+    //                        new_normal[0] << " " << new_normal[1] << std::endl;
 
-            // exit(0);
-        }
-
-
+    //         // exit(0);
+    //     }
 
 
-        // COMPUTE TRUE NORMAL STRESS
-
-        double true_normal_stress = 0.0;
-        // Vector sigma_n = ZeroVector(2);
-        // for (IndexType j = 0; j < GetMasterGeometry().size(); j++) {
-
-        //     for (IndexType jdim = 0; jdim < 2; jdim++) {
-        //         const int jglob = 2*j+jdim;
-
-        //         sigma_n[0] += (DB_master(0, jglob)* new_normal[0] + DB_master(2, jglob)* new_normal[1])*displacement_master[jglob];
-        //         sigma_n[1] += (DB_master(2, jglob)* new_normal[0] + DB_master(1, jglob)* new_normal[1])*displacement_master[jglob];
-        //     }
-        // }
-        // true_normal_stress = sigma_n[0]*new_normal[0] + sigma_n[1]*new_normal[1];
-
-        true_normal_stress = (stress_vector_master[0]* new_normal[0] + stress_vector_master[2]* new_normal[1])*new_normal[0] +
-                                      (stress_vector_master[2]* new_normal[0] + stress_vector_master[1]* new_normal[1])*new_normal[1];
 
 
-        // if (integrationDomain == 0) true_normal_stress = -true_normal_stress;
-        if (-true_normal_stress -(*mpPropMaster)[YOUNG_MODULUS]*flag_normal_gap > toll) {
-        // if (-(*mpPropMaster)[YOUNG_MODULUS]*flag_normal_gap > toll) {
-            // if (tangential_gap > toll_tangential_distance) 
-            // {
-            //     m_contact_is_active = false;
-            //     return false;
-            // }
+    //     // COMPUTE TRUE NORMAL STRESS
 
-            // KRATOS_WATCH(displacement_master)
+    //     double true_normal_stress = 0.0;
+    //     // Vector sigma_n = ZeroVector(2);
+    //     // for (IndexType j = 0; j < GetMasterGeometry().size(); j++) {
 
-            m_contact_is_active = true;
+    //     //     for (IndexType jdim = 0; jdim < 2; jdim++) {
+    //     //         const int jglob = 2*j+jdim;
 
-            return true;
+    //     //         sigma_n[0] += (DB_master(0, jglob)* new_normal[0] + DB_master(2, jglob)* new_normal[1])*displacement_master[jglob];
+    //     //         sigma_n[1] += (DB_master(2, jglob)* new_normal[0] + DB_master(1, jglob)* new_normal[1])*displacement_master[jglob];
+    //     //     }
+    //     // }
+    //     // true_normal_stress = sigma_n[0]*new_normal[0] + sigma_n[1]*new_normal[1];
+
+    //     true_normal_stress = (stress_vector_master[0]* new_normal[0] + stress_vector_master[2]* new_normal[1])*new_normal[0] +
+    //                                   (stress_vector_master[2]* new_normal[0] + stress_vector_master[1]* new_normal[1])*new_normal[1];
+
+
+    //     // if (integrationDomain == 0) true_normal_stress = -true_normal_stress;
+    //     if (-true_normal_stress -(*mpPropMaster)[YOUNG_MODULUS]*flag_normal_gap > toll) {
+    //     // if (-(*mpPropMaster)[YOUNG_MODULUS]*flag_normal_gap > toll) {
+    //         // if (tangential_gap > toll_tangential_distance) 
+    //         // {
+    //         //     m_contact_is_active = false;
+    //         //     return false;
+    //         // }
+
+    //         // KRATOS_WATCH(displacement_master)
+
+    //         m_contact_is_active = true;
+
+    //         return true;
  
-        } //else if (GetMasterGeometry().Center()[1] < 1.5001 && GetMasterGeometry().Center()[1] > 0.49999) {
+    //     } //else if (GetMasterGeometry().Center()[1] < 1.5001 && GetMasterGeometry().Center()[1] > 0.49999) {
         
 
-        //     KRATOS_WATCH("nnnnnnnoooooooooooooooooooooo") 
-        //     KRATOS_WATCH(true_normal_stress)
-        // }
+    //     //     KRATOS_WATCH("nnnnnnnoooooooooooooooooooooo") 
+    //     //     KRATOS_WATCH(true_normal_stress)
+    //     // }
 
-        m_contact_is_active = false;
-        return false;
-    }
+    //     m_contact_is_active = false;
+    //     return false;
+    // }
 
     void SupportContact2DCondition::CalculateOnIntegrationPoints(
         const Variable<double>& rVariable,

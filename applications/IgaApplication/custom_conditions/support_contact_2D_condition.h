@@ -237,7 +237,7 @@ namespace Kratos
 
         void SetConstitutiveVariables(Vector& StrainVector, IndexType index, const Kratos::ProcessInfo& rCurrentProcessInfo); 
 
-        void SetNormalGap(); 
+        void SetGap(); 
 
         void CalculateB(
             Matrix& rB, 

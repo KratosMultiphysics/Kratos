@@ -516,6 +516,13 @@ namespace Kratos
         //2222222222222222222222222222222222222222222222222222222222222222222222222
 
         SetValue(NORMAL_STRESS, sigma_n);
+
+        double sigma_VM = sqrt(sigma[0]*sigma[0] + sigma[1]*sigma[1] - sigma[0]*sigma[1] + 3 *sigma[2]*sigma[2]);
+
+        SetValue(CAUCHY_STRESS_XX, sigma[0]);
+        SetValue(CAUCHY_STRESS_YY, sigma[1]);
+        SetValue(CAUCHY_STRESS_XY, sigma[2]);
+        SetValue(YIELD_STRESS, sigma_VM);
         // //---------------------
     }
 

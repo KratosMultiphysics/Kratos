@@ -339,8 +339,6 @@ void Solid2DElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo
     const auto& r_geometry = GetGeometry();
     const SizeType nb_nodes = r_geometry.size();
 
-    // Integration Points
-    const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
     // Shape function values
     const Matrix& r_N = r_geometry.ShapeFunctionsValues();
 
@@ -376,26 +374,6 @@ void Solid2DElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo
         output_file.close();
     } 
 
-
-
-    if (x_coord_gauss_point <= 2.0) {
-        std::ofstream output_file("txt_files/output_results_GPs_master.txt", std::ios::app);
-        if (output_file.is_open()) {
-            output_file << std::scientific << std::setprecision(14); // Set precision to 10^-14
-            output_file << rOutput_x << " " << rOutput_y << " " << x_coord_gauss_point << " " << y_coord_gauss_point << " " << integration_weight<< std::endl;
-            output_file.close();
-        } 
-    } else {
-        std::ofstream output_file("txt_files/output_results_GPs_slave.txt", std::ios::app);
-        if (output_file.is_open()) {
-            output_file << std::scientific << std::setprecision(14); // Set precision to 10^-14
-            output_file << rOutput_x << " " << rOutput_y << " " << x_coord_gauss_point << " " << y_coord_gauss_point << " " << integration_weight << std::endl;
-            output_file.close();
-        } 
-    }
-    
-
-
     std::ofstream outputFile("txt_files/Gauss_Point_coordinates.txt", std::ios::app);
     if (!outputFile.is_open())
     {
@@ -405,6 +383,82 @@ void Solid2DElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo
     outputFile << std::setprecision(14); // Set precision to 10^-14
     outputFile << GP_parameter_coord[0] << "  " << GP_parameter_coord[1] <<"\n";
     outputFile.close();
+
+    //+++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    //---------- SET \sigma_xx VALUE ----------------------------------------------------------------
+    const SizeType mat_size = nb_nodes * 2;
+
+    // Shape function derivatives (NEW) 
+    // Initialize DN_DX
+    const unsigned int dim = 2;
+    Matrix DN_DX(nb_nodes,2);
+    Matrix InvJ0(dim,dim);
+
+    // Compute the normals
+    const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
+    double DetJ0;
+    // MODIFIED
+    Vector old_displacement(mat_size);
+    GetValuesVector(old_displacement);
+    
+    Matrix Jacobian = ZeroMatrix(2,2);
+    Jacobian(0,0) = J0[0](0,0);
+    Jacobian(0,1) = J0[0](0,1);
+    Jacobian(1,0) = J0[0](1,0);
+    Jacobian(1,1) = J0[0](1,1);
+
+    // Calculating inverse jacobian and jacobian determinant
+    MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
+
+    // // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
+    noalias(DN_DX) = prod(DN_De[0],InvJ0);
+
+    // MODIFIED
+    Matrix B = ZeroMatrix(3,mat_size);
+
+    CalculateB(B, DN_DX);
+
+    // GET STRESS VECTOR
+    ConstitutiveLaw::Parameters Values(r_geometry, GetProperties(), rCurrentProcessInfo);
+
+    const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
+    // Set constitutive law flags:
+    Flags& ConstitutiveLawOptions=Values.GetOptions();
+
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+    ConstitutiveVariables this_constitutive_variables(strain_size);
+
+    Vector old_strain = prod(B,old_displacement);
+
+    // Values.SetStrainVector(this_constitutive_variables.StrainVector);
+    Values.SetStrainVector(old_strain);
+
+    Values.SetStressVector(this_constitutive_variables.StressVector);
+    Values.SetConstitutiveMatrix(this_constitutive_variables.D);
+    mpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy);
+
+    const Vector sigma = Values.GetStressVector();
+    array_1d<double, 2> sigma_xx;
+
+    sigma_xx[0] = sigma[0]; sigma_xx[1] = sigma[2];
+
+    // SetValue(CAUCHY_STRESS_XX, sigma[0]);
+    // SetValue(CAUCHY_STRESS_YY, sigma[1]);
+
+    double sigma_VM = sqrt(sigma[0]*sigma[0] + sigma[1]*sigma[1] - sigma[0]*sigma[1] + 3 *sigma[2]*sigma[2]);
+
+    SetValue(CAUCHY_STRESS_XX, sigma[0]);
+    SetValue(CAUCHY_STRESS_YY, sigma[1]);
+    SetValue(CAUCHY_STRESS_XY, sigma[2]);
+    SetValue(YIELD_STRESS, sigma_VM);
+
+
+
+    // //---------------------
 }
 
 void Solid2DElement::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){

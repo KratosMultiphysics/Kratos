@@ -185,8 +185,9 @@ namespace Kratos
             Vector g_N = ZeroVector(2);
 
             // When "analysis_type" is "linear" temper = 0
-            // const double x = GP_parameter_coord[0];
-            // const double y = GP_parameter_coord[1];
+            Vector GP_parameter_coord = r_geometry.Center();
+            const double x = GP_parameter_coord[0];
+            const double y = GP_parameter_coord[1];
 
             // g_N[0] = E/(1+nu)*(-sin(x)*sinh(y)) * normal_parameter_space[0] + E/(1+nu)*(cos(x)*cosh(y)) * normal_parameter_space[1]; 
             // g_N[1] = E/(1+nu)*(cos(x)*cosh(y)) * normal_parameter_space[0] + E/(1+nu)*(sin(x)*sinh(y)) * normal_parameter_space[1]; 
@@ -325,7 +326,7 @@ namespace Kratos
         ConstitutiveVariables this_constitutive_variables(strain_size);
 
         Vector old_strain = prod(B,old_displacement);
-    
+
         // Values.SetStrainVector(this_constitutive_variables.StrainVector);
         Values.SetStrainVector(old_strain);
 
@@ -333,16 +334,19 @@ namespace Kratos
         Values.SetConstitutiveMatrix(this_constitutive_variables.D);
         mpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy);
 
-        const Vector sigma = Values.GetStressVector();
+        Vector sigma = Values.GetStressVector();
         Vector sigma_n(2);
+        
 
-        array_1d<double, 3> new_normal = GetNormalOnDeformed();
+        // array_1d<double, 3> new_normal = GetNormalOnDeformed();
 
         // sigma_n[0] = sigma[0]*new_normal[0] + sigma[2]*new_normal[1];
         // sigma_n[1] = sigma[2]*new_normal[0] + sigma[1]*new_normal[1];
 
         sigma_n[0] = sigma[0]*normal_physical_space[0] + sigma[2]*normal_physical_space[1];
         sigma_n[1] = sigma[2]*normal_physical_space[0] + sigma[1]*normal_physical_space[1];
+
+        double sigma_nn = -(sigma_n[0]*normal_physical_space[0] + sigma_n[1]*normal_physical_space[1]);
 
         //-----------------------------------------
         // Vector sigma_n = ZeroVector(2);
@@ -359,7 +363,14 @@ namespace Kratos
         // }
         //2222222222222222222222222222222222222222222222222222222222222222222222222
 
+        double sigma_VM = sqrt(sigma[0]*sigma[0] + sigma[1]*sigma[1] - sigma[0]*sigma[1] + 3 *sigma[2]*sigma[2]);
+
         SetValue(NORMAL_STRESS, sigma_n);
+
+        SetValue(CAUCHY_STRESS_XX, sigma[0]);
+        SetValue(CAUCHY_STRESS_YY, sigma[1]);
+        SetValue(CAUCHY_STRESS_XY, sigma[2]);
+        SetValue(YIELD_STRESS, sigma_VM);
         // //---------------------
     }
 

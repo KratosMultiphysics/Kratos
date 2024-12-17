@@ -186,6 +186,19 @@ private:
         PropertiesPointerType pProperties) const;
 
     /// Creates conditions from geometries
+    // void CreateConditions(
+    //     typename GeometriesArrayType::ptr_iterator rGeometriesBegin,
+    //     typename GeometriesArrayType::ptr_iterator rGeometriesEnd,
+    //     ModelPart& rDestinationModelPart,
+    //     ModelPart& rSkinModelPart,
+    //     std::vector<int>& listIdClosestCondition,
+    //     std::string& rConditionName,
+    //     std::string& rBoundaryConditionType,
+    //     SizeType& rIdCounter,
+    //     PropertiesPointerType pProperties,
+    //     bool isInner,
+    //     Vector mesh_size) const;
+
     void CreateConditions(
         typename GeometriesArrayType::ptr_iterator rGeometriesBegin,
         typename GeometriesArrayType::ptr_iterator rGeometriesEnd,
@@ -196,6 +209,7 @@ private:
         SizeType& rIdCounter,
         PropertiesPointerType pProperties,
         bool isInner) const;
+
 
     ///@}
     ///@name Get Points at Boundaries

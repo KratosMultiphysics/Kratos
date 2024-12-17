@@ -270,10 +270,10 @@ public:
         // KRATOS_WATCH(minimum_eigenvalue)
         // KRATOS_WATCH(condition_number)
 
-        std::ofstream outputFile("time_txt_files/dofs.txt", std::ios::app);
-        outputFile << std::scientific << std::setprecision(20); // Set precision to 10^-14
-        outputFile << A.size1()  <<"\n";
-        outputFile.close();
+        // std::ofstream outputFile("time_txt_files/dofs.txt", std::ios::app);
+        // outputFile << std::scientific << std::setprecision(20); // Set precision to 10^-14
+        // outputFile << A.size1()  <<"\n";
+        // outputFile.close();
 
 
 

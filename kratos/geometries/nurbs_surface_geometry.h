@@ -333,16 +333,17 @@ public:
      * @return true if NURBS, false if B-Splines only (all weights are considered as 1) */
     bool IsRational() const
     {
-        if (mWeights.size() == 0)
-            return false;
-        else {
-            for (IndexType i = 0; i < mWeights.size(); ++i) {
-                if (std::abs(mWeights[i] - 1.0) > 1e-8) {
-                    return true;
-                }
-            }
-            return false;
-        }
+        return mIsRational;
+        // if (mWeights.size() == 0)
+        //     return false;
+        // else {
+        //     for (IndexType i = 0; i < mWeights.size(); ++i) {
+        //         if (std::abs(mWeights[i] - 1.0) > 1e-8) {
+        //             return true;
+        //         }
+        //     }
+        //     return false;
+        // }
     }
 
     /* Get Weights vector. All values are 1.0 for B-Splines, for NURBS those can be unequal 1.0.

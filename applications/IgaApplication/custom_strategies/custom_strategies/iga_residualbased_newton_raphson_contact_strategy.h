@@ -556,12 +556,18 @@ public:
 
         // Model& mainModel = r_model_part->GetModel();
 
-        ModelPart& contact_model_part = r_model_part->HasSubModelPart(contact_model_part_name)
+        ModelPart& contact_sub_model_part = r_model_part->HasSubModelPart(contact_model_part_name)
                                       ? r_model_part->GetSubModelPart(contact_model_part_name)
                                       : r_model_part->CreateSubModelPart(contact_model_part_name);
 
+        using ConditionsArrayType = ModelPart::ConditionsContainerType;
+        ConditionsArrayType& r_conditions_array = contact_sub_model_part.Conditions();
+        KRATOS_TRACE_IF("Empty model part", r_conditions_array.size() == 0) << "YOUR CONTACT MODEL PART IS EMPTY" << std::endl;
+        block_for_each(r_conditions_array, [&](Condition& rCond) {
+                rCond.Set(TO_ERASE, true);
+        });
 
-        contact_model_part.RemoveConditionsFromAllLevels();
+        contact_sub_model_part.RemoveConditionsFromAllLevels(TO_ERASE);
 
         //-----------------------------------------------------------------------------------------------
         for (IndexType contact_scenario_id = 0; contact_scenario_id < mIgaContactParameters.size(); contact_scenario_id++) {
@@ -640,10 +646,10 @@ public:
             // KRATOS_WATCH("NOTHING HERE")
 
             SizeType id = 1;
-            // if (contact_model_part.GetRootModelPart().Conditions().size() > 0)
-            //     id = contact_model_part.GetRootModelPart().Conditions().back().Id() + 1;
-            if (contact_model_part.GetRootModelPart().Conditions().size() > 0)
-                id = contact_model_part.GetRootModelPart().Conditions().back().Id() + 1;
+            // if (contact_sub_model_part.GetRootModelPart().Conditions().size() > 0)
+            //     id = contact_sub_model_part.GetRootModelPart().Conditions().back().Id() + 1;
+            if (contact_sub_model_part.GetRootModelPart().Conditions().size() > 0)
+                id = contact_sub_model_part.GetRootModelPart().Conditions().back().Id() + 1;
             
             KRATOS_ERROR_IF_NOT(mIgaContactParameters[contact_scenario_id].Has("name"))
                 << "\"name\" need to be specified." << std::endl;
@@ -651,7 +657,7 @@ public:
             
             this->CreateConditions(
                         geometries.ptr_begin(), geometries.ptr_end(),
-                        contact_model_part, name, id, p_prop_master, p_prop_slave);
+                        contact_sub_model_part, name, id, p_prop_master, p_prop_slave);
         }
     }
 

@@ -47,7 +47,7 @@ namespace Kratos
         for (int i_brep_paired = 0; i_brep_paired < spans_paired_list.size(); i_brep_paired++) {
             for (int i = 0; i < spans_paired_list[i_brep_paired].size(); i++) {
                 
-                CoordinatesArrayType locCoord(3); locCoord[0] = spans_paired_list[i_brep_paired][i]+1e-8;
+                CoordinatesArrayType locCoord(3); locCoord[0] = spans_paired_list[i_brep_paired][i]+1e-6;
                 
                 double incumb_distance = 1e16;
                 double projection_parameter_in_best_parent_brep;
@@ -88,7 +88,6 @@ namespace Kratos
                 }
             }
         }
-        // exit(0);
 
         // maybe we can do better
         for (int i_brep_parent = 0; i_brep_parent < spans_parent_list.size(); i_brep_parent++) {
@@ -103,7 +102,7 @@ namespace Kratos
         //     Vector interval; 
         //     rParentGeometryList[i_brep_parent]->DomainInterval(interval);
 
-        //     int n_gauss_points = 10;
+        //     int n_gauss_points = 5;
         //     for (int i = 0; i < n_gauss_points; i++) 
         //     {
         //         double new_gauss_point_loc_pos = interval[0] + (interval[1] - interval[0])/(n_gauss_points-1) * i;
@@ -149,7 +148,7 @@ namespace Kratos
                                                 1e-9
                                                 );  
 
-                if (is_converged && last_is_converged)
+                if (true ||(is_converged && last_is_converged))
                 {
                     int n_additional_subdivision = 1;
                     double V0 = integration_edges_on_parameter_parent_list[i_brep_parent][i-1];
