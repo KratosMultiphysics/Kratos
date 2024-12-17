@@ -326,8 +326,11 @@ void LowMachNavierStokes< LowMachNavierStokesData<2,3> >::ComputeGaussPointLHSCo
     const double bdf0 = rData.bdf0;
 
     // Nodal data
+    const auto& r_u = rData.Velocity;
+    const auto& r_t = rData.Temperature;
     const auto& r_t_lin = rData.Temperature;
-    const BoundedMatrix<double,2,3> u_conv = rData.Velocity - rData.MeshVelocity;
+    const auto& r_u_mesh = rData.MeshVelocity;
+    const BoundedMatrix<double,2,3> lin_u_conv = rData.Velocity - rData.MeshVelocity;
 
     // Get shape function values
     const auto& r_N = rData.N;
@@ -366,8 +369,11 @@ void LowMachNavierStokes<LowMachNavierStokesData<2,4>>::ComputeGaussPointLHSCont
     const double bdf0 = rData.bdf0;
 
     // Nodal data
+    const auto& r_u = rData.Velocity;
+    const auto& r_t = rData.Temperature;
     const auto& r_t_lin = rData.Temperature;
-    const BoundedMatrix<double,2,4> u_conv = rData.Velocity - rData.MeshVelocity;
+    const auto& r_u_mesh = rData.MeshVelocity;
+    const BoundedMatrix<double,2,4> lin_u_conv = rData.Velocity - rData.MeshVelocity;
 
     // Get shape function values
     const auto& r_N = rData.N;
@@ -420,7 +426,7 @@ void LowMachNavierStokes<LowMachNavierStokesData<2,3>>::ComputeGaussPointRHSCont
 
     const auto& r_t_lin = rData.Temperature;
     const auto& r_u_mesh = rData.MeshVelocity;
-    const BoundedMatrix<double, 2, 3> u_conv = r_u - r_u_mesh;
+    const BoundedMatrix<double, 2, 3> lin_u_conv = r_u - r_u_mesh;
 
     // Get shape function values
     const auto& r_N = rData.N;
@@ -473,7 +479,7 @@ void LowMachNavierStokes<LowMachNavierStokesData<2,4>>::ComputeGaussPointRHSCont
 
     const auto& r_t_lin = rData.Temperature;
     const auto& r_u_mesh = rData.MeshVelocity;
-    const BoundedMatrix<double, 2, 4> u_conv = r_u - r_u_mesh;
+    const BoundedMatrix<double, 2, 4> lin_u_conv = r_u - r_u_mesh;
 
     // Get shape function values
     const auto& r_N = rData.N;

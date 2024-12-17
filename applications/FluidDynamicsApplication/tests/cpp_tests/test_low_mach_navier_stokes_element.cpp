@@ -55,16 +55,16 @@ KRATOS_TEST_CASE_IN_SUITE(LowMachNavierStokes2D3N, FluidDynamicsApplicationFastS
     r_model_part.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
 
     // Set thermodynamic pressure to the atmosferic one (open flows case)
-    const double p_th = 101325;
+    const double p_th = 1.0e3;
     r_model_part.GetProcessInfo().SetValue(PRESSURE, p_th);
 
     // Set the element properties
-    const double c_p = 1.0e-3;
+    const double c_p = 1.0;
     const double gamma = 1.4e0;
     auto p_properties = r_model_part.CreateNewProperties(0);
     p_properties->SetValue(SPECIFIC_HEAT, c_p);
-    p_properties->SetValue(CONDUCTIVITY, 1.0e-3);
-    p_properties->SetValue(DYNAMIC_VISCOSITY, 1.0e-3);
+    p_properties->SetValue(CONDUCTIVITY, 1.0);
+    p_properties->SetValue(DYNAMIC_VISCOSITY, 1.0);
     p_properties->SetValue(HEAT_CAPACITY_RATIO, gamma);
     auto p_cons_law = Kratos::make_shared<Newtonian2DLaw>();
     p_properties->SetValue(CONSTITUTIVE_LAW, p_cons_law);
@@ -113,20 +113,17 @@ KRATOS_TEST_CASE_IN_SUITE(LowMachNavierStokes2D3N, FluidDynamicsApplicationFastS
     Matrix LHS = ZeroMatrix(12,12);
     const auto& r_process_info = r_model_part.GetProcessInfo();
     p_elem->Initialize(r_process_info);
-
-    KRATOS_WATCH("Before LocalSystem")
     p_elem->CalculateLocalSystem(LHS, RHS, r_process_info);
-    KRATOS_WATCH("After LocalSystem")
 
-    std::cout << p_elem->Info() << std::setprecision(12) << std::endl;
-    KRATOS_WATCH(RHS)
-    KRATOS_WATCH(row(LHS,0))
+    // std::cout << p_elem->Info() << std::setprecision(12) << std::endl;
+    // KRATOS_WATCH(RHS)
+    // KRATOS_WATCH(row(LHS,0))
 
     // Check values
-    // const std::vector<double> rhs_ref = {0.101208740426, 0.064297119485, -0.254190386408, 0.0115211432149, 0.137376654428, -0.291181505801, 0.164573097634, 0.174512378122, -0.264759715687}; // AxisymmetricNavierStokes2D3N
-    // const std::vector<double> lhs_0_ref = {1.26303343879, -0.048478920937, 0.214700065233, 0.627949407008, 0.0236778793736, 0.224465336895, 1.17170148289, -0.145410069083, 0.398592638829};  // AxisymmetricNavierStokes2D3N
-    // KRATOS_EXPECT_VECTOR_NEAR(RHS, rhs_ref, 1.0e-10)
-    // KRATOS_EXPECT_VECTOR_NEAR(row(LHS,0), lhs_0_ref, 1.0e-10)
+    const std::vector<double> rhs_ref = {-20.5826197997,7.19266164094,1.00396713944,2184.12230066,-20.7245661397,-7.40647006043,9.13614708239,1856.70578947,-4.70187216777,2.27698527796,-5.48249509509,3967.02995819}; // LowMachNavierStokes2D3N
+    const std::vector<double> lhs_0_ref = {0.68447805614,-95.2904806491,-1.33922918645,-0.176601650961,-0.770037813157,-62.398621316,-4.33364988921,-0.0689813510326,0.0855597570175,-59.7130399519,3.33550965495,-0.0626415370005};  // LowMachNavierStokes2D3N
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, rhs_ref, 1.0e-8)
+    KRATOS_EXPECT_VECTOR_NEAR(row(LHS,0), lhs_0_ref, 1.0e-8)
 }
 
 }  // namespace Kratos::Testing

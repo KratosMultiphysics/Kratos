@@ -83,7 +83,7 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
     ## Symbols for linearised variables
     t_lin = DefineVector('r_t_lin', n_nodes) # Temperature defined as a symbol (to avoid differentiation in the equation of state)
     rho_lin = DefineVector('rho_lin', n_nodes) # Density defined as a symbol (to avoid differentiation in the stabilization taus)
-    u_conv = DefineMatrix('u_conv', n_nodes, dim) # Convective velocity defined as a symbol (to avoid its differentiation in the convective terms)
+    lin_u_conv = DefineMatrix('lin_u_conv', n_nodes, dim) # Linearised convective velocity defined as a symbol (to avoid its differentiation in the convective terms)
 
     ## Data interpolation to the Gauss points
     # Note that in this interpolation we do not interpolate the momentum (rho*v product) as we do not expect shocks in here
@@ -100,8 +100,9 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
     heat_fl_gauss = heat_fl.transpose()*N
 
     ## Convective velocity definition
-    #TODO: Note that we can include the linearised subscale in here to make it "more LES"
-    u_conv_gauss = u_conv.transpose()*N
+    u_m = DefineMatrix('r_u_mesh',n_nodes,dim)     # Mesh velocity
+    u_conv_gauss = (u - u_m).transpose()*N      # Convective velocity
+    lin_u_conv_gauss = lin_u_conv.transpose()*N # Linearised convective velocity
 
     ## Compute the rest of magnitudes at the Gauss points
     dp_dt_gauss = (bdf0*p + bdf1*p_n + bdf2*p_nn).transpose()*N
@@ -124,7 +125,8 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
     ## Divergences calculation
     div_u = div(DN,u)
     div_v = div(DN,v)
-    div_u_conv = div(DN,u_conv)
+    div_u_conv = div(DN, u - u_m)
+    div_lin_u_conv = div(DN,lin_u_conv)
 
     ## Define state equation (ideal gases) values at Gauss point
     t_lin_gauss = t_lin.transpose()*N
@@ -140,14 +142,14 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
     ## Navier-Stokes functional
     # Mass conservation residual
     galerkin_functional = -q_gauss * drho_dt_gauss
-    galerkin_functional -= q_gauss * (grad_rho.transpose() * u_gauss)
+    galerkin_functional -= q_gauss * (grad_rho.transpose() * u_conv_gauss)
     galerkin_functional -= q_gauss * rho_gauss * div_u
 
     # Momentum conservation residual
-    conv_term_u_gauss = u_conv_gauss.transpose() * grad_u
+    lin_conv_term_u_gauss = lin_u_conv_gauss.transpose() * grad_u
     galerkin_functional += rho_gauss * v_gauss.transpose() * g_gauss
     galerkin_functional -= rho_gauss * v_gauss.transpose() * du_dt_gauss
-    galerkin_functional -= rho_gauss * v_gauss.transpose() * conv_term_u_gauss.transpose()
+    galerkin_functional -= rho_gauss * v_gauss.transpose() * lin_conv_term_u_gauss.transpose()
     galerkin_functional -= grad_sym_v.transpose() * stress
     galerkin_functional -= div_v * (rho_gauss * div_u)
     galerkin_functional += div_v * p_gauss
@@ -161,9 +163,11 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
     galerkin_functional += w_gauss * alpha * t_gauss * dp_th_dt
 
     ## Subscales definition
-    R_c = - drho_dt_gauss - rho_gauss * div_u - grad_rho.transpose() * u_gauss
-    R_u = (g_gauss - du_dt_gauss - conv_term_u_gauss.transpose()) * rho_gauss - grad_p
-    R_t = heat_fl_gauss - rho_gauss * c_p * (dt_dt_gauss + conv_term_t_gauss) + alpha * t_gauss * dp_th_dt
+    lin_conv_term_t_gauss = lin_u_conv_gauss.transpose() * grad_t
+    # R_c = - drho_dt_gauss - rho_gauss * div_u - grad_rho.transpose() * u_conv_gauss # "Standard" form (div(rho·u) = rho·div(u) + grad(rho)·u)
+    R_c = - drho_dt_gauss - rho_gauss * div_u + rho_gauss * alpha * grad_t.transpose() * u_conv_gauss # "Alternative" form (div(rho·u) = rho·div(u) + grad(rho)·u = rho·div(u) + grad(rho_0 - alpha * T)·u = rho·div(u) - alpha·grad(T)·u)
+    R_u = (g_gauss - du_dt_gauss - lin_conv_term_u_gauss.transpose()) * rho_gauss - grad_p
+    R_t = heat_fl_gauss - rho_gauss * c_p * (dt_dt_gauss + lin_conv_term_t_gauss) + alpha * t_gauss * dp_th_dt
 
     p_subscale = tau_c * R_c
     u_subscale = tau_u * R_u
@@ -174,17 +178,16 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
     stabilization_functional = rho_gauss * grad_q.transpose() * u_subscale
 
     # Momentum conservation residual
-    conv_term_v_gauss = u_conv_gauss.transpose() * grad_v
-    stabilization_functional += (grad_rho.transpose() * u_conv_gauss) * v_gauss.transpose() * u_subscale
-    stabilization_functional += (rho_gauss * div_u_conv) * v_gauss.transpose() * u_subscale
-    stabilization_functional += rho_gauss * conv_term_v_gauss * u_subscale
+    lin_conv_term_v_gauss = lin_u_conv_gauss.transpose() * grad_v
+    stabilization_functional += (grad_rho.transpose() * lin_u_conv_gauss) * v_gauss.transpose() * u_subscale
+    stabilization_functional += (rho_gauss * div_lin_u_conv) * v_gauss.transpose() * u_subscale
+    stabilization_functional += rho_gauss * lin_conv_term_v_gauss * u_subscale
     stabilization_functional += div_v * p_subscale
 
     # Energy conservation residual
-    conv_term_w_gauss = u_conv_gauss.transpose() * grad_w
-    stabilization_functional += rho_gauss * c_p * grad_w.transpose() * u_conv_gauss * t_subscale
-    stabilization_functional += w_gauss * c_p * (grad_rho.transpose() * u_conv_gauss) * t_subscale
-    stabilization_functional += w_gauss * rho_gauss * c_p * div_u_conv * t_subscale
+    stabilization_functional += rho_gauss * c_p * grad_w.transpose() * lin_u_conv_gauss * t_subscale
+    stabilization_functional += w_gauss * c_p * (grad_rho.transpose() * lin_u_conv_gauss) * t_subscale
+    stabilization_functional += w_gauss * rho_gauss * c_p * div_lin_u_conv * t_subscale
     stabilization_functional += w_gauss * alpha * t_subscale * dp_th_dt
 
     ## Add the stabilization terms to the original residual terms
@@ -215,6 +218,7 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
         test_func[t_row] = w[i,0]
 
     ## Compute LHS and RHS
+    # Compute RHS (functional differenctiation w.r.t. the shape functions nodal values)
     print(f"Computing {dim}D{n_nodes}N RHS Gauss point contribution\n")
     aux_functional = sympy.Matrix([[functional]])
     rhs = Compute_RHS(aux_functional.copy(), test_func, do_simplifications)
