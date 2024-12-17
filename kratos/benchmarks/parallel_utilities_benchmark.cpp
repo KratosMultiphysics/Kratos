@@ -48,7 +48,7 @@ static void BM_VectorPower(benchmark::State& state) {
     std::vector<double> data_vector(nsize, 5.0);
 
     for (auto _ : state) {
-        std::for_each(data_vector.begin(), data_vector.end(), [](double& item) {
+        block_for_each(data_vector, [](double& item) {
             item = std::pow(item, 0.1);
         });
     }
@@ -57,11 +57,14 @@ static void BM_VectorPower(benchmark::State& state) {
 // Benchmark for reduction
 static void BM_VectorReduction(benchmark::State& state) {
     int nsize = state.range(0);
-    const std::vector<double> data_vector(nsize, 5.0);
+    std::vector<double> data_vector(nsize, 5.0);
 
     for (auto _ : state) {
-        double final_sum = std::accumulate(data_vector.begin(), data_vector.end(), 0.0);
-        benchmark::DoNotOptimize(final_sum);
+        auto final_sum = BlockPartition<std::vector<double>::iterator>(data_vector.begin(),
+                                                                   data_vector.end()).for_each<SumReduction<double>>(
+        [](double& item){
+            return item;
+        });
     }
 }
 
@@ -82,14 +85,20 @@ static void BM_ThreadLocalStorage(benchmark::State& state) {
         elements.push_back(RHSElementType(rhs_vals[i]));
     }
 
-    std::vector<double> tls(vec_size);
+    auto tls_lambda_manual_reduction = [](RHSElementType& rElem, std::vector<double>& rTLS)
+    {
+        rElem.CalculateRHS(rTLS);
+        double rhs_sum = std::accumulate(rTLS.begin(), rTLS.end(), 0.0);
+        rElem.SetAccumRHSValue(rhs_sum);
+    };
 
     for (auto _ : state) {
-        for (auto& elem : elements) {
-            elem.CalculateRHS(tls);
-            double sum = std::accumulate(tls.begin(), tls.end(), 0.0);
-            elem.SetAccumRHSValue(sum);
-        }
+        BlockPartition<std::vector<RHSElementType>::iterator>(elements.begin(),
+                                                          elements.end()).for_each(std::vector<double>(), tls_lambda_manual_reduction);
+
+        const double sum_elem_rhs_vals = std::accumulate(elements.begin(), elements.end(), 0.0, [](double acc, RHSElementType& rElem){
+        return acc + rElem.GetAccumRHSValue();
+    });
     }
 }
 
