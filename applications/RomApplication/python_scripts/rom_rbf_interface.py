@@ -2,7 +2,7 @@ import numpy as np
 import pathlib
 import json
 import KratosMultiphysics
-
+import pickle
 
 class RBF_ROM_Interface:
     def __init__(self, mu_train, data_base):
@@ -13,25 +13,26 @@ class RBF_ROM_Interface:
             mu_train: Training parameters.
             data_base: Reference to the database.
         """
+        # Load the saved model configuration
         model_name, _ = data_base.get_hashed_file_name_for_table("RBF_Model", mu_train)
-        model_path = pathlib.Path(data_base.database_root_directory / 'saved_models' / model_name)
+        model_path = pathlib.Path(data_base.database_root_directory / "saved_models" / model_name)
 
-        with open(pathlib.Path(model_path / 'train_config.json'), "r") as config_file:
+        with open(model_path / "train_config.json", "r") as config_file:
             model_config = json.load(config_file)
 
+        # Extract training configuration
         self.n_inf = int(model_config["modes"][0])
         self.n_sup = int(model_config["modes"][1])
         self.kernel = model_config.get("kernel", "gaussian")
         self.epsilon = model_config.get("epsilon", 1.0)
 
-        # Load phi and singular values
-        _, hash_basis = data_base.check_if_in_database("RightBasis", mu_train)
-        self.phi = data_base.get_single_numpy_from_database(hash_basis)
-        _, hash_sigma = data_base.check_if_in_database("SingularValues_Solution", mu_train)
-        self.sigma = data_base.get_single_numpy_from_database(hash_sigma) / np.sqrt(len(mu_train))
+        # Load weights
+        with open(model_path / "rbf_weights.pkl", "rb") as f:
+            model_data = pickle.load(f)
+        self.W = model_data["W"]
 
-        # Load reference snapshot
-        self.ref_snapshot = np.zeros(self.phi.shape[0])
+        print(f"RBF model loaded successfully from {model_path}")
+
 
     def get_encode_function(self):
         """
@@ -79,3 +80,4 @@ class RBF_ROM_Interface:
             ref_snapshot: Reference snapshot array.
         """
         return self.ref_snapshot
+

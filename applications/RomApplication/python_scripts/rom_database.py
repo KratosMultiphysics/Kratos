@@ -86,15 +86,14 @@ class RomDatabase(object):
                         (id INTEGER PRIMARY KEY, tol_sol REAL, tol_res REAL, type_of_projection TEXT, type_of_decoder TEXT, using_non_converged_sols REAL, file_name TEXT)''',
             "Neural_Network": '''CREATE TABLE IF NOT EXISTS Neural_Network
                         (id INTEGER PRIMARY KEY, tol_sol REAL, type_of_projection TEXT, type_of_decoder TEXT, using_non_converged_sols REAL, modes TEXT, layers_size TEXT, batch_size INTEGER, epochs INTEGER, scheduler TEXT, base_lr REAL, additional_params TEXT, model_number INTEGER, NNgrad_regularisation_weight REAL, file_name TEXT)''',
+            "RBF_Model": '''CREATE TABLE IF NOT EXISTS RBF_Model
+                        (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, type_of_projection TEXT, type_of_decoder TEXT, using_non_converged_sols REAL, rbf_data15_list TEXT, rbf_data16_array TEXT, rbf_data17_int INTEGER, file_name TEXT)''',
             "QoI_FOM": '''CREATE TABLE IF NOT EXISTS QoI_FOM
                         (id INTEGER PRIMARY KEY, parameters TEXT, is_active INTEGER , file_name TEXT)''',
             "QoI_ROM": '''CREATE TABLE IF NOT EXISTS QoI_ROM
                         (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL,  type_of_projection TEXT, type_of_decoder TEXT, using_non_converged_sols REAL, is_active INTEGER , file_name TEXT)''',
             "QoI_HROM": '''CREATE TABLE IF NOT EXISTS QoI_HROM
-                        (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, tol_res REAL, type_of_projection TEXT, type_of_decoder TEXT, using_non_converged_sols REAL, is_active INTEGER  , file_name TEXT)''',
-            "RBF_Model": '''CREATE TABLE IF NOT EXISTS RBF_Model
-                        (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, type_of_projection TEXT, type_of_decoder TEXT, using_non_converged_sols REAL, kernel TEXT, epsilon REAL, neighbors INTEGER, file_name TEXT)'''
-        }
+                        (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, tol_res REAL, type_of_projection TEXT, type_of_decoder TEXT, using_non_converged_sols REAL, is_active INTEGER  , file_name TEXT)'''}
 
         self.table_names = table_definitions.keys()
         try:
@@ -150,7 +149,8 @@ class RomDatabase(object):
             pg_data4_str, pg_data5_bool, nn_data6_str, nn_data7_str, 
             nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, 
             nn_data12_str, nn_data13_int, nn_data14_double, 
-            non_converged_fom_14_bool, rbf_data15_str, rbf_data16_double
+            non_converged_fom_14_bool, rbf_data15_str, 
+            rbf_data16_array, rbf_data17_int
         ) = self.get_curret_params()
 
         if table_name == 'FOM':
@@ -170,8 +170,8 @@ class RomDatabase(object):
             elif decoder_type == "rbf_enhanced":
                 rbf_params = self.hash_parameters(
                     serialized_mu, tol_sol, projection_type, decoder_type, 
-                    non_converged_fom_14_bool, rbf_data15_str, rbf_data16_double, 
-                    table_name
+                    non_converged_fom_14_bool, rbf_data15_str, 
+                    rbf_data16_array, rbf_data17_int, table_name
                 )
                 hash_mu = self.hash_parameters(
                     serialized_mu, tol_sol, projection_type, decoder_type, 
@@ -197,8 +197,8 @@ class RomDatabase(object):
             elif decoder_type == "rbf_enhanced":
                 rbf_params = self.hash_parameters(
                     serialized_mu, tol_sol, projection_type, decoder_type, 
-                    non_converged_fom_14_bool, rbf_data15_str, rbf_data16_double, 
-                    table_name
+                    non_converged_fom_14_bool, rbf_data15_str, 
+                    rbf_data16_array, rbf_data17_int, table_name
                 )
                 hash_mu = self.hash_parameters(
                     serialized_mu, tol_sol, tol_res, projection_type, decoder_type, 
@@ -264,6 +264,12 @@ class RomDatabase(object):
                 nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, 
                 nn_data12_str, nn_data13_int, nn_data14_double, table_name
             )
+        elif table_name == "RBF_Model":
+            hash_mu = self.hash_parameters(
+                serialized_mu, tol_sol, projection_type, decoder_type, 
+                non_converged_fom_14_bool, rbf_data15_str, 
+                rbf_data16_array, rbf_data17_int, table_name
+            )
         elif table_name == "QoI_FOM":
             hash_mu = self.hash_parameters(serialized_mu, table_name)
         elif table_name == "QoI_ROM":
@@ -281,8 +287,8 @@ class RomDatabase(object):
             elif decoder_type == "rbf_enhanced":
                 rbf_params = self.hash_parameters(
                     serialized_mu, tol_sol, projection_type, decoder_type, 
-                    non_converged_fom_14_bool, rbf_data15_str, rbf_data16_double, 
-                    table_name
+                    non_converged_fom_14_bool, rbf_data15_str, rbf_data15_str, 
+                    rbf_data16_array, rbf_data17_int, table_name
                 )
                 hash_mu = self.hash_parameters(
                     serialized_mu, tol_sol, projection_type, decoder_type, 
@@ -308,8 +314,8 @@ class RomDatabase(object):
             elif decoder_type == "rbf_enhanced":
                 rbf_params = self.hash_parameters(
                     serialized_mu, tol_sol, projection_type, decoder_type, 
-                    non_converged_fom_14_bool, rbf_data15_str, rbf_data16_double, 
-                    table_name
+                    non_converged_fom_14_bool, rbf_data15_str, rbf_data15_str, 
+                    rbf_data16_array, rbf_data17_int, table_name
                 )
                 hash_mu = self.hash_parameters(
                     serialized_mu, tol_sol, tol_res, projection_type, decoder_type, 
@@ -356,18 +362,31 @@ class RomDatabase(object):
         nn_data13_int = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["online"]["model_number"].GetInt()
         nn_data14_double = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["NN_gradient_regularisation_weight"].GetDouble()
         
-        # New RBF-enhanced parameters
-        rbf_data15_str = self.general_rom_manager_parameters["ROM"]["rbf_enhanced_settings"]["kernel"].GetString()
-        rbf_data16_double = self.general_rom_manager_parameters["ROM"]["rbf_enhanced_settings"]["epsilon"].GetDouble()
-        
         non_converged_fom_14_bool = self.general_rom_manager_parameters["ROM"]["use_non_converged_sols"].GetBool()
+
+        # New RBF-enhanced parameters
+        rbf_data15_list = self.general_rom_manager_parameters["ROM"]["rbf_enhanced_settings"]["kernel_list"].GetStringArray()  # Fetching as a list of strings
+        rbf_data16_array = self.general_rom_manager_parameters["ROM"]["rbf_enhanced_settings"]["epsilon_range"].GetVector()  # Fetching as an array/vector
+        rbf_data17_int = self.general_rom_manager_parameters["ROM"]["rbf_enhanced_settings"]["num_epsilon_samples"].GetInt()  # Integer for the number of samples
+
+        # Validation of rbf_data16_array (epsilon_range)
+        if len(rbf_data16_array) != 2:
+            raise ValueError("Invalid epsilon_range (rbf_data16_array) specified in rbf_enhanced_settings. It must contain exactly two values: [min, max].")
+
+        if rbf_data16_array[0] <= 0 or rbf_data16_array[1] <= 0 or rbf_data16_array[0] >= rbf_data16_array[1]:
+            raise ValueError("Invalid values for rbf_data16_array. Ensure it is [min, max] with min > 0 and min < max.")
+
+        # Validation of rbf_data15_list (kernel_list)
+        if not isinstance(rbf_data15_list, list) or len(rbf_data15_list) == 0:
+            raise ValueError("Invalid kernel_list (rbf_data15_list). Provide at least one kernel type as a list of strings.")
+
 
         return (
             tol_sol, tol_res, projection_type, decoder_type, pg_data1_str, pg_data2_bool, 
             pg_data3_double, pg_data4_str, pg_data5_bool, nn_data6_str, nn_data7_str, 
             nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, 
             nn_data13_int, nn_data14_double, non_converged_fom_14_bool, 
-            rbf_data15_str, rbf_data16_double
+            rbf_data15_list, rbf_data16_array, rbf_data17_int
         )
 
 
@@ -403,8 +422,8 @@ class RomDatabase(object):
         (tol_sol, tol_res, projection_type, decoder_type, pg_data1_str, pg_data2_bool, 
         pg_data3_double, pg_data4_str, pg_data5_bool, nn_data6_str, nn_data7_str, 
         nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, 
-        nn_data13_int, nn_data14_double, non_converged_fom_14_bool, rbf_data15_str, 
-        rbf_data16_double) = self.get_curret_params()
+        nn_data13_int, nn_data14_double, non_converged_fom_14_bool, rbf_data15_list, 
+        rbf_data16_array, rbf_data17_int) = self.get_curret_params()
 
         queries = {
             'FOM': 'INSERT INTO {table} (parameters, file_name) VALUES (?, ?)',
@@ -422,7 +441,7 @@ class RomDatabase(object):
             'HROM_Elements': 'INSERT INTO {table} (tol_sol , tol_res , type_of_projection, type_of_decoder, using_non_converged_sols, file_name) VALUES (?, ?, ?, ?, ?, ?)',
             'HROM_Weights': 'INSERT INTO {table} (tol_sol , tol_res , type_of_projection, type_of_decoder, using_non_converged_sols, file_name) VALUES (?, ?, ?, ?, ?, ?)',
             'Neural_Network': 'INSERT INTO {table} (tol_sol , modes , layers_size, batch_size, epochs, scheduler, base_lr, additional_params, model_number, NNgrad_regularisation_weight, file_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            'RBF_Model': 'INSERT INTO {table} (parameters, tol_sol, type_of_projection, type_of_decoder, using_non_converged_sols, kernel, epsilon, file_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+            'RBF_Model': 'INSERT INTO {table} (parameters, tol_sol, type_of_projection, type_of_decoder, using_non_converged_sols, rbf_data15_list, rbf_data16_array, rbf_data17_int, file_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
             'QoI_FOM': 'INSERT INTO {table} (parameters, file_name, is_active) VALUES (?, ?, ?)',
             'QoI_ROM': 'INSERT INTO {table} (parameters, tol_sol, type_of_projection, type_of_decoder, using_non_converged_sols, file_name, is_active) VALUES (?, ?, ?, ?, ?, ?, ?)',
             'QoI_HROM': 'INSERT INTO {table} (parameters, tol_sol, tol_res, type_of_projection, type_of_decoder, using_non_converged_sols, file_name, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
@@ -456,7 +475,15 @@ class RomDatabase(object):
             elif table_name == 'Neural_Network':
                 cursor.execute(query, (tol_sol, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, nn_data14_double, file_name))
             elif table_name == 'RBF_Model':
-                cursor.execute(query, (serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, rbf_data15_str, rbf_data16_double, file_name))
+                # Convert arrays/lists to JSON strings
+                rbf_data15_list_str = json.dumps(rbf_data15_list)
+
+                # Insert into database
+                cursor.execute(query, (
+                    serialized_mu, tol_sol, projection_type, decoder_type,
+                    non_converged_fom_14_bool, rbf_data15_list_str, rbf_data16_array,
+                    rbf_data17_int, file_name
+                ))
             elif table_name == 'QoI_FOM':
                 if len(numpy_array) > 0:
                     cursor.execute(query, (serialized_mu, file_name, True))
