@@ -12,7 +12,7 @@
 //
 
 #include "two_fluid_navier_stokes_alpha_method.h"
-#include "custom_utilities/two_fluid_navier_stokes_alpha_method_data.h"
+#include "custom_elements/data_containers/two_fluid_navier_stokes_alpha_method/two_fluid_navier_stokes_alpha_method_data.h"
 
 namespace Kratos
 {
@@ -112,7 +112,7 @@ void TwoFluidNavierStokesAlphaMethod<TElementData>::Calculate(
     ShapeFunctionDerivativesArrayType shape_derivatives;
     this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
     const unsigned int number_of_gauss_points = gauss_weights.size();
-    rOutput = 0.0; 
+    rOutput = 0.0;
     if (rVariable == ARTIFICIAL_DYNAMIC_VISCOSITY)
     {
 

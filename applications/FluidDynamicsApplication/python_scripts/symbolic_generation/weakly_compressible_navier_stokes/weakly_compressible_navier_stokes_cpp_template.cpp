@@ -21,7 +21,7 @@
 
 // Application includes
 #include "weakly_compressible_navier_stokes.h"
-#include "custom_utilities/weakly_compressible_navier_stokes_data.h"
+#include "custom_elements/data_containers/weakly_compressible_navier_stokes/weakly_compressible_navier_stokes_data.h"
 
 namespace Kratos
 {
@@ -332,6 +332,7 @@ void WeaklyCompressibleNavierStokes<WeaklyCompressibleNavierStokesData<2,3>>::Co
     const BoundedMatrix<double,2,3>& vmesh = rData.MeshVelocity;
     const BoundedMatrix<double,2,3> vconv = v - vmesh;
     const BoundedMatrix<double,2,3>& f = rData.BodyForce;
+    const BoundedMatrix<double,2,3>& r_v_sol_frac = rData.SolidFractionVelocity;
     const array_1d<double,3>& p = rData.Pressure;
     const array_1d<double,3>& pn = rData.Pressure_OldStep1;
     const array_1d<double,3>& pnn = rData.Pressure_OldStep2;
@@ -376,6 +377,7 @@ void WeaklyCompressibleNavierStokes<WeaklyCompressibleNavierStokesData<3,4>>::Co
     const BoundedMatrix<double,3,4>& vmesh = rData.MeshVelocity;
     const BoundedMatrix<double,3,4> vconv = v - vmesh;
     const BoundedMatrix<double,3,4>& f = rData.BodyForce;
+    const BoundedMatrix<double,3,4>& r_v_sol_frac = rData.SolidFractionVelocity;
     const array_1d<double,4>& p = rData.Pressure;
     const array_1d<double,4>& pn = rData.Pressure_OldStep1;
     const array_1d<double,4>& pnn = rData.Pressure_OldStep2;

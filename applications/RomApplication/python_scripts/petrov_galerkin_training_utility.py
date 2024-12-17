@@ -81,7 +81,7 @@ class PetrovGalerkinTrainingUtility(object):
             err_msg = "\'self.basis_strategy\' is not available. Select either 'jacobian' or 'residuals'."
             raise Exception(err_msg)
 
-        np_snapshots_matrix = np.array(snapshots_matrix, copy=False)
+        np_snapshots_matrix = np.asarray(snapshots_matrix)
         self.time_step_snapshots_matrix_container.append(np_snapshots_matrix)
 
     def GetJacobianPhiMultiplication(self, computing_model_part):

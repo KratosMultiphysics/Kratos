@@ -33,6 +33,10 @@ void ResetDisplacementProcess::ExecuteInitialize()
         std::vector<Vector> stresses_on_integration_points;
         rElement.CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, stresses_on_integration_points,
                                               mrModelPart.GetProcessInfo());
+        if (stresses_on_integration_points.empty()) {
+            rElement.CalculateOnIntegrationPoints(
+                CAUCHY_STRESS_VECTOR, stresses_on_integration_points, mrModelPart.GetProcessInfo());
+        }
         std::vector<ConstitutiveLaw::Pointer> constitutive_laws;
         rElement.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_laws, mrModelPart.GetProcessInfo());
 
