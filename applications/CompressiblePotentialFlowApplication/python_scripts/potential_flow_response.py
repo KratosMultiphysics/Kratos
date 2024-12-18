@@ -119,7 +119,6 @@ class AdjointResponseFunction(ResponseFunctionInterface):
             for variable in self.primal_state_variables:
                 variable_utils.CopyModelPartNodalVar(variable, self.primal_model_part, self.adjoint_model_part, 0)
 
-
     def _GetAdjointParameters(self):
         with open(self.response_settings["adjoint_settings"].GetString(),'r') as parameter_file:
             adjoint_parameters = Parameters( parameter_file.read() )

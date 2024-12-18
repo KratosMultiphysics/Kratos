@@ -2,6 +2,7 @@
 import KratosMultiphysics
 from importlib import import_module
 
+
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
@@ -17,7 +18,7 @@ class FluidTopologyOptimizationSolver(NavierStokesMonolithicSolver):
 
     def __init__(self, model, custom_settings, isAdjointSolver = False):
         super().__init__(model,custom_settings)
-        self.isAdjoint = isAdjointSolver
+        self.is_adjoint = isAdjointSolver
         self._SetUpTopologyOptimization(custom_settings)
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of FluidTopologyOptimizationSolver finished.")
 
@@ -135,7 +136,7 @@ class FluidTopologyOptimizationSolver(NavierStokesMonolithicSolver):
 
     def AddDofs(self):
         dofs_and_reactions_to_add = []
-        if (not self.isAdjoint): # NS
+        if (not self.is_adjoint): # NS
             dofs_and_reactions_to_add.append("VELOCITY_X")
             dofs_and_reactions_to_add.append("VELOCITY_Y")
             dofs_and_reactions_to_add.append("VELOCITY_Z")
@@ -165,7 +166,7 @@ class FluidTopologyOptimizationSolver(NavierStokesMonolithicSolver):
         return is_converged
     
     def AdvanceInTime(self, current_time):
-        if (not self.isAdjoint): # NS
+        if (not self.is_adjoint): # NS
             self.main_model_part.ProcessInfo[KratosCFD.FLUID_TOP_OPT_NS_STEP] += 1
             new_time =  super().AdvanceInTime(current_time)
         else: #ADJ
@@ -179,8 +180,11 @@ class FluidTopologyOptimizationSolver(NavierStokesMonolithicSolver):
             self.main_model_part.ProcessInfo[KratosCFD.FLUID_TOP_OPT_ADJ_NS_STEP] += 1
         return new_time
     
-    def isNavierStokes(self):
-        return not self.isAdjoint
+    def IsNavierStokes(self):
+        return not self.is_adjoint
     
-    def isAdjointNavierStokes(self):
-        return self.isAdjoint
+    def IsAdjointNavierStokes(self):
+        return self.is_adjoint
+    
+    def GetMainModelPart(self):
+        return self.main_model_part
