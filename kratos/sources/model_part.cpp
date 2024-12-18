@@ -45,34 +45,32 @@ void AddEntitiesFromIds(
     if(pModelPart->IsSubModelPart()) { //does nothing if we are on the top model part
         //obtain from the root model part the corresponding list of nodes
         ModelPart* root_model_part = &pModelPart->GetRootModelPart();
-
-        // we first sort and unique the given entity ids.
-        std::vector<IndexType> unique_sorted_ids;
-        unique_sorted_ids.resize(rEntityIds.size());
-        IndexPartition<IndexType>(rEntityIds.size()).for_each([&unique_sorted_ids,  &rEntityIds](const auto Index) {
-            unique_sorted_ids[Index] = rEntityIds[Index];
-        });
-        std::sort(unique_sorted_ids.begin(), unique_sorted_ids.end());
-        auto new_last = std::unique(unique_sorted_ids.begin(), unique_sorted_ids.end());
-
         const auto& r_container = *rContainerGetter(root_model_part);
 
-        // aux is created to avoid doing sort and unique for all the parent model parts and current model part
-        // when insertion is done.
-        container_type aux;
-        aux.reserve(std::distance(unique_sorted_ids.begin(), new_last));
-        for (auto it_id = unique_sorted_ids.begin(); it_id != new_last; ++it_id) {
-            auto it = r_container.find(*it_id);
+        // we first sort and unique the given entity ids.
+        std::vector<typename container_type::pointer> entities;
+        entities.resize(rEntityIds.size());
+
+        // we are doing this in parallel because the most complex one is the finding of the entity for given id.
+        IndexPartition<IndexType>(rEntityIds.size()).for_each([pModelPart, &r_container, &entities,  &rEntityIds](const auto Index) {
+            const auto entity_id = rEntityIds[Index];
+
+            auto it = r_container.find(entity_id);
 
             KRATOS_ERROR_IF(it == r_container.end())
                 << "while adding " << ModelPart::Container<container_type>::GetEntityName() << "s to submodelpart "
                 << pModelPart->FullName() << ", the "
                 << ModelPart::Container<container_type>::GetEntityName()
-                << " with Id " << *it_id << " does not exist in the root model part";
+                << " with Id " << entity_id << " does not exist in the root model part";
 
-            // here the hint is valid, hence this will be a simple push_back within the PVS.
-            aux.insert(aux.end(), *(it.base()));
-        }
+            entities[Index] = *(it.base());
+        });
+
+        // aux is created to avoid doing sort and unique for all the parent model parts and current model part
+        // when insertion is done. since we dont use the entities anymore we can use the move operator here.
+        // since aux is an empty container. it will call push_back in the insert.
+        container_type aux;
+        aux.insert(std::move(entities));
 
         ModelPart* current_part = pModelPart;
         while(current_part->IsSubModelPart()) {
