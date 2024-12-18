@@ -136,6 +136,7 @@ class NavierStokesLowMachSolver(NavierStokesMonolithicSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_FLUX)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.SOLID_FRACTION_VELOCITY)
 
         # Adding variables required by the formulation (this includes the nodal material properties)
         for variable in self.historical_nodal_variables_list:

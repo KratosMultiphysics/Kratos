@@ -85,6 +85,9 @@ KRATOS_TEST_CASE_IN_SUITE(LowMachNavierStokes2D3N, FluidDynamicsApplicationFastS
     std::vector<ModelPart::IndexType> element_nodes {1, 2, 3};
     auto p_elem = r_model_part.CreateNewElement("LowMachNavierStokes2D3N", 1, element_nodes, p_properties);
 
+    // Set the elemental values
+    p_elem->SetValue(RESISTANCE, 1.0);
+
     // Define and set the nodal values
     Matrix reference_velocity(3,2);
     reference_velocity(0,0) = 0.0; reference_velocity(0,1) = 0.1;
@@ -120,8 +123,8 @@ KRATOS_TEST_CASE_IN_SUITE(LowMachNavierStokes2D3N, FluidDynamicsApplicationFastS
     // KRATOS_WATCH(row(LHS,0))
 
     // Check values
-    const std::vector<double> rhs_ref = {-20.5826197997,5.48539668368,1.00396713944,2184.12230066,-20.7245661397,-5.48579698351,7.00206588581,1856.70578947,-4.70187216777,2.0635771583,-3.34841389851,3967.02995819}; // LowMachNavierStokes2D3N
-    const std::vector<double> lhs_0_ref = {0.68447805614,-95.2904806491,-1.33922918645,-0.176601650961,-0.770037813157,-62.398621316,-4.33364988921,-0.0689813510326,0.0855597570175,-59.7130399519,3.33550965495,-0.0626415370005};  // LowMachNavierStokes2D3N
+    const std::vector<double> rhs_ref = {-19.843335639,5.50406680091,1.01005660834,2184.12230066,-19.3765002401,-5.45112093026,7.09413150848,1856.70578947,-6.78922222805,1.81259194953,-3.88926536419,3967.02995819}; // LowMachNavierStokes2D3N
+    const std::vector<double> lhs_0_ref = {0.532019288052,-75.0534843632,-1.33922918645,-0.176601650961,-0.598521699058,-47.9909095722,-4.33364988921,-0.0689813510326,0.0665024110065,-46.762159774,3.33550965495,-0.0626415370005};  // LowMachNavierStokes2D3N
     KRATOS_EXPECT_VECTOR_NEAR(RHS, rhs_ref, 1.0e-8)
     KRATOS_EXPECT_VECTOR_NEAR(row(LHS,0), lhs_0_ref, 1.0e-8)
 }

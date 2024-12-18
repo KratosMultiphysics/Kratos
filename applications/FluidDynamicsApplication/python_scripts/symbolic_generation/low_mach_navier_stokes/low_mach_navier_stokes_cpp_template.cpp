@@ -314,6 +314,7 @@ void LowMachNavierStokes< LowMachNavierStokesData<2,3> >::ComputeGaussPointLHSCo
     const double c_p = rData.SpecificHeat;
     const double kappa = rData.Conductivity;
     const double gamma = rData.HeatCapacityRatio;
+    const double sigma = rData.Resistance;
 
     // Thermodynamic pressure
     const double p_th = rData.ThermodynamicPressure;
@@ -355,6 +356,7 @@ void LowMachNavierStokes<LowMachNavierStokesData<2,4>>::ComputeGaussPointLHSCont
 {
     // Material parameters
     const double c_p = rData.SpecificHeat;
+    const double sigma = rData.Resistance;
     const double kappa = rData.Conductivity;
     const double gamma = rData.HeatCapacityRatio;
 
@@ -398,6 +400,7 @@ void LowMachNavierStokes<LowMachNavierStokesData<2,3>>::ComputeGaussPointRHSCont
 {
     // Material parameters
     const double c_p = rData.SpecificHeat;
+    const double sigma = rData.Resistance;
     const double kappa = rData.Conductivity;
     const double gamma = rData.HeatCapacityRatio;
 
@@ -423,6 +426,7 @@ void LowMachNavierStokes<LowMachNavierStokesData<2,3>>::ComputeGaussPointRHSCont
     const auto& r_t_nn = rData.TemperatureOldStep2;
     const auto& r_g = rData.BodyForce;
     const auto& r_heat_fl = rData.HeatFlux;
+    const auto& r_u_sol_frac = rData.SolidFractionVelocity;
 
     const auto& r_t_lin = rData.Temperature;
     const auto& r_u_mesh = rData.MeshVelocity;
@@ -451,6 +455,7 @@ void LowMachNavierStokes<LowMachNavierStokesData<2,4>>::ComputeGaussPointRHSCont
 {
     // Material parameters
     const double c_p = rData.SpecificHeat;
+    const double sigma = rData.Resistance;
     const double kappa = rData.Conductivity;
     const double gamma = rData.HeatCapacityRatio;
 
@@ -476,6 +481,7 @@ void LowMachNavierStokes<LowMachNavierStokesData<2,4>>::ComputeGaussPointRHSCont
     const auto& r_t_nn = rData.TemperatureOldStep2;
     const auto& r_g = rData.BodyForce;
     const auto& r_heat_fl = rData.HeatFlux;
+    const auto& r_u_sol_frac = rData.SolidFractionVelocity;
 
     const auto& r_t_lin = rData.Temperature;
     const auto& r_u_mesh = rData.MeshVelocity;
@@ -510,6 +516,7 @@ void LowMachNavierStokes<TElementData>::CalculateStabilizationConstants(
     // Get values from data container
     const double h = rData.ElementSize;
     const double c_p = rData.SpecificHeat;
+    const double sigma = rData.Resistance;
     const double kappa = rData.Conductivity;
     // const double dt = rData.DeltaTime;
     // const double dyn_tau = rData.DynamicTau;
@@ -534,8 +541,8 @@ void LowMachNavierStokes<TElementData>::CalculateStabilizationConstants(
     const double rho_gauss = (gamma / c_p / (gamma - 1.0)) * p_th / t_gauss; // Density (from equation of state)
 
     rTauPressure = mu / rho_gauss + stab_c2 * norm_u_conv * h / stab_c1; // Pressure subscale stabilization operator
-    rTauVelocity = 1.0 / (stab_c1 * mu / std::pow(h, 2) + stab_c2 * h * norm_u_conv / h); // Velocity subscale stabilization operator
-    rTauTemperature = 1.0 / (stab_c1 * kappa / std::pow(h, 2) + stab_c2 * rho_gauss * c_p * norm_u_conv / h); // Temperature subscale stabilization operator;
+    rTauVelocity = 1.0 / (stab_c1 * mu / std::pow(h, 2) + stab_c2 * h * norm_u_conv / h + stab_c3 * sigma / h); // Velocity subscale stabilization operator
+    rTauTemperature = 1.0 / (stab_c1 * kappa / std::pow(h, 2) + stab_c2 * rho_gauss * c_p * norm_u_conv / h); // Temperature subscale stabilization operator
 }
 
 

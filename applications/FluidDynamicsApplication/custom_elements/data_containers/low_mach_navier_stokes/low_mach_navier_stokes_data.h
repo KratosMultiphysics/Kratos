@@ -60,6 +60,8 @@ public:
 
     NodalVectorData BodyForce;
 
+    NodalVectorData SolidFractionVelocity;
+
     NodalScalarData HeatFlux;
 
     NodalScalarData Pressure;
@@ -74,11 +76,13 @@ public:
 
     double ThermodynamicPressureDerivative;
 
-    double Conductivity;
+    double Resistance; // Darcy resistance (opposite to permeability, sigma)
 
-    double SpecificHeat;
+    double Conductivity; // Thermal conductivity (kappa)
 
-    double HeatCapacityRatio;
+    double SpecificHeat; // Specific heat at constant pressure (c_p)
+
+    double HeatCapacityRatio; // Heat capacity ratio (gamma)
 
     double DeltaTime; // Time increment
 
@@ -113,6 +117,7 @@ public:
         this->FillFromHistoricalNodalData(Temperature, TEMPERATURE, r_geometry);
         this->FillFromHistoricalNodalData(TemperatureOldStep1, TEMPERATURE, r_geometry, 1);
         this->FillFromHistoricalNodalData(TemperatureOldStep2, TEMPERATURE, r_geometry, 2);
+        this->FillFromHistoricalNodalData(SolidFractionVelocity, SOLID_FRACTION_VELOCITY, r_geometry);
 
         // Fill data from properties
         const auto& r_properties = rElement.GetProperties();
@@ -130,6 +135,9 @@ public:
             ThermodynamicPressure = 0.0;
             ThermodynamicPressureDerivative = 0.0;
         }
+
+        // Get data from element database
+        this->FillFromElementData(Resistance, RESISTANCE, rElement);
 
         const auto& r_BDF_vector = rProcessInfo[BDF_COEFFICIENTS];
         bdf0 = r_BDF_vector[0];

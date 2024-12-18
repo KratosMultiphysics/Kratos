@@ -4,9 +4,7 @@ from KratosMultiphysics.sympy_fe_utilities import *
 
 ## Symbolic generation settings
 mode = "c"
-# divide_by_rho = True                # Divide the mass conservation equation by rho
-ASGS_stabilization = True           # Consider ASGS stabilization terms
-# add_incompressibility_error = False     # Add the incompressibility error to the viscous stress response
+ASGS_stabilization = True # Consider ASGS stabilization terms
 
 do_simplifications = False
 output_filename = "low_mach_navier_stokes.cpp"
@@ -15,8 +13,6 @@ template_filename = "low_mach_navier_stokes_cpp_template.cpp"
 info_msg = f"\n"
 info_msg += f"Element generator settings:\n"
 info_msg += f"\t - ASGS stabilization: {ASGS_stabilization}\n"
-# info_msg += f"\t - Divide mass conservation by rho: {divide_by_rho}\n"
-# info_msg += f"\t - Add incompressibility error to viscous stress: {add_incompressibility_error}\n"
 print(info_msg)
 
 dim_vector = [2, 2]
@@ -54,6 +50,7 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
     c_p = sympy.Symbol('c_p', positive = True)     # Specific heat at constant pressure
     gamma = sympy.Symbol('gamma', positive = True) # Heat capacity ratio
     kappa = sympy.Symbol('kappa', positive = True) # Thermal conductivity
+    sigma = sympy.Symbol('sigma', positive = True) # Resistance (permeability inverse, 1/m^2)
 
     ## Test functions definition
     v = DefineMatrix('v',n_nodes, dim)             # Velocity field test function
@@ -66,8 +63,9 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
     stress = DefineVector('r_stress', strain_size)
 
     ## Other data definitions
-    g = DefineMatrix('r_g',n_nodes,dim)              # Gravity (velocity volume forcing term)
+    g = DefineMatrix('r_g', n_nodes, dim) # Gravity (velocity volume forcing term)
     heat_fl = DefineVector('r_heat_fl', n_nodes) # Heat flux (temperature volume forcing term)
+    u_sol_frac = DefineMatrix('r_u_sol_frac', n_nodes, dim) # Solid fraction velocity
 
     ## Stabilization operators defined as a symbol
     tau_c = sympy.Symbol('tau_c', positive = True)
@@ -97,6 +95,7 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
 
     g_gauss = g.transpose()*N
     heat_fl_gauss = heat_fl.transpose()*N
+    u_sol_frac_gauss = u_sol_frac.transpose()*N
 
     ## Convective velocity definition
     u_m = DefineMatrix('r_u_mesh',n_nodes,dim)     # Mesh velocity
@@ -151,6 +150,7 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
     galerkin_functional -= rho_gauss * v_gauss.transpose() * lin_conv_term_u_gauss.transpose()
     galerkin_functional -= grad_sym_v.transpose() * stress
     galerkin_functional += div_v * p_gauss
+    galerkin_functional -= sigma * v_gauss.transpose() * (u_gauss - u_sol_frac_gauss)
 
     # Energy conservation residual
     conv_term_t_gauss = u_conv_gauss.transpose() * grad_t
@@ -164,14 +164,14 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
     lin_conv_term_t_gauss = lin_u_conv_gauss.transpose() * grad_t
     # R_c = - drho_dt_gauss - rho_gauss * div_u - grad_rho.transpose() * u_conv_gauss # "Standard" form (div(rho·u) = rho·div(u) + grad(rho)·u)
     R_c = - drho_dt_gauss - rho_gauss * div_u + rho_gauss * alpha * grad_t.transpose() * u_conv_gauss # "Alternative" form (div(rho·u) = rho·div(u) + grad(rho)·u = rho·div(u) + grad(rho_0 - alpha * T)·u = rho·div(u) - alpha·grad(T)·u)
-    R_u = (g_gauss - du_dt_gauss - lin_conv_term_u_gauss.transpose()) * rho_gauss - grad_p
+    R_u = (g_gauss - du_dt_gauss - lin_conv_term_u_gauss.transpose()) * rho_gauss - grad_p - sigma * (u_gauss - u_sol_frac_gauss)
     R_t = heat_fl_gauss - rho_gauss * c_p * (dt_dt_gauss + lin_conv_term_t_gauss) + alpha * t_gauss * dp_th_dt
 
     p_subscale = tau_c * R_c
     u_subscale = tau_u * R_u
     t_subscale = tau_t * R_t
 
-    ##  Stabilization functional terms
+    ## Stabilization functional terms
     # Mass conservation residual
     stabilization_functional = rho_gauss * grad_q.transpose() * u_subscale
 
@@ -181,6 +181,7 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
     stabilization_functional += (rho_gauss * div_lin_u_conv) * v_gauss.transpose() * u_subscale
     stabilization_functional += rho_gauss * lin_conv_term_v_gauss * u_subscale
     stabilization_functional += div_v * p_subscale
+    stabilization_functional -= sigma * v_gauss.transpose() * u_subscale
 
     # Energy conservation residual
     stabilization_functional += rho_gauss * c_p * grad_w.transpose() * lin_u_conv_gauss * t_subscale

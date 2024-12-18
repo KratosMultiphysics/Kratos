@@ -273,6 +273,8 @@ private:
 
     static constexpr double stab_c2 = 2.0;
 
+    static constexpr double stab_c3 = 2.0;
+
     ///@}
     ///@name Member Variables
     ///@{
