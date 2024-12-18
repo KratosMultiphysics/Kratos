@@ -715,6 +715,7 @@ public:
         KRATOS_TRY;
 
         BlockBuildDofArrayUtility::SetUpDofArray(rModelPart, BaseType::mDofSet, this->GetEchoLevel(), BaseType::GetCalculateReactionsFlag());
+        SetDofSetIsInitializedFlag(true);
 
         KRATOS_CATCH("");
     }
