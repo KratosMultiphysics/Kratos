@@ -239,7 +239,7 @@ public:
             // copy the prototype to create the thread local storage
             TThreadLocalStorage thread_local_storage(rThreadLocalStoragePrototype);
 
-            #pragma omp for
+            #pragma omp for schedule(runtime)
             for(int i=0; i<mNchunks; ++i){
                 KRATOS_TRY
                 for (auto it = mBlockPartition[i]; it != mBlockPartition[i+1]; ++it){
@@ -271,7 +271,7 @@ public:
             // copy the prototype to create the thread local storage
             TThreadLocalStorage thread_local_storage(rThreadLocalStoragePrototype);
 
-            #pragma omp for
+            #pragma omp for schedule(runtime)
             for (int i=0; i<mNchunks; ++i) {
                 KRATOS_TRY
                 TReducer local_reducer;
@@ -573,7 +573,7 @@ public:
             // copy the prototype to create the thread local storage
             TThreadLocalStorage thread_local_storage(rThreadLocalStoragePrototype);
 
-            #pragma omp for
+            #pragma omp for schedule(runtime)
             for (int i=0; i<mNchunks; ++i) {
                 KRATOS_TRY
                 for (auto k = mBlockPartition[i]; k < mBlockPartition[i+1]; ++k) {
@@ -605,7 +605,7 @@ public:
             // copy the prototype to create the thread local storage
             TThreadLocalStorage thread_local_storage(rThreadLocalStoragePrototype);
 
-            #pragma omp for
+            #pragma omp for schedule(runtime)
             for (int i=0; i<mNchunks; ++i) {
                 KRATOS_TRY
                 TReducer local_reducer;
