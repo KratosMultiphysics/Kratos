@@ -952,8 +952,8 @@ template class FluidElement< TwoFluidNavierStokesAlphaMethodData<3, 4> >;
 
 template class FluidElement< LowMachNavierStokesData<2,3> >;
 template class FluidElement< LowMachNavierStokesData<2,4> >;
-// template class FluidElement< LowMachNavierStokesData<3,4> >;
-// template class FluidElement< LowMachNavierStokesData<3,8> >;
+template class FluidElement< LowMachNavierStokesData<3,4> >;
+template class FluidElement< LowMachNavierStokesData<3,8> >;
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 }

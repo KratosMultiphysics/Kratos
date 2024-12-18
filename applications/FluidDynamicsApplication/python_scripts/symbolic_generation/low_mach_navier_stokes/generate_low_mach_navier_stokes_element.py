@@ -15,8 +15,8 @@ info_msg += f"Element generator settings:\n"
 info_msg += f"\t - ASGS stabilization: {ASGS_stabilization}\n"
 print(info_msg)
 
-dim_vector = [2, 2]
-n_nodes_vector = [3, 4] # tria, quad
+dim_vector = [2, 2, 3, 3]
+n_nodes_vector = [3, 4, 4, 8] # tria, quad, tet, hexa
 
 ## Initialize the outstring to be filled with the template .cpp file
 print("Reading template file \'"+ template_filename + "\'\n")
