@@ -963,10 +963,8 @@ private:
     // constitutive models
     const BilinearCohesive3DLaw  mBilinearCohesive3DLaw;
     const BilinearCohesive2DLaw  mBilinearCohesive2DLaw;
-    const LinearPlaneStrainK0Law mLinearPlaneStrainK0Law;
     const GeoIncrementalLinearElasticLaw mLinearElasticPlaneStrain2DLaw{std::make_unique<PlaneStrain>()};
     const GeoIncrementalLinearElasticLaw mLinearElastic3DLaw{std::make_unique<ThreeDimensional>()};
-    const ElasticIsotropicK03DLaw        mElasticIsotropicK03DLaw;
     const GeoLinearElasticPlaneStress2DLaw mLinearElasticPlaneStress2DLaw;
 
     const SmallStrainUDSM3DLaw            mSmallStrainUDSM3DLaw{};
