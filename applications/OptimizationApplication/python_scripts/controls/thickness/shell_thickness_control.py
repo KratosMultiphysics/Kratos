@@ -36,10 +36,11 @@ class ShellThicknessControl(Control):
         self.optimization_problem = optimization_problem
 
         default_settings = Kratos.Parameters("""{
-            "controlled_model_part_names"  : [],
-            "filter_settings"              : {},
-            "output_all_fields"            : false,
-            "physical_thicknesses"         : [],
+            "controlled_model_part_names"       : [],
+            "filter_settings"                   : {},
+            "output_all_fields"                 : false,
+            "physical_thicknesses"              : [],
+            "consider_recursive_property_update": false,
             "thickness_projection_settings": {}
         }""")
 
@@ -59,6 +60,8 @@ class ShellThicknessControl(Control):
 
         self.thickness_projection = CreateProjection(parameters["thickness_projection_settings"], self.optimization_problem)
 
+        self.consider_recursive_property_update = parameters["consider_recursive_property_update"].GetBool()
+
         num_phys_thick = len(self.physical_thicknesses)
         if num_phys_thick == 0:
             raise RuntimeError("The physical_thicknesses can not be empty, at least min and max should be provided.")
@@ -68,7 +71,7 @@ class ShellThicknessControl(Control):
         self.model_part = self.model_part_operation.GetModelPart()
 
         if not KratosOA.OptAppModelPartUtils.CheckModelPartStatus(self.model_part, "element_specific_properties_created"):
-            KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(self.model_part, self.model_part.Elements)
+            KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(self.model_part, self.model_part.Elements, self.consider_recursive_property_update)
             KratosOA.OptAppModelPartUtils.LogModelPartStatus(self.model_part, "element_specific_properties_created")
 
         # initialize the filter
@@ -160,6 +163,8 @@ class ShellThicknessControl(Control):
         projected_filtered_thickness_field = self.thickness_projection.ProjectForward(self.physical_phi_field)
         # now update physical field
         KratosOA.PropertiesVariableExpressionIO.Write(projected_filtered_thickness_field, Kratos.THICKNESS)
+        if self.consider_recursive_property_update:
+            KratosOA.OptimizationUtils.UpdatePropertiesVariableWithRootValueRecursively(projected_filtered_thickness_field.GetContainer(), Kratos.THICKNESS)
 
         # compute and stroe projection derivatives for consistent filtering of the sensitivities
         self.projection_derivative_field = self.thickness_projection.ForwardProjectionGradient(self.physical_phi_field)

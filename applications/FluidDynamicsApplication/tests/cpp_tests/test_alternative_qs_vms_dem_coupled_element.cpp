@@ -21,7 +21,7 @@
 // Application includes
 #include "custom_constitutive/newtonian_2d_law.h"
 #include "custom_elements/alternative_qs_vms_dem_coupled.h"
-#include "custom_utilities/qsvms_dem_coupled_data.h"
+#include "custom_elements/data_containers/qs_vms_dem_coupled/qs_vms_dem_coupled_data.h"
 #include "tests/cpp_tests/fluid_dynamics_fast_suite.h"
 
 namespace Kratos {
