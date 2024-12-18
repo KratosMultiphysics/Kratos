@@ -18,11 +18,13 @@
 #include <iostream>
 #include <sstream>
 #include <cstddef>
+#include <type_traits>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
+#include "includes/key_hash.h"
 #include "includes/serializer.h"
 #include "includes/process_info.h"
 #include "containers/data_value_container.h"
@@ -375,11 +377,19 @@ public:
     template<class TContainer, std::enable_if_t<IsRValueContainer<TContainer>::value, bool> = true>
     void AddNodes(TContainer&& rInputContainer)
     {
-        EntityRangeChecker<NodesContainerType>()(this, rInputContainer.begin(), rInputContainer.end());
+        // This check is required in cases where std::vector<IndexType> is passed as an r value, then it will
+        // not call the correct addition with the input args of const std::vector<IndexType>&, it will get in to this method.
+        // this check will redirect it to the std::vector<IndexType> method with the rContainer.
+        if constexpr(!std::is_same_v<BaseType<TContainer>, std::vector<IndexType>>) {
+            EntityRangeChecker<NodesContainerType>()(this, rInputContainer.begin(), rInputContainer.end());
 
-        InsertEntityRValuedContainer([](ModelPart* pModelPart) {
-            return &(pModelPart->GetMesh().Nodes());
-        }, std::move(rInputContainer));
+            InsertEntityRValuedContainer([](ModelPart* pModelPart) {
+                return &(pModelPart->GetMesh().Nodes());
+            }, std::move(rInputContainer));
+        } else {
+            // call the vector of int insertion.
+            AddNodes(rInputContainer);
+        }
     }
 
     /** Inserts a node in the current mesh.
@@ -687,11 +697,19 @@ public:
     template<class TContainer, std::enable_if_t<IsRValueContainer<TContainer>::value, bool> = true>
     void AddMasterSlaveConstraints(TContainer&& rInputContainer)
     {
-        EntityRangeChecker<MasterSlaveConstraintContainerType>()(this, rInputContainer.begin(), rInputContainer.end());
+        // This check is required in cases where std::vector<IndexType> is passed as an r value, then it will
+        // not call the correct addition with the input args of const std::vector<IndexType>&, it will get in to this method.
+        // this check will redirect it to the std::vector<IndexType> method with the rContainer.
+        if constexpr(!std::is_same_v<BaseType<TContainer>, std::vector<IndexType>>) {
+            EntityRangeChecker<MasterSlaveConstraintContainerType>()(this, rInputContainer.begin(), rInputContainer.end());
 
-        InsertEntityRValuedContainer([](ModelPart* pModelPart) {
-            return &(pModelPart->GetMesh().MasterSlaveConstraints());
-        }, std::move(rInputContainer));
+            InsertEntityRValuedContainer([](ModelPart* pModelPart) {
+                return &(pModelPart->GetMesh().MasterSlaveConstraints());
+            }, std::move(rInputContainer));
+        } else {
+            // call the vector of int insertion.
+            AddMasterSlaveConstraints(rInputContainer);
+        }
     }
 
     /**
@@ -1010,11 +1028,19 @@ public:
     template<class TContainer, std::enable_if_t<IsRValueContainer<TContainer>::value, bool> = true>
     void AddElements(TContainer&& rInputContainer)
     {
-        EntityRangeChecker<ElementsContainerType>()(this, rInputContainer.begin(), rInputContainer.end());
+        // This check is required in cases where std::vector<IndexType> is passed as an r value, then it will
+        // not call the correct addition with the input args of const std::vector<IndexType>&, it will get in to this method.
+        // this check will redirect it to the std::vector<IndexType> method with the rContainer.
+        if constexpr(!std::is_same_v<BaseType<TContainer>, std::vector<IndexType>>) {
+            EntityRangeChecker<ElementsContainerType>()(this, rInputContainer.begin(), rInputContainer.end());
 
-        InsertEntityRValuedContainer([](ModelPart* pModelPart) {
-            return &(pModelPart->GetMesh().Elements());
-        }, std::move(rInputContainer));
+            InsertEntityRValuedContainer([](ModelPart* pModelPart) {
+                return &(pModelPart->GetMesh().Elements());
+            }, std::move(rInputContainer));
+        } else {
+            // call the vector of int insertion.
+            AddElements(rInputContainer);
+        }
     }
 
     /// Creates new element with a node ids list.
@@ -1176,11 +1202,19 @@ public:
     template<class TContainer, std::enable_if_t<IsRValueContainer<TContainer>::value, bool> = true>
     void AddConditions(TContainer&& rInputContainer)
     {
-        EntityRangeChecker<ConditionsContainerType>()(this, rInputContainer.begin(), rInputContainer.end());
+        // This check is required in cases where std::vector<IndexType> is passed as an r value, then it will
+        // not call the correct addition with the input args of const std::vector<IndexType>&, it will get in to this method.
+        // this check will redirect it to the std::vector<IndexType> method with the rContainer.
+        if constexpr(!std::is_same_v<BaseType<TContainer>, std::vector<IndexType>>) {
+            EntityRangeChecker<ConditionsContainerType>()(this, rInputContainer.begin(), rInputContainer.end());
 
-        InsertEntityRValuedContainer([](ModelPart* pModelPart) {
-            return &(pModelPart->GetMesh().Conditions());
-        }, std::move(rInputContainer));
+            InsertEntityRValuedContainer([](ModelPart* pModelPart) {
+                return &(pModelPart->GetMesh().Conditions());
+            }, std::move(rInputContainer));
+        } else {
+            // call the vector of int insertion.
+            AddConditions(rInputContainer);
+        }
     }
 
     /// Creates new condition with a node ids list.
@@ -1464,26 +1498,36 @@ public:
     {
         KRATOS_TRY
 
-        ModelPart* p_root_model_part = &this->GetRootModelPart();
+        // This check is required in cases where std::vector<IndexType> is passed as an r value, then it will
+        // not call the correct addition with the input args of const std::vector<IndexType>&, it will get in to this method.
+        // this check will redirect it to the std::vector<IndexType> method with the rContainer.
+        if constexpr(!std::is_same_v<BaseType<TContainer>, std::vector<IndexType>>) {
+            ModelPart* p_root_model_part = &this->GetRootModelPart();
 
-        block_for_each(rInputContainer.begin(), rInputContainer.end(), [p_root_model_part](const auto& prGeometry) {
-            const auto& r_geometry = ReferenceGetter<GeometriesMapType::value_type>::Get(prGeometry);
-            const auto& r_geometries = p_root_model_part->Geometries();
-            auto it_found = r_geometries.find(r_geometry.Id());
-            if (it_found != p_root_model_part->GeometriesEnd()) {
-                if (GeometryType::HasSameGeometryType(r_geometry, *it_found)) { // Check the geometry type and connectivities
-                    for (IndexType i_pt = 0; i_pt < r_geometry.PointsNumber(); ++i_pt) {
-                        KRATOS_ERROR_IF((r_geometry)[i_pt].Id() != (*it_found)[i_pt].Id()) << "Attempting to add a new geometry with Id: " << r_geometry.Id() << ". A same type geometry with same Id but different connectivities already exists." << std::endl;
+            block_for_each(rInputContainer.begin(), rInputContainer.end(), [p_root_model_part](const auto& prGeometry) {
+                const auto& r_geometry = ReferenceGetter<GeometriesMapType::value_type>::Get(prGeometry);
+                const auto& r_geometries = p_root_model_part->Geometries();
+                auto it_found = r_geometries.find(r_geometry.Id());
+                if (it_found != p_root_model_part->GeometriesEnd()) {
+                    if (GeometryType::HasSameGeometryType(r_geometry, *it_found)) { // Check the geometry type and connectivities
+                        for (IndexType i_pt = 0; i_pt < r_geometry.PointsNumber(); ++i_pt) {
+                            KRATOS_ERROR_IF((r_geometry)[i_pt].Id() != (*it_found)[i_pt].Id()) << "Attempting to add a new geometry with Id: " << r_geometry.Id() << ". A same type geometry with same Id but different connectivities already exists." << std::endl;
+                        }
+                    } else if(&(*it_found) != &r_geometry) { // Check if the pointee coincides
+                        KRATOS_ERROR << "Attempting to add a new geometry with Id: " << it_found->Id() << ". A different geometry with the same Id already exists." << std::endl;
                     }
-                } else if(&(*it_found) != &r_geometry) { // Check if the pointee coincides
-                    KRATOS_ERROR << "Attempting to add a new geometry with Id: " << it_found->Id() << ". A different geometry with the same Id already exists." << std::endl;
                 }
-            }
-        });
+            });
 
-        InsertEntityRValuedContainer([](ModelPart* pModelPart) {
-            return &(pModelPart->Geometries());
-        }, std::move(rInputContainer));
+            InsertEntityRValuedContainer([](ModelPart* pModelPart) {
+                return &(pModelPart->Geometries());
+            }, std::move(rInputContainer));
+        } else {
+            // call the vector of int insertion.
+            AddGeometries(rInputContainer);
+        }
+
+
 
         KRATOS_CATCH("")
     }
