@@ -38,6 +38,8 @@ namespace Kratos
  * @ingroup KratosCore
  * @brief The BrepSurface acts as topology for faces. Those
  *        can be enclosed by a certain set of brep face curves.
+ * @tparam TShiftedBoundary Boolean flag indicating whether is 
+ *        defined with shifted boundary conditions.
  */
 template<class TContainerPointType, bool TShiftedBoundary, class TContainerPointEmbeddedType = TContainerPointType>
 class BrepSurface
@@ -428,6 +430,16 @@ public:
     ///@{
 
     /* Creates integration points on the nurbs surface of this geometry.
+     * Accounting for whether the surface is trimmed or untrimmed, and whether shifted 
+     * boundary conditions are used
+     * 
+     * - **Untrimmed Surface**: -> Non-cutting case
+     *   - If `TShiftedBoundary` is true, the method prepares for the shifted boundary method (SBM) 
+     *   - Otherwise, it directly uses `CreateIntegrationPoints` from the underlying NURBS surface.
+     * - **Trimmed Surface**: -> Cutting case
+     *   - It calls `BrepTrimmingUtilities::CreateBrepSurfaceTrimmingIntegrationPoints` 
+     *     to generate integration points that conform to the trimming curve.
+     * 
      * @param return integration points.
      */
     void CreateIntegrationPoints(

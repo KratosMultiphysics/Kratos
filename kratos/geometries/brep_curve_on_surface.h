@@ -37,6 +37,7 @@ namespace Kratos
  * @class BrepCurveOnSurface
  * @ingroup KratosCore
  * @brief The BrepCurveOnSurface acts as topology for curves on surfaces.
+ * @tparam TShiftedBoundary Boolean flag indicating whether is defined with shifted boundary conditions.
  */
 template<class TContainerPointType, bool TShiftedBoundary, class TContainerPointEmbeddedType = TContainerPointType >
 class BrepCurveOnSurface
@@ -324,6 +325,10 @@ public:
      */
     void SpansLocalSpace(std::vector<double>& rSpans, IndexType DirectionIndex = 0) const override
     {
+        /* When the `TShiftedBoundary` template parameter is true, the spans are computed using 
+        *  the shifted boundary method by invoking `SpansLocalSpaceSBM`.
+        *  Otherwise, the spans are computed using the standard method by invoking `SpansLocalSpace`
+        */
         if constexpr (TShiftedBoundary) {
             mpCurveOnSurface->SpansLocalSpaceSBM(rSpans,
                 mCurveNurbsInterval.GetT0(), mCurveNurbsInterval.GetT1());
@@ -565,6 +570,8 @@ public:
         const IntegrationPointsArrayType& rIntegrationPoints,
         IntegrationInfo& rIntegrationInfo) override
     {
+        // If `TShiftedBoundary` is true, the method `CreateQuadraturePointGeometriesSBM` is called.
+        // Otherwise, the method `CreateQuadraturePointGeometries` is used for standard processing.
         if constexpr (TShiftedBoundary) {
             mpCurveOnSurface->CreateQuadraturePointGeometriesSBM(
                 rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationPoints, rIntegrationInfo);

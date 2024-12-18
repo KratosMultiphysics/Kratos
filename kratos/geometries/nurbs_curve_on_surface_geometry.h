@@ -306,8 +306,20 @@ public:
     }
     
      /**
-     * @brief 
-     * SBM case: compute only knot spans intersections
+     * @brief Computes the knot span intersections for the shifted boundary method (SBM) case.
+     * This function calculates the intersections between a NURBS curve segment and the knot spans
+     * of a surface in the local parameter space, specifically for SBM-based geometries. The computed
+     * intersections are returned in the `rSpans` vector.
+     * 
+     * * @details 
+     * The function operates as follows:
+     * - Computes the physical coordinates of the start (`Start`) and end (`End`) points of the curve segment.
+     * - Determines the segment's orientation (horizontal or vertical) based on the difference in coordinates.
+     * - For each direction (U or V):
+     *   - Calculates the relevant knot interval.
+     *   - Iterates over the surface spans in the corresponding direction, identifying intersections within the interval.
+     *   - Maps the intersection values back to the curve's parameter space and stores them in `rSpans`.
+     * 
      * @param rSpans 
      * @param Start 
      * @param End 
@@ -343,7 +355,7 @@ public:
         const double tolerance_orientation = 1e-10;
         const double tolerance_intersection = 1e-15;
         
-        // Scale factor between volume coordinate and surface one
+        // Scale factor between surface coordinate and curve one
         double physical_length_segment = norm_2(physical_coord_1-physical_coord_2);
         double parameter_length_segment = norm_2(local_coord_1-local_coord_2);
         double scale_factor = parameter_length_segment/physical_length_segment;
@@ -359,7 +371,7 @@ public:
 
             knot_interval[0] -= tolerance_intersection; 
             knot_interval[1] += tolerance_intersection;
-            // Compare with volume_spans_u
+            // Compare with surface_spans_u
             for (IndexType i = 0; i < surface_spans_u.size(); i++) {
                 double curr_knot_value = surface_spans_u[i];
                 if (curr_knot_value < knot_interval[0]) {continue;}
@@ -372,14 +384,14 @@ public:
             }
             
         } else if (std::abs(physical_coord_1[1]-physical_coord_2[1]) > tolerance_orientation) {
-        // vertical case
+            // vertical case
             knot_interval[0] = physical_coord_1[1]; 
             knot_interval[1] = physical_coord_2[1];
             std::sort(knot_interval.begin(), knot_interval.end());
 
             knot_interval[0] -= tolerance_intersection; 
             knot_interval[1] += tolerance_intersection;
-            // Compare with volume_spans_v
+            // Compare with surface_spans_v
             for (IndexType i = 0; i < surface_spans_v.size(); i++) {
                 double curr_knot_value = surface_spans_v[i];
                 if (curr_knot_value < knot_interval[0]) {continue;}
@@ -649,6 +661,15 @@ public:
      * @brief This method creates a list of quadrature point geometries
      *        from a list of integration points in the SBM case.
      *
+     * * @details
+     * 1. Checks whether the BRep is internal (aligned with specific knot spans) or external.
+     *    - Internal boundaries are associated with a fixed span (knot span edge) in the U and V directions.
+     *    - External boundaries are associated with body-fitted cases.
+     * 2. Iterates over each integration point:
+     *    - Computes global space derivatives for the NURBS curve at the integration point.
+     *    - Gathers nonzero control points and associated shape function values.
+     * 3. Creates a geometry shape function container and assigns it to the result geometries array.
+     * 
      * @param rResultGeometries list of quadrature point geometries.
      * @param rIntegrationPoints list of integration points.
      * @param NumberOfShapeFunctionDerivatives the number provided
@@ -753,7 +774,7 @@ public:
                         global_space_derivatives[0][1]);
                 }
                 else {
-                    // Trimming case or external brep
+                    // SBM case on external brep
                     shape_function_container.ComputeBSplineShapeFunctionValues(
                         mpNurbsSurface->KnotsU(), mpNurbsSurface->KnotsV(),
                         global_space_derivatives[0][0], global_space_derivatives[0][1]);
