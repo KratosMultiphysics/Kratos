@@ -11,7 +11,7 @@ def CreateSolver(model, custom_settings):
     return PwSolver(model, custom_settings)
 
 class PwSolver(GeoSolver):
-    '''Solver for the solution of displacement-pore pressure coupled problems.'''
+    '''Solver for the solution of pore pressure problems.'''
 
     def __init__(self, model, custom_settings):
         super().__init__(model, custom_settings)
@@ -124,6 +124,7 @@ class PwSolver(GeoSolver):
 
         if not(solution_type.lower() == "transient-groundwater-flow"    or solution_type.lower() == "transient_groundwater_flow"    or
                solution_type.lower() == "steady-state-groundwater-flow" or solution_type.lower() == "steady_state_groundwater_flow"   ):
+            err_msg = "Undefined solution type\"" + solution_type + "\" , only Transient groundwater flow and Steady state groundwater flow are available."
             raise RuntimeError("Undefined solution type", solution_type)
         KratosMultiphysics.Logger.PrintInfo("GeoMechanics_Pw_Solver, solution_type", solution_type)
 
@@ -145,14 +146,10 @@ class PwSolver(GeoSolver):
             return self._MakeResidualCriterion()
 
         if convergence_criterion.lower() == "and_criterion":
-            residual_criterion       = self._MakeResidualCriterion()
-            water_pressure_criterion = self._MakeWaterPressureCriterion()
-            return KratosMultiphysics.AndCriteria(residual_criterion, water_pressure_criterion)
+            return KratosMultiphysics.AndCriteria(self._MakeResidualCriterion(), self._MakeWaterPressureCriterion())
 
         if convergence_criterion.lower() == "or_criterion":
-            residual_criterion       = self._MakeResidualCriterion()
-            water_pressure_criterion = self._MakeWaterPressureCriterion()
-            return KratosMultiphysics.OrCriteria(residual_criterion, water_pressure_criterion)
+            return KratosMultiphysics.OrCriteria(self._MakeResidualCriterion(), self._MakeWaterPressureCriterion())
 
         err_msg =  "The requested convergence criterion \"" + convergence_criterion + "\" is not available!\n"
         err_msg += "Available options are: \"water_pressure_criterion\", \"residual_criterion\", \"and_criterion\", \"or_criterion\""

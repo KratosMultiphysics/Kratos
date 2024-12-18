@@ -1,6 +1,5 @@
 # Importing the Kratos Library
 import KratosMultiphysics
-from KratosMultiphysics.python_solver import PythonSolver
 
 # Import applications
 import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
@@ -193,7 +192,7 @@ class UPwSolver(GeoSolver):
 
             raise RuntimeError(f"Undefined solution type '{solution_type}'")
 
-        if (scheme_type.lower() == "backward_euler"or scheme_type.lower() == "backward-euler"):
+        if (scheme_type.lower() == "backward_euler" or scheme_type.lower() == "backward-euler"):
             if (solution_type.lower() == "quasi-static" or solution_type.lower() == "quasi_static"):
                 KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, scheme", "Backward Euler.")
                 return KratosGeo.BackwardEulerQuasistaticUPwScheme()

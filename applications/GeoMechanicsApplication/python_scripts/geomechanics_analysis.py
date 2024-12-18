@@ -11,8 +11,6 @@ import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.GeoMechanicsApplication import geomechanics_solvers_wrapper
 
-from importlib import import_module
-
 class GeoMechanicsAnalysisBase(AnalysisStage):
     '''Main script for geomechanics simulations.'''
 
@@ -162,7 +160,7 @@ class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
 
             converged = False
             number_cycle = 0
-            while (not converged and number_cycle < self.number_cycles):
+            while not converged and number_cycle < self.number_cycles:
 
                 number_cycle += 1
                 KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "cycle: ", number_cycle)

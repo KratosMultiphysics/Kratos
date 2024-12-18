@@ -108,7 +108,8 @@ class TSolver(GeoSolver):
 
         KratosMultiphysics.Logger.PrintInfo("GeoMechanics_T_Solver, solution_type", solution_type)
         if solution_type.lower() != "transient_heat_transfer":
-            raise RuntimeError("Undefined solution type", solution_type)
+            err_msg = "Undefined solution type\"" + solution_type + "\" , only Transient heat transfer is available."
+            raise RuntimeError(err_msg)
 
         if scheme_type.lower() == "newmark":
             KratosMultiphysics.Logger.PrintInfo("GeoMechanics_T_Solver, scheme", "Newmark Transient heat transfer.")
