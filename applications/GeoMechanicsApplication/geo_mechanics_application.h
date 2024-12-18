@@ -121,13 +121,11 @@
 // constitutive models
 #include "custom_constitutive/bilinear_cohesive_2D_law.hpp"
 #include "custom_constitutive/bilinear_cohesive_3D_law.hpp"
-#include "custom_constitutive/elastic_isotropic_K0_3d_law.h"
 #include "custom_constitutive/incremental_linear_elastic_interface_law.h"
 #include "custom_constitutive/incremental_linear_elastic_law.h"
 #include "custom_constitutive/linear_elastic_2D_beam_law.h"
 #include "custom_constitutive/linear_elastic_2D_interface_law.h"
 #include "custom_constitutive/linear_elastic_3D_interface_law.h"
-#include "custom_constitutive/linear_elastic_plane_strain_K0_law.h"
 #include "custom_constitutive/linear_elastic_plane_stress_2D_law.h"
 #include "custom_constitutive/plane_strain.h"
 #include "custom_constitutive/small_strain_udsm_2D_interface_law.hpp"
