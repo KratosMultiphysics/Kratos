@@ -29,6 +29,7 @@
 #include "includes/define.h"
 #include "includes/serializer.h"
 #include "containers/key_generator.h"
+#include "utilities/type_traits.h"
 
 namespace Kratos
 {
@@ -648,23 +649,45 @@ public:
     template <class InputIterator>
     void insert(InputIterator first, InputIterator last)
     {
-        if constexpr(std::is_assignable_v<decltype(*std::declval<InputIterator>()), decltype(*std::declval<InputIterator>())>) {
-            // first sorts the input iterators and make the input unique if the iterators are assignable
-            std::sort(first, last, CompareKey());
-            auto new_last = std::unique(first, last, EqualKeyTo());
-            SortedInsert(first, new_last);
-        } else {
-            // the iterators are not assignable, hence they may be coming from a const vector, So, we need to make a copy
-            // to do the sort and unique.
-            std::vector<TPointerType> temp;
-            temp.reserve(std::distance(first, last));
-            for (auto it = first; it != last; ++it) {
-                temp.push_back(GetPointer(it));
-            }
-            std::sort(temp.begin(), temp.end(), CompareKey());
-            auto new_last = std::unique(temp.begin(), temp.end(), EqualKeyTo());
-            SortedInsert(temp.begin(), new_last);
+        // We copy always the input range to a temp not to have the input range mutated.
+        std::vector<TPointerType> temp;
+        temp.reserve(std::distance(first, last));
+        for (auto it = first; it != last; ++it) {
+            temp.push_back(GetPointer(it));
         }
+        std::sort(temp.begin(), temp.end(), CompareKey());
+        auto new_last = std::unique(temp.begin(), temp.end(), EqualKeyTo());
+        SortedInsert(temp.begin(), new_last);
+
+        // KRATOS_ERROR << "HELLO THERE";
+    }
+
+
+    /**
+     * @brief Inserts elements from a r_value container.
+     * @details This method is used to insert all values from an r valued container.
+     *          This mutates the r valued input container to be sorted and unique if it is not the type of PointerVectorSet.
+     *          If it is the type of the PointerVectorSet, then it doesn't mutate the input container.
+     *
+     * @warning The move assumes the ownership of the container, hence the the rContainer may be mutated. if the TContainer is of type std::shared_ptr or intrusive_ptr
+     *          then, there will always be a null pointer at the end past position of the unique sorted list since the std::unique uses the move assignment operator
+     *          within its algorithm. Therefore, the new_last created here will have the correct pointer to the object, and the rContainer will have a nullptr in the
+     *          corresponding place. Therefore, if this method is called once, and if it used with a container type which is not PointerVectorSet, please do not use
+     *          the input rContainer anymore. It will segfault unless the PointerVectorSet is created with raw pointers. [This is because since c++11 std::unique uses the move assignment operator]
+     * @tparam TContainer
+     * @param rContainer
+     */
+    template<class TContainer, std::enable_if_t<IsRValueContainer<TContainer>::value, bool> = true>
+    void insert(TContainer&& rContainer)
+    {
+        if constexpr(!std::is_same_v<BaseType<TContainer>, PointerVectorSet>) {
+            std::sort(rContainer.begin(), rContainer.end(), CompareKey());
+            auto new_last = std::unique(rContainer.begin(), rContainer.end(), EqualKeyTo());
+            SortedInsert(rContainer.begin(), new_last);
+        } else {
+            SortedInsert(rContainer.begin(), rContainer.end());
+        }
+
     }
 
     /**
