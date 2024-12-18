@@ -222,6 +222,7 @@ KRATOS_TEST_CASE_IN_SUITE(PointerVectorSetInsert5, KratosCoreFastSuite)
     KRATOS_EXPECT_EQ(&**(temp_itr++), &*p_element_3);
     KRATOS_EXPECT_EQ(&**(temp_itr++), &*p_element_4);
     KRATOS_EXPECT_EQ(&**(temp_itr++), &*p_element_5);
+    KRATOS_EXPECT_EQ(&**(temp_itr++), &*p_element_3);
     KRATOS_EXPECT_EQ(&**(temp_itr++), &*p_element_3_ptr_copy);
     KRATOS_EXPECT_EQ(&**(temp_itr++), &*p_element_1);
     KRATOS_EXPECT_EQ(&**(temp_itr++), &*p_element_7);
@@ -284,6 +285,7 @@ KRATOS_TEST_CASE_IN_SUITE(PointerVectorSetInsert6, KratosCoreFastSuite)
     KRATOS_EXPECT_EQ(&**(temp_itr++), &*p_element_3);
     KRATOS_EXPECT_EQ(&**(temp_itr++), &*p_element_4);
     KRATOS_EXPECT_EQ(&**(temp_itr++), &*p_element_5);
+    KRATOS_EXPECT_EQ(&**(temp_itr++), &*p_element_3);
     KRATOS_EXPECT_EQ(&**(temp_itr++), &*p_element_3_copy);
     KRATOS_EXPECT_EQ(&**(temp_itr++), &*p_element_1);
     KRATOS_EXPECT_EQ(&**(temp_itr++), &*p_element_7);
@@ -360,6 +362,7 @@ KRATOS_TEST_CASE_IN_SUITE(PointerVectorSetInsert7, KratosCoreFastSuite)
     KRATOS_EXPECT_EQ(&**(temp_itr++), &*p_element_3);
     KRATOS_EXPECT_EQ(&**(temp_itr++), &*p_element_4);
     KRATOS_EXPECT_EQ(&**(temp_itr++), &*p_element_5);
+    KRATOS_EXPECT_EQ(&**(temp_itr++), &*p_element_3);
     KRATOS_EXPECT_EQ(&**(temp_itr++), &*p_element_3_copy);
     KRATOS_EXPECT_EQ(&**(temp_itr++), &*p_element_1);
     KRATOS_EXPECT_EQ(&**(temp_itr++), &*p_element_7);
