@@ -10,12 +10,12 @@
 //  Main authors:    Jordi Cotela
 //
 
-#if !defined(KRATOS_QSVMS_DATA_H)
-#define KRATOS_QSVMS_DATA_H
+
+#if !defined(KRATOS_FIC_DATA_H)
+#define KRATOS_FIC_DATA_H
 
 #include "fluid_dynamics_application_variables.h"
-#include "custom_utilities/fluid_element_data.h"
-#include "utilities/element_size_calculator.h"
+#include "custom_elements/data_containers/fluid_element_data.h"
 
 namespace Kratos {
 
@@ -26,7 +26,7 @@ namespace Kratos {
 ///@{
 
 template< size_t TDim, size_t TNumNodes,bool TElementIntegratesInTime = false >
-class QSVMSData : public FluidElementData<TDim,TNumNodes, TElementIntegratesInTime>
+class FICData : public FluidElementData<TDim,TNumNodes, TElementIntegratesInTime>
 {
 public:
 
@@ -36,6 +36,8 @@ public:
 using NodalScalarData = typename FluidElementData<TDim,TNumNodes, false>::NodalScalarData;
 using NodalVectorData = typename FluidElementData<TDim,TNumNodes, false>::NodalVectorData;
 
+static constexpr std::size_t BlockSize = TDim + 1;
+
 ///@}
 ///@name Public Members
 ///@{
@@ -43,19 +45,13 @@ using NodalVectorData = typename FluidElementData<TDim,TNumNodes, false>::NodalV
 NodalVectorData Velocity;
 NodalVectorData MeshVelocity;
 NodalVectorData BodyForce;
-NodalVectorData MomentumProjection;
 
 NodalScalarData Pressure;
-NodalScalarData MassProjection;
 
 double Density;
-double DynamicViscosity;
-double CSmagorinsky;
-double DeltaTime;
-double DynamicTau;
-int UseOSS;
-
-double ElementSize;
+double DeltaTime;      // Time increment
+double FICBeta;        // FIC Beta parameter
+double DynamicTau;     // Time stabilization coefficient for incompressibility stabilization
 
 /// Auxiliary container for the local matrix at the integration point (stored to save reallocation at each point)
 BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)> LHS;
@@ -74,17 +70,11 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     this->FillFromHistoricalNodalData(Velocity,VELOCITY,r_geometry);
     this->FillFromHistoricalNodalData(MeshVelocity,MESH_VELOCITY,r_geometry);
     this->FillFromHistoricalNodalData(BodyForce,BODY_FORCE,r_geometry);
-    this->FillFromHistoricalNodalData(MomentumProjection,ADVPROJ,r_geometry);
     this->FillFromHistoricalNodalData(Pressure,PRESSURE,r_geometry);
-    this->FillFromHistoricalNodalData(MassProjection,DIVPROJ,r_geometry);
     this->FillFromProperties(Density,DENSITY,r_properties);
-    this->FillFromProperties(DynamicViscosity,DYNAMIC_VISCOSITY,r_properties); //TODO: remove once we have a Smagorinky constitutive law
-    this->FillFromElementData(CSmagorinsky,C_SMAGORINSKY,rElement); //TODO: remove once we have a Smagorinky constitutive law
     this->FillFromProcessInfo(DeltaTime,DELTA_TIME,rProcessInfo);
+    this->FillFromProcessInfo(FICBeta,FIC_BETA,rProcessInfo);
     this->FillFromProcessInfo(DynamicTau,DYNAMIC_TAU,rProcessInfo);
-    this->FillFromProcessInfo(UseOSS,OSS_SWITCH,rProcessInfo);
-
-    ElementSize = ElementSizeCalculator<TDim,TNumNodes>::MinimumElementSize(r_geometry);
 }
 
 static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
@@ -96,9 +86,7 @@ static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY,r_geometry[i]);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MESH_VELOCITY,r_geometry[i]);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(BODY_FORCE,r_geometry[i]);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADVPROJ,r_geometry[i]);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE,r_geometry[i]);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DIVPROJ,r_geometry[i]);
     }
 
     return 0;

@@ -317,6 +317,18 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief This method throws an error message for a not found item.
+     * @param rFullName The full name of the item.
+     * @param rItemName The name of the item.
+     * @param pCurrentItem The current item.
+     */
+    static void NotFoundError(
+        const std::string& rFullName,
+        const std::string& rItemName,
+        RegistryItem* pCurrentItem
+        );
+
     ///@}
     ///@name Private  Access
     ///@{
