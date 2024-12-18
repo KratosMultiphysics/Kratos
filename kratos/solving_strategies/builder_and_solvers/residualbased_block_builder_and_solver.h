@@ -716,7 +716,6 @@ public:
 
         // Call the external utility
         BlockBuildDofArrayUtility::SetUpDofArray(rModelPart, BaseType::mDofSet, this->GetEchoLevel(), BaseType::GetCalculateReactionsFlag());
-        SetDofSetIsInitializedFlag(true);
 
         // Set the flag as already initialized
         BaseType::mDofSetIsInitialized = true;
