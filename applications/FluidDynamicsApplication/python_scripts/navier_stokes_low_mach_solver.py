@@ -119,10 +119,24 @@ class NavierStokesLowMachSolver(NavierStokesMonolithicSolver):
 
     def __init__(self, model, custom_settings):
         super().__init__(model, custom_settings)
+
+        # Thermodynamic pressure input settings check
+        flow_type = self.settings["thermodynamic_pressure_settings"]["flow_type"].GetString()
+        if flow_type not in ["open", "closed", "closed_with_inflow_outflow"]:
+            err_msg = f"Wrong value for 'flow_type'. Provided value is '{flow_type}'. Available options are:\n"
+            err_msg += "\t- 'open'\n"
+            err_msg += "\t- 'closed'\n"
+            err_msg += "\t- 'closed_with_inflow_outflow'\n"
+            raise Exception(err_msg)
+
+        # Auxiliary flag to check if thermodynamic pressure values are initialized (to be done in InitializeSolutionStep)
+        self.__thermodinamic_pressure_is_initialized = False
+
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of NavierStokesLowMachSolver finished.")
 
     def AddVariables(self):
         ## Add base class variables
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
@@ -155,12 +169,29 @@ class NavierStokesLowMachSolver(NavierStokesMonolithicSolver):
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid solver DOFs added correctly.")
 
-    def Initialize(self):
-        # Call base monolithic solver Initialize()
-        super().Initialize()
+    def InitializeSolutionStep(self):
+        # Call base monolithic solver InitializeSolutionStep()
+        super().InitializeSolutionStep()
 
-        # Set the thermodynamic pressure values
-        self._SetThermodynamicPressureValues()
+        # Initialize the thermodynamic pressure values (note that this needs to be done once after the initial conditions are set)
+        if not self.__thermodinamic_pressure_is_initialized:
+            self._InitializeThermodynamicPressureValues()
+
+        # Update the thermodynamic pressure values for current step
+        self._UpdateThermodynamicPressureValues()
+
+    def FinalizeSolutionStep(self):
+        # Call the base fluid solver to execute the strategy and processes FinalizeSolutionStep
+        super().FinalizeSolutionStep()
+
+        # Postprocess the density values from the obtained temperature results
+        aux_prop = self.GetComputingModelPart().GetProperties(1)
+        c_p = aux_prop.GetValue(KratosMultiphysics.SPECIFIC_HEAT)
+        gamma = aux_prop.GetValue(KratosCFD.HEAT_CAPACITY_RATIO)
+        p_th = self.GetComputingModelPart().ProcessInfo[KratosCFD.THERMODYNAMIC_PRESSURE]
+        for node in self.GetComputingModelPart().Nodes:
+            t = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
+            node.SetSolutionStepValue(KratosMultiphysics.DENSITY, 0, gamma * p_th / c_p / (gamma - 1.0) / t)
 
     def _SetFormulation(self):
         self.formulation = LowMachFormulation(self.settings["formulation"])
@@ -171,20 +202,68 @@ class NavierStokesLowMachSolver(NavierStokesMonolithicSolver):
         self.historical_nodal_variables_list = self.formulation.historical_nodal_variables_list
         self.non_historical_nodal_variables_list = self.formulation.non_historical_nodal_variables_list
 
-    def _SetThermodynamicPressureValues(self):
+    def _InitializeThermodynamicPressureValues(self):
+        flow_type = self.settings["thermodynamic_pressure_settings"]["flow_type"].GetString()
+
+        if flow_type == "closed":
+            # Initialize both current and previous step thermodynamic pressure values to the provided initial one
+            p_th = self.settings["thermodynamic_pressure_settings"]["value"].GetDouble()
+            current_process_info = self.GetComputingModelPart().ProcessInfo
+            current_process_info[KratosCFD.THERMODYNAMIC_PRESSURE] = p_th
+            current_process_info.GetPreviousTimeStepInfo()[KratosCFD.THERMODYNAMIC_PRESSURE] = p_th
+
+            # Calculate the domain integral of the initial thermal expansion coefficient (1/T_0)
+            self.int_alpha_0 = 0.0
+            KratosMultiphysics.CalculateNonHistoricalNodalAreaProcess(self.GetComputingModelPart()).Execute()
+            for node in self.GetComputingModelPart().Nodes:
+                nodal_area = node.GetValue(KratosMultiphysics.NODAL_AREA)
+                t_0 = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
+                self.int_alpha_0 += nodal_area / t_0
+
+        elif flow_type == "closed_with_inflow_outflow":
+            # In this case it is required to solve a conservation ODE (not implemented yet)
+            raise Exception("Not implemented yet.")
+
+        self.__thermodinamic_pressure_is_initialized = True
+
+    def _UpdateThermodynamicPressureValues(self):
         th_pres_settings = self.settings["thermodynamic_pressure_settings"]
         flow_type = th_pres_settings["flow_type"].GetString()
+
         if flow_type == "open":
-            self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.PRESSURE] = th_pres_settings["value"].GetDouble()
+            # In open flows the thermodynamic pressure is given as a boundary condition (assumed to be constant in time)
+            self.GetComputingModelPart().ProcessInfo[KratosCFD.THERMODYNAMIC_PRESSURE] = th_pres_settings["value"].GetDouble()
+            self.GetComputingModelPart().ProcessInfo[KratosCFD.THERMODYNAMIC_PRESSURE_DERIVATIVE] = 0.0
+
         elif flow_type == "closed":
-            raise Exception("Not implemented yet.")
+            # Calculate the domain integral of the current thermal expansion coefficient (1/T)
+            int_alpha = 0.0
+            for node in self.GetComputingModelPart().Nodes:
+                nodal_area = node.GetValue(KratosMultiphysics.NODAL_AREA)
+                t = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
+                int_alpha += nodal_area / t
+
+            # Calculate the current step thermodynamic pressure
+            current_process_info = self.GetComputingModelPart().ProcessInfo
+            th_pres_0 = th_pres_settings["value"].GetDouble()
+            th_pres = th_pres_0 * self.int_alpha_0 / int_alpha
+            current_process_info[KratosCFD.THERMODYNAMIC_PRESSURE] = th_pres
+
+            # Calculate the current step thermodynamic pressure derivative from current value and previous step one
+            dt = current_process_info[KratosMultiphysics.DELTA_TIME]
+            th_pres_prev = current_process_info.GetPreviousTimeStepInfo()[KratosCFD.THERMODYNAMIC_PRESSURE]
+            current_process_info[KratosCFD.THERMODYNAMIC_PRESSURE_DERIVATIVE] = (th_pres - th_pres_prev) / dt
+
         elif flow_type == "closed_with_inflow_outflow":
+            # In this case it is required to solve a conservation ODE (not implemented yet)
             raise Exception("Not implemented yet.")
+
         else:
             err_msg = f"Wrong value for 'flow_type'. Provided value is '{flow_type}'. Available options are:\n"
             err_msg += "\t- 'open'\n"
             err_msg += "\t- 'closed'\n"
             err_msg += "\t- 'closed_with_inflow_outflow'\n"
+            raise Exception(err_msg)
 
     #FIXME: We should fix the issue with the rotations
     def _CreateScheme(self):

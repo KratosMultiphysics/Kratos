@@ -56,7 +56,8 @@ KRATOS_TEST_CASE_IN_SUITE(LowMachNavierStokes2D3N, FluidDynamicsApplicationFastS
 
     // Set thermodynamic pressure to the atmosferic one (open flows case)
     const double p_th = 1.0e3;
-    r_model_part.GetProcessInfo().SetValue(PRESSURE, p_th);
+    r_model_part.GetProcessInfo().SetValue(THERMODYNAMIC_PRESSURE, p_th);
+    r_model_part.GetProcessInfo().SetValue(THERMODYNAMIC_PRESSURE_DERIVATIVE, 0.0);
 
     // Set the element properties
     const double c_p = 1.0;

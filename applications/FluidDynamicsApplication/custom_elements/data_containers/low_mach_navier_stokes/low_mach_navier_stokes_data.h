@@ -128,17 +128,21 @@ public:
         // Fill data from ProcessInfo container
         this->FillFromProcessInfo(DeltaTime, DELTA_TIME, rProcessInfo);
         this->FillFromProcessInfo(DynamicTau, DYNAMIC_TAU, rProcessInfo);
-        if (rProcessInfo.Has(PRESSURE)) {
-            this->FillFromProcessInfo(ThermodynamicPressure, PRESSURE, rProcessInfo);
-            ThermodynamicPressureDerivative = 0.0;
+        if (rProcessInfo.Has(THERMODYNAMIC_PRESSURE)) {
+            this->FillFromProcessInfo(ThermodynamicPressure, THERMODYNAMIC_PRESSURE, rProcessInfo);
         } else {
             ThermodynamicPressure = 0.0;
+        }
+        if (rProcessInfo.Has(THERMODYNAMIC_PRESSURE_DERIVATIVE)) {
+            this->FillFromProcessInfo(ThermodynamicPressureDerivative, THERMODYNAMIC_PRESSURE_DERIVATIVE, rProcessInfo);
+        } else {
             ThermodynamicPressureDerivative = 0.0;
         }
 
         // Get data from element database
         this->FillFromElementData(Resistance, RESISTANCE, rElement);
 
+        // Set the BDF2 (time integration) coefficients
         const auto& r_BDF_vector = rProcessInfo[BDF_COEFFICIENTS];
         bdf0 = r_BDF_vector[0];
         bdf1 = r_BDF_vector[1];

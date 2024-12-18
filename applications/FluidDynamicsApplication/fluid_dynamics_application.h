@@ -448,6 +448,7 @@ private:
 
     /// Low Mach Navier-Stokes element
     const LowMachNavierStokes<LowMachNavierStokesData<2,3>> mLowMachNavierStokes2D3N;
+    const LowMachNavierStokes<LowMachNavierStokesData<2,4>> mLowMachNavierStokes2D4N;
 
     /// Low Mach Navier-Stokes condition
     const LowMachNavierStokesWallCondition<2,2> mLowMachNavierStokesWallCondition2D2N;
