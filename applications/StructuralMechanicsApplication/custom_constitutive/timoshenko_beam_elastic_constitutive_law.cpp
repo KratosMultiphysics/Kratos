@@ -103,6 +103,7 @@ void TimoshenkoBeamElasticConstitutiveLaw::CalculateMaterialResponseCauchy(Const
     const auto& r_cl_law_options = rValues.GetOptions();
     auto &r_material_properties = rValues.GetMaterialProperties();
     auto &r_strain_vector = rValues.GetStrainVector();
+    AddInitialStrainVectorContribution(r_strain_vector);
     const auto strain_size = GetStrainSize();
 
     const double axial_strain = r_strain_vector[0]; // E_l
@@ -128,6 +129,8 @@ void TimoshenkoBeamElasticConstitutiveLaw::CalculateMaterialResponseCauchy(Const
         r_generalized_stress_vector[0] = EA * axial_strain;  // N
         r_generalized_stress_vector[1] = EI * curvature;     // M
         r_generalized_stress_vector[2] = GAs * shear_strain; // V
+
+        AddInitialStressVectorContribution(r_generalized_stress_vector);
 
         if (r_cl_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
             auto &r_stress_derivatives = rValues.GetConstitutiveMatrix(); // dN_dEl, dM_dkappa, dV_dGamma_xy

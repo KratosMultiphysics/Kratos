@@ -115,7 +115,9 @@ class KRATOS_API(KRATOS_CORE) Kernel {
     */
     void InitializeApplication(KratosApplication& NewApplication) {}
 
-    bool IsImported(const std::string& ApplicationName) const;
+    bool IsImported(const std::string& rApplicationName) const;
+
+    bool IsLibraryAvailable(const std::string& rLibraryName) const;
 
     static bool IsDistributedRun();
 
@@ -132,8 +134,13 @@ class KRATOS_API(KRATOS_CORE) Kernel {
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const;
 
-    static std::unordered_set<std::string>&
-    GetApplicationsList();
+    static std::unordered_set<std::string>& GetApplicationsList();
+
+    /**
+     * @brief Get the list of libraries available in the system
+     * @return The list of libraries available in the system (stored in a set)
+     */
+    static std::unordered_set<std::string> GetLibraryList();
 
     static std::string Version();
 
@@ -155,7 +162,6 @@ class KRATOS_API(KRATOS_CORE) Kernel {
     void PrintSystemInfo() const;
 
     ///@}
-   protected:
    private:
     ///@name Static Member Variables
     ///@{
