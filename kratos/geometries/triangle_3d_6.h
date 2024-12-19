@@ -1170,7 +1170,7 @@ private:
     bool EdgesAreStraight() const
     {
         constexpr double tol = 1e-6;
-        constexpr std::array<std::array<size_t, 3>, 6> edges{
+        constexpr std::array<std::array<size_t, 3>, 3> edges{
             {{0, 1, 3}, {1, 2, 4}, {2, 0, 5}}};
         const auto& r_points = this->Points();
         for (const auto& r_edge : edges) {
