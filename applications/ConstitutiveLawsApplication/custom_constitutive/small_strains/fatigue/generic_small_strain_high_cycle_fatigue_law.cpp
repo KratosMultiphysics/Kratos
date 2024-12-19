@@ -211,7 +211,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
         mCyclesToFailure = std::numeric_limits<double>::infinity();
         mFirstCycleNonlinearity = true;
         mLinearCycleJumpIndicator = false;
-        mDirectionalFactorIndicator = true;
     }
 
     max_indicator = false;
@@ -458,7 +457,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
         double relaxation_factor = mRelaxationFactor;
         double directional_uniaxial_residual_stress = mDirectionalUniaxialResidualStress;
         double directional_factor = mDirectionalFactor;
-        bool directional_factor_indicator = mDirectionalFactorIndicator;
 
         // S00       
         noalias(predictive_residual_stress_vector) = ZeroVector(VoigtSize);
@@ -546,17 +544,15 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
             mRelaxationFactor = relaxation_factor;
         }
 
-        if (max_indicator && directional_factor_indicator && rValues.GetElementGeometry().Has(INITIAL_STRESS_VECTOR)){
+        if (max_indicator && rValues.GetElementGeometry().Has(INITIAL_STRESS_VECTOR)){
             HighCycleFatigueLawIntegrator<6>::CalculateDirectionalFactor(stress_vector,
                                                                         residual_stress_vector,          
                                                                         directional_uniaxial_residual_stress,
                                                                         directional_factor);
             mDirectionalUniaxialResidualStress = directional_uniaxial_residual_stress;
             mDirectionalFactor = directional_factor;
-            directional_factor_indicator = false;
         }
 
-        mDirectionalFactorIndicator = directional_factor_indicator;
         mStressVector = predictive_stress_vector;
     }
 }

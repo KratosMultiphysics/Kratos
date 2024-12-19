@@ -452,7 +452,6 @@ private:
     double mDirectionalFactor = 1.0; // Factor that accounts for the influence of the load diretion on the material fatigue limit
     double mStressConcentrationFactor = 1.0; // Stress concentratation factor applied to the maximum stress
     bool mLinearCycleJumpIndicator = false; // Indicator of the cycle jump in the linear phase
-    bool mDirectionalFactorIndicator = true; // Indicator of the cycle used to compute the directional factor and directional uniaxial residual stress
 
     ///@}
     ///@name Private Operators
@@ -500,7 +499,6 @@ private:
         rSerializer.save("DirectionalFactor", mDirectionalFactor);
         rSerializer.save("StressConcentrationFactor", mStressConcentrationFactor);
         rSerializer.save("LinearCycleJumpIndicator", mLinearCycleJumpIndicator);
-        rSerializer.save("DirectionalFactorIndicator", mDirectionalFactorIndicator);
     }
 
     void load(Serializer &rSerializer) override
@@ -533,7 +531,6 @@ private:
         rSerializer.load("DirectionalFactor", mDirectionalFactor);
         rSerializer.load("StressConcentrationFactor", mStressConcentrationFactor);
         rSerializer.load("LinearCycleJumpIndicator", mLinearCycleJumpIndicator);
-        rSerializer.load("DirectionalFactorIndicator", mDirectionalFactorIndicator);
     }
     ///@}
 
