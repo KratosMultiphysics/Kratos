@@ -43,6 +43,7 @@ KRATOS_TEST_CASE_IN_SUITE(LowMachNavierStokes2D3N, FluidDynamicsApplicationFastS
     r_model_part.AddNodalSolutionStepVariable(MESH_VELOCITY);
     r_model_part.AddNodalSolutionStepVariable(BODY_FORCE);
     r_model_part.AddNodalSolutionStepVariable(HEAT_FLUX);
+    r_model_part.AddNodalSolutionStepVariable(SOLID_FRACTION_VELOCITY);
 
     // ProcessInfo container fill
     double delta_time = 0.1;
