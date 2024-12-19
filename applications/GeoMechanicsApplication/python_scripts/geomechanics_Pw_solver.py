@@ -124,8 +124,8 @@ class PwSolver(GeoSolver):
 
         if not(solution_type.lower() == "transient-groundwater-flow"    or solution_type.lower() == "transient_groundwater_flow"    or
                solution_type.lower() == "steady-state-groundwater-flow" or solution_type.lower() == "steady_state_groundwater_flow"   ):
-            err_msg = "Undefined solution type\"" + solution_type + "\" , only Transient groundwater flow and Steady state groundwater flow are available."
-            raise RuntimeError("Undefined solution type", solution_type)
+            err_msg = "Undefined solution type:" + solution_type + " , only Transient groundwater flow and Steady state groundwater flow are available."
+            raise RuntimeError(err_msg)
         KratosMultiphysics.Logger.PrintInfo("GeoMechanics_Pw_Solver, solution_type", solution_type)
 
         if scheme_type.lower() == "newmark":
