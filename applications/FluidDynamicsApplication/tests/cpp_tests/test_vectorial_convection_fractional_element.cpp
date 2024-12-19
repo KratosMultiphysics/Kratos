@@ -33,8 +33,8 @@
 namespace Kratos {
     namespace Testing {
 
-        typedef ModelPart::IndexType									 IndexType;
-        typedef ModelPart::NodeIterator					          NodeIteratorType;
+        typedef ModelPart::IndexType                             IndexType;
+        typedef ModelPart::NodeIterator                          NodeIteratorType;
 
         /** Checks the VectorialConvectionFractional2D3N element.
          * Checks the LHS and RHS computation
@@ -114,7 +114,7 @@ namespace Kratos {
             const auto& r_process_info = modelPart.GetProcessInfo();
             pElement->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
             pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
-            // std::cout << std::setprecision(12) << RHS << std::endl;
+            std::cout << std::setprecision(12) << RHS << std::endl;
             // Check the RHS values (the RHS is computed as the LHS x previous_solution,
             // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
 

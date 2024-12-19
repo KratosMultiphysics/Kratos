@@ -239,13 +239,10 @@ namespace Kratos
         const double bdf0 = rData.bdf0;
         const double bdf1 = rData.bdf1;
         const double bdf2 = rData.bdf2;
-
         const double dyn_tau = rData.DynamicTau;
-
         const auto &vn = rData.Velocity_OldStep1;
-
-        // const auto &vnnn = rData.Velocity_OldStep3; #an bdf2
         const auto &vnn = rData.Velocity_OldStep2;
+        // const auto &vnnn = rData.Velocity_OldStep3; #an bdf2
         const auto &vmesh = rData.MeshVelocity;
         const auto vfrac = rData.Velocity_Fractional;
         const auto &vconv = vfrac - vmesh;
