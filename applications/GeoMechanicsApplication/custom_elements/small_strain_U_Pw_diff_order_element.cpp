@@ -279,7 +279,7 @@ void SmallStrainUPwDiffOrderElement::FinalizeSolutionStep(const ProcessInfo& rCu
     KRATOS_CATCH("")
 }
 
-Vector SmallStrainUPwDiffOrderElement::GetPressures(const size_t n_nodes)
+const Vector SmallStrainUPwDiffOrderElement::GetPressures(const size_t n_nodes)
 {
     GeometryType& r_geom = GetGeometry();
     Vector        pressure(n_nodes);
