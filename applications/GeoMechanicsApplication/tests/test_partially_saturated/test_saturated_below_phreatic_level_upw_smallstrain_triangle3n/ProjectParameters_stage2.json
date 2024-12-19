@@ -94,10 +94,8 @@
               "node_output"            : false,
               "skin_output"            : false,
               "plane_output"           : [],
-              "nodal_results"          : ["DISPLACEMENT", "TOTAL_DISPLACEMENT", "WATER_PRESSURE", "VOLUME_ACCELERATION",
-                                          "LINE_LOAD_Y", "TOTAL_STRESS_TENSOR", "CAUCHY_STRESS_TENSOR"],
-              "gauss_point_results"    : ["GREEN_LAGRANGE_STRAIN_TENSOR", "ENGINEERING_STRAIN_TENSOR", "VON_MISES_STRESS",
-                                          "FLUID_FLUX_VECTOR", "HYDRAULIC_HEAD", "DEGREE_OF_SATURATION"]
+              "nodal_results"          : ["WATER_PRESSURE"],
+              "gauss_point_results"    : []
             },
             "point_data_configuration" : []
           }
