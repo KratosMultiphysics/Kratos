@@ -156,16 +156,6 @@
         }
       }
     ],
-    "auxiliar_process_list": [
-      {
-        "python_module"                : "geo_extrapolate_integration_point_values_to_nodes_process",
-        "kratos_module"                : "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name"                 : "GeoExtrapolateIntegrationPointValuesToNodesProcess",
-        "Parameters": {
-          "model_part_name"            : "PorousDomain",
-          "list_of_variables"          : ["TOTAL_STRESS_TENSOR", "CAUCHY_STRESS_TENSOR"]
-        }
-      }
-    ]
+    "auxiliar_process_list": []
   }
 }
