@@ -137,7 +137,7 @@ KRATOS_TEST_CASE_IN_SUITE(VanGenuchtenLawChecksInputParameters, KratosGeoMechani
     properties.SetValue(VAN_GENUCHTEN_GL, -1.5);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         law.Check(properties, process_info),
-        "VAN_GENUCHTEN_GL (-1.5) must be greater than 0 for material 1.");
+        "VAN_GENUCHTEN_GL (-1.5) must be greater than or equal to 0 for material 1.");
     properties.SetValue(VAN_GENUCHTEN_GL, 1.5);
 
     KRATOS_EXPECT_EQ(law.Check(properties, process_info), 0);
