@@ -14,24 +14,12 @@
 #include "geo_mechanics_application_variables.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
-namespace
-{
-
-using namespace Kratos;
-
-SaturatedBelowPhreaticLevelLaw CreateSaturatedBelowPhreaticLevelLaw()
-{
-    return SaturatedBelowPhreaticLevelLaw{};
-}
-
-} // namespace
-
 namespace Kratos::Testing
 {
 
 KRATOS_TEST_CASE_IN_SUITE(SaturatedBelowPhreaticLevelLawReturnsCloneOfCorrectType, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto law         = CreateSaturatedBelowPhreaticLevelLaw();
+    const auto law         = SaturatedBelowPhreaticLevelLaw();
     const auto p_law_clone = law.Clone();
     KRATOS_EXPECT_NE(&law, p_law_clone.get());
     KRATOS_EXPECT_NE(dynamic_cast<const SaturatedBelowPhreaticLevelLaw*>(p_law_clone.get()), nullptr);
@@ -39,7 +27,7 @@ KRATOS_TEST_CASE_IN_SUITE(SaturatedBelowPhreaticLevelLawReturnsCloneOfCorrectTyp
 
 KRATOS_TEST_CASE_IN_SUITE(SaturatedBelowPhreaticLevelLawReturnsCalculatedValues, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    auto       law = CreateSaturatedBelowPhreaticLevelLaw();
+    auto       law = SaturatedBelowPhreaticLevelLaw();
     Properties properties;
     properties.SetValue(SATURATED_SATURATION, 0.9);
     properties.SetValue(RESIDUAL_SATURATION, 0.1);
@@ -78,7 +66,7 @@ KRATOS_TEST_CASE_IN_SUITE(SaturatedBelowPhreaticLevelLawChecksInputParameters, K
     Properties properties;
     properties.SetId(1);
     const auto process_info = ProcessInfo{};
-    auto       law          = CreateSaturatedBelowPhreaticLevelLaw();
+    auto       law          = SaturatedBelowPhreaticLevelLaw();
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         law.Check(properties, process_info),
