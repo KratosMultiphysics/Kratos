@@ -61,8 +61,8 @@ void GenerateTetrahedralElementsWithCellColor::Generate(ModelPart& rModelPart, P
         }
     }
 
-    rModelPart.AddNodes(new_nodes.begin(), new_nodes.end());
-    rModelPart.AddElements(new_elements.begin(), new_elements.end());
+    rModelPart.AddNodes(std::move(new_nodes));
+    rModelPart.AddElements(std::move(new_elements));
 }
 
 void GenerateTetrahedralElementsWithCellColor::CreateTetrahedraInCell(

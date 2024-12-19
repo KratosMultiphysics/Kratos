@@ -16,6 +16,7 @@
 
 // Project includes
 #include "generate_stl_intersection_with_cells.h"
+#include <utility>
 
 namespace Kratos {
 
@@ -82,8 +83,8 @@ void GenerateStlIntersectionWithCells::Generate(ModelPart& rModelPart, Parameter
         }
     }
 
-    rModelPart.AddNodes(new_nodes.begin(), new_nodes.end());
-    rModelPart.AddElements(new_elements.begin(), new_elements.end());
+    rModelPart.AddNodes(std::move(new_nodes));
+    rModelPart.AddElements(std::move(new_elements));
 }
 
 PointerVector<Node> GenerateStlIntersectionWithCells::GenerateCutGeometryNodes(

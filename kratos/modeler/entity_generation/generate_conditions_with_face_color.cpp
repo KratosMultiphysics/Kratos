@@ -72,8 +72,8 @@ void GenerateConditionsWithFaceColor::Generate(ModelPart& rModelPart, Parameters
         }
     }
 
-    rModelPart.AddNodes(new_nodes.begin(), new_nodes.end());
-    rModelPart.AddConditions(new_conditions.begin(), new_conditions.end());
+    rModelPart.AddNodes(std::move(new_nodes));
+    rModelPart.AddConditions(std::move(new_conditions));
 }
 
 }
