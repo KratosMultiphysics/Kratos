@@ -14,21 +14,12 @@
 #include "geo_mechanics_application_variables.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
-namespace
-{
-
-using namespace Kratos;
-
-SaturatedLaw CreateSaturatedLaw() { return SaturatedLaw{}; }
-
-} // namespace
-
 namespace Kratos::Testing
 {
 
 KRATOS_TEST_CASE_IN_SUITE(SaturatedLawReturnsCloneOfCorrectType, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto law         = CreateSaturatedLaw();
+    const auto law         = SaturatedLaw();
     const auto p_law_clone = law.Clone();
     KRATOS_EXPECT_NE(&law, p_law_clone.get());
     KRATOS_EXPECT_NE(dynamic_cast<const SaturatedLaw*>(p_law_clone.get()), nullptr);
@@ -36,7 +27,7 @@ KRATOS_TEST_CASE_IN_SUITE(SaturatedLawReturnsCloneOfCorrectType, KratosGeoMechan
 
 KRATOS_TEST_CASE_IN_SUITE(SaturatedLawReturnsCalculatedValues, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    auto       law = CreateSaturatedLaw();
+    auto       law = SaturatedLaw();
     Properties properties;
     auto       retention_law_parameters = RetentionLaw::Parameters{properties};
 
@@ -62,7 +53,7 @@ KRATOS_TEST_CASE_IN_SUITE(SaturatedLawChecksInputParameters, KratosGeoMechanicsF
     Properties properties;
     properties.SetId(1);
     const auto process_info = ProcessInfo{};
-    auto       law          = CreateSaturatedLaw();
+    auto       law          = SaturatedLaw();
 
     KRATOS_EXPECT_EQ(law.Check(properties, process_info), 0);
 
