@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main author:     Uxue Chasco Goñi
+//  Main author:     Uxue Chasco
 //
 
 #include "vectorial_convection_fractional_element.h"
@@ -500,7 +500,7 @@ lhs(11,11)=clhs45;
 
         const auto &vn = rData.Velocity_OldStep1;
 
-        const auto &vnnn = rData.Velocity_OldStep3;
+        // const auto &vnnn = rData.Velocity_OldStep3; #an bdf2
         const auto &vnn = rData.Velocity_OldStep2;
         const auto &vmesh = rData.MeshVelocity;
         const auto vfrac = rData.Velocity_Fractional;
@@ -578,7 +578,7 @@ rhs[5]=-N[2]*crhs24 + N[2]*crhs27 - N[2]*crhs28 + crhs23*crhs33 - crhs29*crhs34 
         const double dyn_tau = rData.DynamicTau;
         const auto &vn = rData.Velocity_OldStep1;
         const auto &vnn = rData.Velocity_OldStep2;
-        const auto &vnnn = rData.Velocity_OldStep3;
+        // const auto &vnnn = rData.Velocity_OldStep3; #an_bdf2
         const auto &vmesh = rData.MeshVelocity;
         const auto vfrac = rData.Velocity_Fractional;
         const auto &vconv = vfrac - vmesh;

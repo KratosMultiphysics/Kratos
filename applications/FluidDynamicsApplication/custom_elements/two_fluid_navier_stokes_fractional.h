@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main author:     Uxue Chasco Goñi
+//  Main author:     Uxue Chasco
 //  Co-authors:      Ruben Zorrilla
 //
 
@@ -356,24 +356,6 @@ namespace Kratos
             const typename TElementData::ShapeDerivativesType &rDN_DXenr) const;
 
         /**
-         * @brief Computes the enriched LHS/RHS terms associated with the pressure stabilizations at the interface
-         * @param rInterfaceWeightsNeg Negative side weights for the interface-gauss-points
-         * @param rEnrInterfaceShapeFunctionPos Enriched shape functions at the interface-gauss-points Positive side
-         * @param rEnrInterfaceShapeFunctionNeg Enriched shape functions at the interface-gauss-points Negative side
-         * @param rInterfaceShapeDerivativesNeg Shape functions derivatives at the interface-gauss-points
-         * @param rKeeTot Pressure enrichment contribution related to pressure enrichment DOFs
-         * @param rRHSeeTot Right Hand Side vector associated to the pressure enrichment DOFs
-         */
-        virtual void PressureGradientStabilization(
-            const TElementData &rData,
-            const Vector &rInterfaceWeights,
-            const Matrix &rEnrInterfaceShapeFunctionPos,
-            const Matrix &rEnrInterfaceShapeFunctionNeg,
-            const GeometryType::ShapeFunctionsGradientsType &rInterfaceShapeDerivatives,
-            MatrixType &rKeeTot,
-            VectorType &rRHSeeTot);
-
-        /**
          * @brief Calculate the strain rate
          * In this function we calculate the strain rate at the mid step
          * @param rData Data container with the input velocity and gradients and output strain rate vector
@@ -470,33 +452,6 @@ namespace Kratos
         ModifiedShapeFunctions::UniquePointer pGetModifiedShapeFunctionsUtility(
             const GeometryType::Pointer pGeometry,
             const Vector &rDistances);
-
-        /**
-         * @brief Calculates curvature at the gauss points of the interface.
-         * @param rInterfaceCurvature Vector containing curvature values at the gauss points
-         * @param rInterfaceShapeFunctions Shape functions calculated at the interface gauss points
-         */
-        void CalculateCurvatureOnInterfaceGaussPoints(
-            const Matrix &rInterfaceShapeFunctions,
-            Vector &rInterfaceCurvature);
-
-        /**
-         * @brief Computes the surface tension on the interface and implement its effect on the RHS vector
-         * @param SurfaceTensionCoefficient surface tension coefficient
-         * @param rCurvature curvature calculated at the interface gauss points
-         * @param rInterfaceWeights Weights associated with interface gauss points
-         * @param rInterfaceShapeFunctions Shape functions calculated at the interface gauss points
-         * @param rInterfaceNormalsNeg Normal vectors (negative side) associated with interface gauss points
-         * @param rRHS The effect of pressure discontinuity is implemented as an interfacial integral on the RHS
-         */
-        void SurfaceTension(
-            const double SurfaceTensionCoefficient,
-            const Vector &rCurvature,
-            const Vector &rInterfaceWeights,
-            const Matrix &rInterfaceShapeFunctions,
-            const std::vector<array_1d<double, 3>> &rInterfaceNormalsNeg,
-            VectorType &rRHS);
-
         /**
          * @brief Condense the enrichment
          * This method performs the static condensation of the enrichment terms, by adding
@@ -538,21 +493,6 @@ namespace Kratos
             const MatrixType &rHTot,
             MatrixType &rKeeTot,
             const VectorType &rRHSeeTot);
-
-        void AddSurfaceTensionContribution(
-            const TElementData &rData,
-            MatrixType &rInterfaceShapeFunction,
-            MatrixType &rEnrInterfaceShapeFunctionPos,
-            MatrixType &rEnrInterfaceShapeFunctionNeg,
-            GeometryType::ShapeFunctionsGradientsType &rInterfaceShapeDerivatives,
-            Vector &rInterfaceWeights,
-            std::vector<array_1d<double, 3>> &rInterfaceNormalsNeg,
-            Matrix &rLeftHandSideMatrix,
-            VectorType &rRightHandSideVector,
-            const MatrixType &rHtot,
-            const MatrixType &rVtot,
-            MatrixType &rKeeTot,
-            VectorType &rRHSeeTot);
 
         ///@}
         ///@name Private  Access

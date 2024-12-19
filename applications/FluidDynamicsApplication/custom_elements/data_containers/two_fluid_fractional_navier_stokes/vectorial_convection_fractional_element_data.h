@@ -76,7 +76,6 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
 
 
     const Geometry< Node >& r_geometry = rElement.GetGeometry();
-    const Properties& r_properties = rElement.GetProperties();
     this->FillFromHistoricalNodalData(Velocity_OldStep1,VELOCITY,r_geometry,1);
     this->FillFromHistoricalNodalData(Velocity_OldStep2,VELOCITY,r_geometry,2);
     // this->FillFromHistoricalNodalData(Velocity_OldStep3, VELOCITY, r_geometry, 3); // Old step acceleration approximation using BDF2
