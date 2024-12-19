@@ -28,127 +28,50 @@
 
 namespace Kratos {
 
-void ModelPartOperationUtilities::FillNodesPointerSet(
-    std::set<ModelPart::NodeType const*>& rOutput,
-    const ModelPart::NodesContainerType& rNodes)
+namespace ModelPartOperationHelperUtilities
 {
-    for (auto& r_node : rNodes) {
-        rOutput.insert(&r_node);
-    }
-}
-
 template <class TContainerType>
-void ModelPartOperationUtilities::FillNodePointersForEntities(
-    std::set<CNodePointersType>& rOutput,
-    const TContainerType& rEntityContainer)
-{
-    auto result = block_for_each<AccumReduction<CNodePointersType, std::set<CNodePointersType>>>(rEntityContainer, [](const auto& rEntity) {
-        const auto& r_geometry = rEntity.GetGeometry();
-        const IndexType number_of_nodes = r_geometry.size();
-
-        CNodePointersType nodes(number_of_nodes);
-
-        for (IndexType i = 0; i < number_of_nodes; ++i) {
-            nodes[i] = &r_geometry[i];
-        }
-
-        std::sort(nodes.begin(), nodes.end());
-        return nodes;
-    });
-
-    rOutput.merge(result);
-}
-
-void ModelPartOperationUtilities::FillCommonNodes(
-    ModelPart::NodesContainerType& rOutput,
-    ModelPart::NodesContainerType& rMainNodes,
-    const std::set<ModelPart::NodeType const*>& rNodesSet)
-{
-    const auto& result = block_for_each<AccumReduction<ModelPart::NodeType*>>(rMainNodes, [&rNodesSet](auto& rNode) -> ModelPart::NodeType* {
-        auto p_itr = rNodesSet.find(&rNode);
-
-        if (p_itr != rNodesSet.end()) {
-            return &rNode;
-        } else {
-            return nullptr;
-        }
-    });
-
-    std::for_each(result.begin(), result.end(), [&rOutput](auto& p_node) {
-        if (p_node != nullptr) {
-            rOutput.push_back(p_node);
-        }
-    });
-}
-
-template<class TEntityType>
-void ModelPartOperationUtilities::FillNodesFromEntities(
-    std::vector<ModelPart::NodeType*>& rOutput,
-    typename std::vector<TEntityType*>::iterator pEntityBegin,
-    typename std::vector<TEntityType*>::iterator pEntityEnd)
-{
-    for (; pEntityBegin < pEntityEnd; ++pEntityBegin) {
-        auto& r_geometry = (*pEntityBegin)->GetGeometry();
-        for (auto& r_node : r_geometry) {
-            rOutput.push_back(&r_node);
-        }
-    }
-}
-
-template<class TContainerType>
-void ModelPartOperationUtilities::FindNeighbourEntities(
-    std::vector<typename TContainerType::value_type*>& rOutputEntities,
+void FindNeighbourEntities(
+    TContainerType& rOutputEntities,
     const Flags& rNodeSelectionFlag,
-    TContainerType& rMainEntities)
+    const TContainerType& rMainEntities)
 {
-    using p_entity_type = typename TContainerType::value_type*;
+    TContainerType temp;
+    temp.reserve(rMainEntities.size());
 
-    const auto& result = block_for_each<AccumReduction<p_entity_type>>(rMainEntities, [&rNodeSelectionFlag](auto& rEntity) -> p_entity_type {
-        for (auto& r_node : rEntity.GetGeometry()) {
+    for (auto itr_entity = rMainEntities.begin(); itr_entity != rMainEntities.end(); ++itr_entity) {
+        for (const auto& r_node : itr_entity->GetGeometry()) {
             if (r_node.Is(rNodeSelectionFlag)) {
-                return &rEntity;
+                // since the rMainEntities is a PVS, here we can use insert with the correct
+                // hint without a problem which will use a push_back in the back end.
+                temp.insert(temp.end(), *(itr_entity.base()));
             }
         }
-        return nullptr;
-    });
+    }
 
-    std::for_each(result.begin(), result.end(), [&rOutputEntities](auto pEntity) {
-        if (pEntity != nullptr) {
-            rOutputEntities.push_back(pEntity);
-        }
-    });
+    rOutputEntities.insert(temp.begin(), temp.end());
 }
 
-void ModelPartOperationUtilities::AddNeighbours(
-    std::vector<ModelPart::NodeType*>& rOutputNodes,
-    std::vector<ModelPart::ConditionType*>& rOutputConditions,
-    std::vector<ModelPart::ElementType*>& rOutputElements,
-    ModelPart& rMainModelPart)
-{
-    // set the selection flags
-    VariableUtils().SetFlag(VISITED, false, rMainModelPart.Nodes());
-    block_for_each(rOutputNodes, [](auto p_node) {
-        p_node->Set(VISITED, true);
-    });
-
-    // find the neighbour conditions
-    FindNeighbourEntities(rOutputConditions, VISITED, rMainModelPart.Conditions());
-
-    // find the neighbour elements
-    FindNeighbourEntities(rOutputElements, VISITED, rMainModelPart.Elements());
-}
-
-void ModelPartOperationUtilities::FillWithMainNodesFromSearchNodes(
+void FillCommonNodes(
     ModelPart::NodesContainerType& rOutput,
-    ModelPart::NodesContainerType& rMainNodes,
-    ModelPart::NodesContainerType& rSearchedNodes)
+    const ModelPart::NodesContainerType& rMainNodes,
+    const ModelPart::NodesContainerType& rSearchNodes)
 {
-    std::set<ModelPart::NodeType const*> search_local_node_set;
-    FillNodesPointerSet(search_local_node_set, rSearchedNodes);
-    FillCommonNodes(rOutput, rMainNodes, search_local_node_set);
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF_NOT(rOutput.empty()) << "Output container is not empty.";
+
+    // checks whether rSearchNodes are within the rMainNodes, if so adds them to rOutput
+    for (auto itr_search = rSearchNodes.begin(); itr_search != rSearchNodes.end(); ++itr_search) {
+        if (rMainNodes.find(itr_search->Id()) != rMainNodes.end()) {
+            rOutput.insert(rOutput.end(), *(itr_search.base()));
+        }
+    }
+
+    KRATOS_CATCH("");
 }
 
-void ModelPartOperationUtilities::SetCommunicator(
+void SetCommunicator(
     ModelPart& rOutputModelPart,
     ModelPart& rMainModelPart)
 {
@@ -159,30 +82,91 @@ void ModelPartOperationUtilities::SetCommunicator(
     p_output_communicator->NeighbourIndices() = r_reference_communicator.NeighbourIndices();
 
     // there are no ghost or interface conditions and elements. Hence, we add all conditions
-    // and elements to the local mesh
-    std::for_each(rOutputModelPart.Conditions().begin(), rOutputModelPart.Conditions().end(), [&p_output_communicator](auto& rCondition) {
-        p_output_communicator->LocalMesh().Conditions().push_back(Kratos::intrusive_ptr<ModelPart::ConditionType>(&rCondition));
-    });
-
-    std::for_each(rOutputModelPart.Elements().begin(), rOutputModelPart.Elements().end(), [&p_output_communicator](auto& rElement) {
-        p_output_communicator->LocalMesh().Elements().push_back(Kratos::intrusive_ptr<ModelPart::ElementType>(&rElement));
-    });
+    p_output_communicator->LocalMesh().SetConditions(rOutputModelPart.pConditions());
+    p_output_communicator->LocalMesh().SetElements(rOutputModelPart.pElements());
 
     // now set the local, interface and ghost meshes
-    FillWithMainNodesFromSearchNodes(p_output_communicator->LocalMesh().Nodes(), r_reference_communicator.LocalMesh().Nodes(), rOutputModelPart.Nodes());
-    FillWithMainNodesFromSearchNodes(p_output_communicator->InterfaceMesh().Nodes(), r_reference_communicator.InterfaceMesh().Nodes(), rOutputModelPart.Nodes());
-    FillWithMainNodesFromSearchNodes(p_output_communicator->GhostMesh().Nodes(), r_reference_communicator.GhostMesh().Nodes(), rOutputModelPart.Nodes());
+    FillCommonNodes(p_output_communicator->LocalMesh().Nodes(), r_reference_communicator.LocalMesh().Nodes(), rOutputModelPart.Nodes());
+    FillCommonNodes(p_output_communicator->InterfaceMesh().Nodes(), r_reference_communicator.InterfaceMesh().Nodes(), rOutputModelPart.Nodes());
+    FillCommonNodes(p_output_communicator->GhostMesh().Nodes(), r_reference_communicator.GhostMesh().Nodes(), rOutputModelPart.Nodes());
 
     // now set the communicator
     rOutputModelPart.SetCommunicator(p_output_communicator);
 }
 
+template<class TContainerType>
+void CheckEntities(
+    std::vector<IndexType>& rEntityIdsWithIssues,
+    const TContainerType& rCheckNodes,
+    const TContainerType& rMainNodes)
+{
+    rEntityIdsWithIssues.clear();
+
+    const auto& result = block_for_each<AccumReduction<IndexType>>(rCheckNodes, [&rMainNodes](const auto& rCheckNode) -> IndexType {
+        if (rMainNodes.find(rCheckNode.Id()) == rMainNodes.end()) {
+            return rCheckNode.Id();
+        } else {
+            return std::numeric_limits<IndexType>::max();
+        }
+    });
+
+    std::for_each(result.begin(), result.end(), [&rEntityIdsWithIssues](auto NodeId) {
+        if (NodeId != std::numeric_limits<IndexType>::max()) {
+            rEntityIdsWithIssues.push_back(NodeId);
+        }
+    });
+}
+
+} // namespace ModelPartOperationHelperUtilities
+
+template<class TContainer>
+void ModelPartOperationUtilities::AddNodesFromEntities(
+    ModelPart::NodesContainerType& rOutputNodes,
+    const TContainer& rInputEntities)
+{
+    // do not do anything if empty.
+    if (rInputEntities.empty()) {
+        return;
+    }
+
+    std::vector<ModelPart::NodeType::Pointer> temp;
+    temp.reserve(rInputEntities.size() * rInputEntities.front().GetGeometry().size());
+
+    for (const auto& r_entity : rInputEntities) {
+        const auto& r_geometry = r_entity.GetGeometry();
+        for (auto itr = r_geometry.begin(); itr != r_geometry.end(); ++itr) {
+            temp.push_back(*(itr.base()));
+        }
+    }
+
+    rOutputNodes.insert(std::move(temp));
+}
+
+void ModelPartOperationUtilities::AddNeighbours(
+    ModelPart::NodesContainerType& rOutputNodes,
+    ModelPart::ConditionsContainerType& rOutputConditions,
+    ModelPart::ElementsContainerType& rOutputElements,
+    ModelPart& rMainModelPart)
+{
+    // set the selection flags
+    VariableUtils().SetFlag(VISITED, false, rMainModelPart.Nodes());
+    block_for_each(rOutputNodes, [](auto& rNode) {
+        rNode.Set(VISITED, true);
+    });
+
+    // find the neighbour conditions
+    ModelPartOperationHelperUtilities::FindNeighbourEntities(rOutputConditions, VISITED, rMainModelPart.Conditions());
+
+    // find the neighbour elements
+    ModelPartOperationHelperUtilities::FindNeighbourEntities(rOutputElements, VISITED, rMainModelPart.Elements());
+}
+
 void ModelPartOperationUtilities::FillOutputSubModelPart(
     ModelPart& rOutputSubModelPart,
     ModelPart& rMainModelPart,
-    std::vector<ModelPart::NodeType*>& rOutputNodes,
-    std::vector<ModelPart::ConditionType*>& rOutputConditions,
-    std::vector<ModelPart::ElementType*>& rOutputElements)
+    ModelPart::NodesContainerType& rOutputNodes,
+    ModelPart::ConditionsContainerType& rOutputConditions,
+    ModelPart::ElementsContainerType& rOutputElements)
 {
     // check if the sub model part is empty. Here we use the data communicator
     // of rMainModelPart assuming the communicators are not set yet in rOutputSubModelPart
@@ -196,98 +180,19 @@ void ModelPartOperationUtilities::FillOutputSubModelPart(
     KRATOS_ERROR_IF(entity_info[0] > 0 || entity_info[1] > 0 || entity_info[2] > 0)
         << rOutputSubModelPart.FullName() << " is not empty.";
 
-    // add unique conditions
-    std::sort(rOutputConditions.begin(), rOutputConditions.end());
-    const auto& condition_last = std::unique(rOutputConditions.begin(), rOutputConditions.end());
-    std::for_each(rOutputConditions.begin(), condition_last, [&rOutputSubModelPart](auto p_condition) {
-        rOutputSubModelPart.Conditions().push_back(Kratos::intrusive_ptr<ModelPart::ConditionType>(p_condition));
-    });
-    FillNodesFromEntities<ModelPart::ConditionType>(rOutputNodes, rOutputConditions.begin(), condition_last);
+    // add conditions
+    rOutputSubModelPart.Conditions().insert(rOutputConditions.begin(), rOutputConditions.end());
+    AddNodesFromEntities(rOutputNodes, rOutputConditions);
 
-    // add uniqe elements
-    std::sort(rOutputElements.begin(), rOutputElements.end());
-    const auto& element_last = std::unique(rOutputElements.begin(), rOutputElements.end());
-    std::for_each(rOutputElements.begin(), element_last, [&rOutputSubModelPart](auto p_element) {
-        rOutputSubModelPart.Elements().push_back(Kratos::intrusive_ptr<ModelPart::ElementType>(p_element));
-    });
-    FillNodesFromEntities<ModelPart::ElementType>(rOutputNodes, rOutputElements.begin(), element_last);
+    // // add uniqe elements
+    rOutputSubModelPart.Elements().insert(rOutputElements.begin(), rOutputElements.end());
+    AddNodesFromEntities(rOutputNodes, rOutputElements);
 
     // populate the mesh with nodes.
-    std::sort(rOutputNodes.begin(), rOutputNodes.end());
-    const auto& node_last = std::unique(rOutputNodes.begin(), rOutputNodes.end());
-    std::for_each(rOutputNodes.begin(), node_last, [&rOutputSubModelPart](auto p_node) {
-        rOutputSubModelPart.Nodes().push_back(Kratos::intrusive_ptr<ModelPart::NodeType>(p_node));
-    });
+    rOutputSubModelPart.Nodes().insert(rOutputNodes.begin(), rOutputNodes.end());
 
     // sets the communicator info.
-    SetCommunicator(rOutputSubModelPart, rMainModelPart);
-
-    // until now everything is sorted based on the memory location ptrs.
-    // sorting them based on the ids.
-    const auto& sort_mesh = [](ModelPart::MeshType& rMesh) {
-        rMesh.Nodes().Sort();
-        rMesh.Conditions().Sort();
-        rMesh.Elements().Sort();
-    };
-
-    sort_mesh(rOutputSubModelPart.GetMesh());
-    sort_mesh(rOutputSubModelPart.GetCommunicator().LocalMesh());
-    sort_mesh(rOutputSubModelPart.GetCommunicator().GhostMesh());
-    sort_mesh(rOutputSubModelPart.GetCommunicator().InterfaceMesh());
-}
-
-void ModelPartOperationUtilities::CheckNodes(
-    std::vector<IndexType>& rNodeIdsWithIssues,
-    const ModelPart::NodesContainerType& rCheckNodes,
-    const std::set<ModelPart::NodeType const*>& rMainNodes)
-{
-    const auto& result = block_for_each<AccumReduction<IndexType>>(rCheckNodes, [&rMainNodes](const auto& rCheckNode) -> IndexType {
-        if (rMainNodes.find(&rCheckNode) == rMainNodes.end()) {
-            return rCheckNode.Id();
-        } else {
-            return std::numeric_limits<IndexType>::max();
-        }
-    });
-
-    std::for_each(result.begin(), result.end(), [&rNodeIdsWithIssues](auto NodeId) {
-        if (NodeId != std::numeric_limits<IndexType>::max()) {
-            rNodeIdsWithIssues.push_back(NodeId);
-        }
-    });
-}
-
-template<class TContainerType>
-void ModelPartOperationUtilities::CheckEntities(
-    std::vector<IndexType>& rEntityIdsWithIssues,
-    const TContainerType& rCheckEntities,
-    const std::set<CNodePointersType>& rMainEntities)
-{
-    const auto& result = block_for_each<AccumReduction<IndexType>>(rCheckEntities, CNodePointersType(), [&rMainEntities](const auto& rCheckEntity, CNodePointersType& rTLS) -> IndexType {
-        const auto& r_geometry = rCheckEntity.GetGeometry();
-        const IndexType number_of_nodes = r_geometry.size();
-
-        if (rTLS.size() != number_of_nodes) {
-            rTLS.resize(number_of_nodes);
-        }
-
-        for (IndexType i = 0; i < number_of_nodes; ++i) {
-            rTLS[i] = &r_geometry[i];
-        }
-
-        std::sort(rTLS.begin(), rTLS.end());
-
-        if (rMainEntities.find(rTLS) == rMainEntities.end()) {
-            return rCheckEntity.Id();
-        } else {
-            return std::numeric_limits<IndexType>::max();
-        }
-    });
-
-    std::for_each(result.begin(), result.end(), [&rEntityIdsWithIssues](auto NodeId) {
-        if (NodeId != std::numeric_limits<IndexType>::max()) {
-            rEntityIdsWithIssues.push_back(NodeId);
-        }
-    });
+    ModelPartOperationHelperUtilities::SetCommunicator(rOutputSubModelPart, rMainModelPart);
 }
 
 bool ModelPartOperationUtilities::CheckValidityOfModelPartsForOperations(
@@ -295,23 +200,10 @@ bool ModelPartOperationUtilities::CheckValidityOfModelPartsForOperations(
     const std::vector<ModelPart const*>& rCheckModelParts,
     const bool ThrowError)
 {
-    std::set<ModelPart::NodeType const*> main_node_sets;
-    std::set<CNodePointersType> main_condition_sets;
-    std::set<CNodePointersType> main_element_sets;
-
-    // fill the check nodes
-    FillNodesPointerSet(main_node_sets, rMainModelPart.Nodes());
-
-    // fill the check conditions
-    FillNodePointersForEntities(main_condition_sets, rMainModelPart.Conditions());
-
-    // fill the check elements
-    FillNodePointersForEntities(main_element_sets, rMainModelPart.Elements());
-
     std::vector<IndexType> issue_ids;
 
     for (auto p_model_part : rCheckModelParts) {
-        CheckNodes(issue_ids, p_model_part->Nodes(), main_node_sets);
+        ModelPartOperationHelperUtilities::CheckEntities(issue_ids, p_model_part->Nodes(), rMainModelPart.Nodes());
 
         if (issue_ids.size() > 0) {
             if (ThrowError) {
@@ -327,7 +219,7 @@ bool ModelPartOperationUtilities::CheckValidityOfModelPartsForOperations(
             return false;
         }
 
-        CheckEntities(issue_ids, p_model_part->Conditions(), main_condition_sets);
+        ModelPartOperationHelperUtilities::CheckEntities(issue_ids, p_model_part->Conditions(), rMainModelPart.Conditions());
 
         if (issue_ids.size() > 0) {
             if (ThrowError) {
@@ -343,7 +235,7 @@ bool ModelPartOperationUtilities::CheckValidityOfModelPartsForOperations(
             return false;
         }
 
-        CheckEntities(issue_ids, p_model_part->Elements(), main_element_sets);
+        ModelPartOperationHelperUtilities::CheckEntities(issue_ids, p_model_part->Elements(), rMainModelPart.Elements());
 
         if (issue_ids.size() > 0) {
             if (ThrowError) {
@@ -369,9 +261,9 @@ bool ModelPartOperationUtilities::HasIntersection(const std::vector<ModelPart*>&
 
     auto& r_main_model_part = rIntersectionModelParts[0]->GetRootModelPart();
 
-    std::vector<ModelPart::NodeType*> output_nodes;
-    std::vector<ModelPart::ConditionType*> output_conditions;
-    std::vector<ModelPart::ElementType*> output_elements;
+    ModelPart::NodesContainerType output_nodes;
+    ModelPart::ConditionsContainerType output_conditions;
+    ModelPart::ElementsContainerType output_elements;
 
     // fill vectors
     std::vector<ModelPart const*> intersection_model_parts(rIntersectionModelParts.size());
@@ -388,16 +280,7 @@ bool ModelPartOperationUtilities::HasIntersection(const std::vector<ModelPart*>&
 }
 
 // template instantiations
-template KRATOS_API(KRATOS_CORE) void ModelPartOperationUtilities::FillNodePointersForEntities<ModelPart::ConditionsContainerType>(std::set<CNodePointersType>&, const ModelPart::ConditionsContainerType&);
-template KRATOS_API(KRATOS_CORE) void ModelPartOperationUtilities::FillNodePointersForEntities<ModelPart::ElementsContainerType>(std::set<CNodePointersType>&, const ModelPart::ElementsContainerType&);
-
-template KRATOS_API(KRATOS_CORE) void ModelPartOperationUtilities::FillNodesFromEntities<ModelPart::ConditionType>(std::vector<ModelPart::NodeType*>&, typename std::vector<ModelPart::ConditionType*>::iterator, typename std::vector<ModelPart::ConditionType*>::iterator);
-template KRATOS_API(KRATOS_CORE) void ModelPartOperationUtilities::FillNodesFromEntities<ModelPart::ElementType>(std::vector<ModelPart::NodeType*>&, typename std::vector<ModelPart::ElementType*>::iterator, typename std::vector<ModelPart::ElementType*>::iterator);
-
-template KRATOS_API(KRATOS_CORE) void ModelPartOperationUtilities::FindNeighbourEntities<ModelPart::ConditionsContainerType>(std::vector<ModelPart::ConditionType*>&, const Flags&, ModelPart::ConditionsContainerType&);
-template KRATOS_API(KRATOS_CORE) void ModelPartOperationUtilities::FindNeighbourEntities<ModelPart::ElementsContainerType>(std::vector<ModelPart::ElementType*>&, const Flags&, ModelPart::ElementsContainerType&);
-
-template KRATOS_API(KRATOS_CORE) void ModelPartOperationUtilities::CheckEntities<ModelPart::ConditionsContainerType>(std::vector<IndexType>&, const ModelPart::ConditionsContainerType&, const std::set<CNodePointersType>&);
-template KRATOS_API(KRATOS_CORE) void ModelPartOperationUtilities::CheckEntities<ModelPart::ElementsContainerType>(std::vector<IndexType>&, const ModelPart::ElementsContainerType&, const std::set<CNodePointersType>&);
+template KRATOS_API(KRATOS_CORE) void ModelPartOperationUtilities::AddNodesFromEntities<ModelPart::ConditionsContainerType>(ModelPart::NodesContainerType&,const ModelPart::ConditionsContainerType&);
+template KRATOS_API(KRATOS_CORE) void ModelPartOperationUtilities::AddNodesFromEntities<ModelPart::ElementsContainerType>(ModelPart::NodesContainerType&,const ModelPart::ElementsContainerType&);
 
 } // namespace Kratos
