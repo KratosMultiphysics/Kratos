@@ -12,51 +12,43 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
     This class contains benchmark tests which are checked with the analytical solution
     """
 
-    def setUp(self):
-        # Code here will be placed BEFORE every test in this TestCase.
-        pass
-
-    def tearDown(self):
-        # Code here will be placed AFTER every test in this TestCase.
-        pass
-
     def __test_saturated_below_phreatic_level_pw(self, test_name):
         n_stages = 2
 
         # get the parameter file names for all stages
-        file_path = test_helper.get_file_path(os.path.join('.', 'test_partially_saturated', test_name))
-        parameter_file_names = [os.path.join(file_path, 'ProjectParameters_stage' + str(i + 1) + '.json') for i in
+        file_path = test_helper.get_file_path(os.path.join('test_partially_saturated', test_name))
+        parameter_file_names = [os.path.join(file_path, f'ProjectParameters_stage{i+1}.json') for i in
                                 range(n_stages)]
 
         # set stage parameters
-        parameters_stages = [None] * n_stages
+        parameters_stages = []
         os.chdir(file_path)
-        for idx, parameter_file_name in enumerate(parameter_file_names):
+        for parameter_file_name in parameter_file_names:
             with open(parameter_file_name, 'r') as parameter_file:
-                parameters_stages[idx] = Kratos.Parameters(parameter_file.read())
+                parameters_stages.append(Kratos.Parameters(parameter_file.read()))
 
         model = Kratos.Model()
-        stages = [analysis.GeoMechanicsAnalysis(model, stage_parameters) for stage_parameters in parameters_stages]
 
         # run stages and get water pressure/displacement results per stage
-        stage_water_pressure = [None] * n_stages
-        for idx, stage in enumerate(stages):
+        stage_water_pressure = []
+        coords = []
+        for stage_parameters in parameters_stages:
+            stage = analysis.GeoMechanicsAnalysis(model, stage_parameters)
             stage.Run()
-            stage_water_pressure[idx] = test_helper.get_water_pressure(stage)
+            stage_water_pressure.append(test_helper.get_water_pressure(stage))
+            coords = test_helper.get_nodal_coordinates(stage)
 
         # get y coords of all the nodes
-        coords = test_helper.get_nodal_coordinates(stages[1])
         y_coords = [coord[1] for coord in coords]
 
         # calculate water pressure analytical solution for all stages and calculate the error
-        rel_p_stage  = [self.__calculate_column_saturated_under_phreatic_level(y_coord) for y_coord in y_coords]
-        print(rel_p_stage)
+        rel_p_stage  = [self.__compute_hydrostatic_water_pressure(y_coord) for y_coord in y_coords]
         
-        errors_stage = [stage_water_pressure[1][node_idx] - rel_p for node_idx, rel_p in
-                         enumerate(rel_p_stage)]
+        errors_stage = [actual_pressure - expected_pressure for actual_pressure, expected_pressure in
+                        zip(stage_water_pressure[1], rel_p_stage)]
         rmse_stages = (sum([error ** 2 for error in errors_stage]) / len(errors_stage)) ** 0.5
 
-        # assert if average error in all stages is below 1 percent
+        # assert if average error in all stages is below accuracy
         accuracy = 1.0e-7
         self.assertLess(rmse_stages, accuracy)
 
@@ -75,7 +67,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
     def test_saturated_below_phreatic_level_upw_smallstrain_triangle6n(self):
         self.__test_saturated_below_phreatic_level_pw('test_saturated_below_phreatic_level_upw_smallstrain_triangle6n')
 
-    def __calculate_column_saturated_under_phreatic_level(self, y_coord):
+    def __compute_hydrostatic_water_pressure(self, y_coord):
         water_density = 1019.367991845056
         gravity = -9.81
         phreatic_level = -2.0
