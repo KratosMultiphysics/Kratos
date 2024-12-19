@@ -550,41 +550,41 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
                 RetentionParameters, rVariable, rOutput[GPoint]);
         }
     } else if (rVariable == HYDRAULIC_HEAD) {
-        constexpr double      NumericalLimit = std::numeric_limits<double>::epsilon();
+        constexpr auto      numerical_limit = std::numeric_limits<double>::epsilon();
         const PropertiesType& r_prop         = this->GetProperties();
 
         // Defining the shape functions, the Jacobian and the shape functions local gradients Containers
-        const Matrix&  NContainer  = r_geom.ShapeFunctionsValues(this->GetIntegrationMethod());
+        const Matrix&  n_container  = r_geom.ShapeFunctionsValues(this->GetIntegrationMethod());
         const SizeType num_u_nodes = r_geom.PointsNumber();
 
         // Defining necessary variables
-        Vector NodalHydraulicHead = ZeroVector(num_u_nodes);
+        Vector nodal_hydraulic_head = ZeroVector(num_u_nodes);
         for (unsigned int node = 0; node < num_u_nodes; ++node) {
             Vector NodeVolumeAcceleration(3);
             noalias(NodeVolumeAcceleration) = r_geom[node].FastGetSolutionStepValue(VOLUME_ACCELERATION, 0);
             const double g = norm_2(NodeVolumeAcceleration);
-            if (g > NumericalLimit) {
+            if (g > numerical_limit) {
                 const auto fluid_weight = g * r_prop[DENSITY_WATER];
 
-                Vector NodeCoordinates(3);
-                noalias(NodeCoordinates) = r_geom[node].Coordinates();
-                Vector NodeVolumeAccelerationUnitVector(3);
-                noalias(NodeVolumeAccelerationUnitVector) = NodeVolumeAcceleration / g;
+                Vector node_coordinates(3);
+                noalias(node_coordinates) = r_geom[node].Coordinates();
+                Vector node_volume_acceleration_unit_vector(3);
+                noalias(node_volume_acceleration_unit_vector) = NodeVolumeAcceleration / g;
 
                 const auto water_pressure = r_geom[node].FastGetSolutionStepValue(WATER_PRESSURE);
-                NodalHydraulicHead[node] = -inner_prod(NodeCoordinates, NodeVolumeAccelerationUnitVector) -
+                nodal_hydraulic_head[node] = -inner_prod(node_coordinates, node_volume_acceleration_unit_vector) -
                                            PORE_PRESSURE_SIGN_FACTOR * water_pressure / fluid_weight;
             } else {
-                NodalHydraulicHead[node] = 0.0;
+                nodal_hydraulic_head[node] = 0.0;
             }
         }
 
-        for (unsigned int GPoint = 0; GPoint < number_of_integration_points; GPoint++) {
+        for (unsigned int g_point = 0; g_point < number_of_integration_points; g_point++) {
             double hydraulic_head = 0.0;
             for (unsigned int node = 0; node < num_u_nodes; ++node)
-                hydraulic_head += NContainer(GPoint, node) * NodalHydraulicHead[node];
+                hydraulic_head += n_container(g_point, node) * nodal_hydraulic_head[node];
 
-            rOutput[GPoint] = hydraulic_head;
+            rOutput[g_point] = hydraulic_head;
         }
     } else {
         for (unsigned int i = 0; i < number_of_integration_points; ++i) {
@@ -624,10 +624,10 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
                        std::multiplies<>{});
 
         // Loop over integration points
-        for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
+        for (unsigned int g_point = 0; g_point < mConstitutiveLawVector.size(); ++g_point) {
             // compute element kinematics (Np, gradNpT, |J|, B, strains)
-            this->CalculateKinematics(Variables, GPoint);
-            Variables.B = b_matrices[GPoint];
+            this->CalculateKinematics(Variables, g_point);
+            Variables.B = b_matrices[g_point];
 
             // Compute FluidFlux vector q [m/s]
             const SizeType Dim       = r_geometry.WorkingSpaceDimension();
@@ -640,27 +640,27 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
                     BodyAcceleration[idim] += Variables.Nu[i] * Variables.BodyAcceleration[Index++];
             }
 
-            const auto relative_permeability = relative_permeability_values[GPoint];
+            const auto relative_permeability = relative_permeability_values[g_point];
 
             // Compute strain, need to update porosity
-            Variables.F            = deformation_gradients[GPoint];
-            Variables.StrainVector = strain_vectors[GPoint];
+            Variables.F            = deformation_gradients[g_point];
+            Variables.StrainVector = strain_vectors[g_point];
 
             Vector GradPressureTerm(Dim);
             noalias(GradPressureTerm) = prod(trans(Variables.DNp_DX), Variables.PressureVector);
             noalias(GradPressureTerm) +=
                 PORE_PRESSURE_SIGN_FACTOR * GetProperties()[DENSITY_WATER] * BodyAcceleration;
 
-            Vector AuxFluidFlux = ZeroVector(Dim);
-            AuxFluidFlux        = PORE_PRESSURE_SIGN_FACTOR * Variables.DynamicViscosityInverse *
+            Vector aux_fluid_flux = ZeroVector(Dim);
+            aux_fluid_flux        = PORE_PRESSURE_SIGN_FACTOR * Variables.DynamicViscosityInverse *
                            relative_permeability * prod(Variables.IntrinsicPermeability, GradPressureTerm);
 
-            Vector FluidFlux = ZeroVector(3);
+            Vector fluid_flux = ZeroVector(3);
             for (unsigned int idim = 0; idim < Dim; ++idim)
-                FluidFlux[idim] = AuxFluidFlux[idim];
+                fluid_flux[idim] = aux_fluid_flux[idim];
 
-            rOutput[GPoint].resize(3, false);
-            rOutput[GPoint] = FluidFlux;
+            rOutput[g_point].resize(3, false);
+            rOutput[g_point] = fluid_flux;
         }
     }
 
