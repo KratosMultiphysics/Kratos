@@ -166,7 +166,7 @@ int VanGenuchtenLaw::Check(const Properties& rMaterialProperties, const ProcessI
         << rMaterialProperties.Id() << "." << std::endl;
     KRATOS_ERROR_IF_NOT((rMaterialProperties[VAN_GENUCHTEN_GL] >= 0.0))
         << "VAN_GENUCHTEN_GL (" << rMaterialProperties[VAN_GENUCHTEN_GL]
-        << ") must be greater than 0 for material " << rMaterialProperties.Id() << "." << std::endl;
+        << ") must be greater than or equal to 0 for material " << rMaterialProperties.Id() << "." << std::endl;
 
     return 0;
 }
