@@ -160,6 +160,14 @@ public:
         KRATOS_CATCH("")
     }
 
+    void InitializeSolutionStep() override {
+		BaseType::InitializeSolutionStep();
+
+		// it is required to initialize the mDxTot vector here, as SolveSolutionStep can be called multiple times,
+        // in a single time step (from an overlaying strategy)
+        mDxTot = TSystemVectorType(BaseType::GetBuilderAndSolver()->GetDofSet().size(), 0.0);
+    }
+
     /**
      * @brief Solves the current step. This function returns true if a solution has been found, false otherwise.
      */
@@ -182,8 +190,6 @@ public:
         TSystemVectorType& rDx = *BaseType::mpDx;
         TSystemVectorType& rb  = *BaseType::mpb;
 
-        TSystemVectorType dx_tot = TSystemVectorType(r_dof_set.size(), 0.0);
-
         // initializing the parameters of the Newton-Raphson cycle
         unsigned int iteration_number                      = 1;
         r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
@@ -202,7 +208,7 @@ public:
         BaseType::EchoInfo(iteration_number);
 
         // Updating the results stored in the database
-        this->UpdateSolutionStepValue(rDx, dx_tot);
+        this->UpdateSolutionStepValue(rDx, mDxTot);
 
         p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
 
@@ -227,12 +233,12 @@ public:
 
         // Iteration Cycle... performed only for non linear RHS
         if (!is_converged) {
-            is_converged = this->PerformIterationCycle(rA, rDx, rb, dx_tot, non_converged_solutions, iteration_number);
+            is_converged = this->PerformIterationCycle(rA, rDx, rb, mDxTot, non_converged_solutions, iteration_number);
         }
 
         if (is_converged) {
             // here only the derivatives are updated
-            p_scheme->Update(r_model_part, r_dof_set, rA, dx_tot, rb);
+            p_scheme->Update(r_model_part, r_dof_set, rA, mDxTot, rb);
         }
 
         // plots a warning if the maximum number of iterations is exceeded
@@ -246,7 +252,7 @@ public:
 
         // calculate reactions if required
         if (BaseType::mCalculateReactionsFlag)
-            p_builder_and_solver->CalculateReactions(p_scheme, r_model_part, rA, dx_tot, rb);
+            p_builder_and_solver->CalculateReactions(p_scheme, r_model_part, rA, mDxTot, rb);
 
         if (BaseType::mStoreNonconvergedSolutionsFlag) {
             BaseType::mNonconvergedSolutionsMatrix =
@@ -322,6 +328,7 @@ private:
     ///@}
     ///@name Static Member Variables
     ///@{
+    TSystemVectorType mDxTot;
 
     ///@}
     ///@name Member Variables
