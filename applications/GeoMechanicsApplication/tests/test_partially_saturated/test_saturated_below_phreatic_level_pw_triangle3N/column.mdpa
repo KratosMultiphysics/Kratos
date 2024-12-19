@@ -130,40 +130,6 @@ Begin SubModelPart gravity
     End SubModelPartNodes
 End SubModelPart
 
-Begin SubModelPart DISPLACEMENT_Bottom // Group Bottom // Subtree DISPLACEMENT
-    Begin SubModelPartNodes
-            1
-            2
-    End SubModelPartNodes
-End SubModelPart
-
-Begin SubModelPart DISPLACEMENT_Sides // Group Sides // Subtree DISPLACEMENT
-    Begin SubModelPartNodes
-            1
-            2
-            3
-            4
-            5
-            6
-            7
-            8
-            9
-           10
-           11
-           12
-           13
-           14
-           15
-           16
-           17
-           18
-           19
-           20
-           21
-           22
-    End SubModelPartNodes
-End SubModelPart
-
 Begin SubModelPart WATER_PRESSURE_Initial
     Begin SubModelPartNodes
             1
