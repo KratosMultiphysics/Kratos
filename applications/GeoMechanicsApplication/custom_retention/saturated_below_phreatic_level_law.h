@@ -33,13 +33,7 @@ public:
     // Counted pointer of SaturatedBelowPhreaticLevelLaw
     KRATOS_CLASS_POINTER_DEFINITION(SaturatedBelowPhreaticLevelLaw);
 
-    SaturatedBelowPhreaticLevelLaw();
-
     [[nodiscard]] RetentionLaw::Pointer Clone() const override;
-
-    SaturatedBelowPhreaticLevelLaw(const SaturatedBelowPhreaticLevelLaw& rOther);
-
-    ~SaturatedBelowPhreaticLevelLaw() override;
 
     double CalculateSaturation(Parameters& rParameters) const override;
 

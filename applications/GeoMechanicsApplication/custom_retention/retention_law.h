@@ -69,8 +69,6 @@ public:
 
     }; // class Parameters end
 
-    RetentionLaw() = default;
-
     virtual ~RetentionLaw() = default;
 
     /**

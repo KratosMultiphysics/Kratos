@@ -12,7 +12,7 @@ The simulation is done on a double stage process, and steady state Pw and U-Pw e
 - 2D3N: for Pw and U-Pw small strain elements
 - 2D6N: for Pw and U-Pw small strain and U-Pw different order elements.
 
-The pressure distribution along the column is then evaluated with its alalytical result.
+The pressure distribution along the column is then evaluated with its analytical result.
 
 ## Results
 
