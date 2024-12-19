@@ -350,5 +350,11 @@ double GetReferenceRotationAngle2D3NBeam(const GeometryType &rGeometry);
  */
 KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) double CalculatePhi(const Properties& rProperties, const double L);
 
+void InitializeConstitutiveLawValuesForStressCalculation(ConstitutiveLaw::Parameters& rValues,
+    Vector& rStrainVector, Vector& rStressVector, Matrix& rConstitutiveMatrix);
+
+void InitializeConstitutiveLawValuesForStressCalculation(ConstitutiveLaw::Parameters& rValues,
+    Vector& rStrainVector, Vector& rStressVector);
+
 } // namespace StructuralMechanicsElementUtilities.
 }  // namespace Kratos.
