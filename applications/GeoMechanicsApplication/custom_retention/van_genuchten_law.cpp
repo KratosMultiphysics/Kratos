@@ -36,7 +36,7 @@ double VanGenuchtenLaw::CalculateSaturation(Parameters& rParameters) const
         const auto gn      = rMaterialProperties[VAN_GENUCHTEN_GN];
         const auto gc      = (1.0 - gn) / gn;
 
-        return sat_min + (sat_max - sat_min) * pow(1.0 + pow(p / pb, gn), gc);
+        return sat_min + (sat_max - sat_min) * std::pow(1.0 + std::pow(p / pb, gn), gc);
     } else {
         return rMaterialProperties[SATURATED_SATURATION];
     }
@@ -70,8 +70,8 @@ double VanGenuchtenLaw::CalculateDerivativeOfSaturation(Parameters& rParameters)
         const auto  gn                  = rMaterialProperties[VAN_GENUCHTEN_GN];
         const auto  gc                  = (1.0 - gn) / gn;
 
-        return (sat_max - sat_min) * gc * pow((1.0 + pow(p / pb, gn)), gc - 1.0) * gn *
-               pow(pb, -gn) * pow(p, gn - 1.0);
+        return (sat_max - sat_min) * gc * std::pow((1.0 + std::pow(p / pb, gn)), gc - 1.0) * gn *
+               std::pow(pb, -gn) * std::pow(p, gn - 1.0);
     } else {
         return 0.0;
     }
@@ -90,7 +90,8 @@ double VanGenuchtenLaw::CalculateRelativePermeability(Parameters& rParameters) c
     const auto  gn                  = rMaterialProperties[VAN_GENUCHTEN_GN];
 
     const auto relPerm =
-        pow(effSat, gl) * pow(1.0 - pow(1.0 - pow(effSat, gn / (gn - 1.0)), (gn - 1.0) / gn), 2);
+        std::pow(effSat, gl) *
+        std::pow(1.0 - std::pow(1.0 - std::pow(effSat, gn / (gn - 1.0)), (gn - 1.0) / gn), 2);
 
     return std::max(relPerm, rMaterialProperties[MINIMUM_RELATIVE_PERMEABILITY]);
 
