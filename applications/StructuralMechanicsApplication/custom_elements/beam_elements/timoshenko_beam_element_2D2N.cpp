@@ -972,8 +972,8 @@ void LinearTimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
             CalculateGeneralizedStrainsVector(strain_vector, length, Phi, integration_points[integration_point].X(), nodal_values);
             mConstitutiveLawVector[integration_point]->CalculateMaterialResponsePK2(cl_values);
             auto stress_vector = cl_values.GetStressVector();
-            if ( this->GetProperties().Has(TIMOSHENKO_BEAM_PRESTRESS_PK2)) {
-                stress_vector += this->GetProperties()[TIMOSHENKO_BEAM_PRESTRESS_PK2];
+            if ( this->GetProperties().Has(BEAM_PRESTRESS_PK2)) {
+                stress_vector += this->GetProperties()[BEAM_PRESTRESS_PK2];
             }
             rOutput[integration_point] = stress_vector;
         }

@@ -80,7 +80,7 @@ void CreateBeamModel2N(std::string TimoshenkoBeamElementName)
 
         Vector pre_stress(3);
         pre_stress <<= 1.0e5, 1.0e4, 1.0e3;
-        p_element->GetProperties().SetValue(TIMOSHENKO_BEAM_PRESTRESS_PK2, pre_stress);
+        p_element->GetProperties().SetValue(BEAM_PRESTRESS_PK2, pre_stress);
         p_element->CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, stress_vectors, r_process_info);
         expected_stress_vector += pre_stress;
         KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress_vector, stress_vectors[2], tolerance);
