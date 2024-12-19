@@ -36,7 +36,7 @@
 
 _KRATOS Multiphysics_ ("Kratos") is a framework for building parallel, multi-disciplinary simulation software, aiming at modularity, extensibility, and high performance. Kratos is written in C++, and counts with an extensive Python interface. More in [Overview](https://github.com/KratosMultiphysics/Kratos/wiki/Overview)
 
-**Kratos** is **free** under BSD-4 [license](https://github.com/KratosMultiphysics/Kratos/wiki/Licence) and can be used even in comercial softwares as it is. Many of its main applications are also free and BSD-4 licensed but each derived application can have its own propietary license.
+**Kratos** is **free** under BSD-4 [license](https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/license.txt) and can be used even in comercial softwares as it is. Many of its main applications are also free and BSD-4 licensed but each derived application can have its own propietary license.
 
 # Main Features
 **Kratos** is __multiplatform__ and available for __Windows, Linux__ (several distros) and __macOS__.
@@ -65,19 +65,22 @@ Here you can find the basic documentation of the project:
 * Getting Kratos (Last compiled Release)
     * [Kratos from `pip`](https://pypi.org/project/KratosMultiphysics/): Just simply type on terminal `pip install KratosMultiphysics-all`
     * [Kratos for GiD](https://github.com/KratosMultiphysics/Kratos/wiki/Getting-Kratos-binaries-(via-GiD))
+<!---
+Rewrite this in the Documentation page
+-->
 * Compiling Kratos
     * [See INSTALL.md](https://github.com/KratosMultiphysics/Kratos/blob/master/INSTALL.md)
 
 ## Tutorials
-* [Running an example from GiD](https://github.com/KratosMultiphysics/Kratos/wiki/Running-an-example-from-GiD)
-* [Kratos input files and I/O](https://github.com/KratosMultiphysics/Kratos/wiki/Kratos-input-files-and-IO)
-* [Data management](https://github.com/KratosMultiphysics/Kratos/wiki/Data-management)
-* [Solving strategies](https://github.com/KratosMultiphysics/Kratos/wiki/Solving-strategies)
-* [Manipulating solution values](https://github.com/KratosMultiphysics/Kratos/wiki/Manipulating-solution-values)
-* [Multiphysics](https://github.com/KratosMultiphysics/Kratos/wiki/Multiphysics-example)
+* [Running an example from GiD](https://kratosmultiphysics.github.io/Kratos/pages/Kratos/For_Users/Tutorials/Running_An_Example_From_GiD.html)
+* [Kratos input files and I/O](https://kratosmultiphysics.github.io/Kratos/pages/Kratos/For_Users/Tutorials/Kratos_Input_Files_And_Io.html)
+* [Data management](https://kratosmultiphysics.github.io/Kratos/pages/Kratos/For_Users/Tutorials/Data_Management.html)
+* [Solving strategies](https://kratosmultiphysics.github.io/Kratos/pages/Kratos/For_Users/Tutorials/Solving_Strategies.html)
+* [Manipulating solution values](https://kratosmultiphysics.github.io/Kratos/pages/Kratos/For_Developers/Tutorials/Manipulating-solution-values.html)
+* [Multiphysics](https://kratosmultiphysics.github.io/Kratos/pages/Kratos/For_Users/Tutorials/Multiphysics_Example.html)
 
 ## More documentation
-[Wiki](https://github.com/KratosMultiphysics/Kratos/wiki)
+[Documentation](https://kratosmultiphysics.github.io/Kratos/)
 
 # Examples of use
 Kratos has been used for simulation of many different problems in a wide variety of disciplines ranging from wind over singular building to granular domain dynamics. Some examples and validation benchmarks simulated by Kratos can be found [here](https://kratosmultiphysics.github.io/Examples/)
@@ -139,7 +142,7 @@ Some users of the technologies developed in Kratos are:
 
 # Special Thanks To
 ## In Kratos Core:
-- [Boost](http://www.boost.org/) for ublas
+- [Boost](http://www.boost.org/) for uBLAS
 - [pybind11](https://github.com/pybind/pybind11) for exposing C++ to python
 - [GidPost](https://www.gidhome.com/gid-plus/tools/476/gidpost/) providing output to [GiD](https://www.gidhome.com/)
 - [AMGCL](https://github.com/ddemidov/amgcl) for its highly scalable multigrid solver

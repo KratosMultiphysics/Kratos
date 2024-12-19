@@ -4,7 +4,7 @@ USER root
 
 ENV HOME /root
 
-# install python3.8.10
+# Install python3.8.10
 RUN dnf update -y && \
     dnf groupinstall "Development Tools" -y && \
     dnf install -y wget openssl-devel bzip2-devel libffi-devel && \
@@ -20,13 +20,17 @@ ENV PYTHON_EXECUTABLE /usr/local/bin/python3.8
 
 RUN python3.8 -m pip install numpy sympy scipy parameterized
 
-# install build utils
+# Install build utils
 RUN dnf update -y && dnf install -y \
     --enablerepo=devel ninja-build \
     cmake \
     gcc-gfortran \
     --enablerepo=devel blas-devel \
     --enablerepo=devel lapack-devel
+
+# Install Boost libraries
+RUN dnf update -y && dnf install -y \
+    boost-devel
 
 CMD [ "/bin/bash" ]
 

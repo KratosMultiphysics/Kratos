@@ -78,6 +78,9 @@ option(KRATOS_BUILD_TESTING "KRATOS_BUILD_TESTING defines if the C++ tests are c
 # If no benchmark policy enable by default
 option(KRATOS_BUILD_BENCHMARK "KRATOS_BUILD_BENCHMARK defines if the C++ benchmarks (Google benchmark) are compiled. These increase compilation time. Default setting is OFF" OFF)
 
+# If logger coloring policy enable by default
+option(KRATOS_COLORED_OUTPUT "KRATOS_COLORED_OUTPUT defines if the logger output it is colored. Default setting is OFF" OFF)
+
 # If no pch policy disable by default
 option(KRATOS_USE_PCH "KRATOS_USE_PCH defines if pch will be used during the compilation. This may will decrease compilation for clean build or if core components are touched. Default setting is OFF" OFF)
 
