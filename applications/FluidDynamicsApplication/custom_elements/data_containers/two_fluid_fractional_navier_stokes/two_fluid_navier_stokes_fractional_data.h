@@ -10,8 +10,8 @@
 //  Main authors:    Uxue Chasco
 //
 
+#pragma once
 
-#if !defined(KRATOS_TWO_FLUID_NAVIER_STOKES_FRACTIONAL_DATA_H)
 #define KRATOS_TWO_FLUID_NAVIER_STOKES_FRACTIONAL_DATA_H
 
 #include "includes/constitutive_law.h"
@@ -379,5 +379,3 @@ void ComputeDarcyTerm()
 ///@}
 
 }
-
-#endif

@@ -461,8 +461,8 @@ private:
     const TwoFluidNavierStokesWallCondition<3,3> mTwoFluidNavierStokesWallCondition3D;
     const TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<2, 3>> mTwoFluidNavierStokesFractional2D3N;
     const TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<3, 4>> mTwoFluidNavierStokesFractional3D4N;
-    const VectorialConvectionFractionalElement<VectorialConvectionFractionalElementData<3, 4>> mVectorialConvectionFractionalElement3D4N;
     const VectorialConvectionFractionalElement<VectorialConvectionFractionalElementData<2, 3>> mVectorialConvectionFractionalElement2D3N;
+    const VectorialConvectionFractionalElement<VectorialConvectionFractionalElementData<3, 4>> mVectorialConvectionFractionalElement3D4N;
 
     /// Incompressible Navier-Stokes div-stable element
     const IncompressibleNavierStokesP2P1Continuous<2> mIncompressibleNavierStokesP2P1Continuous2D6N;

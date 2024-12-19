@@ -12,8 +12,7 @@
 //
 //
 
-
-#if !defined(KRATOS_VECTORIAL_CONVECTION_FRACTIONAL_ELEMENT)
+#pragma once
 #define KRATOS_VECTORIAL_CONVECTION_FRACTIONAL_ELEMENT
 
 // System includes
@@ -312,7 +311,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-
-#endif // KRATOS_LEVELSET_CONVECTION_ELEMENT_SIMPLEX_INCLUDED  defined
-
-

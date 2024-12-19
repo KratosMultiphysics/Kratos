@@ -11,7 +11,7 @@
 //  Co-authors:      Ruben Zorrilla
 //
 
-#if !defined(KRATOS_TWO_FLUID_NAVIER_STOKES_FRACTIONAL)
+#pragma once
 #define  KRATOS_TWO_FLUID_NAVIER_STOKES_FRACTIONAL
 
 // System includes
@@ -544,5 +544,3 @@ inline std::ostream& operator <<(std::ostream& rOStream,
 ///@}
 
 } // namespace Kratos.
-
-#endif // KRATOS_TWO_FLUID_NAVIER_STOKES_FRACTIONAL
