@@ -27,18 +27,18 @@ double VanGenuchtenLaw::CalculateSaturation(Parameters& rParameters) const
     KRATOS_TRY
 
     const auto  p                   = rParameters.GetFluidPressure();
-    const auto& rMaterialProperties = rParameters.GetMaterialProperties();
+    const auto& r_material_properties = rParameters.GetMaterialProperties();
 
     if (p > 0.0) {
-        const auto sat_max = rMaterialProperties[SATURATED_SATURATION];
-        const auto sat_min = rMaterialProperties[RESIDUAL_SATURATION];
-        const auto pb      = rMaterialProperties[VAN_GENUCHTEN_AIR_ENTRY_PRESSURE];
-        const auto gn      = rMaterialProperties[VAN_GENUCHTEN_GN];
+        const auto sat_max = r_material_properties[SATURATED_SATURATION];
+        const auto sat_min = r_material_properties[RESIDUAL_SATURATION];
+        const auto pb      = r_material_properties[VAN_GENUCHTEN_AIR_ENTRY_PRESSURE];
+        const auto gn      = r_material_properties[VAN_GENUCHTEN_GN];
         const auto gc      = (1.0 - gn) / gn;
 
         return sat_min + (sat_max - sat_min) * std::pow(1.0 + std::pow(p / pb, gn), gc);
     } else {
-        return rMaterialProperties[SATURATED_SATURATION];
+        return r_material_properties[SATURATED_SATURATION];
     }
 
     KRATOS_CATCH("")
@@ -48,11 +48,11 @@ double VanGenuchtenLaw::CalculateEffectiveSaturation(Parameters& rParameters) co
 {
     KRATOS_TRY
 
-    const auto& rMaterialProperties = rParameters.GetMaterialProperties();
-    const auto  satMax              = rMaterialProperties[SATURATED_SATURATION];
-    const auto  satMin              = rMaterialProperties[RESIDUAL_SATURATION];
+    const auto& r_material_properties = rParameters.GetMaterialProperties();
+    const auto  sat_max              = r_material_properties[SATURATED_SATURATION];
+    const auto  sat_min              = r_material_properties[RESIDUAL_SATURATION];
 
-    return (CalculateSaturation(rParameters) - satMin) / (satMax - satMin);
+    return (CalculateSaturation(rParameters) - sat_min) / (sat_max - sat_min);
 
     KRATOS_CATCH("")
 }
@@ -63,11 +63,11 @@ double VanGenuchtenLaw::CalculateDerivativeOfSaturation(Parameters& rParameters)
     const auto p = rParameters.GetFluidPressure();
 
     if (p > 0.0) {
-        const auto& rMaterialProperties = rParameters.GetMaterialProperties();
-        const auto  sat_max             = rMaterialProperties[SATURATED_SATURATION];
-        const auto  sat_min             = rMaterialProperties[RESIDUAL_SATURATION];
-        const auto  pb                  = rMaterialProperties[VAN_GENUCHTEN_AIR_ENTRY_PRESSURE];
-        const auto  gn                  = rMaterialProperties[VAN_GENUCHTEN_GN];
+        const auto& r_material_properties = rParameters.GetMaterialProperties();
+        const auto  sat_max             = r_material_properties[SATURATED_SATURATION];
+        const auto  sat_min             = r_material_properties[RESIDUAL_SATURATION];
+        const auto  pb                  = r_material_properties[VAN_GENUCHTEN_AIR_ENTRY_PRESSURE];
+        const auto  gn                  = r_material_properties[VAN_GENUCHTEN_GN];
         const auto  gc                  = (1.0 - gn) / gn;
 
         return (sat_max - sat_min) * gc * std::pow((1.0 + std::pow(p / pb, gn)), gc - 1.0) * gn *
@@ -83,17 +83,17 @@ double VanGenuchtenLaw::CalculateRelativePermeability(Parameters& rParameters) c
 {
     KRATOS_TRY
 
-    const auto effSat = CalculateEffectiveSaturation(rParameters);
+    const auto eff_sat = CalculateEffectiveSaturation(rParameters);
 
-    const auto& rMaterialProperties = rParameters.GetMaterialProperties();
-    const auto  gl                  = rMaterialProperties[VAN_GENUCHTEN_GL];
-    const auto  gn                  = rMaterialProperties[VAN_GENUCHTEN_GN];
+    const auto& r_material_properties = rParameters.GetMaterialProperties();
+    const auto  gl                  = r_material_properties[VAN_GENUCHTEN_GL];
+    const auto  gn                  = r_material_properties[VAN_GENUCHTEN_GN];
 
-    const auto relPerm =
-        std::pow(effSat, gl) *
-        std::pow(1.0 - std::pow(1.0 - std::pow(effSat, gn / (gn - 1.0)), (gn - 1.0) / gn), 2);
+    const auto rel_perm =
+        std::pow(eff_sat, gl) *
+        std::pow(1.0 - std::pow(1.0 - std::pow(eff_sat, gn / (gn - 1.0)), (gn - 1.0) / gn), 2);
 
-    return std::max(relPerm, rMaterialProperties[MINIMUM_RELATIVE_PERMEABILITY]);
+    return std::max(rel_perm, r_material_properties[MINIMUM_RELATIVE_PERMEABILITY]);
 
     KRATOS_CATCH("")
 }
