@@ -92,9 +92,10 @@ public:
     /// <param name="CalculateInitialSecondDerivative">When true, the initial value for the second derivative is calculated which
     /// fullfills equilibrium in the very first timestep</param>
     /// <param name="UseDirectSolver"> When true, the sparse lu linear solver is used, when false, the cg linear solver is used</param>
+	/// <param name="SingleIteration"> When true, the solver is set to only perform a single iteration</param>
     /// <returns></returns>
     static GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic<SparseSpaceType, LocalSpaceType, LinearSolverType> CreateValidStrategy(
-        ModelPart& rModelPart, double RelativeTolerance, double AbsoluteTolerance, bool CalculateInitialSecondDerivative, bool UseDirectSolver)
+        ModelPart& rModelPart, double RelativeTolerance, double AbsoluteTolerance, bool CalculateInitialSecondDerivative, bool UseDirectSolver, bool SingleIteration)
     {
         double beta  = 0.25;
         double gamma = 0.5;
@@ -119,9 +120,14 @@ public:
         auto pConvergenceCriteria = std::make_shared<DisplacementCriteria<SparseSpaceType, LocalSpaceType>>(
             RelativeTolerance, AbsoluteTolerance);
 
+		int max_iterations = 30;
+		if (SingleIteration) {
+			max_iterations = 1;
+		}
+
         return GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic<SparseSpaceType, LocalSpaceType, LinearSolverType>(
             rModelPart, pScheme, pConvergenceCriteria, pBuilderAndSolver,
-            30, false, false);
+            max_iterations, false, false);
     }
 
 private:
@@ -136,12 +142,14 @@ private:
 /// <param name="CalculateInitialAcceleration">When true, the initial value for the second derivative is calculated which
 /// fullfills equilibrium in the very first timestep</param>
 /// <param name="UseDirectSolver"> When true, the sparse lu linear solver is used, when false, the cg linear solver is used </param>
+/// <param name="ConvergeOutside"> When true, non-linear convergence is checked outside the solution step </param>
 /// <param name="rExpectedDisplacementX"> expected displacements in x direction</param>
 /// <param name="rExpectedDisplacementY"> expected dusplacements in y direction</param>
 void TestNewtonRaphsonLinearElasticDynamic(double                     DeltaTime,
                                            bool                       UseIterations,
                                            bool                       CalculateInitialAcceleration,
                                            bool                       UseDirectSolver,
+                                           bool ConvergeOutside,
                                            const std::vector<double>& rExpectedDisplacementX,
                                            const std::vector<double>& rExpectedDisplacementY)
 {
@@ -192,16 +200,26 @@ void TestNewtonRaphsonLinearElasticDynamic(double                     DeltaTime,
     geo_custom_condition.SetRightHandSide(rhs);
 
     // create strategy
+    
+	bool single_iteration = false;
+    if (ConvergeOutside)
+	{
+		single_iteration = true;
+	}
+
+
     auto r_solver = NewtonRaphsonStrategyLinearElasticDynamicTester::CreateValidStrategy(
         model_part, RelativeConvergenceTolerance, AbsoluteConvergenceTolerance,
-        CalculateInitialAcceleration, UseDirectSolver);
+        CalculateInitialAcceleration, UseDirectSolver, single_iteration);
     // initialize solver
     r_solver.Initialize();
 
     std::vector<double> calculated_displacement_x;
     std::vector<double> calculated_displacement_y;
 
-    std::size_t n_steps = 12;
+    const std::size_t n_steps = 12;
+    const std::size_t max_iterations = 30;
+	std::size_t	   iteration_number = 0;
     // run test solution loop
     for (std::size_t i = 0; i < n_steps; i++) {
         double new_time = r_current_process_info[TIME] + r_current_process_info[DELTA_TIME];
@@ -212,9 +230,14 @@ void TestNewtonRaphsonLinearElasticDynamic(double                     DeltaTime,
 
         r_solver.InitializeSolutionStep();
         r_solver.Predict();
-        r_solver.SolveSolutionStep();
 
-        r_solver.SetStiffnessMatrixIsBuilt(true);
+        bool is_converged = false;  
+		while (!is_converged && iteration_number < max_iterations) {
+            is_converged = r_solver.SolveSolutionStep();
+            r_solver.SetStiffnessMatrixIsBuilt(true);
+            iteration_number++;
+		}
+
         r_solver.FinalizeSolutionStep();
 
         // store calculated results
@@ -262,9 +285,10 @@ KRATOS_TEST_CASE_IN_SUITE(NewtonRaphsonLinearElasticDynamicCalculatedInitialAcce
     bool   use_iterations                 = false;
     bool   calculate_initial_acceleration = true;
     bool   use_direct_solver              = true;
+	bool   converge_outside = false;
 
     TestNewtonRaphsonLinearElasticDynamic(delta_time, use_iterations, calculate_initial_acceleration,
-                                          use_direct_solver, expected_displacement_x, expected_displacement_y);
+                                          use_direct_solver, converge_outside, expected_displacement_x, expected_displacement_y);
 }
 
 /// <summary>
@@ -283,9 +307,10 @@ KRATOS_TEST_CASE_IN_SUITE(NewtonRaphsonLinearElasticDynamicCalculatedInitialAcce
     bool   use_iterations                 = false;
     bool   calculate_initial_acceleration = true;
     bool   use_direct_solver              = false;
+	bool   converge_outside = false;
 
     TestNewtonRaphsonLinearElasticDynamic(delta_time, use_iterations, calculate_initial_acceleration,
-                                          use_direct_solver, expected_displacement_x, expected_displacement_y);
+                                          use_direct_solver, converge_outside, expected_displacement_x, expected_displacement_y);
 }
 
 /// <summary>
@@ -304,9 +329,10 @@ KRATOS_TEST_CASE_IN_SUITE(NewtonRaphsonLinearElasticDynamicCalculatedInitialAcce
     bool   use_iterations                 = true;
     bool   calculate_initial_acceleration = true;
     bool   use_direct_solver              = true;
+	bool   converge_outside = false;
 
     TestNewtonRaphsonLinearElasticDynamic(delta_time, use_iterations, calculate_initial_acceleration,
-                                          use_direct_solver, expected_displacement_x, expected_displacement_y);
+                                          use_direct_solver, converge_outside, expected_displacement_x, expected_displacement_y);
 }
 
 /// <summary>
@@ -324,9 +350,33 @@ KRATOS_TEST_CASE_IN_SUITE(NewtonRaphsonLinearElasticDynamicZeroInitialAccelerati
     bool   use_iterations                 = false;
     bool   calculate_initial_acceleration = false;
     bool   use_direct_solver              = true;
+	bool   converge_outside = false;
 
     TestNewtonRaphsonLinearElasticDynamic(delta_time, use_iterations, calculate_initial_acceleration,
-                                          use_direct_solver, expected_displacement_x, expected_displacement_y);
+                                          use_direct_solver, converge_outside, expected_displacement_x, expected_displacement_y);
+}
+
+/// <summary>
+/// Tests NewtonRaphsonLinearElasticDynamic with a calculated initial second derivative and multiple newton raphson iterations, using an direct solver. Convergence 
+/// is checked outside the solution step. Such that SolveSolutionStep is called multiple times per solution step
+/// </summary>
+KRATOS_TEST_CASE_IN_SUITE(NewtonRaphsonLinearElasticDynamicCalculatedInitialAccelerationWithIterationsConvergenceOutside,
+    KratosGeoMechanicsFastSuite)
+{
+    // set up expected results
+    std::vector<double> expected_displacement_x = { 0.00673, 0.0505, 0.189, 0.485, 0.961, 1.58,
+                                                   2.23,    2.76,   3.0,   2.85,  2.28,  1.40 };
+    std::vector<double> expected_displacement_y = { 0.364, 1.35, 2.68, 4.00, 4.95, 5.34,
+                                                   5.13,  4.48, 3.64, 2.90, 2.44, 2.31 };
+
+    double delta_time = 0.28;
+    bool   use_iterations = true;
+    bool   calculate_initial_acceleration = true;
+    bool   use_direct_solver = true;
+    bool   converge_outside = true;
+
+    TestNewtonRaphsonLinearElasticDynamic(delta_time, use_iterations, calculate_initial_acceleration,
+        use_direct_solver, converge_outside, expected_displacement_x, expected_displacement_y);
 }
 
 } // namespace Kratos::Testing
