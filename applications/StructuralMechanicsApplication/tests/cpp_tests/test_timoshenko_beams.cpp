@@ -61,10 +61,10 @@ void Create2DBeamModel_and_CheckPK2Stress(const std::string & TimoshenkoBeamElem
         p_element->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
 
         constexpr auto induced_strain = 0.1;
-        p_element->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT) += ScalarVector(2, induced_strain * directional_length);
+        p_element->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT) += ScalarVector(3, induced_strain * directional_length);
         p_element->GetGeometry()[1].FastGetSolutionStepValue(ROTATION_Z) += 0.1;
         if constexpr(TNNodes==3) {
-            p_element->GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) += ScalarVector(2, induced_strain * directional_length/2.0);
+            p_element->GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) += ScalarVector(3, induced_strain * directional_length/2.0);
             p_element->GetGeometry()[2].FastGetSolutionStepValue(ROTATION_Z) += 0.1/2.0;
         }
 
