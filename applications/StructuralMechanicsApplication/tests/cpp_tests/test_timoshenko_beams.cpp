@@ -21,7 +21,7 @@ namespace Kratos::Testing
 {
 
 template<SizeType TNNodes>
-void Create2DBeamModel_and_CheckPK2Stress(std::string TimoshenkoBeamElementName, const std::vector<double>& rExpectedShearStress, const std::vector<double>& rExpectedBendingMoment)
+void Create2DBeamModel_and_CheckPK2Stress(const std::string & TimoshenkoBeamElementName, const std::vector<double>& rExpectedShearStress, const std::vector<double>& rExpectedBendingMoment)
     {
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
@@ -45,7 +45,7 @@ void Create2DBeamModel_and_CheckPK2Stress(std::string TimoshenkoBeamElementName,
         r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
         r_model_part.CreateNewNode(2, directional_length, directional_length, 0.0);
         std::vector<ModelPart::IndexType> element_nodes{1,2};
-        if(TNNodes==3) {
+        if constexpr (TNNodes==3) {
             r_model_part.CreateNewNode(3, directional_length/2, directional_length/2, 0.0);
             element_nodes.push_back(3);
         }
@@ -63,7 +63,7 @@ void Create2DBeamModel_and_CheckPK2Stress(std::string TimoshenkoBeamElementName,
         constexpr auto induced_strain = 0.1;
         p_element->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT) += ScalarVector(2, induced_strain * directional_length);
         p_element->GetGeometry()[1].FastGetSolutionStepValue(ROTATION_Z) += 0.1;
-        if(TNNodes==3) {
+        if constexpr(TNNodes==3) {
             p_element->GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) += ScalarVector(2, induced_strain * directional_length/2.0);
             p_element->GetGeometry()[2].FastGetSolutionStepValue(ROTATION_Z) += 0.1/2.0;
         }
