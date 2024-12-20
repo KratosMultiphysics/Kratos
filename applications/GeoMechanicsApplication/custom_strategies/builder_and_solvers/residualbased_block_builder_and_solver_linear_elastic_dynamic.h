@@ -491,10 +491,12 @@ private:
 			std::vector<array_1d<double, 3>> current_displacements = std::vector<array_1d<double, 3>>();
             std::vector<array_1d<double, 3>> current_rotations = std::vector<array_1d<double, 3>>();
 			for (std::size_t i = 0; i < r_geometry.size(); ++i) {
+				bool has_rotation_dofs = r_geometry[i].HasDofFor(ROTATION_Z);
+
 				current_displacements.push_back(r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT));
-				current_rotations.push_back(r_geometry[i].FastGetSolutionStepValue(ROTATION));
+				if (has_rotation_dofs) current_rotations.push_back(r_geometry[i].FastGetSolutionStepValue(ROTATION));
 				r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT) = ZeroVector(3);
-				r_geometry[i].FastGetSolutionStepValue(ROTATION) = ZeroVector(3);
+				if (has_rotation_dofs) r_geometry[i].FastGetSolutionStepValue(ROTATION) = ZeroVector(3);
 			}
 
 
@@ -506,11 +508,12 @@ private:
                 // assemble the elemental contribution
                 BaseType::AssembleRHS(mConstantElementForceVector, local_body_force, equation_ids);
             }
+            std::vector<array_1d<double, 3>>::iterator rotations_it = current_rotations.begin();
 
 			// reset displacement and rotation to original values
             for (std::size_t i = 0; i < r_geometry.size(); ++i) {
                 r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT) = current_displacements[i];
-				r_geometry[i].FastGetSolutionStepValue(ROTATION) = current_rotations[i];
+				if (r_geometry[i].HasDofFor(ROTATION_Z)) r_geometry[i].FastGetSolutionStepValue(ROTATION) = *rotations_it++;
             }
         };
         
