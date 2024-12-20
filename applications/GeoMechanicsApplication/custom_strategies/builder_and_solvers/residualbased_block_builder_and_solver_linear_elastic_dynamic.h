@@ -236,6 +236,7 @@ public:
     {
         KRATOS_TRY
 
+        TSparseSpace::SetToZero(rA);
         KRATOS_ERROR_IF_NOT(pScheme) << "No scheme provided!" << std::endl;
 
         this->InitializeDynamicMatrix(mMassMatrix, BaseType::mEquationSystemSize, pScheme, rModelPart);

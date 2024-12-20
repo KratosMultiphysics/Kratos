@@ -39,6 +39,23 @@ public:
     }
 
 protected:
+    inline void UpdateVariablesDerivatives(ModelPart& rModelPart) override
+    {
+        KRATOS_TRY
+
+            block_for_each(rModelPart.Nodes(), [this](Node& rNode) {
+
+            for (const auto& r_first_order_scalar_variable : this->GetFirstOrderScalarVariables()) {
+                if (rNode.IsFixed(r_first_order_scalar_variable.first_time_derivative)) continue;
+
+                rNode.FastGetSolutionStepValue(r_first_order_scalar_variable.first_time_derivative) =
+                    CalculateDerivative(r_first_order_scalar_variable.instance, rNode);
+            }
+                });
+
+        KRATOS_CATCH("")
+    }
+	
     std::string Info() const override { return "BackwardEulerQuasistaticUPwScheme"; }
 }; // Class BackwardEulerQuasistaticUPwScheme
 
