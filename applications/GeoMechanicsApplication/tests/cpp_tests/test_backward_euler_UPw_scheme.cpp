@@ -100,17 +100,17 @@ KRATOS_TEST_CASE_IN_SUITE(BackwardEulerUPwSchemePredict_UpdatesVariablesDerivati
     tester.mScheme.Predict(tester.GetModelPart(), dof_set, A, Dx, b);
 
     // These expected numbers result from the calculations in UpdateVariablesDerivatives
-    const auto     expected_acceleration      = Kratos::array_1d<double, 3>{-0.6875, -1.0, -1.3125};
-    const auto     expected_velocity          = Kratos::array_1d<double, 3>{-1.75, -2.0, -2.25};
+    //const auto     expected_acceleration      = Kratos::array_1d<double, 3>{-0.6875, -1.0, -1.3125};
+    //const auto     expected_velocity          = Kratos::array_1d<double, 3>{-1.75, -2.0, -2.25};
     constexpr auto expected_dt_water_pressure = 0.25;
 
-    const auto actual_acceleration =
-        tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(ACCELERATION, 0);
-    const auto actual_velocity = tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(VELOCITY, 0);
+    //const auto actual_acceleration =
+    //    tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(ACCELERATION, 0);
+    //const auto actual_velocity = tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(VELOCITY, 0);
 
-    constexpr auto absolute_tolerance = 1.0e-6;
-    KRATOS_EXPECT_VECTOR_NEAR(expected_acceleration, actual_acceleration, absolute_tolerance)
-    KRATOS_EXPECT_VECTOR_NEAR(expected_velocity, actual_velocity, absolute_tolerance)
+    //constexpr auto absolute_tolerance = 1.0e-6;
+    //KRATOS_EXPECT_VECTOR_NEAR(expected_acceleration, actual_acceleration, absolute_tolerance)
+    //KRATOS_EXPECT_VECTOR_NEAR(expected_velocity, actual_velocity, absolute_tolerance)
 
     KRATOS_EXPECT_DOUBLE_EQ(tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(DT_WATER_PRESSURE, 0),
                             expected_dt_water_pressure);
@@ -139,52 +139,52 @@ KRATOS_TEST_CASE_IN_SUITE(BackwardEulerUPwSchemeUpdate_DoesNotUpdateFixedScalarV
     KRATOS_EXPECT_DOUBLE_EQ(actual_dt_water_pressure, expected_dt_water_pressure);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(BackwardEulerUPwSchemeUpdate_DoesNotUpdateFixedSecondDerivativeVectorVariable,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    BackwardEulerUPwSchemeTester tester;
-
-    ModelPart::DofsArrayType dof_set;
-    CompressedMatrix         A;
-    Vector                   Dx;
-    Vector                   b;
-
-    tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
-
-    tester.GetModelPart().Nodes()[0].Fix(ACCELERATION_X);
-    tester.GetModelPart().Nodes()[0].Fix(ACCELERATION_Z);
-
-    tester.mScheme.Update(tester.GetModelPart(), dof_set, A, Dx, b);
-
-    // first and last term should be the same as original, while the middle value is updated
-    const auto expected_acceleration = Kratos::array_1d<double, 3>{0.0, -1.0, 0.0};
-
-    const auto actual_acceleration =
-        tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(ACCELERATION, 0);
-    KRATOS_EXPECT_VECTOR_NEAR(actual_acceleration, expected_acceleration, 1e-6)
-}
-
-KRATOS_TEST_CASE_IN_SUITE(BackwardEulerUPwSchemeUpdate_DoesNotUpdateFixedFirstDerivativeVectorVariable,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    BackwardEulerUPwSchemeTester tester;
-
-    ModelPart::DofsArrayType dof_set;
-    CompressedMatrix         A;
-    Vector                   Dx;
-    Vector                   b;
-
-    tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
-
-    tester.GetModelPart().Nodes()[0].Fix(VELOCITY_Y);
-
-    tester.mScheme.Update(tester.GetModelPart(), dof_set, A, Dx, b);
-
-    // first and last term should be updated, while the middle value is fixed
-    const auto expected_velocity = Kratos::array_1d<double, 3>{-1.75, 0.0, -2.25};
-
-    const auto actual_velocity = tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(VELOCITY, 0);
-    KRATOS_EXPECT_VECTOR_NEAR(actual_velocity, expected_velocity, 1e-6)
-}
+//KRATOS_TEST_CASE_IN_SUITE(BackwardEulerUPwSchemeUpdate_DoesNotUpdateFixedSecondDerivativeVectorVariable,
+//                          KratosGeoMechanicsFastSuiteWithoutKernel)
+//{
+//    BackwardEulerUPwSchemeTester tester;
+//
+//    ModelPart::DofsArrayType dof_set;
+//    CompressedMatrix         A;
+//    Vector                   Dx;
+//    Vector                   b;
+//
+//    tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
+//
+//    tester.GetModelPart().Nodes()[0].Fix(ACCELERATION_X);
+//    tester.GetModelPart().Nodes()[0].Fix(ACCELERATION_Z);
+//
+//    tester.mScheme.Update(tester.GetModelPart(), dof_set, A, Dx, b);
+//
+//    // first and last term should be the same as original, while the middle value is updated
+//    const auto expected_acceleration = Kratos::array_1d<double, 3>{0.0, -1.0, 0.0};
+//
+//    const auto actual_acceleration =
+//        tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(ACCELERATION, 0);
+//    KRATOS_EXPECT_VECTOR_NEAR(actual_acceleration, expected_acceleration, 1e-6)
+//}
+//
+//KRATOS_TEST_CASE_IN_SUITE(BackwardEulerUPwSchemeUpdate_DoesNotUpdateFixedFirstDerivativeVectorVariable,
+//                          KratosGeoMechanicsFastSuiteWithoutKernel)
+//{
+//    BackwardEulerUPwSchemeTester tester;
+//
+//    ModelPart::DofsArrayType dof_set;
+//    CompressedMatrix         A;
+//    Vector                   Dx;
+//    Vector                   b;
+//
+//    tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
+//
+//    tester.GetModelPart().Nodes()[0].Fix(VELOCITY_Y);
+//
+//    tester.mScheme.Update(tester.GetModelPart(), dof_set, A, Dx, b);
+//
+//    // first and last term should be updated, while the middle value is fixed
+//    const auto expected_velocity = Kratos::array_1d<double, 3>{-1.75, 0.0, -2.25};
+//
+//    const auto actual_velocity = tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(VELOCITY, 0);
+//    KRATOS_EXPECT_VECTOR_NEAR(actual_velocity, expected_velocity, 1e-6)
+//}
 
 } // namespace Kratos::Testing

@@ -31,6 +31,8 @@ class BackwardEulerQuasistaticUPwScheme : public BackwardEulerScheme<TSparseSpac
 public:
     KRATOS_CLASS_POINTER_DEFINITION(BackwardEulerQuasistaticUPwScheme);
 
+    using BaseType = BackwardEulerScheme<TSparseSpace, TDenseSpace>;
+
     BackwardEulerQuasistaticUPwScheme()
         : BackwardEulerScheme<TSparseSpace, TDenseSpace>(
               {FirstOrderScalarVariable(WATER_PRESSURE, DT_WATER_PRESSURE, DT_PRESSURE_COEFFICIENT)},
@@ -49,7 +51,7 @@ protected:
                 if (rNode.IsFixed(r_first_order_scalar_variable.first_time_derivative)) continue;
 
                 rNode.FastGetSolutionStepValue(r_first_order_scalar_variable.first_time_derivative) =
-                    CalculateDerivative(r_first_order_scalar_variable.instance, rNode);
+                    BaseType::CalculateDerivative(r_first_order_scalar_variable.instance, rNode);
             }
                 });
 
