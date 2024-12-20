@@ -25,9 +25,7 @@
           "K0_MAIN_DIRECTION": 1,
           "K0_NC": 0.6,
           "RETENTION_LAW": "SaturatedLaw",
-          "RESIDUAL_SATURATION": 0.06203,
-          "SATURATED_SATURATION": 1.0,
-          "MINIMUM_RELATIVE_PERMEABILITY": 0.0001
+          "SATURATED_SATURATION": 1.0
         }
       }
     }
