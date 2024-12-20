@@ -10,9 +10,9 @@
 //  Main authors:    Richard Faasse
 //
 #include "custom_utilities/node_utilities.h"
+#include "geo_mechanics_fast_suite.h"
 #include "includes/node.h"
 #include "includes/variables.h"
-#include "testing/testing.h"
 
 using namespace Kratos;
 
@@ -34,7 +34,7 @@ void AddAcceleration(Node& rNode)
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(NodeUtilities_DoesNotUpdateFixedComponent, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(NodeUtilities_DoesNotUpdateFixedComponent, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Node node(1, 0.0, 0.0, 0.0);
     AddAcceleration(node);
@@ -49,7 +49,8 @@ KRATOS_TEST_CASE_IN_SUITE(NodeUtilities_DoesNotUpdateFixedComponent, KratosGeoMe
     KRATOS_EXPECT_VECTOR_NEAR(expected_vector, node.FastGetSolutionStepValue(ACCELERATION, 0), 1e-12)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NodeUtilities_DoesNotUpdateAnythingWhenAllComponentsAreFixed, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(NodeUtilities_DoesNotUpdateAnythingWhenAllComponentsAreFixed,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Node node(1, 0.0, 0.0, 0.0);
     AddAcceleration(node);
@@ -65,7 +66,7 @@ KRATOS_TEST_CASE_IN_SUITE(NodeUtilities_DoesNotUpdateAnythingWhenAllComponentsAr
     KRATOS_EXPECT_VECTOR_NEAR(expected_vector, node.FastGetSolutionStepValue(ACCELERATION, 0), 1e-12)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NodeUtilities_UpdatesEverythingWhenNoComponentIsFixed, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(NodeUtilities_UpdatesEverythingWhenNoComponentIsFixed, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Node node(1, 0.0, 0.0, 0.0);
     AddAcceleration(node);

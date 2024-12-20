@@ -11,8 +11,8 @@
 //
 
 #include "custom_strategies/schemes/newmark_quasistatic_Pw_scheme.hpp"
+#include "geo_mechanics_fast_suite.h"
 #include "spaces/ublas_space.h"
-#include "testing/testing.h"
 
 using namespace Kratos;
 using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
@@ -36,7 +36,7 @@ ModelPart& CreateValidModelPart(Model& rModel)
 }
 } // namespace
 
-KRATOS_TEST_CASE_IN_SUITE(CheckNewmarkPwScheme_WithAllNecessaryParts_Returns0, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CheckNewmarkPwScheme_WithAllNecessaryParts_Returns0, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model            model;
     constexpr double theta = 0.75;
@@ -47,7 +47,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckNewmarkPwScheme_WithAllNecessaryParts_Returns0, K
     KRATOS_EXPECT_EQ(scheme.Check(model_part), 0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ForMissingNodalDof_CheckNewmarkPwScheme_Throws, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ForMissingNodalDof_CheckNewmarkPwScheme_Throws, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     constexpr double theta = 0.75;
 
@@ -64,7 +64,7 @@ KRATOS_TEST_CASE_IN_SUITE(ForMissingNodalDof_CheckNewmarkPwScheme_Throws, Kratos
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ForMissingDtWaterPressureSolutionStepVariable_CheckNewmarkPwScheme_Throws,
-                          KratosGeoMechanicsFastSuite)
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     constexpr double theta = 0.75;
 
@@ -80,7 +80,8 @@ KRATOS_TEST_CASE_IN_SUITE(ForMissingDtWaterPressureSolutionStepVariable_CheckNew
                                       "DT_WATER_PRESSURE variable is not allocated for node 0")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ForMissingWaterPressureSolutionStepVariable_CheckNewmarkPwScheme_Throws, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ForMissingWaterPressureSolutionStepVariable_CheckNewmarkPwScheme_Throws,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     constexpr double theta = 0.75;
 
@@ -94,7 +95,7 @@ KRATOS_TEST_CASE_IN_SUITE(ForMissingWaterPressureSolutionStepVariable_CheckNewma
                                       "WATER_PRESSURE variable is not allocated for node 0")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NewmarkPwSchemeUpdate_SetsDtPressure, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(NewmarkPwSchemeUpdate_SetsDtPressure, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     constexpr double theta = 0.75;
 
@@ -126,7 +127,7 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkPwSchemeUpdate_SetsDtPressure, KratosGeoMechani
     KRATOS_EXPECT_DOUBLE_EQ(node.FastGetSolutionStepValue(DT_WATER_PRESSURE, 0), 7.0 / 3.0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InitializeNewmarkPwScheme_SetsTimeFactors, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(InitializeNewmarkPwScheme_SetsTimeFactors, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     constexpr double theta = 0.75;
 

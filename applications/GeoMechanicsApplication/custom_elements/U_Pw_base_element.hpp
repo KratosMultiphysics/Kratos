@@ -138,8 +138,9 @@ public:
 
     std::string Info() const override
     {
-        return "U-Pw Base class Element #" + std::to_string(Id()) +
-               "\nConstitutive law: " + mConstitutiveLawVector[0]->Info();
+        const std::string constitutive_info =
+            !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
+        return "U-Pw Base class Element #" + std::to_string(Id()) + "\nConstitutive law: " + constitutive_info;
     }
 
     void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
@@ -163,8 +164,6 @@ protected:
                               bool               CalculateStiffnessMatrixFlag,
                               bool               CalculateResidualVectorFlag);
 
-    double CalculateIntegrationCoefficient(const GeometryType::IntegrationPointType& rIntegrationPoint,
-                                           double detJ) const;
     std::vector<double> CalculateIntegrationCoefficients(const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
                                                          const Vector& rDetJs) const;
 
@@ -178,7 +177,7 @@ protected:
     StressStatePolicy& GetStressStatePolicy() const;
 
 private:
-    [[nodiscard]] DofsVectorType GetDofs() const;
+    [[nodiscard]] virtual DofsVectorType GetDofs() const;
 
     friend class Serializer;
 

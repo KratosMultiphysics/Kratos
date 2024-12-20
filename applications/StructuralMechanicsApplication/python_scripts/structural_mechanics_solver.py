@@ -93,17 +93,21 @@ class MechanicalSolver(PythonSolver):
                 raise Exception('Please specify a "domain_size" >= 0!')
             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
 
+        # Set the Orthogonal SubScales (OSS) switch
+        # Note that this needs to be done before the scheme initialize in order to allocate the projection variables
+        self.main_model_part.ProcessInfo[KratosMultiphysics.OSS_SWITCH] = self.settings["use_orthogonal_subscales"].GetBool()
+
         # Some variables initialization
         self.mpc_block_builder_initialized = False
-
-        # Printing message
-        KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Construction finished")
 
         # Set if the analysis is restarted
         if self.settings["model_import_settings"]["input_type"].GetString() == "rest":
             self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = True
         else:
             self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
+
+        # Printing message
+        KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Construction finished")
 
     @classmethod
     def GetDefaultParameters(cls):
@@ -128,6 +132,7 @@ class MechanicalSolver(PythonSolver):
             "displacement_control": false,
             "reform_dofs_at_each_step": false,
             "use_old_stiffness_in_first_iteration": false,
+            "use_orthogonal_subscales" : false,
             "compute_reactions": true,
             "solving_strategy_settings": {
                 "type" : "newton_raphson",
@@ -185,6 +190,12 @@ class MechanicalSolver(PythonSolver):
             # Add specific variables for the problem (rotation dofs).
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUMETRIC_STRAIN)
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_STRAIN)
+            #TODO: These are not required in the standard ASGS case
+            #TODO: We can get rid of this overhead once we move to the specification-based variables and DOFs addition
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT_PROJECTION)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUMETRIC_STRAIN_PROJECTION)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT_PROJECTION_REACTION)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUMETRIC_STRAIN_PROJECTION_REACTION)
         if self.settings["displacement_control"].GetBool():
             # Add displacement-control variables
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.LOAD_FACTOR)
@@ -208,6 +219,12 @@ class MechanicalSolver(PythonSolver):
             dofs_and_reactions_to_add.append(["ROTATION_Z", "REACTION_MOMENT_Z"])
         if self.settings["volumetric_strain_dofs"].GetBool():
             dofs_and_reactions_to_add.append(["VOLUMETRIC_STRAIN", "REACTION_STRAIN"])
+            #TODO: These are only required in the nonlinear OSS case so we are adding them for nothing in the linearised OSS and ASGS
+            #TODO: We can get rid of this overhead once we move to the specification-based variables and DOFs addition
+            dofs_and_reactions_to_add.append(["DISPLACEMENT_PROJECTION_X", "DISPLACEMENT_PROJECTION_REACTION_X"])
+            dofs_and_reactions_to_add.append(["DISPLACEMENT_PROJECTION_Y", "DISPLACEMENT_PROJECTION_REACTION_Y"])
+            dofs_and_reactions_to_add.append(["DISPLACEMENT_PROJECTION_Z", "DISPLACEMENT_PROJECTION_REACTION_Z"])
+            dofs_and_reactions_to_add.append(["VOLUMETRIC_STRAIN_PROJECTION", "VOLUMETRIC_STRAIN_PROJECTION_REACTION"])
         if self.settings["displacement_control"].GetBool():
             dofs_and_reactions_to_add.append(["LOAD_FACTOR", "PRESCRIBED_DISPLACEMENT"])
 
@@ -241,7 +258,7 @@ class MechanicalSolver(PythonSolver):
     def Initialize(self):
         """Perform initialization after adding nodal variables and dofs to the main model part. """
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Initializing ...")
-        
+
         # The mechanical solution strategy is created here if it does not already exist.
         if self.settings["clear_storage"].GetBool():
             self.Clear()

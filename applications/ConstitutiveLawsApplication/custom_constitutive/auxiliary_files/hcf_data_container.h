@@ -38,7 +38,7 @@ namespace Kratos
  * @details Give access to methods and restores all member variables in fatigue simulations
  * @author Alireza Taherzadeh-Fard, Alejandro Cornejo
  */
-class HCFDataContainer
+class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) HCFDataContainer
 {
 public:
 

@@ -12,8 +12,8 @@
 
 #include "containers/model.h"
 #include "custom_elements/plane_strain_stress_state.h"
+#include "geo_mechanics_fast_suite.h"
 #include "includes/checks.h"
-#include "testing/testing.h"
 #include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
 #include <boost/numeric/ublas/assignment.hpp>
 
@@ -22,12 +22,9 @@ using namespace Kratos;
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateBMatrixGivesCorrectResults, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CalculateBMatrixGivesCorrectResults, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto p_stress_state_policy = std::make_unique<PlaneStrainStressState>();
-
-    Model model;
-    auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(model);
 
     Vector Np(3);
     Np <<= 1.0, 2.0, 3.0;
@@ -39,8 +36,8 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBMatrixGivesCorrectResults, KratosGeoMechanic
                 5.0, 6.0;
     // clang-format on
 
-    const auto calculated_matrix =
-        p_stress_state_policy->CalculateBMatrix(GradNpT, Np, r_model_part.GetElement(1).GetGeometry());
+    const auto calculated_matrix = p_stress_state_policy->CalculateBMatrix(
+        GradNpT, Np, ModelSetupUtilities::Create2D3NTriangleGeometry());
 
     // clang-format off
     Matrix expected_matrix(4, 6);
@@ -53,26 +50,23 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBMatrixGivesCorrectResults, KratosGeoMechanic
     KRATOS_CHECK_MATRIX_NEAR(calculated_matrix, expected_matrix, 1e-12)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_ReturnsCorrectIntegrationCoefficient, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_ReturnsCorrectIntegrationCoefficient, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto p_stress_state_policy = std::make_unique<PlaneStrainStressState>();
-
-    Model model;
-    auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(model);
 
     // The shape function values for this integration point are 0.2, 0.5 and 0.3 for nodes 1, 2 and 3 respectively
     Geometry<Node>::IntegrationPointType integration_point(0.5, 0.3, 0.0, 0.5);
 
     const auto detJ                   = 2.0;
     const auto calculated_coefficient = p_stress_state_policy->CalculateIntegrationCoefficient(
-        integration_point, detJ, r_model_part.GetElement(1).GetGeometry());
+        integration_point, detJ, ModelSetupUtilities::Create2D3NTriangleGeometry());
 
     // The expected number is calculated as follows:
     // 2.0 (detJ) * 0.5 (weight) = 1.0
     KRATOS_EXPECT_NEAR(calculated_coefficient, 1.0, 1e-5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_ReturnsCorrectGreenLagrangeStrain, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_ReturnsCorrectGreenLagrangeStrain, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto p_stress_state_policy = std::make_unique<PlaneStrainStressState>();
 
@@ -92,7 +86,7 @@ KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_ReturnsCorrectGreenLagrangeStra
     KRATOS_CHECK_VECTOR_NEAR(calculated_strain, expected_vector, 1e-12)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_GivesCorrectClone, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_GivesCorrectClone, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const std::unique_ptr<StressStatePolicy> p_stress_state_policy =
         std::make_unique<PlaneStrainStressState>();
@@ -101,7 +95,7 @@ KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_GivesCorrectClone, KratosGeoMec
     KRATOS_EXPECT_NE(dynamic_cast<PlaneStrainStressState*>(p_clone.get()), nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_GivesCorrectVoigtVector, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_GivesCorrectVoigtVector, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const std::unique_ptr<StressStatePolicy> p_stress_state_policy =
         std::make_unique<PlaneStrainStressState>();
@@ -112,14 +106,14 @@ KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_GivesCorrectVoigtVector, Kratos
     KRATOS_EXPECT_VECTOR_NEAR(voigt_vector, expected_voigt_vector, 1.E-10)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_GivesCorrectVoigtSize, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_GivesCorrectVoigtSize, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const std::unique_ptr<StressStatePolicy> p_stress_state_policy =
         std::make_unique<PlaneStrainStressState>();
     KRATOS_EXPECT_EQ(p_stress_state_policy->GetVoigtSize(), VOIGT_SIZE_2D_PLANE_STRAIN);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_GivesCorrectStressTensorSize, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_GivesCorrectStressTensorSize, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const std::unique_ptr<StressStatePolicy> p_stress_state_policy =
         std::make_unique<PlaneStrainStressState>();

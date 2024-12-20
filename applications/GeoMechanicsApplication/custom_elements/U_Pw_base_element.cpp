@@ -15,6 +15,7 @@
 #include "custom_elements/U_Pw_base_element.hpp"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/equation_of_motion_utilities.h"
+#include "utilities/geometry_utilities.h"
 
 namespace Kratos
 {
@@ -435,20 +436,13 @@ void UPwBaseElement::CalculateAll(MatrixType&        rLeftHandSideMatrix,
     KRATOS_CATCH("")
 }
 
-double UPwBaseElement::CalculateIntegrationCoefficient(const GeometryType::IntegrationPointType& rIntegrationPoint,
-                                                       double detJ) const
-
-{
-    return mpStressStatePolicy->CalculateIntegrationCoefficient(rIntegrationPoint, detJ, GetGeometry());
-}
-
 std::vector<double> UPwBaseElement::CalculateIntegrationCoefficients(
     const GeometryType::IntegrationPointsArrayType& rIntegrationPoints, const Vector& rDetJs) const
 {
     auto result = std::vector<double>{};
     std::transform(rIntegrationPoints.begin(), rIntegrationPoints.end(), rDetJs.begin(),
                    std::back_inserter(result), [this](const auto& rIntegrationPoint, const auto& rDetJ) {
-        return this->CalculateIntegrationCoefficient(rIntegrationPoint, rDetJ);
+        return mpStressStatePolicy->CalculateIntegrationCoefficient(rIntegrationPoint, rDetJ, GetGeometry());
     });
     return result;
 }

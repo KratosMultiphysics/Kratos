@@ -25,7 +25,7 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-class ControlUtils
+class KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) ControlUtils
 {
 public:
     ///@name Public static operations

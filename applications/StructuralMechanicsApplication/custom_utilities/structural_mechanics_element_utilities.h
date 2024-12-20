@@ -10,6 +10,7 @@
 //                   Vicente Mataix Ferrandiz
 //                   Riccardo Rossi
 //                   Ruben Zorrilla
+//                   Alejandro Cornejo
 //
 
 #pragma once
@@ -51,7 +52,7 @@ typedef Geometry<NodeType> GeometryType;
  * @param rCurrentProcessInfo The current process info instance
  * @param rConstitutiveLaws The vector containing CL
  */
-int SolidElementCheck(
+int KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SolidElementCheck(
     const Element& rElement,
     const ProcessInfo& rCurrentProcessInfo,
     const std::vector<ConstitutiveLaw::Pointer>& rConstitutiveLaws
@@ -144,7 +145,7 @@ void CalculateB(
  * @param rIntegrationPoints The integrations points
  * @param PointNumber The integration point number
  */
-array_1d<double, 3> GetBodyForce(
+array_1d<double, 3> KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GetBodyForce(
     const Element& rElement,
     const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
     const IndexType PointNumber
@@ -166,7 +167,7 @@ bool KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ComputeLumpedMassMatrix(
  * @param rCurrentProcessInfo The ProcessInfo where it is specified
  * @return whether rayleigh-damping was specified
  */
-bool HasRayleighDamping(
+bool KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) HasRayleighDamping(
     const Properties& rProperties,
     const ProcessInfo& rCurrentProcessInfo);
 
@@ -176,7 +177,7 @@ bool HasRayleighDamping(
  * @param rCurrentProcessInfo The ProcessInfo where it is specified
  * @return rayleigh-alpha
  */
-double GetRayleighAlpha(
+double KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GetRayleighAlpha(
     const Properties& rProperties,
     const ProcessInfo& rCurrentProcessInfo);
 
@@ -186,7 +187,7 @@ double GetRayleighAlpha(
  * @param rCurrentProcessInfo The ProcessInfo where it is specified
  * @return rayleigh-beta
  */
-double GetRayleighBeta(
+double KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GetRayleighBeta(
     const Properties& rProperties,
     const ProcessInfo& rCurrentProcessInfo);
 
@@ -242,7 +243,7 @@ double KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) CalculateCurrentLength3D2N(c
  * @brief This function checks the norm of the vectors
  * @param rvi The vector of which norm has to be different from null
  */
-void InitialCheckLocalAxes(
+void KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) InitialCheckLocalAxes(
     const array_1d<double, 3>& rv1,
     const array_1d<double, 3>& rv2,
     const array_1d<double, 3>& rv3,
@@ -252,7 +253,7 @@ void InitialCheckLocalAxes(
  * @brief This function fills a rotation matrix from a set of vectors
  * @param rRotationMatrix The rotation matrix from global to local axes
  */
-void BuildRotationMatrix(
+void KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) BuildRotationMatrix(
     BoundedMatrix<double, 3, 3>& rRotationMatrix,
     const array_1d<double, 3>& rv1,
     const array_1d<double, 3>& rv2,
@@ -263,7 +264,7 @@ void BuildRotationMatrix(
  * @param rRotationMatrix The rotation matrix from local to global axes
  * It assumes 3 dofs per node: u,v,theta
  */
-void BuildRotationMatrixFor2D2NBeam(
+void BuildRotationMatrixForBeam(
     BoundedMatrix<double, 3, 3>& rRotationMatrix,
     const double AlphaAngle);
 
@@ -275,6 +276,59 @@ void BuildRotationMatrixFor2D2NBeam(
 void BuildElementSizeRotationMatrixFor2D2NBeam(
     const BoundedMatrix<double, 3, 3>& rRotationMatrix,
     BoundedMatrix<double, 6, 6>& rElementSizeRotationMatrix);
+
+/**
+ * @brief This function fills an element size rotation matrix a local rotation matrix
+ * @param rRotationMatrix The rotation matrix from local to global axes
+ * It assumes 3 dofs per node: u,v,theta
+ */
+void BuildElementSizeRotationMatrixFor2D3NBeam(
+    const BoundedMatrix<double, 3, 3>& rRotationMatrix,
+    BoundedMatrix<double, 9, 9>& rElementSizeRotationMatrix);
+
+/**
+ * @param rRotationMatrix The rotation matrix from local to global axes
+ * It assumes 2 dofs per node: u,v
+ */
+void BuildRotationMatrixForTruss(
+    BoundedMatrix<double, 2, 2>& rRotationMatrix,
+    const double AlphaAngle);
+
+/**
+ * @brief This function fills an element size rotation matrix a local rotation matrix
+ * @param rRotationMatrix The rotation matrix from local to global axes
+ * It assumes 2 dofs per node: u,v
+ */
+void BuildElementSizeRotationMatrixFor2D2NTruss(
+    const BoundedMatrix<double, 2, 2>& rRotationMatrix,
+    BoundedMatrix<double, 4, 4>& rElementSizeRotationMatrix);
+
+/**
+ * @brief This function fills an element size rotation matrix a local rotation matrix
+ * @param rRotationMatrix The rotation matrix from local to global axes
+ * It assumes 2 dofs per node: u,v
+ */
+void BuildElementSizeRotationMatrixFor2D3NTruss(
+    const BoundedMatrix<double, 2, 2>& rRotationMatrix,
+    BoundedMatrix<double, 6, 6>& rElementSizeRotationMatrix);
+
+/**
+ * @brief This function fills an element size rotation matrix a local rotation matrix
+ * @param rRotationMatrix The rotation matrix from local to global axes
+ * It assumes 2 dofs per node: u,v
+ */
+void BuildElementSizeRotationMatrixFor3D2NTruss(
+    const BoundedMatrix<double, 3, 3>& rRotationMatrix,
+    BoundedMatrix<double, 6, 6>& rElementSizeRotationMatrix);
+
+/**
+ * @brief This function fills an element size rotation matrix a local rotation matrix
+ * @param rRotationMatrix The rotation matrix from local to global axes
+ * It assumes 2 dofs per node: u,v
+ */
+void BuildElementSizeRotationMatrixFor3D3NTruss(
+    const BoundedMatrix<double, 3, 3>& rRotationMatrix,
+    BoundedMatrix<double, 9, 9>& rElementSizeRotationMatrix);
 
 /**
  * @brief This function computes the inclination angle of a 2 noded beam
@@ -294,7 +348,7 @@ double GetReferenceRotationAngle2D3NBeam(const GeometryType &rGeometry);
  * @brief This function computes the shear psi factor
  * @param rValues The constitutive law parameters
  */
-double CalculatePhi(const Properties& rProperties, const double L);
+KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) double CalculatePhi(const Properties& rProperties, const double L);
 
 } // namespace StructuralMechanicsElementUtilities.
 }  // namespace Kratos.

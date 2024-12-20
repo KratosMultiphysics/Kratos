@@ -64,7 +64,7 @@ KRATOS_TEST_CASE_IN_SUITE(PointerVectorSetInsert1, KratosCoreFastSuite)
 
     auto itr = test_container.begin();
     for (; itr != test_container.end() - 1; ++itr) {
-        KRATOS_EXPECT_TRUE(&*(itr) - &*(itr + 1) < 0);
+        KRATOS_EXPECT_TRUE(&*(itr) < &*(itr + 1));
     }
 }
 
@@ -184,7 +184,7 @@ KRATOS_TEST_CASE_IN_SUITE(PointerVectorSetInsert5, KratosCoreFastSuite)
     KRATOS_EXPECT_EQ(test_container.size(), 4);
     auto itr = test_container.begin();
     for (; itr != test_container.end() - 1; ++itr) {
-        KRATOS_EXPECT_TRUE(&*(itr) - &*(itr + 1) < 0);
+        KRATOS_EXPECT_TRUE(&*(itr) < &*(itr + 1));
     }
 
     tmp.clear();
@@ -201,7 +201,7 @@ KRATOS_TEST_CASE_IN_SUITE(PointerVectorSetInsert5, KratosCoreFastSuite)
     KRATOS_EXPECT_EQ(test_container.size(), 8);
     itr = test_container.begin();
     for (; itr != test_container.end() - 1; ++itr) {
-        KRATOS_EXPECT_TRUE(&*(itr) - &*(itr + 1) < 0);
+        KRATOS_EXPECT_TRUE(&*(itr) < &*(itr + 1));
     }
 }
 
@@ -416,6 +416,31 @@ KRATOS_TEST_CASE_IN_SUITE(PointerVectorSetInsert8, KratosCoreFastSuite)
     KRATOS_EXPECT_EQ(&*(itr++), &*elements[39]);
     KRATOS_EXPECT_EQ(&*(itr++), &*elements[45]);
     KRATOS_EXPECT_EQ(&*(itr++), &*elements[48]);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TestPointerVectorSetInsert9, KratosCoreFastSuite)
+{
+    PointerVectorSet<Element, IndexedObject, std::less<IndexType>, std::equal_to<IndexType>, std::shared_ptr<Element>> test_container;
+
+    std::vector<std::shared_ptr<Element>> elements;
+    for (IndexType i = 0; i < 50; ++i) {
+        elements.push_back(Kratos::make_shared<Element>(i + 1));
+    }
+
+    std::vector<std::shared_ptr<Element>> tmp;
+    tmp.push_back(elements[2]);
+    tmp.push_back(elements[1]);
+    tmp.push_back(elements[28]);
+    tmp.push_back(elements[25]);
+    tmp.push_back(elements[28]);
+    test_container.insert(tmp.begin(), tmp.end());
+
+    KRATOS_EXPECT_EQ(test_container.size(), 4);
+    auto itr = test_container.begin();
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[1]);
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[2]);
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[25]);
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[28]);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TestPointerVectorSet, KratosCoreFastSuite)

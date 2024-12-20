@@ -453,7 +453,7 @@ private:
 
     void save(Serializer &rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType)
         rSerializer.save("FatigueReductionFactor", mFatigueReductionFactor);
         rSerializer.save("PreviousStresses", mPreviousStresses);
         rSerializer.save("MaxStress", mMaxStress);
@@ -478,7 +478,7 @@ private:
 
     void load(Serializer &rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType)
         rSerializer.load("FatigueReductionFactor", mFatigueReductionFactor);
         rSerializer.load("PreviousStresses", mPreviousStresses);
         rSerializer.load("MaxStress", mMaxStress);

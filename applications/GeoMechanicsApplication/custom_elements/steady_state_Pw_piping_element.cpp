@@ -13,12 +13,13 @@
 // Application includes
 #include "custom_elements/steady_state_Pw_piping_element.hpp"
 #include "custom_utilities/element_utilities.hpp"
+#include "custom_utilities/transport_equation_utilities.hpp"
 #include "utilities/math_utils.h"
+
 #include <cmath>
 
 namespace Kratos
 {
-
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer SteadyStatePwPipingElement<TDim, TNumNodes>::Create(IndexType NewId,
                                                                      NodesArrayType const& ThisNodes,
@@ -28,7 +29,6 @@ Element::Pointer SteadyStatePwPipingElement<TDim, TNumNodes>::Create(IndexType N
         NewId, this->GetGeometry().Create(ThisNodes), pProperties, this->GetStressStatePolicy().Clone()));
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer SteadyStatePwPipingElement<TDim, TNumNodes>::Create(IndexType             NewId,
                                                                      GeometryType::Pointer pGeom,
@@ -82,6 +82,12 @@ int SteadyStatePwPipingElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurre
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
+std::string SteadyStatePwPipingElement<TDim, TNumNodes>::Info() const
+{
+    return "SteadyStatePwPipingElement";
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
 void SteadyStatePwPipingElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -131,7 +137,6 @@ void SteadyStatePwPipingElement<3, 8>::CalculateLength(const GeometryType& Geom)
                  << std::endl;
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     const Variable<bool>& rVariable, std::vector<bool>& rValues, const ProcessInfo& rCurrentProcessInfo)
@@ -174,7 +179,6 @@ void SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHandSideMatrix,
                                                                VectorType& rRightHandSideVector,
@@ -277,23 +281,6 @@ double SteadyStatePwPipingElement<3, 8>::CalculateHeadGradient(const PropertiesT
 }
 
 /// <summary>
-///  Calculate the particle diameter for the particles in the pipe. The particle diameter equals d70,
-/// when the unmodified sellmeijer piping rule is used.
-/// </summary>
-/// <param name="Prop"></param>
-/// <param name="Geom"></param>
-/// <returns></returns>
-template <unsigned int TDim, unsigned int TNumNodes>
-double SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateParticleDiameter(const PropertiesType& Prop)
-{
-    double diameter;
-
-    if (Prop[PIPE_MODIFIED_D]) diameter = 2.08e-4 * pow((Prop[PIPE_D_70] / 2.08e-4), 0.4);
-    else diameter = Prop[PIPE_D_70];
-    return diameter;
-}
-
-/// <summary>
 /// Calculates the equilibrium pipe height of a piping element according to Sellmeijers rule
 /// </summary>
 /// <param name="Prop"></param>
@@ -314,7 +301,7 @@ double SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateEquilibriumPipeHeig
     double dhdx = CalculateHeadGradient(Prop, Geom, pipe_length);
 
     // calculate particle diameter
-    double particle_d = CalculateParticleDiameter(Prop);
+    double particle_d = GeoTransportEquationUtilities::CalculateParticleDiameter(Prop);
 
     // todo calculate slope of pipe, currently pipe is assumed to be horizontal
     const double pipeSlope = 0;
@@ -344,5 +331,4 @@ bool SteadyStatePwPipingElement<TDim, TNumNodes>::InEquilibrium(const Properties
 template class SteadyStatePwPipingElement<2, 4>;
 template class SteadyStatePwPipingElement<3, 6>;
 template class SteadyStatePwPipingElement<3, 8>;
-
 } // Namespace Kratos
