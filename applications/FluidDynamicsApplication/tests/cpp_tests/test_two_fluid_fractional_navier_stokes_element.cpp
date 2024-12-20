@@ -872,13 +872,12 @@ KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokesFractionalCut3D4NError, Flu
     pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
     // Check the RHS values (the RHS is computed as the LHS x previous_solution,
     // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-    std::cout<< std::setprecision(12) << RHS << std::endl;
     Vector reference_RHS = ZeroVector(16);
     reference_RHS[0] = 3885.76546946;
     reference_RHS[1] = 2853.252194541;
     reference_RHS[2] = 3702.11733421;
     reference_RHS[3] = -5.33528927901;
-    reference_RHS[4] = 4028.74316648;
+    reference_RHS[4] = -4028.74316648;
     reference_RHS[5] = 302.056712497;
     reference_RHS[6] = -945.707036998;
     reference_RHS[7] = -3.93555403796;

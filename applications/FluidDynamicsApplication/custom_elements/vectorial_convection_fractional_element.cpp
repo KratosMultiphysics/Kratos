@@ -176,10 +176,9 @@ namespace Kratos
         const double dt = rData.DeltaTime;
         const double bdf0 = rData.bdf0;
         const double dyn_tau = rData.DynamicTau;
-        const auto vfrac = rData.Velocity_Fractional;
-        const auto vn = rData.Velocity_OldStep1;
-        const auto vmesh = rData.MeshVelocity;
-        const auto vconv = vfrac-vmesh;
+        const auto &vfrac = rData.Velocity_Fractional;
+        const auto &vmesh = rData.MeshVelocity;
+        const auto &vconv = vfrac-vmesh;
 
         // Get shape function values
         const auto &N = rData.N;
@@ -273,10 +272,9 @@ lhs(5,5)=clhs29;
         const double bdf0 = rData.bdf0;
 
         const double dyn_tau = rData.DynamicTau;
-        const auto vn = rData.Velocity_OldStep1;
-        const auto vfrac = rData.Velocity_Fractional;
-        const auto vmesh = rData.MeshVelocity;
-        const auto vconv = vfrac - vmesh;
+        const auto &vfrac = rData.Velocity_Fractional;
+        const auto &vmesh = rData.MeshVelocity;
+        const auto &vconv = vfrac - vmesh;
 
         // Get shape function values
         const auto &N = rData.N;
@@ -495,15 +493,12 @@ lhs(11,11)=clhs45;
         const double bdf0 = rData.bdf0;
         const double bdf1 = rData.bdf1;
         const double bdf2 = rData.bdf2;
-
         const double dyn_tau = rData.DynamicTau;
-
         const auto &vn = rData.Velocity_OldStep1;
-
-        // const auto &vnnn = rData.Velocity_OldStep3; #an bdf2
         const auto &vnn = rData.Velocity_OldStep2;
+        // const auto &vnnn = rData.Velocity_OldStep3; #an bdf2
         const auto &vmesh = rData.MeshVelocity;
-        const auto vfrac = rData.Velocity_Fractional;
+        const auto &vfrac = rData.Velocity_Fractional;
         const auto &vconv = vfrac - vmesh;
 
         // Get shape function values
@@ -580,7 +575,7 @@ rhs[5]=-N[2]*crhs24 + N[2]*crhs27 - N[2]*crhs28 + crhs23*crhs33 - crhs29*crhs34 
         const auto &vnn = rData.Velocity_OldStep2;
         // const auto &vnnn = rData.Velocity_OldStep3; #an_bdf2
         const auto &vmesh = rData.MeshVelocity;
-        const auto vfrac = rData.Velocity_Fractional;
+        const auto &vfrac = rData.Velocity_Fractional;
         const auto &vconv = vfrac - vmesh;
 
         // Get shape function values

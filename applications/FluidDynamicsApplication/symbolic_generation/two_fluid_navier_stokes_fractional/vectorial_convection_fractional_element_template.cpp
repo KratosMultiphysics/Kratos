@@ -176,10 +176,9 @@ namespace Kratos
         const double dt = rData.DeltaTime;
         const double bdf0 = rData.bdf0;
         const double dyn_tau = rData.DynamicTau;
-        const auto vfrac = rData.Velocity_Fractional;
-        const auto vn = rData.Velocity_OldStep1;
-        const auto vmesh = rData.MeshVelocity;
-        const auto vconv = vfrac-vmesh;
+        const auto &vfrac = rData.Velocity_Fractional;
+        const auto &vmesh = rData.MeshVelocity;
+        const auto &vconv = vfrac-vmesh;
 
         // Get shape function values
         const auto &N = rData.N;
@@ -207,10 +206,9 @@ namespace Kratos
         const double bdf0 = rData.bdf0;
 
         const double dyn_tau = rData.DynamicTau;
-        const auto vn = rData.Velocity_OldStep1;
-        const auto vfrac = rData.Velocity_Fractional;
-        const auto vmesh = rData.MeshVelocity;
-        const auto vconv = vfrac - vmesh;
+        const auto &vfrac = rData.Velocity_Fractional;
+        const auto &vmesh = rData.MeshVelocity;
+        const auto &vconv = vfrac - vmesh;
 
         // Get shape function values
         const auto &N = rData.N;
@@ -244,7 +242,7 @@ namespace Kratos
         const auto &vnn = rData.Velocity_OldStep2;
         // const auto &vnnn = rData.Velocity_OldStep3; #an bdf2
         const auto &vmesh = rData.MeshVelocity;
-        const auto vfrac = rData.Velocity_Fractional;
+        const auto &vfrac = rData.Velocity_Fractional;
         const auto &vconv = vfrac - vmesh;
 
         // Get shape function values
@@ -279,7 +277,7 @@ namespace Kratos
         const auto &vnn = rData.Velocity_OldStep2;
         // const auto &vnnn = rData.Velocity_OldStep3; #an_bdf2
         const auto &vmesh = rData.MeshVelocity;
-        const auto vfrac = rData.Velocity_Fractional;
+        const auto &vfrac = rData.Velocity_Fractional;
         const auto &vconv = vfrac - vmesh;
 
         // Get shape function values
