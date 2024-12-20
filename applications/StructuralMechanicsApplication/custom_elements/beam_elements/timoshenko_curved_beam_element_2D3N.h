@@ -469,7 +469,7 @@ private:
     ///@name Private Operations
     ///@{
 
-
+    Vector CalculateStrainVector(double Xi);
     ///@}
     ///@name Private  Access
     ///@{
