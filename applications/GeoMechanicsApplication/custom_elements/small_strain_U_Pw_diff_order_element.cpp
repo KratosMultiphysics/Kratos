@@ -39,16 +39,15 @@ Element::Pointer SmallStrainUPwDiffOrderElement::Create(IndexType               
                                                         NodesArrayType const&   ThisNodes,
                                                         PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new SmallStrainUPwDiffOrderElement(
-        NewId, GetGeometry().Create(ThisNodes), pProperties, this->GetStressStatePolicy().Clone()));
+    return Create(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
 Element::Pointer SmallStrainUPwDiffOrderElement::Create(IndexType               NewId,
                                                         GeometryType::Pointer   pGeom,
                                                         PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new SmallStrainUPwDiffOrderElement(
-        NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone()));
+    return make_intrusive<SmallStrainUPwDiffOrderElement>(NewId, pGeom, pProperties,
+                                                          this->GetStressStatePolicy().Clone());
 }
 
 int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo) const
@@ -279,10 +278,10 @@ void SmallStrainUPwDiffOrderElement::FinalizeSolutionStep(const ProcessInfo& rCu
     KRATOS_CATCH("")
 }
 
-const Vector SmallStrainUPwDiffOrderElement::GetPressures(const size_t n_nodes)
+Vector SmallStrainUPwDiffOrderElement::GetPressures(const size_t n_nodes) const
 {
-    GeometryType& r_geom = GetGeometry();
-    Vector        pressure(n_nodes);
+    const auto& r_geom = GetGeometry();
+    Vector      pressure(n_nodes);
     std::transform(r_geom.begin(), r_geom.begin() + n_nodes, pressure.begin(),
                    [](const auto& node) { return node.FastGetSolutionStepValue(WATER_PRESSURE); });
     return pressure;
@@ -550,11 +549,11 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
                 RetentionParameters, rVariable, rOutput[GPoint]);
         }
     } else if (rVariable == HYDRAULIC_HEAD) {
-        constexpr auto      numerical_limit = std::numeric_limits<double>::epsilon();
-        const PropertiesType& r_prop         = this->GetProperties();
+        constexpr auto        numerical_limit = std::numeric_limits<double>::epsilon();
+        const PropertiesType& r_prop          = this->GetProperties();
 
         // Defining the shape functions, the Jacobian and the shape functions local gradients Containers
-        const Matrix&  n_container  = r_geom.ShapeFunctionsValues(this->GetIntegrationMethod());
+        const Matrix&  n_container = r_geom.ShapeFunctionsValues(this->GetIntegrationMethod());
         const SizeType num_u_nodes = r_geom.PointsNumber();
 
         // Defining necessary variables
@@ -572,8 +571,9 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
                 noalias(node_volume_acceleration_unit_vector) = NodeVolumeAcceleration / g;
 
                 const auto water_pressure = r_geom[node].FastGetSolutionStepValue(WATER_PRESSURE);
-                nodal_hydraulic_head[node] = -inner_prod(node_coordinates, node_volume_acceleration_unit_vector) -
-                                           PORE_PRESSURE_SIGN_FACTOR * water_pressure / fluid_weight;
+                nodal_hydraulic_head[node] =
+                    -inner_prod(node_coordinates, node_volume_acceleration_unit_vector) -
+                    PORE_PRESSURE_SIGN_FACTOR * water_pressure / fluid_weight;
             } else {
                 nodal_hydraulic_head[node] = 0.0;
             }
@@ -653,7 +653,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
 
             Vector aux_fluid_flux = ZeroVector(Dim);
             aux_fluid_flux        = PORE_PRESSURE_SIGN_FACTOR * Variables.DynamicViscosityInverse *
-                           relative_permeability * prod(Variables.IntrinsicPermeability, GradPressureTerm);
+                             relative_permeability * prod(Variables.IntrinsicPermeability, GradPressureTerm);
 
             Vector fluid_flux = ZeroVector(3);
             for (unsigned int idim = 0; idim < Dim; ++idim)

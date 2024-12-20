@@ -26,7 +26,7 @@ double VanGenuchtenLaw::CalculateSaturation(Parameters& rParameters) const
 {
     KRATOS_TRY
 
-    const auto  p                   = rParameters.GetFluidPressure();
+    const auto  p                     = rParameters.GetFluidPressure();
     const auto& r_material_properties = rParameters.GetMaterialProperties();
 
     if (p > 0.0) {
@@ -49,8 +49,8 @@ double VanGenuchtenLaw::CalculateEffectiveSaturation(Parameters& rParameters) co
     KRATOS_TRY
 
     const auto& r_material_properties = rParameters.GetMaterialProperties();
-    const auto  sat_max              = r_material_properties[SATURATED_SATURATION];
-    const auto  sat_min              = r_material_properties[RESIDUAL_SATURATION];
+    const auto  sat_max               = r_material_properties[SATURATED_SATURATION];
+    const auto  sat_min               = r_material_properties[RESIDUAL_SATURATION];
 
     return (CalculateSaturation(rParameters) - sat_min) / (sat_max - sat_min);
 
@@ -64,11 +64,11 @@ double VanGenuchtenLaw::CalculateDerivativeOfSaturation(Parameters& rParameters)
 
     if (p > 0.0) {
         const auto& r_material_properties = rParameters.GetMaterialProperties();
-        const auto  sat_max             = r_material_properties[SATURATED_SATURATION];
-        const auto  sat_min             = r_material_properties[RESIDUAL_SATURATION];
-        const auto  pb                  = r_material_properties[VAN_GENUCHTEN_AIR_ENTRY_PRESSURE];
-        const auto  gn                  = r_material_properties[VAN_GENUCHTEN_GN];
-        const auto  gc                  = (1.0 - gn) / gn;
+        const auto  sat_max               = r_material_properties[SATURATED_SATURATION];
+        const auto  sat_min               = r_material_properties[RESIDUAL_SATURATION];
+        const auto  pb                    = r_material_properties[VAN_GENUCHTEN_AIR_ENTRY_PRESSURE];
+        const auto  gn                    = r_material_properties[VAN_GENUCHTEN_GN];
+        const auto  gc                    = (1.0 - gn) / gn;
 
         return (sat_max - sat_min) * gc * std::pow((1.0 + std::pow(p / pb, gn)), gc - 1.0) * gn *
                std::pow(pb, -gn) * std::pow(p, gn - 1.0);
@@ -86,8 +86,8 @@ double VanGenuchtenLaw::CalculateRelativePermeability(Parameters& rParameters) c
     const auto eff_sat = CalculateEffectiveSaturation(rParameters);
 
     const auto& r_material_properties = rParameters.GetMaterialProperties();
-    const auto  gl                  = r_material_properties[VAN_GENUCHTEN_GL];
-    const auto  gn                  = r_material_properties[VAN_GENUCHTEN_GN];
+    const auto  gl                    = r_material_properties[VAN_GENUCHTEN_GL];
+    const auto  gn                    = r_material_properties[VAN_GENUCHTEN_GN];
 
     const auto rel_perm =
         std::pow(eff_sat, gl) *
@@ -166,7 +166,8 @@ int VanGenuchtenLaw::Check(const Properties& rMaterialProperties, const ProcessI
         << rMaterialProperties.Id() << "." << std::endl;
     KRATOS_ERROR_IF_NOT((rMaterialProperties[VAN_GENUCHTEN_GL] >= 0.0))
         << "VAN_GENUCHTEN_GL (" << rMaterialProperties[VAN_GENUCHTEN_GL]
-        << ") must be greater than or equal to 0 for material " << rMaterialProperties.Id() << "." << std::endl;
+        << ") must be greater than or equal to 0 for material " << rMaterialProperties.Id() << "."
+        << std::endl;
 
     return 0;
 }

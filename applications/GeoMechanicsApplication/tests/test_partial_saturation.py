@@ -36,10 +36,10 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
             stage = analysis.GeoMechanicsAnalysis(model, stage_parameters)
             stage.Run()
             stage_water_pressure.append(test_helper.get_water_pressure(stage))
-            coords = test_helper.get_nodal_coordinates(stage)
+            coords.append(test_helper.get_nodal_coordinates(stage))
 
         # get y coords of all the nodes
-        y_coords = [coord[1] for coord in coords]
+        y_coords = [coord[1] for coord in coords[0]]
 
         # calculate water pressure analytical solution for all stages and calculate the error
         rel_p_stage  = [self.__compute_hydrostatic_water_pressure(y_coord) for y_coord in y_coords]
