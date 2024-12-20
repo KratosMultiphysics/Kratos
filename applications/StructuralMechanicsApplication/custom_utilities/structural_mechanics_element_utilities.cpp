@@ -635,6 +635,24 @@ double CalculatePhi(const Properties& rProperties, const double L)
 /***********************************************************************************/
 /***********************************************************************************/
 
+void InitializeConstitutiveLawValuesForStressCalculation(ConstitutiveLaw::Parameters& rValues,
+    Vector& rStrainVector, Vector& rStressVector, Matrix& rConstitutiveMatrix)
+{
+    InitializeConstitutiveLawValuesForStressCalculation(rValues, rStrainVector, rStressVector);
+    rValues.SetConstitutiveMatrix(rConstitutiveMatrix);
+}
+
+void InitializeConstitutiveLawValuesForStressCalculation(ConstitutiveLaw::Parameters& rValues,
+    Vector& rStrainVector, Vector& rStressVector)
+{
+    rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
+    rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+    rStrainVector.clear();
+    rValues.SetStrainVector(rStrainVector);
+    rValues.SetStressVector(rStressVector);
+}
+
 } // namespace StructuralMechanicsElementUtilities.
 }  // namespace Kratos.
 
