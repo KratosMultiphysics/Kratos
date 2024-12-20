@@ -21,7 +21,7 @@ namespace Kratos::Testing
 {
 
 template<SizeType TNNodes>
-void CreateBeamModel(std::string TimoshenkoBeamElementName, const std::vector<double>& rExpectedShearStress, const std::vector<double>& rExpectedBendingMoment)
+void Create2DBeamModel_and_CheckPK2Stress(std::string TimoshenkoBeamElementName, const std::vector<double>& rExpectedShearStress, const std::vector<double>& rExpectedBendingMoment)
     {
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
@@ -35,7 +35,7 @@ void CreateBeamModel(std::string TimoshenkoBeamElementName, const std::vector<do
         p_elem_prop->SetValue(YOUNG_MODULUS, youngs_modulus);
         p_elem_prop->SetValue(CROSS_AREA, 1.0);
         p_elem_prop->SetValue(I33, 1.0);
-        p_elem_prop->SetValue(AREA_EFFECTIVE_Y, 1.0);
+        p_elem_prop->SetValue(AREA_EFFECTIVE_Y, 5.0/6.0);
 
         const auto &r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("TimoshenkoBeamElasticConstitutiveLaw");
         p_elem_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
@@ -43,17 +43,16 @@ void CreateBeamModel(std::string TimoshenkoBeamElementName, const std::vector<do
         // Create the test element
         constexpr double directional_length = 2.0;
         r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-        r_model_part.CreateNewNode(2, directional_length, directional_length, directional_length);
+        r_model_part.CreateNewNode(2, directional_length, directional_length, 0.0);
         std::vector<ModelPart::IndexType> element_nodes{1,2};
         if(TNNodes==3) {
-            r_model_part.CreateNewNode(3, directional_length/2, directional_length/2, directional_length/2);
+            r_model_part.CreateNewNode(3, directional_length/2, directional_length/2, 0.0);
             element_nodes.push_back(3);
         }
 
         for (auto& r_node : r_model_part.Nodes()){
             r_node.AddDof(DISPLACEMENT_X);
             r_node.AddDof(DISPLACEMENT_Y);
-            r_node.AddDof(DISPLACEMENT_Z);
             r_node.AddDof(ROTATION_Z);
         }
 
@@ -62,10 +61,10 @@ void CreateBeamModel(std::string TimoshenkoBeamElementName, const std::vector<do
         p_element->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
 
         constexpr auto induced_strain = 0.1;
-        p_element->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT) += ScalarVector(3, induced_strain * directional_length);
+        p_element->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT) += ScalarVector(2, induced_strain * directional_length);
         p_element->GetGeometry()[1].FastGetSolutionStepValue(ROTATION_Z) += 0.1;
         if(TNNodes==3) {
-            p_element->GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) += ScalarVector(3, induced_strain * directional_length/2.0);
+            p_element->GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) += ScalarVector(2, induced_strain * directional_length/2.0);
             p_element->GetGeometry()[2].FastGetSolutionStepValue(ROTATION_Z) += 0.1/2.0;
         }
 
@@ -95,23 +94,23 @@ void CreateBeamModel(std::string TimoshenkoBeamElementName, const std::vector<do
 
     KRATOS_TEST_CASE_IN_SUITE(LinearTimoshenkoBeam2D2N_CalculatesPK2Stress, KratosStructuralMechanicsFastSuite)
     {
-        const std::vector expected_shear_stress {-37500.0,-37500.0,-37500.0};
-        const std::vector expected_bending_moment {29631.5,70710.7,111790.0};
+        const std::vector expected_shear_stress {-32608.7, -32608.7, -32608.7};
+        const std::vector expected_bending_moment {34989.6, 70710.7, 106432.0};
 
-        CreateBeamModel<2>("LinearTimoshenkoBeamElement2D2N", expected_shear_stress, expected_bending_moment);
+        Create2DBeamModel_and_CheckPK2Stress<2>("LinearTimoshenkoBeamElement2D2N", expected_shear_stress, expected_bending_moment);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(LinearTimoshenkodBeam2D3N_CalculatesPK2Stress, KratosStructuralMechanicsFastSuite)
     {
-       const std::vector expected_shear_stress {4904.35,-26642.9,-59451.2};
-       const std::vector expected_bending_moment {90395.7,67831.8,59832.1};
-       CreateBeamModel<3>("LinearTimoshenkoBeamElement2D3N", expected_shear_stress, expected_bending_moment);
+       const std::vector expected_shear_stress {2604.74, -21673.6, -48084.9};
+       const std::vector expected_bending_moment {86720.4, 68516.6, 61527.5};
+       Create2DBeamModel_and_CheckPK2Stress<3>("LinearTimoshenkoBeamElement2D3N", expected_shear_stress, expected_bending_moment);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(LinearTimoshenkodCurvedBeam2D3N_CalculatesPK2Stress, KratosStructuralMechanicsFastSuite)
     {
-        const std::vector expected_shear_stress {21132.5,78867.5};
-        const std::vector expected_bending_moment {70710.7,70710.7};
-        CreateBeamModel<3>("LinearTimoshenkoCurvedBeamElement2D3N", expected_shear_stress, expected_bending_moment);
+        const std::vector expected_shear_stress {17610.4, 65722.9};
+        const std::vector expected_bending_moment {70710.7, 70710.7};
+        Create2DBeamModel_and_CheckPK2Stress<3>("LinearTimoshenkoCurvedBeamElement2D3N", expected_shear_stress, expected_bending_moment);
     }
 }
