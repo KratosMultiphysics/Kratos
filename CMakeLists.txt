@@ -40,7 +40,7 @@ endif(POLICY CMP0135)
 
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 10)
-set (KratosMultiphysics_MINOR_VERSION 0)
+set (KratosMultiphysics_MINOR_VERSION 1)
 set (KratosMultiphysics_PATCH_VERSION 0)
 
 # If KRATOS_SOURCE_DIR is not defined use the CMAKE_SOURCE_DIR
@@ -77,6 +77,9 @@ option(KRATOS_BUILD_TESTING "KRATOS_BUILD_TESTING defines if the C++ tests are c
 
 # If no benchmark policy enable by default
 option(KRATOS_BUILD_BENCHMARK "KRATOS_BUILD_BENCHMARK defines if the C++ benchmarks (Google benchmark) are compiled. These increase compilation time. Default setting is OFF" OFF)
+
+# If logger coloring policy enable by default
+option(KRATOS_COLORED_OUTPUT "KRATOS_COLORED_OUTPUT defines if the logger output it is colored. Default setting is OFF" OFF)
 
 # If no pch policy disable by default
 option(KRATOS_USE_PCH "KRATOS_USE_PCH defines if pch will be used during the compilation. This may will decrease compilation for clean build or if core components are touched. Default setting is OFF" OFF)
@@ -301,10 +304,13 @@ endif(KRATOS_COLORED_OUTPUT MATCHES ON)
 
 # Testing
 if(KRATOS_BUILD_TESTING MATCHES ON)
+  # Add the definitions if required
+  ADD_DEFINITIONS(-DKRATOS_BUILD_TESTING)
+
   # retrieve a copy of the current directory's `COMPILE_OPTIONS`
   get_directory_property(kratos_root_compile_options COMPILE_OPTIONS)
 
-  # Disable warnings (needed by centos. We should all love centos, it clearly needs some affection)
+  # Disable warnings (needed by Intel Compiler Legacy)
   add_compile_options(-w)
 
   FetchContent_Declare(

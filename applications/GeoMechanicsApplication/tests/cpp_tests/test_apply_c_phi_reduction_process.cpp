@@ -58,7 +58,6 @@ ModelPart& PrepareCPhiTestModelPart(Model& rModel)
     r_model_part_properties.SetValue(UMAT_PARAMETERS, umat_parameters);
     r_model_part_properties.SetValue(INDEX_OF_UMAT_C_PARAMETER, 3);
     r_model_part_properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 4);
-    r_model_part_properties.SetValue(NUMBER_OF_UMAT_PARAMETERS, 6);
 
     return result;
 }
@@ -123,11 +122,6 @@ KRATOS_TEST_CASE_IN_SUITE(CheckFailureUmatInputsApplyCPhiReductionProcess, Krato
     Vector umat_parameters(6);
     umat_parameters <<= 10000000, 0.2, 10.0, 25.0, 25.0, 1000;
     r_model_part_properties.SetValue(UMAT_PARAMETERS, umat_parameters);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        (ApplyCPhiReductionProcess{r_model_part, {}}.ExecuteInitializeSolutionStep()),
-        "Missing required item NUMBER_OF_UMAT_PARAMETERS")
-
-    r_model_part_properties.SetValue(NUMBER_OF_UMAT_PARAMETERS, 6);
 
     // checking of Phi
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
@@ -137,12 +131,12 @@ KRATOS_TEST_CASE_IN_SUITE(CheckFailureUmatInputsApplyCPhiReductionProcess, Krato
     r_model_part_properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         (ApplyCPhiReductionProcess{r_model_part, {}}.ExecuteInitializeSolutionStep()),
-        "invalid INDEX_OF_UMAT_PHI_PARAMETER: 0 (out-of-bounds index)")
+        "Invalid INDEX_OF_UMAT_PHI_PARAMETER: 0 (out-of-bounds index)")
 
     r_model_part_properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 7);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         (ApplyCPhiReductionProcess{r_model_part, {}}.ExecuteInitializeSolutionStep()),
-        "invalid INDEX_OF_UMAT_PHI_PARAMETER: 7 (out-of-bounds index)")
+        "Invalid INDEX_OF_UMAT_PHI_PARAMETER: 7 (out-of-bounds index)")
 
     r_model_part_properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 4);
     umat_parameters(3) = -0.0001;
@@ -182,4 +176,28 @@ KRATOS_TEST_CASE_IN_SUITE(CheckFailureUmatInputsApplyCPhiReductionProcess, Krato
         (ApplyCPhiReductionProcess{r_model_part, {}}.ExecuteInitializeSolutionStep()),
         "Cohesion C out of range: -1e-05")
 }
+
+KRATOS_TEST_CASE_IN_SUITE(CheckFailureEmptyModelPartApplyCPhiReductionProcess, KratosGeoMechanicsFastSuite)
+{
+    Model model;
+    auto& r_modelpart = model.CreateModelPart("dummy");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ApplyCPhiReductionProcess{r_modelpart, {}}.Check()),
+                                      "ApplyCPhiReductionProces has no elements in modelpart dummy")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckFailureNegativeReductionFactorApplyCPhiReductionProcess, KratosGeoMechanicsFastSuite)
+{
+    Model model;
+    auto& r_model_part = PrepareCPhiTestModelPart(model);
+
+    ApplyCPhiReductionProcess process{r_model_part, {}};
+    for (size_t i = 0; i < 9; ++i) {
+        process.ExecuteInitializeSolutionStep();
+        process.ExecuteFinalizeSolutionStep();
+    }
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        process.ExecuteInitializeSolutionStep(),
+        "Reduction factor should not drop below 0.01, calculation stopped.");
+}
+
 } // namespace Kratos::Testing
