@@ -12,6 +12,7 @@
 
 #include "two_fluid_navier_stokes_fractional.h"
 #include "custom_elements/data_containers/two_fluid_fractional_navier_stokes/two_fluid_navier_stokes_fractional_data.h"
+// #include "custom_utilities/two_fluid_navier_stokes_fractional_alpha_method_data.h" //TODO: Move to custom_elements
 namespace Kratos
 {
 
@@ -2301,5 +2302,8 @@ void TwoFluidNavierStokesFractional<TElementData>::CalculateOnIntegrationPoints(
 
 template class TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<2, 3>>;
 template class TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<3, 4>>;
+
+// template class TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalAlphaMethodData<2, 3>>;
+// template class TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalAlphaMethodData<3, 4>>;
 
 } // namespace Kratos

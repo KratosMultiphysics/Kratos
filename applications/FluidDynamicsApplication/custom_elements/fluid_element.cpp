@@ -14,8 +14,7 @@
 #include "includes/cfd_variables.h"
 #include "includes/checks.h"
 
-#include "custom_utilities/two_fluid_navier_stokes_fractional_data.h" //TODO: move to custom_elements
-#include "custom_utilities/two_fluid_navier_stokes_fractional_alpha_method_data.h" //TODO: move to custom_elements
+// #include "custom_utilities/two_fluid_navier_stokes_fractional_alpha_method_data.h" //TODO: move to custom_elements
 
 #include "data_containers/axisymmetric_navier_stokes/axisymmetric_navier_stokes_data.h"
 #include "data_containers/low_mach_navier_stokes/low_mach_navier_stokes_data.h"
@@ -952,10 +951,12 @@ template class FluidElement< TimeIntegratedFICData<3,4> >;
 template class FluidElement< TwoFluidNavierStokesData<2, 3> >;
 template class FluidElement< TwoFluidNavierStokesData<3, 4> >;
 
-template class FluidElement<TwoFluidNavierStokesAlphaMethodData<2, 3>>;
+template class FluidElement< TwoFluidNavierStokesAlphaMethodData<2, 3>>;
 template class FluidElement< TwoFluidNavierStokesAlphaMethodData<3, 4> >;
-template class FluidElement<TwoFluidNavierStokesFractionalData<2, 3>>;
-template class FluidElement<TwoFluidNavierStokesFractionalData<3, 4>>;
+template class FluidElement< TwoFluidNavierStokesFractionalData<2, 3>>;
+template class FluidElement< TwoFluidNavierStokesFractionalData<3, 4>>;
+// template class FluidElement< TwoFluidNavierStokesFractionalAlphaMethodData<2, 3>>;
+// template class FluidElement< TwoFluidNavierStokesFractionalAlphaMethodData<3, 4>>;
 
 template class FluidElement< LowMachNavierStokesData<2,3> >;
 template class FluidElement< LowMachNavierStokesData<2,4> >;

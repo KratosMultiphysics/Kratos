@@ -17,7 +17,7 @@
 #include "includes/constitutive_law.h"
 
 #include "fluid_dynamics_application_variables.h"
-#include "custom_utilities/fluid_element_data.h"
+#include "custom_elements/data_containers/fluid_element_data.h"
 #include "utilities/element_size_calculator.h"
 #include "custom_utilities/fluid_element_utilities.h"
 
@@ -44,6 +44,8 @@ using ShapeDerivativesType = typename FluidElementData<TDim, TNumNodes, true>::S
 using MatrixRowType = typename FluidElementData<TDim, TNumNodes, true>::MatrixRowType;
 typedef Geometry<Node> GeometryType;
 typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
+
+static constexpr std::size_t BlockSize = TDim + 1;
 
 ///@}
 ///@name Public Members
