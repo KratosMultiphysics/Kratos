@@ -738,8 +738,8 @@ void LowMachNavierStokes<TElementData>::CalculateStabilizationConstants(
     const double norm_u_conv = norm_2(u_conv_gauss); // Convective velocity norm
     const double rho_gauss = (gamma / c_p / (gamma - 1.0)) * p_th / t_gauss; // Density (from equation of state)
 
-    rTauPressure = mu / rho_gauss + stab_c2 * norm_u_conv * h / stab_c1; // Pressure subscale stabilization operator
-    rTauVelocity = 1.0 / (stab_c1 * mu / std::pow(h, 2) + stab_c2 * h * norm_u_conv / h + stab_c3 * sigma / h); // Velocity subscale stabilization operator
+    rTauPressure = mu / rho_gauss + stab_c2 * norm_u_conv * h / stab_c1 + stab_c3 * sigma * h / stab_c1 / rho_gauss; // Pressure subscale stabilization operator
+    rTauVelocity = 1.0 / (stab_c1 * mu / std::pow(h, 2) + stab_c2 * rho_gauss * norm_u_conv / h + stab_c3 * sigma / h); // Velocity subscale stabilization operator
     rTauTemperature = 1.0 / (stab_c1 * kappa / std::pow(h, 2) + stab_c2 * rho_gauss * c_p * norm_u_conv / h); // Temperature subscale stabilization operator
 }
 
