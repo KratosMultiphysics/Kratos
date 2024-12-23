@@ -172,27 +172,19 @@ namespace Kratos
                                                                                                                                 MatrixType &rLHS)
     {
 
-        const double mu = rData.EffectiveViscosity;
         const double h = rData.ElementSize;
-
         const double dt = rData.DeltaTime;
         const double bdf0 = rData.bdf0;
-
         const double dyn_tau = rData.DynamicTau;
-
-        const auto vfrac = rData.Velocity_Fractional;
-        const auto vn = rData.Velocity_OldStep1;
-
-
-        const auto vmesh = rData.MeshVelocity;
-        const auto vconv = vfrac - vmesh;
+        const auto &vfrac = rData.Velocity_Fractional;
+        const auto &vmesh = rData.MeshVelocity;
+        const auto &vconv = vfrac-vmesh;
 
         // Get shape function values
         const auto &N = rData.N;
         const auto &DN = rData.DN_DX;
 
         // Stabilization parameters
-        constexpr double stab_c1 = 4.0;
         constexpr double stab_c2 = 2.0;
 
         auto &lhs = rData.lhs;
@@ -201,11 +193,11 @@ const double clhs1 = N[0]*vconv(0,1) + N[1]*vconv(1,1) + N[2]*vconv(2,1);
 const double clhs2 = DN(0,0)*clhs0 + DN(0,1)*clhs1;
 const double clhs3 = N[0]*bdf0;
 const double clhs4 = clhs2 + clhs3;
-const double clhs5 = 1.0/(stab_c2*sqrt(pow(clhs0, 2) + pow(clhs1, 2))/h + dyn_tau/dt);
+const double clhs5 = 1.0*1.0/(dyn_tau*1.0/dt + stab_c2*1.0/h*sqrt(clhs0*clhs0 + clhs1*clhs1));
 const double clhs6 = clhs5*(DN(0,0)*vconv(0,0) + DN(0,1)*vconv(0,1) + DN(1,0)*vconv(1,0) + DN(1,1)*vconv(1,1) + DN(2,0)*vconv(2,0) + DN(2,1)*vconv(2,1));
 const double clhs7 = N[0]*clhs6;
 const double clhs8 = clhs2*clhs5;
-const double clhs9 = pow(N[0], 2)*bdf0 + N[0]*clhs2 + clhs4*clhs7 + clhs4*clhs8;
+const double clhs9 = N[0]*clhs2 + bdf0*(N[0]*N[0]) + clhs4*clhs7 + clhs4*clhs8;
 const double clhs10 = N[1]*clhs3;
 const double clhs11 = DN(1,0)*clhs0 + DN(1,1)*clhs1;
 const double clhs12 = N[1]*bdf0;
@@ -218,14 +210,14 @@ const double clhs18 = N[0]*clhs16 + clhs15 + clhs17*clhs7 + clhs17*clhs8;
 const double clhs19 = N[1]*clhs6;
 const double clhs20 = clhs11*clhs5;
 const double clhs21 = N[1]*clhs2 + clhs10 + clhs19*clhs4 + clhs20*clhs4;
-const double clhs22 = pow(N[1], 2)*bdf0 + N[1]*clhs11 + clhs13*clhs19 + clhs13*clhs20;
+const double clhs22 = N[1]*clhs11 + bdf0*(N[1]*N[1]) + clhs13*clhs19 + clhs13*clhs20;
 const double clhs23 = N[2]*clhs12;
 const double clhs24 = N[1]*clhs16 + clhs17*clhs19 + clhs17*clhs20 + clhs23;
 const double clhs25 = N[2]*clhs6;
 const double clhs26 = clhs16*clhs5;
 const double clhs27 = N[2]*clhs2 + clhs15 + clhs25*clhs4 + clhs26*clhs4;
 const double clhs28 = N[2]*clhs11 + clhs13*clhs25 + clhs13*clhs26 + clhs23;
-const double clhs29 = pow(N[2], 2)*bdf0 + N[2]*clhs16 + clhs17*clhs25 + clhs17*clhs26;
+const double clhs29 = N[2]*clhs16 + bdf0*(N[2]*N[2]) + clhs17*clhs25 + clhs17*clhs26;
 lhs(0,0)=clhs9;
 lhs(0,1)=0;
 lhs(0,2)=clhs14;
@@ -274,24 +266,21 @@ lhs(5,5)=clhs29;
                                                                                                                                 MatrixType &rLHS)
     {
 
-        const double mu = rData.EffectiveViscosity;
-        const double h = rData.ElementSize;
 
+        const double h = rData.ElementSize;
         const double dt = rData.DeltaTime;
         const double bdf0 = rData.bdf0;
 
         const double dyn_tau = rData.DynamicTau;
-        const auto vn = rData.Velocity_OldStep1;
-        const auto vfrac = rData.Velocity_Fractional;
-        const auto vmesh = rData.MeshVelocity;
-        const auto vconv = vfrac - vmesh;
+        const auto &vfrac = rData.Velocity_Fractional;
+        const auto &vmesh = rData.MeshVelocity;
+        const auto &vconv = vfrac - vmesh;
 
         // Get shape function values
         const auto &N = rData.N;
         const auto &DN = rData.DN_DX;
 
         // Stabilization parameters
-        constexpr double stab_c1 = 4.0;
         constexpr double stab_c2 = 2.0;
 
         auto &lhs = rData.lhs;
@@ -302,11 +291,11 @@ const double clhs2 = N[0]*vconv(0,2) + N[1]*vconv(1,2) + N[2]*vconv(2,2) + N[3]*
 const double clhs3 = DN(0,0)*clhs0 + DN(0,1)*clhs1 + DN(0,2)*clhs2;
 const double clhs4 = N[0]*bdf0;
 const double clhs5 = clhs3 + clhs4;
-const double clhs6 = 1.0/(stab_c2*sqrt(pow(clhs0, 2) + pow(clhs1, 2) + pow(clhs2, 2))/h + dyn_tau/dt);
+const double clhs6 = 1.0*1.0/(dyn_tau*1.0/dt + stab_c2*1.0/h*sqrt(clhs0*clhs0 + clhs1*clhs1 + clhs2*clhs2));
 const double clhs7 = clhs6*(DN(0,0)*vconv(0,0) + DN(0,1)*vconv(0,1) + DN(0,2)*vconv(0,2) + DN(1,0)*vconv(1,0) + DN(1,1)*vconv(1,1) + DN(1,2)*vconv(1,2) + DN(2,0)*vconv(2,0) + DN(2,1)*vconv(2,1) + DN(2,2)*vconv(2,2) + DN(3,0)*vconv(3,0) + DN(3,1)*vconv(3,1) + DN(3,2)*vconv(3,2));
 const double clhs8 = N[0]*clhs7;
 const double clhs9 = clhs3*clhs6;
-const double clhs10 = pow(N[0], 2)*bdf0 + N[0]*clhs3 + clhs5*clhs8 + clhs5*clhs9;
+const double clhs10 = N[0]*clhs3 + bdf0*(N[0]*N[0]) + clhs5*clhs8 + clhs5*clhs9;
 const double clhs11 = N[1]*clhs4;
 const double clhs12 = DN(1,0)*clhs0 + DN(1,1)*clhs1 + DN(1,2)*clhs2;
 const double clhs13 = N[1]*bdf0;
@@ -324,7 +313,7 @@ const double clhs24 = N[0]*clhs22 + clhs21 + clhs23*clhs8 + clhs23*clhs9;
 const double clhs25 = N[1]*clhs7;
 const double clhs26 = clhs12*clhs6;
 const double clhs27 = N[1]*clhs3 + clhs11 + clhs25*clhs5 + clhs26*clhs5;
-const double clhs28 = pow(N[1], 2)*bdf0 + N[1]*clhs12 + clhs14*clhs25 + clhs14*clhs26;
+const double clhs28 = N[1]*clhs12 + bdf0*(N[1]*N[1]) + clhs14*clhs25 + clhs14*clhs26;
 const double clhs29 = N[2]*clhs13;
 const double clhs30 = N[1]*clhs17 + clhs19*clhs25 + clhs19*clhs26 + clhs29;
 const double clhs31 = N[3]*clhs13;
@@ -333,7 +322,7 @@ const double clhs33 = N[2]*clhs7;
 const double clhs34 = clhs17*clhs6;
 const double clhs35 = N[2]*clhs3 + clhs16 + clhs33*clhs5 + clhs34*clhs5;
 const double clhs36 = N[2]*clhs12 + clhs14*clhs33 + clhs14*clhs34 + clhs29;
-const double clhs37 = pow(N[2], 2)*bdf0 + N[2]*clhs17 + clhs19*clhs33 + clhs19*clhs34;
+const double clhs37 = N[2]*clhs17 + bdf0*(N[2]*N[2]) + clhs19*clhs33 + clhs19*clhs34;
 const double clhs38 = N[3]*clhs18;
 const double clhs39 = N[2]*clhs22 + clhs23*clhs33 + clhs23*clhs34 + clhs38;
 const double clhs40 = N[3]*clhs7;
@@ -341,7 +330,7 @@ const double clhs41 = clhs22*clhs6;
 const double clhs42 = N[3]*clhs3 + clhs21 + clhs40*clhs5 + clhs41*clhs5;
 const double clhs43 = N[3]*clhs12 + clhs14*clhs40 + clhs14*clhs41 + clhs31;
 const double clhs44 = N[3]*clhs17 + clhs19*clhs40 + clhs19*clhs41 + clhs38;
-const double clhs45 = pow(N[3], 2)*bdf0 + N[3]*clhs22 + clhs23*clhs40 + clhs23*clhs41;
+const double clhs45 = N[3]*clhs22 + bdf0*(N[3]*N[3]) + clhs23*clhs40 + clhs23*clhs41;
 lhs(0,0)=clhs10;
 lhs(0,1)=0;
 lhs(0,2)=0;
@@ -499,23 +488,17 @@ lhs(11,11)=clhs45;
                                                                                                                                 VectorType &rRHS)
     {
 
-        const double mu = rData.EffectiveViscosity;
-
         const double h = rData.ElementSize;
-
         const double dt = rData.DeltaTime;
         const double bdf0 = rData.bdf0;
         const double bdf1 = rData.bdf1;
         const double bdf2 = rData.bdf2;
-
         const double dyn_tau = rData.DynamicTau;
-
         const auto &vn = rData.Velocity_OldStep1;
-
-        const auto &vnnn = rData.Velocity_OldStep3;
         const auto &vnn = rData.Velocity_OldStep2;
+        // const auto &vnnn = rData.Velocity_OldStep3; #an bdf2
         const auto &vmesh = rData.MeshVelocity;
-        const auto vfrac = rData.Velocity_Fractional;
+        const auto &vfrac = rData.Velocity_Fractional;
         const auto &vconv = vfrac - vmesh;
 
         // Get shape function values
@@ -523,7 +506,6 @@ lhs(11,11)=clhs45;
         const auto &DN = rData.DN_DX;
 
         // Stabilization parameters
-        constexpr double stab_c1 = 4.0;
         constexpr double stab_c2 = 2.0;
 
         auto &rhs = rData.rhs;
@@ -544,7 +526,7 @@ const double crhs12 = N[0]*vconv(0,0) + N[1]*vconv(1,0) + N[2]*vconv(2,0);
 const double crhs13 = N[0]*vconv(0,1) + N[1]*vconv(1,1) + N[2]*vconv(2,1);
 const double crhs14 = crhs12*(DN(0,0)*vfrac(0,0) + DN(1,0)*vfrac(1,0) + DN(2,0)*vfrac(2,0)) + crhs13*(DN(0,1)*vfrac(0,0) + DN(1,1)*vfrac(1,0) + DN(2,1)*vfrac(2,0));
 const double crhs15 = -crhs0*crhs4 - crhs1*crhs4 - crhs10 + crhs14 - crhs2*crhs4 + crhs6 - crhs8;
-const double crhs16 = 1.0/(crhs4*dyn_tau + stab_c2*sqrt(pow(crhs12, 2) + pow(crhs13, 2))/h);
+const double crhs16 = 1.0*1.0/(crhs4*dyn_tau + stab_c2*1.0/h*sqrt(crhs12*crhs12 + crhs13*crhs13));
 const double crhs17 = crhs16*(DN(0,0)*vconv(0,0) + DN(0,1)*vconv(0,1) + DN(1,0)*vconv(1,0) + DN(1,1)*vconv(1,1) + DN(2,0)*vconv(2,0) + DN(2,1)*vconv(2,1));
 const double crhs18 = N[0]*crhs17;
 const double crhs19 = crhs16*(DN(0,0)*crhs12 + DN(0,1)*crhs13);
@@ -582,23 +564,18 @@ rhs[5]=-N[2]*crhs24 + N[2]*crhs27 - N[2]*crhs28 + crhs23*crhs33 - crhs29*crhs34 
                                                                                                                                 VectorType &rRHS)
     {
 
-        const double mu = rData.EffectiveViscosity;
 
         const double h = rData.ElementSize;
-
         const double dt = rData.DeltaTime;
         const double bdf0 = rData.bdf0;
         const double bdf1 = rData.bdf1;
         const double bdf2 = rData.bdf2;
-
         const double dyn_tau = rData.DynamicTau;
-
         const auto &vn = rData.Velocity_OldStep1;
         const auto &vnn = rData.Velocity_OldStep2;
-        const auto &vnnn = rData.Velocity_OldStep3;
-
+        // const auto &vnnn = rData.Velocity_OldStep3; #an_bdf2
         const auto &vmesh = rData.MeshVelocity;
-        const auto vfrac = rData.Velocity_Fractional;
+        const auto &vfrac = rData.Velocity_Fractional;
         const auto &vconv = vfrac - vmesh;
 
         // Get shape function values
@@ -606,7 +583,6 @@ rhs[5]=-N[2]*crhs24 + N[2]*crhs27 - N[2]*crhs28 + crhs23*crhs33 - crhs29*crhs34 
         const auto &DN = rData.DN_DX;
 
         // Stabilization parameters
-        constexpr double stab_c1 = 4.0;
         constexpr double stab_c2 = 2.0;
 
         auto &rhs = rData.rhs;
@@ -631,7 +607,7 @@ const double crhs16 = N[0]*vconv(0,1) + N[1]*vconv(1,1) + N[2]*vconv(2,1) + N[3]
 const double crhs17 = N[0]*vconv(0,2) + N[1]*vconv(1,2) + N[2]*vconv(2,2) + N[3]*vconv(3,2);
 const double crhs18 = crhs15*(DN(0,0)*vfrac(0,0) + DN(1,0)*vfrac(1,0) + DN(2,0)*vfrac(2,0) + DN(3,0)*vfrac(3,0)) + crhs16*(DN(0,1)*vfrac(0,0) + DN(1,1)*vfrac(1,0) + DN(2,1)*vfrac(2,0) + DN(3,1)*vfrac(3,0)) + crhs17*(DN(0,2)*vfrac(0,0) + DN(1,2)*vfrac(1,0) + DN(2,2)*vfrac(2,0) + DN(3,2)*vfrac(3,0));
 const double crhs19 = -crhs0*crhs5 - crhs1*crhs5 - crhs11 - crhs13 + crhs18 - crhs2*crhs5 - crhs3*crhs5 + crhs7 - crhs9;
-const double crhs20 = 1.0/(crhs5*dyn_tau + stab_c2*sqrt(pow(crhs15, 2) + pow(crhs16, 2) + pow(crhs17, 2))/h);
+const double crhs20 = 1.0*1.0/(crhs5*dyn_tau + stab_c2*1.0/h*sqrt(crhs15*crhs15 + crhs16*crhs16 + crhs17*crhs17));
 const double crhs21 = crhs20*(DN(0,0)*vconv(0,0) + DN(0,1)*vconv(0,1) + DN(0,2)*vconv(0,2) + DN(1,0)*vconv(1,0) + DN(1,1)*vconv(1,1) + DN(1,2)*vconv(1,2) + DN(2,0)*vconv(2,0) + DN(2,1)*vconv(2,1) + DN(2,2)*vconv(2,2) + DN(3,0)*vconv(3,0) + DN(3,1)*vconv(3,1) + DN(3,2)*vconv(3,2));
 const double crhs22 = N[0]*crhs21;
 const double crhs23 = crhs20*(DN(0,0)*crhs15 + DN(0,1)*crhs16 + DN(0,2)*crhs17);
@@ -746,5 +722,4 @@ rhs[11]=-N[3]*crhs41 + N[3]*crhs45 - N[3]*crhs46 + crhs40*crhs54 - crhs47*crhs55
 
     /***********************************************************************************/
     /***********************************************************************************/
-
 }

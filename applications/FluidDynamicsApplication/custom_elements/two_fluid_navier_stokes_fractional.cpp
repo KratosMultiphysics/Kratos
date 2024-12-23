@@ -7,14 +7,11 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main author:     Daniel Diez
-//  Co-authors:      Ruben Zorrilla
+//  Autor:           Uxue Chasco
 //
 
 #include "two_fluid_navier_stokes_fractional.h"
-#include "custom_utilities/two_fluid_navier_stokes_fractional_data.h"
-#include "custom_utilities/two_fluid_navier_stokes_fractional_alpha_method_data.h"
-
+#include "custom_elements/data_containers/two_fluid_fractional_navier_stokes/two_fluid_navier_stokes_fractional_data.h"
 namespace Kratos
 {
 
@@ -159,90 +156,13 @@ void TwoFluidNavierStokesFractional<TElementData>::CalculateLocalSystem(
                     this->ComputeGaussPointEnrichmentContributions(data, Vtot, Htot, Kee_tot, rhs_ee_tot);
                 }
 
-                Matrix int_shape_function, int_shape_function_enr_neg, int_shape_function_enr_pos;
                 GeometryType::ShapeFunctionsGradientsType int_shape_derivatives;
                 Vector int_gauss_pts_weights;
                 std::vector< array_1d<double,3> > int_normals_neg;
 
-                if (rCurrentProcessInfo[SURFACE_TENSION] || rCurrentProcessInfo[MOMENTUM_CORRECTION]){
-                    ComputeSplitInterface(
-                        data,
-                        int_shape_function,
-                        int_shape_function_enr_pos,
-                        int_shape_function_enr_neg,
-                        int_shape_derivatives,
-                        int_gauss_pts_weights,
-                        int_normals_neg,
-                        p_modified_sh_func);
-                }
+                // Without pressure gradient stabilization, volume ratio is checked during condensation
+                CondenseEnrichmentWithContinuity(data, rLeftHandSideMatrix, rRightHandSideVector, Htot, Vtot, Kee_tot, rhs_ee_tot);
 
-                if (rCurrentProcessInfo[MOMENTUM_CORRECTION]){
-                    BoundedMatrix<double, LocalSize, LocalSize> lhs_acc_correction = ZeroMatrix(LocalSize,LocalSize);
-
-                    double positive_density = 0.0;
-                    double negative_density = 0.0;
-
-                    const auto& r_geom = this->GetGeometry();
-
-                    for (unsigned int intgp = 0; intgp < int_gauss_pts_weights.size(); ++intgp){
-                        double u_dot_n = 0.0;
-                        for (unsigned int i = 0; i < NumNodes; ++i){
-                            u_dot_n += int_shape_function(intgp,i)*r_geom[i].GetValue(DISTANCE_CORRECTION);
-
-                            if (data.Distance[i] > 0.0){
-                                positive_density = data.NodalDensity[i];
-                            } else {
-                                negative_density = data.NodalDensity[i];
-                            }
-                        }
-
-                        u_dot_n /= data.DeltaTime;
-
-                        for (unsigned int i = 0; i < NumNodes; ++i){
-                            for (unsigned int j = 0; j < NumNodes; ++j){
-                                for (unsigned int dim = 0; dim < NumNodes-1; ++dim){
-                                    lhs_acc_correction( i*(NumNodes) + dim, j*(NumNodes) + dim) +=
-                                        int_shape_function(intgp,i)*int_shape_function(intgp,j)*u_dot_n*int_gauss_pts_weights(intgp);
-                                }
-                            }
-                        }
-                    }
-
-                    lhs_acc_correction = (negative_density - positive_density)*lhs_acc_correction;
-                    noalias(rLeftHandSideMatrix) += lhs_acc_correction;
-
-                    Kratos::array_1d<double, LocalSize> tempU; // Unknowns vector containing only velocity components
-                    for (unsigned int i = 0; i < NumNodes; ++i){
-                        for (unsigned int dimi = 0; dimi < Dim; ++dimi){
-                            tempU[i*(Dim+1) + dimi] = data.Velocity(i,dimi);
-                        }
-                    }
-                    noalias(rRightHandSideVector) -= prod(lhs_acc_correction,tempU);
-                }
-
-                if (rCurrentProcessInfo[SURFACE_TENSION]){
-
-                    AddSurfaceTensionContribution(
-                        data,
-                        int_shape_function,
-                        int_shape_function_enr_pos,
-                        int_shape_function_enr_neg,
-                        int_shape_derivatives,
-                        int_gauss_pts_weights,
-                        int_normals_neg,
-                        rLeftHandSideMatrix,
-                        rRightHandSideVector,
-                        Htot,
-                        Vtot,
-                        Kee_tot,
-                        rhs_ee_tot
-                    );
-
-                } else{
-                    // Without pressure gradient stabilization, volume ratio is checked during condensation
-                    // Also, without surface tension, zero pressure difference is penalized
-                    CondenseEnrichmentWithContinuity(data, rLeftHandSideMatrix, rRightHandSideVector, Htot, Vtot, Kee_tot, rhs_ee_tot);
-                }
 
             }
         } else {
@@ -317,7 +237,7 @@ const Parameters TwoFluidNavierStokesFractional<TElementData>::GetSpecifications
         },
         "required_polynomial_degree_of_geometry" : 1,
         "documentation"   :
-            "This element implements Navier-Stokes biphasic fluid-air formulation with a levelset-based interface representation with Variational MultiScales (VMS) stabilization. Note that any viscous behavior can be used for the fluid phase through a constitutive law. The air phase is assumed to be Newtonian. Surface tension contribution can be accounted for by setting the SURFACE_TENSION variable to true in the ProcessInfo container.
+            "This element implements Navier-Stokes biphasic fluid-air formulation with a levelset-based interface representation with Variational MultiScales (VMS) stabilization. Note that any viscous behavior can be used for the fluid phase through a constitutive law. The air phase is assumed to be Newtonian.
     })");
 
     if (Dim == 2) {
@@ -432,12 +352,8 @@ void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<2, 3>>::C
     const double dyn_tau = rData.DynamicTau;
     const double K_darcy = rData.DarcyTerm;
     const auto vn = rData.Velocity_OldStep1;
-    // const auto vconv = rData.Velocity - rData.Velocity_OldStep1;
     const auto vconv = rData.Velocity - rData.MeshVelocity;
-
     const auto vfrac = rData.Velocity_Fractional;
-    bool not_air_traj = rData.NotAirTraj;
-    // const auto an = rData.Acceleration;
 
     // Get constitutive matrix
     const Matrix &C = rData.C;
@@ -455,18 +371,18 @@ void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<2, 3>>::C
     const double clhs0 = C(0,0)*DN(0,0) + C(0,2)*DN(0,1);
 const double clhs1 = C(0,2)*DN(0,0);
 const double clhs2 = C(2,2)*DN(0,1) + clhs1;
-const double clhs3 = pow(DN(0,0), 2);
+const double clhs3 = DN(0,0)*DN(0,0);
 const double clhs4 = N[0]*vconv(0,0) + N[1]*vconv(1,0) + N[2]*vconv(2,0);
 const double clhs5 = N[0]*vconv(0,1) + N[1]*vconv(1,1) + N[2]*vconv(2,1);
-const double clhs6 = rho*stab_c2*sqrt(pow(clhs4, 2) + pow(clhs5, 2));
-const double clhs7 = clhs6*h/stab_c1 + mu;
-const double clhs8 = pow(N[0], 2);
+const double clhs6 = rho*stab_c2*sqrt(clhs4*clhs4 + clhs5*clhs5);
+const double clhs7 = clhs6*h*1.0/stab_c1 + mu;
+const double clhs8 = N[0]*N[0];
 const double clhs9 = rho*(DN(0,0)*clhs4 + DN(0,1)*clhs5);
 const double clhs10 = bdf0*rho;
 const double clhs11 = K_darcy*N[0];
 const double clhs12 = N[0]*clhs10;
 const double clhs13 = clhs11 + clhs12 + clhs9;
-const double clhs14 = 1.0/(K_darcy + clhs6/h + mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
+const double clhs14 = 1.0/(K_darcy + clhs6*1.0/h + dyn_tau*rho*1.0/dt + mu*stab_c1*1.0/(h*h));
 const double clhs15 = 1.0*clhs9;
 const double clhs16 = clhs14*clhs15;
 const double clhs17 = 1.0*clhs11;
@@ -521,7 +437,7 @@ const double clhs65 = DN(0,0)*N[2];
 const double clhs66 = DN(2,0)*N[0];
 const double clhs67 = C(0,1)*DN(0,0) + clhs25;
 const double clhs68 = C(1,1)*DN(0,1) + C(1,2)*DN(0,0);
-const double clhs69 = pow(DN(0,1), 2);
+const double clhs69 = DN(0,1)*DN(0,1);
 const double clhs70 = C(0,1)*DN(1,0) + clhs44;
 const double clhs71 = DN(0,1)*clhs7;
 const double clhs72 = DN(1,0)*clhs71;
@@ -544,8 +460,8 @@ const double clhs88 = clhs19*clhs37;
 const double clhs89 = clhs19*clhs38;
 const double clhs90 = N[1]*clhs21;
 const double clhs91 = N[1]*clhs9 + clhs13*clhs88 - clhs13*clhs89 + clhs20*clhs90;
-const double clhs92 = pow(DN(1,0), 2);
-const double clhs93 = pow(N[1], 2);
+const double clhs92 = DN(1,0)*DN(1,0);
+const double clhs93 = N[1]*N[1];
 const double clhs94 = K_darcy*clhs93 + N[1]*clhs37 + clhs10*clhs93 + clhs37*clhs41 - clhs38*clhs41 + clhs41*clhs90;
 const double clhs95 = DN(1,0)*clhs7;
 const double clhs96 = DN(1,1)*clhs95;
@@ -557,7 +473,7 @@ const double clhs101 = N[1]*clhs55 + clhs37*clhs59 - clhs38*clhs59 + clhs59*clhs
 const double clhs102 = DN(2,1)*clhs95;
 const double clhs103 = DN(1,0)*N[2];
 const double clhs104 = DN(2,0)*N[1];
-const double clhs105 = pow(DN(1,1), 2);
+const double clhs105 = DN(1,1)*DN(1,1);
 const double clhs106 = DN(2,0)*clhs7;
 const double clhs107 = DN(1,1)*clhs106;
 const double clhs108 = DN(1,1)*DN(2,1);
@@ -571,12 +487,12 @@ const double clhs115 = N[2]*clhs9 + clhs114*clhs20 + clhs20*clhs55 - clhs20*clhs
 const double clhs116 = clhs19*clhs56;
 const double clhs117 = clhs19*clhs55;
 const double clhs118 = N[2]*clhs37 + clhs114*clhs41 + clhs41*clhs55 - clhs41*clhs56;
-const double clhs119 = pow(DN(2,0), 2);
-const double clhs120 = pow(N[2], 2);
+const double clhs119 = DN(2,0)*DN(2,0);
+const double clhs120 = N[2]*N[2];
 const double clhs121 = K_darcy*clhs120 + N[2]*clhs55 + clhs10*clhs120 + clhs114*clhs59 + clhs55*clhs59 - clhs56*clhs59;
 const double clhs122 = DN(2,1)*clhs106;
 const double clhs123 = N[2]*clhs29 - N[2] - clhs116 + clhs117;
-const double clhs124 = pow(DN(2,1), 2);
+const double clhs124 = DN(2,1)*DN(2,1);
 const double clhs125 = N[2] + clhs14*(1.0*clhs55 + 1.0*clhs56 + 1.0*clhs57);
 lhs(0,0)=DN(0,0)*clhs0 + DN(0,1)*clhs2 + clhs23 + clhs3*clhs7;
 lhs(0,1)=DN(0,0)*clhs24 + DN(0,1)*clhs26 + clhs28;
@@ -682,13 +598,9 @@ void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<3, 4>>::C
 
     const double dyn_tau = rData.DynamicTau;
 
-    // const auto vconv = rData.Velocity - rData.Velocity_OldStep1;
     const auto vn=rData.Velocity_OldStep1;
     const auto vconv = rData.Velocity - rData.MeshVelocity;
     const auto vfrac = rData.Velocity_Fractional;
-    bool not_air_traj = rData.NotAirTraj;
-
-    // const auto an = rData.Acceleration;
 
     // Get constitutive matrix
     const Matrix &C = rData.C;
@@ -708,19 +620,19 @@ const double clhs1 = C(0,3)*DN(0,0);
 const double clhs2 = C(3,3)*DN(0,1) + C(3,5)*DN(0,2) + clhs1;
 const double clhs3 = C(0,5)*DN(0,0);
 const double clhs4 = C(3,5)*DN(0,1) + C(5,5)*DN(0,2) + clhs3;
-const double clhs5 = pow(DN(0,0), 2);
+const double clhs5 = DN(0,0)*DN(0,0);
 const double clhs6 = N[0]*vconv(0,0) + N[1]*vconv(1,0) + N[2]*vconv(2,0) + N[3]*vconv(3,0);
 const double clhs7 = N[0]*vconv(0,1) + N[1]*vconv(1,1) + N[2]*vconv(2,1) + N[3]*vconv(3,1);
 const double clhs8 = N[0]*vconv(0,2) + N[1]*vconv(1,2) + N[2]*vconv(2,2) + N[3]*vconv(3,2);
-const double clhs9 = rho*stab_c2*sqrt(pow(clhs6, 2) + pow(clhs7, 2) + pow(clhs8, 2));
-const double clhs10 = clhs9*h/stab_c1 + mu;
-const double clhs11 = pow(N[0], 2);
+const double clhs9 = rho*stab_c2*sqrt(clhs6*clhs6 + clhs7*clhs7 + clhs8*clhs8);
+const double clhs10 = clhs9*h*1.0/stab_c1 + mu;
+const double clhs11 = N[0]*N[0];
 const double clhs12 = rho*(DN(0,0)*clhs6 + DN(0,1)*clhs7 + DN(0,2)*clhs8);
 const double clhs13 = bdf0*rho;
 const double clhs14 = K_darcy*N[0];
 const double clhs15 = N[0]*clhs13;
 const double clhs16 = clhs12 + clhs14 + clhs15;
-const double clhs17 = 1.0/(K_darcy + clhs9/h + mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
+const double clhs17 = 1.0/(K_darcy + clhs9*1.0/h + dyn_tau*rho*1.0/dt + mu*stab_c1*1.0/(h*h));
 const double clhs18 = 1.0*clhs12;
 const double clhs19 = clhs17*clhs18;
 const double clhs20 = 1.0*clhs14;
@@ -838,7 +750,7 @@ const double clhs131 = C(0,4)*DN(0,0) + clhs31 + clhs36;
 const double clhs132 = C(1,1)*DN(0,1) + C(1,3)*DN(0,0) + C(1,4)*DN(0,2);
 const double clhs133 = C(1,4)*DN(0,1);
 const double clhs134 = C(3,4)*DN(0,0) + C(4,4)*DN(0,2) + clhs133;
-const double clhs135 = pow(DN(0,1), 2);
+const double clhs135 = DN(0,1)*DN(0,1);
 const double clhs136 = C(1,2)*DN(0,2) + C(1,5)*DN(0,0) + clhs133;
 const double clhs137 = C(2,4)*DN(0,2);
 const double clhs138 = C(4,4)*DN(0,1) + C(4,5)*DN(0,0) + clhs137;
@@ -892,7 +804,7 @@ const double clhs185 = DN(3,1)*N[0];
 const double clhs186 = C(0,2)*DN(0,0) + C(2,3)*DN(0,1) + clhs38;
 const double clhs187 = C(1,2)*DN(0,1) + C(2,3)*DN(0,0) + clhs137;
 const double clhs188 = C(2,2)*DN(0,2) + C(2,4)*DN(0,1) + C(2,5)*DN(0,0);
-const double clhs189 = pow(DN(0,2), 2);
+const double clhs189 = DN(0,2)*DN(0,2);
 const double clhs190 = C(0,2)*DN(1,0) + C(2,3)*DN(1,1) + clhs67;
 const double clhs191 = DN(0,2)*clhs10;
 const double clhs192 = DN(1,0)*clhs191;
@@ -929,8 +841,8 @@ const double clhs222 = clhs22*clhs51;
 const double clhs223 = clhs22*clhs52;
 const double clhs224 = N[1]*clhs24;
 const double clhs225 = N[1]*clhs12 + clhs16*clhs222 - clhs16*clhs223 + clhs224*clhs23;
-const double clhs226 = pow(DN(1,0), 2);
-const double clhs227 = pow(N[1], 2);
+const double clhs226 = DN(1,0)*DN(1,0);
+const double clhs227 = N[1]*N[1];
 const double clhs228 = K_darcy*clhs227 + N[1]*clhs51 + clhs13*clhs227 + clhs224*clhs55 + clhs51*clhs55 - clhs52*clhs55;
 const double clhs229 = DN(1,0)*clhs10;
 const double clhs230 = DN(1,1)*clhs229;
@@ -953,7 +865,7 @@ const double clhs246 = DN(3,2)*clhs229;
 const double clhs247 = DN(1,0)*N[3];
 const double clhs248 = DN(3,0)*N[1];
 const double clhs249 = clhs225 + clhs49;
-const double clhs250 = pow(DN(1,1), 2);
+const double clhs250 = DN(1,1)*DN(1,1);
 const double clhs251 = DN(1,1)*clhs10;
 const double clhs252 = DN(1,2)*clhs251;
 const double clhs253 = DN(2,0)*clhs251;
@@ -970,7 +882,7 @@ const double clhs263 = clhs242 + clhs244;
 const double clhs264 = DN(3,2)*clhs251;
 const double clhs265 = DN(1,1)*N[3];
 const double clhs266 = DN(3,1)*N[1];
-const double clhs267 = pow(DN(1,2), 2);
+const double clhs267 = DN(1,2)*DN(1,2);
 const double clhs268 = DN(1,2)*clhs10;
 const double clhs269 = DN(2,0)*clhs268;
 const double clhs270 = DN(2,1)*clhs268;
@@ -992,8 +904,8 @@ const double clhs285 = N[2]*clhs12 + clhs23*clhs284 + clhs23*clhs80 - clhs23*clh
 const double clhs286 = clhs22*clhs81;
 const double clhs287 = clhs22*clhs80;
 const double clhs288 = N[2]*clhs51 + clhs284*clhs55 + clhs55*clhs80 - clhs55*clhs81;
-const double clhs289 = pow(DN(2,0), 2);
-const double clhs290 = pow(N[2], 2);
+const double clhs289 = DN(2,0)*DN(2,0);
+const double clhs290 = N[2]*N[2];
 const double clhs291 = K_darcy*clhs290 + N[2]*clhs80 + clhs13*clhs290 + clhs284*clhs84 + clhs80*clhs84 - clhs81*clhs84;
 const double clhs292 = DN(2,0)*clhs10;
 const double clhs293 = DN(2,1)*clhs292;
@@ -1009,7 +921,7 @@ const double clhs302 = DN(2,0)*N[3];
 const double clhs303 = DN(3,0)*N[2];
 const double clhs304 = clhs285 + clhs78;
 const double clhs305 = clhs234 + clhs288;
-const double clhs306 = pow(DN(2,1), 2);
+const double clhs306 = DN(2,1)*DN(2,1);
 const double clhs307 = DN(2,1)*clhs10;
 const double clhs308 = DN(2,2)*clhs307;
 const double clhs309 = DN(3,0)*clhs307;
@@ -1019,7 +931,7 @@ const double clhs312 = clhs297 + clhs299;
 const double clhs313 = DN(3,2)*clhs307;
 const double clhs314 = DN(2,1)*N[3];
 const double clhs315 = DN(3,1)*N[2];
-const double clhs316 = pow(DN(2,2), 2);
+const double clhs316 = DN(2,2)*DN(2,2);
 const double clhs317 = DN(2,2)*clhs10;
 const double clhs318 = DN(3,0)*clhs317;
 const double clhs319 = DN(3,1)*clhs317;
@@ -1035,8 +947,8 @@ const double clhs328 = clhs110*clhs22;
 const double clhs329 = clhs109*clhs22;
 const double clhs330 = N[3]*clhs51 + clhs109*clhs55 - clhs110*clhs55 + clhs326*clhs55;
 const double clhs331 = N[3]*clhs80 + clhs109*clhs84 - clhs110*clhs84 + clhs326*clhs84;
-const double clhs332 = pow(DN(3,0), 2);
-const double clhs333 = pow(N[3], 2);
+const double clhs332 = DN(3,0)*DN(3,0);
+const double clhs333 = N[3]*N[3];
 const double clhs334 = K_darcy*clhs333 + N[3]*clhs109 + clhs109*clhs113 - clhs110*clhs113 + clhs113*clhs326 + clhs13*clhs333;
 const double clhs335 = DN(3,0)*clhs10;
 const double clhs336 = DN(3,1)*clhs335;
@@ -1045,9 +957,9 @@ const double clhs338 = N[3]*clhs41 - N[3] - clhs328 + clhs329;
 const double clhs339 = clhs107 + clhs327;
 const double clhs340 = clhs242 + clhs330;
 const double clhs341 = clhs297 + clhs331;
-const double clhs342 = pow(DN(3,1), 2);
+const double clhs342 = DN(3,1)*DN(3,1);
 const double clhs343 = DN(3,1)*DN(3,2)*clhs10;
-const double clhs344 = pow(DN(3,2), 2);
+const double clhs344 = DN(3,2)*DN(3,2);
 const double clhs345 = N[3] + clhs17*(1.0*clhs109 + 1.0*clhs110 + 1.0*clhs111);
 lhs(0,0)=DN(0,0)*clhs0 + DN(0,1)*clhs2 + DN(0,2)*clhs4 + clhs10*clhs5 + clhs26;
 lhs(0,1)=DN(0,0)*clhs27 + DN(0,1)*clhs29 + DN(0,2)*clhs32 + clhs34;
@@ -1324,24 +1236,19 @@ void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<2, 3>>::C
 
     const double dt = rData.DeltaTime;
     const double bdf0 = rData.bdf0;
-    const double bdf1 = rData.bdf1;
-    const double bdf2 = rData.bdf2;
 
     const double dyn_tau = rData.DynamicTau;
     const double K_darcy = rData.DarcyTerm;
 
     const auto &v = rData.Velocity;
     const auto &vn = rData.Velocity_OldStep1;
-    // const auto an = rData.Acceleration;
     const auto &vnn = rData.Velocity_OldStep2;
-    const auto &vnnn = rData.Velocity_OldStep3;
+    // const auto &vnnn = rData.Velocity_OldStep3; # an bdf2 possible
 
     const auto &vmesh = rData.MeshVelocity;
-    // const auto &vconv = v - vn;
     const auto &vconv = v - vmesh;
 
     const auto vfrac = rData.Velocity_Fractional;
-    bool not_air_traj = rData.NotAirTraj;
     const auto &f = rData.BodyForce;
     const auto &p = rData.Pressure;
     const auto &stress = rData.ShearStress;
@@ -1355,25 +1262,30 @@ void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<2, 3>>::C
     constexpr double stab_c2 = 2.0;
 
     // Mass correction term
-    // double volume_error_ratio = -rData.VolumeError/dt;
-    auto &rhs = rData.rhs;
-    // OPCION 2
     double volume_error_ratio = 0.0;
-    const auto &phi = rData.Distance;
 
-    //
     if (rData.IsCut())
     {
-        double volume_error=0.0;
-        double distance_gauss = N[0]*phi[1]+ N[1]*phi[1]+N[2]*phi[2];
-        if (distance_gauss<0.0){
+        const auto &phi = rData.Distance;
+        const double previous_dt = rData.PreviousDeltaTime;
+        double volume_error = 0.0;
+        double distance_gauss = 0.0;
+        for (std::size_t i = 0; i < N.size(); ++i)
+        {
+            distance_gauss += N[i] * phi[i];
+        }
+        if (distance_gauss < 0.0)
+        {
             volume_error = -rData.WaterVolumeError;
         }
-        else if (distance_gauss>0.0){
+        else if (distance_gauss > 0.0)
+        {
             volume_error = -rData.AirVolumeError;
         }
-    volume_error_ratio = volume_error / dt;
+        volume_error_ratio = volume_error / previous_dt;
     }
+
+    auto &rhs = rData.rhs;
 
     const double crhs0 = N[0]*p[0] + N[1]*p[1] + N[2]*p[2];
 const double crhs1 = rho*(N[0]*f(0,0) + N[1]*f(1,0) + N[2]*f(2,0));
@@ -1399,12 +1311,12 @@ const double crhs20 = N[0]*vn(0,1) + N[1]*vn(1,1) + N[2]*vn(2,1);
 const double crhs21 = crhs19*(DN(0,0)*vn(0,0) + DN(1,0)*vn(1,0) + DN(2,0)*vn(2,0)) + crhs20*(DN(0,1)*vn(0,0) + DN(1,1)*vn(1,0) + DN(2,1)*vn(2,0));
 const double crhs22 = DN(0,1)*v(0,1) + DN(1,1)*v(1,1) + DN(2,1)*v(2,1);
 const double crhs23 = crhs15 + crhs22 - volume_error_ratio;
-const double crhs24 = rho*stab_c2*sqrt(pow(crhs16, 2) + pow(crhs17, 2));
-const double crhs25 = crhs23*(crhs24*h/stab_c1 + mu);
+const double crhs24 = rho*stab_c2*sqrt(crhs16*crhs16 + crhs17*crhs17);
+const double crhs25 = crhs23*(crhs24*h*1.0/stab_c1 + mu);
 const double crhs26 = bdf0*rho;
 const double crhs27 = crhs26*crhs3;
 const double crhs28 = crhs10*rho;
-const double crhs29 = 1.0/(K_darcy + crhs24/h + crhs28*dyn_tau + mu*stab_c1/pow(h, 2));
+const double crhs29 = 1.0*1.0/(K_darcy + crhs24*1.0/h + crhs28*dyn_tau + mu*stab_c1*1.0/(h*h));
 const double crhs30 = crhs29*(DN(0,0)*p[0] + DN(1,0)*p[1] + DN(2,0)*p[2] - crhs1 - crhs14 + crhs18 + crhs2 + crhs27 + rho*(crhs10*crhs6 + crhs10*crhs7 + crhs10*crhs8 + crhs21));
 const double crhs31 = K_darcy*N[0];
 const double crhs32 = DN(0,0)*vconv(0,0) + DN(0,1)*vconv(0,1) + DN(1,0)*vconv(1,0) + DN(1,1)*vconv(1,1) + DN(2,0)*vconv(2,0) + DN(2,1)*vconv(2,1);
@@ -1454,29 +1366,21 @@ void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<3, 4>>::C
 
     const double rho = rData.Density;
     const double mu = rData.EffectiveViscosity;
-
     const double h = rData.ElementSize;
-
     const double dt = rData.DeltaTime;
     const double bdf0 = rData.bdf0;
-    const double bdf1 = rData.bdf1;
-    const double bdf2 = rData.bdf2;
 
     const double dyn_tau = rData.DynamicTau;
     const double K_darcy = rData.DarcyTerm;
 
     const auto &v = rData.Velocity;
     const auto &vn = rData.Velocity_OldStep1;
-    // const auto an = rData.Acceleration;
     const auto &vnn = rData.Velocity_OldStep2;
-    const auto &vnnn = rData.Velocity_OldStep3;
+    // const auto &vnnn = rData.Velocity_OldStep3; # an bdf2 possible
 
     const auto &vmesh = rData.MeshVelocity;
-    // const auto &vconv = v - vn;
     const auto &vconv = v - vmesh;
-
     const auto vfrac = rData.Velocity_Fractional;
-    bool not_air_traj = rData.NotAirTraj;
     const auto &f = rData.BodyForce;
     const auto &p = rData.Pressure;
     const auto &stress = rData.ShearStress;
@@ -1489,26 +1393,29 @@ void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<3, 4>>::C
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
 
-    // // Mass correction term
-    // double volume_error_ratio = -rData.VolumeError / dt;
-    // OPCION 2
+    // Mass correction term
     double volume_error_ratio = 0.0;
-    const auto &phi = rData.Distance;
-    // //
+
     if (rData.IsCut())
     {
+        const auto &phi = rData.Distance;
+        const double previous_dt = rData.PreviousDeltaTime;
         double volume_error = 0.0;
-        double distance_gauss = N[0]*phi[1]+ N[1]*phi[1]+N[2]*phi[2]+N[3]*phi[3];
-        if (distance_gauss<0.0){
+        double distance_gauss = 0.0;
+        for (std::size_t i = 0; i < N.size(); ++i)
+        {
+            distance_gauss += N[i] * phi[i];
+        }
+        if (distance_gauss < 0.0)
+        {
             volume_error = -rData.WaterVolumeError;
         }
-        else if (distance_gauss>0.0){
+        else if (distance_gauss > 0.0)
+        {
             volume_error = -rData.AirVolumeError;
         }
-    volume_error_ratio = volume_error / dt;
+        volume_error_ratio = volume_error / previous_dt;
     }
-
-
 
     auto &rhs = rData.rhs;
 
@@ -1541,12 +1448,12 @@ const double crhs25 = crhs22*(DN(0,0)*vn(0,0) + DN(1,0)*vn(1,0) + DN(2,0)*vn(2,0
 const double crhs26 = DN(0,1)*v(0,1) + DN(1,1)*v(1,1) + DN(2,1)*v(2,1) + DN(3,1)*v(3,1);
 const double crhs27 = DN(0,2)*v(0,2) + DN(1,2)*v(1,2) + DN(2,2)*v(2,2) + DN(3,2)*v(3,2);
 const double crhs28 = crhs17 + crhs26 + crhs27 - volume_error_ratio;
-const double crhs29 = rho*stab_c2*sqrt(pow(crhs18, 2) + pow(crhs19, 2) + pow(crhs20, 2));
-const double crhs30 = crhs28*(crhs29*h/stab_c1 + mu);
+const double crhs29 = rho*stab_c2*sqrt(crhs18*crhs18 + crhs19*crhs19 + crhs20*crhs20);
+const double crhs30 = crhs28*(crhs29*h*1.0/stab_c1 + mu);
 const double crhs31 = bdf0*rho;
 const double crhs32 = crhs3*crhs31;
 const double crhs33 = crhs11*rho;
-const double crhs34 = 1.0/(K_darcy + crhs29/h + crhs33*dyn_tau + mu*stab_c1/pow(h, 2));
+const double crhs34 = 1.0*1.0/(K_darcy + crhs29*1.0/h + crhs33*dyn_tau + mu*stab_c1*1.0/(h*h));
 const double crhs35 = crhs34*(DN(0,0)*p[0] + DN(1,0)*p[1] + DN(2,0)*p[2] + DN(3,0)*p[3] - crhs1 - crhs16 + crhs2 + crhs21 + crhs32 + rho*(crhs11*crhs6 + crhs11*crhs7 + crhs11*crhs8 + crhs11*crhs9 + crhs25));
 const double crhs36 = K_darcy*N[0];
 const double crhs37 = DN(0,0)*vconv(0,0) + DN(0,1)*vconv(0,1) + DN(0,2)*vconv(0,2) + DN(1,0)*vconv(1,0) + DN(1,1)*vconv(1,1) + DN(1,2)*vconv(1,2) + DN(2,0)*vconv(2,0) + DN(2,1)*vconv(2,1) + DN(2,2)*vconv(2,2) + DN(3,0)*vconv(3,0) + DN(3,1)*vconv(3,1) + DN(3,2)*vconv(3,2);
@@ -1625,29 +1532,22 @@ void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<2, 3>>::C
 
     const double rho = rData.Density;
     const double mu = rData.EffectiveViscosity;
-
     const double h = rData.ElementSize;
 
     const double dt = rData.DeltaTime;
     const double bdf0 = rData.bdf0;
-    const double bdf1 = rData.bdf1;
-    const double bdf2 = rData.bdf2;
 
     const double dyn_tau = rData.DynamicTau;
     const double K_darcy = rData.DarcyTerm;
 
     const auto &v = rData.Velocity;
     const auto &vn = rData.Velocity_OldStep1;
-    // const auto an = rData.Acceleration;
     const auto &vnn = rData.Velocity_OldStep2;
-    const auto &vnnn = rData.Velocity_OldStep3;
-
+    // const auto &vnnn = rData.Velocity_OldStep3; # an bdf2 possible
     const auto &vmesh = rData.MeshVelocity;
-    // const auto &vconv = v - vn;
     const auto &vconv = v - vmesh;
-
     const auto vfrac = rData.Velocity_Fractional;
-    bool not_air_traj = rData.NotAirTraj;
+
     const auto &f = rData.BodyForce;
     const auto &p = rData.Pressure;
 
@@ -1661,23 +1561,28 @@ void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<2, 3>>::C
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
 
-
-    // double volume_error_ratio = -rData.VolumeError/dt;
-     // OPCION 2
+    // Mass correction term
     double volume_error_ratio = 0.0;
-    const auto &phi = rData.Distance;
-    // //
+
     if (rData.IsCut())
     {
+        const auto &phi = rData.Distance;
+        const double previous_dt = rData.PreviousDeltaTime;
         double volume_error = 0.0;
-        double distance_gauss = N[0]*phi[1]+ N[1]*phi[1]+N[2]*phi[2];
-        if (distance_gauss<0.0){
+        double distance_gauss = 0.0;
+        for (std::size_t i = 0; i < N.size(); ++i)
+        {
+            distance_gauss += N[i] * phi[i];
+        }
+        if (distance_gauss < 0.0)
+        {
             volume_error = -rData.WaterVolumeError;
         }
-        else if (distance_gauss>0.0){
+        else if (distance_gauss > 0.0)
+        {
             volume_error = -rData.AirVolumeError;
         }
-    volume_error_ratio = volume_error / dt;
+        volume_error_ratio = volume_error / previous_dt;
     }
 
     auto &V = rData.V;
@@ -1689,7 +1594,7 @@ void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<2, 3>>::C
 
     const double cV0 = N[0]*vconv(0,0) + N[1]*vconv(1,0) + N[2]*vconv(2,0);
 const double cV1 = N[0]*vconv(0,1) + N[1]*vconv(1,1) + N[2]*vconv(2,1);
-const double cV2 = 1.0/(K_darcy + rho*stab_c2*sqrt(pow(cV0, 2) + pow(cV1, 2))/h + mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
+const double cV2 = 1.0*1.0/(K_darcy + dyn_tau*rho*1.0/dt + mu*stab_c1*1.0/(h*h) + rho*stab_c2*1.0/h*sqrt(cV0*cV0 + cV1*cV1));
 const double cV3 = DNenr(0,0)*cV2;
 const double cV4 = K_darcy*N[0];
 const double cV5 = rho*(DN(0,0)*vconv(0,0) + DN(0,1)*vconv(0,1) + DN(1,0)*vconv(1,0) + DN(1,1)*vconv(1,1) + DN(2,0)*vconv(2,0) + DN(2,1)*vconv(2,1));
@@ -1737,7 +1642,7 @@ V(8,2)=cV2*(DN(2,0)*DNenr(2,0) + DN(2,1)*DNenr(2,1));
 
     const double cH0 = N[0]*vconv(0,0) + N[1]*vconv(1,0) + N[2]*vconv(2,0);
 const double cH1 = N[0]*vconv(0,1) + N[1]*vconv(1,1) + N[2]*vconv(2,1);
-const double cH2 = 1.0/(K_darcy + rho*stab_c2*sqrt(pow(cH0, 2) + pow(cH1, 2))/h + mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
+const double cH2 = 1.0*1.0/(K_darcy + dyn_tau*rho*1.0/dt + mu*stab_c1*1.0/(h*h) + rho*stab_c2*1.0/h*sqrt(cH0*cH0 + cH1*cH1));
 const double cH3 = cH2*(K_darcy*N[0] + rho*(DN(0,0)*cH0 + DN(0,1)*cH1 + N[0]*bdf0));
 const double cH4 = cH2*(K_darcy*N[1] + rho*(DN(1,0)*cH0 + DN(1,1)*cH1 + N[1]*bdf0));
 const double cH5 = cH2*(K_darcy*N[2] + rho*(DN(2,0)*cH0 + DN(2,1)*cH1 + N[2]*bdf0));
@@ -1770,19 +1675,19 @@ H(2,7)=DN(2,1)*Nenr[2] + DNenr(2,1)*cH5;
 H(2,8)=cH2*(DN(2,0)*DNenr(2,0) + DN(2,1)*DNenr(2,1));
 
 
-    const double cKee0 = 1.0/(K_darcy + rho*stab_c2*sqrt(pow(N[0]*vconv(0,0) + N[1]*vconv(1,0) + N[2]*vconv(2,0), 2) + pow(N[0]*vconv(0,1) + N[1]*vconv(1,1) + N[2]*vconv(2,1), 2))/h + mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
+    const double cKee0 = 1.0*1.0/(K_darcy + dyn_tau*rho*1.0/dt + mu*stab_c1*1.0/(h*h) + rho*stab_c2*sqrt(pow(N[0]*vconv(0,0) + N[1]*vconv(1,0) + N[2]*vconv(2,0), 2) + pow(N[0]*vconv(0,1) + N[1]*vconv(1,1) + N[2]*vconv(2,1), 2))*1.0/h);
 const double cKee1 = cKee0*(DNenr(0,0)*DNenr(1,0) + DNenr(0,1)*DNenr(1,1));
 const double cKee2 = cKee0*(DNenr(0,0)*DNenr(2,0) + DNenr(0,1)*DNenr(2,1));
 const double cKee3 = cKee0*(DNenr(1,0)*DNenr(2,0) + DNenr(1,1)*DNenr(2,1));
-Kee(0,0)=cKee0*(pow(DNenr(0,0), 2) + pow(DNenr(0,1), 2));
+Kee(0,0)=cKee0*(DNenr(0,0)*DNenr(0,0) + DNenr(0,1)*DNenr(0,1));
 Kee(0,1)=cKee1;
 Kee(0,2)=cKee2;
 Kee(1,0)=cKee1;
-Kee(1,1)=cKee0*(pow(DNenr(1,0), 2) + pow(DNenr(1,1), 2));
+Kee(1,1)=cKee0*(DNenr(1,0)*DNenr(1,0) + DNenr(1,1)*DNenr(1,1));
 Kee(1,2)=cKee3;
 Kee(2,0)=cKee2;
 Kee(2,1)=cKee3;
-Kee(2,2)=cKee0*(pow(DNenr(2,0), 2) + pow(DNenr(2,1), 2));
+Kee(2,2)=cKee0*(DNenr(2,0)*DNenr(2,0) + DNenr(2,1)*DNenr(2,1));
 
 
     const double crhs_ee0 = DN(0,0)*v(0,0) + DN(1,0)*v(1,0) + DN(2,0)*v(2,0);
@@ -1801,7 +1706,7 @@ const double crhs_ee12 = N[1]*crhs_ee10;
 const double crhs_ee13 = N[2]*crhs_ee10;
 const double crhs_ee14 = N[0]*vn(0,0) + N[1]*vn(1,0) + N[2]*vn(2,0);
 const double crhs_ee15 = N[0]*vn(0,1) + N[1]*vn(1,1) + N[2]*vn(2,1);
-const double crhs_ee16 = 1.0/(K_darcy + crhs_ee10*dyn_tau*rho + rho*stab_c2*sqrt(pow(crhs_ee8, 2) + pow(crhs_ee9, 2))/h + mu*stab_c1/pow(h, 2));
+const double crhs_ee16 = 1.0*1.0/(K_darcy + crhs_ee10*dyn_tau*rho + mu*stab_c1*1.0/(h*h) + rho*stab_c2*1.0/h*sqrt(crhs_ee8*crhs_ee8 + crhs_ee9*crhs_ee9));
 const double crhs_ee17 = crhs_ee16*(DN(0,0)*p[0] + DN(1,0)*p[1] + DN(2,0)*p[2] + DNenr(0,0)*penr[0] + DNenr(1,0)*penr[1] + DNenr(2,0)*penr[2] + K_darcy*(N[0]*v(0,0) + N[1]*v(1,0) + N[2]*v(2,0)) - rho*(crhs_ee3*(DN(0,0)*vfrac(0,0) + DN(1,0)*vfrac(1,0) + DN(2,0)*vfrac(2,0)) + crhs_ee4*(DN(0,1)*vfrac(0,0) + DN(1,1)*vfrac(1,0) + DN(2,1)*vfrac(2,0))) - rho*(N[0]*f(0,0) + N[1]*f(1,0) + N[2]*f(2,0)) + rho*(crhs_ee0*crhs_ee8 + crhs_ee5*(v(0,0) - vfrac(0,0)) + crhs_ee6*(v(1,0) - vfrac(1,0)) + crhs_ee7*(v(2,0) - vfrac(2,0)) + crhs_ee9*(DN(0,1)*v(0,0) + DN(1,1)*v(1,0) + DN(2,1)*v(2,0))) + rho*(crhs_ee11*(vn(0,0) - vnn(0,0)) + crhs_ee12*(vn(1,0) - vnn(1,0)) + crhs_ee13*(vn(2,0) - vnn(2,0)) + crhs_ee14*(DN(0,0)*vn(0,0) + DN(1,0)*vn(1,0) + DN(2,0)*vn(2,0)) + crhs_ee15*(DN(0,1)*vn(0,0) + DN(1,1)*vn(1,0) + DN(2,1)*vn(2,0))));
 const double crhs_ee18 = crhs_ee16*(DN(0,1)*p[0] + DN(1,1)*p[1] + DN(2,1)*p[2] + DNenr(0,1)*penr[0] + DNenr(1,1)*penr[1] + DNenr(2,1)*penr[2] + K_darcy*(N[0]*v(0,1) + N[1]*v(1,1) + N[2]*v(2,1)) - rho*(crhs_ee3*(DN(0,0)*vfrac(0,1) + DN(1,0)*vfrac(1,1) + DN(2,0)*vfrac(2,1)) + crhs_ee4*(DN(0,1)*vfrac(0,1) + DN(1,1)*vfrac(1,1) + DN(2,1)*vfrac(2,1))) - rho*(N[0]*f(0,1) + N[1]*f(1,1) + N[2]*f(2,1)) + rho*(crhs_ee1*crhs_ee9 + crhs_ee5*(v(0,1) - vfrac(0,1)) + crhs_ee6*(v(1,1) - vfrac(1,1)) + crhs_ee7*(v(2,1) - vfrac(2,1)) + crhs_ee8*(DN(0,0)*v(0,1) + DN(1,0)*v(1,1) + DN(2,0)*v(2,1))) + rho*(crhs_ee11*(vn(0,1) - vnn(0,1)) + crhs_ee12*(vn(1,1) - vnn(1,1)) + crhs_ee13*(vn(2,1) - vnn(2,1)) + crhs_ee14*(DN(0,0)*vn(0,1) + DN(1,0)*vn(1,1) + DN(2,0)*vn(2,1)) + crhs_ee15*(DN(0,1)*vn(0,1) + DN(1,1)*vn(1,1) + DN(2,1)*vn(2,1))));
 rhs_ee[0]=-DNenr(0,0)*crhs_ee17 - DNenr(0,1)*crhs_ee18 - Nenr[0]*crhs_ee2;
@@ -1831,24 +1736,18 @@ void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<3, 4>>::C
 
     const double dt = rData.DeltaTime;
     const double bdf0 = rData.bdf0;
-    const double bdf1 = rData.bdf1;
-    const double bdf2 = rData.bdf2;
 
     const double dyn_tau = rData.DynamicTau;
     const double K_darcy = rData.DarcyTerm;
 
     const auto &v = rData.Velocity;
     const auto &vn = rData.Velocity_OldStep1;
-    const auto &vnnn = rData.Velocity_OldStep3;
-
-    // const auto an = rData.Acceleration;
     const auto &vnn = rData.Velocity_OldStep2;
     const auto &vmesh = rData.MeshVelocity;
-    // const auto &vconv = v - vn;
     const auto &vconv = v - vmesh;
-
     const auto vfrac = rData.Velocity_Fractional;
-    bool not_air_traj = rData.NotAirTraj;
+    // const auto &vnnn = rData.Velocity_OldStep3; # an bdf2 possible
+
     const auto &f = rData.BodyForce;
     const auto &p = rData.Pressure;
 
@@ -1863,25 +1762,28 @@ void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<3, 4>>::C
     constexpr double stab_c2 = 2.0;
 
     // Mass correction term
-    // double volume_error_ratio = -rData.VolumeError / dt;
-    // KRATOS_WATCH(volume_error_ratio)
-    // OPCION 2
     double volume_error_ratio = 0.0;
-    const auto &phi = rData.Distance;
-    // //
+
     if (rData.IsCut())
     {
+        const double previous_dt = rData.PreviousDeltaTime;
+        const auto &phi = rData.Distance;
         double volume_error = 0.0;
-        double distance_gauss = N[0] * phi[1] + N[1] * phi[1] + N[2] * phi[2] + N[3] *phi[3];
-        if (distance_gauss<0.0){
-             volume_error = -rData.WaterVolumeError;
+        double distance_gauss = 0.0;
+        for (std::size_t i = 0; i < N.size(); ++i)
+        {
+            distance_gauss += N[i] * phi[i];
         }
-        else if (distance_gauss>0.0){
-             volume_error = -rData.AirVolumeError;
+        if (distance_gauss < 0.0)
+        {
+            volume_error = -rData.WaterVolumeError;
         }
-    volume_error_ratio = volume_error / dt;
+        else if (distance_gauss > 0.0)
+        {
+            volume_error = -rData.AirVolumeError;
+        }
+        volume_error_ratio = volume_error / previous_dt;
     }
-
 
     auto &V = rData.V;
     auto &H = rData.H;
@@ -1893,7 +1795,7 @@ void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<3, 4>>::C
     const double cV0 = N[0]*vconv(0,0) + N[1]*vconv(1,0) + N[2]*vconv(2,0) + N[3]*vconv(3,0);
 const double cV1 = N[0]*vconv(0,1) + N[1]*vconv(1,1) + N[2]*vconv(2,1) + N[3]*vconv(3,1);
 const double cV2 = N[0]*vconv(0,2) + N[1]*vconv(1,2) + N[2]*vconv(2,2) + N[3]*vconv(3,2);
-const double cV3 = 1.0/(K_darcy + rho*stab_c2*sqrt(pow(cV0, 2) + pow(cV1, 2) + pow(cV2, 2))/h + mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
+const double cV3 = 1.0*1.0/(K_darcy + dyn_tau*rho*1.0/dt + mu*stab_c1*1.0/(h*h) + rho*stab_c2*1.0/h*sqrt(cV0*cV0 + cV1*cV1 + cV2*cV2));
 const double cV4 = DNenr(0,0)*cV3;
 const double cV5 = K_darcy*N[0];
 const double cV6 = rho*(DN(0,0)*vconv(0,0) + DN(0,1)*vconv(0,1) + DN(0,2)*vconv(0,2) + DN(1,0)*vconv(1,0) + DN(1,1)*vconv(1,1) + DN(1,2)*vconv(1,2) + DN(2,0)*vconv(2,0) + DN(2,1)*vconv(2,1) + DN(2,2)*vconv(2,2) + DN(3,0)*vconv(3,0) + DN(3,1)*vconv(3,1) + DN(3,2)*vconv(3,2));
@@ -1988,7 +1890,7 @@ V(15,3)=cV3*(DN(3,0)*DNenr(3,0) + DN(3,1)*DNenr(3,1) + DN(3,2)*DNenr(3,2));
     const double cH0 = N[0]*vconv(0,0) + N[1]*vconv(1,0) + N[2]*vconv(2,0) + N[3]*vconv(3,0);
 const double cH1 = N[0]*vconv(0,1) + N[1]*vconv(1,1) + N[2]*vconv(2,1) + N[3]*vconv(3,1);
 const double cH2 = N[0]*vconv(0,2) + N[1]*vconv(1,2) + N[2]*vconv(2,2) + N[3]*vconv(3,2);
-const double cH3 = 1.0/(K_darcy + rho*stab_c2*sqrt(pow(cH0, 2) + pow(cH1, 2) + pow(cH2, 2))/h + mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
+const double cH3 = 1.0*1.0/(K_darcy + dyn_tau*rho*1.0/dt + mu*stab_c1*1.0/(h*h) + rho*stab_c2*1.0/h*sqrt(cH0*cH0 + cH1*cH1 + cH2*cH2));
 const double cH4 = cH3*(K_darcy*N[0] + rho*(DN(0,0)*cH0 + DN(0,1)*cH1 + DN(0,2)*cH2 + N[0]*bdf0));
 const double cH5 = cH3*(K_darcy*N[1] + rho*(DN(1,0)*cH0 + DN(1,1)*cH1 + DN(1,2)*cH2 + N[1]*bdf0));
 const double cH6 = cH3*(K_darcy*N[2] + rho*(DN(2,0)*cH0 + DN(2,1)*cH1 + DN(2,2)*cH2 + N[2]*bdf0));
@@ -2059,29 +1961,29 @@ H(3,14)=DN(3,2)*Nenr[3] + DNenr(3,2)*cH7;
 H(3,15)=cH3*(DN(3,0)*DNenr(3,0) + DN(3,1)*DNenr(3,1) + DN(3,2)*DNenr(3,2));
 
 
-    const double cKee0 = 1.0/(K_darcy + rho*stab_c2*sqrt(pow(N[0]*vconv(0,0) + N[1]*vconv(1,0) + N[2]*vconv(2,0) + N[3]*vconv(3,0), 2) + pow(N[0]*vconv(0,1) + N[1]*vconv(1,1) + N[2]*vconv(2,1) + N[3]*vconv(3,1), 2) + pow(N[0]*vconv(0,2) + N[1]*vconv(1,2) + N[2]*vconv(2,2) + N[3]*vconv(3,2), 2))/h + mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
+    const double cKee0 = 1.0*1.0/(K_darcy + dyn_tau*rho*1.0/dt + mu*stab_c1*1.0/(h*h) + rho*stab_c2*sqrt(pow(N[0]*vconv(0,0) + N[1]*vconv(1,0) + N[2]*vconv(2,0) + N[3]*vconv(3,0), 2) + pow(N[0]*vconv(0,1) + N[1]*vconv(1,1) + N[2]*vconv(2,1) + N[3]*vconv(3,1), 2) + pow(N[0]*vconv(0,2) + N[1]*vconv(1,2) + N[2]*vconv(2,2) + N[3]*vconv(3,2), 2))*1.0/h);
 const double cKee1 = cKee0*(DNenr(0,0)*DNenr(1,0) + DNenr(0,1)*DNenr(1,1) + DNenr(0,2)*DNenr(1,2));
 const double cKee2 = cKee0*(DNenr(0,0)*DNenr(2,0) + DNenr(0,1)*DNenr(2,1) + DNenr(0,2)*DNenr(2,2));
 const double cKee3 = cKee0*(DNenr(0,0)*DNenr(3,0) + DNenr(0,1)*DNenr(3,1) + DNenr(0,2)*DNenr(3,2));
 const double cKee4 = cKee0*(DNenr(1,0)*DNenr(2,0) + DNenr(1,1)*DNenr(2,1) + DNenr(1,2)*DNenr(2,2));
 const double cKee5 = cKee0*(DNenr(1,0)*DNenr(3,0) + DNenr(1,1)*DNenr(3,1) + DNenr(1,2)*DNenr(3,2));
 const double cKee6 = cKee0*(DNenr(2,0)*DNenr(3,0) + DNenr(2,1)*DNenr(3,1) + DNenr(2,2)*DNenr(3,2));
-Kee(0,0)=cKee0*(pow(DNenr(0,0), 2) + pow(DNenr(0,1), 2) + pow(DNenr(0,2), 2));
+Kee(0,0)=cKee0*(DNenr(0,0)*DNenr(0,0) + DNenr(0,1)*DNenr(0,1) + DNenr(0,2)*DNenr(0,2));
 Kee(0,1)=cKee1;
 Kee(0,2)=cKee2;
 Kee(0,3)=cKee3;
 Kee(1,0)=cKee1;
-Kee(1,1)=cKee0*(pow(DNenr(1,0), 2) + pow(DNenr(1,1), 2) + pow(DNenr(1,2), 2));
+Kee(1,1)=cKee0*(DNenr(1,0)*DNenr(1,0) + DNenr(1,1)*DNenr(1,1) + DNenr(1,2)*DNenr(1,2));
 Kee(1,2)=cKee4;
 Kee(1,3)=cKee5;
 Kee(2,0)=cKee2;
 Kee(2,1)=cKee4;
-Kee(2,2)=cKee0*(pow(DNenr(2,0), 2) + pow(DNenr(2,1), 2) + pow(DNenr(2,2), 2));
+Kee(2,2)=cKee0*(DNenr(2,0)*DNenr(2,0) + DNenr(2,1)*DNenr(2,1) + DNenr(2,2)*DNenr(2,2));
 Kee(2,3)=cKee6;
 Kee(3,0)=cKee3;
 Kee(3,1)=cKee5;
 Kee(3,2)=cKee6;
-Kee(3,3)=cKee0*(pow(DNenr(3,0), 2) + pow(DNenr(3,1), 2) + pow(DNenr(3,2), 2));
+Kee(3,3)=cKee0*(DNenr(3,0)*DNenr(3,0) + DNenr(3,1)*DNenr(3,1) + DNenr(3,2)*DNenr(3,2));
 
 
     const double crhs_ee0 = DN(0,0)*v(0,0) + DN(1,0)*v(1,0) + DN(2,0)*v(2,0) + DN(3,0)*v(3,0);
@@ -2106,7 +2008,7 @@ const double crhs_ee18 = N[3]*crhs_ee14;
 const double crhs_ee19 = N[0]*vn(0,0) + N[1]*vn(1,0) + N[2]*vn(2,0) + N[3]*vn(3,0);
 const double crhs_ee20 = N[0]*vn(0,1) + N[1]*vn(1,1) + N[2]*vn(2,1) + N[3]*vn(3,1);
 const double crhs_ee21 = N[0]*vn(0,2) + N[1]*vn(1,2) + N[2]*vn(2,2) + N[3]*vn(3,2);
-const double crhs_ee22 = 1.0/(K_darcy + crhs_ee14*dyn_tau*rho + rho*stab_c2*sqrt(pow(crhs_ee11, 2) + pow(crhs_ee12, 2) + pow(crhs_ee13, 2))/h + mu*stab_c1/pow(h, 2));
+const double crhs_ee22 = 1.0*1.0/(K_darcy + crhs_ee14*dyn_tau*rho + mu*stab_c1*1.0/(h*h) + rho*stab_c2*1.0/h*sqrt(crhs_ee11*crhs_ee11 + crhs_ee12*crhs_ee12 + crhs_ee13*crhs_ee13));
 const double crhs_ee23 = crhs_ee22*(DN(0,0)*p[0] + DN(1,0)*p[1] + DN(2,0)*p[2] + DN(3,0)*p[3] + DNenr(0,0)*penr[0] + DNenr(1,0)*penr[1] + DNenr(2,0)*penr[2] + DNenr(3,0)*penr[3] + K_darcy*(N[0]*v(0,0) + N[1]*v(1,0) + N[2]*v(2,0) + N[3]*v(3,0)) - rho*(crhs_ee4*(DN(0,0)*vfrac(0,0) + DN(1,0)*vfrac(1,0) + DN(2,0)*vfrac(2,0) + DN(3,0)*vfrac(3,0)) + crhs_ee5*(DN(0,1)*vfrac(0,0) + DN(1,1)*vfrac(1,0) + DN(2,1)*vfrac(2,0) + DN(3,1)*vfrac(3,0)) + crhs_ee6*(DN(0,2)*vfrac(0,0) + DN(1,2)*vfrac(1,0) + DN(2,2)*vfrac(2,0) + DN(3,2)*vfrac(3,0))) - rho*(N[0]*f(0,0) + N[1]*f(1,0) + N[2]*f(2,0) + N[3]*f(3,0)) + rho*(crhs_ee0*crhs_ee11 + crhs_ee10*(v(3,0) - vfrac(3,0)) + crhs_ee12*(DN(0,1)*v(0,0) + DN(1,1)*v(1,0) + DN(2,1)*v(2,0) + DN(3,1)*v(3,0)) + crhs_ee13*(DN(0,2)*v(0,0) + DN(1,2)*v(1,0) + DN(2,2)*v(2,0) + DN(3,2)*v(3,0)) + crhs_ee7*(v(0,0) - vfrac(0,0)) + crhs_ee8*(v(1,0) - vfrac(1,0)) + crhs_ee9*(v(2,0) - vfrac(2,0))) + rho*(crhs_ee15*(vn(0,0) - vnn(0,0)) + crhs_ee16*(vn(1,0) - vnn(1,0)) + crhs_ee17*(vn(2,0) - vnn(2,0)) + crhs_ee18*(vn(3,0) - vnn(3,0)) + crhs_ee19*(DN(0,0)*vn(0,0) + DN(1,0)*vn(1,0) + DN(2,0)*vn(2,0) + DN(3,0)*vn(3,0)) + crhs_ee20*(DN(0,1)*vn(0,0) + DN(1,1)*vn(1,0) + DN(2,1)*vn(2,0) + DN(3,1)*vn(3,0)) + crhs_ee21*(DN(0,2)*vn(0,0) + DN(1,2)*vn(1,0) + DN(2,2)*vn(2,0) + DN(3,2)*vn(3,0))));
 const double crhs_ee24 = crhs_ee22*(DN(0,1)*p[0] + DN(1,1)*p[1] + DN(2,1)*p[2] + DN(3,1)*p[3] + DNenr(0,1)*penr[0] + DNenr(1,1)*penr[1] + DNenr(2,1)*penr[2] + DNenr(3,1)*penr[3] + K_darcy*(N[0]*v(0,1) + N[1]*v(1,1) + N[2]*v(2,1) + N[3]*v(3,1)) - rho*(crhs_ee4*(DN(0,0)*vfrac(0,1) + DN(1,0)*vfrac(1,1) + DN(2,0)*vfrac(2,1) + DN(3,0)*vfrac(3,1)) + crhs_ee5*(DN(0,1)*vfrac(0,1) + DN(1,1)*vfrac(1,1) + DN(2,1)*vfrac(2,1) + DN(3,1)*vfrac(3,1)) + crhs_ee6*(DN(0,2)*vfrac(0,1) + DN(1,2)*vfrac(1,1) + DN(2,2)*vfrac(2,1) + DN(3,2)*vfrac(3,1))) - rho*(N[0]*f(0,1) + N[1]*f(1,1) + N[2]*f(2,1) + N[3]*f(3,1)) + rho*(crhs_ee1*crhs_ee12 + crhs_ee10*(v(3,1) - vfrac(3,1)) + crhs_ee11*(DN(0,0)*v(0,1) + DN(1,0)*v(1,1) + DN(2,0)*v(2,1) + DN(3,0)*v(3,1)) + crhs_ee13*(DN(0,2)*v(0,1) + DN(1,2)*v(1,1) + DN(2,2)*v(2,1) + DN(3,2)*v(3,1)) + crhs_ee7*(v(0,1) - vfrac(0,1)) + crhs_ee8*(v(1,1) - vfrac(1,1)) + crhs_ee9*(v(2,1) - vfrac(2,1))) + rho*(crhs_ee15*(vn(0,1) - vnn(0,1)) + crhs_ee16*(vn(1,1) - vnn(1,1)) + crhs_ee17*(vn(2,1) - vnn(2,1)) + crhs_ee18*(vn(3,1) - vnn(3,1)) + crhs_ee19*(DN(0,0)*vn(0,1) + DN(1,0)*vn(1,1) + DN(2,0)*vn(2,1) + DN(3,0)*vn(3,1)) + crhs_ee20*(DN(0,1)*vn(0,1) + DN(1,1)*vn(1,1) + DN(2,1)*vn(2,1) + DN(3,1)*vn(3,1)) + crhs_ee21*(DN(0,2)*vn(0,1) + DN(1,2)*vn(1,1) + DN(2,2)*vn(2,1) + DN(3,2)*vn(3,1))));
 const double crhs_ee25 = crhs_ee22*(DN(0,2)*p[0] + DN(1,2)*p[1] + DN(2,2)*p[2] + DN(3,2)*p[3] + DNenr(0,2)*penr[0] + DNenr(1,2)*penr[1] + DNenr(2,2)*penr[2] + DNenr(3,2)*penr[3] + K_darcy*(N[0]*v(0,2) + N[1]*v(1,2) + N[2]*v(2,2) + N[3]*v(3,2)) - rho*(crhs_ee4*(DN(0,0)*vfrac(0,2) + DN(1,0)*vfrac(1,2) + DN(2,0)*vfrac(2,2) + DN(3,0)*vfrac(3,2)) + crhs_ee5*(DN(0,1)*vfrac(0,2) + DN(1,1)*vfrac(1,2) + DN(2,1)*vfrac(2,2) + DN(3,1)*vfrac(3,2)) + crhs_ee6*(DN(0,2)*vfrac(0,2) + DN(1,2)*vfrac(1,2) + DN(2,2)*vfrac(2,2) + DN(3,2)*vfrac(3,2))) - rho*(N[0]*f(0,2) + N[1]*f(1,2) + N[2]*f(2,2) + N[3]*f(3,2)) + rho*(crhs_ee10*(v(3,2) - vfrac(3,2)) + crhs_ee11*(DN(0,0)*v(0,2) + DN(1,0)*v(1,2) + DN(2,0)*v(2,2) + DN(3,0)*v(3,2)) + crhs_ee12*(DN(0,1)*v(0,2) + DN(1,1)*v(1,2) + DN(2,1)*v(2,2) + DN(3,1)*v(3,2)) + crhs_ee13*crhs_ee2 + crhs_ee7*(v(0,2) - vfrac(0,2)) + crhs_ee8*(v(1,2) - vfrac(1,2)) + crhs_ee9*(v(2,2) - vfrac(2,2))) + rho*(crhs_ee15*(vn(0,2) - vnn(0,2)) + crhs_ee16*(vn(1,2) - vnn(1,2)) + crhs_ee17*(vn(2,2) - vnn(2,2)) + crhs_ee18*(vn(3,2) - vnn(3,2)) + crhs_ee19*(DN(0,0)*vn(0,2) + DN(1,0)*vn(1,2) + DN(2,0)*vn(2,2) + DN(3,0)*vn(3,2)) + crhs_ee20*(DN(0,1)*vn(0,2) + DN(1,1)*vn(1,2) + DN(2,1)*vn(2,2) + DN(3,1)*vn(3,2)) + crhs_ee21*(DN(0,2)*vn(0,2) + DN(1,2)*vn(1,2) + DN(2,2)*vn(2,2) + DN(3,2)*vn(3,2))));
@@ -2246,188 +2148,6 @@ ModifiedShapeFunctions::UniquePointer TwoFluidNavierStokesFractional< TwoFluidNa
     return Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(pGeometry, rDistances);
 }
 
-template <>
-ModifiedShapeFunctions::UniquePointer TwoFluidNavierStokesFractional< TwoFluidNavierStokesFractionalAlphaMethodData<2, 3> >::pGetModifiedShapeFunctionsUtility(
-    const GeometryType::Pointer pGeometry,
-    const Vector& rDistances)
-{
-    return Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(pGeometry, rDistances);
-}
-
-template <>
-ModifiedShapeFunctions::UniquePointer TwoFluidNavierStokesFractional< TwoFluidNavierStokesFractionalAlphaMethodData<3, 4> >::pGetModifiedShapeFunctionsUtility(
-        const GeometryType::Pointer pGeometry,
-        const Vector& rDistances)
-{
-    return Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(pGeometry, rDistances);
-}
-
-template <class TElementData>
-void TwoFluidNavierStokesFractional<TElementData>::CalculateCurvatureOnInterfaceGaussPoints(
-        const Matrix& rInterfaceShapeFunctions,
-        Vector& rInterfaceCurvature)
-{
-    const auto& r_geom = this->GetGeometry();
-    const unsigned int n_gpt = rInterfaceShapeFunctions.size1();
-
-    rInterfaceCurvature.resize(n_gpt, false);
-
-    for (unsigned int gpt = 0; gpt < n_gpt; ++gpt){
-        double curvature = 0.0;
-        for (unsigned int i = 0; i < NumNodes; ++i){
-            curvature += rInterfaceShapeFunctions(gpt,i) * r_geom[i].GetValue(CURVATURE);
-        }
-        rInterfaceCurvature[gpt] = curvature;
-    }
-}
-
-template <class TElementData>
-void TwoFluidNavierStokesFractional<TElementData>::SurfaceTension(
-    const double SurfaceTensionCoefficient,
-    const Vector& rCurvature,
-    const Vector& rInterfaceWeights,
-    const Matrix& rInterfaceShapeFunctions,
-    const std::vector<array_1d<double,3>>& rInterfaceNormalsNeg,
-    VectorType& rRHS)
-{
-    for (unsigned int intgp = 0; intgp < rInterfaceWeights.size(); ++intgp){
-        const double intgp_curv = rCurvature(intgp);
-        const double intgp_w = rInterfaceWeights(intgp);
-        const auto& intgp_normal = rInterfaceNormalsNeg[intgp];
-        for (unsigned int j = 0; j < NumNodes; ++j){
-            for (unsigned int dim = 0; dim < NumNodes-1; ++dim){
-                rRHS[ j*(NumNodes) + dim ] -= SurfaceTensionCoefficient*intgp_normal[dim]
-                    *intgp_curv*intgp_w*rInterfaceShapeFunctions(intgp,j);
-            }
-        }
-    }
-}
-
-template <class TElementData>
-void TwoFluidNavierStokesFractional<TElementData>::PressureGradientStabilization(
-    const TElementData& rData,
-    const Vector& rInterfaceWeights,
-    const Matrix& rEnrInterfaceShapeFunctionPos,
-    const Matrix& rEnrInterfaceShapeFunctionNeg,
-    const GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivatives,
-    MatrixType& rKeeTot,
-    VectorType& rRHSeeTot)
-{
-    MatrixType kee = ZeroMatrix(NumNodes, NumNodes);
-    VectorType rhs_enr = ZeroVector(NumNodes);
-
-    Matrix enr_neg_interp = ZeroMatrix(NumNodes, NumNodes);
-    Matrix enr_pos_interp = ZeroMatrix(NumNodes, NumNodes);
-
-    double positive_density = 0.0;
-    double negative_density = 0.0;
-    double positive_viscosity = 0.0;
-    double negative_viscosity = 0.0;
-
-    for (unsigned int i = 0; i < NumNodes; ++i){
-        if (rData.Distance[i] > 0.0){
-            enr_neg_interp(i, i) = 1.0;
-            positive_density = rData.NodalDensity[i];
-            positive_viscosity = rData.NodalDynamicViscosity[i];
-        } else{
-            enr_pos_interp(i, i) = 1.0;
-            negative_density = rData.NodalDensity[i];
-            negative_viscosity = rData.NodalDynamicViscosity[i];
-        }
-    }
-
-    GeometryType::ShapeFunctionsGradientsType EnrichedInterfaceShapeDerivativesPos = rInterfaceShapeDerivatives;
-    GeometryType::ShapeFunctionsGradientsType EnrichedInterfaceShapeDerivativesNeg = rInterfaceShapeDerivatives;
-
-    for (unsigned int i = 0; i < rInterfaceShapeDerivatives.size(); ++i){
-        EnrichedInterfaceShapeDerivativesPos[i] = prod(enr_pos_interp, rInterfaceShapeDerivatives[i]);
-    }
-
-    for (unsigned int i = 0; i < rInterfaceShapeDerivatives.size(); ++i){
-        EnrichedInterfaceShapeDerivativesNeg[i] = prod(enr_neg_interp, rInterfaceShapeDerivatives[i]);
-    }
-
-    double positive_volume = 0.0;
-    double negative_volume = 0.0;
-    for (unsigned int igauss_pos = 0; igauss_pos < rData.w_gauss_pos_side.size(); ++igauss_pos){
-        positive_volume += rData.w_gauss_pos_side[igauss_pos];
-    }
-
-    for (unsigned int igauss_neg = 0; igauss_neg < rData.w_gauss_neg_side.size(); ++igauss_neg){
-        negative_volume += rData.w_gauss_neg_side[igauss_neg];
-    }
-    const double element_volume = positive_volume + negative_volume;
-
-    const auto& r_geom = this->GetGeometry();
-    const double h_elem = rData.ElementSize;
-
-    double cut_area = 0.0;
-    for (unsigned int gp = 0; gp < rInterfaceWeights.size(); ++gp){
-        cut_area += rInterfaceWeights[gp];
-    }
-
-    const double density = 1.0/(1.0/positive_density + 1.0/negative_density);
-    const double viscosity = 1.0/(1.0/positive_viscosity + 1.0/negative_viscosity);
-
-    // Stabilization parameters
-    const double cut_stabilization_coefficient = 1.0;
-    const double stab_c1 = 4.0;
-    const double stab_c2 = 2.0;
-    const double dyn_tau = rData.DynamicTau;
-
-    const double dt = rData.DeltaTime;
-
-    // const auto v_convection = rData.Velocity - rData.Velocity_OldStep1;
-    const auto v_convection = rData.Velocity - rData.MeshVelocity;
-
-    for (unsigned int gp = 0; gp < rInterfaceWeights.size(); ++gp){
-
-        Vector vconv = ZeroVector(Dim);
-        double positive_weight = 0.0;
-        double negative_weight = 0.0;
-
-        for (unsigned int j = 0; j < NumNodes; ++j){
-            for (unsigned int dim = 0; dim < Dim; ++dim){
-                vconv[dim] += (rEnrInterfaceShapeFunctionNeg(gp, j) + rEnrInterfaceShapeFunctionPos(gp, j))
-                    *v_convection(j,dim);
-            }
-            positive_weight += rEnrInterfaceShapeFunctionNeg(gp, j);
-            negative_weight += rEnrInterfaceShapeFunctionPos(gp, j);
-        }
-
-        const double v_conv_norm = norm_2(vconv);
-
-        const double penalty_coefficient = cut_stabilization_coefficient *
-            density * 1.0 / (dyn_tau * density / dt + stab_c1 * viscosity / h_elem / h_elem +
-                                stab_c2 * density * v_conv_norm / h_elem) * element_volume / cut_area;
-
-        const auto& r_gp_enriched_interface_shape_derivatives_pos = EnrichedInterfaceShapeDerivativesPos[gp];
-        const auto& r_gp_enriched_interface_shape_derivatives_neg = EnrichedInterfaceShapeDerivativesNeg[gp];
-
-        for (unsigned int i = 0; i < NumNodes; ++i){
-
-            for (unsigned int j = 0; j < NumNodes; ++j){
-
-                const auto& r_pressure_gradient_j = r_geom[j].GetValue(PRESSURE_GRADIENT);
-
-                for (unsigned int dim = 0; dim < Dim; ++dim){
-                    kee(i, j) += penalty_coefficient * rInterfaceWeights[gp] *
-                        ( r_gp_enriched_interface_shape_derivatives_pos(i,dim) - r_gp_enriched_interface_shape_derivatives_neg(i,dim) )*
-                        ( r_gp_enriched_interface_shape_derivatives_pos(j,dim) - r_gp_enriched_interface_shape_derivatives_neg(j,dim) );
-
-                    rhs_enr(i) += penalty_coefficient * rInterfaceWeights[gp] *
-                        ( r_gp_enriched_interface_shape_derivatives_pos(i,dim) - r_gp_enriched_interface_shape_derivatives_neg(i,dim) )*
-                        (rEnrInterfaceShapeFunctionNeg(gp, j)/positive_weight - rEnrInterfaceShapeFunctionPos(gp, j)/negative_weight)*
-                        r_pressure_gradient_j(dim);
-                }
-            }
-        }
-    }
-
-    noalias(rKeeTot) += kee;
-    noalias(rRHSeeTot) += rhs_enr;
-}
-
 template <class TElementData>
 void TwoFluidNavierStokesFractional<TElementData>::CalculateStrainRate(TElementData& rData) const
 {
@@ -2525,51 +2245,6 @@ void TwoFluidNavierStokesFractional<TElementData>::CondenseEnrichment(
 }
 
 template <class TElementData>
-void TwoFluidNavierStokesFractional<TElementData>::AddSurfaceTensionContribution(
-    const TElementData& rData,
-    MatrixType& rInterfaceShapeFunction,
-    MatrixType& rEnrInterfaceShapeFunctionPos,
-    MatrixType& rEnrInterfaceShapeFunctionNeg,
-    GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivatives,
-    Vector& rInterfaceWeights,
-    std::vector< array_1d<double, 3> >& rInterfaceNormalsNeg,
-    Matrix &rLeftHandSideMatrix,
-    VectorType &rRightHandSideVector,
-    const MatrixType &rHtot,
-    const MatrixType &rVtot,
-    MatrixType &rKeeTot,
-    VectorType &rRHSeeTot)
-{
-    // Surface tension coefficient is set in material properties
-    const double surface_tension_coefficient = this->GetProperties().GetValue(SURFACE_TENSION_COEFFICIENT);
-
-    Vector gauss_pts_curvature; // curvatures calculated on interface Gauss points
-
-    CalculateCurvatureOnInterfaceGaussPoints(
-        rInterfaceShapeFunction,
-        gauss_pts_curvature);
-
-    SurfaceTension(
-        surface_tension_coefficient,
-        gauss_pts_curvature,
-        rInterfaceWeights,
-        rInterfaceShapeFunction,
-        rInterfaceNormalsNeg,
-        rRightHandSideVector);
-
-    this->PressureGradientStabilization(
-        rData,
-        rInterfaceWeights,
-        rEnrInterfaceShapeFunctionPos,
-        rEnrInterfaceShapeFunctionNeg,
-        rInterfaceShapeDerivatives,
-        rKeeTot,
-        rRHSeeTot);
-
-    CondenseEnrichment(rLeftHandSideMatrix, rRightHandSideVector, rHtot, rVtot, rKeeTot, rRHSeeTot);
-}
-
-template <class TElementData>
 void TwoFluidNavierStokesFractional<TElementData>::save(Serializer &rSerializer) const
 {
     using BaseType = FluidElement<TElementData>;
@@ -2621,67 +2296,10 @@ void TwoFluidNavierStokesFractional<TElementData>::CalculateOnIntegrationPoints(
     }
 }
 
-template <>
-void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalAlphaMethodData<2, 3>>::ComputeGaussPointLHSContribution(
-    TwoFluidNavierStokesFractionalAlphaMethodData<2, 3> &rData,
-    MatrixType &rLHS)
-{
-    KRATOS_ERROR << "This function should never be called. It is only to enable the explicit template instantiation." << std::endl;
-}
-
-template <>
-void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalAlphaMethodData<3, 4>>::ComputeGaussPointLHSContribution(
-    TwoFluidNavierStokesFractionalAlphaMethodData<3, 4> &rData,
-    MatrixType &rLHS)
-{
-    KRATOS_ERROR << "This function should never be called. It is only to enable the explicit template instantiation." << std::endl;
-}
-
-template <>
-void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalAlphaMethodData<2, 3>>::ComputeGaussPointRHSContribution(
-    TwoFluidNavierStokesFractionalAlphaMethodData<2, 3> &rData,
-    VectorType &rRHS)
-{
-    KRATOS_ERROR << "This function should never be called. It is only to enable the explicit template instantiation." << std::endl;
-}
-
-template <>
-void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalAlphaMethodData<3, 4>>::ComputeGaussPointRHSContribution(
-    TwoFluidNavierStokesFractionalAlphaMethodData<3, 4> &rData,
-    VectorType &RLHS)
-{
-    KRATOS_ERROR << "This function should never be called. It is only to enable the explicit template instantiation." << std::endl;
-}
-
-template <>
-void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalAlphaMethodData<2, 3>>::ComputeGaussPointEnrichmentContributions(
-    TwoFluidNavierStokesFractionalAlphaMethodData<2, 3> &rData,
-    MatrixType &rV,
-    MatrixType &rH,
-    MatrixType &rKee,
-    VectorType &rRHS_ee)
-{
-    KRATOS_ERROR << "This function should never be called. It is only to enable the explicit template instantiation." << std::endl;
-}
-
-template <>
-void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalAlphaMethodData<3, 4>>::ComputeGaussPointEnrichmentContributions(
-    TwoFluidNavierStokesFractionalAlphaMethodData<3, 4> &rData,
-    MatrixType &rV,
-    MatrixType &rH,
-    MatrixType &rKee,
-    VectorType &rRHS_ee)
-{
-    KRATOS_ERROR << "This function should never be called. It is only to enable the explicit template instantiation." << std::endl;
-}
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
 
 template class TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<2, 3>>;
 template class TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<3, 4>>;
-
-template class TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalAlphaMethodData<2, 3>>;
-template class TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalAlphaMethodData<3, 4>>;
 
 } // namespace Kratos

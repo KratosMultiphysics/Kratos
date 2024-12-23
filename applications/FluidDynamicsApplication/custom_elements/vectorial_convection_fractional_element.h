@@ -7,13 +7,12 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Uxue Chasco Goñi
+//  Main authors:    Uxue Chasco
 //
 //
 //
 
-
-#if !defined(KRATOS_VECTORIAL_CONVECTION_FRACTIONAL_ELEMENT)
+#pragma once
 #define KRATOS_VECTORIAL_CONVECTION_FRACTIONAL_ELEMENT
 
 // System includes
@@ -21,44 +20,42 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
-#include "includes/element.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
-#include "includes/serializer.h"
 #include "includes/cfd_variables.h"
 #include "includes/convection_diffusion_settings.h"
 #include "utilities/geometry_utilities.h"
-#include "custom_utilities/fluid_element_data.h"
-#include "custom_utilities/vectorial_convection_fractional_element_data.h"
+#include "custom_elements/data_containers/fluid_element_data.h"
+#include "custom_elements/data_containers/two_fluid_fractional_navier_stokes/vectorial_convection_fractional_element_data.h"
 #include "fluid_dynamics_application_variables.h"
 
 namespace Kratos
 {
+/*
+    The "VectorialConvectionFractionalElement" solves the convection problem of a vector field, specifically the fractional velocity, and convects this field using its own velocity.
+    This element is part of the two-fluid Navier-Stokes fractional element TwoFluidNavierStokesFractional.
+    The Navier-Stokes momentum conservation equation is split into two problems: the first one convects the fractional velocity (using this element), and the second one resolves the remaining terms of the Navier-Stokes momentum conservation.
+    Combining both problems in the continuous framework results in the original Navier-Stokes momentum equation
+ */
 
 ///@name Kratos Globals
 ///@{
-
 ///@}
 ///@name Type Definitions
 ///@{
-
 ///@}
 ///@name  Enum's
 ///@{
-
 ///@}
 ///@name  Functions
 ///@{
-
 ///@}
 ///@name Kratos Classes
 ///@{
-
-namespace Internals
-{
-    template <class TElementData, bool TDataKnowsAboutTimeIntegration>
-    class FluidElementTimeIntegrationDetail;
+    namespace Internals
+    {
+        template <class TElementData, bool TDataKnowsAboutTimeIntegration>
+        class FluidElementTimeIntegrationDetail;
 }
 template <class TElementData>
 class VectorialConvectionFractionalElement: public Element
@@ -311,7 +308,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-
-#endif // KRATOS_LEVELSET_CONVECTION_ELEMENT_SIMPLEX_INCLUDED  defined
-
-

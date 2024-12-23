@@ -20,17 +20,15 @@ linearisation = "Picard"            # Iteration type. Options: "Picard", "FullNR
 divide_by_rho = True                # Divide by density in mass conservation equation
 ASGS_stabilization = True           # Consider ASGS stabilization terms
 mode = "c"                          # Output mode to a c++ file
-time_integration="bdf2"
+time_integration="bdf2"             # TODO: Right now the formulation is validated only for BDF2 but there is a working version for generalized alpha.
 adding_acceleration=True            # Add acceleration
 
 if time_integration == "bdf2":
     output_filename = "two_fluid_navier_stokes_fractional.cpp"
     template_filename = "two_fluid_navier_stokes_fractional_template.cpp"
-elif time_integration == "alpha_method":
-    output_filename = "two_fluid_navier_stokes_alpha_method_fractional.cpp"
-    template_filename = "two_fluid_navier_stokes_alpha_method_fractional_template.cpp"
 else:
-    err_msg = "Wrong time_integration. Given \'" + time_integration + "\'. Available options are \'bdf2\' , \'alpha_method\'and \'theta_scheme\'."
+    # TODO: There is a version with the generalised alpha time integration scheme but validation is requiered.
+    err_msg = "Wrong time_integration. Given \'" + time_integration + "\'. Available options are \'bdf2\'."
     raise Exception(err_msg)
 
 if (dim_to_compute == "2D"):
@@ -60,16 +58,13 @@ for dim in dim_vector:
     DNenr = DefineMatrix('DNenr',nnodes,dim)
     Nenr = DefineVector('Nenr',nnodes)
 
-
     ## Unknown fields definition
     v = DefineMatrix('v',nnodes,dim)            # Current step velocity (v(i,j) refers to velocity of node i component j)
     vn = DefineMatrix('vn',nnodes,dim)          # Previous step velocity
     vnn = DefineMatrix('vnn',nnodes,dim)        # 2 previous step velocity
-    vnnn = DefineMatrix('vnnn', nnodes, dim)        # 3 previous step velocity TODO: We use this in case that the an is goint to be obtained doing a BDF2 approximation
-
+    vnnn = DefineMatrix('vnnn', nnodes, dim)    # 3 previous step velocity TODO: We use this in case that the an is going to be obtained doing a BDF2 approximation
     p = DefineVector('p',nnodes)                # Pressure
     penr= DefineVector('penr',nnodes)	        # Enriched Pressure
-    # an = DefineMatrix('an', nnodes, dim)        #fractional acceleration
 
     # Variables needed for the navier stokes fractional splitting
     vfrac = DefineMatrix('vfrac', nnodes, dim)  # Fractional velocity,
@@ -111,13 +106,9 @@ for dim in dim_vector:
         vmesh = DefineMatrix('vmesh',nnodes,dim)    # Mesh velocity
         vconv = v - vmesh                           # Convective velocity defined as a velocity dependent variable
 
-
-
     vconv_gauss = vconv.transpose()*N              #Convective velocity on the current time step linearized
     vconv_old_gauss = vn.transpose()*N             #Convective velocity on the previous time step for the convective term of the fractional acceleration
     vconv_fractional = vfrac.transpose()*N         #Convective velocity corresponding to the convective fractional term.
-
-
 
     ## Compute the stabilization parameters
     vconv_gauss_norm = 0.0
@@ -125,41 +116,19 @@ for dim in dim_vector:
         vconv_gauss_norm += vconv_gauss[i]**2
     vconv_gauss_norm = sympy.sqrt(vconv_gauss_norm)
 
-
     ## Data interpolation to the Gauss points
-    if time_integration=="bdf2":
-        K_darcy = sympy.Symbol('K_darcy', positive = True)
-        ## Backward differences coefficients
-        bdf0 = sympy.Symbol('bdf0')
-        bdf1 = sympy.Symbol('bdf1')
-        bdf2 = sympy.Symbol('bdf2')
-        ## Part of the NS acceleration due to the fractional splitting
-        acceleration = (bdf0*v -bdf0*vfrac)
-        v_gauss = v.transpose()*N
-        f_gauss = f.transpose()*N
-    elif time_integration=="alpha_method":
-        max_sprectral_radius=sympy.Symbol('max_spectral_radius', positive = True)
-        acceleration_alpha_method=DefineMatrix('acceleration_alpha_method',nnodes,dim)
-        # alpha method parameters
-        alpha_m= 0.5*((3-max_sprectral_radius)/(1+max_sprectral_radius))
-        alpha_f=1/(1+max_sprectral_radius)
-        gamma= 0.5+ alpha_m -alpha_f
-        ## alpha method affected variables
-        f_alpha= fn+alpha_f*(f-fn)
-        v_alpha= vn+alpha_f*(v-vn)
-        v_gauss = v_alpha.transpose()*N
-        f_gauss = f_alpha.transpose()*N
-        acceleration_n=(v-vn)/(gamma*dt)+acceleration_alpha_method*(gamma-1)/gamma
-        acceleration = acceleration_alpha_method+alpha_m*(acceleration_n-acceleration_alpha_method)
-    else:
-        err_msg = "Wrong time integration scheme {}.".format(time_integration)
-        raise Exception(err_msg)
+    K_darcy = sympy.Symbol('K_darcy', positive = True)
+    ## Backward differences coefficients
+    bdf0 = sympy.Symbol('bdf0')
+    bdf1 = sympy.Symbol('bdf1')
+    bdf2 = sympy.Symbol('bdf2')
+    ## Part of the NS acceleration due to the fractional splitting
+    acceleration = (bdf0*v -bdf0*vfrac)
+    v_gauss = v.transpose()*N
+    f_gauss = f.transpose()*N
 
-    if time_integration=="bdf2":
-        tau1 = 1.0/((rho*dyn_tau)/dt + (stab_c2*rho*vconv_gauss_norm)/h + (stab_c1*mu)/(h*h) + K_darcy)   # Stabilization parameter 1
-    else:
-        tau1 = 1.0/((rho*dyn_tau)/dt + (stab_c2*rho*vconv_gauss_norm)/h + (stab_c1*mu)/(h*h))  # Stabilization parameter 1
-    tau2 = mu + (stab_c2*rho*vconv_gauss_norm*h)/stab_c1
+    tau1 = 1.0/((rho*dyn_tau)/dt + (stab_c2*rho*vconv_gauss_norm)/h + (stab_c1*mu)/(h*h) + K_darcy)   # Stabilization parameter 1
+    tau2 = mu + (stab_c2*rho*vconv_gauss_norm*h)/stab_c1                                              # Stabilization parameter 2
 
     p_gauss = p.transpose()*N #NOTE: We evaluate p-related terms at n+1 as temporal component makes no sense in this case for both time integration schemes
     penr_gauss = penr.transpose()*Nenr
@@ -169,11 +138,7 @@ for dim in dim_vector:
     accel_gauss = acceleration.transpose()*N
 
     ## Gradients computation
-    if time_integration=="bdf2":
-        grad_v = DN.transpose()*v
-    elif time_integration=="alpha_method":
-        grad_v = DN.transpose()*v_alpha
-
+    grad_v = DN.transpose()*v
     grad_v_fractional = DN.transpose()*vfrac
     grad_v_old = DN.transpose()*vn
     grad_w = DN.transpose()*w
@@ -181,48 +146,34 @@ for dim in dim_vector:
     grad_qenr = DNenr.transpose()*qenr
     grad_p = DN.transpose()*p
     grad_penr = DNenr.transpose()*penr
-
-    ## Divergence computation
-    if time_integration == "bdf2":
-        div_v = div(DN,v)
-    elif time_integration=="alpha_method":
-        div_v = div(DN,v_alpha)
-        div_v_stabilization=div(DN,v)
-
-    div_w = div(DN,w)
-    div_vconv = div(DN,vconv)
-
-    if time_integration=="bdf2":
-        grad_sym_v_voigt = grad_sym_voigtform(DN,v)
-    elif time_integration=="alpha_method":     # Symmetric gradient of v in Voigt notation
-        grad_sym_v_voigt = grad_sym_voigtform(DN,v_alpha)
-
-    grad_sym_w_voigt = grad_sym_voigtform(DN,w)     # Symmetric gradient of w in Voigt notation
+    grad_sym_v_voigt = grad_sym_voigtform(DN, v)
+    # Symmetric gradient of w in Voigt notation
+    grad_sym_w_voigt = grad_sym_voigtform(DN, w)
     # Recall that the grad(w):sigma contraction equals grad_sym(w)*sigma in Voigt notation since sigma is a symmetric tensor.
 
-
+    ## Divergence computation
+    div_v = div(DN,v)
+    div_w = div(DN,w)
+    div_vconv = div(DN,vconv)
 
     # All the convective term definition
     convective_term = (vconv_gauss.transpose()*grad_v)                             #Convective term on the current time step NS equation
     convective_n_term = (vconv_old_gauss.transpose()*grad_v_old)                   #Convective term for the previous time step acceleration term (fractional splitting)
     convective_frac_term = vconv_fractional.transpose()*grad_v_fractional          #Fractional convective term
 
-
     # accel_n = bdf0*vn+bdf1*vnn+bdf2*vnnn #TODO: Approximating the acceleration with BDF2
     accel_n = (vn-vnn)/dt
     accel_gauss_n = accel_n.transpose()*N
 
-
     ## Galerkin Functional
     rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss -rho*w_gauss.transpose()*convective_term.transpose() - grad_sym_w_voigt.transpose()*stress + div_w*p_gauss + rho*w_gauss.transpose()*convective_frac_term.transpose()
-    if time_integration=="bdf2":
-        rv_galerkin -= w_gauss.transpose()*K_darcy*v_gauss #Darcy Term
-        if adding_acceleration:
-            # Adding fractional acceleration convective part
-            rv_galerkin -= rho*w_gauss.transpose()*convective_n_term.transpose()
-            # Adding fractional acceleration partial part
-            rv_galerkin -= rho*w_gauss.transpose()*accel_gauss_n
 
+    rv_galerkin -= w_gauss.transpose()*K_darcy*v_gauss #Darcy Term
+    if adding_acceleration:
+        # Adding fractional acceleration convective part
+        rv_galerkin -= rho*w_gauss.transpose()*convective_n_term.transpose()
+        # Adding fractional acceleration partial part
+        rv_galerkin -= rho*w_gauss.transpose()*accel_gauss_n
 
     if (divide_by_rho):
         rv_galerkin += q_gauss*(volume_error_ratio - div_v[0,0])
@@ -237,20 +188,13 @@ for dim in dim_vector:
     if adding_acceleration:
         vel_residual -=rho*(accel_gauss_n+convective_n_term.transpose())
 
-    if time_integration=="bdf2":
-        vel_residual-= K_darcy*v_gauss
+    vel_residual-= K_darcy*v_gauss
 
     # Mass conservation residual
     if (divide_by_rho):
-        if time_integration=="alpha_method":
-            mas_residual=-div_v_stabilization[0,0]+volume_error_ratio
-        else:
-            mas_residual = -div_v[0,0] + volume_error_ratio
+        mas_residual = -div_v[0,0] + volume_error_ratio
     else:
-        if time_integration=="alpha_method":
-            mas_residual=-rho*div_v_stabilization[0,0]+volume_error_ratio
-        else:
-            mas_residual = -rho*div_v[0,0] + rho*volume_error_ratio
+         mas_residual = -rho*div_v[0,0] + rho*volume_error_ratio
 
     vel_subscale = tau1*vel_residual
     mas_subscale = tau2*mas_residual
@@ -264,8 +208,7 @@ for dim in dim_vector:
     rv_stab += rho*vconv_gauss.transpose()*grad_w*vel_subscale
     rv_stab += rho*div_vconv*w_gauss.transpose()*vel_subscale
     rv_stab += div_w*mas_subscale
-    if time_integration=="bdf2":
-        rv_stab -= w_gauss.transpose()*K_darcy*vel_subscale
+    rv_stab -= w_gauss.transpose()*K_darcy*vel_subscale
 
     ## Add the stabilization terms to the original residual terms
     if (ASGS_stabilization):
@@ -283,7 +226,6 @@ for dim in dim_vector:
             testfunc[i*(dim+1)+k] = w[i,k]
         dofs[i*(dim+1)+dim] = p[i,0]
         testfunc[i*(dim+1)+dim] = q[i,0]
-
 
     ## Compute LHS and RHS
     # For the RHS computation one wants the residual of the previous iteration (residual based formulation). By this reason the stress is
@@ -308,10 +250,8 @@ for dim in dim_vector:
     if adding_acceleration:
         vel_residual_enr -= rho*(accel_gauss_n+convective_n_term.transpose())
 
-    if time_integration == "bdf2":
-        vel_residual_enr-= K_darcy*v_gauss
+    vel_residual_enr-= K_darcy*v_gauss
     vel_subscale_enr = vel_residual_enr * tau1
-
     rv_galerkin_enriched = div_w*penr_gauss
 
     if (divide_by_rho):
@@ -324,9 +264,7 @@ for dim in dim_vector:
         rv_stab_enriched -= rho*grad_q.transpose()*tau1*grad_penr
 
     rv_stab_enriched -= rho*vconv_gauss.transpose()*grad_w*tau1*grad_penr
-    if time_integration=="bdf2":
-        rv_stab_enriched += w_gauss.transpose()*K_darcy*tau1*grad_penr
-
+    rv_stab_enriched += w_gauss.transpose()*K_darcy*tau1*grad_penr
     rv_stab_enriched -= rho*div_vconv*w_gauss.transpose()*tau1*grad_penr
     rv_enriched = rv_galerkin_enriched
     ## Add the stabilization terms to the original residual terms
