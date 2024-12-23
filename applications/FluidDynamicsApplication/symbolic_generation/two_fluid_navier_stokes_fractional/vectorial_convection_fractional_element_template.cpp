@@ -176,7 +176,7 @@ namespace Kratos
         const double dt = rData.DeltaTime;
         const double bdf0 = rData.bdf0;
         const double dyn_tau = rData.DynamicTau;
-        const auto &vfrac = rData.Velocity_Fractional;
+        const auto &vfrac = rData.FractionalVelocity;
         const auto &vmesh = rData.MeshVelocity;
         const auto &vconv = vfrac-vmesh;
 
@@ -206,7 +206,7 @@ namespace Kratos
         const double bdf0 = rData.bdf0;
 
         const double dyn_tau = rData.DynamicTau;
-        const auto &vfrac = rData.Velocity_Fractional;
+        const auto &vfrac = rData.FractionalVelocity;
         const auto &vmesh = rData.MeshVelocity;
         const auto &vconv = vfrac - vmesh;
 
@@ -238,19 +238,16 @@ namespace Kratos
         const double bdf1 = rData.bdf1;
         const double bdf2 = rData.bdf2;
         const double dyn_tau = rData.DynamicTau;
-        const auto &vn = rData.Velocity_OldStep1;
-        const auto &vnn = rData.Velocity_OldStep2;
+        const auto &vn = rData.VelocityOldStep1;
+        const auto &vnn = rData.VelocityOldStep2;
         // const auto &vnnn = rData.Velocity_OldStep3; #an bdf2
         const auto &vmesh = rData.MeshVelocity;
-        const auto &vfrac = rData.Velocity_Fractional;
+        const auto &vfrac = rData.FractionalVelocity;
         const auto &vconv = vfrac - vmesh;
 
         // Get shape function values
         const auto &N = rData.N;
         const auto &DN = rData.DN_DX;
-
-        // Stabilization parameters
-        constexpr double stab_c2 = 2.0;
 
         auto &rhs = rData.rhs;
 
@@ -273,19 +270,15 @@ namespace Kratos
         const double bdf1 = rData.bdf1;
         const double bdf2 = rData.bdf2;
         const double dyn_tau = rData.DynamicTau;
-        const auto &vn = rData.Velocity_OldStep1;
-        const auto &vnn = rData.Velocity_OldStep2;
-        // const auto &vnnn = rData.Velocity_OldStep3; #an_bdf2
+        const auto &vn = rData.VelocityOldStep1;
+        const auto &vnn = rData.VelocityOldStep2;
         const auto &vmesh = rData.MeshVelocity;
-        const auto &vfrac = rData.Velocity_Fractional;
+        const auto &vfrac = rData.FractionalVelocity;
         const auto &vconv = vfrac - vmesh;
 
         // Get shape function values
         const auto &N = rData.N;
         const auto &DN = rData.DN_DX;
-
-        // Stabilization parameters
-        constexpr double stab_c2 = 2.0;
 
         auto &rhs = rData.rhs;
 

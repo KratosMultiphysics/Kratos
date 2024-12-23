@@ -226,7 +226,7 @@ const Parameters TwoFluidNavierStokesFractional<TElementData>::GetSpecifications
             "nodal_non_historical"   : [],
             "entity"                 : []
         },
-        "required_variables"         : ["DISTANCE","VELOCITY","PRESSURE","MESH_VELOCITY","DENSITY","DYNAMIC_VISCOSITY"],
+        "required_variables"         : ["DISTANCE","VELOCITY","PRESSURE","MESH_VELOCITY","DENSITY","DYNAMIC_VISCOSITY","FRACTIONAL_VELOCITY"],
         "required_dofs"              : [],
         "flags_used"                 : [],
         "compatible_geometries"      : ["Triangle2D3","Tetrahedra3D4"],
@@ -315,7 +315,6 @@ void TwoFluidNavierStokesFractional<TElementData>::UpdateIntegrationPointData(
         rData.CalculateAirMaterialResponse();
     else
         this->CalculateMaterialResponse(rData);
-    rData.ComputeDarcyTerm();
 }
 
 template <class TElementData>
@@ -334,7 +333,6 @@ void TwoFluidNavierStokesFractional<TElementData>::UpdateIntegrationPointData(
         rData.CalculateAirMaterialResponse();
     else
         this->CalculateMaterialResponse(rData);
-    rData.ComputeDarcyTerm();
 }
 
 template <>
@@ -344,17 +342,13 @@ void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<2, 3>>::C
 {
     const double rho = rData.Density;
     const double mu = rData.EffectiveViscosity;
-
     const double h = rData.ElementSize;
-
     const double dt = rData.DeltaTime;
     const double bdf0 = rData.bdf0;
-
     const double dyn_tau = rData.DynamicTau;
-    const double K_darcy = rData.DarcyTerm;
-    const auto vn = rData.Velocity_OldStep1;
+    const auto vn = rData.VelocityOldStep1;
     const auto vconv = rData.Velocity - rData.MeshVelocity;
-    const auto vfrac = rData.Velocity_Fractional;
+    const auto vfrac = rData.FractionalVelocity;
 
     // Get constitutive matrix
     const Matrix &C = rData.C;
@@ -362,10 +356,6 @@ void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<2, 3>>::C
     // Get shape function values
     const auto &N = rData.N;
     const auto &DN = rData.DN_DX;
-
-    // Stabilization parameters
-    constexpr double stab_c1 = 4.0;
-    constexpr double stab_c2 = 2.0;
 
     auto &lhs = rData.lhs;
 
@@ -383,18 +373,13 @@ void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<3, 4>>::C
 
     const double rho = rData.Density;
     const double mu = rData.EffectiveViscosity;
-    const double K_darcy = rData.DarcyTerm;
-
     const double h = rData.ElementSize;
-
     const double dt = rData.DeltaTime;
     const double bdf0 = rData.bdf0;
-
     const double dyn_tau = rData.DynamicTau;
-
-    const auto vn=rData.Velocity_OldStep1;
+    const auto vn=rData.VelocityOldStep1;
     const auto vconv = rData.Velocity - rData.MeshVelocity;
-    const auto vfrac = rData.Velocity_Fractional;
+    const auto vfrac = rData.FractionalVelocity;
 
     // Get constitutive matrix
     const Matrix &C = rData.C;
@@ -402,10 +387,6 @@ void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<3, 4>>::C
     // Get shape function values
     const auto &N = rData.N;
     const auto &DN = rData.DN_DX;
-
-    // Stabilization parameters
-    constexpr double stab_c1 = 4.0;
-    constexpr double stab_c2 = 2.0;
 
     auto &lhs = rData.lhs;
 
@@ -423,24 +404,16 @@ void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<2, 3>>::C
 
     const double rho = rData.Density;
     const double mu = rData.EffectiveViscosity;
-
     const double h = rData.ElementSize;
-
     const double dt = rData.DeltaTime;
     const double bdf0 = rData.bdf0;
-
     const double dyn_tau = rData.DynamicTau;
-    const double K_darcy = rData.DarcyTerm;
-
     const auto &v = rData.Velocity;
-    const auto &vn = rData.Velocity_OldStep1;
-    const auto &vnn = rData.Velocity_OldStep2;
-    // const auto &vnnn = rData.Velocity_OldStep3; # an bdf2 possible
-
+    const auto &vn = rData.VelocityOldStep1;
+    const auto &vnn = rData.VelocityOldStep2;
     const auto &vmesh = rData.MeshVelocity;
     const auto &vconv = v - vmesh;
-
-    const auto vfrac = rData.Velocity_Fractional;
+    const auto vfrac = rData.FractionalVelocity;
     const auto &f = rData.BodyForce;
     const auto &p = rData.Pressure;
     const auto &stress = rData.ShearStress;
@@ -448,10 +421,6 @@ void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<2, 3>>::C
     // Get shape function values
     const auto &N = rData.N;
     const auto &DN = rData.DN_DX;
-
-    // Stabilization parameters
-    constexpr double stab_c1 = 4.0;
-    constexpr double stab_c2 = 2.0;
 
     // Mass correction term
     double volume_error_ratio = 0.0;
@@ -495,18 +464,13 @@ void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<3, 4>>::C
     const double h = rData.ElementSize;
     const double dt = rData.DeltaTime;
     const double bdf0 = rData.bdf0;
-
     const double dyn_tau = rData.DynamicTau;
-    const double K_darcy = rData.DarcyTerm;
-
     const auto &v = rData.Velocity;
-    const auto &vn = rData.Velocity_OldStep1;
-    const auto &vnn = rData.Velocity_OldStep2;
-    // const auto &vnnn = rData.Velocity_OldStep3; # an bdf2 possible
-
+    const auto &vn = rData.VelocityOldStep1;
+    const auto &vnn = rData.VelocityOldStep2;
     const auto &vmesh = rData.MeshVelocity;
     const auto &vconv = v - vmesh;
-    const auto vfrac = rData.Velocity_Fractional;
+    const auto vfrac = rData.FractionalVelocity;
     const auto &f = rData.BodyForce;
     const auto &p = rData.Pressure;
     const auto &stress = rData.ShearStress;
@@ -514,10 +478,6 @@ void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<3, 4>>::C
     // Get shape function values
     const auto &N = rData.N;
     const auto &DN = rData.DN_DX;
-
-    // Stabilization parameters
-    constexpr double stab_c1 = 4.0;
-    constexpr double stab_c2 = 2.0;
 
     // Mass correction term
     double volume_error_ratio = 0.0;
@@ -562,21 +522,16 @@ void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<2, 3>>::C
     const double rho = rData.Density;
     const double mu = rData.EffectiveViscosity;
     const double h = rData.ElementSize;
-
     const double dt = rData.DeltaTime;
     const double bdf0 = rData.bdf0;
-
     const double dyn_tau = rData.DynamicTau;
-    const double K_darcy = rData.DarcyTerm;
-
     const auto &v = rData.Velocity;
-    const auto &vn = rData.Velocity_OldStep1;
-    const auto &vnn = rData.Velocity_OldStep2;
+    const auto &vn = rData.VelocityOldStep1;
+    const auto &vnn = rData.VelocityOldStep2;
     // const auto &vnnn = rData.Velocity_OldStep3; # an bdf2 possible
     const auto &vmesh = rData.MeshVelocity;
     const auto &vconv = v - vmesh;
-    const auto vfrac = rData.Velocity_Fractional;
-
+    const auto vfrac = rData.FractionalVelocity;
     const auto &f = rData.BodyForce;
     const auto &p = rData.Pressure;
 
@@ -585,10 +540,6 @@ void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<2, 3>>::C
     const auto &DN = rData.DN_DX;
     const auto &Nenr = rData.Nenr;
     const auto &DNenr = rData.DN_DXenr;
-
-    // Stabilization parameters
-    constexpr double stab_c1 = 4.0;
-    constexpr double stab_c2 = 2.0;
 
     // Mass correction term
     double volume_error_ratio = 0.0;
@@ -646,23 +597,16 @@ void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<3, 4>>::C
 
     const double rho = rData.Density;
     const double mu = rData.EffectiveViscosity;
-
     const double h = rData.ElementSize;
-
     const double dt = rData.DeltaTime;
     const double bdf0 = rData.bdf0;
-
     const double dyn_tau = rData.DynamicTau;
-    const double K_darcy = rData.DarcyTerm;
-
     const auto &v = rData.Velocity;
-    const auto &vn = rData.Velocity_OldStep1;
-    const auto &vnn = rData.Velocity_OldStep2;
+    const auto &vn = rData.VelocityOldStep1;
+    const auto &vnn = rData.VelocityOldStep2;
     const auto &vmesh = rData.MeshVelocity;
     const auto &vconv = v - vmesh;
-    const auto vfrac = rData.Velocity_Fractional;
-    // const auto &vnnn = rData.Velocity_OldStep3; # an bdf2 possible
-
+    const auto vfrac = rData.FractionalVelocity;
     const auto &f = rData.BodyForce;
     const auto &p = rData.Pressure;
 
@@ -671,10 +615,6 @@ void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<3, 4>>::C
     const auto &DN = rData.DN_DX;
     const auto &Nenr = rData.Nenr;
     const auto &DNenr = rData.DN_DXenr;
-
-    // Stabilization parameters
-    constexpr double stab_c1 = 4.0;
-    constexpr double stab_c2 = 2.0;
 
     // Mass correction term
     double volume_error_ratio = 0.0;

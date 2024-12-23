@@ -11,8 +11,7 @@
 //
 
 
-#if !defined(KRATOS_VECTORIAL_CONVECTION_FRACTIONAL_ELEMENT_DATA_H)
-#define KRATOS_VECTORIAL_CONVECTION_FRACTIONAL_ELEMENT_DATA_H
+#pragma once
 
 #include "fluid_dynamics_application_variables.h"
 #include "custom_elements/data_containers/fluid_element_data.h"
@@ -46,13 +45,11 @@ static constexpr std::size_t BlockSize = TDim + 1;
 ///@{
 
 
-NodalVectorData Velocity_Fractional;
-NodalVectorData Velocity_OldStep1;
-NodalVectorData Velocity_OldStep2;
-NodalVectorData Velocity_OldStep3;  // Old step acceleration approximation using BDF2
+NodalVectorData FractionalVelocity;
+NodalVectorData VelocityOldStep1;
+NodalVectorData VelocityOldStep2;
 NodalVectorData MeshVelocity;
 
-double DynamicViscosity;
 double DeltaTime;		   // Time increment
 double DynamicTau;         // Dynamic tau considered in ASGS stabilization coefficients
 double bdf0;
@@ -75,11 +72,11 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
 {
 
 
-    const Geometry< Node >& r_geometry = rElement.GetGeometry();
-    this->FillFromHistoricalNodalData(Velocity_OldStep1,VELOCITY,r_geometry,1);
-    this->FillFromHistoricalNodalData(Velocity_OldStep2,VELOCITY,r_geometry,2);
-    // this->FillFromHistoricalNodalData(Velocity_OldStep3, VELOCITY, r_geometry, 3); // Old step acceleration approximation using BDF2
-    this->FillFromHistoricalNodalData(Velocity_Fractional, FRACTIONAL_VELOCITY, r_geometry, 0);
+    const auto& r_geometry = rElement.GetGeometry();
+    this->FillFromHistoricalNodalData(VelocityOldStep1,VELOCITY,r_geometry,1);
+    this->FillFromHistoricalNodalData(VelocityOldStep2,VELOCITY,r_geometry,2);
+    this->FillFromHistoricalNodalData(FractionalVelocity, FRACTIONAL_VELOCITY, r_geometry, 0);
+    this->FillFromHistoricalNodalData(MeshVelocity,MESH_VELOCITY, r_geometry, 0);
     this->FillFromProcessInfo(DeltaTime,DELTA_TIME,rProcessInfo);
     this->FillFromProcessInfo(DynamicTau,DYNAMIC_TAU,rProcessInfo);
     const Vector& BDFVector = rProcessInfo[BDF_COEFFICIENTS];
@@ -102,8 +99,7 @@ void UpdateGeometryValues(
 
 static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
 {
-    const Geometry< Node >& r_geometry = rElement.GetGeometry();
-
+    const auto& r_geometry = rElement.GetGeometry();
     for (unsigned int i = 0; i < TNumNodes; i++)
     {
 
@@ -123,5 +119,3 @@ static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
 ///@}
 
 }
-
-#endif

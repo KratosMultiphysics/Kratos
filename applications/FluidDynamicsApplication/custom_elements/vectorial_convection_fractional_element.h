@@ -13,7 +13,6 @@
 //
 
 #pragma once
-#define KRATOS_VECTORIAL_CONVECTION_FRACTIONAL_ELEMENT
 
 // System includes
 
@@ -52,11 +51,6 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-    namespace Internals
-    {
-        template <class TElementData, bool TDataKnowsAboutTimeIntegration>
-        class FluidElementTimeIntegrationDetail;
-}
 template <class TElementData>
 class VectorialConvectionFractionalElement: public Element
 {
@@ -86,28 +80,35 @@ public:
      * @param NewId Index number of the new element (optional)
      */
     VectorialConvectionFractionalElement(IndexType NewId = 0);
-
-    /// Constructor using an array of nodes.
+    
     /**
+     * @brief Constructor using an array of nodes.
      * @param NewId Index of the new element
      * @param ThisNodes An array containing the nodes of the new element
      */
-    VectorialConvectionFractionalElement(IndexType NewId, const NodesArrayType &ThisNodes);
+    VectorialConvectionFractionalElement(
+        IndexType NewId,
+        const NodesArrayType &ThisNodes);
 
-    /// Constructor using a geometry object.
     /**
+     * @brief Constructor using a geometry object.
      * @param NewId Index of the new element
      * @param pGeometry Pointer to a geometry object
      */
-    VectorialConvectionFractionalElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    VectorialConvectionFractionalElement(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry);
 
-    /// Constuctor using geometry and properties.
     /**
+     * @brief Constuctor using geometry and properties.
      * @param NewId Index of the new element
      * @param pGeometry Pointer to a geometry object
      * @param pProperties Pointer to the element's properties
      */
-    VectorialConvectionFractionalElement(IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties);
+    VectorialConvectionFractionalElement(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        Properties::Pointer pProperties);
 
     /// Destructor.
     virtual ~VectorialConvectionFractionalElement();
@@ -120,33 +121,125 @@ public:
     ///@}
     ///@name Operations
     ///@{
+    /**
+     @brief Returns a pointer to a new VectorialConvectionFractionalElement element, created using given input.
+     * @param NewId the ID of the new element
+     * @param ThisNodes the nodes of the new element
+     * @param pProperties the properties assigned to the new element
+     * @return a Pointer to the new element
+     */
+    Element::Pointer Create(
+        IndexType NewId, 
+        NodesArrayType const& ThisNodes, 
+        PropertiesType::Pointer pProperties) const override;
 
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
-    Element::Pointer Create(IndexType NewId,GeometryType::Pointer pGeom,PropertiesType::Pointer pProperties) const override;
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
-    virtual void ComputeGaussPointLHSContribution(TElementData &rData,MatrixType &rLHS);
-    virtual void ComputeGaussPointRHSContribution(TElementData &rData,VectorType &rRHS);
+    /**
+     * @brief Returns a pointer to a new FluidElement element, created using given input.
+     * @param NewId the ID of the new element
+     * @param pGeom a pointer to the geomerty to be used to create the element
+     * @param pProperties the properties assigned to the new element
+     * @return a Pointer to the new element
+     */
+    Element::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties) const override;
 
-    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
+    /**
+     * @brief Given a distance function, computes the time integrated Left Hand Side (LHS)
+     * and Right Hand Side elemental contributions for the two-fluid element.
+     * @param rLeftHandSideMatrix elemental stiffness matrix
+     * @param rRightHandSideVector elemental residual vector
+     * @param rCurrentProcessInfo reference to the current process info
+     */
+    void CalculateLocalSystem(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief Computes the LHS Gauss pt. contribution
+     * This method computes the contribution to the LHS of a Gauss pt.
+     * @param rData Reference to the element data container
+     * @param rLHS Reference to the Left Hand Side matrix to be filled
+     */
+    virtual void ComputeGaussPointLHSContribution(
+        TElementData &rData,
+        MatrixType &rLHS);
+
+    /**
+     * @brief Computes the RHS Gaus  pt. contribution
+     * This method computes the contribution to the RHS of a Gauss pt.
+     * @param rData Reference to the element data container
+     * @param rRHS Reference to the Right Hand Side vector to be filled
+     */
+    virtual void ComputeGaussPointRHSContribution(
+        TElementData &rData,
+        VectorType &rRHS);
+
+    /**
+     * @brief Sets on rResult the ID's of the element degrees of freedom
+     * @param rResult The result vector with the ID's of the DOF
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void EquationIdVector(
+        EquationIdVectorType& rResult, 
+        const ProcessInfo& rCurrentProcessInfo) const override;
+
     void GetDofList(
         DofsVectorType &rElementalDofList,
         const ProcessInfo &rCurrentProcessInfo) const override;
+    
+    /**
+     * @brief Given a distance function, computes the time integrated Right Hand Side (RHS)
+     * elemental contribution for the two-fluid element.
+     * @param rRightHandSideVector elemental residual vector
+     * @param rCurrentProcessInfo reference to the current process info
+     */
     void CalculateRightHandSide(
         VectorType &rRightHandSideVector,
         const ProcessInfo &rCurrentProcessInfo) override;
-    virtual void AddTimeIntegratedSystem(
+
+    /**
+     * @brief Computes time integrated LHS and RHS arrays
+     * This method computes both the Left Hand Side and
+     * Right Hand Side time integrated contributions.
+     * @param rData Reference to the element data container
+     * @param rLHS Reference to the Left Hand Side matrix to be filled
+     * @param rRHS Reference to the Right Hand Side vector to be filled
+     */
+    void AddTimeIntegratedSystem(
         TElementData &rData,
         MatrixType &rLHS,
         VectorType &rRHS);
-    virtual void UpdateIntegrationPointData(TElementData &rData,
+
+    /**
+     * @brief Set up the element's data and for the current integration point.
+     * @param[in/out] rData Container for the current element's data.
+     *  @param[in] Weight Integration point weight.
+     *  @param[in] rN Values of nodal shape functions at the integration point.
+     *  @param[in] rDN_DX Values of nodal shape function gradients at the integration point.
+     */
+    void UpdateIntegrationPointData(
+        TElementData &rData,
         unsigned int IntegrationPointIndex,
         double Weight,
         const typename TElementData::MatrixRowType &rN,
         const typename TElementData::ShapeDerivativesType &rDN_DX) const;
-    virtual void CalculateGeometryData(Vector &rGaussWeights,
-                                       Matrix &rNContainer,
-                                       ShapeFunctionDerivativesArrayType &rDN_DX) const;
+    
+    /**
+     * @brief Computes shape function data for all the gauss points
+     *
+     * @param rGaussWeights         Gauss point weights
+     * @param rNContainer           Gauss point shape functions (each row corresponds to a specific gauss point)
+     * @param rDN_DX                Gauss point shape function gradients (vector of matrices)
+     */
+    virtual void CalculateGeometryData(
+        Vector &rGaussWeights,
+        Matrix &rNContainer,
+        ShapeFunctionDerivativesArrayType &rDN_DX) const;
+
     ///@}
     ///@name Access
     ///@{
@@ -185,48 +278,13 @@ public:
 
 
     ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
-
-
-
-
+    
 private:
     ///@name Static Member Variables
     ///@{
+    static constexpr double stab_c2 = 2.0;
+    static constexpr double stab_c1= 4.0;
+
 
     ///@}
     ///@name Member Variables
@@ -287,24 +345,6 @@ private:
 
 
 ///@}
-///@name Input and output
-///@{
 
-
-/// input stream function
-/*  inline std::istream& operator >> (std::istream& rIStream,
-                                    Fluid2DASGS& rThis);
- */
-/// output stream function
-/*  inline std::ostream& operator << (std::ostream& rOStream,
-                                    const Fluid2DASGS& rThis)
-    {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
-
-      return rOStream;
-    }*/
-///@}
 
 } // namespace Kratos.
