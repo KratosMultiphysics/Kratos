@@ -513,4 +513,12 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureChecksIfProcessHasCorrectMaterialData, Krat
     KRATOS_EXPECT_EQ(process.Check(), 0);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(K0ProcedureChecksIfModelPartHasElements, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    Model model;
+    auto& r_modelpart = model.CreateModelPart("dummy");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ApplyK0ProcedureProcess{r_modelpart, {}}.Check()),
+                                      "ApplyK0ProcedureProces has no elements in modelpart dummy")
+}
+
 } // namespace Kratos::Testing

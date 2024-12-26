@@ -30,8 +30,7 @@ RUN dnf update -y && dnf install -y \
 
 # Install Boost libraries
 RUN dnf update -y && dnf install -y \
-    boost-devel \
-    boost-static
+    boost-devel
 
 CMD [ "/bin/bash" ]
 

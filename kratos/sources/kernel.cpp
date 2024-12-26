@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
@@ -80,9 +80,18 @@ void Kernel::Initialize() {
             Registry::AddItem<std::string>("libraries.tetgen");
         #endif
 
+            // If tests are built Google Test is available
+        #ifdef KRATOS_BUILD_TESTING
+            Registry::AddItem<std::string>("libraries.googletest");
+        #endif
+
+            // If benchmarks are built, Google Benchmark is available
+        #ifdef KRATOS_BUILD_BENCHMARKING
+            Registry::AddItem<std::string>("libraries.benchmark");
+        #endif
+
             // Add the libraries that are always available
             Registry::AddItem<std::string>("libraries.amgcl");
-            Registry::AddItem<std::string>("libraries.benchmark");
             Registry::AddItem<std::string>("libraries.clipper");
             Registry::AddItem<std::string>("libraries.concurrentqueue");
             Registry::AddItem<std::string>("libraries.ghc");
@@ -204,33 +213,39 @@ void Kernel::SetPythonVersion(std::string pyVersion) {
 
 void Kernel::PrintParallelismSupportInfo() const
 {
-    #ifdef KRATOS_SMP_NONE
+#ifdef KRATOS_SMP_NONE
     constexpr bool threading_support = false;
-    #else
+    constexpr auto smp = "None";
+#else
     constexpr bool threading_support = true;
-    #endif
-
-    #ifdef KRATOS_USING_MPI
-    constexpr bool mpi_support = true;
+    std::string scheduling_str;
+    #if defined(KRATOS_SMP_OPENMP)
+        const auto smp = "OpenMP";
+    #elif defined(KRATOS_SMP_CXX11)
+        constexpr auto smp = "C++11";
     #else
-    constexpr bool mpi_support = false;
+        constexpr auto smp = "Unknown";
     #endif
+#endif
+
+#ifdef KRATOS_USING_MPI
+    constexpr bool mpi_support = true;
+#else
+    constexpr bool mpi_support = false;
+#endif
 
     Logger logger("");
     logger << LoggerMessage::Severity::INFO;
 
     if (threading_support) {
         if (mpi_support) {
-            logger << "Compiled with threading and MPI support." << std::endl;
+            logger << "Compiled with threading and MPI support. Threading support with " << smp << "." << std::endl;
+        } else {
+            logger << "Compiled with threading support. Threading support with " << smp << "." << std::endl;
         }
-        else {
-            logger << "Compiled with threading support." << std::endl;
-        }
-    }
-    else if (mpi_support) {
+    } else if (mpi_support) {
         logger << "Compiled with MPI support." << std::endl;
-    }
-    else {
+    } else {
         logger << "Serial compilation." << std::endl;
     }
 
@@ -242,8 +257,7 @@ void Kernel::PrintParallelismSupportInfo() const
         if (mIsDistributedRun) {
             const DataCommunicator& r_world = ParallelEnvironment::GetDataCommunicator("World");
             logger << "MPI world size:         " << r_world.Size() << "." << std::endl;
-        }
-        else {
+        } else {
             logger << "Running without MPI." << std::endl;
         }
     }

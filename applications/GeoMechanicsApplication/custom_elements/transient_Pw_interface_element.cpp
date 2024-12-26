@@ -146,33 +146,13 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateMassMatrix(MatrixTyp
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwInterfaceElement<TDim, TNumNodes>::InitializeSolutionStep(const ProcessInfo&)
 {
-    KRATOS_TRY
-
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
-
-    // Loop over integration points
-    for (unsigned int GPoint = 0; GPoint < mRetentionLawVector.size(); ++GPoint) {
-        // Initialize retention law
-        mRetentionLawVector[GPoint]->InitializeSolutionStep(RetentionParameters);
-    }
-
-    KRATOS_CATCH("")
+    // Intentionally empty
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwInterfaceElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessInfo&)
 {
-    KRATOS_TRY
-
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
-
-    // Loop over integration points
-    for (unsigned int GPoint = 0; GPoint < mRetentionLawVector.size(); ++GPoint) {
-        // retention law
-        mRetentionLawVector[GPoint]->FinalizeSolutionStep(RetentionParameters);
-    }
-
-    KRATOS_CATCH("")
+    // Intentionally empty
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
