@@ -26,7 +26,7 @@
 #include "utilities/normal_calculation_utils.h"
 
 // Application includes
-#include "custom_elements/vectorial_convection_fractional_element.h"
+#include "custom_elements/two_fluid_navier_stokes_fractional_convection_element.h"
 #include "processes/find_nodal_neighbours_process.h"
 #include "tests/cpp_tests/fluid_dynamics_fast_suite.h"
 
@@ -76,7 +76,7 @@ KRATOS_TEST_CASE_IN_SUITE(ElementVectorialConvectionFractional2D3N, FluidDynamic
     modelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
     modelPart.CreateNewNode(3, 0.0, 1.0, 0.0);
     std::vector<ModelPart::IndexType> elemNodes {1, 2, 3};
-    modelPart.CreateNewElement("VectorialConvectionFractionalElement2D3N", 1, elemNodes, pElemProp);
+    modelPart.CreateNewElement("TwoFluidNavierStokesFractionalConvectionElement2D3N", 1, elemNodes, pElemProp);
 
     Element::Pointer pElement = modelPart.pGetElement(1);
 
@@ -155,7 +155,7 @@ KRATOS_TEST_CASE_IN_SUITE(ElementVectorialConvectionFractional3D4N, FluidDynamic
     modelPart.CreateNewNode(3, 0.0, 1.0, 0.0);
     modelPart.CreateNewNode(4, 0.0, 0.0, 1.0);
     std::vector<ModelPart::IndexType> elemNodes {1, 2, 3, 4};
-    modelPart.CreateNewElement("VectorialConvectionFractionalElement3D4N", 1, elemNodes, pElemProp);
+    modelPart.CreateNewElement("TwoFluidNavierStokesFractionalConvectionElement3D4N", 1, elemNodes, pElemProp);
 
     Element::Pointer pElement = modelPart.pGetElement(1);
 

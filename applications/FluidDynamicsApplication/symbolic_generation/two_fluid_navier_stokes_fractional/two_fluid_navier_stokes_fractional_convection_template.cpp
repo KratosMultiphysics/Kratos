@@ -10,7 +10,7 @@
 //  Main author:     Uxue Chasco
 //
 
-#include "vectorial_convection_fractional_element.h"
+#include "two_fluid_navier_stokes_fractional_convection_element.h"
 
 namespace Kratos
 {
@@ -19,27 +19,27 @@ namespace Kratos
     /***********************************************************************************/
 
     template <class TElementData>
-    VectorialConvectionFractionalElement<TElementData>::VectorialConvectionFractionalElement(IndexType NewId) : Element(NewId)
+    TwoFluidNavierStokesFractionalConvectionElement<TElementData>::TwoFluidNavierStokesFractionalConvectionElement(IndexType NewId) : Element(NewId)
     {
     }
 
     template <class TElementData>
-    VectorialConvectionFractionalElement<TElementData>::VectorialConvectionFractionalElement(IndexType NewId, const NodesArrayType &ThisNodes) : Element(NewId, ThisNodes)
+    TwoFluidNavierStokesFractionalConvectionElement<TElementData>::TwoFluidNavierStokesFractionalConvectionElement(IndexType NewId, const NodesArrayType &ThisNodes) : Element(NewId, ThisNodes)
     {
     }
 
     template <class TElementData>
-    VectorialConvectionFractionalElement<TElementData>::VectorialConvectionFractionalElement(IndexType NewId, GeometryType::Pointer pGeometry) : Element(NewId, pGeometry)
+    TwoFluidNavierStokesFractionalConvectionElement<TElementData>::TwoFluidNavierStokesFractionalConvectionElement(IndexType NewId, GeometryType::Pointer pGeometry) : Element(NewId, pGeometry)
     {
     }
 
     template <class TElementData>
-    VectorialConvectionFractionalElement<TElementData>::VectorialConvectionFractionalElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : Element(NewId, pGeometry, pProperties)
+    TwoFluidNavierStokesFractionalConvectionElement<TElementData>::TwoFluidNavierStokesFractionalConvectionElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : Element(NewId, pGeometry, pProperties)
     {
     }
 
     template <class TElementData>
-    VectorialConvectionFractionalElement<TElementData>::~VectorialConvectionFractionalElement()
+    TwoFluidNavierStokesFractionalConvectionElement<TElementData>::~TwoFluidNavierStokesFractionalConvectionElement()
     {
     }
 
@@ -47,35 +47,35 @@ namespace Kratos
     /***********************************************************************************/
 
     template <class TElementData>
-    Element::Pointer VectorialConvectionFractionalElement<TElementData>::Create(
+    Element::Pointer TwoFluidNavierStokesFractionalConvectionElement<TElementData>::Create(
         IndexType NewId,
         NodesArrayType const &ThisNodes,
         Properties::Pointer pProperties) const
     {
-        return Kratos::make_intrusive<VectorialConvectionFractionalElement>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive<TwoFluidNavierStokesFractionalConvectionElement>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
     }
 
     /***********************************************************************************/
 
     template <class TElementData>
-    Element::Pointer VectorialConvectionFractionalElement<TElementData>::Create(
+    Element::Pointer TwoFluidNavierStokesFractionalConvectionElement<TElementData>::Create(
         IndexType NewId,
         GeometryType::Pointer pGeom,
         Properties::Pointer pProperties) const
     {
-        return Kratos::make_intrusive<VectorialConvectionFractionalElement>(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive<TwoFluidNavierStokesFractionalConvectionElement>(NewId, pGeom, pProperties);
     }
 
     /***********************************************************************************/
     /***********************************************************************************/
     template <class TElementData>
-    void VectorialConvectionFractionalElement<TElementData>::CalculateRightHandSide(VectorType &rRightHandSideVector, const ProcessInfo &rCurrentProcessInfo)
+    void TwoFluidNavierStokesFractionalConvectionElement<TElementData>::CalculateRightHandSide(VectorType &rRightHandSideVector, const ProcessInfo &rCurrentProcessInfo)
     {
         KRATOS_THROW_ERROR(std::runtime_error, "CalculateRightHandSide not implemented", "");
     }
 
     template <class TElementData>
-    void VectorialConvectionFractionalElement<TElementData>::CalculateLocalSystem(
+    void TwoFluidNavierStokesFractionalConvectionElement<TElementData>::CalculateLocalSystem(
         MatrixType &rLeftHandSideMatrix,
         VectorType &rRightHandSideVector,
         const ProcessInfo &rCurrentProcessInfo)
@@ -111,7 +111,7 @@ namespace Kratos
     /***********************************************************************************/
     /***********************************************************************************/
     template <class TElementData>
-    void VectorialConvectionFractionalElement<TElementData>::UpdateIntegrationPointData(
+    void TwoFluidNavierStokesFractionalConvectionElement<TElementData>::UpdateIntegrationPointData(
         TElementData &rData,
         unsigned int IntegrationPointIndex,
         double Weight,
@@ -125,7 +125,7 @@ namespace Kratos
     /***********************************************************************************/
 
     template <class TElementData>
-    void VectorialConvectionFractionalElement<TElementData>::AddTimeIntegratedSystem(
+    void TwoFluidNavierStokesFractionalConvectionElement<TElementData>::AddTimeIntegratedSystem(
         TElementData &rData,
         MatrixType &rLHS,
         VectorType &rRHS)
@@ -137,7 +137,7 @@ namespace Kratos
     /***********************************************************************************/
     /***********************************************************************************/
     template <class TElementData>
-    void VectorialConvectionFractionalElement<TElementData>::CalculateGeometryData(Vector &rGaussWeights,
+    void TwoFluidNavierStokesFractionalConvectionElement<TElementData>::CalculateGeometryData(Vector &rGaussWeights,
                                                                                    Matrix &rNContainer,
                                                                                    ShapeFunctionDerivativesArrayType &rDN_DX) const
     {
@@ -168,7 +168,7 @@ namespace Kratos
     /***********************************************************************************/
     /***********************************************************************************/
     template <>
-    void VectorialConvectionFractionalElement<VectorialConvectionFractionalElementData<2, 3>>::ComputeGaussPointLHSContribution(VectorialConvectionFractionalElementData<2, 3> &rData,
+    void TwoFluidNavierStokesFractionalConvectionElement<TwoFluidNavierStokesFractionalConvectionElementData<2, 3>>::ComputeGaussPointLHSContribution(TwoFluidNavierStokesFractionalConvectionElementData<2, 3> &rData,
                                                                                                                                 MatrixType &rLHS)
     {
 
@@ -196,7 +196,7 @@ namespace Kratos
     /***********************************************************************************/
     /***********************************************************************************/
     template <>
-    void VectorialConvectionFractionalElement<VectorialConvectionFractionalElementData<3, 4>>::ComputeGaussPointLHSContribution(VectorialConvectionFractionalElementData<3, 4> &rData,
+    void TwoFluidNavierStokesFractionalConvectionElement<TwoFluidNavierStokesFractionalConvectionElementData<3, 4>>::ComputeGaussPointLHSContribution(TwoFluidNavierStokesFractionalConvectionElementData<3, 4> &rData,
                                                                                                                                 MatrixType &rLHS)
     {
 
@@ -228,7 +228,7 @@ namespace Kratos
     /***********************************************************************************/
 
     template <>
-    void VectorialConvectionFractionalElement<VectorialConvectionFractionalElementData<2, 3>>::ComputeGaussPointRHSContribution(VectorialConvectionFractionalElementData<2, 3> &rData,
+    void TwoFluidNavierStokesFractionalConvectionElement<TwoFluidNavierStokesFractionalConvectionElementData<2, 3>>::ComputeGaussPointRHSContribution(TwoFluidNavierStokesFractionalConvectionElementData<2, 3> &rData,
                                                                                                                                 VectorType &rRHS)
     {
 
@@ -259,7 +259,7 @@ namespace Kratos
     /***********************************************************************************/
     /***********************************************************************************/
     template <>
-    void VectorialConvectionFractionalElement<VectorialConvectionFractionalElementData<3, 4>>::ComputeGaussPointRHSContribution(VectorialConvectionFractionalElementData<3, 4> &rData,
+    void TwoFluidNavierStokesFractionalConvectionElement<TwoFluidNavierStokesFractionalConvectionElementData<3, 4>>::ComputeGaussPointRHSContribution(TwoFluidNavierStokesFractionalConvectionElementData<3, 4> &rData,
                                                                                                                                 VectorType &rRHS)
     {
 
@@ -291,7 +291,7 @@ namespace Kratos
     /***********************************************************************************/
     /***********************************************************************************/
     template <class TElementData>
-    void VectorialConvectionFractionalElement<TElementData>::EquationIdVector(
+    void TwoFluidNavierStokesFractionalConvectionElement<TElementData>::EquationIdVector(
         EquationIdVectorType &rResult,
         const ProcessInfo &rCurrentProcessInfo) const
     {
@@ -308,7 +308,7 @@ namespace Kratos
         {
             rResult[LocalIndex++] = r_geometry[i].GetDof(FRACTIONAL_VELOCITY_X, xpos).EquationId();
             rResult[LocalIndex++] = r_geometry[i].GetDof(FRACTIONAL_VELOCITY_Y, xpos + 1).EquationId();
-            if (Dim == 3)
+            if constexpr (Dim == 3)
                 rResult[LocalIndex++] = r_geometry[i].GetDof(FRACTIONAL_VELOCITY_Z, xpos + 2).EquationId();
         }
     }
@@ -317,7 +317,7 @@ namespace Kratos
     /***********************************************************************************/
 
     template <class TElementData>
-    void VectorialConvectionFractionalElement<TElementData>::GetDofList(
+    void TwoFluidNavierStokesFractionalConvectionElement<TElementData>::GetDofList(
         DofsVectorType &rElementalDofList,
         const ProcessInfo &rCurrentProcessInfo) const
     {
@@ -333,7 +333,7 @@ namespace Kratos
         {
             rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(FRACTIONAL_VELOCITY_X, xpos);
             rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(FRACTIONAL_VELOCITY_Y, xpos + 1);
-            if (Dim == 3)
+            if constexpr (Dim == 3)
                 rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(FRACTIONAL_VELOCITY_Z, xpos + 2);
         }
     }
@@ -343,8 +343,8 @@ namespace Kratos
 
     /***********************************************************************************/
     /***********************************************************************************/
-    template class VectorialConvectionFractionalElement<VectorialConvectionFractionalElementData<2, 3>>;
-    template class VectorialConvectionFractionalElement<VectorialConvectionFractionalElementData<3, 4>>;
+    template class TwoFluidNavierStokesFractionalConvectionElement<TwoFluidNavierStokesFractionalConvectionElementData<2, 3>>;
+    template class TwoFluidNavierStokesFractionalConvectionElement<TwoFluidNavierStokesFractionalConvectionElementData<3, 4>>;
 
     /***********************************************************************************/
     /***********************************************************************************/

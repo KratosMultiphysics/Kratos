@@ -120,7 +120,7 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     this->FillFromHistoricalNodalData(NodalDynamicViscosity, DYNAMIC_VISCOSITY, r_geometry);
     this->FillFromHistoricalNodalData(FractionalVelocity, FRACTIONAL_VELOCITY, r_geometry, 0);
     this->FillFromProperties(SmagorinskyConstant, C_SMAGORINSKY, r_properties);
-     this->FillFromHistoricalNodalData(BodyForce,BODY_FORCE,r_geometry);
+    this->FillFromHistoricalNodalData(BodyForce,BODY_FORCE,r_geometry);
     this->FillFromProcessInfo(DeltaTime,DELTA_TIME,rProcessInfo);
     this->FillFromProcessInfo(DynamicTau, DYNAMIC_TAU, rProcessInfo);
     this->FillFromProcessInfo(AirVolumeError, AIR_VOLUME_ERROR, rProcessInfo);
@@ -130,8 +130,6 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     const Vector& BDFVector = rProcessInfo[BDF_COEFFICIENTS];
 
     bdf0 = BDFVector[0];
-    // bdf1 = BDFVector[1];
-    // bdf2 = BDFVector[2];
     
     PreviousDeltaTime = rProcessInfo.GetPreviousTimeStepInfo()[DELTA_TIME];
     noalias(lhs) = ZeroMatrix(TNumNodes*(TDim+1),TNumNodes*(TDim+1));
@@ -181,7 +179,7 @@ void UpdateGeometryValues(
 
 static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
 {
-    const Geometry< Node >& r_geometry = rElement.GetGeometry();
+    const auto& r_geometry = rElement.GetGeometry();  
 
     for (unsigned int i = 0; i < TNumNodes; i++)
     {

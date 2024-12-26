@@ -25,13 +25,13 @@
 #include "includes/convection_diffusion_settings.h"
 #include "utilities/geometry_utilities.h"
 #include "custom_elements/data_containers/fluid_element_data.h"
-#include "custom_elements/data_containers/two_fluid_fractional_navier_stokes/vectorial_convection_fractional_element_data.h"
+#include "custom_elements/data_containers/two_fluid_fractional_navier_stokes/two_fluid_navier_stokes_fractional_convection_element_data.h"
 #include "fluid_dynamics_application_variables.h"
 
 namespace Kratos
 {
 /*
-    The "VectorialConvectionFractionalElement" solves the convection problem of a vector field, specifically the fractional velocity, and convects this field using its own velocity.
+    The "TwoFluidNavierStokesFractionalConvectionElement" solves the convection problem of a vector field, specifically the fractional velocity, and convects this field using its own velocity.
     This element is part of the two-fluid Navier-Stokes fractional element TwoFluidNavierStokesFractional.
     The Navier-Stokes momentum conservation equation is split into two problems: the first one convects the fractional velocity (using this element), and the second one resolves the remaining terms of the Navier-Stokes momentum conservation.
     Combining both problems in the continuous framework results in the original Navier-Stokes momentum equation
@@ -52,14 +52,14 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 template <class TElementData>
-class VectorialConvectionFractionalElement: public Element
+class TwoFluidNavierStokesFractionalConvectionElement: public Element
 {
 public:
     ///@name Type Definitions
     ///@{
 
     /// Counted pointer of
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(VectorialConvectionFractionalElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TwoFluidNavierStokesFractionalConvectionElement);
 
     using ElementData = TElementData;
     typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
@@ -79,14 +79,14 @@ public:
     /**
      * @param NewId Index number of the new element (optional)
      */
-    VectorialConvectionFractionalElement(IndexType NewId = 0);
+    TwoFluidNavierStokesFractionalConvectionElement(IndexType NewId = 0);
     
     /**
      * @brief Constructor using an array of nodes.
      * @param NewId Index of the new element
      * @param ThisNodes An array containing the nodes of the new element
      */
-    VectorialConvectionFractionalElement(
+    TwoFluidNavierStokesFractionalConvectionElement(
         IndexType NewId,
         const NodesArrayType &ThisNodes);
 
@@ -95,7 +95,7 @@ public:
      * @param NewId Index of the new element
      * @param pGeometry Pointer to a geometry object
      */
-    VectorialConvectionFractionalElement(
+    TwoFluidNavierStokesFractionalConvectionElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry);
 
@@ -105,13 +105,13 @@ public:
      * @param pGeometry Pointer to a geometry object
      * @param pProperties Pointer to the element's properties
      */
-    VectorialConvectionFractionalElement(
+    TwoFluidNavierStokesFractionalConvectionElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         Properties::Pointer pProperties);
 
     /// Destructor.
-    virtual ~VectorialConvectionFractionalElement();
+    virtual ~TwoFluidNavierStokesFractionalConvectionElement();
 
     ///@}
     ///@name Operators
@@ -122,7 +122,7 @@ public:
     ///@name Operations
     ///@{
     /**
-     @brief Returns a pointer to a new VectorialConvectionFractionalElement element, created using given input.
+     @brief Returns a pointer to a new TwoFluidNavierStokesFractionalConvectionElement element, created using given input.
      * @param NewId the ID of the new element
      * @param ThisNodes the nodes of the new element
      * @param pProperties the properties assigned to the new element
@@ -258,7 +258,7 @@ public:
 
     std::string Info() const override
     {
-        return "VectorialConvectionFractionalElement #";
+        return "TwoFluidNavierStokesFractionalConvectionElement #";
     }
 
     /// Print information about this object.

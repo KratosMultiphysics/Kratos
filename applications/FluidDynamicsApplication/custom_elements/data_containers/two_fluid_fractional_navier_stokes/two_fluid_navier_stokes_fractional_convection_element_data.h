@@ -26,7 +26,7 @@ namespace Kratos {
 ///@{
 
 template< size_t TDim, size_t TNumNodes >
-class VectorialConvectionFractionalElementData : public FluidElementData<TDim,TNumNodes, true>
+class TwoFluidNavierStokesFractionalConvectionElementData : public FluidElementData<TDim,TNumNodes, true>
 {
 public:
 
