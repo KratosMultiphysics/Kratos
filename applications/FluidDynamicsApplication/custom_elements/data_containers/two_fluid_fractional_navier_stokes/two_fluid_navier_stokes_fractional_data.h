@@ -64,7 +64,6 @@ double DeltaTime;		   // Time increment
 double PreviousDeltaTime;
 double DynamicTau;         // Dynamic tau considered in ASGS stabilization coefficients
 double SmagorinskyConstant;
-double VolumeError;
 double AirVolumeError;
 double WaterVolumeError;
 double bdf0;
@@ -121,18 +120,19 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     this->FillFromHistoricalNodalData(NodalDynamicViscosity, DYNAMIC_VISCOSITY, r_geometry);
     this->FillFromHistoricalNodalData(FractionalVelocity, FRACTIONAL_VELOCITY, r_geometry, 0);
     this->FillFromProperties(SmagorinskyConstant, C_SMAGORINSKY, r_properties);
+     this->FillFromHistoricalNodalData(BodyForce,BODY_FORCE,r_geometry);
     this->FillFromProcessInfo(DeltaTime,DELTA_TIME,rProcessInfo);
-    this->FillFromProcessInfo(VolumeError, VOLUME_ERROR, rProcessInfo);
     this->FillFromProcessInfo(DynamicTau, DYNAMIC_TAU, rProcessInfo);
     this->FillFromProcessInfo(AirVolumeError, AIR_VOLUME_ERROR, rProcessInfo);
     this->FillFromProcessInfo(WaterVolumeError, WATER_VOLUME_ERROR, rProcessInfo);
 
+
     const Vector& BDFVector = rProcessInfo[BDF_COEFFICIENTS];
 
     bdf0 = BDFVector[0];
-    bdf1 = BDFVector[1];
-    bdf2 = BDFVector[2];
-
+    // bdf1 = BDFVector[1];
+    // bdf2 = BDFVector[2];
+    
     PreviousDeltaTime = rProcessInfo.GetPreviousTimeStepInfo()[DELTA_TIME];
     noalias(lhs) = ZeroMatrix(TNumNodes*(TDim+1),TNumNodes*(TDim+1));
     noalias(rhs) = ZeroVector(TNumNodes*(TDim+1));

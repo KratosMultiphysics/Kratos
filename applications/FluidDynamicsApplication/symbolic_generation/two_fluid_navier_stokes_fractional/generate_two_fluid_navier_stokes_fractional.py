@@ -119,8 +119,6 @@ for dim in dim_vector:
     ## Data interpolation to the Gauss points
     ## Backward differences coefficients
     bdf0 = sympy.Symbol('bdf0')
-    bdf1 = sympy.Symbol('bdf1')
-    bdf2 = sympy.Symbol('bdf2')
     ## Part of the NS acceleration due to the fractional splitting
     acceleration = (bdf0*v -bdf0*vfrac)
     v_gauss = v.transpose()*N
