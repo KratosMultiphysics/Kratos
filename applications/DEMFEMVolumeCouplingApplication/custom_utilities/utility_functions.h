@@ -68,53 +68,53 @@ void AssignPointLoads(ModelPart& rFEMModelPart, std::vector<int>& node_ids, doub
 
 
 
-void SetNodalCouplingWeightsOnFEMLinearly(ModelPart& rFEMModelPart,double& y_fem_boundary,double& y_dem_boundary, double& tolerance,double& weight_fem_boundary,double& weight_dem_boundary) 
-{
-//loop through all nodes in modelpart and assign weights to the nodes in the hybrid region
-for (ModelPart::NodesContainerType::iterator node_it = rFEMModelPart.NodesBegin(); node_it != rFEMModelPart.NodesEnd(); ++node_it)
-{
-    if (node_it->Y() >= y_fem_boundary - tolerance && node_it->Y() <= y_dem_boundary + tolerance) // assigning weights to the nodes in the hybrid region
-    {
-        double weight= weight_fem_boundary + (weight_dem_boundary-weight_fem_boundary)*(node_it->Y()-y_fem_boundary)/(y_dem_boundary-y_fem_boundary);
-        node_it->FastGetSolutionStepValue(NODAL_COUPLING_WEIGHT)=weight;
-    }
-    else if (node_it->Y() <= y_fem_boundary + tolerance && node_it->Y() >= y_dem_boundary - tolerance) // assigning weights to the nodes in the hybrid region
-    {
-        double weight= weight_dem_boundary + (weight_fem_boundary-weight_dem_boundary)*(node_it->Y()-y_dem_boundary)/(y_fem_boundary-y_dem_boundary);
-        node_it->FastGetSolutionStepValue(NODAL_COUPLING_WEIGHT)=weight;
-    }
-    else
-    {
-        node_it->FastGetSolutionStepValue(NODAL_COUPLING_WEIGHT)=0.0; // assigning weights to the nodes in the non-hybrid region
-    }
-}
-}
-
-// void SetNodalCouplingWeightsOnFEMLinearly(ModelPart& rFEMModelPart, double& y_fem_boundary, double& y_dem_boundary, double& tolerance, double& weight_fem_boundary, double& weight_dem_boundary)
+// void SetNodalCouplingWeightsOnFEMLinearly(ModelPart& rFEMModelPart,double& y_fem_boundary,double& y_dem_boundary, double& tolerance,double& weight_fem_boundary,double& weight_dem_boundary) 
 // {
-//     // loop through all nodes in modelpart and assign weights to the nodes in the hybrid region
-//     for (ModelPart::NodesContainerType::iterator node_it = rFEMModelPart.NodesBegin(); node_it != rFEMModelPart.NodesEnd(); ++node_it)
+// //loop through all nodes in modelpart and assign weights to the nodes in the hybrid region
+// for (ModelPart::NodesContainerType::iterator node_it = rFEMModelPart.NodesBegin(); node_it != rFEMModelPart.NodesEnd(); ++node_it)
+// {
+//     if (node_it->Y() >= y_fem_boundary - tolerance && node_it->Y() <= y_dem_boundary + tolerance) // assigning weights to the nodes in the hybrid region
 //     {
-//         double y_pos = node_it->Y();
-
-//         if (y_pos >= y_fem_boundary - tolerance && y_pos <= y_dem_boundary + tolerance) // assigning weights to the nodes in the hybrid region
-//         {
-//             double normalized_y = (y_pos - y_fem_boundary) / (y_dem_boundary - y_fem_boundary); // normalized position between boundaries
-//             double weight = weight_fem_boundary + (weight_dem_boundary - weight_fem_boundary) * (3 * std::pow(normalized_y, 2) - 2 * std::pow(normalized_y, 3)); // cubic interpolation
-//             node_it->FastGetSolutionStepValue(NODAL_COUPLING_WEIGHT) = weight;
-//         }
-//         else if (y_pos <= y_fem_boundary + tolerance && y_pos >= y_dem_boundary - tolerance) // assigning weights to the nodes in the hybrid region
-//         {
-//             double normalized_y = (y_pos - y_dem_boundary) / (y_fem_boundary - y_dem_boundary); // normalized position between boundaries
-//             double weight = weight_dem_boundary + (weight_fem_boundary - weight_dem_boundary) * (3 * std::pow(normalized_y, 2) - 2 * std::pow(normalized_y, 3)); // cubic interpolation
-//             node_it->FastGetSolutionStepValue(NODAL_COUPLING_WEIGHT) = weight;
-//         }
-//         else
-//         {
-//             node_it->FastGetSolutionStepValue(NODAL_COUPLING_WEIGHT) = 0.0; // assigning weights to the nodes in the non-hybrid region
-//         }
+//         double weight= weight_fem_boundary + (weight_dem_boundary-weight_fem_boundary)*(node_it->Y()-y_fem_boundary)/(y_dem_boundary-y_fem_boundary);
+//         node_it->FastGetSolutionStepValue(NODAL_COUPLING_WEIGHT)=weight;
+//     }
+//     else if (node_it->Y() <= y_fem_boundary + tolerance && node_it->Y() >= y_dem_boundary - tolerance) // assigning weights to the nodes in the hybrid region
+//     {
+//         double weight= weight_dem_boundary + (weight_fem_boundary-weight_dem_boundary)*(node_it->Y()-y_dem_boundary)/(y_fem_boundary-y_dem_boundary);
+//         node_it->FastGetSolutionStepValue(NODAL_COUPLING_WEIGHT)=weight;
+//     }
+//     else
+//     {
+//         node_it->FastGetSolutionStepValue(NODAL_COUPLING_WEIGHT)=0.0; // assigning weights to the nodes in the non-hybrid region
 //     }
 // }
+// }
+
+void SetNodalCouplingWeightsOnFEMLinearly(ModelPart& rFEMModelPart, double& y_fem_boundary, double& y_dem_boundary, double& tolerance, double& weight_fem_boundary, double& weight_dem_boundary)
+{
+    // loop through all nodes in modelpart and assign weights to the nodes in the hybrid region
+    for (ModelPart::NodesContainerType::iterator node_it = rFEMModelPart.NodesBegin(); node_it != rFEMModelPart.NodesEnd(); ++node_it)
+    {
+        double y_pos = node_it->Y();
+
+        if (y_pos >= y_fem_boundary - tolerance && y_pos <= y_dem_boundary + tolerance) // assigning weights to the nodes in the hybrid region
+        {
+            double normalized_y = (y_pos - y_fem_boundary) / (y_dem_boundary - y_fem_boundary); // normalized position between boundaries
+            double weight = weight_fem_boundary + (weight_dem_boundary - weight_fem_boundary) * (3 * std::pow(normalized_y, 2) - 2 * std::pow(normalized_y, 3)); // cubic interpolation
+            node_it->FastGetSolutionStepValue(NODAL_COUPLING_WEIGHT) = weight;
+        }
+        else if (y_pos <= y_fem_boundary + tolerance && y_pos >= y_dem_boundary - tolerance) // assigning weights to the nodes in the hybrid region
+        {
+            double normalized_y = (y_pos - y_dem_boundary) / (y_fem_boundary - y_dem_boundary); // normalized position between boundaries
+            double weight = weight_dem_boundary + (weight_fem_boundary - weight_dem_boundary) * (3 * std::pow(normalized_y, 2) - 2 * std::pow(normalized_y, 3)); // cubic interpolation
+            node_it->FastGetSolutionStepValue(NODAL_COUPLING_WEIGHT) = weight;
+        }
+        else
+        {
+            node_it->FastGetSolutionStepValue(NODAL_COUPLING_WEIGHT) = 0.0; // assigning weights to the nodes in the non-hybrid region
+        }
+    }
+}
 
 
 
