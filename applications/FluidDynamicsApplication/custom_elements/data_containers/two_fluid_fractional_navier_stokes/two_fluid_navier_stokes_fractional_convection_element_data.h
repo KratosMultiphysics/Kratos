@@ -55,14 +55,7 @@ double DynamicTau;         // Dynamic tau considered in ASGS stabilization coeff
 double bdf0;
 double bdf1;
 double bdf2;
-
-// Auxiliary containers for the symbolically-generated matrices
-BoundedMatrix<double,TNumNodes*(TDim),TNumNodes*(TDim)> lhs;
-array_1d<double,TNumNodes*(TDim)> rhs;
-
 double ElementSize;
-
-
 
 ///@}
 ///@name Public Operations
@@ -83,8 +76,6 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     bdf0 = BDFVector[0];
     bdf1 = BDFVector[1];
     bdf2 = BDFVector[2];
-    noalias(lhs) = ZeroMatrix(TNumNodes*(TDim),TNumNodes*(TDim));
-    noalias(rhs) = ZeroVector(TNumNodes*(TDim));
 }
 
 void UpdateGeometryValues(

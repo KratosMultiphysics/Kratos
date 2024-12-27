@@ -223,18 +223,21 @@ public:
     ///@name Input and output
     ///@{
 
-    /// Function to visualize the divergence field
-
     /**
-     * @brief Get the Value On Integration Points object (used to visualize the divergence field)
+     * @brief Get the Value On Integration Points object (used to visualize the artificial viscosity field)
      *
-     * @param rVariable Variable to be retrieved (implementation supports DIVERGENCE)
+     * @param rVariable Variable to be retrieved (implementation supports ARTIFICIAL_VISCOSITY)
      * @param rValues Vector for the values at the Gauss integration points
      * @param rCurrentProcessInfo ProcessInfo object
      */
     void CalculateOnIntegrationPoints(
         const Variable<double> &rVariable,
-        std::vector<double> &rValues,
+        std::vector<double> &rOutput,
+        const ProcessInfo &rCurrentProcessInfo) override;
+        
+    void Calculate(
+        const Variable<double> &rVariable,
+        double &rOutput,
         const ProcessInfo &rCurrentProcessInfo) override;
 
     ///@}
@@ -364,6 +367,14 @@ protected:
      * @param rData Data container with the input velocity and gradients and output strain rate vector
      */
     void CalculateStrainRate(TElementData &rData) const override;
+
+    /**
+     * @brief Calculate the artificial dynamic viscosity.
+     * In this function we calculate the artificial dynamic viscosity in each gauss point.
+     * @param rData Data container
+     */
+
+    double CalculateArtificialDynamicViscositySpecialization(TElementData &rData) const;
 
     ///@}
     ///@name Protected  Access

@@ -168,8 +168,9 @@ namespace Kratos
     /***********************************************************************************/
     /***********************************************************************************/
     template <>
-    void TwoFluidNavierStokesFractionalConvectionElement<TwoFluidNavierStokesFractionalConvectionElementData<2, 3>>::ComputeGaussPointLHSContribution(TwoFluidNavierStokesFractionalConvectionElementData<2, 3> &rData,
-                                                                                                                                MatrixType &rLHS)
+    void TwoFluidNavierStokesFractionalConvectionElement<TwoFluidNavierStokesFractionalConvectionElementData<2, 3>>::ComputeGaussPointLHSContribution(
+        TwoFluidNavierStokesFractionalConvectionElementData<2, 3> &rData,
+        MatrixType &rLHS)
     {
 
         const double h = rData.ElementSize;
@@ -187,17 +188,19 @@ namespace Kratos
         // Stabilization parameters
         constexpr double stab_c2 = 2.0;
 
-        auto &lhs = rData.lhs;
+        // Add LHS Gauss point contribution
+        const double w_gauss =rData.Weight;
+
         //substitute_lhs_2D
-        //  Add intermediate results to local system.
-        noalias(rLHS) += lhs * rData.Weight;
+
     }
 
     /***********************************************************************************/
     /***********************************************************************************/
     template <>
-    void TwoFluidNavierStokesFractionalConvectionElement<TwoFluidNavierStokesFractionalConvectionElementData<3, 4>>::ComputeGaussPointLHSContribution(TwoFluidNavierStokesFractionalConvectionElementData<3, 4> &rData,
-                                                                                                                                MatrixType &rLHS)
+    void TwoFluidNavierStokesFractionalConvectionElement<TwoFluidNavierStokesFractionalConvectionElementData<3, 4>>::ComputeGaussPointLHSContribution(
+        TwoFluidNavierStokesFractionalConvectionElementData<3, 4> &rData,
+        MatrixType &rLHS)
     {
 
 
@@ -217,19 +220,20 @@ namespace Kratos
         // Stabilization parameters
         constexpr double stab_c2 = 2.0;
 
-        auto &lhs = rData.lhs;
+        // Add LHS Gauss point contribution
+        const double w_gauss =rData.Weight;
 
         //substitute_lhs_3D
-        //  Add intermediate results to local system.
-        noalias(rLHS) += lhs * rData.Weight;
+
     }
 
     /***********************************************************************************/
     /***********************************************************************************/
 
     template <>
-    void TwoFluidNavierStokesFractionalConvectionElement<TwoFluidNavierStokesFractionalConvectionElementData<2, 3>>::ComputeGaussPointRHSContribution(TwoFluidNavierStokesFractionalConvectionElementData<2, 3> &rData,
-                                                                                                                                VectorType &rRHS)
+    void TwoFluidNavierStokesFractionalConvectionElement<TwoFluidNavierStokesFractionalConvectionElementData<2, 3>>::ComputeGaussPointRHSContribution(
+        TwoFluidNavierStokesFractionalConvectionElementData<2, 3> &rData,
+        VectorType &rRHS)
     {
 
         const double h = rData.ElementSize;
@@ -249,18 +253,19 @@ namespace Kratos
         const auto &N = rData.N;
         const auto &DN = rData.DN_DX;
 
-        auto &rhs = rData.rhs;
-
+        // Add RHS Gauss point contribution
+        const double w_gauss = rData.Weight;
+        
         //substitute_rhs_2D
-        //Add intermediate results to local system.
-        noalias(rRHS) += rhs * rData.Weight;
+
     }
 
     /***********************************************************************************/
     /***********************************************************************************/
     template <>
-    void TwoFluidNavierStokesFractionalConvectionElement<TwoFluidNavierStokesFractionalConvectionElementData<3, 4>>::ComputeGaussPointRHSContribution(TwoFluidNavierStokesFractionalConvectionElementData<3, 4> &rData,
-                                                                                                                                VectorType &rRHS)
+    void TwoFluidNavierStokesFractionalConvectionElement<TwoFluidNavierStokesFractionalConvectionElementData<3, 4>>::ComputeGaussPointRHSContribution(
+        TwoFluidNavierStokesFractionalConvectionElementData<3, 4> &rData,
+        VectorType &rRHS)
     {
 
 
@@ -280,12 +285,11 @@ namespace Kratos
         const auto &N = rData.N;
         const auto &DN = rData.DN_DX;
 
-        auto &rhs = rData.rhs;
+        // Add RHS Gauss point contribution
+        const double w_gauss =rData.Weight;
 
         //substitute_rhs_3D
 
-        //  Add intermediate results to local system.
-        noalias(rRHS) += rhs * rData.Weight;
     }
 
     /***********************************************************************************/

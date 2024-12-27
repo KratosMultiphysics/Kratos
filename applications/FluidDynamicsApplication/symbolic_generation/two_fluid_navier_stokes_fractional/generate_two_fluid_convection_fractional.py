@@ -42,6 +42,7 @@ for dim in dim_vector:
         nnodes = 4
         strain_size = 6
     impose_partion_of_unity = False
+    gauss_weight = sympy.Symbol('w_gauss', positive = True) 
     N,DN = DefineShapeFunctions(nnodes, dim, impose_partion_of_unity)
     #define enrichment shape functions
     DNenr = DefineMatrix('DNenr',nnodes,dim)
@@ -138,11 +139,11 @@ for dim in dim_vector:
     ## Compute LHS and RHS
     # For the RHS computation one wants the residual of the previous iteration (residual based formulation).
     rhs = Compute_RHS(rv.copy(), testfunc, do_simplifications)
-    rhs_out = OutputVector_CollectingFactors(rhs, "rhs", mode)
+    rhs_out = OutputVector_CollectingFactors(gauss_weight*rhs, "rRHS", mode, assignment_op='+=')
 
     # Compute LHS (RHS(residual) differenctiation w.r.t. the DOFs)
     lhs = Compute_LHS(rhs, testfunc, dofs, do_simplifications)
-    lhs_out = OutputMatrix_CollectingFactors(lhs, "lhs", mode)
+    lhs_out = OutputMatrix_CollectingFactors(gauss_weight * lhs, "rLHS", mode, assignment_op='+=')
 
     #####################################################################
     #####################################################################

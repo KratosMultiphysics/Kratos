@@ -357,12 +357,10 @@ void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<2, 3>>::C
     const auto &N = rData.N;
     const auto &DN = rData.DN_DX;
 
-    auto &lhs = rData.lhs;
+    // Add LHS Gauss point contribution
+    const double w_gauss = rData.Weight;
 
     //substitute_lhs_2D
-
-    // Add intermediate results to local system
-    noalias(rLHS) += lhs * rData.Weight;
 }
 
 template <>
@@ -387,13 +385,11 @@ void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<3, 4>>::C
     // Get shape function values
     const auto &N = rData.N;
     const auto &DN = rData.DN_DX;
-
-    auto &lhs = rData.lhs;
+    
+    // Add LHS Gauss point contribution
+    const double w_gauss = rData.Weight;
 
     //substitute_lhs_3D
-
-    // Add intermediate results to local system
-    noalias(rLHS) += lhs * rData.Weight;
 }
 
 template <>
@@ -446,11 +442,10 @@ void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<2, 3>>::C
         volume_error_ratio = volume_error / previous_dt;
     }
 
-    auto &rhs = rData.rhs;
+    // Add RHS Gauss point contribution
+    const double w_gauss = rData.Weight;
 
     //substitute_rhs_2D
-
-    noalias(rRHS) += rData.Weight * rhs;
 }
 
 template <>
@@ -503,11 +498,10 @@ void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<3, 4>>::C
         volume_error_ratio = volume_error / previous_dt;
     }
 
-    auto &rhs = rData.rhs;
+    // Add RHS Gauss point contribution
+    const double w_gauss = rData.Weight;
 
     //substitute_rhs_3D
-
-    noalias(rRHS) += rData.Weight * rhs;
 }
 
 template <>
@@ -565,12 +559,10 @@ void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<2, 3>>::C
         volume_error_ratio = volume_error / previous_dt;
     }
 
-    auto &V = rData.V;
-    auto &H = rData.H;
-    auto &Kee = rData.Kee;
-    auto &rhs_ee = rData.rhs_ee;
-
     array_1d<double, NumNodes> penr = ZeroVector(NumNodes); //penriched is considered to be zero as we do not want to store it
+
+    // Add Enrichment Gauss point contribution
+    const double w_gauss = rData.Weight;
 
     //substitute_enrichment_V_2D
 
@@ -580,10 +572,6 @@ void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<2, 3>>::C
 
     //substitute_enrichment_rhs_ee_2D
 
-    noalias(rV) += rData.Weight * V;
-    noalias(rH) += rData.Weight * H;
-    noalias(rKee) += rData.Weight * Kee;
-    noalias(rRHS_ee) += rData.Weight * rhs_ee;
 }
 
 template <>
@@ -640,10 +628,8 @@ void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<3, 4>>::C
         volume_error_ratio = volume_error / previous_dt;
     }
 
-    auto &V = rData.V;
-    auto &H = rData.H;
-    auto &Kee = rData.Kee;
-    auto &rhs_ee = rData.rhs_ee;
+    // Add Enrichment Gauss point contribution
+    const double w_gauss = rData.Weight;
 
     array_1d<double, NumNodes> penr = ZeroVector(NumNodes); //penriched is considered to be zero as we do not want to store it
 
@@ -654,11 +640,6 @@ void TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<3, 4>>::C
     //substitute_enrichment_Kee_3D
 
     //substitute_enrichment_rhs_ee_3D
-
-    noalias(rV) += rData.Weight * V;
-    noalias(rH) += rData.Weight * H;
-    noalias(rKee) += rData.Weight * Kee;
-    noalias(rRHS_ee) += rData.Weight * rhs_ee;
 }
 
 template <class TElementData>
@@ -784,6 +765,75 @@ ModifiedShapeFunctions::UniquePointer TwoFluidNavierStokesFractional< TwoFluidNa
 {
     return Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(pGeometry, rDistances);
 }
+template <>
+double TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<2, 3>>::CalculateArtificialDynamicViscositySpecialization(
+       TwoFluidNavierStokesFractionalData<2, 3> &rData) const
+{
+    // Variables for artificial viscosity calculation
+    double artificial_mu = 0.0;
+    const double rho = rData.Density;
+    const double bdf0 = rData.bdf0;
+    const double h = rData.ElementSize;
+    const double dt = rData.DeltaTime;
+    const auto &v = rData.Velocity;
+    const auto &vn = rData.VelocityOldStep1;
+    const auto &vnn = rData.VelocityOldStep2;
+    const auto &vmesh = rData.MeshVelocity;
+    const auto &f = rData.BodyForce;
+    const auto &p = rData.Pressure;
+    const BoundedMatrix<double, 3, 2> vconv = vn - vmesh;
+    const auto vfrac = rData.FractionalVelocity;
+    const auto &N = rData.N;
+    const auto &DN = rData.DN_DX;
+    const double art_dyn_visc_coeff = 0.8;
+    double grad_v_norm = 0.0;
+    
+    // Check that velocity gradient norm is non-zero
+
+    //Substitute_artificial_mu_grad_v_norm_2D_3N
+
+    if (grad_v_norm > 1.0e-12) {
+        // Calculate symbolic artificial viscosity
+        //substitute_artificial_mu_2D_3N
+    }
+
+    return artificial_mu;
+}
+
+template <>
+double TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<3, 4>>::CalculateArtificialDynamicViscositySpecialization(
+       TwoFluidNavierStokesFractionalData<3, 4> &rData) const
+{
+    // Variables for artificial viscosity calculation
+    double artificial_mu = 0.0;
+    const double rho = rData.Density;
+    const double bdf0 = rData.bdf0;
+    const double h = rData.ElementSize;
+    const double dt = rData.DeltaTime;
+    const auto &v = rData.Velocity;
+    const auto &vn = rData.VelocityOldStep1;
+    const auto &vnn = rData.VelocityOldStep2;
+    const auto &vmesh = rData.MeshVelocity;
+    const auto &f = rData.BodyForce;
+    const auto &p = rData.Pressure;
+    const BoundedMatrix<double, 4, 3>vconv = vn - vmesh;
+    const auto vfrac = rData.FractionalVelocity;
+    const auto &N = rData.N;
+    const auto &DN = rData.DN_DX;
+    const double art_dyn_visc_coeff = 0.8;
+    double grad_v_norm = 0.0;
+
+    // Check that velocity gradient norm is non-zero
+
+    //Substitute_artificial_mu_grad_v_norm_3D_4N
+
+    if (grad_v_norm > 1.0e-12) {
+        // Calculate symbolic artificial viscosity
+        //substitute_artificial_mu_3D_4N
+    }
+
+    return artificial_mu;
+}
 
 template <class TElementData>
 void TwoFluidNavierStokesFractional<TElementData>::CalculateStrainRate(TElementData& rData) const
@@ -895,41 +945,67 @@ void TwoFluidNavierStokesFractional<TElementData>::load(Serializer &rSerializer)
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
 }
 
-
 template <class TElementData>
 void TwoFluidNavierStokesFractional<TElementData>::CalculateOnIntegrationPoints(
     const Variable<double> &rVariable,
-    std::vector<double> &rValues,
-    const ProcessInfo &rCurrentProcessInfo )
+    std::vector<double> &rOutput,
+    const ProcessInfo &rCurrentProcessInfo)
 {
-    if (rVariable == DIVERGENCE){
+    // Create new temporary data container
+    TElementData data;
+    data.Initialize(*this, rCurrentProcessInfo);
 
-        const auto& rGeom = this->GetGeometry();
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
-        const unsigned int num_gauss = IntegrationPoints.size();
+    // Get Shape function data
+    Vector gauss_weights;
+    Matrix shape_functions;
+    ShapeFunctionDerivativesArrayType shape_derivatives;
+    this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
+    const unsigned int number_of_gauss_points = gauss_weights.size();
 
-        if (rValues.size() != num_gauss){
-            rValues.resize(num_gauss);
+    if (rOutput.size() != number_of_gauss_points){
+        rOutput.resize(number_of_gauss_points);
+    }
+
+    if (rVariable == ARTIFICIAL_DYNAMIC_VISCOSITY){
+        // Iterate over integration points to evaluate the artificial viscosity at each Gauss point
+        for (unsigned int g = 0; g < number_of_gauss_points; ++g){
+            this->UpdateIntegrationPointData(data, g, gauss_weights[g], row(shape_functions, g), shape_derivatives[g]);
+            rOutput[g] = this->GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY);
+        }
+    }
+    else{
+        FluidElement<TElementData>::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+    }
+}
+
+template <class TElementData>
+void TwoFluidNavierStokesFractional<TElementData>::Calculate(
+    const Variable<double> &rVariable,
+    double &rOutput,
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    // Create new temporary data container
+    TElementData data;
+    data.Initialize(*this, rCurrentProcessInfo);
+
+    // Get Shape function data
+    Vector gauss_weights;
+    Matrix shape_functions;
+    ShapeFunctionDerivativesArrayType shape_derivatives;
+    this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
+    const unsigned int number_of_gauss_points = gauss_weights.size();
+    rOutput = 0.0;
+    if (rVariable == ARTIFICIAL_DYNAMIC_VISCOSITY)
+    {
+
+        // Iterate over integration points to evaluate the artificial viscosity at each Gauss point
+        for (unsigned int g = 0; g < number_of_gauss_points; ++g)
+        {
+            this->UpdateIntegrationPointData(data, g, gauss_weights[g], row(shape_functions, g), shape_derivatives[g]);
+            rOutput += CalculateArtificialDynamicViscositySpecialization(data);
         }
 
-        Vector gauss_pts_jacobian_determinant = ZeroVector(num_gauss);
-        GeometryData::ShapeFunctionsGradientsType DN_DX;
-        rGeom.ShapeFunctionsIntegrationPointsGradients(DN_DX, gauss_pts_jacobian_determinant, GeometryData::IntegrationMethod::GI_GAUSS_2);
-
-        for (unsigned int i_gauss = 0; i_gauss < num_gauss; ++i_gauss){
-
-            const Matrix gp_DN_DX = DN_DX[i_gauss];
-            double DVi_DXi = 0.0;
-
-            for(unsigned int nnode = 0; nnode < NumNodes; ++nnode){
-
-                const array_1d<double,3> vel = rGeom[nnode].GetSolutionStepValue(VELOCITY);
-                for(unsigned int ndim = 0; ndim < Dim; ++ndim){
-                    DVi_DXi += gp_DN_DX(nnode, ndim) * vel[ndim];
-                }
-            }
-            rValues[i_gauss] = DVi_DXi;
-        }
+        rOutput /= number_of_gauss_points;
     }
 }
 

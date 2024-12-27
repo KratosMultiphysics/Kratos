@@ -52,6 +52,7 @@ for dim in dim_vector:
         strain_size = 6
 
     impose_partion_of_unity = False
+    gauss_weight = sympy.Symbol('w_gauss', positive = True)
     N,DN = DefineShapeFunctions(nnodes, dim, impose_partion_of_unity)
 
     #define enrichment shape functions
@@ -224,7 +225,7 @@ for dim in dim_vector:
     # For the RHS computation one wants the residual of the previous iteration (residual based formulation). By this reason the stress is
     # included as a symbolic variable, which is assumed to be passed as an argument from the previous iteration database.
     rhs = Compute_RHS(rv.copy(), testfunc, do_simplifications)
-    rhs_out = OutputVector_CollectingFactors(rhs, "rhs", mode)
+    rhs_out = OutputVector_CollectingFactors(gauss_weight*rhs, "rRHS", mode, assignment_op='+=')
 
     # Compute LHS (RHS(residual) differenctiation w.r.t. the DOFs)
     # Note that the 'stress' (symbolic variable) is substituted by 'C*grad_sym_v_voigt' for the LHS differenctiation. Otherwise the velocity terms
@@ -232,8 +233,7 @@ for dim in dim_vector:
     # a velocity independent constant in the LHS.
     SubstituteMatrixValue(rhs, stress, C*grad_sym_v_voigt)
     lhs = Compute_LHS(rhs, testfunc, dofs, do_simplifications) # Compute the LHS (considering stress as C*(B*v) to derive w.r.t. v)
-    lhs_out = OutputMatrix_CollectingFactors(lhs, "lhs", mode)
-
+    lhs_out = OutputMatrix_CollectingFactors(gauss_weight * lhs, "rLHS", mode, assignment_op='+=')
     #Enrichment Functional
     ##  K V   x    =  b + rhs_eV
     ##  H Kee penr =  rhs_ee
@@ -275,10 +275,10 @@ for dim in dim_vector:
     rhs_ee, H   = Compute_RHS_and_LHS(rv_enriched, testfunc_enr, dofs, do_simplifications)
     rhs_ee, Kee = Compute_RHS_and_LHS(rv_enriched, testfunc_enr, dofs_enr, do_simplifications)
 
-    V_out = OutputMatrix_CollectingFactors(V,"V",mode)
-    H_out = OutputMatrix_CollectingFactors(H,"H",mode)
-    Kee_out = OutputMatrix_CollectingFactors(Kee,"Kee",mode)
-    rhs_ee_out = OutputVector_CollectingFactors(rhs_ee,"rhs_ee",mode)
+    V_out = OutputMatrix_CollectingFactors(gauss_weight*V,"rV",mode,assignment_op='+=')
+    H_out = OutputMatrix_CollectingFactors(gauss_weight*H,"rH",mode,assignment_op='+=')
+    Kee_out = OutputMatrix_CollectingFactors(gauss_weight*Kee,"rKee",mode,assignment_op='+=')
+    rhs_ee_out = OutputVector_CollectingFactors(gauss_weight*rhs_ee,"rRHS_ee",mode,assignment_op='+=')
 
     #  Calculate artificial dynamic viscosity in each Gauss point
     vel_residual_norm = vel_residual.norm()
