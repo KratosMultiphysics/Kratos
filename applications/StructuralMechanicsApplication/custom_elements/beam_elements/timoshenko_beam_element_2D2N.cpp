@@ -442,6 +442,7 @@ void LinearTimoshenkoBeamElement2D2N::CalculateLocalSystem(
     const auto &r_geometry = GetGeometry();
     const SizeType number_of_nodes = r_geometry.size();
     const SizeType mat_size = GetDoFsPerNode() * number_of_nodes;
+    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
     if (rLHS.size1() != mat_size || rLHS.size2() != mat_size) {
         rLHS.resize(mat_size, mat_size, false);
@@ -466,8 +467,8 @@ void LinearTimoshenkoBeamElement2D2N::CalculateLocalSystem(
     const double area   = r_props[CROSS_AREA];
 
     // Let's initialize the cl values
-    VectorType strain_vector(3), stress_vector(3);
-    MatrixType constitutive_matrix(3, 3);
+    VectorType strain_vector(strain_size), stress_vector(strain_size);
+    MatrixType constitutive_matrix(strain_size, strain_size);
     strain_vector.clear();
     cl_values.SetStrainVector(strain_vector);
     cl_values.SetStressVector(stress_vector);
@@ -576,6 +577,7 @@ void LinearTimoshenkoBeamElement2D2N::CalculateLeftHandSide(
     const auto &r_props = GetProperties();
     const SizeType number_of_nodes = r_geometry.size();
     const SizeType mat_size = GetDoFsPerNode() * number_of_nodes;
+    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
     if (rLHS.size1() != mat_size || rLHS.size2() != mat_size) {
         rLHS.resize(mat_size, mat_size, false);
@@ -594,8 +596,8 @@ void LinearTimoshenkoBeamElement2D2N::CalculateLeftHandSide(
     const double J      = 0.5 * length;
 
     // Let's initialize the cl values
-    VectorType strain_vector(3), stress_vector(3);
-    MatrixType constitutive_matrix(3, 3);
+    VectorType strain_vector(strain_size), stress_vector(strain_size);
+    MatrixType constitutive_matrix(strain_size, strain_size);
     strain_vector.clear();
     cl_values.SetStrainVector(strain_vector);
     cl_values.SetStressVector(stress_vector);
@@ -684,6 +686,7 @@ void LinearTimoshenkoBeamElement2D2N::CalculateRightHandSide(
     const auto &r_props = GetProperties();
     const SizeType number_of_nodes = r_geometry.size();
     const SizeType mat_size = GetDoFsPerNode() * number_of_nodes;
+    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
     if (rRHS.size() != mat_size) {
         rRHS.resize(mat_size, false);
@@ -703,8 +706,8 @@ void LinearTimoshenkoBeamElement2D2N::CalculateRightHandSide(
     const double area   = r_props[CROSS_AREA];
 
     // Let's initialize the cl values
-    VectorType strain_vector(3), stress_vector(3);
-    MatrixType constitutive_matrix(3, 3);
+    VectorType strain_vector(strain_size), stress_vector(strain_size);
+    MatrixType constitutive_matrix(strain_size, strain_size);
     strain_vector.clear();
     cl_values.SetStrainVector(strain_vector);
     cl_values.SetStressVector(stress_vector);
