@@ -14,7 +14,6 @@
 
 #pragma once
 
-
 // System includes
 
 // External includes
@@ -22,144 +21,135 @@
 // Project includes
 #include "integration/quadrature.h"
 
-//TO BE COMPLETED: Only the needed ones have been implemented
+// TO BE COMPLETED: Only the needed ones have been implemented
 
 namespace Kratos
 {
 
-class QuadrilateralGaussLobattoIntegrationPoints1
-{
-public:
-    KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussLobattoIntegrationPoints1);
-    typedef std::size_t SizeType;
-
-    static const unsigned int Dimension = 2;
-
-    typedef IntegrationPoint<2> IntegrationPointType;
-
-    typedef std::array<IntegrationPointType, 2> IntegrationPointsArrayType;
-
-    typedef IntegrationPointType::PointType PointType;
-
-    static SizeType IntegrationPointsNumber()
+    class QuadrilateralGaussLobattoIntegrationPoints1
     {
-        return 2;
-    }
+    public:
+        KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussLobattoIntegrationPoints1);
+        typedef std::size_t SizeType;
 
-    static const IntegrationPointsArrayType& IntegrationPoints()
+        static const unsigned int Dimension = 2;
+
+        typedef IntegrationPoint<2> IntegrationPointType;
+
+        typedef std::array<IntegrationPointType, 2> IntegrationPointsArrayType;
+
+        typedef IntegrationPointType::PointType PointType;
+
+        static SizeType IntegrationPointsNumber()
+        {
+            return 2;
+        }
+
+        static const IntegrationPointsArrayType &IntegrationPoints()
+        {
+            static const IntegrationPointsArrayType s_integration_points{{
+                IntegrationPointType(-1.0, 0.0, 1.0),
+                IntegrationPointType(1.0, 0.0, 1.0)}};
+            return s_integration_points;
+        }
+
+        std::string Info() const
+        {
+            std::stringstream buffer;
+            buffer << "Quadrilateral Gauss-Lobatto integration 1 ";
+            return buffer.str();
+        }
+
+    }; // Class QuadrilateralGaussLobattoIntegrationPoints1
+
+    class QuadrilateralGaussLobattoIntegrationPoints2
     {
-        static const IntegrationPointsArrayType s_integration_points{{
-            IntegrationPointType( -1.00 , 0.00, 1.00 ),
-            IntegrationPointType(  1.00 , 0.00, 1.00 )
-        }};
-        return s_integration_points;
-    }
+    public:
+        KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussLobattoIntegrationPoints2);
+        typedef std::size_t SizeType;
 
-    std::string Info() const
+        static const unsigned int Dimension = 2;
+
+        typedef IntegrationPoint<2> IntegrationPointType;
+
+        typedef std::array<IntegrationPointType, 4> IntegrationPointsArrayType;
+
+        typedef IntegrationPointType::PointType PointType;
+
+        static SizeType IntegrationPointsNumber()
+        {
+            return 4;
+        }
+
+        static const IntegrationPointsArrayType &IntegrationPoints()
+        {
+            static const IntegrationPointsArrayType s_integration_points{{
+                IntegrationPointType(-1.0, -1.0, 1.0),
+                IntegrationPointType(1.0, -1.0, 1.0),
+                IntegrationPointType(1.0, 1.0, 1.0),
+                IntegrationPointType(-1.0, 1.0, 1.0)}};
+            return s_integration_points;
+        }
+
+        std::string Info() const
+        {
+            std::stringstream buffer;
+            buffer << "Quadrilateral Gauss-Lobatto integration 2 ";
+            return buffer.str();
+        }
+
+    }; // Class QuadrilateralGaussLobattoIntegrationPoints2
+
+    class QuadrilateralGaussLobattoIntegrationPoints3
     {
-        std::stringstream buffer;
-        buffer << "Quadrilateral Gauss-Lobatto integration 1 ";
-        return buffer.str();
-    }
+    public:
+        KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussLobattoIntegrationPoints3);
+        typedef std::size_t SizeType;
 
+        static const unsigned int Dimension = 2;
 
-}; // Class QuadrilateralGaussLobattoIntegrationPoints1
+        typedef IntegrationPoint<2> IntegrationPointType;
 
-class QuadrilateralGaussLobattoIntegrationPoints2
-{
-public:
-    KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussLobattoIntegrationPoints2);
-    typedef std::size_t SizeType;
+        typedef std::array<IntegrationPointType, 9> IntegrationPointsArrayType;
 
-    static const unsigned int Dimension = 2;
+        typedef IntegrationPointType::PointType PointType;
 
-    typedef IntegrationPoint<2> IntegrationPointType;
+        static SizeType IntegrationPointsNumber()
+        {
+            return 9;
+        }
 
-    typedef std::array<IntegrationPointType, 4> IntegrationPointsArrayType;
+        static const IntegrationPointsArrayType &IntegrationPoints()
+        {
+            const double one_over_nine     = 1.0 / 9.0;
+            const double four_over_nine    = 4.0 * one_over_nine;
 
-    typedef IntegrationPointType::PointType PointType;
+            // Define the integration points and their weights
+            static const IntegrationPointsArrayType s_integration_points{{
+                // Corner points
+                IntegrationPointType(-1.0, -1.0, one_over_nine),
+                IntegrationPointType(1.0, -1.0,  one_over_nine),
+                IntegrationPointType(-1.0, 1.0,  one_over_nine),
+                IntegrationPointType(1.0, 1.0,   one_over_nine),
 
-    static SizeType IntegrationPointsNumber()
-    {
-        return 4;
-    }
+                // Edge midpoints
+                IntegrationPointType(0.0, -1.0, four_over_nine),
+                IntegrationPointType(-1.0, 0.0, four_over_nine),
+                IntegrationPointType(1.0, 0.0,  four_over_nine),
+                IntegrationPointType(0.0, 1.0,  four_over_nine),
 
-    static const IntegrationPointsArrayType& IntegrationPoints()
-    {
-        static const IntegrationPointsArrayType s_integration_points{{
-            IntegrationPointType( -1.00 , -1.00, 1.0 ),
-            IntegrationPointType(  1.00 , -1.00, 1.0 ),
-            IntegrationPointType(  1.00 ,  1.00, 1.0 ),
-            IntegrationPointType( -1.00 ,  1.00, 1.0 )
-        }};
-        return s_integration_points;
-    }
+                // Center point
+                IntegrationPointType(0.0, 0.0, 16.0 / 9.0)}};
+            return s_integration_points;
+        }
 
-    std::string Info() const
-    {
-        std::stringstream buffer;
-        buffer << "Quadrilateral Gauss-Lobatto integration 2 ";
-        return buffer.str();
-    }
+        std::string Info() const
+        {
+            std::stringstream buffer;
+            buffer << "Quadrilateral Gauss-Lobatto integration 3 ";
+            return buffer.str();
+        }
 
-}; // Class QuadrilateralGaussLobattoIntegrationPoints2
-
-
-class QuadrilateralGaussLobattoIntegrationPoints3
-{
-public:
-    KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussLobattoIntegrationPoints3);
-    typedef std::size_t SizeType;
-
-    static const unsigned int Dimension = 2;
-
-    typedef IntegrationPoint<2> IntegrationPointType;
-
-    typedef std::array<IntegrationPointType, 9> IntegrationPointsArrayType;
-
-    typedef IntegrationPointType::PointType PointType;
-
-    static SizeType IntegrationPointsNumber()
-    {
-        return 9;
-    }
-
-    static const IntegrationPointsArrayType& IntegrationPoints()
-    {
-        // Define weights for 3rd-order Lobatto quadrature
-        const double one_over_thirty_six  = 1.0 / 36.0;
-        const double four_over_thirty_six = 4.0 * one_over_thirty_six;  // = 1/9
-        const double sixteen_over_thirty_six = 16.0 * one_over_thirty_six;  // = 4/9
-
-        // Define the integration points and their weights
-        static const IntegrationPointsArrayType s_integration_points{{
-            // Corner points
-            IntegrationPointType( -1.00 , -1.00, one_over_thirty_six ),
-            IntegrationPointType(  1.00 , -1.00, one_over_thirty_six ),
-            IntegrationPointType( -1.00 ,  1.00, one_over_thirty_six ),
-            IntegrationPointType(  1.00 ,  1.00, one_over_thirty_six ),
-
-            // Edge midpoints
-            IntegrationPointType(  0.00 , -1.00, four_over_thirty_six ),
-            IntegrationPointType( -1.00 ,  0.00, four_over_thirty_six ),
-            IntegrationPointType(  1.00 ,  0.00, four_over_thirty_six ),
-            IntegrationPointType(  0.00 ,  1.00, four_over_thirty_six ),
-
-            // Center point
-            IntegrationPointType(  0.00 ,  0.00, sixteen_over_thirty_six )
-        }};
-        return s_integration_points;
-    }
-
-    std::string Info() const
-    {
-        std::stringstream buffer;
-        buffer << "Quadrilateral Gauss-Lobatto integration 3 ";
-        return buffer.str();
-    }
-
-}; // Class QuadrilateralGaussLobattoIntegrationPoints3
+    }; // Class QuadrilateralGaussLobattoIntegrationPoints3
 
 }
-
-

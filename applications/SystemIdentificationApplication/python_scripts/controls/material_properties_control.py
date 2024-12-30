@@ -33,10 +33,11 @@ class MaterialPropertiesControl(Control):
         super().__init__(name)
 
         default_settings = Kratos.Parameters("""{
-            "control_variable_name"  : "",
-            "control_variable_bounds": [0.0, 0.0],
-            "output_all_fields"      : false,
-            "filter_settings"        : {},
+            "control_variable_name"             : "",
+            "control_variable_bounds"           : [0.0, 0.0],
+            "output_all_fields"                 : false,
+            "consider_recursive_property_update": false,
+            "filter_settings"                   : {},
             "model_part_names": [
                 {
                     "primal_model_part_name" : "PLEASE_PROVIDE_MODEL_PART_NAME",
@@ -74,6 +75,9 @@ class MaterialPropertiesControl(Control):
                                                 [param["adjoint_model_part_name"].GetString() for param in controlled_model_part_names],
                                                 False)
 
+        self.consider_recursive_property_update = parameters["consider_recursive_property_update"].GetBool()
+
+
         # filter needs to be based on the primal model part
         # because, filter may keep pointers for the elements to get their center positions
         # for filtering. The adjoint model part may re-assign adjoint elements based on
@@ -92,7 +96,7 @@ class MaterialPropertiesControl(Control):
         self.adjoint_model_part = self.adjoint_model_part_operation.GetModelPart()
 
         if not KratosOA.OptAppModelPartUtils.CheckModelPartStatus(self.primal_model_part, "element_specific_properties_created"):
-            KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(self.primal_model_part, self.primal_model_part.Elements)
+            KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(self.primal_model_part, self.primal_model_part.Elements, self.consider_recursive_property_update)
             KratosOA.OptAppModelPartUtils.LogModelPartStatus(self.primal_model_part, "element_specific_properties_created")
 
             if self.primal_model_part != self.adjoint_model_part:
@@ -184,6 +188,8 @@ class MaterialPropertiesControl(Control):
 
         # now update physical field
         KratosOA.PropertiesVariableExpressionIO.Write(physical_field, self.controlled_physical_variable)
+        if self.consider_recursive_property_update:
+            KratosOA.OptimizationUtils.UpdatePropertiesVariableWithRootValueRecursively(physical_field.GetContainer(), self.controlled_physical_variable)
 
         # compute and store projection derivatives for consistent filtering of the sensitivities
         # this is dphi/dphysical -> physical_phi_derivative_field
