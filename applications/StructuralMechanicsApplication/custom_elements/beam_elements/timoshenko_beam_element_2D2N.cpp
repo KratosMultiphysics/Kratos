@@ -951,15 +951,12 @@ void LinearTimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
     const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
     const SizeType mat_size = GetDoFsPerNode() * GetGeometry().size();
     rOutput.resize(integration_points.size());
-    const auto &r_props = GetProperties();
 
     if (rVariable == PK2_STRESS_VECTOR) {
-
-        const auto &r_geometry = GetGeometry();
-
-        ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
+        const auto &r_props = GetProperties();
+        ConstitutiveLaw::Parameters cl_values(GetGeometry(), r_props, rProcessInfo);
         const double length = CalculateLength();
-        const double Phi    = StructuralMechanicsElementUtilities::CalculatePhi(r_props, length);
+        const double phi    = StructuralMechanicsElementUtilities::CalculatePhi(r_props, length);
 
         VectorType strain_vector(strain_size), stress_vector(strain_size);
         StructuralMechanicsElementUtilities::InitializeConstitutiveLawValuesForStressCalculation(cl_values, strain_vector, stress_vector);
@@ -969,13 +966,12 @@ void LinearTimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
 
         // Loop over the integration points
         for (SizeType integration_point = 0; integration_point < integration_points.size(); ++integration_point) {
-            CalculateGeneralizedStrainsVector(strain_vector, length, Phi, integration_points[integration_point].X(), nodal_values);
+            CalculateGeneralizedStrainsVector(strain_vector, length, phi, integration_points[integration_point].X(), nodal_values);
             mConstitutiveLawVector[integration_point]->CalculateMaterialResponsePK2(cl_values);
-            auto stress_vector = cl_values.GetStressVector();
-            if ( this->GetProperties().Has(TIMOSHENKO_BEAM_PRESTRESS_PK2)) {
-                stress_vector += this->GetProperties()[TIMOSHENKO_BEAM_PRESTRESS_PK2];
+            rOutput[integration_point] = cl_values.GetStressVector();
+            if ( this->GetProperties().Has(BEAM_PRESTRESS_PK2)) {
+                rOutput[integration_point] += this->GetProperties()[BEAM_PRESTRESS_PK2];
             }
-            rOutput[integration_point] = stress_vector;
         }
     }
 }
