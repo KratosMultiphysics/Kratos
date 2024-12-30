@@ -39,7 +39,14 @@ Condition::Pointer LineLoad2DDiffOrderCondition::Create(IndexType               
                                                         NodesArrayType const&   ThisNodes,
                                                         PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(new LineLoad2DDiffOrderCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Create(NewId, GetGeometry().Create(ThisNodes), pProperties);
+}
+
+Condition::Pointer LineLoad2DDiffOrderCondition::Create(IndexType               NewId,
+                                                        GeometryType::Pointer   pGeom,
+                                                        PropertiesType::Pointer pProperties) const
+{
+    return make_intrusive<LineLoad2DDiffOrderCondition>(NewId, pGeom, pProperties);
 }
 
 void LineLoad2DDiffOrderCondition::CalculateConditionVector(ConditionVariables& rVariables, unsigned int PointNumber)

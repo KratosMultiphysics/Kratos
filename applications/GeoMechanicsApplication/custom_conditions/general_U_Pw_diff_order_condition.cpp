@@ -29,7 +29,14 @@ Condition::Pointer GeneralUPwDiffOrderCondition::Create(IndexType               
                                                         NodesArrayType const&   ThisNodes,
                                                         PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(new GeneralUPwDiffOrderCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Create(NewId, GetGeometry().Create(ThisNodes), pProperties);
+}
+
+Condition::Pointer GeneralUPwDiffOrderCondition::Create(IndexType               NewId,
+                                                        GeometryType::Pointer   pGeom,
+                                                        PropertiesType::Pointer pProperties) const
+{
+    return make_intrusive<GeneralUPwDiffOrderCondition>(NewId, pGeom, pProperties);
 }
 
 void GeneralUPwDiffOrderCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
