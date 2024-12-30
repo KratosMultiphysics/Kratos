@@ -12,10 +12,7 @@
 
 #pragma once
 
-#define KRATOS_TWO_FLUID_NAVIER_STOKES_FRACTIONAL_DATA_H
-
 #include "includes/constitutive_law.h"
-
 #include "fluid_dynamics_application_variables.h"
 #include "custom_elements/data_containers/fluid_element_data.h"
 #include "utilities/element_size_calculator.h"
@@ -51,16 +48,15 @@ static constexpr std::size_t BlockSize = TDim + 1;
 ///@{
 
 NodalVectorData Velocity;
-NodalVectorData Velocity_OldStep1;
-NodalVectorData Velocity_OldStep2;
-NodalVectorData Velocity_OldStep3;
+NodalVectorData VelocityOldStep1;
+NodalVectorData VelocityOldStep2;
 NodalVectorData MeshVelocity;
 NodalVectorData BodyForce;
-NodalVectorData Velocity_Fractional;
 NodalScalarData Pressure;
 NodalScalarData Distance;
-NodalScalarData NodalDensity;
+NodalVectorData FractionalVelocity;
 NodalScalarData NodalDynamicViscosity;
+NodalScalarData NodalDensity;
 
 double Density;
 double DynamicViscosity;
@@ -68,24 +64,9 @@ double DeltaTime;		   // Time increment
 double PreviousDeltaTime;
 double DynamicTau;         // Dynamic tau considered in ASGS stabilization coefficients
 double SmagorinskyConstant;
-double LinearDarcyCoefficient;
-double NonLinearDarcyCoefficient;
-double DarcyTerm;
-double VolumeError;
 double AirVolumeError;
 double WaterVolumeError;
 double bdf0;
-double bdf1;
-double bdf2;
-
-// Auxiliary containers for the symbolically-generated matrices
-BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)> lhs;
-array_1d<double,TNumNodes*(TDim+1)> rhs;
-BoundedMatrix<double, TNumNodes*(TDim + 1), TNumNodes> V;
-BoundedMatrix<double, TNumNodes, TNumNodes*(TDim + 1)> H;
-BoundedMatrix<double, TNumNodes, TNumNodes> Kee;
-array_1d<double, TNumNodes> rhs_ee;
-
 double ElementSize;
 
 Matrix N_pos_side;
@@ -116,43 +97,30 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     // Base class Initialize manages constitutive law parameters
     FluidElementData<TDim,TNumNodes, true>::Initialize(rElement,rProcessInfo);
 
-    const Geometry< Node >& r_geometry = rElement.GetGeometry();
+    const auto& r_geometry = rElement.GetGeometry(); 
     const Properties& r_properties = rElement.GetProperties();
     this->FillFromHistoricalNodalData(Velocity,VELOCITY,r_geometry);
-    this->FillFromHistoricalNodalData(Velocity_OldStep1,VELOCITY,r_geometry,1);
-    this->FillFromHistoricalNodalData(Velocity_OldStep2,VELOCITY,r_geometry,2);
-    this->FillFromHistoricalNodalData(Velocity_OldStep3, VELOCITY, r_geometry, 3);
-
+    this->FillFromHistoricalNodalData(VelocityOldStep1,VELOCITY,r_geometry,1);
+    this->FillFromHistoricalNodalData(VelocityOldStep2,VELOCITY,r_geometry,2);
     this->FillFromHistoricalNodalData(Distance, DISTANCE, r_geometry);
-    this->FillFromHistoricalNodalData(MeshVelocity,MESH_VELOCITY,r_geometry);
-    this->FillFromHistoricalNodalData(BodyForce,BODY_FORCE,r_geometry);
+    this->FillFromHistoricalNodalData(MeshVelocity,MESH_VELOCITY,r_geometry,0);
     this->FillFromHistoricalNodalData(Pressure,PRESSURE,r_geometry);
     this->FillFromHistoricalNodalData(NodalDensity, DENSITY, r_geometry);
     this->FillFromHistoricalNodalData(NodalDynamicViscosity, DYNAMIC_VISCOSITY, r_geometry);
-    // this->FillFromHistoricalNodalData(Acceleration, FRACTIONAL_ACCELERATION, r_geometry,1);
-    this->FillFromHistoricalNodalData(Velocity_Fractional, FRACTIONAL_VELOCITY, r_geometry, 0);
+    this->FillFromHistoricalNodalData(FractionalVelocity, FRACTIONAL_VELOCITY, r_geometry, 0);
     this->FillFromProperties(SmagorinskyConstant, C_SMAGORINSKY, r_properties);
-    this->FillFromProperties(LinearDarcyCoefficient, LIN_DARCY_COEF, r_properties);
-    this->FillFromProperties(NonLinearDarcyCoefficient, NONLIN_DARCY_COEF, r_properties);
+    this->FillFromHistoricalNodalData(BodyForce,BODY_FORCE,r_geometry);
     this->FillFromProcessInfo(DeltaTime,DELTA_TIME,rProcessInfo);
-    this->FillFromProcessInfo(VolumeError, VOLUME_ERROR, rProcessInfo);
     this->FillFromProcessInfo(DynamicTau, DYNAMIC_TAU, rProcessInfo);
     this->FillFromProcessInfo(AirVolumeError, AIR_VOLUME_ERROR, rProcessInfo);
     this->FillFromProcessInfo(WaterVolumeError, WATER_VOLUME_ERROR, rProcessInfo);
 
+
     const Vector& BDFVector = rProcessInfo[BDF_COEFFICIENTS];
 
     bdf0 = BDFVector[0];
-    bdf1 = BDFVector[1];
-    bdf2 = BDFVector[2];
-
+    
     PreviousDeltaTime = rProcessInfo.GetPreviousTimeStepInfo()[DELTA_TIME];
-    noalias(lhs) = ZeroMatrix(TNumNodes*(TDim+1),TNumNodes*(TDim+1));
-    noalias(rhs) = ZeroVector(TNumNodes*(TDim+1));
-    noalias(V) = ZeroMatrix(TNumNodes*(TDim + 1), TNumNodes);
-    noalias(H) = ZeroMatrix(TNumNodes, TNumNodes*(TDim + 1));
-    noalias(Kee) = ZeroMatrix(TNumNodes, TNumNodes);
-    noalias(rhs_ee) = ZeroVector(TNumNodes);
 
     NumPositiveNodes = 0;
     NumNegativeNodes = 0;
@@ -194,10 +162,11 @@ void UpdateGeometryValues(
 
 static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
 {
-    const Geometry< Node >& r_geometry = rElement.GetGeometry();
+    const auto& r_geometry = rElement.GetGeometry();  
 
     for (unsigned int i = 0; i < TNumNodes; i++)
     {
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(FRACTIONAL_VELOCITY,r_geometry[i]);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY,r_geometry[i]);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE, r_geometry[i]);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MESH_VELOCITY,r_geometry[i]);
@@ -357,18 +326,6 @@ void CalculateEffectiveViscosityAtGaussPoint()
         this->EffectiveViscosity = DynamicViscosity + 2.0*length_scale*strain_rate_norm;
     }
     else this->EffectiveViscosity = DynamicViscosity;
-}
-
-void ComputeDarcyTerm()
-{
-    array_1d<double, 3> convective_velocity(3, 0.0);
-    for (size_t i = 0; i < TNumNodes; i++) {
-        for (size_t j = 0; j < TDim; j++) {
-            convective_velocity[j] += this->N[i] * (Velocity(i, j) - MeshVelocity(i, j));
-        }
-    }
-    const double convective_velocity_norm = MathUtils<double>::Norm(convective_velocity);
-    DarcyTerm = this->EffectiveViscosity * LinearDarcyCoefficient + Density * NonLinearDarcyCoefficient * convective_velocity_norm;
 }
 ///@}
 

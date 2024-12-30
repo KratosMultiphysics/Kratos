@@ -60,7 +60,7 @@ KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokesFractional2D3N, FluidDynami
     modelPart.AddNodalSolutionStepVariable(DISTANCE);
 
     // Process info creation
-    const int buffer_size = 4;
+    const int buffer_size = 3;
     const double delta_time = 0.1;
     modelPart.SetBufferSize(buffer_size);
     modelPart.GetProcessInfo().SetValue(DOMAIN_SIZE, 2);
@@ -135,16 +135,9 @@ KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokesFractional2D3N, FluidDynami
 
     // Check the RHS values (the RHS is computed as the LHS x previous_solution,
     // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
+    const std::vector<double> rhs_ref = {285.327812743,-75.7286708218,0.678487936315,-758.586246712,-529.046820664,-0.808596445975,-549.320499823,-931.191955616,-0.0198914903401};
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, rhs_ref, 1.0e-7);
 
-    KRATOS_EXPECT_NEAR(RHS(0), 285.327812743, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(1),-75.7286708218, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(2), 0.678487936315, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(3),-758.586246712, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(4), -529.046820664, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(5), -0.808596445975, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(6), -549.320499823, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(7), -931.191955616, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(8), -0.0198914903401, 1e-7);
 }
 
 // /** Checks the TwoFluidNavierStokesFractional3D4N element
@@ -156,7 +149,7 @@ KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokesFractionalCut3D4N, FluidDyn
     ModelPart& modelPart = current_model.CreateModelPart("Main");
 
     // Process info creation
-    const int buffer_size = 4;
+    const int buffer_size = 3;
     const double delta_time = 0.1;
     modelPart.SetBufferSize(buffer_size);
     modelPart.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
@@ -243,25 +236,10 @@ KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokesFractionalCut3D4N, FluidDyn
     const auto& r_process_info = modelPart.GetProcessInfo();
     pElement->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
     pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
-    std::cout << std::setprecision(12) << RHS << std::endl;
     // Check the RHS values (the RHS is computed as the LHS x previous_solution,
     // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-    KRATOS_EXPECT_NEAR(RHS(0), -182.780712656, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(1), -5.97373013, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(2), -366.425812874, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(3), 0.136180451508, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(4), -65.5996318562, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(5),-195.157657105, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(6), -732.8993499, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(7), 0.228653068676, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(8), -30.1350973711, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(9), -309.557107994, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(10), -744.055344314, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(11), -0.182507276303, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(12), 4.70728308942, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(13), -259.815870553, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(14), -872.015239241, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(15), -0.282326243881, 1e-7);
+    const std::vector<double> rhs_ref = {-182.780712656374,-5.97373013000447,-366.425812873773,0.13618045150788,-65.5996318561992,-195.157657104678,-732.899349900163,0.228653068676312,-30.1350973710576,-309.557107994407,-744.055344313566,-0.182507276303036,4.70728308941767,-259.815870552732,-872.015239241193,-0.282326243881156};
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, rhs_ref, 1.0e-7);
 }
 
 
@@ -274,7 +252,7 @@ KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokesFractionalNegativeSide3D4N,
     ModelPart& modelPart = current_model.CreateModelPart("Main");
 
     // Process info creation
-    const int buffer_size = 4;
+    const int buffer_size = 3;
     const double delta_time = 0.1;
     modelPart.SetBufferSize(buffer_size);
     modelPart.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
@@ -364,23 +342,8 @@ KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokesFractionalNegativeSide3D4N,
 
     // Check the RHS values (the RHS is computed as the LHS x previous_solution,
     // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-
-    KRATOS_EXPECT_NEAR(RHS(0),55.5608619747, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(1),64.3649724019, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(2),130.747961753, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(3),1.82139199133, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(4),-173.148878249, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(5),-263.100173027, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(6),-1019.86139378, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(7),-0.231551322358, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(8),-198.517992416, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(9),-320.806050475, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(10),-1153.91463291, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(11),-0.36014021379, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(12),-233.824784725, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(13),-357.542877174, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(14),-1300.79220817, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(15),-1.32970045518 , 1e-7);
+    const std::vector<double> rhs_ref={55.5608619747481,64.3649724019167,130.747961752768,1.82139199133129,-173.148878249225,-263.100173026906,-1019.86139377883,-0.231551322358482,-198.517992416071,-320.806050474686,-1153.91463291277,-0.360140213789913,-233.824784724542,-357.542877174272,-1300.79220817092,-1.3297004551829};
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, rhs_ref, 1.0e-7);
 }
 
 // /** Checks the TwoFluidNavierStokesFractional3D4N element
@@ -392,7 +355,7 @@ KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokesFractionalPositiveSide3D4N,
     ModelPart& modelPart = current_model.CreateModelPart("Main");
 
     // Process info creation
-    const int buffer_size = 4;
+    const int buffer_size = 3;
     const double delta_time = 0.1;
     modelPart.SetBufferSize(buffer_size);
     modelPart.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
@@ -482,23 +445,8 @@ KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokesFractionalPositiveSide3D4N,
 
     // Check the RHS values (the RHS is computed as the LHS x previous_solution,
     // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-    // std::cout<< std::setprecision(12) << RHS << std::endl;
-    KRATOS_EXPECT_NEAR(RHS(0),55.5608619747, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(1), 64.3649724019, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(2), 130.747961753, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(3), 1.82139199133, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(4), -173.148878249, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(5), -263.100173027, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(6), -1019.86139378, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(7), -0.231551322358, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(8), -198.517992416, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(9), -320.806050475, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(10), -1153.91463291, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(11), -0.36014021379, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(12), -233.824784725, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(13), -357.542877174, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(14), -1300.79220817, 1e-7);
-    KRATOS_EXPECT_NEAR(RHS(15), -1.32970045518, 1e-7);
+    const std::vector<double> rhs_ref={55.5608619747481,64.3649724019167,130.747961752768,1.82139199133129,-173.148878249225,-263.100173026906,-1019.86139377883,-0.231551322358482,-198.517992416071,-320.806050474686,-1153.91463291277,-0.360140213789913,-233.824784724542,-357.542877174272,-1300.79220817092,-1.3297004551829};
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, rhs_ref, 1.0e-7);
 }
 
 /** Checks the TwoFluidNavierStokesFractional2D3N element in a hydrostatic case.
@@ -511,7 +459,7 @@ KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokesFractional2D3NHydrostatic, 
     ModelPart& modelPart = current_model.CreateModelPart("Main");
 
     // Process info creation
-    const int buffer_size = 4;
+    const int buffer_size = 3;
     const double delta_time = 0.1;
     modelPart.SetBufferSize(buffer_size);
     modelPart.GetProcessInfo().SetValue(DOMAIN_SIZE, 2);
@@ -625,18 +573,8 @@ KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokesFractional2D3NHydrostatic, 
 
     // The remaining residuals in the velocities have the size of the boundary integrals over the enriched pressure.
     // If the "standard" pressure shape functions are used, the results do not hold.
-    // std::cout<< std::setprecision(12) << RHS << std::endl;
-    KRATOS_EXPECT_NEAR(RHS(0), 0.0, 1e-7);		// U_x at node 1
-    KRATOS_EXPECT_NEAR(RHS(1), -17.5, 1e-7); 	// U_y at node 1
-    KRATOS_EXPECT_NEAR(RHS(2), 0.0, 1e-7);		// P   at node 1
-
-    KRATOS_EXPECT_NEAR(RHS(3), 7.5, 1e-7);		// U_x at node 2
-    KRATOS_EXPECT_NEAR(RHS(4), 0.0, 1e-7);		// U_y at node 2
-    KRATOS_EXPECT_NEAR(RHS(5), 0.0, 1e-7);		// P   at node 2
-
-    KRATOS_EXPECT_NEAR(RHS(6), -7.5, 1e-7);		// U_x at node 3
-    KRATOS_EXPECT_NEAR(RHS(7), -7.5, 1e-7);		// U_y at node 3
-    KRATOS_EXPECT_NEAR(RHS(8), 0.0, 1e-7);		// P   at node 3
+    const std::vector<double> rhs_ref={0,-17.5,-5.6843418860808e-14,7.5,4.44089209850063e-16,2.8421709430404e-14,-7.5,-7.5,7.105427357601e-15};
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, rhs_ref, 1.0e-7);
 }
 
 
@@ -748,17 +686,8 @@ KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokesFractional2D3NError, FluidD
     // Check the RHS values (the RHS is computed as the LHS x previous_solution,
     // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
     Vector reference_RHS = ZeroVector(9);
-    reference_RHS[0] = 6075.49;
-    reference_RHS[1] = 4684.29;
-    reference_RHS[2] = -27.713;
-    reference_RHS[3] = -6671.02;
-    reference_RHS[4] = 1521.5;
-    reference_RHS[5] = -16.8578;
-    reference_RHS[6] = -241.804;
-    reference_RHS[7] = -4409.55;
-    reference_RHS[8] = -5.5792;
-
-    KRATOS_EXPECT_VECTOR_NEAR(reference_RHS, RHS, 1e-2);
+    const std::vector<double> rhs_ref = {6075.49466849675,4684.29040473282,-27.7130224974724,-6671.02384528602,1521.49790451337,-16.8577767803168,-241.803857305756,-4409.54852590944,-5.57920072221086};
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, rhs_ref, 1.0e-10);
 }
 
 // /** Checks the TwoFluidNavierStokesFractional3D4N element with a source term in mass conservation equation
@@ -871,26 +800,9 @@ KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokesFractionalCut3D4NError, Flu
     pElement->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
     pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
     // Check the RHS values (the RHS is computed as the LHS x previous_solution,
-    // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-    Vector reference_RHS = ZeroVector(16);
-    reference_RHS[0] = 3885.76546946;
-    reference_RHS[1] = 2853.252194541;
-    reference_RHS[2] = 3702.11733421;
-    reference_RHS[3] = -5.33528927901;
-    reference_RHS[4] = -4028.74316648;
-    reference_RHS[5] = 302.056712497;
-    reference_RHS[6] = -945.707036998;
-    reference_RHS[7] = -3.93555403796;
-    reference_RHS[8] = 47.4442472421;
-    reference_RHS[9] = -3601.67069179;
-    reference_RHS[10] = -666.474404348;
-    reference_RHS[11] = -3.04929475341;
-    reference_RHS[12] = -176.798973004;
-    reference_RHS[13] = 455.784932702;
-    reference_RHS[14] = -4803.85305063;
-    reference_RHS[15] = -4.44652859628;
-
-    KRATOS_EXPECT_VECTOR_NEAR(reference_RHS, RHS, 1e-7);
+    // hence, it is assumd that if the RHS is correct, the LHS is correct as well)
+    const std::vector<double> rhs_ref = {3885.76546946416,2853.25219454485,3702.11733420833,-5.33528927901302,-4028.74316647894,302.056712496537,-945.70703699794,-3.93555403796184,47.44424724214,-3601.67069178779,-666.474404348206,-3.04929475340806,-176.798973004457,455.784932701568,-4803.85305063243,-4.44652859628375};
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, rhs_ref, 1.0e-10);
 }
 
 }  // namespace Kratos::Testing.

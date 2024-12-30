@@ -52,6 +52,7 @@ for dim in dim_vector:
         strain_size = 6
 
     impose_partion_of_unity = False
+    gauss_weight = sympy.Symbol('w_gauss', positive = True)
     N,DN = DefineShapeFunctions(nnodes, dim, impose_partion_of_unity)
 
     #define enrichment shape functions
@@ -117,17 +118,14 @@ for dim in dim_vector:
     vconv_gauss_norm = sympy.sqrt(vconv_gauss_norm)
 
     ## Data interpolation to the Gauss points
-    K_darcy = sympy.Symbol('K_darcy', positive = True)
     ## Backward differences coefficients
     bdf0 = sympy.Symbol('bdf0')
-    bdf1 = sympy.Symbol('bdf1')
-    bdf2 = sympy.Symbol('bdf2')
     ## Part of the NS acceleration due to the fractional splitting
     acceleration = (bdf0*v -bdf0*vfrac)
     v_gauss = v.transpose()*N
     f_gauss = f.transpose()*N
 
-    tau1 = 1.0/((rho*dyn_tau)/dt + (stab_c2*rho*vconv_gauss_norm)/h + (stab_c1*mu)/(h*h) + K_darcy)   # Stabilization parameter 1
+    tau1 = 1.0/((rho*dyn_tau)/dt + (stab_c2*rho*vconv_gauss_norm)/h + (stab_c1*mu)/(h*h))   # Stabilization parameter 1
     tau2 = mu + (stab_c2*rho*vconv_gauss_norm*h)/stab_c1                                              # Stabilization parameter 2
 
     p_gauss = p.transpose()*N #NOTE: We evaluate p-related terms at n+1 as temporal component makes no sense in this case for both time integration schemes
@@ -168,7 +166,6 @@ for dim in dim_vector:
     ## Galerkin Functional
     rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss -rho*w_gauss.transpose()*convective_term.transpose() - grad_sym_w_voigt.transpose()*stress + div_w*p_gauss + rho*w_gauss.transpose()*convective_frac_term.transpose()
 
-    rv_galerkin -= w_gauss.transpose()*K_darcy*v_gauss #Darcy Term
     if adding_acceleration:
         # Adding fractional acceleration convective part
         rv_galerkin -= rho*w_gauss.transpose()*convective_n_term.transpose()
@@ -188,8 +185,6 @@ for dim in dim_vector:
     if adding_acceleration:
         vel_residual -=rho*(accel_gauss_n+convective_n_term.transpose())
 
-    vel_residual-= K_darcy*v_gauss
-
     # Mass conservation residual
     if (divide_by_rho):
         mas_residual = -div_v[0,0] + volume_error_ratio
@@ -208,7 +203,6 @@ for dim in dim_vector:
     rv_stab += rho*vconv_gauss.transpose()*grad_w*vel_subscale
     rv_stab += rho*div_vconv*w_gauss.transpose()*vel_subscale
     rv_stab += div_w*mas_subscale
-    rv_stab -= w_gauss.transpose()*K_darcy*vel_subscale
 
     ## Add the stabilization terms to the original residual terms
     if (ASGS_stabilization):
@@ -231,7 +225,7 @@ for dim in dim_vector:
     # For the RHS computation one wants the residual of the previous iteration (residual based formulation). By this reason the stress is
     # included as a symbolic variable, which is assumed to be passed as an argument from the previous iteration database.
     rhs = Compute_RHS(rv.copy(), testfunc, do_simplifications)
-    rhs_out = OutputVector_CollectingFactors(rhs, "rhs", mode)
+    rhs_out = OutputVector_CollectingFactors(gauss_weight*rhs, "rRHS", mode, assignment_op='+=')
 
     # Compute LHS (RHS(residual) differenctiation w.r.t. the DOFs)
     # Note that the 'stress' (symbolic variable) is substituted by 'C*grad_sym_v_voigt' for the LHS differenctiation. Otherwise the velocity terms
@@ -239,8 +233,7 @@ for dim in dim_vector:
     # a velocity independent constant in the LHS.
     SubstituteMatrixValue(rhs, stress, C*grad_sym_v_voigt)
     lhs = Compute_LHS(rhs, testfunc, dofs, do_simplifications) # Compute the LHS (considering stress as C*(B*v) to derive w.r.t. v)
-    lhs_out = OutputMatrix_CollectingFactors(lhs, "lhs", mode)
-
+    lhs_out = OutputMatrix_CollectingFactors(gauss_weight * lhs, "rLHS", mode, assignment_op='+=')
     #Enrichment Functional
     ##  K V   x    =  b + rhs_eV
     ##  H Kee penr =  rhs_ee
@@ -250,7 +243,6 @@ for dim in dim_vector:
     if adding_acceleration:
         vel_residual_enr -= rho*(accel_gauss_n+convective_n_term.transpose())
 
-    vel_residual_enr-= K_darcy*v_gauss
     vel_subscale_enr = vel_residual_enr * tau1
     rv_galerkin_enriched = div_w*penr_gauss
 
@@ -264,7 +256,6 @@ for dim in dim_vector:
         rv_stab_enriched -= rho*grad_q.transpose()*tau1*grad_penr
 
     rv_stab_enriched -= rho*vconv_gauss.transpose()*grad_w*tau1*grad_penr
-    rv_stab_enriched += w_gauss.transpose()*K_darcy*tau1*grad_penr
     rv_stab_enriched -= rho*div_vconv*w_gauss.transpose()*tau1*grad_penr
     rv_enriched = rv_galerkin_enriched
     ## Add the stabilization terms to the original residual terms
@@ -284,10 +275,10 @@ for dim in dim_vector:
     rhs_ee, H   = Compute_RHS_and_LHS(rv_enriched, testfunc_enr, dofs, do_simplifications)
     rhs_ee, Kee = Compute_RHS_and_LHS(rv_enriched, testfunc_enr, dofs_enr, do_simplifications)
 
-    V_out = OutputMatrix_CollectingFactors(V,"V",mode)
-    H_out = OutputMatrix_CollectingFactors(H,"H",mode)
-    Kee_out = OutputMatrix_CollectingFactors(Kee,"Kee",mode)
-    rhs_ee_out = OutputVector_CollectingFactors(rhs_ee,"rhs_ee",mode)
+    V_out = OutputMatrix_CollectingFactors(gauss_weight*V,"rV",mode,assignment_op='+=')
+    H_out = OutputMatrix_CollectingFactors(gauss_weight*H,"rH",mode,assignment_op='+=')
+    Kee_out = OutputMatrix_CollectingFactors(gauss_weight*Kee,"rKee",mode,assignment_op='+=')
+    rhs_ee_out = OutputVector_CollectingFactors(gauss_weight*rhs_ee,"rRHS_ee",mode,assignment_op='+=')
 
     #  Calculate artificial dynamic viscosity in each Gauss point
     vel_residual_norm = vel_residual.norm()
