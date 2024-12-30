@@ -185,9 +185,6 @@ namespace Kratos
         const auto &N = rData.N;
         const auto &DN = rData.DN_DX;
 
-        // Stabilization parameters
-        constexpr double stab_c2 = 2.0;
-
         // Add LHS Gauss point contribution
         const double w_gauss =rData.Weight;
 
@@ -216,9 +213,6 @@ namespace Kratos
         // Get shape function values
         const auto &N = rData.N;
         const auto &DN = rData.DN_DX;
-
-        // Stabilization parameters
-        constexpr double stab_c2 = 2.0;
 
         // Add LHS Gauss point contribution
         const double w_gauss =rData.Weight;
