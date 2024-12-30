@@ -28,7 +28,7 @@
 #include "includes/define.h"
 #include "includes/global_pointer_variables.h"
 #include "includes/kratos_flags.h"
-#include "custom_elements/vectorial_convection_fractional_element.h"
+#include "custom_elements/two_fluid_navier_stokes_fractional_convection_element.h"
 #include "geometries/geometry_data.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
@@ -678,7 +678,7 @@ namespace Kratos
         {
             const std::map<std::string, std::string> elements_name_map{
 
-                {"levelset_convection_bdf", "VectorialConvectionFractionalElement"}
+                {"levelset_convection_bdf", "TwoFluidNavierStokesFractionalConvectionElement"}
 
             };
             return elements_name_map.at(InputName);
