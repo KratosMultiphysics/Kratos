@@ -136,7 +136,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantPhreaticMultiLinePressureProcessDoesNotTh
         r_model_part, test_parameters))
 
     test_parameters.RemoveValue("x_coordinates");
-    test_parameters.AddVector("x_coordinates", ScalarVector{5, 1.0});
+    test_parameters.AddVector("x_coordinates", ScalarVector{2, 1.0});
 
     KRATOS_EXPECT_TRUE(CanCreateInstanceOfApplyConstantPhreaticMultiLinePressureProcessWithoutFailure(
         r_model_part, test_parameters))
@@ -171,6 +171,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantPhreaticMultilinePressureProcess_AppliesC
                 "x_coordinates": [0.0, 1.0, 2.0],
                 "y_coordinates": [1.0, 1.0, 1.0],
                 "z_coordinates": [0.0, 0.0, 0.0],
+                "table": [0, 0, 0],
                 "gravity_direction": 1
             }  )"};
 

@@ -61,6 +61,9 @@ void ApplyK0ProcedureProcess::ExecuteFinalize()
 
 int ApplyK0ProcedureProcess::Check()
 {
+    KRATOS_ERROR_IF(mrModelPart.Elements().empty())
+        << "ApplyK0ProcedureProces has no elements in modelpart " << mrModelPart.Name() << std::endl;
+
     block_for_each(mrModelPart.Elements(), [](Element& rElement) {
         const auto& r_properties = rElement.GetProperties();
         CheckK0MainDirection(r_properties, rElement.Id());

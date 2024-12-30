@@ -26,6 +26,8 @@ void ApplyCPhiReductionProcess::ExecuteInitializeSolutionStep()
 
     if (IsStepRestarted()) mReductionIncrement *= 0.5;
     mReductionFactor = mPreviousReductionFactor - mReductionIncrement;
+    KRATOS_ERROR_IF(mReductionFactor <= 0.01)
+        << "Reduction factor should not drop below 0.01, calculation stopped." << std::endl;
     KRATOS_INFO("ApplyCPhiReductionProces::ExecuteInitializeSolutionStep")
         << "Try a c-phi reduction factor " << mReductionFactor << " (safety factor "
         << 1. / mReductionFactor << ") Previous reduction = " << mPreviousReductionFactor
@@ -64,7 +66,14 @@ void ApplyCPhiReductionProcess::ExecuteFinalize()
     KRATOS_INFO("ApplyCPhiReductionProcess") << "Final safety factor = " << 1.0 / mReductionFactor << std::endl;
 }
 
-double ApplyCPhiReductionProcess::GetAndCheckPhi(const Element::PropertiesType& rProp)
+int ApplyCPhiReductionProcess::Check()
+{
+    KRATOS_ERROR_IF(mrModelPart.Elements().empty())
+        << "ApplyCPhiReductionProces has no elements in modelpart " << mrModelPart.Name() << std::endl;
+    return 0;
+}
+
+double ApplyCPhiReductionProcess::GetAndCheckPhi(const Element::PropertiesType& rProp) const
 {
     // Get the initial properties from the model part. Recall that we create a separate
     // properties object with reduced c and phi for each and every element. Those reduced
@@ -94,7 +103,7 @@ double ApplyCPhiReductionProcess::ComputeReducedPhi(double Phi) const
     return std::atan(reduced_tan_phi) * 180.0 / Globals::Pi;
 }
 
-double ApplyCPhiReductionProcess::GetAndCheckC(const Element::PropertiesType& rProp)
+double ApplyCPhiReductionProcess::GetAndCheckC(const Element::PropertiesType& rProp) const
 {
     // Get the initial properties from the model part. Recall that we create a separate
     // properties object with reduced c and phi for each and every element. Those reduced
