@@ -73,10 +73,10 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) GenericAnisotropicLaw
     static constexpr SizeType Dimension = TDim;
 
     /// Static definition of the VoigtSize
-    static constexpr SizeType VoigtSize = (TDim == 3) ? 6 : 3;
+    static constexpr SizeType VoigtSize = (Dimension == 3) ? 6 : 3;
 
     /// The definition of the bounded matrix type
-    using BoundedMatrixType = BoundedMatrix<double, TDim, TDim>;
+    using BoundedMatrixType = BoundedMatrix<double, Dimension, Dimension>;
 
     /// The definition of the bounded matrix type
     using BoundedMatrixVoigtType = BoundedMatrix<double, VoigtSize, VoigtSize>;
@@ -312,6 +312,13 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) GenericAnisotropicLaw
         );
 
     /**
+     * @brief This computes the rotation matrix, from global to local
+     */
+    void CalculateRotationMatrixVoigt(
+        const Properties& rProperties,
+        BoundedMatrixVoigtType &rT);
+
+    /**
      * @brief This computes the mapper operator between the strain in the isotropic
      * "ficticious" space and the real anisotropic space
      * @param rValues The values of the constitutive la
@@ -445,10 +452,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    void CalculateCauchyGreenStrain(
-        ConstitutiveLaw::Parameters &rValues,
-        Vector &rStrainVector);
 
     ///@}
     ///@name Private  Access

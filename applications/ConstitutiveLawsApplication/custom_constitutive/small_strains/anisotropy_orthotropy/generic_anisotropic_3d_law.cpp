@@ -87,6 +87,25 @@ void GenericAnisotropicLaw<TDim>::CalculateMaterialResponseKirchhoff(Constitutiv
 /***********************************************************************************/
 
 template <SizeType TDim>
+void GenericAnisotropicLaw<TDim>::CalculateRotationMatrixVoigt(
+    const Properties& rMaterialProperties,
+    BoundedMatrixVoigtType &rT
+)
+{
+    if (rMaterialProperties.Has(EULER_ANGLES) && MathUtils<double>::Norm3(rMaterialProperties[EULER_ANGLES]) > machine_tolerance) {
+        BoundedMatrixType rotation_matrix;
+        const Vector& r_euler_angles = rMaterialProperties[EULER_ANGLES];
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperator(r_euler_angles[0], r_euler_angles[1], r_euler_angles[2], rotation_matrix);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperatorVoigt(rotation_matrix, rT);
+    } else {
+        noalias(rT) = IdentityMatrix(VoigtSize, VoigtSize);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <SizeType TDim>
 void GenericAnisotropicLaw<TDim>::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     // Get Values to compute the constitutive law:
@@ -99,7 +118,7 @@ void GenericAnisotropicLaw<TDim>::CalculateMaterialResponsePK2(ConstitutiveLaw::
 
     if (!flag_strain) {
         Vector& r_strain_vector = rValues.GetStrainVector();
-        this->CalculateCauchyGreenStrain(rValues, r_strain_vector);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateCauchyGreenStrain(rValues, r_strain_vector);
     }
 
     // this strain in the real anisotropic space
@@ -114,22 +133,8 @@ void GenericAnisotropicLaw<TDim>::CalculateMaterialResponsePK2(ConstitutiveLaw::
     if (flag_stress) {
 
         // Here we compute the rotation tensors due to the angles of the local and global axes
-        BoundedMatrixType rotation_matrix;
         BoundedMatrixVoigtType voigt_rotation_matrix;
-
-        if (r_material_properties.Has(EULER_ANGLES)   &&
-            MathUtils<double>::Norm3(r_material_properties[EULER_ANGLES]) > machine_tolerance) {
-                const Vector& r_euler_angles = r_material_properties[EULER_ANGLES];
-                AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperator(
-                    r_euler_angles(0), r_euler_angles(1),
-                    r_euler_angles(2), rotation_matrix);
-                ConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperatorVoigt(
-                    (rotation_matrix),
-                    voigt_rotation_matrix);
-        } else {
-            noalias(rotation_matrix)           = IdentityMatrix(Dimension, Dimension);
-            noalias(voigt_rotation_matrix)     = IdentityMatrix(VoigtSize, VoigtSize);
-        }
+        CalculateRotationMatrixVoigt(r_material_properties, voigt_rotation_matrix);
 
         // We compute the mappers As and Ae
         BoundedMatrixVoigtType stress_mapper, strain_mapper;
@@ -138,11 +143,10 @@ void GenericAnisotropicLaw<TDim>::CalculateMaterialResponsePK2(ConstitutiveLaw::
         Matrix isotropic_elastic_matrix;
 
         this->CalculateAnisotropicStressMapperMatrix(r_material_properties, stress_mapper, stress_mapper_inv);
-        mpIsotropicCL->CalculateValue(rValues, CONSTITUTIVE_MATRIX, isotropic_elastic_matrix); // takes the props of the iso cl
+        mpIsotropicCL->CalculateValue(rValues, CONSTITUTIVE_MATRIX, isotropic_elastic_matrix); // Takes the props of the iso cl
         this->CalculateOrthotropicElasticMatrix(anisotropic_elastic_matrix, r_material_properties);
-        this->CalculateAnisotropicStrainMapperMatrix(anisotropic_elastic_matrix,
-                                                     isotropic_elastic_matrix, stress_mapper,
-                                                     strain_mapper);
+        this->CalculateAnisotropicStrainMapperMatrix(anisotropic_elastic_matrix, isotropic_elastic_matrix, stress_mapper, strain_mapper);
+
         Vector &r_iso_strain_vector = rValues.GetStrainVector();
 
         // Now we rotate the strain Eglob-> Eloc
@@ -259,7 +263,7 @@ void GenericAnisotropicLaw<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw::P
     Flags& r_flags = rValues.GetOptions();
     if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
         Vector& r_strain_vector = rValues.GetStrainVector();
-        this->CalculateCauchyGreenStrain(rValues, r_strain_vector);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateCauchyGreenStrain(rValues, r_strain_vector);
     }
 
     // this strain in the real anisotropic space
@@ -271,22 +275,8 @@ void GenericAnisotropicLaw<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw::P
     rValues.SetMaterialProperties(r_props_iso_cl);
 
     // Here we compute the rotation tensors due to the angles of the local and global axes
-    BoundedMatrixType rotation_matrix;
     BoundedMatrixVoigtType voigt_rotation_matrix;
-
-    if (r_material_properties.Has(EULER_ANGLES)   &&
-        MathUtils<double>::Norm3(r_material_properties[EULER_ANGLES]) > machine_tolerance) {
-            const Vector& r_euler_angles = r_material_properties[EULER_ANGLES];
-            AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperator(
-                r_euler_angles(0), r_euler_angles(1),
-                r_euler_angles(2), rotation_matrix);
-            ConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperatorVoigt(
-                (rotation_matrix),
-                voigt_rotation_matrix);
-    } else {
-        noalias(rotation_matrix)       = IdentityMatrix(Dimension, Dimension);
-        noalias(voigt_rotation_matrix) = IdentityMatrix(VoigtSize, VoigtSize);
-    }
+    CalculateRotationMatrixVoigt(r_material_properties, voigt_rotation_matrix);
 
     // We compute the mappers As and Ae
     BoundedMatrixVoigtType stress_mapper, strain_mapper;
@@ -302,7 +292,7 @@ void GenericAnisotropicLaw<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw::P
                                                  strain_mapper);
     Vector &r_iso_strain_vector = rValues.GetStrainVector();
     // Now we rotate the strain Eglob-> Eloc
-    r_iso_strain_vector = prod((voigt_rotation_matrix), r_iso_strain_vector);
+    r_iso_strain_vector = prod(voigt_rotation_matrix, r_iso_strain_vector);
 
     // Now we map the strains to the isotropic fictitious space: Eiso = Ae*Ereal,loc
     r_iso_strain_vector = prod(strain_mapper, r_iso_strain_vector); // mapped
@@ -409,7 +399,7 @@ Vector& GenericAnisotropicLaw<TDim>::CalculateValue(
     if (rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR) {
         Flags& r_flags = rParameterValues.GetOptions();
         if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-            this->CalculateCauchyGreenStrain(rParameterValues, rValue);
+            ConstitutiveLawUtilities<VoigtSize>::CalculateCauchyGreenStrain(rParameterValues, rValue);
         } else {
             noalias(rValue) = rParameterValues.GetStrainVector();
         }
@@ -487,25 +477,10 @@ Vector& GenericAnisotropicLaw<TDim>::CalculateValue(
             values_iso_cl.SetMaterialProperties(r_props_iso_cl);
 
             // Here we compute the rotation tensors due to the angles of the local and global axes
-            BoundedMatrixType rotation_matrix;
-            BoundedMatrixVoigtType voigt_rotation_matrix, inv_voigt_rotation_matrix;
-
-            if (r_material_properties.Has(EULER_ANGLES)   &&
-                MathUtils<double>::Norm3(r_material_properties[EULER_ANGLES]) > machine_tolerance) {
-                    const Vector& r_euler_angles = r_material_properties[EULER_ANGLES];
-                    AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperator(
-                        r_euler_angles(0), r_euler_angles(1),
-                        r_euler_angles(2), rotation_matrix);
-                    ConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperatorVoigt(
-                        (rotation_matrix),
-                        voigt_rotation_matrix);
-                    double det = 0.0;
-                    MathUtils<double>::InvertMatrix(voigt_rotation_matrix, inv_voigt_rotation_matrix, det);
-            } else {
-                noalias(rotation_matrix)               = IdentityMatrix(Dimension, Dimension);
-                noalias(voigt_rotation_matrix)         = IdentityMatrix(VoigtSize, VoigtSize);
-                noalias(inv_voigt_rotation_matrix)     = IdentityMatrix(VoigtSize, VoigtSize);
-            }
+            BoundedMatrixVoigtType voigt_rotation_matrix;
+            CalculateRotationMatrixVoigt(r_material_properties, voigt_rotation_matrix);
+            double det = 0.0;
+            MathUtils<double>::InvertMatrix(voigt_rotation_matrix, inv_voigt_rotation_matrix, det);
 
             // We compute the mappers As and Ae
             BoundedMatrixVoigtType stress_mapper, strain_mapper;
@@ -516,9 +491,7 @@ Vector& GenericAnisotropicLaw<TDim>::CalculateValue(
             this->CalculateAnisotropicStressMapperMatrix(r_material_properties, stress_mapper, stress_mapper_inv);
             mpIsotropicCL->CalculateValue(values_iso_cl, CONSTITUTIVE_MATRIX, isotropic_elastic_matrix);
             this->CalculateOrthotropicElasticMatrix(anisotropic_elastic_matrix, r_material_properties);
-            this->CalculateAnisotropicStrainMapperMatrix(anisotropic_elastic_matrix,
-                                                         isotropic_elastic_matrix, stress_mapper,
-                                                         strain_mapper);
+            this->CalculateAnisotropicStrainMapperMatrix(anisotropic_elastic_matrix, isotropic_elastic_matrix, stress_mapper, strain_mapper);
             BoundedMatrixVoigtType invAe;
             double aux_det;
             MathUtils<double>::InvertMatrix(strain_mapper, invAe, aux_det);
@@ -545,12 +518,10 @@ void GenericAnisotropicLaw<TDim>::CalculateAnisotropicStressMapperMatrix(
     BoundedMatrixVoigtType& rAsInv
 )
 {
-    noalias(rAs)    = ZeroMatrix(VoigtSize, VoigtSize);
-    noalias(rAsInv) = ZeroMatrix(VoigtSize, VoigtSize);
+    rAs.clear();
+    rAsInv.clear();
     const Vector &r_iso_aniso_yield_ratios = rProperties[ISOTROPIC_ANISOTROPIC_YIELD_RATIO];
-    KRATOS_ERROR_IF_NOT(r_iso_aniso_yield_ratios.size() == VoigtSize) << "The length of the ISOTROPIC_ANISOTROPIC_YIELD_RATIO is not correct" << std::endl;
-
-    if (VoigtSize == 6) {
+    if constexpr (VoigtSize == 6) {
         rAs(0, 0) = r_iso_aniso_yield_ratios(0);
         rAs(1, 1) = r_iso_aniso_yield_ratios(1);
         rAs(2, 2) = r_iso_aniso_yield_ratios(2);
@@ -562,6 +533,7 @@ void GenericAnisotropicLaw<TDim>::CalculateAnisotropicStressMapperMatrix(
         rAs(1, 1) = r_iso_aniso_yield_ratios(1);
         rAs(2, 2) = r_iso_aniso_yield_ratios(2);
     }
+
     for (IndexType i = 0; i < VoigtSize; ++i)
         rAsInv(i, i) = 1.0 / rAs(i, i);
 }
@@ -577,8 +549,6 @@ void GenericAnisotropicLaw<TDim>::CalculateAnisotropicStrainMapperMatrix(
     BoundedMatrixVoigtType& rAe
 )
 {
-    noalias(rAe) = ZeroMatrix(VoigtSize, VoigtSize);
-
     Matrix inv_isotropic_elastic_matrix(VoigtSize, VoigtSize);
     noalias(inv_isotropic_elastic_matrix) = ZeroMatrix(VoigtSize, VoigtSize);
     double aux_det;
@@ -602,13 +572,13 @@ void GenericAnisotropicLaw<TDim>::InitializeMaterial(
     mpIsotropicCL->InitializeMaterial(r_props_isotropic_cl, rElementGeometry, rShapeFunctionsValues);
 
     // We check now the dimension of the CL pointer, must be 3D
-    KRATOS_ERROR_IF_NOT(mpIsotropicCL->GetStrainSize() == 6) << "The slave CL has a dimension lower than 3, not possible" << std::endl;
+    KRATOS_ERROR_IF_NOT(mpIsotropicCL->GetStrainSize() == VoigtSize) << "The slave CL has a different dimension of the Generic Anisotropic CL..." << std::endl;
 
     // Let's check variables
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(ISOTROPIC_ANISOTROPIC_YIELD_RATIO))  << "ISOTROPIC_ANISOTROPIC_YIELD_RATIO not defined in properties" << std::endl;
 
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(ORTHOTROPIC_ELASTIC_CONSTANTS)) << "The ORTHOTROPIC_ELASTIC_CONSTANTS are not defined" << std::endl;
-    KRATOS_ERROR_IF_NOT(rMaterialProperties[ORTHOTROPIC_ELASTIC_CONSTANTS].size() == 6) << "The dimension of the ORTHOTROPIC_ELASTIC_CONSTANTS is incorrect" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties[ORTHOTROPIC_ELASTIC_CONSTANTS].size() == VoigtSize) << "The dimension of the ORTHOTROPIC_ELASTIC_CONSTANTS is incorrect" << std::endl;
 }
 
 /***********************************************************************************/
@@ -631,28 +601,6 @@ template <SizeType TDim>
 void GenericAnisotropicLaw<TDim>::InitializeMaterialResponsePK2(Parameters& rValues)
 {
     mpIsotropicCL->InitializeMaterialResponsePK2(rValues);
-}
-
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <SizeType TDim>
-void GenericAnisotropicLaw<TDim>::CalculateCauchyGreenStrain(
-    ConstitutiveLaw::Parameters& rValues,
-    Vector& rStrainVector
-    )
-{
-    // Compute total deformation gradient
-    const BoundedMatrixType& F = rValues.GetDeformationGradientF();
-
-    BoundedMatrixType E_tensor = ZeroMatrix(F.size1());
-    E_tensor = prod(trans(F), F);
-    for(unsigned int i = 0; i < Dimension; ++i)
-        E_tensor(i, i) -= 1.0;
-    E_tensor *= 0.5;
-
-    noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector(E_tensor);
 }
 
 /***********************************************************************************/
