@@ -317,24 +317,16 @@ public:
     ///@{
 
     void SetInternals(
-        const PointsArrayType& rThisPoints,
-        const SizeType PolynomialDegreeU,
-        const SizeType PolynomialDegreeV,
-        const Vector& rKnotsU,
-        const Vector& rKnotsV,
-        const Vector& rWeights)
+        const std::vector<int>& rRefBoxes)
     {
-        this->Points() = rThisPoints;
-        mPolynomialDegreeU = PolynomialDegreeU;
-        mPolynomialDegreeV = PolynomialDegreeV;
-        mKnotsU = rKnotsU;
-        mKnotsV = rKnotsV;
-        mWeights = rWeights;
+        gsMatrix<> controlPoints;
+        ControlPointsToGismo(this->Points(),controlPoints);
+       
+        gismo::gsTHBSpline<2> ThbGeometry(mThb,controlPoints);
+        ThbGeometry.refineElements(rRefBoxes);
 
-        CheckAndFitKnotVectors();
-
-        KRATOS_ERROR_IF(rWeights.size() != rThisPoints.size())
-            << "Number of control points and weights do not match!" << std::endl;
+        ControlPointsFromGismo(ThbGeometry.coefs(),this->Points());
+        mThb = ThbGeometry.basis();
     }
 
     /// @return returns the polynomial degree 'p' in u direction.
