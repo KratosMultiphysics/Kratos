@@ -8,8 +8,8 @@
 //                   Kratos default license: kratos/license.txt
 //
 
-#if !defined(KRATOS_CAD_JSON_INPUT_INCLUDED )
-#define  KRATOS_CAD_JSON_INPUT_INCLUDED
+#if !defined(KRATOS_CAD_JSON_THB_INPUT_INCLUDED )
+#define  KRATOS_CAD_JSON_THB_INPUT_INCLUDED
 
 
 // System includes
@@ -25,17 +25,20 @@
 #include "geometries/coupling_geometry.h"
 
 #include "geometries/nurbs_curve_geometry.h"
-#include "geometries/nurbs_surface_geometry.h"
-#include "geometries/nurbs_curve_on_surface_geometry.h"
+// #include "geometries/nurbs_surface_geometry.h"
+// #include "geometries/nurbs_curve_on_surface_geometry.h"
 
-#include "geometries/brep_surface.h"
-#include "geometries/brep_curve_on_surface.h"
+// #include "geometries/brep_surface.h"
+// #include "geometries/brep_curve_on_surface.h"
 #include "geometries/brep_curve.h"
 
 #include "geometries/point_on_geometry.h"
 
 #include "geometries/thb_surface_geometry.h"
 #include "geometries/thb_brep_surface.h"
+#include "geometries/thb_curve_on_surface_geometry.h"
+#include "geometries/thb_brep_curve_on_surface.h"
+
 
 namespace Kratos
 {
@@ -46,7 +49,7 @@ namespace Kratos
 /** Gives IO capabilities for Nurbs based Brep models in the JSON format defined in
 https://amses-journal.springeropen.com/articles/10.1186/s40323-018-0109-4. */
 template<class TNodeType = Node, class TEmbeddedNodeType = Point>
-class CadJsonInput : public IO
+class CadJsonThbInput : public IO
 {
     public:
 
@@ -54,8 +57,8 @@ class CadJsonInput : public IO
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of CadJsonInput
-    KRATOS_CLASS_POINTER_DEFINITION(CadJsonInput);
+    /// Pointer definition of CadJsonThbInput
+    KRATOS_CLASS_POINTER_DEFINITION(CadJsonThbInput);
 
     typedef std::size_t SizeType;
     typedef std::size_t IndexType;
@@ -68,28 +71,37 @@ class CadJsonInput : public IO
 
     typedef CouplingGeometry<TNodeType> CouplingGeometryType;
 
-    typedef NurbsSurfaceGeometry<3, ContainerNodeType> NurbsSurfaceType;
+    // typedef NurbsSurfaceGeometry<3, ContainerNodeType> NurbsSurfaceType;
+    typedef THBSurfaceGeometry<3, ContainerNodeType> THBSurfaceType;
     typedef NurbsCurveGeometry<2, ContainerEmbeddedNodeType> NurbsTrimmingCurveType;
 
-    typedef typename NurbsSurfaceType::Pointer NurbsSurfacePointerType;
+    // typedef typename NurbsSurfaceType::Pointer NurbsSurfacePointerType;
+    typedef typename THBSurfaceType::Pointer ThbSurfacePointerType;
     typedef typename NurbsTrimmingCurveType::Pointer NurbsTrimmingCurvePointerType;
 
-    typedef BrepSurface<ContainerNodeType, ContainerEmbeddedNodeType> BrepSurfaceType;
-    typedef BrepCurveOnSurface<ContainerNodeType, ContainerEmbeddedNodeType> BrepCurveOnSurfaceType;
+    // typedef BrepSurface<ContainerNodeType, ContainerEmbeddedNodeType> BrepSurfaceType;
+    typedef THBBrepSurface<ContainerNodeType, ContainerEmbeddedNodeType> THBBrepSurfaceType;
+    // typedef BrepCurveOnSurface<ContainerNodeType, ContainerEmbeddedNodeType> BrepCurveOnSurfaceType;
+    typedef THBBrepCurveOnSurface<ContainerNodeType, ContainerEmbeddedNodeType> THBBrepCurveOnSurfaceType;
     typedef BrepCurve<ContainerNodeType, ContainerEmbeddedNodeType> BrepCurveType;
     typedef PointOnGeometry<ContainerNodeType, 3, 2> PointOnGeometryOnSurfaceType;
     typedef PointOnGeometry<ContainerNodeType, 3, 1> PointOnGeometryOnCurveType;
 
-    typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceArrayType;
-    typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceLoopType;
-    typedef DenseVector<DenseVector<typename BrepCurveOnSurfaceType::Pointer>> BrepCurveOnSurfaceLoopArrayType;
+    // typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceArrayType;
+    // typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceLoopType;
+    // typedef DenseVector<DenseVector<typename BrepCurveOnSurfaceType::Pointer>> BrepCurveOnSurfaceLoopArrayType;
+
+    typedef DenseVector<typename THBBrepCurveOnSurfaceType::Pointer> THBBrepCurveOnSurfaceArrayType;
+    typedef DenseVector<typename THBBrepCurveOnSurfaceType::Pointer> THBBrepCurveOnSurfaceLoopType;
+    typedef DenseVector<DenseVector<typename THBBrepCurveOnSurfaceType::Pointer>> THBBrepCurveOnSurfaceLoopArrayType;
+
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor with path to input file.
-    CadJsonInput(
+    CadJsonThbInput(
         const std::string& rDataFileName,
         SizeType EchoLevel = 0)
         : mEchoLevel(EchoLevel)
@@ -98,7 +110,7 @@ class CadJsonInput : public IO
     }
 
     /// Constructor with KratosParameters.
-    CadJsonInput(
+    CadJsonThbInput(
         Parameters CadJsonParameters,
         SizeType EchoLevel = 0)
         : mCadJsonParameters(CadJsonParameters)
@@ -107,7 +119,7 @@ class CadJsonInput : public IO
     }
 
     /// Destructor.
-    ~CadJsonInput() = default;
+    ~CadJsonThbInput() = default;
 
     ///@}
     ///@name Python exposed Functions
@@ -231,12 +243,12 @@ private:
 
         if (rParameters.Has("boundary_loops"))
         {
-            BrepCurveOnSurfaceLoopArrayType outer_loops, inner_loops;
+            THBBrepCurveOnSurfaceLoopArrayType outer_loops, inner_loops;
             tie(outer_loops, inner_loops) =
                 ReadBoundaryLoops(rParameters["boundary_loops"], p_surface, rModelPart, EchoLevel);
 
             auto p_brep_surface =
-                Kratos::make_shared<BrepSurfaceType>(
+                Kratos::make_shared<THBBrepSurfaceType>(
                     p_surface,
                     outer_loops,
                     inner_loops,
@@ -245,7 +257,7 @@ private:
             /// Sets the brep as geometry parent of the nurbs surface.
             p_surface->SetGeometryParent(p_brep_surface.get());
 
-            SetIdOrName<BrepSurfaceType>(rParameters, p_brep_surface);
+            SetIdOrName<THBBrepSurfaceType>(rParameters, p_brep_surface);
 
             ReadAndAddEmbeddedEdges(p_brep_surface, rParameters, p_surface, rModelPart, EchoLevel);
 
@@ -259,10 +271,10 @@ private:
                 << " It will be considered as untrimmed." << std::endl;
 
             auto p_brep_surface =
-                Kratos::make_shared<BrepSurfaceType>(
+                Kratos::make_shared<THBBrepSurfaceType>(
                     p_surface);
 
-            SetIdOrName<BrepSurfaceType>(rParameters, p_brep_surface);
+            SetIdOrName<THBBrepSurfaceType>(rParameters, p_brep_surface);
 
             ReadAndAddEmbeddedEdges(p_brep_surface, rParameters, p_surface, rModelPart, EchoLevel);
 
@@ -274,17 +286,17 @@ private:
     ///@name Read in Surface Trimming
     ///@{
 
-    static BrepCurveOnSurfaceLoopType
+    static THBBrepCurveOnSurfaceLoopType
         ReadTrimmingCurveVector(
             const Parameters rParameters,
-            typename NurbsSurfaceType::Pointer pNurbsSurface,
+            typename THBSurfaceType::Pointer pNurbsSurface,
             ModelPart& rModelPart,
             SizeType EchoLevel = 0)
     {
         KRATOS_ERROR_IF(rParameters.size() < 1)
             << "Trimming curve list has no element." << std::endl;
 
-        BrepCurveOnSurfaceLoopType
+        THBBrepCurveOnSurfaceLoopType
             trimming_brep_curve_vector(rParameters.size());
 
         for (IndexType tc_idx = 0; tc_idx < rParameters.size(); tc_idx++)
@@ -296,10 +308,10 @@ private:
         return trimming_brep_curve_vector;
     }
 
-    static typename BrepCurveOnSurfaceType::Pointer
+    static typename THBBrepCurveOnSurfaceType::Pointer
         ReadTrimmingCurve(
             const Parameters rParameters,
-            typename NurbsSurfaceType::Pointer pNurbsSurface,
+            typename THBSurfaceType::Pointer pNurbsSurface,
             ModelPart& rModelPart,
             SizeType EchoLevel = 0)
     {
@@ -319,7 +331,7 @@ private:
         NurbsInterval brep_active_range(active_range_vector[0], active_range_vector[1]);
 
         auto p_brep_curve_on_surface
-            = Kratos::make_shared<BrepCurveOnSurfaceType>(
+            = Kratos::make_shared<THBBrepCurveOnSurfaceType>(
                 pNurbsSurface, p_trimming_curve, brep_active_range, curve_direction);
 
         if (rParameters.Has("trim_index")) {
@@ -329,15 +341,15 @@ private:
         return p_brep_curve_on_surface;
     }
 
-    static std::tuple<BrepCurveOnSurfaceLoopArrayType, BrepCurveOnSurfaceLoopArrayType>
+    static std::tuple<THBBrepCurveOnSurfaceLoopArrayType, THBBrepCurveOnSurfaceLoopArrayType>
         ReadBoundaryLoops(
             const Parameters rParameters,
-            typename NurbsSurfaceType::Pointer pNurbsSurface,
+            typename THBSurfaceType::Pointer pNurbsSurface,
             ModelPart& rModelPart,
             SizeType EchoLevel = 0)
     {
-        BrepCurveOnSurfaceLoopArrayType outer_loops;
-        BrepCurveOnSurfaceLoopArrayType inner_loops;
+        THBBrepCurveOnSurfaceLoopArrayType outer_loops;
+        THBBrepCurveOnSurfaceLoopArrayType inner_loops;
 
         for (IndexType bl_idx = 0; bl_idx < rParameters.size(); bl_idx++)
         {
@@ -373,15 +385,15 @@ private:
     }
 
     static void ReadAndAddEmbeddedEdges(
-            typename BrepSurfaceType::Pointer pBrepSurface,
+            typename THBBrepSurfaceType::Pointer pBrepSurface,
             const Parameters rParameters,
-            typename NurbsSurfaceType::Pointer pNurbsSurface,
+            typename THBSurfaceType::Pointer pNurbsSurface,
             ModelPart& rModelPart,
             SizeType EchoLevel = 0)
     {
         if (rParameters.Has("embedded_edges")) {
             if (rParameters["embedded_edges"].size() > 0) {
-                BrepCurveOnSurfaceArrayType embedded_edges(ReadTrimmingCurveVector(
+                THBBrepCurveOnSurfaceArrayType embedded_edges(ReadTrimmingCurveVector(
                     rParameters["embedded_edges"], pNurbsSurface, rModelPart, EchoLevel));
 
                 pBrepSurface->AddEmbeddedEdges(embedded_edges);
@@ -480,7 +492,7 @@ private:
             p_geometry->pGetGeometryPart(rParameters["topology"][0]["trim_index"].GetInt());
 
         auto p_brep_curve_on_surface
-            = dynamic_pointer_cast<BrepCurveOnSurfaceType>(p_brep_trim);
+            = dynamic_pointer_cast<THBBrepCurveOnSurfaceType>(p_brep_trim);
         KRATOS_ERROR_IF(p_brep_curve_on_surface == nullptr)
             << "dynamic_cast from Geometry to BrepCurveOnSurface not successfull. Brep Id: "
             << GetIdOrName(rParameters["topology"][0]) << " and trim index: "
@@ -500,10 +512,10 @@ private:
         auto p_nurbs_curve_on_surface = p_brep_curve_on_surface->pGetCurveOnSurface();
 
         auto brep_nurbs_interval = p_brep_curve_on_surface->DomainInterval();
-        auto p_bre_edge_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfaceType>(
+        auto p_bre_edge_brep_curve_on_surface = Kratos::make_shared<THBBrepCurveOnSurfaceType>(
             p_nurbs_curve_on_surface, brep_nurbs_interval, relative_direction);
 
-        SetIdOrName<BrepCurveOnSurfaceType>(rParameters, p_bre_edge_brep_curve_on_surface);
+        SetIdOrName<THBBrepCurveOnSurfaceType>(rParameters, p_bre_edge_brep_curve_on_surface);
 
         rModelPart.AddGeometry(p_bre_edge_brep_curve_on_surface);
     }
@@ -701,7 +713,7 @@ private:
     * }
     */
     template<int TWorkingSpaceDimension, class TThisNodeType>
-    static typename NurbsSurfaceGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>::Pointer
+    static typename THBSurfaceGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>::Pointer
         ReadNurbsSurface(
             const Parameters rParameters,
             ModelPart& rModelPart,
@@ -742,7 +754,7 @@ private:
             Vector control_point_weights = ReadControlPointWeightVector(
                 rParameters["control_points"]);
 
-            return Kratos::make_shared<NurbsSurfaceGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>>(
+            return Kratos::make_shared<THBSurfaceGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>>(
                 control_points,
                 p,
                 q,
@@ -750,8 +762,8 @@ private:
                 knot_vector_v,
                 control_point_weights);
         }
-        typename NurbsSurfaceGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>::Pointer p_nurbs_surface(
-            new NurbsSurfaceGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>(
+        typename THBSurfaceGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>::Pointer p_nurbs_surface(
+            new THBSurfaceGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>(
                 control_points,
                 p,
                 q,
@@ -964,7 +976,7 @@ private:
     int mEchoLevel;
 
     ///@}
-}; // Class CadJsonInput
+}; // Class CadJsonThbInput
 }  // namespace Kratos.
 
-#endif // KRATOS_CAD_JSON_INPUT_INCLUDED  defined
+#endif // KRATOS_CAD_JSON_THB_INPUT_INCLUDED  defined

@@ -73,6 +73,7 @@
 // Modelers
 #include "modeler/modeler.h"
 #include "modeler/cad_io_modeler.h"
+#include "modeler/cad_io_thb_modeler.h"
 #include "modeler/cad_tessellation_modeler.h"
 #include "modeler/serial_model_part_combinator_modeler.h"
 #include "modeler/combine_model_part_modeler.h"
@@ -556,6 +557,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     // Modeler
     const Modeler mModeler;
     const CadIoModeler mCadIoModeler;
+    const CadIoThbModeler mCadIoThbModeler;
 #if USE_TRIANGLE_NONFREE_TPL
     const CadTessellationModeler mCadTessellationModeler;
 #endif

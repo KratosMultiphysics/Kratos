@@ -33,6 +33,7 @@
 #include "input_output/vtk_output.h"
 #include "input_output/unv_output.h"
 #include "input_output/cad_json_input.h"
+#include "input_output/cad_json_thb_input.h"
 #include "input_output/vtu_output.h"
 
 #ifdef JSON_INCLUDED

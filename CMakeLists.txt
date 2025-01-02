@@ -643,6 +643,11 @@ if(${EXCLUDE_KRATOS_CORE} MATCHES ON OR ${EXCLUDE_AUTOMATIC_DEPENDENCIES} MATCHE
   link_directories( ${CMAKE_INSTALL_PREFIX}/libs )
 endif()
 
+# Compiling the gismo library
+add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/gismo)
+link_directories   (${GISMO_LIBRARY_DIR})
+
+
 # Compile Kratos Core
 if(${EXCLUDE_KRATOS_CORE} MATCHES OFF)
   add_subdirectory(external_libraries/gidpost)
