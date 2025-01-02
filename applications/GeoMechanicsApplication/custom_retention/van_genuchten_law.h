@@ -45,15 +45,6 @@ public:
     double CalculateBishopCoefficient(Parameters& rParameters) const override;
 
     /**
-     * @brief It calculates the value of a specified variable (double case)
-     * @param rParameterValues the needed parameters for the CL calculation
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    double& CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue) override;
-
-    /**
      * @brief This function provides the place to perform checks on the completeness of the input.
      * @details It is designed to be called only once (or anyway, not often) typically at the beginning of the calculations, so to verify that nothing is missing from the input or that no common error is found.
      * @param rMaterialProperties The properties of the material
