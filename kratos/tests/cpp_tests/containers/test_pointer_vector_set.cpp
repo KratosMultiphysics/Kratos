@@ -558,19 +558,14 @@ KRATOS_TEST_CASE_IN_SUITE(TestPointerVectorSetInsert10, KratosCoreFastSuite)
     // following will change the original tmp
     test_container.insert(std::move(tmp));
 
-    // now we check for the order
+    // now we check for the order since above should be changing the temp
+    // since it was moved.
     auto itr_temp = tmp.begin();
     KRATOS_EXPECT_EQ(tmp.size(), 7);
     KRATOS_EXPECT_EQ((**(itr_temp++)).Id(), 2);
     KRATOS_EXPECT_EQ((**(itr_temp++)).Id(), 3);
     KRATOS_EXPECT_EQ((**(itr_temp++)).Id(), 6);
     KRATOS_EXPECT_EQ((**(itr_temp++)).Id(), 26);
-    KRATOS_EXPECT_EQ((**(itr_temp++)).Id(), 29);
-
-    // we cannot check for the following because it will always pointing to the nullptr
-    // KRATOS_EXPECT_EQ((**(itr_temp++)).Id(), 6);
-    // but this we can check for the following
-    KRATOS_EXPECT_EQ((*(itr_temp++)), nullptr);
     KRATOS_EXPECT_EQ((**(itr_temp++)).Id(), 29);
 
     KRATOS_EXPECT_EQ(test_container.size(), 5);
