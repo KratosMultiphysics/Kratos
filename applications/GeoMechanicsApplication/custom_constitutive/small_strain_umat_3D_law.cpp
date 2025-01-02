@@ -416,17 +416,17 @@ void SmallStrainUMAT3DLaw::UpdateInternalDeltaStrainVector(ConstitutiveLaw::Para
 
 void SmallStrainUMAT3DLaw::SetExternalStressVector(Vector& rStressVector)
 {
-    std::copy_n(mStressVector.begin(), mStressVector.size(), rStressVector.begin());
+    std::copy(mStressVector.begin(), mStressVector.end(), rStressVector.begin());
 }
 
 void SmallStrainUMAT3DLaw::SetInternalStressVector(const Vector& rStressVector)
 {
-    std::copy_n(rStressVector.begin(), rStressVector.size(), mStressVector.begin());
+    std::copy(rStressVector.begin(), rStressVector.end(), mStressVector.begin());
 }
 
 void SmallStrainUMAT3DLaw::SetInternalStrainVector(const Vector& rStrainVector)
 {
-    std::copy_n(rStrainVector.begin(), rStrainVector.size(), mStrainVectorFinalized.begin());
+    std::copy(rStrainVector.begin(), rStrainVector.end(), mStrainVectorFinalized.begin());
 }
 
 void SmallStrainUMAT3DLaw::CopyConstitutiveMatrix(ConstitutiveLaw::Parameters& rValues, Matrix& rConstitutiveMatrix)

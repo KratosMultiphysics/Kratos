@@ -806,7 +806,7 @@ void SmallStrainUDSM3DLaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Param
 void SmallStrainUDSM3DLaw::SetInternalStrainVector(const Vector& rStrainVector)
 {
     KRATOS_TRY
-    std::copy_n(rStrainVector.begin(), mStrainVectorFinalized.size(), mStrainVectorFinalized.begin());
+    std::copy(rStrainVector.begin(), rStrainVector.end(), mStrainVectorFinalized.begin());
     KRATOS_CATCH("")
 }
 
