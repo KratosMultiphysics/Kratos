@@ -258,12 +258,12 @@ void SmallStrainUDSM3DLaw::ResetStateVariables(const Properties& rMaterialProper
     KRATOS_TRY
 
     // reset state variables
-    int nStateVariables = std::max(GetNumberOfStateVariablesFromUDSM(rMaterialProperties), 1);
-    mStateVariables.resize(nStateVariables);
-    noalias(mStateVariables) = ZeroVector(nStateVariables);
+    int n_state_variables = std::max(GetNumberOfStateVariablesFromUDSM(rMaterialProperties), 1);
+    mStateVariables.resize(n_state_variables);
+    noalias(mStateVariables) = ZeroVector(n_state_variables);
 
-    mStateVariablesFinalized.resize(nStateVariables);
-    noalias(mStateVariablesFinalized) = ZeroVector(nStateVariables);
+    mStateVariablesFinalized.resize(n_state_variables);
+    noalias(mStateVariablesFinalized) = ZeroVector(n_state_variables);
 
     KRATOS_CATCH("")
 }
@@ -597,13 +597,13 @@ void SmallStrainUDSM3DLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Para
 
     if (rOptions.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
         // Constitutive matrix (D matrix)
-        Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
-        CalculateConstitutiveMatrix(rValues, rConstitutiveMatrix);
+        Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+        CalculateConstitutiveMatrix(rValues, r_constitutive_matrix);
     }
 
     if (rOptions.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
-        Vector& rStressVector = rValues.GetStressVector();
-        CalculateStress(rValues, rStressVector);
+        Vector& r_stress_vector = rValues.GetStressVector();
+        CalculateStress(rValues, r_stress_vector);
     }
 
     KRATOS_CATCH("")
@@ -612,10 +612,10 @@ void SmallStrainUDSM3DLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Para
 void SmallStrainUDSM3DLaw::UpdateInternalDeltaStrainVector(ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY
-    const Vector& rStrainVector = rValues.GetStrainVector();
+    const Vector& r_strain_vector = rValues.GetStrainVector();
 
     for (unsigned int i = 0; i < mDeltaStrainVector.size(); ++i) {
-        mDeltaStrainVector[i] = rStrainVector(i) - mStrainVectorFinalized[i];
+        mDeltaStrainVector[i] = r_strain_vector(i) - mStrainVectorFinalized[i];
     }
     KRATOS_CATCH("")
 }
