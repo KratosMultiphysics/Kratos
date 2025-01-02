@@ -30,6 +30,9 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
+    /// The size type definition
+using SizeType = std::size_t;
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -42,15 +45,15 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /**
- * @class GenericAnisotropic3DLaw
- * @ingroup StructuralMechanicsApplication
+ * @class GenericAnisotropicLaw
+ * @ingroup ConstitutiveLawsApplication
  * @brief This CL takes into account the material anisotropy in terms of
  * young modulus, poisson ratio, orientation and strengths.
- * @details See "Comportamiento mecánico de los materiales compuestos" by S. Oller,
- * Chapter "Anisotropía mecánica"
+ * @details See "Nonlinear behavior of existing pre-tensioned concrete beams: Experimental study and finite element modeling with the constitutive Serial-Parallel rule of mixtures", DOI: https://doi.org/10.1016/j.istruc.2024.106990
  * @author Alejandro Cornejo
  */
-class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) GenericAnisotropic3DLaw
+template <SizeType TDim>
+class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) GenericAnisotropicLaw
     : public ConstitutiveLaw
 {
   public:
@@ -66,23 +69,20 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) GenericAnisotropic3DLaw
     /// Definition of the machine precision tolerance
     static constexpr double machine_tolerance = std::numeric_limits<double>::epsilon();
 
-    /// The size type definition
-    typedef std::size_t SizeType;
-
     /// Static definition of the dimension
-    static constexpr SizeType Dimension = 3;
+    static constexpr SizeType Dimension = TDim;
 
     /// Static definition of the VoigtSize
-    static constexpr SizeType VoigtSize = 6;
+    static constexpr SizeType VoigtSize = (TDim == 3) ? 6 : 3;
 
     /// The definition of the bounded matrix type
-    typedef BoundedMatrix<double, 3, 3> BoundedMatrixType;
+    using BoundedMatrixType = BoundedMatrix<double, TDim, TDim>;
 
     /// The definition of the bounded matrix type
-    typedef BoundedMatrix<double, VoigtSize, VoigtSize> BoundedMatrixVoigtType;
+    using BoundedMatrixVoigtType = BoundedMatrix<double, VoigtSize, VoigtSize>;
 
-    /// Counted pointer of GenericAnisotropic3DLaw
-    KRATOS_CLASS_POINTER_DEFINITION(GenericAnisotropic3DLaw);
+    /// Counted pointer of GenericAnisotropicLaw
+    KRATOS_CLASS_POINTER_DEFINITION(GenericAnisotropicLaw);
 
     ///@}
     ///@name Life Cycle
@@ -91,7 +91,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) GenericAnisotropic3DLaw
     /**
     * Constructor.
     */
-    GenericAnisotropic3DLaw()
+    GenericAnisotropicLaw()
     {
     }
 
@@ -100,11 +100,11 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) GenericAnisotropic3DLaw
     */
     ConstitutiveLaw::Pointer Clone() const override
     {
-        return Kratos::make_shared<GenericAnisotropic3DLaw>(*this);
+        return Kratos::make_shared<GenericAnisotropicLaw>(*this);
     }
 
     // Copy constructor
-    GenericAnisotropic3DLaw(GenericAnisotropic3DLaw const& rOther)
+    GenericAnisotropicLaw(GenericAnisotropicLaw const& rOther)
         : ConstitutiveLaw(rOther),
         mpIsotropicCL(rOther.mpIsotropicCL)
     {
@@ -113,7 +113,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) GenericAnisotropic3DLaw
     /**
     * Destructor.
     */
-    ~GenericAnisotropic3DLaw() override
+    ~GenericAnisotropicLaw() override
     {
     }
 
@@ -137,7 +137,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) GenericAnisotropic3DLaw
      */
     SizeType WorkingSpaceDimension() override
     {
-        return 3;
+        return Dimension;
     };
 
     /**
@@ -145,7 +145,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) GenericAnisotropic3DLaw
      */
     SizeType GetStrainSize() const override
     {
-        return 6;
+        return VoigtSize;
     };
 
     /**
@@ -348,6 +348,9 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) GenericAnisotropic3DLaw
         return mpIsotropicCL->RequiresFinalizeMaterialResponse();
     }
 
+    /**
+     * @brief This method computes the orthotropic elastic constitutive matrix
+     */
     void CalculateOrthotropicElasticMatrix(
         BoundedMatrixVoigtType &rElasticityTensor,
         const Properties &rMaterialProperties);
@@ -356,6 +359,10 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) GenericAnisotropic3DLaw
               const GeometryType &rElementGeometry,
               const ProcessInfo &rCurrentProcessInfo) const override;
 
+    /**
+     * @brief This method computes an estimation of the tangent constitutive matrix, which relates the
+     * stress increment with the strain increment.
+     */
     void CalculateTangentTensor(ConstitutiveLaw::Parameters &rValues);
     ///@}
     ///@name Access
@@ -375,7 +382,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) GenericAnisotropic3DLaw
 
     ///@}
 
-  protected:
+protected:
     ///@name Protected static Member Variables
     ///@{
 
@@ -421,7 +428,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) GenericAnisotropic3DLaw
     ///@{
 
     ///@}
-  private:
+private:
     ///@name Static Member Variables
     ///@{
 
@@ -473,6 +480,6 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) GenericAnisotropic3DLaw
 
     ///@}
 
-}; // Class GenericAnisotropic3DLaw
+}; // Class GenericAnisotropicLaw
 
 } // namespace Kratos
