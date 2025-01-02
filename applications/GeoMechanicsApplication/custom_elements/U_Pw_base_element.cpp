@@ -148,8 +148,8 @@ void UPwBaseElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
     }
 
     mStateVariablesFinalized.resize(number_of_integration_points);
-    for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i) {
-        if (mConstitutiveLawVector[i]->Has(STATE_VARIABLES)) {
+    if ( r_properties[CONSTITUTIVE_LAW]->Has(STATE_VARIABLES) ) {
+        for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i) {
             mConstitutiveLawVector[i]->SetValue(STATE_VARIABLES, mStateVariablesFinalized[i], rCurrentProcessInfo);
         }
     }
