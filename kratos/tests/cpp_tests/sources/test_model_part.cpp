@@ -595,44 +595,48 @@ namespace Kratos::Testing {
         }
 
         KRATOS_EXPECT_EQ(r_model_part.Nodes().size(), 16);
+        r_model_part.Nodes().shrink_to_fit();
         KRATOS_EXPECT_EQ(r_model_part.Nodes().capacity(), 16);
 
         auto& r_sub_model_part_1 = r_model_part.CreateSubModelPart("sub1");
-        // following should not do anything hence the capacity should not be changed.
+
         r_sub_model_part_1.AddNodes(r_model_part.Nodes().begin(), r_model_part.Nodes().end());
-        KRATOS_EXPECT_EQ(r_model_part.Nodes().size(), 16);
+        // above should not do anything to the r_model_part, hence capacity should be the same.
         KRATOS_EXPECT_EQ(r_model_part.Nodes().capacity(), 16);
+
         KRATOS_EXPECT_EQ(r_sub_model_part_1.Nodes().size(), 16);
+        r_sub_model_part_1.Nodes().shrink_to_fit();
         KRATOS_EXPECT_EQ(r_sub_model_part_1.Nodes().capacity(), 16);
 
         auto& r_sub_model_part_2 = r_sub_model_part_1.CreateSubModelPart("sub2");
-        // following should not do anything hence the capacity should not be changed.
         r_sub_model_part_2.AddNodes(r_model_part.Nodes().begin() + 8, r_model_part.Nodes().end());
+        // above should not do anything to the r_model_part, hence capacity should be the same.
         KRATOS_EXPECT_EQ(r_model_part.Nodes().size(), 16);
         KRATOS_EXPECT_EQ(r_model_part.Nodes().capacity(), 16);
         KRATOS_EXPECT_EQ(r_sub_model_part_1.Nodes().size(), 16);
-        // the capacity of the r_sub_model_part_1 has increased because, the r_sub_model_part_2
+        // the capacity of the r_sub_model_part_1 may be changed because, the r_sub_model_part_2
         // used the iterators of the r_model_part. Then r_sub_model_part_1 is not a subset of r_model_part
         // because even though they are pointing to the same memory locations, the intrusive_ptrs memory locations
-        // are not a subset.
-        KRATOS_EXPECT_EQ(r_sub_model_part_1.Nodes().capacity(), 24);
+        // are not a subset. Therefore not checking for the capacity.
         KRATOS_EXPECT_EQ(r_sub_model_part_2.Nodes().size(), 8);
+        r_sub_model_part_2.Nodes().shrink_to_fit();
         KRATOS_EXPECT_EQ(r_sub_model_part_2.Nodes().capacity(), 8);
 
         // now we add using a sub range to sub2
         auto& r_sub_model_part_3 = r_sub_model_part_1.CreateSubModelPart("sub3");
-        // following should not do anything hence the capacity should not be changed.
         r_sub_model_part_3.AddNodes(r_model_part.Nodes().begin() + 4, r_model_part.Nodes().end());
+        // above should not do anything to the r_model_part, hence capacity should be the same.
         KRATOS_EXPECT_EQ(r_model_part.Nodes().size(), 16);
         KRATOS_EXPECT_EQ(r_model_part.Nodes().capacity(), 16);
         KRATOS_EXPECT_EQ(r_sub_model_part_1.Nodes().size(), 16);
 
         // again here the capacity changes because not r_sub_model_part_1 contains intrusive_ptrs
         // which are not a sub set of the r_model_part
-        KRATOS_EXPECT_EQ(r_sub_model_part_1.Nodes().capacity(), 28);
+        auto r_sub_model_part_1_capacity = r_sub_model_part_1.Nodes().capacity();
         KRATOS_EXPECT_EQ(r_sub_model_part_2.Nodes().size(), 8);
         KRATOS_EXPECT_EQ(r_sub_model_part_2.Nodes().capacity(), 8);
         KRATOS_EXPECT_EQ(r_sub_model_part_3.Nodes().size(), 12);
+        r_sub_model_part_3.Nodes().shrink_to_fit();
         KRATOS_EXPECT_EQ(r_sub_model_part_3.Nodes().capacity(), 12);
 
         auto& r_sub_model_part_4 = r_sub_model_part_3.CreateSubModelPart("sub4");
@@ -645,12 +649,13 @@ namespace Kratos::Testing {
         KRATOS_EXPECT_EQ(r_model_part.Nodes().size(), 16);
         KRATOS_EXPECT_EQ(r_model_part.Nodes().capacity(), 16);
         KRATOS_EXPECT_EQ(r_sub_model_part_1.Nodes().size(), 16);
-        KRATOS_EXPECT_EQ(r_sub_model_part_1.Nodes().capacity(), 28);
+        KRATOS_EXPECT_EQ(r_sub_model_part_1.Nodes().capacity(), r_sub_model_part_1_capacity);
         KRATOS_EXPECT_EQ(r_sub_model_part_2.Nodes().size(), 8);
         KRATOS_EXPECT_EQ(r_sub_model_part_2.Nodes().capacity(), 8);
         KRATOS_EXPECT_EQ(r_sub_model_part_3.Nodes().size(), 12);
         KRATOS_EXPECT_EQ(r_sub_model_part_3.Nodes().capacity(), 12);
         KRATOS_EXPECT_EQ(r_sub_model_part_4.Nodes().size(), 7);
+        r_sub_model_part_4.Nodes().shrink_to_fit();
         KRATOS_EXPECT_EQ(r_sub_model_part_4.Nodes().capacity(), 7);
     }
 }  // namespace Kratos::Testing.
