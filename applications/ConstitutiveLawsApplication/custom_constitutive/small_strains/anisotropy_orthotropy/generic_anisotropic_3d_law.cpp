@@ -188,8 +188,8 @@ void GenericAnisotropicLaw<TDim>::CalculateOrthotropicElasticMatrix(
 {
     if constexpr (Dimension == 3) {
         AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateOrthotropicElasticMatrix(rElasticityTensor, rMaterialProperties);
-    } else {
-
+    } else { //  The 2D is plane strain
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateOrthotropicElasticMatrixPlaneStrain(rElasticityTensor, rMaterialProperties);
     }
 }
 
@@ -578,7 +578,6 @@ int GenericAnisotropicLaw<TDim>::Check(
 
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(ORTHOTROPIC_ELASTIC_CONSTANTS)) << "The ORTHOTROPIC_ELASTIC_CONSTANTS are not defined" << std::endl;
     KRATOS_ERROR_IF_NOT(rMaterialProperties[ORTHOTROPIC_ELASTIC_CONSTANTS].size() == VoigtSize) << "The dimension of the ORTHOTROPIC_ELASTIC_CONSTANTS is incorrect" << std::endl;
-
 
     return mpIsotropicCL->Check(r_props_iso_cl, rElementGeometry, rCurrentProcessInfo);
 }
