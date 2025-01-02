@@ -44,11 +44,11 @@ using SizeType = std::size_t;
 ///@}
 ///@name Kratos Classes
 ///@{
-/**
+
+/*
  * @class GenericAnisotropicLaw
  * @ingroup ConstitutiveLawsApplication
- * @brief This CL takes into account the material anisotropy in terms of
- * young modulus, poisson ratio, orientation and strengths.
+ * @brief This CL takes into account the material anisotropy in terms of young modulus, poisson ratio, orientation and strengths. 3D CLs and plane strain.
  * @details See "Nonlinear behavior of existing pre-tensioned concrete beams: Experimental study and finite element modeling with the constitutive Serial-Parallel rule of mixtures", DOI: https://doi.org/10.1016/j.istruc.2024.106990
  * @author Alejandro Cornejo
  */
@@ -56,7 +56,7 @@ template <SizeType TDim>
 class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) GenericAnisotropicLaw
     : public ConstitutiveLaw
 {
-  public:
+public:
     ///@name Type Definitions
     ///@{
 
@@ -330,8 +330,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) GenericAnisotropicLaw
         const BoundedMatrixVoigtType& rAnisotropicElasticMatrix,
         const BoundedMatrixVoigtType& rIsotropicElasticMatrix,
         const BoundedMatrixVoigtType &rAs,
-        BoundedMatrixVoigtType& rAe
-        );
+        BoundedMatrixVoigtType& rAe);
 
     /**
      * Initialize the material response in terms of 2nd Piola-Kirchhoff stresses
@@ -357,11 +356,15 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) GenericAnisotropicLaw
 
     /**
      * @brief This method computes the orthotropic elastic constitutive matrix
+     * This method is overriden in the derived class for plane stress
      */
-    void CalculateOrthotropicElasticMatrix(
+    virtual void CalculateOrthotropicElasticMatrix(
         BoundedMatrixVoigtType &rElasticityTensor,
         const Properties &rMaterialProperties);
 
+    /**
+     * @brief This method checks the properties in the nested CL
+     */
     int Check(const Properties &rMaterialProperties,
               const GeometryType &rElementGeometry,
               const ProcessInfo &rCurrentProcessInfo) const override;
@@ -371,6 +374,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) GenericAnisotropicLaw
      * stress increment with the strain increment.
      */
     void CalculateTangentTensor(ConstitutiveLaw::Parameters &rValues);
+
     ///@}
     ///@name Access
     ///@{
@@ -416,7 +420,6 @@ protected:
     {
         mpIsotropicCL = pIsotropicConstitutiveLaw;
     }
-
 
     ///@}
     ///@name Protected Operations

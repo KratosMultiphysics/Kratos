@@ -186,45 +186,11 @@ void GenericAnisotropicLaw<TDim>::CalculateOrthotropicElasticMatrix(
     BoundedMatrixVoigtType& rElasticityTensor,
     const Properties& rMaterialProperties)
 {
-    KRATOS_TRY
+    if constexpr (Dimension == 3) {
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateOrthotropicElasticMatrix(rElasticityTensor, rMaterialProperties);
+    } else {
 
-    noalias(rElasticityTensor) = ZeroMatrix(VoigtSize, VoigtSize);
-
-    const Vector& r_ortho_elastic_constants = rMaterialProperties[ORTHOTROPIC_ELASTIC_CONSTANTS];
-    const double Ex  = r_ortho_elastic_constants(0);
-    const double Ey  = r_ortho_elastic_constants(1);
-    const double Ez  = r_ortho_elastic_constants(2);
-    const double vxy = r_ortho_elastic_constants(3);
-    const double vyz = r_ortho_elastic_constants(4);
-    const double vxz = r_ortho_elastic_constants(5);
-
-    const double vyx = vxy * Ey / Ex;
-    const double vzx = vxz * Ez / Ex;
-    const double vzy = vyz * Ez / Ey;
-
-    KRATOS_ERROR_IF(vyx > 0.5) << "The Poisson_yx is greater than 0.5." << std::endl;
-    KRATOS_ERROR_IF(vzx > 0.5) << "The Poisson_zx is greater than 0.5." << std::endl;
-    KRATOS_ERROR_IF(vzy > 0.5) << "The Poisson_zy is greater than 0.5." << std::endl;
-
-    const double ctant = 1.0 / (1.0 - vxy * vyx - vzy * vyz - vzx * vxz - vxy * vyz * vzx - vxz * vyx * vzy);
-
-    rElasticityTensor(0, 0) = Ex * (1.0 - vyz * vzy) * ctant;
-    rElasticityTensor(0, 1) = Ex * (vyx + vyz * vzx) * ctant;
-    rElasticityTensor(1, 0) = Ey * (vxy + vzy * vxz) * ctant;
-
-    rElasticityTensor(0, 2) = Ex * (vzx + vyx * vzy) * ctant;
-    rElasticityTensor(2, 0) = Ez * (vxz + vxy * vyz) * ctant;
-    rElasticityTensor(1, 1) = Ey * (1.0 - vxz * vzx) * ctant;
-
-    rElasticityTensor(1, 2) = Ey * (vzy + vxy * vzx) * ctant;
-    rElasticityTensor(2, 1) = Ez * (vyz + vyx * vxz) * ctant;
-    rElasticityTensor(2, 2) = Ez * (1.0 - vxy * vyx) * ctant;
-
-    rElasticityTensor(3, 3) = (rMaterialProperties.Has(SHEAR_MODULUS_XY)) ? rMaterialProperties[SHEAR_MODULUS_XY] : 1.0 / ((1.0 + vyx) / Ex + (1.0 + vxy) / Ey);
-    rElasticityTensor(4, 4) = (rMaterialProperties.Has(SHEAR_MODULUS_YZ)) ? rMaterialProperties[SHEAR_MODULUS_YZ] : 1.0 / ((1.0 + vzy) / Ey + (1.0 + vyz) / Ez);
-    rElasticityTensor(5, 5) = (rMaterialProperties.Has(SHEAR_MODULUS_XZ)) ? rMaterialProperties[SHEAR_MODULUS_XZ] : 1.0 / ((1.0 + vzx) / Ex + (1.0 + vxz) / Ez);
-
-    KRATOS_CATCH("")
+    }
 }
 
 /***********************************************************************************/
@@ -548,7 +514,6 @@ void GenericAnisotropicLaw<TDim>::CalculateAnisotropicStrainMapperMatrix(
 )
 {
     Matrix inv_isotropic_elastic_matrix(VoigtSize, VoigtSize);
-    noalias(inv_isotropic_elastic_matrix) = ZeroMatrix(VoigtSize, VoigtSize);
     double aux_det;
     MathUtils<double>::InvertMatrix(rIsotropicElasticMatrix, inv_isotropic_elastic_matrix, aux_det);
     noalias(rAe) = prod(inv_isotropic_elastic_matrix, Matrix(prod(rAs, rAnisotropicElasticMatrix)));
@@ -568,15 +533,6 @@ void GenericAnisotropicLaw<TDim>::InitializeMaterial(
     KRATOS_ERROR_IF_NOT(r_props_isotropic_cl.Has(CONSTITUTIVE_LAW)) << "No constitutive law set" << std::endl;
     mpIsotropicCL = r_props_isotropic_cl[CONSTITUTIVE_LAW]->Clone();
     mpIsotropicCL->InitializeMaterial(r_props_isotropic_cl, rElementGeometry, rShapeFunctionsValues);
-
-    // We check now the dimension of the CL pointer, must be 3D
-    KRATOS_ERROR_IF_NOT(mpIsotropicCL->GetStrainSize() == VoigtSize) << "The slave CL has a different dimension of the Generic Anisotropic CL..." << std::endl;
-
-    // Let's check variables
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(ISOTROPIC_ANISOTROPIC_YIELD_RATIO))  << "ISOTROPIC_ANISOTROPIC_YIELD_RATIO not defined in properties" << std::endl;
-
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(ORTHOTROPIC_ELASTIC_CONSTANTS)) << "The ORTHOTROPIC_ELASTIC_CONSTANTS are not defined" << std::endl;
-    KRATOS_ERROR_IF_NOT(rMaterialProperties[ORTHOTROPIC_ELASTIC_CONSTANTS].size() == VoigtSize) << "The dimension of the ORTHOTROPIC_ELASTIC_CONSTANTS is incorrect" << std::endl;
 }
 
 /***********************************************************************************/
@@ -613,6 +569,17 @@ int GenericAnisotropicLaw<TDim>::Check(
 {
     const auto it_cl_begin     = rMaterialProperties.GetSubProperties().begin();
     const auto& r_props_iso_cl = *(it_cl_begin);
+
+    // We check now the dimension of the CL pointer, must be 3D
+    KRATOS_ERROR_IF_NOT(mpIsotropicCL->GetStrainSize() == VoigtSize) << "The slave CL has a different dimension of the Generic Anisotropic CL..." << std::endl;
+
+    // Let's check variables
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(ISOTROPIC_ANISOTROPIC_YIELD_RATIO))  << "ISOTROPIC_ANISOTROPIC_YIELD_RATIO not defined in properties" << std::endl;
+
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(ORTHOTROPIC_ELASTIC_CONSTANTS)) << "The ORTHOTROPIC_ELASTIC_CONSTANTS are not defined" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties[ORTHOTROPIC_ELASTIC_CONSTANTS].size() == VoigtSize) << "The dimension of the ORTHOTROPIC_ELASTIC_CONSTANTS is incorrect" << std::endl;
+
+
     return mpIsotropicCL->Check(r_props_iso_cl, rElementGeometry, rCurrentProcessInfo);
 }
 
