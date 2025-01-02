@@ -49,7 +49,7 @@
                 "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto2",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [false,false,true],
-                "value"           : [null,null,"0.0001*t"],
+                "value"           : [null,null,"0.00001*t"],
                 "interval"        : [0.0,"End"]
             }
         }],
@@ -68,18 +68,18 @@
                 "time_frequency"               : 0.2
             }
         }]
-    },
-    "_json_output_process" : [
-    {
-        "python_module"   : "json_output_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "JsonOutputProcess",
-        "Parameters"            : {
-            "gauss_points_output_variables" : ["DAMAGE"],
-            "output_file_name"              : "AnisotropyCube/anisotropy_test_results.json",
-            "model_part_name"               : "Structure.Parts_Parts_Auto1",
-            "time_frequency"                : 0.2
-        }
-    }]
+    }
+    //"_json_output_process" : [
+    //{
+    //    "python_module"   : "json_output_process",
+    //    "kratos_module" : "KratosMultiphysics",
+    //    "help"                  : "",
+    //    "process_name"          : "JsonOutputProcess",
+    //    "Parameters"            : {
+    //        "gauss_points_output_variables" : ["DAMAGE"],
+    //        "output_file_name"              : "AnisotropyCube/anisotropy_test_results.json",
+    //        "model_part_name"               : "Structure.Parts_Parts_Auto1",
+    //        "time_frequency"                : 0.2
+    //    }
+    //}]
 }
