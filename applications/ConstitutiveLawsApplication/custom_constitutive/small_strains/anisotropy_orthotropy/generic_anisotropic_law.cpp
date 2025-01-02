@@ -484,10 +484,22 @@ void GenericAnisotropicLaw<TDim>::CalculateAnisotropicStressMapperMatrix(
 {
     rAs.clear();
     rAsInv.clear();
+    // We use the same input in 2D and in 3D
     const Vector &r_iso_aniso_yield_ratios = rProperties[ISOTROPIC_ANISOTROPIC_YIELD_RATIO];
+    if constexpr (VoigtSize == 6) {
+        rAs(0, 0) = r_iso_aniso_yield_ratios[0]; // xx
+        rAs(1, 1) = r_iso_aniso_yield_ratios[1]; // yy
+        rAs(2, 2) = r_iso_aniso_yield_ratios[2]; // zz
+        rAs(3, 3) = r_iso_aniso_yield_ratios[3]; // xy
+        rAs(4, 4) = r_iso_aniso_yield_ratios[4]; // yz
+        rAs(5, 5) = r_iso_aniso_yield_ratios[5]; // xz
+    } else {
+        rAs(0, 0) = r_iso_aniso_yield_ratios[0]; // xx
+        rAs(1, 1) = r_iso_aniso_yield_ratios[1]; // yy
+        rAs(2, 2) = r_iso_aniso_yield_ratios[3]; // xy
+    }
 
     for (IndexType i = 0; i < VoigtSize; ++i) {
-        rAs(i, i) = r_iso_aniso_yield_ratios[i];
         rAsInv(i, i) = 1.0 / rAs(i, i);
     }
 }
