@@ -216,7 +216,7 @@ void SmallStrainUMAT3DLaw::ResetStateVariables(const Properties& rMaterialProper
     KRATOS_TRY
     // reset state variables
 
-    const auto& state_variables  = rMaterialProperties[STATE_VARIABLES];
+    const auto& state_variables   = rMaterialProperties[STATE_VARIABLES];
     const auto  n_state_variables = state_variables.size();
 
     mStateVariables.resize(n_state_variables);
