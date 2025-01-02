@@ -9,7 +9,7 @@
 //                   license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Alejandro Cornejo
-//  Collaborator:    Lucia Barbu
+//
 //
 
 // System includes
@@ -572,38 +572,14 @@ int GenericAnisotropicLaw<TDim>::Check(
     const auto it_cl_begin     = rMaterialProperties.GetSubProperties().begin();
     const auto& r_props_iso_cl = *(it_cl_begin);
 
-    // We check now the dimension of the CL pointer, must be 3D
+    // We check now the dimension of the CL pointer and th dimension of the anisotropic one
     KRATOS_ERROR_IF_NOT(mpIsotropicCL->GetStrainSize() == VoigtSize) << "The slave CL has a different dimension of the Generic Anisotropic CL..." << std::endl;
 
     // Let's check variables
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(ISOTROPIC_ANISOTROPIC_YIELD_RATIO))  << "ISOTROPIC_ANISOTROPIC_YIELD_RATIO not defined in properties" << std::endl;
-
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(ORTHOTROPIC_ELASTIC_CONSTANTS)) << "The ORTHOTROPIC_ELASTIC_CONSTANTS are not defined" << std::endl;
     KRATOS_ERROR_IF_NOT(rMaterialProperties[ORTHOTROPIC_ELASTIC_CONSTANTS].size() == 6) << "The dimension of the ORTHOTROPIC_ELASTIC_CONSTANTS is incorrect" << std::endl;
-
     return mpIsotropicCL->Check(r_props_iso_cl, rElementGeometry, rCurrentProcessInfo);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <SizeType TDim>
-void GenericAnisotropicLaw<TDim>::CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues)
-{
-    const Properties& r_material_properties = rValues.GetMaterialProperties();
-
-    const bool consider_perturbation_threshold = r_material_properties.Has(CONSIDER_PERTURBATION_THRESHOLD) ? r_material_properties[CONSIDER_PERTURBATION_THRESHOLD] : true;
-    const TangentOperatorEstimation tangent_operator_estimation = r_material_properties.Has(TANGENT_OPERATOR_ESTIMATION) ? static_cast<TangentOperatorEstimation>(r_material_properties[TANGENT_OPERATOR_ESTIMATION]) : TangentOperatorEstimation::SecondOrderPerturbation;
-
-    if (tangent_operator_estimation == TangentOperatorEstimation::Analytic) {
-        KRATOS_ERROR << "Analytic solution not available" << std::endl;
-    } else if (tangent_operator_estimation == TangentOperatorEstimation::FirstOrderPerturbation) {
-        // Calculates the Tangent Constitutive Tensor by perturbation (first order)
-        TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_PK2, consider_perturbation_threshold, 1);
-    } else if (tangent_operator_estimation == TangentOperatorEstimation::SecondOrderPerturbation) {
-        // Calculates the Tangent Constitutive Tensor by perturbation (second order)
-        TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_PK2, consider_perturbation_threshold, 2);
-    }
 }
 
 /***********************************************************************************/

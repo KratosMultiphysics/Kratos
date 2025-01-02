@@ -9,7 +9,7 @@
 //                   license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Alejandro Cornejo
-//  Collaborator:    Lucia Barbu
+//
 //
 
 #pragma once
@@ -365,15 +365,10 @@ public:
     /**
      * @brief This method checks the properties in the nested CL
      */
-    int Check(const Properties &rMaterialProperties,
-              const GeometryType &rElementGeometry,
-              const ProcessInfo &rCurrentProcessInfo) const override;
-
-    /**
-     * @brief This method computes an estimation of the tangent constitutive matrix, which relates the
-     * stress increment with the strain increment.
-     */
-    void CalculateTangentTensor(ConstitutiveLaw::Parameters &rValues);
+    int Check(
+        const Properties &rMaterialProperties,
+        const GeometryType &rElementGeometry,
+        const ProcessInfo &rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Access
