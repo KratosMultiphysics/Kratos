@@ -103,6 +103,9 @@ class PlasticDamageTest(TestFactory):
 class AnisotropyTest(TestFactory):
     file_name = "AnisotropyCube/anisotropy_test"
 
+class Anisotropy2DTest(TestFactory):
+    file_name = "AnisotropyCube/anisotropy_2d_test"
+
 class InitialStateInelasticityTest(TestFactory):
     file_name = "InitialStateInelasticity/initial_state2_test"
 
