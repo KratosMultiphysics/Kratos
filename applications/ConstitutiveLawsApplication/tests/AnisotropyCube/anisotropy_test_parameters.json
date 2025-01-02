@@ -1,6 +1,6 @@
 {
     "problem_data"             : {
-        "problem_name"    : "serial_parallel_test",
+        "problem_name"    : "anisotropy_test",
         "parallel_type"   : "OpenMP",
         "start_time"      : 0.0,
         "end_time"        : 30.0,
@@ -14,13 +14,13 @@
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "SerialParallelRuleOfMixturesCube/serial_parallel_damage_test"
+            "input_filename" : "AnisotropyCube/anisotropy_test"
         },
         "material_import_settings"           : {
-            "materials_filename" : "SerialParallelRuleOfMixturesCube/serial_parallel_damage_test_materials.json"
+            "materials_filename" : "AnisotropyCube/anisotropy_test_materials.json"
         },
         "time_stepping"                      : {
-            "time_step" : 1.1
+            "time_step" : 1.0
         },
         "line_search"                        : false,
         "convergence_criterion"              : "residual_criterion",
@@ -29,10 +29,7 @@
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
-        "rotation_dofs"                      : false,
-        "linear_solver_settings":{
-                "solver_type": "amgcl"
-        }
+        "rotation_dofs"                      : false
     },
     "processes" : {
         "constraints_process_list" : [{
@@ -52,7 +49,7 @@
                 "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto2",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [false,false,true],
-                "value"           : [null,null,"0.00001*t"],
+                "value"           : [null,null,"0.0001*t"],
                 "interval"        : [0.0,"End"]
             }
         }],
@@ -70,8 +67,7 @@
                 "model_part_name"              : "Structure.Parts_Parts_Auto1",
                 "time_frequency"               : 0.2
             }
-        }
-        ]
+        }]
     },
     "_json_output_process" : [
     {
@@ -85,37 +81,5 @@
             "model_part_name"               : "Structure.Parts_Parts_Auto1",
             "time_frequency"                : 0.2
         }
-    }
-    ]
-    //"_output_processes" : {
-    //    "gid_output" : [{
-    //        "python_module" : "gid_output_process",
-    //        "kratos_module" : "KratosMultiphysics",
-    //        "process_name"  : "GiDOutputProcess",
-    //        "help"          : "This process writes postprocessing files for GiD",
-    //        "Parameters"    : {
-    //            "model_part_name"        : "Structure.computing_domain",
-    //            "output_name"            : "small_deformation_plasticity_test",
-    //            "postprocess_parameters" : {
-    //                "result_file_configuration" : {
-    //                    "gidpost_flags"       : {
-    //                        "GiDPostMode"           : "GiD_PostBinary",
-    //                        "WriteDeformedMeshFlag" : "WriteDeformed",
-    //                        "MultiFileFlag"         : "SingleFile"
-    //                    },
-    //                    "file_label"          : "step",
-    //                    "output_control_type" : "step",
-    //                    "output_frequency"    : 1,
-    //                    "body_output"         : true,
-    //                    "node_output"         : false,
-    //                    "skin_output"         : false,
-    //                    "plane_output"        : [],
-    //                    "nodal_results"       : ["DISPLACEMENT"],
-    //                    "gauss_point_results" : ["GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR","UNIAXIAL_STRESS","DAMAGE"]
-    //                },
-    //                "point_data_configuration"  : []
-    //            }
-    //        }
-    //    }]
-    //}
+    }]
 }
