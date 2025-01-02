@@ -281,7 +281,6 @@ public:
      * @param rMaterialProperties the Properties instance of the current element
      * @param rElementGeometry the geometry of the current element
      * @param rShapeFunctionsValues the shape functions values in the current integration point
-     * the current ProcessInfo instance
      */
     void ResetMaterial(const Properties&   rMaterialProperties,
                        const GeometryType& rElementGeometry,
