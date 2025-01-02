@@ -821,11 +821,11 @@ double& SmallStrainUDSM3DLaw::CalculateValue(ConstitutiveLaw::Parameters& rParam
                                              double&                      rValue)
 {
     if (rThisVariable == STRAIN_ENERGY) {
-        Vector& rStrainVector = rParameterValues.GetStrainVector();
-        Vector& rStressVector = rParameterValues.GetStressVector();
-        this->CalculateStress(rParameterValues, rStressVector);
+        const Vector& r_strain_vector = rParameterValues.GetStrainVector();
+        Vector&       r_stress_vector = rParameterValues.GetStressVector();
+        this->CalculateStress(rParameterValues, r_stress_vector);
 
-        rValue = 0.5 * inner_prod(rStrainVector, rStressVector); // Strain energy = 0.5*E:C:E
+        rValue = 0.5 * inner_prod(r_strain_vector, r_stress_vector); // Strain energy = 0.5*E:C:E
     }
     return rValue;
 }

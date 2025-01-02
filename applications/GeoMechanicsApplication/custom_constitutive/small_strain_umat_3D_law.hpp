@@ -251,8 +251,8 @@ public:
     //          of the calculations, so to verify that nothing is missing from the input or that
     //          no common error is found.
     [[nodiscard]] int Check(const Properties&   rMaterialProperties,
-              const GeometryType& rElementGeometry,
-              const ProcessInfo&  rCurrentProcessInfo) const override;
+                            const GeometryType& rElementGeometry,
+                            const ProcessInfo&  rCurrentProcessInfo) const override;
 
     /**
      * This is to be called at the very beginning of the calculation
