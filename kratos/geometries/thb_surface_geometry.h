@@ -127,27 +127,26 @@ public:
         gsMatrix<> controlPoints;
         ControlPointsToGismo(this->Points(),controlPoints);
        
-        gismo::gsTHBSpline<2> ThbGeoemtry(mThb,controlPoints);
+        gismo::gsTHBSpline<2> ThbGeometry(mThb,controlPoints);
 
-        // test case:
-        std::vector<int> refBoxes(5);
-        refBoxes[0] = 3;
-        refBoxes[1] = 0;
-        refBoxes[2] = 0;
-        refBoxes[3] = 1;
-        refBoxes[4] = 1;
-        // refBoxes[5] = 2;
-        // refBoxes[6] = 0;
-        // refBoxes[7] = 0;
-        // refBoxes[8] = 2;
-        // refBoxes[9] = 2;
 
-        ThbGeoemtry.refineElements(refBoxes);
+        ControlPointsFromGismo(ThbGeometry.coefs(),this->Points());
+        mThb = ThbGeometry.basis();
+    }
 
-        ControlPointsFromGismo(ThbGeoemtry.coefs(),this->Points());
-        mThb = ThbGeoemtry.basis();
+    THBSurfaceGeometry(
+        gismo::gsTHBSpline<2> ThbGeometry)
+        : mThb(ThbGeometry.basis())
+    {
+        ControlPointsFromGismo(ThbGeometry.coefs(),this->Points());
+    }
 
-        // gsInfo << mThb.detail() << "\n";
+    gismo::gsTHBSpline<2> ToGismo() const
+    {
+        gsMatrix<> controlPoints;
+        ControlPointsToGismo(this->Points(),controlPoints);
+
+        return gismo::gsTHBSpline<2>(mThb, std::move(controlPoints));
     }
 
     /// Conctructor for NURBS surfaces
