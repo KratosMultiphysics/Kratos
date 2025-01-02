@@ -670,8 +670,10 @@ public:
 
         gismo::gsMatrix<> ThbResult;
         gismo::gsMatrix<> ThbResultDeriv;
+        gismo::gsMatrix<> ThbResultDeriv2;
         gismo::gsMatrix<int> ThbIndices;
         gismo::gsMatrix<int> ThbIndicesDeriv;
+        gismo::gsMatrix<int> ThbIndicesDeriv2;
         gismo::gsMatrix<> rLocalCoordinateThb(2,1);
 
 
@@ -687,6 +689,9 @@ public:
             mThb.active_into(rLocalCoordinateThb,ThbIndicesDeriv);
             mThb.deriv_into(rLocalCoordinateThb,ThbResultDeriv);
 
+            mThb.active_into(rLocalCoordinateThb,ThbIndicesDeriv2);
+            mThb.deriv2_into(rLocalCoordinateThb,ThbResultDeriv2);
+
             /// Get List of Control Points
             PointsArrayType nonzero_control_points(num_nonzero_cps);
             for (IndexType j = 0; j < num_nonzero_cps; j++) {
@@ -699,14 +704,29 @@ public:
 
             /// Get Shape Function Derivatives DN_De, ...
             if (NumberOfShapeFunctionDerivatives > 0) {
-                IndexType shape_derivative_index = 1;
                 for (IndexType n = 0; n < NumberOfShapeFunctionDerivatives - 1; n++) {
+                    if(n == 0){
                     for (IndexType k = 0; k < n + 2; k++) {
                         for (IndexType j = 0; j < num_nonzero_cps; j++) {
                             shape_function_derivatives[n](j, k) = ThbResultDeriv(j*2 + k , 0);
                         }
                     }
-                    shape_derivative_index += n + 2;
+                    }
+                    else if(n == 1){
+                        for (IndexType j = 0; j < num_nonzero_cps; j++) {
+                            shape_function_derivatives[n](j, 0) = ThbResultDeriv2(j*3, 0);
+                        }
+                        for (IndexType j = 0; j < num_nonzero_cps; j++) {
+                            shape_function_derivatives[n](j, 1) = ThbResultDeriv2(j*3 + 2 , 0);
+                        }
+                        for (IndexType j = 0; j < num_nonzero_cps; j++) {
+                            shape_function_derivatives[n](j, 2) = ThbResultDeriv2(j*3 + 1 , 0);
+                        }
+                    }
+                    else
+                    {
+                        KRATOS_THROW_ERROR( std::invalid_argument, "third derivatives and more are not yet defined!", "" )
+                    }
                 }
             }
 
