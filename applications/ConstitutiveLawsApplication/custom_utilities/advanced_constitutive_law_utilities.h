@@ -472,6 +472,27 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
         );
 
     /**
+     * @brief This computes the elastic constituive matrix for a 3D elastic CL
+     */
+    static void CalculateOrthotropicElasticMatrix(
+        BoundedMatrixVoigtType &rElasticityTensor,
+        const Properties &rMaterialProperties);
+
+    /**
+     * @brief This computes the elastic constituive matrix for a 3D elastic CL
+     */
+    static void CalculateOrthotropicElasticMatrixPlaneStrain(
+        BoundedMatrixVoigtType &rElasticityTensor,
+        const Properties &rMaterialProperties);
+
+    /**
+     * @brief This computes the elastic constituive matrix for a 3D elastic CL
+     */
+    static void CalculateOrthotropicElasticMatrixPlaneStress(
+        BoundedMatrixVoigtType &rElasticityTensor,
+        const Properties &rMaterialProperties);
+
+    /**
      * @brief This computes the MacaullyBrackets of a double
      */
     static double MacaullyBrackets(const double Number);
