@@ -103,6 +103,8 @@ public:
     ///@name Class definitions
     ///@{
 
+    /// @brief Templated class to get corresponding container and its information from a mesh.
+    /// @tparam TContainerType  The type of the container to be retrieved.
     template<class TContainerType>
     struct Container {};
 
@@ -383,7 +385,7 @@ public:
         if constexpr(!std::is_same_v<BaseType<TContainer>, std::vector<IndexType>>) {
             EntityRangeChecker<NodesContainerType>()(this, rInputContainer.begin(), rInputContainer.end());
 
-            InsertEntityRValuedContainer([](ModelPart* pModelPart) {
+            InsertEntities([](ModelPart* pModelPart) {
                 return &(pModelPart->GetMesh().Nodes());
             }, std::move(rInputContainer));
         } else {
@@ -703,7 +705,7 @@ public:
         if constexpr(!std::is_same_v<BaseType<TContainer>, std::vector<IndexType>>) {
             EntityRangeChecker<MasterSlaveConstraintContainerType>()(this, rInputContainer.begin(), rInputContainer.end());
 
-            InsertEntityRValuedContainer([](ModelPart* pModelPart) {
+            InsertEntities([](ModelPart* pModelPart) {
                 return &(pModelPart->GetMesh().MasterSlaveConstraints());
             }, std::move(rInputContainer));
         } else {
@@ -1034,7 +1036,7 @@ public:
         if constexpr(!std::is_same_v<BaseType<TContainer>, std::vector<IndexType>>) {
             EntityRangeChecker<ElementsContainerType>()(this, rInputContainer.begin(), rInputContainer.end());
 
-            InsertEntityRValuedContainer([](ModelPart* pModelPart) {
+            InsertEntities([](ModelPart* pModelPart) {
                 return &(pModelPart->GetMesh().Elements());
             }, std::move(rInputContainer));
         } else {
@@ -1208,7 +1210,7 @@ public:
         if constexpr(!std::is_same_v<BaseType<TContainer>, std::vector<IndexType>>) {
             EntityRangeChecker<ConditionsContainerType>()(this, rInputContainer.begin(), rInputContainer.end());
 
-            InsertEntityRValuedContainer([](ModelPart* pModelPart) {
+            InsertEntities([](ModelPart* pModelPart) {
                 return &(pModelPart->GetMesh().Conditions());
             }, std::move(rInputContainer));
         } else {
@@ -1519,7 +1521,7 @@ public:
                 }
             });
 
-            InsertEntityRValuedContainer([](ModelPart* pModelPart) {
+            InsertEntities([](ModelPart* pModelPart) {
                 return &(pModelPart->Geometries());
             }, std::move(rInputContainer));
         } else {
@@ -2012,11 +2014,11 @@ private:
         }
     };
 
-    template<class TContainerType, class TIterator>
+    template<class TContainerType>
     static bool IsSubSet(
         const TContainerType& rContainer,
-        TIterator begin,
-        TIterator end)
+        typename TContainerType::iterator begin,
+        typename TContainerType::iterator end)
     {
         // do nothing if the given range is empty.
         if (std::distance(begin, end) == 0) {
@@ -2024,11 +2026,11 @@ private:
         }
 
         // check if the given [begin, end) range is a subset of the given PointerVectorSet.
-        auto current_pvs_begin_it = rContainer.find(*begin->Id());
-        if (current_pvs_begin_it != rContainer.end() && &current_pvs_begin_it->base() == &begin->base()) {
+        auto current_pvs_begin_it = rContainer.find(begin->Id());
+        if (current_pvs_begin_it != rContainer.end() && &*(current_pvs_begin_it.base()) == &*(begin.base())) {
             // memory location pointing to begin is in the rContainer. then check the same for the end.
-            auto current_pvs_end_it = rContainer.find(*(end - 1)->Id());
-            return current_pvs_end_it != rContainer.end() && &current_pvs_end_it->base() == &end->base();
+            auto current_pvs_end_it = rContainer.find((end - 1)->Id());
+            return current_pvs_end_it != rContainer.end() && &*(current_pvs_end_it.base()) == &*((end - 1).base());
         }
 
         return false;
@@ -2074,12 +2076,13 @@ private:
     {
         KRATOS_TRY
 
+        using container_type = std::remove_pointer_t<decltype(std::declval<TContainerGetter>()(std::declval<ModelPart*>()))>;
 
         ModelPart* p_current_part = this;
 
-        if constexpr(!std::is_same_v<iterator, std::remove_cv<TIterator>>) {
+        if constexpr(!std::is_same_v<typename container_type::iterator, std::remove_cv_t<TIterator>> &&
+                     !std::is_same_v<typename container_type::const_iterator, std::remove_cv_t<TIterator>>) {
             // this represents the case 1.
-            using container_type = std::remove_pointer_t<decltype(std::declval<TContainerGetter>()(std::declval<ModelPart*>()))>;
             container_type aux;
             aux.insert(begin, end);
 
@@ -2094,13 +2097,15 @@ private:
         } else {
             // this represents the case 2.
             // now the iterators belong to PVS::iterator, hence no sorting or making them to unique will occur.
-            while (p_current_part->IsSubModelPart() && !IsSubSet(*rContainerGetter(p_current_part), begin, end)) {
+            bool is_sub_set = IsSubSet(*rContainerGetter(p_current_part), begin, end);
+            while (p_current_part->IsSubModelPart() && !is_sub_set) {
                 rContainerGetter(p_current_part)->insert(begin, end);
                 p_current_part = &(p_current_part->GetParentModelPart());
+                is_sub_set = IsSubSet(*rContainerGetter(p_current_part), begin, end);
             }
 
             // now we do the same for the root model part
-            if (!IsSubSet(*rContainerGetter(p_current_part), begin, end)) {
+            if (!is_sub_set) {
                 rContainerGetter(p_current_part)->insert(begin, end);
             }
         }
@@ -2109,7 +2114,7 @@ private:
     }
 
     template<class TContainerGetter, class TInputContainer, std::enable_if_t<IsRValueContainer<TInputContainer>::value, bool> = true>
-    void InsertEntityRValuedContainer(
+    void InsertEntities(
         const TContainerGetter& rContainerGetter,
         TInputContainer&& rInputContainer)
     {
