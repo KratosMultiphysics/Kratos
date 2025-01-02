@@ -679,14 +679,6 @@ double& SmallStrainUMAT3DLaw::GetValue(const Variable<double>& rThisVariable, do
     return rValue;
 }
 
-int& SmallStrainUMAT3DLaw::GetValue(const Variable<int>& rThisVariable, int& rValue)
-{
-    if (rThisVariable == NUMBER_OF_UMAT_STATE_VARIABLES)
-        rValue = static_cast<int>(mStateVariablesFinalized.size());
-
-    return rValue;
-}
-
 void SmallStrainUMAT3DLaw::SetValue(const Variable<double>& rThisVariable,
                                     const double&           rValue,
                                     const ProcessInfo&      rCurrentProcessInfo)

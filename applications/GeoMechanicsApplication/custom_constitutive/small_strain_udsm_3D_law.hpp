@@ -133,7 +133,7 @@ public:
     /**
      * @brief Clone method
      */
-    ConstitutiveLaw::Pointer Clone() const override;
+    [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override;
 
     /**
      * Copy constructor.
@@ -162,7 +162,7 @@ public:
     /**
      * @brief Voigt tensor size:
      */
-    SizeType GetStrainSize() const override { return VoigtSize; }
+    [[nodiscard]] SizeType GetStrainSize() const override { return VoigtSize; }
 
     /**
      * @brief Returns the expected strain measure of this constitutive law (by default Green-Lagrange)
@@ -258,7 +258,7 @@ public:
     // @details It is designed to be called only once (or anyway, not often) typically at the beginning
     //          of the calculations, so to verify that nothing is missing from the input or that
     //          no common error is found.
-    int Check(const Properties&   rMaterialProperties,
+    [[nodiscard]] int Check(const Properties&   rMaterialProperties,
               const GeometryType& rElementGeometry,
               const ProcessInfo&  rCurrentProcessInfo) const override;
 
@@ -289,14 +289,13 @@ public:
      * @param rMaterialProperties the Properties instance of the current element
      * @param rElementGeometry the geometry of the current element
      * @param rShapeFunctionsValues the shape functions values in the current integration point
-     * @param the current ProcessInfo instance
+     * the current ProcessInfo instance
      */
     void ResetMaterial(const Properties&   rMaterialProperties,
                        const GeometryType& rElementGeometry,
                        const Vector&       rShapeFunctionsValues) override;
 
     double& GetValue(const Variable<double>& rThisVariable, double& rValue) override;
-    int&    GetValue(const Variable<int>& rThisVariable, int& rValue) override;
     Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
     using ConstitutiveLaw::GetValue;
 
@@ -313,7 +312,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override { return "SmallStrainUDSM3DLaw"; }
+    [[nodiscard]] std::string Info() const override { return "SmallStrainUDSM3DLaw"; }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
@@ -456,7 +455,7 @@ private:
 
     // get number of MaterialParameters
     SizeType GetNumberOfMaterialParametersFromUDSM(const Properties& rMaterialProperties);
-    int      GetStateVariableIndex(const Variable<double>& rThisVariable) const;
+    [[nodiscard]] int      GetStateVariableIndex(const Variable<double>& rThisVariable) const;
 
     ///@}
     ///@name Serialization
