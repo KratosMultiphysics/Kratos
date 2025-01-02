@@ -103,7 +103,7 @@
 // Rules of mixtures
 #include "custom_constitutive/composites/rule_of_mixtures_law.h"
 #include "custom_constitutive/composites/traction_separation_law.h"
-#include "custom_constitutive/small_strains/anisotropy_orthotropy/generic_anisotropic_3d_law.h"
+#include "custom_constitutive/small_strains/anisotropy_orthotropy/generic_anisotropic_law.h"
 
 #include "custom_constitutive/small_strains/plastic_damage/associative_plastic_damage_model.h"
 
@@ -1357,7 +1357,7 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
     ;
 
     py::class_< GenericAnisotropicLaw<2>, typename GenericAnisotropicLaw<2>::Pointer,  ConstitutiveLaw  >
-    (m,"GenericAnisotropic2DLaw").def(py::init<>())
+    (m,"GenericAnisotropicPlaneStrain2DLaw").def(py::init<>())
     ;
 
     py::class_< GenericAnisotropicLaw<3>, typename GenericAnisotropicLaw<3>::Pointer,  ConstitutiveLaw  >

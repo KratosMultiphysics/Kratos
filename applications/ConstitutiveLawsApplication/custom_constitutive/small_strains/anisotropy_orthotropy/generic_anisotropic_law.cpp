@@ -19,7 +19,7 @@
 // Project includes
 
 #include "constitutive_laws_application_variables.h"
-#include "generic_anisotropic_3d_law.h"
+#include "generic_anisotropic_law.h"
 #include "custom_utilities/tangent_operator_calculator_utility.h"
 #include "custom_utilities/advanced_constitutive_law_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
