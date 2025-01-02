@@ -677,19 +677,23 @@ Matrix AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateDirectPlasticDefor
 template<SizeType TVoigtSize>
 void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEuler1(
     const double EulerAngle1,
-    BoundedMatrix<double, 3, 3>& rRotationOperator
+    BoundedMatrix<double, Dimension, Dimension>& rRotationOperator
     )
 {
-    noalias(rRotationOperator) = ZeroMatrix(Dimension, Dimension);
+    rRotationOperator.clear();
 
-    const double cos_angle = std::cos(EulerAngle1 * Globals::Pi / 180.0);
-    const double sin_angle = std::sin(EulerAngle1 * Globals::Pi / 180.0);
+    const double angle_radians = EulerAngle1 * Globals::Pi / 180.0;
+    const double cos_angle = std::cos(angle_radians);
+    const double sin_angle = std::sin(angle_radians);
 
     rRotationOperator(0, 0) = cos_angle;
     rRotationOperator(0, 1) = sin_angle;
     rRotationOperator(1, 0) = -sin_angle;
     rRotationOperator(1, 1) = cos_angle;
-    rRotationOperator(2, 2) = 1.0;
+
+    if constexpr (Dimension == 3) {
+        rRotationOperator(2, 2) = 1.0;
+    }
 }
 
 /***********************************************************************************/
@@ -698,19 +702,24 @@ void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEule
 template<SizeType TVoigtSize>
 void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEuler2(
     const double EulerAngle2,
-    BoundedMatrix<double, 3, 3>& rRotationOperator
+    BoundedMatrix<double, Dimension, Dimension>& rRotationOperator
     )
 {
-    noalias(rRotationOperator) = ZeroMatrix(Dimension, Dimension);
+    rRotationOperator.clear();
 
-    const double cos_angle = std::cos(EulerAngle2 * Globals::Pi / 180.0);
-    const double sin_angle = std::sin(EulerAngle2 * Globals::Pi / 180.0);
+    if constexpr (Dimension == 3) {
+        const double cos_angle = std::cos(EulerAngle2 * Globals::Pi / 180.0);
+        const double sin_angle = std::sin(EulerAngle2 * Globals::Pi / 180.0);
 
-    rRotationOperator(0, 0) = 1.0;
-    rRotationOperator(1, 1) = cos_angle;
-    rRotationOperator(1, 2) = sin_angle;
-    rRotationOperator(2, 1) = -sin_angle;
-    rRotationOperator(2, 2) = cos_angle;
+        rRotationOperator(0, 0) = 1.0;
+        rRotationOperator(1, 1) = cos_angle;
+        rRotationOperator(1, 2) = sin_angle;
+        rRotationOperator(2, 1) = -sin_angle;
+        rRotationOperator(2, 2) = cos_angle;
+    } else {
+        KRATOS_ERROR << "This operation cannot be done in Dimension = 2 ..."
+    }
+
 }
 
 /***********************************************************************************/
@@ -719,7 +728,7 @@ void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEule
 template<SizeType TVoigtSize>
 void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEuler3(
     const double EulerAngle3,
-    BoundedMatrix<double, 3, 3>& rRotationOperator
+    BoundedMatrix<double, Dimension, Dimension>& rRotationOperator
     )
 {
     AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEuler1(EulerAngle3, rRotationOperator);
@@ -733,26 +742,32 @@ void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperator(
     const double EulerAngle1, // phi
     const double EulerAngle2, // theta
     const double EulerAngle3, // hi
-    BoundedMatrix<double, 3, 3>& rRotationOperator // global to local coordinates
+    BoundedMatrix<double, Dimension, Dimension>& rRotationOperator // global to local coordinates
     )
 {
-    const double pi_over_180 = Globals::Pi / 180.0;
-    const double cos1 = std::cos(EulerAngle1 * pi_over_180);
-    const double sin1 = std::sin(EulerAngle1 * pi_over_180);
-    const double cos2 = std::cos(EulerAngle2 * pi_over_180);
-    const double sin2 = std::sin(EulerAngle2 * pi_over_180);
-    const double cos3 = std::cos(EulerAngle3 * pi_over_180);
-    const double sin3 = std::sin(EulerAngle3 * pi_over_180);
 
-    rRotationOperator(0, 0) = cos1 * cos3 - sin1 * cos2 * sin3;
-    rRotationOperator(0, 1) = sin1 * cos3 + cos1 * cos2 * sin3;
-    rRotationOperator(0, 2) = sin2 * sin3;
-    rRotationOperator(1, 0) = -cos1 * sin3 - sin1 * cos2 * cos3;
-    rRotationOperator(1, 1) = -sin1 * sin3 + cos1 * cos2 * cos3;
-    rRotationOperator(1, 2) = sin2 * cos3;
-    rRotationOperator(2, 0) = sin1 * sin2;
-    rRotationOperator(2, 1) = -cos1 * sin2;
-    rRotationOperator(2, 2) = cos2;
+    const double pi_over_180 = Globals::Pi / 180.0;
+
+    if constexpr (Dimension == 3) {
+        const double cos1 = std::cos(EulerAngle1 * pi_over_180);
+        const double sin1 = std::sin(EulerAngle1 * pi_over_180);
+        const double cos2 = std::cos(EulerAngle2 * pi_over_180);
+        const double sin2 = std::sin(EulerAngle2 * pi_over_180);
+        const double cos3 = std::cos(EulerAngle3 * pi_over_180);
+        const double sin3 = std::sin(EulerAngle3 * pi_over_180);
+
+        rRotationOperator(0, 0) = cos1 * cos3 - sin1 * cos2 * sin3;
+        rRotationOperator(0, 1) = sin1 * cos3 + cos1 * cos2 * sin3;
+        rRotationOperator(0, 2) = sin2 * sin3;
+        rRotationOperator(1, 0) = -cos1 * sin3 - sin1 * cos2 * cos3;
+        rRotationOperator(1, 1) = -sin1 * sin3 + cos1 * cos2 * cos3;
+        rRotationOperator(1, 2) = sin2 * cos3;
+        rRotationOperator(2, 0) = sin1 * sin2;
+        rRotationOperator(2, 1) = -cos1 * sin2;
+        rRotationOperator(2, 2) = cos2;
+    } else { // In 2D
+        AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEuler1(EulerAngle1, rRotationOperator);
+    }
 }
 
 /***********************************************************************************/
