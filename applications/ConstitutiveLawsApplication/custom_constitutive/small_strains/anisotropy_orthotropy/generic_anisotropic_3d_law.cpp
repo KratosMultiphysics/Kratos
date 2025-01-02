@@ -287,9 +287,7 @@ void GenericAnisotropicLaw<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw::P
     this->CalculateAnisotropicStressMapperMatrix(r_material_properties, stress_mapper, stress_mapper_inv);
     mpIsotropicCL->CalculateValue(rValues, CONSTITUTIVE_MATRIX, isotropic_elastic_matrix); // takes the props of the iso cl
     this->CalculateOrthotropicElasticMatrix(anisotropic_elastic_matrix, r_material_properties);
-    this->CalculateAnisotropicStrainMapperMatrix(anisotropic_elastic_matrix,
-                                                 isotropic_elastic_matrix, stress_mapper,
-                                                 strain_mapper);
+    this->CalculateAnisotropicStrainMapperMatrix(anisotropic_elastic_matrix, isotropic_elastic_matrix, stress_mapper, strain_mapper);
     Vector &r_iso_strain_vector = rValues.GetStrainVector();
     // Now we rotate the strain Eglob-> Eloc
     r_iso_strain_vector = prod(voigt_rotation_matrix, r_iso_strain_vector);

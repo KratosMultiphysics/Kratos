@@ -717,7 +717,7 @@ void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEule
         rRotationOperator(2, 1) = -sin_angle;
         rRotationOperator(2, 2) = cos_angle;
     } else {
-        KRATOS_ERROR << "This operation cannot be done in Dimension = 2 ..."
+        KRATOS_ERROR << "This operation cannot be done in Dimension = 2 ..." << std::endl;
     }
 
 }

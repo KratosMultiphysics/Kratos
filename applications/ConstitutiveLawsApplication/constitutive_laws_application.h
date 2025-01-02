@@ -623,7 +623,8 @@ private:
 	const ParallelRuleOfMixturesLaw<2> mParallelRuleOfMixturesLaw2D;
 
     // Anisotropic law
-    const GenericAnisotropic3DLaw mGenericAnisotropic3DLaw;
+    const GenericAnisotropicLaw<2> mGenericAnisotropic2DLaw;
+    const GenericAnisotropicLaw<3> mGenericAnisotropic3DLaw;
 
     const AssociativePlasticDamageModel <VonMisesYieldSurface<VonMisesPlasticPotential<6>>> mAssociativePlasticDamageModel3DVonMises;
     const AssociativePlasticDamageModel <DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>> mAssociativePlasticDamageModel3DDruckerPrager;
