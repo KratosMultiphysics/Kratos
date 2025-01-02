@@ -67,6 +67,7 @@
 #include "custom_constitutive/small_strains/damage/generic_small_strain_orthotropic_damage.h"
 #include "custom_constitutive/composites/serial_parallel_rule_of_mixtures_law.h"
 #include "custom_constitutive/small_strains/anisotropy_orthotropy/generic_anisotropic_law.h"
+#include "custom_constitutive/small_strains/anisotropy_orthotropy/generic_anisotropic_plane_stress_2d_law.h"
 #include "custom_constitutive/small_strains/linear/multi_linear_elastic_1d_law.h"
 #include "custom_constitutive/small_strains/linear/multi_linear_isotropic_plane_stress_2d.h"
 #include "custom_constitutive/small_strains/damage/generic_small_strain_isotropic_damage_plane_stress.h"
@@ -625,6 +626,7 @@ private:
     // Anisotropic law
     const GenericAnisotropicLaw<2> mGenericAnisotropicPlaneStrain2DLaw;
     const GenericAnisotropicLaw<3> mGenericAnisotropic3DLaw;
+    const GenericAnisotropicPlaneStress2DLaw mGenericAnisotropicPlaneStress2DLaw;
 
     const AssociativePlasticDamageModel <VonMisesYieldSurface<VonMisesPlasticPotential<6>>> mAssociativePlasticDamageModel3DVonMises;
     const AssociativePlasticDamageModel <DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>> mAssociativePlasticDamageModel3DDruckerPrager;

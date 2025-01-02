@@ -486,16 +486,16 @@ void GenericAnisotropicLaw<TDim>::CalculateAnisotropicStressMapperMatrix(
     rAsInv.clear();
     const Vector &r_iso_aniso_yield_ratios = rProperties[ISOTROPIC_ANISOTROPIC_YIELD_RATIO];
     if constexpr (VoigtSize == 6) {
-        rAs(0, 0) = r_iso_aniso_yield_ratios(0);
-        rAs(1, 1) = r_iso_aniso_yield_ratios(1);
-        rAs(2, 2) = r_iso_aniso_yield_ratios(2);
-        rAs(3, 3) = r_iso_aniso_yield_ratios(3);
-        rAs(4, 4) = r_iso_aniso_yield_ratios(4);
-        rAs(5, 5) = r_iso_aniso_yield_ratios(5);
+        rAs(0, 0) = r_iso_aniso_yield_ratios[0];
+        rAs(1, 1) = r_iso_aniso_yield_ratios[1];
+        rAs(2, 2) = r_iso_aniso_yield_ratios[2];
+        rAs(3, 3) = r_iso_aniso_yield_ratios[3];
+        rAs(4, 4) = r_iso_aniso_yield_ratios[4];
+        rAs(5, 5) = r_iso_aniso_yield_ratios[5];
     } else {
-        rAs(0, 0) = r_iso_aniso_yield_ratios(0);
-        rAs(1, 1) = r_iso_aniso_yield_ratios(1);
-        rAs(2, 2) = r_iso_aniso_yield_ratios(2);
+        rAs(0, 0) = r_iso_aniso_yield_ratios[0];
+        rAs(1, 1) = r_iso_aniso_yield_ratios[1];
+        rAs(2, 2) = r_iso_aniso_yield_ratios[2];
     }
 
     for (IndexType i = 0; i < VoigtSize; ++i)

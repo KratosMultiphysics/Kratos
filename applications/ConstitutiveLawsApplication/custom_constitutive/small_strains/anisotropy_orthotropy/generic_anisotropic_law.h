@@ -61,10 +61,10 @@ public:
     ///@{
 
     /// The node definition
-    typedef Node NodeType;
+    using NodeType = Node;
 
     /// The geometry definition
-    typedef Geometry<NodeType> GeometryType;
+    using GeometryType = Geometry<NodeType>;
 
     /// Definition of the machine precision tolerance
     static constexpr double machine_tolerance = std::numeric_limits<double>::epsilon();
