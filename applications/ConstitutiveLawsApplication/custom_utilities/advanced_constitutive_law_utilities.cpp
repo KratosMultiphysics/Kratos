@@ -939,7 +939,7 @@ void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateOrthotropicElasticMa
 
     const double factor = a * d - b * c;
 
-    const double G12 = (rMaterialProperties.Has(SHEAR_MODULUS_XY)) ? rMaterialProperties[SHEAR_MODULUS_XY] : 1.0 / ((1.0 + v21) * E1 + (1.0 + v12) / E2);
+    const double G12 = (rMaterialProperties.Has(SHEAR_MODULUS_XY)) ? rMaterialProperties[SHEAR_MODULUS_XY] : 1.0 / ((1.0 + v21) / E1 + (1.0 + v12) / E2);
 
     rElasticityTensor(0, 0) = a * E1;
     rElasticityTensor(0, 1) = b * E1;
@@ -975,7 +975,7 @@ void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateOrthotropicElasticMa
 
     const double factor = 1.0 - v12 * v21;
 
-    const double G12 = (rMaterialProperties.Has(SHEAR_MODULUS_XY)) ? rMaterialProperties[SHEAR_MODULUS_XY] : 1.0 / ((1.0 + v21) * E1 + (1.0 + v12) / E2);
+    const double G12 = (rMaterialProperties.Has(SHEAR_MODULUS_XY)) ? rMaterialProperties[SHEAR_MODULUS_XY] : 1.0 / ((1.0 + v21) / E1 + (1.0 + v12) / E2);
 
     rElasticityTensor(0, 0) = E1;
     rElasticityTensor(0, 1) = v21 * E1;
