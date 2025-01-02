@@ -860,6 +860,11 @@ public:
         return mData.capacity();
     }
 
+    void shrink_to_fit()
+    {
+        mData.shrink_to_fit();
+    }
+
     /**
      * @brief Sort the elements in the set.
      * @details This function sorts the elements in the set using the CompareKey comparison function. After sorting,
