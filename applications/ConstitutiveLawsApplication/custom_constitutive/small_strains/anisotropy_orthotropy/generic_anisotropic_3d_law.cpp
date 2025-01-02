@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "utilities/math_utils.h"
+
 #include "constitutive_laws_application_variables.h"
 #include "generic_anisotropic_3d_law.h"
 #include "custom_utilities/tangent_operator_calculator_utility.h"
@@ -475,7 +475,7 @@ Vector& GenericAnisotropicLaw<TDim>::CalculateValue(
             values_iso_cl.SetMaterialProperties(r_props_iso_cl);
 
             // Here we compute the rotation tensors due to the angles of the local and global axes
-            BoundedMatrixVoigtType voigt_rotation_matrix;
+            BoundedMatrixVoigtType voigt_rotation_matrix, inv_voigt_rotation_matrix;
             CalculateRotationMatrixVoigt(r_material_properties, voigt_rotation_matrix);
             double det = 0.0;
             MathUtils<double>::InvertMatrix(voigt_rotation_matrix, inv_voigt_rotation_matrix, det);
@@ -637,5 +637,11 @@ void GenericAnisotropicLaw<TDim>::CalculateTangentTensor(ConstitutiveLaw::Parame
         TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_PK2, consider_perturbation_threshold, 2);
     }
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template class GenericAnisotropicLaw<2>;
+template class GenericAnisotropicLaw<3>;
 
 } // namespace Kratos

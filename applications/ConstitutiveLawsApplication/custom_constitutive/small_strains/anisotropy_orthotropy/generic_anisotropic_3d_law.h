@@ -100,7 +100,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) GenericAnisotropicLaw
     */
     ConstitutiveLaw::Pointer Clone() const override
     {
-        return Kratos::make_shared<GenericAnisotropicLaw>(*this);
+        return Kratos::make_shared<GenericAnisotropicLaw<TDim>>(*this);
     }
 
     // Copy constructor
