@@ -12,6 +12,9 @@
 //                   Vicente Mataix Ferrandiz
 //
 
+// System includes
+#include <numeric>
+
 // Project includes
 #include "containers/model.h"
 #include "testing/testing.h"
@@ -579,5 +582,75 @@ namespace Kratos::Testing {
         KRATOS_EXPECT_EXCEPTION_IS_THROWN(
             model_part.RemoveSubModelPart("Inlet1.sub_inlet.sub_sub_inlet.test"),
             "Error: There is no sub model part with name \"sub_sub_inlet\" in model part \"Main.Inlet1.sub_inlet\"");
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(ModelPartSubRangeAddition, KratosCoreFastSuite)
+    {
+        Model model;
+        auto& r_model_part = model.CreateModelPart("test");
+        Properties::Pointer p_elem_prop = r_model_part.CreateNewProperties(0);
+
+        for (IndexType i = 0; i < 16; ++i) {
+            r_model_part.CreateNewNode(i + 1, 0.0, 0.0, 0.0);
+        }
+
+        KRATOS_EXPECT_EQ(r_model_part.Nodes().size(), 16);
+        KRATOS_EXPECT_EQ(r_model_part.Nodes().capacity(), 16);
+
+        auto& r_sub_model_part_1 = r_model_part.CreateSubModelPart("sub1");
+        // following should not do anything hence the capacity should not be changed.
+        r_sub_model_part_1.AddNodes(r_model_part.Nodes().begin(), r_model_part.Nodes().end());
+        KRATOS_EXPECT_EQ(r_model_part.Nodes().size(), 16);
+        KRATOS_EXPECT_EQ(r_model_part.Nodes().capacity(), 16);
+        KRATOS_EXPECT_EQ(r_sub_model_part_1.Nodes().size(), 16);
+        KRATOS_EXPECT_EQ(r_sub_model_part_1.Nodes().capacity(), 16);
+
+        auto& r_sub_model_part_2 = r_sub_model_part_1.CreateSubModelPart("sub2");
+        // following should not do anything hence the capacity should not be changed.
+        r_sub_model_part_2.AddNodes(r_model_part.Nodes().begin() + 8, r_model_part.Nodes().end());
+        KRATOS_EXPECT_EQ(r_model_part.Nodes().size(), 16);
+        KRATOS_EXPECT_EQ(r_model_part.Nodes().capacity(), 16);
+        KRATOS_EXPECT_EQ(r_sub_model_part_1.Nodes().size(), 16);
+        // the capacity of the r_sub_model_part_1 has increased because, the r_sub_model_part_2
+        // used the iterators of the r_model_part. Then r_sub_model_part_1 is not a subset of r_model_part
+        // because even though they are pointing to the same memory locations, the intrusive_ptrs memory locations
+        // are not a subset.
+        KRATOS_EXPECT_EQ(r_sub_model_part_1.Nodes().capacity(), 24);
+        KRATOS_EXPECT_EQ(r_sub_model_part_2.Nodes().size(), 8);
+        KRATOS_EXPECT_EQ(r_sub_model_part_2.Nodes().capacity(), 8);
+
+        // now we add using a sub range to sub2
+        auto& r_sub_model_part_3 = r_sub_model_part_1.CreateSubModelPart("sub3");
+        // following should not do anything hence the capacity should not be changed.
+        r_sub_model_part_3.AddNodes(r_model_part.Nodes().begin() + 4, r_model_part.Nodes().end());
+        KRATOS_EXPECT_EQ(r_model_part.Nodes().size(), 16);
+        KRATOS_EXPECT_EQ(r_model_part.Nodes().capacity(), 16);
+        KRATOS_EXPECT_EQ(r_sub_model_part_1.Nodes().size(), 16);
+
+        // again here the capacity changes because not r_sub_model_part_1 contains intrusive_ptrs
+        // which are not a sub set of the r_model_part
+        KRATOS_EXPECT_EQ(r_sub_model_part_1.Nodes().capacity(), 28);
+        KRATOS_EXPECT_EQ(r_sub_model_part_2.Nodes().size(), 8);
+        KRATOS_EXPECT_EQ(r_sub_model_part_2.Nodes().capacity(), 8);
+        KRATOS_EXPECT_EQ(r_sub_model_part_3.Nodes().size(), 12);
+        KRATOS_EXPECT_EQ(r_sub_model_part_3.Nodes().capacity(), 12);
+
+        auto& r_sub_model_part_4 = r_sub_model_part_3.CreateSubModelPart("sub4");
+        r_sub_model_part_4.AddNodes(r_sub_model_part_3.Nodes().begin() + 4, r_sub_model_part_3.Nodes().end() - 1);
+
+        // now there shouldn't be any change in the size or the capacity, because
+        // now we added r_sub_model_part_3 items to the r_sub_model_part_4. Then it will add them to the
+        // r_sub_model_part_4, and when it checks IsSubSet for added nodes with r_sub_model_part_3, then it will
+        // be a subset, hence all the parent model part additions are ignored.
+        KRATOS_EXPECT_EQ(r_model_part.Nodes().size(), 16);
+        KRATOS_EXPECT_EQ(r_model_part.Nodes().capacity(), 16);
+        KRATOS_EXPECT_EQ(r_sub_model_part_1.Nodes().size(), 16);
+        KRATOS_EXPECT_EQ(r_sub_model_part_1.Nodes().capacity(), 28);
+        KRATOS_EXPECT_EQ(r_sub_model_part_2.Nodes().size(), 8);
+        KRATOS_EXPECT_EQ(r_sub_model_part_2.Nodes().capacity(), 8);
+        KRATOS_EXPECT_EQ(r_sub_model_part_3.Nodes().size(), 12);
+        KRATOS_EXPECT_EQ(r_sub_model_part_3.Nodes().capacity(), 12);
+        KRATOS_EXPECT_EQ(r_sub_model_part_4.Nodes().size(), 7);
+        KRATOS_EXPECT_EQ(r_sub_model_part_4.Nodes().capacity(), 7);
     }
 }  // namespace Kratos::Testing.
