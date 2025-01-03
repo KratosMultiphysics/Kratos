@@ -15,9 +15,9 @@
 
 // Project includes
 #include "custom_workflows/dgeoflow.h"
-#include "flow_stubs.h"
-#include "geo_mechanics_fast_suite.h"
-#include "test_utilities.h"
+#include "tests/cpp_tests/flow_stubs.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/test_utilities.h"
 
 namespace
 {

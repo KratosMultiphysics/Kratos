@@ -11,10 +11,10 @@
 //
 
 #include "custom_workflows/dgeosettlement.h"
-#include "geo_mechanics_fast_suite.h"
-#include "stub_input_utility.h"
-#include "stub_process_info_parser.h"
-#include "stub_time_loop_executor.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/stub_input_utility.h"
+#include "tests/cpp_tests/stub_process_info_parser.h"
+#include "tests/cpp_tests/stub_time_loop_executor.h"
 
 using namespace Kratos;
 

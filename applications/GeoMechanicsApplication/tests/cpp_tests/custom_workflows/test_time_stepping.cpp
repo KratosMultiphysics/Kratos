@@ -13,8 +13,8 @@
 
 #include "custom_workflows/strategy_wrapper.hpp"
 #include "custom_workflows/time_step_executor.h"
-#include "geo_mechanics_fast_suite.h"
 #include "solving_strategies/strategies/solving_strategy.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 #include <gmock/gmock.h>
 
