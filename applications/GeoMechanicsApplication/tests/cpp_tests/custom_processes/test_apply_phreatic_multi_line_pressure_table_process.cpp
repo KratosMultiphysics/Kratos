@@ -11,8 +11,8 @@
 //
 #include "containers/model.h"
 #include "custom_processes/apply_phreatic_multi_line_pressure_table_process.h"
-#include "geo_mechanics_fast_suite.h"
 #include "includes/checks.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 using namespace Kratos;
 

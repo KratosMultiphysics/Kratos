@@ -12,7 +12,7 @@
 
 #include "custom_processes/calculate_incremental_displacement_process.h"
 #include "geo_mechanics_application_variables.h"
-#include "geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 namespace Kratos::Testing
 {

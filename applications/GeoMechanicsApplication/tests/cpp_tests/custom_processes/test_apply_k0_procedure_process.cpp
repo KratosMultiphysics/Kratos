@@ -12,10 +12,10 @@
 #include "containers/model.h"
 #include "custom_processes/apply_k0_procedure_process.h"
 #include "geo_mechanics_application_variables.h"
-#include "geo_mechanics_fast_suite.h"
 #include "includes/element.h"
-#include "stub_linear_elastic_law.h"
-#include "test_utilities.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/stub_linear_elastic_law.h"
+#include "tests/cpp_tests/test_utilities.h"
 #include <custom_constitutive/incremental_linear_elastic_law.h>
 
 #include <boost/numeric/ublas/assignment.hpp>

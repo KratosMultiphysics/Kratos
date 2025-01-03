@@ -11,10 +11,10 @@
 //
 #include "containers/model.h"
 #include "custom_processes/apply_constant_phreatic_multi_line_pressure_process.h"
-#include "geo_mechanics_fast_suite.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "includes/checks.h"
 #include "processes/structured_mesh_generator_process.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 using namespace Kratos;
 

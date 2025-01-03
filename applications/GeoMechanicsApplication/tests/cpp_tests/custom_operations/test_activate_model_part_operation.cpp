@@ -12,10 +12,10 @@
 
 // Project includes
 #include "containers/model.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "includes/expect.h"
 #include "processes/structured_mesh_generator_process.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 // Application includes
 #include "custom_operations/activate_model_part_operation.h"
