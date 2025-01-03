@@ -176,4 +176,28 @@ KRATOS_TEST_CASE_IN_SUITE(CheckFailureUmatInputsApplyCPhiReductionProcess, Krato
         (ApplyCPhiReductionProcess{r_model_part, {}}.ExecuteInitializeSolutionStep()),
         "Cohesion C out of range: -1e-05")
 }
+
+KRATOS_TEST_CASE_IN_SUITE(CheckFailureEmptyModelPartApplyCPhiReductionProcess, KratosGeoMechanicsFastSuite)
+{
+    Model model;
+    auto& r_modelpart = model.CreateModelPart("dummy");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ApplyCPhiReductionProcess{r_modelpart, {}}.Check()),
+                                      "ApplyCPhiReductionProces has no elements in modelpart dummy")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckFailureNegativeReductionFactorApplyCPhiReductionProcess, KratosGeoMechanicsFastSuite)
+{
+    Model model;
+    auto& r_model_part = PrepareCPhiTestModelPart(model);
+
+    ApplyCPhiReductionProcess process{r_model_part, {}};
+    for (size_t i = 0; i < 9; ++i) {
+        process.ExecuteInitializeSolutionStep();
+        process.ExecuteFinalizeSolutionStep();
+    }
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        process.ExecuteInitializeSolutionStep(),
+        "Reduction factor should not drop below 0.01, calculation stopped.");
+}
+
 } // namespace Kratos::Testing

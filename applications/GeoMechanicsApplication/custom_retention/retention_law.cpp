@@ -11,44 +11,10 @@
 //
 
 /* Project includes */
-#include "custom_retention/saturated_law.h"
+#include "custom_retention/retention_law.h"
 
 namespace Kratos
 {
-
-void RetentionLaw::InitializeMaterial(const Properties&   rMaterialProperties,
-                                      const GeometryType& rElementGeometry,
-                                      const Vector&       rShapeFunctionsValues)
-{
-    // nothing
-}
-
-void RetentionLaw::Initialize(Parameters& rParameters)
-{
-    // nothing
-}
-
-void RetentionLaw::InitializeSolutionStep(Parameters& rParameters)
-{
-    // nothing
-}
-
-void RetentionLaw::FinalizeSolutionStep(Parameters& rParameters)
-{
-    // nothing
-}
-
-void RetentionLaw::Finalize(Parameters& rParameters)
-{
-    // nothing
-}
-
-void RetentionLaw::ResetMaterial(const Properties&   rMaterialProperties,
-                                 const GeometryType& rElementGeometry,
-                                 const Vector&       rShapeFunctionsValues)
-{
-    // nothing
-}
 
 void RetentionLaw::save(Serializer& rSerializer) const
 {
