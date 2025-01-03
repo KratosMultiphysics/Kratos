@@ -11,8 +11,8 @@
 //
 
 #include "custom_strategies/schemes/newmark_dynamic_U_Pw_scheme.hpp"
-#include "geo_mechanics_fast_suite.h"
 #include "spaces/ublas_space.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 namespace Kratos::Testing
 {

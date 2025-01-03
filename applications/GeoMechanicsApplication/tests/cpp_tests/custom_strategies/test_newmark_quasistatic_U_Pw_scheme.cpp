@@ -10,12 +10,12 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 #include "custom_strategies/schemes/newmark_quasistatic_U_Pw_scheme.hpp"
 #include "spaces/ublas_space.h"
-#include "test_utilities/spy_condition.h"
-#include "test_utilities/spy_element.h"
+#include "tests/cpp_tests/test_utilities/spy_condition.h"
+#include "tests/cpp_tests/test_utilities/spy_element.h"
 
 namespace Kratos::Testing
 {

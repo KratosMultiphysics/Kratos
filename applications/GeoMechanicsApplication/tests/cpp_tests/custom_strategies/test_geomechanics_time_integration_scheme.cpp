@@ -10,13 +10,13 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 #include "containers/model.h"
 #include "custom_strategies/schemes/geomechanics_time_integration_scheme.hpp"
 #include "spaces/ublas_space.h"
-#include "test_utilities/spy_condition.h"
-#include "test_utilities/spy_element.h"
+#include "tests/cpp_tests/test_utilities/spy_condition.h"
+#include "tests/cpp_tests/test_utilities/spy_element.h"
 
 using namespace Kratos;
 using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
