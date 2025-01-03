@@ -13,6 +13,7 @@
 #include "custom_constitutive/incremental_linear_elastic_law.h"
 #include "custom_constitutive/plane_strain.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include <tests/cpp_tests/geometries/test_geometry.h>
 
 #include <boost/numeric/ublas/assignment.hpp>
 
@@ -198,5 +199,33 @@ KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawThrows_WhenElementProv
                                       "The GeoLinearElasticLaw needs an element provided strain");
 }
 #endif
+
+KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawChecksYoungModulusAndPoissonRatio,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto                        law = CreateLinearElasticPlaneStrainLaw();
+    ConstitutiveLaw::Parameters parameters;
+    Properties                  properties;
+    parameters.SetMaterialProperties(properties);
+    ProcessInfo  process_info;
+    GeometryType element_geometry;
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        law.Check(properties, element_geometry, process_info),
+        "Error: YOUNG_MODULUS is not available in the parameters of material 0.")
+    properties.SetValue(YOUNG_MODULUS, -1.0e7);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        law.Check(properties, element_geometry, process_info),
+        "Error: The value of YOUNG_MODULUS (-1e+07) should be positive in material 0.")
+    properties.SetValue(YOUNG_MODULUS, 1.0e7);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        law.Check(properties, element_geometry, process_info),
+        "Error: POISSON_RATIO is not available in the parameters of material 0.")
+    properties.SetValue(POISSON_RATIO, 0.7);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        law.Check(properties, element_geometry, process_info),
+        "Error: The value of POISSON_RATIO (0.7) should be in the range [-1.0, 0.5> in material 0.")
+    properties.SetValue(POISSON_RATIO, 0.25);
+    KRATOS_EXPECT_EQ(law.Check(properties, element_geometry, process_info), 0);
+}
 
 } // namespace Kratos::Testing
