@@ -165,11 +165,10 @@ int GeoLinearElasticLaw::Check(const Properties&   rMaterialProperties,
         << "POISSON_RATIO is not available in the parameters of material "
         << rMaterialProperties.Id() << "." << std::endl;
 
-    const double& nu = rMaterialProperties[POISSON_RATIO];
-    KRATOS_ERROR_IF(rMaterialProperties[POISSON_RATIO] < -1.0 || rMaterialProperties[POISSON_RATIO] >= 0.5)
-        << "The value of POISSON_RATIO (" << rMaterialProperties[POISSON_RATIO]
-        << ") should be in the range [-1.0, 0.5> in material " << rMaterialProperties.Id() << "."
-        << std::endl;
+    const auto nu = rMaterialProperties[POISSON_RATIO];
+    KRATOS_ERROR_IF(nu < -1.0 || nu >= 0.5) << "The value of POISSON_RATIO (" << nu
+                                            << ") should be in the range [-1.0, 0.5> in material "
+                                            << rMaterialProperties.Id() << "." << std::endl;
 
     return 0;
 }
