@@ -14,7 +14,7 @@
 
 #include "custom_constitutive/truss_backbone_constitutive_law.h"
 #include "geo_mechanics_application_variables.h"
-#include "geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 using namespace Kratos;
 
