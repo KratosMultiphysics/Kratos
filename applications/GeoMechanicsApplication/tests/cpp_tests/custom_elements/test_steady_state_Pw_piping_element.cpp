@@ -17,7 +17,7 @@
 #include "custom_constitutive/linear_elastic_2D_interface_law.h"
 #include "custom_elements/plane_strain_stress_state.h"
 #include "custom_elements/steady_state_Pw_piping_element.hpp"
-#include "geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 namespace Kratos::Testing
 {
