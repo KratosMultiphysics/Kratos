@@ -13,7 +13,7 @@
 
 #include "custom_utilities/math_utilities.h"
 #include "custom_utilities/stress_strain_utilities.h"
-#include "geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "utilities/math_utils.h"
 #include <boost/numeric/ublas/assignment.hpp>
 

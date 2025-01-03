@@ -11,9 +11,9 @@
 //
 
 #include "custom_utilities/builder_and_solver_factory.hpp"
-#include "geo_mechanics_fast_suite.h"
 #include "linear_solvers/linear_solver.h"
 #include "spaces/ublas_space.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 using namespace Kratos;
 using SparseSpaceType  = UblasSpace<double, CompressedMatrix, Vector>;

@@ -13,7 +13,7 @@
 #include "custom_constitutive/linear_elastic_2D_interface_law.h"
 #include "custom_utilities/equation_of_motion_utilities.h"
 #include "geo_mechanics_application_variables.h"
-#include "geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
 #include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
 

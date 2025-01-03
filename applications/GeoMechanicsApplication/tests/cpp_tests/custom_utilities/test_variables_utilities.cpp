@@ -10,8 +10,8 @@
 //  Main authors:    Richard Faasse
 //
 #include "custom_utilities/variables_utilities.hpp"
-#include "geo_mechanics_fast_suite.h"
 #include "includes/variables.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 namespace Kratos::Testing
 {

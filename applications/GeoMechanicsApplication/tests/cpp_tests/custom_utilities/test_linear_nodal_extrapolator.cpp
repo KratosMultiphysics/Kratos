@@ -11,11 +11,11 @@
 //
 
 #include "custom_utilities/linear_nodal_extrapolator.h"
-#include "geo_mechanics_fast_suite.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/quadrilateral_2d_8.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/triangle_2d_6.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include <boost/numeric/ublas/assignment.hpp>
 
 namespace Kratos::Testing

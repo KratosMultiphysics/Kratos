@@ -11,7 +11,7 @@
 //
 
 #include "custom_utilities/json_process_info_parser.h"
-#include "geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 using namespace Kratos;
 

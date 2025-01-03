@@ -12,7 +12,7 @@
 //
 
 #include "custom_utilities/process_factory.hpp"
-#include "geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 using namespace Kratos;
 

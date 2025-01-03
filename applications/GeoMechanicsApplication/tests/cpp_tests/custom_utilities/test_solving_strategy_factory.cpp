@@ -12,7 +12,7 @@
 
 #include "containers/model.h"
 #include "custom_utilities/solving_strategy_factory.hpp"
-#include "geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 using namespace Kratos;
 
