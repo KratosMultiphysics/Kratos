@@ -421,7 +421,7 @@ void SmallStrainUMAT3DLaw::SetExternalStressVector(Vector& rStressVector)
 
 void SmallStrainUMAT3DLaw::SetInternalStressVector(const Vector& rStressVector)
 {
-    std::copy(rStressVector.begin(), rStressVector.end(), mStressVector.begin());
+    std::copy(rStressVector.begin(), rStressVector.end(), mStressVectorFinalized.begin());
 }
 
 void SmallStrainUMAT3DLaw::SetInternalStrainVector(const Vector& rStrainVector)
