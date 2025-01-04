@@ -10,8 +10,8 @@
 //
 //  Main authors:    Alejandro Cornejo
 //                   Vicente Mataix
-//                   Fernando Rastellini
-//  Collaborator:    Lucia Barbu
+//
+//
 //
 
 #pragma once
@@ -47,7 +47,8 @@ namespace Kratos
 /**
  * @class SerialParallelRuleOfMixturesLaw
  * @ingroup StructuralMechanicsApplication
- * @brief This CL implements the serial-parallel rule of mixtures developed by F.Rastellini
+ * @brief This CL implements the serial-parallel rule of mixtures detailed in Cornejo et al. "Methodology for the analysis of post-tensioned structures using a constitutive serial-parallel rule of mixtures"
+ * DOI: https://doi.org/10.1016/j.compstruct.2018.05.123
  * @details
  * @author Alejandro Cornejo
  */
@@ -59,10 +60,10 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
     ///@{
 
     /// The node definition
-    typedef Node NodeType;
+    using NodeType = Node;
 
     /// The geometry definition
-    typedef Geometry<NodeType> GeometryType;
+    using GeometryType = Geometry<NodeType>;
 
     /// Definition of the machine precision tolerance
     static constexpr double machine_tolerance = std::numeric_limits<double>::epsilon();

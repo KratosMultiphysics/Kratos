@@ -9,9 +9,9 @@
 //                   license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Alejandro Cornejo
-//                   Vicente Mataix Ferrandiz
-//                   Fernando Rastellini
-//  Collaborator:    Lucia Barbu
+//                   Vicente Mataix
+//
+//
 //
 
 // System includes
