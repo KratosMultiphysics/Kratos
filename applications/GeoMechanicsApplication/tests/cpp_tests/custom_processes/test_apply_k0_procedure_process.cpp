@@ -32,10 +32,10 @@ public:
     MOCK_METHOD(std::size_t, WorkingSpaceDimension, (), (override));
 };
 
-class StubElement : public Element
+class StubElementForK0ProcedureTest : public Element
 {
 public:
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(StubElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(StubElementForK0ProcedureTest);
 
     void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
                                       std::vector<Vector>&    rOutput,
@@ -63,7 +63,7 @@ Vector ApplyK0ProcedureOnStubElement(const Properties::Pointer& rProperties, con
 {
     Model model;
     auto& r_model_part = model.CreateModelPart("main");
-    auto  p_element    = make_intrusive<StubElement>();
+    auto  p_element    = make_intrusive<StubElementForK0ProcedureTest>();
     p_element->SetProperties(rProperties);
     r_model_part.AddElement(p_element);
 
@@ -98,7 +98,7 @@ ModelPart& PrepareTestModelPart(Model& rModel)
     auto  p_model_part_properties = result.pGetProperties(0);
     p_model_part_properties->SetValue(CONSTITUTIVE_LAW, p_dummy_law);
 
-    auto p_element = make_intrusive<StubElement>();
+    auto p_element = make_intrusive<StubElementForK0ProcedureTest>();
     p_element->SetProperties(p_model_part_properties);
     result.AddElement(p_element);
 
@@ -415,7 +415,7 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureChecksIfProcessHasCorrectMaterialData, Krat
     // Arrange
     Model model;
     auto& r_model_part = model.CreateModelPart("main");
-    auto  p_element    = make_intrusive<StubElement>();
+    auto  p_element    = make_intrusive<StubElementForK0ProcedureTest>();
     p_element->SetId(1);
     p_element->SetProperties(std::make_shared<Properties>());
     r_model_part.AddElement(p_element);

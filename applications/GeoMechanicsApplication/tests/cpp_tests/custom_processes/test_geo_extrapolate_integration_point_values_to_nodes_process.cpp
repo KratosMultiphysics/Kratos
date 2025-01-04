@@ -19,12 +19,15 @@
 namespace Kratos::Testing
 {
 
-class StubElement : public Element
+class StubElementForNodalExtrapolationTest : public Element
 {
 public:
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(StubElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(StubElementForNodalExtrapolationTest);
 
-    StubElement(IndexType NewId, GeometryType::Pointer pGeometry) : Element(NewId, pGeometry) {}
+    StubElementForNodalExtrapolationTest(IndexType NewId, GeometryType::Pointer pGeometry)
+        : Element(NewId, pGeometry)
+    {
+    }
 
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
                                       std::vector<double>&    rOutput,
@@ -83,11 +86,11 @@ ModelPart& CreateModelPartWithTwoStubElements(Model& model)
     auto node_6 = model_part.CreateNewNode(6, 2.0, 1.0, 0.0);
 
     auto geometry_1 = std::make_shared<Quadrilateral2D4<Node>>(node_1, node_2, node_3, node_4);
-    auto element_1  = Kratos::make_intrusive<StubElement>(1, geometry_1);
+    auto element_1  = Kratos::make_intrusive<StubElementForNodalExtrapolationTest>(1, geometry_1);
     model_part.AddElement(element_1);
 
     auto geometry_2 = std::make_shared<Quadrilateral2D4<Node>>(node_2, node_5, node_6, node_3);
-    auto element_2  = Kratos::make_intrusive<StubElement>(2, geometry_2);
+    auto element_2  = Kratos::make_intrusive<StubElementForNodalExtrapolationTest>(2, geometry_2);
     model_part.AddElement(element_2);
 
     return model_part;
@@ -134,8 +137,10 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForConst
     Model model;
     auto& model_part = CreateModelPartWithTwoStubElements(model);
 
-    dynamic_cast<StubElement&>(model_part.Elements()[1]).mIntegrationDoubleValues = {1.0, 1.0, 1.0, 1.0};
-    dynamic_cast<StubElement&>(model_part.Elements()[2]).mIntegrationDoubleValues = {1.0, 1.0, 1.0, 1.0};
+    dynamic_cast<StubElementForNodalExtrapolationTest&>(model_part.Elements()[1]).mIntegrationDoubleValues = {
+        1.0, 1.0, 1.0, 1.0};
+    dynamic_cast<StubElementForNodalExtrapolationTest&>(model_part.Elements()[2]).mIntegrationDoubleValues = {
+        1.0, 1.0, 1.0, 1.0};
 
     auto parameters = Parameters(R"(
     {
@@ -163,8 +168,10 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForTwoCo
     Model model;
     auto& model_part = CreateModelPartWithTwoStubElements(model);
 
-    dynamic_cast<StubElement&>(model_part.Elements()[1]).mIntegrationDoubleValues = {1.0, 1.0, 1.0, 1.0};
-    dynamic_cast<StubElement&>(model_part.Elements()[2]).mIntegrationDoubleValues = {2.0, 2.0, 2.0, 2.0};
+    dynamic_cast<StubElementForNodalExtrapolationTest&>(model_part.Elements()[1]).mIntegrationDoubleValues = {
+        1.0, 1.0, 1.0, 1.0};
+    dynamic_cast<StubElementForNodalExtrapolationTest&>(model_part.Elements()[2]).mIntegrationDoubleValues = {
+        2.0, 2.0, 2.0, 2.0};
 
     auto parameters = Parameters(R"(
     {
@@ -196,11 +203,11 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForLinea
     auto& model_part = CreateModelPartWithTwoStubElements(model);
 
     // Linear field in x between -1 and 1
-    dynamic_cast<StubElement&>(model_part.Elements()[1]).mIntegrationDoubleValues = {
+    dynamic_cast<StubElementForNodalExtrapolationTest&>(model_part.Elements()[1]).mIntegrationDoubleValues = {
         -0.57735, 0.57735, 0.57735, -0.57735};
 
     // Linear field in y between -1 and 1
-    dynamic_cast<StubElement&>(model_part.Elements()[2]).mIntegrationDoubleValues = {
+    dynamic_cast<StubElementForNodalExtrapolationTest&>(model_part.Elements()[2]).mIntegrationDoubleValues = {
         -0.57735, -0.57735, 0.57735, 0.57735};
 
     auto                                               parameters = Parameters(R"(
@@ -232,12 +239,12 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesMatrixCorrectlyFo
     auto& model_part = CreateModelPartWithTwoStubElements(model);
 
     // Linear field in x between -1 and 1
-    dynamic_cast<StubElement&>(model_part.Elements()[1]).mIntegrationMatrixValues = {
+    dynamic_cast<StubElementForNodalExtrapolationTest&>(model_part.Elements()[1]).mIntegrationMatrixValues = {
         ScalarMatrix(3, 3, -0.57735), ScalarMatrix(3, 3, 0.57735), ScalarMatrix(3, 3, 0.57735),
         ScalarMatrix(3, 3, -0.57735)};
 
     // Linear field in y between -1 and 1
-    dynamic_cast<StubElement&>(model_part.Elements()[2]).mIntegrationMatrixValues = {
+    dynamic_cast<StubElementForNodalExtrapolationTest&>(model_part.Elements()[2]).mIntegrationMatrixValues = {
         ScalarMatrix(3, 3, -0.57735), ScalarMatrix(3, 3, -0.57735), ScalarMatrix(3, 3, 0.57735),
         ScalarMatrix(3, 3, 0.57735)};
 
@@ -276,12 +283,12 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesVectorCorrectlyFo
     auto& model_part = CreateModelPartWithTwoStubElements(model);
 
     // Linear field in x between -1 and 1
-    dynamic_cast<StubElement&>(model_part.Elements()[1]).mIntegrationVectorValues = {
+    dynamic_cast<StubElementForNodalExtrapolationTest&>(model_part.Elements()[1]).mIntegrationVectorValues = {
         ScalarVector(6, -0.57735), ScalarVector(6, 0.57735), ScalarVector(6, 0.57735),
         ScalarVector(6, -0.57735)};
 
     // Linear field in y between -1 and 1
-    dynamic_cast<StubElement&>(model_part.Elements()[2]).mIntegrationVectorValues = {
+    dynamic_cast<StubElementForNodalExtrapolationTest&>(model_part.Elements()[2]).mIntegrationVectorValues = {
         ScalarVector(6, -0.57735), ScalarVector(6, -0.57735), ScalarVector(6, 0.57735), ScalarVector(6, 0.57735)};
 
     auto parameters = Parameters(R"(
@@ -319,12 +326,12 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesArrayCorrectlyFor
     auto& model_part = CreateModelPartWithTwoStubElements(model);
 
     // Linear field in x between -1 and 1
-    dynamic_cast<StubElement&>(model_part.Elements()[1]).mIntegrationArrayValues = {
+    dynamic_cast<StubElementForNodalExtrapolationTest&>(model_part.Elements()[1]).mIntegrationArrayValues = {
         ScalarVector(3, -0.57735), ScalarVector(3, 0.57735), ScalarVector(3, 0.57735),
         ScalarVector(3, -0.57735)};
 
     // Linear field in y between -1 and 1
-    dynamic_cast<StubElement&>(model_part.Elements()[2]).mIntegrationArrayValues = {
+    dynamic_cast<StubElementForNodalExtrapolationTest&>(model_part.Elements()[2]).mIntegrationArrayValues = {
         ScalarVector(3, -0.57735), ScalarVector(3, -0.57735), ScalarVector(3, 0.57735), ScalarVector(3, 0.57735)};
 
     auto parameters = Parameters(R"(
