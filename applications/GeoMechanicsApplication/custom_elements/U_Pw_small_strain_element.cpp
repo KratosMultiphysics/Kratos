@@ -1607,19 +1607,21 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeProperties(ElementVariabl
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainElement<TDim, TNumNodes>::CalculateKinematics(ElementVariables& rVariables, unsigned int GPoint)
+void UPwSmallStrainElement<TDim, TNumNodes>::CalculateKinematics(ElementVariables& rVariables,
+                                                                 unsigned int IntegrationPointIndex)
 {
     KRATOS_TRY
 
     // Setting the vector of shape functions and the matrix of the shape functions global gradients
-    noalias(rVariables.Np)      = row(rVariables.NContainer, GPoint);
-    noalias(rVariables.GradNpT) = rVariables.DN_DXContainer[GPoint];
+    noalias(rVariables.Np)      = row(rVariables.NContainer, IntegrationPointIndex);
+    noalias(rVariables.GradNpT) = rVariables.DN_DXContainer[IntegrationPointIndex];
 
-    rVariables.detJ = rVariables.detJContainer[GPoint];
+    rVariables.detJ = rVariables.detJContainer[IntegrationPointIndex];
 
     Matrix J0, InvJ0;
     this->CalculateDerivativesOnInitialConfiguration(rVariables.detJInitialConfiguration, J0, InvJ0,
-                                                     rVariables.GradNpTInitialConfiguration, GPoint);
+                                                     rVariables.GradNpTInitialConfiguration,
+                                                     IntegrationPointIndex);
 
     KRATOS_CATCH("")
 }
