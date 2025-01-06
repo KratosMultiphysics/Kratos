@@ -33,9 +33,9 @@ public:
 
     NewmarkQuasistaticUPwSchemeTester() { CreateValidModelPart(); }
 
-    NewmarkQuasistaticUPwScheme<SparseSpaceType, LocalSpaceType> CreateValidScheme() const
+    [[nodiscard]] static NewmarkQuasistaticUPwScheme<SparseSpaceType, LocalSpaceType> CreateValidScheme()
     {
-        return NewmarkQuasistaticUPwScheme<SparseSpaceType, LocalSpaceType>(0.25, 0.5, 0.75);
+        return {0.25, 0.5, 0.75};
     }
 
     void CreateValidModelPart()
