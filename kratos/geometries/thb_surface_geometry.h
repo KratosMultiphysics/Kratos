@@ -937,12 +937,12 @@ public:
     ///@{
     std::string Info() const override
     {
-        return std::to_string(TWorkingSpaceDimension) + " dimensional nurbs surface.";
+        return std::to_string(TWorkingSpaceDimension) + " dimensional THB surface.";
     }
 
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << TWorkingSpaceDimension << " dimensional nurbs surface.";
+        rOStream << TWorkingSpaceDimension << " dimensional THB surface.";
     }
 
     void PrintData(std::ostream& rOStream) const override
