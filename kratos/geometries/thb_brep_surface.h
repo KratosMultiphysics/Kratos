@@ -524,13 +524,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "Brep surface";
+        return "THB Brep surface";
     }
 
     /// Print information about this object.
     void PrintInfo( std::ostream& rOStream ) const override
     {
-        rOStream << "Brep surface";
+        rOStream << "THB Brep surface";
     }
 
     /// Print object's data.
@@ -538,7 +538,7 @@ public:
     {
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
-        rOStream << "    Brep surface " << std::endl;
+        rOStream << " THB Brep surface " << std::endl;
     }
 
     ///@}
