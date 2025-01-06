@@ -445,13 +445,6 @@ public:
             rResultGeometries.resize(rIntegrationPoints.size());
 
         auto default_method = this->GetDefaultIntegrationMethod();
-        SizeType num_nonzero_cps = shape_function_container.NumberOfNonzeroControlPoints();
-
-        Matrix N(1, num_nonzero_cps);
-        DenseVector<Matrix> shape_function_derivatives(NumberOfShapeFunctionDerivatives - 1);
-        for (IndexType i = 0; i < NumberOfShapeFunctionDerivatives - 1; i++) {
-            shape_function_derivatives[i].resize(num_nonzero_cps, i + 2);
-        }
 
         gismo::gsMatrix<> ThbResult;
         gismo::gsMatrix<> ThbResultDeriv;
@@ -484,6 +477,14 @@ public:
 
             thb.active_into(rLocalCoordinateThb,ThbIndicesDeriv2);
             thb.deriv2_into(rLocalCoordinateThb,ThbResultDeriv2);
+
+            SizeType num_nonzero_cps = ThbIndices.size();
+
+            Matrix N(1, num_nonzero_cps);
+            DenseVector<Matrix> shape_function_derivatives(NumberOfShapeFunctionDerivatives - 1);
+            for (IndexType i = 0; i < NumberOfShapeFunctionDerivatives - 1; i++) {
+                shape_function_derivatives[i].resize(num_nonzero_cps, i + 2);
+            }
 
             /// Get List of Control Points
             PointsArrayType nonzero_control_points(num_nonzero_cps);
