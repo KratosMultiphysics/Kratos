@@ -17,6 +17,10 @@
 #if !defined(KRATOS_THB_NURBS_CURVE_ON_SURFACE_H_INCLUDED )
 #define  KRATOS_THB_NURBS_CURVE_ON_SURFACE_H_INCLUDED
 
+// External includes
+#include <gismo.h>
+using namespace gismo;
+
 // Project includes
 #include "geometries/geometry.h"
 
@@ -449,6 +453,14 @@ public:
             shape_function_derivatives[i].resize(num_nonzero_cps, i + 2);
         }
 
+        gismo::gsMatrix<> ThbResult;
+        gismo::gsMatrix<> ThbResultDeriv;
+        gismo::gsMatrix<> ThbResultDeriv2;
+        gismo::gsMatrix<int> ThbIndices;
+        gismo::gsMatrix<int> ThbIndicesDeriv;
+        gismo::gsMatrix<int> ThbIndicesDeriv2;
+        gismo::gsMatrix<> rLocalCoordinateThb(2,1);
+
         for (IndexType i = 0; i < rIntegrationPoints.size(); ++i)
         {
             std::vector<CoordinatesArrayType> global_space_derivatives(2);
@@ -457,39 +469,57 @@ public:
                 rIntegrationPoints[i],
                 1);
 
-            if (mpNurbsSurface->IsRational()) {
-                shape_function_container.ComputeNurbsShapeFunctionValues(
-                    mpNurbsSurface->KnotsU(), mpNurbsSurface->KnotsV(), mpNurbsSurface->Weights(),
-                    global_space_derivatives[0][0], global_space_derivatives[0][1]);
-            }
-            else {
-                shape_function_container.ComputeBSplineShapeFunctionValues(
-                    mpNurbsSurface->KnotsU(), mpNurbsSurface->KnotsV(),
-                    global_space_derivatives[0][0], global_space_derivatives[0][1]);
-            }
+            //G+Smo
+            gismo::gsTHBSpline<2> thb_geom = mpNurbsSurface->ToGismo();
+            gismo::gsTHBSplineBasis<2> thb = thb_geom.basis();
+
+            rLocalCoordinateThb(0,0) = global_space_derivatives[0][0];
+            rLocalCoordinateThb(1,0) = global_space_derivatives[0][1];
+            
+            thb.active_into(rLocalCoordinateThb,ThbIndices);
+            thb.eval_into(rLocalCoordinateThb,ThbResult);
+
+            thb.active_into(rLocalCoordinateThb,ThbIndicesDeriv);
+            thb.deriv_into(rLocalCoordinateThb,ThbResultDeriv);
+
+            thb.active_into(rLocalCoordinateThb,ThbIndicesDeriv2);
+            thb.deriv2_into(rLocalCoordinateThb,ThbResultDeriv2);
 
             /// Get List of Control Points
             PointsArrayType nonzero_control_points(num_nonzero_cps);
-            auto cp_indices = shape_function_container.ControlPointIndices(
-                mpNurbsSurface->NumberOfControlPointsU(), mpNurbsSurface->NumberOfControlPointsV());
             for (IndexType j = 0; j < num_nonzero_cps; j++) {
-                nonzero_control_points(j) = mpNurbsSurface->pGetPoint(cp_indices[j]);
+                nonzero_control_points(j) =  mpNurbsSurface->pGetPoint(ThbIndices(j,0));
             }
             /// Get Shape Functions N
             for (IndexType j = 0; j < num_nonzero_cps; j++) {
-                N(0, j) = shape_function_container(j, 0);
+                N(0, j) = ThbResult(j, 0);
             }
-
+            
             /// Get Shape Function Derivatives DN_De, ...
             if (NumberOfShapeFunctionDerivatives > 0) {
-                IndexType shape_derivative_index = 1;
                 for (IndexType n = 0; n < NumberOfShapeFunctionDerivatives - 1; n++) {
+                    if(n == 0){
                     for (IndexType k = 0; k < n + 2; k++) {
                         for (IndexType j = 0; j < num_nonzero_cps; j++) {
-                            shape_function_derivatives[n](j, k) = shape_function_container(j, shape_derivative_index + k);
+                            shape_function_derivatives[n](j, k) = ThbResultDeriv(j*2 + k , 0);
                         }
                     }
-                    shape_derivative_index += n + 2;
+                    }
+                    else if(n == 1){
+                        for (IndexType j = 0; j < num_nonzero_cps; j++) {
+                            shape_function_derivatives[n](j, 0) = ThbResultDeriv2(j*3, 0);
+                        }
+                        for (IndexType j = 0; j < num_nonzero_cps; j++) {
+                            shape_function_derivatives[n](j, 1) = ThbResultDeriv2(j*3 + 2 , 0);
+                        }
+                        for (IndexType j = 0; j < num_nonzero_cps; j++) {
+                            shape_function_derivatives[n](j, 2) = ThbResultDeriv2(j*3 + 1 , 0);
+                        }
+                    }
+                    else
+                    {
+                        KRATOS_THROW_ERROR( std::invalid_argument, "third derivatives and more are not yet defined!", "" )
+                    }
                 }
             }
 
