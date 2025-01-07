@@ -19,6 +19,7 @@
 #include "includes/global_variables.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/advanced_constitutive_law_utilities.h"
+#include "custom_utilities/tangent_operator_calculator_utility.h"
 #include "constitutive_laws_application_variables.h"
 
 namespace Kratos
@@ -990,6 +991,30 @@ void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateOrthotropicElasticMa
 
 /***********************************************************************************/
 /***********************************************************************************/
+
+template <SizeType TVoigtSize>
+void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateTangentTensorByPerturbation(
+    ConstitutiveLaw::Parameters& rValues,
+    ConstitutiveLaw* pConstitutiveLaw,
+    const ConstitutiveLaw::StressMeasure& rStressMeasure
+    )
+{
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+
+    const bool consider_perturbation_threshold = r_material_properties.Has(CONSIDER_PERTURBATION_THRESHOLD) ? r_material_properties[CONSIDER_PERTURBATION_THRESHOLD] : true;
+    const TangentOperatorEstimation tangent_operator_estimation = r_material_properties.Has(TANGENT_OPERATOR_ESTIMATION) ? static_cast<TangentOperatorEstimation>(r_material_properties[TANGENT_OPERATOR_ESTIMATION]) : TangentOperatorEstimation::SecondOrderPerturbation;
+
+    if (tangent_operator_estimation == TangentOperatorEstimation::FirstOrderPerturbation) {
+        // Calculates the Tangent Constitutive Tensor by perturbation (first order)
+        TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, pConstitutiveLaw, rStressMeasure, consider_perturbation_threshold, 1);
+    } else if (tangent_operator_estimation == TangentOperatorEstimation::SecondOrderPerturbation) {
+        // Calculates the Tangent Constitutive Tensor by perturbation (second order)
+        TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, pConstitutiveLaw, rStressMeasure, consider_perturbation_threshold, 2);
+    } else if (tangent_operator_estimation == TangentOperatorEstimation::SecondOrderPerturbationV2) {
+        // Calculates the Tangent Constitutive Tensor by perturbation (second order)
+        TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, pConstitutiveLaw, rStressMeasure, consider_perturbation_threshold, 4);
+    }
+}
 
 
 template class AdvancedConstitutiveLawUtilities<3>;
