@@ -14,8 +14,8 @@
 
 #pragma once
 
-#include "includes/serializer.h"
 #include "custom_conditions/U_Pw_condition.hpp"
+#include "includes/serializer.h"
 
 namespace Kratos
 {

@@ -49,15 +49,13 @@ void GeoTNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(Vector&            r
     const GeometryType::IntegrationPointsArrayType& r_integration_points =
         r_geom.IntegrationPoints(this->GetIntegrationMethod());
     const unsigned int num_integration_points = r_integration_points.size();
-    const unsigned int local_dim              = r_geom.LocalSpaceDimension();
 
     const Matrix& r_N_container = r_geom.ShapeFunctionsValues(this->GetIntegrationMethod());
+
     GeometryType::JacobiansType j_container(num_integration_points);
-
     for (auto& j : j_container) {
-        j.resize(TDim, local_dim, false);
+        j.resize(TDim, r_geom.LocalSpaceDimension(), false);
     }
-
     r_geom.Jacobian(j_container, this->GetIntegrationMethod());
 
     Vector normal_flux_vector(TNumNodes);

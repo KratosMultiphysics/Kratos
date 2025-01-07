@@ -27,14 +27,10 @@ Condition::Pointer UPwForceCondition<TDim, TNumNodes>::Create(IndexType         
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwForceCondition<TDim, TNumNodes>::CalculateRHS(Vector&        rRightHandSideVector,
-                                                      const ProcessInfo& rCurrentProcessInfo)
+void UPwForceCondition<TDim, TNumNodes>::CalculateRHS(Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     array_1d<double, 3> force_vector = this->GetGeometry()[0].FastGetSolutionStepValue(POINT_LOAD);
-    //std::copy_n(force_vector.begin(), TDim, rRightHandSideVector);
-    for (unsigned int i = 0; i < TDim; ++i) {
-        rRightHandSideVector[i] = force_vector[i];
-    }
+    std::copy_n(force_vector.begin(), TDim, rRightHandSideVector.begin());
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

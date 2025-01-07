@@ -43,27 +43,29 @@ void GeneralUPwDiffOrderCondition::Initialize(const ProcessInfo& rCurrentProcess
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom     = GetGeometry();
-    const SizeType      NumUNodes = rGeom.PointsNumber();
+    const GeometryType& r_geometry = GetGeometry();
 
-    switch (NumUNodes) {
+    switch (r_geometry.PointsNumber()) {
     case 3: // 2D L3P2
-        mpPressureGeometry = make_shared<Line2D2<Node>>(rGeom(0), rGeom(1));
+        mpPressureGeometry = make_shared<Line2D2<Node>>(r_geometry(0), r_geometry(1));
         break;
     case 4: // 2D L4P3
-        mpPressureGeometry = make_shared<Line2D3<Node>>(rGeom(0), rGeom(1), rGeom(2));
+        mpPressureGeometry = make_shared<Line2D3<Node>>(r_geometry(0), r_geometry(1), r_geometry(2));
         break;
     case 5: // 2D L5P4
-        mpPressureGeometry = make_shared<Line2D4<Node>>(rGeom(0), rGeom(1), rGeom(2), rGeom(3));
+        mpPressureGeometry =
+            make_shared<Line2D4<Node>>(r_geometry(0), r_geometry(1), r_geometry(2), r_geometry(3));
         break;
     case 6: // 3D T6P3
-        mpPressureGeometry = make_shared<Triangle3D3<Node>>(rGeom(0), rGeom(1), rGeom(2));
+        mpPressureGeometry = make_shared<Triangle3D3<Node>>(r_geometry(0), r_geometry(1), r_geometry(2));
         break;
     case 8: // 3D Q8P4
-        mpPressureGeometry = make_shared<Quadrilateral3D4<Node>>(rGeom(0), rGeom(1), rGeom(2), rGeom(3));
+        mpPressureGeometry = make_shared<Quadrilateral3D4<Node>>(r_geometry(0), r_geometry(1),
+                                                                 r_geometry(2), r_geometry(3));
         break;
     case 9: // 3D Q9P4
-        mpPressureGeometry = make_shared<Quadrilateral3D4<Node>>(rGeom(0), rGeom(1), rGeom(2), rGeom(3));
+        mpPressureGeometry = make_shared<Quadrilateral3D4<Node>>(r_geometry(0), r_geometry(1),
+                                                                 r_geometry(2), r_geometry(3));
         break;
     default:
         KRATOS_ERROR << "Unexpected geometry type for different order interpolation element" << std::endl;
@@ -134,9 +136,9 @@ void GeneralUPwDiffOrderCondition::CalculateRightHandSide(VectorType&        rRi
     noalias(rRightHandSideVector) = ZeroVector(ConditionSize);
 
     // calculation flags
-    bool       CalculateLHSMatrixFlag      = false;
-    bool       CalculateResidualVectorFlag = true;
-    MatrixType temp                        = Matrix();
+    bool CalculateLHSMatrixFlag      = false;
+    bool CalculateResidualVectorFlag = true;
+    auto temp                        = Matrix();
 
     CalculateAll(temp, rRightHandSideVector, rCurrentProcessInfo, CalculateLHSMatrixFlag, CalculateResidualVectorFlag);
 }
@@ -190,8 +192,6 @@ void GeneralUPwDiffOrderCondition::InitializeConditionVariables(ConditionVariabl
     const SizeType      NumUNodes  = rGeom.PointsNumber();
     const SizeType      NumPNodes  = mpPressureGeometry->PointsNumber();
     const SizeType      NumGPoints = rGeom.IntegrationPointsNumber(this->GetIntegrationMethod());
-    const SizeType      WorkingDim = rGeom.WorkingSpaceDimension();
-    const SizeType      LocalDim   = rGeom.LocalSpaceDimension();
 
     rVariables.NuContainer.resize(NumGPoints, NumUNodes, false);
     rVariables.NuContainer = rGeom.ShapeFunctionsValues(this->GetIntegrationMethod());
@@ -203,8 +203,8 @@ void GeneralUPwDiffOrderCondition::InitializeConditionVariables(ConditionVariabl
     rVariables.Np.resize(NumPNodes, false);
 
     rVariables.JContainer.resize(NumGPoints, false);
-    for (SizeType i = 0; i < NumGPoints; ++i)
-        rVariables.JContainer[i].resize(WorkingDim, LocalDim, false);
+    for (auto& j : rVariables.JContainer)
+        j.resize(rGeom.WorkingSpaceDimension(), rGeom.LocalSpaceDimension(), false);
     rGeom.Jacobian(rVariables.JContainer, this->GetIntegrationMethod());
 }
 
