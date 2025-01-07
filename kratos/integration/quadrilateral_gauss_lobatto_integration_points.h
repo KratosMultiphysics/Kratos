@@ -21,15 +21,13 @@
 // Project includes
 #include "integration/quadrature.h"
 
-// TO BE COMPLETED: Only the needed ones have been implemented
-
 namespace Kratos
 {
 
-    class QuadrilateralGaussLobattoIntegrationPoints1
+    class QuadrilateralGaussLobattoIntegrationPoints0
     {
     public:
-        KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussLobattoIntegrationPoints1);
+        KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussLobattoIntegrationPoints0);
         typedef std::size_t SizeType;
 
         static const unsigned int Dimension = 2;
@@ -56,16 +54,16 @@ namespace Kratos
         std::string Info() const
         {
             std::stringstream buffer;
-            buffer << "Quadrilateral Gauss-Lobatto integration 1 ";
+            buffer << "Quadrilateral Gauss-Lobatto integration 0 ";
             return buffer.str();
         }
 
-    }; // Class QuadrilateralGaussLobattoIntegrationPoints1
+    }; // Class QuadrilateralGaussLobattoIntegrationPoints0
 
-    class QuadrilateralGaussLobattoIntegrationPoints2
+    class QuadrilateralGaussLobattoIntegrationPoints1
     {
     public:
-        KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussLobattoIntegrationPoints2);
+        KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussLobattoIntegrationPoints1);
         typedef std::size_t SizeType;
 
         static const unsigned int Dimension = 2;
@@ -94,16 +92,16 @@ namespace Kratos
         std::string Info() const
         {
             std::stringstream buffer;
-            buffer << "Quadrilateral Gauss-Lobatto integration 2 ";
+            buffer << "Quadrilateral Gauss-Lobatto integration 1 ";
             return buffer.str();
         }
 
-    }; // Class QuadrilateralGaussLobattoIntegrationPoints2
+    }; // Class QuadrilateralGaussLobattoIntegrationPoints1
 
-    class QuadrilateralGaussLobattoIntegrationPoints3
+    class QuadrilateralGaussLobattoIntegrationPoints2
     {
     public:
-        KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussLobattoIntegrationPoints3);
+        KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussLobattoIntegrationPoints2);
         typedef std::size_t SizeType;
 
         static const unsigned int Dimension = 2;
@@ -146,10 +144,10 @@ namespace Kratos
         std::string Info() const
         {
             std::stringstream buffer;
-            buffer << "Quadrilateral Gauss-Lobatto integration 3 ";
+            buffer << "Quadrilateral Gauss-Lobatto integration 2 ";
             return buffer.str();
         }
 
-    }; // Class QuadrilateralGaussLobattoIntegrationPoints3
+    }; // Class QuadrilateralGaussLobattoIntegrationPoints2
 
 }
