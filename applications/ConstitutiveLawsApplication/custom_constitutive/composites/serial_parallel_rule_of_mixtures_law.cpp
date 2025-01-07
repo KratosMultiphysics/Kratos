@@ -46,7 +46,7 @@ ConstitutiveLaw::Pointer SerialParallelRuleOfMixturesLaw<TDim>::Create(Kratos::P
 template<unsigned int TDim>
 void SerialParallelRuleOfMixturesLaw<TDim>::InitializeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
-    this->InitializeMaterialResponseCauchy(rValues);
+    InitializeMaterialResponseCauchy(rValues);
 }
 
 /***********************************************************************************/
@@ -55,7 +55,7 @@ void SerialParallelRuleOfMixturesLaw<TDim>::InitializeMaterialResponsePK1(Consti
 template<unsigned int TDim>
 void SerialParallelRuleOfMixturesLaw<TDim>::InitializeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
-    this->InitializeMaterialResponseCauchy(rValues);
+    InitializeMaterialResponseCauchy(rValues);
 }
 
 /***********************************************************************************/
@@ -64,7 +64,7 @@ void SerialParallelRuleOfMixturesLaw<TDim>::InitializeMaterialResponsePK2(Consti
 template<unsigned int TDim>
 void SerialParallelRuleOfMixturesLaw<TDim>::InitializeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
-    this->InitializeMaterialResponseCauchy(rValues);
+    InitializeMaterialResponseCauchy(rValues);
 }
 
 /***********************************************************************************/
@@ -105,7 +105,7 @@ void SerialParallelRuleOfMixturesLaw<TDim>::InitializeMaterialResponseCauchy(Con
 template<unsigned int TDim>
 void SerialParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
-    this->CalculateMaterialResponsePK2(rValues);
+    CalculateMaterialResponsePK2(rValues);
 
     if (rValues.IsSetDeterminantF()) {
         Vector& stress_vector                = rValues.GetStressVector();
@@ -208,15 +208,15 @@ void SerialParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponseKirchhoff(C
 
         if (rValues.IsSetDeterminantF()) {
             // we push forward the stress
-            Matrix stress_matrix(3, 3);
+            Matrix stress_matrix(Dimension, Dimension);
             noalias(stress_matrix) = MathUtils<double>::StressVectorToTensor(r_integrated_stress_vector);
-            ContraVariantPushForward (stress_matrix, rValues.GetDeformationGradientF()); //Kirchhoff
-            noalias(r_integrated_stress_vector) = MathUtils<double>::StressTensorToVector( stress_matrix, r_integrated_stress_vector.size() );
+            ContraVariantPushForward(stress_matrix, rValues.GetDeformationGradientF()); // Kirchhoff
+            noalias(r_integrated_stress_vector) = MathUtils<double>::StressTensorToVector(stress_matrix, r_integrated_stress_vector.size());
         }
 
         if (flag_const_tensor) {
-            this->CalculateTangentTensor(rValues, ConstitutiveLaw::StressMeasure_PK2);
-            // push forward Constitutive tangent tensor
+            CalculateTangentTensor(rValues, ConstitutiveLaw::StressMeasure_PK2);
+            // Push forward Constitutive tangent tensor
             if (rValues.IsSetDeterminantF())
                 PushForwardConstitutiveMatrix(rValues.GetConstitutiveMatrix(), rValues.GetDeformationGradientF());
         }
@@ -234,7 +234,7 @@ void SerialParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponseKirchhoff(C
 template<unsigned int TDim>
 void SerialParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
-    this->CalculateMaterialResponseKirchhoff(rValues);
+    CalculateMaterialResponseKirchhoff(rValues);
 
     if (rValues.IsSetDeterminantF()) {
         Vector& stress_vector       = rValues.GetStressVector();
@@ -273,8 +273,7 @@ void SerialParallelRuleOfMixturesLaw<TDim>::IntegrateStrainSerialParallelBehavio
     bool is_converged = false;
     int iteration = 0, max_iterations = 150;
     Vector parallel_strain_matrix(num_parallel_components), stress_residual(num_serial_components);
-    Matrix constitutive_tensor_matrix_ss(num_serial_components, num_serial_components),
-        constitutive_tensor_fiber_ss(num_serial_components, num_serial_components);
+    Matrix constitutive_tensor_matrix_ss(num_serial_components, num_serial_components), constitutive_tensor_fiber_ss(num_serial_components, num_serial_components);
 
     // Iterative procedure until the equilibrium is reached in the serial stresses
     while (!is_converged && iteration <= max_iterations) {
@@ -313,7 +312,7 @@ void SerialParallelRuleOfMixturesLaw<TDim>::CorrectSerialStrainMatrix(
     const ConstitutiveLaw::StressMeasure& rStressMeasure
 )
 {
-    const SizeType voigt_size = this->GetStrainSize();
+    const SizeType voigt_size = GetStrainSize();
     const int num_parallel_components = inner_prod(mParallelDirections, mParallelDirections);
     const int num_serial_components = voigt_size - num_parallel_components;
 
@@ -630,12 +629,7 @@ void SerialParallelRuleOfMixturesLaw<TDim>::CalculateGreenLagrangeStrain(Constit
     Matrix C_tensor(dimension, dimension);
     noalias(C_tensor) = prod(trans(F),F);
 
-    const SizeType strain_size = GetStrainSize();
-    if (strain_size == 3) {
-        ConstitutiveLawUtilities<3>::CalculateGreenLagrangianStrain(C_tensor, r_strain_vector);
-    } else {
-        ConstitutiveLawUtilities<6>::CalculateGreenLagrangianStrain(C_tensor, r_strain_vector);
-    }
+    ConstitutiveLawUtilities<VoigtSize>::CalculateGreenLagrangianStrain(C_tensor, r_strain_vector);
 }
 
 /***********************************************************************************/
@@ -653,12 +647,7 @@ void SerialParallelRuleOfMixturesLaw<TDim>::CalculateAlmansiStrain(ConstitutiveL
     Matrix B_tensor(dimension, dimension);
     noalias(B_tensor) = prod(F, trans(F));
 
-    const SizeType strain_size = GetStrainSize();
-    if (strain_size == 3) {
-        AdvancedConstitutiveLawUtilities<3>::CalculateAlmansiStrain(B_tensor, r_strain_vector);
-    } else {
-        AdvancedConstitutiveLawUtilities<6>::CalculateAlmansiStrain(B_tensor, r_strain_vector);
-    }
+    AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateAlmansiStrain(B_tensor, r_strain_vector);
 }
 
 /***********************************************************************************/
@@ -708,10 +697,10 @@ void SerialParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK1(Constitu
         values_fiber.SetMaterialProperties(r_props_fiber_cl);
 
         Matrix parallel_projector, serial_projector;
-        this->CalculateSerialParallelProjectionMatrices(parallel_projector, serial_projector);
+        CalculateSerialParallelProjectionMatrices(parallel_projector, serial_projector);
         Vector matrix_strain_vector(voigt_size), fiber_strain_vector(voigt_size);
 
-        this->CalculateStrainsOnEachComponent(r_strain_vector, parallel_projector, serial_projector, mPreviousSerialStrainMatrix, matrix_strain_vector, fiber_strain_vector, rValues);
+        CalculateStrainsOnEachComponent(r_strain_vector, parallel_projector, serial_projector, mPreviousSerialStrainMatrix, matrix_strain_vector, fiber_strain_vector, rValues);
 
         values_fiber.SetStrainVector(fiber_strain_vector);
         values_matrix.SetStrainVector(matrix_strain_vector);
@@ -1229,10 +1218,10 @@ double& SerialParallelRuleOfMixturesLaw<TDim>::CalculateValue(
     if (rThisVariable == UNIAXIAL_STRESS_MATRIX) {
         const SizeType voigt_size = GetStrainSize();
         Matrix parallel_projector, serial_projector;
-        this->CalculateSerialParallelProjectionMatrices(parallel_projector, serial_projector);
+        CalculateSerialParallelProjectionMatrices(parallel_projector, serial_projector);
         const Vector strain_vector = rParameterValues.GetStrainVector();
         Vector matrix_strain_vector(voigt_size), fiber_strain_vector(voigt_size);
-        this->CalculateStrainsOnEachComponent(strain_vector, parallel_projector, serial_projector, mPreviousSerialStrainMatrix, matrix_strain_vector, fiber_strain_vector, rParameterValues);
+        CalculateStrainsOnEachComponent(strain_vector, parallel_projector, serial_projector, mPreviousSerialStrainMatrix, matrix_strain_vector, fiber_strain_vector, rParameterValues);
 
         const auto &props = rParameterValues.GetMaterialProperties();
         const auto it_cl_begin = props.GetSubProperties().begin();
@@ -1248,10 +1237,10 @@ double& SerialParallelRuleOfMixturesLaw<TDim>::CalculateValue(
     } else if (rThisVariable == UNIAXIAL_STRESS_FIBER) {
         const SizeType voigt_size = GetStrainSize();
         Matrix parallel_projector, serial_projector;
-        this->CalculateSerialParallelProjectionMatrices(parallel_projector, serial_projector);
+        CalculateSerialParallelProjectionMatrices(parallel_projector, serial_projector);
         const Vector strain_vector = rParameterValues.GetStrainVector();
         Vector matrix_strain_vector(voigt_size), fiber_strain_vector(voigt_size);
-        this->CalculateStrainsOnEachComponent(strain_vector, parallel_projector, serial_projector, mPreviousSerialStrainMatrix, matrix_strain_vector, fiber_strain_vector, rParameterValues);
+        CalculateStrainsOnEachComponent(strain_vector, parallel_projector, serial_projector, mPreviousSerialStrainMatrix, matrix_strain_vector, fiber_strain_vector, rParameterValues);
 
         const auto &props = rParameterValues.GetMaterialProperties();
         const auto it_cl_begin = props.GetSubProperties().begin();
@@ -1400,13 +1389,13 @@ Vector& SerialParallelRuleOfMixturesLaw<TDim>::CalculateValue(
         noalias(rValue) = matrix_strain_vector;
         return rValue;
     } else if (rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR_FIBER) {
-        const std::size_t voigt_size = this->GetStrainSize();
+        const std::size_t voigt_size = GetStrainSize();
         Matrix parallel_projector, serial_projector;
-        this->CalculateSerialParallelProjectionMatrices(parallel_projector, serial_projector);
+        CalculateSerialParallelProjectionMatrices(parallel_projector, serial_projector);
 
         const Vector& r_strain_vector = rParameterValues.GetStrainVector();
         Vector matrix_strain_vector(voigt_size), fiber_strain_vector(voigt_size);
-        this->CalculateStrainsOnEachComponent(r_strain_vector, parallel_projector, serial_projector, mPreviousSerialStrainMatrix, matrix_strain_vector, fiber_strain_vector, rParameterValues);
+        CalculateStrainsOnEachComponent(r_strain_vector, parallel_projector, serial_projector, mPreviousSerialStrainMatrix, matrix_strain_vector, fiber_strain_vector, rParameterValues);
         if (rValue.size() != voigt_size)
             rValue.resize(voigt_size, false);
         noalias(rValue) = fiber_strain_vector;
@@ -1582,7 +1571,7 @@ Matrix& SerialParallelRuleOfMixturesLaw<TDim>::CalculateValue(
         Vector& r_strain_vector = rParameterValues.GetStrainVector();
         Vector serial_strain_matrix_old = mPreviousSerialStrainMatrix;
         Vector fiber_stress_vector, matrix_stress_vector;
-        this->IntegrateStrainSerialParallelBehaviour(r_strain_vector, fiber_stress_vector, matrix_stress_vector, r_material_properties, rParameterValues, serial_strain_matrix_old);
+        IntegrateStrainSerialParallelBehaviour(r_strain_vector, fiber_stress_vector, matrix_stress_vector, r_material_properties, rParameterValues, serial_strain_matrix_old);
         // Previous flags restored
         r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
@@ -1673,8 +1662,7 @@ void SerialParallelRuleOfMixturesLaw<TDim>::CalculateTangentTensor(
     ConstitutiveLaw::Parameters& rValues,
     const ConstitutiveLaw::StressMeasure& rStressMeasure)
 {
-    // Independent from the Voigt Size
-    AdvancedConstitutiveLawUtilities<6>::CalculateTangentTensorByPerturbation(rValues, this, rStressMeasure);
+    AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateTangentTensorByPerturbation(rValues, this, rStressMeasure);
 }
 
 /***********************************************************************************/
@@ -1697,6 +1685,8 @@ int SerialParallelRuleOfMixturesLaw<TDim>::Check(
         KRATOS_ERROR << "A wrong fiber volumetric participation has been set: Greater than 1 or lower than 0... " << std::to_string(mFiberVolumetricParticipation) << std::endl;
         aux_out += 1;
     }
+    KRATOS_ERROR_IF(VoigtSize != mpMatrixConstitutiveLaw->GetStrainSize()) << "The Strain size of the mpMatrixConstitutiveLaw is not consistent with the Srial Parallel Rule of Mixtures..." << std::endl;
+    KRATOS_ERROR_IF(VoigtSize != mpFiberConstitutiveLaw->GetStrainSize()) << "The Strain size of the mpFiberConstitutiveLaw is not consistent with the Srial Parallel Rule of Mixtures..." << std::endl;
     KRATOS_ERROR_IF(mpMatrixConstitutiveLaw->WorkingSpaceDimension() != mpFiberConstitutiveLaw->WorkingSpaceDimension()) << "The WorkingSpaceDimension of the fiber and matrix mismatch..." << std::endl;
     KRATOS_ERROR_IF(mpMatrixConstitutiveLaw->GetStrainSize() != mpFiberConstitutiveLaw->GetStrainSize()) << "The GetStrainSize of the fiber and matrix mismatch..." << std::endl;
 

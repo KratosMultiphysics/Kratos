@@ -141,7 +141,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
      */
     SizeType WorkingSpaceDimension() override
     {
-        return mpMatrixConstitutiveLaw->WorkingSpaceDimension();
+        return Dimension;
     };
 
     /**
@@ -149,7 +149,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
      */
     SizeType GetStrainSize() const override
     {
-        return mpMatrixConstitutiveLaw->GetStrainSize();
+        return VoigtSize;
     };
 
     /**
@@ -688,9 +688,9 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
     ConstitutiveLaw::Pointer mpMatrixConstitutiveLaw;
     ConstitutiveLaw::Pointer mpFiberConstitutiveLaw;
     double mFiberVolumetricParticipation;
-    Vector mParallelDirections;
-    Vector mPreviousStrainVector;
-    Vector mPreviousSerialStrainMatrix;
+    Vector mParallelDirections = ZeroVector(VoigtSize);
+    Vector mPreviousStrainVector = ZeroVector(VoigtSize);
+    Vector mPreviousSerialStrainMatrix = ZeroVector(GetNumberOfSerialComponents());
     bool mIsPrestressed = false;
 
     ///@}
