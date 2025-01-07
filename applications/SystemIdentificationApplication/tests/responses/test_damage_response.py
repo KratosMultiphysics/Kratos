@@ -126,7 +126,7 @@ class TestDamageDetectionAdjointResponseFunctionStrainSensor(kratos_unittest.Tes
     def setUpClass(cls) -> None:
         cls.model = Kratos.Model()
         cls.model_part = cls.model.CreateModelPart("Test")
-        cls.model_part.AddNodalSolutionStepVariable(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.DISPLACEMENT)
 
         cls.model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
         cls.model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
@@ -163,16 +163,8 @@ class TestDamageDetectionAdjointResponseFunctionStrainSensor(kratos_unittest.Tes
         cls.adjoint_response_function.Initialize()
 
     def setUp(self) -> None:
-        for element in self.model_part.Elements:
-            value = Kratos.Matrix(
-                [
-                    [element.Id, element.Id + 1, element.Id + 2],
-                    [element.Id, element.Id + 1, element.Id + 2],
-                    [element.Id, element.Id + 1, element.Id + 2]
-                ]
-            )
-            print(value)
-            element.SetValue(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR, value)
+        for node in self.model_part.Nodes:
+            node.SetSolutionStepValue(Kratos.DISPLACEMENT, [node.Id, node.Id + 1, node.Id + 2])
         self.ref_value = self.adjoint_response_function.CalculateValue(self.model_part)
 
     def test_CalculateValue(self):
