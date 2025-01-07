@@ -86,7 +86,7 @@ void UPwFaceLoadInterfaceCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rR
     array_1d<double, TNumNodes * TDim> DisplacementVector;
     ConditionUtilities::GetDisplacementsVector(DisplacementVector, Geom);
     array_1d<double, TNumNodes * TDim> FaceLoadVector;
-    ConditionUtilities::GetFaceLoadVector<TDim,TNumNodes>(FaceLoadVector, Geom);
+    ConditionUtilities::GetFaceLoadVector<TDim, TNumNodes>(FaceLoadVector, Geom);
     BoundedMatrix<double, TDim, TDim> RotationMatrix;
     const double& MinimumJointWidth = this->GetProperties()[MINIMUM_JOINT_WIDTH];
     bool          ComputeJointWidth;

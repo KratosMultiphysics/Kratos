@@ -82,11 +82,11 @@ public:
 
     template <unsigned int TDim, unsigned int TNumNodes>
     static inline void GetFaceLoadVector(array_1d<double, TDim * TNumNodes>& rFaceLoadVector,
-                                         const Element::GeometryType&     rGeom)
+                                         const Element::GeometryType&        rGeom)
     {
         array_1d<double, 3> face_load_aux;
-        unsigned int        index = 0;
-        constexpr auto& variable = TDim == 2u ? LINE_LOAD : SURFACE_LOAD;
+        unsigned int        index    = 0;
+        constexpr auto&     variable = TDim == 2u ? LINE_LOAD : SURFACE_LOAD;
 
         for (unsigned int node = 0; node < TNumNodes; ++node) {
             face_load_aux = rGeom[node].FastGetSolutionStepValue(variable);

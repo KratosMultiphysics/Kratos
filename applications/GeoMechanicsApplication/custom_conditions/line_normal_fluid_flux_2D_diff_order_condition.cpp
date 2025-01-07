@@ -58,8 +58,10 @@ void LineNormalFluidFlux2DDiffOrderCondition::CalculateConditionVector(Condition
 {
     KRATOS_TRY
     Vector nodal_normal_fluid_flux_vector(mpPressureGeometry->PointsNumber());
-    VariablesUtilities::GetNodalValues(*mpPressureGeometry, NORMAL_FLUID_FLUX, nodal_normal_fluid_flux_vector.begin());
-    rVariables.ConditionVector = ScalarVector(1, MathUtils<>::Dot(rVariables.Np, nodal_normal_fluid_flux_vector));
+    VariablesUtilities::GetNodalValues(*mpPressureGeometry, NORMAL_FLUID_FLUX,
+                                       nodal_normal_fluid_flux_vector.begin());
+    rVariables.ConditionVector =
+        ScalarVector(1, MathUtils<>::Dot(rVariables.Np, nodal_normal_fluid_flux_vector));
     KRATOS_CATCH("")
 }
 

@@ -57,7 +57,7 @@ void SurfaceLoad3DDiffOrderCondition::CalculateConditionVector(ConditionVariable
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom       = GetGeometry();
+    const GeometryType& rGeom = GetGeometry();
     rVariables.ConditionVector.resize(3, false);
     noalias(rVariables.ConditionVector) = ZeroVector(3);
 
