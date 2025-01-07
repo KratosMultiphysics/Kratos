@@ -308,7 +308,8 @@ public:
 					      std::vector<bool>& rOutput,
 					      const ProcessInfo& rCurrentProcessInfo) override
     {
-        KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base element is called!" << std::endl;
+        mpPrimalElement->CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+        // KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base element is called!" << std::endl;
     }
 
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
@@ -323,21 +324,24 @@ public:
 					      std::vector< array_1d<double, 6 > >& rOutput,
 					      const ProcessInfo& rCurrentProcessInfo) override
     {
-        KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base element is called!" << std::endl;
+        mpPrimalElement->CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+        // KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base element is called!" << std::endl;
     }
 
     void CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
 					      std::vector< Vector >& rOutput,
 					      const ProcessInfo& rCurrentProcessInfo) override
     {
-        KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base element is called!" << std::endl;
+        mpPrimalElement->CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+        // KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base element is called!" << std::endl;
     }
 
     void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable,
 					      std::vector< Matrix >& rOutput,
 					      const ProcessInfo& rCurrentProcessInfo) override
     {
-        KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base element is called!" << std::endl;
+        mpPrimalElement->CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+        // KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base element is called!" << std::endl;
     }
 
 

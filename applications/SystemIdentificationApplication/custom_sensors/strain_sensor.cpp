@@ -110,6 +110,10 @@ double StrainSensor::CalculateValue(ModelPart& rModelPart)
         r_element.CalculateOnIntegrationPoints(mrStrainVariable, strains, rModelPart.GetProcessInfo());
 
         for (const auto& strain : strains) {
+            KRATOS_WATCH(strain.data().begin());
+            KRATOS_WATCH(mStrainType);
+            KRATOS_WATCH(strain.data().begin() + mStrainType);
+            KRATOS_WATCH(*(strain.data().begin() + mStrainType));
             directional_strain += *(strain.data().begin() + mStrainType);
         }
 
