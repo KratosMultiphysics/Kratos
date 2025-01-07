@@ -11,8 +11,7 @@
 //                   Vahid Galavi
 //
 
-#if !defined(KRATOS_CONDITION_UTILITIES)
-#define KRATOS_CONDITION_UTILITIES
+#pragma once
 
 // Project includes
 #include "geo_mechanics_application_variables.h"
@@ -81,34 +80,18 @@ public:
         }
     }
 
-    template <unsigned int TNumNodes>
-    static inline void GetFaceLoadVector(array_1d<double, 3 * TNumNodes>& rFaceLoadVector,
-                                         const Element::GeometryType&     Geom)
+    template <unsigned int TDim, unsigned int TNumNodes>
+    static inline void GetFaceLoadVector(array_1d<double, TDim * TNumNodes>& rFaceLoadVector,
+                                         const Element::GeometryType&     rGeom)
     {
-        // for 3D geometry
-        const unsigned int  TDim = 3;
-        array_1d<double, 3> FaceLoadAux;
+        array_1d<double, 3> face_load_aux;
         unsigned int        index = 0;
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            noalias(FaceLoadAux) = Geom[i].FastGetSolutionStepValue(SURFACE_LOAD);
-            for (unsigned int idim = 0; idim < TDim; ++idim) {
-                rFaceLoadVector[index++] = FaceLoadAux[idim];
-            }
-        }
-    }
+        constexpr auto& variable = TDim == 2u ? LINE_LOAD : SURFACE_LOAD;
 
-    template <unsigned int TNumNodes>
-    static inline void GetFaceLoadVector(array_1d<double, 2 * TNumNodes>& rFaceLoadVector,
-                                         const Element::GeometryType&     Geom)
-    {
-        // for 2D geometry
-        const unsigned int  TDim = 2;
-        array_1d<double, 3> FaceLoadAux;
-        unsigned int        index = 0;
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            noalias(FaceLoadAux) = Geom[i].FastGetSolutionStepValue(LINE_LOAD);
+        for (unsigned int node = 0; node < TNumNodes; ++node) {
+            face_load_aux = rGeom[node].FastGetSolutionStepValue(variable);
             for (unsigned int idim = 0; idim < TDim; ++idim) {
-                rFaceLoadVector[index++] = FaceLoadAux[idim];
+                rFaceLoadVector[index++] = face_load_aux[idim];
             }
         }
     }
@@ -116,17 +99,14 @@ public:
     template <unsigned int TDim, unsigned int TNumNodes>
     static double CalculateIntegrationCoefficient(const Matrix& rJacobian, double Weight)
     {
-        auto normal_vector = Vector{TDim, 0.0};
-
+        auto vector = Vector{TDim, 0.0};
         if constexpr (TDim == 2) {
-            normal_vector = column(rJacobian, 0);
+            vector = column(rJacobian, 0);
         } else if constexpr (TDim == 3) {
-            MathUtils<>::CrossProduct(normal_vector, column(rJacobian, 0), column(rJacobian, 1));
+            MathUtils<>::CrossProduct(vector, column(rJacobian, 0), column(rJacobian, 1));
         }
-        return Weight * MathUtils<>::Norm(normal_vector);
+        return Weight * MathUtils<>::Norm(vector);
     }
 
 }; /* Class ConditionUtilities*/
 } /* namespace Kratos.*/
-
-#endif /* KRATOS_CONDITION_UTILITIES defined */

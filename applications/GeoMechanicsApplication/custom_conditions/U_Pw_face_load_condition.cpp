@@ -48,7 +48,7 @@ void UPwFaceLoadCondition<TDim, TNumNodes>::CalculateRHS(VectorType&        rRig
 
     // Condition variables
     array_1d<double, TNumNodes * TDim> FaceLoadVector;
-    ConditionUtilities::GetFaceLoadVector<TNumNodes>(FaceLoadVector, Geom);
+    ConditionUtilities::GetFaceLoadVector<TDim, TNumNodes>(FaceLoadVector, Geom);
     BoundedMatrix<double, TDim, TNumNodes * TDim> Nu = ZeroMatrix(TDim, TNumNodes * TDim);
     array_1d<double, TDim>                        TractionVector;
     array_1d<double, TNumNodes * TDim>            UVector;
