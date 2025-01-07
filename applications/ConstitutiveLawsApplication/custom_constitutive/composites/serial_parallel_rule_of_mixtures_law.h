@@ -136,7 +136,6 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
      */
     SizeType WorkingSpaceDimension() override
     {
-        KRATOS_DEBUG_ERROR_IF(mpMatrixConstitutiveLaw->WorkingSpaceDimension() != mpFiberConstitutiveLaw->WorkingSpaceDimension()) << "The WorkingSpaceDimension of the fiber and matrix mismatch..." << std::endl;
         return mpMatrixConstitutiveLaw->WorkingSpaceDimension();
     };
 
@@ -145,7 +144,6 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
      */
     SizeType GetStrainSize() const override
     {
-        KRATOS_DEBUG_ERROR_IF(mpMatrixConstitutiveLaw->GetStrainSize() != mpFiberConstitutiveLaw->GetStrainSize()) << "The GetStrainSize of the fiber and matrix mismatch..." << std::endl;
         return mpMatrixConstitutiveLaw->GetStrainSize();
 
     };
@@ -686,9 +684,9 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
     ConstitutiveLaw::Pointer mpMatrixConstitutiveLaw;
     ConstitutiveLaw::Pointer mpFiberConstitutiveLaw;
     double mFiberVolumetricParticipation;
-    Vector mParallelDirections   = ZeroVector(GetStrainSize());
-    Vector mPreviousStrainVector = ZeroVector(GetStrainSize());
-    Vector mPreviousSerialStrainMatrix = ZeroVector(GetNumberOfSerialComponents());
+    Vector mParallelDirections;
+    Vector mPreviousStrainVector;
+    Vector mPreviousSerialStrainMatrix;
     bool mIsPrestressed = false;
 
     ///@}

@@ -1410,6 +1410,12 @@ void SerialParallelRuleOfMixturesLaw::InitializeMaterial(
     mpMatrixConstitutiveLaw->InitializeMaterial(r_props_matrix_cl, rElementGeometry, rShapeFunctionsValues);
     mpFiberConstitutiveLaw ->InitializeMaterial(r_props_fiber_cl, rElementGeometry, rShapeFunctionsValues);
 
+    const SizeType strain_size = GetStrainSize();
+    mPreviousStrainVector.resize(strain_size, false);
+    mPreviousStrainVector.clear();
+    mPreviousSerialStrainMatrix.resize(GetNumberOfSerialComponents(), false);
+    mPreviousSerialStrainMatrix.clear();
+
     if (rElementGeometry.Has(SERIAL_PARALLEL_IMPOSED_STRAIN))
         mIsPrestressed = true;
 }
