@@ -185,6 +185,14 @@ KRATOS_TEST_CASE_IN_SUITE(CheckFailureEmptyModelPartApplyCPhiReductionProcess, K
                                       "ApplyCPhiReductionProces has no elements in modelpart dummy")
 }
 
+KRATOS_TEST_CASE_IN_SUITE(CheckReturnsZeroForValidModelPartApplyCPhiReductionProcess, KratosGeoMechanicsFastSuite)
+{
+    Model model;
+    auto& r_model_part = PrepareCPhiTestModelPart(model);
+    ApplyCPhiReductionProcess process{r_model_part, {}};
+    KRATOS_CHECK_EQUAL(process.Check(), 0);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(CheckFailureNegativeReductionFactorApplyCPhiReductionProcess, KratosGeoMechanicsFastSuite)
 {
     Model model;
