@@ -145,7 +145,6 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
     SizeType GetStrainSize() const override
     {
         return mpMatrixConstitutiveLaw->GetStrainSize();
-
     };
 
     /**
