@@ -22,7 +22,6 @@
 #include "utilities/math_utils.h"
 #include "constitutive_laws_application_variables.h"
 #include "serial_parallel_rule_of_mixtures_law.h"
-#include "custom_utilities/tangent_operator_calculator_utility.h"
 #include "custom_utilities/advanced_constitutive_law_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 
