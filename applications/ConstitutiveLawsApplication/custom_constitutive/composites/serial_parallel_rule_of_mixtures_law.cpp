@@ -28,7 +28,8 @@
 
 namespace Kratos
 {
-ConstitutiveLaw::Pointer SerialParallelRuleOfMixturesLaw::Create(Kratos::Parameters NewParameters) const
+template<unsigned int TDim>
+ConstitutiveLaw::Pointer SerialParallelRuleOfMixturesLaw<TDim>::Create(Kratos::Parameters NewParameters) const
 {
     const double fiber_volumetric_participation = NewParameters["combination_factors"][1].GetDouble();
     if (fiber_volumetric_participation < 0.0 || fiber_volumetric_participation > 1.0) {
@@ -36,13 +37,14 @@ ConstitutiveLaw::Pointer SerialParallelRuleOfMixturesLaw::Create(Kratos::Paramet
     }
 
     Vector parallel_directions = NewParameters["parallel_behaviour_directions"].GetVector();
-    return Kratos::make_shared<SerialParallelRuleOfMixturesLaw>(fiber_volumetric_participation, parallel_directions);
+    return Kratos::make_shared<SerialParallelRuleOfMixturesLaw<TDim>>(fiber_volumetric_participation, parallel_directions);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SerialParallelRuleOfMixturesLaw::InitializeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+template<unsigned int TDim>
+void SerialParallelRuleOfMixturesLaw<TDim>::InitializeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
     this->InitializeMaterialResponseCauchy(rValues);
 }
@@ -50,7 +52,8 @@ void SerialParallelRuleOfMixturesLaw::InitializeMaterialResponsePK1(Constitutive
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SerialParallelRuleOfMixturesLaw::InitializeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+template<unsigned int TDim>
+void SerialParallelRuleOfMixturesLaw<TDim>::InitializeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     this->InitializeMaterialResponseCauchy(rValues);
 }
@@ -58,7 +61,8 @@ void SerialParallelRuleOfMixturesLaw::InitializeMaterialResponsePK2(Constitutive
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SerialParallelRuleOfMixturesLaw::InitializeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+template<unsigned int TDim>
+void SerialParallelRuleOfMixturesLaw<TDim>::InitializeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
     this->InitializeMaterialResponseCauchy(rValues);
 }
@@ -66,7 +70,8 @@ void SerialParallelRuleOfMixturesLaw::InitializeMaterialResponseKirchhoff(Consti
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SerialParallelRuleOfMixturesLaw::InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+template<unsigned int TDim>
+void SerialParallelRuleOfMixturesLaw<TDim>::InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     auto& r_material_properties = rValues.GetMaterialProperties();
     const auto it_cl_begin = r_material_properties.GetSubProperties().begin();
@@ -97,7 +102,8 @@ void SerialParallelRuleOfMixturesLaw::InitializeMaterialResponseCauchy(Constitut
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+template<unsigned int TDim>
+void SerialParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
     this->CalculateMaterialResponsePK2(rValues);
 
@@ -112,7 +118,8 @@ void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponsePK1(ConstitutiveL
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+template<unsigned int TDim>
+void SerialParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     // Get Values to compute the constitutive law:
     Flags& r_flags = rValues.GetOptions();
@@ -162,7 +169,8 @@ void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponsePK2(ConstitutiveL
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+template<unsigned int TDim>
+void SerialParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
     // Get Values to compute the constitutive law:
     Flags& r_flags = rValues.GetOptions();
@@ -223,7 +231,8 @@ void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponseKirchhoff(Constit
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+template<unsigned int TDim>
+void SerialParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     this->CalculateMaterialResponseKirchhoff(rValues);
 
@@ -240,7 +249,9 @@ void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponseCauchy(Constituti
 
 /***********************************************************************************/
 /***********************************************************************************/
-void SerialParallelRuleOfMixturesLaw::IntegrateStrainSerialParallelBehaviour(
+
+template<unsigned int TDim>
+void SerialParallelRuleOfMixturesLaw<TDim>::IntegrateStrainSerialParallelBehaviour(
     const Vector& rStrainVector,
     Vector& rFiberStressVector,
     Vector& rMatrixStressVector,
@@ -269,16 +280,16 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStrainSerialParallelBehaviour(
     while (!is_converged && iteration <= max_iterations) {
         if (iteration == 0) {
             // Computes an initial approximation of the independent var: rSerialStrainMatrix
-            this->CalculateInitialApproximationSerialStrainMatrix(rStrainVector, mPreviousStrainVector, rMaterialProperties,  parallel_projector,  serial_projector, constitutive_tensor_matrix_ss, constitutive_tensor_fiber_ss, rSerialStrainMatrix, rValues, rStressMeasure);
+            CalculateInitialApproximationSerialStrainMatrix(rStrainVector, mPreviousStrainVector, rMaterialProperties,  parallel_projector,  serial_projector, constitutive_tensor_matrix_ss, constitutive_tensor_fiber_ss, rSerialStrainMatrix, rValues, rStressMeasure);
         }
         // This method computes the strain vector for the matrix & fiber
-        this->CalculateStrainsOnEachComponent(rStrainVector, parallel_projector, serial_projector, rSerialStrainMatrix, matrix_strain_vector, fiber_strain_vector, rValues, iteration);
+        CalculateStrainsOnEachComponent(rStrainVector, parallel_projector, serial_projector, rSerialStrainMatrix, matrix_strain_vector, fiber_strain_vector, rValues, iteration);
 
         // This method integrates the stress according to each simple material CL
-        this->IntegrateStressesOfFiberAndMatrix(rValues, matrix_strain_vector, fiber_strain_vector, rMatrixStressVector, rFiberStressVector, rStressMeasure);
+        IntegrateStressesOfFiberAndMatrix(rValues, matrix_strain_vector, fiber_strain_vector, rMatrixStressVector, rFiberStressVector, rStressMeasure);
 
         // Here we check the convergence of the loop -> serial stresses equilibrium
-        this->CheckStressEquilibrium(rValues, rStrainVector, serial_projector, rMatrixStressVector, rFiberStressVector, stress_residual, is_converged, constitutive_tensor_matrix_ss, constitutive_tensor_fiber_ss);
+        CheckStressEquilibrium(rValues, rStrainVector, serial_projector, rMatrixStressVector, rFiberStressVector, stress_residual, is_converged, constitutive_tensor_matrix_ss, constitutive_tensor_fiber_ss);
         if (is_converged) {
             break;
         } else {
@@ -292,7 +303,9 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStrainSerialParallelBehaviour(
 
 /***********************************************************************************/
 /***********************************************************************************/
-void SerialParallelRuleOfMixturesLaw::CorrectSerialStrainMatrix(
+
+template<unsigned int TDim>
+void SerialParallelRuleOfMixturesLaw<TDim>::CorrectSerialStrainMatrix(
     ConstitutiveLaw::Parameters& rValues,
     const Vector& rResidualStresses,
     Vector& rSerialStrainMatrix,
@@ -359,7 +372,9 @@ void SerialParallelRuleOfMixturesLaw::CorrectSerialStrainMatrix(
 
 /***********************************************************************************/
 /***********************************************************************************/
-void SerialParallelRuleOfMixturesLaw::CheckStressEquilibrium(
+
+template<unsigned int TDim>
+void SerialParallelRuleOfMixturesLaw<TDim>::CheckStressEquilibrium(
     ConstitutiveLaw::Parameters& rValues,
     const Vector& rStrainVector,
     const Matrix& rSerialProjector,
@@ -411,7 +426,9 @@ void SerialParallelRuleOfMixturesLaw::CheckStressEquilibrium(
 
 /***********************************************************************************/
 /***********************************************************************************/
-void SerialParallelRuleOfMixturesLaw::IntegrateStressesOfFiberAndMatrix(
+
+template<unsigned int TDim>
+void SerialParallelRuleOfMixturesLaw<TDim>::IntegrateStressesOfFiberAndMatrix(
     ConstitutiveLaw::Parameters& rValues,
     Vector& rMatrixStrainVector,
     Vector& rFiberStrainVector,
@@ -454,7 +471,9 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStressesOfFiberAndMatrix(
 
 /***********************************************************************************/
 /***********************************************************************************/
-void SerialParallelRuleOfMixturesLaw::CalculateInitialApproximationSerialStrainMatrix(
+
+template<unsigned int TDim>
+void SerialParallelRuleOfMixturesLaw<TDim>::CalculateInitialApproximationSerialStrainMatrix(
     const Vector& rStrainVector,
     const Vector& rPreviousStrainVector,
     const Properties& rMaterialProperties,
@@ -528,7 +547,9 @@ void SerialParallelRuleOfMixturesLaw::CalculateInitialApproximationSerialStrainM
 
 /***********************************************************************************/
 /***********************************************************************************/
-void SerialParallelRuleOfMixturesLaw::CalculateStrainsOnEachComponent(
+
+template<unsigned int TDim>
+void SerialParallelRuleOfMixturesLaw<TDim>::CalculateStrainsOnEachComponent(
     const Vector& rStrainVector,
     const Matrix& rParallelProjector,
     const Matrix& rSerialProjector,
@@ -561,7 +582,9 @@ void SerialParallelRuleOfMixturesLaw::CalculateStrainsOnEachComponent(
 
 /***********************************************************************************/
 /***********************************************************************************/
-void SerialParallelRuleOfMixturesLaw::CalculateSerialParallelProjectionMatrices(
+
+template<unsigned int TDim>
+void SerialParallelRuleOfMixturesLaw<TDim>::CalculateSerialParallelProjectionMatrices(
     Matrix& rParallelProjector,
     Matrix& rSerialProjector
 )
@@ -595,7 +618,8 @@ void SerialParallelRuleOfMixturesLaw::CalculateSerialParallelProjectionMatrices(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SerialParallelRuleOfMixturesLaw::CalculateGreenLagrangeStrain(ConstitutiveLaw::Parameters& rValues)
+template<unsigned int TDim>
+void SerialParallelRuleOfMixturesLaw<TDim>::CalculateGreenLagrangeStrain(ConstitutiveLaw::Parameters& rValues)
 {
     // Some auxiliary values
     const SizeType dimension = WorkingSpaceDimension();
@@ -617,7 +641,8 @@ void SerialParallelRuleOfMixturesLaw::CalculateGreenLagrangeStrain(ConstitutiveL
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SerialParallelRuleOfMixturesLaw::CalculateAlmansiStrain(ConstitutiveLaw::Parameters& rValues)
+template<unsigned int TDim>
+void SerialParallelRuleOfMixturesLaw<TDim>::CalculateAlmansiStrain(ConstitutiveLaw::Parameters& rValues)
 {
     // Some auxiliary values
     const SizeType dimension = WorkingSpaceDimension();
@@ -639,7 +664,8 @@ void SerialParallelRuleOfMixturesLaw::CalculateAlmansiStrain(ConstitutiveLaw::Pa
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+template<unsigned int TDim>
+void SerialParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
     Flags& r_flags = rValues.GetOptions();
     // Some auxiliary values
@@ -703,7 +729,8 @@ void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponsePK1(ConstitutiveLa
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+template<unsigned int TDim>
+void SerialParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     Flags& r_flags = rValues.GetOptions();
     // Some auxiliary values
@@ -767,7 +794,8 @@ void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponsePK2(ConstitutiveLa
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+template<unsigned int TDim>
+void SerialParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
     Flags& r_flags = rValues.GetOptions();
     // Some auxiliary values
@@ -831,7 +859,8 @@ void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponseKirchhoff(Constitu
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+template<unsigned int TDim>
+void SerialParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     Flags& r_flags = rValues.GetOptions();
     // Some auxiliary values
@@ -895,7 +924,8 @@ void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponseCauchy(Constitutiv
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool& SerialParallelRuleOfMixturesLaw::GetValue(
+template<unsigned int TDim>
+bool& SerialParallelRuleOfMixturesLaw<TDim>::GetValue(
     const Variable<bool>& rThisVariable,
     bool& rValue
     )
@@ -915,7 +945,8 @@ bool& SerialParallelRuleOfMixturesLaw::GetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-int& SerialParallelRuleOfMixturesLaw::GetValue(
+template<unsigned int TDim>
+int& SerialParallelRuleOfMixturesLaw<TDim>::GetValue(
     const Variable<int>& rThisVariable,
     int& rValue
     )
@@ -932,7 +963,8 @@ int& SerialParallelRuleOfMixturesLaw::GetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-double& SerialParallelRuleOfMixturesLaw::GetValue(
+template<unsigned int TDim>
+double& SerialParallelRuleOfMixturesLaw<TDim>::GetValue(
     const Variable<double>& rThisVariable,
     double& rValue
     )
@@ -968,7 +1000,8 @@ double& SerialParallelRuleOfMixturesLaw::GetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Vector& SerialParallelRuleOfMixturesLaw::GetValue(
+template<unsigned int TDim>
+Vector& SerialParallelRuleOfMixturesLaw<TDim>::GetValue(
     const Variable<Vector>& rThisVariable,
     Vector& rValue
     )
@@ -994,7 +1027,8 @@ Vector& SerialParallelRuleOfMixturesLaw::GetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Matrix& SerialParallelRuleOfMixturesLaw::GetValue(
+template<unsigned int TDim>
+Matrix& SerialParallelRuleOfMixturesLaw<TDim>::GetValue(
     const Variable<Matrix>& rThisVariable,
     Matrix& rValue
     )
@@ -1011,7 +1045,8 @@ Matrix& SerialParallelRuleOfMixturesLaw::GetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SerialParallelRuleOfMixturesLaw::SetValue(
+template<unsigned int TDim>
+void SerialParallelRuleOfMixturesLaw<TDim>::SetValue(
     const Variable<bool>& rThisVariable,
     const bool& rValue,
     const ProcessInfo& rCurrentProcessInfo
@@ -1032,7 +1067,8 @@ void SerialParallelRuleOfMixturesLaw::SetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SerialParallelRuleOfMixturesLaw::SetValue(
+template<unsigned int TDim>
+void SerialParallelRuleOfMixturesLaw<TDim>::SetValue(
     const Variable<int>& rThisVariable,
     const int& rValue,
     const ProcessInfo& rCurrentProcessInfo
@@ -1049,7 +1085,8 @@ void SerialParallelRuleOfMixturesLaw::SetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SerialParallelRuleOfMixturesLaw::SetValue(
+template<unsigned int TDim>
+void SerialParallelRuleOfMixturesLaw<TDim>::SetValue(
     const Variable<double>& rThisVariable,
     const double& rValue,
     const ProcessInfo& rCurrentProcessInfo
@@ -1069,7 +1106,8 @@ void SerialParallelRuleOfMixturesLaw::SetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool SerialParallelRuleOfMixturesLaw::Has(const Variable<bool>& rThisVariable)
+template<unsigned int TDim>
+bool SerialParallelRuleOfMixturesLaw<TDim>::Has(const Variable<bool>& rThisVariable)
 {
     if (mpMatrixConstitutiveLaw->Has(rThisVariable)) {
         return true;
@@ -1086,7 +1124,8 @@ bool SerialParallelRuleOfMixturesLaw::Has(const Variable<bool>& rThisVariable)
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool SerialParallelRuleOfMixturesLaw::Has(const Variable<int>& rThisVariable)
+template<unsigned int TDim>
+bool SerialParallelRuleOfMixturesLaw<TDim>::Has(const Variable<int>& rThisVariable)
 {
     if (mpMatrixConstitutiveLaw->Has(rThisVariable)) {
         return true;
@@ -1100,7 +1139,8 @@ bool SerialParallelRuleOfMixturesLaw::Has(const Variable<int>& rThisVariable)
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool SerialParallelRuleOfMixturesLaw::Has(const Variable<double>& rThisVariable)
+template<unsigned int TDim>
+bool SerialParallelRuleOfMixturesLaw<TDim>::Has(const Variable<double>& rThisVariable)
 {
     if (mpMatrixConstitutiveLaw->Has(rThisVariable)) {
         return true;
@@ -1120,7 +1160,8 @@ bool SerialParallelRuleOfMixturesLaw::Has(const Variable<double>& rThisVariable)
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool SerialParallelRuleOfMixturesLaw::Has(const Variable<Vector>& rThisVariable)
+template<unsigned int TDim>
+bool SerialParallelRuleOfMixturesLaw<TDim>::Has(const Variable<Vector>& rThisVariable)
 {
     if (mpMatrixConstitutiveLaw->Has(rThisVariable)) {
         return true;
@@ -1134,7 +1175,8 @@ bool SerialParallelRuleOfMixturesLaw::Has(const Variable<Vector>& rThisVariable)
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool SerialParallelRuleOfMixturesLaw::Has(const Variable<Matrix>& rThisVariable)
+template<unsigned int TDim>
+bool SerialParallelRuleOfMixturesLaw<TDim>::Has(const Variable<Matrix>& rThisVariable)
 {
     if (mpMatrixConstitutiveLaw->Has(rThisVariable)) {
         return true;
@@ -1148,7 +1190,8 @@ bool SerialParallelRuleOfMixturesLaw::Has(const Variable<Matrix>& rThisVariable)
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool& SerialParallelRuleOfMixturesLaw::CalculateValue(
+template<unsigned int TDim>
+bool& SerialParallelRuleOfMixturesLaw<TDim>::CalculateValue(
     Parameters& rParameterValues,
     const Variable<bool>& rThisVariable,
     bool& rValue)
@@ -1162,7 +1205,8 @@ bool& SerialParallelRuleOfMixturesLaw::CalculateValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-int& SerialParallelRuleOfMixturesLaw::CalculateValue(
+template<unsigned int TDim>
+int& SerialParallelRuleOfMixturesLaw<TDim>::CalculateValue(
     Parameters& rParameterValues,
     const Variable<int>& rThisVariable,
     int& rValue)
@@ -1176,7 +1220,8 @@ int& SerialParallelRuleOfMixturesLaw::CalculateValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-double& SerialParallelRuleOfMixturesLaw::CalculateValue(
+template<unsigned int TDim>
+double& SerialParallelRuleOfMixturesLaw<TDim>::CalculateValue(
     Parameters& rParameterValues,
     const Variable<double>& rThisVariable,
     double& rValue)
@@ -1226,7 +1271,8 @@ double& SerialParallelRuleOfMixturesLaw::CalculateValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Vector& SerialParallelRuleOfMixturesLaw::CalculateValue(
+template<unsigned int TDim>
+Vector& SerialParallelRuleOfMixturesLaw<TDim>::CalculateValue(
     Parameters& rParameterValues,
     const Variable<Vector>& rThisVariable,
     Vector& rValue)
@@ -1390,7 +1436,8 @@ Vector& SerialParallelRuleOfMixturesLaw::CalculateValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SerialParallelRuleOfMixturesLaw::InitializeMaterial(
+template<unsigned int TDim>
+void SerialParallelRuleOfMixturesLaw<TDim>::InitializeMaterial(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const Vector& rShapeFunctionsValues)
@@ -1420,7 +1467,8 @@ void SerialParallelRuleOfMixturesLaw::InitializeMaterial(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
+template<unsigned int TDim>
+Matrix& SerialParallelRuleOfMixturesLaw<TDim>::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<Matrix>& rThisVariable,
     Matrix& rValue
@@ -1620,18 +1668,20 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SerialParallelRuleOfMixturesLaw::CalculateTangentTensor(
+template<unsigned int TDim>
+void SerialParallelRuleOfMixturesLaw<TDim>::CalculateTangentTensor(
     ConstitutiveLaw::Parameters& rValues,
     const ConstitutiveLaw::StressMeasure& rStressMeasure)
 {
     // Independent from the Voigt Size
     AdvancedConstitutiveLawUtilities<6>::CalculateTangentTensorByPerturbation(rValues, this, rStressMeasure);
 }
+
 /***********************************************************************************/
 /***********************************************************************************/
 
-
-int SerialParallelRuleOfMixturesLaw::Check(
+template<unsigned int TDim>
+int SerialParallelRuleOfMixturesLaw<TDim>::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo
@@ -1652,5 +1702,11 @@ int SerialParallelRuleOfMixturesLaw::Check(
 
     return aux_out;
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template class SerialParallelRuleOfMixturesLaw<2>;
+template class SerialParallelRuleOfMixturesLaw<3>;
 
 } // namespace Kratos

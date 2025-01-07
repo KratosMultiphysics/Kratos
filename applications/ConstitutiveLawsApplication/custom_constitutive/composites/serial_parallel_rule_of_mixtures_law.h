@@ -53,6 +53,7 @@ namespace Kratos
  * @details
  * @author Alejandro Cornejo
  */
+template<unsigned int TDim>
 class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
     : public ConstitutiveLaw
 {
@@ -67,6 +68,10 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
     using GeometryType = Geometry<NodeType>;
 
     using BaseType = ConstitutiveLaw;
+
+    static constexpr SizeType Dimension = TDim;
+
+    static constexpr SizeType VoigtSize = (TDim == 3) ? 6 : 3;
 
     /// Definition of the machine precision tolerance
     static constexpr double machine_tolerance = std::numeric_limits<double>::epsilon();
