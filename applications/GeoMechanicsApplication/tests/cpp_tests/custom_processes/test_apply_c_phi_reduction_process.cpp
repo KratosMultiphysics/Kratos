@@ -213,8 +213,8 @@ KRATOS_TEST_CASE_IN_SUITE(CheckFailureTooSmallReductionIncrementApplyCPhiReducti
         process.ExecuteFinalizeSolutionStep();
     }
 
-    // After halving the reduction increment for the seventh time, it becomes 0,0078125, so it should
-    // throw an exception
+    // After halving the initial reduction increment (0.1) for the seventh time, it becomes
+    // 0,00078125, so it should throw an exception
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         process.ExecuteInitializeSolutionStep(),
         "Reduction increment should not drop below 0.001, calculation stopped.");
