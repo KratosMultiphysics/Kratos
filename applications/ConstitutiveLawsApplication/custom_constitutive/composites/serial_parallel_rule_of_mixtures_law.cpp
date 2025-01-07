@@ -34,11 +34,8 @@ ConstitutiveLaw::Pointer SerialParallelRuleOfMixturesLaw::Create(Kratos::Paramet
     if (fiber_volumetric_participation < 0.0 || fiber_volumetric_participation > 1.0) {
         KRATOS_ERROR << "A wrong fiber volumetric participation has been set: Greater than 1 or lower than 0..." << std::endl;
     }
-    const int voigt_size = GetStrainSize();
-    Vector parallel_directions(voigt_size);
-    for (IndexType i_comp = 0; i_comp < voigt_size; ++i_comp) {
-        parallel_directions[i_comp] = NewParameters["parallel_behaviour_directions"][i_comp].GetInt();
-    }
+
+    Vector parallel_directions = NewParameters["parallel_behaviour_directions"].GetVector();
     return Kratos::make_shared<SerialParallelRuleOfMixturesLaw>(fiber_volumetric_participation, parallel_directions);
 }
 
@@ -979,7 +976,7 @@ Vector& SerialParallelRuleOfMixturesLaw::GetValue(
     const bool matrix_has = mpMatrixConstitutiveLaw->Has(rThisVariable);
     const bool fiber_has = mpFiberConstitutiveLaw->Has(rThisVariable);
     const SizeType voigt_size = GetStrainSize();
-    rValue.resize(GetStrainSize(), false);
+    rValue.resize(voigt_size, false);
     rValue.clear();
     if (matrix_has && fiber_has) {
         Vector r_vector_matrix(voigt_size), r_vector_fiber(voigt_size);
