@@ -19,6 +19,25 @@ class KratosGeoMechanicsMasterSlaveConstraints(KratosUnittest.TestCase):
                 actual_displacement[0], expected_x_displacement, places=3
             )
 
+    def check_displacements_at_tied_nodes(self, output_data):
+        end_time = 1.0
+        master_node_ids = [2, 3]
+        master_node_displacements = (
+            test_helper.GiDOutputFileReader.nodal_values_at_time(
+                "DISPLACEMENT", end_time, output_data, node_ids=master_node_ids
+            )
+        )
+        slave_node_ids = [5, 8]
+        slave_node_displacements = test_helper.GiDOutputFileReader.nodal_values_at_time(
+            "DISPLACEMENT", end_time, output_data, node_ids=slave_node_ids
+        )
+        self.assertTrue(
+            test_helper.are_iterables_almost_equal(
+                master_node_displacements, slave_node_displacements
+            ),
+            msg=f"displacement vectors don't compare equal: master node displacements = {master_node_displacements}, slave node displacements = {slave_node_displacements}",
+        )
+
     def check_x_reaction_forces(self, output_data):
         end_time = 1.0
         supported_node_ids = [1, 4]
@@ -40,6 +59,7 @@ class KratosGeoMechanicsMasterSlaveConstraints(KratosUnittest.TestCase):
             os.path.join(test_files_path, "test_master_slave_constraints.post.res")
         )
         self.check_x_displacements(output_data)
+        self.check_displacements_at_tied_nodes(output_data)
         self.check_x_reaction_forces(output_data)
 
 

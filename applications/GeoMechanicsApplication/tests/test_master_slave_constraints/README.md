@@ -8,4 +8,16 @@ This test consists of two linear quadrilateral U-Pw elements that are connected 
 
 To keep the model as simple as possible, a linear elastic material model has been applied.  Also, the groundwater pressure field has been fixed at a value of 0.0 throughout the entire domain.
 
-The goal of this test is to show that master-slave constraints are correctly applied.  We verify that by comparing the actual displacements in $`x`$ direction along the loaded side with the analytical solution.  Furthermore, we compare the reaction forces in $`x`$ direction along the supported side with the analytical solution.
+The goal of this test is to show that master-slave constraints are correctly applied.  We verify that by comparing the actual displacements in $`x`$ direction along the loaded side with the analytical solution:
+```math
+u_{x} = \epsilon_{xx} \cdot L = \frac{\sigma_{xx}}{E} \cdot L
+```
+where $`u_{x}`$ equals the displacements in $`x`$ direction at the loaded side, $`\epsilon_{xx}`$ is the normal strain in $`x`$ direction, $`L`$ is the length of the model in $`x`$ direction, $`\sigma_{xx}`$ is the normal stress in $`x`$ direction (which equals the applied uniform normal edge load), and $`E`$ is the Young's modulus of the soil. 
+
+Furthermore, we compare the reaction forces in $`x`$ direction along the supported side with the analytical solution:
+```math
+R_{x} = \sigma_{xx} \cdot A
+```
+where $`R_{x}`$ is the reaction force component in $`x`$ direction, $`\sigma_{xx}`$ is the normal stress in $`x`$ direction (which equals the applied uniform normal edge load), and $`A`$ the area associated with a node for the integration of $`\sigma_{xx}`$ (for this case we need to consider half of the element height and unity thickness in the out-of-plane direction).
+
+Finally, we also check whether the "tied" nodes have equal displacements.
