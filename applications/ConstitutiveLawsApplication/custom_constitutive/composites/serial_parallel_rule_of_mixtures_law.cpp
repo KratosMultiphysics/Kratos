@@ -621,7 +621,13 @@ void SerialParallelRuleOfMixturesLaw::CalculateAlmansiStrain(ConstitutiveLaw::Pa
     B_tensor.resize(dimension, dimension, false);
     noalias(B_tensor) = prod(F, trans(F));
 
-    AdvancedConstitutiveLawUtilities<6>::CalculateAlmansiStrain(B_tensor, r_strain_vector);
+    const SizeType strain_size = GetStrainSize();
+    if (strain_size == 3) {
+        AdvancedConstitutiveLawUtilities<3>::CalculateAlmansiStrain(B_tensor, r_strain_vector);
+    } else {
+        AdvancedConstitutiveLawUtilities<6>::CalculateAlmansiStrain(B_tensor, r_strain_vector);
+    }
+    
 }
 
 /***********************************************************************************/
@@ -1606,20 +1612,8 @@ void SerialParallelRuleOfMixturesLaw::CalculateTangentTensor(
     ConstitutiveLaw::Parameters& rValues,
     const ConstitutiveLaw::StressMeasure& rStressMeasure)
 {
-    const Properties& r_material_properties = rValues.GetMaterialProperties();
-
-    const bool consider_perturbation_threshold = r_material_properties.Has(CONSIDER_PERTURBATION_THRESHOLD) ? r_material_properties[CONSIDER_PERTURBATION_THRESHOLD] : true;
-    const TangentOperatorEstimation tangent_operator_estimation = r_material_properties.Has(TANGENT_OPERATOR_ESTIMATION) ? static_cast<TangentOperatorEstimation>(r_material_properties[TANGENT_OPERATOR_ESTIMATION]) : TangentOperatorEstimation::SecondOrderPerturbation;
-
-    if (tangent_operator_estimation == TangentOperatorEstimation::Analytic) {
-        KRATOS_ERROR << "Analytic solution not available" << std::endl;
-    } else if (tangent_operator_estimation == TangentOperatorEstimation::FirstOrderPerturbation) {
-        // Calculates the Tangent Constitutive Tensor by perturbation (first order)
-        TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, rStressMeasure, consider_perturbation_threshold, 1);
-    } else if (tangent_operator_estimation == TangentOperatorEstimation::SecondOrderPerturbation) {
-        // Calculates the Tangent Constitutive Tensor by perturbation (second order)
-        TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, rStressMeasure, consider_perturbation_threshold, 2);
-    }
+    // Independent from the Voigt Size
+    AdvancedConstitutiveLawUtilities<6>::CalculateTangentTensorByPerturbation(rValues, this, rStressMeasure);
 }
 /***********************************************************************************/
 /***********************************************************************************/

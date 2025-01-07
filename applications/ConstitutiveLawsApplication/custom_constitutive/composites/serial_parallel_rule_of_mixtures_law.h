@@ -135,7 +135,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
     SizeType WorkingSpaceDimension() override
     {
         return mpMatrixConstitutiveLaw->WorkingSpaceDimension();
-        KRATOS_DEBUG_ERROR_IF(mpMatrixConstitutiveLaw->WorkingSpaceDimension() != mpFiberConstitutiveLaw->WorkingSpaceDimension()) << "Th WorkingSpaceDimension of the fiber and matrix mismatch..." << std::endl;
+        KRATOS_DEBUG_ERROR_IF(mpMatrixConstitutiveLaw->WorkingSpaceDimension() != mpFiberConstitutiveLaw->WorkingSpaceDimension()) << "The WorkingSpaceDimension of the fiber and matrix mismatch..." << std::endl;
     };
 
     /**
@@ -144,7 +144,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
     SizeType GetStrainSize() const override
     {
         return mpMatrixConstitutiveLaw->GetStrainSize();
-        KRATOS_DEBUG_ERROR_IF(mpMatrixConstitutiveLaw->GetStrainSize() != mpFiberConstitutiveLaw->GetStrainSize()) << "Th GetStrainSize of the fiber and matrix mismatch..." << std::endl;
+        KRATOS_DEBUG_ERROR_IF(mpMatrixConstitutiveLaw->GetStrainSize() != mpFiberConstitutiveLaw->GetStrainSize()) << "The GetStrainSize of the fiber and matrix mismatch..." << std::endl;
 
     };
 
