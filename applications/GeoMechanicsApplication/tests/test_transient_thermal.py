@@ -32,81 +32,21 @@ class KratosGeoMechanicsTransientThermalTests(KratosUnittest.TestCase):
         temperature = self.simulate_thermal_case('test_thermal_heat_flux/test_thermal_heat_flux_2D3N')
         self.assertAlmostEqual(self.etalon_value1, temperature[37])
 
-    def test_thermal_heat_flux_2D6N(self):
-        temperature = self.simulate_thermal_case('test_thermal_heat_flux/test_thermal_heat_flux_2D6N')
-        self.assertAlmostEqual(self.etalon_value1, temperature[57])
-
-    def test_thermal_heat_flux_2D10N(self):
-        temperature = self.simulate_thermal_case('test_thermal_heat_flux/test_thermal_heat_flux_2D10N')
-        self.assertAlmostEqual(self.etalon_value1, temperature[77])
-
-    def test_thermal_heat_flux_2D15N(self):
-        temperature = self.simulate_thermal_case('test_thermal_heat_flux/test_thermal_heat_flux_2D15N')
-        self.assertAlmostEqual(self.etalon_value1, temperature[97])
-
-    def test_thermal_heat_flux_2D4N(self):
-        temperature = self.simulate_thermal_case('test_thermal_heat_flux/test_thermal_heat_flux_2D4N')
-        self.assertAlmostEqual(self.etalon_value2, temperature[18])
-
-    def test_thermal_heat_flux_2D8N(self):
-        temperature = self.simulate_thermal_case('test_thermal_heat_flux/test_thermal_heat_flux_2D8N')
-        self.assertAlmostEqual(self.etalon_value2, temperature[50])
-
-    def test_thermal_heat_flux_2D9N(self):
-        temperature = self.simulate_thermal_case('test_thermal_heat_flux/test_thermal_heat_flux_2D9N')
-        self.assertAlmostEqual(self.etalon_value2, temperature[63])
-
     def test_thermal_heat_flux_3D4N(self):
         temperature = self.simulate_thermal_case('test_thermal_heat_flux/test_thermal_heat_flux_3D4N')
         self.assertAlmostEqual(self.etalon_value3, temperature[22])
 
-    def test_thermal_heat_flux_3D10N(self):
-        temperature = self.simulate_thermal_case('test_thermal_heat_flux/test_thermal_heat_flux_3D10N')
-        self.assertAlmostEqual(self.etalon_value3, temperature[124])
-
-    def test_thermal_heat_flux_3D8N(self):
-        temperature = self.simulate_thermal_case('test_thermal_heat_flux/test_thermal_heat_flux_3D8N')
-        self.assertAlmostEqual(self.etalon_value4, temperature[38])
-
-    def test_thermal_heat_flux_3D20N(self):
-        temperature = self.simulate_thermal_case('test_thermal_heat_flux/test_thermal_heat_flux_3D20N')
-        self.assertAlmostEqual(self.etalon_value4, temperature[213])
 
     def test_transient_thermal_heat_flux_2D3N(self):
         temperature = self.simulate_thermal_case('test_transient_thermal_heat_flux/test_transient_thermal_heat_flux_2D3N')
         self.assertAlmostEqual(0.3618991346235092, temperature[37])
 
-    def test_transient_thermal_heat_flux_2D6N(self):
-        temperature = self.simulate_thermal_case('test_transient_thermal_heat_flux/test_transient_thermal_heat_flux_2D6N')
-        self.assertAlmostEqual(0.46919946397780093, temperature[57])
 
-    def test_transient_thermal_heat_flux_2D10N(self):
-        temperature = self.simulate_thermal_case('test_transient_thermal_heat_flux/test_transient_thermal_heat_flux_2D10N')
-        self.assertAlmostEqual(0.4674055416030332, temperature[77])
-
-    def test_transient_thermal_heat_flux_2D15N(self):
-        temperature = self.simulate_thermal_case('test_transient_thermal_heat_flux/test_transient_thermal_heat_flux_2D15N')
-        self.assertAlmostEqual(0.46761403285540487, temperature[97])
-
-    def test_transient_thermal_heat_flux_2D4N(self):
-        temperature = self.simulate_thermal_case('test_transient_thermal_heat_flux/test_transient_thermal_heat_flux_2D4N')
-        self.assertAlmostEqual(0.12253593527932072, temperature[18])
-
-    def test_transient_thermal_heat_flux_2D8N(self):
-        temperature = self.simulate_thermal_case('test_transient_thermal_heat_flux/test_transient_thermal_heat_flux_2D8N')
-        self.assertAlmostEqual(0.20716154048406607, temperature[50])
-
-    def test_transient_thermal_heat_flux_2D9N(self):
-        temperature = self.simulate_thermal_case('test_transient_thermal_heat_flux/test_transient_thermal_heat_flux_2D9N')
-        self.assertAlmostEqual(0.20715104139698065, temperature[63])
 
     def test_transient_thermal_heat_flux_3D4N(self):
         temperature = self.simulate_thermal_case('test_transient_thermal_heat_flux/test_transient_thermal_heat_flux_3D4N')
         self.assertAlmostEqual(0.8936587648750058, temperature[22])
 
-    def test_transient_thermal_heat_flux_3D10N(self):
-        temperature = self.simulate_thermal_case('test_transient_thermal_heat_flux/test_transient_thermal_heat_flux_3D10N')
-        self.assertAlmostEqual(1.2294110493528096, temperature[124])
 
     def test_thermal_fixed_temperature_2D3N(self):
         temperature = self.simulate_thermal_case('test_thermal_fixed_temperature/test_thermal_fixed_temperature_2D3N')
@@ -116,73 +56,21 @@ class KratosGeoMechanicsTransientThermalTests(KratosUnittest.TestCase):
         temperature = self.simulate_thermal_case('test_thermal_fixed_temperature/test_thermal_fixed_temperature_2D3N_newmark')
         self.assertAlmostEqual(13.08528783780587, temperature[37])
 
-    def test_thermal_fixed_temperature_2D6N(self):
-        temperature = self.simulate_thermal_case('test_thermal_fixed_temperature/test_thermal_fixed_temperature_2D6N')
-        self.assertAlmostEqual(13.08528783780587, temperature[57])
-
-    def test_thermal_fixed_temperature_2D10N(self):
-        temperature = self.simulate_thermal_case('test_thermal_fixed_temperature/test_thermal_fixed_temperature_2D10N')
-        self.assertAlmostEqual(13.08528783780587, temperature[77])
-
-    def test_thermal_fixed_temperature_2D15N(self):
-        temperature = self.simulate_thermal_case('test_thermal_fixed_temperature/test_thermal_fixed_temperature_2D15N')
-        self.assertAlmostEqual(13.08528783780587, temperature[97])
-
-    def test_thermal_fixed_temperature_2D4N(self):
-        temperature = self.simulate_thermal_case('test_thermal_fixed_temperature/test_thermal_fixed_temperature_2D4N')
-        self.assertAlmostEqual(4.9497705225, temperature[18])
-
-    def test_thermal_fixed_temperature_2D8N(self):
-        temperature = self.simulate_thermal_case('test_thermal_fixed_temperature/test_thermal_fixed_temperature_2D8N')
-        self.assertAlmostEqual(4.9497705225, temperature[50])
-
-    def test_thermal_fixed_temperature_2D9N(self):
-        temperature = self.simulate_thermal_case('test_thermal_fixed_temperature/test_thermal_fixed_temperature_2D9N')
-        self.assertAlmostEqual(4.9497705225, temperature[63])
-
     def test_thermal_fixed_temperature_3D4N(self):
         temperature = self.simulate_thermal_case('test_thermal_fixed_temperature/test_thermal_fixed_temperature_3D4N')
         self.assertAlmostEqual(16.39151949, temperature[22])
 
-    def test_thermal_fixed_temperature_3D10N(self):
-        temperature = self.simulate_thermal_case('test_thermal_fixed_temperature/test_thermal_fixed_temperature_3D10N')
-        self.assertAlmostEqual(16.39151949, temperature[124])
 
     def test_transient_thermal_fixed_temperature_2D3N(self):
         temperature = self.simulate_thermal_case('test_transient_thermal_fixed_temperature/test_transient_thermal_fixed_temperature_2D3N')
         self.assertAlmostEqual(3.1312633472490803, temperature[37])
 
-    def test_transient_thermal_fixed_temperature_2D6N(self):
-        temperature = self.simulate_thermal_case('test_transient_thermal_fixed_temperature/test_transient_thermal_fixed_temperature_2D6N')
-        self.assertAlmostEqual(2.9280665380753517, temperature[57])
 
-    def test_transient_thermal_fixed_temperature_2D10N(self):
-        temperature = self.simulate_thermal_case('test_transient_thermal_fixed_temperature/test_transient_thermal_fixed_temperature_2D10N')
-        self.assertAlmostEqual(2.98104309613254, temperature[77])
-
-    def test_transient_thermal_fixed_temperature_2D15N(self):
-        temperature = self.simulate_thermal_case('test_transient_thermal_fixed_temperature/test_transient_thermal_fixed_temperature_2D15N')
-        self.assertAlmostEqual(2.941069197319062, temperature[97])
-
-    def test_transient_thermal_fixed_temperature_2D4N(self):
-        temperature = self.simulate_thermal_case('test_transient_thermal_fixed_temperature/test_transient_thermal_fixed_temperature_2D4N')
-        self.assertAlmostEqual(0.36178961457330816, temperature[18])
-
-    def test_transient_thermal_fixed_temperature_2D8N(self):
-        temperature = self.simulate_thermal_case('test_transient_thermal_fixed_temperature/test_transient_thermal_fixed_temperature_2D8N')
-        self.assertAlmostEqual(0.3723784708947167, temperature[50])
-
-    def test_transient_thermal_fixed_temperature_2D9N(self):
-        temperature = self.simulate_thermal_case('test_transient_thermal_fixed_temperature/test_transient_thermal_fixed_temperature_2D9N')
-        self.assertAlmostEqual(0.37239021552505724, temperature[63])
 
     def test_transient_thermal_fixed_temperature_3D4N(self):
         temperature = self.simulate_thermal_case('test_transient_thermal_fixed_temperature/test_transient_thermal_fixed_temperature_3D4N')
         self.assertAlmostEqual(7.49001003417586, temperature[22])
 
-    def test_transient_thermal_fixed_temperature_3D10N(self):
-        temperature = self.simulate_thermal_case('test_transient_thermal_fixed_temperature/test_transient_thermal_fixed_temperature_3D10N')
-        self.assertAlmostEqual(5.970566939746188, temperature[124])
 
     def test_micro_climate_1(self):
         temperature = self.simulate_thermal_case('test_micro_climate_1')
@@ -220,57 +108,27 @@ class KratosGeoMechanicsTransientThermalTests(KratosUnittest.TestCase):
         temperature = self.simulate_thermal_case('test_thermal_line_element/test_thermal_line_element_2D2N')
         self.assertAlmostEqual(self.etalon_value5, temperature[2])
 
-    def test_thermal_line_element_2D3N(self):
-        temperature = self.simulate_thermal_case('test_thermal_line_element/test_thermal_line_element_2D3N')
-        self.assertAlmostEqual(self.etalon_value5, temperature[2])
-
-    def test_thermal_line_element_2D4N(self):
-        temperature = self.simulate_thermal_case('test_thermal_line_element/test_thermal_line_element_2D4N')
-        self.assertAlmostEqual(self.etalon_value5, temperature[2])
-
-    def test_thermal_line_element_2D5N(self):
-        temperature = self.simulate_thermal_case('test_thermal_line_element/test_thermal_line_element_2D5N')
-        self.assertAlmostEqual(self.etalon_value5, temperature[2])
 
     def test_thermal_line_element_3D2N(self):
         temperature = self.simulate_thermal_case('test_thermal_line_element/test_thermal_line_element_3D2N')
         self.assertAlmostEqual(self.etalon_value5, temperature[2])
 
-    def test_thermal_line_element_3D3N(self):
-        temperature = self.simulate_thermal_case('test_thermal_line_element/test_thermal_line_element_3D3N')
-        self.assertAlmostEqual(self.etalon_value5, temperature[2])
 
     def test_thermal_point_flux_2D2N(self):
         temperature = self.simulate_thermal_case('test_thermal_heat_flux_line_element/test_thermal_point_flux_2D2N')
         self.assertAlmostEqual(self.etalon_value6, temperature[0])
 
-    def test_thermal_point_flux_2D3N(self):
-        temperature = self.simulate_thermal_case('test_thermal_heat_flux_line_element/test_thermal_point_flux_2D3N')
-        self.assertAlmostEqual(self.etalon_value6, temperature[0])
-
-    def test_thermal_point_flux_2D4N(self):
-        temperature = self.simulate_thermal_case('test_thermal_heat_flux_line_element/test_thermal_point_flux_2D4N')
-        self.assertAlmostEqual(self.etalon_value6, temperature[0])
-
-    def test_thermal_point_flux_2D5N(self):
-        temperature = self.simulate_thermal_case('test_thermal_heat_flux_line_element/test_thermal_point_flux_2D5N')
-        self.assertAlmostEqual(self.etalon_value6, temperature[0])
 
     def test_thermal_point_flux_3D2N(self):
         temperature = self.simulate_thermal_case('test_thermal_heat_flux_line_element/test_thermal_point_flux_3D2N')
         self.assertAlmostEqual(self.etalon_value6, temperature[0])
 
-    def test_thermal_point_flux_3D3N(self):
-        temperature = self.simulate_thermal_case('test_thermal_heat_flux_line_element/test_thermal_point_flux_3D3N')
-        self.assertAlmostEqual(self.etalon_value6, temperature[0])
-    
+
     def test_thermal_filter_element_2D2N(self):
         temperature = self.simulate_thermal_case('test_thermal_filter_element/test_thermal_filter_element_2D2N')
         self.assertAlmostEqual(34.65690605787046, temperature[22])
 
-    def test_thermal_filter_element_2D3N(self):
-        temperature = self.simulate_thermal_case('test_thermal_filter_element/test_thermal_filter_element_2D3N')
-        self.assertAlmostEqual(34.657035390578656, temperature[79])
+
 
 if __name__ == '__main__':
     KratosUnittest.main()

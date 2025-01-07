@@ -39,6 +39,7 @@ from test_column_changing_waterlevel import KratosGeoMechanicsChangingWaterLevel
 from test_set_multiple_moving_load_process import KratosGeoMechanicsSetMultipleMovingLoadProcessTests
 from test_strain_measures import KratosGeoMechanicsStrainMeasureTests
 from test_transient_thermal import KratosGeoMechanicsTransientThermalTests
+from test_transient_thermal_validation import KratosGeoMechanicsTransientThermalValidationTests
 from test_rotation_with_moving_load import KratosGeoMechanicsRotationWithMovingLoadTests
 from test_time_integration import KratosGeoMechanicsTimeIntegrationTests
 from c_phi_reduction_process import KratosGeoMechanicsCPhiReductionProcess
@@ -139,7 +140,8 @@ def AssembleTestSuites():
                         KratosGeoMechanicsTransientGroundWaterFlowTests,
                         TestSellmeijersRuleValidation,
                         KratosGeoMechanicsDynamicsLongTests,
-                        KratosGeoMechanicsThreeDimensionalPipingValidation
+                        KratosGeoMechanicsThreeDimensionalPipingValidation,
+                        KratosGeoMechanicsTransientThermalValidationTests
                         ]
 
     # Create an array that contains all the tests from every testCase
