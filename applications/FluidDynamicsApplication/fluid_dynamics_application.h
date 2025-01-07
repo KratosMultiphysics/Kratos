@@ -82,6 +82,8 @@
 #include "custom_elements/compressible_navier_stokes_explicit.h"
 #include "custom_elements/two_fluid_navier_stokes.h"
 #include "custom_elements/two_fluid_navier_stokes_alpha_method.h"
+#include "custom_elements/two_fluid_navier_stokes_fractional.h"
+#include "custom_elements/two_fluid_navier_stokes_fractional_convection.h"
 
 #include "custom_elements/data_containers/axisymmetric_navier_stokes/axisymmetric_navier_stokes_data.h"
 #include "custom_elements/data_containers/low_mach_navier_stokes/low_mach_navier_stokes_data.h"
@@ -94,6 +96,8 @@
 #include "custom_elements/data_containers/two_fluid_navier_stokes/two_fluid_navier_stokes_data.h"
 #include "custom_elements/data_containers/two_fluid_navier_stokes_alpha_method/two_fluid_navier_stokes_alpha_method_data.h"
 #include "custom_elements/data_containers/weakly_compressible_navier_stokes/weakly_compressible_navier_stokes_data.h"
+#include "custom_elements/data_containers/two_fluid_fractional_navier_stokes/two_fluid_navier_stokes_fractional_data.h"
+#include "custom_elements/data_containers/two_fluid_fractional_navier_stokes/two_fluid_navier_stokes_fractional_convection_data.h"
 
 #include "custom_constitutive/bingham_3d_law.h"
 #include "custom_constitutive/euler_2d_law.h"
@@ -465,6 +469,10 @@ private:
     const TwoFluidNavierStokesAlphaMethod< TwoFluidNavierStokesAlphaMethodData<3, 4> > mTwoFluidNavierStokesAlphaMethod3D4N;
     const TwoFluidNavierStokesWallCondition<2,2> mTwoFluidNavierStokesWallCondition2D;
     const TwoFluidNavierStokesWallCondition<3,3> mTwoFluidNavierStokesWallCondition3D;
+    const TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<2, 3>> mTwoFluidNavierStokesFractional2D3N;
+    const TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<3, 4>> mTwoFluidNavierStokesFractional3D4N;
+    const TwoFluidNavierStokesFractionalConvection<TwoFluidNavierStokesFractionalConvectionData<2, 3>> mTwoFluidNavierStokesFractionalConvection2D3N;
+    const TwoFluidNavierStokesFractionalConvection<TwoFluidNavierStokesFractionalConvectionData<3, 4>> mTwoFluidNavierStokesFractionalConvection3D4N;
 
     /// Incompressible Navier-Stokes div-stable element
     const IncompressibleNavierStokesP2P1Continuous<2> mIncompressibleNavierStokesP2P1Continuous2D6N;
