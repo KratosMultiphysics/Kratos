@@ -20,7 +20,7 @@ mode = "c"                          # Output mode to a c++ file
 adding_acceleration = True         # Whether to add acceleration
 
 
-output_filename = "two_fluid_navier_stokes_fractional_convection_element.cpp"
+output_filename = "two_fluid_navier_stokes_fractional_convection.cpp"
 template_filename = "two_fluid_navier_stokes_fractional_convection_template.cpp"
 
 if (dim_to_compute == "2D"):
