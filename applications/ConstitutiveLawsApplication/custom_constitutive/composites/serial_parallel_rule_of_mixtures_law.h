@@ -49,6 +49,7 @@ namespace Kratos
  * @ingroup StructuralMechanicsApplication
  * @brief This CL implements the serial-parallel rule of mixtures detailed in Cornejo et al. "Methodology for the analysis of post-tensioned structures using a constitutive serial-parallel rule of mixtures"
  * DOI: https://doi.org/10.1016/j.compstruct.2018.05.123
+ * The SP-RoM is able to work in 2D and in 3D.
  * @details
  * @author Alejandro Cornejo
  */
@@ -133,7 +134,8 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
      */
     SizeType WorkingSpaceDimension() override
     {
-        return 3;
+        return mpMatrixConstitutiveLaw->WorkingSpaceDimension();
+        KRATOS_DEBUG_ERROR_IF(mpMatrixConstitutiveLaw->WorkingSpaceDimension() != mpFiberConstitutiveLaw->WorkingSpaceDimension()) << "Th WorkingSpaceDimension of the fiber and matrix mismatch..." << std::endl;
     };
 
     /**
@@ -141,7 +143,9 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
      */
     SizeType GetStrainSize() const override
     {
-        return 6;
+        return mpMatrixConstitutiveLaw->GetStrainSize();
+        KRATOS_DEBUG_ERROR_IF(mpMatrixConstitutiveLaw->GetStrainSize() != mpFiberConstitutiveLaw->GetStrainSize()) << "Th GetStrainSize of the fiber and matrix mismatch..." << std::endl;
+
     };
 
     /**
@@ -261,7 +265,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
      * @param rValue new value of the specified variable
      * @param rCurrentProcessInfo the process info
      */
-     void SetValue(
+    void SetValue(
         const Variable<double>& rThisVariable,
         const double& rValue,
         const ProcessInfo& rCurrentProcessInfo
@@ -548,7 +552,10 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
      */
     bool RequiresInitializeMaterialResponse() override
     {
-        return true;
+        if (mpMatrixConstitutiveLaw->RequiresInitializeMaterialResponse() || mpFiberConstitutiveLaw->RequiresInitializeMaterialResponse()) {
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -556,7 +563,10 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
      */
     bool RequiresFinalizeMaterialResponse() override
     {
-        return true;
+        if (mpMatrixConstitutiveLaw->RequiresFinalizeMaterialResponse() || mpFiberConstitutiveLaw->RequiresFinalizeMaterialResponse()) {
+            return true;
+        }
+        return false;
     }
 
     /**

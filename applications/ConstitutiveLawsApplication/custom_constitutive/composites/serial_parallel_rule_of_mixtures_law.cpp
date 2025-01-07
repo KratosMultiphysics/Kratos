@@ -1641,6 +1641,9 @@ int SerialParallelRuleOfMixturesLaw::Check(
         KRATOS_ERROR << "A wrong fiber volumetric participation has been set: Greater than 1 or lower than 0... " << std::to_string(mFiberVolumetricParticipation) << std::endl;
         aux_out += 1;
     }
+    KRATOS_ERROR_IF(mpMatrixConstitutiveLaw->WorkingSpaceDimension() != mpFiberConstitutiveLaw->WorkingSpaceDimension()) << "The WorkingSpaceDimension of the fiber and matrix mismatch..." << std::endl;
+    KRATOS_ERROR_IF(mpMatrixConstitutiveLaw->GetStrainSize() != mpFiberConstitutiveLaw->GetStrainSize()) << "The GetStrainSize of the fiber and matrix mismatch..." << std::endl;
+
     return aux_out;
 }
 
