@@ -352,6 +352,7 @@ public:
             double & r_nodal_mass     = (i)->FastGetSolutionStepValue(NODAL_MASS);
             array_1d<double, 3 > & r_nodal_momentum = (i)->FastGetSolutionStepValue(NODAL_MOMENTUM);
             array_1d<double, 3 > & r_nodal_inertia  = (i)->FastGetSolutionStepValue(NODAL_INERTIA);
+            array_1d<double, 3 > & r_nodal_cauchy_stress_vector= (i)->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_VECTOR);
 
             array_1d<double, 3 > & r_nodal_displacement = (i)->FastGetSolutionStepValue(DISPLACEMENT);
             array_1d<double, 3 > & r_nodal_velocity     = (i)->FastGetSolutionStepValue(VELOCITY,1);
@@ -364,6 +365,7 @@ public:
             r_nodal_mass = 0.0;
             r_nodal_momentum.clear();
             r_nodal_inertia.clear();
+            r_nodal_cauchy_stress_vector.clear();
 
             r_nodal_displacement.clear();
             r_nodal_velocity.clear();

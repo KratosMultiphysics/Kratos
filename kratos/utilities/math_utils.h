@@ -252,8 +252,8 @@ public:
         // Finally check if the condition number is low enough
         if (cond_number > max_condition_number) {
             if (ThrowError) {
-                KRATOS_WATCH(rInputMatrix);
-                KRATOS_ERROR << " Condition number of the matrix is too high!, cond_number = " << cond_number << std::endl;
+                //KRATOS_WATCH(rInputMatrix);
+                //KRATOS_ERROR << " Condition number of the matrix is too high!, cond_number = " << cond_number << std::endl;
             }
             return false;
         }
