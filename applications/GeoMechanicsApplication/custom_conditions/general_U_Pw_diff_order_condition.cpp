@@ -193,18 +193,18 @@ void GeneralUPwDiffOrderCondition::InitializeConditionVariables(ConditionVariabl
     const SizeType      WorkingDim = rGeom.WorkingSpaceDimension();
     const SizeType      LocalDim   = rGeom.LocalSpaceDimension();
 
-    (rVariables.NuContainer).resize(NumGPoints, NumUNodes, false);
+    rVariables.NuContainer.resize(NumGPoints, NumUNodes, false);
     rVariables.NuContainer = rGeom.ShapeFunctionsValues(this->GetIntegrationMethod());
 
-    (rVariables.NpContainer).resize(NumGPoints, NumPNodes, false);
+    rVariables.NpContainer.resize(NumGPoints, NumPNodes, false);
     rVariables.NpContainer = mpPressureGeometry->ShapeFunctionsValues(this->GetIntegrationMethod());
 
-    (rVariables.Nu).resize(NumUNodes, false);
-    (rVariables.Np).resize(NumPNodes, false);
+    rVariables.Nu.resize(NumUNodes, false);
+    rVariables.Np.resize(NumPNodes, false);
 
-    (rVariables.JContainer).resize(NumGPoints, false);
+    rVariables.JContainer.resize(NumGPoints, false);
     for (SizeType i = 0; i < NumGPoints; ++i)
-        ((rVariables.JContainer)[i]).resize(WorkingDim, LocalDim, false);
+        rVariables.JContainer[i].resize(WorkingDim, LocalDim, false);
     rGeom.Jacobian(rVariables.JContainer, this->GetIntegrationMethod());
 }
 
@@ -272,21 +272,9 @@ void GeneralUPwDiffOrderCondition::CalculateAndAddConditionForce(VectorType& rRi
 
 Condition::DofsVectorType GeneralUPwDiffOrderCondition::GetDofs() const
 {
-    Condition::DofsVectorType result;
-
-    for (const auto& r_node : GetGeometry()) {
-        result.push_back(r_node.pGetDof(DISPLACEMENT_X));
-        result.push_back(r_node.pGetDof(DISPLACEMENT_Y));
-        if (GetGeometry().WorkingSpaceDimension() == 3) {
-            result.push_back(r_node.pGetDof(DISPLACEMENT_Z));
-        }
-    }
-
-    const auto water_pressure_dofs =
-        Geo::DofUtilities::ExtractDofsFromNodes(*mpPressureGeometry, WATER_PRESSURE);
-    result.insert(result.end(), water_pressure_dofs.begin(), water_pressure_dofs.end());
-
-    return result;
+    const auto r_geometry = this->GetGeometry();
+    return Geo::DofUtilities::ExtractUPwDofsFromNodes(r_geometry, *mpPressureGeometry,
+                                                      r_geometry.WorkingSpaceDimension());
 }
 
 std::string GeneralUPwDiffOrderCondition::Info() const { return "GeneralUPwDiffOrderCondition"; }

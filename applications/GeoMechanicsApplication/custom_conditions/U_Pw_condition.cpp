@@ -123,12 +123,12 @@ std::string UPwCondition<TDim, TNumNodes>::Info() const
 
 template class UPwCondition<2, 1>;
 template class UPwCondition<2, 2>;
-template class UPwCondition<3, 1>;
-template class UPwCondition<3, 3>;
-template class UPwCondition<3, 4>;
-
 template class UPwCondition<2, 3>;
 template class UPwCondition<2, 4>;
 template class UPwCondition<2, 5>;
+
+template class UPwCondition<3, 1>;
+template class UPwCondition<3, 3>;
+template class UPwCondition<3, 4>;
 
 } // Namespace Kratos.

@@ -68,11 +68,11 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void PwCondition<TDim, TNumNodes>::CalculateLeftHandSide(MatrixType&        rLeftHandSideMatrix,
                                                          const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     KRATOS_ERROR << "PwCondition::CalculateLeftHandSide is not implemented" << std::endl;
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

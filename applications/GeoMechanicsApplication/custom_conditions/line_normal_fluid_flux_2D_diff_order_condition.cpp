@@ -14,6 +14,7 @@
 
 // Project includes
 #include "custom_conditions/line_normal_fluid_flux_2D_diff_order_condition.hpp"
+#include <custom_utilities/variables_utilities.hpp>
 
 namespace Kratos
 {
@@ -56,16 +57,9 @@ void LineNormalFluidFlux2DDiffOrderCondition::CalculateConditionVector(Condition
                                                                        unsigned int PointNumber)
 {
     KRATOS_TRY
-
-    const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
-    rVariables.ConditionVector.resize(1, false);
-    rVariables.ConditionVector[0] = 0.0;
-
-    for (SizeType i = 0; i < NumPNodes; ++i) {
-        rVariables.ConditionVector[0] +=
-            rVariables.Np[i] * GetGeometry()[i].FastGetSolutionStepValue(NORMAL_FLUID_FLUX);
-    }
-
+    Vector nodal_normal_fluid_flux_vector(mpPressureGeometry->PointsNumber());
+    VariablesUtilities::GetNodalValues(*mpPressureGeometry, NORMAL_FLUID_FLUX, nodal_normal_fluid_flux_vector.begin());
+    rVariables.ConditionVector = ScalarVector(1, MathUtils<>::Dot(rVariables.Np, nodal_normal_fluid_flux_vector));
     KRATOS_CATCH("")
 }
 

@@ -16,6 +16,7 @@
 // Application includes
 #include "custom_conditions/Pw_normal_flux_condition.hpp"
 #include "custom_utilities/condition_utilities.hpp"
+#include <custom_utilities/variables_utilities.hpp>
 
 namespace Kratos
 {
@@ -37,36 +38,33 @@ void PwNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(VectorType&        rRi
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
         Geom.IntegrationPoints(this->GetIntegrationMethod());
     const unsigned int NumGPoints = IntegrationPoints.size();
-    const unsigned int LocalDim   = Geom.LocalSpaceDimension();
+    const unsigned int local_dim  = Geom.LocalSpaceDimension();
 
     // Containers of variables at all integration points
     const Matrix& NContainer = Geom.ShapeFunctionsValues(this->GetIntegrationMethod());
-    GeometryType::JacobiansType JContainer(NumGPoints);
-    for (unsigned int i = 0; i < NumGPoints; ++i)
-        (JContainer[i]).resize(TDim, LocalDim, false);
-    Geom.Jacobian(JContainer, this->GetIntegrationMethod());
+    GeometryType::JacobiansType j_container(NumGPoints);
+    for (auto& j : j_container) {
+        j.resize(TDim, local_dim, false);
+    }
+    Geom.Jacobian(j_container, this->GetIntegrationMethod());
 
     // Condition variables
-    array_1d<double, TNumNodes> NormalFluxVector;
-    for (unsigned int i = 0; i < TNumNodes; ++i) {
-        NormalFluxVector[i] = Geom[i].FastGetSolutionStepValue(NORMAL_FLUID_FLUX);
-    }
+    Vector normal_flux_vector(TNumNodes);
+    VariablesUtilities::GetNodalValues(Geom, NORMAL_FLUID_FLUX, normal_flux_vector.begin());
+
     NormalFluxVariables Variables;
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-        // Compute normal flux
-        Variables.NormalFlux = 0.0;
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            Variables.NormalFlux += NContainer(GPoint, i) * NormalFluxVector[i];
-        }
-
         // Obtain Np
         noalias(Variables.Np) = row(NContainer, GPoint);
 
+        // Interpolation of nodal normal flux to integration point normal flux.
+        Variables.NormalFlux = MathUtils<>::Dot(Variables.Np, normal_flux_vector);
+
         // Compute weighting coefficient for integration
         Variables.IntegrationCoefficient = ConditionUtilities::CalculateIntegrationCoefficient<TDim, TNumNodes>(
-            JContainer[GPoint], IntegrationPoints[GPoint].Weight());
+            j_container[GPoint], IntegrationPoints[GPoint].Weight());
 
         // Contributions to the right hand side
         this->CalculateAndAddRHS(rRightHandSideVector, Variables);

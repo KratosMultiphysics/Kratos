@@ -75,9 +75,9 @@ void SurfaceNormalFluidFlux3DDiffOrderCondition::CalculateAndAddConditionForce(V
     const SizeType NumUNodes = GetGeometry().PointsNumber();
     const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
 
-    for (SizeType i = 0; i < NumPNodes; ++i) {
-        rRightHandSideVector[NumUNodes * 3 + i] -=
-            rVariables.Np[i] * rVariables.ConditionVector[0] * rVariables.IntegrationCoefficient;
+    for (SizeType node = 0; node < NumPNodes; ++node) {
+        rRightHandSideVector[NumUNodes * 3 + node] -=
+            rVariables.Np[node] * rVariables.ConditionVector[0] * rVariables.IntegrationCoefficient;
     }
 }
 
