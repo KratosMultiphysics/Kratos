@@ -4,7 +4,7 @@ import KratosMultiphysics
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from KratosMultiphysics.MPMApplication.particle_mechanics_analysis import ParticleMechanicsAnalysis
+from KratosMultiphysics.MPMApplication.mpm_analysis import MpmAnalysis
 
 class MPMTestFactory(KratosUnittest.TestCase):
     def setUp(self):
@@ -23,7 +23,7 @@ class MPMTestFactory(KratosUnittest.TestCase):
 
             # Creating the test
             model = KratosMultiphysics.Model()
-            self.test = ParticleMechanicsAnalysis(model, ProjectParameters)
+            self.test = MpmAnalysis(model, ProjectParameters)
             self.test.Initialize()
 
     def modify_parameters(self, project_parameters):
@@ -97,6 +97,12 @@ class CLLinearElastic3DQuadTest(MPMTestFactory):
 class CLDispNewtonianFluidTest(MPMTestFactory):
     file_name = "cl_tests/fluid_cl/newtonian_fluid_test"
 
+
+### Friction tests
+class FrictionConformingTest(MPMTestFactory):
+    file_name = "friction_tests/conforming/friction_conforming_test"
+
+
 ### Gravity Application Tests
 class GravityApplicationTest(MPMTestFactory):
     file_name = "gravity_tests/dynamic_gravity_application_test"
@@ -111,7 +117,10 @@ class PenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest(
 
 ### Slip Boundary Tests
 class SlipBoundaryTest(MPMTestFactory):
-    file_name = "slip_tests/slip_boundary_test"
+    file_name = "slip_tests/conforming/slip_boundary_test"
+
+class PenaltyBasedSlipTest(MPMTestFactory):
+    file_name = "slip_tests/particle_based/particle_based_slip_test"
 
 ### Explicit time integration tests
 class ExplicitOscillatingPointUSLTest(MPMTestFactory):

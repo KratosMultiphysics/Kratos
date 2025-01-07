@@ -4,6 +4,7 @@ from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
+import math
 
 class ResponseRoutine:
     """A class which adds optimization-specific utilities to simplify routines
@@ -16,7 +17,6 @@ class ResponseRoutine:
         # set the response
         self.__response = response
         self.__response_value = None
-
         self.__contributing_controls_list: 'list[Control]' = []
         self.__required_physical_gradients: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]' = {}
 
@@ -47,19 +47,16 @@ class ResponseRoutine:
         for control in self.__master_control.GetListOfControls():
             # check whether control has keys given by required gradients
             if set(control.GetPhysicalKratosVariables()).intersection(self.__required_physical_gradients.keys()):
-                # check whether there is an intersection of model parts between respones domain and control domain.
-                #   1. in the case where response does not require an analysis, then intersection between evaluated and control domain is checked.
-                #   2. in the case where response require an analysis, then intersection between analysis and control domain is checked.
-                if self.__response.GetAnalysisModelPart() is None:
-                    checked_model_part: Kratos.ModelPart = self.__response.GetEvaluatedModelPart()
-                else:
-                    checked_model_part: Kratos.ModelPart = self.__response.GetAnalysisModelPart()
+                # check whether there is an intersection of model parts between response influencial domain and control domain.
+                checked_model_part: Kratos.ModelPart = self.__response.GetInfluencingModelPart()
 
                 if Kratos.ModelPartOperationUtilities.HasIntersection([checked_model_part, control.GetEmptyField().GetModelPart()]):
                     self.__contributing_controls_list.append(control)
 
         if not self.__contributing_controls_list:
             raise RuntimeError(f"The controls does not have any influence over the response {self.GetResponseName()}.")
+        
+        self.my_current_control_field = self.__master_control.GetEmptyField()
 
     def Check(self):
         self.__response.Check()
@@ -91,13 +88,14 @@ class ResponseRoutine:
         compute_response_value_flag = False
         if self.__response_value is None:
             self.my_current_control_field = control_field.Clone()
-        diff = self.my_current_control_field - control_field
-        norm = KratosOA.ExpressionUtils.NormInf(diff)
-        if norm > 1e-12:
+        if not math.isclose(KratosOA.ExpressionUtils.NormInf(self.my_current_control_field), 0.0, abs_tol=1e-16):
+            rel_diff = (self.my_current_control_field - control_field) / KratosOA.ExpressionUtils.NormInf(self.my_current_control_field)
+        else:
+            rel_diff = (self.my_current_control_field - control_field)
+        norm = KratosOA.ExpressionUtils.NormInf(rel_diff)
+        if not math.isclose(norm, 0.0, abs_tol=1e-16):
             compute_response_value_flag = True
-        compute_response_value_flag = compute_response_value_flag or self.__response_value is None
-
-        # TODO: In the case of having two analysis with the same mesh (model parts) for two different
+        compute_response_value_flag = compute_response_value_flag or self.__response_value is None        # TODO: In the case of having two analysis with the same mesh (model parts) for two different
         #       responses, we need to flag all the anayses which are affected by the control update_state
         #       from the first call, otherwise the second call will not update anything, hence no execution
         #       policies will be executed.
@@ -112,6 +110,12 @@ class ResponseRoutine:
 
         if compute_response_value_flag:
             self.__response_value = self.__response.CalculateValue()
+            Kratos.Logger.PrintInfo(f"Response value is calculated for {self.GetResponseName()}.")
+        else:
+            Kratos.Logger.PrintInfo(f"The control field is not updated, hence the response value is not computed for {self.GetResponseName()}.")
+
+        # Update current control field state
+        self.my_current_control_field = control_field.Clone()
 
         return self.__response_value
 
@@ -129,7 +133,11 @@ class ResponseRoutine:
         self.__response.CalculateGradient(self.__required_physical_gradients)
 
         # calculate and return the control space gradients from respective controls
-        return self.__master_control.MapGradient(self.__required_physical_gradients)
+        self.__mapped_gradients = self.__master_control.MapGradient(self.__required_physical_gradients)
+        return self.__mapped_gradients
+    
+    def GetMappedGradients(self):
+        return self.__mapped_gradients
 
     def GetRequiredPhysicalGradients(self) -> 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]':
         """Returns required physical gradients by this response
@@ -141,5 +149,8 @@ class ResponseRoutine:
             dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]: Required physical gradients.
         """
         return self.__required_physical_gradients
+    
+    def GetName(self):
+        return self.GetReponse().GetName()
 
 

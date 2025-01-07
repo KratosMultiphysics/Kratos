@@ -8,7 +8,9 @@
 //  License:         geo_mechanics_application/license.txt
 //
 //  Main authors:    JMCarbonell,
-//                   Vahid Galavi
+//                   Vahid Galavi,
+//                   Richard Faasse,
+//                   Gennady Markelov
 //
 
 #pragma once
@@ -32,6 +34,12 @@ public:
     static double CalculateVonMisesStrain(const Vector& rStrainVector);
     static Vector CalculateHenckyStrain(const Matrix& rDeformationGradient, size_t VoigtSize);
     static Matrix CalculateGreenLagrangeStrainTensor(const Matrix& rDeformationGradient);
+    static Vector CalculateCauchyStrain(const Matrix& rB, const Vector& rDisplacements);
+    static std::vector<Vector> CalculateStrains(const std::vector<Matrix>& rDeformationGradients,
+                                                const std::vector<Matrix>& rBs,
+                                                const Vector&              rDisplacements,
+                                                bool                       UseHenckyStrain,
+                                                std::size_t                VoigtSize);
 
 private:
     static double CalculateQMohrCoulomb(const Vector& rStressVector, double C, double Phi);

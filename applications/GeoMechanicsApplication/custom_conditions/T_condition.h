@@ -21,10 +21,12 @@
 #include "includes/process_info.h"
 #include "includes/serializer.h"
 
-namespace Kratos {
+namespace Kratos
+{
 
 template <unsigned int TDim, unsigned int TNumNodes>
-class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoTCondition : public Condition {
+class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoTCondition : public Condition
+{
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeoTCondition);
 
@@ -34,33 +36,29 @@ public:
 
     GeoTCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
-    ~GeoTCondition() override;
-
-    Condition::Pointer Create(IndexType NewId,
-                              NodesArrayType const& rThisNodes,
-                              PropertiesType::Pointer pProperties) const override
+    Condition::Pointer Create(IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_intrusive<GeoTCondition>(
-            NewId, GetGeometry().Create(rThisNodes), pProperties);
+        return Kratos::make_intrusive<GeoTCondition>(NewId, GetGeometry().Create(rThisNodes), pProperties);
     }
 
     using Condition::Create;
 
     void GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo&) const override;
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                              VectorType& rRightHandSideVector,
+    void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
+                              VectorType&        rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo) override;
 
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
 
+    std::string Info() const override;
+
 protected:
-    virtual void CalculateAll(MatrixType& rLeftHandSideMatrix,
-                              VectorType& rRightHandSideVector,
+    virtual void CalculateAll(MatrixType&        rLeftHandSideMatrix,
+                              VectorType&        rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo);
 
-    virtual void CalculateRHS(VectorType& rRightHandSideVector,
-                              const ProcessInfo& rCurrentProcessInfo);
+    virtual void CalculateRHS(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 
 private:
     [[nodiscard]] DofsVectorType GetDofs() const;
