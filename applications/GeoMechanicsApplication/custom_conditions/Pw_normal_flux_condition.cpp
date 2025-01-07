@@ -30,54 +30,38 @@ Condition::Pointer PwNormalFluxCondition<TDim, TNumNodes>::Create(IndexType     
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void PwNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(VectorType&        rRightHandSideVector,
+void PwNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(Vector&            rRightHandSideVector,
                                                           const ProcessInfo& CurrentProcessInfo)
 {
     // Previous definitions
-    const GeometryType&                             Geom = this->GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
-        Geom.IntegrationPoints(this->GetIntegrationMethod());
-    const unsigned int NumGPoints = IntegrationPoints.size();
-    const unsigned int local_dim  = Geom.LocalSpaceDimension();
+    const GeometryType&                             r_geometry = this->GetGeometry();
+    const GeometryType::IntegrationPointsArrayType& r_integration_points =
+        r_geometry.IntegrationPoints(this->GetIntegrationMethod());
+    const unsigned int NumGPoints = r_integration_points.size();
 
     // Containers of variables at all integration points
-    const Matrix& NContainer = Geom.ShapeFunctionsValues(this->GetIntegrationMethod());
+    const Matrix& r_n_container = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
     GeometryType::JacobiansType j_container(NumGPoints);
     for (auto& j : j_container) {
-        j.resize(TDim, local_dim, false);
+        j.resize(TDim, r_geometry.LocalSpaceDimension(), false);
     }
-    Geom.Jacobian(j_container, this->GetIntegrationMethod());
+    r_geometry.Jacobian(j_container, this->GetIntegrationMethod());
 
     // Condition variables
     Vector normal_flux_vector(TNumNodes);
-    VariablesUtilities::GetNodalValues(Geom, NORMAL_FLUID_FLUX, normal_flux_vector.begin());
+    VariablesUtilities::GetNodalValues(r_geometry, NORMAL_FLUID_FLUX, normal_flux_vector.begin());
 
-    NormalFluxVariables Variables;
-
-    // Loop over integration points
-    for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-        // Obtain Np
-        noalias(Variables.Np) = row(NContainer, GPoint);
-
+    for (unsigned int integration_point = 0; integration_point < NumGPoints; ++integration_point) {
         // Interpolation of nodal normal flux to integration point normal flux.
-        Variables.NormalFlux = MathUtils<>::Dot(Variables.Np, normal_flux_vector);
+        auto normal_flux = MathUtils<>::Dot(row(r_n_container, integration_point), normal_flux_vector);
 
         // Compute weighting coefficient for integration
-        Variables.IntegrationCoefficient = ConditionUtilities::CalculateIntegrationCoefficient<TDim, TNumNodes>(
-            j_container[GPoint], IntegrationPoints[GPoint].Weight());
+        auto integration_coefficient = ConditionUtilities::CalculateIntegrationCoefficient<TDim, TNumNodes>(
+            j_container[integration_point], r_integration_points[integration_point].Weight());
 
         // Contributions to the right hand side
-        this->CalculateAndAddRHS(rRightHandSideVector, Variables);
+        rRightHandSideVector -= normal_flux * row(r_n_container, integration_point) * integration_coefficient;
     }
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-void PwNormalFluxCondition<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRightHandSideVector,
-                                                                NormalFluxVariables& rVariables)
-{
-    noalias(rVariables.PVector) = -rVariables.NormalFlux * rVariables.Np * rVariables.IntegrationCoefficient;
-
-    rRightHandSideVector += rVariables.PVector;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
