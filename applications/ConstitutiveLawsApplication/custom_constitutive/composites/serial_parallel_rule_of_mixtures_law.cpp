@@ -611,9 +611,9 @@ void SerialParallelRuleOfMixturesLaw::CalculateGreenLagrangeStrain(ConstitutiveL
 
     const SizeType strain_size = GetStrainSize();
     if (strain_size == 3) {
-        AdvancedConstitutiveLawUtilities<3>::CalculateGreenLagrangianStrain(C_tensor, r_strain_vector);
+        ConstitutiveLawUtilities<3>::CalculateGreenLagrangianStrain(C_tensor, r_strain_vector);
     } else {
-        AdvancedConstitutiveLawUtilities<6>::CalculateGreenLagrangianStrain(C_tensor, r_strain_vector);
+        ConstitutiveLawUtilities<6>::CalculateGreenLagrangianStrain(C_tensor, r_strain_vector);
     }
 }
 
@@ -628,7 +628,7 @@ void SerialParallelRuleOfMixturesLaw::CalculateAlmansiStrain(ConstitutiveLaw::Pa
 
     Matrix F(dimension, dimension);
     noalias(F) = rValues.GetDeformationGradientF();
-    Matrix B_tensor(dimension, dimension)
+    Matrix B_tensor(dimension, dimension);
     noalias(B_tensor) = prod(F, trans(F));
 
     const SizeType strain_size = GetStrainSize();
