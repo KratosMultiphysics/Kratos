@@ -200,4 +200,24 @@ KRATOS_TEST_CASE_IN_SUITE(CheckFailureNegativeReductionFactorApplyCPhiReductionP
         "Reduction factor should not drop below 0.01, calculation stopped.");
 }
 
+KRATOS_TEST_CASE_IN_SUITE(CheckFailureTooSmallReductionIncrementApplyCPhiReductionProcess, KratosGeoMechanicsFastSuite)
+{
+    Model model;
+    auto& r_model_part = PrepareCPhiTestModelPart(model);
+    // Number of cycles should be larger than one to trigger the step halving of the
+    // reduction increment
+    r_model_part.GetProcessInfo().GetValue(NUMBER_OF_CYCLES) = 10;
+    ApplyCPhiReductionProcess process{r_model_part, {}};
+    for (size_t i = 0; i < 6; ++i) {
+        process.ExecuteInitializeSolutionStep();
+        process.ExecuteFinalizeSolutionStep();
+    }
+
+    // After halving the reduction increment for the seventh time, it becomes 0,0078125, so it should
+    // throw an exception
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        process.ExecuteInitializeSolutionStep(),
+        "Reduction increment should not drop below 0.001, calculation stopped.");
+}
+
 } // namespace Kratos::Testing
