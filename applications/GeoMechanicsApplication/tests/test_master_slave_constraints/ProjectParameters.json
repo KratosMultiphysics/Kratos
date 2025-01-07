@@ -124,8 +124,8 @@
         "Parameters":    {
             "model_part_name": "PorousDomain.FixedNode",
             "variable_name":   "DISPLACEMENT",
-            "active":          [true,true,true],
-            "is_fixed":        [true,true,true],
+            "active":          [true,true,false],
+            "is_fixed":        [true,true,false],
             "value":           [0.0,0.0,0.0],
             "table":           [0,0,0]
         }
@@ -136,8 +136,8 @@
         "Parameters":    {
             "model_part_name": "PorousDomain.SlidingNode",
             "variable_name":   "DISPLACEMENT",
-            "active":          [true,true,true],
-            "is_fixed":        [true,false,true],
+            "active":          [true,true,false],
+            "is_fixed":        [true,false,false],
             "value":           [0.0,0.0,0.0],
             "table":           [0,0,0]
         }
@@ -149,7 +149,7 @@
                 "model_part_name"        : "PorousDomain.porous_computational_model_part",
                 "master_model_part_name" : "PorousDomain.MasterSide",
                 "slave_model_part_name"  : "PorousDomain.SlaveSide",
-                "variable_names"         : ["DISPLACEMENT"],
+                "variable_names"         : ["DISPLACEMENT","WATER_PRESSURE"],
                 "search_radius"          : 0.01,
                 "minimum_number_of_neighbouring_nodes": 2,
                 "reform_constraints_at_each_step"     : true
