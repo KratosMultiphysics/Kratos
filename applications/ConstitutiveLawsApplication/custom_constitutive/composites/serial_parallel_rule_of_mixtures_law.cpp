@@ -37,6 +37,7 @@ ConstitutiveLaw::Pointer SerialParallelRuleOfMixturesLaw<TDim>::Create(Kratos::P
     }
 
     Vector parallel_directions = NewParameters["parallel_behaviour_directions"].GetVector();
+    KRATOS_ERROR_IF_NOT(parallel_directions.size() == VoigtSize) << "The parallel_behaviour_directions vector is not consistent with the VoigtSize of the Serial Parallel Rule of Mixtures CL..." << std::endl;
     return Kratos::make_shared<SerialParallelRuleOfMixturesLaw<TDim>>(fiber_volumetric_participation, parallel_directions);
 }
 
