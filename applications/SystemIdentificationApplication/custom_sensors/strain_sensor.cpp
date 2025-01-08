@@ -310,29 +310,28 @@ void StrainSensor::PrintInfo(std::ostream& rOStream) const
 
 void StrainSensor::PrintData(std::ostream& rOStream) const
 {
-    PrintInfo(rOStream);
     rOStream << "    Location: " << this->GetLocation() << std::endl;
     rOStream << "    Value: " << this->GetSensorValue() << std::endl;
     rOStream << "    Weight: " << this->GetWeight() << std::endl;
     rOStream << "    Element Id: " << mElementId << std::endl;
     switch (mStrainType) {
         case StrainType::STRAIN_XX:
-            rOStream << "    Direction: STRAIN_XX";
+            rOStream << "    Direction: STRAIN_XX" << std::endl;
             break;
         case StrainType::STRAIN_YY:
-            rOStream << "    Direction: STRAIN_YY";
+            rOStream << "    Direction: STRAIN_YY" << std::endl;
             break;
         case StrainType::STRAIN_ZZ:
-            rOStream << "    Direction: STRAIN_ZZ";
+            rOStream << "    Direction: STRAIN_ZZ" << std::endl;
             break;
         case StrainType::STRAIN_XY:
-            rOStream << "    Direction: STRAIN_XY";
+            rOStream << "    Direction: STRAIN_XY" << std::endl;
             break;
         case StrainType::STRAIN_XZ:
-            rOStream << "    Direction: STRAIN_XZ";
+            rOStream << "    Direction: STRAIN_XZ" << std::endl;
             break;
         case StrainType::STRAIN_YZ:
-            rOStream << "    Direction: STRAIN_YZ";
+            rOStream << "    Direction: STRAIN_YZ" << std::endl;
             break;
     }
     DataValueContainer::PrintData(rOStream);
