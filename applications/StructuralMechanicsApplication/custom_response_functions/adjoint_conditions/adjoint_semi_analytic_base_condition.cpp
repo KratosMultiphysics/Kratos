@@ -45,7 +45,7 @@ namespace Kratos
                 const auto& output_value = rAdjointCondition.GetValue(rVariable);
 
                 // Resize Output
-                const SizeType gauss_points_number = rAdjointCondition.GetGeometry().IntegrationPointsNumber(rAdjointCondition.GetIntegrationMethod());
+                const auto gauss_points_number = rAdjointCondition.GetGeometry().IntegrationPointsNumber(rAdjointCondition.GetIntegrationMethod());
                 if (rValues.size() != gauss_points_number) {
                     rValues.resize(gauss_points_number);
                 }
