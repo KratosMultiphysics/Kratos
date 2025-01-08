@@ -21,22 +21,50 @@
 #include <algorithm>
 #include <thread>
 #include <vector>
-#include <tuple>
 #include <fstream>
 #include <sstream>
 #include <atomic>
+#include <limits> // std::numeric_limits
 
 
 namespace Kratos::Internals {
 
 
+namespace {
+template <class TTimeUnit>
+std::string GetTimeUnit()
+{
+    KRATOS_ERROR << "Unsupported time unit";
+}
+
+template <>
+std::string GetTimeUnit<std::chrono::milliseconds>()
+{
+    return "ms";
+}
+
+template <>
+std::string GetTimeUnit<std::chrono::microseconds>()
+{
+    return "us";
+}
+
+template <>
+
+std::string GetTimeUnit<std::chrono::nanoseconds>()
+{
+    return "ns";
+}
+} // unnamed namespace
+
+
 template <class T>
 Profiler<T>::Item::Item(CodeLocation&& rLocation)
-    : Item(0,
-           Duration(0),
-           Duration(0),
-           Duration(0),
-           std::move(rLocation))
+    : Item(0,                                                               // <== .mCallCount
+           Duration(0),                                                     // <== .mCumulative
+           Duration(std::numeric_limits<typename Duration::rep>::max()),    // <== .mMin
+           Duration(0),                                                     // <== .mMax
+           std::move(rLocation))                                            // <== .mLocation
 {
 }
 
@@ -70,7 +98,7 @@ typename Profiler<T>::Item& Profiler<T>::Item::operator+=(const Item& rOther)
 
 template <class T>
 Profiler<T>::Profiler()
-    : Profiler("kratos_profiler_output.json")
+    : Profiler("kratos_profiler_output_" + GetTimeUnit<T>() + ".json")
 {
 }
 
@@ -110,34 +138,6 @@ typename Profiler<T>::Item& Profiler<T>::Create(CodeLocation&& r_item)
     r_list.emplace_back(std::move(r_item));
     return r_list.back();
 }
-
-
-namespace {
-template <class TTimeUnit>
-std::string GetTimeUnit()
-{
-    KRATOS_ERROR << "Unknown time unit";
-}
-
-template <>
-std::string GetTimeUnit<std::chrono::milliseconds>()
-{
-    return "ms";
-}
-
-template <>
-std::string GetTimeUnit<std::chrono::microseconds>()
-{
-    return "us";
-}
-
-template <>
-
-std::string GetTimeUnit<std::chrono::nanoseconds>()
-{
-    return "ns";
-}
-} // unnamed namespace
 
 
 template <class T>
@@ -208,7 +208,8 @@ void Profiler<T>::Write(std::ostream& rStream) const
         const auto& r_location = p_item->mLocation;
         result.AddString("file", std::string(r_location.GetFileName()));
         result.AddInt("line", int(r_location.GetLineNumber()));
-        result.AddString("function", std::string(r_location.GetFunctionName()));
+        result.AddString("signature", std::string(r_location.GetFunctionName()));
+        result.AddString("function", std::string(r_location.CleanFunctionName()));
         result.AddInt("callCount", p_item->mCallCount);
 
         std::stringstream stream;
@@ -267,19 +268,19 @@ template <class T>
 std::mutex ProfilerSingleton<T>::mMutex;
 
 
-template class Profiler<std::chrono::milliseconds>;
-template class ProfilerSingleton<std::chrono::milliseconds>;
-template std::ostream& operator<<(std::ostream&, const Profiler<std::chrono::milliseconds>&);
+template class KRATOS_API(KRATOS_CORE) Profiler<std::chrono::milliseconds>;
+template class KRATOS_API(KRATOS_CORE) ProfilerSingleton<std::chrono::milliseconds>;
+template KRATOS_API(KRATOS_CORE) std::ostream& operator<<(std::ostream&, const Profiler<std::chrono::milliseconds>&);
 
 
-template class Profiler<std::chrono::microseconds>;
-template class ProfilerSingleton<std::chrono::microseconds>;
-template std::ostream& operator<<(std::ostream&, const Profiler<std::chrono::microseconds>&);
+template class KRATOS_API(KRATOS_CORE) Profiler<std::chrono::microseconds>;
+template class KRATOS_API(KRATOS_CORE) ProfilerSingleton<std::chrono::microseconds>;
+template KRATOS_API(KRATOS_CORE) std::ostream& operator<<(std::ostream&, const Profiler<std::chrono::microseconds>&);
 
 
-template class Profiler<std::chrono::nanoseconds>;
-template class ProfilerSingleton<std::chrono::nanoseconds>;
-template std::ostream& operator<<(std::ostream&, const Profiler<std::chrono::nanoseconds>&);
+template class KRATOS_API(KRATOS_CORE) Profiler<std::chrono::nanoseconds>;
+template class KRATOS_API(KRATOS_CORE) ProfilerSingleton<std::chrono::nanoseconds>;
+template KRATOS_API(KRATOS_CORE) std::ostream& operator<<(std::ostream&, const Profiler<std::chrono::nanoseconds>&);
 
 
 } // namespace cie::utils

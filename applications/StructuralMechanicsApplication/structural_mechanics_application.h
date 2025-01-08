@@ -34,6 +34,7 @@
 #include "custom_elements/truss_elements/truss_element_3D2N.hpp"
 #include "custom_elements/truss_elements/truss_element_linear_3D2N.hpp"
 #include "custom_elements/truss_elements/cable_element_3D2N.hpp"
+#include "custom_elements/truss_elements/linear_truss_element.h"
 
 /* Adding beam element */
 #include "custom_elements/beam_elements/cr_beam_element_3D2N.hpp"
@@ -271,6 +272,10 @@ private:
     const TrussElement3D2N mTrussElement3D2N;
     const TrussElementLinear3D2N mTrussLinearElement3D2N;
     const CableElement3D2N mCableElement3D2N;
+    const LinearTrussElement<2, 2> mLinearTrussElement2D2N;
+    const LinearTrussElement<2, 3> mLinearTrussElement2D3N;
+    const LinearTrussElement<3, 2> mLinearTrussElement3D2N;
+    const LinearTrussElement<3, 3> mLinearTrussElement3D3N;
 
     // Adding the beam element
     const CrBeamElement3D2N mCrBeamElement3D2N;
@@ -420,7 +425,7 @@ private:
     const AxisymUpdatedLagrangian mAxisymUpdatedLagrangian2D9N;
 
     // Adding the bushing element
-    const BushingElement mBushingElement3D2N;    
+    const BushingElement mBushingElement3D2N;
 
     // Adding the spring damper element
     const SpringDamperElement<2> mSpringDamperElement2D;
