@@ -87,13 +87,14 @@ void TimoshenkoBeamPlaneStrainElasticConstitutiveLaw::CalculateMaterialResponseC
     const double curvature    = r_strain_vector[1]; // Kappa
     const double shear_strain = r_strain_vector[2]; // Gamma_xy
 
+    const double thickness = r_material_properties[THICKNESS];
     const double E  = r_material_properties[YOUNG_MODULUS];
-    const double A  = r_material_properties[CROSS_AREA];
-    const double I  = r_material_properties[I33];
+    const double A  = thickness; // Per unit length
+    const double I  = std::pow(thickness, 3) / 12.0; // Per unit length
     const double nu = r_material_properties[POISSON_RATIO];
 
     const double G    = ConstitutiveLawUtilities<3>::CalculateShearModulus(r_material_properties);
-    const double A_s  = r_material_properties[AREA_EFFECTIVE_Y];
+    const double A_s  = r_material_properties[THICKNESS_EFFECTIVE_Y]; // Per unit length
 
     if (r_cl_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
         auto &r_generalized_stress_vector = rValues.GetStressVector();
