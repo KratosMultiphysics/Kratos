@@ -91,7 +91,7 @@ double SurfaceNormalLoad3DDiffOrderCondition::CalculateIntegrationCoefficient(
     KRATOS_CATCH("")
 }
 
-void SurfaceNormalLoad3DDiffOrderCondition::CalculateAndAddConditionForce(VectorType& rRightHandSideVector,
+void SurfaceNormalLoad3DDiffOrderCondition::CalculateAndAddConditionForce(Vector& rRightHandSideVector,
                                                                           ConditionVariables& rVariables)
 {
     for (SizeType node = 0; node < this->GetGeometry().PointsNumber(); ++node) {

@@ -30,20 +30,18 @@ Condition::Pointer UPwNormalFaceLoadCondition<TDim, TNumNodes>::Create(IndexType
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwNormalFaceLoadCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rRightHandSideVector,
+void UPwNormalFaceLoadCondition<TDim, TNumNodes>::CalculateRHS(Vector& rRightHandSideVector,
                                                                const ProcessInfo& CurrentProcessInfo)
 {
-    // Previous definitions
     const auto& r_geometry           = this->GetGeometry();
     const auto& r_integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
     const auto  number_of_integration_points = r_integration_points.size();
-    const auto  local_dimension              = r_geometry.LocalSpaceDimension();
 
     // Containers of variables at all integration points
     const Matrix& NContainer = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
     GeometryType::JacobiansType JContainer(number_of_integration_points);
-    for (unsigned int i = 0; i < number_of_integration_points; ++i)
-        JContainer[i].resize(TDim, local_dimension, false);
+    for (auto& j : JContainer)
+        j.resize(TDim, r_geometry.LocalSpaceDimension(), false);
     r_geometry.Jacobian(JContainer, this->GetIntegrationMethod());
 
     // Condition variables
@@ -53,8 +51,8 @@ void UPwNormalFaceLoadCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rRigh
     // Loop over integration points
     for (unsigned int integration_point = 0; integration_point < number_of_integration_points; ++integration_point) {
         // Compute traction vector
-        array_1d<double, TDim> TractionVector;
-        this->CalculateTractionVector(TractionVector, JContainer[integration_point], NContainer,
+        array_1d<double, TDim> traction_vector;
+        this->CalculateTractionVector(traction_vector, JContainer[integration_point], NContainer,
                                       variables, integration_point);
 
         // Compute Nu Matrix
@@ -64,7 +62,7 @@ void UPwNormalFaceLoadCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rRigh
         // Contributions to the right hand side
         GeoElementUtilities::AssembleUBlockVector(
             rRightHandSideVector,
-            prod(trans(Nu), TractionVector) *
+            prod(trans(Nu), traction_vector) *
                 this->CalculateIntegrationCoefficient(integration_point, r_integration_points));
     }
 }
@@ -95,15 +93,13 @@ void UPwNormalFaceLoadCondition<TDim, TNumNodes>::CalculateTractionVector(array_
         const auto tangential_stress =
             MathUtils<>::Dot(row(NContainer, GPoint), Variables.TangentialStressVector);
 
-        Vector tangential_vector   = ZeroVector(3);
-        tangential_vector[0]       = column(Jacobian, 0)[0];
-        tangential_vector[1]       = column(Jacobian, 0)[1];
+        Vector tangential_vector = ZeroVector(3);
+        std::copy_n(column(Jacobian, 0).begin(), TDim, tangential_vector.begin());
         Vector out_of_plane_vector = ZeroVector(3);
         out_of_plane_vector[2]     = 1.0;
         MathUtils<double>::CrossProduct(normal_vector, out_of_plane_vector, tangential_vector);
         auto traction_vector = tangential_stress * tangential_vector + normal_stress * normal_vector;
-        rTractionVector[0] = traction_vector[0];
-        rTractionVector[1] = traction_vector[1];
+        std::copy_n(traction_vector.begin(), TDim, rTractionVector.begin());
     } else if constexpr (TDim == 3) {
         MathUtils<double>::CrossProduct(normal_vector, column(Jacobian, 0), column(Jacobian, 1));
         rTractionVector = -normal_stress * normal_vector;

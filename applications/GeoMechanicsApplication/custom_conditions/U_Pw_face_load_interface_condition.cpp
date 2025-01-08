@@ -65,7 +65,7 @@ void UPwFaceLoadInterfaceCondition<3, 4>::CalculateInitialGap(const GeometryType
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwFaceLoadInterfaceCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rRightHandSideVector,
+void UPwFaceLoadInterfaceCondition<TDim, TNumNodes>::CalculateRHS(Vector& rRightHandSideVector,
                                                                   const ProcessInfo& CurrentProcessInfo)
 {
     // Previous definitions

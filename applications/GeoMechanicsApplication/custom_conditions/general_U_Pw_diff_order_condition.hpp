@@ -12,8 +12,7 @@
 //                   Vahid Galavi
 //
 
-#if !defined(KRATOS_GEO_GENERAL_U_PW_DIFF_ORDER_CONDITION_H_INCLUDED)
-#define KRATOS_GEO_GENERAL_U_PW_DIFF_ORDER_CONDITION_H_INCLUDED
+#pragma once
 
 // System includes
 #include <cmath>
@@ -34,11 +33,8 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) GeneralUPwDiffOrderCondition : publi
 public:
     using IndexType      = std::size_t;
     using PropertiesType = Properties;
-    using NodeType       = Node;
-    using GeometryType   = Geometry<NodeType>;
+    using GeometryType   = Geometry<Node>;
     using NodesArrayType = GeometryType::PointsArrayType;
-    using VectorType     = Vector;
-    using MatrixType     = Matrix;
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeneralUPwDiffOrderCondition);
 
@@ -63,13 +59,13 @@ public:
 
     void GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo&) const override;
 
-    void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
-                              VectorType&        rRightHandSideVector,
+    void CalculateLocalSystem(Matrix&            rLeftHandSideMatrix,
+                              Vector&            rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLeftHandSide(Matrix& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateRightHandSide(Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
 
@@ -94,8 +90,8 @@ protected:
     // Member Variables
     Geometry<Node>::Pointer mpPressureGeometry;
 
-    void CalculateAll(MatrixType&        rLeftHandSideMatrix,
-                      VectorType&        rRightHandSideVector,
+    void CalculateAll(Matrix&            rLeftHandSideMatrix,
+                      Vector&            rRightHandSideVector,
                       const ProcessInfo& rCurrentProcessInfo,
                       bool               CalculateLHSMatrixFlag,
                       bool               CalculateResidualVectorFlag);
@@ -110,16 +106,14 @@ protected:
                                                    const GeometryType::JacobiansType& JContainer,
                                                    const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const;
 
-    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ConditionVariables& rVariables);
+    void CalculateAndAddLHS(Matrix& rLeftHandSideMatrix, ConditionVariables& rVariables);
 
-    void CalculateAndAddRHS(VectorType& rRightHandSideVector, ConditionVariables& rVariables);
+    void CalculateAndAddRHS(Vector& rRightHandSideVector, ConditionVariables& rVariables);
 
-    virtual void CalculateAndAddConditionForce(VectorType& rRightHandSideVector, ConditionVariables& rVariables);
+    virtual void CalculateAndAddConditionForce(Vector& rRightHandSideVector, ConditionVariables& rVariables);
 
 private:
     [[nodiscard]] DofsVectorType GetDofs() const;
-
-    // Serialization
 
     friend class Serializer;
 
@@ -136,5 +130,3 @@ private:
 }; // class GeneralUPwDiffOrderCondition.
 
 } // namespace Kratos.
-
-#endif // KRATOS_GEO_GENERAL_U_PW_DIFF_ORDER_CONDITION_H_INCLUDED defined

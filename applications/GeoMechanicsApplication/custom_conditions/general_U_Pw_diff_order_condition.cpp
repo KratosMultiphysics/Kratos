@@ -79,8 +79,8 @@ void GeneralUPwDiffOrderCondition::GetDofList(DofsVectorType& rConditionDofList,
     rConditionDofList = GetDofs();
 }
 
-void GeneralUPwDiffOrderCondition::CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
-                                                        VectorType&        rRightHandSideVector,
+void GeneralUPwDiffOrderCondition::CalculateLocalSystem(Matrix&            rLeftHandSideMatrix,
+                                                        Vector&            rRightHandSideVector,
                                                         const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -111,8 +111,7 @@ void GeneralUPwDiffOrderCondition::CalculateLocalSystem(MatrixType&        rLeft
     KRATOS_CATCH("")
 }
 
-void GeneralUPwDiffOrderCondition::CalculateLeftHandSide(MatrixType&        rLeftHandSideMatrix,
-                                                         const ProcessInfo& rCurrentProcessInfo)
+void GeneralUPwDiffOrderCondition::CalculateLeftHandSide(Matrix& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -121,7 +120,7 @@ void GeneralUPwDiffOrderCondition::CalculateLeftHandSide(MatrixType&        rLef
     KRATOS_CATCH("")
 }
 
-void GeneralUPwDiffOrderCondition::CalculateRightHandSide(VectorType&        rRightHandSideVector,
+void GeneralUPwDiffOrderCondition::CalculateRightHandSide(Vector&            rRightHandSideVector,
                                                           const ProcessInfo& rCurrentProcessInfo)
 {
     const GeometryType& rGeom         = GetGeometry();
@@ -148,8 +147,8 @@ void GeneralUPwDiffOrderCondition::EquationIdVector(EquationIdVectorType& rResul
     rResult = Geo::DofUtilities::ExtractEquationIdsFrom(GetDofs());
 }
 
-void GeneralUPwDiffOrderCondition::CalculateAll(MatrixType&        rLeftHandSideMatrix,
-                                                VectorType&        rRightHandSideVector,
+void GeneralUPwDiffOrderCondition::CalculateAll(Matrix&            rLeftHandSideMatrix,
+                                                Vector&            rRightHandSideVector,
                                                 const ProcessInfo& rCurrentProcessInfo,
                                                 bool               CalculateLHSMatrixFlag,
                                                 bool               CalculateResidualVectorFlag)
@@ -245,11 +244,11 @@ double GeneralUPwDiffOrderCondition::CalculateIntegrationCoefficient(
     KRATOS_CATCH("")
 }
 
-void GeneralUPwDiffOrderCondition::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ConditionVariables& rVariables)
+void GeneralUPwDiffOrderCondition::CalculateAndAddLHS(Matrix& rLeftHandSideMatrix, ConditionVariables& rVariables)
 {
 }
 
-void GeneralUPwDiffOrderCondition::CalculateAndAddRHS(VectorType& rRightHandSideVector, ConditionVariables& rVariables)
+void GeneralUPwDiffOrderCondition::CalculateAndAddRHS(Vector& rRightHandSideVector, ConditionVariables& rVariables)
 {
     KRATOS_TRY
 
@@ -258,7 +257,7 @@ void GeneralUPwDiffOrderCondition::CalculateAndAddRHS(VectorType& rRightHandSide
     KRATOS_CATCH("")
 }
 
-void GeneralUPwDiffOrderCondition::CalculateAndAddConditionForce(VectorType& rRightHandSideVector,
+void GeneralUPwDiffOrderCondition::CalculateAndAddConditionForce(Vector& rRightHandSideVector,
                                                                  ConditionVariables& rVariables)
 {
     KRATOS_TRY

@@ -65,7 +65,7 @@ void LineNormalFluidFlux2DDiffOrderCondition::CalculateConditionVector(Condition
     KRATOS_CATCH("")
 }
 
-void LineNormalFluidFlux2DDiffOrderCondition::CalculateAndAddConditionForce(VectorType& rRightHandSideVector,
+void LineNormalFluidFlux2DDiffOrderCondition::CalculateAndAddConditionForce(Vector& rRightHandSideVector,
                                                                             ConditionVariables& rVariables)
 {
     const SizeType NumUNodes = GetGeometry().PointsNumber();

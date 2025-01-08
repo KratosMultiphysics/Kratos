@@ -14,6 +14,7 @@
 
 // Project includes
 #include "custom_conditions/line_load_2D_diff_order_condition.hpp"
+#include "custom_utilities/condition_utilities.hpp"
 
 namespace Kratos
 {
@@ -73,10 +74,11 @@ double LineLoad2DDiffOrderCondition::CalculateIntegrationCoefficient(
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const
 
 {
+    // return ConditionUtilities::CalculateIntegrationCoefficient(JContainer[PointNumber], IntegrationPoints[PointNumber].Weight());
     return norm_2(column(JContainer[PointNumber], 0)) * IntegrationPoints[PointNumber].Weight();
 }
 
-void LineLoad2DDiffOrderCondition::CalculateAndAddConditionForce(VectorType& rRightHandSideVector,
+void LineLoad2DDiffOrderCondition::CalculateAndAddConditionForce(Vector& rRightHandSideVector,
                                                                  ConditionVariables& rVariables)
 {
     for (SizeType node = 0; node < this->GetGeometry().PointsNumber(); ++node) {
@@ -84,6 +86,9 @@ void LineLoad2DDiffOrderCondition::CalculateAndAddConditionForce(VectorType& rRi
             rVariables.Nu[node] * rVariables.ConditionVector[0] * rVariables.IntegrationCoefficient;
         rRightHandSideVector[2 * node + 1] +=
             rVariables.Nu[node] * rVariables.ConditionVector[1] * rVariables.IntegrationCoefficient;
+        // std::transform(rVariables.ConditionVector.begin(), rVariables.ConditionVector.begin()+2, rRightHandSideVector.begin()+node*2, [rVariables.Nu[node], rVariables.IntegrationCoefficient](const auto& ConditionVectorElement) {
+        //     return rVariables.Nu[node] * rVariables.IntegrationCoefficient * ConditionVectorElement;
+        // });
     }
 }
 

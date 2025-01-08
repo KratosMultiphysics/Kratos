@@ -29,7 +29,7 @@ Condition::Pointer UPwLysmerAbsorbingCondition<TDim, TNumNodes>::Create(IndexTyp
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateLeftHandSide(Matrix& rLeftHandSideMatrix,
                                                                          const ProcessInfo& rCurrentProcessInfo)
 {
     ElementMatrixType stiffness_matrix;
@@ -40,8 +40,8 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateLeftHandSide(MatrixT
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixType& rLhsMatrix,
-                                                                        VectorType& rRightHandSideVector,
+void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateLocalSystem(Matrix& rLhsMatrix,
+                                                                        Vector& rRightHandSideVector,
                                                                         const ProcessInfo& rCurrentProcessInfo)
 {
     this->CalculateLeftHandSide(rLhsMatrix, rCurrentProcessInfo);
@@ -105,21 +105,21 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateConditionStiffnessMa
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateRightHandSide(VectorType& rRightHandSideVector,
+void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateRightHandSide(Vector& rRightHandSideVector,
                                                                           const ProcessInfo& rCurrentProcessInfo)
 {
     ElementMatrixType stiffness_matrix;
 
     this->CalculateConditionStiffnessMatrix(stiffness_matrix, rCurrentProcessInfo);
 
-    MatrixType global_stiffness_matrix = ZeroMatrix(CONDITION_SIZE, CONDITION_SIZE);
+    Matrix global_stiffness_matrix = ZeroMatrix(CONDITION_SIZE, CONDITION_SIZE);
     GeoElementUtilities::AssembleUUBlockMatrix(global_stiffness_matrix, stiffness_matrix);
 
     this->CalculateAndAddRHS(rRightHandSideVector, global_stiffness_matrix);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateDampingMatrix(MatrixType& rDampingMatrix,
+void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateDampingMatrix(Matrix& rDampingMatrix,
                                                                           const ProcessInfo& rCurrentProcessInfo)
 {
     // Previous definitions
@@ -393,8 +393,8 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::GetVariables(NormalLysmerAbso
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRightHandSideVector,
-                                                                      const MatrixType& rStiffnessMatrix)
+void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateAndAddRHS(Vector& rRightHandSideVector,
+                                                                      const Matrix& rStiffnessMatrix)
 {
     rRightHandSideVector = ZeroVector(CONDITION_SIZE);
 
@@ -405,7 +405,7 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateAndAddRHS(VectorType
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::AddLHS(MatrixType& rLeftHandSideMatrix,
+void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::AddLHS(Matrix& rLeftHandSideMatrix,
                                                           const ElementMatrixType& rUUMatrix)
 {
     // assemble left hand side vector

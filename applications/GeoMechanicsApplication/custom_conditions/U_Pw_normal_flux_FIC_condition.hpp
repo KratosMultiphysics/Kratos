@@ -36,11 +36,8 @@ public:
 
     using IndexType      = std::size_t;
     using PropertiesType = Properties;
-    using NodeType       = Node;
-    using GeometryType   = Geometry<NodeType>;
+    using GeometryType   = Geometry<Node>;
     using NodesArrayType = GeometryType::PointsArrayType;
-    using VectorType     = Vector;
-    using MatrixType     = Matrix;
     using NormalFluxVariables = typename UPwNormalFluxCondition<TDim, TNumNodes>::NormalFluxVariables;
 
     UPwNormalFluxFICCondition() : UPwNormalFluxFICCondition(0, nullptr, nullptr) {}
@@ -72,33 +69,29 @@ protected:
         array_1d<double, TNumNodes> DtPressureVector;
     };
 
-    void CalculateAll(MatrixType&        rLeftHandSideMatrix,
-                      VectorType&        rRightHandSideVector,
-                      const ProcessInfo& CurrentProcessInfo) override;
+    void CalculateAll(Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo) override;
 
-    void CalculateRHS(VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo) override;
+    void CalculateRHS(Vector& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo) override;
 
     void CalculateElementLength(double& rElementLength, const GeometryType& Geom);
 
-    void CalculateAndAddLHSStabilization(MatrixType&             rLeftHandSideMatrix,
+    void CalculateAndAddLHSStabilization(Matrix&                 rLeftHandSideMatrix,
                                          NormalFluxVariables&    rVariables,
                                          NormalFluxFICVariables& rFICVariables);
 
-    void CalculateAndAddBoundaryMassMatrix(MatrixType&                   rLeftHandSideMatrix,
+    void CalculateAndAddBoundaryMassMatrix(Matrix&                       rLeftHandSideMatrix,
                                            const NormalFluxVariables&    rVariables,
                                            const NormalFluxFICVariables& rFICVariables);
 
-    void CalculateAndAddRHSStabilization(VectorType&             rRightHandSideVector,
+    void CalculateAndAddRHSStabilization(Vector&                 rRightHandSideVector,
                                          NormalFluxVariables&    rVariables,
                                          NormalFluxFICVariables& rFICVariables);
 
-    void CalculateAndAddBoundaryMassFlow(VectorType&                   rRightHandSideVector,
+    void CalculateAndAddBoundaryMassFlow(Vector&                       rRightHandSideVector,
                                          NormalFluxVariables&          rVariables,
                                          const NormalFluxFICVariables& rFICVariables);
 
 private:
-    // Serialization
-
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override

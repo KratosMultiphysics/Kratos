@@ -95,7 +95,7 @@ double LineNormalLoad2DDiffOrderCondition::CalculateIntegrationCoefficient(
     return IntegrationPoints[PointNumber].Weight();
 }
 
-void LineNormalLoad2DDiffOrderCondition::CalculateAndAddConditionForce(VectorType& rRightHandSideVector,
+void LineNormalLoad2DDiffOrderCondition::CalculateAndAddConditionForce(Vector& rRightHandSideVector,
                                                                        ConditionVariables& rVariables)
 {
     for (SizeType node = 0; node < this->GetGeometry().PointsNumber(); ++node) {

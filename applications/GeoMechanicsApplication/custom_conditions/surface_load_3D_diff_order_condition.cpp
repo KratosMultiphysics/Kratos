@@ -57,12 +57,12 @@ void SurfaceLoad3DDiffOrderCondition::CalculateConditionVector(ConditionVariable
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom = GetGeometry();
+    const GeometryType& r_geom = GetGeometry();
     rVariables.ConditionVector.resize(3, false);
     noalias(rVariables.ConditionVector) = ZeroVector(3);
 
-    for (SizeType node = 0; node < rGeom.PointsNumber(); ++node) {
-        rVariables.ConditionVector += rVariables.Nu[node] * rGeom[node].FastGetSolutionStepValue(SURFACE_LOAD);
+    for (SizeType node = 0; node < r_geom.PointsNumber(); ++node) {
+        rVariables.ConditionVector += rVariables.Nu[node] * r_geom[node].FastGetSolutionStepValue(SURFACE_LOAD);
     }
 
     KRATOS_CATCH("")
@@ -84,7 +84,7 @@ double SurfaceLoad3DDiffOrderCondition::CalculateIntegrationCoefficient(
     KRATOS_CATCH("")
 }
 
-void SurfaceLoad3DDiffOrderCondition::CalculateAndAddConditionForce(VectorType& rRightHandSideVector,
+void SurfaceLoad3DDiffOrderCondition::CalculateAndAddConditionForce(Vector& rRightHandSideVector,
                                                                     ConditionVariables& rVariables)
 {
     for (SizeType node = 0; node < GetGeometry().PointsNumber(); ++node) {

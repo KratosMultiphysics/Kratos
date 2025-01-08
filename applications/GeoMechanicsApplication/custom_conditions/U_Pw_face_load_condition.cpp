@@ -29,7 +29,7 @@ Condition::Pointer UPwFaceLoadCondition<TDim, TNumNodes>::Create(IndexType      
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwFaceLoadCondition<TDim, TNumNodes>::CalculateRHS(VectorType&        rRightHandSideVector,
+void UPwFaceLoadCondition<TDim, TNumNodes>::CalculateRHS(Vector&            rRightHandSideVector,
                                                          const ProcessInfo& CurrentProcessInfo)
 {
     const GeometryType&                             r_geom = this->GetGeometry();

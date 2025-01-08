@@ -42,8 +42,8 @@ void UPwCondition<TDim, TNumNodes>::GetDofList(DofsVectorType& rConditionDofList
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
-                                                         VectorType&        rRightHandSideVector,
+void UPwCondition<TDim, TNumNodes>::CalculateLocalSystem(Matrix&            rLeftHandSideMatrix,
+                                                         Vector&            rRightHandSideVector,
                                                          const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -66,7 +66,7 @@ void UPwCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixType&        rLef
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwCondition<TDim, TNumNodes>::CalculateRightHandSide(VectorType&        rRightHandSideVector,
+void UPwCondition<TDim, TNumNodes>::CalculateRightHandSide(Vector&            rRightHandSideVector,
                                                            const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -90,15 +90,15 @@ void UPwCondition<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResu
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwCondition<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftHandSideMatrix,
-                                                 VectorType&        rRightHandSideVector,
+void UPwCondition<TDim, TNumNodes>::CalculateAll(Matrix&            rLeftHandSideMatrix,
+                                                 Vector&            rRightHandSideVector,
                                                  const ProcessInfo& CurrentProcessInfo)
 {
     this->CalculateRHS(rRightHandSideVector, CurrentProcessInfo);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo)
+void UPwCondition<TDim, TNumNodes>::CalculateRHS(Vector& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo)
 {
     KRATOS_TRY
 

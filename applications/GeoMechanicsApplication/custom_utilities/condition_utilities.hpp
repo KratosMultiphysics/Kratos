@@ -54,29 +54,22 @@ public:
     }
 
     static inline void GetDisplacementsVector(array_1d<double, 4>&         rDisplacementVector,
-                                              const Element::GeometryType& Geom)
+                                              const Element::GeometryType& rGeom)
     {
         // Line_2d_2
-        array_1d<double, 3> DisplacementAux;
-        unsigned int        index = 0;
-        for (unsigned int i = 0; i < 2; ++i) {
-            noalias(DisplacementAux)     = Geom[i].FastGetSolutionStepValue(DISPLACEMENT);
-            rDisplacementVector[index++] = DisplacementAux[0];
-            rDisplacementVector[index++] = DisplacementAux[1];
+        for (unsigned int node = 0; node < 2; ++node) {
+            std::copy_n(rGeom[node].FastGetSolutionStepValue(DISPLACEMENT).begin(), 2,
+                        rDisplacementVector.begin() + node * 2);
         }
     }
 
     static inline void GetDisplacementsVector(array_1d<double, 12>&        rDisplacementVector,
-                                              const Element::GeometryType& Geom)
+                                              const Element::GeometryType& rGeom)
     {
         // Quadrilateral_3d_4
-        array_1d<double, 3> DisplacementAux;
-        unsigned int        index = 0;
-        for (unsigned int i = 0; i < 4; ++i) {
-            noalias(DisplacementAux)     = Geom[i].FastGetSolutionStepValue(DISPLACEMENT);
-            rDisplacementVector[index++] = DisplacementAux[0];
-            rDisplacementVector[index++] = DisplacementAux[1];
-            rDisplacementVector[index++] = DisplacementAux[2];
+        for (unsigned int node = 0; node < 4; ++node) {
+            std::copy_n(rGeom[node].FastGetSolutionStepValue(DISPLACEMENT).begin(), 3,
+                        rDisplacementVector.begin() + node * 3);
         }
     }
 
@@ -87,7 +80,8 @@ public:
         const auto& variable = TDim == 2u ? LINE_LOAD : SURFACE_LOAD;
 
         for (unsigned int node = 0; node < TNumNodes; ++node) {
-            std::copy_n(rGeom[node].FastGetSolutionStepValue(variable).begin(), TDim, rFaceLoadVector.begin()+node*TDim);
+            std::copy_n(rGeom[node].FastGetSolutionStepValue(variable).begin(), TDim,
+                        rFaceLoadVector.begin() + node * TDim);
         }
     }
 

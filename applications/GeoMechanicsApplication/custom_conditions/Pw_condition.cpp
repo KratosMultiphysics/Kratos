@@ -41,8 +41,8 @@ void PwCondition<TDim, TNumNodes>::GetDofList(DofsVectorType& rConditionDofList,
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void PwCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
-                                                        VectorType&        rRightHandSideVector,
+void PwCondition<TDim, TNumNodes>::CalculateLocalSystem(Matrix&            rLeftHandSideMatrix,
+                                                        Vector&            rRightHandSideVector,
                                                         const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -65,8 +65,7 @@ void PwCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixType&        rLeft
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void PwCondition<TDim, TNumNodes>::CalculateLeftHandSide(MatrixType&        rLeftHandSideMatrix,
-                                                         const ProcessInfo& rCurrentProcessInfo)
+void PwCondition<TDim, TNumNodes>::CalculateLeftHandSide(Matrix& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -76,7 +75,7 @@ void PwCondition<TDim, TNumNodes>::CalculateLeftHandSide(MatrixType&        rLef
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void PwCondition<TDim, TNumNodes>::CalculateRightHandSide(VectorType&        rRightHandSideVector,
+void PwCondition<TDim, TNumNodes>::CalculateRightHandSide(Vector&            rRightHandSideVector,
                                                           const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -100,15 +99,15 @@ void PwCondition<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResul
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void PwCondition<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftHandSideMatrix,
-                                                VectorType&        rRightHandSideVector,
+void PwCondition<TDim, TNumNodes>::CalculateAll(Matrix&            rLeftHandSideMatrix,
+                                                Vector&            rRightHandSideVector,
                                                 const ProcessInfo& CurrentProcessInfo)
 {
     this->CalculateRHS(rRightHandSideVector, CurrentProcessInfo);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void PwCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo)
+void PwCondition<TDim, TNumNodes>::CalculateRHS(Vector& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo)
 {
     KRATOS_TRY
 

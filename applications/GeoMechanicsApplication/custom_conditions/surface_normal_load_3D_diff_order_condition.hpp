@@ -47,19 +47,15 @@ public:
     std::string Info() const override;
 
 protected:
-    // Member Variables
-
     void CalculateConditionVector(ConditionVariables& rVariables, unsigned int PointNumber) override;
 
     double CalculateIntegrationCoefficient(const IndexType                    PointNumber,
                                            const GeometryType::JacobiansType& JContainer,
                                            const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const override;
 
-    void CalculateAndAddConditionForce(VectorType& rRightHandSideVector, ConditionVariables& rVariables) override;
+    void CalculateAndAddConditionForce(Vector& rRightHandSideVector, ConditionVariables& rVariables) override;
 
 private:
-    // Serialization
-
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override
