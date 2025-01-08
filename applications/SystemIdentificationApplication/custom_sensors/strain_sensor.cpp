@@ -58,6 +58,10 @@ StrainSensor::StrainSensor(
         }
     } else if (rElement.GetGeometry().WorkingSpaceDimension() == 3) {
         mStrainIndex = mStrainType;
+    } else {
+        KRATOS_ERROR << "Unsupported working space dimension = "
+                     << rElement.GetGeometry().WorkingSpaceDimension()
+                     << " in element with id = " << rElement.Id() << ".";
     }
 
     this->SetValue(SENSOR_ELEMENT_ID, static_cast<int>(mElementId));
