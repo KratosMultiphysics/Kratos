@@ -464,7 +464,7 @@ void LinearTimoshenkoBeamElement2D2N::CalculateLocalSystem(
     const double length = CalculateLength();
     const double Phi    = StructuralMechanicsElementUtilities::CalculatePhi(r_props, length);
     const double J      = 0.5 * length;
-    const double area   = r_props[CROSS_AREA];
+    const double area   = GetCrossArea();
 
     // Let's initialize the cl values
     VectorType strain_vector(strain_size), stress_vector(strain_size);
@@ -703,7 +703,7 @@ void LinearTimoshenkoBeamElement2D2N::CalculateRightHandSide(
     const double length = CalculateLength();
     const double Phi    = StructuralMechanicsElementUtilities::CalculatePhi(r_props, length);
     const double J      = 0.5 * length;
-    const double area   = r_props[CROSS_AREA];
+    const double area   = GetCrossArea();
 
     // Let's initialize the cl values
     VectorType strain_vector(strain_size), stress_vector(strain_size);
@@ -1035,5 +1035,12 @@ void LinearTimoshenkoBeamElement2D2N::load(Serializer& rSerializer)
 
 /***********************************************************************************/
 /***********************************************************************************/
+
+double LinearTimoshenkoBeamElement2D2N::GetCrossArea()
+{
+    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+    const auto& r_props = GetProperties();
+    return (strain_size == 3) ? r_props[CROSS_AREA] : r_props[THICKNESS];
+}
 
 } // Namespace Kratos
