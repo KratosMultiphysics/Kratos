@@ -18,7 +18,7 @@
 #include "containers/edge_based_data_structure.h"
 #include "containers/model.h"
 #include "geometries/quadrilateral_2d_4.h"
-#include "includes/gid_io.h"
+//#include "includes/gid_io.h"
 #include "processes/find_global_nodal_neighbours_process.h"
 #include "processes/structured_mesh_generator_process.h"
 #include "testing/testing.h"
@@ -58,10 +58,10 @@ KRATOS_TEST_CASE_IN_SUITE(EdgeBasedDataStructure2D, KratosCoreFastSuite)
     })");
     StructuredMeshGeneratorProcess(geometry, r_model_part, mesher_parameters).Execute();
 
-    GidIO<> gid_io_convection("/home/rzorrilla/Desktop/EdgeBasedDataStructure2D", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
-    gid_io_convection.InitializeMesh(0);
-    gid_io_convection.WriteMesh(r_model_part.GetMesh());
-    gid_io_convection.FinalizeMesh();
+    //GidIO<> gid_io_convection("/home/rzorrilla/Desktop/EdgeBasedDataStructure2D", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+    //gid_io_convection.InitializeMesh(0);
+    //gid_io_convection.WriteMesh(r_model_part.GetMesh());
+    //gid_io_convection.FinalizeMesh();
 
     // Calculate nodal neighbours
     // TODO: Temporary solution until we skip the neighbours calculation

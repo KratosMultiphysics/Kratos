@@ -19,6 +19,7 @@
 #include "includes/kernel.h"
 #include "includes/kratos_export_api.h"
 
+#include "custom_utilities/node_utilities.h"
 #include "custom_utilities/process_factory.hpp"
 #include "geo_mechanics_application.h"
 #include "linear_solvers_application.h"
@@ -73,17 +74,14 @@ private:
                             const std::stringstream&                rKratosLogBuffer) const;
 
     template <typename TVariableType>
-    void RestoreValuesOfNodalVariable(const TVariableType& rVariable, Node::IndexType SourceIndex, Node::IndexType DestinationIndex)
+    void ResetValuesOfNodalVariable(const TVariableType& rVariable)
     {
         if (!GetComputationalModelPart().HasNodalSolutionStepVariable(rVariable)) return;
 
-        VariableUtils{}.SetHistoricalVariableToZero(rVariable, GetComputationalModelPart().Nodes());
-
-        block_for_each(GetComputationalModelPart().Nodes(),
-                       [&rVariable, SourceIndex, DestinationIndex](auto& node) {
-            node.GetSolutionStepValue(rVariable, DestinationIndex) =
-                node.GetSolutionStepValue(rVariable, SourceIndex);
-        });
+        NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponentsOfNodes(
+            GetComputationalModelPart().Nodes(), rVariable, rVariable.Zero(), 0);
+        NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponentsOfNodes(
+            GetComputationalModelPart().Nodes(), rVariable, rVariable.Zero(), 1);
     }
 
     template <typename ProcessType>

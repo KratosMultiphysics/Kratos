@@ -11,8 +11,8 @@
 //                   Vahid Galavi
 //
 
-#if !defined(KRATOS_ADD_CUSTOM_STRATEGIES_TO_PYTHON_H_INCLUDED )
-#define  KRATOS_ADD_CUSTOM_STRATEGIES_TO_PYTHON_H_INCLUDED
+#if !defined(KRATOS_ADD_CUSTOM_STRATEGIES_TO_PYTHON_H_INCLUDED)
+#define KRATOS_ADD_CUSTOM_STRATEGIES_TO_PYTHON_H_INCLUDED
 
 // System includes
 #include <pybind11/pybind11.h>
@@ -28,9 +28,9 @@ namespace Kratos
 namespace Python
 {
 
-void  AddCustomStrategiesToPython(pybind11::module& m);
+void AddCustomStrategiesToPython(pybind11::module& m);
 
-}  // namespace Python.
-}  // namespace Kratos.
+} // namespace Python.
+} // namespace Kratos.
 
 #endif // KRATOS_ADD_CUSTOM_STRATEGIES_TO_PYTHON_H_INCLUDED  defined

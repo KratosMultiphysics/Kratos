@@ -12,29 +12,30 @@
 
 // Application includes
 #include "custom_elements/steady_state_Pw_element.hpp"
+#include "custom_utilities/transport_equation_utilities.hpp"
+#include "includes/cfd_variables.h"
 
 namespace Kratos
 {
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer SteadyStatePwElement<TDim, TNumNodes>::Create(IndexType             NewId,
                                                                NodesArrayType const& ThisNodes,
                                                                PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new SteadyStatePwElement(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+    return Element::Pointer(new SteadyStatePwElement(NewId, this->GetGeometry().Create(ThisNodes),
+                                                     pProperties, this->GetStressStatePolicy().Clone()));
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer SteadyStatePwElement<TDim, TNumNodes>::Create(IndexType             NewId,
                                                                GeometryType::Pointer pGeom,
                                                                PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new SteadyStatePwElement(NewId, pGeom, pProperties));
+    return Element::Pointer(
+        new SteadyStatePwElement(NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone()));
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 int SteadyStatePwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -127,16 +128,15 @@ int SteadyStatePwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProc
 
     return 0;
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void SteadyStatePwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftHandSideMatrix,
                                                          VectorType&        rRightHandSideVector,
                                                          const ProcessInfo& rCurrentProcessInfo,
-                                                         const bool CalculateStiffnessMatrixFlag,
-                                                         const bool CalculateResidualVectorFlag)
+                                                         bool CalculateStiffnessMatrixFlag,
+                                                         bool CalculateResidualVectorFlag)
 {
     KRATOS_TRY
 
@@ -150,8 +150,15 @@ void SteadyStatePwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLef
     ElementVariables Variables;
     this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
-    // create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
+
+    const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
+        Variables.NContainer, Variables.PressureVector);
+    const auto relative_permeability_values = this->CalculateRelativePermeabilityValues(fluid_pressures);
+    const auto bishop_coefficients = this->CalculateBishopCoefficients(fluid_pressures);
+    const auto integration_coefficients =
+        this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJContainer);
+    const auto degrees_of_saturation = this->CalculateDegreesOfSaturation(fluid_pressures);
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++) {
@@ -163,11 +170,11 @@ void SteadyStatePwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLef
         GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
             Variables.BodyAcceleration, Variables.NContainer, Variables.VolumeAcceleration, GPoint);
 
-        CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
+        Variables.RelativePermeability = relative_permeability_values[GPoint];
+        Variables.DegreeOfSaturation   = degrees_of_saturation[GPoint];
+        Variables.BishopCoefficient    = bishop_coefficients[GPoint];
 
-        // Compute weighting coefficient for integration
-        Variables.IntegrationCoefficient =
-            this->CalculateIntegrationCoefficient(IntegrationPoints, GPoint, Variables.detJ);
+        Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
         // Contributions to the left hand side
         if (CalculateStiffnessMatrixFlag) this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
@@ -180,19 +187,16 @@ void SteadyStatePwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLef
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void SteadyStatePwElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
                                                                ElementVariables& rVariables)
 {
-    KRATOS_TRY;
-
-    this->CalculateAndAddPermeabilityMatrix(rLeftHandSideMatrix, rVariables);
-
-    KRATOS_CATCH("");
+    const auto permeability_matrix = GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
+        rVariables.GradNpT, rVariables.DynamicViscosityInverse, rVariables.PermeabilityMatrix,
+        rVariables.RelativePermeability, rVariables.IntegrationCoefficient);
+    rLeftHandSideMatrix += permeability_matrix;
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void SteadyStatePwElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRightHandSideVector,
                                                                ElementVariables& rVariables,
@@ -203,10 +207,9 @@ void SteadyStatePwElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRigh
     this->CalculateAndAddPermeabilityFlow(rRightHandSideVector, rVariables);
     this->CalculateAndAddFluidBodyFlow(rRightHandSideVector, rVariables);
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------
 template class SteadyStatePwElement<2, 3>;
 template class SteadyStatePwElement<2, 4>;
 template class SteadyStatePwElement<3, 4>;

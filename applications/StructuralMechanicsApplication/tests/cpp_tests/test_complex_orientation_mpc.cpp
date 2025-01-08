@@ -16,7 +16,7 @@
 
 // Project includes
 #include "containers/model.h"
-#include "testing/testing.h"
+#include "structural_mechanics_fast_suite.h"
 // #include "includes/gid_io.h"
 #include "utilities/variable_utils.h"
 #include "spaces/ublas_space.h"

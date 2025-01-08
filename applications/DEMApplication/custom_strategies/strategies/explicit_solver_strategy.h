@@ -249,6 +249,7 @@ namespace Kratos {
         void ApplyPrescribedBoundaryConditions();
         void ApplyInitialConditions();
         virtual void SetSearchRadiiOnAllParticles(ModelPart& r_model_part, const double added_search_distance = 0.0, const double amplification = 1.0);
+        void SetNormalRadiiOnAllParticlesBeforeInitilization(ModelPart& r_model_part);
         void SetNormalRadiiOnAllParticles(ModelPart& r_model_part);
         virtual void SetSearchRadiiWithFemOnAllParticles(ModelPart& r_model_part, const double added_search_distance = 0.0, const double amplification = 1.0);
         virtual void SearchNeighbours();

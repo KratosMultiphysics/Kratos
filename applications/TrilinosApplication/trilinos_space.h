@@ -42,7 +42,6 @@
 
 namespace Kratos
 {
-
 ///@name Kratos Globals
 ///@{
 
@@ -864,6 +863,28 @@ public:
     }
 
     /**
+     * @brief Returns a list of the fastest direct solvers.
+     * @details This function returns a vector of strings representing the names of the fastest direct solvers. The order of the solvers in the list may need to be updated and reordered depending on the size of the equation system.
+     * @return A vector of strings containing the names of the fastest direct solvers.
+     */
+    inline static std::vector<std::string> FastestDirectSolverList()
+    {
+        // May need to be updated and reordered. In fact I think it depends of the size of the equation system
+        std::vector<std::string> faster_direct_solvers({
+            "mumps2",         // Amesos2 (if compiled with MUMPS-support)
+            "mumps",          // Amesos (if compiled with MUMPS-support)
+            "super_lu_dist2", // Amesos2 SuperLUDist (if compiled with MPI-support)
+            "super_lu_dist",  // Amesos SuperLUDist (if compiled with MPI-support)
+            "amesos2",        // Amesos2
+            "amesos",         // Amesos
+            "klu2",           // Amesos2 KLU
+            "klu",            // Amesos KLU
+            "basker"          // Amesos2 Basker
+        });
+        return faster_direct_solvers;
+    }
+
+    /**
      * @brief This function returns a value from a given vector according to a given index
      * @param rX The vector from which values are to be gathered
      * @param I The index of the value to be gathered
@@ -1040,13 +1061,13 @@ public:
         int i, j, ierr;
         int num_entries; // Number of non-zero entries
         int* cols;       // Column indices of row non-zero values
-        std::unordered_set<int> combined_indexes;
         const bool same_col_map = rA.ColMap().SameAs(rB.ColMap());
         Epetra_CrsGraph graph = same_col_map ? Epetra_CrsGraph(::Copy, rA.RowMap(), rA.ColMap(), 1000) : Epetra_CrsGraph(::Copy, rA.RowMap(), 1000);
 
         // Same column map. Local indices, simpler and faster
         if (same_col_map) {
             for (i = 0; i < r_graph_a.NumMyRows(); i++) {
+                std::unordered_set<int> combined_indexes;
                 // First graph
                 ierr = r_graph_a.ExtractMyRowView(i, num_entries, cols);
                 KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found extracting indices (I) with code ierr = " << ierr << std::endl;
@@ -1065,8 +1086,6 @@ public:
                 // Adding to graph
                 ierr = graph.InsertMyIndices(i, num_entries, combined_indexes_vector.data());
                 KRATOS_ERROR_IF(ierr != 0) << "Epetra failure inserting indices with code ierr = " << ierr << std::endl;
-                // Clear set
-                combined_indexes.clear();
             }
         } else { // Different column map, global indices
             for (i = 0; i < r_graph_a.NumMyRows(); i++) {
@@ -1074,34 +1093,28 @@ public:
                 // First graph
                 ierr = r_graph_a.ExtractMyRowView(i, num_entries, cols);
                 KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found extracting indices (I) with code ierr = " << ierr << std::endl;
+                std::vector<int> combined_indexes_vector;
+                combined_indexes_vector.reserve(num_entries);
                 for (j = 0; j < num_entries; j++) {
-                    combined_indexes.insert(r_graph_a.GCID(cols[j]));
+                    combined_indexes_vector.push_back(r_graph_a.GCID(cols[j]));
                 }
-                // Vector equivalent
-                std::vector<int> combined_indexes_vector(combined_indexes.begin(), combined_indexes.end());
-                num_entries = combined_indexes_vector.size();
                 // Adding to graph
                 ierr = graph.InsertGlobalIndices(global_row_index, num_entries, combined_indexes_vector.data());
                 KRATOS_ERROR_IF(ierr != 0) << "Epetra failure inserting indices with code ierr = " << ierr << std::endl;
-                // Clear set
-                combined_indexes.clear();
             }
             for (i = 0; i < r_graph_b.NumMyRows(); i++) {
                 const int global_row_index = r_graph_b.GRID(i);
                 // Second graph
                 ierr = r_graph_b.ExtractMyRowView(i, num_entries, cols);
                 KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found extracting indices (II) with code ierr = " << ierr << std::endl;
+                std::vector<int> combined_indexes_vector;
+                combined_indexes_vector.reserve(num_entries);
                 for (j = 0; j < num_entries; j++) {
-                    combined_indexes.insert(r_graph_b.GCID(cols[j]));
+                    combined_indexes_vector.push_back(r_graph_b.GCID(cols[j]));
                 }
-                // Vector equivalent
-                std::vector<int> combined_indexes_vector(combined_indexes.begin(), combined_indexes.end());
-                num_entries = combined_indexes_vector.size();
                 // Adding to graph
                 ierr = graph.InsertGlobalIndices(global_row_index, num_entries, combined_indexes_vector.data());
                 KRATOS_ERROR_IF(ierr != 0) << "Epetra failure inserting indices with code ierr = " << ierr << std::endl;
-                // Clear set
-                combined_indexes.clear();
             }
         }
 
@@ -1122,7 +1135,7 @@ public:
         MatrixType& rA,
         const MatrixType& rB
         )
-    {
+    {   
         // Cleaning destination matrix
         SetToZero(rA);
 
@@ -1317,16 +1330,6 @@ public:
         return TrilinosSpace<Epetra_FECrsMatrix, Epetra_Vector>::Min(diagonal);
 
         KRATOS_CATCH("");
-    }
-
-   /**
-    * @brief Check if the TrilinosSpace is distributed.
-    * @details This static member function checks whether the TrilinosSpace is distributed or not.
-    * @return True if the space is distributed, false otherwise.
-    */
-    static constexpr bool IsDistributedSpace()
-    {
-        return true;
     }
 
     ///@}

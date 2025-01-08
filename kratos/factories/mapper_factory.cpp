@@ -27,15 +27,6 @@ namespace Kratos {
 typedef typename MapperDefinitions::SparseSpaceType SparseSpaceType;
 typedef typename MapperDefinitions::DenseSpaceType  DenseSpaceType;
 
-template<>
-std::unordered_map<std::string, typename Mapper<SparseSpaceType, DenseSpaceType>::Pointer>& MapperFactory<SparseSpaceType,
-    DenseSpaceType>::GetRegisteredMappersList()
-{
-    static std::unordered_map<std::string, typename Mapper<SparseSpaceType, DenseSpaceType>::Pointer> registered_mappers;
-
-    return registered_mappers;
-}
-
     /* // CommRank is used as input bcs the MyPID function of the non-MPI MapperCommunicator is used
     // since this function is called before the MapperMPICommunicato is initialized
     void CheckInterfaceModelParts(const int CommRank)

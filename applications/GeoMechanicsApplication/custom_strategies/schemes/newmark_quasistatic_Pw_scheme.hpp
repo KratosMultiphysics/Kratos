@@ -34,6 +34,21 @@ public:
     {
     }
 
+protected:
+    inline void UpdateVariablesDerivatives(ModelPart& rModelPart) override
+    {
+        KRATOS_TRY
+
+        block_for_each(rModelPart.Nodes(), [this](Node& rNode) {
+            for (const auto& r_first_order_scalar_variable : this->GetFirstOrderScalarVariables()) {
+                this->UpdateScalarTimeDerivative(rNode, r_first_order_scalar_variable.instance,
+                                                 r_first_order_scalar_variable.first_time_derivative);
+            }
+        });
+
+        KRATOS_CATCH("")
+    }
+
 }; // Class NewmarkQuasistaticPwScheme
 
 } // namespace Kratos

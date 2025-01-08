@@ -16,13 +16,9 @@
 // External includes
 
 // Project includes
-#include "testing.h"
-#include "includes/parallel_environment.h"
+#include "testing/testing.h"
 
-namespace Kratos::Testing 
+int main(int argc, char* argv[]) 
 {
-DataCommunicator& GetDefaultDataCommunicator()
-{
-    return ParallelEnvironment::GetDefaultDataCommunicator();
-}
+    return Kratos::Testing::GTestMain::InitializeTesting(argc, argv);
 }

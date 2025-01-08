@@ -32,7 +32,7 @@
 /* The mappers includes */
 #include "spaces/ublas_space.h"
 #include "mappers/mapper_flags.h"
-#include "factories/mapper_factory.h" 
+#include "factories/mapper_factory.h"
 
 // NOTE: The following contains the license of the MMG library
 /* =============================================================================
@@ -344,7 +344,7 @@ void MmgProcess<TMMGLibrary>::InitializeMeshData()
         NodesArrayType& r_nodes_array = mrThisModelPart.Nodes();
 
         block_for_each(r_nodes_array,
-            [&](NodeType& rNode) {
+            [&](Node& rNode) {
             noalias(rNode.GetInitialPosition().Coordinates()) = rNode.Coordinates();
         });
     }
@@ -362,9 +362,13 @@ void MmgProcess<TMMGLibrary>::InitializeMeshData()
 
     // Assign dofs
     for (auto it_dof = r_old_dofs.begin(); it_dof != r_old_dofs.end(); ++it_dof)
-        mDofs.push_back(Kratos::make_unique<NodeType::DofType>(**it_dof));
+        mDofs.push_back(Kratos::make_unique<Node::DofType>(**it_dof));
     for (auto it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
         (**it_dof).FreeDof();
+
+    mrThisModelPart.Nodes().Unique();
+    mrThisModelPart.Conditions().Unique();
+    mrThisModelPart.Elements().Unique();
 
     // Generate the maps of reference
     mMmgUtilities.GenerateReferenceMaps(mrThisModelPart, aux_ref_cond, aux_ref_elem, mpRefCondition, mpRefElement);
@@ -540,7 +544,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
     auto& r_nodes_array = mrThisModelPart.Nodes();
 
     block_for_each(r_nodes_array,
-        [&](NodeType& rNode) {
+        [&](Node& rNode) {
 
         const bool old_entity = rNode.IsDefined(OLD_ENTITY) ? rNode.Is(OLD_ENTITY) : false;
         if (!old_entity) {
@@ -590,7 +594,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
             ModelPart& r_old_auxiliar_model_part = r_old_model_part.GetSubModelPart("AUXILIAR_COLLAPSED_PRISMS");
             ModelPart& r_auxiliary_model_part = mrThisModelPart.GetSubModelPart("AUXILIAR_COLLAPSED_PRISMS");
 
-            // Define mapper factory 
+            // Define mapper factory
             DEFINE_MAPPER_FACTORY_SERIAL
             if (MapperFactoryType::HasMapper("nearest_element") && mThisParameters["use_mapper_if_available"].GetBool()) {
                 KRATOS_INFO_IF("MmgProcess", mEchoLevel > 0) << "Using MappingApplication to interpolate values" << std::endl;
@@ -683,7 +687,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
         NodesArrayType& r_old_nodes_array = r_old_model_part.Nodes();
 
         block_for_each(r_old_nodes_array,
-        [&](NodeType& rNode) {
+        [&](Node& rNode) {
             noalias(rNode.Coordinates()) = rNode.GetInitialPosition().Coordinates();
         });
     }
@@ -777,7 +781,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
 
             /* We move the mesh */
             block_for_each(r_nodes_array,
-            [&step](NodeType& rNode) {
+            [&step](Node& rNode) {
                 noalias(rNode.Coordinates())  = rNode.GetInitialPosition().Coordinates();
                 noalias(rNode.Coordinates()) += rNode.FastGetSolutionStepValue(DISPLACEMENT, step);
             });
@@ -788,7 +792,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
             const array_1d<double, 3> zero_vector = ZeroVector(3);
 
             block_for_each(r_nodes_array,
-            [&zero_vector,&buffer_size](NodeType& rNode) {
+            [&zero_vector,&buffer_size](Node& rNode) {
                 for (IndexType i_buffer = 0; i_buffer < buffer_size; ++i_buffer) {
                     noalias(rNode.FastGetSolutionStepValue(DISPLACEMENT, i_buffer)) = zero_vector;
                 }
@@ -1101,14 +1105,14 @@ void MmgProcess<TMMGLibrary>::ExtrudeTrianglestoPrisms(ModelPart& rOldModelPart)
         GeometryType& r_geometry = r_elem.GetGeometry();
 
         // Iterate over nodes
-        for (NodeType& r_node : r_geometry) {
+        for (Node& r_node : r_geometry) {
             r_geometry.PointLocalCoordinates(aux_coords, r_node.Coordinates());
             noalias(r_node.GetValue(NORMAL)) += r_geometry.UnitNormal(aux_coords);
         }
     }
 
     block_for_each(r_nodes_array,
-        [&](NodeType& rNode) {
+        [&](Node& rNode) {
 
         array_1d<double, 3>& r_normal = rNode.GetValue(NORMAL);
         const double norm_normal = norm_2(r_normal);
@@ -1366,6 +1370,9 @@ void MmgProcess<TMMGLibrary>::CleanSuperfluousNodes()
     KRATOS_CATCH("");
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 template<MMGLibrary TMMGLibrary>
 void MmgProcess<TMMGLibrary>::CleanSuperfluousConditions()
 {
@@ -1501,7 +1508,7 @@ const Parameters MmgProcess<TMMGLibrary>::GetDefaultParameters() const
                 "max_num_search_iterations"     : 8,
                 "echo_level"                    : 0
             }
-        }, 
+        },
         "extrapolate_contour_values"           : true,
         "surface_elements"                     : false,
         "search_parameters"                    : {
