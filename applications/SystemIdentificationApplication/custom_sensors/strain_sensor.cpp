@@ -41,6 +41,25 @@ StrainSensor::StrainSensor(
         << "The point " << this->GetLocation() << " is not inside or on the boundary of the geometry of element with id "
         << mElementId << ".";
 
+    // if the element is of type 2d
+    if (rElement.GetGeometry().WorkingSpaceDimension() == 2) {
+        switch (mStrainType) {
+            case StrainType::STRAIN_XX:
+                mStrainIndex = 0;
+                break;
+            case StrainType::STRAIN_YY:
+                mStrainIndex = 3;
+                break;
+            case StrainType::STRAIN_XY:
+                mStrainIndex = 1;
+                break;
+            default:
+                KRATOS_ERROR << "The element with id = " << rElement.Id() << " is of 2d type, hence only xx, yy, xy strains are allowed.";
+        }
+    } else if (rElement.GetGeometry().WorkingSpaceDimension() == 3) {
+        mStrainIndex = mStrainType;
+    }
+
     this->SetValue(SENSOR_ELEMENT_ID, static_cast<int>(mElementId));
 }
 
@@ -110,7 +129,9 @@ double StrainSensor::CalculateValue(ModelPart& rModelPart)
         r_element.CalculateOnIntegrationPoints(mrStrainVariable, strains, rModelPart.GetProcessInfo());
 
         for (const auto& strain : strains) {
-            directional_strain += *(strain.data().begin() + mStrainType);
+            KRATOS_ERROR_IF(strain.data().size() <= mStrainIndex)
+                << "The size of the strain " << strain.data().size() << " does not contain the index = " << mStrainIndex << ".";
+            directional_strain += *(strain.data().begin() + mStrainIndex);
         }
 
         directional_strain /= strains.size();
@@ -341,8 +362,8 @@ double StrainSensor::CalculateStrainDirectionalSensitivity(
 
     double strain_sensitivity = 0.0;
     for (IndexType j = 0; j < rPerturbedStrains.size(); ++j) {
-        strain_sensitivity += (*(rPerturbedStrains[j].data().begin() + mStrainType) -
-                               *(rRefStrains[j].data().begin() + mStrainType)) /
+        strain_sensitivity += (*(rPerturbedStrains[j].data().begin() + mStrainIndex) -
+                               *(rRefStrains[j].data().begin() + mStrainIndex)) /
                               Perturbation;
     }
 
