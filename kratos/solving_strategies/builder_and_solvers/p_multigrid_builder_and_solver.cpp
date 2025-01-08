@@ -7,32 +7,30 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Mate Kelemen
+//  Main authors:    Máté Kelemen
 //
 
 // Project includes
-#include "solving_strategies/builder_and_solvers/p_multigrid_builder_and_solver.hpp"
+#include "solving_strategies/builder_and_solvers/p_multigrid_builder_and_solver.hpp" // PMultigridBuilderAndSolver
 #include "spaces/ublas_space.h" // TUblasSparseSpace, TUblasDenseSpace
 #include "linear_solvers/linear_solver.h" // LinearSolver
 #include "includes/model_part.h" // ModelPart
 #include "utilities/dof_utilities/block_build_dof_array_utility.h" // BlockBuildDofArrayUtility
+#include "utilities/sparse_matrix_multiplication_utility.h" // SparseMatrixMultiplicationUtility
 #include "utilities/atomic_utilities.h" // AtomicAdd
-#include "utilities/sparse_matrix_multiplication_utility.h"
+#include "utilities/sparse_matrix_multiplication_utility.h" // SparseMatrixMultiplicationUtility
 #include "utilities/reduction_utilities.h"
 #include "utilities/proxies.h" // MakeProxy
-#include "utilities/profiler.h"
+#include "utilities/profiler.h" // KRATOS_PROFILE_SCOPE, KRATOS_PROFILE_SCOPE_MILLI
+#include "solving_strategies/builder_and_solvers/p_multigrid_utilities.hpp" // MakePRestrictionOperator, MakeSparseTopology
 
 // System includes
 #include <algorithm> // std::lower_bound
 #include <optional> // std::optional
+#include <limits> // std::numeric_limits
 
 
 namespace Kratos {
-
-
-// --------------------------------------------------------- //
-// PIMPL
-// --------------------------------------------------------- //
 
 
 enum class DiagonalScaling
@@ -53,6 +51,93 @@ enum class ConstraintImposition
 }; // enum class ConstraintImposition
 
 
+// --------------------------------------------------------- //
+// PMG Hierarchy
+// --------------------------------------------------------- //
+
+
+template <class TSparse,
+          class TDense,
+          class TSolver>
+class PGrid
+{
+public:
+    PGrid(const unsigned Level)
+        : mpRestrictionOperator(new typename TSparse::MatrixType),
+          mpLhs(new typename TSparse::MatrixType),
+          mpRhs(new typename TSparse::VectorType)
+    {}
+
+    PGrid()
+        : PGrid(0u)
+    {}
+
+    /// @brief Construct the unconstrained left hand side matrix of the coarse grid from its fine equivalent.
+    template <class TParentSparse>
+    void MakeLhs(const ModelPart& rModelPart,
+                 const typename TParentSparse::MatrixType& rParentLhs)
+    {
+        KRATOS_TRY
+        // Construct the restriction operator.
+        // The restriction operator immediately constructs the linear equivalent,
+        // because one-level coarsening strategies are not supported yet. The problem
+        // is that when going from a generic polynomial level q to some other lower polynomial
+        // level p!=1, new nodes must be introduced that do not exist in the original fine mesh.
+        // This wouldn't be a huge problem by itself, but deciding on DoF indices on the coarse
+        // level would be quite painful and require to keep track of the coarse grid's topology
+        // in some manner.
+        MakePRestrictionOperator<
+            std::numeric_limits<unsigned>::max(),
+            typename TSparse::DataType>(rModelPart,
+                                        *mpRestrictionOperator,
+                                        rParentLhs.size1());
+
+        const auto check_matrix_multiplication = [](const typename TSparse::MatrixType& r_left,
+                                                    const typename TSparse::MatrixType& r_right,
+                                                    const typename TSparse::MatrixType& r_out) {
+            KRATOS_ERROR_IF((r_left.size2() != r_right.size1()) ||
+                            (r_out.size1() != r_left.size1()) ||
+                            (r_out.size2() != r_right.size2()))
+                << "invalid sizes for matrix product: "
+                << "(" << r_left.size1() << "x" << r_left.size2() << ")"
+                << " x "
+                << "(" << r_right.size1() << "x" << r_right.size2() << ")"
+                << " => "
+                << "(" << r_out.size1() << "x" << r_out.size2() << ")";
+        };
+
+        // Compute the restricted LHS matrix.
+        {
+            typename TSparse::MatrixType prolongation_operator(mpRestrictionOperator->size2(), mpRestrictionOperator->size1()),
+                                         left_multiplied_lhs(mpRestrictionOperator->size1(), rParentLhs.size2());
+
+            check_matrix_multiplication(*mpRestrictionOperator, rParentLhs, left_multiplied_lhs);
+            SparseMatrixMultiplicationUtility::MatrixMultiplication(*mpRestrictionOperator, rParentLhs, left_multiplied_lhs);
+            SparseMatrixMultiplicationUtility::TransposeMatrix(prolongation_operator, *mpRestrictionOperator, 1.0);
+
+            mpLhs->resize(mpRestrictionOperator->size1(), mpRestrictionOperator->size1());
+            check_matrix_multiplication(left_multiplied_lhs, prolongation_operator, *mpLhs);
+            SparseMatrixMultiplicationUtility::MatrixMultiplication(left_multiplied_lhs, prolongation_operator, *mpLhs);
+        }
+        KRATOS_CATCH("")
+    }
+
+private:
+    std::shared_ptr<typename TSparse::MatrixType> mpRestrictionOperator;
+
+    std::shared_ptr<typename TSparse::MatrixType> mpLhs;
+
+    std::shared_ptr<typename TSparse::VectorType> mpRhs;
+
+    std::optional<std::unique_ptr<PGrid>> mMaybeChild;
+}; // class PGrid
+
+
+// --------------------------------------------------------- //
+// PIMPL
+// --------------------------------------------------------- //
+
+
 template <class TSparse, class TDense, class TSolver>
 struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
 {
@@ -66,17 +151,22 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
           mMasterIds(),
           mInactiveSlaveIds(),
           mDiagonalScaleFactor(1),
+          mHierarchy(),
           mDiagonalScaling(DiagonalScaling::None),
           mMaxDepth(-1),
           mVerbosity(0)
     {}
 
-    void SystemSolveWithPhysics(typename Interface::TSystemMatrixType& rLhs,
-                                typename Interface::TSystemVectorType& rSolution,
-                                typename Interface::TSystemVectorType& rRhs,
-                                ModelPart& rModelPart,
-                                Interface& rInterface)
+    /// @brief Initialize the linear solver and solve the provided system.
+    void Solve(typename Interface::TSystemMatrixType& rLhs,
+               typename Interface::TSystemVectorType& rSolution,
+               typename Interface::TSystemVectorType& rRhs,
+               ModelPart& rModelPart,
+               Interface& rInterface)
     {
+        // TODO: construct the grid somewhere where it makes more sense.
+        mHierarchy.template MakeLhs<TSparse>(rModelPart, rLhs);
+
         if(!rModelPart.MasterSlaveConstraints().empty()) {
             typename Interface::TSystemVectorType modified_solution(rRhs.size());
             TSparse::SetToZero(modified_solution);
@@ -106,10 +196,161 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
 
 
     // --------------------------------------------------------- //
+    // Topology
+    // --------------------------------------------------------- //
+
+
+    template <class TProxy>
+    static void CollectDoFs(const TProxy& rEntities,
+                            const ProcessInfo& rProcessInfo,
+                            typename Interface::TSchemeType& rScheme,
+                            LockObject* pLockBegin,
+                            [[maybe_unused]] LockObject* pLockEnd,
+                            std::unordered_set<std::size_t>* pRowSetBegin,
+                            [[maybe_unused]] std::unordered_set<std::size_t>* pRowSetEnd)
+    {
+        KRATOS_PROFILE_SCOPE(KRATOS_CODE_LOCATION);
+        using TLS = Element::EquationIdVectorType;
+        block_for_each(rEntities,
+                       TLS(),
+                       [&rScheme, &rProcessInfo, pLockBegin, pRowSetBegin](const auto& rEntity, TLS& rTls){
+            if (rEntity.GetEntity().IsActive()) {
+                rScheme.EquationId(rEntity.GetEntity(), rTls, rProcessInfo);
+                for (const auto equation_id : rTls) {
+                    [[maybe_unused]] std::scoped_lock<LockObject> lock(pLockBegin[equation_id]);
+                    auto& r_row_indices = pRowSetBegin[equation_id];
+                    r_row_indices.insert(rTls.begin(), rTls.end());
+                } // for equation_id in rTls
+            } // if rEntity.IsActive
+        });
+    }
+
+
+    void MakeLhsTopology(const typename Interface::TSchemeType::Pointer& rpScheme,
+                         typename Interface::TSystemMatrixType& rLhs,
+                         ModelPart& rModelPart)
+    {
+        KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
+        KRATOS_TRY
+
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        std::vector<LockObject> locks(mpInterface->GetEquationSystemSize());
+        std::vector<std::unordered_set<std::size_t> > indices(mpInterface->GetEquationSystemSize());
+
+        // Collect DoFs from elements.
+        Impl::CollectDoFs(MakeProxy<Globals::DataLocation::Element>(rModelPart),
+                          rModelPart.GetProcessInfo(),
+                          *rpScheme,
+                          locks.data(),
+                          locks.data() + locks.size(),
+                          indices.data(),
+                          indices.data() + indices.size());
+
+        // Collect DoFs from conditions.
+        Impl::CollectDoFs(MakeProxy<Globals::DataLocation::Condition>(rModelPart),
+                          rModelPart.GetProcessInfo(),
+                          *rpScheme,
+                          locks.data(),
+                          locks.data() + locks.size(),
+                          indices.data(),
+                          indices.data() + indices.size());
+
+        // Collect DoFs from multifreedom constraints.
+        if (rModelPart.MasterSlaveConstraints().size() != 0) {
+            struct TLS
+            {
+                Element::EquationIdVectorType master_ids, slave_ids;
+            };
+
+            block_for_each(rModelPart.MasterSlaveConstraints(), TLS(), [&](MasterSlaveConstraint& rConst, TLS& rTls){
+                rConst.EquationIdVector(rTls.slave_ids, rTls.master_ids, r_current_process_info);
+
+                for (std::size_t i = 0; i < rTls.slave_ids.size(); i++) {
+                    auto& row_indices = indices[rTls.slave_ids[i]];
+                    std::scoped_lock<LockObject> lock(locks[rTls.slave_ids[i]]);
+                    row_indices.insert(rTls.slave_ids[i]);
+                }
+
+                for (std::size_t i = 0; i < rTls.master_ids.size(); i++) {
+                    auto& row_indices = indices[rTls.master_ids[i]];
+                    std::scoped_lock<LockObject> lock(locks[rTls.master_ids[i]]);
+                    row_indices.insert(rTls.master_ids[i]);
+                }
+            });
+        } // if rModelPart.MasterSlaveConstraints
+
+        // Destroy locks.
+        locks = std::vector<LockObject>();
+
+        // Compute and allocate LHS topology.
+        MakeSparseTopology<typename TSparse::DataType>(indices,
+                                                       indices.size(),
+                                                       rLhs);
+        KRATOS_CATCH("")
+    }
+
+
+    void MakeConstraintTopology(ModelPart& rModelPart)
+    {
+        KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
+        KRATOS_TRY
+        if (!rModelPart.MasterSlaveConstraints().empty()) {
+            const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+
+            // Global variables.
+            const auto it_const_begin = rModelPart.MasterSlaveConstraints().begin();
+            std::vector<std::unordered_set<IndexType>> indices(mpInterface->mDofSet.size());
+            std::vector<LockObject> locks(indices.size());
+
+            #pragma omp parallel
+            {
+                Element::EquationIdVectorType slave_ids;
+                Element::EquationIdVectorType master_ids;
+                std::unordered_map<IndexType, std::unordered_set<IndexType>> temp_indices;
+
+                #pragma omp for schedule(guided, 512) nowait
+                for (int i_const = 0; i_const < static_cast<int>(rModelPart.MasterSlaveConstraints().size()); ++i_const) {
+                    auto it_const = it_const_begin + i_const;
+                    it_const->EquationIdVector(slave_ids, master_ids, r_current_process_info);
+
+                    // Slave DoFs
+                    for (auto &id_i : slave_ids) {
+                        temp_indices[id_i].insert(master_ids.begin(), master_ids.end());
+                    }
+                }
+
+                // Merging temporary indices into global rows.
+                for (auto& pair_temp_indices : temp_indices) {
+                    std::scoped_lock<LockObject> lock(locks[pair_temp_indices.first]);
+                    indices[pair_temp_indices.first].insert(pair_temp_indices.second.begin(), pair_temp_indices.second.end());
+                }
+            }
+
+            mSlaveIds.clear();
+            mMasterIds.clear();
+            for (int i = 0; i < static_cast<int>(indices.size()); ++i) {
+                if (indices[i].size() == 0) // Master dof!
+                    mMasterIds.push_back(i);
+                else // Slave dof
+                    mSlaveIds.push_back(i);
+                indices[i].insert(i); // Ensure that the diagonal is there in T
+            }
+
+            MakeSparseTopology<typename TSparse::DataType>(indices,
+                                                           indices.size(),
+                                                           mRelationMatrix);
+            mConstraintGapVector.resize(indices.size());
+        } // if rModelPart.MasterSlaveConstraints()
+        KRATOS_CATCH("")
+    }
+
+
+    // --------------------------------------------------------- //
     // Mapping
     // --------------------------------------------------------- //
 
 
+    /// @brief Map LHS contributions from a local dense matrix to a sparse global matrix.
     static void MapRowContribution(typename Interface::TSystemMatrixType& rLhs,
                                    const typename Interface::LocalSystemMatrixType& rLocalLhs,
                                    const unsigned iRow,
@@ -243,6 +484,11 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
     }
 
 
+    // --------------------------------------------------------- //
+    // Assembly
+    // --------------------------------------------------------- //
+
+
     /// @brief Compute and assemble local contributions from elements and conditions into the global system.
     /// @details This function body mainly handles looping over elements/conditions and its parallelization.
     ///          The actual local system calculation, as well as assembly, is deferred to @ref MapEntityContribution.
@@ -317,100 +563,12 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
     }
 
 
-    // --------------------------------------------------------- //
-    // Constraint Assembly
-    // --------------------------------------------------------- //
-
-
-    void MakeConstraintStructure(ModelPart& rModelPart)
-    {
-        KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
-        KRATOS_TRY
-        if (!rModelPart.MasterSlaveConstraints().empty()) {
-            const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-            // Constraint initial iterator
-            const auto it_const_begin = rModelPart.MasterSlaveConstraints().begin();
-            std::vector<std::unordered_set<IndexType>> indices(mpInterface->mDofSet.size());
-
-            std::vector<LockObject> lock_array(indices.size());
-
-            #pragma omp parallel
-            {
-                Element::EquationIdVectorType slave_ids(3);
-                Element::EquationIdVectorType master_ids(3);
-                std::unordered_map<IndexType, std::unordered_set<IndexType>> temp_indices;
-
-                #pragma omp for schedule(guided, 512) nowait
-                for (int i_const = 0; i_const < static_cast<int>(rModelPart.MasterSlaveConstraints().size()); ++i_const) {
-                    auto it_const = it_const_begin + i_const;
-                    it_const->EquationIdVector(slave_ids, master_ids, r_current_process_info);
-
-                    // Slave DoFs
-                    for (auto &id_i : slave_ids) {
-                        temp_indices[id_i].insert(master_ids.begin(), master_ids.end());
-                    }
-                }
-
-                // Merging all the temporal indexes
-                for (auto& pair_temp_indices : temp_indices) {
-                    lock_array[pair_temp_indices.first].lock();
-                    indices[pair_temp_indices.first].insert(pair_temp_indices.second.begin(), pair_temp_indices.second.end());
-                    lock_array[pair_temp_indices.first].unlock();
-                }
-            }
-
-            mSlaveIds.clear();
-            mMasterIds.clear();
-            for (int i = 0; i < static_cast<int>(indices.size()); ++i) {
-                if (indices[i].size() == 0) // Master dof!
-                    mMasterIds.push_back(i);
-                else // Slave dof
-                    mSlaveIds.push_back(i);
-                indices[i].insert(i); // Ensure that the diagonal is there in T
-            }
-
-            // Count the row sizes
-            const std::size_t nnz = block_for_each<SumReduction<std::size_t>>(indices, [](auto& rIndices) {return rIndices.size();});
-
-            mRelationMatrix = typename Interface::TSystemMatrixType(indices.size(), indices.size(), nnz);
-            mConstraintGapVector.resize(indices.size(), false);
-
-            double *Tvalues = mRelationMatrix.value_data().begin();
-            IndexType *Trow_indices = mRelationMatrix.index1_data().begin();
-            IndexType *Tcol_indices = mRelationMatrix.index2_data().begin();
-
-            // Filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
-            Trow_indices[0] = 0;
-            for (int i = 0; i < static_cast<int>(mRelationMatrix.size1()); i++)
-                Trow_indices[i + 1] = Trow_indices[i] + indices[i].size();
-
-            IndexPartition<std::size_t>(mRelationMatrix.size1()).for_each([&](std::size_t Index){
-                const IndexType row_begin = Trow_indices[Index];
-                const IndexType row_end = Trow_indices[Index + 1];
-                IndexType k = row_begin;
-                for (auto it = indices[Index].begin(); it != indices[Index].end(); ++it) {
-                    Tcol_indices[k] = *it;
-                    Tvalues[k] = 0.0;
-                    k++;
-                }
-
-                indices[Index].clear(); //deallocating the memory
-
-                std::sort(&Tcol_indices[row_begin], &Tcol_indices[row_end]);
-            });
-
-            mRelationMatrix.set_filled(indices.size() + 1, nnz);
-        }
-        KRATOS_CATCH("")
-    }
-
-
     void MakeConstraints(ModelPart& rModelPart)
     {
         KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
         KRATOS_TRY
 
+        KRATOS_ERROR_IF_NOT(mRelationMatrix.size1() == mConstraintGapVector.size());
         TSparse::SetToZero(mRelationMatrix);
         TSparse::SetToZero(mConstraintGapVector);
 
@@ -452,6 +610,9 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
                                                  master_equation_ids);
 
                         // Assemble constant vector
+                        KRATOS_ERROR_IF_NOT(i_global < mConstraintGapVector.size())
+                            << "constraint gap vector size " << mConstraintGapVector.size()
+                            << " <= insertion index " << i_global << "\n";
                         const double constant_value = local_constraint_gap_vector[i];
                         AtomicAdd(mConstraintGapVector[i_global], constant_value);
                     }
@@ -483,124 +644,55 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
     }
 
 
-    // --------------------------------------------------------- //
-    // Left Hand Side Assembly
-    // --------------------------------------------------------- //
-
-
-    template <class TProxy>
-    static void CollectDoFs(const TProxy& rEntities,
-                            const ProcessInfo& rProcessInfo,
-                            typename Interface::TSchemeType& rScheme,
-                            LockObject* pLockBegin,
-                            [[maybe_unused]] LockObject* pLockEnd,
-                            std::unordered_set<std::size_t>* pRowSetBegin,
-                            [[maybe_unused]] std::unordered_set<std::size_t>* pRowSetEnd)
+    static void GetDiagonalScaleFactor(typename TSparse::DataType& rDiagonalScaleFactor,
+                                       const typename TSparse::MatrixType& rMatrix,
+                                       const DiagonalScaling ScalingStrategy,
+                                       [[maybe_unused]] const ProcessInfo& rProcessInfo)
     {
         KRATOS_PROFILE_SCOPE(KRATOS_CODE_LOCATION);
-        using TLS = Element::EquationIdVectorType;
-        block_for_each(rEntities,
-                       TLS(),
-                       [&rScheme, &rProcessInfo, pLockBegin, pRowSetBegin](const auto& rEntity, TLS& rTls){
-            if (rEntity.GetEntity().IsActive()) {
-                rScheme.EquationId(rEntity.GetEntity(), rTls, rProcessInfo);
-                for (const auto equation_id : rTls) {
-                    [[maybe_unused]] std::scoped_lock<LockObject> lock(pLockBegin[equation_id]);
-                    auto& r_row_indices = pRowSetBegin[equation_id];
-                    r_row_indices.insert(rTls.begin(), rTls.end());
-                } // for equation_id in rTls
-            } // if rEntity.IsActive
-        });
-    }
-
-
-    void MakeLhsStructure(const typename Interface::TSchemeType::Pointer& rpScheme,
-                          typename Interface::TSystemMatrixType& rLhs,
-                          ModelPart& rModelPart)
-    {
-        KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
         KRATOS_TRY
+        switch (ScalingStrategy) {
+            case DiagonalScaling::None:
+                rDiagonalScaleFactor = 1;
+                break;
+            case DiagonalScaling::AbsMax:
+                rDiagonalScaleFactor = IndexPartition(rMatrix.size1()).template for_each<MaxReduction<typename TSparse::DataType>>(
+                    [&rMatrix](std::size_t iRow) -> typename TSparse::DataType {
+                        const auto itBegin = rMatrix.index2_data().begin() + rMatrix.index1_data()[iRow];
+                        const auto itEnd = rMatrix.index2_data().begin() + rMatrix.index1_data()[iRow + 1];
 
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-        std::vector<LockObject> locks(mpInterface->GetEquationSystemSize());
-        std::vector<std::unordered_set<std::size_t> > indices(mpInterface->GetEquationSystemSize());
+                        // Look for the diagonal entry in the current row.
+                        const auto itColumnIndex = std::lower_bound(itBegin, itEnd, iRow);
+                        KRATOS_ERROR_IF(itBegin == itEnd || *itColumnIndex != iRow)
+                            << "row " << iRow << " has no diagonal entry";
 
-        // Collect DoFs from elements.
-        Impl::CollectDoFs(MakeProxy<Globals::DataLocation::Element>(rModelPart),
-                          rModelPart.GetProcessInfo(),
-                          *rpScheme,
-                          locks.data(),
-                          locks.data() + locks.size(),
-                          indices.data(),
-                          indices.data() + indices.size());
+                        const auto diagonal_entry = rMatrix.value_data()[std::distance(itBegin, itColumnIndex)];
+                        return std::abs(diagonal_entry);
+                });
+                break;
+            case DiagonalScaling::Norm:
+                rDiagonalScaleFactor = IndexPartition(rMatrix.size1()).template for_each<AbsMaxReduction<typename TSparse::DataType>>(
+                    [&rMatrix](std::size_t iRow) -> typename TSparse::DataType {
+                        const auto itBegin = rMatrix.index2_data().begin() + rMatrix.index1_data()[iRow];
+                        const auto itEnd = rMatrix.index2_data().begin() + rMatrix.index1_data()[iRow + 1];
 
-        // Collect DoFs from conditions.
-        Impl::CollectDoFs(MakeProxy<Globals::DataLocation::Condition>(rModelPart),
-                          rModelPart.GetProcessInfo(),
-                          *rpScheme,
-                          locks.data(),
-                          locks.data() + locks.size(),
-                          indices.data(),
-                          indices.data() + indices.size());
+                        // Look for the diagonal entry in the current row.
+                        const auto itColumnIndex = std::lower_bound(itBegin, itEnd, iRow);
+                        KRATOS_ERROR_IF(itBegin == itEnd || *itColumnIndex != iRow)
+                            << "row " << iRow << " has no diagonal entry";
 
-        // Collect DoFs from multifreedom constraints.
-        if (rModelPart.MasterSlaveConstraints().size() != 0) {
-            struct TLS
-            {
-                Element::EquationIdVectorType master_ids, slave_ids;
-            };
-
-            block_for_each(rModelPart.MasterSlaveConstraints(), TLS(), [&](MasterSlaveConstraint& rConst, TLS& rTls){
-                rConst.EquationIdVector(rTls.slave_ids, rTls.master_ids, r_current_process_info);
-
-                for (std::size_t i = 0; i < rTls.slave_ids.size(); i++) {
-                    auto& row_indices = indices[rTls.slave_ids[i]];
-                    std::scoped_lock<LockObject> lock(locks[rTls.slave_ids[i]]);
-                    row_indices.insert(rTls.slave_ids[i]);
-                }
-
-                for (std::size_t i = 0; i < rTls.master_ids.size(); i++) {
-                    auto& row_indices = indices[rTls.master_ids[i]];
-                    std::scoped_lock<LockObject> lock(locks[rTls.master_ids[i]]);
-                    row_indices.insert(rTls.master_ids[i]);
-                }
-            });
-        } // if rModelPart.MasterSlaveConstraints
-
-        // Destroy locks
-        locks = std::vector<LockObject>();
-
-        // Count the row sizes
-        const std::size_t nnz = block_for_each<SumReduction<std::size_t>>(indices, [](auto& rIndices) {return rIndices.size();});
-        rLhs = typename Interface::TSystemMatrixType(indices.size(), indices.size(), nnz);
-
-        auto& r_entries = rLhs.value_data();
-        auto& r_row_extents = rLhs.index1_data();
-        auto& r_column_indices = rLhs.index2_data();
-
-        //filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
-        r_row_extents[0] = 0;
-        for (int i = 0; i < static_cast<int>(rLhs.size1()); i++) {
-            r_row_extents[i+1] = r_row_extents[i] + indices[i].size();
-        }
-
-        IndexPartition<std::size_t>(rLhs.size1()).for_each([&](std::size_t i){
-            const unsigned int i_row_begin = r_row_extents[i];
-            const unsigned int i_row_end = r_row_extents[i+1];
-            unsigned int k = i_row_begin;
-            for (auto it = indices[i].begin(); it != indices[i].end(); it++) {
-                r_column_indices[k] = *it;
-                r_entries[k] = 0.0;
-                k++;
+                        const auto diagonal_entry = rMatrix.value_data()[std::distance(itBegin, itColumnIndex)];
+                        return diagonal_entry * diagonal_entry;
+                });
+                rDiagonalScaleFactor = std::sqrt(rDiagonalScaleFactor);
+                break;
+            case DiagonalScaling::Constant:
+                rDiagonalScaleFactor = rProcessInfo.GetValue(BUILD_SCALE_FACTOR);
+                break;
+            default: {
+                KRATOS_ERROR << "unsupported diagonal scaling (" << (int)ScalingStrategy << ')';
             }
-
-            std::sort(&r_column_indices[i_row_begin], &r_column_indices[i_row_end]);
-
-            // Deallocate row
-            indices[i] = decltype(indices)::value_type();
-        });
-
-        rLhs.set_filled(indices.size()+1, nnz);
+        } // switch ScalingStrategy
         KRATOS_CATCH("")
     }
 
@@ -622,6 +714,8 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
     std::unordered_set<std::size_t> mInactiveSlaveIds;
 
     typename TSparse::DataType mDiagonalScaleFactor;
+
+    PGrid<TSparse,TDense,TSolver> mHierarchy;
 
     DiagonalScaling mDiagonalScaling;
 
@@ -695,9 +789,9 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::SetUpSystem(ModelPart& 
     this->mEquationSystemSize = this->mDofSet.size();
 
     KRATOS_TRY
+    // Set equation indices of DoFs.
     IndexPartition<std::size_t>(this->mDofSet.size()).for_each([&, this](std::size_t Index){
-        const auto it_dof = this->mDofSet.begin() + Index;
-        it_dof->SetEquationId(Index);
+        (this->mDofSet.begin() + Index)->SetEquationId(Index);
     });
     KRATOS_CATCH("")
 }
@@ -712,28 +806,39 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::ResizeAndInitializeVect
 {
     KRATOS_TRY
 
-    if (!rpLhs)      rpLhs.reset(new typename Interface::TSystemMatrixType);
-    if (!rpSolution) rpSolution.reset(new typename Interface::TSystemVectorType);
-    if (!rpRhs)      rpRhs.reset(new typename Interface::TSystemVectorType);
+    // Construct empty containers if necessary.
+    if (!rpLhs)
+        rpLhs.reset(new typename Interface::TSystemMatrixType);
 
+    if (!rpSolution)
+        rpSolution.reset(new typename Interface::TSystemVectorType);
+
+    if (!rpRhs)
+        rpRhs.reset(new typename Interface::TSystemVectorType);
+
+    // Construct LHS topology if necessary or requested.
     if (rpLhs->size1() == 0 || this->GetReshapeMatrixFlag() == true) {
         rpLhs->resize(this->mEquationSystemSize, this->mEquationSystemSize, false);
-        mpImpl->MakeLhsStructure(pScheme, *rpLhs, rModelPart);
+        mpImpl->MakeLhsTopology(pScheme, *rpLhs, rModelPart);
     } else {
         if (rpLhs->size1() != this->mEquationSystemSize || rpLhs->size2() != this->mEquationSystemSize) {
             KRATOS_ERROR <<"The equation system size has changed during the simulation. This is not permitted."<<std::endl;
             rpLhs->resize(this->mEquationSystemSize, this->mEquationSystemSize, true);
-            mpImpl->MakeLhsStructure(pScheme, *rpLhs, rModelPart);
+            mpImpl->MakeLhsTopology(pScheme, *rpLhs, rModelPart);
         }
     }
 
-    if (rpSolution->size() != this->mEquationSystemSize) rpSolution->resize(this->mEquationSystemSize, false);
+    // Zero out system vectors.
+    if (rpSolution->size() != this->mEquationSystemSize)
+        rpSolution->resize(this->mEquationSystemSize, false);
     TSparse::SetToZero(*rpSolution);
 
-    if (rpRhs->size() != this->mEquationSystemSize) rpRhs->resize(this->mEquationSystemSize, false);
+    if (rpRhs->size() != this->mEquationSystemSize)
+        rpRhs->resize(this->mEquationSystemSize, false);
     TSparse::SetToZero(*rpRhs);
 
-    mpImpl->MakeConstraintStructure(rModelPart);
+    // Construct constraint topology.
+    mpImpl->MakeConstraintTopology(rModelPart);
 
     KRATOS_CATCH("")
 }
@@ -793,66 +898,6 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::BuildRHS(typename Inter
             rRhs[rDof.EquationId()] = 0.0;
     });
 
-    KRATOS_CATCH("")
-}
-
-
-
-// --------------------------------------------------------- //
-// Querying the Diagonal
-// --------------------------------------------------------- //
-
-
-template <class TSparse>
-void GetDiagonalScaleFactor(typename TSparse::DataType& rDiagonalScaleFactor,
-                            const typename TSparse::MatrixType& rMatrix,
-                            const DiagonalScaling ScalingStrategy,
-                            [[maybe_unused]] const ProcessInfo& rProcessInfo)
-{
-    KRATOS_PROFILE_SCOPE(KRATOS_CODE_LOCATION);
-    KRATOS_TRY
-    switch (ScalingStrategy) {
-        case DiagonalScaling::None:
-            rDiagonalScaleFactor = 1;
-            break;
-        case DiagonalScaling::AbsMax:
-            rDiagonalScaleFactor = IndexPartition(rMatrix.size1()).template for_each<MaxReduction<typename TSparse::DataType>>(
-                [&rMatrix](std::size_t iRow) -> typename TSparse::DataType {
-                    const auto itBegin = rMatrix.index2_data().begin() + rMatrix.index1_data()[iRow];
-                    const auto itEnd = rMatrix.index2_data().begin() + rMatrix.index1_data()[iRow + 1];
-
-                    // Look for the diagonal entry in the current row.
-                    const auto itColumnIndex = std::lower_bound(itBegin, itEnd, iRow);
-                    KRATOS_ERROR_IF(itBegin == itEnd || *itColumnIndex != iRow)
-                        << "row " << iRow << " has no diagonal entry";
-
-                    const auto diagonal_entry = rMatrix.value_data()[std::distance(itBegin, itColumnIndex)];
-                    return std::abs(diagonal_entry);
-            });
-            break;
-        case DiagonalScaling::Norm:
-            rDiagonalScaleFactor = IndexPartition(rMatrix.size1()).template for_each<AbsMaxReduction<typename TSparse::DataType>>(
-                [&rMatrix](std::size_t iRow) -> typename TSparse::DataType {
-                    const auto itBegin = rMatrix.index2_data().begin() + rMatrix.index1_data()[iRow];
-                    const auto itEnd = rMatrix.index2_data().begin() + rMatrix.index1_data()[iRow + 1];
-
-                    // Look for the diagonal entry in the current row.
-                    const auto itColumnIndex = std::lower_bound(itBegin, itEnd, iRow);
-                    KRATOS_ERROR_IF(itBegin == itEnd || *itColumnIndex != iRow)
-                        << "row " << iRow << " has no diagonal entry";
-
-                    const auto diagonal_entry = rMatrix.value_data()[std::distance(itBegin, itColumnIndex)];
-                    return diagonal_entry * diagonal_entry;
-            });
-            rDiagonalScaleFactor = std::sqrt(rDiagonalScaleFactor);
-            break;
-        case DiagonalScaling::Constant:
-            rDiagonalScaleFactor = rProcessInfo.GetValue(BUILD_SCALE_FACTOR);
-            break;
-        default: {
-            KRATOS_ERROR << "unsupported diagonal scaling (" << (int)ScalingStrategy << ')';
-        }
-    } // switch ScalingStrategy
     KRATOS_CATCH("")
 }
 
@@ -957,7 +1002,7 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::ApplyConstraints(typena
     KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
     KRATOS_TRY
 
-    if (rModelPart.MasterSlaveConstraints().size() != 0) {
+    if (!rModelPart.MasterSlaveConstraints().empty()) {
         mpImpl->MakeConstraints(rModelPart);
 
         // We compute the transposed matrix of the global relation matrix
@@ -980,10 +1025,10 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::ApplyConstraints(typena
         } // deallocate left_multiplied_lhs
 
         // Compute the scale factor for slave DoFs.
-        GetDiagonalScaleFactor<TSparse>(mpImpl->mDiagonalScaleFactor,
-                                        rLhs,
-                                        mpImpl->mDiagonalScaling,
-                                        rModelPart.GetProcessInfo());
+        Impl::GetDiagonalScaleFactor(mpImpl->mDiagonalScaleFactor,
+                                     rLhs,
+                                     mpImpl->mDiagonalScaling,
+                                     rModelPart.GetProcessInfo());
 
         // Apply diagonal values on slaves
         block_for_each(mpImpl->mSlaveIds, [this, &rLhs, &rRhs](const auto iSlave){
@@ -992,7 +1037,7 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::ApplyConstraints(typena
                 rRhs[iSlave] = 0.0;
             }
         });
-    }
+    } // if !rModelPart.MasterSlaveConstraints().empty()
 
     KRATOS_CATCH("")
 }
@@ -1008,6 +1053,7 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::SystemSolve(typename In
                                                                      typename Interface::TSystemVectorType& rSolution,
                                                                      typename Interface::TSystemVectorType& rRhs)
 {
+    throw std::runtime_error("");
     KRATOS_TRY
     this->mpLinearSystemSolver->Solve(rLhs, rSolution, rRhs);
     KRATOS_CATCH("")
@@ -1042,15 +1088,13 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::BuildAndSolve(typename 
     Build(pScheme, rModelPart, rLhs, rRhs);
 
     // Apply multifreedom constraints.
-    if(rModelPart.MasterSlaveConstraints().size() != 0) {
-        ApplyConstraints(pScheme, rModelPart, rLhs, rRhs);
-    }
+    ApplyConstraints(pScheme, rModelPart, rLhs, rRhs);
 
     // Apply Dirichlet conditions.
     ApplyDirichletConditions(pScheme, rModelPart, rLhs, rSolution, rRhs);
 
     // Solve constrained assembled system.
-    mpImpl->SystemSolveWithPhysics(rLhs, rSolution, rRhs, rModelPart, *this);
+    mpImpl->Solve(rLhs, rSolution, rRhs, rModelPart, *this);
     KRATOS_CATCH("")
 }
 
@@ -1070,7 +1114,7 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::BuildRHSAndSolve(typena
     }
 
     ApplyDirichletConditions(pScheme, rModelPart, rLhs, rSolution, rRhs);
-    mpImpl->SystemSolveWithPhysics(rLhs, rSolution, rRhs, rModelPart, *this);
+    mpImpl->Solve(rLhs, rSolution, rRhs, rModelPart, *this);
     KRATOS_CATCH("")
 }
 
