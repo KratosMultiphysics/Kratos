@@ -5,7 +5,7 @@
             "properties_id": 2,
             "Material": {
                 "constitutive_law": {
-                    "name": "LinearElasticPlaneStress2DLaw"
+                    "name": "LinearElastic3DLaw"
                 },
                 "Variables": {
                     "DENSITY": 1.0,
