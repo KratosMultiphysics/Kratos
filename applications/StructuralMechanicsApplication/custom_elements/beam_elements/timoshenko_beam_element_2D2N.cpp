@@ -24,6 +24,9 @@
 namespace Kratos
 {
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 void LinearTimoshenkoBeamElement2D2N::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -944,6 +947,9 @@ void LinearTimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
     }
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 void LinearTimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
     const Variable<Vector>& rVariable,
     std::vector<Vector>& rOutput,
@@ -978,6 +984,7 @@ void LinearTimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
         }
     }
 }
+
 /***********************************************************************************/
 /***********************************************************************************/
 
