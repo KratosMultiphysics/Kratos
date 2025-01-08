@@ -42,6 +42,23 @@ namespace Kratos {
     #endif //__cpp_lib_atomic_ref
 #endif // KRATOS_SMP_CXX11
 
+/// @brief Set the value of a variable in a threadsafe manner.
+/// @param rTarget Variable to set the value of.
+/// @param rSource Value to overwrite the variable with.
+/// @addtogroup KratosCore
+template <class TTarget, class TSource>
+void AtomicSet(TTarget& rTarget, const TSource& rSource)
+{
+    #ifdef KRATOS_SMP_OPENMP
+        #pragma omp atomic write
+        rTarget = rSource;
+    #elif defined(KRATOS_SMP_CXX11)
+        AtomicRef<TTarget>(rTarget) = rSource;
+    #else
+        rTarget = rSource;
+    #endif
+}
+
 ///@addtogroup KratosCore
 /**
  * collection of utilities for atomic updates of simple types. (essentially mimics the omp atomic)
