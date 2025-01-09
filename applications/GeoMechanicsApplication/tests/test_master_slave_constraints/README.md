@@ -12,12 +12,14 @@ The goal of this test is to show that master-slave constraints are correctly app
 ```math
 u_{x} = \epsilon_{xx} \cdot L = \frac{\sigma_{xx}}{E} \cdot L
 ```
-where $`u_{x}`$ equals the displacements in $`x`$ direction at the loaded side, $`\epsilon_{xx}`$ is the normal strain in $`x`$ direction, $`L`$ is the length of the model in $`x`$ direction, $`\sigma_{xx}`$ is the normal stress in $`x`$ direction (which equals the applied uniform normal edge load), and $`E`$ is the Young's modulus of the soil. 
+where $`u_{x}`$ equals the displacements in $`x`$ direction at the loaded side, $`\epsilon_{xx}`$ is the normal strain in $`x`$ direction, $`L`$ is the length of the model in $`x`$ direction, $`\sigma_{xx}`$ is the normal stress in $`x`$ direction (which equals the applied uniform normal edge load), and $`E`$ is the Young's modulus of the soil.  Note that the above formula implies that:
+- We are using a linear strain measure.
+- We assume a uniform deformation and stress state over the depth of the elements.  This allows us to reduce the problem formulation to an extensional bar.
 
 Furthermore, we compare the reaction forces in $`x`$ direction along the supported side with the analytical solution:
 ```math
-R_{x} = \sigma_{xx} \cdot A
+R_{x} = \int_{A} \sigma_{xx} dA
 ```
-where $`R_{x}`$ is the reaction force component in $`x`$ direction, $`\sigma_{xx}`$ is the normal stress in $`x`$ direction (which equals the applied uniform normal edge load), and $`A`$ the area associated with a node for the integration of $`\sigma_{xx}`$ (for this case we need to consider half of the element height and unity thickness in the out-of-plane direction).
+where $`R_{x}`$ is the reaction force component in $`x`$ direction, $`\sigma_{xx}`$ is the normal stress in $`x`$ direction (which equals the applied uniform normal edge load), and $`A`$ the area associated with a node for the integration of $`\sigma_{xx}`$.  With the above assumptions in place, we can simplify the above formula to: $`R_{x} = \sigma_{xx} \cdot \frac{h}{2}`$, where $`h`$ is the depth of an element (the thickness equals unity, for this is a plane strain problem).
 
 Finally, we also check whether the "tied" nodes have equal displacements.
