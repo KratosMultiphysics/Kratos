@@ -80,7 +80,6 @@
         "check"         : "DirectorVectorNonZero direction",
         "process_name"  : "AssignModulusAndDirectionToConditionsProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.SurfaceLoad3D_surface",
             "variable_name"   : "SURFACE_LOAD",
             "modulus"         : 0.25,

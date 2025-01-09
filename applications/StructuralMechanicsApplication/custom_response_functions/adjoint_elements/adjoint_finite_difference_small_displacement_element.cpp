@@ -15,7 +15,7 @@
 #include "structural_mechanics_application_variables.h"
 #include "custom_response_functions/response_utilities/stress_response_definitions.h"
 #include "includes/checks.h"
-#include "custom_elements/small_displacement.h"
+#include "custom_elements/solid_elements/small_displacement.h"
 
 
 namespace Kratos

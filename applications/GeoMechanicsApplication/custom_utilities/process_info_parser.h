@@ -16,12 +16,14 @@
 
 #include <vector>
 
-namespace Kratos {
+namespace Kratos
+{
 
-class ProcessInfoParser {
+class ProcessInfoParser
+{
 public:
     virtual ~ProcessInfoParser() = default;
     virtual std::vector<ProcessParameters> GetProcessList(const Parameters& rProcessParameters) const = 0;
 };
 
-} // Kratos
+} // namespace Kratos

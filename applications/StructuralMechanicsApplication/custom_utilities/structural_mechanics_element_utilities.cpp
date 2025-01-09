@@ -10,6 +10,7 @@
 //                   Vicente Mataix Ferrandiz
 //                   Riccardo Rossi
 //                   Ruben Zorrilla
+//                   Alejandro Cornejo
 //
 
 // System includes
@@ -20,6 +21,7 @@
 #include "includes/checks.h"
 #include "structural_mechanics_element_utilities.h"
 #include "structural_mechanics_application_variables.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 #include "utilities/math_utils.h"
 
 namespace Kratos {
@@ -339,7 +341,316 @@ void BuildRotationMatrix(
     rRotationMatrix(0, 0) = rv1[0]; rRotationMatrix(0, 1) = rv1[1]; rRotationMatrix(0, 2) = rv1[2];
     rRotationMatrix(1, 0) = rv2[0]; rRotationMatrix(1, 1) = rv2[1]; rRotationMatrix(1, 2) = rv2[2];
     rRotationMatrix(2, 0) = rv3[0]; rRotationMatrix(2, 1) = rv3[1]; rRotationMatrix(2, 2) = rv3[2];
+}
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BuildRotationMatrixForBeam(
+    BoundedMatrix<double, 3, 3>& rRotationMatrix,
+    const double AlphaAngle
+)
+{
+    rRotationMatrix.clear();
+    const double s = std::sin(AlphaAngle);
+    const double c = std::cos(AlphaAngle);
+    rRotationMatrix(0, 0) = c;
+    rRotationMatrix(0, 1) = -s;
+    rRotationMatrix(1, 0) = s;
+    rRotationMatrix(1, 1) = c;
+    rRotationMatrix(2, 2) = 1.0;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BuildRotationMatrixForTruss(
+    BoundedMatrix<double, 2, 2>& rRotationMatrix,
+    const double AlphaAngle
+)
+{
+    rRotationMatrix.clear();
+    const double s = std::sin(AlphaAngle);
+    const double c = std::cos(AlphaAngle);
+    rRotationMatrix(0, 0) = c;
+    rRotationMatrix(0, 1) = -s;
+    rRotationMatrix(1, 0) = s;
+    rRotationMatrix(1, 1) = c;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BuildElementSizeRotationMatrixFor2D2NTruss(
+    const BoundedMatrix<double, 2, 2>& rRotationMatrix,
+    BoundedMatrix<double, 4, 4>& rElementSizeRotationMatrix
+)
+{
+    rElementSizeRotationMatrix.clear();
+
+    rElementSizeRotationMatrix(0, 0) = rRotationMatrix(0, 0);
+    rElementSizeRotationMatrix(0, 1) = rRotationMatrix(0, 1);
+    rElementSizeRotationMatrix(1, 0) = rRotationMatrix(1, 0);
+    rElementSizeRotationMatrix(1, 1) = rRotationMatrix(1, 1);
+
+
+    rElementSizeRotationMatrix(2, 2) = rRotationMatrix(0, 0);
+    rElementSizeRotationMatrix(2, 3) = rRotationMatrix(0, 1);
+    rElementSizeRotationMatrix(3, 2) = rRotationMatrix(1, 0);
+    rElementSizeRotationMatrix(3, 3) = rRotationMatrix(1, 1);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BuildElementSizeRotationMatrixFor2D3NTruss(
+    const BoundedMatrix<double, 2, 2>& rRotationMatrix,
+    BoundedMatrix<double, 6, 6>& rElementSizeRotationMatrix
+)
+{
+    rElementSizeRotationMatrix.clear();
+
+    rElementSizeRotationMatrix(0, 0) = rRotationMatrix(0, 0);
+    rElementSizeRotationMatrix(0, 1) = rRotationMatrix(0, 1);
+    rElementSizeRotationMatrix(1, 0) = rRotationMatrix(1, 0);
+    rElementSizeRotationMatrix(1, 1) = rRotationMatrix(1, 1);
+
+    rElementSizeRotationMatrix(2, 2) = rRotationMatrix(0, 0);
+    rElementSizeRotationMatrix(2, 3) = rRotationMatrix(0, 1);
+    rElementSizeRotationMatrix(3, 2) = rRotationMatrix(1, 0);
+    rElementSizeRotationMatrix(3, 3) = rRotationMatrix(1, 1);
+
+    rElementSizeRotationMatrix(4, 4) = rRotationMatrix(0, 0);
+    rElementSizeRotationMatrix(4, 5) = rRotationMatrix(0, 1);
+    rElementSizeRotationMatrix(5, 4) = rRotationMatrix(1, 0);
+    rElementSizeRotationMatrix(5, 5) = rRotationMatrix(1, 1);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BuildElementSizeRotationMatrixFor3D2NTruss(
+    const BoundedMatrix<double, 3, 3>& rRotationMatrix,
+    BoundedMatrix<double, 6, 6>& rElementSizeRotationMatrix)
+{
+    rElementSizeRotationMatrix.clear();
+
+    rElementSizeRotationMatrix(0, 0) = rRotationMatrix(0, 0);
+    rElementSizeRotationMatrix(0, 1) = rRotationMatrix(0, 1);
+    rElementSizeRotationMatrix(0, 2) = rRotationMatrix(0, 2);
+
+    rElementSizeRotationMatrix(1, 0) = rRotationMatrix(1, 0);
+    rElementSizeRotationMatrix(1, 1) = rRotationMatrix(1, 1);
+    rElementSizeRotationMatrix(1, 2) = rRotationMatrix(1, 2);
+
+    rElementSizeRotationMatrix(2, 0) = rRotationMatrix(2, 0);
+    rElementSizeRotationMatrix(2, 1) = rRotationMatrix(2, 1);
+    rElementSizeRotationMatrix(2, 2) = rRotationMatrix(2, 2);
+
+    rElementSizeRotationMatrix(3, 3) = rRotationMatrix(0, 0);
+    rElementSizeRotationMatrix(3, 4) = rRotationMatrix(0, 1);
+    rElementSizeRotationMatrix(3, 5) = rRotationMatrix(0, 2);
+
+    rElementSizeRotationMatrix(4, 3) = rRotationMatrix(1, 0);
+    rElementSizeRotationMatrix(4, 4) = rRotationMatrix(1, 1);
+    rElementSizeRotationMatrix(4, 5) = rRotationMatrix(1, 2);
+
+    rElementSizeRotationMatrix(5, 3) = rRotationMatrix(2, 0);
+    rElementSizeRotationMatrix(5, 4) = rRotationMatrix(2, 1);
+    rElementSizeRotationMatrix(5, 5) = rRotationMatrix(2, 2);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BuildElementSizeRotationMatrixFor3D3NTruss(
+    const BoundedMatrix<double, 3, 3>& rRotationMatrix,
+    BoundedMatrix<double, 9, 9>& rElementSizeRotationMatrix)
+{
+    rElementSizeRotationMatrix.clear();
+
+    rElementSizeRotationMatrix(0, 0) = rRotationMatrix(0, 0);
+    rElementSizeRotationMatrix(0, 1) = rRotationMatrix(0, 1);
+    rElementSizeRotationMatrix(0, 2) = rRotationMatrix(0, 2);
+
+    rElementSizeRotationMatrix(1, 0) = rRotationMatrix(1, 0);
+    rElementSizeRotationMatrix(1, 1) = rRotationMatrix(1, 1);
+    rElementSizeRotationMatrix(1, 2) = rRotationMatrix(1, 2);
+
+    rElementSizeRotationMatrix(2, 0) = rRotationMatrix(2, 0);
+    rElementSizeRotationMatrix(2, 1) = rRotationMatrix(2, 1);
+    rElementSizeRotationMatrix(2, 2) = rRotationMatrix(2, 2);
+
+    rElementSizeRotationMatrix(3, 3) = rRotationMatrix(0, 0);
+    rElementSizeRotationMatrix(3, 4) = rRotationMatrix(0, 1);
+    rElementSizeRotationMatrix(3, 5) = rRotationMatrix(0, 2);
+
+    rElementSizeRotationMatrix(4, 3) = rRotationMatrix(1, 0);
+    rElementSizeRotationMatrix(4, 4) = rRotationMatrix(1, 1);
+    rElementSizeRotationMatrix(4, 5) = rRotationMatrix(1, 2);
+
+    rElementSizeRotationMatrix(5, 3) = rRotationMatrix(2, 0);
+    rElementSizeRotationMatrix(5, 4) = rRotationMatrix(2, 1);
+    rElementSizeRotationMatrix(5, 5) = rRotationMatrix(2, 2);
+
+    rElementSizeRotationMatrix(6, 6) = rRotationMatrix(0, 0);
+    rElementSizeRotationMatrix(6, 7) = rRotationMatrix(0, 1);
+    rElementSizeRotationMatrix(6, 8) = rRotationMatrix(0, 2);
+
+    rElementSizeRotationMatrix(7, 6) = rRotationMatrix(1, 0);
+    rElementSizeRotationMatrix(7, 7) = rRotationMatrix(1, 1);
+    rElementSizeRotationMatrix(7, 8) = rRotationMatrix(1, 2);
+
+    rElementSizeRotationMatrix(8, 6) = rRotationMatrix(2, 0);
+    rElementSizeRotationMatrix(8, 7) = rRotationMatrix(2, 1);
+    rElementSizeRotationMatrix(8, 8) = rRotationMatrix(2, 2);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+double GetReferenceRotationAngle2D2NBeam(const GeometryType& rGeometry)
+{
+    const auto &r_node_1 = rGeometry[0];
+    const auto &r_node_2 = rGeometry[1];
+
+    const double delta_x = r_node_2.X0() - r_node_1.X0();
+    const double delta_y = r_node_2.Y0() - r_node_1.Y0();
+
+    return std::atan2(delta_y, delta_x);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+double GetReferenceRotationAngle2D3NBeam(const GeometryType& rGeometry)
+{
+    const auto &r_node_1 = rGeometry[0];
+    const auto &r_node_2 = rGeometry[2];
+
+    const double delta_x = r_node_2.X0() - r_node_1.X0();
+    const double delta_y = r_node_2.Y0() - r_node_1.Y0();
+
+    return std::atan2(delta_y, delta_x);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BuildElementSizeRotationMatrixFor2D2NBeam(
+    const BoundedMatrix<double, 3, 3>& rRotationMatrix,
+    BoundedMatrix<double, 6, 6>& rElementSizeRotationMatrix
+    )
+{
+    rElementSizeRotationMatrix.clear();
+
+    rElementSizeRotationMatrix(0, 0) = rRotationMatrix(0, 0);
+    rElementSizeRotationMatrix(0, 1) = rRotationMatrix(0, 1);
+    rElementSizeRotationMatrix(0, 2) = rRotationMatrix(0, 2);
+
+    rElementSizeRotationMatrix(1, 0) = rRotationMatrix(1, 0);
+    rElementSizeRotationMatrix(1, 1) = rRotationMatrix(1, 1);
+    rElementSizeRotationMatrix(1, 2) = rRotationMatrix(1, 2);
+
+    rElementSizeRotationMatrix(2, 0) = rRotationMatrix(2, 0);
+    rElementSizeRotationMatrix(2, 1) = rRotationMatrix(2, 1);
+    rElementSizeRotationMatrix(2, 2) = rRotationMatrix(2, 2);
+
+    rElementSizeRotationMatrix(3, 3) = rRotationMatrix(0, 0);
+    rElementSizeRotationMatrix(3, 4) = rRotationMatrix(0, 1);
+    rElementSizeRotationMatrix(3, 5) = rRotationMatrix(0, 2);
+
+    rElementSizeRotationMatrix(4, 3) = rRotationMatrix(1, 0);
+    rElementSizeRotationMatrix(4, 4) = rRotationMatrix(1, 1);
+    rElementSizeRotationMatrix(4, 5) = rRotationMatrix(1, 2);
+
+    rElementSizeRotationMatrix(5, 3) = rRotationMatrix(2, 0);
+    rElementSizeRotationMatrix(5, 4) = rRotationMatrix(2, 1);
+    rElementSizeRotationMatrix(5, 5) = rRotationMatrix(2, 2);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BuildElementSizeRotationMatrixFor2D3NBeam(
+    const BoundedMatrix<double, 3, 3>& rRotationMatrix,
+    BoundedMatrix<double, 9, 9>& rElementSizeRotationMatrix
+    )
+{
+    rElementSizeRotationMatrix.clear();
+
+    rElementSizeRotationMatrix(0, 0) = rRotationMatrix(0, 0);
+    rElementSizeRotationMatrix(0, 1) = rRotationMatrix(0, 1);
+    rElementSizeRotationMatrix(0, 2) = rRotationMatrix(0, 2);
+
+    rElementSizeRotationMatrix(1, 0) = rRotationMatrix(1, 0);
+    rElementSizeRotationMatrix(1, 1) = rRotationMatrix(1, 1);
+    rElementSizeRotationMatrix(1, 2) = rRotationMatrix(1, 2);
+
+    rElementSizeRotationMatrix(2, 0) = rRotationMatrix(2, 0);
+    rElementSizeRotationMatrix(2, 1) = rRotationMatrix(2, 1);
+    rElementSizeRotationMatrix(2, 2) = rRotationMatrix(2, 2);
+
+    rElementSizeRotationMatrix(3, 3) = rRotationMatrix(0, 0);
+    rElementSizeRotationMatrix(3, 4) = rRotationMatrix(0, 1);
+    rElementSizeRotationMatrix(3, 5) = rRotationMatrix(0, 2);
+
+    rElementSizeRotationMatrix(4, 3) = rRotationMatrix(1, 0);
+    rElementSizeRotationMatrix(4, 4) = rRotationMatrix(1, 1);
+    rElementSizeRotationMatrix(4, 5) = rRotationMatrix(1, 2);
+
+    rElementSizeRotationMatrix(5, 3) = rRotationMatrix(2, 0);
+    rElementSizeRotationMatrix(5, 4) = rRotationMatrix(2, 1);
+    rElementSizeRotationMatrix(5, 5) = rRotationMatrix(2, 2);
+
+    rElementSizeRotationMatrix(6, 6) = rRotationMatrix(0, 0);
+    rElementSizeRotationMatrix(6, 7) = rRotationMatrix(0, 1);
+    rElementSizeRotationMatrix(6, 8) = rRotationMatrix(0, 2);
+
+    rElementSizeRotationMatrix(7, 6) = rRotationMatrix(1, 0);
+    rElementSizeRotationMatrix(7, 7) = rRotationMatrix(1, 1);
+    rElementSizeRotationMatrix(7, 8) = rRotationMatrix(1, 2);
+
+    rElementSizeRotationMatrix(8, 6) = rRotationMatrix(2, 0);
+    rElementSizeRotationMatrix(8, 7) = rRotationMatrix(2, 1);
+    rElementSizeRotationMatrix(8, 8) = rRotationMatrix(2, 2);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+double CalculatePhi(const Properties& rProperties, const double L)
+{
+    const double E   = rProperties[YOUNG_MODULUS];
+    const double I   = rProperties[I33];
+    const double A_s = rProperties[AREA_EFFECTIVE_Y];
+    const double G   = ConstitutiveLawUtilities<3>::CalculateShearModulus(rProperties);
+
+    if (A_s == 0.0) // If effective area is null -> Euler Bernouilli case
+        return 0.0;
+    else
+        return 12.0 * E * I / (G * A_s * std::pow(L, 2));
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void InitializeConstitutiveLawValuesForStressCalculation(ConstitutiveLaw::Parameters& rValues,
+    Vector& rStrainVector, Vector& rStressVector, Matrix& rConstitutiveMatrix)
+{
+    InitializeConstitutiveLawValuesForStressCalculation(rValues, rStrainVector, rStressVector);
+    rValues.SetConstitutiveMatrix(rConstitutiveMatrix);
+}
+
+void InitializeConstitutiveLawValuesForStressCalculation(ConstitutiveLaw::Parameters& rValues,
+    Vector& rStrainVector, Vector& rStressVector)
+{
+    rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
+    rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+    rStrainVector.clear();
+    rValues.SetStrainVector(rStrainVector);
+    rValues.SetStressVector(rStressVector);
 }
 
 } // namespace StructuralMechanicsElementUtilities.

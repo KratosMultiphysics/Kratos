@@ -390,10 +390,10 @@ protected:
         )
     {
         const IndexType dof_id = rDof.EquationId();
-        if constexpr (!TSparseSpace::IsDistributedSpace()) {
+        if constexpr (!TSparseSpace::IsDistributed()) {
             return mActiveDofs[dof_id] == 1;
         } else {
-            KRATOS_DEBUG_ERROR_IF((dof_id - mInitialDoFId) >= mActiveDofs.size()) << "DofId is greater than the size of the active Dofs vector. DofId: " << dof_id << "\tInitialDoFId: " << mInitialDoFId << "\tActiveDofs size: " << mActiveDofs.size() << std::endl;
+            KRATOS_DEBUG_ERROR_IF((dof_id - mInitialDoFId) >= mActiveDofs.size() && (rDof.GetSolutionStepValue(PARTITION_INDEX) == Rank)) << "DofId is greater than the size of the active Dofs vector. DofId: " << dof_id << "\tInitialDoFId: " << mInitialDoFId << "\tActiveDofs size: " << mActiveDofs.size() << std::endl;
             return (mActiveDofs[dof_id - mInitialDoFId] == 1 && (rDof.GetSolutionStepValue(PARTITION_INDEX) == Rank));
         }
     }
@@ -411,7 +411,7 @@ protected:
         const int Rank
         )
     {
-        if constexpr (!TSparseSpace::IsDistributedSpace()) {
+        if constexpr (!TSparseSpace::IsDistributed()) {
             return rDof.IsFree();
         } else {
             return (rDof.IsFree() && (rDof.GetSolutionStepValue(PARTITION_INDEX) == Rank));

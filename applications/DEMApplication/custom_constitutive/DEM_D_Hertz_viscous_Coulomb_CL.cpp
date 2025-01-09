@@ -160,6 +160,7 @@ namespace Kratos {
         ViscoDampingLocalContactForce[0] = - equiv_visco_damp_coeff_tangential * LocalRelVel[0];
         ViscoDampingLocalContactForce[1] = - equiv_visco_damp_coeff_tangential * LocalRelVel[1];
         ViscoDampingLocalContactForce[2] = - equiv_visco_damp_coeff_normal     * LocalRelVel[2];
+
     }
 
     /////////////////////////
@@ -350,6 +351,10 @@ namespace Kratos {
         double viscodamping_energy_normal  = sqrt(ViscoDampingLocalContactForce[2] * ViscoDampingLocalContactForce[2] * LocalDeltDisp[2] * LocalDeltDisp[2]);
         double viscodamping_energy_tangent = sqrt(ViscoDampingLocalContactForce[0] * ViscoDampingLocalContactForce[0] * LocalDeltDisp[0] * LocalDeltDisp[0]) + sqrt(ViscoDampingLocalContactForce[1] * ViscoDampingLocalContactForce[1] * LocalDeltDisp[1] * LocalDeltDisp[1]);
         inelastic_viscodamping_energy += viscodamping_energy_normal + viscodamping_energy_tangent;
+    }
+
+    double DEM_D_Hertz_viscous_Coulomb::GetTangentialStiffness() {
+        return mKt;
     }
 
 } // namespace Kratos

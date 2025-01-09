@@ -4,7 +4,7 @@ import KratosMultiphysics
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
 
 # Import applications
-from KratosMultiphysics.FluidDynamicsApplication import navier_stokes_solver_vmsmonolithic as NavierMonolithic
+from KratosMultiphysics.FluidDynamicsApplication import navier_stokes_monolithic_solver as NavierMonolithic
 
 # Import base class file
 from KratosMultiphysics.SwimmingDEMApplication.fluid_DEM_coupling_solver import FluidDEMSolver
@@ -42,7 +42,7 @@ class StabilizedFormulationDEMCoupled(NavierMonolithic.StabilizedFormulation):
 
         self.element_name = settings["element_name"].GetString()
         self.element_has_nodal_properties = True
-        self.historical_nodal_properties_variables_list = [KratosMultiphysics.DENSITY, KratosMultiphysics.VISCOSITY, KratosMultiphysics.PERMEABILITY]
+        self.historical_nodal_variables_list = [KratosMultiphysics.DENSITY, KratosMultiphysics.VISCOSITY, KratosMultiphysics.PERMEABILITY]
 
         self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
         use_oss = settings["use_orthogonal_subscales"].GetBool()
@@ -59,7 +59,7 @@ class StabilizedFormulationDEMCoupled(NavierMonolithic.StabilizedFormulation):
 
         self.element_name = settings["element_name"].GetString()
         self.element_has_nodal_properties = True
-        self.historical_nodal_properties_variables_list = [KratosMultiphysics.DENSITY, KratosMultiphysics.VISCOSITY]
+        self.historical_nodal_variables_list = [KratosMultiphysics.DENSITY, KratosMultiphysics.VISCOSITY]
         self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
         use_oss = settings["use_orthogonal_subscales"].GetBool()
         self.process_data[KratosMultiphysics.OSS_SWITCH] = int(use_oss)
@@ -75,7 +75,7 @@ class StabilizedFormulationDEMCoupled(NavierMonolithic.StabilizedFormulation):
 
         self.element_name = settings["element_name"].GetString()
         self.element_has_nodal_properties = True
-        self.historical_nodal_properties_variables_list = [KratosMultiphysics.DENSITY, KratosMultiphysics.VISCOSITY, KratosMultiphysics.PERMEABILITY]
+        self.historical_nodal_variables_list = [KratosMultiphysics.DENSITY, KratosMultiphysics.VISCOSITY, KratosMultiphysics.PERMEABILITY]
         self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
         use_oss = settings["use_orthogonal_subscales"].GetBool()
         self.process_data[KratosMultiphysics.OSS_SWITCH] = int(use_oss)
@@ -90,7 +90,7 @@ class StabilizedFormulationDEMCoupled(NavierMonolithic.StabilizedFormulation):
         settings.ValidateAndAssignDefaults(default_settings)
         self.element_name = settings["element_name"].GetString()
         self.element_has_nodal_properties = True
-        self.historical_nodal_properties_variables_list = [KratosMultiphysics.DENSITY, KratosMultiphysics.VISCOSITY, KratosMultiphysics.PERMEABILITY]
+        self.historical_nodal_variables_list = [KratosMultiphysics.DENSITY, KratosMultiphysics.VISCOSITY, KratosMultiphysics.PERMEABILITY]
 
         self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
         use_oss = settings["use_orthogonal_subscales"].GetBool()
@@ -106,7 +106,7 @@ class StabilizedFormulationDEMCoupled(NavierMonolithic.StabilizedFormulation):
         settings.ValidateAndAssignDefaults(default_settings)
         self.element_name = settings["element_name"].GetString()
         self.element_has_nodal_properties = True
-        self.historical_nodal_properties_variables_list = [KratosMultiphysics.DENSITY, KratosMultiphysics.VISCOSITY, KratosMultiphysics.PERMEABILITY]
+        self.historical_nodal_variables_list = [KratosMultiphysics.DENSITY, KratosMultiphysics.VISCOSITY, KratosMultiphysics.PERMEABILITY]
 
         self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
         use_oss = settings["use_orthogonal_subscales"].GetBool()
@@ -115,7 +115,7 @@ class StabilizedFormulationDEMCoupled(NavierMonolithic.StabilizedFormulation):
 def CreateSolver(model, custom_settings):
     return NavierStokesSolverMonolithicDEM(model, custom_settings)
 
-class NavierStokesSolverMonolithicDEM(FluidDEMSolver, NavierMonolithic.NavierStokesSolverMonolithic):
+class NavierStokesSolverMonolithicDEM(FluidDEMSolver, NavierMonolithic.NavierStokesMonolithicSolver):
 
     def GetDefaultParameters(cls):
 
@@ -185,7 +185,6 @@ class NavierStokesSolverMonolithicDEM(FluidDEMSolver, NavierMonolithic.NavierSto
         """
         self._validate_settings_in_baseclass=True
         self.dimension = custom_settings["domain_size"].GetInt()
-        custom_settings = self._BackwardsCompatibilityHelper(custom_settings)
         super(NavierStokesSolverMonolithicDEM,self).__init__(model, custom_settings)
 
         # Set up the auxiliary class with the formulation settings
@@ -213,12 +212,12 @@ class NavierStokesSolverMonolithicDEM(FluidDEMSolver, NavierMonolithic.NavierSto
         self.condition_name = self.formulation.condition_name
         self.element_integrates_in_time = self.formulation.element_integrates_in_time
         self.element_has_nodal_properties = self.formulation.element_has_nodal_properties
-        self.historical_nodal_properties_variables_list = self.formulation.historical_nodal_properties_variables_list
-        self.non_historical_nodal_properties_variables_list = self.formulation.non_historical_nodal_properties_variables_list
+        self.historical_nodal_variables_list = self.formulation.historical_nodal_variables_list
+        self.non_historical_nodal_variables_list = self.formulation.non_historical_nodal_variables_list
 
     def _SetNodalProperties(self):
         super(NavierStokesSolverMonolithicDEM, self)._SetNodalProperties()
-        set_permeability = KratosMultiphysics.PERMEABILITY in self.historical_nodal_properties_variables_list
+        set_permeability = KratosMultiphysics.PERMEABILITY in self.historical_nodal_variables_list
         for el in self.main_model_part.Elements:
             # Get PERMEABILITY from properties
             if set_permeability:

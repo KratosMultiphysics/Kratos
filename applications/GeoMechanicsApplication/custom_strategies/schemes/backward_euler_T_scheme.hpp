@@ -21,16 +21,18 @@
 #include "backward_euler_scheme.hpp"
 #include "geo_mechanics_application_variables.h"
 
-namespace Kratos {
+namespace Kratos
+{
 
 template <class TSparseSpace, class TDenseSpace>
-class BackwardEulerTScheme : public BackwardEulerScheme<TSparseSpace, TDenseSpace> {
+class BackwardEulerTScheme : public BackwardEulerScheme<TSparseSpace, TDenseSpace>
+{
 public:
     KRATOS_CLASS_POINTER_DEFINITION(BackwardEulerTScheme);
 
     BackwardEulerTScheme()
         : BackwardEulerScheme<TSparseSpace, TDenseSpace>(
-              TEMPERATURE, DT_TEMPERATURE, DT_TEMPERATURE_COEFFICIENT)
+              {FirstOrderScalarVariable(TEMPERATURE, DT_TEMPERATURE, DT_TEMPERATURE_COEFFICIENT)}, {})
     {
     }
 }; // Class BackwardEulerTScheme
