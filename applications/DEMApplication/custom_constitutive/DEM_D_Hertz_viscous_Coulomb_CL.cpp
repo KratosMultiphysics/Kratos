@@ -262,22 +262,33 @@ namespace Kratos {
                                                                             double previous_indentation,
                                                                             double& AuxElasticShearForce,
                                                                             double& MaximumAdmisibleShearForce) {
-        double minoring_factor = 1.0;
-        if (previous_indentation > indentation)
-          minoring_factor = sqrt(indentation / previous_indentation);
 
-        LocalElasticContactForce[0] = minoring_factor * OldLocalElasticContactForce[0] - mKt * LocalDeltDisp[0];
-        LocalElasticContactForce[1] = minoring_factor * OldLocalElasticContactForce[1] - mKt * LocalDeltDisp[1];
+        Properties& properties_of_this_contact = element->GetProperties().GetSubProperties(neighbour->GetProperties().Id());
+
+        LocalElasticContactForce[0] = OldLocalElasticContactForce[0] - mKt * LocalDeltDisp[0];
+        LocalElasticContactForce[1] = OldLocalElasticContactForce[1] - mKt * LocalDeltDisp[1];
+
+        if (previous_indentation > indentation) {
+            const double minoring_factor = sqrt (indentation / previous_indentation);
+            LocalElasticContactForce[0] = OldLocalElasticContactForce[0] * minoring_factor - mKt * LocalDeltDisp[0];
+            LocalElasticContactForce[1] = OldLocalElasticContactForce[1] * minoring_factor - mKt * LocalDeltDisp[1];
+        }
 
         AuxElasticShearForce = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
 
+        const double equiv_tg_of_static_fri_ang = properties_of_this_contact[STATIC_FRICTION];
+        const double equiv_tg_of_dynamic_fri_ang = properties_of_this_contact[DYNAMIC_FRICTION];
+        const double equiv_friction_decay_coefficient = properties_of_this_contact[FRICTION_DECAY];
+
+        const double ShearRelVel = sqrt(LocalRelVel[0] * LocalRelVel[0] + LocalRelVel[1] * LocalRelVel[1]);
+        double equiv_friction = equiv_tg_of_dynamic_fri_ang + (equiv_tg_of_static_fri_ang - equiv_tg_of_dynamic_fri_ang) * exp(-equiv_friction_decay_coefficient * ShearRelVel);
+
+        MaximumAdmisibleShearForce = normal_contact_force * equiv_friction;
+
         const double tangential_contact_force_0 = LocalElasticContactForce[0] + ViscoDampingLocalContactForce[0];
         const double tangential_contact_force_1 = LocalElasticContactForce[1] + ViscoDampingLocalContactForce[1];
-        const double ActualTotalShearForce      = sqrt(tangential_contact_force_0 * tangential_contact_force_0 + tangential_contact_force_1 * tangential_contact_force_1);
 
-        Properties& properties_of_this_contact = element->GetProperties().GetSubProperties(neighbour->GetProperties().Id());
-        const double fri_ang = properties_of_this_contact[STATIC_FRICTION];
-        MaximumAdmisibleShearForce = normal_contact_force * fri_ang;
+        const double ActualTotalShearForce = sqrt(tangential_contact_force_0 * tangential_contact_force_0 + tangential_contact_force_1 * tangential_contact_force_1);
 
         if (ActualTotalShearForce > MaximumAdmisibleShearForce) {
           sliding = true;

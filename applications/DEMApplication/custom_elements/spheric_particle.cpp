@@ -1515,6 +1515,14 @@ void SphericParticle::InitializeSolutionStep(const ProcessInfo& r_process_info)
         }
     }
 
+    if (this->Is(DEMFlags::HAS_ROTATION)) {
+        if (this->Is(DEMFlags::HAS_ROLLING_FRICTION)) {
+            if (mRollingFrictionModel != nullptr){
+                mRollingFrictionModel->InitializeSolutionStep();
+            }
+        }
+    }
+
     KRATOS_CATCH("")
 }
 
