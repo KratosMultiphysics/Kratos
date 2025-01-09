@@ -53,7 +53,6 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateConditionStiffnessMatrix(ElementMatrixType& rStiffnessMatrix,
                                                                                      const ProcessInfo& rCurrentProcessInfo)
 {
-    // Previous definitions
     GeometryType& r_geom = this->GetGeometry();
 
     GeometryData::IntegrationMethod integration_method = this->GetIntegrationMethod();
@@ -79,7 +78,6 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateConditionStiffnessMa
     BoundedMatrix<double, TDim, N_DOF> aux_abs_k_matrix;
     rStiffnessMatrix = ZeroMatrix(N_DOF, N_DOF);
 
-    // Loop over integration points
     for (unsigned int g_point = 0; g_point < num_g_points; ++g_point) {
         // calculate
         absorbing_variables.Ec = 0.0;
@@ -122,7 +120,6 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateDampingMatrix(Matrix& rDampingMatrix,
                                                                           const ProcessInfo& rCurrentProcessInfo)
 {
-    // Previous definitions
     GeometryType& r_geom = this->GetGeometry();
 
     GeometryData::IntegrationMethod r_integration_method = this->GetIntegrationMethod();
@@ -147,7 +144,6 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateDampingMatrix(Matrix
     BoundedMatrix<double, TDim, N_DOF> aux_abs_matrix;
     ElementMatrixType                  abs_matrix = ZeroMatrix(N_DOF, N_DOF);
 
-    // Loop over integration points
     for (unsigned int g_point = 0; g_point < num_g_points; ++g_point) {
         // calculate
         absorbing_variables.rho = 0.0;

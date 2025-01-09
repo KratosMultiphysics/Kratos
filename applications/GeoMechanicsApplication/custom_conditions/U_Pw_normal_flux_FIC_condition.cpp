@@ -40,7 +40,6 @@ void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateAll(Matrix& rLeftHandS
                                                               Vector& rRightHandSideVector,
                                                               const ProcessInfo& CurrentProcessInfo)
 {
-    // Previous definitions
     const PropertiesType&                           r_prop = this->GetProperties();
     const GeometryType&                             r_geom = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
@@ -100,7 +99,6 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateRHS(Vector& rRightHandSideVector,
                                                               const ProcessInfo& CurrentProcessInfo)
 {
-    // Previous definitions
     const PropertiesType&                           r_prop = this->GetProperties();
     const GeometryType&                             r_geom = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
@@ -131,7 +129,6 @@ void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateRHS(Vector& rRightHand
         FICVariables.DtPressureVector[i] = r_geom[i].FastGetSolutionStepValue(DT_WATER_PRESSURE);
     }
 
-    // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++) {
         // Compute normal flux
         Variables.NormalFlux = 0.0;

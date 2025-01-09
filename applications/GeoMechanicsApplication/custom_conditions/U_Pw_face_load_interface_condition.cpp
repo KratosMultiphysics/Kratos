@@ -68,7 +68,6 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void UPwFaceLoadInterfaceCondition<TDim, TNumNodes>::CalculateRHS(Vector& rRightHandSideVector,
                                                                   const ProcessInfo& CurrentProcessInfo)
 {
-    // Previous definitions
     const GeometryType&                             Geom = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
         Geom.IntegrationPoints(this->GetIntegrationMethod());
@@ -98,7 +97,6 @@ void UPwFaceLoadInterfaceCondition<TDim, TNumNodes>::CalculateRHS(Vector& rRight
     array_1d<double, TDim>                        TractionVector;
     array_1d<double, TNumNodes * TDim>            UVector;
 
-    // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++) {
         // Compute traction vector
         ConditionUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
