@@ -38,8 +38,7 @@ void GeoElementUtilities::FillPermeabilityMatrix(BoundedMatrix<double, 1, 1>&   
     if (Prop[RETENTION_LAW] == "PressureFilterLaw") {
         const double equivalent_radius_square = Prop[CROSS_AREA] / Globals::Pi;
         rPermeabilityMatrix(0, 0)             = equivalent_radius_square * 0.125;
-    }
-    else {
+    } else {
         rPermeabilityMatrix(0, 0) = Prop[PERMEABILITY_XX];
     }
 }

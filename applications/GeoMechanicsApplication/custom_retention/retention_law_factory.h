@@ -53,8 +53,7 @@ public:
             if (RetentionLawName == "SaturatedBelowPhreaticLevelLaw")
                 return make_unique<SaturatedBelowPhreaticLevelLaw>();
 
-            if (RetentionLawName == "PressureFilterLaw") 
-                return make_unique<SaturatedLaw>();
+            if (RetentionLawName == "PressureFilterLaw") return make_unique<SaturatedLaw>();
 
             KRATOS_ERROR << "Undefined RETENTION_LAW! " << RetentionLawName << std::endl;
 

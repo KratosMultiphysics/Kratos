@@ -15,6 +15,7 @@
 
 #include "calculation_contribution.h"
 #include "compressibility_calculator.h"
+#include "filter_compressibility_calculator.h"
 #include "custom_retention/retention_law_factory.h"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
@@ -313,6 +314,9 @@ private:
         case CalculationContribution::Permeability:
             return std::make_unique<PermeabilityCalculator>(CreatePermeabilityInputProvider());
         case CalculationContribution::Compressibility:
+            if (GetProperties()[RETENTION_LAW] == "PressureFilterLaw") {
+                return std::make_unique<FilterCompressibilityCalculator>(CreateFilterCompressibilityInputProvider(rCurrentProcessInfo));
+            }
             return std::make_unique<CompressibilityCalculator>(CreateCompressibilityInputProvider(rCurrentProcessInfo));
         default:
             KRATOS_ERROR << "Unknown contribution" << std::endl;
@@ -324,6 +328,14 @@ private:
         return CompressibilityCalculator::InputProvider(
             MakePropertiesGetter(), MakeRetentionLawsGetter(), MakeNContainerGetter(),
             MakeIntegrationCoefficientsGetter(), MakeMatrixScalarFactorGetter(rCurrentProcessInfo),
+            MakeNodalVariableGetter());
+    }
+
+    FilterCompressibilityCalculator::InputProvider CreateFilterCompressibilityInputProvider(const ProcessInfo& rCurrentProcessInfo)
+    {
+        return FilterCompressibilityCalculator::InputProvider(
+            MakePropertiesGetter(), MakeRetentionLawsGetter(), MakeNContainerGetter(),
+            MakeIntegrationCoefficientsGetter(), MakeProjectedGravityForIntegrationPointsGetter(), MakeMatrixScalarFactorGetter(rCurrentProcessInfo),
             MakeNodalVariableGetter());
     }
 
@@ -358,6 +370,11 @@ private:
             GetGeometry().DeterminantOfJacobian(det_J_container, this->GetIntegrationMethod());
             return CalculateIntegrationCoefficients(det_J_container);
         };
+    }
+
+    auto MakeProjectedGravityForIntegrationPointsGetter()
+    {
+        return [this]() -> Vector {return CalculateProjectedGravityAtIntegrationPoints(GetGeometry().ShapeFunctionsValues(GetIntegrationMethod()));};
     }
 
     static auto MakeMatrixScalarFactorGetter(const ProcessInfo& rCurrentProcessInfo)
