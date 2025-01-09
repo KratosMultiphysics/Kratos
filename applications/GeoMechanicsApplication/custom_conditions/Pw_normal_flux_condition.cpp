@@ -56,7 +56,7 @@ void PwNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(Vector&            rRi
         auto normal_flux = MathUtils<>::Dot(row(r_n_container, integration_point), normal_flux_vector);
 
         // Compute weighting coefficient for integration
-        auto integration_coefficient = ConditionUtilities::CalculateIntegrationCoefficient<TDim, TNumNodes>(
+        auto integration_coefficient = ConditionUtilities::CalculateIntegrationCoefficient(
             j_container[integration_point], r_integration_points[integration_point].Weight());
 
         // Contributions to the right hand side

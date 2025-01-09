@@ -83,7 +83,7 @@ void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateAll(Matrix& rLeftHandS
         noalias(Variables.Np) = row(NContainer, GPoint);
 
         // Compute weighting coefficient for integration
-        Variables.IntegrationCoefficient = ConditionUtilities::CalculateIntegrationCoefficient<TDim, TNumNodes>(
+        Variables.IntegrationCoefficient = ConditionUtilities::CalculateIntegrationCoefficient(
             JContainer[GPoint], IntegrationPoints[GPoint].Weight());
 
         // Contributions to the left hand side
@@ -143,7 +143,7 @@ void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateRHS(Vector& rRightHand
         noalias(Variables.Np) = row(NContainer, GPoint);
 
         // Compute weighting coefficient for integration
-        Variables.IntegrationCoefficient = ConditionUtilities::CalculateIntegrationCoefficient<TDim, TNumNodes>(
+        Variables.IntegrationCoefficient = ConditionUtilities::CalculateIntegrationCoefficient(
             JContainer[GPoint], IntegrationPoints[GPoint].Weight());
 
         // Contributions to the right hand side

@@ -95,7 +95,7 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateConditionStiffnessMa
         GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(nu_matrix, r_n_container, g_point);
 
         // Compute weighting coefficient for integration
-        double integration_coefficient = ConditionUtilities::CalculateIntegrationCoefficient<TDim, TNumNodes>(
+        double integration_coefficient = ConditionUtilities::CalculateIntegrationCoefficient(
             jacobians[g_point], r_integration_points[g_point].Weight());
 
         // set stiffness part of absorbing matrix
@@ -167,7 +167,7 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateDampingMatrix(Matrix
         GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(nu_matrix, r_n_container, g_point);
 
         // Compute weighting coefficient for integration
-        double integration_coefficient = ConditionUtilities::CalculateIntegrationCoefficient<TDim, TNumNodes>(
+        double integration_coefficient = ConditionUtilities::CalculateIntegrationCoefficient(
             jacobians[g_point], r_integration_points[g_point].Weight());
 
         // set damping part of absorbing matrix

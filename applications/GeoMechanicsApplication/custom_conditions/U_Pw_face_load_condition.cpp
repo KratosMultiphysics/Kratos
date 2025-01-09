@@ -59,7 +59,7 @@ void UPwFaceLoadCondition<TDim, TNumNodes>::CalculateRHS(Vector&            rRig
         ConditionUtilities::CalculateNuMatrix<TDim, TNumNodes>(nu, r_n_container, integration_point);
 
         // Compute weighting coefficient for integration
-        auto integration_coefficient = ConditionUtilities::CalculateIntegrationCoefficient<TDim, TNumNodes>(
+        auto integration_coefficient = ConditionUtilities::CalculateIntegrationCoefficient(
             j_container[integration_point], r_integration_points[integration_point].Weight());
 
         // Contributions to the right hand side

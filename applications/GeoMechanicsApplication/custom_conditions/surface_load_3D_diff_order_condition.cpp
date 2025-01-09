@@ -74,13 +74,8 @@ double SurfaceLoad3DDiffOrderCondition::CalculateIntegrationCoefficient(
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const
 {
     KRATOS_TRY
-    // return ConditionUtilities::CalculateIntegrationCoefficient<this->GetGeometry().WorkingSpaceDimension(),
-    //                                                            this->GetGeometry().PointsNumber()>(
-    //     JContainer[PointNumber], IntegrationPoints[PointNumber].Weight());
-    Vector normal_vector(3);
-    MathUtils<double>::CrossProduct(normal_vector, column(JContainer[PointNumber], 0),
-                                    column(JContainer[PointNumber], 1));
-    return norm_2(normal_vector) * IntegrationPoints[PointNumber].Weight();
+    return ConditionUtilities::CalculateIntegrationCoefficient(
+        JContainer[PointNumber], IntegrationPoints[PointNumber].Weight());
     KRATOS_CATCH("")
 }
 

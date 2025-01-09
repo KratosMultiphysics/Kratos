@@ -94,6 +94,4 @@ GeoTCondition <|-- GeoThermalPointFluxCondition
 GeoTCondition <|-- GeoTNormalFluxCondition
 GeoTCondition <|-- GeoTMicroClimateFluxCondition
 
-
-
 @enduml

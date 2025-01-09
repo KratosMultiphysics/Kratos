@@ -85,13 +85,12 @@ public:
         }
     }
 
-    template <unsigned int TDim, unsigned int TNumNodes>
     static double CalculateIntegrationCoefficient(const Matrix& rJacobian, double Weight)
     {
-        auto vector = Vector{TDim, 0.0};
-        if constexpr (TDim == 2) {
+        auto vector = Vector{rJacobian.size1(), 0.0};
+        if (rJacobian.size1() == 2) {
             vector = column(rJacobian, 0);
-        } else if constexpr (TDim == 3) {
+        } else if (rJacobian.size1() == 3) {
             MathUtils<>::CrossProduct(vector, column(rJacobian, 0), column(rJacobian, 1));
         }
         return Weight * MathUtils<>::Norm(vector);

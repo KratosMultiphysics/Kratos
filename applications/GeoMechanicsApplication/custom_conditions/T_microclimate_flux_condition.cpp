@@ -101,7 +101,7 @@ void GeoTMicroClimateFluxCondition<TDim, TNumNodes>::CalculateLocalSystem(Matrix
         const auto N = array_1d<double, TNumNodes>{row(r_N_container, integration_point_index)};
 
         // Compute weighting coefficient for integration
-        const auto IntegrationCoefficient = ConditionUtilities::CalculateIntegrationCoefficient<TDim, TNumNodes>(
+        const auto IntegrationCoefficient = ConditionUtilities::CalculateIntegrationCoefficient(
             jacobians[integration_point_index], r_integration_points[integration_point_index].Weight());
 
         CalculateAndAddLHS(rLeftHandSideMatrix, N, IntegrationCoefficient, left_hand_side_fluxes);

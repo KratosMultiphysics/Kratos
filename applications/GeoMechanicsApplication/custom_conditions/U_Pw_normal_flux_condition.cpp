@@ -57,7 +57,7 @@ void UPwNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(Vector& rRightHandSid
         noalias(Variables.Np) = row(r_n_container, integration_point);
 
         // Compute weighting coefficient for integration
-        Variables.IntegrationCoefficient = ConditionUtilities::CalculateIntegrationCoefficient<TDim, TNumNodes>(
+        Variables.IntegrationCoefficient = ConditionUtilities::CalculateIntegrationCoefficient(
             j_container[integration_point], r_integration_points[integration_point].Weight());
 
         // Contributions to the right hand side

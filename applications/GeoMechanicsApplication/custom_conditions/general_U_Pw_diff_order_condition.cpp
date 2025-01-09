@@ -85,21 +85,19 @@ void GeneralUPwDiffOrderCondition::CalculateLocalSystem(Matrix&            rLeft
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom         = GetGeometry();
-    const SizeType      Dim           = rGeom.WorkingSpaceDimension();
-    const SizeType      NumUNodes     = rGeom.PointsNumber();
-    const SizeType      NumPNodes     = mpPressureGeometry->PointsNumber();
-    const SizeType      ConditionSize = NumUNodes * Dim + NumPNodes;
+    const auto&    r_geom = GetGeometry();
+    const SizeType condition_size =
+        r_geom.PointsNumber() * r_geom.WorkingSpaceDimension() + mpPressureGeometry->PointsNumber();
 
     // Resetting the LHS
-    if (rLeftHandSideMatrix.size1() != ConditionSize)
-        rLeftHandSideMatrix.resize(ConditionSize, ConditionSize, false);
-    noalias(rLeftHandSideMatrix) = ZeroMatrix(ConditionSize, ConditionSize);
+    if (rLeftHandSideMatrix.size1() != condition_size)
+        rLeftHandSideMatrix.resize(condition_size, condition_size, false);
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(condition_size, condition_size);
 
     // Resetting the RHS
-    if (rRightHandSideVector.size() != ConditionSize)
-        rRightHandSideVector.resize(ConditionSize, false);
-    noalias(rRightHandSideVector) = ZeroVector(ConditionSize);
+    if (rRightHandSideVector.size() != condition_size)
+        rRightHandSideVector.resize(condition_size, false);
+    noalias(rRightHandSideVector) = ZeroVector(condition_size);
 
     // calculation flags
     bool CalculateLHSMatrixFlag      = true;
@@ -123,16 +121,14 @@ void GeneralUPwDiffOrderCondition::CalculateLeftHandSide(Matrix& rLeftHandSideMa
 void GeneralUPwDiffOrderCondition::CalculateRightHandSide(Vector&            rRightHandSideVector,
                                                           const ProcessInfo& rCurrentProcessInfo)
 {
-    const GeometryType& rGeom         = GetGeometry();
-    const SizeType      Dim           = rGeom.WorkingSpaceDimension();
-    const SizeType      NumUNodes     = rGeom.PointsNumber();
-    const SizeType      NumPNodes     = mpPressureGeometry->PointsNumber();
-    const SizeType      ConditionSize = NumUNodes * Dim + NumPNodes;
+    const auto& r_geom = GetGeometry();
+    const auto  condition_size =
+        r_geom.PointsNumber() * r_geom.WorkingSpaceDimension() + mpPressureGeometry->PointsNumber();
 
     // Resetting the RHS
-    if (rRightHandSideVector.size() != ConditionSize)
-        rRightHandSideVector.resize(ConditionSize, false);
-    noalias(rRightHandSideVector) = ZeroVector(ConditionSize);
+    if (rRightHandSideVector.size() != condition_size)
+        rRightHandSideVector.resize(condition_size, false);
+    noalias(rRightHandSideVector) = ZeroVector(condition_size);
 
     // calculation flags
     bool CalculateLHSMatrixFlag      = false;
@@ -187,24 +183,24 @@ void GeneralUPwDiffOrderCondition::CalculateAll(Matrix&            rLeftHandSide
 void GeneralUPwDiffOrderCondition::InitializeConditionVariables(ConditionVariables& rVariables,
                                                                 const ProcessInfo& rCurrentProcessInfo)
 {
-    const GeometryType& rGeom      = GetGeometry();
-    const SizeType      NumUNodes  = rGeom.PointsNumber();
-    const SizeType      NumPNodes  = mpPressureGeometry->PointsNumber();
-    const SizeType      NumGPoints = rGeom.IntegrationPointsNumber(this->GetIntegrationMethod());
+    const auto& r_geom       = GetGeometry();
+    const auto  num_u_nodes  = r_geom.PointsNumber();
+    const auto  num_p_nodes  = mpPressureGeometry->PointsNumber();
+    const auto  num_g_points = r_geom.IntegrationPointsNumber(this->GetIntegrationMethod());
 
-    rVariables.NuContainer.resize(NumGPoints, NumUNodes, false);
-    rVariables.NuContainer = rGeom.ShapeFunctionsValues(this->GetIntegrationMethod());
+    rVariables.NuContainer.resize(num_g_points, num_u_nodes, false);
+    rVariables.NuContainer = r_geom.ShapeFunctionsValues(this->GetIntegrationMethod());
 
-    rVariables.NpContainer.resize(NumGPoints, NumPNodes, false);
+    rVariables.NpContainer.resize(num_g_points, num_p_nodes, false);
     rVariables.NpContainer = mpPressureGeometry->ShapeFunctionsValues(this->GetIntegrationMethod());
 
-    rVariables.Nu.resize(NumUNodes, false);
-    rVariables.Np.resize(NumPNodes, false);
+    rVariables.Nu.resize(num_u_nodes, false);
+    rVariables.Np.resize(num_p_nodes, false);
 
-    rVariables.JContainer.resize(NumGPoints, false);
+    rVariables.JContainer.resize(num_g_points, false);
     for (auto& j : rVariables.JContainer)
-        j.resize(rGeom.WorkingSpaceDimension(), rGeom.LocalSpaceDimension(), false);
-    rGeom.Jacobian(rVariables.JContainer, this->GetIntegrationMethod());
+        j.resize(r_geom.WorkingSpaceDimension(), r_geom.LocalSpaceDimension(), false);
+    r_geom.Jacobian(rVariables.JContainer, this->GetIntegrationMethod());
 }
 
 void GeneralUPwDiffOrderCondition::CalculateKinematics(ConditionVariables& rVariables, unsigned int PointNumber)
