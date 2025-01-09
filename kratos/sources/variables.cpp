@@ -20,6 +20,8 @@
 #include "includes/kernel.h"
 #include "includes/convection_diffusion_settings.h"
 #include "includes/radiation_settings.h"
+#include "includes/element.h"
+#include "includes/condition.h"
 
 namespace Kratos {
 typedef Node NodeType;
@@ -445,8 +447,10 @@ KRATOS_CREATE_VARIABLE(ConstitutiveLaw::Pointer, CONSTITUTIVE_LAW)
 
 //NEIGHBOR_ELEMENTS defined in element.h
 KRATOS_CREATE_VARIABLE(GlobalPointersVector<Element>, NEIGHBOUR_ELEMENTS)
+KRATOS_CREATE_VARIABLE(EntityAdjointExtension<Element>::Pointer, ELEMENT_ADJOINT_EXTENSION)
 //NEIGHBOR_CONDITIONS defined in condition.h
 KRATOS_CREATE_VARIABLE(GlobalPointersVector<Condition>, NEIGHBOUR_CONDITIONS)
+KRATOS_CREATE_VARIABLE(EntityAdjointExtension<Condition>::Pointer, CONDITION_ADJOINT_EXTENSION)
 
 //for Structural application:
 KRATOS_CREATE_VARIABLE(GlobalPointersVector<GeometricalObject>, NEIGHBOUR_EMBEDDED_FACES)
@@ -664,6 +668,8 @@ void KratosApplication::RegisterVariables() {
 
     KRATOS_REGISTER_VARIABLE(NEIGHBOUR_ELEMENTS)
     KRATOS_REGISTER_VARIABLE(NEIGHBOUR_CONDITIONS)
+    KRATOS_REGISTER_VARIABLE(ELEMENT_ADJOINT_EXTENSION)
+    KRATOS_REGISTER_VARIABLE(CONDITION_ADJOINT_EXTENSION)
 
     //ENERGIES
     KRATOS_REGISTER_VARIABLE(KINETIC_ENERGY)
