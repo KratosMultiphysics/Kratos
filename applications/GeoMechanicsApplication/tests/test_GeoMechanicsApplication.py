@@ -57,6 +57,7 @@ from test_integration_node_extrapolation import KratosGeoMechanicsExtrapolationT
 from test_truss_backbone_mat import KratosGeoMechanicsTrussBackboneMaterialTests
 from test_line_interface_elements import KratosGeoMechanicsInterfaceElementTests
 from test_three_dimensional_piping_validation import KratosGeoMechanicsThreeDimensionalPipingValidation
+from test_master_slave_constraints import KratosGeoMechanicsMasterSlaveConstraints
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -104,7 +105,8 @@ def AssembleTestSuites():
                         KratosGeoMechanicsFixedSpatialVariationTests,
                         KratosGeoMechanicsExtrapolationTests,
                         KratosGeoMechanicsTrussBackboneMaterialTests,
-                        KratosGeoMechanicsInterfaceElementTests
+                        KratosGeoMechanicsInterfaceElementTests,
+                        KratosGeoMechanicsMasterSlaveConstraints
     ]
 
     # Create an array with the selected tests
