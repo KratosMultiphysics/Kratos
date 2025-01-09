@@ -531,6 +531,12 @@ void  AddMeshToPython(pybind11::module& m)
     .def("__str__", PrintObject<Element>)
     ;
 
+    py::class_<EntityAdjointExtension<Element>, EntityAdjointExtension<Element>::Pointer>(m,"ElementAdjointExtension")
+        .def(py::init<>())
+        .def("Info", &EntityAdjointExtension<Element>::Info)
+        .def("__str__", PrintObject<EntityAdjointExtension<Element>>)
+    ;
+
     PointerVectorSetPythonInterface<MeshType::ElementsContainerType>().CreateInterface(m,"ElementsArray")
     ;
 
@@ -676,6 +682,12 @@ void  AddMeshToPython(pybind11::module& m)
     .def("GetSpecifications", &Condition::GetSpecifications)
     .def("Info", &Condition::Info)
     .def("__str__", PrintObject<Condition>)
+    ;
+
+    py::class_<EntityAdjointExtension<Condition>, EntityAdjointExtension<Condition>::Pointer>(m,"ConditionAdjointExtension")
+        .def(py::init<>())
+        .def("Info", &EntityAdjointExtension<Condition>::Info)
+        .def("__str__", PrintObject<EntityAdjointExtension<Condition>>)
     ;
 
     PointerVectorSetPythonInterface<MeshType::ConditionsContainerType>().CreateInterface(m,"ConditionsArray")

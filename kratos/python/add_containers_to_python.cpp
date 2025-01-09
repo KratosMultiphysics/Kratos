@@ -27,6 +27,10 @@
 #include "includes/radiation_settings.h"
 #include "utilities/quaternion.h"
 
+#include "includes/element.h"
+#include "includes/condition.h"
+
+
 namespace Kratos::Python
 {
 namespace py = pybind11;
@@ -158,6 +162,14 @@ void  AddContainersToPython(pybind11::module& m)
     .def("__str__", PrintObject<Variable<Quaternion<double> >>)
     ;
 
+    py::class_<Variable<EntityAdjointExtension<Element>::Pointer>>(m, "ElementAdjointExtensionVariable")
+    .def("__str__", PrintObject<Variable<EntityAdjointExtension<Element>::Pointer>>)
+    ;
+
+    py::class_<Variable<EntityAdjointExtension<Condition>::Pointer>>(m, "ConditionAdjointExtensionVariable")
+    .def("__str__", PrintObject<Variable<EntityAdjointExtension<Condition>::Pointer>>)
+    ;
+
     typedef py::class_<DataValueContainer, DataValueContainer::Pointer> DataValueContainerBinderType;
     DataValueContainerBinderType DataValueBinder(m, "DataValueContainer" );
     DataValueBinder.def( "__len__", &DataValueContainer::Size );
@@ -175,6 +187,8 @@ void  AddContainersToPython(pybind11::module& m)
     DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<RadiationSettings::Pointer> >(DataValueBinder);
     DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<Quaternion<double>> >(DataValueBinder);
     DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<std::string> >(DataValueBinder);
+    DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<EntityAdjointExtension<Element>::Pointer> >(DataValueBinder);
+    DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<EntityAdjointExtension<Condition>::Pointer> >(DataValueBinder);
 
     typedef py::class_<VariablesListDataValueContainer, VariablesListDataValueContainer::Pointer> VariableDataValueContainerBinderType;
     VariableDataValueContainerBinderType VariableDataValueBinder(m, "VariablesListDataValueContainer" );
@@ -191,6 +205,8 @@ void  AddContainersToPython(pybind11::module& m)
     VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<Matrix> >(VariableDataValueBinder);
     VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<Quaternion<double>> >(VariableDataValueBinder);
     VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<std::string> >(VariableDataValueBinder);
+    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<EntityAdjointExtension<Element>::Pointer> >(VariableDataValueBinder);
+    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<EntityAdjointExtension<Condition>::Pointer> >(VariableDataValueBinder);
 
 
     py::class_<Flags, Flags::Pointer>(m,"Flags")
@@ -604,6 +620,8 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, VARIATIONAL_REDISTANCE_COEFFICIENT_FIRST)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, VARIATIONAL_REDISTANCE_COEFFICIENT_SECOND)
 
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ELEMENT_ADJOINT_EXTENSION)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CONDITION_ADJOINT_EXTENSION)
 
     py::class_< ConvectionDiffusionSettings, ConvectionDiffusionSettings::Pointer >	(m,"ConvectionDiffusionSettings")
     .def(py::init<	>() )
