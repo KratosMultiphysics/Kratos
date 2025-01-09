@@ -82,9 +82,6 @@ void LineLoad2DDiffOrderCondition::CalculateAndAddConditionForce(Vector& rRightH
             rVariables.Nu[node] * rVariables.ConditionVector[0] * rVariables.IntegrationCoefficient;
         rRightHandSideVector[2 * node + 1] +=
             rVariables.Nu[node] * rVariables.ConditionVector[1] * rVariables.IntegrationCoefficient;
-        // std::transform(rVariables.ConditionVector.begin(), rVariables.ConditionVector.begin()+2, rRightHandSideVector.begin()+node*2, [rVariables.Nu[node], rVariables.IntegrationCoefficient](const auto& ConditionVectorElement) {
-        //     return rVariables.Nu[node] * rVariables.IntegrationCoefficient * ConditionVectorElement;
-        // });
     }
 }
 
