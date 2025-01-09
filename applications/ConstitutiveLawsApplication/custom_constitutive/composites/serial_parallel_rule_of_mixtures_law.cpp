@@ -1669,10 +1669,10 @@ int SerialParallelRuleOfMixturesLaw<TDim>::Check(
         KRATOS_ERROR << "A wrong fiber volumetric participation has been set: Greater than 1 or lower than 0... " << std::to_string(mFiberVolumetricParticipation) << std::endl;
         aux_out += 1;
     }
-    KRATOS_ERROR_IF(VoigtSize != mpMatrixConstitutiveLaw->GetStrainSize()) << "The Strain size of the mpMatrixConstitutiveLaw is not consistent with the Srial Parallel Rule of Mixtures..." << std::endl;
-    KRATOS_ERROR_IF(VoigtSize != mpFiberConstitutiveLaw->GetStrainSize()) << "The Strain size of the mpFiberConstitutiveLaw is not consistent with the Srial Parallel Rule of Mixtures..." << std::endl;
-    KRATOS_ERROR_IF(mpMatrixConstitutiveLaw->WorkingSpaceDimension() != mpFiberConstitutiveLaw->WorkingSpaceDimension()) << "The WorkingSpaceDimension of the fiber and matrix mismatch..." << std::endl;
-    KRATOS_ERROR_IF(mpMatrixConstitutiveLaw->GetStrainSize() != mpFiberConstitutiveLaw->GetStrainSize()) << "The GetStrainSize of the fiber and matrix mismatch..." << std::endl;
+    KRATOS_ERROR_IF(VoigtSize != mpMatrixConstitutiveLaw->GetStrainSize()) << "The Strain size of the mpMatrixConstitutiveLaw: " << mpMatrixConstitutiveLaw->GetStrainSize() << "is not consistent with the Serial Parallel Rule of Mixtures: " << VoigtSize <<  std::endl;
+    KRATOS_ERROR_IF(VoigtSize != mpFiberConstitutiveLaw->GetStrainSize())  << "The Strain size of the mpFiberConstitutiveLaw: "  << mpFiberConstitutiveLaw->GetStrainSize()  << "is not consistent with the Serial Parallel Rule of Mixtures: " << VoigtSize <<  std::endl;
+    KRATOS_ERROR_IF(mpMatrixConstitutiveLaw->WorkingSpaceDimension() != mpFiberConstitutiveLaw->WorkingSpaceDimension()) << "The WorkingSpaceDimension of the matrix (" << mpMatrixConstitutiveLaw->WorkingSpaceDimension() <<  ") and fiber (" << mpFiberConstitutiveLaw->WorkingSpaceDimension() << ") mismatch..." << std::endl;
+    KRATOS_ERROR_IF(mpMatrixConstitutiveLaw->GetStrainSize() != mpFiberConstitutiveLaw->GetStrainSize()) << "The GetStrainSize of the matrix (" << mpMatrixConstitutiveLaw->GetStrainSize() <<  ") and fiber (" << mpFiberConstitutiveLaw->GetStrainSize() << ") mismatch..." << std::endl;
 
     return aux_out;
 }
