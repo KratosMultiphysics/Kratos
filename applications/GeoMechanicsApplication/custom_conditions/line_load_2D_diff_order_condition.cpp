@@ -57,10 +57,8 @@ void LineLoad2DDiffOrderCondition::CalculateConditionVector(ConditionVariables& 
     const GeometryType& r_geometry = GetGeometry();
     rVariables.ConditionVector.resize(2, false);
     noalias(rVariables.ConditionVector) = ZeroVector(2);
-
     for (SizeType i = 0; i < r_geometry.PointsNumber(); ++i) {
-        Vector line_load = r_geometry[i].FastGetSolutionStepValue(LINE_LOAD);
-
+        auto line_load = r_geometry[i].FastGetSolutionStepValue(LINE_LOAD);
         rVariables.ConditionVector[0] += rVariables.Nu[i] * line_load[0];
         rVariables.ConditionVector[1] += rVariables.Nu[i] * line_load[1];
     }
@@ -72,7 +70,6 @@ double LineLoad2DDiffOrderCondition::CalculateIntegrationCoefficient(
     const IndexType                                 PointNumber,
     const GeometryType::JacobiansType&              JContainer,
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const
-
 {
     return ConditionUtilities::CalculateIntegrationCoefficient(JContainer[PointNumber], IntegrationPoints[PointNumber].Weight());
 }

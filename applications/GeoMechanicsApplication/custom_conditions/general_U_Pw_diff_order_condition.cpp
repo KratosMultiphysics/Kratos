@@ -229,7 +229,6 @@ double GeneralUPwDiffOrderCondition::CalculateIntegrationCoefficient(
     const IndexType                                 PointNumber,
     const GeometryType::JacobiansType&              JContainer,
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const
-
 {
     KRATOS_TRY
 
@@ -240,7 +239,7 @@ double GeneralUPwDiffOrderCondition::CalculateIntegrationCoefficient(
     KRATOS_CATCH("")
 }
 
-void GeneralUPwDiffOrderCondition::CalculateAndAddLHS(Matrix& rLeftHandSideMatrix, ConditionVariables& rVariables)
+void GeneralUPwDiffOrderCondition::CalculateAndAddLHS(const Matrix&, const ConditionVariables&) const
 {
 }
 

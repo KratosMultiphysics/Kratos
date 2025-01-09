@@ -106,7 +106,7 @@ protected:
                                                    const GeometryType::JacobiansType& JContainer,
                                                    const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const;
 
-    void CalculateAndAddLHS(Matrix& rLeftHandSideMatrix, ConditionVariables& rVariables);
+    void CalculateAndAddLHS(const Matrix&, const ConditionVariables&) const;
 
     void CalculateAndAddRHS(Vector& rRightHandSideVector, ConditionVariables& rVariables);
 
