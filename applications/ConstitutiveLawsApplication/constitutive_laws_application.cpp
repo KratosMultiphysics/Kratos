@@ -72,7 +72,9 @@ void KratosConstitutiveLawsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SerialParallelRuleOfMixturesLaw", mSerialParallelRuleOfMixturesLaw);
 
     // Anisotropic law
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GenericAnisotropicPlaneStrain2DLaw", mGenericAnisotropicPlaneStrain2DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("GenericAnisotropic3DLaw", mGenericAnisotropic3DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GenericAnisotropicPlaneStress2DLaw", mGenericAnisotropicPlaneStress2DLaw);
 
     /// Plasticity
 

@@ -603,12 +603,10 @@ typedef Node NodeType;
         auto curve_on_surface = GenerateReferenceNurbs2dforKnotIntersections(brep_coordinates);
 
         auto p_surface = curve_on_surface.pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX);
-        
-        p_surface->SetValue(IS_SBM, true);
 
         std::vector<double> spans;
 
-        curve_on_surface.SpansLocalSpace(spans);
+        curve_on_surface.SpansLocalSpaceSBM(spans);
 
         // Test size
         KRATOS_EXPECT_EQ(spans.size(), 4);
@@ -641,12 +639,10 @@ typedef Node NodeType;
         auto curve_on_surface = GenerateReferenceNurbs2dforKnotIntersections(brep_coordinates);
 
         auto p_surface = curve_on_surface.pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX);
-        
-        p_surface->SetValue(IS_SBM, true);
 
         std::vector<double> spans;
 
-        curve_on_surface.SpansLocalSpace(spans);
+        curve_on_surface.SpansLocalSpaceSBM(spans);
 
         // Test size
         KRATOS_EXPECT_EQ(spans.size(), 2);
@@ -676,11 +672,10 @@ typedef Node NodeType;
         
         auto curve_on_surface = GenerateReferenceNurbs2dforKnotIntersections(brep_coordinates);
         auto p_surface = curve_on_surface.pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX);
-        p_surface->SetValue(IS_SBM, true);
 
         std::vector<double> spans;
 
-        curve_on_surface.SpansLocalSpace(spans);
+        curve_on_surface.SpansLocalSpaceSBM(spans);
 
         // Test size
         KRATOS_EXPECT_EQ(spans.size(), 2);
@@ -710,7 +705,6 @@ typedef Node NodeType;
         
         auto curve_on_surface = GenerateReferenceNurbs2dforKnotIntersections(brep_coordinates);
         auto p_surface = curve_on_surface.pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX);
-        p_surface->SetValue(IS_SBM, true);
 
         // Check general information, input to ouput
         typename Geometry<Node>::IntegrationPointsArrayType integration_points;
@@ -718,7 +712,7 @@ typedef Node NodeType;
         curve_on_surface.CreateIntegrationPoints(integration_points, integration_info);
 
         typename Geometry<Point>::GeometriesArrayType quadrature_points;
-        curve_on_surface.CreateQuadraturePointGeometries(quadrature_points, 3, integration_points, integration_info);
+        curve_on_surface.CreateQuadraturePointGeometriesSBM(quadrature_points, 3, integration_points, integration_info);
 
         KRATOS_EXPECT_EQ(quadrature_points.size(), 3);
 
@@ -774,7 +768,6 @@ typedef Node NodeType;
         
         auto curve_on_surface = GenerateReferenceNurbs2dforKnotIntersections(brep_coordinates);
         auto p_surface = curve_on_surface.pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX);
-        p_surface->SetValue(IS_SBM, true);
 
         // Check general information, input to ouput
         typename Geometry<Node>::IntegrationPointsArrayType integration_points;

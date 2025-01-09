@@ -137,8 +137,6 @@ void TransientPwElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrent
     if (mRetentionLawVector.size() != NumGPoints) mRetentionLawVector.resize(NumGPoints);
     for (unsigned int i = 0; i < mRetentionLawVector.size(); ++i) {
         mRetentionLawVector[i] = RetentionLawFactory::Clone(Prop);
-        mRetentionLawVector[i]->InitializeMaterial(
-            Prop, Geom, row(Geom.ShapeFunctionsValues(this->GetIntegrationMethod()), i));
     }
 
     mIsInitialised = true;
@@ -264,18 +262,6 @@ void TransientPwElement<TDim, TNumNodes>::InitializeSolutionStep(const ProcessIn
 
     if (!mIsInitialised) this->Initialize(rCurrentProcessInfo);
 
-    // Defining necessary variables
-    const GeometryType& Geom       = this->GetGeometry();
-    const unsigned int  NumGPoints = Geom.IntegrationPointsNumber(this->GetIntegrationMethod());
-
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
-
-    // Loop over integration points
-    for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-        // Initialize retention law
-        mRetentionLawVector[GPoint]->InitializeSolutionStep(RetentionParameters);
-    }
-
     // reset hydraulic discharge
     this->ResetHydraulicDischarge();
 
@@ -287,8 +273,6 @@ void TransientPwElement<TDim, TNumNodes>::InitializeNonLinearIteration(const Pro
 {
     // nothing
 }
-
-//----------------------------------------------------------------------------------------------------
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::FinalizeNonLinearIteration(const ProcessInfo&)
@@ -302,18 +286,6 @@ void TransientPwElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessInfo
     KRATOS_TRY
 
     this->CalculateHydraulicDischarge(rCurrentProcessInfo);
-
-    // Defining necessary variables
-    const GeometryType& Geom       = this->GetGeometry();
-    const unsigned int  NumGPoints = Geom.IntegrationPointsNumber(this->GetIntegrationMethod());
-
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
-
-    // Loop over integration points
-    for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-        // retention law
-        mRetentionLawVector[GPoint]->FinalizeSolutionStep(RetentionParameters);
-    }
 
     KRATOS_CATCH("")
 }

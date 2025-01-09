@@ -24,16 +24,12 @@ LineNormalFluidFlux2DDiffOrderCondition::LineNormalFluidFlux2DDiffOrderCondition
 {
 }
 
-//----------------------------------------------------------------------------------------
-
 // Constructor 1
 LineNormalFluidFlux2DDiffOrderCondition::LineNormalFluidFlux2DDiffOrderCondition(IndexType NewId,
                                                                                  GeometryType::Pointer pGeometry)
     : LineLoad2DDiffOrderCondition(NewId, pGeometry)
 {
 }
-
-//----------------------------------------------------------------------------------------
 
 // Constructor 2
 LineNormalFluidFlux2DDiffOrderCondition::LineNormalFluidFlux2DDiffOrderCondition(
@@ -42,17 +38,19 @@ LineNormalFluidFlux2DDiffOrderCondition::LineNormalFluidFlux2DDiffOrderCondition
 {
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 Condition::Pointer LineNormalFluidFlux2DDiffOrderCondition::Create(IndexType             NewId,
                                                                    NodesArrayType const& ThisNodes,
                                                                    PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(new LineNormalFluidFlux2DDiffOrderCondition(
-        NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Create(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Condition::Pointer LineNormalFluidFlux2DDiffOrderCondition::Create(IndexType             NewId,
+                                                                   GeometryType::Pointer pGeom,
+                                                                   PropertiesType::Pointer pProperties) const
+{
+    return make_intrusive<LineNormalFluidFlux2DDiffOrderCondition>(NewId, pGeom, pProperties);
+}
 
 void LineNormalFluidFlux2DDiffOrderCondition::CalculateConditionVector(ConditionVariables& rVariables,
                                                                        unsigned int PointNumber)
@@ -70,8 +68,6 @@ void LineNormalFluidFlux2DDiffOrderCondition::CalculateConditionVector(Condition
 
     KRATOS_CATCH("")
 }
-
-//----------------------------------------------------------------------------------------
 
 void LineNormalFluidFlux2DDiffOrderCondition::CalculateAndAddConditionForce(VectorType& rRightHandSideVector,
                                                                             ConditionVariables& rVariables)

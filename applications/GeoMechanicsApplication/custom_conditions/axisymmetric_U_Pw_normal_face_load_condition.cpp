@@ -26,7 +26,6 @@ Condition::Pointer AxisymmetricUPwNormalFaceLoadCondition<TDim, TNumNodes>::Crea
         NewId, this->GetGeometry().Create(ThisNodes), pProperties));
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 double AxisymmetricUPwNormalFaceLoadCondition<TDim, TNumNodes>::CalculateIntegrationCoefficient(
     const IndexType PointNumber, const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const
@@ -39,7 +38,6 @@ double AxisymmetricUPwNormalFaceLoadCondition<TDim, TNumNodes>::CalculateIntegra
     return IntegrationPoints[PointNumber].Weight() * radiusWeight;
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 GeometryData::IntegrationMethod AxisymmetricUPwNormalFaceLoadCondition<TDim, TNumNodes>::GetIntegrationMethod() const
 {
@@ -69,8 +67,6 @@ std::string AxisymmetricUPwNormalFaceLoadCondition<TDim, TNumNodes>::Info() cons
 {
     return "AxisymmetricUPwNormalFaceLoadCondition";
 }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template class AxisymmetricUPwNormalFaceLoadCondition<2, 2>;
 template class AxisymmetricUPwNormalFaceLoadCondition<2, 3>;

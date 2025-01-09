@@ -19,6 +19,7 @@
 #include "includes/global_variables.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/advanced_constitutive_law_utilities.h"
+#include "constitutive_laws_application_variables.h"
 
 namespace Kratos
 {
@@ -677,19 +678,23 @@ Matrix AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateDirectPlasticDefor
 template<SizeType TVoigtSize>
 void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEuler1(
     const double EulerAngle1,
-    BoundedMatrix<double, 3, 3>& rRotationOperator
+    BoundedMatrix<double, Dimension, Dimension>& rRotationOperator
     )
 {
-    noalias(rRotationOperator) = ZeroMatrix(Dimension, Dimension);
+    rRotationOperator.clear();
 
-    const double cos_angle = std::cos(EulerAngle1 * Globals::Pi / 180.0);
-    const double sin_angle = std::sin(EulerAngle1 * Globals::Pi / 180.0);
+    const double angle_radians = EulerAngle1 * Globals::Pi / 180.0;
+    const double cos_angle = std::cos(angle_radians);
+    const double sin_angle = std::sin(angle_radians);
 
     rRotationOperator(0, 0) = cos_angle;
     rRotationOperator(0, 1) = sin_angle;
     rRotationOperator(1, 0) = -sin_angle;
     rRotationOperator(1, 1) = cos_angle;
-    rRotationOperator(2, 2) = 1.0;
+
+    if constexpr (Dimension == 3) {
+        rRotationOperator(2, 2) = 1.0;
+    }
 }
 
 /***********************************************************************************/
@@ -698,19 +703,24 @@ void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEule
 template<SizeType TVoigtSize>
 void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEuler2(
     const double EulerAngle2,
-    BoundedMatrix<double, 3, 3>& rRotationOperator
+    BoundedMatrix<double, Dimension, Dimension>& rRotationOperator
     )
 {
-    noalias(rRotationOperator) = ZeroMatrix(Dimension, Dimension);
+    rRotationOperator.clear();
 
-    const double cos_angle = std::cos(EulerAngle2 * Globals::Pi / 180.0);
-    const double sin_angle = std::sin(EulerAngle2 * Globals::Pi / 180.0);
+    if constexpr (Dimension == 3) {
+        const double cos_angle = std::cos(EulerAngle2 * Globals::Pi / 180.0);
+        const double sin_angle = std::sin(EulerAngle2 * Globals::Pi / 180.0);
 
-    rRotationOperator(0, 0) = 1.0;
-    rRotationOperator(1, 1) = cos_angle;
-    rRotationOperator(1, 2) = sin_angle;
-    rRotationOperator(2, 1) = -sin_angle;
-    rRotationOperator(2, 2) = cos_angle;
+        rRotationOperator(0, 0) = 1.0;
+        rRotationOperator(1, 1) = cos_angle;
+        rRotationOperator(1, 2) = sin_angle;
+        rRotationOperator(2, 1) = -sin_angle;
+        rRotationOperator(2, 2) = cos_angle;
+    } else {
+        KRATOS_ERROR << "This operation cannot be done in Dimension = 2 ..." << std::endl;
+    }
+
 }
 
 /***********************************************************************************/
@@ -719,7 +729,7 @@ void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEule
 template<SizeType TVoigtSize>
 void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEuler3(
     const double EulerAngle3,
-    BoundedMatrix<double, 3, 3>& rRotationOperator
+    BoundedMatrix<double, Dimension, Dimension>& rRotationOperator
     )
 {
     AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEuler1(EulerAngle3, rRotationOperator);
@@ -733,26 +743,32 @@ void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperator(
     const double EulerAngle1, // phi
     const double EulerAngle2, // theta
     const double EulerAngle3, // hi
-    BoundedMatrix<double, 3, 3>& rRotationOperator // global to local coordinates
+    BoundedMatrix<double, Dimension, Dimension>& rRotationOperator // global to local coordinates
     )
 {
-    const double pi_over_180 = Globals::Pi / 180.0;
-    const double cos1 = std::cos(EulerAngle1 * pi_over_180);
-    const double sin1 = std::sin(EulerAngle1 * pi_over_180);
-    const double cos2 = std::cos(EulerAngle2 * pi_over_180);
-    const double sin2 = std::sin(EulerAngle2 * pi_over_180);
-    const double cos3 = std::cos(EulerAngle3 * pi_over_180);
-    const double sin3 = std::sin(EulerAngle3 * pi_over_180);
 
-    rRotationOperator(0, 0) = cos1 * cos3 - sin1 * cos2 * sin3;
-    rRotationOperator(0, 1) = sin1 * cos3 + cos1 * cos2 * sin3;
-    rRotationOperator(0, 2) = sin2 * sin3;
-    rRotationOperator(1, 0) = -cos1 * sin3 - sin1 * cos2 * cos3;
-    rRotationOperator(1, 1) = -sin1 * sin3 + cos1 * cos2 * cos3;
-    rRotationOperator(1, 2) = sin2 * cos3;
-    rRotationOperator(2, 0) = sin1 * sin2;
-    rRotationOperator(2, 1) = -cos1 * sin2;
-    rRotationOperator(2, 2) = cos2;
+    const double pi_over_180 = Globals::Pi / 180.0;
+
+    if constexpr (Dimension == 3) {
+        const double cos1 = std::cos(EulerAngle1 * pi_over_180);
+        const double sin1 = std::sin(EulerAngle1 * pi_over_180);
+        const double cos2 = std::cos(EulerAngle2 * pi_over_180);
+        const double sin2 = std::sin(EulerAngle2 * pi_over_180);
+        const double cos3 = std::cos(EulerAngle3 * pi_over_180);
+        const double sin3 = std::sin(EulerAngle3 * pi_over_180);
+
+        rRotationOperator(0, 0) = cos1 * cos3 - sin1 * cos2 * sin3;
+        rRotationOperator(0, 1) = sin1 * cos3 + cos1 * cos2 * sin3;
+        rRotationOperator(0, 2) = sin2 * sin3;
+        rRotationOperator(1, 0) = -cos1 * sin3 - sin1 * cos2 * cos3;
+        rRotationOperator(1, 1) = -sin1 * sin3 + cos1 * cos2 * cos3;
+        rRotationOperator(1, 2) = sin2 * cos3;
+        rRotationOperator(2, 0) = sin1 * sin2;
+        rRotationOperator(2, 1) = -cos1 * sin2;
+        rRotationOperator(2, 2) = cos2;
+    } else { // In 2D
+        AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEuler1(EulerAngle1, rRotationOperator);
+    }
 }
 
 /***********************************************************************************/
@@ -841,6 +857,140 @@ double AdvancedConstitutiveLawUtilities<TVoigtSize>::GetPropertyFromTemperatureT
 
 /***********************************************************************************/
 /***********************************************************************************/
+
+template <SizeType TVoigtSize>
+void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateOrthotropicElasticMatrix(
+    BoundedMatrixVoigtType& rElasticityTensor,
+    const Properties& rMaterialProperties)
+{
+    KRATOS_TRY
+
+    rElasticityTensor.clear();
+
+    const Vector& r_ortho_elastic_constants = rMaterialProperties[ORTHOTROPIC_ELASTIC_CONSTANTS];
+    const double Ex  = r_ortho_elastic_constants[0];
+    const double Ey  = r_ortho_elastic_constants[1];
+    const double Ez  = r_ortho_elastic_constants[2];
+    const double vxy = r_ortho_elastic_constants[3];
+    const double vyz = r_ortho_elastic_constants[4];
+    const double vxz = r_ortho_elastic_constants[5];
+
+    const double vyx = vxy * Ey / Ex;
+    const double vzx = vxz * Ez / Ex;
+    const double vzy = vyz * Ez / Ey;
+
+    KRATOS_ERROR_IF(vyx > 0.5) << "The Poisson_yx is greater than 0.5." << std::endl;
+    KRATOS_ERROR_IF(vzx > 0.5) << "The Poisson_zx is greater than 0.5." << std::endl;
+    KRATOS_ERROR_IF(vzy > 0.5) << "The Poisson_zy is greater than 0.5." << std::endl;
+
+    const double ctant = 1.0 / (1.0 - vxy * vyx - vzy * vyz - vzx * vxz - vxy * vyz * vzx - vxz * vyx * vzy);
+
+    rElasticityTensor(0, 0) = Ex * (1.0 - vyz * vzy) * ctant;
+    rElasticityTensor(0, 1) = Ex * (vyx + vyz * vzx) * ctant;
+    rElasticityTensor(1, 0) = Ey * (vxy + vzy * vxz) * ctant;
+
+    rElasticityTensor(0, 2) = Ex * (vzx + vyx * vzy) * ctant;
+    rElasticityTensor(2, 0) = Ez * (vxz + vxy * vyz) * ctant;
+    rElasticityTensor(1, 1) = Ey * (1.0 - vxz * vzx) * ctant;
+
+    rElasticityTensor(1, 2) = Ey * (vzy + vxy * vzx) * ctant;
+    rElasticityTensor(2, 1) = Ez * (vyz + vyx * vxz) * ctant;
+    rElasticityTensor(2, 2) = Ez * (1.0 - vxy * vyx) * ctant;
+
+    rElasticityTensor(3, 3) = (rMaterialProperties.Has(SHEAR_MODULUS_XY)) ? rMaterialProperties[SHEAR_MODULUS_XY] : 1.0 / ((1.0 + vyx) / Ex + (1.0 + vxy) / Ey);
+    rElasticityTensor(4, 4) = (rMaterialProperties.Has(SHEAR_MODULUS_YZ)) ? rMaterialProperties[SHEAR_MODULUS_YZ] : 1.0 / ((1.0 + vzy) / Ey + (1.0 + vyz) / Ez);
+    rElasticityTensor(5, 5) = (rMaterialProperties.Has(SHEAR_MODULUS_XZ)) ? rMaterialProperties[SHEAR_MODULUS_XZ] : 1.0 / ((1.0 + vzx) / Ex + (1.0 + vxz) / Ez);
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <SizeType TVoigtSize>
+void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateOrthotropicElasticMatrixPlaneStrain(
+    BoundedMatrixVoigtType& rElasticityTensor,
+    const Properties& rMaterialProperties)
+{
+    KRATOS_TRY
+
+    rElasticityTensor.clear();
+    // The input vector is the same as in 3D.
+    const Vector& r_ortho_elastic_constants = rMaterialProperties[ORTHOTROPIC_ELASTIC_CONSTANTS];
+    const double E1  = r_ortho_elastic_constants[0];
+    const double E2  = r_ortho_elastic_constants[1];
+    const double E3  = r_ortho_elastic_constants[2];
+    const double v12 = r_ortho_elastic_constants[3];
+    const double v23 = r_ortho_elastic_constants[4];
+    const double v13 = r_ortho_elastic_constants[5];
+
+    const double v21 = v12 * E2 / E1;
+    const double v31 = v13 * E3 / E1;
+    const double v32 = v23 * E3 / E2;
+
+    KRATOS_ERROR_IF(v21 > 0.5) << "The Poisson_yx is greater than 0.5." << std::endl;
+    KRATOS_ERROR_IF(v31 > 0.5) << "The Poisson_zx is greater than 0.5." << std::endl;
+    KRATOS_ERROR_IF(v32 > 0.5) << "The Poisson_zy is greater than 0.5." << std::endl;
+
+    const double a = 1.0 - v23 * v32;
+    const double b = v12 + v32 * v13;
+    const double c = v21 + v23 * v31;
+    const double d = 1.0 - v13 * v31;
+
+    const double factor = a * d - b * c;
+
+    const double G12 = (rMaterialProperties.Has(SHEAR_MODULUS_XY)) ? rMaterialProperties[SHEAR_MODULUS_XY] : 1.0 / ((1.0 + v21) / E1 + (1.0 + v12) / E2);
+
+    rElasticityTensor(0, 0) = a * E1;
+    rElasticityTensor(0, 1) = b * E1;
+    rElasticityTensor(1, 0) = c * E2;
+    rElasticityTensor(1, 1) = d * E2;
+    rElasticityTensor(2, 2) = factor * G12;
+
+    rElasticityTensor /= factor;
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <SizeType TVoigtSize>
+void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateOrthotropicElasticMatrixPlaneStress(
+    BoundedMatrixVoigtType& rElasticityTensor,
+    const Properties& rMaterialProperties)
+{
+    KRATOS_TRY
+
+    rElasticityTensor.clear();
+    // The input vector is the same as in 3D.
+    const Vector& r_ortho_elastic_constants = rMaterialProperties[ORTHOTROPIC_ELASTIC_CONSTANTS];
+    const double E1  = r_ortho_elastic_constants[0];
+    const double E2  = r_ortho_elastic_constants[1];
+    const double v12 = r_ortho_elastic_constants[3];
+
+    const double v21 = v12 * E2 / E1;
+
+    KRATOS_ERROR_IF(v21 > 0.5) << "The Poisson_yx is greater than 0.5." << std::endl;
+
+    const double factor = 1.0 - v12 * v21;
+
+    const double G12 = (rMaterialProperties.Has(SHEAR_MODULUS_XY)) ? rMaterialProperties[SHEAR_MODULUS_XY] : 1.0 / ((1.0 + v21) / E1 + (1.0 + v12) / E2);
+
+    rElasticityTensor(0, 0) = E1;
+    rElasticityTensor(0, 1) = v21 * E1;
+    rElasticityTensor(1, 0) = v12 * E2;
+    rElasticityTensor(1, 1) = E2;
+    rElasticityTensor(2, 2) = factor * G12;
+
+    rElasticityTensor /= factor;
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 
 template class AdvancedConstitutiveLawUtilities<3>;
 template class AdvancedConstitutiveLawUtilities<6>;

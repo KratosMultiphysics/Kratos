@@ -26,8 +26,6 @@ Condition::Pointer UPwForceCondition<TDim, TNumNodes>::Create(IndexType         
     return Condition::Pointer(new UPwForceCondition(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwForceCondition<TDim, TNumNodes>::CalculateRHS(VectorType&        rRightHandSideVector,
                                                       const ProcessInfo& CurrentProcessInfo)
@@ -44,8 +42,6 @@ std::string UPwForceCondition<TDim, TNumNodes>::Info() const
 {
     return "UPwForceCondition";
 }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template class UPwForceCondition<2, 1>;
 template class UPwForceCondition<3, 1>;
