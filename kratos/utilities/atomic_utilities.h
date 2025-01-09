@@ -42,10 +42,32 @@ namespace Kratos {
     #endif //__cpp_lib_atomic_ref
 #endif // KRATOS_SMP_CXX11
 
-/// @brief Set the value of a variable in a threadsafe manner.
-/// @param rTarget Variable to set the value of.
-/// @param rSource Value to overwrite the variable with.
-/// @addtogroup KratosCore
+/** @brief Set the value of a variable in a threadsafe manner.
+ *  @details Example: find hanging nodes in a model.
+ *           @code
+ *           void FindHangingNodes(const ModelPart& rModelPart,
+ *                                 std::vector<std::uint8_t>& rHangingNodes)
+ *           {
+ *              rHangingNodes = std::vector<std::uint8_t>(rModelPart.Nodes().size(), 1);
+ *              block_for_each(rModelPart.Elements(), [&rHangingNodes, &rModelPart](const Element& r_element){
+ *                  for (const Node& r_node : r_element.GetGeometry()) {
+ *                      const std::size_t i_node = std::distance(
+ *                          rModelPart.Nodes().begin(),
+ *                          std::lower_bound(rModelPart.Nodes().begin(),
+ *                                           rModelPart.Nodes().end(),
+ *                                           r_node,
+ *                                           [](const Node& r_left, const Node& r_right){
+ *                                              return r_left.Id() < r_right.Id();
+ *                                            }));
+ *                      AtomicSet(rHangingNodes[i_node], 0);
+ *                  }
+ *              });
+ *           }
+ *           @endcode
+ *  @param rTarget Variable to set the value of.
+ *  @param rSource Value to overwrite the variable with.
+ *  @addtogroup KratosCore
+ */
 template <class TTarget, class TSource>
 void AtomicSet(TTarget& rTarget, const TSource& rSource)
 {
