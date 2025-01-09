@@ -31,7 +31,7 @@ KRATOS_TEST_CASE(AtomicSet)
     constexpr std::size_t iteration_count = 1e5;
     std::vector<std::int8_t> array(array_size, 0);
 
-    IndexPartition<std::size_t>(iteration_count).for_each([&array](const std::size_t i){
+    IndexPartition<std::size_t>(iteration_count).for_each([&array, array_size](const std::size_t i){
         AtomicSet(array[i % array_size], i % array_size);
     });
 
