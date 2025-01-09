@@ -200,28 +200,28 @@ namespace Kratos {
         void UpdateMaxIdOfCreatorDestructor();
         void RepairPointersToNormalProperties(std::vector<SphericParticle*>& rCustomListOfSphericParticles);
         virtual void Initialize();
-        virtual void AttachSpheresToStickyWalls() {};
+        virtual void AttachSpheresToStickyWalls();
         virtual void DisplayThreadInfo();
-        double CalculateMaxInletTimeStep() {return 0.0;};
-        virtual void InitializeClusters() {};
-        virtual void GetClustersForce() {};
+        double CalculateMaxInletTimeStep();
+        virtual void InitializeClusters();
+        virtual void GetClustersForce();
         virtual void GetRigidBodyElementsForce();
         virtual double SolveSolutionStep();
         void SearchDEMOperations(ModelPart& r_model_part, bool has_mpi = true);
         void SearchFEMOperations(ModelPart& r_model_part, bool has_mpi = true) ;
         virtual void ForceOperations(ModelPart& r_model_part);
         void GetForce();
-        void FastGetForce() {};
+        void FastGetForce();
         virtual void PerformTimeIntegrationOfMotion(int StepFlag = 0);
         void InitializeSolutionStep();
-        virtual void BoundingBoxUtility(bool is_time_to_mark_and_remove = true) {};
+        virtual void BoundingBoxUtility(bool is_time_to_mark_and_remove = true);
         virtual void FinalizeSolutionStep();
-        void InitializeElements() {};
+        void InitializeElements();
         void InitializeDEMElements();
         void InitializeFEMElements();
         //void InitializeRigidBodyElements();
         void InitializeFEMWallsAsRigidBodyElements(ModelPart::SubModelPartsContainerType::iterator& sub_model_part);
-        void MarkToDeleteAllSpheresInitiallyIndentedWithFEM(ModelPart& rSpheresModelPart) {};
+        void MarkToDeleteAllSpheresInitiallyIndentedWithFEM(ModelPart& rSpheresModelPart);
         void ComputeNodalArea();
         void ComputeNormalPressureVectorField();
         virtual void CalculateConditionsRHSAndAdd();
@@ -238,21 +238,21 @@ namespace Kratos {
         virtual void SetSearchRadiiWithFemOnAllParticles(ModelPart& r_model_part, const double added_search_distance = 0.0, const double amplification = 1.0);
         virtual void SearchNeighbours();
         virtual void ComputeNewNeighboursHistoricalData();
-        virtual void CreateContactElements() {};
-        void InitializeContactElements() {};
+        virtual void CreateContactElements();
+        void InitializeContactElements();
         // void ContactInitializeSolutionStep();
         void PrepareContactElementsForPrinting();
         virtual void ComputeNewRigidFaceNeighboursHistoricalData();
         virtual void SearchRigidFaceNeighbours();
         void CheckHierarchyWithCurrentNeighbours();
         /* This should work only with one iteration, but it with mpi does not */
-        void CalculateInitialMaxIndentations(const ProcessInfo& r_process_info) {};
+        void CalculateInitialMaxIndentations(const ProcessInfo& r_process_info);
         void PrepareContactModelPart(ModelPart& r_model_part, ModelPart& mcontacts_model_part);
         void PrepareElementsForPrinting();
         void SynchronizeHistoricalVariables(ModelPart& r_model_part);
         void SynchronizeRHS(ModelPart& r_model_part);
         void Check_MPI(bool& has_mpi);
-        virtual double ComputeCoordinationNumber(double& standard_dev) {return 0.0;};
+        virtual double ComputeCoordinationNumber(double& standard_dev);
 
         ModelPart& GetModelPart() { return (*mpDem_model_part);}
         ModelPart& GetFemModelPart() { return (*mpFem_model_part);}
