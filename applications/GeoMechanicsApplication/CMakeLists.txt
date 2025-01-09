@@ -47,8 +47,6 @@ add_library(KratosGeoMechanicsCore SHARED ${KRATOS_GEO_MECHANICS_APPLICATION_COR
 target_link_libraries(KratosGeoMechanicsCore PUBLIC KratosCore KratosStructuralMechanicsCore KratosLinearSolversCore ${CMAKE_DL_LIBS})
 set_target_properties(KratosGeoMechanicsCore PROPERTIES COMPILE_DEFINITIONS "GEO_MECHANICS_APPLICATION=EXPORT,API")
 
-add_library(KratosGeoMechanicsCoreCoverage SHARED ${KRATOS_GEO_MECHANICS_APPLICATION_PYTHON_INTERFACE})
-target_link_libraries(KratosGeoMechanicsCoreCoverage PUBLIC KratosGeoMechanicsCore)
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
