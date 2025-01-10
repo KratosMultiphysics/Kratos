@@ -161,10 +161,19 @@ namespace Kratos
       py::class_<RealContactLu, RealContactLu::Pointer, RealContactModel>(m, "RealContactLu")
         .def(py::init<>());
 
-      py::class_<RealContactMorris, RealContactMorris::Pointer, RealContactModel>(m, "RealContactMorris")
+      py::class_<RealContactZhou, RealContactZhou::Pointer, RealContactModel>(m, "RealContactZhou")
         .def(py::init<>());
 
-      py::class_<RealContactZhou, RealContactZhou::Pointer, RealContactModel>(m, "RealContactZhou")
+      py::class_<RealContactMorrisArea, RealContactMorrisArea::Pointer, RealContactModel>(m, "RealContactMorrisArea")
+        .def(py::init<>());
+
+      py::class_<RealContactMorrisAreaTime, RealContactMorrisAreaTime::Pointer, RealContactModel>(m, "RealContactMorrisAreaTime")
+        .def(py::init<>());
+
+      py::class_<RealContactRangelArea, RealContactRangelArea::Pointer, RealContactModel>(m, "RealContactRangelArea")
+        .def(py::init<>());
+
+      py::class_<RealContactRangelAreaTime, RealContactRangelAreaTime::Pointer, RealContactModel>(m, "RealContactRangelAreaTime")
         .def(py::init<>());
 
       // Sintering ---------------------------------------------------------------------------------------------------------------
