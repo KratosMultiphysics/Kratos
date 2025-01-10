@@ -46,22 +46,17 @@ void UPwNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(Vector& rRightHandSid
     Vector normal_flux_vector(TNumNodes);
     VariablesUtilities::GetNodalValues(r_geometry, NORMAL_FLUID_FLUX, normal_flux_vector.begin());
 
-    NormalFluxVariables Variables;
-
     for (unsigned int integration_point = 0; integration_point < number_of_integration_points; ++integration_point) {
         // Compute normal flux
         auto normal_flux = MathUtils<>::Dot(row(r_n_container, integration_point), normal_flux_vector);
 
-        // Obtain Np
-        noalias(Variables.Np) = row(r_n_container, integration_point);
-
         // Compute weighting coefficient for integration
-        Variables.IntegrationCoefficient = ConditionUtilities::CalculateIntegrationCoefficient(
+        auto integration_coefficient = ConditionUtilities::CalculateIntegrationCoefficient(
             j_container[integration_point], r_integration_points[integration_point].Weight());
 
         // Contributions to the right hand side
         GeoElementUtilities::AssemblePBlockVector(
-            rRightHandSideVector, -normal_flux * Variables.Np * Variables.IntegrationCoefficient);
+            rRightHandSideVector, -normal_flux * row(r_n_container, integration_point) * integration_coefficient);
     }
 }
 

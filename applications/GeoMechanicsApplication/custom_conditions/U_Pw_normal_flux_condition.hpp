@@ -60,11 +60,6 @@ public:
     [[nodiscard]] std::string Info() const override;
 
 protected:
-    struct NormalFluxVariables {
-        double                      IntegrationCoefficient;
-        array_1d<double, TNumNodes> Np;
-    };
-
     void CalculateRHS(Vector& rRightHandSideVector, const ProcessInfo&) override;
 
 private:
