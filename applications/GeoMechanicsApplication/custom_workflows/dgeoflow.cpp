@@ -403,13 +403,14 @@ void KratosExecute::WriteCriticalHeadResultToFile() const
 
 void KratosExecute::AddNodalSolutionStepVariables(ModelPart& rModelPart) const
 {
+    // Pressure to head conversion
+    rModelPart.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
     // Water
     rModelPart.AddNodalSolutionStepVariable(WATER_PRESSURE);
     rModelPart.AddNodalSolutionStepVariable(REACTION_WATER_PRESSURE);
     rModelPart.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
     rModelPart.AddNodalSolutionStepVariable(NORMAL_FLUID_FLUX);
     rModelPart.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
-
 }
 
 int KratosExecute::FindCriticalHead(ModelPart&                 rModelPart,
