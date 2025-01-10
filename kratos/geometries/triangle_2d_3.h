@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
@@ -25,6 +25,7 @@
 #include "geometries/line_2d_2.h"
 #include "integration/triangle_gauss_legendre_integration_points.h"
 #include "integration/triangle_collocation_integration_points.h"
+#include "integration/triangle_gauss_lobatto_integration_points.h"
 #include "utilities/intersection_utilities.h"
 
 namespace Kratos
@@ -1551,10 +1552,7 @@ private:
                 Quadrature<TriangleCollocationIntegrationPoints3, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature<TriangleCollocationIntegrationPoints4, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature<TriangleCollocationIntegrationPoints5, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                // Lobatto
-                Quadrature<TriangleGaussLobattoIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature<TriangleGaussLobattoIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature<TriangleGaussLobattoIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints()
+                Quadrature<TriangleGaussLobattoIntegrationPoints1, 2, IntegrationPoint<3> >::GenerateIntegrationPoints()
             }
         };
         return integration_points;
@@ -1589,11 +1587,7 @@ private:
                 Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
                     GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5 ),
                 Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::IntegrationMethod::GI_LOBATTO_1 ),
-                Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::IntegrationMethod::GI_LOBATTO_2 ),
-                Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::IntegrationMethod::GI_LOBATTO_3 )
+                    GeometryData::IntegrationMethod::GI_LOBATTO_1 )
             }
         };
         return shape_functions_values;
@@ -1618,9 +1612,7 @@ private:
                 Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_3 ),
                 Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_4 ),
                 Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5 ),
-                Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_LOBATTO_1 ),
-                Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_LOBATTO_2 ),
-                Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_LOBATTO_3 )
+                Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_LOBATTO_1 )
             }
         };
         return shape_functions_local_gradients;
