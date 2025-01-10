@@ -25,12 +25,6 @@ namespace Kratos {
     // Simulation and real values of effective Young modulus
     const double eff_young      = particle->ComputeEffectiveYoung();
     const double eff_young_real = particle->ComputeEffectiveYoungReal();
-    
-    // Get collision time
-    typename ThermalSphericParticle::ContactParams contact_params = particle->GetContactParameters();
-    const double col_time          = r_process_info[TIME] - contact_params.impact_time;
-    const double col_time_max      = particle->ComputeMaxCollisionTime();
-    const double col_time_max_real = particle->ComputeMaxCollisionTimeReal();
 
     // Area correction
     if (particle->mNeighborType & PARTICLE_NEIGHBOR) {
