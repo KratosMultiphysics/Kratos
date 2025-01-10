@@ -873,7 +873,7 @@ namespace Kratos
 
     const double eff_radius             = ComputeEffectiveRadius();
     const double eff_mass               = ComputeEffectiveMass();
-    const double eff_young              = ComputeEffectiveYoungReal();
+    const double eff_young              = ComputeEffectiveYoung();
     const double impact_normal_velocity = fabs(GetContactParameters().impact_velocity[0]);
 
     return pow(15.0 * eff_mass * eff_radius * eff_radius * impact_normal_velocity * impact_normal_velocity / (16.0 * eff_young), 0.2);
