@@ -194,8 +194,6 @@ void SmallDisplacementMixedStrainDisplacementElement::Initialize(
     // Initialization should not be done again in a restart!
     if (!rCurrentProcessInfo[IS_RESTARTED]) {
         // Integration method initialization
-        const auto &r_props = GetProperties();
-
         mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_LOBATTO_1;
 
         const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
@@ -352,7 +350,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
     const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
     const SizeType block_size  = dim + strain_size;
     const SizeType matrix_size = block_size * n_nodes;
-    const double tau    = GetStabilizationFactor();
+    const double tau = GetStabilizationFactor();
 
     // Check RHS size
     if (rRHS.size() != matrix_size) {
@@ -420,8 +418,9 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
         // Now we add the body forces
         for (IndexType i = 0; i < n_nodes; ++i) {
             const SizeType index = dim * i;
-            for (IndexType j = 0; j < dim; ++j)
+            for (IndexType j = 0; j < dim; ++j) {
                 RHSu[index + j] += w_gauss * kinematic_variables.N[i] * body_force[j];
+            }
         }
 
         // Contributions to the RHS
@@ -464,7 +463,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLeftHandSide(
     const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
     const SizeType block_size  = dim + strain_size;
     const SizeType matrix_size = block_size * n_nodes;
-    const double tau    = GetStabilizationFactor();
+    const double tau = GetStabilizationFactor();
 
     // Check LHS size
     if (rLHS.size1() != matrix_size || rLHS.size2() != matrix_size) {
@@ -551,7 +550,6 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateRightHandSide(
     const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
     const SizeType block_size  = dim + strain_size;
     const SizeType matrix_size = block_size * n_nodes;
-    const double tau    = GetStabilizationFactor();
 
     // Check RHS size
     if (rRHS.size() != matrix_size) {
@@ -608,8 +606,9 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateRightHandSide(
         // Now we add the body forces
         for (IndexType i = 0; i < n_nodes; ++i) {
             const SizeType index = dim * i;
-            for (IndexType j = 0; j < dim; ++j)
+            for (IndexType j = 0; j < dim; ++j) {
                 RHSu[index + j] += w_gauss * kinematic_variables.N[i] * body_force[j];
+            }
         }
 
         // Contributions to the RHS
@@ -778,7 +777,6 @@ void SmallDisplacementMixedStrainDisplacementElement::AssembleLHS(
     const SizeType dim     = r_geometry.WorkingSpaceDimension();
     const SizeType n_nodes = r_geometry.PointsNumber();
     const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
-    const SizeType system_size = n_nodes * (strain_size + dim);
     const SizeType displ_size = n_nodes * dim;
 
     // Assemble K
@@ -938,7 +936,6 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateEquivalentStrain(
 {
     KRATOS_TRY
 
-    const auto &r_props = GetProperties();
     const double tau = GetStabilizationFactor();
     noalias(rKinVars.EquivalentStrain) = (1.0 - tau) * rKinVars.NodalStrain + tau * rKinVars.SymmGradientDispl;
 
@@ -979,7 +976,6 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateOnIntegrationPoin
     )
 {
     KRATOS_TRY
-    const auto& r_geometry = GetGeometry();
     const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
     const SizeType n_gauss = r_integration_points.size();
@@ -1010,6 +1006,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateOnIntegrationPoin
     const ProcessInfo& rCurrentProcessInfo
     )
 {
+    KRATOS_TRY
     const auto& r_geometry = GetGeometry();
     const GeometryType::IntegrationPointsArrayType &r_integration_points = r_geometry.IntegrationPoints(mThisIntegrationMethod);
 
@@ -1033,6 +1030,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateOnIntegrationPoin
             rOutput[ii] = solution;
         }
     }
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -1044,6 +1042,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateOnIntegrationPoin
     const ProcessInfo& rCurrentProcessInfo
     )
 {
+    KRATOS_TRY
     if (rVariable == CONSTITUTIVE_LAW) {
         const SizeType integration_points_number = mConstitutiveLawVector.size();
         if (rValues.size() != integration_points_number) {
@@ -1053,6 +1052,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateOnIntegrationPoin
             rValues[point_number] = mConstitutiveLawVector[point_number];
         }
     }
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -1064,7 +1064,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateOnIntegrationPoin
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    const auto& r_geometry = GetGeometry();
+    KRATOS_TRY
     const auto &r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
     const SizeType number_of_integration_points = r_integration_points.size();
@@ -1076,6 +1076,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateOnIntegrationPoin
     } else {
         CalculateOnConstitutiveLaw(rVariable, rOutput, rCurrentProcessInfo);
     }
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -1087,6 +1088,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateOnIntegrationPoin
     const ProcessInfo& rCurrentProcessInfo
     )
 {
+    KRATOS_TRY
     const auto& r_geometry = GetGeometry();
     const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
@@ -1201,6 +1203,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateOnIntegrationPoin
     } else {
         CalculateOnConstitutiveLaw(rVariable, rOutput, rCurrentProcessInfo);
     }
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -1211,15 +1214,15 @@ const Parameters SmallDisplacementMixedStrainDisplacementElement::GetSpecificati
     const Parameters specifications = Parameters(R"({
         "time_integration"           : ["static"],
         "framework"                  : "lagrangian",
-        "symmetric_lhs"              : true,
-        "positive_definite_lhs"      : true,
+        "symmetric_lhs"              : false,
+        "positive_definite_lhs"      : false,
         "output"                     : {
             "gauss_point"            : ["CAUCHY_STRESS_VECTOR"],
-            "nodal_historical"       : ["DISPLACEMENT","VOLUMETRIC_STRAIN"],
+            "nodal_historical"       : ["DISPLACEMENT","NODAL_STRAIN_VECTOR"],
             "nodal_non_historical"   : [],
             "entity"                 : []
         },
-        "required_variables"         : ["DISPLACEMENT","VOLUMETRIC_STRAIN"],
+        "required_variables"         : ["DISPLACEMENT","NODAL_STRAIN_VECTOR"],
         "required_dofs"              : [],
         "flags_used"                 : [],
         "compatible_geometries"      : ["Triangle2D3", "Quadrilateral2D4", "Tetrahedra3D4","Hexahedra3D8"],
@@ -1231,15 +1234,15 @@ const Parameters SmallDisplacementMixedStrainDisplacementElement::GetSpecificati
         },
         "required_polynomial_degree_of_geometry" : 1,
         "documentation"   :
-            "This element implements a mixed displacement - volumetric strain formulation with Variational MultiScales (VMS) stabilization. This formulation is capable to deal with materials in the incompressible limit as well as with anisotropy."
+            "This element implements a mixed displacement - strain formulation with Variational MultiScales (VMS) stabilization."
     })");
 
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
     if (dimension == 2) {
-        std::vector<std::string> dofs_2d({"DISPLACEMENT_X","DISPLACEMENT_Y","VOLUMETRIC_STRAIN"});
+        std::vector<std::string> dofs_2d({"DISPLACEMENT_X","DISPLACEMENT_Y","NODAL_STRAIN_VECTOR"});
         specifications["required_dofs"].SetStringArray(dofs_2d);
     } else {
-        std::vector<std::string> dofs_3d({"DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z","VOLUMETRIC_STRAIN"});
+        std::vector<std::string> dofs_3d({"DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z","NODAL_STRAIN_VECTOR"});
         specifications["required_dofs"].SetStringArray(dofs_3d);
     }
 
@@ -1278,6 +1281,7 @@ void SmallDisplacementMixedStrainDisplacementElement::SetValuesOnIntegrationPoin
     const ProcessInfo& rCurrentProcessInfo
     )
 {
+    KRATOS_TRY
     if (mConstitutiveLawVector[0]->Has( rVariable)) {
         for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
             mConstitutiveLawVector[point_number]->SetValue( rVariable,rValues[point_number], rCurrentProcessInfo);
@@ -1285,6 +1289,7 @@ void SmallDisplacementMixedStrainDisplacementElement::SetValuesOnIntegrationPoin
     } else {
         KRATOS_WARNING("SmallDisplacementMixedStrainDisplacementElement") << "The variable " << rVariable << " is not implemented in the current ConstitutiveLaw" << std::endl;
     }
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -1296,6 +1301,7 @@ void SmallDisplacementMixedStrainDisplacementElement::SetValuesOnIntegrationPoin
     const ProcessInfo& rCurrentProcessInfo
     )
 {
+    KRATOS_TRY
     if (mConstitutiveLawVector[0]->Has( rVariable)) {
         for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
             mConstitutiveLawVector[point_number]->SetValue( rVariable,rValues[point_number], rCurrentProcessInfo);
@@ -1303,6 +1309,10 @@ void SmallDisplacementMixedStrainDisplacementElement::SetValuesOnIntegrationPoin
     } else {
         KRATOS_WARNING("SmallDisplacementMixedStrainDisplacementElement") << "The variable " << rVariable << " is not implemented in the current ConstitutiveLaw" << std::endl;
     }
+    KRATOS_CATCH("")
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 } // Namespace Kratos

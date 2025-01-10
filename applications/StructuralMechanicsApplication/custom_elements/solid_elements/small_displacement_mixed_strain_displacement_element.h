@@ -62,7 +62,7 @@ namespace Kratos
  * Reference: Finite element modeling of quasi-brittle cracks in 2D and 3D with enhanced strain accuracy, M. Cervera, G. Barbat and M. Chiumenti,
  * Computational Mechanics, (60) 767-796, 2017. DOI: https://doi.org/10.1007/s00466-017-1438-8
  * The secant matrix multiplication in the strain compatibility equation has been modified to the elastic constitutive matrix for generality.
- * The tangent tensor is used in the balance of linear momentum to get quadratic convergence rates in the Newton Raphson
+ * The tangent tensor is used in the balance of linear momentum to get quadratic convergence rates in the Newton Raphson strategy
  * @author Alejandro Cornejo
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallDisplacementMixedStrainDisplacementElement
@@ -497,7 +497,7 @@ protected:
     /**
      * @brief This method returns the stabilization factor tau according to the FE size
      */
-    const double GetStabilizationFactor() const
+    double GetStabilizationFactor() const
     {
         const auto &r_props = GetProperties();
         const auto &r_geom = GetGeometry();
@@ -516,18 +516,6 @@ protected:
         } else {
             return tau;
         }
-    }
-
-    /**
-     * @brief This method returns the scaling factor for the kinematic equation
-     */
-    const double GetScalingFactor()
-    {
-        return 1.0;
-        // const auto &r_props = GetProperties();
-        // const double E  = r_props[YOUNG_MODULUS];
-        // const double nu = r_props[POISSON_RATIO];
-        // return (E * nu) / ((1.0 + nu) * (1.0 - 2.0 * nu));
     }
 
     /**
