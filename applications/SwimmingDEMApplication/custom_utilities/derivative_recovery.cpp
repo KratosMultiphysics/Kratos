@@ -74,9 +74,11 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeExactL2(ModelPar
     
     bool mass_matrix_computed = false;
     for (unsigned int j = 0; j < TDim; j++) {
+        std::cout << "Computing LHS and RHS for j = " << j << std::endl;
         Vector L2Projection = ZeroVector(number_of_nodes * TDim);  // grad_proj_component_j
         for (unsigned int e = 0; e < number_of_elements; e++)
         {
+            std::cout << "  Computing element e = " << e << std::endl;
             ModelPart::ElementsContainerType::iterator it_elem = r_model_part.ElementsBegin() + e;
             Geometry<Node>& r_geometry = it_elem->GetGeometry();
             unsigned int NumNodes = r_geometry.size();
@@ -115,7 +117,9 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeExactL2(ModelPar
         }
 
         // Solve system
+        std::cout << "Solving for j = " << j << std::endl;
         MathUtils<double>::Solve(massMatrix, L2Projection, rhs);
+        std::cout << "Solved for j = " << j << std::endl;
 
         // Add values of material derivatives
         for (unsigned int i = 0; i < number_of_nodes; i++) {
