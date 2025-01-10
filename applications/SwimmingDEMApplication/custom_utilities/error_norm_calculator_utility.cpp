@@ -84,7 +84,6 @@ double ErrorNormCalculator::GetL2VectorErrorNorm(ModelPart& r_model_part, const 
                 {
                     array_1d<double, 3> var_nodal_values = r_geometry[a].FastGetSolutionStepValue(rVariable);
                     array_1d<double, 3> exact_var_nodal_values = r_geometry[a].FastGetSolutionStepValue(rExact_Variable);
-                    // variables_diff_gauss_point(d) += (var_nodal_values[d] - exact_var_nodal_values[d]) * NContainer(g, a);
                     variables_diff_gauss_point += (var_nodal_values[d] - exact_var_nodal_values[d]) * NContainer(g, a);
                 }
 
