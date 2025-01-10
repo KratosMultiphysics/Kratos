@@ -121,13 +121,11 @@
 // constitutive models
 #include "custom_constitutive/bilinear_cohesive_2D_law.hpp"
 #include "custom_constitutive/bilinear_cohesive_3D_law.hpp"
-#include "custom_constitutive/elastic_isotropic_K0_3d_law.h"
 #include "custom_constitutive/incremental_linear_elastic_interface_law.h"
 #include "custom_constitutive/incremental_linear_elastic_law.h"
 #include "custom_constitutive/linear_elastic_2D_beam_law.h"
 #include "custom_constitutive/linear_elastic_2D_interface_law.h"
 #include "custom_constitutive/linear_elastic_3D_interface_law.h"
-#include "custom_constitutive/linear_elastic_plane_strain_K0_law.h"
 #include "custom_constitutive/linear_elastic_plane_stress_2D_law.h"
 #include "custom_constitutive/plane_strain.h"
 #include "custom_constitutive/small_strain_udsm_2D_interface_law.hpp"
@@ -403,6 +401,8 @@ private:
         std::make_unique<ThreeDimensionalStressState>()};
     const GeoSteadyStatePwPipingElement<2, 2> mGeoSteadyStatePwPipingElement2D2N{
         0, Kratos::make_shared<Line2D2<NodeType>>(Element::GeometryType::PointsArrayType(2))};
+    const GeoSteadyStatePwPipingElement<3, 2> mGeoSteadyStatePwPipingElement3D2N{
+        0, Kratos::make_shared<Line3D2<NodeType>>(Element::GeometryType::PointsArrayType(2))};
 
     // small strain elements:
     const UPwSmallStrainElement<2, 3> mUPwSmallStrainElement2D3N{
@@ -959,12 +959,10 @@ private:
         0, Kratos::make_shared<Quadrilateral3D9<NodeType>>(Condition::GeometryType::PointsArrayType(9))};
 
     // constitutive models
-    const BilinearCohesive3DLaw  mBilinearCohesive3DLaw;
-    const BilinearCohesive2DLaw  mBilinearCohesive2DLaw;
-    const LinearPlaneStrainK0Law mLinearPlaneStrainK0Law;
+    const BilinearCohesive3DLaw mBilinearCohesive3DLaw;
+    const BilinearCohesive2DLaw mBilinearCohesive2DLaw;
     const GeoIncrementalLinearElasticLaw mLinearElasticPlaneStrain2DLaw{std::make_unique<PlaneStrain>()};
     const GeoIncrementalLinearElasticLaw mLinearElastic3DLaw{std::make_unique<ThreeDimensional>()};
-    const ElasticIsotropicK03DLaw        mElasticIsotropicK03DLaw;
     const GeoLinearElasticPlaneStress2DLaw mLinearElasticPlaneStress2DLaw;
 
     const SmallStrainUDSM3DLaw            mSmallStrainUDSM3DLaw{};

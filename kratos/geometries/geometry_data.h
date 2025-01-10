@@ -11,8 +11,7 @@
 //
 //
 
-#if !defined(KRATOS_GEOMETRY_DATA_H_INCLUDED )
-#define  KRATOS_GEOMETRY_DATA_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -84,6 +83,7 @@ public:
         GI_EXTENDED_GAUSS_3,
         GI_EXTENDED_GAUSS_4,
         GI_EXTENDED_GAUSS_5,
+        GI_LOBATTO_1,
         NumberOfIntegrationMethods // Note that this entry needs to be always the last to be used as integration methods counter
     };
 
@@ -153,6 +153,29 @@ public:
         Kratos_Quadrature_Point_Surface_In_Volume_Geometry,
         NumberOfGeometryTypes // Note that this entry needs to be always the last to be used as geometry types counter
     };
+
+    /**
+     * @enum KratosGeometryOrderType
+     * @brief Defines the order of geometries in Kratos.
+     * @details This enumeration lists the different polynomial orders that can be used for defining the geometry of elements in Kratos. The geometry order impacts the accuracy and computational cost of simulations.
+     * @var KratosGeometryOrderType::Kratos_Zero_Order: Defines a zero-order geometry. This is 0D geometry, aka discrete points, and is the simplest form of geometry.
+     * @var KratosGeometryOrderType::Kratos_Linear_Order: Defines a linear geometry. This is the simplest form, with minimal computational cost but lower accuracy.
+     * @var KratosGeometryOrderType::Kratos_Quadratic_Order: Defines a quadratic geometry. Offers a balance between computational cost and accuracy.
+     * @var KratosGeometryOrderType::Kratos_Cubic_Order: Defines a cubic geometry. Higher computational cost than quadratic, but offers improved accuracy.
+     * @var KratosGeometryOrderType::Kratos_Quartic_Order: Defines a quartic geometry. Further increases computational cost and accuracy.
+     * @var KratosGeometryOrderType::Kratos_Quintic_Order: Defines a quintic geometry. Represents the highest polynomial order here, with the highest accuracy and computational cost.
+     * @var KratosGeometryOrderType::Kratos_Unknown_Order: Used when the geometry order is unknown or not specified. Allows for flexibility in geometry definition.
+    */
+    enum KratosGeometryOrderType {
+        Kratos_Zero_Order,
+        Kratos_Linear_Order,
+        Kratos_Quadratic_Order,
+        Kratos_Cubic_Order,
+        Kratos_Quartic_Order,
+        Kratos_Quintic_Order,
+        Kratos_Unknown_Order
+    };
+
     ///@}
     ///@name Type Definitions
     ///@{
@@ -164,56 +187,56 @@ public:
     point or integration point access methods and also all other
     methods which need point or integration point index.
     */
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
     /** This typed used to return size or dimension in
     geometry data. Dimension, WorkingSpaceDimension, PointsNumber and
     ... return this type as their results.
     */
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
     /** This type used for representing an integration point in
     geometry data. This integration point is a point with an
     additional weight component.
     */
-    typedef IntegrationPoint<3> IntegrationPointType;
+    using IntegrationPointType = IntegrationPoint<3>;
 
     /** A Vector of IntegrationPointType which used to hold
     integration points related to an integration
     method. IntegrationPoints functions used this type to return
     their results.
     */
-    typedef GeometryShapeFunctionContainer<IntegrationMethod>::IntegrationPointsArrayType IntegrationPointsArrayType;
+    using IntegrationPointsArrayType = GeometryShapeFunctionContainer<IntegrationMethod>::IntegrationPointsArrayType;
 
     /** A Vector of IntegrationPointsArrayType which used to hold
     integration points related to different integration method
     implemented in geometry.
     */
-    typedef GeometryShapeFunctionContainer<IntegrationMethod>::IntegrationPointsContainerType IntegrationPointsContainerType;
+    using IntegrationPointsContainerType = GeometryShapeFunctionContainer<IntegrationMethod>::IntegrationPointsContainerType;
 
     /** A third order tensor used as shape functions' values
-    continer.
+    container.
     */
-    typedef GeometryShapeFunctionContainer<IntegrationMethod>::ShapeFunctionsValuesContainerType ShapeFunctionsValuesContainerType;
+    using ShapeFunctionsValuesContainerType = GeometryShapeFunctionContainer<IntegrationMethod>::ShapeFunctionsValuesContainerType;
 
     /** A fourth order tensor used as shape functions' local
     gradients container in geometry data.
     */
-    typedef GeometryShapeFunctionContainer<IntegrationMethod>::ShapeFunctionsLocalGradientsContainerType ShapeFunctionsLocalGradientsContainerType;
+    using ShapeFunctionsLocalGradientsContainerType = GeometryShapeFunctionContainer<IntegrationMethod>::ShapeFunctionsLocalGradientsContainerType;
 
     /** A third order tensor to hold shape functions'
     gradients. ShapefunctionsLocalGradients function return this
     type as its result.
     */
-    typedef DenseVector<Matrix> ShapeFunctionsGradientsType;
+    using ShapeFunctionsGradientsType = DenseVector<Matrix>;
 
-    typedef DenseVector<Matrix> ShapeFunctionsSecondDerivativesType;
+    using ShapeFunctionsSecondDerivativesType = DenseVector<Matrix>;
 
     /**
      * fourth order tensor to hold the third order derivatives of the
      * shape functions
      */
-    typedef DenseVector<DenseVector<Matrix> > ShapeFunctionsThirdDerivativesType;
+    using ShapeFunctionsThirdDerivativesType = DenseVector<DenseVector<Matrix>>;
 
     ///@}
     ///@name Life Cycle
@@ -319,7 +342,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~GeometryData() {}
+    virtual ~GeometryData() = default;
 
     ///@}
     ///@name Operators
@@ -734,9 +757,7 @@ public:
         rOStream << "    Local space dimension   : " << mpGeometryDimension->LocalSpaceDimension();
     }
 
-
     ///@}
-
 private:
     ///@name Member Variables
     ///@{
@@ -773,15 +794,12 @@ private:
 }; // Class GeometryData
 
 ///@}
-
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name Input and output
 ///@{
-
 
 /// input stream function
 inline std::istream& operator >> ( std::istream& rIStream,
@@ -801,5 +819,3 @@ inline std::ostream& operator << ( std::ostream& rOStream,
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS_GEOMETRY_DATA_H_INCLUDED  defined
