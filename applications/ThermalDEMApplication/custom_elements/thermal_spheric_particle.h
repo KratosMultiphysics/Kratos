@@ -105,7 +105,9 @@ namespace Kratos
       double ComputeSeparationToNeighborAdjusted (void);
       double ComputeFourierNumber                (void);
       double ComputeMaxCollisionTime             (void);
+      double ComputeMaxCollisionTimeReal         (void);
       double ComputeMaxContactRadius             (void);
+      double ComputeMaxContactRadiusReal         (void);
       double ComputeContactRadius                (void);
       double ComputeEffectiveRadius              (void);
       double ComputeEffectiveMass                (void);
@@ -240,6 +242,12 @@ namespace Kratos
       double mPreviousViscodampingEnergy; // accumulated energy dissipation from previous interaction: viscodamping 
       double mPreviousFrictionalEnergy;   // accumulated energy dissipation from previous interaction: frictional
       double mPreviousRollResistEnergy;   // accumulated energy dissipation from previous interaction: rolling resistance
+      double mGenerationThermalEnergy_damp_particle;
+      double mGenerationThermalEnergy_damp_wall;
+      double mGenerationThermalEnergy_slid_particle;
+      double mGenerationThermalEnergy_slid_wall;
+      double mGenerationThermalEnergy_roll_particle;
+      double mGenerationThermalEnergy_roll_wall;
 
       // Heat maps
       std::vector<std::vector<std::vector<double>>> mHeatMapGenerationDampingPP;  // Local heat map matrix for heat generaion by damping between particle-particle

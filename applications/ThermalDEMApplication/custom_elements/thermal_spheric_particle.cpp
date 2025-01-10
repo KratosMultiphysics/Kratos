@@ -157,9 +157,15 @@ namespace Kratos
     mContactParamsWall.clear();
 
     // Initialize accumulated energy dissipations
-    mPreviousViscodampingEnergy = 0.0;
-    mPreviousFrictionalEnergy   = 0.0;
-    mPreviousRollResistEnergy   = 0.0;
+    mPreviousViscodampingEnergy            = 0.0;
+    mPreviousFrictionalEnergy              = 0.0;
+    mPreviousRollResistEnergy              = 0.0;
+    mGenerationThermalEnergy_damp_particle = 0.0;
+    mGenerationThermalEnergy_damp_wall     = 0.0;
+    mGenerationThermalEnergy_slid_particle = 0.0;
+    mGenerationThermalEnergy_slid_wall     = 0.0;
+    mGenerationThermalEnergy_roll_particle = 0.0;
+    mGenerationThermalEnergy_roll_wall     = 0.0;
 
     KRATOS_CATCH("")
   }
@@ -812,8 +818,9 @@ namespace Kratos
   double ThermalSphericParticle::ComputeFourierNumber(void) {
     KRATOS_TRY
 
-    const double col_time_max = ComputeMaxCollisionTime();
-    const double Rc_max       = ComputeMaxContactRadius();
+    // ATTENTION: Assumption: Original model was not assumed real Young modulus for col_time_max and Rc_max!
+    const double col_time_max = ComputeMaxCollisionTimeReal();
+    const double Rc_max       = ComputeMaxContactRadiusReal();
 
     if (Rc_max > 0.0)
       return GetParticleConductivity() * col_time_max / (GetParticleDensity() * GetParticleHeatCapacity() * Rc_max * Rc_max);
@@ -829,7 +836,24 @@ namespace Kratos
 
     const double eff_radius             = ComputeEffectiveRadius();
     const double eff_mass               = ComputeEffectiveMass();
-    const double eff_young              = ComputeEffectiveYoungReal(); // ATTENTION: Assumption: Original model was not assumed real Young modulus!
+    const double eff_young              = ComputeEffectiveYoung();
+    const double impact_normal_velocity = fabs(GetContactParameters().impact_velocity[0]);
+
+    if (impact_normal_velocity != 0.0)
+      return 2.87 * pow(eff_mass * eff_mass / (eff_radius * eff_young * eff_young * impact_normal_velocity), 0.2);
+    else
+      return std::numeric_limits<double>::max();
+
+    KRATOS_CATCH("")
+  }
+
+    //------------------------------------------------------------------------------------------------------------
+  double ThermalSphericParticle::ComputeMaxCollisionTimeReal(void) {
+    KRATOS_TRY
+
+    const double eff_radius             = ComputeEffectiveRadius();
+    const double eff_mass               = ComputeEffectiveMass();
+    const double eff_young              = ComputeEffectiveYoungReal();
     const double impact_normal_velocity = fabs(GetContactParameters().impact_velocity[0]);
 
     if (impact_normal_velocity != 0.0)
@@ -846,7 +870,21 @@ namespace Kratos
 
     const double eff_radius             = ComputeEffectiveRadius();
     const double eff_mass               = ComputeEffectiveMass();
-    const double eff_young              = ComputeEffectiveYoungReal(); // ATTENTION: Assumption: Original model was not assumed real Young modulus!
+    const double eff_young              = ComputeEffectiveYoung();
+    const double impact_normal_velocity = fabs(GetContactParameters().impact_velocity[0]);
+
+    return pow(15.0 * eff_mass * eff_radius * eff_radius * impact_normal_velocity * impact_normal_velocity / (16.0 * eff_young), 0.2);
+    
+    KRATOS_CATCH("")
+  }
+
+  //------------------------------------------------------------------------------------------------------------
+  double ThermalSphericParticle::ComputeMaxContactRadiusReal(void) {
+    KRATOS_TRY
+
+    const double eff_radius             = ComputeEffectiveRadius();
+    const double eff_mass               = ComputeEffectiveMass();
+    const double eff_young              = ComputeEffectiveYoungReal();
     const double impact_normal_velocity = fabs(GetContactParameters().impact_velocity[0]);
 
     return pow(15.0 * eff_mass * eff_radius * eff_radius * impact_normal_velocity * impact_normal_velocity / (16.0 * eff_young), 0.2);
