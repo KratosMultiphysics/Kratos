@@ -149,9 +149,10 @@ namespace Kratos
                           r_properties.HasTable(TEMPERATURE, THERMAL_EXPANSION_COEFFICIENT);
 
     mStoreContactParam = mHasMotion &&
-                        (r_process_info[HEAT_GENERATION_OPTION]  ||
+                        (r_process_info[HEAT_GENERATION_OPTION] ||
                         (r_process_info[DIRECT_CONDUCTION_OPTION] && r_process_info[DIRECT_CONDUCTION_MODEL_NAME].compare("collisional") == 0) || 
-                        (r_process_info[REAL_CONTACT_OPTION]));
+                        (r_process_info[REAL_CONTACT_OPTION] && (r_process_info[REAL_CONTACT_MODEL_NAME].compare("morris_area_time") == 0      ||
+                                                                 r_process_info[REAL_CONTACT_MODEL_NAME].compare("rangel_area_time") == 0))); 
     
     // Clear maps
     mContactParamsParticle.clear();
