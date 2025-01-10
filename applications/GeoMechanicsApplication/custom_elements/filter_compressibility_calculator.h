@@ -30,14 +30,12 @@ public:
     {
     public:
         InputProvider(std::function<const Properties&()> GetElementProperties,
-                      std::function<const std::vector<RetentionLaw::Pointer>&()> GetRetentionLaws,
                       std::function<const Matrix&()>                             GetNContainer,
                       std::function<Vector()> GetIntegrationCoefficients,
                       std::function<Vector()> GetProjectedGravityForIntegrationPoints,
                       std::function<double()> GetMatrixScalarFactor,
                       std::function<Vector(const Variable<double>&)> GetNodalValuesOf)
             : mGetElementProperties(std::move(GetElementProperties)),
-              mGetRetentionLaws(std::move(GetRetentionLaws)),
               mGetNContainer(std::move(GetNContainer)),
               mGetIntegrationCoefficients(std::move(GetIntegrationCoefficients)),
               mGetProjectedGravityForIntegrationPoints(std::move(GetProjectedGravityForIntegrationPoints)),
@@ -47,7 +45,6 @@ public:
         }
 
         [[nodiscard]] const Properties&                         GetElementProperties() const;
-        [[nodiscard]] const std::vector<RetentionLaw::Pointer>& GetRetentionLaws() const;
         [[nodiscard]] const Matrix&                             GetNContainer() const;
         [[nodiscard]] Vector                                    GetIntegrationCoefficients() const;
         [[nodiscard]] Vector GetProjectedGravityForIntegrationPoints() const;
@@ -56,7 +53,6 @@ public:
 
     private:
         std::function<const Properties&()>                         mGetElementProperties;
-        std::function<const std::vector<RetentionLaw::Pointer>&()> mGetRetentionLaws;
         std::function<const Matrix&()>                             mGetNContainer;
         std::function<Vector()>                                    mGetIntegrationCoefficients;
         std::function<Vector()>                        mGetProjectedGravityForIntegrationPoints;

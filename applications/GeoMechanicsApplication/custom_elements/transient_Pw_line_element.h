@@ -15,10 +15,10 @@
 
 #include "calculation_contribution.h"
 #include "compressibility_calculator.h"
-#include "filter_compressibility_calculator.h"
 #include "custom_retention/retention_law_factory.h"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
+#include "filter_compressibility_calculator.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/cfd_variables.h"
 #include "includes/element.h"
@@ -259,7 +259,7 @@ private:
 
         RetentionLaw::Parameters RetentionParameters(GetProperties());
 
-        const Vector projected_gravity = CalculateProjectedGravityAtIntegrationPoints(N_container);
+        const auto projected_gravity = CalculateProjectedGravityAtIntegrationPoints(N_container);
 
         array_1d<double, TNumNodes> fluid_body_vector = ZeroVector(TNumNodes);
         for (unsigned int integration_point_index = 0;
@@ -278,7 +278,7 @@ private:
 
     Vector CalculateProjectedGravityAtIntegrationPoints(const Matrix& rNContainer) const
     {
-        const std::size_t number_integration_points =
+        const auto number_integration_points =
             GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
         GeometryType::JacobiansType J_container;
         J_container.resize(number_integration_points, false);
@@ -334,7 +334,7 @@ private:
     FilterCompressibilityCalculator::InputProvider CreateFilterCompressibilityInputProvider(const ProcessInfo& rCurrentProcessInfo)
     {
         return FilterCompressibilityCalculator::InputProvider(
-            MakePropertiesGetter(), MakeRetentionLawsGetter(), MakeNContainerGetter(),
+            MakePropertiesGetter(), MakeNContainerGetter(),
             MakeIntegrationCoefficientsGetter(), MakeProjectedGravityForIntegrationPointsGetter(), MakeMatrixScalarFactorGetter(rCurrentProcessInfo),
             MakeNodalVariableGetter());
     }

@@ -79,11 +79,6 @@ const Properties& FilterCompressibilityCalculator::InputProvider::GetElementProp
     return mGetElementProperties();
 }
 
-const std::vector<RetentionLaw::Pointer>& FilterCompressibilityCalculator::InputProvider::GetRetentionLaws() const
-{
-    return mGetRetentionLaws();
-}
-
 const Matrix& FilterCompressibilityCalculator::InputProvider::GetNContainer() const
 {
     return mGetNContainer();

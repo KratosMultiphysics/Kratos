@@ -46,14 +46,14 @@ public:
     {
         if (rMaterialProperties.Has(RETENTION_LAW)) {
             const std::string& RetentionLawName = rMaterialProperties[RETENTION_LAW];
-            if (RetentionLawName == "VanGenuchtenLaw") return make_unique<VanGenuchtenLaw>();
+            if (RetentionLawName == "VanGenuchtenLaw") return std::make_unique<VanGenuchtenLaw>();
 
-            if (RetentionLawName == "SaturatedLaw") return make_unique<SaturatedLaw>();
+            if (RetentionLawName == "SaturatedLaw") return std::make_unique<SaturatedLaw>();
 
             if (RetentionLawName == "SaturatedBelowPhreaticLevelLaw")
-                return make_unique<SaturatedBelowPhreaticLevelLaw>();
+                return std::make_unique<SaturatedBelowPhreaticLevelLaw>();
 
-            if (RetentionLawName == "PressureFilterLaw") return make_unique<SaturatedLaw>();
+            if (RetentionLawName == "PressureFilterLaw") return std::make_unique<SaturatedLaw>();
 
             KRATOS_ERROR << "Undefined RETENTION_LAW! " << RetentionLawName << std::endl;
 
@@ -61,7 +61,7 @@ public:
         }
 
         // default is saturated law
-        return make_unique<SaturatedLaw>();
+        return std::make_unique<SaturatedLaw>();
     }
 
 }; // Class RetentionLawFactory
