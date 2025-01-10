@@ -879,7 +879,7 @@ namespace Kratos
     
     KRATOS_CATCH("")
   }
-  
+
   //------------------------------------------------------------------------------------------------------------
   double ThermalSphericParticle::ComputeContactRadius(void) {
     KRATOS_TRY
