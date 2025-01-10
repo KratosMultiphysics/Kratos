@@ -291,16 +291,8 @@ namespace Kratos {
         const double ActualTotalShearForce = sqrt(tangential_contact_force_0 * tangential_contact_force_0 + tangential_contact_force_1 * tangential_contact_force_1);
 
         if (ActualTotalShearForce > MaximumAdmisibleShearForce) {
-          const double fraction = MaximumAdmisibleShearForce / ActualTotalShearForce;
-          LocalElasticContactForce[0]      = fraction * LocalElasticContactForce[0];
-          LocalElasticContactForce[1]      = fraction * LocalElasticContactForce[1];
-          ViscoDampingLocalContactForce[0] = fraction * ViscoDampingLocalContactForce[0];
-          ViscoDampingLocalContactForce[1] = fraction * ViscoDampingLocalContactForce[1];
-          sliding = true;
-          return;
-
-          // Old force calculation
-          const double ActualElasticShearForce = AuxElasticShearForce;
+          if {false} {
+            const double ActualElasticShearForce = AuxElasticShearForce;
 
             const double dot_product = LocalElasticContactForce[0] * ViscoDampingLocalContactForce[0] + LocalElasticContactForce[1] * ViscoDampingLocalContactForce[1];
             const double ViscoDampingLocalContactForceModule = sqrt(ViscoDampingLocalContactForce[0] * ViscoDampingLocalContactForce[0] +\
@@ -336,6 +328,13 @@ namespace Kratos {
                     ViscoDampingLocalContactForce[1] = 0.0;
                 }
             }
+          }
+          sliding = true;
+          const double fraction = MaximumAdmisibleShearForce / ActualTotalShearForce;
+          LocalElasticContactForce[0]      = fraction * LocalElasticContactForce[0];
+          LocalElasticContactForce[1]      = fraction * LocalElasticContactForce[1];
+          ViscoDampingLocalContactForce[0] = fraction * ViscoDampingLocalContactForce[0];
+          ViscoDampingLocalContactForce[1] = fraction * ViscoDampingLocalContactForce[1];
         }
     }
 
