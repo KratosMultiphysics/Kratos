@@ -147,7 +147,7 @@ namespace Kratos
     
     mHasVariableRadius = (r_properties.Has(THERMAL_EXPANSION_COEFFICIENT) && r_properties[THERMAL_EXPANSION_COEFFICIENT] != 0.0) ||
                           r_properties.HasTable(TEMPERATURE, THERMAL_EXPANSION_COEFFICIENT);
-    
+
     mStoreContactParam = mHasMotion &&
                         (r_process_info[HEAT_GENERATION_OPTION]  ||
                         (r_process_info[DIRECT_CONDUCTION_OPTION] && r_process_info[DIRECT_CONDUCTION_MODEL_NAME].compare("collisional") == 0) || 
@@ -866,6 +866,20 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
+  double ThermalSphericParticle::ComputeMaxContactRadius(void) {
+    KRATOS_TRY
+
+    const double eff_radius             = ComputeEffectiveRadius();
+    const double eff_mass               = ComputeEffectiveMass();
+    const double eff_young              = ComputeEffectiveYoungReal(); // ATTENTION: Assumption: Original model was not assumed real Young modulus!
+    const double impact_normal_velocity = fabs(GetContactParameters().impact_velocity[0]);
+
+    return pow(15.0 * eff_mass * eff_radius * eff_radius * impact_normal_velocity * impact_normal_velocity / (16.0 * eff_young), 0.2);
+    
+    KRATOS_CATCH("")
+  }
+  
   //------------------------------------------------------------------------------------------------------------
   double ThermalSphericParticle::ComputeContactRadius(void) {
     KRATOS_TRY
