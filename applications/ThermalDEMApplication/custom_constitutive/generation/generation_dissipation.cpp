@@ -107,7 +107,7 @@ namespace Kratos {
     }
 
     // Rolling friction thermal power
-    if (r_process_info[GENERATION_ROLLING_OPTION] && particle->Is(DEMFlags::HAS_ROLLING_FRICTION)) {
+    if (r_process_info[GENERATION_ROLLING_OPTION] && particle->Is(DEMFlags::HAS_ROTATION) && particle->Is(DEMFlags::HAS_ROLLING_FRICTION)) {
       thermal_energy = coeff * contact_params.rollresist_energy;
       heat_gen = thermal_energy / time;
 

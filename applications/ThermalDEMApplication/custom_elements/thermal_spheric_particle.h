@@ -107,6 +107,7 @@ namespace Kratos
       double ComputeMaxCollisionTime             (void);
       double ComputeMaxCollisionTimeReal         (void);
       double ComputeMaxContactRadius             (void);
+      double ComputeMaxContactRadiusReal         (void);
       double ComputeContactRadius                (void);
       double ComputeEffectiveRadius              (void);
       double ComputeEffectiveMass                (void);
