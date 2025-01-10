@@ -149,8 +149,10 @@ namespace Kratos
                           r_properties.HasTable(TEMPERATURE, THERMAL_EXPANSION_COEFFICIENT);
 
     mStoreContactParam = mHasMotion &&
-                        (r_process_info[HEAT_GENERATION_OPTION]  ||
-                        (r_process_info[DIRECT_CONDUCTION_OPTION] && r_process_info[DIRECT_CONDUCTION_MODEL_NAME].compare("collisional") == 0));    
+                        (r_process_info[HEAT_GENERATION_OPTION] ||
+                        (r_process_info[DIRECT_CONDUCTION_OPTION] && r_process_info[DIRECT_CONDUCTION_MODEL_NAME].compare("collisional") == 0) || 
+                        (r_process_info[REAL_CONTACT_OPTION] && (r_process_info[REAL_CONTACT_MODEL_NAME].compare("morris_area_time") == 0      ||
+                                                                 r_process_info[REAL_CONTACT_MODEL_NAME].compare("rangel_area_time") == 0))); 
     
     // Clear maps
     mContactParamsParticle.clear();
@@ -842,7 +844,7 @@ namespace Kratos
     if (impact_normal_velocity != 0.0)
       return 2.87 * pow(eff_mass * eff_mass / (eff_radius * eff_young * eff_young * impact_normal_velocity), 0.2);
     else
-      return std::numeric_limits<double>::max();
+      return 0.0;
 
     KRATOS_CATCH("")
   }
@@ -859,7 +861,7 @@ namespace Kratos
     if (impact_normal_velocity != 0.0)
       return 2.87 * pow(eff_mass * eff_mass / (eff_radius * eff_young * eff_young * impact_normal_velocity), 0.2);
     else
-      return std::numeric_limits<double>::max();
+      return 0.0;
 
     KRATOS_CATCH("")
   }
