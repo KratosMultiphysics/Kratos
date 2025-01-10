@@ -27,7 +27,9 @@ In this test case, the result at node number 3 at location $y = -2 \mathrm{[m]}$
 
 
 # Test Cases for Water Pore Pressure Line Element with Filter as Retention Law
-Two test cases are repeated with modification for retention law in the material parameters. They are test cases on elements of 2D3N and 3D3N. Here, the retention law is replaced by "PressureFilterLaw". The results are then compared with analytical results.
+Two test cases are repeated with modification for retention law in the material parameters. They are test cases on elements of 2D3N and 3D3N (with slope of 45 degrees). Here, the retention law is replaced by "PressureFilterLaw". The results are then compared with analytical results.
 The results for both test configurations are identical and they are also identical to the results of the prrssure line element.
+
+The picture below illustrates the pressure profile resulting from the simulation (as an example the 2D3N test is shown below).
 
 <img src="documentation_data/test_pressure_filter_element_2d3n_result.png" alt="Pressure along depth at the last time step" title="Pressure along the depth at the last time step" width="600">
