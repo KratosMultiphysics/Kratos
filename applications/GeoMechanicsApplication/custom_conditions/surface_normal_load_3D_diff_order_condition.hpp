@@ -50,8 +50,8 @@ protected:
     void CalculateConditionVector(ConditionVariables& rVariables, unsigned int PointNumber) override;
 
     double CalculateIntegrationCoefficient(IndexType                          PointNumber,
-                                           const GeometryType::JacobiansType& JContainer,
-                                           const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const override;
+                                           const GeometryType::JacobiansType& rJContainer,
+                                           const GeometryType::IntegrationPointsArrayType& rIntegrationPoints) const override;
 
     void CalculateAndAddConditionForce(Vector& rRightHandSideVector, ConditionVariables& rVariables) override;
 

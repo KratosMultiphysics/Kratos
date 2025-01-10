@@ -90,14 +90,10 @@ void GeneralUPwDiffOrderCondition::CalculateLocalSystem(Matrix&            rLeft
         r_geom.PointsNumber() * r_geom.WorkingSpaceDimension() + mpPressureGeometry->PointsNumber();
 
     // Resetting the LHS
-    if (rLeftHandSideMatrix.size1() != condition_size)
-        rLeftHandSideMatrix.resize(condition_size, condition_size, false);
-    noalias(rLeftHandSideMatrix) = ZeroMatrix(condition_size, condition_size);
+    rLeftHandSideMatrix = ZeroMatrix(condition_size, condition_size);
 
     // Resetting the RHS
-    if (rRightHandSideVector.size() != condition_size)
-        rRightHandSideVector.resize(condition_size, false);
-    noalias(rRightHandSideVector) = ZeroVector(condition_size);
+    rRightHandSideVector = ZeroVector(condition_size);
 
     // calculation flags
     bool CalculateLHSMatrixFlag      = true;
@@ -126,9 +122,7 @@ void GeneralUPwDiffOrderCondition::CalculateRightHandSide(Vector&            rRi
         r_geom.PointsNumber() * r_geom.WorkingSpaceDimension() + mpPressureGeometry->PointsNumber();
 
     // Resetting the RHS
-    if (rRightHandSideVector.size() != condition_size)
-        rRightHandSideVector.resize(condition_size, false);
-    noalias(rRightHandSideVector) = ZeroVector(condition_size);
+    rRightHandSideVector = ZeroVector(condition_size);
 
     // calculation flags
     bool CalculateLHSMatrixFlag      = false;
@@ -180,21 +174,19 @@ void GeneralUPwDiffOrderCondition::CalculateAll(const Matrix&      rLeftHandSide
 void GeneralUPwDiffOrderCondition::InitializeConditionVariables(ConditionVariables& rVariables,
                                                                 const ProcessInfo& rCurrentProcessInfo)
 {
-    const auto& r_geom       = GetGeometry();
-    const auto  num_u_nodes  = r_geom.PointsNumber();
-    const auto  num_p_nodes  = mpPressureGeometry->PointsNumber();
-    const auto  num_g_points = r_geom.IntegrationPointsNumber(this->GetIntegrationMethod());
+    const auto& r_geom      = GetGeometry();
+    const auto  num_u_nodes = r_geom.PointsNumber();
+    const auto  num_p_nodes = mpPressureGeometry->PointsNumber();
+    const auto number_of_integration_points = r_geom.IntegrationPointsNumber(this->GetIntegrationMethod());
 
-    rVariables.NuContainer.resize(num_g_points, num_u_nodes, false);
     rVariables.NuContainer = r_geom.ShapeFunctionsValues(this->GetIntegrationMethod());
 
-    rVariables.NpContainer.resize(num_g_points, num_p_nodes, false);
     rVariables.NpContainer = mpPressureGeometry->ShapeFunctionsValues(this->GetIntegrationMethod());
 
     rVariables.Nu.resize(num_u_nodes, false);
     rVariables.Np.resize(num_p_nodes, false);
 
-    rVariables.JContainer.resize(num_g_points, false);
+    rVariables.JContainer.resize(number_of_integration_points, false);
     for (auto& j : rVariables.JContainer)
         j.resize(r_geom.WorkingSpaceDimension(), r_geom.LocalSpaceDimension(), false);
     r_geom.Jacobian(rVariables.JContainer, this->GetIntegrationMethod());
@@ -259,7 +251,7 @@ void GeneralUPwDiffOrderCondition::CalculateAndAddConditionForce(Vector& rRightH
 
 Condition::DofsVectorType GeneralUPwDiffOrderCondition::GetDofs() const
 {
-    const auto r_geometry = this->GetGeometry();
+    const auto& r_geometry = this->GetGeometry();
     return Geo::DofUtilities::ExtractUPwDofsFromNodes(r_geometry, *mpPressureGeometry,
                                                       r_geometry.WorkingSpaceDimension());
 }

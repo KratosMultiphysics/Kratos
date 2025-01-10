@@ -19,6 +19,10 @@ UPwCondition <|-- UPwFaceLoadCondition
 UPwCondition <|-- UPwNormalFaceLoadCondition
 UPwCondition <|-- UPwFaceLoadInterfaceCondition
 
+class AxisymmetricUPwNormalFaceLoadCondition
+
+UPwNormalFaceLoadCondition <|-- AxisymmetricUPwNormalFaceLoadCondition
+
 class UPwNormalFluxCondition
 
 UPwFaceLoadCondition <|-- UPwNormalFluxCondition

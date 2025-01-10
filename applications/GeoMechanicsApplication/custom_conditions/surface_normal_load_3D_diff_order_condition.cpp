@@ -80,13 +80,12 @@ void SurfaceNormalLoad3DDiffOrderCondition::CalculateConditionVector(ConditionVa
 
 double SurfaceNormalLoad3DDiffOrderCondition::CalculateIntegrationCoefficient(
     IndexType                                       PointNumber,
-    const GeometryType::JacobiansType&              JContainer,
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const
-
+    const GeometryType::JacobiansType&              rJContainer,
+    const GeometryType::IntegrationPointsArrayType& rIntegrationPoints) const
 {
     KRATOS_TRY
 
-    return IntegrationPoints[PointNumber].Weight();
+    return rIntegrationPoints[PointNumber].Weight();
 
     KRATOS_CATCH("")
 }
@@ -94,7 +93,7 @@ double SurfaceNormalLoad3DDiffOrderCondition::CalculateIntegrationCoefficient(
 void SurfaceNormalLoad3DDiffOrderCondition::CalculateAndAddConditionForce(Vector& rRightHandSideVector,
                                                                           ConditionVariables& rVariables)
 {
-    for (SizeType node = 0; node < this->GetGeometry().PointsNumber(); ++node) {
+    for (SizeType node = 0; node < GetGeometry().PointsNumber(); ++node) {
         rRightHandSideVector[3 * node] +=
             rVariables.Nu[node] * rVariables.ConditionVector[0] * rVariables.IntegrationCoefficient;
         rRightHandSideVector[3 * node + 1] +=
