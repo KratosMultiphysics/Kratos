@@ -31,9 +31,8 @@ Condition::Pointer UPwNormalFluxCondition<TDim, TNumNodes>::Create(IndexType    
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(Vector& rRightHandSideVector, const ProcessInfo&)
 {
-    const auto&                             r_geometry = this->GetGeometry();
-    const auto& r_integration_points =
-        r_geometry.IntegrationPoints(this->GetIntegrationMethod());
+    const auto& r_geometry           = this->GetGeometry();
+    const auto& r_integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
     const unsigned int number_of_integration_points = r_integration_points.size();
 
     // Containers of variables at all integration points
@@ -51,7 +50,7 @@ void UPwNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(Vector& rRightHandSid
 
     for (unsigned int integration_point = 0; integration_point < number_of_integration_points; ++integration_point) {
         // Compute normal flux
-        Variables.NormalFlux = MathUtils<>::Dot(row(r_n_container, integration_point), normal_flux_vector);
+        auto normal_flux = MathUtils<>::Dot(row(r_n_container, integration_point), normal_flux_vector);
 
         // Obtain Np
         noalias(Variables.Np) = row(r_n_container, integration_point);
@@ -62,17 +61,8 @@ void UPwNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(Vector& rRightHandSid
 
         // Contributions to the right hand side
         GeoElementUtilities::AssemblePBlockVector(
-            rRightHandSideVector, -Variables.NormalFlux * Variables.Np * Variables.IntegrationCoefficient);
+            rRightHandSideVector, -normal_flux * Variables.Np * Variables.IntegrationCoefficient);
     }
-}
-
-// Sadly the FIC_condition is a derived class that uses this one, I would like to remove this function.
-template <unsigned int TDim, unsigned int TNumNodes>
-void UPwNormalFluxCondition<TDim, TNumNodes>::CalculateAndAddRHS(Vector& rRightHandSideVector,
-                                                                 NormalFluxVariables& rVariables)
-{
-    GeoElementUtilities::AssemblePBlockVector(
-        rRightHandSideVector, -rVariables.NormalFlux * rVariables.Np * rVariables.IntegrationCoefficient);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

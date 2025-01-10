@@ -16,6 +16,7 @@
 #include "custom_conditions/U_Pw_normal_flux_FIC_condition.hpp"
 #include "custom_utilities/condition_utilities.hpp"
 #include "custom_utilities/transport_equation_utilities.hpp"
+#include "custom_utilities/variables_utilities.hpp"
 
 namespace Kratos
 {
@@ -40,21 +41,21 @@ void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateAll(Matrix& rLeftHandS
                                                               Vector& rRightHandSideVector,
                                                               const ProcessInfo& CurrentProcessInfo)
 {
-    const PropertiesType&                           r_prop = this->GetProperties();
-    const GeometryType&                             r_geom = this->GetGeometry();
+    const auto&                                     r_prop = this->GetProperties();
+    const auto&                                     r_geom = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
         r_geom.IntegrationPoints(this->GetIntegrationMethod());
-    const unsigned int NumGPoints = IntegrationPoints.size();
+    const unsigned int number_of_integration_points = IntegrationPoints.size();
 
     // Containers of variables at all integration points
-    const Matrix& NContainer = r_geom.ShapeFunctionsValues(this->GetIntegrationMethod());
-    GeometryType::JacobiansType JContainer(NumGPoints);
-    for (auto& j : JContainer)
+    const Matrix& n_container = r_geom.ShapeFunctionsValues(this->GetIntegrationMethod());
+    GeometryType::JacobiansType j_container(number_of_integration_points);
+    for (auto& j : j_container)
         j.resize(TDim, r_geom.LocalSpaceDimension(), false);
-    r_geom.Jacobian(JContainer, this->GetIntegrationMethod());
+    r_geom.Jacobian(j_container, this->GetIntegrationMethod());
 
     // Condition variables
-    array_1d<double, TNumNodes> NormalFluxVector;
+    array_1d<double, TNumNodes> normal_flux_vector;
     NormalFluxVariables         Variables;
     NormalFluxFICVariables      FICVariables;
     FICVariables.DtPressureCoefficient = CurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
@@ -65,31 +66,29 @@ void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateAll(Matrix& rLeftHandS
     const double BiotCoefficient = 1.0 - BulkModulus / BulkModulusSolid;
     FICVariables.BiotModulusInverse =
         (BiotCoefficient - Porosity) / BulkModulusSolid + Porosity / r_prop[BULK_MODULUS_FLUID];
-    for (unsigned int i = 0; i < TNumNodes; ++i) {
-        NormalFluxVector[i]              = r_geom[i].FastGetSolutionStepValue(NORMAL_FLUID_FLUX);
-        FICVariables.DtPressureVector[i] = r_geom[i].FastGetSolutionStepValue(DT_WATER_PRESSURE);
-    }
+
+    VariablesUtilities::GetNodalValues(r_geom, NORMAL_FLUID_FLUX, normal_flux_vector.begin());
+    VariablesUtilities::GetNodalValues(r_geom, DT_WATER_PRESSURE, FICVariables.DtPressureVector.begin());
 
     // Loop over integration points
-    for (unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++) {
+    for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
+         integration_point++) {
         // Compute normal flux
-        Variables.NormalFlux = 0.0;
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            Variables.NormalFlux += NContainer(GPoint, i) * NormalFluxVector[i];
-        }
+        auto normal_flux = MathUtils<>::Dot(row(n_container, integration_point), normal_flux_vector);
 
         // Obtain Np
-        noalias(Variables.Np) = row(NContainer, GPoint);
+        noalias(Variables.Np) = row(n_container, integration_point);
 
         // Compute weighting coefficient for integration
         Variables.IntegrationCoefficient = ConditionUtilities::CalculateIntegrationCoefficient(
-            JContainer[GPoint], IntegrationPoints[GPoint].Weight());
+            j_container[integration_point], IntegrationPoints[integration_point].Weight());
 
         // Contributions to the left hand side
         this->CalculateAndAddLHSStabilization(rLeftHandSideMatrix, Variables, FICVariables);
 
         // Contributions to the right hand side
-        this->CalculateAndAddRHS(rRightHandSideVector, Variables);
+        GeoElementUtilities::AssemblePBlockVector(
+            rRightHandSideVector, -normal_flux * Variables.Np * Variables.IntegrationCoefficient);
 
         this->CalculateAndAddRHSStabilization(rRightHandSideVector, Variables, FICVariables);
     }
@@ -99,21 +98,21 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateRHS(Vector& rRightHandSideVector,
                                                               const ProcessInfo& CurrentProcessInfo)
 {
-    const PropertiesType&                           r_prop = this->GetProperties();
-    const GeometryType&                             r_geom = this->GetGeometry();
+    const auto&                                     r_prop = this->GetProperties();
+    const auto&                                     r_geom = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
         r_geom.IntegrationPoints(this->GetIntegrationMethod());
-    const unsigned int NumGPoints = IntegrationPoints.size();
+    const unsigned int number_of_integration_points = IntegrationPoints.size();
 
     // Containers of variables at all integration points
-    const Matrix& NContainer = r_geom.ShapeFunctionsValues(this->GetIntegrationMethod());
-    GeometryType::JacobiansType JContainer(NumGPoints);
-    for (auto& j : JContainer)
+    const Matrix& n_container = r_geom.ShapeFunctionsValues(this->GetIntegrationMethod());
+    GeometryType::JacobiansType j_container(number_of_integration_points);
+    for (auto& j : j_container)
         j.resize(TDim, r_geom.LocalSpaceDimension(), false);
-    r_geom.Jacobian(JContainer, this->GetIntegrationMethod());
+    r_geom.Jacobian(j_container, this->GetIntegrationMethod());
 
     // Condition variables
-    array_1d<double, TNumNodes> NormalFluxVector;
+    array_1d<double, TNumNodes> normal_flux_vector;
     NormalFluxVariables         Variables;
     NormalFluxFICVariables      FICVariables;
     FICVariables.DtPressureCoefficient = CurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
@@ -124,48 +123,45 @@ void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateRHS(Vector& rRightHand
     const double BiotCoefficient = 1.0 - BulkModulus / BulkModulusSolid;
     FICVariables.BiotModulusInverse =
         (BiotCoefficient - Porosity) / BulkModulusSolid + Porosity / r_prop[BULK_MODULUS_FLUID];
-    for (unsigned int i = 0; i < TNumNodes; ++i) {
-        NormalFluxVector[i]              = r_geom[i].FastGetSolutionStepValue(NORMAL_FLUID_FLUX);
-        FICVariables.DtPressureVector[i] = r_geom[i].FastGetSolutionStepValue(DT_WATER_PRESSURE);
-    }
+    VariablesUtilities::GetNodalValues(r_geom, NORMAL_FLUID_FLUX, normal_flux_vector.begin());
+    VariablesUtilities::GetNodalValues(r_geom, DT_WATER_PRESSURE, FICVariables.DtPressureVector.begin());
 
-    for (unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++) {
+    for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
+         integration_point++) {
         // Compute normal flux
-        Variables.NormalFlux = 0.0;
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            Variables.NormalFlux += NContainer(GPoint, i) * NormalFluxVector[i];
-        }
+        auto normal_flux = MathUtils<>::Dot(row(n_container, integration_point), normal_flux_vector);
 
         // Obtain Np
-        noalias(Variables.Np) = row(NContainer, GPoint);
+        noalias(Variables.Np) = row(n_container, integration_point);
 
         // Compute weighting coefficient for integration
         Variables.IntegrationCoefficient = ConditionUtilities::CalculateIntegrationCoefficient(
-            JContainer[GPoint], IntegrationPoints[GPoint].Weight());
+            j_container[integration_point], IntegrationPoints[integration_point].Weight());
 
         // Contributions to the right hand side
-        this->CalculateAndAddRHS(rRightHandSideVector, Variables);
+        GeoElementUtilities::AssemblePBlockVector(
+            rRightHandSideVector, -normal_flux * Variables.Np * Variables.IntegrationCoefficient);
 
         this->CalculateAndAddRHSStabilization(rRightHandSideVector, Variables, FICVariables);
     }
 }
 
 template <>
-void UPwNormalFluxFICCondition<2, 2>::CalculateElementLength(double& rElementLength, const GeometryType& Geom)
+void UPwNormalFluxFICCondition<2, 2>::CalculateElementLength(double& rElementLength, const GeometryType& rGeom)
 {
-    rElementLength = Geom.Length();
+    rElementLength = rGeom.Length();
 }
 
 template <>
-void UPwNormalFluxFICCondition<3, 3>::CalculateElementLength(double& rElementLength, const GeometryType& Geom)
+void UPwNormalFluxFICCondition<3, 3>::CalculateElementLength(double& rElementLength, const GeometryType& rGeom)
 {
-    rElementLength = sqrt(4.0 * Geom.Area() / Globals::Pi);
+    rElementLength = sqrt(4.0 * rGeom.Area() / Globals::Pi);
 }
 
 template <>
-void UPwNormalFluxFICCondition<3, 4>::CalculateElementLength(double& rElementLength, const GeometryType& Geom)
+void UPwNormalFluxFICCondition<3, 4>::CalculateElementLength(double& rElementLength, const GeometryType& rGeom)
 {
-    rElementLength = sqrt(4.0 * Geom.Area() / Globals::Pi);
+    rElementLength = sqrt(4.0 * rGeom.Area() / Globals::Pi);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -203,12 +199,11 @@ void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateAndAddBoundaryMassFlow
     const auto compressibility_matrix = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
         rVariables.Np, rFICVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
 
-    // it seems the factor of 1/6 comes when Eq. 2.56 substituted into Eqs.2.69/2.70 in Pouplana's PhD thesis.
-    noalias(rVariables.PVector) =
-        prod(compressibility_matrix * rFICVariables.ElementLength / 6.0, rFICVariables.DtPressureVector);
-
-    // Distribute boundary mass flow vector into elemental vector
-    GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, rVariables.PVector);
+    // it seems the factor of 1/6 comes when Eq. 2.56 substituted into Eqs.2.69/2.70 in Pouplana's
+    // PhD thesis. Distribute boundary mass flow vector into elemental vector
+    GeoElementUtilities::AssemblePBlockVector(
+        rRightHandSideVector,
+        prod(compressibility_matrix * rFICVariables.ElementLength / 6.0, rFICVariables.DtPressureVector));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

@@ -52,8 +52,8 @@ void UPwNormalFaceLoadCondition<TDim, TNumNodes>::CalculateRHS(Vector& rRightHan
     for (unsigned int integration_point = 0; integration_point < number_of_integration_points; ++integration_point) {
         // Compute traction vector
         array_1d<double, TDim> traction_vector;
-        this->CalculateTractionVector(traction_vector, j_container[integration_point], r_n_container,
-                                      variables, integration_point);
+        this->CalculateTractionVector(traction_vector, j_container[integration_point],
+                                      r_n_container, variables, integration_point);
 
         // Compute Nu Matrix
         BoundedMatrix<double, TDim, TNumNodes * TDim> nu = ZeroMatrix(TDim, TNumNodes * TDim);

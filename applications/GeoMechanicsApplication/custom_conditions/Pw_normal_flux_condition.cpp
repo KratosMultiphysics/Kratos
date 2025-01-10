@@ -33,9 +33,8 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void PwNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(Vector&            rRightHandSideVector,
                                                           const ProcessInfo& CurrentProcessInfo)
 {
-    const auto&                             r_geometry = this->GetGeometry();
-    const auto& r_integration_points =
-        r_geometry.IntegrationPoints(this->GetIntegrationMethod());
+    const auto& r_geometry           = this->GetGeometry();
+    const auto& r_integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
     const unsigned int number_of_integration_points = r_integration_points.size();
 
     // Containers of variables at all integration points

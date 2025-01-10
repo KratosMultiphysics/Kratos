@@ -61,15 +61,11 @@ public:
 
 protected:
     struct NormalFluxVariables {
-        double                      NormalFlux;
         double                      IntegrationCoefficient;
         array_1d<double, TNumNodes> Np;
-        array_1d<double, TNumNodes> PVector;
     };
 
     void CalculateRHS(Vector& rRightHandSideVector, const ProcessInfo&) override;
-
-    void CalculateAndAddRHS(Vector& rRightHandSideVector, NormalFluxVariables& rVariables);
 
 private:
     friend class Serializer;
