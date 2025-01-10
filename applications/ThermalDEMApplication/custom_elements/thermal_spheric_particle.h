@@ -71,8 +71,9 @@ namespace Kratos
       virtual ~ThermalSphericParticle();
 
       // Initialization methods
-      void Initialize             (const ProcessInfo& r_process_info) override;
-      void InitializeSolutionStep (const ProcessInfo& r_process_info) override;
+      void Initialize                    (const ProcessInfo& r_process_info) override;
+      void InitializeSolutionStep        (const ProcessInfo& r_process_info) override;
+      void InitializeHeatFluxComputation (const ProcessInfo& r_process_info);
 
       // Computation methods
       void CalculateRightHandSide          (const ProcessInfo& r_process_info, double dt, const array_1d<double, 3>& gravity) override;
@@ -85,14 +86,14 @@ namespace Kratos
 
       // Finalization methods
       void FinalizeSolutionStep             (const ProcessInfo& r_process_info) override;
-      void UpdateTemperatureDependentRadius (const ProcessInfo& r_process_info) {};
+      void UpdateTemperatureDependentRadius (const ProcessInfo& r_process_info);
 
       // Auxiliary computations
-      void   ComputeAddedSearchDistance   (const ProcessInfo& r_process_info, double& added_search_distance) {};
-      double ComputePrandtlNumber         (const ProcessInfo& r_process_info) {return 0.0;};
-      double ComputeReynoldNumber         (const ProcessInfo& r_process_info) {return 0.0;};
-      double ComputeFluidRelativeVelocity (const ProcessInfo& r_process_info) {return 0.0;};
-      double GetVoronoiCellFaceRadius     (const ProcessInfo& r_process_info) {return 0.0;};
+      void   ComputeAddedSearchDistance   (const ProcessInfo& r_process_info, double& added_search_distance);
+      double ComputePrandtlNumber         (const ProcessInfo& r_process_info);
+      double ComputeReynoldNumber         (const ProcessInfo& r_process_info);
+      double ComputeFluidRelativeVelocity (const ProcessInfo& r_process_info);
+      double GetVoronoiCellFaceRadius     (const ProcessInfo& r_process_info);
 
       // Neighbor interaction computations
       void   CleanContactParameters              (const ProcessInfo& r_process_info);
@@ -102,10 +103,10 @@ namespace Kratos
       double ComputeDistanceToNeighborAdjusted   (void);
       double ComputeSeparationToNeighbor         (void);
       double ComputeSeparationToNeighborAdjusted (void);
-      double ComputeFourierNumber                (void) {return 0.0;};
+      double ComputeFourierNumber                (void);
       double ComputeMaxCollisionTime             (void);
       double ComputeMaxCollisionTimeReal         (void);
-      double ComputeMaxContactRadius             (void) {return 0.0;};
+      double ComputeMaxContactRadius             (void);
       double ComputeContactRadius                (void);
       double ComputeEffectiveRadius              (void);
       double ComputeEffectiveMass                (void);
@@ -183,6 +184,7 @@ namespace Kratos
       void               SetThermalIntegrationScheme          (ThermalDEMIntegrationScheme::Pointer& scheme);
       void               SetNumericalIntegrationMethod        (NumericalIntegrationMethod::Pointer& method);
       void               SetParticleTemperature               (const double temperature);
+      void               SetParticleHeatFlux                  (const double heat_flux);
       void               SetParticlePrescribedHeatFluxSurface (const double heat_flux);
       void               SetParticlePrescribedHeatFluxVolume  (const double heat_flux);
       void               SetParticleRadius                    (const double radius);
