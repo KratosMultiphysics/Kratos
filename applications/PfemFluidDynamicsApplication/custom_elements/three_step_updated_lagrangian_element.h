@@ -248,14 +248,6 @@ namespace Kratos
 
     double ElementSize();
 
-    void CalculateLeftHandSide(MatrixType &rLeftHandSideMatrix,
-                               const ProcessInfo &rCurrentProcessInfo) override
-    {
-      KRATOS_TRY;
-      KRATOS_THROW_ERROR(std::logic_error, "ThreeStepUpdatedLagrangianElement::CalculateLeftHandSide not implemented", "");
-      KRATOS_CATCH("");
-    }
-
     /**
      * @param rVariable Use ADVPROJ or VELOCITY
      * @param Output (unused)
@@ -264,9 +256,6 @@ namespace Kratos
     virtual void Calculate(const Variable<array_1d<double, 3>> &rVariable,
                            array_1d<double, 3> &rOutput,
                            const ProcessInfo &rCurrentProcessInfo) override{};
-
-    void CalculateRightHandSide(VectorType &rRightHandSideVector,
-                                const ProcessInfo &rCurrentProcessInfo) override{};
 
     // The following methods have different implementations depending on TDim
     /// Provides the global indices for each one of this element's local rows

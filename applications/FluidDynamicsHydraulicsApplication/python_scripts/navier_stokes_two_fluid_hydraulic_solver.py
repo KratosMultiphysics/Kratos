@@ -257,7 +257,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         # Non historical variable are initilized in order to avoid memory problems
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.ACCELERATION, self.main_model_part.Nodes)
         if self.artificial_viscosity:
-            KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosCFD.ARTIFICIAL_DYNAMIC_VISCOSITY, self.main_model_part.Elements)
+            KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.ARTIFICIAL_DYNAMIC_VISCOSITY, self.main_model_part.Elements)
 
         self.apply_fixity_to_corner = self.settings["corner_detection"]["apply_fixity"].GetBool()
         if self.apply_fixity_to_corner:
@@ -448,7 +448,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         properties_1 = self.main_model_part.Properties[1]
         water_dynamic_viscosity_max = self.artificial_limiter_coefficient * properties_1.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)
         for element in self.GetComputingModelPart().Elements:
-            elem_artificial_viscosity = element.Calculate(KratosCFD.ARTIFICIAL_DYNAMIC_VISCOSITY, self.main_model_part.ProcessInfo)
+            elem_artificial_viscosity = element.Calculate(KratosMultiphysics.ARTIFICIAL_DYNAMIC_VISCOSITY, self.main_model_part.ProcessInfo)
 
             if elem_artificial_viscosity > water_dynamic_viscosity_max:
                 elem_artificial_viscosity = water_dynamic_viscosity_max
@@ -466,7 +466,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             # elif pos_nodes==3:
             #     elem_artificial_viscosity = 0.0
 
-            element.SetValue(KratosCFD.ARTIFICIAL_DYNAMIC_VISCOSITY, elem_artificial_viscosity)
+            element.SetValue(KratosMultiphysics.ARTIFICIAL_DYNAMIC_VISCOSITY, elem_artificial_viscosity)
 
     def __PerformLevelSetConvection(self):
 

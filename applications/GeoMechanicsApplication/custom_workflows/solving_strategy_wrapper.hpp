@@ -48,9 +48,10 @@ public:
 
     double GetEndTime() const override { return mrModelPart.GetProcessInfo()[TIME]; }
 
-    void Initialize() override
+    void Initialize() override { mpStrategy->Initialize(); }
+
+    void InitializeOutput() override
     {
-        mpStrategy->Initialize();
         const auto gid_output_settings =
             mProjectParameters["output_processes"]["gid_output"][0]["Parameters"];
         mWriter = std::make_unique<GeoOutputWriter>(
@@ -119,6 +120,14 @@ public:
         }
     }
 
+    void ComputeIncrementalDisplacementField() override
+    {
+        for (auto& node : mrModelPart.Nodes()) {
+            node.GetSolutionStepValue(INCREMENTAL_DISPLACEMENT) =
+                node.GetSolutionStepValue(DISPLACEMENT, 0) - node.GetSolutionStepValue(DISPLACEMENT, 1);
+        }
+    }
+
     void OutputProcess() override
     {
         if (mWriter) {
@@ -133,16 +142,13 @@ public:
     {
         return mpStrategy->SolveSolutionStep() ? TimeStepEndState::ConvergenceState::converged
                                                : TimeStepEndState::ConvergenceState::non_converged;
-        ;
     }
 
     void FinalizeSolutionStep() override { return mpStrategy->FinalizeSolutionStep(); }
 
     void FinalizeOutput() override
     {
-        if (mWriter) {
-            mWriter->FinalizeResults();
-        }
+        if (mWriter) mWriter->FinalizeResults();
     }
 
 private:

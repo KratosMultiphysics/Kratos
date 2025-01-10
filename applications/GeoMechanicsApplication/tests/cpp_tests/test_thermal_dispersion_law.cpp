@@ -12,12 +12,13 @@
 
 #include "custom_constitutive/thermal_dispersion_law.h"
 #include "geo_mechanics_application.h"
+#include "geo_mechanics_fast_suite.h"
 #include "includes/ublas_interface.h"
-#include "testing/testing.h"
 
-namespace Kratos::Testing {
+namespace Kratos::Testing
+{
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateThermalDispersionMatrix2D, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CalculateThermalDispersionMatrix2D, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model current_model;
     auto& r_model_part = current_model.CreateModelPart("ModelPart");
@@ -31,31 +32,28 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateThermalDispersionMatrix2D, KratosGeoMechanics
     cond_prop->SetValue(THERMAL_CONDUCTIVITY_SOLID_XY, 2000.0);
     cond_prop->SetValue(THERMAL_CONDUCTIVITY_SOLID_YY, 1200.0);
 
-    const SizeType dimension = 2;
+    const SizeType          dimension = 2;
     GeoThermalDispersionLaw geo_thermal_dispersion_2D_law(dimension);
-    ProcessInfo info;
 
     const Matrix thermal_dispersion_matrix =
-        geo_thermal_dispersion_2D_law.CalculateThermalDispersionMatrix(
-            *cond_prop, info);
+        geo_thermal_dispersion_2D_law.CalculateThermalDispersionMatrix(*cond_prop);
 
     Matrix expected_solution = ZeroMatrix(2, 2);
-    expected_solution(0, 0) = 1125.0;
-    expected_solution(0, 1) = 1000.0;
-    expected_solution(1, 0) = expected_solution(0, 1);
-    expected_solution(1, 1) = 975.0;
+    expected_solution(0, 0)  = 1125.0;
+    expected_solution(0, 1)  = 1000.0;
+    expected_solution(1, 0)  = expected_solution(0, 1);
+    expected_solution(1, 1)  = 975.0;
 
     constexpr double tolerance{1.0e-6};
 
     for (unsigned int i = 0; i < thermal_dispersion_matrix.size1(); ++i) {
         for (unsigned int j = 0; j < thermal_dispersion_matrix.size2(); ++j) {
-            KRATOS_EXPECT_NEAR(thermal_dispersion_matrix(i, j),
-                               expected_solution(i, j), tolerance);
+            KRATOS_EXPECT_NEAR(thermal_dispersion_matrix(i, j), expected_solution(i, j), tolerance);
         }
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateThermalDispersionMatrix3D, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CalculateThermalDispersionMatrix3D, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model current_model;
     auto& r_model_part = current_model.CreateModelPart("ModelPart");
@@ -72,41 +70,36 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateThermalDispersionMatrix3D, KratosGeoMechanics
     cond_prop->SetValue(THERMAL_CONDUCTIVITY_SOLID_YZ, 2000.0);
     cond_prop->SetValue(THERMAL_CONDUCTIVITY_SOLID_ZZ, 500.0);
 
-    const SizeType dimension = 3;
+    const SizeType          dimension = 3;
     GeoThermalDispersionLaw geo_thermal_dispersion_3D_law(dimension);
-    ProcessInfo info;
 
     const Matrix thermal_dispersion_matrix =
-        geo_thermal_dispersion_3D_law.CalculateThermalDispersionMatrix(
-            *cond_prop, info);
+        geo_thermal_dispersion_3D_law.CalculateThermalDispersionMatrix(*cond_prop);
 
     Matrix expected_solution = ZeroMatrix(3, 3);
-    expected_solution(0, 0) = 800.0;
-    expected_solution(0, 1) = 1000.0;
-    expected_solution(0, 2) = 500.0;
-    expected_solution(1, 0) = expected_solution(0, 1);
-    expected_solution(1, 1) = expected_solution(0, 0);
-    expected_solution(1, 2) = 1000.0;
-    expected_solution(2, 0) = expected_solution(0, 2);
-    expected_solution(2, 1) = expected_solution(1, 2);
-    expected_solution(2, 2) = 550.0;
+    expected_solution(0, 0)  = 800.0;
+    expected_solution(0, 1)  = 1000.0;
+    expected_solution(0, 2)  = 500.0;
+    expected_solution(1, 0)  = expected_solution(0, 1);
+    expected_solution(1, 1)  = expected_solution(0, 0);
+    expected_solution(1, 2)  = 1000.0;
+    expected_solution(2, 0)  = expected_solution(0, 2);
+    expected_solution(2, 1)  = expected_solution(1, 2);
+    expected_solution(2, 2)  = 550.0;
 
     constexpr double tolerance{1.0e-6};
 
     for (unsigned int i = 0; i < thermal_dispersion_matrix.size1(); ++i) {
         for (unsigned int j = 0; j < thermal_dispersion_matrix.size2(); ++j) {
-            KRATOS_EXPECT_NEAR(thermal_dispersion_matrix(i, j),
-                               expected_solution(i, j), tolerance);
+            KRATOS_EXPECT_NEAR(thermal_dispersion_matrix(i, j), expected_solution(i, j), tolerance);
         }
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GetWorkingSpaceDimension_ReturnsCorrectValue, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TestDispersionLawThrowsWhenDimensionInvalid, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    constexpr SizeType dimension = 3;
-    GeoThermalDispersionLaw geo_thermal_dispersion_3D_law(dimension);
-
-    KRATOS_EXPECT_EQ(geo_thermal_dispersion_3D_law.WorkingSpaceDimension(), dimension);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(GeoThermalDispersionLaw law{0},
+                                      "Got invalid number of dimensions: 0")
 }
 
 } // namespace Kratos::Testing

@@ -12,8 +12,11 @@
 
 // Application includes
 #include "custom_elements/transient_Pw_interface_element.hpp"
-#include "custom_utilities/interface_element_utilities.hpp"
+#include "custom_utilities/dof_utilities.h"
+#include "custom_utilities/interface_element_utilities.h"
+#include "custom_utilities/transport_equation_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
+#include "includes/cfd_variables.h"
 
 namespace Kratos
 {
@@ -23,16 +26,17 @@ Element::Pointer TransientPwInterfaceElement<TDim, TNumNodes>::Create(IndexType 
                                                                       NodesArrayType const& ThisNodes,
                                                                       PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(
-        new TransientPwInterfaceElement(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+    return Element::Pointer(new TransientPwInterfaceElement(
+        NewId, this->GetGeometry().Create(ThisNodes), pProperties, this->GetStressStatePolicy().Clone()));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer TransientPwInterfaceElement<TDim, TNumNodes>::Create(IndexType NewId,
+Element::Pointer TransientPwInterfaceElement<TDim, TNumNodes>::Create(IndexType             NewId,
                                                                       GeometryType::Pointer pGeom,
                                                                       PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new TransientPwInterfaceElement(NewId, pGeom, pProperties));
+    return Element::Pointer(new TransientPwInterfaceElement(NewId, pGeom, pProperties,
+                                                            this->GetStressStatePolicy().Clone()));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -44,7 +48,7 @@ int TransientPwInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurr
     if (ierr != 0) return ierr;
 
     const PropertiesType& Prop = this->GetProperties();
-    const GeometryType& Geom   = this->GetGeometry();
+    const GeometryType&   Geom = this->GetGeometry();
 
     KRATOS_ERROR_IF(this->Id() < 1)
         << "Element found with Id 0 or negative, element: " << this->Id() << std::endl;
@@ -108,7 +112,7 @@ int TransientPwInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurr
 
     return ierr;
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -116,7 +120,7 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::Initialize(const ProcessInfo&
 {
     KRATOS_TRY
 
-    UPwBaseElement<TDim, TNumNodes>::Initialize(rCurrentProcessInfo);
+    UPwBaseElement::Initialize(rCurrentProcessInfo);
 
     // Compute initial gap of the joint
     this->CalculateInitialGap(this->GetGeometry());
@@ -140,12 +144,11 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateMassMatrix(MatrixTyp
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void TransientPwInterfaceElement<TDim, TNumNodes>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+void TransientPwInterfaceElement<TDim, TNumNodes>::InitializeSolutionStep(const ProcessInfo&)
 {
     KRATOS_TRY
 
-    // create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < mRetentionLawVector.size(); ++GPoint) {
@@ -157,12 +160,11 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::InitializeSolutionStep(const 
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void TransientPwInterfaceElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+void TransientPwInterfaceElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessInfo&)
 {
     KRATOS_TRY
 
-    // create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < mRetentionLawVector.size(); ++GPoint) {
@@ -185,8 +187,8 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
             rVariable, rValues, rCurrentProcessInfo);
     } else {
         // Variables computed on Lobatto points
-        const GeometryType& Geom      = this->GetGeometry();
-        const unsigned int NumGPoints = Geom.IntegrationPointsNumber(mThisIntegrationMethod);
+        const GeometryType& Geom       = this->GetGeometry();
+        const unsigned int  NumGPoints = Geom.IntegrationPointsNumber(mThisIntegrationMethod);
         std::vector<double> GPValues(NumGPoints);
 
         for (unsigned int i = 0; i < NumGPoints; ++i) {
@@ -214,8 +216,8 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
             rVariable, rValues, rCurrentProcessInfo);
     } else {
         // Variables computed on Lobatto points
-        const GeometryType& Geom      = this->GetGeometry();
-        const unsigned int NumGPoints = Geom.IntegrationPointsNumber(mThisIntegrationMethod);
+        const GeometryType& Geom       = this->GetGeometry();
+        const unsigned int  NumGPoints = Geom.IntegrationPointsNumber(mThisIntegrationMethod);
         std::vector<array_1d<double, 3>> GPValues(NumGPoints);
 
         for (unsigned int i = 0; i < NumGPoints; ++i) {
@@ -263,9 +265,9 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegration
     KRATOS_TRY
 
     if (rVariable == FLUID_FLUX_VECTOR) {
-        const PropertiesType& Prop    = this->GetProperties();
-        const GeometryType& Geom      = this->GetGeometry();
-        const unsigned int NumGPoints = Geom.IntegrationPointsNumber(mThisIntegrationMethod);
+        const PropertiesType& Prop       = this->GetProperties();
+        const GeometryType&   Geom       = this->GetGeometry();
+        const unsigned int    NumGPoints = Geom.IntegrationPointsNumber(mThisIntegrationMethod);
 
         // Defining the shape functions, the jacobian and the shape functions local gradients Containers
         const Matrix& NContainer = Geom.ShapeFunctionsValues(mThisIntegrationMethod);
@@ -283,7 +285,7 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegration
         array_1d<double, TDim> LocalFluidFlux;
         array_1d<double, TDim> GradPressureTerm;
         array_1d<double, TDim> FluidFlux;
-        SFGradAuxVariables SFGradAuxVars;
+        SFGradAuxVariables     SFGradAuxVars;
 
         // Element variables
         InterfaceElementVariables Variables;
@@ -292,8 +294,7 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegration
         // VG: Perhaps a new parameter to get join width and not minimum joint width
         const double& JointWidth = Prop[MINIMUM_JOINT_WIDTH];
 
-        // create general parameters of retention law
-        RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
+        RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
         // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
@@ -308,8 +309,7 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegration
                 Variables.LocalPermeabilityMatrix, JointWidth, Prop[TRANSVERSAL_PERMEABILITY]);
 
             noalias(GradPressureTerm) = prod(trans(GradNpT), Variables.PressureVector);
-            noalias(GradPressureTerm) +=
-                PORE_PRESSURE_SIGN_FACTOR * Variables.FluidDensity * Variables.BodyAcceleration;
+            noalias(GradPressureTerm) += PORE_PRESSURE_SIGN_FACTOR * Prop[DENSITY_WATER] * Variables.BodyAcceleration;
 
             noalias(LocalFluidFlux) = PORE_PRESSURE_SIGN_FACTOR * Variables.DynamicViscosityInverse *
                                       Variables.RelativePermeability *
@@ -320,9 +320,9 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegration
             GeoElementUtilities::FillArray1dOutput(rOutput[GPoint], FluidFlux);
         }
     } else if (rVariable == LOCAL_FLUID_FLUX_VECTOR) {
-        const PropertiesType& Prop    = this->GetProperties();
-        const GeometryType& Geom      = this->GetGeometry();
-        const unsigned int NumGPoints = Geom.IntegrationPointsNumber(mThisIntegrationMethod);
+        const PropertiesType& Prop       = this->GetProperties();
+        const GeometryType&   Geom       = this->GetGeometry();
+        const unsigned int    NumGPoints = Geom.IntegrationPointsNumber(mThisIntegrationMethod);
 
         // Defining the shape functions, the jacobian and the shape functions local gradients Containers
         const Matrix& NContainer = Geom.ShapeFunctionsValues(mThisIntegrationMethod);
@@ -347,12 +347,12 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegration
         const double& JointWidth = Prop[MINIMUM_JOINT_WIDTH];
 
         BoundedMatrix<double, TNumNodes, TDim> GradNpT;
-        BoundedMatrix<double, TDim, TDim> LocalPermeabilityMatrix = ZeroMatrix(TDim, TDim);
-        const double DynamicViscosityInverse                      = 1.0 / Prop[DYNAMIC_VISCOSITY];
-        const double& FluidDensity                                = Prop[DENSITY_WATER];
+        BoundedMatrix<double, TDim, TDim>      LocalPermeabilityMatrix = ZeroMatrix(TDim, TDim);
+        const double           DynamicViscosityInverse = 1.0 / Prop[DYNAMIC_VISCOSITY];
+        const double&          FluidDensity            = Prop[DENSITY_WATER];
         array_1d<double, TDim> LocalFluidFlux;
         array_1d<double, TDim> GradPressureTerm;
-        SFGradAuxVariables SFGradAuxVars;
+        SFGradAuxVariables     SFGradAuxVars;
 
         // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
@@ -385,16 +385,16 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegration
     KRATOS_TRY
 
     if (rVariable == PERMEABILITY_MATRIX) {
-        const GeometryType& Geom      = this->GetGeometry();
-        const PropertiesType& Prop    = this->GetProperties();
-        const unsigned int NumGPoints = Geom.IntegrationPointsNumber(mThisIntegrationMethod);
+        const GeometryType&   Geom       = this->GetGeometry();
+        const PropertiesType& Prop       = this->GetProperties();
+        const unsigned int    NumGPoints = Geom.IntegrationPointsNumber(mThisIntegrationMethod);
 
         // Defining necessary variables
         BoundedMatrix<double, TDim, TDim> RotationMatrix;
         this->CalculateRotationMatrix(RotationMatrix, Geom);
 
         // VG: Perhaps a new parameter to get join width and not minimum joint width
-        const double& JointWidth                                  = Prop[MINIMUM_JOINT_WIDTH];
+        const double&                     JointWidth              = Prop[MINIMUM_JOINT_WIDTH];
         BoundedMatrix<double, TDim, TDim> LocalPermeabilityMatrix = ZeroMatrix(TDim, TDim);
         BoundedMatrix<double, TDim, TDim> PermeabilityMatrix;
 
@@ -411,15 +411,15 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegration
             noalias(rOutput[GPoint]) = PermeabilityMatrix;
         }
     } else if (rVariable == LOCAL_PERMEABILITY_MATRIX) {
-        const GeometryType& Geom   = this->GetGeometry();
+        const GeometryType&   Geom = this->GetGeometry();
         const PropertiesType& Prop = this->GetProperties();
 
         // Defining the shape functions container
         const unsigned int NumGPoints = Geom.IntegrationPointsNumber(mThisIntegrationMethod);
 
         // VG: Perhaps a new parameter to get join width and not minimum joint width
-        const double& JointWidth                                  = Prop[MINIMUM_JOINT_WIDTH];
-        const double& TransversalPermeability                     = Prop[TRANSVERSAL_PERMEABILITY];
+        const double&                     JointWidth              = Prop[MINIMUM_JOINT_WIDTH];
+        const double&                     TransversalPermeability = Prop[TRANSVERSAL_PERMEABILITY];
         BoundedMatrix<double, TDim, TDim> LocalPermeabilityMatrix = ZeroMatrix(TDim, TDim);
 
         // Loop over integration points
@@ -439,14 +439,14 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHandSideMatrix,
                                                                 VectorType& rRightHandSideVector,
                                                                 const ProcessInfo& CurrentProcessInfo,
-                                                                const bool CalculateStiffnessMatrixFlag,
-                                                                const bool CalculateResidualVectorFlag)
+                                                                bool CalculateStiffnessMatrixFlag,
+                                                                bool CalculateResidualVectorFlag)
 {
     KRATOS_TRY
 
     // Previous definitions
-    const PropertiesType& Prop = this->GetProperties();
-    const GeometryType& Geom   = this->GetGeometry();
+    const PropertiesType&                           Prop = this->GetProperties();
+    const GeometryType&                             Geom = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
         Geom.IntegrationPoints(mThisIntegrationMethod);
     const unsigned int NumGPoints = IntegrationPoints.size();
@@ -469,12 +469,14 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLef
 
     // Auxiliary variables
     array_1d<double, TDim> RelDispVector;
-    SFGradAuxVariables SFGradAuxVars;
+    SFGradAuxVariables     SFGradAuxVars;
 
-    // create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), CurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
     const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);
+
+    const auto integration_coefficients =
+        this->CalculateIntegrationCoefficients(IntegrationPoints, detJContainer);
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
@@ -492,13 +494,11 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLef
         InterfaceElementUtilities::FillPermeabilityMatrix(
             Variables.LocalPermeabilityMatrix, Variables.JointWidth, Prop[TRANSVERSAL_PERMEABILITY]);
 
-        CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
+        this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
         this->InitializeBiotCoefficients(Variables, hasBiotCoefficient);
 
-        // Compute weighting coefficient for integration
-        Variables.IntegrationCoefficient =
-            this->CalculateIntegrationCoefficient(IntegrationPoints, GPoint, detJContainer[GPoint]);
+        Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
         // Contributions to the left hand side
         if (CalculateStiffnessMatrixFlag) this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
@@ -523,9 +523,6 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::InitializeElementVariables(In
     rVariables.IgnoreUndrained = false; // by inheritance? does not have a meaning for a Pw element
 
     rVariables.DynamicViscosityInverse = 1.0 / Prop[DYNAMIC_VISCOSITY];
-    rVariables.FluidDensity            = Prop[DENSITY_WATER];
-    rVariables.SolidDensity            = Prop[DENSITY_SOLID];
-    rVariables.Porosity                = Prop[POROSITY];
 
     // ProcessInfo variables
     rVariables.DtPressureCoefficient = CurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
@@ -574,35 +571,29 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddCompressibilityMatrix(
-    MatrixType& rLeftHandSideMatrix, InterfaceElementVariables& rVariables)
+    MatrixType& rLeftHandSideMatrix, const InterfaceElementVariables& rVariables)
 {
     KRATOS_TRY;
 
-    noalias(rVariables.PMatrix) =
-        -PORE_PRESSURE_SIGN_FACTOR * rVariables.DtPressureCoefficient * rVariables.BiotModulusInverse *
-        outer_prod(rVariables.Np, rVariables.Np) * rVariables.JointWidth * rVariables.IntegrationCoefficient;
+    const auto compressibility_matrix = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
+        rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
 
-    // Distribute compressibility block matrix into the elemental matrix
-    GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, rVariables.PMatrix);
+    rLeftHandSideMatrix += compressibility_matrix * rVariables.DtPressureCoefficient * rVariables.JointWidth;
 
     KRATOS_CATCH("")
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix,
-                                                                                     InterfaceElementVariables& rVariables)
+void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddPermeabilityMatrix(
+    MatrixType& rLeftHandSideMatrix, const InterfaceElementVariables& rVariables)
 {
     KRATOS_TRY;
 
-    noalias(rVariables.PDimMatrix) =
-        -PORE_PRESSURE_SIGN_FACTOR * prod(rVariables.GradNpT, rVariables.LocalPermeabilityMatrix);
+    const auto permeability_matrix = GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
+        rVariables.GradNpT, rVariables.DynamicViscosityInverse, rVariables.LocalPermeabilityMatrix,
+        rVariables.RelativePermeability * rVariables.JointWidth, rVariables.IntegrationCoefficient);
 
-    noalias(rVariables.PMatrix) = rVariables.DynamicViscosityInverse * rVariables.RelativePermeability *
-                                  prod(rVariables.PDimMatrix, trans(rVariables.GradNpT)) *
-                                  rVariables.JointWidth * rVariables.IntegrationCoefficient;
-
-    // Distribute permeability block matrix into the elemental matrix
-    GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, rVariables.PMatrix);
+    rLeftHandSideMatrix += permeability_matrix;
 
     KRATOS_CATCH("")
 }
@@ -625,99 +616,75 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddCompressibilityFlow(
-    VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables)
+    VectorType& rRightHandSideVector, const InterfaceElementVariables& rVariables)
 {
     KRATOS_TRY;
 
-    noalias(rVariables.PMatrix) = -PORE_PRESSURE_SIGN_FACTOR * rVariables.BiotModulusInverse *
-                                  outer_prod(rVariables.Np, rVariables.Np) * rVariables.JointWidth *
-                                  rVariables.IntegrationCoefficient;
+    const auto compressibility_matrix = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
+        rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
 
-    noalias(rVariables.PVector) = -1.0 * prod(rVariables.PMatrix, rVariables.DtPressureVector);
+    const array_1d<double, TNumNodes> compressibility_flow =
+        -rVariables.JointWidth * prod(compressibility_matrix, rVariables.DtPressureVector);
 
-    // Distribute compressibility block vector into elemental vector
-    GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, rVariables.PVector);
+    rRightHandSideVector += compressibility_flow;
 
     KRATOS_CATCH("")
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector,
-                                                                                   InterfaceElementVariables& rVariables)
+void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddPermeabilityFlow(
+    VectorType& rRightHandSideVector, const InterfaceElementVariables& rVariables)
 {
     KRATOS_TRY;
 
-    noalias(rVariables.PDimMatrix) = prod(rVariables.GradNpT, rVariables.LocalPermeabilityMatrix);
+    const BoundedMatrix<double, TNumNodes, TDim> temp_matrix =
+        prod(rVariables.GradNpT, rVariables.LocalPermeabilityMatrix);
 
-    noalias(rVariables.PMatrix) = -PORE_PRESSURE_SIGN_FACTOR * rVariables.DynamicViscosityInverse *
-                                  rVariables.RelativePermeability *
-                                  prod(rVariables.PDimMatrix, trans(rVariables.GradNpT)) *
-                                  rVariables.JointWidth * rVariables.IntegrationCoefficient;
+    const BoundedMatrix<double, TNumNodes, TNumNodes> permeability_matrix =
+        -PORE_PRESSURE_SIGN_FACTOR * rVariables.DynamicViscosityInverse *
+        rVariables.RelativePermeability * prod(temp_matrix, trans(rVariables.GradNpT)) *
+        rVariables.JointWidth * rVariables.IntegrationCoefficient;
 
-    noalias(rVariables.PVector) = -1.0 * prod(rVariables.PMatrix, rVariables.PressureVector);
+    const array_1d<double, TNumNodes> permeability_flow =
+        -1.0 * prod(permeability_matrix, rVariables.PressureVector);
 
-    // Distribute permeability block vector into elemental vector
-    GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, rVariables.PVector);
+    rRightHandSideVector += permeability_flow;
 
     KRATOS_CATCH("")
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector,
-                                                                                InterfaceElementVariables& rVariables)
+                                                                                const InterfaceElementVariables& rVariables)
 {
     KRATOS_TRY;
 
-    noalias(rVariables.PDimMatrix) = -PORE_PRESSURE_SIGN_FACTOR *
-                                     prod(rVariables.GradNpT, rVariables.LocalPermeabilityMatrix) *
-                                     rVariables.JointWidth * rVariables.IntegrationCoefficient;
+    const auto fluid_density = this->GetProperties()[DENSITY_WATER];
+    const BoundedMatrix<double, TNumNodes, TDim> temp_matrix =
+        -PORE_PRESSURE_SIGN_FACTOR * prod(rVariables.GradNpT, rVariables.LocalPermeabilityMatrix) *
+        rVariables.JointWidth * rVariables.IntegrationCoefficient;
 
-    noalias(rVariables.PVector) = rVariables.DynamicViscosityInverse * rVariables.FluidDensity *
-                                  rVariables.RelativePermeability *
-                                  prod(rVariables.PDimMatrix, rVariables.BodyAcceleration);
+    const array_1d<double, TNumNodes> fluid_body_flow =
+        rVariables.DynamicViscosityInverse * fluid_density * rVariables.RelativePermeability *
+        prod(temp_matrix, rVariables.BodyAcceleration);
 
-    // Distribute fluid body flow block vector into elemental vector
-    GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, rVariables.PVector);
+    rRightHandSideVector += fluid_body_flow;
 
     KRATOS_CATCH("")
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwInterfaceElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,
-                                                              const ProcessInfo& rCurrentProcessInfo) const
+                                                              const ProcessInfo&) const
 {
-    KRATOS_TRY
-
-    const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int N_DOF  = this->GetNumberOfDOF();
-
-    if (rElementalDofList.size() != N_DOF) rElementalDofList.resize(N_DOF);
-
-    unsigned int index = 0;
-    for (unsigned int i = 0; i < TNumNodes; ++i) {
-        rElementalDofList[index++] = rGeom[i].pGetDof(WATER_PRESSURE);
-    }
-
-    KRATOS_CATCH("")
+    rElementalDofList = GetDofs();
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwInterfaceElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
-                                                                    const ProcessInfo& rCurrentProcessInfo) const
+                                                                    const ProcessInfo&) const
 {
-    KRATOS_TRY
-
-    const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int N_DOF  = this->GetNumberOfDOF();
-
-    if (rResult.size() != N_DOF) rResult.resize(N_DOF, false);
-
-    unsigned int index = 0;
-    for (unsigned int i = 0; i < TNumNodes; ++i) {
-        rResult[index++] = rGeom[i].GetDof(WATER_PRESSURE).EquationId();
-    }
-
-    KRATOS_CATCH("")
+    rResult = Geo::DofUtilities::ExtractEquationIdsFrom(GetDofs());
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -729,6 +696,7 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::GetValuesVector(Vector& rValu
 
     if (rValues.size() != N_DOF) rValues.resize(N_DOF, false);
 
+    // Why are we constructing a zero vector here?
     unsigned int index = 0;
     for (unsigned int i = 0; i < TNumNodes; ++i) {
         rValues[index++] = 0.0;
@@ -746,6 +714,7 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::GetFirstDerivativesVector(Vec
 
     if (rValues.size() != N_DOF) rValues.resize(N_DOF, false);
 
+    // Why are we constructing a zero vector here?
     unsigned int index = 0;
     for (unsigned int i = 0; i < TNumNodes; ++i) {
         rValues[index++] = 0.0;
@@ -763,6 +732,7 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::GetSecondDerivativesVector(Ve
 
     if (rValues.size() != N_DOF) rValues.resize(N_DOF, false);
 
+    // Why are we constructing a zero vector here?
     unsigned int index = 0;
     for (unsigned int i = 0; i < TNumNodes; ++i) {
         rValues[index++] = 0.0;
@@ -772,9 +742,15 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::GetSecondDerivativesVector(Ve
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-unsigned int TransientPwInterfaceElement<TDim, TNumNodes>::GetNumberOfDOF() const
+std::size_t TransientPwInterfaceElement<TDim, TNumNodes>::GetNumberOfDOF() const
 {
     return TNumNodes;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+Element::DofsVectorType TransientPwInterfaceElement<TDim, TNumNodes>::GetDofs() const
+{
+    return Geo::DofUtilities::ExtractDofsFromNodes(this->GetGeometry(), WATER_PRESSURE);
 }
 
 template class TransientPwInterfaceElement<2, 4>;

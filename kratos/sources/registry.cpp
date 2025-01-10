@@ -43,9 +43,8 @@ namespace
             auto& r_item_name = item_path[i];
             if(p_current_item->HasItem(r_item_name)){
                 p_current_item = &p_current_item->GetItem(r_item_name);
-            }
-            else{
-                KRATOS_ERROR << "The item \"" << rItemFullName << "\" is not found in the registry. The item \"" << p_current_item->Name() << "\" does not have \"" << r_item_name << "\"" << std::endl;
+            } else {
+                NotFoundError(rItemFullName, r_item_name, p_current_item);
             }
         }
 
@@ -65,19 +64,41 @@ namespace
             auto& r_item_name = item_path[i];
             if(p_current_item->HasItem(r_item_name)){
                 p_current_item = &p_current_item->GetItem(r_item_name);
-            }
-            else{
-                KRATOS_ERROR << "The item \"" << rItemFullName << "\" is not found in the registry. The item \"" << p_current_item->Name() << "\" does not have \"" << r_item_name << "\"" << std::endl;
+            } else {
+                NotFoundError(rItemFullName, r_item_name, p_current_item);
             }
         }
 
         auto& r_item_name = item_path.back();
         if(p_current_item->HasItem(r_item_name)){
             p_current_item->RemoveItem(r_item_name);
+        } else {
+            NotFoundError(rItemFullName, r_item_name, p_current_item);
         }
-        else{
-            KRATOS_ERROR << "The item \"" << rItemFullName << "\" is not found in the registry. The item \"" << p_current_item->Name() << "\" does not have \"" << r_item_name << "\"" << std::endl;
+    }
+
+    void Registry::SetCurrentSource(std::string const & rCurrentSource)
+    {
+        // If context key not present, create it
+        if (Registry::HasItem("CurrentContext")){
+            Registry::RemoveItem("CurrentContext");
         }
+
+        // It is needed to create a std::string explicitly copying the '"CurrentContext"+rCurrentSource' to avoid casting problems
+        // involing std::any_cast to a reference type which key references a string that may not be alive when invoked.
+        std::string context_key = std::string("CurrentContext." + rCurrentSource);
+
+        Registry::AddItem<RegistryItem>(context_key);
+    }
+
+    std::string Registry::GetCurrentSource()
+    {
+        // If context key not present, create it
+        if (!Registry::HasItem("CurrentContext")){
+            Registry::AddItem<RegistryItem>("CurrentContext.KratosMultiphysics");
+        }
+
+        return Registry::GetItem("CurrentContext").begin()->first;
     }
 
     std::size_t Registry::size()
@@ -132,6 +153,21 @@ namespace
     std::string Registry::ToJson(std::string const& Indentation) const
     {
         return GetRootRegistryItem().ToJson(Indentation);
+    }
+
+    void Registry::NotFoundError(
+        const std::string& rFullName,
+        const std::string& rItemName,
+        RegistryItem* pCurrentItem
+        )
+    {
+        const std::vector<std::string> available_list = pCurrentItem->GetSubItemAvailableList();
+        std::stringstream error_message_buffer;
+        error_message_buffer << "The item \"" << rFullName << "\" is not found in the registry. The item \"" << pCurrentItem->Name() << "\" does not have \"" << rItemName << "\". The available objects are: \n";
+        for (std::string const& item : available_list) {
+            error_message_buffer << "\t\t" << item << "\n";
+        }
+        KRATOS_ERROR << error_message_buffer.str() << std::endl;
     }
 
     RegistryItem& Registry::GetRootRegistryItem()

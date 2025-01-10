@@ -55,6 +55,9 @@
 #include "custom_elements/fractional_step.h"
 #include "custom_elements/fractional_step_discontinuous.h"
 #include "custom_elements/spalart_allmaras.h"
+#include "custom_elements/low_mach_navier_stokes.h"
+#include "custom_elements/incompressible_navier_stokes_p2_p1_continuous.h"
+
 #include "custom_conditions/wall_condition.h"
 #include "custom_conditions/fs_werner_wengle_wall_condition.h"
 #include "custom_conditions/fs_generalized_wall_condition.h"
@@ -64,6 +67,8 @@
 #include "custom_conditions/two_fluid_navier_stokes_wall_condition.h"
 #include "custom_conditions/fs_periodic_condition.h"
 #include "custom_conditions/navier_stokes_wall_condition.h"
+#include "custom_conditions/low_mach_navier_stokes_wall_condition.h"
+#include "custom_conditions/navier_stokes_p2_p1_continuous_wall_condition.h"
 #include "custom_conditions/embedded_ausas_navier_stokes_wall_condition.h"
 
 #include "custom_elements/dpg_vms.h"
@@ -79,15 +84,16 @@
 #include "custom_elements/two_fluid_navier_stokes_alpha_method.h"
 
 #include "custom_elements/data_containers/axisymmetric_navier_stokes/axisymmetric_navier_stokes_data.h"
-#include "custom_utilities/qsvms_data.h"
-#include "custom_utilities/time_integrated_qsvms_data.h"
-#include "custom_utilities/qsvms_dem_coupled_data.h"
-#include "custom_utilities/fic_data.h"
-#include "custom_utilities/time_integrated_fic_data.h"
-#include "custom_utilities/symbolic_stokes_data.h"
-#include "custom_utilities/two_fluid_navier_stokes_data.h"
-#include "custom_utilities/two_fluid_navier_stokes_alpha_method_data.h"
-#include "custom_utilities/weakly_compressible_navier_stokes_data.h"
+#include "custom_elements/data_containers/low_mach_navier_stokes/low_mach_navier_stokes_data.h"
+#include "custom_elements/data_containers/qs_vms/qs_vms_data.h"
+#include "custom_elements/data_containers/time_integrated_qs_vms/time_integrated_qs_vms_data.h"
+#include "custom_elements/data_containers/qs_vms_dem_coupled/qs_vms_dem_coupled_data.h"
+#include "custom_elements/data_containers/fic/fic_data.h"
+#include "custom_elements/data_containers/time_integrated_fic/time_integrated_fic_data.h"
+#include "custom_elements/data_containers/stokes/stokes_data.h"
+#include "custom_elements/data_containers/two_fluid_navier_stokes/two_fluid_navier_stokes_data.h"
+#include "custom_elements/data_containers/two_fluid_navier_stokes_alpha_method/two_fluid_navier_stokes_alpha_method_data.h"
+#include "custom_elements/data_containers/weakly_compressible_navier_stokes/weakly_compressible_navier_stokes_data.h"
 
 #include "custom_constitutive/bingham_3d_law.h"
 #include "custom_constitutive/euler_2d_law.h"
@@ -111,6 +117,8 @@
 
 // Adjoint fluid conditions
 #include "custom_conditions/adjoint_monolithic_wall_condition.h"
+
+extern "C" KRATOS_API(FLUID_DYNAMICS_APPLICATION) Kratos::KratosApplication * CreateApplication();
 
 namespace Kratos
 {
@@ -424,6 +432,10 @@ private:
     const NavierStokesWallCondition<2,2,NavierSlipWallLaw<2,2>> mNavierStokesNavierSlipWallCondition2D;
     const NavierStokesWallCondition<3,3,NavierSlipWallLaw<3,3>> mNavierStokesNavierSlipWallCondition3D;
 
+    /// Incompressible Navier-Stokes div-stable wall condition
+    const NavierStokesP2P1ContinuousWallCondition<2> mNavierStokesP2P1ContinuousWallCondition2D;
+    const NavierStokesP2P1ContinuousWallCondition<3> mNavierStokesP2P1ContinuousWallCondition3D;
+
     /// Embedded Navier-Stokes symbolic element
     const EmbeddedNavierStokes<2> mEmbeddedNavierStokes2D;
     const EmbeddedNavierStokes<3> mEmbeddedNavierStokes3D;
@@ -433,6 +445,13 @@ private:
     const EmbeddedAusasNavierStokes<3> mEmbeddedAusasNavierStokes3D;
     const EmbeddedAusasNavierStokesWallCondition<2> mEmbeddedAusasNavierStokesWallCondition2D;
     const EmbeddedAusasNavierStokesWallCondition<3> mEmbeddedAusasNavierStokesWallCondition3D;
+
+    /// Low Mach Navier-Stokes element
+    const LowMachNavierStokes<LowMachNavierStokesData<2,3>> mLowMachNavierStokes2D3N;
+    const LowMachNavierStokes<LowMachNavierStokesData<2,4>> mLowMachNavierStokes2D4N;
+
+    /// Low Mach Navier-Stokes condition
+    const LowMachNavierStokesWallCondition<2,2> mLowMachNavierStokesWallCondition2D2N;
 
     /// Compressible Navier-Stokes symbolic element
     const CompressibleNavierStokesExplicit<2, 3> mCompressibleNavierStokesExplicit2D3N;
@@ -446,6 +465,10 @@ private:
     const TwoFluidNavierStokesAlphaMethod< TwoFluidNavierStokesAlphaMethodData<3, 4> > mTwoFluidNavierStokesAlphaMethod3D4N;
     const TwoFluidNavierStokesWallCondition<2,2> mTwoFluidNavierStokesWallCondition2D;
     const TwoFluidNavierStokesWallCondition<3,3> mTwoFluidNavierStokesWallCondition3D;
+
+    /// Incompressible Navier-Stokes div-stable element
+    const IncompressibleNavierStokesP2P1Continuous<2> mIncompressibleNavierStokesP2P1Continuous2D6N;
+    const IncompressibleNavierStokesP2P1Continuous<3> mIncompressibleNavierStokesP2P1Continuous3D10N;
 
     /// Fluid constitutive laws
     const Bingham3DLaw mBingham3DLaw;

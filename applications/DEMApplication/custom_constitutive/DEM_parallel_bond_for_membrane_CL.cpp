@@ -88,6 +88,28 @@ double DEM_parallel_bond_for_membrane::ComputeNormalUnbondedForce(double indenta
     KRATOS_CATCH("")
 }
 
+void DEM_parallel_bond_for_membrane::CalculateUnbondedViscoDampingForce(double LocalRelVel[3],
+                                                double UnbondedViscoDampingLocalContactForce[3],
+                                                SphericParticle* const element1,
+                                                SphericParticle* const element2){
+    KRATOS_TRY
+    const double my_mass    = element1->GetMass();
+    const double other_mass = element2->GetMass();
+
+    const double equiv_mass = 1.0 / (1.0/my_mass + 1.0/other_mass);
+
+    Properties& properties_of_this_contact = element1->GetProperties().GetSubProperties(element2->GetProperties().Id());
+    const double damping_gamma = properties_of_this_contact[DAMPING_GAMMA];
+
+    const double equiv_visco_damp_coeff_normal     = 2.0 * damping_gamma * sqrt(equiv_mass * mKn);
+    const double equiv_visco_damp_coeff_tangential = 2.0 * damping_gamma * sqrt(equiv_mass * mKt);
+
+    UnbondedViscoDampingLocalContactForce[0] = - equiv_visco_damp_coeff_tangential * LocalRelVel[0];
+    UnbondedViscoDampingLocalContactForce[1] = - equiv_visco_damp_coeff_tangential * LocalRelVel[1];
+    UnbondedViscoDampingLocalContactForce[2] = - equiv_visco_damp_coeff_normal     * LocalRelVel[2];
+    KRATOS_CATCH("")
+}
+
 
 //*************************************
 // Moment calculation
@@ -102,8 +124,7 @@ void DEM_parallel_bond_for_membrane::ComputeParticleRotationalMoments(SphericCon
                                                 double ElasticLocalRotationalMoment[3],
                                                 double ViscoLocalRotationalMoment[3],
                                                 double equiv_poisson,
-                                                double indentation,
-                                                double LocalElasticContactForce[3]) {
+                                                double indentation) {
 
     KRATOS_TRY
 

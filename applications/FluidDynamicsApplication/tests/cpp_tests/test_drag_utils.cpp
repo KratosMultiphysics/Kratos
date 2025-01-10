@@ -17,7 +17,6 @@
 // External includes
 
 // Project includes
-#include "testing/testing.h"
 #include "containers/model.h"
 #include "includes/model_part.h"
 #include "includes/cfd_variables.h"
@@ -27,6 +26,7 @@
 #include "custom_utilities/drag_utilities.h"
 #include "custom_constitutive/newtonian_2d_law.h"
 #include "fluid_dynamics_application_variables.h"
+#include "tests/cpp_tests/fluid_dynamics_fast_suite.h"
 
 namespace Kratos {
 	namespace Testing {
@@ -53,6 +53,7 @@ namespace Kratos {
             rModelPart.AddNodalSolutionStepVariable(SOUND_VELOCITY);
             rModelPart.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
             rModelPart.AddNodalSolutionStepVariable(REACTION_WATER_PRESSURE);
+            rModelPart.AddNodalSolutionStepVariable(SOLID_FRACTION_VELOCITY);
 
             // Process info creation
             double delta_time = 0.1;

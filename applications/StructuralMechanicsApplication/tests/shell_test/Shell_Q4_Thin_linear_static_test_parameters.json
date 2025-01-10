@@ -111,7 +111,6 @@
         "kratos_module" : "KratosMultiphysics",
         "process_name"  : "AssignVectorByDirectionToConditionsProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.SurfaceLoad3D_Surface",
             "variable_name"   : "SURFACE_LOAD",
             "modulus"         : 90,

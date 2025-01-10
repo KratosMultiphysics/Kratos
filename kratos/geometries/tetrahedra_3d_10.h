@@ -145,6 +145,10 @@ public:
     /// type as its result.
     using ShapeFunctionsGradientsType = typename BaseType::ShapeFunctionsGradientsType;
 
+    /// A third order tensor to hold shape functions' local second derivatives.
+    /// ShapeFunctionsSecondDerivatives function return this type as its result.
+    using ShapeFunctionsSecondDerivativesType = typename BaseType::ShapeFunctionsSecondDerivativesType;
+
     /// Type of the normal vector used for normal to edges in geometry.
     using NormalType = typename BaseType::NormalType;
 
@@ -247,14 +251,34 @@ public:
     /// Destructor. Does nothing!!!
     ~Tetrahedra3D10() override {}
 
+    /**
+     * @brief Gets the geometry family.
+     * @details This function returns the family type of the geometry. The geometry family categorizes the geometry into a broader classification, aiding in its identification and processing.
+     * @return GeometryData::KratosGeometryFamily The geometry family.
+     */
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::KratosGeometryFamily::Kratos_Tetrahedra;
     }
 
+    /**
+     * @brief Gets the geometry type.
+     * @details This function returns the specific type of the geometry. The geometry type provides a more detailed classification of the geometry.
+     * @return GeometryData::KratosGeometryType The specific geometry type.
+     */
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10;
+    }
+
+    /**
+     * @brief Gets the geometry order type.
+     * @details This function returns the order type of the geometry. The order type relates to the polynomial degree of the geometry.
+     * @return GeometryData::KratosGeometryOrderType The geometry order type.
+     */
+    GeometryData::KratosGeometryOrderType GetGeometryOrderType() const override
+    {
+        return GeometryData::KratosGeometryOrderType::Kratos_Quadratic_Order;
     }
 
     ///@}
@@ -738,6 +762,75 @@ public:
         rResult(9, 0) =  0.0;
         rResult(9, 1) =  4.0 * rPoint[2];
         rResult(9, 2) =  4.0 * rPoint[1];
+
+        return rResult;
+    }
+
+    ShapeFunctionsSecondDerivativesType& ShapeFunctionsSecondDerivatives(
+        ShapeFunctionsSecondDerivativesType& rResult,
+        const CoordinatesArrayType& rPoint) const override
+    {
+        // Check and resize results container
+        if (rResult.size() != this->PointsNumber()) {
+            rResult.resize(this->PointsNumber(), false);
+        }
+
+        for (IndexType i = 0; i < this->PointsNumber(); ++i) {
+            auto& r_DDN_i = rResult[i];
+            if (r_DDN_i.size1() != 3 || r_DDN_i.size2() != 3) {
+                r_DDN_i.resize(3,3, false);
+            }
+        }
+
+        // Node 0
+        rResult[0](0,0) = 4.0; rResult[0](0,1) = 4.0; rResult[0](0,2) = 4.0;
+        rResult[0](1,0) = 4.0; rResult[0](1,1) = 4.0; rResult[0](1,2) = 4.0;
+        rResult[0](2,0) = 4.0; rResult[0](2,1) = 4.0; rResult[0](2,2) = 4.0;
+
+        // Node 1
+        rResult[1](0,0) = 4.0; rResult[1](0,1) = 0.0; rResult[1](0,2) = 0.0;
+        rResult[1](1,0) = 0.0; rResult[1](1,1) = 0.0; rResult[1](1,2) = 0.0;
+        rResult[1](2,0) = 0.0; rResult[1](2,1) = 0.0; rResult[1](2,2) = 0.0;
+
+        // Node 2
+        rResult[2](0,0) = 0.0; rResult[2](0,1) = 0.0; rResult[2](0,2) = 0.0;
+        rResult[2](1,0) = 0.0; rResult[2](1,1) = 4.0; rResult[2](1,2) = 0.0;
+        rResult[2](2,0) = 0.0; rResult[2](2,1) = 0.0; rResult[2](2,2) = 0.0;
+
+        // Node 3
+        rResult[3](0,0) = 0.0; rResult[3](0,1) = 0.0; rResult[3](0,2) = 0.0;
+        rResult[3](1,0) = 0.0; rResult[3](1,1) = 0.0; rResult[3](1,2) = 0.0;
+        rResult[3](2,0) = 0.0; rResult[3](2,1) = 0.0; rResult[3](2,2) = 4.0;
+
+        // Node 4
+        rResult[4](0,0) = -8.0; rResult[4](0,1) = -4.0; rResult[4](0,2) = -4.0;
+        rResult[4](1,0) = -4.0; rResult[4](1,1) = 0.0; rResult[4](1,2) = 0.0;
+        rResult[4](2,0) = -4.0; rResult[4](2,1) = 0.0; rResult[4](2,2) = 0.0;
+
+        // Node 5
+        rResult[5](0,0) = 0.0; rResult[5](0,1) = 4.0; rResult[5](0,2) = 0.0;
+        rResult[5](1,0) = 4.0; rResult[5](1,1) = 0.0; rResult[5](1,2) = 0.0;
+        rResult[5](2,0) = 0.0; rResult[5](2,1) = 0.0; rResult[5](2,2) = 0.0;
+
+        // Node 6
+        rResult[6](0,0) = 0.0; rResult[6](0,1) = -4.0; rResult[6](0,2) = 0.0;
+        rResult[6](1,0) = -4.0; rResult[6](1,1) = -8.0; rResult[6](1,2) = -4.0;
+        rResult[6](2,0) = 0.0; rResult[6](2,1) = -4.0; rResult[6](2,2) = 0.0;
+
+        // Node 7
+        rResult[7](0,0) = 0.0; rResult[7](0,1) = 0.0; rResult[7](0,2) = -4.0;
+        rResult[7](1,0) = 0.0; rResult[7](1,1) = 0.0; rResult[7](1,2) = -4.0;
+        rResult[7](2,0) = -4.0; rResult[7](2,1) = -4.0; rResult[7](2,2) = -8.0;
+
+        // Node 8
+        rResult[8](0,0) = 0.0; rResult[8](0,1) = 0.0; rResult[8](0,2) = 4.0;
+        rResult[8](1,0) = 0.0; rResult[8](1,1) = 0.0; rResult[8](1,2) = 0.0;
+        rResult[8](2,0) = 4.0; rResult[8](2,1) = 0.0; rResult[8](2,2) = 0.0;
+
+        // Node 9
+        rResult[9](0,0) = 0.0; rResult[9](0,1) = 0.0; rResult[9](0,2) = 0.0;
+        rResult[9](1,0) = 0.0; rResult[9](1,1) = 0.0; rResult[9](1,2) = 4.0;
+        rResult[9](2,0) = 0.0; rResult[9](2,1) = 4.0; rResult[9](2,2) = 0.0;
 
         return rResult;
     }

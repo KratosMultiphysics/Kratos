@@ -13,8 +13,8 @@
 #pragma once
 
 // Project includes
-#include "linear_elastic_law.h"
 #include "geo_mechanics_application_constants.h"
+#include "linear_elastic_law.h"
 
 namespace Kratos
 {
@@ -44,8 +44,7 @@ namespace Kratos
  * @details This class derives from the linear elastic case on 3D
  * @author Vahid Galavi
  */
-class KRATOS_API(GEO_MECHANICS_APPLICATION) LinearPlaneStrainK0Law
-    : public GeoLinearElasticLaw
+class KRATOS_API(GEO_MECHANICS_APPLICATION) LinearPlaneStrainK0Law : public GeoLinearElasticLaw
 {
 public:
     ///@name Type Definitions
@@ -64,7 +63,7 @@ public:
     static constexpr SizeType VoigtSize = VOIGT_SIZE_2D_PLANE_STRAIN;
 
     /// Counted pointer of LinearPlaneStrainK0Law
-    KRATOS_CLASS_POINTER_DEFINITION( LinearPlaneStrainK0Law );
+    KRATOS_CLASS_POINTER_DEFINITION(LinearPlaneStrainK0Law);
 
     ///@name Life Cycle
     ///@{
@@ -92,19 +91,13 @@ public:
      * @brief Dimension of the law:
      * @return The dimension were the law is working
      */
-    SizeType WorkingSpaceDimension() override
-    {
-        return Dimension;
-    };
+    SizeType WorkingSpaceDimension() override { return Dimension; };
 
     /**
      * @brief Voigt tensor size:
      * @return The size of the strain vector in Voigt notation
      */
-    SizeType GetStrainSize() const override
-    {
-        return VoigtSize;
-    }
+    SizeType GetStrainSize() const override { return VoigtSize; }
 
     ///@}
     ///@name Access
@@ -134,7 +127,6 @@ public:
     ///@}
 
 protected:
-
     ///@name Protected static Member Variables
     ///@{
 
@@ -163,21 +155,13 @@ protected:
      * @param rStressVector The stress vector in Voigt notation
      * @param rValues Parameters of the constitutive law
      */
-    void CalculatePK2Stress(const Vector& rStrainVector,
-                            Vector& rStressVector,
+    void CalculatePK2Stress(const Vector&                rStrainVector,
+                            Vector&                      rStressVector,
                             ConstitutiveLaw::Parameters& rValues) override;
-
-    /**
-     * @brief It calculates the strain vector
-     * @param rValues The internal values of the law
-     * @param rStrainVector The strain vector in Voigt notation
-     */
-    void CalculateCauchyGreenStrain(ConstitutiveLaw::Parameters& rValues, Vector& rStrainVector) override;
 
     ///@}
 
 private:
-
     ///@name Static Member Variables
     ///@{
 
@@ -215,4 +199,4 @@ private:
     }
 }; // Class LinearPlaneStrainK0Law
 
-}
+} // namespace Kratos

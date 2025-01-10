@@ -33,9 +33,9 @@ public:
     {
     }
 
-    bool hasWaterPressure() const { return mvariable_name == "WATER_PRESSURE"; }
+    bool hasWaterPressure() const { return mVariableName == "WATER_PRESSURE"; }
 
-    Kratos::ModelPart& GetModelPart() { return mr_model_part; }
+    Kratos::ModelPart& GetModelPart() { return mrModelPart; }
 };
 
 class GeoFlowApplyConstantHydrostaticPressureProcess : public Kratos::ApplyConstantHydrostaticPressureProcess
@@ -138,8 +138,8 @@ KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer Krat
 
     auto pSolvingStrategy =
         Kratos::make_unique<GeoMechanicsNewtonRaphsonErosionProcessStrategy<SparseSpaceType, LocalSpaceType, KratosExecute::LinearSolverType>>(
-            rModelPart, p_scheme, p_solver, p_criteria, p_builder_and_solver, p_parameters,
-            MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag);
+            rModelPart, p_scheme, p_criteria, p_builder_and_solver, p_parameters, MaxIterations,
+            CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag);
 
     pSolvingStrategy->Check();
     return pSolvingStrategy;
