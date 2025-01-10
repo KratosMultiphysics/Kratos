@@ -90,7 +90,7 @@ protected:
     // Member Variables
     Geometry<Node>::Pointer mpPressureGeometry;
 
-    void CalculateAll(Matrix&            rLeftHandSideMatrix,
+    void CalculateAll(const Matrix&      rLeftHandSideMatrix,
                       Vector&            rRightHandSideVector,
                       const ProcessInfo& rCurrentProcessInfo,
                       bool               CalculateLHSMatrixFlag,
@@ -102,11 +102,9 @@ protected:
 
     virtual void CalculateConditionVector(ConditionVariables& rVariables, unsigned int PointNumber);
 
-    virtual double CalculateIntegrationCoefficient(const IndexType                    PointNumber,
+    virtual double CalculateIntegrationCoefficient(IndexType                          PointNumber,
                                                    const GeometryType::JacobiansType& JContainer,
                                                    const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const;
-
-    void CalculateAndAddLHS(const Matrix&, const ConditionVariables&) const;
 
     void CalculateAndAddRHS(Vector& rRightHandSideVector, ConditionVariables& rVariables);
 

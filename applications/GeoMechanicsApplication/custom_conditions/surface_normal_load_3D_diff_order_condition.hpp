@@ -49,7 +49,7 @@ public:
 protected:
     void CalculateConditionVector(ConditionVariables& rVariables, unsigned int PointNumber) override;
 
-    double CalculateIntegrationCoefficient(const IndexType                    PointNumber,
+    double CalculateIntegrationCoefficient(IndexType                          PointNumber,
                                            const GeometryType::JacobiansType& JContainer,
                                            const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const override;
 

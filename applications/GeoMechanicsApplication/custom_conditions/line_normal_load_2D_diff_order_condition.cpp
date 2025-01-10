@@ -87,7 +87,7 @@ void LineNormalLoad2DDiffOrderCondition::CalculateConditionVector(ConditionVaria
 }
 
 double LineNormalLoad2DDiffOrderCondition::CalculateIntegrationCoefficient(
-    const IndexType                                 PointNumber,
+    IndexType                                       PointNumber,
     const GeometryType::JacobiansType&              JContainer,
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const
 

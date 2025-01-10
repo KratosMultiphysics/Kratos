@@ -143,7 +143,7 @@ void GeneralUPwDiffOrderCondition::EquationIdVector(EquationIdVectorType& rResul
     rResult = Geo::DofUtilities::ExtractEquationIdsFrom(GetDofs());
 }
 
-void GeneralUPwDiffOrderCondition::CalculateAll(Matrix&            rLeftHandSideMatrix,
+void GeneralUPwDiffOrderCondition::CalculateAll(const Matrix&      rLeftHandSideMatrix,
                                                 Vector&            rRightHandSideVector,
                                                 const ProcessInfo& rCurrentProcessInfo,
                                                 bool               CalculateLHSMatrixFlag,
@@ -169,9 +169,6 @@ void GeneralUPwDiffOrderCondition::CalculateAll(Matrix&            rLeftHandSide
         // Calculating weighting coefficient for integration
         Variables.IntegrationCoefficient =
             this->CalculateIntegrationCoefficient(PointNumber, Variables.JContainer, IntegrationPoints);
-
-        // Contributions to the left hand side
-        if (CalculateLHSMatrixFlag) this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
 
         // Contributions to the right hand side
         if (CalculateResidualVectorFlag) this->CalculateAndAddRHS(rRightHandSideVector, Variables);
@@ -226,7 +223,7 @@ void GeneralUPwDiffOrderCondition::CalculateConditionVector(ConditionVariables& 
 }
 
 double GeneralUPwDiffOrderCondition::CalculateIntegrationCoefficient(
-    const IndexType                                 PointNumber,
+    IndexType                                       PointNumber,
     const GeometryType::JacobiansType&              JContainer,
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const
 {
@@ -237,10 +234,6 @@ double GeneralUPwDiffOrderCondition::CalculateIntegrationCoefficient(
                  << std::endl;
 
     KRATOS_CATCH("")
-}
-
-void GeneralUPwDiffOrderCondition::CalculateAndAddLHS(const Matrix&, const ConditionVariables&) const
-{
 }
 
 void GeneralUPwDiffOrderCondition::CalculateAndAddRHS(Vector& rRightHandSideVector, ConditionVariables& rVariables)

@@ -68,9 +68,8 @@ void GeoTNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(Vector&            r
         // Interpolation of nodal normal flux to integration point normal flux.
         auto normal_flux_on_integration_point = MathUtils<>::Dot(N, normal_flux_vector);
 
-        auto weighting_integration_coefficient =
-            ConditionUtilities::CalculateIntegrationCoefficient(
-                j_container[integration_point], r_integration_points[integration_point].Weight());
+        auto weighting_integration_coefficient = ConditionUtilities::CalculateIntegrationCoefficient(
+            j_container[integration_point], r_integration_points[integration_point].Weight());
 
         // Contributions to the right hand side
         rRightHandSideVector += normal_flux_on_integration_point * N * weighting_integration_coefficient;

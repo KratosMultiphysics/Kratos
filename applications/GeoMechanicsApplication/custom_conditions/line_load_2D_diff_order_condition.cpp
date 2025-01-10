@@ -67,11 +67,12 @@ void LineLoad2DDiffOrderCondition::CalculateConditionVector(ConditionVariables& 
 }
 
 double LineLoad2DDiffOrderCondition::CalculateIntegrationCoefficient(
-    const IndexType                                 PointNumber,
+    IndexType                                       PointNumber,
     const GeometryType::JacobiansType&              JContainer,
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const
 {
-    return ConditionUtilities::CalculateIntegrationCoefficient(JContainer[PointNumber], IntegrationPoints[PointNumber].Weight());
+    return ConditionUtilities::CalculateIntegrationCoefficient(
+        JContainer[PointNumber], IntegrationPoints[PointNumber].Weight());
 }
 
 void LineLoad2DDiffOrderCondition::CalculateAndAddConditionForce(Vector& rRightHandSideVector,

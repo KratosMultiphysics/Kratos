@@ -69,7 +69,7 @@ void SurfaceLoad3DDiffOrderCondition::CalculateConditionVector(ConditionVariable
 }
 
 double SurfaceLoad3DDiffOrderCondition::CalculateIntegrationCoefficient(
-    const IndexType                                 PointNumber,
+    IndexType                                       PointNumber,
     const GeometryType::JacobiansType&              JContainer,
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const
 {
