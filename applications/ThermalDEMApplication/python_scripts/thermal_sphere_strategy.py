@@ -262,9 +262,12 @@ class ExplicitStrategy(BaseStrategy):
                 model != "contact_damping"):
                 raise Exception('ThermalDEM', 'Heat generation model \'' + model + '\' is not implemented.')
 
-        if (self.adjusted_contact_model != "zhou" and
-            self.adjusted_contact_model != "lu"   and
-            self.adjusted_contact_model != "morris"):
+        if (self.adjusted_contact_model != "zhou"             and
+            self.adjusted_contact_model != "lu"               and
+            self.adjusted_contact_model != "morris_area"      and
+            self.adjusted_contact_model != "morris_area_time" and
+            self.adjusted_contact_model != "rangel_area"      and
+            self.adjusted_contact_model != "rangel_area_time"):
             raise Exception('ThermalDEM', 'Adjusted contact model \'' + self.adjusted_contact_model + '\' is not implemented.')
 
         # Other methods
@@ -476,8 +479,14 @@ class ExplicitStrategy(BaseStrategy):
             class_name = "RealContactZhou"
         elif self.adjusted_contact_model == "lu":
             class_name = "RealContactLu"
-        elif self.adjusted_contact_model == "morris":
-            class_name = "RealContactMorris"
+        elif self.adjusted_contact_model == "morris_area":
+            class_name = "RealContactMorrisArea"
+        elif self.adjusted_contact_model == "morris_area_time":
+            class_name = "RealContactMorrisAreaTime"
+        elif self.adjusted_contact_model == "rangel_area":
+            class_name = "RealContactRangelArea"
+        elif self.adjusted_contact_model == "rangel_area_time":
+            class_name = "RealContactRangelAreaTime"
         else:
             raise Exception('ThermalDEM', 'Real contact model \'' + self.adjusted_contact_model + '\' is not implemented.')
         try:
