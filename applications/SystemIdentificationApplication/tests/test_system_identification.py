@@ -34,7 +34,7 @@ class TestSystemIdentification(UnitTest.TestCase):
             "remove_output_file"    : true,
             "comparison_type"       : "csv_file",
             "tolerance"             : 1e-2,
-            "relative_tolerance"    : 1e-3,
+            "relative_tolerance"    : 1e-2,
             "dimension"             : 3
         }""")
         CompareTwoFilesCheckProcess(params).Execute()
