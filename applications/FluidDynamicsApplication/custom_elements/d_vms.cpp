@@ -926,6 +926,7 @@ template class DVMS< QSVMSDEMCoupledData<2,4> >;
 template class DVMS< QSVMSDEMCoupledData<2,6> >;
 template class DVMS< QSVMSDEMCoupledData<2,9> >;
 template class DVMS< QSVMSDEMCoupledData<3,8> >;
+template class DVMS< QSVMSDEMCoupledData<3,10> >;
 template class DVMS< QSVMSDEMCoupledData<3,27> >;
 
 } // namespace Kratos

@@ -19,11 +19,13 @@
 #include "geometries/triangle_2d_3.h"
 #include "geometries/triangle_2d_6.h"
 #include "geometries/triangle_3d_3.h"
+#include "geometries/triangle_3d_6.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/quadrilateral_2d_9.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/hexahedra_3d_27.h"
+#include "geometries/tetrahedra_3d_10.h"
 #include "geometries/prism_3d_6.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/line_2d_3.h"
@@ -46,6 +48,7 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mQSVMSDEMCoupled2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node >(Element::GeometryType::PointsArrayType(4)))),
     mQSVMSDEMCoupled2D9N(0, Element::GeometryType::Pointer(new Quadrilateral2D9<Node >(Element::GeometryType::PointsArrayType(9)))),
     mQSVMSDEMCoupled3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node >(Element::GeometryType::PointsArrayType(8)))),
+    mQSVMSDEMCoupled3D10N(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node >(Element::GeometryType::PointsArrayType(10)))),
     mAlternativeQSVMSDEMCoupled2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
     mAlternativeQSVMSDEMCoupled2D6N(0, Element::GeometryType::Pointer(new Triangle2D6<Node >(Element::GeometryType::PointsArrayType(6)))),
     mAlternativeQSVMSDEMCoupled3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
@@ -62,6 +65,7 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mDVMSDEMCoupled2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node >(Element::GeometryType::PointsArrayType(4)))),
     mDVMSDEMCoupled2D9N(0, Element::GeometryType::Pointer(new Quadrilateral2D9<Node >(Element::GeometryType::PointsArrayType(9)))),
     mDVMSDEMCoupled3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node >(Element::GeometryType::PointsArrayType(8)))),
+    // mDVMSDEMCoupled3D10N(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node >(Element::GeometryType::PointsArrayType(10)))),
     mDVMSDEMCoupled3D27N(0, Element::GeometryType::Pointer(new Hexahedra3D27<Node >(Element::GeometryType::PointsArrayType(27)))),
     mAlternativeDVMSDEMCoupled2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
     mAlternativeDVMSDEMCoupled3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
@@ -111,6 +115,7 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mMonolithicWallCondition2D2N(0, Element::GeometryType::Pointer( new Line2D2<Node >( Element::GeometryType::PointsArrayType( 2 ) ) ) ),
     mMonolithicWallCondition3D3N(0, Element::GeometryType::Pointer( new Triangle3D3<Node >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
     mMonolithicWallCondition3D4N(0, Element::GeometryType::Pointer( new Quadrilateral3D4<Node >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
+    mMonolithicWallCondition3D6N(0, Element::GeometryType::Pointer( new Triangle3D6<Node >( Element::GeometryType::PointsArrayType( 6 ) ) ) ),
     mMonolithicWallCondition3D9N(0, Element::GeometryType::Pointer( new Quadrilateral3D9<Node >( Element::GeometryType::PointsArrayType( 9 ) ) ) ),
     mStokesWallCondition3D(0, Element::GeometryType::Pointer( new Triangle3D3<Node >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
     mStokesWallCondition3D4N(0, Element::GeometryType::Pointer( new Quadrilateral3D4<Node >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
@@ -291,6 +296,7 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("QSVMSDEMCoupled2D4N",mQSVMSDEMCoupled2D4N);
     KRATOS_REGISTER_ELEMENT("QSVMSDEMCoupled2D9N",mQSVMSDEMCoupled2D9N);
     KRATOS_REGISTER_ELEMENT("QSVMSDEMCoupled3D8N",mQSVMSDEMCoupled3D8N);
+    KRATOS_REGISTER_ELEMENT("QSVMSDEMCoupled3D10N",mQSVMSDEMCoupled3D10N);
     KRATOS_REGISTER_ELEMENT("AlternativeQSVMSDEMCoupled2D3N",mAlternativeQSVMSDEMCoupled2D3N);
     KRATOS_REGISTER_ELEMENT("AlternativeQSVMSDEMCoupled2D6N",mAlternativeQSVMSDEMCoupled2D6N);
     KRATOS_REGISTER_ELEMENT("AlternativeQSVMSDEMCoupled3D4N",mAlternativeQSVMSDEMCoupled3D4N);
@@ -307,6 +313,7 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("DVMSDEMCoupled2D4N",mDVMSDEMCoupled2D4N);
     KRATOS_REGISTER_ELEMENT("DVMSDEMCoupled2D9N",mDVMSDEMCoupled2D9N);
     KRATOS_REGISTER_ELEMENT("DVMSDEMCoupled3D8N",mDVMSDEMCoupled3D8N);
+    // KRATOS_REGISTER_ELEMENT("DVMSDEMCoupled3D10N",mDVMSDEMCoupled3D10N);
     KRATOS_REGISTER_ELEMENT("DVMSDEMCoupled3D27N",mDVMSDEMCoupled3D27N);
     KRATOS_REGISTER_ELEMENT("AlternativeDVMSDEMCoupled2D3N",mAlternativeDVMSDEMCoupled2D3N);
     KRATOS_REGISTER_ELEMENT("AlternativeDVMSDEMCoupled3D4N",mAlternativeDVMSDEMCoupled3D4N);
@@ -411,6 +418,7 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_CONDITION("MonolithicWallCondition2D2N", mMonolithicWallCondition2D2N);
     KRATOS_REGISTER_CONDITION("MonolithicWallCondition3D3N", mMonolithicWallCondition3D3N);
     KRATOS_REGISTER_CONDITION("MonolithicWallCondition3D4N", mMonolithicWallCondition3D4N);
+    KRATOS_REGISTER_CONDITION("MonolithicWallCondition3D6N", mMonolithicWallCondition3D6N);
     KRATOS_REGISTER_CONDITION("MonolithicWallCondition3D9N", mMonolithicWallCondition3D9N);
     // KRATOS_REGISTER_CONDITION("MonolithicWallCondition2D", mMonolithicWallCondition2D);
     // KRATOS_REGISTER_CONDITION("MonolithicWallCondition3D", mMonolithicWallCondition3D);

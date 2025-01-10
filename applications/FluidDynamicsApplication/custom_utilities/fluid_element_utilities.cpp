@@ -230,6 +230,7 @@ template class FluidElementUtilities<9>; // quadratic quadrilateral
 template class FluidElementUtilities<6>; // prism
 template class FluidElementUtilities<8>; // hexahedra8
 template class FluidElementUtilities<27>; // hexahedra27
+template class FluidElementUtilities<10>; // tetrahedra10
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 

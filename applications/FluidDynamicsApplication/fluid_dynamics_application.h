@@ -277,12 +277,14 @@ private:
     const QSVMS< QSVMSData<3,4> > mQSVMS3D4N;
     const QSVMS< QSVMSData<2,4> > mQSVMS2D4N;
     const QSVMS< QSVMSData<3,8> > mQSVMS3D8N;
+    // const QSVMS< QSVMSData<3,10> > mQSVMS3D8N;
     const QSVMSDEMCoupled< QSVMSDEMCoupledData<2,3> > mQSVMSDEMCoupled2D3N;
     const QSVMSDEMCoupled< QSVMSDEMCoupledData<2,6> > mQSVMSDEMCoupled2D6N;
     const QSVMSDEMCoupled< QSVMSDEMCoupledData<3,4> > mQSVMSDEMCoupled3D4N;
     const QSVMSDEMCoupled< QSVMSDEMCoupledData<2,4> > mQSVMSDEMCoupled2D4N;
     const QSVMSDEMCoupled< QSVMSDEMCoupledData<2,9> > mQSVMSDEMCoupled2D9N;
     const QSVMSDEMCoupled< QSVMSDEMCoupledData<3,8> > mQSVMSDEMCoupled3D8N;
+    const QSVMSDEMCoupled< QSVMSDEMCoupledData<3,10> > mQSVMSDEMCoupled3D10N;
     const QSVMSDEMCoupled< QSVMSDEMCoupledData<3,27> > mQSVMSDEMCoupled3D27N;
     const AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<2,3> > mAlternativeQSVMSDEMCoupled2D3N;
     const AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<2,6> > mAlternativeQSVMSDEMCoupled2D6N;
@@ -301,6 +303,7 @@ private:
     const DVMSDEMCoupled< QSVMSDEMCoupledData<2,4> > mDVMSDEMCoupled2D4N;
     const DVMSDEMCoupled< QSVMSDEMCoupledData<2,9> > mDVMSDEMCoupled2D9N;
     const DVMSDEMCoupled< QSVMSDEMCoupledData<3,8> > mDVMSDEMCoupled3D8N;
+    // const DVMSDEMCoupled< QSVMSDEMCoupledData<3,10> > mDVMSDEMCoupled3D10N;
     const DVMSDEMCoupled< QSVMSDEMCoupledData<3,27> > mDVMSDEMCoupled3D27N;
     const AlternativeDVMSDEMCoupled< QSVMSDEMCoupledData<2,3> > mAlternativeDVMSDEMCoupled2D3N;
     const AlternativeDVMSDEMCoupled< QSVMSDEMCoupledData<2,6> > mAlternativeDVMSDEMCoupled2D6N;
@@ -373,6 +376,7 @@ private:
     /// Exact 3D slip condition using rotated coordinates (monolithic version)
     const MonolithicWallCondition<3,3> mMonolithicWallCondition3D3N;
     const MonolithicWallCondition<3,4> mMonolithicWallCondition3D4N;
+    const MonolithicWallCondition<3,6> mMonolithicWallCondition3D6N;
     const MonolithicWallCondition<3,9> mMonolithicWallCondition3D9N;
     /// stokes condition(monolithic version)
     const StokesWallCondition<3,3> mStokesWallCondition3D;
