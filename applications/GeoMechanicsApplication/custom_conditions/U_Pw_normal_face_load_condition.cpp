@@ -38,11 +38,11 @@ void UPwNormalFaceLoadCondition<TDim, TNumNodes>::CalculateRHS(Vector& rRightHan
     const auto  number_of_integration_points = r_integration_points.size();
 
     // Containers of variables at all integration points
-    const Matrix& NContainer = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
-    GeometryType::JacobiansType JContainer(number_of_integration_points);
-    for (auto& j : JContainer)
+    const Matrix& r_n_container = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
+    GeometryType::JacobiansType j_container(number_of_integration_points);
+    for (auto& j : j_container)
         j.resize(TDim, r_geometry.LocalSpaceDimension(), false);
-    r_geometry.Jacobian(JContainer, this->GetIntegrationMethod());
+    r_geometry.Jacobian(j_container, this->GetIntegrationMethod());
 
     // Condition variables
     NormalFaceLoadVariables variables;
@@ -52,17 +52,17 @@ void UPwNormalFaceLoadCondition<TDim, TNumNodes>::CalculateRHS(Vector& rRightHan
     for (unsigned int integration_point = 0; integration_point < number_of_integration_points; ++integration_point) {
         // Compute traction vector
         array_1d<double, TDim> traction_vector;
-        this->CalculateTractionVector(traction_vector, JContainer[integration_point], NContainer,
+        this->CalculateTractionVector(traction_vector, j_container[integration_point], r_n_container,
                                       variables, integration_point);
 
         // Compute Nu Matrix
-        BoundedMatrix<double, TDim, TNumNodes * TDim> Nu = ZeroMatrix(TDim, TNumNodes * TDim);
-        ConditionUtilities::CalculateNuMatrix<TDim, TNumNodes>(Nu, NContainer, integration_point);
+        BoundedMatrix<double, TDim, TNumNodes * TDim> nu = ZeroMatrix(TDim, TNumNodes * TDim);
+        ConditionUtilities::CalculateNuMatrix<TDim, TNumNodes>(nu, r_n_container, integration_point);
 
         // Contributions to the right hand side
         GeoElementUtilities::AssembleUBlockVector(
             rRightHandSideVector,
-            prod(trans(Nu), traction_vector) *
+            prod(trans(nu), traction_vector) *
                 this->CalculateIntegrationCoefficient(integration_point, r_integration_points));
     }
 }
@@ -97,11 +97,11 @@ void UPwNormalFaceLoadCondition<TDim, TNumNodes>::CalculateTractionVector(array_
         std::copy_n(column(Jacobian, 0).begin(), TDim, tangential_vector.begin());
         Vector out_of_plane_vector = ZeroVector(3);
         out_of_plane_vector[2]     = 1.0;
-        MathUtils<double>::CrossProduct(normal_vector, out_of_plane_vector, tangential_vector);
+        MathUtils<>::CrossProduct(normal_vector, out_of_plane_vector, tangential_vector);
         auto traction_vector = tangential_stress * tangential_vector + normal_stress * normal_vector;
         std::copy_n(traction_vector.begin(), TDim, rTractionVector.begin());
     } else if constexpr (TDim == 3) {
-        MathUtils<double>::CrossProduct(normal_vector, column(Jacobian, 0), column(Jacobian, 1));
+        MathUtils<>::CrossProduct(normal_vector, column(Jacobian, 0), column(Jacobian, 1));
         rTractionVector = -normal_stress * normal_vector;
     }
 }

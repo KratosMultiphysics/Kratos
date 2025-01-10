@@ -35,11 +35,11 @@ void UPwFaceLoadCondition<TDim, TNumNodes>::CalculateRHS(Vector&            rRig
     const GeometryType&                             r_geom = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& r_integration_points =
         r_geom.IntegrationPoints(this->GetIntegrationMethod());
-    const unsigned int NumGPoints = r_integration_points.size();
+    const unsigned int number_of_integration_points = r_integration_points.size();
 
     // Containers of variables at all integration points
     const Matrix& r_n_container = r_geom.ShapeFunctionsValues(this->GetIntegrationMethod());
-    GeometryType::JacobiansType j_container(NumGPoints);
+    GeometryType::JacobiansType j_container(number_of_integration_points);
     for (auto& j : j_container)
         j.resize(TDim, r_geom.LocalSpaceDimension(), false);
     r_geom.Jacobian(j_container, this->GetIntegrationMethod());
@@ -48,7 +48,7 @@ void UPwFaceLoadCondition<TDim, TNumNodes>::CalculateRHS(Vector&            rRig
     array_1d<double, TNumNodes * TDim> face_load_vector;
     ConditionUtilities::GetFaceLoadVector<TDim, TNumNodes>(face_load_vector, r_geom);
 
-    for (unsigned int integration_point = 0; integration_point < NumGPoints; ++integration_point) {
+    for (unsigned int integration_point = 0; integration_point < number_of_integration_points; ++integration_point) {
         // Compute traction vector
         array_1d<double, TDim> traction_vector;
         ConditionUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
@@ -59,7 +59,7 @@ void UPwFaceLoadCondition<TDim, TNumNodes>::CalculateRHS(Vector&            rRig
         ConditionUtilities::CalculateNuMatrix<TDim, TNumNodes>(nu, r_n_container, integration_point);
 
         // Compute weighting coefficient for integration
-        auto integration_coefficient = ConditionUtilities::CalculateIntegrationCoefficient(
+        const auto integration_coefficient = ConditionUtilities::CalculateIntegrationCoefficient(
             j_container[integration_point], r_integration_points[integration_point].Weight());
 
         // Contributions to the right hand side

@@ -33,14 +33,14 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void PwNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(Vector&            rRightHandSideVector,
                                                           const ProcessInfo& CurrentProcessInfo)
 {
-    const GeometryType&                             r_geometry = this->GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& r_integration_points =
+    const auto&                             r_geometry = this->GetGeometry();
+    const auto& r_integration_points =
         r_geometry.IntegrationPoints(this->GetIntegrationMethod());
-    const unsigned int NumGPoints = r_integration_points.size();
+    const unsigned int number_of_integration_points = r_integration_points.size();
 
     // Containers of variables at all integration points
     const Matrix& r_n_container = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
-    GeometryType::JacobiansType j_container(NumGPoints);
+    GeometryType::JacobiansType j_container(number_of_integration_points);
     for (auto& j : j_container) {
         j.resize(TDim, r_geometry.LocalSpaceDimension(), false);
     }
@@ -50,7 +50,7 @@ void PwNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(Vector&            rRi
     Vector normal_flux_vector(TNumNodes);
     VariablesUtilities::GetNodalValues(r_geometry, NORMAL_FLUID_FLUX, normal_flux_vector.begin());
 
-    for (unsigned int integration_point = 0; integration_point < NumGPoints; ++integration_point) {
+    for (unsigned int integration_point = 0; integration_point < number_of_integration_points; ++integration_point) {
         // Interpolation of nodal normal flux to integration point normal flux.
         auto normal_flux = MathUtils<>::Dot(row(r_n_container, integration_point), normal_flux_vector);
 
