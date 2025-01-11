@@ -42,6 +42,7 @@
 #include "custom_processes/stokes_initialization_process.h"
 #include "custom_processes/energy_splitelements_process.h"
 #include "custom_processes/compute_y_plus_process.h"
+// #include "custom_processes/vectorial_levelset_convection_bdf_process.h"
 
 #include "spaces/ublas_space.h"
 
@@ -185,9 +186,18 @@ void AddCustomProcessesToPython(pybind11::module& m)
     .def(py::init<Model&, Parameters>())
     ;
     py::class_<EnergyCheckProcess, EnergyCheckProcess::Pointer, Process>(m, "EnergyCheckProcess")
-        .def(py::init<ModelPart &, unsigned int>())
+        .def(py::init<ModelPart &, unsigned int, const std::string &>())
         .def("WritingFile", &EnergyCheckProcess::WritingFile)
-        ;
+        .def("CalculateInterfaceArea", &EnergyCheckProcess::CalculateInterfaceArea)
+        .def("EnergyCalculator", &EnergyCheckProcess::EnergyCalculator);
+
+    // py::class_<VectorialConvectionProcess<2, SparseSpaceType, LocalSpaceType, LinearSolverType>, VectorialConvectionProcess<2, SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer, Process>(m, "VectorialConvectionProcess2D")
+    //     .def(py::init<Model &, LinearSolverType::Pointer, Parameters>())
+    //     .def(py::init<ModelPart &, LinearSolverType::Pointer, Parameters>());
+
+    // py::class_<VectorialConvectionProcess<3, SparseSpaceType, LocalSpaceType, LinearSolverType>, VectorialConvectionProcess<3, SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer, Process>(m, "VectorialConvectionProcess3D")
+    //     .def(py::init<Model &, LinearSolverType::Pointer, Parameters>())
+    //     .def(py::init<ModelPart &, LinearSolverType::Pointer, Parameters>());
 }
 
 } // namespace Python.
