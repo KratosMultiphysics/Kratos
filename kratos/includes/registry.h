@@ -130,7 +130,7 @@ public:
         return mspRootRegistryItem->end();
     }
 
-    static auto const cend()
+    static auto cend()
     {
         return mspRootRegistryItem->cend();
     }
