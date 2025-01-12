@@ -137,7 +137,7 @@ Add **post options** with desired options:
 	"PostGraphHeatFluxContributions"       : true or false,
 	"PostGraphHeatGenerationValues"        : true or false,
 	"PostGraphHeatGenerationContributions" : true or false,
-	"PostHeatGenerationMap"                : true or false
+	"PostHeatMapGeneration"                : true or false
 
 ### Materials (json file)
 
@@ -212,19 +212,19 @@ Add **SubModelPartData** to sub model parts with desired options:
 - *"thermal_integration_scheme"*:\
   Selected scheme for time integration of thermal problem.\
   Default: "forward_euler"
-  
+
 - *"numerical_integration_method"*:\
   Selected metohd for solving integration expressions numerically.\
   Default: "adaptive_simpson"
-  
+
 - *"thermal_solve_frequency"*:\
   Number of steps in which thermal problem is solved.\
   Default: 1
-  
+
 - *"voronoi_tesselation_frequency"*:\
   Number of steps in which Voronoi diagram is built, in case it is required.\
   Default: 1000
-  
+
 - *"porosity_update_frequency"*:\
   Number of steps in which porosity is computed, in case it is required.\
   Default: 1000
@@ -232,7 +232,7 @@ Add **SubModelPartData** to sub model parts with desired options:
 - *"automatic_solve_frequency"*:\
   Boolean for automatically setting the thermal solve frequency based on the maximum allowed time step (it overrides the value set for thermal_solve_frequency).\
   Default: false
-  
+
 - *"compute_motion"*:\
   Boolean for solving mechanical problem.\
   Default: true
@@ -240,7 +240,7 @@ Add **SubModelPartData** to sub model parts with desired options:
 - *"compute_direct_conduction"*:\
   Boolean for computing heat transfer between elements by direct conduction.\
   Default: true
-  
+
 - *"compute_indirect_conduction"*:\
   Boolean for computing heat transfer between elements by indirect conduction.\
   Default: false
@@ -280,7 +280,7 @@ Add **SubModelPartData** to sub model parts with desired options:
 - *"heat_generation_model"*:\
   List of selected models for simulating heat generation by energy dissipation.\
   Default: ["sliding_friction"]
-  
+
 - *"adjusted_contact_model"*:\
   Selected model for adjusting contact geometry.\
   Default: "zhou"
@@ -304,7 +304,7 @@ Add **SubModelPartData** to sub model parts with desired options:
 - *"conduction_radius"*:\
   Radius of cylindrical conductive region (ratio of particles radii) required for conduction model "batchelor_obrien_complete" and "batchelor_obrien_modified".\
   Default: 1.0
-  
+
 - *"fluid_layer_thickness"*:\
   Thickness of particle fluid layer (ratio of particles radii) required for conduction model "surrounding_layer".\
   Default: 0.4
@@ -340,7 +340,7 @@ Add **SubModelPartData** to sub model parts with desired options:
 - *"heat_map_subdivisions"*:\
   Number of subdivisions in X,Y,Z directions to defined the grid of the heat map.\
   Default: [10,10,10]
-  
+
 - *"global_fluid_properties"*:\
   Prescribed values for the properties of the interstitial fluid, assumed as constant throughout all the analysis (fluid behavior does not change as it is not simulated).
 
@@ -380,19 +380,19 @@ Add **SubModelPartData** to sub model parts with desired options:
 - *"PostTemperature"*:\
   Boolean for showing elements temperature in post processing.\
   Default: false
-  
+
 - *"PostHeatFlux"*:\
   Boolean for showing elements heat flux in post processing.\
   Default: false
-  
+
 - *"PostGraphParticleTempMin"*:\
   Boolean for writing a graph with the minimum particle temperature.\
   Default: false
-  
+
 - *"PostGraphParticleTempMax"*:\
   Boolean for writing a graph with the maximum particle temperature.\
   Default: false
-  
+
 - *"PostGraphParticleTempAvg"*:\
   Boolean for writing a graph with the average temperature of all particles.\
   Default: false
@@ -429,10 +429,10 @@ Add **SubModelPartData** to sub model parts with desired options:
   Boolean for writing a graph with the contribution of each heat generation mechanism to the total heat generation.\
   Default: false
 
-- *"PostHeatGenerationMap"*:\
-  Boolean for assemblying and writing the density map of heat generation.\
+- *"PostHeatMapGeneration"*:\
+  Boolean for assemblying and writing the heat map of heat generation.\
   Default: false
-  
+
 **Material properties**
 - *"materials.Variables.THERMAL_CONDUCTIVITY"*:\
   Thermal conductivity of material (always required).

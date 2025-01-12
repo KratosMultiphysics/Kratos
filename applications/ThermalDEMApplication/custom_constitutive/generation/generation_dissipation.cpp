@@ -100,7 +100,7 @@ namespace Kratos {
 
     // Fill heat map
     if (r_process_info[HEAT_MAP_GENERATION_OPTION])
-      FillDensityMap(r_process_info, particle, time, heat_gen_damping_pp, heat_gen_damping_pw, heat_gen_sliding_pp, heat_gen_sliding_pw, heat_gen_rolling_pp, heat_gen_rolling_pw);
+      FillHeatMap(r_process_info, particle, time, heat_gen_damping_pp, heat_gen_damping_pw, heat_gen_sliding_pp, heat_gen_sliding_pw, heat_gen_rolling_pp, heat_gen_rolling_pw);
 
     return heat_gen_damping_pp + heat_gen_damping_pw + heat_gen_sliding_pp + heat_gen_sliding_pw + heat_gen_rolling_pp + heat_gen_rolling_pw;
 
@@ -119,7 +119,7 @@ namespace Kratos {
   }
 
   //------------------------------------------------------------------------------------------------------------
-  void GenerationDissipation::FillDensityMap(const ProcessInfo& r_process_info,
+  void GenerationDissipation::FillHeatMap(const ProcessInfo& r_process_info,
                                              ThermalSphericParticle* particle,
                                              const double time,
                                              const double heat_gen_damping_pp,
