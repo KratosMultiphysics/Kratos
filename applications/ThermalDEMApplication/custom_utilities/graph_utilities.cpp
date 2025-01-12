@@ -624,5 +624,4 @@ namespace Kratos {
     if (mFile_EnergyThermalWalls.is_open())    mFile_EnergyThermalWalls.close();
     /////////////////////////////////////
   }
-
 } // namespace Kratos
