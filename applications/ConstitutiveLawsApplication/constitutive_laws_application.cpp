@@ -69,7 +69,8 @@ void KratosConstitutiveLawsApplication::Register()
 
     // Custom Constitutive laws
     // Serial-Parallel Rule Of Mixtures
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("SerialParallelRuleOfMixturesLaw", mSerialParallelRuleOfMixturesLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SerialParallelRuleOfMixturesLaw3D", mSerialParallelRuleOfMixturesLaw3D);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SerialParallelRuleOfMixturesLaw2D", mSerialParallelRuleOfMixturesLaw2D);
 
     // Anisotropic law
     KRATOS_REGISTER_CONSTITUTIVE_LAW("GenericAnisotropicPlaneStrain2DLaw", mGenericAnisotropicPlaneStrain2DLaw);

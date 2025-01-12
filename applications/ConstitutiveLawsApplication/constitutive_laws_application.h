@@ -301,7 +301,8 @@ private:
     const MultiLinearIsotropicPlaneStress2D mMultiLinearIsotropicPlaneStress2D;
 
     // Damage and plasticity laws
-    const SerialParallelRuleOfMixturesLaw mSerialParallelRuleOfMixturesLaw;
+    const SerialParallelRuleOfMixturesLaw<3> mSerialParallelRuleOfMixturesLaw3D;
+    const SerialParallelRuleOfMixturesLaw<2> mSerialParallelRuleOfMixturesLaw2D;
     const SmallStrainIsotropicPlasticityFactory mSmallStrainIsotropicPlasticityFactory;
     const SmallStrainKinematicPlasticityFactory mSmallStrainKinematicPlasticityFactory;
     const FiniteStrainIsotropicPlasticityFactory mFiniteStrainIsotropicPlasticityFactory;

@@ -185,6 +185,14 @@ KRATOS_TEST_CASE_IN_SUITE(CheckFailureEmptyModelPartApplyCPhiReductionProcess, K
                                       "ApplyCPhiReductionProces has no elements in modelpart dummy")
 }
 
+KRATOS_TEST_CASE_IN_SUITE(CheckReturnsZeroForValidModelPartApplyCPhiReductionProcess, KratosGeoMechanicsFastSuite)
+{
+    Model model;
+    auto& r_model_part = PrepareCPhiTestModelPart(model);
+    ApplyCPhiReductionProcess process{r_model_part, {}};
+    KRATOS_CHECK_EQUAL(process.Check(), 0);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(CheckFailureNegativeReductionFactorApplyCPhiReductionProcess, KratosGeoMechanicsFastSuite)
 {
     Model model;
@@ -198,6 +206,27 @@ KRATOS_TEST_CASE_IN_SUITE(CheckFailureNegativeReductionFactorApplyCPhiReductionP
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         process.ExecuteInitializeSolutionStep(),
         "Reduction factor should not drop below 0.01, calculation stopped.");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckFailureTooSmallReductionIncrementApplyCPhiReductionProcess, KratosGeoMechanicsFastSuite)
+{
+    Model model;
+    auto& r_model_part = PrepareCPhiTestModelPart(model);
+    // Number of cycles should be larger than one to trigger the step halving of the
+    // reduction increment
+    r_model_part.GetProcessInfo().GetValue(NUMBER_OF_CYCLES) = 10;
+    ApplyCPhiReductionProcess process{r_model_part, {}};
+    for (size_t i = 0; i < 6; ++i) {
+        process.ExecuteInitializeSolutionStep();
+        process.ExecuteFinalizeSolutionStep();
+    }
+
+    // After halving the initial reduction increment (0.1) for the seventh time, it becomes
+    // 0.00078125, so it should throw an exception
+    // The final safety factor can be calculated as (1.0 / (1 - 0.1 * 0.5 - 0.1 * 0.5^2 ... + 0.1*0.5^6)) = 1.10919
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        process.ExecuteInitializeSolutionStep(),
+        "Reduction increment should not drop below 0.001, calculation stopped. Final safety factor = 1.10919");
 }
 
 } // namespace Kratos::Testing
