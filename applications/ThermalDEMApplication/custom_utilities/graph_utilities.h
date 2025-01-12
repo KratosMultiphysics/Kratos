@@ -35,12 +35,14 @@ namespace Kratos
       void ExecuteInitialize(bool ParticleTempMin,
                              bool ParticleTempMax,
                              bool ParticleTempAvg,
+                             bool ParticleTempAvgVol,
                              bool ParticleTempDev,
-                             bool ModelTempAvg,
-                             bool MechanicalEnergy,
-                             bool ThermalEnergy,
+                             bool EnergyMechanical,
+                             bool EnergyDissipated,
+                             bool EnergyThermal,
+                             bool HeatFluxContributions,
                              bool HeatGenValues,
-                             bool HeatGenContrib);
+                             bool HeatGenContributions);
       void ExecuteFinalizeSolutionStep(ModelPart& rModelPart);
       void ExecuteFinalize(void);
 
@@ -50,27 +52,36 @@ namespace Kratos
       bool mGraph_ParticleTempMin;
       bool mGraph_ParticleTempMax;
       bool mGraph_ParticleTempAvg;
+      bool mGraph_ParticleTempAvgVol;
       bool mGraph_ParticleTempDev;
-      bool mGraph_ModelTempAvg;
-      bool mGraph_MechanicalEnergy;
-      bool mGraph_ThermalEnergy;
+      bool mGraph_EnergyMechanical;
+      bool mGraph_EnergyDissipated;
+      bool mGraph_EnergyThermal;
+      bool mGraph_HeatFluxContributions;
       bool mGraph_HeatGenValues;
-      bool mGraph_HeatGenContrib;
+      bool mGraph_HeatGenContributions;
 
-      std::ofstream mFile_ParticleTempMin;  // Minimum particle temperature
-      std::ofstream mFile_ParticleTempMax;  // Maximum particle temperature
-      std::ofstream mFile_ParticleTempAvg;  // Average particle temperature
-      std::ofstream mFile_ParticleTempDev;  // Std dev particle temperature
-      std::ofstream mFile_ModelTempAvg;     // Volume-average particle temperature
-      std::ofstream mFile_MechanicalEnergy; // Mechanical energy components (current energies and accumulated dissipations)
-      std::ofstream mFile_ThermalEnergy;    // Accumulated thermal energy generation components (U[J]=Q[W]*t[s])
-      std::ofstream mFile_ThermalEnergyWalls;
-      std::ofstream mFile_HeatGenValues;    // Current values of heat generation components (Q[W])
-      std::ofstream mFile_HeatGenContrib;   // Relative contributions of current values heat generation components (%)
-      std::ofstream mFile_MassInSilo;
+      std::ofstream mFile_ParticleTempMin;        // Minimum particle temperature
+      std::ofstream mFile_ParticleTempMax;        // Maximum particle temperature
+      std::ofstream mFile_ParticleTempAvg;        // Average particle temperature
+      std::ofstream mFile_ParticleTempAvgVol;     // Volume-average particle temperature
+      std::ofstream mFile_ParticleTempDev;        // Std dev particle temperature
+      std::ofstream mFile_EnergyMechanical;       // Mechanical energy components (current)
+      std::ofstream mFile_EnergyDissipated;       // Dissipated energy components (accumulated)
+      std::ofstream mFile_EnergyThermal;          // Accumulated thermal energy generation components (U[J]=Q[W]*t[s])
+      std::ofstream mFile_HeatFluxContributions;  // Relative contributions of heat flux components
+      std::ofstream mFile_HeatGenValues;          // Current values of heat generation components (Q[W])
+      std::ofstream mFile_HeatGenContributions;   // Relative contributions of current values heat generation components (%)
       std::ofstream mFile_Coordination;
+      std::ofstream mFile_MassInSilo;
+      std::ofstream mFile_EnergyThermalWalls;
 
     private:
+
+      // Private methods
+      void OpenFiles(void);
+      void CloseFiles(void);
+      void WriteGraphs(ModelPart& rModelPart);
 
       // Assignment operator
       GraphUtilities& operator=(GraphUtilities const& rOther);

@@ -15,17 +15,18 @@
 
 namespace Kratos {
   //-----------------------------------------------------------------------------------------------------------------------
-  GraphUtilities::GraphUtilities()
-  {
-    mGraph_ParticleTempMin  = false;
-    mGraph_ParticleTempMax  = false;
-    mGraph_ParticleTempAvg  = false;
-    mGraph_ParticleTempDev  = false;
-    mGraph_ModelTempAvg     = false;
-    mGraph_MechanicalEnergy = false;
-    mGraph_ThermalEnergy    = false;
-    mGraph_HeatGenValues    = false;
-    mGraph_HeatGenContrib   = false;
+  GraphUtilities::GraphUtilities() {
+    mGraph_ParticleTempMin       = false;
+    mGraph_ParticleTempMax       = false;
+    mGraph_ParticleTempAvg       = false;
+    mGraph_ParticleTempAvgVol    = false;
+    mGraph_ParticleTempDev       = false;
+    mGraph_EnergyMechanical      = false;
+    mGraph_EnergyDissipated      = false;
+    mGraph_EnergyThermal         = false;
+    mGraph_HeatFluxContributions = false;
+    mGraph_HeatGenValues         = false;
+    mGraph_HeatGenContributions  = false;
   }
 
   GraphUtilities::~GraphUtilities() {}
@@ -34,30 +35,60 @@ namespace Kratos {
   void GraphUtilities::ExecuteInitialize(bool ParticleTempMin,
                                          bool ParticleTempMax,
                                          bool ParticleTempAvg,
+                                         bool ParticleTempAvgVol,
                                          bool ParticleTempDev,
-                                         bool ModelTempAvg,
-                                         bool MechanicalEnergy,
-                                         bool ThermalEnergy,
+                                         bool EnergyMechanical,
+                                         bool EnergyDissipated,
+                                         bool EnergyThermal,
+                                         bool HeatFluxContributions,
                                          bool HeatGenValues,
-                                         bool HeatGenContrib)
+                                         bool HeatGenContributions)
   {
     KRATOS_TRY
 
     // Set member flags
-    mGraph_ParticleTempMin  = ParticleTempMin;
-    mGraph_ParticleTempMax  = ParticleTempMax;
-    mGraph_ParticleTempAvg  = ParticleTempAvg;
-    mGraph_ParticleTempDev  = ParticleTempDev;
-    mGraph_ModelTempAvg     = ModelTempAvg;
-    mGraph_MechanicalEnergy = MechanicalEnergy;
-    mGraph_ThermalEnergy    = ThermalEnergy;
-    mGraph_HeatGenValues    = HeatGenValues;
-    mGraph_HeatGenContrib   = HeatGenContrib;
+    mGraph_ParticleTempMin       = ParticleTempMin;
+    mGraph_ParticleTempMax       = ParticleTempMax;
+    mGraph_ParticleTempAvg       = ParticleTempAvg;
+    mGraph_ParticleTempAvgVol    = ParticleTempAvgVol;
+    mGraph_ParticleTempDev       = ParticleTempDev;
+    mGraph_EnergyMechanical      = EnergyMechanical;
+    mGraph_EnergyDissipated      = EnergyDissipated;
+    mGraph_EnergyThermal         = EnergyThermal;
+    mGraph_HeatFluxContributions = HeatFluxContributions;
+    mGraph_HeatGenValues         = HeatGenValues;
+    mGraph_HeatGenContributions  = HeatGenContributions;
 
     // Open files
+    OpenFiles();
+
+    KRATOS_CATCH("")
+  }
+
+  //-----------------------------------------------------------------------------------------------------------------------
+  void GraphUtilities::ExecuteFinalizeSolutionStep(ModelPart& rModelPart) {
+    KRATOS_TRY
+    
+    if (rModelPart.GetProcessInfo()[IS_TIME_TO_PRINT])
+      WriteGraphs(rModelPart);
+
+    KRATOS_CATCH("")
+  }
+
+  //-----------------------------------------------------------------------------------------------------------------------
+  void GraphUtilities::ExecuteFinalize(void) {
+    KRATOS_TRY
+
+    CloseFiles();
+
+    KRATOS_CATCH("")
+  }
+
+  //-----------------------------------------------------------------------------------------------------------------------
+  void GraphUtilities::OpenFiles(void) {
     if (mGraph_ParticleTempMin) {
       mFile_ParticleTempMin.open("graph_particle_temp_min.txt", std::ios::out);
-      KRATOS_ERROR_IF_NOT(mFile_ParticleTempMin) << "Could not open graph file for minimum particle temperature!" << std::endl;
+      KRATOS_ERROR_IF_NOT(mFile_ParticleTempMin) << "Could not open graph_particle_temp_min.txt!" << std::endl;
       mFile_ParticleTempMin << "1 - TIME STEP | ";
       mFile_ParticleTempMin << "2 - TIME | ";
       mFile_ParticleTempMin << "3 - MIN PARTICLE TEMPERATURE";
@@ -65,7 +96,7 @@ namespace Kratos {
     }
     if (mGraph_ParticleTempMax) {
       mFile_ParticleTempMax.open("graph_particle_temp_max.txt", std::ios::out);
-      KRATOS_ERROR_IF_NOT(mFile_ParticleTempMax) << "Could not open graph file for maximum particle temperature!" << std::endl;
+      KRATOS_ERROR_IF_NOT(mFile_ParticleTempMax) << "Could not open graph_particle_temp_max.txt!" << std::endl;
       mFile_ParticleTempMax << "1 - TIME STEP | ";
       mFile_ParticleTempMax << "2 - TIME | ";
       mFile_ParticleTempMax << "3 - MAX PARTICLE TEMPERATURE";
@@ -73,98 +104,115 @@ namespace Kratos {
     }
     if (mGraph_ParticleTempAvg) {
       mFile_ParticleTempAvg.open("graph_particle_temp_avg.txt", std::ios::out);
-      KRATOS_ERROR_IF_NOT(mFile_ParticleTempAvg) << "Could not open graph file for average particle temperature!" << std::endl;
+      KRATOS_ERROR_IF_NOT(mFile_ParticleTempAvg) << "Could not open graph_particle_temp_avg.txt!" << std::endl;
       mFile_ParticleTempAvg << "1 - TIME STEP | ";
       mFile_ParticleTempAvg << "2 - TIME | ";
       mFile_ParticleTempAvg << "3 - AVERAGE PARTICLE TEMPERATURE";
       mFile_ParticleTempAvg << std::endl;
     }
+    if (mGraph_ParticleTempAvgVol) {
+      mFile_ParticleTempAvgVol.open("graph_particle_temp_avg_vol.txt", std::ios::out);
+      KRATOS_ERROR_IF_NOT(mFile_ParticleTempAvgVol) << "Could not open graph_particle_temp_avg_vol.txt!" << std::endl;
+      mFile_ParticleTempAvgVol << "1 - TIME STEP | ";
+      mFile_ParticleTempAvgVol << "2 - TIME | ";
+      mFile_ParticleTempAvgVol << "3 - AVERAGE PARTICLE TEMPERATURE (VOLUME WEIGHTED)";
+      mFile_ParticleTempAvgVol << std::endl;
+    }
     if (mGraph_ParticleTempDev) {
       mFile_ParticleTempDev.open("graph_particle_temp_dev.txt", std::ios::out);
-      KRATOS_ERROR_IF_NOT(mFile_ParticleTempDev) << "Could not open graph file for deviation of particle temperature!" << std::endl;
+      KRATOS_ERROR_IF_NOT(mFile_ParticleTempDev) << "Could not open graph_particle_temp_dev.txt!" << std::endl;
       mFile_ParticleTempDev << "1 - TIME STEP | ";
       mFile_ParticleTempDev << "2 - TIME | ";
       mFile_ParticleTempDev << "3 - PARTICLE TEMPERATURE STANDARD DEVIATION";
       mFile_ParticleTempDev << std::endl;
     }
-    if (mGraph_ModelTempAvg) {
-      mFile_ModelTempAvg.open("graph_model_temp_avg.txt", std::ios::out);
-      KRATOS_ERROR_IF_NOT(mFile_ModelTempAvg) << "Could not open graph file for average model temperature!" << std::endl;
-      mFile_ModelTempAvg << "1 - TIME STEP | ";
-      mFile_ModelTempAvg << "2 - TIME | ";
-      mFile_ModelTempAvg << "3 - AVERAGE MODEL TEMPERATURE";
-      mFile_ModelTempAvg << std::endl;
+    if (mGraph_EnergyMechanical) {
+      mFile_EnergyMechanical.open("graph_energy_mechanical.txt", std::ios::out);
+      KRATOS_ERROR_IF_NOT(mFile_EnergyMechanical) << "Could not open graph_energy_mechanical.txt!" << std::endl;
+      mFile_EnergyMechanical << "1 - TIME STEP | ";
+      mFile_EnergyMechanical << "2 - TIME | ";
+      mFile_EnergyMechanical << "3 - GRAVITY | ";
+      mFile_EnergyMechanical << "4 - ELASTIC | ";
+      mFile_EnergyMechanical << "5 - KINETIC TRANSLATION | ";
+      mFile_EnergyMechanical << "6 - KINETIC ROTATION | ";
+      mFile_EnergyMechanical << "7 - TOTAL";
+      mFile_EnergyMechanical << std::endl;
     }
-    if (mGraph_MechanicalEnergy) {
-      mFile_MechanicalEnergy.open("graph_mechanical_energy.txt", std::ios::out);
-      KRATOS_ERROR_IF_NOT(mFile_MechanicalEnergy) << "Could not open graph file graph_mechanical_energy.txt!" << std::endl;
-      mFile_MechanicalEnergy << "1 - TIME STEP | ";
-      mFile_MechanicalEnergy << "2 - TIME | ";
-      mFile_MechanicalEnergy << "3 - GRAV | ";
-      mFile_MechanicalEnergy << "4 - ELAST | ";
-      mFile_MechanicalEnergy << "5 - KINET TRANS | ";
-      mFile_MechanicalEnergy << "6 - KINET ROT | ";
-      mFile_MechanicalEnergy << "7 - TOTAL ENERGY | ";
-      mFile_MechanicalEnergy << "8 - DISSIP SLID | ";
-      mFile_MechanicalEnergy << "9 - DISSIP ROLL | ";
-      mFile_MechanicalEnergy << "10 - DISSIP DAMP | ";
-      mFile_MechanicalEnergy << "11 - DISSIP DAMP N | ";
-      mFile_MechanicalEnergy << "12 - DISSIP DAMP T | ";
-      mFile_MechanicalEnergy << "13 - TOTAL DISSIP | ";
-      mFile_MechanicalEnergy << "14 - ENERGY + DISSIP";
-      mFile_MechanicalEnergy << std::endl;
+    if (mGraph_EnergyDissipated) {
+      mFile_EnergyDissipated.open("graph_energy_dissipated.txt", std::ios::out);
+      KRATOS_ERROR_IF_NOT(mFile_EnergyDissipated) << "Could not open graph_energy_dissipated.txt!" << std::endl;
+      mFile_EnergyDissipated << "1 - TIME STEP | ";
+      mFile_EnergyDissipated << "2 - TIME | ";
+      mFile_EnergyDissipated << "3 - SLIDING | ";
+      mFile_EnergyDissipated << "4 - ROLLING | ";
+      mFile_EnergyDissipated << "5 - DAMPING | ";
+      mFile_EnergyDissipated << "6 - TOTAL (ACCUMULATED)";
+      mFile_EnergyDissipated << std::endl;
     }
-    if (mGraph_ThermalEnergy) {
-      mFile_ThermalEnergy.open("graph_thermal_energy.txt", std::ios::out);
-      KRATOS_ERROR_IF_NOT(mFile_ThermalEnergy) << "Could not open graph file graph_thermal_energy.txt!" << std::endl;
-      mFile_ThermalEnergy << "1 - TIME STEP | ";
-      mFile_ThermalEnergy << "2 - TIME | ";
-      mFile_ThermalEnergy << "3 - SLID PP | ";
-      mFile_ThermalEnergy << "4 - SLID PW | ";
-      mFile_ThermalEnergy << "5 - ROLL PP | ";
-      mFile_ThermalEnergy << "6 - ROLL PW | ";
-      mFile_ThermalEnergy << "7 - DAMP PP | ";
-      mFile_ThermalEnergy << "8 - DAMP PW | ";
-      mFile_ThermalEnergy << "9 - TOT";
-      mFile_ThermalEnergy << std::endl;
+    if (mGraph_EnergyThermal) {
+      mFile_EnergyThermal.open("graph_energy_thermal.txt", std::ios::out);
+      KRATOS_ERROR_IF_NOT(mFile_EnergyThermal) << "Could not open graph file graph_energy_thermal.txt!" << std::endl;
+      mFile_EnergyThermal << "1 - TIME STEP | ";
+      mFile_EnergyThermal << "2 - TIME | ";
+      mFile_EnergyThermal << "3 - SLIDING PARTICLE-PARTICLE | ";
+      mFile_EnergyThermal << "4 - SLIDING PARTICLE-WALL | ";
+      mFile_EnergyThermal << "5 - ROLLING PARTICLE-PARTICLE | ";
+      mFile_EnergyThermal << "6 - ROLLING PARTICLE-WALL | ";
+      mFile_EnergyThermal << "7 - DAMPING PARTICLE-PARTICLE | ";
+      mFile_EnergyThermal << "8 - DAMPING PARTICLE-WALL | ";
+      mFile_EnergyThermal << "9 - TOTAL (ACCUMULATED)";
+      mFile_EnergyThermal << std::endl;
     }
-    if (mGraph_ThermalEnergy) {
-      mFile_ThermalEnergyWalls.open("graph_thermal_energy_walls.txt", std::ios::out);
-      KRATOS_ERROR_IF_NOT(mFile_ThermalEnergyWalls) << "Could not open graph file graph_thermal_energy_walls.txt!" << std::endl;
-      mFile_ThermalEnergyWalls << "1 - TIME STEP | ";
-      mFile_ThermalEnergyWalls << "2 - TIME | ";
-      mFile_ThermalEnergyWalls << "3 - ANNULAR | ";
-      mFile_ThermalEnergyWalls << "4 - SIDES";
-      mFile_ThermalEnergyWalls << std::endl;
+    if (mGraph_HeatFluxContributions) {
+      mFile_HeatFluxContributions.open("graph_heat_flux_contributions.txt", std::ios::out);
+      KRATOS_ERROR_IF_NOT(mFile_HeatFluxContributions) << "Could not open graph_heat_flux_contributions.txt!" << std::endl;
+      mFile_HeatFluxContributions << "1 - TIME STEP | ";
+      mFile_HeatFluxContributions << "2 - TIME | ";
+      mFile_HeatFluxContributions << "3 - CONDUCTION DIRECT | ";
+      mFile_HeatFluxContributions << "4 - CONDUCTION INDIRECT | ";
+      mFile_HeatFluxContributions << "5 - RADIATION | ";
+      mFile_HeatFluxContributions << "6 - GENERATION | ";
+      mFile_HeatFluxContributions << "7 - CONVECTION | ";
+      mFile_HeatFluxContributions << "8 - SURFACE PRESCRIBED | ";
+      mFile_HeatFluxContributions << "9 - VOLUME PRESCRIBED";
+      mFile_HeatFluxContributions << std::endl;
     }
     if (mGraph_HeatGenValues) {
-      mFile_HeatGenValues.open("graph_heat_generation.txt", std::ios::out);
-      KRATOS_ERROR_IF_NOT(mFile_HeatGenValues) << "Could not open graph file graph_heat_generation.txt!" << std::endl;
+      mFile_HeatGenValues.open("graph_heat_generation_values.txt", std::ios::out);
+      KRATOS_ERROR_IF_NOT(mFile_HeatGenValues) << "Could not open graph_heat_generation_values.txt!" << std::endl;
       mFile_HeatGenValues << "1 - TIME STEP | ";
       mFile_HeatGenValues << "2 - TIME | ";
-      mFile_HeatGenValues << "3 - SLID PP | ";
-      mFile_HeatGenValues << "4 - SLID PW | ";
-      mFile_HeatGenValues << "5 - ROLL PP | ";
-      mFile_HeatGenValues << "6 - ROLL PW | ";
-      mFile_HeatGenValues << "7 - DAMP PP | ";
-      mFile_HeatGenValues << "8 - DAMP PW | ";
-      mFile_HeatGenValues << "9 - TOT";
+      mFile_HeatGenValues << "3 - SLIDING PARTICLE-PARTICLE | ";
+      mFile_HeatGenValues << "4 - SLIDING PARTICLE-WALL | ";
+      mFile_HeatGenValues << "5 - ROLLING PARTICLE-PARTICLE | ";
+      mFile_HeatGenValues << "6 - ROLLING PARTICLE-WALL | ";
+      mFile_HeatGenValues << "7 - DAMPING PARTICLE-PARTICLE | ";
+      mFile_HeatGenValues << "8 - DAMPING PARTICLE-WALL";
+      mFile_HeatGenValues << "9 - TOTAL";
       mFile_HeatGenValues << std::endl;
     }
-    if (mGraph_HeatGenContrib) {
-      mFile_HeatGenContrib.open("graph_heat_generation_relative.txt", std::ios::out);
-      KRATOS_ERROR_IF_NOT(mFile_HeatGenContrib) << "Could not open graph file graph_heat_generation_relative.txt!" << std::endl;
-      mFile_HeatGenContrib << "1 - TIME STEP | ";
-      mFile_HeatGenContrib << "2 - TIME | ";
-      mFile_HeatGenContrib << "3 - SLID PP | ";
-      mFile_HeatGenContrib << "4 - SLID PW | ";
-      mFile_HeatGenContrib << "5 - ROLL PP | ";
-      mFile_HeatGenContrib << "6 - ROLL PW | ";
-      mFile_HeatGenContrib << "7 - DAMP PP | ";
-      mFile_HeatGenContrib << "8 - DAMP PW";
-      mFile_HeatGenContrib << std::endl;
+    if (mGraph_HeatGenContributions) {
+      mFile_HeatGenContributions.open("graph_heat_generation_contributions.txt", std::ios::out);
+      KRATOS_ERROR_IF_NOT(mFile_HeatGenContributions) << "Could not open graph_heat_generation_contributions.txt!" << std::endl;
+      mFile_HeatGenContributions << "1 - TIME STEP | ";
+      mFile_HeatGenContributions << "2 - TIME | ";
+      mFile_HeatGenContributions << "3 - SLIDING PARTICLE-PARTICLE | ";
+      mFile_HeatGenContributions << "4 - SLIDING PARTICLE-WALL | ";
+      mFile_HeatGenContributions << "5 - ROLLING PARTICLE-PARTICLE | ";
+      mFile_HeatGenContributions << "6 - ROLLING PARTICLE-WALL | ";
+      mFile_HeatGenContributions << "7 - DAMPING PARTICLE-PARTICLE | ";
+      mFile_HeatGenContributions << "8 - DAMPING PARTICLE-WALL";
+      mFile_HeatGenContributions << std::endl;
     }
-
+    
+    //////////////// NEW ////////////////
+    mFile_Coordination.open("graph_coordination.txt", std::ios::out);
+    KRATOS_ERROR_IF_NOT(mFile_Coordination) << "Could not open graph file graph_mass_in_silo.txt!" << std::endl;
+    mFile_Coordination << "1 - TIME STEP | ";
+    mFile_Coordination << "2 - TIME | ";
+    mFile_Coordination << "3 - COORDINATION";
+    mFile_Coordination << std::endl;
+    
     mFile_MassInSilo.open("graph_mass_in_silo.txt", std::ios::out);
     KRATOS_ERROR_IF_NOT(mFile_MassInSilo) << "Could not open graph file graph_mass_in_silo.txt!" << std::endl;
     mFile_MassInSilo << "1 - TIME STEP | ";
@@ -172,195 +220,265 @@ namespace Kratos {
     mFile_MassInSilo << "3 - MASS";
     mFile_MassInSilo << std::endl;
 
-    mFile_Coordination.open("graph_coordination.txt", std::ios::out);
-    KRATOS_ERROR_IF_NOT(mFile_Coordination) << "Could not open graph file graph_mass_in_silo.txt!" << std::endl;
-    mFile_Coordination << "1 - TIME STEP | ";
-    mFile_Coordination << "2 - TIME | ";
-    mFile_Coordination << "3 - COORDINATION";
-    mFile_Coordination << std::endl;
-
-    KRATOS_CATCH("")
+    mFile_EnergyThermalWalls.open("graph_energy_thermal_walls.txt", std::ios::out);
+    KRATOS_ERROR_IF_NOT(mFile_EnergyThermalWalls) << "Could not open graph file graph_energy_thermal_walls.txt!" << std::endl;
+    mFile_EnergyThermalWalls << "1 - TIME STEP | ";
+    mFile_EnergyThermalWalls << "2 - TIME | ";
+    mFile_EnergyThermalWalls << "3 - ANNULAR | ";
+    mFile_EnergyThermalWalls << "4 - SIDES";
+    mFile_EnergyThermalWalls << std::endl;
+    /////////////////////////////////////
   }
 
   //-----------------------------------------------------------------------------------------------------------------------
-  void GraphUtilities::ExecuteFinalizeSolutionStep(ModelPart& rModelPart)
-  {
+  void GraphUtilities::WriteGraphs(ModelPart& rModelPart) {
     KRATOS_TRY
 
+    // Initialize results
     const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
-    if (!r_process_info[IS_TIME_TO_PRINT])
-      return;
 
-    const int num_particles     =  rModelPart.NumberOfElements();
-    int       num_particles_gen =  0;
-    double    total_coord       =  0.0;
-    double    total_vol         =  0.0;
-    double    total_silo_mass   =  0.0;
+    const int num_particles              = rModelPart.NumberOfElements();
+    int       num_particles_flux_contrib = 0;
+    int       num_particles_gen_contrib  = 0;
+    double    vol_total                  = 0.0;
 
-    double particle_temp_min =  DBL_MAX;
-    double particle_temp_max = -DBL_MAX;
-    double particle_temp_avg =  0.0;
-    double particle_temp_dev =  0.0;
-    double model_temp_avg    =  0.0;
+    double    particle_temp_min     =  DBL_MAX;
+    double    particle_temp_max     = -DBL_MAX;
+    double    particle_temp_avg     =  0.0;
+    double    particle_temp_avg_vol =  0.0;
+    double    particle_temp_dev     =  0.0;
 
-    double total_energy_potential_gravity   =  0.0;
-    double total_energy_potential_elastic   =  0.0;
-    double total_energy_kinetic_translation =  0.0;
-    double total_energy_kinetic_rotation    =  0.0;
-    double total_energy                     =  0.0;
+    double    energy_mech_gravity_all     = 0.0;
+    double    energy_mech_elastic_all     = 0.0;
+    double    energy_mech_translation_all = 0.0;
+    double    energy_mech_rotation_all    = 0.0;
+    double    energy_mech_all             = 0.0;
 
-    double total_dissip_slid         =  0.0;
-    double total_dissip_roll         =  0.0;
-    double total_dissip_damp         =  0.0;
-    double total_dissip_damp_normal  =  0.0;
-    double total_dissip_damp_tangent =  0.0;
-    double total_dissip              =  0.0;
+    double    energy_dissip_slid_all = 0.0;
+    double    energy_dissip_roll_all = 0.0;
+    double    energy_dissip_damp_all = 0.0;
+    double    energy_dissip_all      = 0.0;
 
-    double total_thermal_slid_pp = 0.0;
-    double total_thermal_slid_pw = 0.0;
-    double total_thermal_roll_pp = 0.0;
-    double total_thermal_roll_pw = 0.0;
-    double total_thermal_damp_pp = 0.0;
-    double total_thermal_damp_pw = 0.0;
-    double total_thermal         = 0.0;
+    double    energy_thermal_slid_pp_all = 0.0;
+    double    energy_thermal_slid_pw_all = 0.0;
+    double    energy_thermal_roll_pp_all = 0.0;
+    double    energy_thermal_roll_pw_all = 0.0;
+    double    energy_thermal_damp_pp_all = 0.0;
+    double    energy_thermal_damp_pw_all = 0.0;
+    double    energy_thermal_all         = 0.0;
 
-    double total_thermal_pw_annul = 0.0;
-    double total_thermal_pw_sides = 0.0;
+    double    heat_flux_values_conducdir_all   = 0.0;
+    double    heat_flux_values_conducindir_all = 0.0;
+    double    heat_flux_values_rad_all         = 0.0;
+    double    heat_flux_values_gen_all         = 0.0;
+    double    heat_flux_values_conv_all        = 0.0;
+    double    heat_flux_values_prescsurf_all   = 0.0;
+    double    heat_flux_values_prescvol_all    = 0.0;
+    double    heat_flux_values_all             = 0.0;
 
-    double total_heat_gen_slid_pp = 0.0;
-    double total_heat_gen_slid_pw = 0.0;
-    double total_heat_gen_roll_pp = 0.0;
-    double total_heat_gen_roll_pw = 0.0;
-    double total_heat_gen_damp_pp = 0.0;
-    double total_heat_gen_damp_pw = 0.0;
-    double total_heat_gen         = 0.0;
+    double    heat_flux_contrib_conducdir   = 0.0;
+    double    heat_flux_contrib_conducindir = 0.0;
+    double    heat_flux_contrib_rad         = 0.0;
+    double    heat_flux_contrib_gen         = 0.0;
+    double    heat_flux_contrib_conv        = 0.0;
+    double    heat_flux_contrib_prescsurf   = 0.0;
+    double    heat_flux_contrib_prescvol    = 0.0;
 
-    double contrib_heat_gen_slid_pp = 0.0;
-    double contrib_heat_gen_slid_pw = 0.0;
-    double contrib_heat_gen_roll_pp = 0.0;
-    double contrib_heat_gen_roll_pw = 0.0;
-    double contrib_heat_gen_damp_pp = 0.0;
-    double contrib_heat_gen_damp_pw = 0.0;
+    double    heat_gen_values_slid_pp_all = 0.0;
+    double    heat_gen_values_slid_pw_all = 0.0;
+    double    heat_gen_values_roll_pp_all = 0.0;
+    double    heat_gen_values_roll_pw_all = 0.0;
+    double    heat_gen_values_damp_pp_all = 0.0;
+    double    heat_gen_values_damp_pw_all = 0.0;
+    double    heat_gen_values_all         = 0.0;
+
+    double    heat_gen_contrib_slid_pp = 0.0;
+    double    heat_gen_contrib_slid_pw = 0.0;
+    double    heat_gen_contrib_roll_pp = 0.0;
+    double    heat_gen_contrib_roll_pw = 0.0;
+    double    heat_gen_contrib_damp_pp = 0.0;
+    double    heat_gen_contrib_damp_pw = 0.0;
+
+    //////////////// NEW ////////////////
+    double coordination_total          = 0.0;
+    double silo_mass_total             = 0.0;
+    double energy_thermal_pw_annul_all = 0.0;
+    double energy_thermal_pw_sides_all = 0.0;
+    double energy_dissip_damp_norm_all = 0.0;
+    double energy_dissip_damp_tang_all = 0.0;
+    /////////////////////////////////////
 
     ModelPart::ElementsContainerType::iterator it = rModelPart.GetCommunicator().LocalMesh().Elements().ptr_begin();
     #pragma omp parallel for schedule(dynamic, 100)
     for (int i = 0; i < num_particles; i++) {
       ThermalSphericParticle& particle = dynamic_cast<ThermalSphericParticle&> (*(it+i));
 
-      const double coord = particle.mNeighbourElements.size() + particle.mNeighbourRigidFaces.size();
-      const double vol   = particle.CalculateVolume();
-      const double temp  = particle.GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE);
+      // Particle results
+      const double vol  = particle.CalculateVolume();
+      const double temp = particle.GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE);
 
+      double energy_mech_gravity     = 0.0;
+      double energy_mech_elastic     = 0.0;
+      double energy_mech_translation = 0.0;
+      double energy_mech_rotation    = 0.0;
+
+      double energy_dissip_slid = 0.0;
+      double energy_dissip_roll = 0.0;
+      double energy_dissip_damp = 0.0;
+
+      particle.Calculate(PARTICLE_GRAVITATIONAL_ENERGY,                energy_mech_gravity,     r_process_info);
+      particle.Calculate(PARTICLE_ELASTIC_ENERGY,                      energy_mech_elastic,     r_process_info);
+      particle.Calculate(PARTICLE_TRANSLATIONAL_KINEMATIC_ENERGY,      energy_mech_translation, r_process_info);
+      particle.Calculate(PARTICLE_ROTATIONAL_KINEMATIC_ENERGY,         energy_mech_rotation,    r_process_info);
+      particle.Calculate(PARTICLE_INELASTIC_FRICTIONAL_ENERGY,         energy_dissip_slid,      r_process_info);
+      particle.Calculate(PARTICLE_INELASTIC_ROLLING_RESISTANCE_ENERGY, energy_dissip_roll,      r_process_info);
+      particle.Calculate(PARTICLE_INELASTIC_VISCODAMPING_ENERGY,       energy_dissip_damp,      r_process_info);
+
+      const double energy_thermal_slid_pp = fabs(particle.mGenerationThermalEnergy_slid_particle);
+      const double energy_thermal_slid_pw = fabs(particle.mGenerationThermalEnergy_slid_wall);
+      const double energy_thermal_roll_pp = fabs(particle.mGenerationThermalEnergy_roll_particle);
+      const double energy_thermal_roll_pw = fabs(particle.mGenerationThermalEnergy_roll_wall);
+      const double energy_thermal_damp_pp = fabs(particle.mGenerationThermalEnergy_damp_particle);
+      const double energy_thermal_damp_pw = fabs(particle.mGenerationThermalEnergy_damp_wall);
+
+      const double heat_flux_values_conducdir   = fabs(particle.mConductionDirectHeatFlux);
+      const double heat_flux_values_conducindir = fabs(particle.mConductionIndirectHeatFlux);
+      const double heat_flux_values_rad         = fabs(particle.mRadiationHeatFlux);
+      const double heat_flux_values_gen         = fabs(particle.mGenerationHeatFlux);
+      const double heat_flux_values_conv        = fabs(particle.mConvectionHeatFlux);
+      const double heat_flux_values_prescsurf   = fabs(particle.mPrescribedHeatFluxSurface);
+      const double heat_flux_values_prescvol    = fabs(particle.mPrescribedHeatFluxVolume);
+      const double heat_flux_values             = fabs(particle.mTotalHeatFlux);
+
+      const double heat_gen_values_slid_pp = fabs(particle.mGenerationHeatFlux_slid_particle);
+      const double heat_gen_values_slid_pw = fabs(particle.mGenerationHeatFlux_slid_wall);
+      const double heat_gen_values_roll_pp = fabs(particle.mGenerationHeatFlux_roll_particle);
+      const double heat_gen_values_roll_pw = fabs(particle.mGenerationHeatFlux_roll_wall);
+      const double heat_gen_values_damp_pp = fabs(particle.mGenerationHeatFlux_damp_particle);
+      const double heat_gen_values_damp_pw = fabs(particle.mGenerationHeatFlux_damp_wall);
+      const double heat_gen_values         = fabs(particle.mGenerationHeatFlux);
+
+      //////////////// NEW ////////////////
+      const double coordination = particle.mNeighbourElements.size() + particle.mNeighbourRigidFaces.size();
       double mass = 0.0;
-      double coord_z = particle.GetGeometry()[0].Coordinates()[2];
-      if (coord_z > 0.25)
-        mass = particle.GetMass();
+      if (particle.GetGeometry()[0].Coordinates()[2] > 0.25) mass = particle.GetMass();
 
-      double energy_potential_gravity         = 0.0;
-      double energy_potential_elastic         = 0.0;
-      double energy_kinetic_translation       = 0.0;
-      double energy_kinetic_rotation          = 0.0;
-      double dissip_slid                      = 0.0;
-      double dissip_roll                      = 0.0;
-      double dissip_damp                      = 0.0;
-      double dissip_damp_normal               = 0.0;
-      double dissip_damp_tangent              = 0.0;
-      particle.Calculate(PARTICLE_GRAVITATIONAL_ENERGY,                energy_potential_gravity,   r_process_info);
-      particle.Calculate(PARTICLE_ELASTIC_ENERGY,                      energy_potential_elastic,   r_process_info);
-      particle.Calculate(PARTICLE_TRANSLATIONAL_KINEMATIC_ENERGY,      energy_kinetic_translation, r_process_info);
-      particle.Calculate(PARTICLE_ROTATIONAL_KINEMATIC_ENERGY,         energy_kinetic_rotation,    r_process_info);
-      particle.Calculate(PARTICLE_INELASTIC_FRICTIONAL_ENERGY,         dissip_slid,                r_process_info);
-      particle.Calculate(PARTICLE_INELASTIC_ROLLING_RESISTANCE_ENERGY, dissip_roll,                r_process_info);
-      particle.Calculate(PARTICLE_INELASTIC_VISCODAMPING_ENERGY,       dissip_damp,                r_process_info);
-      particle.Calculate(PARTICLE_INELASTIC_DAMPING_NORMAL_ENERGY,     dissip_damp_normal,         r_process_info);
-      particle.Calculate(PARTICLE_INELASTIC_DAMPING_TANGENT_ENERGY,    dissip_damp_tangent,        r_process_info);
+      const double energy_thermal_pw_annul = fabs(particle.mGenerationThermalEnergy_wall_annul);
+      const double energy_thermal_pw_sides = fabs(particle.mGenerationThermalEnergy_wall_sides);
 
-      const double thermal_slid_pp = fabs(particle.mGenerationThermalEnergy_slid_particle);
-      const double thermal_slid_pw = fabs(particle.mGenerationThermalEnergy_slid_wall);
-      const double thermal_roll_pp = fabs(particle.mGenerationThermalEnergy_roll_particle);
-      const double thermal_roll_pw = fabs(particle.mGenerationThermalEnergy_roll_wall);
-      const double thermal_damp_pp = fabs(particle.mGenerationThermalEnergy_damp_particle);
-      const double thermal_damp_pw = fabs(particle.mGenerationThermalEnergy_damp_wall);
+      double energy_dissip_damp_norm = 0.0;
+      double energy_dissip_damp_tang = 0.0;
+      particle.Calculate(PARTICLE_INELASTIC_DAMPING_NORMAL_ENERGY,  energy_dissip_damp_norm, r_process_info);
+      particle.Calculate(PARTICLE_INELASTIC_DAMPING_TANGENT_ENERGY, energy_dissip_damp_tang, r_process_info);
+      /////////////////////////////////////
 
-      const double thermal_pw_annul = fabs(particle.mGenerationThermalEnergy_wall_annul);
-      const double thermal_pw_sides = fabs(particle.mGenerationThermalEnergy_wall_sides);
-
-      const double heat_gen_slid_pp = fabs(particle.mGenerationHeatFlux_slid_particle);
-      const double heat_gen_slid_pw = fabs(particle.mGenerationHeatFlux_slid_wall);
-      const double heat_gen_roll_pp = fabs(particle.mGenerationHeatFlux_roll_particle);
-      const double heat_gen_roll_pw = fabs(particle.mGenerationHeatFlux_roll_wall);
-      const double heat_gen_damp_pp = fabs(particle.mGenerationHeatFlux_damp_particle);
-      const double heat_gen_damp_pw = fabs(particle.mGenerationHeatFlux_damp_wall);
-      const double heat_gen_total   = fabs(particle.mGenerationHeatFlux);
-
+      // Accumulate particle results
       #pragma omp critical
       {
-        total_coord += coord;
-        total_vol += vol;
-        total_silo_mass += mass;
+        vol_total += vol;
         if (temp < particle_temp_min) particle_temp_min = temp;
         if (temp > particle_temp_max) particle_temp_max = temp;
-        particle_temp_avg += temp;
-        particle_temp_dev += temp * temp;
-        model_temp_avg    += temp * vol;
+        particle_temp_avg     += temp;
+        particle_temp_avg_vol += temp * vol;
+        particle_temp_dev     += temp * temp;
 
-        total_energy_potential_gravity   += energy_potential_gravity;
-        total_energy_potential_elastic   += energy_potential_elastic;
-        total_energy_kinetic_translation += energy_kinetic_translation;
-        total_energy_kinetic_rotation    += energy_kinetic_rotation;
-        total_energy                     += energy_potential_gravity + energy_potential_elastic + energy_kinetic_translation + energy_kinetic_rotation;
+        energy_mech_gravity_all     += energy_mech_gravity;
+        energy_mech_elastic_all     += energy_mech_elastic;
+        energy_mech_translation_all += energy_mech_translation;
+        energy_mech_rotation_all    += energy_mech_rotation;
+        energy_mech_all             += energy_mech_gravity + energy_mech_elastic + energy_mech_translation + energy_mech_rotation;
         
-        total_dissip_slid         += dissip_slid;
-        total_dissip_roll         += dissip_roll;
-        total_dissip_damp         += dissip_damp;
-        total_dissip_damp_normal  += dissip_damp_normal;
-        total_dissip_damp_tangent += dissip_damp_tangent;
-        total_dissip              += dissip_slid + dissip_roll + dissip_damp;
+        energy_dissip_slid_all += energy_dissip_slid;
+        energy_dissip_roll_all += energy_dissip_roll;
+        energy_dissip_damp_all += energy_dissip_damp;
+        energy_dissip_all      += energy_dissip_slid + energy_dissip_roll + energy_dissip_damp;
 
-        total_thermal_slid_pp += thermal_slid_pp;
-        total_thermal_slid_pw += thermal_slid_pw;
-        total_thermal_roll_pp += thermal_roll_pp;
-        total_thermal_roll_pw += thermal_roll_pw;
-        total_thermal_damp_pp += thermal_damp_pp;
-        total_thermal_damp_pw += thermal_damp_pw;
-        total_thermal         += thermal_slid_pp + thermal_slid_pw + thermal_roll_pp + thermal_roll_pw + thermal_damp_pp + thermal_damp_pw;
+        energy_thermal_slid_pp_all += energy_thermal_slid_pp;
+        energy_thermal_slid_pw_all += energy_thermal_slid_pw;
+        energy_thermal_roll_pp_all += energy_thermal_roll_pp;
+        energy_thermal_roll_pw_all += energy_thermal_roll_pw;
+        energy_thermal_damp_pp_all += energy_thermal_damp_pp;
+        energy_thermal_damp_pw_all += energy_thermal_damp_pw;
+        energy_thermal_all         += energy_thermal_slid_pp + energy_thermal_slid_pw + energy_thermal_roll_pp + energy_thermal_roll_pw + energy_thermal_damp_pp + energy_thermal_damp_pw;
 
-        total_thermal_pw_annul += thermal_pw_annul;
-        total_thermal_pw_sides += thermal_pw_sides;
+        heat_flux_values_conducdir_all   += heat_flux_values_conducdir;
+        heat_flux_values_conducindir_all += heat_flux_values_conducindir;
+        heat_flux_values_rad_all         += heat_flux_values_rad;
+        heat_flux_values_gen_all         += heat_flux_values_gen;
+        heat_flux_values_conv_all        += heat_flux_values_conv;
+        heat_flux_values_prescsurf_all   += heat_flux_values_prescsurf;
+        heat_flux_values_prescvol_all    += heat_flux_values_prescvol;
+        heat_flux_values_all             += heat_flux_values_conducdir + heat_flux_values_conducindir + heat_flux_values_rad + heat_flux_values_gen + heat_flux_values_conv + heat_flux_values_prescsurf + heat_flux_values_prescvol;
 
-        total_heat_gen_slid_pp += heat_gen_slid_pp;
-        total_heat_gen_slid_pw += heat_gen_slid_pw;
-        total_heat_gen_roll_pp += heat_gen_roll_pp;
-        total_heat_gen_roll_pw += heat_gen_roll_pw;
-        total_heat_gen_damp_pp += heat_gen_damp_pp;
-        total_heat_gen_damp_pw += heat_gen_damp_pw;
-        total_heat_gen         += heat_gen_slid_pp + heat_gen_slid_pw + heat_gen_roll_pp + heat_gen_roll_pw + heat_gen_damp_pp + heat_gen_damp_pw;
-
-        if (mGraph_HeatGenContrib && heat_gen_total != 0.0) {
-          num_particles_gen++;
-          contrib_heat_gen_slid_pp += heat_gen_slid_pp / heat_gen_total;
-          contrib_heat_gen_slid_pw += heat_gen_slid_pw / heat_gen_total;
-          contrib_heat_gen_roll_pp += heat_gen_roll_pp / heat_gen_total;
-          contrib_heat_gen_roll_pw += heat_gen_roll_pw / heat_gen_total;
-          contrib_heat_gen_damp_pp += heat_gen_damp_pp / heat_gen_total;
-          contrib_heat_gen_damp_pw += heat_gen_damp_pw / heat_gen_total;
+        if (heat_flux_values != 0.0) {
+          num_particles_flux_contrib++;
+          heat_flux_contrib_conducdir   += heat_flux_values_conducdir   / heat_flux_values;
+          heat_flux_contrib_conducindir += heat_flux_values_conducindir / heat_flux_values;
+          heat_flux_contrib_rad         += heat_flux_values_rad         / heat_flux_values;
+          heat_flux_contrib_gen         += heat_flux_values_gen         / heat_flux_values;
+          heat_flux_contrib_conv        += heat_flux_values_conv        / heat_flux_values;
+          heat_flux_contrib_prescsurf   += heat_flux_values_prescsurf   / heat_flux_values;
+          heat_flux_contrib_prescvol    += heat_flux_values_prescvol    / heat_flux_values;
         }
+
+        heat_gen_values_slid_pp_all += heat_gen_values_slid_pp;
+        heat_gen_values_slid_pw_all += heat_gen_values_slid_pw;
+        heat_gen_values_roll_pp_all += heat_gen_values_roll_pp;
+        heat_gen_values_roll_pw_all += heat_gen_values_roll_pw;
+        heat_gen_values_damp_pp_all += heat_gen_values_damp_pp;
+        heat_gen_values_damp_pw_all += heat_gen_values_damp_pw;
+        heat_gen_values_all         += heat_gen_values_slid_pp + heat_gen_values_slid_pw + heat_gen_values_roll_pp + heat_gen_values_roll_pw + heat_gen_values_damp_pp + heat_gen_values_damp_pw;
+
+        if (heat_gen_values != 0.0) {
+          num_particles_gen_contrib++;
+          heat_gen_contrib_slid_pp += heat_gen_values_slid_pp / heat_gen_values;
+          heat_gen_contrib_slid_pw += heat_gen_values_slid_pw / heat_gen_values;
+          heat_gen_contrib_roll_pp += heat_gen_values_roll_pp / heat_gen_values;
+          heat_gen_contrib_roll_pw += heat_gen_values_roll_pw / heat_gen_values;
+          heat_gen_contrib_damp_pp += heat_gen_values_damp_pp / heat_gen_values;
+          heat_gen_contrib_damp_pw += heat_gen_values_damp_pw / heat_gen_values;
+        }
+
+        //////////////// NEW ////////////////
+        coordination_total += coordination;
+        silo_mass_total    += mass;
+        energy_thermal_pw_annul_all += energy_thermal_pw_annul;
+        energy_thermal_pw_sides_all += energy_thermal_pw_sides;
+        energy_dissip_damp_norm_all += energy_dissip_damp_norm;
+        energy_dissip_damp_tang_all += energy_dissip_damp_tang;
+        /////////////////////////////////////
       }
-    } // Loop over particles
-
-    total_coord       /= num_particles;
-    particle_temp_avg /= num_particles;
-    model_temp_avg    /= total_vol;
-    particle_temp_dev  = sqrt(std::max(0.0, particle_temp_dev / num_particles - particle_temp_avg * particle_temp_avg));
-
-    if (mGraph_HeatGenContrib && num_particles_gen > 0) {
-      contrib_heat_gen_slid_pp /= num_particles_gen;
-      contrib_heat_gen_slid_pw /= num_particles_gen;
-      contrib_heat_gen_roll_pp /= num_particles_gen;
-      contrib_heat_gen_roll_pw /= num_particles_gen;
-      contrib_heat_gen_damp_pp /= num_particles_gen;
-      contrib_heat_gen_damp_pw /= num_particles_gen;
     }
+
+    // Compute temperature results (avg, dev)
+    particle_temp_avg     /= num_particles;
+    particle_temp_avg_vol /= vol_total;
+    particle_temp_dev      = sqrt(std::max(0.0, particle_temp_dev / num_particles - particle_temp_avg * particle_temp_avg));
+
+    // Compute average of relative contribution of each heat transfer mechanism
+    if (num_particles_flux_contrib > 0) {
+      heat_flux_contrib_conducdir   /= num_particles_flux_contrib;
+      heat_flux_contrib_conducindir /= num_particles_flux_contrib;
+      heat_flux_contrib_rad         /= num_particles_flux_contrib;
+      heat_flux_contrib_gen         /= num_particles_flux_contrib;
+      heat_flux_contrib_conv        /= num_particles_flux_contrib;
+      heat_flux_contrib_prescsurf   /= num_particles_flux_contrib;
+      heat_flux_contrib_prescvol    /= num_particles_flux_contrib;
+    }
+
+    // Compute average of relative contribution of each heat generation mechanism
+    if (num_particles_gen_contrib > 0) {
+      heat_gen_contrib_slid_pp /= num_particles_gen_contrib;
+      heat_gen_contrib_slid_pw /= num_particles_gen_contrib;
+      heat_gen_contrib_roll_pp /= num_particles_gen_contrib;
+      heat_gen_contrib_roll_pw /= num_particles_gen_contrib;
+      heat_gen_contrib_damp_pp /= num_particles_gen_contrib;
+      heat_gen_contrib_damp_pw /= num_particles_gen_contrib;
+    }
+
+    //////////////// NEW ////////////////
+    coordination_total /= num_particles;
+    /////////////////////////////////////
 
     // Write results to files
     const int    time_step = r_process_info[TIME_STEPS];
@@ -384,109 +502,127 @@ namespace Kratos {
                             << particle_temp_avg
                             << std::endl;
 
+    if (mFile_ParticleTempAvgVol.is_open())
+      mFile_ParticleTempAvgVol << time_step << " "
+                               << time      << " "
+                               << particle_temp_avg_vol
+                               << std::endl;
+
     if (mFile_ParticleTempDev.is_open())
       mFile_ParticleTempDev << time_step << " "
                             << time      << " "
                             << particle_temp_dev
                             << std::endl;
 
-    if (mFile_ModelTempAvg.is_open())
-      mFile_ModelTempAvg << time_step << " "
-                         << time      << " "
-                         << model_temp_avg
-                         << std::endl;
-
-    if (mFile_MechanicalEnergy.is_open())
-      mFile_MechanicalEnergy << time_step                        << " "
-                             << time                             << " "
-                             << total_energy_potential_gravity   << " "
-                             << total_energy_potential_elastic   << " "
-                             << total_energy_kinetic_translation << " "
-                             << total_energy_kinetic_rotation    << " "
-                             << total_energy                     << " "
-                             << total_dissip_slid                << " "
-                             << total_dissip_roll                << " "
-                             << total_dissip_damp                << " "
-                             << total_dissip_damp_normal         << " "
-                             << total_dissip_damp_tangent        << " "
-                             << total_dissip                     << " "
-                             << total_energy+total_dissip
+    if (mFile_EnergyMechanical.is_open())
+      mFile_EnergyMechanical << time_step                   << " "
+                             << time                        << " "
+                             << energy_mech_gravity_all     << " "
+                             << energy_mech_elastic_all     << " "
+                             << energy_mech_translation_all << " "
+                             << energy_mech_rotation_all    << " "
+                             << energy_mech_all
                              << std::endl;
 
-    if (mFile_ThermalEnergy.is_open())
-      mFile_ThermalEnergy << time_step              << " "
-                          << time                   << " "
-                          << total_thermal_slid_pp << " "
-                          << total_thermal_slid_pw << " "
-                          << total_thermal_roll_pp << " "
-                          << total_thermal_roll_pw << " "
-                          << total_thermal_damp_pp << " "
-                          << total_thermal_damp_pw << " "
-                          << total_thermal
+    if (mFile_EnergyDissipated.is_open())
+      mFile_EnergyDissipated << time_step              << " "
+                             << time                   << " "
+                             << energy_dissip_slid_all << " "
+                             << energy_dissip_roll_all << " "
+                             << energy_dissip_damp_all << " "
+                             << energy_dissip_all
+                             << std::endl;
+
+    if (mFile_EnergyThermal.is_open())
+      mFile_EnergyThermal << time_step                  << " "
+                          << time                       << " "
+                          << energy_thermal_slid_pp_all << " "
+                          << energy_thermal_slid_pw_all << " "
+                          << energy_thermal_roll_pp_all << " "
+                          << energy_thermal_roll_pw_all << " "
+                          << energy_thermal_damp_pp_all << " "
+                          << energy_thermal_damp_pw_all << " "
+                          << energy_thermal_all        
                           << std::endl;
 
-    if (mFile_ThermalEnergyWalls.is_open())
-      mFile_ThermalEnergyWalls << time_step              << " "
-                               << time                   << " "
-                               << total_thermal_pw_annul << " "
-                               << total_thermal_pw_sides
-                               << std::endl;
+    if (mFile_HeatFluxContributions.is_open())
+      mFile_HeatFluxContributions << time_step                     << " "
+                                  << time                          << " "
+                                  << heat_flux_contrib_conducdir   << " "
+                                  << heat_flux_contrib_conducindir << " "
+                                  << heat_flux_contrib_rad         << " "
+                                  << heat_flux_contrib_gen         << " "
+                                  << heat_flux_contrib_conv        << " "
+                                  << heat_flux_contrib_prescsurf   << " "
+                                  << heat_flux_contrib_prescvol
+                                  << std::endl;
 
     if (mFile_HeatGenValues.is_open())
-      mFile_HeatGenValues << time_step              << " "
-                          << time                   << " "
-                          << total_heat_gen_slid_pp << " "
-                          << total_heat_gen_slid_pw << " "
-                          << total_heat_gen_roll_pp << " "
-                          << total_heat_gen_roll_pw << " "
-                          << total_heat_gen_damp_pp << " "
-                          << total_heat_gen_damp_pw << " "
-                          << total_heat_gen
+      mFile_HeatGenValues << time_step                   << " "
+                          << time                        << " "
+                          << heat_gen_values_slid_pp_all << " "
+                          << heat_gen_values_slid_pw_all << " "
+                          << heat_gen_values_roll_pp_all << " "
+                          << heat_gen_values_roll_pw_all << " "
+                          << heat_gen_values_damp_pp_all << " "
+                          << heat_gen_values_damp_pw_all << " "
+                          << heat_gen_values_all
                           << std::endl;
 
-    if (mFile_HeatGenContrib.is_open())
-      mFile_HeatGenContrib << time_step                << " "
-                           << time                     << " "
-                           << contrib_heat_gen_slid_pp << " "
-                           << contrib_heat_gen_slid_pw << " "
-                           << contrib_heat_gen_roll_pp << " "
-                           << contrib_heat_gen_roll_pw << " "
-                           << contrib_heat_gen_damp_pp << " "
-                           << contrib_heat_gen_damp_pw
-                           << std::endl;
+    if (mFile_HeatGenContributions.is_open())
+      mFile_HeatGenContributions << time_step                << " "
+                                 << time                     << " "
+                                 << heat_gen_contrib_slid_pp << " "
+                                 << heat_gen_contrib_slid_pw << " "
+                                 << heat_gen_contrib_roll_pp << " "
+                                 << heat_gen_contrib_roll_pw << " "
+                                 << heat_gen_contrib_damp_pp << " "
+                                 << heat_gen_contrib_damp_pw
+                                 << std::endl;
 
-    mFile_MassInSilo << time_step << " "
-                     << time      << " "
-                     << total_silo_mass
-                     << std::endl;
+    //////////////// NEW ////////////////
+    if (mFile_Coordination.is_open())
+      mFile_Coordination << time_step << " "
+                         << time      << " "
+                         << coordination_total
+                         << std::endl;
 
-    mFile_Coordination << time_step << " "
+    if (mFile_MassInSilo.is_open())
+      mFile_MassInSilo << time_step << " "
                        << time      << " "
-                       << total_coord
+                       << silo_mass_total
                        << std::endl;
 
+    if (mFile_EnergyThermalWalls.is_open())
+      mFile_EnergyThermalWalls << time_step                   << " "
+                               << time                        << " "
+                               << energy_thermal_pw_annul_all << " "
+                               << energy_thermal_pw_sides_all
+                               << std::endl;
+
+    /////////////////////////////////////
     KRATOS_CATCH("")
   }
 
   //-----------------------------------------------------------------------------------------------------------------------
-  void GraphUtilities::ExecuteFinalize(void)
-  {
-    KRATOS_TRY
+  void GraphUtilities::CloseFiles(void) {
+    if (mFile_ParticleTempMin.is_open())       mFile_ParticleTempMin.close();
+    if (mFile_ParticleTempMax.is_open())       mFile_ParticleTempMax.close();
+    if (mFile_ParticleTempAvg.is_open())       mFile_ParticleTempAvg.close();
+    if (mFile_ParticleTempAvgVol.is_open())    mFile_ParticleTempAvgVol.close();
+    if (mFile_ParticleTempDev.is_open())       mFile_ParticleTempDev.close();
+    if (mFile_EnergyMechanical.is_open())      mFile_EnergyMechanical.close();
+    if (mFile_EnergyDissipated.is_open())      mFile_EnergyDissipated.close();
+    if (mFile_EnergyThermal.is_open())         mFile_EnergyThermal.close();
+    if (mFile_HeatFluxContributions.is_open()) mFile_HeatFluxContributions.close();
+    if (mFile_HeatGenValues.is_open())         mFile_HeatGenValues.close();
+    if (mFile_HeatGenContributions.is_open())  mFile_HeatGenContributions.close();
 
-    if (mFile_ParticleTempMin.is_open())    mFile_ParticleTempMin.close();
-    if (mFile_ParticleTempMax.is_open())    mFile_ParticleTempMax.close();
-    if (mFile_ParticleTempAvg.is_open())    mFile_ParticleTempAvg.close();
-    if (mFile_ParticleTempDev.is_open())    mFile_ParticleTempDev.close();
-    if (mFile_ModelTempAvg.is_open())       mFile_ModelTempAvg.close();
-    if (mFile_MechanicalEnergy.is_open())   mFile_MechanicalEnergy.close();
-    if (mFile_ThermalEnergy.is_open())      mFile_ThermalEnergy.close();
-    if (mFile_ThermalEnergyWalls.is_open()) mFile_ThermalEnergyWalls.close();
-    if (mFile_HeatGenValues.is_open())      mFile_HeatGenValues.close();
-    if (mFile_HeatGenContrib.is_open())     mFile_HeatGenContrib.close();
-    if (mFile_MassInSilo.is_open())         mFile_MassInSilo.close();
-    if (mFile_Coordination.is_open())       mFile_Coordination.close();
-
-    KRATOS_CATCH("")
+    //////////////// NEW ////////////////
+    if (mFile_MassInSilo.is_open())            mFile_MassInSilo.close();
+    if (mFile_Coordination.is_open())          mFile_Coordination.close();
+    if (mFile_EnergyThermalWalls.is_open())    mFile_EnergyThermalWalls.close();
+    /////////////////////////////////////
   }
 
 } // namespace Kratos
