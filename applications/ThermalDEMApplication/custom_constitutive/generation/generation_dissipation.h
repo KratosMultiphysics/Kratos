@@ -32,15 +32,15 @@ namespace Kratos
       // Public methods
       double ComputeHeatGeneration (const ProcessInfo& r_process_info, ThermalSphericParticle* particle) override;
       double ComputePartitionCoeff (ThermalSphericParticle* particle);
-      void   FillDensityMap        (const ProcessInfo& r_process_info,
-                                    ThermalSphericParticle* particle,
-                                    const double time,
-                                    const double heat_gen_damping_pp,
-                                    const double heat_gen_damping_pw,
-                                    const double heat_gen_sliding_pp,
-                                    const double heat_gen_sliding_pw,
-                                    const double heat_gen_rolling_pp,
-                                    const double heat_gen_rolling_pw);
+      void   FillHeatMap (const ProcessInfo& r_process_info,
+                          ThermalSphericParticle* particle,
+                          const double time,
+                          const double heat_gen_damping_pp,
+                          const double heat_gen_damping_pw,
+                          const double heat_gen_sliding_pp,
+                          const double heat_gen_sliding_pw,
+                          const double heat_gen_rolling_pp,
+                          const double heat_gen_rolling_pw);
 
       // Clone
       HeatGenerationMechanism* CloneRaw() const override {
