@@ -2,14 +2,14 @@
 
 This application is an extension of the [DEM Application](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/DEMApplication) to include **thermal effects** such as:
 
-- Heat transfer between particle-particle, particle-rigid wall, and particle-surrounding fluid.
+- Heat transfer between particle-particle, particle-wall, and particle-surrounding fluid.
 - Heat transfer mechanisms by conduction, convection, and radiation.
 - Heat generation by energy dissipation and internal sources.
 - Temperature dependent material properties.
 
-Theoretical information on thermal DEM analysis can be found [here](./ThermalDEMTheory.pdf).
+Theoretical information on thermal DEM analysis can be found [here](https://doi.org/10.5281/zenodo.13846126).
 
-A [Matlab version](https://gitlab.com/rafaelrangel/demlab) of this application is also available.
+A [Matlab version](https://github.com/rlrangel/DEMLab) of this application is also available.
 
 ## Table of Contents
 - [Authorship](#authorship)
@@ -124,17 +124,20 @@ Add **thermal settings** with desired options:
 
 Add **post options** with desired options:
 
-	"PostTemperature"                : true or false,
-	"PostHeatFlux"                   : true or false,
-	"PostGraphParticleTempMin"       : true or false,
-	"PostGraphParticleTempMax"       : true or false,
-	"PostGraphParticleTempAvg"       : true or false,
-	"PostGraphParticleTempDev"       : true or false,
-	"PostGraphModelTempAvg"          : true or false,
-	"PostGraphHeatFluxContributions" : true or false,
-	"PostGraphHeatGenContributions"  : true or false,
-	"PostGraphEnergyContributions"   : true or false,
-	"PostMapHeatGeneration"          : true or false
+	"PostTemperature"                      : true or false,
+	"PostHeatFlux"                         : true or false,
+	"PostGraphParticleTempMin"             : true or false,
+	"PostGraphParticleTempMax"             : true or false,
+	"PostGraphParticleTempAvg"             : true or false,
+	"PostGraphParticleTempAvgVol"          : true or false,
+	"PostGraphParticleTempDev"             : true or false,
+	"PostGraphMechanicalEnergy"            : true or false,
+	"PostGraphDissipatedEnergy"            : true or false,
+	"PostGraphThermalEnergy"               : true or false,
+	"PostGraphHeatFluxContributions"       : true or false,
+	"PostGraphHeatGenerationValues"        : true or false,
+	"PostGraphHeatGenerationContributions" : true or false,
+	"PostHeatGenerationMap"                : true or false
 
 ### Materials (json file)
 
@@ -393,28 +396,40 @@ Add **SubModelPartData** to sub model parts with desired options:
 - *"PostGraphParticleTempAvg"*:\
   Boolean for writing a graph with the average temperature of all particles.\
   Default: false
-  
+
+- *"PostGraphParticleTempAvgVol"*:\
+  Boolean for writing a graph with the volume-weighted average temperature of all particles.\
+  Default: false
+
 - *"PostGraphParticleTempDev"*:\
   Boolean for writing a graph with the standard deviation of the temperature of all particles.\
   Default: false
-  
-- *"PostGraphModelTempAvg"*:\
-  Boolean for writing a graph with the weighted average of the temperature of all particles (taking the particles volume into account).\
+
+- *"PostGraphMechanicalEnergy"*:\
+  Boolean for writing a graph with the mechanical energy components of all partilces.\
   Default: false
-  
+
+- *"PostGraphDissipatedEnergy"*:\
+  Boolean for writing a graph with the accumulated energy dissipation of all partilces.\
+  Default: false
+
+- *"PostGraphThermalEnergy"*:\
+  Boolean for writing a graph with the accumulated thermal energy (from heat generation by energy dissipation) of all partilces.\
+  Default: false
+
 - *"PostGraphHeatFluxContributions"*:\
   Boolean for writing a graph with the contribution of each heat transfer mechanism to the total heat transfer.\
   Default: false
 
-- *"PostGraphHeatGenContributions"*:\
-  Boolean for writing a graph with the contribution of each heat generation mechanism to the total heat generation.\
-  Default: false
-  
-- *"PostGraphEnergyContributions"*:\
-  Boolean for writing a graph with the energy composition (conservative and accumulated dissipative components) of all partilces.\
+- *"PostGraphHeatGenerationValues"*:\
+  Boolean for writing a graph with the total values of  each heat generation mechanism.\
   Default: false
 
-- *"PostMapHeatGeneration"*:\
+- *"PostGraphHeatGenerationContributions"*:\
+  Boolean for writing a graph with the contribution of each heat generation mechanism to the total heat generation.\
+  Default: false
+
+- *"PostHeatGenerationMap"*:\
   Boolean for assemblying and writing the density map of heat generation.\
   Default: false
   
