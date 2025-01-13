@@ -16,6 +16,7 @@
 namespace Kratos {
   //-----------------------------------------------------------------------------------------------------------------------
   GraphUtilities::GraphUtilities() {
+    mGraph_ParticleTempAll       = false;
     mGraph_ParticleTempMin       = false;
     mGraph_ParticleTempMax       = false;
     mGraph_ParticleTempAvg       = false;
@@ -48,7 +49,7 @@ namespace Kratos {
     KRATOS_TRY
 
     // Set member flags
-    mGraph_ParticleTempAll               = ParticleTempAll;
+    mGraph_ParticleTempAll       = ParticleTempAll;
     mGraph_ParticleTempMin       = ParticleTempMin;
     mGraph_ParticleTempMax       = ParticleTempMax;
     mGraph_ParticleTempAvg       = ParticleTempAvg;
@@ -68,11 +69,11 @@ namespace Kratos {
   }
 
   //-----------------------------------------------------------------------------------------------------------------------
-  void GraphUtilities::ExecuteFinalizeSolutionStep(ModelPart& rModelPart) {
+  void GraphUtilities::ExecuteFinalizeSolutionStep(ModelPart& rModelPart, const int write_all_temp_freq) {
     KRATOS_TRY
     
     if (rModelPart.GetProcessInfo()[IS_TIME_TO_PRINT])
-      WriteGraphs(rModelPart);
+      WriteGraphs(rModelPart, write_all_temp_freq);
 
     KRATOS_CATCH("")
   }
@@ -90,7 +91,7 @@ namespace Kratos {
   void GraphUtilities::OpenFiles(void) {
     if (mGraph_ParticleTempAll) {
       mFile_ParticleTempAll.open("graph_particle_temp_all.txt", std::ios::out);
-      KRATOS_ERROR_IF_NOT(mFile_ParticleTempAll) << "Could not open graph file graph_particle_temp_all!" << std::endl;
+      KRATOS_ERROR_IF_NOT(mFile_ParticleTempAll) << "Could not open graph_particle_temp_all.txt!" << std::endl;
       mFile_ParticleTempAll << "1 - TIME STEP / TIME | ";
       mFile_ParticleTempAll << "2 - ID / RADIUS / COORDS XY / TEMPERATURE";
       mFile_ParticleTempAll << std::endl;
@@ -216,29 +217,11 @@ namespace Kratos {
   }
 
   //-----------------------------------------------------------------------------------------------------------------------
-  void GraphUtilities::WriteGraphs(ModelPart& rModelPart) {
+  void GraphUtilities::WriteGraphs(ModelPart& rModelPart, const int write_all_temp_freq) {
     KRATOS_TRY
 
     // Initialize results
     const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
-    // Print all temperatures
-    if (mFile_ParticleTempAll.is_open() && time_step % write_all_temp_freq == 0.0) {
-      mFile_ParticleTempAll << "#TIME/STEP: ";
-      mFile_ParticleTempAll << std::defaultfloat << time_step << " " << time << std::endl;
-
-      ModelPart::ElementsContainerType::iterator it = rModelPart.GetCommunicator().LocalMesh().Elements().ptr_begin();
-      for (int i = 0; i < num_of_particles; i++) {
-        ThermalSphericParticle& particle = dynamic_cast<ThermalSphericParticle&> (*(it + i));
-        const int    id = i + 1;
-        const double r  = particle.GetRadius();
-        const double x  = particle.GetGeometry()[0][0];
-        const double y  = particle.GetGeometry()[0][1];
-        const double t  = particle.GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE);
-        mFile_ParticleTempAll << std::defaultfloat << id << " ";
-        mFile_ParticleTempAll << std::fixed << std::setprecision(15) << r << " " << x << " " << y << " " << t << std::endl;
-      }
-      mFile_ParticleTempAll << std::endl;
-    }
 
     const int num_particles              = rModelPart.NumberOfElements();
     int       num_particles_flux_contrib = 0;
@@ -448,6 +431,24 @@ namespace Kratos {
     }
 
     // Write results to files
+    if (mFile_ParticleTempAll.is_open() && time_step % write_all_temp_freq == 0.0) {
+      mFile_ParticleTempAll << "#TIME/STEP: ";
+      mFile_ParticleTempAll << std::defaultfloat << time_step << " " << time << std::endl;
+
+      ModelPart::ElementsContainerType::iterator it = rModelPart.GetCommunicator().LocalMesh().Elements().ptr_begin();
+      for (int i = 0; i < num_particles; i++) {
+        ThermalSphericParticle& particle = dynamic_cast<ThermalSphericParticle&> (*(it + i));
+        const int    id = i + 1;
+        const double r  = particle.GetRadius();
+        const double x  = particle.GetGeometry()[0][0];
+        const double y  = particle.GetGeometry()[0][1];
+        const double t  = particle.GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE);
+        mFile_ParticleTempAll << std::defaultfloat << id << " ";
+        mFile_ParticleTempAll << std::fixed << std::setprecision(15) << r << " " << x << " " << y << " " << t << std::endl;
+      }
+      mFile_ParticleTempAll << std::endl;
+    }
+
     if (mFile_ParticleTempMin.is_open())
       mFile_ParticleTempMin << time_step << " "
                             << time      << " "
@@ -549,6 +550,7 @@ namespace Kratos {
 
   //-----------------------------------------------------------------------------------------------------------------------
   void GraphUtilities::CloseFiles(void) {
+    if (mFile_ParticleTempAll.is_open())       mFile_ParticleTempAll.close();
     if (mFile_ParticleTempMin.is_open())       mFile_ParticleTempMin.close();
     if (mFile_ParticleTempMax.is_open())       mFile_ParticleTempMax.close();
     if (mFile_ParticleTempAvg.is_open())       mFile_ParticleTempAvg.close();
@@ -560,7 +562,6 @@ namespace Kratos {
     if (mFile_HeatFluxContributions.is_open()) mFile_HeatFluxContributions.close();
     if (mFile_HeatGenValues.is_open())         mFile_HeatGenValues.close();
     if (mFile_HeatGenContributions.is_open())  mFile_HeatGenContributions.close();
-    if (mFile_ParticleTempAll.is_open())               mFile_ParticleTempAll.close();
   }
   
 } // namespace Kratos

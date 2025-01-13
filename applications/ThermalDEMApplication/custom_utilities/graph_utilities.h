@@ -63,7 +63,7 @@ namespace Kratos
       bool mGraph_HeatGenValues;
       bool mGraph_HeatGenContributions;
 
-      std::ofstream mFile_ParticleTempAll;
+      std::ofstream mFile_ParticleTempAll;        // Temperature and coordinates of all particles
       std::ofstream mFile_ParticleTempMin;        // Minimum particle temperature
       std::ofstream mFile_ParticleTempMax;        // Maximum particle temperature
       std::ofstream mFile_ParticleTempAvg;        // Average particle temperature
@@ -81,7 +81,7 @@ namespace Kratos
       // Private methods
       void OpenFiles(void);
       void CloseFiles(void);
-      void WriteGraphs(ModelPart& rModelPart);
+      void WriteGraphs(ModelPart& rModelPart, const int write_all_temp_freq);
 
       // Assignment operator
       GraphUtilities& operator=(GraphUtilities const& rOther);

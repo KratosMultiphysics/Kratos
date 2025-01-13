@@ -370,8 +370,8 @@ class ExplicitStrategy(BaseStrategy):
     
     #----------------------------------------------------------------------------------------------
     def SetGraphFlags(self):
-        if (self.PostGraphParticleTempAll     or
-        if (self.PostGraphParticleTempMin       or
+        if (self.PostGraphParticleTempAll       or
+            self.PostGraphParticleTempMin       or
             self.PostGraphParticleTempMax       or
             self.PostGraphParticleTempAvg       or 
             self.PostGraphParticleTempAvgVol    or
