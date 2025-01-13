@@ -671,19 +671,21 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateN_EpsilonMatrix(
     if (dim == 2) {
         for (IndexType i = 0; i < n_nodes; ++i) {
             const IndexType initial_index = i * strain_size;
-            rN_Epsilon(0, initial_index    ) = rN[i];
-            rN_Epsilon(1, initial_index + 1) = rN[i];
-            rN_Epsilon(2, initial_index + 2) = rN[i];
+            const double N_i = rN[i];
+            rN_Epsilon(0, initial_index    ) = N_i;
+            rN_Epsilon(1, initial_index + 1) = N_i;
+            rN_Epsilon(2, initial_index + 2) = N_i;
         }
     } else { // dim = 3
         for (IndexType i = 0; i < n_nodes; ++i) {
             const IndexType initial_index = i * strain_size;
-            rN_Epsilon(0, initial_index    ) = rN[i];
-            rN_Epsilon(1, initial_index + 1) = rN[i];
-            rN_Epsilon(2, initial_index + 2) = rN[i];
-            rN_Epsilon(3, initial_index + 3) = rN[i];
-            rN_Epsilon(4, initial_index + 4) = rN[i];
-            rN_Epsilon(5, initial_index + 5) = rN[i];
+            const double N_i = rN[i];
+            rN_Epsilon(0, initial_index    ) = N_i;
+            rN_Epsilon(1, initial_index + 1) = N_i;
+            rN_Epsilon(2, initial_index + 2) = N_i;
+            rN_Epsilon(3, initial_index + 3) = N_i;
+            rN_Epsilon(4, initial_index + 4) = N_i;
+            rN_Epsilon(5, initial_index + 5) = N_i;
         }
     }
     KRATOS_CATCH("")
