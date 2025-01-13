@@ -90,11 +90,11 @@ protected:
     // Member Variables
     Geometry<Node>::Pointer mpPressureGeometry;
 
-    void CalculateAll(const Matrix&      ,
+    void CalculateAll(const Matrix&,
                       Vector&            rRightHandSideVector,
                       const ProcessInfo& rCurrentProcessInfo,
-                      bool               ,
-                      bool               CalculateResidualVectorFlag);
+                      bool,
+                      bool CalculateResidualVectorFlag);
 
     void InitializeConditionVariables(ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
 

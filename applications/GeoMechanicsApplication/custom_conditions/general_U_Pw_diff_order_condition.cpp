@@ -137,11 +137,11 @@ void GeneralUPwDiffOrderCondition::EquationIdVector(EquationIdVectorType& rResul
     rResult = Geo::DofUtilities::ExtractEquationIdsFrom(GetDofs());
 }
 
-void GeneralUPwDiffOrderCondition::CalculateAll(const Matrix&      ,
+void GeneralUPwDiffOrderCondition::CalculateAll(const Matrix&,
                                                 Vector&            rRightHandSideVector,
                                                 const ProcessInfo& rCurrentProcessInfo,
-                                                bool               ,
-                                                bool               CalculateResidualVectorFlag)
+                                                bool,
+                                                bool CalculateResidualVectorFlag)
 {
     KRATOS_TRY
 
