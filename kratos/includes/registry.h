@@ -237,14 +237,12 @@ public:
 
     /**
      * @brief Returns the number of items in the registry
-     *
      * @return Total number of items
      */
     static std::size_t size();
 
     /**
      * @brief Checks if an item exists in the registry
-     *
      * @param rItemFullName Full hierarchical path of the item
      * @return True if the item exists, false otherwise
      */
@@ -252,7 +250,6 @@ public:
 
     /**
      * @brief Checks if an item has an associated value
-     *
      * @param rItemFullName Full hierarchical path of the item
      * @return True if the item has a value, false otherwise
      */
@@ -260,7 +257,6 @@ public:
 
     /**
      * @brief Checks if an item has sub-items
-     *
      * @param rItemFullName Full hierarchical path of the item
      * @return True if the item has sub-items, false otherwise
      */

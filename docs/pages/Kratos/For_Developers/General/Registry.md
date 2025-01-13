@@ -30,7 +30,7 @@ The `KRATOS_REGISTRY_ADD_PROTOTYPE` macro simplifies the registration of prototy
 KRATOS_REGISTRY_ADD_PROTOTYPE("Modelers.KratosMultiphysics", Modeler, ConnectivityPreserveModeler)
 ```
 
-creates two items for the `ConnectivityPreserveModeler`, one accessible with the key `Modelers.KratosMultiphysics.ConnectivityPreserveModeler.Prototype` and so for the other one with `Modelers.All.ConnectivityPreserveModeler.Prototype`. Once registered, objects can be dynamically created using the prototype. The macro can (and should) be called in custom C++ modules as well. This can be done as shown below for `CustomModeler` class
+It creates two items for the `ConnectivityPreserveModeler`, one accessible with the key `Modelers.KratosMultiphysics.ConnectivityPreserveModeler.Prototype` and so for the other one with `Modelers.All.ConnectivityPreserveModeler.Prototype`. Once registered, objects can be dynamically created using the prototype. The macro can (and should) be called in custom C++ modules as well. This can be done as shown below for `CustomModeler` class:
 
 ```cpp
 class CustomModeler : public Modeler {
@@ -39,7 +39,7 @@ class CustomModeler : public Modeler {
 };
 ```
 
-to then retrieve the corresponding prototype and use it as a factory as shown below
+To then retrieve the corresponding prototype and use it as a factory as shown below
 
 ```cpp
 auto& r_prototype = Registry::GetValue<Modeler>("Modelers.KratosMultiphysics.CustomModeler.Prototype");
