@@ -13,63 +13,64 @@
 // External includes
 
 // Project includes
-#include "convection_model.h"
+#include "real_contact_model.h"
+#include "custom_elements/thermal_spheric_particle.h"
 
 namespace Kratos
 {
-  class KRATOS_API(THERMAL_DEM_APPLICATION) NusseltWhitaker : public ConvectionModel
+  class KRATOS_API(THERMAL_DEM_APPLICATION) RealContactMorrisArea : public RealContactModel
   {
     public:
 
       // Pointer definition
-      KRATOS_CLASS_POINTER_DEFINITION(NusseltWhitaker);
+      KRATOS_CLASS_POINTER_DEFINITION(RealContactMorrisArea);
 
       // Constructor / Destructor
-      NusseltWhitaker();
-      virtual ~NusseltWhitaker();
+      RealContactMorrisArea();
+      virtual ~RealContactMorrisArea();
 
       // Public methods
-      double ComputeNusseltNumber(const ProcessInfo& r_process_info, ThermalSphericParticle* particle) override;
+      void AdjustContact(const ProcessInfo& r_process_info, ThermalSphericParticle* particle) override;
 
       // Clone
-      HeatExchangeMechanism* CloneRaw() const override {
-        HeatExchangeMechanism* cloned_model(new NusseltWhitaker(*this));
+      RealContactModel* CloneRaw() const override {
+        RealContactModel* cloned_model(new RealContactMorrisArea(*this));
         return cloned_model;
       }
 
-      HeatExchangeMechanism::Pointer CloneShared() const override {
-        HeatExchangeMechanism::Pointer cloned_model(new NusseltWhitaker(*this));
+      RealContactModel::Pointer CloneShared() const override {
+        RealContactModel::Pointer cloned_model(new RealContactMorrisArea(*this));
         return cloned_model;
       }
 
       // Turn back information as a string
       virtual std::string Info() const override {
         std::stringstream buffer;
-        buffer << "NusseltWhitaker";
+        buffer << "RealContactMorrisArea";
         return buffer.str();
       }
 
       // Print object information
-      virtual void PrintInfo(std::ostream& rOStream) const override { rOStream << "NusseltWhitaker"; }
+      virtual void PrintInfo(std::ostream& rOStream) const override { rOStream << "RealContactMorrisArea"; }
       virtual void PrintData(std::ostream& rOStream) const override {}
 
     private:
 
       // Assignment operator / Copy constructor
-      NusseltWhitaker& operator=(NusseltWhitaker const& rOther) {return *this;}
-      NusseltWhitaker(NusseltWhitaker const& rOther) {*this = rOther;}
+      RealContactMorrisArea& operator=(RealContactMorrisArea const& rOther) {return *this;}
+      RealContactMorrisArea(RealContactMorrisArea const& rOther) {*this = rOther;}
 
-  }; // Class NusseltWhitaker
+  }; // Class RealContactMorrisArea
 
   // input stream function
   inline std::istream& operator>>(std::istream& rIStream,
-    NusseltWhitaker& rThis) {
+    RealContactMorrisArea& rThis) {
     return rIStream;
   }
 
   // output stream function
   inline std::ostream& operator<<(std::ostream& rOStream,
-    const NusseltWhitaker& rThis) {
+    const RealContactMorrisArea& rThis) {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
     rThis.PrintData(rOStream);

@@ -68,7 +68,7 @@ namespace Kratos {
     double I1 = (b - a) / 6.0  * (fa + 4.0 * fc + fb);
     double I2 = (b - a) / 12.0 * (fa + 4.0 * fd + 2.0 * fc + 4.0 * fe + fb);
 
-    if (fabs(I2 - I1) <= mTol) {
+    if (std::abs(I2 - I1) <= mTol) {
       return I2 + (I2 - I1) / 15.0;
     }
     else { // sub-divide interval recursively
