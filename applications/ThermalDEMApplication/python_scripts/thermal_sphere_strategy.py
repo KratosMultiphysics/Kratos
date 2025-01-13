@@ -201,6 +201,7 @@ class ExplicitStrategy(BaseStrategy):
         self.fluid_velocity[2]          = self.fluid_props["fluid_velocity_Z"].GetDouble()
         
         # Post options
+        self.PostGraphParticleTempAll             = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempAll")
         self.PostGraphParticleTempMin             = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempMin")
         self.PostGraphParticleTempMax             = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempMax")
         self.PostGraphParticleTempAvg             = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempAvg")
@@ -212,7 +213,6 @@ class ExplicitStrategy(BaseStrategy):
         self.PostGraphHeatFluxContributions       = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphHeatFluxContributions")
         self.PostGraphHeatGenerationValues        = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphHeatGenerationValues")
         self.PostGraphHeatGenerationContributions = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphHeatGenerationContributions")
-        self.PostGraphParticleTempAll     = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempAll")
         self.PostHeatMapGeneration                = GetBoolParameterIfItExists(self.DEM_parameters, "PostHeatMapGeneration")
 
         self.heat_map_corner1         = Vector(3)
