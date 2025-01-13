@@ -253,7 +253,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeSolutionStep(const Proces
     ConstitutiveLaw::Parameters ConstitutiveParameters(this->GetGeometry(), this->GetProperties(),
                                                        rCurrentProcessInfo);
     ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-    ConstitutiveParameters.Set(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE); // Note: this is for nonlocal damage
+    ConstitutiveParameters.Set(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE);
 
     ElementVariables Variables;
     this->InitializeElementVariables(Variables, rCurrentProcessInfo);
@@ -356,7 +356,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeNonLinearIteration(const 
                                                        rCurrentProcessInfo);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-    ConstitutiveParameters.Set(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE); // Note: this is for nonlocal damage
+    ConstitutiveParameters.Set(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE);
 
     ElementVariables Variables;
     this->InitializeElementVariables(Variables, rCurrentProcessInfo);
@@ -465,14 +465,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::ExtrapolateGPValues(const Matrix& S
 {
     KRATOS_TRY
 
-    array_1d<double, TNumNodes> DamageContainer;
-
-    for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode) {
-        DamageContainer[iNode] = 0.0;
-        DamageContainer[iNode] =
-            mConstitutiveLawVector[iNode]->GetValue(DAMAGE_VARIABLE, DamageContainer[iNode]);
-    }
-
     GeometryType&               rGeom = this->GetGeometry();
     const double&               Area  = rGeom.Area(); // In 3D this is volume
     array_1d<Vector, TNumNodes> NodalStressVector;    // List with stresses at each node
@@ -500,16 +492,12 @@ void UPwSmallStrainElement<TDim, TNumNodes>::ExtrapolateGPValues(const Matrix& S
      * S1-0 = S[1] at node 0
      */
 
-    array_1d<double, TNumNodes> NodalDamage;
-    noalias(NodalDamage) = prod(ExtrapolationMatrix, DamageContainer);
-
     for (unsigned int i = 0; i < TNumNodes; ++i) {
         noalias(NodalStressVector[i]) = row(AuxNodalStress, i) * Area;
         noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
 
         rGeom[i].SetLock();
         noalias(rGeom[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)) += NodalStressTensor[i];
-        rGeom[i].FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) += NodalDamage[i] * Area;
         rGeom[i].FastGetSolutionStepValue(NODAL_AREA) += Area;
         rGeom[i].UnSetLock();
     }

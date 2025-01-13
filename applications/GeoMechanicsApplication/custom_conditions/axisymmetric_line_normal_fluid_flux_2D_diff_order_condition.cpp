@@ -51,7 +51,7 @@ Condition::Pointer AxisymmetricLineNormalFluidFlux2DDiffOrderCondition::Create(
 }
 
 double AxisymmetricLineNormalFluidFlux2DDiffOrderCondition::CalculateIntegrationCoefficient(
-    const IndexType                                 PointNumber,
+    IndexType                                       PointNumber,
     const GeometryType::JacobiansType&              JContainer,
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const
 

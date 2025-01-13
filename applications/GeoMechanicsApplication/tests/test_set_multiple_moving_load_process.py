@@ -276,6 +276,8 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
             cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
             all_rhs.append(list(rhs))
 
+        self.assertEqual(len(all_rhs), 3)
+
         self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
         self.checkRHS(all_rhs[1], [0.0, -2.0, 0.0, 0.0])
         self.checkRHS(all_rhs[2], [0.0, -1.5, 0.0, -0.5])
@@ -291,6 +293,8 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
             cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
             all_rhs.append(list(rhs))
 
+        self.assertEqual(len(all_rhs), 3)
+        
         self.checkRHS(all_rhs[0], [0.0, -2.0, 0.0, 0.0])
         self.checkRHS(all_rhs[1], [0.0, -1.5, 0.0, -0.5])
         self.checkRHS(all_rhs[2], [0.0, -1.0, 0.0, -1.0])
@@ -452,6 +456,8 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
             cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
             all_rhs.append(list(rhs))
 
+        self.assertEqual(len(all_rhs), 3)
+        
         self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
         self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, -2.0])
         self.checkRHS(all_rhs[2], [0.0, -0.5, 0.0, -1.5])
@@ -467,6 +473,8 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
             cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
             all_rhs.append(list(rhs))
 
+        self.assertEqual(len(all_rhs), 3)
+        
         self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, -2.0])
         self.checkRHS(all_rhs[1], [0.0, -0.5, 0.0, -1.5])
         self.checkRHS(all_rhs[2], [0.0, -1.0, 0.0, -1.0])
