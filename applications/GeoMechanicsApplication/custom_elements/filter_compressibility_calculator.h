@@ -30,10 +30,10 @@ public:
     {
     public:
         InputProvider(std::function<const Properties&()> GetElementProperties,
-                      std::function<const Matrix&()>                             GetNContainer,
-                      std::function<Vector()> GetIntegrationCoefficients,
-                      std::function<Vector()> GetProjectedGravityForIntegrationPoints,
-                      std::function<double()> GetMatrixScalarFactor,
+                      std::function<const Matrix&()>     GetNContainer,
+                      std::function<Vector()>            GetIntegrationCoefficients,
+                      std::function<Vector()>            GetProjectedGravityForIntegrationPoints,
+                      std::function<double()>            GetMatrixScalarFactor,
                       std::function<Vector(const Variable<double>&)> GetNodalValuesOf)
             : mGetElementProperties(std::move(GetElementProperties)),
               mGetNContainer(std::move(GetNContainer)),
@@ -44,17 +44,17 @@ public:
         {
         }
 
-        [[nodiscard]] const Properties&                         GetElementProperties() const;
-        [[nodiscard]] const Matrix&                             GetNContainer() const;
-        [[nodiscard]] Vector                                    GetIntegrationCoefficients() const;
-        [[nodiscard]] Vector GetProjectedGravityForIntegrationPoints() const;
-        [[nodiscard]] double GetMatrixScalarFactor() const;
-        [[nodiscard]] Vector GetNodalValues(const Variable<double>& rVariable) const;
+        [[nodiscard]] const Properties& GetElementProperties() const;
+        [[nodiscard]] const Matrix&     GetNContainer() const;
+        [[nodiscard]] Vector            GetIntegrationCoefficients() const;
+        [[nodiscard]] Vector            GetProjectedGravityForIntegrationPoints() const;
+        [[nodiscard]] double            GetMatrixScalarFactor() const;
+        [[nodiscard]] Vector            GetNodalValues(const Variable<double>& rVariable) const;
 
     private:
-        std::function<const Properties&()>                         mGetElementProperties;
-        std::function<const Matrix&()>                             mGetNContainer;
-        std::function<Vector()>                                    mGetIntegrationCoefficients;
+        std::function<const Properties&()>             mGetElementProperties;
+        std::function<const Matrix&()>                 mGetNContainer;
+        std::function<Vector()>                        mGetIntegrationCoefficients;
         std::function<Vector()>                        mGetProjectedGravityForIntegrationPoints;
         std::function<double()>                        mGetMatrixScalarFactor;
         std::function<Vector(const Variable<double>&)> mGetNodalValues;

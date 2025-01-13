@@ -278,8 +278,7 @@ private:
 
     Vector CalculateProjectedGravityAtIntegrationPoints(const Matrix& rNContainer) const
     {
-        const auto number_integration_points =
-            GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
+        const auto number_integration_points = GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
         GeometryType::JacobiansType J_container;
         J_container.resize(number_integration_points, false);
         for (std::size_t i = 0; i < number_integration_points; ++i) {
@@ -315,7 +314,8 @@ private:
             return std::make_unique<PermeabilityCalculator>(CreatePermeabilityInputProvider());
         case CalculationContribution::Compressibility:
             if (GetProperties()[RETENTION_LAW] == "PressureFilterLaw") {
-                return std::make_unique<FilterCompressibilityCalculator>(CreateFilterCompressibilityInputProvider(rCurrentProcessInfo));
+                return std::make_unique<FilterCompressibilityCalculator>(
+                    CreateFilterCompressibilityInputProvider(rCurrentProcessInfo));
             }
             return std::make_unique<CompressibilityCalculator>(CreateCompressibilityInputProvider(rCurrentProcessInfo));
         default:
@@ -334,9 +334,9 @@ private:
     FilterCompressibilityCalculator::InputProvider CreateFilterCompressibilityInputProvider(const ProcessInfo& rCurrentProcessInfo)
     {
         return FilterCompressibilityCalculator::InputProvider(
-            MakePropertiesGetter(), MakeNContainerGetter(),
-            MakeIntegrationCoefficientsGetter(), MakeProjectedGravityForIntegrationPointsGetter(), MakeMatrixScalarFactorGetter(rCurrentProcessInfo),
-            MakeNodalVariableGetter());
+            MakePropertiesGetter(), MakeNContainerGetter(), MakeIntegrationCoefficientsGetter(),
+            MakeProjectedGravityForIntegrationPointsGetter(),
+            MakeMatrixScalarFactorGetter(rCurrentProcessInfo), MakeNodalVariableGetter());
     }
 
     PermeabilityCalculator::InputProvider CreatePermeabilityInputProvider()
@@ -374,7 +374,10 @@ private:
 
     auto MakeProjectedGravityForIntegrationPointsGetter()
     {
-        return [this]() -> Vector {return CalculateProjectedGravityAtIntegrationPoints(GetGeometry().ShapeFunctionsValues(GetIntegrationMethod()));};
+        return [this]() -> Vector {
+            return CalculateProjectedGravityAtIntegrationPoints(
+                GetGeometry().ShapeFunctionsValues(GetIntegrationMethod()));
+        };
     }
 
     static auto MakeMatrixScalarFactorGetter(const ProcessInfo& rCurrentProcessInfo)
