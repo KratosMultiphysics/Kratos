@@ -139,7 +139,7 @@ protected:
 
     void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint) override;
 
-    void CalculateKinematics(ElementVariables& rVariables, unsigned int PointNumber) override;
+    void CalculateKinematics(ElementVariables& rVariables, unsigned int IntegrationPointIndex) override;
 
     void CalculateAndAddCompressibilityMatrix(MatrixType&             rLeftHandSideMatrix,
                                               const ElementVariables& rVariables) override;
