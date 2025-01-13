@@ -270,7 +270,8 @@ private:
                 mRetentionLawVector[integration_point_index]->CalculateRelativePermeability(RetentionParameters);
             fluid_body_vector +=
                 r_properties[DENSITY_WATER] * RelativePermeability *
-                prod(prod(shape_function_gradients[integration_point_index], constitutive_matrix), projected_gravity) *
+                prod(prod(shape_function_gradients[integration_point_index], constitutive_matrix),
+                     ScalarVector(1, projected_gravity[integration_point_index])) *
                 integration_coefficients[integration_point_index] / r_properties[DYNAMIC_VISCOSITY];
         }
         return fluid_body_vector;
