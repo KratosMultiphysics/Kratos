@@ -36,9 +36,9 @@ namespace Kratos
 ///@name Kratos classes
 ///@{
 
-///@brief Base class for data containers used within FluidTopologyOptimizationElement and derived types.
+///@brief Base class for data containers used within FluidTransportTopologyOptimizationElement and derived types.
 template< size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime >
-class KRATOS_API(FLUID_DYNAMICS_APPLICATION) FluidTopologyOptimizationElementData
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) FluidTransportTopologyOptimizationElementData
 {
 public:
     ///@name Type Definitions
@@ -53,8 +53,6 @@ public:
     constexpr static unsigned int Dim = TDim;
     /// Number of nodes of the element.
     constexpr static unsigned int NumNodes = TNumNodes;
-    /// Size of the strain and stress vectors (in Voigt notation) for the formulation
-    constexpr static unsigned int StrainSize = (TDim-1)*3; // 3 in 2D, 6 in 3D
     /// This lets FluidElement know wether this element requires an external time scheme or not.
     constexpr static bool ElementManagesTimeIntegration = TElementIntegratesInTime;
 
@@ -63,10 +61,8 @@ public:
     ///@{
 
     // COMMON PHYSICAL QUANTITIES
-    double Density;
-    NodalScalarData SoundVelocity;
-    double DynamicViscosity;
-    NodalScalarData Resistance;     // Darcy's law resistance 
+    double Conductivity;
+    double Decay;
     double DeltaTime;      // Time increment
     double ElementSize;    // Element Characteristic Length (size)
 
@@ -81,45 +77,41 @@ public:
     int TopOptProblemStage;
 
     // NAVIER-STOKES VARIABLES
-    NodalVectorData Velocity;
-    NodalVectorData Velocity_OldStep1;
-    NodalVectorData Velocity_OldStep2;
+    NodalScalarData Concentration;
+    NodalScalarData Concentration_OldStep1;;
+    NodalScalarData Concentration_OldStep2;;
+    NodalVectorData ConvectiveVelocity;
     NodalVectorData MeshVelocity;
-    NodalVectorData BodyForce;
-    NodalScalarData Pressure;
-    NodalScalarData Pressure_OldStep1;
-    NodalScalarData Pressure_OldStep2;
+    NodalScalarData ProductionTerm;
     // NS Auxiliary containers for the symbolically-generated matrices
-    BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)> lhs;
-    array_1d<double,TNumNodes*(TDim+1)> rhs;
+    BoundedMatrix<double,TNumNodes,TNumNodes> lhs;
+    array_1d<double,TNumNodes> rhs;
 
     // ADJOINT NAVIER-STOKES VARIABLES
-    NodalVectorData Velocity_adj;
-    NodalVectorData Velocity_adj_OldStep1;
-    NodalVectorData Velocity_adj_OldStep2;
+    NodalScalarData Concentration_adj;
+    NodalScalarData Concentration_adj_OldStep1;;
+    NodalScalarData Concentration_adj_OldStep2;;
+    NodalVectorData ConvectiveVelocity_adj;
     NodalVectorData MeshVelocity_adj;
-    NodalVectorData BodyForce_adj;
-    NodalScalarData Pressure_adj;
-    NodalScalarData Pressure_adj_OldStep1;
-    NodalScalarData Pressure_adj_OldStep2;
+    NodalScalarData ProductionTerm_adj;
     // ADJ_NS Auxiliary containers for the symbolically-generated matrices
-    BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)> lhs_adj;
-    array_1d<double,TNumNodes*(TDim+1)> rhs_adj;
+    BoundedMatrix<double,TNumNodes,TNumNodes> lhs_adj;
+    array_1d<double,TNumNodes> rhs_adj;
 
 
     ///@name Life Cycle
     ///@{
     /// Default constructor
-    FluidTopologyOptimizationElementData();
+    FluidTransportTopologyOptimizationElementData();
 
     /// Destructor
-    virtual ~FluidTopologyOptimizationElementData();
+    virtual ~FluidTransportTopologyOptimizationElementData();
 
     /// (deleted) assignment operator.
-    FluidTopologyOptimizationElementData& operator=(FluidTopologyOptimizationElementData const& rOther) = delete;
+    FluidTransportTopologyOptimizationElementData& operator=(FluidTransportTopologyOptimizationElementData const& rOther) = delete;
 
     /// (deleted) copy constructor.
-    FluidTopologyOptimizationElementData(FluidTopologyOptimizationElementData const& rOther) = delete;
+    FluidTransportTopologyOptimizationElementData(FluidTransportTopologyOptimizationElementData const& rOther) = delete;
 
     ///@}
     ///@name Public Operations
@@ -147,28 +139,6 @@ public:
 
     ShapeDerivativesType DN_DX;
 
-    /// Strain rate (symmetric gradient of velocity) vector in Voigt notation.
-    /** It is calculated by the constitutive law in FluidElement::ComputeMaterialResponse.*/
-    Vector StrainRate;
-    // For Adjoint NS problem
-    Vector StrainRate_adj;
-
-    /// Shear stress vector in Voigt notation.
-    /** It is calculated by the constitutive law in FluidElement::ComputeMaterialResponse.*/
-    Vector ShearStress;
-    // For Adjoint NS problem
-    Vector ShearStress_adj;
-
-    /// Constitutive tensor C (expressed as a Matrix).
-    /** It is calculated by the constitutive law in FluidElement::ComputeMaterialResponse.*/
-    Matrix C;
-
-    /// Constitutive law configuration (stored here to avoid re-initialization within the element).
-    ConstitutiveLaw::Parameters ConstitutiveLawValues;
-
-    /// Effective viscosity (in dynamic units) produced by the constitutive law
-    double EffectiveViscosity;
-
     ///@}
 protected:
 
@@ -181,7 +151,7 @@ protected:
         const Variable<double> &rVariable,
         const Geometry<Node> &rGeometry)
     {
-        KRATOS_WARNING("FluidTopologyOptimizationElementData") << "\'FillFromNodalData\' is deprecated. Use \'FillFromHistoricalNodalData\' instead." << std::endl;
+        KRATOS_WARNING("FluidTransportTopologyOptimizationElementData") << "\'FillFromNodalData\' is deprecated. Use \'FillFromHistoricalNodalData\' instead." << std::endl;
         FillFromHistoricalNodalData(rData, rVariable, rGeometry);
     }
 
@@ -191,7 +161,7 @@ protected:
         const Variable<array_1d<double, 3>> &rVariable,
         const Geometry<Node> &rGeometry)
     {
-        KRATOS_WARNING("FluidTopologyOptimizationElementData") << "\'FillFromNodalData\' is deprecated. Use \'FillFromHistoricalNodalData\' instead." << std::endl;
+        KRATOS_WARNING("FluidTransportTopologyOptimizationElementData") << "\'FillFromNodalData\' is deprecated. Use \'FillFromHistoricalNodalData\' instead." << std::endl;
         FillFromHistoricalNodalData(rData, rVariable, rGeometry);
     }
 
@@ -246,4 +216,4 @@ protected:
 ///@}
 }
 
-#endif // KRATOS_FLUID_TOPOLOGY_OPTIMIZATION_ELEMENT_DATA_H
+#endif // KRATOS_FLUID_TRANSPORT_TOPOLOGY_OPTIMIZATION_ELEMENT_DATA_H

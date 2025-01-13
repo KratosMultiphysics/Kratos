@@ -54,6 +54,9 @@ class FluidTopologyOptimizationSolver(NavierStokesMonolithicSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.ACCELERATION_ADJ)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.MESH_VELOCITY_ADJ)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.BODY_FORCE_ADJ)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
         
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid Topology Optimization solver variables added correctly.")
 
