@@ -244,7 +244,7 @@ namespace Kratos {
       }
 
       // Add triangle area
-      total_area += fabs(0.5 * (x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2)));
+      total_area += std::abs(0.5 * (x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2)));
 
       // Add particles area
       AddParticleArea(rModelPart, addedParticle, particle_area, v1);

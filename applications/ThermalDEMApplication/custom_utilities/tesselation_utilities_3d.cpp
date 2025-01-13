@@ -266,7 +266,7 @@ namespace Kratos {
       c[1] = y4 - y1;
       c[2] = z4 - z1;
       GeometryFunctions::CrossProduct(b, c, bxc);
-      total_volume += fabs(GeometryFunctions::DotProduct(a, bxc)) / 6.0;
+      total_volume += std::abs(GeometryFunctions::DotProduct(a, bxc)) / 6.0;
 
       // Add particles volume
       AddParticleVolume(rModelPart, addedParticle, particle_volume, v1);

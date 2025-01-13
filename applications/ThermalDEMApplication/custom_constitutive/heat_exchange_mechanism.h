@@ -6,8 +6,7 @@
 //  Main authors:  Rafael Rangel (rrangel@cimne.upc.edu)
 //
 
-#if !defined(HEAT_EXCHANGE_MECHANISM_H_INCLUDED)
-#define HEAT_EXCHANGE_MECHANISM_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -97,5 +96,3 @@ namespace Kratos
   }
 
 } // namespace Kratos
-
-#endif // HEAT_EXCHANGE_MECHANISM_H_INCLUDED
