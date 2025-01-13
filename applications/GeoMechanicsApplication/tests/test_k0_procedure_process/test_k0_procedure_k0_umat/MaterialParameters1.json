@@ -29,7 +29,6 @@
                                          30,
                                          0.0,
                                          1000],
-          "NUMBER_OF_UMAT_STATE_VARIABLES":  1,
           "RETENTION_LAW": "SaturatedLaw",
           "SATURATED_SATURATION": 1.0
         }

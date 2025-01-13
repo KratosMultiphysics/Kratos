@@ -17,6 +17,7 @@ from test_factory import BigCubeSmallDeformationPlasticityTTest
 from test_factory import SerialParallelRuleOfMixturesCubeDamageTest
 from test_factory import PlasticDamageTest
 from test_factory import AnisotropyTest
+from test_factory import Anisotropy2DTest
 from test_factory import InitialStateInelasticityTest
 from test_factory import InitialStateInelasticity2Test
 from test_factory import SmallDeformationPlasticityTest
@@ -55,6 +56,7 @@ def AssembleTestSuites():
     smallSuite.addTest(BigCubeSmallDeformationPlasticityDPTest('test_execution'))
     smallSuite.addTest(BigCubeSmallDeformationPlasticityTTest('test_execution'))
     smallSuite.addTest(AnisotropyTest('test_execution'))
+    smallSuite.addTest(Anisotropy2DTest('test_execution'))
     smallSuite.addTest(InitialStateInelasticityTest('test_execution'))
     smallSuite.addTest(InitialStateInelasticity2Test('test_execution'))
     smallSuite.addTest(SimpleJ2PlasticityTest('test_execution'))

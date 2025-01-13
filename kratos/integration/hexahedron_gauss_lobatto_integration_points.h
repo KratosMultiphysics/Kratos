@@ -28,10 +28,10 @@ namespace Kratos
 {
 
 //TODO
-class HexahedronGaussLobattoIntegrationPoints1
+class HexahedronGaussLobattoIntegrationPoints0
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(HexahedronGaussLobattoIntegrationPoints1);
+    KRATOS_CLASS_POINTER_DEFINITION(HexahedronGaussLobattoIntegrationPoints0);
     typedef std::size_t SizeType;
 
     static const unsigned int Dimension = 3;
@@ -61,17 +61,15 @@ public:
     std::string Info() const
     {
         std::stringstream buffer;
-        buffer << "Hexahedron Gauss-Lobatto quadrature 1 ";
+        buffer << "Hexahedron Gauss-Lobatto quadrature 0 ";
         return buffer.str();
     }
+}; // Class HexahedronGaussLobattoIntegrationPoints0
 
-
-}; // Class HexahedronGaussLobattoIntegrationPoints1
-
-class HexahedronGaussLobattoIntegrationPoints2
+class HexahedronGaussLobattoIntegrationPoints1
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(HexahedronGaussLobattoIntegrationPoints2);
+    KRATOS_CLASS_POINTER_DEFINITION(HexahedronGaussLobattoIntegrationPoints1);
     typedef std::size_t SizeType;
 
     static const unsigned int Dimension = 3;
@@ -105,12 +103,10 @@ public:
     std::string Info() const
     {
         std::stringstream buffer;
-        buffer << "Hexahedron Gauss-Lobatto quadrature 2 ";
+        buffer << "Hexahedron Gauss-Lobatto quadrature 1 ";
         return buffer.str();
     }
-
-
-}; // Class HexahedronGaussLobattoIntegrationPoints2
+}; // Class HexahedronGaussLobattoIntegrationPoints1
 
 
 

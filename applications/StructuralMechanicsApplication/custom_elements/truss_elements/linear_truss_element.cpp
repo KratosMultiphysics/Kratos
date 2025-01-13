@@ -733,7 +733,7 @@ void LinearTrussElement<TDimension, TNNodes>::CalculateOnIntegrationPoints(
         ConstitutiveLaw::Parameters cl_values(GetGeometry(), GetProperties(), rProcessInfo);
         VectorType strain_vector(1), stress_vector(1);
         MatrixType C(1,1);
-        InitializeConstitutiveLawValues(cl_values, strain_vector, stress_vector, C);
+        StructuralMechanicsElementUtilities::InitializeConstitutiveLawValuesForStressCalculation(cl_values, strain_vector, stress_vector, C);
 
         const double length = CalculateLength();
         SystemSizeBoundedArrayType nodal_values(SystemSize);
@@ -756,7 +756,7 @@ void LinearTrussElement<TDimension, TNNodes>::CalculateOnIntegrationPoints(
         ConstitutiveLaw::Parameters cl_values(GetGeometry(), GetProperties(), rProcessInfo);
         VectorType strain_vector(1), stress_vector(1);
         MatrixType C(1,1);
-        InitializeConstitutiveLawValues(cl_values, strain_vector, stress_vector, C);
+        StructuralMechanicsElementUtilities::InitializeConstitutiveLawValuesForStressCalculation(cl_values, strain_vector, stress_vector, C);
 
         const double length = CalculateLength();
         SystemSizeBoundedArrayType nodal_values(SystemSize);
@@ -771,19 +771,6 @@ void LinearTrussElement<TDimension, TNNodes>::CalculateOnIntegrationPoints(
             rOutput[IP] = inner_prod(B, nodal_values);
         }
     }
-}
-
-template <SizeType TDimension, SizeType TNNodes>
-void LinearTrussElement<TDimension, TNNodes>::InitializeConstitutiveLawValues(ConstitutiveLaw::Parameters& rValues,
-    VectorType& rStrainVector, VectorType& rStressVector, MatrixType rConstitutiveMatrix)
-{
-    rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
-    rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
-
-    rStrainVector.clear();
-    rValues.SetStrainVector(rStrainVector);
-    rValues.SetStressVector(rStressVector);
-    rValues.SetConstitutiveMatrix(rConstitutiveMatrix);
 }
 
 /***********************************************************************************/
@@ -803,7 +790,7 @@ void LinearTrussElement<TDimension, TNNodes>::CalculateOnIntegrationPoints(
         ConstitutiveLaw::Parameters cl_values(GetGeometry(), GetProperties(), rProcessInfo);
         VectorType strain_vector(1), stress_vector(1);
         MatrixType constitutive_matrix(1,1);
-        InitializeConstitutiveLawValues(cl_values, strain_vector, stress_vector, constitutive_matrix);
+        StructuralMechanicsElementUtilities::InitializeConstitutiveLawValuesForStressCalculation(cl_values, strain_vector, stress_vector, constitutive_matrix);
 
         const double length = CalculateLength();
         SystemSizeBoundedArrayType nodal_values(SystemSize);

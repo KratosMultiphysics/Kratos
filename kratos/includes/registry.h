@@ -169,7 +169,7 @@ public:
      * @brief The end iterator of the registry (const version)
      * @return A const iterator to the end of the registry
      */
-    static auto const cend()
+    static auto cend()
     {
         return mspRootRegistryItem->cend();
     }

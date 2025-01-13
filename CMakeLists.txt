@@ -304,6 +304,9 @@ endif(KRATOS_COLORED_OUTPUT MATCHES ON)
 
 # Testing
 if(KRATOS_BUILD_TESTING MATCHES ON)
+  # Add the definitions if required
+  ADD_DEFINITIONS(-DKRATOS_BUILD_TESTING)
+
   # retrieve a copy of the current directory's `COMPILE_OPTIONS`
   get_directory_property(kratos_root_compile_options COMPILE_OPTIONS)
 
