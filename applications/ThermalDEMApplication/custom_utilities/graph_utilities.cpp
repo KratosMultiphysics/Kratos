@@ -431,6 +431,9 @@ namespace Kratos {
     }
 
     // Write results to files
+    const int    time_step = r_process_info[TIME_STEPS];
+    const double time      = r_process_info[TIME];
+    
     if (mFile_ParticleTempAll.is_open() && time_step % write_all_temp_freq == 0.0) {
       mFile_ParticleTempAll << "#TIME/STEP: ";
       mFile_ParticleTempAll << std::defaultfloat << time_step << " " << time << std::endl;
