@@ -15,6 +15,7 @@
 // Application includes
 #include "custom_conditions/U_Pw_normal_face_load_condition.hpp"
 #include "custom_utilities/element_utilities.hpp"
+#include <custom_utilities/variables_utilities.hpp>
 
 namespace Kratos
 {
@@ -29,44 +30,40 @@ Condition::Pointer UPwNormalFaceLoadCondition<TDim, TNumNodes>::Create(IndexType
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwNormalFaceLoadCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rRightHandSideVector,
+void UPwNormalFaceLoadCondition<TDim, TNumNodes>::CalculateRHS(Vector& rRightHandSideVector,
                                                                const ProcessInfo& CurrentProcessInfo)
 {
-    // Previous definitions
-    const GeometryType&                             rGeom = this->GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
-        rGeom.IntegrationPoints(this->GetIntegrationMethod());
-    const unsigned int NumGPoints = IntegrationPoints.size();
-    const unsigned int LocalDim   = rGeom.LocalSpaceDimension();
+    const auto& r_geometry           = this->GetGeometry();
+    const auto& r_integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
+    const auto  number_of_integration_points = r_integration_points.size();
 
     // Containers of variables at all integration points
-    const Matrix& NContainer = rGeom.ShapeFunctionsValues(this->GetIntegrationMethod());
-    GeometryType::JacobiansType JContainer(NumGPoints);
-    for (unsigned int i = 0; i < NumGPoints; ++i)
-        (JContainer[i]).resize(TDim, LocalDim, false);
-    rGeom.Jacobian(JContainer, this->GetIntegrationMethod());
+    const Matrix& r_n_container = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
+    GeometryType::JacobiansType j_container(number_of_integration_points);
+    for (auto& j : j_container)
+        j.resize(TDim, r_geometry.LocalSpaceDimension(), false);
+    r_geometry.Jacobian(j_container, this->GetIntegrationMethod());
 
     // Condition variables
-    NormalFaceLoadVariables Variables;
-    this->InitializeConditionVariables(Variables, rGeom);
-    array_1d<double, TDim>                        TractionVector;
-    BoundedMatrix<double, TDim, TNumNodes * TDim> Nu = ZeroMatrix(TDim, TNumNodes * TDim);
-    array_1d<double, TNumNodes * TDim>            UVector;
+    NormalFaceLoadVariables variables;
+    this->InitializeConditionVariables(variables, r_geometry);
 
     // Loop over integration points
-    for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
+    for (unsigned int integration_point = 0; integration_point < number_of_integration_points; ++integration_point) {
         // Compute traction vector
-        this->CalculateTractionVector(TractionVector, JContainer[GPoint], NContainer, Variables, GPoint);
+        array_1d<double, TDim> traction_vector;
+        this->CalculateTractionVector(traction_vector, j_container[integration_point],
+                                      r_n_container, variables, integration_point);
 
         // Compute Nu Matrix
-        ConditionUtilities::CalculateNuMatrix<TDim, TNumNodes>(Nu, NContainer, GPoint);
-
-        // Compute weighting coefficient for integration
-        const double IntegrationCoefficient = this->CalculateIntegrationCoefficient(GPoint, IntegrationPoints);
+        BoundedMatrix<double, TDim, TNumNodes * TDim> nu = ZeroMatrix(TDim, TNumNodes * TDim);
+        ConditionUtilities::CalculateNuMatrix<TDim, TNumNodes>(nu, r_n_container, integration_point);
 
         // Contributions to the right hand side
-        noalias(UVector) = prod(trans(Nu), TractionVector) * IntegrationCoefficient;
-        GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, UVector);
+        GeoElementUtilities::AssembleUBlockVector(
+            rRightHandSideVector,
+            prod(trans(nu), traction_vector) *
+                this->CalculateIntegrationCoefficient(integration_point, r_integration_points));
     }
 }
 
@@ -74,14 +71,11 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void UPwNormalFaceLoadCondition<TDim, TNumNodes>::InitializeConditionVariables(NormalFaceLoadVariables& rVariables,
                                                                                const GeometryType& rGeom)
 {
-    std::transform(rGeom.begin(), rGeom.end(), rVariables.NormalStressVector.begin(), [](const auto& node) {
-        return node.FastGetSolutionStepValue(NORMAL_CONTACT_STRESS);
-    });
+    VariablesUtilities::GetNodalValues(rGeom, NORMAL_CONTACT_STRESS, rVariables.NormalStressVector.begin());
 
     if constexpr (TDim == 2) {
-        std::transform(
-            rGeom.begin(), rGeom.end(), rVariables.TangentialStressVector.begin(),
-            [](const auto& node) { return node.FastGetSolutionStepValue(TANGENTIAL_CONTACT_STRESS); });
+        VariablesUtilities::GetNodalValues(rGeom, TANGENTIAL_CONTACT_STRESS,
+                                           rVariables.TangentialStressVector.begin());
     }
 }
 
@@ -92,22 +86,23 @@ void UPwNormalFaceLoadCondition<TDim, TNumNodes>::CalculateTractionVector(array_
                                                                           const NormalFaceLoadVariables& Variables,
                                                                           const unsigned int& GPoint)
 {
-    Vector NormalVector = ZeroVector(TDim);
-    double NormalStress = MathUtils<>::Dot(row(NContainer, GPoint), Variables.NormalStressVector);
+    const auto normal_stress = MathUtils<>::Dot(row(NContainer, GPoint), Variables.NormalStressVector);
 
+    Vector normal_vector = ZeroVector(3);
     if constexpr (TDim == 2) {
-        const double TangentialStress =
+        const auto tangential_stress =
             MathUtils<>::Dot(row(NContainer, GPoint), Variables.TangentialStressVector);
-        NormalVector       = column(Jacobian, 0);
-        rTractionVector[0] = TangentialStress * NormalVector[0] - NormalStress * NormalVector[1];
-        rTractionVector[1] = NormalStress * NormalVector[0] + TangentialStress * NormalVector[1];
-    } else if constexpr (TDim == 3) {
-        // Since the normal vector is pointing outwards for the 3D conditions, the normal stress
-        // should switch sign, such that positive normal contact stress is defined inwards.
-        NormalStress *= -1;
 
-        MathUtils<double>::CrossProduct(NormalVector, column(Jacobian, 0), column(Jacobian, 1));
-        rTractionVector = NormalStress * NormalVector;
+        Vector tangential_vector = ZeroVector(3);
+        std::copy_n(column(Jacobian, 0).begin(), TDim, tangential_vector.begin());
+        Vector out_of_plane_vector = ZeroVector(3);
+        out_of_plane_vector[2]     = 1.0;
+        MathUtils<>::CrossProduct(normal_vector, out_of_plane_vector, tangential_vector);
+        auto traction_vector = tangential_stress * tangential_vector + normal_stress * normal_vector;
+        std::copy_n(traction_vector.begin(), TDim, rTractionVector.begin());
+    } else if constexpr (TDim == 3) {
+        MathUtils<>::CrossProduct(normal_vector, column(Jacobian, 0), column(Jacobian, 1));
+        rTractionVector = -normal_stress * normal_vector;
     }
 }
 

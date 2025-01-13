@@ -67,7 +67,6 @@ void GeoTMicroClimateFluxCondition<TDim, TNumNodes>::CalculateLocalSystem(Matrix
     rLeftHandSideMatrix  = Matrix{TNumNodes, TNumNodes, 0.0};
     rRightHandSideVector = Vector{TNumNodes, 0.0};
 
-    // Previous definitions
     const auto& r_geom               = this->GetGeometry();
     const auto& r_integration_points = r_geom.IntegrationPoints(this->GetIntegrationMethod());
     const auto number_of_integration_points = static_cast<unsigned int>(r_integration_points.size());
@@ -95,17 +94,16 @@ void GeoTMicroClimateFluxCondition<TDim, TNumNodes>::CalculateLocalSystem(Matrix
     const auto right_hand_side_fluxes =
         CalculateRightHandSideFluxes(time_step_size, previous_storage, previous_radiation);
 
-    // Loop over integration points
     for (unsigned int integration_point_index = 0;
          integration_point_index < number_of_integration_points; ++integration_point_index) {
         const auto N = array_1d<double, TNumNodes>{row(r_N_container, integration_point_index)};
 
         // Compute weighting coefficient for integration
-        const auto IntegrationCoefficient = ConditionUtilities::CalculateIntegrationCoefficient<TDim, TNumNodes>(
+        const auto integration_coefficient = ConditionUtilities::CalculateIntegrationCoefficient(
             jacobians[integration_point_index], r_integration_points[integration_point_index].Weight());
 
-        CalculateAndAddLHS(rLeftHandSideMatrix, N, IntegrationCoefficient, left_hand_side_fluxes);
-        CalculateAndAddRHS(rRightHandSideVector, N, IntegrationCoefficient, nodal_temperatures,
+        CalculateAndAddLHS(rLeftHandSideMatrix, N, integration_coefficient, left_hand_side_fluxes);
+        CalculateAndAddRHS(rRightHandSideVector, N, integration_coefficient, nodal_temperatures,
                            left_hand_side_fluxes, right_hand_side_fluxes);
     }
 
