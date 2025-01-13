@@ -1,0 +1,99 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "mixed_u_E_element_test",
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 1,
+        "start_time"    : 0.0,
+        "end_time"      : 1.0
+    },
+    "solver_settings"  : {
+        "time_stepping"                        : {
+            "time_step" : 1.0
+        },
+        "solver_type"                          : "Static",
+        "model_part_name"                      : "Structure",
+        "domain_size"                          : 2,
+        "echo_level"                           : 0,
+        "analysis_type"                        : "non_linear",
+        "model_import_settings"                : {
+            "input_type"     : "mdpa",
+            "input_filename" : "mixed_u_E_test/mixed_u_E_element_test"
+        },
+        "material_import_settings"             : {
+            "materials_filename" : "mixed_u_E_test/mixed_u_E_element_test_materials.json"
+        },
+        "line_search"                          : false,
+        "convergence_criterion"                : "residual_criterion",
+        "displacement_relative_tolerance"      : 0.0001,
+        "displacement_absolute_tolerance"      : 1e-9,
+        "residual_relative_tolerance"          : 0.0001,
+        "residual_absolute_tolerance"          : 1e-9,
+        "max_iteration"                        : 10,
+        "use_old_stiffness_in_first_iteration" : false,
+        "linear_solver_settings"               : {
+            "solver_type" : "LinearSolversApplication.sparse_lu"
+        },
+        "rotation_dofs"                        : false,
+        "volumetric_strain_dofs"               : false,
+		"strain_vector_dofs"                   : true
+    },
+    "processes"        : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_fixed",
+                "variable_name"   : "DISPLACEMENT",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_dirichlet_imposed",
+                "variable_name"   : "DISPLACEMENT",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [true,false,true],
+                "value"           : [0.01,null,0.0]
+            }
+        }],
+        "loads_process_list"       : [],
+        "list_other_processes"     : [],
+        "json_check_process" : [
+        {
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+				"check_variables"              : ["DISPLACEMENT"],
+                "gauss_points_check_variables" : ["CAUCHY_STRESS_VECTOR"],
+                "input_file_name"              : "mixed_u_E_test/mixed_u_E_element_test_results.json",
+                "model_part_name"              : "Structure.Parts_Solid_body",
+                "time_frequency"               : 0.001
+            }
+        }]
+    // "_json_output_process" : [
+    // {
+    //     "python_module"   : "json_output_process",
+    //     "kratos_module" : "KratosMultiphysics",
+    //     "process_name"          : "JsonOutputProcess",
+    //     "Parameters"            : {
+    // 	    "output_variables"              : ["DISPLACEMENT"],
+    //         "gauss_points_output_variables" : ["CAUCHY_STRESS_VECTOR"],
+    //         "output_file_name"              : "mixed_u_E_test/mixed_u_E_element_test_results.json",
+    //         "model_part_name"               : "Structure.Parts_Solid_body",
+    //         "time_frequency"                : 0.1
+    //     }
+    // }]
+    },
+    "output_processes" : {
+        "gid_output" : [],
+        "vtk_output" : []
+    },
+    "analysis_stage"   : "KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis"
+}
