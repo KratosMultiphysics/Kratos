@@ -29,7 +29,7 @@ namespace Kratos {
     // Get collision time and impact normal velocity
     typename ThermalSphericParticle::ContactParams contact_params = particle->GetContactParameters();
     const double col_time = r_process_info[TIME] - contact_params.impact_time;
-    const double impact_normal_velocity = fabs(contact_params.impact_velocity[0]);
+    const double impact_normal_velocity = std::abs(contact_params.impact_velocity[0]);
 
     // Compute max collision time
     double col_time_max = 0.0;

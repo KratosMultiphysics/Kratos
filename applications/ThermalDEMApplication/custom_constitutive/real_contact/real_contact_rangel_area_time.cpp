@@ -40,7 +40,7 @@ namespace Kratos {
       const double overlap_sim  = r1 + r2 - d_sim;
       const double overlap_real = pow(eff_young/eff_young_real, 2.0/3.0) * overlap_sim;
       const double d_real       = r1 + r2 - overlap_real;
-      particle->mContactRadiusAdjusted = sqrt(fabs(r1 * r1 - pow(((r1 * r1 - r2 * r2 + d_real * d_real) / (2.0 * d_real)), 2.0)));
+      particle->mContactRadiusAdjusted = sqrt(std::abs(r1 * r1 - pow(((r1 * r1 - r2 * r2 + d_real * d_real) / (2.0 * d_real)), 2.0)));
     }
     else if (particle->mNeighborType & WALL_NEIGHBOR) {
       const double r1           = particle->GetParticleRadius();

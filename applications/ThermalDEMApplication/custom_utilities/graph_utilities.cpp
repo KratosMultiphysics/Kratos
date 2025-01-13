@@ -301,29 +301,29 @@ namespace Kratos {
       particle.Calculate(PARTICLE_INELASTIC_ROLLING_RESISTANCE_ENERGY, energy_dissip_roll,      r_process_info);
       particle.Calculate(PARTICLE_INELASTIC_VISCODAMPING_ENERGY,       energy_dissip_damp,      r_process_info);
 
-      const double energy_thermal_slid_pp = fabs(particle.mGenerationThermalEnergy_slid_particle);
-      const double energy_thermal_slid_pw = fabs(particle.mGenerationThermalEnergy_slid_wall);
-      const double energy_thermal_roll_pp = fabs(particle.mGenerationThermalEnergy_roll_particle);
-      const double energy_thermal_roll_pw = fabs(particle.mGenerationThermalEnergy_roll_wall);
-      const double energy_thermal_damp_pp = fabs(particle.mGenerationThermalEnergy_damp_particle);
-      const double energy_thermal_damp_pw = fabs(particle.mGenerationThermalEnergy_damp_wall);
+      const double energy_thermal_slid_pp = std::abs(particle.mGenerationThermalEnergy_slid_particle);
+      const double energy_thermal_slid_pw = std::abs(particle.mGenerationThermalEnergy_slid_wall);
+      const double energy_thermal_roll_pp = std::abs(particle.mGenerationThermalEnergy_roll_particle);
+      const double energy_thermal_roll_pw = std::abs(particle.mGenerationThermalEnergy_roll_wall);
+      const double energy_thermal_damp_pp = std::abs(particle.mGenerationThermalEnergy_damp_particle);
+      const double energy_thermal_damp_pw = std::abs(particle.mGenerationThermalEnergy_damp_wall);
 
-      const double heat_flux_values_conducdir   = fabs(particle.mConductionDirectHeatFlux);
-      const double heat_flux_values_conducindir = fabs(particle.mConductionIndirectHeatFlux);
-      const double heat_flux_values_rad         = fabs(particle.mRadiationHeatFlux);
-      const double heat_flux_values_gen         = fabs(particle.mGenerationHeatFlux);
-      const double heat_flux_values_conv        = fabs(particle.mConvectionHeatFlux);
-      const double heat_flux_values_prescsurf   = fabs(particle.mPrescribedHeatFluxSurface);
-      const double heat_flux_values_prescvol    = fabs(particle.mPrescribedHeatFluxVolume);
-      const double heat_flux_values             = fabs(particle.mTotalHeatFlux);
+      const double heat_flux_values_conducdir   = std::abs(particle.mConductionDirectHeatFlux);
+      const double heat_flux_values_conducindir = std::abs(particle.mConductionIndirectHeatFlux);
+      const double heat_flux_values_rad         = std::abs(particle.mRadiationHeatFlux);
+      const double heat_flux_values_gen         = std::abs(particle.mGenerationHeatFlux);
+      const double heat_flux_values_conv        = std::abs(particle.mConvectionHeatFlux);
+      const double heat_flux_values_prescsurf   = std::abs(particle.mPrescribedHeatFluxSurface);
+      const double heat_flux_values_prescvol    = std::abs(particle.mPrescribedHeatFluxVolume);
+      const double heat_flux_values             = std::abs(particle.mTotalHeatFlux);
 
-      const double heat_gen_values_slid_pp = fabs(particle.mGenerationHeatFlux_slid_particle);
-      const double heat_gen_values_slid_pw = fabs(particle.mGenerationHeatFlux_slid_wall);
-      const double heat_gen_values_roll_pp = fabs(particle.mGenerationHeatFlux_roll_particle);
-      const double heat_gen_values_roll_pw = fabs(particle.mGenerationHeatFlux_roll_wall);
-      const double heat_gen_values_damp_pp = fabs(particle.mGenerationHeatFlux_damp_particle);
-      const double heat_gen_values_damp_pw = fabs(particle.mGenerationHeatFlux_damp_wall);
-      const double heat_gen_values         = fabs(particle.mGenerationHeatFlux);
+      const double heat_gen_values_slid_pp = std::abs(particle.mGenerationHeatFlux_slid_particle);
+      const double heat_gen_values_slid_pw = std::abs(particle.mGenerationHeatFlux_slid_wall);
+      const double heat_gen_values_roll_pp = std::abs(particle.mGenerationHeatFlux_roll_particle);
+      const double heat_gen_values_roll_pw = std::abs(particle.mGenerationHeatFlux_roll_wall);
+      const double heat_gen_values_damp_pp = std::abs(particle.mGenerationHeatFlux_damp_particle);
+      const double heat_gen_values_damp_pw = std::abs(particle.mGenerationHeatFlux_damp_wall);
+      const double heat_gen_values         = std::abs(particle.mGenerationHeatFlux);
 
       // Accumulate particle results
       #pragma omp critical

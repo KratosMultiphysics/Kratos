@@ -839,7 +839,7 @@ namespace Kratos
     const double eff_radius             = ComputeEffectiveRadius();
     const double eff_mass               = ComputeEffectiveMass();
     const double eff_young              = ComputeEffectiveYoung();
-    const double impact_normal_velocity = fabs(GetContactParameters().impact_velocity[0]);
+    const double impact_normal_velocity = std::abs(GetContactParameters().impact_velocity[0]);
 
     if (impact_normal_velocity != 0.0)
       return 2.87 * pow(eff_mass * eff_mass / (eff_radius * eff_young * eff_young * impact_normal_velocity), 0.2);
@@ -856,7 +856,7 @@ namespace Kratos
     const double eff_radius             = ComputeEffectiveRadius();
     const double eff_mass               = ComputeEffectiveMass();
     const double eff_young              = ComputeEffectiveYoungReal();
-    const double impact_normal_velocity = fabs(GetContactParameters().impact_velocity[0]);
+    const double impact_normal_velocity = std::abs(GetContactParameters().impact_velocity[0]);
 
     if (impact_normal_velocity != 0.0)
       return 2.87 * pow(eff_mass * eff_mass / (eff_radius * eff_young * eff_young * impact_normal_velocity), 0.2);
@@ -873,7 +873,7 @@ namespace Kratos
     const double eff_radius             = ComputeEffectiveRadius();
     const double eff_mass               = ComputeEffectiveMass();
     const double eff_young              = ComputeEffectiveYoung();
-    const double impact_normal_velocity = fabs(GetContactParameters().impact_velocity[0]);
+    const double impact_normal_velocity = std::abs(GetContactParameters().impact_velocity[0]);
 
     return pow(15.0 * eff_mass * eff_radius * eff_radius * impact_normal_velocity * impact_normal_velocity / (16.0 * eff_young), 0.2);
     
@@ -887,7 +887,7 @@ namespace Kratos
     const double eff_radius             = ComputeEffectiveRadius();
     const double eff_mass               = ComputeEffectiveMass();
     const double eff_young              = ComputeEffectiveYoungReal();
-    const double impact_normal_velocity = fabs(GetContactParameters().impact_velocity[0]);
+    const double impact_normal_velocity = std::abs(GetContactParameters().impact_velocity[0]);
 
     return pow(15.0 * eff_mass * eff_radius * eff_radius * impact_normal_velocity * impact_normal_velocity / (16.0 * eff_young), 0.2);
     
@@ -904,7 +904,7 @@ namespace Kratos
       if (mNeighborType & PARTICLE_NEIGHBOR) {
         const double r1 = GetParticleRadius();
         const double r2 = GetNeighborRadius();
-        Rc = sqrt(fabs(r1 * r1 - pow(((r1 * r1 - r2 * r2 + mNeighborDistance * mNeighborDistance) / (2.0 * mNeighborDistance)), 2.0)));
+        Rc = sqrt(std::abs(r1 * r1 - pow(((r1 * r1 - r2 * r2 + mNeighborDistance * mNeighborDistance) / (2.0 * mNeighborDistance)), 2.0)));
       }
       else if (mNeighborType & WALL_NEIGHBOR) {
         const double r = GetParticleRadius();
