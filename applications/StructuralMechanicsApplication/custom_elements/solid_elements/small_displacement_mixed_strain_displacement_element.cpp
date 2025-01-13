@@ -119,12 +119,12 @@ void SmallDisplacementMixedStrainDisplacementElement::EquationIdVector(
             rResult[u_block    ] = r_node.GetDof(DISPLACEMENT_X,          displ_dof    ).EquationId();
             rResult[u_block + 1] = r_node.GetDof(DISPLACEMENT_Y,          displ_dof + 1).EquationId();
             rResult[u_block + 2] = r_node.GetDof(DISPLACEMENT_Z,          displ_dof + 2).EquationId();
-            rResult[E_block    ] = r_node.GetDof(NODAL_STRAIN_VECTOR_XX,  r_node.GetDofPosition(NODAL_STRAIN_VECTOR_XX)).EquationId();
-            rResult[E_block + 1] = r_node.GetDof(NODAL_STRAIN_VECTOR_YY,  r_node.GetDofPosition(NODAL_STRAIN_VECTOR_YY)).EquationId();
-            rResult[E_block + 2] = r_node.GetDof(NODAL_STRAIN_VECTOR_ZZ,  r_node.GetDofPosition(NODAL_STRAIN_VECTOR_ZZ)).EquationId();
-            rResult[E_block + 3] = r_node.GetDof(NODAL_STRAIN_VECTOR_XY,  r_node.GetDofPosition(NODAL_STRAIN_VECTOR_XY)).EquationId();
-            rResult[E_block + 4] = r_node.GetDof(NODAL_STRAIN_VECTOR_YZ,  r_node.GetDofPosition(NODAL_STRAIN_VECTOR_YZ)).EquationId();
-            rResult[E_block + 5] = r_node.GetDof(NODAL_STRAIN_VECTOR_XZ,  r_node.GetDofPosition(NODAL_STRAIN_VECTOR_XZ)).EquationId();
+            rResult[E_block    ] = r_node.GetDof(NODAL_STRAIN_VECTOR_XX,  E_dof    ).EquationId();
+            rResult[E_block + 1] = r_node.GetDof(NODAL_STRAIN_VECTOR_YY,  E_dof + 1).EquationId();
+            rResult[E_block + 2] = r_node.GetDof(NODAL_STRAIN_VECTOR_ZZ,  E_dof + 2).EquationId();
+            rResult[E_block + 3] = r_node.GetDof(NODAL_STRAIN_VECTOR_XY,  E_dof + 3).EquationId();
+            rResult[E_block + 4] = r_node.GetDof(NODAL_STRAIN_VECTOR_YZ,  E_dof + 4).EquationId();
+            rResult[E_block + 5] = r_node.GetDof(NODAL_STRAIN_VECTOR_XZ,  E_dof + 5).EquationId();
         }
     }
 
@@ -776,7 +776,6 @@ void SmallDisplacementMixedStrainDisplacementElement::AssembleLHS(
     const auto& r_geometry = GetGeometry();
     const SizeType dim     = r_geometry.WorkingSpaceDimension();
     const SizeType n_nodes = r_geometry.PointsNumber();
-    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
     const SizeType displ_size = n_nodes * dim;
 
     // Assemble K
