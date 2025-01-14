@@ -18,6 +18,63 @@ def run_modelers(current_model, modelers_list):
 
 class TestModelersSbm(KratosUnittest.TestCase):
     
+    # test the call to the nurbs_geometry_modeler_sbm to create a rectangle + the breps
+    def test_nurbs_geometry_2d_modeler_control_points(self):
+        current_model = KratosMultiphysics.Model()
+        modeler_settings = KratosMultiphysics.Parameters("""
+        [{
+            "modeler_name": "NurbsGeometryModelerSbm",
+            "Parameters": {
+                "model_part_name" : "IgaModelPart",
+                "lower_point_xyz": [0.0,0.0,0.0],
+                "upper_point_xyz": [1.0,1.0,0.0],
+                "lower_point_uvw": [0.0,0.0,0.0],
+                "upper_point_uvw": [1.0,1.0,0.0],
+                "polynomial_order" : [4, 1],
+                "number_of_knot_spans" : [3,2]
+            }
+        }]
+        """)
+        run_modelers(current_model, modeler_settings)
+
+        model_part = current_model.GetModelPart("IgaModelPart")
+        # Check control points
+        nodes_mp = model_part.NodesArray(0)
+
+        for i in range(3):
+            self.assertAlmostEqual(nodes_mp[i*7+0].X,0.0)
+            self.assertAlmostEqual(nodes_mp[i*7+1].X,0.083333333334)
+            self.assertAlmostEqual(nodes_mp[i*7+2].X,0.25)
+            self.assertAlmostEqual(nodes_mp[i*7+3].X,0.5)
+            self.assertAlmostEqual(nodes_mp[i*7+4].X,0.75)
+            self.assertAlmostEqual(nodes_mp[i*7+5].X,0.916666666667)
+            self.assertAlmostEqual(nodes_mp[i*7+6].X,1.0)
+        for i in range(7):
+            self.assertAlmostEqual(nodes_mp[i].Y,0.0)
+            self.assertAlmostEqual(nodes_mp[i].Z,0.0)
+        for i in range(7,14):
+            self.assertAlmostEqual(nodes_mp[i].Y,0.5)
+            self.assertAlmostEqual(nodes_mp[i].Z,0.0)
+        for i in range(14,21):
+            self.assertAlmostEqual(nodes_mp[i].Y,1.0)
+            self.assertAlmostEqual(nodes_mp[i].Z,0.0)
+
+        geometry = model_part.GetGeometry(1)
+
+        # Check if geometry holds same nodes as model part
+        for i, node_geo in enumerate(geometry):
+            self.assertEqual(node_geo.Id, nodes_mp[i].Id )
+            self.assertEqual(node_geo.X, nodes_mp[i].X )
+            self.assertEqual(node_geo.Y, nodes_mp[i].Y )
+            self.assertEqual(node_geo.Z, nodes_mp[i].Z )
+
+        # test the creation of the breps
+        self.assertEqual(current_model["IgaModelPart"].NumberOfGeometries(), 5)
+        self.assertAlmostEqual(current_model["IgaModelPart"].GetGeometry(1).Center().X, 0.5)
+        self.assertAlmostEqual(current_model["IgaModelPart"].GetGeometry(1).Center().Y, 0.5)
+        self.assertAlmostEqual(current_model["IgaModelPart"].GetGeometry(1).Center().Z, 0.0)
+        
+
     # test for SBM
     def test_nurbs_geometry_2d_modeler_sbm_outer_skin_boundary(self):
         current_model = KratosMultiphysics.Model()

@@ -108,7 +108,7 @@ namespace Kratos
         std::vector<std::vector<std::vector<int>>> knot_spans_available;
         knot_spans_available.reserve(numberOfLoops);
 
-        for (int i = 0; i < numberOfLoops; ++i) {
+        for (IndexType i = 0; i < numberOfLoops; ++i) {
             std::vector<std::vector<int>> matrix; 
             matrix.reserve(n_knot_spans_uv[1]);
             for (int j = 0; j <= n_knot_spans_uv[1]; ++j) {
@@ -120,7 +120,7 @@ namespace Kratos
         
         // Optimized Snake -> for inner loops
         int idMatrixKnotSpansAvailable = 0;
-        int idFirstNode;
+        IndexType idFirstNode;
         bool newInnerLoop = true;
 
         
@@ -214,8 +214,8 @@ namespace Kratos
         KRATOS_INFO_IF("::[SnakeSBMUtilities]::", rEchoLevel > 0 && is_inner) << "Inner :: MarkKnotSpansAvailable" << std::endl;
         KRATOS_INFO_IF("::[SnakeSBMUtilities]::", rEchoLevel > 0 && !is_inner) << "Outer :: MarkKnotSpansAvailable" << std::endl;
 
-        for (int i = 0; i < numberOfLoops; i++) {
-            int idInnerLoop = i;
+        for (IndexType i = 0; i < numberOfLoops; i++) {
+            IndexType idInnerLoop = i;
             // Mark the knot_spans_available's for inner and outer loops
             MarkKnotSpansAvailable(knot_spans_available, idInnerLoop, testBins, skin_sub_model_part, lambda, 
                                    n_knot_spans_uv, knot_step_uv, starting_pos_uv);  
@@ -329,10 +329,10 @@ namespace Kratos
         PointerType nearestPoint = testBins.SearchNearestPoint(*pointToSearch);
         
         // Get the closest Condition the initial_skin_model_part_in.Conditions
-        int id1 = nearestPoint->Id();
+        IndexType id1 = nearestPoint->Id();
         auto nearestCondition1 = skin_model_part.GetCondition(id1);
         // Check if the condition is the first one and therefore the previous one does not exist
-        int id2 = id1 - 1;
+        IndexType id2 = id1 - 1;
         if (id1 == skin_model_part.ConditionsBegin()->Id()) {
             int nConditions = skin_model_part.Conditions().size();
             id2 = id1 + nConditions - 1; 
@@ -424,11 +424,11 @@ namespace Kratos
                     // Create 25 "fake" GaussPoints to check if the majority are inside or outside
                     const int numFakeGaussPoints = 5;
                     int numberOfInsideGaussianPoints = 0;
-                    for (int i_GPx = 0; i_GPx < numFakeGaussPoints; i_GPx++){
+                    for (IndexType i_GPx = 0; i_GPx < numFakeGaussPoints; i_GPx++){
                         double x_coord = j*knot_step_uv[0] + knot_step_uv[0]/(numFakeGaussPoints+1)*(i_GPx+1) + starting_pos_uv[0];
 
                         // NOTE:: The v-knot spans are upside down in the matrix!!
-                        for (int i_GPy = 0; i_GPy < numFakeGaussPoints; i_GPy++) 
+                        for (IndexType i_GPy = 0; i_GPy < numFakeGaussPoints; i_GPy++) 
                         {
                             double y_coord = i*knot_step_uv[1] + knot_step_uv[1]/(numFakeGaussPoints+1)*(i_GPy+1) + starting_pos_uv[1];
                             Point gaussPoint = Point(x_coord, y_coord, 0);  // GAUSSIAN POINT
@@ -646,7 +646,7 @@ namespace Kratos
             }
         }
         // TOP BOUNDARY
-        for (int j = knot_spans_available[idMatrix][0].size()-1; j > knot_spans_available[idMatrix][0].size()-3; j--) {
+        for (int j = int(knot_spans_available[idMatrix][0].size())-1; j > int(knot_spans_available[idMatrix][0].size())-3; j--) {
             for (int i = 0; i < (n_knot_spans_uv[0]); i++) {
                 Point centroidKnotSpan = Point((j+0.5)*knot_step_u+starting_pos_uv[0], (i+0.5)*knot_step_v+starting_pos_uv[1], 0);
                 if (isPointInsideSkinBoundary(centroidKnotSpan, testBin_out, initial_skin_model_part_out) && knot_spans_available[idMatrix][i][j] != -1) {
@@ -655,7 +655,7 @@ namespace Kratos
             }
         }
         // RIGHT BOUNDARY
-        for (int i = knot_spans_available[idMatrix][0].size()-1; i > knot_spans_available[idMatrix][0].size()-3; i--) {
+        for (int i = int(knot_spans_available[idMatrix][0].size())-1; i > int(knot_spans_available[idMatrix][0].size())-3; i--) {
             for (int j = n_knot_spans_uv[1]-1; j > -1; j-- ) {
                 Point centroidKnotSpan = Point((j+0.5)*knot_step_u+starting_pos_uv[0], (i+0.5)*knot_step_v+starting_pos_uv[1], 0);
                 if (isPointInsideSkinBoundary(centroidKnotSpan, testBin_out, initial_skin_model_part_out) && knot_spans_available[idMatrix][i][j] != -1) {
@@ -696,8 +696,8 @@ namespace Kratos
         //-------------------
         std::vector<std::vector<int>> knot_spans_available_extended(n_knot_spans_uv[1]+2, std::vector<int>(n_knot_spans_uv[0]+2));
 
-        for (int i = 0; i < knot_spans_available[idMatrix].size(); i++){
-            for (int j = 0; j < knot_spans_available[idMatrix][0].size(); j++) {
+        for (IndexType i = 0; i < knot_spans_available[idMatrix].size(); i++){
+            for (IndexType j = 0; j < knot_spans_available[idMatrix][0].size(); j++) {
                 knot_spans_available_extended[i+1][j+1] = knot_spans_available[idMatrix][i][j]; 
             }
         }  
@@ -833,7 +833,7 @@ namespace Kratos
         }
         // Create "fictituos element" to memorize starting and ending node id for each surrogate boundary loop
         std::vector<ModelPart::IndexType> elem_nodes{1, idSnakeNode-1};
-        int elem_id = surrogate_model_part_outer.GetRootModelPart().Elements().size()+1;
+        IndexType elem_id = surrogate_model_part_outer.GetRootModelPart().Elements().size()+1;
         surrogate_model_part_outer.CreateNewElement("Element2D2N", elem_id, elem_nodes, p_cond_prop);
     }
 }  // namespace Kratos.

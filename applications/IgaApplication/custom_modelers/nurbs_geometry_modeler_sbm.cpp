@@ -69,9 +69,14 @@ namespace Kratos
         }
         // If there is not neither skin_inner nor skin_outer throw an error since you are using the sbm modeler
         if (!(mParameters.Has("skin_model_part_inner_initial_name") || mParameters.Has("skin_model_part_outer_initial_name"))){
-            KRATOS_ERROR << "None of the 'skin_model_part_name' have not been defined " << 
-                            "in the nurbs_geometry_modeler_sbm, define it " << 
-                            "in the project paramer json" << std::endl;
+        
+            // Create the breps for the outer sbm boundary
+            CreateBrepsSBMUtilities<Node, Point> CreateBrepsSBMUtilities(mEchoLevel);
+            CreateBrepsSBMUtilities.CreateSurrogateBoundary(mpSurface, r_model_part, A_uvw, B_uvw);
+            
+            KRATOS_WARNING("None of the 'skin_model_part_name' have not been defined ") << 
+                            "in the nurbs_geometry_modeler_sbm in the project paramer json" << std::endl;
+            return;
         }
         
         if (mParameters.Has("skin_model_part_name"))
@@ -94,8 +99,8 @@ namespace Kratos
 
         // Skin model part refined after Snake Process
         ModelPart& skin_model_part = mpModel->CreateModelPart(skin_model_part_name);
-        ModelPart& skin_sub_model_part_in = skin_model_part.CreateSubModelPart("inner");
-        ModelPart& skin_sub_model_part_out = skin_model_part.CreateSubModelPart("outer");
+        skin_model_part.CreateSubModelPart("inner");
+        skin_model_part.CreateSubModelPart("outer");
         
         
         // compute unique_knot_vector_u
