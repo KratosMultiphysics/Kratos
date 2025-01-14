@@ -14,7 +14,7 @@
 #include "real_contact_morris_area_time.h"
 
 namespace Kratos {
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   RealContactMorrisAreaTime::RealContactMorrisAreaTime() {}
   RealContactMorrisAreaTime::~RealContactMorrisAreaTime() {}
 

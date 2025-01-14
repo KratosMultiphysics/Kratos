@@ -14,7 +14,7 @@
 #include "real_contact_morris_area.h"
 
 namespace Kratos {
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   RealContactMorrisArea::RealContactMorrisArea() {}
   RealContactMorrisArea::~RealContactMorrisArea() {}
 
