@@ -1099,7 +1099,6 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_CONDITION("RigidEdge2D2N", mRigidEdge2D2N)
     KRATOS_REGISTER_CONDITION("RigidEdge2D1N", mRigidEdge2D1N)
 
-
     // SERIALIZER
     Serializer::Register("PropertiesProxy", PropertiesProxy());
 
@@ -1114,7 +1113,7 @@ void KratosDEMApplication::Register() {
     Serializer::Register("DEM_D_Stress_Dependent_Cohesive", DEM_D_Stress_Dependent_Cohesive());
     Serializer::Register("DEM_D_Linear_Custom_Constants", DEM_D_Linear_Custom_Constants());
     Serializer::Register("DEM_D_Conical_damage", DEM_D_Conical_damage());
-    Serializer::Register("DEM_D_Hertz_viscous_Coulomb_Nestle",DEM_D_Hertz_viscous_Coulomb_Nestle());
+    Serializer::Register("DEM_D_Hertz_viscous_Coulomb_Nestle", DEM_D_Hertz_viscous_Coulomb_Nestle());
     Serializer::Register("DEM_D_Quadratic", DEM_D_Quadratic());
     Serializer::Register("DEM_D_Linear_classic", DEM_D_Linear_classic());
     Serializer::Register("DEM_D_void", DEM_D_void());
