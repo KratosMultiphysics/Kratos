@@ -60,7 +60,7 @@ public:
         std::function<Vector(const Variable<double>&)> mGetNodalValues;
     };
 
-    explicit FilterCompressibilityCalculator(InputProvider rInputProvider);
+    explicit FilterCompressibilityCalculator(InputProvider AnInputProvider);
 
     Matrix                    LHSContribution() override;
     Vector                    RHSContribution() override;

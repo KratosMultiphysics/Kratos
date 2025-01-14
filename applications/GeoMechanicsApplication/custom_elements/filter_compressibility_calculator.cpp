@@ -17,8 +17,8 @@
 namespace Kratos
 {
 
-FilterCompressibilityCalculator::FilterCompressibilityCalculator(InputProvider rInputProvider)
-    : mInputProvider(std::move(rInputProvider))
+FilterCompressibilityCalculator::FilterCompressibilityCalculator(InputProvider AnInputProvider)
+    : mInputProvider(std::move(AnInputProvider))
 {
 }
 

@@ -280,8 +280,7 @@ private:
     Vector CalculateProjectedGravityAtIntegrationPoints(const Matrix& rNContainer) const
     {
         const auto number_integration_points = GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
-        GeometryType::JacobiansType J_container;
-        J_container.resize(number_integration_points, false);
+        GeometryType::JacobiansType J_container{number_integration_points};
         for (std::size_t i = 0; i < number_integration_points; ++i) {
             J_container[i].resize(GetGeometry().WorkingSpaceDimension(),
                                   GetGeometry().LocalSpaceDimension(), false);
@@ -302,7 +301,7 @@ private:
             array_1d<double, TDim> tangent_vector = column(J_container[integration_point_index], 0);
             tangent_vector /= norm_2(tangent_vector);
             projected_gravity(integration_point_index) =
-                MathUtils<double>::Dot(tangent_vector, body_acceleration);
+                MathUtils<>::Dot(tangent_vector, body_acceleration);
         }
         return projected_gravity;
     }
