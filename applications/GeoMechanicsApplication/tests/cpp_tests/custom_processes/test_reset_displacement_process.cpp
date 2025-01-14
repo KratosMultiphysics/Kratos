@@ -34,7 +34,7 @@ using namespace Kratos;
 class StubConstitutiveLaw : public ConstitutiveLaw
 {
 public:
-    SizeType GetStrainSize() const override { return 4; }
+    [[nodiscard]] SizeType GetStrainSize() const override { return 4; }
 };
 
 class StubElementForResetDisplacementTest : public Element
