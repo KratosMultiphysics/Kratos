@@ -548,16 +548,17 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAndAddCompressibilityFlow(Vec
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void TransientPwElement<TDim, TNumNodes>::CalculateKinematics(ElementVariables& rVariables, unsigned int PointNumber)
+void TransientPwElement<TDim, TNumNodes>::CalculateKinematics(ElementVariables& rVariables,
+                                                              unsigned int IntegrationPointIndex)
 
 {
     KRATOS_TRY
 
     // Setting the vector of shape functions and the matrix of the shape functions global gradients
-    noalias(rVariables.Np)      = row(rVariables.NContainer, PointNumber);
-    noalias(rVariables.GradNpT) = rVariables.DN_DXContainer[PointNumber];
+    noalias(rVariables.Np)      = row(rVariables.NContainer, IntegrationPointIndex);
+    noalias(rVariables.GradNpT) = rVariables.DN_DXContainer[IntegrationPointIndex];
 
-    rVariables.detJ = rVariables.detJContainer[PointNumber];
+    rVariables.detJ = rVariables.detJContainer[IntegrationPointIndex];
 
     KRATOS_CATCH("")
 }
