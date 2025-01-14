@@ -14,7 +14,7 @@
 #include "custom_constitutive/DEM_compound_constitutive_law.h"
 #include "custom_constitutive/DEM_compound_constitutive_law_for_PBM.h"
 
-#include "custom_constitutive/DEM_D_Linear_Zhao_CL.h"
+#include "custom_constitutive/DEM_D_Linear_Simple_Coulomb_CL.h"
 #include "custom_constitutive/DEM_D_Linear_viscous_Coulomb_CL.h"
 #include "custom_constitutive/DEM_D_Hertz_viscous_Coulomb_CL.h"
 #include "custom_constitutive/DEM_D_Hertz_viscous_Coulomb_Nestle_CL.h"
@@ -98,7 +98,7 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         .def(py::init<>())
         ;
 
-    py::class_<DEM_D_Linear_Zhao, DEM_D_Linear_Zhao::Pointer, DEMDiscontinuumConstitutiveLaw>(m, "DEM_D_Linear_Zhao")
+    py::class_<DEM_D_Linear_Simple_Coulomb, DEM_D_Linear_Simple_Coulomb::Pointer, DEMDiscontinuumConstitutiveLaw>(m, "DEM_D_Linear_Simple_Coulomb")
         .def(py::init<>())
         ;
 

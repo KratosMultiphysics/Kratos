@@ -5,9 +5,13 @@
 //
 //  Main authors:  Rafael Rangel (rrangel@cimne.upc.edu)
 //
+// References using this model:
+// R.L. Rangel et al. (2024). Multiscale data-driven modeling of the thermomechanical behavior of granular media with thermal expansion effects. Computers and Geotechnics, 176:106789.
+// R.L. Rangel et al. (2024). A continuum--discrete multiscale methodology using machine learning for thermal analysis of granular media. Computers and Geotechnics, 168:106118.
+// S. Zhao et al. (2020). Multiscale modeling of thermo-mechanical responses of granular materials: A hierarchical continuum--discrete coupling approach. CMAME, 367:113100.
+//
 
-#if !defined(DEM_D_LINEAR_ZHAO_CL_H_INCLUDED)
-#define DEM_D_LINEAR_ZHAO_CL_H_INCLUDED
+#pragma once
 
 #include <string>
 #include "DEM_discontinuum_constitutive_law.h"
@@ -15,16 +19,16 @@
 namespace Kratos {
 
   class SphericParticle;
-  class KRATOS_API(DEM_APPLICATION) DEM_D_Linear_Zhao : public DEMDiscontinuumConstitutiveLaw {
+  class KRATOS_API(DEM_APPLICATION) DEM_D_Linear_Simple_Coulomb : public DEMDiscontinuumConstitutiveLaw {
   
   public:
     
     using DEMDiscontinuumConstitutiveLaw::CalculateNormalForce;
     
-    KRATOS_CLASS_POINTER_DEFINITION(DEM_D_Linear_Zhao);
+    KRATOS_CLASS_POINTER_DEFINITION(DEM_D_Linear_Simple_Coulomb);
     
-    DEM_D_Linear_Zhao() {}
-    ~DEM_D_Linear_Zhao() {}
+    DEM_D_Linear_Simple_Coulomb() {}
+    ~DEM_D_Linear_Simple_Coulomb() {}
     
     DEMDiscontinuumConstitutiveLaw::Pointer Clone() const override;
     std::unique_ptr<DEMDiscontinuumConstitutiveLaw> CloneUnique() override;
@@ -82,4 +86,3 @@ namespace Kratos {
 
   };
 }
-#endif
