@@ -75,6 +75,11 @@ set( KRATOS_LINEARSOLVERS_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_factories/dense_linear_solver_factory.cpp
 )
 
+# External libraries for the high order multigrid BuilderAndSolver
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/mcgs"
+                 EXCLUDE_FROM_ALL)      # <== prevent MCGS from installing anything on its own
+install(TARGETS mcgs DESTINATION libs)  # <== install MCGS along other kratos binaries
+
 # Sources for the Python module
 file(
     GLOB_RECURSE
@@ -85,7 +90,7 @@ file(
 ###############################################################
 ## LinearSolversApplication core library (C++ parts)
 add_library( KratosLinearSolversCore SHARED ${KRATOS_LINEARSOLVERS_APPLICATION_CORE_SOURCES} )
-target_link_libraries( KratosLinearSolversCore PUBLIC KratosCore )
+target_link_libraries( KratosLinearSolversCore PUBLIC KratosCore mcgs )
 set_target_properties( KratosLinearSolversCore PROPERTIES COMPILE_DEFINITIONS "LINEARSOLVERS_APPLICATION=EXPORT,API")
 
 target_include_directories(KratosLinearSolversCore SYSTEM PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${KRATOS_LINEAR_SOLVERS_APPLICATION_LIB_INC})
