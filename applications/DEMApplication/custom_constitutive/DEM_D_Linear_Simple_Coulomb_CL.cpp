@@ -11,7 +11,7 @@
 // S. Zhao et al. (2020). Multiscale modeling of thermo-mechanical responses of granular materials: A hierarchical continuum--discrete coupling approach. CMAME, 367:113100.
 //
 
-#include "DEM_D_Linear_Simple_Coulomb_C.h"
+#include "DEM_D_Linear_Simple_Coulomb_CL.h"
 #include "custom_elements/spheric_particle.h"
 
 namespace Kratos {
