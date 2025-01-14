@@ -196,7 +196,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("GetComponentWiseModelParts", &OptimizationUtils::GetComponentWiseModelParts,
             py::arg("model"),
             py::arg("parameters"),
-            py::return_value_policy::reference);
+            py::return_value_policy::reference)
+        .def("ResetModelPartNodalSolutionStepData", &OptimizationUtils::ResetModelPartNodalSolutionStepData, py::arg("model_part"));
         ;
 
     // Add collective expression to python

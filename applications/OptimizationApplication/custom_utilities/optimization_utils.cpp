@@ -199,6 +199,17 @@ std::vector<std::vector<ModelPart*>> OptimizationUtils::GetComponentWiseModelPar
     KRATOS_CATCH("");
 }
 
+void OptimizationUtils::ResetModelPartNodalSolutionStepData(ModelPart& rModelPart)
+{
+    KRATOS_TRY
+
+    block_for_each(rModelPart.Nodes(), [](ModelPart::NodeType& rNode) {
+        rNode.SolutionStepData().AssignZero();
+    });
+
+    KRATOS_CATCH("");
+}
+
 // template instantiations
 template KRATOS_API(OPTIMIZATION_APPLICATION) GeometryData::KratosGeometryType OptimizationUtils::GetContainerEntityGeometryType(const ModelPart::ConditionsContainerType&, const DataCommunicator&);
 template KRATOS_API(OPTIMIZATION_APPLICATION) GeometryData::KratosGeometryType OptimizationUtils::GetContainerEntityGeometryType(const ModelPart::ElementsContainerType&, const DataCommunicator&);

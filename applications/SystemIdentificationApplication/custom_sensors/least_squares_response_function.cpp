@@ -8,6 +8,7 @@
 //
 //  Main authors:    Suneth Warnakulasuriya,
 //                   Ihar Antonau
+//                   Jonas Hillenbrand
 //
 
 // System includes

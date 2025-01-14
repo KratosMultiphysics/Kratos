@@ -1,0 +1,176 @@
+{
+   "problem_data": {
+      "problem_name": "SDOF_test",
+      "start_time": 0.0,
+      "end_time": 4.95,
+      "parallel_type": "OpenMP",
+      "echo_level": 0
+   },
+   "solver_settings": {
+      "solver_type": "Dynamic",
+      "model_part_name": "Structure",
+      "domain_size": 3,
+      "echo_level": 0,
+      "buffer_size": 2,
+      "analysis_type": "non_linear",
+      "model_import_settings": {
+         "input_type": "use_input_model_part"
+      },
+      "material_import_settings": {
+         "materials_filename": "aux_files/StructuralMaterials.json"
+      },
+      "time_stepping": {
+         "time_step": 0.1
+      },
+      "rotation_dofs": false,
+      "solving_strategy_settings": {
+         "type": "newton_raphson"
+      },
+      "builder_and_solver_settings": {
+         "use_block_builder": true,
+         "use_lagrange_BS": false
+      },
+      "move_mesh_flag": false,
+      "time_integration_method": "implicit",
+      "damp_factor_m": -0.3,
+      "store_bossak_acceleration": true,
+      "scheme_type": "bossak"
+   },
+   "processes": {
+      "constraints_process_list": [
+         {
+            "python_module": "assign_vector_variable_process",
+            "kratos_module": "KratosMultiphysics",
+            "help": "This process fixes the selected components of a given vector variable",
+            "process_name": "AssignVectorVariableProcess",
+            "Parameters": {
+               "mesh_id": 0,
+               "model_part_name": "Structure.support_A",
+               "variable_name": "DISPLACEMENT",
+               "constrained": [
+                  true,
+                  true,
+                  true
+               ],
+               "value": [
+                  0.0,
+                  0.0,
+                  0.0
+               ],
+               "interval": [
+                  0.0,
+                  "End"
+               ]
+            }
+         },
+         {
+            "python_module": "assign_vector_variable_process",
+            "kratos_module": "KratosMultiphysics",
+            "help": "This process fixes the selected components of a given vector variable",
+            "process_name": "AssignVectorVariableProcess",
+            "Parameters": {
+               "mesh_id": 0,
+               "model_part_name": "Structure.support_B",
+               "variable_name": "DISPLACEMENT",
+               "constrained": [
+                  false,
+                  true,
+                  true
+               ],
+               "value": [
+                  0.0,
+                  0.0,
+                  0.0
+               ],
+               "interval": [
+                  0.0,
+                  "End"
+               ]
+            }
+         },
+         {
+            "python_module": "assign_vector_variable_process",
+            "kratos_module": "KratosMultiphysics",
+            "help": "This process fixes the selected components of a given vector variable",
+            "process_name": "AssignVectorVariableProcess",
+            "Parameters": {
+               "mesh_id": 0,
+               "model_part_name": "Structure.support_B",
+               "variable_name": "DISPLACEMENT",
+               "constrained": [
+                  true,
+                  false,
+                  false
+               ],
+               "value": [
+                  1.0,
+                  0.0,
+                  0.0
+               ],
+               "interval": [
+                  0.0,
+                  0.05
+               ]
+            }
+         },
+         {
+            "python_module": "assign_vector_variable_process",
+            "kratos_module": "KratosMultiphysics",
+            "help": "This process fixes the selected components of a given vector variable",
+            "process_name": "AssignVectorVariableProcess",
+            "Parameters": {
+               "mesh_id": 0,
+               "model_part_name": "Structure.support_B",
+               "variable_name": "ACCELERATION",
+               "constrained": [
+                  true,
+                  false,
+                  false
+               ],
+               "value": [
+                  -1.0,
+                  0.0,
+                  0.0
+               ],
+               "interval": [
+                  0.0,
+                  0.05
+               ]
+            }
+         }
+      ],
+      "loads_process_list": [],
+      "list_other_processes": [],
+      "_json_output_process": [
+         {
+            "python_module": "json_output_process",
+            "kratos_module": "KratosMultiphysics",
+            "help": "",
+            "process_name": "JsonOutputProcess",
+            "Parameters": {
+               "output_variables": [
+                  "DISPLACEMENT_X"
+               ],
+               "gauss_points_output_variables": [],
+               "output_file_name": "aux_files/json_output_results.json",
+               "model_part_name": "Structure.support_B",
+               "time_frequency": 0.02
+            }
+         }
+      ]
+   },
+   "output_processes": {
+      "sensor_output": [
+         {
+            "kratos_module": "KratosMultiphysics.SystemIdentificationApplication.processes",
+            "process_name": "SensorOutputProcess",
+            "python_module": "sensor_output_process",
+            "Parameters": {
+               "model_part_name": "Structure",
+               "output_file_name": "aux_files/synthetic_measurement_data/synthetic_sensor_data_STEP_<step>.csv",
+               "@include_json": "aux_files/sensor_parameters.json"
+            }
+         }
+      ]
+   }
+}

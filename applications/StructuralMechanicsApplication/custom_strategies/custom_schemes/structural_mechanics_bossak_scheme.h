@@ -179,17 +179,17 @@ public:
             });
         }
 
-        KRATOS_WATCH(rModelPart.HasNodalSolutionStepVariable(ROTATION))
-        auto& rNodes = rModelPart.Nodes();
-        for (auto iter=rNodes.begin(); iter !=rNodes.end(); ++iter)
-        {
-            size_t node_id = iter->GetId();
-            const array_1d<double,3>& ang_vel = iter->FastGetSolutionStepValue(ANGULAR_VELOCITY);
-            const array_1d<double,3>& ang_acc = iter->FastGetSolutionStepValue(ANGULAR_ACCELERATION);
-            std::cout << "node " << node_id << std::endl;
-            std::cout << "angular vel of node " << node_id << " : " << ang_vel << std::endl;
-            std::cout << "angular acc of node " << node_id << " : " << ang_acc << std::endl;
-        }
+        // KRATOS_WATCH(rModelPart.HasNodalSolutionStepVariable(ROTATION))
+        // auto& rNodes = rModelPart.Nodes();
+        // for (auto iter=rNodes.begin(); iter !=rNodes.end(); ++iter)
+        // {
+        //     size_t node_id = iter->GetId();
+        //     const array_1d<double,3>& ang_vel = iter->FastGetSolutionStepValue(ANGULAR_VELOCITY);
+        //     const array_1d<double,3>& ang_acc = iter->FastGetSolutionStepValue(ANGULAR_ACCELERATION);
+        //     std::cout << "node " << node_id << std::endl;
+        //     std::cout << "angular vel of node " << node_id << " : " << ang_vel << std::endl;
+        //     std::cout << "angular acc of node " << node_id << " : " << ang_acc << std::endl;
+        // }
 
         KRATOS_CATCH( "" );
     }

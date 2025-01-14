@@ -105,6 +105,7 @@ public:
         Model& rModel,
         Parameters Settings);
 
+    static void ResetModelPartNodalSolutionStepData(ModelPart& rModelPart);
     ///@}
 };
 

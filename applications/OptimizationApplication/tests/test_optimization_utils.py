@@ -67,5 +67,28 @@ class TestOptimizationUtils(kratos_unittest.TestCase):
         self.assertEqual(values[0], [self.model.GetModelPart("test.sub_1"), self.model.GetModelPart("test.sub_2")])
         self.assertEqual(values[1], [self.model.GetModelPart("test.sub_2")])
 
+    def test_ResetModelPartNodalSolutionStepData(self):
+
+        model = Kratos.Model()
+        model_part = model.CreateModelPart("test")
+
+        model_part.AddNodalSolutionStepVariable(Kratos.PRESSURE)
+        model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
+
+        for i in range(50):
+            node: Kratos.Node = model_part.CreateNewNode(i + 1, 0.0, 0.0, 0.0)
+            node.SetSolutionStepValue(Kratos.PRESSURE, i + 100)
+            node.SetSolutionStepValue(Kratos.VELOCITY, Kratos.Array3([i + 200, i + 300, i + 400]))
+
+        for node in model_part.Nodes:
+            self.assertEqual(node.GetSolutionStepValue(Kratos.PRESSURE), node.Id + 99)
+            self.assertVectorAlmostEqual(node.GetSolutionStepValue(Kratos.VELOCITY), Kratos.Array3([node.Id+199, node.Id+299, node.Id+399]))
+
+        KratosOA.OptimizationUtils.ResetModelPartNodalSolutionStepData(model_part)
+
+        for node in model_part.Nodes:
+            self.assertEqual(node.GetSolutionStepValue(Kratos.PRESSURE), 0.0)
+            self.assertVectorAlmostEqual(node.GetSolutionStepValue(Kratos.VELOCITY), Kratos.Array3([0.0, 0.0, 0.0]))
+
 if __name__ == "__main__":
     kratos_unittest.main()

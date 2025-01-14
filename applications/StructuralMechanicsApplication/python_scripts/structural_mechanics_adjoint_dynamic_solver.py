@@ -51,51 +51,52 @@ class StructuralMechanicsAdjointDynamicSolver(MechanicalSolver):
         process_info = self.main_model_part.ProcessInfo
         if (process_info.Has(StructuralMechanicsApplication.IS_ADJOINT) and
             process_info.GetValue(StructuralMechanicsApplication.IS_ADJOINT)):
-            raise RuntimeError("Modelpart '{}' is already adjoint modelpart!".format(self.main_model_part.Name))
-
-        # defines how the primal elements should be replaced with their adjoint counterparts
-        replacement_settings = KratosMultiphysics.Parameters("""
-            {
-                "element_name_table" :
+            # raise RuntimeError("Modelpart '{}' is already adjoint modelpart!".format(self.main_model_part.Name))
+            KratosMultiphysics.Logger.PrintInfo("::[AdjointMechanicalSolver]:: ", "ModelPart prepared for Solver.")
+        else:
+            # defines how the primal elements should be replaced with their adjoint counterparts
+            replacement_settings = KratosMultiphysics.Parameters("""
                 {
-                    "ShellThinElement3D3N"           : "AdjointFiniteDifferencingShellThinElement3D3N",
-                    "CrLinearBeamElement3D2N"        : "AdjointFiniteDifferenceCrBeamElementLinear3D2N",
-                    "TrussLinearElement3D2N"         : "AdjointFiniteDifferenceTrussLinearElement3D2N",
-                    "TrussElement3D2N"               : "AdjointFiniteDifferenceTrussElement3D2N",
-                    "TotalLagrangianElement2D3N"     : "TotalLagrangianAdjointElement2D3N",
-                    "TotalLagrangianElement2D4N"     : "TotalLagrangianAdjointElement2D4N",
-                    "TotalLagrangianElement2D6N"     : "TotalLagrangianAdjointElement2D6N",
-                    "TotalLagrangianElement3D4N"     : "TotalLagrangianAdjointElement3D4N",
-                    "TotalLagrangianElement3D8N"     : "TotalLagrangianAdjointElement3D8N",
-                    "SmallDisplacementElement3D4N"   : "AdjointFiniteDifferencingSmallDisplacementElement3D4N",
-                    "SmallDisplacementElement3D6N"   : "AdjointFiniteDifferencingSmallDisplacementElement3D6N",
-                    "SmallDisplacementElement3D8N"   : "AdjointFiniteDifferencingSmallDisplacementElement3D8N",
-                    "SpringDamperElement3D"          : "AdjointFiniteDifferenceSpringDamperElement3D2N",
-                    "SpringDamperElement3D2N"        : "AdjointFiniteDifferenceSpringDamperElement3D2N" 
-                },
-                "condition_name_table" :
-                {
-                    "PointLoadCondition2D1N"         : "AdjointSemiAnalyticPointLoadCondition2D1N",
-                    "PointLoadCondition3D1N"         : "AdjointSemiAnalyticPointLoadCondition3D1N",
-                    "SurfaceLoadCondition3D3N"       : "AdjointSemiAnalyticSurfaceLoadCondition3D3N",
-                    "SurfaceLoadCondition3D4N"       : "AdjointSemiAnalyticSurfaceLoadCondition3D4N",
-                    "SmallDisplacementSurfaceLoadCondition3D3N" : "AdjointSemiAnalyticSmallDisplacementSurfaceLoadCondition3D3N",
-                    "SmallDisplacementSurfaceLoadCondition3D4N" : "AdjointSemiAnalyticSmallDisplacementSurfaceLoadCondition3D4N",
-                    "LineLoadCondition3D2N"                     : "AdjointSemiAnalyticLineLoadCondition3D2N",
-                    "SmallDisplacementLineLoadCondition3D2N"    : "AdjointSemiAnalyticSmallDisplacementLineLoadCondition3D2N"
-                },
-                "ignore_conditions" : [
-                    "SurfaceCondition3D3N",
-                    "SurfaceCondition3D4N",
-                    "PointCondition3D1N"
-                ]
-            }
-        """) # TODO remove "Condition3D" after issue#4439 is resolved; remove SpringDamperElement3D2N, it is deprecated
+                    "element_name_table" :
+                    {
+                        "ShellThinElement3D3N"           : "AdjointFiniteDifferencingShellThinElement3D3N",
+                        "CrLinearBeamElement3D2N"        : "AdjointFiniteDifferenceCrBeamElementLinear3D2N",
+                        "TrussLinearElement3D2N"         : "AdjointFiniteDifferenceTrussLinearElement3D2N",
+                        "TrussElement3D2N"               : "AdjointFiniteDifferenceTrussElement3D2N",
+                        "TotalLagrangianElement2D3N"     : "TotalLagrangianAdjointElement2D3N",
+                        "TotalLagrangianElement2D4N"     : "TotalLagrangianAdjointElement2D4N",
+                        "TotalLagrangianElement2D6N"     : "TotalLagrangianAdjointElement2D6N",
+                        "TotalLagrangianElement3D4N"     : "TotalLagrangianAdjointElement3D4N",
+                        "TotalLagrangianElement3D8N"     : "TotalLagrangianAdjointElement3D8N",
+                        "SmallDisplacementElement3D4N"   : "AdjointFiniteDifferencingSmallDisplacementElement3D4N",
+                        "SmallDisplacementElement3D6N"   : "AdjointFiniteDifferencingSmallDisplacementElement3D6N",
+                        "SmallDisplacementElement3D8N"   : "AdjointFiniteDifferencingSmallDisplacementElement3D8N",
+                        "SpringDamperElement3D"          : "AdjointFiniteDifferenceSpringDamperElement3D2N",
+                        "SpringDamperElement3D2N"        : "AdjointFiniteDifferenceSpringDamperElement3D2N" 
+                    },
+                    "condition_name_table" :
+                    {
+                        "PointLoadCondition2D1N"         : "AdjointSemiAnalyticPointLoadCondition2D1N",
+                        "PointLoadCondition3D1N"         : "AdjointSemiAnalyticPointLoadCondition3D1N",
+                        "SurfaceLoadCondition3D3N"       : "AdjointSemiAnalyticSurfaceLoadCondition3D3N",
+                        "SurfaceLoadCondition3D4N"       : "AdjointSemiAnalyticSurfaceLoadCondition3D4N",
+                        "SmallDisplacementSurfaceLoadCondition3D3N" : "AdjointSemiAnalyticSmallDisplacementSurfaceLoadCondition3D3N",
+                        "SmallDisplacementSurfaceLoadCondition3D4N" : "AdjointSemiAnalyticSmallDisplacementSurfaceLoadCondition3D4N",
+                        "LineLoadCondition3D2N"                     : "AdjointSemiAnalyticLineLoadCondition3D2N",
+                        "SmallDisplacementLineLoadCondition3D2N"    : "AdjointSemiAnalyticSmallDisplacementLineLoadCondition3D2N"
+                    },
+                    "ignore_conditions" : [
+                        "SurfaceCondition3D3N",
+                        "SurfaceCondition3D4N",
+                        "PointCondition3D1N"
+                    ]
+                }
+            """) # TODO remove "Condition3D" after issue#4439 is resolved; remove SpringDamperElement3D2N, it is deprecated
 
-        StructuralMechanicsApplication.ReplaceMultipleElementsAndConditionsProcess(self.main_model_part, replacement_settings).Execute()
-        process_info.SetValue(StructuralMechanicsApplication.IS_ADJOINT, True)
+            StructuralMechanicsApplication.ReplaceMultipleElementsAndConditionsProcess(self.main_model_part, replacement_settings).Execute()
+            process_info.SetValue(StructuralMechanicsApplication.IS_ADJOINT, True)
 
-        KratosMultiphysics.Logger.PrintInfo("::[AdjointMechanicalSolver]:: ", "ModelPart prepared for Solver.")
+            KratosMultiphysics.Logger.PrintInfo("::[AdjointMechanicalSolver]:: ", "ModelPart prepared for Solver.")
 
     def AddDofs(self):
         KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_X, self.main_model_part)
