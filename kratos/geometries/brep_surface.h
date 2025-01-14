@@ -63,6 +63,7 @@ public:
 
     typedef NurbsSurfaceGeometry<3, TContainerPointType> NurbsSurfaceType;
     typedef BrepCurveOnSurface<TContainerPointType, TShiftedBoundary, TContainerPointEmbeddedType> BrepCurveOnSurfaceType;
+    typedef BrepTrimmingUtilities<TShiftedBoundary> BrepTrimmingUtilitiesType;
 
     typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceArrayType;
     typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceLoopType;
@@ -115,6 +116,22 @@ public:
         , mInnerLoopArray(BrepInnerLoopArray)
         , mIsTrimmed(IsTrimmed)
     {
+    }
+
+    // Constructor for SBM
+    BrepSurface(
+        typename NurbsSurfaceType::Pointer pSurface, 
+        BrepCurveOnSurfaceLoopArrayType& BrepOuterLoopArray,
+        BrepCurveOnSurfaceLoopArrayType& BrepInnerLoopArray,
+        ModelPart& rSurrogateModelPart_inner, ModelPart& rSurrogateModelPart_outer)
+        : BaseType(PointsArrayType(), &msGeometryData)
+        , mpNurbsSurface(pSurface) 
+        , mOuterLoopArray(BrepOuterLoopArray)
+        , mInnerLoopArray(BrepInnerLoopArray)
+        , mpSurrogateModelPart_inner(&rSurrogateModelPart_inner)
+        , mpSurrogateModelPart_outer(&rSurrogateModelPart_outer)
+    {
+        mIsTrimmed = false;
     }
 
     explicit BrepSurface(const PointsArrayType& ThisPoints)
@@ -467,7 +484,7 @@ public:
             mpNurbsSurface->SpansLocalSpace(spans_u, 0);
             mpNurbsSurface->SpansLocalSpace(spans_v, 1);
 
-            BrepTrimmingUtilities::CreateBrepSurfaceTrimmingIntegrationPoints(
+            BrepTrimmingUtilitiesType::CreateBrepSurfaceTrimmingIntegrationPoints(
                 rIntegrationPoints,
                 mOuterLoopArray, mInnerLoopArray,
                 spans_u, spans_v,
@@ -593,6 +610,9 @@ private:
     BrepCurveOnSurfaceLoopArrayType mInnerLoopArray;
 
     BrepCurveOnSurfaceArrayType mEmbeddedEdgesArray;
+
+    ModelPart* mpSurrogateModelPart_inner = nullptr;
+    ModelPart* mpSurrogateModelPart_outer = nullptr;
 
     /** IsTrimmed is used to optimize processes as
     *   e.g. creation of integration domain.
