@@ -2221,11 +2221,33 @@ void SphericParticle::Calculate(const Variable<Matrix >& rVariable, Matrix& Outp
 void SphericParticle::AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info){}
 
 void SphericParticle::ApplyGlobalDampingToContactForcesAndMoments(array_1d<double,3>& total_forces, array_1d<double,3>& total_moment) {
-
         KRATOS_TRY
         const auto& central_node = GetGeometry()[0];
 
-        array_1d<double, 3> velocity = central_node.FastGetSolutionStepValue(VELOCITY);
+        const array_1d<double, 3> velocity = central_node.FastGetSolutionStepValue(VELOCITY);
+        const array_1d<double, 3> angular_velocity = central_node.FastGetSolutionStepValue(ANGULAR_VELOCITY);
+
+        //if (central_node.IsNot(DEMFlags::FIXED_VEL_X)) {
+        //    total_forces[0] *= (1.0 - mGlobalDamping * GeometryFunctions::sign(total_forces[0] * velocity[0]));
+        //}
+        //if (central_node.IsNot(DEMFlags::FIXED_VEL_Y)) {
+        //    total_forces[1] *= (1.0 - mGlobalDamping * GeometryFunctions::sign(total_forces[1] * velocity[1]));
+        //}
+        //if (central_node.IsNot(DEMFlags::FIXED_VEL_Z)) {
+        //    total_forces[2] *= (1.0 - mGlobalDamping * GeometryFunctions::sign(total_forces[2] * velocity[2]));
+        //}
+
+        //if (central_node.IsNot(DEMFlags::FIXED_ANG_VEL_X)) {
+        //    total_moment[0] *= (1.0 - mGlobalDamping * GeometryFunctions::sign(total_moment[0] * angular_velocity[0]));
+        //}
+        //if (central_node.IsNot(DEMFlags::FIXED_ANG_VEL_Y)) {
+        //    total_moment[1] *= (1.0 - mGlobalDamping * GeometryFunctions::sign(total_moment[1] * angular_velocity[1]));
+        //}
+        //if (central_node.IsNot(DEMFlags::FIXED_ANG_VEL_Z)) {
+        //    total_moment[2] *= (1.0 - mGlobalDamping * GeometryFunctions::sign(total_moment[2] * angular_velocity[2]));
+        //}
+        
+        // TODO: Create a class for different global damping models
         GeometryFunctions::normalize(velocity);
         const double force = DEM_MODULUS_3(total_forces);
 
