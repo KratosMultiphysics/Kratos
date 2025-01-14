@@ -18,59 +18,59 @@
 
 namespace Kratos
 {
-  class KRATOS_API(THERMAL_DEM_APPLICATION) RealContactLu : public RealContactModel
+  class KRATOS_API(THERMAL_DEM_APPLICATION) RealContactRangelAreaTime : public RealContactModel
   {
     public:
 
       // Pointer definition
-      KRATOS_CLASS_POINTER_DEFINITION(RealContactLu);
+      KRATOS_CLASS_POINTER_DEFINITION(RealContactRangelAreaTime);
 
       // Constructor / Destructor
-      RealContactLu();
-      virtual ~RealContactLu();
+      RealContactRangelAreaTime();
+      virtual ~RealContactRangelAreaTime();
 
       // Public methods
       void AdjustContact(const ProcessInfo& r_process_info, ThermalSphericParticle* particle) override;
 
       // Clone
       RealContactModel* CloneRaw() const override {
-        RealContactModel* cloned_model(new RealContactLu(*this));
+        RealContactModel* cloned_model(new RealContactRangelAreaTime(*this));
         return cloned_model;
       }
 
       RealContactModel::Pointer CloneShared() const override {
-        RealContactModel::Pointer cloned_model(new RealContactLu(*this));
+        RealContactModel::Pointer cloned_model(new RealContactRangelAreaTime(*this));
         return cloned_model;
       }
 
       // Turn back information as a string
       virtual std::string Info() const override {
         std::stringstream buffer;
-        buffer << "RealContactLu";
+        buffer << "RealContactRangelAreaTime";
         return buffer.str();
       }
 
       // Print object information
-      virtual void PrintInfo(std::ostream& rOStream) const override { rOStream << "RealContactLu"; }
+      virtual void PrintInfo(std::ostream& rOStream) const override { rOStream << "RealContactRangelAreaTime"; }
       virtual void PrintData(std::ostream& rOStream) const override {}
 
     private:
 
       // Assignment operator / Copy constructor
-      RealContactLu& operator=(RealContactLu const& rOther) {return *this;}
-      RealContactLu(RealContactLu const& rOther) {*this = rOther;}
+      RealContactRangelAreaTime& operator=(RealContactRangelAreaTime const& rOther) {return *this;}
+      RealContactRangelAreaTime(RealContactRangelAreaTime const& rOther) {*this = rOther;}
 
-  }; // Class RealContactLu
+  }; // Class RealContactRangelAreaTime
 
   // input stream function
   inline std::istream& operator>>(std::istream& rIStream,
-    RealContactLu& rThis) {
+    RealContactRangelAreaTime& rThis) {
     return rIStream;
   }
 
   // output stream function
   inline std::ostream& operator<<(std::ostream& rOStream,
-    const RealContactLu& rThis) {
+    const RealContactRangelAreaTime& rThis) {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
     rThis.PrintData(rOStream);

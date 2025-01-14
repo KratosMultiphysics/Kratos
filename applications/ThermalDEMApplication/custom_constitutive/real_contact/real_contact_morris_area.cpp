@@ -11,15 +11,15 @@
 // External includes
 
 // Project includes
-#include "real_contact_morris.h"
+#include "real_contact_morris_area.h"
 
 namespace Kratos {
   //-----------------------------------------------------------------------------------------------------------------------
-  RealContactMorris::RealContactMorris() {}
-  RealContactMorris::~RealContactMorris() {}
+  RealContactMorrisArea::RealContactMorrisArea() {}
+  RealContactMorrisArea::~RealContactMorrisArea() {}
 
   //------------------------------------------------------------------------------------------------------------
-  void RealContactMorris::AdjustContact(const ProcessInfo& r_process_info, ThermalSphericParticle* particle) {
+  void RealContactMorrisArea::AdjustContact(const ProcessInfo& r_process_info, ThermalSphericParticle* particle) {
     KRATOS_TRY
 
     // Parameters
@@ -35,7 +35,7 @@ namespace Kratos {
     const double correction_area = pow(hertz_force * eff_radius / eff_young_real, 1.0 / 3.0);
 
     // Time correction
-    double correction_time = 1.0; // TODO: Compute time correction from collision time
+    double correction_time = 1.0;
 
     // Adjusted value of contact radius
     particle->mContactRadiusAdjusted = correction_area * correction_time;

@@ -111,17 +111,17 @@ namespace Kratos {
     std::ofstream file_generation_rolling_pw;
 
     file_generation_damping_pp.open("map_generation_damping_pp.txt", std::ios::out);
-    KRATOS_ERROR_IF_NOT(file_generation_damping_pp) << "Could not open map file of heat generation due to particle-particle damping!" << std::endl;
+    KRATOS_ERROR_IF_NOT(file_generation_damping_pp) << "Could not open file map_generation_damping_pp.txt!" << std::endl;
     file_generation_damping_pw.open("map_generation_damping_pw.txt", std::ios::out);
-    KRATOS_ERROR_IF_NOT(file_generation_damping_pw) << "Could not open map file of heat generation due to particle-wall damping!" << std::endl;
+    KRATOS_ERROR_IF_NOT(file_generation_damping_pw) << "Could not open file map_generation_damping_pw.txt!" << std::endl;
     file_generation_sliding_pp.open("map_generation_sliding_pp.txt", std::ios::out);
-    KRATOS_ERROR_IF_NOT(file_generation_sliding_pp) << "Could not open map file of heat generation due to particle-particle sliding!" << std::endl;
+    KRATOS_ERROR_IF_NOT(file_generation_sliding_pp) << "Could not open file map_generation_sliding_pp.txt!" << std::endl;
     file_generation_sliding_pw.open("map_generation_sliding_pw.txt", std::ios::out);
-    KRATOS_ERROR_IF_NOT(file_generation_sliding_pw) << "Could not open map file of heat generation due to particle-wall sliding!" << std::endl;
+    KRATOS_ERROR_IF_NOT(file_generation_sliding_pw) << "Could not open file map_generation_sliding_pw.txt!" << std::endl;
     file_generation_rolling_pp.open("map_generation_rolling_pp.txt", std::ios::out);
-    KRATOS_ERROR_IF_NOT(file_generation_rolling_pp) << "Could not open map file of heat generation due to particle-particle rolling!" << std::endl;
+    KRATOS_ERROR_IF_NOT(file_generation_rolling_pp) << "Could not open file map_generation_rolling_pp.txt!" << std::endl;
     file_generation_rolling_pw.open("map_generation_rolling_pw.txt", std::ios::out);
-    KRATOS_ERROR_IF_NOT(file_generation_rolling_pw) << "Could not open map file of heat generation due to particle-wall rolling!" << std::endl;
+    KRATOS_ERROR_IF_NOT(file_generation_rolling_pw) << "Could not open file map_generation_rolling_pw.txt!" << std::endl;
 
     // Print headers
     file_generation_damping_pp << "MAP - HEAT GENERATION - DAMPING - PARTICLE-PARTICLE" << std::endl;
