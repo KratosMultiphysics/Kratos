@@ -6,6 +6,9 @@
 //
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Nicolo' Antonelli
+//                   Andrea Gorgi
 
 #if !defined(KRATOS_BREP_TRIMMING_UTILITIES_H_INCLUDED)
 #define KRATOS_BREP_TRIMMING_UTILITIES_H_INCLUDED
@@ -32,7 +35,7 @@ namespace Kratos
     ///@{
 
     //using namespace ClipperLib;
-
+    template<bool TShiftedBoundary>
     class KRATOS_API(KRATOS_CORE) BrepTrimmingUtilities
     {
     public:
@@ -52,7 +55,7 @@ namespace Kratos
 
         typedef signed long long cInt;
 
-        using BrepCurveOnSurfacePointerType = typename BrepCurveOnSurface<PointerVector<Node>, false, PointerVector<Point>>::Pointer;
+        using BrepCurveOnSurfacePointerType = typename BrepCurveOnSurface<PointerVector<Node>, TShiftedBoundary, PointerVector<Point>>::Pointer;
 
         //template<class TBrepLoopType, class TPointType>
         static void CreateBrepSurfaceTrimmingIntegrationPoints(
