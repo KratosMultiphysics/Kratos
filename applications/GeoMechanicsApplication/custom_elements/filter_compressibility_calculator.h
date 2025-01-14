@@ -68,7 +68,7 @@ public:
 
 private:
     [[nodiscard]] Matrix CalculateCompressibilityMatrix() const;
-    [[nodiscard]] double CalculateBiotModulusInverse(double ProjectedGravity) const;
+    [[nodiscard]] double CalculateElasticCapacity(double ProjectedGravity) const;
     [[nodiscard]] Vector RHSContribution(const Matrix& rCompressibilityMatrix) const;
     [[nodiscard]] Matrix LHSContribution(const Matrix& rCompressibilityMatrix) const;
 

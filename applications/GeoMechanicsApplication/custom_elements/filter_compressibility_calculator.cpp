@@ -59,17 +59,17 @@ Matrix FilterCompressibilityCalculator::CalculateCompressibilityMatrix() const
          integration_point_index < integration_coefficients.size(); ++integration_point_index) {
         const auto N = Vector{row(r_N_container, integration_point_index)};
         result += GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
-            N, CalculateBiotModulusInverse(projected_gravity_on_integration_points[integration_point_index]),
+            N, CalculateElasticCapacity(projected_gravity_on_integration_points[integration_point_index]),
             integration_coefficients[integration_point_index]);
     }
     return result;
 }
 
-double FilterCompressibilityCalculator::CalculateBiotModulusInverse(double ProjectedGravity) const
+double FilterCompressibilityCalculator::CalculateElasticCapacity(double ProjectedGravity) const
 {
     const auto&  r_properties = mInputProvider.GetElementProperties();
     const double result =
-        1.0 / (r_properties[DENSITY_WATER] * ProjectedGravity * r_properties[PIPE_ELEMENT_LENGTH]) +
+        1.0 / (r_properties[DENSITY_WATER] * ProjectedGravity * r_properties[FILTER_LENGTH]) +
         1.0 / r_properties[BULK_MODULUS_FLUID];
     return result;
 }

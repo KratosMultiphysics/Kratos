@@ -21,7 +21,7 @@
         "RETENTION_LAW"                    : "PressureFilterLaw",
         "SATURATED_SATURATION"             : 1.000000e+00,
         "CROSS_AREA"                       : 1.0,
-        "PIPE_ELEMENT_LENGTH"              : 3.0
+        "FILTER_LENGTH"              : 3.0
       },
       "Tables": { 
       }
