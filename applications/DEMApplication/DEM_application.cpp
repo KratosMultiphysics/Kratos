@@ -1035,6 +1035,7 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_CONDITION("RigidEdge2D2N", mRigidEdge2D2N)
     KRATOS_REGISTER_CONDITION("RigidEdge2D1N", mRigidEdge2D1N)
 
+
     // SERIALIZER
     Serializer::Register("PropertiesProxy", PropertiesProxy());
 
