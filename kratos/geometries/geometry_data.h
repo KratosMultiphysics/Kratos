@@ -144,6 +144,7 @@ public:
         Kratos_Nurbs_Volume,
         Kratos_Nurbs_Curve_On_Surface,
         Kratos_Surface_In_Nurbs_Volume,
+        Kratos_Nurbs_Coupling_Geometry_2d,
         Kratos_Brep_Curve,
         Kratos_Brep_Surface,
         Kratos_Brep_Curve_On_Surface,

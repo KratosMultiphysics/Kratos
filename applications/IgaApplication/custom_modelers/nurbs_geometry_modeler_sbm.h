@@ -25,7 +25,7 @@
 #include "geometries/nurbs_surface_geometry.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_surface_refinement_utilities.h"
 #include "geometries/brep_curve_on_surface.h"
-#include "utilities/nurbs_utilities/snake_sbm_utilities_new.h"
+#include "utilities/nurbs_utilities/snake_sbm_utilities.h"
 
 namespace Kratos {
 

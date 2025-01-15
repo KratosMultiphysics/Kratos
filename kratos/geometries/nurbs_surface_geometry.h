@@ -78,6 +78,7 @@ public:
         , mKnotsV(rKnotsV)
     {
         CheckAndFitKnotVectors();
+        CheckIsRationalOnlyOnce();
     }
 
     /// Conctructor for NURBS surfaces
@@ -99,6 +100,8 @@ public:
 
         KRATOS_ERROR_IF(rWeights.size() != rThisPoints.size())
             << "Number of control points and weights do not match!" << std::endl;
+        
+        CheckIsRationalOnlyOnce();
     }
 
     explicit NurbsSurfaceGeometry(const PointsArrayType& ThisPoints)
@@ -116,6 +119,7 @@ public:
         , mWeights(rOther.mWeights)
         , mpGeometryParent(rOther.mpGeometryParent)
     {
+        CheckIsRationalOnlyOnce();
     }
 
     /// Copy constructor from a geometry with different point type.
@@ -310,18 +314,36 @@ public:
 
     /* Checks if shape functions are rational or not.
      * @return true if NURBS, false if B-Splines only (all weights are considered as 1) */
-    bool IsRational() const
+    void CheckIsRationalOnlyOnce()
     {
+        mIsRational = false;
         if (mWeights.size() == 0)
-            return false;
+            mIsRational = false;
         else {
             for (IndexType i = 0; i < mWeights.size(); ++i) {
-                if (std::abs(mWeights[i] - 1.0) > 1e-8) {
-                    return true;
+                if (std::abs(mWeights[i] - 1.0) > 1e-10) {
+                    mIsRational = true;
+                    break;
                 }
             }
-            return false;
         }
+    }
+
+    /* Checks if shape functions are rational or not.
+     * @return true if NURBS, false if B-Splines only (all weights are considered as 1) */
+    bool IsRational() const
+    {
+        return mIsRational;
+        // if (mWeights.size() == 0)
+        //     return false;
+        // else {
+        //     for (IndexType i = 0; i < mWeights.size(); ++i) {
+        //         if (std::abs(mWeights[i] - 1.0) > 1e-8) {
+        //             return true;
+        //         }
+        //     }
+        //     return false;
+        // }
     }
 
     /* Get Weights vector. All values are 1.0 for B-Splines, for NURBS those can be unequal 1.0.
@@ -603,7 +625,7 @@ public:
 
         for (IndexType i = 0; i < rIntegrationPoints.size(); ++i)
         {
-            if (IsRational()) {
+            if (mIsRational) {
                 shape_function_container.ComputeNurbsShapeFunctionValues(
                     mKnotsU, mKnotsV, mWeights, rIntegrationPoints[i][0], rIntegrationPoints[i][1]);
             }
@@ -611,6 +633,17 @@ public:
                 shape_function_container.ComputeBSplineShapeFunctionValues(
                     mKnotsU, mKnotsV, rIntegrationPoints[i][0], rIntegrationPoints[i][1]);
             }
+
+            std::ofstream outputFile("txt_files/Parameter_Gauss_Point_coordinates.txt", std::ios::app);
+            if (!outputFile.is_open())
+            {
+                std::cerr << "Failed to open the file for writing." << std::endl;
+                return;
+            }
+
+            outputFile << std::setprecision(14); // Set precision to 10^-14
+            outputFile << rIntegrationPoints[i][0] << "  " << rIntegrationPoints[i][1] <<"\n";
+            outputFile.close();
 
             /// Get List of Control Points
             PointsArrayType nonzero_control_points(num_nonzero_cps);
@@ -707,7 +740,7 @@ public:
     {
         NurbsSurfaceShapeFunction shape_function_container(mPolynomialDegreeU, mPolynomialDegreeV, 0);
 
-        if (IsRational()) {
+        if (mIsRational) {
             shape_function_container.ComputeNurbsShapeFunctionValues(
                 mKnotsU, mKnotsV, mWeights, rLocalCoordinates[0], rLocalCoordinates[1]);
         }
@@ -746,7 +779,7 @@ public:
     {
         NurbsSurfaceShapeFunction shape_function_container(mPolynomialDegreeU, mPolynomialDegreeV, DerivativeOrder);
 
-        if (IsRational()) {
+        if (mIsRational) {
             shape_function_container.ComputeNurbsShapeFunctionValues(
                 mKnotsU, mKnotsV, mWeights, rLocalCoordinates[0], rLocalCoordinates[1]);
         }
@@ -791,7 +824,7 @@ public:
     {
         NurbsSurfaceShapeFunction shape_function_container(mPolynomialDegreeU, mPolynomialDegreeV, 0);
 
-        if (IsRational()) {
+        if (mIsRational) {
             shape_function_container.ComputeNurbsShapeFunctionValues(mKnotsU, mKnotsV, mWeights, rCoordinates[0], rCoordinates[1]);
         }
         else {
@@ -814,7 +847,7 @@ public:
     {
         NurbsSurfaceShapeFunction shape_function_container(mPolynomialDegreeU, mPolynomialDegreeV, 0);
 
-        if (IsRational()) {
+        if (mIsRational) {
             shape_function_container.ComputeNurbsShapeFunctionValues(mKnotsU, mKnotsV, mWeights, rCoordinates[0], rCoordinates[1]);
         }
         else {
@@ -837,21 +870,11 @@ public:
     ///@name Geometry Family
     ///@{
 
-    /**
-     * @brief Gets the geometry family.
-     * @details This function returns the family type of the geometry. The geometry family categorizes the geometry into a broader classification, aiding in its identification and processing.
-     * @return GeometryData::KratosGeometryFamily The geometry family.
-     */
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::KratosGeometryFamily::Kratos_Nurbs;
     }
 
-    /**
-     * @brief Gets the geometry type.
-     * @details This function returns the specific type of the geometry. The geometry type provides a more detailed classification of the geometry.
-     * @return GeometryData::KratosGeometryType The specific geometry type.
-     */
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::KratosGeometryType::Kratos_Nurbs_Surface;
@@ -874,6 +897,8 @@ public:
     {
     }
     ///@}
+
+    bool mIsRational;
 
 private:
     ///@name Private Static Member Variables

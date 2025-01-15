@@ -477,6 +477,9 @@ KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(PARAMETER_2D_COORDINATES)
 KRATOS_CREATE_VARIABLE(double, VARIATIONAL_REDISTANCE_COEFFICIENT_FIRST)
 KRATOS_CREATE_VARIABLE(double, VARIATIONAL_REDISTANCE_COEFFICIENT_SECOND)
 
+// SBM variables
+KRATOS_CREATE_VARIABLE(bool, IS_SBM)
+
 //------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------//

@@ -149,6 +149,8 @@ private:
         // Sets the brep as geometry parent of the nurbs surface.
         p_surface->SetGeometryParent(p_brep_surface.get());
         p_brep_surface->SetId(1);
+
+        p_brep_surface->SetValue(IS_SBM, true);
         rModelPart.AddGeometry(p_brep_surface);
     }
 

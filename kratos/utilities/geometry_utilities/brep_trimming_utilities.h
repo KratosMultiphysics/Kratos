@@ -52,7 +52,7 @@ namespace Kratos
 
         typedef signed long long cInt;
 
-        using BrepCurveOnSurfacePointerType = typename BrepCurveOnSurface<PointerVector<Node>, false, PointerVector<Point>>::Pointer;
+        using BrepCurveOnSurfacePointerType = typename BrepCurveOnSurface<PointerVector<Node>, PointerVector<Point>>::Pointer;
 
         //template<class TBrepLoopType, class TPointType>
         static void CreateBrepSurfaceTrimmingIntegrationPoints(

@@ -49,4 +49,4 @@ cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -DKRATOS_GENERATE_PYTHON_STUBS=ON
 
 # Build
-cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j$(nproc)
+cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j16

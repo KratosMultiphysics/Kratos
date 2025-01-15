@@ -228,7 +228,7 @@ namespace Kratos
         // if( r_model_part.NumberOfNodes() > 0 ){
         //     node_id = (r_model_part.NodesEnd() - 1)->Id() + 1;
         // }
-
+    
         if(r_model_part.GetParentModelPart().NumberOfNodes() > 0 ){
             node_id = (r_model_part.GetParentModelPart().NodesEnd() - 1)->Id() + 1;
         }

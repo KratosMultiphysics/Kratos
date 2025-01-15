@@ -117,7 +117,7 @@ namespace Kratos
         for (SizeType i_knot_insertion = 0; i_knot_insertion < NumKnotSpansV-1; i_knot_insertion++) {
             unique_knot_vector_v[i_knot_insertion+1] = mInsertKnotsV[i_knot_insertion];
         }
-        SnakeSBMUtilitiesNew::CreateTheSnakeCoordinates(iga_model_part, skin_model_part_inner_initial, skin_model_part_outer_initial, skin_model_part, mEchoLevel,
+        SnakeSBMUtilities::CreateTheSnakeCoordinates(iga_model_part, skin_model_part_inner_initial, skin_model_part_outer_initial, skin_model_part, mEchoLevel,
                                                      unique_knot_vector_u, unique_knot_vector_v, mParameters) ;
         // Create the breps for the outer sbm boundary
         CreateBrepsSBMUtilities<Node, Point> CreateBrepsSBMUtilities(mEchoLevel);

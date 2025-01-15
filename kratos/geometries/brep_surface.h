@@ -28,6 +28,9 @@
 // trimming integration
 #include "utilities/geometry_utilities/brep_trimming_utilities.h"
 
+// SBM integration
+#include "utilities/geometry_utilities/brep_sbm_utilities.h"
+
 namespace Kratos
 {
 ///@name Kratos Classes
@@ -38,10 +41,8 @@ namespace Kratos
  * @ingroup KratosCore
  * @brief The BrepSurface acts as topology for faces. Those
  *        can be enclosed by a certain set of brep face curves.
- * @tparam TShiftedBoundary Boolean flag indicating whether is 
- *        defined with shifted boundary conditions.
  */
-template<class TContainerPointType, bool TShiftedBoundary, class TContainerPointEmbeddedType = TContainerPointType>
+template<class TContainerPointType, class TContainerPointEmbeddedType = TContainerPointType>
 class BrepSurface
     : public Geometry<typename TContainerPointType::value_type>
 {
@@ -62,7 +63,7 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     typedef NurbsSurfaceGeometry<3, TContainerPointType> NurbsSurfaceType;
-    typedef BrepCurveOnSurface<TContainerPointType, TShiftedBoundary, TContainerPointEmbeddedType> BrepCurveOnSurfaceType;
+    typedef BrepCurveOnSurface<TContainerPointType, TContainerPointEmbeddedType> BrepCurveOnSurfaceType;
 
     typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceArrayType;
     typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceLoopType;
@@ -117,6 +118,22 @@ public:
     {
     }
 
+    // Constructor for SBM
+    /// Constructor for trimmed patch
+    BrepSurface(
+        typename NurbsSurfaceType::Pointer pSurface, 
+        BrepCurveOnSurfaceLoopArrayType& BrepOuterLoopArray,
+        BrepCurveOnSurfaceLoopArrayType& BrepInnerLoopArray,
+        ModelPart& rSurrogateModelPart_inner, ModelPart& rSurrogateModelPart_outer)
+        : BaseType(PointsArrayType(), &msGeometryData)
+        , mpNurbsSurface(pSurface) 
+        , mOuterLoopArray(BrepOuterLoopArray)
+        , mInnerLoopArray(BrepInnerLoopArray)
+        , mpSurrogateModelPart_inner(&rSurrogateModelPart_inner)
+        , mpSurrogateModelPart_outer(&rSurrogateModelPart_outer)
+    {
+    }
+
     explicit BrepSurface(const PointsArrayType& ThisPoints)
         : BaseType(ThisPoints, &msGeometryData)
     {
@@ -136,7 +153,7 @@ public:
     /// Copy constructor from a geometry with different point type.
     template<class TOtherContainerPointType, class TOtherContainerPointEmbeddedType>
     explicit BrepSurface(
-        BrepSurface<TOtherContainerPointType, TShiftedBoundary, TOtherContainerPointEmbeddedType> const& rOther )
+        BrepSurface<TOtherContainerPointType, TOtherContainerPointEmbeddedType> const& rOther )
         : BaseType( rOther )
         , mpNurbsSurface(rOther.mpNurbsSurface)
         , mOuterLoopArray(rOther.mOuterLoopArray)
@@ -167,7 +184,7 @@ public:
 
     /// Assignment operator for geometries with different point type.
     template<class TOtherContainerPointType, class TOtherContainerPointEmbeddedType>
-    BrepSurface& operator=( BrepSurface<TOtherContainerPointType, TShiftedBoundary, TOtherContainerPointEmbeddedType> const & rOther )
+    BrepSurface& operator=( BrepSurface<TOtherContainerPointType, TOtherContainerPointEmbeddedType> const & rOther )
     {
         BaseType::operator=( rOther );
         mpNurbsSurface = rOther.mpNurbsSurface;
@@ -430,47 +447,29 @@ public:
     ///@{
 
     /* Creates integration points on the nurbs surface of this geometry.
-     * Accounting for whether the surface is trimmed or untrimmed, and whether shifted 
-     * boundary conditions are used
-     * 
-     * - **Untrimmed Surface**: -> Non-cutting case
-     *   - If `TShiftedBoundary` is true, the method prepares for the shifted boundary method (SBM) 
-     *   - Otherwise, it directly uses `CreateIntegrationPoints` from the underlying NURBS surface.
-     * - **Trimmed Surface**: -> Cutting case
-     *   - It calls `BrepTrimmingUtilities::CreateBrepSurfaceTrimmingIntegrationPoints` 
-     *     to generate integration points that conform to the trimming curve.
-     * 
      * @param return integration points.
      */
     void CreateIntegrationPoints(
         IntegrationPointsArrayType& rIntegrationPoints,
         IntegrationInfo& rIntegrationInfo) const override
-    {
-        if (!mIsTrimmed) {
-            // sbm case
-            if constexpr (TShiftedBoundary) {
-                // TODO: Next PR -> Call  "BrepSBMUtilities::CreateBrepSurfaceSBMIntegrationPoints"
+    {   
+        bool is_sbm = mpNurbsSurface->GetValue(IS_SBM) ;
+        if (is_sbm == 0) {
+            // if (!mIsTrimmed) {
                 mpNurbsSurface->CreateIntegrationPoints(
                     rIntegrationPoints, rIntegrationInfo);
-            }
-            // body-fitted case
-            else {
-                mpNurbsSurface->CreateIntegrationPoints(
-                    rIntegrationPoints, rIntegrationInfo);
-            }
         }
-        // trimmed case
-        else
-        {
+        else {
             std::vector<double> spans_u;
             std::vector<double> spans_v;
             mpNurbsSurface->SpansLocalSpace(spans_u, 0);
             mpNurbsSurface->SpansLocalSpace(spans_v, 1);
 
-            BrepTrimmingUtilities::CreateBrepSurfaceTrimmingIntegrationPoints(
+            BrepSBMUtilities::CreateBrepSurfaceSBMIntegrationPoints(
                 rIntegrationPoints,
-                mOuterLoopArray, mInnerLoopArray,
                 spans_u, spans_v,
+                *mpSurrogateModelPart_inner, 
+                *mpSurrogateModelPart_outer,
                 rIntegrationInfo);
         }
     }
@@ -495,12 +494,14 @@ public:
         const IntegrationPointsArrayType& rIntegrationPoints,
         IntegrationInfo& rIntegrationInfo) override
     {
+        KRATOS_WATCH("CreateQuadraturePointGeometries")
         mpNurbsSurface->CreateQuadraturePointGeometries(
             rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationPoints, rIntegrationInfo);
 
         for (IndexType i = 0; i < rResultGeometries.size(); ++i) {
             rResultGeometries(i)->SetGeometryParent(this);
         }
+        KRATOS_WATCH("End CreateQuadraturePointGeometries")
     }
 
     ///@}
@@ -529,21 +530,11 @@ public:
     ///@name Geometry Family
     ///@{
 
-    /**
-     * @brief Gets the geometry family.
-     * @details This function returns the family type of the geometry. The geometry family categorizes the geometry into a broader classification, aiding in its identification and processing.
-     * @return GeometryData::KratosGeometryFamily The geometry family.
-     */
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::KratosGeometryFamily::Kratos_Brep;
     }
 
-    /**
-     * @brief Gets the geometry type.
-     * @details This function returns the specific type of the geometry. The geometry type provides a more detailed classification of the geometry.
-     * @return GeometryData::KratosGeometryType The specific geometry type.
-     */
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::KratosGeometryType::Kratos_Brep_Surface;
@@ -594,6 +585,10 @@ private:
 
     BrepCurveOnSurfaceArrayType mEmbeddedEdgesArray;
 
+    ModelPart* mpSurrogateModelPart_inner = nullptr;
+    ModelPart* mpSurrogateModelPart_outer = nullptr;
+
+
     /** IsTrimmed is used to optimize processes as
     *   e.g. creation of integration domain.
     */
@@ -637,14 +632,14 @@ private:
 ///@{
 
 /// input stream functions
-template<class TContainerPointType, bool TShiftedBoundary, class TContainerPointEmbeddedType = TContainerPointType> inline std::istream& operator >> (
+template<class TContainerPointType, class TContainerPointEmbeddedType = TContainerPointType> inline std::istream& operator >> (
     std::istream& rIStream,
-    BrepSurface<TContainerPointType, TShiftedBoundary, TContainerPointEmbeddedType>& rThis );
+    BrepSurface<TContainerPointType, TContainerPointEmbeddedType>& rThis );
 
 /// output stream functions
-template<class TContainerPointType, bool TShiftedBoundary, class TContainerPointEmbeddedType = TContainerPointType> inline std::ostream& operator << (
+template<class TContainerPointType, class TContainerPointEmbeddedType = TContainerPointType> inline std::ostream& operator << (
     std::ostream& rOStream,
-    const BrepSurface<TContainerPointType, TShiftedBoundary, TContainerPointEmbeddedType>& rThis )
+    const BrepSurface<TContainerPointType, TContainerPointEmbeddedType>& rThis )
 {
     rThis.PrintInfo( rOStream );
     rOStream << std::endl;
@@ -656,14 +651,14 @@ template<class TContainerPointType, bool TShiftedBoundary, class TContainerPoint
 ///@name Static Type Declarations
 ///@{
 
-template<class TContainerPointType, bool TShiftedBoundary, class TContainerPointEmbeddedType> const
-GeometryData BrepSurface<TContainerPointType, TShiftedBoundary, TContainerPointEmbeddedType>::msGeometryData(
+template<class TContainerPointType, class TContainerPointEmbeddedType> const
+GeometryData BrepSurface<TContainerPointType, TContainerPointEmbeddedType>::msGeometryData(
     &msGeometryDimension,
     GeometryData::IntegrationMethod::GI_GAUSS_1,
     {}, {}, {});
 
-template<class TContainerPointType, bool TShiftedBoundary, class TContainerPointEmbeddedType>
-const GeometryDimension BrepSurface<TContainerPointType, TShiftedBoundary, TContainerPointEmbeddedType>::msGeometryDimension(3, 2);
+template<class TContainerPointType, class TContainerPointEmbeddedType>
+const GeometryDimension BrepSurface<TContainerPointType, TContainerPointEmbeddedType>::msGeometryDimension(3, 2);
 
 ///@}
 }// namespace Kratos.

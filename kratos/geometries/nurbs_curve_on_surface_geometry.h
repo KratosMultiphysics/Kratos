@@ -63,6 +63,9 @@ public:
     using BaseType::pGetPoint;
     using BaseType::GetPoint;
 
+
+    static constexpr IndexType EMBEDDED_CURVE_INDEX = std::numeric_limits<IndexType>::max() - 3;
+
     /// Counted pointer of NurbsCurveOnSurfaceGeometry
     KRATOS_CLASS_POINTER_DEFINITION(NurbsCurveOnSurfaceGeometry);
 
@@ -185,7 +188,7 @@ public:
     */
     bool HasGeometryPart(const IndexType Index) const override
     {
-        return Index == GeometryType::BACKGROUND_GEOMETRY_INDEX;
+        return (Index == GeometryType::BACKGROUND_GEOMETRY_INDEX || Index == EMBEDDED_CURVE_INDEX);
     }
 
     ///@}
@@ -243,83 +246,48 @@ public:
      * @param vector of span intervals.
      * @param index of chosen direction, for curves always 0.
      */
-    void SpansLocalSpace(
-        std::vector<double>& rSpans, 
-        IndexType DirectionIndex = 0) const override
+    void SpansLocalSpace(std::vector<double>& rSpans, IndexType DirectionIndex = 0) const override
     {
         auto interval = mpNurbsCurve->DomainInterval();
         this->SpansLocalSpace(rSpans, interval.GetT0(), interval.GetT1());
     }
 
-    /* @brief Provides intersections of the nurbs curve with the knots of the surface,
-     *         using the interval of this curve in the SBM case.
-     * @param vector of span intervals.
-     * @param index of chosen direction, for curves always 0.
-     */
-    void SpansLocalSpaceSBM(
-        std::vector<double>& rSpans, 
-        IndexType DirectionIndex = 0) const
-    {
-        auto interval = mpNurbsCurve->DomainInterval();
-        this->SpansLocalSpaceSBM(rSpans, interval.GetT0(), interval.GetT1());
-    }
-
     /* @brief  Provides intersections of the nurbs curve with the knots of the surface.
      * @return vector of interval limitations.
      */
-    void SpansLocalSpace(
-        std::vector<double>& rSpans,
-        double Start, 
-        double End) const
+    void SpansLocalSpace(std::vector<double>& rSpans,
+        double Start, double End) const
     {
         std::vector<double> surface_spans_u;
         std::vector<double> surface_spans_v;
         mpNurbsSurface->SpansLocalSpace(surface_spans_u, 0);
         mpNurbsSurface->SpansLocalSpace(surface_spans_v, 1);
 
-        // trimming case: compute also inner knot spans intersections
-        CurveAxisIntersection<CurveNodeType>::ComputeAxisIntersection(
+        const bool is_sbm = mpNurbsSurface->GetValue(IS_SBM);
+
+        if (true) {
+            // SBM case: compute only knot spans intersections
+            ComputeAxisIntersectionSBM(
+            rSpans,
+            Start, End,
+            surface_spans_u, surface_spans_v,
+            1e-12);
+        }
+        else {
+            // trimming case: compute also inner knot spans intersections
+            CurveAxisIntersection<CurveNodeType>::ComputeAxisIntersection(
             rSpans,
             *(mpNurbsCurve.get()), Start, End,
             surface_spans_u, surface_spans_v,
-            1e-6);
-    }
-
-    /* @brief  Provides intersections of the nurbs curve with the knots of the surface in the SBM case.
-     * @return vector of interval limitations.
-     */
-    void SpansLocalSpaceSBM(
-        std::vector<double>& rSpans,
-        double Start, 
-        double End) const
-    {
-        std::vector<double> surface_spans_u;
-        std::vector<double> surface_spans_v;
-        mpNurbsSurface->SpansLocalSpace(surface_spans_u, 0);
-        mpNurbsSurface->SpansLocalSpace(surface_spans_v, 1);
-
-        // SBM case: compute only knot spans intersections
-        ComputeAxisIntersectionSBM(
-            rSpans,
-            Start, End,
-            surface_spans_u, surface_spans_v);
+            1e-12);
+        }
     }
     
+            
+
      /**
-     * @brief Computes the knot span intersections for the shifted boundary method (SBM) case.
-     * This function calculates the intersections between a NURBS curve segment and the knot spans
-     * of a surface in the local parameter space, specifically for SBM-based geometries. The computed
-     * intersections are returned in the `rSpans` vector.
-     * 
-     * * @details 
-     * The function operates as follows:
-     * - Computes the physical coordinates of the start (`Start`) and end (`End`) points of the curve segment.
-     * - Determines the segment's orientation (horizontal or vertical) based on the difference in coordinates.
-     * - For each direction (U or V):
-     *   - Calculates the relevant knot interval.
-     *   - Iterates over the surface spans in the corresponding direction, identifying intersections within the interval.
-     *   - Maps the intersection values back to the curve's parameter space and stores them in `rSpans`.
-     * 
+     * @brief 
+     * SBM case: compute only knot spans intersections
      * @param rSpans 
      * @param Start 
      * @param End 
@@ -333,7 +301,8 @@ public:
             double Start,
             double End,
             const std::vector<double>& surface_spans_u,
-            const std::vector<double>& surface_spans_v) const 
+            const std::vector<double>& surface_spans_v,
+            const double tolerance = 1e-12) const 
     {
         CoordinatesArrayType physical_coord_1 = ZeroVector(3);
         CoordinatesArrayType local_coord_1 = ZeroVector(3);
@@ -347,15 +316,16 @@ public:
 
         // 2D need to re-order
         bool reverse_order = false;
-        if ((physical_coord_2[0] - physical_coord_1[0] < 0 ) || 
-            (physical_coord_2[1] - physical_coord_1[1] < 0 )) {
+        if (((physical_coord_2[0] - physical_coord_1[0] < 0 ) || 
+            (physical_coord_2[1] - physical_coord_1[1] < 0 )) &&
+            Start > End) {
             reverse_order = true;
         }
         std::vector<double> tempSpans;
-        const double tolerance_orientation = 1e-10;
-        const double tolerance_intersection = 1e-15;
+        const double toll = 1e-10;
+        const double toll2 = tolerance;
         
-        // Scale factor between surface coordinate and curve one
+        // Scale factor between volume coordinate and surface one
         double physical_length_segment = norm_2(physical_coord_1-physical_coord_2);
         double parameter_length_segment = norm_2(local_coord_1-local_coord_2);
         double scale_factor = parameter_length_segment/physical_length_segment;
@@ -363,53 +333,53 @@ public:
         std::vector<double> knot_interval(2);
 
         // Compute constant coordinate -> understand segment orientation (vertical/horizontal)
-        if (std::abs(physical_coord_1[0]-physical_coord_2[0]) > tolerance_orientation) {
+        if (std::abs(physical_coord_1[0]-physical_coord_2[0]) > toll) {
             // horizontal case
             knot_interval[0] = physical_coord_1[0]; 
             knot_interval[1] = physical_coord_2[0];
             std::sort(knot_interval.begin(), knot_interval.end());
 
-            knot_interval[0] -= tolerance_intersection; 
-            knot_interval[1] += tolerance_intersection;
-            // Compare with surface_spans_u
-            for (IndexType i = 0; i < surface_spans_u.size(); i++) {
+            knot_interval[0] -= toll2; 
+            knot_interval[1] += toll2;
+            // Compare with volume_spans_u
+            for (int i = 0; i < surface_spans_u.size(); i++) {
                 double curr_knot_value = surface_spans_u[i];
                 if (curr_knot_value < knot_interval[0]) {continue;}
-                if (std::abs(curr_knot_value - knot_interval[0]) < tolerance_intersection*10) knot_interval[0] = curr_knot_value;
+                if (std::abs(curr_knot_value - knot_interval[0]) < toll2*10) knot_interval[0] = curr_knot_value;
                 if (curr_knot_value > knot_interval[1]) {break;}
-                if (std::abs(curr_knot_value - knot_interval[1]) < tolerance_intersection*10) knot_interval[1] = curr_knot_value;
+                if (std::abs(curr_knot_value - knot_interval[1]) < toll2*10) knot_interval[1] = curr_knot_value;
                 double knot_value_in_curve_parameter = Start + (curr_knot_value-knot_interval[0]) * scale_factor;
 
                 tempSpans.push_back(knot_value_in_curve_parameter);
             }
             
-        } else if (std::abs(physical_coord_1[1]-physical_coord_2[1]) > tolerance_orientation) {
-            // vertical case
+        } else if (std::abs(physical_coord_1[1]-physical_coord_2[1]) > toll) {
+        // vertical case
             knot_interval[0] = physical_coord_1[1]; 
             knot_interval[1] = physical_coord_2[1];
             std::sort(knot_interval.begin(), knot_interval.end());
 
-            knot_interval[0] -= tolerance_intersection; 
-            knot_interval[1] += tolerance_intersection;
-            // Compare with surface_spans_v
-            for (IndexType i = 0; i < surface_spans_v.size(); i++) {
+            knot_interval[0] -= toll2; 
+            knot_interval[1] += toll2;
+            // Compare with volume_spans_v
+            for (int i = 0; i < surface_spans_v.size(); i++) {
                 double curr_knot_value = surface_spans_v[i];
                 if (curr_knot_value < knot_interval[0]) {continue;}
-                if (std::abs(curr_knot_value - knot_interval[0]) < tolerance_intersection*10) knot_interval[0] = curr_knot_value;
+                if (std::abs(curr_knot_value - knot_interval[0]) < toll2*10) knot_interval[0] = curr_knot_value;
                 if (curr_knot_value > knot_interval[1]) {break;}
-                if (std::abs(curr_knot_value - knot_interval[1]) < tolerance_intersection*10) knot_interval[1] = curr_knot_value;
+                if (std::abs(curr_knot_value - knot_interval[1]) < toll2*10) knot_interval[1] = curr_knot_value;
                 double knot_value_in_curve_parameter = Start + (curr_knot_value-knot_interval[0]) * scale_factor;
                 
                 tempSpans.push_back(knot_value_in_curve_parameter);
             }
         } else {
-            KRATOS_ERROR << "ComputeAxisIntersectionSBM :: brep not parallel to any surface knot vector";
+            KRATOS_ERROR << "CURVE NOT PARALLEL TO ANY SURFACE KNOT VECTOR";
         }
 
         rSpans.resize(tempSpans.size());
         if (tempSpans.size() > 2){
             if (reverse_order) {
-                for (IndexType i = 0; i < tempSpans.size(); i++) {
+                for (int i = 0; i < tempSpans.size(); i++) {
                     rSpans[i] = End - tempSpans[tempSpans.size()-1-i];
                 }
             } else {
@@ -417,7 +387,7 @@ public:
             }
         } else rSpans = tempSpans;
         
-        KRATOS_ERROR_IF(rSpans.size()<2) << "ComputeAxisIntersectionSBM :: Wrong number of intersection found (<2)" << std::endl;
+        KRATOS_ERROR_IF(rSpans.size()<2) << "WRONG NUMBER OF INTERSECTION (<2) FOUND" << std::endl;
     }
 
     /* @brief Provides the nurbs boundaries of the NURBS/B-Spline curve.
@@ -426,6 +396,17 @@ public:
     NurbsInterval DomainInterval() const
     {
         return mpNurbsCurve->DomainInterval();
+    }
+
+    void DomainInterval(Vector& domainInterval) const override
+    {
+        
+        if (domainInterval.size() != 2) domainInterval.resize(2);
+        NurbsInterval interval = mpNurbsCurve->DomainInterval();
+
+        domainInterval[0] = interval.MinParameter();
+        domainInterval[1] = interval.MaxParameter();
+
     }
 
     ///@}
@@ -523,7 +504,7 @@ public:
     ///@}
     ///@name Jacobian
     ///@{
-
+    
     double DeterminantOfJacobian(
         const CoordinatesArrayType& rPoint) const override
     {
@@ -602,155 +583,59 @@ public:
             shape_function_derivatives[i].resize(num_nonzero_cps, i + 2);
         }
 
-        for (IndexType i = 0; i < rIntegrationPoints.size(); ++i)
-        {
-            std::vector<CoordinatesArrayType> global_space_derivatives(2);
-            mpNurbsCurve->GlobalSpaceDerivatives(
-                global_space_derivatives,
-                rIntegrationPoints[i],
-                1);
-
-            if (mpNurbsSurface->IsRational()) {
-                shape_function_container.ComputeNurbsShapeFunctionValues(
-                    mpNurbsSurface->KnotsU(), mpNurbsSurface->KnotsV(), mpNurbsSurface->Weights(),
-                    global_space_derivatives[0][0], global_space_derivatives[0][1]);
-            }
-            else {
-                shape_function_container.ComputeBSplineShapeFunctionValues(
-                    mpNurbsSurface->KnotsU(), mpNurbsSurface->KnotsV(),
-                    global_space_derivatives[0][0], global_space_derivatives[0][1]);
-            }
-
-            /// Get List of Control Points
-            PointsArrayType nonzero_control_points(num_nonzero_cps);
-            auto cp_indices = shape_function_container.ControlPointIndices(
-                mpNurbsSurface->NumberOfControlPointsU(), mpNurbsSurface->NumberOfControlPointsV());
-            for (IndexType j = 0; j < num_nonzero_cps; j++) {
-                nonzero_control_points(j) = mpNurbsSurface->pGetPoint(cp_indices[j]);
-            }
-            /// Get Shape Functions N
-            for (IndexType j = 0; j < num_nonzero_cps; j++) {
-                N(0, j) = shape_function_container(j, 0);
-            }
-
-            /// Get Shape Function Derivatives DN_De, ...
-            if (NumberOfShapeFunctionDerivatives > 0) {
-                IndexType shape_derivative_index = 1;
-                for (IndexType n = 0; n < NumberOfShapeFunctionDerivatives - 1; n++) {
-                    for (IndexType k = 0; k < n + 2; k++) {
-                        for (IndexType j = 0; j < num_nonzero_cps; j++) {
-                            shape_function_derivatives[n](j, k) = shape_function_container(j, shape_derivative_index + k);
-                        }
-                    }
-                    shape_derivative_index += n + 2;
-                }
-            }
-
-            GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
-                default_method, rIntegrationPoints[i],
-                N, shape_function_derivatives);
-
-            rResultGeometries(i) = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePointCurveOnSurface(
-                data_container, nonzero_control_points,
-                global_space_derivatives[1][0], global_space_derivatives[1][1], this);
-        }
-    }
-
-
-    /**
-     * @brief This method creates a list of quadrature point geometries
-     *        from a list of integration points in the SBM case.
-     *
-     * * @details
-     * 1. Checks whether the BRep is internal (aligned with specific knot spans) or external.
-     *    - Internal boundaries are associated with a fixed span (knot span edge) in the U and V directions.
-     *    - External boundaries are associated with body-fitted cases.
-     * 2. Iterates over each integration point:
-     *    - Computes global space derivatives for the NURBS curve at the integration point.
-     *    - Gathers nonzero control points and associated shape function values.
-     * 3. Creates a geometry shape function container and assigns it to the result geometries array.
-     * 
-     * @param rResultGeometries list of quadrature point geometries.
-     * @param rIntegrationPoints list of integration points.
-     * @param NumberOfShapeFunctionDerivatives the number provided
-     *        derivatives of shape functions in the system.
-     *
-     * @see quadrature_point_geometry.h
-     */
-    void CreateQuadraturePointGeometriesSBM(
-        GeometriesArrayType& rResultGeometries,
-        IndexType NumberOfShapeFunctionDerivatives,
-        const IntegrationPointsArrayType& rIntegrationPoints,
-        IntegrationInfo& rIntegrationInfo) 
-    {
-        // shape function container.
-        NurbsSurfaceShapeFunction shape_function_container(
-            mpNurbsSurface->PolynomialDegreeU(), mpNurbsSurface->PolynomialDegreeV(),
-            NumberOfShapeFunctionDerivatives);
-
-        // Resize containers.
-        if (rResultGeometries.size() != rIntegrationPoints.size())
-            rResultGeometries.resize(rIntegrationPoints.size());
-
-        auto default_method = this->GetDefaultIntegrationMethod();
-        SizeType num_nonzero_cps = shape_function_container.NumberOfNonzeroControlPoints();
-
-        Matrix N(1, num_nonzero_cps);
-        DenseVector<Matrix> shape_function_derivatives(NumberOfShapeFunctionDerivatives - 1);
-        for (IndexType i = 0; i < NumberOfShapeFunctionDerivatives - 1; i++) {
-            shape_function_derivatives[i].resize(num_nonzero_cps, i + 2);
-        }
-
-        // the brep surface in which the brep curve is defined has been marked as sbm in the nurbs_modeler_sbm
+        bool is_sbm = mpNurbsSurface->GetValue(IS_SBM) ;
         bool is_brep_internal = false;
         IndexType InternalBrepSpanU;
         IndexType InternalBrepSpanV;
 
-        // SBM -> check to which axis the brep is alligned
-        std::vector<CoordinatesArrayType> first_integration_point(2); // first integration point of the brep in the parameter space
-        std::vector<CoordinatesArrayType> last_integration_point(2); // last integration point of the brep in the parameter space
-        mpNurbsCurve->GlobalSpaceDerivatives(first_integration_point,rIntegrationPoints[0],1); 
-        mpNurbsCurve->GlobalSpaceDerivatives(last_integration_point,rIntegrationPoints[rIntegrationPoints.size()-1],1); 
+        if (is_sbm)
+        {
+            // IF IS_SBM -> check to which axis the brep is alligned
+            std::vector<CoordinatesArrayType> first_integration_point(2); // first integration point of the brep in the parameter space
+            std::vector<CoordinatesArrayType> last_integration_point(2); // last integration point of the brep in the parameter space
+            mpNurbsCurve->GlobalSpaceDerivatives(first_integration_point,rIntegrationPoints[0],1); 
+            mpNurbsCurve->GlobalSpaceDerivatives(last_integration_point,rIntegrationPoints[rIntegrationPoints.size()-1],1); 
 
-        // check if the brep is internal (external breps do not need to be computed in a different knot span) 
-        is_brep_internal = true; 
-        const double tolerance = 1e-14;
-        // At this point all the true are boundary GPs
-        if (std::abs(first_integration_point[0][0]-mpNurbsSurface->KnotsU()[0]) < tolerance)
-            is_brep_internal = false;
-        if (std::abs(first_integration_point[0][0]-mpNurbsSurface->KnotsU()[mpNurbsSurface->KnotsU().size()-1]) < tolerance) 
-            is_brep_internal = false;
-        if (std::abs(first_integration_point[0][1]-mpNurbsSurface->KnotsV()[0]) < tolerance) 
-            is_brep_internal = false;
-        if (std::abs(first_integration_point[0][1]-mpNurbsSurface->KnotsV()[mpNurbsSurface->KnotsV().size()-1]) < tolerance) 
-            is_brep_internal = false;
+            // check if the brep is internal (external breps do not need to be computed in a different knot span) 
+            is_brep_internal = true; 
+            const double tolerance = 1e-14;
+            // At this point all the true are boundary GPs
+            if (std::abs(first_integration_point[0][0]-mpNurbsSurface->KnotsU()[0]) < tolerance)
+                is_brep_internal = false;
+            if (std::abs(first_integration_point[0][0]-mpNurbsSurface->KnotsU()[mpNurbsSurface->KnotsU().size()-1]) < tolerance) 
+                is_brep_internal = false;
+            if (std::abs(first_integration_point[0][1]-mpNurbsSurface->KnotsV()[0]) < tolerance) 
+                is_brep_internal = false;
+            if (std::abs(first_integration_point[0][1]-mpNurbsSurface->KnotsV()[mpNurbsSurface->KnotsV().size()-1]) < tolerance) 
+                is_brep_internal = false;
 
-        // If is_brep_internal -> the current GP is a surrogate GP otherwise it is an external GP
-        if (is_brep_internal) {
-            // brep = knot spans edge -> same SpanU and SpanV for all its integration points
-            InternalBrepSpanU = NurbsUtilities::GetLowerSpan(mpNurbsSurface->PolynomialDegreeU(), mpNurbsSurface->KnotsU(), first_integration_point[0][0]);
-            InternalBrepSpanV = NurbsUtilities::GetLowerSpan(mpNurbsSurface->PolynomialDegreeV(), mpNurbsSurface->KnotsV(), first_integration_point[0][1]);
+            // If is_brep_internal -> the current GP is a surrogate GP otherwise it is an external GP
+            if (is_brep_internal) {
+                // brep = knot spans edge -> same SpanU and SpanV for all its integration points
+                InternalBrepSpanU = NurbsUtilities::GetLowerSpan(mpNurbsSurface->PolynomialDegreeU(), mpNurbsSurface->KnotsU(), first_integration_point[0][0]);
+                InternalBrepSpanV = NurbsUtilities::GetLowerSpan(mpNurbsSurface->PolynomialDegreeV(), mpNurbsSurface->KnotsV(), first_integration_point[0][1]);
 
-            // Understand if the knot-boundary is along U or V
-            bool gp_is_along_V;
-            if (std::abs(first_integration_point[0][0] - last_integration_point[0][0]) < tolerance) {
-                gp_is_along_V = true;
-            }
-            else {gp_is_along_V = false;}
+                // Understand if the knot-boundary is along U or V
+                bool gp_is_along_U;
+                if (std::abs(first_integration_point[0][0] - last_integration_point[0][0]) < tolerance) {
+                    gp_is_along_U = true;
+                }
+                else {gp_is_along_U = false; }
 
-            if (gp_is_along_V && first_integration_point[0][1] > last_integration_point[0][1]) {
-                // Is decreasing along y -> Add 1 at InternalBrepSpanU
-                InternalBrepSpanU++;
-            }
-            if (!gp_is_along_V && first_integration_point[0][0] < last_integration_point[0][0]) {
-                // Is increasing along x -> Add 1 at InternalBrepSpanV
-                InternalBrepSpanV++;
+                if (gp_is_along_U && first_integration_point[0][1] > last_integration_point[0][1]) {
+                    // Is decreasing along y -> Add 1 at InternalBrepSpanU
+                    InternalBrepSpanU++;
+                }
+                if (!gp_is_along_U && first_integration_point[0][0] < last_integration_point[0][0]) {
+                    // Is increasing along x -> Add 1 at InternalBrepSpanV
+                    InternalBrepSpanV++;
+                }
             }
         }
 
         // Loop over the integration points of the brep
-        for (IndexType i = 0; i < rIntegrationPoints.size(); ++i) 
-        {
+        for (IndexType i = 0; i < rIntegrationPoints.size(); ++i)
+        {    
             std::vector<CoordinatesArrayType> global_space_derivatives(2);
             mpNurbsCurve->GlobalSpaceDerivatives(
                 global_space_derivatives,
@@ -763,7 +648,7 @@ public:
                     global_space_derivatives[0][0], global_space_derivatives[0][1]);
             }
             else {
-                if (is_brep_internal) {
+                if (is_sbm && is_brep_internal) {
                     // SBM case on internal brep 
                     shape_function_container.ComputeBSplineShapeFunctionValuesAtSpan(
                         mpNurbsSurface->KnotsU(),
@@ -774,12 +659,26 @@ public:
                         global_space_derivatives[0][1]);
                 }
                 else {
-                    // SBM case on external brep
+                    // Trimming case or external brep
                     shape_function_container.ComputeBSplineShapeFunctionValues(
                         mpNurbsSurface->KnotsU(), mpNurbsSurface->KnotsV(),
                         global_space_derivatives[0][0], global_space_derivatives[0][1]);
                 } 
             }
+            
+            //************************************************************************************** */
+            // PRINT ON FILE GP COORDINATES ON PARAMETER SPACE */
+            std::ofstream outputFile("txt_files/Parameter_Gauss_Point_coordinates.txt", std::ios::app);
+            if (!outputFile.is_open())
+            {
+                std::cerr << "Failed to open the file for writing." << std::endl;
+                return;
+            }
+
+            outputFile << std::setprecision(14); // Set precision to 10^-14
+            outputFile << global_space_derivatives[0][0] << "  " << global_space_derivatives[0][1] <<"\n";
+            outputFile.close();
+            //************************************************************************************** */
 
             /// Get List of Control Points
             PointsArrayType nonzero_control_points(num_nonzero_cps);
@@ -840,6 +739,24 @@ public:
         return mpNurbsSurface->GlobalCoordinates(rResult, result_local);
     }
 
+
+    /*
+    * @brief This method maps from dimension space to parameter space.
+    * @param rResult array_1d<double, 3> with the coordinates in parameter space
+    * @param LocalCoordinates The local coordinates in dimension space
+    * @return array_1d<double, 3> with the coordinates in parameter space
+    * @see PointLocalCoordinates
+    */
+    CoordinatesArrayType& LocalCoordinates(
+        CoordinatesArrayType& rResult,
+        const CoordinatesArrayType& rLocalCoordinates
+    ) const
+    {
+        // Compute the coordinates of the embedded curve in the parametric space of the surface
+        return mpNurbsCurve->GlobalCoordinates(rResult, rLocalCoordinates);
+
+    }
+
     /**
     * @brief This method maps from dimension space to working space and computes the
     *        number of derivatives at the dimension parameter.
@@ -894,25 +811,87 @@ public:
         }
     }
 
+    /**
+    * @brief This method maps from dimension space to parameter space and computes the
+    *        number of derivatives at the dimension parameter.
+    * @param LocalCoordinates The local coordinates in dimension space
+    * @param Derivative Number of computed derivatives
+    * @return std::vector<array_1d<double, 3>> with the coordinates in parameter space
+    * @see PointLocalCoordinates
+    */
+    void LocalSpaceDerivatives(
+        std::vector<CoordinatesArrayType>& rGlobalSpaceDerivatives,
+        const CoordinatesArrayType& rCoordinates,
+        const SizeType DerivativeOrder) const 
+    {
+        // Check size of output
+        if (rGlobalSpaceDerivatives.size() != DerivativeOrder + 1) {
+            rGlobalSpaceDerivatives.resize(DerivativeOrder + 1);
+        }
+
+        // Compute the gradients of the embedded curve in the parametric space of the surface
+        mpNurbsCurve->GlobalSpaceDerivatives(rGlobalSpaceDerivatives, rCoordinates, DerivativeOrder);
+
+    }
+
+    /*
+    * @brief computes the normal of the curve
+    *        laying on the underlying surface.
+    * @param rResult Normal to the curve lying on the surface in the physical space.
+    * @param rLocalCoord local point coordinate in the curve in which compute the normal.
+    */
+    array_1d<double, 3> Normal(const CoordinatesArrayType& local_coord) const override
+    {
+        std::vector<CoordinatesArrayType> curve_global_space_derivatives(2);
+        this->LocalSpaceDerivatives(
+            curve_global_space_derivatives, local_coord, 1);
+
+        std::vector<CoordinatesArrayType> surface_global_space_derivatives(2);
+        mpNurbsSurface->GlobalSpaceDerivatives(surface_global_space_derivatives, curve_global_space_derivatives[0],2);
+
+        // mpNurbsSurface->GlobalSpaceDerivatives()
+        Vector local_tangent = curve_global_space_derivatives[1];
+        array_1d<double, 3> normal_parameter_space;
+
+        double magnitude = 1; //std::sqrt(local_tangent[0] * local_tangent[0] + local_tangent[1] * local_tangent[1]);
+
+        normal_parameter_space[0] = + local_tangent[1] / magnitude;
+        normal_parameter_space[1] = - local_tangent[0] / magnitude; 
+        normal_parameter_space[2] = 0;
+
+
+        Matrix Jacobian = ZeroMatrix(3,3);
+        Jacobian(0,0) = surface_global_space_derivatives[1][0];
+        Jacobian(0,1) = surface_global_space_derivatives[2][0];
+        Jacobian(1,0) = surface_global_space_derivatives[1][1];
+        Jacobian(1,1) = surface_global_space_derivatives[2][1];
+
+        Jacobian(2,2) = 1.0;
+
+        array_1d<double, 3> normal_physical_space;
+        // normal_physical_space = prod(Jacobian, normal_parameter_space);
+
+        //***** */
+        Matrix Inv_Jacobian = ZeroMatrix(3,3);
+        double detJ;
+        MathUtils<double>::InvertMatrix(Jacobian,Inv_Jacobian,detJ);
+
+        normal_physical_space = prod(normal_parameter_space, trans(Inv_Jacobian));
+        //***** */
+        normal_physical_space[2] = 0.0;
+
+        return normal_physical_space;
+    }
+
     ///@}
     ///@name Kratos Geometry Families
     ///@{
 
-    /**
-     * @brief Gets the geometry family.
-     * @details This function returns the family type of the geometry. The geometry family categorizes the geometry into a broader classification, aiding in its identification and processing.
-     * @return GeometryData::KratosGeometryFamily The geometry family.
-     */
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::KratosGeometryFamily::Kratos_Nurbs;
     }
 
-    /**
-     * @brief Gets the geometry type.
-     * @details This function returns the specific type of the geometry. The geometry type provides a more detailed classification of the geometry.
-     * @return GeometryData::KratosGeometryType The specific geometry type.
-     */
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::KratosGeometryType::Kratos_Nurbs_Curve_On_Surface;

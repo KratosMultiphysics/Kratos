@@ -37,9 +37,8 @@ namespace Kratos
  * @class BrepCurveOnSurface
  * @ingroup KratosCore
  * @brief The BrepCurveOnSurface acts as topology for curves on surfaces.
- * @tparam TShiftedBoundary Boolean flag indicating whether is defined with shifted boundary conditions.
  */
-template<class TContainerPointType, bool TShiftedBoundary, class TContainerPointEmbeddedType = TContainerPointType >
+template<class TContainerPointType, class TContainerPointEmbeddedType = TContainerPointType>
 class BrepCurveOnSurface
     : public Geometry<typename TContainerPointType::value_type>
 {
@@ -154,7 +153,7 @@ public:
     /// Copy constructor from a geometry with different point type.
     template<class TOtherContainerPointType, class TOtherContainerPointEmbeddedType>
     explicit BrepCurveOnSurface(
-        BrepCurveOnSurface<TOtherContainerPointType, TShiftedBoundary, TOtherContainerPointEmbeddedType> const& rOther )
+        BrepCurveOnSurface<TOtherContainerPointType, TOtherContainerPointEmbeddedType> const& rOther )
         : BaseType( rOther )
         , mpCurveOnSurface(rOther.mpCurveOnSurface)
         , mCurveNurbsInterval(rOther.mCurveNurbsInterval)
@@ -181,7 +180,7 @@ public:
 
     /// Assignment operator for geometries with different point type.
     template<class TOtherContainerPointType, class TOtherContainerPointEmbeddedType>
-    BrepCurveOnSurface& operator=( BrepCurveOnSurface<TOtherContainerPointType, TShiftedBoundary, TOtherContainerPointEmbeddedType> const & rOther )
+    BrepCurveOnSurface& operator=( BrepCurveOnSurface<TOtherContainerPointType, TOtherContainerPointEmbeddedType> const & rOther )
     {
         BaseType::operator=( rOther );
         mpCurveOnSurface = rOther.mpCurveOnSurface;
@@ -285,6 +284,15 @@ public:
         return mCurveNurbsInterval;
     }
 
+    void DomainInterval(Vector& domainInterval) const override
+    {
+        
+        if (domainInterval.size() != 2) domainInterval.resize(2);
+        domainInterval[0] = mCurveNurbsInterval.MinParameter();
+        domainInterval[1] = mCurveNurbsInterval.MaxParameter();
+
+    }
+
     /*
     * @brief Indicates if the NURBS-curve is pointing in the same direction
     *        as the B-Rep curve.
@@ -325,18 +333,8 @@ public:
      */
     void SpansLocalSpace(std::vector<double>& rSpans, IndexType DirectionIndex = 0) const override
     {
-        /* When the `TShiftedBoundary` template parameter is true, the spans are computed using 
-        *  the shifted boundary method by invoking `SpansLocalSpaceSBM`.
-        *  Otherwise, the spans are computed using the standard method by invoking `SpansLocalSpace`
-        */
-        if constexpr (TShiftedBoundary) {
-            mpCurveOnSurface->SpansLocalSpaceSBM(rSpans,
-                mCurveNurbsInterval.GetT0(), mCurveNurbsInterval.GetT1());
-        } else {
-            mpCurveOnSurface->SpansLocalSpace(rSpans,
-                mCurveNurbsInterval.GetT0(), mCurveNurbsInterval.GetT1());
-        }
-        
+        mpCurveOnSurface->SpansLocalSpace(rSpans,
+            mCurveNurbsInterval.GetT0(), mCurveNurbsInterval.GetT1());
     }
 
     ///@}
@@ -464,6 +462,21 @@ public:
         return mpCurveOnSurface->GlobalCoordinates(rResult, rLocalCoordinates);
     }
 
+    /*
+    * @brief This method maps from dimension space to parameter space.
+    * @param rResult array_1d<double, 3> with the coordinates in parameter space
+    * @param LocalCoordinates The local coordinates in dimension space
+    * @return array_1d<double, 3> with the coordinates in parameter space
+    * @see PointLocalCoordinates
+    */
+    CoordinatesArrayType& LocalCoordinates(
+        CoordinatesArrayType& rResult,
+        const CoordinatesArrayType& rLocalCoordinates
+    ) const
+     {
+        return mpCurveOnSurface->LocalCoordinates(rResult, rLocalCoordinates);
+    }
+
     /**
     * @brief This method maps from local space to global/working space and computes the
     *        number of derivatives at the underlying nurbs curve on surface
@@ -483,6 +496,27 @@ public:
         const SizeType DerivativeOrder) const override
     {
         return mpCurveOnSurface->GlobalSpaceDerivatives(rGlobalSpaceDerivatives, rLocalCoordinates, DerivativeOrder);
+    }
+
+    /**
+    * @brief This method maps from local space to local/parameter space and computes the
+    *        number of derivatives at the underlying nurbs curve on surface
+    *        at the parameter rLocalCoordinates[0].
+    *
+    * @param LocalCoordinates The local coordinates in curve-paramater space
+    * @param Derivative Number of computed derivatives
+    *        0 -> Location = PointLocalCoordinates
+    *        1 -> Tangent
+    *        2 -> Curvature
+    *        ...
+    * @return std::vector<array_1d<double, 3>> with the parameter space derivatives
+    */
+    void LocalSpaceDerivatives(
+        std::vector<CoordinatesArrayType>& rGlobalSpaceDerivatives,
+        const CoordinatesArrayType& rLocalCoordinates,
+        const SizeType DerivativeOrder) const
+    {
+        return mpCurveOnSurface->LocalSpaceDerivatives(rGlobalSpaceDerivatives, rLocalCoordinates, DerivativeOrder);
     }
 
     /**
@@ -543,7 +577,7 @@ public:
         IntegrationInfo& rIntegrationInfo) const override
     {
         std::vector<double> spans;
-        SpansLocalSpace(spans);
+        SpansLocalSpace(spans); 
 
         IntegrationPointUtilities::CreateIntegrationPoints1D(
             rIntegrationPoints, spans, rIntegrationInfo);
@@ -570,16 +604,9 @@ public:
         const IntegrationPointsArrayType& rIntegrationPoints,
         IntegrationInfo& rIntegrationInfo) override
     {
-        // If `TShiftedBoundary` is true, the method `CreateQuadraturePointGeometriesSBM` is called.
-        // Otherwise, the method `CreateQuadraturePointGeometries` is used for standard processing.
-        if constexpr (TShiftedBoundary) {
-            mpCurveOnSurface->CreateQuadraturePointGeometriesSBM(
-                rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationPoints, rIntegrationInfo);
-        } else {
-            mpCurveOnSurface->CreateQuadraturePointGeometries(
-                rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationPoints, rIntegrationInfo);
-        }
-        
+        mpCurveOnSurface->CreateQuadraturePointGeometries(
+            rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationPoints, rIntegrationInfo);
+
         for (IndexType i = 0; i < rResultGeometries.size(); ++i) {
             rResultGeometries(i)->SetGeometryParent(this);
         }
@@ -607,24 +634,19 @@ public:
     ///@name Geometry Classification
     ///@{
 
-    /**
-     * @brief Gets the geometry family.
-     * @details This function returns the family type of the geometry. The geometry family categorizes the geometry into a broader classification, aiding in its identification and processing.
-     * @return GeometryData::KratosGeometryFamily The geometry family.
-     */
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::KratosGeometryFamily::Kratos_Brep;
     }
 
-    /**
-     * @brief Gets the geometry type.
-     * @details This function returns the specific type of the geometry. The geometry type provides a more detailed classification of the geometry.
-     * @return GeometryData::KratosGeometryType The specific geometry type.
-     */
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::KratosGeometryType::Kratos_Brep_Curve_On_Surface;
+    }
+
+    array_1d<double, 3> Normal(const CoordinatesArrayType& local_coord) const override
+    {
+        return mpCurveOnSurface->Normal(local_coord);
     }
 
     ///@}
@@ -702,14 +724,14 @@ private:
 ///@{
 
 /// input stream functions
-template<class TContainerPointType, bool TShiftedBoundary, class TContainerPointEmbeddedType = TContainerPointType> inline std::istream& operator >> (
+template<class TContainerPointType, class TContainerPointEmbeddedType = TContainerPointType> inline std::istream& operator >> (
     std::istream& rIStream,
-    BrepCurveOnSurface<TContainerPointType, TShiftedBoundary, TContainerPointEmbeddedType>& rThis );
+    BrepCurveOnSurface<TContainerPointType, TContainerPointEmbeddedType>& rThis );
 
 /// output stream functions
-template<class TContainerPointType, bool TShiftedBoundary, class TContainerPointEmbeddedType = TContainerPointType> inline std::ostream& operator << (
+template<class TContainerPointType, class TContainerPointEmbeddedType = TContainerPointType> inline std::ostream& operator << (
     std::ostream& rOStream,
-    const BrepCurveOnSurface<TContainerPointType, TShiftedBoundary, TContainerPointEmbeddedType>& rThis )
+    const BrepCurveOnSurface<TContainerPointType, TContainerPointEmbeddedType>& rThis )
 {
     rThis.PrintInfo( rOStream );
     rOStream << std::endl;
@@ -721,14 +743,14 @@ template<class TContainerPointType, bool TShiftedBoundary, class TContainerPoint
 ///@name Static Type Declarations
 ///@{
 
-template<class TContainerPointType, bool TShiftedBoundary, class TContainerPointEmbeddedType> const
-GeometryData BrepCurveOnSurface<TContainerPointType, TShiftedBoundary, TContainerPointEmbeddedType>::msGeometryData(
+template<class TContainerPointType, class TContainerPointEmbeddedType> const
+GeometryData BrepCurveOnSurface<TContainerPointType, TContainerPointEmbeddedType>::msGeometryData(
     &msGeometryDimension,
     GeometryData::IntegrationMethod::GI_GAUSS_1,
     {}, {}, {});
 
-template<class TContainerPointType, bool TShiftedBoundary, class TContainerPointEmbeddedType>
-const GeometryDimension BrepCurveOnSurface<TContainerPointType, TShiftedBoundary, TContainerPointEmbeddedType>::msGeometryDimension(3, 1);
+template<class TContainerPointType, class TContainerPointEmbeddedType>
+const GeometryDimension BrepCurveOnSurface<TContainerPointType, TContainerPointEmbeddedType>::msGeometryDimension(3, 1);
 
 ///@}
 }// namespace Kratos.
