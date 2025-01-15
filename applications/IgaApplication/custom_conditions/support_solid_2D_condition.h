@@ -8,54 +8,57 @@
 //                   Kratos default license: kratos/license.txt
 //
 
-#if !defined(KRATOS_SBM_LAPLACIAN_CONDITION_H_INCLUDED )
-#define  KRATOS_SBM_LAPLACIAN_CONDITION_H_INCLUDED
+#if !defined(KRATOS_SUPPORT_SOLID_2D_CONDITION_H_INCLUDED )
+#define  KRATOS_SUPPORT_SOLID_2D_CONDITION_H_INCLUDED
 
 
 // System includes
 #include "includes/define.h"
 #include "includes/condition.h"
+#include "utilities/math_utils.h"
+#include "includes/variables.h"
+
 
 // External includes
 
 // Project includes
 #include "iga_application_variables.h"
 
+// Project includes
+#include "includes/constitutive_law.h"
+
 namespace Kratos
 {
     /// Condition for penalty support condition
-    class SBMLaplacianCondition
+    class SupportSolid2DCondition
         : public Condition
     {
     public:
         ///@name Type Definitions
         ///@{
 
-        /// Counted pointer definition of SBMLaplacianCondition
-        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SBMLaplacianCondition);
+        /// Counted pointer definition of SupportSolid2DCondition
+        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SupportSolid2DCondition);
 
         /// Size types
         typedef std::size_t SizeType;
         typedef std::size_t IndexType;
 
-        array_1d<double, 3> normal_parameter_space;
-        Matrix H_sum = ZeroMatrix(1, this->GetGeometry().size());
-        int basisFunctionsOrder;
-        Vector d;
-
         ///@}
         ///@name Life Cycle
         ///@{
+        
+        void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
         /// Constructor with Id and geometry
-        SBMLaplacianCondition(
+        SupportSolid2DCondition(
             IndexType NewId,
             GeometryType::Pointer pGeometry)
             : Condition(NewId, pGeometry)
         {};
 
         /// Constructor with Id, geometry and property
-        SBMLaplacianCondition(
+        SupportSolid2DCondition(
             IndexType NewId,
             GeometryType::Pointer pGeometry,
             PropertiesType::Pointer pProperties)
@@ -63,11 +66,11 @@ namespace Kratos
         {};
 
         /// Default constructor
-        SBMLaplacianCondition() : Condition()
+        SupportSolid2DCondition() : Condition()
         {};
 
         /// Destructor
-        virtual ~SBMLaplacianCondition() override
+        virtual ~SupportSolid2DCondition() override
         {};
 
         ///@}
@@ -81,7 +84,7 @@ namespace Kratos
             PropertiesType::Pointer pProperties
         ) const override
         {
-            return Kratos::make_intrusive<SBMLaplacianCondition>(
+            return Kratos::make_intrusive<SupportSolid2DCondition>(
                 NewId, pGeom, pProperties);
         };
 
@@ -92,7 +95,7 @@ namespace Kratos
             PropertiesType::Pointer pProperties
         ) const override
         {
-            return Kratos::make_intrusive<SBMLaplacianCondition>(
+            return Kratos::make_intrusive<SupportSolid2DCondition>(
                 NewId, GetGeometry().Create(ThisNodes), pProperties);
         };
 
@@ -110,7 +113,7 @@ namespace Kratos
             VectorType& rRightHandSideVector,
             const ProcessInfo& rCurrentProcessInfo) override
         {
-            const SizeType mat_size = GetGeometry().size() * 1;
+            const SizeType mat_size = GetGeometry().size() * 2;
 
             if (rRightHandSideVector.size() != mat_size)
                 rRightHandSideVector.resize(mat_size);
@@ -132,7 +135,7 @@ namespace Kratos
             MatrixType& rLeftHandSideMatrix,
             const ProcessInfo& rCurrentProcessInfo) override
         {
-            const SizeType mat_size = GetGeometry().size() * 1;
+            const SizeType mat_size = GetGeometry().size() * 2;
 
             VectorType right_hand_side_vector;
 
@@ -157,7 +160,7 @@ namespace Kratos
             VectorType& rRightHandSideVector,
             const ProcessInfo& rCurrentProcessInfo) override
         {
-            const SizeType mat_size = GetGeometry().size() * 1;
+            const SizeType mat_size = GetGeometry().size() * 2;
 
             if (rRightHandSideVector.size() != mat_size)
                 rRightHandSideVector.resize(mat_size);
@@ -200,41 +203,17 @@ namespace Kratos
             const bool CalculateResidualVectorFlag
         );
 
-        void CalculateAllDirichlet(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo,
-        const bool CalculateStiffnessMatrixFlag,
-        const bool CalculateResidualVectorFlag
-        );
+        void GetValuesVector(Vector& rValues) const;
 
-        void CalculateAllNeumann(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo,
-        const bool CalculateStiffnessMatrixFlag,
-        const bool CalculateResidualVectorFlag
-        );
-
-
+        void CalculateB(
+            Matrix& rB, 
+            Matrix& r_DN_DX) const;
         ///@}
         ///@name Check
         ///@{
 
         /// Performs check if Penalty factor is provided.
         int Check(const ProcessInfo& rCurrentProcessInfo) const override;
-
-        std::vector<Matrix> mShapeFunctionDerivatives;
-
-        int mbasisFunctionsOrder;
-
-        unsigned long long factorial(int n); 
-
-        double computeTaylorTerm(double derivative, double dx, int k, double dy, int n_k);
-
-        double computeTaylorTerm3D(double derivative, double dx, int k_x, double dy, int k_y, double dz, int k_z);
-
-        void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
         ///@}
         ///@name Input and output
@@ -244,14 +223,14 @@ namespace Kratos
         std::string Info() const override
         {
             std::stringstream buffer;
-            buffer << "\"SBMLaplacianCondition\" #" << Id();
+            buffer << "\"SupportSolid2DCondition\" #" << Id();
             return buffer.str();
         }
 
         /// Print information about this object.
         void PrintInfo(std::ostream& rOStream) const override
         {
-            rOStream << "\"SBMLaplacianCondition\" #" << Id();
+            rOStream << "\"SupportSolid2DCondition\" #" << Id();
         }
 
         /// Print object's data.
@@ -261,6 +240,54 @@ namespace Kratos
         }
 
         ///@}
+
+    protected:
+
+    
+    /**
+     * Internal variables used in the constitutive calculations
+     */
+    struct ConstitutiveVariables
+    {
+        ConstitutiveLaw::StrainVectorType StrainVector;
+        ConstitutiveLaw::StressVectorType StressVector;
+        ConstitutiveLaw::VoigtSizeMatrixType D;
+
+        /**
+         * The default constructor
+         * @param StrainSize The size of the strain vector in Voigt notation
+         */
+        ConstitutiveVariables(const SizeType StrainSize)
+        {
+            if (StrainVector.size() != StrainSize)
+                StrainVector.resize(StrainSize);
+
+            if (StressVector.size() != StrainSize)
+                StressVector.resize(StrainSize);
+
+            if (D.size1() != StrainSize || D.size2() != StrainSize)
+                D.resize(StrainSize, StrainSize);
+
+            noalias(StrainVector) = ZeroVector(StrainSize);
+            noalias(StressVector) = ZeroVector(StrainSize);
+            noalias(D)            = ZeroMatrix(StrainSize, StrainSize);
+        }
+    };
+
+    ///@name Protected static Member Variables
+    ///@{
+    void InitializeMaterial();
+
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
+    //@}
+    ///@name Protected member Variables
+    ///@{
+    ConstitutiveLaw::Pointer mpConstitutiveLaw; /// The pointer containing the constitutive laws
+
+    ///@}
 
     private:
         ///@name Serialization
@@ -278,13 +305,10 @@ namespace Kratos
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition);
         }
 
-        Parameters ReadParamatersFile(
-        const std::string& rDataFileName) const;
-
         ///@}
 
-    }; // Class SBMLaplacianCondition
+    }; // Class SupportPenaltyLaplacianCondition
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SUPPORT_PENALTY_CONDITION_H_INCLUDED  defined
+#endif // SupportSolid2DCondition  defined

@@ -30,6 +30,10 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mLaplacianIGAElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
+    , mSolid2DElement(0, Element::GeometryType::Pointer(
+        new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
+    , mConvDiffIGAElement(0, Element::GeometryType::Pointer(
+        new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mOutputCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mLoadCondition(0, Condition::GeometryType::Pointer(
@@ -50,8 +54,26 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSupportLaplacianCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mSupportConvDiffCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSBMLaplacianCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mSBMLaplacianNeumannCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mSBMSupportLagrangeCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mSupportLaplacianLagrangeCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mSupportSolid2DCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mLoadSolid2DCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mSBMSolid2DCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mSBMLoadSolid2DCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mSupportContact2DCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1)))) 
 {
 }
 
@@ -73,6 +95,8 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_ELEMENT("Shell5pHierarchicElement", mShell5pHierarchicElement)
     KRATOS_REGISTER_ELEMENT("Shell5pElement", mShell5pElement)
     KRATOS_REGISTER_ELEMENT("LaplacianIGAElement", mLaplacianIGAElement)
+    KRATOS_REGISTER_ELEMENT("Solid2DElement", mSolid2DElement)
+    KRATOS_REGISTER_ELEMENT("ConvDiffIGAElement", mConvDiffIGAElement)
 
     // CONDITIONS
     KRATOS_REGISTER_CONDITION("OutputCondition", mOutputCondition)
@@ -85,11 +109,22 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_CONDITION("SupportLagrangeCondition", mSupportLagrangeCondition)
     KRATOS_REGISTER_CONDITION("SupportNitscheCondition", mSupportNitscheCondition)
     KRATOS_REGISTER_CONDITION("SupportLaplacianCondition", mSupportLaplacianCondition)
+    KRATOS_REGISTER_CONDITION("SupportConvDiffCondition", mSupportConvDiffCondition)
     KRATOS_REGISTER_CONDITION("SBMLaplacianCondition", mSBMLaplacianCondition)
+    KRATOS_REGISTER_CONDITION("SBMLaplacianNeumannCondition", mSBMLaplacianNeumannCondition)
+    KRATOS_REGISTER_CONDITION("SBMSupportLagrangeCondition", mSBMSupportLagrangeCondition)
+    KRATOS_REGISTER_CONDITION("SupportLaplacianLagrangeCondition", mSupportLaplacianLagrangeCondition)
+    KRATOS_REGISTER_CONDITION("SupportSolid2DCondition", mSupportSolid2DCondition)
+    KRATOS_REGISTER_CONDITION("LoadSolid2DCondition", mLoadSolid2DCondition)
+    KRATOS_REGISTER_CONDITION("SBMSolid2DCondition", mSBMSolid2DCondition)
+    KRATOS_REGISTER_CONDITION("SBMLoadSolid2DCondition", mSBMLoadSolid2DCondition)
+    KRATOS_REGISTER_CONDITION("SupportContact2DCondition", mSupportContact2DCondition)
 
     KRATOS_REGISTER_MODELER("IgaModeler", mIgaModeler);
     KRATOS_REGISTER_MODELER("RefinementModeler", mRefinementModeler);
     KRATOS_REGISTER_MODELER("NurbsGeometryModeler", mNurbsGeometryModeler);
+    KRATOS_REGISTER_MODELER("NurbsGeometryModelerSbm", mNurbsGeometryModelerSbm);
+    KRATOS_REGISTER_MODELER("ContactIgaModeler", mContactIgaModeler);
 
     // VARIABLES
     KRATOS_REGISTER_VARIABLE(CROSS_AREA)
@@ -149,6 +184,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
 
     KRATOS_REGISTER_VARIABLE(PENALTY_FACTOR)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VECTOR_LAGRANGE_MULTIPLIER_REACTION)
+    KRATOS_REGISTER_VARIABLE(SCALAR_LAGRANGE_MULTIPLIER)
 
     KRATOS_REGISTER_VARIABLE(NITSCHE_STABILIZATION_FACTOR)
     KRATOS_REGISTER_VARIABLE(EIGENVALUE_NITSCHE_STABILIZATION_SIZE)
@@ -158,7 +194,27 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     // SBM Variables 
     KRATOS_REGISTER_VARIABLE(INTEGRATION_POINTS)
     KRATOS_REGISTER_VARIABLE(INTEGRATION_WEIGHTS)
-    KRATOS_REGISTER_VARIABLE(BOUNDARY_CONDITION_TYPE)
+
+    // CONTACT Variables 
+    KRATOS_REGISTER_VARIABLE(NORMAL_GAP )
+    KRATOS_REGISTER_VARIABLE(GAMMA_CONTACT )
+    KRATOS_REGISTER_VARIABLE(GAP )
+    KRATOS_REGISTER_VARIABLE(CONSTITUTIVE_MATRIX_MASTER )
+    KRATOS_REGISTER_VARIABLE(CONSTITUTIVE_MATRIX_SLAVE )
+    KRATOS_REGISTER_VARIABLE(NORMAL_STRESS_MASTER )
+    KRATOS_REGISTER_VARIABLE(NORMAL_STRESS_SLAVE )
+    KRATOS_REGISTER_VARIABLE(NORMAL_MASTER)
+    KRATOS_REGISTER_VARIABLE(NORMAL_SLAVE)
+    KRATOS_REGISTER_VARIABLE(DISPLACEMENT_MASTER)
+    KRATOS_REGISTER_VARIABLE(DISPLACEMENT_SLAVE)
+    KRATOS_REGISTER_VARIABLE(STRESS_MASTER)
+    KRATOS_REGISTER_VARIABLE(STRESS_SLAVE)
+    KRATOS_REGISTER_VARIABLE(STRAIN_MASTER)
+    KRATOS_REGISTER_VARIABLE(STRAIN_SLAVE)
+    KRATOS_REGISTER_VARIABLE(OLD_ACTIVATION_LEVEL)
+
+    //BC variables
+    KRATOS_REGISTER_VARIABLE(MODULE)
 }
 
 }  // namespace Kratos

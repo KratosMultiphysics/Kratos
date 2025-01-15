@@ -8,8 +8,8 @@
 //                   Kratos default license: kratos/license.txt
 //
 
-#if !defined(KRATOS_SBM_LAPLACIAN_CONDITION_H_INCLUDED )
-#define  KRATOS_SBM_LAPLACIAN_CONDITION_H_INCLUDED
+#if !defined(KRATOS_SUPPORT_CONV_DIFF_CONDITION_H_INCLUDED )
+#define  KRATOS_SUPPORT_CONV_DIFF_CONDITION_H_INCLUDED
 
 
 // System includes
@@ -24,38 +24,33 @@
 namespace Kratos
 {
     /// Condition for penalty support condition
-    class SBMLaplacianCondition
+    class SupportConvDiffCondition
         : public Condition
     {
     public:
         ///@name Type Definitions
         ///@{
 
-        /// Counted pointer definition of SBMLaplacianCondition
-        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SBMLaplacianCondition);
+        /// Counted pointer definition of SupportConvDiffCondition
+        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SupportConvDiffCondition);
 
         /// Size types
         typedef std::size_t SizeType;
         typedef std::size_t IndexType;
-
-        array_1d<double, 3> normal_parameter_space;
-        Matrix H_sum = ZeroMatrix(1, this->GetGeometry().size());
-        int basisFunctionsOrder;
-        Vector d;
 
         ///@}
         ///@name Life Cycle
         ///@{
 
         /// Constructor with Id and geometry
-        SBMLaplacianCondition(
+        SupportConvDiffCondition(
             IndexType NewId,
             GeometryType::Pointer pGeometry)
             : Condition(NewId, pGeometry)
         {};
 
         /// Constructor with Id, geometry and property
-        SBMLaplacianCondition(
+        SupportConvDiffCondition(
             IndexType NewId,
             GeometryType::Pointer pGeometry,
             PropertiesType::Pointer pProperties)
@@ -63,11 +58,11 @@ namespace Kratos
         {};
 
         /// Default constructor
-        SBMLaplacianCondition() : Condition()
+        SupportConvDiffCondition() : Condition()
         {};
 
         /// Destructor
-        virtual ~SBMLaplacianCondition() override
+        virtual ~SupportConvDiffCondition() override
         {};
 
         ///@}
@@ -81,7 +76,7 @@ namespace Kratos
             PropertiesType::Pointer pProperties
         ) const override
         {
-            return Kratos::make_intrusive<SBMLaplacianCondition>(
+            return Kratos::make_intrusive<SupportConvDiffCondition>(
                 NewId, pGeom, pProperties);
         };
 
@@ -92,7 +87,7 @@ namespace Kratos
             PropertiesType::Pointer pProperties
         ) const override
         {
-            return Kratos::make_intrusive<SBMLaplacianCondition>(
+            return Kratos::make_intrusive<SupportConvDiffCondition>(
                 NewId, GetGeometry().Create(ThisNodes), pProperties);
         };
 
@@ -200,22 +195,6 @@ namespace Kratos
             const bool CalculateResidualVectorFlag
         );
 
-        void CalculateAllDirichlet(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo,
-        const bool CalculateStiffnessMatrixFlag,
-        const bool CalculateResidualVectorFlag
-        );
-
-        void CalculateAllNeumann(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo,
-        const bool CalculateStiffnessMatrixFlag,
-        const bool CalculateResidualVectorFlag
-        );
-
 
         ///@}
         ///@name Check
@@ -223,18 +202,6 @@ namespace Kratos
 
         /// Performs check if Penalty factor is provided.
         int Check(const ProcessInfo& rCurrentProcessInfo) const override;
-
-        std::vector<Matrix> mShapeFunctionDerivatives;
-
-        int mbasisFunctionsOrder;
-
-        unsigned long long factorial(int n); 
-
-        double computeTaylorTerm(double derivative, double dx, int k, double dy, int n_k);
-
-        double computeTaylorTerm3D(double derivative, double dx, int k_x, double dy, int k_y, double dz, int k_z);
-
-        void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
         ///@}
         ///@name Input and output
@@ -244,14 +211,14 @@ namespace Kratos
         std::string Info() const override
         {
             std::stringstream buffer;
-            buffer << "\"SBMLaplacianCondition\" #" << Id();
+            buffer << "\"SupportConvDiffCondition\" #" << Id();
             return buffer.str();
         }
 
         /// Print information about this object.
         void PrintInfo(std::ostream& rOStream) const override
         {
-            rOStream << "\"SBMLaplacianCondition\" #" << Id();
+            rOStream << "\"SupportConvDiffCondition\" #" << Id();
         }
 
         /// Print object's data.
@@ -278,12 +245,9 @@ namespace Kratos
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition);
         }
 
-        Parameters ReadParamatersFile(
-        const std::string& rDataFileName) const;
-
         ///@}
 
-    }; // Class SBMLaplacianCondition
+    }; // Class SupportConvDiffCondition
 
 }  // namespace Kratos.
 

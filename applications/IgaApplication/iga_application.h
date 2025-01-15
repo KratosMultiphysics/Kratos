@@ -25,6 +25,8 @@
 #include "custom_elements/shell_5p_hierarchic_element.h"
 #include "custom_elements/shell_5p_element.h"
 #include "custom_elements/laplacian_IGA_element.h"
+#include "custom_elements/solid_2D_element.h"
+#include "custom_elements/conv_diff_IGA_element.h"
 
 //conditions
 #include "custom_conditions/output_condition.h"
@@ -37,12 +39,23 @@
 #include "custom_conditions/support_lagrange_condition.h"
 #include "custom_conditions/support_nitsche_condition.h"
 #include "custom_conditions/support_laplacian_condition.h"
+#include "custom_conditions/support_conv_diff_condition.h"
 #include "custom_conditions/sbm_laplacian_condition.h"
+#include "custom_conditions/sbm_laplacian_neumann_condition.h"
+#include "custom_conditions/sbm_support_lagrange_condition.h"
+#include "custom_conditions/support_laplacian_lagrange_condition.h"
+#include "custom_conditions/support_solid_2D_condition.h"
+#include "custom_conditions/sbm_solid_2D_condition.h"
+#include "custom_conditions/load_solid_2D_condition.h"
+#include "custom_conditions/sbm_load_solid_2D_condition.h"
+#include "custom_conditions/support_contact_2D_condition.h"
 
 //modelers
 #include "custom_modelers/iga_modeler.h"
 #include "custom_modelers/refinement_modeler.h"
 #include "custom_modelers/nurbs_geometry_modeler.h"
+#include "custom_modelers/nurbs_geometry_modeler_sbm.h"
+#include "custom_modelers/contact_iga_modeler.h"
 
 namespace Kratos {
 
@@ -123,6 +136,8 @@ private:
     const Shell5pHierarchicElement mShell5pHierarchicElement;
     const Shell5pElement mShell5pElement;
     const LaplacianIGAElement mLaplacianIGAElement;
+    const Solid2DElement mSolid2DElement;
+    const ConvDiffIGAElement mConvDiffIGAElement; 
 
     //Conditions
     const OutputCondition mOutputCondition;
@@ -135,12 +150,24 @@ private:
     const SupportLagrangeCondition mSupportLagrangeCondition;
     const SupportNitscheCondition mSupportNitscheCondition;
     const SupportLaplacianCondition mSupportLaplacianCondition;
+    const SupportConvDiffCondition mSupportConvDiffCondition;
     const SBMLaplacianCondition mSBMLaplacianCondition;
+    const SBMLaplacianNeumannCondition mSBMLaplacianNeumannCondition;
+    const SBMSupportLagrangeCondition mSBMSupportLagrangeCondition;
+    const SupportLaplacianLagrangeCondition mSupportLaplacianLagrangeCondition;
+    const SupportSolid2DCondition mSupportSolid2DCondition;
+    const LoadSolid2DCondition mLoadSolid2DCondition;
+    const SBMSolid2DCondition mSBMSolid2DCondition;
+    const SBMLoadSolid2DCondition mSBMLoadSolid2DCondition;
+    const SupportContact2DCondition mSupportContact2DCondition;
 
     // Modelers
     const IgaModeler mIgaModeler;
     const RefinementModeler mRefinementModeler;
     const NurbsGeometryModeler mNurbsGeometryModeler;
+    const NurbsGeometryModelerSbm mNurbsGeometryModelerSbm;
+    const ContactIgaModeler mContactIgaModeler;
+
 
     ///@}
     ///@name Private methods
