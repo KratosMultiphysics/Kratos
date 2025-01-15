@@ -127,7 +127,7 @@ void ShiftedBoundaryWallCondition<TDim>::CalculateLocalSystem(
     noalias(rLeftHandSideMatrix) = ZeroMatrix(local_size, local_size);
 
     AddNitscheImposition(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
-    //AddDirichletPenalization(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);  //TODO
+    //AddDirichletPenalization(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);  //TODO delete?
 
     KRATOS_CATCH("")
 }
@@ -336,7 +336,7 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
     noalias(aux_LHS) += pen_coeffs.second*weight*prod(aux_matrix_N_trans_tang, N_matrix);
 
     /////////////////////////////////////////////////////////////////////////////////
-    // Compute the slip tangential symmetric counterpart penalty coefficients (Nitsche stabilization TODO ?)
+    // Compute the slip tangential symmetric counterpart penalty coefficients (Nitsche stabilization)
     std::pair<const double, const double> nitsche_coeffs = this->ComputeSlipTangentialNitscheCoefficients(slip_length, penalty, parent_size, effective_viscosity);
 
     // Compute some integration point auxiliary matrices
@@ -354,7 +354,6 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
 
     // Add Nitsche Navier-slip contributions of the integration point to the local system (residual-based formulation with RHS=f_gamma-LHS*previous_solution)
     // NOTE for mesh movement (FM-ALE) the level set velocity contribution needs to be added here as well! TODO
-    //TODO NEXT testing imposition of boundary condition
     noalias(rLHS)  += aux_LHS;
     noalias(rRHS) -= prod(aux_LHS, unknown_values);
 }
