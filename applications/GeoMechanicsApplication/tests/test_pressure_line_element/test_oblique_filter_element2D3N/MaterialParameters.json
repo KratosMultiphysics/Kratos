@@ -15,6 +15,7 @@
         "BULK_MODULUS_FLUID"               : 1.000000e+20,
         "PERMEABILITY_XX"                  : 9.084000e-06,
         "DYNAMIC_VISCOSITY"                : 1.000000e-03,
+        "BIOT_COEFFICIENT"                 : 1.000000e+00,
         "RETENTION_LAW"                    : "PressureFilterLaw",
         "CROSS_AREA"                       : 1.0,
         "FILTER_LENGTH"                    : 3.0
