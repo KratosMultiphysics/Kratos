@@ -127,7 +127,6 @@ void ShiftedBoundaryWallCondition<TDim>::CalculateLocalSystem(
     noalias(rLeftHandSideMatrix) = ZeroMatrix(local_size, local_size);
 
     AddNitscheImposition(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
-    //AddDirichletPenalization(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);  //TODO delete?
 
     KRATOS_CATCH("")
 }
@@ -355,58 +354,6 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
     // Add Nitsche Navier-slip contributions of the integration point to the local system (residual-based formulation with RHS=f_gamma-LHS*previous_solution)
     // NOTE for mesh movement (FM-ALE) the level set velocity contribution needs to be added here as well! TODO
     noalias(rLHS)  += aux_LHS;
-    noalias(rRHS) -= prod(aux_LHS, unknown_values);
-}
-
-template<std::size_t TDim>
-void ShiftedBoundaryWallCondition<TDim>::AddDirichletPenalization(
-    MatrixType& rLHS,
-    VectorType& rRHS,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    const auto& r_geometry = this->GetGeometry();
-    const std::size_t local_size = rLHS.size1();
-    const std::size_t n_nodes = local_size / BlockSize;
-
-    // Get meshless geometry data and penalty coefficient
-    const double weight = GetValue(INTEGRATION_WEIGHT);
-    const auto& r_N = GetValue(SHAPE_FUNCTIONS_VECTOR);
-    const double pen_coeff = rCurrentProcessInfo.GetValue(PENALTY_COEFFICIENT);
-
-    // Obtain the previous iteration velocity and pressure solution (and subtract the embedded nodal velocity for FM-ALE) for all cloud nodes
-    Vector unknown_values(local_size);
-    for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
-        const auto& r_velocity= r_geometry[i_node].FastGetSolutionStepValue(VELOCITY);
-        //const auto& r_embedded_velocity = r_geometry[i_node].GetValue(EMBEDDED_VELOCITY);
-        /*for (std::size_t d = 0; d < TDim; ++d) {
-            unknown_values[i_node*BlockSize + d] = r_velocity[d];  // - r_embedded_velocity[d];  TODO
-        }*/
-        unknown_values[i_node*BlockSize +    0] = r_velocity[0];  //-1.0;
-        unknown_values[i_node*BlockSize +    1] = r_velocity[1];
-        unknown_values[i_node*BlockSize + TDim] = r_geometry[i_node].FastGetSolutionStepValue(PRESSURE);
-    }
-
-    // Auxilary matrix for adding contributions
-    MatrixType aux_LHS = ZeroMatrix(local_size, local_size);
-
-    // Add penalty contribution of the integration point (u=0)
-    for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
-        for (std::size_t j_node = 0; j_node < n_nodes; ++j_node) {
-            for (std::size_t di = 0; di < TDim; ++di) {
-                const std::size_t row = i_node * BlockSize + di;
-                for (std::size_t dj = 0; dj < TDim; ++dj){
-                    const std::size_t col = j_node * BlockSize + dj;
-                    aux_LHS(row, col) += pen_coeff * weight * r_N(i_node) * r_N(j_node);
-                }
-            }
-            // (p=0)
-            //aux_LHS(i_node * BlockSize + TDim, j_node * BlockSize + TDim) += pen_coeff * weight * r_N(i_node) * r_N(j_node); //TODO
-        }
-    }
-
-    // Add Dirichlet penalty contribution of the integration point to the local system (residual-based formulation with RHS=f_gamma-LHS*previous_solution)
-    // NOTE for mesh movement (FM-ALE) the level set velocity contribution needs to be added here as well!
-    noalias(rLHS) += aux_LHS;
     noalias(rRHS) -= prod(aux_LHS, unknown_values);
 }
 
