@@ -265,11 +265,6 @@ namespace Kratos
         }
 
         // Assembly
-        // if (this->Is(ACTIVE)) {
-        // KRATOS_WATCH(this->GetValue(ACTIVATION_LEVEL))
-        // KRATOS_WATCH(GetValue(ACTIVATION_LEVEL))
-
-        // const double gamma = this->GetValue(GAMMA_CONTACT);
         const double gamma = (*mpPropSlave)[YOUNG_MODULUS]/((*mpPropSlave)[YOUNG_MODULUS] + (*mpPropMaster)[YOUNG_MODULUS]);
 
         Vector normal_mean = normal_physical_space; // - (1-gamma)*slave_normal_physical_space;
@@ -568,6 +563,7 @@ namespace Kratos
             noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);
 
         } else { // CONTACT NOT ACTIVE FOR THE PAIR
+        // FIXME:
             if (penalty_integration != 0)
             {
                 Matrix DB_master = prod(r_D_master,B_master);

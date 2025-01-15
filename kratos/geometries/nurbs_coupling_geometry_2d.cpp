@@ -145,10 +145,10 @@ namespace Kratos
                                                 best_brep_slave_index,
                                                 25,
                                                 50,
-                                                1e-9
-                                                );  
+                                                1e-1);  
 
-                if (true ||(is_converged && last_is_converged))
+
+                if ((is_converged && last_is_converged)) //i>0 ||
                 {
                     int n_additional_subdivision = 1;
                     double V0 = integration_edges_on_parameter_parent_list[i_brep_parent][i-1];
@@ -171,6 +171,8 @@ namespace Kratos
             }
             
         }
+        // KRATOS_WATCH(integration_edges_on_parameter_parent_list)
+        // KRATOS_WATCH(integration_edges_on_parameter_parent_list_filtered)
 
         // exit(0);
         
