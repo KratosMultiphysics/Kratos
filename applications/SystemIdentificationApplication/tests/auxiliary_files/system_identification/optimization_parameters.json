@@ -124,7 +124,10 @@
                     "settings": {
                         "output_file_name": "auxiliary_files/summary.csv",
                         "write_kratos_version": false,
-                        "write_time_stamp": false
+                        "write_time_stamp": false,
+                        "list_of_output_components": [
+                            "response_function.damage_response"
+                        ]
                     }
                 }
             ]

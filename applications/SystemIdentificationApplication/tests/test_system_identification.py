@@ -33,8 +33,8 @@ class TestSystemIdentification(UnitTest.TestCase):
             "output_file_name"      : "auxiliary_files/summary.csv",
             "remove_output_file"    : true,
             "comparison_type"       : "csv_file",
-            "tolerance"             : 1e-2,
-            "relative_tolerance"    : 1e-2,
+            "tolerance"             : 1e-8,
+            "relative_tolerance"    : 1e-8,
             "dimension"             : 3
         }""")
         CompareTwoFilesCheckProcess(params).Execute()
