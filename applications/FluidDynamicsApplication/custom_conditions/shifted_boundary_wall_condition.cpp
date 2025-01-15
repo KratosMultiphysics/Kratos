@@ -127,7 +127,6 @@ void ShiftedBoundaryWallCondition<TDim>::CalculateLocalSystem(
     noalias(rLeftHandSideMatrix) = ZeroMatrix(local_size, local_size);
 
     AddNitscheImposition(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
-    //NOTE that penalization is less stable
     //AddDirichletPenalization(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);  //TODO
 
     KRATOS_CATCH("")
@@ -340,7 +339,7 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
     // Compute the slip tangential symmetric counterpart penalty coefficients (Nitsche stabilization TODO ?)
     std::pair<const double, const double> nitsche_coeffs = this->ComputeSlipTangentialNitscheCoefficients(slip_length, penalty, parent_size, effective_viscosity);
 
-    // Compute some integration point auxiliar matrices
+    // Compute some integration point auxiliary matrices
     const Matrix aux_matrix_BtransAtrans = prod(trans(B_matrix), trans(voigt_normal_proj_matrix));
     const Matrix aux_matrix_BtransAtransPtan = prod(aux_matrix_BtransAtrans, tang_proj_matrix);
 
@@ -355,6 +354,7 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
 
     // Add Nitsche Navier-slip contributions of the integration point to the local system (residual-based formulation with RHS=f_gamma-LHS*previous_solution)
     // NOTE for mesh movement (FM-ALE) the level set velocity contribution needs to be added here as well! TODO
+    //TODO NEXT testing imposition of boundary condition
     noalias(rLHS)  += aux_LHS;
     noalias(rRHS) -= prod(aux_LHS, unknown_values);
 }
@@ -368,6 +368,11 @@ void ShiftedBoundaryWallCondition<TDim>::AddDirichletPenalization(
     const auto& r_geometry = this->GetGeometry();
     const std::size_t local_size = rLHS.size1();
     const std::size_t n_nodes = local_size / BlockSize;
+
+    // Get meshless geometry data and penalty coefficient
+    const double weight = GetValue(INTEGRATION_WEIGHT);
+    const auto& r_N = GetValue(SHAPE_FUNCTIONS_VECTOR);
+    const double pen_coeff = rCurrentProcessInfo.GetValue(PENALTY_COEFFICIENT);
 
     // Obtain the previous iteration velocity and pressure solution (and subtract the embedded nodal velocity for FM-ALE) for all cloud nodes
     Vector unknown_values(local_size);
@@ -385,9 +390,6 @@ void ShiftedBoundaryWallCondition<TDim>::AddDirichletPenalization(
     // Auxilary matrix for adding contributions
     MatrixType aux_LHS = ZeroMatrix(local_size, local_size);
 
-    const double weight = GetValue(INTEGRATION_WEIGHT);
-    const auto& r_N = GetValue(SHAPE_FUNCTIONS_VECTOR);
-    const double pen_coeff = rCurrentProcessInfo.GetValue(PENALTY_COEFFICIENT);
     // Add penalty contribution of the integration point (u=0)
     for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
         for (std::size_t j_node = 0; j_node < n_nodes; ++j_node) {
@@ -399,7 +401,7 @@ void ShiftedBoundaryWallCondition<TDim>::AddDirichletPenalization(
                 }
             }
             // (p=0)
-            //aux_LHS(i_node * BlockSize + TDim, j_node * BlockSize + TDim) += pen_coeff * weight * r_N(i_node) * r_N(j_node); TODO
+            //aux_LHS(i_node * BlockSize + TDim, j_node * BlockSize + TDim) += pen_coeff * weight * r_N(i_node) * r_N(j_node); //TODO
         }
     }
 

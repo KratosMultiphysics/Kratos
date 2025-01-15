@@ -1,4 +1,5 @@
 // Project includes
+#include "includes/cfd_variables.h"
 #include "includes/define.h"
 #include "includes/kratos_flags.h"
 #include "includes/variables.h"
@@ -99,6 +100,16 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
     // Add base fluid contribution (volume integration)
     TBaseElement::CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
 
+    //TODO for testing
+    if (this->Id() == 1399) {  //1402
+        KRATOS_WATCH(rRightHandSideVector);
+        KRATOS_WATCH(rLeftHandSideMatrix);
+        const auto& r_geom = this->GetGeometry();
+        for (std::size_t i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
+            KRATOS_WATCH(r_geom(i_node)->GetSolutionStepValue(PRESSURE));
+        }
+    }
+
     // Check if the element belongs to the surrogate interface.
     // Note that the INTERFACE flag is assumed to be set in the 1st layer of elements attached to the surrogate boundary e.g. by the ShiftedBoundaryMeshlessInterfaceUtility.
     // At the faces of these INTERFACE elements which are attached to BOUNDARY elements (surrogate interface gamma_tilde), the boundary flux contributions is added as a surrogate.
@@ -132,7 +143,7 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
             GeometryData::ShapeFunctionsGradientsType shape_derivatives;
             this->CalculateGeometryData(volume_weights, shape_functions, shape_derivatives);
             std::size_t surrogate_pt_index = volume_weights.size();  // NOTE can be used for EmbeddedData: data.PositiveSideWeights.size();
-            const GeometryData::IntegrationMethod integration_method = r_boundaries[0].GetDefaultIntegrationMethod();  //GeometryData::IntegrationMethod::GI_GAUSS_1;
+            const GeometryData::IntegrationMethod integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;  // default: GeometryData::IntegrationMethod::GI_GAUSS_1 ? TODO necessary Gauss 2 ?!?!
 
             // Loop the surrogate faces of the element
             // NOTE that there is the chance that the surrogate face is not unique
@@ -197,36 +208,55 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
                     MathUtils<double>::InvertMatrix(aux_J_parent, aux_J_inv_parent, aux_detJ_parent);
                     int_pt_DN_DX_parent = prod(aux_DN_DXi_parent, aux_J_inv_parent);
 
+                    if (this->Id() == 1399) {  // 1402
+                        KRATOS_WATCH(normal_sur_bd);
+                        KRATOS_WATCH(int_pt_weight);
+                        KRATOS_WATCH(row(int_pt_N_parent,0));
+                        KRATOS_WATCH(int_pt_DN_DX_parent);
+                    }
+
                     // Update the element's data
                     this->UpdateIntegrationPointData(data, surrogate_pt_index++, int_pt_weight, row(int_pt_N_parent,0), int_pt_DN_DX_parent);
 
+                    MatrixType aux_LHS = ZeroMatrix(LocalSize, LocalSize);
+                    VectorType aux_RHS = ZeroVector(LocalSize);
+
                     // Calculate the surrogate boundary traction as t_i = tau_ij - p_h * I_ij) * n_j with tau_ij = C:delta^s u_h taking N, DN_DX and Weight from the element's data
-                    this->AddBoundaryTraction(data, normal_sur_bd, rLeftHandSideMatrix, rRightHandSideVector);
+                    this->AddBoundaryTraction(data, normal_sur_bd, aux_LHS, aux_RHS);
+
+                    if (this->Id() == 1399) {  // 1402
+                        KRATOS_WATCH(aux_LHS);
+                        KRATOS_WATCH(aux_RHS);
+                    }
+                    rLeftHandSideMatrix  += aux_LHS;
+                    rRightHandSideVector += aux_RHS;
                 }
             }
         }
 
-        // ALTERNATIVE (same result) - TODO: delete?
+        // ALTERNATIVE (same result using one Gauss point) - TODO: delete?
         /*if (sur_bd_ids_vect.size() != 0) {
             // Initialize the element data
             ShiftedBoundaryElementData data;
             data.Initialize(*this, rCurrentProcessInfo);
             //this->CalculateGeometryData(data.PositiveSideWeights, data.PositiveSideN, data.PositiveSideDNDX);  //TODO maybe necessary for material response
 
-            // Get the parent geometry data and calculate its material response (for C matrix)
+            // Get the parent geometry data. It is calculated at the element midpoint.
             double size_parent;
             const auto& r_geom = this->GetGeometry();
             array_1d<double, NumNodes> N_parent;
             BoundedMatrix<double, NumNodes, Dim> DN_DX_parent;
             GeometryUtils::CalculateGeometryData(r_geom, DN_DX_parent, N_parent, size_parent);
-            this->CalculateMaterialResponse(data);
+
+            // Calculate material response in order to update C matrix (constant)
+            this->CalculateMaterialResponse(data);//TODO stress vector would need updated integration point data?! --> N, DN_DX, velocity, strain vector
 
             // Auxilary LHS matrix for summation over the element's surrogate boundaries
             BoundedMatrix<double, LocalSize, LocalSize> aux_LHS = ZeroMatrix(LocalSize, LocalSize);
 
-            // Set strain matrix
+            // Get strain matrix
             // Thereby, we calculate the stress at the element midpoint (not at integration point)
-            // Note that in here we are assuming constant strain kinematics (which is correct for linear shape functions)
+            // NOTE that in here we are assuming constant strain kinematics (which is correct for linear shape functions)
             BoundedMatrix<double, StrainSize, LocalSize> B_matrix;
             FluidElementUtilities<NumNodes>::GetStrainMatrix(DN_DX_parent, B_matrix);
 
@@ -242,6 +272,10 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
                 const std::size_t n_bd_points = r_sur_bd_geom.PointsNumber();  // number of nodes of the surrogate face
                 const DenseVector<std::size_t> sur_bd_local_ids = row(nodes_in_faces, sur_bd_id);
                 const auto& r_sur_bd_N = r_sur_bd_geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);  // matrix of SF values F_{ij}, where i is integration pt index and j is SF index
+                //TODO GAUSS_2 needed for correct physics?!?!
+
+                const std::vector<IntegrationPoint<3>> & r_integrations_points = r_sur_bd_geom.IntegrationPoints( GeometryData::IntegrationMethod::GI_GAUSS_2 );
+                const std::size_t n_bd_gp = r_integrations_points.size();
 
                 // Get the gradient of the node opposite of the surrogate face
                 // Note that this is used to calculate the normal as n = - DN_DX_opposite_node / norm_2(DN_DX_opposite_node)
@@ -252,14 +286,19 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
                 // Note that the integration weight is calculated as Dim * Parent domain size * norm(DN_DX_opposite_node)
                 const double weight = Dim * size_parent / h_sur_bd;
 
-                // Compute the required projections using the boundary's normal, the elements constitutive matrix (C) and the strain matrix (B)
+                if (this->Id() == 1402) {
+                    KRATOS_WATCH(normal_sur_bd);
+                    KRATOS_WATCH(weight);
+                }
+
+                // Compute the required projections using the boundary's normal, the elements constitutive matrix (C) and the strain matrix (B) - constant for simplex element //TODO ?!
                 BoundedMatrix<double, Dim, StrainSize> voigt_normal_projection_matrix = ZeroMatrix(Dim, StrainSize);
                 FluidElementUtilities<NumNodes>::VoigtTransformForProduct(normal_sur_bd, voigt_normal_projection_matrix);
                 const BoundedMatrix<double, Dim, StrainSize> aux_matrix_AC = prod(voigt_normal_projection_matrix, data.C);
                 const BoundedMatrix<double, Dim, LocalSize> aux_matrix_ACB = prod(aux_matrix_AC, B_matrix);
 
                 // Fill the shape functions auxiliary transpose matrix and the pressure to Voigt notation operator matrix for the surrogate boundary integration point
-                // Note that the local face ids. are already taken into account in the assembly ??
+                // Note that the local face ids. are already taken into account in the assembly TODO??
                 BoundedMatrix<double, LocalSize, Dim> N_aux_trans = ZeroMatrix(LocalSize, Dim);
                 BoundedMatrix<double, StrainSize, LocalSize> pres_to_voigt_matrix_op = ZeroMatrix(StrainSize, LocalSize);
                 std::size_t i_local_id;
@@ -272,17 +311,31 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
                 }
 
                 // Contribution coming from the shear stress operator
-                aux_LHS += weight * prod(N_aux_trans, aux_matrix_ACB);
+                //aux_LHS += weight * prod(N_aux_trans, aux_matrix_ACB);
 
                 // Contribution coming from the pressure terms
                 const BoundedMatrix<double, LocalSize, StrainSize> N_voigt_proj_matrix = prod(N_aux_trans, voigt_normal_projection_matrix);
                 aux_LHS -= weight * prod(N_voigt_proj_matrix, pres_to_voigt_matrix_op);
-            }
+
+                if (this->Id() == 1402) {
+                    //KRATOS_WATCH(prod(N_aux_trans, aux_matrix_ACB));
+                    KRATOS_WATCH(prod(N_voigt_proj_matrix, pres_to_voigt_matrix_op));
+                }
+
+                /*aux_LHS(6,2) *= 4/6.0;
+                aux_LHS(7,2) *= 4/6.0;
+                aux_LHS(6,8) *= 4/3.0;
+                aux_LHS(7,8) *= 4/3.0;*/
+            /*}
 
             // Add boundary traction of the element's surrogate boundaries to the system
             array_1d<double,LocalSize> values;
             this->GetCurrentValuesVector(data,values);
             rLeftHandSideMatrix -= aux_LHS;
+            if (this->Id() == 1402) {
+                KRATOS_WATCH(aux_LHS);
+                KRATOS_WATCH(prod(aux_LHS, values));
+            }
             rRightHandSideVector += prod(aux_LHS, values);
         }*/
     }

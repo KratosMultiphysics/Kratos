@@ -328,7 +328,7 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
                 # Adapt settings
                 settings["skin_model_part_name"].SetString(skin_model_part_name)
                 if skin_model_part_name == "Cylinder":
-                    #TODO NEXT new "find_enclosed_volumes" process instead
+                    #TODO create and use "find_enclosed_volumes" process instead?!
                     # to determine enclosed volumes bound by inactive elements and set p=0 for one node if no node's pressure is fixed yet
                     settings.AddEmptyValue("enclosed_area").SetString("negative")
                     #settings.AddEmptyValue("enclosed_area").SetString("none")

@@ -46,6 +46,7 @@
 #include <mutex>
 #include <ostream>
 #include <shared_mutex>
+#include <string>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -226,8 +227,8 @@ namespace Kratos
 
         // Check for nodes that would be surrounded by SBM_BOUNDARY elements mostly to detect small cuts
         //TODO do not move outer boundary elements?
-        //const std::size_t n_dim = mpModelPart->GetProcessInfo()[DOMAIN_SIZE];
-        const double relocation_multiplier = 1e-2;  //1e-10 OR 1e-2*length for smoother SBM_BOUNDARY
+        const std::size_t n_dim = mpModelPart->GetProcessInfo()[DOMAIN_SIZE];
+        const double relocation_multiplier = 1e-1;  //TODO 1e-10 OR 1e-2*length for smoother SBM_BOUNDARY
         std::size_t n_relocated_nodes = 0;
         LockObject mutex;
         block_for_each(mpModelPart->Nodes(), [&](NodeType& rNode) {
@@ -246,9 +247,9 @@ namespace Kratos
             }
             // TODO improve calculation for whether node should be relocated for 3D
             // n_neighbors/2 +1 works well for 2D - TODO: n_neighbors/2+2 as well?? 3D +4?
-            //const std::size_t n_critical = (n_dim == 2) ? n_neighbors-1 : n_neighbors;
-            //const bool majority_is_selected = double(n_selected) > double(n_neighbors)/2.0 + 0.9;//  n_selected >= n_critical;
-            const bool majority_is_selected = n_selected >= n_neighbors-1;
+            const std::size_t n_critical = (n_dim == 2) ? n_neighbors-1 : n_neighbors;
+            const bool majority_is_selected = double(n_selected) > double(n_neighbors)/2.0 + 0.9 && n_selected >= n_critical;
+            //const bool majority_is_selected = n_selected >= n_critical;
 
             // If there are mostly intersected elements around the current node, we will move it into the direction of an intersecting object's normal
             bool relocate_node = false;
@@ -326,7 +327,7 @@ namespace Kratos
             });
         }
 
-        KRATOS_INFO("ShiftedBoundaryPointBasedInterfaceUtility") << mSkinModelPartName << " tessellated boundary flags were set. " << n_relocated_nodes << " nodes were relocated." << std::endl;
+        KRATOS_INFO("ShiftedBoundaryPointBasedInterfaceUtility") << "'" << mSkinModelPartName << "' tessellated boundary flags were set. " << n_relocated_nodes << " nodes were relocated." << std::endl;
     }
 
     void ShiftedBoundaryPointBasedInterfaceUtility::LocateSkinPoints()
@@ -351,7 +352,7 @@ namespace Kratos
            rKeyData.first->Set(SBM_BOUNDARY, true);
         });
 
-        KRATOS_INFO("ShiftedBoundaryPointBasedInterfaceUtility") << mSkinModelPartName << " skin points were mapped to volume mesh elements."  << std::endl;
+        KRATOS_INFO("ShiftedBoundaryPointBasedInterfaceUtility") << "'" << mSkinModelPartName << "' skin points were mapped to volume mesh elements."  << std::endl;
     }
 
     void ShiftedBoundaryPointBasedInterfaceUtility::SetInterfaceFlags()
@@ -384,7 +385,7 @@ namespace Kratos
                 }
             }
         });
-        KRATOS_INFO("ShiftedBoundaryPointBasedInterfaceUtility") << mSkinModelPartName << " interface flags were set."  << std::endl;
+        KRATOS_INFO("ShiftedBoundaryPointBasedInterfaceUtility") << "'" << mSkinModelPartName << "' interface flags were set."  << std::endl;
     }
 
     void ShiftedBoundaryPointBasedInterfaceUtility::DeactivateElementsAndNodes()
@@ -1206,11 +1207,11 @@ namespace Kratos
             if (ConsiderPositiveSide != (rSidesVector[i_node] <= 0.0)) {
                 // If a node on the side that is being considered is not active, then no wall condition is created
                 if (!p_node->Is(ACTIVE)) {
-                    /*if (ConsiderPositiveSide) {
-                        KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility") << "No wall condition will be created for positive side of the skin point because Node No." << p_node->Id() << " is not active." << std::endl;
-                    } else {
-                        KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility") << "No wall condition will be created for negative side of the skin point because Node No." << p_node->Id() << " is not active." << std::endl;
-                    }*/
+                    // if (ConsiderPositiveSide) {
+                    //     KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility") << "No wall condition will be created for positive side of the skin point because Node No." << p_node->Id() << " is not active." << std::endl;
+                    // } else {
+                    //     KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility") << "No wall condition will be created for negative side of the skin point because Node No." << p_node->Id() << " is not active." << std::endl;
+                    // }
                     return false;
                 }
                 // Note that we need to check for the ids to match as we do not know the node's position in the node vector
@@ -1259,6 +1260,19 @@ namespace Kratos
                 }
             }
         }
+
+        /*const std::size_t n_nodes = r_geom.PointsNumber();
+        PointerVector<NodeType> cloud_node_vector;
+        cloud_node_vector.resize(n_nodes);
+        Vector N_container_2 = ZeroVector(n_nodes);
+        Matrix DN_DX_container_2 = ZeroMatrix(n_nodes, n_dim);
+        for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+            cloud_node_vector(i_node) = r_geom(i_node);
+            N_container_2(i_node) = rIntPtShapeFunctionValues(i_node);
+            for (std::size_t d = 0; d < n_dim; ++d) {
+                DN_DX_container_2(i_node, d) += rIntPtShapeFunctionDerivatives(i_node, d);
+            }
+        }*/
 
         // Create a new condition with a geometry made up with the basis nodes
         auto p_prop = rElement.pGetProperties();
