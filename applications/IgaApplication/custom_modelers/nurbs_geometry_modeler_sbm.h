@@ -7,7 +7,8 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Manuel Messmer
+//  Main authors:    Nicolo' Antonelli
+//                   Andrea Gorgi
 //
 
 #if !defined(KRATOS_NURBS_GEOMETRY_MODELER_SBM_H_INCLUDED )
@@ -19,7 +20,7 @@
 
 // Project includes
 #include "includes/model_part.h"
-#include "modeler/modeler.h"
+#include "nurbs_geometry_modeler.h"
 #include "geometries/nurbs_volume_geometry.h"
 #include "geometries/nurbs_surface_geometry.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_surface_refinement_utilities.h"
@@ -29,7 +30,7 @@
 namespace Kratos {
 
 class KRATOS_API(IGA_APPLICATION) NurbsGeometryModelerSbm
-    : public Modeler
+    : public NurbsGeometryModeler
 {
 public:
     ///@name Type Definitions
@@ -51,7 +52,6 @@ public:
 
     typedef PointerVector<Node> ContainerNodeType;
     typedef PointerVector<Point> ContainerEmbeddedNodeType;
-    typedef BrepCurveOnSurface<ContainerNodeType, ContainerEmbeddedNodeType> BrepCurveOnSurfaceType;
 
     ///@}
     ///@name Life Cycle
@@ -59,13 +59,13 @@ public:
 
     /// Default constructor.
     NurbsGeometryModelerSbm()
-        : Modeler() {}
+        : NurbsGeometryModeler() {}
 
     /// Constructor.
     NurbsGeometryModelerSbm(
         Model & rModel,
         const Parameters ModelerParameters = Parameters())
-        : Modeler(rModel, ModelerParameters)
+        : NurbsGeometryModeler(rModel, ModelerParameters)
         , mpModel(&rModel)
     {
     }
@@ -87,15 +87,7 @@ public:
 
     ///@}
 
-private:
-    ///@name Private Member Variables
-    ///@{
-
-    Model* mpModel;
-
-    ///@}
-    ///@name Private Operations
-    ///@{
+protected:
 
     /**
      * @brief Creates a regular grid composed out of bivariant B-splines.
@@ -106,7 +98,18 @@ private:
      * @note The CP'S are defined as nodes and added to the rModelPart.
      **/
     void CreateAndAddRegularGrid2D( ModelPart& r_model_part, const Point& A_xyz, const Point& B_xyz, const Point& A_uvw, const Point& B_uvw,
-        SizeType OrderU, SizeType OrderV, SizeType NumKnotSpansU, SizeType NumKnotSpansV );
+        SizeType OrderU, SizeType OrderV, SizeType NumKnotSpansU, SizeType NumKnotSpansV, bool add_surface_to_model_part ) override;
+
+private:
+
+    ///@name Private Member Variables
+    ///@{
+
+    Model* mpModel;
+
+    ///@}
+    ///@name Private Operations
+    ///@{
 
     /**
      * @brief Creates a cartesian grid composed out of trivariant B-spline cubes.

@@ -328,67 +328,67 @@ public:
             check_per_segment_stress[segment_index] += check_value_stress;
             check_per_segment_gap[segment_index] += check_value_gap;
 
-            if (check_value_stress< -toll)
-            {   
-                if (i_cond->GetValue(ACTIVATION_LEVEL) == 1)
-                {
-                    i_cond->SetValue(ACTIVATION_LEVEL, 0);
-                    n_changes++;
-                }
-            } else if (check_value_gap > toll)
-            {
+            // if (check_value_stress< -toll)
+            // {   
+            //     if (i_cond->GetValue(ACTIVATION_LEVEL) == 1)
+            //     {
+            //         i_cond->SetValue(ACTIVATION_LEVEL, 0);
+            //         n_changes++;
+            //     }
+            // } else if (check_value_gap > toll)
+            // {
                 
-                if (i_cond->GetValue(ACTIVATION_LEVEL) == 0)
-                {
-                    i_cond->SetValue(ACTIVATION_LEVEL, 1);
-                    n_changes++;
-                }
+            //     if (i_cond->GetValue(ACTIVATION_LEVEL) == 0)
+            //     {
+            //         i_cond->SetValue(ACTIVATION_LEVEL, 1);
+            //         n_changes++;
+            //     }
                 
-            }
+            // }
 
             count_cond++;
 
         }
 
-        // count_cond = 0;
-        // for (auto i_cond(contact_sub_model_part->Conditions().begin()); i_cond != contact_sub_model_part->Conditions().end(); ++i_cond)
-        // {
-        //     int segment_index = (int) count_cond/n_GP_per_segment;
+        count_cond = 0;
+        for (auto i_cond(contact_sub_model_part->Conditions().begin()); i_cond != contact_sub_model_part->Conditions().end(); ++i_cond)
+        {
+            int segment_index = (int) count_cond/n_GP_per_segment;
 
-        //     // // OLD VERSION 
-        //     // if (check_per_segment[segment_index]/length[segment_index] > toll)
-        //     // {
-        //     //     if (i_cond->GetValue(ACTIVATION_LEVEL) == 0)
-        //     //     {
-        //     //         i_cond->SetValue(ACTIVATION_LEVEL, 1);
-        //     //         n_changes++;
-        //     //     }
-        //     // } else {
-        //     //     if (i_cond->GetValue(ACTIVATION_LEVEL) == 1)
-        //     //     {
-        //     //         i_cond->SetValue(ACTIVATION_LEVEL, 0);
-        //     //         n_changes++;
-        //     //     }
-        //     // }
+            // // OLD VERSION 
+            // if (check_per_segment[segment_index]/length[segment_index] > toll)
+            // {
+            //     if (i_cond->GetValue(ACTIVATION_LEVEL) == 0)
+            //     {
+            //         i_cond->SetValue(ACTIVATION_LEVEL, 1);
+            //         n_changes++;
+            //     }
+            // } else {
+            //     if (i_cond->GetValue(ACTIVATION_LEVEL) == 1)
+            //     {
+            //         i_cond->SetValue(ACTIVATION_LEVEL, 0);
+            //         n_changes++;
+            //     }
+            // }
 
-        //     // NEW VERSION 
-        //     if (i_cond->GetValue(ACTIVATION_LEVEL) == 1 &&
-        //         check_per_segment_stress[segment_index]/length[segment_index] < -toll)
-        //     {
-        //         i_cond->SetValue(ACTIVATION_LEVEL, 0);
-        //         n_changes++;
-        //     }
-        //     else if (i_cond->GetValue(ACTIVATION_LEVEL) == 0 &&
-        //         check_per_segment_gap[segment_index]/length[segment_index] > toll)
-        //     {
-        //         i_cond->SetValue(ACTIVATION_LEVEL, 1);
-        //         n_changes++;
-        //     }
+            // NEW VERSION 
+            if (i_cond->GetValue(ACTIVATION_LEVEL) == 1 &&
+                check_per_segment_stress[segment_index]/length[segment_index] < -toll)
+            {
+                i_cond->SetValue(ACTIVATION_LEVEL, 0);
+                n_changes++;
+            }
+            else if (i_cond->GetValue(ACTIVATION_LEVEL) == 0 &&
+                check_per_segment_gap[segment_index]/length[segment_index] > toll)
+            {
+                i_cond->SetValue(ACTIVATION_LEVEL, 1);
+                n_changes++;
+            }
 
 
-        //     count_cond++;
+            count_cond++;
 
-        // }
+        }
         double min_percentage_change = 0.0; //0.002; //8/n_cond;
         double rel_change = (double) n_changes/n_cond;
         if (rel_change <= min_percentage_change){

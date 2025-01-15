@@ -104,8 +104,15 @@ namespace Kratos
                 GetPointsAt(geometry_list, geometry_type, rParameters["parameters"], sub_model_part);
             }
             else {
-                CreateQuadraturePointGeometries(
-                    geometry_list, sub_model_part, rParameters["parameters"], geometry_type);
+                //Check if is isSBM 
+                if (rParameters["parameters"].Has("SBM_parameters")) {
+                    CreateQuadraturePointGeometriesSbm(
+                        geometry_list, rModelPart, sub_model_part, rParameters["parameters"], geometry_type);
+                }
+                else {
+                    CreateQuadraturePointGeometries(
+                        geometry_list, sub_model_part, rParameters["parameters"], geometry_type);
+                }
             }
         }
         KRATOS_INFO_IF("CreateIntegrationDomainElementCondition", mEchoLevel > 3)
@@ -143,72 +150,7 @@ namespace Kratos
             << " for " << rGeometryList.size() << " geometries"
             << " in " << rModelPart.Name() << "-SubModelPart." << std::endl;
 
-        // MODIFIED SBM
         
-
-        PointVector points;
-        std::string skin_model_part_name;
-        if (!mParameters.Has("skin_model_part_name")) skin_model_part_name = "skin_model_part";
-        else {
-            skin_model_part_name = mParameters["skin_model_part_name"].GetString();
-        }
-        ModelPart& skin_model_part_in = mpModel->HasModelPart(skin_model_part_name + "_in")
-                ? mpModel->GetModelPart(skin_model_part_name + "_in")
-                : mpModel->CreateModelPart(skin_model_part_name + "_in");
-        ModelPart& skin_model_part_out = mpModel->HasModelPart(skin_model_part_name + "_out")
-                ? mpModel->GetModelPart(skin_model_part_name + "_out")
-                : mpModel->CreateModelPart(skin_model_part_name + "_out");
-
-        std::string surrogate_model_part_name;
-        if (!mParameters.Has("surrogate_model_part_name")) surrogate_model_part_name = "surrogate_model_part";
-        else {
-            surrogate_model_part_name = mParameters["surrogate_model_part_name"].GetString();
-        }
-
-        bool is_inner;     
-        bool is_SBM = false;
-        Vector meshSizes_uv;
-        Vector parameterExternalCoordinates;
-        double radius;
-        if (name.substr(0, 3) == "SBM") {
-            is_inner = rParameters["is_inner"].GetBool();
-            double meshSize;
-            if (is_inner) { // INNER
-                for (auto &i_cond : skin_model_part_in.Conditions()) {
-                    points.push_back(PointTypePointer(new PointType(i_cond.Id(), i_cond.GetGeometry().Center().X(), i_cond.GetGeometry().Center().Y(), i_cond.GetGeometry().Center().Z())));
-                }
-                meshSizes_uv = mpModel->GetModelPart(surrogate_model_part_name + "_inner").GetProcessInfo().GetValue(MARKER_MESHES);
-                parameterExternalCoordinates = mpModel->GetModelPart(surrogate_model_part_name + "_inner").GetProcessInfo().GetValue(LOAD_MESHES);
-                meshSize = meshSizes_uv[0];
-                if (meshSizes_uv[1] > meshSize) {meshSize = meshSizes_uv[1];}
-                if (meshSizes_uv.size() > 2) {if (meshSizes_uv[2] > meshSize) {meshSize = meshSizes_uv[2];}}
-            } 
-            else { // OUTER
-                for (auto &i_cond : skin_model_part_out.Conditions()) {
-                    points.push_back(PointTypePointer(new PointType(i_cond.Id(), i_cond.GetGeometry().Center().X(), i_cond.GetGeometry().Center().Y(), i_cond.GetGeometry().Center().Z())));
-                }
-
-                meshSizes_uv = mpModel->GetModelPart(surrogate_model_part_name + "_outer").GetProcessInfo().GetValue(MARKER_MESHES);
-                parameterExternalCoordinates = mpModel->GetModelPart(surrogate_model_part_name + "_outer").GetProcessInfo().GetValue(LOAD_MESHES);
-                meshSize = meshSizes_uv[0];
-                if (meshSizes_uv[1] > meshSize) {meshSize = meshSizes_uv[1];}
-                if (meshSizes_uv.size() > 2) {if (meshSizes_uv[2] > meshSize) {meshSize = meshSizes_uv[2];}}
-            }
-            
-            is_SBM = true;
-
-            radius = sqrt(3)*(meshSize); 
-            // radius = 30*(meshSize);
-        }
-        DynamicBins testBins(points.begin(), points.end());
-        
-        
-        // 
-
-
-        const int numberOfResults = 1e6; 
-        ModelPart::NodesContainerType::ContainerType Results(numberOfResults);
-        std::vector<double> list_of_distances(numberOfResults);
         for (SizeType i = 0; i < rGeometryList.size(); ++i)
         {
             GeometriesArrayType geometries;
@@ -234,10 +176,6 @@ namespace Kratos
                     integration_info.SetNumberOfIntegrationPointsPerSpan(i, rParameters["number_of_integration_points_per_span"].GetInt());
                 }
             }
-            // TIME
-            // Inizia il timer
-            auto start = std::chrono::high_resolution_clock::now();
-            // TIME
             if (GeometryType == "SurfaceEdge"
                 && rGeometryList[i].GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Coupling_Geometry)
             {
@@ -267,10 +205,168 @@ namespace Kratos
                 if (rModelPart.GetRootModelPart().Conditions().size() > 0)
                     id = rModelPart.GetRootModelPart().Conditions().back().Id() + 1;
                 std::vector<int> listIdClosestCondition(geometries.size());
+                this->CreateConditions(
+                    geometries.ptr_begin(), geometries.ptr_end(),
+                    rModelPart, name, id, PropertiesPointerType());
+            }
+            else {
+                KRATOS_ERROR << "\"type\" does not exist: " << type
+                    << ". Possible types are \"element\" and \"condition\"." << std::endl;
+            }
+        }
+        KRATOS_WATCH("finee")
+    }
+
+
+
+
+    void IgaModeler::CreateQuadraturePointGeometriesSbm(
+        GeometriesArrayType& rGeometryList,
+        ModelPart& rIgaModelPart,
+        ModelPart& rModelPart,
+        const Parameters rParameters,
+        std::string GeometryType) const
+    {
+        KRATOS_ERROR_IF_NOT(rParameters.Has("type"))
+            << "\"type\" need to be specified." << std::endl;
+        std::string type = rParameters["type"].GetString();
+        KRATOS_ERROR_IF_NOT(rParameters.Has("name"))
+            << "\"name\" need to be specified." << std::endl;
+        std::string name = rParameters["name"].GetString();
+
+        SizeType shape_function_derivatives_order = 1;
+        if (rParameters.Has("shape_function_derivatives_order")) {
+            shape_function_derivatives_order = rParameters["shape_function_derivatives_order"].GetInt();
+        }
+        else {
+            KRATOS_INFO_IF("CreateQuadraturePointGeometriesSbm", mEchoLevel > 4)
+                << "shape_function_derivatives_order is not provided and thus being considered as 1. " << std::endl;
+        }
+
+        std::string quadrature_method = rParameters.Has("quadrature_method")
+            ? rParameters["integration_rule"].GetString()
+            : "GAUSS";
+
+        KRATOS_INFO_IF("CreateQuadraturePointGeometriesSbm", mEchoLevel > 0)
+            << "Creating " << name << "s of type: " << type
+            << " for " << rGeometryList.size() << " geometries"
+            << " in " << rModelPart.Name() << "-SubModelPart." << std::endl;
+
+        PointVector points;
+        std::string skin_model_part_name;
+        if (!mParameters.Has("skin_model_part_name")) skin_model_part_name = "skin_model_part";
+        else {
+            skin_model_part_name = mParameters["skin_model_part_name"].GetString();
+        }
+        ModelPart& skin_model_part = mpModel->HasModelPart(skin_model_part_name)
+                ? mpModel->GetModelPart(skin_model_part_name)
+                : KRATOS_ERROR << "::[CreateQuadraturePointGeometriesSbm]::: Sbm case -> skin_model_part has not been defined before."
+                               << "Maybe you are not calling the nurbs_modeler_sbm" << std::endl;
+        ModelPart& skin_sub_model_part_in = skin_model_part.GetSubModelPart("inner");
+        ModelPart& skin_sub_model_part_out = skin_model_part.GetSubModelPart("outer");
+
+        std::string surrogate_sub_model_part_name;
+        if (!(rParameters["SBM_parameters"]).Has("surrogate_sub_model_part_name")) surrogate_sub_model_part_name = "da_cambiare";
+        else {
+            surrogate_sub_model_part_name = rParameters["SBM_parameters"]["surrogate_sub_model_part_name"].GetString();
+        }
+
+        ModelPart& surrogate_sub_model_part = rIgaModelPart.HasSubModelPart(surrogate_sub_model_part_name)
+                ? rIgaModelPart.GetSubModelPart(surrogate_sub_model_part_name)
+                : KRATOS_ERROR << "::[CreateQuadraturePointGeometriesSbm]::: Sbm case -> surrogate_sub_model_part has not been defined before."
+                               << "Maybe you are not calling the nurbs_modeler_sbm" << std::endl;
+
+        bool is_inner;     
+        Vector meshSizes_uv;
+        Vector parameterExternalCoordinates;
+        double radius;
+        
+        is_inner = rParameters["SBM_parameters"]["is_inner"].GetBool();
+        double meshSize;
+        if (is_inner) { // INNER
+            for (auto &i_cond : skin_sub_model_part_in.Conditions()) {
+                points.push_back(PointTypePointer(new PointType(i_cond.Id(), i_cond.GetGeometry().Center().X(), i_cond.GetGeometry().Center().Y(), i_cond.GetGeometry().Center().Z())));
+            }
+        } 
+        else { // OUTER
+            for (auto &i_cond : skin_sub_model_part_out.Conditions()) {
+                points.push_back(PointTypePointer(new PointType(i_cond.Id(), i_cond.GetGeometry().Center().X(), i_cond.GetGeometry().Center().Y(), i_cond.GetGeometry().Center().Z())));
+            }
+        }
+        meshSizes_uv = surrogate_sub_model_part.GetProcessInfo().GetValue(MARKER_MESHES);
+        parameterExternalCoordinates = surrogate_sub_model_part.GetProcessInfo().GetValue(LOAD_MESHES);
+        meshSize = meshSizes_uv[0];
+        if (meshSizes_uv[1] > meshSize) {meshSize = meshSizes_uv[1];}
+        if (meshSizes_uv.size() > 2) {if (meshSizes_uv[2] > meshSize) {meshSize = meshSizes_uv[2];}}
+        
+
+        radius = sqrt(3)*(meshSize); 
+        // radius = 30*(meshSize);
+        DynamicBins testBins(points.begin(), points.end());
+        const int numberOfResults = 1e6; 
+        ModelPart::NodesContainerType::ContainerType Results(numberOfResults);
+        std::vector<double> list_of_distances(numberOfResults);
+        for (SizeType i = 0; i < rGeometryList.size(); ++i)
+        {
+            GeometriesArrayType geometries;
+            IntegrationInfo integration_info = rGeometryList[i].GetDefaultIntegrationInfo();
+            for (IndexType i = 0; i < integration_info.LocalSpaceDimension(); ++i) {
+                if (quadrature_method == "GAUSS") {
+                    integration_info.SetQuadratureMethod(0, IntegrationInfo::QuadratureMethod::GAUSS);
+                }
+                else if (quadrature_method == "EXTENDED_GAUSS") {
+                    integration_info.SetQuadratureMethod(0, IntegrationInfo::QuadratureMethod::EXTENDED_GAUSS);
+                }
+                else if (quadrature_method == "GRID") {
+                    integration_info.SetQuadratureMethod(0, IntegrationInfo::QuadratureMethod::GRID);
+                }
+                else {
+                    KRATOS_INFO("CreateQuadraturePointGeometries") << "Quadrature method: " << quadrature_method
+                        << " is not available. Available options are \"GAUSS\" and \"GRID\". Default quadrature method is being considered." << std::endl;
+                }
+            }
+
+            if (rParameters.Has("number_of_integration_points_per_span")) {
+                for (IndexType i = 0; i < integration_info.LocalSpaceDimension(); ++i) {
+                    integration_info.SetNumberOfIntegrationPointsPerSpan(i, rParameters["number_of_integration_points_per_span"].GetInt());
+                }
+            }
+            if (GeometryType == "SurfaceEdge"
+                && rGeometryList[i].GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Coupling_Geometry)
+            {
+                rGeometryList[i].GetGeometryPart(0).CreateQuadraturePointGeometries(
+                    geometries, shape_function_derivatives_order, integration_info);
+            }
+            else
+            {
+                rGeometryList[i].CreateQuadraturePointGeometries(
+                    geometries, shape_function_derivatives_order, integration_info);
+            }
+
+            KRATOS_INFO_IF("CreateQuadraturePointGeometriesSbm", mEchoLevel > 1)
+                << geometries.size() << " quadrature point geometries have been created." << std::endl;
+
+            if (type == "element" || type == "Element") {
+                SizeType id = 1;
+                if (rModelPart.GetRootModelPart().Elements().size() > 0)
+                    id = rModelPart.GetRootModelPart().Elements().back().Id() + 1;
+
+                this->CreateElements(
+                    geometries.ptr_begin(), geometries.ptr_end(),
+                    rModelPart, name, id, PropertiesPointerType());
+            }
+            else if (type == "condition" || type == "Condition") {
+                SizeType id = 1;
+                if (rModelPart.GetRootModelPart().Conditions().size() > 0)
+                    id = rModelPart.GetRootModelPart().Conditions().back().Id() + 1;
+                std::vector<int> listIdClosestCondition(geometries.size());
 
                 Point gaussPoint = geometries[0].Center(); 
 
-                bool isCoincidentToExternalParameterSpace = false;         
+                bool isCoincidentToExternalParameterSpace = false;   
+                  
+                isCoincidentToExternalParameterSpace = CheckIsOnExternalParameterSpace(gaussPoint, parameterExternalCoordinates); 
+                
                 if (name.substr(0, 3) == "SBM") { 
                     for (auto j= 0; j < geometries.size() ; j++) {  
 
@@ -294,8 +390,6 @@ namespace Kratos
                                 }
                         }
 
-                        // if (is_SBM) {isCoincidentToExternalParameterSpace = CheckIsOnExternalParameterSpace(gaussPoint, parameterExternalCoordinates); }
-
                         if (obtainedResults == 0) {
                              KRATOS_WATCH("0 POINTS FOUND: EXIT")
                              KRATOS_WATCH(pointToSearch)
@@ -307,12 +401,12 @@ namespace Kratos
                     if (is_inner) {
                         this->CreateConditions(
                         geometries.ptr_begin(), geometries.ptr_end(),
-                        rModelPart, skin_model_part_in, listIdClosestCondition, name, id, PropertiesPointerType(), is_inner);
+                        rModelPart, skin_sub_model_part_in, listIdClosestCondition, name, id, PropertiesPointerType(), is_inner, meshSizes_uv);
                     }
                     else{
                         this->CreateConditions(
                         geometries.ptr_begin(), geometries.ptr_end(),
-                        rModelPart, skin_model_part_out, listIdClosestCondition, name, id, PropertiesPointerType(), is_inner);
+                        rModelPart, skin_sub_model_part_out, listIdClosestCondition, name, id, PropertiesPointerType(), is_inner, meshSizes_uv);
                     }
                 } else if (isCoincidentToExternalParameterSpace){
                     std::string nameBodyFittedCondition;
@@ -368,13 +462,15 @@ namespace Kratos
             }
             // int lastIndex
             starting_brep_ids = rParameters["brep_ids"][rParameters["brep_ids"].size()-1].GetInt() + 1;
+
             // OUTER
             std::string conditionName = rParameters["iga_model_part"].GetString();
             if (conditionName.rfind("SBM", 0) == 0) { 
-                ModelPart& surrogateModelPart_outer = mpModel->GetModelPart(surrogate_model_part_name +"_outer");
+                ModelPart& surrogateModelPart_outer = rModelPart.GetSubModelPart("surrogate_outer");
+                // ModelPart& surrogateModelPart_outer = mpModel->GetModelPart(surrogate_model_part_name +"_outer");
                 if (surrogateModelPart_outer.Conditions().size() > 0) {
                     // 2D
-                    if (surrogateModelPart_outer.GetCondition(1).GetGeometry().size() == 2) {
+                    if ((*surrogateModelPart_outer.ConditionsBegin()).GetGeometry().size() == 2) {
                         int sizeSurrogateLoop_outer = surrogateModelPart_outer.Nodes().size();
                         for (int j = 0; j < (sizeSurrogateLoop_outer-1); ++j) {
                             // Add the brep_ids of the internal boundary for SBMLaplacianCondition
@@ -395,7 +491,8 @@ namespace Kratos
         }
         else {
             // INNER   
-            ModelPart& surrogateModelPart_inner = mpModel->GetModelPart(surrogate_model_part_name + "_inner");
+            ModelPart& surrogateModelPart_inner = rModelPart.GetSubModelPart("surrogate_inner");
+            // ModelPart& surrogateModelPart_inner = mpModel->GetModelPart(surrogate_model_part_name + "_inner");
             if (surrogateModelPart_inner.Elements().size() > 0) {
 
                 int sizeSurrogateLoop = surrogateModelPart_inner.Nodes().size();
@@ -480,7 +577,8 @@ namespace Kratos
         std::string& rConditionName,
         SizeType& rIdCounter,
         PropertiesPointerType pProperties,
-        bool isInner) const
+        bool isInner,
+        Vector mesh_size) const
     {
         const Condition& rReferenceCondition = KratosComponents<Condition>::Get(rConditionName);
 
@@ -491,8 +589,8 @@ namespace Kratos
             << " in " << rModelPart.Name() << "-SubModelPart." << std::endl;
 
         int countListClosestCondition = 0;
-        bool is2D = true;;
-        if(rSkinModelPart.GetCondition(1).GetGeometry().size() > 2) { is2D = false;}
+        bool is2D = true;
+        if(rSkinModelPart.GetCondition(listIdClosestCondition[0]).GetGeometry().size() > 2) { is2D = false;}
 
         if (is2D) {
             for (auto it = rGeometriesBegin; it != rGeometriesEnd; ++it) {
@@ -503,8 +601,10 @@ namespace Kratos
 
                 Condition::Pointer cond1 = &rSkinModelPart.GetCondition(condId);
                 int condId2;  
-                if (condId == 1) { condId2 = rSkinModelPart.Conditions().size();}
-                else {condId2 = condId-1;}
+                if (condId == rSkinModelPart.ConditionsBegin()->Id()) {
+                    condId2 = (rSkinModelPart.ConditionsEnd()-1)->Id();
+                }
+                else condId2 = condId-1;
                 Condition::Pointer cond2 = &rSkinModelPart.GetCondition(condId2);
 
                 new_condition_list.GetContainer()[countListClosestCondition]->SetValue(NEIGHBOUR_CONDITIONS, GlobalPointersVector<Condition>({cond1,cond2}));
@@ -513,6 +613,9 @@ namespace Kratos
                 } else {
                     new_condition_list.GetContainer()[countListClosestCondition]->SetValue(IDENTIFIER, "outer");
                 }
+                
+                new_condition_list.GetContainer()[countListClosestCondition]->SetValue(MARKER_MESHES, mesh_size);
+                                
                 for (SizeType i = 0; i < (*it)->size(); ++i) {
                     // These are the control points associated with the basis functions involved in the condition we are creating
                     // rModelPart.AddNode((*it)->pGetPoint(i));
@@ -544,8 +647,6 @@ namespace Kratos
                 countListClosestCondition++;
             }
         }
-        
-
         rModelPart.AddConditions(new_condition_list.begin(), new_condition_list.end());
     }
 
@@ -778,15 +879,14 @@ namespace Kratos
             surrogate_model_part_name = mParameters["surrogate_model_part_name"].GetString();
         }
 
-        Vector meshSizes_uv_inner = mpModel->GetModelPart(surrogate_model_part_name + "_inner").GetProcessInfo().GetValue(MARKER_MESHES);
-        Vector meshSizes_uv_outer = mpModel->GetModelPart(surrogate_model_part_name + "_outer").GetProcessInfo().GetValue(MARKER_MESHES);
+        Vector meshSizes_uv_inner = analysis_model_part.GetSubModelPart("surrogate_inner").GetProcessInfo().GetValue(MARKER_MESHES);
+        Vector meshSizes_uv_outer = analysis_model_part.GetSubModelPart("surrogate_outer").GetProcessInfo().GetValue(MARKER_MESHES);
         
-        KRATOS_WATCH(meshSizes_uv_inner)
-        KRATOS_WATCH(meshSizes_uv_outer)
+        // KRATOS_WATCH(meshSizes_uv_inner)
+        // KRATOS_WATCH(meshSizes_uv_outer)
 
         const double meshSize= std::max(std::max(std::max(meshSizes_uv_inner[0], meshSizes_uv_inner[1]), meshSizes_uv_outer[0]), meshSizes_uv_outer[1]);
         const double radius = 2*sqrt(2)*(meshSize);
-        KRATOS_WATCH(radius)
 
         const int numberOfResults = 1e6; 
         ModelPart::NodesContainerType::ContainerType Results(numberOfResults);

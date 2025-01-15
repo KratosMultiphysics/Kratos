@@ -71,15 +71,22 @@ namespace Kratos
 
         double penalty = GetProperties()[PENALTY_FACTOR];
 
-        // Read the refinements.iga.json
-        const Parameters refinements_parameters = ReadParamatersFile("refinements.iga.json");
-        int insertions = refinements_parameters["refinements"][0]["parameters"]["insert_nb_per_span_u"].GetInt();
-        double h = 2.0/(insertions+1) ;
+        const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(r_geometry.GetDefaultIntegrationMethod());
+        const unsigned int dim = DN_De[0].size2();
+        
+        Vector meshSize_uv = this->GetValue(MARKER_MESHES);
+        double h = std::min(meshSize_uv[0], meshSize_uv[1]);
+        if (dim == 3) {h = std::min(h,  meshSize_uv[2]);}
 
-        mbasisFunctionsOrder = refinements_parameters["refinements"][0]["parameters"]["increase_degree_u"].GetInt()+1;
+        // Compute basis function order (Note: it is not allow to use different orders in different directions)
+        if (dim == 3) {
+            mbasisFunctionsOrder = std::cbrt(DN_De[0].size1()) - 1;
+        } else {
+            mbasisFunctionsOrder = std::sqrt(DN_De[0].size1()) - 1;
+        }
 
-        // Modify the penalty factor: penalty/h
-        penalty = penalty/(h);
+        // Modify the penalty factor: p^2 * penalty / h (NITSCHE APPROACH)
+        penalty = mbasisFunctionsOrder * mbasisFunctionsOrder * penalty / h;
 
         // Integration
         const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
@@ -91,8 +98,6 @@ namespace Kratos
         // Initialize Jacobian
         GeometryType::JacobiansType J0;
         // Initialize DN_DX
-        const unsigned int dim = 2;
-
 
         // TAYLOR EXPANSION TERM ----------------------------------------------------------------------
 
@@ -151,7 +156,6 @@ namespace Kratos
         normal_parameter_space[0] = + tangent_parameter_space[1] / magnitude;
         normal_parameter_space[1] = - tangent_parameter_space[0] / magnitude;  // By observations on the result of .Calculate(LOCAL_TANGENT
 
-        const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
         r_geometry.Jacobian(J0,this->GetIntegrationMethod());
         double DetJ0;
 

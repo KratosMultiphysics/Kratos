@@ -26,26 +26,24 @@ namespace Kratos
     public:
 
         static void CreateTheSnakeCoordinates(ModelPart& iga_model_part, 
-                                              ModelPart& skin_model_part, 
-                                              int rEchoLevel, 
-                                              Vector& knot_vector_u, 
-                                              Vector& knot_vector_v, 
-                                              const Parameters mParameters);
+                                            ModelPart& skin_model_part_inner_initial,
+                                            ModelPart& skin_model_part_outer_initial,
+                                            ModelPart& skin_model_part, 
+                                            int rEchoLevel, 
+                                            Vector& knot_vector_u, 
+                                            Vector& knot_vector_v, 
+                                            const Parameters mParameters);
         
     
         static void CreateTheSnakeCoordinates(ModelPart& iga_model_part, 
-                                              ModelPart& skin_model_part, 
-                                              int rEchoLevel, 
-                                              Vector& knot_vector_u, 
-                                              Vector& knot_vector_v, 
-                                              const Parameters mParameters,
-                                              bool is_inner_loop); // FIXME : 
+                                            ModelPart& skin_model_part_initial,
+                                            ModelPart& skin_model_part, 
+                                            int rEchoLevel, 
+                                            Vector& knot_vector_u, 
+                                            Vector& knot_vector_v, 
+                                            const Parameters mParameters,
+                                            bool is_inner_loop); // FIXME : 
 
-        // static void CreateTheSnakeCoordinates3D(ModelPart& iga_model_part, ModelPart& skin_model_part_in, ModelPart& skin_model_part_out, 
-        //                                       ModelPart& initial_skin_model_part_in, ModelPart& initial_skin_model_part_out,  int rEchoLevel, 
-        //                                       Vector& knot_vector_u_complete, Vector& knot_vector_v_complete, Vector& knot_vector_w_complete, double& knot_step_u, double& knot_step_v, double& knot_step_w,
-        //                                       const Parameters refinements_parameters, const Parameters mParameters, ModelPart& surrogate_model_part_inner, 
-        //                                       ModelPart& surrogate_model_part_outer);
                                               
         static void SnakeStep(ModelPart& skin_model_part, 
                             std::vector<std::vector<std::vector<int>>> &knot_spans_available, 

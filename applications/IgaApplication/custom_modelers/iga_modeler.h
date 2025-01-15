@@ -153,6 +153,14 @@ private:
         const Parameters rParameters,
         std::string GeometryType) const;
 
+    
+    void CreateQuadraturePointGeometriesSbm(
+        GeometriesArrayType& rQuadraturePointGeometryList,
+        ModelPart& rIgaModelPart,
+        ModelPart& rModelPart,
+        const Parameters rParameters,
+        std::string GeometryType) const;
+
     ///@}
     ///@name CAD functionalities
     ///@{
@@ -208,7 +216,8 @@ private:
         std::string& rConditionName,
         SizeType& rIdCounter,
         PropertiesPointerType pProperties,
-        bool isInner) const;
+        bool isInner, 
+        Vector mesh_size) const;
 
 
     ///@}

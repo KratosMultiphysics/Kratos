@@ -23,8 +23,6 @@
 #include "geometries/nurbs_volume_geometry.h"
 #include "geometries/nurbs_surface_geometry.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_surface_refinement_utilities.h"
-#include "input_output/cad_json_input_sbm.h"
-#include "utilities/nurbs_utilities/snake_sbm_utilities.h"
 
 namespace Kratos {
 
@@ -49,9 +47,6 @@ public:
     typedef NurbsVolumeGeometry<PointerVector<NodeType>> NurbsVolumeGeometryType;
     typedef typename NurbsVolumeGeometryType::Pointer NurbsVolumeGeometryPointerType;
 
-    typedef PointerVector<Node> ContainerNodeType;
-    typedef PointerVector<Point> ContainerEmbeddedNodeType;
-    typedef BrepCurveOnSurface<ContainerNodeType, ContainerEmbeddedNodeType> BrepCurveOnSurfaceType;
 
     ///@}
     ///@name Life Cycle
@@ -87,15 +82,8 @@ public:
 
     ///@}
 
-private:
-    ///@name Private Member Variables
-    ///@{
-
-    Model* mpModel;
-
-    ///@}
-    ///@name Private Operations
-    ///@{
+protected:
+///@{
 
     /**
      * @brief Creates a regular grid composed out of bivariant B-splines.
@@ -105,21 +93,30 @@ private:
      * @param NumKnotSpans Number of equidistant elements/knot spans in each direction u,v.
      * @note The CP'S are defined as nodes and added to the rModelPart.
      **/
-    void CreateAndAddRegularGrid2D( ModelPart& r_model_part, const Point& A_xyz, const Point& B_xyz, const Point& A_uvw, const Point& B_uvw,
-        SizeType OrderU, SizeType OrderV, SizeType NumKnotSpansU, SizeType NumKnotSpansV );
+    virtual void CreateAndAddRegularGrid2D( ModelPart& r_model_part, const Point& A_xyz, const Point& B_xyz, const Point& A_uvw, const Point& B_uvw,
+        SizeType OrderU, SizeType OrderV, SizeType NumKnotSpansU, SizeType NumKnotSpansV, bool add_surface_to_model_part = true);
 
-    /**
-     * @brief Creates a cartesian grid composed out of trivariant B-spline cubes.
-     * @param PointA Lower point of bounding box.
-     * @param PointB Upper point of bounding box.
-     * @param Order  Polynomial degree in each direction u,v,w.
-     * @param NumKnotSpans Number of equidistant elements/knot spans in each direction u,v,w.
-     * @note The CP'S are defined as nodes and added to the rModelPart.
-     **/
+    NurbsSurfaceGeometryPointerType mpSurface;
+
+    Vector mKnotVectorU;
+    Vector mKnotVectorV;
+    std::vector<double> mInsertKnotsU;
+    std::vector<double> mInsertKnotsV;
+    
+
+private:
+    ///@name Private Member Variables
+    ///@{
+
+    Model* mpModel;
+
+    ///@}
+    ///@name Private Operations
+    
+
     void CreateAndAddRegularGrid3D( ModelPart& r_model_part, const Point& A_xyz, const Point& B_xyz, const Point& A_uvw, const Point& B_uvw,
        SizeType OrderU, SizeType OrderV, SizeType OrderW, SizeType NumKnotSpansU, SizeType NumKnotSpansV, SizeType NumKnotSpansW );
 
-    Parameters ReadParamatersFile(const std::string& rDataFileName) const;   
 };
 
 } // End namesapce Kratos

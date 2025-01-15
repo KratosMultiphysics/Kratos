@@ -14,7 +14,6 @@
 #include "includes/define.h"
 #include "nurbs_geometry_modeler.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_volume_refinement_utilities.h"
-#include "custom_utilities/create_breps_sbm_utilities.h"
 
 namespace Kratos
 {
@@ -23,22 +22,6 @@ namespace Kratos
     ///@{
 
     void NurbsGeometryModeler::SetupGeometryModel(){
-        //-----------------------------------------------------------------------------------------------------
-        //  READ LOCAL REFINEMENT FILE AND CREATE BOUNDARY B-REPS
-        //-----------------------------------------------------------------------------------------------------
-        
-        // Read the refinements.iga.json
-        // const Parameters refinements_parameters = ReadParamatersFile("refinements.iga.json");
-        
-        // KRATOS_ERROR_IF_NOT(mParameters.Has("model_part_name"))
-        //     << "Missing \"cad_model_part_name\" in NurbsGeometryModeler Parameters." << std::endl;
-        // const std::string cad_model_part_name = mParameters["model_part_name"].GetString();
-        // ModelPart& cad_model_part = mpModel->HasModelPart(cad_model_part_name)
-        //     ? mpModel->GetModelPart(cad_model_part_name)
-        //     : mpModel->CreateModelPart(cad_model_part_name);
-
-        //----------------------------------------------------------------------------------------------------------------
-        KRATOS_INFO_IF("NurbsGeometryModeler", mEchoLevel > 1) << "[NURBS MODELER]:: STARTING" << std::endl;
         // Get bounding box physical space.
         KRATOS_ERROR_IF_NOT(mParameters.Has("lower_point_xyz"))
             << "NurbsGeometryModeler: Missing \"lower_point_xyz\" section" << std::endl;
@@ -101,8 +84,7 @@ namespace Kratos
             SizeType num_knot_span_u =  mParameters["number_of_knot_spans"].GetArrayItem(0).GetInt();
             SizeType num_knot_span_v =  mParameters["number_of_knot_spans"].GetArrayItem(1).GetInt();
 
-            CreateAndAddRegularGrid2D(model_part, point_a_xyz, point_b_xyz, point_a_uvw, point_b_uvw, p_u, p_v, num_knot_span_u, num_knot_span_v);
-            KRATOS_INFO_IF("NurbsGeometryModeler", mEchoLevel > 1) << "[NURBS MODELER]:: grid 2D created" << std::endl;
+            CreateAndAddRegularGrid2D(model_part, point_a_xyz, point_b_xyz, point_a_uvw, point_b_uvw, p_u, p_v, num_knot_span_u, num_knot_span_v, true);
         }
         else if( local_space_dimension == 3) {
             SizeType p_u =  mParameters["polynomial_order"].GetArrayItem(0).GetInt();
@@ -124,7 +106,7 @@ namespace Kratos
     ///@name Private Operations
     ///@{
     void NurbsGeometryModeler::CreateAndAddRegularGrid2D( ModelPart& r_model_part, const Point& A_xyz, const Point& B_xyz,
-        const Point& A_uvw, const Point& B_uvw, SizeType OrderU, SizeType OrderV,SizeType NumKnotSpansU, SizeType NumKnotSpansV)
+        const Point& A_uvw, const Point& B_uvw, SizeType OrderU, SizeType OrderV,SizeType NumKnotSpansU, SizeType NumKnotSpansV, bool add_surface_to_model_part)
     {
         KRATOS_ERROR_IF( B_xyz.X() <= A_xyz.X() || B_xyz.Y() <= A_xyz.Y() ) << "NurbsGeometryModeler: "
             << "The two Points A_xyz and B_xyz must meet the following requirement: (B_xyz-A_xyz) > (0,0,0). However, (B_xyz-A_xyz)=" << B_xyz-A_xyz << std::endl;
@@ -174,7 +156,6 @@ namespace Kratos
         auto p_surface_geometry = Kratos::make_shared<NurbsSurfaceGeometryType>(
             points, OrderU, OrderV, knot_vector_u, knot_vector_v);
 
-
         // Set up knots for knot refinement according to the given number of elements in each direction.
         double delta_knot_u = (B_uvw[0]-A_uvw[0]) / NumKnotSpansU;
         double knot_u = A_uvw[0];
@@ -194,81 +175,25 @@ namespace Kratos
 
         // Set up weights. Required in case no refinement is performed.
         Vector WeightsRefined(points.size(),1.0);
-
-
-        KRATOS_INFO_IF("::[NurbsGeometryModeler]::", mEchoLevel > 0) << "Ending the CreateTheSnakeCoordinates" << std::endl;
-
-        KRATOS_ERROR_IF_NOT(mParameters.Has("model_part_name"))
-            << "Missing \"domain_model_part_name\" in NurbsGeometryModeler Parameters." << std::endl;
-
         
-        // Create the Domain/Iga Model Part
-        const std::string iga_model_part_name = mParameters["model_part_name"].GetString();
-        ModelPart& iga_model_part = mpModel->HasModelPart(iga_model_part_name)
-                                    ? mpModel->GetModelPart(iga_model_part_name)
-                                    : mpModel->CreateModelPart(iga_model_part_name);
-
-        // Create the Surrogate Model part
-        std::string initial_skin_model_part_name;
-        if (!mParameters.Has("initial_skin_model_part_name")) initial_skin_model_part_name = "initial_skin_model_part_name";
-        else {
-            initial_skin_model_part_name = mParameters["initial_skin_model_part_name"].GetString();
-        }
-
-        std::string skin_model_part_name;
-        if (!mParameters.Has("skin_model_part_name")) skin_model_part_name = "skin_model_part";
-        else {
-            skin_model_part_name = mParameters["skin_model_part_name"].GetString();
-        }
-
-        std::string surrogate_model_part_name;
-        if (!mParameters.Has("surrogate_model_part_name")) surrogate_model_part_name = "surrogate_model_part";
-        else {
-            surrogate_model_part_name = mParameters["surrogate_model_part_name"].GetString();
-        }
-
-        
-        ModelPart& surrogate_model_part_inner = mpModel->CreateModelPart(surrogate_model_part_name + "_inner");
-        ModelPart& surrogate_model_part_outer = mpModel->CreateModelPart(surrogate_model_part_name + "_outer");
-
-        // Skin model part refined after Snake Process
-        ModelPart& skin_model_part_in = mpModel->CreateModelPart(skin_model_part_name + "_in");
-        ModelPart& skin_model_part_out = mpModel->CreateModelPart(skin_model_part_name + "_out");
-        // Initial Skin model part coming from mdpa
-        ModelPart& initial_skin_model_part_in = mpModel->HasModelPart(initial_skin_model_part_name + "_in")
-                                        ? mpModel->GetModelPart(initial_skin_model_part_name + "_in")
-                                        : mpModel->CreateModelPart(initial_skin_model_part_name + "_in");
-        ModelPart& initial_skin_model_part_out = mpModel->HasModelPart(initial_skin_model_part_name + "_out")
-                                    ? mpModel->GetModelPart(initial_skin_model_part_name + "_out")
-                                    : mpModel->CreateModelPart(initial_skin_model_part_name + "_out");
-
-        double knot_step_u; double knot_step_v;
-        const Parameters refinements_parameters = ReadParamatersFile("refinements.iga.json");
-        Parameters refinements_parameters_model_part;
-        bool isDefined = false;
-        for (int i = 0; i < refinements_parameters["refinements"].size(); i++) {
-            if (refinements_parameters["refinements"][i]["model_part_name"].GetString() == iga_model_part_name) {
-                refinements_parameters_model_part = refinements_parameters["refinements"][i];
-                isDefined = true;
-                break;
+        // In some cases there is no need of add the surface geometry, add_surface_to_model_part is true by default
+        if (add_surface_to_model_part) {
+            // Add geometry to model part
+            if( mParameters.Has("geometry_name") ){
+                p_surface_geometry->SetId(mParameters["geometry_name"].GetString());
+            } else {
+                const SizeType number_of_geometries = r_model_part.NumberOfGeometries();
+                SizeType last_geometry_id = 0;
+                if( number_of_geometries > 0 ){
+                    for( auto it = r_model_part.GeometriesBegin(); it!= r_model_part.GeometriesEnd(); ++it){
+                        last_geometry_id = it->Id();
+                    }
+                }
+                p_surface_geometry->SetId(last_geometry_id+1);
             }
+            r_model_part.AddGeometry(p_surface_geometry);
         }
-        KRATOS_ERROR_IF_NOT(isDefined) << "ERROR: NON MATCHING MODEL PART NAMES BETWEEN REFINEMENTS_IGA AND NURBS_GEOMETRY_MODELER";
         
-        if (initial_skin_model_part_in.Conditions().size() > 0 || initial_skin_model_part_out.Conditions().size() > 0) {
-
-            SnakeSBMUtilities::CreateTheSnakeCoordinates(iga_model_part, skin_model_part_in, skin_model_part_out, 
-                                                            initial_skin_model_part_in, initial_skin_model_part_out, 
-                                                            mEchoLevel, knot_vector_u, knot_vector_v, knot_step_u, knot_step_v, 
-                                                            refinements_parameters_model_part, mParameters, 
-                                                            surrogate_model_part_inner, surrogate_model_part_outer) ;
-        }
-        //---------------------------------------------------------------------------------------------------------------------
-        
-        // Create the breps for the outer sbm boundary
-        CreateBrepsSBMUtilities<Node, Point> CreateBrepsSBMUtilities(mEchoLevel);
-
-        CreateBrepsSBMUtilities.CreateSurrogateBoundary(p_surface_geometry, r_model_part, surrogate_model_part_inner, surrogate_model_part_outer, A_uvw, B_uvw);
         // Perform knot refinement.
         PointerVector<NodeType> PointsRefined = p_surface_geometry->Points();
         if( NumKnotSpansU > 1) {
@@ -284,7 +209,6 @@ namespace Kratos
                 KnotsURefined, p_surface_geometry->KnotsV(),
                 WeightsRefined);
         }
-
         if( NumKnotSpansV > 1) {
 
             Vector KnotsVRefined;
@@ -320,6 +244,13 @@ namespace Kratos
         p_surface_geometry->SetInternals(PointsRefined,
             p_surface_geometry->PolynomialDegreeU(), p_surface_geometry->PolynomialDegreeV(),
             p_surface_geometry->KnotsU(), p_surface_geometry->KnotsV(), WeightsRefined);
+
+        // assign the value p_surface_geometry to the class member mpSurface for derived classes
+        mpSurface = p_surface_geometry;
+        mInsertKnotsU = insert_knots_u;
+        mInsertKnotsV = insert_knots_v;
+        mKnotVectorU = knot_vector_u;
+        mKnotVectorV = knot_vector_v;
     }
 
 
@@ -383,7 +314,6 @@ namespace Kratos
                 knot_vector_w[i] = B_uvw[2];
             }
         }
-
         // Create trivariant nurbs cube.
         auto p_volume_geometry = Kratos::make_shared<NurbsVolumeGeometryType>(
             points, OrderU, OrderV, OrderW, knot_vector_u, knot_vector_v, knot_vector_w);
@@ -413,72 +343,21 @@ namespace Kratos
             insert_knots_w[i] = knot_w;
         }
 
-               KRATOS_INFO_IF("::[NurbsGeometryModeler]::", mEchoLevel > 0) << "Ending the CreateTheSnakeCoordinates" << std::endl;
-        KRATOS_ERROR_IF_NOT(mParameters.Has("model_part_name"))
-            << "Missing \"domain_model_part_name\" in NurbsGeometryModeler Parameters." << std::endl;
-
-        
-        // Create the Domain/Iga Model Part
-        const std::string iga_model_part_name = mParameters["model_part_name"].GetString();
-        ModelPart& iga_model_part = mpModel->HasModelPart(iga_model_part_name)
-                                    ? mpModel->GetModelPart(iga_model_part_name)
-                                    : mpModel->CreateModelPart(iga_model_part_name);
-
-        // Create the Surrogate Model part
-        std::string initial_skin_model_part_name;
-        if (!mParameters.Has("initial_skin_model_part_name")) initial_skin_model_part_name = "initial_skin_model_part_name";
-        else {
-            initial_skin_model_part_name = mParameters["initial_skin_model_part_name"].GetString();
+        // Add geometry to model part
+        if( mParameters.Has("geometry_name") ){
+            p_volume_geometry->SetId(mParameters["geometry_name"].GetString());
+        } else {
+            const SizeType number_of_geometries = r_model_part.NumberOfGeometries();
+            SizeType last_geometry_id = 0;
+            if( number_of_geometries > 0 ){
+                for( auto it = r_model_part.GeometriesBegin(); it!= r_model_part.GeometriesEnd(); ++it){
+                    last_geometry_id = it->Id();
+                }
+            }
+            p_volume_geometry->SetId(last_geometry_id+1);
         }
+        r_model_part.AddGeometry(p_volume_geometry);
 
-        std::string skin_model_part_name;
-        if (!mParameters.Has("skin_model_part_name")) skin_model_part_name = "skin_model_part";
-        else {
-            skin_model_part_name = mParameters["skin_model_part_name"].GetString();
-        }
-
-        std::string surrogate_model_part_name;
-        if (!mParameters.Has("surrogate_model_part_name")) surrogate_model_part_name = "surrogate_model_part";
-        else {
-            surrogate_model_part_name = mParameters["surrogate_model_part_name"].GetString();
-        }
-
-        
-        ModelPart& surrogate_model_part_inner = mpModel->CreateModelPart(surrogate_model_part_name + "_inner");
-        ModelPart& surrogate_model_part_outer = mpModel->CreateModelPart(surrogate_model_part_name + "_outer");
-
-        // Skin model part refined after Snake Process
-        ModelPart& skin_model_part_in = mpModel->CreateModelPart(skin_model_part_name + "_in");
-        ModelPart& skin_model_part_out = mpModel->CreateModelPart(skin_model_part_name + "_out");
-        // Initial Skin model part coming from mdpa
-        ModelPart& initial_skin_model_part_in = mpModel->HasModelPart(initial_skin_model_part_name + "_in")
-                                        ? mpModel->GetModelPart(initial_skin_model_part_name + "_in")
-                                        : mpModel->CreateModelPart(initial_skin_model_part_name + "_in");
-        ModelPart& initial_skin_model_part_out = mpModel->HasModelPart(initial_skin_model_part_name + "_out")
-                                    ? mpModel->GetModelPart(initial_skin_model_part_name + "_out")
-                                    : mpModel->CreateModelPart(initial_skin_model_part_name + "_out");
-
-        double knot_step_u; double knot_step_v; double knot_step_w;
-        const Parameters refinements_parameters = ReadParamatersFile("refinements.iga.json");
-        if (initial_skin_model_part_in.Conditions().size() > 0 || initial_skin_model_part_out.Conditions().size() > 0) {
-            SnakeSBMUtilities::CreateTheSnakeCoordinates3D(iga_model_part, skin_model_part_in, skin_model_part_out, 
-                                                            initial_skin_model_part_in, initial_skin_model_part_out, 
-                                                            mEchoLevel, knot_vector_u, knot_vector_v, knot_vector_w, 
-                                                            knot_step_u, knot_step_v, knot_step_w, 
-                                                            refinements_parameters, mParameters, 
-                                                            surrogate_model_part_inner, surrogate_model_part_outer) ;
-        }
-
-         // Create the breps for the outer sbm boundary
-        //----------------------------------------------------------------------------------------------------
-        CreateBrepsSBMUtilities<Node, Point> CreateBrepsSBMUtilities(mEchoLevel);
-        // ModelPart& surrogate_model_part_inner = mpModel->GetModelPart("surrogate_model_part_inner");
-        // ModelPart& surrogate_model_part_outer = mpModel->GetModelPart("surrogate_model_part_outer");
-        KRATOS_WATCH("Before CreateSurrogateBoundary")
-        CreateBrepsSBMUtilities.CreateSurrogateBoundary(p_volume_geometry, r_model_part, surrogate_model_part_inner, surrogate_model_part_outer, A_uvw, B_uvw);
-        KRATOS_WATCH(" CreateSurrogateBoundary Finished")
-        //----------------------------------------------------------------------------------------------------
-        
         // Perform knot refinement.
         PointerVector<NodeType> PointsRefined = p_volume_geometry->Points();
 
@@ -533,24 +412,4 @@ namespace Kratos
             p_volume_geometry->KnotsU(), p_volume_geometry->KnotsV(), p_volume_geometry->KnotsW());
     }
     ///@}
-
-    Parameters NurbsGeometryModeler::ReadParamatersFile(
-        const std::string& rDataFileName) const
-    {
-        // Check if rDataFileName ends with ".cad.json" and add it if needed.
-        const std::string data_file_name = (rDataFileName.compare(rDataFileName.size() - 9, 9, ".iga.json") != 0)
-            ? rDataFileName + ".iga.json"
-            : rDataFileName;
-
-        std::ifstream infile(data_file_name);
-        KRATOS_ERROR_IF_NOT(infile.good()) << "Physics fil: "
-            << data_file_name << " cannot be found." << std::endl;
-        KRATOS_INFO_IF("ReadParamatersFile", mEchoLevel > 3)
-            << "Reading file: \"" << data_file_name << "\"" << std::endl;
-
-        std::stringstream buffer;
-        buffer << infile.rdbuf();
-
-        return Parameters(buffer.str());
-    }
 } // end namespace kratos
