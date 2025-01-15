@@ -167,7 +167,6 @@ private:
     
     double CalculateSensorValue(const Element& rElementWithSensor);
 
-
     ///@}
 };
 

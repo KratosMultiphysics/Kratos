@@ -188,7 +188,7 @@ void MeasurementResidualResponseFunction::CalculateDerivative(
     for (auto& p_sensor : mpSensorsList) {
         // TODO: Adapt for multiple load case/transient analysis. Problem: mC1 and p_sensor->GetValue(SENSOR_ERROR) are overwritten.
         // assuming p=1 (least squares response function)
-        mC1 = 1.0;
+        // mC1 = 1.0;
         TCalculationType::Calculate(*p_sensor, local_sensor_response_gradient, rResidualGradient, rArgs...);
         noalias(rResponseGradient) += local_sensor_response_gradient * mC1 * (std::pow(p_sensor->GetWeight(), mPCoefficient) * std::pow(p_sensor->GetValue(SENSOR_ERROR), mPCoefficient * 2 - 1 ) );
     }
@@ -203,7 +203,6 @@ void MeasurementResidualResponseFunction::CalculateGradient(
     const ProcessInfo& rProcessInfo)
 {
     CalculateDerivative<MeasurementResidualResponseFunctionUtilities::GradientCalculation>(rResponseGradient, rResidualGradient, rAdjointElement, rProcessInfo);
-    std::cout << "in calculate gradient of response function" << std::endl;
 }
 
 void MeasurementResidualResponseFunction::CalculateGradient(
@@ -222,7 +221,6 @@ void MeasurementResidualResponseFunction::CalculateFirstDerivativesGradient(
     const ProcessInfo& rProcessInfo)
 {
     CalculateDerivative<MeasurementResidualResponseFunctionUtilities::FirstDerivativesGradientCalculation>(rResponseFirstDerivativesGradient, rResidualFirstDerivativesGradient, rAdjointElement, rProcessInfo);
-    std::cout << "in calculate first deriv gradient of response function" << std::endl;
 }
 
 void MeasurementResidualResponseFunction::CalculateFirstDerivativesGradient(
@@ -241,7 +239,6 @@ void MeasurementResidualResponseFunction::CalculateSecondDerivativesGradient(
     const ProcessInfo& rProcessInfo)
 {
     CalculateDerivative<MeasurementResidualResponseFunctionUtilities::SecondDerivativesGradientCalculation>(rResponseSecondDerivativesGradient, rResidualSecondDerivativesGradient, rAdjointElement, rProcessInfo);
-    std::cout << "in calculate second deriv gradient of response function" << std::endl;
 }
 
 void MeasurementResidualResponseFunction::CalculateSecondDerivativesGradient(

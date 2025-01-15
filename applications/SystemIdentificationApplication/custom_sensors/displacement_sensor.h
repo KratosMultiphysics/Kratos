@@ -163,6 +163,8 @@ private:
         Vector& rVector,
         const IndexType Size);
 
+    double CalculateSensorValue(const Element& rElementWithSensor);
+
     ///@}
 };
 

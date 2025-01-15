@@ -21,6 +21,7 @@
 #include "custom_sensors/sensor.h"
 #include "custom_sensors/sensor_view.h"
 #include "custom_sensors/measurement_residual_response_function.h"
+#include "custom_sensors/least_squares_response_function.h"
 #include "custom_sensors/displacement_sensor.h"
 #include "custom_sensors/acceleration_sensor.h"
 #include "custom_sensors/strain_sensor.h"
@@ -105,6 +106,14 @@ void  AddCustomSensorsToPython(pybind11::module& m)
         .def("Clear", &MeasurementResidualResponseFunction::Clear)
         .def("GetSensorsList", &MeasurementResidualResponseFunction::GetSensorsList)
         .def("__str__", PrintObject<MeasurementResidualResponseFunction>)
+        ;
+
+    py::class_<LeastSquaresResponseFunction, LeastSquaresResponseFunction::Pointer, AdjointResponseFunction>(sensor_module, "LeastSquaresResponseFunction")
+        .def(py::init<>())
+        .def("AddSensor", &LeastSquaresResponseFunction::AddSensor, py::arg("sensor"))
+        .def("Clear", &LeastSquaresResponseFunction::Clear)
+        .def("GetSensorsList", &LeastSquaresResponseFunction::GetSensorsList)
+        .def("__str__", PrintObject<LeastSquaresResponseFunction>)
         ;
 
     py::class_<DisplacementSensor, DisplacementSensor::Pointer, Sensor>(sensor_module, "DisplacementSensor")

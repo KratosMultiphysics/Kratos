@@ -176,21 +176,6 @@ class DamageDetectionTransientResponse(ResponseFunction):
                     container_expression.SetExpression((container_expression.GetExpression() + sensitivities[sensitivity_variable].GetExpression() * test_case_weight))
                     container_expression.SetExpression(Kratos.Expression.Utils.Collapse(container_expression).GetExpression())
 
-        # for physical_variable, collective_expression in physical_variable_collective_expressions.items():
-        #     sensitivity_variable = Kratos.KratosGlobals.GetVariable(f"{physical_variable.Name()}_SENSITIVITY")
-
-        #     if sensitivity_variable ==KratosSA.YOUNG_MODULUS_SENSITIVITY:
-        #         for container_expression in collective_expression.GetContainerExpressions():
-        #             import h5py
-        #             with h5py.File("sensor_data.h5", "r") as h5_output:
-        #                 numpy_array = h5_output["/data"][:]
-        #             sensitivities = Kratos.Expression.ElementExpression(self.model["all_nodes_elements_model_part"])
-        #             Kratos.Expression.CArrayExpressionIO.Read(sensitivities, numpy_array)
-        #             container_expression.SetExpression((container_expression.GetExpression() + sensitivities.GetExpression()))
-        #             container_expression.SetExpression(Kratos.Expression.Utils.Collapse(container_expression).GetExpression())
-        #     else:
-        #         raise RuntimeError("safsadda")
-
     def __GetSensor(self, sensor_name: str) -> KratosSI.Sensors.Sensor:
         return self.adjoint_analysis.GetSensorNameDictionary()[sensor_name]
 

@@ -70,23 +70,23 @@ class SystemIdentificationTransientAnalysis(AnalysisStage):
         self.sensor_measurement_data_file_name: str = ""
 
         p_coefficient = sensor_settings["p_coefficient"].GetDouble()
-        self.measurement_residual_response_function = KratosSI.Sensors.MeasurementResidualResponseFunction(p_coefficient)
+        self.least_squares_response_function = KratosSI.Sensors.LeastSquaresResponseFunction()
 
         for sensor in self.list_of_sensors:
             sensor.SetValue(KratosSI.SENSOR_MEASURED_VALUE, 0.0)
-            self.measurement_residual_response_function.AddSensor(sensor)
+            self.least_squares_response_function.AddSensor(sensor)
 
         self.sensor_name_dict: 'dict[str, KratosSI.Sensors.Sensor]' = {}
         for sensor in self.list_of_sensors:
             self.sensor_name_dict[sensor.GetName()] = sensor
 
-        self.measurement_residual_response_function.Initialize()
+        self.least_squares_response_function.Initialize()
 
         # since we have to run adjoint per test scenario, we have
         # to rebuild the LHS and RHS for every adjoint solve.
         self._GetSolver()._GetSolutionStrategy().SetRebuildLevel(1)
 
-        self._GetSolver().SetSensor(self.measurement_residual_response_function)
+        self._GetSolver().SetSensor(self.least_squares_response_function)
 
         # dummy time step to correctly calculate the first DELTA_TIME
         self._GetSolver().main_model_part.CloneTimeStep(self.time)
@@ -124,7 +124,7 @@ class SystemIdentificationTransientAnalysis(AnalysisStage):
         return self.sensor_name_dict
 
     def GetResponseFunction(self) -> Kratos.AdjointResponseFunction:
-        return self.measurement_residual_response_function
+        return self.least_squares_response_function
 
     def PrintAnalysisStageProgressInformation(self):
         process_info = self._GetSolver().GetComputingModelPart().ProcessInfo

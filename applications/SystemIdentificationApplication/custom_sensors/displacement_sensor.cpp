@@ -135,14 +135,7 @@ double DisplacementSensor::CalculateValue(ModelPart& rModelPart)
     double directional_displacement = 0.0;
     if (rModelPart.HasElement(mElementId)) {
         const auto& r_element = rModelPart.GetElement(mElementId);
-        const auto& r_geometry = r_element.GetGeometry();
-
-        array_1d<double, 3> displacement = ZeroVector(3);
-        for (IndexType i = 0; i < r_geometry.size(); ++i) {
-            displacement += r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT) * mNs[i];
-        }
-
-        directional_displacement = inner_prod(displacement, mDirection);
+        directional_displacement = CalculateSensorValue(r_element);
     }
     return rModelPart.GetCommunicator().GetDataCommunicator().SumAll(directional_displacement);
 }
@@ -162,6 +155,9 @@ void DisplacementSensor::CalculateGradient(
     rResponseGradient.clear();
 
     if (rAdjointElement.Id() == mElementId) {
+        // Update current sensor error
+        this->SetValue(SENSOR_ERROR, CalculateSensorValue(rAdjointElement) - this->GetValue(SENSOR_MEASURED_VALUE));
+        // calculate gradient
         const auto& r_geometry = rAdjointElement.GetGeometry();
         const IndexType block_size = rResidualGradient.size1() / r_geometry.size();
 
@@ -292,6 +288,18 @@ void DisplacementSensor::SetVectorToZero(
     }
 
     rVector.clear();
+}
+
+double DisplacementSensor::CalculateSensorValue(const Element& rElementWithSensor)
+{
+    const auto& r_geometry = rElementWithSensor.GetGeometry();
+
+    array_1d<double, 3> displacement = ZeroVector(3);
+    for (IndexType i = 0; i < r_geometry.size(); ++i) {
+        displacement += r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT) * mNs[i];
+    }
+
+    return inner_prod(displacement, mDirection);
 }
 
 }; // namespace Kratos

@@ -26,12 +26,12 @@
 #include "system_identification_application_variables.h"
 
 // Include base h
-#include "measurement_residual_response_function.h"
+#include "least_squares_response_function.h"
 
 namespace Kratos
 {
 
-namespace MeasurementResidualResponseFunctionUtilities
+namespace LeastSquaresResponseFunctionUtilities
 {
 
 struct GradientCalculation {
@@ -88,15 +88,14 @@ struct PartialSensitivity
     }
 };
 
-} // namespace MeasurementResidualResponseFunctionUtilities
+} // namespace LeastSquaresResponseFunctionUtilities
 
-MeasurementResidualResponseFunction::MeasurementResidualResponseFunction(const double PCoefficient)
-    : mPCoefficient(PCoefficient)
-    {
+LeastSquaresResponseFunction::LeastSquaresResponseFunction()
+{
     mResponseGradientList.resize(ParallelUtilities::GetNumThreads());
 }
 
-void MeasurementResidualResponseFunction::AddSensor(Sensor::Pointer pSensor)
+void LeastSquaresResponseFunction::AddSensor(Sensor::Pointer pSensor)
 {
     KRATOS_TRY
 
@@ -108,43 +107,43 @@ void MeasurementResidualResponseFunction::AddSensor(Sensor::Pointer pSensor)
     KRATOS_CATCH("");
 }
 
-void MeasurementResidualResponseFunction::Clear()
+void LeastSquaresResponseFunction::Clear()
 {
     mpSensorsList.clear();
 }
 
-std::vector<Sensor::Pointer>& MeasurementResidualResponseFunction::GetSensorsList()
+std::vector<Sensor::Pointer>& LeastSquaresResponseFunction::GetSensorsList()
 {
     return mpSensorsList;
 }
 
-void MeasurementResidualResponseFunction::Initialize()
+void LeastSquaresResponseFunction::Initialize()
 {
     for (auto& p_sensor : mpSensorsList) {
         p_sensor->Initialize();
     }
 }
 
-void MeasurementResidualResponseFunction::InitializeSolutionStep()
+void LeastSquaresResponseFunction::InitializeSolutionStep()
 {
     for (auto& p_sensor : mpSensorsList) {
         p_sensor->InitializeSolutionStep();
     }
 }
 
-void MeasurementResidualResponseFunction::FinalizeSolutionStep()
+void LeastSquaresResponseFunction::FinalizeSolutionStep()
 {
     for (auto& p_sensor : mpSensorsList) {
         p_sensor->FinalizeSolutionStep();
     }
 }
 
-void MeasurementResidualResponseFunction::Finalize()
+void LeastSquaresResponseFunction::Finalize()
 {
 
 }
 
-double MeasurementResidualResponseFunction::CalculateValue(ModelPart& rModelPart)
+double LeastSquaresResponseFunction::CalculateValue(ModelPart& rModelPart)
 {
     KRATOS_TRY
 
@@ -154,24 +153,19 @@ double MeasurementResidualResponseFunction::CalculateValue(ModelPart& rModelPart
         const double sensor_value = p_sensor->CalculateValue(rModelPart);
         const double current_sensor_error = sensor_value - p_sensor->GetValue(SENSOR_MEASURED_VALUE);
 
-        // TODO: Does it still make sense to store the values in a multiple load case/transient scenario?
-        // Why do we even store the sensor_value?
+        // TODO: Why do we store the sensor_value?
         p_sensor->SetSensorValue(sensor_value);
-        p_sensor->SetValue(SENSOR_ERROR, current_sensor_error);
 
-        sum += ( std::pow( 0.5 * pow(current_sensor_error, 2) * p_sensor->GetWeight(), mPCoefficient ) );
+        sum += 0.5 * std::pow(current_sensor_error, 2) * p_sensor->GetWeight();
     }
 
-    mC1 = std::pow( sum, 1 / mPCoefficient - 1 ) / std::pow(2, mPCoefficient - 1);
-    KRATOS_WATCH(mC1)
-
-    return std::pow(sum, 1 / mPCoefficient);
+    return sum;
 
     KRATOS_CATCH("");
 }
 
 template<class TCalculationType, class... TArgs>
-void MeasurementResidualResponseFunction::CalculateDerivative(
+void LeastSquaresResponseFunction::CalculateDerivative(
     Vector& rResponseGradient,
     const Matrix& rResidualGradient,
     TArgs&&... rArgs)
@@ -187,126 +181,120 @@ void MeasurementResidualResponseFunction::CalculateDerivative(
     auto& local_sensor_response_gradient = mResponseGradientList[OpenMPUtils::ThisThread()];
 
     for (auto& p_sensor : mpSensorsList) {
-        // TODO: Adapt for multiple load case/transient analysis. Problem: mC1 and p_sensor->GetValue(SENSOR_ERROR) are overwritten.
-        // assuming p=1 (least squares response function)
-        mC1 = 1.0;
         TCalculationType::Calculate(*p_sensor, local_sensor_response_gradient, rResidualGradient, rArgs...);
-        noalias(rResponseGradient) += local_sensor_response_gradient * mC1 * (std::pow(p_sensor->GetWeight(), mPCoefficient) * std::pow(p_sensor->GetValue(SENSOR_ERROR), mPCoefficient * 2 - 1 ) );
+        noalias(rResponseGradient) += p_sensor->GetValue(SENSOR_ERROR) * p_sensor->GetWeight() * local_sensor_response_gradient;
     }
 
     KRATOS_CATCH("");
 }
 
-void MeasurementResidualResponseFunction::CalculateGradient(
+void LeastSquaresResponseFunction::CalculateGradient(
     const Element& rAdjointElement,
     const Matrix& rResidualGradient,
     Vector& rResponseGradient,
     const ProcessInfo& rProcessInfo)
 {
-    CalculateDerivative<MeasurementResidualResponseFunctionUtilities::GradientCalculation>(rResponseGradient, rResidualGradient, rAdjointElement, rProcessInfo);
-    std::cout << "in calculate gradient of response function" << std::endl;
+    CalculateDerivative<LeastSquaresResponseFunctionUtilities::GradientCalculation>(rResponseGradient, rResidualGradient, rAdjointElement, rProcessInfo);
 }
 
-void MeasurementResidualResponseFunction::CalculateGradient(
+void LeastSquaresResponseFunction::CalculateGradient(
     const Condition& rAdjointCondition,
     const Matrix& rResidualGradient,
     Vector& rResponseGradient,
     const ProcessInfo& rProcessInfo)
 {
-    CalculateDerivative<MeasurementResidualResponseFunctionUtilities::GradientCalculation>(rResponseGradient, rResidualGradient, rAdjointCondition, rProcessInfo);
+    CalculateDerivative<LeastSquaresResponseFunctionUtilities::GradientCalculation>(rResponseGradient, rResidualGradient, rAdjointCondition, rProcessInfo);
 }
 
-void MeasurementResidualResponseFunction::CalculateFirstDerivativesGradient(
+void LeastSquaresResponseFunction::CalculateFirstDerivativesGradient(
     const Element& rAdjointElement,
     const Matrix& rResidualFirstDerivativesGradient,
     Vector& rResponseFirstDerivativesGradient,
     const ProcessInfo& rProcessInfo)
 {
-    CalculateDerivative<MeasurementResidualResponseFunctionUtilities::FirstDerivativesGradientCalculation>(rResponseFirstDerivativesGradient, rResidualFirstDerivativesGradient, rAdjointElement, rProcessInfo);
-    std::cout << "in calculate first deriv gradient of response function" << std::endl;
+    CalculateDerivative<LeastSquaresResponseFunctionUtilities::FirstDerivativesGradientCalculation>(rResponseFirstDerivativesGradient, rResidualFirstDerivativesGradient, rAdjointElement, rProcessInfo);
 }
 
-void MeasurementResidualResponseFunction::CalculateFirstDerivativesGradient(
+void LeastSquaresResponseFunction::CalculateFirstDerivativesGradient(
     const Condition& rAdjointCondition,
     const Matrix& rResidualFirstDerivativesGradient,
     Vector& rResponseFirstDerivativesGradient,
     const ProcessInfo& rProcessInfo)
 {
-    CalculateDerivative<MeasurementResidualResponseFunctionUtilities::FirstDerivativesGradientCalculation>(rResponseFirstDerivativesGradient, rResidualFirstDerivativesGradient, rAdjointCondition, rProcessInfo);
+    CalculateDerivative<LeastSquaresResponseFunctionUtilities::FirstDerivativesGradientCalculation>(rResponseFirstDerivativesGradient, rResidualFirstDerivativesGradient, rAdjointCondition, rProcessInfo);
 }
 
-void MeasurementResidualResponseFunction::CalculateSecondDerivativesGradient(
+void LeastSquaresResponseFunction::CalculateSecondDerivativesGradient(
     const Element& rAdjointElement,
     const Matrix& rResidualSecondDerivativesGradient,
     Vector& rResponseSecondDerivativesGradient,
     const ProcessInfo& rProcessInfo)
 {
-    CalculateDerivative<MeasurementResidualResponseFunctionUtilities::SecondDerivativesGradientCalculation>(rResponseSecondDerivativesGradient, rResidualSecondDerivativesGradient, rAdjointElement, rProcessInfo);
-    std::cout << "in calculate second deriv gradient of response function" << std::endl;
+    CalculateDerivative<LeastSquaresResponseFunctionUtilities::SecondDerivativesGradientCalculation>(rResponseSecondDerivativesGradient, rResidualSecondDerivativesGradient, rAdjointElement, rProcessInfo);
 }
 
-void MeasurementResidualResponseFunction::CalculateSecondDerivativesGradient(
+void LeastSquaresResponseFunction::CalculateSecondDerivativesGradient(
     const Condition& rAdjointCondition,
     const Matrix& rResidualSecondDerivativesGradient,
     Vector& rResponseSecondDerivativesGradient,
     const ProcessInfo& rProcessInfo)
 {
-    CalculateDerivative<MeasurementResidualResponseFunctionUtilities::SecondDerivativesGradientCalculation>(rResponseSecondDerivativesGradient, rResidualSecondDerivativesGradient, rAdjointCondition, rProcessInfo);
+    CalculateDerivative<LeastSquaresResponseFunctionUtilities::SecondDerivativesGradientCalculation>(rResponseSecondDerivativesGradient, rResidualSecondDerivativesGradient, rAdjointCondition, rProcessInfo);
 }
 
-void MeasurementResidualResponseFunction::CalculatePartialSensitivity(
+void LeastSquaresResponseFunction::CalculatePartialSensitivity(
     Element& rAdjointElement,
     const Variable<double>& rVariable,
     const Matrix& rSensitivityMatrix,
     Vector& rSensitivityGradient,
     const ProcessInfo& rProcessInfo)
 {
-    CalculateDerivative<MeasurementResidualResponseFunctionUtilities::PartialSensitivity>(rSensitivityGradient, rSensitivityMatrix, rAdjointElement, rVariable, rProcessInfo);
+    CalculateDerivative<LeastSquaresResponseFunctionUtilities::PartialSensitivity>(rSensitivityGradient, rSensitivityMatrix, rAdjointElement, rVariable, rProcessInfo);
 }
 
-void MeasurementResidualResponseFunction::CalculatePartialSensitivity(
+void LeastSquaresResponseFunction::CalculatePartialSensitivity(
     Condition& rAdjointCondition,
     const Variable<double>& rVariable,
     const Matrix& rSensitivityMatrix,
     Vector& rSensitivityGradient,
     const ProcessInfo& rProcessInfo)
 {
-    CalculateDerivative<MeasurementResidualResponseFunctionUtilities::PartialSensitivity>(rSensitivityGradient, rSensitivityMatrix, rAdjointCondition, rVariable, rProcessInfo);
+    CalculateDerivative<LeastSquaresResponseFunctionUtilities::PartialSensitivity>(rSensitivityGradient, rSensitivityMatrix, rAdjointCondition, rVariable, rProcessInfo);
 }
 
-void MeasurementResidualResponseFunction::CalculatePartialSensitivity(
+void LeastSquaresResponseFunction::CalculatePartialSensitivity(
     Element& rAdjointElement,
     const Variable<array_1d<double, 3>>& rVariable,
     const Matrix& rSensitivityMatrix,
     Vector& rSensitivityGradient,
     const ProcessInfo& rProcessInfo)
 {
-    CalculateDerivative<MeasurementResidualResponseFunctionUtilities::PartialSensitivity>(rSensitivityGradient, rSensitivityMatrix, rAdjointElement, rVariable, rProcessInfo);
+    CalculateDerivative<LeastSquaresResponseFunctionUtilities::PartialSensitivity>(rSensitivityGradient, rSensitivityMatrix, rAdjointElement, rVariable, rProcessInfo);
 }
 
-void MeasurementResidualResponseFunction::CalculatePartialSensitivity(
+void LeastSquaresResponseFunction::CalculatePartialSensitivity(
     Condition& rAdjointCondition,
     const Variable<array_1d<double, 3>>& rVariable,
     const Matrix& rSensitivityMatrix,
     Vector& rSensitivityGradient,
     const ProcessInfo& rProcessInfo)
 {
-    CalculateDerivative<MeasurementResidualResponseFunctionUtilities::PartialSensitivity>(rSensitivityGradient, rSensitivityMatrix, rAdjointCondition, rVariable, rProcessInfo);
+    CalculateDerivative<LeastSquaresResponseFunctionUtilities::PartialSensitivity>(rSensitivityGradient, rSensitivityMatrix, rAdjointCondition, rVariable, rProcessInfo);
 }
 
-std::string MeasurementResidualResponseFunction::Info() const
+std::string LeastSquaresResponseFunction::Info() const
 {
     std::stringstream msg;
-    msg << "MeasurementResidualResponseFunction with " << mpSensorsList.size() << " sensors.";
+    msg << "LeastSquaresResponseFunction with " << mpSensorsList.size() << " sensors.";
     return msg.str();
 }
 
-void MeasurementResidualResponseFunction::PrintInfo(std::ostream& rOStream) const
+void LeastSquaresResponseFunction::PrintInfo(std::ostream& rOStream) const
 {
     rOStream << Info() << std::endl;
 }
 
-void MeasurementResidualResponseFunction::PrintData(std::ostream& rOStream) const
+void LeastSquaresResponseFunction::PrintData(std::ostream& rOStream) const
 {
     PrintInfo(rOStream);
     for (const auto& p_sensor : mpSensorsList) {

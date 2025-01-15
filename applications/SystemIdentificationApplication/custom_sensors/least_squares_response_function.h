@@ -52,7 +52,7 @@ public:
     ///@{
 
     /// Constructor.
-    LeastSquaresResponseFunction(const double PCoeficient);
+    LeastSquaresResponseFunction();
 
     /// Destructor.
     ~LeastSquaresResponseFunction() override = default;
@@ -156,10 +156,6 @@ public:
 private:
     ///@name Member Variables
     ///@{
-
-    double mPCoefficient;
-
-    double mC1;
 
     std::vector<Sensor::Pointer> mpSensorsList;
 
