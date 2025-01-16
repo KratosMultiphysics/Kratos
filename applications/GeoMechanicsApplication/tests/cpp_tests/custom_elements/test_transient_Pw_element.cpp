@@ -68,7 +68,7 @@ ModelPart& CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(Model& 
     return r_result;
 }
 
-void RemoveThreeNOdes(ModelPart& rModelPart)
+void RemoveThreeNodes(ModelPart& rModelPart)
 {
     rModelPart.RemoveNodeFromAllLevels(1);
     rModelPart.RemoveNodeFromAllLevels(2);
@@ -292,19 +292,19 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CheckThrowsOnFaultyInput, KratosGeo
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "Error: Missing variable DT_WATER_PRESSURE on node 1")
 
-    RemoveThreeNOdes(model_part);
+    RemoveThreeNodes(model_part);
     model_part.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
     p_element = CreateTriangleTransientPwElementWithoutPWDofs(model_part, p_properties);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "Missing variable VOLUME_ACCELERATION on node 1")
 
-    RemoveThreeNOdes(model_part);
+    RemoveThreeNodes(model_part);
     model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
     p_element = CreateTriangleTransientPwElementWithoutPWDofs(model_part, p_properties);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "Missing variable WATER_PRESSURE on node 1")
 
-    RemoveThreeNOdes(model_part);
+    RemoveThreeNodes(model_part);
     p_element = CreateTriangleTransientPwElementWithPWDofs(model_part, p_properties);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "DENSITY_WATER does not exist in the material properties or "
