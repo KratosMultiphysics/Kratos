@@ -103,12 +103,23 @@ namespace Kratos
         // Modify the penalty factor: p^2 * penalty / h (NITSCHE APPROACH)
         penalty = mbasisFunctionsOrder * mbasisFunctionsOrder * penalty / h;
 
-        // Matrix InvJ0(dim,dim);
-        // Vector determinant_jacobian_vector(integration_points.size());
-        // r_geometry.DeterminantOfJacobian(determinant_jacobian_vector);  // = 1
-        // GeometryType::JacobiansType J0;
-        // r_geometry.Jacobian(J0,r_geometry.GetDefaultIntegrationMethod());
-        // double DetJ0;
+        GeometryType::JacobiansType J0;
+        Matrix InvJ0(dim,dim);
+        r_geometry.Jacobian(J0,r_geometry.GetDefaultIntegrationMethod());
+        Matrix Jacobian = ZeroMatrix(3,3);
+        double DetJ0;
+        Jacobian(0,0) = J0[0](0,0);
+        Jacobian(0,1) = J0[0](0,1);
+        Jacobian(1,0) = J0[0](1,0);
+        Jacobian(1,1) = J0[0](1,1);
+        Jacobian(2,2) = 1.0;
+        // Calculating inverse jacobian and jacobian determinant
+        MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
+        array_1d<double, 3> tangent_parameter_space;
+        r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space !!
+        Vector add_factor = prod(Jacobian, tangent_parameter_space);
+        add_factor[2] = 0.0;
+        DetJ0 = norm_2(add_factor);
 
         // Obtaining the projection from the closest skin segment
 
@@ -146,23 +157,8 @@ namespace Kratos
 
         const Matrix& N = r_geometry.ShapeFunctionsValues();
 
-        // Matrix Jacobian = ZeroMatrix(dim,dim);
-        // Jacobian(0,0) = J0[0](0,0);
-        // Jacobian(0,1) = J0[0](0,1);
-        // Jacobian(1,0) = J0[0](1,0);
-        // Jacobian(1,1) = J0[0](1,1);
-        // if (dim > 2) {
-        //     Jacobian(0,2) = J0[0](0,2);
-        //     Jacobian(1,2) = J0[0](1,2);
-        //     Jacobian(2,0) = J0[0](2,0);
-        //     Jacobian(2,1) = J0[0](2,1);
-        //     Jacobian(2,2) = J0[0](2,2);
-        // }
-        // // Calculating inverse jacobian and jacobian determinant
-        // MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
-
         // Differential area
-        double penalty_integration = penalty * integration_points[0].Weight() ; // * std::abs(DetJ0);
+        double penalty_integration = penalty * integration_points[0].Weight() * std::abs(DetJ0); // * std::abs(DetJ0);
 
         // Calculating the PHYSICAL SPACE derivatives (it is avoided storing them to minimize storage)
         noalias(DN_DX) = DN_De[0]; // prod(DN_De[0],InvJ0);
@@ -243,12 +239,13 @@ namespace Kratos
             H_sum(0,i) = H_taylor_term + H(0,i);
             H_sum_vec(i) = H_taylor_term + H(0,i);
         }
+        const double integration_weight = integration_points[0].Weight() * std::abs(DetJ0); 
 
         // Assembly
         // Termine -(GRAD_w * n, u + GRAD_u * d + ...)
-        noalias(rLeftHandSideMatrix) -= Guglielmo_innovation * prod(trans(DN_dot_n), H_sum)  * integration_points[0].Weight() ; // * std::abs(DetJ0) ;
+        noalias(rLeftHandSideMatrix) -= Guglielmo_innovation * prod(trans(DN_dot_n), H_sum)  * integration_weight;
         // Termine -(w,GRAD_u * n) from integration by parts -> Fundamental !! 
-        noalias(rLeftHandSideMatrix) -= prod(trans(H), DN_dot_n)                             * integration_points[0].Weight() ; // * std::abs(DetJ0) ;
+        noalias(rLeftHandSideMatrix) -= prod(trans(H), DN_dot_n)                             * integration_weight;
         // SBM terms (Taylor Expansion) + alpha * (w + GRAD_w * d + ..., u + GRAD_u * d + ...)
         noalias(rLeftHandSideMatrix) += prod(trans(H_sum), H_sum) * penalty_integration ;
 
@@ -268,7 +265,7 @@ namespace Kratos
 
             noalias(rRightHandSideVector) += H_sum_vec * u_D_scalar * penalty_integration;
             // Dirichlet BCs
-            noalias(rRightHandSideVector) -= Guglielmo_innovation * DN_dot_n_vec * u_D_scalar * integration_points[0].Weight() ; // * std::abs(DetJ0) ;
+            noalias(rRightHandSideVector) -= Guglielmo_innovation * DN_dot_n_vec * u_D_scalar * integration_weight ;
 
             Vector temp(number_of_nodes);
             // RHS = ExtForces - K*temp;

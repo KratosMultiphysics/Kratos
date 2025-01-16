@@ -106,8 +106,27 @@ void SupportFluidDirichletCondition::CalculateAll(
 
     const Matrix& H = r_geometry.ShapeFunctionsValues();
     
+    GeometryType::JacobiansType J0;
+    Matrix InvJ0(dim,dim);
+    r_geometry.Jacobian(J0,r_geometry.GetDefaultIntegrationMethod());
+    Matrix Jacobian = ZeroMatrix(3,3);
+    double DetJ0;
+    Jacobian(0,0) = J0[0](0,0);
+    Jacobian(0,1) = J0[0](0,1);
+    Jacobian(1,0) = J0[0](1,0);
+    Jacobian(1,1) = J0[0](1,1);
+    Jacobian(2,2) = 1.0;
+    // Calculating inverse jacobian and jacobian determinant
+    MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
+    array_1d<double, 3> tangent_parameter_space;
+    r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space !!
+    Vector add_factor = prod(Jacobian, tangent_parameter_space);
+    add_factor[2] = 0.0;
+    DetJ0 = norm_2(add_factor);
+    
     double h_element_size = norm_2(r_geometry[0].Coordinates()-r_geometry[1].Coordinates());
-    double penalty_integration = penalty * integration_points[0].Weight() / h_element_size;
+    double penalty_integration = penalty * integration_points[0].Weight() * std::abs(DetJ0) / h_element_size;
+    const double integration_weight = integration_points[0].Weight() * std::abs(DetJ0);
 
     // Compute the pressure & velocity at the previous iteration
     double pressure_current_iteration = 0.0;
@@ -140,6 +159,11 @@ void SupportFluidDirichletCondition::CalculateAll(
 
                 // Penalty term for the velocity
                 rLeftHandSideMatrix(3*i+idim, 3*j+idim) += H(0,i)*H(0,j)* penalty_integration;
+
+                // // Nitsche term - Without constitutive law
+                // rLeftHandSideMatrix(3*i+idim, 3*j+idim) -= H(0,j)*(
+                //     DN_DX(i, 0) * normal_parameter_space[0] + DN_DX(i, 1) * normal_parameter_space[1] ) * integration_weight;
+                
                 
                 for (IndexType jdim = 0; jdim < 2; jdim++) {
                     // Extract the 2x2 block for the control point i from the sigma matrix.
@@ -151,25 +175,26 @@ void SupportFluidDirichletCondition::CalculateAll(
                     // Compute the traction vector: sigma * n.
                     Vector traction = prod(sigma_block, n_tensor); // This results in a 2x1 vector.
                     // integration by parts velocity --> With Constitutive law  < v cdot (DB cdot n) >
-                    rLeftHandSideMatrix(3*i+idim, 3*j+jdim) -= H(0, i) * traction(idim) * integration_points[0].Weight();
+                    rLeftHandSideMatrix(3*i+idim, 3*j+jdim) -= H(0, i) * traction(idim) * integration_weight;
                     
                     // integration by parts velocity + Nitsche --> Without constitutive law
                     // rLeftHandSideMatrix(3*i+idim, 3*j+jdim) -= H(0,i)*(
-                    //         DN_DX(j, 0) * normal_parameter_space[0] + DN_DX(j, 1) * normal_parameter_space[1] ) * integration_points[0].Weight();
+                    //         DN_DX(j, 0) * normal_parameter_space[0] + DN_DX(j, 1) * normal_parameter_space[1] ) * integration_weight;
+                    // // Nitsche term - Without constitutive law
                     // rLeftHandSideMatrix(3*i+idim, 3*j+jdim) -= H(0,j)*(
-                    //         DN_DX(i, 0) * normal_parameter_space[0] + DN_DX(i, 1) * normal_parameter_space[1] ) * integration_points[0].Weight();
+                    //         DN_DX(i, 0) * normal_parameter_space[0] + DN_DX(i, 1) * normal_parameter_space[1] ) * integration_weight;
                 
                     // Nitsche term --> With Constitutive law
-                    // rLeftHandSideMatrix(3*i+idim, 3*j+jdim) -= H(0, j) * traction(jdim) * integration_points[0].Weight();
+                    // rLeftHandSideMatrix(3*j+jdim, 3*i+idim) -= H(0, i) * traction(idim) * integration_weight;
 
                     // Additional term form VMS
                     // Vector traction_transpose = prod(trans(sigma_block), n_tensor);
-                    // rLeftHandSideMatrix(3*i+idim, 3*j+jdim) -= TauOne * DN_DX(i,idim) * traction_transpose(idim) * integration_points[0].Weight();
+                    // rLeftHandSideMatrix(3*i+idim, 3*j+jdim) -= TauOne * DN_DX(i,idim) * traction_transpose(idim) * integration_weight;
                 }
 
                 // integration by parts PRESSURE
                 rLeftHandSideMatrix(3*i+idim, 3*j+2) += H(0,j)* ( H(0,i) * normal_parameter_space[idim] )
-                        * integration_points[0].Weight();
+                        * integration_weight;
             }
         }
 
@@ -178,13 +203,13 @@ void SupportFluidDirichletCondition::CalculateAll(
             // Penalty term for the velocity
             rRightHandSideVector(3*i+idim) -= H(0,i)* velocity_current_iteration[idim] * penalty_integration;
             // integration by parts velocity --> With Constitutive law
-            rRightHandSideVector(3*i+idim) += H(0,i) * traction_current_iteration(idim) * integration_points[0].Weight();
+            rRightHandSideVector(3*i+idim) += H(0,i) * traction_current_iteration(idim) * integration_weight;
             // integration by parts PRESSURE
-            rRightHandSideVector(3*i+idim) -= pressure_current_iteration * ( H(0,i) * normal_parameter_space[idim] ) * integration_points[0].Weight();
+            rRightHandSideVector(3*i+idim) -= pressure_current_iteration * ( H(0,i) * normal_parameter_space[idim] ) * integration_weight;
 
             // Additional term form VMS
             // Vector traction_previous_transpose = prod(trans(sigma_block), n_tensor);
-            // rRightHandSideVector(3*i+idim) += TauOne * DN_DX(i,idim) * traction_previous_transpose(idim) * integration_points[0].Weight();
+            // rRightHandSideVector(3*i+idim) += TauOne * DN_DX(i,idim) * traction_previous_transpose(idim) * integration_weight;
         }
     }
             
@@ -192,31 +217,61 @@ void SupportFluidDirichletCondition::CalculateAll(
     u_D[0] = this->GetValue(VELOCITY_X);
     u_D[1] = this->GetValue(VELOCITY_Y);
 
+    // // HARD - CODED BOUNDARY CONDITIONS
+    // if ((r_geometry.Center().Y() < 0.499999999) && (r_geometry.Center().Y() > -0.49999999)) {
+    //     const double delta_p = 2000.0;
+    //     const double tau_0 = 100.0;
+    //     const double mu = 1.0;
+    //     const double L = 1.0;
+    //     const double H = 1.0;
+
+    //     // Calculate the critical yield limits
+    //     const double grad_p = std::abs(delta_p / L);
+    //     const double h1 = - tau_0 / grad_p;
+    //     const double h2 =  tau_0 / grad_p;
+    //     // KRATOS_WATCH(r_geometry.Center())
+    //     double y = r_geometry.Center().Y();
+    //     double u_x = 0.0;
+    //     if (-H / 2.0 <= y && y < h1) {
+    //         u_x = (1.0 / (2.0 * mu)) * grad_p * (((h1 + H / 2.0) * (h1 + H / 2.0)) - (h1 - y) * (h1 - y));
+    //     } else if (h1 <= y && y < h2) {
+    //         u_x = (1.0 / (2.0 * mu)) * grad_p * ((h1 + H / 2.0) * (h1 + H / 2.0)); 
+    //     } else if (h2 <= y && y <= H / 2.0) {
+    //         u_x = (1.0 / (2.0 * mu)) * grad_p * (((H / 2.0 - h2) * (H / 2.0 - h2)) - (y - h2) * (y - h2));
+    //     } else {
+    //         u_x = 0.0; // Outside the valid domain
+    //     }
+
+
+    //     // Set the velocity components
+    //     u_D[0] = u_x;  // Velocity in the x-direction
+    //     u_D[1] = 0.0;  // Velocity in the y-direction
+    // }
+
     for (IndexType i = 0; i < number_of_nodes; i++) {
 
         for (IndexType idim = 0; idim < 2; idim++) {
             
             // Penalty term for the velocity
             rRightHandSideVector[3*i+idim] += H(0,i) * u_D[idim] * penalty_integration;
-            // Without constitutive -> Nitsche
-            // rRightHandSideVector[3*i+idim] -= u_D[idim] * (DN_DX(i, 0) * normal_parameter_space[0] + DN_DX(i, 1) * normal_parameter_space[1] ) *  integration_points[0].Weight();
+            // // Without constitutive -> Nitsche
+            // rRightHandSideVector[3*i+idim] -= u_D[idim] * (DN_DX(i, 0) * normal_parameter_space[0] + DN_DX(i, 1) * normal_parameter_space[1] ) *  integration_weight;
 
             // // Extract the 2x2 block for the control point i from the sigma matrix.
             // Matrix sigma_block = ZeroMatrix(2, 2);
-            // TROVATO ERRORE QUI
-            // sigma_block(0, 0) = sigmaVoigt(0, 2*i+idim);         // sigma(4 * j + 2*jdim, 0);     // sigma_xx for control point i.
+            // // TROVATO ERRORE QUI
+            // sigma_block(0, 0) = sigmaVoigt(0, 2*i+idim);      // sigma(4 * j + 2*jdim, 0);     // sigma_xx for control point i.
             // sigma_block(0, 1) = sigmaVoigt(2, 2*i+idim);      // sigma(4 * j + 2*jdim, 1);     // sigma_xy for control point i.
             // sigma_block(1, 0) = sigmaVoigt(2, 2*i+idim);      // sigma(4 * j + 2*jdim + 1, 0); // sigma_yx (symmetric) for control point i.
             // sigma_block(1, 1) = sigmaVoigt(1, 2*i+idim);      // sigma(4 * j + 2*jdim + 1, 1); // sigma_yy for control point i.
             // // Compute the traction vector: sigma * n.
             // Vector traction = prod(sigma_block, n_tensor); // This results in a 2x1 vector.
-
-            // Nitsche term --> With Constitutive law
-            // rRightHandSideVector[3*i+idim] -= u_D[idim] * traction(idim) * integration_points[0].Weight();
+            // // Nitsche term --> With Constitutive law
+            // rRightHandSideVector[3*i+idim] -= u_D[idim] * traction(idim) * integration_weight;
 
 
             // // Nitsche flux term (PRESSURE)
-            // rRightHandSideVector(3*i+idim) +=  N(0,i) * ( u_D[idim] * normal_parameter_space[idim] ) * integration_points[0].Weight();
+            // rRightHandSideVector(3*i+idim) +=  N(0,i) * ( u_D[idim] * normal_parameter_space[idim] ) * integration_weight;
         }
     }
 
@@ -235,7 +290,7 @@ void SupportFluidDirichletCondition::CalculateAll(
     //                 // Compute the traction vector: sigma * n.
     //                 Vector traction = prod(sigma_block, n_tensor); // This results in a 2x1 vector.
     //                 // integration by parts velocity --> Without Constitutive law  < v cdot (2*B cdot n) >
-    //                 tempLeftHandSide(3*i+idim, 3*j+jdim) += 2 * H(0, i) * traction(idim) * integration_points[0].Weight();
+    //                 tempLeftHandSide(3*i+idim, 3*j+jdim) += 2 * H(0, i) * traction(idim) * integration_weight;
     //             }
     //         }
     //     }

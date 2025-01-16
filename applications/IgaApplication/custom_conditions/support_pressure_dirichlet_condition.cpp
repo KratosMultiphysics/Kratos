@@ -84,16 +84,25 @@ void SupportPressureDirichletCondition::CalculateAll(
     Vector& r_stress_vector = Values.GetStressVector();
     const Matrix& r_D = Values.GetConstitutiveMatrix();
     Matrix sigmaVoigt = Matrix(prod(r_D, B));
-    // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    // const Parameters refinements_parameters = ReadParamatersFile("refinements.iga.json");
-    // int insertions = refinements_parameters["refinements"][0]["parameters"]["insert_nb_per_span_u"].GetInt();
-    // double h = 2.0/(insertions+1) ;
-    // // const double h = norm_2(r_geometry[0].Coordinates()-r_geometry[1].Coordinates());
-    // double DynViscosity = 1.0;
-    // const double TauOne = std::pow(h, 2) / ( 4.0 * DynViscosity );
-    ///_________________________________________________________________________________________________________________
-
+    GeometryType::JacobiansType J0;
+    Matrix InvJ0(dim,dim);
+    r_geometry.Jacobian(J0,r_geometry.GetDefaultIntegrationMethod());
+    Matrix Jacobian = ZeroMatrix(3,3);
+    double DetJ0;
+    Jacobian(0,0) = J0[0](0,0);
+    Jacobian(0,1) = J0[0](0,1);
+    Jacobian(1,0) = J0[0](1,0);
+    Jacobian(1,1) = J0[0](1,1);
+    Jacobian(2,2) = 1.0;
+    // Calculating inverse jacobian and jacobian determinant
+    MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
+    array_1d<double, 3> tangent_parameter_space;
+    r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space !!
+    Vector add_factor = prod(Jacobian, tangent_parameter_space);
+    add_factor[2] = 0.0;
+    DetJ0 = norm_2(add_factor);
+    const double integration_weight = integration_points[0].Weight() * std::abs(DetJ0);
 
     const double theta = rCurrentProcessInfo[TIME_INTEGRATION_THETA];
 
@@ -109,7 +118,7 @@ void SupportPressureDirichletCondition::CalculateAll(
                 // integration by parts velocity is moved to the RHS
                 // rLeftHandSideMatrix(3*i+idim, 3*j+idim) -= N(0,i)*(
                 //         DN_DX(j, 0) * normal_parameter_space[0] + DN_DX(j, 1) * normal_parameter_space[1] )
-                //         * integration_points[0].Weight();
+                //         * integration_weight;
                 // // CONSTITUTIVE LAW
                 // for (IndexType jdim = 0; jdim < 2; jdim++) {
                 //     // Extract the 2x2 block for the control point i from the sigma matrix.
@@ -120,16 +129,16 @@ void SupportPressureDirichletCondition::CalculateAll(
                 //     sigma_block(1, 1) = sigmaVoigt(1, 2*j+jdim);      // sigma(4 * j + 2*jdim + 1, 1); // sigma_yy for control point i.
                 //     // Compute the traction vector: sigma * n.
                 //     Vector traction = prod(sigma_block, n_tensor); // This results in a 2x1 vector.
-                //     // rLeftHandSideMatrix(3*i+idim, 3*j+jdim) -= N(0, i) * traction(idim) * integration_points[0].Weight();
+                //     // rLeftHandSideMatrix(3*i+idim, 3*j+jdim) -= N(0, i) * traction(idim) * integration_weight;
 
                 //     // Additional term form VMS
                 //     Vector traction_transpose = prod(trans(sigma_block), n_tensor);
-                //     // rLeftHandSideMatrix(3*i+idim, 3*j+jdim) -= TauOne * DN_DX(i,idim) * traction_transpose(idim) * integration_points[0].Weight();
+                //     // rLeftHandSideMatrix(3*i+idim, 3*j+jdim) -= TauOne * DN_DX(i,idim) * traction_transpose(idim) * integration_weight;
                 // }
 
                 // // integration by parts PRESSURE is moved to the RHS
                 // rLeftHandSideMatrix(3*i+idim, 3*j+2) += N(0,j)* ( N(0,i) * normal_parameter_space[idim] )
-                //         * integration_points[0].Weight();
+                //         * integration_weight;
 
             }
         }
@@ -143,7 +152,7 @@ void SupportPressureDirichletCondition::CalculateAll(
         // for (IndexType idim = 0; idim < 2; idim++) {
         //     // Additional term form VMS
         //     Vector traction_previous_transpose = prod(trans(sigma_block), n_tensor);
-        //     // rRightHandSideVector(3*i+idim) += TauOne * DN_DX(i,idim) * traction_previous_transpose(idim) * integration_points[0].Weight();
+        //     // rRightHandSideVector(3*i+idim) += TauOne * DN_DX(i,idim) * traction_previous_transpose(idim) * integration_weight;
         // }
     }
     
@@ -157,8 +166,8 @@ void SupportPressureDirichletCondition::CalculateAll(
         
         //// integration by parts PRESSURE < v dot n , p >
         for (IndexType idim = 0; idim < 2; idim++) {
-            rRightHandSideVector(3*j+idim) -= theta * p_D * ( N(0,j) * normal_parameter_space[idim] ) * integration_points[0].Weight();
-            rRightHandSideVector(3*j+idim) -= (1.0 - theta) * p_D_old * ( N(0,j) * normal_parameter_space[idim] ) * integration_points[0].Weight();
+            rRightHandSideVector(3*j+idim) -= theta * p_D * ( N(0,j) * normal_parameter_space[idim] ) * integration_weight;
+            rRightHandSideVector(3*j+idim) -= (1.0 - theta) * p_D_old * ( N(0,j) * normal_parameter_space[idim] ) * integration_weight;
         }
         
         // Neumann condition for the velocity
@@ -188,13 +197,23 @@ void SupportPressureDirichletCondition::CalculateAll(
         // t_N[0] = (2*x)*normal_parameter_space[0] + (-2*y)*normal_parameter_space[1]; 
         // t_N[1] = (-2*y)*normal_parameter_space[0] + (-2*x)*normal_parameter_space[1];
 
-        // // QUADRATIC -> constitutive law
+        // // // QUADRATIC -> constitutive law
         // t_N[0] = (4*x)*normal_parameter_space[0] + (-4*y)*normal_parameter_space[1]; 
         // t_N[1] = (-4*y)*normal_parameter_space[0] + (-4*x)*normal_parameter_space[1]; 
 
+        // // constitutive law -> BINGHAM
+        // double gamma = std::sqrt(16 * x * x + 16 * y * y);
+        double gamma = std::abs(2*sin(x)*sin(y));
+        double result = 2 * (1 + (1 - std::exp(-300 * gamma)) * 100 / gamma);
+        // t_N[0] = ((2*x)*normal_parameter_space[0] + (-2*y)*normal_parameter_space[1]) * result; 
+        // t_N[1] = ((-2*y)*normal_parameter_space[0] + (-2*x)*normal_parameter_space[1]) * result; 
+
+        // t_N[0] = ((-sin(x)*sin(y))*normal_parameter_space[0] + ( 0.0 )*normal_parameter_space[1]) * result; 
+        // t_N[1] = ((0.0)*normal_parameter_space[0] + (sin(x)*sin(y))*normal_parameter_space[1]) * result; 
+
         // CUBIC -> constitutive law
-        t_N[0] = ((6*x*x)*normal_parameter_space[0] + (-3*y*y-6*x*y)*normal_parameter_space[1]); 
-        t_N[1] = ((-3*y*y-6*x*y)*normal_parameter_space[0] + (-6*x*x)*normal_parameter_space[1]); 
+        // t_N[0] = ((6*x*x)*normal_parameter_space[0] + (-3*y*y-6*x*y)*normal_parameter_space[1]); 
+        // t_N[1] = ((-3*y*y-6*x*y)*normal_parameter_space[0] + (-6*x*x)*normal_parameter_space[1]); 
         // t_N[0] = ((6*x*x)*normal_parameter_space[0] + (-3*y*y-6*x*y)*normal_parameter_space[1])*(current_t)*(current_t); 
         // t_N[1] = ((-3*y*y-6*x*y)*normal_parameter_space[0] + (-6*x*x)*normal_parameter_space[1])*(current_t)*(current_t); 
         // t_N_old[0] = ((6*x*x)*normal_parameter_space[0] + (-3*y*y-6*x*y)*normal_parameter_space[1])*(current_t-delta_time)*(current_t-delta_time); 
@@ -203,13 +222,12 @@ void SupportPressureDirichletCondition::CalculateAll(
         // t_N[0] = 2 * ((3*x*x)*normal_parameter_space[0] + (-3*y*y-6*x*y)*normal_parameter_space[1]); 
         // t_N[1] = 2 * ((-3*y*y-6*x*y)*normal_parameter_space[0] + (-3*x*x)*normal_parameter_space[1]); 
 
-        // t_N[0] = 0.0; 
-        // t_N[1] = 0.0; 
-
+        t_N[0] = 0.0; 
+        t_N[1] = 0.0; 
 
         for (IndexType idim = 0; idim < 2; idim++) {
-            rRightHandSideVector(3*j+idim) += theta * N(0,j) * t_N[idim] * integration_points[0].Weight();
-            rRightHandSideVector(3*j+idim) += (1.0 - theta) * N(0,j) * t_N_old[idim] * integration_points[0].Weight();
+            rRightHandSideVector(3*j+idim) += theta * N(0,j) * t_N[idim] * integration_weight;
+            rRightHandSideVector(3*j+idim) += (1.0 - theta) * N(0,j) * t_N_old[idim] * integration_weight;
         }
         
     }
