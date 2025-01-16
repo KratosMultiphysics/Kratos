@@ -10,10 +10,10 @@
 //  Main authors:    Wijtze Pieter Kikstra
 //
 
+#include "custom_elements/plane_strain_stress_state.h"
 #include "custom_elements/transient_Pw_element.hpp"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
-#include "custom_elements/plane_strain_stress_state.h"
 #include <boost/numeric/ublas/assignment.hpp>
 
 namespace
@@ -69,9 +69,9 @@ ModelPart& CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(Model& 
 
 void RemoveNodes(ModelPart& rModelPart)
 {
-rModelPart.RemoveNodeFromAllLevels(1);
-rModelPart.RemoveNodeFromAllLevels(2);
-rModelPart.RemoveNodeFromAllLevels(3);
+    rModelPart.RemoveNodeFromAllLevels(1);
+    rModelPart.RemoveNodeFromAllLevels(2);
+    rModelPart.RemoveNodeFromAllLevels(3);
 }
 
 Element::IndexType NextElementNumber(const ModelPart& rModelPart)
@@ -79,8 +79,9 @@ Element::IndexType NextElementNumber(const ModelPart& rModelPart)
     return rModelPart.NumberOfElements() + 1;
 }
 
-intrusive_ptr<TransientPwElement<2, 3>> CreateTransientPwElementWithPWDofs(
-    const ModelPart& rModelPart, const Properties::Pointer& rProperties, const Geometry<Node>::Pointer& rGeometry)
+intrusive_ptr<TransientPwElement<2, 3>> CreateTransientPwElementWithPWDofs(const ModelPart& rModelPart,
+                                                                           const Properties::Pointer& rProperties,
+                                                                           const Geometry<Node>::Pointer& rGeometry)
 {
     auto p_result = make_intrusive<TransientPwElement<2, 3>>(
         NextElementNumber(rModelPart), rGeometry, rProperties, std::make_unique<PlaneStrainStressState>());
@@ -103,8 +104,8 @@ intrusive_ptr<TransientPwElement<3, 4>> CreateTransientPwElement3D4NWithPWDofs(
     return p_result;
 }
 
-intrusive_ptr<TransientPwElement<2, 3>> CreateTriangleTransientPwElementWithPWDofs(
-    ModelPart& rModelPart, const Properties::Pointer& rProperties)
+intrusive_ptr<TransientPwElement<2, 3>> CreateTriangleTransientPwElementWithPWDofs(ModelPart& rModelPart,
+                                                                                   const Properties::Pointer& rProperties)
 {
     const auto p_geometry = std::make_shared<Triangle2D3<Node>>(CreateThreeNodesOnModelPart(rModelPart));
     auto p_element = CreateTransientPwElementWithPWDofs(rModelPart, rProperties, p_geometry);
@@ -113,8 +114,8 @@ intrusive_ptr<TransientPwElement<2, 3>> CreateTriangleTransientPwElementWithPWDo
     return p_element;
 }
 
-intrusive_ptr<TransientPwElement<3, 4>> CreateThreeDTransientPwElement3D4NWithPWDofs(
-    ModelPart& rModelPart, const Properties::Pointer& rProperties)
+intrusive_ptr<TransientPwElement<3, 4>> CreateThreeDTransientPwElement3D4NWithPWDofs(ModelPart& rModelPart,
+                                                                                     const Properties::Pointer& rProperties)
 {
     const auto p_geometry = std::make_shared<Tetrahedra3D4<Node>>(CreateThetrahedralOnModelPart(rModelPart));
     auto p_element = CreateTransientPwElement3D4NWithPWDofs(rModelPart, rProperties, p_geometry);
@@ -123,11 +124,11 @@ intrusive_ptr<TransientPwElement<3, 4>> CreateThreeDTransientPwElement3D4NWithPW
     return p_element;
 }
 
-intrusive_ptr<TransientPwElement<2, 3>> CreateTriangleTransientPwElementWithoutPWDofs(
-    ModelPart& rModelPart, const Properties::Pointer& rProperties)
+intrusive_ptr<TransientPwElement<2, 3>> CreateTriangleTransientPwElementWithoutPWDofs(ModelPart& rModelPart,
+                                                                                      const Properties::Pointer& rProperties)
 {
     const auto p_geometry = std::make_shared<Triangle2D3<Node>>(CreateThreeNodesOnModelPart(rModelPart));
-    auto       p_element  = make_intrusive<TransientPwElement<2, 3>>(
+    auto p_element = make_intrusive<TransientPwElement<2, 3>>(
         NextElementNumber(rModelPart), p_geometry, rProperties, std::make_unique<PlaneStrainStressState>());
 
     rModelPart.AddElement(p_element);
@@ -135,6 +136,7 @@ intrusive_ptr<TransientPwElement<2, 3>> CreateTriangleTransientPwElementWithoutP
 }
 
 } // namespace
+
 /*
 namespace Kratos
 {
@@ -166,14 +168,13 @@ namespace Kratos::Testing
 
 using namespace Kratos;
 
-
-KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CreateInstanceWithGeometryInput,
-                          KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CreateInstanceWithGeometryInput, KratosGeoMechanicsFastSuite)
 {
     // Arrange
     const auto p_geometry   = std::make_shared<Triangle2D3<Node>>(CreateThreeNodes());
     const auto p_properties = std::make_shared<Properties>();
-    const TransientPwElement<2, 3> element(0,p_geometry, p_properties,   std::make_unique<PlaneStrainStressState>());
+    const TransientPwElement<2, 3> element(0, p_geometry, p_properties,
+                                           std::make_unique<PlaneStrainStressState>());
 
     // Act
     const auto p_created_element = element.Create(1, p_geometry, p_properties);
@@ -185,7 +186,6 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CreateInstanceWithGeometryInput,
     EXPECT_NE(p_created_element->pGetProperties(), nullptr);
 }
 
-
 KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CreateInstanceWithNodeInput, KratosGeoMechanicsFastSuite)
 {
     // Arrange
@@ -194,7 +194,8 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CreateInstanceWithNodeInput, Kratos
     // The source element needs to have a geometry, otherwise the version of the
     // Create method with a node input will fail.
     const auto p_geometry = std::make_shared<Triangle2D3<Node>>(CreateThreeNodes());
-    const TransientPwElement<2, 3> element(0, p_geometry, p_properties, std::make_unique<PlaneStrainStressState>());
+    const TransientPwElement<2, 3> element(0, p_geometry, p_properties,
+                                           std::make_unique<PlaneStrainStressState>());
 
     // Act
     const auto p_created_element = element.Create(1, CreateThreeNodes(), p_properties);
@@ -213,8 +214,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_DoFList, KratosGeoMechanicsFastSuit
 
     Model      model;
     auto&      r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
-    const auto p_element =
-        CreateTriangleTransientPwElementWithPWDofs(r_model_part, p_properties);
+    const auto p_element = CreateTriangleTransientPwElementWithPWDofs(r_model_part, p_properties);
 
     // Act
     const auto              dummy_process_info = ProcessInfo{};
@@ -228,16 +228,14 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_DoFList, KratosGeoMechanicsFastSuit
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_EquationIdVector,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_EquationIdVector, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
 
     Model model;
     auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
-    auto  p_element =
-        CreateTriangleTransientPwElementWithPWDofs(r_model_part, p_properties);
+    auto  p_element    = CreateTriangleTransientPwElementWithPWDofs(r_model_part, p_properties);
 
     unsigned int i = 0;
     for (const auto& node : p_element->GetGeometry()) {
@@ -255,13 +253,13 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_EquationIdVector,
     KRATOS_EXPECT_VECTOR_EQ(equation_id_vector, expected_ids)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_IntegrationMethod,
-                          KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_IntegrationMethod, KratosGeoMechanicsFastSuite)
 {
     // Arrange
     const auto p_geometry   = std::make_shared<Triangle2D3<Node>>(CreateCoincidentNodes());
     const auto p_properties = std::make_shared<Properties>();
-    const TransientPwElement<2, 3> element(0, p_geometry, p_properties, std::make_unique<PlaneStrainStressState>());
+    const TransientPwElement<2, 3> element(0, p_geometry, p_properties,
+                                           std::make_unique<PlaneStrainStressState>());
 
     // Act
     const auto p_integration_method = element.GetIntegrationMethod();
@@ -276,7 +274,8 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CheckThrowsOnFaultyInput, KratosGeo
     // Arrange
     const auto p_geometry   = std::make_shared<Triangle2D3<Node>>(CreateCoincidentNodes());
     const auto p_properties = std::make_shared<Properties>();
-    const TransientPwElement<2, 3> element(1, p_geometry, p_properties, std::make_unique<PlaneStrainStressState>());
+    const TransientPwElement<2, 3> element(1, p_geometry, p_properties,
+                                           std::make_unique<PlaneStrainStressState>());
 
     // Act and Assert
     const auto dummy_process_info = ProcessInfo{};
@@ -284,71 +283,65 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CheckThrowsOnFaultyInput, KratosGeo
                                       "Error: DomainSize < 1.0e-15 for the element 1")
 
     const auto p_geometry2 = std::make_shared<Triangle2D3<Node>>(CreateThreeNodes());
-    const TransientPwElement<2, 3> element1(1, p_geometry2, p_properties, std::make_unique<PlaneStrainStressState>());
+    const TransientPwElement<2, 3> element1(1, p_geometry2, p_properties,
+                                            std::make_unique<PlaneStrainStressState>());
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(element1.Check(dummy_process_info),
                                       "Error: Missing variable WATER_PRESSURE on node 1")
 
     Model model;
     auto& model_part = model.CreateModelPart("Main");
     model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
-    auto  p_new_element =
-            CreateTriangleTransientPwElementWithoutPWDofs(model_part, p_properties);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        p_new_element->Check(dummy_process_info),
-        "Error: Missing variable DT_WATER_PRESSURE on node 1")
+    auto p_new_element = CreateTriangleTransientPwElementWithoutPWDofs(model_part, p_properties);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_new_element->Check(dummy_process_info),
+                                      "Error: Missing variable DT_WATER_PRESSURE on node 1")
 
     RemoveNodes(model_part);
     model_part.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
-    p_new_element =
-            CreateTriangleTransientPwElementWithoutPWDofs(model_part, p_properties);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        p_new_element->Check(dummy_process_info),
-        "Missing variable VOLUME_ACCELERATION on node 1")
+    p_new_element = CreateTriangleTransientPwElementWithoutPWDofs(model_part, p_properties);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_new_element->Check(dummy_process_info),
+                                      "Missing variable VOLUME_ACCELERATION on node 1")
 
     RemoveNodes(model_part);
     model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
-    p_new_element =
-            CreateTriangleTransientPwElementWithoutPWDofs(model_part, p_properties);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        p_new_element->Check(dummy_process_info),
-        "Missing variable WATER_PRESSURE on node 1")
+    p_new_element = CreateTriangleTransientPwElementWithoutPWDofs(model_part, p_properties);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_new_element->Check(dummy_process_info),
+                                      "Missing variable WATER_PRESSURE on node 1")
 
     RemoveNodes(model_part);
-    p_new_element =
-                CreateTriangleTransientPwElementWithPWDofs(model_part, p_properties);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        p_new_element->Check(dummy_process_info),
-        "DENSITY_WATER does not exist in the material properties or has an invalid value at element 4")
+    p_new_element = CreateTriangleTransientPwElementWithPWDofs(model_part, p_properties);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_new_element->Check(dummy_process_info),
+                                      "DENSITY_WATER does not exist in the material properties or "
+                                      "has an invalid value at element 4")
 
     p_new_element->GetProperties().SetValue(DENSITY_WATER, -1.0E3);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        p_new_element->Check(dummy_process_info),
-        "DENSITY_WATER does not exist in the material properties or has an invalid value at element 4")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_new_element->Check(dummy_process_info),
+                                      "DENSITY_WATER does not exist in the material properties or "
+                                      "has an invalid value at element 4")
 
     p_new_element->GetProperties().SetValue(DENSITY_WATER, 1.0E3);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        p_new_element->Check(dummy_process_info),
-        "Error: BULK_MODULUS_SOLID does not exist in the material properties or has an invalid value at element 4")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_new_element->Check(dummy_process_info),
+                                      "Error: BULK_MODULUS_SOLID does not exist in the material "
+                                      "properties or has an invalid value at element 4")
 
     p_new_element->GetProperties().SetValue(BULK_MODULUS_SOLID, -1.0E6);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        p_new_element->Check(dummy_process_info),
-        "Error: BULK_MODULUS_SOLID does not exist in the material properties or has an invalid value at element 4")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_new_element->Check(dummy_process_info),
+                                      "Error: BULK_MODULUS_SOLID does not exist in the material "
+                                      "properties or has an invalid value at element 4")
 
     p_new_element->GetProperties().SetValue(BULK_MODULUS_SOLID, 1.0E6);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        p_new_element->Check(dummy_process_info),
-        "Error: POROSITY does not exist in the material properties or has an invalid value at element 4")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_new_element->Check(dummy_process_info),
+                                      "Error: POROSITY does not exist in the material properties "
+                                      "or has an invalid value at element 4")
 
     p_new_element->GetProperties().SetValue(POROSITY, -1.0);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        p_new_element->Check(dummy_process_info),
-        "Error: POROSITY does not exist in the material properties or has an invalid value at element 4")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_new_element->Check(dummy_process_info),
+                                      "Error: POROSITY does not exist in the material properties "
+                                      "or has an invalid value at element 4")
 
     p_new_element->GetProperties().SetValue(POROSITY, 2.0);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        p_new_element->Check(dummy_process_info),
-        "Error: POROSITY does not exist in the material properties or has an invalid value at element 4")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_new_element->Check(dummy_process_info),
+                                      "Error: POROSITY does not exist in the material properties "
+                                      "or has an invalid value at element 4")
 
     p_new_element->GetProperties().SetValue(POROSITY, 0.5);
 
@@ -357,54 +350,54 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CheckThrowsOnFaultyInput, KratosGeo
                                       "Error:  Node with non-zero Z coordinate found. Id: 1")
     p_new_element->GetGeometry().begin()->Z() = 0;
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        p_new_element->Check(dummy_process_info),
-        "Error: BULK_MODULUS_FLUID does not exist in the material properties or has an invalid value at element 4")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_new_element->Check(dummy_process_info),
+                                      "Error: BULK_MODULUS_FLUID does not exist in the material "
+                                      "properties or has an invalid value at element 4")
 
     p_new_element->GetProperties().SetValue(BULK_MODULUS_FLUID, -1.0e6);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        p_new_element->Check(dummy_process_info),
-        "Error: BULK_MODULUS_FLUID does not exist in the material properties or has an invalid value at element 4")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_new_element->Check(dummy_process_info),
+                                      "Error: BULK_MODULUS_FLUID does not exist in the material "
+                                      "properties or has an invalid value at element 4")
 
     p_new_element->GetProperties().SetValue(BULK_MODULUS_FLUID, 1.0e6);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        p_new_element->Check(dummy_process_info),
-        "Error: DYNAMIC_VISCOSITY does not exist in the material properties or has an invalid value at element 4")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_new_element->Check(dummy_process_info),
+                                      "Error: DYNAMIC_VISCOSITY does not exist in the material "
+                                      "properties or has an invalid value at element 4")
 
     p_new_element->GetProperties().SetValue(DYNAMIC_VISCOSITY, -1.0E-2);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        p_new_element->Check(dummy_process_info),
-        "Error: DYNAMIC_VISCOSITY does not exist in the material properties or has an invalid value at element 4")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_new_element->Check(dummy_process_info),
+                                      "Error: DYNAMIC_VISCOSITY does not exist in the material "
+                                      "properties or has an invalid value at element 4")
 
     p_new_element->GetProperties().SetValue(DYNAMIC_VISCOSITY, 1.0E-2);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        p_new_element->Check(dummy_process_info),
-        "PERMEABILITY_XX does not exist in the material properties or has an invalid value at element 4")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_new_element->Check(dummy_process_info),
+                                      "PERMEABILITY_XX does not exist in the material properties "
+                                      "or has an invalid value at element 4")
 
     p_new_element->GetProperties().SetValue(PERMEABILITY_XX, -1.0E-2);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        p_new_element->Check(dummy_process_info),
-        "PERMEABILITY_XX does not exist in the material properties or has an invalid value at element 4")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_new_element->Check(dummy_process_info),
+                                      "PERMEABILITY_XX does not exist in the material properties "
+                                      "or has an invalid value at element 4")
 
     p_new_element->GetProperties().SetValue(PERMEABILITY_XX, 1.0E-2);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        p_new_element->Check(dummy_process_info),
-        "PERMEABILITY_YY does not exist in the material properties or has an invalid value at element 4")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_new_element->Check(dummy_process_info),
+                                      "PERMEABILITY_YY does not exist in the material properties "
+                                      "or has an invalid value at element 4")
 
     p_new_element->GetProperties().SetValue(PERMEABILITY_YY, -1.0E-2);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        p_new_element->Check(dummy_process_info),
-        "PERMEABILITY_YY does not exist in the material properties or has an invalid value at element 4")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_new_element->Check(dummy_process_info),
+                                      "PERMEABILITY_YY does not exist in the material properties "
+                                      "or has an invalid value at element 4")
 
     p_new_element->GetProperties().SetValue(PERMEABILITY_YY, 1.0E-2);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        p_new_element->Check(dummy_process_info),
-        "PERMEABILITY_XY does not exist in the material properties or has an invalid value at element 4")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_new_element->Check(dummy_process_info),
+                                      "PERMEABILITY_XY does not exist in the material properties "
+                                      "or has an invalid value at element 4")
 
     p_new_element->GetProperties().SetValue(PERMEABILITY_XY, -1.0E-2);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        p_new_element->Check(dummy_process_info),
-        "PERMEABILITY_XY does not exist in the material properties or has an invalid value at element 4")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_new_element->Check(dummy_process_info),
+                                      "PERMEABILITY_XY does not exist in the material properties "
+                                      "or has an invalid value at element 4")
 
     p_new_element->GetProperties().SetValue(PERMEABILITY_XY, 1.0E-2);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
@@ -416,36 +409,35 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CheckThrowsOnFaultyInput, KratosGeo
     // No exceptions on correct input for 2D element
     KRATOS_EXPECT_EQ(p_new_element->Check(dummy_process_info), 0);
 
-    auto p_3D_element =
-           CreateThreeDTransientPwElement3D4NWithPWDofs(model_part, p_properties);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        p_3D_element->Check(dummy_process_info),
-        "PERMEABILITY_ZZ does not exist in the material properties or has an invalid value at element 5")
+    auto p_3D_element = CreateThreeDTransientPwElement3D4NWithPWDofs(model_part, p_properties);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_3D_element->Check(dummy_process_info),
+                                      "PERMEABILITY_ZZ does not exist in the material properties "
+                                      "or has an invalid value at element 5")
 
     p_3D_element->GetProperties().SetValue(PERMEABILITY_ZZ, -1.0E-2);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        p_3D_element->Check(dummy_process_info),
-        "PERMEABILITY_ZZ does not exist in the material properties or has an invalid value at element 5")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_3D_element->Check(dummy_process_info),
+                                      "PERMEABILITY_ZZ does not exist in the material properties "
+                                      "or has an invalid value at element 5")
 
     p_3D_element->GetProperties().SetValue(PERMEABILITY_ZZ, 1.0E-2);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        p_3D_element->Check(dummy_process_info),
-        "PERMEABILITY_YZ does not exist in the material properties or has an invalid value at element 5")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_3D_element->Check(dummy_process_info),
+                                      "PERMEABILITY_YZ does not exist in the material properties "
+                                      "or has an invalid value at element 5")
 
     p_3D_element->GetProperties().SetValue(PERMEABILITY_YZ, -1.0E-2);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        p_3D_element->Check(dummy_process_info),
-        "PERMEABILITY_YZ does not exist in the material properties or has an invalid value at element 5")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_3D_element->Check(dummy_process_info),
+                                      "PERMEABILITY_YZ does not exist in the material properties "
+                                      "or has an invalid value at element 5")
 
     p_3D_element->GetProperties().SetValue(PERMEABILITY_YZ, 1.0E-2);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        p_3D_element->Check(dummy_process_info),
-        "PERMEABILITY_ZX does not exist in the material properties or has an invalid value at element 5")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_3D_element->Check(dummy_process_info),
+                                      "PERMEABILITY_ZX does not exist in the material properties "
+                                      "or has an invalid value at element 5")
 
     p_3D_element->GetProperties().SetValue(PERMEABILITY_ZX, -1.0E-2);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        p_3D_element->Check(dummy_process_info),
-        "PERMEABILITY_ZX does not exist in the material properties or has an invalid value at element 5")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_3D_element->Check(dummy_process_info),
+                                      "PERMEABILITY_ZX does not exist in the material properties "
+                                      "or has an invalid value at element 5")
 
     p_3D_element->GetProperties().SetValue(PERMEABILITY_ZX, 1.0E-2);
 
@@ -453,8 +445,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CheckThrowsOnFaultyInput, KratosGeo
     KRATOS_EXPECT_EQ(p_3D_element->Check(dummy_process_info), 0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_Initialize,
-                          KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_Initialize, KratosGeoMechanicsFastSuite)
 {
     // Arrange
     const auto p_geometry   = std::make_shared<Triangle2D3<Node>>(CreateCoincidentNodes());
@@ -466,31 +457,29 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_Initialize,
     element.Initialize(dummy_process_info);
     auto const num_g_points = element.GetGeometry().IntegrationPointsNumber(element.GetIntegrationMethod());
     auto const constitutive_law_vector = element.mConstitutiveLawVector;
-    auto const retention_law_vector = element.mRetentionLawVector;
+    auto const retention_law_vector    = element.mRetentionLawVector;
 
     // Assert
     KRATOS_EXPECT_EQ(constitutive_law_vector.size(), num_g_points);
-    for(const auto constitutive_law: constitutive_law_vector) {
+    for (const auto constitutive_law : constitutive_law_vector) {
         KRATOS_EXPECT_EQ(constitutive_law, nullptr);
     }
     KRATOS_EXPECT_EQ(retention_law_vector.size(), num_g_points);
     const auto expected_retention_law = RetentionLawFactory::Clone(element.GetProperties());
-    for(const auto retention_law: retention_law_vector) {
+    for (const auto retention_law : retention_law_vector) {
         KRATOS_EXPECT_EQ(typeid(*retention_law) == typeid(*expected_retention_law), true);
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_InitializeSolution,
-                          KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_InitializeSolution, KratosGeoMechanicsFastSuite)
 {
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
 
-    Model      model;
-    auto&      r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
+    Model model;
+    auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
     r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
-    auto p_element =
-        CreateTriangleTransientPwElementWithPWDofs(r_model_part, p_properties);
+    auto       p_element = CreateTriangleTransientPwElementWithPWDofs(r_model_part, p_properties);
     const auto dummy_process_info = ProcessInfo{};
 
     // Act
@@ -502,17 +491,15 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_InitializeSolution,
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_FinalizeSolutionStep,
-                          KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_FinalizeSolutionStep, KratosGeoMechanicsFastSuite)
 {
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
 
-    Model      model;
-    auto&      r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
+    Model model;
+    auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
     r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
-    auto p_element =
-        CreateTriangleTransientPwElementWithPWDofs(r_model_part, p_properties);
+    auto       p_element = CreateTriangleTransientPwElementWithPWDofs(r_model_part, p_properties);
     const auto dummy_process_info = ProcessInfo{};
     p_element->GetProperties().SetValue(DENSITY_WATER, 1.0E3);
     p_element->GetProperties().SetValue(DYNAMIC_VISCOSITY, 1.0E-2);
@@ -537,17 +524,15 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_FinalizeSolutionStep,
     KRATOS_EXPECT_EQ(p_element->GetGeometry()[2].FastGetSolutionStepValue(HYDRAULIC_DISCHARGE), -500000);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Vector,
-                          KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Vector, KratosGeoMechanicsFastSuite)
 {
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
 
-    Model      model;
-    auto&      r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
+    Model model;
+    auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
     r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
-    auto p_element =
-        CreateTriangleTransientPwElementWithPWDofs(r_model_part, p_properties);
+    auto       p_element = CreateTriangleTransientPwElementWithPWDofs(r_model_part, p_properties);
     const auto dummy_process_info = ProcessInfo{};
     p_element->GetProperties().SetValue(DENSITY_WATER, 1.0E3);
     p_element->GetProperties().SetValue(DYNAMIC_VISCOSITY, 1.0E-2);
@@ -566,7 +551,8 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Vector
     // Act
     std::vector<double> results{};
     p_element->CalculateOnIntegrationPoints(DEGREE_OF_SATURATION, results, dummy_process_info);
-    auto const num_g_points = p_element->GetGeometry().IntegrationPointsNumber(p_element->GetIntegrationMethod());
+    auto const num_g_points =
+        p_element->GetGeometry().IntegrationPointsNumber(p_element->GetIntegrationMethod());
 
     // Assert
     KRATOS_EXPECT_EQ(results.size(), num_g_points);
@@ -629,17 +615,15 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Vector
     KRATOS_EXPECT_VECTOR_EQ(results, expected_results);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_1DArray,
-                          KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_1DArray, KratosGeoMechanicsFastSuite)
 {
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
 
-    Model      model;
-    auto&      r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
+    Model model;
+    auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
     r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
-    auto p_element =
-        CreateTriangleTransientPwElementWithPWDofs(r_model_part, p_properties);
+    auto       p_element = CreateTriangleTransientPwElementWithPWDofs(r_model_part, p_properties);
     const auto dummy_process_info = ProcessInfo{};
     p_element->GetProperties().SetValue(DENSITY_WATER, 1.0E3);
     p_element->GetProperties().SetValue(DYNAMIC_VISCOSITY, 1.0E-2);
@@ -658,12 +642,13 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_1DArra
     // Act
     std::vector<array_1d<double, 3>> results{};
     p_element->CalculateOnIntegrationPoints(FLUID_FLUX_VECTOR, results, dummy_process_info);
-    auto const num_g_points = p_element->GetGeometry().IntegrationPointsNumber(p_element->GetIntegrationMethod());
+    auto const num_g_points =
+        p_element->GetGeometry().IntegrationPointsNumber(p_element->GetIntegrationMethod());
 
     // Assert
     KRATOS_EXPECT_EQ(results.size(), num_g_points);
     array_1d<double, 3> expected_nonzero_component{-1e+06, -1e+06, 0};
-    for(const auto & component: results) {
+    for (const auto& component : results) {
         KRATOS_EXPECT_VECTOR_EQ(component, expected_nonzero_component);
     }
 
@@ -674,22 +659,20 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_1DArra
     // Assert
     KRATOS_EXPECT_EQ(results.size(), num_g_points);
     array_1d<double, 3> expected_zero_component{0, 0, 0};
-    for(const auto & component: results) {
+    for (const auto& component : results) {
         KRATOS_EXPECT_VECTOR_EQ(component, expected_zero_component);
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Matrix,
-                          KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Matrix, KratosGeoMechanicsFastSuite)
 {
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
 
-    Model      model;
-    auto&      r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
+    Model model;
+    auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
     r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
-    auto p_element =
-        CreateTriangleTransientPwElementWithPWDofs(r_model_part, p_properties);
+    auto       p_element = CreateTriangleTransientPwElementWithPWDofs(r_model_part, p_properties);
     const auto dummy_process_info = ProcessInfo{};
     p_element->GetProperties().SetValue(DENSITY_WATER, 1.0E3);
     p_element->GetProperties().SetValue(DYNAMIC_VISCOSITY, 1.0E-2);
@@ -708,13 +691,14 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Matrix
     // Act
     std::vector<Matrix> results{};
     p_element->CalculateOnIntegrationPoints(PERMEABILITY_MATRIX, results, dummy_process_info);
-    auto const num_g_points = p_element->GetGeometry().IntegrationPointsNumber(p_element->GetIntegrationMethod());
+    auto const num_g_points =
+        p_element->GetGeometry().IntegrationPointsNumber(p_element->GetIntegrationMethod());
 
     // Assert
     KRATOS_EXPECT_EQ(results.size(), num_g_points);
-    Matrix expected_nonzero_component(2,2);
+    Matrix expected_nonzero_component(2, 2);
     expected_nonzero_component <<= 1, 1, 1, 1;
-    for(const auto & component: results) {
+    for (const auto& component : results) {
         KRATOS_EXPECT_MATRIX_EQ(component, expected_nonzero_component);
     }
 
@@ -724,23 +708,21 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Matrix
 
     // Assert
     KRATOS_EXPECT_EQ(results.size(), num_g_points);
-    Matrix expected_zero_component = ZeroMatrix(2,2);
-    for(const auto & component: results) {
+    Matrix expected_zero_component = ZeroMatrix(2, 2);
+    for (const auto& component : results) {
         KRATOS_EXPECT_MATRIX_EQ(component, expected_zero_component);
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TransientPwElement2D3N_CalculateLocalSystem,
-                          KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TransientPwElement2D3N_CalculateLocalSystem, KratosGeoMechanicsFastSuite)
 {
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
 
-    Model      model;
-    auto&      r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
+    Model model;
+    auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
     r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
-    auto p_element =
-        CreateTriangleTransientPwElementWithPWDofs(r_model_part, p_properties);
+    auto       p_element = CreateTriangleTransientPwElementWithPWDofs(r_model_part, p_properties);
     const auto dummy_process_info = ProcessInfo{};
     p_element->GetProperties().SetValue(BIOT_COEFFICIENT, 0.5);
     p_element->GetProperties().SetValue(DENSITY_WATER, 1.0E3);
@@ -767,30 +749,28 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement2D3N_CalculateLocalSystem,
     p_element->CalculateLocalSystem(actual_left_hand_side, actual_right_hand_side, dummy_process_info);
 
     // Assert
-    Matrix expected_left_hand_side(3,3);
+    Matrix expected_left_hand_side(3, 3);
     // clang-format off
     expected_left_hand_side <<= -49.999999999999993,0,49.999999999999993,
                                  0,0,0,
                                  49.999999999999993,0,-49.999999999999993;
-   // clang-format on
+    // clang-format on
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 
     Vector expected_right_hand_side(3);
-    expected_right_hand_side <<= 500000,0,-500000;
+    expected_right_hand_side <<= 500000, 0, -500000;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TransientPwElement3D4N_CalculateLocalSystem,
-                          KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TransientPwElement3D4N_CalculateLocalSystem, KratosGeoMechanicsFastSuite)
 {
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
 
-    Model      model;
-    auto&      r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
+    Model model;
+    auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
     r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
-    auto p_element =
-           CreateThreeDTransientPwElement3D4NWithPWDofs(r_model_part, p_properties);
+    auto       p_element = CreateThreeDTransientPwElement3D4NWithPWDofs(r_model_part, p_properties);
     const auto dummy_process_info = ProcessInfo{};
     p_element->GetProperties().SetValue(BIOT_COEFFICIENT, 0.5);
     p_element->GetProperties().SetValue(DENSITY_WATER, 1.0E3);
@@ -802,6 +782,9 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement3D4N_CalculateLocalSystem,
     p_element->GetProperties().SetValue(PERMEABILITY_XX, 1.0);
     p_element->GetProperties().SetValue(PERMEABILITY_YY, 1.0);
     p_element->GetProperties().SetValue(PERMEABILITY_XY, 1.0);
+    p_element->GetProperties().SetValue(PERMEABILITY_ZZ, 1.0);
+    p_element->GetProperties().SetValue(PERMEABILITY_YZ, 1.0);
+    p_element->GetProperties().SetValue(PERMEABILITY_ZX, 1.0);
     const auto gravity_acceleration = array_1d<double, 3>{0.0, -10.0, 0.0};
     p_element->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_acceleration;
     p_element->GetGeometry()[1].FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_acceleration;
@@ -819,17 +802,17 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement3D4N_CalculateLocalSystem,
     p_element->CalculateLocalSystem(actual_left_hand_side, actual_right_hand_side, dummy_process_info);
 
     // Assert
-    Matrix expected_left_hand_side(4,4);
+    Matrix expected_left_hand_side(4, 4);
     // clang-format off
-    expected_left_hand_side <<= -16.666666666666664,0,16.666666666666664,0,
+    expected_left_hand_side <<= -16.666666666666664,0,0,16.666666666666664,
                                  0,0,0,0,
-                                 16.666666666666664,0,-16.666666666666664,0,
-                                 0,0,0,0;
+                                 0,0,0,0,
+                                 16.666666666666664,0,0,-16.666666666666664;
     // clang-format on
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 
     Vector expected_right_hand_side(4);
-    expected_right_hand_side <<= 125000,0,-125000,0;
+    expected_right_hand_side <<= 125000, 0, 0, -125000;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
 
