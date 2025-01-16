@@ -486,7 +486,7 @@ namespace Kratos
         // Follow the clockwise loop
         bool end = false;
         // We are going orizontally
-        std::size_t direction = 0;
+        int direction = 0;
         // 0 = up_vertical, 1 = right_orizontal, 2 = down_vertical, 3 = left_orizontal
         int i = start_i; int j = start_j;
         int I = start_i; int J = start_j;
@@ -708,7 +708,7 @@ namespace Kratos
         // Follow the clockwise loop
         bool end = false;
         // We are going orizontally
-        std::size_t direction = 0 ;      // 0 = up_vertical, 1 = right_orizontal, 2 = down_vertical, 3 = left_orizontal
+        int direction = 0 ;      // 0 = up_vertical, 1 = right_orizontal, 2 = down_vertical, 3 = left_orizontal
         int I = start_i+1;
         int J = start_j+1; 
         int i = start_i;
