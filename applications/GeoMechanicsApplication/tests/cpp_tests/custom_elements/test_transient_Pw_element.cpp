@@ -438,9 +438,8 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_Initialize, KratosGeoMechanicsFastS
         KRATOS_EXPECT_EQ(constitutive_law, nullptr);
     }
     KRATOS_EXPECT_EQ(r_retention_law_vector.size(), number_of_integration_points);
-    const auto expected_retention_law = RetentionLawFactory::Clone(element.GetProperties());
     for (const auto & retention_law : r_retention_law_vector) {
-        KRATOS_EXPECT_EQ(typeid(*retention_law).name() == typeid(*expected_retention_law).name(), true);
+        KRATOS_EXPECT_EQ(dynamic_cast<SaturatedLaw*>(retention_law.get()) == nullptr, false);
     }
 }
 
