@@ -11,8 +11,7 @@
 //                   Andrea Gorgi
 //
 
-#if !defined(KRATOS_SNAKE_SBM_UTILITIES_H_INCLUDED )
-#define KRATOS_SNAKE_SBM_UTILITIES_H_INCLUDED
+#pragma once
 
 // Project includes
 #include "includes/model_part.h"
@@ -129,7 +128,7 @@ namespace Kratos
                                             ModelPart& skin_model_part, 
                                             double lambda, 
                                             std::vector<int>& n_knot_spans_uv, 
-                                            Vector& knot_step_uv, 
+                                            array_1d<double, 2>& knot_step_uv, 
                                             const Vector& starting_pos_uv);
 
         /**
@@ -175,5 +174,3 @@ namespace Kratos
     }; // Class SnakeSBMUtilities
 
 }  // namespace Kratos.
-
-#endif // KRATOS_DIRECTOR_UTILITIES_H_INCLUDED  defined

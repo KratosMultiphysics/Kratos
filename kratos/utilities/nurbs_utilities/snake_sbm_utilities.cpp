@@ -72,7 +72,7 @@ namespace Kratos
         Properties::Pointer p_cond_prop_in = skin_model_part_initial.pGetProperties(0);
         skin_model_part_initial.AddProperties(p_cond_prop_in);
 
-        Vector knot_step_uv(2);
+        array_1d<double, 2> knot_step_uv(2);
         knot_step_uv[0] = std::abs(knot_vector_u[int(knot_vector_u.size()/2) +1]  - knot_vector_u[int(knot_vector_u.size()/2)] ) ;
         knot_step_uv[1] = std::abs(knot_vector_v[int(knot_vector_v.size()/2) +1]  - knot_vector_v[int(knot_vector_v.size()/2)] ) ;
 
@@ -82,7 +82,7 @@ namespace Kratos
         ModelPart& surrogate_model_part = iga_model_part.GetSubModelPart(surrogate_sub_model_part_name);
         surrogate_model_part.GetProcessInfo().SetValue(MARKER_MESHES, meshSizes_uv);
 
-        Vector starting_pos_uv(2);
+        array_1d<double, 2> starting_pos_uv;
         starting_pos_uv[0] = knot_vector_u[0];
         starting_pos_uv[1] = knot_vector_v[0];
 
@@ -143,27 +143,25 @@ namespace Kratos
                     newInnerLoop = false;
                 }
                 // Collect the coordinates of the points of the i_cond
-                double x_true_boundary1 = i_cond.GetGeometry()[0].X();
-                double y_true_boundary1 = i_cond.GetGeometry()[0].Y();
-                double x_true_boundary2 = i_cond.GetGeometry()[1].X();
-                double y_true_boundary2 = i_cond.GetGeometry()[1].Y();
+                const auto& r_coords_true_boundary1 = i_cond.GetGeometry()[0].Coordinates();
+                const auto& r_coords_true_boundary2 = i_cond.GetGeometry()[1].Coordinates();
 
                 std::vector<std::vector<double>> xy_coord_i_cond(2);
                 xy_coord_i_cond[0].resize(2); xy_coord_i_cond[1].resize(2); 
                 
-                xy_coord_i_cond[0][0] = i_cond.GetGeometry()[0].X(); // x_true_boundary1
-                xy_coord_i_cond[1][0] = i_cond.GetGeometry()[0].Y(); // y_true_boundary1
-                xy_coord_i_cond[0][1] = i_cond.GetGeometry()[1].X(); // x_true_boundary2
-                xy_coord_i_cond[1][1] = i_cond.GetGeometry()[1].Y(); // y_true_boundary2
+                xy_coord_i_cond[0][0] = r_coords_true_boundary1[0];
+                xy_coord_i_cond[1][0] = r_coords_true_boundary1[1];
+                xy_coord_i_cond[0][1] = r_coords_true_boundary2[0];
+                xy_coord_i_cond[1][1] = r_coords_true_boundary2[1];
                 
                 // Collect the intersections of the skin boundary with the knot values
                 std::vector<std::vector<int>> knot_span_uv(2);
                 knot_span_uv[0].resize(2); knot_span_uv[1].resize(2);
 
-                knot_span_uv[0][0] = (x_true_boundary1-starting_pos_uv[0]) / knot_step_uv[0]; // knot_span_u_1st_point
-                knot_span_uv[1][0] = (y_true_boundary1-starting_pos_uv[1]) / knot_step_uv[1]; // knot_span_v_1st_point
-                knot_span_uv[0][1] = (x_true_boundary2-starting_pos_uv[0]) / knot_step_uv[0]; // knot_span_u_2nd_point
-                knot_span_uv[1][1] = (y_true_boundary2-starting_pos_uv[1]) / knot_step_uv[1]; // knot_span_v_2nd_point
+                knot_span_uv[0][0] = (r_coords_true_boundary1[0]-starting_pos_uv[0]) / knot_step_uv[0]; // knot_span_u_1st_point
+                knot_span_uv[1][0] = (r_coords_true_boundary1[1]-starting_pos_uv[1]) / knot_step_uv[1]; // knot_span_v_1st_point
+                knot_span_uv[0][1] = (r_coords_true_boundary2[0]-starting_pos_uv[0]) / knot_step_uv[0]; // knot_span_u_2nd_point
+                knot_span_uv[1][1] = (r_coords_true_boundary2[1]-starting_pos_uv[1]) / knot_step_uv[1]; // knot_span_v_2nd_point
 
                 // In the inner case, check is the immersed object is inside the rectangular domain
                 if (is_inner &&
@@ -365,7 +363,7 @@ namespace Kratos
 
     void SnakeSBMUtilities::MarkKnotSpansAvailable(std::vector<std::vector<std::vector<int>>> & knot_spans_available, int idMatrix,DynamicBins& testBin, 
                                                    ModelPart& skin_model_part, double lambda, std::vector<int>& n_knot_spans_uv, 
-                                                   Vector& knot_step_uv, const Vector& starting_pos_uv) {
+                                                   array_1d<double, 2>& knot_step_uv, const Vector& starting_pos_uv) {
         for (int i = 0; i < n_knot_spans_uv[1]; i++) {
             for (int j = 0; j < n_knot_spans_uv[0]; j++) {
                 if (knot_spans_available[idMatrix][i][j] == 2) {
@@ -447,9 +445,6 @@ namespace Kratos
                     else{
                         knot_spans_available[idMatrix][i][j] = 1; // The knot span is considered DEACTIVE
                     }
-
-                    // exit(0);
-                            
                 }
             }
         }
@@ -489,16 +484,16 @@ namespace Kratos
         IndexType idSnakeNode = id_first_node+1;
 
         // Follow the clockwise loop
-        int end = 0;
+        bool end = false;
         // We are going orizontally
-        int direction = 0;
+        std::size_t direction = 0;
         // 0 = up_vertical, 1 = right_orizontal, 2 = down_vertical, 3 = left_orizontal
         int i = start_i; int j = start_j;
         int I = start_i; int J = start_j;
         int steps = 0;
 
         const int max_number_of_steps = 1e5;
-        while (end == 0 && steps < max_number_of_steps) {
+        while (!end && steps < max_number_of_steps) {
             steps ++ ;
             int is_special_case = 1; // Variable to check if we are in a super special case and we shouldn't go out of the while loop
             // Try to go left w.r.t. the current direction
@@ -608,7 +603,7 @@ namespace Kratos
             // Check if we have close the snake
             if (I == start_i && J == start_j && is_special_case == 1 ) {
                 // End of the while loop
-                end = 1;
+                end = true;
                 KRATOS_INFO("number of steps in the snake step") << steps << std::endl;
             }
         }
@@ -711,16 +706,16 @@ namespace Kratos
         IndexType idSnakeNode = id_first_node+1;
         
         // Follow the clockwise loop
-        int end = 0;
+        bool end = false;
         // We are going orizontally
-        int direction = 0 ;      // 0 = up_vertical, 1 = right_orizontal, 2 = down_vertical, 3 = left_orizontal
+        std::size_t direction = 0 ;      // 0 = up_vertical, 1 = right_orizontal, 2 = down_vertical, 3 = left_orizontal
         int I = start_i+1;
         int J = start_j+1; 
         int i = start_i;
         int j = start_j;
         int steps = 0;
         const int max_number_of_steps = 1e5;
-        while (end == 0 && steps < max_number_of_steps) {
+        while (!end && steps < max_number_of_steps) {
             steps ++ ;
             int is_special_case = 1; // Variable to check if we are in a super special case and we shouldn't go out of the while loop
             // Try to go left w.r.t. the current direction
@@ -828,7 +823,7 @@ namespace Kratos
             // Check if we have close the snake
             if (I == start_i+1 && J == start_j+1 && is_special_case == 1 ) {
                 // End of the while loop
-                end = 1;
+                end = true;
                 }
         }
         // Create "fictituos element" to memorize starting and ending node id for each surrogate boundary loop

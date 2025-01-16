@@ -11,9 +11,7 @@
 //                   Andrea Gorgi
 //
 
-#if !defined(KRATOS_CREATE_BREPS_SBM_UTILITIES_INCLUDED )
-#define  KRATOS_CREATE_BREPS_SBM_UTILITIES_INCLUDED
-
+# pragma once
 
 // System includes
 
@@ -55,36 +53,36 @@ class CreateBrepsSBMUtilities : public IO
     /// Pointer definition of CreateBrepsSBMUtilities
     KRATOS_CLASS_POINTER_DEFINITION(CreateBrepsSBMUtilities);
 
-    typedef std::size_t SizeType;
-    typedef std::size_t IndexType;
+    using SizeType = std::size_t;
+    using IndexType = std::size_t;
 
-    typedef Geometry<TNodeType> GeometryType;
-    typedef typename GeometryType::Pointer GeometryPointerType;
+    using GeometryType = Geometry<TNodeType>;
+    using GeometryPointerType = typename GeometryType::Pointer;
 
-    typedef PointerVector<TNodeType> ContainerNodeType;
-    typedef PointerVector<TEmbeddedNodeType> ContainerEmbeddedNodeType;
+    using ContainerNodeType = PointerVector<TNodeType>;
+    using ContainerEmbeddedNodeType = PointerVector<TEmbeddedNodeType>;
 
-    typedef CouplingGeometry<TNodeType> CouplingGeometryType;
+    using CouplingGeometryType = CouplingGeometry<TNodeType>;
 
-    typedef NurbsSurfaceGeometry<3, ContainerNodeType> NurbsSurfaceType;
-    typedef NurbsCurveGeometry<2, ContainerEmbeddedNodeType> NurbsTrimmingCurveType;
+    using NurbsSurfaceType = NurbsSurfaceGeometry<3, ContainerNodeType>;
+    using NurbsTrimmingCurveType = NurbsCurveGeometry<2, ContainerEmbeddedNodeType>;
 
-    typedef typename NurbsSurfaceType::Pointer NurbsSurfacePointerType;
-    typedef typename NurbsTrimmingCurveType::Pointer NurbsTrimmingCurvePointerType;
+    using NurbsSurfacePointerType = typename NurbsSurfaceType::Pointer;
+    using NurbsTrimmingCurvePointerType = typename NurbsTrimmingCurveType::Pointer;
 
-    typedef NurbsSurfaceGeometry<3, PointerVector<NodeType>> NurbsSurfaceGeometryType;
-    typedef typename NurbsSurfaceGeometryType::Pointer NurbsSurfaceGeometryPointerType;
+    using NurbsSurfaceGeometryType = NurbsSurfaceGeometry<3, PointerVector<NodeType>>;
+    using NurbsSurfaceGeometryPointerType = typename NurbsSurfaceGeometryType::Pointer;
 
-    typedef BrepSurface<ContainerNodeType, true, ContainerEmbeddedNodeType> BrepSurfaceType;
-    typedef BrepCurveOnSurface<ContainerNodeType, true, ContainerEmbeddedNodeType> BrepCurveOnSurfaceType;
-    
-    typedef BrepCurve<ContainerNodeType, ContainerEmbeddedNodeType> BrepCurveType;
-    typedef PointOnGeometry<ContainerNodeType, 3, 2> PointOnGeometryOnSurfaceType;
-    typedef PointOnGeometry<ContainerNodeType, 3, 1> PointOnGeometryOnCurveType;
+    using BrepSurfaceType = BrepSurface<ContainerNodeType, true, ContainerEmbeddedNodeType>;
+    using BrepCurveOnSurfaceType = BrepCurveOnSurface<ContainerNodeType, true, ContainerEmbeddedNodeType>;
 
-    typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceArrayType;
-    typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceLoopType;
-    typedef DenseVector<DenseVector<typename BrepCurveOnSurfaceType::Pointer>> BrepCurveOnSurfaceLoopArrayType;
+    using BrepCurveType = BrepCurve<ContainerNodeType, ContainerEmbeddedNodeType>;
+    using PointOnGeometryOnSurfaceType = PointOnGeometry<ContainerNodeType, 3, 2>;
+    using PointOnGeometryOnCurveType = PointOnGeometry<ContainerNodeType, 3, 1>;
+
+    using BrepCurveOnSurfaceArrayType = DenseVector<typename BrepCurveOnSurfaceType::Pointer>;
+    using BrepCurveOnSurfaceLoopType = DenseVector<typename BrepCurveOnSurfaceType::Pointer>;
+    using BrepCurveOnSurfaceLoopArrayType = DenseVector<DenseVector<typename BrepCurveOnSurfaceType::Pointer>>;
 
     ///@}
     ///@name Life Cycle
@@ -443,5 +441,3 @@ private:
     ///@}
 }; // Class CreateBrepsSBMUtilities
 }  // namespace Kratos.
-
-#endif

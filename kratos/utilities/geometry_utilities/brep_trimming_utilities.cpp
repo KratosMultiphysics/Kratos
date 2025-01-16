@@ -6,9 +6,6 @@
 //
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
-//
-//  Main authors:    Nicolo' Antonelli
-//                   Andrea Gorgi
 
 // header includes
 #include "brep_trimming_utilities.h"

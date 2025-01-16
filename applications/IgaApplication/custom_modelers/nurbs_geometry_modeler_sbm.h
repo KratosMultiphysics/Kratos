@@ -11,21 +11,14 @@
 //                   Andrea Gorgi
 //
 
-#if !defined(KRATOS_NURBS_GEOMETRY_MODELER_SBM_H_INCLUDED )
-#define  KRATOS_NURBS_GEOMETRY_MODELER_SBM_H_INCLUDED
+# pragma once
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "includes/model_part.h"
 #include "nurbs_geometry_modeler.h"
-#include "geometries/nurbs_volume_geometry.h"
-#include "geometries/nurbs_surface_geometry.h"
-#include "geometries/nurbs_shape_function_utilities/nurbs_surface_refinement_utilities.h"
-#include "geometries/brep_curve_on_surface.h"
-#include "utilities/nurbs_utilities/snake_sbm_utilities.h"
 
 namespace Kratos {
 
@@ -37,21 +30,21 @@ public:
     ///@{
     KRATOS_CLASS_POINTER_DEFINITION( NurbsGeometryModelerSbm );
 
-    typedef std::size_t IndexType;
-    typedef std::size_t SizeType;
-    typedef Node NodeType;
+    using IndexType = std::size_t;
+    using SizeType = std::size_t;
+    using NodeType = Node;
 
-    typedef Geometry<NodeType> GeometryType;
-    typedef typename GeometryType::Pointer GeometryPointerType;
+    using GeometryType = Geometry<NodeType>;
+    using GeometryPointerType = GeometryType::Pointer;
 
-    typedef NurbsSurfaceGeometry<3, PointerVector<NodeType>> NurbsSurfaceGeometryType;
-    typedef typename NurbsSurfaceGeometryType::Pointer NurbsSurfaceGeometryPointerType;
+    using NurbsSurfaceGeometryType = NurbsSurfaceGeometry<3, PointerVector<NodeType>>;
+    using NurbsSurfaceGeometryPointerType = NurbsSurfaceGeometryType::Pointer;
 
-    typedef NurbsVolumeGeometry<PointerVector<NodeType>> NurbsVolumeGeometryType;
-    typedef typename NurbsVolumeGeometryType::Pointer NurbsVolumeGeometryPointerType;
+    using NurbsVolumeGeometryType = NurbsVolumeGeometry<PointerVector<NodeType>>;
+    using NurbsVolumeGeometryPointerType = NurbsVolumeGeometryType::Pointer;
 
-    typedef PointerVector<Node> ContainerNodeType;
-    typedef PointerVector<Point> ContainerEmbeddedNodeType;
+    using ContainerNodeType = PointerVector<Node>;
+    using ContainerEmbeddedNodeType = PointerVector<Point>;
 
     ///@}
     ///@name Life Cycle
@@ -126,4 +119,3 @@ private:
 };
 
 } // End namesapce Kratos
-#endif // KRATOS_NURBS_GEOMETRY_MODELER_H_INCLUDED

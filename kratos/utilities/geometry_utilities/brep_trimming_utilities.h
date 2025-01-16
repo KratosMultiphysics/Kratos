@@ -6,12 +6,8 @@
 //
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
-//
-//  Main authors:    Nicolo' Antonelli
-//                   Andrea Gorgi
 
-#if !defined(KRATOS_BREP_TRIMMING_UTILITIES_H_INCLUDED)
-#define KRATOS_BREP_TRIMMING_UTILITIES_H_INCLUDED
+#pragma once
 
 // Std includes
 #include <list>
@@ -329,4 +325,3 @@ namespace Kratos
     ///@} // Kratos Classes
 } // namespace Kratos.
 
-#endif // KRATOS_BREP_TRIMMING_UTILITIES_H_INCLUDED defined

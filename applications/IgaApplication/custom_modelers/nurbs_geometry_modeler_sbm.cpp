@@ -12,10 +12,9 @@
 //
 
 // Project includes
-#include "includes/define.h"
 #include "nurbs_geometry_modeler_sbm.h"
-#include "geometries/nurbs_shape_function_utilities/nurbs_volume_refinement_utilities.h"
 #include "custom_utilities/create_breps_sbm_utilities.h"
+#include "utilities/nurbs_utilities/snake_sbm_utilities.h"
 
 namespace Kratos
 {
@@ -56,15 +55,15 @@ namespace Kratos
         if (mParameters.Has("skin_model_part_inner_initial_name")) {
             skin_model_part_inner_initial_name = mParameters["skin_model_part_inner_initial_name"].GetString();
 
-            if (!mpModel->HasModelPart(skin_model_part_inner_initial_name)) 
-            KRATOS_ERROR << "The skin_model_part '" << skin_model_part_inner_initial_name << "' was not created in the model.\n" 
+            KRATOS_ERROR_IF_NOT(mpModel->HasModelPart(skin_model_part_inner_initial_name)) 
+                         << "The skin_model_part '" << skin_model_part_inner_initial_name << "' was not created in the model.\n" 
                          << "Check the reading of the mdpa file in the import mdpa modeler."<< std::endl;
         }
         if (mParameters.Has("skin_model_part_outer_initial_name")) {
             skin_model_part_outer_initial_name = mParameters["skin_model_part_outer_initial_name"].GetString();
 
-            if (!mpModel->HasModelPart(skin_model_part_outer_initial_name)) 
-            KRATOS_ERROR << "The skin_model_part '" << skin_model_part_outer_initial_name << "' was not created in the model.\n" 
+            KRATOS_ERROR_IF_NOT(mpModel->HasModelPart(skin_model_part_outer_initial_name)) 
+                         << "The skin_model_part '" << skin_model_part_outer_initial_name << "' was not created in the model.\n" 
                          << "Check the reading of the mdpa file in the import mdpa modeler."<< std::endl;
         }
         // If there is not neither skin_inner nor skin_outer throw an error since you are using the sbm modeler
