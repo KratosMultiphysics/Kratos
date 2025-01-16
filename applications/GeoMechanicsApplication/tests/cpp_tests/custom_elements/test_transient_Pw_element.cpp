@@ -137,32 +137,6 @@ intrusive_ptr<TransientPwElement<2, 3>> CreateTriangleTransientPwElementWithoutP
 
 } // namespace
 
-/*
-namespace Kratos
-{
-
-class MockStressState : public StressStatePolicy
-{
-public:
-    [[nodiscard]] Matrix CalculateBMatrix(const Matrix&         rDN_DX,
-                                                  const Vector&         rN,
-                                                  const Geometry<Node>& rGeometry) {return Matrix();}
-    [[nodiscard]] double CalculateIntegrationCoefficient(const Geometry<Node>::IntegrationPointType& rIntegrationPoint,
-                                                                 double DetJ,
-                                                                 const Geometry<Node>& rGeometry) {return 0.0;}
-    [[nodiscard]] Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) {return Vector();}
-    [[nodiscard]] const Vector&                      GetVoigtVector() {return Vector();};
-    [[nodiscard]] SizeType                           GetVoigtSize() {return 0;}
-    [[nodiscard]] SizeType                           GetStressTensorSize() {return 0;}
-
-    [[nodiscard]] std::unique_ptr<StressStatePolicy> Clone() const override
-    {
-        return nullptr;
-    }
-};
-
-}*/
-
 namespace Kratos::Testing
 {
 
