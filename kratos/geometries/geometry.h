@@ -2014,6 +2014,7 @@ public:
     }
 
     ///@}
+
     ///@name Inquiry
     ///@{
 

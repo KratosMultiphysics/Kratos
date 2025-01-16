@@ -566,12 +566,10 @@ namespace Kratos
                             if (direction == 1) {i++ ; }
                             if (direction == 2) {j-- ; }
                             if (direction == 3) {i-- ; }
-
                             Node snakeNode(idSnakeNode , knot_vector_u[i], knot_vector_v[j], 0.0);
                             surrogate_model_part_inner.CreateNewNode(idSnakeNode, snakeNode);
                             Condition::Pointer pcond1 = surrogate_model_part_inner.CreateNewCondition("LineCondition2D2N", idSnakeNode-1, {{idSnakeNode-1, idSnakeNode}}, p_cond_prop );
                             idSnakeNode++;
-
                             if (direction == 0) {i++ ; }
                             if (direction == 1) {j-- ; }
                             if (direction == 2) {i-- ; }

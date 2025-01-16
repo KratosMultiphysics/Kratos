@@ -290,6 +290,8 @@ public:
         Vector check_per_segment_gap = ZeroVector(n_cond);
         int n_changes = 0;
 
+        int n_active = 0;
+
         for (auto i_cond(contact_sub_model_part->Conditions().begin()); i_cond != contact_sub_model_part->Conditions().end(); ++i_cond)
         {
             
@@ -305,8 +307,8 @@ public:
 
             double weight = i_cond->GetValue(INTEGRATION_WEIGHT);
 
-            double young_modulus = 200.0;
-            const double gamma = 1.0; //100/(200+100);
+            double young_modulus = 200;
+            const double gamma = 1; //100/(200+100);
 
             double true_normal_stress_master = (normal_stress_master[0]* normal_master[0] + normal_stress_master[2]* normal_master[1])*normal_master[0] +
                                                (normal_stress_master[2]* normal_master[0] + normal_stress_master[1]* normal_master[1])*normal_master[1];
@@ -343,7 +345,7 @@ public:
             //         i_cond->SetValue(ACTIVATION_LEVEL, 1);
             //         n_changes++;
             //     }
-                
+            //     n_active ++;
             // }
 
             count_cond++;
@@ -385,20 +387,23 @@ public:
                 n_changes++;
             }
 
+            // if (i_cond->GetValue(ACTIVATION_LEVEL) == 1) n_active++;
+
 
             count_cond++;
 
         }
-        double min_percentage_change = 0.0; //0.002; //8/n_cond;
-        double rel_change = (double) n_changes/n_cond;
+        double min_percentage_change = 0.05; //8/n_cond;
+        double rel_change = (double) n_changes/n_active; //n_changes/n_cond;
+        if (n_active == 0) rel_change = 0;
         if (rel_change <= min_percentage_change){
             KRATOS_INFO_IF("ACTIVE SET CRITERION: Convergence achieved", this->GetEchoLevel()>=0)
-            << n_changes << " changes over " << n_cond << " conditions -> CHANGE: " << rel_change << std::endl;
+            << n_changes << " changes over " << n_active << " conditions active-> CHANGE: " << rel_change << std::endl;
             return true;
         } 
         else{
             KRATOS_INFO_IF("ACTIVE SET CRITERION: Convergence NOT achieved. -> ", this->GetEchoLevel()>=0) 
-            << n_changes << " changes over " << n_cond << " conditions -> CHANGE: " << rel_change*100 << "%" << std::endl;
+            << n_changes << " changes over " << n_active << " conditions active-> CHANGE: " << rel_change*100 << "%" << std::endl;
             return false;
         } 
         

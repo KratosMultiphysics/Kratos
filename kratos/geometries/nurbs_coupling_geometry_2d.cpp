@@ -145,7 +145,7 @@ namespace Kratos
                                                 best_brep_slave_index,
                                                 25,
                                                 50,
-                                                1e-1);  
+                                                1e-9);  
 
 
                 if ((is_converged && last_is_converged)) //i>0 ||

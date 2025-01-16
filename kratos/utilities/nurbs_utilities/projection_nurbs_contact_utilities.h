@@ -1032,6 +1032,7 @@ public:
 
         ProjectionOnPairedGeometry = best_projected_point_on_slave_local;
         
+        if (best_distance < 1e-1) isConvergedAtLeastOnce = true;
         return isConvergedAtLeastOnce;
     }
 

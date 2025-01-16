@@ -957,5 +957,8 @@ void KratosApplication::RegisterVariables() {
     // Variational redistance
     KRATOS_REGISTER_VARIABLE(VARIATIONAL_REDISTANCE_COEFFICIENT_FIRST)
     KRATOS_REGISTER_VARIABLE(VARIATIONAL_REDISTANCE_COEFFICIENT_SECOND)
+
+    // SBM variables
+    KRATOS_REGISTER_VARIABLE(IS_SBM)
 }
 }  // namespace Kratos.

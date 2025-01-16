@@ -63,7 +63,7 @@ public:
         array_1d<double, 3> distance_vector;
 
         bool projection_reset_to_boundary = false;
-
+        const double Acc = 1e-6;
         // Loop over all Newton-Raphson iterations
         for (int i = 0; i < MaxIterations; ++i)
         {
@@ -77,12 +77,12 @@ public:
             // Compute the distance vector between the point and its
             // projection on the curve
             distance_vector = rProjectedPointGlobalCoordinates - rPointGlobalCoordinatesCoordinates;
-            if (norm_2(distance_vector) < Accuracy)
+            if (norm_2(distance_vector) < Acc) // Acc
                 return true;
 
             // Compute the residual
             residual = inner_prod(distance_vector, derivatives[1]);
-            if (std::abs(residual) < Accuracy)
+            if (std::abs(residual) < Acc) // Acc
                 return true;
 
             // Compute the increment
@@ -92,7 +92,7 @@ public:
             rProjectedPointLocalCoordinates[0] -= delta_t;
 
             // Check if the increment is too small and if yes return true
-            if (norm_2(delta_t * derivatives[1]) < Accuracy)
+            if (norm_2(delta_t * derivatives[1]) < Acc) // Acc
                 return true;
 
             // Check if the parameter gets out of its interval of definition and if so clamp it
