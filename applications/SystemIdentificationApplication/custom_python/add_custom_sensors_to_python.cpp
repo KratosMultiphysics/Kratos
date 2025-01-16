@@ -23,6 +23,7 @@
 #include "custom_sensors/measurement_residual_response_function.h"
 #include "custom_sensors/least_squares_response_function.h"
 #include "custom_sensors/displacement_sensor.h"
+#include "custom_sensors/velocity_sensor.h"
 #include "custom_sensors/acceleration_sensor.h"
 #include "custom_sensors/strain_sensor.h"
 
@@ -124,6 +125,16 @@ void  AddCustomSensorsToPython(pybind11::module& m)
             py::arg("element"),
             py::arg("weight"))
         .def_static("GetDefaultParameters", &DisplacementSensor::GetDefaultParameters)
+        ;
+
+    py::class_<VelocitySensor, VelocitySensor::Pointer, Sensor>(sensor_module, "VelocitySensor")
+        .def(py::init<const std::string&,const Point&,const array_1d<double, 3>&,const Element&,const double>(),
+            py::arg("name"),
+            py::arg("location"),
+            py::arg("direction"),
+            py::arg("element"),
+            py::arg("weight"))
+        .def_static("GetDefaultParameters", &VelocitySensor::GetDefaultParameters)
         ;
 
     py::class_<AccelerationSensor, AccelerationSensor::Pointer, Sensor>(sensor_module, "AccelerationSensor")

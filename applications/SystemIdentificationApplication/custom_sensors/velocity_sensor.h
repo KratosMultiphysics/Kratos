@@ -33,7 +33,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) AccelerationSensor : public Sensor
+class KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) VelocitySensor : public Sensor
 {
 public:
     ///@name Type Definitions
@@ -43,14 +43,14 @@ public:
 
     using BaseType = Sensor;
 
-    KRATOS_CLASS_POINTER_DEFINITION(AccelerationSensor);
+    KRATOS_CLASS_POINTER_DEFINITION(VelocitySensor);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor.
-    AccelerationSensor(
+    VelocitySensor(
         const std::string& rName,
         const Point& rLocation,
         const array_1d<double, 3>& rDirection,
@@ -58,7 +58,7 @@ public:
         const double Weight);
 
     /// Destructor.
-    ~AccelerationSensor() override = default;
+    ~VelocitySensor() override = default;
 
     ///@}
     ///@name Operations
@@ -133,8 +133,6 @@ public:
         const Matrix& rSensitivityMatrix,
         Vector& rSensitivityGradient,
         const ProcessInfo& rProcessInfo) override;
-    
-    IndexType GetCorrespondingElementId() const;
 
     ///@}
     ///@name Input and output
@@ -165,7 +163,7 @@ private:
     void SetVectorToZero(
         Vector& rVector,
         const IndexType Size);
-    
+
     double CalculateSensorValue(const Element& rElementWithSensor);
 
     ///@}
@@ -173,6 +171,6 @@ private:
 
 ///@} // Kratos Classes
 
-///@} //Digital Twin Application group
+///@} //SystemIdentificationApplication group
 
 } /* namespace Kratos.*/

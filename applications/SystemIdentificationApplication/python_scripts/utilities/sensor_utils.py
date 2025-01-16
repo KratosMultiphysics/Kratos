@@ -53,6 +53,16 @@ def GetSensors(model_part: Kratos.ModelPart, list_of_parameters: 'list[Kratos.Pa
             sensor = KratosSI.Sensors.DisplacementSensor(name, loc, direction, model_part.GetElement(elem_id), weight)
             AddSensorVariableData(sensor, parameters["variable_data"])
             list_of_sensors.append(sensor)
+        if sensor_type_name == "velocity_sensor":
+            name = parameters["name"].GetString()
+            loc = parameters["location"].GetVector()
+            loc = Kratos.Point(loc[0], loc[1], loc[2])
+            weight = parameters["weight"].GetDouble()
+            direction = parameters["direction"].GetVector()
+            elem_id = point_locator.FindElement(loc, shape_funcs, Kratos.Configuration.Initial, 1e-8)
+            sensor = KratosSI.Sensors.VelocitySensor(name, loc, direction, model_part.GetElement(elem_id), weight)
+            AddSensorVariableData(sensor, parameters["variable_data"])
+            list_of_sensors.append(sensor)
         elif sensor_type_name == "acceleration_sensor":
             name = parameters["name"].GetString()
             loc = parameters["location"].GetVector()

@@ -13,7 +13,6 @@
 // System includes
 #include <cmath>
 #include <limits>
-#include <iostream>
 
 // External includes
 
@@ -23,12 +22,12 @@
 #include "system_identification_application_variables.h"
 
 // Include base h
-#include "acceleration_sensor.h"
+#include "velocity_sensor.h"
 
 namespace Kratos {
 
 /// Constructor.
-AccelerationSensor::AccelerationSensor(
+VelocitySensor::VelocitySensor(
     const std::string& rName,
     const Point& rLocation,
     const array_1d<double, 3>& rDirection,
@@ -99,11 +98,11 @@ AccelerationSensor::AccelerationSensor(
     this->SetValue(SENSOR_ELEMENT_ID, static_cast<int>(mElementId));
 }
 
-const Parameters AccelerationSensor::GetSensorParameters() const
+const Parameters VelocitySensor::GetSensorParameters() const
 {
     Parameters parameters = Parameters(R"(
     {
-        "type"      : "acceleration_sensor",
+        "type"      : "velocity_sensor",
         "name"      : "",
         "value"     : 0.0,
         "location"  : [0.0, 0.0, 0.0],
@@ -118,11 +117,11 @@ const Parameters AccelerationSensor::GetSensorParameters() const
     return parameters;
 }
 
-Parameters AccelerationSensor::GetDefaultParameters()
+Parameters VelocitySensor::GetDefaultParameters()
 {
     return Parameters(R"(
     {
-        "type"         : "acceleration_sensor",
+        "type"         : "velocity_sensor",
         "name"         : "",
         "value"        : 0,
         "location"     : [0.0, 0.0, 0.0],
@@ -132,17 +131,17 @@ Parameters AccelerationSensor::GetDefaultParameters()
     })" );
 }
 
-double AccelerationSensor::CalculateValue(ModelPart& rModelPart)
+double VelocitySensor::CalculateValue(ModelPart& rModelPart)
 {
-    double directional_acceleration = 0.0;
+    double directional_velocity = 0.0;
     if (rModelPart.HasElement(mElementId)) {
         const auto& r_element = rModelPart.GetElement(mElementId);
-        directional_acceleration = CalculateSensorValue(r_element);
+        directional_velocity = CalculateSensorValue(r_element);
     }
-    return rModelPart.GetCommunicator().GetDataCommunicator().SumAll(directional_acceleration);
+    return rModelPart.GetCommunicator().GetDataCommunicator().SumAll(directional_velocity);
 }
 
-void AccelerationSensor::CalculateGradient(
+void VelocitySensor::CalculateGradient(
     const Element& rAdjointElement,
     const Matrix& rResidualGradient,
     Vector& rResponseGradient,
@@ -151,7 +150,7 @@ void AccelerationSensor::CalculateGradient(
     SetVectorToZero(rResponseGradient, rResidualGradient.size1());
 }
 
-void AccelerationSensor::CalculateGradient(
+void VelocitySensor::CalculateGradient(
     const Condition& rAdjointCondition,
     const Matrix& rResidualGradient,
     Vector& rResponseGradient,
@@ -160,30 +159,14 @@ void AccelerationSensor::CalculateGradient(
     SetVectorToZero(rResponseGradient, rResidualGradient.size1());
 }
 
-void AccelerationSensor::CalculateFirstDerivativesGradient(
+void VelocitySensor::CalculateFirstDerivativesGradient(
     const Element& rAdjointElement,
     const Matrix& rResidualGradient,
     Vector& rResponseGradient,
     const ProcessInfo& rProcessInfo)
 {
-    SetVectorToZero(rResponseGradient, rResidualGradient.size1());
-}
+    KRATOS_TRY;
 
-void AccelerationSensor::CalculateFirstDerivativesGradient(
-    const Condition& rAdjointCondition,
-    const Matrix& rResidualGradient,
-    Vector& rResponseGradient,
-    const ProcessInfo& rProcessInfo)
-{
-    SetVectorToZero(rResponseGradient, rResidualGradient.size1());
-}
-
-void AccelerationSensor::CalculateSecondDerivativesGradient(
-    const Element& rAdjointElement,
-    const Matrix& rResidualGradient,
-    Vector& rResponseGradient,
-    const ProcessInfo& rProcessInfo)
-{
     if (rResponseGradient.size() != rResidualGradient.size1()) {
         rResponseGradient.resize(rResidualGradient.size1(), false);
     }
@@ -193,7 +176,7 @@ void AccelerationSensor::CalculateSecondDerivativesGradient(
     if (rAdjointElement.Id() == mElementId) {
         // Update current sensor error
         this->SetValue(SENSOR_ERROR, CalculateSensorValue(rAdjointElement) - this->GetValue(SENSOR_MEASURED_VALUE));
-        // calculate second derivatives gradient
+        // calculate gradient
         const auto& r_geometry = rAdjointElement.GetGeometry();
         const IndexType block_size = rResidualGradient.size1() / r_geometry.size();
 
@@ -203,9 +186,11 @@ void AccelerationSensor::CalculateSecondDerivativesGradient(
             rResponseGradient[i * block_size + 2] = mNs[i] * mDirection[2];
         }
     }
+
+    KRATOS_CATCH("");
 }
 
-void AccelerationSensor::CalculateSecondDerivativesGradient(
+void VelocitySensor::CalculateFirstDerivativesGradient(
     const Condition& rAdjointCondition,
     const Matrix& rResidualGradient,
     Vector& rResponseGradient,
@@ -214,7 +199,25 @@ void AccelerationSensor::CalculateSecondDerivativesGradient(
     SetVectorToZero(rResponseGradient, rResidualGradient.size1());
 }
 
-void AccelerationSensor::CalculatePartialSensitivity(
+void VelocitySensor::CalculateSecondDerivativesGradient(
+    const Element& rAdjointElement,
+    const Matrix& rResidualGradient,
+    Vector& rResponseGradient,
+    const ProcessInfo& rProcessInfo)
+{
+    SetVectorToZero(rResponseGradient, rResidualGradient.size1());
+}
+
+void VelocitySensor::CalculateSecondDerivativesGradient(
+    const Condition& rAdjointCondition,
+    const Matrix& rResidualGradient,
+    Vector& rResponseGradient,
+    const ProcessInfo& rProcessInfo)
+{
+    SetVectorToZero(rResponseGradient, rResidualGradient.size1());
+}
+
+void VelocitySensor::CalculatePartialSensitivity(
     Element& rAdjointElement,
     const Variable<double>& rVariable,
     const Matrix& rSensitivityMatrix,
@@ -224,7 +227,7 @@ void AccelerationSensor::CalculatePartialSensitivity(
     SetVectorToZero(rSensitivityGradient, rSensitivityMatrix.size1());
 }
 
-void AccelerationSensor::CalculatePartialSensitivity(
+void VelocitySensor::CalculatePartialSensitivity(
     Condition& rAdjointCondition,
     const Variable<double>& rVariable,
     const Matrix& rSensitivityMatrix,
@@ -234,7 +237,7 @@ void AccelerationSensor::CalculatePartialSensitivity(
     SetVectorToZero(rSensitivityGradient, rSensitivityMatrix.size1());
 }
 
-void AccelerationSensor::CalculatePartialSensitivity(
+void VelocitySensor::CalculatePartialSensitivity(
     Element& rAdjointElement,
     const Variable<array_1d<double, 3>>& rVariable,
     const Matrix& rSensitivityMatrix,
@@ -244,7 +247,7 @@ void AccelerationSensor::CalculatePartialSensitivity(
     SetVectorToZero(rSensitivityGradient, rSensitivityMatrix.size1());
 }
 
-void AccelerationSensor::CalculatePartialSensitivity(
+void VelocitySensor::CalculatePartialSensitivity(
     Condition& rAdjointCondition,
     const Variable<array_1d<double, 3>>& rVariable,
     const Matrix& rSensitivityMatrix,
@@ -254,24 +257,19 @@ void AccelerationSensor::CalculatePartialSensitivity(
     SetVectorToZero(rSensitivityGradient, rSensitivityMatrix.size1());
 }
 
-IndexType AccelerationSensor::GetCorrespondingElementId() const
-{
-    return mElementId;
-}
-
-std::string AccelerationSensor::Info() const
+std::string VelocitySensor::Info() const
 {
     std::stringstream msg;
-    msg << "AccelerationSensor " << this->GetName();
+    msg << "VelocitySensor " << this->GetName();
     return msg.str();
 }
 
-void AccelerationSensor::PrintInfo(std::ostream& rOStream) const
+void VelocitySensor::PrintInfo(std::ostream& rOStream) const
 {
     rOStream << Info() << std::endl;
 }
 
-void AccelerationSensor::PrintData(std::ostream& rOStream) const
+void VelocitySensor::PrintData(std::ostream& rOStream) const
 {
     PrintInfo(rOStream);
     rOStream << "    Location: " << this->GetLocation() << std::endl;
@@ -282,7 +280,7 @@ void AccelerationSensor::PrintData(std::ostream& rOStream) const
     DataValueContainer::PrintData(rOStream);
 }
 
-void AccelerationSensor::SetVectorToZero(
+void VelocitySensor::SetVectorToZero(
     Vector& rVector,
     const IndexType Size)
 {
@@ -293,16 +291,16 @@ void AccelerationSensor::SetVectorToZero(
     rVector.clear();
 }
 
-double AccelerationSensor::CalculateSensorValue(const Element& rElementWithSensor)
+double VelocitySensor::CalculateSensorValue(const Element& rElementWithSensor)
 {
     const auto& r_geometry = rElementWithSensor.GetGeometry();
 
-    array_1d<double, 3> acceleration = ZeroVector(3);
+    array_1d<double, 3> velocity = ZeroVector(3);
     for (IndexType i = 0; i < r_geometry.size(); ++i) {
-        acceleration += r_geometry[i].FastGetSolutionStepValue(ACCELERATION) * mNs[i];
+        velocity += r_geometry[i].FastGetSolutionStepValue(VELOCITY) * mNs[i];
     }
 
-    return inner_prod(acceleration, mDirection);
+    return inner_prod(velocity, mDirection);
 }
 
 }; // namespace Kratos
