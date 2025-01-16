@@ -123,16 +123,19 @@ void TransientPwElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrent
 {
     KRATOS_TRY
 
-    const PropertiesType& r_properties       = this->GetProperties();
+    const PropertiesType& r_properties = this->GetProperties();
     const GeometryType&   r_geom       = this->GetGeometry();
-    const unsigned int    number_of_integration_points = r_geom.IntegrationPointsNumber(this->GetIntegrationMethod());
+    const unsigned int    number_of_integration_points =
+        r_geom.IntegrationPointsNumber(this->GetIntegrationMethod());
 
-    if (mConstitutiveLawVector.size() != number_of_integration_points) mConstitutiveLawVector.resize(number_of_integration_points);
-    for (auto& constitutive_law: mConstitutiveLawVector) {
+    if (mConstitutiveLawVector.size() != number_of_integration_points)
+        mConstitutiveLawVector.resize(number_of_integration_points);
+    for (auto& constitutive_law : mConstitutiveLawVector) {
         constitutive_law = nullptr;
     }
 
-    if (mRetentionLawVector.size() != number_of_integration_points) mRetentionLawVector.resize(number_of_integration_points);
+    if (mRetentionLawVector.size() != number_of_integration_points)
+        mRetentionLawVector.resize(number_of_integration_points);
     for (auto& r_retention_law : mRetentionLawVector) {
         r_retention_law = RetentionLawFactory::Clone(r_properties);
     }

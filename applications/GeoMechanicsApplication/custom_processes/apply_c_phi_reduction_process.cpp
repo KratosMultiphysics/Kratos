@@ -29,7 +29,9 @@ void ApplyCPhiReductionProcess::ExecuteInitializeSolutionStep()
     KRATOS_ERROR_IF(mReductionFactor <= 0.01)
         << "Reduction factor should not drop below 0.01, calculation stopped." << std::endl;
     KRATOS_ERROR_IF(mReductionIncrement <= 0.001)
-    << "Reduction increment should not drop below 0.001, calculation stopped. Final safety factor = " << 1.0 / mPreviousReductionFactor << std::endl;
+        << "Reduction increment should not drop below 0.001, calculation stopped. Final safety "
+           "factor = "
+        << 1.0 / mPreviousReductionFactor << std::endl;
     KRATOS_INFO("ApplyCPhiReductionProces::ExecuteInitializeSolutionStep")
         << "Try a c-phi reduction factor " << mReductionFactor << " (safety factor "
         << 1. / mReductionFactor << ") Previous reduction = " << mPreviousReductionFactor
