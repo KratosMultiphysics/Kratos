@@ -152,9 +152,9 @@ void SetBasicPropertiesAndVariables(intrusive_ptr<TransientPwElement<TDim, TNumN
         rElement->GetProperties().SetValue(PERMEABILITY_ZX, 1.0);
     }
     const auto gravity_acceleration = array_1d<double, 3>{0.0, -10.0, 0.0};
-    for (unsigned int node = 0; node < TNumNodes; node++) {
-        rElement->GetGeometry()[node].FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_acceleration;
-        rElement->GetGeometry()[node].FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
+    for (auto& r_node : rElement->GetGeometry()) {
+        r_node.FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_acceleration;
+        r_node.FastGetSolutionStepValue(WATER_PRESSURE)      = 0.0;
     }
 }
 
@@ -728,7 +728,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement3D4N_CalculateLocalSystem, KratosGeo
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 
     Vector expected_right_hand_side(4);
-    expected_right_hand_side <<= 166666.666,0,0,-166666.666;
+    expected_right_hand_side <<= 166666.666, 0, 0, -166666.666;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
 
