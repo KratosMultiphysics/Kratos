@@ -420,6 +420,13 @@ public:
      */
     int Check(const ProcessInfo &rCurrentProcessInfo) const override;
 
+    /**
+     * @brief This function returns a proper measure of the area.
+     * If the strain_size is 3 (standard Timoshenko beam), the area is the CROSS_AREA
+     * Else (plane strain Timoshenko beam), hence the area is per unit length
+     */
+    double GetCrossArea();
+
     ///@}
     ///@name Access
     ///@{
