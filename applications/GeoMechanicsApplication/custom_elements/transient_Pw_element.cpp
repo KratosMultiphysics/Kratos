@@ -33,6 +33,8 @@ Element::Pointer TransientPwElement<TDim, TNumNodes>::Create(IndexType          
                                                              GeometryType::Pointer pGeom,
                                                              PropertiesType::Pointer pProperties) const
 {
+    auto& stressStatePolicy = this->GetStressStatePolicy();
+    auto stressState = stressStatePolicy.Clone();
     return Element::Pointer(
         new TransientPwElement(NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone()));
 }
@@ -123,20 +125,18 @@ void TransientPwElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrent
 {
     KRATOS_TRY
 
-    const PropertiesType& Prop       = this->GetProperties();
-    const GeometryType&   Geom       = this->GetGeometry();
-    const unsigned int    NumGPoints = Geom.IntegrationPointsNumber(this->GetIntegrationMethod());
+    const PropertiesType& r_properties       = this->GetProperties();
+    const GeometryType&   r_geom       = this->GetGeometry();
+    const unsigned int    number_of_integration_points = r_geom.IntegrationPointsNumber(this->GetIntegrationMethod());
 
-    // pointer to constitutive laws
-    if (mConstitutiveLawVector.size() != NumGPoints) mConstitutiveLawVector.resize(NumGPoints);
-
-    for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i) {
-        mConstitutiveLawVector[i] = nullptr;
+    if (mConstitutiveLawVector.size() != number_of_integration_points) mConstitutiveLawVector.resize(number_of_integration_points);
+    for (auto& constitutive_law: mConstitutiveLawVector) {
+        constitutive_law = nullptr;
     }
 
-    if (mRetentionLawVector.size() != NumGPoints) mRetentionLawVector.resize(NumGPoints);
-    for (unsigned int i = 0; i < mRetentionLawVector.size(); ++i) {
-        mRetentionLawVector[i] = RetentionLawFactory::Clone(Prop);
+    if (mRetentionLawVector.size() != number_of_integration_points) mRetentionLawVector.resize(number_of_integration_points);
+    for (auto& r_retention_law : mRetentionLawVector) {
+        r_retention_law = RetentionLawFactory::Clone(r_properties);
     }
 
     mIsInitialised = true;
@@ -157,16 +157,16 @@ int TransientPwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProces
 
     for (unsigned int i = 0; i < TNumNodes; ++i) {
         if (Geom[i].SolutionStepsDataHas(WATER_PRESSURE) == false)
-            KRATOS_ERROR << "missing variable WATER_PRESSURE on node " << Geom[i].Id() << std::endl;
+            KRATOS_ERROR << "Missing variable WATER_PRESSURE on node " << Geom[i].Id() << std::endl;
 
         if (Geom[i].SolutionStepsDataHas(DT_WATER_PRESSURE) == false)
-            KRATOS_ERROR << "missing variable DT_WATER_PRESSURE on node " << Geom[i].Id() << std::endl;
+            KRATOS_ERROR << "Missing variable DT_WATER_PRESSURE on node " << Geom[i].Id() << std::endl;
 
         if (Geom[i].SolutionStepsDataHas(VOLUME_ACCELERATION) == false)
-            KRATOS_ERROR << "missing variable VOLUME_ACCELERATION on node " << Geom[i].Id() << std::endl;
+            KRATOS_ERROR << "Missing variable VOLUME_ACCELERATION on node " << Geom[i].Id() << std::endl;
 
         if (Geom[i].HasDofFor(WATER_PRESSURE) == false)
-            KRATOS_ERROR << "missing variable WATER_PRESSURE on node " << Geom[i].Id() << std::endl;
+            KRATOS_ERROR << "Missing variable WATER_PRESSURE on node " << Geom[i].Id() << std::endl;
     }
 
     // Verify ProcessInfo variables
@@ -174,17 +174,17 @@ int TransientPwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProces
     // Verify properties
     if (Prop.Has(DENSITY_WATER) == false || Prop[DENSITY_WATER] < 0.0)
         KRATOS_ERROR << "DENSITY_WATER does not exist in the material "
-                        "properties or has an invalid value at element"
+                        "properties or has an invalid value at element "
                      << this->Id() << std::endl;
 
     if (Prop.Has(BULK_MODULUS_SOLID) == false || Prop[BULK_MODULUS_SOLID] < 0.0)
         KRATOS_ERROR << "BULK_MODULUS_SOLID does not exist in the material "
-                        "properties or has an invalid value at element"
+                        "properties or has an invalid value at element "
                      << this->Id() << std::endl;
 
     if (Prop.Has(POROSITY) == false || Prop[POROSITY] < 0.0 || Prop[POROSITY] > 1.0)
         KRATOS_ERROR << "POROSITY does not exist in the material properties or "
-                        "has an invalid value at element"
+                        "has an invalid value at element "
                      << this->Id() << std::endl;
 
     if (TDim == 2) {
@@ -198,48 +198,48 @@ int TransientPwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProces
     // Verify specific properties
     if (Prop.Has(BULK_MODULUS_FLUID) == false || Prop[BULK_MODULUS_FLUID] < 0.0)
         KRATOS_ERROR << "BULK_MODULUS_FLUID does not exist in the material "
-                        "properties or has an invalid value at element"
+                        "properties or has an invalid value at element "
                      << this->Id() << std::endl;
 
     if (Prop.Has(DYNAMIC_VISCOSITY) == false || Prop[DYNAMIC_VISCOSITY] < 0.0)
         KRATOS_ERROR << "DYNAMIC_VISCOSITY does not exist in the material "
-                        "properties or has an invalid value at element"
+                        "properties or has an invalid value at element "
                      << this->Id() << std::endl;
 
     if (Prop.Has(PERMEABILITY_XX) == false || Prop[PERMEABILITY_XX] < 0.0)
         KRATOS_ERROR << "PERMEABILITY_XX does not exist in the material "
-                        "properties or has an invalid value at element"
+                        "properties or has an invalid value at element "
                      << this->Id() << std::endl;
 
     if (Prop.Has(PERMEABILITY_YY) == false || Prop[PERMEABILITY_YY] < 0.0)
         KRATOS_ERROR << "PERMEABILITY_YY does not exist in the material "
-                        "properties or has an invalid value at element"
+                        "properties or has an invalid value at element "
                      << this->Id() << std::endl;
 
     if (Prop.Has(PERMEABILITY_XY) == false || Prop[PERMEABILITY_XY] < 0.0)
         KRATOS_ERROR << "PERMEABILITY_XY does not exist in the material "
-                        "properties or has an invalid value at element"
+                        "properties or has an invalid value at element "
                      << this->Id() << std::endl;
 
     if (!Prop.Has(BIOT_COEFFICIENT))
         KRATOS_ERROR << "BIOT_COEFFICIENT does not exist in the material "
-                        "properties in element"
+                        "properties in element "
                      << this->Id() << std::endl;
 
     if constexpr (TDim > 2) {
         if (Prop.Has(PERMEABILITY_ZZ) == false || Prop[PERMEABILITY_ZZ] < 0.0)
             KRATOS_ERROR << "PERMEABILITY_ZZ does not exist in the material "
-                            "properties or has an invalid value at element"
+                            "properties or has an invalid value at element "
                          << this->Id() << std::endl;
 
         if (Prop.Has(PERMEABILITY_YZ) == false || Prop[PERMEABILITY_YZ] < 0.0)
             KRATOS_ERROR << "PERMEABILITY_YZ does not exist in the material "
-                            "properties or has an invalid value at element"
+                            "properties or has an invalid value at element "
                          << this->Id() << std::endl;
 
         if (Prop.Has(PERMEABILITY_ZX) == false || Prop[PERMEABILITY_ZX] < 0.0)
             KRATOS_ERROR << "PERMEABILITY_ZX does not exist in the material "
-                            "properties or has an invalid value at element"
+                            "properties or has an invalid value at element "
                          << this->Id() << std::endl;
     }
 

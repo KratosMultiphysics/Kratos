@@ -335,6 +335,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateHydraulicDischarge(const P
         for (unsigned int node = 0; node < TNumNodes; ++node) {
             double HydraulicDischarge = 0;
             for (unsigned int iDir = 0; iDir < TDim; ++iDir) {
+                auto aa = Variables.GradNpT(node, iDir);
+                auto bb = FluidFlux[GPoint][iDir];
                 HydraulicDischarge += Variables.GradNpT(node, iDir) * FluidFlux[GPoint][iDir];
             }
 
