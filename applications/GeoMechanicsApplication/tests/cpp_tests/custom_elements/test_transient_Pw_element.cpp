@@ -12,6 +12,7 @@
 //
 
 #include "custom_elements/plane_strain_stress_state.h"
+#include "custom_elements/three_dimensional_stress_state.h"
 #include "custom_elements/transient_Pw_element.hpp"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
@@ -96,8 +97,9 @@ intrusive_ptr<TransientPwElement<2, 3>> CreateTransientPwElementWithPWDofs(const
 intrusive_ptr<TransientPwElement<3, 4>> CreateTransientPwElement3D4NWithPWDofs(
     const ModelPart& rModelPart, const Properties::Pointer& rProperties, const Geometry<Node>::Pointer& rGeometry)
 {
-    auto p_result = make_intrusive<TransientPwElement<3, 4>>(
-        NextElementNumber(rModelPart), rGeometry, rProperties, std::make_unique<PlaneStrainStressState>());
+    auto p_result =
+        make_intrusive<TransientPwElement<3, 4>>(NextElementNumber(rModelPart), rGeometry, rProperties,
+                                                 std::make_unique<ThreeDimensionalStressState>());
     for (auto& node : p_result->GetGeometry()) {
         node.AddDof(WATER_PRESSURE);
     }
