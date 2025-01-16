@@ -136,6 +136,34 @@ intrusive_ptr<TransientPwElement<2, 3>> CreateTriangleTransientPwElementWithoutP
     return p_element;
 }
 
+template <unsigned int TDim, unsigned int TNumNodes>
+void SetBasicPropertiesAndVariables(intrusive_ptr<TransientPwElement<TDim, TNumNodes>> rElement)
+{
+    rElement->GetProperties().SetValue(DENSITY_WATER, 1.0E3);
+    rElement->GetProperties().SetValue(DYNAMIC_VISCOSITY, 1.0E-2);
+    rElement->GetProperties().SetValue(PERMEABILITY_XX, 1.0);
+    rElement->GetProperties().SetValue(PERMEABILITY_YY, 1.0);
+    rElement->GetProperties().SetValue(PERMEABILITY_XY, 1.0);
+    if constexpr (TDim == 3) {
+        rElement->GetProperties().SetValue(PERMEABILITY_ZZ, 1.0);
+        rElement->GetProperties().SetValue(PERMEABILITY_YZ, 1.0);
+        rElement->GetProperties().SetValue(PERMEABILITY_ZX, 1.0);
+    }
+    const auto gravity_acceleration = array_1d<double, 3>{0.0, -10.0, 0.0};
+    rElement->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_acceleration;
+    rElement->GetGeometry()[1].FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_acceleration;
+    rElement->GetGeometry()[2].FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_acceleration;
+    if constexpr (TNumNodes == 4) {
+        rElement->GetGeometry()[2].FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_acceleration;
+    }
+    rElement->GetGeometry()[0].FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
+    rElement->GetGeometry()[1].FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
+    rElement->GetGeometry()[2].FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
+    if constexpr (TNumNodes == 4) {
+        rElement->GetGeometry()[3].FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
+    }
+}
+
 } // namespace
 
 namespace Kratos::Testing
@@ -182,11 +210,10 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CreateInstanceWithNodeInput, Kratos
 KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_DoFList, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto p_properties = std::make_shared<Properties>();
-
     Model      model;
     auto&      r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
-    const auto p_element = CreateTriangleTransientPwElementWithPWDofs(r_model_part, p_properties);
+    const auto p_element =
+        CreateTriangleTransientPwElementWithPWDofs(r_model_part, std::make_shared<Properties>());
 
     // Act
     const auto              dummy_process_info = ProcessInfo{};
@@ -203,11 +230,10 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_DoFList, KratosGeoMechanicsFastSuit
 KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_EquationIdVector, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto p_properties = std::make_shared<Properties>();
-
     Model model;
     auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
-    auto  p_element    = CreateTriangleTransientPwElementWithPWDofs(r_model_part, p_properties);
+    auto  p_element =
+        CreateTriangleTransientPwElementWithPWDofs(r_model_part, std::make_shared<Properties>());
 
     unsigned int i = 0;
     for (const auto& node : p_element->GetGeometry()) {
@@ -228,10 +254,9 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_EquationIdVector, KratosGeoMechanic
 KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_IntegrationMethod, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto p_geometry   = std::make_shared<Triangle2D3<Node>>(CreateCoincidentNodes());
-    const auto p_properties = std::make_shared<Properties>();
-    const TransientPwElement<2, 3> element(0, p_geometry, p_properties,
-                                           std::make_unique<PlaneStrainStressState>());
+    const TransientPwElement<2, 3> element(
+        0, std::make_shared<Triangle2D3<Node>>(CreateCoincidentNodes()),
+        std::make_shared<Properties>(), std::make_unique<PlaneStrainStressState>());
 
     // Act
     const auto p_integration_method = element.GetIntegrationMethod();
@@ -244,142 +269,142 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_IntegrationMethod, KratosGeoMechani
 KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CheckThrowsOnFaultyInput, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto p_geometry   = std::make_shared<Triangle2D3<Node>>(CreateCoincidentNodes());
-    const auto p_properties = std::make_shared<Properties>();
-    const TransientPwElement<2, 3> element(1, p_geometry, p_properties,
-                                           std::make_unique<PlaneStrainStressState>());
+    const auto                     p_properties = std::make_shared<Properties>();
+    const TransientPwElement<2, 3> element_with_coincident_nodes(
+        1, std::make_shared<Triangle2D3<Node>>(CreateCoincidentNodes()), p_properties,
+        std::make_unique<PlaneStrainStressState>());
 
     // Act and Assert
     const auto dummy_process_info = ProcessInfo{};
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(element.Check(dummy_process_info),
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(element_with_coincident_nodes.Check(dummy_process_info),
                                       "Error: DomainSize < 1.0e-15 for the element 1")
 
-    const auto p_geometry2 = std::make_shared<Triangle2D3<Node>>(CreateThreeNodes());
-    const TransientPwElement<2, 3> element1(1, p_geometry2, p_properties,
-                                            std::make_unique<PlaneStrainStressState>());
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(element1.Check(dummy_process_info),
+    const TransientPwElement<2, 3> element_with_correct_domain_size(
+        1, std::make_shared<Triangle2D3<Node>>(CreateThreeNodes()), p_properties,
+        std::make_unique<PlaneStrainStressState>());
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(element_with_correct_domain_size.Check(dummy_process_info),
                                       "Error: Missing variable WATER_PRESSURE on node 1")
 
     Model model;
     auto& model_part = model.CreateModelPart("Main");
     model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
-    auto p_new_element = CreateTriangleTransientPwElementWithoutPWDofs(model_part, p_properties);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_new_element->Check(dummy_process_info),
+    auto p_element = CreateTriangleTransientPwElementWithoutPWDofs(model_part, p_properties);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "Error: Missing variable DT_WATER_PRESSURE on node 1")
 
     RemoveThreeNOdes(model_part);
     model_part.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
-    p_new_element = CreateTriangleTransientPwElementWithoutPWDofs(model_part, p_properties);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_new_element->Check(dummy_process_info),
+    p_element = CreateTriangleTransientPwElementWithoutPWDofs(model_part, p_properties);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "Missing variable VOLUME_ACCELERATION on node 1")
 
     RemoveThreeNOdes(model_part);
     model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
-    p_new_element = CreateTriangleTransientPwElementWithoutPWDofs(model_part, p_properties);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_new_element->Check(dummy_process_info),
+    p_element = CreateTriangleTransientPwElementWithoutPWDofs(model_part, p_properties);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "Missing variable WATER_PRESSURE on node 1")
 
     RemoveThreeNOdes(model_part);
-    p_new_element = CreateTriangleTransientPwElementWithPWDofs(model_part, p_properties);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_new_element->Check(dummy_process_info),
+    p_element = CreateTriangleTransientPwElementWithPWDofs(model_part, p_properties);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "DENSITY_WATER does not exist in the material properties or "
                                       "has an invalid value at element 4")
 
-    p_new_element->GetProperties().SetValue(DENSITY_WATER, -1.0E3);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_new_element->Check(dummy_process_info),
+    p_element->GetProperties().SetValue(DENSITY_WATER, -1.0E3);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "DENSITY_WATER does not exist in the material properties or "
                                       "has an invalid value at element 4")
 
-    p_new_element->GetProperties().SetValue(DENSITY_WATER, 1.0E3);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_new_element->Check(dummy_process_info),
+    p_element->GetProperties().SetValue(DENSITY_WATER, 1.0E3);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "Error: BULK_MODULUS_SOLID does not exist in the material "
                                       "properties or has an invalid value at element 4")
 
-    p_new_element->GetProperties().SetValue(BULK_MODULUS_SOLID, -1.0E6);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_new_element->Check(dummy_process_info),
+    p_element->GetProperties().SetValue(BULK_MODULUS_SOLID, -1.0E6);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "Error: BULK_MODULUS_SOLID does not exist in the material "
                                       "properties or has an invalid value at element 4")
 
-    p_new_element->GetProperties().SetValue(BULK_MODULUS_SOLID, 1.0E6);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_new_element->Check(dummy_process_info),
+    p_element->GetProperties().SetValue(BULK_MODULUS_SOLID, 1.0E6);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "Error: POROSITY does not exist in the material properties "
                                       "or has an invalid value at element 4")
 
-    p_new_element->GetProperties().SetValue(POROSITY, -1.0);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_new_element->Check(dummy_process_info),
+    p_element->GetProperties().SetValue(POROSITY, -1.0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "Error: POROSITY does not exist in the material properties "
                                       "or has an invalid value at element 4")
 
-    p_new_element->GetProperties().SetValue(POROSITY, 2.0);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_new_element->Check(dummy_process_info),
+    p_element->GetProperties().SetValue(POROSITY, 2.0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "Error: POROSITY does not exist in the material properties "
                                       "or has an invalid value at element 4")
 
-    p_new_element->GetProperties().SetValue(POROSITY, 0.5);
+    p_element->GetProperties().SetValue(POROSITY, 0.5);
 
-    p_new_element->GetGeometry().begin()->Z() += 1;
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_new_element->Check(dummy_process_info),
+    p_element->GetGeometry().begin()->Z() += 1;
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "Error:  Node with non-zero Z coordinate found. Id: 1")
-    p_new_element->GetGeometry().begin()->Z() = 0;
+    p_element->GetGeometry().begin()->Z() = 0;
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_new_element->Check(dummy_process_info),
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "Error: BULK_MODULUS_FLUID does not exist in the material "
                                       "properties or has an invalid value at element 4")
 
-    p_new_element->GetProperties().SetValue(BULK_MODULUS_FLUID, -1.0e6);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_new_element->Check(dummy_process_info),
+    p_element->GetProperties().SetValue(BULK_MODULUS_FLUID, -1.0e6);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "Error: BULK_MODULUS_FLUID does not exist in the material "
                                       "properties or has an invalid value at element 4")
 
-    p_new_element->GetProperties().SetValue(BULK_MODULUS_FLUID, 1.0e6);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_new_element->Check(dummy_process_info),
+    p_element->GetProperties().SetValue(BULK_MODULUS_FLUID, 1.0e6);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "Error: DYNAMIC_VISCOSITY does not exist in the material "
                                       "properties or has an invalid value at element 4")
 
-    p_new_element->GetProperties().SetValue(DYNAMIC_VISCOSITY, -1.0E-2);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_new_element->Check(dummy_process_info),
+    p_element->GetProperties().SetValue(DYNAMIC_VISCOSITY, -1.0E-2);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "Error: DYNAMIC_VISCOSITY does not exist in the material "
                                       "properties or has an invalid value at element 4")
 
-    p_new_element->GetProperties().SetValue(DYNAMIC_VISCOSITY, 1.0E-2);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_new_element->Check(dummy_process_info),
+    p_element->GetProperties().SetValue(DYNAMIC_VISCOSITY, 1.0E-2);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "PERMEABILITY_XX does not exist in the material properties "
                                       "or has an invalid value at element 4")
 
-    p_new_element->GetProperties().SetValue(PERMEABILITY_XX, -1.0E-2);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_new_element->Check(dummy_process_info),
+    p_element->GetProperties().SetValue(PERMEABILITY_XX, -1.0E-2);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "PERMEABILITY_XX does not exist in the material properties "
                                       "or has an invalid value at element 4")
 
-    p_new_element->GetProperties().SetValue(PERMEABILITY_XX, 1.0E-2);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_new_element->Check(dummy_process_info),
+    p_element->GetProperties().SetValue(PERMEABILITY_XX, 1.0E-2);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "PERMEABILITY_YY does not exist in the material properties "
                                       "or has an invalid value at element 4")
 
-    p_new_element->GetProperties().SetValue(PERMEABILITY_YY, -1.0E-2);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_new_element->Check(dummy_process_info),
+    p_element->GetProperties().SetValue(PERMEABILITY_YY, -1.0E-2);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "PERMEABILITY_YY does not exist in the material properties "
                                       "or has an invalid value at element 4")
 
-    p_new_element->GetProperties().SetValue(PERMEABILITY_YY, 1.0E-2);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_new_element->Check(dummy_process_info),
+    p_element->GetProperties().SetValue(PERMEABILITY_YY, 1.0E-2);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "PERMEABILITY_XY does not exist in the material properties "
                                       "or has an invalid value at element 4")
 
-    p_new_element->GetProperties().SetValue(PERMEABILITY_XY, -1.0E-2);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_new_element->Check(dummy_process_info),
+    p_element->GetProperties().SetValue(PERMEABILITY_XY, -1.0E-2);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "PERMEABILITY_XY does not exist in the material properties "
                                       "or has an invalid value at element 4")
 
-    p_new_element->GetProperties().SetValue(PERMEABILITY_XY, 1.0E-2);
+    p_element->GetProperties().SetValue(PERMEABILITY_XY, 1.0E-2);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        p_new_element->Check(dummy_process_info),
+        p_element->Check(dummy_process_info),
         "Error: BIOT_COEFFICIENT does not exist in the material properties in element 4")
 
-    p_new_element->GetProperties().SetValue(BIOT_COEFFICIENT, 1.0E-2);
+    p_element->GetProperties().SetValue(BIOT_COEFFICIENT, 1.0E-2);
 
     // No exceptions on correct input for 2D element
-    KRATOS_EXPECT_EQ(p_new_element->Check(dummy_process_info), 0);
+    KRATOS_EXPECT_EQ(p_element->Check(dummy_process_info), 0);
 
     auto p_3D_element = CreateThreeDTransientPwElement3D4NWithPWDofs(model_part, p_properties);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_3D_element->Check(dummy_process_info),
@@ -420,38 +445,38 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CheckThrowsOnFaultyInput, KratosGeo
 KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_Initialize, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto p_geometry   = std::make_shared<Triangle2D3<Node>>(CreateCoincidentNodes());
-    const auto p_properties = std::make_shared<Properties>();
-    TransientPwElement<2, 3> element(0, p_geometry, p_properties, std::make_unique<PlaneStrainStressState>());
+    TransientPwElement<2, 3> element(0, std::make_shared<Triangle2D3<Node>>(CreateCoincidentNodes()),
+                                     std::make_shared<Properties>(),
+                                     std::make_unique<PlaneStrainStressState>());
     const auto dummy_process_info = ProcessInfo{};
 
     // Act
     element.Initialize(dummy_process_info);
-    const auto  number_of_integration_points =
-        element.GetGeometry().IntegrationPointsNumber(element.GetIntegrationMethod());
-    const auto & r_constitutive_law_vector = element.mConstitutiveLawVector;
-    const auto & r_retention_law_vector    = element.mRetentionLawVector;
 
     // Assert
+    const auto number_of_integration_points =
+        element.GetGeometry().IntegrationPointsNumber(element.GetIntegrationMethod());
+    const auto& r_constitutive_law_vector = element.mConstitutiveLawVector;
     KRATOS_EXPECT_EQ(r_constitutive_law_vector.size(), number_of_integration_points);
-    for (const auto & constitutive_law : r_constitutive_law_vector) {
+    for (const auto& constitutive_law : r_constitutive_law_vector) {
         KRATOS_EXPECT_EQ(constitutive_law, nullptr);
     }
+
+    const auto& r_retention_law_vector = element.mRetentionLawVector;
     KRATOS_EXPECT_EQ(r_retention_law_vector.size(), number_of_integration_points);
-    for (const auto & retention_law : r_retention_law_vector) {
-        KRATOS_EXPECT_EQ(dynamic_cast<SaturatedLaw*>(retention_law.get()) == nullptr, false);
+    for (const auto& retention_law : r_retention_law_vector) {
+        KRATOS_EXPECT_NE(dynamic_cast<SaturatedLaw*>(retention_law.get()), nullptr);
     }
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_InitializeSolution, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto p_properties = std::make_shared<Properties>();
-
     Model model;
     auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
     r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
-    auto       p_element = CreateTriangleTransientPwElementWithPWDofs(r_model_part, p_properties);
+    auto p_element =
+        CreateTriangleTransientPwElementWithPWDofs(r_model_part, std::make_shared<Properties>());
     const auto dummy_process_info = ProcessInfo{};
 
     // Act
@@ -466,25 +491,13 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_InitializeSolution, KratosGeoMechan
 KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_FinalizeSolutionStep, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto p_properties = std::make_shared<Properties>();
-
     Model model;
     auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
     r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
-    auto       p_element = CreateTriangleTransientPwElementWithPWDofs(r_model_part, p_properties);
+    auto p_element =
+        CreateTriangleTransientPwElementWithPWDofs(r_model_part, std::make_shared<Properties>());
+    SetBasicPropertiesAndVariables(p_element);
     const auto dummy_process_info = ProcessInfo{};
-    p_element->GetProperties().SetValue(DENSITY_WATER, 1.0E3);
-    p_element->GetProperties().SetValue(DYNAMIC_VISCOSITY, 1.0E-2);
-    p_element->GetProperties().SetValue(PERMEABILITY_XX, 1.0);
-    p_element->GetProperties().SetValue(PERMEABILITY_YY, 1.0);
-    p_element->GetProperties().SetValue(PERMEABILITY_XY, 1.0);
-    const auto gravity_acceleration = array_1d<double, 3>{0.0, -10.0, 0.0};
-    p_element->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_acceleration;
-    p_element->GetGeometry()[1].FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_acceleration;
-    p_element->GetGeometry()[2].FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_acceleration;
-    p_element->GetGeometry()[0].FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
-    p_element->GetGeometry()[1].FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
-    p_element->GetGeometry()[2].FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
     p_element->InitializeSolutionStep(dummy_process_info);
 
     // Act
@@ -499,25 +512,13 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_FinalizeSolutionStep, KratosGeoMech
 KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Vector, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto p_properties = std::make_shared<Properties>();
-
     Model model;
     auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
     r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
-    auto       p_element = CreateTriangleTransientPwElementWithPWDofs(r_model_part, p_properties);
+    auto p_element =
+        CreateTriangleTransientPwElementWithPWDofs(r_model_part, std::make_shared<Properties>());
+    SetBasicPropertiesAndVariables(p_element);
     const auto dummy_process_info = ProcessInfo{};
-    p_element->GetProperties().SetValue(DENSITY_WATER, 1.0E3);
-    p_element->GetProperties().SetValue(DYNAMIC_VISCOSITY, 1.0E-2);
-    p_element->GetProperties().SetValue(PERMEABILITY_XX, 1.0);
-    p_element->GetProperties().SetValue(PERMEABILITY_YY, 1.0);
-    p_element->GetProperties().SetValue(PERMEABILITY_XY, 1.0);
-    const auto gravity_acceleration = array_1d<double, 3>{0.0, -10.0, 0.0};
-    p_element->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_acceleration;
-    p_element->GetGeometry()[1].FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_acceleration;
-    p_element->GetGeometry()[2].FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_acceleration;
-    p_element->GetGeometry()[0].FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
-    p_element->GetGeometry()[1].FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
-    p_element->GetGeometry()[2].FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
     p_element->InitializeSolutionStep(dummy_process_info);
 
     // Act
@@ -595,20 +596,9 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_1DArra
     Model model;
     auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
     r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
-    auto       p_element = CreateTriangleTransientPwElementWithPWDofs(r_model_part, p_properties);
+    auto p_element = CreateTriangleTransientPwElementWithPWDofs(r_model_part, p_properties);
+    SetBasicPropertiesAndVariables(p_element);
     const auto dummy_process_info = ProcessInfo{};
-    p_element->GetProperties().SetValue(DENSITY_WATER, 1.0E3);
-    p_element->GetProperties().SetValue(DYNAMIC_VISCOSITY, 1.0E-2);
-    p_element->GetProperties().SetValue(PERMEABILITY_XX, 1.0);
-    p_element->GetProperties().SetValue(PERMEABILITY_YY, 1.0);
-    p_element->GetProperties().SetValue(PERMEABILITY_XY, 1.0);
-    const auto gravity_acceleration = array_1d<double, 3>{0.0, -10.0, 0.0};
-    p_element->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_acceleration;
-    p_element->GetGeometry()[1].FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_acceleration;
-    p_element->GetGeometry()[2].FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_acceleration;
-    p_element->GetGeometry()[0].FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
-    p_element->GetGeometry()[1].FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
-    p_element->GetGeometry()[2].FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
     p_element->InitializeSolutionStep(dummy_process_info);
 
     // Act
@@ -644,20 +634,9 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Matrix
     Model model;
     auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
     r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
-    auto       p_element = CreateTriangleTransientPwElementWithPWDofs(r_model_part, p_properties);
+    auto p_element = CreateTriangleTransientPwElementWithPWDofs(r_model_part, p_properties);
+    SetBasicPropertiesAndVariables(p_element);
     const auto dummy_process_info = ProcessInfo{};
-    p_element->GetProperties().SetValue(DENSITY_WATER, 1.0E3);
-    p_element->GetProperties().SetValue(DYNAMIC_VISCOSITY, 1.0E-2);
-    p_element->GetProperties().SetValue(PERMEABILITY_XX, 1.0);
-    p_element->GetProperties().SetValue(PERMEABILITY_YY, 1.0);
-    p_element->GetProperties().SetValue(PERMEABILITY_XY, 1.0);
-    const auto gravity_acceleration = array_1d<double, 3>{0.0, -10.0, 0.0};
-    p_element->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_acceleration;
-    p_element->GetGeometry()[1].FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_acceleration;
-    p_element->GetGeometry()[2].FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_acceleration;
-    p_element->GetGeometry()[0].FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
-    p_element->GetGeometry()[1].FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
-    p_element->GetGeometry()[2].FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
     p_element->InitializeSolutionStep(dummy_process_info);
 
     // Act
@@ -689,30 +668,18 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Matrix
 KRATOS_TEST_CASE_IN_SUITE(TransientPwElement2D3N_CalculateLocalSystem, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto p_properties = std::make_shared<Properties>();
-
     Model model;
     auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
     r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
-    auto       p_element = CreateTriangleTransientPwElementWithPWDofs(r_model_part, p_properties);
-    const auto dummy_process_info = ProcessInfo{};
+    auto p_element =
+        CreateTriangleTransientPwElementWithPWDofs(r_model_part, std::make_shared<Properties>());
+    SetBasicPropertiesAndVariables(p_element);
     p_element->GetProperties().SetValue(BIOT_COEFFICIENT, 0.5);
-    p_element->GetProperties().SetValue(DENSITY_WATER, 1.0E3);
-    p_element->GetProperties().SetValue(DYNAMIC_VISCOSITY, 1.0E-2);
     p_element->GetProperties().SetValue(BULK_MODULUS_FLUID, 1.0E6);
     p_element->GetProperties().SetValue(BULK_MODULUS_SOLID, 1.0E6);
     p_element->GetProperties().SetValue(POROSITY, 0.1);
     p_element->GetProperties().SetValue(IGNORE_UNDRAINED, false);
-    p_element->GetProperties().SetValue(PERMEABILITY_XX, 1.0);
-    p_element->GetProperties().SetValue(PERMEABILITY_YY, 1.0);
-    p_element->GetProperties().SetValue(PERMEABILITY_XY, 1.0);
-    const auto gravity_acceleration = array_1d<double, 3>{0.0, -10.0, 0.0};
-    p_element->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_acceleration;
-    p_element->GetGeometry()[1].FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_acceleration;
-    p_element->GetGeometry()[2].FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_acceleration;
-    p_element->GetGeometry()[0].FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
-    p_element->GetGeometry()[1].FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
-    p_element->GetGeometry()[2].FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
+    const auto dummy_process_info = ProcessInfo{};
     p_element->InitializeSolutionStep(dummy_process_info);
 
     // Act
@@ -737,35 +704,18 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement2D3N_CalculateLocalSystem, KratosGeo
 KRATOS_TEST_CASE_IN_SUITE(TransientPwElement3D4N_CalculateLocalSystem, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto p_properties = std::make_shared<Properties>();
-
     Model model;
     auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
     r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
-    auto       p_element = CreateThreeDTransientPwElement3D4NWithPWDofs(r_model_part, p_properties);
-    const auto dummy_process_info = ProcessInfo{};
+    auto p_element =
+        CreateThreeDTransientPwElement3D4NWithPWDofs(r_model_part, std::make_shared<Properties>());
+    SetBasicPropertiesAndVariables(p_element);
     p_element->GetProperties().SetValue(BIOT_COEFFICIENT, 0.5);
-    p_element->GetProperties().SetValue(DENSITY_WATER, 1.0E3);
-    p_element->GetProperties().SetValue(DYNAMIC_VISCOSITY, 1.0E-2);
     p_element->GetProperties().SetValue(BULK_MODULUS_FLUID, 1.0E6);
     p_element->GetProperties().SetValue(BULK_MODULUS_SOLID, 1.0E6);
     p_element->GetProperties().SetValue(POROSITY, 0.1);
     p_element->GetProperties().SetValue(IGNORE_UNDRAINED, false);
-    p_element->GetProperties().SetValue(PERMEABILITY_XX, 1.0);
-    p_element->GetProperties().SetValue(PERMEABILITY_YY, 1.0);
-    p_element->GetProperties().SetValue(PERMEABILITY_XY, 1.0);
-    p_element->GetProperties().SetValue(PERMEABILITY_ZZ, 1.0);
-    p_element->GetProperties().SetValue(PERMEABILITY_YZ, 1.0);
-    p_element->GetProperties().SetValue(PERMEABILITY_ZX, 1.0);
-    const auto gravity_acceleration = array_1d<double, 3>{0.0, -10.0, 0.0};
-    p_element->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_acceleration;
-    p_element->GetGeometry()[1].FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_acceleration;
-    p_element->GetGeometry()[2].FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_acceleration;
-    p_element->GetGeometry()[2].FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_acceleration;
-    p_element->GetGeometry()[0].FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
-    p_element->GetGeometry()[1].FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
-    p_element->GetGeometry()[2].FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
-    p_element->GetGeometry()[3].FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
+    const auto dummy_process_info = ProcessInfo{};
     p_element->InitializeSolutionStep(dummy_process_info);
 
     // Act
