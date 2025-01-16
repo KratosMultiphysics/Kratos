@@ -7,7 +7,6 @@
         "name"                             : "GeoLinearElasticPlaneStrain2DLaw"
       },
       "Variables" : {
-        "IGNORE_UNDRAINED"                 : false,
         "DENSITY_SOLID"                    : 2.650000e+03,
         "DENSITY_WATER"                    : 1.000000e+03,
         "POROSITY"                         : 1.000000e-01,

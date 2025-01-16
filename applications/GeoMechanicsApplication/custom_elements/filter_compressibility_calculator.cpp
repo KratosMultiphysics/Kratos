@@ -68,10 +68,8 @@ Matrix FilterCompressibilityCalculator::CalculateCompressibilityMatrix() const
 double FilterCompressibilityCalculator::CalculateElasticCapacity(double ProjectedGravity) const
 {
     const auto&  r_properties = mInputProvider.GetElementProperties();
-    const double result =
-        1.0 / (r_properties[DENSITY_WATER] * ProjectedGravity * r_properties[FILTER_LENGTH]) +
-        1.0 / r_properties[BULK_MODULUS_FLUID];
-    return result;
+    return 1.0 / (r_properties[DENSITY_WATER] * ProjectedGravity * r_properties[FILTER_LENGTH]) +
+           1.0 / r_properties[BULK_MODULUS_FLUID];
 }
 
 const Properties& FilterCompressibilityCalculator::InputProvider::GetElementProperties() const

@@ -281,9 +281,8 @@ private:
     {
         const auto number_integration_points = GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
         GeometryType::JacobiansType J_container{number_integration_points};
-        for (std::size_t i = 0; i < number_integration_points; ++i) {
-            J_container[i].resize(GetGeometry().WorkingSpaceDimension(),
-                                  GetGeometry().LocalSpaceDimension(), false);
+        for (auto& container : J_container) {
+            container.resize(GetGeometry().WorkingSpaceDimension(), GetGeometry().LocalSpaceDimension(), false);
         }
         GetGeometry().Jacobian(J_container, this->GetIntegrationMethod());
 
