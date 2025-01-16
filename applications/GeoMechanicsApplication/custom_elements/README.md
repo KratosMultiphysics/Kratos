@@ -175,5 +175,44 @@ where
 The superscripts $^l$ and $^r$ for Robin boundary condition indicate the left hands side (matrix) and right hand side (vector), respectively. The superscripts $^e$ and $^{ep}$ for $\Omega$ and $\Gamma$ indicate values in the element volume and perpendicular to element boundaries, respectively.  
 
 
+# Pressure Filter Line Element
+For laminar flow along the axis of the well and uniformly distributed storage over the length of the well bore (Diersch, 2014)
+
+$$ \pi R^2 \left( \frac{1}{l_w} + \rho_0 g \beta \right) \frac{\partial h}{\partial t} - \pi R^2 K_w \frac{\partial}{\partial y} \left[ f_{\mu} \left( \frac{\partial h}{\partial y} + \Psi e \right)\right] = -Q_w \delta \left( y - y_w \right) $$
+
+where
+
+$$ K_w = \frac{R^2 \rho_0 g}{8 \mu_0} \;\;\;\; f_u = \frac{\mu_0}{\mu} \;\;\;\; \Psi = \frac{\rho - \rho_0}{\rho_0} \;\;\;\; h = \frac{p}{\rho_0 g} + y $$
+
+- $\Q_w$			= pumping rate sink $\mathrm{\left[ m^3/s \right]}$
+- $t$				= time $\mathrm{\left[ s \right]}$
+- $y$				= vertical coordinate $\mathrm{\left[ m \right]}$
+- $y_w$				= location of the discharge point $\mathrm{\left[ m \right]}$
+- $h$				= hydraulic head in the well $\mathrm{\left[ m \right]}$
+- $l_w$				= total length of liquid filled well bore $\mathrm{\left[ m \right]}$
+- $R$				= radius of the well casing $\mathrm{\left[ m \right]}$
+- $K_w$				= Hagen-Poiseuille permeability $\mathrm{\left[ m \right]}$
+- $\delta$			= Dirichlet delta function $\mathrm{\left[ - \right]}$
+- $\beta$			= compressibility of the liquid $\mathrm{\left[ m^2/N \right]}$
+- $f_{\mu}$			= viscosity relation function of liquid $\mathrm{\left[ - \right]}$
+- $\Psi$			= buoyancy coefficient $\mathrm{\left[ - \right]}$
+- $e$				= gravitational unit vector $\mathrm{\left[ - \right]}$
+- $g$				= gravitational acceleration $\mathrm{\left[ kg/ms^2 \right]}$
+- $\rho_0$			= reference density of the fluid $\mathrm{\left[ kg/m^3 \right]}$
+- $\mu_0$			= reference viscosity of the fluid $\mathrm{\left[ Pas \right]}$
+- $p$				= liquid pressure $\mathrm{\left[ Pa \right]}$
+
+reformulated in pressure and preserving mass
+
+$$ \rho^w \left( \frac{1}{\rho^w g l_w} + \beta \right) \frac{\partial p}{\partial t} - \rho^w \frac{\partial}{\partial y} \left[ \frac{R^2}{8 \mu} \left( \frac{\partial p}{\partial y} - \rho^w g \right)\right] = -\frac{\rho^w Q_w}{\pi R^2} $$
+
+The pressure equation ine one dimensional with $\alpha = 1$ and $n = 1$ captures the well flow equation.
+
+$$ \rho^w \beta^* \frac{\partial p}{\partial t} - \frac{\partial}{\partial y} \left[ \frac{\rho^w K^*}{\mu} \left( \frac{\partial p}{\partial y} - \rho^w g \right) \right] = - \rho^w Q^*_w $$
+
+where the intrinsic permeability and boundary condition are given by
+
+$$ \beta^* = \frac{1}{\rho^w g l_w} + \beta \;\;\;\; K^* = \frac{R^2}{8} \;\;\;\; Q^*_w = \frac{Q_w}{\pi R^2} $$ 
+
 ## Bibliography
 Diersch, H.-J. G., 2014. FEFLOW; Finite Element Modeling of Flow, Mass and Heat Transport in Porous and Fractured Media. Springer.
