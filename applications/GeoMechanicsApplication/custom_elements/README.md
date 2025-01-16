@@ -208,7 +208,9 @@ $$ \rho^w \left( \frac{1}{\rho^w g l_w} + \beta \right) \frac{\partial p}{\parti
 
 The one dimensionalpressure equation with $\alpha = 1$ and $n = 1$ captures the well flow equation.
 
-$$ \rho^w \beta^* \frac{\partial p}{\partial t} - \frac{\partial}{\partial y} \left[ \frac{\rho^w K^*}{\mu} \left( \frac{\partial p}{\partial y} - \rho^w g \right) \right] = - \rho^w Q^* $$
+```math
+\rho^w \beta^* \frac{\partial p}{\partial t} - \frac{\partial}{\partial y} \left[ \frac{\rho^w K^*}{\mu} \left( \frac{\partial p}{\partial y} - \rho^w g \right) \right] = - \rho^w Q^*_w
+```
 
 where the intrinsic permeability and boundary condition are given by
 
