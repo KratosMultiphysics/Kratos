@@ -33,8 +33,6 @@ Element::Pointer TransientPwElement<TDim, TNumNodes>::Create(IndexType          
                                                              GeometryType::Pointer pGeom,
                                                              PropertiesType::Pointer pProperties) const
 {
-    auto& stressStatePolicy = this->GetStressStatePolicy();
-    auto stressState = stressStatePolicy.Clone();
     return Element::Pointer(
         new TransientPwElement(NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone()));
 }
