@@ -206,13 +206,13 @@ reformulated in pressure and preserving mass
 
 $$ \rho^w \left( \frac{1}{\rho^w g l_w} + \beta \right) \frac{\partial p}{\partial t} - \rho^w \frac{\partial}{\partial y} \left[ \frac{R^2}{8 \mu} \left( \frac{\partial p}{\partial y} - \rho^w g \right)\right] = -\frac{\rho^w Q_w}{\pi R^2} $$
 
-The pressure equation ine one dimensional with $\alpha = 1$ and $n = 1$ captures the well flow equation.
+The one dimensionalpressure equation with $\alpha = 1$ and $n = 1$ captures the well flow equation.
 
-$$ \rho^w \beta^* \frac{\partial p}{\partial t} - \frac{\partial}{\partial y} \left[ \frac{\rho^w K^*}{\mu} \left( \frac{\partial p}{\partial y} - \rho^w g \right) \right] = - \rho^w Q^*_w $$
+$$ \rho^w \beta^* \frac{\partial p}{\partial t} - \frac{\partial}{\partial y} \left[ \frac{\rho^w K^*}{\mu} \left( \frac{\partial p}{\partial y} - \rho^w g \right) \right] = - \rho^w Q^* $$
 
 where the intrinsic permeability and boundary condition are given by
 
-$$ \beta^* = \frac{1}{\rho^w g l_w} + \beta \quad \quad \quad \quad K^* = \frac{R^2}{8} \quad \quad \quad \;quad Q^*_w = \frac{Q_w}{\pi R^2} $$ 
+$$ \beta^* = \frac{1}{\rho^w g l_w} + \beta \quad \quad \quad \quad K^* = \frac{R^2}{8} \quad \quad \quad \quad Q^*_w = \frac{Q_w}{\pi R^2} $$ 
 
 ## Bibliography
 Diersch, H.-J. G., 2014. FEFLOW; Finite Element Modeling of Flow, Mass and Heat Transport in Porous and Fractured Media. Springer.
