@@ -31,31 +31,25 @@ PointerVector<Node> CreateThreeNodes()
     return result;
 }
 
-PointerVector<Node> CreateThreeNodesOnModelPart(ModelPart& rModelPart)
-{
-    PointerVector<Node> result;
-    result.push_back(rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0));
-    result.push_back(rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0));
-    result.push_back(rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0));
-    return result;
-}
-
-PointerVector<Node> CreateThetrahedralOnModelPart(ModelPart& rModelPart)
-{
-    PointerVector<Node> result;
-    result.push_back(rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0));
-    result.push_back(rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0));
-    result.push_back(rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0));
-    result.push_back(rModelPart.CreateNewNode(4, 1.0, 1.0, 1.0));
-    return result;
-}
-
 PointerVector<Node> CreateCoincidentNodes()
 {
     PointerVector<Node> result;
     result.push_back(make_intrusive<Node>(1, 0.0, 0.0, 0.0));
     result.push_back(make_intrusive<Node>(2, 0.0, 0.0, 0.0));
     result.push_back(make_intrusive<Node>(3, 0.0, 0.0, 0.0));
+    return result;
+}
+
+template <unsigned int TNumNodes>
+PointerVector<Node> CreateNodesOnModelPart(ModelPart& rModelPart)
+{
+    PointerVector<Node> result;
+    result.push_back(rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0));
+    result.push_back(rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0));
+    result.push_back(rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0));
+    if constexpr (TNumNodes == 4) {
+        result.push_back(rModelPart.CreateNewNode(4, 1.0, 1.0, 1.0));
+    }
     return result;
 }
 
@@ -81,48 +75,25 @@ Element::IndexType NextElementNumber(const ModelPart& rModelPart)
     return rModelPart.NumberOfElements() + 1;
 }
 
-intrusive_ptr<TransientPwElement<2, 3>> CreateTransientPwElementWithPWDofs(const ModelPart& rModelPart,
-                                                                           const Properties::Pointer& rProperties,
-                                                                           const Geometry<Node>::Pointer& rGeometry)
+template <unsigned int TDim, unsigned int TNumNodes>
+intrusive_ptr<TransientPwElement<TDim, TNumNodes>> CreateTransientPwElementWithPWDofs(ModelPart& rModelPart,
+                                                                                      const Properties::Pointer& rProperties)
 {
-    auto p_result = make_intrusive<TransientPwElement<2, 3>>(
-        NextElementNumber(rModelPart), rGeometry, rProperties, std::make_unique<PlaneStrainStressState>());
-    for (auto& node : p_result->GetGeometry()) {
+    intrusive_ptr<TransientPwElement<TDim, TNumNodes>> p_element;
+    if constexpr (TDim == 2) {
+        p_element = make_intrusive<TransientPwElement<TDim, TNumNodes>>(
+            NextElementNumber(rModelPart),
+            std::make_shared<Triangle2D3<Node>>(CreateNodesOnModelPart<TNumNodes>(rModelPart)),
+            rProperties, std::make_unique<PlaneStrainStressState>());
+    } else {
+        p_element = make_intrusive<TransientPwElement<TDim, TNumNodes>>(
+            NextElementNumber(rModelPart),
+            std::make_shared<Tetrahedra3D4<Node>>(CreateNodesOnModelPart<TNumNodes>(rModelPart)),
+            rProperties, std::make_unique<ThreeDimensionalStressState>());
+    }
+    for (auto& node : p_element->GetGeometry()) {
         node.AddDof(WATER_PRESSURE);
     }
-
-    return p_result;
-}
-
-intrusive_ptr<TransientPwElement<3, 4>> CreateTransientPwElement3D4NWithPWDofs(
-    const ModelPart& rModelPart, const Properties::Pointer& rProperties, const Geometry<Node>::Pointer& rGeometry)
-{
-    auto p_result =
-        make_intrusive<TransientPwElement<3, 4>>(NextElementNumber(rModelPart), rGeometry, rProperties,
-                                                 std::make_unique<ThreeDimensionalStressState>());
-    for (auto& node : p_result->GetGeometry()) {
-        node.AddDof(WATER_PRESSURE);
-    }
-
-    return p_result;
-}
-
-intrusive_ptr<TransientPwElement<2, 3>> CreateTriangleTransientPwElementWithPWDofs(ModelPart& rModelPart,
-                                                                                   const Properties::Pointer& rProperties)
-{
-    const auto p_geometry = std::make_shared<Triangle2D3<Node>>(CreateThreeNodesOnModelPart(rModelPart));
-    auto p_element = CreateTransientPwElementWithPWDofs(rModelPart, rProperties, p_geometry);
-
-    rModelPart.AddElement(p_element);
-    return p_element;
-}
-
-intrusive_ptr<TransientPwElement<3, 4>> CreateThreeDTransientPwElement3D4NWithPWDofs(ModelPart& rModelPart,
-                                                                                     const Properties::Pointer& rProperties)
-{
-    const auto p_geometry = std::make_shared<Tetrahedra3D4<Node>>(CreateThetrahedralOnModelPart(rModelPart));
-    auto p_element = CreateTransientPwElement3D4NWithPWDofs(rModelPart, rProperties, p_geometry);
-
     rModelPart.AddElement(p_element);
     return p_element;
 }
@@ -130,7 +101,7 @@ intrusive_ptr<TransientPwElement<3, 4>> CreateThreeDTransientPwElement3D4NWithPW
 intrusive_ptr<TransientPwElement<2, 3>> CreateTriangleTransientPwElementWithoutPWDofs(ModelPart& rModelPart,
                                                                                       const Properties::Pointer& rProperties)
 {
-    const auto p_geometry = std::make_shared<Triangle2D3<Node>>(CreateThreeNodesOnModelPart(rModelPart));
+    const auto p_geometry = std::make_shared<Triangle2D3<Node>>(CreateNodesOnModelPart<3>(rModelPart));
     auto p_element = make_intrusive<TransientPwElement<2, 3>>(
         NextElementNumber(rModelPart), p_geometry, rProperties, std::make_unique<PlaneStrainStressState>());
 
@@ -152,9 +123,9 @@ void SetBasicPropertiesAndVariables(intrusive_ptr<TransientPwElement<TDim, TNumN
         rElement->GetProperties().SetValue(PERMEABILITY_ZX, 1.0);
     }
     const auto gravity_acceleration = array_1d<double, 3>{0.0, -10.0, 0.0};
-    for (auto& r_node : rElement->GetGeometry()) {
-        r_node.FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_acceleration;
-        r_node.FastGetSolutionStepValue(WATER_PRESSURE)      = 0.0;
+    for (auto& node : rElement->GetGeometry()) {
+        node.FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_acceleration;
+        node.FastGetSolutionStepValue(WATER_PRESSURE)      = 0.0;
     }
 }
 
@@ -207,7 +178,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_DoFList, KratosGeoMechanicsFastSuit
     Model      model;
     auto&      r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
     const auto p_element =
-        CreateTriangleTransientPwElementWithPWDofs(r_model_part, std::make_shared<Properties>());
+        CreateTransientPwElementWithPWDofs<2, 3>(r_model_part, std::make_shared<Properties>());
 
     // Act
     const auto              dummy_process_info = ProcessInfo{};
@@ -226,8 +197,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_EquationIdVector, KratosGeoMechanic
     // Arrange
     Model model;
     auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
-    auto  p_element =
-        CreateTriangleTransientPwElementWithPWDofs(r_model_part, std::make_shared<Properties>());
+    auto p_element = CreateTransientPwElementWithPWDofs<2, 3>(r_model_part, std::make_shared<Properties>());
 
     unsigned int i = 0;
     for (const auto& node : p_element->GetGeometry()) {
@@ -299,7 +269,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CheckThrowsOnFaultyInput, KratosGeo
                                       "Missing variable WATER_PRESSURE on node 1")
 
     RemoveThreeNodes(model_part);
-    p_element = CreateTriangleTransientPwElementWithPWDofs(model_part, p_properties);
+    p_element = CreateTransientPwElementWithPWDofs<2, 3>(model_part, p_properties);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "DENSITY_WATER does not exist in the material properties or "
                                       "has an invalid value at element 4")
@@ -400,7 +370,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CheckThrowsOnFaultyInput, KratosGeo
     // No exceptions on correct input for 2D element
     KRATOS_EXPECT_EQ(p_element->Check(dummy_process_info), 0);
 
-    auto p_3D_element = CreateThreeDTransientPwElement3D4NWithPWDofs(model_part, p_properties);
+    auto p_3D_element = CreateTransientPwElementWithPWDofs<3, 4>(model_part, p_properties);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_3D_element->Check(dummy_process_info),
                                       "PERMEABILITY_ZZ does not exist in the material properties "
                                       "or has an invalid value at element 5")
@@ -469,16 +439,15 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_InitializeSolution, KratosGeoMechan
     Model model;
     auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
     r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
-    auto p_element =
-        CreateTriangleTransientPwElementWithPWDofs(r_model_part, std::make_shared<Properties>());
+    auto p_element = CreateTransientPwElementWithPWDofs<2, 3>(r_model_part, std::make_shared<Properties>());
     const auto dummy_process_info = ProcessInfo{};
 
     // Act
     p_element->InitializeSolutionStep(dummy_process_info);
 
     // Assert
-    for (auto& r_node : p_element->GetGeometry()) {
-        KRATOS_EXPECT_EQ(r_node.FastGetSolutionStepValue(HYDRAULIC_DISCHARGE), 0.0);
+    for (auto& node : p_element->GetGeometry()) {
+        KRATOS_EXPECT_EQ(node.FastGetSolutionStepValue(HYDRAULIC_DISCHARGE), 0.0);
     }
 }
 
@@ -488,8 +457,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_FinalizeSolutionStep, KratosGeoMech
     Model model;
     auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
     r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
-    auto p_element =
-        CreateTriangleTransientPwElementWithPWDofs(r_model_part, std::make_shared<Properties>());
+    auto p_element = CreateTransientPwElementWithPWDofs<2, 3>(r_model_part, std::make_shared<Properties>());
     SetBasicPropertiesAndVariables(p_element);
     const auto dummy_process_info = ProcessInfo{};
     p_element->InitializeSolutionStep(dummy_process_info);
@@ -509,8 +477,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Vector
     Model model;
     auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
     r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
-    auto p_element =
-        CreateTriangleTransientPwElementWithPWDofs(r_model_part, std::make_shared<Properties>());
+    auto p_element = CreateTransientPwElementWithPWDofs<2, 3>(r_model_part, std::make_shared<Properties>());
     SetBasicPropertiesAndVariables(p_element);
     const auto dummy_process_info = ProcessInfo{};
     p_element->InitializeSolutionStep(dummy_process_info);
@@ -590,7 +557,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_1DArra
     Model model;
     auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
     r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
-    auto p_element = CreateTriangleTransientPwElementWithPWDofs(r_model_part, p_properties);
+    auto p_element = CreateTransientPwElementWithPWDofs<2, 3>(r_model_part, p_properties);
     SetBasicPropertiesAndVariables(p_element);
     const auto dummy_process_info = ProcessInfo{};
     p_element->InitializeSolutionStep(dummy_process_info);
@@ -628,7 +595,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Matrix
     Model model;
     auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
     r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
-    auto p_element = CreateTriangleTransientPwElementWithPWDofs(r_model_part, p_properties);
+    auto p_element = CreateTransientPwElementWithPWDofs<2, 3>(r_model_part, p_properties);
     SetBasicPropertiesAndVariables(p_element);
     const auto dummy_process_info = ProcessInfo{};
     p_element->InitializeSolutionStep(dummy_process_info);
@@ -665,8 +632,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement2D3N_CalculateLocalSystem, KratosGeo
     Model model;
     auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
     r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
-    auto p_element =
-        CreateTriangleTransientPwElementWithPWDofs(r_model_part, std::make_shared<Properties>());
+    auto p_element = CreateTransientPwElementWithPWDofs<2, 3>(r_model_part, std::make_shared<Properties>());
     SetBasicPropertiesAndVariables(p_element);
     p_element->GetProperties().SetValue(BIOT_COEFFICIENT, 0.5);
     p_element->GetProperties().SetValue(BULK_MODULUS_FLUID, 1.0E6);
@@ -701,8 +667,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement3D4N_CalculateLocalSystem, KratosGeo
     Model model;
     auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
     r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
-    auto p_element =
-        CreateThreeDTransientPwElement3D4NWithPWDofs(r_model_part, std::make_shared<Properties>());
+    auto p_element = CreateTransientPwElementWithPWDofs<3, 4>(r_model_part, std::make_shared<Properties>());
     SetBasicPropertiesAndVariables(p_element);
     p_element->GetProperties().SetValue(BIOT_COEFFICIENT, 0.5);
     p_element->GetProperties().SetValue(BULK_MODULUS_FLUID, 1.0E6);
