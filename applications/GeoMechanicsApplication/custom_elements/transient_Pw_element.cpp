@@ -326,8 +326,9 @@ void TransientPwElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Var
         std::vector<double> permeability_update_factors(number_of_integration_points, 1.0);
         const auto fluid_fluxes = this->CalculateFluidFluxes(permeability_update_factors, rCurrentProcessInfo);
 
-        for (unsigned int GPoint = 0; GPoint < number_of_integration_points; ++GPoint) {
-            GeoElementUtilities::FillArray1dOutput(rOutput[GPoint], fluid_fluxes[GPoint]);
+        for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
+             ++integration_point) {
+            GeoElementUtilities::FillArray1dOutput(rOutput[integration_point], fluid_fluxes[integration_point]);
         }
     } else {
         if (rOutput.size() != mRetentionLawVector.size())
@@ -504,7 +505,7 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAndAddCompressibilityMatrix(M
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType&       rRightHandSideVector,
                                                              ElementVariables& rVariables,
-                                                             unsigned int      GPoint)
+                                                             unsigned int      integration_point)
 {
     KRATOS_TRY
 
