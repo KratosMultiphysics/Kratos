@@ -8,6 +8,7 @@
 //  License:         geo_mechanics_application/license.txt
 //
 //  Main authors:    Wijtze Pieter Kikstra
+//                   Gennady Markelov
 //
 
 #include "custom_elements/plane_strain_stress_state.h"
@@ -67,7 +68,7 @@ ModelPart& CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(Model& 
     return r_result;
 }
 
-void RemoveNodes(ModelPart& rModelPart)
+void RemoveThreeNOdes(ModelPart& rModelPart)
 {
     rModelPart.RemoveNodeFromAllLevels(1);
     rModelPart.RemoveNodeFromAllLevels(2);
@@ -142,7 +143,7 @@ namespace Kratos::Testing
 
 using namespace Kratos;
 
-KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CreateInstanceWithGeometryInput, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CreateInstanceWithGeometryInput, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     const auto p_geometry   = std::make_shared<Triangle2D3<Node>>(CreateThreeNodes());
@@ -160,14 +161,11 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CreateInstanceWithGeometryInput, Kr
     EXPECT_NE(p_created_element->pGetProperties(), nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CreateInstanceWithNodeInput, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CreateInstanceWithNodeInput, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
-
-    // The source element needs to have a geometry, otherwise the version of the
-    // Create method with a node input will fail.
-    const auto p_geometry = std::make_shared<Triangle2D3<Node>>(CreateThreeNodes());
+    const auto p_geometry   = std::make_shared<Triangle2D3<Node>>(CreateThreeNodes());
     const TransientPwElement<2, 3> element(0, p_geometry, p_properties,
                                            std::make_unique<PlaneStrainStressState>());
 
@@ -227,7 +225,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_EquationIdVector, KratosGeoMechanic
     KRATOS_EXPECT_VECTOR_EQ(equation_id_vector, expected_ids)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_IntegrationMethod, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_IntegrationMethod, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     const auto p_geometry   = std::make_shared<Triangle2D3<Node>>(CreateCoincidentNodes());
@@ -239,7 +237,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_IntegrationMethod, KratosGeoMechani
     const auto p_integration_method = element.GetIntegrationMethod();
 
     // Assert
-    const auto expected_integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
+    constexpr auto expected_integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
     KRATOS_EXPECT_EQ(p_integration_method, expected_integration_method);
 }
 
@@ -269,19 +267,19 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CheckThrowsOnFaultyInput, KratosGeo
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_new_element->Check(dummy_process_info),
                                       "Error: Missing variable DT_WATER_PRESSURE on node 1")
 
-    RemoveNodes(model_part);
+    RemoveThreeNOdes(model_part);
     model_part.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
     p_new_element = CreateTriangleTransientPwElementWithoutPWDofs(model_part, p_properties);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_new_element->Check(dummy_process_info),
                                       "Missing variable VOLUME_ACCELERATION on node 1")
 
-    RemoveNodes(model_part);
+    RemoveThreeNOdes(model_part);
     model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
     p_new_element = CreateTriangleTransientPwElementWithoutPWDofs(model_part, p_properties);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_new_element->Check(dummy_process_info),
                                       "Missing variable WATER_PRESSURE on node 1")
 
-    RemoveNodes(model_part);
+    RemoveThreeNOdes(model_part);
     p_new_element = CreateTriangleTransientPwElementWithPWDofs(model_part, p_properties);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_new_element->Check(dummy_process_info),
                                       "DENSITY_WATER does not exist in the material properties or "
@@ -419,7 +417,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CheckThrowsOnFaultyInput, KratosGeo
     KRATOS_EXPECT_EQ(p_3D_element->Check(dummy_process_info), 0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_Initialize, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_Initialize, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     const auto p_geometry   = std::make_shared<Triangle2D3<Node>>(CreateCoincidentNodes());
@@ -429,23 +427,24 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_Initialize, KratosGeoMechanicsFastS
 
     // Act
     element.Initialize(dummy_process_info);
-    auto const num_g_points = element.GetGeometry().IntegrationPointsNumber(element.GetIntegrationMethod());
-    auto const constitutive_law_vector = element.mConstitutiveLawVector;
-    auto const retention_law_vector    = element.mRetentionLawVector;
+    const auto  number_of_integration_points =
+        element.GetGeometry().IntegrationPointsNumber(element.GetIntegrationMethod());
+    const auto & r_constitutive_law_vector = element.mConstitutiveLawVector;
+    const auto & r_retention_law_vector    = element.mRetentionLawVector;
 
     // Assert
-    KRATOS_EXPECT_EQ(constitutive_law_vector.size(), num_g_points);
-    for (const auto constitutive_law : constitutive_law_vector) {
+    KRATOS_EXPECT_EQ(r_constitutive_law_vector.size(), number_of_integration_points);
+    for (const auto & constitutive_law : r_constitutive_law_vector) {
         KRATOS_EXPECT_EQ(constitutive_law, nullptr);
     }
-    KRATOS_EXPECT_EQ(retention_law_vector.size(), num_g_points);
+    KRATOS_EXPECT_EQ(r_retention_law_vector.size(), number_of_integration_points);
     const auto expected_retention_law = RetentionLawFactory::Clone(element.GetProperties());
-    for (const auto retention_law : retention_law_vector) {
-        KRATOS_EXPECT_EQ(typeid(*retention_law) == typeid(*expected_retention_law), true);
+    for (const auto & retention_law : r_retention_law_vector) {
+        KRATOS_EXPECT_EQ(typeid(*retention_law).name() == typeid(*expected_retention_law).name(), true);
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_InitializeSolution, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_InitializeSolution, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
@@ -465,7 +464,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_InitializeSolution, KratosGeoMechan
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_FinalizeSolutionStep, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_FinalizeSolutionStep, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
@@ -498,7 +497,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_FinalizeSolutionStep, KratosGeoMech
     KRATOS_EXPECT_EQ(p_element->GetGeometry()[2].FastGetSolutionStepValue(HYDRAULIC_DISCHARGE), -500000);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Vector, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Vector, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
@@ -525,11 +524,11 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Vector
     // Act
     std::vector<double> results{};
     p_element->CalculateOnIntegrationPoints(DEGREE_OF_SATURATION, results, dummy_process_info);
-    auto const num_g_points =
+    auto const number_of_integration_points =
         p_element->GetGeometry().IntegrationPointsNumber(p_element->GetIntegrationMethod());
 
     // Assert
-    KRATOS_EXPECT_EQ(results.size(), num_g_points);
+    KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
     Vector expected_results(3);
     expected_results <<= 1.0, 1.0, 1.0;
     KRATOS_EXPECT_VECTOR_EQ(results, expected_results);
@@ -539,7 +538,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Vector
     p_element->CalculateOnIntegrationPoints(EFFECTIVE_SATURATION, results, dummy_process_info);
 
     // Assert
-    KRATOS_EXPECT_EQ(results.size(), num_g_points);
+    KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
     expected_results <<= 1.0, 1.0, 1.0;
     KRATOS_EXPECT_VECTOR_EQ(results, expected_results);
 
@@ -548,7 +547,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Vector
     p_element->CalculateOnIntegrationPoints(BISHOP_COEFFICIENT, results, dummy_process_info);
 
     // Assert
-    KRATOS_EXPECT_EQ(results.size(), num_g_points);
+    KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
     expected_results <<= 1.0, 1.0, 1.0;
     KRATOS_EXPECT_VECTOR_EQ(results, expected_results);
 
@@ -557,7 +556,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Vector
     p_element->CalculateOnIntegrationPoints(DERIVATIVE_OF_SATURATION, results, dummy_process_info);
 
     // Assert
-    KRATOS_EXPECT_EQ(results.size(), num_g_points);
+    KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
     expected_results <<= 0.0, 0.0, 0.0;
     KRATOS_EXPECT_VECTOR_EQ(results, expected_results);
 
@@ -566,7 +565,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Vector
     p_element->CalculateOnIntegrationPoints(RELATIVE_PERMEABILITY, results, dummy_process_info);
 
     // Assert
-    KRATOS_EXPECT_EQ(results.size(), num_g_points);
+    KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
     expected_results <<= 1.0, 1.0, 1.0;
     KRATOS_EXPECT_VECTOR_EQ(results, expected_results);
 
@@ -575,7 +574,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Vector
     p_element->CalculateOnIntegrationPoints(HYDRAULIC_HEAD, results, dummy_process_info);
 
     // Assert
-    KRATOS_EXPECT_EQ(results.size(), num_g_points);
+    KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
     expected_results <<= 0.166667, 0.166667, 0.666667;
     KRATOS_EXPECT_VECTOR_NEAR(results, expected_results, Defaults::relative_tolerance);
 
@@ -584,12 +583,12 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Vector
     p_element->CalculateOnIntegrationPoints(DT_WATER_PRESSURE, results, dummy_process_info);
 
     // Assert
-    KRATOS_EXPECT_EQ(results.size(), num_g_points);
+    KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
     expected_results <<= 0, 0, 0;
     KRATOS_EXPECT_VECTOR_EQ(results, expected_results);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_1DArray, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_1DArray, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
@@ -616,11 +615,11 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_1DArra
     // Act
     std::vector<array_1d<double, 3>> results{};
     p_element->CalculateOnIntegrationPoints(FLUID_FLUX_VECTOR, results, dummy_process_info);
-    auto const num_g_points =
+    auto const number_of_integration_points =
         p_element->GetGeometry().IntegrationPointsNumber(p_element->GetIntegrationMethod());
 
     // Assert
-    KRATOS_EXPECT_EQ(results.size(), num_g_points);
+    KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
     array_1d<double, 3> expected_nonzero_component{-1e+06, -1e+06, 0};
     for (const auto& component : results) {
         KRATOS_EXPECT_VECTOR_EQ(component, expected_nonzero_component);
@@ -631,14 +630,14 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_1DArra
     p_element->CalculateOnIntegrationPoints(LOCAL_FLUID_FLUX_VECTOR, results, dummy_process_info);
 
     // Assert
-    KRATOS_EXPECT_EQ(results.size(), num_g_points);
+    KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
     array_1d<double, 3> expected_zero_component{0, 0, 0};
     for (const auto& component : results) {
         KRATOS_EXPECT_VECTOR_EQ(component, expected_zero_component);
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Matrix, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Matrix, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
@@ -665,11 +664,11 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Matrix
     // Act
     std::vector<Matrix> results{};
     p_element->CalculateOnIntegrationPoints(PERMEABILITY_MATRIX, results, dummy_process_info);
-    auto const num_g_points =
+    auto const number_of_integration_points =
         p_element->GetGeometry().IntegrationPointsNumber(p_element->GetIntegrationMethod());
 
     // Assert
-    KRATOS_EXPECT_EQ(results.size(), num_g_points);
+    KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
     Matrix expected_nonzero_component(2, 2);
     expected_nonzero_component <<= 1, 1, 1, 1;
     for (const auto& component : results) {
@@ -681,14 +680,14 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Matrix
     p_element->CalculateOnIntegrationPoints(LOCAL_PERMEABILITY_MATRIX, results, dummy_process_info);
 
     // Assert
-    KRATOS_EXPECT_EQ(results.size(), num_g_points);
+    KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
     Matrix expected_zero_component = ZeroMatrix(2, 2);
     for (const auto& component : results) {
         KRATOS_EXPECT_MATRIX_EQ(component, expected_zero_component);
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TransientPwElement2D3N_CalculateLocalSystem, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TransientPwElement2D3N_CalculateLocalSystem, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
@@ -736,7 +735,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement2D3N_CalculateLocalSystem, KratosGeo
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TransientPwElement3D4N_CalculateLocalSystem, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TransientPwElement3D4N_CalculateLocalSystem, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
