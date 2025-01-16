@@ -31,12 +31,12 @@ PointerVector<Node> CreateThreeNodes()
     return result;
 }
 
-PointerVector<Node> CreateCoincidentNodes()
+PointerVector<Node> CreateThreeCoincidentNodes()
 {
     PointerVector<Node> result;
-    result.push_back(make_intrusive<Node>(1, 0.0, 0.0, 0.0));
-    result.push_back(make_intrusive<Node>(2, 0.0, 0.0, 0.0));
-    result.push_back(make_intrusive<Node>(3, 0.0, 0.0, 0.0));
+    for (unsigned int id = 0; id < 3; id++) {
+        result.push_back(make_intrusive<Node>(id, 0.0, 0.0, 0.0));
+    }
     return result;
 }
 
@@ -101,9 +101,10 @@ intrusive_ptr<TransientPwElement<TDim, TNumNodes>> CreateTransientPwElementWithP
 intrusive_ptr<TransientPwElement<2, 3>> CreateTriangleTransientPwElementWithoutPWDofs(ModelPart& rModelPart,
                                                                                       const Properties::Pointer& rProperties)
 {
-    const auto p_geometry = std::make_shared<Triangle2D3<Node>>(CreateNodesOnModelPart<3>(rModelPart));
     auto p_element = make_intrusive<TransientPwElement<2, 3>>(
-        NextElementNumber(rModelPart), p_geometry, rProperties, std::make_unique<PlaneStrainStressState>());
+        NextElementNumber(rModelPart),
+        std::make_shared<Triangle2D3<Node>>(CreateNodesOnModelPart<3>(rModelPart)), rProperties,
+        std::make_unique<PlaneStrainStressState>());
 
     rModelPart.AddElement(p_element);
     return p_element;
@@ -219,7 +220,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_IntegrationMethod, KratosGeoMechani
 {
     // Arrange
     const TransientPwElement<2, 3> element(
-        0, std::make_shared<Triangle2D3<Node>>(CreateCoincidentNodes()),
+        0, std::make_shared<Triangle2D3<Node>>(CreateThreeCoincidentNodes()),
         std::make_shared<Properties>(), std::make_unique<PlaneStrainStressState>());
 
     // Act
@@ -235,7 +236,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CheckThrowsOnFaultyInput, KratosGeo
     // Arrange
     const auto                     p_properties = std::make_shared<Properties>();
     const TransientPwElement<2, 3> element_with_coincident_nodes(
-        1, std::make_shared<Triangle2D3<Node>>(CreateCoincidentNodes()), p_properties,
+        1, std::make_shared<Triangle2D3<Node>>(CreateThreeCoincidentNodes()), p_properties,
         std::make_unique<PlaneStrainStressState>());
 
     // Act and Assert
@@ -409,9 +410,9 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CheckThrowsOnFaultyInput, KratosGeo
 KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_Initialize, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    TransientPwElement<2, 3> element(0, std::make_shared<Triangle2D3<Node>>(CreateCoincidentNodes()),
-                                     std::make_shared<Properties>(),
-                                     std::make_unique<PlaneStrainStressState>());
+    TransientPwElement<2, 3> element(
+        0, std::make_shared<Triangle2D3<Node>>(CreateThreeCoincidentNodes()),
+        std::make_shared<Properties>(), std::make_unique<PlaneStrainStressState>());
     const auto dummy_process_info = ProcessInfo{};
 
     // Act
