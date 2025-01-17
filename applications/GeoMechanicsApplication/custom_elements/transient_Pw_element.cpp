@@ -331,11 +331,9 @@ void TransientPwElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Var
             GeoElementUtilities::FillArray1dOutput(rOutput[integration_point], fluid_fluxes[integration_point]);
         }
     } else {
-        if (rOutput.size() != mRetentionLawVector.size())
-            rOutput.resize(mRetentionLawVector.size());
-
-        for (unsigned int i = 0; i < mRetentionLawVector.size(); ++i) {
-            noalias(rOutput[i]) = ZeroVector(3);
+        for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
+             ++integration_point) {
+            noalias(rOutput[integration_point]) = ZeroVector(3);
         }
     }
 
