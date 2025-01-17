@@ -24,6 +24,7 @@
 // Application includes
 #include "structural_mechanics_application_variables.h"
 #include "utilities/geometry_utilities.h"
+#include "utilities/element_size_calculator.h"
 
 
 namespace Kratos
@@ -499,15 +500,24 @@ protected:
     {
         const auto &r_props = GetProperties();
         const auto &r_geom = GetGeometry();
-        const SizeType dim = r_geom.WorkingSpaceDimension();
         const double tau = r_props.Has(STABILIZATION_FACTOR) ? r_props[STABILIZATION_FACTOR] : default_stabilization_factor; // tau is c / L0
         if (r_props.Has(CHARACTERISTIC_LENGTH_MULTIPLIER)) {
             const double L0 = r_props[CHARACTERISTIC_LENGTH_MULTIPLIER];
+            const SizeType dimension = r_geom.WorkingSpaceDimension();
+            const SizeType num_nodes = r_geom.size();
             double l_char;
-            if (dim == 2) {
-                l_char = 0.5 * std::sqrt(r_geom.Area());
-            } else {
-                l_char = 0.5 * std::cbrt(r_geom.Volume());
+            if (dimension == 2) {
+                if (num_nodes == 3) { // Triangle
+                    l_char = ElementSizeCalculator<2, 3>::AverageElementSize(r_geom);
+                } else { // Quadrilateral
+                    l_char = ElementSizeCalculator<2, 4>::AverageElementSize(r_geom);
+                }
+            } else { // 3D
+                if (num_nodes == 4) { // Tetrahedron
+                    l_char = ElementSizeCalculator<2, 4>::AverageElementSize(r_geom);
+                } else { // Hexahedron
+                    l_char = ElementSizeCalculator<2, 8>::AverageElementSize(r_geom);
+                }
             }
             const double factor = l_char * tau / L0;
             return (factor > 1.0) ? 1.0 : factor;
@@ -695,6 +705,7 @@ private:
 
         // Create the kinematics container and fill the nodal data
         KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
+
         // Compute U and E
         GetNodalDoFsVectors(kinematic_variables.NodalDisplacements, kinematic_variables.NodalStrains);
 
@@ -709,7 +720,7 @@ private:
         // Call the initialize material response
         for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
             // Recompute the kinematics
-            CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
+            CalculateKinematicVariables(kinematic_variables, i_gauss, mThisIntegrationMethod);
 
             noalias(constitutive_variables.StrainVector) = kinematic_variables.EquivalentStrain;
 
@@ -735,9 +746,9 @@ private:
 
     friend class Serializer;
 
-    void save( Serializer& rSerializer ) const override;
+    void save(Serializer &rSerializer) const override;
 
-    void load( Serializer& rSerializer ) override;
+    void load(Serializer &rSerializer) override;
 
 }; // class SmallDisplacementMixedStrainDisplacementElement.
 
