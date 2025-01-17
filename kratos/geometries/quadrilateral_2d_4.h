@@ -1035,7 +1035,6 @@ private:
         IntegrationPointsContainerType integration_points =
         {
             {
-                // Gauss
                 Quadrature < QuadrilateralGaussLegendreIntegrationPoints1,
                 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature < QuadrilateralGaussLegendreIntegrationPoints2,
@@ -1046,7 +1045,6 @@ private:
                 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature < QuadrilateralGaussLegendreIntegrationPoints5,
                 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                // Collocation extended
                 Quadrature < QuadrilateralCollocationIntegrationPoints1,
                 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature < QuadrilateralCollocationIntegrationPoints2,
