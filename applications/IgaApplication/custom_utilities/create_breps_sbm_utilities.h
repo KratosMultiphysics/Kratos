@@ -138,6 +138,8 @@ private:
             << "Creating BrepSurface \""<< std::endl;
 
         BrepCurveOnSurfaceLoopArrayType outer_loops, inner_loops;
+        
+        p_surface->SetValue(IS_SBM, true);
 
         auto p_brep_surface =
             Kratos::make_shared<BrepSurfaceType>(
@@ -149,9 +151,9 @@ private:
         // Sets the brep as geometry parent of the nurbs surface.
         p_surface->SetGeometryParent(p_brep_surface.get());
         p_brep_surface->SetId(1);
-
-        p_brep_surface->SetValue(IS_SBM, true);
         rModelPart.AddGeometry(p_brep_surface);
+
+        KRATOS_WATCH(p_surface->GetValue(IS_SBM))
     }
 
     /**
@@ -184,6 +186,7 @@ private:
                 rSurrogateModelPart_outer);
 
         // Sets the brep as geometry parent of the nurbs surface.
+        p_surface->SetValue(IS_SBM, true);
         p_surface->SetGeometryParent(p_brep_surface.get());
         p_brep_surface->SetId(1);
         rModelPart.AddGeometry(p_brep_surface);
