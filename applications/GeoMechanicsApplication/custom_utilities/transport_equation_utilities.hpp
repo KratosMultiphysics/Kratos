@@ -35,9 +35,40 @@ public:
         double                                   RelativePermeability,
         double                                   IntegrationCoefficient)
     {
-        return CalculatePermeabilityMatrix(rGradNpT, DynamicViscosityInverse, rMaterialPermeabilityMatrix,
-                                           RelativePermeability, IntegrationCoefficient);
+        return -PORE_PRESSURE_SIGN_FACTOR * DynamicViscosityInverse *
+           prod(rGradNpT, Matrix(prod(rMaterialPermeabilityMatrix, trans(rGradNpT)))) *
+           RelativePermeability * IntegrationCoefficient;
     }
+
+    template <unsigned int TDim, unsigned int TNumNodes>
+    static void CalculateAndAddPermeabilityMatrix(
+    const Matrix&                            rGradNpT,
+    double                                   DynamicViscosityInverse,
+    const BoundedMatrix<double, TDim, TDim>& rMaterialPermeabilityMatrix,
+    double                                   RelativePermeability,
+    double                                   IntegrationCoefficient,
+    Matrix& rOutput)
+    {
+        noalias(rOutput) += -PORE_PRESSURE_SIGN_FACTOR * DynamicViscosityInverse *
+           prod(rGradNpT, Matrix(prod(rMaterialPermeabilityMatrix, trans(rGradNpT)))) *
+           RelativePermeability * IntegrationCoefficient;
+    }
+
+    template <unsigned int TDim, unsigned int TNumNodes>
+    static void CalculateAndAddPermeabilityFlow(
+    const Matrix&                            rGradNpT,
+    double                                   DynamicViscosityInverse,
+    const BoundedMatrix<double, TDim, TDim>& rMaterialPermeabilityMatrix,
+    double                                   RelativePermeability,
+    double                                   IntegrationCoefficient,
+    const array_1d<double, TNumNodes>&       rPressureVector,
+    Vector& rOutput)
+    {
+        noalias(rOutput) += -prod(GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
+            rGradNpT, DynamicViscosityInverse, rMaterialPermeabilityMatrix,
+            RelativePermeability, IntegrationCoefficient), rPressureVector);
+    }
+
 
     static Matrix CalculatePermeabilityMatrix(const Matrix& rGradNpT,
                                               double        DynamicViscosityInverse,
