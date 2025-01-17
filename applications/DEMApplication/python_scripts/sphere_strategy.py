@@ -186,6 +186,16 @@ class ExplicitStrategy():
             Logger.PrintWarning("DEM", "\nGlobal Viscous Damping parameter not found! No damping will be applied...\n")
         else:
             self.global_viscous_damping = DEM_parameters["GlobalViscousDamping"].GetDouble()
+        
+        existing_damping_models = ["NonViscous","Viscous","ViscousForceDependent"]
+        if "GlobalDampingModel" not in DEM_parameters.keys():
+            default_damping_model = existing_damping_models[0]
+            self.global_damping_model = default_damping_model
+            Logger.PrintWarning("DEM", f"\nUsing a default global damping model [{default_damping_model}]\n")
+        else:
+            self.global_damping_model = DEM_parameters["GlobalDampingModel"].GetString()
+            if self.global_damping_model not in existing_damping_models:
+                raise Exception(f"Selected global damping model [{self.global_damping_model}] does not exist.")
 
         if "RadiusExpansionOption" in DEM_parameters.keys():
             self.radius_expansion_option = DEM_parameters["RadiusExpansionOption"].GetBool()
@@ -304,6 +314,7 @@ class ExplicitStrategy():
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, ROLLING_FRICTION_OPTION, self.rolling_friction_option)
         self.spheres_model_part.ProcessInfo.SetValue(GLOBAL_DAMPING, self.global_damping)
         self.spheres_model_part.ProcessInfo.SetValue(GLOBAL_VISCOUS_DAMPING, self.global_viscous_damping)
+        self.spheres_model_part.ProcessInfo.SetValue(DEM_GLOBAL_DAMPING_MODEL_NAME, self.global_damping_model)
 
         #Radius expansion method
         self.spheres_model_part.ProcessInfo.SetValue(IS_RADIUS_EXPANSION, self.radius_expansion_option)
@@ -717,6 +728,37 @@ class ExplicitStrategy():
 
         return rotational_scheme, error_status, summary
 
+    def GlobalDampingModelTranslator(self, name):
+        class_name = None
+
+        if name == 'NonViscous':
+            class_name = 'DEMGlobalDampingModelNonViscous'
+        elif name == 'Viscous':
+            class_name = 'DEMGlobalDampingModelViscous'
+        elif name == 'ViscousForceDependent':
+            class_name = 'DEMGlobalDampingModelViscousForceDependent'
+
+        return class_name
+
+    def GetGlobalDampingModel(self, name):
+        class_name = self.GlobalDampingModelTranslator(name)
+        damping_model = None
+        error_status = 0
+        summary = ''
+
+        if not class_name == None:
+            try:
+                damping_model = eval(class_name)()
+                return damping_model, error_status, summary
+            except:
+                error_status = 1
+                summary = 'The class corresponding to the global damping model name ' + name + ' has not been added to python. Please, select a different name or add the required class.'
+        else:
+            error_status = 2
+            summary = 'The global damping model name ' + name + ' does not designate any available model. Please, select a different one'
+
+        return damping_model, error_status, summary
+
     def ModifyProperties(self, properties, param = 0):
 
         if param:
@@ -755,6 +797,9 @@ class ExplicitStrategy():
             #The function is to transfer the Rolling Friction Model Name from subProperties to Properties or set a default name
             #Because some rolling friction models depend the particle but not the contact between particles
             self.TransferRollingFrictionModelNameOrSetDefault(properties)
+        
+        damping_model, error_status, summary_mssg = self.GetGlobalDampingModel(self.global_damping_model)
+        damping_model.SetGlobalDampingModelInProperties(properties, True)
 
     def ModifySubProperties(self, properties, parent_id, param = 0):
 

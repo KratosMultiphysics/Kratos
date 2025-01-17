@@ -23,9 +23,6 @@
 #include "custom_constitutive/DEM_D_Stress_dependent_cohesive_CL.h"
 #include "custom_constitutive/DEM_D_Quadratic_CL.h"
 #include "custom_constitutive/DEM_D_void_CL.h"
-
-#include "custom_constitutive/DEM_rolling_friction_model.h"
-
 #include "custom_constitutive/DEM_D_Hertz_confined_CL.h"
 #include "custom_constitutive/DEM_D_Linear_confined_CL.h"
 #include "custom_constitutive/DEM_D_Linear_HighStiffness_CL.h"
@@ -61,10 +58,14 @@
 #include "custom_constitutive/DEM_parallel_bond_for_membrane_CL.h"
 #include "custom_constitutive/DEM_parallel_bond_bilinear_damage_CL.h"
 #include "custom_constitutive/DEM_parallel_bond_bilinear_damage_mixed_CL.h"
+#include "custom_constitutive/DEM_rolling_friction_model.h"
 #include "custom_constitutive/DEM_rolling_friction_model_constant_torque.h"
 #include "custom_constitutive/DEM_rolling_friction_model_viscous_torque.h"
 #include "custom_constitutive/DEM_rolling_friction_model_bounded.h"
-
+#include "custom_constitutive/DEM_global_damping_model.h"
+#include "custom_constitutive/DEM_global_damping_model_nonviscous.h"
+#include "custom_constitutive/DEM_global_damping_model_viscous.h"
+#include "custom_constitutive/DEM_global_damping_model_viscousforcedependent.h"
 
 namespace Kratos {
 namespace Python {
@@ -364,6 +365,30 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         ;
 
     py::class_<DEMRollingFrictionModelBounded, DEMRollingFrictionModelBounded::Pointer, DEMRollingFrictionModel>(m, "DEMRollingFrictionModelBounded")
+        .def(py::init<>())
+        ;
+
+    // DEM Global Damping Model:
+
+    py::class_<DEMGlobalDampingModel, DEMGlobalDampingModel::Pointer>(m, "DEMGlobalDampingModel")
+        .def(py::init<>())
+        .def("Clone", &DEMGlobalDampingModel::Clone)
+        .def("SetGlobalDampingModelInProperties", &DEMGlobalDampingModel::SetGlobalDampingModelInProperties)
+        ;
+
+    py::class_<Variable<DEMGlobalDampingModel::Pointer>, Variable<DEMGlobalDampingModel::Pointer>::Pointer>(m, "DEMGlobalDampingModelPointerVariable")
+        .def("__str__", PrintObject<Variable<DEMGlobalDampingModel::Pointer>>)
+        ;
+
+    py::class_<DEMGlobalDampingModelNonViscous, DEMGlobalDampingModelNonViscous::Pointer, DEMGlobalDampingModel>(m, "DEMGlobalDampingModelNonViscous")
+        .def(py::init<>())
+        ;
+    
+    py::class_<DEMGlobalDampingModelViscous, DEMGlobalDampingModelViscous::Pointer, DEMGlobalDampingModel>(m, "DEMGlobalDampingModelViscous")
+        .def(py::init<>())
+        ;
+    
+    py::class_<DEMGlobalDampingModelViscousForceDependent, DEMGlobalDampingModelViscousForceDependent::Pointer, DEMGlobalDampingModel>(m, "DEMGlobalDampingModelViscousForceDependent")
         .def(py::init<>())
         ;
 }

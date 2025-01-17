@@ -55,6 +55,10 @@
 #include "custom_constitutive/DEM_rolling_friction_model_constant_torque.h"
 #include "custom_constitutive/DEM_rolling_friction_model_viscous_torque.h"
 #include "custom_constitutive/DEM_rolling_friction_model_bounded.h"
+#include "custom_constitutive/DEM_global_damping_model.h"
+#include "custom_constitutive/DEM_global_damping_model_nonviscous.h"
+#include "custom_constitutive/DEM_global_damping_model_viscous.h"
+#include "custom_constitutive/DEM_global_damping_model_viscousforcedependent.h"
 
 #include "custom_strategies/schemes/dem_integration_scheme.h"
 #include "custom_strategies/schemes/forward_euler_scheme.h"
@@ -72,10 +76,12 @@ KRATOS_CREATE_VARIABLE(GlobalPointersVector<Element>, NODE_TO_NEIGH_ELEMENT_POIN
 KRATOS_CREATE_VARIABLE(std::string, DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME)
 KRATOS_CREATE_VARIABLE(std::string, DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME)
 KRATOS_CREATE_VARIABLE(std::string, DEM_ROLLING_FRICTION_MODEL_NAME)
+KRATOS_CREATE_VARIABLE(std::string, DEM_GLOBAL_DAMPING_MODEL_NAME)
 KRATOS_CREATE_VARIABLE(DEMDiscontinuumConstitutiveLaw::Pointer, DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER)
 KRATOS_CREATE_VARIABLE(DEMContinuumConstitutiveLaw::Pointer, DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER)
 KRATOS_CREATE_VARIABLE(DEMBeamConstitutiveLaw::Pointer, DEM_BEAM_CONSTITUTIVE_LAW_POINTER)
 KRATOS_CREATE_VARIABLE(DEMRollingFrictionModel::Pointer, DEM_ROLLING_FRICTION_MODEL_POINTER)
+KRATOS_CREATE_VARIABLE(DEMGlobalDampingModel::Pointer, DEM_GLOBAL_DAMPING_MODEL_POINTER)
 
 //scheme
 KRATOS_CREATE_VARIABLE(std::string, DEM_TRANSLATIONAL_INTEGRATION_SCHEME_NAME)
@@ -578,10 +584,12 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_VARIABLE(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME)
     KRATOS_REGISTER_VARIABLE(DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME)
     KRATOS_REGISTER_VARIABLE(DEM_ROLLING_FRICTION_MODEL_NAME)
+    KRATOS_REGISTER_VARIABLE(DEM_GLOBAL_DAMPING_MODEL_NAME)
     KRATOS_REGISTER_VARIABLE(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER)
     KRATOS_REGISTER_VARIABLE(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER)
     KRATOS_REGISTER_VARIABLE(DEM_BEAM_CONSTITUTIVE_LAW_POINTER)
     KRATOS_REGISTER_VARIABLE(DEM_ROLLING_FRICTION_MODEL_POINTER)
+    KRATOS_REGISTER_VARIABLE(DEM_GLOBAL_DAMPING_MODEL_POINTER)
 
     //scheme
     KRATOS_REGISTER_VARIABLE(DEM_TRANSLATIONAL_INTEGRATION_SCHEME_NAME)
@@ -1062,7 +1070,9 @@ void KratosDEMApplication::Register() {
     Serializer::Register("DEMRollingFrictionModelConstantTorque", DEMRollingFrictionModelConstantTorque());
     Serializer::Register("DEMRollingFrictionModelViscousTorque", DEMRollingFrictionModelViscousTorque());
     Serializer::Register("DEMRollingFrictionModelBounded", DEMRollingFrictionModelBounded());
-
+    Serializer::Register("DEMGlobalDampingModelNonViscous", DEMGlobalDampingModelNonViscous());
+    Serializer::Register("DEMGlobalDampingModelViscous", DEMGlobalDampingModelViscous());
+    Serializer::Register("DEMGlobalDampingModelViscousForceDependent", DEMGlobalDampingModelViscousForceDependent());
     Serializer::Register("ForwardEulerScheme", ForwardEulerScheme());
     Serializer::Register("SymplecticEulerScheme", SymplecticEulerScheme());
     Serializer::Register("TaylorScheme", TaylorScheme());
