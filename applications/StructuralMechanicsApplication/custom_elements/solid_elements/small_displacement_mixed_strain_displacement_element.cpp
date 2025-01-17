@@ -98,14 +98,14 @@ void SmallDisplacementMixedStrainDisplacementElement::EquationIdVector(
             const SizeType E_block = i_node * strain_size + u_size;
 
             const IndexType displ_dof = r_node.GetDofPosition(DISPLACEMENT_X);
-            const IndexType E_dof     = r_node.GetDofPosition(NODAL_STRAIN_VECTOR_XX);
-            const IndexType E_dof_xy  = r_node.GetDofPosition(NODAL_STRAIN_VECTOR_XY);
+            const IndexType E_dof     = r_node.GetDofPosition(STRAIN_VECTOR_XX);
+            const IndexType E_dof_xy  = r_node.GetDofPosition(STRAIN_VECTOR_XY);
 
             rResult[u_block    ] = r_node.GetDof(DISPLACEMENT_X,          displ_dof    ).EquationId();
             rResult[u_block + 1] = r_node.GetDof(DISPLACEMENT_Y,          displ_dof + 1).EquationId();
-            rResult[E_block    ] = r_node.GetDof(NODAL_STRAIN_VECTOR_XX,  E_dof        ).EquationId();
-            rResult[E_block + 1] = r_node.GetDof(NODAL_STRAIN_VECTOR_YY,  E_dof + 1    ).EquationId();
-            rResult[E_block + 2] = r_node.GetDof(NODAL_STRAIN_VECTOR_XY,  E_dof_xy     ).EquationId();
+            rResult[E_block    ] = r_node.GetDof(STRAIN_VECTOR_XX,  E_dof        ).EquationId();
+            rResult[E_block + 1] = r_node.GetDof(STRAIN_VECTOR_YY,  E_dof + 1    ).EquationId();
+            rResult[E_block + 2] = r_node.GetDof(STRAIN_VECTOR_XY,  E_dof_xy     ).EquationId();
         }
     } else {
         for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
@@ -114,17 +114,17 @@ void SmallDisplacementMixedStrainDisplacementElement::EquationIdVector(
             const SizeType E_block = i_node * strain_size + u_size;
 
             const IndexType displ_dof = r_node.GetDofPosition(DISPLACEMENT_X);
-            const IndexType E_dof     = r_node.GetDofPosition(NODAL_STRAIN_VECTOR_XX);
+            const IndexType E_dof     = r_node.GetDofPosition(STRAIN_VECTOR_XX);
 
             rResult[u_block    ] = r_node.GetDof(DISPLACEMENT_X,          displ_dof    ).EquationId();
             rResult[u_block + 1] = r_node.GetDof(DISPLACEMENT_Y,          displ_dof + 1).EquationId();
             rResult[u_block + 2] = r_node.GetDof(DISPLACEMENT_Z,          displ_dof + 2).EquationId();
-            rResult[E_block    ] = r_node.GetDof(NODAL_STRAIN_VECTOR_XX,  E_dof    ).EquationId();
-            rResult[E_block + 1] = r_node.GetDof(NODAL_STRAIN_VECTOR_YY,  E_dof + 1).EquationId();
-            rResult[E_block + 2] = r_node.GetDof(NODAL_STRAIN_VECTOR_ZZ,  E_dof + 2).EquationId();
-            rResult[E_block + 3] = r_node.GetDof(NODAL_STRAIN_VECTOR_XY,  E_dof + 3).EquationId();
-            rResult[E_block + 4] = r_node.GetDof(NODAL_STRAIN_VECTOR_YZ,  E_dof + 4).EquationId();
-            rResult[E_block + 5] = r_node.GetDof(NODAL_STRAIN_VECTOR_XZ,  E_dof + 5).EquationId();
+            rResult[E_block    ] = r_node.GetDof(STRAIN_VECTOR_XX,  E_dof    ).EquationId();
+            rResult[E_block + 1] = r_node.GetDof(STRAIN_VECTOR_YY,  E_dof + 1).EquationId();
+            rResult[E_block + 2] = r_node.GetDof(STRAIN_VECTOR_ZZ,  E_dof + 2).EquationId();
+            rResult[E_block + 3] = r_node.GetDof(STRAIN_VECTOR_XY,  E_dof + 3).EquationId();
+            rResult[E_block + 4] = r_node.GetDof(STRAIN_VECTOR_YZ,  E_dof + 4).EquationId();
+            rResult[E_block + 5] = r_node.GetDof(STRAIN_VECTOR_XZ,  E_dof + 5).EquationId();
         }
     }
 
@@ -159,9 +159,9 @@ void SmallDisplacementMixedStrainDisplacementElement::GetDofList(
             const SizeType E_block = i_node * strain_size + u_size;
             rElementalDofList[u_block    ] = r_node.pGetDof(DISPLACEMENT_X);
             rElementalDofList[u_block + 1] = r_node.pGetDof(DISPLACEMENT_Y);
-            rElementalDofList[E_block    ] = r_node.pGetDof(NODAL_STRAIN_VECTOR_XX);
-            rElementalDofList[E_block + 1] = r_node.pGetDof(NODAL_STRAIN_VECTOR_YY);
-            rElementalDofList[E_block + 2] = r_node.pGetDof(NODAL_STRAIN_VECTOR_XY);
+            rElementalDofList[E_block    ] = r_node.pGetDof(STRAIN_VECTOR_XX);
+            rElementalDofList[E_block + 1] = r_node.pGetDof(STRAIN_VECTOR_YY);
+            rElementalDofList[E_block + 2] = r_node.pGetDof(STRAIN_VECTOR_XY);
         }
     } else if (dim == 3) {
         for(IndexType i_node = 0; i_node < n_nodes; ++i_node) {
@@ -171,12 +171,12 @@ void SmallDisplacementMixedStrainDisplacementElement::GetDofList(
             rElementalDofList[u_block    ] = r_node.pGetDof(DISPLACEMENT_X);
             rElementalDofList[u_block + 1] = r_node.pGetDof(DISPLACEMENT_Y);
             rElementalDofList[u_block + 2] = r_node.pGetDof(DISPLACEMENT_Z);
-            rElementalDofList[E_block    ] = r_node.pGetDof(NODAL_STRAIN_VECTOR_XX);
-            rElementalDofList[E_block + 1] = r_node.pGetDof(NODAL_STRAIN_VECTOR_YY);
-            rElementalDofList[E_block + 2] = r_node.pGetDof(NODAL_STRAIN_VECTOR_ZZ);
-            rElementalDofList[E_block + 3] = r_node.pGetDof(NODAL_STRAIN_VECTOR_XY);
-            rElementalDofList[E_block + 4] = r_node.pGetDof(NODAL_STRAIN_VECTOR_YZ);
-            rElementalDofList[E_block + 5] = r_node.pGetDof(NODAL_STRAIN_VECTOR_XZ);
+            rElementalDofList[E_block    ] = r_node.pGetDof(STRAIN_VECTOR_XX);
+            rElementalDofList[E_block + 1] = r_node.pGetDof(STRAIN_VECTOR_YY);
+            rElementalDofList[E_block + 2] = r_node.pGetDof(STRAIN_VECTOR_ZZ);
+            rElementalDofList[E_block + 3] = r_node.pGetDof(STRAIN_VECTOR_XY);
+            rElementalDofList[E_block + 4] = r_node.pGetDof(STRAIN_VECTOR_YZ);
+            rElementalDofList[E_block + 5] = r_node.pGetDof(STRAIN_VECTOR_XZ);
         }
     }
 
@@ -748,7 +748,7 @@ void SmallDisplacementMixedStrainDisplacementElement::GetNodalDoFsVectors(
             rU[index + k] = r_displ[k];
         }
 
-        const auto& r_nodal_strain = r_geometry[i].FastGetSolutionStepValue(NODAL_STRAIN_VECTOR);
+        const auto& r_nodal_strain = r_geometry[i].FastGetSolutionStepValue(STRAIN_VECTOR);
         index = i * strain_size;
         if (dim == 3) {
             for(IndexType k = 0; k < strain_size; ++k) {
@@ -976,7 +976,7 @@ int SmallDisplacementMixedStrainDisplacementElement::Check(const ProcessInfo& rC
     const auto& r_geometry = this->GetGeometry();
     for (IndexType i = 0; i < r_geometry.size(); i++) {
         const NodeType& r_node = r_geometry[i];
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NODAL_STRAIN_VECTOR, r_node)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(STRAIN_VECTOR, r_node)
     }
 
     return check;
@@ -1194,11 +1194,11 @@ const Parameters SmallDisplacementMixedStrainDisplacementElement::GetSpecificati
         "positive_definite_lhs"      : false,
         "output"                     : {
             "gauss_point"            : ["CAUCHY_STRESS_VECTOR"],
-            "nodal_historical"       : ["DISPLACEMENT","NODAL_STRAIN_VECTOR"],
+            "nodal_historical"       : ["DISPLACEMENT","STRAIN_VECTOR"],
             "nodal_non_historical"   : [],
             "entity"                 : []
         },
-        "required_variables"         : ["DISPLACEMENT","NODAL_STRAIN_VECTOR"],
+        "required_variables"         : ["DISPLACEMENT","STRAIN_VECTOR"],
         "required_dofs"              : [],
         "flags_used"                 : [],
         "compatible_geometries"      : ["Triangle2D3", "Quadrilateral2D4", "Tetrahedra3D4","Hexahedra3D8"],
@@ -1215,10 +1215,10 @@ const Parameters SmallDisplacementMixedStrainDisplacementElement::GetSpecificati
 
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
     if (dimension == 2) {
-        std::vector<std::string> dofs_2d({"DISPLACEMENT_X","DISPLACEMENT_Y","NODAL_STRAIN_VECTOR"});
+        std::vector<std::string> dofs_2d({"DISPLACEMENT_X","DISPLACEMENT_Y","STRAIN_VECTOR"});
         specifications["required_dofs"].SetStringArray(dofs_2d);
     } else {
-        std::vector<std::string> dofs_3d({"DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z","NODAL_STRAIN_VECTOR"});
+        std::vector<std::string> dofs_3d({"DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z","STRAIN_VECTOR"});
         specifications["required_dofs"].SetStringArray(dofs_3d);
     }
 

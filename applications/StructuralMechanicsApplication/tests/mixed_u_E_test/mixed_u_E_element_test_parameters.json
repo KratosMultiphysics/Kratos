@@ -33,9 +33,9 @@
         "linear_solver_settings"               : {
             "solver_type" : "LinearSolversApplication.sparse_lu"
         },
-        "rotation_dofs"                        : false,
-        "volumetric_strain_dofs"               : false,
-		"strain_vector_dofs"                   : true
+        "rotation_dofs"          : false,
+        "volumetric_strain_dofs" : false,
+		"strain_dofs"            : true
     },
     "processes"        : {
         "constraints_process_list" : [{
