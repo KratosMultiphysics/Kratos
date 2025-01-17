@@ -159,7 +159,6 @@ class AnalysisStage(object):
         for process in self._GetListOfProcesses():
             process.ExecuteFinalizeSolutionStep()
 
-
     def OutputSolutionStep(self):
         """This function printed / writes output files after the solution of a step
         """
