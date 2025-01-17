@@ -281,7 +281,7 @@ public:
         ClearReactionVariable();
         
         // Calculating as an intermediate step the nodal reaction forces due to the boundary particles
-        block_for_each(mGridModelPart.Conditions(), [&](Condition& rCondition)
+        block_for_each(rModelPart.Conditions(), [&](Condition& rCondition)
         {  
             std::vector<bool> dummy;
             rCondition.CalculateOnIntegrationPoints(MPC_CALCULATE_NODAL_REACTIONS, dummy, r_current_process_info);
@@ -289,7 +289,7 @@ public:
         });
         
         // Calculating the reaction forces at the boundary particles due to the nodal reaction forces
-        block_for_each(mGridModelPart.Conditions(), [&](Condition& rCondition)
+        block_for_each(rModelPart.Conditions(), [&](Condition& rCondition)
         {  
             std::vector<bool> dummy;
             rCondition.CalculateOnIntegrationPoints(MPC_CALCULATE_CONTACT_FORCE, dummy, r_current_process_info);
