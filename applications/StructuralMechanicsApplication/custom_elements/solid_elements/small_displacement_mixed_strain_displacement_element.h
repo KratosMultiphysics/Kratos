@@ -642,18 +642,6 @@ private:
         ) const;
 
     /**
-     * @brief Calculation of the Deformation Matrix B
-     * @param rB The deformation matrix
-     * @param rDN_DX The derivatives of the shape functions
-     * @param IntegrationPoints The array containing the integration points
-     * @param PointNumber The integration point considered
-     */
-    void CalculateB(
-        Matrix& rB,
-        const Matrix& rDN_DX
-        ) const;
-
-    /**
      * @brief Calculate the equivalent strain
      * This function computes the equivalent strain vector.
      * The equivalent strain is defined as the deviatoric part of the displacement

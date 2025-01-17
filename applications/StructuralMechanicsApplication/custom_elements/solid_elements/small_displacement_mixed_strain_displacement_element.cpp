@@ -930,7 +930,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateKinematicVariable
         rKinVariables.InvJ0, rKinVariables.DN_DX);
 
     // Compute B
-    CalculateB(rKinVariables.B, rKinVariables.DN_DX);
+    StructuralMechanicsElementUtilities::CalculateB(*this, rKinVariables.DN_DX, rKinVariables.B);
 
     // Compute N_epsilon
     CalculateN_EpsilonMatrix(rKinVariables.N_epsilon, rKinVariables.N);
@@ -942,21 +942,6 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateKinematicVariable
 
     // Calculate the equivalent total strain
     CalculateEquivalentStrain(rKinVariables);
-
-    KRATOS_CATCH("")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void SmallDisplacementMixedStrainDisplacementElement::CalculateB(
-    Matrix& rB,
-    const Matrix& rDN_DX
-    ) const
-{
-    KRATOS_TRY
-
-    StructuralMechanicsElementUtilities::CalculateB(*this, rDN_DX, rB);
 
     KRATOS_CATCH("")
 }
@@ -982,7 +967,7 @@ int SmallDisplacementMixedStrainDisplacementElement::Check(const ProcessInfo& rC
 {
     KRATOS_TRY
 
-    int check = SmallDisplacementMixedStrainDisplacementElement::BaseType::Check(rCurrentProcessInfo);
+    int check = BaseType::Check(rCurrentProcessInfo);
 
     // Base check
     check = StructuralMechanicsElementUtilities::SolidElementCheck(*this, rCurrentProcessInfo, mConstitutiveLawVector);
