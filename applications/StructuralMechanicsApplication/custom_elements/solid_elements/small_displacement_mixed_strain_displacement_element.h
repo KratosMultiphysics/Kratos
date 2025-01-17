@@ -36,12 +36,6 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-    /// The definition of the index type
-    using IndexType = std::size_t;
-
-    /// The definition of the sizetype
-    using SizeType = std::size_t;
-
 ///@}
 ///@name  Enum's
 ///@{
@@ -68,8 +62,6 @@ namespace Kratos
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallDisplacementMixedStrainDisplacementElement
     : public Element
 {
-
-    static constexpr double default_stabilization_factor = 0.1;
 
 protected:
 
@@ -143,6 +135,12 @@ public:
 
     ///@name Type Definitions
     ///@{
+
+    /// The definition of the index type
+    using IndexType = std::size_t;
+
+    /// The definition of the sizetype
+    using SizeType = std::size_t;
 
     ///Reference type definition for constitutive laws
     using ConstitutiveLawType = ConstitutiveLaw;
@@ -615,6 +613,8 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
+
+    static constexpr double default_stabilization_factor = 0.1;
 
     ///@}
     ///@name Member Variables
