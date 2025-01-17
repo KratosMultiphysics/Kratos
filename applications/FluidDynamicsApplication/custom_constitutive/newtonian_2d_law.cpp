@@ -74,8 +74,8 @@ void  Newtonian2DLaw::CalculateMaterialResponseCauchy(Parameters& rValues)
     const double volumetric_part = trace/3.0; // Note: this should be small for an incompressible fluid (it is basically the incompressibility error)
 
     //computation of stress
-    r_viscous_stress[0] = 2.0*mu*(r_strain_rate[0] - volumetric_part);
-    r_viscous_stress[1] = 2.0*mu*(r_strain_rate[1] - volumetric_part);
+    r_viscous_stress[0] = 2.0*mu*(r_strain_rate[0]); // - volumetric_part);
+    r_viscous_stress[1] = 2.0*mu*(r_strain_rate[1]); // - volumetric_part);
     r_viscous_stress[2] = mu*r_strain_rate[2];
 
     if( options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )

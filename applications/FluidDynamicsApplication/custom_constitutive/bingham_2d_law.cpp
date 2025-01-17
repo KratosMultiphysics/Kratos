@@ -109,6 +109,8 @@ void  Bingham2DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
     //computation of stress
     StressVector[0] = 2.0*mu_effective*(S[0]);
     StressVector[1] = 2.0*mu_effective*(S[1]);
+    // StressVector[0] = 2.0*mu_effective*(S[0] - eps_vol);
+    // StressVector[1] = 2.0*mu_effective*(S[1] - eps_vol);
     StressVector[2] = mu_effective*S[2];
 
     if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
@@ -187,8 +189,8 @@ int Bingham2DLaw::Check(
 
 
 double Bingham2DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const {
-    // We are abusing the fact that C(5,5) = mu_effective
-    return rParameters.GetConstitutiveMatrix()(5,5);
+    // We are abusing the fact that C(2,2) = mu_effective
+    return rParameters.GetConstitutiveMatrix()(2,2);
 }
 
 void Bingham2DLaw::save(Serializer& rSerializer) const {
@@ -199,26 +201,27 @@ void Bingham2DLaw::load(Serializer& rSerializer) {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, FluidConstitutiveLaw )
 }
 
-double& Bingham2DLaw::CalculateValue(
-    Parameters& rParameters,
-    const Variable<double>& rThisVariable,
-    double& rValue)
-{
-    const Properties& MaterialProperties = rParameters.GetMaterialProperties();
-    const double sigma_y = MaterialProperties[YIELD_STRESS];
-    Vector& StressVector = rParameters.GetStressVector();
-    const double tau = std::sqrt(StressVector[0] * StressVector[0] + 
-                                 StressVector[1] * StressVector[1] + 
-                                 0.5 * StressVector[2] * StressVector[2]);
-    double yielded_state = (tau < sigma_y) ? 1.0 : 0.0;
+// double& Bingham2DLaw::CalculateValue(
+//     Parameters& rParameters,
+//     const Variable<double>& rThisVariable,
+//     double& rValue)
+// {
+//     const Properties& MaterialProperties = rParameters.GetMaterialProperties();
+//     const double sigma_y = MaterialProperties[YIELD_STRESS];
+//     Vector& StressVector = rParameters.GetStressVector();
+//     const double tau = std::sqrt(StressVector[0] * StressVector[0] + 
+//                                  StressVector[1] * StressVector[1] + 
+//                                  0.5 * StressVector[2] * StressVector[2]);
+//     // KRATOS_WATCH(tau)
+//     double yielded_state = (tau < sigma_y) ? 1.0 : 0.0;
 
-    if (rThisVariable == STRAIN_ENERGY) {
-        rValue = yielded_state;
-    }
-    else if (rThisVariable == MU) {
-        rValue = mMuEffective;
-    }
-    return rValue;
-}
+//     if (rThisVariable == STRAIN_ENERGY) {
+//         rValue = yielded_state;
+//     }
+//     // else if (rThisVariable == MU) {
+//     //     rValue = mMuEffective;
+//     // }
+//     return rValue;
+// }
 
 } // Namespace Kratos

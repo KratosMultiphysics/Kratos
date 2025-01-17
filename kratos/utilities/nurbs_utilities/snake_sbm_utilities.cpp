@@ -986,7 +986,7 @@ namespace Kratos
         std::vector<ModelPart::IndexType> elem_nodes{1, idSnakeNode-1};
         surrogate_model_part_outer.CreateNewElement("Element2D2N", 1, elem_nodes, p_cond_prop);
         outputFile << knot_vector_u[i] << " " << knot_vector_v[j] << std::endl;
-        outputFile << "end_outer_loop" << std::endl; //DELETE
+        // outputFile << "end_outer_loop" << std::endl; //DELETE
 
         outputFile.close();
         KRATOS_WATCH("Outer Snake process has finished")

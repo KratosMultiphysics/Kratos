@@ -93,6 +93,8 @@
 #include "custom_utilities/weakly_compressible_navier_stokes_data.h"
 
 #include "custom_constitutive/bingham_3d_law.h"
+#include "custom_constitutive/bingham_2d_law.h"
+#include "custom_constitutive/carreau_2d_law.h"
 #include "custom_constitutive/euler_2d_law.h"
 #include "custom_constitutive/euler_3d_law.h"
 #include "custom_constitutive/herschel_bulkley_3d_law.h"
@@ -461,7 +463,9 @@ private:
     const IncompressibleNavierStokesP2P1Continuous<3> mIncompressibleNavierStokesP2P1Continuous3D10N;
 
     /// Fluid constitutive laws
+    const Bingham2DLaw mBingham2DLaw;
     const Bingham3DLaw mBingham3DLaw;
+    const Carreau2DLaw mCarreau2DLaw;
     const Euler2DLaw mEuler2DLaw;
     const Euler3DLaw mEuler3DLaw;
     const HerschelBulkley3DLaw mHerschelBulkley3DLaw;

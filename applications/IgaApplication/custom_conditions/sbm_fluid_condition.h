@@ -1,14 +1,16 @@
-//  KRATOS  _____________
-//         /  _/ ____/   |
-//         / // / __/ /| |
-//       _/ // /_/ / ___ |
-//      /___/\____/_/  |_| Application
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
 
-#pragma once
+#if !defined(KRATOS_SBM_FLUID_CONDITION_H_INCLUDED )
+#define  KRATOS_SBM_FLUID_CONDITION_H_INCLUDED
+
 
 // System includes
 #include "includes/define.h"
@@ -22,307 +24,312 @@
 
 namespace Kratos
 {
-/// Condition for penalty support condition
-class SBMFluidCondition
-    : public Condition
-{
-public:
-    ///@name Type Definitions
-    ///@{
-
-    /// Counted pointer definition of SBMFluidCondition
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SBMFluidCondition);
-
-    /// Size types
-    using SizeType = std::size_t;
-    using IndexType = std::size_t;
-
-    /// Type for shape function derivatives container
-    typedef Kratos::Matrix ShapeDerivativesType;
-
-    // enum
-    enum class BoundaryConditionType {
-        Dirichlet,
-        Neumann,
-    };
-
-    ///@}
-    ///@name Life Cycle
-    ///@{
-
-    /// Constructor with Id and geometry
-    SBMFluidCondition(
-        IndexType NewId,
-        GeometryType::Pointer pGeometry)
-        : Condition(NewId, pGeometry)
-    {};
-
-    /// Constructor with Id, geometry and property
-    SBMFluidCondition(
-        IndexType NewId,
-        GeometryType::Pointer pGeometry,
-        PropertiesType::Pointer pProperties)
-        : Condition(NewId, pGeometry, pProperties)
-    {};
-
-    /// Default constructor
-    SBMFluidCondition() : Condition()
-    {};
-
-    /// Destructor
-    virtual ~SBMFluidCondition() override
-    {};
-
-    ///@}
-    ///@name Life Cycle
-    ///@{
-
-    /// Create with Id, pointer to geometry and pointer to property
-    Condition::Pointer Create(
-        IndexType NewId,
-        GeometryType::Pointer pGeom,
-        PropertiesType::Pointer pProperties
-    ) const override
+    /// Condition for penalty support condition
+    class SBMFluidCondition
+        : public Condition
     {
-        return Kratos::make_intrusive<SBMFluidCondition>(
-            NewId, pGeom, pProperties);
-    };
+    public:
+        ///@name Type Definitions
+        ///@{
 
-    /// Create with Id, pointer to geometry and pointer to property
-    Condition::Pointer Create(
-        IndexType NewId,
-        NodesArrayType const& ThisNodes,
-        PropertiesType::Pointer pProperties
-    ) const override
-    {
-        return Kratos::make_intrusive<SBMFluidCondition>(
-            NewId, GetGeometry().Create(ThisNodes), pProperties);
-    };
+        /// Counted pointer definition of SBMFluidCondition
+        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SBMFluidCondition);
 
-    ///@}
-    ///@name Operations
-    ///@{
+        /// Size types
+        typedef std::size_t SizeType;
+        typedef std::size_t IndexType;
 
-    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+        /// Type for shape function derivatives container
+        typedef Kratos::Matrix ShapeDerivativesType;
 
-    /**
-    * @brief This is called during the assembling process in order
-    *        to calculate the condition right hand side matrix
-    * @param rLeftHandSideMatrix the condition right hand side matrix
-    * @param rCurrentProcessInfo the current process info
-    */
-    void CalculateRightHandSide(
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) override;
+        ///@}
+        ///@name Life Cycle
+        ///@{
 
-    /**
-    * @brief This is called during the assembling process in order
-    *        to calculate the condition left hand side matrix
-    * @param rLeftHandSideMatrix the condition left hand side matrix
-    * @param rCurrentProcessInfo the current process info
-    */
-    void CalculateLeftHandSide(
-        MatrixType& rLeftHandSideMatrix,
-        const ProcessInfo& rCurrentProcessInfo) override;
+        /// Constructor with Id and geometry
+        SBMFluidCondition(
+            IndexType NewId,
+            GeometryType::Pointer pGeometry)
+            : Condition(NewId, pGeometry)
+        {};
 
-    /**
-     * @brief This function provides a more general interface to the element.
-     * @details It is designed so that rLHSvariables and rRHSvariables are
-     *          passed to the element thus telling what is the desired output
-     * @param rLeftHandSideMatrix container with the output Left Hand Side matrix
-     * @param rRightHandSideVector container for the desired RHS output
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    void CalculateLocalSystem(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) override;
-    /**
-    * @brief Sets on rResult the ID's of the element degrees of freedom
-    * @param rResult The vector containing the equation id
-    * @param rCurrentProcessInfo The current process info instance
-    */
-    void EquationIdVector(
-        EquationIdVectorType& rResult,
-        const ProcessInfo& rCurrentProcessInfo
-    ) const override;
+        /// Constructor with Id, geometry and property
+        SBMFluidCondition(
+            IndexType NewId,
+            GeometryType::Pointer pGeometry,
+            PropertiesType::Pointer pProperties)
+            : Condition(NewId, pGeometry, pProperties)
+        {};
 
-    /**
-    * @brief Sets on rConditionDofList the degrees of freedom of the considered element geometry
-    * @param rElementalDofList The vector containing the dof of the element
-    * @param rCurrentProcessInfo The current process info instance
-    */
-    void GetDofList(
-        DofsVectorType& rElementalDofList,
-        const ProcessInfo& rCurrentProcessInfo
-    ) const override;
+        /// Default constructor
+        SBMFluidCondition() : Condition()
+        {};
 
-    ///@}
-    ///@name Check
-    ///@{
+        /// Destructor
+        virtual ~SBMFluidCondition() override
+        {};
 
-    /// Performs check if Penalty factor is provided.
-    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
+        ///@}
+        ///@name Life Cycle
+        ///@{
 
-    BoundaryConditionType GetBoundaryConditionType(const std::string& rType);
+        /// Create with Id, pointer to geometry and pointer to property
+        Condition::Pointer Create(
+            IndexType NewId,
+            GeometryType::Pointer pGeom,
+            PropertiesType::Pointer pProperties
+        ) const override
+        {
+            return Kratos::make_intrusive<SBMFluidCondition>(
+                NewId, pGeom, pProperties);
+        };
 
-    /**
-     * @brief Compute the factorial of a positive integer n
-     * 
-     * @param n 
-     * @return unsigned long long 
-     */
-    unsigned long long factorial(IndexType n); 
+        /// Create with Id, pointer to geometry and pointer to property
+        Condition::Pointer Create(
+            IndexType NewId,
+            NodesArrayType const& ThisNodes,
+            PropertiesType::Pointer pProperties
+        ) const override
+        {
+            return Kratos::make_intrusive<SBMFluidCondition>(
+                NewId, GetGeometry().Create(ThisNodes), pProperties);
+        };
 
-    /**
-     * @brief compute the Taylor expansion for apply the Shifted Boundary Method in 2D
-     * @param derivative 
-     * @param dx 
-     * @param k 
-     * @param dy 
-     * @param n_k 
-     * @return double 
-     */
-    double computeTaylorTerm(
-        double derivative, 
-        double dx, IndexType k, 
-        double dy, IndexType n_k);
+        void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
-    /**
-     * @brief compute the Taylor expansion for apply the Shifted Boundary Method in 3D
-     * @param derivative 
-     * @param dx 
-     * @param k 
-     * @param dy 
-     * @param n_k 
-     * @return double 
-     */
-    double computeTaylorTerm3D(
-        double derivative, 
-        double dx, IndexType k_x, 
-        double dy, IndexType k_y, 
-        double dz, IndexType k_z);
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    /// Turn back information as a string.
-    std::string Info() const override
-    {
-        std::stringstream buffer;
-        buffer << "\"SBMFluidCondition\" #" << Id();
-        return buffer.str();
-    }
-
-    /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << "\"SBMFluidCondition\" #" << Id();
-    }
-
-    /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-        pGetGeometry()->PrintData(rOStream);
-    }
-
-    void GetValuesVector(Vector& rValues) const;
-
-    ///@}
-
-protected:
-
-    void InitializeMaterial();
-
-    ConstitutiveLaw::Pointer mpConstitutiveLaw; /// The pointer containing the constitutive laws
-
-    /**
-     * Internal variables used in the kinematic calculations
-     */
-    struct ConstitutiveVariables
-    {
-        ConstitutiveLaw::StrainVectorType StrainVector;
-        ConstitutiveLaw::StressVectorType StressVector;
-        ConstitutiveLaw::VoigtSizeMatrixType D;
+        ///@}
+        ///@name Operations
+        ///@{
 
         /**
-         * The default constructor
-         * @param StrainSize The size of the strain vector in Voigt notation
-         */
-        ConstitutiveVariables(const SizeType StrainSize)
+        * @brief This is called during the assembling process in order
+        *        to calculate the condition right hand side matrix
+        * @param rLeftHandSideMatrix the condition right hand side matrix
+        * @param rCurrentProcessInfo the current process info
+        */
+        void CalculateRightHandSide(
+            VectorType& rRightHandSideVector,
+            const ProcessInfo& rCurrentProcessInfo) override
         {
-            if (StrainVector.size() != StrainSize)
-                StrainVector.resize(StrainSize);
+            const SizeType mat_size = GetGeometry().size() * 2;
 
-            if (StressVector.size() != StrainSize)
-                StressVector.resize(StrainSize);
+            if (rRightHandSideVector.size() != mat_size)
+                rRightHandSideVector.resize(mat_size);
+            noalias(rRightHandSideVector) = ZeroVector(mat_size);
 
-            if (D.size1() != StrainSize || D.size2() != StrainSize)
-                D.resize(StrainSize, StrainSize);
+            MatrixType left_hand_side_matrix = ZeroMatrix(mat_size, mat_size);
 
-            noalias(StrainVector) = ZeroVector(StrainSize);
-            noalias(StressVector) = ZeroVector(StrainSize);
-            noalias(D)            = ZeroMatrix(StrainSize, StrainSize);
+            CalculateAll(left_hand_side_matrix, rRightHandSideVector,
+                rCurrentProcessInfo, false, true);
         }
-    };
 
-private:
-    ///@name Serialization
-    ///@{
+        /**
+        * @brief This is called during the assembling process in order
+        *        to calculate the condition left hand side matrix
+        * @param rLeftHandSideMatrix the condition left hand side matrix
+        * @param rCurrentProcessInfo the current process info
+        */
+        void CalculateLeftHandSide(
+            MatrixType& rLeftHandSideMatrix,
+            const ProcessInfo& rCurrentProcessInfo) override
+        {
+            const SizeType mat_size = GetGeometry().size() * 2;
 
-    friend class Serializer;
+            VectorType right_hand_side_vector;
 
-    virtual void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition);
-    }
+            if (rLeftHandSideMatrix.size1() != mat_size && rLeftHandSideMatrix.size2())
+                rLeftHandSideMatrix.resize(mat_size, mat_size);
+            noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
 
-    virtual void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition);
-    }
+            CalculateAll(rLeftHandSideMatrix, right_hand_side_vector,
+                rCurrentProcessInfo, true, false);
+        }
+
+        /**
+         * @brief This function provides a more general interface to the element.
+         * @details It is designed so that rLHSvariables and rRHSvariables are
+         *          passed to the element thus telling what is the desired output
+         * @param rLeftHandSideMatrix container with the output Left Hand Side matrix
+         * @param rRightHandSideVector container for the desired RHS output
+         * @param rCurrentProcessInfo the current process info instance
+         */
+        void CalculateLocalSystem(
+            MatrixType& rLeftHandSideMatrix,
+            VectorType& rRightHandSideVector,
+            const ProcessInfo& rCurrentProcessInfo) override
+        {
+            const SizeType mat_size = GetGeometry().size() * 1;
+
+            if (rRightHandSideVector.size() != mat_size)
+                rRightHandSideVector.resize(mat_size);
+            noalias(rRightHandSideVector) = ZeroVector(mat_size);
+
+            if (rLeftHandSideMatrix.size1() != mat_size)
+                rLeftHandSideMatrix.resize(mat_size, mat_size);
+            noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
+
+            CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,
+                rCurrentProcessInfo, true, true);
+        }
+
+        /**
+        * @brief Sets on rResult the ID's of the element degrees of freedom
+        * @param rResult The vector containing the equation id
+        * @param rCurrentProcessInfo The current process info instance
+        */
+        void EquationIdVector(
+            EquationIdVectorType& rResult,
+            const ProcessInfo& rCurrentProcessInfo
+        ) const override;
+
+        /**
+        * @brief Sets on rConditionDofList the degrees of freedom of the considered element geometry
+        * @param rElementalDofList The vector containing the dof of the element
+        * @param rCurrentProcessInfo The current process info instance
+        */
+        void GetDofList(
+            DofsVectorType& rElementalDofList,
+            const ProcessInfo& rCurrentProcessInfo
+        ) const override;
+
+        /// Calculates left (K) and right (u) hand sides, according to the flags
+        void CalculateAll(
+            MatrixType& rLeftHandSideMatrix,
+            VectorType& rRightHandSideVector,
+            const ProcessInfo& rCurrentProcessInfo,
+            const bool CalculateStiffnessMatrixFlag,
+            const bool CalculateResidualVectorFlag
+        );
+
+
+        ///@}
+        ///@name Check
+        ///@{
+
+        /// Performs check if Penalty factor is provided.
+        int Check(const ProcessInfo& rCurrentProcessInfo) const override;
+
+        ///@}
+        ///@name Input and output
+        ///@{
+
+        /// Turn back information as a string.
+        std::string Info() const override
+        {
+            std::stringstream buffer;
+            buffer << "\"SBMFluidCondition\" #" << Id();
+            return buffer.str();
+        }
+
+        /// Print information about this object.
+        void PrintInfo(std::ostream& rOStream) const override
+        {
+            rOStream << "\"SBMFluidCondition\" #" << Id();
+        }
+
+        /// Print object's data.
+        void PrintData(std::ostream& rOStream) const override
+        {
+            pGetGeometry()->PrintData(rOStream);
+        }
+
+        void GetValuesVector(Vector& rValues) const;
+
+        ///@}
+
+    protected:
+
+        void InitializeMaterial();
+
+        ConstitutiveLaw::Pointer mpConstitutiveLaw; /// The pointer containing the constitutive laws
+
+        /**
+         * Internal variables used in the kinematic calculations
+         */
+        struct ConstitutiveVariables
+        {
+            ConstitutiveLaw::StrainVectorType StrainVector;
+            ConstitutiveLaw::StressVectorType StressVector;
+            ConstitutiveLaw::VoigtSizeMatrixType D;
+
+            /**
+             * The default constructor
+             * @param StrainSize The size of the strain vector in Voigt notation
+             */
+            ConstitutiveVariables(const SizeType StrainSize)
+            {
+                if (StrainVector.size() != StrainSize)
+                    StrainVector.resize(StrainSize);
+
+                if (StressVector.size() != StrainSize)
+                    StressVector.resize(StrainSize);
+
+                if (D.size1() != StrainSize || D.size2() != StrainSize)
+                    D.resize(StrainSize, StrainSize);
+
+                noalias(StrainVector) = ZeroVector(StrainSize);
+                noalias(StressVector) = ZeroVector(StrainSize);
+                noalias(D)            = ZeroMatrix(StrainSize, StrainSize);
+            }
+        };
+
+        // sbm variables
+        Matrix mHsum = ZeroMatrix(1, this->GetGeometry().size());
+        std::vector<Matrix> mShapeFunctionDerivatives;
+        IndexType mBasisFunctionsOrder;
+
+        /**
+         * @brief compute the Taylor expansion for apply the Shifted Boundary Method in 2D
+         * @param derivative 
+         * @param dx 
+         * @param k 
+         * @param dy 
+         * @param n_k 
+         * @return double 
+         */
+        double computeTaylorTerm(
+            double derivative, 
+            double dx, IndexType k, 
+            double dy, IndexType n_k);
+        
+        /**
+         * @brief Compute the factorial of a positive integer n
+         * 
+         * @param n 
+         * @return unsigned long long 
+         */
+        unsigned long long factorial(IndexType n); 
     
-    /**
-     * @brief Calculate All for Dirichlet boundary conditions
-     * 
-     * @param rLeftHandSideMatrix 
-     * @param rRightHandSideVector 
-     * @param rCurrentProcessInfo 
-     */
-    void CalculateAllDirichlet(
-    MatrixType& rLeftHandSideMatrix,
-    VectorType& rRightHandSideVector,
-    const ProcessInfo& rCurrentProcessInfo
-    );
 
-    /**
-     * @brief Calculate All for Neumann boundary conditions
-     * 
-     * @param rLeftHandSideMatrix 
-     * @param rRightHandSideVector 
-     * @param rCurrentProcessInfo 
-     */
-    void CalculateAllNeumann(
-    MatrixType& rLeftHandSideMatrix,
-    VectorType& rRightHandSideVector,
-    const ProcessInfo& rCurrentProcessInfo
-    );
+    private:
+        ///@name Serialization
+        ///@{
 
-    // sbm variables
-    array_1d<double, 3> mNormalParameterSpace;
-    Matrix mHsum = ZeroMatrix(1, this->GetGeometry().size());
-    Vector mDistanceVector;
-    std::vector<Matrix> mShapeFunctionDerivatives;
-    IndexType mBasisFunctionsOrder;
+        friend class Serializer;
 
-    void CalculateB(
+        virtual void save(Serializer& rSerializer) const override
+        {
+            KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition);
+        }
+
+        virtual void load(Serializer& rSerializer) override
+        {
+            KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition);
+        }
+
+        void CalculateB(
         Matrix& rB,
         const ShapeDerivativesType& r_DN_DX) const;
 
-    ///@}
+        void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
-}; // Class SBMFluidCondition
+        Parameters ReadParamatersFile(
+            const std::string& rDataFileName) const;
+
+        ///@}
+
+    }; // Class SBMFluidCondition
 
 }  // namespace Kratos.
 
+#endif // KRATOS_SUPPORT_PENALTY_CONDITION_H_INCLUDED  defined

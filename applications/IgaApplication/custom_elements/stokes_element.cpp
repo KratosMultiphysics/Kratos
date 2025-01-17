@@ -171,79 +171,6 @@ void StokesElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vector
     Vector& r_stress_vector = Values.GetStressVector();
     const Matrix& r_D = Values.GetConstitutiveMatrix();
 
-    // exit(0);
-
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
-    // // Additional term due to variation of D
-    // // Define the vectors to store the scalar factors for D_x and D_y
-    // Vector D_x_factors(number_of_points, 0.0); // Factors for the D_x component
-    // Vector D_y_factors(number_of_points, 0.0); // Factors for the D_y component
-    // // Define the parameters for dmu/dS calculation
-    // const double gamma_dot = std::sqrt(2.0 * old_strain[0] * old_strain[0] + 2.0 * old_strain[1] * old_strain[1] + old_strain[2] * old_strain[2]);
-    // const double min_gamma_dot = 1e-12;
-    // const double g = std::max(gamma_dot, min_gamma_dot);
-    // const Properties& MaterialProperties  = Values.GetMaterialProperties();
-    // const double mu = 1.0;
-    // const double sigma_y = MaterialProperties[YIELD_STRESS];
-    // const double m = 300;
-    // double Regularization = 1.0 - std::exp(-m*g);
-    // const double mu_effective = mu + Regularization * sigma_y / g;
-
-    // // Define the scalar d_mu_d_gamma_dot
-    // double d_mu_d_gamma_dot = sigma_y * (m/g * std::exp(-m * g) - (1 - std::exp(-m * g)) / (g * g));
-    // // Compute the dmu_dS vector components
-    // Vector dmu_dS(3);
-    // dmu_dS[0] = d_mu_d_gamma_dot * (2.0 * old_strain[0] / g); // dmu/dSxx
-    // dmu_dS[1] = d_mu_d_gamma_dot * (2.0 * old_strain[1] / g); // dmu/dSyy
-    // dmu_dS[2] = d_mu_d_gamma_dot * (old_strain[2] / g);       // dmu/dSxy
-    // // Loop over each control point to compute the factors
-    // for (IndexType i = 0; i < number_of_points; ++i) {
-    //     // Extract the B(:, i) components (x and y) for the current control point
-    //     // Based on the structure of B, for control point i:
-    //     // - xx component in row 0 and column 2*i
-    //     // - yy component in row 1 and column 2*i + 1
-    //     // - xy component in row 2 with both columns 2*i and 2*i + 1
-    //     // Collect components for B(:, i)
-    //     Vector B_column_x(3); // To store B_xx, B_xy_x, and B_xy_y
-    //     B_column_x[0] = B(0, 2 * i);     // ε_11 component (xx derivative of shape function)
-    //     B_column_x[1] = B(1, 2 * i);              // No ε_22 contribution for x-component
-    //     B_column_x[2] = B(2, 2 * i);     // ε_12 component (xy derivative of shape function, first term)
-    //     Vector B_column_y(3); // To store B_yy and B_xy components for y
-    //     B_column_y[0] = B(0, 2 * i + 1);              // No ε_11 contribution for y-component
-    //     B_column_y[1] = B(1, 2 * i + 1); // ε_22 component (yy derivative of shape function)
-    //     B_column_y[2] = B(2, 2 * i + 1); // ε_12 component (xy derivative of shape function, second term)
-    //     // Compute D_x and D_y factors for the current control point
-    //     D_x_factors[i] = inner_prod(dmu_dS, B_column_x);
-    //     D_y_factors[i] = inner_prod(dmu_dS, B_column_y);
-    // }
-
-    // // Loop over each control point to compute and add contributions
-    // for (IndexType j = 0; j < number_of_points; ++j) {
-    //     // Step 1: Create the D_x and D_y matrices for the current control point
-    //     Matrix D_x = D_x_factors[j] * r_D / mu_effective; // Scale r_D by D_x factor
-    //     Matrix D_y = D_y_factors[j] * r_D / mu_effective; // Scale r_D by D_y factor
-        
-    //     // Step 2: Compute the B^T * D_x * B and B^T * D_y * B matrices for each point
-    //     Matrix B_Dx_B = prod(trans(B), Matrix(prod(D_x, B)));
-    //     Matrix B_Dy_B = prod(trans(B), Matrix(prod(D_y, B)));
-    //     // Step 3: Multiply B_Dx_B and B_Dy_B with u_old to obtain contributions
-    //     Vector B_Dx_B_u = prod(B_Dx_B, old_displacement); // Resulting vector
-    //     Vector B_Dy_B_u = prod(B_Dy_B, old_displacement); // Resulting vector
-    //     // Step 4: Accumulate these contributions to the LHS matrix
-    //     for (IndexType m = 0; m < number_of_points; ++m) {
-    //         for (IndexType dim1 = 0; dim1 < mDim; ++dim1) {
-    //             IndexType lhs_index = m * BlockSize + dim1;
-    //             IndexType BDBu_index = m * mDim + dim1;
-
-    //             // Add the contributions from B_Dx_B_u and B_Dy_B_u to the respective column in the LHS
-    //             // rLeftHandSideMatrix(lhs_index, j * BlockSize)     += GaussWeight * B_Dx_B_u(BDBu_index);
-    //             // rLeftHandSideMatrix(lhs_index, j * BlockSize + 1) += GaussWeight * B_Dy_B_u(BDBu_index);
-    //         }
-    //     }
-    // }
- 
-
     double Density;
     double Viscosity;
     array_1d<double,3> BodyForce = ZeroVector(3);
@@ -272,6 +199,27 @@ void StokesElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vector
 
     // Add Second-Order stabilization terms from VMS
     this->AddSecondOrderStabilizationTerms(rLeftHandSideMatrix,rRightHandSideVector,Density,BodyForce,TauOne,N,DN_DX,GaussWeight,r_D, r_stress_vector);
+
+    // Vector divergence_of_sigma = this->GetValue(RECOVERED_STRESS);
+    // if (r_geometry.Center().Y() < 0.1 && r_geometry.Center().Y() > 0.0) {
+    //     if (r_geometry.Center().X() > 0.5) { 
+    //         KRATOS_WATCH(r_geometry.Center().Y())
+    //         KRATOS_WATCH(divergence_of_sigma)
+    //     }
+    // }
+
+    // for (IndexType i = 0; i < number_of_points; ++i)
+    // {
+    //     for (IndexType j = 0; j < number_of_points; ++j)
+    //     {
+    //         // Add only to velocity DOFs (i.e., positions 0, 1, 3, 4, 6, 7, ...)
+    //         for (IndexType dim1 = 0; dim1 < mDim; ++dim1)
+    //         {
+    //             rLeftHandSideMatrix(i * BlockSize + 2, j * BlockSize + dim1) = 0.0;
+    //         }
+    //     }
+    //      rLeftHandSideMatrix(i * BlockSize + 2, i * BlockSize + 2) = 1.0;
+    // }
 
     // // Add residual of previous iteration to RHS ---> TRAMPA
     // VectorType temp = ZeroVector(LocalSize);
@@ -306,26 +254,15 @@ void StokesElement::CalculateTau(double &TauOne, double &TauTwo, const double Dy
     }
     // // Estimate element size
     double h = ElementSize();
-    // TauOne = (h * h) / ( 4.0 * DynViscosity) / pow(mBasisFunctionsOrder, 2);
-    // TauOne = (h * h * h ) / ( 4.0 * DynViscosity);
 
-    // const Parameters refinements_parameters = ReadParamatersFile("refinements.iga.json");
-    // int insertions = refinements_parameters["refinements"][0]["parameters"]["insert_nb_per_span_u"].GetInt();
-    // double h = 2.0/(insertions+1) ;
+    TauOne = std::pow(h, 2) / ( 4.0 * mu_effective ); 
 
-    // double h = h_element_size;
-    // TauOne = std::pow(h, mBasisFunctionsOrder+1) / ( 4.0 * DynViscosity * pow(mBasisFunctionsOrder, 4))*2000;
-    TauOne = std::pow(h, 2) / ( 4.0 * mu_effective ); // /  pow(mBasisFunctionsOrder, 4);
-    // TauOne = std::pow(h, mBasisFunctionsOrder) / ( 4.0 * DynViscosity) ;
-
-    // KRATOS_WATCH(TauOne)
     TauTwo = mu_effective;
 }
 
 double StokesElement::ElementSize()
 {
     return 1.128379167 * sqrt(this->GetGeometry().DomainSize()); 
-    // return 1.128379167 * std::pow(this->GetGeometry().DomainSize(), 1.0 / mBasisFunctionsOrder);;
 }
 
 void StokesElement::AddMomentumTerms(MatrixType &rLHS,
@@ -398,13 +335,13 @@ void StokesElement::AddMomentumTerms(MatrixType &rLHS,
             FirstCol += BlockSize;
         }
         // RHS corresponding term
-        double div_u_previous_iteration = 0.0;
+        double div_u_current = 0.0;
         for(unsigned int j = 0; j < NumNodes; ++j) {
-            div_u_previous_iteration += r_geometry[j].GetSolutionStepValue(VELOCITY_X) * DN_DX(j,0) ;
-            div_u_previous_iteration += r_geometry[j].GetSolutionStepValue(VELOCITY_Y) * DN_DX(j,1) ;
+            div_u_current += r_geometry[j].FastGetSolutionStepValue(VELOCITY_X) * DN_DX(j, 0) + 
+                             r_geometry[j].FastGetSolutionStepValue(VELOCITY_Y) * DN_DX(j, 1) ;
         } 
         for (unsigned int m = 0; m < mDim; ++m) {
-            rRHS(FirstRow+m) -= TauTwo * Weight * DN_DX(i,m) * div_u_previous_iteration ;
+            rRHS(FirstRow+m) -= TauTwo * Weight * DN_DX(i,m) * div_u_current ;
         }
 
         // Update matrix indices
@@ -429,6 +366,17 @@ void StokesElement::AddContinuityTerms(MatrixType &rLHS,
 
     unsigned int FirstRow = 0;
     unsigned int FirstCol = 0;
+
+    double pressure_previous_iteration = 0.0;
+    double div_u_current = 0.0;
+    Vector grad_p_previous_iteration = ZeroVector(2);
+    for(unsigned int j = 0; j < NumNodes; ++j) {
+        div_u_current += r_geometry[j].FastGetSolutionStepValue(VELOCITY_X) * DN_DX(j, 0) +
+                        r_geometry[j].FastGetSolutionStepValue(VELOCITY_Y) * DN_DX(j, 1) ;
+        grad_p_previous_iteration[0] += r_geometry[j].GetSolutionStepValue(PRESSURE) * DN_DX(j,0) ;
+        grad_p_previous_iteration[1] += r_geometry[j].GetSolutionStepValue(PRESSURE) * DN_DX(j,1) ;
+        pressure_previous_iteration += r_geometry[j].GetSolutionStepValue(PRESSURE) * N[j];
+    }
 
     double DivTerm = 0.0;
 
@@ -459,19 +407,9 @@ void StokesElement::AddContinuityTerms(MatrixType &rLHS,
         }
 
         // --- RHS corresponding term ---
-        double pressure_previous_iteration = 0.0;
-        Vector div_u_previous_iteration = ZeroVector(2);
-        Vector grad_p_previous_iteration = ZeroVector(2);
-        for(unsigned int j = 0; j < NumNodes; ++j) {
-            // ERROREE!!!!!!!!
-            div_u_previous_iteration[0] += r_geometry[j].GetSolutionStepValue(VELOCITY_X) * DN_DX(j,0) ;
-            div_u_previous_iteration[1] += r_geometry[j].GetSolutionStepValue(VELOCITY_Y) * DN_DX(j,1) ;
-            grad_p_previous_iteration[0] += r_geometry[j].GetSolutionStepValue(PRESSURE) * DN_DX(j,0) ;
-            grad_p_previous_iteration[1] += r_geometry[j].GetSolutionStepValue(PRESSURE) * DN_DX(j,1) ;
-            pressure_previous_iteration += r_geometry[j].GetSolutionStepValue(PRESSURE) * N[j];
-        }
+        rRHS(FirstRow+mDim) -= Weight * N[i] * div_u_current ; // q div(u)
         for (unsigned int m = 0; m < mDim; ++m) {
-            rRHS(FirstRow+mDim) -= Weight * N[i] * div_u_previous_iteration[m] ;
+            // rRHS(FirstRow+mDim) -= Weight * N[i] * div_u_previous_iteration[m] ; // ERRORE
             rRHS(FirstRow+m) += Weight * DN_DX(i,m) * pressure_previous_iteration ;
             // Stabilization
             rRHS(FirstRow+mDim) -= Weight * TauOne * DN_DX(i,m) * grad_p_previous_iteration[m];
@@ -511,27 +449,26 @@ void StokesElement::AddSecondOrderStabilizationTerms(MatrixType &rLeftHandSideMa
 
         // Computed using the Gauss Points in the same knot span
         Vector divergence_of_sigma = this->GetValue(RECOVERED_STRESS);
-        Matrix constitutive_matrix_dx = this->GetValue(MATERIAL_STIFFNESS_MATRIX);
-        Matrix constitutive_matrix_dy = this->GetValue(GEOMETRIC_STIFFNESS_MATRIX);
+        // Matrix constitutive_matrix_dx = this->GetValue(MATERIAL_STIFFNESS_MATRIX);
+        // Matrix constitutive_matrix_dy = this->GetValue(GEOMETRIC_STIFFNESS_MATRIX);
 
         // initilize the div(sigma) matrix 2x(2n)
         Vector div_sigma_1 = ZeroVector(mDim*number_of_points);
         Vector div_sigma_2 = ZeroVector(mDim*number_of_points);
 
         Vector r_D_0(3); Vector r_D_1(3); Vector r_D_2(3);
-        Vector r_D_dx_0(3); Vector r_D_dx_2(3);
-        Vector r_D_dy_1(3); Vector r_D_dy_2(3);
+        // Vector r_D_dx_0(3); Vector r_D_dx_2(3);
+        // Vector r_D_dy_1(3); Vector r_D_dy_2(3);
         for (std::size_t i = 0; i < 3; ++i) {
             r_D_0(i) = r_D(0, i); r_D_1(i) = r_D(1, i); r_D_2(i) = r_D(2, i);
-            r_D_dx_0(i) = constitutive_matrix_dx(0, i);
-            r_D_dx_2(i) = constitutive_matrix_dx(2, i);
-            r_D_dy_1(i) = constitutive_matrix_dy(1, i); 
-            r_D_dy_2(i) = constitutive_matrix_dy(2, i);
+            // r_D_dx_0(i) = constitutive_matrix_dx(0, i);
+            // r_D_dx_2(i) = constitutive_matrix_dx(2, i);
+            // r_D_dy_1(i) = constitutive_matrix_dy(1, i); 
+            // r_D_dy_2(i) = constitutive_matrix_dy(2, i);
         }
         div_sigma_1 = prod(trans(B_derivative_x), r_D_0) + prod(trans(B_derivative_y), r_D_2) ; // + prod(trans(B), r_D_dx_0) +  prod(trans(B), r_D_dy_2);
         div_sigma_2 = prod(trans(B_derivative_y), r_D_1) + prod(trans(B_derivative_x), r_D_2) ; // + prod(trans(B), r_D_dy_1) +  prod(trans(B), r_D_dx_2);
         
-
         // NEW FORMULATION___________________________________________________________________________________________
         Matrix div_sigma = ZeroMatrix(2, mDim * number_of_points);
         for (std::size_t i = 0; i < mDim * number_of_points; ++i) {
@@ -549,7 +486,7 @@ void StokesElement::AddSecondOrderStabilizationTerms(MatrixType &rLeftHandSideMa
         Matrix DBI_div_sigma = prod(Matrix(prod(DB, M)), div_sigma);
         Matrix DBI_DN_DX = prod(Matrix(prod(DB, M)), DN_DX_matrix);
         Matrix tempMatrix_sigma_sigma    = TauOne * GaussWeight * prod(trans(B), DBI_div_sigma);
-        Matrix tempMatrix_pressure_term2 = TauOne * GaussWeight * prod(trans(B), DBI_DN_DX);
+        // Matrix tempMatrix_pressure_term2 = TauOne * GaussWeight * prod(trans(B), DBI_DN_DX);
         Matrix forcing = ZeroMatrix(2,1);
         forcing(0,0) = BodyForce[0];
         forcing(1,0) = BodyForce[1];
@@ -646,15 +583,15 @@ void StokesElement::AddSecondOrderStabilizationTerms(MatrixType &rLeftHandSideMa
             velocity_previous[index++] = r_geometry[i].GetSolutionStepValue(VELOCITY_Y);
             pressure_previous[i] = r_geometry[i].GetSolutionStepValue(PRESSURE);
         }
-        Vector tempVector_sigma_u_sigma_v_rhs = prod(tempMatrix_sigma_sigma, velocity_previous) ;
-        Vector tempVector_sigma_v_grad_p_rhs = prod(tempMatrix_pressure_term2, pressure_previous) ; //////////// ATTENZIONE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        Vector tempVector_sigma_u_grad_q_rhs= prod(trans(tempMatrix_pressure_term), velocity_previous) ;
+        // Vector tempVector_sigma_u_sigma_v_rhs = prod(tempMatrix_sigma_sigma, velocity_previous) ;
+        // Vector tempVector_sigma_v_grad_p_rhs = prod(tempMatrix_pressure_term2, pressure_previous) ; //////////// ATTENZIONE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        // Vector tempVector_sigma_u_grad_q_rhs= prod(trans(tempMatrix_pressure_term), velocity_previous) ;
 
-        Matrix divergence_of_sigma_matrix = ZeroMatrix(2,1);
-        divergence_of_sigma_matrix(0,0) = divergence_of_sigma[0];
-        divergence_of_sigma_matrix(1,0) = divergence_of_sigma[1];
-        Matrix DBI_div_sigma_prev_iteration = prod(Matrix(prod(DB, M)), divergence_of_sigma_matrix);
-        Matrix tempMatrix_div_sigma_prev_iteration = TauOne * GaussWeight * prod(trans(B), DBI_div_sigma_prev_iteration);
+        // Matrix divergence_of_sigma_matrix = ZeroMatrix(2,1);
+        // divergence_of_sigma_matrix(0,0) = divergence_of_sigma[0];
+        // divergence_of_sigma_matrix(1,0) = divergence_of_sigma[1];
+        // Matrix DBI_div_sigma_prev_iteration = prod(Matrix(prod(DB, M)), divergence_of_sigma_matrix);
+        // Matrix tempMatrix_div_sigma_prev_iteration = TauOne * GaussWeight * prod(trans(B), DBI_div_sigma_prev_iteration);
         // --- RHS corresponding term ---
         for (IndexType i = 0; i < number_of_points; ++i) {   
             for (IndexType dim1 = 0; dim1 < mDim; ++dim1) {
@@ -1188,8 +1125,34 @@ void StokesElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     Values.SetConstitutiveMatrix(this_constitutive_variables.D);
     mpConstitutiveLaw->CalculateMaterialResponseCauchy(Values);
 
-    double yielded_state = 0.0;
-    mpConstitutiveLaw->CalculateValue(Values, STRAIN_ENERGY, yielded_state); // Usa STRAIN_ENERGY come proxy
+    // double yielded_state = 0.0;
+
+    const double sigma_y = 20.0;
+    Vector& StressVector = this_constitutive_variables.StressVector;
+
+    // const double tau = std::sqrt(StressVector[0] * StressVector[0] + 
+    //                              StressVector[1] * StressVector[1] + 
+    //                              0.5 * StressVector[2] * StressVector[2]);
+    // KRATOS_WATCH(tau)
+
+    const double trS = StressVector[0] + StressVector[1];
+    const double hydrostatic_stress = trS / 3.0;
+
+    // Calculate the deviatoric part of the stress tensor
+    Vector deviatoric_stress(3);
+    deviatoric_stress[0] = StressVector[0] - hydrostatic_stress;
+    deviatoric_stress[1] = StressVector[1] - hydrostatic_stress;
+    deviatoric_stress[2] = StressVector[2]; // Shear stress remains the same in Voigt notation
+
+    // Calculate the equivalent deviatoric stress (tau) using von Mises criterion
+    const double tau = std::sqrt(
+        0.5*deviatoric_stress[0] * deviatoric_stress[0] + 
+        0.5*deviatoric_stress[1] * deviatoric_stress[1] + 
+        1.0 * deviatoric_stress[2] * deviatoric_stress[2]
+    );
+
+    double yielded_state = (tau < sigma_y) ? 1.0 : 0.0;
+    // mpConstitutiveLaw->CalculateValue(Values, STRAIN_ENERGY, yielded_state); // Usa STRAIN_ENERGY come proxy
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     #pragma omp critical

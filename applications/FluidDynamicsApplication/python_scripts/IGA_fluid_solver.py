@@ -14,6 +14,34 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 def CreateSolver(main_model_part, custom_settings):
     return IGAFluidSolver(main_model_part, custom_settings)
 
+def bingham_analytical_u_x(y, delta_p, tau_0, mu, L, H):
+        """
+        Compute the analytical velocity u_x(y) for a Bingham fluid.
+        
+        Parameters:
+        - y: float, the position in the y-direction.
+        - delta_p: float, pressure gradient.
+        - tau_0: float, yield stress.
+        - mu: float, dynamic viscosity.
+        - L: float, channel length.
+        - H: float, height of the channel.
+        
+        Returns:
+        - u_x: float, analytical velocity at y.
+        """
+        grad_p = abs(delta_p / L)  # Magnitude of the pressure gradient
+        h1 = -tau_0 / grad_p  # Lower yield limit
+        h2 = tau_0 / grad_p   # Upper yield limit
+
+        if -H/2 <= y < h1:
+            return (1 / (2 * mu)) * grad_p * (((h1 + H/2)**2) - (h1 - y)**2)
+        elif h1 <= y < h2:
+            return (1 / (2 * mu)) * grad_p * ((h1+H/2)**2) ## ???
+        elif h2 <= y <= H/2:
+            return (1 / (2 * mu)) * grad_p * (((H/2 - h2)**2) - (y - h2)**2)
+        else:
+            return 0.0  # Outside the valid domain
+        
 
 class IGAFluidSolver(navier_stokes_monolithic_solver.NavierStokesMonolithicSolver):
 
@@ -197,31 +225,85 @@ class IGAFluidSolver(navier_stokes_monolithic_solver.NavierStokesMonolithicSolve
 
         self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.USE_CONSTITUTIVE_LAW] = False
         
-
-        
     def InitializeSolutionStep(self):
         
         current_time = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]
 
+        x_min = 0.0
+        x_max = 1.0
+        y_min = -0.5
+        y_max = 0.5
+        delta_p = 2000  # Pressure difference in Pa
+        tau_0 = 0.0   # Yield stress in Pa
+        mu = 1          # Dynamic viscosity in Pa·s
+        L = 1          # Channel length in meters
+        H = 1.0         # Channel height in meters
+
         main_model_part = self.GetComputingModelPart()
+        numero = 0
         for node in main_model_part.Nodes :
+            # print(node.X, node.Y)
+            numero = numero + 1
+            # node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y , 0 , 0.0)
+            # node.Fix(KratosMultiphysics.VELOCITY_Y)
+
+            # node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , 2000 - 2000/1*node.X)
+            # node.Fix(KratosMultiphysics.PRESSURE)
+
+            # if (node.X == x_min or node.X == x_max):
+            #     # Compute the analytical solution for VELOCITY_X using the node's Y coordinate
+            #     y = node.Y  # Get the y-coordinate of the node
+            #     velocity_x = bingham_analytical_u_x(y, delta_p, tau_0, mu, L, H)
+            #     # Set and fix VELOCITY_X to the analytical solution
+            #     node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, 0, velocity_x)
+            #     node.Fix(KratosMultiphysics.VELOCITY_X)
+            # if (node.Y == y_min or node.Y == y_max):
+            #     # Compute the analytical solution for VELOCITY_X using the node's Y coordinate
+            #     y = node.Y  # Get the y-coordinate of the node
+            #     velocity_x = bingham_analytical_u_x(y, delta_p, tau_0, mu, L, H)
+            #     # Set and fix VELOCITY_X to the analytical solution
+            #     node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, 0, velocity_x)
+            #     node.Fix(KratosMultiphysics.VELOCITY_X)
+        print(numero)
+
+        for node in main_model_part.Nodes :
+            a = 1
+            # node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , node.X + node.Y)
+            # node.Fix(KratosMultiphysics.PRESSURE)
+            # if (node.X == 1.0 and node.Y == 1.0) : #or (node.X == 1.0 and node.Y == 0.0):
+            #     node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , np.sin(node.X) * np.cos(node.Y))
+            #     # node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , node.X + node.Y)
+            #     node.Fix(KratosMultiphysics.PRESSURE)
             # if (node.X == 0):
 
-            # if (node.X == 0.0 and node.Y == 2.0) or (node.X == 2.0 and node.Y == 2.0):
-            #     node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X , 0 , 1.0)
-            #     node.Fix(KratosMultiphysics.VELOCITY_X)
+            # for cavity problem
+            # if (node.X == 0.0 and node.Y == 0.0):
+            #     node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , 0.0)
+            #     node.Fix(KratosMultiphysics.PRESSURE)
+            
+            # if (node.X == 0.0 and node.Y == 0.0):
+            #     node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , node.X + node.Y)
+            #     node.Fix(KratosMultiphysics.PRESSURE)
 
-            if (node.X == 0.0 and node.Y == 0.0) : #or (node.X == 2.0 and node.Y == 0.0):
-                # node.SetSolutionStepValue(KratosMultiphysics.PRESSURE ,0 , 2*np.pi*(np.cos(2*np.pi*node.Y)-np.cos(2*np.pi*node.X)))
-                node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , node.X*node.X + node.Y*node.Y)
-                # node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , 0.0)
+            # if (node.X == x_min and node.Y == -0.5) : #or (node.X == x_min and node.Y == 0.5):
+            #     node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , 2000.0)
+            #     node.Fix(KratosMultiphysics.PRESSURE)
 
-                # node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , 2*np.pi*(np.cos(2*np.pi*node.Y)-np.cos(2*np.pi*node.X)))
-                # node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , ((node.X)**2 + (node.Y)**2)*np.cos(current_time))
-                # node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , ((node.X)**2 + (node.Y)**2) * (current_time))
-                # node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , (node.X + node.Y) * (current_time))
-                # node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , (node.X + node.Y))
-                node.Fix(KratosMultiphysics.PRESSURE)
+            # if (node.X == x_max and node.Y == -0.5) or (node.X == x_max and node.Y == 0.5):
+            #     node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , 0.0)
+            #     node.Fix(KratosMultiphysics.PRESSURE)
+
+            # if (node.X == 0.0 and node.Y == -0.5) : #or (node.X == 2.0 and node.Y == 0.0):
+            #     # node.SetSolutionStepValue(KratosMultiphysics.PRESSURE ,0 , 2*np.pi*(np.cos(2*np.pi*node.Y)-np.cos(2*np.pi*node.X)))
+            #     # node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , node.X*node.X + node.Y*node.Y)
+            #     node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , 2000.0)
+
+            #     # node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , 2*np.pi*(np.cos(2*np.pi*node.Y)-np.cos(2*np.pi*node.X)))
+            #     # node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , ((node.X)**2 + (node.Y)**2)*np.cos(current_time))
+            #     # node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , ((node.X)**2 + (node.Y)**2) * (current_time))
+            #     # node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , (node.X + node.Y) * (current_time))
+            #     # node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , (node.X + node.Y))
+            #     node.Fix(KratosMultiphysics.PRESSURE)
         
         super().InitializeSolutionStep()
 

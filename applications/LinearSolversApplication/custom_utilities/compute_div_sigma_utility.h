@@ -18,6 +18,7 @@
 #include <Eigen/Core>
 #include <Eigen/Sparse>
 #include <Eigen/QR>
+#include <Eigen/SVD>
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 
@@ -162,6 +163,12 @@ public:
             b_xy(i) = mSigmaValues[i][2];
         }
 
+        double condition_number = A.jacobiSvd().singularValues()(0) / A.jacobiSvd().singularValues().tail(1)(0);
+        if (condition_number > 1e10) { // Adjust the threshold based on your problem
+            std::cerr << "Warning: Matrix A is ill-conditioned. Condition number: " << condition_number << std::endl;
+            exit(0);
+        }
+
         // Solve for coefficients using least squares
         Eigen::VectorXd c_xx = A.colPivHouseholderQr().solve(b_xx);
         Eigen::VectorXd c_yy = A.colPivHouseholderQr().solve(b_yy);
@@ -177,17 +184,24 @@ public:
         double norm_residual_xy = residual_xy.norm();
 
         // Define a threshold for acceptable residuals
-        const double threshold = 1e-5; // Adjust this value as necessary
+        const double threshold = 1e-9; // Adjust this value as necessary
 
-        // Check if residuals are too high and issue warnings or errors
         if (norm_residual_xx > threshold) {
-            std::cerr << "Warning: High residual detected for sigma_xx fit! Norm: " << norm_residual_xx << std::endl;
+            std::cerr << "Warning: High residual norm detected for sigma_xx fit!" << std::endl;
+            std::cerr << "Residual norm (sigma_xx): " << norm_residual_xx << std::endl;
+            std::cerr << "Residual vector: " << residual_xx.transpose() << std::endl;
         }
+
         if (norm_residual_yy > threshold) {
-            std::cerr << "Warning: High residual detected for sigma_yy fit! Norm: " << norm_residual_yy << std::endl;
+            std::cerr << "Warning: High residual norm detected for sigma_yy fit!" << std::endl;
+            std::cerr << "Residual norm (sigma_yy): " << norm_residual_yy << std::endl;
+            std::cerr << "Residual vector: " << residual_yy.transpose() << std::endl;
         }
+
         if (norm_residual_xy > threshold) {
-            std::cerr << "Warning: High residual detected for sigma_xy fit! Norm: " << norm_residual_xy << std::endl;
+            std::cerr << "Warning: High residual norm detected for sigma_xy fit!" << std::endl;
+            std::cerr << "Residual norm (sigma_xy): " << norm_residual_xy << std::endl;
+            std::cerr << "Residual vector: " << residual_xy.transpose() << std::endl;
         }
 
         // Convert Eigen vectors to std::vector and store results

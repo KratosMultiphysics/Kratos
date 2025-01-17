@@ -7,11 +7,11 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi
+//  Main authors:    Your Name
 //
 
-#if !defined (KRATOS_BINGHAM_LAW_2D_H_INCLUDED)
-#define  KRATOS_BINGHAM_LAW_2D_H_INCLUDED
+#if !defined (KRATOS_CARREAU_LAW_2D_H_INCLUDED)
+#define  KRATOS_CARREAU_LAW_2D_H_INCLUDED
 
 // System includes
 
@@ -23,27 +23,29 @@
 namespace Kratos
 {
 /**
- * Defines a 3D Bingham non-Newtonian constitutive law
+ * Defines a 2D Carreau non-Newtonian constitutive law.
  * This material law is defined by the parameters:
- * 1) DYNAMIC_VISCOSITY
- * 2) YIELD_STRESS
- * 3) REGULARIZATION_COEFFICIENT
+ * 1) ZERO_SHEAR_VISCOSITY (η₀)
+ * 2) INFINITE_SHEAR_VISCOSITY (η∞)
+ * 3) RELAXATION_TIME (λ)
+ * 4) SHEAR_THINNING_INDEX (n)
+ * 5) CARREAU_TRANSITION_SHARPNESS (a)
  */
 
-class KRATOS_API(FLUID_DYNAMICS_APPLICATION) Bingham2DLaw : public FluidConstitutiveLaw
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) Carreau2DLaw : public FluidConstitutiveLaw
 {
 public:
     /**
      * Type Definitions
      */
     typedef ProcessInfo      ProcessInfoType;
-    typedef ConstitutiveLaw         BaseType;
-    typedef std::size_t             SizeType;
-    /**
-     * Counted pointer of Bingham2DLaw
-     */
+    typedef ConstitutiveLaw  BaseType;
+    typedef std::size_t      SizeType;
 
-    KRATOS_CLASS_POINTER_DEFINITION(Bingham2DLaw);
+    /**
+     * Counted pointer of Carreau2DLaw
+     */
+    KRATOS_CLASS_POINTER_DEFINITION(Carreau2DLaw);
 
     /**
      * Life Cycle
@@ -52,7 +54,7 @@ public:
     /**
      * Default constructor.
      */
-    Bingham2DLaw();
+    Carreau2DLaw();
 
     /**
      * Clone function (has to be implemented by any derived class)
@@ -63,13 +65,12 @@ public:
     /**
      * Copy constructor.
      */
-    Bingham2DLaw (const Bingham2DLaw& rOther);
-
+    Carreau2DLaw (const Carreau2DLaw& rOther);
 
     /**
      * Destructor.
      */
-    ~Bingham2DLaw() override;
+    ~Carreau2DLaw() override;
 
     /**
      * Operators
@@ -113,20 +114,6 @@ public:
      */
     std::string Info() const override;
 
-    // double& CalculateValue(
-    //     Parameters& rParameters,
-    //     const Variable<double>& rThisVariable,
-    //     double& rValue) override;
-    
-    void BinghamConstitutiveMatrix2D(
-        const double g,
-        const double m,
-        const double sigma_y, 
-        const double mu_effective, 
-        Vector& S,
-        Matrix& rC); 
-
-
 protected:
 
     ///@name Protected static Member Variables
@@ -146,8 +133,6 @@ protected:
 
     ///@}
 
-
-
 private:
 
     ///@name Static Member Variables
@@ -156,8 +141,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    double mMuEffective;
-
+    double mEffectiveViscosity;
 
     ///@}
     ///@name Private Operators
@@ -170,7 +154,7 @@ private:
     ///@}
 
     ///@}
-    ///@name Private  Access
+    ///@name Private Access
     ///@{
     ///@}
 
@@ -183,7 +167,6 @@ private:
 
     void load(Serializer& rSerializer) override;
 
-
-}; // Class Bingham2DLaw
+}; // Class Carreau2DLaw
 }  // namespace Kratos.
-#endif // KRATOS_BINGHAM_LAW_3D_H_INCLUDED  defined
+#endif // KRATOS_CARREAU_LAW_2D_H_INCLUDED defined

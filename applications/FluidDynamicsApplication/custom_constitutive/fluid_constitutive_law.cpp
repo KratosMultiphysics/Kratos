@@ -126,11 +126,21 @@ void FluidConstitutiveLaw::NewtonianConstitutiveMatrix2D(
     constexpr double two_thirds = 2./3.;
     constexpr double four_thirds = 4./3.;
 
-    rC(0,0) = EffectiveViscosity * four_thirds;
-    rC(0,1) = -EffectiveViscosity * two_thirds;
+    // rC(0,0) = EffectiveViscosity * four_thirds;
+    // rC(0,1) = -EffectiveViscosity * two_thirds;
+    // rC(0,2) = 0.0;
+    // rC(1,0) = -EffectiveViscosity * two_thirds;
+    // rC(1,1) = EffectiveViscosity * four_thirds;
+    // rC(1,2) = 0.0;
+    // rC(2,0) = 0.0;
+    // rC(2,1) = 0.0;
+    // rC(2,2) = EffectiveViscosity;
+
+    rC(0,0) = 2.0*EffectiveViscosity;
+    rC(0,1) = 0.0;
     rC(0,2) = 0.0;
-    rC(1,0) = -EffectiveViscosity * two_thirds;
-    rC(1,1) = EffectiveViscosity * four_thirds;
+    rC(1,0) = 0.0;
+    rC(1,1) = 2.0*EffectiveViscosity;
     rC(1,2) = 0.0;
     rC(2,0) = 0.0;
     rC(2,1) = 0.0;

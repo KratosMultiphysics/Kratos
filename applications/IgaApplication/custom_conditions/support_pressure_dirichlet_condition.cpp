@@ -212,18 +212,18 @@ void SupportPressureDirichletCondition::CalculateAll(
         // t_N[1] = ((0.0)*normal_parameter_space[0] + (sin(x)*sin(y))*normal_parameter_space[1]) * result; 
 
         // CUBIC -> constitutive law
-        // t_N[0] = ((6*x*x)*normal_parameter_space[0] + (-3*y*y-6*x*y)*normal_parameter_space[1]); 
-        // t_N[1] = ((-3*y*y-6*x*y)*normal_parameter_space[0] + (-6*x*x)*normal_parameter_space[1]); 
-        // t_N[0] = ((6*x*x)*normal_parameter_space[0] + (-3*y*y-6*x*y)*normal_parameter_space[1])*(current_t)*(current_t); 
-        // t_N[1] = ((-3*y*y-6*x*y)*normal_parameter_space[0] + (-6*x*x)*normal_parameter_space[1])*(current_t)*(current_t); 
+        t_N[0] = ((6*x*x)*normal_parameter_space[0] + (-3*y*y-6*x*y)*normal_parameter_space[1]); 
+        t_N[1] = ((-3*y*y-6*x*y)*normal_parameter_space[0] + (-6*x*x)*normal_parameter_space[1]); 
+        t_N[0] = ((6*x*x)*normal_parameter_space[0] + (-3*y*y-6*x*y)*normal_parameter_space[1])*(current_t)*(current_t); 
+        t_N[1] = ((-3*y*y-6*x*y)*normal_parameter_space[0] + (-6*x*x)*normal_parameter_space[1])*(current_t)*(current_t); 
         // t_N_old[0] = ((6*x*x)*normal_parameter_space[0] + (-3*y*y-6*x*y)*normal_parameter_space[1])*(current_t-delta_time)*(current_t-delta_time); 
         // t_N_old[1] = ((-3*y*y-6*x*y)*normal_parameter_space[0] + (-6*x*x)*normal_parameter_space[1])*(current_t-delta_time)*(current_t-delta_time); 
         // cubic -> laplacian
         // t_N[0] = 2 * ((3*x*x)*normal_parameter_space[0] + (-3*y*y-6*x*y)*normal_parameter_space[1]); 
         // t_N[1] = 2 * ((-3*y*y-6*x*y)*normal_parameter_space[0] + (-3*x*x)*normal_parameter_space[1]); 
 
-        t_N[0] = 0.0; 
-        t_N[1] = 0.0; 
+        // t_N[0] = 0.0; 
+        // t_N[1] = 0.0; 
 
         for (IndexType idim = 0; idim < 2; idim++) {
             rRightHandSideVector(3*j+idim) += theta * N(0,j) * t_N[idim] * integration_weight;
