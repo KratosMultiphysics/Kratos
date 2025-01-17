@@ -39,16 +39,11 @@ public:
                                            RelativePermeability, IntegrationCoefficient);
     }
 
-    static inline Matrix CalculatePermeabilityMatrix(const Matrix& rGradNpT,
-                                                     double        DynamicViscosityInverse,
-                                                     const Matrix& rMaterialPermeabilityMatrix,
-                                                     double        RelativePermeability,
-                                                     double        IntegrationCoefficient)
-    {
-        return -PORE_PRESSURE_SIGN_FACTOR * DynamicViscosityInverse *
-               prod(rGradNpT, Matrix(prod(rMaterialPermeabilityMatrix, trans(rGradNpT)))) *
-               RelativePermeability * IntegrationCoefficient;
-    }
+    static Matrix CalculatePermeabilityMatrix(const Matrix& rGradNpT,
+                                              double        DynamicViscosityInverse,
+                                              const Matrix& rMaterialPermeabilityMatrix,
+                                              double        RelativePermeability,
+                                              double        IntegrationCoefficient);
 
     template <unsigned int TDim, unsigned int TNumNodes>
     static inline BoundedMatrix<double, TNumNodes * TDim, TNumNodes> CalculateCouplingMatrix(

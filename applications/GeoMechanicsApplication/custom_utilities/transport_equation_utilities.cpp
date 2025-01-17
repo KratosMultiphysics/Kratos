@@ -15,6 +15,17 @@
 namespace Kratos
 {
 
+Matrix GeoTransportEquationUtilities::CalculatePermeabilityMatrix(const Matrix& rGradNpT,
+                                                                  double DynamicViscosityInverse,
+                                                                  const Matrix& rMaterialPermeabilityMatrix,
+                                                                  double RelativePermeability,
+                                                                  double IntegrationCoefficient)
+{
+    return -PORE_PRESSURE_SIGN_FACTOR * DynamicViscosityInverse *
+           prod(rGradNpT, Matrix(prod(rMaterialPermeabilityMatrix, trans(rGradNpT)))) *
+           RelativePermeability * IntegrationCoefficient;
+}
+
 double GeoTransportEquationUtilities::CalculateParticleDiameter(const Properties& rProperties)
 {
     return rProperties.Has(PIPE_MODIFIED_D) && rProperties[PIPE_MODIFIED_D]
