@@ -1156,7 +1156,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateOnIntegrationPoin
             }
             noalias(rOutput[i_gauss]) = constitutive_variables.StressVector;
         }
-    } else if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR) {
+    } else if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR || rVariable == STRAIN) {
         // Create and initialize element variables:
         const SizeType n_nodes = r_geometry.PointsNumber();
         const SizeType dim = r_geometry.WorkingSpaceDimension();
@@ -1176,48 +1176,6 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateOnIntegrationPoin
             }
             noalias(rOutput[i_gauss]) = kinematic_variables.EquivalentStrain;
         }
-    } else if (rVariable == STRAIN) {
-        // Create and initialize element variables:
-        const SizeType n_nodes = r_geometry.PointsNumber();
-        const SizeType dim = r_geometry.WorkingSpaceDimension();
-        const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
-
-        // Create the kinematics container and fill the nodal data
-        KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
-        GetNodalDoFsVectors(kinematic_variables.NodalDisplacements, kinematic_variables.NodalStrains);
-
-        for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
-            // Calculate kinematics
-            CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
-
-            // Check sizes and save the output stress
-            if (rOutput[i_gauss].size() != strain_size) {
-                rOutput[i_gauss].resize(strain_size, false);
-            }
-            noalias(rOutput[i_gauss]) = prod(kinematic_variables.N_epsilon, kinematic_variables.NodalStrains);
-        }
-
-    } else if (rVariable == HENCKY_STRAIN_VECTOR) {
-        // Create and initialize element variables:
-        const SizeType n_nodes = r_geometry.PointsNumber();
-        const SizeType dim = r_geometry.WorkingSpaceDimension();
-        const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
-
-        // Create the kinematics container and fill the nodal data
-        KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
-        GetNodalDoFsVectors(kinematic_variables.NodalDisplacements, kinematic_variables.NodalStrains);
-
-        for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
-            // Calculate kinematics
-            CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
-
-            // Check sizes and save the output stress
-            if (rOutput[i_gauss].size() != strain_size) {
-                rOutput[i_gauss].resize(strain_size, false);
-            }
-            noalias(rOutput[i_gauss]) = kinematic_variables.SymmGradientDispl;
-        }
-
     } else {
         CalculateOnConstitutiveLaw(rVariable, rOutput, rCurrentProcessInfo);
     }
