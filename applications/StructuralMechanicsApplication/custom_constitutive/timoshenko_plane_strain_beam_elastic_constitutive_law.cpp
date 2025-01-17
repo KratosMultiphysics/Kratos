@@ -67,12 +67,11 @@ int TimoshenkoBeamPlaneStrainElasticConstitutiveLaw::Check(
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(POISSON_RATIO))         << "POISSON_RATIO is not defined in the properties"    << std::endl;
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(THICKNESS))             << "THICKNESS is not defined in the properties"       << std::endl;
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(THICKNESS_EFFECTIVE_Y)) << "THICKNESS_EFFECTIVE_Y is not defined in the properties" << std::endl;
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(POISSON_RATIO))         << "POISSON_RATIO is not defined in the properties"    << std::endl;
     KRATOS_ERROR_IF_NOT(rMaterialProperties[YOUNG_MODULUS] > 0.0)       << "The YOUNG_MODULUS value is lower than 0.0" << std::endl;
     KRATOS_ERROR_IF_NOT(rMaterialProperties[THICKNESS] > 0.0)           << "The THICKNESS value is lower than 0.0" << std::endl;
     KRATOS_ERROR_IF_NOT(rMaterialProperties[THICKNESS_EFFECTIVE_Y] > 0.0) << "The THICKNESS_EFFECTIVE_Y value is lower than 0.0" << std::endl;
-    KRATOS_ERROR_IF_NOT(rMaterialProperties[POISSON_RATIO] > 0.0)         << "The POISSON_RATIO value is lower than 0.0" << std::endl;
-    KRATOS_ERROR_IF    (rMaterialProperties[POISSON_RATIO] > 0.5)         << "The POISSON_RATIO cannot be greater than 0.5." << std::endl;
+    KRATOS_ERROR_IF    (rMaterialProperties[POISSON_RATIO] < 0.0)       << "The POISSON_RATIO value is lower than 0.0" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties[POISSON_RATIO] < 0.5)       << "The POISSON_RATIO cannot be greater than or equal 0.5." << std::endl;
     return 0;
 }
 
