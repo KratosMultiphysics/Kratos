@@ -139,7 +139,6 @@ KRATOS_CREATE_VARIABLE(double, DEM_DRAG_CONSTANT_X)
 KRATOS_CREATE_VARIABLE(double, DEM_DRAG_CONSTANT_Y)
 KRATOS_CREATE_VARIABLE(double, DEM_DRAG_CONSTANT_Z)
 KRATOS_CREATE_VARIABLE(bool, ENERGY_CALCULATION_OPTION)
-
 KRATOS_CREATE_VARIABLE(double, INITIAL_VELOCITY_X_VALUE)
 KRATOS_CREATE_VARIABLE(double, INITIAL_VELOCITY_Y_VALUE)
 KRATOS_CREATE_VARIABLE(double, INITIAL_VELOCITY_Z_VALUE)
@@ -284,7 +283,6 @@ KRATOS_CREATE_VARIABLE(double, JOINT_NORMAL_DIRECTION_Y)
 KRATOS_CREATE_VARIABLE(double, JOINT_NORMAL_DIRECTION_Z)
 KRATOS_CREATE_VARIABLE(double, JOINT_FRICTION_COEFF)
 KRATOS_CREATE_VARIABLE(double, K_ALPHA) // for DEM_D_Quadratic_LAW
-
 // *************** Continuum only END *************
 
 // GEOMETRIC PARAMETERS
@@ -329,6 +327,7 @@ KRATOS_CREATE_VARIABLE(double, VELOCITY_STOP_TIME)
 KRATOS_CREATE_VARIABLE(double, ANGULAR_VELOCITY_START_TIME)
 KRATOS_CREATE_VARIABLE(double, ANGULAR_VELOCITY_STOP_TIME)
 KRATOS_CREATE_VARIABLE(int, RIGID_BODY_MOTION)
+
 // ****************** Quaternion Integration BEGIN ******************
 KRATOS_CREATE_VARIABLE(Quaternion<double>, AUX_ORIENTATION)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(LOCAL_AUX_ANGULAR_VELOCITY)
@@ -419,12 +418,10 @@ KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(BLAST_COORDINATES_8)
 // Possible future blocks (no FEM) interaction
 KRATOS_CREATE_VARIABLE(Vector, PARTICLE_BLOCK_CONTACT_FAILURE_ID)
 KRATOS_CREATE_VARIABLE(Vector, PARTICLE_BLOCK_IF_INITIAL_CONTACT)
-KRATOS_CREATE_VARIABLE(
-    GlobalPointersVector<Element>, NEIGHBOUR_PARTICLE_BLOCK_ELEMENTS)
+KRATOS_CREATE_VARIABLE(GlobalPointersVector<Element>, NEIGHBOUR_PARTICLE_BLOCK_ELEMENTS)
 KRATOS_CREATE_VARIABLE(GlobalPointersVector<Condition>, NEIGHBOUR_RIGID_FACES)
 KRATOS_CREATE_VARIABLE(Vector, NEIGHBOUR_RIGID_FACES_PRAM)
-KRATOS_CREATE_VARIABLE(
-    GlobalPointersVector<Element>, NEIGHBOUR_PARTICLE_OF_RIGID_FACE)
+KRATOS_CREATE_VARIABLE(GlobalPointersVector<Element>, NEIGHBOUR_PARTICLE_OF_RIGID_FACE)
 KRATOS_CREATE_VARIABLE(Vector, NEIGHBOUR_RIGID_FACES_ELASTIC_CONTACT_FORCE)
 KRATOS_CREATE_VARIABLE(Vector, NEIGHBOUR_RIGID_FACES_TOTAL_CONTACT_FORCE)
 
@@ -446,8 +443,7 @@ KRATOS_CREATE_VARIABLE(double, LOCAL_DAMP_RATIO)
 
 // DUMMY VARIABLES FOR CALCULATE
 KRATOS_CREATE_VARIABLE(double, CALCULATE_COMPUTE_NEW_NEIGHBOURS_HISTORICAL_DATA)
-KRATOS_CREATE_VARIABLE(
-    double, CALCULATE_COMPUTE_NEW_RIGID_FACE_NEIGHBOURS_HISTORICAL_DATA)
+KRATOS_CREATE_VARIABLE(double, CALCULATE_COMPUTE_NEW_RIGID_FACE_NEIGHBOURS_HISTORICAL_DATA)
 KRATOS_CREATE_VARIABLE(double, CALCULATE_SET_INITIAL_DEM_CONTACTS)
 KRATOS_CREATE_VARIABLE(double, CALCULATE_SET_INITIAL_FEM_CONTACTS)
 
@@ -520,7 +516,6 @@ KRATOS_CREATE_LOCAL_FLAG(DEMFlags, IS_SAND_PRODUCTION, 16);
 KRATOS_CREATE_LOCAL_FLAG(DEMFlags, POLYHEDRON_SKIN, 17);
 
 //ELEMENTS
-
 KratosDEMApplication::KratosDEMApplication() : KratosApplication("DEMApplication"),
     mCylinderParticle2D(0, Element::GeometryType::Pointer(new Sphere3D1<Node >(Element::GeometryType::PointsArrayType(1)))),
     mCylinderContinuumParticle2D(0, Element::GeometryType::Pointer(new Sphere3D1<Node >(Element::GeometryType::PointsArrayType(1)))),
@@ -648,7 +643,6 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_VARIABLE(DEM_DRAG_CONSTANT_Y)
     KRATOS_REGISTER_VARIABLE(DEM_DRAG_CONSTANT_Z)
     KRATOS_REGISTER_VARIABLE(ENERGY_CALCULATION_OPTION)
-
     KRATOS_REGISTER_VARIABLE(INITIAL_VELOCITY_X_VALUE)
     KRATOS_REGISTER_VARIABLE(INITIAL_VELOCITY_Y_VALUE)
     KRATOS_REGISTER_VARIABLE(INITIAL_VELOCITY_Z_VALUE)
@@ -695,7 +689,6 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_VARIABLE(WALL_POINT_CONDITION_POINTERS)
     KRATOS_REGISTER_VARIABLE(WALL_POINT_CONDITION_ELASTIC_FORCES)
     KRATOS_REGISTER_VARIABLE(WALL_POINT_CONDITION_TOTAL_FORCES)
-
     KRATOS_REGISTER_VARIABLE(VECTOR_OF_PROPERTIES_PROXIES)
     KRATOS_REGISTER_VARIABLE(NODAL_MASS_COEFF)
     KRATOS_REGISTER_VARIABLE(PARTICLE_MOMENT_OF_INERTIA)
@@ -786,7 +779,6 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_VARIABLE(JOINT_NORMAL_DIRECTION_Y)
     KRATOS_REGISTER_VARIABLE(JOINT_NORMAL_DIRECTION_Z)
     KRATOS_REGISTER_VARIABLE(JOINT_FRICTION_COEFF)
-
     // *************** Continuum only END *************
 
     // GEOMETRIC PARAMETERS
@@ -839,6 +831,7 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_VARIABLE(RIGID_BODY_MASS)
     KRATOS_REGISTER_VARIABLE(RIGID_BODY_CENTER_OF_MASS)
     KRATOS_REGISTER_VARIABLE(RIGID_BODY_INERTIAS)
+
     // ****************** Quaternion Integration BEGIN ******************
     KRATOS_REGISTER_VARIABLE(AUX_ORIENTATION)
     KRATOS_REGISTER_VARIABLE(LOCAL_AUX_ANGULAR_VELOCITY)
@@ -924,7 +917,6 @@ void KratosDEMApplication::Register() {
     // *************** Continuum only END *************
 
     // Possible future blocks (no FEM) interaction
-
     KRATOS_REGISTER_VARIABLE(PARTICLE_BLOCK_CONTACT_FAILURE_ID)
     KRATOS_REGISTER_VARIABLE(PARTICLE_BLOCK_IF_INITIAL_CONTACT)
     KRATOS_REGISTER_VARIABLE(NEIGHBOUR_PARTICLE_BLOCK_ELEMENTS)
@@ -951,8 +943,7 @@ void KratosDEMApplication::Register() {
 
     // DUMMY VARIABLES FOR CALCULATE
     KRATOS_REGISTER_VARIABLE(CALCULATE_COMPUTE_NEW_NEIGHBOURS_HISTORICAL_DATA)
-    KRATOS_REGISTER_VARIABLE(
-        CALCULATE_COMPUTE_NEW_RIGID_FACE_NEIGHBOURS_HISTORICAL_DATA)
+    KRATOS_REGISTER_VARIABLE(CALCULATE_COMPUTE_NEW_RIGID_FACE_NEIGHBOURS_HISTORICAL_DATA)
     KRATOS_REGISTER_VARIABLE(CALCULATE_SET_INITIAL_DEM_CONTACTS)
     KRATOS_REGISTER_VARIABLE(CALCULATE_SET_INITIAL_FEM_CONTACTS)
     KRATOS_REGISTER_VARIABLE(RIGID_FACE_ROTA_SPEED)
@@ -975,6 +966,7 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_VARIABLE(COMPUTE_WEAR)
     KRATOS_REGISTER_VARIABLE(IMPACT_WEAR_SEVERITY)
     KRATOS_REGISTER_VARIABLE(WALL_COHESION) //TODO: remove this variable
+    
     //DEM_CLUSTERS
     KRATOS_REGISTER_VARIABLE(CLUSTER_VOLUME)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(PRINCIPAL_MOMENTS_OF_INERTIA)
@@ -1037,29 +1029,20 @@ void KratosDEMApplication::Register() {
 
     // SERIALIZER
     Serializer::Register("PropertiesProxy", PropertiesProxy());
-
-    Serializer::Register(
-        "DEM_D_Linear_viscous_Coulomb", DEM_D_Linear_viscous_Coulomb());
-    Serializer::Register(
-        "DEM_D_Linear_viscous_Coulomb2D", DEM_D_Linear_viscous_Coulomb2D());
-    Serializer::Register(
-        "DEM_D_Hertz_viscous_Coulomb", DEM_D_Hertz_viscous_Coulomb());
-    Serializer::Register(
-        "DEM_D_Hertz_viscous_Coulomb2D", DEM_D_Hertz_viscous_Coulomb2D());
+    Serializer::Register("DEM_D_Linear_viscous_Coulomb", DEM_D_Linear_viscous_Coulomb());
+    Serializer::Register("DEM_D_Linear_viscous_Coulomb2D", DEM_D_Linear_viscous_Coulomb2D());
+    Serializer::Register("DEM_D_Hertz_viscous_Coulomb", DEM_D_Hertz_viscous_Coulomb());
+    Serializer::Register("DEM_D_Hertz_viscous_Coulomb2D", DEM_D_Hertz_viscous_Coulomb2D());
     Serializer::Register("DEM_D_JKR_Cohesive_Law", DEM_D_JKR_Cohesive_Law());
     Serializer::Register("DEM_D_Bentonite_Colloid", DEM_D_Bentonite_Colloid());
     Serializer::Register("DEM_D_DMT_Cohesive_Law", DEM_D_DMT_Cohesive_Law());
     Serializer::Register("DEM_D_Stress_Dependent_Cohesive", DEM_D_Stress_Dependent_Cohesive());
-    Serializer::Register(
-        "DEM_D_Linear_Custom_Constants", DEM_D_Linear_Custom_Constants());
-    Serializer::Register(
-        "DEM_D_Conical_damage", DEM_D_Conical_damage());
-    Serializer::Register("DEM_D_Hertz_viscous_Coulomb_Nestle",
-        DEM_D_Hertz_viscous_Coulomb_Nestle());
+    Serializer::Register("DEM_D_Linear_Custom_Constants", DEM_D_Linear_Custom_Constants());
+    Serializer::Register("DEM_D_Conical_damage", DEM_D_Conical_damage());
+    Serializer::Register("DEM_D_Hertz_viscous_Coulomb_Nestle", DEM_D_Hertz_viscous_Coulomb_Nestle());
     Serializer::Register("DEM_D_Quadratic", DEM_D_Quadratic());
     Serializer::Register("DEM_D_Linear_classic", DEM_D_Linear_classic());
     Serializer::Register("DEM_D_void", DEM_D_void());
-
     Serializer::Register("DEM_Dempack", DEM_Dempack());
     Serializer::Register("DEM_Dempack2D", DEM_Dempack2D());
     Serializer::Register("DEM_KDEM", DEM_KDEM());

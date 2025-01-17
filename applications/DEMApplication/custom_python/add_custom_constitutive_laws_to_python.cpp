@@ -10,10 +10,8 @@
 
 #include "custom_constitutive/DEM_discontinuum_constitutive_law.h"
 #include "custom_constitutive/DEM_continuum_constitutive_law.h"
-
 #include "custom_constitutive/DEM_compound_constitutive_law.h"
 #include "custom_constitutive/DEM_compound_constitutive_law_for_PBM.h"
-
 #include "custom_constitutive/DEM_D_Linear_viscous_Coulomb_CL.h"
 #include "custom_constitutive/DEM_D_Hertz_viscous_Coulomb_CL.h"
 #include "custom_constitutive/DEM_D_Hertz_viscous_Coulomb_Nestle_CL.h"
@@ -33,7 +31,6 @@
 #include "custom_constitutive/DEM_D_Linear_HighStiffness_CL.h"
 #include "custom_constitutive/DEM_D_Linear_HighStiffness_2D_CL.h"
 #include "custom_constitutive/DEM_D_Linear_classic_CL.h"
-
 #include "custom_constitutive/DEM_Dempack_CL.h"
 #include "custom_constitutive/DEM_Dempack_2D_CL.h"
 #include "custom_constitutive/DEM_KDEM_CL.h"
@@ -359,16 +356,16 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         ;
 
     py::class_<DEMRollingFrictionModelConstantTorque, DEMRollingFrictionModelConstantTorque::Pointer, DEMRollingFrictionModel>(m, "DEMRollingFrictionModelConstantTorque")
-    .def(py::init<>())
-    ;
+        .def(py::init<>())
+        ;
 
     py::class_<DEMRollingFrictionModelViscousTorque, DEMRollingFrictionModelViscousTorque::Pointer, DEMRollingFrictionModel>(m, "DEMRollingFrictionModelViscousTorque")
-    .def(py::init<>())
-    ;
+        .def(py::init<>())
+        ;
 
     py::class_<DEMRollingFrictionModelBounded, DEMRollingFrictionModelBounded::Pointer, DEMRollingFrictionModel>(m, "DEMRollingFrictionModelBounded")
-    .def(py::init<>())
-    ;
+        .def(py::init<>())
+        ;
 }
 
 } // namespace Python.

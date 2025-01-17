@@ -225,7 +225,6 @@ void SphericParticle::Initialize(const ProcessInfo& r_process_info)
             mRollingFrictionModel = pCloneRollingFrictionModel(this);
         }
     }
-
     else {
         array_1d<double, 3>& angular_velocity = node.GetSolutionStepValue(ANGULAR_VELOCITY); //TODO: do we need this when there is no rotation??
         angular_velocity = ZeroVector(3);
@@ -260,8 +259,8 @@ void SphericParticle::Initialize(const ProcessInfo& r_process_info)
     SetIntegrationScheme(translational_integration_scheme, rotational_integration_scheme);
 
     SetValue(WALL_POINT_CONDITION_POINTERS, std::vector<Condition*>());
-    SetValue(WALL_POINT_CONDITION_ELASTIC_FORCES, std::vector<array_1d<double, 3> >());
-    SetValue(WALL_POINT_CONDITION_TOTAL_FORCES, std::vector<array_1d<double, 3> >());
+    SetValue(WALL_POINT_CONDITION_ELASTIC_FORCES, std::vector<array_1d<double, 3>>());
+    SetValue(WALL_POINT_CONDITION_TOTAL_FORCES, std::vector<array_1d<double, 3>>());
 
     KRATOS_CATCH( "" )
 }
@@ -343,7 +342,7 @@ void SphericParticle::CalculateRightHandSide(const ProcessInfo& r_process_info, 
     KRATOS_CATCH("")
 }
 
-void SphericParticle::InitializeForceComputation(const ProcessInfo& r_process_info){ }
+void SphericParticle::InitializeForceComputation(const ProcessInfo& r_process_info){}
 
 void SphericParticle::FirstCalculateRightHandSide(const ProcessInfo& r_process_info, double dt){}
 
@@ -1464,8 +1463,7 @@ void SphericParticle::ComputeWear(double LocalRelVel[3],
 
 void SphericParticle::CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& r_process_info){}
 
-void SphericParticle::GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& r_process_info) const
-{
+void SphericParticle::GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& r_process_info) const {
     KRATOS_TRY
 
     ElementalDofList.resize(0);
@@ -2211,7 +2209,6 @@ bool SphericParticle::SwapIntegrationSchemeToGluedToWall(Condition* p_wall) {
 
 void SphericParticle::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info){}
 void SphericParticle::Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& r_process_info){}
-
 void SphericParticle::AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info){}
 
 void SphericParticle::ApplyGlobalDampingToContactForcesAndMoments(array_1d<double,3>& total_forces, array_1d<double,3>& total_moment) {
@@ -2245,24 +2242,23 @@ void SphericParticle::ApplyGlobalDampingToContactForcesAndMoments(array_1d<doubl
         KRATOS_CATCH("")
     }
 
-    void SphericParticle::CalculateOnContactElements(size_t i, double LocalContactForce[3], double GlobalContactForce[3]) {
+void SphericParticle::CalculateOnContactElements(size_t i, double LocalContactForce[3], double GlobalContactForce[3]) {
+    KRATOS_TRY
 
-        KRATOS_TRY
+    if (!mBondElements.size()) return; // we skip this function if the vector of bonds hasn't been filled yet.
+    ParticleContactElement* bond = mBondElements[i];
+    if (bond == NULL) return; //This bond was never created (happens in some MPI cases, see CreateContactElements() in explicit_solve_continumm.h)
 
-        if (!mBondElements.size()) return; // we skip this function if the vector of bonds hasn't been filled yet.
-        ParticleContactElement* bond = mBondElements[i];
-        if (bond == NULL) return; //This bond was never created (happens in some MPI cases, see CreateContactElements() in explicit_solve_continumm.h)
+    bond->mLocalContactForce[0] = LocalContactForce[0];
+    bond->mLocalContactForce[1] = LocalContactForce[1];
+    bond->mLocalContactForce[2] = LocalContactForce[2];
 
-        bond->mLocalContactForce[0] = LocalContactForce[0];
-        bond->mLocalContactForce[1] = LocalContactForce[1];
-        bond->mLocalContactForce[2] = LocalContactForce[2];
-
-        bond->mGlobalContactForce[0] = GlobalContactForce[0];
-        bond->mGlobalContactForce[1] = GlobalContactForce[1];
-        bond->mGlobalContactForce[2] = GlobalContactForce[2];
+    bond->mGlobalContactForce[0] = GlobalContactForce[0];
+    bond->mGlobalContactForce[1] = GlobalContactForce[1];
+    bond->mGlobalContactForce[2] = GlobalContactForce[2];
         
-        KRATOS_CATCH("")
-    }
+    KRATOS_CATCH("")
+}
 
 int    SphericParticle::GetClusterId()                                                    { return mClusterId;      }
 void   SphericParticle::SetClusterId(int givenId)                                         { mClusterId = givenId;   }

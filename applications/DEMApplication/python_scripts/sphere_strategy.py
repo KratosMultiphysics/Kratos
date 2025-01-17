@@ -691,7 +691,7 @@ class ExplicitStrategy():
                 return translational_scheme, error_status, summary
             except:
                 error_status = 1
-                summary = 'The class corresponding to the translational integration scheme named ' + name + ' has not been added to python. Please, select a different name or add the required class.'
+                summary = 'The class corresponding to the translational integration scheme name ' + name + ' has not been added to python. Please, select a different name or add the required class.'
         else:
             error_status = 2
             summary = 'The translational integration scheme name ' + name + ' does not designate any available scheme. Please, select a different one'
