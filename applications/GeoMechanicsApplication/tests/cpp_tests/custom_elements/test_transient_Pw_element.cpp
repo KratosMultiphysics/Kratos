@@ -696,4 +696,59 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement3D4N_CalculateLocalSystem, KratosGeo
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
 
+KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_ZeroReturnFunctions, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    TransientPwElement<2, 3> element(
+        0, std::make_shared<Triangle2D3<Node>>(CreateThreeCoincidentNodes()),
+        std::make_shared<Properties>(), std::make_unique<PlaneStrainStressState>());
+    const auto   dummy_process_info = ProcessInfo{};
+    const auto   n_DoF              = 3;
+    const Matrix expected_matrix    = ZeroMatrix(n_DoF, n_DoF);
+    const Vector expected_vector    = ZeroVector(n_DoF);
+
+    // Act
+    Matrix actual_matrix;
+    element.CalculateMassMatrix(actual_matrix, dummy_process_info);
+
+    // Assert
+    KRATOS_EXPECT_EQ(actual_matrix.size1(), n_DoF);
+    KRATOS_EXPECT_EQ(actual_matrix.size2(), n_DoF);
+    KRATOS_EXPECT_MATRIX_EQ(actual_matrix, expected_matrix);
+
+    // Act
+    element.CalculateDampingMatrix(actual_matrix, dummy_process_info);
+
+    // Assert
+    KRATOS_EXPECT_EQ(actual_matrix.size1(), n_DoF);
+    KRATOS_EXPECT_EQ(actual_matrix.size2(), n_DoF);
+    KRATOS_EXPECT_MATRIX_EQ(actual_matrix, expected_matrix);
+
+    // Act
+    Vector actual_vector;
+    element.GetValuesVector(actual_vector, dummy_process_info);
+
+    // Assert
+    KRATOS_EXPECT_EQ(actual_vector.size(), n_DoF);
+    KRATOS_EXPECT_VECTOR_EQ(actual_vector, expected_vector);
+
+    // Act
+    element.GetFirstDerivativesVector(actual_vector, dummy_process_info);
+
+    // Assert
+    KRATOS_EXPECT_EQ(actual_vector.size(), n_DoF);
+    KRATOS_EXPECT_VECTOR_EQ(actual_vector, expected_vector);
+
+    // Act
+    element.GetSecondDerivativesVector(actual_vector, dummy_process_info);
+
+    // Assert
+    KRATOS_EXPECT_EQ(actual_vector.size(), n_DoF);
+    KRATOS_EXPECT_VECTOR_EQ(actual_vector, expected_vector);
+
+    // Act empty functions to increase the coverage
+    element.InitializeNonLinearIteration(dummy_process_info);
+    element.FinalizeNonLinearIteration(dummy_process_info);
+}
+
 } // namespace Kratos::Testing
