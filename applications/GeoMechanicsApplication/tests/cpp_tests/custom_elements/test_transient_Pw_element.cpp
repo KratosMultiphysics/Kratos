@@ -91,8 +91,8 @@ intrusive_ptr<TransientPwElement<TDim, TNumNodes>> CreateTransientPwElementWithP
             std::make_shared<Tetrahedra3D4<Node>>(CreateNodesOnModelPart<TNumNodes>(rModelPart)),
             rProperties, std::make_unique<ThreeDimensionalStressState>());
     }
-    for (auto& node : p_element->GetGeometry()) {
-        node.AddDof(WATER_PRESSURE);
+    for (auto& r_node : p_element->GetGeometry()) {
+        r_node.AddDof(WATER_PRESSURE);
     }
     rModelPart.AddElement(p_element);
     return p_element;
@@ -124,9 +124,9 @@ void SetBasicPropertiesAndVariables(intrusive_ptr<TransientPwElement<TDim, TNumN
         rElement->GetProperties().SetValue(PERMEABILITY_ZX, 1.0);
     }
     const auto gravity_acceleration = array_1d<double, 3>{0.0, -10.0, 0.0};
-    for (auto& node : rElement->GetGeometry()) {
-        node.FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_acceleration;
-        node.FastGetSolutionStepValue(WATER_PRESSURE)      = 0.0;
+    for (auto& r_node : rElement->GetGeometry()) {
+        r_node.FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_acceleration;
+        r_node.FastGetSolutionStepValue(WATER_PRESSURE)      = 0.0;
     }
 }
 
@@ -200,9 +200,9 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_EquationIdVector, KratosGeoMechanic
     auto p_element = CreateTransientPwElementWithPWDofs<2, 3>(r_model_part, std::make_shared<Properties>());
 
     unsigned int i = 0;
-    for (const auto& node : p_element->GetGeometry()) {
+    for (const auto& r_node : p_element->GetGeometry()) {
         ++i;
-        node.pGetDof(WATER_PRESSURE)->SetEquationId(i);
+        r_node.pGetDof(WATER_PRESSURE)->SetEquationId(i);
     }
 
     // Act
@@ -402,6 +402,9 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CheckThrowsOnFaultyInput, KratosGeo
 
     p_3D_element->GetProperties().SetValue(PERMEABILITY_ZX, 1.0E-2);
 
+    // to enable a call of RetentionLaw check
+    p_3D_element->Initialize(dummy_process_info);
+
     // No exceptions on correct input for 3D element
     KRATOS_EXPECT_EQ(p_3D_element->Check(dummy_process_info), 0);
 }
@@ -446,8 +449,8 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_InitializeSolution, KratosGeoMechan
     p_element->InitializeSolutionStep(dummy_process_info);
 
     // Assert
-    for (auto& node : p_element->GetGeometry()) {
-        KRATOS_EXPECT_EQ(node.FastGetSolutionStepValue(HYDRAULIC_DISCHARGE), 0.0);
+    for (auto& r_node : p_element->GetGeometry()) {
+        KRATOS_EXPECT_EQ(r_node.FastGetSolutionStepValue(HYDRAULIC_DISCHARGE), 0.0);
     }
 }
 
