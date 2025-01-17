@@ -265,7 +265,6 @@ public:
         const bool friction_active = BaseType::GetModelPart().GetProcessInfo()[FRICTION_ACTIVE];
         const bool is_initial_loop = (BaseType::GetModelPart().GetProcessInfo()[STEP] ==  1);
 
-        bool mCalculateReactionsFlag = true; //modificar
 
         //calculate reactions if required
         if (mCalculateReactionsFlag == true){
@@ -276,6 +275,7 @@ public:
                 curr_node.FastGetSolutionStepValue(STICK_FORCE).clear();
                 }
             }
+
             p_builder_and_solver->CalculateReactions(p_scheme, BaseType::GetModelPart(), rA, rDx, rb);
         }
 

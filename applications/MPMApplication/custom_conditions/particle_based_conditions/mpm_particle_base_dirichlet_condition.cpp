@@ -69,9 +69,13 @@ void MPMParticleBaseDirichletCondition::FinalizeSolutionStep( const ProcessInfo&
 void MPMParticleBaseDirichletCondition::CalculateInterfaceContactForce(const ProcessInfo& rCurrentProcessInfo )
 {
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+
     GeneralVariables Variables;
     MPMShapeFunctionPointValues(Variables.N);
+
     array_1d<double, 3 > mpc_force = ZeroVector(3);
+
+
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         if (Variables.N[i] > std::numeric_limits<double>::epsilon() )
@@ -80,17 +84,20 @@ void MPMParticleBaseDirichletCondition::CalculateInterfaceContactForce(const Pro
             
             const double nodal_area  = r_geometry[i].FastGetSolutionStepValue(NODAL_AREA, 0);
             const Vector nodal_force = r_geometry[i].FastGetSolutionStepValue(REACTION);
+
             if (nodal_area > std::numeric_limits<double>::epsilon())
             {
                 mpc_force += Variables.N[i] * nodal_force * this->GetIntegrationWeight() / nodal_area;
             }
         }
     }
+
     // Apply in the normal contact direction and allow releasing motion
     if (Is(CONTACT))
     {
         // Apply only in the normal direction
         const double normal_force = MathUtils<double>::Dot(mpc_force, m_normal);
+
         // This check is done to avoid sticking forces
         if (normal_force > 0.0)
             mpc_force = 1.0 * normal_force * m_normal;
@@ -100,10 +107,12 @@ void MPMParticleBaseDirichletCondition::CalculateInterfaceContactForce(const Pro
     
     m_contact_force = -mpc_force;
 }
+
 void MPMParticleBaseDirichletCondition::CalculateNodalReactions(const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_ERROR << "You are calling the CalculateNodalReactions from the base class for dirichlet conditions" << std::endl;
 }
+
 
 void MPMParticleBaseDirichletCondition::CalculateOnIntegrationPoints(
     const Variable<bool>& rVariable,
@@ -112,6 +121,7 @@ void MPMParticleBaseDirichletCondition::CalculateOnIntegrationPoints(
 {
     if (rValues.size() != 1)
         rValues.resize(1);
+
     if (rVariable == MPC_CALCULATE_NODAL_REACTIONS) {
         this->CalculateNodalReactions(rCurrentProcessInfo);
         rValues[0] = true;
