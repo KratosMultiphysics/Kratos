@@ -518,6 +518,7 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE( I22_SENSITIVITY );
     KRATOS_REGISTER_VARIABLE( I33_SENSITIVITY );
     KRATOS_REGISTER_VARIABLE( THICKNESS_SENSITIVITY );
+    KRATOS_REGISTER_VARIABLE( THICKNESS_EFFECTIVE_Y );
     KRATOS_REGISTER_VARIABLE( YOUNG_MODULUS_SENSITIVITY );
     KRATOS_REGISTER_VARIABLE( AREA_EFFECTIVE_Y_SENSITIVITY );
     KRATOS_REGISTER_VARIABLE( AREA_EFFECTIVE_Z_SENSITIVITY );
@@ -799,6 +800,7 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_CONSTITUTIVE_LAW("UserProvidedLinearElastic2DLaw", mUserProvidedLinearElastic2DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("UserProvidedLinearElastic3DLaw", mUserProvidedLinearElastic3DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("TimoshenkoBeamElasticConstitutiveLaw", mTimoshenkoBeamElasticConstitutiveLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("TimoshenkoBeamPlaneStrainElasticConstitutiveLaw", mTimoshenkoBeamPlaneStrainElasticConstitutiveLaw);
 
 }
 }  // namespace Kratos.

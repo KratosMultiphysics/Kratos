@@ -14,9 +14,8 @@
 #include "tesselation_utilities_2d.h"
 
 namespace Kratos {
-  //-----------------------------------------------------------------------------------------------------------------------
-  TesselationUtilities2D::TesselationUtilities2D()
-  {
+  //------------------------------------------------------------------------------------------------------------
+  TesselationUtilities2D::TesselationUtilities2D() {
     mUpdateVoronoi = false;
     mUpdatePorosiy = false;
     mAlphaRadius   = 0.0;
@@ -25,9 +24,8 @@ namespace Kratos {
 
   TesselationUtilities2D::~TesselationUtilities2D() {}
 
-  //-----------------------------------------------------------------------------------------------------------------------
-  void TesselationUtilities2D::ExecuteInitialize(ModelPart& rModelPart, bool update_voronoi, bool update_porosity)
-  {
+  //------------------------------------------------------------------------------------------------------------
+  void TesselationUtilities2D::ExecuteInitialize(ModelPart& rModelPart, bool update_voronoi, bool update_porosity) {
     KRATOS_TRY
 
     ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
@@ -47,15 +45,13 @@ namespace Kratos {
     KRATOS_CATCH("")
   }
 
-  //-----------------------------------------------------------------------------------------------------------------------
-  void TesselationUtilities2D::ExecuteInitializeSolutionStep(ModelPart& rModelPart)
-  {
+  //------------------------------------------------------------------------------------------------------------
+  void TesselationUtilities2D::ExecuteInitializeSolutionStep(ModelPart& rModelPart) {
     Triangulation(rModelPart);
   }
 
-  //-----------------------------------------------------------------------------------------------------------------------
-  void TesselationUtilities2D::Triangulation(ModelPart& rModelPart)
-  {
+  //------------------------------------------------------------------------------------------------------------
+  void TesselationUtilities2D::Triangulation(ModelPart& rModelPart) {
     KRATOS_TRY
 
     const int num_particles = rModelPart.NumberOfElements();
@@ -127,7 +123,7 @@ namespace Kratos {
     KRATOS_CATCH("")
   }
 
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   /*
   * Build a table for each particle with needed information from 2D voronoi diagram:
   * column 1: neighbor particle IDs
@@ -203,7 +199,7 @@ namespace Kratos {
     }
   }
 
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   /*
   * Compute total area of delaunay triangles and particles (circular cross-section) to obtain global avarege porosity.
   * Oversized triangles may be removed using the alpha-shape method.
@@ -244,7 +240,7 @@ namespace Kratos {
       }
 
       // Add triangle area
-      total_area += fabs(0.5 * (x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2)));
+      total_area += std::abs(0.5 * (x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2)));
 
       // Add particles area
       AddParticleArea(rModelPart, addedParticle, particle_area, v1);
@@ -256,7 +252,7 @@ namespace Kratos {
     r_process_info[AVERAGE_POROSITY] = 1.0 - particle_area / total_area;
   }
 
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   /*
   * Compute mean mesh size for alpha-shape.
   * The mean mesh size is taken as the average of the smallest side of each triangle.
@@ -296,7 +292,7 @@ namespace Kratos {
     mAlphaRadius = MeanMeshSize * r_process_info[ALPHA_SHAPE_PARAMETER];
   }
 
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   /*
   * Perform alpha-shape verification on a delaunay triangle to remove distorted shapes.
   */
@@ -348,7 +344,7 @@ namespace Kratos {
     return (radius >= 0 && radius < mAlphaRadius);
   }
 
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   void TesselationUtilities2D::AddParticleArea(ModelPart& rModelPart, std::vector<int>& addedParticle, double& particle_area, const int id) {
     if (!addedParticle[id]) {
       ModelPart::ElementsContainerType::iterator it = rModelPart.GetCommunicator().LocalMesh().Elements().ptr_begin() + id;
@@ -359,9 +355,8 @@ namespace Kratos {
     }
   }
 
-  //-----------------------------------------------------------------------------------------------------------------------
-  void TesselationUtilities2D::ClearTriangle(struct triangulateio& rTr)
-  {
+  //------------------------------------------------------------------------------------------------------------
+  void TesselationUtilities2D::ClearTriangle(struct triangulateio& rTr) {
     KRATOS_TRY
 
     rTr.pointlist                  = (REAL*) NULL;
@@ -396,9 +391,8 @@ namespace Kratos {
     KRATOS_CATCH("")
   }
 
-  //-----------------------------------------------------------------------------------------------------------------------
-  void TesselationUtilities2D::FreeTriangle(struct triangulateio& rTr)
-  {
+  //------------------------------------------------------------------------------------------------------------
+  void TesselationUtilities2D::FreeTriangle(struct triangulateio& rTr) {
     KRATOS_TRY
 
     if (rTr.numberoftriangles) {
