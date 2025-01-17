@@ -187,9 +187,8 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_DoFList, KratosGeoMechanicsFastSuit
 
     // Assert
     KRATOS_EXPECT_EQ(degrees_of_freedom.size(), 3);
-    for (auto p_dof : degrees_of_freedom) {
-        KRATOS_EXPECT_EQ(p_dof->GetVariable(), WATER_PRESSURE);
-    }
+    KRATOS_EXPECT_TRUE(std::all_of(degrees_of_freedom.begin(), degrees_of_freedom.end(),
+                                   [](auto p_dof) { return p_dof->GetVariable() == WATER_PRESSURE; }));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_EquationIdVector, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -431,9 +430,9 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_Initialize, KratosGeoMechanicsFastS
 
     const auto& r_retention_law_vector = element.mRetentionLawVector;
     KRATOS_EXPECT_EQ(r_retention_law_vector.size(), number_of_integration_points);
-    for (const auto& retention_law : r_retention_law_vector) {
-        KRATOS_EXPECT_NE(dynamic_cast<SaturatedLaw*>(retention_law.get()), nullptr);
-    }
+    KRATOS_EXPECT_TRUE(std::none_of(r_retention_law_vector.begin(), r_retention_law_vector.end(), [](auto p_retention_law) {
+        return dynamic_cast<SaturatedLaw*>(p_retention_law.get()) == nullptr;
+    }));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_InitializeSolution, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -449,9 +448,9 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_InitializeSolution, KratosGeoMechan
     p_element->InitializeSolutionStep(dummy_process_info);
 
     // Assert
-    for (auto& r_node : p_element->GetGeometry()) {
-        KRATOS_EXPECT_EQ(r_node.FastGetSolutionStepValue(HYDRAULIC_DISCHARGE), 0.0);
-    }
+    KRATOS_EXPECT_TRUE(std::all_of(
+        p_element->GetGeometry().begin(), p_element->GetGeometry().end(),
+        [](auto& r_node) { return r_node.FastGetSolutionStepValue(HYDRAULIC_DISCHARGE) == 0.0; }));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_FinalizeSolutionStep, KratosGeoMechanicsFastSuiteWithoutKernel)
