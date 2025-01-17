@@ -1084,11 +1084,11 @@ std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateDegreesOfSa
     const std::vector<double>& rFluidPressures) const
 {
     KRATOS_ERROR_IF(rFluidPressures.size() != mRetentionLawVector.size());
-    std::vector<double> result;
+    std::vector<double> result(rFluidPressures.size());
 
     auto retention_law_params = RetentionLaw::Parameters{this->GetProperties()};
     std::transform(rFluidPressures.begin(), rFluidPressures.end(), mRetentionLawVector.begin(),
-                   std::back_inserter(result), [&retention_law_params](auto fluid_pressure, auto pRetentionLaw) {
+                   result.begin(), [&retention_law_params](auto fluid_pressure, auto pRetentionLaw) {
         retention_law_params.SetFluidPressure(fluid_pressure);
         return pRetentionLaw->CalculateSaturation(retention_law_params);
     });
@@ -1422,9 +1422,9 @@ std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateRelativePer
 
     auto retention_law_params = RetentionLaw::Parameters{this->GetProperties()};
 
-    auto result = std::vector<double>{};
+    auto result = std::vector<double>(rFluidPressures.size());
     std::transform(mRetentionLawVector.begin(), mRetentionLawVector.end(), rFluidPressures.begin(),
-                   std::back_inserter(result), [&retention_law_params](auto pRetentionLaw, auto FluidPressure) {
+                   result.begin(), [&retention_law_params](auto pRetentionLaw, auto FluidPressure) {
         retention_law_params.SetFluidPressure(FluidPressure);
         return pRetentionLaw->CalculateRelativePermeability(retention_law_params);
     });
@@ -1438,9 +1438,9 @@ std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateBishopCoeff
 
     auto retention_law_params = RetentionLaw::Parameters{this->GetProperties()};
 
-    auto result = std::vector<double>{};
+    auto result = std::vector<double>(rFluidPressures.size());
     std::transform(mRetentionLawVector.begin(), mRetentionLawVector.end(), rFluidPressures.begin(),
-                   std::back_inserter(result), [&retention_law_params](auto pRetentionLaw, auto FluidPressure) {
+                   result.begin(), [&retention_law_params](auto pRetentionLaw, auto FluidPressure) {
         retention_law_params.SetFluidPressure(FluidPressure);
         return pRetentionLaw->CalculateBishopCoefficient(retention_law_params);
     });
