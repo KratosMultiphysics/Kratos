@@ -388,8 +388,8 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
     if (rLHS.size1() != matrix_size || rLHS.size2() != matrix_size) {
         rLHS.resize(matrix_size, matrix_size, false);
     }
-    noalias(rLHS) = ZeroMatrix(matrix_size, matrix_size);
-    noalias(rRHS) = ZeroVector(matrix_size);
+    rLHS.clear();
+    rRHS.clear();
 
     // Create the kinematics container and fill the nodal data
     KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
@@ -409,18 +409,21 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
     cons_law_values.SetStressVector(constitutive_variables.StrainVector);
     cons_law_values.SetConstitutiveMatrix(constitutive_variables.D);
 
-    Vector RHSu(dim * n_nodes), RHSe(strain_size * n_nodes);
-    noalias(RHSu) = ZeroVector(dim * n_nodes);
-    noalias(RHSe) = ZeroVector(strain_size * n_nodes);
+    Vector RHSu(dim * n_nodes);
+    Vector RHSe(strain_size * n_nodes);
+    RHSu.clear();
+    RHSe.clear();
 
-    Matrix K(dim * n_nodes, dim * n_nodes), G(n_nodes * strain_size, dim * n_nodes),
-        M(n_nodes * strain_size, n_nodes * strain_size), Q(dim * n_nodes, n_nodes * strain_size);
-    noalias(K) = ZeroMatrix(dim * n_nodes, dim * n_nodes);
-    noalias(G) = ZeroMatrix(n_nodes * strain_size, dim * n_nodes);
-    noalias(Q) = ZeroMatrix(dim * n_nodes, n_nodes * strain_size);
-    noalias(M) = ZeroMatrix(n_nodes * strain_size, n_nodes * strain_size);
+    Matrix K(dim * n_nodes, dim * n_nodes);
+    Matrix G(n_nodes * strain_size, dim * n_nodes);
+    Matrix M(n_nodes * strain_size, n_nodes * strain_size);
+    Matrix Q(dim * n_nodes, n_nodes * strain_size);
+    K.clear();
+    G.clear();
+    Q.clear();
+    M.clear();
 
-    const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+    const auto& r_integration_points = r_geometry.IntegrationPoints(mThisIntegrationMethod);
     SizeType n_gauss = r_integration_points.size();
 
     Matrix D0(strain_size, strain_size);
@@ -429,9 +432,9 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
     // Gauss IP loop
     for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
 
-        const auto body_force = GetBodyForce(r_geometry.IntegrationPoints(GetIntegrationMethod()), i_gauss);
+        const auto body_force = GetBodyForce(r_geometry.IntegrationPoints(mThisIntegrationMethod), i_gauss);
 
-        CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
+        CalculateKinematicVariables(kinematic_variables, i_gauss, mThisIntegrationMethod);
 
         double w_gauss = kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
         if (dim == 2 && r_props.Has(THICKNESS))
@@ -496,7 +499,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLeftHandSide(
     if (rLHS.size1() != matrix_size || rLHS.size2() != matrix_size) {
         rLHS.resize(matrix_size, matrix_size, false);
     }
-    noalias(rLHS) = ZeroMatrix(matrix_size, matrix_size);
+    rLHS.clear();
 
     // Create the kinematics container and fill the nodal data
     KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
@@ -516,14 +519,16 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLeftHandSide(
     cons_law_values.SetStressVector(constitutive_variables.StrainVector);
     cons_law_values.SetConstitutiveMatrix(constitutive_variables.D);
 
-    Matrix K(dim * n_nodes, dim * n_nodes), G(n_nodes * strain_size, dim * n_nodes),
-        M(n_nodes * strain_size, n_nodes * strain_size), Q(dim * n_nodes, n_nodes * strain_size);
-    noalias(K) = ZeroMatrix(dim * n_nodes, dim * n_nodes);
-    noalias(G) = ZeroMatrix(n_nodes * strain_size, dim * n_nodes);
-    noalias(Q) = ZeroMatrix(dim * n_nodes, n_nodes * strain_size);
-    noalias(M) = ZeroMatrix(n_nodes * strain_size, n_nodes * strain_size);
+    Matrix K(dim * n_nodes, dim * n_nodes);
+    Matrix G(n_nodes * strain_size, dim * n_nodes);
+    Matrix M(n_nodes * strain_size, n_nodes * strain_size);
+    Matrix Q(dim * n_nodes, n_nodes * strain_size);
+    K.clear();
+    G.clear();
+    Q.clear();
+    M.clear();
 
-    const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+    const auto& r_integration_points = r_geometry.IntegrationPoints(mThisIntegrationMethod);
     SizeType n_gauss = r_integration_points.size();
 
     Matrix D0(strain_size, strain_size);
@@ -532,9 +537,9 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLeftHandSide(
     // Gauss IP loop
     for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
 
-        const auto body_force = GetBodyForce(r_geometry.IntegrationPoints(GetIntegrationMethod()), i_gauss);
+        const auto body_force = GetBodyForce(r_geometry.IntegrationPoints(mThisIntegrationMethod), i_gauss);
 
-        CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
+        CalculateKinematicVariables(kinematic_variables, i_gauss, mThisIntegrationMethod);
 
         double w_gauss = kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
         if (dim == 2 && r_props.Has(THICKNESS))
@@ -582,8 +587,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateRightHandSide(
     if (rRHS.size() != matrix_size) {
         rRHS.resize(matrix_size, false);
     }
-
-    noalias(rRHS) = ZeroVector(matrix_size);
+    rRHS.clear();
 
     // Create the kinematics container and fill the nodal data
     KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
@@ -603,12 +607,13 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateRightHandSide(
     cons_law_values.SetStressVector(constitutive_variables.StrainVector);
     cons_law_values.SetConstitutiveMatrix(constitutive_variables.D);
 
-    const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+    const auto& r_integration_points = r_geometry.IntegrationPoints(mThisIntegrationMethod);
     SizeType n_gauss = r_integration_points.size();
 
-    Vector RHSu(dim * n_nodes), RHSe(strain_size * n_nodes);
-    noalias(RHSu) = ZeroVector(dim * n_nodes);
-    noalias(RHSe) = ZeroVector(strain_size * n_nodes);
+    Vector RHSu(dim * n_nodes);
+    Vector RHSe(strain_size * n_nodes);
+    RHSu.clear();
+    RHSe.clear();
 
     Matrix D0(strain_size, strain_size);
     mConstitutiveLawVector[0]->CalculateValue(cons_law_values, CONSTITUTIVE_MATRIX, D0);
@@ -617,9 +622,9 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateRightHandSide(
     // IP loop
     for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
 
-        const auto body_force = GetBodyForce(r_geometry.IntegrationPoints(GetIntegrationMethod()), i_gauss);
+        const auto body_force = GetBodyForce(r_geometry.IntegrationPoints(mThisIntegrationMethod), i_gauss);
 
-        CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
+        CalculateKinematicVariables(kinematic_variables, i_gauss, mThisIntegrationMethod);
 
         double w_gauss = kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
         if (dim == 2 && r_props.Has(THICKNESS))
