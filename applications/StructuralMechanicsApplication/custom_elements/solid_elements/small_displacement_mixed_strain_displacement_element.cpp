@@ -93,7 +93,7 @@ void SmallDisplacementMixedStrainDisplacementElement::EquationIdVector(
 
     if (dim == 2) {
         for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
-            const auto &r_node = GetGeometry()[i_node];
+            const auto &r_node = r_geometry[i_node];
             const SizeType u_block = i_node * dim;
             const SizeType E_block = i_node * strain_size + u_size;
 
@@ -109,7 +109,7 @@ void SmallDisplacementMixedStrainDisplacementElement::EquationIdVector(
         }
     } else {
         for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
-            const auto &r_node = GetGeometry()[i_node];
+            const auto &r_node = r_geometry[i_node];
             const SizeType u_block = i_node * dim;
             const SizeType E_block = i_node * strain_size + u_size;
 
@@ -154,7 +154,7 @@ void SmallDisplacementMixedStrainDisplacementElement::GetDofList(
 
     if (dim == 2) {
         for(IndexType i_node = 0; i_node < n_nodes; ++i_node) {
-            const auto &r_node = GetGeometry()[i_node];
+            const auto &r_node = r_geometry[i_node];
             const SizeType u_block = i_node * dim;
             const SizeType E_block = i_node * strain_size + u_size;
             rElementalDofList[u_block    ] = r_node.pGetDof(DISPLACEMENT_X);
@@ -165,7 +165,7 @@ void SmallDisplacementMixedStrainDisplacementElement::GetDofList(
         }
     } else if (dim == 3) {
         for(IndexType i_node = 0; i_node < n_nodes; ++i_node) {
-            const auto &r_node = GetGeometry()[i_node];
+            const auto &r_node = r_geometry[i_node];
             const SizeType u_block = i_node * dim;
             const SizeType E_block = i_node * strain_size + u_size;
             rElementalDofList[u_block    ] = r_node.pGetDof(DISPLACEMENT_X);
@@ -194,7 +194,34 @@ void SmallDisplacementMixedStrainDisplacementElement::Initialize(
     // Initialization should not be done again in a restart!
     if (!rCurrentProcessInfo[IS_RESTARTED]) {
         // Integration method initialization
-        mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_LOBATTO_1;
+
+
+        if (GetProperties().Has(INTEGRATION_ORDER) ) {
+            const SizeType integration_order = GetProperties()[INTEGRATION_ORDER];
+            switch (integration_order)
+            {
+            case 1:
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
+                break;
+            case 2:
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
+                break;
+            case 3:
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
+                break;
+            case 4:
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_4;
+                break;
+            case 5:
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5;
+                break;
+            default:
+                KRATOS_WARNING("SmallDisplacementMixedStrainDisplacementElement") << "Integration order " << integration_order << " is not available, using GI_LOBATTO_1" << std::endl;
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_LOBATTO_1;
+            }
+        } else {
+            mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_LOBATTO_1;
+        }
 
         const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
