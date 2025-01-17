@@ -749,10 +749,6 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
         rOutput.resize( number_of_integration_points, false );
     rOutput.assign(number_of_integration_points, 0.0);
 
-    for (IndexType i_gauss = 0; i_gauss < number_of_integration_points; ++i_gauss) {
-        rOutput[i_gauss] = 0.0;
-    }
-
     if (mConstitutiveLawVector[0]->Has( rVariable)) {
         GetValueOnConstitutiveLaw(rVariable, rOutput);
     } else {
