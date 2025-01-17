@@ -514,9 +514,9 @@ protected:
                 }
             } else { // 3D
                 if (num_nodes == 4) { // Tetrahedron
-                    l_char = ElementSizeCalculator<2, 4>::AverageElementSize(r_geom);
+                    l_char = ElementSizeCalculator<3, 4>::AverageElementSize(r_geom);
                 } else { // Hexahedron
-                    l_char = ElementSizeCalculator<2, 8>::AverageElementSize(r_geom);
+                    l_char = ElementSizeCalculator<3, 8>::AverageElementSize(r_geom);
                 }
             }
             const double factor = l_char * tau / L0;
