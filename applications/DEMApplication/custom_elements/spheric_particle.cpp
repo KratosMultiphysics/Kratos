@@ -254,8 +254,10 @@ void SphericParticle::Initialize(const ProcessInfo& r_process_info)
     double& max_normal_ball_to_ball_force_times_radius = this->GetMaxNormalBallToBallForceTimesRadius();
     max_normal_ball_to_ball_force_times_radius = 0.0;
 
-    mGlobalDampingModel = pCloneGlobalDampingModel(this);
-    mGlobalDampingModel->mGlobalDamping = r_process_info[GLOBAL_DAMPING];
+    if (this->Is(DEMFlags::HAS_GLOBAL_DAMPING)) {
+        mGlobalDampingModel = pCloneGlobalDampingModel(this);
+        mGlobalDampingModel->mGlobalDamping = r_process_info[GLOBAL_DAMPING];
+    }
 
     DEMIntegrationScheme::Pointer& translational_integration_scheme = GetProperties()[DEM_TRANSLATIONAL_INTEGRATION_SCHEME_POINTER];
     DEMIntegrationScheme::Pointer& rotational_integration_scheme = GetProperties()[DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER];
@@ -1919,11 +1921,14 @@ void SphericParticle::MemberDeclarationFirstStep(const ProcessInfo& r_process_in
         this->GetGeometry()[0].FastGetSolutionStepValue(EXPORT_ID) = double(this->Id());
     }
 
-    if (r_process_info[ROTATION_OPTION])         this->Set(DEMFlags::HAS_ROTATION, true);
-    else                                         this->Set(DEMFlags::HAS_ROTATION, false);
+    if (r_process_info[ROTATION_OPTION]) this->Set(DEMFlags::HAS_ROTATION, true);
+    else                                 this->Set(DEMFlags::HAS_ROTATION, false);
 
     if (r_process_info[ROLLING_FRICTION_OPTION]) this->Set(DEMFlags::HAS_ROLLING_FRICTION, true);
     else                                         this->Set(DEMFlags::HAS_ROLLING_FRICTION, false);
+
+    if (r_process_info[GLOBAL_DAMPING_OPTION]) this->Set(DEMFlags::HAS_GLOBAL_DAMPING, true);
+    else                                       this->Set(DEMFlags::HAS_GLOBAL_DAMPING, false);
 
     if (r_process_info[COMPUTE_STRESS_TENSOR_OPTION]) this->Set(DEMFlags::HAS_STRESS_TENSOR, true);
     else                                              this->Set(DEMFlags::HAS_STRESS_TENSOR, false);
@@ -2219,7 +2224,7 @@ void SphericParticle::Calculate(const Variable<Matrix >& rVariable, Matrix& Outp
 void SphericParticle::AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info){}
 
 void SphericParticle::ApplyGlobalDampingToContactForcesAndMoments(array_1d<double,3>& total_forces, array_1d<double,3>& total_moment) {
-    if (mGlobalDampingModel != nullptr) {
+    if (this->Is(DEMFlags::HAS_GLOBAL_DAMPING) && mGlobalDampingModel != nullptr) {
         mGlobalDampingModel->AddGlobalDampingForceAndMoment(this, total_forces, total_moment);
     }
 }

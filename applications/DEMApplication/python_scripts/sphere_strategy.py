@@ -187,6 +187,8 @@ class ExplicitStrategy():
         else:
             self.global_viscous_damping = DEM_parameters["GlobalViscousDamping"].GetDouble()
         
+        self.global_damping_option = self.global_damping != 0.0
+
         existing_damping_models = ["NonViscous","Viscous","ViscousForceDependent"]
         if "GlobalDampingModel" not in DEM_parameters.keys():
             default_damping_model = existing_damping_models[0]
@@ -314,6 +316,7 @@ class ExplicitStrategy():
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, ROLLING_FRICTION_OPTION, self.rolling_friction_option)
         self.spheres_model_part.ProcessInfo.SetValue(GLOBAL_DAMPING, self.global_damping)
         self.spheres_model_part.ProcessInfo.SetValue(GLOBAL_VISCOUS_DAMPING, self.global_viscous_damping)
+        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, GLOBAL_DAMPING_OPTION, self.global_damping_option)
         self.spheres_model_part.ProcessInfo.SetValue(DEM_GLOBAL_DAMPING_MODEL_NAME, self.global_damping_model)
 
         #Radius expansion method
