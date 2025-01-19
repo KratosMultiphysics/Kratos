@@ -25,6 +25,7 @@
 #include "custom_constitutive/DEM_Dempack_dev_CL.h"
 #include "custom_constitutive/dem_kdem_2d_cl.h"
 #include "custom_constitutive/dem_kdem_fabric_2d_cl.h"
+#include "custom_constitutive/DEM_D_Linear_Simple_Coulomb_CL.h"
 #include "custom_constitutive/DEM_D_Linear_viscous_Coulomb_CL.h"
 #include "custom_constitutive/DEM_D_Linear_viscous_Coulomb_2D_CL.h"
 #include "custom_constitutive/DEM_D_Hertz_viscous_Coulomb_CL.h"
@@ -1034,28 +1035,21 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_CONDITION("RigidEdge2D2N", mRigidEdge2D2N)
     KRATOS_REGISTER_CONDITION("RigidEdge2D1N", mRigidEdge2D1N)
 
-
     // SERIALIZER
     Serializer::Register("PropertiesProxy", PropertiesProxy());
 
-    Serializer::Register(
-        "DEM_D_Linear_viscous_Coulomb", DEM_D_Linear_viscous_Coulomb());
-    Serializer::Register(
-        "DEM_D_Linear_viscous_Coulomb2D", DEM_D_Linear_viscous_Coulomb2D());
-    Serializer::Register(
-        "DEM_D_Hertz_viscous_Coulomb", DEM_D_Hertz_viscous_Coulomb());
-    Serializer::Register(
-        "DEM_D_Hertz_viscous_Coulomb2D", DEM_D_Hertz_viscous_Coulomb2D());
+    Serializer::Register("DEM_D_Linear_Simple_Coulomb", DEM_D_Linear_Simple_Coulomb());
+    Serializer::Register("DEM_D_Linear_viscous_Coulomb", DEM_D_Linear_viscous_Coulomb());
+    Serializer::Register("DEM_D_Linear_viscous_Coulomb2D", DEM_D_Linear_viscous_Coulomb2D());
+    Serializer::Register("DEM_D_Hertz_viscous_Coulomb", DEM_D_Hertz_viscous_Coulomb());
+    Serializer::Register("DEM_D_Hertz_viscous_Coulomb2D", DEM_D_Hertz_viscous_Coulomb2D());
     Serializer::Register("DEM_D_JKR_Cohesive_Law", DEM_D_JKR_Cohesive_Law());
     Serializer::Register("DEM_D_Bentonite_Colloid", DEM_D_Bentonite_Colloid());
     Serializer::Register("DEM_D_DMT_Cohesive_Law", DEM_D_DMT_Cohesive_Law());
     Serializer::Register("DEM_D_Stress_Dependent_Cohesive", DEM_D_Stress_Dependent_Cohesive());
-    Serializer::Register(
-        "DEM_D_Linear_Custom_Constants", DEM_D_Linear_Custom_Constants());
-    Serializer::Register(
-        "DEM_D_Conical_damage", DEM_D_Conical_damage());
-    Serializer::Register("DEM_D_Hertz_viscous_Coulomb_Nestle",
-        DEM_D_Hertz_viscous_Coulomb_Nestle());
+    Serializer::Register("DEM_D_Linear_Custom_Constants", DEM_D_Linear_Custom_Constants());
+    Serializer::Register("DEM_D_Conical_damage", DEM_D_Conical_damage());
+    Serializer::Register("DEM_D_Hertz_viscous_Coulomb_Nestle", DEM_D_Hertz_viscous_Coulomb_Nestle());
     Serializer::Register("DEM_D_Quadratic", DEM_D_Quadratic());
     Serializer::Register("DEM_D_Linear_classic", DEM_D_Linear_classic());
     Serializer::Register("DEM_D_void", DEM_D_void());
