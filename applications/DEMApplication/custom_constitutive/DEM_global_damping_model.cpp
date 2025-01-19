@@ -24,4 +24,8 @@ namespace Kratos
     std::unique_ptr<DEMGlobalDampingModel> DEMGlobalDampingModel::CloneUnique() {
         KRATOS_ERROR << "This function (DEMGlobalDampingModel::CloneUnique) shouldn't be accessed, use derived class instead"<<std::endl;
     }
+
+    void DEMGlobalDampingModel::AddGlobalDampingForceAndMoment(SphericParticle* p_element, array_1d<double,3>& total_forces, array_1d<double,3>& total_moment) {
+        KRATOS_ERROR << "This function (DEMGlobalDampingModel::AddGlobalDampingForceAndMoment) shouldn't be accessed, use derived class instead"<<std::endl;
+  }
 }

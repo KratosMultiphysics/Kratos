@@ -33,7 +33,7 @@ namespace Kratos
 
             // Public methods
             virtual void SetGlobalDampingModelInProperties(Properties::Pointer pProp, bool verbose = true);
-            virtual void AddGlobalDampingForceAndMoment(SphericParticle* p_element, array_1d<double,3>& total_forces, array_1d<double,3>& total_moment) {}
+            virtual void AddGlobalDampingForceAndMoment(SphericParticle* p_element, array_1d<double,3>& total_forces, array_1d<double,3>& total_moment);
 
             // Public attributes
             double mGlobalDamping = 0.0;
