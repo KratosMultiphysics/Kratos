@@ -166,4 +166,4 @@ def AddSensorVariableData(sensor: KratosSI.Sensors.Sensor, variable_data: Kratos
     for var_name, var_value in variable_data.items():
         var = Kratos.KratosGlobals.GetVariable(var_name)
         value_func =  GetParameterToKratosValuesConverter(var_value)
-        sensor.SetValue(var, value_func(var_value))
+        sensor.GetNode().SetValue(var, value_func(var_value))

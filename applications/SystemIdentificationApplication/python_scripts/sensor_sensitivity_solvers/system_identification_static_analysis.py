@@ -3,22 +3,23 @@ import typing
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 
-from KratosMultiphysics.analysis_stage import AnalysisStage
+from KratosMultiphysics.SystemIdentificationApplication.sensor_sensitivity_solvers.sensor_sensitivity_analysis import SensorSensitivityAnalysis
 from KratosMultiphysics.SystemIdentificationApplication.sensor_sensitivity_solvers.sensor_sensitivity_adjoint_static_solver import SensorSensitivityAdjointStaticSolver
 from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import GetSensors
 from KratosMultiphysics.SystemIdentificationApplication.utilities.expression_utils import GetContainerExpression
 from KratosMultiphysics.SystemIdentificationApplication.utilities.expression_utils import ExpressionUnionType
 from KratosMultiphysics.SystemIdentificationApplication.utilities.expression_utils import ExpressionDataLocation
 
-class SystemIdentificationStaticAnalysis(AnalysisStage):
+class SystemIdentificationStaticAnalysis(SensorSensitivityAnalysis):
     def __init__(self, model: Kratos.Model, project_parameters: Kratos.Parameters):
         super().__init__(model, project_parameters)
-        self.listof_sensors: 'list[KratosSI.Sensors.Sensor]' = {}
+        self.list_of_sensors: 'list[KratosSI.Sensors.Sensor]' = {}
 
     def Initialize(self):
         super().Initialize()
 
         default_sensor_settings = Kratos.Parameters("""{
+            "sensor_model_part_name"       : "SensorModelPart",
             "perturbation_size"            : 1e-8,
             "adapt_perturbation_size"      : true,
             "list_of_sensors"              : [],
@@ -32,16 +33,20 @@ class SystemIdentificationStaticAnalysis(AnalysisStage):
         sensor_settings = self.project_parameters["sensor_settings"]
         sensor_settings.ValidateAndAssignDefaults(default_sensor_settings)
 
+        sensor_model_part_name = sensor_settings["sensor_model_part_name"].GetString()
+        if not self.model.HasModelPart(sensor_model_part_name):
+            self.model.CreateModelPart(sensor_model_part_name)
+
         model_part: Kratos.ModelPart = self._GetSolver().GetComputingModelPart()
         model_part.ProcessInfo[KratosSI.PERTURBATION_SIZE] = sensor_settings["perturbation_size"].GetDouble()
         model_part.ProcessInfo[KratosSI.ADAPT_PERTURBATION_SIZE] = sensor_settings["adapt_perturbation_size"].GetBool()
-        self.listof_sensors = GetSensors(model_part, sensor_settings["list_of_sensors"].values())
+        self.list_of_sensors = GetSensors(self.model[sensor_model_part_name], model_part, sensor_settings["list_of_sensors"].values())
 
         p_coefficient = sensor_settings["p_coefficient"].GetDouble()
         self.measurement_residual_response_function = KratosSI.Sensors.MeasurementResidualResponseFunction(p_coefficient)
 
-        for sensor in self.listof_sensors:
-            sensor.SetValue(KratosSI.SENSOR_MEASURED_VALUE, 0.0)
+        for sensor in self.list_of_sensors:
+            sensor.GetNode().SetValue(KratosSI.SENSOR_MEASURED_VALUE, 0.0)
             self.measurement_residual_response_function.AddSensor(sensor)
 
         self.measurement_residual_response_function.Initialize()
@@ -83,7 +88,7 @@ class SystemIdentificationStaticAnalysis(AnalysisStage):
             with OpenHDF5File(hdf5_params, self._GetSolver().GetSensitivityModelPart()) as h5_file:
                 exp_io = KratosHDF5.ExpressionIO(Kratos.Parameters("""{"prefix": "/SensitivityFieldData/"}"""), h5_file)
 
-                for sensor in self.listof_sensors:
+                for sensor in self.list_of_sensors:
                     process_info[KratosSI.SENSOR_NAME] = f"sensor \"{sensor.GetName()}\""
                     self._GetSolver().SetSensor(sensor)
                     self.InitializeSolutionStep()
@@ -108,7 +113,7 @@ class SystemIdentificationStaticAnalysis(AnalysisStage):
         self.OutputSolutionStep()
 
     def GetListOfSensors(self) -> 'list[KratosSI.Sensors.Sensor]':
-        return self.listof_sensors
+        return self.list_of_sensors
 
     def GetResponseFunction(self) -> Kratos.AdjointResponseFunction:
         return self.measurement_residual_response_function

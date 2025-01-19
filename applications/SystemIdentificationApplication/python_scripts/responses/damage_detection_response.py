@@ -92,7 +92,7 @@ class DamageDetectionResponse(ResponseFunction):
 
     def Check(self) -> None:
         pass
-    
+
     def Finalize(self) -> None:
         self.adjoint_analysis.Finalize()
 
@@ -154,7 +154,7 @@ class DamageDetectionResponse(ResponseFunction):
             for measured_row in csv_measurement_stream:
                 measured_sensor_name = measured_row[measured_name_index].strip()
                 measured_value = float(measured_row[measured_value_index])
-                self.__GetSensor(measured_sensor_name).SetValue(KratosDT.SENSOR_MEASURED_VALUE, measured_value)
+                self.__GetSensor(measured_sensor_name).GetNode().SetValue(KratosDT.SENSOR_MEASURED_VALUE, measured_value)
 
 
     def __str__(self) -> str:
