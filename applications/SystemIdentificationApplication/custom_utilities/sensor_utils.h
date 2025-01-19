@@ -12,6 +12,7 @@
 #pragma once
 
 // System includes
+#include <variant>
 
 // External includes
 
@@ -20,20 +21,36 @@
 #include "geometries/geometry.h"
 
 // Application includes
+#include "custom_sensors/sensor_view.h"
 
 namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-class SensorGeneratorUtils
+class KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) SensorUtils
 {
 public:
+    ///@name Type definitions
+    ///@{
+
+    using SensorViewType = std::variant<
+                                    SensorView<ModelPart::NodesContainerType>::Pointer,
+                                    SensorView<ModelPart::ConditionsContainerType>::Pointer,
+                                    SensorView<ModelPart::ElementsContainerType>::Pointer
+                                >;
+
+
+    ///@}
     ///@name Public static operations
     ///@{
 
-    KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) static bool IsPointInGeometry(
+    static bool IsPointInGeometry(
         const Point& rPoint,
         const Geometry<Node>& rGeometry);
+
+    static SensorViewType CreateSensorView(
+        Sensor::Pointer pSensor,
+        const std::string& rExpressionName);
 
     ///@}
 };
