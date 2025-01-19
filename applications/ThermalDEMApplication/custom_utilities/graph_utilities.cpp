@@ -14,7 +14,7 @@
 #include "graph_utilities.h"
 
 namespace Kratos {
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   GraphUtilities::GraphUtilities() {
     mGraph_ParticleTempMin       = false;
     mGraph_ParticleTempMax       = false;
@@ -31,7 +31,7 @@ namespace Kratos {
 
   GraphUtilities::~GraphUtilities() {}
 
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   void GraphUtilities::ExecuteInitialize(bool ParticleTempMin,
                                          bool ParticleTempMax,
                                          bool ParticleTempAvg,
@@ -42,8 +42,7 @@ namespace Kratos {
                                          bool EnergyThermal,
                                          bool HeatFluxContributions,
                                          bool HeatGenValues,
-                                         bool HeatGenContributions)
-  {
+                                         bool HeatGenContributions) {
     KRATOS_TRY
 
     // Set member flags
@@ -65,7 +64,7 @@ namespace Kratos {
     KRATOS_CATCH("")
   }
 
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   void GraphUtilities::ExecuteFinalizeSolutionStep(ModelPart& rModelPart) {
     KRATOS_TRY
     
@@ -75,7 +74,7 @@ namespace Kratos {
     KRATOS_CATCH("")
   }
 
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   void GraphUtilities::ExecuteFinalize(void) {
     KRATOS_TRY
 
@@ -84,7 +83,7 @@ namespace Kratos {
     KRATOS_CATCH("")
   }
 
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   void GraphUtilities::OpenFiles(void) {
     if (mGraph_ParticleTempMin) {
       mFile_ParticleTempMin.open("graph_particle_temp_min.txt", std::ios::out);
@@ -206,7 +205,7 @@ namespace Kratos {
     }
   }
 
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   void GraphUtilities::WriteGraphs(ModelPart& rModelPart) {
     KRATOS_TRY
 
@@ -523,7 +522,7 @@ namespace Kratos {
     KRATOS_CATCH("")
   }
 
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   void GraphUtilities::CloseFiles(void) {
     if (mFile_ParticleTempMin.is_open())       mFile_ParticleTempMin.close();
     if (mFile_ParticleTempMax.is_open())       mFile_ParticleTempMax.close();

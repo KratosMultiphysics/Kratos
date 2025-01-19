@@ -14,9 +14,8 @@
 #include "tesselation_utilities_3d.h"
 
 namespace Kratos {
-  //-----------------------------------------------------------------------------------------------------------------------
-  TesselationUtilities3D::TesselationUtilities3D()
-  {
+  //------------------------------------------------------------------------------------------------------------
+  TesselationUtilities3D::TesselationUtilities3D() {
     mUpdateVoronoi = false;
     mUpdatePorosiy = false;
     mAlphaRadius   = 0.0;
@@ -25,9 +24,8 @@ namespace Kratos {
 
   TesselationUtilities3D::~TesselationUtilities3D() {}
 
-  //-----------------------------------------------------------------------------------------------------------------------
-  void TesselationUtilities3D::ExecuteInitialize(ModelPart& rModelPart, bool update_voronoi, bool update_porosity)
-  {
+  //------------------------------------------------------------------------------------------------------------
+  void TesselationUtilities3D::ExecuteInitialize(ModelPart& rModelPart, bool update_voronoi, bool update_porosity) {
     KRATOS_TRY
 
     ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
@@ -47,15 +45,13 @@ namespace Kratos {
     KRATOS_CATCH("")
   }
 
-  //-----------------------------------------------------------------------------------------------------------------------
-  void TesselationUtilities3D::ExecuteInitializeSolutionStep(ModelPart& rModelPart)
-  {
+  //------------------------------------------------------------------------------------------------------------
+  void TesselationUtilities3D::ExecuteInitializeSolutionStep(ModelPart& rModelPart) {
     Tetrahedralization(rModelPart);
   }
 
-  //-----------------------------------------------------------------------------------------------------------------------
-  void TesselationUtilities3D::Tetrahedralization(ModelPart& rModelPart)
-  {
+  //------------------------------------------------------------------------------------------------------------
+  void TesselationUtilities3D::Tetrahedralization(ModelPart& rModelPart) {
     KRATOS_TRY
 
     const int num_particles = rModelPart.NumberOfElements();
@@ -113,7 +109,7 @@ namespace Kratos {
     KRATOS_CATCH("")
   }
 
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   /*
   * Build a table for each particle with needed information from 3D voronoi diagram:
   * column 1: neighbor particle IDs
@@ -204,7 +200,7 @@ namespace Kratos {
     }
   }
 
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   /*
   * Compute total volume of delaunay tetahedra and particles to obtain global avarege porosity.
   * Oversized tetahedra may be removed using the alpha-shape method.
@@ -279,7 +275,7 @@ namespace Kratos {
     r_process_info[AVERAGE_POROSITY] = 1.0 - particle_volume / total_volume;
   }
 
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   /*
   * Compute mean mesh size for alpha-shape.
   * The mean mesh size is taken as the average of the smallest edge of each tetahedron.
@@ -328,7 +324,7 @@ namespace Kratos {
     mAlphaRadius = MeanMeshSize * r_process_info[ALPHA_SHAPE_PARAMETER];
   }
 
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   /*
   * Perform alpha-shape verification on a delaunay tetahedron to remove distorted shapes.
   */
@@ -397,7 +393,7 @@ namespace Kratos {
     return (radius >= 0 && radius < mAlphaRadius);
   }
 
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   void TesselationUtilities3D::AddParticleVolume(ModelPart& rModelPart, std::vector<int>& addedParticle, double& particle_volume, const int id) {
     if (!addedParticle[id]) {
       ModelPart::ElementsContainerType::iterator it = rModelPart.GetCommunicator().LocalMesh().Elements().ptr_begin() + id;
