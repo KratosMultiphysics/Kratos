@@ -11,6 +11,7 @@ class TestDisplacementSensor(UnitTest.TestCase):
     def setUpClass(cls) -> None:
         cls.model = Kratos.Model()
         cls.model_part = cls.model.CreateModelPart("Test")
+        cls.sensor_model_part = cls.model.CreateModelPart("SensorModelPart")
         cls.model_part.AddNodalSolutionStepVariable(Kratos.DISPLACEMENT)
 
         cls.model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
@@ -69,7 +70,7 @@ class TestDisplacementSensor(UnitTest.TestCase):
             }""")
         ]
 
-        cls.sensors = GetSensors(cls.model_part, parameters)
+        cls.sensors = GetSensors(cls.sensor_model_part, cls.model_part, parameters)
         cls.ref_values = [7/3, 3, (7/3 + 10/3)/sqrt(2), (3 + 4)/sqrt(2)]
 
     def test_SensorsOnNodes(self):
@@ -116,7 +117,7 @@ class TestDisplacementSensor(UnitTest.TestCase):
             }""")
         ]
 
-        sensors = GetSensors(self.model_part, parameters)
+        sensors = GetSensors(self.model.CreateModelPart("SensorsOnNodes"), self.model_part, parameters)
         for sensor, ref_node_id in zip(sensors, [1, 2, 3, 4]):
             self.assertAlmostEqual(sensor.CalculateValue(self.model_part), self.model_part.GetNode(ref_node_id).GetSolutionStepValue(Kratos.DISPLACEMENT_X))
 
@@ -174,7 +175,7 @@ class TestDisplacementSensor(UnitTest.TestCase):
             }""")
         ]
 
-        sensors = GetSensors(self.model_part, parameters)
+        sensors = GetSensors(self.model.CreateModelPart("SensorsOnEdges"), self.model_part, parameters)
         for sensor, (ref_node_id_1, ref_node_id_2) in zip(sensors, [(1, 2), (2, 3), (2, 4), (3, 4), (1, 4)]):
             ref_value = (self.model_part.GetNode(ref_node_id_1).GetSolutionStepValue(Kratos.DISPLACEMENT_X) + self.model_part.GetNode(ref_node_id_2).GetSolutionStepValue(Kratos.DISPLACEMENT_X)) / 2.0
             self.assertAlmostEqual(sensor.CalculateValue(self.model_part), ref_value)
@@ -190,7 +191,7 @@ class TestDisplacementSensor(UnitTest.TestCase):
             ref_value = self.ref_values[i]
             delta = 1e-5
 
-            element: Kratos.Element = self.model_part.GetElement(sensor.GetValue(KratosSI.SENSOR_ELEMENT_ID))
+            element: Kratos.Element = self.model_part.GetElement(sensor.GetNode().GetValue(KratosSI.SENSOR_ELEMENT_ID))
             sensor.CalculateGradient(element, residual_matrix, response_sensitivities, self.model_part.ProcessInfo)
             for j, node in enumerate(element.GetGeometry()):
                 node.SetSolutionStepValue(Kratos.DISPLACEMENT_X, node.GetSolutionStepValue(Kratos.DISPLACEMENT_X) + delta)
@@ -211,6 +212,7 @@ class TestStrainSensorShell(UnitTest.TestCase):
     def setUpClass(cls) -> None:
         cls.model = Kratos.Model()
         cls.model_part = cls.model.CreateModelPart("Test")
+        cls.sensor_model_part = cls.model.CreateModelPart("SensorModelPart")
         cls.adjoint_model_part = cls.model.CreateModelPart("TestAdjoint")
 
         cls.model_part.ProcessInfo[KratosStruct.PERTURBATION_SIZE] = 1e-10
@@ -312,7 +314,7 @@ class TestStrainSensorShell(UnitTest.TestCase):
             }""")
         ]
 
-        cls.sensors = GetSensors(cls.model_part, parameters)
+        cls.sensors = GetSensors(cls.sensor_model_part, cls.model_part, parameters)
         cls.ref_values = [0.5, -1.5, 4.5, 0.5]
 
     def test_CalculateValue(self):
@@ -326,7 +328,7 @@ class TestStrainSensorShell(UnitTest.TestCase):
             ref_value = self.ref_values[i]
             delta = 1e-5
 
-            adjoint_element: Kratos.Element = self.adjoint_model_part.GetElement(sensor.GetValue(KratosSI.SENSOR_ELEMENT_ID))
+            adjoint_element: Kratos.Element = self.adjoint_model_part.GetElement(sensor.GetNode().GetValue(KratosSI.SENSOR_ELEMENT_ID))
             sensor.CalculateGradient(adjoint_element, residual_matrix, response_sensitivities, self.model_part.ProcessInfo)
             for i, node in enumerate(adjoint_element.GetGeometry()):
                 node.SetSolutionStepValue(Kratos.DISPLACEMENT_X, node.GetSolutionStepValue(Kratos.DISPLACEMENT_X) + delta)
@@ -347,6 +349,7 @@ class TestStrainSensorSolids(UnitTest.TestCase):
     def setUpClass(cls) -> None:
         cls.model = Kratos.Model()
         cls.model_part = cls.model.CreateModelPart("Test")
+        cls.sensor_model_part = cls.model.CreateModelPart("SensorModelPart")
         cls.adjoint_model_part = cls.model.CreateModelPart("TestAdjoint")
 
         cls.model_part.ProcessInfo[Kratos.DOMAIN_SIZE] = 3
@@ -523,7 +526,7 @@ class TestStrainSensorSolids(UnitTest.TestCase):
             }""")
         ]
 
-        cls.sensors = GetSensors(cls.model_part, parameters)
+        cls.sensors = GetSensors(cls.sensor_model_part, cls.model_part, parameters)
         cls.ref_values = [0, 6.0, 2.0, 1.0, 1.0, 3.5, 2.0, 4.5, 3.0, 2.0, 4.0, 3.0]
 
     def tearDown(self):
@@ -541,7 +544,7 @@ class TestStrainSensorSolids(UnitTest.TestCase):
             ref_value = self.ref_values[i]
             delta = 1e-5
 
-            adjoint_element: Kratos.Element = self.adjoint_model_part.GetElement(sensor.GetValue(KratosSI.SENSOR_ELEMENT_ID))
+            adjoint_element: Kratos.Element = self.adjoint_model_part.GetElement(sensor.GetNode().GetValue(KratosSI.SENSOR_ELEMENT_ID))
             sensor.CalculateGradient(adjoint_element, residual_matrix, response_sensitivities, self.model_part.ProcessInfo)
             for j, node in enumerate(adjoint_element.GetGeometry()):
                 node.SetSolutionStepValue(Kratos.DISPLACEMENT_X, node.GetSolutionStepValue(Kratos.DISPLACEMENT_X) + delta)
