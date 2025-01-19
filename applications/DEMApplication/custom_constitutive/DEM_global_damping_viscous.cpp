@@ -7,21 +7,21 @@
 //
 
 // Project includes
-#include "DEM_global_damping_model_viscous.h"
+#include "DEM_global_damping_viscous.h"
 #include "custom_utilities/GeometryFunctions.h"
 
 namespace Kratos
 {
-    DEMGlobalDampingModel::Pointer DEMGlobalDampingModelViscous::Clone() const {
-        DEMGlobalDampingModel::Pointer p_clone(new DEMGlobalDampingModelViscous(*this));
+    DEMGlobalDampingModel::Pointer DEMGlobalDampingViscous::Clone() const {
+        DEMGlobalDampingModel::Pointer p_clone(new DEMGlobalDampingViscous(*this));
         return p_clone;
     }
 
-    std::unique_ptr<DEMGlobalDampingModel> DEMGlobalDampingModelViscous::CloneUnique() {
-        return Kratos::make_unique<DEMGlobalDampingModelViscous>();
+    std::unique_ptr<DEMGlobalDampingModel> DEMGlobalDampingViscous::CloneUnique() {
+        return Kratos::make_unique<DEMGlobalDampingViscous>();
     }
 
-    void DEMGlobalDampingModelViscous::AddGlobalDampingForceAndMoment(SphericParticle* p_element, array_1d<double,3>& total_forces, array_1d<double,3>& total_moment) {
+    void DEMGlobalDampingViscous::AddGlobalDampingForceAndMoment(SphericParticle* p_element, array_1d<double,3>& total_forces, array_1d<double,3>& total_moment) {
         KRATOS_TRY
 
         if (p_element->IsNot(DEMFlags::BELONGS_TO_A_CLUSTER) && !p_element->Is(DEMFlags::CUMULATIVE_ZONE)) {

@@ -16,7 +16,7 @@
 #include "custom_utilities/AuxiliaryFunctions.h"
 #include "custom_constitutive/DEM_discontinuum_constitutive_law.h"
 #include "custom_constitutive/DEM_rolling_friction_model.h"
-#include "custom_constitutive/DEM_global_damping_model.h"
+#include "custom_constitutive/DEM_global_damping.h"
 #include "custom_conditions/RigidFace.h"
 #include "custom_conditions/dem_wall.h"
 #include "custom_strategies/schemes/dem_integration_scheme.h"

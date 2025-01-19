@@ -9,20 +9,20 @@
 #pragma once
 
 // Project includes
-#include "DEM_global_damping_model.h"
+#include "DEM_global_damping.h"
 #include "custom_elements/spheric_particle.h"
 
 namespace Kratos
 {
-    class KRATOS_API(DEM_APPLICATION) DEMGlobalDampingModelViscous : public DEMGlobalDampingModel
+    class KRATOS_API(DEM_APPLICATION) DEMGlobalDampingViscous : public DEMGlobalDampingModel
     {
         public:
             // Pointer definition
-            KRATOS_CLASS_POINTER_DEFINITION(DEMGlobalDampingModelViscous);
+            KRATOS_CLASS_POINTER_DEFINITION(DEMGlobalDampingViscous);
 
             // Constructor / Destructor
-            DEMGlobalDampingModelViscous() {}
-            virtual ~DEMGlobalDampingModelViscous() {}
+            DEMGlobalDampingViscous() {}
+            virtual ~DEMGlobalDampingViscous() {}
 
             // Clone
             DEMGlobalDampingModel::Pointer Clone() const override;

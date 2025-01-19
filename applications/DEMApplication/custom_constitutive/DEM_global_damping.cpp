@@ -7,7 +7,7 @@
 //
 
 // Includes
-#include "DEM_global_damping_model.h"
+#include "DEM_global_damping.h"
 
 namespace Kratos
 {

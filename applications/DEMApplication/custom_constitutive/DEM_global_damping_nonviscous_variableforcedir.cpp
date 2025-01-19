@@ -7,21 +7,21 @@
 //
 
 // Project includes
-#include "DEM_global_damping_model_viscousforcedependent.h"
+#include "DEM_global_damping_nonviscous_variableforcedir.h"
 #include "custom_utilities/GeometryFunctions.h"
 
 namespace Kratos
 {
-    DEMGlobalDampingModel::Pointer DEMGlobalDampingModelViscousForceDependent::Clone() const {
-        DEMGlobalDampingModel::Pointer p_clone(new DEMGlobalDampingModelViscousForceDependent(*this));
+    DEMGlobalDampingModel::Pointer DEMGlobalDampingNonViscousVarForceDir::Clone() const {
+        DEMGlobalDampingModel::Pointer p_clone(new DEMGlobalDampingNonViscousVarForceDir(*this));
         return p_clone;
     }
 
-    std::unique_ptr<DEMGlobalDampingModel> DEMGlobalDampingModelViscousForceDependent::CloneUnique() {
-        return Kratos::make_unique<DEMGlobalDampingModelViscousForceDependent>();
+    std::unique_ptr<DEMGlobalDampingModel> DEMGlobalDampingNonViscousVarForceDir::CloneUnique() {
+        return Kratos::make_unique<DEMGlobalDampingNonViscousVarForceDir>();
     }
 
-    void DEMGlobalDampingModelViscousForceDependent::AddGlobalDampingForceAndMoment(SphericParticle* p_element, array_1d<double,3>& total_forces, array_1d<double,3>& total_moment) {
+    void DEMGlobalDampingNonViscousVarForceDir::AddGlobalDampingForceAndMoment(SphericParticle* p_element, array_1d<double,3>& total_forces, array_1d<double,3>& total_moment) {
         KRATOS_TRY
         
         const auto& central_node = p_element->GetGeometry()[0];

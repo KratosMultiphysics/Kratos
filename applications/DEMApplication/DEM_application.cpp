@@ -56,10 +56,10 @@
 #include "custom_constitutive/DEM_rolling_friction_model_constant_torque.h"
 #include "custom_constitutive/DEM_rolling_friction_model_viscous_torque.h"
 #include "custom_constitutive/DEM_rolling_friction_model_bounded.h"
-#include "custom_constitutive/DEM_global_damping_model.h"
-#include "custom_constitutive/DEM_global_damping_model_nonviscous.h"
-#include "custom_constitutive/DEM_global_damping_model_viscous.h"
-#include "custom_constitutive/DEM_global_damping_model_viscousforcedependent.h"
+#include "custom_constitutive/DEM_global_damping.h"
+#include "custom_constitutive/DEM_global_damping_nonviscous_constantforcedir.h"
+#include "custom_constitutive/DEM_global_damping_nonviscous_variableforcedir.h"
+#include "custom_constitutive/DEM_global_damping_viscous.h"
 
 #include "custom_strategies/schemes/dem_integration_scheme.h"
 #include "custom_strategies/schemes/forward_euler_scheme.h"
@@ -1074,9 +1074,9 @@ void KratosDEMApplication::Register() {
     Serializer::Register("DEMRollingFrictionModelConstantTorque", DEMRollingFrictionModelConstantTorque());
     Serializer::Register("DEMRollingFrictionModelViscousTorque", DEMRollingFrictionModelViscousTorque());
     Serializer::Register("DEMRollingFrictionModelBounded", DEMRollingFrictionModelBounded());
-    Serializer::Register("DEMGlobalDampingModelNonViscous", DEMGlobalDampingModelNonViscous());
-    Serializer::Register("DEMGlobalDampingModelViscous", DEMGlobalDampingModelViscous());
-    Serializer::Register("DEMGlobalDampingModelViscousForceDependent", DEMGlobalDampingModelViscousForceDependent());
+    Serializer::Register("DEMGlobalDampingNonViscousCteForceDir", DEMGlobalDampingNonViscousCteForceDir());
+    Serializer::Register("DEMGlobalDampingNonViscousVarForceDir", DEMGlobalDampingNonViscousVarForceDir());
+    Serializer::Register("DEMGlobalDampingViscous", DEMGlobalDampingViscous());
     Serializer::Register("ForwardEulerScheme", ForwardEulerScheme());
     Serializer::Register("SymplecticEulerScheme", SymplecticEulerScheme());
     Serializer::Register("TaylorScheme", TaylorScheme());

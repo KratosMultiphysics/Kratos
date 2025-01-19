@@ -189,7 +189,7 @@ class ExplicitStrategy():
         
         self.global_damping_option = self.global_damping != 0.0
 
-        existing_damping_models = ["NonViscous","Viscous","ViscousForceDependent"]
+        existing_damping_models = ["NonViscousConstantForceDirection","NonViscousVariableForceDirection","Viscous"]
         if "GlobalDampingModel" not in DEM_parameters.keys():
             default_damping_model = existing_damping_models[0]
             self.global_damping_model = default_damping_model
@@ -734,12 +734,12 @@ class ExplicitStrategy():
     def GlobalDampingModelTranslator(self, name):
         class_name = None
 
-        if name == 'NonViscous':
-            class_name = 'DEMGlobalDampingModelNonViscous'
+        if name == 'NonViscousConstantForceDirection':
+            class_name = 'DEMGlobalDampingNonViscousCteForceDir'
+        elif name == 'NonViscousVariableForceDirection':
+            class_name = 'DEMGlobalDampingNonViscousVarForceDir'
         elif name == 'Viscous':
-            class_name = 'DEMGlobalDampingModelViscous'
-        elif name == 'ViscousForceDependent':
-            class_name = 'DEMGlobalDampingModelViscousForceDependent'
+            class_name = 'DEMGlobalDampingViscous'
 
         return class_name
 

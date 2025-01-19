@@ -63,10 +63,10 @@
 #include "custom_constitutive/DEM_rolling_friction_model_constant_torque.h"
 #include "custom_constitutive/DEM_rolling_friction_model_viscous_torque.h"
 #include "custom_constitutive/DEM_rolling_friction_model_bounded.h"
-#include "custom_constitutive/DEM_global_damping_model.h"
-#include "custom_constitutive/DEM_global_damping_model_nonviscous.h"
-#include "custom_constitutive/DEM_global_damping_model_viscous.h"
-#include "custom_constitutive/DEM_global_damping_model_viscousforcedependent.h"
+#include "custom_constitutive/DEM_global_damping.h"
+#include "custom_constitutive/DEM_global_damping_nonviscous_constantforcedir.h"
+#include "custom_constitutive/DEM_global_damping_nonviscous_variableforcedir.h"
+#include "custom_constitutive/DEM_global_damping_viscous.h"
 
 namespace Kratos {
 namespace Python {
@@ -385,15 +385,15 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         .def("__str__", PrintObject<Variable<DEMGlobalDampingModel::Pointer>>)
         ;
 
-    py::class_<DEMGlobalDampingModelNonViscous, DEMGlobalDampingModelNonViscous::Pointer, DEMGlobalDampingModel>(m, "DEMGlobalDampingModelNonViscous")
+    py::class_<DEMGlobalDampingNonViscousCteForceDir, DEMGlobalDampingNonViscousCteForceDir::Pointer, DEMGlobalDampingModel>(m, "DEMGlobalDampingNonViscousCteForceDir")
         .def(py::init<>())
         ;
     
-    py::class_<DEMGlobalDampingModelViscous, DEMGlobalDampingModelViscous::Pointer, DEMGlobalDampingModel>(m, "DEMGlobalDampingModelViscous")
+    py::class_<DEMGlobalDampingNonViscousVarForceDir, DEMGlobalDampingNonViscousVarForceDir::Pointer, DEMGlobalDampingModel>(m, "DEMGlobalDampingNonViscousVarForceDir")
         .def(py::init<>())
         ;
     
-    py::class_<DEMGlobalDampingModelViscousForceDependent, DEMGlobalDampingModelViscousForceDependent::Pointer, DEMGlobalDampingModel>(m, "DEMGlobalDampingModelViscousForceDependent")
+    py::class_<DEMGlobalDampingViscous, DEMGlobalDampingViscous::Pointer, DEMGlobalDampingModel>(m, "DEMGlobalDampingViscous")
         .def(py::init<>())
         ;
 }
