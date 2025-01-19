@@ -25,6 +25,7 @@
 #include "custom_constitutive/DEM_Dempack_dev_CL.h"
 #include "custom_constitutive/dem_kdem_2d_cl.h"
 #include "custom_constitutive/dem_kdem_fabric_2d_cl.h"
+#include "custom_constitutive/DEM_D_Linear_Simple_Coulomb_CL.h"
 #include "custom_constitutive/DEM_D_Linear_viscous_Coulomb_CL.h"
 #include "custom_constitutive/DEM_D_Linear_viscous_Coulomb_2D_CL.h"
 #include "custom_constitutive/DEM_D_Hertz_viscous_Coulomb_CL.h"
@@ -1037,9 +1038,9 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_CONDITION("RigidEdge2D2N", mRigidEdge2D2N)
     KRATOS_REGISTER_CONDITION("RigidEdge2D1N", mRigidEdge2D1N)
 
-
     // SERIALIZER
     Serializer::Register("PropertiesProxy", PropertiesProxy());
+    Serializer::Register("DEM_D_Linear_Simple_Coulomb", DEM_D_Linear_Simple_Coulomb());
     Serializer::Register("DEM_D_Linear_viscous_Coulomb", DEM_D_Linear_viscous_Coulomb());
     Serializer::Register("DEM_D_Linear_viscous_Coulomb2D", DEM_D_Linear_viscous_Coulomb2D());
     Serializer::Register("DEM_D_Hertz_viscous_Coulomb", DEM_D_Hertz_viscous_Coulomb());
