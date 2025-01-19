@@ -27,18 +27,18 @@ namespace Kratos {
 /// Constructor.
 StrainSensor::StrainSensor(
     const std::string& rName,
-    const Point& rLocation,
+    Node::Pointer pNode,
     const Variable<Matrix>& rStrainVariable,
     const StrainType& rStrainType,
     const Element& rElement,
     const double Weight)
-    : BaseType(rName, rLocation, Weight),
+    : BaseType(rName, pNode, Weight),
       mElementId(rElement.Id()),
       mStrainType(rStrainType),
       mrStrainVariable(rStrainVariable)
 {
-    KRATOS_ERROR_IF_NOT(rElement.GetGeometry().IsInside(this->GetLocation(), mLocalPoint))
-        << "The point " << this->GetLocation() << " is not inside or on the boundary of the geometry of element with id "
+    KRATOS_ERROR_IF_NOT(rElement.GetGeometry().IsInside(*(this->GetNode()), mLocalPoint))
+        << "The point " << this->GetNode()->Coordinates() << " is not inside or on the boundary of the geometry of element with id "
         << mElementId << ".";
 
     // if the element is of type 2d
@@ -64,7 +64,7 @@ StrainSensor::StrainSensor(
                      << " in element with id = " << rElement.Id() << ".";
     }
 
-    this->SetValue(SENSOR_ELEMENT_ID, static_cast<int>(mElementId));
+    this->GetNode()->SetValue(SENSOR_ELEMENT_ID, static_cast<int>(mElementId));
 }
 
 Parameters StrainSensor::GetDefaultParameters()
@@ -82,41 +82,29 @@ Parameters StrainSensor::GetDefaultParameters()
     })" );
 }
 
-const Parameters StrainSensor::GetSensorParameters() const
+Parameters StrainSensor::GetSensorParameters() const
 {
-    Parameters parameters = Parameters(R"(
-    {
-        "type"           : "strain_sensor",
-        "name"           : "",
-        "value"          : 0.0,
-        "location"       : [0.0, 0.0, 0.0],
-        "strain_type"    : "strain_xx",
-        "strain_variable": "SHELL_STRAIN",
-        "weight"         : 0.0
-    })" );
-    parameters["name"].SetString(this->GetName());
-    parameters["value"].SetDouble(this->GetSensorValue());
-    parameters["location"].SetVector(this->GetLocation());
-    parameters["weight"].SetDouble(this->GetWeight());
+    auto parameters = this->GetSensorParameters();
+    parameters.AddString("type", "strain_sensor");
 
     switch (mStrainType) {
         case StrainType::STRAIN_XX:
-            parameters["strain_type"].SetString("strain_xx");
+            parameters.AddString("strain_type", "strain_xx");
             break;
         case StrainType::STRAIN_YY:
-            parameters["strain_type"].SetString("strain_yy");
+            parameters.AddString("strain_type", "strain_yy");
             break;
         case StrainType::STRAIN_ZZ:
-            parameters["strain_type"].SetString("strain_zz");
+            parameters.AddString("strain_type", "strain_zz");
             break;
         case StrainType::STRAIN_XY:
-            parameters["strain_type"].SetString("strain_xy");
+            parameters.AddString("strain_type", "strain_xy");
             break;
         case StrainType::STRAIN_XZ:
-            parameters["strain_type"].SetString("strain_xz");
+            parameters.AddString("strain_type", "strain_xz");
             break;
         case StrainType::STRAIN_YZ:
-            parameters["strain_type"].SetString("strain_yz");
+            parameters.AddString("strain_type", "strain_yz");
             break;
     };
 
@@ -312,9 +300,6 @@ void StrainSensor::PrintInfo(std::ostream& rOStream) const
 
 void StrainSensor::PrintData(std::ostream& rOStream) const
 {
-    rOStream << "    Location: " << this->GetLocation() << std::endl;
-    rOStream << "    Value: " << this->GetSensorValue() << std::endl;
-    rOStream << "    Weight: " << this->GetWeight() << std::endl;
     rOStream << "    Element Id: " << mElementId << std::endl;
     switch (mStrainType) {
         case StrainType::STRAIN_XX:
@@ -336,7 +321,7 @@ void StrainSensor::PrintData(std::ostream& rOStream) const
             rOStream << "    Direction: STRAIN_YZ" << std::endl;
             break;
     }
-    DataValueContainer::PrintData(rOStream);
+    Sensor::PrintData(rOStream);
 }
 
 void StrainSensor::SetVectorToZero(
