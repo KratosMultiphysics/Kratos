@@ -34,8 +34,8 @@ PYBIND11_MODULE(KratosSystemIdentificationApplication, m)
         m, "KratosSystemIdentificationApplication")
         .def(py::init<>());
 
-    AddCustomUtilitiesToPython(m);
     AddCustomSensorsToPython(m);
+    AddCustomUtilitiesToPython(m);
 
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, ADJOINT_DISPLACEMENT)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, ADJOINT_ROTATION)
