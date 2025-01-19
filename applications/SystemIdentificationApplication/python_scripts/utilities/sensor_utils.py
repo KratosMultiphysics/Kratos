@@ -11,20 +11,24 @@ from KratosMultiphysics.SystemIdentificationApplication.utilities.data_utils imp
 from KratosMultiphysics.SystemIdentificationApplication.utilities.data_utils import GetNameToCSVString
 from KratosMultiphysics.SystemIdentificationApplication.utilities.expression_utils import GetContainerExpressionType
 
-def GetSensors(model_part: Kratos.ModelPart, list_of_parameters: 'list[Kratos.Parameters]') -> 'list[KratosSI.Sensors.Sensor]':
+def GetSensors(sensor_model_part: Kratos.ModelPart, domain_model_part: Kratos.ModelPart, list_of_parameters: 'list[Kratos.Parameters]') -> 'list[KratosSI.Sensors.Sensor]':
     """Get list of sensors from given parameters.
 
     This generates list of sensors from given list of parameters. Each parameter
     corresponds to one settings set for one sensor.
 
     Args:
-        model_part (Kratos.ModelPart): Model part on which the sensors will be generated.
+        sensor_model_part (Kratos.ModelPart): Model part to which the sensors will be stored.
+        domain_model_part (Kratos.ModelPart): Model part on which the sensors will be located.
         list_of_parameters (list[Kratos.Parameters]): List of parameters.
 
     Returns:
         list[KratosSI.Sensors.Sensor]: List of sensors generated.
     """
-    point_locator = Kratos.BruteForcePointLocator(model_part)
+    point_locator = Kratos.BruteForcePointLocator(domain_model_part)
+
+    if sensor_model_part.NumberOfNodes() != 0:
+        raise RuntimeError(f"The sensor model part \"{sensor_model_part.FullName()}\" is not empty.")
 
     dict_of_sensor_types: 'dict[str, typing.Type[KratosSI.Sensors.Sensor]]' = {}
     for sensor_type_name in dir(KratosSI.Sensors):
@@ -34,7 +38,10 @@ def GetSensors(model_part: Kratos.ModelPart, list_of_parameters: 'list[Kratos.Pa
 
     list_of_sensors: 'list[KratosSI.Sensors.Sensor]' = []
     shape_funcs = Kratos.Vector()
+    sensor_id = 0
     for parameters in list_of_parameters:
+        sensor_id += 1
+
         if not parameters.Has("type"):
             raise RuntimeError(f"The sensor parameters does not contain \"type\".")
         sensor_type_name = parameters["type"].GetString()
@@ -43,21 +50,18 @@ def GetSensors(model_part: Kratos.ModelPart, list_of_parameters: 'list[Kratos.Pa
             raise RuntimeError(f"Unsupported sensor type = \"{sensor_type_name}\" requested. Followings are supported:\n\t" + "\n\t".join(dict_of_sensor_types.keys()))
         parameters.ValidateAndAssignDefaults(dict_of_sensor_types[sensor_type_name].GetDefaultParameters())
 
+        name = parameters["name"].GetString()
+        loc = Kratos.Point(parameters["location"].GetVector())
+        node = sensor_model_part.CreateNewNode(sensor_id, loc.X, loc.Y, loc.Z)
+        weight = parameters["weight"].GetDouble()
+
         if sensor_type_name == "displacement_sensor":
-            name = parameters["name"].GetString()
-            loc = parameters["location"].GetVector()
-            loc = Kratos.Point(loc[0], loc[1], loc[2])
-            weight = parameters["weight"].GetDouble()
             direction = parameters["direction"].GetVector()
             elem_id = point_locator.FindElement(loc, shape_funcs, Kratos.Configuration.Initial, 1e-8)
-            sensor = KratosSI.Sensors.DisplacementSensor(name, loc, direction, model_part.GetElement(elem_id), weight)
+            sensor = KratosSI.Sensors.DisplacementSensor(name, node, direction, domain_model_part.GetElement(elem_id), weight)
             AddSensorVariableData(sensor, parameters["variable_data"])
             list_of_sensors.append(sensor)
         elif sensor_type_name == "strain_sensor":
-            name = parameters["name"].GetString()
-            loc = parameters["location"].GetVector()
-            loc = Kratos.Point(loc[0], loc[1], loc[2])
-            weight = parameters["weight"].GetDouble()
             strain_variable: Kratos.MatrixVariable = Kratos.KratosGlobals.GetVariable(parameters["strain_variable"].GetString())
             strain_type = parameters["strain_type"].GetString()
             if strain_type == "strain_xx":
@@ -73,9 +77,11 @@ def GetSensors(model_part: Kratos.ModelPart, list_of_parameters: 'list[Kratos.Pa
             elif strain_type == "strain_yz":
                 strain_type_value = KratosSI.Sensors.StrainSensor.STRAIN_YZ
             elem_id = point_locator.FindElement(loc, shape_funcs, Kratos.Configuration.Initial, 1e-8)
-            sensor = KratosSI.Sensors.StrainSensor(name, loc, strain_variable, strain_type_value, model_part.GetElement(elem_id), weight)
+            sensor = KratosSI.Sensors.StrainSensor(name, node, strain_variable, strain_type_value, domain_model_part.GetElement(elem_id), weight)
             AddSensorVariableData(sensor, parameters["variable_data"])
             list_of_sensors.append(sensor)
+        else:
+            raise RuntimeError(f"Unsupported sensor type name = \"{sensor_type_name}\".")
     return list_of_sensors
 
 def PrintSensorListToCSV(output_file_name: Path, list_of_sensors: 'list[KratosSI.Sensors.Sensor]', list_of_sensor_properties: 'list[str]') -> None:
