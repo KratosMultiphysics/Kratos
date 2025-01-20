@@ -4,7 +4,7 @@ import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 
 from KratosMultiphysics.OptimizationApplication.responses.response_routine import ResponseRoutine
 from KratosMultiphysics.OptimizationApplication.optimization_analysis import OptimizationAnalysis
-from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import GetSensors
+from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import CreateSensors
 
 class TestDamageDetectionAdjointResponseFunction(kratos_unittest.TestCase):
     @classmethod
@@ -67,7 +67,7 @@ class TestDamageDetectionAdjointResponseFunction(kratos_unittest.TestCase):
             }""")
         ]
 
-        cls.sensors = GetSensors(cls.sensor_model_part, cls.model_part, parameters)
+        cls.sensors = CreateSensors(cls.sensor_model_part, cls.model_part, parameters)
 
         cls.adjoint_response_function = KratosSI.Sensors.MeasurementResidualResponseFunction(3.0)
 

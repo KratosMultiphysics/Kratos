@@ -5,7 +5,7 @@ import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 import KratosMultiphysics.StructuralMechanicsApplication as KratosStruct
 import KratosMultiphysics.KratosUnittest as UnitTest
 
-from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import GetSensors
+from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import CreateSensors
 class TestDisplacementSensor(UnitTest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -70,7 +70,7 @@ class TestDisplacementSensor(UnitTest.TestCase):
             }""")
         ]
 
-        cls.sensors = GetSensors(cls.sensor_model_part, cls.model_part, parameters)
+        cls.sensors = CreateSensors(cls.sensor_model_part, cls.model_part, parameters)
         cls.ref_values = [7/3, 3, (7/3 + 10/3)/sqrt(2), (3 + 4)/sqrt(2)]
 
     def test_SensorsOnNodes(self):
@@ -117,7 +117,7 @@ class TestDisplacementSensor(UnitTest.TestCase):
             }""")
         ]
 
-        sensors = GetSensors(self.model.CreateModelPart("SensorsOnNodes"), self.model_part, parameters)
+        sensors = CreateSensors(self.model.CreateModelPart("SensorsOnNodes"), self.model_part, parameters)
         for sensor, ref_node_id in zip(sensors, [1, 2, 3, 4]):
             self.assertAlmostEqual(sensor.CalculateValue(self.model_part), self.model_part.GetNode(ref_node_id).GetSolutionStepValue(Kratos.DISPLACEMENT_X))
 
@@ -175,7 +175,7 @@ class TestDisplacementSensor(UnitTest.TestCase):
             }""")
         ]
 
-        sensors = GetSensors(self.model.CreateModelPart("SensorsOnEdges"), self.model_part, parameters)
+        sensors = CreateSensors(self.model.CreateModelPart("SensorsOnEdges"), self.model_part, parameters)
         for sensor, (ref_node_id_1, ref_node_id_2) in zip(sensors, [(1, 2), (2, 3), (2, 4), (3, 4), (1, 4)]):
             ref_value = (self.model_part.GetNode(ref_node_id_1).GetSolutionStepValue(Kratos.DISPLACEMENT_X) + self.model_part.GetNode(ref_node_id_2).GetSolutionStepValue(Kratos.DISPLACEMENT_X)) / 2.0
             self.assertAlmostEqual(sensor.CalculateValue(self.model_part), ref_value)
@@ -314,7 +314,7 @@ class TestStrainSensorShell(UnitTest.TestCase):
             }""")
         ]
 
-        cls.sensors = GetSensors(cls.sensor_model_part, cls.model_part, parameters)
+        cls.sensors = CreateSensors(cls.sensor_model_part, cls.model_part, parameters)
         cls.ref_values = [0.5, -1.5, 4.5, 0.5]
 
     def test_CalculateValue(self):
@@ -526,7 +526,7 @@ class TestStrainSensorSolids(UnitTest.TestCase):
             }""")
         ]
 
-        cls.sensors = GetSensors(cls.sensor_model_part, cls.model_part, parameters)
+        cls.sensors = CreateSensors(cls.sensor_model_part, cls.model_part, parameters)
         cls.ref_values = [0, 6.0, 2.0, 1.0, 1.0, 3.5, 2.0, 4.5, 3.0, 2.0, 4.0, 3.0]
 
     def tearDown(self):

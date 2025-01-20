@@ -5,7 +5,7 @@ import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 
 from KratosMultiphysics.SystemIdentificationApplication.sensor_sensitivity_solvers.sensor_sensitivity_analysis import SensorSensitivityAnalysis
 from KratosMultiphysics.SystemIdentificationApplication.sensor_sensitivity_solvers.sensor_sensitivity_adjoint_static_solver import SensorSensitivityAdjointStaticSolver
-from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import GetSensors
+from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import CreateSensors
 from KratosMultiphysics.SystemIdentificationApplication.utilities.expression_utils import GetContainerExpression
 from KratosMultiphysics.SystemIdentificationApplication.utilities.expression_utils import ExpressionUnionType
 from KratosMultiphysics.SystemIdentificationApplication.utilities.expression_utils import ExpressionDataLocation
@@ -40,7 +40,7 @@ class SystemIdentificationStaticAnalysis(SensorSensitivityAnalysis):
         model_part: Kratos.ModelPart = self._GetSolver().GetComputingModelPart()
         model_part.ProcessInfo[KratosSI.PERTURBATION_SIZE] = sensor_settings["perturbation_size"].GetDouble()
         model_part.ProcessInfo[KratosSI.ADAPT_PERTURBATION_SIZE] = sensor_settings["adapt_perturbation_size"].GetBool()
-        self.list_of_sensors = GetSensors(self.model[sensor_model_part_name], model_part, sensor_settings["list_of_sensors"].values())
+        self.list_of_sensors = CreateSensors(self.model[sensor_model_part_name], model_part, sensor_settings["list_of_sensors"].values())
 
         p_coefficient = sensor_settings["p_coefficient"].GetDouble()
         self.measurement_residual_response_function = KratosSI.Sensors.MeasurementResidualResponseFunction(p_coefficient)

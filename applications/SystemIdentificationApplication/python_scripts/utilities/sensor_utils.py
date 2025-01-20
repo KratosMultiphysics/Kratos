@@ -11,10 +11,10 @@ from KratosMultiphysics.SystemIdentificationApplication.utilities.data_utils imp
 from KratosMultiphysics.SystemIdentificationApplication.utilities.data_utils import GetNameToCSVString
 from KratosMultiphysics.SystemIdentificationApplication.utilities.expression_utils import GetContainerExpressionType
 
-def GetSensors(sensor_model_part: Kratos.ModelPart, domain_model_part: Kratos.ModelPart, list_of_parameters: 'list[Kratos.Parameters]') -> 'list[KratosSI.Sensors.Sensor]':
-    """Get list of sensors from given parameters.
+def CreateSensors(sensor_model_part: Kratos.ModelPart, domain_model_part: Kratos.ModelPart, list_of_parameters: 'list[Kratos.Parameters]') -> 'list[KratosSI.Sensors.Sensor]':
+    """Create list of sensors from given parameters.
 
-    This generates list of sensors from given list of parameters. Each parameter
+    This creates a list of sensors from given list of parameters. Each parameter
     corresponds to one settings set for one sensor.
 
     Args:

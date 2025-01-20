@@ -3,7 +3,7 @@ import typing
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 
-from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import GetSensors
+from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import CreateSensors
 from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import PrintSensorListToCSV
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
@@ -54,7 +54,7 @@ class SensorOutputProcess(Kratos.OutputProcess):
             sensor_model_part_name = settings["sensor_model_part_name"].GetString()
             if not model.HasModelPart(sensor_model_part_name):
                 model.CreateModelPart(sensor_model_part_name)
-            self.list_of_sensors = GetSensors(model[sensor_model_part_name], self.model_part, settings["list_of_sensors"].values())
+            self.list_of_sensors = CreateSensors(model[sensor_model_part_name], self.model_part, settings["list_of_sensors"].values())
         else:
             self.initialized_sensors = False
             self.compute_sensor_value = False

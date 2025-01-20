@@ -1,7 +1,7 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 import KratosMultiphysics.KratosUnittest as UnitTest
-from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import GetSensors
+from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import CreateSensors
 
 class TestSensorUtils(UnitTest.TestCase):
     @classmethod
@@ -67,7 +67,7 @@ class TestSensorUtils(UnitTest.TestCase):
             }""")
         ]
 
-        cls.sensors = GetSensors(cls.sensor_model_part, cls.model_part, parameters)
+        cls.sensors = CreateSensors(cls.sensor_model_part, cls.model_part, parameters)
 
         nodal_exp = Kratos.Expression.NodalExpression(cls.model_part)
         Kratos.Expression.VariableExpressionIO.Read(nodal_exp, Kratos.DISPLACEMENT, True)
