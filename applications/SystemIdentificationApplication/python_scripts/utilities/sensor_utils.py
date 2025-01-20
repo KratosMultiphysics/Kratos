@@ -10,6 +10,7 @@ from KratosMultiphysics.SystemIdentificationApplication.utilities.data_utils imp
 from KratosMultiphysics.SystemIdentificationApplication.utilities.data_utils import GetKratosValueToCSVStringConverter
 from KratosMultiphysics.SystemIdentificationApplication.utilities.data_utils import GetNameToCSVString
 from KratosMultiphysics.SystemIdentificationApplication.utilities.expression_utils import GetContainerExpressionType
+from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 
 def CreateSensors(sensor_model_part: Kratos.ModelPart, domain_model_part: Kratos.ModelPart, list_of_parameters: 'list[Kratos.Parameters]') -> 'list[KratosSI.Sensors.Sensor]':
     """Create list of sensors from given parameters.
@@ -167,3 +168,13 @@ def AddSensorVariableData(sensor: KratosSI.Sensors.Sensor, variable_data: Kratos
         var = Kratos.KratosGlobals.GetVariable(var_name)
         value_func =  GetParameterToKratosValuesConverter(var_value)
         sensor.GetNode().SetValue(var, value_func(var_value))
+
+def SetSensors(sensor_group_data: ComponentDataView, list_of_sensors: 'list[KratosSI.Sensors.Sensor]') -> None:
+    for sensor in list_of_sensors:
+        sensor_group_data.GetUnBufferedData().SetValue(f"list_of_sensors/{sensor.GetName()}/sensor", sensor)
+
+def GetSensors(sensor_group_data: ComponentDataView) -> 'list[KratosSI.Sensors.Sensor]':
+    list_of_sensors: 'list[KratosSI.Sensors.Sensor]' = []
+    for _, sensor_data in sensor_group_data.GetUnBufferedData().GetValue("list_of_sensors").GetSubItems().items():
+        list_of_sensors.append(sensor_data.GetValue("sensor"))
+    return list_of_sensors
