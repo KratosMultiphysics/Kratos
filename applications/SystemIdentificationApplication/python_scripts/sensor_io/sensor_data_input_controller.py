@@ -15,6 +15,7 @@ class SensorModelPartController(ModelPartController):
     def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
         default_settings = Kratos.Parameters("""{
             "sensor_group_name": "",
+            "sensor_mask_name" : "",
             "h5_file_name"     : "",
             "data_field_name"  : "",
             "echo_level"       : 0,
@@ -29,6 +30,7 @@ class SensorModelPartController(ModelPartController):
         parameters.ValidateAndAssignDefaults(default_settings)
 
         self.sensor_group_name = parameters["sensor_group_name"].GetString()
+        self.sensor_mask_name = parameters["sensor_mask_name"].GetString()
         self.h5_file_name = parameters["h5_file_name"].GetString()
         self.data_field_name = parameters["data_field_name"].GetString()
         self.echo_level = parameters["echo_level"].GetInt()
@@ -72,11 +74,11 @@ class SensorModelPartController(ModelPartController):
 
         # now create the mask
         self.sensor_mask_status = KratosSI.SensorMaskStatus(self.model[self.sensor_group_name], list_of_masks, self.echo_level)
-        sensor_group_data[f"mask_status_controllers/{expression_name}"] = [self.sensor_mask_status]
+        sensor_group_data[f"mask_status_controllers/{self.sensor_mask_name}"] = [self.sensor_mask_status]
 
         if self.use_kd_tree:
             self.sensor_mask_status_kd_tree = KratosSI.SensorMaskStatusKDTree(self.sensor_mask_status, self.leaf_max_size, self.echo_level)
-            sensor_group_data[f"mask_status_controllers/{expression_name}"].append(self.sensor_mask_status_kd_tree)
+            sensor_group_data[f"mask_status_controllers/{self.sensor_mask_name}"].append(self.sensor_mask_status_kd_tree)
 
     def GetModelPart(self) -> Kratos.ModelPart:
         return self.model[self.sensor_group_name]
