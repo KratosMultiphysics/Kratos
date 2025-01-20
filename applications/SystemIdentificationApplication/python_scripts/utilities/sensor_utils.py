@@ -171,10 +171,10 @@ def AddSensorVariableData(sensor: KratosSI.Sensors.Sensor, variable_data: Kratos
 
 def SetSensors(sensor_group_data: ComponentDataView, list_of_sensors: 'list[KratosSI.Sensors.Sensor]') -> None:
     for sensor in list_of_sensors:
-        sensor_group_data.GetUnBufferedData().SetValue(f"{sensor.GetName()}/sensor", sensor)
+        sensor_group_data.GetUnBufferedData().SetValue(f"list_of_sensors/{sensor.GetName()}/sensor", sensor)
 
 def GetSensors(sensor_group_data: ComponentDataView) -> 'list[KratosSI.Sensors.Sensor]':
     list_of_sensors: 'list[KratosSI.Sensors.Sensor]' = []
-    for _, sensor_data in sensor_group_data.GetUnBufferedData().GetSubItems().items():
+    for _, sensor_data in sensor_group_data.GetUnBufferedData().GetValue("list_of_sensors").GetSubItems().items():
         list_of_sensors.append(sensor_data.GetValue("sensor"))
     return list_of_sensors
