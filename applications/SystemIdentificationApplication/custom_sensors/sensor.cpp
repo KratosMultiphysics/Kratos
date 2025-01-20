@@ -98,8 +98,15 @@ Sensor::ContainerExpressionType Sensor::GetContainerExpression(const std::string
 
     const auto p_itr = mContainerExpressions.find(rExpressionName);
 
-    KRATOS_ERROR_IF(p_itr == mContainerExpressions.end())
-        << "A container expression named \"" << rExpressionName << " not found.";
+    if (p_itr == mContainerExpressions.end()) {
+        std::stringstream msg;
+        msg << "A container expression named \"" << rExpressionName << "\" not found in "
+            << "sensor named \"" << this->GetName() << "\". Followings are available:";
+        for (const auto& r_pair : this->GetContainerExpressionsMap()) {
+            msg << std::endl << "   "  << r_pair.first;
+        }
+        KRATOS_ERROR << msg.str();
+    }
 
     return p_itr->second;
 
