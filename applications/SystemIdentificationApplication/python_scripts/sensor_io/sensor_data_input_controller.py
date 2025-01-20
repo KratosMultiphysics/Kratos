@@ -4,6 +4,7 @@ import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 from KratosMultiphysics.OptimizationApplication.model_part_controllers.model_part_controller import ModelPartController
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import GetSensors
+from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import AddMaskStatusController
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> ModelPartController:
@@ -74,11 +75,11 @@ class SensorModelPartController(ModelPartController):
 
         # now create the mask
         self.sensor_mask_status = KratosSI.SensorMaskStatus(self.model[self.sensor_group_name], list_of_masks, self.echo_level)
-        sensor_group_data[f"mask_status_controllers/{self.sensor_mask_name}"] = [self.sensor_mask_status]
+        AddMaskStatusController(sensor_group_data, self.sensor_mask_name, self.sensor_mask_status)
 
         if self.use_kd_tree:
             self.sensor_mask_status_kd_tree = KratosSI.SensorMaskStatusKDTree(self.sensor_mask_status, self.leaf_max_size, self.echo_level)
-            sensor_group_data[f"mask_status_controllers/{self.sensor_mask_name}"].append(self.sensor_mask_status_kd_tree)
+            AddMaskStatusController(sensor_group_data, self.sensor_mask_name, self.sensor_mask_status_kd_tree)
 
     def GetModelPart(self) -> Kratos.ModelPart:
         return self.model[self.sensor_group_name]
