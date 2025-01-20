@@ -14,15 +14,15 @@
 
 namespace Kratos
 {
-    class KRATOS_API(DEM_APPLICATION) DEMGlobalDampingNonViscousCteForceDir : public DEMGlobalDampingModel
+    class KRATOS_API(DEM_APPLICATION) DEMGlobalDampingNonViscousCstForceDir : public DEMGlobalDampingModel
     {
         public:
             // Pointer definition
-            KRATOS_CLASS_POINTER_DEFINITION(DEMGlobalDampingNonViscousCteForceDir);
+            KRATOS_CLASS_POINTER_DEFINITION(DEMGlobalDampingNonViscousCstForceDir);
 
             // Constructor / Destructor
-            DEMGlobalDampingNonViscousCteForceDir() {}
-            virtual ~DEMGlobalDampingNonViscousCteForceDir() {}
+            DEMGlobalDampingNonViscousCstForceDir() {}
+            virtual ~DEMGlobalDampingNonViscousCstForceDir() {}
 
             // Clone
             DEMGlobalDampingModel::Pointer Clone() const override;

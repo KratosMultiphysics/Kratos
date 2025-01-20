@@ -1074,7 +1074,7 @@ void KratosDEMApplication::Register() {
     Serializer::Register("DEMRollingFrictionModelConstantTorque", DEMRollingFrictionModelConstantTorque());
     Serializer::Register("DEMRollingFrictionModelViscousTorque", DEMRollingFrictionModelViscousTorque());
     Serializer::Register("DEMRollingFrictionModelBounded", DEMRollingFrictionModelBounded());
-    Serializer::Register("DEMGlobalDampingNonViscousCteForceDir", DEMGlobalDampingNonViscousCteForceDir());
+    Serializer::Register("DEMGlobalDampingNonViscousCstForceDir", DEMGlobalDampingNonViscousCstForceDir());
     Serializer::Register("DEMGlobalDampingNonViscousVarForceDir", DEMGlobalDampingNonViscousVarForceDir());
     Serializer::Register("DEMGlobalDampingViscous", DEMGlobalDampingViscous());
     Serializer::Register("ForwardEulerScheme", ForwardEulerScheme());

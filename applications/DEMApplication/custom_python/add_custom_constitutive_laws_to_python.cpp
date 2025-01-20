@@ -385,7 +385,7 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         .def("__str__", PrintObject<Variable<DEMGlobalDampingModel::Pointer>>)
         ;
 
-    py::class_<DEMGlobalDampingNonViscousCteForceDir, DEMGlobalDampingNonViscousCteForceDir::Pointer, DEMGlobalDampingModel>(m, "DEMGlobalDampingNonViscousCteForceDir")
+    py::class_<DEMGlobalDampingNonViscousCstForceDir, DEMGlobalDampingNonViscousCstForceDir::Pointer, DEMGlobalDampingModel>(m, "DEMGlobalDampingNonViscousCstForceDir")
         .def(py::init<>())
         ;
     

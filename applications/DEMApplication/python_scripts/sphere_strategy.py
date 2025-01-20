@@ -735,7 +735,7 @@ class ExplicitStrategy():
         class_name = None
 
         if name == 'NonViscousConstantForceDirection':
-            class_name = 'DEMGlobalDampingNonViscousCteForceDir'
+            class_name = 'DEMGlobalDampingNonViscousCstForceDir'
         elif name == 'NonViscousVariableForceDirection':
             class_name = 'DEMGlobalDampingNonViscousVarForceDir'
         elif name == 'Viscous':

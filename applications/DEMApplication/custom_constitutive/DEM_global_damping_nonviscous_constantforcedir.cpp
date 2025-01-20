@@ -12,16 +12,16 @@
 
 namespace Kratos
 {
-    DEMGlobalDampingModel::Pointer DEMGlobalDampingNonViscousCteForceDir::Clone() const {
-        DEMGlobalDampingModel::Pointer p_clone(new DEMGlobalDampingNonViscousCteForceDir(*this));
+    DEMGlobalDampingModel::Pointer DEMGlobalDampingNonViscousCstForceDir::Clone() const {
+        DEMGlobalDampingModel::Pointer p_clone(new DEMGlobalDampingNonViscousCstForceDir(*this));
         return p_clone;
     }
 
-    std::unique_ptr<DEMGlobalDampingModel> DEMGlobalDampingNonViscousCteForceDir::CloneUnique() {
-        return Kratos::make_unique<DEMGlobalDampingNonViscousCteForceDir>();
+    std::unique_ptr<DEMGlobalDampingModel> DEMGlobalDampingNonViscousCstForceDir::CloneUnique() {
+        return Kratos::make_unique<DEMGlobalDampingNonViscousCstForceDir>();
     }
 
-    void DEMGlobalDampingNonViscousCteForceDir::AddGlobalDampingForceAndMoment(SphericParticle* p_element, array_1d<double,3>& total_forces, array_1d<double,3>& total_moment) {
+    void DEMGlobalDampingNonViscousCstForceDir::AddGlobalDampingForceAndMoment(SphericParticle* p_element, array_1d<double,3>& total_forces, array_1d<double,3>& total_moment) {
         KRATOS_TRY
 
         const auto& central_node = p_element->GetGeometry()[0];
