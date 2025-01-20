@@ -6,6 +6,7 @@ import test_sensor_output_process
 import test_system_identification
 import responses.test_damage_response
 import responses.test_sensor_count_response
+import responses.test_sensor_coverage_response
 import test_smooth_clamper
 import test_mask_utils
 import test_sensor_utils
@@ -27,6 +28,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses.test_damage_response.TestDamageDetectionAdjointResponseFunction]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses.test_damage_response.TestDamageDetectionResponse]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses.test_sensor_count_response.TestSensorCountResponse]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses.test_sensor_coverage_response.TestSensorCoverageResponse]))
 
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
