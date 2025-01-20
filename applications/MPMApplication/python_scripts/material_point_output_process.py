@@ -25,8 +25,9 @@ class MaterialPointOutputProcess(KratosMultiphysics.OutputProcess):
         self.params = params
         self.params.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
-        # these quantites are lists such that they can be looped
-        # => needed for mpi in case the material point is in a different partition
+        # These quantites are lists so that they can be looped
+        # => needed for mpi (future implementation) in case the
+        # material point is located in a different partition
         self.output_file = []
 
         self.format = self.params["print_format"].GetString()
@@ -49,8 +50,9 @@ class MaterialPointOutputProcess(KratosMultiphysics.OutputProcess):
         variable_names = [ output_var_names[i].GetString() for i in range(output_var_names.size()) ]
         if len(variable_names) == 0:
             raise Exception('No variables specified for output!')
-        output_vars = [ KratosMultiphysics.KratosGlobals.GetVariable(var) for var in variable_names ]
-        self.output_variables = output_vars
+
+        self.output_variables = [ KratosMultiphysics.KratosGlobals.GetVariable(var) for var in variable_names ]
+
         # Validate types of variables
         for var in self.output_variables:
             if IsDoubleVariable(var):
@@ -80,7 +82,7 @@ class MaterialPointOutputProcess(KratosMultiphysics.OutputProcess):
 
         # Search material point element
         if entity_type == "element":
-            entity_id = self.__SearchPoint(self.model_part.Elements)
+            entity_id = KratosMPM.BruteForceMaterialPointLocator(self.model_part).FindElement(self.point, self.search_tolerance)
             if entity_id > -1:
                 self.material_point = self.model_part.Elements[entity_id]
                 entity_coord = self.material_point.CalculateOnIntegrationPoints(KratosMPM.MP_COORD, self.model_part.ProcessInfo)[0]
@@ -88,7 +90,7 @@ class MaterialPointOutputProcess(KratosMultiphysics.OutputProcess):
 
         # Search material point condition
         elif entity_type == "condition":
-            entity_id = self.__SearchPoint(self.model_part.Conditions)
+            entity_id = KratosMPM.BruteForceMaterialPointLocator(self.model_part).FindCondition(self.point, self.search_tolerance)
             if entity_id > -1:
                 self.material_point = self.model_part.Conditions[entity_id]
                 entity_coord = self.material_point.CalculateOnIntegrationPoints(KratosMPM.MP_COORD, self.model_part.ProcessInfo)[0]
@@ -147,17 +149,6 @@ class MaterialPointOutputProcess(KratosMultiphysics.OutputProcess):
     def ExecuteFinalize(self):
         for f in self.output_file:
             f.close()
-
-    def __SearchPoint(self, entities):
-        entity_id = -1
-        smallest_distance = 1e10
-        for entity in entities:
-            mp_coord = entity.CalculateOnIntegrationPoints(KratosMPM.MP_COORD, self.model_part.ProcessInfo)[0]
-            distance = (self.point - mp_coord).norm_2()
-            if distance <= smallest_distance and distance <= self.search_tolerance:
-                smallest_distance = distance
-                entity_id = entity.Id
-        return entity_id
 
 def GetFileHeader(entity_type, entity_id, point, mp_coord, output_variables):
     header  = f"# Material point {entity_type} with Id #{entity_id} "
