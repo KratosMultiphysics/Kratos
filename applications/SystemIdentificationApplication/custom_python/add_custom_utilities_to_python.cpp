@@ -25,6 +25,8 @@
 #include "custom_utilities/smooth_clamper.h"
 #include "custom_utilities/sensor_utils.h"
 #include "custom_utilities/distance_matrix.h"
+#include "custom_utilities/sensor_mask_status.h"
+#include "custom_utilities/sensor_mask_status_kd_tree.h"
 
 // Include base h
 #include "custom_python/add_custom_utilities_to_python.h"
@@ -107,6 +109,31 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def("GetEntriesSize", &DistanceMatrix::GetEntriesSize)
         .def("GetNumberOfItems", &DistanceMatrix::GetNumberOfItems)
         ;
+
+    py::class_<SensorMaskStatus, SensorMaskStatus::Pointer>(m, "SensorMaskStatus")
+        .def(py::init<ModelPart&, const SensorMaskStatus::MasksListType&, const IndexType>(), py::arg("sensor_model_part"), py::arg("sensor_masks_list"), py::arg("echo_level"))
+        .def("GetMasks", &SensorMaskStatus::GetMasks)
+        .def("GetMaskStatuses", &SensorMaskStatus::GetMaskStatuses)
+        .def("GetSensorModelPart", &SensorMaskStatus::GetSensorModelPart)
+        .def("Update", &SensorMaskStatus::Update)
+        ;
+
+    py::class_<SensorMaskStatusKDTree, SensorMaskStatusKDTree::Pointer>(m, "SensorMaskStatusKDTree")
+        .def(py::init<SensorMaskStatus::Pointer, const IndexType, const IndexType>(), py::arg("sensor_mask_status"), py::arg("leaf_max_size"), py::arg("echo_level"))
+        .def("RadiusSearch", [](const SensorMaskStatusKDTree& rSelf, const Vector& rQueryPoint, const double Radius)
+             {
+                std::vector<nanoflann::ResultItem<unsigned int, double>> result;
+                rSelf.RadiusSearch(rQueryPoint, Radius, result);
+
+                std::vector<std::pair<unsigned int, double>> std_result;
+                std_result.resize(result.size());
+                std::transform(result.begin(), result.end(), std_result.begin(), [](const auto& rInput)
+                               { return std::make_pair(rInput.first, rInput.second); });
+                return std_result;
+
+             }, py::arg("query_point"), py::arg("radius"))
+        .def("GetSensorMaskStatus", &SensorMaskStatusKDTree::GetSensorMaskStatus)
+        .def("Update", &SensorMaskStatusKDTree::Update);
 }
 
 } // namespace Kratos::Python
