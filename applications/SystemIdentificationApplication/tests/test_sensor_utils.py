@@ -2,6 +2,10 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 import KratosMultiphysics.KratosUnittest as UnitTest
 from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import CreateSensors
+from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import SetSensors
+from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import GetSensors
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
+from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 
 class TestSensorUtils(UnitTest.TestCase):
     @classmethod
@@ -48,7 +52,7 @@ class TestSensorUtils(UnitTest.TestCase):
             Kratos.Parameters("""{
 
                 "type"         : "displacement_sensor",
-                "name"         : "disp_x_1",
+                "name"         : "disp_x_3",
                 "value"        : 0,
                 "location"     : [0.3333333333333, 0.3333333333333, 0.0],
                 "direction"    : [1.0, 1.0, 0.0],
@@ -58,7 +62,7 @@ class TestSensorUtils(UnitTest.TestCase):
             Kratos.Parameters("""{
 
                 "type"         : "displacement_sensor",
-                "name"         : "disp_x_2",
+                "name"         : "disp_x_4",
                 "value"        : 0,
                 "location"     : [0.6666666666667, 0.6666666666667, 0.0],
                 "direction"    : [1.0, 1.0, 0.0],
@@ -98,6 +102,16 @@ class TestSensorUtils(UnitTest.TestCase):
             self.assertIn("mapped_id_square", nodal_sensor_view.GetAuxiliarySuffixes())
             self.assertEqual(Kratos.Expression.Utils.NormInf(nodal_sensor_view.GetAuxiliaryExpression("mapped_id") - nodal_sensor_view.GetContainerExpression() * sensor.GetNode().Id), 0.0)
             self.assertEqual(Kratos.Expression.Utils.NormInf(nodal_sensor_view.GetAuxiliaryExpression("mapped_id_square") - nodal_sensor_view.GetContainerExpression() * sensor.GetNode().Id ** 2), 0.0)
+
+    def test_SetGetSensors(self):
+        opt_prob = OptimizationProblem()
+        data = ComponentDataView("test", opt_prob)
+
+        SetSensors(data, self.sensors)
+
+        list_of_sensors = GetSensors(data)
+        for i, sensor in enumerate(list_of_sensors):
+            self.assertEqual(sensor.GetName(), self.sensors[i].GetName())
 
 if __name__ == '__main__':
     UnitTest.main()
