@@ -32,7 +32,6 @@
 namespace Kratos
 {
 
-template <unsigned int TDim, unsigned int TNumNodes>
 class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwBaseElement : public Element
 {
 public:
@@ -40,7 +39,7 @@ public:
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UPwBaseElement);
 
-    explicit UPwBaseElement(IndexType NewId = 0) : Element(NewId) {}
+    using Element::Element;
 
     /// Constructor using an array of nodes
     UPwBaseElement(IndexType NewId, const NodesArrayType& ThisNodes, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
@@ -139,8 +138,9 @@ public:
 
     std::string Info() const override
     {
-        return "U-Pw Base class Element #" + std::to_string(Id()) +
-               "\nConstitutive law: " + mConstitutiveLawVector[0]->Info();
+        const std::string constitutive_info =
+            !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
+        return "U-Pw Base class Element #" + std::to_string(Id()) + "\nConstitutive law: " + constitutive_info;
     }
 
     void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
@@ -164,48 +164,20 @@ protected:
                               bool               CalculateStiffnessMatrixFlag,
                               bool               CalculateResidualVectorFlag);
 
-    virtual double CalculateIntegrationCoefficient(const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-                                                   unsigned int PointNumber,
-                                                   double       detJ);
+    std::vector<double> CalculateIntegrationCoefficients(const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
+                                                         const Vector& rDetJs) const;
 
     void CalculateDerivativesOnInitialConfiguration(
-        double& detJ, Matrix& J0, Matrix& InvJ0, Matrix& DN_DX, unsigned int PointNumber) const;
+        double& detJ, Matrix& J0, Matrix& InvJ0, Matrix& DN_DX, unsigned int IntegrationPointIndex) const;
 
     void CalculateJacobianOnCurrentConfiguration(double& detJ, Matrix& rJ, Matrix& rInvJ, unsigned int GPoint) const;
 
-    /**
-     * @brief This functions calculate the derivatives in the reference frame
-     * @param J0 The jacobian in the reference configuration
-     * @param InvJ0 The inverse of the jacobian in the reference configuration
-     * @param DN_DX The gradient derivative of the shape function
-     * @param PointNumber The id of the integration point considered
-     * @param ThisIntegrationMethod The integration method considered
-     * @return The determinant of the jacobian in the reference configuration
-     */
-    void CalculateJacobianOnCurrentConfiguration(
-        double& detJ, Matrix& J0, Matrix& InvJ0, Matrix& DN_DX, unsigned int PointNumber) const;
-
-    /**
-     * @brief This functions calculate the derivatives in the current frame
-     * @param rJ The jacobian in the current configuration
-     * @param rInvJ The inverse of the jacobian in the current configuration
-     * @param rDN_DX The gradient derivative of the shape function
-     * @param PointNumber The id of the integration point considered
-     * @param ThisIntegrationMethod The integration method considered
-     * @return The determinant of the jacobian in the current configuration
-     */
-    double CalculateDerivativesOnCurrentConfiguration(Matrix&          rJ,
-                                                      Matrix&          rInvJ,
-                                                      Matrix&          rDN_DX,
-                                                      const IndexType& PointNumber,
-                                                      IntegrationMethod ThisIntegrationMethod) const;
-
-    virtual unsigned int GetNumberOfDOF() const;
+    virtual std::size_t GetNumberOfDOF() const;
 
     StressStatePolicy& GetStressStatePolicy() const;
 
 private:
-    [[nodiscard]] DofsVectorType GetDofs() const;
+    [[nodiscard]] virtual DofsVectorType GetDofs() const;
 
     friend class Serializer;
 

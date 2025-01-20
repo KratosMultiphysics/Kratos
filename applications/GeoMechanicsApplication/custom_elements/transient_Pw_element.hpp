@@ -10,8 +10,7 @@
 //  Main authors:    Vahid Galavi
 //
 
-#if !defined(KRATOS_GEO_PW_ELEMENT_H_INCLUDED)
-#define KRATOS_GEO_PW_ELEMENT_H_INCLUDED
+#pragma once
 
 // Project includes
 #include "includes/serializer.h"
@@ -45,17 +44,13 @@ public:
 
     /// The definition of the sizetype
     using SizeType = std::size_t;
-    using BaseType::CalculateRetentionResponse;
     using BaseType::mConstitutiveLawVector;
     using BaseType::mIsInitialised;
     using BaseType::mRetentionLawVector;
 
     using ElementVariables = typename BaseType::ElementVariables;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    /// Default Constructor
-    TransientPwElement(IndexType NewId = 0) : BaseType(NewId) {}
+    explicit TransientPwElement(IndexType NewId = 0) : BaseType(NewId) {}
 
     /// Constructor using an array of nodes
     TransientPwElement(IndexType NewId, const NodesArrayType& ThisNodes, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
@@ -78,10 +73,7 @@ public:
     {
     }
 
-    /// Destructor
-    ~TransientPwElement() override {}
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    ~TransientPwElement() = default;
 
     Element::Pointer Create(IndexType               NewId,
                             NodesArrayType const&   ThisNodes,
@@ -89,22 +81,17 @@ public:
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeNonLinearIteration(const ProcessInfo&) override;
 
-    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeNonLinearIteration(const ProcessInfo&) override;
 
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const override;
-
-    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
 
     void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -115,8 +102,6 @@ public:
     void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;
 
     void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
                                       std::vector<double>&    rOutput,
@@ -133,31 +118,20 @@ public:
     // Turn back information as a string.
     std::string Info() const override
     {
-        std::stringstream buffer;
-        buffer << "transient Pw flow Element #" << this->Id()
-               << "\nRetention law: " << mRetentionLawVector[0]->Info();
-        return buffer.str();
+        const std::string retention_info =
+            !mRetentionLawVector.empty() ? mRetentionLawVector[0]->Info() : "not defined";
+        return "transient Pw flow Element #" + std::to_string(this->Id()) + "\nRetention law: " + retention_info;
     }
 
     // Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << "transient Pw flow Element #" << this->Id()
-                 << "\nRetention law: " << mRetentionLawVector[0]->Info();
-    }
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
 
 protected:
-    /// Member Variables
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     void CalculateAll(MatrixType&        rLeftHandSideMatrix,
                       VectorType&        rRightHandSideVector,
                       const ProcessInfo& CurrentProcessInfo,
-                      const bool         CalculateStiffnessMatrixFlag,
-                      const bool         CalculateResidualVectorFlag) override;
+                      bool               CalculateStiffnessMatrixFlag,
+                      bool               CalculateResidualVectorFlag) override;
 
     void InitializeElementVariables(ElementVariables& rVariables, const ProcessInfo& CurrentProcessInfo) override;
 
@@ -165,22 +139,20 @@ protected:
 
     void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint) override;
 
-    void CalculateKinematics(ElementVariables& rVariables, unsigned int PointNumber) override;
+    void CalculateKinematics(ElementVariables& rVariables, unsigned int IntegrationPointIndex) override;
 
-    void CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) override;
-    void CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables) override;
-    void CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables) override;
-    void CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) override;
-    void CalculateAndAddCompressibilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables) override;
+    void CalculateAndAddCompressibilityMatrix(MatrixType&             rLeftHandSideMatrix,
+                                              const ElementVariables& rVariables) override;
+    void CalculateAndAddPermeabilityFlow(VectorType&             rRightHandSideVector,
+                                         const ElementVariables& rVariables) override;
+    void CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector, const ElementVariables& rVariables) override;
+    void CalculateAndAddCompressibilityFlow(VectorType&             rRightHandSideVector,
+                                            const ElementVariables& rVariables) override;
 
-    unsigned int GetNumberOfDOF() const override;
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    std::size_t GetNumberOfDOF() const override;
 
 private:
-    /// Member Variables
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    [[nodiscard]] DofsVectorType GetDofs() const;
+    [[nodiscard]] DofsVectorType GetDofs() const override;
 
     /// Serialization
 
@@ -194,8 +166,7 @@ private:
     void load(Serializer& rSerializer) override{KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)}
 
     // Assignment operator.
-    TransientPwElement&
-    operator=(TransientPwElement const& rOther);
+    TransientPwElement& operator=(TransientPwElement const& rOther);
 
     // Copy constructor.
     TransientPwElement(TransientPwElement const& rOther);
@@ -203,5 +174,3 @@ private:
 }; // Class TransientPwElement
 
 } // namespace Kratos
-
-#endif // KRATOS_GEO_PW_ELEMENT_H_INCLUDED  defined

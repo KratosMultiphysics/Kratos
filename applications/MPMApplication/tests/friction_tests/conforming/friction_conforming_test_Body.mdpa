@@ -1,0 +1,31 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+Begin Nodes
+    5 1.0 0.0 0.0
+    7 1.0 1.0 0.0
+    10 0.0 0.0 0.0
+    12 0.0 1.0 0.0
+End Nodes
+
+
+Begin Elements MPMUpdatedLagrangian2D3N// GUI group identifier: Material domain Auto2
+        1          0    10     5     7 
+        2          0     7    12    10 
+End Elements
+
+Begin SubModelPart Parts_Material_domain_Material_domain_Auto2 // Group Material domain Auto2 // Subtree Parts_Material_domain
+    Begin SubModelPartNodes
+            5
+            7
+           10
+           12
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            1
+            2
+    End SubModelPartElements
+End SubModelPart

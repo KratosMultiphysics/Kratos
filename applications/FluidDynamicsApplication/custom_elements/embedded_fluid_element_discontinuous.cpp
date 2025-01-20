@@ -5,9 +5,10 @@
 #include "custom_elements/weakly_compressible_navier_stokes.h"
 
 #include "utilities/element_size_calculator.h"
-#include "custom_utilities/embedded_discontinuous_data.h"
-#include "custom_utilities/time_integrated_qsvms_data.h"
-#include "custom_utilities/weakly_compressible_navier_stokes_data.h"
+
+#include "data_containers/embedded_discontinuous_data.h"
+#include "data_containers/time_integrated_qs_vms/time_integrated_qs_vms_data.h"
+#include "data_containers/weakly_compressible_navier_stokes/weakly_compressible_navier_stokes_data.h"
 
 #include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
 #include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"

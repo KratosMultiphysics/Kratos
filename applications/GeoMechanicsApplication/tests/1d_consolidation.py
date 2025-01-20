@@ -24,7 +24,6 @@ class KratosGeoMechanics1DConsolidation(KratosUnittest.TestCase):
         # Code here will be placed AFTER every test in this TestCase.
         pass
 
-    @KratosUnittest.skip("Test test_1d_consolidation skipped temporary.")
     def test_1d_consolidation(self):
         """
         test 1D consolidation on elastic soil.

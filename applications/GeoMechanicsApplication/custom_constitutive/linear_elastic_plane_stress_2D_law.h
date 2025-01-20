@@ -13,6 +13,7 @@
 #pragma once
 
 // Project includes
+#include "geo_mechanics_application_constants.h"
 #include "linear_elastic_law.h"
 
 namespace Kratos
@@ -57,7 +58,7 @@ public:
     static constexpr SizeType Dimension = 2;
 
     /// Static definition of the VoigtSize
-    static constexpr SizeType VoigtSize = 3;
+    static constexpr SizeType VoigtSize = VOIGT_SIZE_2D_PLANE_STRESS;
 
     /// Counted pointer of GeoLinearElasticPlaneStress2DLaw
     KRATOS_CLASS_POINTER_DEFINITION(GeoLinearElasticPlaneStress2DLaw);
@@ -150,13 +151,6 @@ protected:
     void CalculatePK2Stress(const Vector&                rStrainVector,
                             Vector&                      rStressVector,
                             ConstitutiveLaw::Parameters& rValues) override;
-
-    /**
-     * It calculates the strain vector
-     * @param rValues The internal values of the law
-     * @param rStrainVector The strain vector in Voigt notation
-     */
-    void CalculateCauchyGreenStrain(ConstitutiveLaw::Parameters& rValues, Vector& rStrainVector) override;
 
     ///@}
 
