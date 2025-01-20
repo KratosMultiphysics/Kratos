@@ -49,9 +49,8 @@ public:
     double                                   IntegrationCoefficient,
     Matrix& rOutput)
     {
-        noalias(rOutput) += -PORE_PRESSURE_SIGN_FACTOR * DynamicViscosityInverse *
-           prod(rGradNpT, Matrix(prod(rMaterialPermeabilityMatrix, trans(rGradNpT)))) *
-           RelativePermeability * IntegrationCoefficient;
+        noalias(rOutput) += CalculatePermeabilityMatrix(rGradNpT, DynamicViscosityInverse, rMaterialPermeabilityMatrix,
+            RelativePermeability, IntegrationCoefficient);
     }
 
     template <unsigned int TDim, unsigned int TNumNodes>
