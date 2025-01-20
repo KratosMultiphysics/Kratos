@@ -102,9 +102,9 @@ public:
     [[nodiscard]] static std::vector<double> CalculateFluidPressures(const Matrix& rNContainer,
                                                                      const Vector& rPressureVector)
     {
-        auto result = std::vector<double>{};
+        auto result = std::vector<double>(rNContainer.size1());
         for (auto i = std::size_t{0}; i < rNContainer.size1(); ++i) {
-            result.emplace_back(CalculateFluidPressure(row(rNContainer, i), rPressureVector));
+            result[i] = CalculateFluidPressure(row(rNContainer, i), rPressureVector);
         }
         return result;
     }
