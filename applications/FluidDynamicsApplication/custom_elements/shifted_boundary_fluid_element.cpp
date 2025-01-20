@@ -112,7 +112,13 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
 
         // Get the local IDs of the SBM_INTERFACE elements of the faces attached to SBM_BOUNDARY elements.
         const auto sur_bd_ids_vect = GetSurrogateFacesIds();
+
         if (sur_bd_ids_vect.size() != 0) {
+
+            // Set integration method for surrogate boundary face
+            // NOTE that second order is required here!
+            const GeometryData::IntegrationMethod integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
+
             // Get the parent geometry data
             double size_parent;
             const auto& r_parent_geom = this->GetGeometry();
@@ -130,10 +136,6 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
             this->CalculateGeometryData(volume_weights, shape_functions, shape_derivatives);
             std::size_t surrogate_pt_index = volume_weights.size();  // NOTE can be used for EmbeddedData: data.PositiveSideWeights.size();
 
-            // Set integration method for surrogate boundary face
-            // NOTE that second order is required here!
-            const GeometryData::IntegrationMethod integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
-
             // Loop the surrogate faces of the element
             // NOTE that the element might have multiple faces attached to the boundary
             for (std::size_t sur_bd_id : sur_bd_ids_vect) {
@@ -144,12 +146,10 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
                 const DenseVector<std::size_t> bd_local_ids = column(nodes_in_faces, sur_bd_id);
                 const auto& r_integration_points = r_bd_geom.IntegrationPoints(integration_method);
 
-                // Get the gradient of the node opposite of the surrogate face
-                // NOTE this gradient is used to calculate the normal as n = - DN_DX_opposite_node / norm_2(DN_DX_opposite_node)
+                // Get the gradient of the node opposite of the surrogate face to calculate the normal
                 // NOTE this works because DN_DX of a node is calculated as the normal of the opposite face (cross product for Tetrahedra3D4N)
                 BoundedVector<double,Dim> DN_DX_opposite_node = row(DN_DX_parent, bd_local_ids[0]);
-                const double h_sur_bd = 1.0 / norm_2(DN_DX_opposite_node);
-                BoundedVector<double,Dim> normal_sur_bd = - DN_DX_opposite_node * h_sur_bd;
+                BoundedVector<double,Dim> normal_sur_bd = - DN_DX_opposite_node * norm_2(DN_DX_opposite_node);
 
                 // Get detJ for all integration points of the surrogate boundary face
                 VectorType int_pt_detJs;
@@ -193,8 +193,12 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
             }
         }
 
-        // // ALTERNATIVE (same result using integration over boundary instead of element) - TODO: delete?
+        // ALTERNATIVE (same result using integration over boundary instead of element) - TODO: delete?
         // if (sur_bd_ids_vect.size() != 0) {
+
+        //     // Set integration method for surrogate boundary face
+        //     // NOTE that second order is required here!
+        //     const GeometryData::IntegrationMethod integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
 
         //     // Get the parent geometry data. It is calculated at the element midpoint.
         //     double size_parent;
@@ -227,10 +231,6 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
         //         const std::size_t n_bd_points = r_sur_bd_geom.PointsNumber();  // number of nodes of the surrogate face
         //         const DenseVector<std::size_t> sur_bd_local_ids = row(nodes_in_faces, sur_bd_id);
 
-        //         // Set integration method for surrogate boundary face
-        //         // NOTE that second order is required here!
-        //         const GeometryData::IntegrationMethod integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
-
         //         // Get integration points and their shape function values of the surrogate boundary face
         //         const auto& r_sur_bd_N = r_sur_bd_geom.ShapeFunctionsValues(integration_method);  // matrix of SF values F_{ij}, where i is integration pt index and j is SF index
         //         const std::vector<IntegrationPoint<3>> & r_integration_points = r_sur_bd_geom.IntegrationPoints(integration_method);
@@ -244,7 +244,11 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
         //         // NOTE that the integration weight is calculated as detJ of the parent multiplied by the global size of the surrogate boundary face: Dim * Parent domain volume * norm(DN_DX_opposite_node)
         //         // NOTE that detJ is only constant inside the element for simplex elements and only for Triangle2D3N and Tetrahedra3D4N Dim*size_parent results in the correct multiplier for the norm
         //         // Triangle2D3N: 2*1/2*detJ*length_of_line | Tetrahedra3D4N: 3*1/6*detJ*area_of_parallelogram
-        //         const double weight = Dim * size_parent / h_sur_bd;
+        //         //double weight = Dim * size_parent / h_sur_bd;
+
+        //         // Get detJ for all integration points of the surrogate boundary face
+        //         VectorType int_pt_detJs;
+        //         r_sur_bd_geom.DeterminantOfJacobian(int_pt_detJs, integration_method);
 
         //         // Compute the required projections using the boundary's normal, the elements constitutive matrix (C) and the strain matrix (B) - constant for simplex element //TODO ?!
         //         BoundedMatrix<double, Dim, StrainSize> voigt_normal_projection_matrix = ZeroMatrix(Dim, StrainSize);
@@ -267,12 +271,15 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
         //                 }
         //             }
 
+        //             // Calculate integration point weight by multiplying its detJ with its gauss weight
+        //             const double int_pt_weight = int_pt_detJs[i_int_pt] * r_integration_points[i_int_pt].Weight();
+
         //             // Contribution coming from the shear stress operator
-        //             aux_LHS += weight * prod(N_aux_trans, aux_matrix_ACB);
+        //             aux_LHS += int_pt_weight * prod(N_aux_trans, aux_matrix_ACB);
 
         //             // Contribution coming from the pressure terms
         //             const BoundedMatrix<double, LocalSize, StrainSize> N_voigt_proj_matrix = prod(N_aux_trans, voigt_normal_projection_matrix);
-        //             aux_LHS -= weight * prod(N_voigt_proj_matrix, pres_to_voigt_matrix_op);
+        //             aux_LHS -= int_pt_weight * prod(N_voigt_proj_matrix, pres_to_voigt_matrix_op);
         //         }
         //     }
 
@@ -324,7 +331,7 @@ void ShiftedBoundaryFluidElement<TBaseElement>::Calculate(
 {
     rOutput = ZeroVector(3);
 
-    // If the element is split, integrate sigma.n over the interface
+    // If the element is split, integrate traction=sigma*n over the interface
     // Note that in the Ausas formulation (discontinuous for thin-walled), both interface sides need to be integrated
 
     //TODO take care of drag force calculation see embedded element??
