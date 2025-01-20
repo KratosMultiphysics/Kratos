@@ -16,7 +16,6 @@
 #include "backward_euler_scheme.hpp"
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "solving_strategies/schemes/scheme.h"
 #include "utilities/parallel_utilities.h"
 
 // Application includes
@@ -49,7 +48,7 @@ protected:
                 if (rNode.IsFixed(r_first_order_scalar_variable.first_time_derivative)) continue;
 
                 rNode.FastGetSolutionStepValue(r_first_order_scalar_variable.first_time_derivative) =
-                    CalculateDerivative(r_first_order_scalar_variable.instance, rNode);
+                    this->CalculateDerivative(r_first_order_scalar_variable.instance, rNode);
             }
         });
 
