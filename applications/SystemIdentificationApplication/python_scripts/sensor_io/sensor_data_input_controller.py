@@ -72,11 +72,11 @@ class SensorModelPartController(ModelPartController):
 
         # now create the mask
         self.sensor_mask_status = KratosSI.SensorMaskStatus(self.model[self.sensor_group_name], list_of_masks, self.echo_level)
-        sensor_group_data[f"mask_status_controllers/{expression_name}"] = self.sensor_mask_status
+        sensor_group_data[f"mask_status_controllers/{expression_name}"] = [self.sensor_mask_status]
 
         if self.use_kd_tree:
             self.sensor_mask_status_kd_tree = KratosSI.SensorMaskStatusKDTree(self.sensor_mask_status, self.leaf_max_size, self.echo_level)
-            sensor_group_data[f"mask_status_controllers/{expression_name}_kd_tree"] = self.sensor_mask_status_kd_tree
+            sensor_group_data[f"mask_status_controllers/{expression_name}"].append(self.sensor_mask_status_kd_tree)
 
     def GetModelPart(self) -> Kratos.ModelPart:
         return self.model[self.sensor_group_name]
