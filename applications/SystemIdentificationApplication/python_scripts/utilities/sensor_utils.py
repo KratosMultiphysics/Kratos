@@ -178,3 +178,15 @@ def GetSensors(sensor_group_data: ComponentDataView) -> 'list[KratosSI.Sensors.S
     for _, sensor_data in sensor_group_data.GetUnBufferedData().GetValue("list_of_sensors").GetSubItems().items():
         list_of_sensors.append(sensor_data.GetValue("sensor"))
     return list_of_sensors
+
+def GetMaskStatusControllers(sensor_group_data: ComponentDataView, sensor_mask_name: str) -> 'list[typing.Any]':
+    return sensor_group_data.GetUnBufferedData().GetValue(f"mask_status_controllers/{sensor_mask_name}")
+
+def AddMaskStatusController(sensor_group_data: ComponentDataView, sensor_mask_name: str, mask_status_controller: typing.Any) -> None:
+    if not hasattr(mask_status_controller, "Update"):
+        raise RuntimeError(f"The mask status controller {mask_status_controller} does not have an Update method.")
+
+    if not sensor_group_data.GetUnBufferedData().HasValue(f"mask_status_controllers/{sensor_mask_name}"):
+        sensor_group_data.GetUnBufferedData()[f"mask_status_controllers/{sensor_mask_name}"] = []
+
+    sensor_group_data.GetUnBufferedData()[f"mask_status_controllers/{sensor_mask_name}"].append(mask_status_controller)
