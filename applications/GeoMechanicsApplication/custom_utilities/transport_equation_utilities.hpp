@@ -36,7 +36,7 @@ public:
         double                                   IntegrationCoefficient)
     {
         return -PORE_PRESSURE_SIGN_FACTOR * DynamicViscosityInverse *
-           prod(rGradNpT, Matrix(prod(rMaterialPermeabilityMatrix, trans(rGradNpT)))) *
+           prod(rGradNpT, BoundedMatrix<double, TDim, TNumNodes>(prod(rMaterialPermeabilityMatrix, trans(rGradNpT)))) *
            RelativePermeability * IntegrationCoefficient;
     }
 
