@@ -428,7 +428,16 @@ protected:
                                 const Vector& Damage_Vector,
                                 const BoundedVectorType& Principal_Strains
                                 );
-
+    // void Calculate_tangent_HuNL(
+    //                 BoundedVectorVoigtType& H_uNL1,
+    //                 BoundedVectorVoigtType& H_uNL2,
+    //                 ConstitutiveLaw::Parameters& rParametersValues,
+    //                 const BoundedVectorType& Kappa,
+    //                 const BoundedVectorType& beta1,
+    //                 const BoundedVectorType& beta2,
+    //                 const BoundedVectorType& k0,
+    //                 const Vector& Damage_Vector,
+    //                 const BoundedVectorType& Principal_Strain);
     void PerturbNonlocalEquivalentStrains(double& rPerturbedNonlocalEquivalentStrainComponent,
                                           const double& rUnperturbedNonlocalEquivalentStrainComponent,
                                           const double Perturbation);
@@ -441,14 +450,13 @@ protected:
     const BoundedVectorType& k0
     );
 
-    void TensorProduct(
+ void TensorProduct(
     BoundedMatrixVoigtType& dHdNL1,
     BoundedMatrixVoigtType& dHdNL2,
     const array_1d<BoundedMatrix<double, 6, 6>, 3>& dHdD,
     const BoundedVectorType& Vector1,
     const BoundedVectorType& Vector2
     );
-
     /**
      * @brief
      * @param H_NLu
