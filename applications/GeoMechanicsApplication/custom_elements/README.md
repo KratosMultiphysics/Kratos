@@ -29,12 +29,111 @@ $M$ is the mass matrix, $D$ the damping matrix, $Q$ the coupling matrix, $C$ the
 and $H$ the permeability matrix. $f_u$ are forces on boundary and body and $f_p$ are fluxes on boundary and body.
 
 # Pw Elements
-The governing equations in matrix form for the Pw elements are:
+Conservation of mass for saturated soil
+
 ```math
-C \dot{p} + H p = f_p
+\left( \alpha + n \beta \right) \rho^w \frac{\partial p}{\partial t} + \rho^w \frac{\partial q_i}{\partial x_i} = 0 \quad \quad \text{on} \quad \Omega
 ```
 
-where the degree of freedom is water pressure $p_w$, their time gradient of pressure. $C$ the compressibility matrix and $H$ the permeability matrix.
+where
+
+- $n$				= porosity $\mathrm{\left[ - \right]}$
+- $p$				= pressure $\mathrm{\left[ Pa \right]}$
+- $t$				= time $\mathrm{\left[ s \right]}$
+- $x$				= global coordinates $\mathrm{\left[ m \right]}$
+- $q_i$				= specific discharge $\mathrm{\left[ m/s \right]}$
+- $\alpha$			= solid skeleton compressibility $\mathrm{\left[ m^2/N \right]}$
+- $\beta$			= liquid phase compressibility $\mathrm{\left[ m^2/N \right]}$
+- $\rho^w$			= fluid density $\mathrm{\left[ kg/m^3 \right]}$
+- $\Omega$			= flow domain $\mathrm{\left[ m^2 \right]}$
+
+Darcy's law
+
+```math
+q = -\frac{K_{ij}}{\mu} \left( \frac{\partial p}{\partial x_j} - \rho^w g_j \right)
+```
+
+- $g_j$				= gravitational acceleration $\mathrm{\left[ m/s^2 \right]}$
+- $K_{ij}$			= intrinsic permeability $\mathrm{\left[ m^2 \right]}$
+- $\mu$				= dynamic viscosity $\mathrm{\left[ Pas \right]}$
+
+Richard's eqyation for partly saturates soil
+
+```math
+\left[ \left( \alpha + n \beta \right) \rho^w S + n \rho^w \frac{dS}{dP} \right] \frac{\partial p}{\partial t} = \frac{\partial}{\partial x_i} \left[ \frac{\rho^w k_r K_{ij}}{\mu} \left( \frac{\partial p}{\partial x_j} - \rho^w g_j \right) \right]  \quad \quad \text{on} \quad \Omega
+```
+
+- $k_r$				= relative permeability $\mathrm{\left[ - \right]}$
+- $S$				= saturation $\mathrm{\left[ - \right]}$
+
+The governing equations in matrix form for the Pw elements are:
+```math
+\boldsymbol{C} \dot{p} + \boldsymbol{H} p = \boldsymbol{f_p}
+```
+
+where the degree of freedom is water pressure $p_w$, their time gradient of pressure. $\boldsymbol{C}$ the compressibility matrix and $\boldsymbol{H}$ the permeability matrix. Considering $\boldsymbol{N}$ as shape function,
+
+```math
+\boldsymbol{C} = \sum_1^n \int_{\Omega} \left[ \left( \alpha + n \beta \right) \rho^w S + n \rho^w \frac{dS}{dP} \right] \boldsymbol{N}^T \boldsymbol{N} d \Omega
+```
+
+```math
+\boldsymbol{H} = \sum_1^n \int_{\Omega} \left( \frac{\rho^w k_r}{\mu} \right) \nabla \boldsymbol{N}^T \boldsymbol{K} \nabla \boldsymbol{N} d \Omega
+```
+
+```math
+\boldsymbol{f_p} = \sum_1^n \int_{\Omega} \left( \frac{\rho^w k_r}{\mu} \right) \nabla \boldsymbol{N}^T \boldsymbol{K} \rho^w \boldsymbol{g} d \Omega + B.C.
+```
+
+
+# Pressure Filter Line Element
+For laminar flow along the axis of the well and uniformly distributed storage over the length of the well bore (Diersch, 2014)
+
+```math
+\pi R^2 \left( \frac{1}{l_w} + \rho_0 g \beta \right) \frac{\partial h}{\partial t} - \pi R^2 K_w \frac{\partial}{\partial y} \left[ f_{\mu} \left( \frac{\partial h}{\partial y} + \chi e \right)\right] = -Q_w \delta \left( y - y_w \right)
+```
+
+where
+
+```math
+K_w = \frac{R^2 \rho_0 g}{8 \mu_0} \quad \quad \quad \quad f_u = \frac{\mu_0}{\mu} \quad \quad \quad \quad \chi = \frac{\rho - \rho_0}{\rho_0} \quad \quad \quad \quad h = \frac{p}{\rho_0 g} + y
+```
+
+- $Q_w$			= pumping rate sink $\mathrm{\left[ m^3/s \right]}$
+- $t$				= time $\mathrm{\left[ s \right]}$
+- $y$				= vertical coordinate $\mathrm{\left[ m \right]}$
+- $y_w$				= location of the discharge point $\mathrm{\left[ m \right]}$
+- $h$				= hydraulic head in the well $\mathrm{\left[ m \right]}$
+- $l_w$				= total length of liquid filled well bore $\mathrm{\left[ m \right]}$
+- $R$				= radius of the well casing $\mathrm{\left[ m \right]}$
+- $K_w$				= Hagen-Poiseuille permeability $\mathrm{\left[ m \right]}$
+- $\delta$			= Dirichlet delta function $\mathrm{\left[ - \right]}$
+- $\beta$			= compressibility of the liquid $\mathrm{\left[ m^2/N \right]}$
+- $f_{\mu}$			= viscosity relation function of liquid $\mathrm{\left[ - \right]}$
+- $\chi$			= buoyancy coefficient $\mathrm{\left[ - \right]}$
+- $e$				= gravitational unit vector $\mathrm{\left[ - \right]}$
+- $g$				= gravitational acceleration $\mathrm{\left[ m/s^2 \right]}$
+- $\rho_0$			= reference density of the fluid $\mathrm{\left[ kg/m^3 \right]}$
+- $\mu_0$			= reference viscosity of the fluid $\mathrm{\left[ Pas \right]}$
+- $p$				= liquid pressure $\mathrm{\left[ Pa \right]}$
+
+reformulated in pressure and preserving mass
+
+```math
+\rho^w \left( \frac{1}{\rho^w g l_w} + \beta \right) \frac{\partial p}{\partial t} - \rho^w \frac{\partial}{\partial y} \left[ \frac{R^2}{8 \mu} \left( \frac{\partial p}{\partial y} - \rho^w g \right)\right] = -\frac{\rho^w Q_w}{\pi R^2}
+```
+
+The one dimensionalpressure equation with $\alpha = 1$ and $n = 1$ captures the well flow equation.
+
+```math
+\rho^w \beta^* \frac{\partial p}{\partial t} - \frac{\partial}{\partial y} \left[ \frac{\rho^w K^*}{\mu} \left( \frac{\partial p}{\partial y} - \rho^w g \right) \right] = - \rho^w Q^*_w
+```
+
+where the intrinsic permeability and boundary condition are given by
+
+```math
+\beta^* = \frac{1}{\rho^w g l_w} + \beta \quad \quad \quad \quad K^* = \frac{R^2}{8} \quad \quad \quad \quad Q^*_w = \frac{Q_w}{\pi R^2}
+```
 
 
 ## Steady State Pw Line Piping Element
@@ -175,54 +274,7 @@ where
 The superscripts $^l$ and $^r$ for Robin boundary condition indicate the left hands side (matrix) and right hand side (vector), respectively. The superscripts $^e$ and $^{ep}$ for $\Omega$ and $\Gamma$ indicate values in the element volume and perpendicular to element boundaries, respectively.  
 
 
-# Pressure Filter Line Element
-For laminar flow along the axis of the well and uniformly distributed storage over the length of the well bore (Diersch, 2014)
 
-```math
-\pi R^2 \left( \frac{1}{l_w} + \rho_0 g \beta \right) \frac{\partial h}{\partial t} - \pi R^2 K_w \frac{\partial}{\partial y} \left[ f_{\mu} \left( \frac{\partial h}{\partial y} + \chi e \right)\right] = -Q_w \delta \left( y - y_w \right)
-```
-
-where
-
-```math
-K_w = \frac{R^2 \rho_0 g}{8 \mu_0} \quad \quad \quad \quad f_u = \frac{\mu_0}{\mu} \quad \quad \quad \quad \chi = \frac{\rho - \rho_0}{\rho_0} \quad \quad \quad \quad h = \frac{p}{\rho_0 g} + y
-```
-
-- $Q_w$			= pumping rate sink $\mathrm{\left[ m^3/s \right]}$
-- $t$				= time $\mathrm{\left[ s \right]}$
-- $y$				= vertical coordinate $\mathrm{\left[ m \right]}$
-- $y_w$				= location of the discharge point $\mathrm{\left[ m \right]}$
-- $h$				= hydraulic head in the well $\mathrm{\left[ m \right]}$
-- $l_w$				= total length of liquid filled well bore $\mathrm{\left[ m \right]}$
-- $R$				= radius of the well casing $\mathrm{\left[ m \right]}$
-- $K_w$				= Hagen-Poiseuille permeability $\mathrm{\left[ m \right]}$
-- $\delta$			= Dirichlet delta function $\mathrm{\left[ - \right]}$
-- $\beta$			= compressibility of the liquid $\mathrm{\left[ m^2/N \right]}$
-- $f_{\mu}$			= viscosity relation function of liquid $\mathrm{\left[ - \right]}$
-- $\chi$			= buoyancy coefficient $\mathrm{\left[ - \right]}$
-- $e$				= gravitational unit vector $\mathrm{\left[ - \right]}$
-- $g$				= gravitational acceleration $\mathrm{\left[ m/s^2 \right]}$
-- $\rho_0$			= reference density of the fluid $\mathrm{\left[ kg/m^3 \right]}$
-- $\mu_0$			= reference viscosity of the fluid $\mathrm{\left[ Pas \right]}$
-- $p$				= liquid pressure $\mathrm{\left[ Pa \right]}$
-
-reformulated in pressure and preserving mass
-
-```math
-\rho^w \left( \frac{1}{\rho^w g l_w} + \beta \right) \frac{\partial p}{\partial t} - \rho^w \frac{\partial}{\partial y} \left[ \frac{R^2}{8 \mu} \left( \frac{\partial p}{\partial y} - \rho^w g \right)\right] = -\frac{\rho^w Q_w}{\pi R^2}
-```
-
-The one dimensionalpressure equation with $\alpha = 1$ and $n = 1$ captures the well flow equation.
-
-```math
-\rho^w \beta^* \frac{\partial p}{\partial t} - \frac{\partial}{\partial y} \left[ \frac{\rho^w K^*}{\mu} \left( \frac{\partial p}{\partial y} - \rho^w g \right) \right] = - \rho^w Q^*_w
-```
-
-where the intrinsic permeability and boundary condition are given by
-
-```math
-\beta^* = \frac{1}{\rho^w g l_w} + \beta \quad \quad \quad \quad K^* = \frac{R^2}{8} \quad \quad \quad \quad Q^*_w = \frac{Q_w}{\pi R^2}
-```
 
 ## Bibliography
 Diersch, H.-J. G., 2014. FEFLOW; Finite Element Modeling of Flow, Mass and Heat Transport in Porous and Fractured Media. Springer.
