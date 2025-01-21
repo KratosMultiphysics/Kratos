@@ -17,7 +17,6 @@
 #include "geometries/geometry.h" // Geometry
 #include "spaces/ublas_space.h" // TUblasSparseSpace
 #include "includes/lock_object.h" // LockObject
-#include "utilities/atomic_utilities.h" // AtomicSet
 
 // System includes
 #include <tuple> // std::tuple
@@ -396,7 +395,8 @@ void MakePRestrictionOperator(const ModelPart& rModelPart,
 
         // A vector of bools indicating whether the node at the same position
         // is a hanging node (i.e.: not part of any element/condition) or not.
-        std::vector<std::uint8_t> hanging_nodes(rModelPart.Nodes().size(), 1u);
+        std::vector<std::atomic<std::uint8_t>> hanging_nodes(rModelPart.Nodes().size());
+        block_for_each(hanging_nodes, [](auto& r_flag) {r_flag = 1;});
 
         // Collect terms from elements.
         block_for_each(rModelPart.Elements(),
@@ -448,7 +448,7 @@ void MakePRestrictionOperator(const ModelPart& rModelPart,
                                         return r_left.Id() < r_right.Id();
                                      }));
                 KRATOS_DEBUG_ERROR_IF_NOT(i_node < hanging_nodes.size());
-                AtomicSet(hanging_nodes[i_node], 0u);
+                hanging_nodes[i_node] = 0u;
             } // for r_node in r_element.GetGeometry()
         }); // for r_element in rModelPart.Elements()
 
@@ -463,7 +463,7 @@ void MakePRestrictionOperator(const ModelPart& rModelPart,
                                      [](const Node& r_left, const Node& r_right){
                                         return r_left.Id() < r_right.Id();
                                      }));
-                AtomicSet(hanging_nodes[i_node], 0u);
+                hanging_nodes[i_node] = 0u;
             } // for r_node in r_condition.GetGeometry()
         }); // for r_condition in rModelPart.Conditions()
 

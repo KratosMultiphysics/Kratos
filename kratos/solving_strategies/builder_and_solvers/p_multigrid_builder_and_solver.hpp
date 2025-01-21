@@ -76,6 +76,14 @@ public:
                                     ModelPart& rModelPart) override;
 
     /// @}
+    /// @name Hooks
+    /// @{
+
+    void InitializeSolutionStep(ModelPart& rModelPart,
+                                typename Interface::TSystemMatrixType& rLhs,
+                                typename Interface::TSystemVectorType& rSolution,
+                                typename Interface::TSystemVectorType& rRhs) override;
+
     /// @name Assembly
     /// @{
 
