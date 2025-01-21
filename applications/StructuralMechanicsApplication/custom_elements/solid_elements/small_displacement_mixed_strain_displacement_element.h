@@ -78,8 +78,8 @@ protected:
         Matrix J0;
         Matrix InvJ0;
         Matrix DN_DX;
-        Vector NodalDisplacements; // Displacement DoFs -> U
-        Vector NodalStrains;       // Strains stored at the nodes (strain DoFs) -> E
+        Vector ElementSizeNodalDisplacementsVector; // Displacement DoFs -> U
+        Vector ElementSizeStrainVector; // Strains stored at the nodes (strain DoFs) -> E
         Vector EquivalentStrain;   // Stabilized strain field E = (1-tau) N_e · E + tau Bu · U
         Vector SymmGradientDispl;  // Symmetric gradient of the nodal displacements: Bu·U
         Vector NodalStrain;        // N_e · E
@@ -102,8 +102,8 @@ protected:
             DN_DX = ZeroMatrix(NumberOfNodes, Dimension);
             J0 = ZeroMatrix(Dimension, Dimension);
             InvJ0 = ZeroMatrix(Dimension, Dimension);
-            NodalDisplacements = ZeroVector(Dimension * NumberOfNodes);
-            NodalStrains = ZeroVector(NumberOfNodes * StrainSize);
+            ElementSizeNodalDisplacementsVector = ZeroVector(Dimension * NumberOfNodes);
+            ElementSizeStrainVector = ZeroVector(NumberOfNodes * StrainSize);
             EquivalentStrain = ZeroVector(StrainSize);
             SymmGradientDispl = ZeroVector(StrainSize);
             NodalStrain = ZeroVector(StrainSize);
@@ -707,7 +707,7 @@ private:
         KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
 
         // Compute U and E
-        GetNodalDoFsVectors(kinematic_variables.NodalDisplacements, kinematic_variables.NodalStrains);
+        GetNodalDoFsVectors(kinematic_variables.ElementSizeNodalDisplacementsVector, kinematic_variables.ElementSizeStrainVector);
 
         // Create the constitutive variables and values containers
         ConstitutiveVariables constitutive_variables(strain_size);

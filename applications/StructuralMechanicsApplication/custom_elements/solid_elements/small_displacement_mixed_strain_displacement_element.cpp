@@ -263,7 +263,7 @@ void SmallDisplacementMixedStrainDisplacementElement::InitializeSolutionStep(
         KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
 
         // Compute U and E
-        GetNodalDoFsVectors(this_kinematic_variables.NodalDisplacements, this_kinematic_variables.NodalStrains);
+        GetNodalDoFsVectors(this_kinematic_variables.ElementSizeNodalDisplacementsVector, this_kinematic_variables.ElementSizeStrainVector);
 
         ConstitutiveVariables this_constitutive_variables(strain_size);
 
@@ -324,7 +324,7 @@ void SmallDisplacementMixedStrainDisplacementElement::FinalizeSolutionStep(
         KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
 
         // Compute U and E
-        GetNodalDoFsVectors(this_kinematic_variables.NodalDisplacements, this_kinematic_variables.NodalStrains);
+        GetNodalDoFsVectors(this_kinematic_variables.ElementSizeNodalDisplacementsVector, this_kinematic_variables.ElementSizeStrainVector);
 
         ConstitutiveVariables this_constitutive_variables(strain_size);
 
@@ -395,7 +395,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
     KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
 
     // Compute U and E
-    GetNodalDoFsVectors(kinematic_variables.NodalDisplacements, kinematic_variables.NodalStrains);
+    GetNodalDoFsVectors(kinematic_variables.ElementSizeNodalDisplacementsVector, kinematic_variables.ElementSizeStrainVector);
 
     // Create the constitutive variables and values containers
     ConstitutiveVariables constitutive_variables(strain_size);
@@ -505,7 +505,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLeftHandSide(
     KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
 
     // Compute U and E
-    GetNodalDoFsVectors(kinematic_variables.NodalDisplacements, kinematic_variables.NodalStrains);
+    GetNodalDoFsVectors(kinematic_variables.ElementSizeNodalDisplacementsVector, kinematic_variables.ElementSizeStrainVector);
 
     // Create the constitutive variables and values containers
     ConstitutiveVariables constitutive_variables(strain_size);
@@ -593,7 +593,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateRightHandSide(
     KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
 
     // Compute U and E
-    GetNodalDoFsVectors(kinematic_variables.NodalDisplacements, kinematic_variables.NodalStrains);
+    GetNodalDoFsVectors(kinematic_variables.ElementSizeNodalDisplacementsVector, kinematic_variables.ElementSizeStrainVector);
 
     // Create the constitutive variables and values containers
     ConstitutiveVariables constitutive_variables(strain_size);
@@ -936,9 +936,9 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateKinematicVariable
     CalculateN_EpsilonMatrix(rKinVariables.N_epsilon, rKinVariables.N);
 
     // Compute the symmetric gradient of the displacements
-    noalias(rKinVariables.SymmGradientDispl) = prod(rKinVariables.B, rKinVariables.NodalDisplacements);
+    noalias(rKinVariables.SymmGradientDispl) = prod(rKinVariables.B, rKinVariables.ElementSizeNodalDisplacementsVector);
 
-    noalias(rKinVariables.NodalStrain) = prod(rKinVariables.N_epsilon, rKinVariables.NodalStrains);
+    noalias(rKinVariables.NodalStrain) = prod(rKinVariables.N_epsilon, rKinVariables.ElementSizeStrainVector);
 
     // Calculate the equivalent total strain
     CalculateEquivalentStrain(rKinVariables);
@@ -1125,7 +1125,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateOnIntegrationPoin
 
         // Create the kinematics container and fill the nodal data
         KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
-        GetNodalDoFsVectors(kinematic_variables.NodalDisplacements, kinematic_variables.NodalStrains);
+        GetNodalDoFsVectors(kinematic_variables.ElementSizeNodalDisplacementsVector, kinematic_variables.ElementSizeStrainVector);
 
         // Create the constitutive variables and values containers
         ConstitutiveVariables constitutive_variables(strain_size);
@@ -1164,7 +1164,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateOnIntegrationPoin
 
         // Create the kinematics container and fill the nodal data
         KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
-        GetNodalDoFsVectors(kinematic_variables.NodalDisplacements, kinematic_variables.NodalStrains);
+        GetNodalDoFsVectors(kinematic_variables.ElementSizeNodalDisplacementsVector, kinematic_variables.ElementSizeStrainVector);
 
         for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
             // Calculate kinematics
