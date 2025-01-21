@@ -150,8 +150,6 @@ void SteadyStatePwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLef
     ElementVariables Variables;
     this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
-
     const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
         Variables.NContainer, Variables.PressureVector);
     const auto relative_permeability_values = this->CalculateRelativePermeabilityValues(fluid_pressures);
@@ -191,9 +189,9 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void SteadyStatePwElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
                                                                ElementVariables& rVariables)
 {
-    GeoTransportEquationUtilities::CalculateAndAddPermeabilityMatrix<TDim, TNumNodes>(
+    noalias(rLeftHandSideMatrix) += GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
         rVariables.GradNpT, rVariables.DynamicViscosityInverse, rVariables.PermeabilityMatrix,
-        rVariables.RelativePermeability, rVariables.IntegrationCoefficient, rLeftHandSideMatrix);
+        rVariables.RelativePermeability, rVariables.IntegrationCoefficient);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -203,9 +201,9 @@ void SteadyStatePwElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRigh
 {
     KRATOS_TRY;
 
-    GeoTransportEquationUtilities::CalculateAndAddPermeabilityFlow<TDim, TNumNodes>(
+    noalias(rRightHandSideVector) += -prod(GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
         rVariables.GradNpT, rVariables.DynamicViscosityInverse, rVariables.PermeabilityMatrix,
-        rVariables.RelativePermeability, rVariables.IntegrationCoefficient, rVariables.PressureVector, rRightHandSideVector);
+        rVariables.RelativePermeability, rVariables.IntegrationCoefficient), rVariables.PressureVector);
 
     this->CalculateAndAddFluidBodyFlow(rRightHandSideVector, rVariables);
 

@@ -36,38 +36,9 @@ public:
         double                                   IntegrationCoefficient)
     {
         return -PORE_PRESSURE_SIGN_FACTOR * DynamicViscosityInverse *
-           prod(rGradNpT, Matrix(prod(rMaterialPermeabilityMatrix, trans(rGradNpT)))) *
+           prod(rGradNpT, BoundedMatrix<double, TDim, TNumNodes>(prod(rMaterialPermeabilityMatrix, trans(rGradNpT)))) *
            RelativePermeability * IntegrationCoefficient;
     }
-
-    template <unsigned int TDim, unsigned int TNumNodes>
-    static void CalculateAndAddPermeabilityMatrix(
-    const Matrix&                            rGradNpT,
-    double                                   DynamicViscosityInverse,
-    const BoundedMatrix<double, TDim, TDim>& rMaterialPermeabilityMatrix,
-    double                                   RelativePermeability,
-    double                                   IntegrationCoefficient,
-    Matrix& rOutput)
-    {
-        noalias(rOutput) += CalculatePermeabilityMatrix(rGradNpT, DynamicViscosityInverse, rMaterialPermeabilityMatrix,
-            RelativePermeability, IntegrationCoefficient);
-    }
-
-    template <unsigned int TDim, unsigned int TNumNodes>
-    static void CalculateAndAddPermeabilityFlow(
-    const Matrix&                            rGradNpT,
-    double                                   DynamicViscosityInverse,
-    const BoundedMatrix<double, TDim, TDim>& rMaterialPermeabilityMatrix,
-    double                                   RelativePermeability,
-    double                                   IntegrationCoefficient,
-    const array_1d<double, TNumNodes>&       rPressureVector,
-    Vector& rOutput)
-    {
-        noalias(rOutput) += -prod(GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
-            rGradNpT, DynamicViscosityInverse, rMaterialPermeabilityMatrix,
-            RelativePermeability, IntegrationCoefficient), rPressureVector);
-    }
-
 
     static Matrix CalculatePermeabilityMatrix(const Matrix& rGradNpT,
                                               double        DynamicViscosityInverse,
@@ -131,9 +102,9 @@ public:
     [[nodiscard]] static std::vector<double> CalculateFluidPressures(const Matrix& rNContainer,
                                                                      const Vector& rPressureVector)
     {
-        auto result = std::vector<double>{};
+        auto result = std::vector<double>(rNContainer.size1());
         for (auto i = std::size_t{0}; i < rNContainer.size1(); ++i) {
-            result.emplace_back(CalculateFluidPressure(row(rNContainer, i), rPressureVector));
+            result[i] = CalculateFluidPressure(row(rNContainer, i), rPressureVector);
         }
         return result;
     }
