@@ -37,7 +37,6 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SmallStrainUPwDiffOrderElement);
 
     using UPwBaseElement::mConstitutiveLawVector;
-    using UPwBaseElement::mIsInitialised;
     using UPwBaseElement::mRetentionLawVector;
     using UPwBaseElement::mStateVariablesFinalized;
     using UPwBaseElement::mStressVector;
