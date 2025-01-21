@@ -64,74 +64,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallDisplacementMixedStrainD
     : public Element
 {
 
-protected:
-
-    /**
-     * Internal variables used in the kinematic calculations
-     */
-    struct KinematicVariables
-    {
-        Vector N;
-        Matrix B;
-        Matrix N_epsilon;          // Used to interpolate nodal strains
-        double detJ0;
-        Matrix J0;
-        Matrix InvJ0;
-        Matrix DN_DX;
-        Vector ElementSizeNodalDisplacementsVector; // Displacement DoFs -> U
-        Vector ElementSizeStrainVector; // Strains stored at the nodes (strain DoFs) -> E
-        Vector EquivalentStrain;   // Stabilized strain field E = (1-tau) N_e · E + tau Bu · U
-        Vector SymmGradientDispl;  // Symmetric gradient of the nodal displacements: Bu·U
-        Vector NodalStrain;        // N_e · E
-
-        /**
-         * The default constructor
-         * @param StrainSize The size of the strain vector in Voigt notation
-         * @param Dimension The problem dimension: 2D or 3D
-         * @param NumberOfNodes The number of nodes of the element
-         */
-        KinematicVariables(
-            const SizeType StrainSize,
-            const SizeType Dimension,
-            const SizeType NumberOfNodes
-            )
-        {
-            detJ0 = 1.0;
-            N = ZeroVector(NumberOfNodes);
-            B = ZeroMatrix(StrainSize, Dimension * NumberOfNodes);
-            DN_DX = ZeroMatrix(NumberOfNodes, Dimension);
-            J0 = ZeroMatrix(Dimension, Dimension);
-            InvJ0 = ZeroMatrix(Dimension, Dimension);
-            ElementSizeNodalDisplacementsVector = ZeroVector(Dimension * NumberOfNodes);
-            ElementSizeStrainVector = ZeroVector(NumberOfNodes * StrainSize);
-            EquivalentStrain = ZeroVector(StrainSize);
-            SymmGradientDispl = ZeroVector(StrainSize);
-            NodalStrain = ZeroVector(StrainSize);
-            N_epsilon = ZeroMatrix(StrainSize, StrainSize * NumberOfNodes);
-        }
-    };
-
-    /**
-     * Internal variables used in the kinematic calculations
-     */
-    struct ConstitutiveVariables
-    {
-        Vector StrainVector;
-        Vector StressVector;
-        Matrix D;
-
-        /**
-         * The default constructor
-         * @param StrainSize The size of the strain vector in Voigt notation
-         */
-        ConstitutiveVariables(const SizeType StrainSize)
-        {
-            StrainVector = ZeroVector(StrainSize);
-            StressVector = ZeroVector(StrainSize);
-            D = ZeroMatrix(StrainSize, StrainSize);
-        }
-    };
-
 public:
 
     ///@name Type Definitions
@@ -527,40 +459,6 @@ protected:
     }
 
     /**
-     * @brief This functions updates the data structure passed to the CL
-     * @param rThisKinematicVariables The kinematic variables to be calculated
-     * @param rThisConstitutiveVariables The constitutive variables
-     * @param rValues The CL parameters
-     * @param PointNumber The integration point considered
-     * @param IntegrationPoints The list of integration points
-     */
-    virtual void SetConstitutiveVariables(
-        KinematicVariables& rThisKinematicVariables,
-        ConstitutiveVariables& rThisConstitutiveVariables,
-        ConstitutiveLaw::Parameters& rValues,
-        const IndexType PointNumber,
-        const IntegrationPointsArrayType& IntegrationPoints
-        ) const;
-
-    /**
-     * @brief This functions updates the constitutive variables
-     * @param rThisKinematicVariables The kinematic variables to be calculated
-     * @param rThisConstitutiveVariables The constitutive variables
-     * @param rValues The CL parameters
-     * @param PointNumber The integration point considered
-     * @param IntegrationPoints The list of integration points
-     * @param ThisStressMeasure The stress measure considered
-     */
-    virtual void CalculateConstitutiveVariables(
-        KinematicVariables& rThisKinematicVariables,
-        ConstitutiveVariables& rThisConstitutiveVariables,
-        ConstitutiveLaw::Parameters& rValues,
-        const IndexType PointNumber,
-        const IntegrationPointsArrayType& IntegrationPoints,
-        const ConstitutiveLaw::StressMeasure ThisStressMeasure = ConstitutiveLaw::StressMeasure_PK2
-        ) const;
-
-    /**
      * @brief This function computes the body force
      * @param IntegrationPoints The array containing the integration points
      * @param PointNumber The id of the integration point considered
@@ -623,6 +521,108 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
+
+
+    /**
+     * Internal variables used in the kinematic calculations
+     */
+    struct KinematicVariables
+    {
+        Vector N;
+        Matrix B;
+        Matrix N_epsilon;          // Used to interpolate nodal strains
+        double detJ0;
+        Matrix J0;
+        Matrix InvJ0;
+        Matrix DN_DX;
+        Vector ElementSizeNodalDisplacementsVector; // Displacement DoFs -> U
+        Vector ElementSizeStrainVector; // Strains stored at the nodes (strain DoFs) -> E
+        Vector EquivalentStrain;   // Stabilized strain field E = (1-tau) N_e · E + tau Bu · U
+        Vector SymmGradientDispl;  // Symmetric gradient of the nodal displacements: Bu·U
+        Vector NodalStrain;        // N_e · E
+
+        /**
+         * The default constructor
+         * @param StrainSize The size of the strain vector in Voigt notation
+         * @param Dimension The problem dimension: 2D or 3D
+         * @param NumberOfNodes The number of nodes of the element
+         */
+        KinematicVariables(
+            const SizeType StrainSize,
+            const SizeType Dimension,
+            const SizeType NumberOfNodes
+            )
+        {
+            detJ0 = 1.0;
+            N = ZeroVector(NumberOfNodes);
+            B = ZeroMatrix(StrainSize, Dimension * NumberOfNodes);
+            DN_DX = ZeroMatrix(NumberOfNodes, Dimension);
+            J0 = ZeroMatrix(Dimension, Dimension);
+            InvJ0 = ZeroMatrix(Dimension, Dimension);
+            ElementSizeNodalDisplacementsVector = ZeroVector(Dimension * NumberOfNodes);
+            ElementSizeStrainVector = ZeroVector(NumberOfNodes * StrainSize);
+            EquivalentStrain = ZeroVector(StrainSize);
+            SymmGradientDispl = ZeroVector(StrainSize);
+            NodalStrain = ZeroVector(StrainSize);
+            N_epsilon = ZeroMatrix(StrainSize, StrainSize * NumberOfNodes);
+        }
+    };
+
+    /**
+     * Internal variables used in the kinematic calculations
+     */
+    struct ConstitutiveVariables
+    {
+        Vector StrainVector;
+        Vector StressVector;
+        Matrix D;
+
+        /**
+         * The default constructor
+         * @param StrainSize The size of the strain vector in Voigt notation
+         */
+        ConstitutiveVariables(const SizeType StrainSize)
+        {
+            StrainVector = ZeroVector(StrainSize);
+            StressVector = ZeroVector(StrainSize);
+            D = ZeroMatrix(StrainSize, StrainSize);
+        }
+    };
+
+
+    /**
+     * @brief This functions updates the data structure passed to the CL
+     * @param rThisKinematicVariables The kinematic variables to be calculated
+     * @param rThisConstitutiveVariables The constitutive variables
+     * @param rValues The CL parameters
+     * @param PointNumber The integration point considered
+     * @param IntegrationPoints The list of integration points
+     */
+    virtual void SetConstitutiveVariables(
+        KinematicVariables& rThisKinematicVariables,
+        ConstitutiveVariables& rThisConstitutiveVariables,
+        ConstitutiveLaw::Parameters& rValues,
+        const IndexType PointNumber,
+        const IntegrationPointsArrayType& IntegrationPoints
+        ) const;
+
+    /**
+     * @brief This functions updates the constitutive variables
+     * @param rThisKinematicVariables The kinematic variables to be calculated
+     * @param rThisConstitutiveVariables The constitutive variables
+     * @param rValues The CL parameters
+     * @param PointNumber The integration point considered
+     * @param IntegrationPoints The list of integration points
+     * @param ThisStressMeasure The stress measure considered
+     */
+    virtual void CalculateConstitutiveVariables(
+        KinematicVariables& rThisKinematicVariables,
+        ConstitutiveVariables& rThisConstitutiveVariables,
+        ConstitutiveLaw::Parameters& rValues,
+        const IndexType PointNumber,
+        const IntegrationPointsArrayType& IntegrationPoints,
+        const ConstitutiveLaw::StressMeasure ThisStressMeasure = ConstitutiveLaw::StressMeasure_PK2
+        ) const;
 
     static constexpr double default_stabilization_factor = 0.1;
 
