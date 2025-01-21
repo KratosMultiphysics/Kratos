@@ -142,10 +142,10 @@ SphericParticle& SphericParticle::operator=(const SphericParticle& rOther) {
     mSearchRadius = rOther.mSearchRadius;
     mRealMass = rOther.mRealMass;
     mClusterId = rOther.mClusterId;
-    mGlobalDamping = rOther.mGlobalDamping;
     mGlobalViscousDamping = rOther.mGlobalViscousDamping;
     mDiscontinuumConstitutiveLaw = rOther.mDiscontinuumConstitutiveLaw->CloneUnique();
     mRollingFrictionModel = rOther.mRollingFrictionModel->CloneUnique();
+    mGlobalDampingModel = rOther.mGlobalDampingModel->CloneUnique();
 
     if (rOther.mStressTensor != NULL) {
         mStressTensor  = new BoundedMatrix<double, 3, 3>(3,3);
@@ -225,7 +225,6 @@ void SphericParticle::Initialize(const ProcessInfo& r_process_info)
             mRollingFrictionModel = pCloneRollingFrictionModel(this);
         }
     }
-
     else {
         array_1d<double, 3>& angular_velocity = node.GetSolutionStepValue(ANGULAR_VELOCITY); //TODO: do we need this when there is no rotation??
         angular_velocity = ZeroVector(3);
@@ -255,13 +254,18 @@ void SphericParticle::Initialize(const ProcessInfo& r_process_info)
     double& max_normal_ball_to_ball_force_times_radius = this->GetMaxNormalBallToBallForceTimesRadius();
     max_normal_ball_to_ball_force_times_radius = 0.0;
 
+    if (this->Is(DEMFlags::HAS_GLOBAL_DAMPING)) {
+        mGlobalDampingModel = pCloneGlobalDampingModel(this);
+        mGlobalDampingModel->mGlobalDamping = r_process_info[GLOBAL_DAMPING];
+    }
+
     DEMIntegrationScheme::Pointer& translational_integration_scheme = GetProperties()[DEM_TRANSLATIONAL_INTEGRATION_SCHEME_POINTER];
     DEMIntegrationScheme::Pointer& rotational_integration_scheme = GetProperties()[DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER];
     SetIntegrationScheme(translational_integration_scheme, rotational_integration_scheme);
 
     SetValue(WALL_POINT_CONDITION_POINTERS, std::vector<Condition*>());
-    SetValue(WALL_POINT_CONDITION_ELASTIC_FORCES, std::vector<array_1d<double, 3> >());
-    SetValue(WALL_POINT_CONDITION_TOTAL_FORCES, std::vector<array_1d<double, 3> >());
+    SetValue(WALL_POINT_CONDITION_ELASTIC_FORCES, std::vector<array_1d<double, 3>>());
+    SetValue(WALL_POINT_CONDITION_TOTAL_FORCES, std::vector<array_1d<double, 3>>());
 
     KRATOS_CATCH( "" )
 }
@@ -343,7 +347,7 @@ void SphericParticle::CalculateRightHandSide(const ProcessInfo& r_process_info, 
     KRATOS_CATCH("")
 }
 
-void SphericParticle::InitializeForceComputation(const ProcessInfo& r_process_info){ }
+void SphericParticle::InitializeForceComputation(const ProcessInfo& r_process_info){}
 
 void SphericParticle::FirstCalculateRightHandSide(const ProcessInfo& r_process_info, double dt){}
 
@@ -1464,8 +1468,7 @@ void SphericParticle::ComputeWear(double LocalRelVel[3],
 
 void SphericParticle::CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& r_process_info){}
 
-void SphericParticle::GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& r_process_info) const
-{
+void SphericParticle::GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& r_process_info) const {
     KRATOS_TRY
 
     ElementalDofList.resize(0);
@@ -1918,11 +1921,14 @@ void SphericParticle::MemberDeclarationFirstStep(const ProcessInfo& r_process_in
         this->GetGeometry()[0].FastGetSolutionStepValue(EXPORT_ID) = double(this->Id());
     }
 
-    if (r_process_info[ROTATION_OPTION])         this->Set(DEMFlags::HAS_ROTATION, true);
-    else                                         this->Set(DEMFlags::HAS_ROTATION, false);
+    if (r_process_info[ROTATION_OPTION]) this->Set(DEMFlags::HAS_ROTATION, true);
+    else                                 this->Set(DEMFlags::HAS_ROTATION, false);
 
     if (r_process_info[ROLLING_FRICTION_OPTION]) this->Set(DEMFlags::HAS_ROLLING_FRICTION, true);
     else                                         this->Set(DEMFlags::HAS_ROLLING_FRICTION, false);
+
+    if (r_process_info[GLOBAL_DAMPING_OPTION]) this->Set(DEMFlags::HAS_GLOBAL_DAMPING, true);
+    else                                       this->Set(DEMFlags::HAS_GLOBAL_DAMPING, false);
 
     if (r_process_info[COMPUTE_STRESS_TENSOR_OPTION]) this->Set(DEMFlags::HAS_STRESS_TENSOR, true);
     else                                              this->Set(DEMFlags::HAS_STRESS_TENSOR, false);
@@ -1952,7 +1958,6 @@ void SphericParticle::MemberDeclarationFirstStep(const ProcessInfo& r_process_in
         mDifferentialStrainTensor = NULL;
     }
 
-    mGlobalDamping = r_process_info[GLOBAL_DAMPING];
     mGlobalViscousDamping = r_process_info[GLOBAL_VISCOUS_DAMPING];
 }
 
@@ -1979,6 +1984,11 @@ std::unique_ptr<DEMRollingFrictionModel> SphericParticle::pCloneRollingFrictionM
 std::unique_ptr<DEMRollingFrictionModel> SphericParticle::pCloneRollingFrictionModelWithFEMNeighbour(Condition* neighbour){
     Properties& properties_of_this_contact = GetProperties().GetSubProperties(neighbour->GetProperties().Id());
     return properties_of_this_contact[DEM_ROLLING_FRICTION_MODEL_POINTER]->CloneUnique();
+}
+
+std::unique_ptr<DEMGlobalDampingModel> SphericParticle::pCloneGlobalDampingModel(SphericParticle* element){
+    Properties& properties_of_this_particle = element->GetProperties();
+    return properties_of_this_particle[DEM_GLOBAL_DAMPING_MODEL_POINTER]->CloneUnique();
 }
 
 void SphericParticle::ComputeOtherBallToBallForces(array_1d<double, 3>& other_ball_to_ball_forces) {}
@@ -2211,58 +2221,31 @@ bool SphericParticle::SwapIntegrationSchemeToGluedToWall(Condition* p_wall) {
 
 void SphericParticle::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info){}
 void SphericParticle::Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& r_process_info){}
-
 void SphericParticle::AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info){}
 
 void SphericParticle::ApplyGlobalDampingToContactForcesAndMoments(array_1d<double,3>& total_forces, array_1d<double,3>& total_moment) {
-
-        KRATOS_TRY
-        const auto& central_node = GetGeometry()[0];
-
-        const array_1d<double, 3> velocity = central_node.FastGetSolutionStepValue(VELOCITY);
-        const array_1d<double, 3> angular_velocity = central_node.FastGetSolutionStepValue(ANGULAR_VELOCITY);
-
-        if (central_node.IsNot(DEMFlags::FIXED_VEL_X)) {
-            total_forces[0] *= (1.0 - mGlobalDamping * GeometryFunctions::sign(total_forces[0] * velocity[0]));
-        }
-        if (central_node.IsNot(DEMFlags::FIXED_VEL_Y)) {
-            total_forces[1] *= (1.0 - mGlobalDamping * GeometryFunctions::sign(total_forces[1] * velocity[1]));
-        }
-        if (central_node.IsNot(DEMFlags::FIXED_VEL_Z)) {
-            total_forces[2] *= (1.0 - mGlobalDamping * GeometryFunctions::sign(total_forces[2] * velocity[2]));
-        }
-
-        if (central_node.IsNot(DEMFlags::FIXED_ANG_VEL_X)) {
-            total_moment[0] *= (1.0 - mGlobalDamping * GeometryFunctions::sign(total_moment[0] * angular_velocity[0]));
-        }
-        if (central_node.IsNot(DEMFlags::FIXED_ANG_VEL_Y)) {
-            total_moment[1] *= (1.0 - mGlobalDamping * GeometryFunctions::sign(total_moment[1] * angular_velocity[1]));
-        }
-        if (central_node.IsNot(DEMFlags::FIXED_ANG_VEL_Z)) {
-            total_moment[2] *= (1.0 - mGlobalDamping * GeometryFunctions::sign(total_moment[2] * angular_velocity[2]));
-        }
-
-        KRATOS_CATCH("")
+    if (this->Is(DEMFlags::HAS_GLOBAL_DAMPING) && mGlobalDampingModel != nullptr) {
+        mGlobalDampingModel->AddGlobalDampingForceAndMoment(this, total_forces, total_moment);
     }
+}
 
-    void SphericParticle::CalculateOnContactElements(size_t i, double LocalContactForce[3], double GlobalContactForce[3]) {
+void SphericParticle::CalculateOnContactElements(size_t i, double LocalContactForce[3], double GlobalContactForce[3]) {
+    KRATOS_TRY
 
-        KRATOS_TRY
+    if (!mBondElements.size()) return; // we skip this function if the vector of bonds hasn't been filled yet.
+    ParticleContactElement* bond = mBondElements[i];
+    if (bond == NULL) return; //This bond was never created (happens in some MPI cases, see CreateContactElements() in explicit_solve_continumm.h)
 
-        if (!mBondElements.size()) return; // we skip this function if the vector of bonds hasn't been filled yet.
-        ParticleContactElement* bond = mBondElements[i];
-        if (bond == NULL) return; //This bond was never created (happens in some MPI cases, see CreateContactElements() in explicit_solve_continumm.h)
+    bond->mLocalContactForce[0] = LocalContactForce[0];
+    bond->mLocalContactForce[1] = LocalContactForce[1];
+    bond->mLocalContactForce[2] = LocalContactForce[2];
 
-        bond->mLocalContactForce[0] = LocalContactForce[0];
-        bond->mLocalContactForce[1] = LocalContactForce[1];
-        bond->mLocalContactForce[2] = LocalContactForce[2];
-
-        bond->mGlobalContactForce[0] = GlobalContactForce[0];
-        bond->mGlobalContactForce[1] = GlobalContactForce[1];
-        bond->mGlobalContactForce[2] = GlobalContactForce[2];
+    bond->mGlobalContactForce[0] = GlobalContactForce[0];
+    bond->mGlobalContactForce[1] = GlobalContactForce[1];
+    bond->mGlobalContactForce[2] = GlobalContactForce[2];
         
-        KRATOS_CATCH("")
-    }
+    KRATOS_CATCH("")
+}
 
 int    SphericParticle::GetClusterId()                                                    { return mClusterId;      }
 void   SphericParticle::SetClusterId(int givenId)                                         { mClusterId = givenId;   }

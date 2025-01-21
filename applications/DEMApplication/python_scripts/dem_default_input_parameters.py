@@ -113,6 +113,7 @@ def GetDefaultInputParameters():
             "ImposeZStrainIn2DWithControlModule" : false,
             "GlobalDamping"                    : 0.0,
             "GlobalViscousDamping"             : 0.0,
+            "GlobalDampingModel"               : "NonViscousConstantForceDirection",
             "PoissonEffectOption"              : true,
             "ShearStrainParallelToBondOption"  : true,
             "DontSearchUntilFailure"           : false,
