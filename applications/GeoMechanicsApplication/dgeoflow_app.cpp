@@ -42,5 +42,5 @@ int main(int argc, char* argv[])
     const int status = execute.ExecuteFlowAnalysis(
         workingDirectory, projectFile, critical_head_info, "PorousDomain.0", call_back_functions);
 
-    return 0;
+    return status;
 }
