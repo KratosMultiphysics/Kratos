@@ -194,8 +194,6 @@ void SmallDisplacementMixedStrainDisplacementElement::Initialize(
     // Initialization should not be done again in a restart!
     if (!rCurrentProcessInfo[IS_RESTARTED]) {
         // Integration method initialization
-
-
         if (GetProperties().Has(INTEGRATION_ORDER) ) {
             const SizeType integration_order = GetProperties()[INTEGRATION_ORDER];
             switch (integration_order)
