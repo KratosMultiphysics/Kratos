@@ -68,15 +68,15 @@ class AnalysisStage(object):
         while self.KeepAdvancingSolutionLoop():
             self.time = self._AdvanceTime()
 
-            is_converged = False
+            # is_converged = False
 
-            it = 0
+            # it = 0
             # while (it < 2):
-            while (is_converged == False) :
-                self.InitializeSolutionStep()
-                self._GetSolver().Predict()
-                is_converged = self._GetSolver().SolveSolutionStep()
-                self.__CheckIfSolveSolutionStepReturnsAValue(is_converged)
+            # while (is_converged == False) :
+            self.InitializeSolutionStep()
+            self._GetSolver().Predict()
+            is_converged = self._GetSolver().SolveSolutionStep()
+            self.__CheckIfSolveSolutionStepReturnsAValue(is_converged)
                 # it += 1
                 # is_converged = False
 

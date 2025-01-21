@@ -139,7 +139,7 @@ private:
 
         BrepCurveOnSurfaceLoopArrayType outer_loops, inner_loops;
         
-        p_surface->SetValue(IS_SBM, true);
+        p_surface->SetValue(IS_SBM, false);
 
         auto p_brep_surface =
             Kratos::make_shared<BrepSurfaceType>(
@@ -152,8 +152,6 @@ private:
         p_surface->SetGeometryParent(p_brep_surface.get());
         p_brep_surface->SetId(1);
         rModelPart.AddGeometry(p_brep_surface);
-
-        KRATOS_WATCH(p_surface->GetValue(IS_SBM))
     }
 
     /**

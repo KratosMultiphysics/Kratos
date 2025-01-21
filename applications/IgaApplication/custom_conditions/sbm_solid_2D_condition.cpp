@@ -292,6 +292,11 @@ namespace Kratos
 
             u_D[0] = candidateClosestSkinSegment1.GetGeometry()[0].GetValue(DISPLACEMENT_X);
             u_D[1] = candidateClosestSkinSegment1.GetGeometry()[0].GetValue(DISPLACEMENT_Y);
+
+            // double x = GetGeometry().Center().X(); double y = GetGeometry().Center().Y();
+
+            // u_D[0] = -cos(x)*sinh(y);
+            // u_D[1] = sin(x)*cosh(y);
             
 
 

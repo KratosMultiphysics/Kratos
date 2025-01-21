@@ -15,6 +15,7 @@
 // Project includes
 #include "includes/model_part.h"
 #include "spatial_containers/bins_dynamic.h"
+#include "geometries/nurbs_curve_geometry.h"
 
 namespace Kratos
 {
@@ -24,6 +25,14 @@ namespace Kratos
     class KRATOS_API(IGA_APPLICATION) SnakeSBMUtilities
     {
     public:
+        typedef std::size_t IndexType;
+        typedef std::size_t SizeType;
+        typedef Node NodeType;
+
+        typedef Geometry<NodeType> GeometryType;
+        typedef typename GeometryType::Pointer GeometryPointerType;
+        using NurbsCurveGeometryPointerType = NurbsCurveGeometry<2, PointerVector<Node>>::Pointer;
+        using CoordinatesArrayType = Geometry<NodeType>::CoordinatesArrayType;
 
         static void CreateTheSnakeCoordinates(ModelPart& iga_model_part, 
                                             ModelPart& skin_model_part_inner_initial,
@@ -52,6 +61,16 @@ namespace Kratos
                             std::vector<std::vector<double>> xy_coord_i_cond, 
                             Vector knot_step_uv, 
                             Vector starting_pos_uv);
+        
+        static void SnakeStepNurbs(ModelPart& skin_model_part, 
+                            std::vector<std::vector<std::vector<int>>> &knot_spans_available, 
+                            int idMatrix, 
+                            std::vector<std::vector<int>> knot_spans_uv, 
+                            std::vector<std::vector<double>> xy_coord, 
+                            Vector knot_step_uv, 
+                            const Vector starting_pos_uv,
+                            const std::vector<double> local_coords,
+                            const NurbsCurveGeometryPointerType p_curve);
         
         static void SnakeStep3D(ModelPart& skin_model_part, std::vector<std::vector<std::vector<std::vector<int>>>> &knot_spans_available, int idMatrixKnotSpansAvailable, 
                             int knot_span_u_1st_point, int knot_span_u_2nd_point, int knot_span_u_3rd_point, 

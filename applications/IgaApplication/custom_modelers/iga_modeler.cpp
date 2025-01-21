@@ -592,6 +592,10 @@ namespace Kratos
         bool is2D = true;
         if(rSkinModelPart.GetCondition(listIdClosestCondition[0]).GetGeometry().size() > 2) { is2D = false;}
 
+        /*
+        std::string rConditionName = rSkinModelPart.GetCondition(listIdClosestCondition[0]).GetValue(CONDITION_NAME)
+        */
+
         if (is2D) {
             for (auto it = rGeometriesBegin; it != rGeometriesEnd; ++it) {
                 new_condition_list.push_back(

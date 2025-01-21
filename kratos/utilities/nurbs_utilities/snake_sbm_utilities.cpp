@@ -31,12 +31,12 @@ namespace Kratos
         KRATOS_ERROR_IF_NOT(mParameters.Has("sbm_parameters")) << "sbm_parameters has not been defined in the nurbs modeler" << std::endl;
         
         // Initilize the property of skin_model_part_in and out
-        if (skin_model_part_inner_initial.Nodes().size()>0) {
+        if (skin_model_part_inner_initial.NumberOfNodes()>0 || skin_model_part_inner_initial.NumberOfGeometries()>0) {
         
             CreateTheSnakeCoordinates(iga_model_part, skin_model_part_inner_initial, skin_model_part, rEchoLevel, knot_vector_u, knot_vector_v, mParameters, true);
                 
         }
-        if (skin_model_part_outer_initial.Nodes().size()>0) {
+        if (skin_model_part_outer_initial.NumberOfNodes()>0 || skin_model_part_outer_initial.NumberOfGeometries()>0) {
 
             CreateTheSnakeCoordinates(iga_model_part, skin_model_part_outer_initial, skin_model_part, rEchoLevel, knot_vector_u, knot_vector_v, mParameters, false);
         }
@@ -67,6 +67,7 @@ namespace Kratos
         ModelPart& skin_sub_model_part = skin_model_part.GetSubModelPart(skin_sub_model_part_name);
         ModelPart& surrogate_sub_model_part = iga_model_part.GetSubModelPart(surrogate_sub_model_part_name);
 
+        const bool is_initial_skin_nurbs = skin_model_part_initial.Geometries().size()>0;
         
         Properties::Pointer p_cond_prop_in = skin_model_part_initial.pGetProperties(0);
         skin_model_part_initial.AddProperties(p_cond_prop_in);
@@ -186,6 +187,122 @@ namespace Kratos
                     newInnerLoop = true;
                 }
             }
+        }
+        else if (is_initial_skin_nurbs) {
+            const int n_initial_points_for_side = 100000;
+            int first_node_id = skin_model_part.GetRootModelPart().NumberOfNodes()+1;
+            const SizeType n_boundary_curves = skin_model_part_initial.NumberOfGeometries();
+            bool newInnerLoop = true;
+            for (IndexType i_boundary_curve = 0; i_boundary_curve < n_boundary_curves; i_boundary_curve++) 
+            {
+                NurbsCurveGeometryPointerType p_curve = std::dynamic_pointer_cast<Kratos::NurbsCurveGeometry<2, Kratos::PointerVector<Kratos::Node>>>(skin_model_part_initial.pGetGeometry(i_boundary_curve));
+                if (!p_curve) 
+                    KRATOS_ERROR << "NURBS curve " << i_boundary_curve << " not defined in the initial Model Part. Check the importNurbsSbmModeler." << std::endl;
+
+                // first point
+                CoordinatesArrayType first_point_coords(3);
+                Vector first_point_local_coord = ZeroVector(3);
+                p_curve->GlobalCoordinates(first_point_coords, first_point_local_coord);
+                // check the first point of the curve
+                if (newInnerLoop) 
+                {
+                    Node::Pointer node = new Node(first_node_id, first_point_coords[0], first_point_coords[1], first_point_coords[2]);
+
+                    // Create two nodes and two conditions for each skin condition
+                    std::string layer_name = p_curve->GetValue(IDENTIFIER);
+
+                    ModelPart& skin_layer_sub_model_part = skin_model_part.HasSubModelPart(layer_name) ? 
+                                                           skin_model_part.GetSubModelPart(layer_name) : skin_model_part.CreateSubModelPart(layer_name);
+            
+                    skin_sub_model_part.AddNode(node);
+                    newInnerLoop = false;
+                } else 
+                {
+                    const int last_node_id = skin_model_part.GetRootModelPart().NumberOfNodes();
+                    KRATOS_ERROR_IF(norm_2(first_point_coords - skin_sub_model_part.GetNode(last_node_id)) > 1e-15)
+                                    << "ImportNurbsSbmModeler: error in the json NURBS file. The boundary curves" 
+                                    << " are not correctly ordered." << std::endl;;
+                }
+                // add the specified number of points
+                Vector second_point_local_coord = ZeroVector(3);
+                    CoordinatesArrayType second_point_coords(3);
+                for (int i = 1; i < n_initial_points_for_side; i++)
+                {
+                    second_point_local_coord[0] = (double) i/(n_initial_points_for_side-1);
+                    p_curve->GlobalCoordinates(second_point_coords, second_point_local_coord);
+                    //***********************************************************
+                     // Collect the coordinates of the points
+                    std::vector<std::vector<double>> xy_coord_i_cond(2);
+                    xy_coord_i_cond[0].resize(2); xy_coord_i_cond[1].resize(2); 
+                    
+                    xy_coord_i_cond[0][0] = first_point_coords[0]; // x_true_boundary1
+                    xy_coord_i_cond[1][0] = first_point_coords[1]; // y_true_boundary1
+                    xy_coord_i_cond[0][1] = second_point_coords[0]; // x_true_boundary2
+                    xy_coord_i_cond[1][1] = second_point_coords[1]; // y_true_boundary2
+                    
+                    // Collect the intersections of the skin boundary with the knot values
+                    std::vector<std::vector<int>> knot_span_uv(2);
+                    knot_span_uv[0].resize(2); knot_span_uv[1].resize(2);
+
+                    knot_span_uv[0][0] = (first_point_coords[0]-starting_pos_uv[0]) / knot_step_uv[0]; // knot_span_u_1st_point
+                    knot_span_uv[1][0] = (first_point_coords[1]-starting_pos_uv[1]) / knot_step_uv[1]; // knot_span_v_1st_point
+                    knot_span_uv[0][1] = (second_point_coords[0]-starting_pos_uv[0]) / knot_step_uv[0]; // knot_span_u_2nd_point
+                    knot_span_uv[1][1] = (second_point_coords[1]-starting_pos_uv[1]) / knot_step_uv[1]; // knot_span_v_2nd_point
+
+                    if (is_inner &&
+                                (knot_span_uv[0][0] < 0 || knot_span_uv[0][0] >= n_knot_spans_uv[0] ||
+                                knot_span_uv[1][0] < 0 || knot_span_uv[1][0] >= n_knot_spans_uv[1] ||
+                                knot_span_uv[0][1] < 0 || knot_span_uv[0][1] >= n_knot_spans_uv[0] ||
+                                knot_span_uv[1][1] < 0 || knot_span_uv[1][1] >= n_knot_spans_uv[1]) )
+                        KRATOS_ERROR << "[SnakeSbmUtilities]:: The skin boundary provided is bigger than the background geometry in the parameter space." << std::endl;
+
+                    // additional check knot_span_uv computation on the domain border [especially for outer boundary]
+                    if (knot_span_uv[0][0] == n_knot_spans_uv[0]) knot_span_uv[0][0]--; if (knot_span_uv[1][0] == n_knot_spans_uv[1]) knot_span_uv[1][0]--;
+                    if (knot_span_uv[0][1] == n_knot_spans_uv[0]) knot_span_uv[0][1]--; if (knot_span_uv[1][1] == n_knot_spans_uv[1]) knot_span_uv[1][1]--;
+
+                    std::vector<double> local_coords{first_point_local_coord[0], second_point_local_coord[0]};
+
+                    // KRATOS_WATCH(knot_span_uv)
+                    // KRATOS_WATCH(knot_spans_available.size())
+                    // KRATOS_WATCH(first_point_coords)
+                    // KRATOS_WATCH(second_point_coords)
+
+                    SnakeStepNurbs(skin_sub_model_part, knot_spans_available, idMatrixKnotSpansAvailable, 
+                                   knot_span_uv, xy_coord_i_cond, knot_step_uv, starting_pos_uv, local_coords, p_curve);
+                    
+                    first_point_local_coord = second_point_local_coord;
+                    first_point_coords = second_point_coords;
+                    // ********************************************************
+
+                    // // compute normal and store value to the point
+                    // std::vector<CoordinatesArrayType> global_space_derivatives;
+                    // SizeType derivative_order = 1;
+                    // p_curve->GlobalSpaceDerivatives(global_space_derivatives, local_coord, derivative_order);
+                    // CoordinatesArrayType tangent_vector = global_space_derivatives[1];
+
+                    // double tangent_magnitude = norm_2(tangent_vector);
+                    // tangent_vector /= tangent_magnitude;
+                    // Vector normal_vector = ZeroVector(3);
+                    // normal_vector[0] = tangent_vector[1];
+                    // normal_vector[1] = -tangent_vector[0];
+
+                    // // node->SetValue(NORMAL, node)
+                    // skin_model_part_initial.AddNode(node);
+
+                    //-------------------------------------------------
+                }
+                // check the last point of the curve
+                if (norm_2(second_point_coords - skin_sub_model_part.GetNode(first_node_id)) < 1e-15)
+                {
+                    first_node_id = skin_sub_model_part.GetRootModelPart().NumberOfNodes()+1;
+                    newInnerLoop = true;
+                    idMatrixKnotSpansAvailable++;
+                }
+            }
+            // exit(0);
+        }
+        else {
+            KRATOS_ERROR << "::[SnakeSbmUtilities]:: The initial skin model part is empty.";
         }
         PointVector points;
         for (auto &i_cond : skin_sub_model_part.Conditions()) {
@@ -315,6 +432,112 @@ namespace Kratos
             Condition::Pointer p_cond2 = skin_model_part.CreateNewCondition("LineCondition2D2N", idNode2, {{idNode2, idNode2+1}}, p_cond_prop );
             skin_model_part.AddCondition(p_cond1);
             skin_model_part.AddCondition(p_cond2);
+        }
+    }
+
+    void SnakeSBMUtilities::SnakeStepNurbs(ModelPart& skin_model_part, 
+                            std::vector<std::vector<std::vector<int>>> &knot_spans_available, 
+                            int idMatrix, 
+                            std::vector<std::vector<int>> knot_spans_uv, 
+                            std::vector<std::vector<double>> xy_coord, 
+                            Vector knot_step_uv, 
+                            const Vector starting_pos_uv,
+                            const std::vector<double> local_coords,
+                            const NurbsCurveGeometryPointerType p_curve)
+                            {
+        bool isSplitted = false;
+
+        if (knot_spans_uv[0][0] != knot_spans_uv[0][1] || knot_spans_uv[1][0] != knot_spans_uv[1][1]) { // INTERSECTION BETWEEN TRUE AND SURROGATE BOUNDARY
+            // Check if we are jumping some cut knot spans. If yes we split the true segment
+            if (std::abs(knot_spans_uv[1][0]-knot_spans_uv[1][1]) > 1 || std::abs(knot_spans_uv[0][0]-knot_spans_uv[0][1]) > 1 || 
+                    (knot_spans_uv[0][0] != knot_spans_uv[0][1] && knot_spans_uv[1][0] != knot_spans_uv[1][1]) ) {
+                isSplitted = true;
+                
+                // Split the segment and do it recursively
+                Vector local_coords_split = ZeroVector(3);
+                local_coords_split[0] = (local_coords[0] + local_coords[1]) / 2;
+                CoordinatesArrayType xy_true_boundary_split;
+                p_curve->GlobalCoordinates(xy_true_boundary_split, local_coords_split);
+
+                int knot_span_u_point_split = (xy_true_boundary_split[0]-starting_pos_uv[0]) / knot_step_uv[0] ;
+                int knot_span_v_point_split = (xy_true_boundary_split[1]-starting_pos_uv[1]) / knot_step_uv[1] ;
+
+                // update xy_coord for the first split segment
+                std::vector<std::vector<double>> xy_coord_i_cond_split(2);
+                xy_coord_i_cond_split[0].resize(2); xy_coord_i_cond_split[1].resize(2); 
+                xy_coord_i_cond_split[0][0] = xy_coord[0][0]; // x_true_boundary1
+                xy_coord_i_cond_split[1][0] = xy_coord[1][0]; // y_true_boundary1
+                xy_coord_i_cond_split[0][1] = xy_true_boundary_split[0]; // x_true_boundary_split
+                xy_coord_i_cond_split[1][1] = xy_true_boundary_split[1]; // y_true_boundary_split
+                // update knot_span_uv for the first split segment
+                std::vector<std::vector<int>> knot_span_uv_split(2);
+                knot_span_uv_split[0].resize(2); knot_span_uv_split[1].resize(2); 
+                knot_span_uv_split[0][0] = knot_spans_uv[0][0]; // knot_span_u_1st_point
+                knot_span_uv_split[1][0] = knot_spans_uv[1][0]; // knot_span_v_1st_point
+                knot_span_uv_split[0][1] = knot_span_u_point_split; // knot_span_u_point_split
+                knot_span_uv_split[1][1] = knot_span_v_point_split; // knot_span_v_point_split
+
+                std::vector<double> local_coords_split_segment1{local_coords[0], local_coords_split[0]};
+                
+                // KRATOS_WATCH(knot_spans_uv)
+                // KRATOS_WATCH(local_coords)
+                // KRATOS_WATCH(local_coords_split)
+                // KRATOS_WATCH(xy_coord)
+                // exit(0);
+                // __We do it recursively first split__
+                SnakeStepNurbs(skin_model_part, knot_spans_available, idMatrix, knot_span_uv_split, 
+                         xy_coord_i_cond_split, knot_step_uv, starting_pos_uv, local_coords_split_segment1, p_curve);
+
+                // update xy_coord for the second split segment
+                xy_coord_i_cond_split[0][0] = xy_true_boundary_split[0]; // x_true_boundary_split
+                xy_coord_i_cond_split[1][0] = xy_true_boundary_split[1]; // y_true_boundary_split
+                xy_coord_i_cond_split[0][1] = xy_coord[0][1]; // x_true_boundary2
+                xy_coord_i_cond_split[1][1] = xy_coord[1][1]; // y_true_boundary2
+                // update knot_span_uv for the first split segment
+                knot_span_uv_split[0][0] = knot_span_u_point_split; // knot_span_u_point_split
+                knot_span_uv_split[1][0] = knot_span_v_point_split; // knot_span_v_point_split
+                knot_span_uv_split[0][1] = knot_spans_uv[0][1]; // knot_span_u_2nd_point
+                knot_span_uv_split[1][1] = knot_spans_uv[1][1]; // knot_span_v_2nd_point
+
+                std::vector<double> local_coords_split_segment2{local_coords_split[0], local_coords[1]};
+                // __We do it recursively second split__
+                SnakeStepNurbs(skin_model_part, knot_spans_available, idMatrix, knot_span_uv_split, 
+                         xy_coord_i_cond_split, knot_step_uv, starting_pos_uv, local_coords_split_segment2, p_curve);
+
+
+
+            }
+            // Check if the true boundary crosses an u or a v knot value
+            else if (knot_spans_uv[0][0] != knot_spans_uv[0][1]) { // u knot value is crossed
+                // Find the "knot_spans_available" using the intersection
+                knot_spans_available[idMatrix][knot_spans_uv[1][0]][knot_spans_uv[0][0]] = 2;
+                knot_spans_available[idMatrix][knot_spans_uv[1][0]][knot_spans_uv[0][1]] = 2;
+
+            }
+            else if (knot_spans_uv[1][0] != knot_spans_uv[1][1]) { // v knot value is crossed
+                // Find the "knot_spans_available" using the intersection (Snake_coordinate classic -> External Boundary)
+                knot_spans_available[idMatrix][knot_spans_uv[1][0]][knot_spans_uv[0][0]] = 2;
+                knot_spans_available[idMatrix][knot_spans_uv[1][1]][knot_spans_uv[0][0]] = 2;
+            }
+        }
+        if (!isSplitted) {
+            // Call the root model part for the Ids of the node
+            auto idNode1 = skin_model_part.GetRootModelPart().Nodes().size();
+            auto idNode2 = idNode1+1;
+            // Create two nodes and two conditions for each skin condition
+            auto node = new Node(idNode2, xy_coord[0][1], xy_coord[1][1], 0.0);
+
+            std::string layer_name = p_curve->GetValue(IDENTIFIER);
+
+            ModelPart& skin_layer_sub_model_part = skin_model_part.HasSubModelPart(layer_name) ? 
+                                                skin_model_part.GetSubModelPart(layer_name) : skin_model_part.CreateSubModelPart(layer_name);
+            
+            // compute normal and tangent informations at the local coord of the point 
+            skin_layer_sub_model_part.AddNode(node);
+
+            Properties::Pointer p_cond_prop = skin_model_part.pGetProperties(0);
+            Condition::Pointer p_cond = skin_model_part.CreateNewCondition("LineCondition2D2N", idNode1, {{idNode1, idNode2}}, p_cond_prop );
+            skin_model_part.AddCondition(p_cond);
         }
     }
 

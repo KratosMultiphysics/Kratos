@@ -124,6 +124,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_MODELER("RefinementModeler", mRefinementModeler);
     KRATOS_REGISTER_MODELER("NurbsGeometryModeler", mNurbsGeometryModeler);
     KRATOS_REGISTER_MODELER("NurbsGeometryModelerSbm", mNurbsGeometryModelerSbm);
+    KRATOS_REGISTER_MODELER("ImportNurbsSbmModeler", mImportNurbsSbmModeler);
     KRATOS_REGISTER_MODELER("ContactIgaModeler", mContactIgaModeler);
 
     // VARIABLES
