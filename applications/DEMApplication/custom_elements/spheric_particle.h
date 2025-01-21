@@ -16,6 +16,7 @@
 #include "custom_utilities/AuxiliaryFunctions.h"
 #include "custom_constitutive/DEM_discontinuum_constitutive_law.h"
 #include "custom_constitutive/DEM_rolling_friction_model.h"
+#include "custom_constitutive/DEM_global_damping.h"
 #include "custom_conditions/RigidFace.h"
 #include "custom_conditions/dem_wall.h"
 #include "custom_strategies/schemes/dem_integration_scheme.h"
@@ -275,7 +276,7 @@ BoundedMatrix<double, 3, 3>* mDifferentialStrainTensor;
 
 virtual void ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force, array_1d<double, 3>& externally_applied_moment, const ProcessInfo& r_process_info, const array_1d<double,3>& gravity);
 virtual array_1d<double,3> ComputeWeight(const array_1d<double,3>& gravity, const ProcessInfo& r_process_info);
-virtual void CalculateOnContactElements(size_t i_neighbour_count, double LocalContactForce[3]);
+virtual void CalculateOnContactElements(size_t i_neighbour_count, double LocalContactForce[3], double GlobalContactForce[3]);
 
 std::unique_ptr<DEMDiscontinuumConstitutiveLaw> pCloneDiscontinuumConstitutiveLawWithNeighbour(SphericParticle* neighbour);
 
@@ -286,6 +287,8 @@ std::unique_ptr<DEMRollingFrictionModel> pCloneRollingFrictionModel(SphericParti
 std::unique_ptr<DEMRollingFrictionModel> pCloneRollingFrictionModelWithNeighbour(SphericParticle* neighbour);
 
 std::unique_ptr<DEMRollingFrictionModel> pCloneRollingFrictionModelWithFEMNeighbour(Condition* neighbour);
+
+std::unique_ptr<DEMGlobalDampingModel> pCloneGlobalDampingModel(SphericParticle* element);
 
 protected:
 
@@ -342,17 +345,18 @@ virtual void RelativeDisplacementAndVelocityOfContactPointDueToRotationQuaternio
                                                                                 const double &other_radius,
                                                                                 const double &dt,
                                                                                 const array_1d<double, 3> &angl_vel,
-                                                                                SphericParticle* neighbour_iterator);
+                                                                                SphericParticle* neighbour_iterator,
+                                                                                ParticleDataBuffer & data_buffer);
 
 virtual void ComputeMoments(double normalLocalContactForce,
-                            double GlobalElasticContactForces[3],
+                            double GlobalContactForce[3],
                             double LocalCoordSystem_2[3],
                             SphericParticle* neighbour_iterator,
                             double indentation,
                             unsigned int i);
 
 virtual void ComputeMomentsWithWalls(double normalLocalContactForce,
-                            double GlobalElasticContactForces[3],
+                            double GlobalContactForce[3],
                             double LocalCoordSystem_2[3],
                             Condition* wall,
                             double indentation,
@@ -425,13 +429,13 @@ virtual void ComputeWear(double LocalRelVel[3],
 virtual void AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info);
 
 virtual void AddNeighbourContributionToStressTensor(const ProcessInfo& r_process_info,
-                                                    const double GlobalElasticContactForce[3],
+                                                    const double GlobalContactForce[3],
                                                     const double other_to_me_vect[3],
                                                     const double distance,
                                                     const double radius_sum,
                                                     SphericParticle* element);
 
-virtual void AddWallContributionToStressTensor(const double GlobalElasticContactForce[3],
+virtual void AddWallContributionToStressTensor(const double GlobalContactForce[3],
                                                const double other_to_me_vect[3],
                                                const double distance,
                                                const double contact_area);
@@ -441,6 +445,7 @@ virtual void ApplyGlobalDampingToContactForcesAndMoments(array_1d<double,3>& tot
 
 std::unique_ptr<DEMDiscontinuumConstitutiveLaw> mDiscontinuumConstitutiveLaw;
 std::unique_ptr<DEMRollingFrictionModel> mRollingFrictionModel;
+std::unique_ptr<DEMGlobalDampingModel> mGlobalDampingModel;
 
 double mInitializationTime;
 double mIndentationInitialOption;
@@ -454,7 +459,6 @@ PropertiesProxy* mFastProperties;
 int mClusterId;
 DEMIntegrationScheme* mpTranslationalIntegrationScheme;
 DEMIntegrationScheme* mpRotationalIntegrationScheme;
-double mGlobalDamping;
 double mGlobalViscousDamping;
 double mBondedScalingFactor[3] = {0.0};
 
@@ -504,7 +508,6 @@ virtual void save(Serializer& rSerializer) const override
     rSerializer.save("mSearchRadius", mSearchRadius);
     rSerializer.save("mRealMass", mRealMass);
     rSerializer.save("mClusterId", mClusterId);
-    rSerializer.save("mGlobalDamping",mGlobalDamping);
     rSerializer.save("mGlobalViscousDamping",mGlobalViscousDamping);
 }
 
@@ -559,7 +562,6 @@ virtual void load(Serializer& rSerializer) override
     rSerializer.load("mSearchRadius", mSearchRadius);
     rSerializer.load("mRealMass", mRealMass);
     rSerializer.load("mClusterId", mClusterId);
-    rSerializer.load("mGlobalDamping",mGlobalDamping);
     rSerializer.load("mGlobalViscousDamping",mGlobalViscousDamping);
 }
 

@@ -15,6 +15,7 @@
 // Application includes
 #include "custom_conditions/U_Pw_normal_flux_condition.hpp"
 #include "custom_utilities/condition_utilities.hpp"
+#include "custom_utilities/variables_utilities.hpp"
 
 namespace Kratos
 {
@@ -27,63 +28,36 @@ Condition::Pointer UPwNormalFluxCondition<TDim, TNumNodes>::Create(IndexType    
     return Condition::Pointer(new UPwNormalFluxCondition(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(VectorType&        rRightHandSideVector,
-                                                           const ProcessInfo& CurrentProcessInfo)
+void UPwNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(Vector& rRightHandSideVector, const ProcessInfo&)
 {
-    // Previous definitions
-    const GeometryType&                             Geom = this->GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
-        Geom.IntegrationPoints(this->GetIntegrationMethod());
-    const unsigned int NumGPoints = IntegrationPoints.size();
-    const unsigned int LocalDim   = Geom.LocalSpaceDimension();
+    const auto& r_geometry           = this->GetGeometry();
+    const auto& r_integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
+    const unsigned int number_of_integration_points = r_integration_points.size();
 
     // Containers of variables at all integration points
-    const Matrix& NContainer = Geom.ShapeFunctionsValues(this->GetIntegrationMethod());
-    GeometryType::JacobiansType JContainer(NumGPoints);
-    for (unsigned int i = 0; i < NumGPoints; ++i)
-        (JContainer[i]).resize(TDim, LocalDim, false);
-    Geom.Jacobian(JContainer, this->GetIntegrationMethod());
+    const Matrix& r_n_container = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
+    GeometryType::JacobiansType j_container(number_of_integration_points);
+    for (auto& j : j_container)
+        j.resize(TDim, r_geometry.LocalSpaceDimension(), false);
+    r_geometry.Jacobian(j_container, this->GetIntegrationMethod());
 
     // Condition variables
-    array_1d<double, TNumNodes> NormalFluxVector;
-    for (unsigned int i = 0; i < TNumNodes; ++i) {
-        NormalFluxVector[i] = Geom[i].FastGetSolutionStepValue(NORMAL_FLUID_FLUX);
-    }
-    NormalFluxVariables Variables;
+    Vector normal_flux_vector(TNumNodes);
+    VariablesUtilities::GetNodalValues(r_geometry, NORMAL_FLUID_FLUX, normal_flux_vector.begin());
 
-    // Loop over integration points
-    for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
+    for (unsigned int integration_point = 0; integration_point < number_of_integration_points; ++integration_point) {
         // Compute normal flux
-        Variables.NormalFlux = 0.0;
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            Variables.NormalFlux += NContainer(GPoint, i) * NormalFluxVector[i];
-        }
-
-        // Obtain Np
-        noalias(Variables.Np) = row(NContainer, GPoint);
+        auto normal_flux = MathUtils<>::Dot(row(r_n_container, integration_point), normal_flux_vector);
 
         // Compute weighting coefficient for integration
-        Variables.IntegrationCoefficient = ConditionUtilities::CalculateIntegrationCoefficient<TDim, TNumNodes>(
-            JContainer[GPoint], IntegrationPoints[GPoint].Weight());
+        auto integration_coefficient = ConditionUtilities::CalculateIntegrationCoefficient(
+            j_container[integration_point], r_integration_points[integration_point].Weight());
 
         // Contributions to the right hand side
-        this->CalculateAndAddRHS(rRightHandSideVector, Variables);
+        GeoElementUtilities::AssemblePBlockVector(
+            rRightHandSideVector, -normal_flux * row(r_n_container, integration_point) * integration_coefficient);
     }
-}
-
-//----------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------
-
-template <unsigned int TDim, unsigned int TNumNodes>
-void UPwNormalFluxCondition<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRightHandSideVector,
-                                                                 NormalFluxVariables& rVariables)
-{
-    noalias(rVariables.PVector) = -rVariables.NormalFlux * rVariables.Np * rVariables.IntegrationCoefficient;
-
-    GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, rVariables.PVector);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

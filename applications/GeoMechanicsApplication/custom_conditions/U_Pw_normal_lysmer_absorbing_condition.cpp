@@ -28,10 +28,8 @@ Condition::Pointer UPwLysmerAbsorbingCondition<TDim, TNumNodes>::Create(IndexTyp
         new UPwLysmerAbsorbingCondition(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateLeftHandSide(Matrix& rLeftHandSideMatrix,
                                                                          const ProcessInfo& rCurrentProcessInfo)
 {
     ElementMatrixType stiffness_matrix;
@@ -42,8 +40,8 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateLeftHandSide(MatrixT
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixType& rLhsMatrix,
-                                                                        VectorType& rRightHandSideVector,
+void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateLocalSystem(Matrix& rLhsMatrix,
+                                                                        Vector& rRightHandSideVector,
                                                                         const ProcessInfo& rCurrentProcessInfo)
 {
     this->CalculateLeftHandSide(rLhsMatrix, rCurrentProcessInfo);
@@ -55,7 +53,6 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateConditionStiffnessMatrix(ElementMatrixType& rStiffnessMatrix,
                                                                                      const ProcessInfo& rCurrentProcessInfo)
 {
-    // Previous definitions
     GeometryType& r_geom = this->GetGeometry();
 
     GeometryData::IntegrationMethod integration_method = this->GetIntegrationMethod();
@@ -97,7 +94,7 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateConditionStiffnessMa
         GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(nu_matrix, r_n_container, g_point);
 
         // Compute weighting coefficient for integration
-        double integration_coefficient = ConditionUtilities::CalculateIntegrationCoefficient<TDim, TNumNodes>(
+        double integration_coefficient = ConditionUtilities::CalculateIntegrationCoefficient(
             jacobians[g_point], r_integration_points[g_point].Weight());
 
         // set stiffness part of absorbing matrix
@@ -107,31 +104,30 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateConditionStiffnessMa
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateRightHandSide(VectorType& rRightHandSideVector,
+void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateRightHandSide(Vector& rRightHandSideVector,
                                                                           const ProcessInfo& rCurrentProcessInfo)
 {
 
     if (this->GetValue(SKIP_INTERNAL_FORCES)) {
         rRightHandSideVector = ZeroVector(CONDITION_SIZE);
-       
+
 	}
 	else {
         ElementMatrixType stiffness_matrix;
 
         this->CalculateConditionStiffnessMatrix(stiffness_matrix, rCurrentProcessInfo);
 
-        MatrixType global_stiffness_matrix = ZeroMatrix(CONDITION_SIZE, CONDITION_SIZE);
-        GeoElementUtilities::AssembleUUBlockMatrix(global_stiffness_matrix, stiffness_matrix);
+    Matrix global_stiffness_matrix = ZeroMatrix(CONDITION_SIZE, CONDITION_SIZE);
+    GeoElementUtilities::AssembleUUBlockMatrix(global_stiffness_matrix, stiffness_matrix);
 
         this->CalculateAndAddRHS(rRightHandSideVector, global_stiffness_matrix);
 	}
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateDampingMatrix(MatrixType& rDampingMatrix,
+void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateDampingMatrix(Matrix& rDampingMatrix,
                                                                           const ProcessInfo& rCurrentProcessInfo)
 {
-    // Previous definitions
     GeometryType& r_geom = this->GetGeometry();
 
     GeometryData::IntegrationMethod r_integration_method = this->GetIntegrationMethod();
@@ -176,7 +172,7 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateDampingMatrix(Matrix
         GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(nu_matrix, r_n_container, g_point);
 
         // Compute weighting coefficient for integration
-        double integration_coefficient = ConditionUtilities::CalculateIntegrationCoefficient<TDim, TNumNodes>(
+        double integration_coefficient = ConditionUtilities::CalculateIntegrationCoefficient(
             jacobians[g_point], r_integration_points[g_point].Weight());
 
         // set damping part of absorbing matrix
@@ -187,9 +183,6 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateDampingMatrix(Matrix
     // assemble left hand side vector
     this->AddLHS(rDampingMatrix, abs_matrix);
 }
-
-//----------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::GetValuesVector(Vector& rValues, int Step) const
@@ -405,21 +398,19 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::GetVariables(NormalLysmerAbso
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRightHandSideVector,
-                                                                      const MatrixType& rStiffnessMatrix)
+void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateAndAddRHS(Vector& rRightHandSideVector,
+                                                                      const Matrix& rStiffnessMatrix)
 {
     rRightHandSideVector = ZeroVector(CONDITION_SIZE);
-	// Only calculate internal forces if the flag is set, not all solvers need them to be calculated per element
 
     Vector displacements_vector = ZeroVector(CONDITION_SIZE);
     this->GetValuesVector(displacements_vector, 0);
 
     rRightHandSideVector -= prod(rStiffnessMatrix, displacements_vector);
-
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::AddLHS(MatrixType& rLeftHandSideMatrix,
+void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::AddLHS(Matrix& rLeftHandSideMatrix,
                                                           const ElementMatrixType& rUUMatrix)
 {
     // assemble left hand side vector
@@ -536,8 +527,6 @@ void UPwLysmerAbsorbingCondition<3, 3>::CalculateRotationMatrix(BoundedMatrix<do
     rRotationMatrix(2, 2) = v_z[2];
 }
 
-//----------------------------------------------------------------------------------------
-
 template <>
 void UPwLysmerAbsorbingCondition<3, 4>::CalculateRotationMatrix(BoundedMatrix<double, 3, 3>& rRotationMatrix,
                                                                 const Element::GeometryType& rGeom)
@@ -590,8 +579,6 @@ std::string UPwLysmerAbsorbingCondition<TDim, TNumNodes>::Info() const
 {
     return "UPwLysmerAbsorbingCondition";
 }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template class UPwLysmerAbsorbingCondition<2, 2>;
 template class UPwLysmerAbsorbingCondition<2, 3>;

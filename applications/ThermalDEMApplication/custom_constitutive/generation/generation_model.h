@@ -6,8 +6,7 @@
 //  Main authors:  Rafael Rangel (rrangel@cimne.upc.edu)
 //
 
-#if !defined(GENERATION_MODEL_H_INCLUDED)
-#define GENERATION_MODEL_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -80,5 +79,3 @@ namespace Kratos
   }
 
 } // namespace Kratos
-
-#endif // GENERATION_MODEL_H_INCLUDED

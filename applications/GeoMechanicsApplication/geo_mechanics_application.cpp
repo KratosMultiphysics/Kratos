@@ -27,6 +27,8 @@ KratosGeoMechanicsApplication::KratosGeoMechanicsApplication()
 
 void KratosGeoMechanicsApplication::Register()
 {
+    KratosApplication::Register();
+
     KRATOS_INFO("") << " KRATOS___                             \n"
                     << "     //   ) )                          \n"
                     << "    //         ___      ___            \n"
@@ -84,6 +86,8 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_ELEMENT("SteadyStatePwPipingElement2D4N", mSteadyStatePwPipingElement2D4N)
     KRATOS_REGISTER_ELEMENT("SteadyStatePwPipingElement3D6N", mSteadyStatePwPipingElement3D6N)
     KRATOS_REGISTER_ELEMENT("SteadyStatePwPipingElement3D8N", mSteadyStatePwPipingElement3D8N)
+    KRATOS_REGISTER_ELEMENT("GeoSteadyStatePwPipingElement2D2N", mGeoSteadyStatePwPipingElement2D2N)
+    KRATOS_REGISTER_ELEMENT("GeoSteadyStatePwPipingElement3D2N", mGeoSteadyStatePwPipingElement3D2N)
 
     // Small strain elements
     KRATOS_REGISTER_ELEMENT("UPwSmallStrainElement2D3N", mUPwSmallStrainElement2D3N)
@@ -155,7 +159,10 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_ELEMENT("UPwSmallStrainLinkInterfaceElement3D6N", mUPwSmallStrainLinkInterfaceElement3D6N)
     KRATOS_REGISTER_ELEMENT("UPwSmallStrainLinkInterfaceElement3D8N", mUPwSmallStrainLinkInterfaceElement3D8N)
 
-    // Updated-Lagranian elements
+    KRATOS_REGISTER_ELEMENT("Geo_ULineInterfacePlaneStrainElement2Plus2N", mULineInterfacePlaneStrainElement2Plus2N)
+    KRATOS_REGISTER_ELEMENT("Geo_ULineInterfacePlaneStrainElement3Plus3N", mULineInterfacePlaneStrainElement3Plus3N)
+
+    // Updated-Lagrangian elements
     KRATOS_REGISTER_ELEMENT("UPwUpdatedLagrangianElement2D3N", mUPwUpdatedLagrangianElement2D3N)
     KRATOS_REGISTER_ELEMENT("UPwUpdatedLagrangianElement2D4N", mUPwUpdatedLagrangianElement2D4N)
     KRATOS_REGISTER_ELEMENT("UPwUpdatedLagrangianElement3D4N", mUPwUpdatedLagrangianElement3D4N)
@@ -345,9 +352,8 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("BilinearCohesive3DLaw", mBilinearCohesive3DLaw)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("BilinearCohesive2DLaw", mBilinearCohesive2DLaw)
 
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticPlaneStrainK02DLaw", mLinearPlaneStrainK0Law)
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticK03DLaw", mElasticIsotropicK03DLaw)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoLinearElasticPlaneStrain2DLaw", mLinearElasticPlaneStrain2DLaw)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoIncrementalLinearElastic3DLaw", mLinearElastic3DLaw)
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoLinearElasticPlaneStress2DLaw", mLinearElasticPlaneStress2DLaw)
 
@@ -366,6 +372,8 @@ void KratosGeoMechanicsApplication::Register()
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElastic2DBeamLaw", mLinearElastic2DBeamLaw)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("TrussBackboneConstitutiveLaw", mTrussBackboneConstitutiveLaw)
+
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("Geo_IncrementalLinearElasticInterfaceLaw", mIncrementalLinearElasticInterfaceLaw)
 
     // Register Variables
     KRATOS_REGISTER_VARIABLE(VELOCITY_COEFFICIENT)
@@ -413,6 +421,7 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(K0_NC)
     KRATOS_REGISTER_VARIABLE(OCR)
     KRATOS_REGISTER_VARIABLE(POISSON_UNLOADING_RELOADING)
+    KRATOS_REGISTER_VARIABLE(POP)
 
     KRATOS_REGISTER_VARIABLE(ACCUMULATED_STRAIN)
 
@@ -515,6 +524,7 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(PIPE_IN_EQUILIBRIUM)
     KRATOS_REGISTER_VARIABLE(PIPE_MODIFIED_D)
     KRATOS_REGISTER_VARIABLE(PIPE_MODEL_FACTOR)
+    KRATOS_REGISTER_VARIABLE(PIPE_WIDTH_FACTOR)
     KRATOS_REGISTER_VARIABLE(PIPE_HEIGHT)
     KRATOS_REGISTER_VARIABLE(PREV_PIPE_HEIGHT)
     KRATOS_REGISTER_VARIABLE(DIFF_PIPE_HEIGHT)
@@ -527,9 +537,6 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(IS_FORTRAN_UDSM) // Also for UMAT
 
     KRATOS_REGISTER_VARIABLE(UMAT_PARAMETERS)
-
-    KRATOS_REGISTER_VARIABLE(NUMBER_OF_UMAT_STATE_VARIABLES)
-    KRATOS_REGISTER_VARIABLE(NUMBER_OF_UMAT_PARAMETERS)
     KRATOS_REGISTER_VARIABLE(INDEX_OF_UMAT_C_PARAMETER)
     KRATOS_REGISTER_VARIABLE(INDEX_OF_UMAT_PHI_PARAMETER)
 

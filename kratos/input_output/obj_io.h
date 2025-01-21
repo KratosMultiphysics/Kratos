@@ -63,12 +63,6 @@ public:
     /// Definition of supported geometries
     static constexpr std::array<const char*, 2> SupportedGeometries = {"Triangle3D3", "Quadrilateral3D4"};
 
-    /// Geometries map type definition
-    using GeometriesMapType = ModelPart::GeometriesMapType;
-
-    /// The nodes array type definition
-    using NodesArrayType = Element::NodesArrayType;
-
     /// The index type definition
     using IndexType = std::size_t;
 
@@ -148,13 +142,18 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    Parameters mParameters;         /// The configuration parameters
+    Parameters mParameters;          /// The configuration parameters
 
-    IndexType mFirstNodeId = 0;     /// The first node ID
-    IndexType mNextNodeId = 0;      /// The next node ID
-    IndexType mNextElementId = 0;   /// The next element ID
-    IndexType mNextConditionId = 0; /// The next condition ID
-    IndexType mNormalCounter = 0;   /// The normal counter
+    IndexType mFirstNodeId = 0;      /// The first node ID
+    IndexType mNextNodeId = 0;       /// The next node ID
+
+    IndexType mFirstElementId = 0;   /// The first element ID
+    IndexType mNextElementId = 0;    /// The next element ID
+
+    IndexType mFirstConditionId = 0; /// The first condition ID
+    IndexType mNextConditionId = 0;  /// The next condition ID
+
+    IndexType mNormalCounter = 0;    /// The normal counter
 
     ///@}
 private:
@@ -174,11 +173,13 @@ private:
      * @param rThisModelPart Reference to the model part to read into.
      * @param rEntityType The entity type to create in the model part. Can be "element" or "condition".
      * @param NormalAsHistoricalVariable If true, the normals are stored as historical variables in the nodes.
+     * @param DecomposeQuadrilateral If true, the quadrilateral faces are decomposed into triangles.
      */
     void ReadVerticesAndFaces(
         ModelPart& rThisModelPart,
         const std::string& rEntityType = "element",
-        const bool NormalAsHistoricalVariable = false
+        const bool NormalAsHistoricalVariable = false,
+        const bool DecomposeQuadrilateral = false
         );
 
     /**
@@ -211,11 +212,13 @@ private:
      * @param rThisModelPart Reference to the model part.
      * @param rLine The line containing the face data.
      * @param rEntityType The entity type to create in the model part. Can be "element" or "condition".
+     * @param DecomposeQuadrilateral If true, the quadrilateral faces are decomposed into triangles.
      */
     void ParseFaceLine(
         ModelPart& rThisModelPart,
         const std::string& rLine,
-        const std::string& rEntityType = "element"
+        const std::string& rEntityType = "element",
+        const bool DecomposeQuadrilateral = false
         );
 
     /**
@@ -230,7 +233,6 @@ private:
 }; // Class ObjIO
 
 ///@}
-
 ///@name Input and output
 ///@{
 

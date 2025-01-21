@@ -193,9 +193,18 @@ void LineInterfaceElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
         GeoElementUtilities::EvaluateShapeFunctionsAtIntegrationPoints(
             mIntegrationScheme->GetIntegrationPoints(), GetGeometry());
 
-    for (const auto& r_shape_function_values : shape_function_values_at_integration_points) {
-        mConstitutiveLaws.push_back(GetProperties()[CONSTITUTIVE_LAW]->Clone());
-        mConstitutiveLaws.back()->InitializeMaterial(GetProperties(), GetGeometry(), r_shape_function_values);
+    if (rCurrentProcessInfo[IS_RESTARTED] &&
+        mConstitutiveLaws.size() == shape_function_values_at_integration_points.size()) {
+        for (std::size_t i = 0; i < mConstitutiveLaws.size(); ++i) {
+            mConstitutiveLaws[i]->InitializeMaterial(
+                GetProperties(), GetGeometry(), shape_function_values_at_integration_points[i]);
+        }
+    } else {
+        mConstitutiveLaws.clear();
+        for (const auto& r_shape_function_values : shape_function_values_at_integration_points) {
+            mConstitutiveLaws.push_back(GetProperties()[CONSTITUTIVE_LAW]->Clone());
+            mConstitutiveLaws.back()->InitializeMaterial(GetProperties(), GetGeometry(), r_shape_function_values);
+        }
     }
 }
 
@@ -204,13 +213,15 @@ int LineInterfaceElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     int error = Element::Check(rCurrentProcessInfo);
     if (error != 0) return error;
 
-    KRATOS_ERROR_IF(mIntegrationScheme->GetNumberOfIntegrationPoints() != mConstitutiveLaws.size())
-        << "Number of integration points (" << mIntegrationScheme->GetNumberOfIntegrationPoints()
-        << ") and constitutive laws (" <<  mConstitutiveLaws.size() << ") do not match.\n";
+    if (this->IsActive()) {
+        KRATOS_ERROR_IF(mIntegrationScheme->GetNumberOfIntegrationPoints() != mConstitutiveLaws.size())
+            << "Number of integration points (" << mIntegrationScheme->GetNumberOfIntegrationPoints()
+            << ") and constitutive laws (" << mConstitutiveLaws.size() << ") do not match.\n";
 
-    for (const auto& r_constitutive_law : mConstitutiveLaws) {
-        error = r_constitutive_law->Check(GetProperties(), GetGeometry(), rCurrentProcessInfo);
-        if (error != 0) return error;
+        for (const auto& r_constitutive_law : mConstitutiveLaws) {
+            error = r_constitutive_law->Check(GetProperties(), GetGeometry(), rCurrentProcessInfo);
+            if (error != 0) return error;
+        }
     }
 
     return 0;

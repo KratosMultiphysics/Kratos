@@ -24,20 +24,26 @@ Condition::Pointer UPwCondition<TDim, TNumNodes>::Create(IndexType              
                                                          NodesArrayType const&   ThisNodes,
                                                          PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(new UPwCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return this->Create(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
-//----------------------------------------------------------------------------------------
+template <unsigned int TDim, unsigned int TNumNodes>
+Condition::Pointer UPwCondition<TDim, TNumNodes>::Create(IndexType               NewId,
+                                                         GeometryType::Pointer   pGeom,
+                                                         PropertiesType::Pointer pProperties) const
+{
+    return make_intrusive<UPwCondition<TDim, TNumNodes>>(NewId, pGeom, pProperties);
+}
+
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwCondition<TDim, TNumNodes>::GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo&) const
 {
     rConditionDofList = GetDofs();
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
-                                                         VectorType&        rRightHandSideVector,
+void UPwCondition<TDim, TNumNodes>::CalculateLocalSystem(Matrix&            rLeftHandSideMatrix,
+                                                         Vector&            rRightHandSideVector,
                                                          const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -59,9 +65,8 @@ void UPwCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixType&        rLef
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwCondition<TDim, TNumNodes>::CalculateRightHandSide(VectorType&        rRightHandSideVector,
+void UPwCondition<TDim, TNumNodes>::CalculateRightHandSide(Vector&            rRightHandSideVector,
                                                            const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -78,25 +83,22 @@ void UPwCondition<TDim, TNumNodes>::CalculateRightHandSide(VectorType&        rR
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwCondition<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
 {
     rResult = Geo::DofUtilities::ExtractEquationIdsFrom(GetDofs());
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwCondition<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftHandSideMatrix,
-                                                 VectorType&        rRightHandSideVector,
+void UPwCondition<TDim, TNumNodes>::CalculateAll(Matrix&            rLeftHandSideMatrix,
+                                                 Vector&            rRightHandSideVector,
                                                  const ProcessInfo& CurrentProcessInfo)
 {
     this->CalculateRHS(rRightHandSideVector, CurrentProcessInfo);
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo)
+void UPwCondition<TDim, TNumNodes>::CalculateRHS(Vector& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -119,15 +121,14 @@ std::string UPwCondition<TDim, TNumNodes>::Info() const
     return "UPwCondition";
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template class UPwCondition<2, 1>;
 template class UPwCondition<2, 2>;
-template class UPwCondition<3, 1>;
-template class UPwCondition<3, 3>;
-template class UPwCondition<3, 4>;
-
 template class UPwCondition<2, 3>;
 template class UPwCondition<2, 4>;
 template class UPwCondition<2, 5>;
+
+template class UPwCondition<3, 1>;
+template class UPwCondition<3, 3>;
+template class UPwCondition<3, 4>;
 
 } // Namespace Kratos.

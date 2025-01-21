@@ -138,8 +138,9 @@ public:
 
     std::string Info() const override
     {
-        return "U-Pw Base class Element #" + std::to_string(Id()) +
-               "\nConstitutive law: " + mConstitutiveLawVector[0]->Info();
+        const std::string constitutive_info =
+            !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
+        return "U-Pw Base class Element #" + std::to_string(Id()) + "\nConstitutive law: " + constitutive_info;
     }
 
     void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
@@ -167,7 +168,7 @@ protected:
                                                          const Vector& rDetJs) const;
 
     void CalculateDerivativesOnInitialConfiguration(
-        double& detJ, Matrix& J0, Matrix& InvJ0, Matrix& DN_DX, unsigned int PointNumber) const;
+        double& detJ, Matrix& J0, Matrix& InvJ0, Matrix& DN_DX, unsigned int IntegrationPointIndex) const;
 
     void CalculateJacobianOnCurrentConfiguration(double& detJ, Matrix& rJ, Matrix& rInvJ, unsigned int GPoint) const;
 

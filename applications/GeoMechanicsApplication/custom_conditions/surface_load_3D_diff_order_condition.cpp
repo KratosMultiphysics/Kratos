@@ -14,6 +14,8 @@
 
 // Project includes
 #include "custom_conditions/surface_load_3D_diff_order_condition.hpp"
+#include "custom_utilities/condition_utilities.hpp"
+#include <custom_utilities/variables_utilities.hpp>
 
 namespace Kratos
 {
@@ -23,15 +25,11 @@ SurfaceLoad3DDiffOrderCondition::SurfaceLoad3DDiffOrderCondition() : GeneralUPwD
 {
 }
 
-//----------------------------------------------------------------------------------------
-
 // Constructor 1
 SurfaceLoad3DDiffOrderCondition::SurfaceLoad3DDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry)
     : GeneralUPwDiffOrderCondition(NewId, pGeometry)
 {
 }
-
-//----------------------------------------------------------------------------------------
 
 // Constructor 2
 SurfaceLoad3DDiffOrderCondition::SurfaceLoad3DDiffOrderCondition(IndexType             NewId,
@@ -41,84 +39,56 @@ SurfaceLoad3DDiffOrderCondition::SurfaceLoad3DDiffOrderCondition(IndexType      
 {
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 Condition::Pointer SurfaceLoad3DDiffOrderCondition::Create(IndexType             NewId,
                                                            NodesArrayType const& ThisNodes,
                                                            PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(
-        new SurfaceLoad3DDiffOrderCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Create(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Condition::Pointer SurfaceLoad3DDiffOrderCondition::Create(IndexType             NewId,
+                                                           GeometryType::Pointer pGeom,
+                                                           PropertiesType::Pointer pProperties) const
+{
+    return make_intrusive<SurfaceLoad3DDiffOrderCondition>(NewId, pGeom, pProperties);
+}
 
 void SurfaceLoad3DDiffOrderCondition::CalculateConditionVector(ConditionVariables& rVariables, unsigned int PointNumber)
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom       = GetGeometry();
-    const SizeType      NumUNodes   = rGeom.PointsNumber();
-    Vector              SurfaceLoad = ZeroVector(3);
+    const GeometryType& r_geom = GetGeometry();
     rVariables.ConditionVector.resize(3, false);
     noalias(rVariables.ConditionVector) = ZeroVector(3);
 
-    for (SizeType i = 0; i < NumUNodes; ++i) {
-        SurfaceLoad = rGeom[i].FastGetSolutionStepValue(SURFACE_LOAD);
-
-        rVariables.ConditionVector[0] += rVariables.Nu[i] * SurfaceLoad[0];
-        rVariables.ConditionVector[1] += rVariables.Nu[i] * SurfaceLoad[1];
-        rVariables.ConditionVector[2] += rVariables.Nu[i] * SurfaceLoad[2];
+    for (SizeType node = 0; node < r_geom.PointsNumber(); ++node) {
+        rVariables.ConditionVector += rVariables.Nu[node] * r_geom[node].FastGetSolutionStepValue(SURFACE_LOAD);
     }
 
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 double SurfaceLoad3DDiffOrderCondition::CalculateIntegrationCoefficient(
-    const IndexType                                 PointNumber,
+    IndexType                                       PointNumber,
     const GeometryType::JacobiansType&              JContainer,
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const
-
 {
     KRATOS_TRY
-
-    double NormalVector[3];
-
-    NormalVector[0] = JContainer[PointNumber](1, 0) * JContainer[PointNumber](2, 1) -
-                      JContainer[PointNumber](2, 0) * JContainer[PointNumber](1, 1);
-
-    NormalVector[1] = JContainer[PointNumber](2, 0) * JContainer[PointNumber](0, 1) -
-                      JContainer[PointNumber](0, 0) * JContainer[PointNumber](2, 1);
-
-    NormalVector[2] = JContainer[PointNumber](0, 0) * JContainer[PointNumber](1, 1) -
-                      JContainer[PointNumber](1, 0) * JContainer[PointNumber](0, 1);
-
-    double dA = sqrt(NormalVector[0] * NormalVector[0] + NormalVector[1] * NormalVector[1] +
-                     NormalVector[2] * NormalVector[2]);
-
-    return dA * IntegrationPoints[PointNumber].Weight();
-
+    return ConditionUtilities::CalculateIntegrationCoefficient(
+        JContainer[PointNumber], IntegrationPoints[PointNumber].Weight());
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
-
-void SurfaceLoad3DDiffOrderCondition::CalculateAndAddConditionForce(VectorType& rRightHandSideVector,
+void SurfaceLoad3DDiffOrderCondition::CalculateAndAddConditionForce(Vector& rRightHandSideVector,
                                                                     ConditionVariables& rVariables)
 {
-    const SizeType NumUNodes = GetGeometry().PointsNumber();
-    SizeType       Index;
-
-    for (SizeType i = 0; i < NumUNodes; ++i) {
-        Index = i * 3;
-
-        rRightHandSideVector[Index] +=
-            rVariables.Nu[i] * rVariables.ConditionVector[0] * rVariables.IntegrationCoefficient;
-        rRightHandSideVector[Index + 1] +=
-            rVariables.Nu[i] * rVariables.ConditionVector[1] * rVariables.IntegrationCoefficient;
-        rRightHandSideVector[Index + 2] +=
-            rVariables.Nu[i] * rVariables.ConditionVector[2] * rVariables.IntegrationCoefficient;
+    for (SizeType node = 0; node < GetGeometry().PointsNumber(); ++node) {
+        rRightHandSideVector[3 * node] +=
+            rVariables.Nu[node] * rVariables.ConditionVector[0] * rVariables.IntegrationCoefficient;
+        rRightHandSideVector[3 * node + 1] +=
+            rVariables.Nu[node] * rVariables.ConditionVector[1] * rVariables.IntegrationCoefficient;
+        rRightHandSideVector[3 * node + 2] +=
+            rVariables.Nu[node] * rVariables.ConditionVector[2] * rVariables.IntegrationCoefficient;
     }
 }
 

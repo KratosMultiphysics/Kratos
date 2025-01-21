@@ -239,7 +239,6 @@ void FindNeighbourElementsOfConditionsProcess::CheckForMultipleConditionsOnEleme
     }
 }
 
-//-------------------------------------------------------------------------------------------------
 hashmap::iterator FindNeighbourElementsOfConditionsProcess::FindFaceReorderingTetrahedra3D10(
     DenseVector<int> FaceIds, hashmap& FacesMap) const
 {
@@ -273,7 +272,6 @@ hashmap::iterator FindNeighbourElementsOfConditionsProcess::FindFaceReorderingTe
     KRATOS_CATCH("")
 }
 
-//-------------------------------------------------------------------------------------------------
 hashmap::iterator FindNeighbourElementsOfConditionsProcess::FindFaceReorderingTetrahedra3D4(DenseVector<int> FaceIds,
                                                                                             hashmap& FacesMap) const
 {
@@ -303,7 +301,6 @@ hashmap::iterator FindNeighbourElementsOfConditionsProcess::FindFaceReorderingTe
     KRATOS_CATCH("")
 }
 
-//-------------------------------------------------------------------------------------------------
 hashmap::iterator FindNeighbourElementsOfConditionsProcess::FindFaceReorderingHexahedra3D8(DenseVector<int> FaceIds,
                                                                                            hashmap& FacesMap) const
 {
@@ -343,7 +340,6 @@ hashmap::iterator FindNeighbourElementsOfConditionsProcess::FindFaceReorderingHe
     KRATOS_CATCH("")
 }
 
-//-------------------------------------------------------------------------------------------------
 hashmap::iterator FindNeighbourElementsOfConditionsProcess::FindFaceReorderingHexahedra3D20(DenseVector<int> FaceIds,
                                                                                             hashmap& FacesMap) const
 {

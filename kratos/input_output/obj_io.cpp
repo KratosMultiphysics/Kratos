@@ -84,9 +84,10 @@ ObjIO::ObjIO(
 Parameters ObjIO::GetDefaultParameters()
 {
     return Parameters(R"({
-        "open_mode"            : "read",
-        "entity_type"          : "element",
-        "normal_as_historical" : false
+        "open_mode"                       : "read",
+        "entity_type"                     : "element",
+        "decompose_quads_into_triangles"  : false,
+        "normal_as_historical"            : false
     })" );
 }
 
@@ -109,15 +110,18 @@ void ObjIO::ReadModelPart(ModelPart& rThisModelPart)
     mNextElementId = block_for_each<MaxReduction<std::size_t>>(
         rThisModelPart.GetRootModelPart().Elements(),
         [](Element& rElement) { return rElement.Id();}) + 1;
+    mFirstElementId = mNextElementId;
 
     mNextConditionId = block_for_each<MaxReduction<std::size_t>>(
         rThisModelPart.GetRootModelPart().Conditions(),
         [](Condition& rCondition) { return rCondition.Id();}) + 1;
+    mFirstConditionId = mNextConditionId;
 
     // Read vertices, normals, and faces
     const bool normal_as_historical = mParameters["normal_as_historical"].GetBool();
     const std::string entity_type = mParameters["entity_type"].GetString();
-    ReadVerticesAndFaces(rThisModelPart, entity_type, normal_as_historical);
+    const bool decompose_quads_into_triangles = mParameters["decompose_quads_into_triangles"].GetBool();
+    ReadVerticesAndFaces(rThisModelPart, entity_type, normal_as_historical, decompose_quads_into_triangles);
 }
 
 /***********************************************************************************/
@@ -219,7 +223,8 @@ void ObjIO::WriteModelPart(const ModelPart& rThisModelPart)
 void ObjIO::ReadVerticesAndFaces(
     ModelPart& rThisModelPart,
     const std::string& rEntityType,
-    const bool NormalAsHistoricalVariable
+    const bool NormalAsHistoricalVariable,
+    const bool DecomposeQuadrilateral
     )
 {
     std::string line;
@@ -257,7 +262,7 @@ void ObjIO::ReadVerticesAndFaces(
         } else if (line.substr(0, 3) == "vn ") {
             ParseNormalLine(rThisModelPart, line, NormalAsHistoricalVariable);
         } else if (line.substr(0, 2) == "f ") {
-            ParseFaceLine(rThisModelPart, line, rEntityType);
+            ParseFaceLine(rThisModelPart, line, rEntityType, DecomposeQuadrilateral);
         }
         // Other types can be handled if needed
     }
@@ -321,7 +326,8 @@ void ObjIO::ParseNormalLine(
 void ObjIO::ParseFaceLine(
     ModelPart& rThisModelPart,
     const std::string& rLine,
-    const std::string& rEntityType
+    const std::string& rEntityType,
+    const bool DecomposeQuadrilateral
     )
 {
     // The line is expected to be: f v1 v2 v3 ...
@@ -346,11 +352,37 @@ void ObjIO::ParseFaceLine(
     // Create element or condition or geometry
     if (rEntityType == "geometry") {
         KRATOS_ERROR_IF(number_of_tokens > 5) << "Only support for triangles and quads in geometry creation. Number of nodes: " << number_of_tokens - 1 << std::endl;
-        rThisModelPart.CreateNewGeometry(SupportedGeometries[number_of_tokens - 4], nodes_ids);
+        if (DecomposeQuadrilateral && number_of_tokens == 5) {
+            // Decompose quad into two triangles
+            const std::vector<IndexType> tri1 = {nodes_ids[0], nodes_ids[1], nodes_ids[2]};
+            const std::vector<IndexType> tri2 = {nodes_ids[0], nodes_ids[2], nodes_ids[3]};
+            rThisModelPart.CreateNewGeometry("Triangle3D3", tri1);
+            rThisModelPart.CreateNewGeometry("Triangle3D3", tri2);
+        } else {
+            rThisModelPart.CreateNewGeometry(SupportedGeometries[number_of_tokens - 4], nodes_ids);
+        }
     } else if (rEntityType == "element") {
-        rThisModelPart.CreateNewElement("Element3D" + std::to_string(number_of_tokens - 1) + "N", mNextElementId++, nodes_ids, rThisModelPart.pGetProperties(0));
+        auto p_prop = rThisModelPart.pGetProperties(0);
+        if (DecomposeQuadrilateral && number_of_tokens == 5) {
+            // Decompose quad into two triangles
+            const std::vector<IndexType> tri1 = {nodes_ids[0], nodes_ids[1], nodes_ids[2]};
+            const std::vector<IndexType> tri2 = {nodes_ids[0], nodes_ids[2], nodes_ids[3]};
+            rThisModelPart.CreateNewElement("Element3D3N", mNextElementId++, tri1, p_prop);
+            rThisModelPart.CreateNewElement("Element3D3N", mNextElementId++, tri2, p_prop);
+        } else {
+            rThisModelPart.CreateNewElement("Element3D" + std::to_string(number_of_tokens - 1) + "N", mNextElementId++, nodes_ids, p_prop);
+        }
     } else if (rEntityType == "condition") {
-        rThisModelPart.CreateNewCondition("SurfaceCondition3D" + std::to_string(number_of_tokens - 1) + "N", mNextConditionId++, nodes_ids, rThisModelPart.pGetProperties(0));
+        auto p_prop = rThisModelPart.pGetProperties(0);
+        if (DecomposeQuadrilateral && number_of_tokens == 5) {
+            // Decompose quad into two triangles
+            const std::vector<IndexType> tri1 = {nodes_ids[0], nodes_ids[1], nodes_ids[2]};
+            const std::vector<IndexType> tri2 = {nodes_ids[0], nodes_ids[2], nodes_ids[3]};
+            rThisModelPart.CreateNewCondition("SurfaceCondition3D3N", mNextConditionId++, tri1, p_prop);
+            rThisModelPart.CreateNewCondition("SurfaceCondition3D3N", mNextConditionId++, tri2, p_prop);
+        } else {
+            rThisModelPart.CreateNewCondition("SurfaceCondition3D" + std::to_string(number_of_tokens - 1) + "N", mNextConditionId++, nodes_ids, p_prop);
+        }
     } else  {
         KRATOS_ERROR << "Invalid new entity type " << rEntityType << std::endl;
     }

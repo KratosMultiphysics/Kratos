@@ -38,7 +38,7 @@ class ImportOBJModeler(KratosMultiphysics.Modeler):
         super().__init__(model, settings)
 
         # Cannot validate as settings may differ among input types
-        settings.AddMissingParameters(self.__GetDefaultSettings())
+        settings.RecursivelyAddMissingParameters(self.__GetDefaultSettings())
 
         # Declare required member variables
         self.model_part = None
@@ -102,9 +102,10 @@ class ImportOBJModeler(KratosMultiphysics.Modeler):
             "input_filename"  : "",
             "model_part_name" : "",
             "obj_io_settings"  : {
-                "open_mode"            : "read",
-                "entity_type"          : "element",
-                "normal_as_historical" : false
+                "open_mode"                       : "read",
+                "entity_type"                     : "element",
+                "decompose_quads_into_triangles"  : false,
+                "normal_as_historical"            : false
             }
         }''')
         return default_settings

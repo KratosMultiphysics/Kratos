@@ -186,15 +186,11 @@ void  AddIOToPython(pybind11::module& m)
     py::class_<StlIO, StlIO::Pointer, IO>(m, "StlIO")
         .def(py::init<std::filesystem::path const& >())
         .def(py::init<std::filesystem::path const&, Parameters>())
-        .def("ReadModelPart", &StlIO::ReadModelPart)
-        .def("WriteModelPart", &StlIO::WriteModelPart)
         ;
 
     py::class_<ObjIO, ObjIO::Pointer, IO>(m, "ObjIO")
         .def(py::init<std::filesystem::path const& >())
         .def(py::init<std::filesystem::path const&, Parameters>())
-        .def("ReadModelPart", &ObjIO::ReadModelPart)
-        .def("WriteModelPart", &ObjIO::WriteModelPart)
         ;
 
     // Import of CAD models to the model part

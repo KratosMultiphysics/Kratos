@@ -14,7 +14,8 @@
 
 #include "custom_workflows/time_loop_executor_interface.h"
 
-namespace Kratos {
+namespace Kratos
+{
 
 class StubTimeLoopExecutor : public TimeLoopExecutorInterface
 {
@@ -24,7 +25,7 @@ public:
     void SetCancelDelegate(const std::function<bool()>& rCancelDelegate) override;
 
     void SetProgressDelegate(const std::function<void(double)>& rProgressDelegate) override;
-    
+
     void SetProcessObservables(const std::vector<std::weak_ptr<Process>>& rProcessObservables) override;
 
     void SetTimeIncrementor(std::unique_ptr<TimeIncrementor> pTimeIncrementor) override;
@@ -37,4 +38,4 @@ private:
     std::size_t mNumberOfExpectedProcesses;
 };
 
-}
+} // namespace Kratos

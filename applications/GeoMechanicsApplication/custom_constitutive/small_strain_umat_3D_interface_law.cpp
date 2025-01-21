@@ -94,13 +94,6 @@ indexStress3D SmallStrainUMAT3DInterfaceLaw::getIndex3D(const indexStress3DInter
     }
 }
 
-void SmallStrainUMAT3DInterfaceLaw::CalculateCauchyGreenStrain(ConstitutiveLaw::Parameters& rValues,
-                                                               Vector& rStrainVector)
-{
-    KRATOS_ERROR << "CalculateCauchyGreenStrain is not implemented in SmallStrainUMAT3DInterfaceLaw"
-                 << std::endl;
-}
-
 Vector& SmallStrainUMAT3DInterfaceLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
 {
     if (rThisVariable == STATE_VARIABLES) {
