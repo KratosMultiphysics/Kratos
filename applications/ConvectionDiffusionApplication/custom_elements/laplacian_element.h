@@ -95,6 +95,18 @@ public:
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
+       std::string Info() const override
+    {
+        return "LaplacianElement #";
+    }
+
+    /// Print information about this object.
+
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info() << Id();
+    }
+
     ///@}
     ///@name Access
     ///@{
