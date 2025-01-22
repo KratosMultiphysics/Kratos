@@ -538,8 +538,6 @@ private:
         Vector ElementSizeNodalDisplacementsVector; // Displacement DoFs -> U
         Vector ElementSizeStrainVector; // Strains stored at the nodes (strain DoFs) -> E
         Vector EquivalentStrain;   // Stabilized strain field E = (1-tau) N_e · E + tau Bu · U
-        Vector SymmGradientDispl;  // Symmetric gradient of the nodal displacements: Bu·U
-        Vector NodalStrain;        // N_e · E
 
         /**
          * The default constructor
@@ -562,8 +560,6 @@ private:
             ElementSizeNodalDisplacementsVector = ZeroVector(Dimension * NumberOfNodes);
             ElementSizeStrainVector = ZeroVector(NumberOfNodes * StrainSize);
             EquivalentStrain = ZeroVector(StrainSize);
-            SymmGradientDispl = ZeroVector(StrainSize);
-            NodalStrain = ZeroVector(StrainSize);
             N_epsilon = ZeroMatrix(StrainSize, StrainSize * NumberOfNodes);
         }
     };
@@ -650,17 +646,6 @@ private:
         const IndexType PointNumber,
         const GeometryType::IntegrationMethod& rIntegrationMethod
         ) const;
-
-    /**
-     * @brief Calculate the equivalent strain
-     * This function computes the equivalent strain vector.
-     * The equivalent strain is defined as the deviatoric part of the displacement
-     * symmetric gradient plus a volumetric strain coming from the interpolation
-     * of the nodal volumetric strain.
-     * @param rThisKinematicVariables Kinematic variables container
-     */
-    void CalculateEquivalentStrain(KinematicVariables& rThisKinematicVariables) const;
-
 
     /**
      * @brief This method gets a value directly in the CL

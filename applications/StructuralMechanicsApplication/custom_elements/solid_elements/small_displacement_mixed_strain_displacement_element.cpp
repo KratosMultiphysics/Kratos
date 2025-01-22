@@ -453,7 +453,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
 
         // Contributions to the RHS
         noalias(RHSu) -= w_gauss * prod(trans(kinematic_variables.B), constitutive_variables.StressVector);
-        const Vector strain_diff = kinematic_variables.SymmGradientDispl - kinematic_variables.EquivalentStrain;
+        const Vector strain_diff = prod(kinematic_variables.B, kinematic_variables.ElementSizeNodalDisplacementsVector) - kinematic_variables.EquivalentStrain;
         noalias(RHSe) -= w_gauss * prod(trans(kinematic_variables.N_epsilon), Vector(prod(D0, strain_diff)));
 
         // Contributions to the LHS
@@ -643,7 +643,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateRightHandSide(
 
         // Contributions to the RHS
         noalias(RHSu) -= w_gauss * prod(trans(kinematic_variables.B), constitutive_variables.StressVector);
-        const Vector strain_diff = kinematic_variables.SymmGradientDispl - kinematic_variables.EquivalentStrain;
+        const Vector strain_diff = prod(kinematic_variables.B, kinematic_variables.ElementSizeNodalDisplacementsVector) - kinematic_variables.EquivalentStrain;
         noalias(RHSe) -= w_gauss * prod(trans(kinematic_variables.N_epsilon), Vector(prod(D0, strain_diff)));
     }
 
@@ -912,6 +912,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateKinematicVariable
 
     const auto& r_geometry = GetGeometry();
     const auto& r_integration_points = GetGeometry().IntegrationPoints(rIntegrationMethod);
+    const double tau = GetStabilizationFactor();
 
     // Shape functions
     rKinVariables.N = r_geometry.ShapeFunctionsValues(rKinVariables.N, r_integration_points[IP].Coordinates());
@@ -933,27 +934,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateKinematicVariable
     // Compute N_epsilon
     CalculateN_EpsilonMatrix(rKinVariables.N_epsilon, rKinVariables.N);
 
-    // Compute the symmetric gradient of the displacements
-    noalias(rKinVariables.SymmGradientDispl) = prod(rKinVariables.B, rKinVariables.ElementSizeNodalDisplacementsVector);
-
-    noalias(rKinVariables.NodalStrain) = prod(rKinVariables.N_epsilon, rKinVariables.ElementSizeStrainVector);
-
-    // Calculate the equivalent total strain
-    CalculateEquivalentStrain(rKinVariables);
-
-    KRATOS_CATCH("")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void SmallDisplacementMixedStrainDisplacementElement::CalculateEquivalentStrain(
-    KinematicVariables& rKinVars) const
-{
-    KRATOS_TRY
-
-    const double tau = GetStabilizationFactor();
-    noalias(rKinVars.EquivalentStrain) = (1.0 - tau) * rKinVars.NodalStrain + tau * rKinVars.SymmGradientDispl;
+    noalias(rKinVariables.EquivalentStrain) = (1.0 - tau) * prod(rKinVariables.N_epsilon, rKinVariables.ElementSizeStrainVector) + tau * prod(rKinVariables.B, rKinVariables.ElementSizeNodalDisplacementsVector);
 
     KRATOS_CATCH("")
 }
