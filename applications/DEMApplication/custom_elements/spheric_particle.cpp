@@ -142,7 +142,6 @@ SphericParticle& SphericParticle::operator=(const SphericParticle& rOther) {
     mSearchRadius = rOther.mSearchRadius;
     mRealMass = rOther.mRealMass;
     mClusterId = rOther.mClusterId;
-    mGlobalViscousDamping = rOther.mGlobalViscousDamping;
     mDiscontinuumConstitutiveLaw = rOther.mDiscontinuumConstitutiveLaw->CloneUnique();
     mRollingFrictionModel = rOther.mRollingFrictionModel->CloneUnique();
     mGlobalDampingModel = rOther.mGlobalDampingModel->CloneUnique();
@@ -1803,15 +1802,6 @@ void SphericParticle::ComputeAdditionalForces(array_1d<double, 3>& externally_ap
             noalias(externally_applied_force)  += counter_force;}
     } else {
         noalias(externally_applied_force)  += ComputeWeight(gravity, r_process_info);
-        //Global viscous damping force
-        const array_1d<double, 3>& vel = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
-        const double vel_magnitude = DEM_MODULUS_3(vel);
-        if (vel_magnitude != 0.0)
-        {
-            mGlobalViscousDamping = r_process_info[GLOBAL_VISCOUS_DAMPING]; //update the coefficient of GLOBAL_VISCOUS_DAMPING
-            const array_1d<double, 3> viscous_damping_force = -2.0 * mGlobalViscousDamping * sqrt(GetMass() * GetRadius() * GetYoung())  * vel;
-            noalias(externally_applied_force)  += viscous_damping_force;
-        }
         noalias(externally_applied_force)  += this->GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE);
         noalias(externally_applied_moment) += this->GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT);
     }
@@ -1957,8 +1947,6 @@ void SphericParticle::MemberDeclarationFirstStep(const ProcessInfo& r_process_in
         mStrainTensor             = NULL;
         mDifferentialStrainTensor = NULL;
     }
-
-    mGlobalViscousDamping = r_process_info[GLOBAL_VISCOUS_DAMPING];
 }
 
 std::unique_ptr<DEMDiscontinuumConstitutiveLaw> SphericParticle::pCloneDiscontinuumConstitutiveLawWithNeighbour(SphericParticle* neighbour) {
