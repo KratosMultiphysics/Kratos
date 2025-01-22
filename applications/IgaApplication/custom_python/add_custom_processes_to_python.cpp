@@ -19,6 +19,9 @@
 #include "custom_processes/nitsche_stabilization_model_part_process.h"
 #include "custom_processes/map_nurbs_volume_results_to_embedded_geometry_process.h"
 #include "custom_processes/assign_integration_points_to_background_elements_process.h"
+#include "custom_processes/assign_iga_external_conditions_process.h"
+#include "custom_processes/classify_elements_extended_gradient_method_process.h"
+#include "custom_processes/apply_strong_BCS_extended_gradient_method_process.h"
 
 #include "iga_application_variables.h"
 
@@ -52,6 +55,17 @@ void AddCustomProcessesToPython(
         .def(py::init<Model&, Parameters >())
         ;
 
+    py::class_<AssignIgaExternalConditionsProcess, AssignIgaExternalConditionsProcess::Pointer, Process>(m, "AssignIgaExternalConditionsProcess")
+        .def(py::init<Model&, Parameters >())
+        ;
+
+    py::class_<ClassifyElementsExtendedGradientMethodProcess, ClassifyElementsExtendedGradientMethodProcess::Pointer, Process>(m, "ClassifyElementsExtendedGradientMethodProcess")
+        .def(py::init<Model&, Parameters >())
+        ;
+
+    py::class_<ApplyStrongBCSExtendedGradientMethodProcess, ApplyStrongBCSExtendedGradientMethodProcess::Pointer, Process>(m, "ApplyStrongBCSExtendedGradientMethodProcess")
+        .def(py::init<Model&, Parameters >())
+        ;
 
 
 }
