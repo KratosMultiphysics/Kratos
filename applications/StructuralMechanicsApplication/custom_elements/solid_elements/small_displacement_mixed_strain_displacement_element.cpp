@@ -190,33 +190,13 @@ void SmallDisplacementMixedStrainDisplacementElement::Initialize(
     const ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY
+    const auto& r_props = GetProperties();
 
     // Initialization should not be done again in a restart!
     if (!rCurrentProcessInfo[IS_RESTARTED]) {
         // Integration method initialization
-        if (GetProperties().Has(INTEGRATION_ORDER) ) {
-            const SizeType integration_order = GetProperties()[INTEGRATION_ORDER];
-            switch (integration_order)
-            {
-            case 1:
-                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
-                break;
-            case 2:
-                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
-                break;
-            case 3:
-                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
-                break;
-            case 4:
-                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_4;
-                break;
-            case 5:
-                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5;
-                break;
-            default:
-                KRATOS_WARNING("SmallDisplacementMixedStrainDisplacementElement") << "Integration order " << integration_order << " is not available, using GI_LOBATTO_1" << std::endl;
-                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_LOBATTO_1;
-            }
+        if (r_props.Has(INTEGRATION_ORDER) ) {
+            mThisIntegrationMethod = static_cast<GeometryData::IntegrationMethod>(r_props[INTEGRATION_ORDER] - 1);
         } else {
             mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_LOBATTO_1;
         }
