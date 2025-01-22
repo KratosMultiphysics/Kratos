@@ -213,7 +213,6 @@ private:
         ModelPart& rDestinationModelPart,
         ModelPart& rSkinModelPart,
         std::vector<int>& listIdClosestCondition,
-        std::string& rConditionName,
         SizeType& rIdCounter,
         PropertiesPointerType pProperties,
         bool isInner, 

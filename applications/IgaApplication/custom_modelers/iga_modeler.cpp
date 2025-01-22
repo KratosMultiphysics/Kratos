@@ -234,6 +234,9 @@ namespace Kratos
             << "\"name\" need to be specified." << std::endl;
         std::string name = rParameters["name"].GetString();
 
+        std::string body_fitted_condition_name = rParameters.Has("body_fitted_condition_name")
+                                                ? rParameters["body_fitted_condition_name"].GetString() : "";
+
         SizeType shape_function_derivatives_order = 1;
         if (rParameters.Has("shape_function_derivatives_order")) {
             shape_function_derivatives_order = rParameters["shape_function_derivatives_order"].GetInt();
@@ -367,7 +370,7 @@ namespace Kratos
                   
                 isCoincidentToExternalParameterSpace = CheckIsOnExternalParameterSpace(gaussPoint, parameterExternalCoordinates); 
                 
-                if (name.substr(0, 3) == "SBM") { 
+                if (name == "SBMCondition" && !isCoincidentToExternalParameterSpace) { 
                     for (auto j= 0; j < geometries.size() ; j++) {  
 
                         Point gaussPoint = geometries[j].Center(); 
@@ -401,25 +404,21 @@ namespace Kratos
                     if (is_inner) {
                         this->CreateConditions(
                         geometries.ptr_begin(), geometries.ptr_end(),
-                        rModelPart, skin_sub_model_part_in, listIdClosestCondition, name, id, PropertiesPointerType(), is_inner, meshSizes_uv);
+                        rModelPart, skin_sub_model_part_in, listIdClosestCondition, id, PropertiesPointerType(), is_inner, meshSizes_uv);
                     }
                     else{
                         this->CreateConditions(
                         geometries.ptr_begin(), geometries.ptr_end(),
-                        rModelPart, skin_sub_model_part_out, listIdClosestCondition, name, id, PropertiesPointerType(), is_inner, meshSizes_uv);
+                        rModelPart, skin_sub_model_part_out, listIdClosestCondition, id, PropertiesPointerType(), is_inner, meshSizes_uv);
                     }
                 } else if (isCoincidentToExternalParameterSpace){
-                    std::string nameBodyFittedCondition;
-                    // The name of the condition starts with "SBM", need to check which type is it: Laplacian, ConvDiff, ...
-                    if (name.substr(0, 7) == "Support") {
-                        nameBodyFittedCondition = name;
-                    } else {
-                        std::string type = name.substr(3, name.length() - 12); // Get the central part between "SBM" and "Condition"
-                        nameBodyFittedCondition = "Support" + type + "Condition";
-                    }
+                    
+                    if (body_fitted_condition_name == "")
+                        KRATOS_ERROR << "::[IgaModeler]:: The body_fitted_condition_name has not been defined " 
+                                     << "for an outer loop that touches the background domain boundary." << std::endl;
                     this->CreateConditions(
                         geometries.ptr_begin(), geometries.ptr_end(),
-                        rModelPart, nameBodyFittedCondition, id, PropertiesPointerType());
+                        rModelPart, body_fitted_condition_name, id, PropertiesPointerType());
                 }
                 else {
                     this->CreateConditions(
@@ -574,27 +573,24 @@ namespace Kratos
         ModelPart& rModelPart,
         ModelPart& rSkinModelPart,
         std::vector<int>& listIdClosestCondition,
-        std::string& rConditionName,
         SizeType& rIdCounter,
         PropertiesPointerType pProperties,
         bool isInner,
         Vector mesh_size) const
     {
-        const Condition& rReferenceCondition = KratosComponents<Condition>::Get(rConditionName);
 
         ModelPart::ConditionsContainerType new_condition_list;
-
-        KRATOS_INFO_IF("CreateConditions", mEchoLevel > 2)
-            << "Creating conditions of type " << rConditionName
-            << " in " << rModelPart.Name() << "-SubModelPart." << std::endl;
 
         int countListClosestCondition = 0;
         bool is2D = true;
         if(rSkinModelPart.GetCondition(listIdClosestCondition[0]).GetGeometry().size() > 2) { is2D = false;}
 
-        /*
-        std::string rConditionName = rSkinModelPart.GetCondition(listIdClosestCondition[0]).GetValue(CONDITION_NAME)
-        */
+        std::string rConditionName = rSkinModelPart.GetCondition(listIdClosestCondition[0]).GetValue(CONDITION_NAME);
+        const Condition& rReferenceCondition = KratosComponents<Condition>::Get(rConditionName);
+
+        KRATOS_INFO_IF("CreateConditions", mEchoLevel > 2)
+            << "Creating conditions of type " << rConditionName
+            << " in " << rModelPart.Name() << "-SubModelPart." << std::endl;
 
         if (is2D) {
             for (auto it = rGeometriesBegin; it != rGeometriesEnd; ++it) {

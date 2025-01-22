@@ -487,6 +487,7 @@ namespace Kratos
 
     // SBM variables
     KRATOS_DEFINE_VARIABLE(bool, IS_SBM)
+    KRATOS_DEFINE_VARIABLE(std::string, CONDITION_NAME)
 
 }  // namespace Kratos.
 

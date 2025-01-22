@@ -14,6 +14,7 @@
 #include "includes/define.h"
 #include "import_nurbs_sbm_modeler.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_volume_refinement_utilities.h"
+#include "iga_application_variables.h"
 
 namespace Kratos
 {
@@ -34,8 +35,7 @@ namespace Kratos
         // Create the NURBS skin geometries from the json file
         const std::string input_filename = mParameters["input_filename"].GetString();
         const std::string model_part_name = mParameters["model_part_name"].GetString();
-        const int n_initial_points_for_side = mParameters.Has("n_initial_points_for_side")
-                                             ? mParameters["n_initial_points_for_side"].GetInt() : 50;
+        auto layer_condition_name = mParameters["associate_layer_with_condition_name"];
 
         ModelPart& skin_model_part_initial = mpModel->CreateModelPart(model_part_name);
         skin_model_part_initial.CreateNewProperties(0);
@@ -58,6 +58,17 @@ namespace Kratos
             Vector knot_vector = nurbs_skin_parameters["Lines"][i_curve]["knotVector"].GetVector();
             Vector weights_vector = nurbs_skin_parameters["Lines"][i_curve]["Weights"].GetVector();
 
+            std::string layer_name = nurbs_skin_parameters["Lines"][i_curve]["Layer"].GetString();
+            std::string condition_name;
+
+            // find associated condition_name
+            for (IndexType i_layer = 0; i_layer < layer_condition_name.size(); i_layer++){
+                if (layer_condition_name[i_layer]["layer_name"].GetString() == layer_name)
+                {
+                    condition_name = layer_condition_name[i_layer]["condition_name"].GetString();
+                }
+            } 
+
             for (IndexType i_cp = 0; i_cp < n_control_points; i_cp++)
             {
                 Vector current_cp_coordinates = control_point_coordinates[i_cp].GetVector();
@@ -69,8 +80,9 @@ namespace Kratos
                                                             polynomial_degree,
                                                             knot_vector, 
                                                             weights_vector)); 
-            
-            p_curve->SetValue(IDENTIFIER, nurbs_skin_parameters["Lines"][i_curve]["Layer"].GetString());
+
+            p_curve->SetValue(CONDITION_NAME, condition_name);
+            p_curve->SetValue(IDENTIFIER, layer_name);
 
             // add curve to the model part 
             p_curve->SetId(i_curve);
