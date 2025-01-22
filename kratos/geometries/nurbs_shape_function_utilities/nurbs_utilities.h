@@ -66,8 +66,16 @@ namespace NurbsUtilities
         const Vector& rKnots,
         const double ParameterT)
     {
+        double ParameterT_fake = ParameterT;
+        for (unsigned i = 0; i<rKnots.size(); i++) {
+            if (std::abs(ParameterT-rKnots[i]) < 1e-13) {
+                ParameterT_fake = rKnots[i];
+                break;
+            }
+        }
+
         const auto span = std::lower_bound(std::begin(rKnots) + PolynomialDegree,
-            std::end(rKnots) - PolynomialDegree, ParameterT) - std::begin(rKnots) - 1;
+            std::end(rKnots) - PolynomialDegree, ParameterT_fake) - std::begin(rKnots) - 1;
         return span;
     }
 

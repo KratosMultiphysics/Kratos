@@ -265,7 +265,7 @@ public:
 
         const bool is_sbm = mpNurbsSurface->GetValue(IS_SBM);
 
-        if (true) {
+        if (is_sbm) {
             // SBM case: compute only knot spans intersections
             ComputeAxisIntersectionSBM(
             rSpans,
@@ -598,7 +598,7 @@ public:
 
             // check if the brep is internal (external breps do not need to be computed in a different knot span) 
             is_brep_internal = true; 
-            const double tolerance = 1e-14;
+            const double tolerance = 1e-13;
             // At this point all the true are boundary GPs
             if (std::abs(first_integration_point[0][0]-mpNurbsSurface->KnotsU()[0]) < tolerance)
                 is_brep_internal = false;
