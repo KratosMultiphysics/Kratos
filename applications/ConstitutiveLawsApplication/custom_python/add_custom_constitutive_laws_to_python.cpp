@@ -1353,8 +1353,12 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
     (m,"ParallelRuleOfMixturesLaw2D").def(py::init<>())
     ;
 
-    py::class_< SerialParallelRuleOfMixturesLaw, typename SerialParallelRuleOfMixturesLaw::Pointer,  ConstitutiveLaw  >
-    (m,"SerialParallelRuleOfMixturesLaw").def(py::init<>())
+    py::class_< SerialParallelRuleOfMixturesLaw<3>, typename SerialParallelRuleOfMixturesLaw<3>::Pointer,  ConstitutiveLaw  >
+    (m,"SerialParallelRuleOfMixturesLaw3D").def(py::init<>())
+    ;
+
+    py::class_< SerialParallelRuleOfMixturesLaw<2>, typename SerialParallelRuleOfMixturesLaw<2>::Pointer,  ConstitutiveLaw  >
+    (m,"SerialParallelRuleOfMixturesLaw2D").def(py::init<>())
     ;
 
     py::class_< GenericAnisotropicLaw<3>, typename GenericAnisotropicLaw<3>::Pointer,  ConstitutiveLaw  >

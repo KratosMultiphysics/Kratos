@@ -146,14 +146,20 @@ void UPwBaseElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
             std::fill(r_stress_vector.begin(), r_stress_vector.end(), 0.0);
         }
     }
+    std::vector<Vector> strain_vectors(number_of_integration_points,
+                                       ZeroVector(GetStressStatePolicy().GetVoigtSize()));
 
     mStateVariablesFinalized.resize(number_of_integration_points);
-    if (r_properties[CONSTITUTIVE_LAW]->Has(STATE_VARIABLES)) {
-        for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i) {
+    ConstitutiveLaw::Parameters cl_values;
+    cl_values.SetProcessInfo(rCurrentProcessInfo);
+    cl_values.SetMaterialProperties(r_properties);
+    for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i) {
+        cl_values.SetStrainVector(strain_vectors[i]);
+        cl_values.SetStressVector(mStressVector[i]);
+        if (r_properties[CONSTITUTIVE_LAW]->Has(STATE_VARIABLES))
             mConstitutiveLawVector[i]->SetValue(STATE_VARIABLES, mStateVariablesFinalized[i], rCurrentProcessInfo);
-        }
+        mConstitutiveLawVector[i]->InitializeMaterialResponseCauchy(cl_values);
     }
-
     mIsInitialised = true;
 
     KRATOS_CATCH("")
@@ -444,7 +450,7 @@ std::vector<double> UPwBaseElement::CalculateIntegrationCoefficients(
 }
 
 void UPwBaseElement::CalculateDerivativesOnInitialConfiguration(
-    double& detJ, Matrix& J0, Matrix& InvJ0, Matrix& DNu_DX0, unsigned int GPoint) const
+    double& detJ, Matrix& J0, Matrix& InvJ0, Matrix& DNu_DX0, unsigned int IntegrationPointIndex) const
 {
     KRATOS_TRY
 
@@ -452,8 +458,8 @@ void UPwBaseElement::CalculateDerivativesOnInitialConfiguration(
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
         rGeom.IntegrationPoints(mThisIntegrationMethod);
 
-    GeometryUtils::JacobianOnInitialConfiguration(rGeom, IntegrationPoints[GPoint], J0);
-    const Matrix& DN_De = rGeom.ShapeFunctionsLocalGradients(mThisIntegrationMethod)[GPoint];
+    GeometryUtils::JacobianOnInitialConfiguration(rGeom, IntegrationPoints[IntegrationPointIndex], J0);
+    const Matrix& DN_De = rGeom.ShapeFunctionsLocalGradients(mThisIntegrationMethod)[IntegrationPointIndex];
     MathUtils<double>::InvertMatrix(J0, InvJ0, detJ);
     GeometryUtils::ShapeFunctionsGradients(DN_De, InvJ0, DNu_DX0);
 

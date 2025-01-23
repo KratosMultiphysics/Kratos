@@ -168,7 +168,7 @@ protected:
                                                          const Vector& rDetJs) const;
 
     void CalculateDerivativesOnInitialConfiguration(
-        double& detJ, Matrix& J0, Matrix& InvJ0, Matrix& DN_DX, unsigned int PointNumber) const;
+        double& detJ, Matrix& J0, Matrix& InvJ0, Matrix& DN_DX, unsigned int IntegrationPointIndex) const;
 
     void CalculateJacobianOnCurrentConfiguration(double& detJ, Matrix& rJ, Matrix& rInvJ, unsigned int GPoint) const;
 
