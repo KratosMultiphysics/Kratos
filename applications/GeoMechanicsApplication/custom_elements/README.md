@@ -46,8 +46,8 @@ where
 - $\beta$			= $1 / K_{Fluid}$, liquid phase compressibility $\mathrm{\left[ L^2 F^{-1} \right]}$
 - $\rho^w$			= fluid density $\mathrm{\left[ M L^{-3} \right]}$
 - $\Omega$			= flow domain $\mathrm{\left[ L^2 \right]}$
-- $K_{solid}$		= bulk modulus of soil $\mathrm{\left[ N L^{-2} \right]}$
-- $K_{Fluid}$		= bulk modulus of water $\mathrm{\left[ L^2 \right]}$
+- $K_{solid}$		= bulk modulus of soil $\mathrm{\left[ F L^{-2} \right]}$
+- $K_{Fluid}$		= bulk modulus of water $\mathrm{\left[ F L^{-2} \right]}$
 
 Darcy's law
 
