@@ -160,6 +160,34 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLawReturnsExpectedStress_
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress, 1e-3);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLawReturnsExpectedStress_AfterFinalizeMaterialResponseAndReset,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto law = CreateIncrementalLinearElastic3DLaw();
+
+    ConstitutiveLaw::Parameters initial_parameters;
+    auto                        initial_strain = Vector{ ScalarVector{6, 0.5} };
+    initial_parameters.SetStrainVector(initial_strain);
+    auto initial_stress = Vector{ ScalarVector{6, 1e6} };
+    initial_parameters.SetStressVector(initial_stress);
+    law.InitializeMaterialResponseCauchy(initial_parameters);
+
+    auto stress = Calculate3DStress(law);
+
+    ConstitutiveLaw::Parameters final_parameters;
+    auto                        final_strain = Vector{ ScalarVector{6, 1.3} };
+    final_parameters.SetStrainVector(final_strain);
+    law.FinalizeMaterialResponseCauchy(final_parameters);
+    
+    law.ResetMaterial(final_parameters.GetMaterialProperties(), final_parameters.GetElementGeometry(), final_parameters.GetShapeFunctionsValues());
+
+    stress = Calculate3DStress(law);
+
+    Vector expected_stress{ 6 };
+    expected_stress <<= 2.5e+07, 2.5e+07, 2.5e+07, 3.84615e+06, 3.84615e+06, 3.84615e+06;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress, 1e-3);
+}
+
 #ifdef KRATOS_DEBUG
 KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLawThrows_WhenElementProvidedStrainIsSetToFalse,
                           KratosGeoMechanicsFastSuiteWithoutKernel)

@@ -81,6 +81,16 @@ public:
     bool& GetValue(const Variable<bool>& rThisVariable, bool& rValue) override;
     using ConstitutiveLaw::GetValue;
 
+    /**
+     * @brief It resets all the member variables and flags
+     * @param rMaterialProperties the material properties
+     * @param rElementGeometry the element geometry
+     * @param rShapeFunctionsValues the shape function values for the current integration point
+     */
+    void ResetMaterial(const Properties &   rMaterialProperties,
+                       const GeometryType & rElementGeometry,
+                       const Vector &       rShapeFunctionsValues) override;
+
 protected:
     /**
      * @brief It calculates the constitutive matrix C
