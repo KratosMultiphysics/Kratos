@@ -115,7 +115,7 @@ K_w = \frac{R^2 \rho_0 g}{8 \mu_0} \quad \quad \quad \quad f_u = \frac{\mu_0}{\m
 - $\chi$			= buoyancy coefficient $\mathrm{\left[ - \right]}$
 - $e$				= gravitational unit vector $\mathrm{\left[ - \right]}$
 - $g$				= gravitational acceleration $\mathrm{\left[ L T^{-2} \right]}$
-- $\rho_0$			= reference density of the fluid $\mathrm{\left[ L M^{-3} \right]}$
+- $\rho_0$			= reference density of the fluid $\mathrm{\left[ M L^{-3} \right]}$
 - $\mu_0$			= reference viscosity of the fluid $\mathrm{\left[ F T L^{-2} \right]}$
 - $p$				= liquid pressure $\mathrm{\left[ Pa \right]}$
 
