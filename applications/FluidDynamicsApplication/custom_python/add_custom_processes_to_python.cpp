@@ -41,6 +41,7 @@
 #include "custom_processes/spalart_allmaras_turbulence_model.h"
 #include "custom_processes/stokes_initialization_process.h"
 #include "custom_processes/compute_y_plus_process.h"
+#include "custom_processes/navier_stokes_vectorial_fractional_convection_process.h"
 
 #include "spaces/ublas_space.h"
 
@@ -183,6 +184,13 @@ void AddCustomProcessesToPython(pybind11::module& m)
     py::class_<ComputeYPlusProcess, ComputeYPlusProcess::Pointer, Process>(m, "ComputeYPlusProcess")
     .def(py::init<Model&, Parameters>())
     ;
+    py::class_<NavierStokesVectorialFractionalConvectionProcess<2, SparseSpaceType, LocalSpaceType, LinearSolverType>, NavierStokesVectorialFractionalConvectionProcess<2, SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer, Process>(m, "NavierStokesVectorialFractionalConvectionProcess2D")
+        .def(py::init<Model &, LinearSolverType::Pointer, Parameters>())
+        .def(py::init<ModelPart &, LinearSolverType::Pointer, Parameters>());
+
+    py::class_<NavierStokesVectorialFractionalConvectionProcess<3, SparseSpaceType, LocalSpaceType, LinearSolverType>, NavierStokesVectorialFractionalConvectionProcess<3, SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer, Process>(m, "NavierStokesVectorialFractionalConvectionProcess3D")
+        .def(py::init<Model &, LinearSolverType::Pointer, Parameters>())
+        .def(py::init<ModelPart &, LinearSolverType::Pointer, Parameters>());
 }
 
 } // namespace Python.
