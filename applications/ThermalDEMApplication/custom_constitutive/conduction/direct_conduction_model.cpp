@@ -14,7 +14,7 @@
 #include "direct_conduction_model.h"
 
 namespace Kratos {
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   DirectConductionModel::DirectConductionModel() {}
   DirectConductionModel::~DirectConductionModel() {}
 

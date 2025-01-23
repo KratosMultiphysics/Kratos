@@ -642,6 +642,9 @@ void InitializeConstitutiveLawValuesForStressCalculation(ConstitutiveLaw::Parame
     rValues.SetConstitutiveMatrix(rConstitutiveMatrix);
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 void InitializeConstitutiveLawValuesForStressCalculation(ConstitutiveLaw::Parameters& rValues,
     Vector& rStrainVector, Vector& rStressVector)
 {
@@ -652,6 +655,9 @@ void InitializeConstitutiveLawValuesForStressCalculation(ConstitutiveLaw::Parame
     rValues.SetStrainVector(rStrainVector);
     rValues.SetStressVector(rStressVector);
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 } // namespace StructuralMechanicsElementUtilities.
 }  // namespace Kratos.

@@ -14,7 +14,7 @@
 #include "indirect_conduction_surround_layer.h"
 
 namespace Kratos {
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   IndirectConductionSurroundLayer::IndirectConductionSurroundLayer() {}
   IndirectConductionSurroundLayer::~IndirectConductionSurroundLayer() {}
 

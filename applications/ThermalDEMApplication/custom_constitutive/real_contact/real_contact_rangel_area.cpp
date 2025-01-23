@@ -14,7 +14,7 @@
 #include "real_contact_rangel_area.h"
 
 namespace Kratos {
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   RealContactRangelArea::RealContactRangelArea() {}
   RealContactRangelArea::~RealContactRangelArea() {}
 

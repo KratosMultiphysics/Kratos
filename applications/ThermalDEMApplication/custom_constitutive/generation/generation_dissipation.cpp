@@ -14,7 +14,7 @@
 #include "generation_dissipation.h"
 
 namespace Kratos {
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   GenerationDissipation::GenerationDissipation() {}
   GenerationDissipation::~GenerationDissipation() {}
 

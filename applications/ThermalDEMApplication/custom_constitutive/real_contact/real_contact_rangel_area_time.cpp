@@ -14,7 +14,7 @@
 #include "real_contact_rangel_area_time.h"
 
 namespace Kratos {
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   RealContactRangelAreaTime::RealContactRangelAreaTime() {}
   RealContactRangelAreaTime::~RealContactRangelAreaTime() {}
 

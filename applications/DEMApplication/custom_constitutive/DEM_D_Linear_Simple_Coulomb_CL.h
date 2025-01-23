@@ -7,8 +7,8 @@
 //
 // References using this model:
 // R.L. Rangel et al. (2024). Multiscale data-driven modeling of the thermomechanical behavior of granular media with thermal expansion effects. Computers and Geotechnics, 176:106789.
-// R.L. Rangel et al. (2024). A continuum--discrete multiscale methodology using machine learning for thermal analysis of granular media. Computers and Geotechnics, 168:106118.
-// S. Zhao et al. (2020). Multiscale modeling of thermo-mechanical responses of granular materials: A hierarchical continuum--discrete coupling approach. CMAME, 367:113100.
+// R.L. Rangel et al. (2024). A continuum-discrete multiscale methodology using machine learning for thermal analysis of granular media. Computers and Geotechnics, 168:106118.
+// Guo & Zhao (2014). coupled FEM/DEM approach for hierarchical multiscale modelling of granular media. IJNME, 99(11):789-818.
 //
 
 #pragma once
@@ -63,14 +63,32 @@ namespace Kratos {
                                 Condition* const wall,
                                 bool& sliding) override;
 
-    template <class NeighbourClassType>
+    template<class NeighbourClassType>
     void CalculateTangentialForceWithNeighbour(const double normal_contact_force,
                                                const double OldLocalElasticContactForce[3],
                                                double LocalElasticContactForce[3],
                                                const double LocalDeltDisp[3],
                                                bool& sliding,
                                                SphericParticle* const element,
-                                               NeighbourClassType* const neighbour);
+                                               NeighbourClassType* const neighbour) {
+    // Compute shear force
+    LocalElasticContactForce[0] = OldLocalElasticContactForce[0] - mKt * LocalDeltDisp[0];
+    LocalElasticContactForce[1] = OldLocalElasticContactForce[1] - mKt * LocalDeltDisp[1];
+    const double tangent_contact_force = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
+
+    // Compute maximum admisible shear force
+    Properties& properties_of_this_contact = element->GetProperties().GetSubProperties(neighbour->GetProperties().Id());
+    const double friction_angle_tg = std::tan(properties_of_this_contact[STATIC_FRICTION]);
+    const double MaximumAdmisibleShearForce = normal_contact_force * friction_angle_tg;
+
+    // Check for sliding: apply Coulomb friction condition
+    if (tangent_contact_force > MaximumAdmisibleShearForce) {
+      sliding = true;
+      const double fraction = MaximumAdmisibleShearForce / tangent_contact_force;
+      LocalElasticContactForce[0] *= fraction;
+      LocalElasticContactForce[1] *= fraction;
+    }
+  }
 
   private:
 

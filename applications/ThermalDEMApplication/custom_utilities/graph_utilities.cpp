@@ -14,7 +14,7 @@
 #include "graph_utilities.h"
 
 namespace Kratos {
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   GraphUtilities::GraphUtilities() {
     mGraph_ParticleTempAll       = false;
     mGraph_ParticleTempMin       = false;
@@ -44,8 +44,7 @@ namespace Kratos {
                                          bool EnergyThermal,
                                          bool HeatFluxContributions,
                                          bool HeatGenValues,
-                                         bool HeatGenContributions)
-  {
+                                         bool HeatGenContributions) {
     KRATOS_TRY
 
     // Set member flags
@@ -78,7 +77,7 @@ namespace Kratos {
     KRATOS_CATCH("")
   }
 
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   void GraphUtilities::ExecuteFinalize(void) {
     KRATOS_TRY
 
@@ -87,7 +86,7 @@ namespace Kratos {
     KRATOS_CATCH("")
   }
 
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   void GraphUtilities::OpenFiles(void) {
     if (mGraph_ParticleTempAll) {
       mFile_ParticleTempAll.open("graph_particle_temp_all.txt", std::ios::out);
@@ -551,7 +550,7 @@ namespace Kratos {
     KRATOS_CATCH("")
   }
 
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   void GraphUtilities::CloseFiles(void) {
     if (mFile_ParticleTempAll.is_open())       mFile_ParticleTempAll.close();
     if (mFile_ParticleTempMin.is_open())       mFile_ParticleTempMin.close();

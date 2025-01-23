@@ -14,7 +14,7 @@
 #include "direct_conduction_collision.h"
 
 namespace Kratos {
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   DirectConductionCollision::DirectConductionCollision() {}
   DirectConductionCollision::~DirectConductionCollision() {}
 
