@@ -820,6 +820,7 @@ namespace Kratos
 
             // Compute the dot product for each node between a vector from the average skin position to the node and the skin's average normal
             // NOTE that for a positive dot product the node is saved as being on the positive side of the boundary, negative dot product = negative side
+            // NOTE that it is necessary to define the side of points of gamma_tilde here for the search of the support clouds afterwards (SetLateralSupportCloud)
             auto& r_geom = p_element->GetGeometry();
             const std::size_t n_nodes = r_geom.PointsNumber();
             Vector sides_vector(n_nodes);
@@ -881,11 +882,12 @@ namespace Kratos
                     // Get support cloud for given node
                     if (sides_vector[i_node] < 0.0) {
                         // Use and declare SBM_BOUNDARY nodes on the positive side for the support cloud of a node on the negative side
-                        SetLateralSupportCloud(p_node, avg_position, avg_normal, cloud_nodes, cloud_nodes_coordinates, SBM_BOUNDARY);
+                        SetLateralSupportCloud(p_node, avg_position,  avg_normal, cloud_nodes, cloud_nodes_coordinates, SBM_BOUNDARY);
                     } else {
                         // Use and declare SBM_INTERFACE nodes on the negative side for the support cloud of a node on the positive side
-                        SetLateralSupportCloud(p_node, avg_position, avg_normal, cloud_nodes, cloud_nodes_coordinates, SBM_INTERFACE);
+                        SetLateralSupportCloud(p_node, avg_position, -avg_normal, cloud_nodes, cloud_nodes_coordinates, SBM_INTERFACE);
                     }
+                }
 
                     // Continue if the number of support nodes is sufficient for the calculation of the extension operator
                     const std::size_t n_cloud_nodes = cloud_nodes.size();
@@ -930,6 +932,7 @@ namespace Kratos
 
         // Find elemental neighbors of the given node and add their nodes to the cloud nodes set if they are located on the search side
         // This is the first layer of sampling/ support points
+        // NOTE that the sides of the first layer of nodes at gamma_tilde already need to be defined in their flags (done by SetSidesVectorsAndSkinNormalsForSplitElements)
         // NOTE that taking the nodes of neighboring elements is the same as adding the nodal neighbors directly for triangles and tetrahedra
         //TODO add neighboring nodes directly?
         auto& r_elem_neigh_vect = pOtherSideNode->GetValue(NEIGHBOUR_ELEMENTS);
@@ -965,8 +968,9 @@ namespace Kratos
         // Add more layers of nodal neighbors of the current nodes to the cloud of nodes
         // NOTE that we start from 1 here as the first layer already has been added
         for (std::size_t i_layer = 1; i_layer < n_layers; ++i_layer) {
-            //TODO test AddLateralSupportLayer(rAvgSkinPosition, rAvgSkinNormal, prev_layer_nodes, cur_layer_nodes, aux_set);
-            AddLateralSupportLayer(prev_layer_nodes, cur_layer_nodes, aux_set);
+            //TODO test 
+            AddLateralSupportLayer(rAvgSkinPosition, rAvgSkinNormal, prev_layer_nodes, cur_layer_nodes, aux_set);
+            //AddLateralSupportLayer(prev_layer_nodes, cur_layer_nodes, aux_set);
             prev_layer_nodes = cur_layer_nodes;
             cur_layer_nodes.clear();
         }
@@ -976,7 +980,8 @@ namespace Kratos
         std::size_t n_cloud_nodes = aux_set.size();
         std::size_t n_extra_layers = 0;
         while (n_cloud_nodes < GetRequiredNumberOfPoints()+1 && n_extra_layers < 3) {
-            //TODO test AddLateralSupportLayer(rAvgSkinPosition, rAvgSkinNormal, prev_layer_nodes, cur_layer_nodes, aux_set);
+            //TODO test 
+            //AddLateralSupportLayer(rAvgSkinPosition, rAvgSkinNormal, prev_layer_nodes, cur_layer_nodes, aux_set);
             AddLateralSupportLayer(prev_layer_nodes, cur_layer_nodes, aux_set);
             n_extra_layers++;
             n_cloud_nodes = aux_set.size();
@@ -1068,7 +1073,7 @@ namespace Kratos
                             NodeType::Pointer p_neigh = r_geom(i_neigh_node);
                             // Calculate dot product of average skin normal of the element and the normalized vector between averaged skin point and the element's node
                             array_1d<double, 3> avg_skin_pt_to_node = p_neigh->Coordinates() - rAvgSkinPosition;
-                            avg_skin_pt_to_node /= norm_2(avg_skin_pt_to_node);
+                            //avg_skin_pt_to_node /= norm_2(avg_skin_pt_to_node);  // normalization recommended for dot_product check another value than zero
                             const double dot_product = inner_prod(avg_skin_pt_to_node, rAvgSkinNormal);
                             if (p_neigh->Is(ACTIVE) && dot_product > 0.0) {
                                 auto set_return = SupportNodesSet.insert(p_neigh);
