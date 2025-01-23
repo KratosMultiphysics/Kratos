@@ -43,8 +43,9 @@ std::vector<Dof<double>*> ExtractDofsFromNodes(InputIt                 NodeRange
                                                InputIt                 NodeRangeEnd,
                                                const Variable<double>& rDofVariable)
 {
-    auto result = std::vector<Dof<double>*>{};
-    ExtractDofsFromNodes(NodeRangeBegin, NodeRangeEnd, std::back_inserter(result), rDofVariable);
+    auto result =
+        std::vector<Dof<double>*>{static_cast<std::size_t>(std::distance(NodeRangeBegin, NodeRangeEnd))};
+    ExtractDofsFromNodes(NodeRangeBegin, NodeRangeEnd, result.begin(), rDofVariable);
     return result;
 }
 
@@ -59,19 +60,20 @@ std::vector<Dof<double>*> ExtractUPwDofsFromNodes(const DisplacementNodeRange&  
                                                   const WaterPressureNodeRange& rWaterPressureNodes,
                                                   std::size_t                   ModelDimension)
 {
-    auto result = std::vector<Dof<double>*>{};
     auto displacement_variables =
         Geo::ConstVariableRefs{std::cref(DISPLACEMENT_X), std::cref(DISPLACEMENT_Y)};
     if (ModelDimension == 3) displacement_variables.push_back(std::cref(DISPLACEMENT_Z));
 
+    auto result = std::vector<Dof<double>*>{
+        displacement_variables.size() * std::size(rDisplacementNodes) + std::size(rWaterPressureNodes)};
+    auto out_iter = result.begin();
     for (const auto& r_node : rDisplacementNodes) {
-        std::transform(std::begin(displacement_variables), std::end(displacement_variables),
-                       std::back_inserter(result),
-                       [&r_node](const auto& r_variable) { return r_node.pGetDof(r_variable.get()); });
+        out_iter = std::transform(
+            std::begin(displacement_variables), std::end(displacement_variables), out_iter,
+            [&r_node](const auto& r_variable) { return r_node.pGetDof(r_variable.get()); });
     }
 
-    ExtractDofsFromNodes(std::begin(rWaterPressureNodes), std::end(rWaterPressureNodes),
-                         std::back_inserter(result), WATER_PRESSURE);
+    ExtractDofsFromNodes(std::begin(rWaterPressureNodes), std::end(rWaterPressureNodes), out_iter, WATER_PRESSURE);
 
     return result;
 }

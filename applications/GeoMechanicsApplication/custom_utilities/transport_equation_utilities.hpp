@@ -36,8 +36,9 @@ public:
         double                                   IntegrationCoefficient)
     {
         return -PORE_PRESSURE_SIGN_FACTOR * DynamicViscosityInverse *
-           prod(rGradNpT, BoundedMatrix<double, TDim, TNumNodes>(prod(rMaterialPermeabilityMatrix, trans(rGradNpT)))) *
-           RelativePermeability * IntegrationCoefficient;
+               prod(rGradNpT, BoundedMatrix<double, TDim, TNumNodes>(
+                                  prod(rMaterialPermeabilityMatrix, trans(rGradNpT)))) *
+               RelativePermeability * IntegrationCoefficient;
     }
 
     static Matrix CalculatePermeabilityMatrix(const Matrix& rGradNpT,
@@ -133,9 +134,9 @@ public:
     [[nodiscard]] static std::vector<double> CalculateBiotCoefficients(const std::vector<Matrix>& rConstitutiveMatrices,
                                                                        const Properties& rProperties)
     {
-        std::vector<double> result;
-        std::transform(rConstitutiveMatrices.begin(), rConstitutiveMatrices.end(),
-                       std::back_inserter(result), [&rProperties](const Matrix& rConstitutiveMatrix) {
+        std::vector<double> result(rConstitutiveMatrices.size());
+        std::transform(rConstitutiveMatrices.begin(), rConstitutiveMatrices.end(), result.begin(),
+                       [&rProperties](const Matrix& rConstitutiveMatrix) {
             return CalculateBiotCoefficient(rConstitutiveMatrix, rProperties);
         });
 
@@ -145,8 +146,8 @@ public:
     [[nodiscard]] static std::vector<double> CalculatePermeabilityUpdateFactors(const std::vector<Vector>& rStrainVectors,
                                                                                 const Properties& rProperties)
     {
-        auto result = std::vector<double>{};
-        std::transform(rStrainVectors.cbegin(), rStrainVectors.cend(), std::back_inserter(result),
+        auto result = std::vector<double>(rStrainVectors.size());
+        std::transform(rStrainVectors.cbegin(), rStrainVectors.cend(), result.begin(),
                        [&rProperties](const auto& rStrainVector) {
             return CalculatePermeabilityUpdateFactor(rStrainVector, rProperties);
         });

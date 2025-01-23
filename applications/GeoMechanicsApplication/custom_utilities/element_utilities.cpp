@@ -494,8 +494,8 @@ std::vector<Vector> GeoElementUtilities::EvaluateShapeFunctionsAtIntegrationPoin
         return result;
     };
 
-    auto result = std::vector<Vector>{};
-    std::transform(rIntegrationPoints.begin(), rIntegrationPoints.end(), std::back_inserter(result),
+    auto result = std::vector<Vector>{rIntegrationPoints.size()};
+    std::transform(rIntegrationPoints.begin(), rIntegrationPoints.end(), result.begin(),
                    evaluate_shape_function_values);
 
     return result;

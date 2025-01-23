@@ -36,8 +36,8 @@ namespace Kratos::Geo::DofUtilities
 
 std::vector<std::size_t> ExtractEquationIdsFrom(const std::vector<Dof<double>*>& rDofs)
 {
-    std::vector<std::size_t> result;
-    std::transform(rDofs.begin(), rDofs.end(), std::back_inserter(result),
+    std::vector<std::size_t> result(rDofs.size());
+    std::transform(rDofs.begin(), rDofs.end(), result.begin(),
                    [](const auto p_dof) { return p_dof->EquationId(); });
     return result;
 }

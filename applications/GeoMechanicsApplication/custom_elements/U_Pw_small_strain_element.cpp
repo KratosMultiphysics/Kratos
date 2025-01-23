@@ -668,8 +668,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
         });
     } else if (r_prop.Has(rVariable)) {
         // Map initial material property to gauss points, as required for the output
-        rOutput.clear();
-        std::fill_n(std::back_inserter(rOutput), number_of_integration_points, r_prop.GetValue(rVariable));
+        std::fill_n(rOutput.begin(), number_of_integration_points, r_prop.GetValue(rVariable));
     } else {
         for (unsigned int i = 0; i < number_of_integration_points; ++i) {
             rOutput[i] = mConstitutiveLawVector[i]->GetValue(rVariable, rOutput[i]);
@@ -800,8 +799,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
             Variables.UseHenckyStrain, this->GetStressStatePolicy().GetVoigtSize());
     } else if (r_properties.Has(rVariable)) {
         // Map initial material property to Gauss points, as required for the output
-        rOutput.clear();
-        std::fill_n(std::back_inserter(rOutput), mConstitutiveLawVector.size(), r_properties.GetValue(rVariable));
+        std::fill_n(rOutput.begin(), mConstitutiveLawVector.size(), r_properties.GetValue(rVariable));
     } else {
         for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i)
             rOutput[i] = mConstitutiveLawVector[i]->GetValue(rVariable, rOutput[i]);
@@ -1067,11 +1065,11 @@ std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateDerivatives
     const std::vector<double>& rFluidPressures) const
 {
     KRATOS_ERROR_IF(rFluidPressures.size() != mRetentionLawVector.size());
-    std::vector<double> result;
+    std::vector<double> result(rFluidPressures.size());
 
     auto retention_law_params = RetentionLaw::Parameters{this->GetProperties()};
     std::transform(rFluidPressures.begin(), rFluidPressures.end(), mRetentionLawVector.begin(),
-                   std::back_inserter(result), [&retention_law_params](auto fluid_pressure, auto pRetentionLaw) {
+                   result.begin(), [&retention_law_params](auto fluid_pressure, const auto& pRetentionLaw) {
         retention_law_params.SetFluidPressure(fluid_pressure);
         return pRetentionLaw->CalculateDerivativeOfSaturation(retention_law_params);
     });
@@ -1088,7 +1086,7 @@ std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateDegreesOfSa
 
     auto retention_law_params = RetentionLaw::Parameters{this->GetProperties()};
     std::transform(rFluidPressures.begin(), rFluidPressures.end(), mRetentionLawVector.begin(),
-                   result.begin(), [&retention_law_params](auto fluid_pressure, auto pRetentionLaw) {
+                   result.begin(), [&retention_law_params](auto fluid_pressure, const auto& pRetentionLaw) {
         retention_law_params.SetFluidPressure(fluid_pressure);
         return pRetentionLaw->CalculateSaturation(retention_law_params);
     });
@@ -1424,7 +1422,7 @@ std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateRelativePer
 
     auto result = std::vector<double>(rFluidPressures.size());
     std::transform(mRetentionLawVector.begin(), mRetentionLawVector.end(), rFluidPressures.begin(),
-                   result.begin(), [&retention_law_params](auto pRetentionLaw, auto FluidPressure) {
+                   result.begin(), [&retention_law_params](const auto& pRetentionLaw, auto FluidPressure) {
         retention_law_params.SetFluidPressure(FluidPressure);
         return pRetentionLaw->CalculateRelativePermeability(retention_law_params);
     });
@@ -1440,7 +1438,7 @@ std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateBishopCoeff
 
     auto result = std::vector<double>(rFluidPressures.size());
     std::transform(mRetentionLawVector.begin(), mRetentionLawVector.end(), rFluidPressures.begin(),
-                   result.begin(), [&retention_law_params](auto pRetentionLaw, auto FluidPressure) {
+                   result.begin(), [&retention_law_params](const auto& pRetentionLaw, auto FluidPressure) {
         retention_law_params.SetFluidPressure(FluidPressure);
         return pRetentionLaw->CalculateBishopCoefficient(retention_law_params);
     });

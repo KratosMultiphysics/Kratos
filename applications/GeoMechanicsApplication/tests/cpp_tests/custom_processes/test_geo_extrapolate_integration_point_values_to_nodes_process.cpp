@@ -118,8 +118,8 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_InitializesNodalArea, KratosG
     process.ExecuteBeforeSolutionLoop();
 
     std::vector<double> expected_values = {1.0, 2.0, 2.0, 1.0, 1.0, 1.0};
-    std::vector<double> actual_values;
-    std::transform(model_part.Nodes().begin(), model_part.Nodes().end(), std::back_inserter(actual_values),
+    std::vector<double> actual_values(model_part.Nodes().size());
+    std::transform(model_part.Nodes().begin(), model_part.Nodes().end(), actual_values.begin(),
                    [](const auto& node) { return node.GetValue(NODAL_AREA); });
 
     KRATOS_EXPECT_VECTOR_NEAR(actual_values, expected_values, 1e-6)
@@ -184,8 +184,8 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForTwoCo
     process.Execute();
 
     std::vector<double> expected_values = {1.0, 1.5, 1.5, 1.0, 2.0, 2.0};
-    std::vector<double> actual_values;
-    std::transform(model_part.Nodes().begin(), model_part.Nodes().end(), std::back_inserter(actual_values),
+    std::vector<double> actual_values(model_part.Nodes().size());
+    std::transform(model_part.Nodes().begin(), model_part.Nodes().end(), actual_values.begin(),
                    [](const auto& node) { return node.FastGetSolutionStepValue(HYDRAULIC_HEAD); });
 
     KRATOS_EXPECT_VECTOR_NEAR(actual_values, expected_values, 1e-6)
@@ -220,8 +220,8 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForLinea
     process.Execute();
 
     std::vector<double> expected_values = {-1, 0, 1, -1, -1, 1};
-    std::vector<double> actual_values;
-    std::transform(model_part.Nodes().begin(), model_part.Nodes().end(), std::back_inserter(actual_values),
+    std::vector<double> actual_values(model_part.Nodes().size());
+    std::transform(model_part.Nodes().begin(), model_part.Nodes().end(), actual_values.begin(),
                    [](const auto& node) { return node.FastGetSolutionStepValue(HYDRAULIC_HEAD); });
 
     KRATOS_EXPECT_VECTOR_NEAR(actual_values, expected_values, 1e-6)
@@ -261,9 +261,9 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesMatrixCorrectlyFo
     std::vector<Matrix> expected_values = {ScalarMatrix(3, 3, -1), ScalarMatrix(3, 3, 0),
                                            ScalarMatrix(3, 3, 1),  ScalarMatrix(3, 3, -1),
                                            ScalarMatrix(3, 3, -1), ScalarMatrix(3, 3, 1)};
-    std::vector<Matrix> actual_values;
+    std::vector<Matrix> actual_values(model_part.Nodes().size());
     std::transform(
-        model_part.Nodes().begin(), model_part.Nodes().end(), std::back_inserter(actual_values),
+        model_part.Nodes().begin(), model_part.Nodes().end(), actual_values.begin(),
         [](const auto& node) { return node.FastGetSolutionStepValue(CAUCHY_STRESS_TENSOR); });
 
     for (std::size_t i = 0; i < expected_values.size(); ++i) {
@@ -304,9 +304,9 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesVectorCorrectlyFo
     std::vector<Vector> expected_values = {ScalarVector(6, -1), ScalarVector(6, 0),
                                            ScalarVector(6, 1),  ScalarVector(6, -1),
                                            ScalarVector(6, -1), ScalarVector(6, 1)};
-    std::vector<Vector> actual_values;
+    std::vector<Vector> actual_values(model_part.Nodes().size());
     std::transform(
-        model_part.Nodes().begin(), model_part.Nodes().end(), std::back_inserter(actual_values),
+        model_part.Nodes().begin(), model_part.Nodes().end(), actual_values.begin(),
         [](const auto& node) { return node.FastGetSolutionStepValue(CAUCHY_STRESS_VECTOR); });
 
     for (std::size_t i = 0; i < expected_values.size(); ++i) {
@@ -347,8 +347,8 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesArrayCorrectlyFor
     std::vector<Vector>              expected_values = {ScalarVector(3, -1), ScalarVector(3, 0),
                                                         ScalarVector(3, 1),  ScalarVector(3, -1),
                                                         ScalarVector(3, -1), ScalarVector(3, 1)};
-    std::vector<array_1d<double, 3>> actual_values;
-    std::transform(model_part.Nodes().begin(), model_part.Nodes().end(), std::back_inserter(actual_values),
+    std::vector<array_1d<double, 3>> actual_values(model_part.Nodes().size());
+    std::transform(model_part.Nodes().begin(), model_part.Nodes().end(), actual_values.begin(),
                    [](const auto& node) { return node.FastGetSolutionStepValue(FLUID_FLUX_VECTOR); });
 
     for (std::size_t i = 0; i < expected_values.size(); ++i) {

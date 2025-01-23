@@ -34,8 +34,8 @@ std::vector<std::size_t> SupportedNumbersOfPointsForLobattoIntegration() { retur
 
 double SumOfWeights(const Geo::IntegrationPointVectorType& rIntegrationPoints)
 {
-    auto weights = std::vector<double>{};
-    std::transform(rIntegrationPoints.begin(), rIntegrationPoints.end(), std::back_inserter(weights),
+    auto weights = std::vector<double>(rIntegrationPoints.size());
+    std::transform(rIntegrationPoints.begin(), rIntegrationPoints.end(), weights.begin(),
                    [](const auto& rIntegrationPoint) { return rIntegrationPoint.Weight(); });
     return std::accumulate(weights.cbegin(), weights.cend(), 0.0);
 }

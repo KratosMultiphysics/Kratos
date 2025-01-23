@@ -201,9 +201,11 @@ void SteadyStatePwElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRigh
 {
     KRATOS_TRY;
 
-    noalias(rRightHandSideVector) += -prod(GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
-        rVariables.GradNpT, rVariables.DynamicViscosityInverse, rVariables.PermeabilityMatrix,
-        rVariables.RelativePermeability, rVariables.IntegrationCoefficient), rVariables.PressureVector);
+    noalias(rRightHandSideVector) +=
+        -prod(GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
+                  rVariables.GradNpT, rVariables.DynamicViscosityInverse, rVariables.PermeabilityMatrix,
+                  rVariables.RelativePermeability, rVariables.IntegrationCoefficient),
+              rVariables.PressureVector);
 
     this->CalculateAndAddFluidBodyFlow(rRightHandSideVector, rVariables);
 
