@@ -74,15 +74,15 @@ The governing equations in matrix form for the Pw elements are:
 where the degree of freedom is water pressure $p_w$, their time gradient of pressure. $\boldsymbol{C}$ the compressibility matrix and $\boldsymbol{H}$ the permeability matrix. Considering $\boldsymbol{N}$ as shape function,
 
 ```math
-\boldsymbol{C} = \sum_1^n \int_{\Omega} \left[ \left( \alpha + n \beta \right) \rho^w S + n \rho^w \frac{dS}{dP} \right] \boldsymbol{N}^T \boldsymbol{N} d \Omega
+\boldsymbol{C} = \int_{\Omega} \left[ \left( \alpha + n \beta \right) \rho^w S + n \rho^w \frac{dS}{dP} \right] \boldsymbol{N}^T \boldsymbol{N} d \Omega
 ```
 
 ```math
-\boldsymbol{H} = \sum_1^n \int_{\Omega} \left( \frac{\rho^w k_r}{\mu} \right) \nabla \boldsymbol{N}^T \boldsymbol{K} \nabla \boldsymbol{N} d \Omega
+\boldsymbol{H} = \int_{\Omega} \left( \frac{\rho^w k_r}{\mu} \right) \nabla \boldsymbol{N}^T \boldsymbol{K} \nabla \boldsymbol{N} d \Omega
 ```
 
 ```math
-\boldsymbol{f_p} = \sum_1^n \int_{\Omega} \left( \frac{\rho^w k_r}{\mu} \right) \nabla \boldsymbol{N}^T \boldsymbol{K} \rho^w \boldsymbol{g} d \Omega + B.C.
+\boldsymbol{f_p} = \int_{\Omega} \left( \frac{\rho^w k_r}{\mu} \right) \nabla \boldsymbol{N}^T \boldsymbol{K} \rho^w \boldsymbol{g} d \Omega + B.C.
 ```
 
 
@@ -123,12 +123,11 @@ reformulated in pressure and preserving mass
 \rho^w \left( \frac{1}{\rho^w g l_w} + \beta \right) \frac{\partial p}{\partial t} - \rho^w \frac{\partial}{\partial y} \left[ \frac{R^2}{8 \mu} \left( \frac{\partial p}{\partial y} - \rho^w g \right)\right] = -\frac{\rho^w Q_w}{\pi R^2}
 ```
 
-The one dimensionalpressure equation with $\alpha = 1$ and $n = 1$ captures the well flow equation.
+The one dimensional pressure equation with $\alpha = 1$ and $n = 1$ captures the well flow equation.
 
 ```math
 \rho^w \beta^* \frac{\partial p}{\partial t} - \frac{\partial}{\partial y} \left[ \frac{\rho^w K^*}{\mu} \left( \frac{\partial p}{\partial y} - \rho^w g \right) \right] = - \rho^w Q^*_w
 ```
-
 where the intrinsic permeability and boundary condition are given by
 
 ```math
@@ -227,6 +226,7 @@ density of water $\rho^w$ $[\mathrm {kg/m^3}]$ is a function of temperature and 
 $$ \rho^w = 9.998396 \cdot 10^2 + 6.764771  \cdot 10^{-2} \cdot T - 8.993699  \cdot 10^{-3} \cdot T^2 + 9.143518 \cdot 10^{-5} \cdot T^3 - 8.907391 \cdot 10^{-7} \cdot T^4 + 5.291959  \cdot 10^{-9} \cdot T^5 - 1.359813  \cdot 10^{-11} \cdot T^6 $$
 
 Note: the dependency of water density and viscosity to temperature is user defined and the user can turn this feature on or off in the JSON file.
+Note: Please be aware that these equations are purely emperical and they require a specific set of units. The Temperature needs to be in $\mathrm{^{\circ}C}$, length in $\mathrm{m}$, time is $\mathrm{s}$, and mass in $\mathrm{kg}$.
 
 ## Finite Element Formulation
 
