@@ -54,7 +54,13 @@ namespace Kratos {
 
       const double C_coeff = 0.435 * (sqrt(C2 * C2 - 4.0 * C1 * (C3 - Fo)) - C2) / C1;
 
-      return C_coeff * Globals::Pi * Rc_max * Rc_max * pow(col_time_max,-0.5) * temp_grad / (pow(b1,-0.5) + pow(b2,-0.5));
+      if (!std::isnan(C_coeff)) {
+        return C_coeff * Globals::Pi * Rc_max * Rc_max * pow(col_time_max,-0.5) * temp_grad / (pow(b1,-0.5) + pow(b2,-0.5));
+      }
+      else {
+        KRATOS_WARNING("Collisional Heat Conduction") << "Multiplying coefficient in NaN (possible high Fourier number). Assuming 0.0..." << std::endl;
+        return 0.0;
+      }
     }
     else {
       // Assumption: Use simple BOB model for static contact
