@@ -51,16 +51,18 @@ class MPMUpdatedLagrangianVPVMS
 public:
     ///@name Type Definitions
     ///@{
-    ///Type definition for integration methods
-    typedef GeometryData::IntegrationMethod IntegrationMethod;
-
     typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
 
     ///base type: Element
     typedef Element BaseType;
     ///Type definition for integration methods
-    //typedef GeometryData::IntegrationMethod IntegrationMethod;
-
+    typedef GeometryData::IntegrationMethod IntegrationMethod;
+    ///Reference type definition for constitutive laws
+    typedef ConstitutiveLaw ConstitutiveLawType;
+    ///Pointer type for constitutive laws
+    typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
+    ///StressMeasure from constitutive laws
+    typedef ConstitutiveLawType::StressMeasure StressMeasureType;
     /// Counted pointer of LargeDisplacementElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( MPMUpdatedLagrangianVPVMS );
     ///@}
@@ -343,22 +345,22 @@ protected:
         array_1d<double, 3> volume_acceleration;
 
         // MP_CAUCHY_STRESS_VECTOR
-        //Vector cauchy_stress_vector; //° da togliere?
+        Vector cauchy_stress_vector; //° da togliere?
         // MP_ALMANSI_STRAIN_VECTOR
-        //Vector almansi_strain_vector;
+        Vector almansi_strain_vector;
 
         // MP_DELTA_PLASTIC_STRAIN
-        //double delta_plastic_strain;
+        double delta_plastic_strain;
         // MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN
-        //double delta_plastic_volumetric_strain;
+        double delta_plastic_volumetric_strain;
         // MP_DELTA_PLASTIC_DEVIATORIC_STRAIN
-        //double delta_plastic_deviatoric_strain;
+        double delta_plastic_deviatoric_strain;
         // MP_EQUIVALENT_PLASTIC_STRAIN
-        //double equivalent_plastic_strain;
+        double equivalent_plastic_strain;
         // MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN
-        //double accumulated_plastic_volumetric_strain;
+        double accumulated_plastic_volumetric_strain;
         // MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN
-        //double accumulated_plastic_deviatoric_strain;
+        double accumulated_plastic_deviatoric_strain;
 
         explicit MaterialPointVariables()
         {
@@ -370,17 +372,17 @@ protected:
             volume = 1.0;
 
             // MP_DELTA_PLASTIC_STRAIN
-            //delta_plastic_strain = 1.0;
-            //// MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN
-            //delta_plastic_volumetric_strain = 1.0;
-            //// MP_DELTA_PLASTIC_DEVIATORIC_STRAIN
-            //delta_plastic_deviatoric_strain = 1.0;
-            //// MP_EQUIVALENT_PLASTIC_STRAIN
-            //equivalent_plastic_strain = 1.0;
-            //// MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN
-            //accumulated_plastic_volumetric_strain = 1.0;
-            //// MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN
-            //accumulated_plastic_deviatoric_strain = 1.0;
+            delta_plastic_strain = 1.0;
+            // MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN
+            delta_plastic_volumetric_strain = 1.0;
+            // MP_DELTA_PLASTIC_DEVIATORIC_STRAIN
+            delta_plastic_deviatoric_strain = 1.0;
+            // MP_EQUIVALENT_PLASTIC_STRAIN
+            equivalent_plastic_strain = 1.0;
+            // MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN
+            accumulated_plastic_volumetric_strain = 1.0;
+            // MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN
+            accumulated_plastic_deviatoric_strain = 1.0;
         }
 
     private:
@@ -400,14 +402,14 @@ protected:
             rSerializer.save("velocity",velocity);
             rSerializer.save("acceleration",acceleration);
             rSerializer.save("volume_acceleration",volume_acceleration);
-            //rSerializer.save("cauchy_stress_vector",cauchy_stress_vector);
-            //rSerializer.save("almansi_strain_vector",almansi_strain_vector);
-            //rSerializer.save("delta_plastic_strain",delta_plastic_strain);
-            //rSerializer.save("delta_plastic_volumetric_strain",delta_plastic_volumetric_strain);
-            //rSerializer.save("delta_plastic_deviatoric_strain",delta_plastic_deviatoric_strain);
-            //rSerializer.save("equivalent_plastic_strain",equivalent_plastic_strain);
-            //rSerializer.save("accumulated_plastic_volumetric_strain",accumulated_plastic_volumetric_strain);
-            //rSerializer.save("accumulated_plastic_deviatoric_strain",accumulated_plastic_deviatoric_strain);
+            rSerializer.save("cauchy_stress_vector",cauchy_stress_vector);
+            rSerializer.save("almansi_strain_vector",almansi_strain_vector);
+            rSerializer.save("delta_plastic_strain",delta_plastic_strain);
+            rSerializer.save("delta_plastic_volumetric_strain",delta_plastic_volumetric_strain);
+            rSerializer.save("delta_plastic_deviatoric_strain",delta_plastic_deviatoric_strain);
+            rSerializer.save("equivalent_plastic_strain",equivalent_plastic_strain);
+            rSerializer.save("accumulated_plastic_volumetric_strain",accumulated_plastic_volumetric_strain);
+            rSerializer.save("accumulated_plastic_deviatoric_strain",accumulated_plastic_deviatoric_strain);
         }//
 
         void load( Serializer& rSerializer )
@@ -420,14 +422,14 @@ protected:
             rSerializer.load("velocity",velocity);
             rSerializer.load("acceleration",acceleration);
             rSerializer.load("volume_acceleration",volume_acceleration);
-            //rSerializer.load("cauchy_stress_vector",cauchy_stress_vector);
-            //rSerializer.load("almansi_strain_vector",almansi_strain_vector);
-            //rSerializer.load("delta_plastic_strain",delta_plastic_strain);
-            //rSerializer.load("delta_plastic_volumetric_strain",delta_plastic_volumetric_strain);
-            //rSerializer.load("delta_plastic_deviatoric_strain",delta_plastic_deviatoric_strain);
-            //rSerializer.load("equivalent_plastic_strain",equivalent_plastic_strain);
-            //rSerializer.load("accumulated_plastic_volumetric_strain",accumulated_plastic_volumetric_strain);
-            //rSerializer.load("accumulated_plastic_deviatoric_strain",accumulated_plastic_deviatoric_strain);
+            rSerializer.load("cauchy_stress_vector",cauchy_stress_vector);
+            rSerializer.load("almansi_strain_vector",almansi_strain_vector);
+            rSerializer.load("delta_plastic_strain",delta_plastic_strain);
+            rSerializer.load("delta_plastic_volumetric_strain",delta_plastic_volumetric_strain);
+            rSerializer.load("delta_plastic_deviatoric_strain",delta_plastic_deviatoric_strain);
+            rSerializer.load("equivalent_plastic_strain",equivalent_plastic_strain);
+            rSerializer.load("accumulated_plastic_volumetric_strain",accumulated_plastic_volumetric_strain);
+            rSerializer.load("accumulated_plastic_deviatoric_strain",accumulated_plastic_deviatoric_strain);
         }
         ///@}
     };
@@ -440,22 +442,24 @@ protected:
     {
     public:
 
+        StressMeasureType StressMeasure;
+
         // For axisymmetric use only
         double  CurrentRadius;
         double  ReferenceRadius;
 
         // General variables for large displacement use
-        //double  detF;
-        //double  detF0;
-        //double  detFT;
-        //Vector  StrainVector;
-        //Vector  StressVector;
-        //Matrix  B;
-        //sMatrix  F;
-        //Matrix  FT;
-        //Matrix  F0;
+        double  detF;
+        double  detF0;
+        double  detFT;
+        Vector  StrainVector;
+        Vector  StressVector;
+        Matrix  B;
+        Matrix  F;
+        Matrix  FT;
+        Matrix  F0;
         Matrix  DN_DX;
-        //Matrix  ConstitutiveMatrix;
+        Matrix  ConstitutiveMatrix;
 
         // Variables including all integration points
         Matrix CurrentDisp;
@@ -485,6 +489,7 @@ protected:
 
         //Modulus
         double ShearModulus;
+        double BulkModulus;
 
         Vector BodyForceMP;
     };
@@ -504,11 +509,17 @@ protected:
     /**
      * Container for historical total elastic deformation measure F0 = dx/dX
      */
-    //Matrix mDeformationGradientF0;
+    Matrix mDeformationGradientF0;
     /**
      * Container for the total deformation gradient determinants
      */
-    //double mDeterminantF0;
+    double mDeterminantF0;
+    
+    /**
+     * Container for constitutive law instances on each integration point
+     */
+    ConstitutiveLaw::Pointer mConstitutiveLawVector;
+    
     /**
      * Finalize and Initialize label
      */
@@ -687,9 +698,9 @@ protected:
     /**
      * Set Variables of the Element to the Parameters of the Constitutive Law
      */
-    //virtual void SetGeneralVariables(GeneralVariables& rVariables,
-    //                                 ConstitutiveLaw::Parameters& rValues, const Vector& rN);
-    virtual void SetGeneralVariables(GeneralVariables& rVariables, const Vector& rN);
+    virtual void SetGeneralVariables(GeneralVariables& rVariables,
+                                     ConstitutiveLaw::Parameters& rValues, const Vector& rN);
+    //virtual void SetGeneralVariables(GeneralVariables& rVariables, const Vector& rN);
 
     /**
      * Clear Nodal Forces
@@ -730,6 +741,12 @@ protected:
 
     //virtual void UpdateGaussPoint(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
     void UpdateGaussPoint(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
+
+    void InitializeMaterial(const ProcessInfo& rCurrentProcessInfo);
+
+    void ResetConstitutiveLaw();
+
+    double& CalculateVolumeChange (double& rVolumeChange, GeneralVariables& rVariables);
 
     /**
      * Get the Historical Deformation Gradient to calculate after finalize the step

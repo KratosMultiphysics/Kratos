@@ -224,7 +224,6 @@ namespace Kratos::MaterialPointGeneratorUtility
         std::vector<array_1d<double, 3>> mpc_xg = { ZeroVector(3) };
         array_1d<double,3> mpc_normal = ZeroVector(3);
         std::vector<array_1d<double, 3>> mpc_displacement = { ZeroVector(3) };
-        std::vector<array_1d<double, 3>> mpc_delta_velocity = { ZeroVector(3) }; //°
         std::vector<array_1d<double, 3>> mpc_delta_displacement = { ZeroVector(3) }; //°
         std::vector<array_1d<double, 3>> mpc_imposed_displacement = { ZeroVector(3) };
         std::vector<array_1d<double, 3>> mpc_velocity = { ZeroVector(3) };
