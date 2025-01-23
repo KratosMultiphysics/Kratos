@@ -38,14 +38,16 @@ Conservation of mass for saturated soil
 where
 
 - $n$				= porosity $\mathrm{\left[ - \right]}$
-- $p$				= pressure $\mathrm{\left[ Pa \right]}$
-- $t$				= time $\mathrm{\left[ s \right]}$
-- $x$				= global coordinates $\mathrm{\left[ m \right]}$
-- $q_i$				= specific discharge $\mathrm{\left[ m/s \right]}$
-- $\alpha$			= solid skeleton compressibility $\mathrm{\left[ m^2/N \right]}$
-- $\beta$			= liquid phase compressibility $\mathrm{\left[ m^2/N \right]}$
-- $\rho^w$			= fluid density $\mathrm{\left[ kg/m^3 \right]}$
-- $\Omega$			= flow domain $\mathrm{\left[ m^2 \right]}$
+- $p$				= pressure $\mathrm{\left[ FL^{-2} \right]}$
+- $t$				= time $\mathrm{\left[ T \right]}$
+- $x$				= global coordinates $\mathrm{\left[ L \right]}$
+- $q_i$				= specific discharge $\mathrm{\left[ LT^{-1} \right]}$
+- $\alpha$			= $\left( 1 - n \right) / K_{soild}$, solid skeleton compressibility $\mathrm{\left[ L^2 F^{-1} \right]}$
+- $\beta$			= $1 / K_{Fluid}$, liquid phase compressibility $\mathrm{\left[ L^2 F^{-1} \right]}$
+- $\rho^w$			= fluid density $\mathrm{\left[ M L^{-3} \right]}$
+- $\Omega$			= flow domain $\mathrm{\left[ L^2 \right]}$
+- $K_{solid}$		= bulk modulus of soil $\mathrm{\left[ N L^{-2} \right]}$
+- $K_{Fluid}$		= bulk modulus of water $\mathrm{\left[ L^2 \right]}$
 
 Darcy's law
 
@@ -53,9 +55,9 @@ Darcy's law
 q = -\frac{K_{ij}}{\mu} \left( \frac{\partial p}{\partial x_j} - \rho^w g_j \right)
 ```
 
-- $g_j$				= gravitational acceleration $\mathrm{\left[ m/s^2 \right]}$
-- $K_{ij}$			= intrinsic permeability $\mathrm{\left[ m^2 \right]}$
-- $\mu$				= dynamic viscosity $\mathrm{\left[ Pas \right]}$
+- $g_j$				= gravitational acceleration $\mathrm{\left[ L T^{-2} \right]}$
+- $K_{ij}$			= intrinsic permeability $\mathrm{\left[ L^2 \right]}$
+- $\mu$				= dynamic viscosity $\mathrm{\left[ F T L^{-2} \right]}$
 
 Richard's eqyation for partly saturates soil
 
@@ -99,22 +101,22 @@ where
 K_w = \frac{R^2 \rho_0 g}{8 \mu_0} \quad \quad \quad \quad f_u = \frac{\mu_0}{\mu} \quad \quad \quad \quad \chi = \frac{\rho - \rho_0}{\rho_0} \quad \quad \quad \quad h = \frac{p}{\rho_0 g} + y
 ```
 
-- $Q_w$			= pumping rate sink $\mathrm{\left[ m^3/s \right]}$
-- $t$				= time $\mathrm{\left[ s \right]}$
-- $y$				= vertical coordinate $\mathrm{\left[ m \right]}$
-- $y_w$				= location of the discharge point $\mathrm{\left[ m \right]}$
-- $h$				= hydraulic head in the well $\mathrm{\left[ m \right]}$
-- $l_w$				= total length of liquid filled well bore $\mathrm{\left[ m \right]}$
-- $R$				= radius of the well casing $\mathrm{\left[ m \right]}$
-- $K_w$				= Hagen-Poiseuille permeability $\mathrm{\left[ m \right]}$
+- $Q_w$			= pumping rate sink $\mathrm{\left[ L^3 T^{-1} \right]}$
+- $t$				= time $\mathrm{\left[ T \right]}$
+- $y$				= vertical coordinate $\mathrm{\left[ L \right]}$
+- $y_w$				= location of the discharge point $\mathrm{\left[ L \right]}$
+- $h$				= hydraulic head in the well $\mathrm{\left[ L \right]}$
+- $l_w$				= total length of liquid filled well bore $\mathrm{\left[ L \right]}$
+- $R$				= radius of the well casing $\mathrm{\left[ L \right]}$
+- $K_w$				= Hagen-Poiseuille permeability $\mathrm{\left[ L \right]}$
 - $\delta$			= Dirichlet delta function $\mathrm{\left[ - \right]}$
-- $\beta$			= compressibility of the liquid $\mathrm{\left[ m^2/N \right]}$
+- $\beta$			= compressibility of the liquid $\mathrm{\left[ L^2 F^{-1} \right]}$
 - $f_{\mu}$			= viscosity relation function of liquid $\mathrm{\left[ - \right]}$
 - $\chi$			= buoyancy coefficient $\mathrm{\left[ - \right]}$
 - $e$				= gravitational unit vector $\mathrm{\left[ - \right]}$
-- $g$				= gravitational acceleration $\mathrm{\left[ m/s^2 \right]}$
-- $\rho_0$			= reference density of the fluid $\mathrm{\left[ kg/m^3 \right]}$
-- $\mu_0$			= reference viscosity of the fluid $\mathrm{\left[ Pas \right]}$
+- $g$				= gravitational acceleration $\mathrm{\left[ L T^{-2} \right]}$
+- $\rho_0$			= reference density of the fluid $\mathrm{\left[ L M^{-3} \right]}$
+- $\mu_0$			= reference viscosity of the fluid $\mathrm{\left[ F T L^{-2} \right]}$
 - $p$				= liquid pressure $\mathrm{\left[ Pa \right]}$
 
 reformulated in pressure and preserving mass
@@ -225,8 +227,8 @@ density of water $\rho^w$ $[\mathrm {kg/m^3}]$ is a function of temperature and 
 
 $$ \rho^w = 9.998396 \cdot 10^2 + 6.764771  \cdot 10^{-2} \cdot T - 8.993699  \cdot 10^{-3} \cdot T^2 + 9.143518 \cdot 10^{-5} \cdot T^3 - 8.907391 \cdot 10^{-7} \cdot T^4 + 5.291959  \cdot 10^{-9} \cdot T^5 - 1.359813  \cdot 10^{-11} \cdot T^6 $$
 
-Note: the dependency of water density and viscosity to temperature is user defined and the user can turn this feature on or off in the JSON file.
-Note: Please be aware that these equations are purely emperical and they require a specific set of units. The Temperature needs to be in $\mathrm{^{\circ}C}$, length in $\mathrm{m}$, time is $\mathrm{s}$, and mass in $\mathrm{kg}$.
+\textbf{Note}: the dependency of water density and viscosity to temperature is user defined and the user can turn this feature on or off in the JSON file.
+\textbf{Note}: Please be aware that these equations are purely emperical and they require a specific set of units. The Temperature needs to be in $\mathrm{^{\circ}C}$, length in $\mathrm{m}$, time is $\mathrm{s}$, and mass in $\mathrm{kg}$.
 
 ## Finite Element Formulation
 
