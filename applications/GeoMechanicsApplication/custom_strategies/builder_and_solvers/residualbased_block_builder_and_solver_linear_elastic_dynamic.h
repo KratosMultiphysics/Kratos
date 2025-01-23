@@ -501,6 +501,15 @@ private:
 
 
             if (r_element.IsActive()) {
+
+				// reset the constitutive law, such that historic strains and stresses are reset
+				std::vector < ConstitutiveLaw::Pointer > constitutive_law_vector;
+				r_element.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_law_vector, r_current_process_info);
+                for (std::size_t i = 0; i < constitutive_law_vector.size(); ++i)
+                {
+                    constitutive_law_vector[i]->ResetMaterial(r_element.GetProperties(), r_element.GetGeometry(), row(r_element.GetGeometry().ShapeFunctionsValues(), i));
+                }
+
                 Element::EquationIdVectorType equation_ids;
                 r_element.CalculateRightHandSide(local_body_force, r_current_process_info); 
                 r_element.EquationIdVector(equation_ids, r_current_process_info);
