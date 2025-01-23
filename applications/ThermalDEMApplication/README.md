@@ -95,7 +95,7 @@ Add **thermal settings** with desired options:
 		"nusselt_correlation"            : "sphere_hanz_marshall" or "sphere_whitaker" or "sphere_gunn" or "sphere_li_mason",
 		"radiation_model"                : "continuum_zhou" or "continuum_krause",
 		"heat_generation_model"          : ["sliding_friction","rolling_friction","contact_damping"],
-		"adjusted_contact_model"         : "zhou" or "lu" or "morris",
+		"adjusted_contact_model"         : "zhou" or "lu" or "morris_area" or "morris_area_time" or "rangel_area" or "rangel_area_time",
 		"voronoi_method"                 : "tesselation" or "porosity",
 		"porosity_method"                : "global" or "average_convex_hull" or "average_alpha_shape",
 		"min_conduction_distance"        : 0.0000000275,
