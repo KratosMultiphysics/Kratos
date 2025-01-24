@@ -1166,9 +1166,9 @@ Matrix SmallStrainUPwDiffOrderElement::CalculateBMatrix(const Matrix& rDN_DX, co
 std::vector<Matrix> SmallStrainUPwDiffOrderElement::CalculateBMatrices(
     const GeometryType::ShapeFunctionsGradientsType& rDN_DXContainer, const Matrix& rNContainer) const
 {
-    std::vector<Matrix> result;
+    std::vector<Matrix> result(rDN_DXContainer.size());
     for (unsigned int GPoint = 0; GPoint < rDN_DXContainer.size(); ++GPoint) {
-        result.push_back(this->CalculateBMatrix(rDN_DXContainer[GPoint], row(rNContainer, GPoint)));
+        result[GPoint] = this->CalculateBMatrix(rDN_DXContainer[GPoint], row(rNContainer, GPoint));
     }
 
     return result;
@@ -1459,10 +1459,11 @@ Matrix SmallStrainUPwDiffOrderElement::CalculateDeformationGradient(unsigned int
 
 std::vector<Matrix> SmallStrainUPwDiffOrderElement::CalculateDeformationGradients() const
 {
-    std::vector<Matrix> result;
-    for (unsigned int GPoint = 0;
-         GPoint < this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod()); ++GPoint) {
-        result.push_back(CalculateDeformationGradient(GPoint));
+    const auto number_of_integration_points =
+        this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
+    std::vector<Matrix> result(number_of_integration_points);
+    for (unsigned int integration_point = 0; integration_point < number_of_integration_points; ++integration_point) {
+        result[integration_point] = CalculateDeformationGradient(integration_point);
     }
 
     return result;

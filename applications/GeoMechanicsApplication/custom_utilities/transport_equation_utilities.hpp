@@ -115,10 +115,10 @@ public:
                                                                         const std::vector<double>& DerivativesOfSaturation,
                                                                         const Properties& rProperties)
     {
-        std::vector<double> result;
+        std::vector<double> result(rBiotCoefficients.size());
         for (std::size_t i = 0; i < rBiotCoefficients.size(); ++i) {
-            result.push_back(CalculateInverseBiotModulus(rBiotCoefficients[i], rDegreesOfSaturation[i],
-                                                         DerivativesOfSaturation[i], rProperties));
+            result[i] = CalculateInverseBiotModulus(rBiotCoefficients[i], rDegreesOfSaturation[i],
+                                                    DerivativesOfSaturation[i], rProperties);
         }
         return result;
     }

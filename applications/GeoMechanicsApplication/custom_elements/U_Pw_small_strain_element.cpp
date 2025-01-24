@@ -1101,7 +1101,7 @@ std::vector<array_1d<double, TDim>> UPwSmallStrainElement<TDim, TNumNodes>::Calc
     const GeometryType& rGeom      = this->GetGeometry();
     const IndexType     NumGPoints = rGeom.IntegrationPointsNumber(this->GetIntegrationMethod());
 
-    std::vector<array_1d<double, TDim>> FluidFluxes;
+    std::vector<array_1d<double, TDim>> FluidFluxes(NumGPoints);
     ElementVariables                    Variables;
     this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
@@ -1124,9 +1124,9 @@ std::vector<array_1d<double, TDim>> UPwSmallStrainElement<TDim, TNumNodes>::Calc
         array_1d<double, TDim> GradPressureTerm = prod(trans(Variables.GradNpT), Variables.PressureVector);
         GradPressureTerm += PORE_PRESSURE_SIGN_FACTOR * rProp[DENSITY_WATER] * Variables.BodyAcceleration;
 
-        FluidFluxes.push_back(PORE_PRESSURE_SIGN_FACTOR * Variables.DynamicViscosityInverse *
+        FluidFluxes[GPoint] = PORE_PRESSURE_SIGN_FACTOR * Variables.DynamicViscosityInverse *
                               Variables.RelativePermeability *
-                              prod(Variables.PermeabilityMatrix, GradPressureTerm));
+                              prod(Variables.PermeabilityMatrix, GradPressureTerm);
     }
 
     return FluidFluxes;
@@ -1197,9 +1197,9 @@ template <unsigned int TDim, unsigned int TNumNodes>
 std::vector<Matrix> UPwSmallStrainElement<TDim, TNumNodes>::CalculateBMatrices(
     const GeometryType::ShapeFunctionsGradientsType& rDN_DXContainer, const Matrix& rNContainer) const
 {
-    std::vector<Matrix> result;
+    std::vector<Matrix> result(rDN_DXContainer.size());
     for (unsigned int GPoint = 0; GPoint < rDN_DXContainer.size(); ++GPoint) {
-        result.push_back(this->CalculateBMatrix(rDN_DXContainer[GPoint], row(rNContainer, GPoint)));
+        result[GPoint] = this->CalculateBMatrix(rDN_DXContainer[GPoint], row(rNContainer, GPoint));
     }
 
     return result;
@@ -1490,10 +1490,11 @@ Vector UPwSmallStrainElement<TDim, TNumNodes>::CalculateGreenLagrangeStrain(cons
 template <unsigned int TDim, unsigned int TNumNodes>
 std::vector<Matrix> UPwSmallStrainElement<TDim, TNumNodes>::CalculateDeformationGradients() const
 {
-    std::vector<Matrix> result;
-    for (unsigned int GPoint = 0;
-         GPoint < this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod()); ++GPoint) {
-        result.push_back(CalculateDeformationGradient(GPoint));
+    const auto number_of_integration_points =
+        this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
+    std::vector<Matrix> result(number_of_integration_points);
+    for (unsigned int integration_point = 0; integration_point < number_of_integration_points; ++integration_point) {
+        result[integration_point] = CalculateDeformationGradient(integration_point);
     }
 
     return result;
