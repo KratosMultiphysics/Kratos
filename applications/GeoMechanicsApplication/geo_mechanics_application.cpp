@@ -27,6 +27,8 @@ KratosGeoMechanicsApplication::KratosGeoMechanicsApplication()
 
 void KratosGeoMechanicsApplication::Register()
 {
+    KratosApplication::Register();
+
     KRATOS_INFO("") << " KRATOS___                             \n"
                     << "     //   ) )                          \n"
                     << "    //         ___      ___            \n"

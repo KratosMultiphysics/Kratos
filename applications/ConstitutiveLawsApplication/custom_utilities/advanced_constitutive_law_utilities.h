@@ -533,5 +533,14 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
         const double Temperature
         );
 
+    /**
+     * @brief This method computes the tangent tensor
+     * @param rValues The constitutive law parameters and flags
+     */
+    static void CalculateTangentTensorByPerturbation(
+        ConstitutiveLaw::Parameters& rValues,
+        ConstitutiveLaw* pConstitutiveLaw,
+        const ConstitutiveLaw::StressMeasure& rStressMeasure = ConstitutiveLaw::StressMeasure_Cauchy);
+
 }; // class AdvancedConstitutiveLawUtilities
 } // namespace Kratos
