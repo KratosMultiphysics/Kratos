@@ -350,7 +350,6 @@ void KratosGeoMechanicsApplication::Register()
 
     // Register Constitutive Laws
     KRATOS_REGISTER_CONSTITUTIVE_LAW("BilinearCohesive3DLaw", mBilinearCohesive3DLaw)
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("BilinearCohesive2DLaw", mBilinearCohesive2DLaw)
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoLinearElasticPlaneStrain2DLaw", mLinearElasticPlaneStrain2DLaw)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoIncrementalLinearElastic3DLaw", mLinearElastic3DLaw)

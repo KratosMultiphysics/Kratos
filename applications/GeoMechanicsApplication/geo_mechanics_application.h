@@ -119,7 +119,6 @@
 #include "custom_elements/transient_thermal_element.h"
 
 // constitutive models
-#include "custom_constitutive/bilinear_cohesive_2D_law.hpp"
 #include "custom_constitutive/bilinear_cohesive_3D_law.hpp"
 #include "custom_constitutive/incremental_linear_elastic_interface_law.h"
 #include "custom_constitutive/incremental_linear_elastic_law.h"
@@ -960,7 +959,6 @@ private:
 
     // constitutive models
     const BilinearCohesive3DLaw mBilinearCohesive3DLaw;
-    const BilinearCohesive2DLaw mBilinearCohesive2DLaw;
     const GeoIncrementalLinearElasticLaw mLinearElasticPlaneStrain2DLaw{std::make_unique<PlaneStrain>()};
     const GeoIncrementalLinearElasticLaw mLinearElastic3DLaw{std::make_unique<ThreeDimensional>()};
     const GeoLinearElasticPlaneStress2DLaw mLinearElasticPlaneStress2DLaw;
