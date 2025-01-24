@@ -140,7 +140,7 @@ public:
      * @param rModelPart The model part to calculate the negative volume
      * @return double Fluid negative volume over the cut elements
      */
-    static double CalculateFluidCutElementNegativeVolume(const ModelPart &rModelPart);
+    static double CalculateFluidCutElementsNegativeVolume(const ModelPart &rModelPart);
 
     /**
      * @brief Calculate the fluid positive volume in cut elements
