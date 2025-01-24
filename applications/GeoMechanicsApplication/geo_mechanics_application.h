@@ -119,7 +119,6 @@
 #include "custom_elements/transient_thermal_element.h"
 
 // constitutive models
-#include "custom_constitutive/bilinear_cohesive_3D_law.hpp"
 #include "custom_constitutive/incremental_linear_elastic_interface_law.h"
 #include "custom_constitutive/incremental_linear_elastic_law.h"
 #include "custom_constitutive/linear_elastic_2D_beam_law.h"
@@ -958,7 +957,6 @@ private:
         0, Kratos::make_shared<Quadrilateral3D9<NodeType>>(Condition::GeometryType::PointsArrayType(9))};
 
     // constitutive models
-    const BilinearCohesive3DLaw mBilinearCohesive3DLaw;
     const GeoIncrementalLinearElasticLaw mLinearElasticPlaneStrain2DLaw{std::make_unique<PlaneStrain>()};
     const GeoIncrementalLinearElasticLaw mLinearElastic3DLaw{std::make_unique<ThreeDimensional>()};
     const GeoLinearElasticPlaneStress2DLaw mLinearElasticPlaneStress2DLaw;

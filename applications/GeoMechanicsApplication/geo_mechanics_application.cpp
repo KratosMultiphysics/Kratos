@@ -349,8 +349,6 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_CONDITION("GeoTMicroClimateFluxCondition3D9N", mGeoTMicroClimateFluxCondition3D9N)
 
     // Register Constitutive Laws
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("BilinearCohesive3DLaw", mBilinearCohesive3DLaw)
-
     KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoLinearElasticPlaneStrain2DLaw", mLinearElasticPlaneStrain2DLaw)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoIncrementalLinearElastic3DLaw", mLinearElastic3DLaw)
 
