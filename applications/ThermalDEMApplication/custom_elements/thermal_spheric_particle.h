@@ -97,11 +97,11 @@ namespace Kratos
       void UpdateTemperatureDependentRadius (const ProcessInfo& r_process_info);
 
       // Auxiliary computations
-      void   ComputeAddedSearchDistance          (const ProcessInfo& r_process_info, double& added_search_distance);
-      double ComputePrandtlNumber                (const ProcessInfo& r_process_info);
-      double ComputeReynoldNumber                (const ProcessInfo& r_process_info);
-      double ComputeFluidRelativeVelocity        (const ProcessInfo& r_process_info);
-      double GetVoronoiCellFaceRadius            (const ProcessInfo& r_process_info);
+      void   ComputeAddedSearchDistance   (const ProcessInfo& r_process_info, double& added_search_distance);
+      double ComputePrandtlNumber         (const ProcessInfo& r_process_info);
+      double ComputeReynoldNumber         (const ProcessInfo& r_process_info);
+      double ComputeFluidRelativeVelocity (const ProcessInfo& r_process_info);
+      double GetVoronoiCellFaceRadius     (const ProcessInfo& r_process_info);
 
       // Neighbor interaction computations
       void   CleanContactParameters              (const ProcessInfo& r_process_info);
@@ -291,13 +291,13 @@ namespace Kratos
       double mDeformationRateStop;
 
       // Neighboring data
-      ThermalSphericParticle*                      mNeighbor_p;
-      DEMWall*                                     mNeighbor_w;
-      int                                          mNeighborType;
-      unsigned int                                 mNeighborIndex;
-      unsigned int                                 mNumberOfContactParticleNeighbor;
-      std::map<SphericParticle*, ContactParams>    mContactParamsParticle;
-      std::map<DEMWall*, ContactParams>            mContactParamsWall;
+      ThermalSphericParticle*                   mNeighbor_p;
+      DEMWall*                                  mNeighbor_w;
+      int                                       mNeighborType;
+      unsigned int                              mNeighborIndex;
+      unsigned int                              mNumberOfContactParticleNeighbor;
+      std::map<SphericParticle*, ContactParams> mContactParamsParticle;
+      std::map<DEMWall*, ContactParams>         mContactParamsWall;
       std::map<SphericParticle*, ContactParamsHMS> mContactParamsParticleHMS;
       std::map<DEMWall*, ContactParamsHMS>         mContactParamsWallHMS;
 
