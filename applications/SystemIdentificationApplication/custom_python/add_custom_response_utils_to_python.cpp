@@ -18,6 +18,7 @@
 #include "includes/define.h"
 
 // Application includes
+#include "custom_sensors/measurement_residual_response_function.h"
 #include "custom_utilities/response/sensor_coverage_response_utils.h"
 
 // Include base h
@@ -30,6 +31,14 @@ void AddCustomResponseUtilsToPython(pybind11::module& m)
     namespace py = pybind11;
 
     auto responses_module = m.def_submodule("Responses");
+
+    py::class_<MeasurementResidualResponseFunction, MeasurementResidualResponseFunction::Pointer, AdjointResponseFunction>(responses_module, "MeasurementResidualResponseFunction")
+        .def(py::init<const double>(), py::arg("p_coefficient"))
+        .def("AddSensor", &MeasurementResidualResponseFunction::AddSensor, py::arg("sensor"))
+        .def("Clear", &MeasurementResidualResponseFunction::Clear)
+        .def("GetSensorsList", &MeasurementResidualResponseFunction::GetSensorsList)
+        .def("__str__", PrintObject<MeasurementResidualResponseFunction>)
+        ;
 
     responses_module.def_submodule("SensorCoverageResponseUtils")
         .def("CalculateValue", &SensorCoverageResponseUtils::CalculateValue, py::arg("sensor_mask_status"))

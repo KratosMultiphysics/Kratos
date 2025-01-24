@@ -20,7 +20,6 @@
 // Application includes
 #include "custom_sensors/sensor.h"
 #include "custom_sensors/sensor_view.h"
-#include "custom_sensors/measurement_residual_response_function.h"
 #include "custom_sensors/displacement_sensor.h"
 #include "custom_sensors/strain_sensor.h"
 
@@ -84,14 +83,6 @@ void  AddCustomSensorsToPython(pybind11::module& m)
         .def("GetAuxiliaryExpression", &element_sensor_view::GetAuxiliaryExpression, py::arg("suffix"))
         .def("GetAuxiliarySuffixes", &element_sensor_view::GetAuxiliarySuffixes)
         .def("__str__", PrintObject<element_sensor_view>);
-        ;
-
-    py::class_<MeasurementResidualResponseFunction, MeasurementResidualResponseFunction::Pointer, AdjointResponseFunction>(sensor_module, "MeasurementResidualResponseFunction")
-        .def(py::init<const double>(), py::arg("p_coefficient"))
-        .def("AddSensor", &MeasurementResidualResponseFunction::AddSensor, py::arg("sensor"))
-        .def("Clear", &MeasurementResidualResponseFunction::Clear)
-        .def("GetSensorsList", &MeasurementResidualResponseFunction::GetSensorsList)
-        .def("__str__", PrintObject<MeasurementResidualResponseFunction>)
         ;
 
     py::class_<DisplacementSensor, DisplacementSensor::Pointer, Sensor>(sensor_module, "DisplacementSensor")
