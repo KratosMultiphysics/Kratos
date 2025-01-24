@@ -4,6 +4,7 @@ from pathlib import Path
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.HDF5Application as KratosHDF5
+import KratosMultiphysics.StructuralMechanicsApplication as KratosSMA
 import KratosMultiphysics.OptimizationApplication as KratosOA
 import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
@@ -80,7 +81,7 @@ class DamageDetectionTransientResponse(ResponseFunction):
         self.optimization_problem = optimization_problem
 
     def GetImplementedPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
-        return [Kratos.YOUNG_MODULUS]
+        return [Kratos.YOUNG_MODULUS, KratosSMA.CROSS_AREA, Kratos.DENSITY, Kratos.THICKNESS]
 
     def Initialize(self) -> None:
         self.model_part = self.model_part_operation.GetModelPart()
