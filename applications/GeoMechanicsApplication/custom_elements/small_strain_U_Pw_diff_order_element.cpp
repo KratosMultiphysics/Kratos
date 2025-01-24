@@ -71,39 +71,8 @@ int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo
     if (!r_prop.Has(IGNORE_UNDRAINED))
         KRATOS_ERROR << "IGNORE_UNDRAINED does not exist in the parameter list" << this->Id() << std::endl;
 
-    if (!r_prop[IGNORE_UNDRAINED]) {
-        if (!r_prop.Has(PERMEABILITY_XX) || r_prop[PERMEABILITY_XX] < 0.0)
-            KRATOS_ERROR << "PERMEABILITY_XX has Key zero, is not defined or "
-                            "has an invalid value at element"
-                         << this->Id() << std::endl;
-
-        if (!r_prop.Has(PERMEABILITY_YY) || r_prop[PERMEABILITY_YY] < 0.0)
-            KRATOS_ERROR << "PERMEABILITY_YY has Key zero, is not defined or "
-                            "has an invalid value at element"
-                         << this->Id() << std::endl;
-
-        if (!r_prop.Has(PERMEABILITY_XY) || r_prop[PERMEABILITY_XY] < 0.0)
-            KRATOS_ERROR << "PERMEABILITY_XY has Key zero, is not defined or "
-                            "has an invalid value at element"
-                         << this->Id() << std::endl;
-
-        if (r_geom.WorkingSpaceDimension() > 2) {
-            if (!r_prop.Has(PERMEABILITY_ZZ) || r_prop[PERMEABILITY_ZZ] < 0.0)
-                KRATOS_ERROR << "PERMEABILITY_ZZ has Key zero, is not defined "
-                                "or has an invalid value at element"
-                             << this->Id() << std::endl;
-
-            if (!r_prop.Has(PERMEABILITY_YZ) || r_prop[PERMEABILITY_YZ] < 0.0)
-                KRATOS_ERROR << "PERMEABILITY_YZ has Key zero, is not defined "
-                                "or has an invalid value at element"
-                             << this->Id() << std::endl;
-
-            if (!r_prop.Has(PERMEABILITY_ZX) || r_prop[PERMEABILITY_ZX] < 0.0)
-                KRATOS_ERROR << "PERMEABILITY_ZX has Key zero, is not defined "
-                                "or has an invalid value at element"
-                             << this->Id() << std::endl;
-        }
-    }
+    if (!r_prop[IGNORE_UNDRAINED])
+        GeoElementUtilities::CheckPermeabilityProperties(r_prop, r_geom.WorkingSpaceDimension());
 
     // Verify that the constitutive law exists
     KRATOS_ERROR_IF_NOT(r_prop.Has(CONSTITUTIVE_LAW))
@@ -1065,7 +1034,8 @@ void SmallStrainUPwDiffOrderElement::InitializeProperties(ElementVariables& rVar
 
     rVariables.DynamicViscosityInverse = 1.0 / r_properties[DYNAMIC_VISCOSITY];
     // Setting the intrinsic permeability matrix
-    rVariables.IntrinsicPermeability = GeoElementUtilities::FillPermeabilityMatrix(r_properties, GetGeometry().WorkingSpaceDimension());
+    rVariables.IntrinsicPermeability =
+        GeoElementUtilities::FillPermeabilityMatrix(r_properties, GetGeometry().WorkingSpaceDimension());
 
     KRATOS_CATCH("")
 }
