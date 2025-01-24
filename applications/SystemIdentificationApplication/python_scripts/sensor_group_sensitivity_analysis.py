@@ -81,12 +81,9 @@ class SensorGroupSensitivityAnalysis(OptimizationAnalysis):
                 sensitivities = self.__algorithm.CalculateGradient(sensor)
 
                 for variable, expression in sensitivities.items():
-                    # add to sensor
                     exp_name = f"{execution_policy.GetName()}_{variable.Name()}"
-                    sensor.AddContainerExpression(exp_name, expression.Clone())
-
                     # add to optimization problem for output and other uses
-                    sensor_group_data.GetUnBufferedData().SetValue(f"{exp_name}", expression.Clone())
+                    sensor_group_data.GetUnBufferedData().SetValue(f"{exp_name}", expression.Clone(), overwrite=True)
 
                 for process_type in self.__algorithm.GetProcessesOrder():
                     CallOnAll(self.optimization_problem.GetListOfProcesses(process_type), Kratos.Process.ExecuteFinalizeSolutionStep)
