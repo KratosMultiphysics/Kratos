@@ -88,11 +88,11 @@ class SensorGroupSensitivityAnalysis(OptimizationAnalysis):
                 for process_type in self.GetAlgorithm().GetProcessesOrder():
                     CallOnAll(self.optimization_problem.GetListOfProcesses(process_type), Kratos.Process.ExecuteFinalizeSolutionStep)
 
-            for process_type in self.GetAlgorithm().GetProcessesOrder():
-                CallOnAll(self.optimization_problem.GetListOfProcesses(process_type), Kratos.Process.ExecuteBeforeOutputStep)
+                for process_type in self.GetAlgorithm().GetProcessesOrder():
+                    CallOnAll(self.optimization_problem.GetListOfProcesses(process_type), Kratos.Process.ExecuteBeforeOutputStep)
 
-            for process in self.optimization_problem.GetListOfProcesses("output_processes"):
-                if process.IsOutputStep():
-                    process.PrintOutput()
+                for process in self.optimization_problem.GetListOfProcesses("output_processes"):
+                    if process.IsOutputStep():
+                        process.PrintOutput()
 
             Kratos.Logger.PrintInfo(self.__class__.__name__, f"Finished sensor analysis for \"{execution_policy.GetName()}\"." )
