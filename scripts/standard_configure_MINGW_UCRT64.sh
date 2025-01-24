@@ -16,8 +16,6 @@ add_app () {
 }
 
 # Set compiler
-# export CC=${CC:-gcc}
-# export CXX=${CXX:-g++}
 export CC=${CC:-clang}
 export CXX=${CXX:-clang++}
 
