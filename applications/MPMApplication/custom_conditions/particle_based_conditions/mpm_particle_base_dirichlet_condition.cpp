@@ -84,12 +84,18 @@ void MPMParticleBaseDirichletCondition::CalculateOnIntegrationPoints(
         rValues[0] = m_imposed_acceleration;
     }
     else if (rVariable == MPC_CONTACT_FORCE) {
+        this->CalculateInterfaceContactForce(rCurrentProcessInfo);
         rValues[0] = m_contact_force;
     }
     else {
         MPMParticleBaseCondition::CalculateOnIntegrationPoints(
             rVariable, rValues, rCurrentProcessInfo);
     }
+}
+
+void MPMParticleBaseDirichletCondition::CalculateInterfaceContactForce(const ProcessInfo& rCurrentProcessInfo)
+{
+
 }
 
 void MPMParticleBaseDirichletCondition::SetValuesOnIntegrationPoints(
