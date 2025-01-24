@@ -821,8 +821,8 @@ namespace Kratos
     KRATOS_TRY
 
     // ATTENTION: Assumption: Original model was not assumed real Young modulus for col_time_max and Rc_max!
-    const double col_time_max = ComputeMaxCollisionTimeReal();
-    const double Rc_max       = ComputeMaxContactRadiusReal();
+    const double col_time_max = ComputeMaxCollisionTime();
+    const double Rc_max       = ComputeMaxContactRadius();
 
     if (Rc_max > 0.0)
       return GetParticleConductivity() * col_time_max / (GetParticleDensity() * GetParticleHeatCapacity() * Rc_max * Rc_max);

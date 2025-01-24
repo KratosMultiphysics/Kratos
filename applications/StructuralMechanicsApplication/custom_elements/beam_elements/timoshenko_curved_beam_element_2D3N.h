@@ -69,7 +69,6 @@ public:
     static constexpr SizeType SystemSize    = 9;
     static constexpr SizeType NumberOfNodes = 3;
     static constexpr SizeType DoFperNode    = 3;
-    static constexpr SizeType StrainSize    = 3;
 
     using GlobalSizeVector = BoundedVector<double, 9>;
     using array_3 = array_1d<double, 3>;
@@ -260,6 +259,13 @@ public:
      *     J = sqrt((dx)^2 + (dy)^2)
      */
     double GetJacobian(const double xi) const;
+
+    /**
+     * @brief This function returns a proper measure of the area.
+     * If the strain_size is 3 (standard Timoshenko beam), the area is the CROSS_AREA
+     * Else (plane strain Timoshenko beam), hence the area is per unit length
+     */
+    double GetCrossArea();
 
     /**
      * @brief This function returns tangent and transverse unit vectors of the beam at coordinate xi

@@ -246,47 +246,7 @@ int UPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentPro
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY
-
-    if (!mIsInitialised) this->Initialize(rCurrentProcessInfo);
-
-    ConstitutiveLaw::Parameters ConstitutiveParameters(this->GetGeometry(), this->GetProperties(),
-                                                       rCurrentProcessInfo);
-    ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-    ConstitutiveParameters.Set(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE);
-
-    ElementVariables Variables;
-    this->InitializeElementVariables(Variables, rCurrentProcessInfo);
-
-    const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
-    const auto deformation_gradients = CalculateDeformationGradients();
-    const auto determinants_of_deformation_gradients =
-        GeoMechanicsMathUtilities::CalculateDeterminants(deformation_gradients);
-    const auto strain_vectors = StressStrainUtilities::CalculateStrains(
-        deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain,
-        this->GetStressStatePolicy().GetVoigtSize());
-
-    const auto number_of_integration_points =
-        this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
-    for (unsigned int GPoint = 0; GPoint < number_of_integration_points; ++GPoint) {
-        this->CalculateKinematics(Variables, GPoint);
-        Variables.B            = b_matrices[GPoint];
-        Variables.F            = deformation_gradients[GPoint];
-        Variables.StrainVector = strain_vectors[GPoint];
-
-        ConstitutiveLawUtilities::SetConstitutiveParameters(
-            ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix, Variables.Np,
-            Variables.GradNpT, Variables.F, determinants_of_deformation_gradients[GPoint]);
-
-        noalias(Variables.StressVector) = mStressVector[GPoint];
-        ConstitutiveParameters.SetStressVector(Variables.StressVector);
-        mConstitutiveLawVector[GPoint]->InitializeMaterialResponseCauchy(ConstitutiveParameters);
-    }
-
-    // Reset hydraulic discharge
     this->ResetHydraulicDischarge();
-
-    KRATOS_CATCH("")
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
