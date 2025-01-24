@@ -36,7 +36,6 @@ class SensorSensitivityHDF5Process(Kratos.Process):
             for sensor in list_of_sensors:
                 for expression_name, expression in sensor.GetContainerExpressionsMap().items():
                     expression_data = expression.Evaluate()
-                    print(sensor.GetName(), expression_name)
                     current_dataset_name = self.hdf5_dataset_name.replace("<SENSOR_NAME>", sensor.GetName())
                     current_dataset_name = current_dataset_name.replace("<EXPRESSION_NAME>", expression_name)
                     h5_file.create_dataset(current_dataset_name, data=expression_data)
