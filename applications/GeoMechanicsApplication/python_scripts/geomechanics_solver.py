@@ -525,7 +525,7 @@ class GeoMechanicalSolver(PythonSolver):
                                                                                          new_scheme,
                                                                                          self.convergence_criterion,
                                                                                          new_builder_and_solver,
-                                                                                         max_iters,
+                                                                                         max_iterations,
                                                                                          compute_reactions,
                                                                                          move_mesh_flag)
         elif strategy_type.lower() == "newton_raphson_with_piping":
