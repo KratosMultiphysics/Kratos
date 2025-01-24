@@ -593,11 +593,11 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
             const SizeType Dim       = r_geometry.WorkingSpaceDimension();
             const SizeType NumUNodes = r_geometry.PointsNumber();
 
-            Vector   BodyAcceleration = ZeroVector(Dim);
-            SizeType Index            = 0;
+            Vector   body_acceleration = ZeroVector(Dim);
+            SizeType Index             = 0;
             for (SizeType i = 0; i < NumUNodes; ++i) {
                 for (unsigned int idim = 0; idim < Dim; ++idim)
-                    BodyAcceleration[idim] += Variables.Nu[i] * Variables.BodyAcceleration[Index++];
+                    body_acceleration[idim] += Variables.Nu[i] * Variables.BodyAcceleration[Index++];
             }
 
             const auto relative_permeability = relative_permeability_values[g_point];
@@ -609,7 +609,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
             Vector GradPressureTerm(Dim);
             noalias(GradPressureTerm) = prod(trans(Variables.DNp_DX), Variables.PressureVector);
             noalias(GradPressureTerm) +=
-                PORE_PRESSURE_SIGN_FACTOR * GetProperties()[DENSITY_WATER] * BodyAcceleration;
+                PORE_PRESSURE_SIGN_FACTOR * GetProperties()[DENSITY_WATER] * body_acceleration;
 
             Vector aux_fluid_flux = ZeroVector(Dim);
             aux_fluid_flux        = PORE_PRESSURE_SIGN_FACTOR * Variables.DynamicViscosityInverse *
@@ -1071,32 +1071,18 @@ void SmallStrainUPwDiffOrderElement::InitializeProperties(ElementVariables& rVar
 {
     KRATOS_TRY
 
-    const SizeType        dimension = GetGeometry().WorkingSpaceDimension();
-    const PropertiesType& rProp     = this->GetProperties();
+    const SizeType        dimension    = GetGeometry().WorkingSpaceDimension();
+    const PropertiesType& r_properties = this->GetProperties();
 
-    rVariables.IgnoreUndrained = rProp[IGNORE_UNDRAINED];
-    rVariables.UseHenckyStrain = false;
-    if (rProp.Has(USE_HENCKY_STRAIN)) rVariables.UseHenckyStrain = rProp[USE_HENCKY_STRAIN];
+    rVariables.IgnoreUndrained = r_properties[IGNORE_UNDRAINED];
+    rVariables.UseHenckyStrain = r_properties.Has(USE_HENCKY_STRAIN) ? r_properties[USE_HENCKY_STRAIN] : false;
 
-    rVariables.ConsiderGeometricStiffness = false;
-    if (rProp.Has(CONSIDER_GEOMETRIC_STIFFNESS))
-        rVariables.ConsiderGeometricStiffness = rProp[CONSIDER_GEOMETRIC_STIFFNESS];
+    rVariables.ConsiderGeometricStiffness =
+        r_properties.Has(CONSIDER_GEOMETRIC_STIFFNESS) ? r_properties[CONSIDER_GEOMETRIC_STIFFNESS] : false;
 
-    rVariables.DynamicViscosityInverse = 1.0 / rProp[DYNAMIC_VISCOSITY];
+    rVariables.DynamicViscosityInverse = 1.0 / r_properties[DYNAMIC_VISCOSITY];
     // Setting the intrinsic permeability matrix
-    (rVariables.IntrinsicPermeability).resize(dimension, dimension, false);
-    rVariables.IntrinsicPermeability(0, 0) = rProp[PERMEABILITY_XX];
-    rVariables.IntrinsicPermeability(1, 1) = rProp[PERMEABILITY_YY];
-    rVariables.IntrinsicPermeability(0, 1) = rProp[PERMEABILITY_XY];
-    rVariables.IntrinsicPermeability(1, 0) = rVariables.IntrinsicPermeability(0, 1);
-
-    if (dimension == 3) {
-        rVariables.IntrinsicPermeability(2, 2) = rProp[PERMEABILITY_ZZ];
-        rVariables.IntrinsicPermeability(2, 0) = rProp[PERMEABILITY_ZX];
-        rVariables.IntrinsicPermeability(1, 2) = rProp[PERMEABILITY_YZ];
-        rVariables.IntrinsicPermeability(0, 2) = rVariables.IntrinsicPermeability(2, 0);
-        rVariables.IntrinsicPermeability(2, 1) = rVariables.IntrinsicPermeability(1, 2);
-    }
+    rVariables.IntrinsicPermeability = GeoElementUtilities::FillPermeabilityMatrix(r_properties, dimension);
 
     KRATOS_CATCH("")
 }
@@ -1309,8 +1295,8 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCompressibilityFlow(VectorTy
 
     Matrix compressibility_matrix = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
         rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
-    Vector CompressibilityFlow = -prod(compressibility_matrix, rVariables.PressureDtVector);
-    GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, CompressibilityFlow);
+    Vector compressibility_flow = -prod(compressibility_matrix, rVariables.PressureDtVector);
+    GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, compressibility_flow);
 
     KRATOS_CATCH("")
 }
