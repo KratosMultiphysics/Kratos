@@ -6,6 +6,9 @@ from KratosMultiphysics.SystemIdentificationApplication.sensor_sensitivity_solve
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 
+def Factory(model: Kratos.Model, parameters: Kratos.Parameters, _):
+    return SystemIdentificationStaticAnalysis(model, parameters)
+
 class SystemIdentificationStaticAnalysis(ResponseSensitivityAnalysis):
     def _CreateSolver(self) -> SensorSensitivityAdjointStaticSolver:
         return SensorSensitivityAdjointStaticSolver(self.model, self.project_parameters["solver_settings"])
