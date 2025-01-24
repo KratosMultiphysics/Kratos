@@ -11,6 +11,8 @@
       - [Visual Studio](#visual-studio)
         - [Windows Visual Studio compilation configuration](#windows-visual-studio-compilation-configuration)
       - [MinGW](#mingw)
+        - [Using MINGW64 (legacy)](#using-mingw64-legacy)
+        - [Using UCRT64 (*Universal C Runtime*)](#using-ucrt64-universal-c-runtime)
     - [MacOS](#macos)
   - [Adding Applications](#adding-applications)
   - [Post Compilation](#post-compilation)
@@ -345,6 +347,8 @@ cmake -G"Visual Studio 15 2017" -A x64 -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KR
 ```
 #### MinGW
 
+##### Using MINGW64 (legacy)
+
 In the case of *MinGW* two scripts are required, one is the *Command Prompt* for *Windows*:
 
 ```cmd
@@ -414,6 +418,92 @@ cmake ..                                                                        
 # Buid
 cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j$(nproc)
 ```
+
+##### Using UCRT64 (*Universal C Runtime*)
+
+In the case of *MinGW* two scripts are required, one is the *Command Prompt* for *Windows*:
+
+```cmd
+cls
+
+@REM Set variables
+if not defined KRATOS_SOURCE set KRATOS_SOURCE=%~dp0..
+if not defined KRATOS_BUILD set KRATOS_BUILD=%KRATOS_SOURCE%/build
+
+@REM Set basic configuration
+if not defined KRATOS_BUILD_TYPE set KRATOS_BUILD_TYPE=Release
+@REM Decomment the following in case of considering MKL
+@REM if not defined MKLROOT set MKLROOT=C:\PROGRA~2\Intel\oneAPI\mkl\latest\
+
+@REM rem setting environment variables for using intel MKL
+@REM call "%MKLROOT%\env\vars.bat" intel64 lp64
+
+:: you may want to decomment this the first time you compile
+@REM Clean
+del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\cmake_install.cmake"
+del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeCache.txt"
+del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeFiles"
+
+sh %KRATOS_BUILD%\configure_MINGW_UCRT64.sh
+```
+
+And the second is the bash script that will be called by the former script (it is similar to the one in *GNU/Linux*):
+
+```console
+# Function to add apps
+add_app () {
+    export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}$1;"
+}
+
+# Set compiler
+# export CC=${CC:-gcc}
+# export CXX=${CXX:-g++}
+export CC=${CC:-clang}
+export CXX=${CXX:-clang++}
+
+# Set variables
+export KRATOS_APP_DIR="${KRATOS_SOURCE}/applications"
+# export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
+export KRATOS_SHARED_MEMORY_PARALLELIZATION=${KRATOS_SHARED_MEMORY_PARALLELIZATION:-"OpenMP"}
+
+# Set basic configuration
+export PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE:-"C:/Windows/py.exe"}
+
+export CMAKE_EXPORT_COMPILE_COMMANDS=${CMAKE_EXPORT_COMPILE_COMMANDS:-"OFF"}
+#export KRATOS_CMAKE_CXX_FLAGS="-Wno-maybe-uninitialized -Wignored-qualifiers"
+
+# Set applications to compile
+export KRATOS_APPLICATIONS=
+add_app ${KRATOS_APP_DIR}/LinearSolversApplication
+add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication
+add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication
+
+# Set compilation tool
+export COMPILATION_TOOL=${COMPILATION_TOOL:-"Ninja"}
+#export COMPILATION_TOOL=${COMPILATION_TOOL:-"MSYS Makefiles"}
+
+# Set CMake strip
+export CMAKE_STRIP=${CMAKE_STRIP:-""}
+
+# Configure
+cmake ..                                                                                            \
+-G "${COMPILATION_TOOL}"                                                                            \
+-DCMAKE_INSTALL_PREFIX="${KRATOS_SOURCE}/bin/${KRATOS_BUILD_TYPE}"                                  \
+-DCMAKE_BUILD_TYPE="${KRATOS_BUILD_TYPE}"                                                           \
+-H"${KRATOS_SOURCE}"                                                                                \
+-B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}"                                                            \
+-DCMAKE_STRIP="${CMAKE_STRIP}"                                                                      \
+-DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}                                                                    \
+-DCMAKE_CXX_FLAGS="${KRATOS_CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS}"                                    \
+-DCMAKE_EXPORT_COMPILE_COMMANDS=${CMAKE_EXPORT_COMPILE_COMMANDS}                                    \
+-DKRATOS_BUILD_TESTING=ON                                                                           \
+-DKRATOS_SHARED_MEMORY_PARALLELIZATION="${KRATOS_SHARED_MEMORY_PARALLELIZATION}"                    \
+-DUSE_EIGEN_MKL=OFF
+
+# Build
+cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j$(nproc)
+```
+
 ### MacOS
 
 ```console
