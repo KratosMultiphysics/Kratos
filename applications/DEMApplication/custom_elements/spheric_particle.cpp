@@ -198,6 +198,7 @@ void SphericParticle::Initialize(const ProcessInfo& r_process_info)
     NodeType& node = GetGeometry()[0];
 
     SetRadius(node.GetSolutionStepValue(RADIUS));
+    mInitialRadius = GetRadius();
     SetMass(GetDensity() * CalculateVolume());
 
     if (this->IsNot(BLOCKED)) node.GetSolutionStepValue(PARTICLE_MATERIAL) = GetParticleMaterial();
