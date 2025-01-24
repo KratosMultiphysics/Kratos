@@ -7,7 +7,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, _):
-    return SystemIdentificationStaticAnalysis(model, parameters)
+    return SystemIdentificationStaticAnalysis(model, parameters["settings"])
 
 class SystemIdentificationStaticAnalysis(ResponseSensitivityAnalysis):
     def _CreateSolver(self) -> SensorSensitivityAdjointStaticSolver:
@@ -30,7 +30,7 @@ class SystemIdentificationStaticAnalysis(ResponseSensitivityAnalysis):
 
     def PrintAnalysisStageProgressInformation(self):
         process_info = self._GetSolver().GetComputingModelPart().ProcessInfo
-        Kratos.Logger.PrintInfo(self._GetSimulationName(), f"Computed sensitivities for {process_info[KratosSI.SENSOR_NAME]} using \"{process_info[KratosSI.TEST_ANALYSIS_NAME]}\" analysis.")
+        Kratos.Logger.PrintInfo(self._GetSimulationName(), f"Step {process_info[Kratos.STEP]}: Computed sensitivities for {process_info[KratosSI.SENSOR_NAME]} using \"{process_info[KratosSI.TEST_ANALYSIS_NAME]}\" analysis.")
 
 if __name__ == "__main__":
     from sys import argv
