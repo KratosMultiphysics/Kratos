@@ -221,7 +221,7 @@ $$ \lambda = n S \lambda^w + \left( 1 - n \right) \lambda^s $$
 
 dynamic viscosity  $\mu$ $[\mathrm {Pas}$] of pure water as a function of temperature is given by:
 
-$$ \mu = 2.4318 \cdot 10^{-5} \cdot 10^{{247.8} / {\left(T+133.0\right]}} $$
+$$ \mu = 2.4318 \cdot 10^{-5} \cdot 10^{{247.8} / {\left(T+133.0\right)}} $$
 
 density of water $\rho^w$ $[\mathrm {kg/m^3}]$ is a function of temperature and Diersch (2014) proposes a sixth order Taylor expansion which is approximated here by:
 
