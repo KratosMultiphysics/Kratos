@@ -59,7 +59,7 @@ double FluidAuxiliaryUtilities::CalculateFluidCutElementPositiveVolume(const Mod
     const auto &r_communicator = rModelPart.GetCommunicator();
     if (r_communicator.LocalMesh().NumberOfNodes() != 0)
     {
-        KRATOS_ERROR_IF_NOT(r_communicator.LocalMesh().NodesBegin()->SolutionStepsDataHas(DISTANCE)) << "Nodal solution step data has no \'DISTANCE\' variable. Positive volume cannot be computed" << std::endl;
+        KRATOS_ERROR_IF_NOT(r_communicator.LocalMesh().NodesBegin()->SolutionStepsDataHas(DISTANCE)) << "Nodal solution step data has no \'DISTANCE\' variable. Positive cut elements volume cannot be computed" << std::endl;
     }
 
     double cut_positive_fluid_volume = 0.0;
