@@ -868,9 +868,6 @@ namespace Kratos
             for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
                 const auto p_node = r_geom(i_node);
 
-                //TODO no extension operator for outer edges of incised elements --> find nodes of edges that are split but not bordered by a SBM_BOUNDARY element
-                //} else if (p_node->Id() == 908 || p_node->Id() == 924) {  // || p_node->Id() == 347 || p_node->Id() == 372 || p_node->Id() == 361 || p_node->Id() == 878 ||
-                //    KRATOS_INFO("\nNO EXTENSION OPERATOR FOR EDGE NODE\n");
                 // Check if extension operator already has been calculated for the current node
                 const std::size_t found_in_map = rExtensionOperatorMap.count(p_node);
                 if (!found_in_map) {
@@ -887,7 +884,6 @@ namespace Kratos
                         // Use and declare SBM_INTERFACE nodes on the negative side for the support cloud of a node on the positive side
                         SetLateralSupportCloud(p_node, avg_position, -avg_normal, cloud_nodes, cloud_nodes_coordinates, SBM_INTERFACE);
                     }
-                }
 
                     // Continue if the number of support nodes is sufficient for the calculation of the extension operator
                     const std::size_t n_cloud_nodes = cloud_nodes.size();
@@ -968,7 +964,7 @@ namespace Kratos
         // Add more layers of nodal neighbors of the current nodes to the cloud of nodes
         // NOTE that we start from 1 here as the first layer already has been added
         for (std::size_t i_layer = 1; i_layer < n_layers; ++i_layer) {
-            //TODO test 
+            //TODO test
             AddLateralSupportLayer(rAvgSkinPosition, rAvgSkinNormal, prev_layer_nodes, cur_layer_nodes, aux_set);
             //AddLateralSupportLayer(prev_layer_nodes, cur_layer_nodes, aux_set);
             prev_layer_nodes = cur_layer_nodes;
@@ -980,7 +976,7 @@ namespace Kratos
         std::size_t n_cloud_nodes = aux_set.size();
         std::size_t n_extra_layers = 0;
         while (n_cloud_nodes < GetRequiredNumberOfPoints()+1 && n_extra_layers < 3) {
-            //TODO test 
+            //TODO test
             //AddLateralSupportLayer(rAvgSkinPosition, rAvgSkinNormal, prev_layer_nodes, cur_layer_nodes, aux_set);
             AddLateralSupportLayer(prev_layer_nodes, cur_layer_nodes, aux_set);
             n_extra_layers++;
