@@ -168,7 +168,7 @@ class FluidAuxiliaryUtilitiesTest(UnitTest.TestCase):
         for node in fluid_model_part.Nodes:
             node.SetSolutionStepValue(Kratos.DISTANCE, 0, node.Y - level_set_y)
         # Calculate the fluid negative volume
-        fluid_positive_cut_volume = KratosFluid.FluidAuxiliaryUtilities.CalculateFluidCutElementPositiveVolume(fluid_model_part)
+        fluid_positive_cut_volume = KratosFluid.FluidAuxiliaryUtilities.CalculateFluidCutElementsPositiveVolume(fluid_model_part)
         print(fluid_positive_cut_volume)
         self.assertAlmostEqual(fluid_positive_cut_volume, 0.1, 12)
 
