@@ -480,7 +480,6 @@ add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication
 
 # Set compilation tool
 export COMPILATION_TOOL=${COMPILATION_TOOL:-"Ninja"}
-#export COMPILATION_TOOL=${COMPILATION_TOOL:-"MSYS Makefiles"}
 
 # Set CMake strip
 export CMAKE_STRIP=${CMAKE_STRIP:-""}
