@@ -20,6 +20,7 @@
 // Application includes
 #include "custom_sensors/measurement_residual_response_function.h"
 #include "custom_utilities/response/sensor_coverage_response_utils.h"
+#include "custom_utilities/response/sensor_localization_response_utils.h"
 
 // Include base h
 #include "custom_python/add_custom_response_utils_to_python.h"
@@ -43,6 +44,13 @@ void AddCustomResponseUtilsToPython(pybind11::module& m)
     responses_module.def_submodule("SensorCoverageResponseUtils")
         .def("CalculateValue", &SensorCoverageResponseUtils::CalculateValue, py::arg("sensor_mask_status"))
         .def("CalculateGradient", &SensorCoverageResponseUtils::CalculateGradient, py::arg("sensor_mask_status"))
+        ;
+
+    py::class_<SensorLocalizationResponseUtils, SensorLocalizationResponseUtils::Pointer>(responses_module, "SensorLocalizationResponseUtils")
+        .def(py::init<SensorMaskStatusKDTree::Pointer, const double, const double>(), py::arg("sensor_mask_kd_tree"), py::arg("beta"), py::arg("allowed_dissimilarity"))
+        .def("CalculateValue", &SensorLocalizationResponseUtils::CalculateValue)
+        .def("CalculateGradient", &SensorLocalizationResponseUtils::CalculateGradient)
+        .def("GetClusterSizes", &SensorLocalizationResponseUtils::GetClusterSizes)
         ;
 }
 
