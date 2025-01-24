@@ -30,7 +30,7 @@ class SystemIdentificationStaticAnalysis(ResponseSensitivityAnalysis):
 
     def PrintAnalysisStageProgressInformation(self):
         process_info = self._GetSolver().GetComputingModelPart().ProcessInfo
-        Kratos.Logger.PrintInfo(self._GetSimulationName(), f"Step {process_info[Kratos.STEP]}: Computed sensitivities for sensor \"{process_info[KratosSI.SENSOR_NAME]}\" using \"{process_info[KratosSI.TEST_ANALYSIS_NAME]}\" analysis.")
+        Kratos.Logger.PrintInfo(self._GetSimulationName(), f"Step {process_info[Kratos.STEP]}: Computed sensitivities for response \"{process_info[KratosSI.SENSOR_NAME]}\" using \"{process_info[KratosSI.TEST_ANALYSIS_NAME]}\" analysis.")
 
 if __name__ == "__main__":
     from sys import argv
