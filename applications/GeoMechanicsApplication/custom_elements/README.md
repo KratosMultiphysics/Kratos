@@ -227,8 +227,9 @@ density of water $\rho^w$ $[\mathrm {kg/m^3}]$ is a function of temperature and 
 
 $$ \rho^w = 9.998396 \cdot 10^2 + 6.764771  \cdot 10^{-2} \cdot T - 8.993699  \cdot 10^{-3} \cdot T^2 + 9.143518 \cdot 10^{-5} \cdot T^3 - 8.907391 \cdot 10^{-7} \cdot T^4 + 5.291959  \cdot 10^{-9} \cdot T^5 - 1.359813  \cdot 10^{-11} \cdot T^6 $$
 
-\textbf{Note}: the dependency of water density and viscosity to temperature is user defined and the user can turn this feature on or off in the JSON file.
-\textbf{Note}: Please be aware that these equations are purely emperical and they require a specific set of units. The Temperature needs to be in $\mathrm{^{\circ}C}$, length in $\mathrm{m}$, time is $\mathrm{s}$, and mass in $\mathrm{kg}$.
+**Note**: the dependency of water density and viscosity to temperature is user defined and the user can turn this feature on or off in the JSON file.
+
+**Note**: Please be aware that these equations are purely emperical and they require a specific set of units. The Temperature needs to be in $\mathrm{^{\circ}C}$, length in $\mathrm{m}$, time is $\mathrm{s}$, and mass in $\mathrm{kg}$.
 
 ## Finite Element Formulation
 
