@@ -559,13 +559,15 @@ namespace Kratos
     //const double new_radius = r * (1.0 + alpha * (T - mPreviousTemperature)); // Incremental
     SetParticleRadius(new_radius);
 
-    // Update density and inertia
+    // Update density
     const double m = GetParticleMass();
     const double V = GetParticleVolume();
-    const double I = CalculateMomentOfInertia();
     double* rho = &(GetProperties()[PARTICLE_DENSITY]);
     *rho = m / V;
     GetFastProperties()->SetDensityFromProperties(rho);
+
+    // Update inertia
+    const double I = CalculateMomentOfInertia();
     SetParticleMomentInertia(I);
 
     KRATOS_CATCH("")
