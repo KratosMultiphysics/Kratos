@@ -179,9 +179,9 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLawReturnsExpectedStress_
     final_parameters.SetStrainVector(final_strain);
     law.FinalizeMaterialResponseCauchy(final_parameters);
     
-	const Properties properties;
-	const Geometry<Node> geometry;
-	const Vector shape_functions_values;
+    const Properties properties;
+    const Geometry<Node> geometry;
+    const Vector shape_functions_values;
 
     law.ResetMaterial(properties, geometry, shape_functions_values);
 
