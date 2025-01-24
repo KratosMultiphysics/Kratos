@@ -148,15 +148,14 @@ namespace Kratos
 
     mHasVariableRadius = (r_properties.Has(THERMAL_EXPANSION_COEFFICIENT) && r_properties[THERMAL_EXPANSION_COEFFICIENT] != 0.0) ||
                           r_properties.HasTable(TEMPERATURE, THERMAL_EXPANSION_COEFFICIENT);
-
+    
     mStoreContactParam = mHasForces &&
                         (r_process_info[HEAT_GENERATION_OPTION] ||
                         (r_process_info[DIRECT_CONDUCTION_OPTION] && r_process_info[DIRECT_CONDUCTION_MODEL_NAME].compare("collisional") == 0) || 
                         (r_process_info[REAL_CONTACT_OPTION] && (r_process_info[REAL_CONTACT_MODEL_NAME].compare("morris_area_time") == 0      ||
                                                                  r_process_info[REAL_CONTACT_MODEL_NAME].compare("rangel_area_time") == 0))); 
     
-    // Save initial radius and temperature
-    mRadiusInitial = GetParticleRadius();
+    // Save initial temperature
     mInitialTemperature = GetParticleTemperature();
 
     // Clear maps
@@ -702,21 +701,21 @@ namespace Kratos
     // Update radius
     const double r     = GetParticleRadius();
     const double alpha = GetParticleExpansionCoefficient();
-    const double dTn   = GetParticleTemperature() - mPreviousTemperature;
-    const double dT0   = GetParticleTemperature() - mInitialTemperature;
-
-    const double new_radius_1 = r + mRadiusInitial * alpha * dTn;      // mixed (wrong)
-    const double new_radius_2 = r * (1.0 + alpha * dTn);               // incremental
-    const double new_radius_3 = mRadiusInitial * (1.0 + alpha * dT0);  // total
-    SetParticleRadius(new_radius_3);
-
-    // Update inertia
-    SetParticleMomentInertia(CalculateMomentOfInertia());
+    const double T     = GetParticleTemperature();
+    const double new_radius = mInitialRadius * (1.0 + alpha * (T - mInitialTemperature));  // Total (used in "Rangel et al, Comput Geotech, 176:106789, 2024")
+    //const double new_radius = r * (1.0 + alpha * (T - mPreviousTemperature)); // Incremental
+    SetParticleRadius(new_radius);
 
     // Update density
+    const double m = GetParticleMass();
+    const double V = GetParticleVolume();
     double* rho = &(GetProperties()[PARTICLE_DENSITY]);
-    *rho = GetParticleMass() / GetParticleVolume();
+    *rho = m / V;
     GetFastProperties()->SetDensityFromProperties(rho);
+
+    // Update inertia
+    const double I = CalculateMomentOfInertia();
+    SetParticleMomentInertia(I);
 
     KRATOS_CATCH("")
   }
