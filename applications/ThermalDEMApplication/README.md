@@ -126,6 +126,7 @@ Add **post options** with desired options:
 
 	"PostTemperature"                      : true or false,
 	"PostHeatFlux"                         : true or false,
+	"PostGraphParticleTempAll"             : true or false,
 	"PostGraphParticleTempMin"             : true or false,
 	"PostGraphParticleTempMax"             : true or false,
 	"PostGraphParticleTempAvg"             : true or false,
@@ -383,6 +384,10 @@ Add **SubModelPartData** to sub model parts with desired options:
 
 - *"PostHeatFlux"*:\
   Boolean for showing elements heat flux in post processing.\
+  Default: false
+
+- *"PostGraphParticleTempAll"*:\
+  Boolean for writing a graph with the temperature of all particles.\
   Default: false
 
 - *"PostGraphParticleTempMin"*:\
