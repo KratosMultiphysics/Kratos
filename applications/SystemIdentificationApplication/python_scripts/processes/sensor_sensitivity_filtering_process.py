@@ -16,18 +16,28 @@ class SensorSensitivityFilteringProcess(Kratos.Process):
 
         default_parameters = Kratos.Parameters("""{
             "sensor_group_name"        : "",
-            "expression_names"         : [],
             "filtering_model_part_name": "",
             "filtering_variable_name"  : "",
             "data_location"            : "",
-            "filter_settings"          : {}
+            "filter_settings"          : {},
+            "expression_names"         : [
+                {
+                    "input" : "",
+                    "output": ""
+                }
+            ]
         }""")
 
         parameters.ValidateAndAssignDefaults(default_parameters)
         self.sensor_group_name = parameters["sensor_group_name"].GetString()
-        self.expression_names = parameters["expression_names"].GetStringArray()
 
         self.optimization_problem = optimization_problem
+
+        list_of_expression_parameters: 'list[Kratos.Parameters]' = parameters["expression_names"].values()
+        self.expressions_names_list: 'list[tuple[str, str]]' = []
+        for expression_parameter in list_of_expression_parameters:
+            expression_parameter.ValidateAndAssignDefaults(default_parameters["expression_names"].values()[0])
+            self.expressions_names_list.append((expression_parameter["input"].GetString(), expression_parameter["output"].GetString()))
 
         filtering_model_part_name = parameters["filtering_model_part_name"].GetString()
         filtering_variable = Kratos.KratosGlobals.GetVariable(parameters["filtering_variable_name"].GetString())
@@ -56,10 +66,10 @@ class SensorSensitivityFilteringProcess(Kratos.Process):
     def ExecuteFinalizeSolutionStep(self) -> None:
         sensor_group_data = ComponentDataView(self.sensor_group_name, self.optimization_problem)
 
-        for expression_name in self.expression_names:
-            expression: ContainerExpressionTypes = sensor_group_data.GetUnBufferedData().GetValue(expression_name)
+        for input_name, output_name in self.expressions_names_list:
+            expression: ContainerExpressionTypes = sensor_group_data.GetUnBufferedData().GetValue(input_name)
             abs_expression = self.exp_filter.ForwardFilterField(self.exp_filter.BackwardFilterIntegratedField(expression))
-            sensor_group_data.GetUnBufferedData().SetValue(f"{expression_name}_filtered", abs_expression.Clone(), overwrite=True)
+            sensor_group_data.GetUnBufferedData().SetValue(output_name, abs_expression.Clone(), overwrite=True)
 
     def ExecuteFinalize(self):
         self.exp_filter.Finalize()
