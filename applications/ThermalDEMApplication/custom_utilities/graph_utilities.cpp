@@ -35,6 +35,7 @@ namespace Kratos {
   //------------------------------------------------------------------------------------------------------------
   void GraphUtilities::ExecuteInitialize(bool ParticleTempAll,
                                          bool ParticleTempMin,
+                                         bool ParticleTempMax,
                                          bool ParticleTempAvg,
                                          bool ParticleTempAvgVol,
                                          bool ParticleTempDev,
