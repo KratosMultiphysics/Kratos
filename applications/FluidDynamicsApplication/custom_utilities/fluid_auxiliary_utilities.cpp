@@ -97,7 +97,7 @@ double FluidAuxiliaryUtilities::CalculateFluidCutElementPositiveVolume(const Mod
     return cut_positive_fluid_volume;
 }
 
-double FluidAuxiliaryUtilities::CalculateFluidCutElementNegativeVolume(const ModelPart& rModelPart)
+double FluidAuxiliaryUtilities::CalculateFluidCutElementsNegativeVolume(const ModelPart& rModelPart)
 {
     // Check that there are elements and distance variable in the nodal database
     KRATOS_ERROR_IF(rModelPart.GetCommunicator().GlobalNumberOfElements() == 0) << "There are no elements in the provided model part. Fluid volume cannot be computed." << std::endl;
