@@ -69,7 +69,7 @@ class TestDamageDetectionAdjointResponseFunction(kratos_unittest.TestCase):
 
         cls.sensors = CreateSensors(cls.sensor_model_part, cls.model_part, parameters)
 
-        cls.adjoint_response_function = KratosSI.Sensors.MeasurementResidualResponseFunction(3.0)
+        cls.adjoint_response_function = KratosSI.Responses.MeasurementResidualResponseFunction(3.0)
 
         for i, sensor in enumerate(cls.sensors):
             sensor.GetNode().SetValue(KratosSI.SENSOR_MEASURED_VALUE, i * 15 - 10)
