@@ -54,6 +54,9 @@ int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo
 {
     KRATOS_TRY
 
+    int ierr = UPwBaseElement::Check(rCurrentProcessInfo);
+    if (ierr != 0) return ierr;
+
     const auto& r_geom = GetGeometry();
 
     if (r_geom.DomainSize() < 1.0e-15)
@@ -62,7 +65,6 @@ int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo
     // check pressure geometry pointer
     KRATOS_DEBUG_ERROR_IF_NOT(mpPressureGeometry) << "Pressure Geometry is not defined\n";
 
-    // verify that the variables are correctly initialized
     // Verify specific properties
     const auto& r_prop = this->GetProperties();
 
@@ -101,24 +103,6 @@ int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo
                                 "or has an invalid value at element"
                              << this->Id() << std::endl;
         }
-    }
-
-    // verify that the dofs exist
-    for (const auto& r_node : r_geom) {
-        if (!r_node.SolutionStepsDataHas(DISPLACEMENT))
-            KRATOS_ERROR << "missing variable DISPLACEMENT on node " << r_node.Id() << std::endl;
-
-        if (!r_node.HasDofFor(DISPLACEMENT_X) || !r_node.HasDofFor(DISPLACEMENT_Y) ||
-            !r_node.HasDofFor(DISPLACEMENT_Z))
-            KRATOS_ERROR << "missing one of the dofs for the variable DISPLACEMENT on node "
-                         << r_node.Id() << std::endl;
-
-        if (!r_node.SolutionStepsDataHas(WATER_PRESSURE))
-            KRATOS_ERROR << "missing variable WATER_PRESSURE on node " << r_node.Id() << std::endl;
-
-        if (!r_node.HasDofFor(WATER_PRESSURE))
-            KRATOS_ERROR << "missing the dof for the variable WATER_PRESSURE on node "
-                         << r_node.Id() << std::endl;
     }
 
     // Verify that the constitutive law exists
@@ -1071,7 +1055,6 @@ void SmallStrainUPwDiffOrderElement::InitializeProperties(ElementVariables& rVar
 {
     KRATOS_TRY
 
-    const SizeType        dimension    = GetGeometry().WorkingSpaceDimension();
     const PropertiesType& r_properties = this->GetProperties();
 
     rVariables.IgnoreUndrained = r_properties[IGNORE_UNDRAINED];
@@ -1082,7 +1065,7 @@ void SmallStrainUPwDiffOrderElement::InitializeProperties(ElementVariables& rVar
 
     rVariables.DynamicViscosityInverse = 1.0 / r_properties[DYNAMIC_VISCOSITY];
     // Setting the intrinsic permeability matrix
-    rVariables.IntrinsicPermeability = GeoElementUtilities::FillPermeabilityMatrix(r_properties, dimension);
+    rVariables.IntrinsicPermeability = GeoElementUtilities::FillPermeabilityMatrix(r_properties, GetGeometry().WorkingSpaceDimension());
 
     KRATOS_CATCH("")
 }
