@@ -24,11 +24,10 @@ class SensorGroupSensitivityAnalysis(OptimizationAnalysis):
         }""")
 
     def Run(self):
-        with OptimizationAnalysisTimeLogger():
-            self.Initialize()
-            self.Check()
-            self.__Solve()
-            self.Finalize()
+        self.Initialize()
+        self.Check()
+        self.__Solve()
+        self.Finalize()
 
     def _CreateResponses(self):
         pass
@@ -44,7 +43,7 @@ class SensorGroupSensitivityAnalysis(OptimizationAnalysis):
         algorithm_settings = self.project_parameters["algorithm_settings"]
         algorithm_settings.AddMissingParameters(default_settings)
         self.sensor_group_name = algorithm_settings["sensor_group_name"].GetString()
-        self.__algorithm: ResponseSensitivityAnalysis = OptimizationComponentFactory(self.model, algorithm_settings, self.optimization_problem)
+        self._algorithm = OptimizationComponentFactory(self.model, algorithm_settings, self.optimization_problem)
 
     def __Solve(self) -> None:
         # first get the sensors list
@@ -52,13 +51,13 @@ class SensorGroupSensitivityAnalysis(OptimizationAnalysis):
         list_of_sensors = GetSensors(sensor_group_data)
 
         sensor_model_part = self.model[self.sensor_group_name]
-        computing_model_part: Kratos.ModelPart = self.__algorithm._GetSolver().GetComputingModelPart()
+        computing_model_part: Kratos.ModelPart = self.GetAlgorithm()._GetSolver().GetComputingModelPart()
 
         # clear sensor data containers
         for sensor in list_of_sensors:
             sensor.ClearContainerExpressions()
 
-        for process_type in self.__algorithm.GetProcessesOrder():
+        for process_type in self.GetAlgorithm().GetProcessesOrder():
             CallOnAll(self.optimization_problem.GetListOfProcesses(process_type), Kratos.Process.ExecuteBeforeSolutionLoop)
 
         for execution_policy in self.optimization_problem.GetListOfExecutionPolicies():
@@ -71,22 +70,25 @@ class SensorGroupSensitivityAnalysis(OptimizationAnalysis):
             for sensor in list_of_sensors:
                 self.optimization_problem.AdvanceStep()
 
+                sensor_model_part.ProcessInfo[Kratos.STEP] = self.optimization_problem.GetStep()
+                computing_model_part.ProcessInfo[Kratos.STEP] = self.optimization_problem.GetStep()
+
                 sensor_model_part.ProcessInfo[KratosSI.SENSOR_NAME] = sensor.GetName()
                 computing_model_part.ProcessInfo[KratosSI.SENSOR_NAME] = sensor.GetName()
 
-                for process_type in self.__algorithm.GetProcessesOrder():
+                for process_type in self.GetAlgorithm().GetProcessesOrder():
                     CallOnAll(self.optimization_problem.GetListOfProcesses(process_type), Kratos.Process.ExecuteInitializeSolutionStep)
 
                 # now run the sensor analysis to get sensor sensitivities.
-                sensitivities = self.__algorithm.CalculateGradient(sensor)
+                sensitivities = self.GetAlgorithm().CalculateGradient(sensor)
 
                 for variable, expression in sensitivities.items():
                     sensor_group_data.GetUnBufferedData().SetValue(f"{variable.Name()}", expression.Clone(), overwrite=True)
 
-                for process_type in self.__algorithm.GetProcessesOrder():
+                for process_type in self.GetAlgorithm().GetProcessesOrder():
                     CallOnAll(self.optimization_problem.GetListOfProcesses(process_type), Kratos.Process.ExecuteFinalizeSolutionStep)
 
-            for process_type in self.__algorithm.GetProcessesOrder():
+            for process_type in self.GetAlgorithm().GetProcessesOrder():
                 CallOnAll(self.optimization_problem.GetListOfProcesses(process_type), Kratos.Process.ExecuteBeforeOutputStep)
 
             for process in self.optimization_problem.GetListOfProcesses("output_processes"):
