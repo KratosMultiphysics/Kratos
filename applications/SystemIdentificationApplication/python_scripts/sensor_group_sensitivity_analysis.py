@@ -30,6 +30,22 @@ class SensorGroupSensitivityAnalysis(OptimizationAnalysis):
             self.__Solve()
             self.Finalize()
 
+    def _CreateResponses(self):
+        pass
+
+    def _CreateControls(self):
+        pass
+
+    def _CreateAlgorithm(self):
+        default_settings = Kratos.Parameters("""{
+            "module"           : "KratosMultiphysics.SystemIdentificationApplication.sensor_sensitivity_solvers",
+            "sensor_group_name": ""
+        }""")
+        algorithm_settings = self.project_parameters["algorithm_settings"]
+        algorithm_settings.AddMissingParameters(default_settings)
+        self.sensor_group_name = algorithm_settings["sensor_group_name"].GetString()
+        self.__algorithm: ResponseSensitivityAnalysis = OptimizationComponentFactory(self.model, algorithm_settings, self.optimization_problem)
+
     def __Solve(self) -> None:
         # first get the sensors list
         sensor_group_data = ComponentDataView(self.sensor_group_name, self.optimization_problem)
@@ -82,20 +98,4 @@ class SensorGroupSensitivityAnalysis(OptimizationAnalysis):
                 if process.IsOutputStep():
                     process.PrintOutput()
 
-            Kratos.Logger.PrintInfo(self.__class__.__name__, f"Finished sensor analysis for \"{sensor.GetName()}\"." )
-
-    def _CreateResponses(self):
-        pass
-
-    def _CreateControls(self):
-        pass
-
-    def _CreateAlgorithm(self):
-        default_settings = Kratos.Parameters("""{
-            "module"           : "KratosMultiphysics.SystemIdentificationApplication.sensor_sensitivity_solvers",
-            "sensor_group_name": ""
-        }""")
-        algorithm_settings = self.project_parameters["algorithm_settings"]
-        algorithm_settings.AddMissingParameters(default_settings)
-        self.sensor_group_name = algorithm_settings["sensor_group_name"].GetString()
-        self.__algorithm: ResponseSensitivityAnalysis = OptimizationComponentFactory(self.model, algorithm_settings, self.optimization_problem)
+            Kratos.Logger.PrintInfo(self.__class__.__name__, f"Finished sensor analysis for \"{execution_policy.GetName()}\"." )
