@@ -61,17 +61,13 @@ class SensorSensitivityAdjointStaticSolver(StructuralMechanicsAdjointStaticSolve
 
     def __ReadSensitivities(self, sensitivity_dict: 'dict[SupportedSensitivityFieldVariableTypes, ExpressionUnionType]', list_of_variable_names: 'list[str]', expression_type, read_lambda) -> None:
         for sensitivity_variable_name in list_of_variable_names:
-            if sensitivity_variable_name.endswith("_SENSITIVITY"):
-                design_variable_name = sensitivity_variable_name[:-12]
-            else:
-                design_variable_name = str(sensitivity_variable_name)
+            if not sensitivity_variable_name.endswith("_SENSITIVITY"):
                 sensitivity_variable_name += "_SENSITIVITY"
 
-            design_variable = Kratos.KratosGlobals.GetVariable(design_variable_name)
             sensitivity_variable = Kratos.KratosGlobals.GetVariable(sensitivity_variable_name)
             exp = expression_type(self.GetSensitivityModelPart())
             read_lambda(exp, sensitivity_variable)
-            sensitivity_dict[design_variable] = exp.Clone()
+            sensitivity_dict[sensitivity_variable] = exp.Clone()
 
     def _CreateScheme(self):
         return Kratos.ResidualBasedAdjointStaticScheme(None)
