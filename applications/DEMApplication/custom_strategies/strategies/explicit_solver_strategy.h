@@ -301,7 +301,6 @@ namespace Kratos {
         //==========================================================================================================================================
 
         // Properties
-        bool   mRVE_FlatWalls;          // Flag for flat rigid walls
         bool   mRVE_Solve;              // Flag for evaluating RVE in current step
         bool   mRVE_Compress;           // Flag for compressing RVE
         bool   mRVE_Equilibrium;        // Flag for static equilibrium of particles
@@ -309,7 +308,6 @@ namespace Kratos {
         int    mRVE_EqSteps;            // Number of RVE solution steps in equilibrium
         int    mRVE_NumParticles;       // Total number of particles inside RVE (does not consider wall particles)
         int    mRVE_NumParticlesInner;  // Total number of inner particles (not in contact with walls)
-        int    mRVE_NumParticlesWalls;  // Total number of wall particles
         int    mRVE_NumContacts;        // Total number of contacts in RVE (all contacts)
         int    mRVE_NumContactsInner;   // Total number of inner contacts in RVE (considers only contacts involving inner particles)
         double mRVE_MeanRadius;         // Mean radius of all particles
@@ -398,13 +396,10 @@ namespace Kratos {
         void RVEExecuteParticlePos     (SphericParticle* p_particle);
         void RVEFinalizeSolutionStep   (void);
         void Finalize                  (void);
-        void RVEFinalize               (void);
 
-        void RVEAssembleWallVectors             (void);
-        void RVEAssembleWallVectors2D_Flat      (void);
-        void RVEAssembleWallVectors3D_Flat      (void);
-        void RVEAssembleWallVectors2D_Particles (void);
-        void RVEAssembleWallVectors3D_Particles (void);
+        void RVEAssembleWallVectors   (void);
+        void RVEAssembleWallVectors2D (void);
+        void RVEAssembleWallVectors3D (void);
 
         void   RVEComputeCorners        (void);
         double RVEComputeTotalSurface   (void);

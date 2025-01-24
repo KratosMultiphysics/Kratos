@@ -1878,13 +1878,10 @@ namespace Kratos {
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
     void ExplicitSolverStrategy::RVEInitialize(void) {
-      ModelPart::ConditionsContainerType& r_conditions = GetFemModelPart().GetCommunicator().LocalMesh().Conditions();
-      ModelPart& r_dem_model_part = GetModelPart();
-      ProcessInfo& r_process_info = r_dem_model_part.GetProcessInfo();
+      ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
 
       // Initialize properties
       mRVE_MeanRadius  = 0.0;
-      mRVE_FlatWalls   = r_conditions.size() > 0;
       mRVE_Compress    = true;
       mRVE_Equilibrium = false;
       mRVE_Dimension   = r_process_info[DOMAIN_SIZE];
@@ -1893,10 +1890,8 @@ namespace Kratos {
       // Assemble vectors of wall elements
       RVEAssembleWallVectors();
 
-      // Number of wall particles
-      if (mRVE_FlatWalls) mRVE_NumParticlesWalls = 0;
-      else                mRVE_NumParticlesWalls = mRVE_WallParticleXMin.size() + mRVE_WallParticleXMax.size() + mRVE_WallParticleYMin.size() + mRVE_WallParticleYMax.size() + mRVE_WallParticleZMin.size() + mRVE_WallParticleZMax.size();
-      mRVE_NumParticles = mListOfSphericParticles.size() - mRVE_NumParticlesWalls;
+      // Number of particles
+      mRVE_NumParticles = mListOfSphericParticles.size();
       
       // Loop over particles
       for (int i = 0; i < mListOfSphericParticles.size(); i++) {
@@ -2037,10 +2032,7 @@ namespace Kratos {
       RVEComputePorosity();
 
       // Compute stress applied by walls
-      if (mRVE_FlatWalls)
-        mRVE_WallStress = mRVE_WallForces / RVEComputeTotalSurface();
-      else
-        mRVE_WallStress = 0.0;  // TODO: Not computed for particle walls
+      mRVE_WallStress = mRVE_WallForces / RVEComputeTotalSurface();
 
       // Save previous values
       double prev_effect_stress = mRVE_EffectStress;
@@ -2074,26 +2066,18 @@ namespace Kratos {
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
     void ExplicitSolverStrategy::Finalize(void) {
-      RVEFinalize();
-    }
-
-    //-----------------------------------------------------------------------------------------------------------------------------------------
-    void ExplicitSolverStrategy::RVEFinalize(void) {
-      // Close files
       RVECloseFiles();
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
     void ExplicitSolverStrategy::RVEAssembleWallVectors(void) {
-      if      (mRVE_Dimension == 2 && mRVE_FlatWalls)  RVEAssembleWallVectors2D_Flat();
-      else if (mRVE_Dimension == 3 && mRVE_FlatWalls)  RVEAssembleWallVectors3D_Flat();
-      else if (mRVE_Dimension == 2 && !mRVE_FlatWalls) RVEAssembleWallVectors2D_Particles();
-      else if (mRVE_Dimension == 3 && !mRVE_FlatWalls) RVEAssembleWallVectors3D_Particles();
+      if      (mRVE_Dimension == 2)  RVEAssembleWallVectors2D();
+      else if (mRVE_Dimension == 3)  RVEAssembleWallVectors3D();
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
     // TODO: Generalize
-    void ExplicitSolverStrategy::RVEAssembleWallVectors2D_Flat(void) {
+    void ExplicitSolverStrategy::RVEAssembleWallVectors2D(void) {
       ModelPart::ConditionsContainerType& r_conditions = GetFemModelPart().GetCommunicator().LocalMesh().Conditions();
       const double eps = std::numeric_limits<double>::epsilon();
 
@@ -2199,7 +2183,7 @@ namespace Kratos {
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
     // TODO: Adapt it to consider non square RVEs, e.g. RVEs with shear applied.
-    void ExplicitSolverStrategy::RVEAssembleWallVectors3D_Flat(void) {
+    void ExplicitSolverStrategy::RVEAssembleWallVectors3D(void) {
       const double eps = std::numeric_limits<double>::epsilon();
 
       std::vector<DEMWall*> wall_elems_x;
@@ -2258,108 +2242,6 @@ namespace Kratos {
 
       for (int i = 0; i < (int)mListOfSphericParticles.size(); i++) {
         mListOfSphericParticles[i]->mWall = 0;
-      }
-    }
-
-    //-----------------------------------------------------------------------------------------------------------------------------------------
-    // TODO: Adapt it to consider non square RVEs, e.g. RVEs with shear applied.
-    void ExplicitSolverStrategy::RVEAssembleWallVectors2D_Particles(void) {
-      const double eps = std::numeric_limits<double>::epsilon();
-      double xmin =  DBL_MAX;
-      double xmax = -DBL_MAX;
-      double ymin =  DBL_MAX;
-      double ymax = -DBL_MAX;
-
-      const int number_of_particles = (int)mListOfSphericParticles.size();
-      for (int i = 0; i < number_of_particles; i++) {
-        const double coord_x = mListOfSphericParticles[i]->GetGeometry()[0][0];
-        const double coord_y = mListOfSphericParticles[i]->GetGeometry()[0][1];
-        if (coord_x < xmin) xmin = coord_x;
-        if (coord_x > xmax) xmax = coord_x;
-        if (coord_y < ymin) ymin = coord_y;
-        if (coord_y > ymax) ymax = coord_y;
-      }
-
-      for (int i = 0; i < number_of_particles; i++) {
-        const double coord_x = mListOfSphericParticles[i]->GetGeometry()[0][0];
-        const double coord_y = mListOfSphericParticles[i]->GetGeometry()[0][1];
-        if (std::abs(coord_x - xmin) < eps) {
-          mRVE_WallParticleXMin.push_back(mListOfSphericParticles[i]);
-          mListOfSphericParticles[i]->mWall = 1;
-        }
-        else if (std::abs(coord_x - xmax) < eps) {
-          mRVE_WallParticleXMax.push_back(mListOfSphericParticles[i]);
-          mListOfSphericParticles[i]->mWall = 2;
-        }
-        else if (std::abs(coord_y - ymin) < eps) {
-          mRVE_WallParticleYMin.push_back(mListOfSphericParticles[i]);
-          mListOfSphericParticles[i]->mWall = 3;
-        }
-        else if (std::abs(coord_y - ymax) < eps) {
-          mRVE_WallParticleYMax.push_back(mListOfSphericParticles[i]);
-          mListOfSphericParticles[i]->mWall = 4;
-        }
-        else {
-          mListOfSphericParticles[i]->mWall = 0;
-        }
-      }
-    }
-
-    //-----------------------------------------------------------------------------------------------------------------------------------------
-    // TODO: Adapt it to consider non square RVEs, e.g. RVEs with shear applied.
-    void ExplicitSolverStrategy::RVEAssembleWallVectors3D_Particles(void) {
-      const double eps = std::numeric_limits<double>::epsilon();
-      double xmin =  DBL_MAX;
-      double xmax = -DBL_MAX;
-      double ymin =  DBL_MAX;
-      double ymax = -DBL_MAX;
-      double zmin =  DBL_MAX;
-      double zmax = -DBL_MAX;
-
-      const int number_of_particles = (int)mListOfSphericParticles.size();
-      for (int i = 0; i < number_of_particles; i++) {
-        const double coord_x = mListOfSphericParticles[i]->GetGeometry()[0][0];
-        const double coord_y = mListOfSphericParticles[i]->GetGeometry()[0][1];
-        const double coord_z = mListOfSphericParticles[i]->GetGeometry()[0][2];
-        if (coord_x < xmin) xmin = coord_x;
-        if (coord_x > xmax) xmax = coord_x;
-        if (coord_y < ymin) ymin = coord_y;
-        if (coord_y > ymax) ymax = coord_y;
-        if (coord_z < zmin) zmin = coord_z;
-        if (coord_z > zmax) zmax = coord_z;
-      }
-
-      for (int i = 0; i < number_of_particles; i++) {
-        const double coord_x = mListOfSphericParticles[i]->GetGeometry()[0][0];
-        const double coord_y = mListOfSphericParticles[i]->GetGeometry()[0][1];
-        const double coord_z = mListOfSphericParticles[i]->GetGeometry()[0][2];
-        if (std::abs(coord_x - xmin) < eps) {
-          mRVE_WallParticleXMin.push_back(mListOfSphericParticles[i]);
-          mListOfSphericParticles[i]->mWall = 1;
-        }
-        else if (std::abs(coord_x - xmax) < eps) {
-          mRVE_WallParticleXMax.push_back(mListOfSphericParticles[i]);
-          mListOfSphericParticles[i]->mWall = 2;
-        }
-        else if (std::abs(coord_y - ymin) < eps) {
-          mRVE_WallParticleYMin.push_back(mListOfSphericParticles[i]);
-          mListOfSphericParticles[i]->mWall = 3;
-        }
-        else if (std::abs(coord_y - ymax) < eps) {
-          mRVE_WallParticleYMax.push_back(mListOfSphericParticles[i]);
-          mListOfSphericParticles[i]->mWall = 4;
-        }
-        else if (std::abs(coord_z - zmin) < eps) {
-          mRVE_WallParticleZMin.push_back(mListOfSphericParticles[i]);
-          mListOfSphericParticles[i]->mWall = 5;
-        }
-        else if (std::abs(coord_z - zmax) < eps) {
-          mRVE_WallParticleZMax.push_back(mListOfSphericParticles[i]);
-          mListOfSphericParticles[i]->mWall = 6;
-        }
-        else {
-          mListOfSphericParticles[i]->mWall = 0;
-        }
       }
     }
 
@@ -2440,22 +2322,12 @@ namespace Kratos {
     double ExplicitSolverStrategy::RVEComputeTotalVolume(void) {
       double vol = 0.0;
 
-      if (mRVE_FlatWalls) {
-        const double x1 = mRVE_CornerCoordsX[0]; const double y1 = mRVE_CornerCoordsY[0];
-        const double x2 = mRVE_CornerCoordsX[1]; const double y2 = mRVE_CornerCoordsY[1];
-        const double x3 = mRVE_CornerCoordsX[2]; const double y3 = mRVE_CornerCoordsY[2];
-        const double x4 = mRVE_CornerCoordsX[3]; const double y4 = mRVE_CornerCoordsY[3];
+      const double x1 = mRVE_CornerCoordsX[0]; const double y1 = mRVE_CornerCoordsY[0];
+      const double x2 = mRVE_CornerCoordsX[1]; const double y2 = mRVE_CornerCoordsY[1];
+      const double x3 = mRVE_CornerCoordsX[2]; const double y3 = mRVE_CornerCoordsY[2];
+      const double x4 = mRVE_CornerCoordsX[3]; const double y4 = mRVE_CornerCoordsY[3];
 
-        vol = 0.5 * std::abs(x1*y2 + x2*y3 + x3*y4 + x4*y1 - x2*y1 - x3*y2 - x4*y3 - x1*y4); // shoelace formula
-      }
-      else {
-        //if (mRVE_WallParticleXMin.size() > 0 && mRVE_WallParticleXMax.size() > 0)
-        //  dX = std::abs(mRVE_WallParticleXMin[0]->GetGeometry()[0][0] - mRVE_WallParticleXMax[0]->GetGeometry()[0][0]);
-        //if (mRVE_WallParticleYMin.size() > 0 && mRVE_WallParticleYMax.size() > 0)
-        //  dY = std::abs(mRVE_WallParticleYMin[0]->GetGeometry()[0][1] - mRVE_WallParticleYMax[0]->GetGeometry()[0][1]);
-        //if (mRVE_WallParticleZMin.size() > 0 && mRVE_WallParticleZMax.size() > 0)
-        //  dZ = std::abs(mRVE_WallParticleZMin[0]->GetGeometry()[0][2] - mRVE_WallParticleZMax[0]->GetGeometry()[0][2]);
-      }
+      vol = 0.5 * std::abs(x1 * y2 + x2 * y3 + x3 * y4 + x4 * y1 - x2 * y1 - x3 * y2 - x4 * y3 - x1 * y4); // shoelace formula
 
       return vol;
     }
@@ -2476,7 +2348,7 @@ namespace Kratos {
       return (xmax - xmin) * (ymax - ymin);
       
       //const int num_particles = mRVE_InnerVolParticles.size();
-      //if (!mRVE_FlatWalls || num_particles < 3)
+      //if (num_particles < 3)
       //  return mRVE_VolTotal;
       //
       //// Create and clear IO
@@ -3002,41 +2874,21 @@ namespace Kratos {
       if (check) {
         mRVE_Compress = false;
 
-        if (mRVE_FlatWalls) {
-          ModelPart& fem_model_part = GetFemModelPart();
-          ModelPart::ConditionsContainerType& r_conditions = fem_model_part.GetCommunicator().LocalMesh().Conditions();
-
-          for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = fem_model_part.SubModelPartsBegin(); sub_model_part != fem_model_part.SubModelPartsEnd(); ++sub_model_part) {
-            ModelPart& submp = *sub_model_part;
-            array_1d<double, 3>& linear_velocity = submp[LINEAR_VELOCITY];
-            linear_velocity[0] = 0.0;
-            linear_velocity[1] = 0.0;
-            linear_velocity[2] = 0.0;
-          }
-
-          for (unsigned int i = 0; i < r_conditions.size(); i++) {
-            ModelPart::ConditionsContainerType::iterator it = r_conditions.ptr_begin() + i;
-            DEMWall* p_wall = dynamic_cast<DEMWall*> (&(*it));
-            for (unsigned int inode = 0; inode < p_wall->GetGeometry().size(); inode++) {
-              array_1d<double, 3>& wall_velocity = p_wall->GetGeometry()[inode].FastGetSolutionStepValue(VELOCITY);
-              noalias(wall_velocity) = ZeroVector(3);
-            }
-          }
+        ModelPart &fem_model_part = GetFemModelPart();
+        ModelPart::ConditionsContainerType &r_conditions = fem_model_part.GetCommunicator().LocalMesh().Conditions();
+        for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = fem_model_part.SubModelPartsBegin(); sub_model_part != fem_model_part.SubModelPartsEnd(); ++sub_model_part) {
+          ModelPart &submp = *sub_model_part;
+          array_1d<double, 3> &linear_velocity = submp[LINEAR_VELOCITY];
+          linear_velocity[0] = 0.0;
+          linear_velocity[1] = 0.0;
+          linear_velocity[2] = 0.0;
         }
-
-        else {
-          for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = r_dem_model_part.SubModelPartsBegin(); sub_model_part != r_dem_model_part.SubModelPartsEnd(); ++sub_model_part) {
-            ModelPart& submp = *sub_model_part;
-            array_1d<double, 3>& linear_velocity = submp[LINEAR_VELOCITY];
-            if (linear_velocity[0] != 0.0 || linear_velocity[1] != 0.0 || linear_velocity[2] != 0.0) {
-              linear_velocity[0] = 0.0;
-              linear_velocity[1] = 0.0;
-              linear_velocity[2] = 0.0;
-            }
-          }
-          for (int i = 0; i < (int)mListOfSphericParticles.size(); i++) {
-            if (mListOfSphericParticles[i]->mWall)
-              mListOfSphericParticles[i]->mMoving = false;
+        for (unsigned int i = 0; i < r_conditions.size(); i++) {
+          ModelPart::ConditionsContainerType::iterator it = r_conditions.ptr_begin() + i;
+          DEMWall *p_wall = dynamic_cast<DEMWall *>(&(*it));
+          for (unsigned int inode = 0; inode < p_wall->GetGeometry().size(); inode++) {
+            array_1d<double, 3> &wall_velocity = p_wall->GetGeometry()[inode].FastGetSolutionStepValue(VELOCITY);
+            noalias(wall_velocity) = ZeroVector(3);
           }
         }
       }
