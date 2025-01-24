@@ -3,18 +3,18 @@ import KratosMultiphysics.MPMApplication as KratosMPM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
-import KratosMultiphysics.MPMApplication.multiple_material_points_output_process as multiple_material_points_output_process
+import KratosMultiphysics.MPMApplication.mpm_multiple_points_output_process as mpm_multiple_points_output_process
 from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 
 import os
 import pathlib
 
-class TestMaterialPointOutputProcess(KratosUnittest.TestCase):
-    def test_material_point_condition_output_process_2D(self):
-        ExecuteBasicMaterialPointOutputProcess("condition")
+class TestMPMPointOutputProcess(KratosUnittest.TestCase):
+    def test_mpm_output_process_condition_2D(self):
+        ExecuteBasicMPMPointOutputProcess("condition")
 
-    def test_material_point_element_output_process_2D(self):
-        ExecuteBasicMaterialPointOutputProcess("element")
+    def test_mpm_output_process_element_2D(self):
+        ExecuteBasicMPMPointOutputProcess("element")
 
     def tearDown(self):
         kratos_utils.DeleteDirectoryIfExisting("test_material_point_output")
@@ -147,7 +147,7 @@ def Check(file_name, output_path, reference_files_path):
     params["output_file_name"].SetString(str(output_file))
     CompareTwoFilesCheckProcess(params).Execute()
 
-def ExecuteBasicMaterialPointOutputProcess(entity_type):
+def ExecuteBasicMPMPointOutputProcess(entity_type):
     model = KratosMultiphysics.Model()
     initial_mesh = model.CreateModelPart("InitialMesh")
     background_grid = model.CreateModelPart("Background_Grid")
@@ -202,7 +202,7 @@ def ExecuteBasicMaterialPointOutputProcess(entity_type):
         parameters["Parameters"]["positions"].SetMatrix(positions)
         parameters["Parameters"]["output_variables"].SetStringArray(["MPC_COORD","MPC_DISPLACEMENT","MPC_AREA"])
 
-    test_process = multiple_material_points_output_process.Factory(parameters, model)
+    test_process = mpm_multiple_points_output_process.Factory(parameters, model)
 
     time = 0.0
     dt = 0.2

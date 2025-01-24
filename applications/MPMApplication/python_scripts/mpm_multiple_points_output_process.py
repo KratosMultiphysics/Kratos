@@ -3,18 +3,18 @@ import KratosMultiphysics
 
 # other imports
 from KratosMultiphysics.multiple_points_output_process import MultiplePointsOutputProcess
-from KratosMultiphysics.MPMApplication.material_point_output_process import MaterialPointOutputProcess
+from KratosMultiphysics.MPMApplication.mpm_point_output_process import MPMPointOutputProcess
 
 def Factory(settings, Model):
     if not isinstance(Model, KratosMultiphysics.Model):
         raise Exception("expected input shall be a Model object")
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return MultipleMaterialPointsOutputProcess(Model, settings["Parameters"])
+    return MPMMultiplePointsOutputProcess(Model, settings["Parameters"])
 
-class MultipleMaterialPointsOutputProcess(MultiplePointsOutputProcess):
+class MPMMultiplePointsOutputProcess(MultiplePointsOutputProcess):
     """This process writes several points to a file
-    Internally it holds objects of type "MaterialPointOutputProcess"
+    Internally it holds objects of type "MPMPointOutputProcess"
     """
     def __init__(self, model, params):
         KratosMultiphysics.OutputProcess.__init__(self)
@@ -46,7 +46,7 @@ class MultipleMaterialPointsOutputProcess(MultiplePointsOutputProcess):
             point_proc_params["position"].SetVector(position_vec)
             point_proc_params["output_file_settings"]["file_name"].SetString(params["output_file_settings"]["file_name"].GetString() + "_" + str(i+1))
 
-            self.point_output_processes.append(MaterialPointOutputProcess(model, point_proc_params))
+            self.point_output_processes.append(MPMPointOutputProcess(model, point_proc_params))
 
     @staticmethod
     def GetDefaultParameters():

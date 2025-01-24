@@ -10,9 +10,9 @@ def Factory(settings, Model):
         raise Exception("expected input shall be a Model object")
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return MaterialPointOutputProcess(Model, settings["Parameters"])
+    return MPMPointOutputProcess(Model, settings["Parameters"])
 
-class MaterialPointOutputProcess(KratosMultiphysics.OutputProcess):
+class MPMPointOutputProcess(KratosMultiphysics.OutputProcess):
     """This process writes results from a material point to a file.
     The output can be requested for material point elements and material point conditions.
     """
@@ -114,7 +114,7 @@ class MaterialPointOutputProcess(KratosMultiphysics.OutputProcess):
         if writing_rank == -1:
             warn_msg  = f'No "{entity_type}" was found for input {self.point} and '
             warn_msg += f'tolerance {self.search_tolerance:.12g}. No output is written!'
-            KratosMultiphysics.Logger.PrintWarning("MaterialPointOutputProcess", warn_msg)
+            KratosMultiphysics.Logger.PrintWarning("MPMPointOutputProcess", warn_msg)
 
         if my_rank == writing_rank and my_rank > -1:
             file_handler_params = KratosMultiphysics.Parameters(self.params["output_file_settings"])
