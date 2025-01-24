@@ -43,7 +43,7 @@ namespace Kratos
                              bool HeatFluxContributions,
                              bool HeatGenValues,
                              bool HeatGenContributions);
-      void ExecuteFinalizeSolutionStep(ModelPart& rModelPart, const int write_all_temp_freq);
+      void ExecuteFinalizeSolutionStep(ModelPart& rModelPart);
       void ExecuteFinalize(void);
 
     protected:
@@ -62,7 +62,7 @@ namespace Kratos
       bool mGraph_HeatGenValues;
       bool mGraph_HeatGenContributions;
 
-      std::ofstream mFile_ParticleTempAll;        // Temperature and coordinates of all particles
+      std::ofstream mFile_ParticleTempAll;        // Temperature of all particles
       std::ofstream mFile_ParticleTempMin;        // Minimum particle temperature
       std::ofstream mFile_ParticleTempMax;        // Maximum particle temperature
       std::ofstream mFile_ParticleTempAvg;        // Average particle temperature
@@ -80,7 +80,7 @@ namespace Kratos
       // Private methods
       void OpenFiles(void);
       void CloseFiles(void);
-      void WriteGraphs(ModelPart& rModelPart, const int write_all_temp_freq);
+      void WriteGraphs(ModelPart& rModelPart);
 
       // Assignment operator
       GraphUtilities& operator=(GraphUtilities const& rOther);

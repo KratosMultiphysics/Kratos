@@ -8,7 +8,6 @@ def GetDefaultInputSettings():
             "thermal_solve_frequency"        : 1,
             "voronoi_tesselation_frequency"  : 1000,
 	        "porosity_update_frequency"      : 1000,
-	        "temperature_write_frequency"    : 10000000,
             "automatic_solve_frequency"      : false,
             "compute_forces"                 : true,
             "compute_motion"                 : true,

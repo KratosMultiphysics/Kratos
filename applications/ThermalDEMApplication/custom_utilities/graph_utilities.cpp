@@ -32,7 +32,7 @@ namespace Kratos {
 
   GraphUtilities::~GraphUtilities() {}
 
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   void GraphUtilities::ExecuteInitialize(bool ParticleTempAll,
                                          bool ParticleTempMin,
                                          bool ParticleTempMax,
@@ -67,12 +67,12 @@ namespace Kratos {
     KRATOS_CATCH("")
   }
 
-  //-----------------------------------------------------------------------------------------------------------------------
-  void GraphUtilities::ExecuteFinalizeSolutionStep(ModelPart& rModelPart, const int write_all_temp_freq) {
+  //------------------------------------------------------------------------------------------------------------
+  void GraphUtilities::ExecuteFinalizeSolutionStep(ModelPart& rModelPart) {
     KRATOS_TRY
     
     if (rModelPart.GetProcessInfo()[IS_TIME_TO_PRINT])
-      WriteGraphs(rModelPart, write_all_temp_freq);
+      WriteGraphs(rModelPart);
 
     KRATOS_CATCH("")
   }
@@ -91,8 +91,9 @@ namespace Kratos {
     if (mGraph_ParticleTempAll) {
       mFile_ParticleTempAll.open("graph_particle_temp_all.txt", std::ios::out);
       KRATOS_ERROR_IF_NOT(mFile_ParticleTempAll) << "Could not open graph_particle_temp_all.txt!" << std::endl;
-      mFile_ParticleTempAll << "1 - TIME STEP / TIME | ";
-      mFile_ParticleTempAll << "2 - ID / RADIUS / COORDS XY / TEMPERATURE";
+      mFile_ParticleTempAll << "1 - TIME STEP | ";
+      mFile_ParticleTempAll << "2 - TIME | ";
+      mFile_ParticleTempAll << "3 - TEMPERATURE OF ALL PARTICLES";
       mFile_ParticleTempAll << std::endl;
     }
     if (mGraph_ParticleTempMin) {
@@ -215,12 +216,14 @@ namespace Kratos {
     }
   }
 
-  //-----------------------------------------------------------------------------------------------------------------------
-  void GraphUtilities::WriteGraphs(ModelPart& rModelPart, const int write_all_temp_freq) {
+  //------------------------------------------------------------------------------------------------------------
+  void GraphUtilities::WriteGraphs(ModelPart& rModelPart) {
     KRATOS_TRY
 
     // Initialize results
     const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+    const int          time_step      = r_process_info[TIME_STEPS];
+    const double       time           = r_process_info[TIME];
 
     const int num_particles              = rModelPart.NumberOfElements();
     int       num_particles_flux_contrib = 0;
@@ -430,23 +433,13 @@ namespace Kratos {
     }
 
     // Write results to files
-    const int    time_step = r_process_info[TIME_STEPS];
-    const double time      = r_process_info[TIME];
-    
-    if (mFile_ParticleTempAll.is_open() && time_step % write_all_temp_freq == 0.0) {
-      mFile_ParticleTempAll << "#TIME/STEP: ";
+    if (mFile_ParticleTempAll.is_open()) {
       mFile_ParticleTempAll << std::defaultfloat << time_step << " " << time << std::endl;
-
       ModelPart::ElementsContainerType::iterator it = rModelPart.GetCommunicator().LocalMesh().Elements().ptr_begin();
       for (int i = 0; i < num_particles; i++) {
-        ThermalSphericParticle& particle = dynamic_cast<ThermalSphericParticle&> (*(it + i));
-        const int    id = i + 1;
-        const double r  = particle.GetRadius();
-        const double x  = particle.GetGeometry()[0][0];
-        const double y  = particle.GetGeometry()[0][1];
-        const double t  = particle.GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE);
-        mFile_ParticleTempAll << std::defaultfloat << id << " ";
-        mFile_ParticleTempAll << std::fixed << std::setprecision(15) << r << " " << x << " " << y << " " << t << std::endl;
+        ThermalSphericParticle& particle = dynamic_cast<ThermalSphericParticle&> (*(it+i));
+        const double temp  = particle.GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE);
+        mFile_ParticleTempAll << std::fixed << std::setprecision(12) << temp << std::endl;
       }
       mFile_ParticleTempAll << std::endl;
     }
