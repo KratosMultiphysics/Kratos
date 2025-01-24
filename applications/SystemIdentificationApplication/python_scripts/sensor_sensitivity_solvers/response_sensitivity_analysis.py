@@ -22,3 +22,14 @@ class ResponseSensitivityAnalysis(AnalysisStage, abc.ABC):
             dict[str, ContainerExpressionTypes]: Sensitivities dictionary with variable and sensitivities as the pair.
         """
         pass
+
+    def GetProcessesOrder(self) -> 'list[str]':
+        """The order of execution of the process categories.
+
+        This defines the order of execution of the processes defined under "processes"
+        in either "kratos_process" or "optimization_data_processes".
+
+        Returns:
+            list[str]: List of strings for process categories.
+        """
+        return ["auxiliary_processes", "output_processes"]
