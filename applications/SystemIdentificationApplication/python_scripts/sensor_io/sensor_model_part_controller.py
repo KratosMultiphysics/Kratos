@@ -24,14 +24,14 @@ class SensorModelPartController(ModelPartController):
         self.parameters.ValidateAndAssignDefaults(default_settings)
 
         self.domain_model_part_name = parameters["domain_model_part_name"].GetString()
-        self.h5_file_name = parameters["h5_file_name"].GetString()
-        self.data_field_name = parameters["data_field_name"].GetString()
-
         self.sensor_group_name = parameters["sensor_group_name"].GetString()
 
         if model.HasModelPart(self.sensor_group_name):
             raise RuntimeError(f"The sensor model part name \"{self.sensor_group_name}\" already exists. Please provide a different \"sensor_group_name\".")
         self.sensor_model_part = model.CreateModelPart(self.sensor_group_name)
+
+        # this dummy component data view is used to create the proper sensor group within the optimization problem.
+        ComponentDataView(self.sensor_group_name, self.optimization_problem)
 
     def ImportModelPart(self) -> None:
         self.domain_model_part = self.model[self.domain_model_part_name]
