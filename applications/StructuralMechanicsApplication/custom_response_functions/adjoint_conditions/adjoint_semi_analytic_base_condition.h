@@ -18,6 +18,8 @@
 
 // Project includes
 #include "includes/condition.h"
+#include "utilities/adjoint_extensions.h"
+#include "includes/variables.h"
 
 namespace Kratos
 {
@@ -52,6 +54,32 @@ template <typename TPrimalCondition>
 class AdjointSemiAnalyticBaseCondition
     : public Condition
 {
+    class ThisExtensions : public AdjointExtensions
+    {
+        Condition* mpCondition;
+
+    public:
+        explicit ThisExtensions(Condition* pCondition);
+
+        void GetFirstDerivativesVector(std::size_t NodeId,
+                                       std::vector<IndirectScalar<double>>& rVector,
+                                       std::size_t Step) override;
+
+        void GetSecondDerivativesVector(std::size_t NodeId,
+                                        std::vector<IndirectScalar<double>>& rVector,
+                                        std::size_t Step) override;
+
+        void GetAuxiliaryVector(std::size_t NodeId,
+                                std::vector<IndirectScalar<double>>& rVector,
+                                std::size_t Step) override;
+
+        void GetFirstDerivativesVariables(std::vector<VariableData const*>& rVariables) const override;
+
+        void GetSecondDerivativesVariables(std::vector<VariableData const*>& rVariables) const override;
+
+        void GetAuxiliaryVariables(std::vector<VariableData const*>& rVariables) const override;
+    };
+
 public:
     ///@name Type Definitions
     ///@{
@@ -123,7 +151,10 @@ public:
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override
     {
+        KRATOS_TRY;
         mpPrimalCondition->Initialize(rCurrentProcessInfo);
+        this->SetValue(ADJOINT_EXTENSIONS, Kratos::make_shared<ThisExtensions>(this));
+        KRATOS_CATCH("")
     }
 
     void ResetConstitutiveLaw() override

@@ -25,6 +25,7 @@
 #include "custom_conditions/line_load_condition.h"
 #include "custom_conditions/small_displacement_line_load_condition.h"
 #include "custom_response_functions/response_utilities/finite_difference_utility.h"
+#include "utilities/indirect_scalar.h"
 
 namespace Kratos
 {
@@ -317,6 +318,99 @@ namespace Kratos
     }
 
     // private
+    template <class TPrimalCondition>
+    AdjointSemiAnalyticBaseCondition<TPrimalCondition>::ThisExtensions::ThisExtensions(Condition* pCondition)
+        : mpCondition{pCondition}
+    {
+    }
+
+    template <class TPrimalCondition>
+    void AdjointSemiAnalyticBaseCondition<TPrimalCondition>::ThisExtensions::GetFirstDerivativesVector(
+        std::size_t NodeId, std::vector<IndirectScalar<double>>& rVector, std::size_t Step)
+    {
+        KRATOS_TRY;
+
+        auto& r_node = mpCondition->GetGeometry()[NodeId];
+        rVector.resize(3);
+
+        std::size_t index = 0;
+        rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_2_X, Step);
+        rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_2_Y, Step);
+        rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_2_Z, Step);
+
+        KRATOS_CATCH("")
+    }
+
+    template <class TPrimalCondition>
+    void AdjointSemiAnalyticBaseCondition<TPrimalCondition>::ThisExtensions::GetSecondDerivativesVector(
+        std::size_t NodeId, std::vector<IndirectScalar<double>>& rVector, std::size_t Step)
+    {
+        KRATOS_TRY;
+
+        auto& r_node = mpCondition->GetGeometry()[NodeId];
+        rVector.resize(3);
+
+        std::size_t index = 0;
+        rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_3_X, Step);
+        rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_3_Y, Step);
+        rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_3_Z, Step);
+
+        KRATOS_CATCH("")
+    }
+
+    template <class TPrimalCondition>
+    void AdjointSemiAnalyticBaseCondition<TPrimalCondition>::ThisExtensions::GetAuxiliaryVector(
+        std::size_t NodeId, std::vector<IndirectScalar<double>>& rVector, std::size_t Step)
+    {
+        KRATOS_TRY;
+
+        auto& r_node = mpCondition->GetGeometry()[NodeId];
+        rVector.resize(3);
+
+        std::size_t index = 0;
+        rVector[index++] = MakeIndirectScalar(r_node, AUX_ADJOINT_VECTOR_1_X, Step);
+        rVector[index++] = MakeIndirectScalar(r_node, AUX_ADJOINT_VECTOR_1_Y, Step);
+        rVector[index++] = MakeIndirectScalar(r_node, AUX_ADJOINT_VECTOR_1_Z, Step);
+
+        KRATOS_CATCH("")
+    }
+
+    template <class TPrimalCondition>
+    void AdjointSemiAnalyticBaseCondition<TPrimalCondition>::ThisExtensions::GetFirstDerivativesVariables(
+        std::vector<VariableData const*>& rVariables) const
+    {
+        KRATOS_TRY;
+
+        rVariables.resize(1);
+        rVariables[0] = &ADJOINT_VECTOR_2;
+
+        KRATOS_CATCH("")
+    }
+
+    template <class TPrimalCondition>
+    void AdjointSemiAnalyticBaseCondition<TPrimalCondition>::ThisExtensions::GetSecondDerivativesVariables(
+        std::vector<VariableData const*>& rVariables) const
+    {
+        KRATOS_TRY;
+
+        rVariables.resize(1);
+        rVariables[0] = &ADJOINT_VECTOR_3;
+
+        KRATOS_CATCH("")
+    }
+
+    template <class TPrimalCondition>
+    void AdjointSemiAnalyticBaseCondition<TPrimalCondition>::ThisExtensions::GetAuxiliaryVariables(
+        std::vector<VariableData const*>& rVariables) const
+    {
+        KRATOS_TRY;
+
+        rVariables.resize(1);
+        rVariables[0] = &AUX_ADJOINT_VECTOR_1;
+
+        KRATOS_CATCH("")
+    }
+
     template <class TPrimalCondition>
     double AdjointSemiAnalyticBaseCondition<TPrimalCondition>::GetPerturbationSize(const Variable<double>& rDesignVariable, const ProcessInfo& rCurrentProcessInfo) const
     {

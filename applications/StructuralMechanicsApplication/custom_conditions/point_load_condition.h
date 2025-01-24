@@ -121,6 +121,35 @@ public:
         ) const override;
 
     /**
+     * this is called during the assembling process in order
+     * to calculate the condition left hand side matrix only
+     * @param rLeftHandSideMatrix the condition left hand side matrix
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+				       const ProcessInfo& rCurrentProcessInfo) override;
+
+
+    /**
+     * this is called during the assembling process in order
+     * to calculate the condition left hand side matrix for the first derivatives contributions
+     * @param rLeftHandSideMatrix the condition left hand side matrix
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+					      const ProcessInfo& rCurrentProcessInfo) override;
+
+
+    /**
+     * this is called during the assembling process in order
+     * to calculate the condition left hand side matrix for the second derivatives contributions
+     * @param rLeftHandSideMatrix the condition left hand side matrix
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+					      const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
      * Check if Rotational Dof existant
      */
     bool HasRotDof() const override {return false;};
@@ -185,17 +214,6 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-				       const ProcessInfo& rCurrentProcessInfo) override;
-
-
-    void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
-					      const ProcessInfo& rCurrentProcessInfo) override;
-
-
-    void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
-					      const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * This functions calculates both the RHS and the LHS

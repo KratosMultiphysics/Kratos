@@ -88,6 +88,77 @@ Condition::Pointer LineLoadCondition<TDim>::Clone (
     KRATOS_CATCH("");
 }
 
+//************************************************************************************
+//************************************************************************************
+
+template<std::size_t TDim>
+void LineLoadCondition<TDim>::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+			       const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    const auto& r_geometry = GetGeometry();
+    const SizeType number_of_nodes = r_geometry.size();
+    const SizeType block_size = this->GetBlockSize();
+
+    // Resizing as needed the LHS
+    const SizeType mat_size = number_of_nodes * block_size;
+
+    if ( rLeftHandSideMatrix.size1() != mat_size ) {
+        rLeftHandSideMatrix.resize( mat_size, mat_size, false );
+    }
+    noalias( rLeftHandSideMatrix ) = ZeroMatrix( mat_size, mat_size ); //resetting LHS
+   
+    KRATOS_CATCH( "" )
+}
+
+//************************************************************************************
+//************************************************************************************
+
+template<std::size_t TDim>
+void LineLoadCondition<TDim>::CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+					const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    const auto& r_geometry = GetGeometry();
+    const SizeType number_of_nodes = r_geometry.size();
+    const SizeType block_size = this->GetBlockSize();
+
+    // Resizing as needed the LHS
+    const SizeType mat_size = number_of_nodes * block_size;
+
+    if ( rLeftHandSideMatrix.size1() != mat_size ) {
+        rLeftHandSideMatrix.resize( mat_size, mat_size, false );
+    }
+    noalias( rLeftHandSideMatrix ) = ZeroMatrix( mat_size, mat_size ); //resetting LHS
+    
+    KRATOS_CATCH( "" )
+}
+
+//************************************************************************************
+//************************************************************************************
+
+template<std::size_t TDim>
+void LineLoadCondition<TDim>::CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+					const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    const auto& r_geometry = GetGeometry();
+    const SizeType number_of_nodes = r_geometry.size();
+    const SizeType block_size = this->GetBlockSize();
+
+    // Resizing as needed the LHS
+    const SizeType mat_size = number_of_nodes * block_size;
+
+    if ( rLeftHandSideMatrix.size1() != mat_size ) {
+        rLeftHandSideMatrix.resize( mat_size, mat_size, false );
+    }
+    noalias( rLeftHandSideMatrix ) = ZeroMatrix( mat_size, mat_size ); //resetting LHS
+
+    KRATOS_CATCH( "" )
+}
 
 //******************************* DESTRUCTOR *****************************************
 /***********************************************************************************/

@@ -148,6 +148,35 @@ public:
         ) const override;
 
     /**
+     * this is called during the assembling process in order
+     * to calculate the condition left hand side matrix only
+     * @param rLeftHandSideMatrix the condition left hand side matrix
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+				       const ProcessInfo& rCurrentProcessInfo) override;
+
+
+    /**
+     * this is called during the assembling process in order
+     * to calculate the condition left hand side matrix for the first derivatives contributions
+     * @param rLeftHandSideMatrix the condition left hand side matrix
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+					      const ProcessInfo& rCurrentProcessInfo) override;
+
+
+    /**
+     * this is called during the assembling process in order
+     * to calculate the condition left hand side matrix for the second derivatives contributions
+     * @param rLeftHandSideMatrix the condition left hand side matrix
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+					      const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
      * @brief Calculate a array_1d Variable
      * @param rVariable Internal values
      * @param rCurrentProcessInfo The current process information

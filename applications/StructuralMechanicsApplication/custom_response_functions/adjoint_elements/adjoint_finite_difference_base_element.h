@@ -207,7 +207,7 @@ public:
         KRATOS_TRY;
         mpPrimalElement->CalculateLeftHandSide(rLeftHandSideMatrix,
                                                rCurrentProcessInfo);
-        noalias(rLeftHandSideMatrix) = -rLeftHandSideMatrix; // Negative sign needed for adjoint bossak scheme. May lead to problems in the adjoint static scheme
+        noalias(rLeftHandSideMatrix) = -rLeftHandSideMatrix;
         KRATOS_CATCH("")
     }
 
