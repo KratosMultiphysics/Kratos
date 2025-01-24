@@ -179,7 +179,11 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLawReturnsExpectedStress_
     final_parameters.SetStrainVector(final_strain);
     law.FinalizeMaterialResponseCauchy(final_parameters);
     
-    law.ResetMaterial(final_parameters.GetMaterialProperties(), final_parameters.GetElementGeometry(), final_parameters.GetShapeFunctionsValues());
+	const Properties properties;
+	const Geometry<Node> geometry;
+	const Vector shape_functions_values;
+
+    law.ResetMaterial(properties, geometry, shape_functions_values);
 
     stress = Calculate3DStress(law);
 
