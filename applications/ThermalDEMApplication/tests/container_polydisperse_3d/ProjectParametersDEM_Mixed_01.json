@@ -46,7 +46,7 @@
         "heat_generation_model"            : ["sliding_friction","rolling_friction","contact_damping"],
         "adjusted_contact_model"           : "zhou",
         "voronoi_method"                   : "tesselation",
-        "porosity_method"                  : "average_convex_hull",
+        "porosity_method"                  : "average_alpha_shape",
         "min_conduction_distance"          : 0.0000000275,
         "max_conduction_distance"          : 1.0,
         "conduction_radius"                : 1.0,
