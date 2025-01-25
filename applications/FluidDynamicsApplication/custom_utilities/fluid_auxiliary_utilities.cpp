@@ -51,7 +51,7 @@ double FluidAuxiliaryUtilities::CalculateFluidVolume(const ModelPart& rModelPart
 }
 
 
-double FluidAuxiliaryUtilities::CalculateFluidCutElementPositiveVolume(const ModelPart& rModelPart)
+double FluidAuxiliaryUtilities::CalculateFluidCutElementsPositiveVolume(const ModelPart& rModelPart)
 {
 
     // Check that there are elements and distance variable in the nodal database
