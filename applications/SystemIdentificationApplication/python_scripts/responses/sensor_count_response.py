@@ -21,19 +21,14 @@ class SensorCountResponse(ResponseFunction):
         super().__init__(name)
 
         default_settings = Kratos.Parameters("""{
-            "evaluated_model_part_names" : [
-                "PLEASE_PROVIDE_A_MODEL_PART_NAME"
-            ]
+            "sensor_group_name": ""
         }""")
         parameters.ValidateAndAssignDefaults(default_settings)
 
         self.model = model
 
-        evaluated_model_part_names = parameters["evaluated_model_part_names"].GetStringArray()
-        if len(evaluated_model_part_names) == 0:
-            raise RuntimeError(f"No model parts were provided for SensorCountResponse. [ response name = \"{self.GetName()}\"]")
-
-        self.model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"response_{self.GetName()}", evaluated_model_part_names, False)
+        self.sensor_group_name = parameters["sensor_group_name"].GetString()
+        self.model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"response_{self.GetName()}", [self.sensor_group_name], False)
         self.model_part: Optional[Kratos.ModelPart] = None
 
     def GetImplementedPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':

@@ -101,9 +101,7 @@ class TestSensorCountResponse(UnitTest.TestCase):
             node.SetValue(KratosSI.SENSOR_STATUS, (node.Id % 3) / 2)
 
         params = Kratos.Parameters("""{
-            "evaluated_model_part_names" : [
-                "sensors"
-            ]
+            "sensor_group_name": "sensors"
         }""")
         cls.response = SensorCountResponse("test", cls.model, params)
         cls.response.Initialize()
