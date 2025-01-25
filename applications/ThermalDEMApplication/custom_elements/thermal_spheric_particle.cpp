@@ -154,6 +154,9 @@ namespace Kratos
                         (r_process_info[REAL_CONTACT_OPTION] && (r_process_info[REAL_CONTACT_MODEL_NAME].compare("morris_area_time") == 0      ||
                                                                  r_process_info[REAL_CONTACT_MODEL_NAME].compare("rangel_area_time") == 0))); 
     
+    // Save initial temperature
+    mInitialTemperature = GetParticleTemperature();
+
     // Clear maps
     mContactParamsParticle.clear();
     mContactParamsWall.clear();
@@ -549,13 +552,23 @@ namespace Kratos
     KRATOS_TRY
 
     // Update radius
-    const double new_radius = GetParticleRadius() * (1.0 + GetParticleExpansionCoefficient() * (GetParticleTemperature() - mPreviousTemperature));
+    const double r     = GetParticleRadius();
+    const double alpha = GetParticleExpansionCoefficient();
+    const double T     = GetParticleTemperature();
+    const double new_radius = mInitialRadius * (1.0 + alpha * (T - mInitialTemperature));  // Total (used in "Rangel et al, Comput Geotech, 176:106789, 2024")
+    //const double new_radius = r * (1.0 + alpha * (T - mPreviousTemperature)); // Incremental
     SetParticleRadius(new_radius);
 
-    // Update inertia
-    SetParticleMomentInertia(CalculateMomentOfInertia());
+    // Update density
+    const double m = GetParticleMass();
+    const double V = GetParticleVolume();
+    double* rho = &(GetProperties()[PARTICLE_DENSITY]);
+    *rho = m / V;
+    GetFastProperties()->SetDensityFromProperties(rho);
 
-    // TODO: update density
+    // Update inertia
+    const double I = CalculateMomentOfInertia();
+    SetParticleMomentInertia(I);
 
     KRATOS_CATCH("")
   }
@@ -821,8 +834,8 @@ namespace Kratos
     KRATOS_TRY
 
     // ATTENTION: Assumption: Original model was not assumed real Young modulus for col_time_max and Rc_max!
-    const double col_time_max = ComputeMaxCollisionTimeReal();
-    const double Rc_max       = ComputeMaxContactRadiusReal();
+    const double col_time_max = ComputeMaxCollisionTime();
+    const double Rc_max       = ComputeMaxContactRadius();
 
     if (Rc_max > 0.0)
       return GetParticleConductivity() * col_time_max / (GetParticleDensity() * GetParticleHeatCapacity() * Rc_max * Rc_max);
