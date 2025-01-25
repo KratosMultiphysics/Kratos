@@ -43,7 +43,7 @@ public:
                               NodesArrayType const&   rThisNodes,
                               PropertiesType::Pointer pProperties) const override;
 
-    std::string Info() const override;
+    [[nodiscard]] std::string Info() const override;
 
 protected:
     void CalculateRHS(Vector& rRightHandSideVector, const ProcessInfo&) override;

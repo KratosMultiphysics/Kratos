@@ -68,6 +68,12 @@ int TimoshenkoBeamElasticConstitutiveLaw::Check(
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(CROSS_AREA))       << "CROSS_AREA is not defined in the properties"    << std::endl;
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(AREA_EFFECTIVE_Y)) << "AREA_EFFECTIVE_Y is not defined in the properties" << std::endl;
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(I33))              << "I33 is not defined in the properties"            << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties[YOUNG_MODULUS] > 0.0)    << "The YOUNG_MODULUS value is lower than 0.0" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties[CROSS_AREA] > 0.0)       << "The CROSS_AREA value is lower than 0.0" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties[I33] > 0.0)              << "The I33 value is lower than 0.0" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties[AREA_EFFECTIVE_Y] > 0.0) << "The AREA_EFFECTIVE_Y value is lower than 0.0" << std::endl;
+    KRATOS_ERROR_IF    (rMaterialProperties[POISSON_RATIO] < 0.0)    << "The POISSON_RATIO value is lower than 0.0" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties[POISSON_RATIO] < 0.5)    << "The POISSON_RATIO cannot be greater than or equal 0.5." << std::endl;
     return 0;
 }
 

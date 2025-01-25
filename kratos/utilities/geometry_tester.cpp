@@ -1144,6 +1144,8 @@ std::string GeometryTesterUtility::GetIntegrationName(
         return std::string("GI_EXTENDED_GAUSS_4");
     case GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5 :
         return std::string("GI_EXTENDED_GAUSS_5");
+    case GeometryData::IntegrationMethod::GI_LOBATTO_1 :
+        return std::string("GI_LOBATTO_1");
     case GeometryData::IntegrationMethod::NumberOfIntegrationMethods :
         return std::string("NumberOfIntegrationMethods");
     };

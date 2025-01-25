@@ -246,47 +246,7 @@ int UPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentPro
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY
-
-    if (!mIsInitialised) this->Initialize(rCurrentProcessInfo);
-
-    ConstitutiveLaw::Parameters ConstitutiveParameters(this->GetGeometry(), this->GetProperties(),
-                                                       rCurrentProcessInfo);
-    ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-    ConstitutiveParameters.Set(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE); // Note: this is for nonlocal damage
-
-    ElementVariables Variables;
-    this->InitializeElementVariables(Variables, rCurrentProcessInfo);
-
-    const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
-    const auto deformation_gradients = CalculateDeformationGradients();
-    const auto determinants_of_deformation_gradients =
-        GeoMechanicsMathUtilities::CalculateDeterminants(deformation_gradients);
-    const auto strain_vectors = StressStrainUtilities::CalculateStrains(
-        deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain,
-        this->GetStressStatePolicy().GetVoigtSize());
-
-    const auto number_of_integration_points =
-        this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
-    for (unsigned int GPoint = 0; GPoint < number_of_integration_points; ++GPoint) {
-        this->CalculateKinematics(Variables, GPoint);
-        Variables.B            = b_matrices[GPoint];
-        Variables.F            = deformation_gradients[GPoint];
-        Variables.StrainVector = strain_vectors[GPoint];
-
-        ConstitutiveLawUtilities::SetConstitutiveParameters(
-            ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix, Variables.Np,
-            Variables.GradNpT, Variables.F, determinants_of_deformation_gradients[GPoint]);
-
-        noalias(Variables.StressVector) = mStressVector[GPoint];
-        ConstitutiveParameters.SetStressVector(Variables.StressVector);
-        mConstitutiveLawVector[GPoint]->InitializeMaterialResponseCauchy(ConstitutiveParameters);
-    }
-
-    // Reset hydraulic discharge
     this->ResetHydraulicDischarge();
-
-    KRATOS_CATCH("")
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -356,7 +316,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeNonLinearIteration(const 
                                                        rCurrentProcessInfo);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-    ConstitutiveParameters.Set(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE); // Note: this is for nonlocal damage
+    ConstitutiveParameters.Set(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE);
 
     ElementVariables Variables;
     this->InitializeElementVariables(Variables, rCurrentProcessInfo);
@@ -465,14 +425,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::ExtrapolateGPValues(const Matrix& S
 {
     KRATOS_TRY
 
-    array_1d<double, TNumNodes> DamageContainer;
-
-    for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode) {
-        DamageContainer[iNode] = 0.0;
-        DamageContainer[iNode] =
-            mConstitutiveLawVector[iNode]->GetValue(DAMAGE_VARIABLE, DamageContainer[iNode]);
-    }
-
     GeometryType&               rGeom = this->GetGeometry();
     const double&               Area  = rGeom.Area(); // In 3D this is volume
     array_1d<Vector, TNumNodes> NodalStressVector;    // List with stresses at each node
@@ -500,16 +452,12 @@ void UPwSmallStrainElement<TDim, TNumNodes>::ExtrapolateGPValues(const Matrix& S
      * S1-0 = S[1] at node 0
      */
 
-    array_1d<double, TNumNodes> NodalDamage;
-    noalias(NodalDamage) = prod(ExtrapolationMatrix, DamageContainer);
-
     for (unsigned int i = 0; i < TNumNodes; ++i) {
         noalias(NodalStressVector[i]) = row(AuxNodalStress, i) * Area;
         noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
 
         rGeom[i].SetLock();
         noalias(rGeom[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)) += NodalStressTensor[i];
-        rGeom[i].FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) += NodalDamage[i] * Area;
         rGeom[i].FastGetSolutionStepValue(NODAL_AREA) += Area;
         rGeom[i].UnSetLock();
     }
@@ -1607,19 +1555,21 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeProperties(ElementVariabl
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainElement<TDim, TNumNodes>::CalculateKinematics(ElementVariables& rVariables, unsigned int GPoint)
+void UPwSmallStrainElement<TDim, TNumNodes>::CalculateKinematics(ElementVariables& rVariables,
+                                                                 unsigned int IntegrationPointIndex)
 {
     KRATOS_TRY
 
     // Setting the vector of shape functions and the matrix of the shape functions global gradients
-    noalias(rVariables.Np)      = row(rVariables.NContainer, GPoint);
-    noalias(rVariables.GradNpT) = rVariables.DN_DXContainer[GPoint];
+    noalias(rVariables.Np)      = row(rVariables.NContainer, IntegrationPointIndex);
+    noalias(rVariables.GradNpT) = rVariables.DN_DXContainer[IntegrationPointIndex];
 
-    rVariables.detJ = rVariables.detJContainer[GPoint];
+    rVariables.detJ = rVariables.detJContainer[IntegrationPointIndex];
 
     Matrix J0, InvJ0;
     this->CalculateDerivativesOnInitialConfiguration(rVariables.detJInitialConfiguration, J0, InvJ0,
-                                                     rVariables.GradNpTInitialConfiguration, GPoint);
+                                                     rVariables.GradNpTInitialConfiguration,
+                                                     IntegrationPointIndex);
 
     KRATOS_CATCH("")
 }
