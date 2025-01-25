@@ -959,8 +959,8 @@ private:
         0, Kratos::make_shared<Quadrilateral3D9<NodeType>>(Condition::GeometryType::PointsArrayType(9))};
 
     // constitutive models
-    const BilinearCohesive3DLaw  mBilinearCohesive3DLaw;
-    const BilinearCohesive2DLaw  mBilinearCohesive2DLaw;
+    const BilinearCohesive3DLaw mBilinearCohesive3DLaw;
+    const BilinearCohesive2DLaw mBilinearCohesive2DLaw;
     const GeoIncrementalLinearElasticLaw mLinearElasticPlaneStrain2DLaw{std::make_unique<PlaneStrain>()};
     const GeoIncrementalLinearElasticLaw mLinearElastic3DLaw{std::make_unique<ThreeDimensional>()};
     const GeoLinearElasticPlaneStress2DLaw mLinearElasticPlaneStress2DLaw;

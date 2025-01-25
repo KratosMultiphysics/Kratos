@@ -93,38 +93,38 @@ void SmallDisplacementMixedStrainDisplacementElement::EquationIdVector(
 
     if (dim == 2) {
         for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
-            const auto &r_node = GetGeometry()[i_node];
+            const auto &r_node = r_geometry[i_node];
             const SizeType u_block = i_node * dim;
             const SizeType E_block = i_node * strain_size + u_size;
 
             const IndexType displ_dof = r_node.GetDofPosition(DISPLACEMENT_X);
-            const IndexType E_dof     = r_node.GetDofPosition(NODAL_STRAIN_VECTOR_XX);
-            const IndexType E_dof_xy  = r_node.GetDofPosition(NODAL_STRAIN_VECTOR_XY);
+            const IndexType E_dof     = r_node.GetDofPosition(STRAIN_VECTOR_XX);
+            const IndexType E_dof_xy  = r_node.GetDofPosition(STRAIN_VECTOR_XY);
 
             rResult[u_block    ] = r_node.GetDof(DISPLACEMENT_X,          displ_dof    ).EquationId();
             rResult[u_block + 1] = r_node.GetDof(DISPLACEMENT_Y,          displ_dof + 1).EquationId();
-            rResult[E_block    ] = r_node.GetDof(NODAL_STRAIN_VECTOR_XX,  E_dof        ).EquationId();
-            rResult[E_block + 1] = r_node.GetDof(NODAL_STRAIN_VECTOR_YY,  E_dof + 1    ).EquationId();
-            rResult[E_block + 2] = r_node.GetDof(NODAL_STRAIN_VECTOR_XY,  E_dof_xy     ).EquationId();
+            rResult[E_block    ] = r_node.GetDof(STRAIN_VECTOR_XX,  E_dof        ).EquationId();
+            rResult[E_block + 1] = r_node.GetDof(STRAIN_VECTOR_YY,  E_dof + 1    ).EquationId();
+            rResult[E_block + 2] = r_node.GetDof(STRAIN_VECTOR_XY,  E_dof_xy     ).EquationId();
         }
     } else {
         for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
-            const auto &r_node = GetGeometry()[i_node];
+            const auto &r_node = r_geometry[i_node];
             const SizeType u_block = i_node * dim;
             const SizeType E_block = i_node * strain_size + u_size;
 
             const IndexType displ_dof = r_node.GetDofPosition(DISPLACEMENT_X);
-            const IndexType E_dof     = r_node.GetDofPosition(NODAL_STRAIN_VECTOR_XX);
+            const IndexType E_dof     = r_node.GetDofPosition(STRAIN_VECTOR_XX);
 
             rResult[u_block    ] = r_node.GetDof(DISPLACEMENT_X,          displ_dof    ).EquationId();
             rResult[u_block + 1] = r_node.GetDof(DISPLACEMENT_Y,          displ_dof + 1).EquationId();
             rResult[u_block + 2] = r_node.GetDof(DISPLACEMENT_Z,          displ_dof + 2).EquationId();
-            rResult[E_block    ] = r_node.GetDof(NODAL_STRAIN_VECTOR_XX,  r_node.GetDofPosition(NODAL_STRAIN_VECTOR_XX)).EquationId();
-            rResult[E_block + 1] = r_node.GetDof(NODAL_STRAIN_VECTOR_YY,  r_node.GetDofPosition(NODAL_STRAIN_VECTOR_YY)).EquationId();
-            rResult[E_block + 2] = r_node.GetDof(NODAL_STRAIN_VECTOR_ZZ,  r_node.GetDofPosition(NODAL_STRAIN_VECTOR_ZZ)).EquationId();
-            rResult[E_block + 3] = r_node.GetDof(NODAL_STRAIN_VECTOR_XY,  r_node.GetDofPosition(NODAL_STRAIN_VECTOR_XY)).EquationId();
-            rResult[E_block + 4] = r_node.GetDof(NODAL_STRAIN_VECTOR_YZ,  r_node.GetDofPosition(NODAL_STRAIN_VECTOR_YZ)).EquationId();
-            rResult[E_block + 5] = r_node.GetDof(NODAL_STRAIN_VECTOR_XZ,  r_node.GetDofPosition(NODAL_STRAIN_VECTOR_XZ)).EquationId();
+            rResult[E_block    ] = r_node.GetDof(STRAIN_VECTOR_XX,  E_dof    ).EquationId();
+            rResult[E_block + 1] = r_node.GetDof(STRAIN_VECTOR_YY,  E_dof + 1).EquationId();
+            rResult[E_block + 2] = r_node.GetDof(STRAIN_VECTOR_ZZ,  E_dof + 2).EquationId();
+            rResult[E_block + 3] = r_node.GetDof(STRAIN_VECTOR_XY,  E_dof + 3).EquationId();
+            rResult[E_block + 4] = r_node.GetDof(STRAIN_VECTOR_YZ,  E_dof + 4).EquationId();
+            rResult[E_block + 5] = r_node.GetDof(STRAIN_VECTOR_XZ,  E_dof + 5).EquationId();
         }
     }
 
@@ -154,29 +154,29 @@ void SmallDisplacementMixedStrainDisplacementElement::GetDofList(
 
     if (dim == 2) {
         for(IndexType i_node = 0; i_node < n_nodes; ++i_node) {
-            const auto &r_node = GetGeometry()[i_node];
+            const auto &r_node = r_geometry[i_node];
             const SizeType u_block = i_node * dim;
             const SizeType E_block = i_node * strain_size + u_size;
             rElementalDofList[u_block    ] = r_node.pGetDof(DISPLACEMENT_X);
             rElementalDofList[u_block + 1] = r_node.pGetDof(DISPLACEMENT_Y);
-            rElementalDofList[E_block    ] = r_node.pGetDof(NODAL_STRAIN_VECTOR_XX);
-            rElementalDofList[E_block + 1] = r_node.pGetDof(NODAL_STRAIN_VECTOR_YY);
-            rElementalDofList[E_block + 2] = r_node.pGetDof(NODAL_STRAIN_VECTOR_XY);
+            rElementalDofList[E_block    ] = r_node.pGetDof(STRAIN_VECTOR_XX);
+            rElementalDofList[E_block + 1] = r_node.pGetDof(STRAIN_VECTOR_YY);
+            rElementalDofList[E_block + 2] = r_node.pGetDof(STRAIN_VECTOR_XY);
         }
     } else if (dim == 3) {
         for(IndexType i_node = 0; i_node < n_nodes; ++i_node) {
-            const auto &r_node = GetGeometry()[i_node];
+            const auto &r_node = r_geometry[i_node];
             const SizeType u_block = i_node * dim;
             const SizeType E_block = i_node * strain_size + u_size;
             rElementalDofList[u_block    ] = r_node.pGetDof(DISPLACEMENT_X);
             rElementalDofList[u_block + 1] = r_node.pGetDof(DISPLACEMENT_Y);
             rElementalDofList[u_block + 2] = r_node.pGetDof(DISPLACEMENT_Z);
-            rElementalDofList[E_block    ] = r_node.pGetDof(NODAL_STRAIN_VECTOR_XX);
-            rElementalDofList[E_block + 1] = r_node.pGetDof(NODAL_STRAIN_VECTOR_YY);
-            rElementalDofList[E_block + 2] = r_node.pGetDof(NODAL_STRAIN_VECTOR_ZZ);
-            rElementalDofList[E_block + 3] = r_node.pGetDof(NODAL_STRAIN_VECTOR_XY);
-            rElementalDofList[E_block + 4] = r_node.pGetDof(NODAL_STRAIN_VECTOR_YZ);
-            rElementalDofList[E_block + 5] = r_node.pGetDof(NODAL_STRAIN_VECTOR_XZ);
+            rElementalDofList[E_block    ] = r_node.pGetDof(STRAIN_VECTOR_XX);
+            rElementalDofList[E_block + 1] = r_node.pGetDof(STRAIN_VECTOR_YY);
+            rElementalDofList[E_block + 2] = r_node.pGetDof(STRAIN_VECTOR_ZZ);
+            rElementalDofList[E_block + 3] = r_node.pGetDof(STRAIN_VECTOR_XY);
+            rElementalDofList[E_block + 4] = r_node.pGetDof(STRAIN_VECTOR_YZ);
+            rElementalDofList[E_block + 5] = r_node.pGetDof(STRAIN_VECTOR_XZ);
         }
     }
 
@@ -190,13 +190,16 @@ void SmallDisplacementMixedStrainDisplacementElement::Initialize(
     const ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY
+    const auto& r_props = GetProperties();
 
     // Initialization should not be done again in a restart!
     if (!rCurrentProcessInfo[IS_RESTARTED]) {
         // Integration method initialization
-        const auto &r_props = GetProperties();
-
-        mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_LOBATTO_2;
+        if (r_props.Has(INTEGRATION_ORDER) ) {
+            mThisIntegrationMethod = static_cast<GeometryData::IntegrationMethod>(r_props[INTEGRATION_ORDER] - 1);
+        } else {
+            mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_LOBATTO_1;
+        }
 
         const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
@@ -238,7 +241,7 @@ void SmallDisplacementMixedStrainDisplacementElement::InitializeSolutionStep(
         KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
 
         // Compute U and E
-        GetNodalDoFsVectors(this_kinematic_variables.NodalDisplacements, this_kinematic_variables.NodalStrains);
+        GetNodalDoFsVectors(this_kinematic_variables.ElementSizeNodalDisplacementsVector, this_kinematic_variables.ElementSizeStrainVector);
 
         ConstitutiveVariables this_constitutive_variables(strain_size);
 
@@ -299,7 +302,7 @@ void SmallDisplacementMixedStrainDisplacementElement::FinalizeSolutionStep(
         KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
 
         // Compute U and E
-        GetNodalDoFsVectors(this_kinematic_variables.NodalDisplacements, this_kinematic_variables.NodalStrains);
+        GetNodalDoFsVectors(this_kinematic_variables.ElementSizeNodalDisplacementsVector, this_kinematic_variables.ElementSizeStrainVector);
 
         ConstitutiveVariables this_constitutive_variables(strain_size);
 
@@ -352,7 +355,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
     const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
     const SizeType block_size  = dim + strain_size;
     const SizeType matrix_size = block_size * n_nodes;
-    const double tau    = GetStabilizationFactor();
+    const double tau = GetStabilizationFactor();
 
     // Check RHS size
     if (rRHS.size() != matrix_size) {
@@ -363,14 +366,14 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
     if (rLHS.size1() != matrix_size || rLHS.size2() != matrix_size) {
         rLHS.resize(matrix_size, matrix_size, false);
     }
-    noalias(rLHS) = ZeroMatrix(matrix_size, matrix_size);
-    noalias(rRHS) = ZeroVector(matrix_size);
+    rLHS.clear();
+    rRHS.clear();
 
     // Create the kinematics container and fill the nodal data
     KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
 
     // Compute U and E
-    GetNodalDoFsVectors(kinematic_variables.NodalDisplacements, kinematic_variables.NodalStrains);
+    GetNodalDoFsVectors(kinematic_variables.ElementSizeNodalDisplacementsVector, kinematic_variables.ElementSizeStrainVector);
 
     // Create the constitutive variables and values containers
     ConstitutiveVariables constitutive_variables(strain_size);
@@ -384,21 +387,21 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
     cons_law_values.SetStressVector(constitutive_variables.StrainVector);
     cons_law_values.SetConstitutiveMatrix(constitutive_variables.D);
 
-    Vector RHSu(dim * n_nodes), RHSe(strain_size * n_nodes);
-    noalias(RHSu) = ZeroVector(dim * n_nodes);
-    noalias(RHSe) = ZeroVector(strain_size * n_nodes);
+    Vector RHSu(dim * n_nodes);
+    Vector RHSe(strain_size * n_nodes);
+    RHSu.clear();
+    RHSe.clear();
 
-    Matrix K(dim * n_nodes, dim * n_nodes), G(n_nodes * strain_size, dim * n_nodes),
-        M(n_nodes * strain_size, n_nodes * strain_size), Q(dim * n_nodes, n_nodes * strain_size);
-    noalias(K) = ZeroMatrix(dim * n_nodes, dim * n_nodes);
-    noalias(G) = ZeroMatrix(n_nodes * strain_size, dim * n_nodes);
-    noalias(Q) = ZeroMatrix(dim * n_nodes, n_nodes * strain_size);
-    noalias(M) = ZeroMatrix(n_nodes * strain_size, n_nodes * strain_size);
+    Matrix K(dim * n_nodes, dim * n_nodes);
+    Matrix G(n_nodes * strain_size, dim * n_nodes);
+    Matrix M(n_nodes * strain_size, n_nodes * strain_size);
+    Matrix Q(dim * n_nodes, n_nodes * strain_size);
+    K.clear();
+    G.clear();
+    Q.clear();
+    M.clear();
 
-    Matrix D0(strain_size, strain_size);
-    mConstitutiveLawVector[0]->CalculateValue(cons_law_values, CONSTITUTIVE_MATRIX, D0);
-
-    const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+    const auto& r_integration_points = r_geometry.IntegrationPoints(mThisIntegrationMethod);
     SizeType n_gauss = r_integration_points.size();
 
     Matrix D0(strain_size, strain_size);
@@ -407,9 +410,9 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
     // Gauss IP loop
     for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
 
-        const auto body_force = GetBodyForce(r_geometry.IntegrationPoints(GetIntegrationMethod()), i_gauss);
+        const auto body_force = GetBodyForce(r_geometry.IntegrationPoints(mThisIntegrationMethod), i_gauss);
 
-        CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
+        CalculateKinematicVariables(kinematic_variables, i_gauss, mThisIntegrationMethod);
 
         double w_gauss = kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
         if (dim == 2 && r_props.Has(THICKNESS))
@@ -423,13 +426,14 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
         // Now we add the body forces
         for (IndexType i = 0; i < n_nodes; ++i) {
             const SizeType index = dim * i;
-            for (IndexType j = 0; j < dim; ++j)
+            for (IndexType j = 0; j < dim; ++j) {
                 RHSu[index + j] += w_gauss * kinematic_variables.N[i] * body_force[j];
+            }
         }
 
         // Contributions to the RHS
         noalias(RHSu) -= w_gauss * prod(trans(kinematic_variables.B), constitutive_variables.StressVector);
-        const Vector strain_diff = kinematic_variables.SymmGradientDispl - kinematic_variables.EquivalentStrain;
+        const Vector strain_diff = prod(kinematic_variables.B, kinematic_variables.ElementSizeNodalDisplacementsVector) - kinematic_variables.EquivalentStrain;
         noalias(RHSe) -= w_gauss * prod(trans(kinematic_variables.N_epsilon), Vector(prod(D0, strain_diff)));
 
         // Contributions to the LHS
@@ -467,19 +471,19 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLeftHandSide(
     const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
     const SizeType block_size  = dim + strain_size;
     const SizeType matrix_size = block_size * n_nodes;
-    const double tau    = GetStabilizationFactor();
+    const double tau = GetStabilizationFactor();
 
     // Check LHS size
     if (rLHS.size1() != matrix_size || rLHS.size2() != matrix_size) {
         rLHS.resize(matrix_size, matrix_size, false);
     }
-    noalias(rLHS) = ZeroMatrix(matrix_size, matrix_size);
+    rLHS.clear();
 
     // Create the kinematics container and fill the nodal data
     KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
 
     // Compute U and E
-    GetNodalDoFsVectors(kinematic_variables.NodalDisplacements, kinematic_variables.NodalStrains);
+    GetNodalDoFsVectors(kinematic_variables.ElementSizeNodalDisplacementsVector, kinematic_variables.ElementSizeStrainVector);
 
     // Create the constitutive variables and values containers
     ConstitutiveVariables constitutive_variables(strain_size);
@@ -493,17 +497,16 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLeftHandSide(
     cons_law_values.SetStressVector(constitutive_variables.StrainVector);
     cons_law_values.SetConstitutiveMatrix(constitutive_variables.D);
 
-    Matrix K(dim * n_nodes, dim * n_nodes), G(n_nodes * strain_size, dim * n_nodes),
-        M(n_nodes * strain_size, n_nodes * strain_size), Q(dim * n_nodes, n_nodes * strain_size);
-    noalias(K) = ZeroMatrix(dim * n_nodes, dim * n_nodes);
-    noalias(G) = ZeroMatrix(n_nodes * strain_size, dim * n_nodes);
-    noalias(Q) = ZeroMatrix(dim * n_nodes, n_nodes * strain_size);
-    noalias(M) = ZeroMatrix(n_nodes * strain_size, n_nodes * strain_size);
+    Matrix K(dim * n_nodes, dim * n_nodes);
+    Matrix G(n_nodes * strain_size, dim * n_nodes);
+    Matrix M(n_nodes * strain_size, n_nodes * strain_size);
+    Matrix Q(dim * n_nodes, n_nodes * strain_size);
+    K.clear();
+    G.clear();
+    Q.clear();
+    M.clear();
 
-    Matrix D0(strain_size, strain_size);
-    mConstitutiveLawVector[0]->CalculateValue(cons_law_values, CONSTITUTIVE_MATRIX, D0);
-
-    const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+    const auto& r_integration_points = r_geometry.IntegrationPoints(mThisIntegrationMethod);
     SizeType n_gauss = r_integration_points.size();
 
     Matrix D0(strain_size, strain_size);
@@ -512,9 +515,9 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLeftHandSide(
     // Gauss IP loop
     for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
 
-        const auto body_force = GetBodyForce(r_geometry.IntegrationPoints(GetIntegrationMethod()), i_gauss);
+        const auto body_force = GetBodyForce(r_geometry.IntegrationPoints(mThisIntegrationMethod), i_gauss);
 
-        CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
+        CalculateKinematicVariables(kinematic_variables, i_gauss, mThisIntegrationMethod);
 
         double w_gauss = kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
         if (dim == 2 && r_props.Has(THICKNESS))
@@ -557,20 +560,18 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateRightHandSide(
     const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
     const SizeType block_size  = dim + strain_size;
     const SizeType matrix_size = block_size * n_nodes;
-    const double tau    = GetStabilizationFactor();
 
     // Check RHS size
     if (rRHS.size() != matrix_size) {
         rRHS.resize(matrix_size, false);
     }
-
-    noalias(rRHS) = ZeroVector(matrix_size);
+    rRHS.clear();
 
     // Create the kinematics container and fill the nodal data
     KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
 
     // Compute U and E
-    GetNodalDoFsVectors(kinematic_variables.NodalDisplacements, kinematic_variables.NodalStrains);
+    GetNodalDoFsVectors(kinematic_variables.ElementSizeNodalDisplacementsVector, kinematic_variables.ElementSizeStrainVector);
 
     // Create the constitutive variables and values containers
     ConstitutiveVariables constitutive_variables(strain_size);
@@ -584,12 +585,13 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateRightHandSide(
     cons_law_values.SetStressVector(constitutive_variables.StrainVector);
     cons_law_values.SetConstitutiveMatrix(constitutive_variables.D);
 
-    const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+    const auto& r_integration_points = r_geometry.IntegrationPoints(mThisIntegrationMethod);
     SizeType n_gauss = r_integration_points.size();
 
-    Vector RHSu(dim * n_nodes), RHSe(strain_size * n_nodes);
-    noalias(RHSu) = ZeroVector(dim * n_nodes);
-    noalias(RHSe) = ZeroVector(strain_size * n_nodes);
+    Vector RHSu(dim * n_nodes);
+    Vector RHSe(strain_size * n_nodes);
+    RHSu.clear();
+    RHSe.clear();
 
     Matrix D0(strain_size, strain_size);
     mConstitutiveLawVector[0]->CalculateValue(cons_law_values, CONSTITUTIVE_MATRIX, D0);
@@ -598,9 +600,9 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateRightHandSide(
     // IP loop
     for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
 
-        const auto body_force = GetBodyForce(r_geometry.IntegrationPoints(GetIntegrationMethod()), i_gauss);
+        const auto body_force = GetBodyForce(r_geometry.IntegrationPoints(mThisIntegrationMethod), i_gauss);
 
-        CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
+        CalculateKinematicVariables(kinematic_variables, i_gauss, mThisIntegrationMethod);
 
         double w_gauss = kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
         if (dim == 2 && r_props.Has(THICKNESS))
@@ -614,13 +616,14 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateRightHandSide(
         // Now we add the body forces
         for (IndexType i = 0; i < n_nodes; ++i) {
             const SizeType index = dim * i;
-            for (IndexType j = 0; j < dim; ++j)
+            for (IndexType j = 0; j < dim; ++j) {
                 RHSu[index + j] += w_gauss * kinematic_variables.N[i] * body_force[j];
+            }
         }
 
         // Contributions to the RHS
         noalias(RHSu) -= w_gauss * prod(trans(kinematic_variables.B), constitutive_variables.StressVector);
-        const Vector strain_diff = kinematic_variables.SymmGradientDispl - kinematic_variables.EquivalentStrain;
+        const Vector strain_diff = prod(kinematic_variables.B, kinematic_variables.ElementSizeNodalDisplacementsVector) - kinematic_variables.EquivalentStrain;
         noalias(RHSe) -= w_gauss * prod(trans(kinematic_variables.N_epsilon), Vector(prod(D0, strain_diff)));
     }
 
@@ -678,19 +681,21 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateN_EpsilonMatrix(
     if (dim == 2) {
         for (IndexType i = 0; i < n_nodes; ++i) {
             const IndexType initial_index = i * strain_size;
-            rN_Epsilon(0, initial_index    ) = rN[i];
-            rN_Epsilon(1, initial_index + 1) = rN[i];
-            rN_Epsilon(2, initial_index + 2) = rN[i];
+            const double N_i = rN[i];
+            rN_Epsilon(0, initial_index    ) = N_i;
+            rN_Epsilon(1, initial_index + 1) = N_i;
+            rN_Epsilon(2, initial_index + 2) = N_i;
         }
     } else { // dim = 3
         for (IndexType i = 0; i < n_nodes; ++i) {
             const IndexType initial_index = i * strain_size;
-            rN_Epsilon(0, initial_index    ) = rN[i];
-            rN_Epsilon(1, initial_index + 1) = rN[i];
-            rN_Epsilon(2, initial_index + 2) = rN[i];
-            rN_Epsilon(3, initial_index + 3) = rN[i];
-            rN_Epsilon(4, initial_index + 4) = rN[i];
-            rN_Epsilon(5, initial_index + 5) = rN[i];
+            const double N_i = rN[i];
+            rN_Epsilon(0, initial_index    ) = N_i;
+            rN_Epsilon(1, initial_index + 1) = N_i;
+            rN_Epsilon(2, initial_index + 2) = N_i;
+            rN_Epsilon(3, initial_index + 3) = N_i;
+            rN_Epsilon(4, initial_index + 4) = N_i;
+            rN_Epsilon(5, initial_index + 5) = N_i;
         }
     }
     KRATOS_CATCH("")
@@ -721,7 +726,7 @@ void SmallDisplacementMixedStrainDisplacementElement::GetNodalDoFsVectors(
             rU[index + k] = r_displ[k];
         }
 
-        const auto& r_nodal_strain = r_geometry[i].FastGetSolutionStepValue(NODAL_STRAIN_VECTOR);
+        const auto& r_nodal_strain = r_geometry[i].FastGetSolutionStepValue(STRAIN_VECTOR);
         index = i * strain_size;
         if (dim == 3) {
             for(IndexType k = 0; k < strain_size; ++k) {
@@ -783,8 +788,6 @@ void SmallDisplacementMixedStrainDisplacementElement::AssembleLHS(
     const auto& r_geometry = GetGeometry();
     const SizeType dim     = r_geometry.WorkingSpaceDimension();
     const SizeType n_nodes = r_geometry.PointsNumber();
-    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
-    const SizeType system_size = n_nodes * (strain_size + dim);
     const SizeType displ_size = n_nodes * dim;
 
     // Assemble K
@@ -889,6 +892,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateKinematicVariable
 
     const auto& r_geometry = GetGeometry();
     const auto& r_integration_points = GetGeometry().IntegrationPoints(rIntegrationMethod);
+    const double tau = GetStabilizationFactor();
 
     // Shape functions
     rKinVariables.N = r_geometry.ShapeFunctionsValues(rKinVariables.N, r_integration_points[IP].Coordinates());
@@ -905,48 +909,12 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateKinematicVariable
         rKinVariables.InvJ0, rKinVariables.DN_DX);
 
     // Compute B
-    CalculateB(rKinVariables.B, rKinVariables.DN_DX);
+    StructuralMechanicsElementUtilities::CalculateB(*this, rKinVariables.DN_DX, rKinVariables.B);
 
     // Compute N_epsilon
     CalculateN_EpsilonMatrix(rKinVariables.N_epsilon, rKinVariables.N);
 
-    // Compute the symmetric gradient of the displacements
-    noalias(rKinVariables.SymmGradientDispl) = prod(rKinVariables.B, rKinVariables.NodalDisplacements);
-
-    noalias(rKinVariables.NodalStrain) = prod(rKinVariables.N_epsilon, rKinVariables.NodalStrains);
-
-    // Calculate the equivalent total strain
-    CalculateEquivalentStrain(rKinVariables);
-
-    KRATOS_CATCH("")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void SmallDisplacementMixedStrainDisplacementElement::CalculateB(
-    Matrix& rB,
-    const Matrix& rDN_DX
-    ) const
-{
-    KRATOS_TRY
-
-    StructuralMechanicsElementUtilities::CalculateB(*this, rDN_DX, rB);
-
-    KRATOS_CATCH("")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void SmallDisplacementMixedStrainDisplacementElement::CalculateEquivalentStrain(
-    KinematicVariables& rKinVars) const
-{
-    KRATOS_TRY
-
-    const auto &r_props = GetProperties();
-    const double tau = GetStabilizationFactor();
-    noalias(rKinVars.EquivalentStrain) = (1.0 - tau) * rKinVars.NodalStrain + tau * rKinVars.SymmGradientDispl;
+    noalias(rKinVariables.EquivalentStrain) = (1.0 - tau) * prod(rKinVariables.N_epsilon, rKinVariables.ElementSizeStrainVector) + tau * prod(rKinVariables.B, rKinVariables.ElementSizeNodalDisplacementsVector);
 
     KRATOS_CATCH("")
 }
@@ -958,7 +926,7 @@ int SmallDisplacementMixedStrainDisplacementElement::Check(const ProcessInfo& rC
 {
     KRATOS_TRY
 
-    int check = SmallDisplacementMixedStrainDisplacementElement::BaseType::Check(rCurrentProcessInfo);
+    int check = BaseType::Check(rCurrentProcessInfo);
 
     // Base check
     check = StructuralMechanicsElementUtilities::SolidElementCheck(*this, rCurrentProcessInfo, mConstitutiveLawVector);
@@ -967,7 +935,7 @@ int SmallDisplacementMixedStrainDisplacementElement::Check(const ProcessInfo& rC
     const auto& r_geometry = this->GetGeometry();
     for (IndexType i = 0; i < r_geometry.size(); i++) {
         const NodeType& r_node = r_geometry[i];
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NODAL_STRAIN_VECTOR, r_node)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(STRAIN_VECTOR, r_node)
     }
 
     return check;
@@ -985,7 +953,6 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateOnIntegrationPoin
     )
 {
     KRATOS_TRY
-    const auto& r_geometry = GetGeometry();
     const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
     const SizeType n_gauss = r_integration_points.size();
@@ -1016,6 +983,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateOnIntegrationPoin
     const ProcessInfo& rCurrentProcessInfo
     )
 {
+    KRATOS_TRY
     const auto& r_geometry = GetGeometry();
     const GeometryType::IntegrationPointsArrayType &r_integration_points = r_geometry.IntegrationPoints(mThisIntegrationMethod);
 
@@ -1039,6 +1007,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateOnIntegrationPoin
             rOutput[ii] = solution;
         }
     }
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -1050,6 +1019,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateOnIntegrationPoin
     const ProcessInfo& rCurrentProcessInfo
     )
 {
+    KRATOS_TRY
     if (rVariable == CONSTITUTIVE_LAW) {
         const SizeType integration_points_number = mConstitutiveLawVector.size();
         if (rValues.size() != integration_points_number) {
@@ -1059,6 +1029,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateOnIntegrationPoin
             rValues[point_number] = mConstitutiveLawVector[point_number];
         }
     }
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -1070,7 +1041,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateOnIntegrationPoin
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    const auto& r_geometry = GetGeometry();
+    KRATOS_TRY
     const auto &r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
     const SizeType number_of_integration_points = r_integration_points.size();
@@ -1082,6 +1053,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateOnIntegrationPoin
     } else {
         CalculateOnConstitutiveLaw(rVariable, rOutput, rCurrentProcessInfo);
     }
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -1093,6 +1065,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateOnIntegrationPoin
     const ProcessInfo& rCurrentProcessInfo
     )
 {
+    KRATOS_TRY
     const auto& r_geometry = GetGeometry();
     const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
@@ -1111,7 +1084,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateOnIntegrationPoin
 
         // Create the kinematics container and fill the nodal data
         KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
-        GetNodalDoFsVectors(kinematic_variables.NodalDisplacements, kinematic_variables.NodalStrains);
+        GetNodalDoFsVectors(kinematic_variables.ElementSizeNodalDisplacementsVector, kinematic_variables.ElementSizeStrainVector);
 
         // Create the constitutive variables and values containers
         ConstitutiveVariables constitutive_variables(strain_size);
@@ -1142,7 +1115,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateOnIntegrationPoin
             }
             noalias(rOutput[i_gauss]) = constitutive_variables.StressVector;
         }
-    } else if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR) {
+    } else if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR || rVariable == STRAIN) {
         // Create and initialize element variables:
         const SizeType n_nodes = r_geometry.PointsNumber();
         const SizeType dim = r_geometry.WorkingSpaceDimension();
@@ -1150,7 +1123,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateOnIntegrationPoin
 
         // Create the kinematics container and fill the nodal data
         KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
-        GetNodalDoFsVectors(kinematic_variables.NodalDisplacements, kinematic_variables.NodalStrains);
+        GetNodalDoFsVectors(kinematic_variables.ElementSizeNodalDisplacementsVector, kinematic_variables.ElementSizeStrainVector);
 
         for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
             // Calculate kinematics
@@ -1162,51 +1135,10 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateOnIntegrationPoin
             }
             noalias(rOutput[i_gauss]) = kinematic_variables.EquivalentStrain;
         }
-    } else if (rVariable == STRAIN) {
-        // Create and initialize element variables:
-        const SizeType n_nodes = r_geometry.PointsNumber();
-        const SizeType dim = r_geometry.WorkingSpaceDimension();
-        const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
-
-        // Create the kinematics container and fill the nodal data
-        KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
-        GetNodalDoFsVectors(kinematic_variables.NodalDisplacements, kinematic_variables.NodalStrains);
-
-        for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
-            // Calculate kinematics
-            CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
-
-            // Check sizes and save the output stress
-            if (rOutput[i_gauss].size() != strain_size) {
-                rOutput[i_gauss].resize(strain_size, false);
-            }
-            noalias(rOutput[i_gauss]) = prod(kinematic_variables.N_epsilon, kinematic_variables.NodalStrains);
-        }
-
-    } else if (rVariable == HENCKY_STRAIN_VECTOR) {
-        // Create and initialize element variables:
-        const SizeType n_nodes = r_geometry.PointsNumber();
-        const SizeType dim = r_geometry.WorkingSpaceDimension();
-        const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
-
-        // Create the kinematics container and fill the nodal data
-        KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
-        GetNodalDoFsVectors(kinematic_variables.NodalDisplacements, kinematic_variables.NodalStrains);
-
-        for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
-            // Calculate kinematics
-            CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
-
-            // Check sizes and save the output stress
-            if (rOutput[i_gauss].size() != strain_size) {
-                rOutput[i_gauss].resize(strain_size, false);
-            }
-            noalias(rOutput[i_gauss]) = kinematic_variables.SymmGradientDispl;
-        }
-
     } else {
         CalculateOnConstitutiveLaw(rVariable, rOutput, rCurrentProcessInfo);
     }
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -1217,15 +1149,15 @@ const Parameters SmallDisplacementMixedStrainDisplacementElement::GetSpecificati
     const Parameters specifications = Parameters(R"({
         "time_integration"           : ["static"],
         "framework"                  : "lagrangian",
-        "symmetric_lhs"              : true,
-        "positive_definite_lhs"      : true,
+        "symmetric_lhs"              : false,
+        "positive_definite_lhs"      : false,
         "output"                     : {
             "gauss_point"            : ["CAUCHY_STRESS_VECTOR"],
-            "nodal_historical"       : ["DISPLACEMENT","VOLUMETRIC_STRAIN"],
+            "nodal_historical"       : ["DISPLACEMENT","STRAIN_VECTOR"],
             "nodal_non_historical"   : [],
             "entity"                 : []
         },
-        "required_variables"         : ["DISPLACEMENT","VOLUMETRIC_STRAIN"],
+        "required_variables"         : ["DISPLACEMENT","STRAIN_VECTOR"],
         "required_dofs"              : [],
         "flags_used"                 : [],
         "compatible_geometries"      : ["Triangle2D3", "Quadrilateral2D4", "Tetrahedra3D4","Hexahedra3D8"],
@@ -1237,15 +1169,15 @@ const Parameters SmallDisplacementMixedStrainDisplacementElement::GetSpecificati
         },
         "required_polynomial_degree_of_geometry" : 1,
         "documentation"   :
-            "This element implements a mixed displacement - volumetric strain formulation with Variational MultiScales (VMS) stabilization. This formulation is capable to deal with materials in the incompressible limit as well as with anisotropy."
+            "This element implements a mixed displacement - strain formulation with Variational MultiScales (VMS) stabilization."
     })");
 
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
     if (dimension == 2) {
-        std::vector<std::string> dofs_2d({"DISPLACEMENT_X","DISPLACEMENT_Y","VOLUMETRIC_STRAIN"});
+        std::vector<std::string> dofs_2d({"DISPLACEMENT_X","DISPLACEMENT_Y","STRAIN_VECTOR"});
         specifications["required_dofs"].SetStringArray(dofs_2d);
     } else {
-        std::vector<std::string> dofs_3d({"DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z","VOLUMETRIC_STRAIN"});
+        std::vector<std::string> dofs_3d({"DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z","STRAIN_VECTOR"});
         specifications["required_dofs"].SetStringArray(dofs_3d);
     }
 
@@ -1284,6 +1216,7 @@ void SmallDisplacementMixedStrainDisplacementElement::SetValuesOnIntegrationPoin
     const ProcessInfo& rCurrentProcessInfo
     )
 {
+    KRATOS_TRY
     if (mConstitutiveLawVector[0]->Has( rVariable)) {
         for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
             mConstitutiveLawVector[point_number]->SetValue( rVariable,rValues[point_number], rCurrentProcessInfo);
@@ -1291,6 +1224,7 @@ void SmallDisplacementMixedStrainDisplacementElement::SetValuesOnIntegrationPoin
     } else {
         KRATOS_WARNING("SmallDisplacementMixedStrainDisplacementElement") << "The variable " << rVariable << " is not implemented in the current ConstitutiveLaw" << std::endl;
     }
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -1302,6 +1236,7 @@ void SmallDisplacementMixedStrainDisplacementElement::SetValuesOnIntegrationPoin
     const ProcessInfo& rCurrentProcessInfo
     )
 {
+    KRATOS_TRY
     if (mConstitutiveLawVector[0]->Has( rVariable)) {
         for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
             mConstitutiveLawVector[point_number]->SetValue( rVariable,rValues[point_number], rCurrentProcessInfo);
@@ -1309,6 +1244,10 @@ void SmallDisplacementMixedStrainDisplacementElement::SetValuesOnIntegrationPoin
     } else {
         KRATOS_WARNING("SmallDisplacementMixedStrainDisplacementElement") << "The variable " << rVariable << " is not implemented in the current ConstitutiveLaw" << std::endl;
     }
+    KRATOS_CATCH("")
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 } // Namespace Kratos

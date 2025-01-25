@@ -684,8 +684,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
     const GeometryType::IntegrationPointsArrayType &integration_points = this->IntegrationPoints(this->GetIntegrationMethod());
 
     const SizeType number_of_integration_points = integration_points.size();
-    if (rOutput.size() != number_of_integration_points)
-        rOutput.resize(number_of_integration_points, false);
+    rOutput.assign(number_of_integration_points, false);
 
     if (mConstitutiveLawVector[0]->Has( rVariable)) {
         for ( IndexType point_number = 0; point_number <number_of_integration_points; ++point_number ) {
@@ -717,8 +716,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
     const GeometryType::IntegrationPointsArrayType &integration_points = this->IntegrationPoints(this->GetIntegrationMethod());
 
     const SizeType number_of_integration_points = integration_points.size();
-    if (rOutput.size() != number_of_integration_points)
-        rOutput.resize(number_of_integration_points, false);
+    rOutput.assign(number_of_integration_points, 0);
 
     if (mConstitutiveLawVector[0]->Has( rVariable)) {
         GetValueOnConstitutiveLaw(rVariable, rOutput);
@@ -745,12 +743,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
     const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
     const SizeType number_of_nodes = r_geometry.size();
 
-    if ( rOutput.size() != number_of_integration_points )
-        rOutput.resize( number_of_integration_points, false );
-
-    for (IndexType i_gauss = 0; i_gauss < number_of_integration_points; ++i_gauss) {
-        rOutput[i_gauss] = 0.0;
-    }
+    rOutput.assign(number_of_integration_points, 0.0);
 
     if (mConstitutiveLawVector[0]->Has( rVariable)) {
         GetValueOnConstitutiveLaw(rVariable, rOutput);
@@ -831,7 +824,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 detJ = r_geometry.DeterminantOfJacobian(detJ);
             } else {
                 for (IndexType point_number = 0; point_number < number_of_integration_points; ++point_number) {
-                   detJ[point_number] = r_geometry.DeterminantOfJacobian(integration_points[point_number]);
+                    detJ[point_number] = r_geometry.DeterminantOfJacobian(integration_points[point_number]);
                 }
             }
 
@@ -939,8 +932,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
     const GeometryType::IntegrationPointsArrayType &integration_points = this->IntegrationPoints(this->GetIntegrationMethod());
 
     const SizeType number_of_integration_points = integration_points.size();
-    if ( rOutput.size() != number_of_integration_points )
-        rOutput.resize( number_of_integration_points );
+    rOutput.assign(number_of_integration_points, array_1d<double, 3>(3, 0.0));
 
     const auto& r_geom = GetGeometry();
     const SizeType number_of_nodes = r_geom.size();
@@ -988,8 +980,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
     const GeometryType::IntegrationPointsArrayType &integration_points = this->IntegrationPoints(this->GetIntegrationMethod());
 
     const SizeType number_of_integration_points = integration_points.size();
-    if (rOutput.size() != number_of_integration_points)
-        rOutput.resize(number_of_integration_points);
+    rOutput.assign(number_of_integration_points, array_1d<double, 6>(6, 0.0));
 
     if (mConstitutiveLawVector[0]->Has( rVariable)) {
         GetValueOnConstitutiveLaw(rVariable, rOutput);
@@ -1014,8 +1005,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
     const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
     const SizeType number_of_integration_points = integration_points.size();
-    if ( rOutput.size() != number_of_integration_points )
-        rOutput.resize( number_of_integration_points );
+    rOutput.assign(number_of_integration_points, ZeroVector(strain_size));
 
     if (mConstitutiveLawVector[0]->Has( rVariable)) {
         GetValueOnConstitutiveLaw(rVariable, rOutput);

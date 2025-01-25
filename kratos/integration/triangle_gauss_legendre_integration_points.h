@@ -108,47 +108,6 @@ public:
 
 }; // Class TriangleGaussLegendreIntegrationPoints2
 
-
-class TriangleGaussLobattoIntegrationPoints2
-{
-public:
-    KRATOS_CLASS_POINTER_DEFINITION(TriangleGaussLobattoIntegrationPoints2);
-    typedef std::size_t SizeType;
-
-    static const unsigned int Dimension = 2;
-
-    typedef IntegrationPoint<2> IntegrationPointType;
-
-    typedef std::array<IntegrationPointType, 3> IntegrationPointsArrayType;
-
-    typedef IntegrationPointType::PointType PointType;
-
-    static SizeType IntegrationPointsNumber()
-    {
-        return 3;
-    }
-
-    static const IntegrationPointsArrayType& IntegrationPoints()
-    {
-        const double one_over_six = 1.0 / 6.0;
-        static const IntegrationPointsArrayType s_integration_points{{
-            IntegrationPointType( 0.0, 0.0 , one_over_six ),
-            IntegrationPointType( 1.0, 0.0 , one_over_six ),
-            IntegrationPointType( 0.0, 1.0 , one_over_six )
-        }};
-        return s_integration_points;
-    }
-
-    std::string Info() const
-    {
-        std::stringstream buffer;
-        buffer << "Triangle Gauss-Lobatto quadrature 2 ";
-        return buffer.str();
-    }
-
-
-}; // Class TriangleGaussLobattoIntegrationPoints2
-
 class TriangleGaussLegendreIntegrationPoints3
 {
 public:

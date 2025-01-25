@@ -54,24 +54,6 @@ double SaturatedBelowPhreaticLevelLaw::CalculateBishopCoefficient(Parameters& rP
     return CalculateEffectiveSaturation(rParameters);
 }
 
-double& SaturatedBelowPhreaticLevelLaw::CalculateValue(Parameters&             rParameterValues,
-                                                       const Variable<double>& rThisVariable,
-                                                       double&                 rValue)
-{
-    if (rThisVariable == DEGREE_OF_SATURATION) {
-        rValue = this->CalculateSaturation(rParameterValues);
-    } else if (rThisVariable == EFFECTIVE_SATURATION) {
-        rValue = this->CalculateEffectiveSaturation(rParameterValues);
-    } else if (rThisVariable == BISHOP_COEFFICIENT) {
-        rValue = this->CalculateBishopCoefficient(rParameterValues);
-    } else if (rThisVariable == DERIVATIVE_OF_SATURATION) {
-        rValue = this->CalculateDerivativeOfSaturation(rParameterValues);
-    } else if (rThisVariable == RELATIVE_PERMEABILITY) {
-        rValue = this->CalculateRelativePermeability(rParameterValues);
-    }
-    return rValue;
-}
-
 int SaturatedBelowPhreaticLevelLaw::Check(const Properties& rMaterialProperties, const ProcessInfo&)
 {
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(SATURATED_SATURATION))

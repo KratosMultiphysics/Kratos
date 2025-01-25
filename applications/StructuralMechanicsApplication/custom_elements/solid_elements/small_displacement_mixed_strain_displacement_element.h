@@ -24,6 +24,7 @@
 // Application includes
 #include "structural_mechanics_application_variables.h"
 #include "utilities/geometry_utilities.h"
+#include "utilities/element_size_calculator.h"
 
 
 namespace Kratos
@@ -35,12 +36,6 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-
-    /// The definition of the index type
-    using IndexType = std::size_t;
-
-    /// The definition of the sizetype
-    using SizeType = std::size_t;
 
 ///@}
 ///@name  Enum's
@@ -62,87 +57,23 @@ namespace Kratos
  * Reference: Finite element modeling of quasi-brittle cracks in 2D and 3D with enhanced strain accuracy, M. Cervera, G. Barbat and M. Chiumenti,
  * Computational Mechanics, (60) 767-796, 2017. DOI: https://doi.org/10.1007/s00466-017-1438-8
  * The secant matrix multiplication in the strain compatibility equation has been modified to the elastic constitutive matrix for generality.
- * The tangent tensor is used in the balance of linear momentum to get quadratic convergence rates in the Newton Raphson
+ * The tangent tensor is used in the balance of linear momentum to get quadratic convergence rates in the Newton Raphson strategy
  * @author Alejandro Cornejo
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallDisplacementMixedStrainDisplacementElement
     : public Element
 {
 
-    static constexpr double default_stabilization_factor = 0.1;
-
-protected:
-
-    /**
-     * Internal variables used in the kinematic calculations
-     */
-    struct KinematicVariables
-    {
-        Vector N;
-        Matrix B;
-        Matrix N_epsilon;          // Used to interpolate nodal strains
-        double detJ0;
-        Matrix J0;
-        Matrix InvJ0;
-        Matrix DN_DX;
-        Vector NodalDisplacements; // Displacement DoFs -> U
-        Vector NodalStrains;       // Strains stored at the nodes (strain DoFs) -> E
-        Vector EquivalentStrain;   // Stabilized strain field E = (1-tau) N_e · E + tau Bu · U
-        Vector SymmGradientDispl;  // Symmetric gradient of the nodal displacements: Bu·U
-        Vector NodalStrain;        // N_e · E
-
-        /**
-         * The default constructor
-         * @param StrainSize The size of the strain vector in Voigt notation
-         * @param Dimension The problem dimension: 2D or 3D
-         * @param NumberOfNodes The number of nodes of the element
-         */
-        KinematicVariables(
-            const SizeType StrainSize,
-            const SizeType Dimension,
-            const SizeType NumberOfNodes
-            )
-        {
-            detJ0 = 1.0;
-            N = ZeroVector(NumberOfNodes);
-            B = ZeroMatrix(StrainSize, Dimension * NumberOfNodes);
-            DN_DX = ZeroMatrix(NumberOfNodes, Dimension);
-            J0 = ZeroMatrix(Dimension, Dimension);
-            InvJ0 = ZeroMatrix(Dimension, Dimension);
-            NodalDisplacements = ZeroVector(Dimension * NumberOfNodes);
-            NodalStrains = ZeroVector(NumberOfNodes * StrainSize);
-            EquivalentStrain = ZeroVector(StrainSize);
-            SymmGradientDispl = ZeroVector(StrainSize);
-            NodalStrain = ZeroVector(StrainSize);
-            N_epsilon = ZeroMatrix(StrainSize, StrainSize * NumberOfNodes);
-        }
-    };
-
-    /**
-     * Internal variables used in the kinematic calculations
-     */
-    struct ConstitutiveVariables
-    {
-        Vector StrainVector;
-        Vector StressVector;
-        Matrix D;
-
-        /**
-         * The default constructor
-         * @param StrainSize The size of the strain vector in Voigt notation
-         */
-        ConstitutiveVariables(const SizeType StrainSize)
-        {
-            StrainVector = ZeroVector(StrainSize);
-            StressVector = ZeroVector(StrainSize);
-            D = ZeroMatrix(StrainSize, StrainSize);
-        }
-    };
-
 public:
 
     ///@name Type Definitions
     ///@{
+
+    /// The definition of the index type
+    using IndexType = std::size_t;
+
+    /// The definition of the sizetype
+    using SizeType = std::size_t;
 
     ///Reference type definition for constitutive laws
     using ConstitutiveLawType = ConstitutiveLaw;
@@ -497,19 +428,28 @@ protected:
     /**
      * @brief This method returns the stabilization factor tau according to the FE size
      */
-    const double GetStabilizationFactor() const
+    double GetStabilizationFactor() const
     {
         const auto &r_props = GetProperties();
         const auto &r_geom = GetGeometry();
-        const SizeType dim = r_geom.WorkingSpaceDimension();
         const double tau = r_props.Has(STABILIZATION_FACTOR) ? r_props[STABILIZATION_FACTOR] : default_stabilization_factor; // tau is c / L0
         if (r_props.Has(CHARACTERISTIC_LENGTH_MULTIPLIER)) {
             const double L0 = r_props[CHARACTERISTIC_LENGTH_MULTIPLIER];
+            const SizeType dimension = r_geom.WorkingSpaceDimension();
+            const SizeType num_nodes = r_geom.size();
             double l_char;
-            if (dim == 2) {
-                l_char = 0.5 * std::sqrt(r_geom.Area());
-            } else {
-                l_char = 0.5 * std::cbrt(r_geom.Volume());
+            if (dimension == 2) {
+                if (num_nodes == 3) { // Triangle
+                    l_char = ElementSizeCalculator<2, 3>::AverageElementSize(r_geom);
+                } else { // Quadrilateral
+                    l_char = ElementSizeCalculator<2, 4>::AverageElementSize(r_geom);
+                }
+            } else { // 3D
+                if (num_nodes == 4) { // Tetrahedron
+                    l_char = ElementSizeCalculator<3, 4>::AverageElementSize(r_geom);
+                } else { // Hexahedron
+                    l_char = ElementSizeCalculator<3, 8>::AverageElementSize(r_geom);
+                }
             }
             const double factor = l_char * tau / L0;
             return (factor > 1.0) ? 1.0 : factor;
@@ -517,52 +457,6 @@ protected:
             return tau;
         }
     }
-
-    /**
-     * @brief This method returns the scaling factor for the kinematic equation
-     */
-    const double GetScalingFactor()
-    {
-        return 1.0;
-        // const auto &r_props = GetProperties();
-        // const double E  = r_props[YOUNG_MODULUS];
-        // const double nu = r_props[POISSON_RATIO];
-        // return (E * nu) / ((1.0 + nu) * (1.0 - 2.0 * nu));
-    }
-
-    /**
-     * @brief This functions updates the data structure passed to the CL
-     * @param rThisKinematicVariables The kinematic variables to be calculated
-     * @param rThisConstitutiveVariables The constitutive variables
-     * @param rValues The CL parameters
-     * @param PointNumber The integration point considered
-     * @param IntegrationPoints The list of integration points
-     */
-    virtual void SetConstitutiveVariables(
-        KinematicVariables& rThisKinematicVariables,
-        ConstitutiveVariables& rThisConstitutiveVariables,
-        ConstitutiveLaw::Parameters& rValues,
-        const IndexType PointNumber,
-        const IntegrationPointsArrayType& IntegrationPoints
-        ) const;
-
-    /**
-     * @brief This functions updates the constitutive variables
-     * @param rThisKinematicVariables The kinematic variables to be calculated
-     * @param rThisConstitutiveVariables The constitutive variables
-     * @param rValues The CL parameters
-     * @param PointNumber The integration point considered
-     * @param IntegrationPoints The list of integration points
-     * @param ThisStressMeasure The stress measure considered
-     */
-    virtual void CalculateConstitutiveVariables(
-        KinematicVariables& rThisKinematicVariables,
-        ConstitutiveVariables& rThisConstitutiveVariables,
-        ConstitutiveLaw::Parameters& rValues,
-        const IndexType PointNumber,
-        const IntegrationPointsArrayType& IntegrationPoints,
-        const ConstitutiveLaw::StressMeasure ThisStressMeasure = ConstitutiveLaw::StressMeasure_PK2
-        ) const;
 
     /**
      * @brief This function computes the body force
@@ -628,6 +522,106 @@ private:
     ///@name Static Member Variables
     ///@{
 
+
+    /**
+     * Internal variables used in the kinematic calculations
+     */
+    struct KinematicVariables
+    {
+        Vector N;
+        Matrix B;
+        Matrix N_epsilon;          // Used to interpolate nodal strains
+        double detJ0;
+        Matrix J0;
+        Matrix InvJ0;
+        Matrix DN_DX;
+        Vector ElementSizeNodalDisplacementsVector; // Displacement DoFs -> U
+        Vector ElementSizeStrainVector; // Strains stored at the nodes (strain DoFs) -> E
+        Vector EquivalentStrain;   // Stabilized strain field E = (1-tau) N_e · E + tau Bu · U
+
+        /**
+         * The default constructor
+         * @param StrainSize The size of the strain vector in Voigt notation
+         * @param Dimension The problem dimension: 2D or 3D
+         * @param NumberOfNodes The number of nodes of the element
+         */
+        KinematicVariables(
+            const SizeType StrainSize,
+            const SizeType Dimension,
+            const SizeType NumberOfNodes
+            )
+        {
+            detJ0 = 1.0;
+            N = ZeroVector(NumberOfNodes);
+            B = ZeroMatrix(StrainSize, Dimension * NumberOfNodes);
+            DN_DX = ZeroMatrix(NumberOfNodes, Dimension);
+            J0 = ZeroMatrix(Dimension, Dimension);
+            InvJ0 = ZeroMatrix(Dimension, Dimension);
+            ElementSizeNodalDisplacementsVector = ZeroVector(Dimension * NumberOfNodes);
+            ElementSizeStrainVector = ZeroVector(NumberOfNodes * StrainSize);
+            EquivalentStrain = ZeroVector(StrainSize);
+            N_epsilon = ZeroMatrix(StrainSize, StrainSize * NumberOfNodes);
+        }
+    };
+
+    /**
+     * Internal variables used in the kinematic calculations
+     */
+    struct ConstitutiveVariables
+    {
+        Vector StrainVector;
+        Vector StressVector;
+        Matrix D;
+
+        /**
+         * The default constructor
+         * @param StrainSize The size of the strain vector in Voigt notation
+         */
+        ConstitutiveVariables(const SizeType StrainSize)
+        {
+            StrainVector = ZeroVector(StrainSize);
+            StressVector = ZeroVector(StrainSize);
+            D = ZeroMatrix(StrainSize, StrainSize);
+        }
+    };
+
+
+    /**
+     * @brief This functions updates the data structure passed to the CL
+     * @param rThisKinematicVariables The kinematic variables to be calculated
+     * @param rThisConstitutiveVariables The constitutive variables
+     * @param rValues The CL parameters
+     * @param PointNumber The integration point considered
+     * @param IntegrationPoints The list of integration points
+     */
+    virtual void SetConstitutiveVariables(
+        KinematicVariables& rThisKinematicVariables,
+        ConstitutiveVariables& rThisConstitutiveVariables,
+        ConstitutiveLaw::Parameters& rValues,
+        const IndexType PointNumber,
+        const IntegrationPointsArrayType& IntegrationPoints
+        ) const;
+
+    /**
+     * @brief This functions updates the constitutive variables
+     * @param rThisKinematicVariables The kinematic variables to be calculated
+     * @param rThisConstitutiveVariables The constitutive variables
+     * @param rValues The CL parameters
+     * @param PointNumber The integration point considered
+     * @param IntegrationPoints The list of integration points
+     * @param ThisStressMeasure The stress measure considered
+     */
+    virtual void CalculateConstitutiveVariables(
+        KinematicVariables& rThisKinematicVariables,
+        ConstitutiveVariables& rThisConstitutiveVariables,
+        ConstitutiveLaw::Parameters& rValues,
+        const IndexType PointNumber,
+        const IntegrationPointsArrayType& IntegrationPoints,
+        const ConstitutiveLaw::StressMeasure ThisStressMeasure = ConstitutiveLaw::StressMeasure_PK2
+        ) const;
+
+    static constexpr double default_stabilization_factor = 0.1;
+
     ///@}
     ///@name Member Variables
     ///@{
@@ -652,29 +646,6 @@ private:
         const IndexType PointNumber,
         const GeometryType::IntegrationMethod& rIntegrationMethod
         ) const;
-
-    /**
-     * @brief Calculation of the Deformation Matrix B
-     * @param rB The deformation matrix
-     * @param rDN_DX The derivatives of the shape functions
-     * @param IntegrationPoints The array containing the integration points
-     * @param PointNumber The integration point considered
-     */
-    void CalculateB(
-        Matrix& rB,
-        const Matrix& rDN_DX
-        ) const;
-
-    /**
-     * @brief Calculate the equivalent strain
-     * This function computes the equivalent strain vector.
-     * The equivalent strain is defined as the deviatoric part of the displacement
-     * symmetric gradient plus a volumetric strain coming from the interpolation
-     * of the nodal volumetric strain.
-     * @param rThisKinematicVariables Kinematic variables container
-     */
-    void CalculateEquivalentStrain(KinematicVariables& rThisKinematicVariables) const;
-
 
     /**
      * @brief This method gets a value directly in the CL
@@ -719,8 +690,9 @@ private:
 
         // Create the kinematics container and fill the nodal data
         KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
+
         // Compute U and E
-        GetNodalDoFsVectors(kinematic_variables.NodalDisplacements, kinematic_variables.NodalStrains);
+        GetNodalDoFsVectors(kinematic_variables.ElementSizeNodalDisplacementsVector, kinematic_variables.ElementSizeStrainVector);
 
         // Create the constitutive variables and values containers
         ConstitutiveVariables constitutive_variables(strain_size);
@@ -733,7 +705,7 @@ private:
         // Call the initialize material response
         for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
             // Recompute the kinematics
-            CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
+            CalculateKinematicVariables(kinematic_variables, i_gauss, mThisIntegrationMethod);
 
             noalias(constitutive_variables.StrainVector) = kinematic_variables.EquivalentStrain;
 
@@ -759,9 +731,9 @@ private:
 
     friend class Serializer;
 
-    void save( Serializer& rSerializer ) const override;
+    void save(Serializer &rSerializer) const override;
 
-    void load( Serializer& rSerializer ) override;
+    void load(Serializer &rSerializer) override;
 
 }; // class SmallDisplacementMixedStrainDisplacementElement.
 

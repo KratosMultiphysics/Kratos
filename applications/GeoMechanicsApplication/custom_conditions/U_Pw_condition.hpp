@@ -12,8 +12,7 @@
 //                   Vahid Galavi
 //
 
-#if !defined(KRATOS_GEO_U_PW_CONDITION_H_INCLUDED)
-#define KRATOS_GEO_U_PW_CONDITION_H_INCLUDED
+#pragma once
 
 // System includes
 #include <cmath>
@@ -62,29 +61,25 @@ public:
 
     void SetIntegrationMethod(IntegrationMethod method) { mThisIntegrationMethod = method; }
 
-    void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
-                              VectorType&        rRightHandSideVector,
+    void CalculateLocalSystem(Matrix&            rLeftHandSideMatrix,
+                              Vector&            rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateRightHandSide(Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
 
     std::string Info() const override;
 
 protected:
-    virtual void CalculateAll(MatrixType&        rLeftHandSideMatrix,
-                              VectorType&        rRightHandSideVector,
-                              const ProcessInfo& rCurrentProcessInfo);
+    virtual void CalculateAll(Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 
-    virtual void CalculateRHS(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
+    virtual void CalculateRHS(Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 
     [[nodiscard]] DofsVectorType GetDofs() const;
 
 private:
     GeometryData::IntegrationMethod mThisIntegrationMethod{Condition::GetIntegrationMethod()};
-
-    // Serialization
 
     friend class Serializer;
 
@@ -100,5 +95,3 @@ private:
 }; // class UPwCondition.
 
 } // namespace Kratos.
-
-#endif // KRATOS_GEO_U_PW_CONDITION_H_INCLUDED defined
