@@ -292,7 +292,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
 
                 print('Nodal variables: ', nodal_unknown_names)
 
-                s_default = np.array(s, copy=False)
+                s_default = np.asarray(s)
                 print(s_default.shape)
 
                 q, _ = nn_rom_interface.get_encode_function()(s_default)

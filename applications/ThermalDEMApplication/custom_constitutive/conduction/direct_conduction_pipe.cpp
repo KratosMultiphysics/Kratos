@@ -14,7 +14,7 @@
 #include "direct_conduction_pipe.h"
 
 namespace Kratos {
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   DirectConductionPipe::DirectConductionPipe() {}
   DirectConductionPipe::~DirectConductionPipe() {}
 

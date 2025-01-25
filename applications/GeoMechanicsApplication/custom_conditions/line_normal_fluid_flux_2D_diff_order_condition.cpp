@@ -14,6 +14,7 @@
 
 // Project includes
 #include "custom_conditions/line_normal_fluid_flux_2D_diff_order_condition.hpp"
+#include <custom_utilities/variables_utilities.hpp>
 
 namespace Kratos
 {
@@ -42,28 +43,29 @@ Condition::Pointer LineNormalFluidFlux2DDiffOrderCondition::Create(IndexType    
                                                                    NodesArrayType const& ThisNodes,
                                                                    PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(new LineNormalFluidFlux2DDiffOrderCondition(
-        NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Create(NewId, GetGeometry().Create(ThisNodes), pProperties);
+}
+
+Condition::Pointer LineNormalFluidFlux2DDiffOrderCondition::Create(IndexType             NewId,
+                                                                   GeometryType::Pointer pGeom,
+                                                                   PropertiesType::Pointer pProperties) const
+{
+    return make_intrusive<LineNormalFluidFlux2DDiffOrderCondition>(NewId, pGeom, pProperties);
 }
 
 void LineNormalFluidFlux2DDiffOrderCondition::CalculateConditionVector(ConditionVariables& rVariables,
                                                                        unsigned int PointNumber)
 {
     KRATOS_TRY
-
-    const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
-    rVariables.ConditionVector.resize(1, false);
-    rVariables.ConditionVector[0] = 0.0;
-
-    for (SizeType i = 0; i < NumPNodes; ++i) {
-        rVariables.ConditionVector[0] +=
-            rVariables.Np[i] * GetGeometry()[i].FastGetSolutionStepValue(NORMAL_FLUID_FLUX);
-    }
-
+    Vector nodal_normal_fluid_flux_vector(mpPressureGeometry->PointsNumber());
+    VariablesUtilities::GetNodalValues(*mpPressureGeometry, NORMAL_FLUID_FLUX,
+                                       nodal_normal_fluid_flux_vector.begin());
+    rVariables.ConditionVector =
+        ScalarVector(1, MathUtils<>::Dot(rVariables.Np, nodal_normal_fluid_flux_vector));
     KRATOS_CATCH("")
 }
 
-void LineNormalFluidFlux2DDiffOrderCondition::CalculateAndAddConditionForce(VectorType& rRightHandSideVector,
+void LineNormalFluidFlux2DDiffOrderCondition::CalculateAndAddConditionForce(Vector& rRightHandSideVector,
                                                                             ConditionVariables& rVariables)
 {
     const SizeType NumUNodes = GetGeometry().PointsNumber();

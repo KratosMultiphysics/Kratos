@@ -14,6 +14,7 @@
 
 // Project includes
 #include "custom_conditions/surface_normal_fluid_flux_3D_diff_order_condition.hpp"
+#include "custom_utilities/variables_utilities.hpp"
 
 namespace Kratos
 {
@@ -42,36 +43,35 @@ Condition::Pointer SurfaceNormalFluidFlux3DDiffOrderCondition::Create(IndexType 
                                                                       NodesArrayType const& ThisNodes,
                                                                       PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(new SurfaceNormalFluidFlux3DDiffOrderCondition(
-        NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Create(NewId, GetGeometry().Create(ThisNodes), pProperties);
+}
+
+Condition::Pointer SurfaceNormalFluidFlux3DDiffOrderCondition::Create(IndexType             NewId,
+                                                                      GeometryType::Pointer pGeom,
+                                                                      PropertiesType::Pointer pProperties) const
+{
+    return make_intrusive<SurfaceNormalFluidFlux3DDiffOrderCondition>(NewId, pGeom, pProperties);
 }
 
 void SurfaceNormalFluidFlux3DDiffOrderCondition::CalculateConditionVector(ConditionVariables& rVariables,
                                                                           unsigned int PointNumber)
 {
     KRATOS_TRY
-
-    const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
-    rVariables.ConditionVector.resize(1, false);
-    rVariables.ConditionVector[0] = 0.0;
-
-    for (SizeType i = 0; i < NumPNodes; ++i) {
-        rVariables.ConditionVector[0] +=
-            rVariables.Np[i] * GetGeometry()[i].FastGetSolutionStepValue(NORMAL_FLUID_FLUX);
-    }
-
+    Vector nodal_normal_fluid_flux_vector(mpPressureGeometry->PointsNumber());
+    VariablesUtilities::GetNodalValues(*mpPressureGeometry, NORMAL_FLUID_FLUX,
+                                       nodal_normal_fluid_flux_vector.begin());
+    rVariables.ConditionVector =
+        ScalarVector{1, MathUtils<>::Dot(rVariables.Np, nodal_normal_fluid_flux_vector)};
     KRATOS_CATCH("")
 }
 
-void SurfaceNormalFluidFlux3DDiffOrderCondition::CalculateAndAddConditionForce(VectorType& rRightHandSideVector,
+void SurfaceNormalFluidFlux3DDiffOrderCondition::CalculateAndAddConditionForce(Vector& rRightHandSideVector,
                                                                                ConditionVariables& rVariables)
 {
-    const SizeType NumUNodes = GetGeometry().PointsNumber();
-    const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
-
-    for (SizeType i = 0; i < NumPNodes; ++i) {
-        rRightHandSideVector[NumUNodes * 3 + i] -=
-            rVariables.Np[i] * rVariables.ConditionVector[0] * rVariables.IntegrationCoefficient;
+    const SizeType num_u_nodes = GetGeometry().PointsNumber();
+    for (SizeType node = 0; node < mpPressureGeometry->PointsNumber(); ++node) {
+        rRightHandSideVector[num_u_nodes * 3 + node] -=
+            rVariables.Np[node] * rVariables.ConditionVector[0] * rVariables.IntegrationCoefficient;
     }
 }
 
