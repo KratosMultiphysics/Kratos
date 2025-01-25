@@ -31,7 +31,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(DIGITAL_TWIN_APPLICATION) StrainSensor : public Sensor
+class KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) StrainSensor : public Sensor
 {
 public:
     ///@name Type Definitions
@@ -166,6 +166,8 @@ private:
     const IndexType mElementId;
 
     StrainType mStrainType;
+
+    IndexType mStrainIndex;
 
     Point mLocalPoint;
 

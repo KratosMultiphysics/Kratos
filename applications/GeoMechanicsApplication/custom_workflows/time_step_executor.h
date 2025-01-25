@@ -23,7 +23,7 @@
 namespace Kratos
 {
 
-class TimeStepExecutor
+class KRATOS_API(GEO_MECHANICS_APPLICATION) TimeStepExecutor
 {
 public:
     using ProcessRef    = std::reference_wrapper<Process>;

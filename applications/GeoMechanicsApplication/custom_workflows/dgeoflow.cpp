@@ -138,8 +138,8 @@ KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer Krat
 
     auto pSolvingStrategy =
         Kratos::make_unique<GeoMechanicsNewtonRaphsonErosionProcessStrategy<SparseSpaceType, LocalSpaceType, KratosExecute::LinearSolverType>>(
-            rModelPart, p_scheme, p_solver, p_criteria, p_builder_and_solver, p_parameters,
-            MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag);
+            rModelPart, p_scheme, p_criteria, p_builder_and_solver, p_parameters, MaxIterations,
+            CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag);
 
     pSolvingStrategy->Check();
     return pSolvingStrategy;
@@ -403,34 +403,14 @@ void KratosExecute::WriteCriticalHeadResultToFile() const
 
 void KratosExecute::AddNodalSolutionStepVariables(ModelPart& rModelPart) const
 {
-    rModelPart.AddNodalSolutionStepVariable(VELOCITY);
-    rModelPart.AddNodalSolutionStepVariable(ACCELERATION);
-
-    // Displacement
-    rModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
-    rModelPart.AddNodalSolutionStepVariable(TOTAL_DISPLACEMENT);
-    rModelPart.AddNodalSolutionStepVariable(REACTION);
-    rModelPart.AddNodalSolutionStepVariable(POINT_LOAD);
-    rModelPart.AddNodalSolutionStepVariable(LINE_LOAD);
-    rModelPart.AddNodalSolutionStepVariable(SURFACE_LOAD);
+    // Pressure to head conversion
     rModelPart.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
-    rModelPart.AddNodalSolutionStepVariable(NORMAL_CONTACT_STRESS);
-    rModelPart.AddNodalSolutionStepVariable(TANGENTIAL_CONTACT_STRESS);
-
     // Water
     rModelPart.AddNodalSolutionStepVariable(WATER_PRESSURE);
     rModelPart.AddNodalSolutionStepVariable(REACTION_WATER_PRESSURE);
     rModelPart.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
     rModelPart.AddNodalSolutionStepVariable(NORMAL_FLUID_FLUX);
     rModelPart.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
-
-    // Smoothing
-    rModelPart.AddNodalSolutionStepVariable(NODAL_AREA);
-    rModelPart.AddNodalSolutionStepVariable(NODAL_CAUCHY_STRESS_TENSOR);
-    rModelPart.AddNodalSolutionStepVariable(NODAL_DAMAGE_VARIABLE);
-    rModelPart.AddNodalSolutionStepVariable(NODAL_JOINT_AREA);
-    rModelPart.AddNodalSolutionStepVariable(NODAL_JOINT_WIDTH);
-    rModelPart.AddNodalSolutionStepVariable(NODAL_JOINT_DAMAGE);
 }
 
 int KratosExecute::FindCriticalHead(ModelPart&                 rModelPart,

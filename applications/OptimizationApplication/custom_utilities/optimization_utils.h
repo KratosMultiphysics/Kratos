@@ -13,6 +13,8 @@
 #pragma once
 
 // System includes
+#include <string>
+#include <vector>
 
 // Project includes
 #include "includes/define.h"
@@ -82,7 +84,13 @@ public:
     template<class TContainerType>
     static void CreateEntitySpecificPropertiesForContainer(
         ModelPart& rModelPart,
-        TContainerType& rContainer);
+        TContainerType& rContainer,
+        const bool IsRecursive);
+
+    template<class TContainerType, class TDataType>
+    static void UpdatePropertiesVariableWithRootValueRecursively(
+        TContainerType& rContainer,
+        const Variable<TDataType>& rVariable);
 
     template<class TDataType>
     static IndexType GetVariableDimension(
@@ -96,6 +104,8 @@ public:
     static bool IsSolutionStepVariablesListASubSet(
         const ModelPart& rMainSetModelPart,
         const ModelPart& rSubSetModelPart);
+
+    static std::vector<std::string> GetSolutionStepVariableNamesList(const ModelPart& rModelPart);
 
     static std::vector<std::vector<ModelPart*>> GetComponentWiseModelParts(
         Model& rModel,

@@ -19,20 +19,31 @@ class TestSimpControl(kratos_unittest.TestCase):
             "controlled_model_part_names": [
                 "shell"
             ],
-            "simp_power_fac": 3,
             "output_all_fields": true,
             "list_of_materials": [
+                {
+                    "density": 0.0,
+                    "young_modulus": 0.0
+                },
                 {
                     "density": 7850.0,
                     "young_modulus": 206900000000.0
                 }
             ],
-            "beta_settings": {
+            "density_projection_settings": {
+                "type": "adaptive_sigmoidal_projection",
                 "initial_value": 2,
                 "max_value": 50,
-                "adaptive": true,
                 "increase_fac": 1.05,
                 "update_period": 25
+            },
+            "young_modulus_projection_settings": {
+                "type": "adaptive_sigmoidal_projection",
+                "initial_value": 2,
+                "max_value": 50,
+                "increase_fac": 1.05,
+                "update_period": 25,
+                "penalty_factor": 3
             },
             "filter_settings": {
                 "filter_type": "explicit_filter",
@@ -135,6 +146,10 @@ class TestSimpControl(kratos_unittest.TestCase):
             "controlled_model_part_names": ["shell"],
             "list_of_materials": [
                 {
+                    "density": 0.0,
+                    "young_modulus": 0.0
+                },
+                {
                     "density": 7850.0,
                     "young_modulus": 206900000000.0
                 }
@@ -154,19 +169,27 @@ class TestSimpControl(kratos_unittest.TestCase):
                     "damped_model_part_settings": {}
                 }
             },
-            "beta_settings": {
+            "density_projection_settings": {
+                "type": "adaptive_sigmoidal_projection",
                 "initial_value": 0.01,
                 "max_value"    : 30,
-                "adaptive"     : true,
                 "increase_fac" : 1.05,
                 "update_period": 3
+            },
+            "young_modulus_projection_settings": {
+                "type": "adaptive_sigmoidal_projection",
+                "initial_value": 0.01,
+                "max_value"    : 30,
+                "increase_fac" : 1.05,
+                "update_period": 3,
+                "penalty_factor": 3
             }
         }""")
         simp_control = SimpControl("test_adaptive", self.model, parameters, self.optimization_problem)
         self.optimization_problem.AddComponent(simp_control)
         simp_control.Initialize()
 
-        self.assertAlmostEqual(simp_control.beta, 0.01)
+        self.assertAlmostEqual(simp_control.density_projection.beta, 0.01)
 
         control_field = simp_control.GetControlField()
         simp_control.Update(control_field)
@@ -175,7 +198,67 @@ class TestSimpControl(kratos_unittest.TestCase):
             simp_control.Update(control_field)
             self.optimization_problem.AdvanceStep()
 
-        self.assertAlmostEqual(simp_control.beta, 0.01 * (1.05 ** 7))
+        self.assertAlmostEqual(simp_control.density_projection.beta, 0.01 * (1.05 ** 7))
+
+    def test_NonRemovalOfMaterials(self):
+        parameters = Kratos.Parameters("""{
+            "controlled_model_part_names": ["shell"],
+            "list_of_materials": [
+                {
+                    "density": 3000,
+                    "young_modulus": 106900000000
+                },
+                {
+                    "density": 7850.0,
+                    "young_modulus": 206900000000.0
+                }
+            ],
+            "filter_settings": {
+                "filter_type": "explicit_filter",
+                "filter_function_type": "linear",
+                "max_nodes_in_filter_radius": 100000,
+                "echo_level": 0,
+                "filter_radius_settings": {
+                    "filter_radius_type": "constant",
+                    "filter_radius": 0.2
+                },
+                "filtering_boundary_conditions": {
+                    "damping_type": "nearest_entity",
+                    "damping_function_type": "cosine",
+                    "damped_model_part_settings": {}
+                }
+            },
+            "density_projection_settings": {
+                "type": "adaptive_sigmoidal_projection",
+                "initial_value": 0.01,
+                "max_value"    : 30,
+                "increase_fac" : 1.05,
+                "update_period": 3
+            },
+            "young_modulus_projection_settings": {
+                "type": "adaptive_sigmoidal_projection",
+                "initial_value": 0.01,
+                "max_value"    : 30,
+                "increase_fac" : 1.05,
+                "update_period": 3,
+                "penalty_factor": 3
+            }
+        }""")
+
+        simp_control = SimpControl("test_non_removal", self.model, parameters, self.optimization_problem)
+        self.optimization_problem.AddComponent(simp_control)
+
+        simp_control.Initialize()
+
+        control_field = simp_control.GetControlField()
+        simp_control.Update(control_field)
+        for i in range(20):
+            control_field *= 1.2
+            simp_control.Update(control_field)
+
+        density = Kratos.Expression.ElementExpression(self.model_part)
+        KratosOA.PropertiesVariableExpressionIO.Read(density, Kratos.DENSITY)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(density - 3925), 0.0)
 
 if __name__ == "__main__":
     kratos_unittest.main()

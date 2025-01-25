@@ -160,6 +160,25 @@ class TestConvergence(kratos_unittest.TestCase):
         algorithm_data.GetBufferedData()["std_obj_value"] = 0.01
         self.assertTrue(convergence_criterium.IsConverged())
 
+    def test_TargetMagnitudeReduction(self):
+        param = Kratos.Parameters("""{
+            "type"                            : "magnitude_reduction",
+            "max_iter"                        : 10,
+            "target_scaling_factor"           : 1e-2
+        }""")
+        algorithm_data = ComponentDataView("algorithm", self.optimization_problem)
+        convergence_criterium = CreateConvergenceCriteria(param, self.optimization_problem)
+        algorithm_data.GetBufferedData()["std_obj_value"] = 1
+        self.assertFalse(convergence_criterium.IsConverged())
+        self.optimization_problem.AdvanceStep()
+        algorithm_data.GetBufferedData()["std_obj_value"] = 0.1
+        self.assertFalse(convergence_criterium.IsConverged())
+        self.optimization_problem.AdvanceStep()
+        algorithm_data.GetBufferedData()["std_obj_value"] = 0.02
+        self.assertFalse(convergence_criterium.IsConverged())
+        self.optimization_problem.AdvanceStep()
+        algorithm_data.GetBufferedData()["std_obj_value"] = 0.001
+        self.assertTrue(convergence_criterium.IsConverged())
+
 if __name__ == "__main__":
-    Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
     kratos_unittest.main()
