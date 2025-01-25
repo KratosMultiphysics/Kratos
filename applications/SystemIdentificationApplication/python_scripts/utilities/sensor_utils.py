@@ -180,7 +180,10 @@ def GetSensors(sensor_group_data: ComponentDataView) -> 'list[KratosSI.Sensors.S
     return list_of_sensors
 
 def GetMaskStatusControllers(sensor_group_data: ComponentDataView, sensor_mask_name: str) -> 'list[typing.Any]':
-    return sensor_group_data.GetUnBufferedData().GetValue(f"mask_status_controllers/{sensor_mask_name}")
+    if sensor_group_data.GetUnBufferedData().HasValue(f"mask_status_controllers/{sensor_mask_name}"):
+        return sensor_group_data.GetUnBufferedData().GetValue(f"mask_status_controllers/{sensor_mask_name}")
+    else:
+        return []
 
 def AddMaskStatusController(sensor_group_data: ComponentDataView, sensor_mask_name: str, mask_status_controller: typing.Any) -> None:
     if not hasattr(mask_status_controller, "Update"):

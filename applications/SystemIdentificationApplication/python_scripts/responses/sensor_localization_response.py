@@ -10,6 +10,8 @@ from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities i
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import GetMaskStatusControllers
+from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import AddMaskStatusController
+from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import GetSensors
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> ResponseFunction:
     if not parameters.Has("name"):
@@ -53,6 +55,9 @@ class SensorLocalizationResponse(ResponseFunction):
         for controller in GetMaskStatusControllers(sensor_group_data, self.sensor_mask_name):
             if isinstance(controller, KratosSI.SensorMaskStatusKDTree):
                 self.mask_status_kd_tree = controller
+
+        if self.mask_status_kd_tree == None:
+            raise RuntimeError(f"SensorMaskStatusKDTree controller not found for the sensor_mask_name = \"{self.sensor_mask_name}\" in the sensor_group = \"{self.sensor_group_name}\".")
 
         self.utils = KratosSI.Responses.SensorLocalizationResponseUtils(self.mask_status_kd_tree, self.beta, self.allowed_dissimilarity)
 
