@@ -13,7 +13,6 @@ class AssignGravityToMaterialPointProcess(KratosMultiphysics.Process):
 
         default_settings = KratosMultiphysics.Parameters("""
             {
-                "mesh_id"              : 0,
                 "model_part_name"      : "please_specify_model_part_name",
                 "variable_name"        : "MP_VOLUME_ACCELERATION",
                 "modulus"              : 1.0,

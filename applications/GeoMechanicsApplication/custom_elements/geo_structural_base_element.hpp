@@ -32,8 +32,6 @@ public:
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeoStructuralBaseElement);
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     explicit GeoStructuralBaseElement(IndexType NewId = 0) : Element(NewId) {}
 
     /// Constructor using an array of nodes
@@ -57,13 +55,9 @@ public:
 
     ~GeoStructuralBaseElement() = default;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    Element::Pointer Create(IndexType, NodesArrayType const&, PropertiesType::Pointer) const override;
 
-    Element::Pointer Create(IndexType               NewId,
-                            NodesArrayType const&   ThisNodes,
-                            PropertiesType::Pointer pProperties) const override;
-
-    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType, GeometryType::Pointer, PropertiesType::Pointer) const override;
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
@@ -72,8 +66,6 @@ public:
     void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const override;
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override;
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
                               VectorType&        rRightHandSideVector,
@@ -95,13 +87,10 @@ public:
 
     void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     void SetValuesOnIntegrationPoints(const Variable<double>&    rVariable,
                                       const std::vector<double>& rValues,
                                       const ProcessInfo&         rCurrentProcessInfo) override;
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    using Element::SetValuesOnIntegrationPoints;
 
 protected:
     static constexpr SizeType N_DOF_NODE    = (TDim == 2 ? 3 : 6);
@@ -118,7 +107,6 @@ protected:
         array_1d<double, TNumNodes * TDim> DisplacementVector;
         array_1d<double, TNumNodes * TDim> VelocityVector;
         array_1d<double, TNumNodes * TDim> NodalVolumeAcceleration;
-        array_1d<double, TNumNodes * TDim> UVector;
 
         Vector DofValuesVector;
 
@@ -165,8 +153,6 @@ protected:
                                          const GeometryType& Geom,
                                          IndexType           SolutionStepIndex = 0) const;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     virtual void CalculateStiffnessMatrix(MatrixType& rStiffnessMatrix, const ProcessInfo& rCurrentProcessInfo);
 
     virtual void CalculateAll(MatrixType&        rLeftHandSideMatrix,
@@ -178,8 +164,6 @@ protected:
     virtual void CalculateRHS(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 
     virtual void CalculateNodalCrossDirection(Matrix& NodalCrossDirection) const;
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
     /// Assignment operator.

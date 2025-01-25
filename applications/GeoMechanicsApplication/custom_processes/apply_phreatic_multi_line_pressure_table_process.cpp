@@ -12,6 +12,7 @@
 
 #include "apply_phreatic_multi_line_pressure_table_process.h"
 #include "geo_mechanics_application_variables.h"
+#include "includes/model_part.h"
 
 namespace Kratos
 {
@@ -21,6 +22,11 @@ ApplyPhreaticMultiLinePressureTableProcess::ApplyPhreaticMultiLinePressureTableP
     : ApplyConstantPhreaticMultiLinePressureProcess(model_part, rParameters)
 {
     KRATOS_TRY
+
+    KRATOS_ERROR_IF(HorizontalDirectionCoordinates().size() != rParameters["table"].GetVector().size())
+        << "Got " << HorizontalDirectionCoordinates().size() << " coordinates and "
+        << rParameters["table"].GetVector().size() << " table references. The number of coordinates "
+        << "and table references should be equal." << std::endl;
 
     for (auto value : rParameters["table"].GetVector()) {
         const auto TableId = static_cast<unsigned int>(value);
@@ -79,7 +85,7 @@ std::string ApplyPhreaticMultiLinePressureTableProcess::Info() const
 
 void ApplyPhreaticMultiLinePressureTableProcess::PrintInfo(std::ostream& rOStream) const
 {
-    rOStream << "ApplyPhreaticMultiLinePressureTableProcess";
+    rOStream << Info();
 }
 
 } // namespace Kratos

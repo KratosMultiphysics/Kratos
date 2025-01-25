@@ -1,6 +1,5 @@
 # Importing the Kratos Library
 import KratosMultiphysics
-from KratosMultiphysics.python_solver import PythonSolver
 
 # Import applications
 import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
@@ -44,7 +43,6 @@ class UPwSolver(GeoSolver):
             "compute_reactions": false,
             "move_mesh_flag": false,
             "nodal_smoothing": false,
-            "reset_displacements":  false,
             "solution_type": "quasi_static",
             "scheme_type": "Newmark",
             "newmark_beta": 0.25,
@@ -81,12 +79,12 @@ class UPwSolver(GeoSolver):
             "prebuild_dynamics"          : false,
             "search_neighbours_step"     : false,
             "linear_solver_settings":{
-                "solver_type": "AMGCL",
+                "solver_type": "amgcl",
                 "tolerance": 1.0e-6,
                 "max_iteration": 100,
                 "scaling": false,
                 "verbosity": 0,
-                "preconditioner_type": "ILU0Preconditioner",
+                "preconditioner_type": "amg",
                 "smoother_type": "ilu0",
                 "krylov_type": "gmres",
                 "coarsening_type": "aggregation"
@@ -119,6 +117,7 @@ class UPwSolver(GeoSolver):
 
         ## Fluid dofs
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.WATER_PRESSURE, KratosMultiphysics.REACTION_WATER_PRESSURE,self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosGeo.DT_WATER_PRESSURE, self.main_model_part)
 
         if self.settings["rotation_dofs"].GetBool():
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.REACTION_MOMENT_X,self.main_model_part)
@@ -171,94 +170,80 @@ class UPwSolver(GeoSolver):
             beta  = self.settings["newmark_beta"].GetDouble()
             gamma = self.settings["newmark_gamma"].GetDouble()
             theta = self.settings["newmark_theta"].GetDouble()
+
             rayleigh_m = self.settings["rayleigh_m"].GetDouble()
             rayleigh_k = self.settings["rayleigh_k"].GetDouble()
             self.main_model_part.ProcessInfo.SetValue(KratosStructure.RAYLEIGH_ALPHA, rayleigh_m)
             self.main_model_part.ProcessInfo.SetValue(KratosStructure.RAYLEIGH_BETA,  rayleigh_k)
+
             KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, solution_type", solution_type)
             if (solution_type.lower() == "quasi-static" or solution_type.lower() == "quasi_static"):
                 if (rayleigh_m < 1.0e-20 and rayleigh_k < 1.0e-20):
                     KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, scheme", "Quasi-UnDamped.")
-                    scheme = KratosGeo.NewmarkQuasistaticUPwScheme(beta,gamma,theta)
+                    return KratosGeo.NewmarkQuasistaticUPwScheme(beta, gamma, theta)
                 else:
                     KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, scheme", "Quasi-Damped.")
-                    scheme = KratosGeo.NewmarkQuasistaticDampedUPwScheme(beta,gamma,theta)
-            elif (solution_type.lower() == "dynamic"):
+                    return KratosGeo.NewmarkQuasistaticDampedUPwScheme(beta, gamma, theta)
+
+            if solution_type.lower() == "dynamic":
                 KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, scheme", "Dynamic.")
-                scheme = KratosGeo.NewmarkDynamicUPwScheme(beta,gamma,theta)
-            elif (solution_type.lower() == "k0-procedure" or solution_type.lower() == "k0_procedure"):
-                if (rayleigh_m < 1.0e-20 and rayleigh_k < 1.0e-20):
-                    KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, scheme", "Quasi-UnDamped.")
-                    scheme = KratosGeo.NewmarkQuasistaticUPwScheme(beta,gamma,theta)
-                else:
-                    KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, scheme", "Quasi-Damped.")
-                    scheme = KratosGeo.NewmarkQuasistaticDampedUPwScheme(beta,gamma,theta)
-            else:
-              raise RuntimeError(f"Undefined solution type '{solution_type}'")
-        elif (scheme_type.lower() == "backward_euler"or scheme_type.lower() == "backward-euler"):
+                return KratosGeo.NewmarkDynamicUPwScheme(beta, gamma, theta)
+
+            raise RuntimeError(f"Undefined solution type '{solution_type}'")
+
+        if (scheme_type.lower() == "backward_euler" or scheme_type.lower() == "backward-euler"):
             if (solution_type.lower() == "quasi-static" or solution_type.lower() == "quasi_static"):
                 KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, scheme", "Backward Euler.")
-                scheme = KratosGeo.BackwardEulerQuasistaticUPwScheme()
-            elif (solution_type.lower() == "k0-procedure" or solution_type.lower() == "k0_procedure"):
-                KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, scheme", "Backward Euler.")
-                scheme = KratosGeo.BackwardEulerQuasistaticUPwScheme()
-            else:
-                raise RuntimeError(f"Undefined/incompatible solution type with Backward Euler: '{solution_type}'")
-        else:
-            raise RuntimeError("Apart from Newmark, other scheme_type are not available.")
+                return KratosGeo.BackwardEulerQuasistaticUPwScheme()
 
-        return scheme
+            raise RuntimeError(f"Undefined/incompatible solution type with Backward Euler: '{solution_type}'")
+
+        raise RuntimeError("Apart from Newmark and Backward Euler, other scheme_type are not available.")
 
     def _ConstructConvergenceCriterion(self, convergence_criterion):
 
-        D_RT = self.settings["displacement_relative_tolerance"].GetDouble()
-        D_AT = self.settings["displacement_absolute_tolerance"].GetDouble()
-        R_RT = self.settings["residual_relative_tolerance"].GetDouble()
-        R_AT = self.settings["residual_absolute_tolerance"].GetDouble()
-        echo_level = self.settings["echo_level"].GetInt()
+        if convergence_criterion.lower() == "displacement_criterion":
+            return self._MakeDisplacementCriterion()
 
-        if (convergence_criterion.lower() == "displacement_criterion"):
-            convergence_criterion = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
-            convergence_criterion.SetEchoLevel(echo_level)
-        elif (convergence_criterion.lower() == "residual_criterion"):
-            convergence_criterion = self._MakeResidualCriterion()
-        elif (convergence_criterion.lower() == "and_criterion"):
-            Displacement = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
-            Displacement.SetEchoLevel(echo_level)
-            residual = self._MakeResidualCriterion()
-            convergence_criterion = KratosMultiphysics.AndCriteria(residual, Displacement)
-        elif (convergence_criterion.lower() == "or_criterion"):
-            Displacement = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
-            Displacement.SetEchoLevel(echo_level)
-            other_dof_name = "WATER_PRESSURE"
-            residual = KratosStructure.ResidualDisplacementAndOtherDoFCriteria(R_RT, R_AT, other_dof_name)
-            residual.SetEchoLevel(echo_level)
-            convergence_criterion = KratosMultiphysics.OrCriteria(residual, Displacement)
-        elif (convergence_criterion.lower() == "water_pressure_criterion"):
-            convergence_criterion = KratosMultiphysics.MixedGenericCriteria([(KratosMultiphysics.WATER_PRESSURE, D_RT, D_AT)])
-            convergence_criterion.SetEchoLevel(echo_level)
-        elif (convergence_criterion.lower() == "displacement_and_water_pressure_criterion"):
-            convergence_criterion = KratosMultiphysics.MixedGenericCriteria([(KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)),(KratosMultiphysics.WATER_PRESSURE, D_RT, D_AT)])
-            convergence_criterion.SetEchoLevel(echo_level)
-        else:
-            err_msg =  "The requested convergence criterion \"" + convergence_criterion + "\" is not available!\n"
-            err_msg += "Available options are: \"displacement_criterion\", \"residual_criterion\", \"and_criterion\", \"or_criterion\", \"water_pressure_criterion\", \"displacement_and_water_pressure_criterion\""
-            raise Exception(err_msg)
+        if convergence_criterion.lower() == "residual_criterion":
+           return self._MakeResidualCriterion()
 
-        return convergence_criterion
+        if convergence_criterion.lower() == "and_criterion":
+            return KratosMultiphysics.AndCriteria(self._MakeResidualCriterion(), self._MakeDisplacementCriterion())
+
+        if convergence_criterion.lower() == "or_criterion":
+            return KratosMultiphysics.OrCriteria(self._MakeResidualCriterion(),  self._MakeDisplacementCriterion())
+
+        if convergence_criterion.lower() == "water_pressure_criterion":
+            return self._MakeWaterPressureCriterion()
+
+        if convergence_criterion.lower() == "displacement_and_water_pressure_criterion":
+            d_and_pw_convergence_criterion = KratosMultiphysics.MixedGenericCriteria([(self._MakeDisplacementCriterion()),(self._MakeWaterPressureCriterion())])
+            d_and_pw_convergence_criterion.SetEchoLevel(self.settings["echo_level"].GetInt())
+            return d_and_pw_convergence_criterion
+
+        err_msg =  "The requested convergence criterion \"" + convergence_criterion + "\" is not available!\n"
+        err_msg += "Available options are: \"displacement_criterion\", \"residual_criterion\", \"and_criterion\", \"or_criterion\", \"water_pressure_criterion\", \"displacement_and_water_pressure_criterion\""
+        raise RuntimeError(err_msg)
+
+    def _MakeDisplacementCriterion(self):
+        relative_tolerance = self.settings["displacement_relative_tolerance"].GetDouble()
+        absolute_tolerance = self.settings["displacement_absolute_tolerance"].GetDouble()
+
+        displacement_criterion = KratosMultiphysics.DisplacementCriteria(relative_tolerance, absolute_tolerance)
+        displacement_criterion.SetEchoLevel(self.settings["echo_level"].GetInt())
+
+        return displacement_criterion
 
     def _CreateBuilderAndSolver(self):
-        block_builder = self.settings["block_builder"].GetBool()
-        if (block_builder and
-            self.settings.Has("prebuild_dynamics") and
-            self.settings["prebuild_dynamics"].GetBool()):
+        if (self.settings["block_builder"].GetBool() and
+            self.settings.Has("prebuild_dynamics") and self.settings["prebuild_dynamics"].GetBool()):
             return KratosGeo.ResidualBasedBlockBuilderAndSolverWithMassAndDamping(self.linear_solver)
 
         return super()._CreateBuilderAndSolver()
 
     def _CheckConvergence(self):
-        IsConverged = self.solver.IsConverged()
-        return IsConverged
+        return self.solver.IsConverged()
 
     def _UpdateLoads(self):
         self.solver.UpdateLoads()

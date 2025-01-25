@@ -91,7 +91,7 @@ static void UpdateFunctionNonHist(NodeType& rNode,
                             const double Value,
                             const double Factor)
 {
-    rNode.GetValue(rVariable) = Value * Factor;
+    rNode.SetValue(rVariable, Value * Factor);
 }
 
 static void UpdateFunctionNonHistWithAdd(NodeType& rNode,
@@ -193,9 +193,9 @@ void UpdateModelPartFromSystemVector(
 * @param rModelPartCommunicator The Modelpart-Communicator to be used
 * @author Philipp Bucher
 */
-void AssignInterfaceEquationIds(Communicator& rModelPartCommunicator);
+void KRATOS_API(MAPPING_APPLICATION) AssignInterfaceEquationIds(Communicator& rModelPartCommunicator);
 
-void CreateMapperLocalSystemsFromNodes(const MapperLocalSystem& rMapperLocalSystemPrototype,
+void KRATOS_API(MAPPING_APPLICATION) CreateMapperLocalSystemsFromNodes(const MapperLocalSystem& rMapperLocalSystemPrototype,
                                        const Communicator& rModelPartCommunicator,
                                        std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems);
 
@@ -237,9 +237,9 @@ double ComputeSearchRadius(const ModelPart& rModelPart1, const ModelPart& rModel
 
 void CheckInterfaceModelParts(const int CommRank);
 
-BoundingBoxType ComputeLocalBoundingBox(const ModelPart& rModelPart);
+BoundingBoxType KRATOS_API(MAPPING_APPLICATION) ComputeLocalBoundingBox(const ModelPart& rModelPart);
 
-BoundingBoxType ComputeGlobalBoundingBox(const ModelPart& rModelPart);
+BoundingBoxType KRATOS_API(MAPPING_APPLICATION) ComputeGlobalBoundingBox(const ModelPart& rModelPart);
 
 std::string BoundingBoxStringStream(const BoundingBoxType& rBoundingBox);
 
@@ -258,13 +258,13 @@ void EraseNodalVariable(ModelPart& rModelPart, const Variable<TDataType>& rVaria
     KRATOS_CATCH("");
 }
 
-void FillBufferBeforeLocalSearch(const MapperLocalSystemPointerVector& rMapperLocalSystems,
+void KRATOS_API(MAPPING_APPLICATION) FillBufferBeforeLocalSearch(const MapperLocalSystemPointerVector& rMapperLocalSystems,
                                  const std::vector<double>& rBoundingBoxes,
                                  const SizeType BufferSizeEstimate,
                                  std::vector<std::vector<double>>& rSendBuffer,
                                  std::vector<int>& rSendSizes);
 
-void CreateMapperInterfaceInfosFromBuffer(const std::vector<std::vector<double>>& rRecvBuffer,
+void KRATOS_API(MAPPING_APPLICATION) CreateMapperInterfaceInfosFromBuffer(const std::vector<std::vector<double>>& rRecvBuffer,
                                           const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
                                           const int CommRank,
                                           MapperInterfaceInfoPointerVectorType& rMapperInterfaceInfosContainer);

@@ -71,11 +71,11 @@ public:
 
     /// The definition of the sizetype
     using SizeType = std::size_t;
-    using UPwBaseElement<TDim, TNumNodes>::mConstitutiveLawVector;
-    using UPwBaseElement<TDim, TNumNodes>::mStressVector;
-    using UPwBaseElement<TDim, TNumNodes>::mStateVariablesFinalized;
-    using UPwBaseElement<TDim, TNumNodes>::CalculateDerivativesOnInitialConfiguration;
-    using UPwBaseElement<TDim, TNumNodes>::mThisIntegrationMethod;
+    using UPwBaseElement::CalculateDerivativesOnInitialConfiguration;
+    using UPwBaseElement::mConstitutiveLawVector;
+    using UPwBaseElement::mStateVariablesFinalized;
+    using UPwBaseElement::mStressVector;
+    using UPwBaseElement::mThisIntegrationMethod;
     using UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateShearModulus;
 
     using ElementVariables = typename UPwSmallStrainElement<TDim, TNumNodes>::ElementVariables;
@@ -83,8 +83,6 @@ public:
 
     /// Counted pointer of UPwUpdatedLagrangianFICElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UPwUpdatedLagrangianFICElement);
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
     explicit UPwUpdatedLagrangianFICElement(IndexType NewId = 0)
@@ -173,18 +171,14 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        std::stringstream buffer;
-        buffer << "Updated Lagrangian U-Pw FIC Element #" << this->Id()
-               << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
-        return buffer.str();
+        const std::string constitutive_info =
+            !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
+        return "Updated Lagrangian U-Pw FIC Element #" + std::to_string(this->Id()) +
+               "\nConstitutive law: " + constitutive_info;
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << "Updated Lagrangian U-Pw FIC Element #" << this->Id()
-                 << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
-    }
+    void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override

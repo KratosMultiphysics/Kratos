@@ -18,7 +18,7 @@
 
 // Application includes
 #include "symbolic_stokes.h"
-#include "custom_utilities/symbolic_stokes_data.h"
+#include "data_containers/stokes/stokes_data.h"
 #include "custom_utilities/fluid_element_utilities.h"
 
 namespace Kratos

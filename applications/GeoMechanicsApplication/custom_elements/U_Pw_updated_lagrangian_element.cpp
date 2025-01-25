@@ -21,7 +21,6 @@
 namespace Kratos
 {
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer UPwUpdatedLagrangianElement<TDim, TNumNodes>::Create(IndexType NewId,
                                                                       NodesArrayType const& ThisNodes,
@@ -31,7 +30,6 @@ Element::Pointer UPwUpdatedLagrangianElement<TDim, TNumNodes>::Create(IndexType 
         NewId, this->GetGeometry().Create(ThisNodes), pProperties, this->GetStressStatePolicy().Clone()));
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer UPwUpdatedLagrangianElement<TDim, TNumNodes>::Create(IndexType             NewId,
                                                                       GeometryType::Pointer pGeom,
@@ -41,7 +39,6 @@ Element::Pointer UPwUpdatedLagrangianElement<TDim, TNumNodes>::Create(IndexType 
                                                             this->GetStressStatePolicy().Clone()));
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwUpdatedLagrangianElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHandSideMatrix,
                                                                 VectorType& rRightHandSideVector,
@@ -51,92 +48,26 @@ void UPwUpdatedLagrangianElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLef
 {
     KRATOS_TRY;
 
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
-        this->GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+    UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,
+                                                         rCurrentProcessInfo, CalculateStiffnessMatrixFlag,
+                                                         CalculateResidualVectorFlag);
+    ElementVariables variables;
+    this->InitializeElementVariables(variables, rCurrentProcessInfo);
 
-    // Constitutive Law parameters
-    ConstitutiveLaw::Parameters ConstitutiveParameters(this->GetGeometry(), this->GetProperties(),
-                                                       rCurrentProcessInfo);
-
-    // Stiffness matrix is always needed for Biot coefficient
-    ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-    if (CalculateResidualVectorFlag) ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
-    ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-
-    ElementVariables Variables;
-    this->InitializeElementVariables(Variables, rCurrentProcessInfo);
-
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
-
-    const auto b_matrices = this->CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
-    const auto integration_coefficients =
-        this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJContainer);
-    const auto deformation_gradients = this->CalculateDeformationGradients();
-    auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
-        deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain,
-        this->GetStressStatePolicy().GetVoigtSize());
-    std::vector<Matrix> constitutive_matrices;
-    this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
-                                         Variables.NContainer, Variables.DN_DXContainer,
-                                         strain_vectors, mStressVector, constitutive_matrices);
-    const auto biot_coefficients = GeoTransportEquationUtilities::CalculateBiotCoefficients(
-        constitutive_matrices, this->GetProperties());
-    const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
-        Variables.NContainer, Variables.PressureVector);
-    const auto relative_permeability_values = this->CalculateRelativePermeabilityValues(fluid_pressures);
-    const auto degrees_of_saturation     = this->CalculateDegreesOfSaturation(fluid_pressures);
-    const auto derivatives_of_saturation = this->CalculateDerivativesOfSaturation(fluid_pressures);
-    const auto biot_moduli_inverse = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
-        biot_coefficients, degrees_of_saturation, derivatives_of_saturation, this->GetProperties());
-    const auto bishop_coefficients = this->CalculateBishopCoefficients(fluid_pressures);
-
-    for (IndexType GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
-        this->CalculateKinematics(Variables, GPoint);
-        Variables.B = b_matrices[GPoint];
-
-        // Cauchy strain: This needs to be investigated which strain measure should be used
-        // In some references, e.g. Bathe, suggested to use Almansi strain measure
-        Variables.F                  = deformation_gradients[GPoint];
-        Variables.StrainVector       = strain_vectors[GPoint];
-        Variables.ConstitutiveMatrix = constitutive_matrices[GPoint];
-
-        // Compute Np, Nu and BodyAcceleration
-        GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(Variables.Nu, Variables.NContainer, GPoint);
-        GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
-            Variables.BodyAcceleration, Variables.NContainer, Variables.VolumeAcceleration, GPoint);
-
-        Variables.RelativePermeability = relative_permeability_values[GPoint];
-        Variables.BishopCoefficient    = bishop_coefficients[GPoint];
-
-        Variables.BiotCoefficient    = biot_coefficients[GPoint];
-        Variables.BiotModulusInverse = biot_moduli_inverse[GPoint];
-        Variables.DegreeOfSaturation = degrees_of_saturation[GPoint];
-
-        Variables.IntegrationCoefficient = integration_coefficients[GPoint];
-
-        Variables.IntegrationCoefficientInitialConfiguration = this->CalculateIntegrationCoefficient(
-            IntegrationPoints[GPoint], Variables.detJInitialConfiguration);
-
-        if (CalculateStiffnessMatrixFlag) {
-            // Contributions to stiffness matrix calculated on the reference config
-            /* Material stiffness matrix */
-            this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
-
-            /* Geometric stiffness matrix */
-            if (Variables.ConsiderGeometricStiffness)
-                this->CalculateAndAddGeometricStiffnessMatrix(rLeftHandSideMatrix, Variables, GPoint);
-        }
-
-        if (CalculateResidualVectorFlag) {
-            // Contributions to the right hand side
-            this->CalculateAndAddRHS(rRightHandSideVector, Variables, GPoint);
+    if (CalculateStiffnessMatrixFlag && variables.ConsiderGeometricStiffness) {
+        const auto& integration_points = this->GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+        const auto integration_coefficients =
+            this->CalculateIntegrationCoefficients(integration_points, variables.detJContainer);
+        for (IndexType GPoint = 0; GPoint < integration_points.size(); ++GPoint) {
+            this->CalculateAndAddGeometricStiffnessMatrix(
+                rLeftHandSideMatrix, this->mStressVector[GPoint], variables.DN_DXContainer[GPoint],
+                integration_coefficients[GPoint]);
         }
     }
 
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwUpdatedLagrangianElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo)
@@ -148,7 +79,6 @@ void UPwUpdatedLagrangianElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     }
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwUpdatedLagrangianElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo)
@@ -168,7 +98,12 @@ void UPwUpdatedLagrangianElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     }
 }
 
-//----------------------------------------------------------------------------------------
+template <unsigned int TDim, unsigned int TNumNodes>
+std::vector<double> UPwUpdatedLagrangianElement<TDim, TNumNodes>::GetOptionalPermeabilityUpdateFactors(
+    const std::vector<Vector>&) const
+{
+    return {};
+}
 
 template class UPwUpdatedLagrangianElement<2, 3>;
 template class UPwUpdatedLagrangianElement<2, 4>;
