@@ -244,16 +244,42 @@ class sha1_hasher {
         }
 
         operator std::string() {
-            unsigned int digest[5];
+            boost::uuids::detail::sha1::digest_type digest;
             h.get_digest(digest);
-
+            return serialize_digest(digest);
+        }
+    private:
+        // Before boost 1.86.0, boost::uuids::detail::sha1 used to be unsigned int[5].
+        std::string serialize_digest(unsigned int digest[5]) const {
             std::ostringstream buf;
             for(int i = 0; i < 5; ++i)
                 buf << std::hex << std::setfill('0') << std::setw(8) << digest[i];
+            return buf.str();
+        }
+
+        // Since boost 1.86.0, boost::uuids::detail::sha1 has been unsigned char[20].
+        std::string serialize_digest(unsigned char digest[20]) const {
+            // Convert digest to a string representation of 5 integers in hexadecimal format
+            // (digest_type used to be unsigned int[5]). The reason for boost's change is to
+            // fix a bug related to endianness, but to conform to old VexCL behavior, bytes
+            // are reordered if necessary (whether conformance is required is up for debate).
+            std::ostringstream buf;
+            #if (defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)) || defined(__BIG_ENDIAN__) || defined(__BIG_ENDIAN) || defined(_BIG_ENDIAN)
+                const int int_size = sizeof(int);
+                for (int i=int_size; i<=20; i+=int_size) {
+                    for (int j=i-1; j>=i-int_size; --j) {
+                        buf << std::hex << std::setfill('0') << std::setw(2) << (int)digest[j];
+                    }
+                }
+            #else
+                for (unsigned i=0; i<20; ++i) {
+                    buf << std::hex << std::setfill('0') << std::setw(2) << (int)digest[i];
+                }
+            #endif
 
             return buf.str();
         }
-    private:
+
         boost::uuids::detail::sha1 h;
 };
 

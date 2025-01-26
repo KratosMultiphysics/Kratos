@@ -6,8 +6,7 @@
 //  Main authors:  Rafael Rangel (rrangel@cimne.upc.edu)
 //
 
-#if !defined(INDIRECT_CONDUCTION_MODEL_VORONOI_A_H_INCLUDED)
-#define INDIRECT_CONDUCTION_MODEL_VORONOI_A_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -86,5 +85,3 @@ namespace Kratos
   }
 
 } // namespace Kratos
-
-#endif // INDIRECT_CONDUCTION_MODEL_VORONOI_A_H_INCLUDED

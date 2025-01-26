@@ -150,9 +150,9 @@ public:
         return !(rComponent.IsDefined(ACTIVE)) || rComponent.Is(ACTIVE);
     }
 
-    void FinalizeSolutionStep(ModelPart& rModelPart, TSystemMatrixType& A, TSystemVectorType& Dx, TSystemVectorType& b) override
+    void FinalizeSolutionStep(ModelPart& rModelPart, TSystemMatrixType& rA, TSystemVectorType& rDx, TSystemVectorType& rb) override
     {
-        FinalizeSolutionStepActiveEntities(rModelPart, A, Dx, b);
+        FinalizeSolutionStepActiveEntities(rModelPart, rA, rDx, rb);
     }
 
     void CalculateSystemContributions(Element&                       rCurrentElement,

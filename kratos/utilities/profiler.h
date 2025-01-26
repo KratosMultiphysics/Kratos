@@ -29,20 +29,23 @@ namespace Kratos::Internals {
 
 
 template <class TTimeUnit>
-class Profiler
+class KRATOS_API(KRATOS_CORE) Profiler
 {
 private:
+    /// @brief Absolute time type.
     using TimeUnit = TTimeUnit;
 
+    /// @brief Relative time type.
     using Duration = TimeUnit;
 
+    /// @brief  Clock type used for measuring durations.
     using Clock = std::chrono::high_resolution_clock;
 
     /// @brief Class for identifying a profiled scope and aggregating its stats.
     class Item
     {
     public:
-        Item(CodeLocation&& rLocation);
+        explicit Item(CodeLocation&& rLocation);
 
     private:
         Item(std::size_t CallCount,
@@ -51,40 +54,49 @@ private:
              Duration MaxDuration,
              CodeLocation&& rLocation);
 
+        /// @brief Aggregate profiled data from another @ref Item in the same scope.
         Item& operator+=(const Item& rOther);
 
     private:
         friend class Profiler;
 
+        /// @brief Counter for keeping track of recursive calls.
+        /// @details Recursive function calls are aggregated onto the top
+        ///          level call. To do that, the @ref Item must keep track
+        ///          of its recursion depth.
         unsigned mRecursionLevel;
 
+        /// @brief Counter tracking total number of calls to a function during the program's entire execution time.
         std::size_t mCallCount;
 
+        /// @brief Counter summing the duration of each call to the profiled scope.
         Duration mCumulative;
 
+        /// @brief Minimum time spent in the profiled scope.
         Duration mMin;
 
+        /// @brief Maximum time spent in the profiled scope.
         Duration mMax;
 
+        /// @brief Source information about the profiled scope.
         CodeLocation mLocation;
     }; // class Item
 
     struct SourceLocationHash
     {
-        std::size_t operator()(const CodeLocation& r_argument) const
+        std::size_t operator()(const CodeLocation& rArgument) const
         {
-            std::string string(r_argument.GetFileName());
-            string.append(std::to_string(r_argument.GetLineNumber()));
-            return std::hash<std::string>()(string);
+            return std::hash<std::string>()(rArgument.GetFileName() + rArgument.GetFunctionName());
         }
     };
 
     struct SourceLocationEquality
     {
-        bool operator()(const CodeLocation& r_lhs,
-                        const CodeLocation& r_rhs) const
+        bool operator()(const CodeLocation& rLhs,
+                        const CodeLocation& rRhs) const
         {
-            return (std::string(r_lhs.GetFileName()) == std::string(r_rhs.GetFileName())) && (r_lhs.GetLineNumber() == r_rhs.GetLineNumber());
+            return (rLhs.GetFileName() == rRhs.GetFileName())
+                   && (rLhs.GetFunctionName() == rRhs.GetFunctionName());
         }
     };
 
@@ -180,11 +192,11 @@ private:
 
 
 template <class T>
-std::ostream& operator<<(std::ostream& rStream, const Profiler<T>& rProfiler);
+KRATOS_API(KRATOS_CORE) std::ostream& operator<<(std::ostream& rStream, const Profiler<T>& rProfiler);
 
 
 template <class TTimeUnit>
-class ProfilerSingleton
+class KRATOS_API(KRATOS_CORE) ProfilerSingleton
 {
 public:
     static Profiler<TTimeUnit>& Get() noexcept;

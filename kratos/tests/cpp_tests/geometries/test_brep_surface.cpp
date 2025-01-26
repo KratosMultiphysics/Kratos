@@ -151,23 +151,23 @@ namespace Testing {
         auto p_curve_2 = GenerateReference2Curve2dPointer();
         auto p_curve_3 = GenerateReference3Curve2dPointer();
 
-        auto p_brep_curve_on_surface_1 = Kratos::make_shared<BrepCurveOnSurface<PointerVector<NodeType>, PointerVector<Point>>>(
+        auto p_brep_curve_on_surface_1 = Kratos::make_shared<BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
             p_surface, p_curve_1);
-        auto p_brep_curve_on_surface_2 = Kratos::make_shared<BrepCurveOnSurface<PointerVector<NodeType>, PointerVector<Point>>>(
+        auto p_brep_curve_on_surface_2 = Kratos::make_shared<BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
             p_surface, p_curve_2);
-        auto p_brep_curve_on_surface_3 = Kratos::make_shared<BrepCurveOnSurface<PointerVector<NodeType>, PointerVector<Point>>>(
+        auto p_brep_curve_on_surface_3 = Kratos::make_shared<BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
             p_surface, p_curve_3);
 
-        BrepSurface<PointerVector<NodeType>, PointerVector<Point>>::BrepCurveOnSurfaceLoopType outer_loop(3);
+        BrepSurface<PointerVector<NodeType>, false, PointerVector<Point>>::BrepCurveOnSurfaceLoopType outer_loop(3);
         outer_loop[0] = p_brep_curve_on_surface_1;
         outer_loop[1] = p_brep_curve_on_surface_2;
         outer_loop[2] = p_brep_curve_on_surface_3;
 
-        BrepSurface<PointerVector<NodeType>, PointerVector<Point>>::BrepCurveOnSurfaceLoopArrayType outer_loops(1);
+        BrepSurface<PointerVector<NodeType>, false, PointerVector<Point>>::BrepCurveOnSurfaceLoopArrayType outer_loops(1);
         outer_loops[0] = outer_loop;
-        BrepSurface<PointerVector<NodeType>, PointerVector<Point>>::BrepCurveOnSurfaceLoopArrayType inner_loops(0);
+        BrepSurface<PointerVector<NodeType>, false, PointerVector<Point>>::BrepCurveOnSurfaceLoopArrayType inner_loops(0);
 
-        auto brep_surface = BrepSurface<PointerVector<NodeType>, PointerVector<Point>>(
+        auto brep_surface = BrepSurface<PointerVector<NodeType>, false, PointerVector<Point>>(
             p_surface, outer_loops, inner_loops);
 
         //// Check general information, input to ouput
