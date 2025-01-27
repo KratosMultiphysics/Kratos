@@ -440,9 +440,10 @@ void UPwBaseElement::CalculateAll(MatrixType&        rLeftHandSideMatrix,
 std::vector<double> UPwBaseElement::CalculateIntegrationCoefficients(
     const GeometryType::IntegrationPointsArrayType& rIntegrationPoints, const Vector& rDetJs) const
 {
-    auto result = std::vector<double>(rIntegrationPoints.size());
+    auto result = std::vector<double>{};
+    result.reserve(rIntegrationPoints.size());
     std::transform(rIntegrationPoints.begin(), rIntegrationPoints.end(), rDetJs.begin(),
-                   result.begin(), [this](const auto& rIntegrationPoint, const auto& rDetJ) {
+                   std::back_inserter(result), [this](const auto& rIntegrationPoint, const auto& rDetJ) {
         return mpStressStatePolicy->CalculateIntegrationCoefficient(rIntegrationPoint, rDetJ, GetGeometry());
     });
     return result;

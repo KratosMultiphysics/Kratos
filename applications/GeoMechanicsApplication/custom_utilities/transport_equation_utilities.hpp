@@ -109,10 +109,11 @@ public:
                                                                         const std::vector<double>& DerivativesOfSaturation,
                                                                         const Properties& rProperties)
     {
-        std::vector<double> result(rBiotCoefficients.size());
+        std::vector<double> result;
+        result.reserve(rBiotCoefficients.size());
         for (std::size_t i = 0; i < rBiotCoefficients.size(); ++i) {
-            result[i] = CalculateInverseBiotModulus(rBiotCoefficients[i], rDegreesOfSaturation[i],
-                                                    DerivativesOfSaturation[i], rProperties);
+            result.push_back(CalculateInverseBiotModulus(rBiotCoefficients[i], rDegreesOfSaturation[i],
+                                                         DerivativesOfSaturation[i], rProperties));
         }
         return result;
     }
@@ -128,9 +129,10 @@ public:
     [[nodiscard]] static std::vector<double> CalculateBiotCoefficients(const std::vector<Matrix>& rConstitutiveMatrices,
                                                                        const Properties& rProperties)
     {
-        std::vector<double> result(rConstitutiveMatrices.size());
-        std::transform(rConstitutiveMatrices.begin(), rConstitutiveMatrices.end(), result.begin(),
-                       [&rProperties](const Matrix& rConstitutiveMatrix) {
+        std::vector<double> result;
+        result.reserve(rConstitutiveMatrices.size());
+        std::transform(rConstitutiveMatrices.begin(), rConstitutiveMatrices.end(),
+                       std::back_inserter(result), [&rProperties](const Matrix& rConstitutiveMatrix) {
             return CalculateBiotCoefficient(rConstitutiveMatrix, rProperties);
         });
 
@@ -140,8 +142,9 @@ public:
     [[nodiscard]] static std::vector<double> CalculatePermeabilityUpdateFactors(const std::vector<Vector>& rStrainVectors,
                                                                                 const Properties& rProperties)
     {
-        auto result = std::vector<double>(rStrainVectors.size());
-        std::transform(rStrainVectors.cbegin(), rStrainVectors.cend(), result.begin(),
+        auto result = std::vector<double>{};
+        result.reserve(rStrainVectors.size());
+        std::transform(rStrainVectors.cbegin(), rStrainVectors.cend(), std::back_inserter(result),
                        [&rProperties](const auto& rStrainVector) {
             return CalculatePermeabilityUpdateFactor(rStrainVector, rProperties);
         });

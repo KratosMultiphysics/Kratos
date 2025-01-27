@@ -1025,11 +1025,13 @@ std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateDerivatives
     const std::vector<double>& rFluidPressures) const
 {
     KRATOS_ERROR_IF(rFluidPressures.size() != mRetentionLawVector.size());
-    std::vector<double> result(rFluidPressures.size());
+    std::vector<double> result;
+    result.reserve(rFluidPressures.size());
 
     auto retention_law_params = RetentionLaw::Parameters{this->GetProperties()};
     std::transform(rFluidPressures.begin(), rFluidPressures.end(), mRetentionLawVector.begin(),
-                   result.begin(), [&retention_law_params](auto fluid_pressure, const auto& pRetentionLaw) {
+                   std::back_inserter(result),
+                   [&retention_law_params](auto fluid_pressure, const auto& pRetentionLaw) {
         retention_law_params.SetFluidPressure(fluid_pressure);
         return pRetentionLaw->CalculateDerivativeOfSaturation(retention_law_params);
     });
@@ -1061,8 +1063,9 @@ std::vector<array_1d<double, TDim>> UPwSmallStrainElement<TDim, TNumNodes>::Calc
     const GeometryType& rGeom      = this->GetGeometry();
     const IndexType     NumGPoints = rGeom.IntegrationPointsNumber(this->GetIntegrationMethod());
 
-    std::vector<array_1d<double, TDim>> FluidFluxes(NumGPoints);
-    ElementVariables                    Variables;
+    std::vector<array_1d<double, TDim>> FluidFluxes;
+    FluidFluxes.reserve(NumGPoints);
+    ElementVariables Variables;
     this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
     const PropertiesType& rProp = this->GetProperties();
@@ -1084,9 +1087,9 @@ std::vector<array_1d<double, TDim>> UPwSmallStrainElement<TDim, TNumNodes>::Calc
         array_1d<double, TDim> GradPressureTerm = prod(trans(Variables.GradNpT), Variables.PressureVector);
         GradPressureTerm += PORE_PRESSURE_SIGN_FACTOR * rProp[DENSITY_WATER] * Variables.BodyAcceleration;
 
-        FluidFluxes[GPoint] = PORE_PRESSURE_SIGN_FACTOR * Variables.DynamicViscosityInverse *
+        FluidFluxes.push_back(PORE_PRESSURE_SIGN_FACTOR * Variables.DynamicViscosityInverse *
                               Variables.RelativePermeability *
-                              prod(Variables.PermeabilityMatrix, GradPressureTerm);
+                              prod(Variables.PermeabilityMatrix, GradPressureTerm));
     }
 
     return FluidFluxes;
@@ -1157,9 +1160,10 @@ template <unsigned int TDim, unsigned int TNumNodes>
 std::vector<Matrix> UPwSmallStrainElement<TDim, TNumNodes>::CalculateBMatrices(
     const GeometryType::ShapeFunctionsGradientsType& rDN_DXContainer, const Matrix& rNContainer) const
 {
-    std::vector<Matrix> result(rDN_DXContainer.size());
+    std::vector<Matrix> result;
+    result.reserve(rDN_DXContainer.size());
     for (unsigned int GPoint = 0; GPoint < rDN_DXContainer.size(); ++GPoint) {
-        result[GPoint] = this->CalculateBMatrix(rDN_DXContainer[GPoint], row(rNContainer, GPoint));
+        result.push_back(this->CalculateBMatrix(rDN_DXContainer[GPoint], row(rNContainer, GPoint)));
     }
 
     return result;
@@ -1380,9 +1384,11 @@ std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateRelativePer
 
     auto retention_law_params = RetentionLaw::Parameters{this->GetProperties()};
 
-    auto result = std::vector<double>(rFluidPressures.size());
+    auto result = std::vector<double>{};
+    result.reserve(rFluidPressures.size());
     std::transform(mRetentionLawVector.begin(), mRetentionLawVector.end(), rFluidPressures.begin(),
-                   result.begin(), [&retention_law_params](const auto& pRetentionLaw, auto FluidPressure) {
+                   std::back_inserter(result),
+                   [&retention_law_params](const auto& pRetentionLaw, auto FluidPressure) {
         retention_law_params.SetFluidPressure(FluidPressure);
         return pRetentionLaw->CalculateRelativePermeability(retention_law_params);
     });
@@ -1396,9 +1402,11 @@ std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateBishopCoeff
 
     auto retention_law_params = RetentionLaw::Parameters{this->GetProperties()};
 
-    auto result = std::vector<double>(rFluidPressures.size());
+    auto result = std::vector<double>{};
+    result.reserve(rFluidPressures.size());
     std::transform(mRetentionLawVector.begin(), mRetentionLawVector.end(), rFluidPressures.begin(),
-                   result.begin(), [&retention_law_params](const auto& pRetentionLaw, auto FluidPressure) {
+                   std::back_inserter(result),
+                   [&retention_law_params](const auto& pRetentionLaw, auto FluidPressure) {
         retention_law_params.SetFluidPressure(FluidPressure);
         return pRetentionLaw->CalculateBishopCoefficient(retention_law_params);
     });
@@ -1452,9 +1460,10 @@ std::vector<Matrix> UPwSmallStrainElement<TDim, TNumNodes>::CalculateDeformation
 {
     const auto number_of_integration_points =
         this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
-    std::vector<Matrix> result(number_of_integration_points);
+    std::vector<Matrix> result;
+    result.reserve(number_of_integration_points);
     for (unsigned int integration_point = 0; integration_point < number_of_integration_points; ++integration_point) {
-        result[integration_point] = CalculateDeformationGradient(integration_point);
+        result.push_back(CalculateDeformationGradient(integration_point));
     }
 
     return result;

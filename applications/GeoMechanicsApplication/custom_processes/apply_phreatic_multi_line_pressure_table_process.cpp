@@ -54,8 +54,9 @@ void ApplyPhreaticMultiLinePressureTableProcess::ExecuteInitializeSolutionStep()
     const Variable<double>& var = KratosComponents<Variable<double>>::Get(VariableName());
 
     const double        Time = mrModelPart.GetProcessInfo()[TIME] / mTimeUnitConverter;
-    std::vector<double> deltaH(mpTable.size());
-    std::transform(mpTable.begin(), mpTable.end(), deltaH.begin(),
+    std::vector<double> deltaH;
+    deltaH.reserve(mpTable.size());
+    std::transform(mpTable.begin(), mpTable.end(), std::back_inserter(deltaH),
                    [Time](const auto& element) { return element ? element->GetValue(Time) : 0.0; });
 
     block_for_each(mrModelPart.Nodes(), [&var, &deltaH, this](Node& rNode) {

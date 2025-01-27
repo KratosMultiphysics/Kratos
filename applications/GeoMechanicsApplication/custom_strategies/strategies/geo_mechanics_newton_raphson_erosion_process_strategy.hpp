@@ -70,8 +70,9 @@ public:
     template <typename PipingElementType>
     std::optional<std::vector<PipingElementType*>> TryDownCastToPipingElement(const std::vector<Element*>& rPipeElements)
     {
-        std::vector<PipingElementType*> result{rPipeElements.size()};
-        std::transform(rPipeElements.begin(), rPipeElements.end(), result.begin(),
+        std::vector<PipingElementType*> result;
+        result.reserve(rPipeElements.size());
+        std::transform(rPipeElements.begin(), rPipeElements.end(), std::back_inserter(result),
                        [](auto p_element) { return dynamic_cast<PipingElementType*>(p_element); });
 
         const auto number_of_piping_elements = static_cast<std::size_t>(std::count_if(

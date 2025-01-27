@@ -164,9 +164,10 @@ std::vector<Vector> StressStrainUtilities::CalculateStrains(const std::vector<Ma
                                                             bool          UseHenckyStrain,
                                                             std::size_t   VoigtSize)
 {
-    std::vector<Vector> result{rDeformationGradients.size()};
+    std::vector<Vector> result;
+    result.reserve(rDeformationGradients.size());
     std::transform(
-        rDeformationGradients.begin(), rDeformationGradients.end(), rBs.begin(), result.begin(),
+        rDeformationGradients.begin(), rDeformationGradients.end(), rBs.begin(), std::back_inserter(result),
         [&rDisplacements, UseHenckyStrain, VoigtSize](const auto& rDeformationGradient, const auto& rB) {
         return UseHenckyStrain ? CalculateHenckyStrain(rDeformationGradient, VoigtSize)
                                : CalculateCauchyStrain(rB, rDisplacements);
