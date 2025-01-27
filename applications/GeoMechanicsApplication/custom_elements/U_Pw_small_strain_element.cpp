@@ -159,8 +159,7 @@ int UPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentPro
 
     // Base class checks for positive area and Id > 0
     // Verify generic variables
-    int ierr = UPwBaseElement::Check(rCurrentProcessInfo);
-    if (ierr != 0) return ierr;
+    if (auto ierr = UPwBaseElement::Check(rCurrentProcessInfo); ierr != 0) return ierr;
 
     const PropertiesType& rProp = this->GetProperties();
     const GeometryType&   rGeom = this->GetGeometry();
@@ -181,31 +180,7 @@ int UPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentPro
             << "DYNAMIC_VISCOSITY has Key zero, is not defined or has an invalid value at element"
             << this->Id() << std::endl;
 
-        KRATOS_ERROR_IF(!rProp.Has(PERMEABILITY_XX) || rProp[PERMEABILITY_XX] < 0.0)
-            << "PERMEABILITY_XX has Key zero, is not defined or has an invalid value at element"
-            << this->Id() << std::endl;
-
-        KRATOS_ERROR_IF(!rProp.Has(PERMEABILITY_YY) || rProp[PERMEABILITY_YY] < 0.0)
-            << "PERMEABILITY_YY has Key zero, is not defined or has an invalid value at element"
-            << this->Id() << std::endl;
-
-        KRATOS_ERROR_IF(!rProp.Has(PERMEABILITY_XY) || rProp[PERMEABILITY_XY] < 0.0)
-            << "PERMEABILITY_XY has Key zero, is not defined or has an invalid value at element"
-            << this->Id() << std::endl;
-
-        if constexpr (TDim > 2) {
-            KRATOS_ERROR_IF(!rProp.Has(PERMEABILITY_ZZ) || rProp[PERMEABILITY_ZZ] < 0.0)
-                << "PERMEABILITY_ZZ has Key zero, is not defined or has an invalid value at element"
-                << this->Id() << std::endl;
-
-            KRATOS_ERROR_IF(!rProp.Has(PERMEABILITY_YZ) || rProp[PERMEABILITY_YZ] < 0.0)
-                << "PERMEABILITY_YZ has Key zero, is not defined or has an invalid value at element"
-                << this->Id() << std::endl;
-
-            KRATOS_ERROR_IF(!rProp.Has(PERMEABILITY_ZX) || rProp[PERMEABILITY_ZX] < 0.0)
-                << "PERMEABILITY_ZX has Key zero, is not defined or has an invalid value at element"
-                << this->Id() << std::endl;
-        }
+        GeoElementUtilities::CheckPermeabilityProperties(rProp, rGeom.WorkingSpaceDimension());
     }
 
     // Verify that the constitutive law exists
@@ -238,7 +213,7 @@ int UPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentPro
         return mRetentionLawVector[0]->Check(rProp, rCurrentProcessInfo);
     }
 
-    return ierr;
+    return 0;
 
     KRATOS_CATCH("")
 }
@@ -1548,18 +1523,16 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeProperties(ElementVariabl
 {
     KRATOS_TRY
 
-    const PropertiesType& rProp = this->GetProperties();
+    const PropertiesType& r_properties = this->GetProperties();
 
-    rVariables.IgnoreUndrained = rProp[IGNORE_UNDRAINED];
-    rVariables.UseHenckyStrain = false;
-    if (rProp.Has(USE_HENCKY_STRAIN)) rVariables.UseHenckyStrain = rProp[USE_HENCKY_STRAIN];
+    rVariables.IgnoreUndrained = r_properties[IGNORE_UNDRAINED];
+    rVariables.UseHenckyStrain = r_properties.Has(USE_HENCKY_STRAIN) ? r_properties[USE_HENCKY_STRAIN] : false;
 
-    rVariables.ConsiderGeometricStiffness = false;
-    if (rProp.Has(CONSIDER_GEOMETRIC_STIFFNESS))
-        rVariables.ConsiderGeometricStiffness = rProp[CONSIDER_GEOMETRIC_STIFFNESS];
+    rVariables.ConsiderGeometricStiffness =
+        r_properties.Has(CONSIDER_GEOMETRIC_STIFFNESS) ? r_properties[CONSIDER_GEOMETRIC_STIFFNESS] : false;
 
-    rVariables.DynamicViscosityInverse = 1.0 / rProp[DYNAMIC_VISCOSITY];
-    GeoElementUtilities::FillPermeabilityMatrix(rVariables.PermeabilityMatrix, rProp);
+    rVariables.DynamicViscosityInverse = 1.0 / r_properties[DYNAMIC_VISCOSITY];
+    GeoElementUtilities::FillPermeabilityMatrix(rVariables.PermeabilityMatrix, r_properties);
 
     KRATOS_CATCH("")
 }
