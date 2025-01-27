@@ -491,16 +491,12 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
             }
         }
 
-        for (unsigned int g_point = 0; g_point < number_of_integration_points; g_point++) {
-            double hydraulic_head = 0.0;
-            for (unsigned int node = 0; node < num_u_nodes; ++node)
-                hydraulic_head += n_container(g_point, node) * nodal_hydraulic_head[node];
-
-            rOutput[g_point] = hydraulic_head;
+        for (unsigned int integration_point = 0; integration_point < number_of_integration_points; ++integration_point) {
+            rOutput[integration_point] = MathUtils<>::Dot(row(n_container, integration_point), nodal_hydraulic_head);
         }
     } else {
-        for (unsigned int i = 0; i < number_of_integration_points; ++i) {
-            rOutput[i] = mConstitutiveLawVector[i]->GetValue(rVariable, rOutput[i]);
+        for (unsigned int integration_point = 0; integration_point < number_of_integration_points; ++integration_point) {
+            rOutput[integration_point] = mConstitutiveLawVector[integration_point]->GetValue(rVariable, rOutput[integration_point]);
         }
     }
 
