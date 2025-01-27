@@ -18,7 +18,6 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "geometries/point.h"
 #include "containers/pointer_vector.h"
 #include "utilities/math_utils.h"
@@ -86,8 +85,10 @@ public:
     ///@{
 
     /**
-     * Find the 3D intersection of a line (bounded) with a triangle (bounded)
-     * @param rTriangleGeometry Is the triangle to intersect
+     * @brief Find the 3D intersection of a line (bounded) with a triangle (bounded)
+     * @param rTrianglePoint1 Coordinates of the first point of the intersecting triangle
+     * @param rTrianglePoint2 Coordinates of the second point of the intersecting triangle
+     * @param rTrianglePoint3 Coordinates of the third point of the intersecting triangle
      * @param rLinePoint1 Coordinates of the first point of the intersecting line
      * @param rLinePoint2 Coordinates of the second point of the intersecting line
      * @return rIntersectionPoint The intersection point coordinates
@@ -97,37 +98,39 @@ public:
      * 1 (intersect in a unique point)
      * 2 (are in the same plane)
      */
-    template <class TGeometryType>
     static int ComputeTriangleLineIntersection(
-        const TGeometryType& rTriangleGeometry,
+        const array_1d<double,3>& rTrianglePoint1,
+        const array_1d<double,3>& rTrianglePoint2,
+        const array_1d<double,3>& rTrianglePoint3,
         const array_1d<double,3>& rLinePoint1,
         const array_1d<double,3>& rLinePoint2,
         array_1d<double,3>& rIntersectionPoint,
-        const double epsilon = 1e-12) {
-
+        const double epsilon = 1e-12
+        ) 
+    {
         // This is the adaption of the implementation provided in:
         // http://www.softsurfer.com/Archive/algorithm_0105/algorithm_0105.htm#intersect_RayTriangle()
         // Based on Tomas Möller & Ben Trumbore (1997) Fast, Minimum Storage Ray-Triangle Intersection, Journal of Graphics Tools, 2:1, 21-28, DOI: 10.1080/10867651.1997.10487468 
 
         // Get triangle edge vectors and plane normal
-        const array_1d<double,3> u = rTriangleGeometry[1] - rTriangleGeometry[0];
-        const array_1d<double,3> v = rTriangleGeometry[2] - rTriangleGeometry[0];
+        const array_1d<double,3> u = rTrianglePoint2 - rTrianglePoint1;
+        const array_1d<double,3> v = rTrianglePoint3 - rTrianglePoint1;
         array_1d<double,3> n;
         MathUtils<double>::CrossProduct<array_1d<double,3>,array_1d<double,3>,array_1d<double,3>>(n,u,v);
 
         // Check if the triangle is degenerate (do not deal with this case)
-        if (MathUtils<double>::Norm3(n) < epsilon){
+        if (MathUtils<double>::Norm3(n) < epsilon) {
             return -1;
         }
 
         const array_1d<double,3> dir = rLinePoint2 - rLinePoint1; // Edge direction vector
-        const array_1d<double,3> w_0 = rLinePoint1 - rTriangleGeometry[0];
+        const array_1d<double,3> w_0 = rLinePoint1 - rTrianglePoint1;
         const double a = -inner_prod(n,w_0);
         const double b = inner_prod(n,dir);
 
         // Check if the ray is parallel to the triangle plane
-        if (std::abs(b) < epsilon){
-            if (a == 0.0){
+        if (std::abs(b) < epsilon) {
+            if (a == 0.0) {
                 return 2;    // Edge lies in the triangle plane
             } else {
                 return 0;    // Edge does not lie in the triangle plane
@@ -136,7 +139,7 @@ public:
 
         // If the edge is not parallel, compute the intersection point
         const double r = a / b;
-        if (r < 0.0){
+        if (r < 0.0) {
             return 0;    // Edge goes away from triangle
         } else if (r > 1.0) {
             return 0;    // Edge goes away from triangle
@@ -145,14 +148,39 @@ public:
         rIntersectionPoint = rLinePoint1 + r*dir;
 
         // Check if the intersection point is inside the triangle
-        if (PointInTriangle(rTriangleGeometry[0], rTriangleGeometry[1], rTriangleGeometry[2], rIntersectionPoint)) {
+        if (PointInTriangle(rTrianglePoint1, rTrianglePoint2, rTrianglePoint3, rIntersectionPoint)) {
             return 1;
         }
         return 0;
     }
 
     /**
-     * Find the 2D intersection of a line (bounded) with a triangle (bounded)
+     * @brief Find the 3D intersection of a line (bounded) with a triangle (bounded)
+     * @param rTriangleGeometry Is the triangle to intersect
+     * @param rLinePoint1 Coordinates of the first point of the intersecting line
+     * @param rLinePoint2 Coordinates of the second point of the intersecting line
+     * @return rIntersectionPoint The intersection point coordinates
+     * @return The intersection type index:
+     * -1 (the triangle is degenerate)
+     * 0 (disjoint - no intersection)
+     * 1 (intersect in a unique point)
+     * 2 (are in the same plane)
+     * @tparam TGeometryType The geometry type
+     */
+    template <class TGeometryType>
+    static int ComputeTriangleLineIntersection(
+        const TGeometryType& rTriangleGeometry,
+        const array_1d<double,3>& rLinePoint1,
+        const array_1d<double,3>& rLinePoint2,
+        array_1d<double,3>& rIntersectionPoint,
+        const double epsilon = 1e-12
+        ) 
+    {
+        return ComputeTriangleLineIntersection(rTriangleGeometry[0], rTriangleGeometry[1], rTriangleGeometry[2], rLinePoint1, rLinePoint2, rIntersectionPoint, epsilon);
+    }
+
+    /**
+     * @brief Find the 2D intersection of a line (bounded) with a triangle (bounded)
      * @param rTriangle Is the triangle to intersect
      * @param rPoint0 Coordinates of the first point of the intersecting line
      * @param rPoint1 Coordinates of the second point of the intersecting line
@@ -162,13 +190,14 @@ public:
     static bool TriangleLineIntersection2D(
         const TGeometryType& rTriangle,
         const array_1d<double,3>& rPoint0,
-        const array_1d<double,3>& rPoint1)
+        const array_1d<double,3>& rPoint1
+        )
     {
         return TriangleLineIntersection2D(rTriangle[0], rTriangle[1], rTriangle[2], rPoint0, rPoint1);
     }
 
     /**
-     * Find the 2D intersection of a line (bounded) with a triangle (bounded)
+     * @brief Find the 2D intersection of a line (bounded) with a triangle (bounded)
      * @param rVert1 The first vertex of the triangle to intersect
      * @param rVert2 The second vertex of the triangle to intersect
      * @param rVert3 The third vertex of the triangle to intersect
@@ -181,7 +210,8 @@ public:
         const array_1d<double,3>& rVert1,
         const array_1d<double,3>& rVert2,
         const array_1d<double,3>& rPoint0,
-        const array_1d<double,3>& rPoint1)
+        const array_1d<double,3>& rPoint1
+        )
     {
         // Check the intersection of each edge against the intersecting object
         array_1d<double,3> int_point;
@@ -196,9 +226,8 @@ public:
     }
 
     /**
-     * Check if a point is inside a 2D triangle
-     * @brief This uses the Cramer's rule for solving a linear system and obtain the barycentric coordinates
-     * @details 
+     * @brief Check if a point is inside a 2D triangle
+     * @details This uses the Cramer's rule for solving a linear system and obtain the barycentric coordinates
      * @param rVert0 The first vertex of the triangle to intersect
      * @param rVert1 The second vertex of the triangle to intersect
      * @param rVert2 The third vertex of the triangle to intersect
@@ -213,7 +242,8 @@ public:
         const array_1d<double,3>& rVert1,
         const array_1d<double,3>& rVert2,
         const array_1d<double,3>& rPoint,
-        const double Tolerance = std::numeric_limits<double>::epsilon())
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        )
     {
         const array_1d<double,3> u = rVert1 - rVert0;
         const array_1d<double,3> v = rVert2 - rVert0;
@@ -628,7 +658,8 @@ public:
         const array_1d<double,3>& rLinePoint0,
         const array_1d<double,3>& rLinePoint1,
         array_1d<double,3>& rIntersectionPoint,
-        const double epsilon = 1e-12)
+        const double epsilon = 1e-12
+        )
     {
         return ComputeLineLineIntersection(
             rLineGeometry[0], rLineGeometry[1], rLinePoint0, rLinePoint1, rIntersectionPoint, epsilon);
@@ -653,7 +684,8 @@ public:
         const array_1d<double,3>& rLine2Point0,
         const array_1d<double,3>& rLine2Point1,
         array_1d<double,3>& rIntersectionPoint,
-        const double epsilon = 1e-12)
+        const double epsilon = 1e-12
+        )
     {
         const array_1d<double,3> r = rLine1Point1 - rLine1Point0;
         const array_1d<double,3> s = rLine2Point1 - rLine2Point0;
@@ -718,7 +750,8 @@ public:
         const array_1d<double,3>& rLinePoint1,
         const array_1d<double,3>& rLinePoint2,
         array_1d<double,3>& rIntersectionPoint,
-        const double epsilon = 1e-12)
+        const double epsilon = 1e-12
+        )
     {
         // This is the adaption of the implementation provided in:
         // http://www.softsurfer.com/Archive/algorithm_0105/algorithm_0105.htm#intersect_RayTriangle()
@@ -752,7 +785,7 @@ public:
 
     /**
      * @brief Compute a segment box intersection
-     * Provided the minimum and maximum points of a box cell, this method checks if
+     * @details Provided the minimum and maximum points of a box cell, this method checks if
      * the segment intersects it. If it does intersect, it returns the rIntersectionPointpoint as well.
      * Note that the cell box is assumed to be aligned to the cartesian axes.
      * Adapted from: https://www.3dkingdoms.com/weekly/weekly.php?a=3
@@ -763,10 +796,11 @@ public:
      * @return int Returns 0 if there is no intersection and 1 otherwise
      */
     static int ComputeLineBoxIntersection(
-        const array_1d<double,3> &rBoxPoint0,
-        const array_1d<double,3> &rBoxPoint1,
-        const array_1d<double,3> &rLinePoint0,
-        const array_1d<double,3> &rLinePoint1)
+        const array_1d<double,3>& rBoxPoint0,
+        const array_1d<double,3>& rBoxPoint1,
+        const array_1d<double,3>& rLinePoint0,
+        const array_1d<double,3>& rLinePoint1
+        )
     {
         array_1d<double,3> intersection_point = ZeroVector(3);
 
@@ -794,34 +828,7 @@ public:
     }
 
     ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    ///@}
-    ///@name Friends
-    ///@{
 private:
-
-    ///@name Private static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
     ///@name Private Operations
     ///@{
 
@@ -831,17 +838,33 @@ private:
      * @param b Second vector
      * @return The 2D cross product value
      */
-
-    static inline double CrossProd2D(const array_1d<double,3> &a, const array_1d<double,3> &b){
+    static inline double CrossProd2D(
+        const array_1d<double,3>& a, 
+        const array_1d<double,3>& b
+        )
+    {
         return (a(0)*b(1) - a(1)*b(0));
     }
 
+    /**
+     * @brief Computes the intersection point of a line segment with a plane defined by distances from two points.
+     * @details This function calculates the intersection point of a line segment (defined by two points) with a plane.
+     * The plane is implicitly defined by the distances of the two points from it. If the line segment intersects
+     * the plane, the intersection point is computed and returned.
+     * @param Dist1 Distance of the first point from the plane.
+     * @param Dist2 Distance of the second point from the plane.
+     * @param rPoint1 Coordinates of the first point of the line segment.
+     * @param rPoint2 Coordinates of the second point of the line segment.
+     * @param rIntersectionPoint Output parameter for the computed intersection point.
+     * @return int Returns 1 if an intersection is found, 0 otherwise.
+     */
     static inline int GetLineBoxIntersection(
         const double Dist1,
         const double Dist2,
-        const array_1d<double,3> &rPoint1,
-        const array_1d<double,3> &rPoint2,
-        array_1d<double,3> &rIntersectionPoint)
+        const array_1d<double,3>& rPoint1,
+        const array_1d<double,3>& rPoint2,
+        array_1d<double,3>& rIntersectionPoint
+        )
     {
         if ((Dist1 * Dist2) >= 0.0){
             return 0;
@@ -854,11 +877,22 @@ private:
         return 1;
     }
 
+    /**
+     * @brief Checks if a given point lies inside a box along a specified axis.
+     * @details This function checks if a given intersection point lies within the bounds of a box
+     * along a specified axis. The box is defined by two corner points (rBoxPoint0 and rBoxPoint1).
+     * @param rIntersectionPoint The point to check for containment within the box.
+     * @param rBoxPoint0 Coordinates of the first corner of the box.
+     * @param rBoxPoint1 Coordinates of the second corner of the box.
+     * @param Axis The axis along which to check the containment (1, 2, or 3 for x, y, z respectively).
+     * @return int Returns 1 if the point lies inside the box along the specified axis, 0 otherwise.
+     */
     static inline int InBox(
-        const array_1d<double,3> &rIntersectionPoint,
-        const array_1d<double,3> &rBoxPoint0,
-        const array_1d<double,3> &rBoxPoint1,
-        const unsigned int Axis)
+        const array_1d<double,3>& rIntersectionPoint,
+        const array_1d<double,3>& rBoxPoint0,
+        const array_1d<double,3>& rBoxPoint1,
+        const unsigned int Axis
+        )
     {
         if ( Axis==1 && rIntersectionPoint[2] > rBoxPoint0[2] && rIntersectionPoint[2] < rBoxPoint1[2] && rIntersectionPoint[1] > rBoxPoint0[1] && rIntersectionPoint[1] < rBoxPoint1[1]) return 1;
         if ( Axis==2 && rIntersectionPoint[2] > rBoxPoint0[2] && rIntersectionPoint[2] < rBoxPoint1[2] && rIntersectionPoint[0] > rBoxPoint0[0] && rIntersectionPoint[0] < rBoxPoint1[0]) return 1;
@@ -867,21 +901,6 @@ private:
     }
 
     ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Private LifeCycle
-    ///@{
-
-    ///@}
-    ///@name Unaccessible methods
-    ///@{
-
 }; /* Class IntersectionUtilities */
 
 ///@name Type Definitions
