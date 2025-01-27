@@ -1044,11 +1044,12 @@ std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateDegreesOfSa
     const std::vector<double>& rFluidPressures) const
 {
     KRATOS_ERROR_IF(rFluidPressures.size() != mRetentionLawVector.size());
-    std::vector<double> result(rFluidPressures.size());
+    std::vector<double> result;
+    result.reserve(rFluidPressures.size());
 
     auto retention_law_params = RetentionLaw::Parameters{this->GetProperties()};
     std::transform(rFluidPressures.begin(), rFluidPressures.end(), mRetentionLawVector.begin(),
-                   result.begin(), [&retention_law_params](auto fluid_pressure, const auto& pRetentionLaw) {
+                   std::back_inserter(result), [&retention_law_params](auto fluid_pressure, const auto& pRetentionLaw) {
         retention_law_params.SetFluidPressure(fluid_pressure);
         return pRetentionLaw->CalculateSaturation(retention_law_params);
     });
