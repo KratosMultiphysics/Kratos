@@ -95,20 +95,14 @@ public:
         return result;
     }
 
-    [[nodiscard]] static double CalculateFluidPressure(const Vector& rN, const Vector& rPressureVector)
+    template <typename VectorType>
+    [[nodiscard]] static double CalculateFluidPressure(const VectorType& rN, const Vector& rPressureVector)
     {
         return inner_prod(rN, rPressureVector);
     }
 
     [[nodiscard]] static std::vector<double> CalculateFluidPressures(const Matrix& rNContainer,
-                                                                     const Vector& rPressureVector)
-    {
-        auto result = std::vector<double>(rNContainer.size1());
-        for (auto i = std::size_t{0}; i < rNContainer.size1(); ++i) {
-            result[i] = CalculateFluidPressure(row(rNContainer, i), rPressureVector);
-        }
-        return result;
-    }
+                                                                     const Vector& rPressureVector);
 
     [[nodiscard]] static std::vector<double> CalculateInverseBiotModuli(const std::vector<double>& rBiotCoefficients,
                                                                         const std::vector<double>& rDegreesOfSaturation,
