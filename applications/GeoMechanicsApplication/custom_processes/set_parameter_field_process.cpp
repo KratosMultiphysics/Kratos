@@ -149,11 +149,10 @@ void SetParameterFieldProcess::ExecuteInitialize()
 
 std::vector<IndexType> SetParameterFieldProcess::GetVectorIndices() const
 {
-    const auto vector_indices = mParameters["vector_variable_indices"].GetVector();
+    const auto             vector_indices = mParameters["vector_variable_indices"].GetVector();
     std::vector<IndexType> result(vector_indices.size());
-    std::transform(vector_indices.begin(), vector_indices.end(), result.begin(), [](auto index) {
-        return static_cast<IndexType>(index);
-    });
+    std::transform(vector_indices.begin(), vector_indices.end(), result.begin(),
+                   [](auto index) { return static_cast<IndexType>(index); });
 
     return result;
 }

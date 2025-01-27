@@ -751,7 +751,6 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_ZeroReturnFunctions, KratosGeoMecha
     // Assert
     KRATOS_EXPECT_EQ(actual_vector.size(), n_DoF);
     KRATOS_EXPECT_VECTOR_EQ(actual_vector, expected_vector);
-
 }
 
 } // namespace Kratos::Testing

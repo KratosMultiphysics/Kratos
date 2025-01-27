@@ -29,7 +29,7 @@ Matrix GeoTransportEquationUtilities::CalculatePermeabilityMatrix(const Matrix& 
 std::vector<double> GeoTransportEquationUtilities::CalculateFluidPressures(const Matrix& rNContainer,
                                                                            const Vector& rPressureVector)
 {
-    const auto num_rows = rNContainer.size1();
+    const auto          num_rows = rNContainer.size1();
     std::vector<double> result;
     result.reserve(num_rows);
 
