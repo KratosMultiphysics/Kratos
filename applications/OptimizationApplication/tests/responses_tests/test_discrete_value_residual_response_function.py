@@ -57,5 +57,4 @@ class TestDiscreteValueResidualResponseFunctionExact(kratos_unittest.TestCase):
             self.assertAlmostEqual(fd_gradient, analytical_gradient[i], 5)
 
 if __name__ == "__main__":
-    # Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
     kratos_unittest.main()
