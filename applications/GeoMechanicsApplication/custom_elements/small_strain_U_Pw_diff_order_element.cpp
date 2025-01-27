@@ -54,8 +54,7 @@ int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo
 {
     KRATOS_TRY
 
-    int ierr = UPwBaseElement::Check(rCurrentProcessInfo);
-    if (ierr != 0) return ierr;
+    if (auto ierr = UPwBaseElement::Check(rCurrentProcessInfo); ierr != 0) return ierr;
 
     const auto& r_geom = GetGeometry();
 
@@ -542,15 +541,16 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
             this->CalculateKinematics(Variables, g_point);
             Variables.B = b_matrices[g_point];
 
-            // Compute FluidFlux vector q [m/s]
-            const SizeType Dim       = r_geometry.WorkingSpaceDimension();
-            const SizeType NumUNodes = r_geometry.PointsNumber();
+            // Compute FluidFlux vector q [L/T]
+            const SizeType dimension = r_geometry.WorkingSpaceDimension();
 
-            Vector   body_acceleration = ZeroVector(Dim);
+            Vector   body_acceleration = ZeroVector(dimension);
             SizeType Index             = 0;
-            for (SizeType i = 0; i < NumUNodes; ++i) {
-                for (unsigned int idim = 0; idim < Dim; ++idim)
-                    body_acceleration[idim] += Variables.Nu[i] * Variables.BodyAcceleration[Index++];
+            for (SizeType i = 0; i < r_geometry.PointsNumber(); ++i) {
+                for (unsigned int idim = 0; idim < dimension; ++idim) {
+                    body_acceleration[idim] += Variables.Nu[i] * Variables.BodyAcceleration[Index];
+                    Index++;
+                }
             }
 
             const auto relative_permeability = relative_permeability_values[g_point];
@@ -559,21 +559,19 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
             Variables.F            = deformation_gradients[g_point];
             Variables.StrainVector = strain_vectors[g_point];
 
-            Vector GradPressureTerm(Dim);
+            Vector GradPressureTerm(dimension);
             noalias(GradPressureTerm) = prod(trans(Variables.DNp_DX), Variables.PressureVector);
             noalias(GradPressureTerm) +=
                 PORE_PRESSURE_SIGN_FACTOR * GetProperties()[DENSITY_WATER] * body_acceleration;
 
-            Vector aux_fluid_flux = ZeroVector(Dim);
-            aux_fluid_flux        = PORE_PRESSURE_SIGN_FACTOR * Variables.DynamicViscosityInverse *
-                             relative_permeability * prod(Variables.IntrinsicPermeability, GradPressureTerm);
-
-            Vector fluid_flux = ZeroVector(3);
-            for (unsigned int idim = 0; idim < Dim; ++idim)
-                fluid_flux[idim] = aux_fluid_flux[idim];
+            Vector fluid_flux = ZeroVector(dimension);
+            fluid_flux        = PORE_PRESSURE_SIGN_FACTOR * Variables.DynamicViscosityInverse *
+                         relative_permeability * prod(Variables.IntrinsicPermeability, GradPressureTerm);
 
             rOutput[g_point].resize(3, false);
-            rOutput[g_point] = fluid_flux;
+            rOutput[g_point][2] = 0.0;
+            for (unsigned int idim = 0; idim < dimension; ++idim)
+                rOutput[g_point][idim] = fluid_flux[idim];
         }
     }
 
