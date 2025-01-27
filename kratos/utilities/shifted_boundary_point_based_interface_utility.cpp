@@ -225,7 +225,8 @@ namespace Kratos
         const std::size_t n_elements = (find_intersected_objects_process.GetModelPart1()).NumberOfElements();
         const auto& r_elements = (find_intersected_objects_process.GetModelPart1()).ElementsArray();
 
-        // Check for nodes that would be surrounded by SBM_BOUNDARY elements mostly to detect small cuts
+        //TODO NEXT: instead calculate distances and move nodes accordingly - more robust?!?
+        // Check for nodes that would be surrounded by SBM_BOUNDARY elements mostly, to detect small cuts
         //TODO do not move outer boundary elements?
         const std::size_t n_dim = mpModelPart->GetProcessInfo()[DOMAIN_SIZE];
         const double relocation_multiplier = 1e-1;  //TODO 1e-10 OR 1e-2*length for smoother SBM_BOUNDARY
@@ -688,7 +689,8 @@ namespace Kratos
             << "There are no elements in skin model part (boundary) '" << mpSkinModelPart->FullName() << "'." << std::endl;
 
         // Set the bin-based fast point locator utility
-        //TODO faster to keep pointer_locator for all skin model parts and iterations? problem with node relocation?
+        //TODO faster to keep pointer_locator for all skin model parts and iterations? 
+        //TODO UpdateSearchDatabase necessary whenever there is a node relocation?
         const std::size_t point_locator_max_results = 10000;
         const double point_locator_tolerance = 1.0e-5;
         BinBasedFastPointLocator<TDim> point_locator(*mpModelPart);
@@ -707,7 +709,9 @@ namespace Kratos
         std::size_t n_skin_points_not_found = 0;
         std::size_t n_skin_points_found = 0;
         LockObject mutex;
-        //block_for_each(mpSkinModelPart->Elements(), [&](ElementType& rSkinElement){  // TODO Speicherzugriffsfehler??
+        // TODO Segmentation fault in parallel?? BinBasedFastPointLocator should be threadsafe for OpenMP
+        // TODO search_results needs to be private!
+        //block_for_each(mpSkinModelPart->Elements(), [&](ElementType& rSkinElement){ 
         for (ElementType& rSkinElement : mpSkinModelPart->Elements()) {
             const auto& r_skin_geom = rSkinElement.GetGeometry();
             const std::size_t n_gp = r_skin_geom.IntegrationPointsNumber(integration_method);
