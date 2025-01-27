@@ -481,9 +481,6 @@ add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication
 # Set compilation tool
 export COMPILATION_TOOL=${COMPILATION_TOOL:-"Ninja"}
 
-# Set CMake strip
-export CMAKE_STRIP=${CMAKE_STRIP:-""}
-
 # Configure
 cmake ..                                                                                            \
 -G "${COMPILATION_TOOL}"                                                                            \
@@ -491,7 +488,6 @@ cmake ..                                                                        
 -DCMAKE_BUILD_TYPE="${KRATOS_BUILD_TYPE}"                                                           \
 -H"${KRATOS_SOURCE}"                                                                                \
 -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}"                                                            \
--DCMAKE_STRIP="${CMAKE_STRIP}"                                                                      \
 -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}                                                                    \
 -DCMAKE_CXX_FLAGS="${KRATOS_CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS}"                                    \
 -DCMAKE_EXPORT_COMPILE_COMMANDS=${CMAKE_EXPORT_COMPILE_COMMANDS}                                    \
