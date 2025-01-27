@@ -117,8 +117,9 @@ class SensorStatusControl(Control):
         Kratos.Expression.VariableExpressionIO.Write(projected_sensor_field, KratosSI.SENSOR_STATUS, False)
 
         # now update the sensor status control updaters
-        for controller in GetMaskStatusControllers(ComponentDataView(self.sensor_group_name, self.optimization_problem), self.sensor_mask_name):
-            controller.Update()
+        if self.sensor_mask_name != "":
+            for controller in GetMaskStatusControllers(ComponentDataView(self.sensor_group_name, self.optimization_problem), self.sensor_mask_name):
+                controller.Update()
 
         # compute and stroe projection derivatives for consistent filtering of the sensitivities
         self.projection_derivative_field = self.projection.ForwardProjectionGradient(self.physical_phi_field)
