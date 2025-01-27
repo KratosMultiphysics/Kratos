@@ -5,7 +5,7 @@ from typing import Any
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.responses.response_routine import ResponseRoutine
-from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView 
+from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 
 def OptimizationComponentFactory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
     if not parameters.Has("type"):
@@ -43,20 +43,14 @@ def GetAllComponentFullNamesWithData(optimization_problem: OptimizationProblem) 
     return list_of_components_full_names_with_data
 
 def GetComponentHavingDataByFullName(component_full_name: str, optimization_problem: OptimizationProblem) -> Any:
+    for component_type in optimization_problem.GetComponentContainer().keys():
+        snake_case_name = Kratos.StringUtilities.ConvertCamelCaseToSnakeCase(component_type.__name__)
+        if component_full_name.startswith(snake_case_name):
+            return optimization_problem.GetComponent(component_full_name[len(snake_case_name) + 1:], component_type)
+
     data_container = optimization_problem.GetProblemDataContainer()
-
-    name_data = component_full_name.split(".")
-
-    if len(name_data) == 1:
-        if data_container.HasValue("object") and data_container["object"].HasValue(component_full_name):
-            return component_full_name
-    else:
-        component_type_str = Kratos.StringUtilities.ConvertSnakeCaseToCamelCase(name_data[0])
-        component_name = name_data[1]
-
-        for component_type in optimization_problem.GetComponentContainer().keys():
-            if component_type.__name__ == component_type_str:
-                return optimization_problem.GetComponent(component_name, component_type)
+    if data_container.HasValue("object") and data_container["object"].HasValue(component_full_name):
+        return component_full_name
 
     msg = ""
     for component_type, dict_of_components in optimization_problem.GetComponentContainer().items():
