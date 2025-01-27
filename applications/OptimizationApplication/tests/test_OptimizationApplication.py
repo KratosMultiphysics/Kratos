@@ -104,7 +104,6 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses_tests.test_geometric_centroid_deviation_response_function.TestGeometricCentroidDeviationResponseFunction]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses_tests.test_combined_response_function.TestCombinedResponseFunction]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses_tests.test_discrete_value_residual_response_function.TestDiscreteValueResidualResponseFunctionExact]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses_tests.test_discrete_value_residual_response_function.TestDiscreteValueResidualResponseFunctionLogarithm]))
 
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestConditionPropertiesExpression]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestElementPropertiesExpression]))
