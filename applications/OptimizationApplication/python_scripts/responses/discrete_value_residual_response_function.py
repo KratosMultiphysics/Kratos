@@ -24,7 +24,8 @@ class DiscreteValueResidualResponseFunction(ResponseFunction):
             ],
             "container_type"         : "node_historical",
             "variable_name"          : "",
-            "residual_type"          : "exact",
+            "beta_coefficient"       : 2.0,
+            "scaling_factor"         : 1.0,
             "list_of_discrete_values": [0.0]
         }""")
         parameters.ValidateAndAssignDefaults(default_settings)
@@ -36,26 +37,28 @@ class DiscreteValueResidualResponseFunction(ResponseFunction):
 
         self.list_of_discrete_values = parameters["list_of_discrete_values"].GetVector()
 
-        self.residual_type = parameters["residual_type"].GetString()
-        if self.residual_type  not in ["exact", "logarithm"]:
-            raise RuntimeError(f"Unsupported residual_type = \"{self.residual_type}\" requested. Followings are supported:\n\texact\n\tlogarithm")
+        self.beta_coefficient = parameters["beta_coefficient"].GetDouble()
+        self.scaling_factor = parameters["scaling_factor"].GetDouble()
 
         container_type = parameters["container_type"].GetString()
         if container_type == "node_historical" or container_type == "node_non_historical":
             self.expression_getter = lambda model_part : Kratos.Expression.NodalExpression(model_part)
             self.expression_reader = lambda exp: Kratos.Expression.VariableExpressionIO.Read(exp, self.variable, container_type == "node_historical")
+            self.boltzmann_operator = KratosOA.NodalBoltzmannOperator(self.beta_coefficient, self.scaling_factor)
         elif container_type == "condition" or container_type == "condition_properties":
             self.expression_getter = lambda model_part : Kratos.Expression.ConditionExpression(model_part)
             if container_type == "condition":
                 self.expression_reader = lambda exp: Kratos.Expression.VariableExpressionIO.Read(exp, self.variable)
             else:
                 self.expression_reader = lambda exp: KratosOA.PropertiesVariableExpressionIO(exp, self.variable)
+            self.boltzmann_operator = KratosOA.ConditionBoltzmannOperator(self.beta_coefficient, self.scaling_factor)
         elif container_type == "element" or container_type == "element_properties":
             self.expression_getter = lambda model_part : Kratos.Expression.ElementExpression(model_part)
             if container_type == "element":
                 self.expression_reader = lambda exp: Kratos.Expression.VariableExpressionIO.Read(exp, self.variable)
             else:
                 self.expression_reader = lambda exp: KratosOA.PropertiesVariableExpressionIO(exp, self.variable)
+            self.boltzmann_operator = KratosOA.ElementBoltzmannOperator(self.beta_coefficient, self.scaling_factor)
         else:
             raise RuntimeError(f"Unsupported container_type = \"{container_type}\" requested. Followings are supported:\n\tnode_historical\n\tnode_non_historical\n\tcondition\n\tcondition_properties\n\telement\n\telement_properties")
 
@@ -89,18 +92,13 @@ class DiscreteValueResidualResponseFunction(ResponseFunction):
 
         resultant = exp.Clone()
 
-        if self.residual_type == "exact":
-            Kratos.Expression.LiteralExpressionIO.SetData(resultant, 1.0)
-        elif self.residual_type == "logarithm":
-            Kratos.Expression.LiteralExpressionIO.SetData(resultant, 0.0)
+        Kratos.Expression.LiteralExpressionIO.SetData(resultant, 1.0)
 
         for value in self.list_of_discrete_values:
-            if self.residual_type == "exact":
-                resultant *= (exp - value) ** 2
-            elif self.residual_type == "logarithm":
-                resultant += Kratos.Expression.Utils.Log((exp - value) ** 2)
+            resultant *= ((exp - value) ** 2)
 
-        return Kratos.Expression.Utils.Sum(resultant)
+        self.boltzmann_operator.Update(resultant)
+        return self.boltzmann_operator.CalculateValue()
 
     def CalculateGradient(self, physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]') -> None:
         values = self.expression_getter(self.model_part)
@@ -117,17 +115,15 @@ class DiscreteValueResidualResponseFunction(ResponseFunction):
 
                 for exp in expressions:
                     for i, value_i in enumerate(self.list_of_discrete_values):
-                        if self.residual_type == "exact":
-                            partial_gradient_exp = exp.Clone()
-                            Kratos.Expression.LiteralExpressionIO.SetData(partial_gradient_exp, 1.0)
-                            for j, value_j in enumerate(self.list_of_discrete_values):
-                                if i == j:
-                                    partial_gradient_exp *= (values - value_j) * 2.0
-                                else:
-                                    partial_gradient_exp *= (values - value_j) ** 2
-                            exp.SetExpression(exp.GetExpression() + partial_gradient_exp.GetExpression())
-                        elif self.residual_type == "logarithm":
-                            exp.SetExpression(exp.GetExpression() + (((values - value_i) ** (-2)) * (values - value_i) * 2.0).GetExpression())
+                        partial_gradient_exp = exp.Clone()
+                        Kratos.Expression.LiteralExpressionIO.SetData(partial_gradient_exp, 1.0)
+                        for j, value_j in enumerate(self.list_of_discrete_values):
+                            if i == j:
+                                partial_gradient_exp *= (values - value_j) * 2.0
+                            else:
+                                partial_gradient_exp *= (values - value_j) ** 2
+                        exp.SetExpression(exp.GetExpression() + self.boltzmann_operator.CalculateGradient().GetExpression() * partial_gradient_exp.GetExpression())
+
                     exp.SetExpression(Kratos.Expression.Utils.Collapse(exp).GetExpression())
             else:
                 raise RuntimeError(f"Unsupported sensitivity w.r.t. {physical_variable.Name()} requested. Followings are supported sensitivity variables:\n\t{self.variable.Name()}")
