@@ -29,6 +29,7 @@
 #include "custom_utilities/implicit_filter_utils.h"
 #include "custom_utilities/optimization_utils.h"
 #include "custom_utilities/properties_variable_expression_io.h"
+#include "custom_utilities/boltzmann_operator.h"
 
 // Include base h
 #include "add_custom_response_utilities_to_python.h"
@@ -378,6 +379,27 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
              py::arg("model_part"),
              py::arg("variable"),
              py::arg("data_location"))
+        ;
+
+    py::class_<BoltzmannOperator<ModelPart::NodesContainerType>, BoltzmannOperator<ModelPart::NodesContainerType>::Pointer>(m, "NodalBoltzmannOperator")
+        .def(py::init<const double, const double>(), py::arg("beta"), py::arg("scaling_factor"))
+        .def("CalculateValue", &BoltzmannOperator<ModelPart::NodesContainerType>::CalculateValue)
+        .def("CalculateGradient", &BoltzmannOperator<ModelPart::NodesContainerType>::CalculateGradient)
+        .def("Update", &BoltzmannOperator<ModelPart::NodesContainerType>::Update, py::arg("input_expression"))
+        ;
+
+    py::class_<BoltzmannOperator<ModelPart::ConditionsContainerType>, BoltzmannOperator<ModelPart::ConditionsContainerType>::Pointer>(m, "ConditionBoltzmannOperator")
+        .def(py::init<const double, const double>(), py::arg("beta"), py::arg("scaling_factor"))
+        .def("CalculateValue", &BoltzmannOperator<ModelPart::ConditionsContainerType>::CalculateValue)
+        .def("CalculateGradient", &BoltzmannOperator<ModelPart::ConditionsContainerType>::CalculateGradient)
+        .def("Update", &BoltzmannOperator<ModelPart::ConditionsContainerType>::Update, py::arg("input_expression"))
+        ;
+
+    py::class_<BoltzmannOperator<ModelPart::ElementsContainerType>, BoltzmannOperator<ModelPart::ElementsContainerType>::Pointer>(m, "ElementBoltzmannOperator")
+        .def(py::init<const double, const double>(), py::arg("beta"), py::arg("scaling_factor"))
+        .def("CalculateValue", &BoltzmannOperator<ModelPart::ElementsContainerType>::CalculateValue)
+        .def("CalculateGradient", &BoltzmannOperator<ModelPart::ElementsContainerType>::CalculateGradient)
+        .def("Update", &BoltzmannOperator<ModelPart::ElementsContainerType>::Update, py::arg("input_expression"))
         ;
 }
 
