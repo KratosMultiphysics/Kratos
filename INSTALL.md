@@ -456,8 +456,6 @@ add_app () {
 }
 
 # Set compiler
-# export CC=${CC:-gcc}
-# export CXX=${CXX:-g++}
 export CC=${CC:-clang}
 export CXX=${CXX:-clang++}
 
@@ -481,6 +479,12 @@ add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication
 # Set compilation tool
 export COMPILATION_TOOL=${COMPILATION_TOOL:-"Ninja"}
 
+# Determine the folder where the compiler is located
+export MSYS_BIN_FOLDER=$(dirname $(which ${CXX}))
+
+# Set CMake strip
+export CMAKE_STRIP=${CMAKE_STRIP:-"${MSYS_BIN_FOLDER}/strip.exe"}
+
 # Configure
 cmake ..                                                                                            \
 -G "${COMPILATION_TOOL}"                                                                            \
@@ -488,6 +492,7 @@ cmake ..                                                                        
 -DCMAKE_BUILD_TYPE="${KRATOS_BUILD_TYPE}"                                                           \
 -H"${KRATOS_SOURCE}"                                                                                \
 -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}"                                                            \
+-DCMAKE_STRIP="${CMAKE_STRIP}"                                                                      \
 -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}                                                                    \
 -DCMAKE_CXX_FLAGS="${KRATOS_CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS}"                                    \
 -DCMAKE_EXPORT_COMPILE_COMMANDS=${CMAKE_EXPORT_COMPILE_COMMANDS}                                    \

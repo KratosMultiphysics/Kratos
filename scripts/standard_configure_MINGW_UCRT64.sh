@@ -39,8 +39,11 @@ add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication
 # Set compilation tool
 export COMPILATION_TOOL=${COMPILATION_TOOL:-"Ninja"}
 
+# Determine the folder where the compiler is located
+export MSYS_BIN_FOLDER=$(dirname $(which ${CXX}))
+
 # Set CMake strip
-export CMAKE_STRIP=${CMAKE_STRIP:-""}
+export CMAKE_STRIP=${CMAKE_STRIP:-"${MSYS_BIN_FOLDER}/strip.exe"}
 
 # Configure
 cmake ..                                                                                            \
