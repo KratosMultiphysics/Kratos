@@ -47,9 +47,6 @@ add_library(KratosGeoMechanicsCore SHARED ${KRATOS_GEO_MECHANICS_APPLICATION_COR
 target_link_libraries(KratosGeoMechanicsCore PUBLIC KratosCore KratosStructuralMechanicsCore KratosLinearSolversCore ${CMAKE_DL_LIBS})
 set_target_properties(KratosGeoMechanicsCore PROPERTIES COMPILE_DEFINITIONS "GEO_MECHANICS_APPLICATION=EXPORT,API")
 
-## _Temporary_ test application for settlement workflow
-add_executable( settlement_test_app ${CMAKE_CURRENT_SOURCE_DIR}/dgeoflow_app.cpp )
-target_link_libraries( settlement_test_app PUBLIC KratosGeoMechanicsCore )
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
