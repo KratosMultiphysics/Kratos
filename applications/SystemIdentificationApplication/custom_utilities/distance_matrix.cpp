@@ -116,4 +116,24 @@ std::tuple<IndexType, IndexType> DistanceMatrix::GetIndexPair(const IndexType En
     return std::make_tuple(i, j);
 }
 
+std::string DistanceMatrix::Info() const
+{
+    return "DistanceMatrix";
+}
+
+void DistanceMatrix::PrintInfo(std::ostream& rOStream) const
+{
+    rOStream << Info();
+}
+
+void DistanceMatrix::PrintData(std::ostream& rOStream) const
+{
+    rOStream << "The distance matrix: (" << mN << ", " << mN << ")" << std::endl;
+    for (IndexType i = 0; i < mN; ++i) {
+        for (IndexType j = 0; j < mN; ++j) {
+            rOStream << "     (" << i << ", " << j << ") = " << GetDistance(i, j) << std::endl;
+        }
+    }
+}
+
 } /* namespace Kratos.*/

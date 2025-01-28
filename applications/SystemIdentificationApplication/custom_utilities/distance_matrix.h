@@ -71,6 +71,19 @@ public:
             ContainerExpression<ModelPart::ElementsContainerType>::Pointer> pDistancesExpression);
 
     ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const;
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const;
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const;
+
+    ///@}
 
 private:
     ///@name Private member variables
@@ -84,5 +97,17 @@ private:
 };
 
 ///@} // Kratos Classes
+
+/// output stream function
+inline std::ostream& operator << (
+    std::ostream& rOStream,
+    const DistanceMatrix& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
 
 } /* namespace Kratos.*/

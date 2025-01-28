@@ -108,6 +108,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def("GetDistance", py::overload_cast<const IndexType, const IndexType>(&DistanceMatrix::GetDistance, py::const_), py::arg("index_i"), py::arg("index_j"))
         .def("GetEntriesSize", &DistanceMatrix::GetEntriesSize)
         .def("GetNumberOfItems", &DistanceMatrix::GetNumberOfItems)
+        .def("__str__", PrintObject<DistanceMatrix>)
         ;
 
     py::class_<SensorMaskStatus, SensorMaskStatus::Pointer>(m, "SensorMaskStatus")
