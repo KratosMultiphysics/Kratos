@@ -42,7 +42,6 @@ public:
     using SizeType = std::size_t;
     using UPwBaseElement::CalculateDerivativesOnInitialConfiguration;
     using UPwBaseElement::mConstitutiveLawVector;
-    using UPwBaseElement::mIsInitialised;
     using UPwBaseElement::mRetentionLawVector;
     using UPwBaseElement::mStateVariablesFinalized;
     using UPwBaseElement::mStressVector;
@@ -119,8 +118,9 @@ public:
 
     std::string Info() const override
     {
-        return "U-Pw small strain Element #" + std::to_string(this->Id()) +
-               "\nConstitutive law: " + mConstitutiveLawVector[0]->Info();
+        const std::string constitutive_info =
+            !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
+        return "U-Pw small strain Element #" + std::to_string(this->Id()) + "\nConstitutive law: " + constitutive_info;
     }
 
     void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
@@ -199,7 +199,7 @@ protected:
 
     virtual void InitializeElementVariables(ElementVariables& rVariables, const ProcessInfo& CurrentProcessInfo);
 
-    virtual void CalculateKinematics(ElementVariables& rVariables, unsigned int PointNumber);
+    virtual void CalculateKinematics(ElementVariables& rVariables, unsigned int IntegrationPointIndex);
 
     Matrix CalculateBMatrix(const Matrix& rDN_DX, const Vector& rN) const;
     std::vector<Matrix> CalculateBMatrices(const GeometryType::ShapeFunctionsGradientsType& rDN_DXContainer,

@@ -18,11 +18,13 @@
 #include "custom_retention/retention_law.h"
 #include "custom_utilities/stress_strain_utilities.h"
 #include "geo_mechanics_application_variables.h"
+#include "includes/kratos_export_api.h"
+#include "includes/variables.h"
 
 namespace Kratos
 {
 
-class GeoTransportEquationUtilities
+class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoTransportEquationUtilities
 {
 public:
     template <unsigned int TDim, unsigned int TNumNodes>
@@ -154,6 +156,8 @@ public:
         });
         return result;
     }
+
+    [[nodiscard]] static double CalculateParticleDiameter(const Properties& rProperties);
 
 private:
     [[nodiscard]] static double CalculateBiotCoefficient(const Matrix&     rConstitutiveMatrix,

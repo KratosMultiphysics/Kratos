@@ -22,7 +22,7 @@
 #include "includes/properties.h"
 #include "includes/model_part.h"
 #include "includes/variables.h"
-#include "testing/testing.h"
+#include "includes/cfd_variables.h"
 #include "input_output/logger.h"
 #include "fluid_dynamics_application_variables.h"
 
@@ -165,8 +165,8 @@ void SetDofValues(
 
 void SetViscosities(
     ModelPart& rModelPart,
-    const double DynamicViscosity, 
-    const double BulkViscosity, 
+    const double DynamicViscosity,
+    const double BulkViscosity,
     const double Conductivity)
 {
     for (auto &r_node : rModelPart.Nodes())
@@ -196,7 +196,7 @@ std::vector<double> Assemble(ModelPart& rModelPart, const bool debug_prints = fa
 
     for(auto& r_cond: rModelPart.Conditions()) { r_cond.AddExplicitContribution(r_process_info); print_reactions(rModelPart); }
     for(auto& r_elem: rModelPart.Elements())   { r_elem.AddExplicitContribution(r_process_info); print_reactions(rModelPart); }
-    
+
     // Assembling DOF vector
     std::vector<double> values;
     std::size_t ndofs = rModelPart.NumberOfNodes() == 0 ? 0 : rModelPart.NumberOfNodes() * rModelPart.NodesBegin()->GetDofs().size();
@@ -254,7 +254,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2DConservationRigidTra
 /**
  * @brief Test the 2D explicit compressible Navier-Stokes element and condition RHS
  * This is a conservation test.
- * 
+ *
  * N-S equations say that given the following conditions:
  *  - V = 0
  *  - ∇ e_total = 0
@@ -289,7 +289,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2DConservationStatic, 
 /**
  * @brief Test the 2D explicit compressible Navier-Stokes element and condition RHS
  * This is a conservation test.
- * 
+ *
  * RIGID BODY ROTATION
  * N-S equations say that given the following conditions:
  *  - ∇ρ = 0
@@ -305,7 +305,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2DConservationStatic, 
  *          /   |   \
  *         1 ------- 2
  *              |
- * 
+ *
  */
 KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2DConservationRigidRotation, FluidDynamicsApplicationFastSuite)
 {
@@ -317,7 +317,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2DConservationRigidRot
 
     // Moving nodes
     constexpr double area = 27.051997;
-    
+
     constexpr double angle = Globals::Pi / 6.0;
     const double cos30 = std::cos(angle);
     const double sin30 = std::sin(angle);

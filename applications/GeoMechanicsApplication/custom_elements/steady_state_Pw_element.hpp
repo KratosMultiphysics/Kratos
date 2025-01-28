@@ -46,12 +46,9 @@ public:
     /// The definition of the sizetype
     using SizeType = std::size_t;
     using BaseType::mConstitutiveLawVector;
-    using BaseType::mIsInitialised;
     using BaseType::mRetentionLawVector;
 
     using ElementVariables = typename BaseType::ElementVariables;
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     explicit SteadyStatePwElement(IndexType NewId = 0) : BaseType(NewId) {}
 
@@ -78,41 +75,28 @@ public:
 
     ~SteadyStatePwElement() = default;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     Element::Pointer Create(IndexType               NewId,
                             NodesArrayType const&   ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Turn back information as a string.
     std::string Info() const override
     {
-        std::stringstream buffer;
-        buffer << "steady-state Pw flow Element #" << this->Id()
-               << "\nRetention law: " << mRetentionLawVector[0]->Info();
-        return buffer.str();
+        const std::string retention_info =
+            !mRetentionLawVector.empty() ? mRetentionLawVector[0]->Info() : "not defined";
+        return "steady-state Pw flow Element #" + std::to_string(this->Id()) + "\nRetention law: " + retention_info;
     }
 
     // Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << "steady-state Pw flow Element #" << this->Id()
-                 << "\nRetention law: " << mRetentionLawVector[0]->Info();
-    }
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
 
 protected:
     /// Member Variables
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     void CalculateAll(MatrixType&        rLeftHandSideMatrix,
                       VectorType&        rRightHandSideVector,
                       const ProcessInfo& CurrentProcessInfo,
@@ -123,13 +107,7 @@ protected:
 
     void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint) override;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 private:
-    /// Member Variables
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     /// Serialization
 
     friend class Serializer;
@@ -142,8 +120,7 @@ private:
     void load(Serializer& rSerializer) override{KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)}
 
     // Assignment operator.
-    SteadyStatePwElement&
-    operator=(SteadyStatePwElement const& rOther);
+    SteadyStatePwElement& operator=(SteadyStatePwElement const& rOther);
 
     // Copy constructor.
     SteadyStatePwElement(SteadyStatePwElement const& rOther);

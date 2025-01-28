@@ -15,7 +15,6 @@
 #pragma once
 
 #include "custom_conditions/T_condition.h"
-#include "custom_utilities/condition_utilities.hpp"
 #include "custom_utilities/element_utilities.hpp"
 #include "includes/serializer.h"
 
@@ -38,13 +37,13 @@ public:
 
     GeoTNormalFluxCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
-    ~GeoTNormalFluxCondition() override;
-
     Condition::Pointer Create(IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties) const override
     {
         return Kratos::make_intrusive<GeoTNormalFluxCondition>(
             NewId, this->GetGeometry().Create(rThisNodes), pProperties);
     }
+
+    std::string Info() const override;
 
 protected:
     void CalculateRHS(Vector& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo) override;

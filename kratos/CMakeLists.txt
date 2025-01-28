@@ -68,6 +68,21 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
     )
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
+## Kratos benchmark sources. Disabled by default
+if(${KRATOS_BUILD_BENCHMARK} MATCHES ON)
+    file(GLOB_RECURSE KRATOS_BENCHMARK_SOURCES 
+        ${CMAKE_CURRENT_SOURCE_DIR}/benchmarks/*.cpp
+    )
+
+    foreach(file ${KRATOS_BENCHMARK_SOURCES})
+        get_filename_component(filename ${file} NAME_WE)
+        add_executable(${filename} ${file})
+        target_link_libraries(${filename} PUBLIC KratosCore benchmark::benchmark)
+        set_target_properties(${filename} PROPERTIES COMPILE_DEFINITIONS "KRATOS_BENCHMARK=IMPORT,API")
+        install(TARGETS ${filename} DESTINATION benchmark)
+    endforeach(file ${KRATOS_BENCHMARK_SOURCES})
+endif(${KRATOS_BUILD_BENCHMARK} MATCHES ON)
+
 ## Define KratosVersion object
 add_library(KratosVersion OBJECT ${KRATOS_VERSION_SOURCES})
 set_target_properties(KratosVersion PROPERTIES COMPILE_DEFINITIONS "KRATOS_VERSION=IMPORT,API")

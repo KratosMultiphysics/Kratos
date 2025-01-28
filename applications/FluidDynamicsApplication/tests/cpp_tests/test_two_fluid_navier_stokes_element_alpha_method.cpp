@@ -24,6 +24,11 @@
 #include "includes/model_part.h"
 #include "utilities/math_utils.h"
 #include "includes/global_pointer_variables.h"
+#include "includes/cfd_variables.h"
+#include "utilities/math_utils.h"
+#include "utilities/normal_calculation_utils.h"
+
+// Application includes
 #include "custom_elements/two_fluid_navier_stokes_alpha_method.h"
 #include "custom_constitutive/newtonian_2d_law.h"
 #include "custom_constitutive/newtonian_3d_law.h"

@@ -660,12 +660,6 @@ protected:
         mNewmark.beta = ThisParameters["newmark_beta"].GetDouble();
     }
 
-    ///@}
-
-private:
-    ///@name Private Operations
-    ///@{
-
     /// @brief Utility function for initializing some members.
     void AuxiliarInitializeBossak()
     {

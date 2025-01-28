@@ -399,7 +399,7 @@ void AuxiliarModelPartUtilities::RemoveOrphanNodesFromSubModelParts()
                 }
                 const auto& r_geometries = r_sub_model_part.Geometries();
                 for (auto it_geom = r_geometries.begin(); it_geom != r_geometries.end(); ++it_geom) {
-                    auto& r_geometry = *((it_geom.base())->second);
+                    auto& r_geometry = *it_geom;
                     for (auto& r_node : r_geometry) {
                         r_node.Set(TO_ERASE, false);
                     }
@@ -456,7 +456,7 @@ ModelPart& AuxiliarModelPartUtilities::DeepCopyModelPart(
 
     // We copy the meshes (here is the heavy work)
     // NOTE: From the mesh I am not going to copy neither the Flags, neither the DataValueContainer, as those are unused and I think it is needed to open a discussion about clean up of the code and remove those derivations (multiple derivations have problems of overhead https://isocpp.org/wiki/faq/multiple-inheritance)
-    // RecursiveEnsureModelPartOwnsProperties(); //NOTE: To be activated in case people doesn't create the model parts properly and the properties are not created in the model part before assigning tho the elements and conditions. For the moment I would not activate it because I don't like to patronize the code with this kind of stuff. 
+    // RecursiveEnsureModelPartOwnsProperties(); //NOTE: To be activated in case people doesn't create the model parts properly and the properties are not created in the model part before assigning tho the elements and conditions. For the moment I would not activate it because I don't like to patronize the code with this kind of stuff.
 
     // Copy properties, first using the copy constructor, and then reassigning each table so it doesn't point to the original one
     const auto& r_reference_properties = mrModelPart.rProperties();
@@ -533,7 +533,7 @@ ModelPart& AuxiliarModelPartUtilities::DeepCopyModelPart(
     // The database of geometries
     const auto& r_reference_geometries = mrModelPart.Geometries();
     for (auto it_geom = r_reference_geometries.begin(); it_geom != r_reference_geometries.end(); ++it_geom) {
-        auto p_old_geometry = (it_geom.base())->second;
+        auto p_old_geometry = *(it_geom.base());
         if (geometry_pointers_database.find(p_old_geometry) == geometry_pointers_database.end()) {
             const auto& p_old_points = p_old_geometry->Points();
             if (points_geometry.size() != p_old_points.size()) {
@@ -575,7 +575,7 @@ ModelPart& AuxiliarModelPartUtilities::DeepCopyModelPart(
 
     // We copy the geometries
     for (auto it_geom = r_reference_geometries.begin(); it_geom != r_reference_geometries.end(); ++it_geom) {
-        auto p_old_geometry = (it_geom.base())->second;
+        auto p_old_geometry = *(it_geom.base());
         r_model_part.AddGeometry(geometry_pointers_database[p_old_geometry]);
     }
 
@@ -584,7 +584,7 @@ ModelPart& AuxiliarModelPartUtilities::DeepCopyModelPart(
 
     // We cannot copy the parent model part as it will break the concept of deep copy, which a priori assumes this is the parent model part, so nothing to do here
 
-    // We copy the sub model parts 
+    // We copy the sub model parts
     // NOTE: It is assumed that the submodelparts that working only with Id of the different entities will be enough, as we have ensured to copy everything, including the ids
     DeepCopySubModelPart(mrModelPart, r_model_part);
 

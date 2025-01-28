@@ -14,12 +14,8 @@
 
 #pragma once
 
-// Project includes
-#include "includes/serializer.h"
-
-// Application includes
 #include "custom_conditions/U_Pw_condition.hpp"
-#include "geo_mechanics_application_variables.h"
+#include "includes/serializer.h"
 
 namespace Kratos
 {
@@ -32,13 +28,8 @@ public:
 
     using IndexType      = std::size_t;
     using PropertiesType = Properties;
-    using NodeType       = Node;
-    using GeometryType   = Geometry<NodeType>;
+    using GeometryType   = Geometry<Node>;
     using NodesArrayType = GeometryType::PointsArrayType;
-    using VectorType     = Vector;
-    using MatrixType     = Matrix;
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Default constructor
     UPwForceCondition() : UPwCondition<TDim, TNumNodes>() {}
@@ -55,30 +46,16 @@ public:
     {
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     Condition::Pointer Create(IndexType               NewId,
                               NodesArrayType const&   ThisNodes,
                               PropertiesType::Pointer pProperties) const override;
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    [[nodiscard]] std::string Info() const override;
 
 protected:
-    // Member Variables
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    void CalculateRHS(VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo) override;
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    void CalculateRHS(Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
 private:
-    // Member Variables
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    // Serialization
-
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override
@@ -90,7 +67,6 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
     }
-
 }; // class UPwForceCondition.
 
 } // namespace Kratos.

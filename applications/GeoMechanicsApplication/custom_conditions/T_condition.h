@@ -36,8 +36,6 @@ public:
 
     GeoTCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
-    ~GeoTCondition() override;
-
     Condition::Pointer Create(IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties) const override
     {
         return Kratos::make_intrusive<GeoTCondition>(NewId, GetGeometry().Create(rThisNodes), pProperties);
@@ -47,18 +45,18 @@ public:
 
     void GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo&) const override;
 
-    void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
-                              VectorType&        rRightHandSideVector,
+    void CalculateLocalSystem(Matrix&            rLeftHandSideMatrix,
+                              Vector&            rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo) override;
 
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
 
-protected:
-    virtual void CalculateAll(MatrixType&        rLeftHandSideMatrix,
-                              VectorType&        rRightHandSideVector,
-                              const ProcessInfo& rCurrentProcessInfo);
+    std::string Info() const override;
 
-    virtual void CalculateRHS(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
+protected:
+    virtual void CalculateAll(Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
+
+    virtual void CalculateRHS(Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 
 private:
     [[nodiscard]] DofsVectorType GetDofs() const;

@@ -20,7 +20,6 @@
 // Application includes
 #include "custom_conditions/U_Pw_condition.hpp"
 #include "custom_conditions/U_Pw_normal_flux_condition.hpp"
-#include "custom_utilities/condition_utilities.hpp"
 #include "custom_utilities/element_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 
@@ -36,12 +35,8 @@ public:
 
     using IndexType      = std::size_t;
     using PropertiesType = Properties;
-    using NodeType       = Node;
-    using GeometryType   = Geometry<NodeType>;
+    using GeometryType   = Geometry<Node>;
     using NodesArrayType = GeometryType::PointsArrayType;
-    using VectorType     = Vector;
-    using MatrixType     = Matrix;
-    using NormalFluxVariables = typename UPwNormalFluxCondition<TDim, TNumNodes>::NormalFluxVariables;
 
     UPwNormalFluxFICCondition() : UPwNormalFluxFICCondition(0, nullptr, nullptr) {}
 
@@ -61,7 +56,14 @@ public:
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
+    std::string Info() const override;
+
 protected:
+    struct NormalFluxVariables {
+        double                      IntegrationCoefficient;
+        array_1d<double, TNumNodes> Np;
+    };
+
     struct NormalFluxFICVariables {
         double DtPressureCoefficient;
         double ElementLength;
@@ -70,33 +72,29 @@ protected:
         array_1d<double, TNumNodes> DtPressureVector;
     };
 
-    void CalculateAll(MatrixType&        rLeftHandSideMatrix,
-                      VectorType&        rRightHandSideVector,
-                      const ProcessInfo& CurrentProcessInfo) override;
+    void CalculateAll(Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo) override;
 
-    void CalculateRHS(VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo) override;
+    void CalculateRHS(Vector& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo) override;
 
     void CalculateElementLength(double& rElementLength, const GeometryType& Geom);
 
-    void CalculateAndAddLHSStabilization(MatrixType&             rLeftHandSideMatrix,
+    void CalculateAndAddLHSStabilization(Matrix&                 rLeftHandSideMatrix,
                                          NormalFluxVariables&    rVariables,
                                          NormalFluxFICVariables& rFICVariables);
 
-    void CalculateAndAddBoundaryMassMatrix(MatrixType&                   rLeftHandSideMatrix,
+    void CalculateAndAddBoundaryMassMatrix(Matrix&                       rLeftHandSideMatrix,
                                            const NormalFluxVariables&    rVariables,
                                            const NormalFluxFICVariables& rFICVariables);
 
-    void CalculateAndAddRHSStabilization(VectorType&             rRightHandSideVector,
+    void CalculateAndAddRHSStabilization(Vector&                 rRightHandSideVector,
                                          NormalFluxVariables&    rVariables,
                                          NormalFluxFICVariables& rFICVariables);
 
-    void CalculateAndAddBoundaryMassFlow(VectorType&                   rRightHandSideVector,
+    void CalculateAndAddBoundaryMassFlow(Vector&                       rRightHandSideVector,
                                          NormalFluxVariables&          rVariables,
                                          const NormalFluxFICVariables& rFICVariables);
 
 private:
-    // Serialization
-
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override
@@ -108,7 +106,6 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
     }
-
 }; // class UPwNormalFluxFICCondition.
 
 } // namespace Kratos.

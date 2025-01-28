@@ -18,7 +18,6 @@
 
 // Application includes
 #include "custom_conditions/T_condition.h"
-#include "custom_utilities/condition_utilities.hpp"
 #include "custom_utilities/element_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 
@@ -62,6 +61,8 @@ public:
     void CalculateLocalSystem(Matrix&            rLeftHandSideMatrix,
                               Vector&            rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo) override;
+
+    std::string Info() const override;
 
 private:
     void InitializeProperties();

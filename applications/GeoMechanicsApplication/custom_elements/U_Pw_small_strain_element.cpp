@@ -15,8 +15,121 @@
 #include "custom_elements/U_Pw_small_strain_element.hpp"
 #include "custom_utilities/constitutive_law_utilities.hpp"
 #include "custom_utilities/equation_of_motion_utilities.h"
+#include "custom_utilities/linear_nodal_extrapolator.h"
 #include "custom_utilities/math_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
+#include "includes/cfd_variables.h"
+
+namespace
+{
+
+Kratos::BoundedMatrix<double, 4, 4> GetExtrapolationMatrixFor3D4NElement()
+{
+    auto result = Kratos::BoundedMatrix<double, 4, 4>{};
+
+    result(0, 0) = -0.309016988749894905;
+    result(0, 1) = -0.3090169887498949046;
+    result(0, 2) = -0.309016988749894905;
+    result(0, 3) = 1.9270509662496847144;
+
+    result(1, 0) = 1.9270509662496847144;
+    result(1, 1) = -0.30901698874989490481;
+    result(1, 2) = -0.3090169887498949049;
+    result(1, 3) = -0.30901698874989490481;
+
+    result(2, 0) = -0.30901698874989490473;
+    result(2, 1) = 1.9270509662496847143;
+    result(2, 2) = -0.3090169887498949049;
+    result(2, 3) = -0.30901698874989490481;
+
+    result(3, 0) = -0.3090169887498949048;
+    result(3, 1) = -0.30901698874989490471;
+    result(3, 2) = 1.9270509662496847143;
+    result(3, 3) = -0.30901698874989490481;
+
+    return result;
+}
+
+Kratos::BoundedMatrix<double, 8, 8> GetExtrapolationMatrixFor3D8NElement()
+{
+    auto result = Kratos::BoundedMatrix<double, 8, 8>{};
+
+    result(0, 0) = 2.549038105676658;
+    result(0, 1) = -0.6830127018922192;
+    result(0, 2) = 0.18301270189221927;
+    result(0, 3) = -0.6830127018922192;
+    result(0, 4) = -0.6830127018922192;
+    result(0, 5) = 0.18301270189221927;
+    result(0, 6) = -0.04903810567665795;
+    result(0, 7) = 0.18301270189221927;
+
+    result(1, 0) = -0.6830127018922192;
+    result(1, 1) = 2.549038105676658;
+    result(1, 2) = -0.6830127018922192;
+    result(1, 3) = 0.18301270189221927;
+    result(1, 4) = 0.18301270189221927;
+    result(1, 5) = -0.6830127018922192;
+    result(1, 6) = 0.18301270189221927;
+    result(1, 7) = -0.04903810567665795;
+
+    result(2, 0) = 0.18301270189221927;
+    result(2, 1) = -0.6830127018922192;
+    result(2, 2) = 2.549038105676658;
+    result(2, 3) = -0.6830127018922192;
+    result(2, 4) = -0.04903810567665795;
+    result(2, 5) = 0.18301270189221927;
+    result(2, 6) = -0.6830127018922192;
+    result(2, 7) = 0.18301270189221927;
+
+    result(3, 0) = -0.6830127018922192;
+    result(3, 1) = 0.18301270189221927;
+    result(3, 2) = -0.6830127018922192;
+    result(3, 3) = 2.549038105676658;
+    result(3, 4) = 0.18301270189221927;
+    result(3, 5) = -0.04903810567665795;
+    result(3, 6) = 0.18301270189221927;
+    result(3, 7) = -0.6830127018922192;
+
+    result(4, 0) = -0.6830127018922192;
+    result(4, 1) = 0.18301270189221927;
+    result(4, 2) = -0.04903810567665795;
+    result(4, 3) = 0.18301270189221927;
+    result(4, 4) = 2.549038105676658;
+    result(4, 5) = -0.6830127018922192;
+    result(4, 6) = 0.18301270189221927;
+    result(4, 7) = -0.6830127018922192;
+
+    result(5, 0) = 0.18301270189221927;
+    result(5, 1) = -0.6830127018922192;
+    result(5, 2) = 0.18301270189221927;
+    result(5, 3) = -0.04903810567665795;
+    result(5, 4) = -0.6830127018922192;
+    result(5, 5) = 2.549038105676658;
+    result(5, 6) = -0.6830127018922192;
+    result(5, 7) = 0.18301270189221927;
+
+    result(6, 0) = -0.04903810567665795;
+    result(6, 1) = 0.18301270189221927;
+    result(6, 2) = -0.6830127018922192;
+    result(6, 3) = 0.18301270189221927;
+    result(6, 4) = 0.18301270189221927;
+    result(6, 5) = -0.6830127018922192;
+    result(6, 6) = 2.549038105676658;
+    result(6, 7) = -0.6830127018922192;
+
+    result(7, 0) = 0.18301270189221927;
+    result(7, 1) = -0.04903810567665795;
+    result(7, 2) = 0.18301270189221927;
+    result(7, 3) = -0.6830127018922192;
+    result(7, 4) = -0.6830127018922192;
+    result(7, 5) = 0.18301270189221927;
+    result(7, 6) = -0.6830127018922192;
+    result(7, 7) = 2.549038105676658;
+
+    return result;
+}
+
+} // namespace
 
 namespace Kratos
 {
@@ -133,51 +246,7 @@ int UPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentPro
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY
-
-    if (!mIsInitialised) this->Initialize(rCurrentProcessInfo);
-
-    ConstitutiveLaw::Parameters ConstitutiveParameters(this->GetGeometry(), this->GetProperties(),
-                                                       rCurrentProcessInfo);
-    ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-    ConstitutiveParameters.Set(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE); // Note: this is for nonlocal damage
-
-    ElementVariables Variables;
-    this->InitializeElementVariables(Variables, rCurrentProcessInfo);
-
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
-
-    const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
-    const auto deformation_gradients = CalculateDeformationGradients();
-    const auto determinants_of_deformation_gradients =
-        GeoMechanicsMathUtilities::CalculateDeterminants(deformation_gradients);
-    const auto strain_vectors = StressStrainUtilities::CalculateStrains(
-        deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain,
-        this->GetStressStatePolicy().GetVoigtSize());
-
-    const auto number_of_integration_points =
-        this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
-    for (unsigned int GPoint = 0; GPoint < number_of_integration_points; ++GPoint) {
-        this->CalculateKinematics(Variables, GPoint);
-        Variables.B            = b_matrices[GPoint];
-        Variables.F            = deformation_gradients[GPoint];
-        Variables.StrainVector = strain_vectors[GPoint];
-
-        ConstitutiveLawUtilities::SetConstitutiveParameters(
-            ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix, Variables.Np,
-            Variables.GradNpT, Variables.F, determinants_of_deformation_gradients[GPoint]);
-
-        noalias(Variables.StressVector) = mStressVector[GPoint];
-        ConstitutiveParameters.SetStressVector(Variables.StressVector);
-        mConstitutiveLawVector[GPoint]->InitializeMaterialResponseCauchy(ConstitutiveParameters);
-
-        mRetentionLawVector[GPoint]->InitializeSolutionStep(RetentionParameters);
-    }
-
-    // Reset hydraulic discharge
     this->ResetHydraulicDischarge();
-
-    KRATOS_CATCH("")
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -186,9 +255,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::ResetHydraulicDischarge()
     KRATOS_TRY
 
     // Reset hydraulic discharge
-    GeometryType& rGeom = this->GetGeometry();
-    for (unsigned int i = 0; i < TNumNodes; ++i) {
-        ThreadSafeNodeWrite(rGeom[i], HYDRAULIC_DISCHARGE, 0.0);
+    for (auto& r_node : this->GetGeometry()) {
+        ThreadSafeNodeWrite(r_node, HYDRAULIC_DISCHARGE, 0.0);
     }
 
     KRATOS_CATCH("")
@@ -244,11 +312,11 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeNonLinearIteration(const 
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom = this->GetGeometry();
-    ConstitutiveLaw::Parameters ConstitutiveParameters(rGeom, this->GetProperties(), rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters ConstitutiveParameters(this->GetGeometry(), this->GetProperties(),
+                                                       rCurrentProcessInfo);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-    ConstitutiveParameters.Set(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE); // Note: this is for nonlocal damage
+    ConstitutiveParameters.Set(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE);
 
     ElementVariables Variables;
     this->InitializeElementVariables(Variables, rCurrentProcessInfo);
@@ -290,8 +358,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessI
     ElementVariables Variables;
     this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
-
     const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
     const auto deformation_gradients = CalculateDeformationGradients();
     const auto determinants_of_deformation_gradients =
@@ -320,8 +386,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessI
         mConstitutiveLawVector[GPoint]->FinalizeMaterialResponseCauchy(ConstitutiveParameters);
         mStateVariablesFinalized[GPoint] =
             mConstitutiveLawVector[GPoint]->GetValue(STATE_VARIABLES, mStateVariablesFinalized[GPoint]);
-
-        mRetentionLawVector[GPoint]->FinalizeSolutionStep(RetentionParameters);
 
         if (rCurrentProcessInfo[NODAL_SMOOTHING])
             this->SaveGPStress(StressContainer, mStressVector[GPoint], GPoint);
@@ -361,14 +425,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::ExtrapolateGPValues(const Matrix& S
 {
     KRATOS_TRY
 
-    array_1d<double, TNumNodes> DamageContainer;
-
-    for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode) {
-        DamageContainer[iNode] = 0.0;
-        DamageContainer[iNode] =
-            mConstitutiveLawVector[iNode]->GetValue(DAMAGE_VARIABLE, DamageContainer[iNode]);
-    }
-
     GeometryType&               rGeom = this->GetGeometry();
     const double&               Area  = rGeom.Area(); // In 3D this is volume
     array_1d<Vector, TNumNodes> NodalStressVector;    // List with stresses at each node
@@ -396,16 +452,12 @@ void UPwSmallStrainElement<TDim, TNumNodes>::ExtrapolateGPValues(const Matrix& S
      * S1-0 = S[1] at node 0
      */
 
-    array_1d<double, TNumNodes> NodalDamage;
-    noalias(NodalDamage) = prod(ExtrapolationMatrix, DamageContainer);
-
     for (unsigned int i = 0; i < TNumNodes; ++i) {
         noalias(NodalStressVector[i]) = row(AuxNodalStress, i) * Area;
         noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
 
         rGeom[i].SetLock();
         noalias(rGeom[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)) += NodalStressTensor[i];
-        rGeom[i].FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) += NodalDamage[i] * Area;
         rGeom[i].FastGetSolutionStepValue(NODAL_AREA) += Area;
         rGeom[i].UnSetLock();
     }
@@ -509,19 +561,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
 
             RetentionParameters.SetFluidPressure(GeoTransportEquationUtilities::CalculateFluidPressure(
                 Variables.Np, Variables.PressureVector));
-
-            if (rVariable == DEGREE_OF_SATURATION)
-                rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateSaturation(RetentionParameters);
-            else if (rVariable == EFFECTIVE_SATURATION)
-                rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateEffectiveSaturation(RetentionParameters);
-            else if (rVariable == BISHOP_COEFFICIENT)
-                rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateBishopCoefficient(RetentionParameters);
-            else if (rVariable == DERIVATIVE_OF_SATURATION)
-                rOutput[GPoint] =
-                    mRetentionLawVector[GPoint]->CalculateDerivativeOfSaturation(RetentionParameters);
-            else if (rVariable == RELATIVE_PERMEABILITY)
-                rOutput[GPoint] =
-                    mRetentionLawVector[GPoint]->CalculateRelativePermeability(RetentionParameters);
+            rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateValue(
+                RetentionParameters, rVariable, rOutput[GPoint]);
         }
     } else if (rVariable == HYDRAULIC_HEAD) {
         const PropertiesType& rProp = this->GetProperties();
@@ -1133,16 +1174,17 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType& rLef
     KRATOS_TRY
 
     this->CalculateAndAddStiffnessMatrix(rLeftHandSideMatrix, rVariables);
-    this->CalculateAndAddCompressibilityMatrix(rLeftHandSideMatrix, rVariables);
+
+    this->CalculateAndAddCouplingMatrix(rLeftHandSideMatrix, rVariables);
 
     if (!rVariables.IgnoreUndrained) {
-        this->CalculateAndAddCouplingMatrix(rLeftHandSideMatrix, rVariables);
-
         const auto permeability_matrix =
             GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
                 rVariables.GradNpT, rVariables.DynamicViscosityInverse, rVariables.PermeabilityMatrix,
                 rVariables.RelativePermeability, rVariables.IntegrationCoefficient);
         GeoElementUtilities::AssemblePPBlockMatrix(rLeftHandSideMatrix, permeability_matrix);
+
+        this->CalculateAndAddCompressibilityMatrix(rLeftHandSideMatrix, rVariables);
     }
 
     KRATOS_CATCH("")
@@ -1167,17 +1209,18 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingMatrix(Matri
 {
     KRATOS_TRY
 
-    const auto coupling_matrix = GeoTransportEquationUtilities::CalculateCouplingMatrix(
-        rVariables.B, this->GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
+    const Matrix coupling_matrix_up = GeoTransportEquationUtilities::CalculateCouplingMatrix(
+        rVariables.B, GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
         rVariables.BiotCoefficient, rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
-    GeoElementUtilities::AssembleUPBlockMatrix(rLeftHandSideMatrix, coupling_matrix);
+    GeoElementUtilities::AssembleUPBlockMatrix(rLeftHandSideMatrix, coupling_matrix_up);
 
     if (!rVariables.IgnoreUndrained) {
-        const double SaturationCoefficient = rVariables.DegreeOfSaturation / rVariables.BishopCoefficient;
-        const BoundedMatrix<double, TNumNodes, TNumNodes * TDim> transposed_coupling_matrix =
-            PORE_PRESSURE_SIGN_FACTOR * SaturationCoefficient * rVariables.VelocityCoefficient *
-            trans(coupling_matrix);
-        GeoElementUtilities::AssemblePUBlockMatrix(rLeftHandSideMatrix, transposed_coupling_matrix);
+        const Matrix coupling_matrix_pu = GeoTransportEquationUtilities::CalculateCouplingMatrix(
+            rVariables.B, GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
+            rVariables.BiotCoefficient, rVariables.DegreeOfSaturation, rVariables.IntegrationCoefficient);
+        GeoElementUtilities::AssemblePUBlockMatrix(
+            rLeftHandSideMatrix,
+            PORE_PRESSURE_SIGN_FACTOR * rVariables.VelocityCoefficient * trans(coupling_matrix_pu));
     }
 
     KRATOS_CATCH("")
@@ -1276,15 +1319,18 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingTerms(Vector
                      rVariables.B, this->GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
                      rVariables.BiotCoefficient, rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
 
-    const array_1d<double, TNumNodes * TDim> coupling_terms = prod(coupling_matrix, rVariables.PressureVector);
-    GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, coupling_terms);
+    const array_1d<double, TNumNodes * TDim> coupling_force = prod(coupling_matrix, rVariables.PressureVector);
+    GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, coupling_force);
 
     if (!rVariables.IgnoreUndrained) {
-        const double SaturationCoefficient = rVariables.DegreeOfSaturation / rVariables.BishopCoefficient;
-        const array_1d<double, TNumNodes> transposed_coupling_matrix =
-            PORE_PRESSURE_SIGN_FACTOR * SaturationCoefficient *
-            prod(trans(coupling_matrix), rVariables.VelocityVector);
-        GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, transposed_coupling_matrix);
+        const Matrix p_coupling_matrix =
+            (-1.0) * GeoTransportEquationUtilities::CalculateCouplingMatrix(
+                         rVariables.B, GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
+                         rVariables.BiotCoefficient, rVariables.DegreeOfSaturation,
+                         rVariables.IntegrationCoefficient);
+        const array_1d<double, TNumNodes> coupling_flow =
+            PORE_PRESSURE_SIGN_FACTOR * prod(trans(p_coupling_matrix), rVariables.VelocityVector);
+        GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, coupling_flow);
     }
 
     KRATOS_CATCH("")
@@ -1380,7 +1426,7 @@ array_1d<double, TNumNodes> UPwSmallStrainElement<TDim, TNumNodes>::CalculateFlu
     const BoundedMatrix<double, TNumNodes, TDim> temp_matrix =
         prod(rVariables.GradNpT, rVariables.PermeabilityMatrix) * rVariables.IntegrationCoefficient;
 
-    return rVariables.DynamicViscosityInverse * this->GetProperties()[DENSITY_WATER] *
+    return rVariables.DynamicViscosityInverse * this->GetProperties()[DENSITY_WATER] * rVariables.BishopCoefficient *
            rVariables.RelativePermeability * prod(temp_matrix, rVariables.BodyAcceleration);
 
     KRATOS_CATCH("")
@@ -1509,19 +1555,21 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeProperties(ElementVariabl
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainElement<TDim, TNumNodes>::CalculateKinematics(ElementVariables& rVariables, unsigned int GPoint)
+void UPwSmallStrainElement<TDim, TNumNodes>::CalculateKinematics(ElementVariables& rVariables,
+                                                                 unsigned int IntegrationPointIndex)
 {
     KRATOS_TRY
 
     // Setting the vector of shape functions and the matrix of the shape functions global gradients
-    noalias(rVariables.Np)      = row(rVariables.NContainer, GPoint);
-    noalias(rVariables.GradNpT) = rVariables.DN_DXContainer[GPoint];
+    noalias(rVariables.Np)      = row(rVariables.NContainer, IntegrationPointIndex);
+    noalias(rVariables.GradNpT) = rVariables.DN_DXContainer[IntegrationPointIndex];
 
-    rVariables.detJ = rVariables.detJContainer[GPoint];
+    rVariables.detJ = rVariables.detJContainer[IntegrationPointIndex];
 
     Matrix J0, InvJ0;
     this->CalculateDerivativesOnInitialConfiguration(rVariables.detJInitialConfiguration, J0, InvJ0,
-                                                     rVariables.GradNpTInitialConfiguration, GPoint);
+                                                     rVariables.GradNpTInitialConfiguration,
+                                                     IntegrationPointIndex);
 
     KRATOS_CATCH("")
 }
@@ -1531,154 +1579,28 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateExtrapolationMatrix(Bounde
 {
     KRATOS_TRY
 
-    KRATOS_ERROR << "undefined number of nodes in CalculateExtrapolationMatrix "
-                    "... TNumNodes:"
-                 << TNumNodes << " element: " << this->Id() << std::endl;
+    if constexpr ((TDim == 2u) && ((TNumNodes == 3u) || (TNumNodes == 4u))) {
+        const auto extrapolator = LinearNodalExtrapolator{};
+        const auto result       = extrapolator.CalculateElementExtrapolationMatrix(
+            this->GetGeometry(), this->GetIntegrationMethod());
+        KRATOS_ERROR_IF_NOT(result.size1() == TNumNodes)
+            << "Extrapolation matrix has unexpected number of rows: " << result.size1()
+            << " (expected " << TNumNodes << ")" << std::endl;
+        KRATOS_ERROR_IF_NOT(result.size2() == TNumNodes)
+            << "Extrapolation matrix has unexpected number of columns: " << result.size2()
+            << " (expected " << TNumNodes << ")" << std::endl;
+        rExtrapolationMatrix = result;
+    } else if constexpr ((TDim == 3u) && (TNumNodes == 4u)) {
+        rExtrapolationMatrix = ::GetExtrapolationMatrixFor3D4NElement();
+    } else if constexpr ((TDim == 3u) && (TNumNodes == 8u)) {
+        rExtrapolationMatrix = ::GetExtrapolationMatrixFor3D8NElement();
+    } else {
+        KRATOS_ERROR << "undefined number of nodes in CalculateExtrapolationMatrix "
+                        "... TNumNodes:"
+                     << TNumNodes << " element: " << this->Id() << std::endl;
+    }
 
     KRATOS_CATCH("")
-}
-
-template <>
-void UPwSmallStrainElement<2, 3>::CalculateExtrapolationMatrix(BoundedMatrix<double, 3, 3>& rExtrapolationMatrix)
-{
-    // The matrix contains the shape functions at each GP evaluated at each
-    // node. Rows: nodes Columns: GP
-
-    // Triangle_2d_3
-    // GI_GAUSS_2
-    rExtrapolationMatrix(0, 0) = 1.6666666666666666666;
-    rExtrapolationMatrix(0, 1) = -0.33333333333333333333;
-    rExtrapolationMatrix(0, 2) = -0.33333333333333333333;
-    rExtrapolationMatrix(1, 0) = -0.33333333333333333333;
-    rExtrapolationMatrix(1, 1) = 1.6666666666666666666;
-    rExtrapolationMatrix(1, 2) = -0.33333333333333333333;
-    rExtrapolationMatrix(2, 0) = -0.33333333333333333333;
-    rExtrapolationMatrix(2, 1) = -0.33333333333333333333;
-    rExtrapolationMatrix(2, 2) = 1.6666666666666666666;
-}
-
-template <>
-void UPwSmallStrainElement<2, 4>::CalculateExtrapolationMatrix(BoundedMatrix<double, 4, 4>& rExtrapolationMatrix)
-{
-    // Quadrilateral_2d_4
-    // GI_GAUSS_2
-    rExtrapolationMatrix(0, 0) = 1.8660254037844386;
-    rExtrapolationMatrix(0, 1) = -0.5;
-    rExtrapolationMatrix(0, 2) = 0.13397459621556132;
-    rExtrapolationMatrix(0, 3) = -0.5;
-    rExtrapolationMatrix(1, 0) = -0.5;
-    rExtrapolationMatrix(1, 1) = 1.8660254037844386;
-    rExtrapolationMatrix(1, 2) = -0.5;
-    rExtrapolationMatrix(1, 3) = 0.13397459621556132;
-    rExtrapolationMatrix(2, 0) = 0.13397459621556132;
-    rExtrapolationMatrix(2, 1) = -0.5;
-    rExtrapolationMatrix(2, 2) = 1.8660254037844386;
-    rExtrapolationMatrix(2, 3) = -0.5;
-    rExtrapolationMatrix(3, 0) = -0.5;
-    rExtrapolationMatrix(3, 1) = 0.13397459621556132;
-    rExtrapolationMatrix(3, 2) = -0.5;
-    rExtrapolationMatrix(3, 3) = 1.8660254037844386;
-}
-
-template <>
-void UPwSmallStrainElement<3, 4>::CalculateExtrapolationMatrix(BoundedMatrix<double, 4, 4>& rExtrapolationMatrix)
-{
-    // Tetrahedra_3d_4
-    // GI_GAUSS_2
-    rExtrapolationMatrix(0, 0) = -0.309016988749894905;
-    rExtrapolationMatrix(0, 1) = -0.3090169887498949046;
-    rExtrapolationMatrix(0, 2) = -0.309016988749894905;
-    rExtrapolationMatrix(0, 3) = 1.9270509662496847144;
-    rExtrapolationMatrix(1, 0) = 1.9270509662496847144;
-    rExtrapolationMatrix(1, 1) = -0.30901698874989490481;
-    rExtrapolationMatrix(1, 2) = -0.3090169887498949049;
-    rExtrapolationMatrix(1, 3) = -0.30901698874989490481;
-    rExtrapolationMatrix(2, 0) = -0.30901698874989490473;
-    rExtrapolationMatrix(2, 1) = 1.9270509662496847143;
-    rExtrapolationMatrix(2, 2) = -0.3090169887498949049;
-    rExtrapolationMatrix(2, 3) = -0.30901698874989490481;
-    rExtrapolationMatrix(3, 0) = -0.3090169887498949048;
-    rExtrapolationMatrix(3, 1) = -0.30901698874989490471;
-    rExtrapolationMatrix(3, 2) = 1.9270509662496847143;
-    rExtrapolationMatrix(3, 3) = -0.30901698874989490481;
-}
-
-template <>
-void UPwSmallStrainElement<3, 8>::CalculateExtrapolationMatrix(BoundedMatrix<double, 8, 8>& rExtrapolationMatrix)
-{
-    // Hexahedra_3d_8
-    // GI_GAUSS_2
-    rExtrapolationMatrix(0, 0) = 2.549038105676658;
-    rExtrapolationMatrix(0, 1) = -0.6830127018922192;
-    rExtrapolationMatrix(0, 2) = 0.18301270189221927;
-    rExtrapolationMatrix(0, 3) = -0.6830127018922192;
-    rExtrapolationMatrix(0, 4) = -0.6830127018922192;
-    rExtrapolationMatrix(0, 5) = 0.18301270189221927;
-    rExtrapolationMatrix(0, 6) = -0.04903810567665795;
-    rExtrapolationMatrix(0, 7) = 0.18301270189221927;
-
-    rExtrapolationMatrix(1, 0) = -0.6830127018922192;
-    rExtrapolationMatrix(1, 1) = 2.549038105676658;
-    rExtrapolationMatrix(1, 2) = -0.6830127018922192;
-    rExtrapolationMatrix(1, 3) = 0.18301270189221927;
-    rExtrapolationMatrix(1, 4) = 0.18301270189221927;
-    rExtrapolationMatrix(1, 5) = -0.6830127018922192;
-    rExtrapolationMatrix(1, 6) = 0.18301270189221927;
-    rExtrapolationMatrix(1, 7) = -0.04903810567665795;
-
-    rExtrapolationMatrix(2, 0) = 0.18301270189221927;
-    rExtrapolationMatrix(2, 1) = -0.6830127018922192;
-    rExtrapolationMatrix(2, 2) = 2.549038105676658;
-    rExtrapolationMatrix(2, 3) = -0.6830127018922192;
-    rExtrapolationMatrix(2, 4) = -0.04903810567665795;
-    rExtrapolationMatrix(2, 5) = 0.18301270189221927;
-    rExtrapolationMatrix(2, 6) = -0.6830127018922192;
-    rExtrapolationMatrix(2, 7) = 0.18301270189221927;
-
-    rExtrapolationMatrix(3, 0) = -0.6830127018922192;
-    rExtrapolationMatrix(3, 1) = 0.18301270189221927;
-    rExtrapolationMatrix(3, 2) = -0.6830127018922192;
-    rExtrapolationMatrix(3, 3) = 2.549038105676658;
-    rExtrapolationMatrix(3, 4) = 0.18301270189221927;
-    rExtrapolationMatrix(3, 5) = -0.04903810567665795;
-    rExtrapolationMatrix(3, 6) = 0.18301270189221927;
-    rExtrapolationMatrix(3, 7) = -0.6830127018922192;
-
-    rExtrapolationMatrix(4, 0) = -0.6830127018922192;
-    rExtrapolationMatrix(4, 1) = 0.18301270189221927;
-    rExtrapolationMatrix(4, 2) = -0.04903810567665795;
-    rExtrapolationMatrix(4, 3) = 0.18301270189221927;
-    rExtrapolationMatrix(4, 4) = 2.549038105676658;
-    rExtrapolationMatrix(4, 5) = -0.6830127018922192;
-    rExtrapolationMatrix(4, 6) = 0.18301270189221927;
-    rExtrapolationMatrix(4, 7) = -0.6830127018922192;
-
-    rExtrapolationMatrix(5, 0) = 0.18301270189221927;
-    rExtrapolationMatrix(5, 1) = -0.6830127018922192;
-    rExtrapolationMatrix(5, 2) = 0.18301270189221927;
-    rExtrapolationMatrix(5, 3) = -0.04903810567665795;
-    rExtrapolationMatrix(5, 4) = -0.6830127018922192;
-    rExtrapolationMatrix(5, 5) = 2.549038105676658;
-    rExtrapolationMatrix(5, 6) = -0.6830127018922192;
-    rExtrapolationMatrix(5, 7) = 0.18301270189221927;
-
-    rExtrapolationMatrix(6, 0) = -0.04903810567665795;
-    rExtrapolationMatrix(6, 1) = 0.18301270189221927;
-    rExtrapolationMatrix(6, 2) = -0.6830127018922192;
-    rExtrapolationMatrix(6, 3) = 0.18301270189221927;
-    rExtrapolationMatrix(6, 4) = 0.18301270189221927;
-    rExtrapolationMatrix(6, 5) = -0.6830127018922192;
-    rExtrapolationMatrix(6, 6) = 2.549038105676658;
-    rExtrapolationMatrix(6, 7) = -0.6830127018922192;
-
-    rExtrapolationMatrix(7, 0) = 0.18301270189221927;
-    rExtrapolationMatrix(7, 1) = -0.04903810567665795;
-    rExtrapolationMatrix(7, 2) = 0.18301270189221927;
-    rExtrapolationMatrix(7, 3) = -0.6830127018922192;
-    rExtrapolationMatrix(7, 4) = -0.6830127018922192;
-    rExtrapolationMatrix(7, 5) = 0.18301270189221927;
-    rExtrapolationMatrix(7, 6) = -0.6830127018922192;
-    rExtrapolationMatrix(7, 7) = 2.549038105676658;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

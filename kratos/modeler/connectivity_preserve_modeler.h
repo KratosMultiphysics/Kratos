@@ -26,9 +26,9 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/define_registry.h"
 #include "includes/model_part.h"
 #include "modeler/modeler.h"
-
 
 namespace Kratos
 {
@@ -44,6 +44,10 @@ public:
     ///@{
 
     KRATOS_CLASS_POINTER_DEFINITION(ConnectivityPreserveModeler);
+
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Modelers.KratosMultiphysics", Modeler, ConnectivityPreserveModeler)
+
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Modelers.All", Modeler, ConnectivityPreserveModeler)
 
     ///@}
     ///@name Life Cycle
@@ -124,6 +128,34 @@ public:
         ModelPart& DestinationModelPart,
         const Condition& rReferenceCondition
     );
+
+    /**
+     * @brief Generate a copy of rOriginModelPart in rDestinationModelPart.
+     * @details This function fills rDestinationModelPart using data obtained from
+     *  rOriginModelPart. The geometries of the rDestinationModelPart use
+     *  the same connectivity (and id) as in rOriginModelPart and their type
+     *  is determined according to the corresponding geometry of the entity.
+     *  Note that both ModelParts will share the same nodes, geometries, as
+     *  well as ProcessInfo and tables. SubModelParts and, in MPI, communicator
+     *  data will be replicated in DestinationModelPart.
+     *  @param rOriginModelPart The source ModelPart.
+     *  @param rDestinationModelPart The ModelPart to be filled by this function
+     */
+    virtual void GenerateModelPart(
+        ModelPart& OriginModelPart,
+        ModelPart& DestinationModelPart
+    );
+
+    /// Generate a copy of rOriginModelPart in rDestinationModelPart.
+    /** This function fills rDestinationModelPart using data obtained from
+     *  rOriginModelPart. It is equivalent to one of the GenerateModelPart
+     *  functions, depending on whether an element and/or a condition
+     *  have been defined in the Parameters during construction.
+     */
+    void SetupModelPart() override;
+
+    /// Defines the expected structure for the Parameters of this class.
+    const Parameters GetDefaultParameters() const override;
 
     ///@}
 

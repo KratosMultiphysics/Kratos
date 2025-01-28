@@ -20,10 +20,7 @@
 // Application includes
 #include "custom_conditions/U_Pw_condition.hpp"
 #include "custom_conditions/U_Pw_face_load_interface_condition.hpp"
-#include "custom_utilities/condition_utilities.hpp"
 #include "custom_utilities/element_utilities.hpp"
-#include "custom_utilities/interface_element_utilities.hpp"
-#include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -37,13 +34,8 @@ public:
 
     using IndexType      = std::size_t;
     using PropertiesType = Properties;
-    using NodeType       = Node;
-    using GeometryType   = Geometry<NodeType>;
+    using GeometryType   = Geometry<Node>;
     using NodesArrayType = GeometryType::PointsArrayType;
-    using VectorType     = Vector;
-    using MatrixType     = Matrix;
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Default constructor
     UPwNormalFluxInterfaceCondition() : UPwFaceLoadInterfaceCondition<TDim, TNumNodes>() {}
@@ -60,28 +52,18 @@ public:
     {
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     Condition::Pointer Create(IndexType               NewId,
                               NodesArrayType const&   ThisNodes,
                               PropertiesType::Pointer pProperties) const override;
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    std::string Info() const override;
 
 protected:
     // Member Variables
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    void CalculateRHS(VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo) override;
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    void CalculateRHS(Vector& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo) override;
 
 private:
-    // Member Variables
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     // Serialization
 
     friend class Serializer;
@@ -95,7 +77,6 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
     }
-
 }; // class UPwNormalFluxInterfaceCondition.
 
 } // namespace Kratos.

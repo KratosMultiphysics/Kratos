@@ -10,32 +10,27 @@
 //  Main authors:    Richard Faasse
 //
 
-// External includes
-#include <gtest/gtest.h>
-#include <gmock/gmock.h>
-
 // Project includes
-#include "testing/testing.h"
-#include "constitutive_laws_application.h"
-#include "structural_mechanics_application.h"
+#include "constitutive_laws_fast_suite.h"
 
-int main(int argc, char* argv[]) 
+namespace Kratos::Testing 
 {
-    ::testing::InitGoogleTest(&argc, argv);
 
-    Kratos::Testing::mApplicationInitializerList.push_back([](std::vector<Kratos::KratosApplication::Pointer> & rRegisteredApplications, Kratos::Kernel & rKernel) {
-      if (!rKernel.IsImported("StructuralMechanicsApplication")) {
-        auto pApplication = std::make_shared<Kratos::KratosStructuralMechanicsApplication>();
-        rKernel.ImportApplication(pApplication);
-        rRegisteredApplications.push_back(std::move(pApplication));
-      }
-
-      if (!rKernel.IsImported("ConstitutiveLawsApplication")) {
-        auto pApplication = std::make_shared<Kratos::KratosConstitutiveLawsApplication>();
-        rKernel.ImportApplication(pApplication);
-        rRegisteredApplications.push_back(std::move(pApplication));
-      }
-    });
-
-    return RUN_ALL_TESTS();
+KratosConstitutiveLawsFastSuite::KratosConstitutiveLawsFastSuite()
+    : KratosCoreFastSuite() 
+{
+    mpConstitutiveLawsApp = std::make_shared<KratosConstitutiveLawsApplication>();
+    this->ImportApplicationIntoKernel(mpConstitutiveLawsApp);
 }
+
+KratosConstitutiveLawsWithStructuralElementsSuite::KratosConstitutiveLawsWithStructuralElementsSuite()
+    : KratosCoreFastSuite() 
+{
+    mpStructuralMechanicsApp = std::make_shared<KratosStructuralMechanicsApplication>();
+    this->ImportApplicationIntoKernel(mpStructuralMechanicsApp);
+
+    mpConstitutiveLawsApp = std::make_shared<KratosConstitutiveLawsApplication>();
+    this->ImportApplicationIntoKernel(mpConstitutiveLawsApp);
+}
+
+} // namespace Kratos::Testing

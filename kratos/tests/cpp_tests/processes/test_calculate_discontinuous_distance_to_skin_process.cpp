@@ -51,10 +51,10 @@ namespace Testing {
         CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc(fluid_part, skin_part, parameters);
         disc_dist_proc.Execute();
 
-        // Check elemental distances
-        const auto &r_elem_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
-        const std::vector<double> expected_values = {-0.5,-0.5,0.5};
-        KRATOS_EXPECT_VECTOR_NEAR(r_elem_dist, expected_values, 1.0e-6);
+    // Check elemental distances
+    const auto &r_elem_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
+    const std::vector<double> expected_values = {0.5,0.5,-0.5};
+    KRATOS_EXPECT_VECTOR_NEAR(r_elem_dist, expected_values, 1.0e-6);
 
         // Check edge distances
         const auto &r_edge_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_EDGE_DISTANCES);
@@ -91,10 +91,10 @@ namespace Testing {
         CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc(fluid_part, skin_part, parameters);
         disc_dist_proc.Execute();
 
-        // Check elemental distances
-        const auto &r_elem_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
-        const std::vector<double> expected_values = {-0.483157,0.0216888,0.380052};
-        KRATOS_EXPECT_VECTOR_NEAR(r_elem_dist, expected_values, 1.0e-6);
+    // Check elemental distances
+    const auto &r_elem_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
+    const std::vector<double> expected_values = {0.483157,-0.0216888,-0.380052};
+    KRATOS_EXPECT_VECTOR_NEAR(r_elem_dist, expected_values, 1.0e-6);
 
         // Check edge distances
         const auto &r_edge_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_EDGE_DISTANCES);
@@ -274,13 +274,12 @@ namespace Testing {
         CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc(fluid_part, skin_part);
         disc_dist_proc.Execute();
 
-        // Check values
-        const double epsilon = std::numeric_limits<double>::epsilon()*1e3;
-        const auto &r_elem_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
-        KRATOS_EXPECT_NEAR(r_elem_dist[0], -1.0, 1e-16);
-        KRATOS_EXPECT_NEAR(r_elem_dist[1], -1.0, 1e-16);
-        KRATOS_EXPECT_NEAR(r_elem_dist[2], epsilon, 1e-16);
-    }
+    // Check values
+    const double epsilon = std::numeric_limits<double>::epsilon()*1e3;
+    const auto &r_elem_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
+    const array_1d<double,3> expected_values({1.0,1.0,epsilon});
+    KRATOS_EXPECT_VECTOR_NEAR(r_elem_dist, expected_values, 1.0e-16);
+}
 
     KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessSinglePointTangentOnNodeInteresected2D, KratosCoreFastSuite)
     {
@@ -305,15 +304,14 @@ namespace Testing {
         CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc(fluid_part, skin_part);
         disc_dist_proc.Execute();
 
-        // Check values
-        const auto &r_elem_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
-        const auto &r_to_split = (fluid_part.ElementsBegin())->Is(TO_SPLIT);
-        const double epsilon = std::numeric_limits<double>::epsilon()*1e3;
-        KRATOS_EXPECT_TRUE(r_to_split);
-        KRATOS_EXPECT_NEAR(r_elem_dist[0], -1.0, 1e-16);
-        KRATOS_EXPECT_NEAR(r_elem_dist[1], -1.0, 1e-16);
-        KRATOS_EXPECT_NEAR(r_elem_dist[2], epsilon, 1e-16);
-    }
+    // Check values
+    const auto &r_elem_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
+    const auto &r_to_split = (fluid_part.ElementsBegin())->Is(TO_SPLIT);
+    const double epsilon = std::numeric_limits<double>::epsilon()*1e3;
+    KRATOS_EXPECT_TRUE(!r_to_split);
+    const array_1d<double,3> expected_values({1.0,1.0,epsilon});
+    KRATOS_EXPECT_VECTOR_NEAR(r_elem_dist, expected_values, 1e-16);
+}
 
     KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessSinglePointTangentOnNodeNotInteresected2D, KratosCoreFastSuite)
     {
@@ -340,15 +338,14 @@ namespace Testing {
         CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc(fluid_part, skin_part, parameters);
         disc_dist_proc.Execute();
 
-        // Check values
-        const auto &r_elem_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
-        const auto &r_to_split = (fluid_part.ElementsBegin())->Is(TO_SPLIT);
-        const double epsilon = std::numeric_limits<double>::epsilon()*1e3;
-        KRATOS_EXPECT_TRUE(!r_to_split);
-        KRATOS_EXPECT_NEAR(r_elem_dist[0], -1.0, 1e-16);
-        KRATOS_EXPECT_NEAR(r_elem_dist[1], -1.0, 1e-16);
-        KRATOS_EXPECT_NEAR(r_elem_dist[2], -epsilon, 1e-16);
-    }
+    // Check values
+    const auto &r_elem_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
+    const auto &r_to_split = (fluid_part.ElementsBegin())->Is(TO_SPLIT);
+    const double epsilon = std::numeric_limits<double>::epsilon()*1e3;
+    KRATOS_EXPECT_TRUE(r_to_split);
+    const array_1d<double,3> expected_values({1.0,1.0,-epsilon});
+    KRATOS_EXPECT_VECTOR_NEAR(r_elem_dist, expected_values, 1.0e-16);
+}
 
     KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessSingleLineTangent2D, KratosCoreFastSuite)
     {
@@ -374,13 +371,13 @@ namespace Testing {
         CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc(fluid_part, skin_part);
         disc_dist_proc.Execute();
 
-        // Check values
-        const auto &r_elem_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
-        const double epsilon = std::numeric_limits<double>::epsilon()*1e3;
-        KRATOS_EXPECT_NEAR(r_elem_dist[0], epsilon, 1e-16);
-        KRATOS_EXPECT_NEAR(r_elem_dist[1], epsilon, 1e-16);
-        KRATOS_EXPECT_NEAR(r_elem_dist[2], 1.0, 1e-16);
-    }
+    // Check values
+    const auto &r_elem_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
+    const double epsilon = std::numeric_limits<double>::epsilon()*1e3;
+    KRATOS_EXPECT_NEAR(r_elem_dist[0], epsilon, 1e-16);
+    KRATOS_EXPECT_NEAR(r_elem_dist[1], epsilon, 1e-16);
+    KRATOS_EXPECT_NEAR(r_elem_dist[2], -1.0, 1e-16);
+}
 
     KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessSinglePointAndManyIntersectEdge2D, KratosCoreFastSuite)
     {
@@ -413,13 +410,13 @@ namespace Testing {
         CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc(fluid_part, skin_part);
         disc_dist_proc.Execute();
 
-        // Check values
-        const auto &r_elem_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
-        const double epsilon = std::numeric_limits<double>::epsilon()*1e3;
-        KRATOS_EXPECT_NEAR(r_elem_dist[0], -std::sqrt(2)/2.0, 1e-16);
-        KRATOS_EXPECT_NEAR(r_elem_dist[1], epsilon, 1e-16);
-        KRATOS_EXPECT_NEAR(r_elem_dist[2], epsilon, 1e-16);
-    }
+    // Check values
+    const auto &r_elem_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
+    const double epsilon = std::numeric_limits<double>::epsilon()*1e3;
+    KRATOS_EXPECT_NEAR(r_elem_dist[0], std::sqrt(2)/2.0, 1e-16);
+    KRATOS_EXPECT_NEAR(r_elem_dist[1], epsilon, 1e-16);
+    KRATOS_EXPECT_NEAR(r_elem_dist[2], epsilon, 1e-16);
+}
 
     KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessMultipleTangent2D, KratosCoreFastSuite)
     {
@@ -470,14 +467,13 @@ namespace Testing {
             }
         }
 
-        const double epsilon = std::numeric_limits<double>::epsilon()*1e3;
-        // Check values
-        for (auto& r_node : fluid_part.Nodes()) {
-            if (std::abs(r_node.Y()) < epsilon) {
-               KRATOS_EXPECT_NEAR(r_node.GetValue(DISTANCE), epsilon, 1e-16);
-            } else {
-               KRATOS_EXPECT_NEAR(r_node.GetValue(DISTANCE), r_node.Y(), 1e-16);
-            }
+    const double epsilon = std::numeric_limits<double>::epsilon()*1e3;
+    // Check values
+    for (auto& r_node : fluid_part.Nodes()) {
+        if (std::abs(r_node.Y()) < epsilon) {
+            KRATOS_EXPECT_NEAR(r_node.GetValue(DISTANCE), epsilon, 1e-16);
+        } else {
+            KRATOS_EXPECT_NEAR(r_node.GetValue(DISTANCE), -r_node.Y(), 1e-16);
         }
     }
 
@@ -1365,17 +1361,17 @@ namespace Testing {
         KRATOS_EXPECT_VECTOR_NEAR(r_edge_dist_elem_3_extra, expected_values_elem_3_extra, 1.0e-6);
         KRATOS_EXPECT_VECTOR_NEAR(r_edge_dist_elem_4_extra, expected_values_elem_4_extra, 1.0e-6);
 
-        //Check elemental distances with extrapolated - values of elements that are not incised or intersected are characteristic length
-        const auto &r_elem_dist_elem_2_extra = volume_part.GetElement(2).GetValue(ELEMENTAL_DISTANCES);
-        const auto &r_elem_dist_elem_3_extra = volume_part.GetElement(3).GetValue(ELEMENTAL_DISTANCES);
-        const auto &r_elem_dist_elem_4_extra = volume_part.GetElement(4).GetValue(ELEMENTAL_DISTANCES);
-        const std::vector<double> expected_values_elem_2_extra_nodal = {1.41421,1.41421,1.41421};
-        const std::vector<double> expected_values_elem_3_extra_nodal = {-0.25,0.25,0.25};
-        const std::vector<double> expected_values_elem_4_extra_nodal = {-0.25,-0.25,0.25};
-        KRATOS_EXPECT_VECTOR_NEAR(r_elem_dist_elem_2_extra, expected_values_elem_2_extra_nodal, 1.0e-5);
-        KRATOS_EXPECT_VECTOR_NEAR(r_elem_dist_elem_3_extra, expected_values_elem_3_extra_nodal, 1.0e-6);
-        KRATOS_EXPECT_VECTOR_NEAR(r_elem_dist_elem_4_extra, expected_values_elem_4_extra_nodal, 1.0e-5);
-    }
+    //Check elemental distances with extrapolated - values of elements that are not incised or intersected are characteristic length
+    const auto &r_elem_dist_elem_2_extra = volume_part.GetElement(2).GetValue(ELEMENTAL_DISTANCES);
+    const auto &r_elem_dist_elem_3_extra = volume_part.GetElement(3).GetValue(ELEMENTAL_DISTANCES);
+    const auto &r_elem_dist_elem_4_extra = volume_part.GetElement(4).GetValue(ELEMENTAL_DISTANCES);
+    const std::vector<double> expected_values_elem_2_extra_nodal = {1.41421,1.41421,1.41421};
+    const std::vector<double> expected_values_elem_3_extra_nodal = {0.25,-0.25,-0.25};
+    const std::vector<double> expected_values_elem_4_extra_nodal = {0.25,0.25,-0.25};
+    KRATOS_EXPECT_VECTOR_NEAR(r_elem_dist_elem_2_extra, expected_values_elem_2_extra_nodal, 1.0e-5);
+    KRATOS_EXPECT_VECTOR_NEAR(r_elem_dist_elem_3_extra, expected_values_elem_3_extra_nodal, 1.0e-6);
+    KRATOS_EXPECT_VECTOR_NEAR(r_elem_dist_elem_4_extra, expected_values_elem_4_extra_nodal, 1.0e-5);
+}
 
     KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessIncisedVsIntersected3D, KratosCoreFastSuite)
     {
@@ -1708,16 +1704,16 @@ namespace Testing {
         KRATOS_EXPECT_EQ(n_intersected, 4);
         KRATOS_EXPECT_EQ(n_incised, 2);
 
-        // Check edge distances -> elem_4 and elem_5 are detected as only incised, elem_3 and elem_6 are incised
-        const auto &r_edge_dist_elem_2 = volume_part.GetElement(2).GetValue(ELEMENTAL_EDGE_DISTANCES);
-        const auto &r_edge_dist_elem_3 = volume_part.GetElement(3).GetValue(ELEMENTAL_EDGE_DISTANCES);
-        const auto &r_edge_dist_elem_4 = volume_part.GetElement(4).GetValue(ELEMENTAL_EDGE_DISTANCES);
-        const std::vector<double> expected_values_elem_2 = {1.0,0.0,-1.0};
-        const std::vector<double> expected_values_elem_3 = {-1.0,-1.0, 1.0 / 3.0};
-        const std::vector<double> expected_values_elem_4 = {-1.0, 2.0 / 3.0 ,1.0};
-        KRATOS_EXPECT_VECTOR_NEAR(r_edge_dist_elem_2, expected_values_elem_2, 1.0e-6);
-        KRATOS_EXPECT_VECTOR_NEAR(r_edge_dist_elem_3, expected_values_elem_3, 1.0e-6);
-        KRATOS_EXPECT_VECTOR_NEAR(r_edge_dist_elem_4, expected_values_elem_4, 1.0e-6);
+    // Check edge distances -> elem_4 and elem_5 are detected as only incised, elem_3 and elem_6 are incised
+    const auto &r_edge_dist_elem_2 = volume_part.GetElement(2).GetValue(ELEMENTAL_EDGE_DISTANCES);
+    const auto &r_edge_dist_elem_3 = volume_part.GetElement(3).GetValue(ELEMENTAL_EDGE_DISTANCES);
+    const auto &r_edge_dist_elem_4 = volume_part.GetElement(4).GetValue(ELEMENTAL_EDGE_DISTANCES);
+    const std::vector<double> expected_values_elem_2 = {-1.0,-1.0,-1.0};
+    const std::vector<double> expected_values_elem_3 = {-1.0,-1.0, 1.0 / 3.0};
+    const std::vector<double> expected_values_elem_4 = {0.0, 2.0 / 3.0 ,-1.0};
+    KRATOS_EXPECT_VECTOR_NEAR(r_edge_dist_elem_2, expected_values_elem_2, 1.0e-6);
+    KRATOS_EXPECT_VECTOR_NEAR(r_edge_dist_elem_3, expected_values_elem_3, 1.0e-6);
+    KRATOS_EXPECT_VECTOR_NEAR(r_edge_dist_elem_4, expected_values_elem_4, 1.0e-6);
 
         //Check extra edge distances - elem_3 is incised, elem_4 is detected as intersected
         const auto &r_edge_dist_elem_3_extra = volume_part.GetElement(3).GetValue(ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED);
@@ -1727,14 +1723,14 @@ namespace Testing {
         KRATOS_EXPECT_VECTOR_NEAR(r_edge_dist_elem_3_extra, expected_values_elem_3_extra, 1.0e-6);
         KRATOS_EXPECT_VECTOR_NEAR(r_edge_dist_elem_4_extra, expected_values_elem_4_extra, 1.0e-6);
 
-        //Check elemental distances with extrapolated
-        const auto &r_elem_dist_elem_3_extra = volume_part.GetElement(3).GetValue(ELEMENTAL_DISTANCES);
-        const auto &r_elem_dist_elem_4_extra = volume_part.GetElement(4).GetValue(ELEMENTAL_DISTANCES);
-        const std::vector<double> expected_values_elem_3_extra_nodal = {-0.223607,0.447214,0.223607};
-        const std::vector<double> expected_values_elem_4_extra_nodal = {-0.223607,0.0,0.447214};
-        KRATOS_EXPECT_VECTOR_NEAR(r_elem_dist_elem_3_extra, expected_values_elem_3_extra_nodal, 1.0e-6);
-        KRATOS_EXPECT_VECTOR_NEAR(r_elem_dist_elem_4_extra, expected_values_elem_4_extra_nodal, 1.0e-6);
-    }
+    //Check elemental distances with extrapolated
+    const auto &r_elem_dist_elem_3_extra = volume_part.GetElement(3).GetValue(ELEMENTAL_DISTANCES);
+    const auto &r_elem_dist_elem_4_extra = volume_part.GetElement(4).GetValue(ELEMENTAL_DISTANCES);
+    const std::vector<double> expected_values_elem_3_extra_nodal = {0.223607,-0.447214,-0.223607};
+    const std::vector<double> expected_values_elem_4_extra_nodal = {0.223607,0.0,-0.447214};
+    KRATOS_EXPECT_VECTOR_NEAR(r_elem_dist_elem_3_extra, expected_values_elem_3_extra_nodal, 1.0e-6);
+    KRATOS_EXPECT_VECTOR_NEAR(r_elem_dist_elem_4_extra, expected_values_elem_4_extra_nodal, 1.0e-6);
+}
 
     KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessFlags2D, KratosCoreFastSuite)
     {
@@ -1808,10 +1804,10 @@ namespace Testing {
         CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc_2(volume_part, skin_part, parameters_2);
         disc_dist_proc_2.Execute();
 
-        // Check elemental distances - elem_3 is incised
-        r_elem_dist_elem_3 = volume_part.GetElement(3).GetValue(ELEMENTAL_DISTANCES);
-        expected_values_elem_3 = {-0.25,0.25,0.25};
-        KRATOS_EXPECT_VECTOR_NEAR(r_elem_dist_elem_3, expected_values_elem_3, 1.0e-5);
+    // Check elemental distances - elem_3 is incised
+    r_elem_dist_elem_3 = volume_part.GetElement(3).GetValue(ELEMENTAL_DISTANCES);
+    expected_values_elem_3 = {0.25,-0.25,-0.25};
+    KRATOS_EXPECT_VECTOR_NEAR(r_elem_dist_elem_3, expected_values_elem_3, 1.0e-5);
 
         // Check edge distances - elem_3 is incised
         r_edge_dist = volume_part.GetElement(3).GetValue(ELEMENTAL_EDGE_DISTANCES);

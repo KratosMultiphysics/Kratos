@@ -60,6 +60,10 @@ class KRATOS_API(KRATOS_TEST_UTILS) KratosCoreFastSuite : public ::testing::Test
         std::vector<KratosApplication::Pointer> mRegisteredApplications;    // List of applications loaded by the suit. TODO: Remove once every test includes its own suit
 };
 
+class KRATOS_API(KRATOS_TEST_UTILS) KratosCoreFastSuiteWithoutKernel : public ::testing::Test
+{
+};
+
 // Define some suits that are needed by core tests
 class KratosSensitivityTestSuite : public KratosCoreFastSuite {};
 class KratosCoreGeometriesFastSuite : public KratosCoreFastSuite {};
@@ -77,8 +81,6 @@ class KratosCoreStressSuite : public KratosCoreFastSuite {};
 // This classes are temporal and should be changed. Please see: GeoMechanicsApplication, StructuralMechanicsApplication or TrilinosApplication
 // TODO: Remove once every test includes its own suit
 class CompressiblePotentialApplicationFastSuite : public KratosCoreFastSuite {};
-class KratosConstitutiveLawsFastSuite : public KratosCoreFastSuite {};
-class KratosContactStructuralMechanicsFastSuite : public KratosCoreFastSuite {};
 class KratosConvectionDiffusionFastSuite : public KratosCoreFastSuite {};
 class KratosCSharpWrapperApplicationFastSuite : public KratosCoreFastSuite {};
 class ExaquteSandboxApplicationFastSuite : public KratosCoreFastSuite {};

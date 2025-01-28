@@ -167,7 +167,7 @@ class TestSympyFEUtilities(KratosUnittest.TestCase):
             "    const double cmyvariable2 = 2*y[2];",
             "    const double cmyvariable3 = 2*y[3];",
             "    const double cmyvariable4 = 2*y[4];",
-            "    myvariable=3*cmyvariable0*x[0] + 3*cmyvariable1*x[1] + 3*cmyvariable2*x[2] + 3*cmyvariable3*x[3] + 3*cmyvariable4*x[4] + 3*(pow(y[0], 2) + pow(y[1], 2) + pow(y[2], 2) + pow(y[3], 2) + pow(y[4], 2))*(x[0]*(cmyvariable0 + 3*x[0]) + x[1]*(cmyvariable1 + 3*x[1]) + x[2]*(cmyvariable2 + 3*x[2]) + x[3]*(cmyvariable3 + 3*x[3]) + x[4]*(cmyvariable4 + 3*x[4]));",
+            "    myvariable=3*cmyvariable0*x[0] + 3*cmyvariable1*x[1] + 3*cmyvariable2*x[2] + 3*cmyvariable3*x[3] + 3*cmyvariable4*x[4] + 3*(x[0]*(cmyvariable0 + 3*x[0]) + x[1]*(cmyvariable1 + 3*x[1]) + x[2]*(cmyvariable2 + 3*x[2]) + x[3]*(cmyvariable3 + 3*x[3]) + x[4]*(cmyvariable4 + 3*x[4]))*(y[0]*y[0] + y[1]*y[1] + y[2]*y[2] + y[3]*y[3] + y[4]*y[4]);",
             ""
         ])
         self.assertEqual(code, expected_code)
@@ -194,6 +194,23 @@ class TestSympyFEUtilities(KratosUnittest.TestCase):
                         aux_k = min(k,l)
                         aux_l = max(k,l)
                         self.assertEqual(A[i,j,k,l].name, "A_{}_{}_{}_{}".format(aux_i,aux_j,aux_k,aux_l))
+
+    def testAuxiliaryOutputCollectionFactorsWithPower(self):
+        # Note: create_expand_pow_optimization is not expanding expressions
+        # when there is a sum as shown in the last term of the test
+        x = KratosSympy.DefineVector('x', 5)
+        expression = (3*(x.T*(3*x))*(x.T*x) + 6*x.T*x)[0, 0]
+        code = KratosSympy._AuxiliaryOutputCollectionFactors(expression, "a", "c", 1, "basic", False, "=", KratosSympy.OutputScalar)
+        expected_code = "\n".join([
+            "    const double ca0 = x_0*x_0;",
+            "    const double ca1 = x_1*x_1;",
+            "    const double ca2 = x_2*x_2;",
+            "    const double ca3 = x_3*x_3;",
+            "    const double ca4 = x_4*x_4;",
+            "    a=6*ca0 + 6*ca1 + 6*ca2 + 6*ca3 + 6*ca4 + 9*pow(ca0 + ca1 + ca2 + ca3 + ca4, 2);",
+            ""
+        ])
+        self.assertEqual(code, expected_code)
 
 if __name__ == '__main__':
     KratosUnittest.main()

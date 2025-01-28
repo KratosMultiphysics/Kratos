@@ -958,6 +958,17 @@ private:
         }
 
         /**
+        * @brief Compare an object with the stored key.
+        * @details This function checks if the key stored in this `EqualKeyTo` object is equal to the extracted key from the object of type `TDataType`.
+        * @param a An object of type `TDataType`.
+        * @return True if the stored key is equal to the extracted key from `a`, false otherwise.
+        */
+        bool operator()(const TDataType& a) const
+        {
+            return TEqualType()(mKey, TGetKeyType()(a));
+        }
+
+        /**
         * @brief Compare two pointers to objects with each other.
         * @details This function checks if the extracted keys from two pointers to objects of type `TPointerType` are equal using the specified equality function and key extraction function.
         * @param a The pointer to the first object of type `TPointerType`.
@@ -995,6 +1006,63 @@ private:
     ///@name Private Operations
     ///@{
 
+    template<class TIteratorType>
+    void SortedInsert(TIteratorType first, TIteratorType last)
+    {
+        if (std::distance(first, last) == 0) {
+            return;
+        }
+
+        if (empty()) {
+            mData.reserve(std::distance(first, last));
+            for (auto it = first; it != last; ++it) {
+                mData.push_back(GetPointer(it));
+            }
+        } else {
+            if (KeyOf(GetReference(first)) > KeyOf(*(mData.back()))) {
+                // all are pointing to the end of the vector, hence pushing back.
+                mData.reserve(mData.size() + std::distance(first, last));
+                for (auto it = first; it != last; ++it) {
+                    mData.push_back(GetPointer(it));
+                }
+            } else {
+                TContainerType temp;
+                temp.reserve(mData.size() + std::distance(first, last));
+                auto p_existing_data_itr = mData.begin();
+
+                CompareKey key_comparator;
+
+                while (p_existing_data_itr != mData.end() && first != last) {
+                    if (key_comparator(*p_existing_data_itr, KeyOf(GetReference(first)))) {
+                        temp.push_back(GetPointer(p_existing_data_itr++));
+                    } else if (EqualKeyTo(KeyOf(GetReference(p_existing_data_itr)))(*first)) {
+                        // here we keep the old entity, and discard the new entity.
+                        temp.push_back(GetPointer(p_existing_data_itr++));
+                        ++first;
+                    } else {
+                        temp.push_back(GetPointer(first++));
+                    }
+                }
+
+                // now either p_existing_data_itr reached the end or first reached the end,
+                // hence we add the remaining without checking
+                for (; p_existing_data_itr != mData.end(); ++p_existing_data_itr) {
+                    temp.push_back(GetPointer(p_existing_data_itr));
+                }
+                for (; first != last; ++first) {
+                    temp.push_back(GetPointer(first));
+                }
+
+                mData.swap(temp);
+            }
+        }
+
+        // TODO: To be removed once push back is removed.
+        // insert assumes the PointerVectorSet is already sorted,
+        // hence mSortedPartSize should be mData.size()
+        mSortedPartSize = mData.size();
+    }
+
     /**
      * @brief Extract the key from an iterator and apply a key extraction function.
      * @details This function extracts the key from an iterator and applies a key extraction function of type `TGetKeyType` to it.
@@ -1026,6 +1094,58 @@ private:
     key_type KeyOf(const TDataType &i)
     {
         return TGetKeyType()(i);
+    }
+
+    /**
+     * @brief Get the reference from an iterator.
+     *
+     * This method is used to get reference from an iterator. This is required to support
+     * both PointerVectorSet::iterator and std::vector<pointer>::iterators because, their
+     * "*" operators returns different types of objects.
+     *
+     */
+    template<class TIteratorType>
+    inline auto& GetReference(TIteratorType Iterator) const
+    {
+        // It is difficult to use std::iterator_traits to get the value
+        // type of the iterator because, boost::indirect has a value type
+        // which is harder to guess, and cryptic. Hence, using the decltype.
+        using iterator_value_type = std::decay_t<decltype(*Iterator)>;
+
+        if constexpr(std::is_same_v<iterator_value_type, std::remove_cv_t<value_type>>) {
+            // in here, std::remove_cv is only used for the value_type because,
+            // the PointerVectorSet can be with TDataType which is const, but the passed pointers
+            // must be always TDataType::Pointer which is defined for non cost TDataType. This is
+            // a valid use case. Other way is not possible, hence std::remove_cv is not used on
+            // iterator_value_type.
+            return *Iterator;
+        } else if constexpr(std::is_same_v<iterator_value_type, pointer>) {
+            return **Iterator;
+        } else {
+            static_assert(!std::is_same_v<TIteratorType, TIteratorType>, "Unsupported iterator type.");
+            return 0;
+        }
+    }
+
+    template<class TIteratorType>
+    inline TPointerType GetPointer(TIteratorType Iterator) const
+    {
+        // It is difficult to use std::iterator_traits to get the value
+        // type of the iterator because, boost::indirect has a value type
+        // which is harder to guess, and cryptic. Hence, using the decltype.
+        using iterator_value_type = std::decay_t<decltype(*Iterator)>;
+
+        if constexpr(std::is_same_v<iterator_value_type, std::remove_cv_t<TPointerType>>) {
+            // this supports any type of pointers
+            return *Iterator;
+        } else if constexpr(std::is_same_v<iterator_value_type, std::remove_cv_t<value_type>> && std::is_same_v<TPointerType, Kratos::intrusive_ptr<std::decay_t<decltype(*Iterator)>>>) {
+            // now the *iterator points to a value type. Then we can only return the pointer if
+            // the PointerVectorSet is of the type with intrusive_ptrs. Then we can safely construct the intrusive ptrs
+            return TPointerType(&*Iterator);
+        } else {
+            static_assert(!std::is_same_v<TIteratorType, TIteratorType>, "Unsupported iterator type.");
+            return 0;
+        }
     }
 
     ///@}

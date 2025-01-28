@@ -28,8 +28,6 @@ Condition::Pointer UPwFaceLoadInterfaceCondition<TDim, TNumNodes>::Create(IndexT
         NewId, this->GetGeometry().Create(ThisNodes), pProperties));
 }
 
-//----------------------------------------------------------------------------------------
-
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwFaceLoadInterfaceCondition<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
@@ -43,8 +41,6 @@ void UPwFaceLoadInterfaceCondition<TDim, TNumNodes>::Initialize(const ProcessInf
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 template <>
 void UPwFaceLoadInterfaceCondition<2, 2>::CalculateInitialGap(const GeometryType& Geom)
 {
@@ -54,8 +50,6 @@ void UPwFaceLoadInterfaceCondition<2, 2>::CalculateInitialGap(const GeometryType
     noalias(Vx)    = Geom.GetPoint(1) - Geom.GetPoint(0);
     mInitialGap[0] = norm_2(Vx);
 }
-
-//----------------------------------------------------------------------------------------
 
 template <>
 void UPwFaceLoadInterfaceCondition<3, 4>::CalculateInitialGap(const GeometryType& Geom)
@@ -70,13 +64,10 @@ void UPwFaceLoadInterfaceCondition<3, 4>::CalculateInitialGap(const GeometryType
     mInitialGap[1] = norm_2(Vx);
 }
 
-//----------------------------------------------------------------------------------------
-
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwFaceLoadInterfaceCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rRightHandSideVector,
+void UPwFaceLoadInterfaceCondition<TDim, TNumNodes>::CalculateRHS(Vector& rRightHandSideVector,
                                                                   const ProcessInfo& CurrentProcessInfo)
 {
-    // Previous definitions
     const GeometryType&                             Geom = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
         Geom.IntegrationPoints(this->GetIntegrationMethod());
@@ -94,7 +85,7 @@ void UPwFaceLoadInterfaceCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rR
     array_1d<double, TNumNodes * TDim> DisplacementVector;
     ConditionUtilities::GetDisplacementsVector(DisplacementVector, Geom);
     array_1d<double, TNumNodes * TDim> FaceLoadVector;
-    ConditionUtilities::GetFaceLoadVector<TNumNodes>(FaceLoadVector, Geom);
+    ConditionUtilities::GetFaceLoadVector<TDim, TNumNodes>(FaceLoadVector, Geom);
     BoundedMatrix<double, TDim, TDim> RotationMatrix;
     const double& MinimumJointWidth = this->GetProperties()[MINIMUM_JOINT_WIDTH];
     bool          ComputeJointWidth;
@@ -106,7 +97,6 @@ void UPwFaceLoadInterfaceCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rR
     array_1d<double, TDim>                        TractionVector;
     array_1d<double, TNumNodes * TDim>            UVector;
 
-    // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++) {
         // Compute traction vector
         ConditionUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
@@ -128,8 +118,6 @@ void UPwFaceLoadInterfaceCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rR
         GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, UVector);
     }
 }
-
-//----------------------------------------------------------------------------------------
 
 template <>
 void UPwFaceLoadInterfaceCondition<2, 2>::CheckJointWidth(double& rJointWidth,
@@ -184,8 +172,6 @@ void UPwFaceLoadInterfaceCondition<2, 2>::CheckJointWidth(double& rJointWidth,
         rComputeJointWidth = false;
     }
 }
-
-//----------------------------------------------------------------------------------------
 
 template <>
 void UPwFaceLoadInterfaceCondition<3, 4>::CheckJointWidth(double& rJointWidth,
@@ -243,8 +229,6 @@ void UPwFaceLoadInterfaceCondition<3, 4>::CheckJointWidth(double& rJointWidth,
     }
 }
 
-//----------------------------------------------------------------------------------------
-
 template <>
 void UPwFaceLoadInterfaceCondition<2, 2>::CalculateJointWidth(double& rJointWidth,
                                                               const BoundedMatrix<double, 2, 4>& Nu,
@@ -266,8 +250,6 @@ void UPwFaceLoadInterfaceCondition<2, 2>::CalculateJointWidth(double& rJointWidt
         rJointWidth = MinimumJointWidth;
     }
 }
-
-//----------------------------------------------------------------------------------------
 
 template <>
 void UPwFaceLoadInterfaceCondition<3, 4>::CalculateJointWidth(double& rJointWidth,
@@ -291,8 +273,6 @@ void UPwFaceLoadInterfaceCondition<3, 4>::CalculateJointWidth(double& rJointWidt
     }
 }
 
-//----------------------------------------------------------------------------------------
-
 template <>
 double UPwFaceLoadInterfaceCondition<2, 2>::CalculateIntegrationCoefficient(const Matrix& Jacobian,
                                                                             const double& Weight,
@@ -302,8 +282,6 @@ double UPwFaceLoadInterfaceCondition<2, 2>::CalculateIntegrationCoefficient(cons
     //       In a normal line load we would have |J| * w = L/2.0 * 2.0 = L
     return JointWidth;
 }
-
-//----------------------------------------------------------------------------------------
 
 template <>
 double UPwFaceLoadInterfaceCondition<3, 4>::CalculateIntegrationCoefficient(const Matrix& Jacobian,
@@ -318,7 +296,11 @@ double UPwFaceLoadInterfaceCondition<3, 4>::CalculateIntegrationCoefficient(cons
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+template <unsigned int TDim, unsigned int TNumNodes>
+std::string UPwFaceLoadInterfaceCondition<TDim, TNumNodes>::Info() const
+{
+    return "UPwFaceLoadInterfaceCondition";
+}
 
 template class UPwFaceLoadInterfaceCondition<2, 2>;
 template class UPwFaceLoadInterfaceCondition<3, 4>;

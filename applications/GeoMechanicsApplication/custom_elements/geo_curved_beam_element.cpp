@@ -28,7 +28,6 @@ Element::Pointer GeoCurvedBeamElement<TDim, TNumNodes>::Create(IndexType        
     return Element::Pointer(new GeoCurvedBeamElement(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer GeoCurvedBeamElement<TDim, TNumNodes>::Create(IndexType             NewId,
                                                                GeometryType::Pointer pGeom,
@@ -37,7 +36,6 @@ Element::Pointer GeoCurvedBeamElement<TDim, TNumNodes>::Create(IndexType        
     return Element::Pointer(new GeoCurvedBeamElement(NewId, pGeom, pProperties));
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 int GeoCurvedBeamElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -76,7 +74,6 @@ int GeoCurvedBeamElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProc
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <>
 void GeoCurvedBeamElement<3, 3>::SetRotationalInertiaVector(const PropertiesType& rProp, Vector& rRotationalInertia) const
 {
@@ -93,7 +90,6 @@ void GeoCurvedBeamElement<3, 3>::SetRotationalInertiaVector(const PropertiesType
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <>
 void GeoCurvedBeamElement<2, 3>::SetRotationalInertiaVector(const PropertiesType& rProp, Vector& rRotationalInertia) const
 {
@@ -107,7 +103,6 @@ void GeoCurvedBeamElement<2, 3>::SetRotationalInertiaVector(const PropertiesType
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMassMatrix,
                                                                 const ProcessInfo& rCurrentProcessInfo)
@@ -161,7 +156,6 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMas
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftHandSideMatrix,
                                                          VectorType&        rRightHandSideVector,
@@ -242,7 +236,6 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLef
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoCurvedBeamElement<TDim, TNumNodes>::InitializeElementVariables(ElementVariables& rVariables,
                                                                        ConstitutiveLaw::Parameters& rConstitutiveParameters,
@@ -298,7 +291,6 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::InitializeElementVariables(ElementVa
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
                                                                ElementVariables& rVariables) const
@@ -311,7 +303,6 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType& rLeft
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRightHandSideVector,
                                                                ElementVariables& rVariables,
@@ -325,7 +316,6 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRigh
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateAndAddBodyForce(VectorType& rRightHandSideVector,
                                                                      const ElementVariables& rVariables) const
@@ -343,7 +333,6 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateAndAddBodyForce(VectorType&
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateAndAddStiffnessForce(VectorType& rRightHandSideVector,
                                                                           const ElementVariables& rVariables,
@@ -356,7 +345,6 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateAndAddStiffnessForce(Vector
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 double GeoCurvedBeamElement<TDim, TNumNodes>::CalculateAngleAtNode(
     unsigned int GPoint, const BoundedMatrix<double, TNumNodes, TNumNodes>& DN_DeContainer) const
@@ -379,7 +367,6 @@ double GeoCurvedBeamElement<TDim, TNumNodes>::CalculateAngleAtNode(
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 double GeoCurvedBeamElement<TDim, TNumNodes>::CalculateAngleAtGaussPoint(const Matrix& GradNe) const
 {
@@ -400,7 +387,6 @@ double GeoCurvedBeamElement<TDim, TNumNodes>::CalculateAngleAtGaussPoint(const M
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <>
 void GeoCurvedBeamElement<2, 3>::CalculateTransformationMatrix(Matrix&       TransformationMatrix,
                                                                const Matrix& GradNe) const
@@ -437,7 +423,6 @@ void GeoCurvedBeamElement<2, 3>::CalculateTransformationMatrix(Matrix&       Tra
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <>
 void GeoCurvedBeamElement<3, 3>::CalculateTransformationMatrix(Matrix&       TransformationMatrix,
                                                                const Matrix& GradNe) const
@@ -449,7 +434,6 @@ void GeoCurvedBeamElement<3, 3>::CalculateTransformationMatrix(Matrix&       Tra
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateNodalCrossDirection(Matrix& NodalCrossDirection) const
 {
@@ -471,7 +455,6 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateNodalCrossDirection(Matrix&
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateJacobianMatrix(unsigned int GPointCross,
                                                                     const ElementVariables& rVariables,
@@ -510,7 +493,6 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateJacobianMatrix(unsigned int
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateBMatrix(Matrix&      BTransformed,
                                                              unsigned int GPointCross,
@@ -530,7 +512,6 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateBMatrix(Matrix&      BTrans
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateLocalBMatrix(Matrix&      B,
                                                                   unsigned int GPointCross,
@@ -586,7 +567,6 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateLocalBMatrix(Matrix&      B
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateStrainVector(ElementVariables& rVariables) const
 {
@@ -597,7 +577,6 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateStrainVector(ElementVariabl
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 double GeoCurvedBeamElement<TDim, TNumNodes>::CalculateIntegrationCoefficient(unsigned int GPointCross,
                                                                               double detJ,
@@ -608,21 +587,18 @@ double GeoCurvedBeamElement<TDim, TNumNodes>::CalculateIntegrationCoefficient(un
     return weight * CrossWeight[GPointCross] * detJ;
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 SizeType GeoCurvedBeamElement<TDim, TNumNodes>::GetAlongNumberIntegrationPoints() const
 {
     return this->GetGeometry().IntegrationPointsNumber(mThisIntegrationMethod);
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 SizeType GeoCurvedBeamElement<TDim, TNumNodes>::GetCrossNumberIntegrationPoints() const
 {
     return N_POINT_CROSS;
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateLocalInternalForce(VectorType& rInternalForceVector,
                                                                         const ProcessInfo& rCurrentProcessInfo)
@@ -699,7 +675,6 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateLocalInternalForce(VectorTy
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
                                                                          std::vector<Matrix>& rOutput,
@@ -862,7 +837,6 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const V
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoCurvedBeamElement<TDim, TNumNodes>::InterpolateOnOutputPoints(Matrix& ValuesMatrix) const
 {
@@ -881,7 +855,6 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::InterpolateOnOutputPoints(Matrix& Va
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoCurvedBeamElement<TDim, TNumNodes>::InterpolateOnOutputPoints(Vector& Values) const
 {
@@ -902,7 +875,6 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::InterpolateOnOutputPoints(Vector& Va
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
                                                                          std::vector<array_1d<double, 3>>& rOutput,
@@ -954,8 +926,6 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const V
 
     KRATOS_CATCH("")
 }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template class GeoCurvedBeamElement<2, 3>;
 template class GeoCurvedBeamElement<3, 3>;

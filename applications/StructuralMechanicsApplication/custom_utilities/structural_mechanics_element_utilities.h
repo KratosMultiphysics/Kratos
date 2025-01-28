@@ -10,6 +10,7 @@
 //                   Vicente Mataix Ferrandiz
 //                   Riccardo Rossi
 //                   Ruben Zorrilla
+//                   Alejandro Cornejo
 //
 
 #pragma once
@@ -263,7 +264,7 @@ void KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) BuildRotationMatrix(
  * @param rRotationMatrix The rotation matrix from local to global axes
  * It assumes 3 dofs per node: u,v,theta
  */
-void BuildRotationMatrixFor2D2NBeam(
+void BuildRotationMatrixForBeam(
     BoundedMatrix<double, 3, 3>& rRotationMatrix,
     const double AlphaAngle);
 
@@ -275,6 +276,59 @@ void BuildRotationMatrixFor2D2NBeam(
 void BuildElementSizeRotationMatrixFor2D2NBeam(
     const BoundedMatrix<double, 3, 3>& rRotationMatrix,
     BoundedMatrix<double, 6, 6>& rElementSizeRotationMatrix);
+
+/**
+ * @brief This function fills an element size rotation matrix a local rotation matrix
+ * @param rRotationMatrix The rotation matrix from local to global axes
+ * It assumes 3 dofs per node: u,v,theta
+ */
+void BuildElementSizeRotationMatrixFor2D3NBeam(
+    const BoundedMatrix<double, 3, 3>& rRotationMatrix,
+    BoundedMatrix<double, 9, 9>& rElementSizeRotationMatrix);
+
+/**
+ * @param rRotationMatrix The rotation matrix from local to global axes
+ * It assumes 2 dofs per node: u,v
+ */
+void BuildRotationMatrixForTruss(
+    BoundedMatrix<double, 2, 2>& rRotationMatrix,
+    const double AlphaAngle);
+
+/**
+ * @brief This function fills an element size rotation matrix a local rotation matrix
+ * @param rRotationMatrix The rotation matrix from local to global axes
+ * It assumes 2 dofs per node: u,v
+ */
+void BuildElementSizeRotationMatrixFor2D2NTruss(
+    const BoundedMatrix<double, 2, 2>& rRotationMatrix,
+    BoundedMatrix<double, 4, 4>& rElementSizeRotationMatrix);
+
+/**
+ * @brief This function fills an element size rotation matrix a local rotation matrix
+ * @param rRotationMatrix The rotation matrix from local to global axes
+ * It assumes 2 dofs per node: u,v
+ */
+void BuildElementSizeRotationMatrixFor2D3NTruss(
+    const BoundedMatrix<double, 2, 2>& rRotationMatrix,
+    BoundedMatrix<double, 6, 6>& rElementSizeRotationMatrix);
+
+/**
+ * @brief This function fills an element size rotation matrix a local rotation matrix
+ * @param rRotationMatrix The rotation matrix from local to global axes
+ * It assumes 2 dofs per node: u,v
+ */
+void BuildElementSizeRotationMatrixFor3D2NTruss(
+    const BoundedMatrix<double, 3, 3>& rRotationMatrix,
+    BoundedMatrix<double, 6, 6>& rElementSizeRotationMatrix);
+
+/**
+ * @brief This function fills an element size rotation matrix a local rotation matrix
+ * @param rRotationMatrix The rotation matrix from local to global axes
+ * It assumes 2 dofs per node: u,v
+ */
+void BuildElementSizeRotationMatrixFor3D3NTruss(
+    const BoundedMatrix<double, 3, 3>& rRotationMatrix,
+    BoundedMatrix<double, 9, 9>& rElementSizeRotationMatrix);
 
 /**
  * @brief This function computes the inclination angle of a 2 noded beam
@@ -295,6 +349,12 @@ double GetReferenceRotationAngle2D3NBeam(const GeometryType &rGeometry);
  * @param rValues The constitutive law parameters
  */
 KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) double CalculatePhi(const Properties& rProperties, const double L);
+
+void InitializeConstitutiveLawValuesForStressCalculation(ConstitutiveLaw::Parameters& rValues,
+    Vector& rStrainVector, Vector& rStressVector, Matrix& rConstitutiveMatrix);
+
+void InitializeConstitutiveLawValuesForStressCalculation(ConstitutiveLaw::Parameters& rValues,
+    Vector& rStrainVector, Vector& rStressVector);
 
 } // namespace StructuralMechanicsElementUtilities.
 }  // namespace Kratos.

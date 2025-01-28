@@ -14,7 +14,6 @@
 
 #pragma once
 
-// Project includes
 #include "custom_conditions/surface_load_3D_diff_order_condition.hpp"
 #include "includes/serializer.h"
 
@@ -28,15 +27,10 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) SurfaceNormalFluidFlux3DDiffOrderCon
 public:
     using IndexType      = std::size_t;
     using PropertiesType = Properties;
-    using NodeType       = Node;
-    using GeometryType   = Geometry<NodeType>;
+    using GeometryType   = Geometry<Node>;
     using NodesArrayType = GeometryType::PointsArrayType;
-    using VectorType     = Vector;
-    using MatrixType     = Matrix;
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SurfaceNormalFluidFlux3DDiffOrderCondition);
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Default constructor
     SurfaceNormalFluidFlux3DDiffOrderCondition();
@@ -49,28 +43,19 @@ public:
                                                GeometryType::Pointer   pGeometry,
                                                PropertiesType::Pointer pProperties);
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     Condition::Pointer Create(IndexType               NewId,
                               NodesArrayType const&   ThisNodes,
                               PropertiesType::Pointer pProperties) const override;
+    Condition::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    std::string Info() const override;
 
 protected:
-    // Member Variables
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     void CalculateConditionVector(ConditionVariables& rVariables, unsigned int PointNumber) override;
 
-    void CalculateAndAddConditionForce(VectorType& rRightHandSideVector, ConditionVariables& rVariables) override;
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    void CalculateAndAddConditionForce(Vector& rRightHandSideVector, ConditionVariables& rVariables) override;
 
 private:
-    // Serialization
-
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override
