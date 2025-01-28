@@ -168,6 +168,7 @@ Additionaly, Visual Studio is required to compile in *Windows*.
 
     - Better compatibility with **MSVC**, both at build time and at run time.
     - It only ships by default on *Windows 10/11* and for older versions you have to provide it yourself or depend on the user having it installed.
+    - Remember that to properly work, you will need to define the `PATH` for the binary folder of *MSYS2*, usually at `C:\msys2\ucrt64\bin`.
 
     If using **UCRT64** the dependencies will be like:
 
@@ -502,6 +503,21 @@ cmake ..                                                                        
 
 # Build
 cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j$(nproc)
+
+# Manually install the python ddl, located in the python binary folder
+# Determine the location of the Python DLL
+PYTHON_VERSION=$(${PYTHON_EXECUTABLE} -c "import sys; print(''.join(sys.version.split('.')[:2]))")
+PYTHON_DLL=$(${PYTHON_EXECUTABLE} -c "import sys; print(sys.base_prefix)")/python${PYTHON_VERSION}.dll
+
+# Check if the Python DLL exists
+if [ -f "${PYTHON_DLL}" ]; then
+    # Install the Python DLL to the desired location
+    cp "${PYTHON_DLL}" "${KRATOS_SOURCE}/bin/${KRATOS_BUILD_TYPE}/libs"
+    echo "Python DLL ${PYTHON_DLL} installed at ${KRATOS_SOURCE}/bin/${KRATOS_BUILD_TYPE}/libs"
+else
+    echo "Python DLL not found at ${PYTHON_DLL}"
+    exit 1
+fi
 ```
 
 ### MacOS
