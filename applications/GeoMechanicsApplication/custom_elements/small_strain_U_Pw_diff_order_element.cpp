@@ -532,13 +532,11 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
                        std::multiplies<>{});
 
         // Loop over integration points
+        const SizeType dimension = r_geometry.WorkingSpaceDimension();
         for (unsigned int g_point = 0; g_point < mConstitutiveLawVector.size(); ++g_point) {
             // compute element kinematics (Np, gradNpT, |J|, B, strains)
             this->CalculateKinematics(Variables, g_point);
             Variables.B = b_matrices[g_point];
-
-            // Compute FluidFlux vector q [L/T]
-            const SizeType dimension = r_geometry.WorkingSpaceDimension();
 
             Vector   body_acceleration = ZeroVector(dimension);
             SizeType Index             = 0;
@@ -551,15 +549,12 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
 
             const auto relative_permeability = relative_permeability_values[g_point];
 
-            // Compute strain, need to update porosity
-            Variables.F            = deformation_gradients[g_point];
-            Variables.StrainVector = strain_vectors[g_point];
-
             Vector GradPressureTerm(dimension);
             noalias(GradPressureTerm) = prod(trans(Variables.DNp_DX), Variables.PressureVector);
             noalias(GradPressureTerm) +=
                 PORE_PRESSURE_SIGN_FACTOR * GetProperties()[DENSITY_WATER] * body_acceleration;
 
+            // Compute fluid flux vector q [L/T]
             Vector fluid_flux = ZeroVector(dimension);
             fluid_flux        = PORE_PRESSURE_SIGN_FACTOR * Variables.DynamicViscosityInverse *
                          relative_permeability * prod(Variables.IntrinsicPermeability, GradPressureTerm);
@@ -1073,7 +1068,7 @@ std::vector<Matrix> SmallStrainUPwDiffOrderElement::CalculateBMatrices(
 }
 
 void SmallStrainUPwDiffOrderElement::CalculateAndAddLHS(MatrixType&       rLeftHandSideMatrix,
-                                                        ElementVariables& rVariables) const
+                                                        const ElementVariables& rVariables) const
 {
     KRATOS_TRY
 
@@ -1194,7 +1189,8 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddMixBodyForce(VectorType& rRi
     SizeType Index            = 0;
     for (SizeType i = 0; i < NumUNodes; ++i) {
         for (SizeType idim = 0; idim < Dim; ++idim) {
-            BodyAcceleration[idim] += rVariables.Nu[i] * rVariables.BodyAcceleration[Index++];
+            BodyAcceleration[idim] += rVariables.Nu[i] * rVariables.BodyAcceleration[Index];
+            Index++;
         }
     }
 
