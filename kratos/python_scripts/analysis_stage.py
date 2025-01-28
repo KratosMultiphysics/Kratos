@@ -67,7 +67,8 @@ class AnalysisStage(object):
         """
         while self.KeepAdvancingSolutionLoop():
             self.time = self._AdvanceTime()
-
+            
+            # print(self.time)
             # is_converged = False
 
             # it = 0

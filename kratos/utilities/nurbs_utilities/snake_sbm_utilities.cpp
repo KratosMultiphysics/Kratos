@@ -189,7 +189,7 @@ namespace Kratos
             }
         }
         else if (is_initial_skin_nurbs) {
-            const int n_initial_points_for_side = 500;
+            const int n_initial_points_for_side = 1000;
             int first_node_id = skin_model_part.GetRootModelPart().NumberOfNodes()+1;
             const SizeType n_boundary_curves = skin_model_part_initial.NumberOfGeometries();
             bool newInnerLoop = true;
@@ -692,9 +692,9 @@ namespace Kratos
             if (knot_spans_available[idMatrix][start_j][start_i] == 1 ) { break; }
         }
         
-        if (!surrogate_model_part_inner.HasProperties(0)) {surrogate_model_part_inner.CreateNewProperties(1000);}
+        SizeType new_prop_id = surrogate_model_part_inner.GetRootModelPart().NumberOfProperties();
+        Properties::Pointer p_cond_prop = surrogate_model_part_inner.CreateNewProperties(new_prop_id+1);
 
-        Properties::Pointer p_cond_prop = surrogate_model_part_inner.pGetProperties(0);
         Node snakeNode(1 , knot_vector_u[start_i], knot_vector_v[start_j], 0.0);
         
         const int id_first_node = surrogate_model_part_inner.GetRootModelPart().Nodes().size() + 1;
@@ -832,6 +832,7 @@ namespace Kratos
             initialId = surrogate_model_part_inner.GetElement(surrogate_model_part_inner.GetRootModelPart().Elements().size()).GetGeometry()[1].Id()+1;
         }
         std::vector<ModelPart::IndexType> elem_nodes{initialId, idSnakeNode-1};
+        // FIXME:
         surrogate_model_part_inner.CreateNewElement("Element2D2N", surrogate_model_part_inner.GetRootModelPart().Elements().size()+1, elem_nodes, p_cond_prop);
     }
 
@@ -914,7 +915,8 @@ namespace Kratos
             }
         }  
         
-        Properties::Pointer p_cond_prop = surrogate_model_part_outer.CreateNewProperties(1001);
+        SizeType new_prop_id = surrogate_model_part_outer.GetRootModelPart().NumberOfProperties();
+        Properties::Pointer p_cond_prop = surrogate_model_part_outer.CreateNewProperties(new_prop_id+1);
         Node snakeNode(1 , knot_vector_u[start_i], knot_vector_v[start_j], 0.0);
 
         const int id_first_node = surrogate_model_part_outer.GetRootModelPart().Nodes().size() + 1;
@@ -1046,6 +1048,7 @@ namespace Kratos
         // Create "fictituos element" to memorize starting and ending node id for each surrogate boundary loop
         std::vector<ModelPart::IndexType> elem_nodes{1, idSnakeNode-1};
         int elem_id = surrogate_model_part_outer.GetRootModelPart().Elements().size()+1;
+        // FIXME:
         surrogate_model_part_outer.CreateNewElement("Element2D2N", elem_id, elem_nodes, p_cond_prop);
     }
 }  // namespace Kratos.

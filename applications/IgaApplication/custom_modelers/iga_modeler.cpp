@@ -420,7 +420,7 @@ namespace Kratos
                         geometries.ptr_begin(), geometries.ptr_end(),
                         rModelPart, body_fitted_condition_name, id, PropertiesPointerType());
                 }
-                else {
+                else { 
                     this->CreateConditions(
                         geometries.ptr_begin(), geometries.ptr_end(),
                         rModelPart, name, id, PropertiesPointerType());
@@ -583,15 +583,91 @@ namespace Kratos
 
         int countListClosestCondition = 0;
         bool is2D = true;
-        if(rSkinModelPart.GetCondition(listIdClosestCondition[0]).GetGeometry().size() > 2) { is2D = false;}
+        // if(rSkinModelPart.GetCondition(listIdClosestCondition[0]).GetGeometry().size() > 2) { is2D = false;}
 
-        std::string rConditionName = rSkinModelPart.GetCondition(listIdClosestCondition[0]).GetValue(CONDITION_NAME);
-        const Condition& rReferenceCondition = KratosComponents<Condition>::Get(rConditionName);
+        
 
         KRATOS_INFO_IF("CreateConditions", mEchoLevel > 2)
-            << "Creating conditions of type " << rConditionName
+            << "Creating conditions of type " << "SBM Condition"
             << " in " << rModelPart.Name() << "-SubModelPart." << std::endl;
 
+
+        // correct conditions by projections
+        
+        // count how many conditions for each type
+        std::vector<std::string> bc_on_skin_projection_type;
+        std::vector<int> count_bc_on_skin_projection_type;
+        for (auto it = rGeometriesBegin; it != rGeometriesEnd; ++it) {
+            std::string rConditionName = rSkinModelPart.GetCondition(listIdClosestCondition[countListClosestCondition]).GetValue(CONDITION_NAME);
+
+            // Find the condition name in bc_on_skin_projection_type
+            auto it_name = std::find(bc_on_skin_projection_type.begin(), bc_on_skin_projection_type.end(), rConditionName);
+            KRATOS_WATCH(rConditionName)
+            if (it_name != bc_on_skin_projection_type.end()) {
+                // Increment the count for the existing condition name
+                size_t index = std::distance(bc_on_skin_projection_type.begin(), it_name);
+                count_bc_on_skin_projection_type[index]++;
+            } else {
+                // Add new condition name and initialize its count
+                bc_on_skin_projection_type.push_back(rConditionName);
+                count_bc_on_skin_projection_type.push_back(1); // Initialize count to 1
+            }
+            countListClosestCondition++;
+        }
+        //--------------------
+        std::string max_condition_name;
+        int max_count = 0; 
+        for (size_t i = 0; i < count_bc_on_skin_projection_type.size(); ++i) {
+            if (count_bc_on_skin_projection_type[i] > max_count) {
+                max_count = count_bc_on_skin_projection_type[i];
+                max_condition_name = bc_on_skin_projection_type[i];
+            }
+        }
+        
+        // create a pool of conditions of the right type
+        std::vector<int> list_id_closest_condition_of_correct_bc;
+        for (IndexType i = 0; i < listIdClosestCondition.size(); i++) {
+            int condId = listIdClosestCondition[i];
+            std::string rConditionName = rSkinModelPart.GetCondition(listIdClosestCondition[i]).GetValue(CONDITION_NAME);
+            if (rConditionName == max_condition_name) 
+                list_id_closest_condition_of_correct_bc.push_back(condId);
+        }
+        KRATOS_ERROR_IF(list_id_closest_condition_of_correct_bc.size() != max_count) << "ERROR in list_id_closest_condition_of_correct_bc" << std::endl;
+
+        // correct the projections
+        countListClosestCondition = 0;
+        for (auto it = rGeometriesBegin; it != rGeometriesEnd; ++it) {
+            // int condId = listIdClosestCondition[countListClosestCondition];
+            std::string rConditionName = rSkinModelPart.GetCondition(listIdClosestCondition[countListClosestCondition]).GetValue(CONDITION_NAME);
+
+            auto gp_coord = (*it)->Center();
+            int best_cond_id = -1;
+            if (rConditionName != max_condition_name) 
+            {
+                double best_distance = 1e16;
+                for (IndexType i = 0; i < max_count; i++)
+                {
+                    int condId = list_id_closest_condition_of_correct_bc[i];
+                    auto cond_center = (&rSkinModelPart.GetCondition(condId))->GetGeometry().Center();
+                    double curr_distance = norm_2(cond_center-gp_coord);
+
+                    if (curr_distance < best_distance) 
+                    {
+                        best_distance = curr_distance;
+                        best_cond_id = condId;
+                    }
+                }
+                
+                listIdClosestCondition[countListClosestCondition] = best_cond_id;
+            }
+            countListClosestCondition++;
+        }
+        
+
+
+        //--------------------------
+        const Condition& rReferenceCondition = KratosComponents<Condition>::Get(max_condition_name);
+        countListClosestCondition = 0;
         if (is2D) {
             for (auto it = rGeometriesBegin; it != rGeometriesEnd; ++it) {
                 new_condition_list.push_back(
@@ -625,27 +701,27 @@ namespace Kratos
                 countListClosestCondition++;
             }
         } else {
-            // 3D
-            for (auto it = rGeometriesBegin; it != rGeometriesEnd; ++it) {
-                new_condition_list.push_back(
-                    rReferenceCondition.Create(rIdCounter, (*it), pProperties));
+            // // 3D
+            // for (auto it = rGeometriesBegin; it != rGeometriesEnd; ++it) {
+            //     new_condition_list.push_back(
+            //         rReferenceCondition.Create(rIdCounter, (*it), pProperties));
 
-                int condId = listIdClosestCondition[countListClosestCondition];
-                Condition::Pointer cond = &rSkinModelPart.GetCondition(condId);
-                new_condition_list.GetContainer()[countListClosestCondition]->SetValue(NEIGHBOUR_CONDITIONS, GlobalPointersVector<Condition>({cond}));
-                if (isInner) {
-                    new_condition_list.GetContainer()[countListClosestCondition]->SetValue(IDENTIFIER, "inner");
-                } else {
-                    new_condition_list.GetContainer()[countListClosestCondition]->SetValue(IDENTIFIER, "outer");
-                }
-                for (SizeType i = 0; i < (*it)->size(); ++i) {
-                    // These are the control points associated with the basis functions involved in the condition we are creating
-                    // rModelPart.AddNode((*it)->pGetPoint(i));
-                    rModelPart.Nodes().push_back((*it)->pGetPoint(i));
-                }
-                rIdCounter++;
-                countListClosestCondition++;
-            }
+            //     int condId = listIdClosestCondition[countListClosestCondition];
+            //     Condition::Pointer cond = &rSkinModelPart.GetCondition(condId);
+            //     new_condition_list.GetContainer()[countListClosestCondition]->SetValue(NEIGHBOUR_CONDITIONS, GlobalPointersVector<Condition>({cond}));
+            //     if (isInner) {
+            //         new_condition_list.GetContainer()[countListClosestCondition]->SetValue(IDENTIFIER, "inner");
+            //     } else {
+            //         new_condition_list.GetContainer()[countListClosestCondition]->SetValue(IDENTIFIER, "outer");
+            //     }
+            //     for (SizeType i = 0; i < (*it)->size(); ++i) {
+            //         // These are the control points associated with the basis functions involved in the condition we are creating
+            //         // rModelPart.AddNode((*it)->pGetPoint(i));
+            //         rModelPart.Nodes().push_back((*it)->pGetPoint(i));
+            //     }
+            //     rIdCounter++;
+            //     countListClosestCondition++;
+            // }
         }
         rModelPart.AddConditions(new_condition_list.begin(), new_condition_list.end());
     }

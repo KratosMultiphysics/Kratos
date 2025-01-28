@@ -290,18 +290,21 @@ namespace Kratos
             Vector g_N = ZeroVector(2);
 
             // When "analysis_type" is "linear" temper = 0
-            const double x = projection[0];
-            const double y = projection[1];
+            // const double x = projection[0];
+            // const double y = projection[1];
 
-            g_N[0] = E/(1+nu)*(-sin(x)*sinh(y)) * true_n[0] + E/(1+nu)*(cos(x)*cosh(y)) * true_n[1]; 
-            g_N[1] = E/(1+nu)*(cos(x)*cosh(y)) * true_n[0] + E/(1+nu)*(sin(x)*sinh(y)) * true_n[1]; 
+            // g_N[0] = E/(1+nu)*(-sin(x)*sinh(y)) * true_n[0] + E/(1+nu)*(cos(x)*cosh(y)) * true_n[1]; 
+            // g_N[1] = E/(1+nu)*(cos(x)*cosh(y)) * true_n[0] + E/(1+nu)*(sin(x)*sinh(y)) * true_n[1]; 
+
+            // g_N[0] = E/(1-nu)*(sin(x)*sinh(y)) * true_n[0]; 
+            // g_N[1] = E/(1-nu)*(sin(x)*sinh(y))  * true_n[1]; 
 
 
             // g_N[0] = this->GetValue(FORCE_X); 
             // g_N[1] = this->GetValue(FORCE_Y); 
 
-            // g_N[0] = candidateClosestSkinSegment1.GetGeometry()[0].GetValue(FORCE_X);
-            // g_N[1] = candidateClosestSkinSegment1.GetGeometry()[0].GetValue(FORCE_Y);
+            g_N[0] = candidateClosestSkinSegment1.GetGeometry()[0].GetValue(FORCE_X);
+            g_N[1] = candidateClosestSkinSegment1.GetGeometry()[0].GetValue(FORCE_Y);
             
             for (IndexType i = 0; i < number_of_nodes; i++) {
                 

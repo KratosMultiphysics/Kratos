@@ -287,8 +287,7 @@ namespace Kratos
             //     : 0.0;
             
             Vector u_D = ZeroVector(2); //->GetValue(DISPLACEMENT);
-
-            // const double temperature = candidateClosestSkinSegment1.GetGeometry()[0].GetValue(TEMPERATURE);
+            
 
             u_D[0] = candidateClosestSkinSegment1.GetGeometry()[0].GetValue(DISPLACEMENT_X);
             u_D[1] = candidateClosestSkinSegment1.GetGeometry()[0].GetValue(DISPLACEMENT_Y);
