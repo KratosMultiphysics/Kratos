@@ -8,7 +8,8 @@ import KratosMultiphysics.ThermalDEMApplication.thermal_dem_analysis
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics import Logger
 
-result_print = True
+result_print  = True  # Print computed results to command window
+result_update = False # Update reference result files
 
 #---------------------------------------------------------------------------------
 class controlledExecutionScope:
@@ -25,9 +26,12 @@ class controlledExecutionScope:
 #---------------------------------------------------------------------------------
 class Solution(ThermalDEM.thermal_dem_analysis.ThermalDEMAnalysis, KratosUnittest.TestCase):
     def __init__(self, model, project_parameters, test_folder_name, solution_name, solution_file_path):
+        if result_update:
+            print("ATTENTION: UPDATING REFERENCE SOLUTION FILE WITH COMPUTED RESULTS!")
         self.test_folder_name = test_folder_name
         self.solution_name = solution_name
-        ReadReferenceSolutionFile(self, solution_file_path)
+        self.solution_file_path = solution_file_path
+        ReadReferenceSolutionFile(self)
         super().__init__(model, project_parameters)
 
     def GetMainPath(cls):
@@ -73,32 +77,6 @@ def CreateAndRunStage(model, test_folder_name, parameters_file_name, solution_fi
         KratosMultiphysics.ParallelUtilities.SetNumThreads(multiprocessing.cpu_count())
 
 #---------------------------------------------------------------------------------
-def ReadReferenceSolutionFile(my_solution, solution_file_path):
-    my_solution.result_types = None
-    my_solution.result_nodes = None
-    my_solution.result_tol   = None
-    my_solution.result_refs  = None
-
-    try:
-        with open(solution_file_path, "r") as file:
-            data = json.load(file)
-
-        my_solution.result_types = data.get("result_types")
-        my_solution.result_nodes = data.get("result_nodes")
-        my_solution.result_tol   = data.get("tolerance")
-        my_solution.result_refs  = data.get("solutions")
-
-        if any(attr is None for attr in [my_solution.result_types, my_solution.result_nodes, my_solution.result_tol, my_solution.result_refs]):
-            raise ValueError("One or more required fields are missing in the reference solution file.")
-
-    except FileNotFoundError:
-        print(f"Error: Reference solution file not found.")
-    except json.JSONDecodeError:
-        print(f"Error: Reference solution file is not a valid JSON file.")
-    except Exception as e:
-        print(f"An error occurred: {e}")
-
-#---------------------------------------------------------------------------------
 def CheckResults(my_solution):
     if my_solution.solution_name not in my_solution.result_refs:
         raise ValueError(f"Unknown solution name: {my_solution.solution_name}")
@@ -122,9 +100,48 @@ def CheckResults(my_solution):
     if result_print:
         print("}\n")
 
+    if result_update:
+        UpdateReferenceSolutionFile(my_solution, computed_results)
+
     for node_id, computed_values in computed_results.items():
         for i, result_value in enumerate(computed_values):
             my_solution.assertAlmostEqual(result_value, refs[str(node_id)][i], delta=my_solution.result_tol)
+
+#---------------------------------------------------------------------------------
+def ReadReferenceSolutionFile(my_solution):
+    my_solution.result_types = None
+    my_solution.result_nodes = None
+    my_solution.result_tol   = None
+    my_solution.result_refs  = None
+
+    try:
+        with open(my_solution.solution_file_path, 'r') as file:
+            data = json.load(file)
+
+        my_solution.result_types = data.get("result_types")
+        my_solution.result_nodes = data.get("result_nodes")
+        my_solution.result_tol   = data.get("tolerance")
+        my_solution.result_refs  = data.get("solutions")
+
+        if any(attr is None for attr in [my_solution.result_types, my_solution.result_nodes, my_solution.result_tol, my_solution.result_refs]):
+            raise ValueError("One or more required fields are missing in the reference solution file.")
+
+    except FileNotFoundError:
+        print("Error: Reference solution file not found.")
+    except json.JSONDecodeError:
+        print("Error: Reference solution file is not a valid JSON file.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+#---------------------------------------------------------------------------------
+def UpdateReferenceSolutionFile(my_solution, computed_results):
+    with open(my_solution.solution_file_path, 'r') as file:
+        data = json.load(file)
+
+    data["solutions"][my_solution.solution_name] = computed_results
+
+    with open(my_solution.solution_file_path, 'w') as file:
+        json.dump(data, file, indent=4, separators=(",", ": "), sort_keys=False)
 
 #---------------------------------------------------------------------------------
 def CleanFolders(my_solution):

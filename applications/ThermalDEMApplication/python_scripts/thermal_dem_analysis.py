@@ -30,6 +30,7 @@ class ThermalDEMAnalysis(DEMAnalysisStage):
         # Add default values of post options
         SetDefaultBoolParameterIfNotExists(dem_parameters, "PostTemperature")
         SetDefaultBoolParameterIfNotExists(dem_parameters, "PostHeatFlux")
+        SetDefaultBoolParameterIfNotExists(dem_parameters, "PostGraphParticleTempAll")
         SetDefaultBoolParameterIfNotExists(dem_parameters, "PostGraphParticleTempMin")
         SetDefaultBoolParameterIfNotExists(dem_parameters, "PostGraphParticleTempMax")
         SetDefaultBoolParameterIfNotExists(dem_parameters, "PostGraphParticleTempAvg")
