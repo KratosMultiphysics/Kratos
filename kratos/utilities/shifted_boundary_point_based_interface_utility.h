@@ -149,6 +149,11 @@ public:
     //TODO
     void FixEnclosedVolumesPressure();
 
+    //TODO
+    void CalculateTraction(
+        const Variable<array_1d<double, 3>>& rVariable,
+        array_1d<double, 3>& rOutput);
+
     ///@}
     ///@name Access
     ///@{
@@ -199,7 +204,8 @@ protected:
 
     std::string mSkinModelPartName = "";
 
-    SkinPointsToElementsMapType mSkinPointsMap;  //TODO to big to store??
+    SkinPointsToElementsMapType mSkinPointsMap;  //TODO too big to store??
+    NodesCloudMapType mExtensionMap;  //TODO top big to store??
 
     bool mConformingBasis;
     ExtensionOperator mExtensionOperator;
@@ -252,8 +258,7 @@ protected:
     void SetSidesVectorsAndSkinNormalsForSplitElements(
         const SkinPointsToElementsMapType& rSkinPointsMap,
         SidesVectorToElementsMapType& rSidesVectorMap,
-        AverageSkinToElementsMapType& rAvgSkinMap
-    );
+        AverageSkinToElementsMapType& rAvgSkinMap);
 
     /** TODO
      * @brief Set the Extension Operators For Split Element Nodes object selecting a support cloud for each node of each split element and using MLS shape functions
@@ -263,8 +268,7 @@ protected:
     void SetExtensionOperatorsForSplitElementNodes(
         const SidesVectorToElementsMapType& rSidesVectorMap,
         AverageSkinToElementsMapType& rAvgSkinMap,
-        NodesCloudMapType& rExtensionOperatorMap
-    );
+        NodesCloudMapType& rExtensionOperatorMap);
 
     //TODO
     /**

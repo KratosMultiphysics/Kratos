@@ -437,7 +437,7 @@ namespace Kratos
 
         // Iterate over the split elements to create an extension basis for each node of the element (MLS shape functions values for support cloud of node)
         // NOTE that no extension bases will be calculated and added for a node for which not a sufficient number of support nodes were found
-        NodesCloudMapType ext_op_map;
+        NodesCloudMapType& ext_op_map = mExtensionMap
         SetExtensionOperatorsForSplitElementNodes(sides_vector_map, avg_skin_map, ext_op_map);
         //KRATOS_INFO("ShiftedBoundaryPointBasedInterfaceUtility") << "Extension operators were set." << std::endl;
 
@@ -675,6 +675,35 @@ namespace Kratos
         }*/
     }
 
+    void CalculateTraction(
+        const Variable<array_1d<double, 3>>& rVariable,
+        array_1d<double, 3>& rOutput)
+    {
+        // Integrate sigma*n over the boundary as sum of (C*\nabla^s E(u)-E(p)I)*n*dA at each skin point
+        // NOTE that for a discontinuous boundary both sides need to be integrated
+        if (rVariable == DRAG_FORCE) {
+            // Initialize the embedded element data
+            //EmbeddedElementData data;
+            //data.Initialize(*this, rCurrentProcessInfo);
+            //this->InitializeGeometryData(data);
+            // Calculate the drag force
+            //SUM OVER GPS
+            // Compute Gauss pt. pressure
+            //this->CalculateDragForce(data, rOutput);  // see embedded_fluid_element_discontinuous
+        } else if (rVariable == DRAG_FORCE_CENTER) {
+            // Initialize the embedded element data
+            //EmbeddedElementData data;
+            //data.Initialize(*this, rCurrentProcessInfo);
+            //this->InitializeGeometryData(data);
+            // Calculate the drag force location
+            //this->CalculateDragForceCenter(data, rOutput);  // see embedded_fluid_element_discontinuous
+        } else {
+            KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility")
+                << "'" << rVariable << "' is unknown." << std::endl;
+        }
+        // see shifted_element_fluid_element ALTERNATIVE for traction and shifted_element_wall_condition for C matrix/ stress
+    }
+
     template <std::size_t TDim>
     void ShiftedBoundaryPointBasedInterfaceUtility::MapSkinPointsToElements(
         SkinPointsToElementsMapType& rSkinPointsMap)
@@ -887,7 +916,6 @@ namespace Kratos
                         // Use and declare SBM_INTERFACE nodes on the negative side for the support cloud of a node on the positive side
                         SetLateralSupportCloud(p_node, avg_position, -avg_normal, cloud_nodes, cloud_nodes_coordinates, SBM_INTERFACE);
                     }
-                }
 
                     // Continue if the number of support nodes is sufficient for the calculation of the extension operator
                     const std::size_t n_cloud_nodes = cloud_nodes.size();
