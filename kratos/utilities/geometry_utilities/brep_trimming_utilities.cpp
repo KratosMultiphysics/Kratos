@@ -25,7 +25,7 @@ namespace Kratos
     {
         for (IndexType i_outer_loops = 0; i_outer_loops < rOuterLoops.size(); ++i_outer_loops) {
 
-            Clipper2Lib::Paths64 all_loops(1 + rInnerLoops.size()), solution;
+            Clipper2Lib::Paths64 all_loops(1 + rInnerLoops.size()), solution, solution_inner;
             const double factor = 1e-10;
 
             Clipper2Lib::Point64 int_point;
@@ -80,7 +80,7 @@ namespace Kratos
                     solution = Clipper2Lib::RectClip(rectangle, all_loops);
 
                     const double span_area = std::abs(Clipper2Lib::Area(rectangle.AsPath()));
-                    double clip_area = std::abs(Clipper2Lib::Area(solution[0]));
+                    double clip_area = 0.0;
                     if (solution.size() > 0)
                     {
                         clip_area = std::abs(Clipper2Lib::Area(solution[0]));
@@ -89,7 +89,11 @@ namespace Kratos
                         }
                     }
 
-                    if (solution.size() == 0) {
+                    Clipper2Lib::Clipper64 d;
+                    d.AddSubject(solution);
+                    d.Execute(Clipper2Lib::ClipType::Difference, Clipper2Lib::FillRule::NonZero, solution_inner);
+
+                    if (solution.size() == 0 || clip_area == 0.0) {
                         continue;
                     }
                     else if (std::abs(clip_area- span_area) < 1000) {
@@ -112,7 +116,11 @@ namespace Kratos
                     }
                     else {
                         std::vector<Matrix> triangles;
-                        BrepTrimmingUtilities::Triangulate_OPT(solution[0], triangles, factor);
+                        for(IndexType i = 0; i < solution_inner.size(); ++i)
+                        {
+                            BrepTrimmingUtilities::Triangulate_OPT(solution_inner[i], triangles, factor);    
+                        }
+                        
 
                         const SizeType number_of_points = std::max(rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0), rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(1));
 
