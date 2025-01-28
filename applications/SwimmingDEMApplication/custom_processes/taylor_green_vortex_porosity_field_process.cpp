@@ -100,40 +100,35 @@ void TaylorGreenVortexPorosityFieldProcess::Execute(){}
 
 array_1d<double,3> TaylorGreenVortexPorosityFieldProcess::ExecuteInTimeStep(){
 
-    std::vector<array_1d<double,3>> velocity_on_gauss_points(16);
-    std::vector<double> fluid_fraction_on_gauss_points(16);
-    std::vector<array_1d<double,3>> vorticity_on_gauss_points(16);
+    const unsigned int n_elem = mrModelPart.NumberOfElements();
+    ProcessInfo process_info = mrModelPart.GetProcessInfo();
+
+    std::vector<double> fluid_fraction_on_gauss_points(0);
+    std::vector<array_1d<double,3>> velocity_on_gauss_points(0);
     array_1d<double,3> data;
-    double density = 0.0, viscosity = 0.0;
 
-    double kinetic_energy = 0.0, dissipation_rate = 0.0, total_volume = 0.0;
-    for (auto it_node = mrModelPart.NodesBegin(); it_node != mrModelPart.NodesEnd(); it_node++){
-        viscosity = it_node->FastGetSolutionStepValue(VISCOSITY);
-        density = it_node->FastGetSolutionStepValue(DENSITY);
-        break;
-    }
-
-    for (int i_elem = 0; i_elem < static_cast<int>(mrModelPart.NumberOfElements()); ++i_elem){
+    double kinetic_energy = 0.0, total_volume = 0.0;
+    #pragma omp parallel firstprivate(n_elem )
+    {
+    # pragma omp for schedule(guided, 512) nowait
+    for (int i_elem = 0; i_elem < n_elem; ++i_elem){
         const auto it_elem = mrModelPart.ElementsBegin() + i_elem;
-        it_elem->CalculateOnIntegrationPoints(VELOCITY, velocity_on_gauss_points, mrModelPart.GetProcessInfo());
-        it_elem->CalculateOnIntegrationPoints(FLUID_FRACTION, fluid_fraction_on_gauss_points, mrModelPart.GetProcessInfo());
-        it_elem->CalculateOnIntegrationPoints(VORTICITY, vorticity_on_gauss_points, mrModelPart.GetProcessInfo());
+        it_elem->CalculateOnIntegrationPoints(VELOCITY, velocity_on_gauss_points, process_info);
+        it_elem->CalculateOnIntegrationPoints(FLUID_FRACTION, fluid_fraction_on_gauss_points, process_info);
+
         const unsigned int ngauss = velocity_on_gauss_points.size();
+
         const double area = it_elem->GetGeometry().Area();
-        const double Agauss = area/ngauss;
+        const double Agauss = area/ngauss; // We are using a regular structured mesh
+
         for (unsigned int g = 0.0; g < ngauss; ++g){
-            kinetic_energy += 0.5*Agauss*density*fluid_fraction_on_gauss_points[g]*(std::pow(velocity_on_gauss_points[g][0],2)+std::pow(velocity_on_gauss_points[g][1],2)+std::pow(velocity_on_gauss_points[g][2],2));
-            dissipation_rate += Agauss*density*viscosity*(std::pow(vorticity_on_gauss_points[g][0],2)+std::pow(vorticity_on_gauss_points[g][1],2)+std::pow(vorticity_on_gauss_points[g][2],2));
+            kinetic_energy += 0.5*Agauss*fluid_fraction_on_gauss_points[g]*(std::pow(velocity_on_gauss_points[g][0],2)+std::pow(velocity_on_gauss_points[g][1],2)+std::pow(velocity_on_gauss_points[g][2],2));
             total_volume+=Agauss*fluid_fraction_on_gauss_points[g];
         }
     }
-
-    data[0] = kinetic_energy/total_volume;
-    data[1] = dissipation_rate/total_volume;
-    data[2] = total_volume;
-
+    data[0] = kinetic_energy/total_volume; // Rest of data positions will be implemented soon, they are total dissipation and resolved dissipation
     return data;
-
+    }
 }
 
 void TaylorGreenVortexPorosityFieldProcess::ExecuteBeforeSolutionLoop()
@@ -144,12 +139,8 @@ void TaylorGreenVortexPorosityFieldProcess::ExecuteBeforeSolutionLoop()
 
 void TaylorGreenVortexPorosityFieldProcess::ExecuteInitializeSolutionStep()
 {
-    const int step = mrModelPart.GetProcessInfo()[STEP];
-    const int buffer_size = mrModelPart.GetBufferSize();
-    if (step == 1 && buffer_size > 1)
-        this->SetInitialConditions();
+    this->SetInitialConditions();
 }
-
 
 void TaylorGreenVortexPorosityFieldProcess::ExecuteFinalizeSolutionStep() {}
 
@@ -157,6 +148,8 @@ void TaylorGreenVortexPorosityFieldProcess::ExecuteFinalizeSolutionStep() {}
 
 void TaylorGreenVortexPorosityFieldProcess::SetInitialConditions()
 {
+    const int step = mrModelPart.GetProcessInfo()[STEP];
+    const int buffer_size = mrModelPart.GetBufferSize();
     const unsigned int k = mWaveNumber;
     const double alpha_max = mAlphaMax;
     const double deviation = mMeanDeviation;
@@ -177,43 +170,44 @@ void TaylorGreenVortexPorosityFieldProcess::SetInitialConditions()
         double& r_alpha2 = it_node->FastGetSolutionStepValue(FLUID_FRACTION_GRADIENT_Y);
         double& r_alpha3 = it_node->FastGetSolutionStepValue(FLUID_FRACTION_GRADIENT_Z);
 
-        double& r_pressure = it_node->FastGetSolutionStepValue(PRESSURE);
+        r_alpha = mean_alpha - deviation*std::sin(k*x3);
 
-        double& u1 = it_node->FastGetSolutionStepValue(VELOCITY_X);
-        double& u1_1 = it_node->FastGetSolutionStepValue(VELOCITY_X,1);
-        double& u1_2 = it_node->FastGetSolutionStepValue(VELOCITY_X,2);
-        double& u2 = it_node->FastGetSolutionStepValue(VELOCITY_Y);
-        double& u2_1 = it_node->FastGetSolutionStepValue(VELOCITY_Y,1);
-        double& u2_2 = it_node->FastGetSolutionStepValue(VELOCITY_Y,2);
-        double& u3 = it_node->FastGetSolutionStepValue(VELOCITY_Z);
-        double& u3_1 = it_node->FastGetSolutionStepValue(VELOCITY_Z,1);
-        double& u3_2 = it_node->FastGetSolutionStepValue(VELOCITY_Z,2);
+        r_alpha1 = 0.0;
+        r_alpha2 = 0.0;
+        r_alpha3 = -deviation*k*std::cos(k*x3);
 
-        r_pressure = 1.0/16.0*(std::cos(2*x1) + std::cos(2*x2))*(std::cos(2*x3) + 2);
+        if (step == 1){
+            double& u1 = it_node->FastGetSolutionStepValue(VELOCITY_X);
+            double& u1_1 = it_node->FastGetSolutionStepValue(VELOCITY_X,1);
+            double& u1_2 = it_node->FastGetSolutionStepValue(VELOCITY_X,2);
+            double& u2 = it_node->FastGetSolutionStepValue(VELOCITY_Y);
+            double& u2_1 = it_node->FastGetSolutionStepValue(VELOCITY_Y,1);
+            double& u2_2 = it_node->FastGetSolutionStepValue(VELOCITY_Y,2);
+            double& u3 = it_node->FastGetSolutionStepValue(VELOCITY_Z);
+            double& u3_1 = it_node->FastGetSolutionStepValue(VELOCITY_Z,1);
+            double& u3_2 = it_node->FastGetSolutionStepValue(VELOCITY_Z,2);
+            double& r_pressure = it_node->FastGetSolutionStepValue(PRESSURE);
+            r_pressure = std::pow(mean_alpha,2)*(-std::cos(2*x1)/2 - std::cos(2*x2)/2)*std::pow(std::sin(x3),2)/(2*std::pow((deviation*std::sin(k*x3) - mean_alpha),2));
 
-        r_alpha = mean_alpha - deviation*std::cos(k*x1)*std::cos(k*x2)*std::sin(k*x3);
+            u1 = mean_alpha*std::cos(x1)*std::sin(x2)*std::sin(x3)/r_alpha;
 
-        r_alpha1 = k*deviation*std::sin(k*x1)*std::cos(k*x2)*std::sin(k*x3);
-        r_alpha2 = k*deviation*std::cos(k*x1)*std::sin(k*x2)*std::sin(k*x3);
-        r_alpha3 = -(k*deviation*std::cos(k*x1)*std::cos(k*x2)*std::cos(k*x3));
+            u1_1 = mean_alpha*std::cos(x1)*std::sin(x2)*std::sin(x3)/r_alpha;
 
-        u1 = c*std::cos(x1)*std::sin(x2)*std::sin(x3)/(mean_alpha - deviation*std::cos(k*x1)*std::cos(k*x2)*std::sin(k*x3));
+            u1_2 = mean_alpha*std::cos(x1)*std::sin(x2)*std::sin(x3)/r_alpha;
 
-        u1_1 = c*std::cos(x1)*std::sin(x2)*std::sin(x3)/(mean_alpha - deviation*std::cos(k*x1)*std::cos(k*x2)*std::sin(k*x3));
+            u2 = -mean_alpha*std::sin(x1)*std::cos(x2)*std::sin(x3)/r_alpha;
 
-        u1_2 = c*std::cos(x1)*std::sin(x2)*std::sin(x3)/(mean_alpha - deviation*std::cos(k*x1)*std::cos(k*x2)*std::sin(k*x3));
+            u2_1 = -mean_alpha*std::sin(x1)*std::cos(x2)*std::sin(x3)/r_alpha;
 
-        u2 = -c*std::sin(x1)*std::cos(x2)*std::sin(x3)/(mean_alpha - deviation*std::cos(k*x1)*std::cos(k*x2)*std::sin(k*x3));
+            u2_2 = -mean_alpha*std::sin(x1)*std::cos(x2)*std::sin(x3)/r_alpha;
 
-        u2_1 = -c*std::sin(x1)*std::cos(x2)*std::sin(x3)/(mean_alpha - deviation*std::cos(k*x1)*std::cos(k*x2)*std::sin(k*x3));
+            u3 = 0.0;
 
-        u2_2 = -c*std::sin(x1)*std::cos(x2)*std::sin(x3)/(mean_alpha - deviation*std::cos(k*x1)*std::cos(k*x2)*std::sin(k*x3));
+            u3_1 = 0.0;
 
-        u3 = 0.0/(mean_alpha - deviation*std::cos(k*x1)*std::cos(k*x2)*std::sin(k*x3));
+            u3_2 = 0.0;
+        }
 
-        u3_1 = 0.0/(mean_alpha - deviation*std::cos(k*x1)*std::cos(k*x2)*std::sin(k*x3));
-
-        u3_2 = 0.0/(mean_alpha - deviation*std::cos(k*x1)*std::cos(k*x2)*std::sin(k*x3));
     }
 
 }
@@ -221,8 +215,9 @@ void TaylorGreenVortexPorosityFieldProcess::SetInitialConditions()
 /* Private functions ****************************************************/
 void TaylorGreenVortexPorosityFieldProcess::SetValuesOnIntegrationPoints()
 {
-    const unsigned int Dim = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
-    const unsigned int step = mrModelPart.GetProcessInfo()[STEP];
+    ProcessInfo process_info = mrModelPart.GetProcessInfo();
+    const unsigned int Dim = process_info[DOMAIN_SIZE];
+    const unsigned int step = process_info[STEP];
     const unsigned int k = mWaveNumber;
     const double alpha_max = mAlphaMax;
     const double deviation = mMeanDeviation;
@@ -231,7 +226,10 @@ void TaylorGreenVortexPorosityFieldProcess::SetValuesOnIntegrationPoints()
     const unsigned int n_elem = mrModelPart.NumberOfElements();
 
     // Computation of the BodyForce and Porosity fields
-    for (int i_elem = 0; i_elem < static_cast<int>(mrModelPart.NumberOfElements()); ++i_elem){
+    #pragma omp parallel firstprivate(n_elem )
+    {
+    # pragma omp for schedule(guided, 512) nowait
+    for (int i_elem = 0; i_elem < n_elem; ++i_elem){
 
         const auto it_elem = mrModelPart.ElementsBegin() + i_elem;
         const unsigned int id_elem = it_elem->Id();
@@ -268,11 +266,10 @@ void TaylorGreenVortexPorosityFieldProcess::SetValuesOnIntegrationPoints()
             const double x2 = gauss_point_coordinates(g,1);
             const double x3 = gauss_point_coordinates(g,2);
 
-            const double alpha = mean_alpha - deviation*std::cos(k*x1)*std::cos(k*x2)*std::sin(k*x3);
-
-            const double alpha1 = k*deviation*std::sin(k*x1)*std::cos(k*x2)*std::sin(k*x3);
-            const double alpha2 = k*deviation*std::cos(k*x1)*std::sin(k*x2)*std::sin(k*x3);
-            const double alpha3 = -(k*deviation*std::cos(k*x1)*std::cos(k*x2)*std::cos(k*x3));
+            const double alpha = mean_alpha - deviation*std::sin(k*x3);
+            const double alpha1 = 0.0;
+            const double alpha2 = 0.0;
+            const double alpha3 = -deviation*k*std::cos(k*x3);
 
             fluid_fraction_on_gauss_points[g] = alpha;
             fluid_fraction_gradient_on_gauss_points[g][0] = alpha1;
@@ -280,8 +277,9 @@ void TaylorGreenVortexPorosityFieldProcess::SetValuesOnIntegrationPoints()
             fluid_fraction_gradient_on_gauss_points[g][2] = alpha3;
 
         }
-        it_elem->SetValuesOnIntegrationPoints(FLUID_FRACTION, fluid_fraction_on_gauss_points, mrModelPart.GetProcessInfo());
-        it_elem->SetValuesOnIntegrationPoints(FLUID_FRACTION_GRADIENT, fluid_fraction_gradient_on_gauss_points, mrModelPart.GetProcessInfo());
+        it_elem->SetValuesOnIntegrationPoints(FLUID_FRACTION, fluid_fraction_on_gauss_points, process_info);
+        it_elem->SetValuesOnIntegrationPoints(FLUID_FRACTION_GRADIENT, fluid_fraction_gradient_on_gauss_points, process_info);
+    }
     }
 }
 };  // namespace Kratos.
