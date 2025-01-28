@@ -62,3 +62,18 @@ cmake ..                                                                        
 
 # Build
 cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j$(nproc)
+
+# Manually install the python ddl, located in the python binary folder
+# Determine the location of the Python DLL
+PYTHON_VERSION=$(${PYTHON_EXECUTABLE} -c "import sys; print(''.join(sys.version.split('.')[:2]))")
+PYTHON_DLL=$(${PYTHON_EXECUTABLE} -c "import sys; print(sys.base_prefix)")/python${PYTHON_VERSION}.dll
+
+# Check if the Python DLL exists
+if [ -f "${PYTHON_DLL}" ]; then
+    # Install the Python DLL to the desired location
+    cp "${PYTHON_DLL}" "${KRATOS_SOURCE}/bin/${KRATOS_BUILD_TYPE}/libs"
+    echo "Python DLL ${PYTHON_DLL} installed at ${KRATOS_SOURCE}/bin/${KRATOS_BUILD_TYPE}/libs"
+else
+    echo "Python DLL not found at ${PYTHON_DLL}"
+    exit 1
+fi
