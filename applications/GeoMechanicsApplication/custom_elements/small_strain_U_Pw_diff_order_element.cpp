@@ -491,12 +491,16 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
             }
         }
 
-        for (unsigned int integration_point = 0; integration_point < number_of_integration_points; ++integration_point) {
-            rOutput[integration_point] = MathUtils<>::Dot(row(n_container, integration_point), nodal_hydraulic_head);
+        for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
+             ++integration_point) {
+            rOutput[integration_point] =
+                MathUtils<>::Dot(row(n_container, integration_point), nodal_hydraulic_head);
         }
     } else {
-        for (unsigned int integration_point = 0; integration_point < number_of_integration_points; ++integration_point) {
-            rOutput[integration_point] = mConstitutiveLawVector[integration_point]->GetValue(rVariable, rOutput[integration_point]);
+        for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
+             ++integration_point) {
+            rOutput[integration_point] = mConstitutiveLawVector[integration_point]->GetValue(
+                rVariable, rOutput[integration_point]);
         }
     }
 
@@ -1067,7 +1071,7 @@ std::vector<Matrix> SmallStrainUPwDiffOrderElement::CalculateBMatrices(
     return result;
 }
 
-void SmallStrainUPwDiffOrderElement::CalculateAndAddLHS(MatrixType&       rLeftHandSideMatrix,
+void SmallStrainUPwDiffOrderElement::CalculateAndAddLHS(MatrixType&             rLeftHandSideMatrix,
                                                         const ElementVariables& rVariables) const
 {
     KRATOS_TRY

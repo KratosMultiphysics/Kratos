@@ -240,8 +240,8 @@ private:
         }
     }
 
-    static int GeoElementUtilities::CheckPropertyExistsAndIsNotNegative(const Variable<double>& rVariable,
-                                                                        const Element::PropertiesType& rProp);
+    static int CheckPropertyExistsAndIsNotNegative(const Variable<double>&        rVariable,
+                                                   const Element::PropertiesType& rProp);
 
 }; /* Class GeoElementUtilities*/
 } /* namespace Kratos.*/
