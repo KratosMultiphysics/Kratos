@@ -3,102 +3,28 @@
         "material_name" : "Particles",
         "material_id"   : 1,
         "Variables"     : {
-            "PARTICLE_DENSITY"              : 1.0,
-            "YOUNG_MODULUS"                 : 1.0,
-            "POISSON_RATIO"                 : 1.0,
+            "PARTICLE_DENSITY"              : 20.0,
+            "YOUNG_MODULUS"                 : 2000000.0,
+            "POISSON_RATIO"                 : 0.2,
             "PARTICLE_SPHERICITY"           : 1.0,
-            "THERMAL_CONDUCTIVITY"          : 1.0,
-            "SPECIFIC_HEAT"                 : 1.0,
-            "EMISSIVITY"                    : 1.0,
-            "THERMAL_EXPANSION_COEFFICIENT" : 1.0
-        },
-		"Tables" : {
-			"TEMPERATURE_DENSITY" : {
-				"input_variable"  : "TEMPERATURE",
-				"output_variable" : "PARTICLE_DENSITY",
-				"data"            : [[300.0,20.0],[400.0,30.0]]
-			},
-			"TEMPERATURE_YOUNG" : {
-				"input_variable"  : "TEMPERATURE",
-				"output_variable" : "YOUNG_MODULUS",
-				"data"            : [[300.0,2000000.0],[400.0,3000000.0]]
-			},
-			"TEMPERATURE_POISSON" : {
-				"input_variable"  : "TEMPERATURE",
-				"output_variable" : "POISSON_RATIO",
-				"data"            : [[300.0,0.2],[400.0,0.3]]
-			},
-			"TEMPERATURE_CONDUCTIVITY" : {
-				"input_variable"  : "TEMPERATURE",
-				"output_variable" : "THERMAL_CONDUCTIVITY",
-				"data"            : [[300.0,200.0],[400.0,300.0]]
-			},
-			"TEMPERATURE_CAPACITY" : {
-				"input_variable"  : "TEMPERATURE",
-				"output_variable" : "SPECIFIC_HEAT",
-				"data"            : [[300.0,0.2],[400.0,0.3]]
-			},
-			"TEMPERATURE_EMISSIVITY" : {
-				"input_variable"  : "TEMPERATURE",
-				"output_variable" : "EMISSIVITY",
-				"data"            : [[300.0,0.8],[400.0,0.9]]
-			},
-			"TEMPERATURE_EXPANSION" : {
-				"input_variable"  : "TEMPERATURE",
-				"output_variable" : "THERMAL_EXPANSION_COEFFICIENT",
-				"data"            : [[300.0,0.0002],[400.0,0.0003]]
-			}
-		}
+            "THERMAL_CONDUCTIVITY"          : 200.0,
+            "SPECIFIC_HEAT"                 : 0.2,
+            "EMISSIVITY"                    : 0.9,
+            "THERMAL_EXPANSION_COEFFICIENT" : 0.0002
+        }
     },{
         "material_name" : "Walls",
         "material_id"   : 2,
         "Variables"     : {
-            "PARTICLE_DENSITY"              : 1.0,
-            "YOUNG_MODULUS"                 : 1.0,
-            "POISSON_RATIO"                 : 1.0,
+            "PARTICLE_DENSITY"              : 20.0,
+            "YOUNG_MODULUS"                 : 2000000.0,
+            "POISSON_RATIO"                 : 0.2,
             "PARTICLE_SPHERICITY"           : 1.0,
-            "THERMAL_CONDUCTIVITY"          : 1.0,
-            "SPECIFIC_HEAT"                 : 1.0,
-            "EMISSIVITY"                    : 1.0,
-            "THERMAL_EXPANSION_COEFFICIENT" : 1.0
-        },
-		"Tables" : {
-			"TEMPERATURE_DENSITY" : {
-				"input_variable"  : "TEMPERATURE",
-				"output_variable" : "PARTICLE_DENSITY",
-				"data"            : [[300.0,30.0],[400.0,40.0]]
-			},
-			"TEMPERATURE_YOUNG" : {
-				"input_variable"  : "TEMPERATURE",
-				"output_variable" : "YOUNG_MODULUS",
-				"data"            : [[300.0,3000000.0],[400.0,4000000.0]]
-			},
-			"TEMPERATURE_POISSON" : {
-				"input_variable"  : "TEMPERATURE",
-				"output_variable" : "POISSON_RATIO",
-				"data"            : [[300.0,0.3],[400.0,0.4]]
-			},
-			"TEMPERATURE_CONDUCTIVITY" : {
-				"input_variable"  : "TEMPERATURE",
-				"output_variable" : "THERMAL_CONDUCTIVITY",
-				"data"            : [[300.0,300.0],[400.0,400.0]]
-			},
-			"TEMPERATURE_CAPACITY" : {
-				"input_variable"  : "TEMPERATURE",
-				"output_variable" : "SPECIFIC_HEAT",
-				"data"            : [[300.0,0.3],[400.0,0.4]]
-			},
-			"TEMPERATURE_EMISSIVITY" : {
-				"input_variable"  : "TEMPERATURE",
-				"output_variable" : "EMISSIVITY",
-				"data"            : [[300.0,0.9],[400.0,1.0]]
-			},
-			"TEMPERATURE_EXPANSION" : {
-				"input_variable"  : "TEMPERATURE",
-				"output_variable" : "THERMAL_EXPANSION_COEFFICIENT",
-				"data"            : [[300.0,0.0003],[400.0,0.0004]]
-			}
-		}
+            "THERMAL_CONDUCTIVITY"          : 200.0,
+            "SPECIFIC_HEAT"                 : 0.2,
+            "EMISSIVITY"                    : 0.9,
+            "THERMAL_EXPANSION_COEFFICIENT" : 0.0002
+        }
     }],
     "material_relations"         : [{
         "material_names_list" : ["Particles","Particles"],
