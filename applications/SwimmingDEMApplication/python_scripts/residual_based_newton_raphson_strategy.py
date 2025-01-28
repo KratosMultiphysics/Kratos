@@ -70,6 +70,16 @@ class ResidualBasedNewtonRaphsonStrategyPython():
         self.builder_and_solver.InitializeSolutionStep(self.main_model_part,self.A,self.Dx,self.b)
         self.scheme.InitializeSolutionStep(self.main_model_part,self.A,self.Dx,self.b)
 
+        if (self.convergence_criteria.GetActualizeRHSflag()):
+            self.space_utils.SetToZeroVector(self.b)
+            self.builder_and_solver.BuildRHS(self.scheme,self.main_model_part,self.b)
+
+        self.convergence_criteria.InitializeSolutionStep(self.main_model_part, self.builder_and_solver.GetDofSet(), self.A, self.Dx, self.b)
+
+        if (self.convergence_criteria.GetActualizeRHSflag()):
+            self.space_utils.SetToZeroVector(self.b)
+
+
     def SolveSolutionStep(self, projection_module):
         self.projection_module = projection_module
 

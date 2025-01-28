@@ -1880,7 +1880,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
     step_data += N[0] * (alpha * geom[0].FastGetSolutionStepValue(r_origin_variable) + (1 - alpha) * geom[0].FastGetSolutionStepValue(r_origin_variable, 1));
 
     for (unsigned int i = 1; i < NumNodes; ++i){
-      step_data += N[i] * (alpha * geom[i].FastGetSolutionStepValue(r_origin_variable) + (1 - alpha) * geom[i].FastGetSolutionStepValue(r_origin_variable, 1));
+        step_data += N[i] * (alpha * geom[i].FastGetSolutionStepValue(r_origin_variable) + (1 - alpha) * geom[i].FastGetSolutionStepValue(r_origin_variable, 1));
     }
 }
 //***************************************************************************************************************
@@ -2244,7 +2244,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Transfer
 
                 double det_A = MathUtils<double>::Det(A);
                 MathUtils<double>::InvertMatrix(A,inv_A,det_A);
-                #pragma omp parallel for
+
                 for (unsigned int i=0; i<6; i++) {
                     coefs[i] = 0.0;
                     for (unsigned int j=0; j<6; j++) {
