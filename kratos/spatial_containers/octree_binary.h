@@ -249,7 +249,7 @@ namespace Kratos {
           //when the function will be at upper level (in mesher instead of octree) this vector (leaves) should be passed and copied instead of recomputed
           GetAllLeavesVector(leaves);
 
-          for (std::size_t i_level = MIN_LEVEL; i_level < ROOT_LEVEL - 1; i_level++) {
+          for (char i_level = static_cast<char>(MIN_LEVEL); i_level < static_cast<char>(ROOT_LEVEL) - 1; i_level++) {
             for (std::size_t i_cell = 0; i_cell < leaves.size(); i_cell++) {
               cell_type* current_leaf = leaves[i_cell];
               if (current_leaf->GetLevel() == i_level) {
@@ -291,7 +291,7 @@ namespace Kratos {
 
             GetAllLeavesVector(leaves);
 
-            for (std::size_t i_level = MIN_LEVEL; i_level < ROOT_LEVEL - 1; i_level++) {
+            for (char i_level = static_cast<char>(MIN_LEVEL); i_level < static_cast<char>(ROOT_LEVEL) - 1; i_level++) {
                 for (int i_direction = 0; i_direction < 18; i_direction++) {
                     for (std::size_t i_cell = 0; i_cell < leaves.size(); i_cell++) {
                         cell_type* current_leaf = leaves[i_cell];
