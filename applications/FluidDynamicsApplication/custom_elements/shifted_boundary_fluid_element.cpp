@@ -149,7 +149,7 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
                 // Get the gradient of the node opposite of the surrogate face to calculate the normal
                 // NOTE this works because DN_DX of a node is calculated as the normal of the opposite face (cross product for Tetrahedra3D4N)
                 BoundedVector<double,Dim> DN_DX_opposite_node = row(DN_DX_parent, bd_local_ids[0]);
-                BoundedVector<double,Dim> normal_sur_bd = - DN_DX_opposite_node * norm_2(DN_DX_opposite_node);
+                BoundedVector<double,Dim> normal_sur_bd = - DN_DX_opposite_node / norm_2(DN_DX_opposite_node);
 
                 // Get detJ for all integration points of the surrogate boundary face
                 VectorType int_pt_detJs;
