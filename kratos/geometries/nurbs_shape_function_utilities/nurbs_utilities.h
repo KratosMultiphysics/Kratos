@@ -66,8 +66,17 @@ namespace NurbsUtilities
         const Vector& rKnots,
         const double ParameterT)
     {
+        // Check if the ParameterT (gauss point) is coincident to a knot (laying on an edge of a knot span)
+        double parameter_t_corrected = ParameterT;
+        for (unsigned i = 0; i<rKnots.size(); i++) {
+            if (std::abs(ParameterT-rKnots[i]) < 1e-13) {
+                parameter_t_corrected = rKnots[i];
+                break;
+            }
+        }
+
         const auto span = std::lower_bound(std::begin(rKnots) + PolynomialDegree,
-            std::end(rKnots) - PolynomialDegree, ParameterT) - std::begin(rKnots) - 1;
+            std::end(rKnots) - PolynomialDegree, parameter_t_corrected) - std::begin(rKnots) - 1;
         return span;
     }
 

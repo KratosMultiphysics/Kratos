@@ -123,13 +123,13 @@ public:
         typename NurbsSurfaceType::Pointer pSurface, 
         BrepCurveOnSurfaceLoopArrayType& BrepOuterLoopArray,
         BrepCurveOnSurfaceLoopArrayType& BrepInnerLoopArray,
-        ModelPart& rSurrogateModelPart_inner, ModelPart& rSurrogateModelPart_outer)
+        ModelPart& rSurrogateModelPartInner, ModelPart& rSurrogateModelPartOuter)
         : BaseType(PointsArrayType(), &msGeometryData)
         , mpNurbsSurface(pSurface) 
         , mOuterLoopArray(BrepOuterLoopArray)
         , mInnerLoopArray(BrepInnerLoopArray)
-        , mpSurrogateModelPart_inner(&rSurrogateModelPart_inner)
-        , mpSurrogateModelPart_outer(&rSurrogateModelPart_outer)
+        , mpSurrogateModelPartInner(&rSurrogateModelPartInner)
+        , mpSurrogateModelPartOuter(&rSurrogateModelPartOuter)
     {
         mIsTrimmed = false;
     }
@@ -611,8 +611,8 @@ private:
 
     BrepCurveOnSurfaceArrayType mEmbeddedEdgesArray;
 
-    ModelPart* mpSurrogateModelPart_inner = nullptr;
-    ModelPart* mpSurrogateModelPart_outer = nullptr;
+    ModelPart* mpSurrogateModelPartInner = nullptr;
+    ModelPart* mpSurrogateModelPartOuter = nullptr;
 
     /** IsTrimmed is used to optimize processes as
     *   e.g. creation of integration domain.

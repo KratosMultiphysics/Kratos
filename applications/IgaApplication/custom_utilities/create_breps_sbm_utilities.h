@@ -103,10 +103,10 @@ class CreateBrepsSBMUtilities : public IO
     ///@{
 
     /// Adds the surface geometry to the herin provided model_part and create the boundary breps for the SBM case.
-    void CreateSurrogateBoundary(NurbsSurfaceGeometryPointerType& p_surface, ModelPart& rModelPart, ModelPart& rSurrogateModelPart_inner, ModelPart& rSurrogateModelPart_outer, const Point& A_uvw, const Point& B_uvw)
+    void CreateSurrogateBoundary(NurbsSurfaceGeometryPointerType& p_surface, ModelPart& rModelPart, ModelPart& rSurrogateModelPartInner, ModelPart& rSurrogateModelPartOuter, const Point& A_uvw, const Point& B_uvw)
     {
-        CreateBrepSurface(p_surface, rModelPart, rSurrogateModelPart_inner, rSurrogateModelPart_outer, mEchoLevel);
-        CreateBrepCurveOnSurfaces(p_surface, rModelPart, rSurrogateModelPart_inner, rSurrogateModelPart_outer, A_uvw, B_uvw, mEchoLevel);
+        CreateBrepSurface(p_surface, rModelPart, rSurrogateModelPartInner, rSurrogateModelPartOuter, mEchoLevel);
+        CreateBrepCurveOnSurfaces(p_surface, rModelPart, rSurrogateModelPartInner, rSurrogateModelPartOuter, A_uvw, B_uvw, mEchoLevel);
     }
 
     /// Adds the surface geometry to the herin provided model_part and create the boundary breps when SBM is not needed.
@@ -155,15 +155,15 @@ private:
      * 
      * @param p_surface 
      * @param rModelPart 
-     * @param rSurrogateModelPart_inner 
-     * @param rSurrogateModelPart_outer 
+     * @param rSurrogateModelPartInner 
+     * @param rSurrogateModelPartOuter 
      * @param EchoLevel 
      */
     static void CreateBrepSurface(
         NurbsSurfaceGeometryPointerType p_surface,
         ModelPart& rModelPart,
-        ModelPart& rSurrogateModelPart_inner, 
-        ModelPart& rSurrogateModelPart_outer,
+        ModelPart& rSurrogateModelPartInner, 
+        ModelPart& rSurrogateModelPartOuter,
         SizeType EchoLevel = 0)
     {
         KRATOS_INFO_IF("ReadBrepSurface", (EchoLevel > 3))
@@ -176,8 +176,8 @@ private:
                 p_surface, 
                 outer_loops,
                 inner_loops,
-                rSurrogateModelPart_inner,
-                rSurrogateModelPart_outer);
+                rSurrogateModelPartInner,
+                rSurrogateModelPartOuter);
 
         // Sets the brep as geometry parent of the nurbs surface.
         p_surface->SetGeometryParent(p_brep_surface.get());
@@ -189,8 +189,8 @@ private:
     static void CreateBrepCurveOnSurfaces(
         NurbsSurfaceGeometryPointerType p_surface,
         ModelPart& rModelPart,
-        ModelPart& rSurrogateModelPart_inner, 
-        ModelPart& rSurrogateModelPart_outer,
+        ModelPart& rSurrogateModelPartInner, 
+        ModelPart& rSurrogateModelPartOuter,
         const Point& A_uvw, const Point& B_uvw,
         SizeType EchoLevel = 0) {
     
@@ -200,12 +200,12 @@ private:
 
         int id_brep_curve_on_surface = 2;
 
-        if (rSurrogateModelPart_outer.Nodes().size() > 0) {
-            int sizeSurrogateLoop_outer = rSurrogateModelPart_outer.Nodes().size();
+        if (rSurrogateModelPartOuter.Nodes().size() > 0) {
+            int sizeSurrogateLoop_outer = rSurrogateModelPartOuter.Nodes().size();
             std::vector<double> surrogatecoord_x_outer(sizeSurrogateLoop_outer);
             std::vector<double> surrogatecoord_y_outer(sizeSurrogateLoop_outer);
             int countSurrogateLoop_outer = 0;
-            for (auto i_node = rSurrogateModelPart_outer.NodesEnd()-1; i_node != rSurrogateModelPart_outer.NodesBegin()-1; i_node--) {
+            for (auto i_node = rSurrogateModelPartOuter.NodesEnd()-1; i_node != rSurrogateModelPartOuter.NodesBegin()-1; i_node--) {
                 surrogatecoord_x_outer[countSurrogateLoop_outer] = i_node->X();
                 surrogatecoord_y_outer[countSurrogateLoop_outer] = i_node->Y();
                 countSurrogateLoop_outer++;
@@ -276,17 +276,17 @@ private:
         }
 
         // INNER
-        for (IndexType iel = 1; iel < rSurrogateModelPart_inner.Elements().size()+1; iel++) {
-            int firstSurrogateNodeId = rSurrogateModelPart_inner.pGetElement(iel)->GetGeometry()[0].Id(); // Element 1 because is the only surrogate loop
-            int lastSurrogateNodeId = rSurrogateModelPart_inner.pGetElement(iel)->GetGeometry()[1].Id();  // Element 1 because is the only surrogate loop
+        for (IndexType iel = 1; iel < rSurrogateModelPartInner.Elements().size()+1; iel++) {
+            int firstSurrogateNodeId = rSurrogateModelPartInner.pGetElement(iel)->GetGeometry()[0].Id(); // Element 1 because is the only surrogate loop
+            int lastSurrogateNodeId = rSurrogateModelPartInner.pGetElement(iel)->GetGeometry()[1].Id();  // Element 1 because is the only surrogate loop
             int sizeSurrogateLoop = lastSurrogateNodeId - firstSurrogateNodeId + 1;
 
             int countSurrogateLoop = 0;
             std::vector<double> surrogatecoord_x(sizeSurrogateLoop);
             std::vector<double> surrogatecoord_y(sizeSurrogateLoop);
             for (int id_node = firstSurrogateNodeId; id_node < lastSurrogateNodeId+1; id_node++) {
-                surrogatecoord_x[countSurrogateLoop] = rSurrogateModelPart_inner.GetNode(id_node).X();
-                surrogatecoord_y[countSurrogateLoop] = rSurrogateModelPart_inner.GetNode(id_node).Y();
+                surrogatecoord_x[countSurrogateLoop] = rSurrogateModelPartInner.GetNode(id_node).X();
+                surrogatecoord_y[countSurrogateLoop] = rSurrogateModelPartInner.GetNode(id_node).Y();
                 countSurrogateLoop++;
             }
             std::vector<NurbsCurveGeometry<2, PointerVector<Point>>::Pointer> trimming_curves_GPT;

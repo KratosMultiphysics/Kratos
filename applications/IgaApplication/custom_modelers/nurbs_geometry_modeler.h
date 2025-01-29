@@ -66,7 +66,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~NurbsGeometryModeler() = default;
+    ~NurbsGeometryModeler() = default;
 
     /// Creates the Modeler Pointer
     Modeler::Pointer Create(Model& rModel, const Parameters ModelParameters) const override

@@ -108,7 +108,7 @@ namespace Kratos
          * @param skin_model_part_in Input skin model part.
          * @return True if the point is inside the boundary, false otherwise.
          */
-        static bool isPointInsideSkinBoundary(Point& pointToSearch, 
+        static bool IsPointInsideSkinBoundary(Point& pointToSearch, 
                                                 DynamicBins& testBins,
                                                 ModelPart& skin_model_part_in);
 
@@ -141,7 +141,7 @@ namespace Kratos
          * @param knot_vector_v Knot vector in the V-direction.
          * @param starting_pos_uv Starting position in UV space.
          */
-        static void CreateSurrogateBuondaryFromSnake_inner (std::vector<std::vector<std::vector<int>>> & knot_spans_available, 
+        static void CreateSurrogateBuondaryFromSnakeInner (std::vector<std::vector<std::vector<int>>> & knot_spans_available, 
                                                             int idMatrix, 
                                                             ModelPart& surrogate_model_part_inner, 
                                                             std::vector<int>& n_knot_spans_uv, 
@@ -161,7 +161,7 @@ namespace Kratos
          * @param knot_vector_v Knot vector in the V-direction.
          * @param starting_pos_uv Starting position in UV space.
          */
-        static void CreateSurrogateBuondaryFromSnake_outer (DynamicBins& testBin_out, 
+        static void CreateSurrogateBuondaryFromSnakeOuter (DynamicBins& testBin_out, 
                                                             ModelPart& initial_skin_model_part_out, 
                                                             std::vector<std::vector<std::vector<int>>> & knot_spans_available, 
                                                             int idMatrix, 
