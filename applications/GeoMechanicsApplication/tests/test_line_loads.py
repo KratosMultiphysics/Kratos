@@ -6,7 +6,6 @@ import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 import test_helper
 from KratosMultiphysics.project import Project
 import importlib
-#from KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis import GeoMechanicsAnalysis
 
 if not Kratos.Registry.HasItem("Stages.KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis.GeoMechanicsAnalysis"):
     Kratos.Registry.AddItem("Stages.KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis.GeoMechanicsAnalysis.ClassName", "GeoMechanicsAnalysis")
@@ -32,7 +31,6 @@ class KratosGeoMechanicsLineLoadTests(KratosUnittest.TestCase):
         reactions = test_helper.GiDOutputFileReader.nodal_values_at_time("REACTION", time, output_data, node_ids=node_ids)
         return sum([reaction[1] for reaction in reactions])
 
-    @KratosUnittest.skip("skipped for testing orchestrator")
     def test_line_load_3D2N_hex(self):
         test_name = 'line_load_3D2N_hex'
         parent_name = 'line_load_tests'
@@ -46,7 +44,6 @@ class KratosGeoMechanicsLineLoadTests(KratosUnittest.TestCase):
         expected_value = 0.00042943
         self.assertAlmostEqual(expected_value, y_displacements[node_number-1], 6)
 
-    @KratosUnittest.skip("skipped for testing orchestrator")
     def test_line_load_3D2N_tet(self):
         test_name = 'line_load_3D2N_tet'
         parent_name = 'line_load_tests'
@@ -60,7 +57,6 @@ class KratosGeoMechanicsLineLoadTests(KratosUnittest.TestCase):
         expected_value = 0.00034701
         self.assertAlmostEqual(expected_value, y_displacements[node_number-1], 6)
 
-    @KratosUnittest.skip("skipped for testing orchestrator")
     def test_line_load_3D3N_hex(self):
         test_name = 'line_load_3D3N_hex'
         parent_name = 'line_load_tests'
@@ -74,7 +70,6 @@ class KratosGeoMechanicsLineLoadTests(KratosUnittest.TestCase):
         expected_value = 0.0006958
         self.assertAlmostEqual(expected_value, y_displacements[node_number-1], 6)
 
-    @KratosUnittest.skip("skipped for testing orchestrator")
     def test_line_load_3D3N_tet(self):
         test_name = 'line_load_3D3N_tet'
         parent_name = 'line_load_tests'
@@ -88,7 +83,6 @@ class KratosGeoMechanicsLineLoadTests(KratosUnittest.TestCase):
         expected_value = 0.00064506
         self.assertAlmostEqual(expected_value, y_displacements[node_number-1], 6)
 
-    @KratosUnittest.skip("skipped for testing orchestrator")
     def test_nonuniform_line_load(self):
         test_name = 'non-uniform_line_load'
         parent_name = 'line_load_tests'
@@ -116,7 +110,6 @@ class KratosGeoMechanicsLineLoadTests(KratosUnittest.TestCase):
         for id_and_load_value, output_load_value in zip(line_load_y_by_node_id, line_loads_y):
             self.assertAlmostEqual(id_and_load_value[1], output_load_value, 4)
 
-    @KratosUnittest.skip("skipped for testing orchestrator")
     def test_line_loads_in_stages(self):
         test_name = 'line_loads_in_stages'
         parent_name = 'line_load_tests'
@@ -146,7 +139,9 @@ class KratosGeoMechanicsLineLoadTests(KratosUnittest.TestCase):
        with open(project_parameters_filename, 'r') as parameter_file:
            project_parameters = Kratos.Parameters(parameter_file.read())
 
+       cwd = os.getcwd()
        project = Project(project_parameters)
+       os.chdir(file_path)
 
        orchestrator_reg_entry = Kratos.Registry[project.GetSettings()["orchestrator"]["name"].GetString()]
        print("ModuleName", orchestrator_reg_entry["ModuleName"], " ClassName", orchestrator_reg_entry["ClassName"])
@@ -163,6 +158,8 @@ class KratosGeoMechanicsLineLoadTests(KratosUnittest.TestCase):
            output_file_path = os.path.join(file_path, output_file_name)
            total_reaction_y = self.total_reaction_y_from_file(output_file_path, time, bottom_node_ids)
            self.assertAlmostEqual(total_reaction_y, expected_total_reaction_y, places=3)
+
+       os.chdir(cwd)
 
 if __name__ == '__main__':
     KratosUnittest.main()
