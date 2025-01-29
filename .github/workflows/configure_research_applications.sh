@@ -40,6 +40,7 @@ add_app ${KRATOS_APP_DIR}/RANSApplication;
 add_app ${KRATOS_APP_DIR}/ShallowWaterApplication;
 add_app ${KRATOS_APP_DIR}/ShapeOptimizationApplication;
 add_app ${KRATOS_APP_DIR}/SwimmingDEMApplication;
+add_app ${KRATOS_APP_DIR}/SystemIdentificationApplication;
 
 # Clean
 clear

@@ -160,7 +160,6 @@ void UPwBaseElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
             mConstitutiveLawVector[i]->SetValue(STATE_VARIABLES, mStateVariablesFinalized[i], rCurrentProcessInfo);
         mConstitutiveLawVector[i]->InitializeMaterialResponseCauchy(cl_values);
     }
-    mIsInitialised = true;
 
     KRATOS_CATCH("")
 }
