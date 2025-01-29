@@ -25,31 +25,14 @@
 #include "includes/variables.h"
 #include "includes/global_pointer_variables.h"
 #include "input_output/logger.h"
-#include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
-#include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
-#include "spatial_containers/octree_binary.h"
-#include "tests/cpp_tests/geometries/test_geometry.h"
-#include "utilities/assign_unique_model_part_collection_tag_utility.h"
 #include "utilities/element_size_calculator.h"
 #include "utilities/mls_shape_functions_utility.h"
-#include "utilities/rbf_shape_functions_utility.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
 #include "utilities/shifted_boundary_point_based_interface_utility.h"
 #include "utilities/binbased_fast_point_locator.h"
+#include "utilities/variable_utils.h"
 #include "processes/find_intersected_geometrical_objects_process.h"
-
-#include <algorithm>
-#include <array>
-#include <boost/numeric/ublas/vector_expression.hpp>
-#include <cstddef>
-#include <mutex>
-#include <ostream>
-#include <shared_mutex>
-#include <string>
-#include <unordered_set>
-#include <utility>
-#include <vector>
 
 
 namespace Kratos
@@ -424,9 +407,6 @@ namespace Kratos
 
     void ShiftedBoundaryPointBasedInterfaceUtility::CalculateAndAddSkinIntegrationPointConditions()
     {
-        // TODO NEXT simplify and get all point neighbors on other side!!
-        // TODO NEXT find edge elements!!
-
         // Iterate over the split elements to create a vector for each element defining both sides using the element's skin points normals and positions
         // The resulting vector is as long as the number of nodes of the element and a positive value stands for the positive side of the boundary, a negative one for the negative side.
         // Also store the average position and average normal of the skin points located in the element
@@ -681,7 +661,7 @@ namespace Kratos
         SkinPointsToElementsMapType& rSkinPointsMap)
     {
         //TODO SPEED UP
-        //TODO faster to only search in submodelpart where it's likely that skin points are located?
+        //TODO faster to only search in sub model part where it's likely that skin points are located?
         // --> several layers of elements surrounding the previous SBM_BOUNDARY
 
         // Check that the skin model part has elements
@@ -801,38 +781,77 @@ namespace Kratos
         SidesVectorToElementsMapType& rSidesVectorMap,
         AverageSkinToElementsMapType& rAvgSkinMap)
     {
-        LockObject mutex;
-        std::for_each(rSkinPointsMap.begin(), rSkinPointsMap.end(), [&rSidesVectorMap, &rAvgSkinMap, &mutex](const std::pair<ElementType::Pointer, SkinPointsDataVectorType>& rKeyData){
-           const auto p_element = rKeyData.first;
-           const auto& skin_points_data_vector = rKeyData.second;
+        // Set DISTANCE values for all nodes to zero as variable will be used to have a majority vote on the definition of the positive and negative side
+        //TODO faster than looping through the nodes of elements with skin points without parallelization?
+        VariableUtils().SetVariable(DISTANCE, 0.0,mpModelPart->Nodes());
 
-            // Calculate average position and normal of the element's skin points
+        LockObject mutex_1;
+        LockObject mutex_2;
+        //TODO is parallelization really faster here?
+        std::for_each(rSkinPointsMap.begin(), rSkinPointsMap.end(), [&rAvgSkinMap, &mutex_1, &mutex_2](const std::pair<ElementType::Pointer, SkinPointsDataVectorType>& rKeyData){
+            const auto p_element = rKeyData.first;
+            const auto& skin_points_data_vector = rKeyData.second;
+
+            // Get access to the nodes of the element
+            auto& r_geom = p_element->GetGeometry();
+            const std::size_t n_nodes = r_geom.PointsNumber();
+
+            // Initialize average position and average normal of the element's skin points
             std::size_t n_skin_points = 0;
             array_1d<double, 3> avg_position(3, 0.0);
             array_1d<double, 3> avg_normal(3, 0.0);
+
+            // Loop over the skin points located inside the element
             for (const auto& skin_pt_data: skin_points_data_vector) {
+                const auto& skin_pt_position = std::get<0>(skin_pt_data);
+                const auto& skin_pt_area_normal = std::get<1>(skin_pt_data);
+
+                // Compute the dot product for each skin point and node of the element between a vector from the skin position to the node and the skin point's normal
+                // NOTE that for a positive dot product the node is saved as being on the positive side of the boundary, negative dot product equals negative side
+                for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+                    auto& r_node = r_geom[i_node];
+                    const array_1d<double, 3> skin_pt_to_node = r_node.Coordinates() - skin_pt_position;
+                    const double dot_product = inner_prod(skin_pt_to_node, skin_pt_area_normal);
+                    double& side_voting = r_node.FastGetSolutionStepValue(DISTANCE);
+                    {
+                        std::scoped_lock<LockObject> lock(mutex_1);
+                        if (dot_product > 0.0) {
+                            side_voting += 1.0;
+                        } else {
+                            side_voting -= 1.0;
+                        }
+                    }
+                }
+
+                // Update average position and average normal
                 n_skin_points++;
-                avg_position += std::get<0>(skin_pt_data);
-                avg_normal += std::get<1>(skin_pt_data);
+                avg_position += skin_pt_position;
+                avg_normal += skin_pt_area_normal;
             }
+
+            // Calculate and store the average position and average normal of the skin points located in the element
             avg_normal /= norm_2(avg_normal);
             avg_position /= n_skin_points;
-
-            // Store the average normal of the skin points located in the element
             const auto avg_position_and_normal = std::make_pair(avg_position, avg_normal);
-            rAvgSkinMap.insert(std::make_pair(p_element, avg_position_and_normal));
+            {
+                std::scoped_lock<LockObject> lock(mutex_2);
+                rAvgSkinMap.insert(std::make_pair(p_element, avg_position_and_normal));
+            }
+        });
 
-            // Compute the dot product for each node between a vector from the average skin position to the node and the skin's average normal
-            // NOTE that for a positive dot product the node is saved as being on the positive side of the boundary, negative dot product = negative side
-            // NOTE that it is necessary to define the side of points of gamma_tilde here for the search of the support clouds afterwards (SetLateralSupportCloud)
+        // Decide on positive and negative side of an element based on the voting of all skin points in the surrounding elements
+        for (const auto& [p_element, skin_points_data_vector]: rSkinPointsMap) {
             auto& r_geom = p_element->GetGeometry();
             const std::size_t n_nodes = r_geom.PointsNumber();
+
+            // Store a vector deciding on the positive and negative side of the element's nodes
+            // NOTE that the positive side of the boundary equals a positive inwards skin normal, negative dot product equals a negative inward skin normal
+            // NOTE that it is necessary to define the side of points of gamma_tilde here for the search of the support clouds afterwards (SetLateralSupportCloud)
             Vector sides_vector(n_nodes);
             for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
                 auto& r_node = r_geom[i_node];
-                const array_1d<double, 3> skin_pt_to_node = r_node.Coordinates() - avg_position;
-                const double dot_product = inner_prod(skin_pt_to_node, avg_normal);
-                if (dot_product > 0.0) {
+                const double& side_voting = r_node.FastGetSolutionStepValue(DISTANCE);
+                if (side_voting > 0.0) {
                     sides_vector[i_node] =  1.0;
                     r_node.Set(SBM_BOUNDARY, true);
                 } else {
@@ -840,13 +859,8 @@ namespace Kratos
                     r_node.Set(SBM_INTERFACE, true);
                 }
             }
-
-            // Store the vector deciding on the positive and negative side of the element's nodes
-            {
-                std::scoped_lock<LockObject> lock(mutex);
-                rSidesVectorMap.insert(std::make_pair(p_element, sides_vector));
-            }
-        });
+            rSidesVectorMap.insert(std::make_pair(p_element, sides_vector));
+        }
     }
 
     void ShiftedBoundaryPointBasedInterfaceUtility::SetExtensionOperatorsForSplitElementNodes(
@@ -859,8 +873,9 @@ namespace Kratos
 
         // Get support node clouds for all nodes of all split elements and calculate their extension operators
         // NOTE that only extension operators are calculated and added to the map if a sufficient number of support nodes was found
+        //TODO make parallel
         for (const auto& [p_element, sides_vector]: rSidesVectorMap) {
-            const auto r_geom = p_element->GetGeometry();
+            const auto& r_geom = p_element->GetGeometry();
 
             // Get averaged position and normal of the skin points located inside the element
             auto avg_position_and_normal = rAvgSkinMap[p_element];
@@ -870,11 +885,8 @@ namespace Kratos
             // Get support node cloud and calculate the extension operator for all nodes of the element for which it has not been calculated yet
             const std::size_t n_nodes = r_geom.PointsNumber();
             for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
-                const auto p_node = r_geom(i_node);
+                const auto& p_node = r_geom(i_node);
 
-                //TODO no extension operator for outer edges of incised elements --> find nodes of edges that are split but not bordered by a SBM_BOUNDARY element
-                //} else if (p_node->Id() == 908 || p_node->Id() == 924) {  // || p_node->Id() == 347 || p_node->Id() == 372 || p_node->Id() == 361 || p_node->Id() == 878 ||
-                //    KRATOS_INFO("\nNO EXTENSION OPERATOR FOR EDGE NODE\n");
                 // Check if extension operator already has been calculated for the current node
                 const std::size_t found_in_map = rExtensionOperatorMap.count(p_node);
                 if (!found_in_map) {
@@ -891,7 +903,6 @@ namespace Kratos
                         // Use and declare SBM_INTERFACE nodes on the negative side for the support cloud of a node on the positive side
                         SetLateralSupportCloud(p_node, avg_position, -avg_normal, cloud_nodes, cloud_nodes_coordinates, SBM_INTERFACE);
                     }
-                }
 
                     // Continue if the number of support nodes is sufficient for the calculation of the extension operator
                     const std::size_t n_cloud_nodes = cloud_nodes.size();
@@ -911,6 +922,7 @@ namespace Kratos
                             cloud_data_vector(i_cl_nod) = i_data;
                         }
                         const auto ext_op_key_data = std::make_pair(p_node, cloud_data_vector);
+                        //TODO make this threadsafe for parallelization
                         rExtensionOperatorMap.insert(ext_op_key_data);
                     }
                 }
@@ -972,7 +984,7 @@ namespace Kratos
         // Add more layers of nodal neighbors of the current nodes to the cloud of nodes
         // NOTE that we start from 1 here as the first layer already has been added
         for (std::size_t i_layer = 1; i_layer < n_layers; ++i_layer) {
-            //TODO test 
+            //TODO test
             AddLateralSupportLayer(rAvgSkinPosition, rAvgSkinNormal, prev_layer_nodes, cur_layer_nodes, aux_set);
             //AddLateralSupportLayer(prev_layer_nodes, cur_layer_nodes, aux_set);
             prev_layer_nodes = cur_layer_nodes;
@@ -984,7 +996,7 @@ namespace Kratos
         std::size_t n_cloud_nodes = aux_set.size();
         std::size_t n_extra_layers = 0;
         while (n_cloud_nodes < GetRequiredNumberOfPoints()+1 && n_extra_layers < 3) {
-            //TODO test 
+            //TODO test
             //AddLateralSupportLayer(rAvgSkinPosition, rAvgSkinNormal, prev_layer_nodes, cur_layer_nodes, aux_set);
             AddLateralSupportLayer(prev_layer_nodes, cur_layer_nodes, aux_set);
             n_extra_layers++;
@@ -1003,7 +1015,7 @@ namespace Kratos
         std::size_t aux_i = 0;
         for (auto it_set = aux_set.begin(); it_set != aux_set.end(); ++it_set) {
             rCloudNodes(aux_i++) = *it_set;
-            // Mark support node for visualization
+            // Mark support node for visualization - TODO make threadsafe/ put somewhere else for parallelization
             (*it_set)->Set(rSearchSideFlag, true);
         }
         std::sort(rCloudNodes.ptr_begin(), rCloudNodes.ptr_end(), [](NodeType::Pointer& pNode1, NodeType::Pointer rNode2){return (pNode1->Id() < rNode2->Id());});
