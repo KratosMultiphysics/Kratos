@@ -307,4 +307,60 @@ void HydraulicFluidAuxiliaryUtilities::SetInletFreeSurface(ModelPart &rModelPart
     });
 }
 
+void HydraulicFluidAuxiliaryUtilities::CalculateArtificialViscosity(ModelPart &rModelPart,double WaterDynamicViscosityMax){
+    const auto &r_process_info = rModelPart.GetProcessInfo();
+
+    block_for_each(rModelPart.Elements(), [&](Element &rElement)
+    {
+    double artificial_viscosity;
+
+    rElement.Calculate(ARTIFICIAL_DYNAMIC_VISCOSITY,artificial_viscosity ,r_process_info);
+        if (artificial_viscosity > WaterDynamicViscosityMax)
+        {
+            artificial_viscosity = WaterDynamicViscosityMax;
+        }
+        double neg_nodes = 0.0;
+        double pos_nodes=0.0;
+        for (auto &r_node : rElement.GetGeometry())
+        {
+            double distance = r_node.FastGetSolutionStepValue(DISTANCE);
+            
+            if (distance > 0)
+            {
+                pos_nodes += 1;
+            }
+            else
+            {
+                neg_nodes += 1;
+            }
+        }
+        if (neg_nodes > 0 && pos_nodes > 0)
+        {
+            artificial_viscosity = 0.0;
+        }
+        rElement.SetValue(ARTIFICIAL_DYNAMIC_VISCOSITY, artificial_viscosity);
+    });
+}
+
+void HydraulicFluidAuxiliaryUtilities::ApplyOutletInflowLimiter(ModelPart &rModelPart,const Variable<array_1d<double, 3>>& rVariable,const Variable<array_1d<double, 3>>& rVariableNormal)
+{
+
+    block_for_each(rModelPart.Nodes(), [&](NodeType& rNode)
+    {
+        array_1d<double, 3>& r_velocity = rNode.FastGetSolutionStepValue(rVariable);
+        // We use a non-historical variable in case rVariableNormal is not the NORMAL variable and an auxiliary variable is used
+        const array_1d<double, 3>& r_normal = rNode.GetValue(rVariableNormal);
+        const double norm_n = norm_2(r_normal);
+        if (norm_n > 0.0) 
+        {
+            array_1d<double, 3> n_unit = r_normal / norm_n;
+            const double aux = inner_prod(r_velocity, n_unit);
+            if (aux < 0.0)
+            {
+                noalias(r_velocity) -= aux * n_unit;
+            }
+        }
+    });
+}
+
 } // namespace Kratos
