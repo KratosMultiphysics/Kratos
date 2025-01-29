@@ -38,6 +38,11 @@ if(POLICY CMP0135)
   cmake_policy(SET CMP0135 NEW)
 endif(POLICY CMP0135)
 
+# Path normalization
+if(POLICY CMP0177)
+  cmake_policy(SET CMP0177 NEW)
+endif(POLICY CMP0177)
+
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 10)
 set (KratosMultiphysics_MINOR_VERSION 1)

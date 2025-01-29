@@ -1211,16 +1211,16 @@ const Parameters SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesM
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class SimpleMortarMapperProcess<2, 2, Variable<double>>;
-template class SimpleMortarMapperProcess<3, 3, Variable<double>>;
-template class SimpleMortarMapperProcess<3, 4, Variable<double>>;
-template class SimpleMortarMapperProcess<3, 3, Variable<double>, 4>;
-template class SimpleMortarMapperProcess<3, 4, Variable<double>, 3>;
+template class KRATOS_API(KRATOS_CORE) SimpleMortarMapperProcess<2, 2, Variable<double>>;
+template class KRATOS_API(KRATOS_CORE) SimpleMortarMapperProcess<3, 3, Variable<double>>;
+template class KRATOS_API(KRATOS_CORE) SimpleMortarMapperProcess<3, 4, Variable<double>>;
+template class KRATOS_API(KRATOS_CORE) SimpleMortarMapperProcess<3, 3, Variable<double>, 4>;
+template class KRATOS_API(KRATOS_CORE) SimpleMortarMapperProcess<3, 4, Variable<double>, 3>;
 
-template class SimpleMortarMapperProcess<2, 2, Variable<array_1d<double, 3>>>;
-template class SimpleMortarMapperProcess<3, 3, Variable<array_1d<double, 3>>>;
-template class SimpleMortarMapperProcess<3, 4, Variable<array_1d<double, 3>>>;
-template class SimpleMortarMapperProcess<3, 3, Variable<array_1d<double, 3>>, 4>;
-template class SimpleMortarMapperProcess<3, 4, Variable<array_1d<double, 3>>, 3>;
+template class KRATOS_API(KRATOS_CORE) SimpleMortarMapperProcess<2, 2, Variable<array_1d<double, 3>>>;
+template class KRATOS_API(KRATOS_CORE) SimpleMortarMapperProcess<3, 3, Variable<array_1d<double, 3>>>;
+template class KRATOS_API(KRATOS_CORE) SimpleMortarMapperProcess<3, 4, Variable<array_1d<double, 3>>>;
+template class KRATOS_API(KRATOS_CORE) SimpleMortarMapperProcess<3, 3, Variable<array_1d<double, 3>>, 4>;
+template class KRATOS_API(KRATOS_CORE) SimpleMortarMapperProcess<3, 4, Variable<array_1d<double, 3>>, 3>;
 
 }  // namespace Kratos.

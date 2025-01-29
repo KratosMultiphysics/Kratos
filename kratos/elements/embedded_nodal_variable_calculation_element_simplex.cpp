@@ -254,7 +254,7 @@ const array_1d<double, 2> EmbeddedNodalVariableCalculationElementSimplex<TVarTyp
     return N;
 }
 
-template class EmbeddedNodalVariableCalculationElementSimplex<double>;
-template class EmbeddedNodalVariableCalculationElementSimplex<array_1d<double,3>>;
+template class KRATOS_API(KRATOS_CORE) EmbeddedNodalVariableCalculationElementSimplex<double>;
+template class KRATOS_API(KRATOS_CORE) EmbeddedNodalVariableCalculationElementSimplex<array_1d<double,3>>;
 
 } // namespace Kratos.
