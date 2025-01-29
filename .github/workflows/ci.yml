@@ -171,7 +171,7 @@ jobs:
         fi
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-        python3 kratos/python_scripts/testing/run_python_tests.py -v 2 -l nightly -c python3
+        python3 kratos/python_scripts/testing/run_python_tests.py -v 1 -l nightly -c python3
 
     - name: Prepare Parallel Env
       shell: bash
