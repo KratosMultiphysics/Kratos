@@ -70,36 +70,38 @@ void MakeSparseTopology(const TRowMapContainer& rRows,
 {
     KRATOS_TRY
 
-    rMatrix.resize(rRows.size(), ColumnCount);
-
     const std::size_t row_count = rRows.size();
+    std::size_t entry_count = 0ul;
+
+    {
+        auto row_extents = rMatrix.index1_data();
+
+        // Resize row extents.
+        row_extents.resize(row_count + 1, false);
+
+        // Fill row extents and collect the total number of entries to store.
+        row_extents[0] = 0;
+        for (int i = 0; i < static_cast<int>(row_count); i++) {
+            row_extents[i + 1] = row_extents[i] + rRows[i].size();
+            entry_count += rRows[i].size();
+        } // for i in range(row_count)
+
+        // Resize the output matrix and all its containers.
+        rMatrix = typename TUblasSparseSpace<TValue>::MatrixType(rRows.size(), ColumnCount, entry_count);
+        rMatrix.index1_data().swap(row_extents);
+    }
+
     auto& r_row_extents = rMatrix.index1_data();
     auto& r_column_indices = rMatrix.index2_data();
-    auto& r_entries = rMatrix.value_data();
-
-    // Resize row extents.
-    r_row_extents.resize(row_count + 1);
-
-    // Fill row extents and collect the total number of entries to store.
-    r_row_extents[0] = 0;
-    std::size_t entry_count = 0ul;
-    for (int i = 0; i < static_cast<int>(row_count); i++) {
-        r_row_extents[i+1] = r_row_extents[i] + rRows[i].size();
-        entry_count += rRows[i].size();
-    } // for i in range(row_count)
-
-    // Resize column-related containers.
-    r_column_indices.resize(entry_count);
-    r_entries.resize(entry_count, static_cast<TValue>(0));
 
     // Copy column indices.
     IndexPartition<std::size_t>(row_count).for_each([&r_row_extents, &r_column_indices, &rRows](const std::size_t i_row){
         const unsigned i_entry_begin = r_row_extents[i_row];
         const unsigned i_entry_end = r_row_extents[i_row + 1];
-        auto i_entry = i_entry_begin;
-        for (auto it=rRows[i_row].begin(); it!=rRows[i_row].end(); ++it, ++i_entry) {
-            r_column_indices[i_entry] = *it;
-        }
+        KRATOS_DEBUG_ERROR_IF(r_column_indices.size() < i_entry_end);
+        std::copy(rRows[i_row].begin(),
+                  rRows[i_row].end(),
+                  r_column_indices.begin() + i_entry_begin);
 
         // Column indices are inserted from an unknown table, so they might be unsorted
         // => sort them.
@@ -107,7 +109,9 @@ void MakeSparseTopology(const TRowMapContainer& rRows,
                   r_column_indices.begin() + i_entry_end);
     });
 
+    KRATOS_TRY
     rMatrix.set_filled(row_count + 1, entry_count);
+    KRATOS_CATCH("")
 
     KRATOS_CATCH("")
 }
@@ -399,6 +403,7 @@ void MakePRestrictionOperator(const ModelPart& rModelPart,
         block_for_each(hanging_nodes, [](auto& r_flag) {r_flag = 1;});
 
         // Collect terms from elements.
+        KRATOS_TRY
         block_for_each(rModelPart.Elements(),
                        std::vector<Triplet>(),
                        [&rows, &locks, &hanging_nodes, &rModelPart](const Element& r_element, std::vector<Triplet>& r_tls) {
@@ -451,8 +456,10 @@ void MakePRestrictionOperator(const ModelPart& rModelPart,
                 hanging_nodes[i_node] = 0u;
             } // for r_node in r_element.GetGeometry()
         }); // for r_element in rModelPart.Elements()
+        KRATOS_CATCH("")
 
         // Flag conditions' nodes as not hanging.
+        KRATOS_TRY
         block_for_each(rModelPart.Conditions(), [&hanging_nodes, &rModelPart](const Condition& r_condition) {
             for (const Node& r_node : r_condition.GetGeometry()) {
                 const std::size_t i_node = std::distance(
@@ -466,8 +473,10 @@ void MakePRestrictionOperator(const ModelPart& rModelPart,
                 hanging_nodes[i_node] = 0u;
             } // for r_node in r_condition.GetGeometry()
         }); // for r_condition in rModelPart.Conditions()
+        KRATOS_CATCH("")
 
         // Include hanging nodes' DoFs.
+        KRATOS_TRY
         IndexPartition<std::size_t>(hanging_nodes.size()).for_each([&hanging_nodes, &rows, &locks, &rModelPart](const std::size_t i_node){
             if (hanging_nodes[i_node]) {
                 const Node& r_node = rModelPart.Nodes().begin()[i_node];
@@ -480,12 +489,14 @@ void MakePRestrictionOperator(const ModelPart& rModelPart,
                 } // for rp_dof in r_node.GetDofs()
             } // if hanging_nodes[i_node]
         }); // for i_node in range(hanging_nodes.size())
+        KRATOS_CATCH("")
     } // destroy locks
 
     // Construct a fine DoF index => coarse DoF index map.
     std::vector<std::size_t> dof_map(FineSystemSize);
 
     {
+        KRATOS_TRY
         std::size_t i_coarse_dof = 0ul;
         std::size_t entry_count = 0ul;
         for (std::size_t i_fine_dof=0ul; i_fine_dof<FineSystemSize; ++i_fine_dof) {
@@ -501,21 +512,22 @@ void MakePRestrictionOperator(const ModelPart& rModelPart,
         KRATOS_ERROR_IF_NOT(rows.size() == i_coarse_dof);
 
         // Resize the restriction operator.
-        rRestrictionOperator.resize(i_coarse_dof, FineSystemSize);
-        rRestrictionOperator.index1_data().resize(i_coarse_dof + 1);
-        rRestrictionOperator.index2_data().resize(entry_count);
-        rRestrictionOperator.value_data().resize(entry_count);
+        rRestrictionOperator = typename TUblasSparseSpace<TValue>::MatrixType(i_coarse_dof, FineSystemSize, entry_count);
+        KRATOS_CATCH("")
     }
 
     // Fill restriction operator row extents.
     // Note: it's a cumulative sum: can't do it in parallel and the standard
     //       doesn't have an algorithm flexible enough for this purpose.
+    KRATOS_TRY
     rRestrictionOperator.index1_data()[0] = 0;
     for (std::size_t i_coarse_dof=0ul; i_coarse_dof<rows.size(); ++i_coarse_dof) {
         rRestrictionOperator.index1_data()[i_coarse_dof + 1] = rRestrictionOperator.index1_data()[i_coarse_dof] + rows[i_coarse_dof].size();
     } // for i_coarse_dof in range(rows.size())
+    KRATOS_CATCH("")
 
     // Fill CSR from COO representation.
+    KRATOS_TRY
     IndexPartition<std::size_t>(rows.size()).for_each([&rows, &rRestrictionOperator, &dof_map](const std::size_t i_coarse_dof) {
         const std::size_t i_entry_begin = rRestrictionOperator.index1_data()[i_coarse_dof];
         [[maybe_unused]] const std::size_t i_entry_end = rRestrictionOperator.index1_data()[i_coarse_dof + 1];
@@ -525,14 +537,19 @@ void MakePRestrictionOperator(const ModelPart& rModelPart,
         const auto& r_row = rows[i_coarse_dof];
         std::size_t i_entry = i_entry_begin;
         for (const auto [i_fine_column, entry] : r_row) {
+            KRATOS_DEBUG_ERROR_IF_NOT(i_entry < rRestrictionOperator.index2_data().size()) << i_entry;
+            KRATOS_DEBUG_ERROR_IF_NOT(i_entry < rRestrictionOperator.value_data().size()) << i_entry;
             rRestrictionOperator.index2_data()[i_entry] = i_fine_column;
             rRestrictionOperator.value_data()[i_entry] = entry;
             ++i_entry;
         } // for i_fine_column, entry in r_row
     }); // for i_coarse_dof in range(rows.size())
+    KRATOS_CATCH("")
 
+    KRATOS_TRY
     rRestrictionOperator.set_filled(rRestrictionOperator.index1_data().size(),
                                     rRestrictionOperator.index2_data().size());
+    KRATOS_CATCH("")
 
     KRATOS_CATCH("")
 }
