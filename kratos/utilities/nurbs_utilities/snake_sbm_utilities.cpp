@@ -643,7 +643,7 @@ namespace Kratos
             }
         }
         // TOP BOUNDARY
-        for (int j = knot_spans_available[idMatrix][0].size()-1; j > knot_spans_available[idMatrix][0].size()-3; j--) {
+        for (int j = int (knot_spans_available[idMatrix][0].size()-1); j > int (knot_spans_available[idMatrix][0].size()-3); j--) {
             for (int i = 0; i < (n_knot_spans_uv[1]); i++) {
                 Point centroidKnotSpan = Point((j+0.5)*knot_step_u+starting_pos_uv[0], (i+0.5)*knot_step_v+starting_pos_uv[1], 0);
                 if (IsPointInsideSkinBoundary(centroidKnotSpan, testBin_out, initial_skin_model_part_out) && knot_spans_available[idMatrix][i][j] != -1) {
@@ -652,7 +652,7 @@ namespace Kratos
             }
         }
         // RIGHT BOUNDARY
-        for (int i = knot_spans_available[idMatrix].size()-1; i > knot_spans_available[idMatrix].size()-3; i--) {
+        for (int i = int (knot_spans_available[idMatrix].size()-1); i > int (knot_spans_available[idMatrix].size()-3); i--) {
             for (int j = n_knot_spans_uv[0]-1; j > -1; j-- ) {
                 Point centroidKnotSpan = Point((j+0.5)*knot_step_u+starting_pos_uv[0], (i+0.5)*knot_step_v+starting_pos_uv[1], 0);
                 if (IsPointInsideSkinBoundary(centroidKnotSpan, testBin_out, initial_skin_model_part_out) && knot_spans_available[idMatrix][i][j] != -1) {
