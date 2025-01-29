@@ -133,7 +133,7 @@ class MPMPointOutputProcess(KratosMultiphysics.OutputProcess):
             for var in self.output_variables:
                 value = self.material_point.CalculateOnIntegrationPoints(var, self.model_part.ProcessInfo)[0]
 
-                if IsArrayVariable(var):# or IsVectorVariable(var):
+                if IsArrayVariable(var) or IsVectorVariable(var):
                     out += " " + " ".join( format(v,self.format) for v in value )
                 elif IsDoubleVariable(var):
                     out += " " + format(value,self.format)
