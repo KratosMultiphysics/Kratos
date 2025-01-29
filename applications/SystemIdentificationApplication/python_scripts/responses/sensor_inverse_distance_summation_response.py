@@ -12,24 +12,27 @@ from KratosMultiphysics.OptimizationApplication.utilities.component_data_view im
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> ResponseFunction:
     if not parameters.Has("name"):
-        raise RuntimeError(f"SensorDistanceSummationResponse instantiation requires a \"name\" in parameters [ parameters = {parameters}].")
+        raise RuntimeError(f"SensorInverseDistanceSummationResponse instantiation requires a \"name\" in parameters [ parameters = {parameters}].")
     if not parameters.Has("settings"):
-        raise RuntimeError(f"SensorDistanceSummationResponse instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
-    return SensorDistanceSummationResponse(parameters["name"].GetString(), model, parameters["settings"], optimization_problem)
+        raise RuntimeError(f"SensorInverseDistanceSummationResponse instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
+    return SensorInverseDistanceSummationResponse(parameters["name"].GetString(), model, parameters["settings"], optimization_problem)
 
 
-class SensorDistanceSummationResponse(ResponseFunction):
+class SensorInverseDistanceSummationResponse(ResponseFunction):
     def __init__(self, name: str, model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> None:
         super().__init__(name)
 
         default_settings = Kratos.Parameters("""{
-            "sensor_group_name": ""
+            "sensor_group_name": "",
+            "p_coefficient"    : 1.0
         }""")
         parameters.ValidateAndAssignDefaults(default_settings)
 
         self.model = model
 
         self.sensor_group_name = parameters["sensor_group_name"].GetString()
+        self.p_coefficient = parameters["p_coefficient"].GetDouble()
+
         self.model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"response_{self.GetName()}", [self.sensor_group_name], False)
         self.model_part: Optional[Kratos.ModelPart] = None
         self.distance_matrix: Optional[KratosSI.DistanceMatrix] = None
@@ -59,11 +62,11 @@ class SensorDistanceSummationResponse(ResponseFunction):
 
     def GetInfluencingModelPart(self) -> Kratos.ModelPart:
         if self.model_part is None:
-            raise RuntimeError("Please call SensorDistanceSummationResponse::Initialize first.")
+            raise RuntimeError("Please call SensorInverseDistanceSummationResponse::Initialize first.")
         return self.model_part
 
     def CalculateValue(self) -> float:
-        return KratosSI.Responses.SensorDistanceSummationResponseUtils.CalculateValue(self.model_part, self.distance_matrix)
+        return KratosSI.Responses.SensorInverseDistanceSummationResponseUtils.CalculateValue(self.model_part, self.p_coefficient, self.distance_matrix)
 
     def CalculateGradient(self, physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]') -> None:
         # make everything zeros
@@ -71,7 +74,7 @@ class SensorDistanceSummationResponse(ResponseFunction):
             for container_expression in collective_expression.GetContainerExpressions():
                 Kratos.Expression.LiteralExpressionIO.SetDataToZero(container_expression, physical_variable)
 
-        physical_variable_collective_expressions[KratosSI.SENSOR_STATUS].GetContainerExpressions()[0].SetExpression(KratosSI.Responses.SensorDistanceSummationResponseUtils.CalculateGradient(self.model_part, self.distance_matrix).GetExpression())
+        physical_variable_collective_expressions[KratosSI.SENSOR_STATUS].GetContainerExpressions()[0].SetExpression(KratosSI.Responses.SensorInverseDistanceSummationResponseUtils.CalculateGradient(self.model_part, self.p_coefficient, self.distance_matrix).GetExpression())
 
     def __str__(self) -> str:
         return f"Response [type = {self.__class__.__name__}, name = {self.GetName()}, model part name = {self.model_part.FullName()}]"
