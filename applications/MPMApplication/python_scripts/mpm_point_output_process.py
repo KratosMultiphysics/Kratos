@@ -48,18 +48,17 @@ class MPMPointOutputProcess(KratosMultiphysics.OutputProcess):
         # Retrieving the output variables
         output_var_names = self.params["output_variables"]
         variable_names = [ output_var_names[i].GetString() for i in range(output_var_names.size()) ]
-        if len(variable_names) == 0:
+        if not variable_names:
             raise Exception('No variables specified for output!')
 
         self.output_variables = [ KratosMultiphysics.KratosGlobals.GetVariable(var) for var in variable_names ]
 
         # Validate types of variables
         for var in self.output_variables:
-            if IsDoubleVariable(var):
-                continue
-            elif IsArrayVariable(var):
+            if IsDoubleVariable(var) or IsVectorVariable(var) or IsArrayVariable(var):
                 continue
             else:
+                print(var)
                 err_msg  = f"Type of variable {var.Name()} is not valid\n"
                 err_msg +=  "It can only be double, component or array3d!"
                 raise Exception(err_msg)
@@ -134,13 +133,14 @@ class MPMPointOutputProcess(KratosMultiphysics.OutputProcess):
             for var in self.output_variables:
                 value = self.material_point.CalculateOnIntegrationPoints(var, self.model_part.ProcessInfo)[0]
 
-                if IsArrayVariable(var):
+                if IsArrayVariable(var):# or IsVectorVariable(var):
                     out += " " + " ".join( format(v,self.format) for v in value )
                 elif IsDoubleVariable(var):
                     out += " " + format(value,self.format)
                 else:
                     err_msg  = f"Type of variable {var.Name()} is not valid\n"
-                    err_msg +=  "It can only be double, component or array3d!"
+                    err_msg +=  "It can only be double, component or array3d!\n"
+                    err_msg += f"Found: {type(var)}"
                     raise Exception(err_msg)
 
             out += "\n"
@@ -168,6 +168,9 @@ def GetFileHeader(entity_type, entity_id, point, mp_coord, output_variables):
 
 def IsArrayVariable(var):
     return isinstance(var,KratosMultiphysics.Array1DVariable3)
+
+def IsVectorVariable(var):
+    return isinstance(var,KratosMultiphysics.VectorVariable)
 
 def IsDoubleVariable(var):
     return isinstance(var,KratosMultiphysics.DoubleVariable)
