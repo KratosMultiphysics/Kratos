@@ -28,7 +28,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) SensorDistanceSummationResponseUtils
+class KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) SensorInverseDistanceSummationResponseUtils
 {
 public:
     ///@name Type definitions
@@ -42,10 +42,12 @@ public:
 
     static double CalculateValue(
         ModelPart& rModelPart,
+        const double P,
         const DistanceMatrix& rDistanceMatrix);
 
     static ContainerExpression<ModelPart::NodesContainerType> CalculateGradient(
         ModelPart& rModelPart,
+        const double P,
         const DistanceMatrix& rDistanceMatrix);
 
     ///@}
