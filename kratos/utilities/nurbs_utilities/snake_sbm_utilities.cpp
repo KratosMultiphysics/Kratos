@@ -257,8 +257,8 @@ namespace Kratos
                 int knot_span_u_point_split = (x_true_boundary_split-starting_pos_uv[0]) / knot_step_uv[0] ;
                 int knot_span_v_point_split = (y_true_boundary_split-starting_pos_uv[1]) / knot_step_uv[1] ;
 
-                if (knot_span_u_point_split == knot_spans_available[idMatrix][0].size()) knot_span_u_point_split--;
-                if (knot_span_v_point_split == knot_spans_available[idMatrix].size()) knot_span_v_point_split--;
+                if (knot_span_u_point_split == int (knot_spans_available[idMatrix][0].size())) knot_span_u_point_split--;
+                if (knot_span_v_point_split == int (knot_spans_available[idMatrix].size())) knot_span_v_point_split--;
 
                 // update xy_coord for the first split segment
                 std::vector<std::vector<double>> xy_coord_i_cond_split(2);
