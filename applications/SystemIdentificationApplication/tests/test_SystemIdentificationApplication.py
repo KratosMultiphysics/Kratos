@@ -9,7 +9,7 @@ import responses.test_sensor_count_response
 import responses.test_sensor_coverage_response
 import responses.test_sensor_localization_response
 import responses.test_sensor_isolation_response
-import responses.test_sensor_distance_summation_response
+import responses.test_sensor_inverse_distance_summation_response
 import test_smooth_clamper
 import test_mask_utils
 import test_sensor_utils
@@ -34,7 +34,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses.test_sensor_coverage_response.TestSensorCoverageResponse]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses.test_sensor_localization_response.TestSensorLocalizationResponse]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses.test_sensor_isolation_response.TestSensorIsolationResponse]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses.test_sensor_distance_summation_response.TestSensorDistanceSummationResponse]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses.test_sensor_inverse_distance_summation_response.TestSensorInverseDistanceSummationResponse]))
 
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)

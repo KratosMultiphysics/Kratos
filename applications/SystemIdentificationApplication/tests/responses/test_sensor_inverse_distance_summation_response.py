@@ -6,9 +6,9 @@ from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils i
 from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import SetSensors
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
-from KratosMultiphysics.SystemIdentificationApplication.responses.sensor_distance_summation_response import SensorDistanceSummationResponse
+from KratosMultiphysics.SystemIdentificationApplication.responses.sensor_inverse_distance_summation_response import SensorInverseDistanceSummationResponse
 
-class TestSensorDistanceSummationResponse(UnitTest.TestCase):
+class TestSensorInverseDistanceSummationResponse(UnitTest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         """
@@ -108,19 +108,21 @@ class TestSensorDistanceSummationResponse(UnitTest.TestCase):
             sensor.GetNode().SetValue(KratosSI.SENSOR_STATUS, (sensor.GetNode().Id % 3) / 2)
 
         params = Kratos.Parameters("""{
-            "sensor_group_name": "sensors"
+            "sensor_group_name": "sensors",
+            "p_coefficient": 2.0
         }""")
 
         cls.optimization_problem = OptimizationProblem()
-        cls.response = SensorDistanceSummationResponse("test", cls.model, params, cls.optimization_problem)
+        cls.response = SensorInverseDistanceSummationResponse("test", cls.model, params, cls.optimization_problem)
         cls.response.Initialize()
 
     def test_CalculateValue(self):
         distance = 0.0
         for node_i in self.sensor_model_part.Nodes:
             for node_j in self.sensor_model_part.Nodes:
-                current_distance = ((node_i.X - node_j.X) ** 2 + (node_i.Y - node_j.Y) ** 2 + (node_i.Z - node_j.Z) ** 2) ** (0.5)
-                distance += node_i.GetValue(KratosSI.SENSOR_STATUS) * node_j.GetValue(KratosSI.SENSOR_STATUS) * current_distance
+                if node_i.Id != node_j.Id:
+                    current_distance = ((node_i.X - node_j.X) ** 2 + (node_i.Y - node_j.Y) ** 2 + (node_i.Z - node_j.Z) ** 2) ** (0.5)
+                    distance += ((node_i.GetValue(KratosSI.SENSOR_STATUS) * node_j.GetValue(KratosSI.SENSOR_STATUS)) ** 2) / current_distance
         self.assertAlmostEqual(self.response.CalculateValue(), distance * 0.5)
 
     def test_CalculateGradient(self):
@@ -130,7 +132,7 @@ class TestSensorDistanceSummationResponse(UnitTest.TestCase):
         self.response.CalculateGradient({KratosSI.SENSOR_STATUS: collective_exp})
         analytical_gradient = collective_exp.GetContainerExpressions()[0].Evaluate()
 
-        delta = 1e-6
+        delta = 1e-8
         for i, node in enumerate(self.sensor_model_part.Nodes):
             node.SetValue(KratosSI.SENSOR_STATUS, node.GetValue(KratosSI.SENSOR_STATUS) + delta)
             fd_sensitivity = (self.response.CalculateValue() - ref_value) / delta
