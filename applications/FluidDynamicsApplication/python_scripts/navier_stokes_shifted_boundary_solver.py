@@ -347,14 +347,15 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
                 # Interface flags should be reset for the volume/ computing model part once before skin model parts are (newly) embedded
                 sbm_interface_utilities[0].ResetFlags()
 
-                # Locate skin model part points in the volume model part elements and set flags for all skin model parts
+                # Set boundary flags and locate skin model part points in the volume model part elements for all skin model parts
                 for sbm_interface_utility in sbm_interface_utilities:
-                    sbm_interface_utility.SetTessellatedBoundaryFlags()
+                    sbm_interface_utility.SetTessellatedBoundaryFlagsAndRelocateSmallDistanceNodes()
                     # To be done after setting tessellated boundary because nodes might be relocated
                     sbm_interface_utility.LocateSkinPoints()
-                    # To be done after locating the skin points because elements in which skin points are located
-                    # might not be intersected by tessellated skin and might be marked as boundary here
-                    sbm_interface_utility.SetInterfaceFlags()
+
+                # To be done after locating the skin points because elements in which skin points are located
+                # might not be intersected by tessellated skin and might be marked as boundary here
+                sbm_interface_utility.SetInterfaceFlags()
 
                 # Deactivate BOUNDARY elements and nodes which are surrounded by deactivated elements
                 sbm_interface_utilities[0].DeactivateElementsAndNodes()

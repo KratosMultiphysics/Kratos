@@ -810,12 +810,12 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def(py::init<Model&, Parameters>())
         .def("CalculateExtensionOperator", &ShiftedBoundaryMeshlessInterfaceUtility::CalculateExtensionOperator)
     ;
-    
+
     py::class_<ShiftedBoundaryPointBasedInterfaceUtility, ShiftedBoundaryPointBasedInterfaceUtility::Pointer>(m,"ShiftedBoundaryPointBasedInterfaceUtility")
-        .def(py::init<Model&, Parameters>()) 
+        .def(py::init<Model&, Parameters>())
         .def("CalculateAndAddPointBasedInterface", &ShiftedBoundaryPointBasedInterfaceUtility::CalculateAndAddPointBasedInterface)
         .def("ResetFlags", &ShiftedBoundaryPointBasedInterfaceUtility::ResetFlags)
-        .def("SetTessellatedBoundaryFlags", &ShiftedBoundaryPointBasedInterfaceUtility::SetTessellatedBoundaryFlags)
+        .def("SetTessellatedBoundaryFlagsAndRelocateSmallDistanceNodes", &ShiftedBoundaryPointBasedInterfaceUtility::SetTessellatedBoundaryFlagsAndRelocateSmallDistanceNodes)
         .def("LocateSkinPoints", &ShiftedBoundaryPointBasedInterfaceUtility::LocateSkinPoints)
         .def("SetInterfaceFlags", &ShiftedBoundaryPointBasedInterfaceUtility::SetInterfaceFlags)
         .def("DeactivateElementsAndNodes", &ShiftedBoundaryPointBasedInterfaceUtility::DeactivateElementsAndNodes)
