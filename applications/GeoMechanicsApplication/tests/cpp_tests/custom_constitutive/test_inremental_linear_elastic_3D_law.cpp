@@ -166,28 +166,21 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLawReturnsExpectedStress_
     auto law = CreateIncrementalLinearElastic3DLaw();
 
     ConstitutiveLaw::Parameters initial_parameters;
-    auto                        initial_strain = Vector{ ScalarVector{6, 0.5} };
+    auto                        initial_strain = Vector{ScalarVector{6, 0.5}};
     initial_parameters.SetStrainVector(initial_strain);
-    auto initial_stress = Vector{ ScalarVector{6, 1e6} };
+    auto initial_stress = Vector{ScalarVector{6, 1e6}};
     initial_parameters.SetStressVector(initial_stress);
     law.InitializeMaterialResponseCauchy(initial_parameters);
 
-    auto stress = Calculate3DStress(law);
-
-    ConstitutiveLaw::Parameters final_parameters;
-    auto                        final_strain = Vector{ ScalarVector{6, 1.3} };
-    final_parameters.SetStrainVector(final_strain);
-    law.FinalizeMaterialResponseCauchy(final_parameters);
-    
-    const Properties properties;
+    const Properties     properties;
     const Geometry<Node> geometry;
-    const Vector shape_functions_values;
+    const Vector         shape_functions_values;
 
     law.ResetMaterial(properties, geometry, shape_functions_values);
 
-    stress = Calculate3DStress(law);
+    auto stress = Calculate3DStress(law);
 
-    Vector expected_stress{ 6 };
+    Vector expected_stress{6};
     expected_stress <<= 2.5e+07, 2.5e+07, 2.5e+07, 3.84615e+06, 3.84615e+06, 3.84615e+06;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress, 1e-3);
 }

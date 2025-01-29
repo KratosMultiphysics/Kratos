@@ -83,13 +83,8 @@ public:
 
     /**
      * @brief It resets all the member variables and flags
-     * @param rMaterialProperties the material properties
-     * @param rElementGeometry the element geometry
-     * @param rShapeFunctionsValues the shape function values for the current integration point
      */
-    void ResetMaterial(const Properties &   rMaterialProperties,
-                       const GeometryType & rElementGeometry,
-                       const Vector &       rShapeFunctionsValues) override;
+    void ResetMaterial(const Properties&, const GeometryType&, const Vector&) override;
 
 protected:
     /**

@@ -10,8 +10,8 @@
 //  Main authors:    Wijtze Pieter Kikstra
 //                   Richard Faasse
 
-#include "custom_constitutive/incremental_linear_elastic_law.h"
 #include "constitutive_law_dimension.h"
+#include "custom_constitutive/incremental_linear_elastic_law.h"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
@@ -161,15 +161,13 @@ void GeoIncrementalLinearElasticLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw
     FinalizeMaterialResponseCauchy(rValues);
 }
 
-void GeoIncrementalLinearElasticLaw::ResetMaterial(const Properties&   rMaterialProperties,
-                                                   const GeometryType& rElementGeometry,
-                                                   const Vector&       rShapeFunctionsValues)
+void GeoIncrementalLinearElasticLaw::ResetMaterial(const Properties&, const GeometryType&, const Vector&)
 {
-    mStressVector = ZeroVector(mStressVector.size());
+    mStressVector          = ZeroVector(mStressVector.size());
     mStressVectorFinalized = ZeroVector(mStressVectorFinalized.size());
 
     // set strain vectors:
-    mDeltaStrainVector = ZeroVector(mDeltaStrainVector.size());
+    mDeltaStrainVector     = ZeroVector(mDeltaStrainVector.size());
     mStrainVectorFinalized = ZeroVector(mStrainVectorFinalized.size());
 
     mIsModelInitialized = false;
