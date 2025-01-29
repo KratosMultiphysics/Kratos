@@ -182,8 +182,9 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_WATER_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)              # Use distance variable for node relocation and voting on positive/ negative side
         if self.level_set_type == "continuous" or self.level_set_type == "discontinuous":
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)              # Distance function nodal values
+            #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)              # Distance function nodal values
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)     # Distance gradient nodal values
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.EMBEDDED_WET_PRESSURE)          # Post-process variable (stores the fluid nodes pressure and is set to 0 in the structure ones)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.EMBEDDED_WET_VELOCITY)          # Post-process variable (stores the fluid nodes velocity and is set to 0 in the structure ones)
