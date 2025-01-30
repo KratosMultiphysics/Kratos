@@ -362,7 +362,28 @@ void QSVMSDEMCoupled<TElementData>::PrintInfo(std::ostream& rOStream) const
 
 template <class TElementData>
 void QSVMSDEMCoupled<TElementData>::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
-{}
+{
+    // Get Shape function data
+    Vector gauss_weights;
+    Matrix shape_functions;
+    ShapeFunctionDerivativesArrayType shape_function_derivatives;
+    DenseVector<DenseVector<Matrix>> shape_function_second_derivatives;
+    this->CalculateGeometryData(gauss_weights,shape_functions,shape_function_derivatives);
+    const unsigned int number_of_integration_points = gauss_weights.size();
+    GeometryUtils::ShapeFunctionsSecondDerivativesTransformOnAllIntegrationPoints(
+            shape_function_second_derivatives,this->GetGeometry(),this->GetIntegrationMethod());
+
+    TElementData data;
+    data.Initialize(*this,rCurrentProcessInfo);
+    array_1d<double,NumNodes> nodal_reaction_term = ZeroVector(NumNodes);
+    for (unsigned int g = 0; g < number_of_integration_points; g++) {
+        this->UpdateIntegrationPointDataSecondDerivatives(data, g, gauss_weights[g],row(shape_functions,g),shape_function_derivatives[g],shape_function_second_derivatives[g]);
+        mPorosity[g] = this->GetAtCoordinate(data.FluidFraction,row(shape_functions,g));
+        mPorosityGradient[g] = this->GetAtCoordinate(data.FluidFractionGradient,row(shape_functions,g));
+        mPorosityRate[g] = this->GetAtCoordinate(data.FluidFractionRate,row(shape_functions,g));
+        mBodyForce[g] = this->GetAtCoordinate(data.BodyForce,row(shape_functions,g));
+    }
+}
 
 template <class TElementData>
 void QSVMSDEMCoupled<TElementData>::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)

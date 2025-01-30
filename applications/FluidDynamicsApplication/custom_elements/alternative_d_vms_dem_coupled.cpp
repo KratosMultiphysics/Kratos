@@ -485,6 +485,31 @@ void AlternativeDVMSDEMCoupled<TElementData>::PrintInfo(std::ostream& rOStream) 
     rOStream << "AlternativeDVMSDEMCoupled" << Dim << "D";
 }
 
+template <class TElementData>
+void AlternativeDVMSDEMCoupled<TElementData>::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
+{
+    // Get Shape function data
+    Vector gauss_weights;
+    Matrix shape_functions;
+    ShapeFunctionDerivativesArrayType shape_function_derivatives;
+    DenseVector<DenseVector<Matrix>> shape_function_second_derivatives;
+    this->CalculateGeometryData(gauss_weights,shape_functions,shape_function_derivatives);
+    const unsigned int number_of_integration_points = gauss_weights.size();
+    GeometryUtils::ShapeFunctionsSecondDerivativesTransformOnAllIntegrationPoints(
+            shape_function_second_derivatives,this->GetGeometry(),this->GetIntegrationMethod());
+
+    TElementData data;
+    data.Initialize(*this,rCurrentProcessInfo);
+    array_1d<double,NumNodes> nodal_reaction_term = ZeroVector(NumNodes);
+    for (unsigned int g = 0; g < number_of_integration_points; g++) {
+        this->UpdateIntegrationPointDataSecondDerivatives(data, g, gauss_weights[g],row(shape_functions,g),shape_function_derivatives[g],shape_function_second_derivatives[g]);
+        mPorosity[g] = this->GetAtCoordinate(data.FluidFraction,row(shape_functions,g));
+        mPorosityGradient[g] = this->GetAtCoordinate(data.FluidFractionGradient,row(shape_functions,g));
+        mPorosityRate[g] = this->GetAtCoordinate(data.FluidFractionRate,row(shape_functions,g));
+        mBodyForce[g] = this->GetAtCoordinate(data.BodyForce,row(shape_functions,g));
+    }
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Protected functions
 
@@ -599,10 +624,6 @@ void AlternativeDVMSDEMCoupled<TElementData>::AddVelocitySystem(
     const array_1d<double,3> body_force = density * mBodyForce[rData.IntegrationPointIndex];
     const array_1d<double,3> convective_velocity = this->FullConvectiveVelocity(rData);
     array_1d<double,3> velocity = this->GetAtCoordinate(rData.Velocity,rData.N);
-
-    double& prev_pressure = mPreviousPressure[rData.IntegrationPointIndex];
-
-    prev_pressure = this->GetAtCoordinate(rData.Pressure, rData.N);
 
     array_1d<double,Dim>& r_prev_velocity = mPreviousVelocity[rData.IntegrationPointIndex];
 

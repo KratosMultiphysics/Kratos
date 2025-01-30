@@ -340,6 +340,8 @@ protected:
         std::vector<Matrix>& rOutput,
         ProcessInfo const& rCurrentProcessInfo) override;
 
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+
     GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
     ///@}
