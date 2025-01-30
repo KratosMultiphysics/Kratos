@@ -109,7 +109,7 @@ class KratosGeoMechanicsLineLoadTests(KratosUnittest.TestCase):
     def test_line_loads_in_stages(self):
         test_name = 'line_loads_in_stages'
         parent_name = 'line_load_tests'
-        file_path = test_helper.get_file_path(os.path.join(parent_name, test_name))
+        file_path = test_helper.get_file_path(os.path.join(parent_name, test_name, "Legacy"))
         comparison_data = [("test_stage1.post.res", 50.0),
                            ("test_stage2.post.res", 100.0)]
         number_of_stages = len(comparison_data)
@@ -123,9 +123,9 @@ class KratosGeoMechanicsLineLoadTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(total_reaction_y, expected_total_reaction_y, places=3)
 
     def test_line_loads_with_orchestrator(self):
-       test_name = 'line_loads_with_orchestrator'
+       test_name = 'line_loads_in_stages'
        parent_name = 'line_load_tests'
-       file_path = test_helper.get_file_path(os.path.join(parent_name, test_name))
+       file_path = test_helper.get_file_path(os.path.join(parent_name, test_name, "Orchestrator"))
        comparison_data = [("test_stage1.post.res", 50.0),
                           ("test_stage2.post.res", 100.0)]
 
