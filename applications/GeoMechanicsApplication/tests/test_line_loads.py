@@ -132,7 +132,6 @@ class KratosGeoMechanicsLineLoadTests(KratosUnittest.TestCase):
        file_path = test_helper.get_file_path(os.path.join(parent_name, test_name))
        comparison_data = [("test_stage1.post.res", 50.0),
                           ("test_stage2.post.res", 100.0)]
-       number_of_stages = len(comparison_data)
 
        project_parameters_filename = test_helper.get_file_path(os.path.join(file_path, "ProjectParameters.json"))
        # Parse simulation settings and run simulation
@@ -144,13 +143,10 @@ class KratosGeoMechanicsLineLoadTests(KratosUnittest.TestCase):
        os.chdir(file_path)
 
        orchestrator_reg_entry = Kratos.Registry[project.GetSettings()["orchestrator"]["name"].GetString()]
-       print("ModuleName", orchestrator_reg_entry["ModuleName"], " ClassName", orchestrator_reg_entry["ClassName"])
        orchestrator_module = importlib.import_module(orchestrator_reg_entry["ModuleName"])
        orchestrator_class = getattr(orchestrator_module, orchestrator_reg_entry["ClassName"])
        orchestrator_instance = orchestrator_class(project)
        orchestrator_instance.Run()
-
-       #test_helper.run_stages(file_path, number_of_stages)
 
        time = 1.0
        bottom_node_ids = [1, 2, 6, 11, 17, 25, 34, 46, 59, 75, 90]
