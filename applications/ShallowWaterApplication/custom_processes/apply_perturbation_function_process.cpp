@@ -133,6 +133,6 @@ void ApplyPerturbationFunctionProcess<TVarType>::ValidateParameters(Parameters& 
     mHalfWaveNumber = std::acos(-1) / mInfluenceDistance;
 }
 
-template class ApplyPerturbationFunctionProcess<Variable<double>>;
+template class KRATOS_API(SHALLOW_WATER_APPLICATION) ApplyPerturbationFunctionProcess<Variable<double>>;
 
 }  // namespace Kratos.
