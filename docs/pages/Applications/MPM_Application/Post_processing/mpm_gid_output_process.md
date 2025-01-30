@@ -14,15 +14,19 @@ The [`MPMGiDOutputProcess`](https://github.com/KratosMultiphysics/Kratos/blob/ma
 
 ```json
 {
-    "model_part_name" : "PLEASE_SPECIFY_MODEL_PART_NAME",
-    "postprocess_parameters" : {
-        "result_file_configuration" : {
-            "output_control_type" : "step",
-            "output_interval"     : 1,
-            "gauss_point_results" : []
-        }
-    },
-    "output_name" : ""
+    "kratos_module" : "KratosMultiphysics.MPMApplication",
+    "python_module" : "mpm_gid_output_process",
+    "Parameters"    : {
+        "model_part_name" : "PLEASE_SPECIFY_MODEL_PART_NAME",
+        "postprocess_parameters" : {
+            "result_file_configuration" : {
+                "output_control_type" : "step",
+                "output_interval"     : 1,
+                "gauss_point_results" : []
+            }
+        },
+        "output_name" : ""
+    }
 }
 ```
 

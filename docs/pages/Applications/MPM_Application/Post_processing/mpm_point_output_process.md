@@ -14,18 +14,21 @@ The [`MPMPointOutputProcess`](https://github.com/KratosMultiphysics/Kratos/blob/
 
 ```json
 {
-    "model_part_name"       : "",
-    "entity_type"           : "element|condition",
-    "interval"              : [0.0, 1e30],
-    "output_variables"      : [],
-    "position"              : [],
-    "search_tolerance"      : 1e-6,
-    "print_format"          : "",
-    "output_file_settings"  : {
-        "file_name"         : "",
-        "output_path"       : "",
-        "write_buffer_size" : -1,
-        "file_extension"    : "dat"
+    "kratos_module" : "KratosMultiphysics.MPMApplication",
+    "python_module" : "mpm_point_output_process",
+    "Parameters"    : {
+        "model_part_name"       : "",
+        "entity_type"           : "element|condition",
+        "interval"              : [0.0, 1e30],
+        "output_variables"      : [],
+        "position"              : [],
+        "search_tolerance"      : 1e-6,
+        "print_format"          : "",
+        "output_file_settings"  : {
+            "file_name"         : "",
+            "output_path"       : "",
+            "file_extension"    : "dat"
+        }
     }
 }
 ```

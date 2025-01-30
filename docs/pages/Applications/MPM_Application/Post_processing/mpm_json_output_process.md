@@ -16,13 +16,17 @@ The [`MPMJsonOutputProcess`](https://github.com/KratosMultiphysics/Kratos/blob/m
 
 ```json
 {
-    "model_part_name"               : "",
-    "sub_model_part_name"           : "",
-    "output_file_name"              : "",
-    "gauss_points_output_variables" : [],
-    "check_for_flag"                : "",
-    "time_frequency"                : 1.00,
-    "resultant_solution"            : false
+    "kratos_module" : "KratosMultiphysics.MPMApplication",
+    "python_module" : "mpm_json_output_process",
+    "Parameters"    : {
+        "model_part_name"               : "",
+        "sub_model_part_name"           : "",
+        "output_file_name"              : "",
+        "gauss_points_output_variables" : [],
+        "check_for_flag"                : "",
+        "time_frequency"                : 1.00,
+        "resultant_solution"            : false
+    }
 }
 ```
 

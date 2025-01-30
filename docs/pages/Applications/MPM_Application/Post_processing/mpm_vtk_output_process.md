@@ -14,21 +14,25 @@ The [`MPMVtkOutputProcess`](https://github.com/KratosMultiphysics/Kratos/blob/ma
 
 ```json
  {
-    "model_part_name"                   : "PLEASE_SPECIFY_MODEL_PART_NAME",
-    "file_format"                       : "binary",
-    "output_precision"                  : 7,
-    "output_control_type"               : "step",
-    "output_interval"                   : 1.0,
-    "output_sub_model_parts"            : false,
-    "output_path"                       : "MPM_VTK_Output",
-    "custom_name_prefix"                : "",
-    "custom_name_postfix"               : "",
-    "save_output_files_in_folder"       : true,
-    "entity_type"                       : "automatic",
-    "write_ids"                         : false,
-    "element_flags"                     : [],
-    "condition_flags"                   : [],
-    "gauss_point_variables_in_elements" : []
+    "kratos_module" : "KratosMultiphysics.MPMApplication",
+    "python_module" : "mpm_vtk_output_process",
+    "Parameters"    : {
+        "model_part_name"                   : "PLEASE_SPECIFY_MODEL_PART_NAME",
+        "file_format"                       : "binary",
+        "output_precision"                  : 7,
+        "output_control_type"               : "step",
+        "output_interval"                   : 1.0,
+        "output_sub_model_parts"            : false,
+        "output_path"                       : "MPM_VTK_Output",
+        "custom_name_prefix"                : "",
+        "custom_name_postfix"               : "",
+        "save_output_files_in_folder"       : true,
+        "entity_type"                       : "automatic",
+        "write_ids"                         : false,
+        "element_flags"                     : [],
+        "condition_flags"                   : [],
+        "gauss_point_variables_in_elements" : []
+    }
 }
 ```
 
