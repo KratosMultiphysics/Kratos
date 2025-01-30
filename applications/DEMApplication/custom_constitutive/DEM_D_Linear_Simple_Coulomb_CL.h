@@ -69,7 +69,7 @@ namespace Kratos {
                                                double LocalElasticContactForce[3],
                                                const double LocalDeltDisp[3],
                                                bool& sliding,
-                                               SphericParticle* const element,
+                                               Element* const element,
                                                NeighbourClassType* const neighbour) {
     // Compute shear force
     LocalElasticContactForce[0] = OldLocalElasticContactForce[0] - mKt * LocalDeltDisp[0];
