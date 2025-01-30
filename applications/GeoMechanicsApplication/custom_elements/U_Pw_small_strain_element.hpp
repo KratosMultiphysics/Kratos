@@ -42,7 +42,6 @@ public:
     using SizeType = std::size_t;
     using UPwBaseElement::CalculateDerivativesOnInitialConfiguration;
     using UPwBaseElement::mConstitutiveLawVector;
-    using UPwBaseElement::mIsInitialised;
     using UPwBaseElement::mRetentionLawVector;
     using UPwBaseElement::mStateVariablesFinalized;
     using UPwBaseElement::mStressVector;
