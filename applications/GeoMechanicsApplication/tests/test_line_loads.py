@@ -7,10 +7,6 @@ import test_helper
 from KratosMultiphysics.project import Project
 import importlib
 
-if not Kratos.Registry.HasItem("Stages.KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis.GeoMechanicsAnalysis"):
-    Kratos.Registry.AddItem("Stages.KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis.GeoMechanicsAnalysis.ClassName", "GeoMechanicsAnalysis")
-    Kratos.Registry.AddItem("Stages.KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis.GeoMechanicsAnalysis.ModuleName", "KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis")
-
 class KratosGeoMechanicsLineLoadTests(KratosUnittest.TestCase):
     """
     This class contains benchmark tests to test line loads (in 3D). 
