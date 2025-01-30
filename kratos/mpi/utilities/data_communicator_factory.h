@@ -47,7 +47,7 @@ namespace DataCommunicatorFactory
  *  @param rNewCommunicatorName The name to register the new DataCommunicator with.
  *  @return A reference to the duplicate DataCommunicator.
  */
-const DataCommunicator& DuplicateAndRegister(
+KRATOS_API(KRATOS_MPI_CORE) const DataCommunicator& DuplicateAndRegister(
     const DataCommunicator& rOriginalCommunicator,
     const std::string& rNewCommunicatorName);
 
@@ -74,7 +74,7 @@ const DataCommunicator& DuplicateAndRegister(
  *  @param rNewCommunicatorName The name to register the new DataCommunicator with.
  *  @return A reference to the split DataCommunicator.
  */
-const DataCommunicator& SplitAndRegister(
+KRATOS_API(KRATOS_MPI_CORE) const DataCommunicator& SplitAndRegister(
     const DataCommunicator& rOriginalCommunicator,
     int Color,
     int Key,
@@ -92,7 +92,7 @@ const DataCommunicator& SplitAndRegister(
  *  @param rNewCommunicatorName The name to register the new DataCommunicator with.
  *  @return A reference to the new DataCommunicator.
  */
-const DataCommunicator& CreateFromRanksAndRegister(
+KRATOS_API(KRATOS_MPI_CORE) const DataCommunicator& CreateFromRanksAndRegister(
     const DataCommunicator& rOriginalCommunicator,
     const std::vector<int>& rRanks,
     const std::string& rNewCommunicatorName);
@@ -114,7 +114,7 @@ const DataCommunicator& CreateFromRanksAndRegister(
  *  @param rNewCommunicatorName The name to register the new DataCommunicator with.
  *  @return A reference to the new DataCommunicator.
  */
-const DataCommunicator& CreateUnionAndRegister(
+KRATOS_API(KRATOS_MPI_CORE) const DataCommunicator& CreateUnionAndRegister(
     const DataCommunicator& rFirstDataCommunicator,
     const DataCommunicator& rSecondDataCommunicator,
     const DataCommunicator& rParentDataCommunicator,
@@ -137,7 +137,7 @@ const DataCommunicator& CreateUnionAndRegister(
  *  @param rNewCommunicatorName The name to register the new DataCommunicator with.
  *  @return A reference to the new DataCommunicator.
  */
-const DataCommunicator& CreateIntersectionAndRegister(
+KRATOS_API(KRATOS_MPI_CORE) const DataCommunicator& CreateIntersectionAndRegister(
     const DataCommunicator& rFirstDataCommunicator,
     const DataCommunicator& rSecondDataCommunicator,
     const DataCommunicator& rParentDataCommunicator,

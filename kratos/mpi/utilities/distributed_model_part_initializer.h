@@ -42,7 +42,7 @@ namespace Kratos
  * Note that all the entities are still only on the source rank,
  * no partitioning is done!
 */
-class DistributedModelPartInitializer
+class KRATOS_API(KRATOS_MPI_CORE) DistributedModelPartInitializer
 {
 public:
     ///@name Type Definitions
