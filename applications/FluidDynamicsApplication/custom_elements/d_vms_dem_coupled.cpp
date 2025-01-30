@@ -1434,7 +1434,7 @@ array_1d<double,3> DVMSDEMCoupled<TElementData>::FullConvectiveVelocity(
 {
     array_1d<double,3> convective_velocity = this->GetAtCoordinate(rData.Velocity,rData.N) - this->GetAtCoordinate(rData.MeshVelocity,rData.N);
     // Adding subscale term componentwise because return type is of size 3, but subscale is of size Dim
-    const array_1d<double,Dim>& r_predicted_subscale = mPredictedSubscaleVelocity[rData.IntegrationPointIndex];
+    const array_1d<double,3>& r_predicted_subscale = mPredictedSubscaleVelocity[rData.IntegrationPointIndex];
 
     for (unsigned int d = 0; d < Dim; d++) {
         convective_velocity[d] += r_predicted_subscale[d];
