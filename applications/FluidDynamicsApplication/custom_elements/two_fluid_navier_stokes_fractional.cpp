@@ -2060,7 +2060,8 @@ double TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<2, 3>>:
     
     // Check that velocity gradient norm is non-zero
 
-    //Substitute_artificial_mu_grad_v_norm_2D_3N
+    grad_v_norm=sqrt(pow(fabs(DN(0,0)*v(0,0) + DN(1,0)*v(1,0) + DN(2,0)*v(2,0)), 2) + pow(fabs(DN(0,0)*v(0,1) + DN(1,0)*v(1,1) + DN(2,0)*v(2,1)), 2) + pow(fabs(DN(0,1)*v(0,0) + DN(1,1)*v(1,0) + DN(2,1)*v(2,0)), 2) + pow(fabs(DN(0,1)*v(0,1) + DN(1,1)*v(1,1) + DN(2,1)*v(2,1)), 2));
+
 
     if (grad_v_norm > 1.0e-12) {
         // Calculate symbolic artificial viscosity
@@ -2096,7 +2097,8 @@ double TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<3, 4>>:
 
     // Check that velocity gradient norm is non-zero
 
-    //Substitute_artificial_mu_grad_v_norm_3D_4N
+    grad_v_norm=sqrt(pow(fabs(DN(0,0)*v(0,0) + DN(1,0)*v(1,0) + DN(2,0)*v(2,0) + DN(3,0)*v(3,0)), 2) + pow(fabs(DN(0,0)*v(0,1) + DN(1,0)*v(1,1) + DN(2,0)*v(2,1) + DN(3,0)*v(3,1)), 2) + pow(fabs(DN(0,0)*v(0,2) + DN(1,0)*v(1,2) + DN(2,0)*v(2,2) + DN(3,0)*v(3,2)), 2) + pow(fabs(DN(0,1)*v(0,0) + DN(1,1)*v(1,0) + DN(2,1)*v(2,0) + DN(3,1)*v(3,0)), 2) + pow(fabs(DN(0,1)*v(0,1) + DN(1,1)*v(1,1) + DN(2,1)*v(2,1) + DN(3,1)*v(3,1)), 2) + pow(fabs(DN(0,1)*v(0,2) + DN(1,1)*v(1,2) + DN(2,1)*v(2,2) + DN(3,1)*v(3,2)), 2) + pow(fabs(DN(0,2)*v(0,0) + DN(1,2)*v(1,0) + DN(2,2)*v(2,0) + DN(3,2)*v(3,0)), 2) + pow(fabs(DN(0,2)*v(0,1) + DN(1,2)*v(1,1) + DN(2,2)*v(2,1) + DN(3,2)*v(3,1)), 2) + pow(fabs(DN(0,2)*v(0,2) + DN(1,2)*v(1,2) + DN(2,2)*v(2,2) + DN(3,2)*v(3,2)), 2));
+
 
     if (grad_v_norm > 1.0e-12) {
         // Calculate symbolic artificial viscosity
