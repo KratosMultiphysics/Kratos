@@ -45,13 +45,13 @@ class AssignInitialVelocityToMaterialPointProcess(KratosMultiphysics.Process):
         # Get updated model_part
         self.model = Model
         model_part_name = settings["model_part_name"].GetString()
-        if (model_part_name.startswith('Initial_MPM_Material.')):
-            model_part_name = model_part_name.replace('Initial_MPM_Material.','')
-        self.mpm_material_model_part_name = "MPM_Material." + model_part_name
         # The actual initial velocity application occurs after the submodelpart is
-        # transferred from the initial MPM material to the MPM material in the MaterialPointGeneratorUtility.
-        # Therefore we change the prefix from initial MPM material
-        # to MPM material.
+        # transferred from the Initial_MPM_Material to the MPM_Material in the MaterialPointGeneratorUtility.
+        # Therefore we change the prefix from Initial_MPM_Material to MPM_Material.
+        if model_part_name.startswith('Initial_MPM_Material.'):
+            self.mpm_material_model_part_name = model_part_name.replace('Initial_','')
+        elif not model_part_name.startswith('MPM_Material.'):
+            self.mpm_material_model_part_name = "MPM_Material." + model_part_name
 
         # Default settings
         self.modulus = settings["modulus"].GetDouble()
