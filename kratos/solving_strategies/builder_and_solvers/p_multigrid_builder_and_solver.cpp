@@ -98,6 +98,17 @@ public:
     //           if the base class' destructor turns non-virtual.
     virtual ~ConstraintAssembler() override = default;
 
+    /// @brief Allocate memory for the constraint gap vector and relation matrix, and compute its topology.
+    /// @details This function is responsible for large memory allocations, as well as computing
+    ///          the sparsity pattern of the relation matrix. It must also modify the provided
+    ///          left hand side matrix, solution vector, right hand side vector, and DoF list such that
+    ///          these containers will not require reallocation during later stages of the solution process.
+    /// @param rConstraints Constraint set of the related @ref ModelPart.
+    /// @param rProcessInfo Current @ref ProcessInfo of the related @ref ModelPart.
+    /// @param rLhs Unconstrained left hand side matrix' topology.
+    /// @param rDofSet Unconstrained set of @ref Dof "DoFs".
+    /// @note This function should be invoked @b after the unconstrained system is allocated, but @b before
+    ///       it is assembled.
     virtual void Allocate(const ModelPart::MasterSlaveConstraintContainerType& rConstraints,
                           const ProcessInfo& rProcessInfo,
                           typename TSparse::MatrixType& rLhs,
@@ -107,20 +118,48 @@ public:
     {
     }
 
+    /// @brief Compute and assemble constraint contributions into the preallocated relation matrix and constraint gap vector.
+    /// @details This function is responsible for computing the entries of the relation matrix
+    ///          as well as the constraint gap vector.
+    /// @param rConstraints Constraint set of the related @ref ModelPart.
+    /// @param rProcessInfo @ref ProcessInfo of the related @ref ModelPart.
+    /// @param rDofSet Unconstrained set of @ref Dof "DoFs".
+    /// @note This function must be preceded by a call to @ref ConstraintAssembler::Allocate, and should not make large scale
+    ///       reallocations.
     virtual void Assemble(const ModelPart::MasterSlaveConstraintContainerType& rConstraints,
                           const ProcessInfo& rProcessInfo,
                           const ModelPart::DofsArrayType& rDofSet)
     {
     }
 
+    /// @brief Prepare the linear system for the solution loop.
+    /// @details This function is supposed to perform tasks on the linear system
+    ///          that are required only once, before calls to the linear solver begin.
+    ///          Constraint imposition methods that do not require a solution loop
+    ///          (for example, master-slave elimination one-shots the constraints)
+    ///          should manipulate the system here. If the set of @ref Dof "DoFs" has
+    ///          to be changed, it should also be carried out here.
+    /// @param rConstraints Constraint set of the related @ref ModelPart.
+    /// @param rProcessInfo @ref ProcessInfo of the related @ref ModelPart.
+    /// @param rLhs Unconstrained left hand side matrix with topology to accomodate constraint imposition.
+    /// @param rRhs Unconstrained right hand side vector with space to accomodate constraint imposition.
+    /// @param rDofSet Unconstrained set of @ref Dof "DoFs" with space to accomodate constraint imposition.
     virtual void Initialize(const ModelPart::MasterSlaveConstraintContainerType& rConstraints,
                             const ProcessInfo& rProcessInfo,
                             typename TSparse::MatrixType& rLhs,
                             typename TSparse::VectorType& rRhs,
-                            const ModelPart::DofsArrayType& rDofSet)
+                            ModelPart::DofsArrayType& rDofSet)
     {
     }
 
+    /// @brief Manipulate the linear system before invoking the linear solver in the solution loop's current iteration.
+    /// @param rConstraints Constraints of the related @ref ModelPart.
+    /// @param rProcessInfo @ref ProcessInfo of the related @ref ModelPart.
+    /// @param rLhs Left hand side matrix.
+    /// @param rSolution Unconverged solution vector.
+    /// @param rRhs Right hand side vector.
+    /// @param rDofSet @ref Dof "DoFs" to solve for.
+    /// @param iIteration 1-based index of the current iteration in the solution loop.
     virtual void InitializeSolutionStep(const ModelPart::MasterSlaveConstraintContainerType& rConstraints,
                                         const ProcessInfo& rProcessInfo,
                                         typename TSparse::MatrixType& rLhs,
@@ -131,11 +170,32 @@ public:
     {
     }
 
+    /// @brief Return type of @ref ConstraintAssembler::FinalizeSolutionStep.
+    /// @details This class indicates
+    ///          - whether the solution loop converged, and
+    ///          - whether the constraint imposition is finished.
+    ///          The members of this class can be in 3 valid configurations:
+    ///          - constraints have not converged (@p converged is @p false) and more iterations are requested (@p finished is @p false).
+    ///          - constraints have not converged (@p converged is @p false) and no more iterations are requested (@p finished is @p true).
+    ///          - constraints have converged (@p converged is @p true) and no more iterations are requested (@p finished is @p true).
     struct Status {
-        bool finished;
-        bool converged;
+        bool finished;      ///< @brief Indicates whether constraint imposition is finished (no more iterations are requested).
+        bool converged;     ///< @brief Indicates whether constraint imposition converged.
     }; // struct Status
 
+    /// @brief Perform constraint-related tasks after invoking the linear solver in the current iteration of the solution loop.
+    /// @details This function is supposed to evaluate the convergence of constraint imposition,
+    ///          decide whether to request more iterations in the solution loop.
+    /// @param rConstraints Constraints of the related @ref ModelPart.
+    /// @param rProcessInfo @ref ProcessInfo of the related @ref ModelPart.
+    /// @param rLhs Constrained left hand side matrix.
+    /// @param rSolution Converged solution vector.
+    /// @param rRhs Constrained right hand side vector.
+    /// @param rDofSet Constrained set of @ref Dof "DoFs".
+    /// @param iIteration 1-based index of the current iteration in the solution loop.
+    /// @warning The solution loop will continue indefinitely unless this function eventually
+    ///          returns a @ref ConstraintImposition::Status whose @ref ConstraintImposition::Status::finished "finished"
+    ///          is @p true.
     virtual Status FinalizeSolutionStep(const ModelPart::MasterSlaveConstraintContainerType& rConstraints,
                                         const ProcessInfo& rProcessInfo,
                                         typename TSparse::MatrixType& rLhs,
@@ -144,6 +204,13 @@ public:
                                         const ModelPart::DofsArrayType& rDofSet,
                                         const std::size_t iIteration) = 0;
 
+    /// @brief Perform tasks related to constraint imposition after constraints converged.
+    /// @param rConstraints Constraints of the related @ref ModelPart.
+    /// @param rProcessInfo @ref ProcessInfo of the related @ref ModelPart.
+    /// @param rLhs Constrained left hand side matrix.
+    /// @param rSolution Converged solution vector.
+    /// @param rRhs Constrained right hand side vector.
+    /// @param rDofSet Constrained set of @ref Dof "DoFs".
     virtual void Finalize(const ModelPart::MasterSlaveConstraintContainerType& rConstraints,
                           const ProcessInfo& rProcessInfo,
                           typename TSparse::MatrixType& rLhs,
@@ -153,6 +220,9 @@ public:
     {
     }
 
+    /// @brief Release memory related to the linear system and constraints.
+    /// @details Derived classes must call the @ref ConstraintAssembler::Clear "Clear"
+    ///          function of their parents at some point.
     virtual void Clear()
     {
         mRelationMatrix = typename TSparse::MatrixType();
@@ -192,7 +262,6 @@ protected:
         return mConstraintGapVector;
     }
 
-
 private:
     static const Variable<std::string>& GetImpositionVariable() noexcept
     {
@@ -211,11 +280,9 @@ class MasterSlaveConstraintAssembler : public ConstraintAssembler<TSparse,TDense
 public:
     using Base = ConstraintAssembler<TSparse,TDense>;
 
-
     MasterSlaveConstraintAssembler() noexcept
         : MasterSlaveConstraintAssembler(Parameters())
     {}
-
 
     MasterSlaveConstraintAssembler(Parameters Settings)
         : Base(ConstraintImposition::MasterSlave),
@@ -230,7 +297,7 @@ public:
         KRATOS_CATCH("")
     }
 
-
+    /// @copydoc Base::Allocate
     void Allocate(const ModelPart::MasterSlaveConstraintContainerType& rConstraints,
                   const ProcessInfo& rProcessInfo,
                   typename TSparse::MatrixType& rLhs,
@@ -289,7 +356,7 @@ public:
         KRATOS_CATCH("")
     }
 
-
+    /// @copydoc Base::Assemble
     void Assemble(const ModelPart::MasterSlaveConstraintContainerType& rConstraints,
                   const ProcessInfo& rProcessInfo,
                   const ModelPart::DofsArrayType& rDofSet) override
@@ -374,12 +441,12 @@ public:
         KRATOS_CATCH("")
     }
 
-
+    /// @copydoc Base::Initialize
     void Initialize(const ModelPart::MasterSlaveConstraintContainerType& rConstraints,
                     const ProcessInfo& rProcessInfo,
                     typename TSparse::MatrixType& rLhs,
                     typename TSparse::VectorType& rRhs,
-                    const ModelPart::DofsArrayType& rDofSet) override
+                    ModelPart::DofsArrayType& rDofSet) override
     {
         KRATOS_TRY
         // Compute the transposed matrix of the global relation matrix
@@ -418,7 +485,7 @@ public:
         KRATOS_CATCH("")
     }
 
-
+    /// @copydoc Base::FinalizeSolutionStep
     typename Base::Status FinalizeSolutionStep(const ModelPart::MasterSlaveConstraintContainerType& rConstraints,
                                                const ProcessInfo& rProcessInfo,
                                                typename TSparse::MatrixType& rLhs,
@@ -430,7 +497,7 @@ public:
         return typename Base::Status {/*finished=*/true, /*converged=*/true};
     }
 
-
+    /// @copydoc Base::Finalize
     void Finalize(const ModelPart::MasterSlaveConstraintContainerType& rConstraints,
                   const ProcessInfo& rProcessInfo,
                   typename TSparse::MatrixType& rLhs,
@@ -448,7 +515,7 @@ public:
         KRATOS_CATCH("")
     }
 
-
+    /// @copydoc Base::Clear
     void Clear() override
     {
         Base::Clear();
@@ -456,7 +523,6 @@ public:
         mMasterIds = decltype(mMasterIds)();
         mInactiveSlaveIds = decltype(mInactiveSlaveIds)();
     }
-
 
     static Parameters GetDefaultParameters()
     {
@@ -483,11 +549,9 @@ class AugmentedLagrangeConstraintAssembler : public ConstraintAssembler<TSparse,
 public:
     using Base = ConstraintAssembler<TSparse,TDense>;
 
-
     AugmentedLagrangeConstraintAssembler() noexcept
         : AugmentedLagrangeConstraintAssembler(Parameters())
     {}
-
 
     AugmentedLagrangeConstraintAssembler(Parameters Settings)
         : Base(ConstraintImposition::AugmentedLagrange),
@@ -506,7 +570,7 @@ public:
         this->mVerbosity = Settings["verbosity"].Get<int>();
     }
 
-
+    /// @copydoc Base::Allocate
     void Allocate(const ModelPart::MasterSlaveConstraintContainerType& rConstraints,
                   const ProcessInfo& rProcessInfo,
                   typename TSparse::MatrixType& rLhs,
@@ -532,16 +596,16 @@ public:
         }
 
         {
-            std::vector<std::unordered_set<IndexType>> indices(mSlaveToConstraintMap.size());
-            std::vector<LockObject> mutexes(indices.size());
-
             struct TLS {
                 Element::EquationIdVectorType master_ids, slave_ids;
             }; // struct TLS
 
+            std::vector<std::unordered_set<IndexType>> indices(mSlaveToConstraintMap.size());
+            std::vector<LockObject> mutexes(indices.size());
+
             block_for_each(rConstraints,
-                        TLS(),
-                        [&mutexes, &indices, &rProcessInfo, this](const auto& r_constraint, TLS& r_tls){
+                           TLS(),
+                           [&mutexes, &indices, &rProcessInfo, this](const auto& r_constraint, TLS& r_tls){
                 r_constraint.EquationIdVector(r_tls.slave_ids,
                                               r_tls.master_ids,
                                               rProcessInfo);
@@ -557,7 +621,8 @@ public:
             MakeSparseTopology<false,typename TSparse::DataType>(indices,
                                                                  rDofSet.size(),
                                                                  this->GetRelationMatrix());
-            this->GetConstraintGapVector().resize(indices.size(), false);
+
+            this->GetConstraintGapVector().resize(mSlaveToConstraintMap.size(), false);
         }
 
         {
@@ -573,7 +638,7 @@ public:
         KRATOS_CATCH("")
     }
 
-
+    /// @copydoc Base::Assemble
     void Assemble(const ModelPart::MasterSlaveConstraintContainerType& rConstraints,
                   const ProcessInfo& rProcessInfo,
                   const ModelPart::DofsArrayType& rDofSet) override
@@ -685,11 +750,12 @@ public:
         KRATOS_CATCH("")
     }
 
+    /// @copydoc Base::Initialize
     void Initialize(const ModelPart::MasterSlaveConstraintContainerType& rConstraints,
                     const ProcessInfo& rProcessInfo,
                     typename TSparse::MatrixType& rLhs,
                     typename TSparse::VectorType& rRhs,
-                    const ModelPart::DofsArrayType& rDofSet) override
+                    ModelPart::DofsArrayType& rDofSet) override
     {
         KRATOS_TRY
 
@@ -733,6 +799,7 @@ public:
         KRATOS_CATCH("")
     }
 
+    /// @copydoc Base::FinalizeSolutionStep
     typename Base::Status FinalizeSolutionStep(const ModelPart::MasterSlaveConstraintContainerType& rConstraints,
                                                const ProcessInfo& rProcessInfo,
                                                typename TSparse::MatrixType& rLhs,
@@ -776,6 +843,7 @@ public:
         KRATOS_CATCH("")
     }
 
+    /// @copydoc Base::Clear
     void Clear() override
     {
         Base::Clear();
@@ -1098,8 +1166,6 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
         MakeSparseTopology<false,typename TSparse::DataType>(indices,
                                                              indices.size(),
                                                              rLhs);
-
-
 
         // Construct the coarse hierarhy's topology.
         mHierarchy.template MakeLhsTopology<TSparse>(rModelPart, rLhs);
