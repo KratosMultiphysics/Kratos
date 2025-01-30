@@ -1,6 +1,6 @@
 # Test line loads in staged analysis
 
-**Authors:** [Anne van de Graaf](https://github.com/avdg81), {Gennady Markelov](https://github.com/markelov208)
+**Authors:** [Anne van de Graaf](https://github.com/avdg81), [Gennady Markelov](https://github.com/markelov208)
 
 ## Case Specification
 
@@ -18,8 +18,8 @@ top edge is fully loaded, the total vertical reactions are expected to be equal
 to 5.0 m * -10.0 N/m = -50.0 N and 5.0 m * -20.0 N/m = -100.0 N, respectively,
 except for the sign, which must be reversed.
 
-The test is performed using multi stage script and orchestrator. The ProjectParameters files are located in Legacy and Orchestrator folders, respectively.
- The multi stage script a ProjectPOarameter file for each stage when the orchestrator reads a single file that includes info for both stages (see details below). 
+The test is performed using multi stage script and orchestrator. The ProjectParameters files are located in Legacy and Orchestrator folders for these cases, respectively.
+ The multi stage script uses a ProjectParameter file for each stage when the orchestrator reads a single file that includes info for both stages (see details about the file structure below). 
 
 ````{verbatim}
 {
@@ -47,22 +47,22 @@ The test is performed using multi stage script and orchestrator. The ProjectPara
 "number_of_threads":    1
 },
 "solver_settings": {
+<next data for the stage_1>
 
-
+},
+"stage_2" : {
+    "stage_settings" : {
+        "analysis_stage": "Stages.KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis.GeoMechanicsAnalysis",
+        "problem_data": {
+        "problem_name":         "test",
+        "start_time":           0.0,
+        "end_time":             1.0,
+        "echo_level":           1,
+        "parallel_type":        "OpenMP",
+        "number_of_threads":    1
     },
-    "stage_2" : {
-		"stage_settings" : {
-            "analysis_stage": "Stages.KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis.GeoMechanicsAnalysis",
-            "problem_data": {
-            "problem_name":         "test",
-            "start_time":           0.0,
-            "end_time":             1.0,
-            "echo_level":           1,
-            "parallel_type":        "OpenMP",
-            "number_of_threads":    1
-        },
-		"problem_data": {
-
+	"problem_data": {
+<next data for the stage_2>
 
 ````
 
