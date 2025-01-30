@@ -131,6 +131,30 @@ public:
     static double CalculateFluidPositiveVolume(const ModelPart& rModelPart);
 
     /**
+     * @brief Calculate the fluid negative volume in cut elements
+     * For the given model part, this function calculates the total negative fluid volume fraction in the cut elements.
+     * It is assumed that a unique element geometry type it is present in the mesh.
+     * Only simplex geometries (linear triangle and tetrahedron) are supported.
+     * The negative fraction must be described in terms of a continuous level set function stored
+     * in the variable DISTANCE of the historical database
+     * @param rModelPart The model part to calculate the negative volume
+     * @return double Fluid negative volume over the cut elements
+     */
+    static double CalculateFluidCutElementsNegativeVolume(const ModelPart &rModelPart);
+
+    /**
+     * @brief Calculate the fluid positive volume in cut elements
+     * For the given model part, this function calculates the total positive fluid volume fraction in the cut elements.
+     * It is assumed that a unique element geometry type it is present in the mesh.
+     * Only simplex geometries (linear triangle and tetrahedron) are supported.
+     * The positive fraction must be described in terms of a continuous level set function stored
+     * in the variable DISTANCE of the historical database
+     * @param rModelPart The model part to calculate the positive volume
+     * @return double Fluid positive volume over the cut elements
+     */
+    static double CalculateFluidCutElementsPositiveVolume(const ModelPart &rModelPart);
+
+    /**
      * @brief Calculate the fluid negative volume
      * For the given model part, this function calculates the total negative fluid volume fraction.
      * It is assumed that a unique element geometry type it is present in the mesh.

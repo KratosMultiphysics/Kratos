@@ -34,7 +34,7 @@
 #include "custom_elements/truss_elements/truss_element_3D2N.hpp"
 #include "custom_elements/truss_elements/truss_element_linear_3D2N.hpp"
 #include "custom_elements/truss_elements/cable_element_3D2N.hpp"
-#include "custom_elements/truss_elements/linear_truss_element_2D.h"
+#include "custom_elements/truss_elements/linear_truss_element.h"
 
 /* Adding beam element */
 #include "custom_elements/beam_elements/cr_beam_element_3D2N.hpp"
@@ -122,6 +122,7 @@
 #include "custom_constitutive/user_provided_linear_elastic_law.h"
 // Constitutive laws for the Timoshenko beams
 #include "custom_constitutive/timoshenko_beam_elastic_constitutive_law.h"
+#include "custom_constitutive/timoshenko_plane_strain_beam_elastic_constitutive_law.h"
 
 
 namespace Kratos
@@ -272,8 +273,10 @@ private:
     const TrussElement3D2N mTrussElement3D2N;
     const TrussElementLinear3D2N mTrussLinearElement3D2N;
     const CableElement3D2N mCableElement3D2N;
-    const LinearTrussElement2D<2> mLinearTrussElement2D2N;
-    const LinearTrussElement2D<3> mLinearTrussElement2D3N;
+    const LinearTrussElement<2, 2> mLinearTrussElement2D2N;
+    const LinearTrussElement<2, 3> mLinearTrussElement2D3N;
+    const LinearTrussElement<3, 2> mLinearTrussElement3D2N;
+    const LinearTrussElement<3, 3> mLinearTrussElement3D3N;
 
     // Adding the beam element
     const CrBeamElement3D2N mCrBeamElement3D2N;
@@ -520,6 +523,7 @@ private:
     const UserProvidedLinearElasticLaw<2> mUserProvidedLinearElastic2DLaw;
     const UserProvidedLinearElasticLaw<3> mUserProvidedLinearElastic3DLaw;
     const TimoshenkoBeamElasticConstitutiveLaw mTimoshenkoBeamElasticConstitutiveLaw;
+    const TimoshenkoBeamPlaneStrainElasticConstitutiveLaw mTimoshenkoBeamPlaneStrainElasticConstitutiveLaw;
 
     ///@}
     ///@name Private Operators

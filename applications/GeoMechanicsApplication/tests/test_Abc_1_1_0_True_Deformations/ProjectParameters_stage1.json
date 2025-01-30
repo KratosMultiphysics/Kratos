@@ -35,12 +35,8 @@
     "reset_displacements": true,
     "strategy_type": "line_search",
     "convergence_criterion": "displacement_criterion",
-    "water_pressure_relative_tolerance": 0.0001,
-    "water_pressure_absolute_tolerance": 1E-09,
     "displacement_relative_tolerance": 0.001,
     "displacement_absolute_tolerance": 1E-09,
-    "residual_relative_tolerance": 0.0001,
-    "residual_absolute_tolerance": 1E-09,
     "min_iterations": 6,
     "max_iterations": 15,
     "number_cycles": 100,
@@ -133,26 +129,10 @@
         "Parameters": {
           "model_part_name": "PorousDomain.Displacement_Geometry",
           "variable_name": "DISPLACEMENT",
-          "active": [
-            true,
-            false,
-            true
-          ],
-          "is_fixed": [
-            true,
-            false,
-            true
-          ],
-          "value": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "table": [
-            0,
-            0,
-            0
-          ]
+          "active": [true, false, true],
+          "is_fixed": [true, false, true],
+          "value": [0.0, 0.0, 0.0],
+          "table": [0, 0, 0]
         }
       },
       {
@@ -162,26 +142,10 @@
         "Parameters": {
           "model_part_name": "PorousDomain.Base_Displacement_Fixed",
           "variable_name": "DISPLACEMENT",
-          "active": [
-            true,
-            true,
-            true
-          ],
-          "is_fixed": [
-            true,
-            true,
-            true
-          ],
-          "value": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "table": [
-            0,
-            0,
-            0
-          ]
+          "active": [true, true, true],
+          "is_fixed": [true, true, true],
+          "value": [0.0, 0.0, 0.0],
+          "table": [0, 0, 0]
         }
       }
     ],
@@ -193,21 +157,9 @@
         "Parameters": {
           "model_part_name": "PorousDomain.Gravity_Loading-Initial_saturated",
           "variable_name": "VOLUME_ACCELERATION",
-          "active": [
-            false,
-            true,
-            false
-          ],
-          "value": [
-            0.0,
-            -9.81,
-            0.0
-          ],
-          "table": [
-            0,
-            0,
-            0
-          ]
+          "active": [false, true, false],
+          "value": [0.0, -9.81, 0.0],
+          "table": [0, 0, 0]
         }
       },
       {
@@ -217,21 +169,9 @@
         "Parameters": {
           "model_part_name": "PorousDomain.Gravity_Loading-Overburden_1_unsaturated",
           "variable_name": "VOLUME_ACCELERATION",
-          "active": [
-            false,
-            false,
-            false
-          ],
-          "value": [
-            0.0,
-            -9.81,
-            0.0
-          ],
-          "table": [
-            0,
-            0,
-            0
-          ]
+          "active": [false, false, false],
+          "value": [0.0, -9.81, 0.0],
+          "table": [0, 0, 0]
         }
       },
       {

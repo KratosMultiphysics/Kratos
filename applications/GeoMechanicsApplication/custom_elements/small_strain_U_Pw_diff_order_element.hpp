@@ -37,7 +37,6 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SmallStrainUPwDiffOrderElement);
 
     using UPwBaseElement::mConstitutiveLawVector;
-    using UPwBaseElement::mIsInitialised;
     using UPwBaseElement::mRetentionLawVector;
     using UPwBaseElement::mStateVariablesFinalized;
     using UPwBaseElement::mStressVector;
@@ -70,8 +69,6 @@ public:
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
-
-    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -224,7 +221,8 @@ protected:
     std::vector<Matrix> CalculateBMatrices(const GeometryType::ShapeFunctionsGradientsType& rDN_DXContainer,
                                            const Matrix& rNContainer) const;
 
-    void AssignPressureToIntermediateNodes();
+    Vector GetPressures(size_t n_nodes) const;
+    void   AssignPressureToIntermediateNodes();
 
     virtual Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const;
 

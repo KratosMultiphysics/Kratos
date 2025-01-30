@@ -1766,9 +1766,9 @@ private:
         IntegrationPointsContainerType integration_points =
         {
             {
-                Quadrature < HexahedronGaussLobattoIntegrationPoints1,
+                Quadrature < HexahedronGaussLobattoIntegrationPoints0,
                 3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature < HexahedronGaussLobattoIntegrationPoints2,
+                Quadrature < HexahedronGaussLobattoIntegrationPoints1,
                 3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 IntegrationPointsArrayType(),
                 IntegrationPointsArrayType()
