@@ -33,6 +33,7 @@
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/variable_utils.h"
 #include "utilities/geometry_utilities.h"
+#include "geometries/plane_3d.h"
 #include "processes/find_intersected_geometrical_objects_process.h"
 
 
@@ -41,7 +42,7 @@ namespace Kratos
     namespace ShiftedBoundaryUtilityInternals {
 
     template <>
-    double GetPointDistance<2>(const Geometry<Node>& rObjectGeometry, const Point& rPoint)
+    double CalculatePointDistance<2>(const Geometry<Node>& rObjectGeometry, const Point& rPoint)
     {
         return GeometryUtils::PointDistanceToLineSegment3D(
             rObjectGeometry[0],
@@ -50,13 +51,29 @@ namespace Kratos
     }
 
     template <>
-    double GetPointDistance<3>(const Geometry<Node>& rObjectGeometry, const Point& rPoint)
+    double CalculatePointDistance<3>(const Geometry<Node>& rObjectGeometry, const Point& rPoint)
     {
         return GeometryUtils::PointDistanceToTriangle3D(
             rObjectGeometry[0],
             rObjectGeometry[1],
             rObjectGeometry[2],
             rPoint);
+    }
+
+    template <>
+    Plane3D CreateIntersectionPlane<2>(const std::vector<array_1d<double,3>>& rIntPtsVector)
+    {
+        // Since the Plane3D object only works in 3D, in 2D we define the intersection plane
+        // by extruding the intersection point 0 in the z-direction.
+        array_1d<double,3> z_coord_pt = rIntPtsVector[0];
+        z_coord_pt[2] = 1.0;
+        return Plane3D(Point{rIntPtsVector[0]}, Point{rIntPtsVector[1]}, Point{z_coord_pt});
+    }
+
+    template <>
+    Plane3D CreateIntersectionPlane<3>(const std::vector<array_1d<double,3>>& rIntPtsVector)
+    {
+        return Plane3D(Point{rIntPtsVector[0]}, Point{rIntPtsVector[1]}, Point{rIntPtsVector[2]});
     }
 
     }  // namespace ShiftedBoundaryUtilityInternals
@@ -229,19 +246,23 @@ namespace Kratos
         const auto& r_elements = (find_intersected_objects_process.GetModelPart1()).ElementsArray();
 
         // Define the minimal distance to the skin geometry
-        const double distance_threshold = 1e-9;
-        // Initialize a multiplier for the the distance by which nodes should be relocated
-        const double relocation_multiplier = 1e-2;  //TODO 1e-8 OR 1e-2*length for smoother SBM_BOUNDARY
+        // NOTE that a minimal distance of <5e-7 can already cause an ill-defined deactivated layer because of the tolerances of the geometrical operations (intersected elements and localization of skin points)
+        const double distance_threshold = 2e-6;
+        // Initialize a multiplier for the the distance by which nodes should be relocated --> length/1000 for a smooth deactivated element layer
+        const double relocation_multiplier = 1e-3;
 
         // Get function pointer for calculating the distance between a node and an intersecting object
         PointDistanceFunctionType p_point_distance_function;
+        IntersectionPlaneConstructorType p_intersection_plane_constructor;
         const std::size_t n_dim = mpModelPart->GetProcessInfo()[DOMAIN_SIZE];
         switch (n_dim) {
             case 2:
-                p_point_distance_function = ShiftedBoundaryUtilityInternals::GetPointDistance<2>;
+                p_point_distance_function = ShiftedBoundaryUtilityInternals::CalculatePointDistance<2>;
+                p_intersection_plane_constructor = ShiftedBoundaryUtilityInternals::CreateIntersectionPlane<2>;
                 break;
             case 3:
-                p_point_distance_function = ShiftedBoundaryUtilityInternals::GetPointDistance<3>;
+                p_point_distance_function = ShiftedBoundaryUtilityInternals::CalculatePointDistance<3>;
+                p_intersection_plane_constructor = ShiftedBoundaryUtilityInternals::CreateIntersectionPlane<3>;
                 break;
             default:
                 KRATOS_ERROR << "Wrong domain size.";
@@ -258,15 +279,17 @@ namespace Kratos
                 const std::size_t n_nodes = r_geom.PointsNumber();
                 for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
                     auto& r_node = r_geom[i_node];
-
-                    // Calculate minimal distance of node to skin geometry
-                    const double distance_node = CalculateSkinDistanceToNode(r_node, r_element_intersecting_objects, p_point_distance_function);
-
-                    // Relocate node in direction of normal if the skin geometry is too close
-                    //TODO this way relocation might be in direction of skin geometry instead of further away!?
-                    //TODO do not move outer boundary elements?
+                    // Check that node was not already modified from the iteration of another element
                     if (!r_node.Is(MODIFIED)) {
-                        if (distance_node < distance_threshold) {
+                        // Calculate minimal distance of node to skin geometry
+                        // NOTE that this distance value can be negative to move in negative normal direction
+                        const double distance_node = CalculateSkinDistanceToNode(r_node, r_element_intersecting_objects,
+                                                                                 p_point_distance_function, p_intersection_plane_constructor,
+                                                                                 distance_threshold, 0.1*distance_threshold);
+
+                        // Relocate node in direction of normal if the skin geometry is too close
+                        //TODO do not move outer boundary elements?
+                        if (std::abs(distance_node) < distance_threshold) {
                             // Get a measure of element size
                             const double length = r_geom.Length();
                             // Get normal of first intersecting object
@@ -275,20 +298,25 @@ namespace Kratos
                             array_1d<double,3> unit_normal = r_int_obj.GetGeometry().Normal(local_coords);
                             unit_normal /= norm_2(unit_normal);
 
-                            // Relocate node into the direction of the intersected object's normal
-                            // TODO Change node positions only for calculation of intersections? -> no, because skin points should be found in intersected elements!
-                            // NOTE that initial position (X0,Y0,Z0) is mesh output for visualization (ParaView)
-                            //TODO store also in deformation etc instead of initial position for visualization for moving geometry?
-                            const double relocation_distance = relocation_multiplier * length;  //--> 1e-3 (v works) vs. 1e-4 (v does not work)
+                            // Use negative normal direction for a negative distance value (so it moves away from skin geometry)
+                            if (distance_node < 0.0) {
+                                unit_normal *= (-1);
+                            }
+
+                            const double relocation_distance = std::max(distance_threshold, relocation_multiplier * length);
                             {
                                 std::scoped_lock<LockObject> lock(mutex);
 
-                                r_node.X0() += relocation_distance * unit_normal[0];
-                                r_node.Y0() += relocation_distance * unit_normal[1];
-                                r_node.Z0() += relocation_distance * unit_normal[2];
+                                // Relocate node into the direction of the intersected object's (negative) normal
                                 r_node.X()  += relocation_distance * unit_normal[0];
                                 r_node.Y()  += relocation_distance * unit_normal[1];
                                 r_node.Z()  += relocation_distance * unit_normal[2];
+
+                                // NOTE that initial position (X0,Y0,Z0) is mesh output for visualization (ParaView)
+                                //TODO store also in deformation etc instead of initial position for visualization for moving geometry?
+                                r_node.X0() += relocation_distance * unit_normal[0];
+                                r_node.Y0() += relocation_distance * unit_normal[1];
+                                r_node.Z0() += relocation_distance * unit_normal[2];
                                 r_node.Set(MODIFIED, true);
 
                                 //TODO correction needed for acceleration of the node?? correction needed for FM-ALE??
@@ -675,18 +703,35 @@ namespace Kratos
     double ShiftedBoundaryPointBasedInterfaceUtility::CalculateSkinDistanceToNode(
         const Node& rNode,
         const PointerVector<GeometricalObject>& rIntersectingObjects,
-        PointDistanceFunctionType pPointDistanceFunction)
+        PointDistanceFunctionType pPointDistanceFunction,
+        IntersectionPlaneConstructorType pIntersectionPlaneConstructor,
+        const double& DistanceThreshold,
+        const double& ThresholdForSignedness)
     {
         double minimal_distance = 1.0;
 
         // Compute distance of node to each given intersecting object
         for (const auto& it_int_obj : rIntersectingObjects.GetContainer()) {
             const auto& r_int_obj_geom = it_int_obj->GetGeometry();
-            const double distance = std::abs(pPointDistanceFunction(r_int_obj_geom, rNode));
+            double distance = pPointDistanceFunction(r_int_obj_geom, rNode);
 
             // Check that the computed distance is the minimal one so far
             if (distance < minimal_distance) {
                 minimal_distance = distance;
+                // Create plane to calculate signedness of distance if the distance value falls in
+                // below the minimal accepted distance and above the threshold at which the signedness makes a difference for resulting geometry
+                // In between these values the signedness ensures that the node moves away and not towards the skin geometry
+                if (minimal_distance < DistanceThreshold && minimal_distance > ThresholdForSignedness) {
+                    std::vector<array_1d<double,3>> plane_pts;
+                    for (std::size_t i_obj_node = 0; i_obj_node < r_int_obj_geom.PointsNumber(); ++i_obj_node){
+                        plane_pts.push_back(r_int_obj_geom[i_obj_node]);
+                    }
+                    Plane3D plane = pIntersectionPlaneConstructor(plane_pts);
+
+                    if (plane.CalculateSignedDistance(rNode) < 0.0){
+                        minimal_distance *= (-1);
+                    }
+                }
             }
         }
 

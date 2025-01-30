@@ -18,6 +18,7 @@
 
 // Project includes
 #include "containers/model.h"
+#include "geometries/plane_3d.h"
 #include "includes/define.h"
 #include "includes/key_hash.h"
 #include "modified_shape_functions/modified_shape_functions.h"
@@ -45,9 +46,12 @@ namespace ShiftedBoundaryUtilityInternals {
 
     //TODO
     template <std::size_t TDim>
-    double GetPointDistance(
+    double CalculatePointDistance(
         const Geometry<Node>& rObjectGeometry,
         const Point& rPoint);
+
+    template <std::size_t TDim>
+    Plane3D CreateIntersectionPlane(const std::vector<array_1d<double,3>>& rIntPtsVector);
 
 }  // namespace ShiftedBoundaryUtilityInternals
 
@@ -73,8 +77,8 @@ public:
         MLS
     };
 
-    //typedef double (*PointDistanceFunctionType)(const Geometry<Node>&, const Point&);
     using PointDistanceFunctionType = std::function<double(const Geometry<Node>&, const Point&)>;
+    using IntersectionPlaneConstructorType = std::function<Plane3D(const std::vector<array_1d<double,3>>&)>;
 
     using IndexType = ModelPart::IndexType;
 
@@ -262,7 +266,10 @@ protected:
     double CalculateSkinDistanceToNode(
         const NodeType& rNode,
         const PointerVector<GeometricalObject>& rIntersectingObjects,
-        PointDistanceFunctionType pPointDistanceFunction);
+        PointDistanceFunctionType pPointDistanceFunction,
+        IntersectionPlaneConstructorType pIntersectionPlaneConstructor,
+        const double& DistanceThreshold,
+        const double& ThresholdForSignedness);
 
     /**
      * @brief TODO. This method requires the skin to be stored in mpSkinModelPart as a Kratos model part with elements, integration points and area normals.
