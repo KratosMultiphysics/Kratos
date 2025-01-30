@@ -296,7 +296,7 @@ bool WriteMatrixMarketMatrix(const char *FileName, CompressedMatrixType &M, bool
 
     mm_set_matrix(&mm_code);
     mm_set_coordinate(&mm_code);
-    SetMatrixMarketValueTypeCode(mm_code, *M.begin1().begin());
+    SetMatrixMarketValueTypeCode(mm_code, typename CompressedMatrixType::value_type());
 
     if (Symmetric)
         mm_set_symmetric(&mm_code);

@@ -71,6 +71,7 @@ public:
     std::optional<std::vector<PipingElementType*>> TryDownCastToPipingElement(const std::vector<Element*>& rPipeElements)
     {
         std::vector<PipingElementType*> result;
+        result.reserve(rPipeElements.size());
         std::transform(rPipeElements.begin(), rPipeElements.end(), std::back_inserter(result),
                        [](auto p_element) { return dynamic_cast<PipingElementType*>(p_element); });
 
