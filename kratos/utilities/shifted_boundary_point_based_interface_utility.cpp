@@ -379,8 +379,6 @@ namespace Kratos
         std::for_each(mSkinPointsMap.begin(), mSkinPointsMap.end(), [](const std::pair<ElementType::Pointer, SkinPointsDataVectorType>& rKeyData){
            rKeyData.first->Set(SBM_BOUNDARY, true);
         });
-
-        KRATOS_INFO("ShiftedBoundaryPointBasedInterfaceUtility") << "'" << mSkinModelPartName << "' skin points were mapped to volume mesh elements."  << std::endl;
     }
 
     void ShiftedBoundaryPointBasedInterfaceUtility::SetInterfaceFlags()
@@ -413,7 +411,7 @@ namespace Kratos
                 }
             }
         });
-        KRATOS_INFO("ShiftedBoundaryPointBasedInterfaceUtility") << "'" << mSkinModelPartName << "' interface flags were set."  << std::endl;
+        KRATOS_INFO("ShiftedBoundaryPointBasedInterfaceUtility") << "Interface flags were set."  << std::endl;
     }
 
     void ShiftedBoundaryPointBasedInterfaceUtility::DeactivateElementsAndNodes()
@@ -757,7 +755,6 @@ namespace Kratos
         const double point_locator_tolerance = 1.0e-5;
         BinBasedFastPointLocator<TDim> point_locator(*mpModelPart);
         point_locator.UpdateSearchDatabase();
-        typename BinBasedFastPointLocator<TDim>::ResultContainerType search_results(point_locator_max_results);
 
         const GeometryData::IntegrationMethod integration_method = GeometryData::IntegrationMethod::GI_GAUSS_1;
 
@@ -771,10 +768,7 @@ namespace Kratos
         std::size_t n_skin_points_not_found = 0;
         std::size_t n_skin_points_found = 0;
         LockObject mutex;
-        // TODO Segmentation fault in parallel?? BinBasedFastPointLocator should be threadsafe for OpenMP
-        // TODO search_results needs to be private!
-        //block_for_each(mpSkinModelPart->Elements(), [&](ElementType& rSkinElement){
-        for (ElementType& rSkinElement : mpSkinModelPart->Elements()) {
+        block_for_each(mpSkinModelPart->Elements(), [&](ElementType& rSkinElement){
             const auto& r_skin_geom = rSkinElement.GetGeometry();
             const std::size_t n_gp = r_skin_geom.IntegrationPointsNumber(integration_method);
             const GeometryType::IntegrationPointsArrayType& integration_points = r_skin_geom.IntegrationPoints(integration_method);
@@ -799,13 +793,14 @@ namespace Kratos
                 // Search for the skin point in the volume mesh to get the element containing the point
                 Vector aux_N(TDim+1);
                 Element::Pointer p_element = nullptr;
+                typename BinBasedFastPointLocator<TDim>::ResultContainerType search_results(point_locator_max_results);
                 const bool is_found = point_locator.FindPointOnMesh(
                     skin_pt_position, aux_N, p_element,
                     search_results.begin(), point_locator_max_results, point_locator_tolerance);
 
                 // Add data to vectors (only one thread is allowed here at a time)
                 {
-                    //std::scoped_lock<LockObject> lock(mutex);
+                    std::scoped_lock<LockObject> lock(mutex);
                     if (is_found){
                         skin_point_located_elements.push_back(p_element);
                         skin_point_positions.push_back(skin_pt_position);
@@ -816,9 +811,7 @@ namespace Kratos
                     }
                 }
             }
-        }
-        //});
-        KRATOS_WATCH(n_skin_points_found);
+        });
         if (n_skin_points_not_found > 0) {
             KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility")
                 << n_skin_points_not_found << " skin points have not been found in any volume model part element." << std::endl;
@@ -854,8 +847,9 @@ namespace Kratos
                 }
             }
         });
-        //TODO remove
-        KRATOS_WATCH(n_elements_with_skin_points);
+
+        KRATOS_INFO("ShiftedBoundaryPointBasedInterfaceUtility") << "'" << mSkinModelPartName << "' skin points ("
+            << n_skin_points_found << ") were mapped to volume mesh elements (" << n_elements_with_skin_points << ")." << std::endl;
     }
 
     void ShiftedBoundaryPointBasedInterfaceUtility::SetSidesVectorsAndSkinNormalsForSplitElements(
