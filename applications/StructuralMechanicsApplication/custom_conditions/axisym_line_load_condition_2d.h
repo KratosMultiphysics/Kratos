@@ -43,7 +43,7 @@ namespace Kratos
  * Implements a line load condition for structural analysis.
  */
 
-class AxisymLineLoadCondition2D
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AxisymLineLoadCondition2D
     : public LineLoadCondition<2>
 {
 public:
