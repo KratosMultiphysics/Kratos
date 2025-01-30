@@ -77,7 +77,32 @@ namespace Kratos
         //Triangulation 
         static void Triangulate_OPT(const Clipper2Lib::Path64& polygon, std::vector<Matrix>& triangles, const double factor)
         {
-            if (polygon.size() == 4)
+            array_1d<double, 2> p1, p2, p3, p4;
+            int bestvertex;
+            double weight = 0;
+            double d1, d2 = 0.0;
+            double minweight = std::numeric_limits<double>::max();
+            Diagonal diagonal, newdiagonal;
+
+            std::list<Diagonal> diagonals;
+
+            IndexType n = polygon.size();
+            std::vector< Clipper2Lib::Point64 > const& points = polygon;
+
+            //if first and last point are coincide, neglect the last point
+            double p0_x, p0_y, pn_x, pn_y, dpx, dpy;
+            p0_x = BrepTrimmingUtilities::IntPointToDoublePoint(points[0], factor)[0];
+            p0_y = BrepTrimmingUtilities::IntPointToDoublePoint(points[0], factor)[1];
+            pn_x = BrepTrimmingUtilities::IntPointToDoublePoint(points[n - 1], factor)[0];
+            pn_y = BrepTrimmingUtilities::IntPointToDoublePoint(points[n - 1], factor)[1];
+            dpx = pn_x - p0_x;
+            dpy = pn_y - p0_y;
+
+            if(sqrt((dpx*dpx+dpy*dpy)) < 1e-9){
+                n = n - 1;
+            }
+
+            if (n == 3) //special case with only one triangle
             {
                 Matrix triangle(3, 2);
                 triangle(0, 0) = BrepTrimmingUtilities::IntPointToDoublePoint(polygon[0], factor)[0];
@@ -90,17 +115,6 @@ namespace Kratos
                 return;
             }
 
-            array_1d<double, 2> p1, p2, p3, p4;
-            int bestvertex;
-            double weight = 0;
-            double d1, d2 = 0.0;
-            double minweight = std::numeric_limits<double>::max();
-            Diagonal diagonal, newdiagonal;
-
-            std::list<Diagonal> diagonals;
-
-            IndexType n = polygon.size();
-            std::vector< Clipper2Lib::Point64 > const& points = polygon;
             matrix<DPState> dpstates(n, n);
 
             //init states and visibility
