@@ -28,10 +28,10 @@
             "domain_size":                        2,
             "model_import_settings":              {
                 "input_type":       "mdpa",
-                "input_filename":   "test"
+                "input_filename":   "../Common/test"
             },
             "material_import_settings":              {
-                "materials_filename":       "MaterialParameters.json"
+                "materials_filename":       "../Common/MaterialParameters.json"
             },
             "time_stepping":              {
                 "time_step":                1,
@@ -203,10 +203,10 @@
             "domain_size":                        2,
             "model_import_settings":              {
                 "input_type":       "mdpa",
-                "input_filename":   "test"
+                "input_filename":   "../Common/test"
             },
             "material_import_settings":              {
-                "materials_filename":       "MaterialParameters.json"
+                "materials_filename":       "../Common/MaterialParameters.json"
             },
             "time_stepping":              {
                 "time_step":                1,
