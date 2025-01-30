@@ -526,7 +526,7 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAndAddFluidBodyFlow(VectorTyp
 {
     KRATOS_TRY
 
-    rRightHandSideVector += this->CalculateFluidBodyFlow(rVariables);
+    noalias(rRightHandSideVector) += this->CalculateFluidBodyFlow(rVariables);
 
     KRATOS_CATCH("")
 }
