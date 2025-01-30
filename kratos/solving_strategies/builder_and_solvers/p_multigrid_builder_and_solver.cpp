@@ -1049,7 +1049,7 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
     // --------------------------------------------------------- //
 
     /// @brief Initialize the linear solver and solve the provided system.
-    void Solve(typename Interface::TSystemMatrixType& rLhs,
+    bool Solve(typename Interface::TSystemMatrixType& rLhs,
                typename Interface::TSystemVectorType& rSolution,
                typename Interface::TSystemVectorType& rRhs,
                ModelPart& rModelPart,
@@ -1066,7 +1066,10 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
         KRATOS_CATCH("")
 
         std::size_t i_iteration = 0ul;
-        typename ConstraintAssembler<TSparse,TDense>::Status status;
+        typename ConstraintAssembler<TSparse,TDense>::Status constraint_status {/*converged=*/false, /*finished=*/false};
+        bool linear_solver_status = false; //< Indicates whether the linear solver converged.
+        auto& r_linear_solver = rInterface.GetLinearSolver();
+
         do {
             mpConstraintAssembler->InitializeSolutionStep(rModelPart.MasterSlaveConstraints(),
                                                           rModelPart.GetProcessInfo(),
@@ -1075,17 +1078,19 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
                                                           rRhs,
                                                           rInterface.GetDofSet(),
                                                           i_iteration);
-            rInterface.GetLinearSolver().Solve(rLhs, rSolution, rRhs);
-            status = mpConstraintAssembler->FinalizeSolutionStep(rModelPart.MasterSlaveConstraints(),
+            r_linear_solver.InitializeSolutionStep(rLhs, rSolution, rRhs);
+            linear_solver_status = r_linear_solver.Solve(rLhs, rSolution, rRhs);
+            r_linear_solver.FinalizeSolutionStep(rLhs, rSolution, rRhs);
+            constraint_status = mpConstraintAssembler->FinalizeSolutionStep(rModelPart.MasterSlaveConstraints(),
                                                                  rModelPart.GetProcessInfo(),
                                                                  rLhs,
                                                                  rSolution,
                                                                  rRhs,
                                                                  rInterface.GetDofSet(),
                                                                  ++i_iteration);
-        } while (not status.finished);
+        } while (not constraint_status.finished);
 
-        if (1 <= mVerbosity and not status.converged) {
+        if (1 <= mVerbosity and not constraint_status.converged) {
             std::cerr << "PMultigridBuilderAndSolver: failed to converge constraints\n";
         }
 
@@ -1095,6 +1100,8 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
                                         rSolution,
                                         rRhs,
                                         mpInterface->GetDofSet());
+
+        return linear_solver_status && constraint_status.converged;
     }
 
 
@@ -1311,12 +1318,10 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::SetUpDofSet(typename In
                                                                      ModelPart& rModelPart)
 {
     KRATOS_TRY;
-
     BlockBuildDofArrayUtility::SetUpDofArray(rModelPart,
                                              this->GetDofSet(),
                                              this->GetEchoLevel(),
                                              this->GetCalculateReactionsFlag());
-
     KRATOS_CATCH("");
 }
 
@@ -1324,9 +1329,9 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::SetUpDofSet(typename In
 template <class TSparse, class TDense, class TSolver>
 void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::SetUpSystem(ModelPart& rModelPart)
 {
+    KRATOS_TRY
     this->mEquationSystemSize = this->GetDofSet().size();
 
-    KRATOS_TRY
     // Set equation indices of DoFs.
     IndexPartition<std::size_t>(this->GetDofSet().size()).for_each([&, this](std::size_t Index){
         (this->GetDofSet().begin() + Index)->SetEquationId(Index);
@@ -1428,7 +1433,7 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::BuildLHS(typename Inter
 {
     KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
     KRATOS_TRY
-    KRATOS_ERROR_IF(!pScheme) << "missing scheme" << std::endl;
+    KRATOS_ERROR_IF(!pScheme) << "missing scheme";
     mpImpl->template Assemble</*AssembleLHS=*/true,/*AssembleRHS=*/false>(rModelPart,
                                                                           *pScheme,
                                                                           &rLhs,
@@ -1561,7 +1566,10 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::BuildAndSolve(typename 
     ApplyDirichletConditions(pScheme, rModelPart, rLhs, rSolution, rRhs);
 
     // Solve constrained assembled system.
-    mpImpl->Solve(rLhs, rSolution, rRhs, rModelPart, *this);
+    if (not mpImpl->Solve(rLhs, rSolution, rRhs, rModelPart, *this) and 1 <= mpImpl->mVerbosity) {
+        std::cerr << this->Info() << ": failed to solve the assembled system\n";
+    }
+
     KRATOS_CATCH("")
 }
 
@@ -1659,7 +1667,7 @@ Parameters PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::GetDefaultParamet
 "constraint_imposition" : {
     "method" : "master_slave_elimination"
 },
-"verbosity"         : 0
+"verbosity"         : 1
 })");
     parameters.RecursivelyAddMissingParameters(Interface::GetDefaultParameters());
     return parameters;
