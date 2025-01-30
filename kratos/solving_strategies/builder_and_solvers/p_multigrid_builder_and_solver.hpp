@@ -114,25 +114,11 @@ public:
                                   typename Interface::TSystemVectorType& rSolution,
                                   typename Interface::TSystemVectorType& rRhs) override;
 
-    /// @copydoc BuilderAndSolver::ApplyRHSConstraints
-    void ApplyRHSConstraints(typename Interface::TSchemeType::Pointer pScheme,
-                             ModelPart& rModelPart,
-                             typename Interface::TSystemVectorType& rRhs) override;
-
     /// @copydoc BuilderAndSolver::ApplyConstraints
     void ApplyConstraints(typename Interface::TSchemeType::Pointer pScheme,
                           ModelPart& rModelPart,
                           typename Interface::TSystemMatrixType& rLhs,
                           typename Interface::TSystemVectorType& rRhs) override;
-
-    /// @}
-    /// @name Solution
-    /// @{
-
-    /// @copydoc BuilderAndSolver::SystemSolve
-    void SystemSolve(typename Interface::TSystemMatrixType& rLhs,
-                     typename Interface::TSystemVectorType& rSolution,
-                     typename Interface::TSystemVectorType& rRhs) override;
 
     /// @}
     /// @name Compound Assembly and Solution
@@ -144,13 +130,6 @@ public:
                        typename Interface::TSystemMatrixType& A,
                        typename Interface::TSystemVectorType& Dx,
                        typename Interface::TSystemVectorType& b) override;
-
-    /// @copydoc BuilderAndSolver::BuildRHSAndSolve
-    void BuildRHSAndSolve(typename Interface::TSchemeType::Pointer pScheme,
-                          ModelPart& rModelPart,
-                          typename Interface::TSystemMatrixType& rLhs,
-                          typename Interface::TSystemVectorType& rSolution,
-                          typename Interface::TSystemVectorType& rRhs) override;
 
     /// @}
     /// @name Postprocessing
@@ -186,6 +165,26 @@ public:
     /// @}
     /// @name Unsupported Interface
     /// @{
+
+    /// @warning Not implemented.
+    void SystemSolve(typename Interface::TSystemMatrixType& rLhs,
+                     typename Interface::TSystemVectorType& rSolution,
+                     typename Interface::TSystemVectorType& rRhs) override
+    {KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not implemented\n";}
+
+    /// @warning Not implemented.
+    void BuildRHSAndSolve(typename Interface::TSchemeType::Pointer pScheme,
+                          ModelPart& rModelPart,
+                          typename Interface::TSystemMatrixType& rLhs,
+                          typename Interface::TSystemVectorType& rSolution,
+                          typename Interface::TSystemVectorType& rRhs) override
+    {KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not implemented\n";}
+
+    /// @warning Not implemented.
+    void ApplyRHSConstraints(typename Interface::TSchemeType::Pointer pScheme,
+                             ModelPart& rModelPart,
+                             typename Interface::TSystemVectorType& rRhs) override
+    {KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not implemented\n";}
 
     /// @warning Not implemented.
     void BuildLHS_CompleteOnFreeRows(typename Interface::TSchemeType::Pointer pScheme,
