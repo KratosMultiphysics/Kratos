@@ -277,11 +277,15 @@ public:
             indices[i].insert(i); // Ensure that the diagonal is there in T
         }
 
-        MakeSparseTopology<typename TSparse::DataType>(indices,
-                                                       indices.size(),
-                                                       this->GetRelationMatrix());
+        MakeSparseTopology<false,typename TSparse::DataType>(indices,
+                                                             indices.size(),
+                                                             this->GetRelationMatrix());
         this->GetConstraintGapVector().resize(indices.size(), false);
 
+        KRATOS_CATCH("")
+
+        KRATOS_TRY
+        rLhs = SparseMatrixMultiplicationUtility::MergeMatrices<typename TSparse::DataType>(rLhs, this->GetRelationMatrix());
         KRATOS_CATCH("")
     }
 
@@ -550,9 +554,9 @@ public:
                 } // for i_slave in slave_ids
             }); // for r_constraint in rModelPart.MasterSlaveConstraints()
 
-            MakeSparseTopology<typename TSparse::DataType>(indices,
-                                                           rDofSet.size(),
-                                                           this->GetRelationMatrix());
+            MakeSparseTopology<false,typename TSparse::DataType>(indices,
+                                                                 rDofSet.size(),
+                                                                 this->GetRelationMatrix());
             this->GetConstraintGapVector().resize(indices.size(), false);
         }
 
@@ -1066,68 +1070,34 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
         KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
         KRATOS_TRY
 
-        std::vector<LockObject> mutexes(mpInterface->GetEquationSystemSize());
         std::vector<std::unordered_set<std::size_t> > indices(mpInterface->GetEquationSystemSize());
 
-        // Collect DoFs from elements.
-        Impl::CollectDoFs(MakeProxy<Globals::DataLocation::Element>(rModelPart),
-                          rModelPart.GetProcessInfo(),
-                          *rpScheme,
-                          mutexes.data(),
-                          mutexes.data() + mutexes.size(),
-                          indices.data(),
-                          indices.data() + indices.size());
+        {
+            std::vector<LockObject> mutexes(mpInterface->GetEquationSystemSize());
 
-        // Collect DoFs from conditions.
-        Impl::CollectDoFs(MakeProxy<Globals::DataLocation::Condition>(rModelPart),
-                          rModelPart.GetProcessInfo(),
-                          *rpScheme,
-                          mutexes.data(),
-                          mutexes.data() + mutexes.size(),
-                          indices.data(),
-                          indices.data() + indices.size());
+            // Collect DoFs from elements.
+            Impl::CollectDoFs(MakeProxy<Globals::DataLocation::Element>(rModelPart),
+                              rModelPart.GetProcessInfo(),
+                              *rpScheme,
+                              mutexes.data(),
+                              mutexes.data() + mutexes.size(),
+                              indices.data(),
+                              indices.data() + indices.size());
 
-//        // Collect DoFs from multifreedom constraints.
-//        if (rModelPart.MasterSlaveConstraints().size() != 0) {
-//            switch (this->mConstraintImposition) {
-//                case ConstraintImposition::MasterSlave: {
-//                    KRATOS_TRY
-//                    struct TLS {
-//                        Element::EquationIdVectorType master_ids, slave_ids;
-//                    };
-//
-//                    block_for_each(rModelPart.MasterSlaveConstraints(), TLS(), [&](MasterSlaveConstraint& r_constraint, TLS& r_tls){
-//                        r_constraint.EquationIdVector(r_tls.slave_ids, r_tls.master_ids, r_current_process_info);
-//
-//                        for (std::size_t i = 0; i < r_tls.slave_ids.size(); i++) {
-//                            auto& row_indices = indices[r_tls.slave_ids[i]];
-//                            std::scoped_lock<LockObject> lock(mutexes[r_tls.slave_ids[i]]);
-//                            row_indices.insert(r_tls.slave_ids[i]);
-//                        }
-//
-//                        for (std::size_t i = 0; i < r_tls.master_ids.size(); i++) {
-//                            auto& row_indices = indices[r_tls.master_ids[i]];
-//                            std::scoped_lock<LockObject> lock(mutexes[r_tls.master_ids[i]]);
-//                            row_indices.insert(r_tls.master_ids[i]);
-//                        }
-//                    });
-//                    KRATOS_CATCH("")
-//                    break;
-//                } // case ConstraintImposition::MasterSlave
-//
-//                default: {
-//                    KRATOS_ERROR << "Unsupported constraint imposition method" << (int)this->mConstraintImposition;
-//                }
-//            } // swith constraint imposition
-//        } // if rModelPart.MasterSlaveConstraints
-
-        // Destroy mutexes.
-        mutexes = std::vector<LockObject>();
+            // Collect DoFs from conditions.
+            Impl::CollectDoFs(MakeProxy<Globals::DataLocation::Condition>(rModelPart),
+                              rModelPart.GetProcessInfo(),
+                              *rpScheme,
+                              mutexes.data(),
+                              mutexes.data() + mutexes.size(),
+                              indices.data(),
+                              indices.data() + indices.size());
+        }
 
         // Compute and allocate LHS topology.
-        MakeSparseTopology<typename TSparse::DataType>(indices,
-                                                       indices.size(),
-                                                       rLhs);
+        MakeSparseTopology<false,typename TSparse::DataType>(indices,
+                                                             indices.size(),
+                                                             rLhs);
 
 
 
@@ -1585,7 +1555,7 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::AssignSettings(const Pa
     } else {
         std::stringstream message;
         message << "Unsupported constraint imposition \"" << constraint_imposition_name << "\". Options are:\n";
-        message << "\t\"master_slave_elimination\n\"";
+        message << "\t\"master_slave_elimination\"\n";
         message << "\t\"augmented_lagrange\"";
         KRATOS_ERROR << message.str();
     }

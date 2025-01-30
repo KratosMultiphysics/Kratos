@@ -75,7 +75,9 @@ struct UnionReduction
 } // namespace detail
 
 
-template <class TValue, class TRowMapContainer>
+template <bool SortedRows,
+          class TValue,
+          class TRowMapContainer>
 void MakeSparseTopology(const TRowMapContainer& rRows,
                         const std::size_t ColumnCount,
                         typename TUblasSparseSpace<TValue>::MatrixType& rMatrix)
@@ -115,10 +117,10 @@ void MakeSparseTopology(const TRowMapContainer& rRows,
                   rRows[i_row].end(),
                   r_column_indices.begin() + i_entry_begin);
 
-        // Column indices are inserted from an unknown table, so they might be unsorted
-        // => sort them.
-        std::sort(r_column_indices.begin() + i_entry_begin,
-                  r_column_indices.begin() + i_entry_end);
+        if constexpr (!SortedRows) {
+            std::sort(r_column_indices.begin() + i_entry_begin,
+                      r_column_indices.begin() + i_entry_end);
+        }
     });
 
     KRATOS_TRY
