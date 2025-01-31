@@ -8,6 +8,7 @@
     },
     "custom_entries": [
         "General",
+        "Processes",
         "Post_processing",
         "Step-by-step_Tutorial_in_GiD",
         "Ready-to-run_examples"
