@@ -46,13 +46,13 @@ A string that specifies the Python module containing the implementation of the `
 A label that identifies the problem to be solved.
 
 ##### `parallel_type`
-Specifies the parallelization method used for solving the problem. Currently, the MPMApplication only supports shared memory parallelization, meaning the only valid value is "OpenMP".
+Specifies the parallelization method used for solving the problem. Currently, the `MPMApplication` only supports shared memory parallelization, meaning the only valid value is `"OpenMP"`.
 
 ##### `echo_level`
 An integer that controls the verbosity level of the simulation output.
 Higher values result in more messages printed to the standard output, providing greater detail on the simulation's status.
-* Minimum: 0 - silent
-* Maximum: 4 - detailed output
+* Minimum: `0` - silent
+* Maximum: `4` - detailed output
 
 ##### `start_time`
 The starting time of the simulation.
