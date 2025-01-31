@@ -402,7 +402,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::ExtrapolateGPValues(const Matrix& S
 
     GeometryType&               r_geometry = this->GetGeometry();
     const double&               area       = r_geometry.Area(); // In 3D this is volume
-    array_1d<Vector, TNumNodes> nodal_stress_vector;              // List with stresses at each node
+    array_1d<Vector, TNumNodes> nodal_stress_vector;            // List with stresses at each node
     array_1d<Matrix, TNumNodes> nodal_stress_tensor;
 
     auto const StressTensorSize = this->GetStressStatePolicy().GetStressTensorSize();
@@ -432,7 +432,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::ExtrapolateGPValues(const Matrix& S
         noalias(nodal_stress_tensor[i]) = MathUtils<double>::StressVectorToTensor(nodal_stress_vector[i]);
 
         r_geometry[i].SetLock();
-        noalias(r_geometry[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)) += nodal_stress_tensor[i];
+        noalias(r_geometry[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)) +=
+            nodal_stress_tensor[i];
         r_geometry[i].FastGetSolutionStepValue(NODAL_AREA) += area;
         r_geometry[i].UnSetLock();
     }

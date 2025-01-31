@@ -1189,11 +1189,11 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddMixBodyForce(VectorType& rRi
     const auto soil_density = GeoTransportEquationUtilities::CalculateSoilDensity(
         rVariables.DegreeOfSaturation, this->GetProperties());
 
-    Vector   BodyAcceleration = ZeroVector(Dim);
-    SizeType Index            = 0;
+    Vector   body_acceleration = ZeroVector(Dim);
+    SizeType Index             = 0;
     for (SizeType i = 0; i < NumUNodes; ++i) {
         for (SizeType idim = 0; idim < Dim; ++idim) {
-            BodyAcceleration[idim] += rVariables.Nu[i] * rVariables.BodyAcceleration[Index];
+            body_acceleration[idim] += rVariables.Nu[i] * rVariables.BodyAcceleration[Index];
             Index++;
         }
     }
@@ -1201,7 +1201,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddMixBodyForce(VectorType& rRi
     for (SizeType i = 0; i < NumUNodes; ++i) {
         Index = i * Dim;
         for (SizeType idim = 0; idim < Dim; ++idim) {
-            rRightHandSideVector[Index + idim] += rVariables.Nu[i] * soil_density * BodyAcceleration[idim] *
+            rRightHandSideVector[Index + idim] += rVariables.Nu[i] * soil_density * body_acceleration[idim] *
                                                   rVariables.IntegrationCoefficientInitialConfiguration;
         }
     }
