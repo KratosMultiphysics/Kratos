@@ -138,6 +138,7 @@
 #include "custom_constitutive/small_strain_umat_3D_law.hpp"
 #include "custom_constitutive/three_dimensional.h"
 #include "custom_constitutive/truss_backbone_constitutive_law.h"
+#include "custom_constitutive/mohr_coulomb_constitutive_law.hpp"
 
 namespace Kratos
 {
@@ -982,6 +983,8 @@ private:
     const TrussBackboneConstitutiveLaw mTrussBackboneConstitutiveLaw;
 
     const GeoIncrementalLinearElasticInterfaceLaw mIncrementalLinearElasticInterfaceLaw;
+
+    const MohrCoulombConstitutiveLaw mMohrCoulombConstitutiveLaw;
 
     ///@}
 

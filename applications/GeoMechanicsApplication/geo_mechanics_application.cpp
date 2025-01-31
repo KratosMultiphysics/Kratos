@@ -375,6 +375,8 @@ void KratosGeoMechanicsApplication::Register()
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("Geo_IncrementalLinearElasticInterfaceLaw", mIncrementalLinearElasticInterfaceLaw)
 
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("MohrCoulombConstitutiveLaw", mMohrCoulombConstitutiveLaw)
+
     // Register Variables
     KRATOS_REGISTER_VARIABLE(VELOCITY_COEFFICIENT)
     KRATOS_REGISTER_VARIABLE(DT_PRESSURE_COEFFICIENT)
