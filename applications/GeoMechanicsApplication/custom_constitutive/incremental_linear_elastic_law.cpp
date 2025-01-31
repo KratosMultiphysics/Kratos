@@ -10,8 +10,8 @@
 //  Main authors:    Wijtze Pieter Kikstra
 //                   Richard Faasse
 
-#include "constitutive_law_dimension.h"
 #include "custom_constitutive/incremental_linear_elastic_law.h"
+#include "constitutive_law_dimension.h"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos

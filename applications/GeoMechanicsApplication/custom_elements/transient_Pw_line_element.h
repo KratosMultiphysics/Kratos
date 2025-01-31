@@ -299,8 +299,7 @@ private:
                 body_acceleration, rNContainer, volume_acceleration, integration_point_index);
             array_1d<double, TDim> tangent_vector = column(J_container[integration_point_index], 0);
             tangent_vector /= norm_2(tangent_vector);
-            projected_gravity(integration_point_index) =
-                MathUtils<>::Dot(tangent_vector, body_acceleration);
+            projected_gravity(integration_point_index) = MathUtils<>::Dot(tangent_vector, body_acceleration);
         }
         return projected_gravity;
     }
