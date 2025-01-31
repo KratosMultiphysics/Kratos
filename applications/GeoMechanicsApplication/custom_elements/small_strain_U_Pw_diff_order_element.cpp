@@ -32,6 +32,7 @@
 #include "custom_utilities/stress_strain_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "stress_state_policy.h"
+#include <numeric>
 
 namespace Kratos
 {
@@ -493,8 +494,10 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
 
         for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
              ++integration_point) {
+            const auto& shape_function_values = row(n_container, integration_point);
             rOutput[integration_point] =
-                MathUtils<>::Dot(row(n_container, integration_point), nodal_hydraulic_head);
+                std::inner_product(shape_function_values.begin(), shape_function_values.end(),
+                                   nodal_hydraulic_head.begin(), 0.0);
         }
     } else {
         for (unsigned int integration_point = 0; integration_point < number_of_integration_points;

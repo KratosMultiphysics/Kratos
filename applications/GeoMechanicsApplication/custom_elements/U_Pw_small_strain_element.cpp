@@ -20,6 +20,7 @@
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "custom_utilities/variables_utilities.hpp"
 #include "includes/cfd_variables.h"
+#include <numeric>
 
 namespace
 {
@@ -562,14 +563,15 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
         // Defining the shape functions, the Jacobian and the shape functions local gradients containers
         const Matrix& n_container = r_geometry.ShapeFunctionsValues(mThisIntegrationMethod);
 
-        const auto nodal_hydraulic_head = GeoElementUtilities::CalculateNodalHydraulicHeadFromWaterPressures(
-            r_geometry, r_properties);
+        const auto nodal_hydraulic_head =
+            GeoElementUtilities::CalculateNodalHydraulicHeadFromWaterPressures(r_geometry, r_properties);
 
         for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
              ++integration_point) {
+            const auto& shape_function_values = row(n_container, integration_point);
             rOutput[integration_point] =
-                MathUtils<double>::Dot(row(n_container, integration_point), nodal_hydraulic_head);
-            ;
+                std::inner_product(shape_function_values.begin(), shape_function_values.end(),
+                                   nodal_hydraulic_head.begin(), 0.0);
         }
     } else if (rVariable == CONFINED_STIFFNESS || rVariable == SHEAR_STIFFNESS) {
         size_t variable_index = 0;
