@@ -149,10 +149,10 @@ public:
         // Get access to A, B and C data
         const IndexType* index1_a = A.index1_data().begin();
         const IndexType* index2_a = A.index2_data().begin();
-        const double* values_a = A.value_data().begin();
+        const typename AMatrix::value_type* values_a = A.value_data().begin();
         const IndexType* index1_b = B.index1_data().begin();
         const IndexType* index2_b = B.index2_data().begin();
-        const double* values_b = B.value_data().begin();
+        const typename BMatrix::value_type* values_b = B.value_data().begin();
         IndexType* c_ptr = new IndexType[nrows + 1];
 
         c_ptr[0] = 0;
@@ -263,10 +263,10 @@ public:
         // Get access to A and B data
         const IndexType* index1_a = A.index1_data().begin();
         const IndexType* index2_a = A.index2_data().begin();
-        const double* values_a = A.value_data().begin();
+        const typename AMatrix::value_type* values_a = A.value_data().begin();
         const IndexType* index1_b = B.index1_data().begin();
         const IndexType* index2_b = B.index2_data().begin();
-        const double* values_b = B.value_data().begin();
+        const typename BMatrix::value_type* values_b = B.value_data().begin();
 
         // Definition of TLS
         struct TLS_max {
@@ -579,7 +579,7 @@ public:
         C = CMatrix(NRows, NCols, nonzero_values);
         IndexType* index1_c = C.index1_data().begin();
         IndexType* index2_c = C.index2_data().begin();
-        double* values_c = C.value_data().begin();
+        ValueType* values_c = C.value_data().begin();
 
         index1_c[0] = 0;
         for (TSize i = 0; i < NRows; i++) {
