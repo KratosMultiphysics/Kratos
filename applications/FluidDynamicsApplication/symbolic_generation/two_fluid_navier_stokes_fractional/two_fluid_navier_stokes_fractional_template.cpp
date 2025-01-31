@@ -824,7 +824,7 @@ double TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<3, 4>>:
     // Check that velocity gradient norm is non-zero
 
     //substitute_artificial_mu_grad_v_norm_3D_4N
-
+    // Check that velocity gradient norm is non-zero
     if (grad_v_norm > 1.0e-12) {
         // Calculate symbolic artificial viscosity
         //substitute_artificial_mu_3D_4N
