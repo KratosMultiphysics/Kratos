@@ -39,8 +39,8 @@ std::vector<double> CalculateIntegrationCoefficients(const Geo::IntegrationPoint
     };
     auto result = std::vector<double>{};
     result.reserve(rIntegrationPoints.size());
-    std::transform(rIntegrationPoints.begin(), rIntegrationPoints.end(), rDeterminantsOfJacobians.begin(),
-                   std::back_inserter(result), calculate_integration_coefficient);
+    std::ranges::transform(rIntegrationPoints, rDeterminantsOfJacobians, std::back_inserter(result),
+                           calculate_integration_coefficient);
 
     return result;
 }
@@ -50,8 +50,7 @@ std::vector<double> CalculateDeterminantsOfJacobiansAtIntegrationPoints(const Ge
 {
     auto result = std::vector<double>{};
     result.reserve(rIntegrationPoints.size());
-    std::transform(rIntegrationPoints.begin(), rIntegrationPoints.end(), std::back_inserter(result),
-                   [&rGeometry](const auto& rIntegrationPoint) {
+    std::ranges::transform(rIntegrationPoints, std::back_inserter(result), [&rGeometry](const auto& rIntegrationPoint) {
         return rGeometry.DeterminantOfJacobian(rIntegrationPoint);
     });
 
@@ -82,8 +81,7 @@ std::vector<Matrix> CalculateConstitutiveMatricesAtIntegrationPoints(
     };
     auto result = std::vector<Matrix>{};
     result.reserve(rConstitutiveLaws.size());
-    std::transform(rConstitutiveLaws.begin(), rConstitutiveLaws.end(), std::back_inserter(result),
-                   get_constitutive_matrix);
+    std::ranges::transform(rConstitutiveLaws, std::back_inserter(result), get_constitutive_matrix);
 
     return result;
 }
@@ -316,8 +314,7 @@ std::vector<Vector> LineInterfaceElement::CalculateTractionsAtIntegrationPoints(
     };
     auto result = std::vector<Vector>{};
     result.reserve(rRelativeDisplacements.size());
-    std::transform(rRelativeDisplacements.begin(), rRelativeDisplacements.end(),
-                   mConstitutiveLaws.begin(), std::back_inserter(result), calculate_traction);
+    std::ranges::transform(rRelativeDisplacements, mConstitutiveLaws, std::back_inserter(result), calculate_traction);
 
     return result;
 }

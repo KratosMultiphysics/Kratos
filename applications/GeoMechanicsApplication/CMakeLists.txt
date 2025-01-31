@@ -1,4 +1,5 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set (CMAKE_CXX_STANDARD 20)
 
 message("**** configuring KratosGeoMechanicsApplication ****")
 
