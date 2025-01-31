@@ -209,7 +209,7 @@ set(CMAKE_VISIBILITY_INLINES_HIDDEN "YES")
 
 # Set compiler flags
 if(${CMAKE_COMPILER_IS_GNUCXX})
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -Wall -Wl,--no-as-needed -ldl -Wsuggest-override")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -Wall -Wl,--no-as-needed -ldl -Wsuggest-override -Wno-error=attributes")
   if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0)
     message( "DEPRECATED: detected compiler as GCC " ${CMAKE_CXX_COMPILER_VERSION} )
     message( FATAL_ERROR "Please use Version 8 or greater")
