@@ -58,7 +58,7 @@ inline void AtomicAdd(TLeftData& target, const TRightData& value)
     #pragma omp atomic
     target += value;
 #elif defined(KRATOS_SMP_CXX11)
-    AtomicRef<TDataType>{target} += value;
+    AtomicRef<TLeftData>{target} += value;
 #else
     target += value;
 #endif
