@@ -8,6 +8,8 @@
     },
     "custom_entries": [
         "General",
+        "Input_Files",
+        "Constitutive_Laws",
         "Processes",
         "Post_processing",
         "Step-by-step_Tutorial_in_GiD",
