@@ -57,7 +57,7 @@ public:
     using FullDofMatrixType    = BoundedMatrix<double, TDim * TNumNodes, TDim * TNumNodes>;
     using FullDofVectorType    = BoundedVector<double, TDim * TNumNodes>;
 
-    GeoTrussElementBase(){};
+    GeoTrussElementBase() = default;
     GeoTrussElementBase(IndexType NewId, GeometryType::Pointer pGeometry);
     GeoTrussElementBase(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
@@ -96,20 +96,19 @@ public:
                                               const ProcessInfo& rCurrentProcessInfo);
 
     void Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
-
     void Calculate(const Variable<double>& rVariable, double& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+    using Element::Calculate;
 
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
                                       std::vector<double>&    rOutput,
                                       const ProcessInfo&      rCurrentProcessInfo) override;
-
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
                                       std::vector<array_1d<double, 3>>&    rOutput,
                                       const ProcessInfo& rCurrentProcessInfo) override;
-
     void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
                                       std::vector<Vector>&    rOutput,
                                       const ProcessInfo&      rCurrentProcessInfo) override;
+    using Element::CalculateOnIntegrationPoints;
 
     /**
      * @brief This function updates the internal normal force w.r.t. the current deformations
@@ -165,6 +164,8 @@ public:
                                  const Variable<array_1d<double, 3>>& rDestinationVariable,
                                  const ProcessInfo&                   rCurrentProcessInfo) override;
 
+    using Element::AddExplicitContribution;
+
     void GetValuesVector(Vector& rValues, int Step = 0) const override;
 
     void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
@@ -206,7 +207,8 @@ public:
 
     double ReturnTangentModulus1D(const ProcessInfo& rCurrentProcessInfo);
 
-    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+protected:
+    void FinalizeMaterialResponse(double Strain, const ProcessInfo& rCurrentProcessInfo);
 
 private:
     /**

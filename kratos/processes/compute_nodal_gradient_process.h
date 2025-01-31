@@ -18,10 +18,11 @@
 // External includes
 
 // Project includes
-#include "processes/process.h"
-#include "includes/node.h"
 #include "geometries/geometry.h"
+#include "includes/node.h"
 #include "includes/kratos_parameters.h"
+#include "includes/variables.h"
+#include "processes/process.h"
 
 namespace Kratos
 {

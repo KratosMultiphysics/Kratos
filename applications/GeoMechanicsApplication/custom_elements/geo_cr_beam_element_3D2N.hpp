@@ -18,7 +18,7 @@
 // External includes
 
 // Project includes
-#include "../StructuralMechanicsApplication/custom_elements/cr_beam_element_3D2N.hpp"
+#include "../StructuralMechanicsApplication/custom_elements/beam_elements/cr_beam_element_3D2N.hpp"
 #include "includes/define.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
@@ -51,11 +51,11 @@ public:
     using EquationIdVectorType = BaseType::EquationIdVectorType;
     using DofsVectorType       = BaseType::DofsVectorType;
 
-    GeoCrBeamElement3D2N(){};
+    GeoCrBeamElement3D2N() = default;
     GeoCrBeamElement3D2N(IndexType NewId, GeometryType::Pointer pGeometry);
     GeoCrBeamElement3D2N(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
-    ~GeoCrBeamElement3D2N() override;
+    ~GeoCrBeamElement3D2N() = default;
 
     /**
      * @brief Creates a new element
@@ -88,6 +88,7 @@ public:
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
                                       std::vector<array_1d<double, 3>>&    rOutput,
                                       const ProcessInfo& rCurrentProcessInfo) override;
+    using CrBeamElement3D2N::CalculateOnIntegrationPoints;
 
     void ResetConstitutiveLaw() override;
 

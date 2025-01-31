@@ -61,10 +61,10 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(GeoCurvedBeamElement);
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    /// Default Constructor
-    GeoCurvedBeamElement(IndexType NewId = 0) : GeoStructuralBaseElement<TDim, TNumNodes>(NewId) {}
+    explicit GeoCurvedBeamElement(IndexType NewId = 0)
+        : GeoStructuralBaseElement<TDim, TNumNodes>(NewId)
+    {
+    }
 
     /// Constructor using an array of nodes
     GeoCurvedBeamElement(IndexType NewId, const NodesArrayType& ThisNodes)
@@ -85,10 +85,7 @@ public:
         mThisIntegrationMethod = this->GetIntegrationMethod();
     }
 
-    /// Destructor
-    virtual ~GeoCurvedBeamElement() {}
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    ~GeoCurvedBeamElement() = default;
 
     Element::Pointer Create(IndexType               NewId,
                             NodesArrayType const&   ThisNodes,
@@ -97,8 +94,6 @@ public:
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -109,8 +104,6 @@ public:
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
                                       std::vector<array_1d<double, 3>>&    rOutput,
                                       const ProcessInfo& rCurrentProcessInfo) override;
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
     /// Member Variables
@@ -132,7 +125,6 @@ protected:
 
     void CalculateStrainVector(ElementVariables& rVariables) const;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     virtual void CalculateAll(MatrixType&        rLeftHandSideMatrix,
                               VectorType&        rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo,
@@ -160,11 +152,11 @@ protected:
                                          const ElementVariables& rVariables,
                                          BoundedMatrix<double, TDim, TDim>& DeterminantJacobian) const;
 
-    void CalculateAndAddBodyForce(VectorType& rRightHandSideVector, ElementVariables& rVariables) const;
+    void CalculateAndAddBodyForce(VectorType& rRightHandSideVector, const ElementVariables& rVariables) const;
 
-    void CalculateAndAddStiffnessForce(VectorType&       rRightHandSideVector,
-                                       ElementVariables& rVariables,
-                                       unsigned int      GPoint) const;
+    void CalculateAndAddStiffnessForce(VectorType&             rRightHandSideVector,
+                                       const ElementVariables& rVariables,
+                                       unsigned int            GPoint) const;
     void SetRotationalInertiaVector(const PropertiesType& Prop, Vector& RotationalInertia) const;
 
     void InitializeElementVariables(ElementVariables&            rVariables,
@@ -175,8 +167,6 @@ protected:
 
     void InterpolateOnOutputPoints(Matrix& Values) const;
     void InterpolateOnOutputPoints(Vector& Values) const;
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
     /// Assignment operator.

@@ -219,6 +219,22 @@ public:
         const Variable<Matrix>& rMatrixVariable,
         TContainerType& rEntities);
 
+    /**
+     * @brief Extracts data which belongs to given model part from the expression.
+     *
+     * This method extracts data which belongs to entities in rExtractionModelPart from
+     * the given rInput container expression.
+     *
+     * @tparam TContainerType
+     * @param rInputExpression                                      Input expression.
+     * @param rExtractionModelPart                                  The model part where the entities are located to extract data.
+     * @return ContainerExpression<ModelPart::NodesContainerType>   Output expression with extracted data.
+     */
+    template<class TContainerType>
+    static ContainerExpression<TContainerType> ExtractData(
+        ContainerExpression<TContainerType>& rInputExpression,
+        ModelPart& rExtractionModelPart);
+
     ///@}
     ///@name Static operations derrived from Kratos::ExpressionUtils
     ///@{

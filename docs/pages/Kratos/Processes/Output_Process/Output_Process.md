@@ -12,7 +12,7 @@ This section intends to describe what is an output process in Kratos and the dif
 
 ## Description
 
-Output Processes in kratos, like process, are a set of utilities that will be executed during an `AnalysisStage`. The main characteristic of the output process procsses is that in addition to the regular execution points of a process, they have an additional fixed execute point `PrintOutput` and a function to evaluate if the current step is valid for printing `IsOutputStep` . For more information see [AnalysisStage Sequence Diagram](../Sequence_Diagrams/General/AnalysisStage):
+Output Processes in kratos, like process, are a set of utilities that will be executed during an `AnalysisStage`. The main characteristic of the output process procsses is that in addition to the regular execution points of a process, they have an additional fixed execute point `PrintOutput` and a function to evaluate if the current step is valid for printing `IsOutputStep` . For more information see [AnalysisStage Sequence Diagram](../../Sequence_Diagrams/General/AnalysisStage):
 
 - `ExecuteInitialize`: Will be called during the initialize sequence of an `AnalysisStage`, before the initialization of the `Solver`.
 
@@ -34,5 +34,6 @@ Output Processes in kratos, like process, are a set of utilities that will be ex
 
 ## List of Output Processes:
 
-- [GiD Output Process](/GiD_Output_process)
-- [Vtk Output Process](/VTK_Output_process)
+- [GiD Output Process](./GiD_Output_Process)
+- [VTK Output Process](./VTK_Output_Process)
+- [Point Output Process](./Point_output_process)

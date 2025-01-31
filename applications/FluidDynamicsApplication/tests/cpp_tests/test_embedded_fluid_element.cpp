@@ -14,7 +14,6 @@
 #include <iomanip> // for std::setprecision
 
 // Project includes
-#include "testing/testing.h"
 #include "containers/model.h"
 #include "includes/model_part.h"
 #include "includes/cfd_variables.h"
@@ -22,6 +21,7 @@
 // Application includes
 #include "fluid_dynamics_application_variables.h"
 #include "custom_constitutive/newtonian_2d_law.h"
+#include "tests/cpp_tests/fluid_dynamics_fast_suite.h"
 
 namespace Kratos {
 namespace Testing {
@@ -42,6 +42,7 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElement2D3N, FluidDynamicsApplicationFastSuite
     model_part.AddNodalSolutionStepVariable(ACCELERATION);
     model_part.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
     model_part.AddNodalSolutionStepVariable(REACTION_WATER_PRESSURE);
+    model_part.AddNodalSolutionStepVariable(SOLID_FRACTION_VELOCITY);
 
     // For VMS comparison
     model_part.AddNodalSolutionStepVariable(NODAL_AREA);

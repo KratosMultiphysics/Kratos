@@ -14,7 +14,8 @@
 
 #include "custom_utilities/input_utility.h"
 
-namespace Kratos {
+namespace Kratos
+{
 
 class StubInputUtility : public InputUtility
 {
@@ -29,9 +30,9 @@ public:
     int NumberOfMaterialCalls() const;
 
 private:
-    mutable int mNumberOfReadCalls = 0;
+    mutable int mNumberOfReadCalls     = 0;
     mutable int mNumberOfMaterialCalls = 0;
     std::string mParameterJsonString;
 };
 
-} // Kratos
+} // namespace Kratos

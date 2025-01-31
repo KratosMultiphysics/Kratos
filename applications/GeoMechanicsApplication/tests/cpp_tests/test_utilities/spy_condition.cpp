@@ -11,7 +11,8 @@
 //
 #include "spy_condition.h"
 
-namespace Kratos::Testing {
+namespace Kratos::Testing
+{
 
 void SpyCondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
@@ -33,46 +34,12 @@ void SpyCondition::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcess
     mNonLinIterationFinalized = true;
 }
 
-void SpyCondition::EquationIdVector(Condition::EquationIdVectorType& rResult,
-                                    const ProcessInfo& rCurrentProcessInfo) const
-{
-    mIsEquationIdRetrieved = true;
-}
+bool SpyCondition::IsSolutionStepInitialized() const { return mSolutionStepInitialized; }
 
-void SpyCondition::GetDofList(Condition::DofsVectorType& rElementalDofList,
-                              const ProcessInfo& rCurrentProcessInfo) const
-{
-    mIsGetDofListCalled = true;
-}
+bool SpyCondition::IsSolutionStepFinalized() const { return mSolutionStepFinalized; }
 
-bool SpyCondition::IsSolutionStepInitialized() const
-{
-    return mSolutionStepInitialized;
-}
+bool SpyCondition::IsNonLinIterationInitialized() const { return mNonLinIterationInitialized; }
 
-bool SpyCondition::IsSolutionStepFinalized() const
-{
-    return mSolutionStepFinalized;
-}
-
-bool SpyCondition::IsNonLinIterationInitialized() const
-{
-    return mNonLinIterationInitialized;
-}
-
-bool SpyCondition::IsNonLinIterationFinalized() const
-{
-    return mNonLinIterationFinalized;
-}
-
-bool SpyCondition::IsEquationIdRetrieved() const
-{
-    return mIsEquationIdRetrieved;
-}
-
-bool SpyCondition::IsGetDofListCalled() const
-{
-    return mIsGetDofListCalled;
-}
+bool SpyCondition::IsNonLinIterationFinalized() const { return mNonLinIterationFinalized; }
 
 } // namespace Kratos::Testing

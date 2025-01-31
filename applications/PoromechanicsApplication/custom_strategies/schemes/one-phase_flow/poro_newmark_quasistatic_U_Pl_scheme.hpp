@@ -131,20 +131,14 @@ public:
         r_model_part.GetProcessInfo().SetValue(VELOCITY_COEFFICIENT,1.0/(mTheta_u*mDeltaTime));
         r_model_part.GetProcessInfo().SetValue(DT_LIQUID_PRESSURE_COEFFICIENT,1.0/(mTheta_p*mDeltaTime));
 
-        const int NNodes = static_cast<int>(r_model_part.Nodes().size());
-        ModelPart::NodesContainerType::iterator node_begin = r_model_part.NodesBegin();
-
         // Initialize INITIAL_STRESS_TENSOR
-        #pragma omp parallel for
-        for(int i = 0; i < NNodes; i++)
-        {
-            ModelPart::NodesContainerType::iterator itNode = node_begin + i;
-
-            Matrix& rInitialStress = itNode->FastGetSolutionStepValue(INITIAL_STRESS_TENSOR);
-            if(rInitialStress.size1() != 3)
-                rInitialStress.resize(3,3,false);
-            noalias(rInitialStress) = ZeroMatrix(3,3);
-        }
+        block_for_each(r_model_part.Nodes(), [](Node& rNode){
+            auto& r_initial_stress = rNode.FastGetSolutionStepValue(INITIAL_STRESS_TENSOR);
+            if (r_initial_stress.size1() != 3 || r_initial_stress.size2() != 3) {
+                r_initial_stress.resize(3,3,false);
+            }
+            r_initial_stress.clear();
+        });
 
         BaseType::mSchemeIsInitialized = true;
 
@@ -319,6 +313,8 @@ public:
                 noalias(rNodalStress) = ZeroMatrix(3,3);
                 itNode->FastGetSolutionStepValue(NODAL_JOINT_AREA) = 0.0;
                 itNode->FastGetSolutionStepValue(NODAL_JOINT_WIDTH) = 0.0;
+                itNode->FastGetSolutionStepValue(NODAL_MID_PLANE_LIQUID_PRESSURE) = 0.0;
+                itNode->FastGetSolutionStepValue(NODAL_SLIP_TENDENCY) = 0.0;
                 itNode->FastGetSolutionStepValue(NODAL_JOINT_DAMAGE) = 0.0;
             }
 
@@ -350,6 +346,10 @@ public:
                     const double InvNodalJointArea = 1.0/NodalJointArea;
                     double& NodalJointWidth = itNode->FastGetSolutionStepValue(NODAL_JOINT_WIDTH);
                     NodalJointWidth *= InvNodalJointArea;
+                    double& NodalMidPlaneLiquidPressure = itNode->FastGetSolutionStepValue(NODAL_MID_PLANE_LIQUID_PRESSURE);
+                    NodalMidPlaneLiquidPressure *= InvNodalJointArea;
+                    double& NodalSlipTendency = itNode->FastGetSolutionStepValue(NODAL_SLIP_TENDENCY);
+                    NodalSlipTendency *= InvNodalJointArea;
                     double& NodalJointDamage = itNode->FastGetSolutionStepValue(NODAL_JOINT_DAMAGE);
                     NodalJointDamage *= InvNodalJointArea;
                 }

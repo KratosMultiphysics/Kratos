@@ -16,7 +16,7 @@
 
 // Project includes
 #include "containers/model.h"
-#include "testing/testing.h"
+#include "structural_mechanics_fast_suite.h"
 #include "includes/expect.h"
 #include "geometries/prism_3d_6.h"
 
