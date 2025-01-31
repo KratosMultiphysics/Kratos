@@ -54,7 +54,7 @@ int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo
 {
     KRATOS_TRY
 
-    if (auto ierr = UPwBaseElement::Check(rCurrentProcessInfo); ierr != 0) return ierr;
+    if (const auto ierr = UPwBaseElement::Check(rCurrentProcessInfo); ierr != 0) return ierr;
 
     const auto& r_geom = GetGeometry();
 
@@ -547,7 +547,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
             for (SizeType i = 0; i < r_geometry.PointsNumber(); ++i) {
                 for (unsigned int idim = 0; idim < dimension; ++idim) {
                     body_acceleration[idim] += Variables.Nu[i] * Variables.BodyAcceleration[Index];
-                    Index++;
+                    ++Index;
                 }
             }
 
@@ -559,9 +559,10 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
                 PORE_PRESSURE_SIGN_FACTOR * GetProperties()[DENSITY_WATER] * body_acceleration;
 
             // Compute fluid flux vector q [L/T]
-            rOutput[g_point] = ZeroVector(3);
-            noalias(rOutput[g_point]) = PORE_PRESSURE_SIGN_FACTOR * Variables.DynamicViscosityInverse *
-                         relative_permeability * prod(Variables.IntrinsicPermeability, grad_pressure_term);
+            rOutput[g_point]          = ZeroVector(3);
+            noalias(rOutput[g_point]) = PORE_PRESSURE_SIGN_FACTOR *
+                                        Variables.DynamicViscosityInverse * relative_permeability *
+                                        prod(Variables.IntrinsicPermeability, grad_pressure_term);
         }
     }
 
@@ -1189,7 +1190,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddMixBodyForce(VectorType& rRi
     for (SizeType i = 0; i < NumUNodes; ++i) {
         for (SizeType idim = 0; idim < Dim; ++idim) {
             body_acceleration[idim] += rVariables.Nu[i] * rVariables.BodyAcceleration[Index];
-            Index++;
+            ++Index;
         }
     }
 

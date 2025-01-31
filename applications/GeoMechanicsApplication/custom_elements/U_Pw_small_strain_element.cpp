@@ -160,7 +160,7 @@ int UPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentPro
 
     // Base class checks for positive area and Id > 0
     // Verify generic variables
-    if (auto ierr = UPwBaseElement::Check(rCurrentProcessInfo); ierr != 0) return ierr;
+    if (const auto ierr = UPwBaseElement::Check(rCurrentProcessInfo); ierr != 0) return ierr;
 
     const PropertiesType& r_properties = this->GetProperties();
     const GeometryType&   r_geometry   = this->GetGeometry();
@@ -505,40 +505,40 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
                 StressStrainUtilities::CalculateMeanStress(stress_vector[integration_point]);
         }
     } else if (rVariable == ENGINEERING_VON_MISES_STRAIN) {
-        std::vector<Vector> StrainVector;
-        CalculateOnIntegrationPoints(ENGINEERING_STRAIN_VECTOR, StrainVector, rCurrentProcessInfo);
+        std::vector<Vector> strain_vector;
+        CalculateOnIntegrationPoints(ENGINEERING_STRAIN_VECTOR, strain_vector, rCurrentProcessInfo);
 
         for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
              ++integration_point) {
             rOutput[integration_point] =
-                StressStrainUtilities::CalculateVonMisesStrain(StrainVector[integration_point]);
+                StressStrainUtilities::CalculateVonMisesStrain(strain_vector[integration_point]);
         }
     } else if (rVariable == ENGINEERING_VOLUMETRIC_STRAIN) {
-        std::vector<Vector> StrainVector;
-        CalculateOnIntegrationPoints(ENGINEERING_STRAIN_VECTOR, StrainVector, rCurrentProcessInfo);
+        std::vector<Vector> strain_vector;
+        CalculateOnIntegrationPoints(ENGINEERING_STRAIN_VECTOR, strain_vector, rCurrentProcessInfo);
 
         for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
              ++integration_point) {
             rOutput[integration_point] =
-                StressStrainUtilities::CalculateTrace(StrainVector[integration_point]);
+                StressStrainUtilities::CalculateTrace(strain_vector[integration_point]);
         }
     } else if (rVariable == GREEN_LAGRANGE_VON_MISES_STRAIN) {
-        std::vector<Vector> StrainVector;
-        CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR, StrainVector, rCurrentProcessInfo);
+        std::vector<Vector> strain_vector;
+        CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR, strain_vector, rCurrentProcessInfo);
 
         for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
              ++integration_point) {
             rOutput[integration_point] =
-                StressStrainUtilities::CalculateVonMisesStrain(StrainVector[integration_point]);
+                StressStrainUtilities::CalculateVonMisesStrain(strain_vector[integration_point]);
         }
     } else if (rVariable == GREEN_LAGRANGE_VOLUMETRIC_STRAIN) {
-        std::vector<Vector> StrainVector;
-        CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR, StrainVector, rCurrentProcessInfo);
+        std::vector<Vector> strain_vector;
+        CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR, strain_vector, rCurrentProcessInfo);
 
         for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
              ++integration_point) {
             rOutput[integration_point] =
-                StressStrainUtilities::CalculateTrace(StrainVector[integration_point]);
+                StressStrainUtilities::CalculateTrace(strain_vector[integration_point]);
         }
     } else if (rVariable == DEGREE_OF_SATURATION || rVariable == EFFECTIVE_SATURATION ||
                rVariable == BISHOP_COEFFICIENT || rVariable == DERIVATIVE_OF_SATURATION ||
@@ -546,7 +546,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
         ElementVariables Variables;
         this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
-        RetentionLaw::Parameters RetentionParameters(this->GetProperties());
+        RetentionLaw::Parameters RetentionParameters(r_properties);
 
         for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
              ++integration_point) {
@@ -563,7 +563,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
         const Matrix& n_container = r_geometry.ShapeFunctionsValues(mThisIntegrationMethod);
 
         const auto nodal_hydraulic_head = GeoElementUtilities::CalculateNodalHydraulicHeadFromWaterPressures(
-            r_geometry, this->GetProperties());
+            r_geometry, r_properties);
 
         for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
              ++integration_point) {
@@ -683,9 +683,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
     if (rVariable == CAUCHY_STRESS_VECTOR) {
         for (unsigned int integration_point = 0; integration_point < mConstitutiveLawVector.size();
              ++integration_point) {
-            if (rOutput[integration_point].size() != mStressVector[integration_point].size())
-                rOutput[integration_point].resize(mStressVector[integration_point].size(), false);
-
+            rOutput[integration_point].resize(mStressVector[integration_point].size(), false);
             rOutput[integration_point] = mStressVector[integration_point];
         }
     } else if (rVariable == TOTAL_STRESS_VECTOR) {
@@ -740,9 +738,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
             Variables.StrainVector =
                 StressStrainUtilities::CalculateCauchyStrain(Variables.B, Variables.DisplacementVector);
 
-            if (rOutput[integration_point].size() != Variables.StrainVector.size())
-                rOutput[integration_point].resize(Variables.StrainVector.size(), false);
-
+            rOutput[integration_point].resize(Variables.StrainVector.size(), false);
             rOutput[integration_point] = Variables.StrainVector;
         }
     } else if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR) {
@@ -794,22 +790,22 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
                 MathUtils<double>::StressVectorToTensor(StressVector[integration_point]);
         }
     } else if (rVariable == ENGINEERING_STRAIN_TENSOR) {
-        std::vector<Vector> StrainVector;
-        CalculateOnIntegrationPoints(ENGINEERING_STRAIN_VECTOR, StrainVector, rCurrentProcessInfo);
+        std::vector<Vector> strain_vector;
+        CalculateOnIntegrationPoints(ENGINEERING_STRAIN_VECTOR, strain_vector, rCurrentProcessInfo);
 
         for (unsigned int integration_point = 0; integration_point < mConstitutiveLawVector.size();
              ++integration_point) {
             rOutput[integration_point] =
-                MathUtils<double>::StrainVectorToTensor(StrainVector[integration_point]);
+                MathUtils<double>::StrainVectorToTensor(strain_vector[integration_point]);
         }
     } else if (rVariable == GREEN_LAGRANGE_STRAIN_TENSOR) {
-        std::vector<Vector> StrainVector;
-        CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR, StrainVector, rCurrentProcessInfo);
+        std::vector<Vector> strain_vector;
+        CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR, strain_vector, rCurrentProcessInfo);
 
         for (unsigned int integration_point = 0; integration_point < mConstitutiveLawVector.size();
              ++integration_point) {
             rOutput[integration_point] =
-                MathUtils<double>::StrainVectorToTensor(StrainVector[integration_point]);
+                MathUtils<double>::StrainVectorToTensor(strain_vector[integration_point]);
         }
     } else if (rVariable == PERMEABILITY_MATRIX) {
         // If the permeability of the element is a given property

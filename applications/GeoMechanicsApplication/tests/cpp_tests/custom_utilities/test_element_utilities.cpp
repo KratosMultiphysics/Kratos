@@ -49,7 +49,7 @@ KRATOS_TEST_CASE_IN_SUITE(ElementUtilities_ReturnsCorrectListOfShapeFunctionsVal
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ElementUtilities_ChecksPropertieThrowsErrorsForWrongProperties,
+KRATOS_TEST_CASE_IN_SUITE(ElementUtilities_ChecksPropertiesThrowsErrorsForWrongProperties,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Properties properties(2);
