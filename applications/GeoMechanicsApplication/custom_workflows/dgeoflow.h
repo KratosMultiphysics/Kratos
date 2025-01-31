@@ -115,6 +115,7 @@ public:
                           const Kratos::Parameters& rGidOutputSettings,
                           const CriticalHeadInfo&   rCriticalHeadInfo,
                           LoggerOutput::Pointer     pOutput,
+                          const std::stringstream&  rKratosLogBuffer,
                           const CallBackFunctions&  rCallBackFunctions,
                           const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer pSolvingStrategy);
 
@@ -126,13 +127,16 @@ public:
                          const Kratos::Parameters&  rGidOutputSettings,
                          const CriticalHeadInfo&    rCriticalHeadInfo,
                          LoggerOutput::Pointer      pOutput,
+                         const std::stringstream&   rKratosLogBuffer,
                          const shared_ptr<Process>& pRiverBoundary,
                          const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer pSolvingStrategy,
                          const CallBackFunctions& rCallBackFunctions);
 
     void HandleCriticalHeadFound(const CriticalHeadInfo& rCriticalHeadInfo);
 
-    void HandleCleanUp(const CallBackFunctions& rCallBackFunctions, LoggerOutput::Pointer pOutput);
+    void HandleCleanUp(const CallBackFunctions& rCallBackFunctions,
+                       LoggerOutput::Pointer    pOutput,
+                       const std::stringstream& rKratosLogBuffer);
 
 private:
     // Initial Setup
