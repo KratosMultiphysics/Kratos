@@ -113,8 +113,7 @@ public:
         }
     }
 
-    static void CheckPermeabilityProperties(const Element::PropertiesType& rProp,
-                                                                 size_t Dimension);
+    static void CheckPermeabilityProperties(const Element::PropertiesType& rProp, size_t Dimension);
 
     static void FillPermeabilityMatrix(BoundedMatrix<double, 1, 1>&   rPermeabilityMatrix,
                                        const Element::PropertiesType& Prop);
