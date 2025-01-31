@@ -1049,7 +1049,8 @@ std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateDegreesOfSa
 
     auto retention_law_params = RetentionLaw::Parameters{this->GetProperties()};
     std::transform(rFluidPressures.begin(), rFluidPressures.end(), mRetentionLawVector.begin(),
-                   std::back_inserter(result), [&retention_law_params](auto fluid_pressure, const auto& pRetentionLaw) {
+                   std::back_inserter(result),
+                   [&retention_law_params](auto fluid_pressure, const auto& pRetentionLaw) {
         retention_law_params.SetFluidPressure(fluid_pressure);
         return pRetentionLaw->CalculateSaturation(retention_law_params);
     });
