@@ -250,23 +250,28 @@ public:
         CMatrix &C
         )
     {
-        using ValueType = typename CMatrix::value_type;
+        using AIndex = typename AMatrix::index_array_type::value_type;
+        using AValue = typename AMatrix::value_type;
+        using BIndex = typename BMatrix::index_array_type::value_type;
+        using BValue = typename BMatrix::value_type;
+        using CIndex = typename CMatrix::index_array_type::value_type;
+        using CValue = typename CMatrix::value_type;
 
         // Auxiliary sizes
-        const SizeType nrows = A.size1();
-        const SizeType ncols = B.size2();
+        const AIndex nrows = A.size1();
+        const BIndex ncols = B.size2();
 
         // Exiting just in case of empty matrix
         if ((nrows == 0) || (ncols == 0))
             return void();
 
         // Get access to A and B data
-        const IndexType* index1_a = A.index1_data().begin();
-        const IndexType* index2_a = A.index2_data().begin();
-        const typename AMatrix::value_type* values_a = A.value_data().begin();
-        const IndexType* index1_b = B.index1_data().begin();
-        const IndexType* index2_b = B.index2_data().begin();
-        const typename BMatrix::value_type* values_b = B.value_data().begin();
+        const AIndex* index1_a = A.index1_data().begin();
+        const AIndex* index2_a = A.index2_data().begin();
+        const AValue* values_a = A.value_data().begin();
+        const BIndex* index1_b = B.index1_data().begin();
+        const BIndex* index2_b = B.index2_data().begin();
+        const BValue* values_b = B.value_data().begin();
 
         // Definition of TLS
         struct TLS_max {
@@ -289,8 +294,8 @@ public:
         // We check the number of threads
         const unsigned int number_of_threads = ParallelUtilities::GetNumThreads();
 
-        std::vector<std::vector<IndexType>> tmp_col(number_of_threads);
-        std::vector<std::vector<ValueType>> tmp_val(number_of_threads);
+        std::vector<std::vector<CIndex>> tmp_col(number_of_threads);
+        std::vector<std::vector<CValue>> tmp_val(number_of_threads);
 
         for(unsigned int i = 0; i < number_of_threads; ++i) {
             tmp_col[i].resize(3 * max_row_width);
@@ -298,7 +303,7 @@ public:
         }
 
         // We create the c_ptr auxiliary variable
-        IndexType* c_ptr = new IndexType[nrows + 1];
+        CIndex* c_ptr = new CIndex[nrows + 1];
         c_ptr[0] = 0;
 
         IndexPartition<IndexType>(nrows).for_each([&](IndexType i) {
@@ -309,16 +314,18 @@ public:
             #ifdef _OPENMP
                 tid = omp_get_thread_num();
             #endif
-            IndexType* t_col = &tmp_col[tid][0];
+            CIndex* t_col = &tmp_col[tid][0];
 
-            c_ptr[i+1] = ProdRowWidth( index2_a + row_beg, index2_a + row_end, index1_b, index2_b, t_col, t_col + max_row_width, t_col + 2 * max_row_width );
+            c_ptr[i+1] = ProdRowWidth(index2_a + row_beg, index2_a + row_end,
+                                      index1_b, index2_b,
+                                      t_col, t_col + max_row_width, t_col + 2 * max_row_width);
         });
 
         // We initialize the sparse matrix
         std::partial_sum(c_ptr, c_ptr + nrows + 1, c_ptr);
         const SizeType nonzero_values = c_ptr[nrows];
-        IndexType* aux_index2_c = new IndexType[nonzero_values];
-        ValueType* aux_val_c = new ValueType[nonzero_values];
+        CIndex* aux_index2_c = new CIndex[nonzero_values];
+        CValue* aux_val_c = new CValue[nonzero_values];
 
         IndexPartition<IndexType>(nrows).for_each([&](IndexType i) {
             const IndexType row_beg = index1_a[i];
@@ -329,11 +336,14 @@ public:
                 tid = omp_get_thread_num();
             #endif
 
-            IndexType* t_col = tmp_col[tid].data();
-            ValueType* t_val = tmp_val[tid].data();
+            CIndex* t_col = tmp_col[tid].data();
+            CValue* t_val = tmp_val[tid].data();
 
             ProdRow(index2_a + row_beg, index2_a + row_end, values_a + row_beg,
-                    index1_b, index2_b, values_b, aux_index2_c + c_ptr[i], aux_val_c + c_ptr[i], t_col, t_val, t_col + max_row_width, t_val + max_row_width );
+                    index1_b, index2_b, values_b,
+                    aux_index2_c + c_ptr[i], aux_val_c + c_ptr[i],
+                    t_col, t_val,
+                    t_col + max_row_width, t_val + max_row_width);
         });
 
         // We fill the matrix
@@ -932,18 +942,18 @@ private:
      * @param Column3 The index of the third matrix column
      * @return The resulting row
      */
-    template <bool TNeedOut, class TIndex>
-    static TIndex* MergeRows(
-        const TIndex* Column1,
-        const TIndex* Column1End,
-        const TIndex* Column2,
-        const TIndex* Column2End,
-        TIndex* Column3
+    template <bool TNeedOut, class TAIndex, class TBIndex, class TCIndex>
+    static TCIndex* MergeRows(
+        const TAIndex* Column1,
+        const TAIndex* Column1End,
+        const TBIndex* Column2,
+        const TBIndex* Column2End,
+        TCIndex* Column3
         )
     {
         while(Column1 != Column1End && Column2 != Column2End) {
-            TIndex c1 = *Column1;
-            TIndex c2 = *Column2;
+            TAIndex c1 = *Column1;
+            TBIndex c2 = *Column2;
 
             if (c1 < c2) {
                 if constexpr (TNeedOut) *Column3 = c1;
@@ -986,23 +996,26 @@ private:
      * @param Value3 The values of the third matrix
      * @return The resulting row
      */
-    template <class TIndex, class TValueType>
-    static TIndex* MergeRows(
-        const TValueType &rAlpha1,
-        const TIndex* Column1,
-        const TIndex* Column1End,
-        const TValueType *Value1,
-        const TValueType &rAlpha2,
-        const TIndex* Column2,
-        const TIndex* Column2End,
-        const TValueType *Value2,
-        TIndex* Column3,
-        TValueType *Value3
+    template <class TAValue,
+              class TBIndex, class TBValue,
+              class TCIndex, class TCValue,
+              class TDIndex, class TDValue>
+    static TCIndex* MergeRows(
+        const TAValue& rAlpha1,
+        const TBIndex* Column1,
+        const TBIndex* Column1End,
+        const TBValue* Value1,
+        const TAValue& rAlpha2,
+        const TCIndex* Column2,
+        const TCIndex* Column2End,
+        const TCValue* Value2,
+        TDIndex* Column3,
+        TDValue *Value3
         )
     {
         while(Column1 != Column1End && Column2 != Column2End) {
-            TIndex c1 = *Column1;
-            TIndex c2 = *Column2;
+            TBIndex c1 = *Column1;
+            TBIndex c2 = *Column2;
 
             if (c1 < c2) {
                 ++Column1;
@@ -1126,35 +1139,40 @@ private:
      * @param Tmp3Value Values of the columns of third matrix
      * @return The resulting row
      */
-    template <class TIndex, class TValueType>
+    template <class TAIndex,
+              class TAValue,
+              class TBIndex,
+              class TBValue,
+              class TOutIndex,
+              class TOutValue>
     static void ProdRow(
-        const TIndex* AColumn,
-        const TIndex* AColumnEnd,
-        const TValueType *AValue,
-        const TIndex* BPtr,
-        const TIndex* BColumn,
-        const TValueType *BValue,
-        TIndex* OutColumn,
-        TValueType *OutValue,
-        TIndex* Tmp2Column,
-        TValueType *Tmp2Value,
-        TIndex* Tmp3Column,
-        TValueType *Tmp3Value
+        const TAIndex* AColumn,
+        const TAIndex* AColumnEnd,
+        const TAValue *AValue,
+        const TBIndex* BPtr,
+        const TBIndex* BColumn,
+        const TBValue *BValue,
+        TOutIndex* OutColumn,
+        TOutValue *OutValue,
+        TOutIndex* Tmp2Column,
+        TOutValue *Tmp2Value,
+        TOutIndex* Tmp3Column,
+        TOutValue *Tmp3Value
         )
     {
-        const TIndex nrow = AColumnEnd - AColumn;
+        const TAIndex nrow = AColumnEnd - AColumn;
 
         /* No rows to merge, nothing to do */
         if (nrow == 0) return;
 
         /* Single row, just copy it to output */
         if (nrow == 1) {
-            TIndex ac = *AColumn;
-            TValueType av = *AValue;
+            TAIndex ac = *AColumn;
+            TAValue av = *AValue;
 
-            const TValueType *bv = BValue + BPtr[ac];
-            const TIndex* bc = BColumn + BPtr[ac];
-            const TIndex* be = BColumn + BPtr[ac+1];
+            const TBValue *bv = BValue + BPtr[ac];
+            const TBIndex* bc = BColumn + BPtr[ac];
+            const TBIndex* be = BColumn + BPtr[ac+1];
 
             while(bc != be) {
                 *OutColumn++ = *bc++;
@@ -1166,13 +1184,15 @@ private:
 
         /* Two rows, merge them */
         if (nrow == 2) {
-            TIndex ac1 = AColumn[0];
-            TIndex ac2 = AColumn[1];
+            TAIndex ac1 = AColumn[0];
+            TAIndex ac2 = AColumn[1];
 
-            TValueType av1 = AValue[0];
-            TValueType av2 = AValue[1];
+            TAValue av1 = AValue[0];
+            TAValue av2 = AValue[1];
 
-            MergeRows( av1, BColumn + BPtr[ac1], BColumn + BPtr[ac1+1], BValue + BPtr[ac1], av2, BColumn + BPtr[ac2], BColumn + BPtr[ac2+1], BValue + BPtr[ac2], OutColumn, OutValue );
+            MergeRows(av1, BColumn + BPtr[ac1], BColumn + BPtr[ac1+1], BValue + BPtr[ac1],
+                      av2, BColumn + BPtr[ac2], BColumn + BPtr[ac2+1], BValue + BPtr[ac2],
+                      OutColumn, OutValue);
         }
 
         /* Generic case (more than two rows).
@@ -1182,16 +1202,18 @@ private:
         * Merging by pairs allows to work with short rows as often as possible.
         */
         // Merge first two.
-        TIndex ac1 = *AColumn++;
-        TIndex ac2 = *AColumn++;
+        TAIndex ac1 = *AColumn++;
+        TAIndex ac2 = *AColumn++;
 
-        TValueType av1 = *AValue++;
-        TValueType av2 = *AValue++;
+        TAValue av1 = *AValue++;
+        TAValue av2 = *AValue++;
 
-        TIndex* tm1_col = OutColumn;
-        TValueType *tm1_val = OutValue;
+        TOutIndex* tm1_col = OutColumn;
+        TOutValue *tm1_val = OutValue;
 
-        TIndex c_col1 = MergeRows( av1, BColumn + BPtr[ac1], BColumn + BPtr[ac1+1], BValue + BPtr[ac1], av2, BColumn + BPtr[ac2], BColumn + BPtr[ac2+1], BValue + BPtr[ac2], tm1_col, tm1_val ) - tm1_col;
+        TOutIndex c_col1 = MergeRows(av1, BColumn + BPtr[ac1], BColumn + BPtr[ac1+1], BValue + BPtr[ac1],
+                                     av2, BColumn + BPtr[ac2], BColumn + BPtr[ac2+1], BValue + BPtr[ac2],
+                                     tm1_col, tm1_val ) - tm1_col;
 
         // Go by pairs.
         while(AColumn + 1 < AColumnEnd) {
@@ -1201,9 +1223,11 @@ private:
             av1 = *AValue++;
             av2 = *AValue++;
 
-            TIndex c_col2 = MergeRows( av1, BColumn + BPtr[ac1], BColumn + BPtr[ac1+1], BValue + BPtr[ac1], av2, BColumn + BPtr[ac2], BColumn + BPtr[ac2+1], BValue + BPtr[ac2], Tmp2Column, Tmp2Value ) - Tmp2Column;
+            TOutIndex c_col2 = MergeRows( av1, BColumn + BPtr[ac1], BColumn + BPtr[ac1+1], BValue + BPtr[ac1], av2, BColumn + BPtr[ac2], BColumn + BPtr[ac2+1], BValue + BPtr[ac2], Tmp2Column, Tmp2Value ) - Tmp2Column;
 
-            c_col1 = MergeRows( amgcl::math::identity<TValueType>(), tm1_col, tm1_col + c_col1, tm1_val, amgcl::math::identity<TValueType>(), Tmp2Column, Tmp2Column + c_col2, Tmp2Value, Tmp3Column, Tmp3Value ) - Tmp3Column;
+            c_col1 = MergeRows(amgcl::math::identity<TAValue>(), tm1_col, tm1_col + c_col1, tm1_val,
+                               amgcl::math::identity<TAValue>(), Tmp2Column, Tmp2Column + c_col2, Tmp2Value,
+                               Tmp3Column, Tmp3Value) - Tmp3Column;
 
             std::swap(Tmp3Column, tm1_col);
             std::swap(Tmp3Value, tm1_val);
@@ -1214,7 +1238,9 @@ private:
             ac2 = *AColumn++;
             av2 = *AValue++;
 
-            c_col1 = MergeRows( amgcl::math::identity<TValueType>(), tm1_col, tm1_col + c_col1, tm1_val, av2, BColumn + BPtr[ac2], BColumn + BPtr[ac2+1], BValue + BPtr[ac2], Tmp3Column, Tmp3Value ) - Tmp3Column;
+            c_col1 = MergeRows(amgcl::math::identity<TAValue>(), tm1_col, tm1_col + c_col1, tm1_val,
+                               av2, BColumn + BPtr[ac2], BColumn + BPtr[ac2+1], BValue + BPtr[ac2],
+                               Tmp3Column, Tmp3Value ) - Tmp3Column;
 
             std::swap(Tmp3Column, tm1_col);
             std::swap(Tmp3Value, tm1_val);
