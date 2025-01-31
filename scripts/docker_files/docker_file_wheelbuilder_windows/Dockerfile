@@ -21,6 +21,7 @@ RUN C:\TEMP\vs_buildtools.exe --quiet --wait --norestart --nocache \
  	$ErrorActionPreference = 'Stop'
 
 #install chocolatey
+ENV chocolateyVersion '1.4.0'
 RUN powershell.exe -Command \
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
     iex ((New-Object System.Net.WebClient).DownloadString('http://chocolatey.org/install.ps1'))
@@ -82,7 +83,25 @@ RUN powershell.exe -Command \
     c:\python\311\python.exe -m pip install --upgrade pip; \
     c:\python\311\python.exe -m pip install --upgrade setuptools wheel
 
-# Download and extract boost
+#Install python 3.12
+RUN powershell.exe -Command \
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
+    wget https://www.python.org/ftp/python/3.12.0/python-3.12.0-amd64.exe -OutFile c:\temp\python312.exe; \
+    mkdir c:\python\312; \
+    Start-Process c:\temp\python312.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\312' -Wait; \
+    c:\python\312\python.exe -m pip install --upgrade pip; \
+    c:\python\312\python.exe -m pip install --upgrade setuptools wheel
+
+#Install python 3.13
+RUN powershell.exe -Command \
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
+    wget https://www.python.org/ftp/python/3.13.0/python-3.13.0-amd64.exe -OutFile c:\temp\python313.exe; \
+    mkdir c:\python\313; \
+    Start-Process c:\temp\python313.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\313' -Wait; \
+    c:\python\313\python.exe -m pip install --upgrade pip; \
+    c:\python\313\python.exe -m pip install --upgrade setuptools wheel
+
+# Download and extract hdf5
 RUN powershell.exe -Command \
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
     wget https://hdf-wordpress-1.s3.amazonaws.com/wp-content/uploads/manual/HDF5/HDF5_1_12_2/source/hdf5-1.12.2.zip -OutFile c:\TEMP\hdf5.zip; \
@@ -92,12 +111,25 @@ RUN powershell.exe -Command \
     mkdir c:\hdf5\source; \
     7z x c:\TEMP\hdf5.zip -o"c:\hdf5\source"
 
+# Download and extract med
+RUN powershell.exe -Command \
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
+    wget 'https://www.salome-platform.org/?sdm_process_download=1"&"download_id=2540' -OutFile c:\TEMP\med.tar.bz; \
+    mkdir c:\med\build; \
+    mkdir c:\med\bin; \
+    mkdir c:\med\source; \
+    7z x c:\TEMP\med.tar.bz -o"c:\TEMP\med.tar"; \
+    7z x c:\TEMP\med.tar -o"c:\med\source"; \
+    dir "c:\med\source"
+
 # Build Hdf5 lib
 RUN powershell.exe -Command \
     cd 'c:/Program Files/CMake/bin/'; \
     ./cmake.exe -H"c:\hdf5\source\hdf5-1.12.2" -B"c:\hdf5\build" -DCMAKE_INSTALL_PREFIX="c:\hdf5\bin" -DBUILD_TESTING=OFF -DBUILD_SHARED_LIBS=ON; \
     ./cmake.exe --build "c:\hdf5\build" --target install -- /property:configuration=Release
 
+# Build med lib
+Run dir c:\med\source
 RUN powershell.exe -Command \
     cd 'c:/Program Files/CMake/bin/'; \
     ./cmake.exe -H"c:\med\source\med-5.0.0" -B"c:\med\build" -DCMAKE_INSTALL_PREFIX="c:\med\bin" -DMEDFILE_BUILD_TESTS=OFF -DMEDFILE_BUILD_SHARED_LIBS=ON -DHDF5_ROOT="c:\hdf5\bin"; \

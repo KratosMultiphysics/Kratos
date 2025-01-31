@@ -19,7 +19,7 @@
 // Application includes
 #include "custom_elements/transient_Pw_element.hpp"
 #include "custom_utilities/element_utilities.hpp"
-#include "custom_utilities/stress_strain_utilities.hpp"
+#include "custom_utilities/stress_strain_utilities.h"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
@@ -45,40 +45,35 @@ public:
 
     /// The definition of the sizetype
     using SizeType = std::size_t;
-    using BaseType::CalculateRetentionResponse;
     using BaseType::mConstitutiveLawVector;
-    using BaseType::mIsInitialised;
     using BaseType::mRetentionLawVector;
 
     using ElementVariables = typename BaseType::ElementVariables;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    /// Default Constructor
-    SteadyStatePwElement(IndexType NewId = 0) : BaseType(NewId) {}
+    explicit SteadyStatePwElement(IndexType NewId = 0) : BaseType(NewId) {}
 
     /// Constructor using an array of nodes
-    SteadyStatePwElement(IndexType NewId, const NodesArrayType& ThisNodes)
-        : BaseType(NewId, ThisNodes)
+    SteadyStatePwElement(IndexType NewId, const NodesArrayType& ThisNodes, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : BaseType(NewId, ThisNodes, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Geometry
-    SteadyStatePwElement(IndexType NewId, GeometryType::Pointer pGeometry)
-        : BaseType(NewId, pGeometry)
+    SteadyStatePwElement(IndexType NewId, GeometryType::Pointer pGeometry, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : BaseType(NewId, pGeometry, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Properties
-    SteadyStatePwElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : BaseType(NewId, pGeometry, pProperties)
+    SteadyStatePwElement(IndexType                          NewId,
+                         GeometryType::Pointer              pGeometry,
+                         PropertiesType::Pointer            pProperties,
+                         std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : BaseType(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
     {
     }
 
-    /// Destructor
-    ~SteadyStatePwElement() override {}
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    ~SteadyStatePwElement() = default;
 
     Element::Pointer Create(IndexType               NewId,
                             NodesArrayType const&   ThisNodes,
@@ -86,50 +81,33 @@ public:
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Turn back information as a string.
     std::string Info() const override
     {
-        std::stringstream buffer;
-        buffer << "steady-state Pw flow Element #" << this->Id()
-               << "\nRetention law: " << mRetentionLawVector[0]->Info();
-        return buffer.str();
+        const std::string retention_info =
+            !mRetentionLawVector.empty() ? mRetentionLawVector[0]->Info() : "not defined";
+        return "steady-state Pw flow Element #" + std::to_string(this->Id()) + "\nRetention law: " + retention_info;
     }
 
     // Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << "steady-state Pw flow Element #" << this->Id()
-                 << "\nRetention law: " << mRetentionLawVector[0]->Info();
-    }
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
 
 protected:
     /// Member Variables
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     void CalculateAll(MatrixType&        rLeftHandSideMatrix,
                       VectorType&        rRightHandSideVector,
                       const ProcessInfo& CurrentProcessInfo,
-                      const bool         CalculateStiffnessMatrixFlag,
-                      const bool         CalculateResidualVectorFlag) override;
+                      bool               CalculateStiffnessMatrixFlag,
+                      bool               CalculateResidualVectorFlag) override;
 
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) override;
 
     void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint) override;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 private:
-    /// Member Variables
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     /// Serialization
 
     friend class Serializer;
@@ -142,8 +120,7 @@ private:
     void load(Serializer& rSerializer) override{KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)}
 
     // Assignment operator.
-    SteadyStatePwElement&
-    operator=(SteadyStatePwElement const& rOther);
+    SteadyStatePwElement& operator=(SteadyStatePwElement const& rOther);
 
     // Copy constructor.
     SteadyStatePwElement(SteadyStatePwElement const& rOther);

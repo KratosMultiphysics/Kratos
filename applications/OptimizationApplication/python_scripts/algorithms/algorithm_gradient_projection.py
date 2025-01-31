@@ -12,7 +12,9 @@ from KratosMultiphysics.LinearSolversApplication.dense_linear_solver_factory imp
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import CallOnAll
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import time_decorator
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import OptimizationAlgorithmTimeLogger
-
+from KratosMultiphysics.OptimizationApplication.utilities.list_collective_expression_utilities import CollectiveListCollectiveProduct
+from KratosMultiphysics.OptimizationApplication.utilities.list_collective_expression_utilities import CollectiveListVectorProduct
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem_utilities import OutputGradientFields
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
     return AlgorithmGradientProjection(model, parameters, optimization_problem)
@@ -47,6 +49,7 @@ class AlgorithmGradientProjection(Algorithm):
         parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
         self.master_control = MasterControl() # Need to fill it with controls
+        self._optimization_problem.AddComponent(self.master_control)
 
         for control_name in parameters["controls"].GetStringArray():
             control = optimization_problem.GetControl(control_name)
@@ -64,9 +67,11 @@ class AlgorithmGradientProjection(Algorithm):
         self.__line_search_method = CreateLineSearch(settings["line_search"], self._optimization_problem)
 
         self.__objective = StandardizedObjective(parameters["objective"], self.master_control, self._optimization_problem)
+        self._optimization_problem.AddComponent(self.__objective)
         self.__constraints_list: 'list[StandardizedConstraint]' = []
         for constraint_param in parameters["constraints"].values():
             constraint = StandardizedConstraint(constraint_param, self.master_control, self._optimization_problem)
+            self._optimization_problem.AddComponent(constraint)
             self.__constraints_list.append(constraint)
         self.__control_field = None
         self.__obj_val = None
@@ -121,43 +126,24 @@ class AlgorithmGradientProjection(Algorithm):
                     ntn[i, j] = KratosOA.ExpressionUtils.InnerProduct(constr_grad[i], constr_grad[j])
                     ntn[j, i] = ntn[i, j]
 
-                # get the inverse of ntn
-                ntn_inverse = Kratos.Matrix(number_of_active_constraints, number_of_active_constraints)
+            # get the inverse of ntn
+            ntn_inverse = Kratos.Matrix(number_of_active_constraints, number_of_active_constraints)
 
-                # create the identity matrix
-                identity_matrix = Kratos.Matrix(number_of_active_constraints, number_of_active_constraints, 0.0)
-                for i in range(number_of_active_constraints):
-                    identity_matrix[i, i] = 1.0
+            # create the identity matrix
+            identity_matrix = Kratos.Matrix(number_of_active_constraints, number_of_active_constraints, 0.0)
+            for i in range(number_of_active_constraints):
+                identity_matrix[i, i] = 1.0
 
-                # solve for inverse of ntn
-                self.linear_solver.Solve(ntn, ntn_inverse, identity_matrix)
+            # solve for inverse of ntn
+            self.linear_solver.Solve(ntn, ntn_inverse, identity_matrix)
 
-                search_direction = - (obj_grad - self.__CollectiveListVectorProduct(constr_grad, ntn_inverse * self.__CollectiveListCollectiveProduct(constr_grad, obj_grad)))
-                correction = - self.__CollectiveListVectorProduct(constr_grad, ntn_inverse * constraint_violations)
+            search_direction = - (obj_grad - CollectiveListVectorProduct(constr_grad, ntn_inverse * CollectiveListCollectiveProduct(constr_grad, obj_grad)))
+            correction = - CollectiveListVectorProduct(constr_grad, ntn_inverse * constraint_violations)
         correction_norm = KratosOA.ExpressionUtils.NormInf(correction)
         if correction_norm > self.correction_size:
             correction *= self.correction_size / correction_norm
         self.algorithm_data.GetBufferedData()["search_direction"] = search_direction.Clone()
         self.algorithm_data.GetBufferedData()["correction"] = correction.Clone()
-
-    def __CollectiveListCollectiveProduct(self, collective_list: 'list[KratosOA.CollectiveExpression]', other_collective: KratosOA.CollectiveExpression) -> Kratos.Vector:
-        result = Kratos.Vector(len(collective_list))
-
-        for i, collective_list_item in enumerate(collective_list):
-            result[i] = KratosOA.ExpressionUtils.InnerProduct(collective_list_item, other_collective)
-        return result
-
-    def __CollectiveListVectorProduct(self, collective_list: 'list[KratosOA.CollectiveExpression]', vector: Kratos.Vector) -> KratosOA.CollectiveExpression:
-        if len(collective_list) != vector.Size():
-            raise RuntimeError(f"Collective list size and vector size mismatch. [ Collective list size = {len(collective_list)}, vector size = {vector.Size()}]")
-        if len(collective_list) == 0:
-            raise RuntimeError("Collective lists cannot be empty.")
-
-        result = collective_list[0] * 0.0
-        for i, collective_list_item in enumerate(collective_list):
-            result += collective_list_item * vector[i]
-
-        return result
 
     @time_decorator()
     def ComputeControlUpdate(self, alpha: float) -> KratosOA.CollectiveExpression:
@@ -168,8 +154,7 @@ class AlgorithmGradientProjection(Algorithm):
     @time_decorator()
     def UpdateControl(self) -> KratosOA.CollectiveExpression:
         update = self.algorithm_data.GetBufferedData()["control_field_update"]
-        self.__control_field += update
-        self.algorithm_data.GetBufferedData()["control_field"] = self.__control_field.Clone()
+        self.__control_field = KratosOA.ExpressionUtils.Collapse(self.__control_field + update)
 
     @time_decorator()
     def GetCurrentObjValue(self) -> float:
@@ -181,20 +166,26 @@ class AlgorithmGradientProjection(Algorithm):
 
     @time_decorator()
     def Output(self) -> KratosOA.CollectiveExpression:
-        self.CallOnAllProcesses(["output_processes"], Kratos.OutputProcess.PrintOutput)
+        self.algorithm_data.GetBufferedData()["control_field"] = self.__control_field.Clone()
+        OutputGradientFields(self.__objective, self._optimization_problem, True)
+        for constraint in self.__constraints_list:
+            OutputGradientFields(constraint, self._optimization_problem, constraint.IsActive())
+        for process in self._optimization_problem.GetListOfProcesses("output_processes"):
+            if process.IsOutputStep():
+                process.PrintOutput()
 
     @time_decorator()
     def Solve(self):
-        for_testing = []
         while not self.converged:
             with OptimizationAlgorithmTimeLogger("Gradient Projection",self._optimization_problem.GetStep()):
+                self._InitializeIteration()
+
                 self.__obj_val = self.__objective.CalculateStandardizedValue(self.__control_field)
                 obj_info = self.__objective.GetInfo()
-                self.algorithm_data.GetBufferedData()["std_obj_value"] = obj_info["value"]
+                self.algorithm_data.GetBufferedData()["std_obj_value"] = obj_info["std_value"]
                 self.algorithm_data.GetBufferedData()["rel_change[%]"] = obj_info["rel_change [%]"]
                 if "abs_change [%]" in obj_info:
                     self.algorithm_data.GetBufferedData()["abs_change[%]"] = obj_info["abs_change [%]"]
-                    for_testing.append([obj_info["value"], obj_info["rel_change [%]"], obj_info["abs_change [%]"]])
 
                 obj_grad = self.__objective.CalculateStandardizedGradient()
 
@@ -203,12 +194,10 @@ class AlgorithmGradientProjection(Algorithm):
                 for constraint in self.__constraints_list:
                     value = constraint.CalculateStandardizedValue(self.__control_field)
                     self.__constr_value.append(value)
-                    constr_info = constraint.GetInfo()
                     constr_name = constraint.GetResponseName()
-                    self.algorithm_data.GetBufferedData()[f"std_constr_{constr_name}_value"] = constr_info["value"]
+                    self.algorithm_data.GetBufferedData()[f"std_constr_{constr_name}_value"] = value
                     if value >= 0.0:
                         active_constr_grad.append(constraint.CalculateStandardizedGradient())
-                    for_testing.append([constr_info["value"]])
 
                 self.ComputeSearchDirection(obj_grad, active_constr_grad)
 
@@ -216,11 +205,17 @@ class AlgorithmGradientProjection(Algorithm):
 
                 self.ComputeControlUpdate(alpha)
 
+                self._FinalizeIteration()
+
                 self.Output()
 
                 self.UpdateControl()
 
-                self.converged = self.__convergence_criteria.IsConverged()
+                converged = self.__convergence_criteria.IsConverged()
+
+                converged &= all([value <= 0.0 for value in self.__constr_value]) 
+
+                self.converged |=  self.__convergence_criteria.IsMaxIterationsReached()
 
                 self._optimization_problem.AdvanceStep()
 

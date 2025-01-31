@@ -8,7 +8,7 @@
         "fracture_utility":     false
     },
     "solver_settings": {
-        "solver_type":    "poromechanics_U_Pw_solver",
+        "solver_type":    "poromechanics_U_Pl_solver",
         "model_part_name":    "PorousModelPart",
         "domain_size":    2,
         "start_time":    0.0,
@@ -35,7 +35,8 @@
         "scheme_type":    "Newmark",
         "newmark_beta":    1.0,
         "newmark_gamma":    1.0,
-        "newmark_theta":    1.0,
+        "newmark_theta_u":    1.0,
+        "newmark_theta_p":    1.0,
         "calculate_alpha_beta":    false,
         "omega_1":    1.0,
         "omega_n":    10.0,
@@ -59,7 +60,7 @@
             "solver_type":   "LinearSolversApplication.sparse_lu"
         },
         "problem_domain_sub_model_part_list": ["Body_Part-auto-1","Interface_Part-auto-1"],
-        "processes_sub_model_part_list":      ["Disp_XY_linefixed","Disp_X_linefixed","Disp_XY_pointfixed","Fluid_Pressure-auto-1","Face_Load-auto-1"],
+        "processes_sub_model_part_list":      ["Disp_XY_linefixed","Disp_X_linefixed","Disp_XY_pointfixed","Liquid_Pressure-auto-1","Face_Load-auto-1"],
         "body_domain_sub_model_part_list":    ["Body_Part-auto-1"]
     },
     "processes": {
@@ -100,8 +101,8 @@
             "python_module": "apply_scalar_constraint_table_process",
             "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
             "Parameters":    {
-                "model_part_name":      "PorousModelPart.Fluid_Pressure-auto-1",
-                "variable_name":        "WATER_PRESSURE",
+                "model_part_name":      "PorousModelPart.Liquid_Pressure-auto-1",
+                "variable_name":        "LIQUID_PRESSURE",
                 "is_fixed":             true,
                 "value":                0.0,
                 "table":                0,
@@ -126,7 +127,7 @@
             "python_module"   : "from_json_check_result_process",
             "kratos_module"   : "KratosMultiphysics",
             "Parameters"      : {
-                "check_variables"      : ["WATER_PRESSURE"],
+                "check_variables"      : ["LIQUID_PRESSURE"],
                 "input_file_name"      : "element_tests/consolidation_interface_2D/consolidation_interface_2D_results.json",
                 "model_part_name"      : "PorousModelPart.porous_computational_model_part",
                 "time_frequency"       : 0.5
@@ -137,7 +138,7 @@
         "python_module" : "json_output_process",
         "kratos_module" : "KratosMultiphysics",
         "Parameters"    : {
-            "output_variables"     : ["WATER_PRESSURE"],
+            "output_variables"     : ["LIQUID_PRESSURE"],
             "output_file_name"     : "element_tests/consolidation_interface_2D/consolidation_interface_2D_results.json",
             "model_part_name"      : "PorousModelPart.porous_computational_model_part",
             "time_frequency"       : 0.5

@@ -18,7 +18,7 @@
 
 // Application includes
 #include "custom_elements/transient_Pw_interface_element.hpp"
-#include "custom_utilities/interface_element_utilities.hpp"
+#include "custom_utilities/interface_element_utilities.h"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
@@ -47,43 +47,43 @@ public:
     /// The definition of the sizetype
     using SizeType = std::size_t;
 
-    using BaseType::CalculateRetentionResponse;
     using BaseType::mRetentionLawVector;
     using BaseType::mThisIntegrationMethod;
 
     using InterfaceElementVariables = typename BaseType::InterfaceElementVariables;
     using SFGradAuxVariables        = typename BaseType::SFGradAuxVariables;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    /// Default Constructor
-    SteadyStatePwInterfaceElement(IndexType NewId = 0)
+    explicit SteadyStatePwInterfaceElement(IndexType NewId = 0)
         : TransientPwInterfaceElement<TDim, TNumNodes>(NewId)
     {
     }
 
     /// Constructor using an array of nodes
-    SteadyStatePwInterfaceElement(IndexType NewId, const NodesArrayType& ThisNodes)
-        : TransientPwInterfaceElement<TDim, TNumNodes>(NewId, ThisNodes)
+    SteadyStatePwInterfaceElement(IndexType                          NewId,
+                                  const NodesArrayType&              ThisNodes,
+                                  std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : TransientPwInterfaceElement<TDim, TNumNodes>(NewId, ThisNodes, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Geometry
-    SteadyStatePwInterfaceElement(IndexType NewId, GeometryType::Pointer pGeometry)
-        : TransientPwInterfaceElement<TDim, TNumNodes>(NewId, pGeometry)
+    SteadyStatePwInterfaceElement(IndexType                          NewId,
+                                  GeometryType::Pointer              pGeometry,
+                                  std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : TransientPwInterfaceElement<TDim, TNumNodes>(NewId, pGeometry, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Properties
-    SteadyStatePwInterfaceElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : TransientPwInterfaceElement<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+    SteadyStatePwInterfaceElement(IndexType                          NewId,
+                                  GeometryType::Pointer              pGeometry,
+                                  PropertiesType::Pointer            pProperties,
+                                  std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : TransientPwInterfaceElement<TDim, TNumNodes>(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
     {
     }
 
-    /// Destructor
-    ~SteadyStatePwInterfaceElement() override {}
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    ~SteadyStatePwInterfaceElement() = default;
 
     Element::Pointer Create(IndexType               NewId,
                             NodesArrayType const&   ThisNodes,
@@ -97,8 +97,8 @@ protected:
     void CalculateAll(MatrixType&        rLeftHandSideMatrix,
                       VectorType&        rRightHandSideVector,
                       const ProcessInfo& CurrentProcessInfo,
-                      const bool         CalculateStiffnessMatrixFlag,
-                      const bool         CalculateResidualVectorFlag) override;
+                      bool               CalculateStiffnessMatrixFlag,
+                      bool               CalculateResidualVectorFlag) override;
 
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, InterfaceElementVariables& rVariables) override;
 
@@ -106,13 +106,7 @@ protected:
                             InterfaceElementVariables& rVariables,
                             unsigned int               GPoint) override;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 private:
-    /// Member Variables
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     /// Assignment operator.
     SteadyStatePwInterfaceElement& operator=(SteadyStatePwInterfaceElement const& rOther);
 

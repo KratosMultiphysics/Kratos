@@ -6,11 +6,13 @@
     - [Specific Application Dependencies](#specific-application-dependencies)
   - [Basic Configuration](#basic-configuration)
   - [Configuration scripts examples](#configuration-scripts-examples)
-    - [Linux/WSL](#gnulinux)
+    - [GNU/Linux](#gnulinux)
     - [Windows](#windows)
       - [Visual Studio](#visual-studio)
         - [Windows Visual Studio compilation configuration](#windows-visual-studio-compilation-configuration)
-    - [MinGW](#mingw)
+      - [MinGW](#mingw)
+        - [Using MINGW64 (legacy)](#using-mingw64-legacy)
+        - [Using UCRT64 (*Universal C Runtime*)](#using-ucrt64-universal-c-runtime)
     - [MacOS](#macos)
   - [Adding Applications](#adding-applications)
   - [Post Compilation](#post-compilation)
@@ -59,7 +61,7 @@ git clone https://github.com/KratosMultiphysics/Kratos Kratos
 
 Additionaly, Visual Studio is required to compile in *Windows*.
 
-- #### Linux/WSL installation
+- #### GNU/Linux-WSL installation
 
     The command below will install all the packages needed.
 
@@ -106,13 +108,13 @@ Additionaly, Visual Studio is required to compile in *Windows*.
         Extract boost, and note the path as it will be needed in the configure stage to set the environmental variable `BOOST_ROOT`.
 
 - #### MinGW
-  MingGw compilation details are hidden by default to avoid confusion, please click the button below to show them.
+  *MingGw* compilation details are hidden by default to avoid confusion, please click the button below to show them.
   <details>
     <summary>Show MinGW compilation details</summary>
 
     *MinGW* means minimal GNU for *Windows*. There are different manners of installing, the simplest one using *MSYS2*.
 
-    - MSYS2
+    - *MSYS2*
 
         First, we download *MSYS2* in the following [link](https://www.msys2.org/). This will install *MinGW*, which allows to easiy install packages *a la* Arch-Linux (Pacman package manager). We install it, and with it the first thing we do is to update as follows ([in the *MSYS2* bash](https://www.msys2.org/docs/terminals/)):
         ![](https://www.msys2.org/docs/mintty.png) ![](https://www.msys2.org/docs/launchers.png)
@@ -141,7 +143,7 @@ Additionaly, Visual Studio is required to compile in *Windows*.
         You will need a series of packages with some *Kratos* dependencies. These include the compilers (*GCC*,*Clang/LLVM*), *CMake*, *Blas and Lapack* libraries and the *OpenMP* support. The command below will install all the packages needed. The command below will install all the packages needed.
 
         ```Shell
-        pacman -S mingw64/mingw-w64-x86_64-lapack mingw64/mingw-w64-x86_64-openblas mingw64/mingw-w64-x86_64-cmake mingw64/mingw-w64-x86_64-clang mingw64/mingw-w64-x86_64-gcc mingw64/mingw-w64-x86_64-gcc-fortran mingw-w64-x86_64-make mingw64/mingw-w64-x86_64-openmp mingw64/mingw-w64-x86_64-dlfcn
+        pacman -S mingw64/mingw-w64-x86_64-lapack mingw64/mingw-w64-x86_64-openblas mingw64/mingw-w64-x86_64-cmake mingw64/mingw-w64-x86_64-clang mingw64/mingw-w64-x86_64-gcc mingw64/mingw-w64-x86_64-gcc-fortran mingw-w64-x86_64-make mingw64/mingw-w64-x86_64-openmp mingw64/mingw-w64-x86_64-dlfcn mingw64/mingw-w64-x86_64-llvm-openmp
         ```
 
     - Python
@@ -162,15 +164,16 @@ Additionaly, Visual Studio is required to compile in *Windows*.
 
     ##### Using UCRT64
 
-    UCRT (Universal C Runtime) is a newer version which is also used by Microsoft Visual Studio by default, see https://www.msys2.org/docs/environments/. It should work and behave as if the code was compiled with MSVC.
+    **UCRT** (*Universal C Runtime*) is a newer version which is also used by Microsoft Visual Studio by default, see [*MSYS2*](https://www.msys2.org/docs/environments/). It should work and behave as if the code was compiled with **MSVC**.
 
-    - Better compatibility with MSVC, both at build time and at run time.
-    - It only ships by default on Windows 10 and for older versions you have to provide it yourself or depend on the user having it installed.
+    - Better compatibility with **MSVC**, both at build time and at run time.
+    - It only ships by default on *Windows 10/11* and for older versions you have to provide it yourself or depend on the user having it installed.
+    - Remember that to properly work, you will need to define the `PATH` for the binary folder of *MSYS2*, usually at `C:\msys2\ucrt64\bin`.
 
-    If using UCRT64 the dependencies will be like:
+    If using **UCRT64** the dependencies will be like:
 
     ```Shell
-    pacman -S ucrt64/mingw-w64-ucrt-x86_64-lapack ucrt64/mingw-w64-ucrt-x86_64-openblas ucrt64/mingw-w64-ucrt-x86_64-cmake ucrt64/mingw-w64-ucrt-x86_64-clang ucrt64/mingw-w64-ucrt-x86_64-gcc ucrt64/mingw-w64-ucrt-x86_64-gcc-fortran mingw-w64-ucrt-x86_64-make ucrt64/mingw-w64-ucrt-x86_64-openmp ucrt64/mingw-w64-ucrt-x86_64-dlfcn ucrt64/mingw-w64-ucrt-x86_64-boost
+    pacman -S ucrt64/mingw-w64-ucrt-x86_64-lapack ucrt64/mingw-w64-ucrt-x86_64-openblas ucrt64/mingw-w64-ucrt-x86_64-cmake ucrt64/mingw-w64-ucrt-x86_64-clang ucrt64/mingw-w64-ucrt-x86_64-gcc ucrt64/mingw-w64-ucrt-x86_64-gcc-fortran mingw-w64-ucrt-x86_64-make ucrt64/mingw-w64-ucrt-x86_64-openmp ucrt64/mingw-w64-ucrt-x86_64-dlfcn ucrt64/mingw-w64-ucrt-x86_64-boost ucrt64/mingw-w64-ucrt-x86_64-llvm-openmp ucrt64/mingw-w64-ucrt-x86_64-lld
     ```
   </details>
 
@@ -345,6 +348,8 @@ cmake -G"Visual Studio 15 2017" -A x64 -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KR
 ```
 #### MinGW
 
+##### Using MINGW64 (legacy)
+
 In the case of *MinGW* two scripts are required, one is the *Command Prompt* for *Windows*:
 
 ```cmd
@@ -409,12 +414,112 @@ cmake ..                                                                        
 -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}"                                                            \
 -DUSE_MPI=OFF                                                                                       \
 -DKRATOS_SHARED_MEMORY_PARALLELIZATION="${KRATOS_SHARED_MEMORY_PARALLELIZATION}"                    \
--DKRATOS_GENERATE_PYTHON_STUBS=ON                                                                   \
 -DUSE_EIGEN_MKL=OFF
 
 # Buid
 cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j$(nproc)
 ```
+
+##### Using UCRT64 (*Universal C Runtime*)
+
+In the case of *MinGW* two scripts are required, one is the *Command Prompt* for *Windows*:
+
+```cmd
+cls
+
+@REM Set variables
+if not defined KRATOS_SOURCE set KRATOS_SOURCE=%~dp0..
+if not defined KRATOS_BUILD set KRATOS_BUILD=%KRATOS_SOURCE%/build
+
+@REM Set basic configuration
+if not defined KRATOS_BUILD_TYPE set KRATOS_BUILD_TYPE=Release
+@REM Decomment the following in case of considering MKL
+@REM if not defined MKLROOT set MKLROOT=C:\PROGRA~2\Intel\oneAPI\mkl\latest\
+
+@REM rem setting environment variables for using intel MKL
+@REM call "%MKLROOT%\env\vars.bat" intel64 lp64
+
+:: you may want to decomment this the first time you compile
+@REM Clean
+del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\cmake_install.cmake"
+del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeCache.txt"
+del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeFiles"
+
+sh %KRATOS_BUILD%\configure_MINGW_UCRT64.sh
+```
+
+And the second is the bash script that will be called by the former script (it is similar to the one in *GNU/Linux*):
+
+```console
+# Function to add apps
+add_app () {
+    export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}$1;"
+}
+
+# Set compiler
+export CC=${CC:-clang}
+export CXX=${CXX:-clang++}
+
+# Set variables
+export KRATOS_APP_DIR="${KRATOS_SOURCE}/applications"
+# export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
+export KRATOS_SHARED_MEMORY_PARALLELIZATION=${KRATOS_SHARED_MEMORY_PARALLELIZATION:-"OpenMP"}
+
+# Set basic configuration
+export PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE:-"C:/Windows/py.exe"}
+
+export CMAKE_EXPORT_COMPILE_COMMANDS=${CMAKE_EXPORT_COMPILE_COMMANDS:-"OFF"}
+#export KRATOS_CMAKE_CXX_FLAGS="-Wno-maybe-uninitialized -Wignored-qualifiers"
+
+# Set applications to compile
+export KRATOS_APPLICATIONS=
+add_app ${KRATOS_APP_DIR}/LinearSolversApplication
+add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication
+add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication
+
+# Set compilation tool
+export COMPILATION_TOOL=${COMPILATION_TOOL:-"Ninja"}
+
+# Determine the folder where the compiler is located
+export MSYS_BIN_FOLDER=$(dirname $(which ${CXX}))
+
+# Set CMake strip
+export CMAKE_STRIP=${CMAKE_STRIP:-"${MSYS_BIN_FOLDER}/strip.exe"}
+
+# Configure
+cmake ..                                                                                            \
+-G "${COMPILATION_TOOL}"                                                                            \
+-DCMAKE_INSTALL_PREFIX="${KRATOS_SOURCE}/bin/${KRATOS_BUILD_TYPE}"                                  \
+-DCMAKE_BUILD_TYPE="${KRATOS_BUILD_TYPE}"                                                           \
+-H"${KRATOS_SOURCE}"                                                                                \
+-B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}"                                                            \
+-DCMAKE_STRIP="${CMAKE_STRIP}"                                                                      \
+-DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}                                                                    \
+-DCMAKE_CXX_FLAGS="${KRATOS_CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS}"                                    \
+-DCMAKE_EXPORT_COMPILE_COMMANDS=${CMAKE_EXPORT_COMPILE_COMMANDS}                                    \
+-DKRATOS_BUILD_TESTING=ON                                                                           \
+-DKRATOS_SHARED_MEMORY_PARALLELIZATION="${KRATOS_SHARED_MEMORY_PARALLELIZATION}"                    \
+-DUSE_EIGEN_MKL=OFF
+
+# Build
+cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j$(nproc)
+
+# Manually install the python ddl, located in the python binary folder
+# Determine the location of the Python DLL
+PYTHON_VERSION=$(${PYTHON_EXECUTABLE} -c "import sys; print(''.join(sys.version.split('.')[:2]))")
+PYTHON_DLL=$(${PYTHON_EXECUTABLE} -c "import sys; print(sys.base_prefix)")/python${PYTHON_VERSION}.dll
+
+# Check if the Python DLL exists
+if [ -f "${PYTHON_DLL}" ]; then
+    # Install the Python DLL to the desired location
+    cp "${PYTHON_DLL}" "${KRATOS_SOURCE}/bin/${KRATOS_BUILD_TYPE}/libs"
+    echo "Python DLL ${PYTHON_DLL} installed at ${KRATOS_SOURCE}/bin/${KRATOS_BUILD_TYPE}/libs"
+else
+    echo "Python DLL not found at ${PYTHON_DLL}"
+    exit 1
+fi
+```
+
 ### MacOS
 
 ```console

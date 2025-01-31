@@ -27,7 +27,7 @@ class TestContainerExpression(ABC):
             node.SetValue(Kratos.PRESSURE, id+3)
             node.SetValue(Kratos.VELOCITY, Kratos.Array3([id+3, id+4, id+5]))
 
-        KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(cls.model_part, cls.model_part.Conditions)
+        KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(cls.model_part, cls.model_part.Conditions, True)
         for condition in cls.model_part.Conditions:
             id = condition.Id
             condition.Properties[Kratos.PRESSURE] = id+400
@@ -35,7 +35,7 @@ class TestContainerExpression(ABC):
             condition.SetValue(Kratos.PRESSURE, id+4)
             condition.SetValue(Kratos.VELOCITY, Kratos.Array3([id+5, id+6, id+7]))
 
-        KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(cls.model_part, cls.model_part.Elements)
+        KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(cls.model_part, cls.model_part.Elements, True)
         for element in cls.model_part.Elements:
             id = element.Id
             element.Properties[Kratos.PRESSURE] =  id+500
@@ -317,5 +317,4 @@ class TestElementPropertiesExpression(kratos_unittest.TestCase, TestContainerExp
         return entity.Properties[variable]
 
 if __name__ == "__main__":
-    Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
     kratos_unittest.main()

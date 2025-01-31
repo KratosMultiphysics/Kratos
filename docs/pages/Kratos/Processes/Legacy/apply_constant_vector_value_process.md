@@ -10,13 +10,13 @@ summary:
 
 ## Warning
 
-This is a Legacy process and should not be used directly. Please see [Assign Scalar Variable To Entities](/Assing_Values/assign_vector_variable_to_entities_process.md)
+This is a Legacy process and should not be used directly. Please see [Assign Scalar Variable To Entities](/Assign_Values/assign_vector_variable_to_entities_process.md)
 
 ## Description
 
 This process is intended to be used for setting vector values (`double`) to a variable in a model part.
 
-This process is executed on the follwing hooks:
+This process is executed on the following hooks:
 - `ExecuteInitialize`
 
 ## Parameters & Defaults

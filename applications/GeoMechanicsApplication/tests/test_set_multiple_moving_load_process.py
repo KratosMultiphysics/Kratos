@@ -2,6 +2,7 @@ import KratosMultiphysics
 import KratosMultiphysics.GeoMechanicsApplication as GMA
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
+import numpy as np
 
 class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCase):
     time_dependent_load = '["0.0", "-2.0*t", "0.0"]'
@@ -110,19 +111,6 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
     def tearDown(self):
         self.root_model_part.Clear()
 
-    def checkRHS(self, rhs, expected_res, tols=None):
-        """
-        routine to check calculation of rhs side within context of testing SetMovingLoad
-        Returns
-        -------
-        """
-
-        if tols is None:
-            tols = [None] * len(rhs)
-
-        for rhs_val, expected_val, tol in zip(rhs, expected_res, tols):
-            self.assertAlmostEqual(rhs_val, expected_val, tol)
-
     def test_SetMultipleMovingLoads(self):
         """
         Tests a moving load on 1 condition element, where the nodes of the element are sorted in the direction of the
@@ -151,7 +139,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
         # set load on node
         cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
 
-        self.checkRHS(rhs, [0.0, -2.0, 0.0, 0.0])
+        self.assertTrue(np.allclose(rhs, [0.0, -2.0, 0.0, 0.0]))
 
         # move load
         self.next_solution_step(process)
@@ -159,7 +147,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
         # check if interpolation is done correctly
         cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
 
-        self.checkRHS(rhs, [0.0, -1.5, 0.0, -0.5])
+        self.assertTrue(np.allclose(rhs, [0.0, -1.5, 0.0, -0.5]))
 
     def test_SetMultipleMovingLoadsConfigurationPositive(self):
         """
@@ -191,7 +179,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
         # set load on node
         cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
 
-        self.checkRHS(rhs, [0.0, -1.5, 0.0, -0.5])
+        self.assertTrue(np.allclose(rhs, [0.0, -1.5, 0.0, -0.5]))
 
         # move load
         self.next_solution_step(process)
@@ -199,7 +187,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
         # check if interpolation is done correctly
         cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
 
-        self.checkRHS(rhs, [0.0, -1.0, 0.0, -1.0])
+        self.assertTrue(np.allclose(rhs, [0.0, -1.0, 0.0, -1.0]))
 
     def test_SetMultipleMovingLoadsConfigurationNegative(self):
         """
@@ -231,7 +219,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
         # set load on node
         cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
 
-        self.checkRHS(rhs, [0.0, 0.0, 0.0, 0.0])
+        self.assertTrue(np.allclose(rhs, [0.0, 0.0, 0.0, 0.0]))
 
         # move load
         self.next_solution_step(process)
@@ -239,7 +227,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
         # check if interpolation is done correctly
         cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
 
-        self.checkRHS(rhs, [0.0, -2.0, 0.0, 0.0])
+        self.assertTrue(np.allclose(rhs, [0.0, -2.0, 0.0, 0.0]))
 
     def test_SetMultipleMovingLoadsConfigurationCombined(self):
         """
@@ -276,9 +264,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
             cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
-        self.checkRHS(all_rhs[1], [0.0, -2.0, 0.0, 0.0])
-        self.checkRHS(all_rhs[2], [0.0, -1.5, 0.0, -0.5])
+        self.assertTrue(np.allclose(all_rhs, [[0.0, 0.0, 0.0, 0.0], [0.0, -2.0, 0.0, 0.0], [0.0, -1.5, 0.0, -0.5]]))
 
         # move load within first element
         self.next_solution_step(process)
@@ -291,9 +277,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
             cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.checkRHS(all_rhs[0], [0.0, -2.0, 0.0, 0.0])
-        self.checkRHS(all_rhs[1], [0.0, -1.5, 0.0, -0.5])
-        self.checkRHS(all_rhs[2], [0.0, -1.0, 0.0, -1.0])
+        self.assertTrue(np.allclose(all_rhs, [[0.0, -2.0, 0.0, 0.0], [0.0, -1.5, 0.0, -0.5], [0.0, -1.0, 0.0, -1.0]]))
 
     def test_SetMultipleMovingLoadsReverseGeom(self):
         """
@@ -325,7 +309,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
         # cond.SetValue(SMA.MOVING_LOAD_LOCAL_DISTANCE, 0)
         cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
 
-        self.checkRHS(rhs, [0.0, 0.0, 0.0, -2.0])
+        self.assertTrue(np.allclose(rhs, [0.0, 0.0, 0.0, -2.0]))
 
         # move load
         self.next_solution_step(process)
@@ -333,7 +317,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
         # check if interpolation is done correctly
         cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
 
-        self.checkRHS(rhs, [0.0, -0.5, 0.0, -1.5])
+        self.assertTrue(np.allclose(rhs, [0.0, -0.5, 0.0, -1.5]))
 
     def test_SetMultipleMovingLoadsReverseGeomConfigurationPositive(self):
         """
@@ -365,7 +349,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
         # set load on node
         cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
 
-        self.checkRHS(rhs, [0.0, -0.5, 0.0, -1.5])
+        self.assertTrue(np.allclose(rhs, [0.0, -0.5, 0.0, -1.5]))
 
         # move load
         self.next_solution_step(process)
@@ -373,7 +357,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
         # check if interpolation is done correctly
         cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
 
-        self.checkRHS(rhs, [0.0, -1.0, 0.0, -1.0])
+        self.assertTrue(np.allclose(rhs, [0.0, -1.0, 0.0, -1.0]))
 
     def test_SetMultipleMovingLoadsReverseGeomConfigurationNegative(self):
         """
@@ -406,7 +390,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
         # cond.SetValue(SMA.MOVING_LOAD_LOCAL_DISTANCE, 0)
         cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
 
-        self.checkRHS(rhs, [0.0, 0.0, 0.0, 0.0])
+        self.assertTrue(np.allclose(rhs, [0.0, 0.0, 0.0, 0.0]))
 
         # move load
         self.next_solution_step(process)
@@ -414,7 +398,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
         # check if interpolation is done correctly
         cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
 
-        self.checkRHS(rhs, [0.0, 0.0, 0.0, -2.0])
+        self.assertTrue(np.allclose(rhs, [0.0, 0.0, 0.0, -2.0]))
 
     def test_SetMultipleMovingLoadsReverseGeomConfigurationCombined(self):
         """
@@ -452,9 +436,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
             cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
-        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, -2.0])
-        self.checkRHS(all_rhs[2], [0.0, -0.5, 0.0, -1.5])
+        self.assertTrue(np.allclose(all_rhs, [[0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, -2.0], [0.0, -0.5, 0.0, -1.5]]))
 
         # move load within first element
         self.next_solution_step(process)
@@ -467,9 +449,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
             cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, -2.0])
-        self.checkRHS(all_rhs[1], [0.0, -0.5, 0.0, -1.5])
-        self.checkRHS(all_rhs[2], [0.0, -1.0, 0.0, -1.0])
+        self.assertTrue(np.allclose(all_rhs, [[0.0, 0.0, 0.0, -2.0],[0.0, -0.5, 0.0, -1.5],[0.0, -1.0, 0.0, -1.0]]))
 
     def test_SetMultipleMovingLoadsMultipleConditions(self):
         """
@@ -504,8 +484,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
             cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.checkRHS(all_rhs[0], [0.0, -2.0, 0.0, 0.0])
-        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
+        self.assertTrue(np.allclose(all_rhs, [[0.0, -2.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0]]))
 
         # move load within first element
         self.next_solution_step(process)
@@ -516,8 +495,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
             cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.checkRHS(all_rhs[0], [0.0, -1.0, 0.0, -1.0])
-        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
+        self.assertTrue(np.allclose(all_rhs, [[0.0, -1.0, 0.0, -1.0], [0.0, 0.0, 0.0, 0.0]]))
 
         # move load to element connection element
         self.next_solution_step(process)
@@ -527,8 +505,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
             cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, -2.0])
-        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
+        self.assertTrue(np.allclose(all_rhs, [[0.0, 0.0, 0.0, -2.0], [0.0, 0.0, 0.0, 0.0]]))
 
         # move load to next element
         self.next_solution_step(process)
@@ -538,8 +515,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
             cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
-        self.checkRHS(all_rhs[1], [0.0, -1.0, 0.0, -1.0])
+        self.assertTrue(np.allclose(all_rhs, [[0.0, 0.0, 0.0, 0.0], [0.0, -1.0, 0.0, -1.0]]))
 
     def test_SetMultipleMovingLoadsMultipleConditionsConfigurationPositive(self):
         """
@@ -576,8 +552,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
             cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.checkRHS(all_rhs[0], [0.0, -1.0, 0.0, -1.0])
-        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
+        self.assertTrue(np.allclose(all_rhs, [[0.0, -1.0, 0.0, -1.0], [0.0, 0.0, 0.0, 0.0]]))
 
         # move load within first element
         self.next_solution_step(process)
@@ -588,8 +563,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
             cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, -2.0])
-        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
+        self.assertTrue(np.allclose(all_rhs, [[0.0, 0.0, 0.0, -2.0], [0.0, 0.0, 0.0, 0.0]]))
 
         # move load to element connection element
         self.next_solution_step(process)
@@ -599,8 +573,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
             cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
-        self.checkRHS(all_rhs[1], [0.0, -1.0, 0.0, -1.0])
+        self.assertTrue(np.allclose(all_rhs, [[0.0, 0.0, 0.0, 0.0], [0.0, -1.0, 0.0, -1.0]]))
 
         # move load to next element
         self.next_solution_step(process)
@@ -610,8 +583,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
             cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
-        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, -2.0])
+        self.assertTrue(np.allclose(all_rhs, [[0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, -2.0]]))
 
     def test_SetMultipleMovingLoadsMultipleConditionsConfigurationNegative(self):
         """
@@ -648,8 +620,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
             cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
-        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
+        self.assertTrue(np.allclose(all_rhs, [[0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0]]))
 
         # move load within first element
         self.next_solution_step(process)
@@ -660,8 +631,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
             cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.checkRHS(all_rhs[0], [0.0, -2.0, 0.0, 0.0])
-        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
+        self.assertTrue(np.allclose(all_rhs, [[0.0, -2.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0]]))
 
         # move load to element connection element
         self.next_solution_step(process)
@@ -671,8 +641,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
             cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.checkRHS(all_rhs[0], [0.0, -1.0, 0.0, -1.0])
-        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
+        self.assertTrue(np.allclose(all_rhs, [[0.0, -1.0, 0.0, -1.0], [0.0, 0.0, 0.0, 0.0]]))
 
         # move load to next element
         self.next_solution_step(process)
@@ -682,8 +651,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
             cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, -2.0])
-        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
+        self.assertTrue(np.allclose(all_rhs, [[0.0, 0.0, 0.0, -2.0], [0.0, 0.0, 0.0, 0.0]]))
 
         # move load to next element
         self.next_solution_step(process)
@@ -693,8 +661,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
             cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
-        self.checkRHS(all_rhs[1], [0.0, -1.0, 0.0, -1.0])
+        self.assertTrue(np.allclose(all_rhs, [[0.0, 0.0, 0.0, 0.0], [0.0, -1.0, 0.0, -1.0]]))
 
     def test_SetMultipleMovingLoadsMultipleConditionsReversed(self):
         """
@@ -729,8 +696,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
             cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
-        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, -2.0])
+        self.assertTrue(np.allclose(all_rhs, [[0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, -2.0]]))
 
         # move load within first element
         self.next_solution_step(process)
@@ -741,8 +707,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
             cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
-        self.checkRHS(all_rhs[1], [0.0, -1.0, 0.0, -1.0])
+        self.assertTrue(np.allclose(all_rhs, [[0.0, 0.0, 0.0, 0.0], [0.0, -1.0, 0.0, -1.0]]))
 
         # move load to element connection element
         self.next_solution_step(process)
@@ -753,8 +718,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
             cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, -2.0])
-        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
+        self.assertTrue(np.allclose(all_rhs, [[0.0, 0.0, 0.0, -2.0], [0.0, 0.0, 0.0, 0.0]]))
 
         # move load to next element, also increase time step
         self.model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.75)
@@ -767,8 +731,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
             cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.checkRHS(all_rhs[0], [0.0, -1.5, 0.0, -0.5])
-        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
+        self.assertTrue(np.allclose(all_rhs, [[0.0, -1.5, 0.0, -0.5], [0.0, 0.0, 0.0, 0.0]]))
 
     def test_SetMultipleMovingLoadsMultipleConditionsReversedConfigurationPositive(self):
         """
@@ -804,8 +767,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
             cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
-        self.checkRHS(all_rhs[1], [0.0, -1.0, 0.0, -1.0])
+        self.assertTrue(np.allclose(all_rhs, [[0.0, 0.0, 0.0, 0.0], [0.0, -1.0, 0.0, -1.0]]))
 
         # move load within first element
         self.next_solution_step(process)
@@ -816,8 +778,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
             cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, -2.0])
-        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
+        self.assertTrue(np.allclose(all_rhs, [[0.0, 0.0, 0.0, -2.0], [0.0, 0.0, 0.0, 0.0]]))
 
         # move load to element connection element
         self.next_solution_step(process)
@@ -828,8 +789,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
             cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.checkRHS(all_rhs[0], [0.0, -1.0, 0.0, -1.0])
-        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
+        self.assertTrue(np.allclose(all_rhs, [[0.0, -1.0, 0.0, -1.0], [0.0, 0.0, 0.0, 0.0]]))
 
         # move load to next element, also increase time step
         self.model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.75)
@@ -842,8 +802,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
             cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
-        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
+        self.assertTrue(np.allclose(all_rhs, [[0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0]]))
 
     def test_SetMultipleMovingLoadsMultipleConditionsReversedConfigurationNegative(self):
         """
@@ -880,8 +839,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
             cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
-        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
+        self.assertTrue(np.allclose(all_rhs, [[0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0]]))
 
         # move load within first element
         self.next_solution_step(process)
@@ -892,8 +850,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
             cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
-        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, -2.0])
+        self.assertTrue(np.allclose(all_rhs, [[0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, -2.0]]))
 
         # move load to element connection element
         self.next_solution_step(process)
@@ -904,8 +861,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
             cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
-        self.checkRHS(all_rhs[1], [0.0, -1.0, 0.0, -1.0])
+        self.assertTrue(np.allclose(all_rhs, [[0.0, 0.0, 0.0, 0.0], [0.0, -1.0, 0.0, -1.0]]))
 
         # move load to next element, also increase time step
         self.model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.75)
@@ -917,8 +873,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
             cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.checkRHS(all_rhs[0], [0.0, -0.5, 0.0, -1.5])
-        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
+        self.assertTrue(np.allclose(all_rhs, [[0.0, -0.5, 0.0, -1.5], [0.0, 0.0, 0.0, 0.0]]))
 
     def test_SetMultipleMovingLoadsMultipleConditionsDifferentOrigin(self):
         """
@@ -952,8 +907,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
             cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
-        self.checkRHS(all_rhs[1], [0.0, -1.5, 0.0, -0.5])
+        self.assertTrue(np.allclose(all_rhs, [[0.0, 0.0, 0.0, 0.0], [0.0, -1.5, 0.0, -0.5]]))
 
     def test_SetMultipleMovingLoadsMultipleConditionsDifferentOriginConfigurationPositive(self):
         """
@@ -988,8 +942,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
             cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
-        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, -2.0])
+        self.assertTrue(np.allclose(all_rhs, [[0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, -2.0]]))
 
     def test_SetMultipleMovingLoadsMultipleConditionsDifferentOriginConfigurationNegative(self):
         """
@@ -1024,8 +977,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
             cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, -2.0])
-        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
+        self.assertTrue(np.allclose(all_rhs, [[0.0, 0.0, 0.0, -2.0], [0.0, 0.0, 0.0, 0.0]]))
 
     def test_SetMultipleMovingLoadsMultipleConditionsDifferentOriginReversed(self):
         """
@@ -1059,8 +1011,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
             cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.checkRHS(all_rhs[0], [0.0, -0.5, 0.0, -1.5])
-        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
+        self.assertTrue(np.allclose(all_rhs, [[0.0, -0.5, 0.0, -1.5], [0.0, 0.0, 0.0, 0.0]]))
 
     def test_SetMultipleMovingLoadsMultipleConditionsDifferentOriginReversedConfigurationPositive(self):
         """
@@ -1095,8 +1046,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
             cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.checkRHS(all_rhs[0], [0.0, -1.0, 0.0, -1.0])
-        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
+        self.assertTrue(np.allclose(all_rhs, [[0.0, -1.0, 0.0, -1.0], [0.0, 0.0, 0.0, 0.0]]))
 
     def test_SetMultipleMovingLoadsMultipleConditionsDifferentOriginReversedConfigurationNegative(self):
         """
@@ -1131,8 +1081,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
             cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
-        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, -2.0])
+        self.assertTrue(np.allclose(all_rhs, [[0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, -2.0]]))
 
     def test_SetMultipleMovingLoadsWithLoadFunction(self):
         """
@@ -1167,7 +1116,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
         # set load on node
         cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
 
-        self.checkRHS(rhs, [0.0, 0.0, 0.0, 0.0])
+        self.assertTrue(np.allclose(rhs, [0.0, 0.0, 0.0, 0.0]))
 
         # change time and recalculate load
         self.model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, d_time)
@@ -1176,7 +1125,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
         # check if interpolation is done correctly
         cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
 
-        self.checkRHS(rhs, [0.0, -0.125, 0.0, -0.375])
+        self.assertTrue(np.allclose(rhs, [0.0, -0.125, 0.0, -0.375]))
 
     def test_SetMultipleMovingLoadsWithLoadFunctionConfigurationPositive(self):
         """
@@ -1210,7 +1159,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
         # set load on node
         cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
 
-        self.checkRHS(rhs, [0.0, 0.0, 0.0, 0.0])
+        self.assertTrue(np.allclose(rhs, [0.0, 0.0, 0.0, 0.0]))
 
         # change time and recalculate load
         self.model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, d_time)
@@ -1219,7 +1168,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
         # check if interpolation is done correctly
         cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
 
-        self.checkRHS(rhs, [0.0, 0.0, 0.0, -0.5])
+        self.assertTrue(np.allclose(rhs, [0.0, 0.0, 0.0, -0.5]))
 
     def test_SetMultipleMovingLoadsWithLoadFunctionConfigurationNegative(self):
         """
@@ -1253,7 +1202,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
         # set load on node
         cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
 
-        self.checkRHS(rhs, [0.0, 0.0, 0.0, 0.0])
+        self.assertTrue(np.allclose(rhs, [0.0, 0.0, 0.0, 0.0]))
 
         # change time and recalculate load
         self.model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, d_time)
@@ -1262,7 +1211,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
         # check if interpolation is done correctly
         cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
 
-        self.checkRHS(rhs, [0.0, -0.25, 0.0, -0.25])
+        self.assertTrue(np.allclose(rhs, [0.0, -0.25, 0.0, -0.25]))
 
     def test_SetMultipleMovingLoadsWithVelocityFunction(self):
         """
@@ -1294,7 +1243,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
         # set load on node
         cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
 
-        self.checkRHS(rhs, [0.0, -2.0, 0.0, 0.0])
+        self.assertTrue(np.allclose(rhs, [0.0, -2.0, 0.0, 0.0]))
 
         # change time and recalculate load
         self.next_solution_step(process)
@@ -1302,7 +1251,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
         # check if interpolation is done correctly
         cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
 
-        self.checkRHS(rhs, [0.0, -2.0, 0.0, 0.0])
+        self.assertTrue(np.allclose(rhs, [0.0, -2.0, 0.0, 0.0]))
 
         self.model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0.5)
 
@@ -1311,7 +1260,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
         # check if interpolation is done correctly
         cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
 
-        self.checkRHS(rhs, [0.0, -1.5, 0.0, -0.5])
+        self.assertTrue(np.allclose(rhs, [0.0, -1.5, 0.0, -0.5]))
 
     def test_SetMultipleMovingLoadsWithVelocityFunctionConfigurationPositive(self):
         """
@@ -1344,7 +1293,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
         # set load on node
         cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
 
-        self.checkRHS(rhs, [0.0, -1.0, 0.0, -1.0])
+        self.assertTrue(np.allclose(rhs, [0.0, -1.0, 0.0, -1.0]))
 
         # change time and recalculate load
         self.next_solution_step(process)
@@ -1352,7 +1301,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
         # check if interpolation is done correctly
         cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
 
-        self.checkRHS(rhs, [0.0, -1.0, 0.0, -1.0])
+        self.assertTrue(np.allclose(rhs, [0.0, -1.0, 0.0, -1.0]))
 
         self.model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0.5)
 
@@ -1361,7 +1310,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
         # check if interpolation is done correctly
         cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
 
-        self.checkRHS(rhs, [0.0, -0.5, 0.0, -1.5])
+        self.assertTrue(np.allclose(rhs, [0.0, -0.5, 0.0, -1.5]))
 
     def test_SetMultipleMovingLoadsWithVelocityFunctionConfigurationNegative(self):
         """
@@ -1394,7 +1343,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
         # set load on node
         cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
 
-        self.checkRHS(rhs, [0.0, 0.0, 0.0, 0.0])
+        self.assertTrue(np.allclose(rhs, [0.0, 0.0, 0.0, 0.0]))
 
         # change time and recalculate load
         self.next_solution_step(process)
@@ -1402,7 +1351,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
         # check if interpolation is done correctly
         cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
 
-        self.checkRHS(rhs, [0.0, 0.0, 0.0, 0.0])
+        self.assertTrue(np.allclose(rhs, [0.0, 0.0, 0.0, 0.0]))
 
         self.model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0.5)
 
@@ -1411,7 +1360,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
         # check if interpolation is done correctly
         cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
 
-        self.checkRHS(rhs, [0.0, -2.0, 0.0, 0.0])
+        self.assertTrue(np.allclose(rhs, [0.0, -2.0, 0.0, 0.0]))
 
 
 if __name__ == '__main__':

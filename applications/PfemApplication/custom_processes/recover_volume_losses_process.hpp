@@ -351,7 +351,7 @@ class RecoverVolumeLossesProcess : public Process
       for (int i=0; i<NumberOfElements; ++i)
       {
         ModelPart::ElementsContainerType::iterator i_elem = it_begin + i;
-        if( i_elem->GetGeometry().Dimension() == 2 && i_elem->Is(FLUID) )
+        if( i_elem->GetGeometry().WorkingSpaceDimension() == 2 && i_elem->Is(FLUID) )
           ModelPartVolume += i_elem->GetGeometry().Area();
       }
     }
@@ -364,7 +364,7 @@ class RecoverVolumeLossesProcess : public Process
       for (int i=0; i<NumberOfElements; ++i)
       {
         ModelPart::ElementsContainerType::iterator i_elem = it_begin + i;
-        if( i_elem->GetGeometry().Dimension() == 3 && i_elem->Is(FLUID) )
+        if( i_elem->GetGeometry().WorkingSpaceDimension() == 3 && i_elem->Is(FLUID) )
           ModelPartVolume += i_elem->GetGeometry().Volume();
       }
     }
@@ -394,7 +394,7 @@ class RecoverVolumeLossesProcess : public Process
       for (int i=0; i<NumberOfElements; ++i)
       {
         ModelPart::ElementsContainerType::iterator i_elem = it_begin + i;
-        if( i_elem->GetGeometry().Dimension() == 2 && i_elem->Is(FREE_SURFACE) && i_elem->Is(FLUID) )
+        if( i_elem->GetGeometry().WorkingSpaceDimension() == 2 && i_elem->Is(FREE_SURFACE) && i_elem->Is(FLUID) )
           ModelPartVolume += i_elem->GetGeometry().Area();
       }
     }
@@ -407,7 +407,7 @@ class RecoverVolumeLossesProcess : public Process
       for (int i=0; i<NumberOfElements; ++i)
       {
         ModelPart::ElementsContainerType::iterator i_elem = it_begin + i;
-        if( i_elem->GetGeometry().Dimension() == 3  && i_elem->Is(FREE_SURFACE) && i_elem->Is(FLUID) )
+        if( i_elem->GetGeometry().WorkingSpaceDimension() == 3  && i_elem->Is(FREE_SURFACE) && i_elem->Is(FLUID) )
           ModelPartVolume += i_elem->GetGeometry().Volume();
       }
     }
@@ -439,7 +439,7 @@ class RecoverVolumeLossesProcess : public Process
       {
         ModelPart::ElementsContainerType::iterator i_elem = it_begin + i;
         GeometryType& rGeometry = i_elem->GetGeometry();
-        if( rGeometry.Dimension() == 2 && i_elem->Is(FREE_SURFACE) && i_elem->Is(FLUID) ){
+        if( rGeometry.WorkingSpaceDimension() == 2 && i_elem->Is(FREE_SURFACE) && i_elem->Is(FLUID) ){
           for(unsigned int j=0; j<rGeometry.size()-1; ++j)
           {
             if(rGeometry[j].Is(FREE_SURFACE)){
@@ -470,7 +470,7 @@ class RecoverVolumeLossesProcess : public Process
 
         GeometryType& rGeometry = i_elem->GetGeometry();
 
-        if( rGeometry.Dimension() == 3 && i_elem->Is(FREE_SURFACE) && i_elem->Is(FLUID) ){
+        if( rGeometry.WorkingSpaceDimension() == 3 && i_elem->Is(FREE_SURFACE) && i_elem->Is(FLUID) ){
 
           rGeometry.NodesInFaces(lpofa);
           rGeometry.NumberNodesInFaces(lnofa);

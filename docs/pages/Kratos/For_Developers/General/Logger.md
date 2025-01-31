@@ -3,7 +3,7 @@ title: Logger
 keywords: 
 tags: [How To Use Logger]
 sidebar: kratos_for_developers
-summary: Descrives the usage of the Kratos Logger
+summary: describes the usage of the Kratos Logger
 ---
 
 ## Structure
