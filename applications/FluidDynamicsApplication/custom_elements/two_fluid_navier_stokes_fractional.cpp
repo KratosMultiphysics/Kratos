@@ -2093,8 +2093,6 @@ double TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<3, 4>>:
     const double art_dyn_visc_coeff = 0.8;
     double grad_v_norm = 0.0;
 
-    // Check that velocity gradient norm is non-zero
-
     grad_v_norm=sqrt(pow(fabs(DN(0,0)*v(0,0) + DN(1,0)*v(1,0) + DN(2,0)*v(2,0) + DN(3,0)*v(3,0)), 2) + pow(fabs(DN(0,0)*v(0,1) + DN(1,0)*v(1,1) + DN(2,0)*v(2,1) + DN(3,0)*v(3,1)), 2) + pow(fabs(DN(0,0)*v(0,2) + DN(1,0)*v(1,2) + DN(2,0)*v(2,2) + DN(3,0)*v(3,2)), 2) + pow(fabs(DN(0,1)*v(0,0) + DN(1,1)*v(1,0) + DN(2,1)*v(2,0) + DN(3,1)*v(3,0)), 2) + pow(fabs(DN(0,1)*v(0,1) + DN(1,1)*v(1,1) + DN(2,1)*v(2,1) + DN(3,1)*v(3,1)), 2) + pow(fabs(DN(0,1)*v(0,2) + DN(1,1)*v(1,2) + DN(2,1)*v(2,2) + DN(3,1)*v(3,2)), 2) + pow(fabs(DN(0,2)*v(0,0) + DN(1,2)*v(1,0) + DN(2,2)*v(2,0) + DN(3,2)*v(3,0)), 2) + pow(fabs(DN(0,2)*v(0,1) + DN(1,2)*v(1,1) + DN(2,2)*v(2,1) + DN(3,2)*v(3,1)), 2) + pow(fabs(DN(0,2)*v(0,2) + DN(1,2)*v(1,2) + DN(2,2)*v(2,2) + DN(3,2)*v(3,2)), 2));
 
 
