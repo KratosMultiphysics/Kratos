@@ -84,7 +84,7 @@ namespace Kratos
             double minweight = std::numeric_limits<double>::max();
             Diagonal diagonal, newdiagonal;
 
-            std::list<Diagonal> diagonals;
+            std::queue<Diagonal> diagonals;
 
             IndexType n = polygon.size();
             std::vector< Clipper2Lib::Point64 > const& points = polygon;
@@ -195,11 +195,11 @@ namespace Kratos
 
             newdiagonal.index1 = 0;
             newdiagonal.index2 = n - 1;
-            diagonals.push_back(newdiagonal);
+            diagonals.push(newdiagonal);
 
             while (!diagonals.empty()) {
-                diagonal = *(diagonals.begin());
-                diagonals.pop_front();
+                diagonal = diagonals.front();
+                diagonals.pop();
 
                 bestvertex = dpstates(diagonal.index2, diagonal.index1).bestvertex;
                 if (bestvertex == -1) {
@@ -222,12 +222,12 @@ namespace Kratos
                 if (bestvertex > (diagonal.index1 + 1)) {
                     newdiagonal.index1 = diagonal.index1;
                     newdiagonal.index2 = bestvertex;
-                    diagonals.push_back(newdiagonal);
+                    diagonals.push(newdiagonal);
                 }
                 if (diagonal.index2 > (bestvertex + 1)) {
                     newdiagonal.index1 = bestvertex;
                     newdiagonal.index2 = diagonal.index2;
-                    diagonals.push_back(newdiagonal);
+                    diagonals.push(newdiagonal);
                 }
             }
         }
