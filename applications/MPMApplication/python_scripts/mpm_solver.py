@@ -166,6 +166,7 @@ class MPMSolver(PythonSolver):
 
     def SolveSolutionStep(self):
         # Calc residual, update momenta
+        print("I AM SOLVING -------------------------------------")
         is_converged = self._GetSolutionStrategy().SolveSolutionStep()
         return is_converged
 
