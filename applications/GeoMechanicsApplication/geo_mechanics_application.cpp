@@ -27,6 +27,8 @@ KratosGeoMechanicsApplication::KratosGeoMechanicsApplication()
 
 void KratosGeoMechanicsApplication::Register()
 {
+    KratosApplication::Register();
+
     KRATOS_INFO("") << " KRATOS___                             \n"
                     << "     //   ) )                          \n"
                     << "    //         ___      ___            \n"
@@ -527,6 +529,8 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(DIFF_PIPE_HEIGHT)
     KRATOS_REGISTER_VARIABLE(PIPE_EROSION)
     KRATOS_REGISTER_VARIABLE(PIPE_ACTIVE)
+
+    KRATOS_REGISTER_VARIABLE(FILTER_LENGTH)
 
     // UDSM
     KRATOS_REGISTER_VARIABLE(UDSM_NAME) // Also for UMAT

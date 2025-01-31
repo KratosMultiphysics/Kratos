@@ -18,6 +18,7 @@
 #include "custom_retention/retention_law_factory.h"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
+#include "filter_compressibility_calculator.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/cfd_variables.h"
 #include "includes/element.h"
@@ -252,48 +253,56 @@ private:
 
         const auto integration_coefficients = CalculateIntegrationCoefficients(det_J_container);
 
-        const std::size_t number_integration_points =
-            GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
-        GeometryType::JacobiansType J_container;
-        J_container.resize(number_integration_points, false);
-        for (std::size_t i = 0; i < number_integration_points; ++i) {
-            J_container[i].resize(GetGeometry().WorkingSpaceDimension(),
-                                  GetGeometry().LocalSpaceDimension(), false);
-        }
-        GetGeometry().Jacobian(J_container, this->GetIntegrationMethod());
-
         const auto&                 r_properties = GetProperties();
         BoundedMatrix<double, 1, 1> constitutive_matrix;
         GeoElementUtilities::FillPermeabilityMatrix(constitutive_matrix, r_properties);
 
         RetentionLaw::Parameters RetentionParameters(GetProperties());
 
-        array_1d<double, TNumNodes * TDim> volume_acceleration;
-        GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(
-            volume_acceleration, GetGeometry(), VOLUME_ACCELERATION);
+        const auto projected_gravity = CalculateProjectedGravityAtIntegrationPoints(N_container);
 
         array_1d<double, TNumNodes> fluid_body_vector = ZeroVector(TNumNodes);
         for (unsigned int integration_point_index = 0;
              integration_point_index < GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
              ++integration_point_index) {
-            array_1d<double, TDim> body_acceleration;
-            GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
-                body_acceleration, N_container, volume_acceleration, integration_point_index);
-
-            array_1d<double, TDim> tangent_vector = column(J_container[integration_point_index], 0);
-            tangent_vector /= norm_2(tangent_vector);
-
-            array_1d<double, 1> projected_gravity = ZeroVector(1);
-            projected_gravity(0) = MathUtils<double>::Dot(tangent_vector, body_acceleration);
-            const auto N         = Vector{row(N_container, integration_point_index)};
+            const auto N = Vector{row(N_container, integration_point_index)};
             double     RelativePermeability =
                 mRetentionLawVector[integration_point_index]->CalculateRelativePermeability(RetentionParameters);
             fluid_body_vector +=
                 r_properties[DENSITY_WATER] * RelativePermeability *
-                prod(prod(shape_function_gradients[integration_point_index], constitutive_matrix), projected_gravity) *
+                prod(prod(shape_function_gradients[integration_point_index], constitutive_matrix),
+                     ScalarVector(1, projected_gravity[integration_point_index])) *
                 integration_coefficients[integration_point_index] / r_properties[DYNAMIC_VISCOSITY];
         }
         return fluid_body_vector;
+    }
+
+    Vector CalculateProjectedGravityAtIntegrationPoints(const Matrix& rNContainer) const
+    {
+        const auto number_integration_points = GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
+        GeometryType::JacobiansType J_container{number_integration_points};
+        for (auto& j : J_container) {
+            j.resize(GetGeometry().WorkingSpaceDimension(), GetGeometry().LocalSpaceDimension(), false);
+        }
+        GetGeometry().Jacobian(J_container, this->GetIntegrationMethod());
+
+        array_1d<double, TNumNodes * TDim> volume_acceleration;
+        GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(
+            volume_acceleration, GetGeometry(), VOLUME_ACCELERATION);
+        array_1d<double, TDim> body_acceleration;
+
+        Vector projected_gravity = ZeroVector(number_integration_points);
+
+        for (unsigned int integration_point_index = 0;
+             integration_point_index < number_integration_points; ++integration_point_index) {
+            GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
+                body_acceleration, rNContainer, volume_acceleration, integration_point_index);
+            array_1d<double, TDim> tangent_vector = column(J_container[integration_point_index], 0);
+            tangent_vector /= norm_2(tangent_vector);
+            projected_gravity(integration_point_index) =
+                MathUtils<>::Dot(tangent_vector, body_acceleration);
+        }
+        return projected_gravity;
     }
 
     std::unique_ptr<ContributionCalculator> CreateCalculator(const CalculationContribution& rContribution,
@@ -303,6 +312,10 @@ private:
         case CalculationContribution::Permeability:
             return std::make_unique<PermeabilityCalculator>(CreatePermeabilityInputProvider());
         case CalculationContribution::Compressibility:
+            if (GetProperties()[RETENTION_LAW] == "PressureFilterLaw") {
+                return std::make_unique<FilterCompressibilityCalculator>(
+                    CreateFilterCompressibilityInputProvider(rCurrentProcessInfo));
+            }
             return std::make_unique<CompressibilityCalculator>(CreateCompressibilityInputProvider(rCurrentProcessInfo));
         default:
             KRATOS_ERROR << "Unknown contribution" << std::endl;
@@ -315,6 +328,14 @@ private:
             MakePropertiesGetter(), MakeRetentionLawsGetter(), MakeNContainerGetter(),
             MakeIntegrationCoefficientsGetter(), MakeMatrixScalarFactorGetter(rCurrentProcessInfo),
             MakeNodalVariableGetter());
+    }
+
+    FilterCompressibilityCalculator::InputProvider CreateFilterCompressibilityInputProvider(const ProcessInfo& rCurrentProcessInfo)
+    {
+        return FilterCompressibilityCalculator::InputProvider(
+            MakePropertiesGetter(), MakeNContainerGetter(), MakeIntegrationCoefficientsGetter(),
+            MakeProjectedGravityForIntegrationPointsGetter(),
+            MakeMatrixScalarFactorGetter(rCurrentProcessInfo), MakeNodalVariableGetter());
     }
 
     PermeabilityCalculator::InputProvider CreatePermeabilityInputProvider()
@@ -347,6 +368,14 @@ private:
             Vector det_J_container;
             GetGeometry().DeterminantOfJacobian(det_J_container, this->GetIntegrationMethod());
             return CalculateIntegrationCoefficients(det_J_container);
+        };
+    }
+
+    auto MakeProjectedGravityForIntegrationPointsGetter()
+    {
+        return [this]() -> Vector {
+            return CalculateProjectedGravityAtIntegrationPoints(
+                GetGeometry().ShapeFunctionsValues(GetIntegrationMethod()));
         };
     }
 
