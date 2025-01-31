@@ -6,6 +6,8 @@ sidebar: mpm_application
 summary: 
 ---
 
+In this section we discuss the constitutive laws that are implemented in the `MPMApplication` and for each of them we list the variables that must be defined in the `ParticleMaterials.json` file.
+
 ## Linear Elasticity
 
 The **linear elastic** constitutive law is identified by the following labels:

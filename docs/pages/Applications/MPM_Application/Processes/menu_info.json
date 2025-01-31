@@ -4,6 +4,7 @@
         "assign_gravity.md",
         "assign_initial_velocity.md",
         "restart.md",
-        "Grid_Boundary_Conditions"
+        "Grid-based_Boundary_Conditions",
+        "Material_Point-based_Boundary_Conditions"
     ]
 }

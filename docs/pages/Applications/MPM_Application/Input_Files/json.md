@@ -37,6 +37,33 @@ The input file `ProjectParameters.json` has the following structure
 }
 ```
 
+### `analysis_stage`
+A string that specifies the Python module containing the implementation of the `MpmAnalysis` class. This class extends the `AnalysisStage` class from the Kratos Core and defines the overall workflow of the simulation.
+
+### `problem_data`
+
+##### `problem_name`
+A label that identifies the problem to be solved.
+
+##### `parallel_type`
+Specifies the parallelization method used for solving the problem. Currently, the MPMApplication only supports shared memory parallelization, meaning the only valid value is "OpenMP".
+
+##### `echo_level`
+An integer that controls the verbosity level of the simulation output.
+Higher values result in more messages printed to the standard output, providing greater detail on the simulation's status.
+* Minimum: 0 - silent
+* Maximum: 4 - detailed output
+
+##### `start_time`
+The starting time of the simulation.
+
+##### `end_time`
+The ending time of the simulation.
+
+### `solver_settings`
+### `processes`
+### `output_processes`
+
 ## `ParticleMaterials.json`
 
 The input file `ParticleMaterials.json` has the following structure
@@ -44,7 +71,7 @@ The input file `ParticleMaterials.json` has the following structure
 ```json
 {
     "properties" : [{
-        "model_part_name" : "Initial_MPM_Material.Parts_Material_domain_Material_domain_Auto1",
+        "model_part_name" : "Initial_MPM_Material.Parts_Material_domain",
         "properties_id"   : 1,
         "Material"        : {
             "constitutive_law" : {

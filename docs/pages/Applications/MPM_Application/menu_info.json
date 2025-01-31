@@ -9,6 +9,7 @@
     "custom_entries": [
         "General",
         "Input_Files",
+        "MPM_Solver",
         "Constitutive_Laws",
         "Processes",
         "Post_processing",
