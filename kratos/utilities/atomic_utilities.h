@@ -51,8 +51,8 @@ namespace Kratos {
  * @param target variable being atomically updated by doing target += value
  * @param value value being added
  */
-template<class TDataType>
-inline void AtomicAdd(TDataType& target, const TDataType& value)
+template<class TLeftData, class TRightData>
+inline void AtomicAdd(TLeftData& target, const TRightData& value)
 {
 #ifdef KRATOS_SMP_OPENMP
     #pragma omp atomic
