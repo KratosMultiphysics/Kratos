@@ -923,6 +923,12 @@ public:
     ///@name Input and output
     ///@{
 
+    /// @copydoc Geometry::Name
+    std::string Name() const override
+    {
+        return "Line3D2N";
+    }
+
     /** Turn back information as a string.
 
     @return String contains information about this geometry.

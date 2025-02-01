@@ -579,6 +579,12 @@ public:
     ///@name Input and output
     ///@{
 
+    /// @copydoc Geometry::Name
+    std::string Name() const override
+    {
+        return "Point2D1N";
+    }
+
     /** Turn back information as a string.
 
     @return String contains information about this geometry.
