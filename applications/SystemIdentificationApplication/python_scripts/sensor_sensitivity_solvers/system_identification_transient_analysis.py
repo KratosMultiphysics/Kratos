@@ -43,11 +43,6 @@ class SystemIdentificationTransientAnalysis(AnalysisStage):
     def Initialize(self):
         super().Initialize()
 
-        print('--------------------------------------')
-        print("primal model part time:", self.model["Structure"].ProcessInfo[Kratos.TIME])
-        print("adjoint model part time", self.model["AdjointStructure"].ProcessInfo[Kratos.TIME])
-        print('--------------------------------------')
-
         default_sensor_settings = Kratos.Parameters("""{
             "perturbation_size"            : 1e-8,
             "adapt_perturbation_size"      : true,
