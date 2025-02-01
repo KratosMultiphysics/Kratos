@@ -78,12 +78,12 @@ private:
     class Item
     {
     public:
-        explicit Item(CodeLocation&& rLocation)
+        explicit Item(CodeLocation&& rLocation) noexcept
             : Item(0,                                                               // <== .mCallCount
-                  Duration(0),                                                     // <== .mCumulative
-                  Duration(std::numeric_limits<typename Duration::rep>::max()),    // <== .mMin
-                  Duration(0),                                                     // <== .mMax
-                  std::move(rLocation))                                            // <== .mLocation
+                   Duration(0),                                                     // <== .mCumulative
+                   Duration(std::numeric_limits<typename Duration::rep>::max()),    // <== .mMin
+                   Duration(0),                                                     // <== .mMax
+                   std::move(rLocation))                                            // <== .mLocation
         {
         }
 
@@ -92,7 +92,7 @@ private:
              Duration CumulativeDuration,
              Duration MinDuration,
              Duration MaxDuration,
-             CodeLocation&& rLocation)
+             CodeLocation&& rLocation) noexcept
             : mRecursionLevel(0)
             , mCallCount(CallCount)
             , mCumulative(CumulativeDuration)
@@ -103,7 +103,7 @@ private:
         }
 
         /// @brief Aggregate profiled data from another @ref Item in the same scope.
-        Item& operator+=(const Item& rOther)
+        Item& operator+=(const Item& rOther) noexcept
         {
             mCallCount += rOther.mCallCount;
             mCumulative += rOther.mCumulative;
@@ -162,29 +162,25 @@ public:
     public:
         ~Scope()
         {
-            const auto end = Clock::now();
-            const auto duration = std::chrono::duration_cast<Duration>(end - mBegin);
-            if (0 == mrItem.mRecursionLevel) {
-                ++mrItem.mCallCount;
+            if (!--mrItem.mRecursionLevel) {
+                const auto duration = std::chrono::duration_cast<Profiler::TimeUnit>(Clock::now() - mBegin);
                 mrItem.mCumulative += duration;
                 mrItem.mMin = std::min(mrItem.mMin, duration);
                 mrItem.mMax = std::max(mrItem.mMax, duration);
             }
-            --mrItem.mRecursionLevel;
         }
 
     private:
-        Scope(Item& rItem)
-            : mrItem(rItem)
-            , mBegin(Clock::now())
+        Scope(Item& rItem) noexcept
+            : Scope(rItem, Clock::now())
         {
-            ++mrItem.mRecursionLevel;
         }
 
-        Scope(Item& rItem, std::chrono::high_resolution_clock::time_point Begin)
+        Scope(Item& rItem, std::chrono::high_resolution_clock::time_point Begin) noexcept
             : mrItem(rItem)
             , mBegin(Begin)
         {
+            ++mrItem.mCallCount;
             ++mrItem.mRecursionLevel;
         }
 
