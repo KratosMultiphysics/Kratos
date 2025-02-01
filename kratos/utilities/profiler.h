@@ -216,7 +216,7 @@ public:
 
 public:
     Profiler()
-        : Profiler("kratos_profiler_output_" + GetTimeUnit<T>() + ".json")
+        : Profiler("kratos_profiler_output_" + GetTimeUnit<TimeUnit>() + ".json")
     {
     }
 
@@ -320,7 +320,7 @@ public:
         {
             Parameters object;
             object.AddString("name", "total");
-            object.AddString("timeUnit", GetTimeUnit<T>());
+            object.AddString("timeUnit", GetTimeUnit<TimeUnit>());
             object.AddInt("total", profiler_item.mCumulative.count());
             root.AddValue("meta", std::move(object));
         }
@@ -328,7 +328,7 @@ public:
         // Add all items
         root.AddEmptyArray("results");
         Parameters results = root["results"];
-        for (const typename Profiler<T>::Item* p_item : items) {
+        for (const typename Profiler<TimeUnit>::Item* p_item : items) {
             Parameters result;
             const auto& r_location = p_item->mLocation;
             result.AddString("file", std::string(r_location.GetFileName()));
@@ -461,6 +461,3 @@ template std::ostream& operator<<(std::ostream&, const Profiler<std::chrono::nan
 
 #endif
 
-
-// Definitions of "inlined" functions.
-#include "utilities/profiler_impl.h"
