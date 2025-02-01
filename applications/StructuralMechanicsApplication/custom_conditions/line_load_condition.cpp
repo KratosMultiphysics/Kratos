@@ -97,18 +97,19 @@ void LineLoadCondition<TDim>::CalculateLeftHandSide(MatrixType& rLeftHandSideMat
 {
     KRATOS_TRY
 
+    // Calculate matrix size
     const auto& r_geometry = GetGeometry();
     const SizeType number_of_nodes = r_geometry.size();
     const SizeType dimension = r_geometry.WorkingSpaceDimension();
-
-    // Resizing as needed the LHS
     const SizeType mat_size = number_of_nodes * dimension;
+
+    // Resize LHS
     if ( rLeftHandSideMatrix.size1() != mat_size ) {
         rLeftHandSideMatrix.resize( mat_size, mat_size, false );
     }
 
-    noalias( rLeftHandSideMatrix ) = ZeroMatrix( mat_size, mat_size ); //resetting LHS
-    KRATOS_WATCH(rLeftHandSideMatrix)
+    // Set LHS
+    noalias( rLeftHandSideMatrix ) = ZeroMatrix( mat_size, mat_size );
    
     KRATOS_CATCH( "" )
 }
@@ -122,18 +123,19 @@ void LineLoadCondition<TDim>::CalculateFirstDerivativesLHS(MatrixType& rLeftHand
 {
     KRATOS_TRY
 
+    // Calculate matrix size
     const auto& r_geometry = GetGeometry();
     const SizeType number_of_nodes = r_geometry.size();
     const SizeType dimension = r_geometry.WorkingSpaceDimension();
-
-    // Resizing as needed the LHS
     const SizeType mat_size = number_of_nodes * dimension;
+
+    // Resize LHS
     if ( rLeftHandSideMatrix.size1() != mat_size ) {
         rLeftHandSideMatrix.resize( mat_size, mat_size, false );
     }
 
-    noalias( rLeftHandSideMatrix ) = ZeroMatrix( mat_size, mat_size ); //resetting LHS
-    KRATOS_WATCH(rLeftHandSideMatrix)
+    // Set LHS
+    noalias( rLeftHandSideMatrix ) = ZeroMatrix( mat_size, mat_size );
    
     KRATOS_CATCH( "" )
 }
@@ -147,18 +149,19 @@ void LineLoadCondition<TDim>::CalculateSecondDerivativesLHS(MatrixType& rLeftHan
 {
     KRATOS_TRY
 
+    // Calculate matrix size
     const auto& r_geometry = GetGeometry();
     const SizeType number_of_nodes = r_geometry.size();
     const SizeType dimension = r_geometry.WorkingSpaceDimension();
-
-    // Resizing as needed the LHS
     const SizeType mat_size = number_of_nodes * dimension;
+
+    // Resize LHS
     if ( rLeftHandSideMatrix.size1() != mat_size ) {
         rLeftHandSideMatrix.resize( mat_size, mat_size, false );
     }
 
-    noalias( rLeftHandSideMatrix ) = ZeroMatrix( mat_size, mat_size ); //resetting LHS
-    KRATOS_WATCH(rLeftHandSideMatrix)
+    // Set LHS
+    noalias( rLeftHandSideMatrix ) = ZeroMatrix( mat_size, mat_size );
    
     KRATOS_CATCH( "" )
 }
