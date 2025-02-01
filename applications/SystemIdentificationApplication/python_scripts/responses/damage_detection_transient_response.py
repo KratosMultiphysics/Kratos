@@ -152,7 +152,8 @@ class DamageDetectionTransientResponse(ResponseFunction):
         for physical_variable, collective_expression in physical_variable_collective_expressions.items():
             for container_expression in collective_expression.GetContainerExpressions():
                 Kratos.Expression.LiteralExpressionIO.SetDataToZero(container_expression, physical_variable)
-        
+                Kratos.VariableUtils().SetNonHistoricalVariableToZero(Kratos.KratosGlobals.GetVariable(f"{physical_variable.Name()}_SENSITIVITY"), container_expression.GetContainer())   
+
         for exec_policy, sensor_measurement_data_file_name, _, test_case_weight in self.list_of_test_analysis_data:
 
             self.model_part.ProcessInfo[KratosSI.TEST_ANALYSIS_NAME] = exec_policy.GetName()
