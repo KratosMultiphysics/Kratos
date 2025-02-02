@@ -28,6 +28,7 @@
 #include "solving_strategies/strategies/explicit_solving_strategy.h"
 #include "solving_strategies/strategies/explicit_solving_strategy_runge_kutta.h"
 #include "solving_strategies/strategies/explicit_solving_strategy_bfecc.h"
+// #include "solving_strategies/strategies/linear_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 #include "solving_strategies/strategies/adaptive_residualbased_newton_raphson_strategy.h"
@@ -633,6 +634,15 @@ namespace Kratos:: Python
             .def("SetReformDofSetAtEachStepFlag", &ResidualBasedLinearStrategyType::SetReformDofSetAtEachStepFlag)
             .def("GetReformDofSetAtEachStepFlag", &ResidualBasedLinearStrategyType::GetReformDofSetAtEachStepFlag)
             ;
+
+        // using LinearStrategyType = LinearStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
+        // py::class_<LinearStrategyType, typename LinearStrategyType::Pointer, ImplicitSolvingStrategyType>(m, "LinearStrategyType")
+        //     .def(py::init<ModelPart &, Parameters>())
+        //     .def(py::init<ModelPart &, BaseSchemeType::Pointer, LinearSolverType::Pointer, bool, bool, bool, bool>())
+        //     .def("GetScheme", &LinearStrategyType::GetScheme)
+        //     .def("GetResidualNorm", &LinearStrategyType::GetResidualNorm)
+        //     .def("SetReformDofSetAtEachStepFlag", &LinearStrategyType::SetReformDofSetAtEachStepFlag)
+        //     .def("GetReformDofSetAtEachStepFlag", &LinearStrategyType::GetReformDofSetAtEachStepFlag);
 
         typedef ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedNewtonRaphsonStrategyType;
 
