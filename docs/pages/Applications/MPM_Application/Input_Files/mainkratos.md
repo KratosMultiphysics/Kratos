@@ -54,3 +54,9 @@ if __name__ == "__main__":
     simulation = CreateAnalysisStageWithFlushInstance(analysis_stage_class, global_model, parameters)
     simulation.Run()
 ```
+
+To execute the simulation script, open the terminal, navigate to the directory containing the script `MainKratos.py` and execute the command
+
+```bash
+python MainKratos.py
+```
