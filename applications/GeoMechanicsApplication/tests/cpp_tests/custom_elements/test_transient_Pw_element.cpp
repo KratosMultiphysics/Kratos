@@ -443,6 +443,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_InitializeSolution, KratosGeoMechan
     r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
     auto p_element = CreateTransientPwElementWithPWDofs<2, 3>(r_model_part, std::make_shared<Properties>());
     const auto dummy_process_info = ProcessInfo{};
+    p_element->Initialize(dummy_process_info);
 
     // Act
     p_element->InitializeSolutionStep(dummy_process_info);
@@ -462,6 +463,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_FinalizeSolutionStep, KratosGeoMech
     auto p_element = CreateTransientPwElementWithPWDofs<2, 3>(r_model_part, std::make_shared<Properties>());
     SetBasicPropertiesAndVariables(p_element);
     const auto dummy_process_info = ProcessInfo{};
+    p_element->Initialize(dummy_process_info);
     p_element->InitializeSolutionStep(dummy_process_info);
 
     // Act
@@ -482,6 +484,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Vector
     auto p_element = CreateTransientPwElementWithPWDofs<2, 3>(r_model_part, std::make_shared<Properties>());
     SetBasicPropertiesAndVariables(p_element);
     const auto dummy_process_info = ProcessInfo{};
+    p_element->Initialize(dummy_process_info);
     p_element->InitializeSolutionStep(dummy_process_info);
 
     // Act
@@ -560,6 +563,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_1DArra
     auto p_element = CreateTransientPwElementWithPWDofs<2, 3>(r_model_part, std::make_shared<Properties>());
     SetBasicPropertiesAndVariables(p_element);
     const auto dummy_process_info = ProcessInfo{};
+    p_element->Initialize(dummy_process_info);
     p_element->InitializeSolutionStep(dummy_process_info);
 
     // Act
@@ -596,6 +600,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Matrix
     auto p_element = CreateTransientPwElementWithPWDofs<2, 3>(r_model_part, std::make_shared<Properties>());
     SetBasicPropertiesAndVariables(p_element);
     const auto dummy_process_info = ProcessInfo{};
+    p_element->Initialize(dummy_process_info);
     p_element->InitializeSolutionStep(dummy_process_info);
 
     // Act
@@ -638,6 +643,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement2D3N_CalculateLocalSystem, KratosGeo
     p_element->GetProperties().SetValue(POROSITY, 0.1);
     p_element->GetProperties().SetValue(IGNORE_UNDRAINED, false);
     const auto dummy_process_info = ProcessInfo{};
+    p_element->Initialize(dummy_process_info);
     p_element->InitializeSolutionStep(dummy_process_info);
 
     // Act
@@ -673,6 +679,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement3D4N_CalculateLocalSystem, KratosGeo
     p_element->GetProperties().SetValue(POROSITY, 0.1);
     p_element->GetProperties().SetValue(IGNORE_UNDRAINED, false);
     const auto dummy_process_info = ProcessInfo{};
+    p_element->Initialize(dummy_process_info);
     p_element->InitializeSolutionStep(dummy_process_info);
 
     // Act
@@ -744,7 +751,6 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_ZeroReturnFunctions, KratosGeoMecha
     // Assert
     KRATOS_EXPECT_EQ(actual_vector.size(), n_DoF);
     KRATOS_EXPECT_VECTOR_EQ(actual_vector, expected_vector);
-
 }
 
 } // namespace Kratos::Testing

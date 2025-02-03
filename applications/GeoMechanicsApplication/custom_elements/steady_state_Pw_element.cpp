@@ -150,8 +150,6 @@ void SteadyStatePwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLef
     ElementVariables Variables;
     this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
-
     const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
         Variables.NContainer, Variables.PressureVector);
     const auto relative_permeability_values = this->CalculateRelativePermeabilityValues(fluid_pressures);
@@ -191,10 +189,9 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void SteadyStatePwElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
                                                                ElementVariables& rVariables)
 {
-    const auto permeability_matrix = GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
+    noalias(rLeftHandSideMatrix) += GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
         rVariables.GradNpT, rVariables.DynamicViscosityInverse, rVariables.PermeabilityMatrix,
         rVariables.RelativePermeability, rVariables.IntegrationCoefficient);
-    rLeftHandSideMatrix += permeability_matrix;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -204,7 +201,12 @@ void SteadyStatePwElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRigh
 {
     KRATOS_TRY;
 
-    this->CalculateAndAddPermeabilityFlow(rRightHandSideVector, rVariables);
+    noalias(rRightHandSideVector) +=
+        -prod(GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
+                  rVariables.GradNpT, rVariables.DynamicViscosityInverse, rVariables.PermeabilityMatrix,
+                  rVariables.RelativePermeability, rVariables.IntegrationCoefficient),
+              rVariables.PressureVector);
+
     this->CalculateAndAddFluidBodyFlow(rRightHandSideVector, rVariables);
 
     KRATOS_CATCH("")

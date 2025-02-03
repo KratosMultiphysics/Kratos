@@ -11,6 +11,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.component_data_view im
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import time_decorator
 from KratosMultiphysics.OptimizationApplication.filtering.filter import Factory as FilterFactory
+import math
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> Control:
     if not parameters.Has("name"):
@@ -147,7 +148,8 @@ class VertexMorphingShapeControl(Control):
     def Update(self, new_control_field: ContainerExpressionTypes) -> bool:
         if not IsSameContainerExpression(new_control_field, self.GetEmptyField()):
             raise RuntimeError(f"Updates for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.model_part.FullName()}, given model part name: {new_control_field.GetModelPart().FullName()} ]")
-        if Kratos.Expression.Utils.NormL2(self.control_field - new_control_field) > 1e-15:
+        diff_norm = Kratos.Expression.Utils.NormL2(self.control_field - new_control_field)
+        if not math.isclose(diff_norm, 0.0, abs_tol=1e-16):
             # update the control SHAPE field
             control_update = new_control_field - self.control_field
             self.control_field = new_control_field

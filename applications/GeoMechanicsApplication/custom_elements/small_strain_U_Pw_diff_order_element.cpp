@@ -162,44 +162,6 @@ int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo
     KRATOS_CATCH("")
 }
 
-void SmallStrainUPwDiffOrderElement::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    ConstitutiveLaw::Parameters ConstitutiveParameters(GetGeometry(), GetProperties(), rCurrentProcessInfo);
-    ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-    ConstitutiveParameters.Set(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE);
-
-    ElementVariables Variables;
-    this->InitializeElementVariables(Variables, rCurrentProcessInfo);
-
-    const auto b_matrices = CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
-    const auto deformation_gradients = CalculateDeformationGradients();
-    const auto determinants_of_deformation_gradients =
-        GeoMechanicsMathUtilities::CalculateDeterminants(deformation_gradients);
-    const auto strain_vectors = StressStrainUtilities::CalculateStrains(
-        deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain,
-        GetStressStatePolicy().GetVoigtSize());
-
-    const auto number_of_integration_points = GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
-    for (unsigned int GPoint = 0; GPoint < number_of_integration_points; ++GPoint) {
-        this->CalculateKinematics(Variables, GPoint);
-        Variables.B            = b_matrices[GPoint];
-        Variables.F            = deformation_gradients[GPoint];
-        Variables.StrainVector = strain_vectors[GPoint];
-
-        ConstitutiveLawUtilities::SetConstitutiveParameters(
-            ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix, Variables.Nu,
-            Variables.DNu_DX, Variables.F, determinants_of_deformation_gradients[GPoint]);
-
-        noalias(Variables.StressVector) = mStressVector[GPoint];
-        ConstitutiveParameters.SetStressVector(Variables.StressVector);
-        mConstitutiveLawVector[GPoint]->InitializeMaterialResponseCauchy(ConstitutiveParameters);
-    }
-
-    KRATOS_CATCH("")
-}
-
 void SmallStrainUPwDiffOrderElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -892,10 +854,12 @@ std::vector<double> SmallStrainUPwDiffOrderElement::CalculateDerivativesOfSatura
 {
     KRATOS_ERROR_IF(rFluidPressures.size() != mRetentionLawVector.size());
     std::vector<double> result;
+    result.reserve(rFluidPressures.size());
 
     auto retention_law_params = RetentionLaw::Parameters{this->GetProperties()};
     std::transform(rFluidPressures.begin(), rFluidPressures.end(), mRetentionLawVector.begin(),
-                   std::back_inserter(result), [&retention_law_params](auto fluid_pressure, auto pRetentionLaw) {
+                   std::back_inserter(result),
+                   [&retention_law_params](auto fluid_pressure, const auto& pRetentionLaw) {
         retention_law_params.SetFluidPressure(fluid_pressure);
         return pRetentionLaw->CalculateDerivativeOfSaturation(retention_law_params);
     });
@@ -907,10 +871,12 @@ std::vector<double> SmallStrainUPwDiffOrderElement::CalculateDegreesOfSaturation
 {
     KRATOS_ERROR_IF(rFluidPressures.size() != mRetentionLawVector.size());
     std::vector<double> result;
+    result.reserve(rFluidPressures.size());
 
     auto retention_law_params = RetentionLaw::Parameters{this->GetProperties()};
     std::transform(rFluidPressures.begin(), rFluidPressures.end(), mRetentionLawVector.begin(),
-                   std::back_inserter(result), [&retention_law_params](auto fluid_pressure, auto pRetentionLaw) {
+                   std::back_inserter(result),
+                   [&retention_law_params](auto fluid_pressure, const auto& pRetentionLaw) {
         retention_law_params.SetFluidPressure(fluid_pressure);
         return pRetentionLaw->CalculateSaturation(retention_law_params);
     });
@@ -1165,6 +1131,7 @@ std::vector<Matrix> SmallStrainUPwDiffOrderElement::CalculateBMatrices(
     const GeometryType::ShapeFunctionsGradientsType& rDN_DXContainer, const Matrix& rNContainer) const
 {
     std::vector<Matrix> result;
+    result.reserve(rDN_DXContainer.size());
     for (unsigned int GPoint = 0; GPoint < rDN_DXContainer.size(); ++GPoint) {
         result.push_back(this->CalculateBMatrix(rDN_DXContainer[GPoint], row(rNContainer, GPoint)));
     }
@@ -1355,8 +1322,10 @@ std::vector<double> SmallStrainUPwDiffOrderElement::CalculateRelativePermeabilit
     auto retention_law_params = RetentionLaw::Parameters{this->GetProperties()};
 
     auto result = std::vector<double>{};
+    result.reserve(mRetentionLawVector.size());
     std::transform(mRetentionLawVector.begin(), mRetentionLawVector.end(), rFluidPressures.begin(),
-                   std::back_inserter(result), [&retention_law_params](auto pRetentionLaw, auto FluidPressure) {
+                   std::back_inserter(result),
+                   [&retention_law_params](const auto& pRetentionLaw, auto FluidPressure) {
         retention_law_params.SetFluidPressure(FluidPressure);
         return pRetentionLaw->CalculateRelativePermeability(retention_law_params);
     });
@@ -1370,8 +1339,10 @@ std::vector<double> SmallStrainUPwDiffOrderElement::CalculateBishopCoefficients(
     auto retention_law_params = RetentionLaw::Parameters{this->GetProperties()};
 
     auto result = std::vector<double>{};
+    result.reserve(mRetentionLawVector.size());
     std::transform(mRetentionLawVector.begin(), mRetentionLawVector.end(), rFluidPressures.begin(),
-                   std::back_inserter(result), [&retention_law_params](auto pRetentionLaw, auto FluidPressure) {
+                   std::back_inserter(result),
+                   [&retention_law_params](const auto& pRetentionLaw, auto FluidPressure) {
         retention_law_params.SetFluidPressure(FluidPressure);
         return pRetentionLaw->CalculateBishopCoefficient(retention_law_params);
     });
@@ -1457,10 +1428,12 @@ Matrix SmallStrainUPwDiffOrderElement::CalculateDeformationGradient(unsigned int
 
 std::vector<Matrix> SmallStrainUPwDiffOrderElement::CalculateDeformationGradients() const
 {
+    const auto number_of_integration_points =
+        this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
     std::vector<Matrix> result;
-    for (unsigned int GPoint = 0;
-         GPoint < this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod()); ++GPoint) {
-        result.push_back(CalculateDeformationGradient(GPoint));
+    result.reserve(number_of_integration_points);
+    for (unsigned int integration_point = 0; integration_point < number_of_integration_points; ++integration_point) {
+        result.push_back(CalculateDeformationGradient(integration_point));
     }
 
     return result;
