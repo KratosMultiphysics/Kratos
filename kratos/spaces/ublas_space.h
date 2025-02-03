@@ -341,12 +341,12 @@ public:
         return aux_sum;
     }
 
-    static void Mult(const Matrix& rA, VectorType& rX, VectorType& rY)
+    static void Mult(const Matrix& rA, const VectorType& rX, VectorType& rY)
     {
         axpy_prod(rA, rX, rY, true);
     }
 
-    static void Mult(const compressed_matrix<TDataType>& rA, VectorType& rX, VectorType& rY)
+    static void Mult(const compressed_matrix<TDataType>& rA, const VectorType& rX, VectorType& rY)
     {
 #ifndef _OPENMP
         axpy_prod(rA, rX, rY, true);
@@ -356,9 +356,9 @@ public:
     }
 
     template< class TOtherMatrixType >
-    static void TransposeMult(TOtherMatrixType& rA, VectorType& rX, VectorType& rY)
+    static void TransposeMult(const TOtherMatrixType& rA, const VectorType& rX, VectorType& rY)
     {
-		boost::numeric::ublas::axpy_prod(rX, rA, rY, true);
+        boost::numeric::ublas::axpy_prod(rX, rA, rY, true);
     } // rY = rAT * rX
 
     static inline SizeType GraphDegree(IndexType i, TMatrixType& A)

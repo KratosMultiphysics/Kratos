@@ -27,6 +27,8 @@ KratosGeoMechanicsApplication::KratosGeoMechanicsApplication()
 
 void KratosGeoMechanicsApplication::Register()
 {
+    KratosApplication::Register();
+
     KRATOS_INFO("") << " KRATOS___                             \n"
                     << "     //   ) )                          \n"
                     << "    //         ___      ___            \n"
@@ -347,9 +349,6 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_CONDITION("GeoTMicroClimateFluxCondition3D9N", mGeoTMicroClimateFluxCondition3D9N)
 
     // Register Constitutive Laws
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("BilinearCohesive3DLaw", mBilinearCohesive3DLaw)
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("BilinearCohesive2DLaw", mBilinearCohesive2DLaw)
-
     KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoLinearElasticPlaneStrain2DLaw", mLinearElasticPlaneStrain2DLaw)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoIncrementalLinearElastic3DLaw", mLinearElastic3DLaw)
 
@@ -527,6 +526,8 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(DIFF_PIPE_HEIGHT)
     KRATOS_REGISTER_VARIABLE(PIPE_EROSION)
     KRATOS_REGISTER_VARIABLE(PIPE_ACTIVE)
+
+    KRATOS_REGISTER_VARIABLE(FILTER_LENGTH)
 
     // UDSM
     KRATOS_REGISTER_VARIABLE(UDSM_NAME) // Also for UMAT

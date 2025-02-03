@@ -14,7 +14,7 @@
 #include "indirect_conduction_voronoi_a.h"
 
 namespace Kratos {
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   IndirectConductionVoronoiA::IndirectConductionVoronoiA() {}
   IndirectConductionVoronoiA::~IndirectConductionVoronoiA() {}
 

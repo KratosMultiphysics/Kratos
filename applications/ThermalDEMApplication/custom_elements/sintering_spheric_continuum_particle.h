@@ -15,8 +15,7 @@
     template thermal_spheric_particle.
 */
 
-#if !defined(KRATOS_SINTERING_SPHERIC_CONTINUUM_PARTICLE_H_INCLUDED)
-#define KRATOS_SINTERING_SPHERIC_CONTINUUM_PARTICLE_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -85,5 +84,3 @@ namespace Kratos
 
     }; // Class SinteringSphericContinuumParticle
 } // namespace Kratos
-
-#endif // KRATOS_SINTERING_SPHERIC_CONTINUUM_PARTICLE_H_INCLUDED defined

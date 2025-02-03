@@ -1,10 +1,12 @@
 import os
 import shutil
-import stat
+import warnings
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+from KratosMultiphysics.GeoMechanicsApplication.set_parameter_field_process import SetParameterFieldProcess
+
 import test_helper
 
 
@@ -202,6 +204,61 @@ class KratosGeoMechanicsParameterFieldTests(KratosUnittest.TestCase):
     #
     #     self.assertTrue(r'Error: The parameter field does not have the same size as '
     #                     r'the amount of elements within the model part!' in str(cm.exception))
+
+    def test_GetVariableBasedOnString(self):
+        """
+        Test to check if the variable is correctly retrieved from the imported modules
+        """
+
+        # dummy variables with YOUNG_MODULUS, which is a variable which is exported to the python module
+        settings = Kratos.Parameters("""{
+            "model_part_name": "test",
+            "variable_name": "YOUNG_MODULUS",
+            "dataset": "dummy",
+            "func_type": "json_file",
+            "function": "dummy",
+            "dataset_file_name": "test_file"
+        }""")
+
+        # initialize the set parameter field process
+        model = Kratos.Model()
+        model.CreateModelPart("test")
+        process = SetParameterFieldProcess(model, settings)
+
+        variable = process.GetVariableBasedOnString()
+
+        assert variable == Kratos.YOUNG_MODULUS
+
+    def test_GetVariableBasedOnString_non_existing_variable_in_python(self):
+        """
+        Test to check if a warning is raised when a variable is not present in the imported modules
+        """
+
+        # dummy variables with DENSITY_SOLID_dummy, which is a variable which is not exported to the python module
+        settings = Kratos.Parameters("""{
+            "model_part_name": "test",
+            "variable_name": "DENSITY_SOLID_dummy",
+            "dataset": "dummy",
+            "func_type": "json_file",
+            "function": "dummy",
+            "dataset_file_name": "test_file"
+        }""")
+
+        # initialize the set parameter field process
+        model = Kratos.Model()
+        model.CreateModelPart("test")
+        process = SetParameterFieldProcess(model, settings)
+
+        # catch the warnings for the test
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")  # Ensure warnings are triggered
+
+            assert process.GetVariableBasedOnString() is None
+
+        # Check that a warning was raised
+        assert len(w) == 1
+        assert issubclass(w[-1].category, UserWarning)
+        assert str(w[-1].message) == "The variable: DENSITY_SOLID_dummy is not present within the imported modules"
 
 
 if __name__ == '__main__':
