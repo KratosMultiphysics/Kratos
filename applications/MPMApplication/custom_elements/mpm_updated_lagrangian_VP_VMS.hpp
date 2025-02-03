@@ -646,21 +646,16 @@ protected:
      * Calculation of the stabilization matrix
      */
 
-    virtual void CalculateAndAddS1p(MatrixType& rK,
+    virtual void CalculateAndAddSp(MatrixType& rK,
                                         GeneralVariables & rVariables,
                                         const double& rIntegrationWeight
                                        );
     
     
-    virtual void CalculateAndAddS1v(MatrixType& rK,
+    virtual void CalculateAndAddSv(MatrixType& rK,
                                         GeneralVariables & rVariables,
                                         const double& rIntegrationWeight,
                                         const ProcessInfo& rCurrentProcessInfo
-                                       );
-
-    virtual void CalculateAndAddS2(MatrixType& rK,
-                                        GeneralVariables & rVariables,
-                                        const double& rIntegrationWeight
                                        );
 
     /**
@@ -670,14 +665,6 @@ protected:
             GeneralVariables& rVariables,
             Vector& rVolumeForce,
             const double& rIntegrationWeight);
-    
-    /**
-     * Calculation of the incremental terms
-     */
-    virtual void CalculateAndAddIncrementalTerms(VectorType& rRightHandSideVector,
-            GeneralVariables& rVariables,
-            Vector& rVolumeForce,
-            const double& rIntegrationWeight);    
 
     /**
      * Calculation of stabilization terms for the continuity equation
