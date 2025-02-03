@@ -18,6 +18,7 @@
 // Project includes
 #include "containers/model.h"
 #include "includes/define.h"
+#include "includes/element.h"
 #include "includes/model_part.h"
 #include "spaces/ublas_space.h"
 #include "testing/testing.h"
@@ -34,6 +35,95 @@ namespace Kratos::Testing
 namespace
 {
 
+class TestElement : public Element
+{
+public:
+
+    using IndexType = Element::IndexType;
+
+    using DofsArrayType = Element::DofsArrayType;
+
+    using DofsVectorType = Element::DofsVectorType;
+
+    using EquationIdVectorType = Element::EquationIdVectorType;
+
+    TestElement(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry)
+        : Element(NewId, pGeometry)
+    {}
+
+    void CalculateLocalSystem(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo) override
+    {
+        CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
+        CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
+    }
+
+    void CalculateLeftHandSide(
+        MatrixType &rLeftHandSideMatrix,
+        const ProcessInfo &rCurrentProcessInfo) override
+    {
+        const auto& r_geom = GetGeometry();
+        const SizeType n_nodes = r_geom.PointsNumber();
+        if (rLeftHandSideMatrix.size1() != n_nodes || rLeftHandSideMatrix.size2() != n_nodes) {
+            rLeftHandSideMatrix.resize(n_nodes, n_nodes, false);
+        }
+        const double aux = 1.0 / r_geom.Length();
+        rLeftHandSideMatrix(0,0) = aux;
+        rLeftHandSideMatrix(0,1) = -aux;
+        rLeftHandSideMatrix(1,0) = -aux;
+        rLeftHandSideMatrix(1,1) = aux;
+    }
+
+    void CalculateRightHandSide(
+        VectorType &rRightHandSideVector,
+        const ProcessInfo &rCurrentProcessInfo) override
+    {
+        const auto& r_geom = GetGeometry();
+        const SizeType n_nodes = r_geom.PointsNumber();
+        if (rRightHandSideVector.size() != n_nodes) {
+            rRightHandSideVector.resize(n_nodes);
+        }
+        const double f = 1.0;
+        const double h = r_geom.Length();
+        const double aux = f * h / 2.0;
+        rRightHandSideVector(0) = aux;
+        rRightHandSideVector(1) = aux;
+    }
+
+    void EquationIdVector(
+        EquationIdVectorType& rResult,
+        const ProcessInfo& rCurrentProcessInfo) const override
+    {
+        const auto& r_geom = GetGeometry();
+        const SizeType n_nodes = r_geom.PointsNumber();
+        if (rResult.size() != n_nodes) {
+            rResult.resize(n_nodes);
+        }
+        for (unsigned int i = 0; i < n_nodes; ++i) {
+            rResult[i] = r_geom[i].GetDof(DISTANCE).EquationId();
+        }
+    }
+
+    void GetDofList(
+        DofsVectorType& rElementalDofList,
+        const ProcessInfo& rCurrentProcessInfo) const override
+    {
+        const auto& r_geom = GetGeometry();
+        const SizeType n_nodes = r_geom.PointsNumber();
+        if (rElementalDofList.size() != n_nodes) {
+            rElementalDofList.resize(n_nodes);
+        }
+        for (unsigned int i = 0; i < n_nodes; i++) {
+            rElementalDofList[i] = r_geom[i].pGetDof(DISTANCE);
+        }
+    }
+
+};
+
 static void SetUpTestSchemesModelPart(ModelPart& rModelPart)
 {
     const int domain_size = 3;
@@ -41,16 +131,20 @@ static void SetUpTestSchemesModelPart(ModelPart& rModelPart)
     rModelPart.SetBufferSize(buffer_size);
     rModelPart.GetProcessInfo().SetValue(DOMAIN_SIZE, domain_size);
 
-    rModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
+    rModelPart.AddNodalSolutionStepVariable(DISTANCE);
 
     auto p_node_1 = rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
-    auto p_node_2 = rModelPart.CreateNewNode(2, 0.0, 0.0, 0.0);
-    auto p_node_3 = rModelPart.CreateNewNode(3, 0.0, 0.0, 0.0);
+    auto p_node_2 = rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+    auto p_node_3 = rModelPart.CreateNewNode(3, 2.0, 0.0, 0.0);
+
+    auto p_geom_1 = Kratos::make_shared<Line2D2<Node>>(p_node_1, p_node_2);
+    auto p_geom_2 = Kratos::make_shared<Line2D2<Node>>(p_node_2, p_node_3);
+
+    auto p_elem_1 = Kratos::make_shared<TestElement>(1, p_geom_1);
+    auto p_elem_2 = Kratos::make_shared<TestElement>(2, p_geom_2);
 
     for (auto& r_node : rModelPart.Nodes()) {
-        r_node.AddDof(DISPLACEMENT_X);
-        r_node.AddDof(DISPLACEMENT_Y);
-        r_node.AddDof(DISPLACEMENT_Z);
+        r_node.AddDof(DISTANCE);
     }
 }
 

@@ -17,12 +17,13 @@
 // External includes
 
 // Project includes
+#include "containers/csr_matrix.h"
 #include "includes/model_part.h"
-#include "utilities/openmp_utils.h" //TODO: SOME FILES INCLUDING scheme.h RELY ON THIS. LEAVING AS FUTURE TODO.
 #include "includes/kratos_parameters.h"
 #include "utilities/dof_utilities/block_build_dof_array_utility.h"
 #include "utilities/dof_utilities/elimination_build_dof_array_utility.h"
 #include "utilities/entities_utilities.h"
+#include "utilities/openmp_utils.h" //TODO: SOME FILES INCLUDING scheme.h RELY ON THIS. LEAVING AS FUTURE TODO.
 #include "utilities/parallel_utilities.h"
 
 namespace Kratos
@@ -64,14 +65,20 @@ public:
     /// The definition of the current class
     using ClassType = NewScheme<TSparseSpace, TDenseSpace>;
 
+    /// Index type definition
+    using IndexType = std::size_t;
+
+    /// Size type definition
+    using SizeType = std::size_t;
+
     /// Data type definition
-    using TDataType = typename TSparseSpace::DataType;
+    using DataType = typename TSparseSpace::DataType;
 
     /// Matrix type definition
-    using TSystemMatrixType = typename TSparseSpace::MatrixType;
+    using TSystemMatrixType = CsrMatrix<DataType, IndexType>;
 
     /// Vector type definition
-    using TSystemVectorType = typename TSparseSpace::VectorType;
+    using TSystemVectorType = CsrMatrix<DataType, IndexType>;
 
     /// Local system matrix type definition
     using LocalSystemMatrixType = typename TDenseSpace::MatrixType;
