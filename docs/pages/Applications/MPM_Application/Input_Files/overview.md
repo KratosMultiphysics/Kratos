@@ -10,9 +10,9 @@ This section provides an introduction to the files that are required to perform 
 
 The essential files for a Kratos simulation are the following.
 
-* **Main simulation script** `MainKratos.py`. This Python script serves as the entry point for your simulation. It typically initializes the Kratos environment, loads problem-specific parameters, and defines the execution workflow. This file is discussed [MainKratos.py](mainkratos).
-* **Project parameters file** `ProjectParameters.json`: This `JSON` file contains the key configuration details for the simulation, such as solver settings, processes defining the initial and boundary conditions and output processes necessary for the post-process of the solution. This file is discussed in [json files: ProjectParameters.json](json#projectparametersjson).
-* **Materials file** `ParticleMaterials.json`. This `JSON` file defines material properties associated with different parts of the model. This file is discussed [here](json#particlematerialsjson).
+* **Main simulation script** `MainKratos.py`. This Python script serves as the entry point for your simulation. It typically initializes the Kratos environment, loads problem-specific parameters, and defines the execution workflow. This file is discussed in section [MainKratos.py](mainkratos).
+* **Project parameters file** `ProjectParameters.json`: This `JSON` file contains the key configuration details for the simulation, such as solver settings, processes defining the initial and boundary conditions and output processes necessary for the post-process of the solution. This file is discussed in section [json files: ProjectParameters.json](json#projectparametersjson).
+* **Materials file** `ParticleMaterials.json`. This `JSON` file defines material properties associated with different parts of the model. This file is discussed in section [json files: ParticleMaterials.json](json#particlematerialsjson).
 * **Background definition file** `file_name_Grid.mdpa`. This model part file defines the geometry and mesh of the background grid where the material points move. The `.mdpa` file format is specific to Kratos and provides the structural foundation for the simulation domain. This file is discussed [here](mdpa#file_name_gridmdpa).
 * **Material Point body definition file** `file_name_Body.mdpa`. This model part defines the geometry and mesh of the body to be discretised by means of material points. This file is discussed [here](mdpa#file_name_bodymdpa).
 
