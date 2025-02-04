@@ -567,6 +567,7 @@ public:
     KRATOS_SERIALIZATION_DIRECT_LOAD(std::size_t)
 #endif
 	KRATOS_SERIALIZATION_DIRECT_LOAD(std::complex<double>)
+    KRATOS_SERIALIZATION_DIRECT_LOAD(std::complex<float>)
 
 	template<class TDataType, std::size_t TDataSize>
 	void save(std::string const & rTag, std::array<TDataType, TDataSize> const& rObject)
@@ -813,6 +814,7 @@ public:
     KRATOS_SERIALIZATION_DIRECT_SAVE(std::size_t)
 #endif
 	KRATOS_SERIALIZATION_DIRECT_SAVE(std::complex<double>)
+    KRATOS_SERIALIZATION_DIRECT_SAVE(std::complex<float>)
 
 
     template<class TDataType>
