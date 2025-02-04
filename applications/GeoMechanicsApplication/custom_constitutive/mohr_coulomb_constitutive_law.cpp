@@ -103,6 +103,7 @@ Vector MohrCoulombConstitutiveLaw::CalculatePrincipalStresses(Vector& rCauchyStr
     for (int i = 0; i < 3; ++i) {
         result(i) = PrincipalStressMatrix(i, i);
     }
+    std::sort(result.begin(), result.end(), std::greater<double>());
     return result;
 }
 

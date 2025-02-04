@@ -39,16 +39,16 @@ KRATOS_TEST_CASE_IN_SUITE(CalculatePrinsipalStresses3D, KratosGeoMechanicsFastSu
       cauchy_stresses(1) = 50.0;
       cauchy_stresses(2) = 20.0;
       cauchy_stresses(3) = 40.0;
-      cauchy_stresses(4) = 45.0;
-      cauchy_stresses(5) = 35.0;
+      cauchy_stresses(4) = 35.0;
+      cauchy_stresses(5) = 45.0;
 
       MohrCoulombConstitutiveLaw mohr_coulomb_constitutive_law;
       Vector principal_stresses = mohr_coulomb_constitutive_law.CalculatePrincipalStresses(cauchy_stresses);
 
       Vector expected_solution = ZeroVector(3);
-      expected_solution(0) = 134.2;
-      expected_solution(1) = 28.6;
-      expected_solution(2) = -12.8;
+      expected_solution(0) = 135.736961146391;
+      expected_solution(1) = 22.5224297324582;
+      expected_solution(2) = -8.25939087884923;
 
       constexpr double tolerance{1.0e-6};
 
