@@ -47,14 +47,19 @@ public:
     using ConstitutiveLaw::SetValue;
     void SetValue(const Variable<double>& rVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo) override;
 
+    void CalculateMohrCoulomb(const Properties& rProp, Vector& rCautchyStressVector);
+    [[nodiscard]] Vector CalculatePrincipalStresses(Vector& CauchyStressVector);
+
 protected:
     // Member Variables
     double mStateVariable;
 
-    double CalculateCoulombYieldFunction(Vector& principalStress);
+    double CalculateCoulombYieldFunction(Vector& principalStress, double phi, double cohesion);
+    double CalculateTensionYieldFunction(Vector& principalStress, double tensionCutOff);
 
-
-private:
+    
+    
+    private:
     // Serialization
     friend class Serializer;
 
