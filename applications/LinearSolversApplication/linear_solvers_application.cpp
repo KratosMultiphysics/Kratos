@@ -13,6 +13,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/registry.h"
+#include "spaces/ublas_space.h"
 #include "linear_solvers_application.h"
 #include "custom_factories/dense_linear_solver_factory.h"
 
@@ -25,6 +26,7 @@
 #include "custom_solvers/eigen_pardiso_lu_solver.h"
 #include "custom_solvers/eigen_pardiso_llt_solver.h"
 #include "custom_solvers/eigen_pardiso_ldlt_solver.h"
+#include "custom_solvers/gauss_seidel.h"
 #include "mkl_service.h"
 #endif
 
@@ -82,6 +84,13 @@ void KratosLinearSolversApplication::Register()
     using SparseCGType = EigenDirectSolver<EigenSparseCGSolver<double>>;
     static auto SparseCGFactory = SparseCGType::Factory();
     KRATOS_REGISTER_LINEAR_SOLVER("sparse_cg", SparseCGFactory);
+
+    // Gauss-Seidel Smoother
+    static GaussSeidelSmootherFactory<TUblasSparseSpace<double>,TUblasDenseSpace<double>> double_precision_gauss_seidel_factory;
+    KRATOS_REGISTER_LINEAR_SOLVER("gauss_seidel", double_precision_gauss_seidel_factory);
+
+    static GaussSeidelSmootherFactory<TUblasSparseSpace<float>,TUblasDenseSpace<double>> single_precision_gauss_seidel_factory;
+    KratosComponents<LinearSolverFactory<TUblasSparseSpace<float>,TUblasDenseSpace<double>>>::Add("gauss_seidel", single_precision_gauss_seidel_factory);
 
 #if defined USE_EIGEN_MKL
 
