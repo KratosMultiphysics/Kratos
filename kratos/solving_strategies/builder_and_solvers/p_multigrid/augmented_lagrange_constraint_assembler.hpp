@@ -16,6 +16,9 @@
 #include "solving_strategies/builder_and_solvers/p_multigrid/constraint_assembler.hpp" // ConstraintAssembler
 #include "includes/kratos_parameters.h" // Parameters
 
+// System includes
+#include <optional> // std::optional
+
 
 namespace Kratos {
 
@@ -42,22 +45,18 @@ public:
     /// @copydoc Base::Assemble
     void Assemble(const typename Base::ConstraintArray& rConstraints,
                   const ProcessInfo& rProcessInfo,
-                  const typename Base::DofSet& rDofSet) override;
+                  const typename Base::DofSet& rDofSet,
+                  const bool AssembleLhs,
+                  const bool AssembleRhs) override;
 
     /// @copydoc Base::Initialize
-    void Initialize(const typename Base::ConstraintArray& rConstraints,
-                    const ProcessInfo& rProcessInfo,
-                    typename TSparse::MatrixType& rLhs,
-                    typename TSparse::VectorType& rRhs,
-                    typename Base::DofSet& rDofSet) override;
+    void Initialize(typename TSparse::MatrixType& rLhs,
+                    typename TSparse::VectorType& rRhs) override;
 
     /// @copydoc Base::FinalizeSolutionStep
-    typename Base::Status FinalizeSolutionStep(const typename Base::ConstraintArray& rConstraints,
-                                               const ProcessInfo& rProcessInfo,
-                                               typename TSparse::MatrixType& rLhs,
+    typename Base::Status FinalizeSolutionStep(typename TSparse::MatrixType& rLhs,
                                                typename TSparse::VectorType& rSolution,
                                                typename TSparse::VectorType& rRhs,
-                                               const typename Base::DofSet& rDofSet,
                                                const std::size_t iIteration) override;
 
     /// @copydoc Base::Clear
@@ -86,10 +85,12 @@ public:
     }
 
 private:
+    typename TSparse::MatrixType& GetTransposeRelationMatrix();
+
     /// @brief A map associating slave IDs with constraint indices.
     std::unordered_map<std::size_t,std::size_t> mSlaveToConstraintMap;
 
-    typename TSparse::MatrixType mTransposeRelationMatrix;
+    std::optional<typename TSparse::MatrixType> mMaybeTransposeRelationMatrix;
 
     int mVerbosity;
 }; // class AugmentedLagrangeConstraintAssembler

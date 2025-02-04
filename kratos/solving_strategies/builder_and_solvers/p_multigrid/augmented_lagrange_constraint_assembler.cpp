@@ -31,7 +31,7 @@ template <class TSparse, class TDense>
 AugmentedLagrangeConstraintAssembler<TSparse,TDense>::AugmentedLagrangeConstraintAssembler(Parameters Settings)
     : Base(ConstraintImposition::AugmentedLagrange),
       mSlaveToConstraintMap(),
-      mTransposeRelationMatrix(),
+      mMaybeTransposeRelationMatrix(),
       mVerbosity(1)
 {
     Settings.ValidateAndAssignDefaults(AugmentedLagrangeConstraintAssembler::GetDefaultParameters());
@@ -118,9 +118,15 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Allocate(const typena
 template <class TSparse, class TDense>
 void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Assemble(const typename Base::ConstraintArray& rConstraints,
                                                                     const ProcessInfo& rProcessInfo,
-                                                                    const typename Base::DofSet& rDofSet)
+                                                                    const typename Base::DofSet& rDofSet,
+                                                                    const bool AssembleLhs,
+                                                                    const bool AssembleRhs)
 {
     KRATOS_TRY
+
+    /// @todo @p AssembleLhs and @p AssembleRhs are currently ignored,
+    ///       and everything gets assembled. Think it through what needs
+    ///       to be done and what can be omitted for each case. - matekelemen
 
     // Function-wide variables.
     std::vector<LockObject> mutexes(mSlaveToConstraintMap.size());
@@ -221,19 +227,12 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Assemble(const typena
         } // if r_constraint.IsActive
     }); // for r_constraint in rModelPart.MasterSlaveCosntraints
     KRATOS_CATCH("")
-
-    KRATOS_TRY
-    SparseMatrixMultiplicationUtility::TransposeMatrix(mTransposeRelationMatrix, this->GetRelationMatrix());
-    KRATOS_CATCH("")
 }
 
 
 template <class TSparse, class TDense>
-void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Initialize(const typename Base::ConstraintArray& rConstraints,
-                                                                      const ProcessInfo& rProcessInfo,
-                                                                      typename TSparse::MatrixType& rLhs,
-                                                                      typename TSparse::VectorType& rRhs,
-                                                                      typename Base::DofSet& rDofSet)
+void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Initialize(typename TSparse::MatrixType& rLhs,
+                                                                      typename TSparse::VectorType& rRhs)
 {
     KRATOS_TRY
 
@@ -242,13 +241,14 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Initialize(const type
     const typename TSparse::DataType initial_lagrange_multiplier = this->GetInitialLagrangeMultiplier();
 
     {
-        KRATOS_ERROR_IF(mTransposeRelationMatrix.size1() != this->GetRelationMatrix().size2()
-                        || mTransposeRelationMatrix.size2() != this->GetRelationMatrix().size1()
-                        || mTransposeRelationMatrix.nnz() != this->GetRelationMatrix().nnz())
+        const typename TSparse::MatrixType& r_transpose_relation_matrix = this->GetTransposeRelationMatrix();
+        KRATOS_ERROR_IF(r_transpose_relation_matrix.size1() != this->GetRelationMatrix().size2()
+                        || r_transpose_relation_matrix.size2() != this->GetRelationMatrix().size1()
+                        || r_transpose_relation_matrix.nnz() != this->GetRelationMatrix().nnz())
             << "the transpose of the relation matrix is uninitialized or out of date";
 
         typename TSparse::MatrixType relation_product;
-        SparseUtils::MatrixMultiplication(mTransposeRelationMatrix,
+        SparseUtils::MatrixMultiplication(r_transpose_relation_matrix,
                                           this->GetRelationMatrix(),
                                           relation_product);
 
@@ -266,7 +266,7 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Initialize(const type
         TSparse::UnaliasedAdd(lagrange_multipliers,
                               -penalty_factor,
                                constraint_gaps);
-        TSparse::Mult(mTransposeRelationMatrix,
+        TSparse::Mult(r_transpose_relation_matrix,
                       lagrange_multipliers,
                       rhs_term);
         TSparse::UnaliasedAdd(rRhs,
@@ -280,12 +280,9 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Initialize(const type
 
 template <class TSparse, class TDense>
 typename AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Base::Status
-AugmentedLagrangeConstraintAssembler<TSparse,TDense>::FinalizeSolutionStep(const typename Base::ConstraintArray& rConstraints,
-                                                                           const ProcessInfo& rProcessInfo,
-                                                                           typename TSparse::MatrixType& rLhs,
+AugmentedLagrangeConstraintAssembler<TSparse,TDense>::FinalizeSolutionStep(typename TSparse::MatrixType& rLhs,
                                                                            typename TSparse::VectorType& rSolution,
                                                                            typename TSparse::VectorType& rRhs,
-                                                                           const typename Base::DofSet& rDofSet,
                                                                            const std::size_t iIteration)
 {
     KRATOS_TRY
@@ -304,7 +301,7 @@ AugmentedLagrangeConstraintAssembler<TSparse,TDense>::FinalizeSolutionStep(const
     if (3 <= this->mVerbosity) {
         std::stringstream residual_stream;
         residual_stream << std::setprecision(8) << std::scientific<< constraint_norm;
-        std::cout << "PMultigridBuilderAndSolver: iteration " << iIteration
+        std::cout << "AugmentedLagrangeConstraintAssembler: iteration " << iIteration
                   << " constraint residual " << residual_stream.str() << "\n";
     }
 
@@ -313,7 +310,7 @@ AugmentedLagrangeConstraintAssembler<TSparse,TDense>::FinalizeSolutionStep(const
         typename TSparse::VectorType rhs_update(rRhs.size());
         TSparse::SetToZero(rhs_update);
         TSparse::InplaceMult(constraint_residual, -this->GetPenaltyFactor());
-        TSparse::Mult(mTransposeRelationMatrix, constraint_residual, rhs_update);
+        TSparse::Mult(this->GetTransposeRelationMatrix(), constraint_residual, rhs_update);
         TSparse::UnaliasedAdd(rRhs, 1.0, rhs_update);
         return typename Base::Status {/*finished=*/false, /*converged=*/false};
         KRATOS_CATCH("")
@@ -329,7 +326,7 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Clear()
 {
     Base::Clear();
     mSlaveToConstraintMap = decltype(mSlaveToConstraintMap)();
-    mTransposeRelationMatrix = decltype(mTransposeRelationMatrix)();
+    mMaybeTransposeRelationMatrix = decltype(mMaybeTransposeRelationMatrix)();
 }
 
 
@@ -338,12 +335,27 @@ Parameters AugmentedLagrangeConstraintAssembler<TSparse,TDense>::GetDefaultParam
 {
     return Parameters(R"({
 "method" : "augmented_lagrange",
-"penalty_factor" : 1e3,
+"penalty_factor" : 1e12,
 "initial_lagrange_multiplier" : 0.0,
 "tolerance" : 1e-8,
 "max_iterations" : 1e1,
 "verbosity" : 1
 })");
+}
+
+
+template <class TSparse, class TDense>
+typename TSparse::MatrixType&
+AugmentedLagrangeConstraintAssembler<TSparse,TDense>::GetTransposeRelationMatrix()
+{
+    KRATOS_TRY
+    if (not mMaybeTransposeRelationMatrix.has_value()) {
+        mMaybeTransposeRelationMatrix.emplace();
+        SparseMatrixMultiplicationUtility::TransposeMatrix(mMaybeTransposeRelationMatrix.value(),
+                                                           this->GetRelationMatrix());
+    }
+    return mMaybeTransposeRelationMatrix.value();
+    KRATOS_CATCH("")
 }
 
 

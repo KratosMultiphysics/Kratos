@@ -41,7 +41,7 @@ class ConstraintAssembler : public DataValueContainer
 public:
     KRATOS_CLASS_POINTER_DEFINITION(ConstraintAssembler);
 
-    using DofSet = PointerVectorSet<Dof<double>>;
+    using DofSet = PointerVectorSet<Dof<typename TDense::DataType>>;
 
     using ConstraintArray = PointerVectorSet<MasterSlaveConstraint, IndexedObject>;
 
@@ -99,11 +99,17 @@ public:
     /// @param rConstraints Constraint set of the related @ref ModelPart.
     /// @param rProcessInfo @ref ProcessInfo of the related @ref ModelPart.
     /// @param rDofSet Unconstrained set of @ref Dof "DoFs".
+    /// @param AssembleLhs Indicates whether to assemble data structures necessary for updating
+    ///                    the left hand side matrix of the unconstrained system.
+    /// @param AssembleRhs Indicates whether to assemble data structures necessary for updating
+    ///                    the right hand side vector of the unconstrained system.
     /// @note This function must be preceded by a call to @ref ConstraintAssembler::Allocate, and should not make large scale
     ///       reallocations.
     virtual void Assemble(const ConstraintArray& rConstraints,
                           const ProcessInfo& rProcessInfo,
-                          const DofSet& rDofSet)
+                          const DofSet& rDofSet,
+                          const bool AssembleLhs,
+                          const bool AssembleRhs)
     {
     }
 
@@ -114,33 +120,21 @@ public:
     ///          (for example, master-slave elimination one-shots the constraints)
     ///          should manipulate the system here. If the set of @ref Dof "DoFs" has
     ///          to be changed, it should also be carried out here.
-    /// @param rConstraints Constraint set of the related @ref ModelPart.
-    /// @param rProcessInfo @ref ProcessInfo of the related @ref ModelPart.
     /// @param rLhs Unconstrained left hand side matrix with topology to accomodate constraint imposition.
     /// @param rRhs Unconstrained right hand side vector with space to accomodate constraint imposition.
-    /// @param rDofSet Unconstrained set of @ref Dof "DoFs" with space to accomodate constraint imposition.
-    virtual void Initialize(const ConstraintArray& rConstraints,
-                            const ProcessInfo& rProcessInfo,
-                            typename TSparse::MatrixType& rLhs,
-                            typename TSparse::VectorType& rRhs,
-                            DofSet& rDofSet)
+    virtual void Initialize(typename TSparse::MatrixType& rLhs,
+                            typename TSparse::VectorType& rRhs)
     {
     }
 
     /// @brief Manipulate the linear system before invoking the linear solver in the solution loop's current iteration.
-    /// @param rConstraints Constraints of the related @ref ModelPart.
-    /// @param rProcessInfo @ref ProcessInfo of the related @ref ModelPart.
     /// @param rLhs Left hand side matrix.
     /// @param rSolution Unconverged solution vector.
     /// @param rRhs Right hand side vector.
-    /// @param rDofSet @ref Dof "DoFs" to solve for.
     /// @param iIteration 1-based index of the current iteration in the solution loop.
-    virtual void InitializeSolutionStep(const ConstraintArray& rConstraints,
-                                        const ProcessInfo& rProcessInfo,
-                                        typename TSparse::MatrixType& rLhs,
+    virtual void InitializeSolutionStep(typename TSparse::MatrixType& rLhs,
                                         typename TSparse::VectorType& rSolution,
                                         typename TSparse::VectorType& rRhs,
-                                        const DofSet& rDofSet,
                                         const std::size_t iIteration)
     {
     }
@@ -161,34 +155,24 @@ public:
     /// @brief Perform constraint-related tasks after invoking the linear solver in the current iteration of the solution loop.
     /// @details This function is supposed to evaluate the convergence of constraint imposition,
     ///          decide whether to request more iterations in the solution loop.
-    /// @param rConstraints Constraints of the related @ref ModelPart.
-    /// @param rProcessInfo @ref ProcessInfo of the related @ref ModelPart.
     /// @param rLhs Constrained left hand side matrix.
     /// @param rSolution Converged solution vector.
     /// @param rRhs Constrained right hand side vector.
-    /// @param rDofSet Constrained set of @ref Dof "DoFs".
     /// @param iIteration 1-based index of the current iteration in the solution loop.
     /// @warning The solution loop will continue indefinitely unless this function eventually
     ///          returns a @ref ConstraintImposition::Status whose @ref ConstraintImposition::Status::finished "finished"
     ///          is @p true.
-    virtual Status FinalizeSolutionStep(const ConstraintArray& rConstraints,
-                                        const ProcessInfo& rProcessInfo,
-                                        typename TSparse::MatrixType& rLhs,
+    virtual Status FinalizeSolutionStep(typename TSparse::MatrixType& rLhs,
                                         typename TSparse::VectorType& rSolution,
                                         typename TSparse::VectorType& rRhs,
-                                        const DofSet& rDofSet,
                                         const std::size_t iIteration) = 0;
 
     /// @brief Perform tasks related to constraint imposition after constraints converged.
-    /// @param rConstraints Constraints of the related @ref ModelPart.
-    /// @param rProcessInfo @ref ProcessInfo of the related @ref ModelPart.
     /// @param rLhs Constrained left hand side matrix.
     /// @param rSolution Converged solution vector.
     /// @param rRhs Constrained right hand side vector.
     /// @param rDofSet Constrained set of @ref Dof "DoFs".
-    virtual void Finalize(const ConstraintArray& rConstraints,
-                          const ProcessInfo& rProcessInfo,
-                          typename TSparse::MatrixType& rLhs,
+    virtual void Finalize(typename TSparse::MatrixType& rLhs,
                           typename TSparse::VectorType& rSolution,
                           typename TSparse::VectorType& rRhs,
                           DofSet& rDofSet)
@@ -228,6 +212,15 @@ public:
     }
 
 protected:
+    // PGrid inherits an assembled unconstrained system, as well as an assembled relation matrix,
+    // and constructs a restriction operator it can use to directly compute the system and relation
+    // matrix at its own level. As a result, it does not need to do allocation and assembly, which
+    // means it should be able to directly define the relation matrix and constraint gap vector
+    // of its own constraint assembler.
+    // => long story short, PGrid needs access to the protected members of this class.
+    template <class S, class D>
+    friend class PGrid;
+
     typename TSparse::MatrixType& GetRelationMatrix() noexcept
     {
         return mRelationMatrix;

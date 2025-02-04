@@ -13,133 +13,25 @@
 // Project includes
 #include "solving_strategies/builder_and_solvers/p_multigrid/p_multigrid_builder_and_solver.hpp" // PMultigridBuilderAndSolver
 #include "solving_strategies/builder_and_solvers/p_multigrid/constraint_assembler_factory.hpp" // ConstraintAssemblerFactory
-#include "solving_strategies/builder_and_solvers/p_multigrid/p_multigrid_utilities.hpp" // MakePRestrictionOperator, MakeSparseTopology
 #include "solving_strategies/builder_and_solvers/p_multigrid/sparse_utilities.hpp" // MakeSparseTopology
 #include "solving_strategies/builder_and_solvers/p_multigrid/diagonal_scaling.hpp" // DiagonalScaling, ParseDiagonalScaling, GetDiagonalScalingFactor
+#include "solving_strategies/builder_and_solvers/p_multigrid/p_grid.hpp" // PGrid
 #include "includes/model_part.h" // ModelPart
 #include "spaces/ublas_space.h" // TUblasSparseSpace, TUblasDenseSpace
 #include "linear_solvers/linear_solver.h" // LinearSolver
+#include "factories/linear_solver_factory.h" // LinearSolverFactory
+#include "includes/kratos_components.h" // KratosComponents
 #include "utilities/dof_utilities/block_build_dof_array_utility.h" // BlockBuildDofArrayUtility
-#include "utilities/sparse_matrix_multiplication_utility.h" // SparseMatrixMultiplicationUtility
 #include "utilities/proxies.h" // MakeProxy
 #include "utilities/profiler.h" // KRATOS_PROFILE_SCOPE, KRATOS_PROFILE_SCOPE_MILLI
 
-// System includesPa
+// System includes
 #include <optional> // std::optional
-#include <limits> // std::numeric_limits
 #include <unordered_set> // std::unordered_set
+#include <variant> // std::variant
 
 
 namespace Kratos {
-
-
-// --------------------------------------------------------- //
-// PMG Hierarchy
-// --------------------------------------------------------- //
-
-
-template <class TSparse,
-          class TDense,
-          class TSolver>
-class PGrid
-{
-public:
-    PGrid(const unsigned Level)
-        : mpRestrictionOperator(new typename TSparse::MatrixType),
-          mpLhs(new typename TSparse::MatrixType),
-          mpRhs(new typename TSparse::VectorType)
-    {}
-
-
-    PGrid()
-        : PGrid(0u)
-    {}
-
-
-    template <class TParentSparse>
-    void MakeLhsTopology(const ModelPart& rModelPart,
-                         const typename TParentSparse::MatrixType& rParentLhs)
-    {
-        KRATOS_TRY
-        // The restriction operator immediately constructs the linear equivalent,
-        // because one-level coarsening strategies are not supported yet. The problem
-        // is that when going from a generic polynomial level q to some other lower polynomial
-        // level p!=1, new nodes must be introduced that do not exist in the original fine mesh.
-        // This wouldn't be a huge problem by itself, but deciding on DoF indices on the coarse
-        // level would be quite painful and require to keep track of the coarse grid's topology
-        // in some manner.
-        MakePRestrictionOperator<
-            std::numeric_limits<unsigned>::max(),
-            typename TSparse::DataType>(rModelPart,
-                                        *mpRestrictionOperator,
-                                        rParentLhs.size1());
-        KRATOS_CATCH("")
-    }
-
-
-    template <bool AssembleLHS,
-              bool AssembleRHS,
-              class TParentSparse>
-    void Assemble(const ModelPart& rModelPart,
-                  const typename TParentSparse::MatrixType* pParentLhs,
-                  const typename TParentSparse::VectorType* pParentRhs)
-    {
-        KRATOS_TRY
-
-        // Assemble the coarse LHS matrix if requested.
-        if constexpr (AssembleLHS) {
-            KRATOS_ERROR_IF_NOT(pParentLhs);
-
-            const auto check_matrix_multiplication = [](const typename TSparse::MatrixType& r_left,
-                                                        const typename TSparse::MatrixType& r_right,
-                                                        const typename TSparse::MatrixType& r_out) {
-                KRATOS_ERROR_IF((r_left.size2() != r_right.size1()) ||
-                                (r_out.size1() != r_left.size1()) ||
-                                (r_out.size2() != r_right.size2()))
-                    << "invalid sizes for matrix product: "
-                    << "(" << r_left.size1() << "x" << r_left.size2() << ")"
-                    << " x "
-                    << "(" << r_right.size1() << "x" << r_right.size2() << ")"
-                    << " => "
-                    << "(" << r_out.size1() << "x" << r_out.size2() << ")";
-            };
-
-            typename TSparse::MatrixType prolongation_operator(mpRestrictionOperator->size2(), mpRestrictionOperator->size1()),
-                                         left_multiplied_lhs(mpRestrictionOperator->size1(), pParentLhs->size2());
-
-            check_matrix_multiplication(*mpRestrictionOperator, *pParentLhs, left_multiplied_lhs);
-            SparseMatrixMultiplicationUtility::MatrixMultiplication(*mpRestrictionOperator, *pParentLhs, left_multiplied_lhs);
-            SparseMatrixMultiplicationUtility::TransposeMatrix(prolongation_operator, *mpRestrictionOperator, 1.0);
-
-            mpLhs->resize(mpRestrictionOperator->size1(), mpRestrictionOperator->size1(), false);
-            check_matrix_multiplication(left_multiplied_lhs, prolongation_operator, *mpLhs);
-            SparseMatrixMultiplicationUtility::MatrixMultiplication(left_multiplied_lhs, prolongation_operator, *mpLhs);
-        } // if AssembleLHS
-
-        // Assemble the coarse RHS vector if requested.
-        if constexpr (AssembleRHS) {
-            // Sanity checks
-            KRATOS_ERROR_IF_NOT(pParentRhs);
-            KRATOS_ERROR_IF_NOT(mpRestrictionOperator->size2() == pParentRhs->size())
-                << "expecting an RHS vector of size " << mpRestrictionOperator->size2()
-                << " but got " << pParentRhs->size();
-
-            mpRhs->resize(mpRestrictionOperator->size1(), false);
-            TSparse::Mult(*mpRestrictionOperator, *pParentRhs, *mpRhs);
-        } // if AssembleRHS
-
-        KRATOS_CATCH("")
-    }
-
-private:
-    std::shared_ptr<typename TSparse::MatrixType> mpRestrictionOperator;
-
-    std::shared_ptr<typename TSparse::MatrixType> mpLhs;
-
-    std::shared_ptr<typename TSparse::VectorType> mpRhs;
-
-    std::optional<std::unique_ptr<PGrid>> mMaybeChild;
-}; // class PGrid
 
 
 // --------------------------------------------------------- //
@@ -162,7 +54,10 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
 
     typename TSparse::DataType mDiagonalScaleFactor;
 
-    PGrid<TSparse,TDense,TSolver> mHierarchy;
+    std::optional<std::variant<
+        PGrid<TUblasSparseSpace<double>,TUblasDenseSpace<double>>,
+        PGrid<TUblasSparseSpace<float>,TUblasDenseSpace<double>>
+    >> mMaybeHierarchy;
 
     DiagonalScaling mDiagonalScaling;
 
@@ -178,7 +73,7 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
         : mpInterface(pInterface),
           mpConstraintAssembler(),
           mDiagonalScaleFactor(1),
-          mHierarchy(),
+          mMaybeHierarchy(),
           mDiagonalScaling(DiagonalScaling::None),
           mMaxDepth(-1),
           mVerbosity(0)
@@ -211,32 +106,19 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
         auto& r_linear_solver = rInterface.GetLinearSolver();
 
         do {
-            mpConstraintAssembler->InitializeSolutionStep(rModelPart.MasterSlaveConstraints(),
-                                                          rModelPart.GetProcessInfo(),
-                                                          rLhs,
-                                                          rSolution,
-                                                          rRhs,
-                                                          rInterface.GetDofSet(),
-                                                          i_iteration);
+            ++i_iteration;
+            mpConstraintAssembler->InitializeSolutionStep(rLhs, rSolution, rRhs, i_iteration);
             r_linear_solver.InitializeSolutionStep(rLhs, rSolution, rRhs);
             linear_solver_status = r_linear_solver.Solve(rLhs, rSolution, rRhs);
             r_linear_solver.FinalizeSolutionStep(rLhs, rSolution, rRhs);
-            constraint_status = mpConstraintAssembler->FinalizeSolutionStep(rModelPart.MasterSlaveConstraints(),
-                                                                 rModelPart.GetProcessInfo(),
-                                                                 rLhs,
-                                                                 rSolution,
-                                                                 rRhs,
-                                                                 rInterface.GetDofSet(),
-                                                                 ++i_iteration);
+            constraint_status = mpConstraintAssembler->FinalizeSolutionStep(rLhs, rSolution, rRhs, i_iteration);
         } while (not constraint_status.finished);
 
         if (1 <= mVerbosity and not constraint_status.converged) {
             std::cerr << "PMultigridBuilderAndSolver: failed to converge constraints\n";
         }
 
-        mpConstraintAssembler->Finalize(rModelPart.MasterSlaveConstraints(),
-                                        rModelPart.GetProcessInfo(),
-                                        rLhs,
+        mpConstraintAssembler->Finalize(rLhs,
                                         rSolution,
                                         rRhs,
                                         mpInterface->GetDofSet());
@@ -315,7 +197,13 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
                                                              rLhs);
 
         // Construct the coarse hierarhy's topology.
-        mHierarchy.template MakeLhsTopology<TSparse>(rModelPart, rLhs);
+        if (mMaybeHierarchy.has_value()) {
+            std::visit([&rModelPart, &rLhs, this](auto& r_grid){
+                            r_grid.template MakeLhsTopology<TSparse>(rModelPart, rLhs, *mpConstraintAssembler);
+                       },
+                       mMaybeHierarchy.value());
+        } // if mMaybeHierarchy
+
         KRATOS_CATCH("")
     }
 
@@ -354,10 +242,10 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
         typename Interface::TSystemVectorType* pRhs = pMaybeRhs.has_value() ? pMaybeRhs.value() : nullptr;
         auto p_locks = std::make_unique<std::vector<LockObject>>(AssembleLHS ? pLhs->size1() : 0ul);
 
-        [[maybe_unused]] const int element_count = rModelPart.Elements().size();
-        [[maybe_unused]] const int condition_count = rModelPart.Conditions().size();
-        [[maybe_unused]] const auto it_element_begin = rModelPart.Elements().begin();
-        [[maybe_unused]] const auto it_condition_begin = rModelPart.Conditions().begin();
+        const int element_count = rModelPart.Elements().size();
+        const int condition_count = rModelPart.Conditions().size();
+        const auto it_element_begin = rModelPart.Elements().begin();
+        const auto it_condition_begin = rModelPart.Conditions().begin();
 
         // Collect contributions from constitutive entities.
         #pragma omp parallel
@@ -398,10 +286,24 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
             } // pragma omp for
         } // pragma omp parallel
 
+        // Assemble constraints.
+        mpConstraintAssembler->Assemble(
+            rModelPart.MasterSlaveConstraints(),
+            rModelPart.GetProcessInfo(),
+            mpInterface->GetDofSet(),
+            AssembleLHS,
+            AssembleRHS);
+
         // Assemble coarse hierarchy.
-        mHierarchy.template Assemble<AssembleLHS, AssembleRHS,TSparse>(rModelPart,
-                                                                       pLhs,
-                                                                       pRhs);
+        if (mMaybeHierarchy.has_value()) {
+            std::visit([&rModelPart, pLhs, pRhs, this](auto& r_grid){
+                            r_grid.template Assemble<AssembleLHS,AssembleRHS,TSparse>(rModelPart,
+                                                                                      pLhs,
+                                                                                      pRhs,
+                                                                                      *mpConstraintAssembler);
+                       },
+                       mMaybeHierarchy.value());
+        } // if mMaybeHierarchy
 
         KRATOS_CATCH("")
     }
@@ -593,7 +495,7 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::BuildRHS(typename Inter
                                                                           *pScheme,
                                                                           nullptr,
                                                                           &rRhs);
-    block_for_each(this->GetDofSet(), [&rRhs](Dof<double>& rDof){
+    block_for_each(this->GetDofSet(), [&rRhs](Dof<typename TDense::DataType>& rDof){
         if (rDof.IsFixed())
             rRhs[rDof.EquationId()] = 0.0;
     });
@@ -635,14 +537,14 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::ApplyDirichletCondition
     //                                mpImpl->mDiagonalScaling,
     //                                rModelPart.GetProcessInfo());
 
-    double* Avalues = rLhs.value_data().begin();
+    typename TSparse::DataType* Avalues = rLhs.value_data().begin();
     std::size_t* Arow_indices = rLhs.index1_data().begin();
     std::size_t* Acol_indices = rLhs.index2_data().begin();
 
     IndexPartition<std::size_t>(system_size).for_each([&](std::size_t Index){
         const std::size_t col_begin = Arow_indices[Index];
         const std::size_t col_end = Arow_indices[Index+1];
-        const double k_factor = scaling_factors[Index];
+        const typename TSparse::DataType k_factor = scaling_factors[Index];
         if (k_factor == 0.0) {
             // Zero out the whole row, except the diagonal
             for (std::size_t j = col_begin; j < col_end; ++j)
@@ -668,16 +570,7 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::ApplyConstraints(typena
 {
     KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
     KRATOS_TRY
-    mpImpl->mpConstraintAssembler->Assemble(
-        rModelPart.MasterSlaveConstraints(),
-        rModelPart.GetProcessInfo(),
-        this->GetDofSet());
-    mpImpl->mpConstraintAssembler->Initialize(
-        rModelPart.MasterSlaveConstraints(),
-        rModelPart.GetProcessInfo(),
-        rLhs,
-        rRhs,
-        this->GetDofSet());
+    mpImpl->mpConstraintAssembler->Initialize(rLhs, rRhs);
     KRATOS_CATCH("")
 }
 
@@ -733,7 +626,7 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::CalculateReactions(type
                                                                           *pScheme,
                                                                           nullptr,
                                                                           &rRhs);
-    block_for_each(this->GetDofSet(), [&rRhs](Dof<double>& rDof){
+    block_for_each(this->GetDofSet(), [&rRhs](Dof<typename TDense::DataType>& rDof){
         rDof.GetSolutionStepReactionValue() = -rRhs[rDof.EquationId()];
     });
 }
@@ -761,9 +654,45 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::AssignSettings(const Pa
     // Set multifreedom constraint imposition strategy.
     mpImpl->mpConstraintAssembler = ConstraintAssemblerFactory<TSparse,TDense>(Settings["constraint_imposition"]);
 
+    // Construct top level smoother.
+    Parameters smoother_settings = Settings["smoother_settings"];
+    KRATOS_TRY
+    KRATOS_ERROR_IF_NOT(smoother_settings.Has("solver_type"));
+    const std::string solver_name = smoother_settings["solver_type"].Get<std::string>();
+    using SolverFactoryRegistry = KratosComponents<LinearSolverFactory<TSparse,TDense>>;
+    KRATOS_ERROR_IF_NOT(SolverFactoryRegistry::Has(solver_name))
+        << "\"" << solver_name << "\" is not a valid linear solver name in the registry. "
+        << "Make sure you imported the application it is defined in and that the spelling is correct.";
+    const auto& r_factory = SolverFactoryRegistry::Get(solver_name);
+    this->mpLinearSystemSolver = r_factory.Create(smoother_settings);
+    KRATOS_CATCH("")
+
+    // Construct the coarse hierarchy.
+    Parameters leaf_solver_settings = Settings["linear_solver_settings"];
+    Parameters coarse_hierarchy_settings = Settings["coarse_hierarchy_settings"];
+    std::string coarse_build_precision = coarse_hierarchy_settings.Has("precision") ?
+                                         coarse_hierarchy_settings["precision"].Get<std::string>() :
+                                         std::string {"double"};
+    if (coarse_build_precision == "double") {
+        using CoarseSparseSpace = TUblasSparseSpace<double>;
+        using CoarseDenseSpace = TUblasDenseSpace<double>;
+
+        mpImpl->mMaybeHierarchy = PGrid<TUblasSparseSpace<double>,TUblasDenseSpace<double>>(coarse_hierarchy_settings,
+                                                                                            smoother_settings,
+                                                                                            leaf_solver_settings);
+    } else if (coarse_build_precision == "single") {
+        mpImpl->mMaybeHierarchy = PGrid<TUblasSparseSpace<float>,TUblasDenseSpace<double>>(coarse_hierarchy_settings,
+                                                                                           smoother_settings,
+                                                                                           leaf_solver_settings);
+    } else {
+        KRATOS_ERROR << "unsupported coarse precision: \"" << coarse_build_precision << "\". "
+                     << "Options are:\n"
+                     << "\t\"single\""
+                     << "\t\"double\"";
+    }
+
     // Other settings.
     KRATOS_TRY
-    mpImpl->mMaxDepth = Settings["max_depth"].Get<int>();
     mpImpl->mVerbosity = Settings["verbosity"].Get<int>();
     KRATOS_CATCH("")
 }
@@ -774,6 +703,11 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Clear()
 {
     Interface::Clear();
     mpImpl->mpConstraintAssembler->Clear();
+
+    if (mpImpl->mMaybeHierarchy.has_value()) {
+        std::visit([](auto& r_grid) {r_grid.Clear();},
+                   mpImpl->mMaybeHierarchy.value());
+    } // if mMaybeHierarchy
 }
 
 
@@ -783,18 +717,19 @@ Parameters PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::GetDefaultParamet
     Parameters parameters = Parameters(R"({
 "name"              : "p_multigrid",
 "diagonal_scaling"  : "abs_max",
-"max_depth"         : -1,
+"verbosity"         : 1,
 "smoother_settings" : {
     "solver_type" : "gauss_seidel"
 },
-"solver_settings"   : {
+"linear_solver_settings" : {
     "solver_type" : "amgcl"
 },
 "constraint_imposition" : {
     "method" : "master_slave_elimination"
 },
-"verbosity"         : 1
+"coarse_hierarchy_settings" : {}
 })");
+    parameters.SetValue("coarse_hierarchy_settings", PGrid<TUblasSparseSpace<double>,TUblasDenseSpace<double>>().GetDefaultParameters());
     parameters.RecursivelyAddMissingParameters(Interface::GetDefaultParameters());
     return parameters;
 }
@@ -828,6 +763,11 @@ TSolver& PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::GetLinearSolver() n
 template class PMultigridBuilderAndSolver<TUblasSparseSpace<double>,
                                           TUblasDenseSpace<double>,
                                           LinearSolver<TUblasSparseSpace<double>,
+                                                       TUblasDenseSpace<double>>>;
+
+template class PMultigridBuilderAndSolver<TUblasSparseSpace<float>,
+                                          TUblasDenseSpace<double>,
+                                          LinearSolver<TUblasSparseSpace<float>,
                                                        TUblasDenseSpace<double>>>;
 
 

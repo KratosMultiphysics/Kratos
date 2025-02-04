@@ -107,9 +107,15 @@ void MasterSlaveConstraintAssembler<TSparse,TDense>::Allocate(const typename Bas
 template <class TSparse, class TDense>
 void MasterSlaveConstraintAssembler<TSparse,TDense>::Assemble(const typename Base::ConstraintArray& rConstraints,
                                                               const ProcessInfo& rProcessInfo,
-                                                              const typename Base::DofSet& rDofSet)
+                                                              const typename Base::DofSet& rDofSet,
+                                                              const bool AssembleLhs,
+                                                              const bool AssembleRhs)
 {
     KRATOS_TRY
+
+    /// @todo @p AssembleLhs and @p AssembleRhs are currently ignored,
+    ///       and everything gets assembled. Think it through what needs
+    ///       to be done and what can be omitted for each case. - matekelemen
 
     // Init.
     mInactiveSlaveIds.clear();
@@ -191,11 +197,8 @@ void MasterSlaveConstraintAssembler<TSparse,TDense>::Assemble(const typename Bas
 
 
 template <class TSparse, class TDense>
-void MasterSlaveConstraintAssembler<TSparse,TDense>::Initialize(const typename Base::ConstraintArray& rConstraints,
-                                                                const ProcessInfo& rProcessInfo,
-                                                                typename TSparse::MatrixType& rLhs,
-                                                                typename TSparse::VectorType& rRhs,
-                                                                typename Base::DofSet& rDofSet)
+void MasterSlaveConstraintAssembler<TSparse,TDense>::Initialize(typename TSparse::MatrixType& rLhs,
+                                                                typename TSparse::VectorType& rRhs)
 {
     KRATOS_TRY
     // Compute the transposed matrix of the global relation matrix
@@ -218,9 +221,7 @@ void MasterSlaveConstraintAssembler<TSparse,TDense>::Initialize(const typename B
     } // deallocate left_multiplied_lhs
 
     // Compute the scale factor for slave DoFs.
-    typename TSparse::DataType diagonal_scale_factor = GetDiagonalScaleFactor<TSparse>(rLhs,
-                                                                                       this->mDiagonalScaling,
-                                                                                       rProcessInfo);
+    typename TSparse::DataType diagonal_scale_factor = GetDiagonalScaleFactor<TSparse>(rLhs, this->mDiagonalScaling);
 
     // Apply diagonal values on slaves.
     block_for_each(this->mSlaveIds, [this, &rLhs, &rRhs, diagonal_scale_factor](const auto iSlave){
@@ -235,12 +236,9 @@ void MasterSlaveConstraintAssembler<TSparse,TDense>::Initialize(const typename B
 
 template <class TSparse, class TDense>
 typename MasterSlaveConstraintAssembler<TSparse,TDense>::Base::Status
-MasterSlaveConstraintAssembler<TSparse,TDense>::FinalizeSolutionStep(const typename Base::ConstraintArray& rConstraints,
-                                                                     const ProcessInfo& rProcessInfo,
-                                                                     typename TSparse::MatrixType& rLhs,
+MasterSlaveConstraintAssembler<TSparse,TDense>::FinalizeSolutionStep(typename TSparse::MatrixType& rLhs,
                                                                      typename TSparse::VectorType& rSolution,
                                                                      typename TSparse::VectorType& rRhs,
-                                                                     const typename Base::DofSet& rDofSet,
                                                                      const std::size_t iIteration)
 {
     return typename Base::Status {/*finished=*/true, /*converged=*/true};
@@ -248,9 +246,7 @@ MasterSlaveConstraintAssembler<TSparse,TDense>::FinalizeSolutionStep(const typen
 
 
 template <class TSparse, class TDense>
-void MasterSlaveConstraintAssembler<TSparse,TDense>::Finalize(const typename Base::ConstraintArray& rConstraints,
-                                                              const ProcessInfo& rProcessInfo,
-                                                              typename TSparse::MatrixType& rLhs,
+void MasterSlaveConstraintAssembler<TSparse,TDense>::Finalize(typename TSparse::MatrixType& rLhs,
                                                               typename TSparse::VectorType& rSolution,
                                                               typename TSparse::VectorType& rRhs,
                                                               typename Base::DofSet& rDofSet)

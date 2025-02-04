@@ -35,8 +35,7 @@ DiagonalScaling ParseDiagonalScaling(Parameters Settings);
 template <class TSparse>
 typename TSparse::DataType
 GetDiagonalScaleFactor(const typename TSparse::MatrixType& rMatrix,
-                       const DiagonalScaling ScalingStrategy,
-                       [[maybe_unused]] const ProcessInfo& rProcessInfo);
+                       const DiagonalScaling ScalingStrategy);
 
 
 } // namespace Kratos

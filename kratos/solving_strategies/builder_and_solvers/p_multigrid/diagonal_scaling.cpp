@@ -45,8 +45,7 @@ DiagonalScaling ParseDiagonalScaling(Parameters Settings)
 template <class TSparse>
 typename TSparse::DataType
 GetDiagonalScaleFactor(const typename TSparse::MatrixType& rMatrix,
-                       const DiagonalScaling ScalingStrategy,
-                       [[maybe_unused]] const ProcessInfo& rProcessInfo)
+                       const DiagonalScaling ScalingStrategy)
 {
     KRATOS_PROFILE_SCOPE(KRATOS_CODE_LOCATION);
     KRATOS_TRY
@@ -86,9 +85,6 @@ GetDiagonalScaleFactor(const typename TSparse::MatrixType& rMatrix,
             return std::sqrt(output);
         }
 
-        case DiagonalScaling::Constant:
-            return rProcessInfo.GetValue(BUILD_SCALE_FACTOR);
-
         default: {
             KRATOS_ERROR << "unsupported diagonal scaling (" << (int)ScalingStrategy << ')';
         }
@@ -100,8 +96,7 @@ GetDiagonalScaleFactor(const typename TSparse::MatrixType& rMatrix,
 // Explicit instantiations for UBLAS.
 #define KRATOS_DEFINE_DIAGONAL_SCALE_FACTOR_GETTER(TSparseSpace)                                                    \
     template TSparseSpace::DataType GetDiagonalScaleFactor<TSparseSpace>(const typename TSparseSpace::MatrixType&,  \
-                                                                         const DiagonalScaling,                     \
-                                                                         const ProcessInfo&)
+                                                                         const DiagonalScaling)
 
 KRATOS_DEFINE_DIAGONAL_SCALE_FACTOR_GETTER(TUblasSparseSpace<double>);
 

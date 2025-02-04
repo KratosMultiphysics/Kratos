@@ -43,28 +43,22 @@ public:
     /// @copydoc Base::Assemble
     void Assemble(const typename Base::ConstraintArray& rConstraints,
                   const ProcessInfo& rProcessInfo,
-                  const typename Base::DofSet& rDofSet) override;
+                  const typename Base::DofSet& rDofSet,
+                  const bool AssembleLhs,
+                  const bool AssembleRhs) override;
 
     /// @copydoc Base::Initialize
-    void Initialize(const typename Base::ConstraintArray& rConstraints,
-                    const ProcessInfo& rProcessInfo,
-                    typename TSparse::MatrixType& rLhs,
-                    typename TSparse::VectorType& rRhs,
-                    typename Base::DofSet& rDofSet) override;
+    void Initialize(typename TSparse::MatrixType& rLhs,
+                    typename TSparse::VectorType& rRhs) override;
 
     /// @copydoc Base::FinalizeSolutionStep
-    typename Base::Status FinalizeSolutionStep(const typename Base::ConstraintArray& rConstraints,
-                                               const ProcessInfo& rProcessInfo,
-                                               typename TSparse::MatrixType& rLhs,
+    typename Base::Status FinalizeSolutionStep(typename TSparse::MatrixType& rLhs,
                                                typename TSparse::VectorType& rSolution,
                                                typename TSparse::VectorType& rRhs,
-                                               const typename Base::DofSet& rDofSet,
                                                const std::size_t iIteration) override;
 
     /// @copydoc Base::Finalize
-    void Finalize(const typename Base::ConstraintArray& rConstraints,
-                  const ProcessInfo& rProcessInfo,
-                  typename TSparse::MatrixType& rLhs,
+    void Finalize(typename TSparse::MatrixType& rLhs,
                   typename TSparse::VectorType& rSolution,
                   typename TSparse::VectorType& rRhs,
                   typename Base::DofSet& rDofSet) override;
