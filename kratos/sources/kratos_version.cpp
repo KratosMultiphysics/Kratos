@@ -75,13 +75,18 @@ KRATOS_ARCH_TYPE
 #elif defined(__APPLE__) && defined(__MACH__)
     #define KRATOS_OS_NAME "Mac OS"
 #elif defined(_WIN32) || defined(_WIN64)
-    #define KRATOS_OS_NAME "Windows" 
+    #define KRATOS_OS_NAME "Windows"
 #else
     #define KRATOS_OS_NAME "Unknown OS"
 #endif
 
 // Define compiler label
-#if defined(__clang__)
+#if defined(__INTEL_COMPILER) || defined(__INTEL_LLVM_COMPILER)
+    // the intel compiler internally uses gcc or clang
+    // therefore must check it first, otherwise it detects wrong compiler
+    #define KRATOS_COMPILER_LABEL "Intel-" \
+    KRATOS_TO_STRING(__VERSION__)
+#elif defined(__clang__)
     #define KRATOS_COMPILER_LABEL "Clang-" \
     KRATOS_TO_STRING(__clang_major__) \
     "." \

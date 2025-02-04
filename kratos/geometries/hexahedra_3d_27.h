@@ -345,14 +345,34 @@ public:
     /// Destructor. Does nothing!!!
     ~Hexahedra3D27() override {}
 
+    /**
+     * @brief Gets the geometry family.
+     * @details This function returns the family type of the geometry. The geometry family categorizes the geometry into a broader classification, aiding in its identification and processing.
+     * @return GeometryData::KratosGeometryFamily The geometry family.
+     */
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::KratosGeometryFamily::Kratos_Hexahedra;
     }
 
+    /**
+     * @brief Gets the geometry type.
+     * @details This function returns the specific type of the geometry. The geometry type provides a more detailed classification of the geometry.
+     * @return GeometryData::KratosGeometryType The specific geometry type.
+     */
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::KratosGeometryType::Kratos_Hexahedra3D27;
+    }
+
+    /**
+     * @brief Gets the geometry order type.
+     * @details This function returns the order type of the geometry. The order type relates to the polynomial degree of the geometry.
+     * @return GeometryData::KratosGeometryOrderType The geometry order type.
+     */
+    GeometryData::KratosGeometryOrderType GetGeometryOrderType() const override
+    {
+        return GeometryData::KratosGeometryOrderType::Kratos_Quadratic_Order;
     }
 
     /**
@@ -505,6 +525,127 @@ public:
     double DomainSize() const override
     {
         return Volume();
+    }
+
+        /**
+     * Returns a matrix of the local coordinates of all points
+     * @param rResult a Matrix that will be overwritten by the results
+     * @return the coordinates of all points of the current geometry
+     */
+    Matrix& PointsLocalCoordinates( Matrix& rResult ) const override
+    {
+        if ( rResult.size1() != 27 || rResult.size2() != 3 )
+            rResult.resize( 27, 3, false );
+
+        rResult( 0, 0 ) = -1.0;
+        rResult( 0, 1 ) = -1.0;
+        rResult( 0, 2 ) = -1.0;
+
+        rResult( 1, 0 ) = 1.0;
+        rResult( 1, 1 ) = -1.0;
+        rResult( 1, 2 ) = -1.0;
+
+        rResult( 2, 0 ) = 1.0;
+        rResult( 2, 1 ) = 1.0;
+        rResult( 2, 2 ) = -1.0;
+
+        rResult( 3, 0 ) = -1.0;
+        rResult( 3, 1 ) = 1.0;
+        rResult( 3, 2 ) = -1.0;
+
+        rResult( 4, 0 ) = -1.0;
+        rResult( 4, 1 ) = -1.0;
+        rResult( 4, 2 ) = 1.0;
+
+        rResult( 5, 0 ) = 1.0;
+        rResult( 5, 1 ) = -1.0;
+        rResult( 5, 2 ) = 1.0;
+
+        rResult( 6, 0 ) = 1.0;
+        rResult( 6, 1 ) = 1.0;
+        rResult( 6, 2 ) = 1.0;
+
+        rResult( 7, 0 ) = -1.0;
+        rResult( 7, 1 ) = 1.0;
+        rResult( 7, 2 ) = 1.0;
+
+        rResult( 8, 0 ) = 0.0;
+        rResult( 8, 1 ) = -1.0;
+        rResult( 8, 2 ) = -1.0;
+
+        rResult( 9, 0 ) = 1.0;
+        rResult( 9, 1 ) = 0.0;
+        rResult( 9, 2 ) = -1.0;
+
+        rResult( 10, 0 ) = 0.0;
+        rResult( 10, 1 ) = 1.0;
+        rResult( 10, 2 ) = -1.0;
+
+        rResult( 11, 0 ) = -1.0;
+        rResult( 11, 1 ) = 0.0;
+        rResult( 11, 2 ) = -1.0;
+
+        rResult( 12, 0 ) = -1.0;
+        rResult( 12, 1 ) = -1.0;
+        rResult( 12, 2 ) = 0.0;
+
+        rResult( 13, 0 ) = 1.0;
+        rResult( 13, 1 ) = -1.0;
+        rResult( 13, 2 ) = 0.0;
+
+        rResult( 14, 0 ) = 1.0;
+        rResult( 14, 1 ) = 1.0;
+        rResult( 14, 2 ) = 0.0;
+
+        rResult( 15, 0 ) = -1.0;
+        rResult( 15, 1 ) = 1.0;
+        rResult( 15, 2 ) = 0.0;
+
+        rResult( 16, 0 ) = 0.0;
+        rResult( 16, 1 ) = -1.0;
+        rResult( 16, 2 ) = 1.0;
+
+        rResult( 17, 0 ) = 1.0;
+        rResult( 17, 1 ) = 0.0;
+        rResult( 17, 2 ) = 1.0;
+
+        rResult( 18, 0 ) = 0.0;
+        rResult( 18, 1 ) = 1.0;
+        rResult( 18, 2 ) = 1.0;
+
+        rResult( 19, 0 ) = -1.0;
+        rResult( 19, 1 ) = 0.0;
+        rResult( 19, 2 ) = 1.0;
+
+        rResult( 20, 0 ) = 0.0;
+        rResult( 20, 1 ) = 0.0;
+        rResult( 20, 2 ) = -1.0;
+
+        rResult( 21, 0 ) = 0.0;
+        rResult( 21, 1 ) = -1.0;
+        rResult( 21, 2 ) = 0.0;
+
+        rResult( 22, 0 ) = 1.0;
+        rResult( 22, 1 ) = 0.0;
+        rResult( 22, 2 ) = 0.0;
+
+        rResult( 23, 0 ) = 0.0;
+        rResult( 23, 1 ) = 1.0;
+        rResult( 23, 2 ) = 0.0;
+
+        rResult( 24, 0 ) = -1.0;
+        rResult( 24, 1 ) = 0.0;
+        rResult( 24, 2 ) = 0.0;
+
+        rResult( 25, 0 ) = 0.0;
+        rResult( 25, 1 ) = 0.0;
+        rResult( 25, 2 ) = 1.0;
+
+        rResult( 26, 0 ) = 0.0;
+        rResult( 26, 1 ) = 0.0;
+        rResult( 26, 2 ) = 0.0;
+
+        return rResult;
     }
 
     /**

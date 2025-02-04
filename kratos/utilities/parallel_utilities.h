@@ -40,17 +40,21 @@
 
 #define KRATOS_PREPARE_CATCH_THREAD_EXCEPTION std::stringstream err_stream;
 
-#define KRATOS_CATCH_THREAD_EXCEPTION \
-} catch(Exception& e) { \
-    KRATOS_CRITICAL_SECTION \
-    err_stream << "Thread #" << i << " caught exception: " << e.what(); \
-} catch(std::exception& e) { \
-    KRATOS_CRITICAL_SECTION \
-    err_stream << "Thread #" << i << " caught exception: " << e.what(); \
-} catch(...) { \
-    KRATOS_CRITICAL_SECTION \
-    err_stream << "Thread #" << i << " caught unknown exception:"; \
-}
+#ifndef KRATOS_NO_TRY_CATCH
+    #define KRATOS_CATCH_THREAD_EXCEPTION \
+    } catch(Exception& e) { \
+        KRATOS_CRITICAL_SECTION \
+        err_stream << "Thread #" << i << " caught exception: " << e.what(); \
+    } catch(std::exception& e) { \
+        KRATOS_CRITICAL_SECTION \
+        err_stream << "Thread #" << i << " caught exception: " << e.what(); \
+    } catch(...) { \
+        KRATOS_CRITICAL_SECTION \
+        err_stream << "Thread #" << i << " caught unknown exception:"; \
+    }
+#else
+    #define KRATOS_CATCH_THREAD_EXCEPTION {}
+#endif
 
 #define KRATOS_CHECK_AND_THROW_THREAD_EXCEPTION \
 const std::string& err_msg = err_stream.str(); \
@@ -365,7 +369,7 @@ template <class TReduction,
 template <class TContainerType,
           class TFunctionType,
           std::enable_if_t<!std::is_same_v<
-            std::iterator_traits<typename decltype(std::declval<std::remove_cv_t<TContainerType>>().begin())::value_type>,
+            typename std::iterator_traits<decltype(std::declval<std::remove_cv_t<TContainerType>>().begin())>::value_type,
             void
           >, bool> = true
          >

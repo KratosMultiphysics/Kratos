@@ -20,17 +20,14 @@
 #include <utilities/function_parser_utility.h>
 #include <utilities/mortar_utilities.h>
 
-#include "utilities/interval_utility.h"
 #include "geo_mechanics_application_variables.h"
-
+#include "utilities/interval_utility.h"
 
 namespace Kratos
 {
 
-    SetParameterFieldProcess::SetParameterFieldProcess(ModelPart& rModelPart,
-                                                       const Parameters& rSettings)
-                                                            : Process(), mrModelPart(rModelPart),
-                                                            mParameters(rSettings)
+SetParameterFieldProcess::SetParameterFieldProcess(ModelPart& rModelPart, const Parameters& rSettings)
+    : Process(), mrModelPart(rModelPart), mParameters(rSettings)
 {
     // function type: python, cpp, input
     const Parameters default_parameters(R"(
@@ -41,90 +38,96 @@ namespace Kratos
             "func_type"         : "input",               
             "function"          : "0",
             "dataset"           : "dummy",
-            "dataset_file_name" : "dummy"
-        }  )"
-    );
+            "dataset_file_name" : "dummy",
+            "vector_variable_indices"      : []
+        }  )");
 
     mParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
-
 }
-
-
-void SetParameterFieldProcess::SetValueAtElement(Element& rElement, const Variable<double>& rVar, const double Value)
-{
-
-    Properties& r_prop = rElement.GetProperties();
-
-    // Copies properties
-    Properties::Pointer p_new_prop = Kratos::make_shared<Properties>(r_prop);
-
-    // Adds new properties to the element
-    p_new_prop->SetValue(rVar, Value);
-    rElement.SetProperties(p_new_prop);
-
-}
-
 
 void SetParameterFieldProcess::SetParameterFieldUsingInputFunction(const Variable<double>& rVar)
 {
-    auto parameter_function = BasicGenericFunctionUtility(mParameters["function"].GetString());
+    auto parameter_function   = BasicGenericFunctionUtility(mParameters["function"].GetString());
     const double current_time = this->mrModelPart.GetProcessInfo().GetValue(TIME);
 
     for (Element& r_element : mrModelPart.Elements()) {
-
         const auto& r_geom = r_element.GetGeometry();
 
         // calculate parameter value at current element
-        const double val = parameter_function.CallFunction(r_geom.Center().X(), r_geom.Center().Y(), r_geom.Center().Z(), current_time, 0, 0, 0);
+        const double val = parameter_function.CallFunction(
+            r_geom.Center().X(), r_geom.Center().Y(), r_geom.Center().Z(), current_time, 0, 0, 0);
 
         SetValueAtElement(r_element, rVar, val);
-
     }
 }
 
-
-void SetParameterFieldProcess::SetParameterFieldUsingParametersClass(const Variable<double>& rVar, Parameters& rParameters)
+void SetParameterFieldProcess::SetParameterFieldUsingInputFunction(const Variable<Vector>& rVar)
 {
+    auto parameter_function   = BasicGenericFunctionUtility(mParameters["function"].GetString());
+    const double current_time = this->mrModelPart.GetProcessInfo().GetValue(TIME);
+    const auto   indices      = GetVectorIndices();
 
+    for (Element& r_element : mrModelPart.Elements()) {
+        const auto& r_geom = r_element.GetGeometry();
+
+        // calculate parameter value at current element
+        const double val = parameter_function.CallFunction(
+            r_geom.Center().X(), r_geom.Center().Y(), r_geom.Center().Z(), current_time, 0, 0, 0);
+        // get properties per element
+        Properties& r_prop = r_element.GetProperties();
+        Vector&     vector = r_prop.GetValue(rVar);
+
+        // loop through the indexes that need to be set
+        for (auto index : indices) {
+            vector[index] = val;
+        }
+
+        SetValueAtElement(r_element, rVar, vector);
+    }
+}
+
+void SetParameterFieldProcess::SetParameterFieldUsingParametersClass(const Variable<double>& rVar,
+                                                                     const Parameters& rParameters)
+{
     const Vector& r_data_vector = rParameters["values"].GetVector();
 
-    KRATOS_ERROR_IF_NOT(r_data_vector.size() == mrModelPart.Elements().size()) << "The parameter field "
-    	"does not have the same size as the amount of elements within the model part!" << std::endl;
+    KRATOS_ERROR_IF_NOT(r_data_vector.size() == mrModelPart.Elements().size())
+        << "The parameter field "
+           "does not have the same size as the amount of elements within the model part!"
+        << std::endl;
 
     // set new data on the elements
     IndexType i = 0;
-    for (Element& r_element : mrModelPart.Elements())
-    {
+    for (Element& r_element : mrModelPart.Elements()) {
         SetValueAtElement(r_element, rVar, r_data_vector[i]);
         ++i;
     }
 }
 
-void SetParameterFieldProcess::SetParameterFieldUsingJsonString(const  Variable<double>& rVar)
+void SetParameterFieldProcess::SetParameterFieldUsingParametersClass(const Variable<Vector>& rVar,
+                                                                     const Parameters& rParameters)
 {
-    // get new data from the data set
-    const std::string& r_dataset = mParameters["dataset"].GetString();
+    const Matrix& r_data_matrix = rParameters["values"].GetMatrix();
 
+    KRATOS_ERROR_IF_NOT(r_data_matrix.size1() == mrModelPart.Elements().size())
+        << "The parameter field "
+           "does not have the same size as the amount of elements within the model part!"
+        << std::endl;
 
-    Parameters new_data{ r_dataset };
-    this->SetParameterFieldUsingParametersClass(rVar, new_data);
+    // set new data on the elements
+    const IndexType vector_size = r_data_matrix.size2();
+    IndexType       i           = 0;
+    for (Element& r_element : mrModelPart.Elements()) {
+        Vector sub_vector;
+        sub_vector.resize(vector_size);
+        for (IndexType j = 0; j < vector_size; j++) {
+            sub_vector[j] = r_data_matrix(i, j);
+        }
 
+        SetValueAtElement(r_element, rVar, sub_vector);
+        ++i;
+    }
 }
-void SetParameterFieldProcess::SetParameterFieldUsingJsonFile(const Variable<double>& rVar)
-{
-    // Read json string in field parameters file, create Parameters
-    const std::string& field_file_name = mParameters["dataset_file_name"].GetString();
-    KRATOS_ERROR_IF_NOT(std::filesystem::exists(field_file_name)) << "The parameter field file specified with name \"" << field_file_name << "\" does not exist!" << std::endl;
-
-    std::ifstream ifs(field_file_name);
-    Parameters new_data{ ifs };
-
-    this->SetParameterFieldUsingParametersClass(rVar, new_data);
-
-}
-
-
-
 
 void SetParameterFieldProcess::ExecuteInitialize()
 {
@@ -134,26 +137,25 @@ void SetParameterFieldProcess::ExecuteInitialize()
 
     KRATOS_TRY
 
-    const auto& r_var = KratosComponents< Variable<double> >::Get(mParameters["variable_name"].GetString());
-
-    // set parameter field from input function
-    if (mParameters["func_type"].GetString() == "input")
-    {
-        this->SetParameterFieldUsingInputFunction(r_var);
-    }
-    // set parameter field with a json string
-    else if (mParameters["func_type"].GetString() == "json_string")
-    {
-        this->SetParameterFieldUsingJsonString(r_var);
-    }
-    // set parameter field from a json input file
-    else if (mParameters["func_type"].GetString() == "json_file")
-    {
-        this->SetParameterFieldUsingJsonFile(r_var);
+    const auto variable_name = mParameters["variable_name"].GetString();
+    if (KratosComponents<Variable<double>>::Has(variable_name)) {
+        SetParameterFieldForVariableType(KratosComponents<Variable<double>>::Get(variable_name));
+    } else if (KratosComponents<Variable<Vector>>::Has(variable_name)) {
+        SetParameterFieldForVariableType(KratosComponents<Variable<Vector>>::Get(variable_name));
     }
 
     KRATOS_CATCH("")
 }
 
+std::vector<IndexType> SetParameterFieldProcess::GetVectorIndices() const
+{
+    const auto             vector_indices = mParameters["vector_variable_indices"].GetVector();
+    std::vector<IndexType> result;
+    result.reserve(vector_indices.size());
+    std::transform(vector_indices.begin(), vector_indices.end(), std::back_inserter(result),
+                   [](auto index) { return static_cast<IndexType>(index); });
 
-}  // namespace Kratos.
+    return result;
+}
+
+} // namespace Kratos.

@@ -121,6 +121,31 @@ KRATOS_TEST_CASE_IN_SUITE(BlockPartitionerConstContainer, KratosCoreFastSuite)
     KRATOS_EXPECT_DOUBLE_EQ(final_sum_short, expected_value);
 }
 
+// Pass a container whose iterator is a raw pointer.
+KRATOS_TEST_CASE_IN_SUITE(BlockPartitionerContiguousContainer, KratosCoreFastSuite)
+{
+    struct TestView
+    {
+        using iterator = int*;
+        using size_type = std::size_t;
+        iterator begin() const noexcept {return mBegin;}
+        iterator end() const noexcept {return mEnd;}
+        size_type size() const noexcept {return std::distance(mBegin, mEnd);}
+        iterator mBegin;
+        iterator mEnd;
+    }; // struct TestView
+
+    std::vector<int> array(1e3);
+    std::iota(array.begin(), array.end(), 0);
+
+    TestView view {array.data(), array.data() + array.size()};
+    block_for_each(view, [](int& r_entry){r_entry += r_entry;});
+
+    for (int i_entry=0; i_entry<static_cast<int>(array.size()); ++i_entry) {
+        KRATOS_EXPECT_EQ(array[i_entry], i_entry + i_entry);
+    }
+}
+
 // Basic Type
 KRATOS_TEST_CASE_IN_SUITE(IndexPartitioner, KratosCoreFastSuite)
 {
@@ -331,6 +356,31 @@ KRATOS_TEST_CASE_IN_SUITE(AccumReductionSet, KratosCoreFastSuite)
         KRATOS_EXPECT_NE(assembled_vector.find(i+1), assembled_vector.end());
     }
 }
+
+KRATOS_TEST_CASE_IN_SUITE(FilteredAccumReductionInt, KratosCoreFastSuite)
+{
+    const int nsize = 1e3;
+    std::vector<int> input_data_vector(nsize);
+    std::vector<int> expct_data_vector(nsize/2);
+
+    std::iota(input_data_vector.begin(), input_data_vector.end(), 0);
+    std::iota(expct_data_vector.begin(), expct_data_vector.end(), 1);
+    std::transform(
+        expct_data_vector.begin(),
+        expct_data_vector.end(),
+        expct_data_vector.begin(),
+        [] (int x) { return x * 2; });
+
+    auto assembled_vector = block_for_each<FilteredAccumReduction<int>>(input_data_vector, [](int& rValue) {
+        const bool add_value = rValue % 2 != 0;
+        return std::pair<bool, std::size_t>(add_value, rValue + 1);
+    });
+
+    std::sort(assembled_vector.begin(), assembled_vector.end());
+
+    KRATOS_EXPECT_VECTOR_EQ(assembled_vector, expct_data_vector);
+}
+
 
 KRATOS_TEST_CASE_IN_SUITE(MapReduction, KratosCoreFastSuite)
 {
