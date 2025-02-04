@@ -123,7 +123,8 @@ public:
         typename NurbsSurfaceType::Pointer pSurface, 
         BrepCurveOnSurfaceLoopArrayType& BrepOuterLoopArray,
         BrepCurveOnSurfaceLoopArrayType& BrepInnerLoopArray,
-        GeometrySurrogateArrayType& rSurrogateInnerLoopGeometries, GeometrySurrogateArrayType& rSurrogateOuterLoopGeometries)
+        GeometrySurrogateArrayType& rSurrogateInnerLoopGeometries, 
+        GeometrySurrogateArrayType& rSurrogateOuterLoopGeometries)
         : BaseType(PointsArrayType(), &msGeometryData)
         , mpNurbsSurface(pSurface) 
         , mOuterLoopArray(BrepOuterLoopArray)
