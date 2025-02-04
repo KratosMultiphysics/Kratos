@@ -13,7 +13,7 @@ A detailed description of the `mdpa` file format is available [here](../../../Kr
 The `MPMApplication` requires two `mdpa` files, typically named `file_name_Grid.mdpa` and `file_name_Body.mdpa`, with the suffixes `_Grid` and `_Body` highlighting their distinct roles.
 
 * `file_name_Grid.mdpa`: contains information about the nodes, elements and conditions of the **background grid**. This grid is used for computing the Finite Element solution and provides the domain where the material points move.
-* `file_name_Body.mdpa`: defines the initial discretisation of the continuum to be simulated by means of the Material Point Method. Indeed, in the `MPMApplication`, the body is first discretised with a mesh and then, within each element of the mesh, a certain number of material points are placed, according to the `MATERIAL_POINTS_PER_ELEMENT` parameter defined in the `ParticleMaterials.json` file (more details are available [here](./json)). Finally, the mesh contained in the file `file_name_Body.mdpa` is disregarded, therefore serving only to define the initial position of the material points.
+* `file_name_Body.mdpa`: defines the initial mesh discretisation of the continuum to be simulated by means of the Material Point Method. Indeed, in the `MPMApplication`, the body is first discretised with a mesh and then a certain number of material points (based on the `MATERIAL_POINTS_PER_ELEMENT` parameter defined in the [`ParticleMaterials.json` file](./json)) are placed within each element of the mesh. Finally, the mesh initially discretising the body and contained in the file `file_name_Body.mdpa` is disregarded, therefore serving only to define the initial position of the material points.
 
 ## `file_name_Grid.mdpa`
 

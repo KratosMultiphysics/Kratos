@@ -52,7 +52,7 @@ The `ProjectParameters.json` typically contains five main blocks:
 
     - `problem_name`: a label that identifies the problem to be solved.
 
-    - `parallel_type`: a label that specifies the parallelization method used for solving the problem. Currently, the `MPMApplication` only supports shared memory parallelization, meaning the only valid value is `"OpenMP"`.
+    - `parallel_type`: a label that specifies the parallelization method used for solving the problem. Currently, the `MPMApplication` only supports shared memory parallelization, meaning that the only valid value is `"OpenMP"`.
 
     - `echo_level`: an integer that controls the verbosity level of the simulation output. Higher values result in more messages printed to the standard output, providing greater detail on the simulation's status.
         * Minimum: `0` - silent
@@ -62,16 +62,16 @@ The `ProjectParameters.json` typically contains five main blocks:
 
     - `end_time`: a number defining the ending time of the simulation.
 
-* `solver_settings`, a set of attribute-value pairs defining the settings for the solvers, like analysis type, linear solver, etc.
+* `solver_settings`, a set of attribute-value pairs defining the settings for the solvers, like analysis type, linear solver, etc. These parameters are discussed in detail [here](../MPM_Solver/mpm_solver).
 * `processes`, a set of lists containing the processes to apply, e.g., boundary and initial conditions. Within the `MPMApplication`, processes are usually divided into four lists.
     1. `constraints_process_list`: this list contains all the processes imposing Dirichlet boundary conditions;
     2. `loads_process_list`: this list contains all the processes defining the external loads acting on the body;
     3. `list_other_processes`: this list contains other processes not related to boundary conditions;
-    4. `gravity`: this list contains the [`AssignGravityToMaterialPoints`](../Processes/assign_gravity).
+    4. `gravity`: this list contains the [`AssignGravityToMaterialPoints`](../Processes/assign_gravity) process.
 
    Other custom lists can also be defined. A detailed description of the processes implemented within the `MPMApplication` can be found [here](../Processes/Overview.md).
 * `output_processes`, a set of lists containing the output processes for the post-processing of the results. Within the `MPMApplication`, output processes are usually divided into three lists.
-   1. `gid_output_processes`: this list contains the [`GiDOutputProcess`](../../../Kratos/Processes/Output_Process/GiD_Output_Process) and the [`MPMGiDOutputProcess`](../Output_Processes/mpm_gid_output_process) for exporting data that can be read with [GiD](https://www.gidsimulation.com/);
+   1. `gid_output_processes`: this list contains the [`GiDOutputProcess`](../../../Kratos/Processes/Output_Process/GiD_Output_Process) and the [`MPMGiDOutputProcess`](../Output_Processes/mpm_gid_output_process) for exporting data that can be visualized with [GiD](https://www.gidsimulation.com/);
    2. `vtk_output_processes`: this lists contains the [`VtkOutputProcess`](../../../Kratos/Processes/Output_Process/VTK_Output_Process) and the [`MPMVtkOutputProcess`](../Output_Processes/mpm_vtk_output_process) for exporting data in the `vtk` format that can be visualized using post-processing tools such as [Paraview](https://www.paraview.org/) and [VisIt](https://visit-dav.github.io/visit-website/index.html);
    3. `other_output_processes`: this lists contains other output processes.
 
@@ -140,12 +140,12 @@ The input file `ParticleMaterials.json` has the following structure
 
 The `property` field contains a list of one or more objects, each defining the constitutive law associated to a submodel part of the `Intitial_MPM_Material` model part.
 
-For example, the `ParticleMaterials.json` file shown code-block above refers to a problem in which three bodies are discretised by means of material points and each being assigned a different constitutive law.
+For example, the `ParticleMaterials.json` file shown in the code-block above refers to a problem in which three continuum bodies are discretised by means of material points, each body being assigned a different constitutive law.
 
 Each json object in the list assigned to the `property` field is defined through the following attributes.
 * `model_part_name`: name of the submodel part to which the properties in that object are assigned;
 * `properties_id`: integer identifying that specific property;
-* `Material`: json object providin detailed information about the constitutive law. It contains the following name-value pairs.
+* `Material`: json object providing detailed information about the constitutive law. It contains the following name-value pairs.
     - `constitutive_law`: object containing a string identifying the [constitutive law](../Constitutive_Laws/constitutive_laws);
     - `Variables`: object defining some variables
         * `THICKNESS`: thickness for 2D problems

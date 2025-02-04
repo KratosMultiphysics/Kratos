@@ -9,7 +9,7 @@ summary:
 # Output Processes
 
 In `KratosMultiphysics`, simulation results are typically written to a file (or multiple files) using Python classes that extend the base `OutputProcess` class, which is implemented in the `KratosCore`.
-The parameters required by these output processes must be defined in the `"output_processes": {}` section of the `ProjectParameters.json` file (more details about this input file can be found [here](../Input_Files/json#projectparametersjson)).
+More details about the `OutputProcess` class can be found [here](../Output_Processes/Overview). The parameters required by these output processes must be defined in the `"output_processes": {}` section of the `ProjectParameters.json` file (more details about this input file can be found [here](../Input_Files/json#projectparametersjson)).
 
 
 In the `MPMApplication`, two kinds of output processes can be used, i.e., the **grid** and the **material point** output processes.
