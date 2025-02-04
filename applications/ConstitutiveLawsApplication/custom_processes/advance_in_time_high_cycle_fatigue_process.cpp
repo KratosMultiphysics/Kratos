@@ -69,7 +69,7 @@ void AdvanceInTimeHighCycleFatigueProcess::Execute()
             if (!process_info[DAMAGE_ACTIVATION]) {
                 this->TimeIncrement(increment);
                 if (increment > 0.0) {
-                    this->TimeAndCyclesUpdate(increment);
+                    this->TimeAndCyclesUpdate(increment + 10*720000);
                     process_info[ADVANCE_STRATEGY_APPLIED] = true;
                 }
             } else {
