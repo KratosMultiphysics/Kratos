@@ -11,7 +11,6 @@
 //
 
 #include "custom_elements/geo_steady_state_Pw_piping_element.h"
-#include "custom_elements/plane_strain_stress_state.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 namespace Kratos::Testing

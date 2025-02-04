@@ -120,13 +120,13 @@ public:
         this->SetValue(PIPE_ELEMENT_LENGTH, CalculateLength(this->GetGeometry()));
 
         if (!mIsInitialized) {
-            mIsInitialized = true;
             this->SetValue(PIPE_EROSION, false);
             constexpr double small_pipe_height = 1e-10;
             this->SetValue(PIPE_HEIGHT, small_pipe_height);
             this->SetValue(PREV_PIPE_HEIGHT, small_pipe_height);
             this->SetValue(DIFF_PIPE_HEIGHT, 0.);
             this->SetValue(PIPE_ACTIVE, false);
+            mIsInitialized = true;
         }
     }
 
