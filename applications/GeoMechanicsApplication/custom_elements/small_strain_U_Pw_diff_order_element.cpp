@@ -562,10 +562,11 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
                 PORE_PRESSURE_SIGN_FACTOR * GetProperties()[DENSITY_WATER] * body_acceleration;
 
             // Compute fluid flux vector q [L/T]
-            rOutput[g_point]          = ZeroVector(3);
-            noalias(rOutput[g_point]) = PORE_PRESSURE_SIGN_FACTOR *
+            rOutput[g_point].clear();
+            const auto fluid_flux = PORE_PRESSURE_SIGN_FACTOR *
                                         Variables.DynamicViscosityInverse * relative_permeability *
                                         prod(Variables.IntrinsicPermeability, grad_pressure_term);
+            std::copy_n(fluid_flux.begin(), dimension, rOutput[g_point].begin());
         }
     }
 
