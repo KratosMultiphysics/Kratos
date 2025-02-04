@@ -164,7 +164,7 @@ void MasterSlaveConstraintAssembler<TSparse,TDense>::Assemble(const typename Bas
                         << "constraint gap vector size " << this->GetConstraintGapVector().size()
                         << " <= insertion index " << i_global << "\n";
                     const double constant_value = local_constraint_gap_vector[i];
-                    AtomicAdd(this->GetConstraintGapVector()[i_global], constant_value);
+                    AtomicAdd(this->GetConstraintGapVector()[i_global], typename TSparse::DataType(constant_value));
                 }
             } else { // Taking into account inactive constraints
                 tls_inactive_slave_dofs.insert(slave_equation_ids.begin(), slave_equation_ids.end());

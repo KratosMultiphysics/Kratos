@@ -111,7 +111,7 @@ void MapContribution(typename TSparse::VectorType& rRhs,
 
     for (unsigned i_local = 0; i_local < local_size; i_local++) {
         const unsigned i_global = rEquationIds[i_local];
-        AtomicAdd(rRhs[i_global], rContribution[i_local]);
+        AtomicAdd(rRhs[i_global], static_cast<typename TSparse::DataType>(rContribution[i_local]));
     }
 }
 
