@@ -198,7 +198,7 @@ public:
             const std::size_t id = rDof.EquationId();
             dofs_values[id] = rDof.GetSolutionStepValue();
         });
-        double *values_vector = rA.value_data().begin();
+        typename SparseMatrixType::value_type *values_vector = rA.value_data().begin();
         std::size_t *index1_vector = rA.index1_data().begin();
         std::size_t *index2_vector = rA.index2_data().begin();
 
