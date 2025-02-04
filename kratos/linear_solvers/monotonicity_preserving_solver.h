@@ -192,7 +192,8 @@ public:
         ModelPart& r_model_part
     ) override
     {
-        Vector dofs_values = ZeroVector(rdof_set.size());
+        VectorType dofs_values(rdof_set.size());
+        TSparseSpaceType::SetToZero(dofs_values);
 
         block_for_each(rdof_set, [&](Dof<double>& rDof){
             const std::size_t id = rDof.EquationId();
@@ -206,7 +207,7 @@ public:
             [&](std::size_t i)
             {
                 for (std::size_t k = index1_vector[i]; k < index1_vector[i + 1]; k++) {
-                    const double value = values_vector[k];
+                    const typename SparseMatrixType::value_type value = values_vector[k];
                     if (value > 0.0) {
                         const auto j = index2_vector[k];
                         if (j > i) {
