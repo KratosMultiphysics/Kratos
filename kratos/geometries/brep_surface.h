@@ -58,6 +58,7 @@ public:
     typedef Geometry<typename TContainerPointType::value_type> BaseType;
     typedef Geometry<typename TContainerPointType::value_type> GeometryType;
     typedef typename GeometryType::Pointer GeometryPointer;
+    typedef DenseVector<GeometryPointer> GeometrySurrogateArrayType;
 
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
@@ -115,6 +116,22 @@ public:
         , mInnerLoopArray(BrepInnerLoopArray)
         , mIsTrimmed(IsTrimmed)
     {
+    }
+
+    // Constructor for SBM
+    BrepSurface(
+        typename NurbsSurfaceType::Pointer pSurface, 
+        BrepCurveOnSurfaceLoopArrayType& BrepOuterLoopArray,
+        BrepCurveOnSurfaceLoopArrayType& BrepInnerLoopArray,
+        GeometrySurrogateArrayType& rSurrogateInnerLoopGeometries, GeometrySurrogateArrayType& rSurrogateOuterLoopGeometries)
+        : BaseType(PointsArrayType(), &msGeometryData)
+        , mpNurbsSurface(pSurface) 
+        , mOuterLoopArray(BrepOuterLoopArray)
+        , mInnerLoopArray(BrepInnerLoopArray)
+        , mpSurrogateInnerLoopGeometries(rSurrogateInnerLoopGeometries)
+        , mpSurrogateOuterLoopGeometries(rSurrogateOuterLoopGeometries)
+    {
+        mIsTrimmed = false;
     }
 
     explicit BrepSurface(const PointsArrayType& ThisPoints)
@@ -593,6 +610,10 @@ private:
     BrepCurveOnSurfaceLoopArrayType mInnerLoopArray;
 
     BrepCurveOnSurfaceArrayType mEmbeddedEdgesArray;
+
+
+    GeometrySurrogateArrayType mpSurrogateInnerLoopGeometries;
+    GeometrySurrogateArrayType mpSurrogateOuterLoopGeometries;
 
     /** IsTrimmed is used to optimize processes as
     *   e.g. creation of integration domain.
