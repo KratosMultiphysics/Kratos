@@ -7,7 +7,7 @@
 //
 //  License:         geo_mechanics_application/license.txt
 //
-//  Main authors:    Gennady Markelov
+//  Main authors:    Mohamed Nabi
 //
 
 #include "custom_constitutive/mohr_coulomb_constitutive_law.hpp"
@@ -18,7 +18,7 @@
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateYieldFunction, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(CalculateYieldFunctions, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model current_model;
     auto& r_model_part = current_model.CreateModelPart("ModelPart");
@@ -33,7 +33,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateYieldFunction, KratosGeoMechanicsFastSuiteWit
     principal_stress(1) = 22.5224297324582;
     principal_stress(2) = -8.25939087884923;
 
-    constexpr double tolerance{1.0e-6};
+    constexpr double tolerance{1.0e-12};
 
     MohrCoulombConstitutiveLaw mohr_coulomb_constitutive_law;
     double yield_value = mohr_coulomb_constitutive_law.CalculateCoulombYieldFunction(principal_stress, *cond_prop);
@@ -64,7 +64,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculatePrinsipalStresses3D, KratosGeoMechanicsFastSu
     expected_solution(1) = 22.5224297324582;
     expected_solution(2) = -8.25939087884923;
 
-    constexpr double tolerance{1.0e-6};
+    constexpr double tolerance{1.0e-12};
 
     for (unsigned int i = 0; i < principal_stresses.size(); ++i) {
         KRATOS_EXPECT_NEAR(principal_stresses(i), expected_solution(i), tolerance);
