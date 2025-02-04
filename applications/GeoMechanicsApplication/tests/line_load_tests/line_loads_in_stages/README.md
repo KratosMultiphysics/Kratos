@@ -37,7 +37,7 @@ The test is performed using multi stage script and orchestrator. The ProjectPara
 "stages" : {
 "stage_1" : {
 "stage_settings" : {
-"analysis_stage": "Stages.KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis.GeoMechanicsAnalysis",
+"analysis_stage": "Stages.KratosMultiphysics.GeoMechanicsApplication.GeoMechanicsAnalysis",
 "problem_data": {
 "problem_name":         "test",
 "start_time":           0.0,
@@ -52,7 +52,7 @@ The test is performed using multi stage script and orchestrator. The ProjectPara
 },
 "stage_2" : {
     "stage_settings" : {
-        "analysis_stage": "Stages.KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis.GeoMechanicsAnalysis",
+        "analysis_stage": "Stages.KratosMultiphysics.GeoMechanicsApplication.GeoMechanicsAnalysis",
         "problem_data": {
         "problem_name":         "test",
         "start_time":           0.0,
