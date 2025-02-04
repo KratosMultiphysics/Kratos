@@ -78,13 +78,9 @@ void MohrCoulombConstitutiveLaw::SetValue(const Variable<double>& rThisVariable,
 void MohrCoulombConstitutiveLaw::CalculateMohrCoulomb(const Properties& rProp, Vector& rCautchyStressVector)
 {
     Vector principalStress = this->CalculatePrincipalStresses(rCautchyStressVector);
-    double phi             = rProp[GEO_FRICTION_ANGLE];
-    double cohesion        = rProp[GEO_COHESION];
-    double psi             = rProp[GEO_DILATION_ANGLE];
-    double tensionCutOff   = rProp[GEO_TENSION_CUTOFF];
     
-    double fme = this->CalculateCoulombYieldFunction(principalStress, phi, cohesion);
-    double fte = this->CalculateTensionYieldFunction(principalStress, tensionCutOff);
+    double fme = this->CalculateCoulombYieldFunction(principalStress, rProp);
+    double fte = this->CalculateTensionYieldFunction(principalStress, rProp);
 
 
 
@@ -109,8 +105,11 @@ Vector MohrCoulombConstitutiveLaw::CalculatePrincipalStresses(Vector& rCauchyStr
 
 
 // ================================================================================================
-double MohrCoulombConstitutiveLaw::CalculateCoulombYieldFunction(Vector& rPrincipalStress, double phi, double cohesion)
+double MohrCoulombConstitutiveLaw::CalculateCoulombYieldFunction(Vector& rPrincipalStress, const Properties& rProp)
 {
+    double phi      = rProp[GEO_FRICTION_ANGLE] * Globals::Pi / 180.0;
+    double cohesion = rProp[GEO_COHESION];
+
     double result = 0.5 * (rPrincipalStress(0) - rPrincipalStress(2)) -
                     0.5 * (rPrincipalStress(0) + rPrincipalStress(2)) * std::sin(phi) -
                     cohesion * std::cos(phi);
@@ -118,8 +117,10 @@ double MohrCoulombConstitutiveLaw::CalculateCoulombYieldFunction(Vector& rPrinci
 }
 
 // ================================================================================================
-double MohrCoulombConstitutiveLaw::CalculateTensionYieldFunction(Vector& principalStress, double tensionCutOff)
+double MohrCoulombConstitutiveLaw::CalculateTensionYieldFunction(Vector& principalStress, const Properties& rProp)
 {
+    double tensionCutOff = rProp[GEO_TENSION_CUTOFF];
+
     double result = tensionCutOff - principalStress(2);
     return result;
 }

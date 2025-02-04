@@ -48,14 +48,16 @@ public:
     void SetValue(const Variable<double>& rVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateMohrCoulomb(const Properties& rProp, Vector& rCautchyStressVector);
-    [[nodiscard]] Vector CalculatePrincipalStresses(Vector& CauchyStressVector);
+    Vector CalculatePrincipalStresses(Vector& CauchyStressVector);
+
+    double CalculateCoulombYieldFunction(Vector& principalStress, const Properties& rProp);
+    double CalculateTensionYieldFunction(Vector& principalStress, const Properties& rProp);
 
 protected:
     // Member Variables
     double mStateVariable;
 
-    double CalculateCoulombYieldFunction(Vector& principalStress, double phi, double cohesion);
-    double CalculateTensionYieldFunction(Vector& principalStress, double tensionCutOff);
+    
 
     
     
