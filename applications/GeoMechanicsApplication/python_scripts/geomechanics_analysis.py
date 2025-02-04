@@ -218,11 +218,6 @@ class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
 
-# For orchestrator-based multi-stage analyses, we need to register our own analysis stage class
-Kratos.Registry.AddItem("Stages.KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis.GeoMechanicsAnalysis.ClassName", "GeoMechanicsAnalysis")
-Kratos.Registry.AddItem("Stages.KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis.GeoMechanicsAnalysis.ModuleName", "KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis")
-
-
 if __name__ == '__main__':
     from sys import argv
 
