@@ -126,7 +126,7 @@ public:
 
 static void SetUpTestSchemesModelPart(ModelPart& rModelPart)
 {
-    const int domain_size = 3;
+    const int domain_size = 2;
     const std::size_t buffer_size = 3;
     rModelPart.SetBufferSize(buffer_size);
     rModelPart.GetProcessInfo().SetValue(DOMAIN_SIZE, domain_size);
@@ -140,11 +140,16 @@ static void SetUpTestSchemesModelPart(ModelPart& rModelPart)
     auto p_geom_1 = Kratos::make_shared<Line2D2<Node>>(p_node_1, p_node_2);
     auto p_geom_2 = Kratos::make_shared<Line2D2<Node>>(p_node_2, p_node_3);
 
-    auto p_elem_1 = Kratos::make_shared<TestElement>(1, p_geom_1);
-    auto p_elem_2 = Kratos::make_shared<TestElement>(2, p_geom_2);
+    rModelPart.AddElement(Kratos::make_intrusive<TestElement>(1, p_geom_1));
+    rModelPart.AddElement(Kratos::make_intrusive<TestElement>(2, p_geom_2));
 
+    rModelPart.GetNodalSolutionStepVariablesList().AddDof(&DISTANCE);
     for (auto& r_node : rModelPart.Nodes()) {
         r_node.AddDof(DISTANCE);
+    }
+
+    for (auto& r_elem : rModelPart.Elements()) {
+        r_elem.Set(ACTIVE, true);
     }
 }
 
@@ -159,15 +164,45 @@ KRATOS_TEST_CASE_IN_SUITE(NewScheme, KratosCoreFastSuite)
 
     // Create the scheme
     Parameters scheme_settings = Parameters(R"({
-        "build_type" : "block"
+        "build_type" : "block",
+        "echo_level" : 2
     })");
-    using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
-    using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
-    auto p_scheme = Kratos::make_unique<NewScheme<SparseSpaceType, LocalSpaceType>>(scheme_settings);
+    auto p_scheme = Kratos::make_unique<NewScheme<>>(scheme_settings);
 
-    // Create the DOF set
+    // Create the DOF set and set the global ids
     p_scheme->SetUpDofArray(r_test_model_part);
+    p_scheme->SetUpSystem(r_test_model_part);
 
+    // Set up the matrix graph and arrays
+    // Note that in a standard case this happens at the strategy level
+    SparseGraph<> sparse_graph;
+    Element::EquationIdVectorType eq_ids;
+    for (auto& r_elem : r_test_model_part.Elements()) {
+        r_elem.EquationIdVector(eq_ids, r_test_model_part.GetProcessInfo());
+        sparse_graph.AddEntries(eq_ids);
+    }
+    for (auto& r_cond : r_test_model_part.Conditions()) {
+        r_cond.EquationIdVector(eq_ids, r_test_model_part.GetProcessInfo());
+        sparse_graph.AddEntries(eq_ids);
+    }
+    auto p_dx = Kratos::make_shared<NewScheme<>::SystemVectorType>(sparse_graph);
+    auto p_rhs = Kratos::make_shared<NewScheme<>::SystemVectorType>(sparse_graph);
+    auto p_lhs = Kratos::make_shared<NewScheme<>::SystemMatrixType>(sparse_graph);
+
+    // Initialize the global system arrays
+    p_scheme->ResizeAndInitializeVectors(r_test_model_part, p_lhs, p_dx, p_rhs);
+
+    // Call the build
+    p_scheme->Build(r_test_model_part, *p_lhs, *p_rhs);
+
+    // Check resultant matrices
+    const double tol = 1.0e-12;
+    std::vector<double> expected_rhs = {0.5,1.0,0.5};
+    BoundedMatrix<double,3,3> expected_lhs;
+    expected_lhs(0,0) = 2.0; expected_lhs(0,1) = -1.0; expected_lhs(0,2) = 0.0;
+    expected_lhs(1,0) = -1.0; expected_lhs(1,1) = 2.0; expected_lhs(1,2) = -1.0;
+    expected_lhs(2,0) = 0.0; expected_lhs(2,1) = -1.0; expected_lhs(2,2) = 2.0;
+    KRATOS_CHECK_VECTOR_NEAR((*p_rhs), expected_rhs, tol);
 }
 
 }  // namespace Kratos::Testing.

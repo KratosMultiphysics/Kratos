@@ -18,13 +18,17 @@
 
 // Project includes
 #include "containers/csr_matrix.h"
+#include "containers/sparse_graph.h"
+#include "containers/system_vector.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
+#include "utilities/builtin_timer.h"
 #include "utilities/dof_utilities/block_build_dof_array_utility.h"
 #include "utilities/dof_utilities/elimination_build_dof_array_utility.h"
 #include "utilities/entities_utilities.h"
 #include "utilities/openmp_utils.h" //TODO: SOME FILES INCLUDING scheme.h RELY ON THIS. LEAVING AS FUTURE TODO.
 #include "utilities/parallel_utilities.h"
+#include "utilities/timer.h"
 
 namespace Kratos
 {
@@ -48,11 +52,10 @@ namespace Kratos
  * @ingroup KratosCore
  * @brief This class provides the implementation of the basic tasks that are needed by the solution strategy.
  * @details It is intended to be the place for tailoring the solution strategies to problem specific tasks.
- * @tparam TSparseSpace The sparse space considered
- * @tparam TDenseSpace The dense space considered
  * @author Ruben Zorrilla
  */
-template<class TSparseSpace, class TDenseSpace>
+//TODO: Think about the template parameters
+template<class TDataType = double, class TIndexType=std::size_t, class TMatrixType=CsrMatrix<TDataType, TIndexType>, class TVectorType=SystemVector<TDataType, TIndexType>>
 class NewScheme
 {
 public:
@@ -63,31 +66,40 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(NewScheme);
 
     /// The definition of the current class
-    using ClassType = NewScheme<TSparseSpace, TDenseSpace>;
+    using ClassType = NewScheme;
 
     /// Index type definition
-    using IndexType = std::size_t;
+    using IndexType = TIndexType;
 
     /// Size type definition
     using SizeType = std::size_t;
 
     /// Data type definition
-    using DataType = typename TSparseSpace::DataType;
+    using DataType = TDataType;
 
     /// Matrix type definition
-    using TSystemMatrixType = CsrMatrix<DataType, IndexType>;
+    using SystemMatrixType = TMatrixType;
+
+    /// Matrix pointer type definition
+    using SystemMatrixPointerType = typename SystemMatrixType::Pointer;
 
     /// Vector type definition
-    using TSystemVectorType = CsrMatrix<DataType, IndexType>;
+    using SystemVectorType = TVectorType;
+
+    /// Vector type definition
+    using SystemVectorPointerType = typename SystemVectorType::Pointer;
+
+    /// Dense space definition
+    using DenseSpaceType = UblasSpace<double, Matrix, Vector>;
 
     /// Local system matrix type definition
-    using LocalSystemMatrixType = typename TDenseSpace::MatrixType;
+    using LocalSystemMatrixType = DenseSpaceType::MatrixType;
 
     /// Local system vector type definition
-    using LocalSystemVectorType = typename TDenseSpace::VectorType;
+    using LocalSystemVectorType = DenseSpaceType::VectorType;
 
     /// DoF type definition
-    using TDofType = Dof<double>;
+    using DofType = Dof<double>;
 
     /// DoF array type definition
     using DofsArrayType = ModelPart::DofsArrayType;
@@ -289,9 +301,9 @@ public:
      */
     virtual void InitializeSolutionStep(
         ModelPart& rModelPart,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        SystemMatrixType& A,
+        SystemVectorType& Dx,
+        SystemVectorType& b)
     {
         KRATOS_TRY
 
@@ -310,9 +322,9 @@ public:
      */
     virtual void FinalizeSolutionStep(
         ModelPart& rModelPart,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        SystemMatrixType& A,
+        SystemVectorType& Dx,
+        SystemVectorType& b)
     {
         KRATOS_TRY
 
@@ -334,9 +346,9 @@ public:
      */
     virtual void InitializeNonLinIteration(
         ModelPart& rModelPart,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        SystemMatrixType& A,
+        SystemVectorType& Dx,
+        SystemVectorType& b)
     {
         KRATOS_TRY
 
@@ -355,9 +367,9 @@ public:
      */
     virtual void FinalizeNonLinIteration(
         ModelPart& rModelPart,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        SystemMatrixType& A,
+        SystemVectorType& Dx,
+        SystemVectorType& b)
     {
         KRATOS_TRY
 
@@ -367,7 +379,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    virtual void SetUpDofArray(ModelPart& rModelPart)
+    virtual void SetUpDofArray(const ModelPart& rModelPart)
     {
         //TODO: Discuss on how to provide the custom DOF set function
         // Call external utility to perform the build
@@ -379,13 +391,157 @@ public:
             KRATOS_ERROR << "Build type not supported." << std::endl;
         }
 
+        // Save the size of the system based on the number of DOFs
+        mEquationSystemSize = mDofSet.size();
+
         // Set the flag as already initialized
         mDofSetIsInitialized = true;
+
+        KRATOS_INFO_IF("NewScheme", mEchoLevel >= 2) << "Finished DOFs array set up." << std::endl;
     }
 
-    virtual void Build()
+    //TODO: think about renaming this to SetUpEquationIds (maybe we can just keep it because we are already used to it)
+    void SetUpSystem(const ModelPart& rModelPart)
     {
+        // Set up the DOFs equation global ids
+        IndexPartition<IndexType>(mEquationSystemSize).for_each([&, this](IndexType Index) {
+            auto dof_iterator = this->mDofSet.begin() + Index;
+            dof_iterator->SetEquationId(Index);
+        });
 
+        KRATOS_INFO_IF("NewScheme", mEchoLevel >= 2) << "Finished system set up." << std::endl;
+    }
+
+    // TODO: think about renaming this to ResizeAndInitializeSystem (maybe we can just keep it because we are already used to it)
+    void ResizeAndInitializeVectors(
+        const ModelPart& rModelPart,
+        SystemMatrixPointerType& rpLHS,
+        SystemVectorPointerType& rpDx,
+        SystemVectorPointerType& rpRHS)
+    {
+        KRATOS_TRY
+
+        if (rpLHS == nullptr) {
+            auto p_aux = Kratos::make_shared<SystemMatrixPointerType>();
+        }
+
+        // if (pA == NULL) // if the pointer is not initialized initialize it to an empty matrix
+        // {
+        //     TSystemMatrixPointerType pNewA = TSystemMatrixPointerType(new TSystemMatrixType(0, 0));
+        //     pA.swap(pNewA);
+        // }
+        // if (pDx == NULL) // if the pointer is not initialized initialize it to an empty matrix
+        // {
+        //     TSystemVectorPointerType pNewDx = TSystemVectorPointerType(new TSystemVectorType(0));
+        //     pDx.swap(pNewDx);
+        // }
+        // if (pb == NULL) // if the pointer is not initialized initialize it to an empty matrix
+        // {
+        //     TSystemVectorPointerType pNewb = TSystemVectorPointerType(new TSystemVectorType(0));
+        //     pb.swap(pNewb);
+        // }
+
+        // TSystemMatrixType &A = *pA;
+        // TSystemVectorType &Dx = *pDx;
+        // TSystemVectorType &b = *pb;
+
+        // // resizing the system vectors and matrix
+        // if (A.size1() == 0 || BaseType::GetReshapeMatrixFlag() == true) // if the matrix is not initialized
+        // {
+        //     A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
+        //     ConstructMatrixStructure(pScheme, A, rModelPart);
+        // }
+        // else
+        // {
+        //     if (A.size1() != BaseType::mEquationSystemSize || A.size2() != BaseType::mEquationSystemSize)
+        //     {
+        //         KRATOS_ERROR << "The equation system size has changed during the simulation. This is not permitted." << std::endl;
+        //         A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, true);
+        //         ConstructMatrixStructure(pScheme, A, rModelPart);
+        //     }
+        // }
+        // if (Dx.size() != BaseType::mEquationSystemSize)
+        //     Dx.resize(BaseType::mEquationSystemSize, false);
+        // TSparseSpace::SetToZero(Dx);
+        // if (b.size() != BaseType::mEquationSystemSize)
+        // {
+        //     b.resize(BaseType::mEquationSystemSize, false);
+        // }
+        // TSparseSpace::SetToZero(b);
+
+        // ConstructMasterSlaveConstraintsStructure(rModelPart);
+
+        KRATOS_INFO_IF("NewScheme", mEchoLevel >= 2) << "Finished system initialization." << std::endl;
+
+        KRATOS_CATCH("")
+    }
+
+    virtual void Build(
+        const ModelPart& rModelPart,
+        SystemMatrixType& rLHS,
+        SystemVectorType& rRHS)
+    {
+        Timer::Start("Build");
+
+        // Getting model part data
+        const SizeType n_elem = rModelPart.NumberOfElements();
+        const SizeType n_cond = rModelPart.NumberOfConditions();
+        auto el_begin = rModelPart.ElementsBegin();
+        auto cond_begin = rModelPart.ConditionsBegin();
+        const auto& r_process_info = rModelPart.GetProcessInfo();
+
+        // Arrays for the local contributions to the system
+        LocalSystemMatrixType loc_lhs = LocalSystemMatrixType(0, 0);
+        LocalSystemVectorType loc_rhs = LocalSystemVectorType(0);
+
+        // Vector containing the localization in the system of the different terms
+        Element::EquationIdVectorType eq_ids;
+
+        KRATOS_WATCH("Before building elements and conditions")
+
+        // Assemble elements and conditions
+        const auto timer = BuiltinTimer();
+        #pragma omp parallel firstprivate(n_elem, n_cond, loc_lhs, loc_rhs, eq_ids, r_process_info)
+        {
+            // Assemble elements
+            # pragma omp for schedule(guided, 512) nowait
+            for (int k = 0; k < n_elem; ++k) {
+                auto it_elem = el_begin + k;
+                if (it_elem->IsActive()) {
+                    // Calculate local LHS and RHS contributions
+                    it_elem->CalculateLocalSystem(loc_lhs, loc_rhs, r_process_info);
+
+                    // Get the positions in the global system
+                    it_elem->EquationIdVector(eq_ids, r_process_info);
+
+                    // Assemble the local contributions to the global system
+                    rRHS.Assemble(loc_rhs, eq_ids);
+                    rLHS.Assemble(loc_lhs, eq_ids);
+                }
+            }
+
+            // Assemble conditions
+            #pragma omp for schedule(guided, 512)
+            for (int k = 0; k < n_cond; ++k) {
+                auto it_cond = cond_begin + k;
+                if (it_cond->IsActive()) {
+                    // Calculate local LHS and RHS contributions
+                    it_cond->CalculateLocalSystem(loc_lhs, loc_rhs, r_process_info);
+
+                    // Get the positions in the global system
+                    it_cond->EquationIdVector(eq_ids, r_process_info);
+
+                    // Assemble the local contributions to the global system
+                    rRHS.Assemble(loc_rhs, eq_ids);
+                    rLHS.Assemble(loc_lhs, eq_ids);
+                }
+            }
+        }
+
+        KRATOS_INFO_IF("NewScheme", mEchoLevel >= 1) << "Build time: " << timer << std::endl;
+        KRATOS_INFO_IF("NewScheme", mEchoLevel >= 2) << "Finished parallel building" << std::endl;
+
+        Timer::Stop("Build");
     }
 
     /**
@@ -399,9 +555,9 @@ public:
     virtual void Predict(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        SystemMatrixType& A,
+        SystemVectorType& Dx,
+        SystemVectorType& b)
     {
         KRATOS_TRY
         KRATOS_CATCH("")
@@ -419,9 +575,9 @@ public:
     virtual void Update(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        SystemMatrixType& A,
+        SystemVectorType& Dx,
+        SystemVectorType& b)
     {
         KRATOS_TRY
         KRATOS_CATCH("")
@@ -439,9 +595,9 @@ public:
     virtual void CalculateOutputData(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        SystemMatrixType& A,
+        SystemVectorType& Dx,
+        SystemVectorType& b)
     {
         KRATOS_TRY
         KRATOS_CATCH("")
@@ -664,7 +820,8 @@ public:
     {
         const Parameters default_parameters = Parameters(R"({
             "name" : "new_scheme",
-            "build_type" : "block"
+            "build_type" : "block",
+            "echo_level" : 0
         })");
         return default_parameters;
     }
@@ -768,6 +925,9 @@ protected:
             << "\t- 'elimination'\n"
             << "\t- 'custom'\n" << std::endl;
         }
+
+        // Set verbosity level
+        mEchoLevel = ThisParameters["echo_level"].GetInt();
     }
 
     ///@}
@@ -796,13 +956,13 @@ private:
 
     DofsArrayType mDofSet;
 
+    SizeType mEquationSystemSize; /// Number of degrees of freedom of the problem to be solve
+
     bool mReshapeMatrixFlag = false; /// If the matrix is reshaped each step
 
     bool mDofSetIsInitialized = false; /// Flag taking care if the dof set was initialized ot not
 
     bool mCalculateReactionsFlag = false; /// Flag taking in account if it is needed or not to calculate the reactions
-
-    unsigned int mEquationSystemSize; /// Number of degrees of freedom of the problem to be solve
 
     int mEchoLevel = 0;
 
