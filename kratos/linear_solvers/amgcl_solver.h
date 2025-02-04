@@ -91,6 +91,21 @@ void KRATOS_API(KRATOS_CORE) AMGCLSolve(
     bool use_gpgpu
     );
 
+
+/// @copdoc AMGCLSolve(int,TUblasSparseSpace<float>::MatrixType&,TUblasSparseSpace<float>::VectorType&,TUblasSparseSpace<float>::VectorType&,TUblasSparseSpace<float>::IndexType&,float&,boost::property_tree::ptree,int,bool)
+void KRATOS_API(KRATOS_CORE) AMGCLSolve(
+    int block_size,
+    TUblasSparseSpace<float>::MatrixType& rA,
+    TUblasSparseSpace<float>::VectorType& rX,
+    TUblasSparseSpace<float>::VectorType& rB,
+    TUblasSparseSpace<float>::IndexType& rIterationNumber,
+    float& rResidual,
+    boost::property_tree::ptree amgclParams,
+    int verbosity_level,
+    bool use_gpgpu
+    );
+
+
 ///@}
 ///@name Kratos Classes
 ///@{
@@ -401,7 +416,7 @@ public:
         }
 
         size_t iters;
-        double resid;
+        typename TSparseSpaceType::DataType resid;
         {
             if(mFallbackToGMRES) mAMGCLParameters.put("solver.type", "bicgstab"); //first we need to try with bicgstab
 
@@ -416,7 +431,10 @@ public:
                 KRATOS_ERROR_IF(TSparseSpaceType::Size1(rA)%mBlockSize != 0) << "The block size employed " << mBlockSize << " is not an exact multiple of the matrix size "
                     << TSparseSpaceType::Size1(rA) << std::endl;
             }
-            AMGCLSolve(static_block_size, rA,rX,rB, iters, resid, mAMGCLParameters, mVerbosity, mUseGPGPU);
+            AMGCLSolve(static_block_size,
+                       rA, rX, rB,
+                       iters, resid,
+                       mAMGCLParameters, mVerbosity, mUseGPGPU);
         } //please do not remove this parenthesis!
 
         if(mFallbackToGMRES && resid > mTolerance ) {
