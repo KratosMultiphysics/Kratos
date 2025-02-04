@@ -815,41 +815,31 @@ namespace Kratos
         if (n_skin_points_not_found > 0) {
             KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility")
                 << n_skin_points_not_found << " skin points have not been found in any volume model part element." << std::endl;
+        } else {
+            KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility")
+                << "All skin points have been found." << std::endl;
         }
 
-        std::size_t n_elements_with_skin_points = 0;
-        block_for_each(mpModelPart->Elements(), [&](ElementType& rElement){
-            // Find the indices of all skin points that are located in the volume mesh element
-            std::vector<std::size_t> skin_point_indices;
-            for (std::size_t i_skin_pt = 0; i_skin_pt < skin_point_located_elements.size(); ++i_skin_pt) {
-                Element::Pointer p_elem = skin_point_located_elements[i_skin_pt];
-                if (p_elem->Id() == rElement.Id()) {
-                    skin_point_indices.push_back(i_skin_pt);
-                }
+        for (std::size_t i_skin_pt = 0; i_skin_pt < skin_point_located_elements.size(); ++i_skin_pt) {
+            auto p_element =  skin_point_located_elements[i_skin_pt];
+            // Check if skin point data already exists for the element in which the skin point is located in the map
+            if (rSkinPointsMap.find(p_element) == rSkinPointsMap.end()) {
+                // If element is not found, add the first skin point to the new key
+                SkinPointsDataVectorType skin_points_data_vector(1);
+                skin_points_data_vector[0] = std::make_pair(skin_point_positions[i_skin_pt], skin_point_normals[i_skin_pt]);
+                auto skin_points_key_data = std::make_pair(p_element, skin_points_data_vector);
+                rSkinPointsMap.insert(skin_points_key_data);
+            } else {
+                // If element is found, resize the skin point data vector of the element and add the new skin point
+                SkinPointsDataVectorType& skin_points_data_vector = rSkinPointsMap[p_element];
+                const std::size_t n_skin_points_in_element = skin_points_data_vector.size();
+                skin_points_data_vector.resize(n_skin_points_in_element+1);
+                skin_points_data_vector[n_skin_points_in_element] = std::make_pair(skin_point_positions[i_skin_pt], skin_point_normals[i_skin_pt]);
             }
-            // Add the position and area normal of all skin points located inside the element to the data vector of the element
-            std::size_t n_skin_pts_in_element = skin_point_indices.size();
-            if (n_skin_pts_in_element > 0) {
-                SkinPointsDataVectorType skin_points_data_vector(n_skin_pts_in_element);
-                for (std::size_t i_pt = 0; i_pt < n_skin_pts_in_element; ++i_pt) {
-                    const std::size_t skin_pt_index = skin_point_indices[i_pt];
-                    skin_points_data_vector[i_pt] = std::make_pair(skin_point_positions[skin_pt_index], skin_point_normals[skin_pt_index]);
-                }
-                // Add data vector of the element to the skin points map
-                auto skin_points_key_data = std::make_pair(&rElement, skin_points_data_vector);
-                {
-                    std::scoped_lock<LockObject> lock(mutex);
-                    rSkinPointsMap.insert(skin_points_key_data);
-                    n_elements_with_skin_points++;
-                    if (n_elements_with_skin_points%1000 == 0) {
-                        KRATOS_WATCH(n_elements_with_skin_points);
-                    }
-                }
-            }
-        });
+        }
 
         KRATOS_INFO("ShiftedBoundaryPointBasedInterfaceUtility") << "'" << mSkinModelPartName << "' skin points ("
-            << n_skin_points_found << ") were mapped to volume mesh elements (" << n_elements_with_skin_points << ")." << std::endl;
+            << n_skin_points_found << ") were mapped to volume mesh elements (" << rSkinPointsMap.size() << ")." << std::endl;
     }
 
     void ShiftedBoundaryPointBasedInterfaceUtility::SetSidesVectorsAndSkinNormalsForSplitElements(
