@@ -425,6 +425,10 @@ MCGS_INSTANTIATE_SOLVE(int, double);
 MCGS_INSTANTIATE_SOLVE(long, double);
 MCGS_INSTANTIATE_SOLVE(unsigned, double);
 MCGS_INSTANTIATE_SOLVE(unsigned long, double);
+MCGS_INSTANTIATE_SOLVE(int, float);
+MCGS_INSTANTIATE_SOLVE(long, float);
+MCGS_INSTANTIATE_SOLVE(unsigned, float);
+MCGS_INSTANTIATE_SOLVE(unsigned long, float);
 
 #undef MCGS_INSTANTIATE_SOLVE
 #undef MCGS_INTERNAL

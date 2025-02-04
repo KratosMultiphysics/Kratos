@@ -431,6 +431,10 @@ MCGS_INSTANTIATE_COLOR(int, double, unsigned);
 MCGS_INSTANTIATE_COLOR(long, double, unsigned);
 MCGS_INSTANTIATE_COLOR(unsigned, double, unsigned);
 MCGS_INSTANTIATE_COLOR(unsigned long, double, unsigned);
+MCGS_INSTANTIATE_COLOR(int, float, unsigned);
+MCGS_INSTANTIATE_COLOR(long, float, unsigned);
+MCGS_INSTANTIATE_COLOR(unsigned, float, unsigned);
+MCGS_INSTANTIATE_COLOR(unsigned long, float, unsigned);
 
 #undef MCGS_INSTANTIATE_COLOR
 #undef MCGS_INTERNAL
