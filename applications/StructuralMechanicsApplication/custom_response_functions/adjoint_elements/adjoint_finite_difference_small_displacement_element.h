@@ -25,7 +25,7 @@ namespace Kratos
  * It overwrites some functions necessary to do proper finite differencing with small displacement elements
  */
 template <typename TPrimalElement>
-class AdjointFiniteDifferencingSmallDisplacementElement : public AdjointFiniteDifferencingBaseElement<TPrimalElement>
+class KRATOS_API(KRATOS_STRUCTURAL_MECHANICS_APPLICATION) AdjointFiniteDifferencingSmallDisplacementElement : public AdjointFiniteDifferencingBaseElement<TPrimalElement>
 {
 public:
 

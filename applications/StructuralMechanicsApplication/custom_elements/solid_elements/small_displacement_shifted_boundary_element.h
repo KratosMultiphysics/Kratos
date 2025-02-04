@@ -43,7 +43,7 @@ namespace Kratos
 ///@{
 
 template<std::size_t TDim>
-class SmallDisplacementShiftedBoundaryElement : public SmallDisplacement
+class KRATOS_API(KRATOS_STRUCTURAL_MECHANICS_APPLICATION) SmallDisplacementShiftedBoundaryElement : public SmallDisplacement
 {
 public:
     ///@name Type Definitions
