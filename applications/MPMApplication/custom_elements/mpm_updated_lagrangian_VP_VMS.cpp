@@ -1360,25 +1360,6 @@ void MPMUpdatedLagrangianVPVMS::CalculateAndAddStabilizedVelocity(VectorType& rR
 {
     KRATOS_TRY
     //printf("    > CalculateAndAddStabilizedVelocity\n");
-    GeometryType& r_geometry = GetGeometry();
-    const unsigned int number_of_nodes = r_geometry.PointsNumber();
-    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
-    double previous_pressure = 0.0;
-
-    unsigned int indexi  = 0;
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        unsigned int index_i = dimension * i + i;
-        previous_pressure = r_geometry[i].FastGetSolutionStepValue(PRESSURE,1);
-
-        for ( unsigned int idim = 0; idim < dimension; idim ++ )
-        {
-            rRightHandSideVector[index_i + idim] -= rVariables.tau1 / mMP.density * rVolumeForce[idim] * rVariables.DN_DX(i, idim);
-            rRightHandSideVector[index_i + idim] -= rVariables.tau1 / (mMP.density * mMP.density) * previous_pressure * rVariables.DN_DX(i, idim) * rVariables.DN_DX(i, idim) * rIntegrationWeight;
-            indexi++;
-        }
-    }
-
     KRATOS_CATCH( "" )
 }
 
@@ -1412,10 +1393,10 @@ void MPMUpdatedLagrangianVPVMS::CalculateAndAddStabilizedPressure(VectorType& rR
     StabilizedPressure = prod(rVariables.DN_DX, resizedVolumeForce);
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {   
-        rRightHandSideVector[index_i] -= ( rVariables.tau1 / pow(mMP.density, 2) ) * StabilizedPressure[i];
+        rRightHandSideVector[index_i] -= rVariables.tau1 * StabilizedPressure[i];
         index_i += (dimension + 1);
     }
-
+    KRATOS_WATCH(rVariables.StressVector);
     KRATOS_CATCH( "" )
 }
 //************************************************************************************
@@ -1449,7 +1430,7 @@ void MPMUpdatedLagrangianVPVMS::CalculateAndAddLHS(
     
     // Operations performed: add Kpp stabilization to the rLefsHandSideMatrix
     CalculateAndAddSp( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
-    //KRATOS_WATCH(rLeftHandSideMatrix);
+    KRATOS_WATCH(rLeftHandSideMatrix);
 
 }
 
@@ -1470,21 +1451,6 @@ void MPMUpdatedLagrangianVPVMS::CalculateAndAddK(MatrixType& rLeftHandSideMatrix
     Matrix reduced_K = prod(rVariables.DN_DX, rIntegrationWeight * trans(rVariables.DN_DX));
     Matrix K = ZeroMatrix(size,size);
     MathUtils<double>::ExpandAndAddReducedMatrix( K, reduced_K, dimension );
-
-    // Assemble components considering added DOF matrix system
-    //for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    //{
-    //    for ( unsigned int idim = 0; idim < dimension ; idim ++)
-    //    {
-    //        for ( unsigned int j = 0; j < number_of_nodes; j++ )
-    //        {
-    //            for ( unsigned int jdim = 0; jdim < dimension ; jdim ++)
-    //            {
-    //                rLeftHandSideMatrix(i*(1+dimension)+idim, j*(1+dimension)+idim)+= rVariables.ShearModulus * rVariables.DN_DX(i, jdim) * rVariables.DN_DX(j, jdim) * rIntegrationWeight;
-    //            }
-    //        }
-    //    }
-    //}
     unsigned int indexi = 0;
     unsigned int indexj = 0;
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -1496,7 +1462,6 @@ void MPMUpdatedLagrangianVPVMS::CalculateAndAddK(MatrixType& rLeftHandSideMatrix
             {
                 for ( unsigned int jdim = 0; jdim < dimension ; jdim ++)
                 {
-                    //rLeftHandSideMatrix(indexi+i,indexj+j) += rVariables.ShearModulus * rVariables.DN_DX(i, jdim) * rVariables.DN_DX(j, jdim) * rIntegrationWeight;
                     rLeftHandSideMatrix(indexi+i,indexj+j) += rVariables.ShearModulus * K(indexi,indexj);                    
                     indexj++;
                 }
@@ -1585,7 +1550,7 @@ void MPMUpdatedLagrangianVPVMS::CalculateAndAddSv (MatrixType& rLeftHandSideMatr
             {
                 for ( unsigned int jdim = 0; jdim < dimension ; jdim ++)
                 {
-                    rLeftHandSideMatrix(i*(dimension+1) + idim, j*(dimension+1) + jdim) -= ( rVariables.tau1 / pow(mMP.density, 2) ) * rVariables.DN_DX(i,idim) * rVariables.DN_DX(j,jdim) * rIntegrationWeight;
+                    rLeftHandSideMatrix(i*(dimension+1) + idim, j*(dimension+1) + jdim) -= rVariables.tau2 * rVariables.DN_DX(i,idim) * rVariables.DN_DX(j,jdim) * rIntegrationWeight;
                 }
             }
         }
@@ -1615,7 +1580,7 @@ void MPMUpdatedLagrangianVPVMS::CalculateAndAddSp (MatrixType& rLeftHandSideMatr
         indexj=0;
         for ( unsigned int j = 0; j < number_of_nodes; j++ )
         {
-            rLeftHandSideMatrix(dimension + i*(dimension+1), dimension + j*(dimension+1)) -= ( rVariables.tau1 / pow(mMP.density, 2) ) * K(indexi,indexj);
+            rLeftHandSideMatrix(dimension + i*(dimension+1), dimension + j*(dimension+1)) -= rVariables.tau1 * K(indexi,indexj);
             indexj++;     
         }
         indexi++;
