@@ -23,12 +23,12 @@ namespace Kratos
     ///@{
 
     /**
-     * @class SnakeSBMUtilities
+     * @class SnakeSbmUtilities
      * @brief Utility class for implementing Snake-based Surrogate Boundary Method (SBM).
      * This class provides various functions to create and manipulate snake-like surrogate boundaries
      * for finite element models in Kratos.
      */
-    class KRATOS_API(IGA_APPLICATION) SnakeSBMUtilities
+    class KRATOS_API(IGA_APPLICATION) SnakeSbmUtilities
     {
     public:
         /**
@@ -171,6 +171,6 @@ namespace Kratos
                                                             Vector&  knot_vector_v,
                                                             const Vector& starting_pos_uv);
 
-    }; // Class SnakeSBMUtilities
+    }; // Class SnakeSbmUtilities
 
 }  // namespace Kratos.

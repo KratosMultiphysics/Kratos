@@ -70,7 +70,7 @@ KRATOS_TEST_CASE_IN_SUITE(SnakeSbmUtilitySquareOuter, KratosIgaFastSuite)
         }
     )");
         
-    SnakeSBMUtilities::CreateTheSnakeCoordinates(iga_model_part, skin_model_part_inner_initial, skin_model_part_outer_initial, skin_model_part, 0,
+    SnakeSbmUtilities::CreateTheSnakeCoordinates(iga_model_part, skin_model_part_inner_initial, skin_model_part_outer_initial, skin_model_part, 0,
         unique_knot_vector_u, unique_knot_vector_v, mParameters) ;
     
     const double tolerance = 1.0e-6;
@@ -177,7 +177,7 @@ KRATOS_TEST_CASE_IN_SUITE(SnakeSbmUtilityInner, KratosIgaFastSuite)
         }
     )");
         
-    SnakeSBMUtilities::CreateTheSnakeCoordinates(iga_model_part, skin_model_part_inner_initial, skin_model_part_outer_initial, skin_model_part, 0,
+    SnakeSbmUtilities::CreateTheSnakeCoordinates(iga_model_part, skin_model_part_inner_initial, skin_model_part_outer_initial, skin_model_part, 0,
         unique_knot_vector_u, unique_knot_vector_v, mParameters) ;
     
     const double tolerance = 1.0e-6;
@@ -307,7 +307,7 @@ KRATOS_TEST_CASE_IN_SUITE(SnakeSbmUtilityInnerOuter, KratosIgaFastSuite)
         }
     )");
         
-    SnakeSBMUtilities::CreateTheSnakeCoordinates(iga_model_part, skin_model_part_inner_initial, skin_model_part_outer_initial, skin_model_part, 0,
+    SnakeSbmUtilities::CreateTheSnakeCoordinates(iga_model_part, skin_model_part_inner_initial, skin_model_part_outer_initial, skin_model_part, 0,
         unique_knot_vector_u, unique_knot_vector_v, mParameters) ;
     
     const double tolerance = 1.0e-6;

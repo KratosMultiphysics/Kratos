@@ -18,7 +18,7 @@
 namespace Kratos
 {
 
-    void SnakeSBMUtilities::CreateTheSnakeCoordinates(ModelPart& iga_model_part,
+    void SnakeSbmUtilities::CreateTheSnakeCoordinates(ModelPart& iga_model_part,
                                                     ModelPart& skin_model_part_inner_initial,
                                                     ModelPart& skin_model_part_outer_initial, 
                                                     ModelPart& skin_model_part, 
@@ -42,7 +42,7 @@ namespace Kratos
         }
     }   
 
-    void SnakeSBMUtilities::CreateTheSnakeCoordinates(ModelPart& iga_model_part, 
+    void SnakeSbmUtilities::CreateTheSnakeCoordinates(ModelPart& iga_model_part, 
                                                       ModelPart& skin_model_part_initial, 
                                                       ModelPart& skin_model_part,
                                                       int rEchoLevel, 
@@ -124,8 +124,8 @@ namespace Kratos
         bool newInnerLoop = true;
 
         
-        KRATOS_INFO_IF("::[SnakeSBMUtilities]::", rEchoLevel > 0 && is_inner) << "Inner :: Starting SnakeStep" << std::endl;
-        KRATOS_INFO_IF("::[SnakeSBMUtilities]::", rEchoLevel > 0 && !is_inner) << "Outer :: Starting SnakeStep" << std::endl;
+        KRATOS_INFO_IF("::[SnakeSbmUtilities]::", rEchoLevel > 0 && is_inner) << "Inner :: Starting SnakeStep" << std::endl;
+        KRATOS_INFO_IF("::[SnakeSbmUtilities]::", rEchoLevel > 0 && !is_inner) << "Outer :: Starting SnakeStep" << std::endl;
                 
         if (skin_model_part_initial.Conditions().size() > 0) {
             
@@ -193,8 +193,8 @@ namespace Kratos
         }
         DynamicBins testBins(points.begin(), points.end());
 
-        KRATOS_INFO_IF("::[SnakeSBMUtilities]::", rEchoLevel > 0 && is_inner) << "Inner :: Ending SnakeStep" << std::endl;
-        KRATOS_INFO_IF("::[SnakeSBMUtilities]::", rEchoLevel > 0 && !is_inner) << "Outer :: Ending SnakeStep" << std::endl;
+        KRATOS_INFO_IF("::[SnakeSbmUtilities]::", rEchoLevel > 0 && is_inner) << "Inner :: Ending SnakeStep" << std::endl;
+        KRATOS_INFO_IF("::[SnakeSbmUtilities]::", rEchoLevel > 0 && !is_inner) << "Outer :: Ending SnakeStep" << std::endl;
         
         // Read lambda parameters: 0.0 -> External,  0.5 -> Optimal
         double lambda;
@@ -209,8 +209,8 @@ namespace Kratos
             else 
                 lambda = 0.5;
         
-        KRATOS_INFO_IF("::[SnakeSBMUtilities]::", rEchoLevel > 0 && is_inner) << "Inner :: MarkKnotSpansAvailable" << std::endl;
-        KRATOS_INFO_IF("::[SnakeSBMUtilities]::", rEchoLevel > 0 && !is_inner) << "Outer :: MarkKnotSpansAvailable" << std::endl;
+        KRATOS_INFO_IF("::[SnakeSbmUtilities]::", rEchoLevel > 0 && is_inner) << "Inner :: MarkKnotSpansAvailable" << std::endl;
+        KRATOS_INFO_IF("::[SnakeSbmUtilities]::", rEchoLevel > 0 && !is_inner) << "Outer :: MarkKnotSpansAvailable" << std::endl;
 
         for (IndexType i = 0; i < numberOfLoops; i++) {
             IndexType idInnerLoop = i;
@@ -221,21 +221,21 @@ namespace Kratos
             if (is_inner) {
                 CreateSurrogateBuondaryFromSnakeInner (knot_spans_available, idInnerLoop, surrogate_sub_model_part, 
                                     n_knot_spans_uv, knot_vector_u, knot_vector_v, starting_pos_uv );
-                KRATOS_INFO_IF("::[SnakeSBMUtilities]::", rEchoLevel > 0) << "Inner :: Snake process has finished" << std::endl;
+                KRATOS_INFO_IF("::[SnakeSbmUtilities]::", rEchoLevel > 0) << "Inner :: Snake process has finished" << std::endl;
             }
             else {
                 CreateSurrogateBuondaryFromSnakeOuter (testBins, skin_sub_model_part, knot_spans_available, idInnerLoop, surrogate_sub_model_part, 
                                     n_knot_spans_uv, knot_vector_u, knot_vector_v, starting_pos_uv);
-                KRATOS_INFO_IF("::[SnakeSBMUtilities]::", rEchoLevel > 0) << "Outer :: Snake process has finished" << std::endl;
+                KRATOS_INFO_IF("::[SnakeSbmUtilities]::", rEchoLevel > 0) << "Outer :: Snake process has finished" << std::endl;
             }
         }
 
-        KRATOS_INFO_IF("::[SnakeSBMUtilities]::", rEchoLevel > 0 && is_inner) << "Inner :: Loop finished" << std::endl;
-        KRATOS_INFO_IF("::[SnakeSBMUtilities]::", rEchoLevel > 0 && !is_inner) << "Outer :: Loop finished" << std::endl;
+        KRATOS_INFO_IF("::[SnakeSbmUtilities]::", rEchoLevel > 0 && is_inner) << "Inner :: Loop finished" << std::endl;
+        KRATOS_INFO_IF("::[SnakeSbmUtilities]::", rEchoLevel > 0 && !is_inner) << "Outer :: Loop finished" << std::endl;
     }
 
 
-    void SnakeSBMUtilities::SnakeStep(ModelPart& skin_model_part, 
+    void SnakeSbmUtilities::SnakeStep(ModelPart& skin_model_part, 
                             std::vector<std::vector<std::vector<int>>> &knot_spans_available, 
                             int idMatrix, 
                             std::vector<std::vector<int>> knot_spans_uv, 
@@ -322,7 +322,7 @@ namespace Kratos
     }
 
 
-    bool SnakeSBMUtilities::IsPointInsideSkinBoundary(Point& point1, DynamicBins& testBins, ModelPart& skin_model_part)
+    bool SnakeSbmUtilities::IsPointInsideSkinBoundary(Point& point1, DynamicBins& testBins, ModelPart& skin_model_part)
     {
         // Get the nearest point of the true boundary
         PointerType pointToSearch = PointerType(new PointType(1000000, point1.X(), point1.Y(), 0.0));
@@ -363,7 +363,7 @@ namespace Kratos
 
 
 
-    void SnakeSBMUtilities::MarkKnotSpansAvailable(std::vector<std::vector<std::vector<int>>> & knot_spans_available, int idMatrix,DynamicBins& testBin, 
+    void SnakeSbmUtilities::MarkKnotSpansAvailable(std::vector<std::vector<std::vector<int>>> & knot_spans_available, int idMatrix,DynamicBins& testBin, 
                                                    ModelPart& skin_model_part, double lambda, std::vector<int>& n_knot_spans_uv, 
                                                    array_1d<double, 2>& knot_step_uv, const Vector& starting_pos_uv) {
         for (int i = 0; i < n_knot_spans_uv[1]; i++) {
@@ -453,7 +453,7 @@ namespace Kratos
     }
 
 
-    void SnakeSBMUtilities::CreateSurrogateBuondaryFromSnakeInner (std::vector<std::vector<std::vector<int>>> & knot_spans_available, int idMatrix, 
+    void SnakeSbmUtilities::CreateSurrogateBuondaryFromSnakeInner (std::vector<std::vector<std::vector<int>>> & knot_spans_available, int idMatrix, 
                             ModelPart& surrogate_model_part_inner, std::vector<int>& n_knot_spans_uv, 
                             Vector& knot_vector_u, Vector&  knot_vector_v,
                             const Vector& starting_pos_uv){
@@ -598,7 +598,7 @@ namespace Kratos
                             if (direction == 5) {direction = 1;}
                         }
                         else
-                            KRATOS_ERROR << "SnakeSBMUtilities:: " <<  "error in the Snakes Coordinates" << std::endl;
+                            KRATOS_ERROR << "SnakeSbmUtilities:: " <<  "error in the Snakes Coordinates" << std::endl;
                     }
                 }
             }
@@ -609,7 +609,7 @@ namespace Kratos
                 KRATOS_INFO("number of steps in the snake step") << steps << std::endl;
             }
         }
-        KRATOS_ERROR_IF(steps >= max_number_of_steps-1) << "SnakeSBMUtilities:: " <<  "reached maximum number of steps" << std::endl;
+        KRATOS_ERROR_IF(steps >= max_number_of_steps-1) << "SnakeSbmUtilities:: " <<  "reached maximum number of steps" << std::endl;
 
         // Create "fictituos element" to memorize starting and ending node id for each surrogate boundary loop
         IndexType initialId = id_first_node;
@@ -622,7 +622,7 @@ namespace Kratos
         }
 
 
-    void SnakeSBMUtilities::CreateSurrogateBuondaryFromSnakeOuter (DynamicBins& testBin_out, ModelPart& initial_skin_model_part_out, 
+    void SnakeSbmUtilities::CreateSurrogateBuondaryFromSnakeOuter (DynamicBins& testBin_out, ModelPart& initial_skin_model_part_out, 
                             std::vector<std::vector<std::vector<int>>> & knot_spans_available, int idMatrix, 
                             ModelPart& surrogate_model_part_outer, std::vector<int>& n_knot_spans_uv, 
                             Vector& knot_vector_u, Vector&  knot_vector_v,
@@ -818,7 +818,7 @@ namespace Kratos
                             if (direction == 5) {direction = 1;}
                         }
                         else
-                            KRATOS_ERROR << "SnakeSBMUtilities:: " <<  "error in the Snakes Coordinates" << std::endl;
+                            KRATOS_ERROR << "SnakeSbmUtilities:: " <<  "error in the Snakes Coordinates" << std::endl;
                     }
                 }
             }
