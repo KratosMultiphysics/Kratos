@@ -18,13 +18,13 @@
 
 // Project includes
 #include "containers/csr_matrix.h"
-#include "containers/sparse_graph.h"
 #include "containers/system_vector.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/dof_utilities/block_build_dof_array_utility.h"
 #include "utilities/dof_utilities/elimination_build_dof_array_utility.h"
+#include "utilities/dof_utilities/build_utilities.h" //TODO: we should move this to somewhere else
 #include "utilities/entities_utilities.h"
 #include "utilities/openmp_utils.h" //TODO: SOME FILES INCLUDING scheme.h RELY ON THIS. LEAVING AS FUTURE TODO.
 #include "utilities/parallel_utilities.h"
@@ -412,69 +412,70 @@ public:
         KRATOS_INFO_IF("NewScheme", mEchoLevel >= 2) << "Finished system set up." << std::endl;
     }
 
-    // TODO: think about renaming this to ResizeAndInitializeSystem (maybe we can just keep it because we are already used to it)
-    void ResizeAndInitializeVectors(
-        const ModelPart& rModelPart,
-        SystemMatrixPointerType& rpLHS,
-        SystemVectorPointerType& rpDx,
-        SystemVectorPointerType& rpRHS)
-    {
-        KRATOS_TRY
+    //TODO: I think this belongs to the strategy
+    // // TODO: think about renaming this to ResizeAndInitializeSystem (maybe we can just keep it because we are already used to it)
+    // void ResizeAndInitializeVectors(
+    //     const ModelPart& rModelPart,
+    //     SystemMatrixPointerType& rpLHS,
+    //     SystemVectorPointerType& rpDx,
+    //     SystemVectorPointerType& rpRHS)
+    // {
+    //     KRATOS_TRY
 
-        if (rpLHS == nullptr) {
-            auto p_aux = Kratos::make_shared<SystemMatrixPointerType>();
-        }
+    //     if (rpLHS == nullptr) {
+    //         auto p_aux = Kratos::make_shared<SystemMatrixPointerType>();
+    //     }
 
-        // if (pA == NULL) // if the pointer is not initialized initialize it to an empty matrix
-        // {
-        //     TSystemMatrixPointerType pNewA = TSystemMatrixPointerType(new TSystemMatrixType(0, 0));
-        //     pA.swap(pNewA);
-        // }
-        // if (pDx == NULL) // if the pointer is not initialized initialize it to an empty matrix
-        // {
-        //     TSystemVectorPointerType pNewDx = TSystemVectorPointerType(new TSystemVectorType(0));
-        //     pDx.swap(pNewDx);
-        // }
-        // if (pb == NULL) // if the pointer is not initialized initialize it to an empty matrix
-        // {
-        //     TSystemVectorPointerType pNewb = TSystemVectorPointerType(new TSystemVectorType(0));
-        //     pb.swap(pNewb);
-        // }
+    //     // if (pA == NULL) // if the pointer is not initialized initialize it to an empty matrix
+    //     // {
+    //     //     TSystemMatrixPointerType pNewA = TSystemMatrixPointerType(new TSystemMatrixType(0, 0));
+    //     //     pA.swap(pNewA);
+    //     // }
+    //     // if (pDx == NULL) // if the pointer is not initialized initialize it to an empty matrix
+    //     // {
+    //     //     TSystemVectorPointerType pNewDx = TSystemVectorPointerType(new TSystemVectorType(0));
+    //     //     pDx.swap(pNewDx);
+    //     // }
+    //     // if (pb == NULL) // if the pointer is not initialized initialize it to an empty matrix
+    //     // {
+    //     //     TSystemVectorPointerType pNewb = TSystemVectorPointerType(new TSystemVectorType(0));
+    //     //     pb.swap(pNewb);
+    //     // }
 
-        // TSystemMatrixType &A = *pA;
-        // TSystemVectorType &Dx = *pDx;
-        // TSystemVectorType &b = *pb;
+    //     // TSystemMatrixType &A = *pA;
+    //     // TSystemVectorType &Dx = *pDx;
+    //     // TSystemVectorType &b = *pb;
 
-        // // resizing the system vectors and matrix
-        // if (A.size1() == 0 || BaseType::GetReshapeMatrixFlag() == true) // if the matrix is not initialized
-        // {
-        //     A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
-        //     ConstructMatrixStructure(pScheme, A, rModelPart);
-        // }
-        // else
-        // {
-        //     if (A.size1() != BaseType::mEquationSystemSize || A.size2() != BaseType::mEquationSystemSize)
-        //     {
-        //         KRATOS_ERROR << "The equation system size has changed during the simulation. This is not permitted." << std::endl;
-        //         A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, true);
-        //         ConstructMatrixStructure(pScheme, A, rModelPart);
-        //     }
-        // }
-        // if (Dx.size() != BaseType::mEquationSystemSize)
-        //     Dx.resize(BaseType::mEquationSystemSize, false);
-        // TSparseSpace::SetToZero(Dx);
-        // if (b.size() != BaseType::mEquationSystemSize)
-        // {
-        //     b.resize(BaseType::mEquationSystemSize, false);
-        // }
-        // TSparseSpace::SetToZero(b);
+    //     // // resizing the system vectors and matrix
+    //     // if (A.size1() == 0 || BaseType::GetReshapeMatrixFlag() == true) // if the matrix is not initialized
+    //     // {
+    //     //     A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
+    //     //     ConstructMatrixStructure(pScheme, A, rModelPart);
+    //     // }
+    //     // else
+    //     // {
+    //     //     if (A.size1() != BaseType::mEquationSystemSize || A.size2() != BaseType::mEquationSystemSize)
+    //     //     {
+    //     //         KRATOS_ERROR << "The equation system size has changed during the simulation. This is not permitted." << std::endl;
+    //     //         A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, true);
+    //     //         ConstructMatrixStructure(pScheme, A, rModelPart);
+    //     //     }
+    //     // }
+    //     // if (Dx.size() != BaseType::mEquationSystemSize)
+    //     //     Dx.resize(BaseType::mEquationSystemSize, false);
+    //     // TSparseSpace::SetToZero(Dx);
+    //     // if (b.size() != BaseType::mEquationSystemSize)
+    //     // {
+    //     //     b.resize(BaseType::mEquationSystemSize, false);
+    //     // }
+    //     // TSparseSpace::SetToZero(b);
 
-        // ConstructMasterSlaveConstraintsStructure(rModelPart);
+    //     // ConstructMasterSlaveConstraintsStructure(rModelPart);
 
-        KRATOS_INFO_IF("NewScheme", mEchoLevel >= 2) << "Finished system initialization." << std::endl;
+    //     KRATOS_INFO_IF("NewScheme", mEchoLevel >= 2) << "Finished system initialization." << std::endl;
 
-        KRATOS_CATCH("")
-    }
+    //     KRATOS_CATCH("")
+    // }
 
     virtual void Build(
         const ModelPart& rModelPart,
@@ -483,60 +484,63 @@ public:
     {
         Timer::Start("Build");
 
-        // Getting model part data
-        const SizeType n_elem = rModelPart.NumberOfElements();
-        const SizeType n_cond = rModelPart.NumberOfConditions();
-        auto el_begin = rModelPart.ElementsBegin();
-        auto cond_begin = rModelPart.ConditionsBegin();
-        const auto& r_process_info = rModelPart.GetProcessInfo();
+        // // Getting model part data
+        // const SizeType n_elem = rModelPart.NumberOfElements();
+        // const SizeType n_cond = rModelPart.NumberOfConditions();
+        // auto el_begin = rModelPart.ElementsBegin();
+        // auto cond_begin = rModelPart.ConditionsBegin();
+        // const auto& r_process_info = rModelPart.GetProcessInfo();
 
-        // Arrays for the local contributions to the system
-        LocalSystemMatrixType loc_lhs = LocalSystemMatrixType(0, 0);
-        LocalSystemVectorType loc_rhs = LocalSystemVectorType(0);
+        // // Arrays for the local contributions to the system
+        // LocalSystemMatrixType loc_lhs = LocalSystemMatrixType(0, 0);
+        // LocalSystemVectorType loc_rhs = LocalSystemVectorType(0);
 
-        // Vector containing the localization in the system of the different terms
-        Element::EquationIdVectorType eq_ids;
+        // // Vector containing the localization in the system of the different terms
+        // Element::EquationIdVectorType eq_ids;
 
-        KRATOS_WATCH("Before building elements and conditions")
+        // KRATOS_WATCH("Before building elements and conditions")
 
-        // Assemble elements and conditions
+        // // Assemble elements and conditions
+        // const auto timer = BuiltinTimer();
+        // #pragma omp parallel firstprivate(n_elem, n_cond, loc_lhs, loc_rhs, eq_ids, r_process_info)
+        // {
+        //     // Assemble elements
+        //     # pragma omp for schedule(guided, 512) nowait
+        //     for (int k = 0; k < n_elem; ++k) {
+        //         auto it_elem = el_begin + k;
+        //         if (it_elem->IsActive()) {
+        //             // Calculate local LHS and RHS contributions
+        //             it_elem->CalculateLocalSystem(loc_lhs, loc_rhs, r_process_info);
+
+        //             // Get the positions in the global system
+        //             it_elem->EquationIdVector(eq_ids, r_process_info);
+
+        //             // Assemble the local contributions to the global system
+        //             rRHS.Assemble(loc_rhs, eq_ids);
+        //             rLHS.Assemble(loc_lhs, eq_ids);
+        //         }
+        //     }
+
+        //     // Assemble conditions
+        //     #pragma omp for schedule(guided, 512)
+        //     for (int k = 0; k < n_cond; ++k) {
+        //         auto it_cond = cond_begin + k;
+        //         if (it_cond->IsActive()) {
+        //             // Calculate local LHS and RHS contributions
+        //             it_cond->CalculateLocalSystem(loc_lhs, loc_rhs, r_process_info);
+
+        //             // Get the positions in the global system
+        //             it_cond->EquationIdVector(eq_ids, r_process_info);
+
+        //             // Assemble the local contributions to the global system
+        //             rRHS.Assemble(loc_rhs, eq_ids);
+        //             rLHS.Assemble(loc_lhs, eq_ids);
+        //         }
+        //     }
+        // }
+
         const auto timer = BuiltinTimer();
-        #pragma omp parallel firstprivate(n_elem, n_cond, loc_lhs, loc_rhs, eq_ids, r_process_info)
-        {
-            // Assemble elements
-            # pragma omp for schedule(guided, 512) nowait
-            for (int k = 0; k < n_elem; ++k) {
-                auto it_elem = el_begin + k;
-                if (it_elem->IsActive()) {
-                    // Calculate local LHS and RHS contributions
-                    it_elem->CalculateLocalSystem(loc_lhs, loc_rhs, r_process_info);
-
-                    // Get the positions in the global system
-                    it_elem->EquationIdVector(eq_ids, r_process_info);
-
-                    // Assemble the local contributions to the global system
-                    rRHS.Assemble(loc_rhs, eq_ids);
-                    rLHS.Assemble(loc_lhs, eq_ids);
-                }
-            }
-
-            // Assemble conditions
-            #pragma omp for schedule(guided, 512)
-            for (int k = 0; k < n_cond; ++k) {
-                auto it_cond = cond_begin + k;
-                if (it_cond->IsActive()) {
-                    // Calculate local LHS and RHS contributions
-                    it_cond->CalculateLocalSystem(loc_lhs, loc_rhs, r_process_info);
-
-                    // Get the positions in the global system
-                    it_cond->EquationIdVector(eq_ids, r_process_info);
-
-                    // Assemble the local contributions to the global system
-                    rRHS.Assemble(loc_rhs, eq_ids);
-                    rLHS.Assemble(loc_lhs, eq_ids);
-                }
-            }
-        }
+        BuildUtilities<>::Build(rModelPart, rLHS, rRHS);
 
         KRATOS_INFO_IF("NewScheme", mEchoLevel >= 1) << "Build time: " << timer << std::endl;
         KRATOS_INFO_IF("NewScheme", mEchoLevel >= 2) << "Finished parallel building" << std::endl;
