@@ -193,15 +193,15 @@ class KratosGeoMechanicsParameterFieldTests(KratosUnittest.TestCase):
         """
         Test to check if values from a parameter field stored in a json file are correctly added to
         each individual element
-    
+
         """
         test_name = os.path.join("test_parameter_field", "invalid_parameter_field_json")
         file_path = test_helper.get_file_path(test_name)
-    
+
         # run simulation and assert if correct exception is raised
         with self.assertRaises(RuntimeError) as cm:
             test_helper.run_kratos(file_path)
-    
+
         self.assertTrue(r'Error: The parameter field does not have the same size as '
                         r'the amount of elements within the model part!' in str(cm.exception))
 
