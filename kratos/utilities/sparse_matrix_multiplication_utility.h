@@ -137,6 +137,13 @@ public:
         CMatrix& C
         )
     {
+        // Sanity checks.
+        KRATOS_ERROR_IF_NOT(A.size2() == B.size1())
+            << "incompatible matrix product: "
+            << "(" << A.size1() << "x" << A.size2() << ")"
+            << " @ "
+            << "(" << B.size1() << "x" << B.size2() << ")";
+
         using ValueType = typename CMatrix::value_type;
 
         // Auxiliary sizes
@@ -251,6 +258,13 @@ public:
         CMatrix &C
         )
     {
+        // Sanity checks.
+        KRATOS_ERROR_IF_NOT(A.size2() == B.size1())
+            << "incompatible matrix product: "
+            << "(" << A.size1() << "x" << A.size2() << ")"
+            << " @ "
+            << "(" << B.size1() << "x" << B.size2() << ")";
+
         using AIndex = typename AMatrix::index_array_type::value_type;
         using AValue = typename AMatrix::value_type;
         using BIndex = typename BMatrix::index_array_type::value_type;
