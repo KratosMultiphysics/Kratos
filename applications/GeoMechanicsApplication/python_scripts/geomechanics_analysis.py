@@ -13,24 +13,6 @@ from KratosMultiphysics.GeoMechanicsApplication import geomechanics_solvers_wrap
 
 class GeoMechanicsAnalysisBase(AnalysisStage):
     '''Main script for geomechanics simulations.'''
-
-    def __init__(self,model,parameters):
-        # Time monitoring
-        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),timer.ctime())
-        self.initial_time = timer.perf_counter()
-
-        # Set number of OMP threads
-        open_mp_utils = Kratos.OpenMPUtils()
-        problem_data_settings = parameters["problem_data"]
-        number_of_threads = problem_data_settings["number_of_threads"].GetInt() if problem_data_settings.Has("number_of_threads") else 1
-        open_mp_utils.SetNumThreads(number_of_threads)
-
-        parallel_configuration = problem_data_settings["parallel_type"].GetString()
-        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), f"{parallel_configuration} parallel configuration. OMP_NUM_THREADS = {open_mp_utils.GetNumThreads()}")
-
-        # Creating solver and model part and adding variables
-        super().__init__(model,parameters)
-
     def _CreateSolver(self):
         return geomechanics_solvers_wrapper.CreateSolver(self.model, self.project_parameters)
 
@@ -87,6 +69,20 @@ class GeoMechanicsAnalysisBase(AnalysisStage):
 class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
 
     def __init__(self, model, project_parameters):
+        # Time monitoring
+        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),timer.ctime())
+        self.initial_time = timer.perf_counter()
+
+        # Set number of OMP threads
+        open_mp_utils = Kratos.OpenMPUtils()
+        problem_data_settings = project_parameters["problem_data"]
+        number_of_threads = problem_data_settings["number_of_threads"].GetInt() if problem_data_settings.Has("number_of_threads") else 1
+        open_mp_utils.SetNumThreads(number_of_threads)
+
+        parallel_configuration = problem_data_settings["parallel_type"].GetString()
+        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), f"{parallel_configuration} parallel configuration. OMP_NUM_THREADS = {open_mp_utils.GetNumThreads()}")
+
+        # Creating solver and model part and adding variables
         super().__init__(model, project_parameters)
 
         # time step related stuff
