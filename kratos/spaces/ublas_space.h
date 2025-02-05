@@ -343,6 +343,13 @@ public:
 
     static void Mult(const Matrix& rA, const VectorType& rX, VectorType& rY)
     {
+        KRATOS_ERROR_IF_NOT(rA.size1() == rY.size() and rA.size2() == rX.size())
+            << "incompatible matrix-vector product: "
+            << "(" << rA.size1() << "x" << rA.size2() << ")"
+            << " @ "
+            << "(" << rX.size() << "x1)"
+            << " => "
+            << "(" << rY.size() << "x1)";
         axpy_prod(rA, rX, rY, true);
     }
 
@@ -351,6 +358,13 @@ public:
 #ifndef _OPENMP
         axpy_prod(rA, rX, rY, true);
 #else
+        KRATOS_ERROR_IF_NOT(rA.size1() == rY.size() and rA.size2() == rX.size())
+            << "incompatible matrix-vector product: "
+            << "(" << rA.size1() << "x" << rA.size2() << ")"
+            << " @ "
+            << "(" << rX.size() << "x1)"
+            << " => "
+            << "(" << rY.size() << "x1)";
         ParallelProductNoAdd(rA, rX, rY);
 #endif
     }
