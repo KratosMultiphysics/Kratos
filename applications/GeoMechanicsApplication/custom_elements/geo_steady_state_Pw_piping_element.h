@@ -118,12 +118,16 @@ public:
         Element::Initialize(rCurrentProcessInfo);
         // all these except the PIPE_ELEMENT_LENGTH seem to be in the erosion_process_strategy only. Why do this: it is used in output for dGeoFlow
         this->SetValue(PIPE_ELEMENT_LENGTH, CalculateLength(this->GetGeometry()));
-        this->SetValue(PIPE_EROSION, false);
-        constexpr double small_pipe_height = 1e-10;
-        this->SetValue(PIPE_HEIGHT, small_pipe_height);
-        this->SetValue(PREV_PIPE_HEIGHT, small_pipe_height);
-        this->SetValue(DIFF_PIPE_HEIGHT, 0.);
-        this->SetValue(PIPE_ACTIVE, false);
+
+        if (!mIsInitialized) {
+            this->SetValue(PIPE_EROSION, false);
+            constexpr double small_pipe_height = 1e-10;
+            this->SetValue(PIPE_HEIGHT, small_pipe_height);
+            this->SetValue(PREV_PIPE_HEIGHT, small_pipe_height);
+            this->SetValue(DIFF_PIPE_HEIGHT, 0.);
+            this->SetValue(PIPE_ACTIVE, false);
+            mIsInitialized = true;
+        }
     }
 
     double CalculateEquilibriumPipeHeight(const PropertiesType& rProp, const GeometryType& rGeom, double)
@@ -413,11 +417,15 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
+        rSerializer.save("mIsInitialized", mIsInitialized);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
+        rSerializer.load("mIsInitialized", mIsInitialized);
     }
+
+    bool mIsInitialized = false;
 };
 } // namespace Kratos
