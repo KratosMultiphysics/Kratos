@@ -118,23 +118,6 @@ public:
     {
     }
 
-    // Constructor for SBM
-    BrepSurface(
-        typename NurbsSurfaceType::Pointer pSurface, 
-        BrepCurveOnSurfaceLoopArrayType& BrepOuterLoopArray,
-        BrepCurveOnSurfaceLoopArrayType& BrepInnerLoopArray,
-        GeometrySurrogateArrayType& rSurrogateInnerLoopGeometries, 
-        GeometrySurrogateArrayType& rSurrogateOuterLoopGeometries)
-        : BaseType(PointsArrayType(), &msGeometryData)
-        , mpNurbsSurface(pSurface) 
-        , mOuterLoopArray(BrepOuterLoopArray)
-        , mInnerLoopArray(BrepInnerLoopArray)
-        , mpSurrogateInnerLoopGeometries(rSurrogateInnerLoopGeometries)
-        , mpSurrogateOuterLoopGeometries(rSurrogateOuterLoopGeometries)
-    {
-        mIsTrimmed = false;
-    }
-
     explicit BrepSurface(const PointsArrayType& ThisPoints)
         : BaseType(ThisPoints, &msGeometryData)
     {
@@ -180,6 +163,8 @@ public:
         mInnerLoopArray = rOther.mInnerLoopArray;
         mEmbeddedEdgesArray = rOther.mEmbeddedEdgesArray;
         mIsTrimmed = rOther.mIsTrimmed;
+        mpSurrogateInnerLoopGeometries = rOther.GetSurrogateInnerLoopGeometries();
+        mpSurrogateOuterLoopGeometries = rOther.GetSurrogateOuterLoopGeometries();
         return *this;
     }
 
@@ -193,6 +178,8 @@ public:
         mInnerLoopArray = rOther.mInnerLoopArray;
         mEmbeddedEdgesArray = rOther.mEmbeddedEdgesArray;
         mIsTrimmed = rOther.mIsTrimmed;
+        mpSurrogateInnerLoopGeometries = rOther.GetSurrogateInnerLoopGeometries();
+        mpSurrogateOuterLoopGeometries = rOther.GetSurrogateOuterLoopGeometries();
         return *this;
     }
 
@@ -567,6 +554,42 @@ public:
         return GeometryData::KratosGeometryType::Kratos_Brep_Surface;
     }
 
+    /**
+     * @brief Set the Surrogate Outer Loop Geometries object
+     * @param pSurrogateOuterLoopArray 
+     */
+    void SetSurrogateOuterLoopGeometries(GeometrySurrogateArrayType pSurrogateOuterLoopArray)
+    {
+        mpSurrogateOuterLoopGeometries = pSurrogateOuterLoopArray;
+    }
+    
+    /**
+     * @brief Set the Surrogate Inner Loop Geometries object
+     * @param pSurrogateInnerLoopArray 
+     */
+    void SetSurrogateInnerLoopGeometries(GeometrySurrogateArrayType pSurrogateInnerLoopArray)
+    {
+        mpSurrogateInnerLoopGeometries = pSurrogateInnerLoopArray;
+    }
+
+    /**
+     * @brief Get the Surrogate Inner Loop Geometries object
+     * @return GeometrySurrogateArrayType 
+     */
+    GeometrySurrogateArrayType GetSurrogateInnerLoopGeometries()
+    {
+        return mpSurrogateInnerLoopGeometries;
+    }
+
+    /**
+     * @brief Get the Surrogate Outer Loop Geometries object
+     * @return GeometrySurrogateArrayType 
+     */
+    GeometrySurrogateArrayType GetSurrogateOuterLoopGeometries()
+    {
+        return mpSurrogateOuterLoopGeometries;
+    }
+
     ///@}
     ///@name Information
     ///@{
@@ -635,6 +658,8 @@ private:
         rSerializer.save("InnerLoopArray", mInnerLoopArray);
         rSerializer.save("EmbeddedEdgesArray", mEmbeddedEdgesArray);
         rSerializer.save("IsTrimmed", mIsTrimmed);
+        rSerializer.save("SurrogateInnerLoopGeometries", mpSurrogateInnerLoopGeometries);
+        rSerializer.save("SurrogateOuterLoopGeometries", mpSurrogateOuterLoopGeometries);
     }
 
     void load( Serializer& rSerializer ) override
@@ -645,6 +670,8 @@ private:
         rSerializer.load("InnerLoopArray", mInnerLoopArray);
         rSerializer.load("EmbeddedEdgesArray", mEmbeddedEdgesArray);
         rSerializer.load("IsTrimmed", mIsTrimmed);
+        rSerializer.save("SurrogateInnerLoopGeometries", mpSurrogateInnerLoopGeometries);
+        rSerializer.save("SurrogateOuterLoopGeometries", mpSurrogateOuterLoopGeometries);
     }
 
     BrepSurface()
