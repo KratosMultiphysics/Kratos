@@ -68,9 +68,6 @@ class GeoMechanicsAnalysis(AnalysisStage):
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),"Analysis Completed. Elapsed Time = %.3f" % (timer.perf_counter() - self.initial_time)," seconds.")
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),timer.ctime())
 
-    def _CreateSolver(self):
-        return geomechanics_solvers_wrapper.CreateSolver(self.model, self.project_parameters)
-
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
 
@@ -173,15 +170,8 @@ class GeoMechanicsAnalysis(AnalysisStage):
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
 
-    def _GetOrderOfProcessesInitialization(self):
-        return ["constraints_process_list",
-                "loads_process_list",
-                "auxiliar_process_list"]
-
-    def _CalculateTotalDisplacement(self, node, old_total_displacement):
-        stage_displacement = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
-        total_displacement = old_total_displacement + stage_displacement
-        node.SetSolutionStepValue(KratosGeo.TOTAL_DISPLACEMENT, total_displacement)
+    def KeepAdvancingSolutionLoop(self):
+        return self._GetSolver().KeepAdvancingSolutionLoop(self.end_time)
 
     def ResetIfHasNodalSolutionStepVariable(self, variable):
         if self._GetSolver().main_model_part.HasNodalSolutionStepVariable(variable):
@@ -191,13 +181,23 @@ class GeoMechanicsAnalysis(AnalysisStage):
             KratosGeo.NodeUtilities.AssignUpdatedVectorVariableToNonFixedComponentsOfNodes(
                 self._GetSolver().GetComputingModelPart().Nodes, variable, zero_vector, 1)
 
-    def KeepAdvancingSolutionLoop(self):
-        return self._GetSolver().KeepAdvancingSolutionLoop(self.end_time)
-
     def PrintAnalysisStageProgressInformation(self):
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "STEP      : ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "DELTA_TIME: ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME])
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "TIME      : ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME])
+
+    def _CreateSolver(self):
+        return geomechanics_solvers_wrapper.CreateSolver(self.model, self.project_parameters)
+
+    def _CalculateTotalDisplacement(self, node, old_total_displacement):
+        stage_displacement = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
+        total_displacement = old_total_displacement + stage_displacement
+        node.SetSolutionStepValue(KratosGeo.TOTAL_DISPLACEMENT, total_displacement)
+
+    def _GetOrderOfProcessesInitialization(self):
+        return ["constraints_process_list",
+                "loads_process_list",
+                "auxiliar_process_list"]
 
     def _GetSimulationName(self):
         return "GeoMechanics Analysis"
