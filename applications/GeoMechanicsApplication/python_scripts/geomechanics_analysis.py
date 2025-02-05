@@ -86,8 +86,8 @@ class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
         super().__init__(model, project_parameters)
 
         # time step related stuff
-        self.start_time          = project_parameters["problem_data"]["start_time"].GetDouble()
-        self.end_time            = project_parameters["problem_data"]["end_time"].GetDouble()
+        self.start_time          = problem_data_settings["start_time"].GetDouble()
+        self.end_time            = problem_data_settings["end_time"].GetDouble()
 
         self.delta_time          = project_parameters["solver_settings"]["time_stepping"]["time_step"].GetDouble()
         self.delta_time          = min(self.delta_time, self.end_time - self.start_time)
