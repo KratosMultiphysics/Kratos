@@ -16,12 +16,12 @@
 
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
+#include "custom_utilities/math_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 #include "includes/cfd_variables.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
-#include <custom_utilities/math_utilities.h>
 
 namespace Kratos
 {
@@ -396,9 +396,10 @@ private:
             array_1d<double, TDim> tangent_vector = column(J_container[integration_point_index], 0);
             tangent_vector /= norm_2(tangent_vector);
 
-            array_1d<double, 1> projected_gravity = ZeroVector(1);
-            projected_gravity(0) = MathUtils<double>::Dot(tangent_vector, body_acceleration);
-            const auto N         = Vector{row(rNContainer, integration_point_index)};
+            const auto projected_gravity =
+                array_1d<double, 1>(1, std::inner_product(tangent_vector.begin(), tangent_vector.end(),
+                                                          body_acceleration.begin(), 0.0));
+            const auto N = Vector{row(rNContainer, integration_point_index)};
             fluid_body_vector +=
                 r_properties[DENSITY_WATER] *
                 prod(prod(rShapeFunctionGradients[integration_point_index], constitutive_matrix), projected_gravity) *
