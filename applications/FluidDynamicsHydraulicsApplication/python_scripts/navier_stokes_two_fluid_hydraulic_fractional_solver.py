@@ -48,6 +48,7 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
+            "fixing_air_entrance_parts": [""],
             "assign_neighbour_elements_to_conditions": true,
             "no_skin_parts":[""],
             "time_stepping"                : {
@@ -84,7 +85,7 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
             "outlet_inflow_limiter_settings":{
                 "apply_inflow_limiter": false,
                 "inflow_model_part_name":""
-            },                                  
+            },
             "distance_reinitialization": "variational",
             "parallel_redistance_max_layers" : 25,
             "distance_smoothing": false,
@@ -111,7 +112,7 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         self.condition_name = "TwoFluidNavierStokesWallCondition"
         self.element_integrates_in_time = True
         self.element_has_nodal_properties = True
-        
+
         # Set the levelset characteristic variables and add them to the convection settings
         # These are required to be set as some of the auxiliary processes admit user-defined variables
         self._levelset_variable = KratosMultiphysics.DISTANCE
@@ -156,6 +157,9 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_WATER_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
+        self.main_model_part.AddNodalSolutionStepVariable(
+            KratosCFD.OUTLET_NORMAL)
+
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE) # Distance function nodal values
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT) # Distance gradient nodal values
@@ -196,7 +200,7 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         neighbour_search.Execute()
         elemental_neighbour_search = KratosMultiphysics.GenericFindElementalNeighboursProcess(computing_model_part)
         elemental_neighbour_search.Execute()
-        
+
         #TODO: OJO CON EL TIME STEP ADAPTATIVO.
         delta_time = self.main_model_part.ProcessInfo.GetValue(KratosMultiphysics.DELTA_TIME)
         print(delta_time)
@@ -229,7 +233,11 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         if self.artificial_viscosity:
             KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.ARTIFICIAL_DYNAMIC_VISCOSITY, self.main_model_part.Elements)
 
+        self.skin_name_list = self.settings["fixing_air_entrance_parts"].GetStringArray(
+        )
+        self.domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
+
 
     def Check(self):
         super().Check()
@@ -239,26 +247,24 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
 
     def InitializeSolutionStep(self):
 
+        # skin_parts = [self.model.GetModelPart(name) for name in self.skin_name_list]
+        # for skin_part in skin_parts:
+        #     KratosHydraulics.HydraulicFluidAuxiliaryUtilities.FixingInflow(skin_part, KratosCFD.FRACTIONAL_VELOCITY, self.domain_size)
         # Inlet and outlet water discharge is calculated for current time step, first discharge and the considering the time step inlet and outlet volume is calculated
         if self.mass_source:
             self._ComputeStepInitialWaterVolume()
-        
+
         # Recompute the BDF2 coefficients
         (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
 
         # STEP I: NS Fractional part 1
-        # Perform the pure convection of the fractional velocity which corresponds to the first part of the NS fractional splitting. 
+        # Perform the pure convection of the fractional velocity which corresponds to the first part of the NS fractional splitting.
         self.__PerformNSFractionalSplitting()
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Navier Stokes fractional convection part is performed.")
-        if self.outlet_inflow_limiter:
-            # TODO:This should be incorporated into the outlet hydraulic process in the future.
-             KratosHydraulics.HydraulicFluidAuxiliaryUtilities.ApplyOutletInflowLimiter(self.inflow_model_part_name, KratosMultiphysics.FRACTIONAL_VELOCITY)
 
+        # STEP II: Convect the free surface according to the fractional velocity
 
-
-        # STEP II: Convect the free surface according to the fractional velocity 
-
-        # Before doing this second step, the fractional velocity data is copied to the velocity data since the level set convection process takes velocity variable as convection variable. 
+        # Before doing this second step, the fractional velocity data is copied to the velocity data since the level set convection process takes velocity variable as convection variable.
         # And the previous previous velocity is copied in an auxiliar variable
         KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(KratosCFD.FRACTIONAL_VELOCITY,KratosMultiphysics.VELOCITY, self.main_model_part, self.main_model_part, 0, 0)
         KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(KratosMultiphysics.VELOCITY,KratosCFD.AUXILIAR_VECTOR_VELOCITY, self.main_model_part, self.main_model_part, 0, 0)
@@ -266,8 +272,13 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         self.__PerformLevelSetConvection()
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
 
-        # After the convection process, the velocity is copied back to the original state. 
+        # After the convection process, the velocity is copied back to the original state.
         KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(KratosCFD.AUXILIAR_VECTOR_VELOCITY,KratosMultiphysics.VELOCITY, self.main_model_part, self.main_model_part, 0, 0)
+
+        if self.outlet_inflow_limiter:
+            # TODO: I think that this could be improved
+            KratosHydraulics.HydraulicFluidAuxiliaryUtilities.ApplyOutletInflowLimiter(
+                self.inflow_model_part_name, KratosCFD.FRACTIONAL_VELOCITY, KratosCFD.OUTLET_NORMAL)
 
         # Perform distance correction to prevent ill-conditioned cuts
         self._GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
@@ -300,18 +311,18 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
 
         # Prepare distance correction for next step
         self._GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
-        
+
         self._GetSolutionStrategy().FinalizeSolutionStep()
 
-        if self.outlet_inflow_limiter:
-            # TODO:This should be incorporated into the outlet hydraulic process in the future.
-             KratosHydraulics.HydraulicFluidAuxiliaryUtilities.ApplyOutletInflowLimiter(self.inflow_model_part_name, KratosMultiphysics.VELOCITY)
+        # if self.outlet_inflow_limiter:
+        #     # TODO:This should be incorporated into the outlet hydraulic process in the future.
+        #      KratosHydraulics.HydraulicFluidAuxiliaryUtilities.ApplyOutletInflowLimiter(self.inflow_model_part_name, KratosMultiphysics.VELOCITY)
 
 
     def _ComputeStepInitialWaterVolume(self):
-      
-        # This function calculates the theoretical water volume at each time step. 
-        # Reminder: Despite adding the source term to both air and water, the absolute volume error 
+
+        # This function calculates the theoretical water volume at each time step.
+        # Reminder: Despite adding the source term to both air and water, the absolute volume error
         # is referenced to the water volume, since what is lost from water is gained by air and vice versa.
 
         # Here the initial water volume of the system is calculated without considering inlet and outlet flow rate
@@ -331,16 +342,16 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         self.__initial_water_system_volume = system_water_volume
 
     def _ComputeVolumeError(self):
-        # In this function, the volume of the cut elements is calculated, 
-        # corresponding to the portions of water and air volumes, as this is the domain where the source term will be added. 
+        # In this function, the volume of the cut elements is calculated,
+        # corresponding to the portions of water and air volumes, as this is the domain where the source term will be added.
         # Meanwhile, the absolute error is calculated within the water domain
 
         if self.mass_source:
             water_volume_after_transport = KratosCFD.FluidAuxiliaryUtilities.CalculateFluidNegativeVolume(self.GetComputingModelPart())
-            water_cut_volume_after_transport = KratosCFD.FluidAuxiliaryUtilities.CalculateFluidCutElementNegativeVolume(self.GetComputingModelPart())
+            water_cut_volume_after_transport = KratosCFD.FluidAuxiliaryUtilities.CalculateFluidCutElementsNegativeVolume(self.GetComputingModelPart())
             absolute_water_volume_error = water_volume_after_transport -  self.__initial_water_system_volume
             water_cut_element_error = absolute_water_volume_error /water_cut_volume_after_transport
-            air_cut_volume_after_transport = KratosCFD.FluidAuxiliaryUtilities.CalculateFluidCutElementPositiveVolume(self.GetComputingModelPart())
+            air_cut_volume_after_transport = KratosCFD.FluidAuxiliaryUtilities.CalculateFluidCutElementsPositiveVolume(self.GetComputingModelPart())
             air_cut_element_error = absolute_water_volume_error / air_cut_volume_after_transport
         else:
             water_cut_element_error = 0.0

@@ -63,7 +63,7 @@ public:
      * @param rSkinFlag Flag that marks the conditions to be included in the calculation
      * @param rDistanceVariable Reference to the variable containing the distance
      * @param IsHistorical True if the distance is in the historical database, false otherwise
-     * @return Wetted perimeter 
+     * @return Wetted perimeter
      */
     static double CalculateWettedPetimeter(
         ModelPart &rModelPart,
@@ -127,16 +127,49 @@ public:
     /**
      * @brief  When there is inflow on a boundary considered as an outlet, this function retains only the tangential component, preventing inflows that cause instabilities.
      * @param  rModelPart Fluid Model Part
-     * @param  rVariable it possible to use the variable VELOCITY_FRACTIONAL or VELOCITY
+     * @param  rVariable it is possible to use the variable VELOCITY_FRACTIONAL or VELOCITY
+     * @param  rVariableNormal it is possible to use an auxiliar normal such as INLET_NORMAL
+     */
+    static void ApplyOutletInflowLimiter(ModelPart &rModelPart,
+    const Variable<array_1d<double,3>>& rVariable,
+    const Variable<array_1d<double, 3>>& rVariableNormal);
+
+    /**
+     * @brief  When there is inflow on a boundary considered as an outlet, this function retains only the tangential component, preventing inflows that cause instabilities.
+     * @param  rModelPart Fluid Model Part
+     * @param  rVariable it is possible to use the variable VELOCITY_FRACTIONAL or VELOCITY
+     * @param  rVariableNormal it is possible to use an auxiliar normal such as INLET_NORMAL
      */
 
-    static void ApplyOutletInflowLimiter(ModelPart &rModelPart,const Variable<array_1d<double, 3>>& rVariable);
+    static void FixingInflow(ModelPart &rModelPart,
+                            const Variable<array_1d<double, 3>> &rVariable,
+                            double DomainSize);
 
-     
+    /**
+     * @brief  When there is inflow on a boundary considered as an outlet, this function retains only the tangential component, preventing inflows that cause instabilities.
+     * @param  rModelPart Fluid Model Part
+     * @param  rVariable it is possible to use the variable VELOCITY_FRACTIONAL or VELOCITY
+     * @param  rVariableNormal it is possible to use an auxiliar normal such as INLET_NORMAL
+     */
+
+    static void ImposeOutletPressure(ModelPart &rModelPart,
+                                    double WaterDepth,
+                                    const Variable<double> &rDistanceVariable);
+
+    /**
+     * @brief  When there is inflow on a boundary considered as an outlet, this function retains only the tangential component, preventing inflows that cause instabilities.
+     * @param  rModelPart Fluid Model Part
+     * @param  rVariable it is possible to use the variable VELOCITY_FRACTIONAL or VELOCITY
+     * @param  rVariableNormal it is possible to use an auxiliar normal such as INLET_NORMAL
+     */
+
+    static void SetBoundaryWaterDepth(ModelPart &rModelPart,
+                                      double WaterDepth,
+                                      const Variable<double> &rDistanceVariable);
 
     ///@}
 
-private :
+    private :
 
     struct EdgeDataContainer
     {

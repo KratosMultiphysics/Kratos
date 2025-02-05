@@ -276,9 +276,9 @@ void HydraulicFluidAuxiliaryUtilities::SetInletVelocity(
         }
         else{
             // The air velocity in the inlet node is assumed to be null.
-            rNode.FastGetSolutionStepValue(VELOCITY_X) = 0.0;
-            rNode.FastGetSolutionStepValue(VELOCITY_Y) = 0.0;
-            rNode.FastGetSolutionStepValue(VELOCITY_Z) = 0.0;
+            rNode.FastGetSolutionStepValue(VELOCITY) = 0.1 * inlet_velocity;
+            // rNode.FastGetSolutionStepValue(VELOCITY_Y) = 0.0;
+            // rNode.FastGetSolutionStepValue(VELOCITY_Z) = 0.0;
             rNode.Fix(VELOCITY_X);
             rNode.Fix(VELOCITY_Y);
             rNode.Fix(VELOCITY_Z);
@@ -309,9 +309,11 @@ void HydraulicFluidAuxiliaryUtilities::SetInletFreeSurface(ModelPart &rModelPart
 
 void HydraulicFluidAuxiliaryUtilities::CalculateArtificialViscosity(ModelPart &rModelPart,double WaterDynamicViscosityMax){
     const auto &r_process_info = rModelPart.GetProcessInfo();
+
     block_for_each(rModelPart.Elements(), [&](Element &rElement)
     {
     double artificial_viscosity;
+
     rElement.Calculate(ARTIFICIAL_DYNAMIC_VISCOSITY,artificial_viscosity ,r_process_info);
         if (artificial_viscosity > WaterDynamicViscosityMax)
         {
@@ -322,38 +324,117 @@ void HydraulicFluidAuxiliaryUtilities::CalculateArtificialViscosity(ModelPart &r
         for (auto &r_node : rElement.GetGeometry())
         {
             double distance = r_node.FastGetSolutionStepValue(DISTANCE);
-            
-            if (distance > 0){
+
+            if (distance > 0)
+            {
                 pos_nodes += 1;
             }
-            else{
+            else
+            {
                 neg_nodes += 1;
             }
         }
-        if (neg_nodes > 0 && pos_nodes > 0){
+        if (neg_nodes > 0 && pos_nodes > 0)
+        {
             artificial_viscosity = 0.0;
-            }
-            rElement.SetValue(ARTIFICIAL_DYNAMIC_VISCOSITY, artificial_viscosity);
+        }
+        rElement.SetValue(ARTIFICIAL_DYNAMIC_VISCOSITY, artificial_viscosity);
     });
 }
 
-void HydraulicFluidAuxiliaryUtilities::ApplyOutletInflowLimiter(ModelPart &rModelPart,const Variable<array_1d<double, 3>>& rVariable)
+void HydraulicFluidAuxiliaryUtilities::ApplyOutletInflowLimiter(ModelPart &rModelPart,const Variable<array_1d<double, 3>>& rVariable,const Variable<array_1d<double, 3>>& rVariableNormal)
 {
 
     block_for_each(rModelPart.Nodes(), [&](NodeType& rNode)
     {
         array_1d<double, 3>& r_velocity = rNode.FastGetSolutionStepValue(rVariable);
-        const array_1d<double, 3>& r_normal = rNode.FastGetSolutionStepValue(NORMAL);
-
+        // We use a non-historical variable in case rVariableNormal is not the NORMAL variable and an auxiliary variable is used
+        const array_1d<double, 3>& r_normal = rNode.GetValue(rVariableNormal);
         const double norm_n = norm_2(r_normal);
-        if (norm_n > 0.0) {
+        if (norm_n > 0.0)
+        {
             array_1d<double, 3> n_unit = r_normal / norm_n;
             const double aux = inner_prod(r_velocity, n_unit);
-            if (aux < 0.0) {
+            if (aux < 0.0)
+            {
                 noalias(r_velocity) -= aux * n_unit;
             }
         }
     });
 }
+
+void HydraulicFluidAuxiliaryUtilities::FixingInflow(
+    ModelPart &rModelPart,
+    const Variable<array_1d<double, 3>> &rVariable,
+    double DomainSize)
+{
+    const std::array<const Variable<double>*, 3> *components = nullptr;
+
+    // Asignamos el puntero dependiendo de la variable
+    if (rVariable == VELOCITY)
+    {
+        static const std::array<const Variable<double>*, 3> velocity_components = {&VELOCITY_X, &VELOCITY_Y, &VELOCITY_Z};
+        components = &velocity_components;
+    }
+    else if (rVariable == FRACTIONAL_VELOCITY)
+    {
+        static const std::array<const Variable<double>*, 3> fractional_velocity_components = {&FRACTIONAL_VELOCITY_X, &FRACTIONAL_VELOCITY_Y, &FRACTIONAL_VELOCITY_Z};
+        components = &fractional_velocity_components;
+    }
+    else
+    {
+        KRATOS_ERROR << "The variable " << rVariable.Name() << " is not supported. Only VELOCITY and FRACTIONAL_VELOCITY are allowed." << std::endl;
+    }
+    block_for_each(rModelPart.Nodes(), [&](NodeType &rNode)
+        {
+            array_1d<double, 3>& r_velocity = rNode.FastGetSolutionStepValue(rVariable);
+            // TODO: SE TENDRIA QUE PILLAR LA NORMAL DE ARRIBA NO??
+            const array_1d<double, 3>& r_normal = rNode.FastGetSolutionStepValue(NORMAL);
+            const double norm_n = norm_2(r_normal);
+            if (norm_n > 0.0) {
+                array_1d<double, 3> n_unit = r_normal / norm_n;
+                const double aux = inner_prod(r_velocity, n_unit);
+
+                if (aux < 1e-7) {
+                    for (std::size_t i_dim = 0; i_dim < (DomainSize - 1); ++i_dim) {
+                        rNode.Fix(*(*components)[i_dim]);
+                    }
+                }
+            }
+        });
+}
+
+void HydraulicFluidAuxiliaryUtilities::ImposeOutletPressure(ModelPart &rModelPart, double WaterDepth, const Variable<double> &rDistanceVariable)
+{
+    {
+        // Obtain minimum Z coordinate. Assume that in 3D domain the height is given by the z coordinate.
+        double gravity = 9.81;
+        double min_z = std::numeric_limits<double>::max();
+        min_z = block_for_each<MinReduction<double>>(rModelPart.Nodes(), [&](Node &rNode)
+                                                     { return rNode.Z(); });
+        // Obtain z of the free surface
+        double z_free_surface = WaterDepth + min_z;
+
+        block_for_each(rModelPart.Nodes(), [&](Node &rNode)
+        {
+            double aux_distance = rNode.Z() - z_free_surface;
+            rNode.FastGetSolutionStepValue(rDistanceVariable) = aux_distance;
+            double& distance = rNode.FastGetSolutionStepValue(DISTANCE);
+
+            if (aux_distance < 0.0 && distance < 0.0)
+            {
+                const double& density = rNode.FastGetSolutionStepValue(DENSITY);
+                double pressure_external = gravity * density * aux_distance;
+                rNode.FastGetSolutionStepValue(EXTERNAL_PRESSURE) = pressure_external;
+            } });
+    }
+}
+
+void HydraulicFluidAuxiliaryUtilities::SetBoundaryWaterDepth(ModelPart &rModelPart, double WaterDepth, const Variable<double> &rDistanceVariable){
+    block_for_each(rModelPart.Nodes(), [&](Node &rNode)
+    {
+    double phi = rNode.Z() - WaterDepth;
+    rNode.SetValue(rDistanceVariable, phi);
+    }); }
 
 } // namespace Kratos

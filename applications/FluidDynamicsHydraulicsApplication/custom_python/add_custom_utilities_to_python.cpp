@@ -26,15 +26,28 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
     py::class_<HydraulicFluidAuxiliaryUtilities>(m, "HydraulicFluidAuxiliaryUtilities")
-        .def_static("CalculateWettedPetimeter", [](ModelPart &rModelPart, const Flags &rSkinFlag, const Variable<double> &rDistanceVariable, const bool IsHistorical){return HydraulicFluidAuxiliaryUtilities::CalculateWettedPetimeter(rModelPart, rSkinFlag, rDistanceVariable, IsHistorical);})
-        .def_static("CalculateWettedArea", [](ModelPart &rModelPart, const Flags &rSkinFlag, const Variable<double> &rDistanceVariable, const bool IsHistorical){return HydraulicFluidAuxiliaryUtilities::CalculateWettedArea(rModelPart, rSkinFlag, rDistanceVariable, IsHistorical);})
-        .def_static("InitialWaterDepth", [](ModelPart &rModelPart){return HydraulicFluidAuxiliaryUtilities::InitialWaterDepth(rModelPart);})
-        .def_static("SetInletVelocity", [](ModelPart &rModelPart, double InletVelocity, const Variable<double> &rDistanceVariable){return HydraulicFluidAuxiliaryUtilities::SetInletVelocity(rModelPart, InletVelocity, rDistanceVariable);})
-        .def_static("FreeInlet", [](ModelPart &rModelPart){return HydraulicFluidAuxiliaryUtilities::FreeInlet(rModelPart);})
-        .def_static("SetInletFreeSurface", [](ModelPart &rModelPart, const Flags &rSkinFlag, const Variable<double> &rDistanceVariable){return HydraulicFluidAuxiliaryUtilities::SetInletFreeSurface(rModelPart, rSkinFlag, rDistanceVariable);})
-        .def_static("CalculateArtificialViscosity", [](ModelPart &rModelPart, double WaterDynamicViscosityMax){ return HydraulicFluidAuxiliaryUtilities::CalculateArtificialViscosity(rModelPart, WaterDynamicViscosityMax); })
-        .def_static("ApplyOutletInflowLimiter", [](ModelPart &rModelPart,Variable<array_1d<double, 3>>& rVariable){ return HydraulicFluidAuxiliaryUtilities::ApplyOutletInflowLimiter(rModelPart, rVariable); });
-
+        .def_static("CalculateWettedPetimeter", [](ModelPart &rModelPart, const Flags &rSkinFlag, const Variable<double> &rDistanceVariable, const bool IsHistorical)
+                    { return HydraulicFluidAuxiliaryUtilities::CalculateWettedPetimeter(rModelPart, rSkinFlag, rDistanceVariable, IsHistorical); })
+        .def_static("CalculateWettedArea", [](ModelPart &rModelPart, const Flags &rSkinFlag, const Variable<double> &rDistanceVariable, const bool IsHistorical)
+                    { return HydraulicFluidAuxiliaryUtilities::CalculateWettedArea(rModelPart, rSkinFlag, rDistanceVariable, IsHistorical); })
+        .def_static("InitialWaterDepth", [](ModelPart &rModelPart)
+                    { return HydraulicFluidAuxiliaryUtilities::InitialWaterDepth(rModelPart); })
+        .def_static("SetInletVelocity", [](ModelPart &rModelPart, double InletVelocity, const Variable<double> &rDistanceVariable)
+                    { return HydraulicFluidAuxiliaryUtilities::SetInletVelocity(rModelPart, InletVelocity, rDistanceVariable); })
+        .def_static("FreeInlet", [](ModelPart &rModelPart)
+                    { return HydraulicFluidAuxiliaryUtilities::FreeInlet(rModelPart); })
+        .def_static("SetInletFreeSurface", [](ModelPart &rModelPart, const Flags &rSkinFlag, const Variable<double> &rDistanceVariable)
+                    { return HydraulicFluidAuxiliaryUtilities::SetInletFreeSurface(rModelPart, rSkinFlag, rDistanceVariable); })
+        .def_static("CalculateArtificialViscosity", [](ModelPart &rModelPart, double WaterDynamicViscosityMax)
+                    { return HydraulicFluidAuxiliaryUtilities::CalculateArtificialViscosity(rModelPart, WaterDynamicViscosityMax); })
+        .def_static("ApplyOutletInflowLimiter", [](ModelPart &rModelPart, Variable<array_1d<double, 3>> &rVariable, Variable<array_1d<double, 3>> &rVariableNormal)
+                    { return HydraulicFluidAuxiliaryUtilities::ApplyOutletInflowLimiter(rModelPart, rVariable, rVariableNormal); })
+        .def_static("FixingInflow", [](ModelPart &rModelPart, Variable<array_1d<double, 3>> &rVariable, double DomainSize)
+                    { return HydraulicFluidAuxiliaryUtilities::FixingInflow(rModelPart, rVariable, DomainSize); })
+        .def_static("ImposeOutletPressure", [](ModelPart &rModelPart, double WaterDepth, const Variable<double> &rDistanceVariable)
+                    { return HydraulicFluidAuxiliaryUtilities::ImposeOutletPressure(rModelPart, WaterDepth, rDistanceVariable); })
+        .def_static("SetBoundaryWaterDepth", [](ModelPart &rModelPart, double WaterDepth, const Variable<double> &rDistanceVariable)
+                    { return HydraulicFluidAuxiliaryUtilities::SetBoundaryWaterDepth(rModelPart, WaterDepth, rDistanceVariable); });
 }
 
 } // namespace Kratos::Python

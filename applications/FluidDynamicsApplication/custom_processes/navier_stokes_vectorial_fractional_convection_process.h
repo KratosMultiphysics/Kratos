@@ -8,8 +8,8 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Uxue Chasco
-//                   
-//                   
+//
+//
 //
 
 #pragma once
@@ -53,8 +53,8 @@ namespace Kratos
     ///@{
 
     /// Short class definition.
-    /**Takes a model part full of SIMPLICIAL ELEMENTS (triangles and tetras) and convects the fractional velocity variable 
-     * on the top of it as the first part of the fractinal splitting of two fluid navier stokes approach. 
+    /**Takes a model part full of SIMPLICIAL ELEMENTS (triangles and tetras) and convects the fractional velocity variable
+     * on the top of it as the first part of the fractinal splitting of two fluid navier stokes approach.
      */
     template <unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver>
     class NavierStokesVectorialFractionalConvectionProcess
@@ -150,7 +150,7 @@ namespace Kratos
          * @brief Perform Navier Stokes Fractional Vectorial Convection.
          * This solver provides a stabilized convection problem for the fractional velocity unknown.
          * This process is always called within the framework of the two-fluid Navier-Stokes fractional solver, where the Navier-Stokes equations for two fluids are solved using a splitting approach.
-         * The first part of the splitting involves solving the convection of the fractional velocity 
+         * The first part of the splitting involves solving the convection of the fractional velocity
          */
 
 
@@ -368,7 +368,7 @@ namespace Kratos
             // Resize the arrays
             const auto n_nodes = mpFractionalVelocityModelPart->NumberOfNodes();
             mVelocity.resize(n_nodes);
-        
+
             mFractionalVelocityPartIsInitialized = true;
 
             KRATOS_CATCH("")
@@ -578,9 +578,9 @@ namespace Kratos
             bool CalculateReactions = false;
             bool ReformDofAtEachIteration = false;
             bool CalculateNormDxFlag = false;
-            auto p_conv_criteria = Kratos::make_shared<DisplacementCriteria<TSparseSpace, TDenseSpace>>(1e-4, 1e-3);
+            auto p_conv_criteria = Kratos::make_shared<DisplacementCriteria<TSparseSpace, TDenseSpace>>(1e-9, 1e-8);
             auto p_scheme = Kratos::make_shared<ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace>>();
-            const std::size_t max_it = 10;
+            const std::size_t max_it = 15;
             mpSolvingStrategy = Kratos::make_unique<ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>>(
                 *mpFractionalVelocityModelPart,
                 p_scheme,
