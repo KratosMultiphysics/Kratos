@@ -89,22 +89,23 @@ class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
         self.start_time          = problem_data_settings["start_time"].GetDouble()
         self.end_time            = problem_data_settings["end_time"].GetDouble()
 
-        self.delta_time          = project_parameters["solver_settings"]["time_stepping"]["time_step"].GetDouble()
+        solver_settings = project_parameters["solver_settings"]
+        self.delta_time          = solver_settings["time_stepping"]["time_step"].GetDouble()
         self.delta_time          = min(self.delta_time, self.end_time - self.start_time)
 
-        self.reduction_factor    = project_parameters["solver_settings"]["reduction_factor"].GetDouble()
-        self.increase_factor     = project_parameters["solver_settings"]["increase_factor"].GetDouble()
-        self.min_iterations      = project_parameters["solver_settings"]["min_iterations"].GetInt()
+        self.reduction_factor    = solver_settings["reduction_factor"].GetDouble()
+        self.increase_factor     = solver_settings["increase_factor"].GetDouble()
+        self.min_iterations      = solver_settings["min_iterations"].GetInt()
         self.max_delta_time_factor = 1000.0
-        if project_parameters["solver_settings"]["time_stepping"].Has("max_delta_time_factor"):
-            self.max_delta_time_factor = project_parameters["solver_settings"]["time_stepping"]["max_delta_time_factor"].GetDouble()
+        if solver_settings["time_stepping"].Has("max_delta_time_factor"):
+            self.max_delta_time_factor = solver_settings["time_stepping"]["max_delta_time_factor"].GetDouble()
         self.max_delta_time      = self.delta_time * self.max_delta_time_factor
-        self.number_cycles       = project_parameters["solver_settings"]["number_cycles"].GetInt()
+        self.number_cycles       = solver_settings["number_cycles"].GetInt()
 
-        self.max_iterations      = project_parameters["solver_settings"]["max_iterations"].GetInt()
-        self.solution_type       = project_parameters["solver_settings"]["solution_type"].GetString()
-        self.reset_displacements = project_parameters["solver_settings"]["reset_displacements"].GetBool()
-        self.rebuild_level       = project_parameters["solver_settings"]["rebuild_level"].GetInt()
+        self.max_iterations      = solver_settings["max_iterations"].GetInt()
+        self.solution_type       = solver_settings["solution_type"].GetString()
+        self.reset_displacements = solver_settings["reset_displacements"].GetBool()
+        self.rebuild_level       = solver_settings["rebuild_level"].GetInt()
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
