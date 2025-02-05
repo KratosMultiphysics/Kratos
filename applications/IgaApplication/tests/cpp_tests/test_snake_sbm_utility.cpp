@@ -26,7 +26,7 @@ KRATOS_TEST_CASE_IN_SUITE(SnakeSbmUtilitySquareOuter, KratosIgaFastSuite)
     Model model;
     ModelPart& iga_model_part = model.CreateModelPart("iga_model_part");
 
-    ModelPart& surrogate_sub_model_part_inner = iga_model_part.CreateSubModelPart("surrogate_inner");
+    iga_model_part.CreateSubModelPart("surrogate_inner");
     ModelPart& surrogate_sub_model_part_outer = iga_model_part.CreateSubModelPart("surrogate_outer");
 
     ModelPart& skin_model_part_inner_initial = model.CreateModelPart("skin_model_part_inner_initial");
@@ -98,15 +98,13 @@ KRATOS_TEST_CASE_IN_SUITE(SnakeSbmUtilitySquareOuter, KratosIgaFastSuite)
         {0.8, 0, 0},
         {0.4, 0, 0},
     };
-
-    ModelPart& surrogate_outer = iga_model_part.GetSubModelPart("surrogate_outer");
     
     // Ensure the number of nodes matches expectation
-    KRATOS_EXPECT_NEAR(surrogate_outer.NumberOfNodes(), expected_coordinates.size(), tolerance);
+    KRATOS_EXPECT_NEAR(surrogate_sub_model_part_outer.NumberOfNodes(), expected_coordinates.size(), tolerance);
     
     // Iterate over nodes and compare coordinates
     unsigned int i = 0;
-    for (auto& node : surrogate_outer.Nodes()) {
+    for (auto& node : surrogate_sub_model_part_outer.Nodes()) {
         std::array<double, 3> node_coords = {node.X(), node.Y(), node.Z()};
         // Compare each coordinate
         KRATOS_EXPECT_NEAR(expected_coordinates[i][0], node_coords[0], tolerance);
@@ -125,7 +123,7 @@ KRATOS_TEST_CASE_IN_SUITE(SnakeSbmUtilityInner, KratosIgaFastSuite)
     ModelPart& iga_model_part = model.CreateModelPart("iga_model_part");
 
     ModelPart& surrogate_sub_model_part_inner = iga_model_part.CreateSubModelPart("surrogate_inner");
-    ModelPart& surrogate_sub_model_part_outer = iga_model_part.CreateSubModelPart("surrogate_outer");
+    iga_model_part.CreateSubModelPart("surrogate_outer");
 
     ModelPart& skin_model_part_inner_initial = model.CreateModelPart("skin_model_part_inner_initial");
     ModelPart& skin_model_part_outer_initial = model.CreateModelPart("skin_model_part_outer_initial");
@@ -221,15 +219,13 @@ KRATOS_TEST_CASE_IN_SUITE(SnakeSbmUtilityInner, KratosIgaFastSuite)
         {2.8, 4.8, 0},
         {2.4, 4.8, 0},
     };
-
-    ModelPart& surrogate_inner = iga_model_part.GetSubModelPart("surrogate_inner");
     
     // Ensure the number of nodes matches expectation
-    KRATOS_EXPECT_NEAR(surrogate_inner.NumberOfNodes(), expected_coordinates.size(), tolerance);
+    KRATOS_EXPECT_NEAR(surrogate_sub_model_part_inner.NumberOfNodes(), expected_coordinates.size(), tolerance);
     
     // Iterate over nodes and compare coordinates
     unsigned int i = 0;
-    for (auto& node : surrogate_inner.Nodes()) {
+    for (auto& node : surrogate_sub_model_part_inner.Nodes()) {
         std::array<double, 3> node_coords = {node.X(), node.Y(), node.Z()};
         // Compare each coordinate
         KRATOS_EXPECT_NEAR(expected_coordinates[i][0], node_coords[0], tolerance);
