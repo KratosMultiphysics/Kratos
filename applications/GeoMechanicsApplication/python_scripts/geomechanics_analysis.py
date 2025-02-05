@@ -25,11 +25,8 @@ class GeoMechanicsAnalysisBase(AnalysisStage):
         number_of_threads = problem_data_settings["number_of_threads"].GetInt() if problem_data_settings.Has("number_of_threads") else 1
         open_mp_utils.SetNumThreads(number_of_threads)
 
-        ## Import parallel modules if needed
-        if parameters["problem_data"]["parallel_type"].GetString() == "MPI":
-            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),"MPI parallel configuration. OMP_NUM_THREADS =",open_mp_utils.GetNumThreads())
-        else:
-            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),"OpenMP parallel configuration. OMP_NUM_THREADS =",open_mp_utils.GetNumThreads())
+        parallel_configuration = problem_data_settings["parallel_type"].GetString()
+        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), f"{parallel_configuration} parallel configuration. OMP_NUM_THREADS = {open_mp_utils.GetNumThreads()}")
 
         # Creating solver and model part and adding variables
         super().__init__(model,parameters)
