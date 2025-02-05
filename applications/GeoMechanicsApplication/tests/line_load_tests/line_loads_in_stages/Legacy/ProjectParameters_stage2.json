@@ -13,10 +13,10 @@
         "domain_size":                        2,
         "model_import_settings":              {
             "input_type":       "mdpa",
-            "input_filename":   "test"
+            "input_filename":   "../Common/test"
         },
         "material_import_settings":              {
-            "materials_filename":       "MaterialParameters.json"
+            "materials_filename":       "../Common/MaterialParameters.json"
         },
         "time_stepping":              {
             "time_step":                1,
@@ -70,7 +70,7 @@
             "preconditioner_type": "ilu0"
         },
         "problem_domain_sub_model_part_list": ["Dummy_soil"],
-        "processes_sub_model_part_list":      ["Bottom_fixed","Side_sliders","Phreatic_line","First_line_load"],
+        "processes_sub_model_part_list":      ["Bottom_fixed","Side_sliders","Phreatic_line","Second_line_load"],
         "body_domain_sub_model_part_list":    ["Dummy_soil"]
     },
     "output_processes": {
@@ -80,7 +80,7 @@
             "process_name": "GiDOutputProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.porous_computational_model_part",
-                "output_name": "test_stage1",
+                "output_name": "test_stage2",
                 "postprocess_parameters": {
                     "result_file_configuration": {
                         "gidpost_flags":       {
@@ -152,10 +152,10 @@
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name":  "ApplyVectorConstraintTableProcess",
         "Parameters":    {
-            "model_part_name": "PorousDomain.First_line_load",
+            "model_part_name": "PorousDomain.Second_line_load",
             "variable_name":   "LINE_LOAD",
             "active":          [false,true,false],
-            "value":           [0.0,-10.0,0.0],
+            "value":           [0.0,-20.0,0.0],
             "table":           [0,0,0]
         }
     }],
