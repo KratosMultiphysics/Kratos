@@ -32,8 +32,7 @@ class GeoMechanicsAnalysisBase(AnalysisStage):
         super().__init__(model,parameters)
 
     def _CreateSolver(self):
-        solver = geomechanics_solvers_wrapper.CreateSolver(self.model, self.project_parameters)
-        return solver
+        return geomechanics_solvers_wrapper.CreateSolver(self.model, self.project_parameters)
 
     def _GetOrderOfProcessesInitialization(self):
         return ["constraints_process_list",
