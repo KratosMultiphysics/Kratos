@@ -611,13 +611,13 @@ public:
                 row_extents[i_row + 1] = row_extents[i_row] + rows[i_row].size();
             } // for i_row in range(rLeft.size1)
 
-            // Fill column indices.
+            // Fill column indices and entries.
             column_indices.resize(row_extents[rLeft.size1()], false);
             IndexPartition<IndexType>(rLeft.size1()).for_each([&rows, &row_extents, &column_indices](const IndexType i_row){
                 const IndexType i_begin = row_extents[i_row];
                 std::copy(rows[i_row].begin(),
-                        rows[i_row].end(),
-                        column_indices.begin() + i_begin);
+                          rows[i_row].end(),
+                          column_indices.begin() + i_begin);
             });
         }
 
