@@ -27,12 +27,12 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePipingElement_DoesNotLosePipingStateAfte
         1, Kratos::make_shared<Line2D2<Node>>(p_node_1, p_node_2));
 
     p_element->Initialize(r_model_part.GetProcessInfo());
-    KRATOS_EXPECT_FALSE(p_element->GetValue(PIPE_ACTIVE));
+    KRATOS_EXPECT_FALSE(p_element->GetValue(PIPE_ACTIVE))
 
     p_element->SetValue(PIPE_ACTIVE, true);
     p_element->Initialize(r_model_part.GetProcessInfo());
 
-    KRATOS_EXPECT_TRUE(p_element->GetValue(PIPE_ACTIVE));
+    KRATOS_EXPECT_TRUE(p_element->GetValue(PIPE_ACTIVE))
 }
 
 } // namespace Kratos::Testing
