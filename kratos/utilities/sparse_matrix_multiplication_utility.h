@@ -150,9 +150,12 @@ public:
         const SizeType nrows = A.size1();
         const SizeType ncols = B.size2();
 
-        // Exiting just in case of empty matrix
-        if ((nrows == 0) || (ncols == 0))
-            return void();
+        if (not nrows or not ncols or not A.nnz() or not B.nnz()) {
+            C = CMatrix(nrows, ncols, 0);
+            block_for_each(C.index1_data(), [](auto& r_item){r_item=0;});
+            C.set_filled(nrows + 1, 0);
+            return;
+        }
 
         // Get access to A, B and C data
         const IndexType* index1_a = A.index1_data().begin();
@@ -276,9 +279,12 @@ public:
         const AIndex nrows = A.size1();
         const BIndex ncols = B.size2();
 
-        // Exiting just in case of empty matrix
-        if ((nrows == 0) || (ncols == 0))
-            return void();
+        if (not nrows or not ncols or not A.nnz() or not B.nnz()) {
+            C = CMatrix(nrows, ncols, 0);
+            block_for_each(C.index1_data(), [](auto& r_item){r_item=0;});
+            C.set_filled(nrows + 1, 0);
+            return;
+        }
 
         // Get access to A and B data
         const AIndex* index1_a = A.index1_data().begin();
@@ -652,6 +658,14 @@ public:
 
         if (rA.size1() != size_system_2 || rA.size2() != size_system_1 || rA.nnz() != rB.nnz()) {
             rA = AMatrix(size_system_2, size_system_1, rB.nnz());
+        }
+
+        // Early exit on empty input matrices.
+        if (not size_system_1 or not size_system_2 or not rB.nnz()) {
+            block_for_each(rA.index1_data(), [](auto& r_item){r_item=0;});
+            block_for_each(rA.value_data(), [](auto& r_entry){r_entry=0;});
+            rA.set_filled(rA.index1_data().size(), rA.value_data().size());
+            return;
         }
 
         IndexVectorType new_a_ptr(size_system_2 + 1);
