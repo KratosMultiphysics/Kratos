@@ -58,7 +58,7 @@ public:
     typedef Geometry<typename TContainerPointType::value_type> BaseType;
     typedef Geometry<typename TContainerPointType::value_type> GeometryType;
     typedef typename GeometryType::Pointer GeometryPointer;
-    typedef DenseVector<GeometryPointer> GeometrySurrogateArrayType;
+    using GeometrySurrogateArrayType = DenseVector<GeometryPointer>;
 
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
@@ -558,7 +558,7 @@ public:
      * @brief Set the Surrogate Outer Loop Geometries object
      * @param pSurrogateOuterLoopArray 
      */
-    void SetSurrogateOuterLoopGeometries(GeometrySurrogateArrayType &pSurrogateOuterLoopArray)
+    void SetSurrogateOuterLoopGeometries(const GeometrySurrogateArrayType &pSurrogateOuterLoopArray)
     {
         mpSurrogateOuterLoopGeometries = pSurrogateOuterLoopArray;
     }
@@ -567,7 +567,7 @@ public:
      * @brief Set the Surrogate Inner Loop Geometries object
      * @param pSurrogateInnerLoopArray 
      */
-    void SetSurrogateInnerLoopGeometries(GeometrySurrogateArrayType &pSurrogateInnerLoopArray)
+    void SetSurrogateInnerLoopGeometries(const GeometrySurrogateArrayType &pSurrogateInnerLoopArray)
     {
         mpSurrogateInnerLoopGeometries = pSurrogateInnerLoopArray;
     }
