@@ -14,16 +14,10 @@
 #pragma once
 
 // System includes
-#include <string>
-#include <iostream>
-#include <sstream>
-#include <cstddef>
-#include <atomic>
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/lock_object.h"
 #include "geometries/point.h"
 #include "includes/dof.h"
@@ -70,14 +64,8 @@ public:
     /// Pointer definition of Node
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Node);
 
-    /// Node definition
-    using NodeType = Node;
-
     /// Base type
     using BaseType = Point;
-
-    /// Point type
-    using PointType = Point;
 
     /// Dof type
     using DofType = Dof<double>;
@@ -102,17 +90,7 @@ public:
     ///@{
 
     /// Default constructor.
-    Node()
-        : BaseType()
-        , Flags()
-        , mNodalData(0)
-        , mDofs()
-        , mData()
-        , mInitialPosition()
-        , mNodeLock()
-    {
-        CreateSolutionStepData();
-    }
+    Node();
 
     explicit Node(IndexType NewId )
         : BaseType()
@@ -128,56 +106,16 @@ public:
     }
 
     /// 1d constructor.
-    Node(IndexType NewId, double const& NewX)
-        : BaseType(NewX)
-        , Flags()
-        , mNodalData(NewId)
-        , mDofs()
-        , mData()
-        , mInitialPosition(NewX)
-        , mNodeLock()
-    {
-        CreateSolutionStepData();
-    }
+    Node(IndexType NewId, const double NewX);
 
     /// 2d constructor.
-    Node(IndexType NewId, double const& NewX, double const& NewY)
-        : BaseType(NewX, NewY)
-        , Flags()
-        , mNodalData(NewId)
-        , mDofs()
-        , mData()
-        , mInitialPosition(NewX, NewY)
-        , mNodeLock()
-    {
-        CreateSolutionStepData();
-    }
+    Node(IndexType NewId, const double NewX, const double NewY);
 
     /// 3d constructor.
-    Node(IndexType NewId, double const& NewX, double const& NewY, double const& NewZ)
-        : BaseType(NewX, NewY, NewZ)
-        , Flags()
-        , mNodalData(NewId)
-        , mDofs()
-        , mData()
-        , mInitialPosition(NewX, NewY, NewZ)
-        , mNodeLock()
-    {
-        CreateSolutionStepData();
-    }
+    Node(IndexType NewId, const double NewX, const double NewY, const double NewZ);
 
     /// Point constructor.
-    Node(IndexType NewId, PointType const& rThisPoint)
-        : BaseType(rThisPoint)
-        , Flags()
-        , mNodalData(NewId)
-        , mDofs()
-        , mData()
-        , mInitialPosition(rThisPoint)
-        , mNodeLock()
-    {
-        CreateSolutionStepData();
-    }
+    Node(IndexType NewId, Point const& rThisPoint);
 
     /** Copy constructor. Initialize this node with given node.*/
     Node(Node const& rOtherNode) = delete;
@@ -198,58 +136,17 @@ public:
         CreateSolutionStepData();
     }
 
-
-
     /** Constructor using coordinates stored in given std::vector. Initialize
     this point with the coordinates in the array. */
-    Node(IndexType NewId, std::vector<double> const&  rOtherCoordinates)
-        : BaseType(rOtherCoordinates)
-        , Flags()
-        , mNodalData(NewId)
-        , mDofs()
-        , mData()
-        , mInitialPosition()
-        , mNodeLock()
-    {
-        CreateSolutionStepData();
-    }
+    Node(IndexType NewId, std::vector<double> const&  rOtherCoordinates);
 
     /// 3d with variables list and data constructor.
-    Node(IndexType NewId, double const& NewX, double const& NewY, double const& NewZ, VariablesList::Pointer  pVariablesList, BlockType const * ThisData, SizeType NewQueueSize = 1)
-        : BaseType(NewX, NewY, NewZ)
-        , Flags()
-        , mNodalData(NewId, pVariablesList,ThisData,NewQueueSize)
-        , mDofs()
-        , mData()
-        , mInitialPosition(NewX, NewY, NewZ)
-        , mNodeLock()
-    {
-    }
+    Node(IndexType NewId, const double NewX, const double NewY, const double NewZ, VariablesList::Pointer  pVariablesList, BlockType const * ThisData, SizeType NewQueueSize = 1);
 
-    typename Node::Pointer Clone()
-    {
-        Node::Pointer p_new_node = Kratos::make_intrusive<Node >( this->Id(), (*this)[0], (*this)[1], (*this)[2]);
-        p_new_node->mNodalData = this->mNodalData;
-
-        Node::DofsContainerType& my_dofs = (this)->GetDofs();
-        for (typename DofsContainerType::const_iterator it_dof = my_dofs.begin(); it_dof != my_dofs.end(); it_dof++)
-        {
-            p_new_node->pAddDof(**it_dof);
-        }
-
-        p_new_node->mData = this->mData;
-        p_new_node->mInitialPosition = this->mInitialPosition;
-
-        p_new_node->Set(Flags(*this));
-
-        return p_new_node;
-    }
+    typename Node::Pointer Clone();
 
     /// Destructor.
-    ~Node() override
-    {
-        ClearSolutionStepsData();
-    }
+    ~Node() override;
 
     //*********************************************
     //public API of intrusive_ptr
@@ -259,25 +156,13 @@ public:
     }
     //*********************************************
 
-    IndexType Id() const
-    {
-        return mNodalData.Id();
-    }
+    IndexType Id() const;
 
-    IndexType GetId() const
-    {
-        return mNodalData.Id();
-    }
+    IndexType GetId() const;
 
-    void SetId(IndexType NewId)
-    {
-        mNodalData.SetId(NewId);
-    }
+    void SetId(IndexType NewId);
 
-    LockObject& GetLock()
-    {
-        return mNodeLock;
-    }
+    LockObject& GetLock();
 
     inline void SetLock()
     {
@@ -294,186 +179,143 @@ public:
     ///@{
 
     /// Assignment operator.
-    Node& operator=(const Node& rOther)
-    {
-        BaseType::operator=(rOther);
-        Flags::operator =(rOther);
+    Node& operator=(const Node& rOther);
 
-        mNodalData = rOther.mNodalData;
+    bool operator==(const Node& rOther);
 
-        // Deep copying the dofs
-        for(typename DofsContainerType::const_iterator it_dof = rOther.mDofs.begin() ; it_dof != rOther.mDofs.end() ; it_dof++)
-        {
-            pAddDof(**it_dof);
-        }
-
-        mData = rOther.mData;
-        mInitialPosition = rOther.mInitialPosition;
-
-        return *this;
-    }
-
-    bool operator==(const Node& rOther)
-    {
-        return PointType::operator ==(rOther);
-    }
-
-    template<class TVariableType> typename TVariableType::Type& operator()(const TVariableType& rThisVariable, IndexType SolutionStepIndex)
+    template<class TVariableType> 
+    typename TVariableType::Type& operator()(const TVariableType& rThisVariable, IndexType SolutionStepIndex)
     {
         return GetSolutionStepValue(rThisVariable, SolutionStepIndex);
     }
 
-    template<class TVariableType> typename TVariableType::Type& operator()(const TVariableType& rThisVariable)
+    template<class TVariableType> 
+    typename TVariableType::Type& operator()(const TVariableType& rThisVariable)
     {
         return GetSolutionStepValue(rThisVariable);
     }
 
-    template<class TDataType> TDataType& operator[](const Variable<TDataType>& rThisVariable)
+    template<class TDataType> 
+    TDataType& operator[](const Variable<TDataType>& rThisVariable)
     {
         return GetValue(rThisVariable);
     }
 
-    template<class TDataType> const TDataType& operator[](const Variable<TDataType>& rThisVariable) const
+    template<class TDataType> 
+    const TDataType& operator[](const Variable<TDataType>& rThisVariable) const
     {
         return GetValue(rThisVariable);
     }
 
-    double& operator[](IndexType ThisIndex)
-    {
-        return BaseType::operator[](ThisIndex);
-    }
-
-    double operator[](IndexType ThisIndex) const
-    {
-        return BaseType::operator[](ThisIndex);
-    }
+    double& operator[](IndexType ThisIndex);
+    
+    double operator[](IndexType ThisIndex) const;
 
     ///@}
     ///@name Nodal Data
     ///@{
 
-    void CreateSolutionStepData()
-    {
-        SolutionStepData().PushFront();
-    }
+    void CreateSolutionStepData();
 
-    void CloneSolutionStepData()
-    {
-        SolutionStepData().CloneFront();
-    }
+    void CloneSolutionStepData();
 
-    void OverwriteSolutionStepData(IndexType SourceSolutionStepIndex, IndexType DestinationSourceSolutionStepIndex)
-    {
-        SolutionStepData().AssignData(SolutionStepData().Data(SourceSolutionStepIndex), DestinationSourceSolutionStepIndex);
-    }
+    void OverwriteSolutionStepData(IndexType SourceSolutionStepIndex, IndexType DestinationSourceSolutionStepIndex);
 
-    void ClearSolutionStepsData()
-    {
-        SolutionStepData().Clear();
-    }
+    void ClearSolutionStepsData();
 
-    void SetSolutionStepVariablesList(VariablesList::Pointer pVariablesList)
-    {
-        SolutionStepData().SetVariablesList(pVariablesList);
-    }
+    void SetSolutionStepVariablesList(VariablesList::Pointer pVariablesList);
 
-    VariablesListDataValueContainer& SolutionStepData()
-    {
-        return mNodalData.GetSolutionStepData();
-    }
+    VariablesListDataValueContainer& SolutionStepData();
 
-    const VariablesListDataValueContainer& SolutionStepData() const
-    {
-        return mNodalData.GetSolutionStepData();
-    }
+    const VariablesListDataValueContainer& SolutionStepData() const;
 
     KRATOS_DEPRECATED_MESSAGE("This method is deprecated. Use 'GetData()' instead.")
-    DataValueContainer& Data()
-    {
-        return mData;
-    }
+    DataValueContainer& Data();
 
-    DataValueContainer& GetData()
-    {
-        return mData;
-    }
+    DataValueContainer& GetData();
 
-    const DataValueContainer& GetData() const
-    {
-        return mData;
-    }
+    const DataValueContainer& GetData() const;
 
-    template<class TVariableType> typename TVariableType::Type& GetSolutionStepValue(const TVariableType& rThisVariable)
+    template<class TVariableType> 
+    typename TVariableType::Type& GetSolutionStepValue(const TVariableType& rThisVariable)
     {
         return SolutionStepData().GetValue(rThisVariable);
     }
 
-    template<class TVariableType> typename TVariableType::Type const& GetSolutionStepValue(const TVariableType& rThisVariable) const
+    template<class TVariableType> 
+    typename TVariableType::Type const& GetSolutionStepValue(const TVariableType& rThisVariable) const
     {
         return SolutionStepData().GetValue(rThisVariable);
     }
 
-    template<class TVariableType> typename TVariableType::Type& GetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex)
+    template<class TVariableType> 
+    typename TVariableType::Type& GetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex)
     {
         return SolutionStepData().GetValue(rThisVariable, SolutionStepIndex);
     }
 
-    template<class TVariableType> typename TVariableType::Type const& GetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex) const
+    template<class TVariableType> 
+    typename TVariableType::Type const& GetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex) const
     {
         return SolutionStepData().GetValue(rThisVariable, SolutionStepIndex);
     }
 
-
-    bool SolutionStepsDataHas(const VariableData& rThisVariable) const
-    {
-        return SolutionStepData().Has(rThisVariable);
-    }
+    bool SolutionStepsDataHas(const VariableData& rThisVariable) const;
 
     //*******************************************************************************************
     //By Riccardo
     //very similar to the one before BUT throws an error if the variable does not exist
-    template<class TVariableType> typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable)
+    template<class TVariableType> 
+    typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable)
     {
         return SolutionStepData().FastGetValue(rThisVariable);
     }
 
-    template<class TVariableType> const typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable) const
+    template<class TVariableType> 
+    const typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable) const
     {
         return SolutionStepData().FastGetValue(rThisVariable);
     }
 
-    template<class TVariableType> typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex)
+    template<class TVariableType> 
+    typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex)
     {
         return SolutionStepData().FastGetValue(rThisVariable, SolutionStepIndex);
     }
 
-    template<class TVariableType> const typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex) const
+    template<class TVariableType> 
+    const typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex) const
     {
         return SolutionStepData().FastGetValue(rThisVariable, SolutionStepIndex);
     }
 
-    template<class TVariableType> typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex, IndexType ThisPosition)
+    template<class TVariableType> 
+    typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex, IndexType ThisPosition)
     {
         return SolutionStepData().FastGetValue(rThisVariable, SolutionStepIndex, ThisPosition);
     }
 
-    template<class TVariableType> typename TVariableType::Type& FastGetCurrentSolutionStepValue(const TVariableType& rThisVariable, IndexType ThisPosition)
+    template<class TVariableType> 
+    typename TVariableType::Type& FastGetCurrentSolutionStepValue(const TVariableType& rThisVariable, IndexType ThisPosition)
     {
         return SolutionStepData().FastGetCurrentValue(rThisVariable, ThisPosition);
     }
 //*******************************************************************************************
 
-    template<class TVariableType> typename TVariableType::Type& GetValue(const TVariableType& rThisVariable)
+    template<class TVariableType> 
+    typename TVariableType::Type& GetValue(const TVariableType& rThisVariable)
     {
         return mData.GetValue(rThisVariable);
     }
 
-    template<class TVariableType> typename TVariableType::Type const& GetValue(const TVariableType& rThisVariable) const
+    template<class TVariableType> 
+    typename TVariableType::Type const& GetValue(const TVariableType& rThisVariable) const
     {
         return mData.GetValue(rThisVariable);
     }
 
-    template<class TVariableType> typename TVariableType::Type& GetValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex)
+    template<class TVariableType> 
+    typename TVariableType::Type& GetValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex)
     {
         if(!mData.Has(rThisVariable))
             return SolutionStepData().GetValue(rThisVariable, SolutionStepIndex);
@@ -481,7 +323,8 @@ public:
         return mData.GetValue(rThisVariable);
     }
 
-    template<class TVariableType> typename TVariableType::Type const& GetValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex) const
+    template<class TVariableType> 
+    typename TVariableType::Type const& GetValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex) const
     {
         if(!mData.Has(rThisVariable))
             return SolutionStepData().GetValue(rThisVariable, SolutionStepIndex);
@@ -495,7 +338,8 @@ public:
         mData.SetValue(rThisVariable, rValue);
     }
 
-    template<class TDataType> bool Has(const Variable<TDataType>& rThisVariable) const
+    template<class TDataType> 
+    bool Has(const Variable<TDataType>& rThisVariable) const
     {
         return mData.Has(rThisVariable);
     }
@@ -515,8 +359,7 @@ public:
         }
 
 #ifdef KRATOS_DEBUG
-        if(OpenMPUtils::IsInParallel() != 0)
-        {
+        if(OpenMPUtils::IsInParallel() != 0) {
             KRATOS_ERROR << "Attempting to Fix the variable: " << rDofVariable << " within a parallel region. This is not permitted. Create the Dof first by pAddDof" << std::endl;
         }
 #endif
@@ -534,86 +377,45 @@ public:
         }
 
 #ifdef KRATOS_DEBUG
-        if(OpenMPUtils::IsInParallel() != 0)
-        {
+        if(OpenMPUtils::IsInParallel() != 0) {
             KRATOS_ERROR << "Attempting to Free the variable: " << rDofVariable << " within a parallel region. This is not permitted. Create the Dof first by pAddDof" << std::endl;
         }
 #endif
         pAddDof(rDofVariable)->FreeDof();
     }
 
-    IndexType GetBufferSize() const
-    {
-        return SolutionStepData().QueueSize();
-    }
+    IndexType GetBufferSize() const;
 
-    void SetBufferSize(IndexType NewBufferSize)
-    {
-        SolutionStepData().Resize(NewBufferSize);
-    }
+    void SetBufferSize(IndexType NewBufferSize);
 
     ///@}
     ///@name Access
     ///@{
 
-    const PointType& GetInitialPosition() const
-    {
-        return mInitialPosition;
-    }
-    PointType& GetInitialPosition()
-    {
-        return mInitialPosition;
-    }
+    const Point& GetInitialPosition() const;
 
-    double& X0()
-    {
-        return mInitialPosition.X();
-    }
-    double& Y0()
-    {
-        return mInitialPosition.Y();
-    }
-    double& Z0()
-    {
-        return mInitialPosition.Z();
-    }
+    Point& GetInitialPosition();
 
-    double X0() const
-    {
-        return mInitialPosition.X();
-    }
-    double Y0() const
-    {
-        return mInitialPosition.Y();
-    }
-    double Z0() const
-    {
-        return mInitialPosition.Z();
-    }
+    double& X0();
 
-    void SetInitialPosition(const PointType& NewInitialPosition)
-    {
-        mInitialPosition.X() = NewInitialPosition.X();
-        mInitialPosition.Y() = NewInitialPosition.Y();
-        mInitialPosition.Z() = NewInitialPosition.Z();
-    }
+    double& Y0();
+    
+    double& Z0();
+    
 
-    void SetInitialPosition(double X,double Y, double Z)
-    {
-        mInitialPosition.X() = X;
-        mInitialPosition.Y() = Y;
-        mInitialPosition.Z() = Z;
-    }
+    double X0() const;
+    
+    double Y0() const;
+    
+    double Z0() const;
 
-    VariablesList::Pointer pGetVariablesList()
-    {
-        return SolutionStepData().pGetVariablesList();
-    }
+    void SetInitialPosition(const Point& NewInitialPosition);
 
-    const VariablesList::Pointer pGetVariablesList() const
-    {
-        return SolutionStepData().pGetVariablesList();
-    }
+    void SetInitialPosition(double X,double Y, double Z);
+
+    VariablesList::Pointer pGetVariablesList();
+
+    const VariablesList::Pointer pGetVariablesList() const;
 
     ///@}
     ///@name Dofs
@@ -691,15 +493,9 @@ public:
     }
 
     /** returns all of the Dofs  */
-    DofsContainerType& GetDofs()
-    {
-        return mDofs;
-    }
+    DofsContainerType& GetDofs();
 
-    const DofsContainerType& GetDofs() const
-    {
-        return mDofs;
-    }
+    const DofsContainerType& GetDofs() const;
 
     /**
      * @brief Get DoF counted pointer for a given variable
@@ -918,28 +714,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
-    {
-        std::stringstream buffer;
-        buffer << "Node #" << Id();
-        return buffer.str();
-    }
+    std::string Info() const override;
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << Info();
-    }
+    void PrintInfo(std::ostream& rOStream) const override;
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-        BaseType::PrintData(rOStream);
-        if(!mDofs.empty())
-            rOStream << std::endl << "    Dofs :" << std::endl;
-        for(typename DofsContainerType::const_iterator i = mDofs.begin() ; i != mDofs.end() ; i++)
-            rOStream << "        " << (*i)->Info() << std::endl;
-    }
+    void PrintData(std::ostream& rOStream) const override;
 
     ///@}
     ///@name Friends
@@ -985,45 +766,39 @@ private:
 
     NodalData mNodalData;
 
-    /** storage for the dof of the node */
+    /// storage for the dof of the node
     DofsContainerType  mDofs;
 
-    /** A pointer to data related to this node. */
+    /// A pointer to data related to this node. 
     DataValueContainer mData;
 
-
-    ///Initial Position of the node
-    PointType mInitialPosition;
+    /// Initial Position of the node
+    Point mInitialPosition;
 
     LockObject mNodeLock;
 
     ///@}
     ///@name Private Operators
     ///@{
-    //*********************************************
+
     //this block is needed for refcounting
     mutable std::atomic<int> mReferenceCounter{0};
 
-    friend void intrusive_ptr_add_ref(const NodeType* x)
+    friend void intrusive_ptr_add_ref(const Node* x)
     {
         x->mReferenceCounter.fetch_add(1, std::memory_order_relaxed);
     }
 
-    friend void intrusive_ptr_release(const NodeType* x)
+    friend void intrusive_ptr_release(const Node* x)
     {
         if (x->mReferenceCounter.fetch_sub(1, std::memory_order_release) == 1) {
         std::atomic_thread_fence(std::memory_order_acquire);
         delete x;
         }
     }
-    //*********************************************
 
+    void SortDofs();
 
-    void SortDofs(){
-        std::sort(mDofs.begin(), mDofs.end(), [](Kratos::unique_ptr<DofType> const& First, Kratos::unique_ptr<DofType> const& Second)->bool{
-            return First->GetVariable().Key() < Second->GetVariable().Key();
-        });
-    }
     ///@}
     ///@name Private Operations
     ///@{
@@ -1034,27 +809,9 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Point );
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
-        rSerializer.save("NodalData", &mNodalData); // Storing it as pointer to be shared by Dof pointer
-        rSerializer.save("Data", mData);
-        rSerializer.save("Initial Position", mInitialPosition);
-        rSerializer.save("Data", mDofs);
+    void save(Serializer& rSerializer) const override;
 
-    }
-
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Point );
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
-        NodalData* p_nodal_data = &mNodalData;
-        rSerializer.load("NodalData", p_nodal_data);
-        rSerializer.load("Data", mData);
-        rSerializer.load("Initial Position", mInitialPosition);
-        rSerializer.load("Data", mDofs);
-    }
+    void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Private  Access
@@ -1101,10 +858,5 @@ inline std::ostream& operator << (std::ostream& rOStream,
     return rOStream;
 }
 ///@}
-
-//     namespace Globals
-//     {
-// 	extern Node DefaultNode3;
-//     }
 
 }  // namespace Kratos.
