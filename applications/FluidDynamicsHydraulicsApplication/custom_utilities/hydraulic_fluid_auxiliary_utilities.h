@@ -130,9 +130,10 @@ public:
      * @param  rVariable it is possible to use the variable VELOCITY_FRACTIONAL or VELOCITY
      * @param  rVariableNormal it is possible to use an auxiliar normal such as INLET_NORMAL 
      */
-    static void ApplyOutletInflowLimiter(ModelPart &rModelPart,
-    const Variable<array_1d<double,3>>& rVariable,
-    const Variable<array_1d<double, 3>>& rVariableNormal);    
+    static void ApplyOutletInflowLimiter(
+        ModelPart &rModelPart,
+        const Variable<array_1d<double,3>>& rVariable,
+        const Variable<array_1d<double, 3>>& rVariableNormal);    
 
     ///@}
 
