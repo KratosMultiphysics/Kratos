@@ -345,7 +345,10 @@ void HydraulicFluidAuxiliaryUtilities::CalculateNonIntersectedElementsArtificial
     });
 }
 
-void HydraulicFluidAuxiliaryUtilities::ApplyOutletInflowLimiter(ModelPart &rModelPart,const Variable<array_1d<double, 3>>& rVariable,const Variable<array_1d<double, 3>>& rVariableNormal)
+void HydraulicFluidAuxiliaryUtilities::ApplyOutletInflowLimiter(
+    ModelPart &rModelPart,
+    const Variable<array_1d<double, 3>>& rVariable,
+    const Variable<array_1d<double, 3>>& rVariableNormal)
 {
 
     block_for_each(rModelPart.Nodes(), [&](NodeType& rNode)
