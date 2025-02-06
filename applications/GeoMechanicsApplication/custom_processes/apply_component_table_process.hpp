@@ -111,7 +111,10 @@ public:
 
     void ExecuteFinalize() override
     {
-        VariableUtils().ApplyFixity(KratosComponents<Variable<double>>::Get(mVariableName), false, mrModelPart.Nodes());
+        if (mIsFixed) {
+            VariableUtils().ApplyFixity(KratosComponents<Variable<double>>::Get(mVariableName),
+                                        false, mrModelPart.Nodes());
+        }
     }
 
     /// this function will be executed at every time step BEFORE performing the solve phase
