@@ -21,7 +21,7 @@ namespace Kratos::Testing
 
 KRATOS_TEST_CASE_IN_SUITE(CalculateYieldFunctions, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    double friction_angle = 35.0;
+    double friction_angle = 35.0 * Globals::Pi / 180.0;
     double cohesion = 0.75;
     double tension_cutoff = 1.0;
 
