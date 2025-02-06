@@ -307,7 +307,10 @@ void HydraulicFluidAuxiliaryUtilities::SetInletFreeSurface(ModelPart &rModelPart
     });
 }
 
-void HydraulicFluidAuxiliaryUtilities::CalculateArtificialViscosity(ModelPart &rModelPart,double WaterDynamicViscosityMax){
+void HydraulicFluidAuxiliaryUtilities::CalculateNonIntersectedElementsArtificialViscosity(
+    ModelPart &rModelPart,
+    double DynamicViscosityMax)
+{
     const auto &r_process_info = rModelPart.GetProcessInfo();
 
     block_for_each(rModelPart.Elements(), [&](Element &rElement)
