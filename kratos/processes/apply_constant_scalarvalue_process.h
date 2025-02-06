@@ -142,11 +142,13 @@ public:
      */
     void ExecuteInitialize() override;
 
+    /**
+     * @brief This function is designed for being called at the end of the computations
+     */
     void ExecuteFinalize() override;
 
     /**
-     * @brief This method provides the defaults parameters to avoid conflicts
-     * between the different constructors
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
      */
     const Parameters GetDefaultParameters() const override;
 

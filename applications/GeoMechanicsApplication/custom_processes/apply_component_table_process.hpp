@@ -18,7 +18,6 @@
 #include "includes/model_part.h"
 #include "includes/table.h"
 #include "processes/process.h"
-#include "utilities/variable_utils.h"
 
 #include "geo_mechanics_application_variables.h"
 
@@ -107,14 +106,6 @@ public:
         }
 
         KRATOS_CATCH("")
-    }
-
-    void ExecuteFinalize() override
-    {
-        if (mIsFixed) {
-            VariableUtils().ApplyFixity(KratosComponents<Variable<double>>::Get(mVariableName),
-                                        false, mrModelPart.Nodes());
-        }
     }
 
     /// this function will be executed at every time step BEFORE performing the solve phase
