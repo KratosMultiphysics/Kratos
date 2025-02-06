@@ -120,7 +120,7 @@ public:
     /**
      * @brief  Artificial viscosity is calculated. The purpose of adding this artificial viscosity is to avoid non-physical spikes in velocities.
      * @param  rModelPart Fluid Model Part
-     * @param  WaterDynamicViscosityMax It is a threshold value to prevent adding excessive artificial numerical viscosity and thereby losing the real physics.
+     * @param  DynamicViscosityMax It is a threshold value to prevent adding excessive artificial numerical viscosity and thereby losing the real physics.
      */
     static void CalculateArtificialViscosity(ModelPart &rModelPart, double WaterDynamicViscosityMax);
 
