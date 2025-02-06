@@ -270,13 +270,17 @@ void HydraulicFluidAuxiliaryUtilities::SetInletVelocity(
         if (rNode.GetValue(rDistanceVariable) < 0.0)
         {
             rNode.FastGetSolutionStepValue(VELOCITY) =  inlet_velocity;
+
             rNode.Fix(VELOCITY_X);
             rNode.Fix(VELOCITY_Y);
             rNode.Fix(VELOCITY_Z);
         }
         else{
             // The air velocity in the inlet node is assumed to be null.
-            rNode.FastGetSolutionStepValue(VELOCITY) = 0.1 * inlet_velocity;
+            double alpha = (3.5-rNode.GetValue(rDistanceVariable))/3.5;
+
+
+            rNode.FastGetSolutionStepValue(VELOCITY) = alpha*inlet_velocity;
             // rNode.FastGetSolutionStepValue(VELOCITY_Y) = 0.0;
             // rNode.FastGetSolutionStepValue(VELOCITY_Z) = 0.0;
             rNode.Fix(VELOCITY_X);
@@ -312,19 +316,13 @@ void HydraulicFluidAuxiliaryUtilities::CalculateArtificialViscosity(ModelPart &r
 
     block_for_each(rModelPart.Elements(), [&](Element &rElement)
     {
-    double artificial_viscosity;
-
-    rElement.Calculate(ARTIFICIAL_DYNAMIC_VISCOSITY,artificial_viscosity ,r_process_info);
-        if (artificial_viscosity > WaterDynamicViscosityMax)
-        {
-            artificial_viscosity = WaterDynamicViscosityMax;
-        }
+        double artificial_viscosity;
+        // Check if the element is cut
         double neg_nodes = 0.0;
         double pos_nodes=0.0;
         for (auto &r_node : rElement.GetGeometry())
         {
             double distance = r_node.FastGetSolutionStepValue(DISTANCE);
-
             if (distance > 0)
             {
                 pos_nodes += 1;
@@ -334,9 +332,20 @@ void HydraulicFluidAuxiliaryUtilities::CalculateArtificialViscosity(ModelPart &r
                 neg_nodes += 1;
             }
         }
-        if (neg_nodes > 0 && pos_nodes > 0)
+        // Calculate the artificial viscosity
+        if (neg_nodes > 0 && pos_nodes > 0) 
         {
+            // If the element is cut, the artificial viscosity is set to zero.
             artificial_viscosity = 0.0;
+        }
+        else
+        {
+            // If the element is NOT cut, the artificial viscosity is calculated.
+            rElement.Calculate(ARTIFICIAL_DYNAMIC_VISCOSITY,artificial_viscosity ,r_process_info);
+            if (artificial_viscosity > WaterDynamicViscosityMax)
+            {
+                artificial_viscosity = WaterDynamicViscosityMax;
+            }
         }
         rElement.SetValue(ARTIFICIAL_DYNAMIC_VISCOSITY, artificial_viscosity);
     });

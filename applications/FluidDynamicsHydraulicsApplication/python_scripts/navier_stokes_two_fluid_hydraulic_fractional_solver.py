@@ -157,9 +157,7 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_WATER_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
-        self.main_model_part.AddNodalSolutionStepVariable(
-            KratosCFD.OUTLET_NORMAL)
-
+        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.OUTLET_NORMAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE) # Distance function nodal values
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT) # Distance gradient nodal values
@@ -237,7 +235,14 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         )
         self.domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
+        self.initialize_flaging= True
 
+        skin_parts = [self.model.GetModelPart(name) for name in self.skin_name_list]
+        for skin_part in skin_parts:
+            for node in skin_part.Nodes:
+                node.Set(KratosMultiphysics.OUTLET)
+            for condition in skin_part.Conditions:
+                condition.Set(KratosMultiphysics.OUTLET)
 
     def Check(self):
         super().Check()
@@ -247,9 +252,38 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
 
     def InitializeSolutionStep(self):
 
+        #TODO: TESTIG
+        self.DetectedCutElements()
+
+        if self.initialize_flaging:
+            self.FlagingPreBlock()
+            self.initialize_flaging= False
+
+        self.current_step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
+        print(self.current_step)
+        self.air_steps=0.0
+        self.water_steps=0.0
+
+        self.air_bloqued = False
+        self.water_bloqued = False
+
+        if self.current_step <= self.air_steps:
+            self.air_bloqued = True
+        elif self.air_bloqued < self.current_step <= self.water_steps:
+            self.water_bloqued = True
+            self.air_bloqued = False
+        else:
+           self.water_bloqued = False
+
+        # self.BlockingControl(self.air_steps, self.water_steps, self.current_step,self.air_bloqued,self.water_bloqued)
+        self.PreBloquedProcess()
+
+      
+
         # skin_parts = [self.model.GetModelPart(name) for name in self.skin_name_list]
         # for skin_part in skin_parts:
         #     KratosHydraulics.HydraulicFluidAuxiliaryUtilities.FixingInflow(skin_part, KratosCFD.FRACTIONAL_VELOCITY, self.domain_size)
+    
         # Inlet and outlet water discharge is calculated for current time step, first discharge and the considering the time step inlet and outlet volume is calculated
         if self.mass_source:
             self._ComputeStepInitialWaterVolume()
@@ -656,3 +690,74 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         not_boundary_nodes=any([node.Is(boundary) for node in computing_model_part.Nodes])
         if not not_boundary_nodes:
             KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, name +" condition is not defined in the model part.")
+    
+
+
+    def FlagingPreBlock(self):
+        for node in self.main_model_part.Nodes:
+            if node.IsFixed(KratosMultiphysics.VELOCITY_X):
+                node.Set(KratosMultiphysics.RIGID, True)
+            elif node.IsFixed(KratosMultiphysics.VELOCITY_Y):
+                node.Set(KratosMultiphysics.RIGID, True)
+            elif node.IsFixed(KratosMultiphysics.VELOCITY_Z):
+                node.Set(KratosMultiphysics.RIGID, True)
+
+    def BlockAndFix(self, velocity, pressure,node):
+        if node.IsNot(KratosMultiphysics.RIGID):
+            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, velocity)
+            node.SetSolutionStepValue(KratosMultiphysics.PRESSURE, pressure)
+            node.Fix(KratosMultiphysics.VELOCITY_X)
+            node.Fix(KratosMultiphysics.VELOCITY_Y)
+            node.Fix(KratosMultiphysics.VELOCITY_Z)
+
+    def FreeAll(self,node):
+        if node.IsNot(KratosMultiphysics.RIGID):
+            node.Free(KratosMultiphysics.VELOCITY_X)
+            node.Free(KratosMultiphysics.VELOCITY_Y)
+            node.Free(KratosMultiphysics.VELOCITY_Z)
+
+    def DetectedCutElements(self):
+        for element in self.main_model_part.Elements:
+            pos_node=0.0
+            neg_node=0.0
+            nodes= element.GetNodes()
+            for node in nodes:
+                phi =node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+                if phi>0.0:
+                    pos_node+=1
+                else:
+                    neg_node+=1
+            if neg_node>0 and pos_node>0:
+                # cut element
+                for node in nodes:
+                    node.Set(KratosMultiphysics.SOLID,True)
+
+
+    def PreBloquedProcess(self):
+        for node in self.main_model_part.Nodes:
+            phi = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+            if self.air_bloqued:
+                if phi>0:
+                    velocity=[0.0,0.0,0.0]
+                    pressure=0.0
+                    self.BlockAndFix(velocity, pressure, node)
+
+            elif self.water_bloqued:
+                if phi<0:
+                    velocity = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,1)
+                    pressure = node.GetSolutionStepValue(KratosMultiphysics.PRESSURE, 1)
+                    self.BlockAndFix(velocity,pressure,node)
+                    node.Fix(KratosMultiphysics.PRESSURE)
+
+                elif phi>0.0:
+                    self.FreeAll(node)
+            # elif node.Is(KratosMultiphysics.SOLID):
+            #     if self.current_step<self.air_steps:
+            #         velocity = [0.0, 0.0, 0.0]
+            #         pressure=0.0
+            #         self.BlockAndFix(velocity, pressure, node)
+
+
+            else:
+                self.FreeAll(node)
+                node.Free(KratosMultiphysics.PRESSURE)
