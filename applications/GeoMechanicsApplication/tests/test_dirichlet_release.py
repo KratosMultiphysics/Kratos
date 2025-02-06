@@ -37,7 +37,7 @@ class KratosGeoMechanicsDirichletReleaseTests(KratosUnittest.TestCase):
             reader = test_helper.GiDOutputFileReader()
             output_data.append(reader.read_output_from(output_file_name))
 
-        # Expected stress, resulting from the elongation, Poisson effects (nu = 0.2) and
+        # Expected stress, resulting from the compression, Poisson effects (nu = 0.2) and
         # the strain in the x-direction (partially induced by the water pressure).
         expected_cauchy_stress_yy = -1016.67
 

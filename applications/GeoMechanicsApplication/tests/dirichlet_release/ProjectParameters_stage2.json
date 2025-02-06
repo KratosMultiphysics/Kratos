@@ -1,6 +1,6 @@
 {
     "problem_data": {
-        "problem_name":         "dirichlet_u",
+        "problem_name":         "dirichlet_release",
         "start_time":           1.0,
         "end_time":             2.0,
         "echo_level":           1,
@@ -83,7 +83,7 @@
                         "skin_output":         false,
                         "plane_output":        [],
                         "nodal_results":       ["WATER_PRESSURE","DISPLACEMENT","TOTAL_DISPLACEMENT"],
-			"gauss_point_results": ["CAUCHY_STRESS_TENSOR", "GREEN_LAGRANGE_STRAIN_TENSOR"]
+			            "gauss_point_results": ["CAUCHY_STRESS_TENSOR", "GREEN_LAGRANGE_STRAIN_TENSOR"]
                     }
                 }
             }
