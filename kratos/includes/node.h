@@ -52,10 +52,18 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// This class defines the node
-/** The node class from Kratos is defined in this class
-*/
-class Node : public Point, public Flags
+/**
+ * @ingroup KratosCore
+ * @class Node
+ * @brief This class defines the node
+ * @details The node class from Kratos is defined in this class. Represents a node in a finite element model.
+ * The Node class provides various functionalities for handling nodal data,
+ * degrees of freedom (DOFs), etc...
+ * @author Pooyan Dadvand
+ * @author Riccardo Rossi
+ */
+class Node 
+    : public Point, public Flags
 {
 public:
     ///@name Type Definitions
@@ -143,32 +151,65 @@ public:
     /// 3d with variables list and data constructor.
     Node(IndexType NewId, const double NewX, const double NewY, const double NewZ, VariablesList::Pointer  pVariablesList, BlockType const * ThisData, SizeType NewQueueSize = 1);
 
+    /**
+     * @brief Creates a clone of the current node.
+     * @details This function creates a new node with the same ID and coordinates as
+     * the current node, copies its nodal data, DOFs, and flags.
+     * @return Pointer to the cloned node.
+     */
     typename Node::Pointer Clone();
 
-    /// Destructor.
+    /**
+     * @brief Destructor for the Node class.
+     * @details Clears any stored solution step data before destruction.
+     */
     ~Node() override;
 
-    //*********************************************
-    //public API of intrusive_ptr
+    /**
+     * @brief Gets the reference count of the node.
+     * @details Public API of intrusive_ptr
+     * @return The current reference count.
+     */
     unsigned int use_count() const noexcept
     {
         return mReferenceCounter;
     }
-    //*********************************************
 
+    /**
+     * @brief Retrieves the node ID.
+     * @return The ID of the node.
+     */
     IndexType Id() const;
 
+    /**
+     * @brief Retrieves the node ID (alternative method).
+     * @return The ID of the node.
+     */
     IndexType GetId() const;
 
+    /**
+     * @brief Sets a new ID for the node.
+     * @param NewId The new ID to assign.
+     */
     void SetId(IndexType NewId);
 
+    /**
+     * @brief Retrieves the lock object for thread safety.
+     * @return A reference to the lock object.
+     */
     LockObject& GetLock();
 
+    /**
+     * @brief Locks the node for thread-safe operations.
+     */
     inline void SetLock()
     {
         mNodeLock.lock();
     }
 
+    /**
+     * @brief Unlocks the node.
+     */
     inline void UnSetLock()
     {
         mNodeLock.unlock();
@@ -178,88 +219,209 @@ public:
     ///@name Operators
     ///@{
 
-    /// Assignment operator.
+    /**
+     * @brief Assignment operator for deep copying a node.
+     * @details Copies the nodal data, DOFs, and initial position from another node.
+     * @param rOther The node to copy from.
+     * @return A reference to the copied node.
+     */
     Node& operator=(const Node& rOther);
 
+    /**
+     * @brief Equality operator.
+     * @details Compares two nodes based on their position.
+     * @param rOther The node to compare with.
+     * @return True if nodes are equal, false otherwise.
+     */
     bool operator==(const Node& rOther);
 
+    /**
+     * @brief Accesses a solution step value for a given variable and step index.
+     * @tparam TVariableType The type of the variable.
+     * @param rThisVariable The variable to access.
+     * @param SolutionStepIndex The solution step index.
+     * @return Reference to the stored value.
+     */
     template<class TVariableType> 
     typename TVariableType::Type& operator()(const TVariableType& rThisVariable, IndexType SolutionStepIndex)
     {
         return GetSolutionStepValue(rThisVariable, SolutionStepIndex);
     }
 
+    /**
+     * @brief Accesses the current solution step value for a given variable.
+     * @tparam TVariableType The type of the variable.
+     * @param rThisVariable The variable to access.
+     * @return Reference to the stored value.
+     */
     template<class TVariableType> 
     typename TVariableType::Type& operator()(const TVariableType& rThisVariable)
     {
         return GetSolutionStepValue(rThisVariable);
     }
 
+    /**
+     * @brief Accessor for node data using a variable.
+     * @tparam TDataType The type of data stored.
+     * @param rThisVariable The variable representing the data.
+     * @return Reference to the stored data.
+     */
     template<class TDataType> 
     TDataType& operator[](const Variable<TDataType>& rThisVariable)
     {
         return GetValue(rThisVariable);
     }
 
+    /**
+     * @brief Const accessor for node data using a variable.
+     * @tparam TDataType The type of data stored.
+     * @param rThisVariable The variable representing the data.
+     * @return Const reference to the stored data.
+     */
     template<class TDataType> 
     const TDataType& operator[](const Variable<TDataType>& rThisVariable) const
     {
         return GetValue(rThisVariable);
     }
 
+    /**
+     * @brief Accessor for node coordinates.
+     * @param ThisIndex The index of the coordinate (0 = X, 1 = Y, 2 = Z).
+     * @return Reference to the coordinate value.
+     */
     double& operator[](IndexType ThisIndex);
-    
+
+    /**
+     * @brief Const accessor for node coordinates.
+     * @param ThisIndex The index of the coordinate (0 = X, 1 = Y, 2 = Z).
+     * @return The coordinate value.
+     */
     double operator[](IndexType ThisIndex) const;
 
     ///@}
     ///@name Nodal Data
     ///@{
 
+    /**
+     * @brief Creates a new solution step data entry.
+     * @details Adds a new solution step at the front of the solution step data container.
+     */
     void CreateSolutionStepData();
 
+    /**
+     * @brief Clones the current solution step data.
+     * @details Copies the front solution step data to create a new step.
+     */
     void CloneSolutionStepData();
 
+    /**
+     * @brief Overwrites solution step data at a given index.
+     * @details Copies the data from a source solution step index to a destination index.
+     * @param SourceSolutionStepIndex The index of the source solution step.
+     * @param DestinationSourceSolutionStepIndex The index of the destination step where the data will be assigned.
+     */
     void OverwriteSolutionStepData(IndexType SourceSolutionStepIndex, IndexType DestinationSourceSolutionStepIndex);
 
+    /**
+     * @brief Clears all stored solution step data.
+     * @details Removes all solution step data entries.
+     */
     void ClearSolutionStepsData();
 
+    /**
+     * @brief Sets the list of solution step variables.
+     * @details Assigns a new variables list to the solution step data.
+     * @param pVariablesList Pointer to the new list of variables.
+     */
     void SetSolutionStepVariablesList(VariablesList::Pointer pVariablesList);
 
+    /**
+     * @brief Retrieves the solution step data container.
+     * @return Reference to the solution step data container.
+     */
     VariablesListDataValueContainer& SolutionStepData();
 
+    /**
+     * @brief Retrieves the solution step data container (const version).
+     * @return Const reference to the solution step data container.
+     */
     const VariablesListDataValueContainer& SolutionStepData() const;
 
+    /**
+     * @deprecated This method is deprecated. Use GetData() instead.
+     * @brief Retrieves the data container for the node.
+     * @return Reference to the data container.
+     */
     KRATOS_DEPRECATED_MESSAGE("This method is deprecated. Use 'GetData()' instead.")
     DataValueContainer& Data();
 
+    /**
+     * @brief Retrieves the data container for the node.
+     * @return Reference to the data container.
+     */
     DataValueContainer& GetData();
 
+    /**
+     * @brief Retrieves the data container for the node (const version).
+     * @return Const reference to the data container.
+     */
     const DataValueContainer& GetData() const;
 
+    /**
+     * @brief Retrieves the solution step value for a given variable.
+     * @tparam TVariableType The type of the variable.
+     * @param rThisVariable The variable whose value is to be retrieved.
+     * @return Reference to the stored value.
+     */
     template<class TVariableType> 
     typename TVariableType::Type& GetSolutionStepValue(const TVariableType& rThisVariable)
     {
         return SolutionStepData().GetValue(rThisVariable);
     }
 
+    /**
+     * @brief Retrieves the solution step value for a given variable (const version).
+     * @tparam TVariableType The type of the variable.
+     * @param rThisVariable The variable whose value is to be retrieved.
+     * @return Const reference to the stored value.
+     */
     template<class TVariableType> 
     typename TVariableType::Type const& GetSolutionStepValue(const TVariableType& rThisVariable) const
     {
         return SolutionStepData().GetValue(rThisVariable);
     }
 
+    /**
+     * @brief Retrieves the solution step value for a given variable at a specific step.
+     * @tparam TVariableType The type of the variable.
+     * @param rThisVariable The variable whose value is to be retrieved.
+     * @param SolutionStepIndex The index of the solution step.
+     * @return Reference to the stored value.
+     */
     template<class TVariableType> 
     typename TVariableType::Type& GetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex)
     {
         return SolutionStepData().GetValue(rThisVariable, SolutionStepIndex);
     }
 
+    /**
+     * @brief Retrieves the solution step value for a given variable at a specific step (const version).
+     * @tparam TVariableType The type of the variable.
+     * @param rThisVariable The variable whose value is to be retrieved.
+     * @param SolutionStepIndex The index of the solution step.
+     * @return Const reference to the stored value.
+     */
     template<class TVariableType> 
     typename TVariableType::Type const& GetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex) const
     {
         return SolutionStepData().GetValue(rThisVariable, SolutionStepIndex);
     }
 
+    /**
+     * @brief Checks if the solution step data contains a given variable.
+     * @param rThisVariable The variable to check.
+     * @return True if the variable exists in the solution step data, false otherwise.
+     */
     bool SolutionStepsDataHas(const VariableData& rThisVariable) const;
 
     //*******************************************************************************************
