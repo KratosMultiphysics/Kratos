@@ -26,7 +26,7 @@ The [`ApplyMPMSlipBoundaryProcess`](https://github.com/KratosMultiphysics/Kratos
 String identifying the name of the target ModelPart.
 
 ##### `option`
-If set to `"flip_normal"`, the normals of each node of the target model part are flipped.
+If set to `"flip_normal"`, the normal of each node of the target model part is flipped.
 
 ##### `avoid_recomputing_normals`
 If `false`, the process recomputes the normals of each node of the target model part in the initialization of every solution step.
