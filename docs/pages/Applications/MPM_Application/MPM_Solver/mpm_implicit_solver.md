@@ -6,6 +6,11 @@ sidebar: mpm_application
 summary: 
 ---
 
+The `MPMImplicitDynamicSolver` implements both the **Newmark** and **Bossak-Newmark** time schemes.
+
+The parameters to be included in the `solver_settings` section of the `ProjectParameters.json` input file are the following.
+
+## Newmark Time Scheme
 
 ```json
 {
@@ -15,6 +20,8 @@ summary:
     "newmark_beta"            : 0.25
 }
 ```
+
+## Bossak Time Scheme
 
 ```json
 {
