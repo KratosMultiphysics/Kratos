@@ -141,7 +141,7 @@ ApplyConstantScalarValueProcess::ApplyConstantScalarValueProcess(
     KRATOS_TRY;
 
     KRATOS_ERROR_IF_NOT(this->IsDefined(VARIABLE_IS_FIXED)) << "Please specify if the variable is to be fixed or not (flag VARIABLE_IS_FIXED)" << std::endl;
-    KRATOS_ERROR_IF(this->Is(VARIABLE_IS_FIXED)) << "Sorry it is not possible to fix variables of type Variable<int>. Only double variables or vector components can be fixed" << std::endl;
+    KRATOS_ERROR_IF(this->Is(VARIABLE_IS_FIXED)) << "Sorry it is not possible to fix variables of type Variable<bool>. Only double variables or vector components can be fixed" << std::endl;
     KRATOS_ERROR_IF_NOT(rModelPart.GetNodalSolutionStepVariablesList().Has(rVariable)) << "Trying to fix a variable that is not in the rModelPart - variable name is " << rVariable << std::endl;
 
     mVariableName = rVariable.Name();
@@ -176,7 +176,10 @@ void ApplyConstantScalarValueProcess::ExecuteInitialize() {
   KRATOS_CATCH("");
 }
 void ApplyConstantScalarValueProcess::ExecuteFinalize() {
-    VariableUtils().ApplyFixity(KratosComponents<Variable<double>>::Get(mVariableName), false, mrModelPart.Nodes());
+    if (this->Is(VARIABLE_IS_FIXED) && KratosComponents<Variable<double>>::Has(mVariableName)) {
+        VariableUtils().ApplyFixity(
+            KratosComponents<Variable<double>>::Get(mVariableName), false, mrModelPart.Nodes());
+    }
 }
 
 /***********************************************************************************/
