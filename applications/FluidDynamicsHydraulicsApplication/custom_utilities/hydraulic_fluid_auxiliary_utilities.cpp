@@ -307,27 +307,19 @@ void HydraulicFluidAuxiliaryUtilities::SetInletFreeSurface(ModelPart &rModelPart
     });
 }
 
-void HydraulicFluidAuxiliaryUtilities::CalculateNonIntersectedElementsArtificialViscosity(
-    ModelPart &rModelPart,
-    double DynamicViscosityMax)
-{
+void HydraulicFluidAuxiliaryUtilities::CalculateArtificialViscosity(ModelPart &rModelPart,
+    double WaterDynamicViscosityMax)
+    {   
     const auto &r_process_info = rModelPart.GetProcessInfo();
-
     block_for_each(rModelPart.Elements(), [&](Element &rElement)
     {
-    double artificial_viscosity;
-
-    rElement.Calculate(ARTIFICIAL_DYNAMIC_VISCOSITY,artificial_viscosity ,r_process_info);
-        if (artificial_viscosity > WaterDynamicViscosityMax)
-        {
-            artificial_viscosity = WaterDynamicViscosityMax;
-        }
+        double artificial_viscosity;
+        // Check if the element is cut
         double neg_nodes = 0.0;
         double pos_nodes=0.0;
         for (auto &r_node : rElement.GetGeometry())
         {
             double distance = r_node.FastGetSolutionStepValue(DISTANCE);
-            
             if (distance > 0)
             {
                 pos_nodes += 1;
@@ -337,9 +329,20 @@ void HydraulicFluidAuxiliaryUtilities::CalculateNonIntersectedElementsArtificial
                 neg_nodes += 1;
             }
         }
-        if (neg_nodes > 0 && pos_nodes > 0)
+        // Calculate the artificial viscosity
+        if (neg_nodes > 0 && pos_nodes > 0) 
         {
+            // If the element is cut, the artificial viscosity is set to zero.
             artificial_viscosity = 0.0;
+        }
+        else
+        {
+            // If the element is NOT cut, the artificial viscosity is calculated.
+            rElement.Calculate(ARTIFICIAL_DYNAMIC_VISCOSITY,artificial_viscosity ,r_process_info);
+            if (artificial_viscosity > WaterDynamicViscosityMax)
+            {
+                artificial_viscosity = WaterDynamicViscosityMax;
+            }
         }
         rElement.SetValue(ARTIFICIAL_DYNAMIC_VISCOSITY, artificial_viscosity);
     });
