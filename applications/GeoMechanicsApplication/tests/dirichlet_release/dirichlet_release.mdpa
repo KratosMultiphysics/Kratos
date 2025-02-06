@@ -38,13 +38,6 @@ Begin SubModelPart Left
   End SubModelPartNodes
 End SubModelPart
 
-Begin SubModelPart Right
-  Begin SubModelPartNodes
-    2
-    3
-  End SubModelPartNodes
-End SubModelPart
-
 Begin SubModelPart Top
   Begin SubModelPartNodes
     3
