@@ -558,7 +558,7 @@ public:
      * @brief Set the Surrogate Outer Loop Geometries object
      * @param pSurrogateOuterLoopArray 
      */
-    void SetSurrogateOuterLoopGeometries(GeometrySurrogateArrayType pSurrogateOuterLoopArray)
+    void SetSurrogateOuterLoopGeometries(GeometrySurrogateArrayType &pSurrogateOuterLoopArray)
     {
         mpSurrogateOuterLoopGeometries = pSurrogateOuterLoopArray;
     }
@@ -567,7 +567,7 @@ public:
      * @brief Set the Surrogate Inner Loop Geometries object
      * @param pSurrogateInnerLoopArray 
      */
-    void SetSurrogateInnerLoopGeometries(GeometrySurrogateArrayType pSurrogateInnerLoopArray)
+    void SetSurrogateInnerLoopGeometries(GeometrySurrogateArrayType &pSurrogateInnerLoopArray)
     {
         mpSurrogateInnerLoopGeometries = pSurrogateInnerLoopArray;
     }
@@ -576,7 +576,7 @@ public:
      * @brief Get the Surrogate Inner Loop Geometries object
      * @return GeometrySurrogateArrayType 
      */
-    GeometrySurrogateArrayType GetSurrogateInnerLoopGeometries()
+    GeometrySurrogateArrayType& GetSurrogateInnerLoopGeometries()
     {
         return mpSurrogateInnerLoopGeometries;
     }
@@ -585,7 +585,7 @@ public:
      * @brief Get the Surrogate Outer Loop Geometries object
      * @return GeometrySurrogateArrayType 
      */
-    GeometrySurrogateArrayType GetSurrogateOuterLoopGeometries()
+    GeometrySurrogateArrayType& GetSurrogateOuterLoopGeometries()
     {
         return mpSurrogateOuterLoopGeometries;
     }
