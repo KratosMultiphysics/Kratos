@@ -484,81 +484,28 @@ public:
     {
         Timer::Start("Build");
 
-        // // Getting model part data
-        // const SizeType n_elem = rModelPart.NumberOfElements();
-        // const SizeType n_cond = rModelPart.NumberOfConditions();
-        // auto el_begin = rModelPart.ElementsBegin();
-        // auto cond_begin = rModelPart.ConditionsBegin();
-        // const auto& r_process_info = rModelPart.GetProcessInfo();
-
-        // // Arrays for the local contributions to the system
-        // LocalSystemMatrixType loc_lhs = LocalSystemMatrixType(0, 0);
-        // LocalSystemVectorType loc_rhs = LocalSystemVectorType(0);
-
-        // // Vector containing the localization in the system of the different terms
-        // Element::EquationIdVectorType eq_ids;
-
-        // KRATOS_WATCH("Before building elements and conditions")
-
-        // // Assemble elements and conditions
-        // const auto timer = BuiltinTimer();
-        // #pragma omp parallel firstprivate(n_elem, n_cond, loc_lhs, loc_rhs, eq_ids, r_process_info)
-        // {
-        //     // Assemble elements
-        //     # pragma omp for schedule(guided, 512) nowait
-        //     for (int k = 0; k < n_elem; ++k) {
-        //         auto it_elem = el_begin + k;
-        //         if (it_elem->IsActive()) {
-        //             // Calculate local LHS and RHS contributions
-        //             it_elem->CalculateLocalSystem(loc_lhs, loc_rhs, r_process_info);
-
-        //             // Get the positions in the global system
-        //             it_elem->EquationIdVector(eq_ids, r_process_info);
-
-        //             // Assemble the local contributions to the global system
-        //             rRHS.Assemble(loc_rhs, eq_ids);
-        //             rLHS.Assemble(loc_lhs, eq_ids);
-        //         }
-        //     }
-
-        //     // Assemble conditions
-        //     #pragma omp for schedule(guided, 512)
-        //     for (int k = 0; k < n_cond; ++k) {
-        //         auto it_cond = cond_begin + k;
-        //         if (it_cond->IsActive()) {
-        //             // Calculate local LHS and RHS contributions
-        //             it_cond->CalculateLocalSystem(loc_lhs, loc_rhs, r_process_info);
-
-        //             // Get the positions in the global system
-        //             it_cond->EquationIdVector(eq_ids, r_process_info);
-
-        //             // Assemble the local contributions to the global system
-        //             rRHS.Assemble(loc_rhs, eq_ids);
-        //             rLHS.Assemble(loc_lhs, eq_ids);
-        //         }
-        //     }
-        // }
-
         const auto timer = BuiltinTimer();
 
-        // auto elem_func = [](ModelPart::ElementIterator ItElem){
-        //     if (ItElem->IsActive()) {
-        //         // Calculate local LHS and RHS contributions
-        //         ItElem->CalculateLocalSystem(loc_lhs, loc_rhs, r_process_info);
+        struct TLS
+        {
+            LocalSystemMatrixType LocLhs; // Local LHS contribution
+            LocalSystemVectorType LocRhs; // Local RHS constribution
+            Element::EquationIdVectorType LocEqIds; // Vector containing the localization in the system of the different terms
+        };
 
-        //         // Get the positions in the global system
-        //         ItElem->EquationIdVector(eq_ids, r_process_info);
+        const auto elem_func = [](ModelPart::ElementConstantIterator ItElem, const ProcessInfo& rProcessInfo, TLS& rTLS){
+            // Calculate local LHS and RHS contributions
+            ItElem->CalculateLocalSystem(rTLS.LocLhs, rTLS.LocRhs, rProcessInfo);
+        };
 
-        //         // Assemble the local contributions to the global system
-        //         rRHS.Assemble(loc_rhs, eq_ids);
-        //         rLHS.Assemble(loc_lhs, eq_ids);
-        //     }
-        // };
-        auto elem_func = [](ModelPart::ElementIterator ItElem){};
-        auto cond_func = [](ModelPart::ConditionIterator ItCond){};
-        // AssemblyUtilities<>::Assemble(rModelPart.Elements(), rModelPart.GetProcessInfo(), elem_func, rLHS, rRHS);
-        AssemblyUtilities<>::AssembleLocalSystemElements(rModelPart, elem_func, rLHS, rRHS);
-        AssemblyUtilities<>::AssembleLocalSystemConditions(rModelPart, cond_func, rLHS, rRHS);
+        const auto cond_func = [](ModelPart::ConditionConstantIterator ItCond, const ProcessInfo& rProcessInfo, TLS& rTLS){
+            // Calculate local LHS and RHS contributions
+            ItCond->CalculateLocalSystem(rTLS.LocLhs, rTLS.LocRhs, rProcessInfo);
+        };
+
+        TLS aux_tls;
+        AssemblyUtilities<>::AssembleLocalSystemElements<>(rModelPart, elem_func, rLHS, rRHS, aux_tls);
+        AssemblyUtilities<>::AssembleLocalSystemConditions<>(rModelPart, cond_func, rLHS, rRHS, aux_tls);
 
         KRATOS_INFO_IF("NewScheme", mEchoLevel >= 1) << "Build time: " << timer << std::endl;
         KRATOS_INFO_IF("NewScheme", mEchoLevel >= 2) << "Finished parallel building" << std::endl;

@@ -81,63 +81,26 @@ public:
     ///@name Operations
     ///@{
 
+    template<class TAssemblyImplementation, class TThreadLocalStorage>
     static void AssembleLocalSystemElements(
         const ModelPart& rModelPart,
-        const std::function<void(typename ModelPart::ElementIterator)>& rAssemblyImplementation,
+        const TAssemblyImplementation& rAssemblyImplementation,
         SystemMatrixType& rLHS,
-        SystemVectorType& rRHS)
+        SystemVectorType& rRHS,
+        TThreadLocalStorage& rTLS)
     {
-        Assemble(rModelPart.Elements(), rModelPart.GetProcessInfo(), rAssemblyImplementation, rLHS, rRHS);
+        Assemble(rModelPart.Elements(), rModelPart.GetProcessInfo(), rAssemblyImplementation, rLHS, rRHS, rTLS);
     }
 
+    template<class TAssemblyImplementation, class TThreadLocalStorage>
     static void AssembleLocalSystemConditions(
         const ModelPart& rModelPart,
-        const std::function<void(typename ModelPart::ConditionIterator)>& rAssemblyImplementation,
+        const TAssemblyImplementation& rAssemblyImplementation,
         SystemMatrixType& rLHS,
-        SystemVectorType& rRHS)
+        SystemVectorType& rRHS,
+        TThreadLocalStorage& rTLS)
     {
-        Assemble(rModelPart.Conditions(), rModelPart.GetProcessInfo(), rAssemblyImplementation, rLHS, rRHS);
-    }
-
-    template<class TEntityContainer>
-    static void Assemble(
-        const TEntityContainer& rEntities,
-        const ProcessInfo& rProcessInfo,
-        const std::function<void(typename TEntityContainer::iterator)>& rAssemblyImplementation,
-        SystemMatrixType& rLHS,
-        SystemVectorType& rRHS)
-    {
-        // Getting entities container data
-        auto ent_begin = rEntities.begin();
-        const SizeType n_ent = rEntities.size();
-
-        // Arrays for the local contributions to the system
-        LocalSystemMatrixType loc_lhs = LocalSystemMatrixType(0, 0);
-        LocalSystemVectorType loc_rhs = LocalSystemVectorType(0);
-
-        // Vector containing the localization in the system of the different terms
-        Element::EquationIdVectorType eq_ids;
-
-        // Assemble entities
-        #pragma omp parallel firstprivate(n_ent, loc_lhs, loc_rhs, eq_ids, rProcessInfo)
-        {
-            // Assemble elements
-            # pragma omp for schedule(guided, 512) nowait
-            for (int k = 0; k < n_ent; ++k) {
-                auto it_ent = ent_begin + k;
-                if (it_ent->IsActive()) {
-                    // Calculate local LHS and RHS contributions
-                    it_ent->CalculateLocalSystem(loc_lhs, loc_rhs, rProcessInfo);
-
-                    // Get the positions in the global system
-                    it_ent->EquationIdVector(eq_ids, rProcessInfo);
-
-                    // Assemble the local contributions to the global system
-                    rRHS.Assemble(loc_rhs, eq_ids);
-                    rLHS.Assemble(loc_lhs, eq_ids);
-                }
-            }
-        }
+        Assemble(rModelPart.Conditions(), rModelPart.GetProcessInfo(), rAssemblyImplementation, rLHS, rRHS, rTLS);
     }
 
     ///@}
@@ -155,6 +118,40 @@ private:
     ///@name Private Operations
     ///@{
 
+    template<class TEntityContainer, class TAssemblyImplementation, class TThreadLocalStorage>
+    static void Assemble(
+        const TEntityContainer& rEntities,
+        const ProcessInfo& rProcessInfo,
+        const TAssemblyImplementation& rAssemblyImplementation,
+        SystemMatrixType& rLHS,
+        SystemVectorType& rRHS,
+        TThreadLocalStorage& rTLS)
+    {
+        // Getting entities container data
+        auto ent_begin = rEntities.begin();
+        const SizeType n_ent = rEntities.size();
+
+        // Assemble entities
+        #pragma omp parallel firstprivate(n_ent, rTLS, rProcessInfo)
+        {
+            // Assemble elements
+            # pragma omp for schedule(guided, 512) nowait
+            for (int k = 0; k < n_ent; ++k) {
+                auto it_ent = ent_begin + k;
+                if (it_ent->IsActive()) {
+                    // Calculate local LHS and RHS contributions
+                    rAssemblyImplementation(it_ent, rProcessInfo, rTLS);
+
+                    // Get the positions in the global system
+                    it_ent->EquationIdVector(rTLS.LocEqIds, rProcessInfo);
+
+                    // Assemble the local contributions to the global system
+                    rRHS.Assemble(rTLS.LocRhs, rTLS.LocEqIds);
+                    rLHS.Assemble(rTLS.LocLhs, rTLS.LocEqIds);
+                }
+            }
+        }
+    }
 
     ///@}
 }; // Class AssemblyUtilities
