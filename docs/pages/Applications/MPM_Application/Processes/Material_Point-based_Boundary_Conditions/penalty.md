@@ -42,7 +42,10 @@ Penalty coefficient used in the penalty method to enforce Dirichlet boundary con
 
 ##### `variable_name`
 String identifying the variable whose value is to be imposed using the Penalty method.
-Admissible values are `"DISPLACEMENT"`, `"VELOCITY"` and `"ACCELERATION"`.
+Admissible values are:
+* `"DISPLACEMENT"`
+* `"VELOCITY"`
+* `"ACCELERATION"`
 
 ##### `constrained`
 Specifies the type of Dirichlet boundary condition to be imposed. Admissible values are:

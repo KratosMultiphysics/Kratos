@@ -32,3 +32,7 @@ The parameters to be included in the `solver_settings` section of the `ProjectPa
     "newmark_beta"            : 0.25
 }
 ```
+
+## Source Code
+
+[<i class="fa fa-github"></i> `MPMApplication/python_scripts/mpm_implicit_dynamic_solver.py`](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/MPMApplication/python_scripts/mpm_implicit_dynamic_solver.py)

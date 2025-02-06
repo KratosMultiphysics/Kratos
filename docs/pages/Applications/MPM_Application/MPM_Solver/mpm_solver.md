@@ -6,12 +6,14 @@ sidebar: mpm_application
 summary: 
 ---
 
+## Overview
+
 The solver is responsible for handling the simulation physics and solving the problem. We should remark the following points, that apply to all Kratos Applications:
 * solvers are always implemented at the Python level;
 * all solvers extend the base `PythonSolver` class, which can be found in [this script](https://github.com/KratosMultiphysics/Kratos/kratos/python_scripts/python_solver.py). This base solver does not include any physics and its purpose is to define the solver class API.
 
 Each Kratos Multiphysics application may implement multiple solvers, each tailored to different types of problems or simulation strategies. For example, the `MPMApplication` implements the following solvers:
-* `MPMImplicitDyanamicSolver` - solves time-dependent problems by means of an implicit time scheme;
+* [`MPMImplicitDyanamicSolver`](./mpm_implicit_solver) - solves time-dependent problems by means of an implicit time scheme;
 * `MPMExplicitSolver` - solves time-dependent problems using an explicit time scheme;
 * `MPMQuasiStaticSolver` - solves quasi-static problems;
 * `MPMStaticSolver` - solves static problems.
@@ -23,6 +25,8 @@ The solver is also responsible for creating and managing the solution strategy (
 The solver is initialized through a custom `AnalysisStage` class, which uses (part of) the parameters from the `solver_settings` section of the `ProjectParameters.json` input file (introduced [here](../Input_Files/json#projectparametersjson)). The `solver_settings` also contain other parameters used by the solver to define the linear solver and the solution strategy.
 
 Once initialised, the solver can be accessed from the `AnalysisStage` class by calling the `_GetSolver()` method.
+
+## Parameters & Defaults
 
 The most important parameters contained in the `solver_settings` section of the `ProjectParameters.json` input file and required for the initialisation and configuration of MPM solvers extending the `MPMSolver` class are the following.
 
@@ -98,3 +102,7 @@ The most important parameters contained in the `solver_settings` section of the 
 * `pressure_dofs`: boolean variable identifying the type of MPM formulation to be used (displacement based if `false`, mixed displacement-pressure if `true`).
 * `linear_solver_settings`: object defining the type of solver to be used for solving the linear system.
 * `auxiliary_variables_list`: list of strings, each one representing an additional variable required in the simulation process.
+
+## Source Code
+
+[<i class="fa fa-github"></i> `MPMApplication/python_scripts/mpm_solver.py`](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/MPMApplication/python_scripts/mpm_solver.py)
