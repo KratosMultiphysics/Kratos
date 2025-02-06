@@ -558,18 +558,18 @@ public:
      * @brief Set the Surrogate Outer Loop Geometries object
      * @param pSurrogateOuterLoopArray 
      */
-    void SetSurrogateOuterLoopGeometries(const GeometrySurrogateArrayType &pSurrogateOuterLoopArray)
+    void SetSurrogateOuterLoopGeometries(const GeometrySurrogateArrayType &rSurrogateOuterLoopArray)
     {
-        mpSurrogateOuterLoopGeometries = pSurrogateOuterLoopArray;
+        mpSurrogateOuterLoopGeometries = rSurrogateOuterLoopArray;
     }
     
     /**
      * @brief Set the Surrogate Inner Loop Geometries object
      * @param pSurrogateInnerLoopArray 
      */
-    void SetSurrogateInnerLoopGeometries(const GeometrySurrogateArrayType &pSurrogateInnerLoopArray)
+    void SetSurrogateInnerLoopGeometries(const GeometrySurrogateArrayType &rSurrogateInnerLoopArray)
     {
-        mpSurrogateInnerLoopGeometries = pSurrogateInnerLoopArray;
+        mpSurrogateInnerLoopGeometries = rSurrogateInnerLoopArray;
     }
 
     /**
@@ -636,8 +636,8 @@ private:
     BrepCurveOnSurfaceArrayType mEmbeddedEdgesArray;
 
 
-    GeometrySurrogateArrayType mpSurrogateInnerLoopGeometries;
-    GeometrySurrogateArrayType mpSurrogateOuterLoopGeometries;
+    GeometrySurrogateArrayType* mpSurrogateInnerLoopGeometries;
+    GeometrySurrogateArrayType* mpSurrogateOuterLoopGeometries;
 
     /** IsTrimmed is used to optimize processes as
     *   e.g. creation of integration domain.
