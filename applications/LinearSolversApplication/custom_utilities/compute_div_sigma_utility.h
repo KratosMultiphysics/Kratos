@@ -163,11 +163,11 @@ public:
             b_xy(i) = mSigmaValues[i][2];
         }
 
-        double condition_number = A.jacobiSvd().singularValues()(0) / A.jacobiSvd().singularValues().tail(1)(0);
-        if (condition_number > 1e10) { // Adjust the threshold based on your problem
-            std::cerr << "Warning: Matrix A is ill-conditioned. Condition number: " << condition_number << std::endl;
-            exit(0);
-        }
+        // double condition_number = A.jacobiSvd().singularValues()(0) / A.jacobiSvd().singularValues().tail(1)(0);
+        // if (condition_number > 1e10) { // Adjust the threshold based on your problem
+        //     std::cerr << "Warning: Matrix A is ill-conditioned. Condition number: " << condition_number << std::endl;
+        //     exit(0);
+        // }
 
         // Solve for coefficients using least squares
         Eigen::VectorXd c_xx = A.colPivHouseholderQr().solve(b_xx);

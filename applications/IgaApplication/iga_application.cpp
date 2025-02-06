@@ -82,7 +82,7 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1)))) 
     , mSupportFluidDirichletConditionTheta(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
-    , mSupportFluidDirichletCondition(0, Condition::GeometryType::Pointer(
+    , mSupportFluidCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSupportPressureDirichletCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
@@ -137,7 +137,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_CONDITION("SBMLoadSolid2DCondition", mSBMLoadSolid2DCondition)
     KRATOS_REGISTER_CONDITION("SupportContact2DCondition", mSupportContact2DCondition)
     KRATOS_REGISTER_CONDITION("SupportFluidDirichletConditionTheta", mSupportFluidDirichletConditionTheta)
-    KRATOS_REGISTER_CONDITION("SupportFluidDirichletCondition", mSupportFluidDirichletCondition)
+    KRATOS_REGISTER_CONDITION("SupportFluidCondition", mSupportFluidCondition)
     KRATOS_REGISTER_CONDITION("SupportPressureDirichletCondition", mSupportPressureDirichletCondition)
     KRATOS_REGISTER_CONDITION("SBMFluidCondition", mSBMFluidCondition)
 

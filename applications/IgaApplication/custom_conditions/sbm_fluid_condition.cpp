@@ -114,9 +114,11 @@ void SBMFluidCondition::CalculateAll(
     Vector add_factor = prod(Jacobian, tangent_parameter_space);
     add_factor[2] = 0.0;
     DetJ0 = norm_2(add_factor);
-    
+
+    // Vector meshSize_uv = this->GetValue(MARKER_MESHES);
+    // double h = std::min(meshSize_uv[0], meshSize_uv[1]);
     double h_element_size = norm_2(r_geometry[0].Coordinates()-r_geometry[1].Coordinates());
-    double penalty_integration = penalty * integration_points[0].Weight() * std::abs(DetJ0) / h_element_size;
+    double penalty_integration = penalty * mBasisFunctionsOrder * mBasisFunctionsOrder * integration_points[0].Weight() * std::abs(DetJ0) / h_element_size;
     const double integration_weight = integration_points[0].Weight() * std::abs(DetJ0);
 
 
@@ -138,10 +140,10 @@ void SBMFluidCondition::CalculateAll(
     }
     Vector projection(3);
     projection = candidate_closest_skin_segment_1.GetGeometry()[closestNodeId].Coordinates() ;
-    // Print on external file the projection coordinates (projection[0],projection[1]) -> For PostProcess
-    std::ofstream outputFile("txt_files/Projection_Coordinates.txt", std::ios::app);
-    outputFile << projection[0] << " " << projection[1] << " " << projection[2] << " " << r_geometry.Center().X() << " " << r_geometry.Center().Y() << " " << r_geometry.Center().Z() <<"\n";
-    outputFile.close();
+    //// Print on external file the projection coordinates (projection[0],projection[1]) -> For PostProcess
+    // std::ofstream outputFile("txt_files/Projection_Coordinates.txt", std::ios::app);
+    // outputFile << projection[0] << " " << projection[1] << " " << projection[2] << " " << r_geometry.Center().X() << " " << r_geometry.Center().Y() << " " << r_geometry.Center().Z() <<"\n";
+    // outputFile.close();
 
     Vector distanceVector(3);
     noalias(distanceVector) = projection - r_geometry.Center().Coordinates();
@@ -415,6 +417,15 @@ void SBMFluidCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessI
     // // Set the u_D_old for the next time_step
     // SetValue(ANGULAR_VELOCITY_X, u_D[0]);
     // SetValue(ANGULAR_VELOCITY_Y, u_D[1]);
+
+    Condition candidate_closest_skin_segment_1 = this->GetValue(NEIGHBOUR_CONDITIONS)[0] ;
+    Vector projection(3);
+    // closestNodeId = 0 for simplicity
+    projection = candidate_closest_skin_segment_1.GetGeometry()[0].Coordinates() ;
+    // Print on external file the projection coordinates (projection[0],projection[1]) -> For PostProcess
+    std::ofstream outputFile("txt_files/Projection_Coordinates.txt", std::ios::app);
+    outputFile << projection[0] << " " << projection[1] << " " << projection[2] << " " << GetGeometry().Center().X() << " " << GetGeometry().Center().Y() << " " << GetGeometry().Center().Z() <<"\n";
+    outputFile.close();
     
 }
 

@@ -53,7 +53,7 @@
 #include "custom_conditions/sbm_load_solid_2D_condition.h"
 #include "custom_conditions/support_contact_2D_condition.h"
 #include "custom_conditions/support_fluid_dirichlet_condition_theta.h"
-#include "custom_conditions/support_fluid_dirichlet_condition.h"
+#include "custom_conditions/support_fluid_condition.h"
 #include "custom_conditions/support_pressure_dirichlet_condition.h"
 #include "custom_conditions/sbm_fluid_condition.h"
 
@@ -171,7 +171,7 @@ private:
     const SBMLoadSolid2DCondition mSBMLoadSolid2DCondition;
     const SupportContact2DCondition mSupportContact2DCondition;
     const SupportFluidDirichletConditionTheta mSupportFluidDirichletConditionTheta;
-    const SupportFluidDirichletCondition mSupportFluidDirichletCondition;
+    const SupportFluidCondition mSupportFluidCondition;
     const SupportPressureDirichletCondition mSupportPressureDirichletCondition;
 
     // Modelers

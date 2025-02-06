@@ -280,6 +280,14 @@ class IGAFluidSolver(navier_stokes_monolithic_solver.NavierStokesMonolithicSolve
             # if (node.X == 0.0 and node.Y == 0.0):
             #     node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , 0.0)
             #     node.Fix(KratosMultiphysics.PRESSURE)
+
+            # if (node.X == 2.0 and node.Y == 0.0):
+            #     node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , node.X**2 + node.Y**2)
+            #     node.Fix(KratosMultiphysics.PRESSURE)
+            
+            # if (node.X == 2.0 and node.Y == 2.0):
+            #     node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , node.X**2 + node.Y**2)
+            #     node.Fix(KratosMultiphysics.PRESSURE)
             
             # if (node.X == 0.0 and node.Y == 0.0):
             #     node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , node.X + node.Y)

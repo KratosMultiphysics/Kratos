@@ -16,11 +16,11 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/support_fluid_dirichlet_condition.h"
+#include "custom_conditions/support_fluid_condition.h"
 
 namespace Kratos
 {
-void SupportFluidDirichletCondition::CalculateAll(
+void SupportFluidCondition::CalculateAll(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo,
@@ -37,10 +37,17 @@ void SupportFluidDirichletCondition::CalculateAll(
     // Integration
     const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
     const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(r_geometry.GetDefaultIntegrationMethod());
-    
+
     const unsigned int dim = DN_De[0].size2();
     Matrix DN_DX(number_of_nodes,dim);
     noalias(DN_DX) = DN_De[0]; // prod(DN_De[point_number],InvJ0);
+
+        // Compute basis function order (Note: it is not allow to use different orders in different directions)
+    if (dim == 3) {
+        mBasisFunctionsOrder = std::cbrt(DN_De[0].size1()) - 1;
+    } else {
+        mBasisFunctionsOrder = std::sqrt(DN_De[0].size1()) - 1;
+    }
 
     const SizeType mat_size = number_of_nodes * (dim+1);
     //resizing as needed the LHS
@@ -187,6 +194,7 @@ void SupportFluidDirichletCondition::CalculateAll(
     u_D[0] = this->GetValue(VELOCITY_X);
     u_D[1] = this->GetValue(VELOCITY_Y);
 
+
     for (IndexType i = 0; i < number_of_nodes; i++) {
 
         for (IndexType idim = 0; idim < 2; idim++) {
@@ -213,7 +221,7 @@ void SupportFluidDirichletCondition::CalculateAll(
     KRATOS_CATCH("")
 }
 
-void SupportFluidDirichletCondition::CalculateB(
+void SupportFluidCondition::CalculateB(
         Matrix& rB, 
         const ShapeDerivativesType& r_DN_DX) const
 {
@@ -238,12 +246,12 @@ void SupportFluidDirichletCondition::CalculateB(
     }
 }
 
-void SupportFluidDirichletCondition:: Initialize(const ProcessInfo& rCurrentProcessInfo)
+void SupportFluidCondition:: Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     InitializeMaterial();
 }
 
-void SupportFluidDirichletCondition::InitializeMaterial()
+void SupportFluidCondition::InitializeMaterial()
 {
     KRATOS_TRY
     if ( GetProperties()[CONSTITUTIVE_LAW] != nullptr ) {
@@ -260,15 +268,15 @@ void SupportFluidDirichletCondition::InitializeMaterial()
     KRATOS_CATCH( "" );
 }
 
-int SupportFluidDirichletCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
+int SupportFluidCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_ERROR_IF_NOT(GetProperties().Has(PENALTY_FACTOR))
-        << "No penalty factor (PENALTY_FACTOR) defined in property of SupportFluidDirichletCondition" << std::endl;
+        << "No penalty factor (PENALTY_FACTOR) defined in property of SupportFluidCondition" << std::endl;
     return 0;
 }
 
 
-void SupportFluidDirichletCondition::EquationIdVector(EquationIdVectorType &rResult, const ProcessInfo &rCurrentProcessInfo) const
+void SupportFluidCondition::EquationIdVector(EquationIdVectorType &rResult, const ProcessInfo &rCurrentProcessInfo) const
 {
     const int dim = 2;
     const GeometryType& rGeom = this->GetGeometry();
@@ -290,7 +298,7 @@ void SupportFluidDirichletCondition::EquationIdVector(EquationIdVectorType &rRes
 }
 
 
-void SupportFluidDirichletCondition::GetDofList(
+void SupportFluidCondition::GetDofList(
     DofsVectorType& rElementalDofList,
     const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -311,7 +319,7 @@ void SupportFluidDirichletCondition::GetDofList(
 };
 
 
-void SupportFluidDirichletCondition::GetValuesVector(
+void SupportFluidCondition::GetValuesVector(
         Vector& rValues) const
 {
     const SizeType number_of_control_points = GetGeometry().size();
@@ -330,7 +338,7 @@ void SupportFluidDirichletCondition::GetValuesVector(
     }
 }
 
-void SupportFluidDirichletCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+void SupportFluidCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     // const auto& r_geometry = GetGeometry();
 
@@ -345,7 +353,7 @@ void SupportFluidDirichletCondition::FinalizeSolutionStep(const ProcessInfo& rCu
 }
 
 /// Reads in a json formatted file and returns its KratosParameters instance.
-Parameters SupportFluidDirichletCondition::ReadParamatersFile(
+Parameters SupportFluidCondition::ReadParamatersFile(
     const std::string& rDataFileName) const
 {
     std::ifstream infile(rDataFileName);
