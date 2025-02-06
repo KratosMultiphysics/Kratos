@@ -152,22 +152,31 @@ ApplyConstantScalarValueProcess::ApplyConstantScalarValueProcess(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ApplyConstantScalarValueProcess::ExecuteInitialize()
-{
-    KRATOS_TRY;
-    const bool is_fixed = this->Is(VARIABLE_IS_FIXED);
+void ApplyConstantScalarValueProcess::ExecuteInitialize() {
+  KRATOS_TRY;
+  const bool is_fixed = this->Is(VARIABLE_IS_FIXED);
 
-    if( KratosComponents<Variable<double>>::Has( mVariableName ) ) { //case of double variable
-        InternalApplyValue<>(KratosComponents< Variable<double> >::Get(mVariableName) , is_fixed, mDoubleValue);
-    } else if( KratosComponents<Variable<int>>::Has( mVariableName ) ) { // Case of int variable
-        InternalApplyValueWithoutFixing<>(KratosComponents<Variable<int>>::Get(mVariableName) , mIntValue);
-    } else if( KratosComponents< Variable<bool> >::Has( mVariableName ) )  { // Case of bool variable
-        InternalApplyValueWithoutFixing<>(KratosComponents<Variable<bool>>::Get(mVariableName), mBoolValue);
-    } else {
-        KRATOS_ERROR << "Not able to fix the variable. Attempting to fix variable: " << mVariableName << std::endl;
-    }
+  if (KratosComponents<Variable<double>>::Has(
+          mVariableName)) { // case of double variable
+    InternalApplyValue<>(KratosComponents<Variable<double>>::Get(mVariableName),
+                         is_fixed, mDoubleValue);
+  } else if (KratosComponents<Variable<int>>::Has(
+                 mVariableName)) { // Case of int variable
+    InternalApplyValueWithoutFixing<>(
+        KratosComponents<Variable<int>>::Get(mVariableName), mIntValue);
+  } else if (KratosComponents<Variable<bool>>::Has(
+                 mVariableName)) { // Case of bool variable
+    InternalApplyValueWithoutFixing<>(
+        KratosComponents<Variable<bool>>::Get(mVariableName), mBoolValue);
+  } else {
+    KRATOS_ERROR << "Not able to fix the variable. Attempting to fix variable: "
+                 << mVariableName << std::endl;
+  }
 
-    KRATOS_CATCH("");
+  KRATOS_CATCH("");
+}
+void ApplyConstantScalarValueProcess::ExecuteFinalize() {
+    VariableUtils().ApplyFixity(KratosComponents<Variable<double>>::Get(mVariableName), false, mrModelPart.Nodes());
 }
 
 /***********************************************************************************/

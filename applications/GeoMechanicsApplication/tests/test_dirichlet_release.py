@@ -37,59 +37,62 @@ class KratosGeoMechanicsDirichletReleaseTests(KratosUnittest.TestCase):
             reader = test_helper.GiDOutputFileReader()
             output_data.append(reader.read_output_from(output_file_name))
 
+
+        expected_cauchy_stress_yy = -1041.67
+
         self.check_expected_outputs(
-            expected_stage_displacement=-0.1,
-            expected_stress=-1066.67,
-            expected_total_displacement_and_strain=-0.1,
+            expected_stage_displacement_and_strain=-0.1,
+            expected_stress=expected_cauchy_stress_yy,
+            expected_total_displacement=-0.1,
             output_data=output_data,
-            stage_nr=0,
+            stage_nr=1,
             time=1.0,
         )
 
         self.check_expected_outputs(
-            expected_stage_displacement=0.1,
+            expected_stage_displacement_and_strain=0.1,
             expected_stress=0.0,
-            expected_total_displacement_and_strain=0.0,
+            expected_total_displacement=0.0,
             output_data=output_data,
-            stage_nr=1,
+            stage_nr=2,
             time=2.0,
         )
 
     def check_expected_outputs(
         self,
-        expected_stage_displacement,
+        expected_stage_displacement_and_strain,
         expected_stress,
-        expected_total_displacement_and_strain,
+        expected_total_displacement,
         output_data,
         stage_nr,
         time,
     ):
         # displacement of the top node
         displacement_top_node = test_helper.GiDOutputFileReader.nodal_values_at_time(
-            "DISPLACEMENT", time, output_data[stage_nr], [3]
+            "DISPLACEMENT", time, output_data[stage_nr-1], [3]
         )[0]
-        self.assertAlmostEqual(expected_stage_displacement, displacement_top_node[1], 2)
+        self.assertAlmostEqual(expected_stage_displacement_and_strain, displacement_top_node[1], 2)
         total_displacement_top_node = (
             test_helper.GiDOutputFileReader.nodal_values_at_time(
-                "TOTAL_DISPLACEMENT", time, output_data[stage_nr], [3]
+                "TOTAL_DISPLACEMENT", time, output_data[stage_nr-1], [3]
             )[0]
         )
         self.assertAlmostEqual(
-            expected_total_displacement_and_strain, total_displacement_top_node[1], 2
+            expected_total_displacement, total_displacement_top_node[1], 2
         )
         # integration point check in element 1, integration point 4 ( uniform stress and strain so an arbitrary choice )
         green_lagrange_strains_2_4 = (
             test_helper.GiDOutputFileReader.element_integration_point_values_at_time(
-                "GREEN_LAGRANGE_STRAIN_TENSOR", time, output_data[stage_nr], [1], [3]
+                "GREEN_LAGRANGE_STRAIN_TENSOR", time, output_data[stage_nr-1], [1], [3]
             )[0][0]
         )
         green_lagrange_strains_2_4_yy = green_lagrange_strains_2_4[1]
         self.assertAlmostEqual(
-            expected_total_displacement_and_strain, green_lagrange_strains_2_4_yy, 2
+            expected_stage_displacement_and_strain, green_lagrange_strains_2_4_yy, 2
         )
         cauchy_stresses_2_4 = (
             test_helper.GiDOutputFileReader.element_integration_point_values_at_time(
-                "CAUCHY_STRESS_TENSOR", time, output_data[stage_nr], [1], [3]
+                "CAUCHY_STRESS_TENSOR", time, output_data[stage_nr-1], [1], [3]
             )[0][0]
         )
         cauchy_stresses_2_4_yy = cauchy_stresses_2_4[1]

@@ -109,6 +109,13 @@ void ApplyVectorConstraintTableProcess::ExecuteInitializeSolutionStep()
     }
 }
 
+void ApplyVectorConstraintTableProcess::ExecuteFinalize()
+{
+    for (const auto& process : mProcesses) {
+        process->ExecuteFinalize();
+    }
+}
+
 std::string ApplyVectorConstraintTableProcess::Info() const
 {
     return "ApplyVectorConstraintTableProcess";
