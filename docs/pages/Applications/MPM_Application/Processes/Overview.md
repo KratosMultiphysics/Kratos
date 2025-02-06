@@ -6,26 +6,16 @@ sidebar: mpm_application
 summary: 
 ---
 
-# Output Processes
+In `KratosMultiphysics`, boundary and initial conditions are typically imposed by means of Python classes extending the base [`Process`](https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/processes/process.h) class, which is implemented in the `KratosCore`.
+More details about the `Process` class can be found the [dedicated documentation webpage](../../../Kratos/Processes/process) and in the [Kratos Crash Course](../../../Kratos/For_Users/Crash_Course/5_Simulation_Loop). The parameters required by python processes must be defined in the `"processes": {}` section of the `ProjectParameters.json` file (more details about this input file can be found [here](../Input_Files/json#projectparametersjson)).
 
-In `KratosMultiphysics`, simulation results are typically written to a file (or multiple files) using Python classes that extend the base `OutputProcess` class, which is implemented in the `KratosCore`.
-The parameters required by these output processes must be defined in the `"output_processes": {}` section of the `ProjectParameters.json` file.
-In particular, in the `MPMApplication`, two kinds of output processes can be used, i.e., the **grid** and the **material point** output processes.
 
-## Material Point Output Processes
-The **material point** output processes, which are implemented within the `MPMApplication`, provide information contained in the material point elements or conditions.
-This type of output processes includes:
-- [MPM GiD Output Process](./mpm_gid_output_process) ([<i class="fa fa-github"></i> code](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/MPMApplication/python_scripts/mpm_gid_output_process.py))
-- [MPM Vtk Output Process](./mpm_vtk_output_process) ([<i class="fa fa-github"></i> code](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/MPMApplication/python_scripts/mpm_vtk_output_process.py))
-- [MPM Point Output Process](./mpm_point_output_process) ([<i class="fa fa-github"></i> code](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/MPMApplication/python_scripts/mpm_point_output_process.py))
-- [MPM Multiple Points Output Process](./mpm_multiple_points_output_process) ([<i class="fa fa-github"></i> code](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/MPMApplication/python_scripts/mpm_multiple_points_output_process.py))
-- [MPM Json Output Process](./mpm_json_output_process) ([<i class="fa fa-github"></i> code](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/MPMApplication/python_scripts/mpm_json_output_process.py))
+In the `MPMApplication`, the following processes are implemented.
 
-## Grid Output Processes
-The **grid** output processes, which are implemented in the Kratos Core (see [here](../../../Kratos/Processes/Output_Process/Output_Process)), provide information at the background grid level.
-This type of output processes includes:
-- [GiD Output Process](../../../Kratos/Processes/Output_Process/GiD_Output_Process) ([<i class="fa fa-github"></i> code](https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/python_scripts/gid_output_process.py))
-- [Vtk Output Process](../../../Kratos/Processes/Output_Process/VTK_Output_Process) ([<i class="fa fa-github"></i> code](https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/python_scripts/vtk_output_process.py))
-- Vtu Output Process ([<i class="fa fa-github"></i> code](https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/python_scripts/vtu_output_process.py))
-- [Point Output Process](../../../Kratos/Processes/Output_Process/Point_output_process) ([<i class="fa fa-github"></i> code](https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/python_scripts/point_output_process.py))
-- Multiple Points Output Process ([<i class="fa fa-github"></i> code](https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/python_scripts/multiple_points_output_process.py))
+* [AssignGravityToMaterialPointProcess](./assign_gravity) ([<i class="fa fa-github"></i> code](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/MPMApplication/python_scripts/assign_gravity_to_material_point_process.py)) - Process assigning gravity to the material point elements of an MPM submodel part
+* [AssignInitialVelocityToMaterialPointProcess](./assign_initial_velocity) ([<i class="fa fa-github"></i> code](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/MPMApplication/python_scripts/assign_initial_velocity_to_material_point_process.py)) - Process assigning an initial velocity to the material point elements of an MPM submodel part
+* **Grid-based boundary conditions** (or conforming/fitted boundary conditions) - Processes imposing boundary conditions on the nodes of a background grid submodel part
+    - [AssignVectorVariableProcess](./Grid-based_Boundary_Conditions/fixed_displacement_boundary_condition) ([<i class="fa fa-github"></i> code](https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/python_scripts/assign_vector_variable_process.py)) - Process implemented in the Kratos Core for imposing a value to the nodes of a model part and here used for imposing a zero displacement boundary condition
+    - [ApplyMPMSlipBoundaryProcess](./Grid-based_Boundary_Conditions/slip_boundary_condition) ([<i class="fa fa-github"></i> code](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/MPMApplication/python_scripts/apply_mpm_slip_boundary_process.py)) - Process imposing zero displacement in the direction orthogonal to the conditions of a background grid submodel part (no constraints in the tangent direction)
+* **Material Point-based boundary conditions** (or non-conforming/unfitted boundary conditions) - Processes imposing boundary conditions by means of (moving) boundary material points
+    - [ApplyMPMParticleDirichletConditionProcess](./Material_Point-based_Boundary_Conditions/penalty) ([<i class="fa fa-github"></i> code](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/MPMApplication/python_scripts/apply_mpm_particle_dirichlet_condition_process.py)) - Process imposing Dirichlet boundary conditions by means of the Penalty method
