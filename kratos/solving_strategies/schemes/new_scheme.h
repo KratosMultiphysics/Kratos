@@ -540,7 +540,25 @@ public:
         // }
 
         const auto timer = BuiltinTimer();
-        BuildUtilities<>::Build(rModelPart, rLHS, rRHS);
+
+        // auto elem_func = [](ModelPart::ElementIterator ItElem){
+        //     if (ItElem->IsActive()) {
+        //         // Calculate local LHS and RHS contributions
+        //         ItElem->CalculateLocalSystem(loc_lhs, loc_rhs, r_process_info);
+
+        //         // Get the positions in the global system
+        //         ItElem->EquationIdVector(eq_ids, r_process_info);
+
+        //         // Assemble the local contributions to the global system
+        //         rRHS.Assemble(loc_rhs, eq_ids);
+        //         rLHS.Assemble(loc_lhs, eq_ids);
+        //     }
+        // };
+        auto elem_func = [](ModelPart::ElementIterator ItElem){};
+        auto cond_func = [](ModelPart::ConditionIterator ItCond){};
+        // AssemblyUtilities<>::Assemble(rModelPart.Elements(), rModelPart.GetProcessInfo(), elem_func, rLHS, rRHS);
+        AssemblyUtilities<>::AssembleLocalSystemElements(rModelPart, elem_func, rLHS, rRHS);
+        AssemblyUtilities<>::AssembleLocalSystemConditions(rModelPart, cond_func, rLHS, rRHS);
 
         KRATOS_INFO_IF("NewScheme", mEchoLevel >= 1) << "Build time: " << timer << std::endl;
         KRATOS_INFO_IF("NewScheme", mEchoLevel >= 2) << "Finished parallel building" << std::endl;

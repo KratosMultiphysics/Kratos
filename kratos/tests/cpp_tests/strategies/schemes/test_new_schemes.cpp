@@ -188,7 +188,7 @@ KRATOS_TEST_CASE_IN_SUITE(NewScheme, KratosCoreFastSuite)
     auto p_dx = Kratos::make_shared<NewScheme<>::SystemVectorType>(sparse_graph);
     auto p_rhs = Kratos::make_shared<NewScheme<>::SystemVectorType>(sparse_graph);
     auto p_lhs = Kratos::make_shared<NewScheme<>::SystemMatrixType>(sparse_graph);
-    sparse_graph
+    sparse_graph.Clear();
 
     // // Initialize the global system arrays
     // p_scheme->ResizeAndInitializeVectors(r_test_model_part, p_lhs, p_dx, p_rhs);
