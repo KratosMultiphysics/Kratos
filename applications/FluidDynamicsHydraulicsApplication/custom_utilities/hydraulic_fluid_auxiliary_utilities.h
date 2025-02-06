@@ -122,7 +122,9 @@ public:
      * @param  rModelPart Fluid Model Part
      * @param  DynamicViscosityMax It is a threshold value to prevent adding excessive artificial numerical viscosity and thereby losing the real physics.
      */
-    static void CalculateArtificialViscosity(ModelPart &rModelPart, double WaterDynamicViscosityMax);
+    static void CalculateArtificialViscosity(
+        ModelPart &rModelPart,
+        double DynamicViscosityMax);
 
     /**
      * @brief  When there is inflow on a boundary considered as an outlet, this function retains only the tangential component, preventing inflows that cause instabilities.
