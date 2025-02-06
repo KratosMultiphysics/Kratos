@@ -22,9 +22,9 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "utilities/builtin_timer.h"
+#include "utilities/dof_utilities/assembly_utilities.h" //TODO: we should move this to somewhere else
 #include "utilities/dof_utilities/block_build_dof_array_utility.h"
 #include "utilities/dof_utilities/elimination_build_dof_array_utility.h"
-#include "utilities/dof_utilities/build_utilities.h" //TODO: we should move this to somewhere else
 #include "utilities/entities_utilities.h"
 #include "utilities/openmp_utils.h" //TODO: SOME FILES INCLUDING scheme.h RELY ON THIS. LEAVING AS FUTURE TODO.
 #include "utilities/parallel_utilities.h"
