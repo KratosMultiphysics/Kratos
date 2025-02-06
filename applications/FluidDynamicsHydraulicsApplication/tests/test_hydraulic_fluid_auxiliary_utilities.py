@@ -75,7 +75,7 @@ class HydraulicFluidAuxiliaryUtilitiesTest(UnitTest.TestCase):
         theoretical_wetted_area= 2.0*(level_set_z)
         self.assertAlmostEqual(WettedArea, theoretical_wetted_area, 12)
 
-    def testAvoidOutletInflow(self):
+    def testApplyOutletInflowLimiter(self):
         inlet_skin_model_part = self.model.GetModelPart("TestModelPart.Inlet")
         for node in inlet_skin_model_part.Nodes:
             node.SetSolutionStepValue(Kratos.VELOCITY, [0.0,0.0,1.0])
