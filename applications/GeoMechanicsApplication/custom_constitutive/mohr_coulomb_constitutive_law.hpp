@@ -48,10 +48,8 @@ public:
     void SetValue(const Variable<double>& rVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateMohrCoulomb(const Properties& rProp, Vector& rCautchyStressVector);
-    Vector CalculatePrincipalStresses(Vector& CauchyStressVector);
 
-    double CalculateCoulombYieldFunction(Vector& principalStress, const Properties& rProp);
-    double CalculateTensionYieldFunction(Vector& principalStress, const Properties& rProp);
+    int FindRegionIndex(double fme, double fte);
 
 protected:
     // Member Variables

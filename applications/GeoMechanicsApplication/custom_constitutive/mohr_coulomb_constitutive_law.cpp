@@ -15,6 +15,9 @@
 // Application includes
 #include "custom_constitutive/mohr_coulomb_constitutive_law.hpp"
 #include "utilities/math_utils.h"
+#include "custom_utilities/stress_strain_utilities.h"
+#include "custom_constitutive/coulomb_yield_function.hpp"
+#include "custom_constitutive/tension_cutoff_function.hpp"
 
 namespace Kratos
 {
@@ -77,53 +80,31 @@ void MohrCoulombConstitutiveLaw::SetValue(const Variable<double>& rThisVariable,
 // ================================================================================================
 void MohrCoulombConstitutiveLaw::CalculateMohrCoulomb(const Properties& rProp, Vector& rCautchyStressVector)
 {
-    Vector principalStress = this->CalculatePrincipalStresses(rCautchyStressVector);
-    
-    double fme = this->CalculateCoulombYieldFunction(principalStress, rProp);
-    double fte = this->CalculateTensionYieldFunction(principalStress, rProp);
+    Vector principalStress = StressStrainUtilities::CalculatePrincipalStresses(rCautchyStressVector);
 
+    double friction_angle = rProp[GEO_FRICTION_ANGLE] * Globals::Pi / 180.0;
+    double cohesion       = rProp[GEO_COHESION];
+    double tension_cutoff = rProp[GEO_TENSION_CUTOFF];
+
+    auto const coulombYieldFunction = CoulombYieldFunction(friction_angle, cohesion);
+    auto const tensionCutoffFunction = TensionCutoffFunction(tension_cutoff);
+
+    double fme = coulombYieldFunction(principalStress);
+    double fte = tensionCutoffFunction(principalStress);
+
+    int region_index = this->FindRegionIndex(fme, fte);
 
 
 
 }
 
 // ================================================================================================
-Vector MohrCoulombConstitutiveLaw::CalculatePrincipalStresses(Vector& rCauchyStressVector)
+int MohrCoulombConstitutiveLaw::FindRegionIndex(double fme, double fte) 
 {
-    auto stress_tensor = MathUtils<double>::StressVectorToTensor(rCauchyStressVector);
-    Matrix PrincipalStressMatrix;
-    Matrix EigenVectorsMatrix;
-    MathUtils<double>::GaussSeidelEigenSystem(stress_tensor, EigenVectorsMatrix,
-                                              PrincipalStressMatrix, 1.0e-16, 20);
-    Vector result = ZeroVector(3);
-    for (int i = 0; i < 3; ++i) {
-        result(i) = PrincipalStressMatrix(i, i);
-    }
-    std::sort(result.begin(), result.end(), std::greater<double>());
-    return result;
+    if (fme <= 0.0 && fte <= 0.0) return 0;
+    if (fme < 0.0 && fte <= 0.0) return 1;
+
+
 }
-
-
-// ================================================================================================
-double MohrCoulombConstitutiveLaw::CalculateCoulombYieldFunction(Vector& rPrincipalStress, const Properties& rProp)
-{
-    double phi      = rProp[GEO_FRICTION_ANGLE] * Globals::Pi / 180.0;
-    double cohesion = rProp[GEO_COHESION];
-
-    double result = 0.5 * (rPrincipalStress(0) - rPrincipalStress(2)) -
-                    0.5 * (rPrincipalStress(0) + rPrincipalStress(2)) * std::sin(phi) -
-                    cohesion * std::cos(phi);
-    return result;
-}
-
-// ================================================================================================
-double MohrCoulombConstitutiveLaw::CalculateTensionYieldFunction(Vector& principalStress, const Properties& rProp)
-{
-    double tensionCutOff = rProp[GEO_TENSION_CUTOFF];
-
-    double result = tensionCutOff - principalStress(2);
-    return result;
-}
-
 
 } // Namespace Kratos
