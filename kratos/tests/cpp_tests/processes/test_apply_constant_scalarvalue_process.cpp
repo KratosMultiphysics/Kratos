@@ -27,6 +27,10 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantScalarValueProcess_FreesDoFAfterFinalize_
 
     CppTestsUtilities::Create2DGeometry(r_model_part, "Element2D3N");
 
+    for (auto& r_node : r_model_part.Nodes()) {
+        r_node.AddDof(DISPLACEMENT_X);
+    }
+
     Parameters parameters( R"(
       {
           "model_part_name" : "Main",
