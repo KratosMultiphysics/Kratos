@@ -560,7 +560,7 @@ public:
      */
     void SetSurrogateOuterLoopGeometries(const GeometrySurrogateArrayType &rSurrogateOuterLoopArray)
     {
-        mpSurrogateOuterLoopGeometries = rSurrogateOuterLoopArray;
+        mpSurrogateOuterLoopGeometries = &rSurrogateOuterLoopArray;
     }
     
     /**
@@ -569,7 +569,7 @@ public:
      */
     void SetSurrogateInnerLoopGeometries(const GeometrySurrogateArrayType &rSurrogateInnerLoopArray)
     {
-        mpSurrogateInnerLoopGeometries = rSurrogateInnerLoopArray;
+        mpSurrogateInnerLoopGeometries = &rSurrogateInnerLoopArray;
     }
 
     /**
@@ -578,7 +578,7 @@ public:
      */
     GeometrySurrogateArrayType& GetSurrogateInnerLoopGeometries()
     {
-        return mpSurrogateInnerLoopGeometries;
+        return *mpSurrogateInnerLoopGeometries;
     }
 
     /**
@@ -587,7 +587,7 @@ public:
      */
     GeometrySurrogateArrayType& GetSurrogateOuterLoopGeometries()
     {
-        return mpSurrogateOuterLoopGeometries;
+        return *mpSurrogateOuterLoopGeometries;
     }
 
     ///@}
@@ -638,6 +638,7 @@ private:
 
     GeometrySurrogateArrayType* mpSurrogateInnerLoopGeometries;
     GeometrySurrogateArrayType* mpSurrogateOuterLoopGeometries;
+    
 
     /** IsTrimmed is used to optimize processes as
     *   e.g. creation of integration domain.
