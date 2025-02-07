@@ -424,58 +424,115 @@ public:
      */
     bool SolutionStepsDataHas(const VariableData& rThisVariable) const;
 
-    //*******************************************************************************************
-    //By Riccardo
-    //very similar to the one before BUT throws an error if the variable does not exist
+    /**
+     * @brief Retrieves the solution step value for a given variable quickly.
+     * @tparam TVariableType The type of the variable.
+     * @param rThisVariable The variable whose value is to be retrieved.
+     * @return Reference to the stored value.
+     */
     template<class TVariableType> 
     typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable)
     {
         return SolutionStepData().FastGetValue(rThisVariable);
     }
 
+    /**
+     * @brief Retrieves the solution step value for a given variable quickly (const version).
+     * @tparam TVariableType The type of the variable.
+     * @param rThisVariable The variable whose value is to be retrieved.
+     * @return Const reference to the stored value.
+     */
     template<class TVariableType> 
     const typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable) const
     {
         return SolutionStepData().FastGetValue(rThisVariable);
     }
 
+    /**
+     * @brief Retrieves the solution step value for a given variable at a specific step quickly.
+     * @tparam TVariableType The type of the variable.
+     * @param rThisVariable The variable whose value is to be retrieved.
+     * @param SolutionStepIndex The index of the solution step.
+     * @return Reference to the stored value.
+     */
     template<class TVariableType> 
     typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex)
     {
         return SolutionStepData().FastGetValue(rThisVariable, SolutionStepIndex);
     }
 
+    /**
+     * @brief Retrieves the solution step value for a given variable at a specific step quickly (const version).
+     * @tparam TVariableType The type of the variable.
+     * @param rThisVariable The variable whose value is to be retrieved.
+     * @param SolutionStepIndex The index of the solution step.
+     * @return Const reference to the stored value.
+     */
     template<class TVariableType> 
     const typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex) const
     {
         return SolutionStepData().FastGetValue(rThisVariable, SolutionStepIndex);
     }
 
+    /**
+     * @brief Retrieves the solution step value for a given variable at a specific step and position quickly.
+     * @tparam TVariableType The type of the variable.
+     * @param rThisVariable The variable whose value is to be retrieved.
+     * @param SolutionStepIndex The index of the solution step.
+     * @param ThisPosition The position in the solution step data.
+     * @return Reference to the stored value.
+     */
     template<class TVariableType> 
     typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex, IndexType ThisPosition)
     {
         return SolutionStepData().FastGetValue(rThisVariable, SolutionStepIndex, ThisPosition);
     }
 
+    /**
+     * @brief Retrieves the current solution step value for a given variable at a specific position quickly.
+     * @tparam TVariableType The type of the variable.
+     * @param rThisVariable The variable whose value is to be retrieved.
+     * @param ThisPosition The position in the solution step data.
+     * @return Reference to the stored value.
+     */
     template<class TVariableType> 
     typename TVariableType::Type& FastGetCurrentSolutionStepValue(const TVariableType& rThisVariable, IndexType ThisPosition)
     {
         return SolutionStepData().FastGetCurrentValue(rThisVariable, ThisPosition);
     }
-//*******************************************************************************************
 
+    /**
+     * @brief Retrieves the stored value of a given variable.
+     * @tparam TVariableType The type of the variable.
+     * @param rThisVariable The variable whose value is to be retrieved.
+     * @return Reference to the stored value.
+     */
     template<class TVariableType> 
     typename TVariableType::Type& GetValue(const TVariableType& rThisVariable)
     {
         return mData.GetValue(rThisVariable);
     }
 
+    /**
+     * @brief Retrieves the stored value of a given variable (const version).
+     * @tparam TVariableType The type of the variable.
+     * @param rThisVariable The variable whose value is to be retrieved.
+     * @return Const reference to the stored value.
+     */
     template<class TVariableType> 
     typename TVariableType::Type const& GetValue(const TVariableType& rThisVariable) const
     {
         return mData.GetValue(rThisVariable);
     }
 
+    /**
+     * @brief Retrieves the value of a variable, checking both node data and solution step data.
+     * @details If the variable is not present in the node's data, it fetches from the solution step data.
+     * @tparam TVariableType The type of the variable.
+     * @param rThisVariable The variable to retrieve.
+     * @param SolutionStepIndex The solution step index.
+     * @return Reference to the value of the variable.
+     */
     template<class TVariableType> 
     typename TVariableType::Type& GetValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex)
     {
@@ -485,6 +542,14 @@ public:
         return mData.GetValue(rThisVariable);
     }
 
+    /**
+     * @brief Retrieves the value of a variable, checking both node data and solution step data (const version).
+     * @details If the variable is not present in the node's data, it fetches from the solution step data.
+     * @tparam TVariableType The type of the variable.
+     * @param rThisVariable The variable to retrieve.
+     * @param SolutionStepIndex The solution step index.
+     * @return Const reference to the value of the variable.
+     */
     template<class TVariableType> 
     typename TVariableType::Type const& GetValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex) const
     {
@@ -494,12 +559,25 @@ public:
         return mData.GetValue(rThisVariable);
     }
 
+    /**
+     * @brief Sets the value of a given variable.
+     * @details Stores a new value for the given variable in the node's data.
+     * @tparam TVariableType The type of the variable.
+     * @param rThisVariable The variable to store.
+     * @param rValue The value to assign.
+     */
     template<class TVariableType>
     void SetValue(const TVariableType& rThisVariable, typename TVariableType::Type const& rValue)
     {
         mData.SetValue(rThisVariable, rValue);
     }
 
+    /**
+     * @brief Checks if a variable exists in the node's data.
+     * @tparam TDataType The type of the variable.
+     * @param rThisVariable The variable to check.
+     * @return True if the variable exists, false otherwise.
+     */
     template<class TDataType> 
     bool Has(const Variable<TDataType>& rThisVariable) const
     {
@@ -563,7 +641,6 @@ public:
     double& Y0();
     
     double& Z0();
-    
 
     double X0() const;
     
