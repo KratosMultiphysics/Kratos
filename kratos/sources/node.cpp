@@ -23,7 +23,6 @@
 namespace Kratos
 {
 
-/// Default constructor.
 Node::Node()
     : BaseType()
     , Flags()
@@ -36,7 +35,9 @@ Node::Node()
     CreateSolutionStepData();
 }
 
-/// 1d constructor.
+/***********************************************************************************/
+/***********************************************************************************/
+
 Node::Node(IndexType NewId, const double NewX)
     : BaseType(NewX)
     , Flags()
@@ -49,7 +50,9 @@ Node::Node(IndexType NewId, const double NewX)
     CreateSolutionStepData();
 }
 
-/// 2d constructor.
+/***********************************************************************************/
+/***********************************************************************************/
+
 Node::Node(IndexType NewId, const double NewX, const double NewY)
     : BaseType(NewX, NewY)
     , Flags()
@@ -62,7 +65,9 @@ Node::Node(IndexType NewId, const double NewX, const double NewY)
     CreateSolutionStepData();
 }
 
-/// 3d constructor.
+/***********************************************************************************/
+/***********************************************************************************/
+
 Node::Node(IndexType NewId, const double NewX, const double NewY, const double NewZ)
     : BaseType(NewX, NewY, NewZ)
     , Flags()
@@ -75,7 +80,9 @@ Node::Node(IndexType NewId, const double NewX, const double NewY, const double N
     CreateSolutionStepData();
 }
 
-/// Point constructor.
+/***********************************************************************************/
+/***********************************************************************************/
+
 Node::Node(IndexType NewId, Point const& rThisPoint)
     : BaseType(rThisPoint)
     , Flags()
@@ -87,6 +94,9 @@ Node::Node(IndexType NewId, Point const& rThisPoint)
 {
     CreateSolutionStepData();
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 Node::Node(IndexType NewId, std::vector<double> const&  rOtherCoordinates)
     : BaseType(rOtherCoordinates)
@@ -100,7 +110,9 @@ Node::Node(IndexType NewId, std::vector<double> const&  rOtherCoordinates)
     CreateSolutionStepData();
 }
 
-/// 3d with variables list and data constructor.
+/***********************************************************************************/
+/***********************************************************************************/
+
 Node::Node(IndexType NewId, const double NewX, const double NewY, const double NewZ, VariablesList::Pointer  pVariablesList, BlockType const * ThisData, SizeType NewQueueSize = 1)
     : BaseType(NewX, NewY, NewZ)
     , Flags()
@@ -111,6 +123,9 @@ Node::Node(IndexType NewId, const double NewX, const double NewY, const double N
     , mNodeLock()
 {
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 typename Node::Pointer Node::Clone()
 {
@@ -130,31 +145,48 @@ typename Node::Pointer Node::Clone()
     return p_new_node;
 }
 
-/// Destructor.
+/***********************************************************************************/
+/***********************************************************************************/
+
 Node::~Node()
 {
     ClearSolutionStepsData();
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 Node::IndexType Node::Id() const
 {
     return mNodalData.Id();
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 Node::IndexType Node::GetId() const
 {
     return mNodalData.Id();
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 void Node::SetId(IndexType NewId)
 {
     mNodalData.SetId(NewId);
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 LockObject& Node::GetLock()
 {
     return mNodeLock;
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 Node& Node::operator=(const Node& rOther)
 {
@@ -174,126 +206,200 @@ Node& Node::operator=(const Node& rOther)
     return *this;
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 bool Node::operator==(const Node& rOther)
 {
     return Point::operator ==(rOther);
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 double& Node::operator[](IndexType ThisIndex)
 {
     return BaseType::operator[](ThisIndex);
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 double Node::operator[](IndexType ThisIndex) const
 {
     return BaseType::operator[](ThisIndex);
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 void Node::CreateSolutionStepData()
 {
     SolutionStepData().PushFront();
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 void Node::CloneSolutionStepData()
 {
     SolutionStepData().CloneFront();
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 void Node::OverwriteSolutionStepData(IndexType SourceSolutionStepIndex, IndexType DestinationSourceSolutionStepIndex)
 {
     SolutionStepData().AssignData(SolutionStepData().Data(SourceSolutionStepIndex), DestinationSourceSolutionStepIndex);
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 void Node::ClearSolutionStepsData()
 {
     SolutionStepData().Clear();
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 void Node::SetSolutionStepVariablesList(VariablesList::Pointer pVariablesList)
 {
     SolutionStepData().SetVariablesList(pVariablesList);
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 VariablesListDataValueContainer& Node::SolutionStepData()
 {
     return mNodalData.GetSolutionStepData();
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 const VariablesListDataValueContainer& Node::SolutionStepData() const
 {
     return mNodalData.GetSolutionStepData();
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 DataValueContainer& Node::Data()
 {
     return mData;
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 DataValueContainer& Node::GetData()
 {
     return mData;
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 const DataValueContainer& Node::GetData() const
 {
     return mData;
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 bool Node::SolutionStepsDataHas(const VariableData& rThisVariable) const
 {
     return SolutionStepData().Has(rThisVariable);
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
 
 IndexType Node::GetBufferSize() const
 {
     return SolutionStepData().QueueSize();
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 void Node::SetBufferSize(IndexType NewBufferSize)
 {
     SolutionStepData().Resize(NewBufferSize);
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 const Point& Node::GetInitialPosition() const
 {
     return mInitialPosition;
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 Point& Node::GetInitialPosition()
 {
     return mInitialPosition;
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 double& Node::X0()
 {
     return mInitialPosition.X();
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 double& Node::Y0()
 {
     return mInitialPosition.Y();
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 double& Node::Z0()
 {
     return mInitialPosition.Z();
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 double Node::X0() const
 {
     return mInitialPosition.X();
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 double Node::Y0() const
 {
     return mInitialPosition.Y();
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 double Node::Z0() const
 {
     return mInitialPosition.Z();
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 void Node::SetInitialPosition(const Point& NewInitialPosition)
 {
@@ -302,6 +408,9 @@ void Node::SetInitialPosition(const Point& NewInitialPosition)
     mInitialPosition.Z() = NewInitialPosition.Z();
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 void Node::SetInitialPosition(double X,double Y, double Z)
 {
     mInitialPosition.X() = X;
@@ -309,25 +418,40 @@ void Node::SetInitialPosition(double X,double Y, double Z)
     mInitialPosition.Z() = Z;
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 VariablesList::Pointer Node::pGetVariablesList()
 {
     return SolutionStepData().pGetVariablesList();
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 const VariablesList::Pointer Node::pGetVariablesList() const
 {
     return SolutionStepData().pGetVariablesList();
 }
 
-DofsContainerType& Node::GetDofs()
+/***********************************************************************************/
+/***********************************************************************************/
+
+Node::DofsContainerType& Node::GetDofs()
 {
     return mDofs;
 }
 
-const DofsContainerType& Node::GetDofs() const
+/***********************************************************************************/
+/***********************************************************************************/
+
+const Node::DofsContainerType& Node::GetDofs() const
 {
     return mDofs;
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 std::string Node::Info() const
 {
@@ -336,10 +460,16 @@ std::string Node::Info() const
     return buffer.str();
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 void Node::PrintInfo(std::ostream& rOStream) const
 {
     rOStream << Info();
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 void Node::PrintData(std::ostream& rOStream) const
 {
@@ -350,11 +480,18 @@ void Node::PrintData(std::ostream& rOStream) const
         rOStream << "        " << (*i)->Info() << std::endl;
 }
 
-void Node::SortDofs(){
+/***********************************************************************************/
+/***********************************************************************************/
+
+void Node::SortDofs()
+{
     std::sort(mDofs.begin(), mDofs.end(), [](Kratos::unique_ptr<DofType> const& First, Kratos::unique_ptr<DofType> const& Second)->bool{
         return First->GetVariable().Key() < Second->GetVariable().Key();
     });
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 void Node::save(Serializer& rSerializer) const
 {
@@ -366,6 +503,9 @@ void Node::save(Serializer& rSerializer) const
     rSerializer.save("Data", mDofs);
 
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 void Node::load(Serializer& rSerializer)
 {
