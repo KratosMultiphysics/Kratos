@@ -31,3 +31,9 @@ This type of output processes includes:
 - Vtu Output Process ([<i class="fa fa-github"></i> code](https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/python_scripts/vtu_output_process.py))
 - [Point Output Process](../../../Kratos/Processes/Output_Process/Point_output_process) ([<i class="fa fa-github"></i> code](https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/python_scripts/point_output_process.py))
 - Multiple Points Output Process ([<i class="fa fa-github"></i> code](https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/python_scripts/multiple_points_output_process.py))
+
+## Restart Output Process
+
+Within the `MPMApplication`, the [`SaveRestartProcess`](https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/python_scripts/save_restart_process.py) implemented in the Kratos Core can be used for the periodic saving of all data contained in the computing (MPM) model part. This functionality acts as a checkpoint system, allowing users to resume a simulation from the last saved state using the [`RestartUtility`](https://github.com/KratosMultiphysics/Kratos/blob/master/python_scripts/restart_utility.py) and without having to restart from the beginning.
+
+- [Save & Restart a Simulation](./restart)
