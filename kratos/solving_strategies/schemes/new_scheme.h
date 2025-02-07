@@ -504,13 +504,30 @@ public:
         };
 
         TLS aux_tls;
-        AssemblyUtilities<>::AssembleLocalSystemElements<>(rModelPart, elem_func, rLHS, rRHS, aux_tls);
-        AssemblyUtilities<>::AssembleLocalSystemConditions<>(rModelPart, cond_func, rLHS, rRHS, aux_tls);
+        AssemblyHelper<TLS> assembly_helper(rModelPart);
+        assembly_helper.SetElementAssemblyFunction(elem_func);
+        assembly_helper.SetConditionAssemblyFunction(cond_func);
+        assembly_helper.AssembleLocalSystem(rLHS, rRHS, aux_tls);
+        // assembly_helper.AssembleLocalSystemElements<>(rModelPart, elem_func, rLHS, rRHS, aux_tls);
+        // assembly_helper.AssembleLocalSystemConditions<>(rModelPart, cond_func, rLHS, rRHS, aux_tls);
 
         KRATOS_INFO_IF("NewScheme", mEchoLevel >= 1) << "Build time: " << timer << std::endl;
         KRATOS_INFO_IF("NewScheme", mEchoLevel >= 2) << "Finished parallel building" << std::endl;
 
         Timer::Stop("Build");
+
+
+        // AssemblyHelper<TLS1,TLS2>::Assemble(ElmeConainter,
+        //                                     [](ModelPart::ElementConstantIterator ItElem, const ProcessInfo& rProcessInfo, TLS& rTLS){
+        //                                         // Calculate local LHS and RHS contributions
+        //                                         ItElem->CalculateLocalSystem(rTLS.LocLhs, rTLS.LocRhs, rProcessInfo),
+        //                                     [](ModelPart::ElementConstantIterator ItElem, const ProcessInfo& rProcessInfo, TLS& rTLS){
+        //                                         // Calculate local LHS and RHS contributions
+        //                                         ItElem->CalculateLocalSystem(rTLS.LocLhs, rTLS.LocRhs, rProcessInfo),
+        //                                     CondFunc)
+
+        // AssemblyHelper<TLS1,TLS2>::Assemble(ElmeConainter, ElemFunc, CondContainer, CondFunc)
+
     }
 
     /**
