@@ -11,8 +11,6 @@
 //                   Riccardo Rossi
 //
 
-#pragma once
-
 // System includes
 
 // External includes
@@ -113,7 +111,7 @@ Node::Node(IndexType NewId, std::vector<double> const&  rOtherCoordinates)
 /***********************************************************************************/
 /***********************************************************************************/
 
-Node::Node(IndexType NewId, const double NewX, const double NewY, const double NewZ, VariablesList::Pointer  pVariablesList, BlockType const * ThisData, SizeType NewQueueSize = 1)
+Node::Node(IndexType NewId, const double NewX, const double NewY, const double NewZ, VariablesList::Pointer  pVariablesList, BlockType const * ThisData, SizeType NewQueueSize)
     : BaseType(NewX, NewY, NewZ)
     , Flags()
     , mNodalData(NewId, pVariablesList,ThisData,NewQueueSize)

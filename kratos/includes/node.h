@@ -62,7 +62,7 @@ namespace Kratos
  * @author Pooyan Dadvand
  * @author Riccardo Rossi
  */
-class KRATOS_API(KRATOS_CORE) Node 
+class KRATOS_API(KRATOS_CORE) Node
     : public Point, public Flags
 {
 public:
@@ -74,6 +74,9 @@ public:
 
     /// Base type
     using BaseType = Point;
+
+    /// Point type definition
+    using PointType = Point;
 
     /// Dof type
     using DofType = Dof<double>;
