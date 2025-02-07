@@ -22,7 +22,7 @@ namespace Kratos
 
     double CoulombYieldFunction::operator()(const Vector& rPrincipalStress) const
     {
-        return 0.5 * (rPrincipalStress(0) - rPrincipalStress(2)) -
+        return 0.5 * (rPrincipalStress(0) - rPrincipalStress(2)) +
                0.5 * (rPrincipalStress(0) + rPrincipalStress(2)) * std::sin(mFrictionAngle) -
                mCohesion * std::cos(mFrictionAngle);
     }
