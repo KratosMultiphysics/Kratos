@@ -19,6 +19,7 @@
 // System includes
 #include <cmath>
 #include <type_traits>
+#include <numeric>
 
 // External includes
 
@@ -702,14 +703,7 @@ public:
         const Vector& rSecondVector
         )
     {
-        Vector::const_iterator i = rFirstVector.begin();
-        Vector::const_iterator j = rSecondVector.begin();
-        double temp = 0.0;
-        while(i != rFirstVector.end()) {
-            temp += *i++ * *j++;
-        }
-        return temp;
-        //return std::inner_product(rFirstVector.begin(), rFirstVector.end(), rSecondVector.begin(), 0.0);
+        return std::inner_product(rFirstVector.begin(), rFirstVector.end(), rSecondVector.cbegin(), 0.0);
     }
 
     /**
