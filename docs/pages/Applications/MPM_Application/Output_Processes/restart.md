@@ -100,7 +100,9 @@ Value must be `"rest"`. Typically (i.e., when not using the restart) this field 
 
 ##### `input_filename`
 String specifying the name, without the time/step label and the extension,
-of the `rest` files to be loaded.
+of the `rest` files to be loaded. If the user has not changed the name of the
+files, this value must be set equal to the `model_part_name` (i.e., the value
+used by the `SaveRestartProcess`, see [Output Files Name](./restart#output-files-name)).
 
 ##### `input_output_path`
 String specifying the name of the folder containing the `rest` files. If empty,
@@ -110,7 +112,9 @@ the value is set to `<input_filename>__restart_files`.
 If `true`, it is assumed that the `rest` files are contained in the folder specified by `input_output_path`.
 
 ##### `restart_load_file_label`
-Label specifying the exact `rest` file to be loaded and used as starting point for the simulation.
+Label specifying the exact `rest` file to be loaded and used as starting point for the simulation,
+i.e., the number used as suffix in the `rest` files and denoting the time/step to which each file refers
+(see [Output Files Name](./restart#output-files-name)).
 
 ##### `echo_level`
 An integer controlling the verbosity level of the simulation output. If greater than zero, messages are printed to the standard output.
