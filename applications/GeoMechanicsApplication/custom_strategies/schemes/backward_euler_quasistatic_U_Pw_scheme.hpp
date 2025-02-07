@@ -16,7 +16,6 @@
 #include "backward_euler_scheme.hpp"
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "solving_strategies/schemes/scheme.h"
 #include "utilities/parallel_utilities.h"
 
 // Application includes
@@ -31,8 +30,6 @@ class BackwardEulerQuasistaticUPwScheme : public BackwardEulerScheme<TSparseSpac
 public:
     KRATOS_CLASS_POINTER_DEFINITION(BackwardEulerQuasistaticUPwScheme);
 
-    using BaseType = BackwardEulerScheme<TSparseSpace, TDenseSpace>;
-
     BackwardEulerQuasistaticUPwScheme()
         : BackwardEulerScheme<TSparseSpace, TDenseSpace>(
               {FirstOrderScalarVariable(WATER_PRESSURE, DT_WATER_PRESSURE, DT_PRESSURE_COEFFICIENT)},
@@ -45,19 +42,19 @@ protected:
     {
         KRATOS_TRY
 
-            block_for_each(rModelPart.Nodes(), [this](Node& rNode) {
-
+        block_for_each(rModelPart.Nodes(), [this](Node& rNode) {
+            // static here means no velocities and accelerations for the displacement/rotation D.O.F.
             for (const auto& r_first_order_scalar_variable : this->GetFirstOrderScalarVariables()) {
                 if (rNode.IsFixed(r_first_order_scalar_variable.first_time_derivative)) continue;
 
                 rNode.FastGetSolutionStepValue(r_first_order_scalar_variable.first_time_derivative) =
-                    BaseType::CalculateDerivative(r_first_order_scalar_variable.instance, rNode);
+                    this->CalculateDerivative(r_first_order_scalar_variable.instance, rNode);
             }
-                });
+        });
 
         KRATOS_CATCH("")
     }
-	
+
     std::string Info() const override { return "BackwardEulerQuasistaticUPwScheme"; }
 }; // Class BackwardEulerQuasistaticUPwScheme
 

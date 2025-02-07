@@ -213,6 +213,7 @@ namespace Kratos
       // General properties
       unsigned int mDimension;           // dimension (2D or 3D)
       unsigned int mNumStepsEval;        // number of steps passed since last thermal evaluation
+      double       mInitialTemperature;  // temperature from the beginning of the simulation
       double       mPreviousTemperature; // temperature from the beginning of the step
       bool         mIsTimeToSolve;       // flag to solve thermal problem in current step
       bool         mHasMotion;           // flag to solve mechanical behavior (forces and displacements)

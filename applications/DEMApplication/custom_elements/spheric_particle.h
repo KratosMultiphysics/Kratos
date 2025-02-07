@@ -453,13 +453,13 @@ std::map<int, double> mIndentationInitial;
 std::map<int, double> mIndentationInitialWall;
 double mProgrammedDestructionTime=-1.0; // set to a negative value, so that when marked TO_ERASE, elimination is by default.
 double mRadius;
+double mInitialRadius;
 double mSearchRadius;
 double mRealMass;
 PropertiesProxy* mFastProperties;
 int mClusterId;
 DEMIntegrationScheme* mpTranslationalIntegrationScheme;
 DEMIntegrationScheme* mpRotationalIntegrationScheme;
-double mGlobalViscousDamping;
 double mBondedScalingFactor[3] = {0.0};
 
 private:
@@ -508,7 +508,6 @@ virtual void save(Serializer& rSerializer) const override
     rSerializer.save("mSearchRadius", mSearchRadius);
     rSerializer.save("mRealMass", mRealMass);
     rSerializer.save("mClusterId", mClusterId);
-    rSerializer.save("mGlobalViscousDamping",mGlobalViscousDamping);
 }
 
 virtual void load(Serializer& rSerializer) override
@@ -562,7 +561,6 @@ virtual void load(Serializer& rSerializer) override
     rSerializer.load("mSearchRadius", mSearchRadius);
     rSerializer.load("mRealMass", mRealMass);
     rSerializer.load("mClusterId", mClusterId);
-    rSerializer.load("mGlobalViscousDamping",mGlobalViscousDamping);
 }
 
 }; // Class SphericParticle

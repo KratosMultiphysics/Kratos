@@ -91,7 +91,7 @@ static void UpdateFunctionNonHist(NodeType& rNode,
                             const double Value,
                             const double Factor)
 {
-    rNode.GetValue(rVariable) = Value * Factor;
+    rNode.SetValue(rVariable, Value * Factor);
 }
 
 static void UpdateFunctionNonHistWithAdd(NodeType& rNode,

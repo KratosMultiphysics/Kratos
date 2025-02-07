@@ -38,6 +38,7 @@ std::vector<double> CalculateIntegrationCoefficients(const Geo::IntegrationPoint
         return rIntegrationCoefficientCalculator(rIntegrationPoint, DetJ, rGeometry);
     };
     auto result = std::vector<double>{};
+    result.reserve(rIntegrationPoints.size());
     std::transform(rIntegrationPoints.begin(), rIntegrationPoints.end(), rDeterminantsOfJacobians.begin(),
                    std::back_inserter(result), calculate_integration_coefficient);
 
@@ -48,6 +49,7 @@ std::vector<double> CalculateDeterminantsOfJacobiansAtIntegrationPoints(const Ge
                                                                         const Geometry<Node>& rGeometry)
 {
     auto result = std::vector<double>{};
+    result.reserve(rIntegrationPoints.size());
     std::transform(rIntegrationPoints.begin(), rIntegrationPoints.end(), std::back_inserter(result),
                    [&rGeometry](const auto& rIntegrationPoint) {
         return rGeometry.DeterminantOfJacobian(rIntegrationPoint);
@@ -79,6 +81,7 @@ std::vector<Matrix> CalculateConstitutiveMatricesAtIntegrationPoints(
         return result;
     };
     auto result = std::vector<Matrix>{};
+    result.reserve(rConstitutiveLaws.size());
     std::transform(rConstitutiveLaws.begin(), rConstitutiveLaws.end(), std::back_inserter(result),
                    get_constitutive_matrix);
 
@@ -241,6 +244,7 @@ std::vector<Matrix> LineInterfaceElement::CalculateLocalBMatricesAtIntegrationPo
         GeoElementUtilities::EvaluateShapeFunctionsAtIntegrationPoints(r_integration_points, GetGeometry());
 
     auto result = std::vector<Matrix>{};
+    result.reserve(shape_function_values_at_integration_points.size());
     auto calculate_local_b_matrix = [&r_geometry = GetGeometry(), p_policy = mStressStatePolicy.get()](
                                         const auto& rShapeFunctionValuesAtIntegrationPoint,
                                         const auto& rIntegrationPoint) {
@@ -287,6 +291,7 @@ std::vector<Vector> LineInterfaceElement::CalculateRelativeDisplacementsAtIntegr
                    [](auto p_dof) { return p_dof->GetSolutionStepValue(); });
 
     auto result = std::vector<Vector>{};
+    result.reserve(rLocalBMatrices.size());
     auto calculate_relative_displacement_vector = [&nodal_displacement_vector](const auto& rLocalB) {
         return Vector{prod(rLocalB, nodal_displacement_vector)};
     };
@@ -310,6 +315,7 @@ std::vector<Vector> LineInterfaceElement::CalculateTractionsAtIntegrationPoints(
         return result;
     };
     auto result = std::vector<Vector>{};
+    result.reserve(rRelativeDisplacements.size());
     std::transform(rRelativeDisplacements.begin(), rRelativeDisplacements.end(),
                    mConstitutiveLaws.begin(), std::back_inserter(result), calculate_traction);
 

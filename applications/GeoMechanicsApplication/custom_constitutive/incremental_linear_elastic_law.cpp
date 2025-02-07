@@ -161,18 +161,16 @@ void GeoIncrementalLinearElasticLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw
     FinalizeMaterialResponseCauchy(rValues);
 }
 
-void GeoIncrementalLinearElasticLaw::ResetMaterial(const Properties& rMaterialProperties,
-	const GeometryType& rElementGeometry,
-	const Vector& rShapeFunctionsValues)
+void GeoIncrementalLinearElasticLaw::ResetMaterial(const Properties&, const GeometryType&, const Vector&)
 {
-    mStressVector = ZeroVector(mStressVector.size());
+    mStressVector          = ZeroVector(mStressVector.size());
     mStressVectorFinalized = ZeroVector(mStressVectorFinalized.size());
 
     // set strain vectors:
-    mDeltaStrainVector = ZeroVector(mDeltaStrainVector.size());
+    mDeltaStrainVector     = ZeroVector(mDeltaStrainVector.size());
     mStrainVectorFinalized = ZeroVector(mStrainVectorFinalized.size());
 
-	mIsModelInitialized = false;
+    mIsModelInitialized = false;
 }
 
 void GeoIncrementalLinearElasticLaw::save(Serializer& rSerializer) const
