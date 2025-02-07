@@ -480,6 +480,7 @@ KRATOS_CREATE_VARIABLE(double, VARIATIONAL_REDISTANCE_COEFFICIENT_SECOND)
 // SBM variables
 KRATOS_CREATE_VARIABLE(bool, IS_SBM)
 KRATOS_CREATE_VARIABLE(std::string, CONDITION_NAME)
+KRATOS_CREATE_VARIABLE(std::string, LAYER_NAME)
 
 //------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------//
@@ -962,5 +963,6 @@ void KratosApplication::RegisterVariables() {
     // SBM variables
     KRATOS_REGISTER_VARIABLE(IS_SBM)
     KRATOS_REGISTER_VARIABLE(CONDITION_NAME)
+    KRATOS_REGISTER_VARIABLE(LAYER_NAME)
 }
 }  // namespace Kratos.

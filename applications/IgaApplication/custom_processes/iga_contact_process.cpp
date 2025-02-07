@@ -24,28 +24,6 @@ namespace Kratos
         
         mEchoLevel = mParameters["echo_level"].GetInt();
 
-        // KRATOS_ERROR_IF_NOT(mParameters.Has("contact_model_part_name"))
-        //     << "Missing \"contact_model_part_name\" section" << std::endl;
-
-        // ModelPart& contact_model_part = mpModel->HasModelPart(mParameters["contact_model_part_name"].GetString())
-        //                             ? mpModel->GetModelPart(mParameters["contact_model_part_name"].GetString())
-        //                             : mpModel->CreateModelPart(mParameters["contact_model_part_name"].GetString());
-
-
-        // std::string contact_model_part_name = "IgaModelPart.ContactInterface";
-
-        // // Model& mainModel = r_model_part->GetModel();
-
-        // ModelPart& contact_model_part = mpModel->HasModelPart(contact_model_part_name)
-        //                               ? mpModel->GetModelPart(contact_model_part_name)
-        //                               : mpModel->CreateModelPart(contact_model_part_name);
-
-
-        // PHYSICS HERE OR IN IGA_MODELER???????????
-        // const std::string& rDataFileName = mParameters.Has("physics_file_name")
-        //     ? mParameters["physics_file_name"].GetString()
-        //     : "physics.iga.json";
-
         //-----------------------------------------------------------------------------------------------
         // Obtain SLAVE interface b_reps
         const std::string slave_model_part_name = mParameters["contact_parameters"]["slave_model_part"]["sub_model_part_name"].GetString();

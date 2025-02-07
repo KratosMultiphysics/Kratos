@@ -56,7 +56,7 @@ namespace Kratos
         Condition candidateClosestSkinSegment1 = this->GetValue(NEIGHBOUR_CONDITIONS)[0] ;
         // Condition candidateClosestSkinSegment2 = this->GetValue(NEIGHBOUR_CONDITIONS)[1];
         const auto& r_geometry = this->GetGeometry();
-        const SizeType number_of_nodes = r_geometry.PointsNumber();
+        const SizeType number_of_nodes = r_geometry.size();
 
         const SizeType mat_size = number_of_nodes * 2;
         //resizing as needed the LHS
@@ -72,18 +72,13 @@ namespace Kratos
         double penalty = GetProperties()[PENALTY_FACTOR];
 
         const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(r_geometry.GetDefaultIntegrationMethod());
-        const unsigned int dim = DN_De[0].size2();
+        const unsigned int dim = 2;
         
         Vector meshSize_uv = this->GetValue(MARKER_MESHES);
         double h = std::min(meshSize_uv[0], meshSize_uv[1]);
-        if (dim == 3) {h = std::min(h,  meshSize_uv[2]);}
 
         // Compute basis function order (Note: it is not allow to use different orders in different directions)
-        if (dim == 3) {
-            mbasisFunctionsOrder = std::cbrt(DN_De[0].size1()) - 1;
-        } else {
-            mbasisFunctionsOrder = std::sqrt(DN_De[0].size1()) - 1;
-        }
+        mbasisFunctionsOrder = std::sqrt(DN_De[0].size1()) - 1;
 
         // Modify the penalty factor: p^2 * penalty / h (NITSCHE APPROACH)
         penalty = mbasisFunctionsOrder * mbasisFunctionsOrder * penalty / h;
@@ -116,8 +111,7 @@ namespace Kratos
         Vector d(2);
         d[0] = projection[0] - r_geometry.Center().X();
         d[1] = projection[1] - r_geometry.Center().Y();
-        // d[0] = 0;
-        // d[1] = 0;
+
         const Matrix& N = r_geometry.ShapeFunctionsValues();
 
         // Compute all the derivatives of the basis functions involved
@@ -155,14 +149,13 @@ namespace Kratos
         // NEW FOR GENERAL JACOBIAN
         normal_parameter_space[0] = + tangent_parameter_space[1] / magnitude;
         normal_parameter_space[1] = - tangent_parameter_space[0] / magnitude;  // By observations on the result of .Calculate(LOCAL_TANGENT
+        normal_parameter_space[2] = 0.0;
 
         r_geometry.Jacobian(J0,this->GetIntegrationMethod());
         double DetJ0;
 
         Vector GP_parameter_coord(2); 
         GP_parameter_coord = prod(r_geometry.Center(),J0[0]);
-        
-        normal_physical_space = prod(trans(J0[0]),normal_parameter_space);
 
         // MODIFIED
 
@@ -194,6 +187,11 @@ namespace Kratos
         InvJ0_23(0,2) = 0;
         InvJ0_23(1,2) = 0;
 
+        normal_physical_space = prod(trans(InvJ0),normal_parameter_space);
+        normal_physical_space[2] = 0.0;
+
+        normal_physical_space /= norm_2(normal_physical_space);
+
         // // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
         noalias(DN_DX) = prod(DN_De[0],InvJ0_23);
         
@@ -209,6 +207,8 @@ namespace Kratos
         const double thickness = GetProperties().Has(THICKNESS) ? GetProperties()[THICKNESS] : 1.0;
 
         const double IntToReferenceWeight = integration_points[0].Weight() * std::abs(DetJ0) * thickness;
+
+        SetValue(INTEGRATION_WEIGHT, IntToReferenceWeight);
         double penalty_integration = penalty * IntToReferenceWeight;
 
         // Guglielmo innovaction
@@ -388,7 +388,7 @@ namespace Kratos
 
         for (IndexType i = 0; i < number_of_control_points; ++i)
         {
-            const array_1d<double, 2 >& displacement = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT);
+            const array_1d<double, 3 >& displacement = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT);
             IndexType index = i * 2;
 
             rValues[index] = displacement[0];

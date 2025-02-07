@@ -18,6 +18,9 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/variables.h"
+// Project includes
+#include "geometries/geometry.h"
+#include "includes/node.h"
 
 namespace Kratos
 {
@@ -94,6 +97,7 @@ KRATOS_DEFINE_APPLICATION_VARIABLE(IGA_APPLICATION, int, BUILD_LEVEL)
 KRATOS_DEFINE_APPLICATION_VARIABLE(IGA_APPLICATION, std::vector<Vector>, INTEGRATION_POINTS)
 KRATOS_DEFINE_APPLICATION_VARIABLE(IGA_APPLICATION, std::vector<double>, INTEGRATION_WEIGHTS)
 KRATOS_DEFINE_APPLICATION_VARIABLE(IGA_APPLICATION, std::string, BOUNDARY_CONDITION_TYPE)
+KRATOS_DEFINE_APPLICATION_VARIABLE(IGA_APPLICATION, typename Geometry<Node>::Pointer, NEIGHBOUR_GEOMETRY)
 
 // CONTACT Variables
 KRATOS_DEFINE_APPLICATION_VARIABLE(IGA_APPLICATION, double, NORMAL_GAP)

@@ -79,7 +79,7 @@ namespace Kratos
                 double delta_u_refined;
                 double delta_v_refined; 
                 if (rParameters["local_refinement_parameters"]["do_you_want_to_refine_inner"].GetBool()) {
-                    box_refinement_u_v_min_max = r_model_part.GetProcessInfo().GetValue(MARKER_MESHES);
+                    box_refinement_u_v_min_max = r_model_part.GetValue(MARKER_MESHES);
 
                     int nb_per_span_u = rParameters["parameters"]["insert_nb_per_span_u"].GetInt();
                     int nb_per_span_v = rParameters["parameters"]["insert_nb_per_span_v"].GetInt();
