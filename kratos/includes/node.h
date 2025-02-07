@@ -788,8 +788,15 @@ public:
         KRATOS_ERROR <<  "Non-existent DOF in node #" << Id() << " for variable : " << rDofVariable.Name() << std::endl;
     }
 
-
-    /** adds a Dof to the node and return new added dof or existed one. */
+    /**
+     * @brief Adds a degree of freedom (DOF) to the node, returning the newly added DOF or the existing one if it already exists.
+     * @details This function checks if the DOF for the given variable already exists in the node's DOF list. If it exists, 
+     * it returns the existing DOF. Otherwise, it creates a new DOF for the given variable and adds it to the list.
+     * The DOF list is then sorted to maintain order.
+     * @tparam TVariableType The type of the variable associated with the degree of freedom.
+     * @param rDofVariable The variable associated with the degree of freedom to be added.
+     * @return A pointer to the added or existing DOF.
+     */
     template<class TVariableType>
     inline typename DofType::Pointer pAddDof(TVariableType const& rDofVariable)
     {
@@ -812,15 +819,21 @@ public:
         KRATOS_CATCH(*this);
     }
 
-    /** adds a Dof to the node and return new added dof or existed one. */
+    /**
+     * @brief Adds a degree of freedom (DOF) to the node, returning the newly added DOF or the existing one if it already exists.
+     * @details This function checks if the DOF for the given variable already exists in the node's DOF list. If it exists, 
+     * it updates the reaction and returns the existing DOF. If not, it creates a new DOF based on the provided `SourceDof`.
+     * The DOF list is then sorted to maintain order.
+     * @param SourceDof The DOF to be added or whose reaction should be updated.
+     * @return A pointer to the added or existing DOF.
+     */
     inline typename DofType::Pointer pAddDof(DofType const& SourceDof)
     {
         KRATOS_TRY
 
         for(auto it_dof = mDofs.begin() ; it_dof != mDofs.end() ; it_dof++){
-            if((*it_dof)->GetVariable() == SourceDof.GetVariable()){
-                if((*it_dof)->GetReaction() != SourceDof.GetReaction())
-                {
+            if((*it_dof)->GetVariable() == SourceDof.GetVariable()) {
+                if((*it_dof)->GetReaction() != SourceDof.GetReaction()) {
                     **it_dof = SourceDof;
                     (*it_dof)->SetNodalData(&mNodalData);
                 }
@@ -840,7 +853,17 @@ public:
         KRATOS_CATCH(*this);
     }
 
-    /** adds a Dof to the node and return new added dof or existed one. */
+    /**
+     * @brief Adds a degree of freedom (DOF) to the node, returning the newly added DOF or the existing one if it already exists, with a reaction.
+     * @details This function checks if the DOF for the given variable already exists in the node's DOF list. If it exists, 
+     * it updates the reaction and returns the existing DOF. Otherwise, it creates a new DOF with both the variable 
+     * and the reaction, and adds it to the list. The DOF list is then sorted to maintain order.
+     * @tparam TVariableType The type of the variable associated with the degree of freedom.
+     * @tparam TReactionType The type of the reaction associated with the degree of freedom.
+     * @param rDofVariable The variable associated with the degree of freedom to be added.
+     * @param rDofReaction The reaction associated with the degree of freedom to be added.
+     * @return A pointer to the added or existing DOF.
+     */
     template<class TVariableType, class TReactionType>
     inline typename DofType::Pointer pAddDof(TVariableType const& rDofVariable, TReactionType const& rDofReaction)
     {
@@ -865,7 +888,15 @@ public:
 
     }
 
-    /** adds a Dof to the node and return new added dof or existed one. */
+    /**
+     * @brief Adds a degree of freedom (DOF) to the node, returning the newly added DOF or the existing one if it already exists.
+     * @details This function checks if the DOF for the given variable already exists in the node's DOF list. If it exists, 
+     * it returns the existing DOF. Otherwise, it creates a new DOF for the given variable and adds it to the list.
+     * The DOF list is then sorted to maintain order.
+     * @tparam TVariableType The type of the variable associated with the degree of freedom.
+     * @param rDofVariable The variable associated with the degree of freedom to be added.
+     * @return A reference to the added or existing DOF.
+     */
     template<class TVariableType>
     inline DofType& AddDof(TVariableType const& rDofVariable)
     {
@@ -889,7 +920,17 @@ public:
 
     }
 
-    /** adds a Dof to the node and return new added dof or existed one. */
+    /**
+     * @brief Adds a degree of freedom (DOF) to the node, returning the newly added DOF or the existing one if it already exists, with a reaction.
+     * @details This function checks if the DOF for the given variable already exists in the node's DOF list. If it exists, 
+     * it updates the reaction and returns the existing DOF. Otherwise, it creates a new DOF with both the variable 
+     * and the reaction, and adds it to the list. The DOF list is then sorted to maintain order.
+     * @tparam TVariableType The type of the variable associated with the degree of freedom.
+     * @tparam TReactionType The type of the reaction associated with the degree of freedom.
+     * @param rDofVariable The variable associated with the degree of freedom to be added.
+     * @param rDofReaction The reaction associated with the degree of freedom to be added.
+     * @return A reference to the added or existing DOF.
+     */
     template<class TVariableType, class TReactionType>
     inline DofType& AddDof(TVariableType const& rDofVariable, TReactionType const& rDofReaction)
     {
@@ -918,7 +959,13 @@ public:
     ///@name Inquiry
     ///@{
 
-    /** Return true if the dof of freedom is present on the node */
+    /**
+     * @brief Checks if the degree of freedom (DOF) for a given variable is present on the node.
+     * @details This function iterates over the DOFs associated with the node and checks whether
+     * any of the DOFs correspond to the provided `rDofVariable`.
+     * @param rDofVariable The variable associated with the degree of freedom to be checked.
+     * @return `true` if the degree of freedom for the given variable is present, otherwise `false`.
+     */
     inline bool HasDofFor(const VariableData& rDofVariable) const
     {
         for(auto it_dof = mDofs.begin() ; it_dof != mDofs.end() ; it_dof++){
@@ -929,6 +976,13 @@ public:
         return false;
     }
 
+    /**
+     * @brief Checks if the degree of freedom (DOF) for a given variable is fixed on the node.
+     * @details This function iterates over the DOFs associated with the node and checks whether
+     * any of the DOFs corresponding to the given `rDofVariable` are marked as fixed.
+     * @param rDofVariable The variable associated with the degree of freedom to be checked.
+     * @return `true` if the degree of freedom for the given variable is fixed, otherwise `false`.
+     */
     inline  bool IsFixed(const VariableData& rDofVariable) const
     {
         for(auto it_dof = mDofs.begin() ; it_dof != mDofs.end() ; it_dof++){
@@ -1003,31 +1057,46 @@ private:
     ///@name Member Variables
     ///@{
 
+    /// The nodal data (historical variables)
     NodalData mNodalData;
 
-    /// storage for the dof of the node
+    /// Storage for the dof of the node
     DofsContainerType  mDofs;
 
-    /// A pointer to data related to this node. 
+    /// A container with data related to this node (non-historical variables) 
     DataValueContainer mData;
 
     /// Initial Position of the node
     Point mInitialPosition;
 
+    /// The lock object of the node
     LockObject mNodeLock;
 
     ///@}
     ///@name Private Operators
     ///@{
 
-    //this block is needed for refcounting
+    // This block is needed for refcounting
     mutable std::atomic<int> mReferenceCounter{0};
 
+    /**
+     * @brief Increments the reference counter of the given NodeType object.
+     * @details This function increments the reference counter of the NodeType object `x`
+     * by 1 using relaxed memory ordering.
+     * @param x Pointer to the NodeType object whose reference counter is to be incremented.
+     */
     friend void intrusive_ptr_add_ref(const Node* x)
     {
         x->mReferenceCounter.fetch_add(1, std::memory_order_relaxed);
     }
 
+    /**
+     * @brief Decrements the reference counter of the given NodeType object and deletes it if zero.
+     * @details This function decrements the reference counter of the NodeType object `x`
+     * by 1 using release memory ordering. If the counter reaches zero after decrement,
+     * the function ensures memory visibility using acquire memory ordering and deletes `x`.
+     * @param x Pointer to the NodeType object whose reference counter is to be decremented.
+     */
     friend void intrusive_ptr_release(const Node* x)
     {
         if (x->mReferenceCounter.fetch_sub(1, std::memory_order_release) == 1) {
@@ -1036,6 +1105,12 @@ private:
         }
     }
 
+    /**
+     * @brief Sorts the degrees of freedom (DOFs) based on their variable keys.
+     * @details This function sorts the `mDofs` container (which holds unique pointers to `DofType` objects)
+     * in ascending order of the keys of their associated variables. The sorting is done using
+     * the `std::sort` algorithm and compares the `Key()` of the `GetVariable()` for each DOF.
+     */
     void SortDofs();
 
     ///@}
@@ -1048,8 +1123,16 @@ private:
 
     friend class Serializer;
 
+    /**
+     * @brief The save operation which copies the database of the class
+     * @param rSerializer The serializer used to preserve the information
+     */
     void save(Serializer& rSerializer) const override;
 
+    /**
+     * The load operation which restores the database of the class
+     * @param rSerializer The serializer used to preserve the information
+     */
     void load(Serializer& rSerializer) override;
 
     ///@}
