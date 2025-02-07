@@ -37,6 +37,7 @@
 #include "custom_elements/adjoint_diffusion_element.h"
 #include "custom_elements/qs_convection_diffusion_explicit.h"
 #include "custom_elements/d_convection_diffusion_explicit.h"
+#include "custom_elements/transport_topology_optimization_element.h"
 
 #include "custom_conditions/axisymmetric_thermal_face.h"
 #include "custom_conditions/thermal_face.h"
@@ -44,6 +45,8 @@
 #include "custom_conditions/adjoint_thermal_face.h"
 #include "custom_conditions/laplacian_shifted_boundary_condition.h"
 #include "custom_conditions/mixed_laplacian_shifted_boundary_condition.h"
+
+#include "custom_utilities/transport_topology_optimization_element_data.h"
 
 #include "includes/variables.h"
 #include "includes/condition.h"
@@ -283,6 +286,10 @@ private:
     const QSConvectionDiffusionExplicit<3,4> mQSConvectionDiffusionExplicit3D4N;
     const DConvectionDiffusionExplicit<2,3> mDConvectionDiffusionExplicit2D3N;
     const DConvectionDiffusionExplicit<3,4> mDConvectionDiffusionExplicit3D4N;
+
+    // Topology Optimization Fluid Transport Element
+    const TransportTopologyOptimizationElement<TransportTopologyOptimizationElementData<2,3,true>> mTransportTopologyOptimizationElement2D3N;
+    const TransportTopologyOptimizationElement<TransportTopologyOptimizationElementData<3,4,true>> mTransportTopologyOptimizationElement3D4N;
 
     ///@}
     ///@name Private Operators

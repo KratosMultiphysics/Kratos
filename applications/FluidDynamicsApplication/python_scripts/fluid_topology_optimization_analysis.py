@@ -21,7 +21,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self.topology_optimization_stage = 0
         self.topology_optimization_stage_str = "INIT"
         super().__init__(model,parameters) 
-        self._CreateTopologyOptimizationSolvers() # currently it is a useless method 
+        # self._CreateTopologyOptimizationSolvers() # currently it is a useless method 
         self._SetMinMaxIt()  
 
     def _CreateTopologyOptimizationSolvers(self):
@@ -298,8 +298,6 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         ## Current Optimization Step Solutions 
         self._InitializeTopologyOptimizationStepPhysicsSolution()
         self._SolveNavierStokesProblem() # NAVIER-STOKES PROBLEM SOLUTION
-        # SOLVE TRANSPORT
-        # SOLVE ADJ TRANSPORT
         self._SolveAdjointNaviersStokesProblem() # ADJOINT NAVIER-STOKES PROBLEM SOLUTION   
     
     def _GeometricalPreprocessing(self):

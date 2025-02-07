@@ -489,7 +489,6 @@ private:
     const AdjointMonolithicWallCondition<3, 3> mAdjointMonolithicWallCondition3D3N;
 
     // Topology Optimization Fluid Element
-    // Level set convection elements
     const FluidTopologyOptimizationElement<FluidTopologyOptimizationElementData<2,3,true>> mFluidTopologyOptimizationElement2D3N;
     const FluidTopologyOptimizationElement<FluidTopologyOptimizationElementData<3,4,true>> mFluidTopologyOptimizationElement3D4N;
 

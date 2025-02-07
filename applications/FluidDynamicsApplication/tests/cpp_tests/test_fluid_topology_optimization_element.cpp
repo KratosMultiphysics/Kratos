@@ -99,9 +99,8 @@ KRATOS_TEST_CASE_IN_SUITE(FluidTopologyOptimizationElement2D3N, FluidDynamicsApp
 
     for (std::size_t i=0; i<3; i++){
         r_geometry[i].SetValue(SOUND_VELOCITY, 1e15);
-        r_geometry[i].FastGetSolutionStepValue(DENSITY) = 1.0;
-        r_geometry[i].FastGetSolutionStepValue(PRESSURE) = 0.0;
         r_geometry[i].SetValue(RESISTANCE, 0.0); // RESISTANCE IS A NODAL VARIABLE
+        r_geometry[i].FastGetSolutionStepValue(PRESSURE) = 0.0;
         r_geometry[i].FastGetSolutionStepValue(PRESSURE, 1) = 0.0;
         r_geometry[i].FastGetSolutionStepValue(PRESSURE, 2) = 0.0;
         for (std::size_t k=0; k<2; k++){
@@ -140,7 +139,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluidTopologyOptimizationElement2D3N, FluidDynamicsApp
         }
 
     // Check values
-    bool check_ns = false;
+    bool check_ns = true;
     if (check_ns)
     {
         const std::vector<double> rhs_ref = {0.303417198205,0.403417198205,-0.0232176605582,-0.16277452246,-0.15527452246,-0.0258911697209,-0.155910026661,-0.263410026661,-0.0258911697209}; // FluidTopologyOptimization2D3N-NS_RHS
@@ -166,9 +165,10 @@ KRATOS_TEST_CASE_IN_SUITE(FluidTopologyOptimizationElement2D3N, FluidDynamicsApp
         KRATOS_EXPECT_VECTOR_NEAR(row(LHS,8), lhs_8_ref, 1.0e-8)
     }
     
-    bool test_adjoint = true;
+    bool test_adjoint = false;
     if (test_adjoint)
     {
+        std::cout << "\ntest adjoint\n";
 
         for (auto it_node = r_model_part.NodesBegin(); it_node < r_model_part.NodesEnd(); ++it_node){
             it_node->AddDof(VELOCITY_ADJ_X);
@@ -176,6 +176,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluidTopologyOptimizationElement2D3N, FluidDynamicsApp
             it_node->AddDof(VELOCITY_ADJ_Z);
             it_node->AddDof(PRESSURE_ADJ);
         }
+        std::cout << "add dofs ok\n";
 
         // Define and set the nodal values
         // ADJ NS
@@ -183,12 +184,12 @@ KRATOS_TEST_CASE_IN_SUITE(FluidTopologyOptimizationElement2D3N, FluidDynamicsApp
         reference_velocity_adj(0,0) = 0.1; reference_velocity_adj(0,1) = 0.1;
         reference_velocity_adj(1,0) = 0.2; reference_velocity_adj(1,1) = 0.2;
         reference_velocity_adj(2,0) = 0.3; reference_velocity_adj(2,1) = 0.3;
+        std::cout << "ref vel ok\n";
 
         for (std::size_t i=0; i<3; i++){
             r_geometry[i].SetValue(SOUND_VELOCITY, 1e15);
-            r_geometry[i].FastGetSolutionStepValue(DENSITY) = 1.0;
-            r_geometry[i].FastGetSolutionStepValue(PRESSURE_ADJ) = 0.0;
             r_geometry[i].SetValue(RESISTANCE, 0.0); // RESISTANCE IS A NODAL VARIABLE
+            r_geometry[i].FastGetSolutionStepValue(PRESSURE_ADJ) = 0.0;
             r_geometry[i].FastGetSolutionStepValue(PRESSURE_ADJ, 1) = 0.0;
             r_geometry[i].FastGetSolutionStepValue(PRESSURE_ADJ, 2) = 0.0;
             for (std::size_t k=0; k<2; k++){
@@ -197,6 +198,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluidTopologyOptimizationElement2D3N, FluidDynamicsApp
                 r_geometry[i].FastGetSolutionStepValue(VELOCITY_ADJ, 2)[k] = 0.0*reference_velocity_adj(i,k);
             }
         }
+        std::cout << "rgeometry ok\n";
 
         // Calculate RHS_ADJ and LHS_ADJ
         Vector RHS_ADJ = ZeroVector(9);
@@ -204,8 +206,11 @@ KRATOS_TEST_CASE_IN_SUITE(FluidTopologyOptimizationElement2D3N, FluidDynamicsApp
 
         // SOLVE ADJ NAVIER-STOKES
         r_model_part.GetProcessInfo().SetValue(FLUID_TOP_OPT_PROBLEM_STAGE, 2);
+        std::cout << "top opt phase ok\n";
         p_elem->Initialize(r_process_info);
+        std::cout << "initialize ok\n";
         p_elem->CalculateLocalSystem(LHS_ADJ, RHS_ADJ, r_process_info);
+        std::cout << "local system ok\n";
 
         std::cout << "\n";
         std::cout << "\n-------------------\n";

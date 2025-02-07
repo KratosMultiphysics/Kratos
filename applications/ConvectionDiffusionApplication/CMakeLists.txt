@@ -21,6 +21,7 @@ set( KRATOS_CONVECTION_DIFFUSION_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/embedded_laplacian_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/qs_convection_diffusion_explicit.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/d_convection_diffusion_explicit.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/transport_topology_optimization_element.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/adjoint_diffusion_element.cpp
 
@@ -33,6 +34,7 @@ set( KRATOS_CONVECTION_DIFFUSION_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/adjoint_thermal_face.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/embedded_mls_constraint_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/transport_topology_optimization_element_data.cpp
 )
 
 ## define python interface sources

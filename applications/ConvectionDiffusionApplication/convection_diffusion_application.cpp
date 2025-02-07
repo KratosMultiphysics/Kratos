@@ -72,7 +72,12 @@ KratosConvectionDiffusionApplication::KratosConvectionDiffusionApplication()
       mQSConvectionDiffusionExplicit2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
       mQSConvectionDiffusionExplicit3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
       mDConvectionDiffusionExplicit2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
-      mDConvectionDiffusionExplicit3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))) {}
+      mDConvectionDiffusionExplicit3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+
+      // Topology Optimization Fluid Transport Element
+      mTransportTopologyOptimizationElement2D3N( 0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
+      mTransportTopologyOptimizationElement3D4N( 0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4))))
+      {}
 
 void KratosConvectionDiffusionApplication::Register() {
     KRATOS_INFO("") <<
@@ -99,6 +104,16 @@ void KratosConvectionDiffusionApplication::Register() {
     KRATOS_REGISTER_VARIABLE(SCALAR_PROJECTION)
 
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(CONVECTION_VELOCITY)
+
+    // Fluid Transport Topology Optimization Variables
+    KRATOS_REGISTER_VARIABLE( TRANSPORT_TOP_OPT_PROBLEM_STAGE )
+    KRATOS_REGISTER_VARIABLE( DECAY )
+    KRATOS_REGISTER_VARIABLE( TEMPERATURE_ADJ )
+    KRATOS_REGISTER_VARIABLE( HEAT_FLUX_ADJ )
+    KRATOS_REGISTER_VARIABLE( FACE_HEAT_FLUX_ADJ )
+    KRATOS_REGISTER_VARIABLE( TRANSPORT_TOP_OPT_T_STEP )
+    KRATOS_REGISTER_VARIABLE( TRANSPORT_TOP_OPT_ADJ_T_STEP )
+
 
     // Registering elements and conditions here
     KRATOS_REGISTER_ELEMENT("AxisymmetricEulerianConvectionDiffusion2D3N", mAxisymmetricEulerianConvectionDiffusion2D3N);
@@ -145,6 +160,10 @@ void KratosConvectionDiffusionApplication::Register() {
 
     KRATOS_REGISTER_CONDITION("AdjointThermalFace2D2N", mAdjointThermalFace2D2N);
     KRATOS_REGISTER_CONDITION("AdjointThermalFace3D3N", mAdjointThermalFace3D3N);
+
+    // Topology Optimization Fluid Transport Element
+    KRATOS_REGISTER_ELEMENT("TransportTopologyOptimizationElement2D3N", mTransportTopologyOptimizationElement2D3N)
+    KRATOS_REGISTER_ELEMENT("TransportTopologyOptimizationElement3D4N", mTransportTopologyOptimizationElement3D4N)
 }
 
 }  // namespace Kratos.

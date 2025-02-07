@@ -17,11 +17,15 @@ def CreateSolver(model, custom_settings, isAdjointSolver = False):
 class FluidTopologyOptimizationSolver(NavierStokesMonolithicSolver):
 
     def __init__(self, model, custom_settings, isAdjointSolver = False):
-        super().__init__(model,custom_settings)
+        super().__init__(model,custom_settings,)
         self.is_adjoint = isAdjointSolver
         self._SetUpTopologyOptimization(custom_settings)
-        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of FluidTopologyOptimizationSolver finished.")
-
+        print_str = "Construction of FluidTopologyOptimizationSolver "
+        if isAdjointSolver:
+            print_str += "for Adjoint problem "
+        print_str +=  "finished."
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, print_str)
+        
     def _SetUpTopologyOptimization(self,settings):
         if (self.element_name != "FluidTopologyOptimizationElement"):
             print("[WARNING]", self.__class__.__name__, "element_name: \'", self.element_name, "\' is not compatible with FluidTopologyOptimization. Its value has been reset to default value: \' FluidTopologyOptimizationElement \'")
@@ -29,16 +33,7 @@ class FluidTopologyOptimizationSolver(NavierStokesMonolithicSolver):
 
         self.condition_name = "NavierStokesWallCondition"
         self.element_integrates_in_time = True
-
-        # set the nodal material properties flag
-        # self.element_has_nodal_properties = True
-        # self.historical_nodal_properties_variables_list = [KratosMultiphysics.DENSITY]
-        # self.non_historical_nodal_properties_variables_list = [KratosMultiphysics.SOUND_VELOCITY]
-
-        # self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
-        # #TODO: Remove SOUND_VELOCITY from ProcessInfo. Should be obtained from the properties.
-        # self.process_data[KratosMultiphysics.SOUND_VELOCITY] = settings["sound_velocity"].GetDouble()
-    
+        
     def _SetFormulation(self):
         super()._SetFormulation()
         self.element_has_nodal_properties = True
@@ -46,9 +41,8 @@ class FluidTopologyOptimizationSolver(NavierStokesMonolithicSolver):
 
     def AddVariables(self):  
         #Add parent class variables
-        super().AddVariables()      
-
-        # Add Adjoint Variables
+        super().AddVariables()    
+        # Add Adjoint-NS Variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.VELOCITY_ADJ)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.PRESSURE_ADJ)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.ACCELERATION_ADJ)
@@ -57,8 +51,7 @@ class FluidTopologyOptimizationSolver(NavierStokesMonolithicSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
-        
-        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid Topology Optimization solver variables added correctly.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid Topology Optimization ADJ-NS solver variables added correctly.")          
 
     def _SetTimeSchemeBufferSize(self):
         scheme_type = self.settings["time_scheme"].GetString()

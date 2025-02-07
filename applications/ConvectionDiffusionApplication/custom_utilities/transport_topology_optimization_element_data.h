@@ -10,8 +10,8 @@
 //  Main authors:    Gianmarco Boscolo
 //
 
-#if !defined(KRATOS_FLUID_TOP_OPT_ELEMENT_DATA_H)
-#define KRATOS_FLUID_TOP_OPT_ELEMENT_DATA_H
+#if !defined(KRATOS_TRANSPORT_TOP_OPT_ELEMENT_DATA_H)
+#define KRATOS_TRANSPORT_TOP_OPT_ELEMENT_DATA_H
 
 // External includes
 
@@ -20,12 +20,11 @@
 #include "includes/define.h"
 #include "includes/node.h"
 #include "includes/element.h"
+#include "includes/checks.h"
 #include "includes/process_info.h"
-#include "includes/constitutive_law.h"
 
 // Application includes
-#include "fluid_dynamics_application_variables.h"
-#include "custom_utilities/fluid_element_data.h"
+#include "convection_diffusion_application_variables.h"
 #include "utilities/element_size_calculator.h"
 
 namespace Kratos
@@ -38,7 +37,7 @@ namespace Kratos
 
 ///@brief Base class for data containers used within FluidTransportTopologyOptimizationElement and derived types.
 template< size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime >
-class KRATOS_API(FLUID_DYNAMICS_APPLICATION) FluidTransportTopologyOptimizationElementData
+class KRATOS_API(CONVECTION_DIFFUSION_APPLICATION) TransportTopologyOptimizationElementData
 {
 public:
     ///@name Type Definitions
@@ -76,24 +75,22 @@ public:
 
     int TopOptProblemStage;
 
-    // NAVIER-STOKES VARIABLES
-    NodalScalarData Concentration;
-    NodalScalarData Concentration_OldStep1;;
-    NodalScalarData Concentration_OldStep2;;
+    // TRANSPORT VARIABLES
+    NodalScalarData Temperature;
+    NodalScalarData Temperature_OldStep1;;
+    NodalScalarData Temperature_OldStep2;;
     NodalVectorData ConvectiveVelocity;
     NodalVectorData MeshVelocity;
-    NodalScalarData ProductionTerm;
+    NodalScalarData SourceTerm;
     // NS Auxiliary containers for the symbolically-generated matrices
     BoundedMatrix<double,TNumNodes,TNumNodes> lhs;
     array_1d<double,TNumNodes> rhs;
 
-    // ADJOINT NAVIER-STOKES VARIABLES
-    NodalScalarData Concentration_adj;
-    NodalScalarData Concentration_adj_OldStep1;;
-    NodalScalarData Concentration_adj_OldStep2;;
-    NodalVectorData ConvectiveVelocity_adj;
-    NodalVectorData MeshVelocity_adj;
-    NodalScalarData ProductionTerm_adj;
+    // ADJOINT TRANSPORT VARIABLES
+    NodalScalarData Temperature_adj;
+    NodalScalarData Temperature_adj_OldStep1;;
+    NodalScalarData Temperature_adj_OldStep2;;
+    NodalScalarData SourceTerm_adj;
     // ADJ_NS Auxiliary containers for the symbolically-generated matrices
     BoundedMatrix<double,TNumNodes,TNumNodes> lhs_adj;
     array_1d<double,TNumNodes> rhs_adj;
@@ -102,16 +99,16 @@ public:
     ///@name Life Cycle
     ///@{
     /// Default constructor
-    FluidTransportTopologyOptimizationElementData();
+    TransportTopologyOptimizationElementData();
 
     /// Destructor
-    virtual ~FluidTransportTopologyOptimizationElementData();
+    virtual ~TransportTopologyOptimizationElementData();
 
     /// (deleted) assignment operator.
-    FluidTransportTopologyOptimizationElementData& operator=(FluidTransportTopologyOptimizationElementData const& rOther) = delete;
+    TransportTopologyOptimizationElementData& operator=(TransportTopologyOptimizationElementData const& rOther) = delete;
 
     /// (deleted) copy constructor.
-    FluidTransportTopologyOptimizationElementData(FluidTransportTopologyOptimizationElementData const& rOther) = delete;
+    TransportTopologyOptimizationElementData(TransportTopologyOptimizationElementData const& rOther) = delete;
 
     ///@}
     ///@name Public Operations
@@ -151,7 +148,7 @@ protected:
         const Variable<double> &rVariable,
         const Geometry<Node> &rGeometry)
     {
-        KRATOS_WARNING("FluidTransportTopologyOptimizationElementData") << "\'FillFromNodalData\' is deprecated. Use \'FillFromHistoricalNodalData\' instead." << std::endl;
+        KRATOS_WARNING("TransportTopologyOptimizationElementData") << "\'FillFromNodalData\' is deprecated. Use \'FillFromHistoricalNodalData\' instead." << std::endl;
         FillFromHistoricalNodalData(rData, rVariable, rGeometry);
     }
 
@@ -161,7 +158,7 @@ protected:
         const Variable<array_1d<double, 3>> &rVariable,
         const Geometry<Node> &rGeometry)
     {
-        KRATOS_WARNING("FluidTransportTopologyOptimizationElementData") << "\'FillFromNodalData\' is deprecated. Use \'FillFromHistoricalNodalData\' instead." << std::endl;
+        KRATOS_WARNING("TransportTopologyOptimizationElementData") << "\'FillFromNodalData\' is deprecated. Use \'FillFromHistoricalNodalData\' instead." << std::endl;
         FillFromHistoricalNodalData(rData, rVariable, rGeometry);
     }
 
@@ -216,4 +213,4 @@ protected:
 ///@}
 }
 
-#endif // KRATOS_FLUID_TRANSPORT_TOPOLOGY_OPTIMIZATION_ELEMENT_DATA_H
+#endif // KRATOS_TRANSPORT_TOPOLOGY_OPTIMIZATION_ELEMENT_DATA_H
