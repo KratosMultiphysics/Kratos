@@ -32,8 +32,6 @@ if(${KRATOS_USE_LEGACY} MATCHES ON)
     kratos_add_sources(KRATOS_CORE_SOURCES SOURCE_DIRS "${LIST_LEGACY}")
 endif(${KRATOS_USE_LEGACY} MATCHES ON)
 
-message("Files: ${KRATOS_CORE_SOURCES}")
-
 if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
     SET(KRATOS_TPL_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/modeler/cad_tessellation_modeler.cpp
