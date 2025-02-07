@@ -189,14 +189,6 @@
             "parallel_type":        "OpenMP",
             "number_of_threads":    1
         },
-		"problem_data": {
-            "problem_name":         "test",
-            "start_time":           0.0,
-            "end_time":             1.0,
-            "echo_level":           1,
-            "parallel_type":        "OpenMP",
-            "number_of_threads":    1
-        },
         "solver_settings": {
             "solver_type":                        "U_Pw",
             "model_part_name":                    "PorousDomain",
