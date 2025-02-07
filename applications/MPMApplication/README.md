@@ -91,7 +91,7 @@ The following features are currently available and subject to development within
     * Neumann: [Point load](https://kratosmultiphysics.github.io/Kratos/pages/Applications/MPM_Application/Processes/Grid-based_Boundary_Conditions/load.html)
     * Neumann: [Line load](https://kratosmultiphysics.github.io/Kratos/pages/Applications/MPM_Application/Processes/Grid-based_Boundary_Conditions/load.html) (a distributed load applied over a line)
     * Neumann: [Surface load](https://kratosmultiphysics.github.io/Kratos/pages/Applications/MPM_Application/Processes/Grid-based_Boundary_Conditions/load.html) (a distributed load applied over a face)
-    * Dirichlet: [Slip](https://kratosmultiphysics.github.io/Kratos/pages/Applications/MPM_Application/Processes/Grid-based_Boundary_Conditions/fixed_displacement_boundary_condition.html) and [non-slip](https://kratosmultiphysics.github.io/Kratos/pages/Applications/MPM_Application/Processes/Grid-based_Boundary_Conditions/slip_boundary_condition.html) conditions for arbitrary inclination
+    * Dirichlet: [Slip](https://kratosmultiphysics.github.io/Kratos/pages/Applications/MPM_Application/Processes/Grid-based_Boundary_Conditions/slip_boundary_condition.html) and [non-slip](https://kratosmultiphysics.github.io/Kratos/pages/Applications/MPM_Application/Processes/Grid-based_Boundary_Conditions/fixed_displacement_boundary_condition.html) conditions for arbitrary inclination
 * Material Point-Based Conditions (non-conforming): applied on movable boundary particles
     * Neumann:
         * [moving point load](https://kratosmultiphysics.github.io/Kratos/pages/Applications/MPM_Application/Processes/Material_Point-based_Boundary_Conditions/point_load.html)
