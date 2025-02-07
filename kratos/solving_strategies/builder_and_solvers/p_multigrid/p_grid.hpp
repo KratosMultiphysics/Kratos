@@ -47,7 +47,8 @@ public:
     template <class TParentSparse>
     void MakeLhsTopology(ModelPart& rModelPart,
                          const typename TParentSparse::MatrixType& rParentLhs,
-                         const ConstraintAssembler<TParentSparse,TDense>& rParentConstraintAssembler);
+                         const ConstraintAssembler<TParentSparse,TDense>& rParentConstraintAssembler,
+                         const IndirectDofSet& rParentDofSet);
 
     template <bool AssembleLHS,
               bool AssembleRHS,
@@ -65,7 +66,7 @@ public:
 
     template <class TParentSparse>
     bool ApplyCoarseCorrection(typename TParentSparse::VectorType& rParentSolution,
-                               const typename TParentSparse::VectorType& rParentResidual) const;
+                               const typename TParentSparse::VectorType& rParentResidual);
 
     template <class TParentSparse>
     void Finalize(ModelPart& rModelPart,
@@ -93,7 +94,7 @@ private:
 
     typename TSparse::MatrixType mLhs;
 
-    typename TSparse::DataType mSolution;
+    typename TSparse::VectorType mSolution;
 
     typename TSparse::VectorType mRhs;
 

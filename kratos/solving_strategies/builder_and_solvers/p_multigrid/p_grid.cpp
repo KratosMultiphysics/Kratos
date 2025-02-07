@@ -68,7 +68,7 @@ PGrid<TSparse,TDense>::PGrid(Parameters Settings,
         static_assert(!std::is_same_v<value_type,value_type>, "unhandled sparse space type");
     }
 
-    mpConstraintAssembler = ConstraintAssemblerFactory<TSparse,TDense>(Settings["constraint_imposition"]);
+    mpConstraintAssembler = ConstraintAssemblerFactory<TSparse,TDense>(Settings["constraint_imposition_settings"]);
     mVerbosity = Settings["verbosity"].Get<int>();
 
     const int max_depth = Settings["max_depth"].Get<int>();
@@ -117,7 +117,7 @@ PGrid<TSparse,TDense>::PGrid(Parameters Settings,
 template <class TSparse, class TDense>
 PGrid<TSparse,TDense>::PGrid()
     : PGrid(Parameters(),
-            Parameters(R"({"solver_type" : "ilu0"})"),
+            Parameters(R"({"solver_type" : "gauss_seidel"})"),
             Parameters(R"({"solver_type" : "amgcl"})"))
 {
 }
@@ -127,7 +127,8 @@ template <class TSparse, class TDense>
 template <class TParentSparse>
 void PGrid<TSparse,TDense>::MakeLhsTopology(ModelPart& rModelPart,
                                             const typename TParentSparse::MatrixType& rParentLhs,
-                                            [[maybe_unused]] const ConstraintAssembler<TParentSparse,TDense>& rParentConstraintAssembler)
+                                            [[maybe_unused]] const ConstraintAssembler<TParentSparse,TDense>& rParentConstraintAssembler,
+                                            const IndirectDofSet& rParentDofSet)
 {
     KRATOS_TRY
     KRATOS_PROFILE_SCOPE(KRATOS_CODE_LOCATION);
@@ -142,6 +143,7 @@ void PGrid<TSparse,TDense>::MakeLhsTopology(ModelPart& rModelPart,
         std::numeric_limits<unsigned>::max(),
         typename TSparse::DataType>(rModelPart,
                                     rParentLhs.size1(),
+                                    rParentDofSet,
                                     mRestrictionOperator,
                                     mDofSet,
                                     mIndirectDofSet);
@@ -169,28 +171,16 @@ void PGrid<TSparse,TDense>::Assemble(const ModelPart& rModelPart,
     if constexpr (AssembleLHS) {
         KRATOS_ERROR_IF_NOT(pParentLhs);
 
-        const auto check_matrix_multiplication = [](const typename TSparse::MatrixType& r_left,
-                                                    const typename TSparse::MatrixType& r_right) {
-            KRATOS_ERROR_IF(r_left.size2() != r_right.size1())
-                << "invalid sizes for matrix product: "
-                << "(" << r_left.size1() << "x" << r_left.size2() << ")"
-                << " x "
-                << "(" << r_right.size1() << "x" << r_right.size2() << ")";
-        };
-
         // Compute the coarse LHS matrix.
         typename TSparse::MatrixType left_multiplied_lhs;
-        check_matrix_multiplication(mRestrictionOperator, *pParentLhs);
         SparseUtils::MatrixMultiplication(mRestrictionOperator, *pParentLhs, left_multiplied_lhs);
         SparseUtils::TransposeMatrix(mProlongationOperator, mRestrictionOperator, 1.0);
         SparseUtils::MatrixMultiplication(left_multiplied_lhs, mProlongationOperator, mLhs);
 
         // Compute the coarse relation matrix.
-        check_matrix_multiplication(rParentConstraintAssembler.GetRelationMatrix(), mProlongationOperator);
         SparseUtils::MatrixMultiplication(rParentConstraintAssembler.GetRelationMatrix(),
                                           mProlongationOperator,
                                           mpConstraintAssembler->GetRelationMatrix());
-        TSparse::WriteMatrixMarketMatrix("coarse_relations.mm", mpConstraintAssembler->GetRelationMatrix(), false);
     } // if AssembleLHS
 
     if constexpr (AssembleRHS) {
@@ -200,12 +190,12 @@ void PGrid<TSparse,TDense>::Assemble(const ModelPart& rModelPart,
             << "expecting an RHS vector of size " << mRestrictionOperator.size2()
             << " but got " << pParentRhs->size();
 
-        // Compute the coarse RHS vector.
-        mRhs.resize(mRestrictionOperator.size1(), false);
-        TSparse::Mult(mRestrictionOperator, *pParentRhs, mRhs);
-
         // Compute the coarse constraint gaps.
         mpConstraintAssembler->GetConstraintGapVector() = rParentConstraintAssembler.GetConstraintGapVector();
+
+        // Allocate the coarse vectors.
+        mSolution.resize(mRestrictionOperator.size1(), false);
+        mRhs.resize(mRestrictionOperator.size1(), false);
     } // if AssembleRHS
 
     KRATOS_CATCH("")
@@ -221,7 +211,7 @@ void PGrid<TSparse,TDense>::Initialize(ModelPart& rModelPart,
 {
     KRATOS_TRY
     mpConstraintAssembler->Initialize(mLhs, mRhs);
-    if (mpSolver->AdditionalDataIsNeeded()) {
+    if (mpSolver->AdditionalPhysicalDataIsNeeded()) {
         mpSolver->ProvideAdditionalData(mLhs,
                                         mSolution,
                                         mRhs,
@@ -235,7 +225,7 @@ void PGrid<TSparse,TDense>::Initialize(ModelPart& rModelPart,
 template <class TSparse, class TDense>
 template <class TParentSparse>
 bool PGrid<TSparse,TDense>::ApplyCoarseCorrection(typename TParentSparse::VectorType& rParentSolution,
-                                                  const typename TParentSparse::VectorType& rParentRhs) const
+                                                  const typename TParentSparse::VectorType& rParentRhs)
 {
     // Restrict the residual from the fine grid to the coarse one (this grid).
     KRATOS_TRY
@@ -243,7 +233,9 @@ bool PGrid<TSparse,TDense>::ApplyCoarseCorrection(typename TParentSparse::Vector
     // sparse spaces do not support computing the products of arguments with different value types,
     // so I'm directly invoking the UBLAS template that does support it.
     TSparse::SetToZero(mRhs);
+    TSparse::SetToZero(mSolution);
     axpy_prod(mRestrictionOperator, rParentRhs, mRhs, true);
+    axpy_prod(mRestrictionOperator, rParentSolution, mSolution, true);
     KRATOS_CATCH("")
 
     // Impose constraints and solve the coarse system.
@@ -261,14 +253,19 @@ bool PGrid<TSparse,TDense>::ApplyCoarseCorrection(typename TParentSparse::Vector
         constraint_status = mpConstraintAssembler->FinalizeSolutionStep(mLhs, mSolution, mRhs, i_iteration);
     } while (not constraint_status.finished);
 
-    if (1 <= mVerbosity and not constraint_status.converged) {
-        std::cerr << "PGrid: failed to converge constraints at depth " << mDepth << "\n";
+    // Emit status.
+    if (1 <= mVerbosity) {
+        if (not linear_solver_status)
+            std::cerr << "PMultigridBuilderAndSolver: grid " << mDepth << ": failed to converge\n";
+
+        if (not constraint_status.converged)
+            std::cerr << "PMultigridBuilderAndSolver: grid " << mDepth << ": failed to converge constraints\n";
     }
 
     mpConstraintAssembler->Finalize(mLhs, mSolution, mRhs, mIndirectDofSet);
     KRATOS_CATCH("")
 
-    // Prolong the coarse solution to the fine grid from the coarse one (this grid).
+    // Prolong the coarse solution to the fine grid.
     KRATOS_TRY
     // This is a matrix-vector product of potentially different value types. In its current state,
     // sparse spaces do not support computing the products of arguments with different value types,
@@ -316,7 +313,7 @@ Parameters PGrid<TSparse,TDense>::GetDefaultParameters()
 "max_depth" : 0,
 "verbosity" : 1,
 "precision" : "",
-"constraint_imposition" : {
+"constraint_imposition_settings" : {
     "method" : "augmented_lagrange",
     "max_iterations" : 1
 }
@@ -338,7 +335,8 @@ Parameters PGrid<TSparse,TDense>::GetDefaultParameters()
 #define KRATOS_INSTANTIATE_PGRID_MEMBERS(TSparse, TDense, TParentSparse)                                                        \
     template void PGrid<TSparse,TDense>::MakeLhsTopology<TParentSparse>(ModelPart&,                                             \
                                                                         const typename TParentSparse::MatrixType&,              \
-                                                                        const ConstraintAssembler<TParentSparse,TDense>&);      \
+                                                                        const ConstraintAssembler<TParentSparse,TDense>&,       \
+                                                                        const PointerVectorSet<Dof<double>>&);                  \
     template void PGrid<TSparse,TDense>::Assemble<false,false,TParentSparse>(const ModelPart&,                                  \
                                                                              const typename TParentSparse::MatrixType*,         \
                                                                              const typename TParentSparse::VectorType*,         \
@@ -354,7 +352,17 @@ Parameters PGrid<TSparse,TDense>::GetDefaultParameters()
     template void PGrid<TSparse,TDense>::Assemble<true,true,TParentSparse>(const ModelPart&,                                    \
                                                                            const typename TParentSparse::MatrixType*,           \
                                                                            const typename TParentSparse::VectorType*,           \
-                                                                           const ConstraintAssembler<TParentSparse,TDense>&)
+                                                                           const ConstraintAssembler<TParentSparse,TDense>&);   \
+    template void PGrid<TSparse,TDense>::Initialize<TParentSparse>(ModelPart&,                                                  \
+                                                                   const TParentSparse::MatrixType&,                            \
+                                                                   const TParentSparse::VectorType&,                            \
+                                                                   const TParentSparse::VectorType&);                           \
+    template bool PGrid<TSparse,TDense>::ApplyCoarseCorrection<TParentSparse>(TParentSparse::VectorType&,                       \
+                                                                              const TParentSparse::VectorType&);                \
+    template void PGrid<TSparse,TDense>::Finalize<TParentSparse>(ModelPart&,                                                    \
+                                                                 const TParentSparse::MatrixType&,                              \
+                                                                 const TParentSparse::VectorType&,                              \
+                                                                 const TParentSparse::VectorType&)
 
 #define KRATOS_INSTANTIATE_PGRID(TSparse, TDense)                                   \
     template class PGrid<TSparse,TDense>;                                           \
