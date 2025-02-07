@@ -99,7 +99,7 @@ void MasterSlaveConstraintAssembler<TSparse,TDense>::Allocate(const typename Bas
     KRATOS_CATCH("")
 
     KRATOS_TRY
-    rLhs = SparseMatrixMultiplicationUtility::MergeMatrices<typename TSparse::DataType>(rLhs, this->GetRelationMatrix());
+    MergeMatrices<typename TSparse::DataType>(rLhs, this->GetRelationMatrix());
     KRATOS_CATCH("")
 }
 
@@ -255,8 +255,8 @@ void MasterSlaveConstraintAssembler<TSparse,TDense>::Finalize(typename TSparse::
     typename TSparse::VectorType original_solution(rSolution.size());
     TSparse::SetToZero(original_solution);
     TSparse::Mult(this->GetRelationMatrix(),
-                    rSolution,
-                    original_solution);
+                  rSolution,
+                  original_solution);
     rSolution.swap(original_solution);
     KRATOS_CATCH("")
 }

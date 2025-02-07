@@ -56,6 +56,13 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Allocate(const typena
 {
     KRATOS_TRY
 
+    if (rConstraints.empty()) {
+        this->GetRelationMatrix() = typename TSparse::MatrixType(0, rLhs.size2(), 0);
+        this->GetRelationMatrix().index1_data()[0] = 0;
+        this->GetRelationMatrix().set_filled(1, 0);
+        return;
+    }
+
     // Construct a map that associates slave indices with constraint equation indices.
     mSlaveToConstraintMap.clear();
 
@@ -99,6 +106,7 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Allocate(const typena
                                                              this->GetRelationMatrix());
 
         this->GetConstraintGapVector().resize(mSlaveToConstraintMap.size(), false);
+        TSparse::SetToZero(this->GetConstraintGapVector());
     }
 
     {
@@ -108,7 +116,7 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Allocate(const typena
             SparseMatrixMultiplicationUtility::TransposeMatrix(transpose, this->GetRelationMatrix());
             SparseMatrixMultiplicationUtility::MatrixMultiplication(transpose, this->GetRelationMatrix(), product);
         }
-        rLhs = SparseMatrixMultiplicationUtility::MergeMatrices<typename TSparse::DataType>(rLhs, product);
+        MergeMatrices<typename TSparse::DataType>(rLhs, product);
     }
 
     KRATOS_CATCH("")
@@ -201,8 +209,8 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Assemble(const typena
                                    return r_tls.local_relation_matrix(i_row, i_column);
                                    });
                     std::copy(row.begin(),
-                                row.end(),
-                                r_tls.local_relation_matrix.data().begin() + i_row * r_tls.local_relation_matrix.size2());
+                              row.end(),
+                              r_tls.local_relation_matrix.data().begin() + i_row * r_tls.local_relation_matrix.size2());
 
                     // Reorder DoF indices.
                     auto swap_dof_ids = dof_ids;
@@ -253,9 +261,9 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Initialize(typename T
                                           relation_product);
 
         // Add terms to the LHS matrix.
-        SparseUtils::InPlaceMatrixAdd(rLhs,
-                                      relation_product,
-                                      penalty_factor);
+        InPlaceMatrixAdd(rLhs,
+                         relation_product,
+                         penalty_factor);
 
         // Add terms to the RHS vector.
         typename TSparse::VectorType rhs_term(rRhs.size()),
@@ -273,7 +281,6 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Initialize(typename T
                               -1.0,
                               rhs_term);
     }
-
     KRATOS_CATCH("")
 }
 
