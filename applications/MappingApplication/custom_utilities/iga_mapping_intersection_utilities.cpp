@@ -18,6 +18,10 @@
 // Project includes
 #include "iga_mapping_intersection_utilities.h"
 
+// Data structures for doing spatial search 
+#include "utilities/function_parser_utility.h"
+#include "spatial_containers/bins_dynamic.h"
+
 namespace Kratos
 {
 
@@ -100,7 +104,42 @@ namespace Kratos
 
             KRATOS_WATCH(patchs_id)
 
-            for (IndexType i = 0; i < patchs_id.size(); i++)
+            /* - Iterate over the elements
+               - For each element, we should decide which patches are the ones that the element has a projection on 
+               - Create a new list called patchs_id_projection depending on the element considered */
+
+            for (auto condition_b_itr = rModelPartDomainB.ConditionsBegin();
+                     condition_b_itr != rModelPartDomainB.ConditionsEnd();
+                     ++condition_b_itr)
+            {
+                    CoordinatesArrayType element_centroid = ZeroVector(3);
+
+                    // Calculate the centroid of the triangle 
+                    for (IndexType i = 0; i < 3; i++){
+                        element_centroid[0] += (1.0/3.0) * (condition_b_itr->pGetGeometry()->pGetPoint(i)->X());
+                        element_centroid[1] += (1.0/3.0) * (condition_b_itr->pGetGeometry()->pGetPoint(i)->Y());
+                        element_centroid[2] += (1.0/3.0) * (condition_b_itr->pGetGeometry()->pGetPoint(i)->Z());
+                    }
+                    
+                    std::vector<IndexType> patches_with_probable_projection_id = IgaMappingIntersectionUtilities::GetPatchesWithProbableProjection(patchs_id, element_centroid, rModelPartDomainA);
+
+                    KRATOS_WATCH(patches_with_probable_projection_id)
+
+                    for (IndexType i = 0; i < patches_with_probable_projection_id.size(); i++)
+                    {
+                        // Get a pointer to the brep surface geometry
+                        auto p_brep_surface = rModelPartDomainA.GetRootModelPart().pGetGeometry(patches_with_probable_projection_id[i]);
+
+                        // Cast the nurbs surface pointer and brep surface to the derived class
+                        auto brep_surface_cast = dynamic_pointer_cast<BrepSurface<PointerVector<NodeType>, PointerVector<Point>>>(p_brep_surface);
+
+                        // Creating one coupling geometry for each combination of load condition and patch surface
+                        rModelPartResult.AddGeometry(Kratos::make_shared<CouplingGeometry<NodeType>>(
+                            p_brep_surface, condition_b_itr->pGetGeometry()));
+                    }       
+            }
+
+            /*for (IndexType i = 0; i < patchs_id.size(); i++)
             {
                 // Get a pointer to the brep surface geometry
                 auto p_brep_surface = rModelPartDomainA.GetRootModelPart().pGetGeometry(patchs_id[i]);
@@ -109,13 +148,13 @@ namespace Kratos
                 auto brep_surface_cast = dynamic_pointer_cast<BrepSurface<PointerVector<NodeType>, PointerVector<Point>>>(p_brep_surface);
 
                 // Creating one coupling geometry for each combination of finite element and patch surface
-                /*for (auto element_b_itr = rModelPartDomainB.ElementsBegin();
+                for (auto element_b_itr = rModelPartDomainB.ElementsBegin();
                     element_b_itr != rModelPartDomainB.ElementsEnd();
                     ++ element_b_itr)
                 {
                     rModelPartResult.AddGeometry(Kratos::make_shared<CouplingGeometry<NodeType>>(
                         p_brep_surface, element_b_itr->pGetGeometry()));
-                }*/
+                }
 
 
                 // Creating one coupling geometry for each combination of load condition and patch surface
@@ -126,7 +165,7 @@ namespace Kratos
                     rModelPartResult.AddGeometry(Kratos::make_shared<CouplingGeometry<NodeType>>(
                         p_brep_surface, condition_b_itr->pGetGeometry()));
                 }
-            }
+            }*/
         }
         else
         {
@@ -194,6 +233,116 @@ namespace Kratos
                 }
             }
         }
+    }
+
+    std::vector<IndexType> IgaMappingIntersectionUtilities::GetPatchesWithProbableProjection(
+        std::vector<IndexType>& patches_id,
+        CoordinatesArrayType& element_centroid,
+        ModelPart& rModelPartIga)
+    {
+        std::vector<IndexType> patches_with_probable_projection_id;
+
+        for (IndexType i = 0; i < patches_id.size(); i++){
+            // Get a pointer to the brep surface geometry
+            auto p_brep_surface = rModelPartIga.GetRootModelPart().pGetGeometry(patches_id[i]);
+
+            // Cast the nurbs surface pointer and brep surface to the derived class
+            auto brep_surface_cast = dynamic_pointer_cast<BrepSurface<PointerVector<NodeType>, PointerVector<Point>>>(p_brep_surface);
+
+            // Knot vector of the surface in the xi and eta directions
+            std::vector<double> knot_vector_xi;
+            std::vector<double> knot_vector_eta;
+
+            // Points to evaluate
+            std::vector<double> xi_coordinates;
+            std::vector<double> eta_coordinates;
+
+            // Obtain the knot vectors in the xi and eta directions
+            brep_surface_cast->pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX)->SpansLocalSpace(knot_vector_xi, 0);
+            brep_surface_cast->pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX)->SpansLocalSpace(knot_vector_eta, 1);
+
+            // Construct the vector xi_coordinates and eta_coordinates 
+            double xi_dist = (knot_vector_xi.back() - knot_vector_xi[0])/50;
+            double eta_dist = (knot_vector_eta.back() - knot_vector_eta[0])/50;
+
+            for(IndexType i = 0; i < 51; i++){
+                xi_coordinates.push_back(knot_vector_xi[0]+(xi_dist*i));
+            }
+
+            for(IndexType j = 0; j < 51; j++){
+                eta_coordinates.push_back(knot_vector_eta[0]+(eta_dist*j));
+            }
+
+            CoordinatesArrayType local_parameter = ZeroVector(3);
+            CoordinatesArrayType physical_space_position = ZeroVector(3); 
+            
+            // Points to be used in the radius search
+            PointVector points;
+            IndexType id = 0;
+            std::vector<double> mesh_sizes;
+
+            // Points to get an approximation of the mesh size in the physical space (radius = 2 * mesh_size)
+            CoordinatesArrayType point_new = ZeroVector(3);
+            CoordinatesArrayType point_old = ZeroVector(3);
+            IndexType i_old = 0;
+            IndexType i_new = 0; // If i_old == i_new, it means that we are moving along a constant xi line
+            
+            for(IndexType i = 0; i < xi_coordinates.size(); i++){
+                for(IndexType j = 0; j < eta_coordinates.size(); j++){
+                    local_parameter[0] = xi_coordinates[i];
+                    local_parameter[1] = eta_coordinates[j];
+                    brep_surface_cast->GlobalCoordinates(physical_space_position, local_parameter);
+                    points.push_back(PointTypePointer(new PointType(id, physical_space_position[0], physical_space_position[1], physical_space_position[2])));
+                    point_new = physical_space_position;
+                    i_new = i;
+                    if (id > 1 && i_old == i_new){
+                        CoordinatesArrayType distance_vector = point_new - point_old;
+                        double distance = norm_2(distance_vector);
+                        mesh_sizes.push_back(distance);
+                    }
+                    point_old = point_new;
+                    i_old = i_new;
+                    id += 1;
+                }   
+            }
+
+            // Calculate the sum of all elements in the vector
+            double sum = std::accumulate(mesh_sizes.begin(), mesh_sizes.end(), 0.0);
+
+            // Calculate the average (mean)
+            double average_mesh_size = sum / mesh_sizes.size();
+
+            PointerType point_to_search = PointerType(new PointType(10000, element_centroid[0], element_centroid[1], element_centroid[2]));
+
+            DynamicBins test_bins(points.begin(), points.end());
+
+            // Necessary parameters for the radius search
+            //double radius = 3 * average_mesh_size; 
+            double radius = 0.05;
+            /*if (radius < 1e-3){
+                radius = 0.3; 
+            }*/
+            const int number_of_results = 1e6; 
+            ModelPart::NodesContainerType::ContainerType Results(number_of_results);
+            std::vector<double> list_of_distances(number_of_results);
+
+            int obtained_results = test_bins.SearchInRadius(*point_to_search, radius, Results.begin(), list_of_distances.begin(), number_of_results);
+            
+            if (obtained_results > 0){
+                patches_with_probable_projection_id.push_back(patches_id[i]);
+            }
+
+            KRATOS_WATCH(element_centroid)
+            KRATOS_WATCH(patches_id[i])
+            KRATOS_WATCH(obtained_results)
+        }
+
+        if (patches_with_probable_projection_id.size() > 0){
+            return patches_with_probable_projection_id;
+        }
+        exit(0);
+
+        return patches_id;
     }
 
     void IgaMappingIntersectionUtilities::IgaCreateQuadraturePointsCoupling1DGeometries2D(
@@ -634,7 +783,7 @@ namespace Kratos
                 IgaMappingIntersectionUtilities::FindInitialGuessNewtonRaphsonProjection(node_coordinate_xyz, geom_master, local_parameter);
 
                 // Project each FEM node to the parameter space of the IGA Surface
-                IndexType projection_is_successful = geom_master->ProjectionPointGlobalToLocalSpace(node_coordinate_xyz, local_parameter, 1e-6);
+                IndexType projection_is_successful = geom_master->ProjectionPointGlobalToLocalSpace(node_coordinate_xyz, local_parameter, 1e-5);
 
                 if (projection_is_successful == 1)
                 {
@@ -806,7 +955,7 @@ namespace Kratos
                 else
                 {
                    KRATOS_WATCH("I am here because the clipping is failing")
-                   exit(0);
+                   //exit(0);
                    continue;
                 }
             }
@@ -967,15 +1116,17 @@ namespace Kratos
         double min_parameter_v = surface_interval_v.MinParameter();
         double max_parameter_v = surface_interval_v.MaxParameter();
 
+        double epsilon = 1.0e-2;
+
         if (points_to_triangulate.size() == 1){
-            if (points_to_triangulate[0][0] == min_parameter_u || points_to_triangulate[0][0] == max_parameter_u) return true;
-            if (points_to_triangulate[0][1] == min_parameter_v || points_to_triangulate[0][1] == max_parameter_v) return true;
+            if (std::abs(points_to_triangulate[0][0] - min_parameter_u) < epsilon  || std::abs(points_to_triangulate[0][0] - max_parameter_u) < epsilon) return true;
+            if (std::abs(points_to_triangulate[0][1] - min_parameter_v) < epsilon || std::abs(points_to_triangulate[0][1] - max_parameter_v) < epsilon) return true;
         }
         else{
-            if (points_to_triangulate[0][0] == min_parameter_u && points_to_triangulate[1][0] == min_parameter_u) return true;
-            if (points_to_triangulate[0][0] == max_parameter_u && points_to_triangulate[1][0] == max_parameter_u) return true;
-            if (points_to_triangulate[0][1] == min_parameter_v && points_to_triangulate[1][1] == min_parameter_v) return true;
-            if (points_to_triangulate[0][1] == max_parameter_v && points_to_triangulate[1][1] == max_parameter_v) return true;
+            if (std::abs(points_to_triangulate[0][0] - min_parameter_u) < epsilon && std::abs(points_to_triangulate[1][0] - min_parameter_u) < epsilon) return true;
+            if (std::abs(points_to_triangulate[0][0] - max_parameter_u) < epsilon && std::abs(points_to_triangulate[1][0] - max_parameter_u) < epsilon) return true;
+            if (std::abs(points_to_triangulate[0][1] - min_parameter_v) < epsilon && std::abs(points_to_triangulate[1][1] - min_parameter_v) < epsilon) return true;
+            if (std::abs(points_to_triangulate[0][1] - max_parameter_v) < epsilon && std::abs(points_to_triangulate[1][1] - max_parameter_v) < epsilon) return true;
         }
 
         return false;

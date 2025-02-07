@@ -29,7 +29,11 @@
 #include "integration/integration_point_utilities.h"
 #include "utilities/quadrature_points_utility.h"
 
+#include "utilities/function_parser_utility.h"
+#include "spatial_containers/bins_dynamic.h"
+
 #include <algorithm>
+#include <numeric> 
 
 namespace Kratos
 {
@@ -48,6 +52,15 @@ namespace IgaMappingIntersectionUtilities
     typedef typename GeometryType::GeometriesArrayType GeometriesArrayType;
     typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
     typedef typename GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
+
+    using PointType = Node;
+    using PointTypePointer = Node::Pointer;
+    using PointVector = std::vector<PointType::Pointer>;
+    using PointIterator = std::vector<PointType::Pointer>::iterator;
+    using DistanceVector = std::vector<double>;
+    using DistanceIterator = std::vector<double>::iterator;
+    using DynamicBins = BinsDynamic<3, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
+    using PointerType = DynamicBins::PointerType;
 
     void KRATOS_API(MAPPING_APPLICATION) IgaCreateBrepCurveOnSurfaceCouplingGeometries(
         ModelPart& rModelPartDomainA,
@@ -139,6 +152,11 @@ namespace IgaMappingIntersectionUtilities
     bool KRATOS_API(MAPPING_APPLICATION) AreProjectionsOnParameterSpaceBoundary(
         std::vector<CoordinatesArrayType>& points_to_triangulate,
         NurbsSurfaceGeometry<3, PointerVector<Node>>& nurbs_surface);
+
+    std::vector<IndexType> KRATOS_API(MAPPING_APPLICATION) GetPatchesWithProbableProjection(
+        std::vector<IndexType>& patches_id,
+        CoordinatesArrayType& element_centroid,
+        ModelPart& rModelPartIga);
 
 
 
