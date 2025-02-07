@@ -6,7 +6,7 @@ sidebar: mpm_application
 summary: 
 ---
 
-The [`ApplyMPMSlipBoundaryProcess`](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/MPMApplication/python_scripts/apply_mpm_slip_boundary_process.py) generates an output in `GiD`'s propietary format.
+The [`ApplyMPMSlipBoundaryProcess`](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/MPMApplication/python_scripts/apply_mpm_slip_boundary_process.py) imposes zero displacement in the direction orthogonal to the conditions of a background grid submodel part (no constraints in the tangent direction).
 
 ## Parameters & Defaults
 

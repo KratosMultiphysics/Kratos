@@ -1,5 +1,6 @@
 {
     "custom_entries": [
-        "penalty.md"
+        "penalty.md",
+        "point_load.md"
     ]
 }
