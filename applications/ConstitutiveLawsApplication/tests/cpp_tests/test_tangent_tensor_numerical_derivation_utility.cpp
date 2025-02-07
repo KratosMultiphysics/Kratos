@@ -19,13 +19,13 @@
 // Project includes
 #include "includes/process_info.h"
 #include "containers/model.h"
-#include "testing/testing.h"
 #include "utilities/math_utils.h"
-#include "custom_utilities/tangent_operator_calculator_utility.h"
 
-namespace Kratos
-{
-namespace Testing
+// Application includes
+#include "custom_utilities/tangent_operator_calculator_utility.h"
+#include "tests/cpp_tests/constitutive_laws_fast_suite.h"
+
+namespace Kratos::Testing
 {
 
 /// Node definition
@@ -315,7 +315,7 @@ void ComputingConvergenceRate(
 /**
  * @brief This test tests that the perturbation utility is valid for computing the elastic linear tensor
  */
-KRATOS_TEST_CASE_IN_SUITE(LinearElasticCasePertubationTensorUtility, KratosConstitutiveLawsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(LinearElasticCasePertubationTensorUtility, KratosConstitutiveLawsWithStructuralElementsSuite)
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main");
@@ -385,7 +385,7 @@ KRATOS_TEST_CASE_IN_SUITE(HyperElasticCasePertubationTensorUtility, KratosConsti
 /**
  * @brief This test tests that the perturbation utility is valid for computing the elastic linear tensor
  */
-KRATOS_TEST_CASE_IN_SUITE(QuadraticLinearElasticCasePertubationTensorUtility, KratosConstitutiveLawsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(QuadraticLinearElasticCasePertubationTensorUtility, KratosConstitutiveLawsWithStructuralElementsSuite)
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main");
@@ -427,7 +427,7 @@ KRATOS_TEST_CASE_IN_SUITE(QuadraticKirchhoffHyperElasticCasePertubationTensorUti
 /**
  * @brief This test tests that the perturbation utility is valid for computing the ehyper lastic tensor
  */
-KRATOS_TEST_CASE_IN_SUITE(QuadraticSmallStrainIsotropicPlasticity3DVonMisesVonMisesFirstOrderCasePertubationTensorUtility, KratosConstitutiveLawsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(QuadraticSmallStrainIsotropicPlasticity3DVonMisesVonMisesFirstOrderCasePertubationTensorUtility, KratosConstitutiveLawsWithStructuralElementsSuite)
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
@@ -463,7 +463,7 @@ KRATOS_TEST_CASE_IN_SUITE(QuadraticSmallStrainIsotropicPlasticity3DVonMisesVonMi
 /**
  * @brief This test tests that the perturbation utility is valid for computing the ehyper lastic tensor
  */
-KRATOS_TEST_CASE_IN_SUITE(QuadraticSmallStrainIsotropicPlasticity3DVonMisesVonMisesCaseSecondOrderPertubationTensorUtility, KratosConstitutiveLawsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(QuadraticSmallStrainIsotropicPlasticity3DVonMisesVonMisesCaseSecondOrderPertubationTensorUtility, KratosConstitutiveLawsWithStructuralElementsSuite)
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
@@ -499,7 +499,7 @@ KRATOS_TEST_CASE_IN_SUITE(QuadraticSmallStrainIsotropicPlasticity3DVonMisesVonMi
 /**
  * @brief This test tests that the perturbation utility is valid for computing the ehyper lastic tensor
  */
-KRATOS_TEST_CASE_IN_SUITE(QuadraticSmallStrainIsotropicDamage3DsVonMisesCaseAutomaticDiffTensorUtility, KratosConstitutiveLawsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(QuadraticSmallStrainIsotropicDamage3DsVonMisesCaseAutomaticDiffTensorUtility, KratosConstitutiveLawsWithStructuralElementsSuite)
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
@@ -536,5 +536,4 @@ KRATOS_TEST_CASE_IN_SUITE(QuadraticSmallStrainIsotropicDamage3DsVonMisesCaseAuto
     ComputingConvergenceRate(p_constitutive_law, cl_configuration_values, stress_vector, strain_vector, tangent_moduli, deformation_gradient_F, det_deformation_gradient_F, false, false, false, 1.0, 4);
 }
 
-} // namespace Testing
-} // namespace Kratos
+} // namespace Kratos::Testing

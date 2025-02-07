@@ -58,7 +58,7 @@
         "min_alpha":                          0.1,
         "max_alpha":                          2.0,
         "line_search_tolerance":              0.5,
-        "rotation_dofs":                      true,
+        "rotation_dofs":                      false,
         "linear_solver_settings":             {
             "solver_type":     "LinearSolversApplication.sparse_lu"
         },

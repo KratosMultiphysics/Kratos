@@ -5,14 +5,13 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                     Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
 //
 
-#if !defined(KRATOS_TABLE_H_INCLUDED )
-#define  KRATOS_TABLE_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -649,15 +648,13 @@ public:
 
         TResultType result;
         if(X <= mData[0].first)
-            //return Interpolate(X, mData[0].first, mData[0].second[0], mData[1].first, mData[1].second[0], result);
-            return 0.0;
+            return InterpolateDerivative(mData[0].first, mData[0].second[0], mData[1].first, mData[1].second[0], result);
 
         for(std::size_t i = 1 ; i < size ; i++)
             if(X <= mData[i].first)
                 return InterpolateDerivative( mData[i-1].first, mData[i-1].second[0], mData[i].first, mData[i].second[0], result);
 
-        // If it lies outside the table values we will return 0.0.
-        return 0.0;
+        return InterpolateDerivative(mData[size-2].first, mData[size-2].second[0], mData[size-1].first, mData[size-1].second[0], result);
     }
      TResultType& InterpolateDerivative( TArgumentType const& X1, TResultType const& Y1, TArgumentType const& X2, TResultType const& Y2, TResultType& Result) const
     {
@@ -867,7 +864,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_TABLE_H_INCLUDED  defined 
-
-

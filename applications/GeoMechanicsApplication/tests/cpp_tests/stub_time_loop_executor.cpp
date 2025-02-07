@@ -10,26 +10,51 @@
 //  Main authors:    Richard Faasse
 //
 #include "stub_time_loop_executor.h"
+#include "geo_mechanics_fast_suite.h"
 #include "processes/process.h"
-#include "testing/testing.h"
 
-namespace Kratos {
+namespace Kratos
+{
 
-StubTimeLoopExecutor::StubTimeLoopExecutor(std::size_t NumberOfExpectedProcesses) :
-        mNumberOfExpectedProcesses{NumberOfExpectedProcesses}
+StubTimeLoopExecutor::StubTimeLoopExecutor(std::size_t NumberOfExpectedProcesses)
+    : mNumberOfExpectedProcesses{NumberOfExpectedProcesses}
 {
 }
 
-void StubTimeLoopExecutor::SetProcessReferences(const std::vector<std::weak_ptr<Process>>& rProcessRefs)
+void StubTimeLoopExecutor::SetProcessObservables(const std::vector<std::weak_ptr<Process>>& rProcessObservables)
 {
-    KRATOS_EXPECT_EQ(rProcessRefs.size(), mNumberOfExpectedProcesses);
-    for (const auto& process_ref : rProcessRefs)
-    {
-        KRATOS_EXPECT_FALSE(process_ref.expired())
+    KRATOS_EXPECT_EQ(rProcessObservables.size(), mNumberOfExpectedProcesses);
+    for (const auto& process_observable : rProcessObservables) {
+        KRATOS_EXPECT_FALSE(process_observable.expired())
 
-        std::shared_ptr<Process> process = process_ref.lock();
+        std::shared_ptr<Process> process = process_observable.lock();
         KRATOS_EXPECT_EQ(process->Check(), 0);
     }
 }
 
+void StubTimeLoopExecutor::SetCancelDelegate(const std::function<bool()>& rCancelDelegate)
+{
+    // intentionally empty
 }
+
+void StubTimeLoopExecutor::SetProgressDelegate(const std::function<void(double)>& rProgressDelegate)
+{
+    // intentionally empty
+}
+
+void StubTimeLoopExecutor::SetTimeIncrementor(std::unique_ptr<TimeIncrementor> pTimeIncrementor)
+{
+    // intentionally empty
+}
+
+void StubTimeLoopExecutor::SetSolverStrategyWrapper(std::shared_ptr<StrategyWrapper> pStrategyWrapper)
+{
+    // intentionally empty
+}
+
+std::vector<TimeStepEndState> StubTimeLoopExecutor::Run(const TimeStepEndState& EndState)
+{
+    return {};
+}
+
+} // namespace Kratos

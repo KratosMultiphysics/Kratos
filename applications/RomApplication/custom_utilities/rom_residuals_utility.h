@@ -72,6 +72,18 @@ namespace Kratos
 
         ~RomResidualsUtility()= default;
 
+        /**
+         * Resizes a Matrix if it's not the right size
+         */
+        template<typename TMatrix>
+        static void ResizeIfNeeded(TMatrix& rMat, const std::size_t Rows, const std::size_t Cols)
+
+        {
+            if(rMat.size1() != Rows || rMat.size2() != Cols) {
+                rMat.resize(Rows, Cols, false);
+            }
+        };
+
         Matrix GetProjectedResidualsOntoPhi()
         {
             // Getting the number of elements and conditions from the model
@@ -110,8 +122,8 @@ namespace Kratos
                         //assemble the elemental contribution - here is where the ROM acts
                         //compute the elemental reduction matrix phi_elemental
                         const auto& r_geom = it_el->GetGeometry();
-                        if(phi_elemental.size1() != elem_dofs.size() || phi_elemental.size2() != mRomDofs)
-                            phi_elemental.resize(elem_dofs.size(), mRomDofs,false);
+                        if(phi_elemental.size1() != rhs_contribution.size() || phi_elemental.size2() != mRomDofs)
+                            phi_elemental.resize(rhs_contribution.size(), mRomDofs,false);
                         RomAuxiliaryUtilities::GetPhiElemental(phi_elemental, elem_dofs, r_geom, mMapPhi);
                         noalias(row(matrix_residuals, k)) = prod(trans(phi_elemental), rhs_contribution); // The size of the residual will vary only when using more ROM modes, one row per condition
                     }
@@ -178,8 +190,8 @@ namespace Kratos
                         //assemble the elemental contribution - here is where the ROM acts
                         //compute the elemental reduction matrix phi_elemental
                         const auto& r_geom = it_el->GetGeometry();
-                        if(psi_elemental.size1() != elem_dofs.size() || psi_elemental.size2() != mPetrovGalerkinRomDofs)
-                            psi_elemental.resize(elem_dofs.size(), mPetrovGalerkinRomDofs,false);
+                        if(psi_elemental.size1() != rhs_contribution.size() || psi_elemental.size2() != mPetrovGalerkinRomDofs)
+                            psi_elemental.resize(rhs_contribution.size(), mPetrovGalerkinRomDofs,false);
                         RomAuxiliaryUtilities::GetPsiElemental(psi_elemental, elem_dofs, r_geom, mMapPhi);
                         noalias(row(matrix_residuals, k)) = prod(trans(psi_elemental), rhs_contribution); // The size of the residual will vary only when using more ROM modes, one row per condition
                     }
@@ -206,6 +218,70 @@ namespace Kratos
                 }
             }
         return matrix_residuals;
+        }
+
+        Matrix GetProjectedResidualsOntoJPhi(
+            Matrix& rJPhi
+        )
+        {
+            const int n_elements = static_cast<int>(mrModelPart.Elements().size());
+            const int n_conditions = static_cast<int>(mrModelPart.Conditions().size());
+
+            const auto& r_current_process_info = mrModelPart.GetProcessInfo();
+
+            //contributions to the system
+            Vector rhs_contribution;
+
+            //vector containing the localization in the system of the different terms
+            Element::EquationIdVectorType equation_id;
+            Matrix matrix_residuals( (n_elements + n_conditions), mRomDofs);
+            Matrix phi_j_elemental;
+
+            const auto el_begin = mrModelPart.ElementsBegin();
+            const auto cond_begin = mrModelPart.ConditionsBegin();
+
+            //dofs container initialization
+            Element::DofsVectorType elem_dofs;
+            Condition::DofsVectorType cond_dofs;
+            #pragma omp parallel firstprivate(n_elements, n_conditions, rhs_contribution, equation_id, phi_j_elemental, el_begin, cond_begin, elem_dofs, cond_dofs)
+            {
+                #pragma omp for
+                for (int k = 0; k < n_elements; k++){
+                    auto r_element = el_begin + k;
+                    if (r_element->IsDefined(ACTIVE) && r_element->IsNot(ACTIVE)) continue;
+
+                    mpScheme->CalculateRHSContribution(*r_element, rhs_contribution, equation_id, r_current_process_info);
+                    r_element->GetDofList(elem_dofs, r_current_process_info);
+
+                    const std::size_t ndofs = elem_dofs.size();
+                    ResizeIfNeeded(phi_j_elemental, ndofs, mRomDofs);
+                    RomAuxiliaryUtilities::GetJPhiElemental(phi_j_elemental, elem_dofs, rJPhi);
+
+                    #pragma omp critical
+                    {
+                        noalias(row(matrix_residuals, k)) = prod(trans(phi_j_elemental), rhs_contribution);
+                    }
+                }
+
+                #pragma omp for
+                for (int k = 0; k < n_conditions; k++){
+                    auto r_condition = cond_begin + k;
+                    if (r_condition->IsDefined(ACTIVE) && r_condition->IsNot(ACTIVE)) continue;
+
+                    mpScheme->CalculateRHSContribution(*r_condition, rhs_contribution, equation_id, r_current_process_info);
+                    r_condition->GetDofList(cond_dofs, r_current_process_info);
+
+                    const std::size_t ndofs = cond_dofs.size();
+                    ResizeIfNeeded(phi_j_elemental, ndofs, mRomDofs);
+                    RomAuxiliaryUtilities::GetJPhiElemental(phi_j_elemental, cond_dofs, rJPhi);
+
+                    #pragma omp critical
+                    {
+                        noalias(row(matrix_residuals, n_elements + k)) = prod(trans(phi_j_elemental), rhs_contribution);
+                    }
+                }
+            }
+            return matrix_residuals;
         }
 
     protected:

@@ -14,8 +14,8 @@
 #pragma once
 
 #include "processes/process.h"
-#include "time_step_end_state.hpp"
 #include "strategy_wrapper.hpp"
+#include "time_step_end_state.hpp"
 
 #include <functional>
 #include <memory>
@@ -23,19 +23,19 @@
 namespace Kratos
 {
 
-class TimeStepExecutor
+class KRATOS_API(GEO_MECHANICS_APPLICATION) TimeStepExecutor
 {
 public:
     using ProcessRef    = std::reference_wrapper<Process>;
     using ProcessRefVec = std::vector<ProcessRef>;
 
     void SetSolverStrategy(std::shared_ptr<StrategyWrapper> SolverStrategy);
-    void SetProcessReferences(ProcessRefVec ProcessRefs);
+    void SetProcessObservables(const std::vector<std::weak_ptr<Process>>& rProcessObservables);
     TimeStepEndState Run(double Time);
 
 private:
-    std::shared_ptr<StrategyWrapper> mStrategyWrapper;
-    ProcessRefVec                    mProcessRefs;
+    std::shared_ptr<StrategyWrapper>    mStrategyWrapper;
+    std::vector<std::weak_ptr<Process>> mProcessObservables;
 };
 
-}
+} // namespace Kratos
