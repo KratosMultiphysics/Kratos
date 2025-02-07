@@ -268,6 +268,7 @@ template <unsigned OrderReduction,
           class TValue>
 void MakePRestrictionOperator(ModelPart& rModelPart,
                               const std::size_t FineSystemSize,
+                              const PointerVectorSet<Dof<double>>& rParentIndirectDofSet,
                               typename TUblasSparseSpace<TValue>::MatrixType& rRestrictionOperator,
                               std::vector<Dof<double>>& rDofSet,
                               PointerVectorSet<Dof<double>>& rIndirectDofSet)
@@ -302,6 +303,18 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
         std::vector<LockObject> locks(FineSystemSize);
         using Triplet = std::tuple<LocalIndex,LocalIndex,TValue>;
 
+        const auto find_node_index = [&rModelPart](const Node& r_node) -> std::size_t {
+            return std::distance(
+                rModelPart.Nodes().begin(),
+                std::lower_bound(rModelPart.Nodes().begin(),
+                                 rModelPart.Nodes().end(),
+                                 r_node,
+                                 [](const Node& r_left, const Node& r_right){
+                                    return r_left.Id() < r_right.Id();
+                                 })
+            );
+        }; // def find_node_index
+
         // A vector of bools indicating whether the node at the same position
         // is a hanging node (i.e.: not part of any element/condition) or not.
         // In case you're wondering, I'm not using an std::vector<std::atomic<bool>>
@@ -315,7 +328,7 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
         KRATOS_TRY
         block_for_each(rModelPart.Elements(),
                        std::vector<Triplet>(),
-                       [&rows, &locks, &hanging_nodes, &rModelPart](const Element& r_element, std::vector<Triplet>& r_tls) {
+                       [&rows, &locks, &hanging_nodes, &rModelPart, &find_node_index](const Element& r_element, std::vector<Triplet>& r_tls) {
             if (r_element.IsActive()) {
                 r_tls.clear();
                 const auto& r_geometry = r_element.GetGeometry();
@@ -346,23 +359,15 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
                             // Check whether the insertion was successful, and if not,
                             // make sure that the existing restriction component is
                             // identical to what we tried to insert.
-                            KRATOS_DEBUG_ERROR_IF_NOT(!inserted || value == it_emplace->second);
+                            KRATOS_DEBUG_ERROR_IF_NOT(inserted or value == it_emplace->second);
                         } // for i_component in range(component_count)
                     } // if !r_row_dofs.empty()
                 } // for triplet in r_tls
-
             } // if r_element.IsActive()
 
             // Mark nodes as not hanging.
             for (const Node& r_node : r_element.GetGeometry()) {
-                const std::size_t i_node = std::distance(
-                    rModelPart.Nodes().begin(),
-                    std::lower_bound(rModelPart.Nodes().begin(),
-                                     rModelPart.Nodes().end(),
-                                     r_node,
-                                     [](const Node& r_left, const Node& r_right){
-                                        return r_left.Id() < r_right.Id();
-                                     }));
+                const std::size_t i_node = find_node_index(r_node);
                 KRATOS_DEBUG_ERROR_IF_NOT(i_node < hanging_nodes.size());
                 hanging_nodes[i_node] = 0u;
             } // for r_node in r_element.GetGeometry()
@@ -371,36 +376,40 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
 
         // Flag conditions' nodes as not hanging.
         KRATOS_TRY
-        block_for_each(rModelPart.Conditions(), [&hanging_nodes, &rModelPart](const Condition& r_condition) {
-            for (const Node& r_node : r_condition.GetGeometry()) {
-                const std::size_t i_node = std::distance(
-                    rModelPart.Nodes().begin(),
-                    std::lower_bound(rModelPart.Nodes().begin(),
-                                     rModelPart.Nodes().end(),
-                                     r_node,
-                                     [](const Node& r_left, const Node& r_right){
-                                        return r_left.Id() < r_right.Id();
-                                     }));
-                hanging_nodes[i_node] = 0u;
-            } // for r_node in r_condition.GetGeometry()
+        block_for_each(rModelPart.Conditions(), [&hanging_nodes, &rModelPart, &find_node_index](const Condition& r_condition) {
+            if (r_condition.IsActive()) {
+                for (const Node& r_node : r_condition.GetGeometry()) {
+                    const std::size_t i_node = find_node_index(r_node);
+                    hanging_nodes[i_node] = 0u;
+                } // for r_node in r_condition.GetGeometry()
+            } // r_condition.IsActive()
         }); // for r_condition in rModelPart.Conditions()
         KRATOS_CATCH("")
 
-        // Include hanging nodes' DoFs.
+        // Here comes the tricky part.
+        // Some models have nodes that are not connected to any element or condition,
+        // but have multifreedom constraints to other nodes that are. These connected
+        // external DoFs must also be included in the coarse set of DoFs.
+        // To find these DoFs, loop through the input DoF set and check whether their
+        // nodes are hanging. If they are, they fall into the above mentioned categroy.
         KRATOS_TRY
-        IndexPartition<std::size_t>(hanging_nodes.size()).for_each([&hanging_nodes, &rows, &locks, &rModelPart](const std::size_t i_node){
+        block_for_each(rParentIndirectDofSet, [&hanging_nodes, &locks, &rows, &rModelPart](const Dof<double>& r_dof){
+            const std::size_t node_id = r_dof.Id();
+            const std::size_t i_node = std::distance(
+                rModelPart.Nodes().begin(),
+                std::lower_bound(rModelPart.Nodes().begin(),
+                                 rModelPart.Nodes().end(),
+                                 node_id,
+                                 [](const Node& r_left, const std::size_t i_node){
+                                    return r_left.Id() < i_node;
+                                 }));
+
             if (hanging_nodes[i_node]) {
-                Node& r_node = rModelPart.Nodes().begin()[i_node];
-                for (auto& rp_dof : r_node.GetDofs()) {
-                    const std::size_t i_dof = rp_dof->EquationId();
-                    rows[i_dof].second = rp_dof.get();
-                    [[maybe_unused]] std::scoped_lock<LockObject> lock(locks[i_dof]);
-                    if (rows[i_dof].first.empty()) {
-                        rows[i_dof].first.emplace(i_dof, 1.0);
-                    } // if rows[i_dof].first.empty()
-                } // for rp_dof in r_node.GetDofs()
+                const std::size_t i_dof = r_dof.EquationId();
+                [[maybe_unused]] std::scoped_lock<LockObject> lock(locks[i_dof]);
+                rows[i_dof].first.emplace(i_dof, 1.0);
             } // if hanging_nodes[i_node]
-        }); // for i_node in range(hanging_nodes.size())
+        });
         KRATOS_CATCH("")
     } // destroy locks
 
