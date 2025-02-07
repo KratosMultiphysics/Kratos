@@ -38,6 +38,11 @@ if(POLICY CMP0135)
   cmake_policy(SET CMP0135 NEW)
 endif(POLICY CMP0135)
 
+# Path Normalization
+if(POLICY CMP0177)
+  cmake_policy(SET CMP0177 NEW)
+endif(POLICY CMP0177)
+
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 10)
 set (KratosMultiphysics_MINOR_VERSION 2)
@@ -294,6 +299,7 @@ SET(INSTALL_PYTHON_FILES ON)        # To be removed when all applications are po
 include(install_function)
 include(KratosDependencies)
 include(KratosGTest)
+include(KratosAddSources)
 include(KratosGBenchmark)
 include(FetchContent)
 

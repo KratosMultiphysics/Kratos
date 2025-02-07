@@ -7,7 +7,9 @@ else(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 endif(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 include_directories( ${KRATOS_SOURCE_DIR}/external_libraries/tinyexpr )
 
-SET(ListFolders sources conditions constraints containers elements factories geometries includes integration linear_solvers mappers modeler modified_shape_functions operations processes controllers response_functions solving_strategies spaces spatial_containers utilities)
+SET(LIST_FOLDER sources conditions constraints containers elements factories geometries includes integration linear_solvers mappers modeler modified_shape_functions operations processes controllers response_functions solving_strategies spaces spatial_containers utilities)
+SET(LIST_FUTURE future)
+SET(LIST_LEGACY legacy)
 
 ## Kratos main source code
 SET(LIST_OF_SOURCE_EXCEPTIONS
@@ -18,26 +20,19 @@ SET(LIST_OF_SOURCE_EXCEPTIONS
     ${CMAKE_CURRENT_SOURCE_DIR}/modeler/cad_tessellation_modeler.cpp
 )
 
-FOREACH(subFolder ${ListFolders})
-    FILE(GLOB_RECURSE ${subFolder}Sources "${subFolder}/*.cpp" "${subFolder}/*.c") #all .cpp and .c
+kratos_add_sources(KRATOS_CORE_SOURCES SOURCE_DIRS "${LIST_FOLDER}")
+if(${KRATOS_USE_FUTURE} MATCHES ON)
+    add_definitions( -DKRATOS_USE_FUTURE )
+    message(WARNING "You are using sources from Kratos::Future. This is not recommended for stability.")
+    kratos_add_sources(KRATOS_CORE_SOURCES SOURCE_DIRS "${LIST_FUTURE}")
+endif(${KRATOS_USE_FUTURE} MATCHES ON)
+if(${KRATOS_USE_LEGACY} MATCHES ON)
+    add_definitions( -DKRATOS_USE_LEGACY )
+    message(WARNING "You are using sources from Kratos::Legacy. This will be removed soon.")
+    kratos_add_sources(KRATOS_CORE_SOURCES SOURCE_DIRS "${LIST_LEGACY}")
+endif(${KRATOS_USE_LEGACY} MATCHES ON)
 
-    # Auxiliar list
-    SET(AUXILIAR_CORE_SOURCES "")
-    FOREACH(file ${${subFolder}Sources})
-        SET(EXCEPTION_CHECK 0)
-        FOREACH(exception ${LIST_OF_SOURCE_EXCEPTIONS})
-            IF(${file} STREQUAL ${exception})
-                SET(EXCEPTION_CHECK 1)
-            ENDIF(${file} STREQUAL ${exception})
-        ENDFOREACH(exception ${LIST_OF_SOURCE_EXCEPTIONS})
-        IF (${EXCEPTION_CHECK} EQUAL 0)
-            LIST(APPEND AUXILIAR_CORE_SOURCES ${file})
-        ENDIF(${EXCEPTION_CHECK} EQUAL 0)
-    ENDFOREACH(file ${${subFolder}Sources})
-
-    # Append to final list
-    LIST(APPEND KRATOS_CORE_SOURCES ${AUXILIAR_CORE_SOURCES})
-ENDFOREACH(subFolder ${ListFolders})
+message("Files: ${KRATOS_CORE_SOURCES}")
 
 if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
     SET(KRATOS_TPL_SOURCES
@@ -188,7 +183,7 @@ if(CMAKE_UNITY_BUILD MATCHES ON)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/testing/distributed_test_case.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
 
     ## this cannot be compiled with unity build because calculate_discontinuous_distance_to_skin_process.cpp does implicit instantiation before specialization
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/processes/find_global_nodal_entity_neighbours_process.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+    # set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/processes/find_global_nodal_entity_neighbours_process.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
 
     ## The following are conflicting due to KratosComponents
     file(GLOB_RECURSE KRATOS_STRATEGIES_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/solving_strategies/*.cpp)
