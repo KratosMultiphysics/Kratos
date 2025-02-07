@@ -30,8 +30,11 @@ namespace Kratos
         const double q = x*h;
         return 1/std::sqrt(1+std::pow(q,2));
 
-        // Evaluate Gaussian function
-        // const double q = x/h;
+         // Evaluate multiquadric
+        //return std::sqrt(std::pow(x,2) + std::pow(h,2));
+
+        // // Evaluate Gaussian function
+        // const double q = x/2.0;
         // return std::exp(-0.5*std::pow(q,2));
     }
 
