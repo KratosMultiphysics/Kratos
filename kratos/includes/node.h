@@ -62,7 +62,7 @@ namespace Kratos
  * @author Pooyan Dadvand
  * @author Riccardo Rossi
  */
-class Node 
+class KRATOS_API(KRATOS_CORE) Node 
     : public Point, public Flags
 {
 public:
@@ -588,6 +588,14 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief Fix a Degree of Freedom (DoF) associated with a given variable.
+     * @details This function searches for the DoF corresponding to @p rDofVariable
+     * in the internal list of DoFs (@p mDofs) and fixes it if found. If the
+     * variable is not found, it adds a new DoF and fixes it.
+     * @tparam TVariableType Type of the variable associated with the DoF.
+     * @param rDofVariable Reference to the variable to fix.
+     */
     template<class TVariableType>
     inline void Fix(const TVariableType& rDofVariable)
     {
@@ -606,6 +614,14 @@ public:
         pAddDof(rDofVariable)->FixDof();
     }
 
+    /**
+     * @brief Free a Degree of Freedom (DoF) associated with a given variable.
+     * @details This function searches for the DoF corresponding to @p rDofVariable
+     * in the internal list of DoFs (@p mDofs) and frees it if found. If the
+     * variable is not found, it adds a new DoF and frees it.
+     * @tparam TVariableType Type of the variable associated with the DoF.
+     * @param rDofVariable Reference to the variable to free.
+     */
     template<class TVariableType>
     inline void Free(const TVariableType& rDofVariable)
     {
@@ -624,36 +640,110 @@ public:
         pAddDof(rDofVariable)->FreeDof();
     }
 
+    /**
+     * @brief Get the buffer size.
+     * @details This function returns the size of the buffer used for storing
+     * solution step data.
+     * @return IndexType The size of the buffer.
+     */
     IndexType GetBufferSize() const;
 
+    /**
+     * @brief Set the buffer size.
+     * @details This function resizes the buffer used for storing solution step data
+     * to the given size @p NewBufferSize.
+     * @param NewBufferSize New size for the buffer.
+     */
     void SetBufferSize(IndexType NewBufferSize);
 
     ///@}
     ///@name Access
     ///@{
 
+    /**
+     * @brief Returns the initial position of the node (const version).
+     * @details This function provides read-only access to the initial position of the node.
+     * @return A const reference to the initial position of the node.
+     */
     const Point& GetInitialPosition() const;
 
+    /**
+     * @brief Returns the initial position of the node (non-const version).
+     * @details This function provides access to the initial position of the node and allows modifications.
+     * @return A reference to the initial position of the node.
+     */
     Point& GetInitialPosition();
 
+    /**
+     * @brief Returns the X coordinate of the initial position.
+     * @details This function provides access to the X coordinate of the initial position and allows modifications.
+     * @return A reference to the X coordinate of the initial position.
+     */
     double& X0();
 
+    /**
+     * @brief Returns the Y coordinate of the initial position.
+     * @details This function provides access to the Y coordinate of the initial position and allows modifications.
+     * @return A reference to the Y coordinate of the initial position.
+     */
     double& Y0();
     
+    /**
+     * @brief Returns the Z coordinate of the initial position.
+     * @details This function provides access to the Z coordinate of the initial position and allows modifications.
+     * @return A reference to the Z coordinate of the initial position.
+     */
     double& Z0();
 
+    /**
+     * @brief Returns the X coordinate of the initial position (const version).
+     * @details This function provides read-only access to the X coordinate of the initial position.
+     * @return The X coordinate of the initial position.
+     */
     double X0() const;
     
+    /**
+     * @brief Returns the Y coordinate of the initial position (const version).
+     * @details This function provides read-only access to the Y coordinate of the initial position.
+     * @return The Y coordinate of the initial position.
+     */
     double Y0() const;
     
+    /**
+     * @brief Returns the Z coordinate of the initial position (const version).
+     * @details This function provides read-only access to the Z coordinate of the initial position.
+     * @return The Z coordinate of the initial position.
+     */
     double Z0() const;
 
+    /**
+     * @brief Sets the initial position of the node using a PointType.
+     * @details This function sets the initial position of the node by copying the values from the given `NewInitialPosition`.
+     * @param NewInitialPosition The new initial position to be set.
+     */
     void SetInitialPosition(const Point& NewInitialPosition);
 
+    /**
+     * @brief Sets the initial position of the node using X, Y, and Z coordinates.
+     * @details This function sets the initial position of the node by directly assigning values to the X, Y, and Z coordinates.
+     * @param X The X coordinate of the new initial position.
+     * @param Y The Y coordinate of the new initial position.
+     * @param Z The Z coordinate of the new initial position.
+     */
     void SetInitialPosition(double X,double Y, double Z);
 
+    /**
+     * @brief Returns the pointer to the list of variables associated with the node.
+     * @details This function provides access to the list of variables for the current solution step.
+     * @return A pointer to the list of variables.
+     */
     VariablesList::Pointer pGetVariablesList();
 
+    /**
+     * @brief Returns the pointer to the list of variables associated with the node (const version).
+     * @details This function provides read-only access to the list of variables for the current solution step.
+     * @return A const pointer to the list of variables.
+     */
     const VariablesList::Pointer pGetVariablesList() const;
 
     ///@}
@@ -731,9 +821,20 @@ public:
 
     }
 
-    /** returns all of the Dofs  */
+    /**
+     * @brief Returns all the degrees of freedom (DOFs) associated with the node.
+     * @details This function provides access to the container holding all the degrees of freedom
+     * (DOFs) for the node. The returned container is mutable, allowing modifications to the DOFs.
+     * @return A reference to the container of DOFs.
+     */
     DofsContainerType& GetDofs();
 
+    /**
+     * @brief Returns all the degrees of freedom (DOFs) associated with the node (const version).
+     * @details This function provides a read-only access to the container holding all the degrees of freedom
+     * (DOFs) for the node. The returned container cannot be modified.
+     * @return A const reference to the container of DOFs.
+     */
     const DofsContainerType& GetDofs() const;
 
     /**
