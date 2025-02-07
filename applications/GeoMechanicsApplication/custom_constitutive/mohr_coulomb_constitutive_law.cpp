@@ -84,13 +84,14 @@ void MohrCoulombConstitutiveLaw::CalculateMohrCoulomb(const Properties& rProp, V
 
     double friction_angle = rProp[GEO_FRICTION_ANGLE] * Globals::Pi / 180.0;
     double cohesion       = rProp[GEO_COHESION];
+    double dilation_angle = rProp[GEO_DILATION_ANGLE] * Globals::Pi / 180.0;
     double tension_cutoff = rProp[GEO_TENSION_CUTOFF];
 
-    auto const coulombYieldFunction = CoulombYieldFunction(friction_angle, cohesion);
+    auto const coulombYieldFunction = CoulombYieldFunction(friction_angle, cohesion, dilation_angle);
     auto const tensionCutoffFunction = TensionCutoffFunction(tension_cutoff);
 
-    double fme = coulombYieldFunction(principalStress);
-    double fte = tensionCutoffFunction(principalStress);
+    double fme = coulombYieldFunction.CalculateYieldFunction(principalStress);
+    double fte = tensionCutoffFunction.CalculateYieldFunction(principalStress);
 
     int region_index = this->FindRegionIndex(fme, fte);
 

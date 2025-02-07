@@ -29,8 +29,8 @@ KRATOS_TEST_CASE_IN_SUITE(TestCoulombYieldFunction, KratosGeoMechanicsFastSuiteW
 
     constexpr double tolerance{1.0e-12};
 
-    CoulombYieldFunction coulombYieldFunction(friction_angle, cohesion);
-    double yield_value = coulombYieldFunction(principal_stress);
+    CoulombYieldFunction coulombYieldFunction(friction_angle, cohesion, 0.0);
+    double yield_value = coulombYieldFunction.CalculateYieldFunction(principal_stress);
     double expected_solution = 1.0;
     KRATOS_EXPECT_NEAR(yield_value, expected_solution, tolerance);
 }
@@ -46,7 +46,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestTensionCutoffFunction, KratosGeoMechanicsFastSuite
     constexpr double tolerance{1.0e-12};
 
     TensionCutoffFunction tensionCutoffFunction(tension_cutoff);
-    double tension_value = tensionCutoffFunction(principal_stress);
+    double tension_value = tensionCutoffFunction.CalculateYieldFunction(principal_stress);
     double expected_solution = 1.0;
     KRATOS_EXPECT_NEAR(tension_value, expected_solution, tolerance);
 }

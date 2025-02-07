@@ -29,7 +29,8 @@ public:
 
     explicit TensionCutoffFunction(double tensileStrength);
 
-    double operator()(const Vector& rPrincipalStress) const override;
+    double CalculateYieldFunction(const Vector& rPrincipalStress) const override;
+    Vector CalculateFlowFunctionDerivate(const Vector& rPrincipalStress) const override;
 
 private:
     // Member Variables

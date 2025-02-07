@@ -27,13 +27,15 @@ public:
 
     CoulombYieldFunction() = default;
 
-    CoulombYieldFunction(double frictionAngle, double cohesion);
+    CoulombYieldFunction(double frictionAngle, double cohesion, double dilatationAngle);
 
-    double operator()(const Vector& rPrincipalStress) const override;
+    double CalculateYieldFunction(const Vector& rPrincipalStress) const override;
+    Vector CalculateFlowFunctionDerivate(const Vector& rPrincipalStress) const override;
 
 private:
     // Member Variables
     double mFrictionAngle = 0.0;
+    double mDilatationAngle = 0.0;
     double mCohesion = 0.0;
 
 }; // Class CoulombYieldFunction

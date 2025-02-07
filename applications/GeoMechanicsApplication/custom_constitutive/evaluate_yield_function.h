@@ -23,7 +23,8 @@ class EvaluateYieldFunction
 public:
     virtual ~EvaluateYieldFunction() = default;
 
-    virtual double operator()(const Vector& rPrincipalStress) const = 0;
+    virtual double CalculateYieldFunction(const Vector& rPrincipalStress) const        = 0;
+    virtual Vector CalculateFlowFunctionDerivate(const Vector& rPrincipalStress) const = 0;
 
 
 };
