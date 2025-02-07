@@ -21,6 +21,8 @@ namespace Kratos
 class EvaluateYieldFunction
 {
 public:
+    virtual ~EvaluateYieldFunction() = default;
+
     virtual double operator()(const Vector& rPrincipalStress) const = 0;
 
 

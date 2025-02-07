@@ -14,15 +14,8 @@
 
 #pragma once
 
-// System includes
-#include <cmath>
-
-// Project includes
 #include "custom_constitutive/evaluate_yield_function.h"
-#include "includes/serializer.h"
 
-// Application includes
-#include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -40,9 +33,9 @@ public:
 
 private:
     // Member Variables
-    double mFrictionAngle;
-    double mCohesion;
+    double mFrictionAngle = 0.0;
+    double mCohesion = 0.0;
 
-}; // Class BilinearCohesive3DLaw
+}; // Class CoulombYieldFunction
 
 } // namespace Kratos

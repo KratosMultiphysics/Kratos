@@ -14,15 +14,8 @@
 
 #pragma once
 
-// System includes
-#include <cmath>
-
-// Project includes
 #include "custom_constitutive/evaluate_yield_function.h"
-#include "includes/serializer.h"
 
-// Application includes
-#include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -34,14 +27,14 @@ public:
 
     TensionCutoffFunction() = default;
 
-    TensionCutoffFunction(double tensileStrength);
+    explicit TensionCutoffFunction(double tensileStrength);
 
     double operator()(const Vector& rPrincipalStress) const override;
 
 private:
     // Member Variables
-    double mTensileStrength;
+    double mTensileStrength = 0.0;
 
-}; // Class BilinearCohesive3DLaw
+}; // Class TensionCutoffFunction
 
 } // namespace Kratos
