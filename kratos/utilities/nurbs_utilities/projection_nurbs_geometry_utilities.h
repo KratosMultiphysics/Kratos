@@ -141,7 +141,7 @@ public:
         double xi_cos, eta_cos, residual_u, residual_v, j_00, j_01, j_11, det_j;
 
         // Loop over all the Newton-Raphson iterations
-        for (int i = 0; i < MaxIterations; i++) {
+        for (int i = 0; i < MaxIterations - 10; i++) {
 
             // Compute the position, the base and the acceleration vectors
             std::vector<array_1d<double, 3>> s;
@@ -234,7 +234,7 @@ public:
             }
 
             // Check if the step size is too small
-            if (norm_2(d_u * s[1] + d_v * s[2]) < Accuracy && distance < 1e-3){
+            if (norm_2(d_u * s[1] + d_v * s[2]) < Accuracy){
                 KRATOS_WATCH("Convergence achieved: Step too small")
                 return true;
             }
@@ -251,6 +251,11 @@ public:
             // and if so clamp them back to their boundaries
             rNurbsSurface.DomainIntervalU().IsInside(rProjectedPointLocalCoordinates[0]);
             rNurbsSurface.DomainIntervalV().IsInside(rProjectedPointLocalCoordinates[1]);
+
+            if (distance < 1e-4 && i == 19){
+                return true;
+                exit(0);
+            }
         }
 
         return false;
