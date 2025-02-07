@@ -36,6 +36,22 @@ Node::Node()
 /***********************************************************************************/
 /***********************************************************************************/
 
+Node::Node(IndexType NewId )
+    : BaseType()
+    , Flags()
+    , mNodalData(NewId)
+    , mDofs()
+    , mData()
+    , mInitialPosition()
+    , mNodeLock()
+{
+    KRATOS_ERROR <<  "Calling the default constructor for the node ... illegal operation!!" << std::endl;
+    CreateSolutionStepData();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 Node::Node(IndexType NewId, const double NewX)
     : BaseType(NewX)
     , Flags()
