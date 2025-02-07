@@ -20,6 +20,146 @@
 namespace Kratos {
 
 
+/// @brief Computes \f$A += c * B\f$.
+/// @tparam TValue Value type of the operand matrices.
+/// @param rLeft Left hand side matrix to add the scaled right hand matrix to.
+/// @param rRight Right hand matrix to scale and add to the left hand side.
+/// @param Coefficient Coefficient to scale the right hand side matrix by.
+template <class TValue>
+static void
+InPlaceMatrixAdd(typename TUblasSparseSpace<TValue>::MatrixType& rLeft,
+                 const typename TUblasSparseSpace<TValue>::MatrixType& rRight,
+                 const TValue Coefficient = 1.0)
+{
+    // Sanity checks.
+    KRATOS_ERROR_IF_NOT(rLeft.size1() == rRight.size1() && rLeft.size2() == rRight.size2())
+        << "cannot add matrices off different shapes "
+        << "(" << rLeft.size1() << "x" << rLeft.size2() << ") + "
+        << "(" << rRight.size1() << "x" << rRight.size2() << ")";
+
+    // Early exit on empty update matrix.
+    if (not rRight.size1() or not rRight.size2() or not rRight.nnz()) return;
+
+    KRATOS_ERROR_IF_NOT(rRight.nnz() <= rLeft.nnz());
+
+    #define KRATOS_MATRIX_SUM(sum_operator)                                                                                         \
+        IndexPartition<std::size_t>(rLeft.size1()).for_each([&rLeft, &rRight, Coefficient](const std::size_t i_row) {               \
+            const auto i_right_entry_begin = rRight.index1_data()[i_row];                                                           \
+            const auto i_right_entry_end   = rRight.index1_data()[i_row + 1];                                                       \
+                                                                                                                                    \
+            const auto i_left_entry_begin = rLeft.index1_data()[i_row];                                                             \
+            const auto i_left_entry_end   = rLeft.index1_data()[i_row + 1];                                                         \
+            const auto it_left_column_begin = rLeft.index2_data().begin() + i_left_entry_begin;                                     \
+            const auto it_left_column_end   = rLeft.index2_data().begin() + i_left_entry_end;                                       \
+                                                                                                                                    \
+            auto it_left_column = it_left_column_begin;                                                                             \
+            for (auto i_right_entry=i_right_entry_begin; i_right_entry!=i_right_entry_end; ++i_right_entry) {                       \
+                const auto i_column = rRight.index2_data()[i_right_entry];                                                          \
+                                                                                                                                    \
+                /* Find the entry in the left matrix corresponding to the entry in the right one. */                                \
+                it_left_column = std::lower_bound(it_left_column, it_left_column_end, i_column);                                    \
+                KRATOS_ERROR_IF(it_left_column == it_left_column_end)                                                               \
+                    << "left hand matrix has no entry in row " << i_row << " at column " << i_column;                               \
+                                                                                                                                    \
+                const auto i_left_entry = std::distance(rLeft.index2_data().begin(), it_left_column);                               \
+                rLeft.value_data()[i_left_entry] sum_operator rRight.value_data()[i_right_entry];                                   \
+            } /* for i_right in range(i_right_begin, i_right_end) */                                                                \
+        }) /*for i_row in range(rLeft.size1())*/
+
+    if (Coefficient == 1.0) {
+        KRATOS_TRY
+        KRATOS_MATRIX_SUM(+=);
+        KRATOS_CATCH("")
+    } /*if Coefficient == 1.0*/ else if (Coefficient == -1.0) {
+        KRATOS_TRY
+        KRATOS_MATRIX_SUM(-=);
+        KRATOS_CATCH("")
+    } /*if Coefficient == -1.0*/ else {
+        KRATOS_TRY
+        KRATOS_MATRIX_SUM(+= Coefficient *);
+        KRATOS_CATCH("")
+    } // if Coefficient != 1.0
+    #undef KRATOS_MATRIX_SUM
+}
+
+
+/// @brief Compute the union of two sparse matrix' sparsity patterns.
+template <class TValue>
+static void
+MergeMatrices(typename TUblasSparseSpace<TValue>::MatrixType& rLeft,
+              const typename TUblasSparseSpace<TValue>::MatrixType& rRight)
+{
+    using SpaceType = TUblasSparseSpace<TValue>;
+    using MatrixType = typename SpaceType::MatrixType;
+    using IndexType = typename MatrixType::index_array_type::value_type;
+    MatrixType output;
+
+    KRATOS_TRY
+
+    // Sanity checks.
+    KRATOS_ERROR_IF_NOT(rLeft.size1() == rRight.size1() && rLeft.size2() == rRight.size2())
+        << "cannot merge incompatible matrices "
+        << "(" << rLeft.size1() << "x" << rLeft.size2() << ")"
+        << " and "
+        << "(" << rRight.size1() << "x" << rRight.size2() << ")";
+
+    if (not rRight.size1() or not rRight.size2() or not rRight.nnz()) return;
+
+    // Declare new containers for the merged matrix.
+    typename MatrixType::index_array_type row_extents(rLeft.index1_data().size());
+    typename MatrixType::index_array_type column_indices;
+    block_for_each(row_extents, [](auto& r_item){r_item = 0;});
+
+    // Merge rows into separate containers.
+    {
+        std::vector<std::vector<IndexType>> rows(rLeft.size1());
+        IndexPartition<IndexType>(rLeft.size1()).for_each([&rows, &rLeft, &rRight](const IndexType i_row){
+            const IndexType i_left_begin = rLeft.index1_data()[i_row];
+            const IndexType i_left_end = rLeft.index1_data()[i_row + 1];
+            const IndexType i_right_begin = rRight.index1_data()[i_row];
+            const IndexType i_right_end = rRight.index1_data()[i_row + 1];
+            rows[i_row].reserve(i_left_end - i_left_begin + i_right_end - i_right_begin);
+
+            rows[i_row].insert(rows[i_row].end(),
+                               rLeft.index2_data().begin() + i_left_begin,
+                               rLeft.index2_data().begin() + i_left_end);
+            rows[i_row].insert(rows[i_row].end(),
+                               rRight.index2_data().begin() + i_right_begin,
+                               rRight.index2_data().begin() + i_right_end);
+            std::sort(rows[i_row].begin(),
+                        rows[i_row].end());
+            rows[i_row].erase(std::unique(rows[i_row].begin(),
+                                          rows[i_row].end()),
+                                rows[i_row].end());
+            rows[i_row].shrink_to_fit();
+        });
+
+        // Compute new row extents.
+        for (IndexType i_row=0; i_row<rLeft.size1(); ++i_row) {
+            row_extents[i_row + 1] = row_extents[i_row] + rows[i_row].size();
+        } // for i_row in range(rLeft.size1)
+
+        // Fill column indices and entries.
+        column_indices.resize(row_extents[rLeft.size1()], false);
+        IndexPartition<IndexType>(rLeft.size1()).for_each([&rows, &row_extents, &column_indices](const IndexType i_row){
+            const IndexType i_begin = row_extents[i_row];
+            std::copy(rows[i_row].begin(),
+                        rows[i_row].end(),
+                        column_indices.begin() + i_begin);
+        });
+    }
+
+    // Construct the new matrix.
+    rLeft = MatrixType(rLeft.size1(), rLeft.size2(), column_indices.size());
+    rLeft.index1_data().swap(row_extents);
+    rLeft.index2_data().swap(column_indices);
+    block_for_each(rLeft.value_data(), [](auto& r_item){r_item = 0;});
+    rLeft.set_filled(rLeft.size1() + 1, column_indices.size());
+
+    KRATOS_CATCH("")
+}
+
+
 template <bool SortedRows,
           class TValue,
           class TRowMapContainer>
@@ -69,6 +209,7 @@ void MakeSparseTopology(const TRowMapContainer& rRows,
     });
 
     KRATOS_TRY
+    block_for_each(rMatrix.value_data(), [](TValue& r_entry){r_entry=0;});
     rMatrix.set_filled(row_count + 1, entry_count);
     KRATOS_CATCH("")
 
