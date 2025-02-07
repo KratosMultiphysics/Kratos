@@ -216,25 +216,37 @@ public:
      * @brief Retrieves the node ID.
      * @return The ID of the node.
      */
-    IndexType Id() const;
+    IndexType Id() const
+    {
+        return mNodalData.Id();
+    }
 
     /**
      * @brief Retrieves the node ID (alternative method).
      * @return The ID of the node.
      */
-    IndexType GetId() const;
+    IndexType GetId() const
+    {
+        return mNodalData.Id();
+    }
 
     /**
      * @brief Sets a new ID for the node.
      * @param NewId The new ID to assign.
      */
-    void SetId(IndexType NewId);
+    void SetId(IndexType NewId)
+    {
+        mNodalData.SetId(NewId);
+    }
 
     /**
      * @brief Retrieves the lock object for thread safety.
      * @return A reference to the lock object.
      */
-    LockObject& GetLock();
+    LockObject& GetLock()
+    {
+        return mNodeLock;
+    }
 
     /**
      * @brief Locks the node for thread-safe operations.
@@ -390,19 +402,28 @@ public:
      * @return Reference to the data container.
      */
     KRATOS_DEPRECATED_MESSAGE("This method is deprecated. Use 'GetData()' instead.")
-    DataValueContainer& Data();
+    DataValueContainer& Data()
+    {
+        return mData;
+    }
 
     /**
      * @brief Retrieves the data container for the node.
      * @return Reference to the data container.
      */
-    DataValueContainer& GetData();
+    DataValueContainer& GetData()
+    {
+        return mData;
+    }
 
     /**
      * @brief Retrieves the data container for the node (const version).
      * @return Const reference to the data container.
      */
-    const DataValueContainer& GetData() const;
+    const DataValueContainer& GetData() const
+    {
+        return mData;
+    }
 
     /**
      * @brief Retrieves the solution step value for a given variable.
@@ -702,56 +723,80 @@ public:
      * @details This function provides read-only access to the initial position of the node.
      * @return A const reference to the initial position of the node.
      */
-    const Point& GetInitialPosition() const;
+    const Point& GetInitialPosition() const
+    {
+        return mInitialPosition;
+    }
 
     /**
      * @brief Returns the initial position of the node (non-const version).
      * @details This function provides access to the initial position of the node and allows modifications.
      * @return A reference to the initial position of the node.
      */
-    Point& GetInitialPosition();
+    Point& GetInitialPosition()
+    {
+        return mInitialPosition;
+    }
 
     /**
      * @brief Returns the X coordinate of the initial position.
      * @details This function provides access to the X coordinate of the initial position and allows modifications.
      * @return A reference to the X coordinate of the initial position.
      */
-    double& X0();
+    double& X0()
+    {
+        return mInitialPosition.X();
+    }
 
     /**
      * @brief Returns the Y coordinate of the initial position.
      * @details This function provides access to the Y coordinate of the initial position and allows modifications.
      * @return A reference to the Y coordinate of the initial position.
      */
-    double& Y0();
+    double& Y0()
+    {
+        return mInitialPosition.Y();
+    }
 
     /**
      * @brief Returns the Z coordinate of the initial position.
      * @details This function provides access to the Z coordinate of the initial position and allows modifications.
      * @return A reference to the Z coordinate of the initial position.
      */
-    double& Z0();
+    double& Z0()
+    {
+        return mInitialPosition.Z();
+    }
 
     /**
      * @brief Returns the X coordinate of the initial position (const version).
      * @details This function provides read-only access to the X coordinate of the initial position.
      * @return The X coordinate of the initial position.
      */
-    double X0() const;
+    double X0() const
+    {
+        return mInitialPosition.X();
+    }
 
     /**
      * @brief Returns the Y coordinate of the initial position (const version).
      * @details This function provides read-only access to the Y coordinate of the initial position.
      * @return The Y coordinate of the initial position.
      */
-    double Y0() const;
+    double Y0() const
+    {
+        return mInitialPosition.Y();
+    }
 
     /**
      * @brief Returns the Z coordinate of the initial position (const version).
      * @details This function provides read-only access to the Z coordinate of the initial position.
      * @return The Z coordinate of the initial position.
      */
-    double Z0() const;
+    double Z0() const
+    {
+        return mInitialPosition.Z();
+    }
 
     /**
      * @brief Sets the initial position of the node using a PointType.
