@@ -23,6 +23,7 @@
 #include "includes/kratos_parameters.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/dof_utilities/assembly_helper.h" //TODO: we should move this to somewhere else
+#include "utilities/dof_utilities/assembly_utilities.h" //TODO: we should move this to somewhere else
 #include "utilities/dof_utilities/block_build_dof_array_utility.h"
 #include "utilities/dof_utilities/elimination_build_dof_array_utility.h"
 #include "utilities/entities_utilities.h"
@@ -110,13 +111,8 @@ public:
     /// Conditions containers definition
     using ConditionsArrayType = ModelPart::ConditionsContainerType;
 
-    /// Build type definition
-    enum class BuildType
-    {
-        Block,
-        Elimination,
-        Custom
-    };
+    /// Build enum type definition
+    using BuildType = AssemblyUtilities::BuildType;
 
     ///@}
     ///@name Life Cycle
@@ -488,19 +484,19 @@ public:
 
         struct TLS
         {
-            LocalSystemMatrixType LocLhs; // Local LHS contribution
-            LocalSystemVectorType LocRhs; // Local RHS constribution
-            Element::EquationIdVectorType LocEqIds; // Vector containing the localization in the system of the different terms
+            LocalSystemMatrixType LocalLhs; // Local LHS contribution
+            LocalSystemVectorType LocalRhs; // Local RHS constribution
+            Element::EquationIdVectorType LocalEqIds; // Vector containing the localization in the system of the different terms
         };
 
         const auto elem_func = [](ModelPart::ElementConstantIterator ItElem, const ProcessInfo& rProcessInfo, TLS& rTLS){
             // Calculate local LHS and RHS contributions
-            ItElem->CalculateLocalSystem(rTLS.LocLhs, rTLS.LocRhs, rProcessInfo);
+            ItElem->CalculateLocalSystem(rTLS.LocalLhs, rTLS.LocalRhs, rProcessInfo);
         };
 
         const auto cond_func = [](ModelPart::ConditionConstantIterator ItCond, const ProcessInfo& rProcessInfo, TLS& rTLS){
             // Calculate local LHS and RHS contributions
-            ItCond->CalculateLocalSystem(rTLS.LocLhs, rTLS.LocRhs, rProcessInfo);
+            ItCond->CalculateLocalSystem(rTLS.LocalLhs, rTLS.LocalRhs, rProcessInfo);
         };
 
         TLS aux_tls;
@@ -903,13 +899,10 @@ protected:
             mBuildType = BuildType::Block;
         } else if (build_type == "elimination") {
             mBuildType = BuildType::Elimination;
-        } else if (build_type == "custom") {
-            mBuildType = BuildType::Custom;
         } else {
             KRATOS_ERROR << "Provided 'build_type' is '" << build_type << "'. Available options are:\n"
             << "\t- 'block'\n"
-            << "\t- 'elimination'\n"
-            << "\t- 'custom'\n" << std::endl;
+            << "\t- 'elimination'" << std::endl;
         }
 
         // Set verbosity level

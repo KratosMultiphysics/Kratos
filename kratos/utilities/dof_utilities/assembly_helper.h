@@ -21,6 +21,7 @@
 #include "containers/system_vector.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "utilities/dof_utilities/assembly_utilities.h"
 
 namespace Kratos
 {
@@ -39,7 +40,7 @@ namespace Kratos
  * handle the building of the sparse sytem matrices
  * @author Ruben Zorrilla
  */
-template<class TThreadLocalStorage, class TDataType = double, class TIndexType=std::size_t, class TMatrixType=CsrMatrix<TDataType, TIndexType>, class TVectorType=SystemVector<TDataType, TIndexType>>
+template<class TThreadLocalStorage, class TMatrixType=CsrMatrix<>, class TVectorType=SystemVector<>>
 class AssemblyHelper
 {
 public:
@@ -49,9 +50,6 @@ public:
     /// Pointer definition of AssemblyHelper
     KRATOS_CLASS_POINTER_DEFINITION(AssemblyHelper);
 
-    /// Index type definition
-    using IndexType = TIndexType;
-
     /// Size type definition
     using SizeType = std::size_t;
 
@@ -60,6 +58,9 @@ public:
 
     /// Vector type definition
     using SystemVectorType = TVectorType;
+
+    /// Index type definition from sparse matrix
+    using IndexType = typename SystemMatrixType::IndexType;
 
     /// Dense space definition
     using DenseSpaceType = UblasSpace<double, Matrix, Vector>;
@@ -79,6 +80,9 @@ public:
     /// Function type for constraints assembly
     using ConstraintAssemblyFunctionType = std::function<void(ModelPart::MasterSlaveConstraintConstantIteratorType, const ProcessInfo&, TThreadLocalStorage&)>;
 
+    /// Build enum type definition
+    using BuildType = AssemblyUtilities::BuildType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -87,9 +91,33 @@ public:
     AssemblyHelper() = delete;
 
     /// Constructor with model part
-    AssemblyHelper(const ModelPart& rModelPart)
+    AssemblyHelper(
+        const ModelPart& rModelPart,
+        Parameters AssemblySettings = Parameters(R"({})"))
     : mpModelPart(&rModelPart)
-    {}
+    {
+        Parameters default_parameters( R"({
+            "build_type" : "block",
+            "echo_level" : 0
+        })");
+        AssemblySettings.ValidateAndAssignDefaults(default_parameters);
+
+        // Set build type
+        const std::string build_type = AssemblySettings["build_type"].GetString();
+        if (build_type == "block") {
+            mBuildType = BuildType::Block;
+        } else if (build_type == "elimination") {
+            mBuildType = BuildType::Elimination;
+        } else {
+            KRATOS_ERROR << "Provided 'build_type' is '" << build_type << "'. Available options are:\n"
+            << "\t- 'block'\n"
+            << "\t- 'elimination'" << std::endl;
+        }
+
+        // Set verbosity level
+        mEchoLevel = AssemblySettings["echo_level"].GetInt();
+    }
+
 
     ///@}
     ///@name Operations
@@ -99,18 +127,22 @@ public:
     {
         mElementAssemblyFunctionIsSet = true;
         mElementAssemblyFunction = rElementAssemblyFunction;
+        KRATOS_INFO_IF("AssemblyHelper", mEchoLevel > 1) << "Element assembly function set." << std::endl;
     }
 
     void SetConditionAssemblyFunction(const ConditionAssemblyFunctionType& rConditionAssemblyFunction)
     {
         mConditionAssemblyFunctionIsSet = true;
         mConditionAssemblyFunction = rConditionAssemblyFunction;
+        KRATOS_INFO_IF("AssemblyHelper", mEchoLevel > 1) << "Condition assembly function set." << std::endl;
     }
 
+    //TODO: For sure we'll need to modify this one
     void SetConstraintAssemblyFunction(const ConstraintAssemblyFunctionType& rConstraintAssemblyFunction)
     {
         mConstraintAssemblyFunctionIsSet = true;
         mConstraintAssemblyFunction = rConstraintAssemblyFunction;
+        KRATOS_INFO_IF("AssemblyHelper", mEchoLevel > 1) << "Constraint assembly function set." << std::endl;
     }
 
     void AssembleLocalSystem(
@@ -118,81 +150,15 @@ public:
         SystemVectorType& rRHS,
         TThreadLocalStorage& rTLS)
     {
-        // Getting conditions and elements to be assembled
-        const auto& r_elems = mpModelPart->Elements();
-        const auto& r_conds = mpModelPart->Conditions();
-        const auto& r_process_info = mpModelPart->GetProcessInfo();
-
-        // Getting entities container data
-        auto elems_begin = r_elems.begin();
-        auto conds_begin = r_conds.begin();
-        const SizeType n_elems = r_elems.size();
-        const SizeType n_conds = r_conds.size();
-
-        // Assemble entities
-        #pragma omp parallel firstprivate(n_elems, n_conds, elems_begin, conds_begin, r_process_info, rTLS)
-        {
-            // Assemble elements
-            if (mElementAssemblyFunctionIsSet) {
-                # pragma omp for schedule(guided, 512) nowait
-                for (int k = 0; k < n_elems; ++k) {
-                    auto it_elem = elems_begin + k;
-                    if (it_elem->IsActive()) {
-                        // Calculate local LHS and RHS contributions
-                        mElementAssemblyFunction(it_elem, r_process_info, rTLS);
-
-                        // Get the positions in the global system
-                        it_elem->EquationIdVector(rTLS.LocEqIds, r_process_info);
-
-                        // Assemble the local contributions to the global system
-                        rRHS.Assemble(rTLS.LocRhs, rTLS.LocEqIds);
-                        rLHS.Assemble(rTLS.LocLhs, rTLS.LocEqIds);
-                    }
-                }
-            }
-
-            // Assemble conditions
-            if (mConditionAssemblyFunctionIsSet) {
-                # pragma omp for schedule(guided, 512)
-                for (int k = 0; k < n_conds; ++k) {
-                    auto it_cond = conds_begin + k;
-                    if (it_cond->IsActive()) {
-                        // Calculate local LHS and RHS contributions
-                        mConditionAssemblyFunction(it_cond, r_process_info, rTLS);
-
-                        // Get the positions in the global system
-                        it_cond->EquationIdVector(rTLS.LocEqIds, r_process_info);
-
-                        // Assemble the local contributions to the global system
-                        rRHS.Assemble(rTLS.LocRhs, rTLS.LocEqIds);
-                        rLHS.Assemble(rTLS.LocLhs, rTLS.LocEqIds);
-                    }
-                }
-            }
+        // Call the implementation of the function with building type template argument
+        if (mBuildType == BuildType::Block) {
+            AssembleImplementation<BuildType::Block>(rLHS, rRHS, rTLS);
+        } else if (mBuildType == BuildType::Elimination) {
+            AssembleImplementation<BuildType::Elimination>(rLHS, rRHS, rTLS);
+        } else {
+            KRATOS_ERROR << "Not implemented build type." << std::endl;
         }
     }
-
-    // template<class TAssemblyImplementation, class TThreadLocalStorage>
-    // void AssembleLocalSystemElements(
-    //     const ModelPart& rModelPart,
-    //     const TAssemblyImplementation& rAssemblyImplementation,
-    //     SystemMatrixType& rLHS,
-    //     SystemVectorType& rRHS,
-    //     TThreadLocalStorage& rTLS)
-    // {
-    //     Assemble(rModelPart.Elements(), rModelPart.GetProcessInfo(), rAssemblyImplementation, rLHS, rRHS, rTLS);
-    // }
-
-    // template<class TAssemblyImplementation, class TThreadLocalStorage>
-    // void AssembleLocalSystemConditions(
-    //     const ModelPart& rModelPart,
-    //     const TAssemblyImplementation& rAssemblyImplementation,
-    //     SystemMatrixType& rLHS,
-    //     SystemVectorType& rRHS,
-    //     TThreadLocalStorage& rTLS)
-    // {
-    //     Assemble(rModelPart.Conditions(), rModelPart.GetProcessInfo(), rAssemblyImplementation, rLHS, rRHS, rTLS);
-    // }
 
     ///@}
     ///@name Input and output
@@ -203,6 +169,10 @@ public:
 private:
     ///@name Member Variables
     ///@{
+
+    SizeType mEchoLevel;
+
+    BuildType mBuildType;
 
     const ModelPart* mpModelPart = nullptr;
 
@@ -222,40 +192,86 @@ private:
     ///@name Private Operations
     ///@{
 
-    // template<class TEntityContainer, class TAssemblyImplementation, class TThreadLocalStorage>
-    // static void Assemble(
-    //     const TEntityContainer& rEntities,
-    //     const ProcessInfo& rProcessInfo,
-    //     const TAssemblyImplementation& rAssemblyImplementation,
-    //     SystemMatrixType& rLHS,
-    //     SystemVectorType& rRHS,
-    //     TThreadLocalStorage& rTLS)
-    // {
-    //     // Getting entities container data
-    //     auto ent_begin = rEntities.begin();
-    //     const SizeType n_ent = rEntities.size();
+    //TODO: Do the corresponding ones for RHS and LHS only
+    template<BuildType TBuildType>
+    void AssembleImplementation(
+        SystemMatrixType& rLHS,
+        SystemVectorType& rRHS,
+        TThreadLocalStorage& rTLS)
+    {
+        // Getting conditions and elements to be assembled
+        const auto& r_elems = mpModelPart->Elements();
+        const auto& r_conds = mpModelPart->Conditions();
+        const auto& r_process_info = mpModelPart->GetProcessInfo();
 
-    //     // Assemble entities
-    //     #pragma omp parallel firstprivate(n_ent, rTLS, rProcessInfo)
-    //     {
-    //         // Assemble elements
-    //         # pragma omp for schedule(guided, 512) nowait
-    //         for (int k = 0; k < n_ent; ++k) {
-    //             auto it_ent = ent_begin + k;
-    //             if (it_ent->IsActive()) {
-    //                 // Calculate local LHS and RHS contributions
-    //                 rAssemblyImplementation(it_ent, rProcessInfo, rTLS);
+        // Getting entities container data
+        auto elems_begin = r_elems.begin();
+        auto conds_begin = r_conds.begin();
+        const SizeType n_elems = r_elems.size();
+        const SizeType n_conds = r_conds.size();
 
-    //                 // Get the positions in the global system
-    //                 it_ent->EquationIdVector(rTLS.LocEqIds, rProcessInfo);
+        // Initialize RHS and LHS assembly
+        rRHS.BeginAssemble();
+        rLHS.BeginAssemble();
 
-    //                 // Assemble the local contributions to the global system
-    //                 rRHS.Assemble(rTLS.LocRhs, rTLS.LocEqIds);
-    //                 rLHS.Assemble(rTLS.LocLhs, rTLS.LocEqIds);
-    //             }
-    //         }
-    //     }
-    // }
+        // Assemble entities
+        #pragma omp parallel firstprivate(n_elems, n_conds, elems_begin, conds_begin, r_process_info, rTLS)
+        {
+            // Assemble elements
+            if (mElementAssemblyFunctionIsSet) {
+                # pragma omp for schedule(guided, 512) nowait
+                for (int k = 0; k < n_elems; ++k) {
+                    auto it_elem = elems_begin + k;
+                    if (it_elem->IsActive()) {
+                        // Calculate local LHS and RHS contributions
+                        mElementAssemblyFunction(it_elem, r_process_info, rTLS);
+
+                        // Get the positions in the global system
+                        it_elem->EquationIdVector(rTLS.LocalEqIds, r_process_info);
+
+                        // Assemble the local contributions to the global system
+                        if constexpr (TBuildType == BuildType::Block) {
+                            rRHS.Assemble(rTLS.LocalRhs, rTLS.LocalEqIds);
+                            rLHS.Assemble(rTLS.LocalLhs, rTLS.LocalEqIds);
+                        } else if (TBuildType == BuildType::Elimination) {
+                            KRATOS_ERROR << "To be implemented." << std::endl;
+                        } else {
+                            KRATOS_ERROR << "Not implemented build type." << std::endl;
+                        }
+                    }
+                }
+            }
+
+            // Assemble conditions
+            if (mConditionAssemblyFunctionIsSet) {
+                # pragma omp for schedule(guided, 512)
+                for (int k = 0; k < n_conds; ++k) {
+                    auto it_cond = conds_begin + k;
+                    if (it_cond->IsActive()) {
+                        // Calculate local LHS and RHS contributions
+                        mConditionAssemblyFunction(it_cond, r_process_info, rTLS);
+
+                        // Get the positions in the global system
+                        it_cond->EquationIdVector(rTLS.LocalEqIds, r_process_info);
+
+                        // Assemble the local contributions to the global system
+                        if constexpr (TBuildType == BuildType::Block) {
+                            rRHS.Assemble(rTLS.LocalRhs, rTLS.LocalEqIds);
+                            rLHS.Assemble(rTLS.LocalLhs, rTLS.LocalEqIds);
+                        } else if (TBuildType == BuildType::Elimination) {
+                            KRATOS_ERROR << "To be implemented." << std::endl;
+                        } else {
+                            KRATOS_ERROR << "Not implemented build type." << std::endl;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Finalize RHS and LHS assembly
+        rRHS.BeginAssemble();
+        rLHS.FinalizeAssemble();
+    }
 
     ///@}
 }; // Class AssemblyHelper

@@ -176,15 +176,7 @@ KRATOS_TEST_CASE_IN_SUITE(NewScheme, KratosCoreFastSuite)
     // Set up the matrix graph and arrays
     // Note that in a standard case this happens at the strategy level
     SparseGraph<> sparse_graph;
-    Element::EquationIdVectorType eq_ids;
-    for (auto& r_elem : r_test_model_part.Elements()) {
-        r_elem.EquationIdVector(eq_ids, r_test_model_part.GetProcessInfo());
-        sparse_graph.AddEntries(eq_ids);
-    }
-    for (auto& r_cond : r_test_model_part.Conditions()) {
-        r_cond.EquationIdVector(eq_ids, r_test_model_part.GetProcessInfo());
-        sparse_graph.AddEntries(eq_ids);
-    }
+    AssemblyUtilities::SetUpSparseGraph(r_test_model_part, sparse_graph);
     auto p_dx = Kratos::make_shared<NewScheme<>::SystemVectorType>(sparse_graph);
     auto p_rhs = Kratos::make_shared<NewScheme<>::SystemVectorType>(sparse_graph);
     auto p_lhs = Kratos::make_shared<NewScheme<>::SystemMatrixType>(sparse_graph);
