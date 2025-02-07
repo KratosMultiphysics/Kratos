@@ -103,6 +103,6 @@ List of condition flags that will be written.
 ##### `gauss_point_variables_in_elements`
 List of material point variables to be printed.
 
-## Output Process File
+## Source Code
 
 [<i class="fa fa-github"></i> `MPMApplication/python_scripts/mpm_vtk_output_process.py`](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/MPMApplication/python_scripts/mpm_vtk_output_process.py)

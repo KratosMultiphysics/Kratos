@@ -32,6 +32,6 @@ String identifying the name of the target ModelPart.
 ##### `interval`
 Time interval in which the process applies.
 
-## Process File
+## Source Code
 
 [<i class="fa fa-github"></i> `kratos/python_scripts/assign_vector_variable_process.py`](https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/python_scripts/assign_vector_variable_process.py)

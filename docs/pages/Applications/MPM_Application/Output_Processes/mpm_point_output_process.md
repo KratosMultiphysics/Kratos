@@ -70,6 +70,6 @@ Defines the settings for the `TimeBasesAsciiFileWriterUtility`.
 - `output_path`: path of the output file.
 - `file_extension`: extension of the output file.
 
-## Output Process File
+## Source Code
 
 [<i class="fa fa-github"></i> `MPMApplication/python_scripts/mpm_point_output_process.py`](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/MPMApplication/python_scripts/mpm_point_output_process.py)

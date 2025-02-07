@@ -31,6 +31,6 @@ If set to `"flip_normal"`, the normal of each node of the target model part is f
 ##### `avoid_recomputing_normals`
 If `false`, the process recomputes the normals of each node of the target model part in the initialization of every solution step.
 
-## Output Process File
+## Source Code
 
 [<i class="fa fa-github"></i> `MPMApplication/python_scripts/apply_mpm_slip_boundary_process.py`](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/MPMApplication/python_scripts/apply_mpm_slip_boundary_process.py)

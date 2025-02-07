@@ -109,6 +109,6 @@ When set to `false`, the output has the form
 }
 ```
 
-## Output Process File
+## Source Code
 
 [<i class="fa fa-github"></i> `MPMApplication/python_scripts/mpm_json_output_process.py`](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/MPMApplication/python_scripts/mpm_json_output_process.py)

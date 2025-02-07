@@ -63,6 +63,10 @@ Time interval in which the process applies.
 ##### `option`
 If set to `"flip_normal"`, the normal of each condition is flipped.
 
-## Output Process File
+## Source Code
 
 [<i class="fa fa-github"></i> `MPMApplication/python_scripts/apply_mpm_particle_dirichlet_condition_process.py`](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/MPMApplication/python_scripts/apply_mpm_particle_dirichlet_condition_process.py)
+
+## Reference
+
+Chandra, B., Singer, V., Teschemacher, T., Wuechner, R., & Larese, A. (2021). **Nonconforming Dirichlet boundary conditions in implicit material point method by means of penalty augmentation**, *Acta Geotechnica*, 16(8), 2315-2335. DOI: <a href="https://doi.org/10.1007/s11440-020-01123-3">10.1007/s11440-020-01123-3</a>.

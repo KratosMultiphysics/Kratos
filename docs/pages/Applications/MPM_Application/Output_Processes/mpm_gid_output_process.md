@@ -61,6 +61,6 @@ List of variables associated to material points (e.g., `MP_DISPLACEMENT`, `MP_VE
 ##### `output_name`
 Name of the output file.
 
-## Output Process File
+## Source Code
 
 [<i class="fa fa-github"></i> `MPMApplication/python_scripts/mpm_gid_output_process.py`](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/MPMApplication/python_scripts/mpm_gid_output_process.py)

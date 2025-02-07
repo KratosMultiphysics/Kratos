@@ -33,6 +33,6 @@ Three-component vector identifying the direction of the applied acceleration.
 
 {% include important.html content='The vector assigned to the variables `MP_ACCELERATION` and `MP_VOLUME_ACCELERATION` is given by `modulus * direction`, i.e., the scalar value `modulus` is multiplied to each component of the vector `direction`. In particular, note that the input vector `direction` is not normalized.' %}
 
-## Process File
+## Source Code
 
 [<i class="fa fa-github"></i> `MPMApplication/python_scripts/assign_gravity_to_material_point_process.py`](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/MPMApplication/python_scripts/assign_gravity_to_material_point_process.py)
