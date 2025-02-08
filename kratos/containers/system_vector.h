@@ -248,11 +248,17 @@ public:
 
         for(unsigned int i=0; i<EquationId.size(); ++i){
             IndexType global_i = EquationId[i];
-            KRATOS_DEBUG_ERROR_IF(global_i > mData.size());
-            AtomicAdd(mData[global_i] , rVectorInput[i]);
+            AssembleEntry(rVectorInput[i], global_i);
         }
     }
 
+    void AssembleEntry(
+        const TDataType rValue,
+        const IndexType GlobalI)
+    {
+        KRATOS_DEBUG_ERROR_IF(GlobalI > mData.size());
+        AtomicAdd(mData[GlobalI] , rValue);
+    }
 
     ///@}
     ///@name Access
