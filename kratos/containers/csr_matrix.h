@@ -61,12 +61,17 @@ class CsrMatrix final
 public:
     ///@name Type Definitions
     ///@{
-    typedef TIndexType IndexType;
-    typedef std::unordered_map<std::pair<IndexType, IndexType>,
-            double,
-            PairHasher<IndexType, IndexType>,
-            PairComparor<IndexType, IndexType>
-            > MatrixMapType;
+
+    using DataType = TDataType;
+
+    using IndexType = TIndexType;
+
+    using MatrixMapType = std::unordered_map<
+        std::pair<IndexType, IndexType>,
+        double,
+        PairHasher<IndexType, IndexType>,
+        PairComparor<IndexType, IndexType>
+        >;
 
     /// Pointer definition of CsrMatrix
     KRATOS_CLASS_POINTER_DEFINITION(CsrMatrix);
@@ -124,7 +129,7 @@ public:
             IndexType J = item.first.second;
             TDataType value = item.second;
             this->AssembleEntry(value,I,J);
-        }        
+        }
         this->FinalizeAssemble();
     }
 
