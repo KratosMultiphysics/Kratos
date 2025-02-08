@@ -387,9 +387,6 @@ public:
             KRATOS_ERROR << "Build type not supported." << std::endl;
         }
 
-        // Save the size of the system based on the number of DOFs
-        mEquationSystemSize = mDofSet.size();
-
         // Set the flag as already initialized
         mDofSetIsInitialized = true;
 
@@ -399,11 +396,37 @@ public:
     //TODO: think about renaming this to SetUpEquationIds (maybe we can just keep it because we are already used to it)
     void SetUpSystem(const ModelPart& rModelPart)
     {
-        // Set up the DOFs equation global ids
-        IndexPartition<IndexType>(mEquationSystemSize).for_each([&, this](IndexType Index) {
-            auto dof_iterator = this->mDofSet.begin() + Index;
-            dof_iterator->SetEquationId(Index);
-        });
+        if (mBuildType == BuildType::Block) {
+            // Set up the DOFs equation global ids
+            IndexPartition<IndexType>(mDofSet.size()).for_each([this](IndexType Index) {
+                auto it_dof = this->mDofSet.begin() + Index;
+                it_dof->SetEquationId(Index);
+            });
+
+            // Save the size of the system based on the number of DOFs
+            mEquationSystemSize = mDofSet.size();
+
+        } else if (mBuildType == BuildType::Elimination) {
+            // Set up the DOFs equation global ids
+            // The free DOFs are positioned at the beginning of the system
+            // The fixed DOFs are positioned at the end of the system (in reversed order)
+            IndexType free_id = 0;
+            IndexType fix_id = mDofSet.size();
+            for (auto it_dof = mDofSet.begin(); it_dof != mDofSet.end(); ++it_dof) {
+                if (it_dof->IsFixed()) {
+                    it_dof->SetEquationId(--fix_id);
+                } else {
+                    it_dof->SetEquationId(free_id++);
+                }
+            }
+
+            // Set the equation system size as the current fixed id
+            // Note that this means that if the EquationId is greater than mEquationSystemSize the DOF is fixed
+            mEquationSystemSize = fix_id;
+
+        } else {
+            KRATOS_ERROR << "Build type not supported." << std::endl;
+        }
 
         KRATOS_INFO_IF("NewScheme", mEchoLevel >= 2) << "Finished system set up." << std::endl;
     }
@@ -500,7 +523,7 @@ public:
         };
 
         TLS aux_tls;
-        AssemblyHelper<TLS> assembly_helper(rModelPart);
+        AssemblyHelper<TLS> assembly_helper(rModelPart, mEquationSystemSize);
         assembly_helper.SetElementAssemblyFunction(elem_func);
         assembly_helper.SetConditionAssemblyFunction(cond_func);
         assembly_helper.AssembleLocalSystem(rLHS, rRHS, aux_tls);
