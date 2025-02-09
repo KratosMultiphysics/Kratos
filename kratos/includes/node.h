@@ -62,7 +62,7 @@ namespace Kratos
  * @author Pooyan Dadvand
  * @author Riccardo Rossi
  */
-class KRATOS_API(KRATOS_CORE) Node
+class KRATOS_API(KRATOS_CORE) Node final
     : public Point, public Flags
 {
 public:
