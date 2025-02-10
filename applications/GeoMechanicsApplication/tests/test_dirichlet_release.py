@@ -51,9 +51,9 @@ class KratosGeoMechanicsDirichletReleaseTests(KratosUnittest.TestCase):
         )
 
         self.check_expected_outputs(
-            expected_stage_displacement_and_strain=0.1,
-            expected_stress=0.0,
-            expected_total_displacement=0.0,
+            expected_stage_displacement_and_strain=0.1072,
+            expected_stress=100.0,
+            expected_total_displacement=0.0072,
             output_data=output_data,
             stage_nr=2,
             time=2.0,

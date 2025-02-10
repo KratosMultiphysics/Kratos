@@ -99,7 +99,7 @@
             "variable_name":   "WATER_PRESSURE",
             "active":          true,
             "is_fixed":        true,
-            "value":           0.0,
+            "value":           -100.0,
             "table":           0
         }
     },{
@@ -111,7 +111,7 @@
             "variable_name":   "WATER_PRESSURE",
             "active":          true,
             "is_fixed":        true,
-            "value":           0.0,
+            "value":           -100.0,
             "table":           0
         }
     },{
