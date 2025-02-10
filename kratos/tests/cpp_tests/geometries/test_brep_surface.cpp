@@ -199,7 +199,6 @@ namespace Testing {
     KRATOS_TEST_CASE_IN_SUITE(NurbsBrepSurfaceSurrogate, KratosCoreGeometriesFastSuite) {
         auto p_surface = GenerateReferenceNodeSurfaceHalfCirclePointer();
 
-        using GeometryType = Geometry<Node>;    
         using BrepSurfaceType = BrepSurface<PointerVector<Node>, true, PointerVector<Point>>;
         using BrepCurveOnSurfaceType = BrepCurveOnSurface<PointerVector<Node>, true, PointerVector<Point>>;
         using BrepCurveOnSurfaceLoopArrayType = DenseVector<DenseVector<typename BrepCurveOnSurfaceType::Pointer>>;
