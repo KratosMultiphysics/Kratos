@@ -124,7 +124,7 @@ The Incremental equilibrium equation which is solved in the `GeoMechanicNewtonRa
 strategy is given by:
 
 $$\left\{ \frac{1}{\beta \Delta t^2} [M] + \frac{\gamma}{\beta \Delta t} [C] + [K] \right\} \{\Delta u\} = 
-\{\Delta R\} + [M] \left\{ \frac{1}{\beta \Delta t} \dot{u}(t_k) + \frac{1}{2 \beta} \ddot{u}(t_k) \right\} + 
+\{\Delta R(u(t_{k+1}))\} + [M] \left\{ \frac{1}{\beta \Delta t} \dot{u}(t_k) + \frac{1}{2 \beta} \ddot{u}(t_k) \right\} + 
 [C] \left\{ \frac{\gamma}{\beta} \dot{u}(t_k) + \Delta t \left( \frac{\gamma}{2 \beta} - 1 \right) \ddot{u}(t_k) 
 \right\} $$
 
