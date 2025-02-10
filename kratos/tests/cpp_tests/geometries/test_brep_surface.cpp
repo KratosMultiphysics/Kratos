@@ -144,7 +144,7 @@ namespace Testing {
         return Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Point>>>(points, p, knot_vector);
     }
 
-    /// Tests
+    ///// Tests
     KRATOS_TEST_CASE_IN_SUITE(NurbsBrepFace, KratosCoreGeometriesFastSuite) {
         auto p_surface = GenerateReferenceNodeSurfaceHalfCirclePointer();
         auto p_curve_1 = GenerateReference1Curve2dPointer();

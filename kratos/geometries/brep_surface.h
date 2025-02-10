@@ -473,7 +473,7 @@ public:
             mpNurbsSurface->SpansLocalSpace(spans_u, 0);
             mpNurbsSurface->SpansLocalSpace(spans_v, 1);
 
-            BrepTrimmingUtilities<TShiftedBoundary>::CreateBrepSurfaceTrimmingIntegrationPoints(
+            BrepTrimmingUtilitiesType::CreateBrepSurfaceTrimmingIntegrationPoints(
                 rIntegrationPoints,
                 mOuterLoopArray, mInnerLoopArray,
                 spans_u, spans_v,
@@ -635,7 +635,6 @@ private:
     BrepCurveOnSurfaceLoopArrayType mInnerLoopArray;
 
     BrepCurveOnSurfaceArrayType mEmbeddedEdgesArray;
-
 
     GeometrySurrogateArrayType* mpSurrogateInnerLoopGeometries;
     GeometrySurrogateArrayType* mpSurrogateOuterLoopGeometries;
