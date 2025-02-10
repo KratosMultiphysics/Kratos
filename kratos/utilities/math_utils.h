@@ -704,7 +704,7 @@ public:
         )
     {
         double temp = 0.0;
-        for (std::size_t i=0; i<rFirstVector.size(); ++i) {
+        for (std::size_t i=0; i<rFirstVector.size(); ++i){
             temp += rFirstVector[i]+rSecondVector[i];
         }
         return temp;
