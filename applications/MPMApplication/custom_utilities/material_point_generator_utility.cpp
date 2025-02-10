@@ -42,8 +42,6 @@ namespace Kratos::MaterialPointGeneratorUtility
         std::vector<array_1d<double, 3>> mp_acceleration = { ZeroVector(3) };
         std::vector<array_1d<double, 3>> mp_volume_acceleration = { ZeroVector(3) };
 
-        std::vector<Vector> mp_cauchy_stress_vector = { ZeroVector(6) };
-        std::vector<Vector> mp_almansi_strain_vector = { ZeroVector(6) };
         std::vector<double> mp_pressure = { 0.0 };
 
         std::vector<double> mp_mass(1);
@@ -170,6 +168,9 @@ namespace Kratos::MaterialPointGeneratorUtility
 
                         const ProcessInfo process_info = ProcessInfo();
 
+                        const SizeType strain_size = i->GetProperties().Has(CONSTITUTIVE_LAW) ?
+                            i->GetProperties()[CONSTITUTIVE_LAW]->GetStrainSize() : 6;
+
                         // Setting material point element initial condition
                         p_element->SetValuesOnIntegrationPoints(MP_DENSITY, MP_density, process_info);
                         p_element->SetValuesOnIntegrationPoints(MP_MASS, mp_mass, process_info);
@@ -179,8 +180,8 @@ namespace Kratos::MaterialPointGeneratorUtility
                         p_element->SetValuesOnIntegrationPoints(MP_VELOCITY, mp_velocity, process_info);
                         p_element->SetValuesOnIntegrationPoints(MP_ACCELERATION, mp_acceleration, process_info);
                         p_element->SetValuesOnIntegrationPoints(MP_VOLUME_ACCELERATION, mp_volume_acceleration, process_info);
-                        p_element->SetValuesOnIntegrationPoints(MP_CAUCHY_STRESS_VECTOR, mp_cauchy_stress_vector, process_info);
-                        p_element->SetValuesOnIntegrationPoints(MP_ALMANSI_STRAIN_VECTOR, mp_almansi_strain_vector, process_info);
+                        p_element->SetValuesOnIntegrationPoints(MP_CAUCHY_STRESS_VECTOR, { ZeroVector(strain_size) }, process_info);
+                        p_element->SetValuesOnIntegrationPoints(MP_ALMANSI_STRAIN_VECTOR, { ZeroVector(strain_size) }, process_info);
 
                         if (IsMixedFormulation)
                         {
