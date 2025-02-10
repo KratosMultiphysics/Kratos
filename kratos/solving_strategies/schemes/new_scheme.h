@@ -56,10 +56,15 @@ namespace Kratos
  * @author Ruben Zorrilla
  */
 //TODO: Think about the template parameters
-template<class TDataType = double, class TIndexType=std::size_t, class TMatrixType=CsrMatrix<TDataType, TIndexType>, class TVectorType=SystemVector<TDataType, TIndexType>>
+template<class TMatrixType=CsrMatrix<>, class TVectorType=SystemVector<>>
 class NewScheme
 {
 public:
+    // FIXME: Does not work... ask @Charlie
+    // /// Add scheme to Kratos registry
+    // KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Schemes.KratosMultiphysics", NewScheme, NewScheme, TMatrixType, TVectorType)
+    // KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Schemes.All", NewScheme, NewScheme, TMatrixType, TVectorType)
+
     ///@name Type Definitions
     ///@{
 
@@ -69,14 +74,14 @@ public:
     /// The definition of the current class
     using ClassType = NewScheme;
 
-    /// Index type definition
-    using IndexType = TIndexType;
-
     /// Size type definition
     using SizeType = std::size_t;
 
+    /// Index type definition
+    using IndexType = typename TMatrixType::IndexType;
+
     /// Data type definition
-    using DataType = TDataType;
+    using DataType = typename TMatrixType::DataType;
 
     /// Matrix type definition
     using SystemMatrixType = TMatrixType;
@@ -127,6 +132,7 @@ public:
         mSchemeIsInitialized = false;
         mElementsAreInitialized = false;
         mConditionsAreInitialized = false;
+        mCalculateReactionsFlag = false;
     }
 
     /**
@@ -141,14 +147,16 @@ public:
         mSchemeIsInitialized = false;
         mElementsAreInitialized = false;
         mConditionsAreInitialized = false;
+        mCalculateReactionsFlag = false;
     }
 
     /** Copy Constructor.
      */
     explicit NewScheme(NewScheme& rOther)
-      :mSchemeIsInitialized(rOther.mSchemeIsInitialized)
-      ,mElementsAreInitialized(rOther.mElementsAreInitialized)
-      ,mConditionsAreInitialized(rOther.mConditionsAreInitialized)
+      : mSchemeIsInitialized(rOther.mSchemeIsInitialized)
+      , mElementsAreInitialized(rOther.mElementsAreInitialized)
+      , mConditionsAreInitialized(rOther.mConditionsAreInitialized)
+      , mCalculateReactionsFlag(rOther.mCalculateReactionsFlag)
     {
     }
 
@@ -202,7 +210,7 @@ public:
      * @brief This method returns if the scheme is initialized
      * @return True if initialized, false otherwise
      */
-    bool SchemeIsInitialized()
+    bool SchemeIsInitialized() const
     {
         return mSchemeIsInitialized;
     }
@@ -211,7 +219,7 @@ public:
      * @brief This method sets if the elements have been initialized or not (true by default)
      * @param ElementsAreInitializedFlag If the flag must be set to true or false
      */
-    void SetSchemeIsInitialized(bool SchemeIsInitializedFlag = true)
+    void SetSchemeIsInitialized(bool SchemeIsInitializedFlag)
     {
         mSchemeIsInitialized = SchemeIsInitializedFlag;
     }
@@ -220,7 +228,7 @@ public:
      * @brief This method returns if the elements are initialized
      * @return True if initialized, false otherwise
      */
-    bool ElementsAreInitialized()
+    bool ElementsAreInitialized() const
     {
         return mElementsAreInitialized;
     }
@@ -229,7 +237,7 @@ public:
      * @brief This method sets if the elements have been initialized or not (true by default)
      * @param ElementsAreInitializedFlag If the flag must be set to true or false
      */
-    void SetElementsAreInitialized(bool ElementsAreInitializedFlag = true)
+    void SetElementsAreInitialized(bool ElementsAreInitializedFlag)
     {
         mElementsAreInitialized = ElementsAreInitializedFlag;
     }
@@ -238,7 +246,7 @@ public:
      * @brief This method returns if the conditions are initialized
      * @return True if initialized, false otherwise
      */
-    bool ConditionsAreInitialized()
+    bool ConditionsAreInitialized() const
     {
         return mConditionsAreInitialized;
     }
@@ -247,9 +255,27 @@ public:
      * @brief This method sets if the conditions have been initialized or not (true by default)
      * @param ConditionsAreInitializedFlag If the flag must be set to true or false
      */
-    void SetConditionsAreInitialized(bool ConditionsAreInitializedFlag = true)
+    void SetConditionsAreInitialized(bool ConditionsAreInitializedFlag)
     {
         mConditionsAreInitialized = ConditionsAreInitializedFlag;
+    }
+
+    /**
+     * @brief This method returns the flag mCalculateReactionsFlag
+     * @return The flag that tells if the reactions are computed
+     */
+    bool GetCalculateReactionsFlag() const
+    {
+        return mCalculateReactionsFlag;
+    }
+
+    /**
+     * @brief This method sets the flag mCalculateReactionsFlag
+     * @param CalculateReactionsFlag The flag that tells if the reactions are computed
+     */
+    void SetCalculateReactionsFlag(bool CalculateReactionsFlag)
+    {
+        mCalculateReactionsFlag = CalculateReactionsFlag;
     }
 
     /**
@@ -263,7 +289,7 @@ public:
 
         EntitiesUtilities::InitializeEntities<Element>(rModelPart);
 
-        SetElementsAreInitialized();
+        SetElementsAreInitialized(true);
 
         KRATOS_CATCH("")
     }
@@ -281,7 +307,7 @@ public:
 
         EntitiesUtilities::InitializeEntities<Condition>(rModelPart);
 
-        SetConditionsAreInitialized();
+        SetConditionsAreInitialized(true);
 
         KRATOS_CATCH("")
     }
@@ -377,7 +403,7 @@ public:
 
     virtual void SetUpDofArray(const ModelPart& rModelPart)
     {
-        //TODO: Discuss on how to provide the custom DOF set function
+        //TODO: I think these two are essentially the same (what changes is the Ids set up)
         // Call external utility to perform the build
         if (mBuildType == BuildType::Block) {
             BlockBuildDofArrayUtility::SetUpDofArray(rModelPart, mDofSet, mEchoLevel, mCalculateReactionsFlag);
@@ -559,7 +585,6 @@ public:
      */
     virtual void Predict(
         ModelPart& rModelPart,
-        DofsArrayType& rDofSet,
         SystemMatrixType& A,
         SystemVectorType& Dx,
         SystemVectorType& b)
@@ -592,19 +617,18 @@ public:
      * @brief Functions to be called to prepare the data needed for the output of results.
      * @warning Must be defined in derived classes
      * @param rModelPart The model part of the problem to solve
-     * @param rDofSet Set of all primary variables
      * @param A LHS matrix
      * @param Dx Incremental update of primary variables
      * @param b RHS Vector
      */
     virtual void CalculateOutputData(
         ModelPart& rModelPart,
-        DofsArrayType& rDofSet,
         SystemMatrixType& A,
         SystemVectorType& Dx,
         SystemVectorType& b)
     {
         KRATOS_TRY
+
         KRATOS_CATCH("")
     }
 
@@ -635,6 +659,17 @@ public:
     virtual void Clear()
     {
         KRATOS_TRY
+
+        // Reset initialization flags
+        mSchemeIsInitialized = false;
+        mElementsAreInitialized = false;
+        mConditionsAreInitialized = false;
+
+        // Reset DOF set and system information
+        mDofSet.clear();
+        mEquationSystemSize = 0;
+        mDofSetIsInitialized = false;
+
         KRATOS_CATCH("")
     }
 
@@ -848,6 +883,11 @@ public:
     ///@name Inquiry
     ///@{
 
+    bool DofSetIsInitialized() const
+    {
+        return mDofSetIsInitialized;
+    }
+
     ///@}
     ///@name Input and output
     ///@{
@@ -885,7 +925,9 @@ protected:
     ///@{
 
     bool mSchemeIsInitialized;      /// Flag to be used in controlling if the Scheme has been initialized or not
+
     bool mElementsAreInitialized;   /// Flag taking in account if the elements were initialized correctly or not
+
     bool mConditionsAreInitialized; /// Flag taking in account if the conditions were initialized correctly or not
 
     ///@}

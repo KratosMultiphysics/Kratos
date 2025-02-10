@@ -50,8 +50,9 @@ namespace Kratos
  * @details As a linear strategy the check on the convergence is not done and just one non linear iteration will be performed
  * @author Ruben Zorrilla
  */
-template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
-class LinearStrategy : public ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+//TODO: Add a base class
+template<class TMatrixType, class TVectorType, class TLinearSolver>
+class LinearStrategy
 {
 public:
     ///@name Type Definitions */
@@ -60,34 +61,41 @@ public:
     /** Counted pointer of ClassName */
     KRATOS_CLASS_POINTER_DEFINITION(LinearStrategy);
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace> SolvingStrategyType;
+    /// The definition of the current class
+    using SolvingStrategyType = LinearStrategy<TMatrixType, TVectorType, TLinearSolver>; //TODO: This will be the eventual base class
 
-    typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    /// The definition of the current class
+    using ClassType = LinearStrategy<TMatrixType, TVectorType, TLinearSolver>;
 
-    typedef LinearStrategy<TSparseSpace,TDenseSpace,TLinearSolver> ClassType;
+    /// Data type definition
+    using DataType = typename TMatrixType::DataType;
 
-    typedef typename BaseType::TDataType TDataType;
+    /// Index type definition
+    using IndexType = typename TMatrixType::IndexType;
 
-    typedef TSparseSpace SparseSpaceType;
+    /// Size type definition
+    using SizeType = std::size_t;
 
-    using TSchemeType = NewScheme<TSparseSpace, TDenseSpace>;
+    // Scheme type definition
+    using SchemeType = NewScheme<TMatrixType, TVectorType>;
 
-    typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
+    // Scheme pointer type definition
+    using SchemePointerType = typename SchemeType::Pointer;
 
-    typedef typename BaseType::DofsArrayType DofsArrayType;
+    /// DoF array type definition
+    using DofsArrayType = typename SchemeType::DofsArrayType;
 
-    typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
+    /// Matrix type definition
+    using SystemMatrixType = TMatrixType;
 
-    typedef typename BaseType::TSystemVectorType TSystemVectorType;
+    /// Matrix pointer type definition
+    using SystemMatrixPointerType = typename SystemMatrixType::Pointer;
 
-    typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
+    /// Vector type definition
+    using SystemVectorType = TVectorType;
 
-    typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-
-    typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
-
-    typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
-
+    /// Vector type definition
+    using SystemVectorPointerType = typename SystemVectorType::Pointer;
 
     ///@}
     ///@name Life Cycle
@@ -108,7 +116,7 @@ public:
     explicit LinearStrategy(
         ModelPart& rModelPart,
         Parameters ThisParameters)
-        : BaseType(rModelPart)
+        : mpModelPart(rModelPart)
     {
         // Validate and assign defaults
         ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
@@ -146,8 +154,8 @@ public:
         bool ReformDofSetAtEachStep = false,
         bool CalculateNormDxFlag = false,
         bool MoveMeshFlag = false)
-        : BaseType(rModelPart, MoveMeshFlag)
-        , mpScheme(pScheme)
+        : mpScheme(pScheme)
+        , mpModelPart(rModelpart)
         , mReformDofSetAtEachStep(ReformDofSetAtEachStep)
         , mCalculateNormDxFlag(CalculateNormDxFlag)
         , mCalculateReactionsFlag(CalculateReactionFlag)
@@ -180,19 +188,14 @@ public:
      * @brief Destructor.
      * @details In trilinos third party library, the linear solver's preconditioner should be freed before the system matrix. We control the deallocation order with Clear().
      */
-    ~LinearStrategy() override
+    ~LinearStrategy()
     {
-
-        // FIXME:
         //  If the linear solver has not been deallocated, clean it before
         //  deallocating mpA. This prevents a memory error with the the ML
         //  solver (which holds a reference to it).
-        //  NOTE: The linear solver is hold by the B&S
-        // auto p_builder_and_solver = this->GetBuilderAndSolver();
-        // if (p_builder_and_solver != nullptr) {
-        //     p_builder_and_solver->Clear();
-        // }
+        mpLinearSolver->Clear();
 
+        //TODO: Update comment to current implementation
         // Deallocating system vectors to avoid errors in MPI. Clear calls
         // TrilinosSpace::Clear for the vectors, which preserves the Map of
         // current vectors, performing MPI calls in the process. Due to the
@@ -200,10 +203,11 @@ public:
         // MPI_Finalize has already been called and is an error. Resetting
         // the pointers here prevents Clear from operating with the
         // (now deallocated) vectors.
-        mpA.reset();
-        mpDx.reset();
-        mpb.reset();
+        mpA.clear();
+        mpdx.clear();
+        mpb.clear();
 
+        // Finally clear current class
         this->Clear();
     }
 
@@ -211,49 +215,46 @@ public:
      * @brief Set method for the time scheme
      * @param pScheme The pointer to the time scheme considered
      */
-    void SetScheme(typename TSchemeType::Pointer pScheme)
+    void SetScheme(SchemePointerType pScheme)
     {
         mpScheme = pScheme;
-    };
+    }
 
     /**
      * @brief Get method for the time scheme
      * @return mpScheme: The pointer to the time scheme considered
      */
-    typename TSchemeType::Pointer GetScheme()
+    SchemePointerType pGetScheme()
     {
         return mpScheme;
-    };
+    }
 
     /**
      * @brief This method sets the flag mCalculateReactionsFlag
      * @param CalculateReactionsFlag The flag that tells if the reactions are computed
      */
-    void SetCalculateReactionsFlag(bool CalculateReactionsFlag)
+    void SetCalculateReactionsFlag(const bool CalculateReactionsFlag)
     {
         mCalculateReactionsFlag = CalculateReactionsFlag;
-
-        // FIXME:
-        // GetBuilderAndSolver()->SetCalculateReactionsFlag(mCalculateReactionsFlag);
-    }
+        pGetScheme()->SetCalculateReactionsFlag(mCalculateReactionsFlag) //TODO: Most probably we can avoid saving the reactions flag in the scheme
 
     /**
      * @brief This method returns the flag mCalculateReactionsFlag
      * @return The flag that tells if the reactions are computed
      */
-    bool GetCalculateReactionsFlag()
+    bool GetCalculateReactionsFlag() const
     {
         return mCalculateReactionsFlag;
     }
 
     /**
      * @brief This method sets the flag mReformDofSetAtEachStep
-     * @param Flag The flag that tells if each time step the system is rebuilt
+     * @param ReformDofSetAtEachStepFlag The flag that tells if each time step the system is rebuilt
      */
-    void SetReformDofSetAtEachStepFlag(bool Flag)
+    void SetReformDofSetAtEachStepFlag(const bool ReformDofSetAtEachStepFlag)
     {
-        mReformDofSetAtEachStep = Flag;
-        // FIXME:
+        mReformDofSetAtEachStep = ReformDofSetAtEachStepFlag;
+        // FIXME: I don't think this is required to be set at the scheme
         // GetBuilderAndSolver()->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
     }
 
@@ -261,10 +262,48 @@ public:
      * @brief This method returns the flag mReformDofSetAtEachStep
      * @return The flag that tells if each time step the system is rebuilt
      */
-    bool GetReformDofSetAtEachStepFlag()
+    bool GetReformDofSetAtEachStepFlag() const
     {
         return mReformDofSetAtEachStep;
     }
+
+    /**
+     * @brief This method sets the flag mMoveMeshFlag
+     * @param MoveMeshFlag The flag that tells if the mesh is to be updated
+     */
+    void SetMoveMeshFlag(const bool MoveMeshFlag)
+    {
+        mMoveMeshFlag = MoveMeshFlag;
+    }
+
+    /**
+     * @brief This method returns the flag mMoveMeshFlag
+     * @return The flag that tells if the mesh is to be updated
+     */
+    bool GetMoveMeshFlag() const
+    {
+        return mMoveMeshFlag;
+    }
+
+    //TODO: Move to the future base class
+    /**
+     * @brief Operations to get the pointer to the model
+     * @return *mpModelPart: The model part member variable
+     */
+    ModelPart& GetModelPart()
+    {
+        return *mpModelPart;
+    };
+
+    //TODO: Move to the future base class
+    /**
+     * @brief Operations to get the pointer to the model
+     * @return *mpModelPart: The model part member variable
+     */
+    const ModelPart& GetModelPart() const
+    {
+        return *mpModelPart;
+    };
 
     /**
      * @brief It sets the level of echo for the solving strategy
@@ -276,15 +315,11 @@ public:
      * - 3: Print of debug information: Echo of stiffness matrix, Dx, b...
      */
 
-    void SetEchoLevel(int Level) override
+    void SetEchoLevel(int EchoLevel)
     {
-        BaseType::SetEchoLevel(Level);
-        // FIXME:
-        // GetBuilderAndSolver()->SetEchoLevel(Level);
+        mEchoLevel = EchoLevel;
+        pGetScheme()->SetEchoLevel(EchoLevel);
     }
-
-    //*********************************************************************************
-    /**OPERATIONS ACCESSIBLE FROM THE INPUT:*/
 
     /**
      * @brief Create method
@@ -293,8 +328,7 @@ public:
      */
     typename SolvingStrategyType::Pointer Create(
         ModelPart& rModelPart,
-        Parameters ThisParameters
-        ) const override
+        Parameters ThisParameters) const
     {
         return Kratos::make_shared<ClassType>(rModelPart, ThisParameters);
     }
@@ -303,49 +337,43 @@ public:
      * @brief Operation to predict the solution ... if it is not called a trivial predictor is used in which the
     values of the solution step of interest are assumed equal to the old values
      */
-    void Predict() override
+    void Predict()
     {
         KRATOS_TRY
-        const DataCommunicator &r_comm = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator();
-        //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
-        //if the operations needed were already performed this does nothing
-        if(mInitializeWasPerformed == false)
-        	Initialize();
 
-        //initialize solution step
-        if (mSolutionStepIsInitialized == false)
-        	InitializeSolutionStep();
+        // Internal solution loop check to avoid repetitions
+        KRATOS_ERROR_IF(!mInitializeWasPerformed) << "Initialize needs to be performed. Call Initialize() once before the solution loop." << std::endl;
+        KRATOS_ERROR_IF(!mSolutionStepIsInitialized) << "InitializeSolutionStep needs to be performed. Call InitializeSolutionStep() before Predict()." << std::endl;
 
-        TSystemMatrixType& rA  = *mpA;
-        TSystemVectorType& rDx = *mpDx;
-        TSystemVectorType& rb  = *mpb;
+        // Call the time scheme predict
+        pGetScheme()->Predict(GetModelPart(), *mpA, *mpdx, *mpb);
 
-        // FIXME:
-        // DofsArrayType& r_dof_set = GetBuilderAndSolver()->GetDofSet();
+        //TODO: Constraints implementation
+        // // Applying constraints if needed
+        // const auto &r_comm = GetModelPart().GetCommunicator().GetDataCommunicator();
+        // auto& r_constraints_array = BaseType::GetModelPart().MasterSlaveConstraints();
+        // const int local_number_of_constraints = r_constraints_array.size();
+        // const int global_number_of_constraints = r_comm.SumAll(local_number_of_constraints);
+        // if(global_number_of_constraints != 0) {
+        //     const auto& r_process_info = BaseType::GetModelPart().GetProcessInfo();
 
-        this->GetScheme()->Predict(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
+        //     block_for_each(r_constraints_array, [&r_process_info](MasterSlaveConstraint& rConstraint){
+        //         rConstraint.ResetSlaveDofs(r_process_info);
+        //     });
+        //     block_for_each(r_constraints_array, [&r_process_info](MasterSlaveConstraint& rConstraint){
+        //         rConstraint.Apply(r_process_info);
+        //     });
 
-        // Applying constraints if needed
-        auto& r_constraints_array = BaseType::GetModelPart().MasterSlaveConstraints();
-        const int local_number_of_constraints = r_constraints_array.size();
-        const int global_number_of_constraints = r_comm.SumAll(local_number_of_constraints);
-        if(global_number_of_constraints != 0) {
-            const auto& r_process_info = BaseType::GetModelPart().GetProcessInfo();
+        //     //the following is needed since we need to eventually compute time derivatives after applying
+        //     //Master slave relations
+        //     TSparseSpace::SetToZero(rDx);
+        //     this->pGetScheme()->Update(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
+        // }
 
-            block_for_each(r_constraints_array, [&r_process_info](MasterSlaveConstraint& rConstraint){
-                rConstraint.ResetSlaveDofs(r_process_info);
-            });
-            block_for_each(r_constraints_array, [&r_process_info](MasterSlaveConstraint& rConstraint){
-                rConstraint.Apply(r_process_info);
-            });
-
-            //the following is needed since we need to eventually compute time derivatives after applying
-            //Master slave relations
-            TSparseSpace::SetToZero(rDx);
-            this->GetScheme()->Update(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
+        // Mesh motion update
+        if (GetMoveMeshFlag()) {
+            MoveMesh();
         }
-
-        if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
 
         KRATOS_CATCH("")
     }
@@ -353,26 +381,28 @@ public:
     /**
      * @brief Initialization of member variables and prior operations
      */
-    void Initialize() override
+    void Initialize()
     {
         KRATOS_TRY
 
-        if (mInitializeWasPerformed == false)
-        {
-            //pointers needed in the solution
-            typename TSchemeType::Pointer p_scheme = GetScheme();
+        if (!mInitializeWasPerformed) {
+            // Get scheme
+            auto p_scheme = pGetScheme();
 
-            //Initialize The Scheme - OPERATIONS TO BE DONE ONCE
-            if (p_scheme->SchemeIsInitialized() == false)
-                p_scheme->Initialize(BaseType::GetModelPart());
+            // Initialize scheme (this has to be done once)
+            if (!p_scheme->SchemeIsInitialized()) {
+                p_scheme->Initialize(GetModelPart());
+            }
 
-            //Initialize The Elements - OPERATIONS TO BE DONE ONCE
-            if (p_scheme->ElementsAreInitialized() == false)
-                p_scheme->InitializeElements(BaseType::GetModelPart());
+            // Initialize elements (this has to be done once)
+            if (!p_scheme->ElementsAreInitialized()) {
+                p_scheme->InitializeElements(GetModelPart()); //TODO: Think if this belongs to the scheme
+            }
 
-            //Initialize The Conditions - OPERATIONS TO BE DONE ONCE
-            if (p_scheme->ConditionsAreInitialized() == false)
-                p_scheme->InitializeConditions(BaseType::GetModelPart());
+            // Initialize conditions (this has to be done once)
+            if (!p_scheme->ConditionsAreInitialized()) {
+                p_scheme->InitializeConditions(GetModelPart()); //TODO: Think if this belongs to the scheme
+            }
 
             mInitializeWasPerformed = true;
         }
@@ -385,49 +415,42 @@ public:
      * @details a double containing norm(Dx) is returned if CalculateNormDxFlag == true, else 0 is returned
      * @return norm(Dx)
      */
-
-    double Solve() override
+    double Solve()
     {
-        BaseType::Solve();
+        KRATOS_ERROR << "Solve method is no longer available. Call the solving steps one by one." << std::endl;
 
-        //calculate if needed the norm of Dx
-        double norm_dx = 0.00;
-        if (mCalculateNormDxFlag == true)
-            norm_dx = TSparseSpace::TwoNorm(*mpDx);
-
-        return norm_dx;
+        return 0.0;
     }
 
     /**
      * @brief Clears the internal storage
      * @note NULL could be changed to nullptr in the future (c++11)
      */
-    void Clear() override
+    void Clear()
     {
         KRATOS_TRY;
 
-        // Setting to zero the internal flag to ensure that the dof sets are recalculated. Also clear the linear solver stored in the B&S
-        // FIXME:
-        // auto p_builder_and_solver = GetBuilderAndSolver();
-        // if (p_builder_and_solver != nullptr) {
-        //     p_builder_and_solver->SetDofSetIsInitializedFlag(false);
-        //     p_builder_and_solver->Clear();
-        // }
+        // Clear the linear solver
+        mpLinearSolver->Clear();
 
         // Clearing the system of equations
-        if (mpA != nullptr)
-            SparseSpaceType::Clear(mpA);
-        if (mpDx != nullptr)
-            SparseSpaceType::Clear(mpDx);
-        if (mpb != nullptr)
-            SparseSpaceType::Clear(mpb);
-
-        // Clearing scheme
-        auto p_scheme = GetScheme();
-        if (p_scheme != nullptr) {
-            GetScheme()->Clear();
+        if (mpA != nullptr) {
+            mpA->clear();
+        }
+        if (mpdx != nullptr) {
+            mpdx->clear();
+        }
+        if (mpb != nullptr) {
+            mpb->clear();
         }
 
+        // Clearing scheme
+        // Note that this resets the DOF set
+        if (pGetScheme() != nullptr) {
+            pGetScheme()->Clear();
+        }
+
+        // Reset initialization flags
         mInitializeWasPerformed = false;
         mSolutionStepIsInitialized = false;
 
@@ -439,16 +462,9 @@ public:
     need to be calculated given the solution of the step
      *@details This operations should be called only when needed, before printing as it can involve a non negligible cost
      */
-    void CalculateOutputData() override
+    void CalculateOutputData()
     {
-        TSystemMatrixType& rA  = *mpA;
-        TSystemVectorType& rDx = *mpDx;
-        TSystemVectorType& rb  = *mpb;
-
-        // FIXME:
-        // GetScheme()->CalculateOutputData(BaseType::GetModelPart(),
-        //                                  GetBuilderAndSolver()->GetDofSet(),
-        //                                  rA, rDx, rb);
+        pGetScheme()->CalculateOutputData(GetModelPart(), *mpA, *mpdx, *mpb);
     }
 
     /**
@@ -456,25 +472,21 @@ public:
      * @details A member variable should be used as a flag to make sure this function is called only once per step.
      * @todo Boost dependencies should be replaced by std equivalent
      */
-    void InitializeSolutionStep() override
+
+    //FIXME: hereeeeeeeeeeeeeeeeeeeeeeeee!!!! Ruben
+    void InitializeSolutionStep()
     {
         KRATOS_TRY
 
-        if (mSolutionStepIsInitialized == false)
-        {
-            //pointers needed in the solution
-            typename TSchemeType::Pointer p_scheme = GetScheme();
+        if (!mSolutionStepIsInitialized) {
+            // Get scheme pointer
+            auto p_scheme = pGetScheme();
 
-            // FIXME:
-            // typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
-
-            //set up the system, operation performed just once unless it is required
-            //to reform the dof set at each iteration
+            // Set up the system
+            // This operation is performed just once unless it is required to reform the dof set at each iteration
             BuiltinTimer system_construction_time;
-            if (p_builder_and_solver->GetDofSetIsInitializedFlag() == false ||
-                    mReformDofSetAtEachStep == true)
-            {
-                //setting up the list of the DOFs to be solved
+            if (!p_scheme->DofSetIsInitialized() || mReformDofSetAtEachStep == true) {
+                // Setting up the DOFs list to be solved
                 BuiltinTimer setup_dofs_time;
                 p_builder_and_solver->SetUpDofSet(p_scheme, BaseType::GetModelPart());
                 KRATOS_INFO_IF("LinearStrategy", BaseType::GetEchoLevel() > 0) << "Setup Dofs Time: " << setup_dofs_time << std::endl;
@@ -486,16 +498,16 @@ public:
 
                 //setting up the Vectors involved to the correct size
                 BuiltinTimer system_matrix_resize_time;
-                p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpA, mpDx, mpb,
+                p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpA, mpdx, mpb,
                                                                  BaseType::GetModelPart());
                 KRATOS_INFO_IF("LinearStrategy", BaseType::GetEchoLevel() > 0) << "System Matrix Resize Time: " << system_matrix_resize_time << std::endl;
             }
 
             KRATOS_INFO_IF("LinearStrategy", BaseType::GetEchoLevel() > 0) << "System Construction Time: " << system_construction_time << std::endl;
 
-            TSystemMatrixType& rA  = *mpA;
-            TSystemVectorType& rDx = *mpDx;
-            TSystemVectorType& rb  = *mpb;
+            SystemMatrixType& rA  = *mpA;
+            SystemVectorType& rDx = *mpdx;
+            SystemVectorType& rb  = *mpb;
 
             //initial operations ... things that are constant over the Solution Step
             p_builder_and_solver->InitializeSolutionStep(BaseType::GetModelPart(), rA, rDx, rb);
@@ -513,17 +525,17 @@ public:
      * @brief Performs all the required operations that should be done (for each step) after solving the solution step.
      * @details A member variable should be used as a flag to make sure this function is called only once per step.
      */
-    void FinalizeSolutionStep() override
+    void FinalizeSolutionStep()
     {
         KRATOS_TRY;
-        typename TSchemeType::Pointer p_scheme = GetScheme();
+        typename TSchemeType::Pointer p_scheme = pGetScheme();
 
         // FIXME:
         // typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
 
-        TSystemMatrixType &rA  = *mpA;
-        TSystemVectorType &rDx = *mpDx;
-        TSystemVectorType &rb  = *mpb;
+        SystemMatrixType &rA  = *mpA;
+        SystemVectorType &rDx = *mpdx;
+        SystemVectorType &rb  = *mpb;
 
         //Finalisation of the solution step,
         //operations to be done after achieving convergence, for example the
@@ -543,7 +555,7 @@ public:
         if (mReformDofSetAtEachStep == true)
         {
             SparseSpaceType::Clear(mpA);
-            SparseSpaceType::Clear(mpDx);
+            SparseSpaceType::Clear(mpdx);
             SparseSpaceType::Clear(mpb);
 
             this->Clear();
@@ -555,17 +567,17 @@ public:
     /**
      * @brief Solves the current step. This function returns true if a solution has been found, false otherwise.
      */
-    bool SolveSolutionStep() override
+    bool SolveSolutionStep()
     {
         //pointers needed in the solution
-        typename TSchemeType::Pointer p_scheme = GetScheme();
+        typename TSchemeType::Pointer p_scheme = pGetScheme();
 
         // FIXME:
         // typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
 
-        TSystemMatrixType& rA  = *mpA;
-        TSystemVectorType& rDx = *mpDx;
-        TSystemVectorType& rb  = *mpb;
+        SystemMatrixType& rA  = *mpA;
+        SystemVectorType& rDx = *mpdx;
+        SystemVectorType& rb  = *mpb;
 
 	    p_scheme->InitializeNonLinIteration(BaseType::GetModelPart(), rA, rDx, rb);
 
@@ -595,7 +607,9 @@ public:
         p_scheme->Update(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
 
         //move the mesh if needed
-        if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
+        if (GetMoveMeshFlag()) {
+            MoveMesh();
+        }
 
         p_scheme->FinalizeNonLinIteration(BaseType::GetModelPart(), rA, rDx, rb);
 
@@ -612,9 +626,9 @@ public:
      * @brief This method returns the LHS matrix
      * @return The LHS matrix
      */
-    TSystemMatrixType& GetSystemMatrix() override
+    SystemMatrixType& GetSystemMatrix()
     {
-        TSystemMatrixType& mA = *mpA;
+        SystemMatrixType& mA = *mpA;
 
         return mA;
     }
@@ -623,9 +637,9 @@ public:
      * @brief This method returns the RHS vector
      * @return The RHS vector
      */
-    TSystemVectorType& GetSystemVector() override
+    SystemVectorType& GetSystemVector()
     {
-        TSystemVectorType& mb = *mpb;
+        SystemVectorType& mb = *mpb;
 
         return mb;
     }
@@ -634,9 +648,9 @@ public:
      * @brief This method returns the solution vector
      * @return The Dx vector
      */
-    TSystemVectorType& GetSolutionVector() override
+    SystemVectorType& GetSolutionVector()
     {
-        TSystemVectorType& mDx = *mpDx;
+        SystemVectorType& mDx = *mpdx;
 
         return mDx;
     }
@@ -645,7 +659,7 @@ public:
      * @brief This method returns the residual norm
      * @return The residual norm
      */
-    double GetResidualNorm() override
+    double GetResidualNorm()
     {
         if (TSparseSpace::Size(*mpb) != 0)
             return TSparseSpace::TwoNorm(*mpb);
@@ -657,7 +671,7 @@ public:
      * @brief Function to perform expensive checks.
      * @details It is designed to be called ONCE to verify that the input is correct.
      */
-    int Check() override
+    int Check()
     {
         KRATOS_TRY
 
@@ -666,7 +680,7 @@ public:
         // FIXME:
         // GetBuilderAndSolver()->Check(BaseType::GetModelPart());
 
-        GetScheme()->Check(BaseType::GetModelPart());
+        pGetScheme()->Check(BaseType::GetModelPart());
 
         return 0;
 
@@ -677,7 +691,7 @@ public:
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
      * @return The default parameters
      */
-    Parameters GetDefaultParameters() const override
+    Parameters GetDefaultParameters() const
     {
         Parameters default_parameters = Parameters(R"(
         {
@@ -728,19 +742,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
+    std::string Info() const
     {
         return "LinearStrategy";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << Info();
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const
     {
         rOStream << Info();
     }
@@ -772,7 +786,7 @@ protected:
      * @brief This method assigns settings to member variables
      * @param ThisParameters Parameters that are assigned to the member variables
      */
-    void AssignSettings(const Parameters ThisParameters) override
+    void AssignSettings(const Parameters ThisParameters)
     {
         BaseType::AssignSettings(ThisParameters);
         mCalculateNormDxFlag = ThisParameters["compute_norm_dx"].GetBool();
@@ -784,10 +798,27 @@ protected:
             KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
         }
 
-        // Setting up the default builder and solver
-        if (ThisParameters["builder_and_solver_settings"].Has("name")) {
-            KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
-        }
+    }
+
+    //TODO: Move this to the future base class
+    /**
+     * @brief This function is designed to move the mesh
+     * @note Be careful it just consider displacements, derive this method to adapt to your own strategies (ALE, FSI, etc...)
+     */
+    virtual void MoveMesh()
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR_IF_NOT(GetModelPart().HasNodalSolutionStepVariable(DISPLACEMENT_X)) << "It is impossible to move the mesh since the DISPLACEMENT variable is not in the ModelPart. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables" << std::endl;
+
+        block_for_each(GetModelPart().Nodes(), [](Node& rNode){
+            noalias(rNode.Coordinates()) = rNode.GetInitialPosition().Coordinates();
+            noalias(rNode.Coordinates()) += rNode.FastGetSolutionStepValue(DISPLACEMENT);
+        });
+
+        KRATOS_INFO_IF("SolvingStrategy", this->GetEchoLevel() != 0) << "Mesh moved." << std::endl;
+
+        KRATOS_CATCH("")
     }
 
     ///@}
@@ -815,9 +846,15 @@ private:
 
     typename TSchemeType::Pointer mpScheme = nullptr; /// The pointer to the linear solver considered
 
-    TSystemVectorPointerType mpDx; /// The incremement in the solution
-    TSystemVectorPointerType mpb; /// The RHS vector of the system of equations
-    TSystemMatrixPointerType mpA; /// The LHS matrix of the system of equations
+    SystemVectorPointerType mpdx; /// The incremement in the solution
+    SystemVectorPointerType mpb; /// The RHS vector of the system of equations
+    SystemMatrixPointerType mpA; /// The LHS matrix of the system of equations
+
+    int mEchoLevel;
+
+    ModelPart* mpModelPart = nullptr;
+
+    bool mMoveMeshFlag;
 
     /**
      * @brief Flag telling if it is needed to reform the DofSet at each
@@ -849,9 +886,9 @@ private:
      */
     virtual void EchoInfo()
     {
-        TSystemMatrixType& rA  = *mpA;
-        TSystemVectorType& rDx = *mpDx;
-        TSystemVectorType& rb  = *mpb;
+        SystemMatrixType& rA  = *mpA;
+        SystemVectorType& rDx = *mpdx;
+        SystemVectorType& rb  = *mpb;
 
         if (BaseType::GetEchoLevel() == 3) //if it is needed to print the debug info
         {
