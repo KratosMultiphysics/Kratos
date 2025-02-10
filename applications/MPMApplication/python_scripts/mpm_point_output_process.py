@@ -25,10 +25,7 @@ class MPMPointOutputProcess(KratosMultiphysics.OutputProcess):
         self.params = params
         self.params.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
-        # These quantites are lists so that they can be looped
-        # => needed for mpi (future implementation) in case the
-        # material point is located in a different partition
-        self.output_file = []
+        self.output_file = None
 
         self.format = self.params["print_format"].GetString()
         self.search_tolerance = self.params["search_tolerance"].GetDouble()
@@ -58,7 +55,6 @@ class MPMPointOutputProcess(KratosMultiphysics.OutputProcess):
             if IsDoubleVariable(var) or IsVectorVariable(var) or IsArrayVariable(var):
                 continue
             else:
-                print(var)
                 err_msg  = f"Type of variable {var.Name()} is not valid\n"
                 err_msg +=  "It can only be double, component or array3d!"
                 raise Exception(err_msg)
@@ -100,27 +96,19 @@ class MPMPointOutputProcess(KratosMultiphysics.OutputProcess):
             err_msg += f'"element", "condition". Found: {entity_type}.'
             raise Exception(err_msg)
 
-        # Check if a point was found, and initialize output
-        # NOTE: If the search was not successful (i.e. entity_id = -1), we fail silently and
-        # do nothing. This is BY DESIGN, as we are supposed to work on MPI too, and the point
-        # in question might lie on a different partition.
-        my_rank = -1 # dummy to indicate that the point is not in my partition
-        comm = self.model_part.GetCommunicator().GetDataCommunicator()
-        if entity_id > -1: # the point lies in my partition
-            my_rank = comm.Rank()
-        writing_rank = comm.MaxAll(my_rank) # The partition with the larger rank writes
-
-        if writing_rank == -1:
+        if entity_id == -1:
             warn_msg  = f'No "{entity_type}" was found for input {self.point} and '
             warn_msg += f'tolerance {self.search_tolerance:.12g}. No output is written!'
             KratosMultiphysics.Logger.PrintWarning("MPMPointOutputProcess", warn_msg)
 
-        if my_rank == writing_rank and my_rank > -1:
+        else:
             file_handler_params = KratosMultiphysics.Parameters(self.params["output_file_settings"])
             file_header = GetFileHeader(entity_type, entity_id, self.point, self.coordinates, self.output_variables)
+            self.output_file = TimeBasedAsciiFileWriterUtility(
+                self.model_part, file_handler_params, file_header).file
 
-            self.output_file.append(TimeBasedAsciiFileWriterUtility(
-                self.model_part, file_handler_params, file_header).file)
+        if self.output_file is not None:
+            self.output_file.write(self._GetVariablesNameHeader())
 
     def IsOutputStep(self):
         time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
@@ -128,7 +116,7 @@ class MPMPointOutputProcess(KratosMultiphysics.OutputProcess):
 
     def PrintOutput(self):
         time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
-        for f in self.output_file:
+        if self.output_file is not None:
             out = str(time)
             for var in self.output_variables:
                 value = self.material_point.CalculateOnIntegrationPoints(var, self.model_part.ProcessInfo)[0]
@@ -144,11 +132,23 @@ class MPMPointOutputProcess(KratosMultiphysics.OutputProcess):
                     raise Exception(err_msg)
 
             out += "\n"
-            f.write(out)
+            self.output_file.write(out)
 
     def ExecuteFinalize(self):
-        for f in self.output_file:
-            f.close()
+        if self.output_file is not None:
+            self.output_file.close()
+
+    def _GetVariablesNameHeader(self):
+        header = "# time"
+        for var in self.output_variables:
+            if IsArrayVariable(var):
+                header += " {0}_X {0}_Y {0}_Z".format(var.Name())
+            elif IsDoubleVariable(var):
+                header += " " + var.Name()
+            elif IsVectorVariable(var):
+                tmp = self.material_point.CalculateOnIntegrationPoints(var, self.model_part.ProcessInfo)[0]
+                header += " " + " ".join( f"{var.Name()}_{i}" for i in range(1,tmp.Size()+1) )
+        return header + "\n"
 
 def GetFileHeader(entity_type, entity_id, point, mp_coord, output_variables):
     header  = f"# Material point {entity_type} with Id #{entity_id} "
@@ -156,15 +156,7 @@ def GetFileHeader(entity_type, entity_id, point, mp_coord, output_variables):
     header += f"{mp_coord[2]:.12g}) is the closest to the selected point "
     header += f"having coordinates ({point.X:.12g}, {point.Y:.12g}, "
     header += f"{point.Z:.12g}).\n"
-    header += '# time'
-
-    for var in output_variables:
-        if IsArrayVariable(var):
-            header += " {0}_X {0}_Y {0}_Z".format(var.Name())
-        else:
-            header += " " + var.Name()
-
-    return header + "\n"
+    return header
 
 def IsArrayVariable(var):
     return isinstance(var,KratosMultiphysics.Array1DVariable3)
