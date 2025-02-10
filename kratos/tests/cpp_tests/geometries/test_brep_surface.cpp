@@ -203,7 +203,6 @@ namespace Testing {
         using BrepSurfaceType = BrepSurface<PointerVector<Node>, true, PointerVector<Point>>;
         using BrepCurveOnSurfaceType = BrepCurveOnSurface<PointerVector<Node>, true, PointerVector<Point>>;
         using BrepCurveOnSurfaceLoopArrayType = DenseVector<DenseVector<typename BrepCurveOnSurfaceType::Pointer>>;
-
         using GeometrySurrogateArrayType = typename BrepSurfaceType::GeometrySurrogateArrayType;
         
 
