@@ -64,6 +64,7 @@ public:
 
     typedef NurbsSurfaceGeometry<3, TContainerPointType> NurbsSurfaceType;
     typedef BrepCurveOnSurface<TContainerPointType, TShiftedBoundary, TContainerPointEmbeddedType> BrepCurveOnSurfaceType;
+    typedef BrepTrimmingUtilities<TShiftedBoundary> BrepTrimmingUtilitiesType;
 
     typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceArrayType;
     typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceLoopType;
@@ -472,7 +473,7 @@ public:
             mpNurbsSurface->SpansLocalSpace(spans_u, 0);
             mpNurbsSurface->SpansLocalSpace(spans_v, 1);
 
-            BrepTrimmingUtilities::CreateBrepSurfaceTrimmingIntegrationPoints(
+            BrepTrimmingUtilitiesType::CreateBrepSurfaceTrimmingIntegrationPoints(
                 rIntegrationPoints,
                 mOuterLoopArray, mInnerLoopArray,
                 spans_u, spans_v,
