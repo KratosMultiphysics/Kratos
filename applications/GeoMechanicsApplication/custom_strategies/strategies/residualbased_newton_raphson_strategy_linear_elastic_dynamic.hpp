@@ -126,7 +126,7 @@ public:
      */
     void Initialize() override
     {
-        KRATOS_TRY
+
         BaseType::Initialize();
 
         // Note that FindNeighbourElementsOfConditionsProcess and DeactivateConditionsOnInactiveElements are required to be perfomed before initializing the System and State
@@ -143,7 +143,6 @@ public:
             // initialize the system matrices and the initial second derivative
             this->InititalizeSystemAndState();
 
-        KRATOS_CATCH("")
     }
 
     void Predict() override
