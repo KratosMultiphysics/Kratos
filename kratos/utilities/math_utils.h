@@ -703,7 +703,7 @@ public:
         const Vector& rSecondVector
         )
     {
-        return std::inner_product(rFirstVector.begin(), rFirstVector.end(), rSecondVector.cbegin(), 0.0);
+        return std::inner_product(rFirstVector.begin(), rFirstVector.end(), rSecondVector.begin(), static_cast<Vector::value_type>(0.0));
     }
 
     /**
