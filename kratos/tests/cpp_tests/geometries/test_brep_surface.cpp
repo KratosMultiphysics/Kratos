@@ -144,7 +144,7 @@ namespace Testing {
         return Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Point>>>(points, p, knot_vector);
     }
 
-    ///// Tests
+    /// Tests
     KRATOS_TEST_CASE_IN_SUITE(NurbsBrepFace, KratosCoreGeometriesFastSuite) {
         auto p_surface = GenerateReferenceNodeSurfaceHalfCirclePointer();
         auto p_curve_1 = GenerateReference1Curve2dPointer();
@@ -194,6 +194,64 @@ namespace Testing {
 
         //auto results = p_brep_curve_on_surface.GlobalDerivatives(coords, 3);
         //KRATOS_WATCH(results[0])
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(NurbsBrepSurfaceSurrogate, KratosCoreGeometriesFastSuite) {
+        auto p_surface = GenerateReferenceNodeSurfaceHalfCirclePointer();
+
+        using GeometryType = Geometry<Node>;    
+        using BrepSurfaceType = BrepSurface<PointerVector<Node>, true, PointerVector<Point>>;
+        using BrepCurveOnSurfaceType = BrepCurveOnSurface<PointerVector<Node>, true, PointerVector<Point>>;
+        using BrepCurveOnSurfaceLoopArrayType = DenseVector<DenseVector<typename BrepCurveOnSurfaceType::Pointer>>;
+
+        using GeometrySurrogateArrayType = typename BrepSurfaceType::GeometrySurrogateArrayType;
+        
+
+        BrepCurveOnSurfaceLoopArrayType outer_loops, inner_loops;
+        
+        Model model;
+        ModelPart& rSurrogateModelPartOuter = model.CreateModelPart("surrogate_model_part_outer");
+        rSurrogateModelPartOuter.CreateNewProperties(0);
+        rSurrogateModelPartOuter.CreateNewNode(1, 0.0, 0.0, 0.0);
+        rSurrogateModelPartOuter.CreateNewNode(2, 2.0, 0.0, 0.0);
+        rSurrogateModelPartOuter.CreateNewNode(3, 2.0, 2.0, 0.0);
+        rSurrogateModelPartOuter.CreateNewNode(4, 0.0, 2.0, 0.0);
+
+        Properties::Pointer p_prop = rSurrogateModelPartOuter.pGetProperties(0);
+        rSurrogateModelPartOuter.CreateNewCondition("LineCondition2D2N", 1, {{1, 2}}, p_prop);
+        rSurrogateModelPartOuter.CreateNewCondition("LineCondition2D2N", 2, {{2, 3}}, p_prop);
+        rSurrogateModelPartOuter.CreateNewCondition("LineCondition2D2N", 3, {{3, 4}}, p_prop);
+        rSurrogateModelPartOuter.CreateNewCondition("LineCondition2D2N", 4, {{4, 1}}, p_prop);
+
+        GeometrySurrogateArrayType surrogate_outer_loop_geometries(rSurrogateModelPartOuter.NumberOfConditions());
+        GeometrySurrogateArrayType surrogate_inner_loop_geometries(rSurrogateModelPartOuter.NumberOfConditions());
+
+        int count = 0;
+        for (auto i_cond : rSurrogateModelPartOuter.Conditions())
+        {
+            surrogate_outer_loop_geometries[count] = i_cond.pGetGeometry();
+            count++;
+        }
+
+        count = 0;
+        for (auto i_cond : rSurrogateModelPartOuter.Conditions())
+        {
+            surrogate_inner_loop_geometries[count] = i_cond.pGetGeometry();
+            count++;
+        }
+
+        auto p_brep_surface =
+            Kratos::make_shared<BrepSurfaceType>(
+                p_surface, 
+                outer_loops,
+                inner_loops);
+        
+        p_brep_surface->SetSurrogateInnerLoopGeometries(surrogate_inner_loop_geometries);
+        p_brep_surface->SetSurrogateOuterLoopGeometries(surrogate_outer_loop_geometries);
+
+        KRATOS_EXPECT_EQ(p_brep_surface->GetSurrogateInnerLoopGeometries().size(), 4);
+        KRATOS_EXPECT_EQ(p_brep_surface->GetSurrogateOuterLoopGeometries().size(), 4);
+
     }
 } // namespace Testing.
 } // namespace Kratos.

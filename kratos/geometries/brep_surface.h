@@ -473,7 +473,7 @@ public:
             mpNurbsSurface->SpansLocalSpace(spans_u, 0);
             mpNurbsSurface->SpansLocalSpace(spans_v, 1);
 
-            BrepTrimmingUtilitiesType::CreateBrepSurfaceTrimmingIntegrationPoints(
+            BrepTrimmingUtilities<TShiftedBoundary>::CreateBrepSurfaceTrimmingIntegrationPoints(
                 rIntegrationPoints,
                 mOuterLoopArray, mInnerLoopArray,
                 spans_u, spans_v,
@@ -559,7 +559,7 @@ public:
      * @brief Set the Surrogate Outer Loop Geometries object
      * @param pSurrogateOuterLoopArray 
      */
-    void SetSurrogateOuterLoopGeometries(const GeometrySurrogateArrayType &rSurrogateOuterLoopArray)
+    void SetSurrogateOuterLoopGeometries(GeometrySurrogateArrayType &rSurrogateOuterLoopArray)
     {
         mpSurrogateOuterLoopGeometries = &rSurrogateOuterLoopArray;
     }
@@ -568,7 +568,7 @@ public:
      * @brief Set the Surrogate Inner Loop Geometries object
      * @param pSurrogateInnerLoopArray 
      */
-    void SetSurrogateInnerLoopGeometries(const GeometrySurrogateArrayType &rSurrogateInnerLoopArray)
+    void SetSurrogateInnerLoopGeometries(GeometrySurrogateArrayType &rSurrogateInnerLoopArray)
     {
         mpSurrogateInnerLoopGeometries = &rSurrogateInnerLoopArray;
     }
