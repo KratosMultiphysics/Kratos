@@ -395,6 +395,7 @@ void GatherModelPartUtility::GatherEntityFromOtherPartitions(
                     std::string recv_buffer;
                     r_data_communicator.Recv(recv_buffer, origin_rank, static_cast<int>(index));
                     StreamSerializer serializer;
+                    serializer.Set(Serializer::SHALLOW_GLOBAL_POINTERS_SERIALIZATION);
                     const auto p_serializer_buffer = dynamic_cast<std::stringstream*>(serializer.pGetBuffer());
                     p_serializer_buffer->write(recv_buffer.data(), recv_buffer.size());
                     if constexpr (std::is_same<TObjectType, Node>::value) {
@@ -422,6 +423,7 @@ void GatherModelPartUtility::GatherEntityFromOtherPartitions(
             if (it_find != send_entities.end()) {
                 for (auto index : it_find->second) {
                     StreamSerializer serializer;
+                    serializer.Set(Serializer::SHALLOW_GLOBAL_POINTERS_SERIALIZATION);
                     if constexpr (std::is_same<TObjectType, Node>::value) {
                         KRATOS_DEBUG_ERROR_IF_NOT(rModelPart.HasNode(index)) << "Node with index " << index << " not found in model part" << std::endl;
                         auto p_send_node = rModelPart.pGetNode(index);
