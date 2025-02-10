@@ -56,7 +56,6 @@ public:
         mVirtualThickness = rParameters["virtual_thickness"].GetDouble();
 
         mSkipInternalForces = rParameters["skip_internal_forces"].GetBool();
-        std::cout << "mSkipInternalForces: " << mSkipInternalForces << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -87,7 +86,7 @@ private:
     ModelPart& mrModelPart;
     Vector     mAbsorbingFactors;
     double     mVirtualThickness;
-	bool       mSkipInternalForces;
+    bool       mSkipInternalForces;
 };
 
 } // namespace Kratos
