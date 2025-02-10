@@ -351,7 +351,7 @@ public:
         if(mFrictionIsActive) {
             mRotationTool.ComputeFrictionAndResetFlags(rModelPart);
         }
-article/calculate_reactions
+
     }
 
     void InitializeNonLinIteration(ModelPart &rModelPart, TSystemMatrixType &rA, TSystemVectorType &rDx,
@@ -706,7 +706,7 @@ protected:
     unsigned int mBlockSize;
     MPMBoundaryRotationUtility<LocalSystemMatrixType,LocalSystemVectorType> mRotationTool;
     
-    void ClearReactionVariable() // const
+    //void ClearReactionVariable() // const
 
     void ClearReactionVariable() const
 
