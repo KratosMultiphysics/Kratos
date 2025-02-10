@@ -196,7 +196,8 @@ namespace Testing {
         //KRATOS_WATCH(results[0])
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(NurbsBrepSurfaceSurrogate, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(NurbsBrepSurfaceSurrogate, KratosCoreGeometriesFastSuite)
+    {
         auto p_surface = GenerateReferenceNodeSurfaceHalfCirclePointer();
 
         using BrepSurfaceType = BrepSurface<PointerVector<Node>, true, PointerVector<Point>>;
