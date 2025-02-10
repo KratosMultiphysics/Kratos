@@ -703,11 +703,7 @@ public:
         const Vector& rSecondVector
         )
     {
-        double temp = 0.0;
-        for (std::size_t i=0; i<rFirstVector.size(); ++i){
-            temp += rFirstVector[i]+rSecondVector[i];
-        }
-        return temp;
+        return std::inner_product(rFirstVector.begin(), rFirstVector.end(), rSecondVector.cbegin(), 0.0);
     }
 
     /**
