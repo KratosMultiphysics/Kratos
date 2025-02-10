@@ -326,7 +326,7 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::GetNeighbourElementVariables(
 
     // only get values from first neighbour
     Element& r_neighbour_element = neighbour_elements[0];
-    auto     prop_neighbour      = r_neighbour_element.GetProperties();
+    auto&     prop_neighbour      = r_neighbour_element.GetProperties();
 
     const GeometryType&                   r_neighbour_geom = r_neighbour_element.GetGeometry();
     const GeometryData::IntegrationMethod rIntegrationMethodNeighbour =

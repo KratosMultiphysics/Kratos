@@ -152,6 +152,7 @@ public:
 
     void Build(typename TSchemeType::Pointer pScheme, ModelPart& rModelPart, TSystemMatrixType& rA, TSystemVectorType& rb) override
     {
+        KRATOS_TRY
         Timer::Start("Build");
 
         this->BuildLHS(pScheme, rModelPart, rA);
@@ -212,6 +213,7 @@ public:
                 throw;
             }
         }
+        KRATOS_CATCH("")
     }
 
     /**
@@ -262,6 +264,7 @@ public:
                           TSystemVectorType&            rDx,
                           TSystemVectorType&            rb) override
     {
+        KRATOS_TRY
         this->BuildRHS(pScheme, rModelPart, rb);
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverLinearElasticDynamic", BaseType::GetEchoLevel() >= 3)
@@ -296,6 +299,8 @@ public:
             << "After the solution of the system"
             << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx
             << "\nRHS vector = " << rb << std::endl;
+
+        KRATOS_CATCH("")
     }
 
     /**
@@ -355,6 +360,7 @@ public:
                             TSystemVectorType&            Dx,
                             TSystemVectorType&            b) override
     {
+        KRATOS_TRY
         TSparseSpace::SetToZero(b);
 
         // refresh RHS to have the correct reactions
@@ -366,10 +372,13 @@ public:
 
             rDof.GetSolutionStepReactionValue() = -b[i];
         });
+        KRATOS_CATCH("")
+
     }
 
     void FinalizeSolutionStep(ModelPart& rModelPart, TSystemMatrixType& rA, TSystemVectorType& rDx, TSystemVectorType& rb) override
     {
+        KRATOS_TRY
         BaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
 
         // intitial copy should only happen if second derivative vector is calculated
@@ -377,6 +386,7 @@ public:
             TSparseSpace::Copy(mCurrentExternalForceVector, mPreviousExternalForceVector);
         }
         mCopyExternalForceVector = true;
+        KRATOS_CATCH("")
     }
 
     /**

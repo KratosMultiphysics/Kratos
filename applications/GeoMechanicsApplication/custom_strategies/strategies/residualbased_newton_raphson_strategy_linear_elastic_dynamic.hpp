@@ -125,6 +125,7 @@ public:
      */
     void Initialize() override
     {
+        KRATOS_TRY
         BaseType::Initialize();
 
         // Note that FindNeighbourElementsOfConditionsProcess and DeactivateConditionsOnInactiveElements are required to be perfomed before initializing the System and State
@@ -140,6 +141,8 @@ public:
         if (!BaseType::mStiffnessMatrixIsBuilt)
             // initialize the system matrices and the initial second derivative
             this->InititalizeSystemAndState();
+
+        KRATOS_CATCH("")
     }
 
     void Predict() override
@@ -158,12 +161,15 @@ public:
     }
 
     void InitializeSolutionStep() override
+
     {
+        KRATOS_TRY
         BaseType::InitializeSolutionStep();
 
         // it is required to initialize the mDxTot vector here, as SolveSolutionStep can be called
         // multiple times, in a single time step (from an overlaying strategy)
         mDxTot = TSystemVectorType(BaseType::GetBuilderAndSolver()->GetDofSet().size(), 0.0);
+        KRATOS_CATCH("")
     }
 
     /**
@@ -171,6 +177,7 @@ public:
      */
     bool SolveSolutionStep() override
     {
+
         // Pointers needed in the solution
         ModelPart&                    r_model_part = BaseType::GetModelPart();
         typename TSchemeType::Pointer p_scheme     = BaseType::GetScheme();
@@ -441,6 +448,8 @@ private:
     /// </summary>
     void InititalizeSystemAndState()
     {
+        KRATOS_TRY
+
         TSystemMatrixType& rA  = *BaseType::mpA;
         TSystemVectorType& rDx = *BaseType::mpDx;
         TSystemVectorType& rb  = *BaseType::mpb;
@@ -464,6 +473,8 @@ private:
 
         this->FinalizeSolutionStep();
         BaseType::mStiffnessMatrixIsBuilt = true;
+
+        KRATOS_CATCH("")
     }
 
     ///@}
