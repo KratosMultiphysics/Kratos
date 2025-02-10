@@ -30,7 +30,7 @@ namespace Kratos
  * @details Note that you may not override any load or save method of the Serializer base class, as they are not virtual.
  * @author Pooyan Dadvand
  */
-class FileSerializer 
+class KRATOS_API(KRATOS_CORE) FileSerializer 
     : public Serializer 
 {
 public:
