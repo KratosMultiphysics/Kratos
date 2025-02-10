@@ -22,7 +22,6 @@
 #include "includes/define_python.h"
 
 // Application includes
-#include "custom_python/add_custom_constitutive_laws_to_python.h"
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
@@ -42,7 +41,6 @@ PYBIND11_MODULE(KratosGeoMechanicsApplication, m)
 
     AddCustomStrategiesToPython(m);
     AddCustomUtilitiesToPython(m);
-    AddCustomConstitutiveLawsToPython(m);
     AddCustomProcessesToPython(m);
 
     // Registering variables in python

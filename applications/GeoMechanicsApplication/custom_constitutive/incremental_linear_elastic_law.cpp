@@ -161,6 +161,18 @@ void GeoIncrementalLinearElasticLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw
     FinalizeMaterialResponseCauchy(rValues);
 }
 
+void GeoIncrementalLinearElasticLaw::ResetMaterial(const Properties&, const GeometryType&, const Vector&)
+{
+    mStressVector          = ZeroVector(mStressVector.size());
+    mStressVectorFinalized = ZeroVector(mStressVectorFinalized.size());
+
+    // set strain vectors:
+    mDeltaStrainVector     = ZeroVector(mDeltaStrainVector.size());
+    mStrainVectorFinalized = ZeroVector(mStrainVectorFinalized.size());
+
+    mIsModelInitialized = false;
+}
+
 void GeoIncrementalLinearElasticLaw::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, GeoLinearElasticLaw)
