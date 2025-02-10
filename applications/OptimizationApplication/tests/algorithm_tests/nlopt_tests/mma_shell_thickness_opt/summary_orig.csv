@@ -1,0 +1,18 @@
+# Optimization problem ascii output
+# Kratos version: not_given
+# Timestamp     : not_specified
+# -----------------------------------------------
+# --------------- Initial values ----------------
+# 	mass_shell:
+# 		initial_value: 3.401453818e+03
+# ------------ End of initial values ------------
+# -----------------------------------------------
+# ------------ Start of step values -------------
+# Headers:
+#  STEP, mass_shell:value, mass_shell:rel_change [%], mass_shell:abs_change [%]
+      0,  3.401453818e+03,           0.000000000e+00,           0.000000000e+00
+      1,  4.902371672e+02,          -8.558742252e+01,          -8.558742252e+01
+      2,  4.901410945e+02,          -1.959717609e-02,          -8.559024697e+01
+      3,  4.900978469e+02,          -8.823507807e-03,          -8.559151842e+01
+      4,  4.900779556e+02,          -4.058629529e-03,          -8.559210321e+01
+# End of file
