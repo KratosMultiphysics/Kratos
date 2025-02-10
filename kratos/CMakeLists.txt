@@ -20,16 +20,23 @@ SET(LIST_OF_SOURCE_EXCEPTIONS
     ${CMAKE_CURRENT_SOURCE_DIR}/modeler/cad_tessellation_modeler.cpp
 )
 
-kratos_add_sources(KRATOS_CORE_SOURCES SOURCE_DIRS "${LIST_FOLDER}")
+## Kratos python interface code
+FILE(GLOB_RECURSE KRATOS_PYTHON_SOURCES "python/*.cpp")
+
+kratos_add_sources(KRATOS_CORE_SOURCES SOURCE_DIRS "${LIST_FOLDER}" EXCEPTIONS "${LIST_OF_SOURCE_EXCEPTIONS}")
 if(${KRATOS_USE_FUTURE} MATCHES ON)
     add_definitions( -DKRATOS_USE_FUTURE )
     message(WARNING "You are using sources from Kratos::Future. This is not recommended for stability.")
-    kratos_add_sources(KRATOS_CORE_SOURCES SOURCE_DIRS "${LIST_FUTURE}")
+    ## TODO: Change this in the future (no pun intended) and make it part of the interface target in a different folder.
+    FILE(GLOB_RECURSE KRATOS_FUTURE_PYTHON_SOURCES "future/python/*.cpp") 
+    kratos_add_sources(KRATOS_CORE_SOURCES SOURCE_DIRS "${LIST_FUTURE}" EXCEPTIONS "${KRATOS_FUTURE_PYTHON_SOURCES}")
 endif(${KRATOS_USE_FUTURE} MATCHES ON)
 if(${KRATOS_USE_LEGACY} MATCHES ON)
     add_definitions( -DKRATOS_USE_LEGACY )
     message(WARNING "You are using sources from Kratos::Legacy. This will be removed soon.")
-    kratos_add_sources(KRATOS_CORE_SOURCES SOURCE_DIRS "${LIST_LEGACY}")
+    ## TODO: Change this in the future and make it part of the interface target in a different folder.
+    FILE(GLOB_RECURSE KRATOS_LEGACY_PYTHON_SOURCES "legacy/python/*.cpp")
+    kratos_add_sources(KRATOS_CORE_SOURCES SOURCE_DIRS "${LIST_LEGACY}" EXCEPTIONS "${KRATOS_LEGACY_PYTHON_SOURCES}")
 endif(${KRATOS_USE_LEGACY} MATCHES ON)
 
 if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
@@ -37,9 +44,6 @@ if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
         ${CMAKE_CURRENT_SOURCE_DIR}/modeler/cad_tessellation_modeler.cpp
     )
 endif(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
-
-## Kratos python interface code
-FILE(GLOB_RECURSE KRATOS_PYTHON_SOURCES "python/*.cpp")
 
 ## Kratos Version
 set( KRATOS_VERSION_SOURCES
@@ -157,7 +161,7 @@ if (${AMGCL_GPGPU} MATCHES ON)
 endif()
 
 ## Define library Kratos which defines the basic python interface
-pybind11_add_module(Kratos MODULE THIN_LTO ${KRATOS_PYTHON_SOURCES})
+pybind11_add_module(Kratos MODULE THIN_LTO ${KRATOS_PYTHON_SOURCES} ${KRATOS_FUTURE_PYTHON_SOURCES} ${KRATOS_LEGACY_PYTHON_SOURCES})
 target_link_libraries(Kratos PRIVATE KratosCore)
 
 # Precompile most demanding / widely included headers

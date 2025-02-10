@@ -1,6 +1,6 @@
 # This function automatically configures a given application to build its tests
 macro(kratos_add_sources)
-    set(multiValueArgs SOURCE_DIRS)
+    set(multiValueArgs SOURCE_DIRS EXCEPTIONS)
 
     cmake_parse_arguments(KRATOS_ADD_SOURCES "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
@@ -13,11 +13,11 @@ macro(kratos_add_sources)
             SET(AUXILIAR_CORE_SOURCES "")
             FOREACH(file ${${subFolder}Sources})
                 SET(EXCEPTION_CHECK 0)
-                FOREACH(exception ${LIST_OF_SOURCE_EXCEPTIONS})
+                FOREACH(exception ${KRATOS_ADD_SOURCES_EXCEPTIONS})
                     IF(${file} STREQUAL ${exception})
                         SET(EXCEPTION_CHECK 1)
                     ENDIF(${file} STREQUAL ${exception})
-                ENDFOREACH(exception ${LIST_OF_SOURCE_EXCEPTIONS})
+                ENDFOREACH(exception ${KRATOS_ADD_SOURCES_EXCEPTIONS})
                 IF (${EXCEPTION_CHECK} EQUAL 0)
                     LIST(APPEND AUXILIAR_CORE_SOURCES ${file})
                 ENDIF(${EXCEPTION_CHECK} EQUAL 0)
