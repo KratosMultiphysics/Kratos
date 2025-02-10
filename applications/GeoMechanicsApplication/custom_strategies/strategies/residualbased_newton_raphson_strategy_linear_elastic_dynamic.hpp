@@ -108,14 +108,13 @@ public:
      * @param CalculateReactions The flag for the reaction calculation
      * @param MoveMeshFlag The flag that allows to move the mesh
      */
-    explicit GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic(
-        ModelPart&                                 rModelPart,
-        typename TSchemeType::Pointer              pScheme,
-        typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
-        typename TBuilderAndSolverType::Pointer    pNewBuilderAndSolver,
-        int                                        MaxIterations      = 30,
-        bool                                       CalculateReactions = false,
-        bool                                       MoveMeshFlag       = false)
+    explicit GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic(ModelPart& rModelPart,
+                                                                  typename TSchemeType::Pointer pScheme,
+                                                                  typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
+                                                                  typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
+                                                                  int  MaxIterations      = 30,
+                                                                  bool CalculateReactions = false,
+                                                                  bool MoveMeshFlag       = false)
         : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(
               rModelPart, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, false, MoveMeshFlag)
     {
@@ -126,7 +125,6 @@ public:
      */
     void Initialize() override
     {
-
         BaseType::Initialize();
 
         // Note that FindNeighbourElementsOfConditionsProcess and DeactivateConditionsOnInactiveElements are required to be perfomed before initializing the System and State
@@ -142,14 +140,14 @@ public:
         if (!BaseType::mStiffnessMatrixIsBuilt)
             // initialize the system matrices and the initial second derivative
             this->InititalizeSystemAndState();
-
     }
 
     void Predict() override
     {
         KRATOS_TRY
 
-        BaseType::GetScheme()->Predict(BaseType::GetModelPart(), BaseType::GetBuilderAndSolver()->GetDofSet(), *BaseType::mpA, *BaseType::mpDx, *BaseType::mpb);
+        BaseType::GetScheme()->Predict(BaseType::GetModelPart(), BaseType::GetBuilderAndSolver()->GetDofSet(),
+                                       *BaseType::mpA, *BaseType::mpDx, *BaseType::mpb);
 
         // Note that constraints are not applied in this predict, nor is an update performed, constrains are added in the builder and solver
 
@@ -159,11 +157,12 @@ public:
         KRATOS_CATCH("")
     }
 
-    void InitializeSolutionStep() override {
-		BaseType::InitializeSolutionStep();
+    void InitializeSolutionStep() override
+    {
+        BaseType::InitializeSolutionStep();
 
-		// it is required to initialize the mDxTot vector here, as SolveSolutionStep can be called multiple times,
-        // in a single time step (from an overlaying strategy)
+        // it is required to initialize the mDxTot vector here, as SolveSolutionStep can be called
+        // multiple times, in a single time step (from an overlaying strategy)
         mDxTot = TSystemVectorType(BaseType::GetBuilderAndSolver()->GetDofSet().size(), 0.0);
     }
 

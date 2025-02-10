@@ -18,8 +18,6 @@ class KratosGeoMechanicsSettlementTests(KratosUnittest.TestCase):
         # Code here will be placed AFTER every test in this TestCase.
         pass
 
-    @KratosUnittest.skip("unit test skipped in this branch, "
-                         "as for some reason, the velocity vector is required in this quasi static test")
     def test_Abc_1_1_0_True_Deformations(self):
         test_name = 'test_Abc_1_1_0_True_Deformations'
         file_path = test_helper.get_file_path(os.path.join('.', test_name))

@@ -34,7 +34,6 @@
 #include "utilities/sparse_matrix_multiplication_utility.h"
 #include "utilities/timer.h"
 #include "utilities/variable_utils.h"
-//#include "includes/file_serializer.h"
 
 namespace Kratos
 {
@@ -133,15 +132,6 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    /// 
-    /// 
-    //void Clear() override { 
-    //    
-    //    // save external force vector for restart, before clearing
-    //    this->save(FileSerializer(mRestartFileName));
-
-    //    BaseType::Clear();
-    //}
 
     void InitializeSolutionStep(ModelPart& rModelPart, TSystemMatrixType& rA, TSystemVectorType& rDx, TSystemVectorType& rb) override
     {
@@ -151,10 +141,8 @@ public:
         mCurrentOutOfBalanceVector  = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
 
         if (mPreviousExternalForceVector.empty()) {
-
             // copy external force vector if this is a restart
-            if (rModelPart.GetProcessInfo()[STEP] > 1)
-            {
+            if (rModelPart.GetProcessInfo()[STEP] > 1) {
                 TSparseSpace::Copy(mCurrentExternalForceVector, mPreviousExternalForceVector);
             } else {
                 mPreviousExternalForceVector = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
@@ -167,7 +155,7 @@ public:
         Timer::Start("Build");
 
         this->BuildLHS(pScheme, rModelPart, rA);
-		this->BuildRHSElementsNoDirichlet(pScheme, rModelPart);
+        this->BuildRHSElementsNoDirichlet(pScheme, rModelPart);
         this->BuildRHSNoDirichlet(pScheme, rModelPart, rb);
 
         Timer::Stop("Build");
@@ -214,9 +202,9 @@ public:
             BaseType::mpLinearSystemSolver->PerformSolutionStep(rA, dummy_rDx, rb);
             mUsePerformSolutionStep = true;
         } catch (const Kratos::Exception& e) {
-            
             // if PerformSolutionStep is not implemented, the following error is thrown, in this case, use Solve
-            if (std::string error_message = e.what(); error_message.find("Error: Calling linear solver base class") != std::string::npos) {
+            if (std::string error_message = e.what();
+                error_message.find("Error: Calling linear solver base class") != std::string::npos) {
                 mUsePerformSolutionStep = false;
             }
             // Re-throw the exception if it's not the specific error we're looking for
@@ -432,31 +420,12 @@ public:
         return "ResidualBasedBlockBuilderAndSolverLinearElasticDynamic";
     }
 
-    ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
-    //friend class FileSerializer;
-
-    //void save(FileSerializer& rSerializer) const
-    //{
-    //    rSerializer.save("PreviousExternalForceVector", mPreviousExternalForceVector);
-    //}
-
-    //void load(FileSerializer& rSerializer)
-    //{
-    //    std::cout << "Load external force vector test " << std::endl;
-    //    rSerializer.load("PreviousExternalForceVector", mPreviousExternalForceVector);
-    //}
-
-
 private:
     TSystemMatrixType mMassMatrix;
     TSystemMatrixType mDampingMatrix;
     TSystemVectorType mPreviousExternalForceVector;
     TSystemVectorType mCurrentExternalForceVector;
-	TSystemVectorType mConstantElementForceVector;
+    TSystemVectorType mConstantElementForceVector;
 
     TSystemVectorType mPreviousOutOfBalanceVector;
     TSystemVectorType mCurrentOutOfBalanceVector;
@@ -467,11 +436,9 @@ private:
     bool   mCopyExternalForceVector = false;
     bool   mUsePerformSolutionStep  = false;
 
-    //const std::string mRestartFileName = "restart_linear_elastic_builder_and_solver";
-
     /// <summary>
-	/// Builds the rhs only for the elements. Note that internal forces are not calculated in this function, only external forces such as gravity. This is done by setting the 
-	/// displacement within the element to zero temporarily.
+    /// Builds the rhs only for the elements. Note that internal forces are not calculated in this function, only external forces such as gravity. This is done by setting the
+    /// displacement within the element to zero temporarily.
     /// </summary>
     void BuildRHSElementsNoDirichlet(typename TSchemeType::Pointer pScheme, ModelPart& rModelPart)
     {
@@ -480,38 +447,39 @@ private:
 
         mConstantElementForceVector = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
 
-        // assemble all elements, note that this cannot be done in a mulththreaded blockforeach loop 
+        // assemble all elements, note that this cannot be done in a mulththreaded blockforeach loop
         const auto& r_current_process_info = rModelPart.GetProcessInfo();
         for (auto& r_element : r_elements) {
+            LocalSystemVectorType local_body_force = LocalSystemVectorType(0);
 
-            LocalSystemVectorType           local_body_force = LocalSystemVectorType(0);
-
-			// set displacement temporarily to zero to prevent the calculation of the internal forces
-			auto& r_geometry = r_element.GetGeometry();
-			std::vector<array_1d<double, 3>> current_displacements = std::vector<array_1d<double, 3>>();
+            // set displacement temporarily to zero to prevent the calculation of the internal forces
+            auto& r_geometry = r_element.GetGeometry();
+            std::vector<array_1d<double, 3>> current_displacements = std::vector<array_1d<double, 3>>();
             std::vector<array_1d<double, 3>> current_rotations = std::vector<array_1d<double, 3>>();
-			for (std::size_t i = 0; i < r_geometry.size(); ++i) {
-				bool has_rotation_dofs = r_geometry[i].HasDofFor(ROTATION_Z);
+            for (std::size_t i = 0; i < r_geometry.size(); ++i) {
+                bool has_rotation_dofs = r_geometry[i].HasDofFor(ROTATION_Z);
 
-				current_displacements.push_back(r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT));
-				if (has_rotation_dofs) current_rotations.push_back(r_geometry[i].FastGetSolutionStepValue(ROTATION));
-				r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT) = ZeroVector(3);
-				if (has_rotation_dofs) r_geometry[i].FastGetSolutionStepValue(ROTATION) = ZeroVector(3);
-			}
-
+                current_displacements.push_back(r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT));
+                if (has_rotation_dofs)
+                    current_rotations.push_back(r_geometry[i].FastGetSolutionStepValue(ROTATION));
+                r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT) = ZeroVector(3);
+                if (has_rotation_dofs)
+                    r_geometry[i].FastGetSolutionStepValue(ROTATION) = ZeroVector(3);
+            }
 
             if (r_element.IsActive()) {
-
-				// reset the constitutive law, such that historic strains and stresses are reset
-				std::vector < ConstitutiveLaw::Pointer > constitutive_law_vector;
-				r_element.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_law_vector, r_current_process_info);
-                for (std::size_t i = 0; i < constitutive_law_vector.size(); ++i)
-                {
-                    constitutive_law_vector[i]->ResetMaterial(r_element.GetProperties(), r_element.GetGeometry(), row(r_element.GetGeometry().ShapeFunctionsValues(), i));
+                // reset the constitutive law, such that historic strains and stresses are reset
+                std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector;
+                r_element.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_law_vector,
+                                                       r_current_process_info);
+                for (std::size_t i = 0; i < constitutive_law_vector.size(); ++i) {
+                    constitutive_law_vector[i]->ResetMaterial(
+                        r_element.GetProperties(), r_element.GetGeometry(),
+                        row(r_element.GetGeometry().ShapeFunctionsValues(), i));
                 }
 
                 Element::EquationIdVectorType equation_ids;
-                r_element.CalculateRightHandSide(local_body_force, r_current_process_info); 
+                r_element.CalculateRightHandSide(local_body_force, r_current_process_info);
                 r_element.EquationIdVector(equation_ids, r_current_process_info);
 
                 // assemble the elemental contribution
@@ -519,13 +487,13 @@ private:
             }
             std::vector<array_1d<double, 3>>::iterator rotations_it = current_rotations.begin();
 
-			// reset displacement and rotation to original values
+            // reset displacement and rotation to original values
             for (std::size_t i = 0; i < r_geometry.size(); ++i) {
                 r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT) = current_displacements[i];
-				if (r_geometry[i].HasDofFor(ROTATION_Z)) r_geometry[i].FastGetSolutionStepValue(ROTATION) = *rotations_it++;
+                if (r_geometry[i].HasDofFor(ROTATION_Z))
+                    r_geometry[i].FastGetSolutionStepValue(ROTATION) = *rotations_it++;
             }
         };
-        
     }
 
     void BuildRHSNoDirichlet(typename TSchemeType::Pointer pScheme, ModelPart& rModelPart, TSystemVectorType& rb)
@@ -533,15 +501,14 @@ private:
         // getting the array of the conditions
         const ConditionsArrayType& r_conditions = rModelPart.Conditions();
 
-		// current external force is initialized as the constant element force vector
+        // current external force is initialized as the constant element force vector
         TSparseSpace::Copy(mConstantElementForceVector, mCurrentExternalForceVector);
-
 
         // assemble all conditions
         const auto& r_current_process_info = rModelPart.GetProcessInfo();
         block_for_each(r_conditions, [&r_current_process_info, this](Condition& r_condition) {
-            LocalSystemVectorType           local_external_force = LocalSystemVectorType(0);
-            
+            LocalSystemVectorType local_external_force = LocalSystemVectorType(0);
+
             if (r_condition.IsActive()) {
                 Condition::EquationIdVectorType equation_ids;
                 r_condition.CalculateRightHandSide(local_external_force, r_current_process_info);
@@ -559,7 +526,6 @@ private:
         // Add constraint to the out of balance force before mass and damping components are added, since the mass and damping components are
         // already constraint by the constraint mass and damping matrix.
         if (!rModelPart.MasterSlaveConstraints().empty()) {
-
             Timer::Start("ApplyRHSConstraints");
             BaseType::ApplyRHSConstraints(pScheme, rModelPart, mCurrentOutOfBalanceVector);
             Timer::Stop("ApplyRHSConstraints");
@@ -574,52 +540,14 @@ private:
     template <typename TElementOrConditionArrayType>
     void CalculateGlobalMatrices(const TElementOrConditionArrayType& rEntities, TSystemMatrixType& rA, ModelPart& rModelPart)
     {
-        
         const auto& r_current_process_info = rModelPart.GetProcessInfo();
-    //    block_for_each(rEntities, [&rA,&r_current_process_info, this](auto& r_entity) {
-    //        LocalSystemMatrixType lhs_contribution(0, 0);
-    //        LocalSystemMatrixType mass_contribution(0, 0);
-    //        LocalSystemMatrixType damping_contribution(0, 0);
-    //        
 
-    //        if (r_entity.IsActive()) {
-    //            std::vector<std::size_t> equation_ids;
-
-    //            r_entity.CalculateLeftHandSide(lhs_contribution, r_current_process_info);
-    //            r_entity.EquationIdVector(equation_ids, r_current_process_info);
-    //            if (lhs_contribution.size1() != 0) {
-    //                BaseType::AssembleLHS(rA, lhs_contribution, equation_ids);
-    //            }
-
-    //            r_entity.CalculateMassMatrix(mass_contribution, r_current_process_info);
-    //            r_entity.CalculateDampingMatrix(damping_contribution, r_current_process_info);
-
-    //            
-
-    //            if (mass_contribution.size1() != 0) {
-    //                BaseType::AssembleLHS(mMassMatrix, mass_contribution, equation_ids);
-    //            }
-    //            if (damping_contribution.size1() != 0) {
-    //                BaseType::AssembleLHS(mDampingMatrix, damping_contribution, equation_ids);
-    //            }
-    //            ////std::cout << "size: " << r_entity.GetGeometry().size() << std::endl;
-    //            //
-    ////                std::cout << std::fixed << std::setprecision(11);
-    //            //	std::cout << "lhs contribution: " << lhs_contribution << std::endl;
-    //            //	std::cout << "id(): " << r_entity.Id() << std::endl;
-    //            //
-    ////            // Assemble the entity contribution
-    //            //BaseType::AssembleLHS(rA, lhs_contribution, equation_ids);
-    //        }
-    //        });
-
-		// for some reason the above block_for_each does not work correctly, so we use a for loop instead. 
+        // for some reason the above block_for_each does not work correctly, so we use a for loop instead.
         // (Different results can occur when running a 3D problem with a beam and soil, when running multithreaded)
         for (auto& r_entity : rEntities) {
             LocalSystemMatrixType lhs_contribution(0, 0);
             LocalSystemMatrixType mass_contribution(0, 0);
             LocalSystemMatrixType damping_contribution(0, 0);
-
 
             if (r_entity.IsActive()) {
                 std::vector<std::size_t> equation_ids;
@@ -642,8 +570,6 @@ private:
             }
         };
     }
-
-
 
     void AddDynamicsToLhs(TSystemMatrixType& rA, const ModelPart& rModelPart)
     {
@@ -679,7 +605,8 @@ private:
 
         // performs: initial_force_vector = mCurrentExternalForceVector - stiffness_contribution - damping_contribution;
         TSystemVectorType initial_force_vector = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
-        TSparseSpace::ScaleAndAdd(1.0, mCurrentExternalForceVector, -1.0, stiffness_contribution, initial_force_vector);
+        TSparseSpace::ScaleAndAdd(1.0, mCurrentExternalForceVector, -1.0, stiffness_contribution,
+                                  initial_force_vector);
         TSparseSpace::UnaliasedAdd(initial_force_vector, -1.0, damping_contribution);
 
         // apply constraint to initial force vector, as the mMassmatrix is also constrained
@@ -746,15 +673,13 @@ private:
         Geo::SparseSystemUtilities::GetUFirstAndSecondDerivativeVector(
             first_derivative_vector, second_derivative_vector, BaseType::mDofSet, rModelPart, 0);
 
-        const double delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
-        TSystemVectorType m_part_vector =
-            first_derivative_vector * (1.0 / (mBeta * delta_time)) +
-            second_derivative_vector * (1.0 / (2.0 * mBeta));
+        const double      delta_time    = rModelPart.GetProcessInfo()[DELTA_TIME];
+        TSystemVectorType m_part_vector = first_derivative_vector * (1.0 / (mBeta * delta_time)) +
+                                          second_derivative_vector * (1.0 / (2.0 * mBeta));
 
         TSystemVectorType c_part_vector =
             first_derivative_vector * (mGamma / mBeta) +
-            second_derivative_vector *
-            (delta_time * (mGamma / (2 * mBeta) - 1));
+            second_derivative_vector * (delta_time * (mGamma / (2 * mBeta) - 1));
 
         // calculate and add mass and damping contribution to rhs
         this->CalculateAndAddDynamicContributionToRhs(m_part_vector, mMassMatrix, rb);
