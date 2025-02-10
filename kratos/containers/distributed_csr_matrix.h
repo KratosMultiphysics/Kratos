@@ -88,7 +88,7 @@ public:
         //compute the columns size
         TIndexType max_col_index = rSparseGraph.ComputeMaxGlobalColumnIndex();
         TIndexType tot_col_size = max_col_index+1;
-            
+
         //this ensures that diagonal blocks are square for square matrices
         if (tot_col_size == mpRowNumbering->Size()) {
             mpColNumbering = Kratos::make_unique<DistributedNumbering<TIndexType>>(*mpComm, mpRowNumbering->GetCpuBounds());
@@ -717,7 +717,7 @@ public:
             IndexType row_begin = GetOffDiagonalBlock().index1_data()[i];
             IndexType row_end   = GetOffDiagonalBlock().index1_data()[i+1];
             for(IndexType k = row_begin; k < row_end; ++k){
-                const IndexType j = GetOffDiagonalBlock().index2_data()[k]; 
+                const IndexType j = GetOffDiagonalBlock().index2_data()[k];
                 const TDataType v = GetOffDiagonalBlock().value_data()[k];
                 tmp_data.push_back(GetRowNumbering().GlobalId(i));
                 tmp_data.push_back(mOffDiagonalGlobalIds[j]);
@@ -760,9 +760,56 @@ public:
                 }
             }
             p_csr_output->FinalizeAssemble();
-        }        
-        
+        }
+
         return p_csr_output;
+    }
+
+    double NormDiagonal()
+    {
+        // const double diagonal_norm = IndexPartition<IndexType>(size1()).template for_each<SumReduction<double>>([&](IndexType Index) {
+        //     const IndexType row_begin = index1_data()[Index];
+        //     const IndexType row_end = index1_data()[Index+1];
+        //     for (IndexType j = row_begin; j < row_end; ++j) {
+        //         if (index2_data()[j] == Index) {
+        //             return std::pow(value_data()[j], 2);
+        //         }
+        //     }
+        //     return 0.0;
+        // });
+
+        // return std::sqrt(diagonal_norm);
+        KRATOS_ERROR << "To be implemented." << std::endl;
+    }
+
+    double MaxDiagonal()
+    {
+        // return IndexPartition<IndexType>(size1()).template for_each<MaxReduction<double>>([&](IndexType Index) {
+            //     const IndexType row_begin = index1_data()[Index];
+            //     const IndexType row_end = index1_data()[Index+1];
+            //     for (IndexType j = row_begin; j < row_end; ++j) {
+                //         if (index2_data()[j] == Index) {
+                    //             return std::abs(value_data()[j]);
+                    //         }
+        //     }
+        //     return std::numeric_limits<double>::lowest();
+        // });
+        KRATOS_ERROR << "To be implemented." << std::endl;
+    }
+
+    double MinDiagonal()
+    {
+        // return IndexPartition<IndexType>(size1()). template for_each<MinReduction<double>>([&](IndexType Index) {
+        //     const IndexType row_begin = index1_data()[Index];
+        //     const IndexType row_end = index1_data()[Index+1];
+        //     for (IndexType j = row_begin; j < row_end; ++j) {
+        //         if (index2_data()[j] == Index) {
+        //             return std::abs(value_data()[j]);
+        //         }
+        //     }
+        //     return std::numeric_limits<double>::max();
+        // });
+        KRATOS_ERROR << "To be implemented." << std::endl;
     }
 
     //TODO

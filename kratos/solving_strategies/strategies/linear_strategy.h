@@ -472,8 +472,6 @@ public:
      * @details A member variable should be used as a flag to make sure this function is called only once per step.
      * @todo Boost dependencies should be replaced by std equivalent
      */
-
-    //FIXME: hereeeeeeeeeeeeeeeeeeeeeeeee!!!! Ruben
     void InitializeSolutionStep()
     {
         KRATOS_TRY
@@ -488,33 +486,26 @@ public:
             if (!p_scheme->DofSetIsInitialized() || mReformDofSetAtEachStep == true) {
                 // Setting up the DOFs list to be solved
                 BuiltinTimer setup_dofs_time;
-                p_builder_and_solver->SetUpDofSet(p_scheme, BaseType::GetModelPart());
-                KRATOS_INFO_IF("LinearStrategy", BaseType::GetEchoLevel() > 0) << "Setup Dofs Time: " << setup_dofs_time << std::endl;
+                p_scheme->SetUpDofArray(GetModelPart());
+                KRATOS_INFO_IF("LinearStrategy", GetEchoLevel() > 0) << "Setup DOFs Time: " << setup_dofs_time << std::endl;
 
-                //shaping correctly the system
+                // Shaping the system
                 BuiltinTimer setup_system_time;
-                p_builder_and_solver->SetUpSystem(BaseType::GetModelPart());
-                KRATOS_INFO_IF("LinearStrategy", BaseType::GetEchoLevel() > 0) << "Setup System Time: " << setup_system_time << std::endl;
+                p_scheme->SetUpSystem(GetModelPart());
+                KRATOS_INFO_IF("LinearStrategy", GetEchoLevel() > 0) << "Set up system time: " << setup_system_time << std::endl;
 
-                //setting up the Vectors involved to the correct size
+                // Allocating the system vectors to their correct sizes
                 BuiltinTimer system_matrix_resize_time;
-                p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpA, mpdx, mpb,
+                p_scheme->ResizeAndInitializeVectors(mpA, mpdx, mpb,
                                                                  BaseType::GetModelPart());
-                KRATOS_INFO_IF("LinearStrategy", BaseType::GetEchoLevel() > 0) << "System Matrix Resize Time: " << system_matrix_resize_time << std::endl;
+                KRATOS_INFO_IF("LinearStrategy", GetEchoLevel() > 0) << "System matrix resize time: " << system_matrix_resize_time << std::endl;
             }
+            KRATOS_INFO_IF("LinearStrategy", GetEchoLevel() > 0) << "System construction time: " << system_construction_time << std::endl;
 
-            KRATOS_INFO_IF("LinearStrategy", BaseType::GetEchoLevel() > 0) << "System Construction Time: " << system_construction_time << std::endl;
+            // Call the scheme InitializeSolutionStep
+            p_scheme->InitializeSolutionStep(GetModelPart(), *mpA, *mpDx, *mpb);
 
-            SystemMatrixType& rA  = *mpA;
-            SystemVectorType& rDx = *mpdx;
-            SystemVectorType& rb  = *mpb;
-
-            //initial operations ... things that are constant over the Solution Step
-            p_builder_and_solver->InitializeSolutionStep(BaseType::GetModelPart(), rA, rDx, rb);
-
-            //initial operations ... things that are constant over the Solution Step
-            p_scheme->InitializeSolutionStep(BaseType::GetModelPart(), rA, rDx, rb);
-
+            // Set the flag to avoid calling this twice
             mSolutionStepIsInitialized = true;
         }
 
@@ -528,37 +519,22 @@ public:
     void FinalizeSolutionStep()
     {
         KRATOS_TRY;
-        typename TSchemeType::Pointer p_scheme = pGetScheme();
 
-        // FIXME:
-        // typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
+        // Get scheme pointer
+        auto p_scheme = pGetScheme();
 
-        SystemMatrixType &rA  = *mpA;
-        SystemVectorType &rDx = *mpdx;
-        SystemVectorType &rb  = *mpb;
+        // Finalisation of the solution step (operations to be done after achieving convergence)
+        p_scheme->FinalizeSolutionStep(BaseType::GetModelPart(), *mpA, *mpdx, *mpb);
 
-        //Finalisation of the solution step,
-        //operations to be done after achieving convergence, for example the
-        //Final Residual Vector (mb) has to be saved in there
-        //to avoid error accumulation
-
-        p_scheme->FinalizeSolutionStep(BaseType::GetModelPart(), rA, rDx, rb);
-        p_builder_and_solver->FinalizeSolutionStep(BaseType::GetModelPart(), rA, rDx, rb);
-
-        //Cleaning memory after the solution
+        // Cleaning memory after the solution
         p_scheme->Clean();
 
-        //reset flags for next step
+        // Reset flag for next step
         mSolutionStepIsInitialized = false;
 
-        //deallocate the systemvectors if needed
-        if (mReformDofSetAtEachStep == true)
-        {
-            SparseSpaceType::Clear(mpA);
-            SparseSpaceType::Clear(mpdx);
-            SparseSpaceType::Clear(mpb);
-
-            this->Clear();
+        // Clear if needed (note that this deallocates the system arrays)
+        if (mReformDofSetAtEachStep == true) {
+            Clear();
         }
 
         KRATOS_CATCH("");
@@ -569,28 +545,24 @@ public:
      */
     bool SolveSolutionStep()
     {
-        //pointers needed in the solution
-        typename TSchemeType::Pointer p_scheme = pGetScheme();
+        // Get scheme pointer
+        auto p_scheme = pGetScheme();
 
-        // FIXME:
-        // typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
+        // Initialize non-linear iteration (once as this is a linear strategy)
+	    p_scheme->InitializeNonLinIteration(GetModelPart(), *mpA, *mpdx, *mpb);
 
-        SystemMatrixType& rA  = *mpA;
-        SystemVectorType& rDx = *mpdx;
-        SystemVectorType& rb  = *mpb;
+        if (mRebuildLevel > 0 || mStiffnessMatrixIsBuilt == false) {
+            // Initialize values
+            mpA->SetValue(0.0);
+            mpdx->SetValue(0.0);
+            mpb->SetValue(0.0);
 
-	    p_scheme->InitializeNonLinIteration(BaseType::GetModelPart(), rA, rDx, rb);
 
-        if (BaseType::mRebuildLevel > 0 || BaseType::mStiffnessMatrixIsBuilt == false)
-        {
-            TSparseSpace::SetToZero(rA);
-            TSparseSpace::SetToZero(rDx);
-            TSparseSpace::SetToZero(rb);
-            // passing smart pointers instead of references here
-            // to prevent dangling pointer to system matrix when
-            // reusing ml preconditioners in the trilinos tpl
+            p_scheme->Build(GetModelPart(), *mpA, *mpb);
+            //TODO: Call the Dirichlet BCs imposition here!!!!!
+
             p_builder_and_solver->BuildAndSolve(p_scheme, BaseType::GetModelPart(), rA, rDx, rb);
-            BaseType::mStiffnessMatrixIsBuilt = true;
+            mStiffnessMatrixIsBuilt = true;
         }
         else
         {
@@ -736,6 +708,22 @@ public:
     ///@}
     ///@name Inquiry
     ///@{
+
+    /**
+     * @brief This returns the level of echo for the solving strategy
+     * @details
+     * {
+     * 0 -> Mute... no echo at all
+     * 1 -> Printing time and basic information
+     * 2 -> Printing linear solver data
+     * 3 -> Print of debug information: Echo of stiffness matrix, Dx, b...
+     * }
+     * @return Level of echo for the solving strategy
+     */
+    int GetEchoLevel() const
+    {
+        return mEchoLevel;
+    }
 
     ///@}
     ///@name Input and output
@@ -890,7 +878,7 @@ private:
         SystemVectorType& rDx = *mpdx;
         SystemVectorType& rb  = *mpb;
 
-        if (BaseType::GetEchoLevel() == 3) //if it is needed to print the debug info
+        if (GetEchoLevel() == 3) //if it is needed to print the debug info
         {
             KRATOS_INFO("LHS") << "SystemMatrix = " << rA << std::endl;
             KRATOS_INFO("Dx")  << "Solution obtained = " << rDx << std::endl;

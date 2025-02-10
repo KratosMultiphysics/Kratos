@@ -283,7 +283,7 @@ public:
      * @details This is intended to be called just once when the strategy is initialized
      * @param rModelPart The model part of the problem to solve
      */
-    virtual void InitializeElements( ModelPart& rModelPart)
+    virtual void InitializeElements(ModelPart& rModelPart)
     {
         KRATOS_TRY
 
@@ -419,7 +419,6 @@ public:
         KRATOS_INFO_IF("NewScheme", mEchoLevel >= 2) << "Finished DOFs array set up." << std::endl;
     }
 
-    //TODO: think about renaming this to SetUpEquationIds (maybe we can just keep it because we are already used to it)
     void SetUpSystem(const ModelPart& rModelPart)
     {
         if (mBuildType == BuildType::Block) {
@@ -553,26 +552,65 @@ public:
         assembly_helper.SetElementAssemblyFunction(elem_func);
         assembly_helper.SetConditionAssemblyFunction(cond_func);
         assembly_helper.AssembleLocalSystem(rLHS, rRHS, aux_tls);
-        // assembly_helper.AssembleLocalSystemElements<>(rModelPart, elem_func, rLHS, rRHS, aux_tls);
-        // assembly_helper.AssembleLocalSystemConditions<>(rModelPart, cond_func, rLHS, rRHS, aux_tls);
 
         KRATOS_INFO_IF("NewScheme", mEchoLevel >= 1) << "Build time: " << timer << std::endl;
         KRATOS_INFO_IF("NewScheme", mEchoLevel >= 2) << "Finished parallel building" << std::endl;
 
         Timer::Stop("Build");
+    }
 
+    virtual void ApplyDirichletConditions(
+        const ModelPart& rModelPart,
+        SystemMatrixType& rLHS,
+        SystemVectorType& rRHS)
+    {
+        if (mBuildType == BuildType::Block) {
+            // const SizeType system_size = rA.size1();
+            // Vector scaling_factors (system_size);
 
-        // AssemblyHelper<TLS1,TLS2>::Assemble(ElmeConainter,
-        //                                     [](ModelPart::ElementConstantIterator ItElem, const ProcessInfo& rProcessInfo, TLS& rTLS){
-        //                                         // Calculate local LHS and RHS contributions
-        //                                         ItElem->CalculateLocalSystem(rTLS.LocLhs, rTLS.LocRhs, rProcessInfo),
-        //                                     [](ModelPart::ElementConstantIterator ItElem, const ProcessInfo& rProcessInfo, TLS& rTLS){
-        //                                         // Calculate local LHS and RHS contributions
-        //                                         ItElem->CalculateLocalSystem(rTLS.LocLhs, rTLS.LocRhs, rProcessInfo),
-        //                                     CondFunc)
+            // const auto it_dof_iterator_begin = BaseType::mDofSet.begin();
 
-        // AssemblyHelper<TLS1,TLS2>::Assemble(ElmeConainter, ElemFunc, CondContainer, CondFunc)
+            // // NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
+            // IndexPartition<std::size_t>(BaseType::mDofSet.size()).for_each([&](std::size_t Index){
+            //     auto it_dof_iterator = it_dof_iterator_begin + Index;
+            //     if (it_dof_iterator->IsFixed()) {
+            //         scaling_factors[Index] = 0.0;
+            //     } else {
+            //         scaling_factors[Index] = 1.0;
+            //     }
+            // });
 
+            // // Detect if there is a line of all zeros and set the diagonal to a certain number (1 if not scale, some norms values otherwise) if this happens
+            // mScaleFactor = TSparseSpace::CheckAndCorrectZeroDiagonalValues(rModelPart.GetProcessInfo(), rA, rb, mScalingDiagonal);
+
+            // double* Avalues = rA.value_data().begin();
+            // std::size_t* Arow_indices = rA.index1_data().begin();
+            // std::size_t* Acol_indices = rA.index2_data().begin();
+
+            // IndexPartition<std::size_t>(system_size).for_each([&](std::size_t Index){
+            //     const std::size_t col_begin = Arow_indices[Index];
+            //     const std::size_t col_end = Arow_indices[Index+1];
+            //     const double k_factor = scaling_factors[Index];
+            //     if (k_factor == 0.0) {
+            //         // Zero out the whole row, except the diagonal
+            //         for (std::size_t j = col_begin; j < col_end; ++j)
+            //             if (Acol_indices[j] != Index )
+            //                 Avalues[j] = 0.0;
+
+            //         // Zero out the RHS
+            //         rb[Index] = 0.0;
+            //     } else {
+            //         // Zero out the column which is associated with the zero'ed row
+            //         for (std::size_t j = col_begin; j < col_end; ++j)
+            //             if(scaling_factors[ Acol_indices[j] ] == 0 )
+            //                 Avalues[j] = 0.0;
+            //     }
+            // });
+        } else if (mBuildType == BuildType::Elimination) {
+
+        } else {
+            KRATOS_ERROR << "Build type not supported." << std::endl;
+        }
     }
 
     /**
@@ -639,6 +677,7 @@ public:
     virtual void CleanOutputData()
     {
         KRATOS_TRY
+
         KRATOS_CATCH("")
     }
 
@@ -649,6 +688,7 @@ public:
     virtual void Clean()
     {
         KRATOS_TRY
+
         KRATOS_CATCH("")
     }
 
