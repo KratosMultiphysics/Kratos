@@ -108,3 +108,45 @@ the dynamic/damped schemes.
 
 One more anomaly is the `Predict` function, currently found in the `NewmarkDynamicUPwScheme` class. This functionality
 should have its counterparts in the other classes derived from `GeneralizedNewmarkScheme` class.
+
+## Incremental Newmark linear elastic U scheme
+
+The Incremental Newmark linear elastic U scheme uses a different formulation for the Newmark time integration. This 
+scheme is only to be used together with the `ResidualBasedBlockBuilderAndSolverLinearElasticDynamic` builder and solver.
+And the `GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic` strategy. This strategy relies on the fact that
+the left hand side matrix is constant throughout the time integration. Furthermore, internal forces are not calculated
+every iteration. In this scheme, actions are only performed on conditions; required actions on elements are performed 
+within the `ResidualBasedBlockBuilderAndSolverLinearElasticDynamic` builder and solver and within the 
+`GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic` strategy. Furthermore, solution step values are updated within
+the `GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic` strategy.
+
+The Incremental equilibrium equation which is solved in the `GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic` 
+strategy is given by:
+
+$$\left\{ \frac{1}{\beta \Delta t^2} [M] + \frac{\gamma}{\beta \Delta t} [C] + [K] \right\} \{\Delta u\} = 
+\{\Delta R\} + [M] \left\{ \frac{1}{\beta \Delta t} \dot{u}(t_k) + \frac{1}{2 \beta} \ddot{u}(t_k) \right\} + 
+[C] \left\{ \frac{\gamma}{\beta} \dot{u}(t_k) + \Delta t \left( \frac{\gamma}{2 \beta} - 1 \right) \ddot{u}(t_k) 
+\right\} $$
+
+where $[M]$, $[C]$ and $[K]$ are the mass, damping and stiffness matrices, respectively. $\{\Delta u\}$ is the
+incremental displacement vector, $\{\Delta R\}$ is the incremental residual vector, $\dot{u}(t_k)$ is the velocity 
+vector at the beginning of the time step, $\ddot{u}(t_k)$ is the acceleration vector at the beginning of the time step, 
+$\beta$ is the Newmark parameter, $\gamma$ is the Newmark parameter, $\Delta t$ is the time step size.
+
+The displacement vector is than updated as follows:
+
+$$ u(t_{k+1}) = u(t_k) + \Delta u $$
+
+The velocity and acceleration vectors are updated as follows:
+
+$$\Delta \dot{u} = \frac{\gamma}{\beta \Delta t} \Delta u - \frac{\gamma}{\beta} \dot{u}(t_k) + 
+\left( 1 - \frac{\gamma}{2 \beta} \right) \Delta t \ddot{u}(t_k) $$
+
+$$\Delta \ddot{u} = \frac{1}{\beta \Delta t^2} \Delta u - \frac{1}{\beta \Delta t} \dot{u}(t_k) - 
+\frac{1}{2 \beta} \ddot{u}(t_k) $$
+
+$$\dot{u}(t_{k+1}) = \dot{u}(t_k) + \Delta \dot{u} $$
+
+$$\ddot{u}(t_{k+1}) = \ddot{u}(t_k) + \Delta \ddot{u} $$
+
+
