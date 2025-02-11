@@ -162,11 +162,12 @@ public:
         ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
         this->AssignSettings(ThisParameters);
 
-        mSchemeIsInitialized = false;
-        mElementsAreInitialized = false;
-        mConditionsAreInitialized = false;
-        mCalculateReactionsFlag = false;
+        //TODO: User-definable reshaping stuff
 
+        // Set the flag that indicates if DOF reactions are computed
+        mCalculateReactionsFlag = ThisParameters["calculate_reactions"].GetBool();
+
+        // Set up the assembly helper
         Parameters build_settings = ThisParameters["build_settings"];
         mpAssemblyHelper = Kratos::make_unique<AssemblyHelperType>(rModelPart, build_settings);
     }
@@ -179,13 +180,12 @@ public:
       , mConditionsAreInitialized(rOther.mConditionsAreInitialized)
       , mCalculateReactionsFlag(rOther.mCalculateReactionsFlag)
     {
+        //TODO: Check this... particularly the mpAssemblyHelper pointer
     }
 
     /** Destructor.
      */
-    virtual ~NewScheme()
-    {
-    }
+    virtual ~NewScheme() = default;
 
     ///@}
     ///@name Operators
@@ -419,7 +419,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    virtual void SetUpDofArray()
+    virtual void SetUpDofArray(DofsArrayType& rDofSet)
     {
         //TODO: I think these two are essentially the same (what changes is the Ids set up)
         // Call external utility to perform the build
@@ -432,19 +432,16 @@ public:
         // }
 
         // Call the external utility to set up the DOFs array
-        EliminationBuildDofArrayUtility::SetUpDofArray(*mpModelPart, mDofSet, mEchoLevel, mCalculateReactionsFlag); //TODO: The elimination and the block do basically the same. Unify the naming.
-
-        // Set the flag as already initialized
-        mDofSetIsInitialized = true;
+        EliminationBuildDofArrayUtility::SetUpDofArray(*mpModelPart, rDofSet, mEchoLevel, mCalculateReactionsFlag); //TODO: The elimination and the block do basically the same. Unify the naming.
 
         KRATOS_INFO_IF("NewScheme", mEchoLevel >= 2) << "Finished DOFs array set up." << std::endl;
     }
 
-    SizeType SetUpSystem()
+    SizeType SetUpSystem(DofsArrayType& rDofSet)
     {
-        KRATOS_ERROR_IF_NOT(mDofSetIsInitialized) << "DOFs set is not initialized yet. Call the 'SetUpDofArray' first." << std::endl;
+        KRATOS_ERROR_IF(rDofSet.empty()) << "DOFs set is empty. Call the 'SetUpDofArray' first." << std::endl;
 
-        return mpAssemblyHelper->SetUpSystemIds(mDofSet);
+        return mpAssemblyHelper->SetUpSystemIds(rDofSet);
 
         KRATOS_INFO_IF("NewScheme", mEchoLevel >= 2) << "Finished system set up." << std::endl;
     }
@@ -510,10 +507,11 @@ public:
     }
 
     virtual void ApplyDirichletConditions(
+        const DofsArrayType& rDofSet,
         SystemMatrixType& rLHS,
         SystemVectorType& rRHS)
     {
-        GetAssemblyHelper().ApplyDirichletConditions(mDofSet, rLHS, rRHS);
+        GetAssemblyHelper().ApplyDirichletConditions(rDofSet, rLHS, rRHS);
     }
 
     /**
@@ -529,6 +527,7 @@ public:
         SystemVectorType& b)
     {
         KRATOS_TRY
+
         KRATOS_CATCH("")
     }
 
@@ -548,6 +547,7 @@ public:
         SystemVectorType& b)
     {
         KRATOS_TRY
+
         KRATOS_CATCH("")
     }
 
@@ -604,10 +604,6 @@ public:
         mElementsAreInitialized = false;
         mConditionsAreInitialized = false;
 
-        // Reset DOF set and system information
-        mDofSet.clear();
-        mDofSetIsInitialized = false;
-
         // Clear the assembly helper
         GetAssemblyHelper().Clear();
 
@@ -643,7 +639,8 @@ public:
                 "scaling_type" : "max_diagonal",
                 "scaling_value" : 1.0
             },
-            "echo_level" : 0
+            "echo_level" : 0,
+            "calculate_reactions" : false
         })");
         return default_parameters;
     }
@@ -664,11 +661,6 @@ public:
     ///@}
     ///@name Inquiry
     ///@{
-
-    bool DofSetIsInitialized() const
-    {
-        return mDofSetIsInitialized;
-    }
 
     ///@}
     ///@name Input and output
@@ -706,11 +698,11 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    bool mSchemeIsInitialized;      /// Flag to be used in controlling if the Scheme has been initialized or not
+    bool mSchemeIsInitialized = false;      /// Flag to be used in controlling if the Scheme has been initialized or not
 
-    bool mElementsAreInitialized;   /// Flag taking in account if the elements were initialized correctly or not
+    bool mElementsAreInitialized = false;   /// Flag taking in account if the elements were initialized correctly or not
 
-    bool mConditionsAreInitialized; /// Flag taking in account if the conditions were initialized correctly or not
+    bool mConditionsAreInitialized = false; /// Flag taking in account if the conditions were initialized correctly or not
 
     ///@}
     ///@name Protected Operators
@@ -778,19 +770,13 @@ private:
 
     ModelPart* mpModelPart = nullptr;
 
-    DofsArrayType mDofSet; //TODO: This needs to be at the strategy level (together with the arrays)
-
     bool mReshapeMatrixFlag = false; /// If the matrix is reshaped each step
-
-    bool mDofSetIsInitialized = false; /// Flag taking care if the dof set was initialized ot not
 
     bool mCalculateReactionsFlag = false; /// Flag taking in account if it is needed or not to calculate the reactions
 
     int mEchoLevel = 0;
 
     typename AssemblyHelperType::UniquePointer mpAssemblyHelper = nullptr;
-
-    // TSystemVectorPointerType mpReactionsVector; //FIXME:
 
     ///@}
     ///@name Private Operators

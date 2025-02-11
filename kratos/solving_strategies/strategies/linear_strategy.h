@@ -211,6 +211,14 @@ public:
         this->Clear();
     }
 
+    ///@}
+    ///@name Operators
+    ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
+
     /**
      * @brief Set method for the time scheme
      * @param pScheme The pointer to the time scheme considered
@@ -483,10 +491,11 @@ public:
             // Set up the system
             // This operation is performed just once unless it is required to reform the dof set at each iteration
             BuiltinTimer system_construction_time;
-            if (!p_scheme->DofSetIsInitialized() || mReformDofSetAtEachStep == true) {
+            if (!mDofSetIsInitialized || mReformDofSetAtEachStep) {
                 // Setting up the DOFs list to be solved
                 BuiltinTimer setup_dofs_time;
-                p_scheme->SetUpDofArray(GetModelPart());
+                p_scheme->SetUpDofArray(mDofSet);
+                mDofSetIsInitialized = true;
                 KRATOS_INFO_IF("LinearStrategy", GetEchoLevel() > 0) << "Setup DOFs Time: " << setup_dofs_time << std::endl;
 
                 // Shaping the system
@@ -573,8 +582,7 @@ public:
         EchoInfo();
 
         //update results
-        DofsArrayType& r_dof_set = p_builder_and_solver->GetDofSet();
-        p_scheme->Update(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
+        p_scheme->Update(BaseType::GetModelPart(), GetDofSet(), rA, rDx, rb);
 
         //move the mesh if needed
         if (GetMoveMeshFlag()) {
@@ -623,6 +631,22 @@ public:
         SystemVectorType& mDx = *mpdx;
 
         return mDx;
+    }
+
+    /**
+     * @brief It allows to get the list of Dofs from the element
+     */
+    DofsArrayType& GetDofSet()
+    {
+        return mDofSet;
+    }
+
+    /**
+     * @brief It allows to get the list of Dofs from the element
+     */
+    const DofsArrayType& GetDofSet() const
+    {
+        return mDofSet;
     }
 
     /**
@@ -688,15 +712,6 @@ public:
     {
         return "linear_strategy";
     }
-
-    ///@}
-    ///@name Operators
-    ///@{
-
-    ///@}
-    ///@name Operations
-    ///@{
-
 
     ///@}
     ///@name Access
@@ -832,8 +847,12 @@ private:
 
     typename TSchemeType::Pointer mpScheme = nullptr; /// The pointer to the linear solver considered
 
+    DofsArrayType mDofSet; /// The set containing the DoF of the system
+
     SystemVectorPointerType mpdx; /// The incremement in the solution
+
     SystemVectorPointerType mpb; /// The RHS vector of the system of equations
+
     SystemMatrixPointerType mpA; /// The LHS matrix of the system of equations
 
     int mEchoLevel;
@@ -841,6 +860,8 @@ private:
     ModelPart* mpModelPart = nullptr;
 
     bool mMoveMeshFlag;
+
+    bool mDofSetIsInitialized = false;
 
     /**
      * @brief Flag telling if it is needed to reform the DofSet at each

@@ -173,8 +173,9 @@ KRATOS_TEST_CASE_IN_SUITE(NewScheme, KratosCoreFastSuite)
 
     // Create the DOF set and set the global ids
     // Note that in a standard case this happens at the strategy level
-    p_scheme->SetUpDofArray();
-    p_scheme->SetUpSystem();
+    ModelPart::DofsArrayType dof_set;
+    p_scheme->SetUpDofArray(dof_set);
+    p_scheme->SetUpSystem(dof_set);
 
     // Set up the matrix graph and arrays
     // Note that in a standard case this happens at the strategy level
@@ -182,9 +183,6 @@ KRATOS_TEST_CASE_IN_SUITE(NewScheme, KratosCoreFastSuite)
     auto p_rhs = Kratos::make_shared<NewScheme<>::SystemVectorType>();
     auto p_lhs = Kratos::make_shared<NewScheme<>::SystemMatrixType>();
     p_scheme->ResizeAndInitializeVectors(p_lhs, p_dx, p_rhs);
-
-    // // Initialize the global system arrays
-    // p_scheme->ResizeAndInitializeVectors(r_test_model_part, p_lhs, p_dx, p_rhs);
 
     // Call the build
     p_scheme->Build(*p_lhs, *p_rhs);
