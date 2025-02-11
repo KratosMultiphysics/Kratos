@@ -201,7 +201,6 @@ namespace Testing {
         auto p_surface = GenerateReferenceNodeSurfaceHalfCirclePointer();
 
         using BrepSurfaceType = BrepSurface<PointerVector<Node>, true, PointerVector<Point>>;
-        using BrepCurveOnSurfaceType = typename BrepSurfaceType::BrepCurveOnSurfaceType;
         using BrepCurveOnSurfaceLoopArrayType = typename BrepSurfaceType::BrepCurveOnSurfaceLoopArrayType;
 
         using GeometrySurrogateArrayType = typename BrepSurfaceType::GeometrySurrogateArrayType;

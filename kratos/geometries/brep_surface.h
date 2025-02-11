@@ -164,8 +164,8 @@ public:
         mInnerLoopArray = rOther.mInnerLoopArray;
         mEmbeddedEdgesArray = rOther.mEmbeddedEdgesArray;
         mIsTrimmed = rOther.mIsTrimmed;
-        mpSurrogateInnerLoopGeometries = mpSurrogateInnerLoopGeometries;
-        mpSurrogateOuterLoopGeometries = mpSurrogateOuterLoopGeometries;
+        mpSurrogateInnerLoopGeometries = rOther.mpSurrogateInnerLoopGeometries;
+        mpSurrogateOuterLoopGeometries = rOther.mpSurrogateOuterLoopGeometries;
         return *this;
     }
 
