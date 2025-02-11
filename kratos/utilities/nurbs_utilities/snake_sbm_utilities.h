@@ -148,23 +148,43 @@ namespace Kratos
                                             array_1d<double, 2>& knotStepUV, 
                                             const Vector& startingPositionUV);
 
-        /**
-         * @brief Creates the inner surrogate boundary from the snake algorithm.
-         * @param knotSpansAvailable Reference to the knot spans availability matrix.
-         * @param idMatrix ID of the matrix being updated.
-         * @param rSurrogateModelPartInner Model part representing the inner boundary.
-         * @param nKnotSpansUV Number of knot spans in UV directions.
-         * @param knotVectorU Knot vector in the U-direction.
-         * @param knotVectorV Knot vector in the V-direction.
-         * @param startingPositionUV Starting position in UV space.
-         */
-        static void CreateSurrogateBuondaryFromSnakeInner (std::vector<std::vector<std::vector<int>>> & knotSpansAvailable, 
-                                                            int idMatrix, 
-                                                            ModelPart& rSurrogateModelPartInner, 
-                                                            std::vector<int>& nKnotSpansUV, 
-                                                            Vector& knotVectorU,
-                                                            Vector& knotVectorV,
-                                                            const Vector& startingPositionUV);
+        // /**
+        //  * @brief Creates the inner surrogate boundary from the snake algorithm.
+        //  * @param knotSpansAvailable Reference to the knot spans availability matrix.
+        //  * @param idMatrix ID of the matrix being updated.
+        //  * @param rSurrogateModelPartInner Model part representing the inner boundary.
+        //  * @param nKnotSpansUV Number of knot spans in UV directions.
+        //  * @param knotVectorU Knot vector in the U-direction.
+        //  * @param knotVectorV Knot vector in the V-direction.
+        //  * @param startingPositionUV Starting position in UV space.
+        //  */
+        // static void CreateSurrogateBuondaryFromSnakeInner (std::vector<std::vector<std::vector<int>>> & knotSpansAvailable, 
+        //                                                     int idMatrix, 
+        //                                                     ModelPart& rSurrogateModelPartInner, 
+        //                                                     std::vector<int>& nKnotSpansUV, 
+        //                                                     Vector& knotVectorU,
+        //                                                     Vector& knotVectorV,
+        //                                                     const Vector& startingPositionUV);
+
+        static void CreateSurrogateBuondaryFromSnakeInner(std::vector<std::vector<std::vector<int>>> & knotSpansAvailable,
+                                                          int idMatrix, 
+                                                          ModelPart& rSurrogateModelPartInner, 
+                                                          ModelPart& SkinModelPartInner, 
+                                                          DynamicBins& testBinInner,
+                                                          std::vector<int>& nKnotSpans, 
+                                                          Vector& knotVectorU, 
+                                                          Vector&  knotVectorV);
+
+        
+        static void CreateSurrogateBuondaryFromSnakeOuter(std::vector<std::vector<std::vector<int>>> & knotSpansAvailable,
+                                                          int idMatrix, 
+                                                          ModelPart& rSurrogateModelPartOuter, 
+                                                          ModelPart& SkinModelPartOuter, 
+                                                          DynamicBins& testBinOuter,
+                                                          std::vector<int>& nKnotSpans, 
+                                                          Vector& knotVectorU, 
+                                                          Vector& knotVectorV, 
+                                                          const Vector& startingPositionUV);
 
         /**
          * @brief Creates the outer surrogate boundary from the snake algorithm.
@@ -177,16 +197,16 @@ namespace Kratos
          * @param knotVectorU Knot vector in the U-direction.
          * @param knotVectorV Knot vector in the V-direction.
          * @param startingPositionUV Starting position in UV space.
-         */
-        static void CreateSurrogateBuondaryFromSnakeOuter (DynamicBins& testBinOuter, 
-                                                            ModelPart& rInitialSkinModelPartOuter, 
-                                                            std::vector<std::vector<std::vector<int>>> & knotSpansAvailable, 
-                                                            int idMatrix, 
-                                                            ModelPart& rSurrogateModelPartOuter, 
-                                                            std::vector<int>& nKnotSpansUV, 
-                                                            Vector& knotVectorU, 
-                                                            Vector&  knotVectorV,
-                                                            const Vector& startingPositionUV);
+        //  */
+        // static void CreateSurrogateBuondaryFromSnakeOuter (DynamicBins& testBinOuter, 
+        //                                                     ModelPart& rInitialSkinModelPartOuter, 
+        //                                                     std::vector<std::vector<std::vector<int>>> & knotSpansAvailable, 
+        //                                                     int idMatrix, 
+        //                                                     ModelPart& rSurrogateModelPartOuter, 
+        //                                                     std::vector<int>& nKnotSpansUV, 
+        //                                                     Vector& knotVectorU, 
+        //                                                     Vector&  knotVectorV,
+        //                                                     const Vector& startingPositionUV);
 
     }; // Class SnakeSbmUtilities
 

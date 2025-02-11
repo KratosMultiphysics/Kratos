@@ -191,7 +191,7 @@ namespace Kratos
         for (auto &i_cond : skin_sub_model_part.Conditions()) {
             points.push_back(PointTypePointer(new PointType(i_cond.Id(), i_cond.GetGeometry()[0].X(), i_cond.GetGeometry()[0].Y(), i_cond.GetGeometry()[0].Z())));
         }
-        DynamicBins testBins(points.begin(), points.end());
+        DynamicBins testBinInner(points.begin(), points.end());
 
         KRATOS_INFO_IF("::[SnakeSbmUtilities]::", rEchoLevel > 0 && isInner) << "Inner :: Ending SnakeStep" << std::endl;
         KRATOS_INFO_IF("::[SnakeSbmUtilities]::", rEchoLevel > 0 && !isInner) << "Outer :: Ending SnakeStep" << std::endl;
@@ -215,17 +215,21 @@ namespace Kratos
         for (IndexType i = 0; i < numberOfLoops; i++) {
             IndexType idInnerLoop = i;
             // Mark the knot_spans_available's for inner and outer loops
-            MarkKnotSpansAvailable(knot_spans_available, idInnerLoop, testBins, skin_sub_model_part, lambda, 
+            MarkKnotSpansAvailable(knot_spans_available, idInnerLoop, testBinInner, skin_sub_model_part, lambda, 
                                    n_knot_spans_uv, knot_step_uv, starting_pos_uv);  
             
             if (isInner) {
-                CreateSurrogateBuondaryFromSnakeInner (knot_spans_available, idInnerLoop, surrogate_sub_model_part, 
-                                    n_knot_spans_uv, knotVectorU, knotVectorV, starting_pos_uv );
+                CreateSurrogateBuondaryFromSnakeInner(knot_spans_available, idInnerLoop, surrogate_sub_model_part, 
+                                                      skin_sub_model_part, testBinInner, n_knot_spans_uv, 
+                                                      knotVectorU, knotVectorV);
+
                 KRATOS_INFO_IF("::[SnakeSbmUtilities]::", rEchoLevel > 0) << "Inner :: Snake process has finished" << std::endl;
             }
             else {
-                CreateSurrogateBuondaryFromSnakeOuter (testBins, skin_sub_model_part, knot_spans_available, idInnerLoop, surrogate_sub_model_part, 
-                                    n_knot_spans_uv, knotVectorU, knotVectorV, starting_pos_uv);
+                CreateSurrogateBuondaryFromSnakeOuter (knot_spans_available, idInnerLoop, surrogate_sub_model_part,
+                                                        skin_sub_model_part, testBinInner, n_knot_spans_uv, knotVectorU,
+                                                        knotVectorV, starting_pos_uv);
+                                                        
                 KRATOS_INFO_IF("::[SnakeSbmUtilities]::", rEchoLevel > 0) << "Outer :: Snake process has finished" << std::endl;
             }
         }
@@ -362,7 +366,12 @@ namespace Kratos
     }
 
 
-
+    /**
+     * Marking process:
+     *   1) We set to 2 all the cut knot spans
+     *   2) We check the 8 neighbor knot spans and set them to 1|0  if inside|outside
+     *   3) We check all the cut knot spans and set them    to 1|-1 if inside|outside 
+     */
     void SnakeSbmUtilities::MarkKnotSpansAvailable(std::vector<std::vector<std::vector<int>>> & knotSpansAvailable, int idMatrix,DynamicBins& testBin, 
                                                    ModelPart& rSkinModelPart, double lambda, std::vector<int>& nKnotSpans, 
                                                    array_1d<double, 2>& knotStepUV, const Vector& startingPos) {
@@ -452,182 +461,164 @@ namespace Kratos
         }
     }
 
-
-    void SnakeSbmUtilities::CreateSurrogateBuondaryFromSnakeInner (std::vector<std::vector<std::vector<int>>> & knotSpansAvailable, int idMatrix, 
-                            ModelPart& rSurrogateModelPartInner, std::vector<int>& nKnotSpans, 
-                            Vector& knotVectorU, Vector&  knotVectorV,
-                            const Vector& startingPos){
-        // Find the start of the Snake
-        int start_i = 0;
-        int start_j = 0;
-        for (int i = 0; i < (nKnotSpans[0]); i++) {
-            for (int j = 0; j < (nKnotSpans[1]); j++ ) {
-                if (knotSpansAvailable[idMatrix][j][i] == 1 ) {
-                    // Check if one of the neighouring knot span is also == 1,
-                    // otherwise the knot span is isolated I cannot be taken.
-                    if ((knotSpansAvailable[idMatrix][j+1][i] == 1) || (knotSpansAvailable[idMatrix][j][i+1] == 1))
-                    {
-                        start_i = i;
-                        start_j = j;
-                        break;
-                    }     
-                }
-            }
-            if (knotSpansAvailable[idMatrix][start_j][start_i] == 1 ) { break; }
-        }
+    /**
+     * summary of knot_spans_available:
+            " 1"  -> interior knot spans                                  
+            "-1"  -> exterior knot spans well checked
+            " 0"  -> exterior knot spans OR very interior knot spans (more 
+                     than one ks away from surrogate boundary)
+     */
+    void SnakeSbmUtilities::CreateSurrogateBuondaryFromSnakeInner(std::vector<std::vector<std::vector<int>>> & knotSpansAvailable, int idMatrix, 
+                            ModelPart& rSurrogateModelPartInner, ModelPart& rSkinModelPartInner, DynamicBins& testBinInner,
+                            std::vector<int>& nKnotSpans, Vector& knotVectorU, Vector&  knotVectorV) {
         
-        if (!rSurrogateModelPartInner.HasProperties(0)) {rSurrogateModelPartInner.CreateNewProperties(0);}
+        KRATOS_INFO("::[SnakeSBMUtilities]::") << "Inner :: Check layers in 2D" << std::endl;
 
+        const double knot_step_u = knotVectorU[1]-knotVectorU[0];
+        const double knot_step_v = knotVectorV[1]-knotVectorV[0];
+        
+        // Snake 2D works with a raycasting technique from each of the two directions
+        IndexType idSurrogateFirstNode = rSurrogateModelPartInner.GetRootModelPart().NumberOfNodes() + 1;
+        IndexType idSurrogateNode = idSurrogateFirstNode;
+        for (int j = 0; j < nKnotSpans[1]; j++) {
+            for (int i = 0; i < nKnotSpans[0]; i++) {
+                rSurrogateModelPartInner.CreateNewNode(idSurrogateNode, knotVectorU[i], knotVectorV[j], 0.0);
+                idSurrogateNode++;
+            }
+        }
         Properties::Pointer p_cond_prop = rSurrogateModelPartInner.pGetProperties(0);
-        Node snakeNode(1 , knotVectorU[start_i], knotVectorV[start_j], 0.0);
         
-        const int id_first_node = rSurrogateModelPartInner.GetRootModelPart().Nodes().size() + 1;
-        rSurrogateModelPartInner.CreateNewNode(id_first_node, snakeNode);
-        IndexType idSnakeNode = id_first_node+1;
-
-        // Follow the clockwise loop
-        bool end = false;
-        // We are going horizontally
-        int direction = 0;
-        // 0 = up_vertical, 1 = right_orizontal, 2 = down_vertical, 3 = left_orizontal
-        int i = start_i; int j = start_j;
-        int I = start_i; int J = start_j;
-        int steps = 0;
-
-        const int max_number_of_steps = 1e5;
-        while (!end && steps < max_number_of_steps) {
-            steps ++ ;
-            int is_special_case = 1; // Variable to check if we are in a super special case and we shouldn't go out of the while loop
-            // Try to go left w.r.t. the current direction
-            if (direction == 0) {I-- ; }
-            if (direction == 1) {J++; }
-            if (direction == 2) {I++ ; }
-            if (direction == 3) {J-- ; }
-            if (knotSpansAvailable[idMatrix][J][I] == 1) {
-                direction = direction - 1;
-                if (direction == -1) {direction = 3;}
-            }
-            else {
-                // Need to try to go straight or right w.r.t. the current direction; reset and move
-                if (direction == 0) {I++ ; J++ ;}
-                if (direction == 1) {J-- ; I++ ;}
-                if (direction == 2) {I-- ; J-- ;}
-                if (direction == 3) {J++ ; I-- ;}
-                if (knotSpansAvailable[idMatrix][J][I] == 1) {
-                    // going straight
-                    if (direction == 0) {j++ ; }
-                    if (direction == 1) {i++ ; }
-                    if (direction == 2) {j-- ; }
-                    if (direction == 3) {i-- ; }
-
-                    Node snakeNode(idSnakeNode , knotVectorU[i], knotVectorV[j], 0.0);
-                    rSurrogateModelPartInner.CreateNewNode(idSnakeNode, snakeNode);
-                    Condition::Pointer pcond1 = rSurrogateModelPartInner.CreateNewCondition("LineCondition2D2N", idSnakeNode-1, {{idSnakeNode-1, idSnakeNode}}, p_cond_prop );
-                    idSnakeNode++;
-                }
-                else {
-                    // Need to search to hte right; reset and move
-                    if (direction == 0) {J-- ; I++ ;}
-                    if (direction == 1) {I-- ; J-- ;}
-                    if (direction == 2) {J++ ; I-- ;}
-                    if (direction == 3) {I++ ; J++ ;}
-                    if (knotSpansAvailable[idMatrix][J][I] == 1) {
-                        // We are moving to the right -> First move straight, store, the move to the right (i,j), store again
-                        if (direction == 0) {j++ ; }
-                        if (direction == 1) {i++ ; }
-                        if (direction == 2) {j-- ; }
-                        if (direction == 3) {i-- ; }
-                        Node snakeNode1(idSnakeNode , knotVectorU[i], knotVectorV[j], 0.0);
-                        rSurrogateModelPartInner.CreateNewNode(idSnakeNode, snakeNode1);
-                        Condition::Pointer pcond1 = rSurrogateModelPartInner.CreateNewCondition("LineCondition2D2N", idSnakeNode-1, {{idSnakeNode-1, idSnakeNode}}, p_cond_prop );
-                        idSnakeNode++;
-                        if (direction == 0) {i++ ; }
-                        if (direction == 1) {j-- ; }
-                        if (direction == 2) {i-- ; }
-                        if (direction == 3) {j++ ; }
-                        Node snakeNode2(idSnakeNode , knotVectorU[i], knotVectorV[j], 0.0);
-                        rSurrogateModelPartInner.CreateNewNode(idSnakeNode, snakeNode2);
-                        Condition::Pointer pcond2 = rSurrogateModelPartInner.CreateNewCondition("LineCondition2D2N", idSnakeNode-1, {{idSnakeNode-1, idSnakeNode}}, p_cond_prop );
-                        idSnakeNode++;
-                        direction = direction + 1;
-                        if (direction == 4) {direction = 0;}
+        // Direction parallel to x
+        bool knotSpansIsActive = true;
+        IndexType idSurrogateCondition = rSurrogateModelPartInner.GetRootModelPart().NumberOfConditions() + 1;
+        for (int j = 0; j < nKnotSpans[1]; j++) {
+            bool checkNextPoint = false;
+            /*  
+                Formula to connect i,j to the id of the model_part
+                id = idSurrogateFirstNode + [i + j*(n_knot_spans_uv[0]) + 1];
+            */
+            // move in the x direction
+            for (int i = 0; i < nKnotSpans[0]; i++) {
+                if (checkNextPoint) {
+                    // Check i+1 point using isPointInsideSkinBoundary3D
+                    Point centerPoint = Point((i + 0.5)*knot_step_u, (j + 0.5)*knot_step_v, 0.0);
+                    bool isExiting = false;
+                    if ( knotSpansAvailable[idMatrix][j][i] == 1 ) {
+                        // the knot span was already been checked very well
                     }
-                    else { // Special case of "isolated" knot span to be circumnavigated
-                        is_special_case = 0;
-                        // reset and move (I,J) backward
-                        if (direction == 0) {I-- ; J-- ;} 
-                        if (direction == 1) {J++ ; I-- ;}
-                        if (direction == 2) {I++ ; J++ ;}
-                        if (direction == 3) {J-- ; I++ ;}
-                        // Check
-                        if (knotSpansAvailable[idMatrix][J][I] == 1) {
-                            // First straight, store, then move to the right, store again, then move to the right and store again
-                            if (direction == 0) {j++ ; }
-                            if (direction == 1) {i++ ; }
-                            if (direction == 2) {j-- ; }
-                            if (direction == 3) {i-- ; }
-
-                            Node snakeNode(idSnakeNode , knotVectorU[i], knotVectorV[j], 0.0);
-                            rSurrogateModelPartInner.CreateNewNode(idSnakeNode, snakeNode);
-                            Condition::Pointer pcond1 = rSurrogateModelPartInner.CreateNewCondition("LineCondition2D2N", idSnakeNode-1, {{idSnakeNode-1, idSnakeNode}}, p_cond_prop );
-                            idSnakeNode++;
-
-                            if (direction == 0) {i++ ; }
-                            if (direction == 1) {j-- ; }
-                            if (direction == 2) {i-- ; }
-                            if (direction == 3) {j++ ; }
-
-                            Node snakeNode2(idSnakeNode , knotVectorU[i], knotVectorV[j], 0.0);
-                            rSurrogateModelPartInner.CreateNewNode(idSnakeNode, snakeNode2);
-                            Condition::Pointer pcond2 = rSurrogateModelPartInner.CreateNewCondition("LineCondition2D2N", idSnakeNode-1, {{idSnakeNode-1, idSnakeNode}}, p_cond_prop );
-                            idSnakeNode++;
-
-                            if (direction == 0) {j-- ; }
-                            if (direction == 1) {i-- ; }
-                            if (direction == 2) {j++ ; }
-                            if (direction == 3) {i++ ; }
-
-                            Node snakeNode3(idSnakeNode , knotVectorU[i], knotVectorV[j], 0.0);
-                            rSurrogateModelPartInner.CreateNewNode(idSnakeNode, snakeNode3);
-                            Condition::Pointer pcond3 = rSurrogateModelPartInner.CreateNewCondition("LineCondition2D2N", idSnakeNode-1, {{idSnakeNode-1, idSnakeNode}}, p_cond_prop );
-                            idSnakeNode++;
-
-                            // Finally rotate the direction of 180 degrees
-                            direction = direction + 2;
-                            if (direction == 4) {direction = 0;}
-                            if (direction == 5) {direction = 1;}
+                    else if (IsPointInsideSkinBoundary(centerPoint, testBinInner, rSkinModelPartInner)) {
+                        // STILL INSIDE --> do not save nothing and update knotSpansAvailable 
+                        if ( knotSpansAvailable[idMatrix][j][i] == -1) {
+                            isExiting = true;
                         }
-                        else
-                            KRATOS_ERROR << "SnakeSbmUtilities:: " <<  "error in the Snakes Coordinates" << std::endl;
+                        else {
+                            knotSpansAvailable[idMatrix][j][i] = 1;
+                        }
                     }
+                    else {
+                        isExiting = true;
+                    }
+                    if (isExiting) {
+                        /* EXITING --> save last segment in direction x. i-th is the knot value. */
+                        int node1_i = i; int node1_j = j;   
+                        int node2_i = i; int node2_j = j+1; 
+
+                        IndexType id_node_1 = idSurrogateFirstNode + node1_i + node1_j*nKnotSpans[0];
+                        IndexType id_node_2 = idSurrogateFirstNode + node2_i + node2_j*nKnotSpans[0];
+                            
+                        Condition::Pointer pcond = rSurrogateModelPartInner.CreateNewCondition("LineCondition2D2N", idSurrogateCondition, {{id_node_1, id_node_2}}, p_cond_prop );
+
+                        // BOUNDARY true means that the condition (i.e. the sbm face) is entering looking from x,y,z positive
+                        pcond->Set(BOUNDARY, false);
+
+                        // surrogate_model_part_inner.AddCondition(pcond);
+                        idSurrogateCondition++;
+                        checkNextPoint = false;
+                    }
+                    
                 }
-            }
-            // Check if we have close the snake
-            if (I == start_i && J == start_j && is_special_case == 1 ) {
-                // End of the while loop
-                end = true;
-                KRATOS_INFO("number of steps in the snake step") << steps << std::endl;
+                else if (knotSpansAvailable[idMatrix][j][i] == 1) {
+                    // ENTERING --> save first face in direction
+                    int node1_i = i; int node1_j = j;   
+                    int node2_i = i; int node2_j = j+1; 
+
+                    IndexType id_node_1 = idSurrogateFirstNode + node1_i + node1_j*nKnotSpans[0]; 
+                    IndexType id_node_2 = idSurrogateFirstNode + node2_i + node2_j*nKnotSpans[0];
+                        
+                    Condition::Pointer pcond = rSurrogateModelPartInner.CreateNewCondition("LineCondition2D2N", idSurrogateCondition, {{id_node_1, id_node_2}}, p_cond_prop );
+                    idSurrogateCondition++;
+                    checkNextPoint = true;
+
+                    // BOUNDARY true means that the condition (i.e. the sbm face) is entering looking from x,y,z positive
+                    pcond->Set(BOUNDARY, true);
+                }
             }
         }
-        KRATOS_ERROR_IF(steps >= max_number_of_steps-1) << "SnakeSbmUtilities:: " <<  "reached maximum number of steps" << std::endl;
+        
+        // Do the same for y direction, without isPointInsideSkinBoundary, since we have already done it
+        // And it is not necessary do it again
+        for (int i = 0; i < nKnotSpans[0]; i++) {
+            
+            bool checkNextPoint = false;
+            /*  
+                Formula to connect i,j,k to the id of the model_part
+                id = idSurrogateFirstNode + [i + j*(n_knot_spans_uv[0]) + 1];
+            */
+            // move in the y direction
+            for (int j = 0; j < nKnotSpans[1]; j++) {
+                if (checkNextPoint) {
+                    if (knotSpansAvailable[idMatrix][j][i] != 1) {
+                        /* EXITING --> save last face in direction x. i-th is the knot value. */
+                        int node1_i = i;   int node1_j = j;
+                        int node2_i = i+1; int node2_j = j;
+
+                        IndexType id_node_1 = idSurrogateFirstNode + node1_i + node1_j*nKnotSpans[0];
+                        IndexType id_node_2 = idSurrogateFirstNode + node2_i + node2_j*nKnotSpans[0];
+                            
+                        Condition::Pointer pcond = rSurrogateModelPartInner.CreateNewCondition("LineCondition2D2N", idSurrogateCondition, {{id_node_1, id_node_2}}, p_cond_prop );
+                        // BOUNDARY true means that the condition (i.e. the sbm face) is entering looking from x,y,z positive
+                        pcond->Set(BOUNDARY, false);
+
+                        // surrogate_model_part_inner.AddCondition(p_cond);
+                        idSurrogateCondition++;
+                        checkNextPoint = false;
+                    } 
+                }
+                else if (knotSpansAvailable[idMatrix][j][i] == 1) {
+                    // ENTERING --> save first face in direction
+                    int node1_i = i;   int node1_j = j;
+                    int node2_i = i+1; int node2_j = j;
+
+                    IndexType id_node_1 = idSurrogateFirstNode + node1_i + node1_j*(nKnotSpans[0]);
+                    IndexType id_node_2 = idSurrogateFirstNode + node2_i + node2_j*(nKnotSpans[0]);
+                    Condition::Pointer pcond = rSurrogateModelPartInner.CreateNewCondition("LineCondition2D2N", idSurrogateCondition, {{id_node_1, id_node_2}}, p_cond_prop );
+                    // surrogate_model_part_inner.AddCondition(p_cond);
+                    idSurrogateCondition++;
+                    checkNextPoint = true;
+
+                    // BOUNDARY true means that the condition (i.e. the sbm face) is entering looking from x,y,z positive
+                    pcond->Set(BOUNDARY, true);
+
+                }
+            }
+        }
 
         // Create "fictituos element" to memorize starting and ending node id for each surrogate boundary loop
-        IndexType initialId = id_first_node;
-        if (rSurrogateModelPartInner.Elements().size()>0) {
-            // Check if it is not the first inner loop
-            initialId = rSurrogateModelPartInner.GetElement(rSurrogateModelPartInner.GetRootModelPart().Elements().size()).GetGeometry()[1].Id()+1;
-        }
-        std::vector<ModelPart::IndexType> elem_nodes{initialId, idSnakeNode-1};
-        rSurrogateModelPartInner.CreateNewElement("Element2D2N", rSurrogateModelPartInner.GetRootModelPart().Elements().size()+1, elem_nodes, p_cond_prop);
-        }
+        IndexType elem_id = rSurrogateModelPartInner.NumberOfElements()+1;
+        std::vector<ModelPart::IndexType> elem_nodes{elem_id, idSurrogateCondition};
+        rSurrogateModelPartInner.CreateNewElement("Element2D2N", rSurrogateModelPartInner.Elements().size()+1, elem_nodes, p_cond_prop);
+    }
 
 
-    void SnakeSbmUtilities::CreateSurrogateBuondaryFromSnakeOuter (DynamicBins& testBinOuter, ModelPart& rInitialSkinModelPartOuter, 
-                            std::vector<std::vector<std::vector<int>>> & knotSpansAvailable, int idMatrix, 
-                            ModelPart& rSurrogateModelPartOuter, std::vector<int>& nKnotSpans, 
-                            Vector& knotVectorU, Vector&  knotVectorV,
-                            const Vector& startingPos){
-                                             
+
+    void SnakeSbmUtilities::CreateSurrogateBuondaryFromSnakeOuter(std::vector<std::vector<std::vector<int>>> & knotSpansAvailable,
+                                int idMatrix, ModelPart& rSurrogateModelPartOuter, ModelPart& rSkinModelPartOuter,
+                                DynamicBins& testBinOuter, std::vector<int>& nKnotSpans, 
+                                Vector& knotVectorU, Vector& knotVectorV, const Vector& startingPositionUV)
+    {
+
+        KRATOS_INFO("::[SnakeSbmUtilities]::") << "Outer :: Check layers in 2D" << std::endl;
+
         // CHECK ALL THE EXTERNAL KNOT SPANS
 
         // LEFT BOUNDARY
@@ -636,8 +627,8 @@ namespace Kratos
 
         for (int i = 0; i<2; i++) {
             for (int j = 0; j < (nKnotSpans[0]); j++ ) {
-                Point centroidKnotSpan = Point((j+0.5)*knot_step_u+startingPos[0], (i+0.5)*knot_step_v+startingPos[1], 0);
-                if (IsPointInsideSkinBoundary(centroidKnotSpan, testBinOuter, rInitialSkinModelPartOuter) && knotSpansAvailable[idMatrix][i][j] != -1) {
+                Point centroidKnotSpan = Point((j+0.5)*knot_step_u+startingPositionUV[0], (i+0.5)*knot_step_v+startingPositionUV[1], 0);
+                if (IsPointInsideSkinBoundary(centroidKnotSpan, testBinOuter, rSkinModelPartOuter) && knotSpansAvailable[idMatrix][i][j] != -1) {
                     knotSpansAvailable[idMatrix][i][j] = 1;
                     }
             }
@@ -645,8 +636,8 @@ namespace Kratos
         // TOP BOUNDARY
         for (int j = int (knotSpansAvailable[idMatrix][0].size()-1); j > int (knotSpansAvailable[idMatrix][0].size()-3); j--) {
             for (int i = 0; i < (nKnotSpans[1]); i++) {
-                Point centroidKnotSpan = Point((j+0.5)*knot_step_u+startingPos[0], (i+0.5)*knot_step_v+startingPos[1], 0);
-                if (IsPointInsideSkinBoundary(centroidKnotSpan, testBinOuter, rInitialSkinModelPartOuter) && knotSpansAvailable[idMatrix][i][j] != -1) {
+                Point centroidKnotSpan = Point((j+0.5)*knot_step_u+startingPositionUV[0], (i+0.5)*knot_step_v+startingPositionUV[1], 0);
+                if (IsPointInsideSkinBoundary(centroidKnotSpan, testBinOuter, rSkinModelPartOuter) && knotSpansAvailable[idMatrix][i][j] != -1) {
                     knotSpansAvailable[idMatrix][i][j] = 1;
                     }
             }
@@ -654,8 +645,8 @@ namespace Kratos
         // RIGHT BOUNDARY
         for (int i = int (knotSpansAvailable[idMatrix].size()-1); i > int (knotSpansAvailable[idMatrix].size()-3); i--) {
             for (int j = nKnotSpans[0]-1; j > -1; j-- ) {
-                Point centroidKnotSpan = Point((j+0.5)*knot_step_u+startingPos[0], (i+0.5)*knot_step_v+startingPos[1], 0);
-                if (IsPointInsideSkinBoundary(centroidKnotSpan, testBinOuter, rInitialSkinModelPartOuter) && knotSpansAvailable[idMatrix][i][j] != -1) {
+                Point centroidKnotSpan = Point((j+0.5)*knot_step_u+startingPositionUV[0], (i+0.5)*knot_step_v+startingPositionUV[1], 0);
+                if (IsPointInsideSkinBoundary(centroidKnotSpan, testBinOuter, rSkinModelPartOuter) && knotSpansAvailable[idMatrix][i][j] != -1) {
                     knotSpansAvailable[idMatrix][i][j] = 1;
                     }
             }
@@ -663,177 +654,176 @@ namespace Kratos
         // BOTTOM BOUNDARY
         for (int j = 0; j<2; j++) {
             for (int i = nKnotSpans[1]-1; i > -1 ; i--) {
-                Point centroidKnotSpan = Point((j+0.5)*knot_step_u+startingPos[0], (i+0.5)*knot_step_v+startingPos[1], 0);
-                if (IsPointInsideSkinBoundary(centroidKnotSpan, testBinOuter, rInitialSkinModelPartOuter) && knotSpansAvailable[idMatrix][i][j] != -1) {
+                Point centroidKnotSpan = Point((j+0.5)*knot_step_u+startingPositionUV[0], (i+0.5)*knot_step_v+startingPositionUV[1], 0);
+                if (IsPointInsideSkinBoundary(centroidKnotSpan, testBinOuter, rSkinModelPartOuter) && knotSpansAvailable[idMatrix][i][j] != -1) {
                     knotSpansAvailable[idMatrix][i][j] = 1;
                     }
             }
         }
 
-        // Find the start of the Snake
-        int start_i = 0;
-        int start_j = 0;
-        for (int i = 0; i < (nKnotSpans[0]); i++) {
-            for (int j = 0; j < (nKnotSpans[1]); j++ ) {
-                if (knotSpansAvailable[idMatrix][j][i] == 1 ) {
-                    // Check if one of the neighouring knot span is also == 1,
-                    // otherwise the knot span is isolated I cannot be taken.
-                    if ((knotSpansAvailable[idMatrix][j+1][i] == 1) || (knotSpansAvailable[idMatrix][j][i+1] == 1))
-                    {
-                        start_i = i;
-                        start_j = j;
-                        break;
-                    }     
-                }
+        KRATOS_INFO("::[SnakeSbmUtilities]::") << "Outer :: Starting Creation of Surrogate_Model_Part_Outer" << std::endl;
+        
+        // Snake 2D works with a raycasting technique from each of the two directions
+        IndexType idSurrogateFirstNode = rSurrogateModelPartOuter.GetRootModelPart().NumberOfNodes() + 1;
+        IndexType idSurrogateNode = idSurrogateFirstNode;
+        for (int j = 0; j < nKnotSpans[1]+1; j++) {
+            for (int i = 0; i < nKnotSpans[0]+1; i++) {
+                rSurrogateModelPartOuter.CreateNewNode(idSurrogateNode, knotVectorU[i], knotVectorV[j], 0.0);
+                idSurrogateNode++;
             }
-            if (knotSpansAvailable[idMatrix][start_j][start_i] == 1 ) { break; }
         }
         
-        // EXTEND THE MATRIX
-        //-------------------
-        std::vector<std::vector<int>> knot_spans_available_extended(nKnotSpans[1]+2, std::vector<int>(nKnotSpans[0]+2));
-
-        for (IndexType i = 0; i < knotSpansAvailable[idMatrix].size(); i++){
-            for (IndexType j = 0; j < knotSpansAvailable[idMatrix][0].size(); j++) {
-                knot_spans_available_extended[i+1][j+1] = knotSpansAvailable[idMatrix][i][j]; 
-            }
-        }  
+        // Direction parallel to x
+        bool knotSpansIsActive = true;
         
-        Properties::Pointer p_cond_prop = rSurrogateModelPartOuter.CreateNewProperties(1001);
-        Node snakeNode(1 , knotVectorU[start_i], knotVectorV[start_j], 0.0);
-
-        const int id_first_node = rSurrogateModelPartOuter.GetRootModelPart().Nodes().size() + 1;
+        IndexType idSurrogateCondition = rSurrogateModelPartOuter.GetRootModelPart().NumberOfConditions() + 1;
+        Properties::Pointer p_cond_prop = rSurrogateModelPartOuter.pGetProperties(0);
         
-        rSurrogateModelPartOuter.CreateNewNode(id_first_node, snakeNode);
-        IndexType idSnakeNode = id_first_node+1;
-        
-        // Follow the clockwise loop
-        bool end = false;
-        // We are going orizontally
-        int direction = 0 ;      // 0 = up_vertical, 1 = right_orizontal, 2 = down_vertical, 3 = left_orizontal
-        int I = start_i+1;
-        int J = start_j+1; 
-        int i = start_i;
-        int j = start_j;
-        int steps = 0;
-        const int max_number_of_steps = 1e5;
-        while (!end && steps < max_number_of_steps) {
-            steps ++ ;
-            int is_special_case = 1; // Variable to check if we are in a super special case and we shouldn't go out of the while loop
-            // Try to go left w.r.t. the current direction
-            if (direction == 0) {I-- ; }
-            if (direction == 1) {J++; }
-            if (direction == 2) {I++ ; }
-            if (direction == 3) {J-- ; }
-            if (knot_spans_available_extended[J][I] == 1) {
-                direction = direction - 1;
-                if (direction == -1) {direction = 3;}
-            }
-            else {
-                // Need to try to go straight or right w.r.t. the current direction; reset and move
-                if (direction == 0) {I++ ; J++ ;}
-                if (direction == 1) {J-- ; I++ ;}
-                if (direction == 2) {I-- ; J-- ;}
-                if (direction == 3) {J++ ; I-- ;}
+        for (int j = 0; j < nKnotSpans[1]; j++) {
+            
+            bool checkNextPoint = false;
+            /*  
+                Formula to connect i,j,k to the id of the model_part
+                id = idSurrogateFirstNode + [i + j*(n_knot_spans_uv[0]) + 1];
+            */
+            // move in the x direction
+            for (int i = 0; i < nKnotSpans[0]; i++) {
 
-                if (knot_spans_available_extended[J][I] == 1) {
+                int node1_i; int node1_j;   
+                int node2_i; int node2_j; 
 
-                    // Going straight! -> Don't store and move (i,j)
-                    if (direction == 0) {j++ ; }
-                    if (direction == 1) {i++ ; }
-                    if (direction == 2) {j-- ; }
-                    if (direction == 3) {i-- ; }
-
-                    Node snakeNode(idSnakeNode , knotVectorU[i], knotVectorV[j], 0.0);
-                    rSurrogateModelPartOuter.CreateNewNode(idSnakeNode, snakeNode);
-                    Condition::Pointer pcond1 = rSurrogateModelPartOuter.CreateNewCondition("LineCondition2D2N", idSnakeNode-1, {{idSnakeNode-1, idSnakeNode}}, p_cond_prop );
-                    idSnakeNode++;
-                }
-                else {
-                    // Need to search to the right; Reset and move
-                    if (direction == 0) {J-- ; I++ ;}
-                    if (direction == 1) {I-- ; J-- ;}
-                    if (direction == 2) {J++ ; I-- ;}
-                    if (direction == 3) {I++ ; J++ ;}
-
-                    if (knot_spans_available_extended[J][I] == 1) {
-
-                        // Going to the right! -> first go forward, store, more right (i,j), store again
-                        if (direction == 0) {j++ ; }
-                        if (direction == 1) {i++ ; }
-                        if (direction == 2) {j-- ; }
-                        if (direction == 3) {i-- ; }
-                        Node snakeNode1(idSnakeNode , knotVectorU[i], knotVectorV[j], 0.0);
-                        rSurrogateModelPartOuter.CreateNewNode(idSnakeNode, snakeNode1);
-                        Condition::Pointer pcond1 = rSurrogateModelPartOuter.CreateNewCondition("LineCondition2D2N", idSnakeNode-1, {{idSnakeNode-1, idSnakeNode}}, p_cond_prop );
-                        idSnakeNode++;
-                        if (direction == 0) {i++ ; }
-                        if (direction == 1) {j-- ; }
-                        if (direction == 2) {i-- ; }
-                        if (direction == 3) {j++ ; }
-                        Node snakeNode2(idSnakeNode , knotVectorU[i], knotVectorV[j], 0.0);
-                        rSurrogateModelPartOuter.CreateNewNode(idSnakeNode, snakeNode2);
-                        Condition::Pointer pcond2 = rSurrogateModelPartOuter.CreateNewCondition("LineCondition2D2N", idSnakeNode-1, {{idSnakeNode-1, idSnakeNode}}, p_cond_prop );
-                        idSnakeNode++;
-                        direction = direction + 1;
-                        if (direction == 4) {direction = 0;}
+                if (checkNextPoint) {
+                    // Check i+1 point using isPointInsideSkinBoundary
+                    Point centerPoint = Point((i + 0.5)*knot_step_u, (j + 0.5)*knot_step_v, 0.0);
+                    bool isExiting = false;
+                    node1_i = i; node1_j = j;   
+                    node2_i = i; node2_j = j+1; 
+                    if ( knotSpansAvailable[idMatrix][j][i] == 1 ) {
+                        // the knot span has already been checked very well
                     }
-                    else { // Special case of "isolated" knot span to be circumnavigated
-                        is_special_case = 0;
-                        // Reset and move (I,J) "backward"
-                        if (direction == 0) {I-- ; J-- ;} 
-                        if (direction == 1) {J++ ; I-- ;}
-                        if (direction == 2) {I++ ; J++ ;}
-                        if (direction == 3) {J-- ; I++ ;}
-                        // Check
-                        if (knot_spans_available_extended[J][I] == 1) {
-                            // First go forward, store, then move to right, then store again, then move to the right and store again
-                            if (direction == 0) {j++ ; }
-                            if (direction == 1) {i++ ; }
-                            if (direction == 2) {j-- ; }
-                            if (direction == 3) {i-- ; }
-                            Node snakeNode(idSnakeNode , knotVectorU[i], knotVectorV[j], 0.0);
-                            rSurrogateModelPartOuter.CreateNewNode(idSnakeNode, snakeNode);
-                            Condition::Pointer pcond1 = rSurrogateModelPartOuter.CreateNewCondition("LineCondition2D2N", idSnakeNode-1, {{idSnakeNode-1, idSnakeNode}}, p_cond_prop );
-                            idSnakeNode++;
-                            if (direction == 0) {i++ ; }
-                            if (direction == 1) {j-- ; }
-                            if (direction == 2) {i-- ; }
-                            if (direction == 3) {j++ ; }
-                            Node snakeNode2(idSnakeNode , knotVectorU[i], knotVectorV[j], 0.0);
-                            rSurrogateModelPartOuter.CreateNewNode(idSnakeNode, snakeNode2);
-                            Condition::Pointer pcond2 = rSurrogateModelPartOuter.CreateNewCondition("LineCondition2D2N", idSnakeNode-1, {{idSnakeNode-1, idSnakeNode}}, p_cond_prop );
-                            idSnakeNode++;
-                            if (direction == 0) {j-- ; }
-                            if (direction == 1) {i-- ; }
-                            if (direction == 2) {j++ ; }
-                            if (direction == 3) {i++ ; }
-                            Node snakeNode3(idSnakeNode , knotVectorU[i], knotVectorV[j], 0.0);
-                            rSurrogateModelPartOuter.CreateNewNode(idSnakeNode, snakeNode3);
-                            Condition::Pointer pcond3 = rSurrogateModelPartOuter.CreateNewCondition("LineCondition2D2N", idSnakeNode-1, {{idSnakeNode-1, idSnakeNode}}, p_cond_prop );
-                            idSnakeNode++;
-                            // Finally rotate the direction of 180 degrees
-                            direction = direction + 2;
-                            if (direction == 4) {direction = 0;}
-                            if (direction == 5) {direction = 1;}
+                    else if (IsPointInsideSkinBoundary(centerPoint, testBinOuter, rSkinModelPartOuter)) {
+                        // STILL INSIDE --> do not save nothing and update knot_spans_available 
+                        if ( knotSpansAvailable[idMatrix][j][i] == -1) {
+                            isExiting = true;
                         }
-                        else
-                            KRATOS_ERROR << "SnakeSbmUtilities:: " <<  "error in the Snakes Coordinates" << std::endl;
+                        else {
+                            knotSpansAvailable[idMatrix][j][i] = 1;
+                        }
                     }
+                    else {
+                        isExiting = true;
+                    }
+                    if (isExiting) {
+                        /* EXITING --> save last face in direction x. i-th is the knot value. */
+
+                        IndexType id_node_1 = idSurrogateFirstNode + node1_i + node1_j*(nKnotSpans[0]+1);
+                        IndexType id_node_2 = idSurrogateFirstNode + node2_i + node2_j*(nKnotSpans[0]+1);
+                            
+                        Condition::Pointer pcond = rSurrogateModelPartOuter.CreateNewCondition("LineCondition2D2N", idSurrogateCondition, {{id_node_1, id_node_2}}, p_cond_prop );
+
+                        // BOUNDARY true means that the condition (i.e. the sbm face) is entering looking from x,y,z positive
+                        pcond->Set(BOUNDARY, false);
+
+                        idSurrogateCondition++;
+                        checkNextPoint = false;    
+                    }
+                    
+                }
+                else if (knotSpansAvailable[idMatrix][j][i] == 1) {
+                    // ENTERING --> save first face in direction
+                    int node1_i = i; int node1_j = j;   
+                    int node2_i = i; int node2_j = j+1; 
+
+                    IndexType id_node_1 = idSurrogateFirstNode + node1_i + node1_j*(nKnotSpans[0]+1);
+                    IndexType id_node_2 = idSurrogateFirstNode + node2_i + node2_j*(nKnotSpans[0]+1);
+                        
+                    Condition::Pointer pcond = rSurrogateModelPartOuter.CreateNewCondition("LineCondition2D2N", idSurrogateCondition, {{id_node_1, id_node_2}}, p_cond_prop );
+                    idSurrogateCondition++;
+                    checkNextPoint = true;
+
+                    // BOUNDARY true means that the condition (i.e. the sbm face) is entering looking from x,y,z positive
+                    pcond->Set(BOUNDARY, true);
+                }
+
+                if (knotSpansAvailable[idMatrix][j][i] == 1 && i == nKnotSpans[0]-1) 
+                {
+                    // Check if we are at the end of the patch -> if yes close the surrogate boundary
+                    int node1_i = i+1; int node1_j = j;   
+                    int node2_i = i+1; int node2_j = j+1; 
+
+                    IndexType id_node_1 = idSurrogateFirstNode + node1_i + node1_j*(nKnotSpans[0]+1);
+                    IndexType id_node_2 = idSurrogateFirstNode + node2_i + node2_j*(nKnotSpans[0]+1);
+                        
+                    Condition::Pointer pcond = rSurrogateModelPartOuter.CreateNewCondition("LineCondition2D2N", idSurrogateCondition, {{id_node_1, id_node_2}}, p_cond_prop );
+                    // BOUNDARY true means that the condition (i.e. the sbm face) is entering looking from x,y,z positive
+                    pcond->Set(BOUNDARY, false);
+                    idSurrogateCondition++;
+                    checkNextPoint = false;
                 }
             }
-            // Check if we have close the snake
-            if (I == start_i+1 && J == start_j+1 && is_special_case == 1 ) {
-                // End of the while loop
-                end = true;
-                }
         }
-        // Create "fictituos element" to memorize starting and ending node id for each surrogate boundary loop
-        std::vector<ModelPart::IndexType> elem_nodes{1, idSnakeNode-1};
-        const ModelPart& r_root = rSurrogateModelPartOuter.GetRootModelPart();
-        IndexType elem_id = r_root.Elements().empty()
-                            ? 1
-                            : r_root.Elements().back().Id() + 1;
-        rSurrogateModelPartOuter.CreateNewElement("Element2D2N", elem_id, elem_nodes, p_cond_prop);
+
+        // Do the same for y, without isPointInsideSkinBoundary, since we have already done it
+        // And it is not necessary do it again
+        for (int i = 0; i < nKnotSpans[0]; i++) {
+            
+            bool checkNextPoint = false;
+            /*  
+                Formula to connect i,j,k to the id of the model_part
+                i + j*(nKnotSpansUV[0]) + k*(nKnotSpansUV[1])*(nKnotSpansUV[0]);
+            */
+            // move in the y direction
+            for (int j = 0; j < nKnotSpans[1]; j++) {
+                if (checkNextPoint) {
+                    int node1_i; int node1_j;
+                    int node2_i; int node2_j;
+                    if (knotSpansAvailable[idMatrix][j][i] != 1) {
+                        /* EXITING --> save last face in direction x. i-th is the knot value. */
+                        node1_i = i;   node1_j = j;
+                        node2_i = i+1; node2_j = j;
+
+                        IndexType id_node_1 = idSurrogateFirstNode + node1_i + node1_j*(nKnotSpans[0]+1);
+                        IndexType id_node_2 = idSurrogateFirstNode + node2_i + node2_j*(nKnotSpans[0]+1);
+                            
+                        Condition::Pointer pcond = rSurrogateModelPartOuter.CreateNewCondition("LineCondition2D2N", idSurrogateCondition, {{id_node_1, id_node_2}}, p_cond_prop );
+                        // BOUNDARY true means that the condition (i.e. the sbm face) is entering looking from x,y,z positive
+                        pcond->Set(BOUNDARY, false);
+                        idSurrogateCondition++;
+                        checkNextPoint = false;
+                    } 
+                }
+                else if (knotSpansAvailable[idMatrix][j][i] == 1) {
+                    // ENTERING --> save first face in direction
+                    int node1_i = i;   int node1_j = j;
+                    int node2_i = i+1; int node2_j = j;
+
+                    IndexType id_node_1 = idSurrogateFirstNode + node1_i + node1_j*(nKnotSpans[0]+1);
+                    IndexType id_node_2 = idSurrogateFirstNode + node2_i + node2_j*(nKnotSpans[0]+1);
+                    Condition::Pointer pcond = rSurrogateModelPartOuter.CreateNewCondition("LineCondition2D2N", idSurrogateCondition, {{id_node_1, id_node_2}}, p_cond_prop );
+                    idSurrogateCondition++;
+                    checkNextPoint = true;
+
+                    // BOUNDARY true means that the condition (i.e. the sbm face) is entering looking from x,y,z positive
+                    pcond->Set(BOUNDARY, true);
+                }
+
+                if (knotSpansAvailable[idMatrix][j][i] == 1 && j == nKnotSpans[1]-1) 
+                {
+                    // Check if we are at the end of the patch -> if yes close the surrogate boundary
+                    int node1_i = i;   int node1_j = j+1;   
+                    int node2_i = i+1; int node2_j = j+1; 
+
+                    IndexType id_node_1 = idSurrogateFirstNode + node1_i + node1_j*(nKnotSpans[0]+1);
+                    IndexType id_node_2 = idSurrogateFirstNode + node2_i + node2_j*(nKnotSpans[0]+1);
+                        
+                    Condition::Pointer pcond = rSurrogateModelPartOuter.CreateNewCondition("LineCondition2D2N", idSurrogateCondition, {{id_node_1, id_node_2}}, p_cond_prop );
+                    // BOUNDARY true means that the condition (i.e. the sbm face) is entering looking from x,y,z positive
+                    pcond->Set(BOUNDARY, false);
+                    idSurrogateCondition++;
+                    checkNextPoint = false;
+                }
+            }
+        }
     }
+
 }  // namespace Kratos.
