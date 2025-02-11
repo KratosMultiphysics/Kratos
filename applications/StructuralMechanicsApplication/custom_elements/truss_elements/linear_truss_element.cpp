@@ -839,8 +839,12 @@ int LinearTrussElement<TDimension, TNNodes>::Check(const ProcessInfo& rCurrentPr
 {
     KRATOS_TRY;
 
-    return mConstitutiveLawVector[0]->Check(GetProperties(), GetGeometry(), rCurrentProcessInfo);
     KRATOS_ERROR_IF_NOT(GetProperties().Has(CROSS_AREA)) << "CROSS_AREA not defined in the properties" << std::endl;
+    if (this->IsActive())
+    {
+        return mConstitutiveLawVector[0]->Check(GetProperties(), GetGeometry(), rCurrentProcessInfo);
+    }
+    return 0;
 
     KRATOS_CATCH("");
 }
