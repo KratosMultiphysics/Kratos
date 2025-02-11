@@ -113,4 +113,39 @@ void Create2DBeamModel_and_CheckPK2Stress(const std::string & TimoshenkoBeamElem
         const std::vector expected_bending_moment {70710.7, 70710.7};
         Create2DBeamModel_and_CheckPK2Stress<3>("LinearTimoshenkoCurvedBeamElement2D3N", expected_shear_stress, expected_bending_moment);
     }
+
+    Element::Pointer CreateInactiveElementOfType(const std::string& rElementType, Model& rModel) {
+        auto& r_model_part = rModel.CreateModelPart("ModelPart",1);
+
+        // Set the element properties
+        auto p_elem_prop = r_model_part.CreateNewProperties(0);
+
+        // Create the test element
+        r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+        r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+        r_model_part.CreateNewNode(3, 2.0, 0.0, 0.0);
+        const std::vector<ModelPart::IndexType> element_nodes{1,2,3};
+
+        auto p_element = r_model_part.CreateNewElement(rElementType, 1, element_nodes, p_elem_prop);
+        p_element->Set(ACTIVE, false);
+
+        return p_element;
+    }
+
+
+    KRATOS_TEST_CASE_IN_SUITE(LinearTimoshenkoBeamElement2D3N_CheckWithoutInitializeDoesNotCrashForInactiveElement,
+        KratosStructuralMechanicsFastSuite)
+    {
+        Model model;
+        const auto p_element = CreateInactiveElementOfType("LinearTimoshenkoBeamElement2D3N", model);
+        KRATOS_EXPECT_EQ(0, p_element->Check(ProcessInfo{}));
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(LinearTimoshenkoCurvedBeamElement2D3N_CheckWithoutInitializeDoesNotCrashForInactiveElement,
+        KratosStructuralMechanicsFastSuite)
+    {
+        Model model;
+        const auto p_element = CreateInactiveElementOfType("LinearTimoshenkoCurvedBeamElement2D3N", model);
+        KRATOS_EXPECT_EQ(0, p_element->Check(ProcessInfo{}));
+    }
 }
