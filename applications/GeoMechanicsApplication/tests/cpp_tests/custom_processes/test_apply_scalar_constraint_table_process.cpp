@@ -20,6 +20,7 @@ namespace
 {
 
 using namespace Kratos;
+using namespace Kratos::Testing;
 
 void AssertNodesHaveCorrectValueAndFixity(double expected_value, bool expected_fixity, const ModelPart& rModelPart)
 {
@@ -27,6 +28,20 @@ void AssertNodesHaveCorrectValueAndFixity(double expected_value, bool expected_f
         KRATOS_EXPECT_EQ(r_node.IsFixed(DISPLACEMENT_X), expected_fixity);
         KRATOS_EXPECT_EQ(r_node.FastGetSolutionStepValue(DISPLACEMENT_X), expected_value);
     }
+}
+
+ModelPart& SetupModelPart(Table<double>::Pointer& rTable, Model& model)
+{
+    const auto nodal_variables = Geo::ConstVariableRefs{std::cref(DISPLACEMENT_X)};
+    auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(model, nodal_variables);
+    r_model_part.GetProcessInfo()[TIME_UNIT_CONVERTER] = 1.0;
+    r_model_part.AddTable(1, rTable);
+
+    for (auto& r_node : r_model_part.Nodes()) {
+        r_node.AddDof(DISPLACEMENT_X);
+    }
+
+    return r_model_part;
 }
 
 } // namespace
@@ -37,22 +52,11 @@ namespace Kratos::Testing
 KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_FreesDoFAfterFinalize_ForDoubleVariable,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    Model      model;
-    const auto nodal_variables = Geo::ConstVariableRefs{
-        std::cref(DISPLACEMENT_X), std::cref(DISPLACEMENT_Y), std::cref(WATER_PRESSURE)};
-    auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(model, nodal_variables);
-    r_model_part.GetProcessInfo()[TIME_UNIT_CONVERTER] = 1.0;
-
-    auto table = std::make_shared<Table<double>>();
-    table->insert(0.0, 0.5);
-    table->insert(1.0, 1.5);
-    table->SetNameOfX("TIME");
-    table->SetNameOfY("DISPLACEMENT_X");
-    r_model_part.AddTable(1, table);
-
-    for (auto& r_node : r_model_part.Nodes()) {
-        r_node.AddDof(DISPLACEMENT_X);
-    }
+    // Arrange
+    Model model;
+    auto  table = std::make_shared<Table<double>>();
+    table->SetNameOfX("TIME"); // Table can be minimal, since we only do Initialize and Finalize
+    auto& r_model_part = SetupModelPart(table, model);
 
     Parameters parameters(R"(
       {
@@ -64,21 +68,59 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_FreesDoFAfterFinaliz
       }  )");
 
     ApplyScalarConstraintTableProcess process(r_model_part, parameters);
-    process.ExecuteInitialize();
 
-    double expected_value  = 0.5; // Initial value, since we haven't initialized a solution step
-    bool   expected_fixity = true;
+    // Act
+    process.ExecuteInitialize();
+    process.ExecuteFinalize();
+
+    // Assert
+    const double expected_value = 0.5; // Same as the initial value, since we have not initialized any solution step
+    const bool expected_fixity = false;
+    AssertNodesHaveCorrectValueAndFixity(expected_value, expected_fixity, r_model_part);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_AppliesCorrectValuesThroughTime_ForDoubleVariable,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Model model;
+    auto  table = std::make_shared<Table<double>>();
+    table->insert(0.0, 0.5);
+    table->insert(1.0, 1.5);
+    table->SetNameOfX("TIME");
+    table->SetNameOfY("DISPLACEMENT_X");
+    auto& r_model_part = SetupModelPart(table, model);
+
+    Parameters parameters(R"(
+      {
+          "model_part_name": "Main",
+          "variable_name":   "DISPLACEMENT_X",
+          "is_fixed":        true,
+          "table":           1,
+          "value":           0.5
+      }  )");
+
+    ApplyScalarConstraintTableProcess process(r_model_part, parameters);
+
+    // Act & Assert
+    process.ExecuteInitialize();
+    double     expected_value  = 0.5; // Initial value, since we haven't initialized a solution step
+    const bool expected_fixity = true;
     AssertNodesHaveCorrectValueAndFixity(expected_value, expected_fixity, r_model_part);
 
     r_model_part.GetProcessInfo()[TIME] = 0.5;
     process.ExecuteInitializeSolutionStep();
-    expected_value  = 1.0;
-    expected_fixity = true;
+    expected_value = 1.0;
     AssertNodesHaveCorrectValueAndFixity(expected_value, expected_fixity, r_model_part);
 
-    process.ExecuteFinalize();
-    expected_value  = 1.0;
-    expected_fixity = false;
+    r_model_part.GetProcessInfo()[TIME] = 0.8;
+    process.ExecuteInitializeSolutionStep();
+    expected_value = 1.3;
+    AssertNodesHaveCorrectValueAndFixity(expected_value, expected_fixity, r_model_part);
+
+    r_model_part.GetProcessInfo()[TIME] = 2.0;
+    process.ExecuteInitializeSolutionStep();
+    expected_value = 2.5; // Extrapolated value
     AssertNodesHaveCorrectValueAndFixity(expected_value, expected_fixity, r_model_part);
 }
 
