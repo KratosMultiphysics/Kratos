@@ -1,5 +1,6 @@
 #include "includes/ublas_interface.h"
 #include "includes/ublas_complex_interface.h"
+#include "spaces/ublas_space.h"
 
 #include "includes/matrix_market_interface.h"
 
@@ -34,7 +35,7 @@ bool ReadMatrixMarketMatrixEntry(FILE *f, int& I, int& J, std::complex<double>& 
     return i == 4;
 }
 
-template <typename CompressedMatrixType> 
+template <typename CompressedMatrixType>
 bool ReadMatrixMarketMatrix(const char *FileName, CompressedMatrixType &M)
 {
     typedef typename CompressedMatrixType::value_type ValueType;
@@ -277,8 +278,8 @@ int WriteMatrixMarketMatrixEntry(FILE *f, int I, int J, const std::complex<doubl
     return fprintf(f, "%d %d %.12e %.12e\n", I, J, std::real(entry), std::imag(entry));
 }
 
-template <typename CompressedMatrixType> 
-bool WriteMatrixMarketMatrix(const char *FileName, CompressedMatrixType &M, bool Symmetric)
+template <typename CompressedMatrixType>
+bool WriteMatrixMarketMatrix(const char *FileName, const CompressedMatrixType &M, bool Symmetric)
 {
     // Open MM file for writing
     FILE *f = fopen(FileName, "w");
@@ -312,14 +313,14 @@ bool WriteMatrixMarketMatrix(const char *FileName, CompressedMatrixType &M, bool
     {
         nnz = 0;
 
-        typename CompressedMatrixType::iterator1 a_iterator = M.begin1();
+        typename CompressedMatrixType::const_iterator1 a_iterator = M.begin1();
 
         for (unsigned int i = 0; i < M.size1(); i++)
         {
     #ifndef BOOST_UBLAS_NO_NESTED_CLASS_RELATION
-            for (typename CompressedMatrixType::iterator2 row_iterator = a_iterator.begin(); row_iterator != a_iterator.end(); ++row_iterator)
+            for (typename CompressedMatrixType::const_iterator2 row_iterator = a_iterator.begin(); row_iterator != a_iterator.end(); ++row_iterator)
     #else
-            for (typename CompressedMatrixType::iterator2 row_iterator = begin(a_iterator, iterator1_tag()); row_iterator != end(a_iterator, iterator1_tag()); ++row_iterator)
+            for (typename CompressedMatrixType::const_iterator2 row_iterator = begin(a_iterator, iterator1_tag()); row_iterator != end(a_iterator, iterator1_tag()); ++row_iterator)
     #endif
             {
                 if (a_iterator.index1() >= row_iterator.index2())
@@ -337,14 +338,14 @@ bool WriteMatrixMarketMatrix(const char *FileName, CompressedMatrixType &M, bool
 
     if (Symmetric)
     {
-        typename CompressedMatrixType::iterator1 a_iterator = M.begin1();
+        typename CompressedMatrixType::const_iterator1 a_iterator = M.begin1();
 
         for (unsigned int i = 0; i < M.size1(); i++)
         {
     #ifndef BOOST_UBLAS_NO_NESTED_CLASS_RELATION
-            for (typename CompressedMatrixType::iterator2 row_iterator = a_iterator.begin(); row_iterator != a_iterator.end(); ++row_iterator)
+            for (typename CompressedMatrixType::const_iterator2 row_iterator = a_iterator.begin(); row_iterator != a_iterator.end(); ++row_iterator)
     #else
-            for (typename CompressedMatrixType::iterator2 row_iterator = begin(a_iterator, iterator1_tag()); row_iterator != end(a_iterator, iterator1_tag()); ++row_iterator)
+            for (typename CompressedMatrixType::const_iterator2 row_iterator = begin(a_iterator, iterator1_tag()); row_iterator != end(a_iterator, iterator1_tag()); ++row_iterator)
     #endif
             {
                 int I = a_iterator.index1(), J = row_iterator.index2();
@@ -363,14 +364,14 @@ bool WriteMatrixMarketMatrix(const char *FileName, CompressedMatrixType &M, bool
     }
     else
     {
-        typename CompressedMatrixType::iterator1 a_iterator = M.begin1();
+        typename CompressedMatrixType::const_iterator1 a_iterator = M.begin1();
 
         for (unsigned int i = 0; i < M.size1(); i++)
         {
     #ifndef BOOST_UBLAS_NO_NESTED_CLASS_RELATION
-            for (typename CompressedMatrixType::iterator2 row_iterator = a_iterator.begin(); row_iterator != a_iterator.end(); ++row_iterator)
+            for (typename CompressedMatrixType::const_iterator2 row_iterator = a_iterator.begin(); row_iterator != a_iterator.end(); ++row_iterator)
     #else
-            for (typename CompressedMatrixType::iterator2 row_iterator = begin(a_iterator, iterator1_tag()); row_iterator != end(a_iterator, iterator1_tag()); ++row_iterator)
+            for (typename CompressedMatrixType::const_iterator2 row_iterator = begin(a_iterator, iterator1_tag()); row_iterator != end(a_iterator, iterator1_tag()); ++row_iterator)
     #endif
             {
                 int I = a_iterator.index1(), J = row_iterator.index2();
@@ -509,8 +510,8 @@ int WriteMatrixMarketVectorEntry(FILE *f, const std::complex<double>& entry)
     return fprintf(f, "%e %e\n", std::real(entry), std::imag(entry));
 }
 
-template <typename VectorType> 
-bool WriteMatrixMarketVector(const char *FileName, VectorType &V)
+template <typename VectorType>
+bool WriteMatrixMarketVector(const char *FileName, const VectorType &V)
 {
     // Open MM file for writing
     FILE *f = fopen(FileName, "w");
@@ -551,12 +552,14 @@ bool WriteMatrixMarketVector(const char *FileName, VectorType &V)
 template KRATOS_API(KRATOS_CORE) bool ReadMatrixMarketMatrix<Kratos::CompressedMatrix>(const char *FileName, Kratos::CompressedMatrix &M);
 template KRATOS_API(KRATOS_CORE) bool ReadMatrixMarketMatrix<Kratos::ComplexCompressedMatrix>(const char *FileName, Kratos::ComplexCompressedMatrix &M);
 
-template KRATOS_API(KRATOS_CORE) bool WriteMatrixMarketMatrix<Kratos::CompressedMatrix>(const char *FileName, Kratos::CompressedMatrix &M, bool Symmetric);
-template KRATOS_API(KRATOS_CORE) bool WriteMatrixMarketMatrix<Kratos::ComplexCompressedMatrix>(const char *FileName, Kratos::ComplexCompressedMatrix &M, bool Symmetric);
+template KRATOS_API(KRATOS_CORE) bool WriteMatrixMarketMatrix<Kratos::CompressedMatrix>(const char *FileName, const Kratos::CompressedMatrix &M, bool Symmetric);
+template KRATOS_API(KRATOS_CORE) bool WriteMatrixMarketMatrix<Kratos::TUblasSparseSpace<float>::MatrixType>(const char *FileName, const Kratos::TUblasSparseSpace<float>::MatrixType &M, bool Symmetric);
+template KRATOS_API(KRATOS_CORE) bool WriteMatrixMarketMatrix<Kratos::ComplexCompressedMatrix>(const char *FileName, const Kratos::ComplexCompressedMatrix &M, bool Symmetric);
 
 template KRATOS_API(KRATOS_CORE) bool ReadMatrixMarketVector<Kratos::Vector>(const char *FileName, Kratos::Vector &V);
 template KRATOS_API(KRATOS_CORE) bool ReadMatrixMarketVector<Kratos::ComplexVector>(const char *FileName, Kratos::ComplexVector &V);
 
-template KRATOS_API(KRATOS_CORE) bool WriteMatrixMarketVector<Kratos::Vector>(const char *FileName, Kratos::Vector &V);
-template KRATOS_API(KRATOS_CORE) bool WriteMatrixMarketVector<Kratos::ComplexVector>(const char *FileName, Kratos::ComplexVector &V);
+template KRATOS_API(KRATOS_CORE) bool WriteMatrixMarketVector<Kratos::Vector>(const char *FileName, const Kratos::Vector &V);
+template KRATOS_API(KRATOS_CORE) bool WriteMatrixMarketVector<Kratos::TUblasSparseSpace<float>::VectorType>(const char *FileName, const Kratos::TUblasSparseSpace<float>::VectorType &V);
+template KRATOS_API(KRATOS_CORE) bool WriteMatrixMarketVector<Kratos::ComplexVector>(const char *FileName, const Kratos::ComplexVector &V);
 }
