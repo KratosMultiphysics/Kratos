@@ -10,13 +10,18 @@ import time
 import KratosMultiphysics as KratosMultiphysics
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
+import KratosMultiphysics.ConvectionDiffusionApplication as KratosCD
 import KratosMultiphysics.MeshingApplication as KratosMMG
 
 from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
+from KratosMultiphysics.ConvectionDiffusionApplication.convection_diffusion_analysis import ConvectionDiffusionAnalysis
+from KratosMultiphysics.FluidDynamicsApplication.fluid_topology_optimization_analysis import FluidTopologyOptimizationAnalysis
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.FluidDynamicsApplication import fluid_topology_optimization_solver
+from KratosMultiphysics.ConvectionDiffusionApplication import transport_topology_optimization_solver
+from KratosMultiphysics.ConvectionDiffusionApplication import fluid_transport_topology_optimization_solver
 
-class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
+class FluidTransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
     def __init__(self,model,parameters):
         self.topology_optimization_stage = 0
         self.topology_optimization_stage_str = "INIT"
@@ -28,55 +33,55 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         """
         This method creates the NS and ADJ_NS solvers
         """
-        self.NS_solver = fluid_topology_optimization_solver.CreateSolver(self.model, self.project_parameters)
-        self.ADJ_NS_solver = fluid_topology_optimization_solver.CreateSolver(self.model, self.project_parameters, True)
+        self.physics_solver = fluid_transport_topology_optimization_solver.CreateSolver(self.model, self.project_parameters)
+        self.adjoint_solver = fluid_transport_topology_optimization_solver.CreateSolver(self.model, self.project_parameters, isAdjointSolver=True)
 
     def _CreateSolver(self, isAdjointSolver = False):
         """
         This method creates a solver
-        isAdjointSolver == False --> NS_solver
-        isAdjointSolver == True  --> ADJ_NS_solver
+        isAdjointSolver == False --> physics_solver
+        isAdjointSolver == True  --> adjoint_solver
         """
-        return fluid_topology_optimization_solver.CreateSolver(self.model, self.project_parameters, isAdjointSolver)
+        return fluid_transport_topology_optimization_solver.CreateSolver(self.model, self.project_parameters, isAdjointSolver)
     
     def _GetSolver(self, force_adjoint = False):
         """
         This method returns solver in use for the current topology optimization phase
         """
-        if not hasattr(self, 'NS_solver'):
-                self.NS_solver = self._CreateSolver()
-        if not hasattr(self, 'ADJ_NS_solver'):
-                self.ADJ_NS_solver = self._CreateSolver(True)
+        if not hasattr(self, 'physics_solver'):
+                self.physics_solver = self._CreateSolver()
+        if not hasattr(self, 'adjoint_solver'):
+                self.adjoint_solver = self._CreateSolver(isAdjointSolver=True)
         self._solver = self._GetTopologyOptimizationStageSolver(force_adjoint)
         return self._solver
     
-    def _GetNavierStokesSolver(self):
+    def _GetPhysicsSolver(self):
         """
         This method returns the Navier-Stokes Solver
         """
-        if not hasattr(self, 'NS_solver'):
-                self.NS_solver = self._CreateSolver(False)
-        return self.NS_solver
+        if not hasattr(self, 'physics_solver'):
+                self.physics_solver = self._CreateSolver(False)
+        return self.physics_solver
     
-    def _GetAdjointNavierStokesSolver(self):
+    def _GetAdjointSolver(self):
         """
         This method returns the Adjoint Navier-Stokes Solver
         """
-        if not hasattr(self, 'ADJ_NS_solver'):
-                self.ADJ_NS_solver = self._CreateSolver(True)
-        return self.ADJ_NS_solver
+        if not hasattr(self, 'adjoint_solver'):
+                self.adjoint_solver = self._CreateSolver(True)
+        return self.adjoint_solver
     
     def _GetTopologyOptimizationStageSolver(self, force_adjont = False):
         """
         This methods returns the current topology optimization stage solver
-        iF force_adjoint --> return ADJ_NS_solver
-        If topology_optimization_stage != 2 (<=> EVERYTHING BUT NOT ADJ STAGE) --> return NS_solver
-        If topology_optimization_stage == 2 (<=>  ADJ STAGE) --> return ADJ_NS_solver
+        iF force_adjoint --> return adjoint_solver
+        If topology_optimization_stage != 2 (<=> EVERYTHING BUT NOT ADJ STAGE) --> return physics_solver
+        If topology_optimization_stage == 2 (<=>  ADJ STAGE) --> return adjoint_solver
         """
-        if (self.IsAdjointNavierStokesStage() or (force_adjont)): # ADJ
-            return self.ADJ_NS_solver
+        if (self.IsAdjointStage() or (force_adjont)): # ADJ
+            return self.adjoint_solver
         else: # NS
-            return self.NS_solver
+            return self.physics_solver
         
     def _SetMinMaxIt(self, min_iteration = 0, max_iteration = 1):
         """
@@ -111,14 +116,14 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
 
     def Run(self):
         """
-        This method executes the entire Fluid Topology Optimization Stage
+        This method executes the entire FLUID-TRANSPORT TOPOLOGY Optimization Stage
         """
         self.Initialize()
         self.RunSolutionLoop()
         self.Finalize()
 
     def Initialize(self):
-        """This method initializes the FluidTopologyOptimizationAnalysis
+        """This method initializes the FluidTransportTopologyOptimizationAnalysis
         Usage: It is designed to be called ONCE, BEFORE the execution of the solution-loop
         """
         # Modelers:
@@ -166,27 +171,27 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         Usage: It is designed to be called ONCE, BEFORE the execution of the solution-loop
         Prepare Solvers : ImportModelPart -> PrepareModelPart -> AddDofs
         """
-        self.PrepareNavierStokesSolver()
-        self.PrepareAdjointNavierStokesSolver()
+        self.PreparePhysicsSolver()
+        self.PrepareAdjointSolver()
     
-    def PrepareNavierStokesSolver(self):
+    def PreparePhysicsSolver(self):
         """This method prepares the Navier-Stokes primal problem Solver in the AnalysisStage 
         Usage: It is designed to be called ONCE, BEFORE the execution of the solution-loop
         Prepare Solver : ImportModelPart -> PrepareModelPart -> AddDofs
         """
-        self._GetNavierStokesSolver().ImportModelPart()
-        self._GetNavierStokesSolver().PrepareModelPart()
-        self._GetNavierStokesSolver().AddDofs()
+        self._GetPhysicsSolver().ImportModelPart()
+        self._GetPhysicsSolver().PrepareModelPart()
+        self._GetPhysicsSolver().AddDofs()
     
-    def PrepareAdjointNavierStokesSolver(self):
+    def PrepareAdjointSolver(self):
         """This method prepares the Adjoint Navier-Stokes Solver in the AnalysisStage 
         Usage: It is designed to be called ONCE, BEFORE the execution of the solution-loop
         Prepare Solver : ImportModelPart -> PrepareModelPart -> AddDofs
         """
         # Modelers:
-        self._GetAdjointNavierStokesSolver().ImportModelPart()
-        self._GetAdjointNavierStokesSolver().PrepareModelPart()
-        self._GetAdjointNavierStokesSolver().AddDofs()
+        self._GetAdjointSolver().ImportModelPart(self._GetPhysicsSolver()._GetFluidSolver().main_model_part, self._GetPhysicsSolver()._GetTransportSolver().main_model_part)
+        self._GetAdjointSolver().PrepareModelPart()
+        self._GetAdjointSolver().AddDofs()
 
     def _SetFunctionalWeights(self, weights = [1, 1, 0, 0, 0]):
         self.n_functionals = len(weights)
@@ -203,20 +208,20 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         """This method initializes the NS and ADJ_NS Solvers in the AnalysisStage 
         Usage: It is designed to be called ONCE, BEFORE the execution of the solution-loop
         """
-        self.InitializeNavierStokesSolver()
-        self.InitializeAdjointNavierStokesSolver()
+        self.InitializePhysicsSolver()
+        self.InitializeAdjointSolver()
 
-    def InitializeNavierStokesSolver(self):
+    def InitializePhysicsSolver(self):
         """This method initializes the NS Solver in the AnalysisStage 
         Usage: It is designed to be called ONCE, BEFORE the execution of the solution-loop
         """
-        self._GetNavierStokesSolver().Initialize()
+        self._GetPhysicsSolver().Initialize()
 
-    def InitializeAdjointNavierStokesSolver(self):
+    def InitializeAdjointSolver(self):
         """This method initializes the ADJ_NS Solver in the AnalysisStage 
         Usage: It is designed to be called ONCE, BEFORE the execution of the solution-loop
         """
-        self._GetAdjointNavierStokesSolver().Initialize()
+        self._GetAdjointSolver().Initialize()
 
     def Check(self):
         """This method checks the AnalysisStage
@@ -224,8 +229,8 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self -- It signifies an instance of a class.
         """
         # Checking solver
-        self._GetNavierStokesSolver().Check()
-        self._GetAdjointNavierStokesSolver().Check()
+        self._GetPhysicsSolver().Check()
+        self._GetAdjointSolver().Check()
 
         # Checking processes
         for process in self._GetListOfProcesses():
@@ -233,14 +238,14 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
 
     def RunSolutionLoop(self):
         self._InitializeTopologyOptimizationProblem()
-        self.SolveFluidTopologyOptimization()
+        self.SolveTopologyOptimization()
 
     def _InitializeTopologyOptimizationProblem(self):
         """
         This method Initializes the topology optimization problem solution
         """
         print("\n--------------------------------------------------------")
-        print(  "--| FLUID TOPOLOGY OPTIMIZATION PREPROCESSING")
+        print(  "--| FLUID-TRANSPORT TOPOLOGY OPTIMIZATION PREPROCESSING")
         print("--------------------------------------------------------")
         print("--|INITIALIZE|")
         self._ResetFunctionalOutput()
@@ -249,14 +254,14 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self._InitializeDomainDesign()
         self._PreprocessDerivatives() 
 
-    def SolveFluidTopologyOptimization(self):
+    def SolveTopologyOptimization(self):
         self.design_parameter_change = self.design_parameter_change_toll + 10
         end_solution = False
         self.first_iteration = True
         while (not end_solution):
             self.opt_it = self.opt_it+1
             print("\n--------------------------------------------------------")
-            print(  "--| FLUID TOPOLOGY OPTIMIZATION SOLUTION LOOP. IT:", self.opt_it)
+            print(  "--| FLUID-TRANSPORT TOPOLOGY OPTIMIZATION SOLUTION LOOP. IT:", self.opt_it)
             print("--------------------------------------------------------")
             self.old_design_parameter = self.design_parameter
             self._SolveOptimizer()
@@ -265,7 +270,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             end_solution = self._IsTopologyOptimizationSolutionEnd()
             if (end_solution):
                 print("\n--------------------------------------------------------")
-                print("--| ENDING FLUID TOPOLOGY OPTIMIZATION SOLUTION LOOP")
+                print("--| ENDING FLUID-TRANSPORT TOPOLOGY OPTIMIZATION SOLUTION LOOP")
                 if (self.converged):
                     print("--| ---> CONVERGED!")
                 else:
@@ -297,8 +302,8 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         """     
         ## Current Optimization Step Solutions 
         self._InitializeTopologyOptimizationStepPhysicsSolution()
-        self._SolveNavierStokesProblem() # NAVIER-STOKES PROBLEM SOLUTION
-        self._SolveAdjointNaviersStokesProblem() # ADJOINT NAVIER-STOKES PROBLEM SOLUTION   
+        self._SolvePhysicsProblem() # NAVIER-STOKES PROBLEM SOLUTION
+        self._SolveAdjointProblem() # ADJOINT NAVIER-STOKES PROBLEM SOLUTION   
     
     def _GeometricalPreprocessing(self):
         """
@@ -343,7 +348,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         """
         This method will handle the design parameter initialization across the whole domain.
         self.design_parameter is defined in every node of the mesh.
-        The optimization process will update only the value of the nodes belonging to the optimization_domain msub model part
+        The optimization process will update only the value of the nodes belonging to the optimization_domain sub model part
         """
         mask = self._GetOptimizationDomainNodesMask()
         self.volume_fraction = initial_value
@@ -576,32 +581,36 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         for node in mp.Nodes:
                 node.SetValue(KratosCFD.RESISTANCE, self.resistance[node.Id-1])
 
-    def _SolveNavierStokesProblem(self):  
+    def _SolvePhysicsProblem(self):  
         """
         This method executes a single NS solution of the Topology Optimization problem loop
         """
-        self._RunStageSolutionLoop(1) # NAVIER-STOKES PROBLEM SOLUTION  
+        self._SetTopologyOptimizationStage(1)# PHYSICS PROBLEM SOLUTION 
+        self._PrepareTransportSettings()
+        self._RunStageSolutionLoop()  
     
-    def _SolveAdjointNaviersStokesProblem(self):  
+    def _SolveAdjointProblem(self):  
         """
         This method executes a single ADJ_NS solution of the Topology Optimization problem loop
         """
-        self._RunStageSolutionLoop(2) # ADJOINT NAVIER-STOKES PROBLEM SOLUTION
+        self._SetTopologyOptimizationStage(2) # ADJOINT PROBLEM SOLUTION
+        self._PrepareTransportSettings()
+        self._RunStageSolutionLoop() 
 
-    def _RunStageSolutionLoop(self, problem_stage):
+    def _RunStageSolutionLoop(self):
         """
         This method executes a single physics solution of the Topology Optimization problem loop
-        N.B.: must be called after the creation of the fluid model part
+        N.B.: must be called after the creation of the fluid-transport model part
         problem_stage = 1: Navier Stokes solution
         problem_stage = 2: Adjoint Navier-Stokes solution
         """
+        problem_stage = self.GetTopologyOptimizationStage()
         if ((problem_stage == 1)): 
-            print("\n--|NAVIER-STOKES SOLUTION|")
+            print("\n--|PHYSICS SOLUTION|")
         elif (problem_stage == 2):
-            print("\n--|ADJOINT NAVIER-STOKES SOLUTION|")
+            print("\n--|ADJOINT SOLUTION|")
         else:   
             print("--| UNKNOWN SOLUTION |")
-        self._SetTopologyOptimizationStage(problem_stage)
         top_opt_stage_str = self.topology_optimization_stage_str
         print("--|" + top_opt_stage_str + "| START SOLUTION LOOP")
         while self.KeepAdvancingSolutionLoop():
@@ -623,9 +632,9 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         """This method specifies the stopping criteria for breaking the solution loop
         It can be overridden by derived classes
         """
-        if self.IsNavierStokesStage(): # NS
+        if self.IsPhysicsStage(): # NS
             return self.time < self.end_time
-        elif self.IsAdjointNavierStokesStage(): #ADJ
+        elif self.IsAdjointStage(): #ADJ
             return self.time > self.start_time
         else:
             print("--|" + self.topology_optimization_stage_str + "| Time check outside NS or ADJ_NS solution")
@@ -636,7 +645,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         This methods hadls the time for the Topology Optimization problems, currently its purpos it's just to make thinks work
         """
         time = super()._AdvanceTime()
-        if self.IsAdjointNavierStokesStage():
+        if self.IsAdjointStage():
             time = 0.0
         return time
 
@@ -850,7 +859,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         if self.CheckOptimizationStage(0):
             self.topology_optimization_stage_str = "INI"
         elif self.CheckOptimizationStage(1):
-            self.topology_optimization_stage_str = "N-S"
+            self.topology_optimization_stage_str = "PHY"
         elif self.CheckOptimizationStage(2):
             self.topology_optimization_stage_str = "ADJ"
         elif self.CheckOptimizationStage(3):
@@ -859,7 +868,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             self.topology_optimization_stage_str = "ERROR"
         self._GetSolver()._SetTopologyOptimizationStage(self.topology_optimization_stage)
 
-    def GetOptimizationStage(self):
+    def GetTopologyOptimizationStage(self):
         """
         This method returns the topology optimization stage
         """
@@ -869,7 +878,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         """
         This method returns TRUE the topology optimization stage is 'check'
         """ 
-        return (self.GetOptimizationStage() == check)
+        return (self.GetTopologyOptimizationStage() == check)
     
     def IsInitializeStage(self):
         """
@@ -877,13 +886,13 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         """ 
         return self.CheckOptimizationStage(0)
     
-    def IsNavierStokesStage(self):
+    def IsPhysicsStage(self):
         """
         This method returns TRUE the topology optimization stage is 1 <=> NS
         """
         return self.CheckOptimizationStage(1)
 
-    def IsAdjointNavierStokesStage(self):
+    def IsAdjointStage(self):
         """
         This method returns TRUE the topology optimization stage is 2 <=> ADJ
         """
@@ -920,7 +929,11 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         """
         This method returns the optimization domain model part for the current solver
         """  
-        return self._GetSubModelPart("GENERIC_domain-optimization_domain")
+        opt_domain = self._GetSubModelPart("GENERIC_domain-optimization_domain")
+        if (opt_domain is None):
+            return self._GetMainModelPart()
+        else:
+            return opt_domain
     
     def _GetNonOptimizationDomain(self):
         """
@@ -1025,9 +1038,9 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
 
     def PrintAnalysisStageProgressInformation(self):
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "TOTAL STEP: ", self._GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
-        if self.IsNavierStokesStage(): # NS
+        if self.IsPhysicsStage(): # NS
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "NS STEP: ", self._GetComputingModelPart().ProcessInfo[KratosCFD.FLUID_TOP_OPT_NS_STEP])
-        elif self.IsAdjointNavierStokesStage(): # ADJ
+        elif self.IsAdjointStage(): # ADJ
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "ADJ NS STEP: ", self._GetComputingModelPart().ProcessInfo[KratosCFD.FLUID_TOP_OPT_ADJ_NS_STEP])
         else:
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Invalid Value of the Topology Optimization Stage. TOP_OPT_STAGE: ", self.topology_optimization_stage)
@@ -1041,50 +1054,6 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self.design_parameter_projected = np.zeros(self.n_nodes)
         self.design_parameter_projected_derivatives = np.ones(self.n_nodes)
 
-    # def _BuildNodesConnectivity(self, r_max = 0.0):
-    #     self.diffusive_filter_radius = r_max
-    #     self.nodes_connectivity = [[i] for i in range(self.n_nodes)]
-    #     self.nodes_connectivity_weights = [[self.diffusive_filter_radius] for i in range(self.n_nodes)]
-    #     self.nodes_connectivity_weights_as_nb = [[self.diffusive_filter_radius] for i in range(self.n_nodes)]
-    #     self.nodes_connectivity_weights_sum = np.zeros(self.n_nodes)
-    #     mp = self._GetComputingModelPart()
-    #     for elem in mp.Elements:
-    #         elem_geometry = elem.GetGeometry()
-    #         for node_i in elem_geometry:
-    #             node_i_coords = self._GetNodeCoordinates(node_i)
-    #             for node_j in elem_geometry:
-    #                 if (node_j.Id != node_i.Id):
-    #                     node_j_coords = self._GetNodeCoordinates(node_j)
-    #                     self.nodes_connectivity[node_i.Id-1].append(node_j.Id-1)
-    #                     distance = np.linalg.norm(node_i_coords-node_j_coords)
-    #                     nodal_weight = max(0.0, self.diffusive_filter_radius-distance)
-    #                     self.nodes_connectivity_weights[node_i.Id-1].append(nodal_weight)
-    #                     self.nodes_connectivity_weights_as_nb[node_i.Id-1].append(nodal_weight)
-
-    #     # normalize nodal weights
-    #     for node in mp.Nodes:
-    #         self.nodes_connectivity_weights[node.Id-1] = np.asarray(self.nodes_connectivity_weights[node.Id-1])
-    #         nodal_weigths_sum = np.sum(self.nodes_connectivity_weights[node.Id-1])
-    #         self.nodes_connectivity_weights_sum[node.Id-1] = nodal_weigths_sum
-    #         self.nodes_connectivity_weights[node.Id-1] /= nodal_weigths_sum
-
-    #     # normalize nodeal weights ad neighbours (the weight as nb is not obtained normalizing by the ccurrent node weiights sum, but eveery weight must be divivded by the sum of the relative nodes weights)
-    #     for inode in range(self.n_nodes):
-    #         self.nodes_connectivity_weights_as_nb[inode] = np.asarray(self.nodes_connectivity_weights_as_nb[inode])
-    #         for jnode in range(len(self.nodes_connectivity[inode])):
-    #             jnode_id = self.nodes_connectivity[inode][jnode]
-    #             jnodal_weights_sum = self.nodes_connectivity_weights_sum[jnode_id]
-    #             self.nodes_connectivity_weights_as_nb[inode][jnode] /= jnodal_weights_sum
-                
-    # def _ApplyDesignParameterDiffusiveFilter(self, design_parameter):
-    #     opt_mp = self._GetOptimizationDomain()
-    #     for node in opt_mp.Nodes:
-    #         if (self.is_only_opt_domain_node(node.Id-1)):
-    #             temp_nb = self.nodes_connectivity[node.Id-1]
-    #             temp_weights = self.nodes_connectivity_weights[node.Id-1]
-    #             temp_design_parameter = design_parameter[temp_nb]
-    #             self.design_parameter_filtered[node.Id-1] = np.dot(temp_weights, temp_design_parameter)
-
     def _BuildNodesConnectivity(self, radius = 1e-10):
         if (radius < 1e-10): #ensures that if no filter is imposed, at least the node itself is in neighboring nodes
             radius = 1e-10
@@ -1096,14 +1065,9 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self.nodes_connectivity_matrix.data *= -1
         self.nodes_connectivity_matrix.data += radius
         self.nodes_connectivity_weigths_sum = np.array(self.nodes_connectivity_matrix.sum(axis=1)).flatten()  # Sum of each row as a 1D array
-        
         # Normalization step: Divide non-zero entries by the corresponding row sum
         row_indices = np.repeat(np.arange(self.nodes_connectivity_matrix.shape[0]), np.diff(self.nodes_connectivity_matrix.indptr))
         self.nodes_connectivity_matrix.data /= self.nodes_connectivity_weigths_sum[row_indices]
-        # for i in range(self.nodes_connectivity_matrix.shape[0]):  # Iterate over rows
-        #     start = self.nodes_connectivity_matrix.indptr[i]
-        #     end = self.nodes_connectivity_matrix.indptr[i + 1]
-        #     self.nodes_connectivity_matrix.data[start:end] /= self.nodes_connectivity_weigths_sum[i]  # Normalize non-zero entries of the row
 
     def _ApplyDesignParameterDiffusiveFilter(self, design_parameter):
         print("--|" + self.topology_optimization_stage_str + "| --> Apply Diffusive Filter")
@@ -1154,7 +1118,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     def _InitializeRemeshing(self, level_set = 0.15, enable_remeshing_process = False, min_size = 0.001, max_size = 1.0):
         self.remeshing_levelset = level_set
         self.enable_remeshing = enable_remeshing_process
-        if (self.enable_remeshing):
+        if (self.IsRemeshingEnabled()):
             print("--|" + self.topology_optimization_stage_str + "| INITIALIZE REMESHING PROCESS")
             main_mp = self._GetMainModelPart()
             # Create find_nodekl_h process
@@ -1190,6 +1154,9 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
                 self.mmg_process = KratosMMG.MmgProcess3D(main_mp, remesh_param)
             self.local_hessian.Execute()
 
+    def IsRemeshingEnabled(self):
+        return self.enable_remeshing
+
     def _Remesh(self):
         if (self.enable_remeshing):
             print("--|" + self.topology_optimization_stage_str + "| DOMAIN REMESHING")
@@ -1212,6 +1179,19 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self.resistance, self.resistance_derivative_wrt_design_base = self._ComputeResistance(self.design_parameter)
         self._UpdateResistanceDesignDerivative()
         self._PreprocessDerivatives() 
+
+    def _PrepareTransportSettings(self):
+        convention_diffusion_settings = self._GetComputingModelPart().ProcessInfo.GetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS)
+        if (self.IsPhysicsStage()):
+            convention_diffusion_settings.SetUnknownVariable(KratosMultiphysics.KratosGlobals.GetVariable("TEMPERATURE"))
+            convention_diffusion_settings.SetVolumeSourceVariable(KratosMultiphysics.KratosGlobals.GetVariable("HEAT_FLUX"))
+            convention_diffusion_settings.SetSurfaceSourceVariable(KratosMultiphysics.KratosGlobals.GetVariable("FACE_HEAT_FLUX"))
+        elif (self.IsAdjointStage()):
+            convention_diffusion_settings.SetUnknownVariable(KratosMultiphysics.KratosGlobals.GetVariable("TEMPERATURE_ADJ"))
+            convention_diffusion_settings.SetVolumeSourceVariable(KratosMultiphysics.KratosGlobals.GetVariable("HEAT_FLUX_ADJ"))
+            convention_diffusion_settings.SetSurfaceSourceVariable(KratosMultiphysics.KratosGlobals.GetVariable("FACE_HEAT_FLUX_ADJ"))
+        else:
+            print("\n ERROR: _PrepareTransportSettings in the wrong topology optimization stage.\n")
         
 
 

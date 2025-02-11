@@ -10,15 +10,20 @@ from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.ConvectionDiffusionApplication import transport_topology_optimization_solver
 
 class TransportTopologyOptimizationAnalysis(ConvectionDiffusionAnalysis):
-    def __init__(self,model,parameters):
+    def __init__(self,model,parameters, constant_conv_vel=True):
         self.topology_optimization_stage = 0
         self.topology_optimization_stage_str = "INIT"
         super().__init__(model,parameters)
-        self._DefineMaterialProperties() 
+        self._DefineTransportProperties() 
+        self._DefineConvectiveVelocity(constant_conv_vel)
         
-    def _DefineMaterialProperties(self, decay = 0.0):
+    def _DefineTransportProperties(self, decay = 0.0):
         self._GetTransportSolver()._DefineNodalProperties(decay)
         self._GetAdjointTransportSolver()._DefineNodalProperties(decay)
+
+    def _DefineConvectiveVelocity(self, const_convective_vel, velocity=[0,0,0]):
+        self._GetTransportSolver()._DefineConvectionVelocity(const_convective_vel, velocity)
+        self._GetAdjointTransportSolver()._DefineConvectionVelocity(const_convective_vel, velocity)
 
     def _CheckMaterialProperties(self):
         self._GetSolver()._CheckMaterialProperties()
@@ -30,9 +35,6 @@ class TransportTopologyOptimizationAnalysis(ConvectionDiffusionAnalysis):
         isAdjointSolver == True  --> ADJ_T_solver
         """
         return transport_topology_optimization_solver.CreateSolver(self.model, self.project_parameters, isAdjointSolver)
-    
-    def Intitialize(self):
-        super().Initialize()
 
     def RunSolutionLoop(self):
         # self.CheckProcesses()
@@ -41,7 +43,7 @@ class TransportTopologyOptimizationAnalysis(ConvectionDiffusionAnalysis):
 
     def _RunStageSolutionLoop(self, problem_stage):
         self._SetTopologyOptimizationStage(problem_stage)
-        self._CheckMaterialProperties()
+        # self._CheckMaterialProperties()
         self._PrepareSettings()
         # input("material prop")
         super().RunSolutionLoop()
@@ -260,7 +262,7 @@ class TransportTopologyOptimizationAnalysis(ConvectionDiffusionAnalysis):
             self.topology_optimization_stage_str = "OPT"
         else:
             self.topology_optimization_stage_str = "ERROR"
-        self._GetComputingModelPart().ProcessInfo.SetValue(KratosCD.TRANSPORT_TOP_OPT_PROBLEM_STAGE, self.topology_optimization_stage)
+        self._GetSolver()._SetTopologyOptimizationStage(self.topology_optimization_stage)
 
     def _GetComputingModelPart(self):
         """
@@ -291,17 +293,17 @@ class TransportTopologyOptimizationAnalysis(ConvectionDiffusionAnalysis):
     
     def _PrepareSettings(self):
         if (self.IsTransportStage()):
-            self._GetTransportSolver().settings["convection_diffusion_variables"]["unknown_variable"].SetString("TEMPERATURE")
-            self._GetTransportSolver().settings["convection_diffusion_variables"]["volume_source_variable"].SetString("HEAT_FLUX")
-            self._GetTransportSolver().settings["convection_diffusion_variables"]["surface_source_variable"].SetString("FACE_HEAT_FLUX")
+            # self._GetTransportSolver().settings["convection_diffusion_variables"]["unknown_variable"].SetString("TEMPERATURE")
+            # self._GetTransportSolver().settings["convection_diffusion_variables"]["volume_source_variable"].SetString("HEAT_FLUX")
+            # self._GetTransportSolver().settings["convection_diffusion_variables"]["surface_source_variable"].SetString("FACE_HEAT_FLUX")
             convention_diffusion_settings = self._GetComputingModelPart().ProcessInfo.GetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS)
             convention_diffusion_settings.SetUnknownVariable(KratosMultiphysics.KratosGlobals.GetVariable("TEMPERATURE"))
             convention_diffusion_settings.SetVolumeSourceVariable(KratosMultiphysics.KratosGlobals.GetVariable("HEAT_FLUX"))
             convention_diffusion_settings.SetSurfaceSourceVariable(KratosMultiphysics.KratosGlobals.GetVariable("FACE_HEAT_FLUX"))
         elif (self.IsAdjointTransportStage()):
-            self._GetAdjointTransportSolver().settings["convection_diffusion_variables"]["unknown_variable"].SetString("TEMPERATURE_ADJ")
-            self._GetAdjointTransportSolver().settings["convection_diffusion_variables"]["volume_source_variable"].SetString("HEAT_FLUX_ADJ")
-            self._GetAdjointTransportSolver().settings["convection_diffusion_variables"]["surface_source_variable"].SetString("FACE_HEAT_FLUX_ADJ")
+            # self._GetAdjointTransportSolver().settings["convection_diffusion_variables"]["unknown_variable"].SetString("TEMPERATURE_ADJ")
+            # self._GetAdjointTransportSolver().settings["convection_diffusion_variables"]["volume_source_variable"].SetString("HEAT_FLUX_ADJ")
+            # self._GetAdjointTransportSolver().settings["convection_diffusion_variables"]["surface_source_variable"].SetString("FACE_HEAT_FLUX_ADJ")
             convention_diffusion_settings = self._GetComputingModelPart().ProcessInfo.GetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS)
             convention_diffusion_settings.SetUnknownVariable(KratosMultiphysics.KratosGlobals.GetVariable("TEMPERATURE_ADJ"))
             convention_diffusion_settings.SetVolumeSourceVariable(KratosMultiphysics.KratosGlobals.GetVariable("HEAT_FLUX_ADJ"))

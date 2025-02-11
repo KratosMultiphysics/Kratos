@@ -148,11 +148,11 @@ class FluidTopologyOptimizationSolver(NavierStokesMonolithicSolver):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid Topology Optimization " + dofs_str + " solver DOFs added correctly.")
 
     def SolveSolutionStep(self):
-        problem_physiscs = self.GetComputingModelPart().ProcessInfo.GetValue(KratosCFD.FLUID_TOP_OPT_PROBLEM_STAGE)
+        problem_physiscs = self._GetTopologyOptimizationStage()
         if (problem_physiscs == 1):
-            problem_phase_str = "N-S"
+            problem_phase_str = "FLUID"
         elif (problem_physiscs == 2):
-            problem_phase_str = "ADJ"
+            problem_phase_str = "ADJ-F"
         else: 
             problem_phase_str = "ERROR|"
         print("--|" + problem_phase_str + "| ---> Top. Opt. solution: Solve " + problem_phase_str + " solution step...")
@@ -162,7 +162,7 @@ class FluidTopologyOptimizationSolver(NavierStokesMonolithicSolver):
         return is_converged
     
     def AdvanceInTime(self, current_time):
-        if (not self.is_adjoint): # NS
+        if (not self.IsAdjoint()): # NS
             self.main_model_part.ProcessInfo[KratosCFD.FLUID_TOP_OPT_NS_STEP] += 1
             new_time =  super().AdvanceInTime(current_time)
         else: #ADJ
@@ -176,11 +176,22 @@ class FluidTopologyOptimizationSolver(NavierStokesMonolithicSolver):
             self.main_model_part.ProcessInfo[KratosCFD.FLUID_TOP_OPT_ADJ_NS_STEP] += 1
         return new_time
     
-    def IsNavierStokes(self):
-        return not self.is_adjoint
-    
-    def IsAdjointNavierStokes(self):
+    def IsAdjoint(self):
         return self.is_adjoint
+    
+    def IsPhysics(self):
+        return not self.IsAdjoint()
     
     def GetMainModelPart(self):
         return self.main_model_part
+    
+    def _SetTopologyOptimizationStage(self, top_opt_stage):
+        self.GetComputingModelPart().ProcessInfo.SetValue(KratosCFD.FLUID_TOP_OPT_PROBLEM_STAGE, top_opt_stage)
+
+    def _GetTopologyOptimizationStage(self):
+        return self.GetComputingModelPart().ProcessInfo.GetValue(KratosCFD.FLUID_TOP_OPT_PROBLEM_STAGE)
+    
+    def ImportModelPart(self):
+        # we can use the default implementation in the base class
+        print(self.main_model_part)
+        self._ImportModelPart(self.main_model_part,self.settings["model_import_settings"])
