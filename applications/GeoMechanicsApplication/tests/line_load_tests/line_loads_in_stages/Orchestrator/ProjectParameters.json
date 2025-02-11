@@ -204,8 +204,7 @@
             "model_part_name":                    "PorousDomain",
             "domain_size":                        2,
             "model_import_settings":              {
-                "input_type":       "mdpa",
-                "input_filename":   "../Common/test"
+                "input_type":       "use_input_model_part"
             },
             "material_import_settings":              {
                 "materials_filename":       "../Common/MaterialParameters.json"
