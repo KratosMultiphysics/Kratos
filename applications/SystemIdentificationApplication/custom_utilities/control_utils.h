@@ -48,6 +48,11 @@ public:
         std::vector<Point>& rOutput,
         const TContainerType& rContainer);
 
+    template<class TContainerType>
+    static void GetIntegrationPointAreas(
+        std::vector<double>& rOutput,
+        const TContainerType& rContainer);
+
     template<class EntityType, class TDataType>
     static void EvaluateAtPoints(
         std::vector<TDataType>& rOutput,

@@ -115,6 +115,31 @@ void ControlUtils::GetIntegrationPoints(
     KRATOS_CATCH("");
 }
 
+template<class TContainerType>
+void ControlUtils::GetIntegrationPointAreas(
+    std::vector<double>& rOutput,
+    const TContainerType& rContainer)
+{
+    KRATOS_TRY
+
+    rOutput.clear();
+    rOutput.reserve(rContainer.size() * 5);
+
+    for (const auto& r_entity : rContainer) {
+        const auto& r_geometry = r_entity.GetGeometry();
+        const Matrix& shape_function_values_list = r_geometry.ShapeFunctionsValues();
+        const IndexType number_of_integration_points = shape_function_values_list.size1();
+
+        const double integration_point_domain_size = r_geometry.DomainSize() / number_of_integration_points;
+
+        for (IndexType i_gauss = 0; i_gauss < number_of_integration_points; ++i_gauss) {
+            rOutput.push_back(integration_point_domain_size);
+        }
+    }
+
+    KRATOS_CATCH("");
+}
+
 template<class EntityType, class TDataType>
 void ControlUtils::EvaluateAtPoints(
     std::vector<TDataType>& rOutput,
@@ -164,6 +189,9 @@ template KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) void ControlUtils::ClipCo
 
 template KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) void ControlUtils::GetIntegrationPoints(std::vector<Point>&, const ModelPart::ConditionsContainerType&);
 template KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) void ControlUtils::GetIntegrationPoints(std::vector<Point>&, const ModelPart::ElementsContainerType&);
+
+template KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) void ControlUtils::GetIntegrationPointAreas(std::vector<double>&, const ModelPart::ConditionsContainerType&);
+template KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) void ControlUtils::GetIntegrationPointAreas(std::vector<double>&, const ModelPart::ElementsContainerType&);
 
 template KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) void ControlUtils::EvaluateAtPoints<Node, double>(std::vector<double>&, const Variable<double>&, ModelPart&, const std::vector<Point>&);
 template KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) void ControlUtils::EvaluateAtPoints<Element, double>(std::vector<double>&, const Variable<double>&, ModelPart&, const std::vector<Point>&);
