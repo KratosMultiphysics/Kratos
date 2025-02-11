@@ -12,7 +12,18 @@
 },
 "stages" : {
     "stage_1" : {
-		"stage_settings" : {
+        "stage_preprocess": {
+            "modelers": [
+                {
+                    "name": "KratosMultiphysics.modelers.import_mdpa_modeler.ImportMDPAModeler",
+                    "Parameters": {
+                        "input_filename": "../Common/test",
+                        "model_part_name": "PorousDomain"
+                    }
+                }
+            ]
+        },
+        "stage_settings" : {
             "analysis_stage": "Stages.KratosMultiphysics.GeoMechanicsApplication.GeoMechanicsAnalysis",
             "problem_data": {
             "problem_name":         "test",
@@ -27,8 +38,7 @@
             "model_part_name":                    "PorousDomain",
             "domain_size":                        2,
             "model_import_settings":              {
-                "input_type":       "mdpa",
-                "input_filename":   "../Common/test"
+                "input_type":       "use_input_model_part"
             },
             "material_import_settings":              {
                 "materials_filename":       "../Common/MaterialParameters.json"
