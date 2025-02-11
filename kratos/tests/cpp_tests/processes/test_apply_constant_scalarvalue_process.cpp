@@ -74,7 +74,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantScalarValueProcess_FinalizeDoesNothing_Fo
           "mesh_id"         : 0,
           "variable_name"   : "TIME_STEPS",
           "is_fixed"        : false,
-          "value"           : 1.0
+          "value"           : 1
       }  )" );
 
     ApplyConstantScalarValueProcess process(r_model_part, parameters);

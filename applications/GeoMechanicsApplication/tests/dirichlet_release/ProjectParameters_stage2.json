@@ -83,7 +83,7 @@
                         "skin_output":         false,
                         "plane_output":        [],
                         "nodal_results":       ["WATER_PRESSURE","DISPLACEMENT","TOTAL_DISPLACEMENT"],
-			            "gauss_point_results": ["CAUCHY_STRESS_TENSOR", "GREEN_LAGRANGE_STRAIN_TENSOR"]
+                        "gauss_point_results": ["CAUCHY_STRESS_TENSOR","GREEN_LAGRANGE_STRAIN_TENSOR"]
                     }
                 }
             }
@@ -121,8 +121,8 @@
         "Parameters":    {
             "model_part_name": "PorousDomain.Bottom",
             "variable_name":   "DISPLACEMENT",
-            "active":          [true,true,true],
-            "is_fixed":        [false,true,true],
+            "active":          [true,true,false],
+            "is_fixed":        [false,true,false],
             "value":           [0.0,0.0,0.0],
             "table":           [0,0,0]
         }
@@ -133,8 +133,8 @@
         "Parameters":    {
             "model_part_name": "PorousDomain.Left",
             "variable_name":   "DISPLACEMENT",
-            "active":          [true,false,true],
-            "is_fixed":        [true,false,true],
+            "active":          [true,true,false],
+            "is_fixed":        [true,false,false],
             "value":           [0.0,0.0,0.0],
             "table":           [0,0,0]
         }

@@ -10,7 +10,7 @@ It checks whether the degree of freedom, fixed by an applied displacement Dirich
 The test is performed in two stages, with the following common conditions for both stages:
 
 - Constraints:
-    - Displacements on the bottom are fixed the Y direction.
+    - Displacements on the bottom are fixed in the Y direction.
     - Displacements on the left side are fixed in the X direction.
     - Displacements on the top are prescribed in time in the Y direction in stage 1 and released in stage 2. The prescribed displacement for stage 1 is a fixed 0.1 [m]
     - The water pressure is fixed at $-100 \mathrm{[Pa]}$ in the entire element
