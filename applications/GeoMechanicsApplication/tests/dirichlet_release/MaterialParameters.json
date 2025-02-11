@@ -20,7 +20,6 @@
               "PERMEABILITY_YY"          :  1,
               "PERMEABILITY_XY"          :  0.0,
               "DYNAMIC_VISCOSITY"        :  9.81,
-              "THICKNESS"                :  1.0,
               "RETENTION_LAW"            : "SaturatedLaw",
               "SATURATED_SATURATION"     :  1.0
          }
