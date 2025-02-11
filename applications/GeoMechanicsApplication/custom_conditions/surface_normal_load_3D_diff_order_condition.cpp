@@ -14,10 +14,11 @@
 
 // Project includes
 #include "custom_conditions/surface_normal_load_3D_diff_order_condition.hpp"
-#include <custom_utilities/variables_utilities.hpp>
-
+#include "custom_utilities/variables_utilities.hpp"
 #include "includes/variables.h"
 #include "utilities/math_utils.h"
+
+#include <numeric>
 
 namespace Kratos
 {
@@ -72,7 +73,8 @@ void SurfaceNormalLoad3DDiffOrderCondition::CalculateConditionVector(ConditionVa
 
     // Since the normal vector is pointing outwards for the 3D conditions, the normal stress
     // should switch sign, such that positive normal contact stress is defined inwards.
-    const auto normal_stress   = -1.0 * MathUtils<>::Dot(rVariables.Nu, normal_stresses);
+    const auto normal_stress = -1.0 * std::inner_product(rVariables.Nu.cbegin(), rVariables.Nu.cend(),
+                                                         normal_stresses.cbegin(), 0.0);
     rVariables.ConditionVector = normal_stress * normal_vector;
 
     KRATOS_CATCH("")

@@ -943,14 +943,14 @@ public:
     }
 
     template< class TOtherMatrixType >
-    static bool WriteMatrixMarketMatrix(const char* pFileName, /*const*/ TOtherMatrixType& rM, const bool Symmetric)
+    static bool WriteMatrixMarketMatrix(const char* pFileName, const TOtherMatrixType& rM, const bool Symmetric)
     {
         // Use full namespace in call to make sure we are not calling this function recursively
         return Kratos::WriteMatrixMarketMatrix(pFileName, rM, Symmetric);
     }
 
     template< class VectorType >
-    static bool WriteMatrixMarketVector(const char* pFileName, /*const*/ VectorType& rV)
+    static bool WriteMatrixMarketVector(const char* pFileName, const VectorType& rV)
     {
         // Use full namespace in call to make sure we are not calling this function recursively
         return Kratos::WriteMatrixMarketVector(pFileName, rV);
