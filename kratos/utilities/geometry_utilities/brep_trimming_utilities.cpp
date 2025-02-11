@@ -14,8 +14,8 @@ namespace Kratos
 {
     ///@name Kratos Classes
     ///@{
-
-    void BrepTrimmingUtilities::CreateBrepSurfaceTrimmingIntegrationPoints(
+    template<bool TShiftedBoundary>
+    void BrepTrimmingUtilities<TShiftedBoundary>::CreateBrepSurfaceTrimmingIntegrationPoints(
         IntegrationPointsArrayType& rIntegrationPoints,
         const DenseVector<DenseVector<BrepCurveOnSurfacePointerType>>& rOuterLoops,
         const DenseVector<DenseVector<BrepCurveOnSurfacePointerType>>& rInnerLoops,
@@ -160,4 +160,6 @@ namespace Kratos
     //    const std::vector<double>& rSpansV,
     //    IntegrationInfo& rIntegrationInfo);
 
+    template class KRATOS_API(KRATOS_CORE) BrepTrimmingUtilities<true>;
+    template class KRATOS_API(KRATOS_CORE) BrepTrimmingUtilities<false>;
 } // namespace Kratos.
