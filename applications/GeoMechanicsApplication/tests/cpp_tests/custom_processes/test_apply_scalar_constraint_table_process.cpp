@@ -30,7 +30,7 @@ void AssertNodesHaveCorrectValueAndFixity(double expected_value, bool expected_f
     }
 }
 
-ModelPart& SetupModelPart(Table<double>::Pointer& rTable, Model& model)
+ModelPart& SetupModelPart(const Table<double>::Pointer& rTable, Model& model)
 {
     const auto nodal_variables = Geo::ConstVariableRefs{std::cref(DISPLACEMENT_X)};
     auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(model, nodal_variables);
@@ -74,8 +74,8 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_FreesDoFAfterFinaliz
     process.ExecuteFinalize();
 
     // Assert
-    const double expected_value = 0.5; // Same as the initial value, since we have not initialized any solution step
-    const bool expected_fixity = false;
+    constexpr double expected_value = 0.5; // Same as the initial value, since we have not initialized any solution step
+    constexpr bool expected_fixity = false;
     AssertNodesHaveCorrectValueAndFixity(expected_value, expected_fixity, r_model_part);
 }
 
@@ -105,7 +105,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_AppliesCorrectValues
     // Act & Assert
     process.ExecuteInitialize();
     double     expected_value  = 0.5; // Initial value, since we haven't initialized a solution step
-    const bool expected_fixity = true;
+    constexpr bool expected_fixity = true;
     AssertNodesHaveCorrectValueAndFixity(expected_value, expected_fixity, r_model_part);
 
     r_model_part.GetProcessInfo()[TIME] = 0.5;
