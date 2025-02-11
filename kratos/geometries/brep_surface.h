@@ -164,8 +164,8 @@ public:
         mInnerLoopArray = rOther.mInnerLoopArray;
         mEmbeddedEdgesArray = rOther.mEmbeddedEdgesArray;
         mIsTrimmed = rOther.mIsTrimmed;
-        mpSurrogateInnerLoopGeometries = rOther.GetSurrogateInnerLoopGeometries();
-        mpSurrogateOuterLoopGeometries = rOther.GetSurrogateOuterLoopGeometries();
+        mpSurrogateInnerLoopGeometries = rOther.mpSurrogateInnerLoopGeometries;
+        mpSurrogateOuterLoopGeometries = rOther.mpSurrogateOuterLoopGeometries;
         return *this;
     }
 
@@ -179,8 +179,8 @@ public:
         mInnerLoopArray = rOther.mInnerLoopArray;
         mEmbeddedEdgesArray = rOther.mEmbeddedEdgesArray;
         mIsTrimmed = rOther.mIsTrimmed;
-        mpSurrogateInnerLoopGeometries = rOther.GetSurrogateInnerLoopGeometries();
-        mpSurrogateOuterLoopGeometries = rOther.GetSurrogateOuterLoopGeometries();
+        mpSurrogateInnerLoopGeometries = rOther.mpSurrogateInnerLoopGeometries;
+        mpSurrogateOuterLoopGeometries = rOther.mpSurrogateOuterLoopGeometries;
         return *this;
     }
 
