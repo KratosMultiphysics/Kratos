@@ -23,7 +23,7 @@
 namespace Kratos
 {
 
-class CompressibilityCalculator : public ContributionCalculator
+class KRATOS_API(GEO_MECHANICS_APPLICATION) CompressibilityCalculator : public ContributionCalculator
 {
 public:
     class InputProvider

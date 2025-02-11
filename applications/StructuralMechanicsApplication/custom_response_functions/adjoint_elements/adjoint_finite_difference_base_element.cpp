@@ -706,12 +706,12 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::load(Serializer& rSer
 
 }
 
-template class AdjointFiniteDifferencingBaseElement<ShellThinElement3D3N<ShellKinematics::LINEAR>>;
-template class AdjointFiniteDifferencingBaseElement<CrBeamElementLinear3D2N>;
-template class AdjointFiniteDifferencingBaseElement<TrussElement3D2N>;
-template class AdjointFiniteDifferencingBaseElement<TrussElementLinear3D2N>;
-template class AdjointFiniteDifferencingBaseElement<SmallDisplacement>;
-template class AdjointFiniteDifferencingBaseElement<SpringDamperElement<3>>;
+template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointFiniteDifferencingBaseElement<ShellThinElement3D3N<ShellKinematics::LINEAR>>;
+template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointFiniteDifferencingBaseElement<CrBeamElementLinear3D2N>;
+template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointFiniteDifferencingBaseElement<TrussElement3D2N>;
+template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointFiniteDifferencingBaseElement<TrussElementLinear3D2N>;
+template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointFiniteDifferencingBaseElement<SmallDisplacement>;
+template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointFiniteDifferencingBaseElement<SpringDamperElement<3>>;
 
 } // namespace Kratos
 

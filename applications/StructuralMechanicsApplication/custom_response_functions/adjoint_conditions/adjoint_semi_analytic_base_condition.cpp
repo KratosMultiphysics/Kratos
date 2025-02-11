@@ -424,12 +424,11 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    // TODO find out what to do with KRATOS_API
-    template class AdjointSemiAnalyticBaseCondition<PointLoadCondition>;
-    template class AdjointSemiAnalyticBaseCondition<SurfaceLoadCondition3D>;
-    template class AdjointSemiAnalyticBaseCondition<SmallDisplacementSurfaceLoadCondition3D>;
-    template class AdjointSemiAnalyticBaseCondition<LineLoadCondition<3>>;
-    template class AdjointSemiAnalyticBaseCondition<SmallDisplacementLineLoadCondition<3>>;
+    template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointSemiAnalyticBaseCondition<PointLoadCondition>;
+    template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointSemiAnalyticBaseCondition<SurfaceLoadCondition3D>;
+    template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointSemiAnalyticBaseCondition<SmallDisplacementSurfaceLoadCondition3D>;
+    template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointSemiAnalyticBaseCondition<LineLoadCondition<3>>;
+    template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointSemiAnalyticBaseCondition<SmallDisplacementLineLoadCondition<3>>;
 
 
 } // Namespace Kratos

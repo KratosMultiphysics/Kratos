@@ -330,6 +330,6 @@ void AdjointSolidElement<TPrimalElement>::CalculateSensitivityMatrix(
     KRATOS_CATCH("");
 }
 
-template class AdjointSolidElement<TotalLagrangian>;
+template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointSolidElement<TotalLagrangian>;
 
 } // namespace Kratos.

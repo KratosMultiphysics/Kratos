@@ -827,8 +827,8 @@ void SetItemDataValues(Variable<Matrix<double>> const& rVariable,
 
 // template instantiations
 
-template class ContainerComponentIO<ElementsContainerType, ElementType, Flags>;
-template class ContainerComponentIO<ElementsContainerType,
+template class KRATOS_API(HDF5_APPLICATION) ContainerComponentIO<ElementsContainerType, ElementType, Flags>;
+template class KRATOS_API(HDF5_APPLICATION) ContainerComponentIO<ElementsContainerType,
                                     ElementType,
                                     Variable<array_1d<double, 3>>,
                                     Variable<double>,
@@ -836,8 +836,8 @@ template class ContainerComponentIO<ElementsContainerType,
                                     Variable<Vector<double>>,
                                     Variable<Matrix<double>>>;
 
-template class ContainerComponentIO<ConditionsContainerType, ConditionType, Flags>;
-template class ContainerComponentIO<ConditionsContainerType,
+template class KRATOS_API(HDF5_APPLICATION) ContainerComponentIO<ConditionsContainerType, ConditionType, Flags>;
+template class KRATOS_API(HDF5_APPLICATION) ContainerComponentIO<ConditionsContainerType,
                                     ConditionType,
                                     Variable<array_1d<double, 3>>,
                                     Variable<double>,
@@ -845,15 +845,15 @@ template class ContainerComponentIO<ConditionsContainerType,
                                     Variable<Vector<double>>,
                                     Variable<Matrix<double>>>;
 
-template class ContainerComponentIO<NodesContainerType, NodeType, Flags>;
-template class ContainerComponentIO<NodesContainerType,
+template class KRATOS_API(HDF5_APPLICATION) ContainerComponentIO<NodesContainerType, NodeType, Flags>;
+template class KRATOS_API(HDF5_APPLICATION) ContainerComponentIO<NodesContainerType,
                                     NodeType,
                                     Variable<array_1d<double, 3>>,
                                     Variable<double>,
                                     Variable<int>,
                                     Variable<Vector<double>>,
                                     Variable<Matrix<double>>>;
-template class ContainerComponentIO<VertexContainerType,
+template class KRATOS_API(HDF5_APPLICATION) ContainerComponentIO<VertexContainerType,
                                     Vertex,
                                     Variable<array_1d<double, 3>>,
                                     Variable<double>,
