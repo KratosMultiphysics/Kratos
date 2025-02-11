@@ -10,11 +10,11 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "custom_processes/apply_component_table_process.hpp"
+#include "custom_processes/apply_scalar_constraint_table_process.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
 
-#include <algorithm>
+#include "geo_mechanics_application_variables.h"
 
 namespace
 {
@@ -24,8 +24,8 @@ using namespace Kratos;
 void AssertNodesHaveCorrectValueAndFixity(double expected_value, bool expected_fixity, const ModelPart& rModelPart)
 {
     for (const auto& r_node : rModelPart.Nodes()) {
-        KRATOS_CHECK_EQUAL(r_node.IsFixed(DISPLACEMENT_X), expected_fixity);
-        KRATOS_CHECK_EQUAL(r_node.FastGetSolutionStepValue(DISPLACEMENT_X), expected_value);
+        KRATOS_EXPECT_EQ(r_node.IsFixed(DISPLACEMENT_X), expected_fixity);
+        KRATOS_EXPECT_EQ(r_node.FastGetSolutionStepValue(DISPLACEMENT_X), expected_value);
     }
 }
 
@@ -63,7 +63,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_FreesDoFAfterFinaliz
           "value":           0.5
       }  )");
 
-    ApplyComponentTableProcess process(r_model_part, parameters);
+    ApplyScalarConstraintTableProcess process(r_model_part, parameters);
     process.ExecuteInitialize();
 
     double expected_value  = 0.5; // Initial value, since we haven't initialized a solution step
