@@ -49,6 +49,7 @@ class TestControlUtils(UnitTest.TestCase):
         cls.model_part.CreateNewElement("Element2D4N", 6, [7, 8, 12, 11], prop).SetValue(Kratos.PRESSURE, 6.0)
 
         cls.list_of_points = KratosSI.ControlUtils.GetIntegrationPoints(cls.model_part.Elements)
+        cls.list_of_integration_point_areas = KratosSI.ControlUtils.GetIntegrationPointAreas(cls.model_part.Elements)
 
         for node in cls.model_part.Nodes:
             node.SetValue(Kratos.DISTANCE, node.Id)
@@ -66,6 +67,11 @@ class TestControlUtils(UnitTest.TestCase):
             for j in range(4):
                 point = self.list_of_points[i * 4 + j]
                 self.assertVectorAlmostEqual(global_point[j, :], [point.X, point.Y, point.Z], 4)
+
+    def test_GetIntegrationPointAreas(self):
+        self.assertEqual(len(self.list_of_points), len(self.list_of_integration_point_areas))
+        for i, element in enumerate(self.model_part.Elements):
+            self.assertAlmostEqual(self.list_of_integration_point_areas[i], element.GetGeometry().DomainSize() / 4)
 
     def test_EvaluateElementValuesAtPoints(self):
         values = KratosSI.ControlUtils.EvaluateElementValuesAtPoints(Kratos.PRESSURE, self.model_part, self.list_of_points)
