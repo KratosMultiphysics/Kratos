@@ -373,7 +373,6 @@ public:
             rDof.GetSolutionStepReactionValue() = -b[i];
         });
         KRATOS_CATCH("")
-
     }
 
     void FinalizeSolutionStep(ModelPart& rModelPart, TSystemMatrixType& rA, TSystemVectorType& rDx, TSystemVectorType& rb) override
@@ -482,10 +481,13 @@ private:
                 std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector;
                 r_element.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_law_vector,
                                                        r_current_process_info);
-                for (std::size_t i = 0; i < constitutive_law_vector.size(); ++i) {
-                    constitutive_law_vector[i]->ResetMaterial(
+
+                for (std::size_t integration_point_idx = 0;
+                     integration_point_idx < constitutive_law_vector.size(); ++integration_point_idx) {
+                    constitutive_law_vector[integration_point_idx]->ResetMaterial(
                         r_element.GetProperties(), r_element.GetGeometry(),
-                        row(r_element.GetGeometry().ShapeFunctionsValues(), i));
+                        row(r_element.GetGeometry().ShapeFunctionsValues(r_element.GetIntegrationMethod()),
+                            integration_point_idx));
                 }
 
                 Element::EquationIdVectorType equation_ids;

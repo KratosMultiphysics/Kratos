@@ -177,7 +177,6 @@ public:
      */
     bool SolveSolutionStep() override
     {
-
         // Pointers needed in the solution
         ModelPart&                    r_model_part = BaseType::GetModelPart();
         typename TSchemeType::Pointer p_scheme     = BaseType::GetScheme();
