@@ -21,7 +21,6 @@
 #include "containers/system_vector.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "utilities/dof_utilities/assembly_utilities.h"
 
 namespace Kratos
 {
@@ -47,6 +46,22 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /// Build type definition
+    enum class BuildType
+    {
+        Block,
+        Elimination
+    };
+
+    /// Scaling type definition
+    enum class ScalingType
+    {
+        NoScaling,
+        NormDiagonal,
+        MaxDiagonal,
+        PrescribedDiagonal
+    };
+
     /// Pointer definition of AssemblyHelper
     KRATOS_CLASS_POINTER_DEFINITION(AssemblyHelper);
 
@@ -65,14 +80,14 @@ public:
     /// Index type definition from sparse matrix
     using IndexType = typename SystemMatrixType::IndexType;
 
-    /// Dense space definition
-    using DenseSpaceType = UblasSpace<double, Matrix, Vector>;
+    /// DoF array type definition
+    using DofsArrayType = ModelPart::DofsArrayType;
 
-    /// Local system matrix type definition
-    using LocalSystemMatrixType = DenseSpaceType::MatrixType;
+    /// Local system matrix type definition from TLS
+    using LocalSystemMatrixType = typename TThreadLocalStorage::LocalSystemMatrixType;
 
-    /// Local system vector type definition
-    using LocalSystemVectorType = DenseSpaceType::VectorType;
+    /// Local system vector type definition from TLS
+    using LocalSystemVectorType = typename TThreadLocalStorage::LocalSystemVectorType;
 
     /// Function type for elements assembly
     using ElementAssemblyFunctionType = std::function<void(ModelPart::ElementConstantIterator, const ProcessInfo&, TThreadLocalStorage&)>;
@@ -82,9 +97,6 @@ public:
 
     /// Function type for constraints assembly
     using ConstraintAssemblyFunctionType = std::function<void(ModelPart::MasterSlaveConstraintConstantIteratorType, const ProcessInfo&, TThreadLocalStorage&)>;
-
-    /// Build enum type definition
-    using BuildType = AssemblyUtilities::BuildType;
 
     ///@}
     ///@name Life Cycle
@@ -96,13 +108,12 @@ public:
     /// Constructor with model part
     AssemblyHelper(
         const ModelPart& rModelPart,
-        const SizeType EquationSystemSize,
         Parameters AssemblySettings = Parameters(R"({})"))
     : mpModelPart(&rModelPart)
-    , mEquationSystemSize(EquationSystemSize)
     {
         Parameters default_parameters( R"({
             "build_type" : "block",
+            "scaling_type" : "max_diagonal",
             "echo_level" : 0
         })");
         AssemblySettings.ValidateAndAssignDefaults(default_parameters);
@@ -119,6 +130,22 @@ public:
             << "\t- 'elimination'" << std::endl;
         }
 
+        // Set scaling type
+        const std::string scaling_type = AssemblySettings["scaling_type"].GetString();
+        if (mBuildType == BuildType::Block) {
+            if (scaling_type == "no_scaling") {
+                mScalingType = ScalingType::NoScaling;
+            } else if (scaling_type == "norm_diagonal") {
+                mScalingType = ScalingType::NormDiagonal;
+            } else if (scaling_type == "max_diagonal") {
+                mScalingType = ScalingType::MaxDiagonal;
+            } else if (scaling_type == "prescribed_diagonal") {
+                mScalingType = ScalingType::PrescribedDiagonal;
+            }
+        } else {
+            mScalingType = ScalingType::NoScaling; // Note that scaling makes no sense in the elimination build
+        }
+
         // Set verbosity level
         mEchoLevel = AssemblySettings["echo_level"].GetInt();
     }
@@ -128,26 +155,59 @@ public:
     ///@name Operations
     ///@{
 
-    void SetElementAssemblyFunction(const ElementAssemblyFunctionType& rElementAssemblyFunction)
+    void SetUpSparseGraph(SparseGraph<IndexType>& rSparseGraph)
     {
-        mElementAssemblyFunctionIsSet = true;
-        mElementAssemblyFunction = rElementAssemblyFunction;
-        KRATOS_INFO_IF("AssemblyHelper", mEchoLevel > 1) << "Element assembly function set." << std::endl;
+        if (!rSparseGraph.IsEmpty()) {
+            KRATOS_WARNING("AssemblyHelper") << "Provided sparse graph is not empty and will be cleared." << std::endl;
+            rSparseGraph.Clear();
+        }
+
+        Element::EquationIdVectorType eq_ids;
+        for (auto& r_elem : mpModelPart->Elements()) {
+            r_elem.EquationIdVector(eq_ids, mpModelPart->GetProcessInfo());
+            rSparseGraph.AddEntries(eq_ids);
+        }
+        for (auto& r_cond : mpModelPart->Conditions()) {
+            r_cond.EquationIdVector(eq_ids, mpModelPart->GetProcessInfo());
+            rSparseGraph.AddEntries(eq_ids);
+        }
     }
 
-    void SetConditionAssemblyFunction(const ConditionAssemblyFunctionType& rConditionAssemblyFunction)
+    SizeType SetUpSystemIds(const DofsArrayType& rDofSet)
     {
-        mConditionAssemblyFunctionIsSet = true;
-        mConditionAssemblyFunction = rConditionAssemblyFunction;
-        KRATOS_INFO_IF("AssemblyHelper", mEchoLevel > 1) << "Condition assembly function set." << std::endl;
-    }
+        if (mBuildType == BuildType::Block) {
+            // Set up the DOFs equation global ids
+            IndexPartition<IndexType>(rDofSet.size()).for_each([&](IndexType Index) {
+                auto it_dof = rDofSet.begin() + Index;
+                it_dof->SetEquationId(Index);
+            });
 
-    //TODO: For sure we'll need to modify this one
-    void SetConstraintAssemblyFunction(const ConstraintAssemblyFunctionType& rConstraintAssemblyFunction)
-    {
-        mConstraintAssemblyFunctionIsSet = true;
-        mConstraintAssemblyFunction = rConstraintAssemblyFunction;
-        KRATOS_INFO_IF("AssemblyHelper", mEchoLevel > 1) << "Constraint assembly function set." << std::endl;
+            // Save the size of the system based on the number of DOFs
+            mEquationSystemSize = rDofSet.size();
+
+        } else if (mBuildType == BuildType::Elimination) {
+            // Set up the DOFs equation global ids
+            // The free DOFs are positioned at the beginning of the system
+            // The fixed DOFs are positioned at the end of the system (in reversed order)
+            IndexType free_id = 0;
+            IndexType fix_id = rDofSet.size();
+            for (auto it_dof = rDofSet.begin(); it_dof != rDofSet.end(); ++it_dof) {
+                if (it_dof->IsFixed()) {
+                    it_dof->SetEquationId(--fix_id);
+                } else {
+                    it_dof->SetEquationId(free_id++);
+                }
+            }
+
+            // Set the equation system size as the current fixed id
+            // Note that this means that if the EquationId is greater than mEquationSystemSize the DOF is fixed
+            mEquationSystemSize = fix_id;
+
+        } else {
+            KRATOS_ERROR << "Build type not supported." << std::endl;
+        }
+
+        return mEquationSystemSize;
     }
 
     void AssembleLocalSystem(
@@ -193,10 +253,90 @@ public:
         }
     }
 
+    void ApplyDirichletConditions(
+        const DofsArrayType& rDofSet,
+        SystemMatrixType& rLHS,
+        SystemVectorType& rRHS)
+    {
+        if (mBuildType == BuildType::Block) {
+            //TODO: Implement this in the CSR matrix or here? --> Most probably we shouldn't call it here neither
+            // // Detect if there is a line of all zeros and set the diagonal to a certain number if this happens (1 if not scale, some norms values otherwise)
+            // mScaleFactor = TSparseSpace::CheckAndCorrectZeroDiagonalValues(rModelPart.GetProcessInfo(), rA, rb, mScalingDiagonal);
+
+            ApplyBlockBuildDirichletConditions(rDofSet, rLHS, rRHS);
+        } else if (mBuildType == BuildType::Elimination) {
+
+            //TODO: This is basically do nothing. Think on how to skip it
+
+            //TODO: Implement this in the CSR matrix or here? --> Most probably we shouldn't call it here neither
+            // // Detect if there is a line of all zeros and set the diagonal to a certain number if this happens (1 if not scale, some norms values otherwise)
+            // mScaleFactor = TSparseSpace::CheckAndCorrectZeroDiagonalValues(rModelPart.GetProcessInfo(), rA, rb, mScalingDiagonal);
+
+        } else {
+            KRATOS_ERROR << "Build type not supported." << std::endl;
+        }
+    }
+
+    double GetDiagonalScalingFactor(const SystemMatrixType& rLHS) const
+    {
+        if (mScalingType == ScalingType::NoScaling) {
+            return 1.0;
+        } else if (mScalingType == ScalingType::NormDiagonal) {
+            return rLHS.NormDiagonal();
+            // return rLHS.NormDiagonal() / rLHS.size1(); //TODO: Decide which one
+        } else if (mScalingType == ScalingType::MaxDiagonal) {
+            return rLHS.MaxDiagonal();
+            // return rLHS.MaxDiagonal() / rLHS.size1(); // TODO: Decide which one
+        } else if (mScalingType == ScalingType::PrescribedDiagonal) {
+            const auto& r_process_info = mpModelPart->GetProcessInfo();
+            KRATOS_ERROR_IF_NOT(r_process_info.Has(BUILD_SCALE_FACTOR)) << "Scale factor not defined in ProcessInfo container. Please set 'BUILD_SCALE_FACTOR' variable." << std::endl;
+            return r_process_info.GetValue(BUILD_SCALE_FACTOR);
+        } else {
+            KRATOS_ERROR << "Wrong scaling type." << std::endl;
+        }
+    }
+
+    void Clear()
+    {
+        // Clear the system info
+        mEquationSystemSize = 0;
+
+        // Clear the assembly functions
+        mpElementAssemblyFunction = nullptr;
+        mpConditionAssemblyFunction = nullptr;
+        mpConstraintAssemblyFunction = nullptr;
+    }
+
     ///@}
     ///@name Input and output
     ///@{
 
+    SizeType GetEquationSystemSize() const
+    {
+        return mEquationSystemSize;
+    }
+
+    void SetElementAssemblyFunction(ElementAssemblyFunctionType rElementAssemblyFunction)
+    {
+        auto p_aux = std::make_unique<ElementAssemblyFunctionType>(rElementAssemblyFunction);
+        mpElementAssemblyFunction.swap(p_aux);
+        KRATOS_INFO_IF("AssemblyHelper", mEchoLevel > 1) << "Element assembly function set." << std::endl;
+    }
+
+    void SetConditionAssemblyFunction(ConditionAssemblyFunctionType rConditionAssemblyFunction)
+    {
+        auto p_aux = std::make_unique<ConditionAssemblyFunctionType>(rConditionAssemblyFunction);
+        mpConditionAssemblyFunction.swap(p_aux);
+        KRATOS_INFO_IF("AssemblyHelper", mEchoLevel > 1) << "Condition assembly function set." << std::endl;
+    }
+
+    //TODO: For sure we'll need to modify this one
+    void SetConstraintAssemblyFunction(ConstraintAssemblyFunctionType rConstraintAssemblyFunction)
+    {
+        auto p_aux = std::make_unique<ConstraintAssemblyFunctionType>(rConstraintAssemblyFunction);
+        mpConstraintAssemblyFunction.swap(p_aux);
+        KRATOS_INFO_IF("AssemblyHelper", mEchoLevel > 1) << "Constraint assembly function set." << std::endl;
+    }
 
     ///@}
 private:
@@ -205,23 +345,21 @@ private:
 
     const ModelPart* mpModelPart = nullptr;
 
-    SizeType mEchoLevel;
-
-    SizeType mEquationSystemSize;
-
     BuildType mBuildType;
 
-    bool mElementAssemblyFunctionIsSet = false;
+    ScalingType mScalingType;
 
-    bool mConditionAssemblyFunctionIsSet = false;
+    double mScalingValue;
 
-    bool mConstraintAssemblyFunctionIsSet = false;
+    SizeType mEchoLevel;
 
-    ElementAssemblyFunctionType mElementAssemblyFunction;
+    SizeType mEquationSystemSize; /// Number of degrees of freedom of the problem to be solve
 
-    ConditionAssemblyFunctionType mConditionAssemblyFunction;
+    std::unique_ptr<ElementAssemblyFunctionType> mpElementAssemblyFunction = nullptr; // Pointer to the function to be called in the elements assembly
 
-    ConstraintAssemblyFunctionType mConstraintAssemblyFunction;
+    std::unique_ptr<ConditionAssemblyFunctionType> mpConditionAssemblyFunction = nullptr; // Pointer to the function to be called in the conditions assembly
+
+    std::unique_ptr<ConstraintAssemblyFunctionType> mpConstraintAssemblyFunction = nullptr; // Pointer to the function to be called in the constraints assembly
 
     ///@}
     ///@name Private Operations
@@ -252,13 +390,13 @@ private:
         #pragma omp parallel firstprivate(n_elems, n_conds, elems_begin, conds_begin, r_process_info, rTLS)
         {
             // Assemble elements
-            if (mElementAssemblyFunctionIsSet) {
+            if (mpElementAssemblyFunction != nullptr) {
                 # pragma omp for schedule(guided, 512) nowait
                 for (int k = 0; k < n_elems; ++k) {
                     auto it_elem = elems_begin + k;
                     if (it_elem->IsActive()) {
                         // Calculate local LHS and RHS contributions
-                        mElementAssemblyFunction(it_elem, r_process_info, rTLS);
+                        (*mpElementAssemblyFunction)(it_elem, r_process_info, rTLS);
 
                         // Get the positions in the global system
                         auto& r_loc_eq_ids = GetThreadLocalStorageEqIds(rTLS);
@@ -271,13 +409,13 @@ private:
             }
 
             // Assemble conditions
-            if (mConditionAssemblyFunctionIsSet) {
+            if (mpConditionAssemblyFunction != nullptr) {
                 # pragma omp for schedule(guided, 512)
                 for (int k = 0; k < n_conds; ++k) {
                     auto it_cond = conds_begin + k;
                     if (it_cond->IsActive()) {
                         // Calculate local LHS and RHS contributions
-                        mConditionAssemblyFunction(it_cond, r_process_info, rTLS);
+                        (*mpConditionAssemblyFunction)(it_cond, r_process_info, rTLS);
 
                         // Get the positions in the global system
                         auto& r_loc_eq_ids = GetThreadLocalStorageEqIds(rTLS);
@@ -318,13 +456,13 @@ private:
         #pragma omp parallel firstprivate(n_elems, n_conds, elems_begin, conds_begin, r_process_info, rTLS)
         {
             // Assemble elements
-            if (mElementAssemblyFunctionIsSet) {
+            if (mpElementAssemblyFunction != nullptr) {
                 # pragma omp for schedule(guided, 512) nowait
                 for (int k = 0; k < n_elems; ++k) {
                     auto it_elem = elems_begin + k;
                     if (it_elem->IsActive()) {
                         // Calculate local LHS contributions
-                        mElementAssemblyFunction(it_elem, r_process_info, rTLS);
+                        (*mpElementAssemblyFunction)(it_elem, r_process_info, rTLS);
 
                         // Get the positions in the global system
                         auto& r_loc_eq_ids = GetThreadLocalStorageEqIds(rTLS);
@@ -337,13 +475,13 @@ private:
             }
 
             // Assemble conditions
-            if (mConditionAssemblyFunctionIsSet) {
+            if (mpConditionAssemblyFunction != nullptr) {
                 # pragma omp for schedule(guided, 512)
                 for (int k = 0; k < n_conds; ++k) {
                     auto it_cond = conds_begin + k;
                     if (it_cond->IsActive()) {
                         // Calculate local LHS contributions
-                        mConditionAssemblyFunction(it_cond, r_process_info, rTLS);
+                        (*mpConditionAssemblyFunction)(it_cond, r_process_info, rTLS);
 
                         // Get the positions in the global system
                         auto& r_loc_eq_ids = GetThreadLocalStorageEqIds(rTLS);
@@ -383,13 +521,13 @@ private:
         #pragma omp parallel firstprivate(n_elems, n_conds, elems_begin, conds_begin, r_process_info, rTLS)
         {
             // Assemble elements
-            if (mElementAssemblyFunctionIsSet) {
+            if (mpElementAssemblyFunction != nullptr) {
                 # pragma omp for schedule(guided, 512) nowait
                 for (int k = 0; k < n_elems; ++k) {
                     auto it_elem = elems_begin + k;
                     if (it_elem->IsActive()) {
                         // Calculate local RHS contributions
-                        mElementAssemblyFunction(it_elem, r_process_info, rTLS);
+                        (*mpElementAssemblyFunction)(it_elem, r_process_info, rTLS);
 
                         // Get the positions in the global system
                         auto& r_loc_eq_ids = GetThreadLocalStorageEqIds(rTLS);
@@ -402,13 +540,13 @@ private:
             }
 
             // Assemble conditions
-            if (mConditionAssemblyFunctionIsSet) {
+            if (mpConditionAssemblyFunction != nullptr) {
                 # pragma omp for schedule(guided, 512)
                 for (int k = 0; k < n_conds; ++k) {
                     auto it_cond = conds_begin + k;
                     if (it_cond->IsActive()) {
                         // Calculate local RHS contributions
-                        mConditionAssemblyFunction(it_cond, r_process_info, rTLS);
+                        (*mpConditionAssemblyFunction)(it_cond, r_process_info, rTLS);
 
                         // Get the positions in the global system
                         auto& r_loc_eq_ids = GetThreadLocalStorageEqIds(rTLS);
@@ -538,6 +676,38 @@ private:
     auto& GetThreadLocalStorageEqIds(const TThreadLocalStorage& rTLS)
     {
         return rTLS.LocalEqIds; // We can eventually do a get method in the TLS and call it in here
+    }
+
+    void ApplyBlockBuildDirichletConditions(
+        const DofsArrayType& rDofSet,
+        SystemMatrixType& rLHS,
+        SystemVectorType& rRHS) const
+    {
+        // Set the free DOFs vector (0 means fixed / 1 means free)
+        // Note that we initialize to 1 so we start assuming all free
+        // Also note that the type is uint_8 for the sake of efficiency
+        const SizeType system_size = rLHS.size1();
+        std::vector<uint8_t> free_dofs_vector(system_size, 1);
+
+        // Loop the DOFs to find which ones are fixed
+        // Note that DOFs are assumed to be numbered consecutively in the block building
+        const auto dof_begin = rDofSet.begin();
+        IndexPartition<std::size_t>(rDofSet.size()).for_each([&](IndexType Index){
+            auto it_dof = dof_begin + Index;
+            if (it_dof->IsFixed()) {
+                free_dofs_vector[Index] = 0;
+            }
+        });
+
+        //TODO: Implement this in the CSR matrix or here?
+        // // Detect if there is a line of all zeros and set the diagonal to a certain number if this happens (1 if not scale, some norms values otherwise)
+        // mScaleFactor = TSparseSpace::CheckAndCorrectZeroDiagonalValues(rModelPart.GetProcessInfo(), rA, rb, mScalingDiagonal);
+
+        // Get the diagonal scaling factor
+        const double diagonal_value = GetDiagonalScalingFactor(rLHS);
+
+        // Apply the free DOFs (i.e., fixity) vector to the system arrays
+        rLHS.ApplyHomogeneousDirichlet(free_dofs_vector, diagonal_value, rRHS);
     }
 
     ///@}

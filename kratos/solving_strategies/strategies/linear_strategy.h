@@ -496,8 +496,7 @@ public:
 
                 // Allocating the system vectors to their correct sizes
                 BuiltinTimer system_matrix_resize_time;
-                p_scheme->ResizeAndInitializeVectors(mpA, mpdx, mpb,
-                                                                 BaseType::GetModelPart());
+                p_scheme->ResizeAndInitializeVectors(mpA, mpdx, mpb);
                 KRATOS_INFO_IF("LinearStrategy", GetEchoLevel() > 0) << "System matrix resize time: " << system_matrix_resize_time << std::endl;
             }
             KRATOS_INFO_IF("LinearStrategy", GetEchoLevel() > 0) << "System construction time: " << system_construction_time << std::endl;
@@ -557,15 +556,14 @@ public:
             mpdx->SetValue(0.0);
             mpb->SetValue(0.0);
 
-
             p_scheme->Build(GetModelPart(), *mpA, *mpb);
-            //TODO: Call the Dirichlet BCs imposition here!!!!!
+            p_scheme->ApplyDirichletConditions(GetModelPart(), *mpA, *mpb);
+            //TODO: Call the linear solver to solve in here!!!!
+
 
             p_builder_and_solver->BuildAndSolve(p_scheme, BaseType::GetModelPart(), rA, rDx, rb);
             mStiffnessMatrixIsBuilt = true;
-        }
-        else
-        {
+        } else {
             TSparseSpace::SetToZero(rDx);
             TSparseSpace::SetToZero(rb);
             p_builder_and_solver->BuildRHSAndSolve(p_scheme, BaseType::GetModelPart(), rA, rDx, rb);

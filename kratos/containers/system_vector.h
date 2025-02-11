@@ -71,6 +71,8 @@ public:
     ///@name Life Cycle
     ///@{
 
+    SystemVector() = default;
+
     SystemVector(const SparseGraph<IndexType>& rGraph){
         mpComm = rGraph.pGetComm();
         mData.resize(rGraph.Size(),false);

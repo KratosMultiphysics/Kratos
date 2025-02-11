@@ -679,7 +679,7 @@ public:
         }
     }
 
-    double NormDiagonal()
+    double NormDiagonal() const
     {
         //TODO: Investigate why do we need the template keyword below
         const double diagonal_norm = IndexPartition<IndexType>(size1()).template for_each<SumReduction<double>>([&](IndexType Index) {
@@ -696,7 +696,7 @@ public:
         return std::sqrt(diagonal_norm);
     }
 
-    double MaxDiagonal()
+    double MaxDiagonal() const
     {
         //TODO: Investigate why do we need the template keyword below
         return IndexPartition<IndexType>(size1()).template for_each<MaxReduction<double>>([&](IndexType Index) {
@@ -711,7 +711,7 @@ public:
         });
     }
 
-    double MinDiagonal()
+    double MinDiagonal() const
     {
         //TODO: Investigate why do we need the template keyword below
         return IndexPartition<IndexType>(size1()).template for_each<MinReduction<double>>([&](IndexType Index) {
@@ -725,9 +725,6 @@ public:
             return std::numeric_limits<double>::max();
         });
     }
-
-    //TODO
-    //NormFrobenius
 
     ///@}
     ///@name Access
