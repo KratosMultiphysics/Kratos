@@ -34,6 +34,8 @@ class ApplyHydraulicInletProcess(KratosMultiphysics.Process):
 
         # Get the inlet model part , the inlet free surface (water depth) variable name and user tolerances.
         self.inlet_model_part = Model[settings["inlet_model_part_name"].GetString()]
+        self.main_model_part = Model[settings["main_model_part"].GetString()]
+
         variable_name =settings["water_depth_variable"].GetString()
         self.water_depth_variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
         self.critical_depth_tolerance = settings["critical_depth_tolerance"].GetDouble()
@@ -66,6 +68,8 @@ class ApplyHydraulicInletProcess(KratosMultiphysics.Process):
 
         # Get and check domain size
         self.domain_size = self.inlet_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        self.dt = self.inlet_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+
         if self.domain_size not in [2,3]:
             raise ValueError(f"Wrong 'DOMAIN_SIZE' value {self.domain_size} in ProcessInfo container.")
 
@@ -76,6 +80,7 @@ class ApplyHydraulicInletProcess(KratosMultiphysics.Process):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "inlet_model_part_name" : "",
+            "main_model_part":"",
             "value":{},
             "interval"        : [0.0,"End"],
             "water_depth_variable": "AUX_DISTANCE",
@@ -138,17 +143,20 @@ class ApplyHydraulicInletProcess(KratosMultiphysics.Process):
             KratosMultiphysics.Logger.PrintWarning("::[KratosFluidHydraulics]::", "Maximum iteractions for calculating critical water depth have been exceeded.")
 
         # Obtain the corresponding velocity according to the wetted area and the inlet discharge value.
+        # Critical Dis
         inlet_velocity = self.inlet_discharge/self.wetted_area
-
+        KratosFluidHydraulics.HydraulicFluidAuxiliaryUtilities.SetInletFreeSurface(self.inlet_model_part, KratosMultiphysics.INLET, self.water_depth_variable)
+        self._GetDistanceGradientProcess().Execute()
         # Assing the inlet velocity to inlet nodes and fix it.
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplexNonHistorical(self.inlet_model_part,self.domain_size,KratosFluidDynamics.INLET_NORMAL)
-        KratosFluidHydraulics.HydraulicFluidAuxiliaryUtilities.SetInletVelocity(
-            self.inlet_model_part, inlet_velocity, self.water_depth_variable)
+        KratosFluidHydraulics.HydraulicFluidAuxiliaryUtilities.AssignInletWaterDepth(self.inlet_model_part,inlet_velocity,self.dt)
+        self.new_wetted_area = KratosFluidHydraulics.HydraulicFluidAuxiliaryUtilities.CalculateWettedArea(self.inlet_model_part, KratosMultiphysics.INLET, self.water_depth_variable, False)
+        
+        inlet_velocity = self.inlet_discharge/self.wetted_area
+        KratosFluidHydraulics.HydraulicFluidAuxiliaryUtilities.SetInletVelocity(self.inlet_model_part, inlet_velocity, self.water_depth_variable)
 
         #Assign the identical value of the inlet water depth to the DISTANCE variable (free surface) for all nodes associated with the inlet model part.
-        KratosFluidHydraulics.HydraulicFluidAuxiliaryUtilities.SetInletFreeSurface(
-            self.inlet_model_part, KratosMultiphysics.INLET, self.water_depth_variable)
-
+        KratosFluidHydraulics.HydraulicFluidAuxiliaryUtilities.SetInletFreeSurface(self.inlet_model_part, KratosMultiphysics.INLET, self.water_depth_variable)
 
     def ExecuteFinalizeSolutionStep(self):
         # Here we free all of the nodes in the inlet
@@ -178,3 +186,16 @@ class ApplyHydraulicInletProcess(KratosMultiphysics.Process):
 
 
 
+    def _GetDistanceGradientProcess(self):
+        if not hasattr(self, '_distance_gradient_process'):
+            self._distance_gradient_process = self._CreateDistanceGradientProcess()
+        return self._distance_gradient_process
+
+    def _CreateDistanceGradientProcess(self):
+        distance_gradient_process = KratosMultiphysics.ComputeNodalGradientProcess(
+                self.main_model_part,
+                KratosMultiphysics.DISTANCE,
+                KratosMultiphysics.DISTANCE_GRADIENT,
+                KratosMultiphysics.NODAL_AREA)
+
+        return distance_gradient_process

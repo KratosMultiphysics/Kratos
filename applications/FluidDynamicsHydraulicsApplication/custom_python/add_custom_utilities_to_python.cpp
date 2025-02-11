@@ -46,6 +46,8 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
                     { return HydraulicFluidAuxiliaryUtilities::FixingInflow(rModelPart, rVariable, DomainSize); })
         .def_static("ImposeOutletPressure", [](ModelPart &rModelPart, double WaterDepth, const Variable<double> &rDistanceVariable)
                     { return HydraulicFluidAuxiliaryUtilities::ImposeOutletPressure(rModelPart, WaterDepth, rDistanceVariable); })
+        .def_static("AssignInletWaterDepth", [](ModelPart &rModelPart, double InletVelocity, double DeltaTime)
+                    { return HydraulicFluidAuxiliaryUtilities::AssignInletWaterDepth(rModelPart, InletVelocity, DeltaTime); })
         .def_static("SetBoundaryWaterDepth", [](ModelPart &rModelPart, double WaterDepth, const Variable<double> &rDistanceVariable)
                     { return HydraulicFluidAuxiliaryUtilities::SetBoundaryWaterDepth(rModelPart, WaterDepth, rDistanceVariable); });
 }

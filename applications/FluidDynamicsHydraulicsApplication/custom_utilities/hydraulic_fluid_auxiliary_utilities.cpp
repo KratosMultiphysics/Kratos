@@ -277,12 +277,13 @@ void HydraulicFluidAuxiliaryUtilities::SetInletVelocity(
         }
         else{
             // The air velocity in the inlet node is assumed to be null.
-            double alpha = (3.5-rNode.GetValue(rDistanceVariable))/3.5;
+            // double alpha = (3.5-rNode.GetValue(rDistanceVariable))/3.5;
 
 
-            rNode.FastGetSolutionStepValue(VELOCITY) = alpha*inlet_velocity;
-            // rNode.FastGetSolutionStepValue(VELOCITY_Y) = 0.0;
-            // rNode.FastGetSolutionStepValue(VELOCITY_Z) = 0.0;
+            // rNode.FastGetSolutionStepValue(VELOCITY) = alpha*inlet_velocity;
+            rNode.FastGetSolutionStepValue(VELOCITY_X) = 0.0;
+            rNode.FastGetSolutionStepValue(VELOCITY_Y) = 0.0;
+            rNode.FastGetSolutionStepValue(VELOCITY_Z) = 0.0;
             rNode.Fix(VELOCITY_X);
             rNode.Fix(VELOCITY_Y);
             rNode.Fix(VELOCITY_Z);
@@ -296,7 +297,7 @@ void HydraulicFluidAuxiliaryUtilities::FreeInlet(ModelPart& rModelPart)
         rNode.Free(VELOCITY_X);
         rNode.Free(VELOCITY_Y);
         rNode.Free(VELOCITY_Z);
-        rNode.Free(DISTANCE);
+        // rNode.Free(DISTANCE);
     });
 }
 void HydraulicFluidAuxiliaryUtilities::SetInletFreeSurface(ModelPart &rModelPart, const Flags &rSkinFlag,  const Variable<double> &rDistanceVariable)
@@ -445,5 +446,51 @@ void HydraulicFluidAuxiliaryUtilities::SetBoundaryWaterDepth(ModelPart &rModelPa
     double phi = rNode.Z() - WaterDepth;
     rNode.SetValue(rDistanceVariable, phi);
     }); }
+
+
+void HydraulicFluidAuxiliaryUtilities::AssignInletWaterDepth(ModelPart &rModelPart,double InletVelocity,double DeltaTime){
+
+    //  Projected Velocity 
+    struct AuxTLS
+    {
+        array_1d<double,3> InletNorm;
+        array_1d<double,3> InletVelocity;
+    };
+
+    block_for_each(rModelPart.Nodes(), AuxTLS(), [&](NodeType &rNode, AuxTLS &rTLS)
+    {
+        // Get TLS variables
+        auto& inlet_norm = rTLS.InletNorm;
+        auto& inlet_velocity = rTLS.InletVelocity;
+
+        inlet_norm = rNode.GetValue(INLET_NORMAL);
+
+        const double n_norm = norm_2(inlet_norm);
+       
+        if (n_norm > 1.0e-12)
+        {
+            inlet_norm /= -n_norm;
+        }
+        else
+        {
+            KRATOS_WARNING("SetInletVelocity") << "Node " << rNode.Id() << " INLET_NORMAL is close to zero." << std::endl;
+            inlet_norm /= -1.0;
+        }
+        //  Inlet velocity vector.
+        inlet_velocity = inlet_norm * InletVelocity;
+        array_1d<double,3> n = inlet_velocity/norm_2(inlet_velocity);
+        array_1d<double,3> grad_phi = rNode.FastGetSolutionStepValue(DISTANCE_GRADIENT);
+        double aux = inner_prod(n,grad_phi);
+        if (aux >0.0){
+            double phi = rNode.GetValue(AUX_DISTANCE);
+            double grad_phi_norm = norm_2(grad_phi);
+            double phi_new = phi + grad_phi_norm*InletVelocity*DeltaTime;
+
+            rNode.SetValue(AUX_DISTANCE,phi_new);
+        };
+  
+
+    });
+}
 
 } // namespace Kratos
