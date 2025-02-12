@@ -307,8 +307,9 @@ void HydraulicFluidAuxiliaryUtilities::SetInletFreeSurface(ModelPart &rModelPart
     });
 }
 
-void HydraulicFluidAuxiliaryUtilities::CalculateArtificialViscosity(ModelPart &rModelPart,
-    double WaterDynamicViscosityMax)
+void HydraulicFluidAuxiliaryUtilities::CalculateNonIntersectedElementsArtificialViscosity(
+    ModelPart &rModelPart,
+    double DynamicViscosityMax)
     {   
     const auto &r_process_info = rModelPart.GetProcessInfo();
     block_for_each(rModelPart.Elements(), [&](Element &rElement)
@@ -339,9 +340,9 @@ void HydraulicFluidAuxiliaryUtilities::CalculateArtificialViscosity(ModelPart &r
         {
             // If the element is NOT cut, the artificial viscosity is calculated.
             rElement.Calculate(ARTIFICIAL_DYNAMIC_VISCOSITY,artificial_viscosity ,r_process_info);
-            if (artificial_viscosity > WaterDynamicViscosityMax)
+            if (artificial_viscosity > DynamicViscosityMax)
             {
-                artificial_viscosity = WaterDynamicViscosityMax;
+                artificial_viscosity = DynamicViscosityMax;
             }
         }
         rElement.SetValue(ARTIFICIAL_DYNAMIC_VISCOSITY, artificial_viscosity);

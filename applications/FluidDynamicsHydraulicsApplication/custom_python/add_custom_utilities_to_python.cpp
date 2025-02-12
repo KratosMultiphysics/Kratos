@@ -32,7 +32,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("SetInletVelocity", [](ModelPart &rModelPart, double InletVelocity, const Variable<double> &rDistanceVariable){return HydraulicFluidAuxiliaryUtilities::SetInletVelocity(rModelPart, InletVelocity, rDistanceVariable);})
         .def_static("FreeInlet", [](ModelPart &rModelPart){return HydraulicFluidAuxiliaryUtilities::FreeInlet(rModelPart);})
         .def_static("SetInletFreeSurface", [](ModelPart &rModelPart, const Flags &rSkinFlag, const Variable<double> &rDistanceVariable){return HydraulicFluidAuxiliaryUtilities::SetInletFreeSurface(rModelPart, rSkinFlag, rDistanceVariable);})
-        .def_static("CalculateArtificialViscosity", [](ModelPart &rModelPart, double WaterDynamicViscosityMax){ return HydraulicFluidAuxiliaryUtilities::CalculateArtificialViscosity(rModelPart, WaterDynamicViscosityMax); })
+        .def_static("CalculateNonIntersectedElementsArtificialViscosity", [](ModelPart &rModelPart, double DynamicViscosityMax){ return HydraulicFluidAuxiliaryUtilities::CalculateNonIntersectedElementsArtificialViscosity(rModelPart, DynamicViscosityMax); })
         .def_static("ApplyOutletInflowLimiter", [](ModelPart &rModelPart,Variable<array_1d<double, 3>>& rVariable,Variable<array_1d<double, 3>>& rVariableNormal){ return HydraulicFluidAuxiliaryUtilities::ApplyOutletInflowLimiter(rModelPart, rVariable, rVariableNormal); });
 }
 
