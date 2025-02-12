@@ -22,11 +22,11 @@ namespace
 using namespace Kratos;
 using namespace Kratos::Testing;
 
-void AssertNodesHaveCorrectValueAndFixity(double expected_value, bool expected_fixity, const ModelPart& rModelPart)
+void AssertNodesHaveCorrectValueAndFixity(double ExpectedValue, bool ExpectedFixity, const ModelPart::NodesContainerType& rNodes)
 {
-    for (const auto& r_node : rModelPart.Nodes()) {
-        KRATOS_EXPECT_EQ(r_node.IsFixed(DISPLACEMENT_X), expected_fixity);
-        KRATOS_EXPECT_EQ(r_node.FastGetSolutionStepValue(DISPLACEMENT_X), expected_value);
+    for (const auto& r_node : rNodes) {
+        KRATOS_EXPECT_EQ(r_node.IsFixed(DISPLACEMENT_X), ExpectedFixity);
+        KRATOS_EXPECT_DOUBLE_EQ(r_node.FastGetSolutionStepValue(DISPLACEMENT_X), ExpectedValue);
     }
 }
 
@@ -77,7 +77,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_FreesDoFAfterFinaliz
     constexpr double expected_value =
         0.5; // Same as the initial value, since we have not initialized any solution step
     constexpr bool expected_fixity = false;
-    AssertNodesHaveCorrectValueAndFixity(expected_value, expected_fixity, r_model_part);
+    AssertNodesHaveCorrectValueAndFixity(expected_value, expected_fixity, r_model_part.Nodes());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_AppliesCorrectValuesThroughTime_ForDoubleVariable,
@@ -98,31 +98,31 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_AppliesCorrectValues
           "variable_name":   "DISPLACEMENT_X",
           "is_fixed":        true,
           "table":           1,
-          "value":           0.5
+          "value":           0.3
       }  )");
 
     ApplyScalarConstraintTableProcess process(r_model_part, parameters);
 
     // Act & Assert
     process.ExecuteInitialize();
-    double expected_value = 0.5; // Initial value, since we haven't initialized a solution step
+    double expected_value = 0.3; // Initial value, since we haven't initialized a solution step
     constexpr bool expected_fixity = true;
-    AssertNodesHaveCorrectValueAndFixity(expected_value, expected_fixity, r_model_part);
+    AssertNodesHaveCorrectValueAndFixity(expected_value, expected_fixity, r_model_part.Nodes());
 
     r_model_part.GetProcessInfo()[TIME] = 0.5;
     process.ExecuteInitializeSolutionStep();
     expected_value = 1.0;
-    AssertNodesHaveCorrectValueAndFixity(expected_value, expected_fixity, r_model_part);
+    AssertNodesHaveCorrectValueAndFixity(expected_value, expected_fixity, r_model_part.Nodes());
 
     r_model_part.GetProcessInfo()[TIME] = 0.8;
     process.ExecuteInitializeSolutionStep();
     expected_value = 1.3;
-    AssertNodesHaveCorrectValueAndFixity(expected_value, expected_fixity, r_model_part);
+    AssertNodesHaveCorrectValueAndFixity(expected_value, expected_fixity, r_model_part.Nodes());
 
     r_model_part.GetProcessInfo()[TIME] = 2.0;
     process.ExecuteInitializeSolutionStep();
     expected_value = 2.5; // Extrapolated value
-    AssertNodesHaveCorrectValueAndFixity(expected_value, expected_fixity, r_model_part);
+    AssertNodesHaveCorrectValueAndFixity(expected_value, expected_fixity, r_model_part.Nodes());
 }
 
 } // namespace Kratos::Testing
