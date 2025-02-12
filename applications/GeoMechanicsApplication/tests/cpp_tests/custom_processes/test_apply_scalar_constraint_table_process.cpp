@@ -22,7 +22,9 @@ namespace
 using namespace Kratos;
 using namespace Kratos::Testing;
 
-void AssertNodesHaveCorrectValueAndFixity(double ExpectedValue, bool ExpectedFixity, const ModelPart::NodesContainerType& rNodes)
+void AssertNodesHaveCorrectValueAndFixity(double                               ExpectedValue,
+                                          bool                                 ExpectedFixity,
+                                          const ModelPart::NodesContainerType& rNodes)
 {
     for (const auto& r_node : rNodes) {
         KRATOS_EXPECT_EQ(r_node.IsFixed(DISPLACEMENT_X), ExpectedFixity);
