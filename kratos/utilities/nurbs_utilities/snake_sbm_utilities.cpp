@@ -489,7 +489,6 @@ namespace Kratos
         Properties::Pointer p_cond_prop = rSurrogateModelPartInner.pGetProperties(0);
         
         // Direction parallel to x
-        bool knotSpansIsActive = true;
         IndexType idSurrogateCondition = rSurrogateModelPartInner.GetRootModelPart().NumberOfConditions() + 1;
         for (int j = 0; j < nKnotSpans[1]; j++) {
             bool checkNextPoint = false;
@@ -674,8 +673,7 @@ namespace Kratos
         }
         
         // Direction parallel to x
-        bool knotSpansIsActive = true;
-        
+       
         IndexType idSurrogateCondition = rSurrogateModelPartOuter.GetRootModelPart().NumberOfConditions() + 1;
         Properties::Pointer p_cond_prop = rSurrogateModelPartOuter.pGetProperties(0);
         
