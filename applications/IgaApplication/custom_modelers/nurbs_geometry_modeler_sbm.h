@@ -7,71 +7,69 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Manuel Messmer
+//  Main authors:    Nicolo' Antonelli
+//                   Andrea Gorgi
 //
 
-#if !defined(KRATOS_NURBS_GEOMETRY_MODELER_H_INCLUDED )
-#define  KRATOS_NURBS_GEOMETRY_MODELER_H_INCLUDED
+# pragma once
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "includes/model_part.h"
-#include "modeler/modeler.h"
-#include "geometries/nurbs_volume_geometry.h"
-#include "geometries/nurbs_surface_geometry.h"
-#include "geometries/nurbs_shape_function_utilities/nurbs_surface_refinement_utilities.h"
+#include "nurbs_geometry_modeler.h"
 
 namespace Kratos {
 
-class KRATOS_API(IGA_APPLICATION) NurbsGeometryModeler
-    : public Modeler
+class KRATOS_API(IGA_APPLICATION) NurbsGeometryModelerSbm
+    : public NurbsGeometryModeler
 {
 public:
     ///@name Type Definitions
     ///@{
-    KRATOS_CLASS_POINTER_DEFINITION( NurbsGeometryModeler );
+    KRATOS_CLASS_POINTER_DEFINITION( NurbsGeometryModelerSbm );
 
-    typedef std::size_t IndexType;
-    typedef std::size_t SizeType;
-    typedef Node NodeType;
+    using IndexType = std::size_t;
+    using SizeType = std::size_t;
+    using NodeType = Node;
 
-    typedef Geometry<NodeType> GeometryType;
-    typedef typename GeometryType::Pointer GeometryPointerType;
+    using GeometryType = Geometry<NodeType>;
+    using GeometryPointerType = GeometryType::Pointer;
 
-    typedef NurbsSurfaceGeometry<3, PointerVector<NodeType>> NurbsSurfaceGeometryType;
-    typedef typename NurbsSurfaceGeometryType::Pointer NurbsSurfaceGeometryPointerType;
+    using NurbsSurfaceGeometryType = NurbsSurfaceGeometry<3, PointerVector<NodeType>>;
+    using NurbsSurfaceGeometryPointerType = NurbsSurfaceGeometryType::Pointer;
 
-    typedef NurbsVolumeGeometry<PointerVector<NodeType>> NurbsVolumeGeometryType;
-    typedef typename NurbsVolumeGeometryType::Pointer NurbsVolumeGeometryPointerType;
+    using NurbsVolumeGeometryType = NurbsVolumeGeometry<PointerVector<NodeType>>;
+    using NurbsVolumeGeometryPointerType = NurbsVolumeGeometryType::Pointer;
 
+    using ContainerNodeType = PointerVector<Node>;
+    using ContainerEmbeddedNodeType = PointerVector<Point>;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    NurbsGeometryModeler()
-        : Modeler() {}
+    NurbsGeometryModelerSbm()
+        : NurbsGeometryModeler() {}
 
     /// Constructor.
-    NurbsGeometryModeler(
+    NurbsGeometryModelerSbm(
         Model & rModel,
         const Parameters ModelerParameters = Parameters())
-        : Modeler(rModel, ModelerParameters)
+        : NurbsGeometryModeler(rModel, ModelerParameters)
         , mpModel(&rModel)
     {
     }
 
     /// Destructor.
-    ~NurbsGeometryModeler() = default;
+    ~NurbsGeometryModelerSbm() = default;
 
     /// Creates the Modeler Pointer
     Modeler::Pointer Create(Model& rModel, const Parameters ModelParameters) const override
     {
-        return Kratos::make_shared<NurbsGeometryModeler>(rModel, ModelParameters);
+        return Kratos::make_shared<NurbsGeometryModelerSbm>(rModel, ModelParameters);
     }
 
     ///@}
@@ -83,7 +81,6 @@ public:
     ///@}
 
 protected:
-///@{
 
     /**
      * @brief Creates a regular grid composed out of bivariant B-splines.
@@ -93,18 +90,11 @@ protected:
      * @param NumKnotSpans Number of equidistant elements/knot spans in each direction u,v.
      * @note The CP'S are defined as nodes and added to the rModelPart.
      **/
-    virtual void CreateAndAddRegularGrid2D( ModelPart& r_model_part, const Point& A_xyz, const Point& B_xyz, const Point& A_uvw, const Point& B_uvw,
-        SizeType OrderU, SizeType OrderV, SizeType NumKnotSpansU, SizeType NumKnotSpansV, bool add_surface_to_model_part = true);
-
-    NurbsSurfaceGeometryPointerType mpSurface;
-
-    Vector mKnotVectorU;
-    Vector mKnotVectorV;
-    std::vector<double> mInsertKnotsU;
-    std::vector<double> mInsertKnotsV;
-    
+    void CreateAndAddRegularGrid2D( ModelPart& r_model_part, const Point& A_xyz, const Point& B_xyz, const Point& A_uvw, const Point& B_uvw,
+        SizeType OrderU, SizeType OrderV, SizeType NumKnotSpansU, SizeType NumKnotSpansV, bool add_surface_to_model_part ) override;
 
 private:
+
     ///@name Private Member Variables
     ///@{
 
@@ -112,7 +102,7 @@ private:
 
     ///@}
     ///@name Private Operations
-    
+    ///@{
 
     /**
      * @brief Creates a cartesian grid composed out of trivariant B-spline cubes.
@@ -125,7 +115,7 @@ private:
     void CreateAndAddRegularGrid3D( ModelPart& r_model_part, const Point& A_xyz, const Point& B_xyz, const Point& A_uvw, const Point& B_uvw,
        SizeType OrderU, SizeType OrderV, SizeType OrderW, SizeType NumKnotSpansU, SizeType NumKnotSpansV, SizeType NumKnotSpansW );
 
+    Parameters ReadParamatersFile(const std::string& rDataFileName) const;   
 };
 
 } // End namesapce Kratos
-#endif // KRATOS_NURBS_GEOMETRY_MODELER_H_INCLUDED
