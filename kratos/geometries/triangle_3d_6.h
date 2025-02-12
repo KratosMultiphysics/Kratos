@@ -618,6 +618,12 @@ public:
     ///@name Input and output
     ///@{
 
+    /// @copydoc Geometry::Name
+    std::string Name() const override
+    {
+        return "Triangle3D6N";
+    }
+
     /**
      * Turn back information as a string.
      *
@@ -915,6 +921,24 @@ public:
         return rResult;
     }
 
+    /**
+     * @brief Returns the local coordinates of a given arbitrary point
+     * @param rResult The vector containing the local coordinates of the point
+     * @param rPoint The point in global coordinates
+     * @return The vector containing the local coordinates of the point
+     */
+    CoordinatesArrayType& PointLocalCoordinates(
+        CoordinatesArrayType& rResult,
+        const CoordinatesArrayType& rPoint
+        ) const override
+    {
+        if (this->EdgesAreStraight()) {
+            return GeometryUtils::PointLocalCoordinatesStraightEdgesTriangle(*this, rResult, rPoint);
+        } else {
+            return BaseType::PointLocalCoordinates( rResult, rPoint );
+        }
+    }
+
     ///@}
     ///@name Friends
     ///@{
@@ -1109,6 +1133,61 @@ private:
             }
         };
         return shape_functions_local_gradients;
+    }
+
+    /** This method gives all shape functions values
+     * evaluated at the rCoordinates provided
+     * @return Vector of values of shape functions \f$ F_{i} \f$
+     * where i is the shape function index (for NURBS it is the index
+     * of the local enumeration in the element).
+     *
+     * @see ShapeFunctionValue
+     * @see ShapeFunctionsLocalGradients
+     * @see ShapeFunctionLocalGradient
+     */
+    Vector& ShapeFunctionsValues (
+        Vector &rResult,
+        const CoordinatesArrayType& rCoordinates) const override
+    {
+        if(rResult.size() != 6) {
+            rResult.resize(6, false);
+        }
+
+        const double xi = rCoordinates[0];
+        const double eta = rCoordinates[1];
+        const double zeta = 1.0 - xi - eta;
+
+        rResult[0] = zeta * (2.0 * zeta - 1.0);
+        rResult[1] = xi * (2.0 * xi - 1.0);
+        rResult[2] = eta * (2.0 * eta - 1.0);
+        rResult[3] = 4.0 * xi * zeta;
+        rResult[4] = 4.0 * xi * eta;
+        rResult[5] = 4.0 * eta * zeta;
+
+        return rResult;
+    }
+
+
+    /**
+     * @brief Checks if edges are straight. We iterate though all edges
+     * and check that the sum of 0-2 and 2-1 segments is no bigger than 0-1.
+     * @return bool edges are straight or not
+     */
+    bool EdgesAreStraight() const
+    {
+        constexpr double tol = 1e-6;
+        constexpr std::array<std::array<size_t, 3>, 3> edges{
+            {{0, 1, 3}, {1, 2, 4}, {2, 0, 5}}};
+        const auto& r_points = this->Points();
+        for (const auto& r_edge : edges) {
+            const double a = MathUtils<double>::Norm3(r_points[r_edge[0]] - r_points[r_edge[1]]);
+            const double b = MathUtils<double>::Norm3(r_points[r_edge[1]] - r_points[r_edge[2]]);
+            const double c = MathUtils<double>::Norm3(r_points[r_edge[2]] - r_points[r_edge[0]]);
+            if (b + c > a*(1.0+tol) ) {
+                return false;
+            }
+        }
+        return true;
     }
 
     ///@}

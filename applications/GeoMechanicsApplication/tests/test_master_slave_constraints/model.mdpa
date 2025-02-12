@@ -1,0 +1,102 @@
+Begin Properties 0
+End Properties
+
+
+Begin Nodes
+  1  0.0000000000 0.0000000000 0.0000000000
+  2  2.0000000000 0.0000000000 0.0000000000
+  3  2.0000000000 2.0000000000 0.0000000000
+  4  0.0000000000 2.0000000000 0.0000000000
+  5  2.0000000000 0.0000000000 0.0000000000
+  6  4.0000000000 0.0000000000 0.0000000000
+  7  4.0000000000 2.0000000000 0.0000000000
+  8  2.0000000000 2.0000000000 0.0000000000
+End Nodes
+
+
+Begin Elements UPwSmallStrainElement2D4N
+  1  0   1  2  3  4
+  2  0   5  6  7  8
+End Elements
+
+
+Begin Conditions UPwNormalFaceLoadCondition2D2N
+  1  0  6  7
+End Conditions
+
+
+Begin SubModelPart Soil
+  Begin SubModelPartNodes
+    1
+    2
+    3
+    4
+    5
+    6
+    7
+    8
+  End SubModelPartNodes
+  Begin SubModelPartElements
+    1
+    2
+  End SubModelPartElements
+End SubModelPart
+
+
+Begin SubModelPart GroundwaterDomain
+  Begin SubModelPartNodes
+    1
+    2
+    3
+    4
+    5
+    6
+    7
+    8
+  End SubModelPartNodes
+  Begin SubModelPartElements
+    1
+    2
+  End SubModelPartElements
+End SubModelPart
+
+
+Begin SubModelPart FixedNode
+  Begin SubModelPartNodes
+    1
+  End SubModelPartNodes
+End SubModelPart
+
+
+Begin SubModelPart SlidingNode
+  Begin SubModelPartNodes
+    4
+  End SubModelPartNodes
+End SubModelPart
+
+
+Begin SubModelPart LoadedSide
+  Begin SubModelPartNodes
+    6
+    7
+  End SubModelPartNodes
+  Begin SubModelPartConditions
+    1
+  End SubModelPartConditions
+End SubModelPart
+
+
+Begin SubModelPart MasterSide
+  Begin SubModelPartNodes
+    2
+    3
+  End SubModelPartNodes
+End SubModelPart
+
+
+Begin SubModelPart SlaveSide
+  Begin SubModelPartNodes
+    5
+    8
+  End SubModelPartNodes
+End SubModelPart

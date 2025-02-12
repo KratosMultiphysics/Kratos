@@ -939,55 +939,7 @@ public:
         const CoordinatesArrayType& rPoint
         ) const override
     {
-        // Initialize
-        noalias(rResult) = ZeroVector(3);
-
-        // Tangent vectors
-        array_1d<double, 3> tangent_xi  = this->GetPoint(1) - this->GetPoint(0);
-        tangent_xi /= norm_2(tangent_xi);
-        array_1d<double, 3> tangent_eta = this->GetPoint(2) - this->GetPoint(0);
-        tangent_eta /= norm_2(tangent_eta);
-
-        // The center of the geometry
-        const auto center = this->Center();
-
-        // Computation of the rotation matrix
-        BoundedMatrix<double, 3, 3> rotation_matrix = ZeroMatrix(3, 3);
-        for (IndexType i = 0; i < 3; ++i) {
-            rotation_matrix(0, i) = tangent_xi[i];
-            rotation_matrix(1, i) = tangent_eta[i];
-        }
-
-        // Destination point rotated
-        CoordinatesArrayType aux_point_to_rotate, destination_point_rotated;
-        noalias(aux_point_to_rotate) = rPoint - center.Coordinates();
-        noalias(destination_point_rotated) = prod(rotation_matrix, aux_point_to_rotate) + center.Coordinates();
-
-        // Points of the geometry
-        array_1d<CoordinatesArrayType, 3> points_rotated;
-        for (IndexType i = 0; i < 3; ++i) {
-            noalias(aux_point_to_rotate) = this->GetPoint(i).Coordinates() - center.Coordinates();
-            noalias(points_rotated[i]) = prod(rotation_matrix, aux_point_to_rotate) + center.Coordinates();
-        }
-
-        // Compute the Jacobian matrix and its determinant
-        BoundedMatrix<double, 2, 2> J;
-        J(0,0) = points_rotated[1][0] - points_rotated[0][0];
-        J(0,1) = points_rotated[2][0] - points_rotated[0][0];
-        J(1,0) = points_rotated[1][1] - points_rotated[0][1];
-        J(1,1) = points_rotated[2][1] - points_rotated[0][1];
-        const double det_J = J(0,0)*J(1,1) - J(0,1)*J(1,0);
-
-        // Compute eta and xi
-        const double eta = (J(1,0)*(points_rotated[0][0] - destination_point_rotated[0]) +
-                            J(0,0)*(destination_point_rotated[1] - points_rotated[0][1])) / det_J;
-        const double xi  = (J(1,1)*(destination_point_rotated[0] - points_rotated[0][0]) +
-                            J(0,1)*(points_rotated[0][1] - destination_point_rotated[1])) / det_J;
-
-        rResult(0) = xi;
-        rResult(1) = eta;
-
-        return rResult;
+        return GeometryUtils::PointLocalCoordinatesStraightEdgesTriangle(*this, rResult, rPoint);
     }
 
     ///@}
@@ -1530,6 +1482,12 @@ public:
     ///@}
     ///@name Input and output
     ///@{
+
+    /// @copydoc Geometry::Name
+    std::string Name() const override
+    {
+        return "Triangle3D3N";
+    }
 
     /**
      * Turn back information as a string.

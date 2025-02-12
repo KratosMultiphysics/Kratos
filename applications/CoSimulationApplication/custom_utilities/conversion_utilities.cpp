@@ -121,7 +121,9 @@ void ConversionUtilities::ConvertNodalDataToElementalDataDirect(
             for (const auto& r_node : rElement.GetGeometry().Points()){
                 temp += r_node.FastGetSolutionStepValue(rNodalVariable) / num_nodes;
             }
+            rElement.SetValue(rElementalVariable, temp);
         }
+        
         else {
                 static_assert(!std::is_same_v<TDataType, TDataType>, "Unsupported data type.");
             }
@@ -170,6 +172,7 @@ void ConversionUtilities::ConvertNodalDataToElementalDataTranspose(
             }
             rElement.SetValue(rElementalVariable, temp);
         }
+        
         else {
                 static_assert(!std::is_same_v<TDataType, TDataType>, "Unsupported data type.");
             }
