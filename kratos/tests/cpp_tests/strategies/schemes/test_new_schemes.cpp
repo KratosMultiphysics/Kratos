@@ -164,36 +164,28 @@ KRATOS_TEST_CASE_IN_SUITE(NewScheme, KratosCoreFastSuite)
 
     // Create the scheme
     Parameters scheme_settings = Parameters(R"({
-        "build_type" : "block",
+        "build_settings" : {
+            "build_type" : "block"
+        },
         "echo_level" : 2
     })");
-    auto p_scheme = Kratos::make_unique<NewScheme<>>(scheme_settings);
+    auto p_scheme = Kratos::make_unique<NewScheme<>>(r_test_model_part, scheme_settings);
 
     // Create the DOF set and set the global ids
-    p_scheme->SetUpDofArray(r_test_model_part);
-    p_scheme->SetUpSystem(r_test_model_part);
+    // Note that in a standard case this happens at the strategy level
+    ModelPart::DofsArrayType dof_set;
+    p_scheme->SetUpDofArray(dof_set);
+    p_scheme->SetUpSystem(dof_set);
 
     // Set up the matrix graph and arrays
     // Note that in a standard case this happens at the strategy level
-    SparseGraph<> sparse_graph;
-    Element::EquationIdVectorType eq_ids;
-    for (auto& r_elem : r_test_model_part.Elements()) {
-        r_elem.EquationIdVector(eq_ids, r_test_model_part.GetProcessInfo());
-        sparse_graph.AddEntries(eq_ids);
-    }
-    for (auto& r_cond : r_test_model_part.Conditions()) {
-        r_cond.EquationIdVector(eq_ids, r_test_model_part.GetProcessInfo());
-        sparse_graph.AddEntries(eq_ids);
-    }
-    auto p_dx = Kratos::make_shared<NewScheme<>::SystemVectorType>(sparse_graph);
-    auto p_rhs = Kratos::make_shared<NewScheme<>::SystemVectorType>(sparse_graph);
-    auto p_lhs = Kratos::make_shared<NewScheme<>::SystemMatrixType>(sparse_graph);
-
-    // Initialize the global system arrays
-    p_scheme->ResizeAndInitializeVectors(r_test_model_part, p_lhs, p_dx, p_rhs);
+    auto p_dx = Kratos::make_shared<NewScheme<>::SystemVectorType>();
+    auto p_rhs = Kratos::make_shared<NewScheme<>::SystemVectorType>();
+    auto p_lhs = Kratos::make_shared<NewScheme<>::SystemMatrixType>();
+    p_scheme->ResizeAndInitializeVectors(p_lhs, p_dx, p_rhs);
 
     // Call the build
-    p_scheme->Build(r_test_model_part, *p_lhs, *p_rhs);
+    p_scheme->Build(*p_lhs, *p_rhs);
 
     // Check resultant matrices
     const double tol = 1.0e-12;

@@ -61,12 +61,17 @@ class CsrMatrix final
 public:
     ///@name Type Definitions
     ///@{
-    typedef TIndexType IndexType;
-    typedef std::unordered_map<std::pair<IndexType, IndexType>,
-            double,
-            PairHasher<IndexType, IndexType>,
-            PairComparor<IndexType, IndexType>
-            > MatrixMapType;
+
+    using DataType = TDataType;
+
+    using IndexType = TIndexType;
+
+    using MatrixMapType = std::unordered_map<
+        std::pair<IndexType, IndexType>,
+        double,
+        PairHasher<IndexType, IndexType>,
+        PairComparor<IndexType, IndexType>
+        >;
 
     /// Pointer definition of CsrMatrix
     KRATOS_CLASS_POINTER_DEFINITION(CsrMatrix);
@@ -124,7 +129,7 @@ public:
             IndexType J = item.first.second;
             TDataType value = item.second;
             this->AssembleEntry(value,I,J);
-        }        
+        }
         this->FinalizeAssemble();
     }
 
@@ -369,8 +374,6 @@ public:
         mValuesVector = Kratos::span<TDataType>(mpValuesVectorData, DataSize);
     }
 
-
-
     void CheckColSize()
     {
         IndexType max_col = 0;
@@ -543,7 +546,6 @@ public:
 
     void FinalizeAssemble() {} //the SMP version does nothing. This function is there to be implemented in the MPI case
 
-
     template<class TMatrixType, class TIndexVectorType >
     void Assemble(
         const TMatrixType& rMatrixInput,
@@ -677,8 +679,52 @@ public:
         }
     }
 
-    //TODO
-    //NormFrobenius
+    double NormDiagonal() const
+    {
+        //TODO: Investigate why do we need the template keyword below
+        const double diagonal_norm = IndexPartition<IndexType>(size1()).template for_each<SumReduction<double>>([&](IndexType Index) {
+            const IndexType row_begin = index1_data()[Index];
+            const IndexType row_end = index1_data()[Index+1];
+            for (IndexType j = row_begin; j < row_end; ++j) {
+                if (index2_data()[j] == Index) {
+                    return std::pow(value_data()[j], 2);
+                }
+            }
+            return 0.0;
+        });
+
+        return std::sqrt(diagonal_norm);
+    }
+
+    double MaxDiagonal() const
+    {
+        //TODO: Investigate why do we need the template keyword below
+        return IndexPartition<IndexType>(size1()).template for_each<MaxReduction<double>>([&](IndexType Index) {
+            const IndexType row_begin = index1_data()[Index];
+            const IndexType row_end = index1_data()[Index+1];
+            for (IndexType j = row_begin; j < row_end; ++j) {
+                if (index2_data()[j] == Index) {
+                    return std::abs(value_data()[j]);
+                }
+            }
+            return std::numeric_limits<double>::lowest();
+        });
+    }
+
+    double MinDiagonal() const
+    {
+        //TODO: Investigate why do we need the template keyword below
+        return IndexPartition<IndexType>(size1()).template for_each<MinReduction<double>>([&](IndexType Index) {
+            const IndexType row_begin = index1_data()[Index];
+            const IndexType row_end = index1_data()[Index+1];
+            for (IndexType j = row_begin; j < row_end; ++j) {
+                if (index2_data()[j] == Index) {
+                    return std::abs(value_data()[j]);
+                }
+            }
+            return std::numeric_limits<double>::max();
+        });
+    }
 
     ///@}
     ///@name Access

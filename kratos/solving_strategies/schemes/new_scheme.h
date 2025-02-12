@@ -18,11 +18,11 @@
 
 // Project includes
 #include "containers/csr_matrix.h"
-#include "containers/sparse_graph.h"
 #include "containers/system_vector.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "utilities/builtin_timer.h"
+#include "utilities/dof_utilities/assembly_helper.h" //TODO: we should move this to somewhere else
 #include "utilities/dof_utilities/block_build_dof_array_utility.h"
 #include "utilities/dof_utilities/elimination_build_dof_array_utility.h"
 #include "utilities/entities_utilities.h"
@@ -55,10 +55,15 @@ namespace Kratos
  * @author Ruben Zorrilla
  */
 //TODO: Think about the template parameters
-template<class TDataType = double, class TIndexType=std::size_t, class TMatrixType=CsrMatrix<TDataType, TIndexType>, class TVectorType=SystemVector<TDataType, TIndexType>>
+template<class TMatrixType=CsrMatrix<>, class TVectorType=SystemVector<>>
 class NewScheme
 {
 public:
+    // FIXME: Does not work... ask @Charlie
+    // /// Add scheme to Kratos registry
+    // KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Schemes.KratosMultiphysics", NewScheme, NewScheme, TMatrixType, TVectorType)
+    // KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Schemes.All", NewScheme, NewScheme, TMatrixType, TVectorType)
+
     ///@name Type Definitions
     ///@{
 
@@ -70,17 +75,39 @@ public:
     KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Schemes.KratosMultiphysics", BaseType, BaseType, TDataType, TIndexType, TMatrixType, TVectorType)
     KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Schemes.All", BaseType, BaseType, TDataType, TIndexType, TMatrixType, TVectorType)
 
+    /// TLS type definition
+    struct ThreadLocalStorage
+    {
+        /// Dense space definition
+        using DenseSpaceType = UblasSpace<double, Matrix, Vector>; //TODO: We should eventually remove this and directly define the types
+
+        /// Local system matrix type definition
+        using LocalSystemMatrixType = DenseSpaceType::MatrixType;
+
+        /// Local system vector type definition
+        using LocalSystemVectorType = DenseSpaceType::VectorType;
+
+        // Local LHS contribution
+        LocalSystemMatrixType LocalLhs;
+
+        // Local RHS constribution
+        LocalSystemVectorType LocalRhs;
+
+        // Vector containing the localization in the system of the different terms
+        Element::EquationIdVectorType LocalEqIds;
+    };
+
     /// The definition of the current class
     using ClassType = NewScheme;
-
-    /// Index type definition
-    using IndexType = TIndexType;
 
     /// Size type definition
     using SizeType = std::size_t;
 
+    /// Index type definition
+    using IndexType = typename TMatrixType::IndexType;
+
     /// Data type definition
-    using DataType = TDataType;
+    using DataType = typename TMatrixType::DataType;
 
     /// Matrix type definition
     using SystemMatrixType = TMatrixType;
@@ -97,11 +124,11 @@ public:
     /// Dense space definition
     using DenseSpaceType = UblasSpace<double, Matrix, Vector>;
 
-    /// Local system matrix type definition
-    using LocalSystemMatrixType = DenseSpaceType::MatrixType;
+    /// Local system matrix type definition from TLS
+    using LocalSystemMatrixType = typename ThreadLocalStorage::LocalSystemMatrixType;
 
-    /// Local system vector type definition
-    using LocalSystemVectorType = DenseSpaceType::VectorType;
+    /// Local system vector type definition from TLS
+    using LocalSystemVectorType = typename ThreadLocalStorage::LocalSystemVectorType;
 
     /// DoF type definition
     using DofType = Dof<double>;
@@ -115,13 +142,8 @@ public:
     /// Conditions containers definition
     using ConditionsArrayType = ModelPart::ConditionsContainerType;
 
-    /// Build type definition
-    enum class BuildType
-    {
-        Block,
-        Elimination,
-        Custom
-    };
+    /// Assembly helper type
+    using AssemblyHelperType = AssemblyHelper<ThreadLocalStorage, TMatrixType, TVectorType>;
 
     ///@}
     ///@name Life Cycle
@@ -131,41 +153,44 @@ public:
      * @brief Default Constructor
      * @details Initializes the flags
      */
-    explicit NewScheme()
-    {
-        mSchemeIsInitialized = false;
-        mElementsAreInitialized = false;
-        mConditionsAreInitialized = false;
-    }
+    explicit NewScheme() = default;
 
     /**
      * @brief Constructor with Parameters
      */
-    explicit NewScheme(Parameters ThisParameters)
+    explicit NewScheme(
+        ModelPart& rModelPart,
+        Parameters ThisParameters)
+        : mpModelPart(&rModelPart)
     {
         // Validate default parameters
         ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
         this->AssignSettings(ThisParameters);
 
-        mSchemeIsInitialized = false;
-        mElementsAreInitialized = false;
-        mConditionsAreInitialized = false;
+        //TODO: User-definable reshaping stuff
+
+        // Set the flag that indicates if DOF reactions are computed
+        mCalculateReactionsFlag = ThisParameters["calculate_reactions"].GetBool();
+
+        // Set up the assembly helper
+        Parameters build_settings = ThisParameters["build_settings"];
+        mpAssemblyHelper = Kratos::make_unique<AssemblyHelperType>(rModelPart, build_settings);
     }
 
     /** Copy Constructor.
      */
     explicit NewScheme(NewScheme& rOther)
-      :mSchemeIsInitialized(rOther.mSchemeIsInitialized)
-      ,mElementsAreInitialized(rOther.mElementsAreInitialized)
-      ,mConditionsAreInitialized(rOther.mConditionsAreInitialized)
+      : mSchemeIsInitialized(rOther.mSchemeIsInitialized)
+      , mElementsAreInitialized(rOther.mElementsAreInitialized)
+      , mConditionsAreInitialized(rOther.mConditionsAreInitialized)
+      , mCalculateReactionsFlag(rOther.mCalculateReactionsFlag)
     {
+        //TODO: Check this... particularly the mpAssemblyHelper pointer
     }
 
     /** Destructor.
      */
-    virtual ~NewScheme()
-    {
-    }
+    virtual ~NewScheme() = default;
 
     ///@}
     ///@name Operators
@@ -179,9 +204,11 @@ public:
      * @brief Create method
      * @param ThisParameters The configuration parameters
      */
-    virtual typename ClassType::Pointer Create(Parameters ThisParameters) const
+    virtual typename ClassType::Pointer Create(
+        ModelPart& rModelPart,
+        Parameters ThisParameters) const
     {
-        return Kratos::make_shared<ClassType>(ThisParameters);
+        return Kratos::make_shared<ClassType>(rModelPart, ThisParameters);
     }
 
     /**
@@ -196,9 +223,8 @@ public:
     /**
      * @brief This is the place to initialize the NewScheme.
      * @details This is intended to be called just once when the strategy is initialized
-     * @param rModelPart The model part of the problem to solve
      */
-    virtual void Initialize(ModelPart& rModelPart)
+    virtual void Initialize()
     {
         KRATOS_TRY
 
@@ -211,7 +237,7 @@ public:
      * @brief This method returns if the scheme is initialized
      * @return True if initialized, false otherwise
      */
-    bool SchemeIsInitialized()
+    bool SchemeIsInitialized() const
     {
         return mSchemeIsInitialized;
     }
@@ -220,7 +246,7 @@ public:
      * @brief This method sets if the elements have been initialized or not (true by default)
      * @param ElementsAreInitializedFlag If the flag must be set to true or false
      */
-    void SetSchemeIsInitialized(bool SchemeIsInitializedFlag = true)
+    void SetSchemeIsInitialized(bool SchemeIsInitializedFlag)
     {
         mSchemeIsInitialized = SchemeIsInitializedFlag;
     }
@@ -229,7 +255,7 @@ public:
      * @brief This method returns if the elements are initialized
      * @return True if initialized, false otherwise
      */
-    bool ElementsAreInitialized()
+    bool ElementsAreInitialized() const
     {
         return mElementsAreInitialized;
     }
@@ -238,7 +264,7 @@ public:
      * @brief This method sets if the elements have been initialized or not (true by default)
      * @param ElementsAreInitializedFlag If the flag must be set to true or false
      */
-    void SetElementsAreInitialized(bool ElementsAreInitializedFlag = true)
+    void SetElementsAreInitialized(bool ElementsAreInitializedFlag)
     {
         mElementsAreInitialized = ElementsAreInitializedFlag;
     }
@@ -247,7 +273,7 @@ public:
      * @brief This method returns if the conditions are initialized
      * @return True if initialized, false otherwise
      */
-    bool ConditionsAreInitialized()
+    bool ConditionsAreInitialized() const
     {
         return mConditionsAreInitialized;
     }
@@ -256,9 +282,27 @@ public:
      * @brief This method sets if the conditions have been initialized or not (true by default)
      * @param ConditionsAreInitializedFlag If the flag must be set to true or false
      */
-    void SetConditionsAreInitialized(bool ConditionsAreInitializedFlag = true)
+    void SetConditionsAreInitialized(bool ConditionsAreInitializedFlag)
     {
         mConditionsAreInitialized = ConditionsAreInitializedFlag;
+    }
+
+    /**
+     * @brief This method returns the flag mCalculateReactionsFlag
+     * @return The flag that tells if the reactions are computed
+     */
+    bool GetCalculateReactionsFlag() const
+    {
+        return mCalculateReactionsFlag;
+    }
+
+    /**
+     * @brief This method sets the flag mCalculateReactionsFlag
+     * @param CalculateReactionsFlag The flag that tells if the reactions are computed
+     */
+    void SetCalculateReactionsFlag(bool CalculateReactionsFlag)
+    {
+        mCalculateReactionsFlag = CalculateReactionsFlag;
     }
 
     /**
@@ -266,13 +310,13 @@ public:
      * @details This is intended to be called just once when the strategy is initialized
      * @param rModelPart The model part of the problem to solve
      */
-    virtual void InitializeElements( ModelPart& rModelPart)
+    virtual void InitializeElements()
     {
         KRATOS_TRY
 
-        EntitiesUtilities::InitializeEntities<Element>(rModelPart);
+        EntitiesUtilities::InitializeEntities<Element>(*mpModelPart);
 
-        SetElementsAreInitialized();
+        SetElementsAreInitialized(true);
 
         KRATOS_CATCH("")
     }
@@ -282,15 +326,15 @@ public:
      * @details This is intended to be called just once when the strategy is initialized
      * @param rModelPart The model part of the problem to solve
      */
-    virtual void InitializeConditions(ModelPart& rModelPart)
+    virtual void InitializeConditions()
     {
         KRATOS_TRY
 
         KRATOS_ERROR_IF_NOT(mElementsAreInitialized) << "Before initializing Conditions, initialize Elements FIRST" << std::endl;
 
-        EntitiesUtilities::InitializeEntities<Condition>(rModelPart);
+        EntitiesUtilities::InitializeEntities<Condition>(*mpModelPart);
 
-        SetConditionsAreInitialized();
+        SetConditionsAreInitialized(true);
 
         KRATOS_CATCH("")
     }
@@ -305,7 +349,6 @@ public:
      * @param b RHS Vector
      */
     virtual void InitializeSolutionStep(
-        ModelPart& rModelPart,
         SystemMatrixType& A,
         SystemVectorType& Dx,
         SystemVectorType& b)
@@ -313,7 +356,7 @@ public:
         KRATOS_TRY
 
         // Initializes solution step for all of the elements, conditions and constraints
-        EntitiesUtilities::InitializeSolutionStepAllEntities(rModelPart);
+        EntitiesUtilities::InitializeSolutionStepAllEntities(*mpModelPart);
 
         KRATOS_CATCH("")
     }
@@ -326,7 +369,6 @@ public:
      * @param b RHS Vector
      */
     virtual void FinalizeSolutionStep(
-        ModelPart& rModelPart,
         SystemMatrixType& A,
         SystemVectorType& Dx,
         SystemVectorType& b)
@@ -334,7 +376,7 @@ public:
         KRATOS_TRY
 
         // Finalizes solution step for all of the elements, conditions and constraints
-        EntitiesUtilities::FinalizeSolutionStepAllEntities(rModelPart);
+        EntitiesUtilities::FinalizeSolutionStepAllEntities(*mpModelPart);
 
         KRATOS_CATCH("")
     }
@@ -350,7 +392,6 @@ public:
      * @param b RHS Vector
      */
     virtual void InitializeNonLinIteration(
-        ModelPart& rModelPart,
         SystemMatrixType& A,
         SystemVectorType& Dx,
         SystemVectorType& b)
@@ -358,7 +399,7 @@ public:
         KRATOS_TRY
 
         // Finalizes non-linear iteration for all of the elements, conditions and constraints
-        EntitiesUtilities::InitializeNonLinearIterationAllEntities(rModelPart);
+        EntitiesUtilities::InitializeNonLinearIterationAllEntities(*mpModelPart);
 
         KRATOS_CATCH("")
     }
@@ -371,7 +412,6 @@ public:
      * @param b RHS Vector
      */
     virtual void FinalizeNonLinIteration(
-        ModelPart& rModelPart,
         SystemMatrixType& A,
         SystemVectorType& Dx,
         SystemVectorType& b)
@@ -379,101 +419,61 @@ public:
         KRATOS_TRY
 
         // Finalizes non-linear iteration for all of the elements, conditions and constraints
-        EntitiesUtilities::FinalizeNonLinearIterationAllEntities(rModelPart);
+        EntitiesUtilities::FinalizeNonLinearIterationAllEntities(*mpModelPart);
 
         KRATOS_CATCH("")
     }
 
-    virtual void SetUpDofArray(const ModelPart& rModelPart)
+    virtual void SetUpDofArray(DofsArrayType& rDofSet)
     {
-        //TODO: Discuss on how to provide the custom DOF set function
+        //TODO: I think these two are essentially the same (what changes is the Ids set up)
         // Call external utility to perform the build
-        if (mBuildType == BuildType::Block) {
-            BlockBuildDofArrayUtility::SetUpDofArray(rModelPart, mDofSet, mEchoLevel, mCalculateReactionsFlag);
-        } else if (mBuildType == BuildType::Elimination) {
-            EliminationBuildDofArrayUtility::SetUpDofArray(rModelPart, mDofSet, mEchoLevel, mCalculateReactionsFlag);
-        } else {
-            KRATOS_ERROR << "Build type not supported." << std::endl;
-        }
+        // if (mBuildType == BuildType::Block) {
+        //     BlockBuildDofArrayUtility::SetUpDofArray(rModelPart, mDofSet, mEchoLevel, mCalculateReactionsFlag);
+        // } else if (mBuildType == BuildType::Elimination) {
+        //     EliminationBuildDofArrayUtility::SetUpDofArray(rModelPart, mDofSet, mEchoLevel, mCalculateReactionsFlag);
+        // } else {
+        //     KRATOS_ERROR << "Build type not supported." << std::endl;
+        // }
 
-        // Save the size of the system based on the number of DOFs
-        mEquationSystemSize = mDofSet.size();
-
-        // Set the flag as already initialized
-        mDofSetIsInitialized = true;
+        // Call the external utility to set up the DOFs array
+        EliminationBuildDofArrayUtility::SetUpDofArray(*mpModelPart, rDofSet, mEchoLevel, mCalculateReactionsFlag); //TODO: The elimination and the block do basically the same. Unify the naming.
 
         KRATOS_INFO_IF("NewScheme", mEchoLevel >= 2) << "Finished DOFs array set up." << std::endl;
     }
 
-    //TODO: think about renaming this to SetUpEquationIds (maybe we can just keep it because we are already used to it)
-    void SetUpSystem(const ModelPart& rModelPart)
+    SizeType SetUpSystem(DofsArrayType& rDofSet)
     {
-        // Set up the DOFs equation global ids
-        IndexPartition<IndexType>(mEquationSystemSize).for_each([&, this](IndexType Index) {
-            auto dof_iterator = this->mDofSet.begin() + Index;
-            dof_iterator->SetEquationId(Index);
-        });
+        KRATOS_ERROR_IF(rDofSet.empty()) << "DOFs set is empty. Call the 'SetUpDofArray' first." << std::endl;
+
+        return mpAssemblyHelper->SetUpSystemIds(rDofSet);
 
         KRATOS_INFO_IF("NewScheme", mEchoLevel >= 2) << "Finished system set up." << std::endl;
     }
 
-    // TODO: think about renaming this to ResizeAndInitializeSystem (maybe we can just keep it because we are already used to it)
     void ResizeAndInitializeVectors(
-        const ModelPart& rModelPart,
         SystemMatrixPointerType& rpLHS,
         SystemVectorPointerType& rpDx,
         SystemVectorPointerType& rpRHS)
     {
         KRATOS_TRY
 
-        if (rpLHS == nullptr) {
-            auto p_aux = Kratos::make_shared<SystemMatrixPointerType>();
-        }
+        // Set up the sparse matrix graph (note that we do not need to keep it after the resizing)
+        SparseGraph<IndexType> sparse_graph;
+        mpAssemblyHelper->SetUpSparseGraph(sparse_graph);
 
-        // if (pA == NULL) // if the pointer is not initialized initialize it to an empty matrix
-        // {
-        //     TSystemMatrixPointerType pNewA = TSystemMatrixPointerType(new TSystemMatrixType(0, 0));
-        //     pA.swap(pNewA);
-        // }
-        // if (pDx == NULL) // if the pointer is not initialized initialize it to an empty matrix
-        // {
-        //     TSystemVectorPointerType pNewDx = TSystemVectorPointerType(new TSystemVectorType(0));
-        //     pDx.swap(pNewDx);
-        // }
-        // if (pb == NULL) // if the pointer is not initialized initialize it to an empty matrix
-        // {
-        //     TSystemVectorPointerType pNewb = TSystemVectorPointerType(new TSystemVectorType(0));
-        //     pb.swap(pNewb);
-        // }
+        // Set the system arrays
+        // Note that the graph-based constructor does both resizing and initialization
+        auto p_lhs = Kratos::make_shared<NewScheme<>::SystemMatrixType>(sparse_graph);
+        rpLHS.swap(p_lhs);
 
-        // TSystemMatrixType &A = *pA;
-        // TSystemVectorType &Dx = *pDx;
-        // TSystemVectorType &b = *pb;
+        auto p_dx = Kratos::make_shared<NewScheme<>::SystemVectorType>(sparse_graph);
+        rpDx.swap(p_dx);
 
-        // // resizing the system vectors and matrix
-        // if (A.size1() == 0 || BaseType::GetReshapeMatrixFlag() == true) // if the matrix is not initialized
-        // {
-        //     A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
-        //     ConstructMatrixStructure(pScheme, A, rModelPart);
-        // }
-        // else
-        // {
-        //     if (A.size1() != BaseType::mEquationSystemSize || A.size2() != BaseType::mEquationSystemSize)
-        //     {
-        //         KRATOS_ERROR << "The equation system size has changed during the simulation. This is not permitted." << std::endl;
-        //         A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, true);
-        //         ConstructMatrixStructure(pScheme, A, rModelPart);
-        //     }
-        // }
-        // if (Dx.size() != BaseType::mEquationSystemSize)
-        //     Dx.resize(BaseType::mEquationSystemSize, false);
-        // TSparseSpace::SetToZero(Dx);
-        // if (b.size() != BaseType::mEquationSystemSize)
-        // {
-        //     b.resize(BaseType::mEquationSystemSize, false);
-        // }
-        // TSparseSpace::SetToZero(b);
+        auto p_rhs = Kratos::make_shared<NewScheme<>::SystemVectorType>(sparse_graph);
+        rpRHS.swap(p_rhs);
 
+        //TODO: Think on the constraints stuff!
         // ConstructMasterSlaveConstraintsStructure(rModelPart);
 
         KRATOS_INFO_IF("NewScheme", mEchoLevel >= 2) << "Finished system initialization." << std::endl;
@@ -482,66 +482,28 @@ public:
     }
 
     virtual void Build(
-        const ModelPart& rModelPart,
         SystemMatrixType& rLHS,
         SystemVectorType& rRHS)
     {
         Timer::Start("Build");
 
-        // Getting model part data
-        const SizeType n_elem = rModelPart.NumberOfElements();
-        const SizeType n_cond = rModelPart.NumberOfConditions();
-        auto el_begin = rModelPart.ElementsBegin();
-        auto cond_begin = rModelPart.ConditionsBegin();
-        const auto& r_process_info = rModelPart.GetProcessInfo();
-
-        // Arrays for the local contributions to the system
-        LocalSystemMatrixType loc_lhs = LocalSystemMatrixType(0, 0);
-        LocalSystemVectorType loc_rhs = LocalSystemVectorType(0);
-
-        // Vector containing the localization in the system of the different terms
-        Element::EquationIdVectorType eq_ids;
-
-        KRATOS_WATCH("Before building elements and conditions")
-
-        // Assemble elements and conditions
         const auto timer = BuiltinTimer();
-        #pragma omp parallel firstprivate(n_elem, n_cond, loc_lhs, loc_rhs, eq_ids, r_process_info)
-        {
-            // Assemble elements
-            # pragma omp for schedule(guided, 512) nowait
-            for (int k = 0; k < n_elem; ++k) {
-                auto it_elem = el_begin + k;
-                if (it_elem->IsActive()) {
-                    // Calculate local LHS and RHS contributions
-                    it_elem->CalculateLocalSystem(loc_lhs, loc_rhs, r_process_info);
 
-                    // Get the positions in the global system
-                    it_elem->EquationIdVector(eq_ids, r_process_info);
+        const auto elem_func = [](ModelPart::ElementConstantIterator ItElem, const ProcessInfo& rProcessInfo, ThreadLocalStorage& rTLS){
+            // Calculate local LHS and RHS contributions
+            ItElem->CalculateLocalSystem(rTLS.LocalLhs, rTLS.LocalRhs, rProcessInfo);
+        };
 
-                    // Assemble the local contributions to the global system
-                    rRHS.Assemble(loc_rhs, eq_ids);
-                    rLHS.Assemble(loc_lhs, eq_ids);
-                }
-            }
+        const auto cond_func = [](ModelPart::ConditionConstantIterator ItCond, const ProcessInfo& rProcessInfo, ThreadLocalStorage& rTLS){
+            // Calculate local LHS and RHS contributions
+            ItCond->CalculateLocalSystem(rTLS.LocalLhs, rTLS.LocalRhs, rProcessInfo);
+        };
 
-            // Assemble conditions
-            #pragma omp for schedule(guided, 512)
-            for (int k = 0; k < n_cond; ++k) {
-                auto it_cond = cond_begin + k;
-                if (it_cond->IsActive()) {
-                    // Calculate local LHS and RHS contributions
-                    it_cond->CalculateLocalSystem(loc_lhs, loc_rhs, r_process_info);
-
-                    // Get the positions in the global system
-                    it_cond->EquationIdVector(eq_ids, r_process_info);
-
-                    // Assemble the local contributions to the global system
-                    rRHS.Assemble(loc_rhs, eq_ids);
-                    rLHS.Assemble(loc_lhs, eq_ids);
-                }
-            }
-        }
+        ThreadLocalStorage aux_tls;
+        auto& r_assembly_helper = GetAssemblyHelper();
+        r_assembly_helper.SetElementAssemblyFunction(elem_func);
+        r_assembly_helper.SetConditionAssemblyFunction(cond_func);
+        r_assembly_helper.AssembleLocalSystem(rLHS, rRHS, aux_tls);
 
         KRATOS_INFO_IF("NewScheme", mEchoLevel >= 1) << "Build time: " << timer << std::endl;
         KRATOS_INFO_IF("NewScheme", mEchoLevel >= 2) << "Finished parallel building" << std::endl;
@@ -549,22 +511,28 @@ public:
         Timer::Stop("Build");
     }
 
+    virtual void ApplyDirichletConditions(
+        const DofsArrayType& rDofSet,
+        SystemMatrixType& rLHS,
+        SystemVectorType& rRHS)
+    {
+        GetAssemblyHelper().ApplyDirichletConditions(rDofSet, rLHS, rRHS);
+    }
+
     /**
      * @brief Performing the prediction of the solution.
      * @warning Must be defined in derived classes
-     * @param rModelPart The model part of the problem to solve
      * @param A LHS matrix
      * @param Dx Incremental update of primary variables
      * @param b RHS Vector
      */
     virtual void Predict(
-        ModelPart& rModelPart,
-        DofsArrayType& rDofSet,
         SystemMatrixType& A,
         SystemVectorType& Dx,
         SystemVectorType& b)
     {
         KRATOS_TRY
+
         KRATOS_CATCH("")
     }
 
@@ -578,13 +546,13 @@ public:
      * @param b RHS Vector
      */
     virtual void Update(
-        ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         SystemMatrixType& A,
         SystemVectorType& Dx,
         SystemVectorType& b)
     {
         KRATOS_TRY
+
         KRATOS_CATCH("")
     }
 
@@ -592,19 +560,17 @@ public:
      * @brief Functions to be called to prepare the data needed for the output of results.
      * @warning Must be defined in derived classes
      * @param rModelPart The model part of the problem to solve
-     * @param rDofSet Set of all primary variables
      * @param A LHS matrix
      * @param Dx Incremental update of primary variables
      * @param b RHS Vector
      */
     virtual void CalculateOutputData(
-        ModelPart& rModelPart,
-        DofsArrayType& rDofSet,
         SystemMatrixType& A,
         SystemVectorType& Dx,
         SystemVectorType& b)
     {
         KRATOS_TRY
+
         KRATOS_CATCH("")
     }
 
@@ -615,6 +581,7 @@ public:
     virtual void CleanOutputData()
     {
         KRATOS_TRY
+
         KRATOS_CATCH("")
     }
 
@@ -625,6 +592,7 @@ public:
     virtual void Clean()
     {
         KRATOS_TRY
+
         KRATOS_CATCH("")
     }
 
@@ -635,6 +603,15 @@ public:
     virtual void Clear()
     {
         KRATOS_TRY
+
+        // Reset initialization flags
+        mSchemeIsInitialized = false;
+        mElementsAreInitialized = false;
+        mConditionsAreInitialized = false;
+
+        // Clear the assembly helper
+        GetAssemblyHelper().Clear();
+
         KRATOS_CATCH("")
     }
 
@@ -646,176 +623,13 @@ public:
      * @param rModelPart The model part of the problem to solve
      * @return 0 all OK, 1 otherwise
      */
-    virtual int Check(const ModelPart& rModelPart) const
+    virtual int Check() const
     {
         KRATOS_TRY
+
         return 0;
+
         KRATOS_CATCH("");
-    }
-
-    virtual int Check(ModelPart& rModelPart)
-    {
-        // calling the const version for backward compatibility
-        const NewScheme& r_const_this = *this;
-        const ModelPart& r_const_model_part = rModelPart;
-        return r_const_this.Check(r_const_model_part);
-    }
-
-    /**
-     * @brief This function is designed to be called in the builder and solver to introduce the selected time integration scheme.
-     * @details It "asks" the matrix needed to the element and performs the operations needed to introduce the selected time integration scheme. This function calculates at the same time the contribution to the LHS and to the RHS of the system
-     * @param rElement The element to compute
-     * @param LHS_Contribution The LHS matrix contribution
-     * @param RHS_Contribution The RHS vector contribution
-     * @param rEquationIdVector The ID's of the element degrees of freedom
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    virtual void CalculateSystemContributions(
-        Element& rElement,
-        LocalSystemMatrixType& LHS_Contribution,
-        LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& rEquationIdVector,
-        const ProcessInfo& rCurrentProcessInfo)
-    {
-        rElement.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, rCurrentProcessInfo);
-    }
-
-    /**
-     * @brief Functions totally analogous to the precedent but applied to the "condition" objects
-     * @param rCondition The condition to compute
-     * @param LHS_Contribution The LHS matrix contribution
-     * @param RHS_Contribution The RHS vector contribution
-     * @param rEquationIdVector The ID's of the condition degrees of freedom
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    virtual void CalculateSystemContributions(
-        Condition& rCondition,
-        LocalSystemMatrixType& LHS_Contribution,
-        LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& rEquationIdVector,
-        const ProcessInfo& rCurrentProcessInfo)
-    {
-        rCondition.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, rCurrentProcessInfo);
-    }
-
-    /**
-     * @brief This function is designed to calculate just the RHS contribution
-     * @param rElement The element to compute
-     * @param RHS_Contribution The RHS vector contribution
-     * @param rEquationIdVector The ID's of the element degrees of freedom
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    virtual void CalculateRHSContribution(
-        Element& rElement,
-        LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& rEquationIdVector,
-        const ProcessInfo& rCurrentProcessInfo)
-    {
-        rElement.CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
-    }
-
-    /**
-     * @brief Functions totally analogous to the precedent but applied to the "condition" objects
-     * @param rCondition The condition to compute
-     * @param RHS_Contribution The RHS vector contribution
-     * @param rEquationIdVector The ID's of the condition degrees of freedom
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    virtual void CalculateRHSContribution(
-        Condition& rCondition,
-        LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& rEquationIdVector,
-        const ProcessInfo& rCurrentProcessInfo)
-    {
-        rCondition.CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
-    }
-
-    /**
-     * @brief This function is designed to calculate just the LHS contribution
-     * @param rElement The element to compute
-     * @param LHS_Contribution The RHS vector contribution
-     * @param rEquationIdVector The ID's of the element degrees of freedom
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    virtual void CalculateLHSContribution(
-        Element& rElement,
-        LocalSystemMatrixType& LHS_Contribution,
-        Element::EquationIdVectorType& rEquationIdVector,
-        const ProcessInfo& rCurrentProcessInfo)
-    {
-        rElement.CalculateLeftHandSide(LHS_Contribution, rCurrentProcessInfo);
-    }
-
-    /**
-     * @brief Functions totally analogous to the precedent but applied to the "condition" objects
-     * @param rCondition The condition to compute
-     * @param LHS_Contribution The RHS vector contribution
-     * @param rEquationIdVector The ID's of the condition degrees of freedom
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    virtual void CalculateLHSContribution(
-        Condition& rCondition,
-        LocalSystemMatrixType& LHS_Contribution,
-        Element::EquationIdVectorType& rEquationIdVector,
-        const ProcessInfo& rCurrentProcessInfo)
-    {
-        rCondition.CalculateLeftHandSide(LHS_Contribution, rCurrentProcessInfo);
-    }
-
-    /**
-     * @brief This method gets the eqaution id corresponding to the current element
-     * @param rElement The element to compute
-     * @param rEquationId The ID's of the element degrees of freedom
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    virtual void EquationId(
-        const Element& rElement,
-        Element::EquationIdVectorType& rEquationId,
-        const ProcessInfo& rCurrentProcessInfo)
-    {
-        rElement.EquationIdVector(rEquationId, rCurrentProcessInfo);
-    }
-
-    /**
-     * @brief Functions totally analogous to the precedent but applied to the "condition" objects
-     * @param rCondition The condition to compute
-     * @param rEquationId The ID's of the condition degrees of freedom
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    virtual void EquationId(
-        const Condition& rCondition,
-        Element::EquationIdVectorType& rEquationId,
-        const ProcessInfo& rCurrentProcessInfo)
-    {
-        rCondition.EquationIdVector(rEquationId, rCurrentProcessInfo);
-    }
-
-    /**
-     * @brief Function that returns the list of Degrees of freedom to be assembled in the system for a Given element
-     * @param pCurrentElement The element to compute
-     * @param rDofList The list containing the element degrees of freedom
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    virtual void GetDofList(
-        const Element& rElement,
-        Element::DofsVectorType& rDofList,
-        const ProcessInfo& rCurrentProcessInfo)
-    {
-        rElement.GetDofList(rDofList, rCurrentProcessInfo);
-    }
-
-    /**
-     * @brief Function that returns the list of Degrees of freedom to be assembled in the system for a Given condition
-     * @param rCondition The condition to compute
-     * @param rDofList The list containing the condition degrees of freedom
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    virtual void GetDofList(
-        const Condition& rCondition,
-        Element::DofsVectorType& rDofList,
-        const ProcessInfo& rCurrentProcessInfo)
-    {
-        rCondition.GetDofList(rDofList, rCurrentProcessInfo);
     }
 
     /**
@@ -825,8 +639,13 @@ public:
     {
         const Parameters default_parameters = Parameters(R"({
             "name" : "new_scheme",
-            "build_type" : "block",
-            "echo_level" : 0
+            "build_settings" : {
+                "build_type" : "block",
+                "scaling_type" : "max_diagonal",
+                "scaling_value" : 1.0
+            },
+            "echo_level" : 0,
+            "calculate_reactions" : false
         })");
         return default_parameters;
     }
@@ -884,9 +703,11 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    bool mSchemeIsInitialized;      /// Flag to be used in controlling if the Scheme has been initialized or not
-    bool mElementsAreInitialized;   /// Flag taking in account if the elements were initialized correctly or not
-    bool mConditionsAreInitialized; /// Flag taking in account if the conditions were initialized correctly or not
+    bool mSchemeIsInitialized = false;      /// Flag to be used in controlling if the Scheme has been initialized or not
+
+    bool mElementsAreInitialized = false;   /// Flag taking in account if the elements were initialized correctly or not
+
+    bool mConditionsAreInitialized = false; /// Flag taking in account if the conditions were initialized correctly or not
 
     ///@}
     ///@name Protected Operators
@@ -916,21 +737,6 @@ protected:
      */
     virtual void AssignSettings(const Parameters ThisParameters)
     {
-        // Set build type
-        const std::string build_type = ThisParameters["build_type"].GetString();
-        if (build_type == "block") {
-            mBuildType = BuildType::Block;
-        } else if (build_type == "elimination") {
-            mBuildType = BuildType::Elimination;
-        } else if (build_type == "custom") {
-            mBuildType = BuildType::Custom;
-        } else {
-            KRATOS_ERROR << "Provided 'build_type' is '" << build_type << "'. Available options are:\n"
-            << "\t- 'block'\n"
-            << "\t- 'elimination'\n"
-            << "\t- 'custom'\n" << std::endl;
-        }
-
         // Set verbosity level
         mEchoLevel = ThisParameters["echo_level"].GetInt();
     }
@@ -938,6 +744,16 @@ protected:
     ///@}
     ///@name Protected  Access
     ///@{
+
+    AssemblyHelperType& GetAssemblyHelper()
+    {
+        return *mpAssemblyHelper;
+    }
+
+    AssemblyHelperType& GetAssemblyHelper() const
+    {
+        return *mpAssemblyHelper;
+    }
 
     ///@}
     ///@name Protected Inquiry
@@ -957,21 +773,15 @@ private:
     ///@name Member Variables
     ///@{
 
-    BuildType mBuildType;
-
-    DofsArrayType mDofSet;
-
-    SizeType mEquationSystemSize; /// Number of degrees of freedom of the problem to be solve
+    ModelPart* mpModelPart = nullptr;
 
     bool mReshapeMatrixFlag = false; /// If the matrix is reshaped each step
-
-    bool mDofSetIsInitialized = false; /// Flag taking care if the dof set was initialized ot not
 
     bool mCalculateReactionsFlag = false; /// Flag taking in account if it is needed or not to calculate the reactions
 
     int mEchoLevel = 0;
 
-    // TSystemVectorPointerType mpReactionsVector; //FIXME:
+    typename AssemblyHelperType::UniquePointer mpAssemblyHelper = nullptr;
 
     ///@}
     ///@name Private Operators
