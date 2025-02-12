@@ -8,8 +8,8 @@
 //  License:         geo_mechanics_application/license.txt
 //
 //
-//  Main authors:    Wijtze Pieter Kikstra,
-//                   Mohamed Nabi
+//  Main authors:    Mohamed Nabi,
+//                   Wijtze Pieter Kikstra
 //
 
 // Application includes
@@ -23,6 +23,18 @@ namespace Kratos
 {
 
 MohrCoulombConstitutiveLaw::MohrCoulombConstitutiveLaw() = default;
+
+//MohrCoulombConstitutiveLaw::MohrCoulombConstitutiveLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension)
+//    : ConstitutiveLaw{},
+//      mpConstitutiveDimension(std::move(pConstitutiveDimension)),
+//      mStressVector(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
+//      mStressVectorFinalized(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
+//      mDeltaStrainVector(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
+//      mStrainVectorFinalized(ZeroVector(mpConstitutiveDimension->GetStrainSize()))
+//{
+//}
+
+//MohrCoulombConstitutiveLaw::~MohrCoulombConstitutiveLaw() = default;
 
 int MohrCoulombConstitutiveLaw::Check(const Properties&   rMaterialProperties,
                                  const GeometryType& rElementGeometry,
@@ -100,11 +112,68 @@ void MohrCoulombConstitutiveLaw::CalculateMohrCoulomb(const Properties& rProp, V
 }
 
 // ================================================================================================
+void MohrCoulombConstitutiveLaw::CalculatePK2Stress(const Vector&                rStrainVector,
+                                                     Vector&                      rStressVector,
+                                                     ConstitutiveLaw::Parameters& rValues)
+{
+    mDeltaStrainVector = rValues.GetStrainVector() - mStrainVectorFinalized;
+    
+    Matrix C;
+    this->CalculateElasticMatrix(C, rValues);
+    
+    // Incremental formulation
+    noalias(mStressVector) = mStressVectorFinalized + prod(C, mDeltaStrainVector);
+    
+    rStressVector = mStressVector;
+}
+
+// ================================================================================================
+void MohrCoulombConstitutiveLaw::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
+{
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+    const auto        E                     = r_material_properties[YOUNG_MODULUS];
+    const auto        NU                    = r_material_properties[POISSON_RATIO];
+    
+    const double c0 = E / ((1.0 + NU) * (1.0 - 2.0 * NU));
+    const double c1 = (1.0 - NU) * c0;
+    const double c2 = c0 * NU;
+    const double c3 = (0.5 - NU) * c0;
+    
+    //C = mpConstitutiveDimension->FillConstitutiveMatrix(c1, c2, c3);
+}
+
+// ================================================================================================
+void MohrCoulombConstitutiveLaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+{
+    mStrainVectorFinalized = rValues.GetStrainVector();
+    mStressVectorFinalized = mStressVector;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ================================================================================================
 int MohrCoulombConstitutiveLaw::FindRegionIndex(double fme, double fte) 
 {
     if (fme <= 0.0 && fte <= 0.0) return 0;
     if (fme < 0.0 && fte <= 0.0) return 1;
-
+    return 0;
 
 }
 

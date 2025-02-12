@@ -8,8 +8,8 @@
 //  License:         geo_mechanics_application/license.txt
 //
 //
-//  Main authors:    Wijtze Pieter Kikstra,
-//                   Mohamed Nabi
+//  Main authors:    Mohamed Nabi,
+//                   Wijtze Pieter Kikstra
 // //
 
 #pragma once
@@ -19,9 +19,8 @@
 
 // Project includes
 #include "includes/constitutive_law.h"
+#include "custom_constitutive/constitutive_law_dimension.h"
 #include "includes/serializer.h"
-
-// Application includes
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
@@ -33,10 +32,13 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(MohrCoulombConstitutiveLaw);
 
     MohrCoulombConstitutiveLaw();
+    //explicit MohrCoulombConstitutiveLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension);
 
     int Check(const Properties&   rMaterialProperties,
               const GeometryType& rElementGeometry,
               const ProcessInfo&  rCurrentProcessInfo) const override;
+
+    ~MohrCoulombConstitutiveLaw() override = default;
 
     ConstitutiveLaw::Pointer Clone() const override;
 
@@ -51,15 +53,20 @@ public:
 
     int FindRegionIndex(double fme, double fte);
 
-protected:
+    void CalculatePK2Stress(const Vector& rStrainVector, Vector& rStressVector, ConstitutiveLaw::Parameters& rValues);
+    void CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues);
+    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues);
+
     // Member Variables
     double mStateVariable;
 
-    
+private:
+    //std::unique_ptr<ConstitutiveLawDimension> mpConstitutiveDimension;
+    Vector mStressVector;
+    Vector mStrainVectorFinalized;
+    Vector mStressVectorFinalized;
+    Vector mDeltaStrainVector;
 
-    
-    
-    private:
     // Serialization
     friend class Serializer;
 
@@ -73,6 +80,6 @@ protected:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
     }
 
-}; // Class BilinearCohesive3DLaw
+}; // Class MohrCoulombConstitutiveLaw
 
 } // namespace Kratos
