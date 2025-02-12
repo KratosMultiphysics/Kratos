@@ -74,7 +74,8 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_FreesDoFAfterFinaliz
     process.ExecuteFinalize();
 
     // Assert
-    constexpr double expected_value = 0.5; // Same as the initial value, since we have not initialized any solution step
+    constexpr double expected_value =
+        0.5; // Same as the initial value, since we have not initialized any solution step
     constexpr bool expected_fixity = false;
     AssertNodesHaveCorrectValueAndFixity(expected_value, expected_fixity, r_model_part);
 }
@@ -104,7 +105,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_AppliesCorrectValues
 
     // Act & Assert
     process.ExecuteInitialize();
-    double     expected_value  = 0.5; // Initial value, since we haven't initialized a solution step
+    double expected_value = 0.5; // Initial value, since we haven't initialized a solution step
     constexpr bool expected_fixity = true;
     AssertNodesHaveCorrectValueAndFixity(expected_value, expected_fixity, r_model_part);
 
