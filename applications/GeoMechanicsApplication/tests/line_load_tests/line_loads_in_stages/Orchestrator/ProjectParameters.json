@@ -5,9 +5,7 @@
         "echo_level" : 0,
         "execution_list" : ["stage_1", "stage_2"],
         "load_from_checkpoint" : null,
-        "stage_checkpoints" : true,
-        "stage_checkpoints_folder" : "auxiliar_files_for_python_unittest/orchestrators_files/checkpoints",
-        "output_validated_settings" : "test_sequential_orchestrator"
+        "stage_checkpoints" : false
     }
 },
 "stages" : {
