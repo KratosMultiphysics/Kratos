@@ -20,17 +20,14 @@
 #include "includes/define.h"
 #include "includes/element.h"
 #include "includes/model_part.h"
+#include "linear_solvers/linear_solver.h"
 #include "spaces/ublas_space.h"
 #include "testing/testing.h"
 #include "solving_strategies/schemes/new_scheme.h"
+#include "solving_strategies/strategies/linear_strategy.h"
 
 namespace Kratos::Testing
 {
-
-// typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-// typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-
-// typedef ModelPart::DofsArrayType DofsArrayType;
 
 namespace
 {
@@ -182,7 +179,7 @@ KRATOS_TEST_CASE_IN_SUITE(NewScheme, KratosCoreFastSuite)
     auto p_dx = Kratos::make_shared<NewScheme<>::SystemVectorType>();
     auto p_rhs = Kratos::make_shared<NewScheme<>::SystemVectorType>();
     auto p_lhs = Kratos::make_shared<NewScheme<>::SystemMatrixType>();
-    p_scheme->ResizeAndInitializeVectors(p_lhs, p_dx, p_rhs);
+    p_scheme->ResizeAndInitializeVectors(dof_set, p_lhs, p_dx, p_rhs);
 
     // Call the build
     p_scheme->Build(*p_lhs, *p_rhs);
@@ -195,6 +192,34 @@ KRATOS_TEST_CASE_IN_SUITE(NewScheme, KratosCoreFastSuite)
     expected_lhs(1,0) = -1.0; expected_lhs(1,1) = 2.0; expected_lhs(1,2) = -1.0;
     expected_lhs(2,0) = 0.0; expected_lhs(2,1) = -1.0; expected_lhs(2,2) = 2.0;
     KRATOS_CHECK_VECTOR_NEAR((*p_rhs), expected_rhs, tol);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(LinearStrategy, KratosCoreFastSuite)
+{
+    // Set up the test model part
+    Model test_model;
+    auto& r_test_model_part = test_model.CreateModelPart("TestModelPart");
+    SetUpTestSchemesModelPart(r_test_model_part);
+
+    //FIXME: Temporary types to define a linear solver type and compile the test
+    using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+    using SparseSpaceType = UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>>;
+    using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType>;
+
+    // Create the scheme
+    Parameters scheme_settings = Parameters(R"({
+        "build_settings" : {
+            "build_type" : "block"
+        },
+        "echo_level" : 2
+    })");
+    auto p_scheme = Kratos::make_unique<NewScheme<>>(r_test_model_part, scheme_settings);
+
+    // Create the strategy
+    // Parameters strategy_settings = Parameters(R"({
+    // })");
+    // auto p_strategy = Kratos::make_unique<LinearStrategy<CsrMatrix<>, SystemVector<>,LinearSolverType>>(r_test_model_part, strategy_settings);
+    auto p_strategy = Kratos::make_unique<LinearStrategy<CsrMatrix<>, SystemVector<>,LinearSolverType>>();
 }
 
 }  // namespace Kratos::Testing.

@@ -23,8 +23,7 @@
 #include "includes/kratos_parameters.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/dof_utilities/assembly_helper.h" //TODO: we should move this to somewhere else
-#include "utilities/dof_utilities/block_build_dof_array_utility.h"
-#include "utilities/dof_utilities/elimination_build_dof_array_utility.h"
+#include "utilities/dof_utilities/dof_array_utilities.h"
 #include "utilities/entities_utilities.h"
 #include "utilities/openmp_utils.h" //TODO: SOME FILES INCLUDING scheme.h RELY ON THIS. LEAVING AS FUTURE TODO.
 #include "utilities/parallel_utilities.h"
@@ -164,9 +163,6 @@ public:
 
         //TODO: User-definable reshaping stuff
 
-        // Set the flag that indicates if DOF reactions are computed
-        mCalculateReactionsFlag = ThisParameters["calculate_reactions"].GetBool();
-
         // Set up the assembly helper
         Parameters build_settings = ThisParameters["build_settings"];
         mpAssemblyHelper = Kratos::make_unique<AssemblyHelperType>(rModelPart, build_settings);
@@ -178,7 +174,6 @@ public:
       : mSchemeIsInitialized(rOther.mSchemeIsInitialized)
       , mElementsAreInitialized(rOther.mElementsAreInitialized)
       , mConditionsAreInitialized(rOther.mConditionsAreInitialized)
-      , mCalculateReactionsFlag(rOther.mCalculateReactionsFlag)
     {
         //TODO: Check this... particularly the mpAssemblyHelper pointer
     }
@@ -241,7 +236,7 @@ public:
      * @brief This method sets if the elements have been initialized or not (true by default)
      * @param ElementsAreInitializedFlag If the flag must be set to true or false
      */
-    void SetSchemeIsInitialized(bool SchemeIsInitializedFlag)
+    void SetSchemeIsInitialized(const bool SchemeIsInitializedFlag)
     {
         mSchemeIsInitialized = SchemeIsInitializedFlag;
     }
@@ -259,7 +254,7 @@ public:
      * @brief This method sets if the elements have been initialized or not (true by default)
      * @param ElementsAreInitializedFlag If the flag must be set to true or false
      */
-    void SetElementsAreInitialized(bool ElementsAreInitializedFlag)
+    void SetElementsAreInitialized(const bool ElementsAreInitializedFlag)
     {
         mElementsAreInitialized = ElementsAreInitializedFlag;
     }
@@ -277,27 +272,27 @@ public:
      * @brief This method sets if the conditions have been initialized or not (true by default)
      * @param ConditionsAreInitializedFlag If the flag must be set to true or false
      */
-    void SetConditionsAreInitialized(bool ConditionsAreInitializedFlag)
+    void SetConditionsAreInitialized(const bool ConditionsAreInitializedFlag)
     {
         mConditionsAreInitialized = ConditionsAreInitializedFlag;
     }
 
     /**
-     * @brief This method returns the flag mCalculateReactionsFlag
-     * @return The flag that tells if the reactions are computed
+     * @brief This method returns the flag mReshapeMatrixFlag
+     * @return The flag that tells if we need to reshape the LHS matrix
      */
-    bool GetCalculateReactionsFlag() const
+    bool GetReshapeMatrixFlag() const
     {
-        return mCalculateReactionsFlag;
+        return mReshapeMatrixFlag;
     }
 
     /**
-     * @brief This method sets the flag mCalculateReactionsFlag
-     * @param CalculateReactionsFlag The flag that tells if the reactions are computed
+     * @brief This method sets the flag mReshapeMatrixFlag
+     * @param ReshapeMatrixFlag The flag that tells if we need to reshape the LHS matrix
      */
-    void SetCalculateReactionsFlag(bool CalculateReactionsFlag)
+    void SetReshapeMatrixFlag(const bool ReshapeMatrixFlag)
     {
-        mCalculateReactionsFlag = CalculateReactionsFlag;
+        mReshapeMatrixFlag = ReshapeMatrixFlag;
     }
 
     /**
@@ -421,18 +416,8 @@ public:
 
     virtual void SetUpDofArray(DofsArrayType& rDofSet)
     {
-        //TODO: I think these two are essentially the same (what changes is the Ids set up)
-        // Call external utility to perform the build
-        // if (mBuildType == BuildType::Block) {
-        //     BlockBuildDofArrayUtility::SetUpDofArray(rModelPart, mDofSet, mEchoLevel, mCalculateReactionsFlag);
-        // } else if (mBuildType == BuildType::Elimination) {
-        //     EliminationBuildDofArrayUtility::SetUpDofArray(rModelPart, mDofSet, mEchoLevel, mCalculateReactionsFlag);
-        // } else {
-        //     KRATOS_ERROR << "Build type not supported." << std::endl;
-        // }
-
         // Call the external utility to set up the DOFs array
-        EliminationBuildDofArrayUtility::SetUpDofArray(*mpModelPart, rDofSet, mEchoLevel, mCalculateReactionsFlag); //TODO: The elimination and the block do basically the same. Unify the naming.
+        DofArrayUtilities::SetUpDofArray(*mpModelPart, rDofSet, mEchoLevel);
 
         KRATOS_INFO_IF("NewScheme", mEchoLevel >= 2) << "Finished DOFs array set up." << std::endl;
     }
@@ -447,26 +432,17 @@ public:
     }
 
     void ResizeAndInitializeVectors(
+        const DofsArrayType& rDofSet,
         SystemMatrixPointerType& rpLHS,
         SystemVectorPointerType& rpDx,
-        SystemVectorPointerType& rpRHS)
+        SystemVectorPointerType& rpRHS,
+        const bool CalculateReactions = false)
     {
         KRATOS_TRY
 
-        // Set up the sparse matrix graph (note that we do not need to keep it after the resizing)
-        SparseGraph<IndexType> sparse_graph;
-        mpAssemblyHelper->SetUpSparseGraph(sparse_graph);
-
-        // Set the system arrays
-        // Note that the graph-based constructor does both resizing and initialization
-        auto p_lhs = Kratos::make_shared<NewScheme<>::SystemMatrixType>(sparse_graph);
-        rpLHS.swap(p_lhs);
-
-        auto p_dx = Kratos::make_shared<NewScheme<>::SystemVectorType>(sparse_graph);
-        rpDx.swap(p_dx);
-
-        auto p_rhs = Kratos::make_shared<NewScheme<>::SystemVectorType>(sparse_graph);
-        rpRHS.swap(p_rhs);
+        // Call the assembly helper to allocate and initialize the required vectors
+        // Note that this also allocates the required reaction vectors (e.g., elimination build)
+        mpAssemblyHelper->ResizeAndInitializeVectors(rDofSet, rpLHS, rpDx, rpRHS, CalculateReactions);
 
         //TODO: Think on the constraints stuff!
         // ConstructMasterSlaveConstraintsStructure(rModelPart);
@@ -506,12 +482,68 @@ public:
         Timer::Stop("Build");
     }
 
+    virtual void Build(SystemVectorType& rRHS)
+    {
+        Timer::Start("Build");
+
+        const auto timer = BuiltinTimer();
+
+        const auto elem_func = [](ModelPart::ElementConstantIterator ItElem, const ProcessInfo& rProcessInfo, ThreadLocalStorage& rTLS){
+            // Calculate the RHS contributions
+            ItElem->CalculateRightHandSide(rTLS.LocalRhs, rProcessInfo);
+        };
+
+        const auto cond_func = [](ModelPart::ConditionConstantIterator ItCond, const ProcessInfo& rProcessInfo, ThreadLocalStorage& rTLS){
+            // Calculate the RHS contributions
+            ItCond->CalculateRightHandSide(rTLS.LocalRhs, rProcessInfo);
+        };
+
+        ThreadLocalStorage aux_tls;
+        auto& r_assembly_helper = GetAssemblyHelper();
+        r_assembly_helper.SetElementAssemblyFunction(elem_func);
+        r_assembly_helper.SetConditionAssemblyFunction(cond_func);
+        r_assembly_helper.AssembleRightHandSide(rRHS, aux_tls);
+
+        KRATOS_INFO_IF("NewScheme", mEchoLevel >= 1) << "Build time: " << timer << std::endl;
+        KRATOS_INFO_IF("NewScheme", mEchoLevel >= 2) << "Finished parallel building" << std::endl;
+
+        Timer::Stop("Build");
+    }
+
     virtual void ApplyDirichletConditions(
         const DofsArrayType& rDofSet,
         SystemMatrixType& rLHS,
         SystemVectorType& rRHS)
     {
         GetAssemblyHelper().ApplyDirichletConditions(rDofSet, rLHS, rRHS);
+    }
+
+    virtual void ApplyDirichletConditions(
+        const DofsArrayType& rDofSet,
+        SystemVectorType& rRHS)
+    {
+        GetAssemblyHelper().ApplyDirichletConditions(rDofSet, rRHS);
+    }
+
+    virtual void CalculateReactions(
+        const DofsArrayType& rDofSet,
+        SystemVectorType& rRHS)
+    {
+        const auto elem_func = [](ModelPart::ElementConstantIterator ItElem, const ProcessInfo& rProcessInfo, ThreadLocalStorage& rTLS){
+            // Calculate the RHS contributions
+            ItElem->CalculateRightHandSide(rTLS.LocalRhs, rProcessInfo);
+        };
+
+        const auto cond_func = [](ModelPart::ConditionConstantIterator ItCond, const ProcessInfo& rProcessInfo, ThreadLocalStorage& rTLS){
+            // Calculate the RHS contributions
+            ItCond->CalculateRightHandSide(rTLS.LocalRhs, rProcessInfo);
+        };
+
+        ThreadLocalStorage aux_tls;
+        auto& r_assembly_helper = GetAssemblyHelper();
+        r_assembly_helper.SetElementAssemblyFunction(elem_func);
+        r_assembly_helper.SetConditionAssemblyFunction(cond_func);
+        r_assembly_helper.CalculateReactionsRightHandSide(rDofSet, rRHS, aux_tls);
     }
 
     /**
@@ -771,8 +803,6 @@ private:
     ModelPart* mpModelPart = nullptr;
 
     bool mReshapeMatrixFlag = false; /// If the matrix is reshaped each step
-
-    bool mCalculateReactionsFlag = false; /// Flag taking in account if it is needed or not to calculate the reactions
 
     int mEchoLevel = 0;
 

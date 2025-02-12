@@ -220,6 +220,14 @@ public:
         return *this;
     }
 
+    TDataType Norm() const
+    {
+        TDataType sum_squared = IndexPartition<TIndexType>(this->value_data().size()).template for_each< SumReduction<TDataType> >( [this](TIndexType i){
+            return std::pow((*this)[i], 2);
+        });
+        return std::sqrt(sum_squared);
+    }
+
     TDataType Dot(const SystemVector& rOtherVector, IndexType gather_on_rank=0)
     {
         KRATOS_WARNING_IF("SystemVector", gather_on_rank != 0) << "the parameter gather_on_rank essentially does nothing for a non-distribued vector. It is added to have the same interface as for the distributed_system_vector" << std::endl;

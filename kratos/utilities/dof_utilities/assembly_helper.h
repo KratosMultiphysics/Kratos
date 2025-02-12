@@ -71,8 +71,14 @@ public:
     /// Matrix type definition
     using SystemMatrixType = TMatrixType;
 
+    /// Matrix pointer type definition
+    using SystemMatrixPointerType = typename TMatrixType::Pointer;
+
     /// Vector type definition
     using SystemVectorType = TVectorType;
+
+    /// Vector pointer type definition
+    using SystemVectorPointerType = typename TVectorType::Pointer;
 
     /// Data type definition from sparse matrix
     using DataType = typename SystemMatrixType::DataType;
@@ -80,7 +86,10 @@ public:
     /// Index type definition from sparse matrix
     using IndexType = typename SystemMatrixType::IndexType;
 
-    /// DoF array type definition
+    /// DOF type definition
+    using DofType = ModelPart::DofType;
+
+    /// DOF array type definition
     using DofsArrayType = ModelPart::DofsArrayType;
 
     /// Local system matrix type definition from TLS
@@ -154,6 +163,36 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    void ResizeAndInitializeVectors(
+        const DofsArrayType& rDofSet,
+        SystemMatrixPointerType& rpLHS,
+        SystemVectorPointerType& rpDx,
+        SystemVectorPointerType& rpRHS,
+        const bool ReactionVector = false)
+    {
+        // Set up the sparse matrix graph (note that we do not need to keep it after the resizing)
+        SparseGraph<IndexType> sparse_graph;
+        SetUpSparseGraph(sparse_graph);
+
+        // Set the system arrays
+        // Note that the graph-based constructor does both resizing and initialization
+        auto p_lhs = Kratos::make_shared<SystemMatrixType>(sparse_graph);
+        rpLHS.swap(p_lhs);
+
+        auto p_dx = Kratos::make_shared<SystemVectorType>(sparse_graph);
+        rpDx.swap(p_dx);
+
+        auto p_rhs = Kratos::make_shared<SystemVectorType>(sparse_graph);
+        rpRHS.swap(p_rhs);
+
+        // For the elimination build, also allocate the auxiliary reactions vector
+        if (mBuildType == BuildType::Elimination && ReactionVector) {
+            KRATOS_ERROR_IF(mEquationSystemSize == 0) << "Equation system size is not set yet. Please call 'SetUpSystemIds' before this method." << std::endl;
+            auto p_react = Kratos::make_shared<SystemVectorType>(rDofSet.size() - mEquationSystemSize);
+            mpReactionsVector.swap(p_react);
+        }
+    }
 
     void SetUpSparseGraph(SparseGraph<IndexType>& rSparseGraph)
     {
@@ -239,15 +278,20 @@ public:
         }
     }
 
-    void AssembleRighHandSide(
+    void AssembleRightHandSide(
         SystemVectorType& rRHS,
-        TThreadLocalStorage& rTLS)
+        TThreadLocalStorage& rTLS,
+        const bool AssembleReactionVector = false)
     {
         // Call the implementation of the function with building type template argument
         if (mBuildType == BuildType::Block) {
-            AssembleImplementation<BuildType::Block>(rRHS, rTLS);
+            AssembleImplementation<BuildType::Block, false>(rRHS, rTLS);
         } else if (mBuildType == BuildType::Elimination) {
-            AssembleImplementation<BuildType::Elimination>(rRHS, rTLS);
+            if (AssembleReactionVector) {
+                AssembleImplementation<BuildType::Elimination, true>(rRHS, rTLS);
+            } else {
+                AssembleImplementation<BuildType::Elimination, false>(rRHS, rTLS);
+            }
         } else {
             KRATOS_ERROR << "Not implemented build type." << std::endl;
         }
@@ -264,14 +308,62 @@ public:
             // mScaleFactor = TSparseSpace::CheckAndCorrectZeroDiagonalValues(rModelPart.GetProcessInfo(), rA, rb, mScalingDiagonal);
 
             ApplyBlockBuildDirichletConditions(rDofSet, rLHS, rRHS);
-        } else if (mBuildType == BuildType::Elimination) {
 
-            //TODO: This is basically do nothing. Think on how to skip it
+        } else if (mBuildType == BuildType::Elimination) {
 
             //TODO: Implement this in the CSR matrix or here? --> Most probably we shouldn't call it here neither
             // // Detect if there is a line of all zeros and set the diagonal to a certain number if this happens (1 if not scale, some norms values otherwise)
             // mScaleFactor = TSparseSpace::CheckAndCorrectZeroDiagonalValues(rModelPart.GetProcessInfo(), rA, rb, mScalingDiagonal);
 
+        } else {
+            KRATOS_ERROR << "Build type not supported." << std::endl;
+        }
+    }
+
+    void ApplyDirichletConditions(
+        const DofsArrayType& rDofSet,
+        SystemVectorType& rRHS)
+    {
+        if (mBuildType == BuildType::Block) {
+            ApplyBlockBuildDirichletConditions(rDofSet, rRHS);
+        } else if (mBuildType == BuildType::Elimination) {
+            return;
+        } else {
+            KRATOS_ERROR << "Build type not supported." << std::endl;
+        }
+    }
+
+    void CalculateReactionsRightHandSide(
+        const DofsArrayType& rDofSet,
+        SystemVectorType& rRHS,
+        TThreadLocalStorage& rTLS)
+    {
+        // Initialize the provided RHS (note that this has been potentially used in the system resolution)
+        rRHS.SetValue(DataType());
+
+        if (mBuildType == BuildType::Block) {
+            // Do the block RHS assembly without Dirichlet BCs
+            AssembleImplementation<BuildType::Block, false>(rRHS, rTLS);
+
+            // Set minus the RHS as reaction values
+            // Note that in the block build DOFs are assumed to be numbered consecutively
+            block_for_each(rDofSet, [&](DofType& rDof){
+                rDof.GetSolutionStepReactionValue() = -rRHS[rDof.EquationId()];
+            });
+        } else if (mBuildType == BuildType::Elimination) {
+            // Do the elimination RHS assembly without Dirichlet BCs
+            AssembleImplementation<BuildType::Elimination, true>(rRHS, rTLS);
+
+            // Set minus the RHS as reaction values
+            // Note that in the elimination case the fix DOFs residuals are stored in the mpReactionsVector
+            auto& r_reactions_vector = *mpReactionsVector;
+            block_for_each(rDofSet, [&](DofType& rDof){
+                IndexType i_react = rDof.EquationId();
+                if (i_react >= mEquationSystemSize) { // Check if current DOF is fixed
+                    i_react -= mEquationSystemSize; // Get the corresponding row index in the reactions vector
+                    rDof.GetSolutionStepReactionValue() = - r_reactions_vector[i_react];
+                }
+            });
         } else {
             KRATOS_ERROR << "Build type not supported." << std::endl;
         }
@@ -353,13 +445,15 @@ private:
 
     SizeType mEchoLevel;
 
-    SizeType mEquationSystemSize; /// Number of degrees of freedom of the problem to be solve
+    SizeType mEquationSystemSize = 0; /// Number of degrees of freedom of the problem to be solve
 
     std::unique_ptr<ElementAssemblyFunctionType> mpElementAssemblyFunction = nullptr; // Pointer to the function to be called in the elements assembly
 
     std::unique_ptr<ConditionAssemblyFunctionType> mpConditionAssemblyFunction = nullptr; // Pointer to the function to be called in the conditions assembly
 
     std::unique_ptr<ConstraintAssemblyFunctionType> mpConstraintAssemblyFunction = nullptr; // Pointer to the function to be called in the constraints assembly
+
+    SystemVectorPointerType mpReactionsVector = nullptr; // Auxiliary vector to calculate the reactions in the elimination build
 
     ///@}
     ///@name Private Operations
@@ -498,7 +592,7 @@ private:
         rLHS.FinalizeAssemble();
     }
 
-    template<BuildType TBuildType>
+    template<BuildType TBuildType, bool TAssembleReactionVector>
     void AssembleImplementation(
         SystemVectorType& rRHS,
         TThreadLocalStorage& rTLS)
@@ -534,7 +628,7 @@ private:
                         it_elem->EquationIdVector(r_loc_eq_ids, r_process_info);
 
                         // Assemble the local contributions to the global system
-                        AssembleLocalContribution<TBuildType>(rTLS, rRHS);
+                        AssembleLocalContribution<TBuildType, TAssembleReactionVector>(rTLS, rRHS);
                     }
                 }
             }
@@ -553,7 +647,7 @@ private:
                         it_cond->EquationIdVector(r_loc_eq_ids, r_process_info);
 
                         // Assemble the local contributions to the global system
-                        AssembleLocalContribution<TBuildType>(rTLS, rRHS);
+                        AssembleLocalContribution<TBuildType, TAssembleReactionVector>(rTLS, rRHS);
                     }
                 }
             }
@@ -629,7 +723,7 @@ private:
         }
     }
 
-    template<BuildType TBuildType>
+    template<BuildType TBuildType, bool TAssembleReactionVector>
     void AssembleLocalContribution(
         const TThreadLocalStorage& rTLS,
         SystemVectorType& rRHS)
@@ -637,15 +731,27 @@ private:
         auto& r_loc_eq_ids = GetThreadLocalStorageEqIds(rTLS);
 
         if constexpr (TBuildType == BuildType::Block) {
-            rRHS.Assemble(GetThreadLocalStorageContainer(rRHS, rTLS), r_loc_eq_ids); // RHS contributions assembly
-
+            if constexpr (!TAssembleReactionVector) {
+                rRHS.Assemble(GetThreadLocalStorageContainer(rRHS, rTLS), r_loc_eq_ids); // RHS contributions assembly
+            } else {
+                static_assert(TBuildType == BuildType::Block && TAssembleReactionVector == true, "Assemble reaction vector cannot be used with block build type.");
+            }
         } else if (TBuildType == BuildType::Elimination) {
             const auto& r_loc_rhs = GetThreadLocalStorageContainer(rRHS, rTLS);
             const SizeType loc_size = r_loc_rhs.size();
             for (IndexType i_loc = 0; i_loc < loc_size; ++i_loc) {
                 IndexType i_glob = r_loc_eq_ids[i_loc];
-                if (i_glob < mEquationSystemSize) {// Check if current row DOF is free
-                    rRHS.AssembleEntry(r_loc_rhs[i_loc], i_glob); // RHS contribution assembly
+                if constexpr (!TAssembleReactionVector) {
+                    if (i_glob < mEquationSystemSize) {// Check if current row DOF is free
+                        rRHS.AssembleEntry(r_loc_rhs[i_loc], i_glob); // RHS contribution assembly
+                    }
+                } else {
+                    if (i_glob < mEquationSystemSize) {// Check if current row DOF is free
+                        rRHS.AssembleEntry(r_loc_rhs[i_loc], i_glob); // RHS contribution assembly
+                    } else {
+                        const IndexType react_vec_pos = i_glob - mEquationSystemSize;// Get the corresponding position in the reactions vector
+                        mpReactionsVector->AssembleEntry(r_loc_rhs[i_loc], react_vec_pos); // RHS contribution assembly to reactions vector
+                    }
                 }
             }
 
@@ -708,6 +814,21 @@ private:
 
         // Apply the free DOFs (i.e., fixity) vector to the system arrays
         rLHS.ApplyHomogeneousDirichlet(free_dofs_vector, diagonal_value, rRHS);
+    }
+
+    void ApplyBlockBuildDirichletConditions(
+        const DofsArrayType& rDofSet,
+        SystemVectorType& rRHS) const
+    {
+        // Loop the DOFs to find which ones are fixed
+        // Note that DOFs are assumed to be numbered consecutively in the block building
+        const auto dof_begin = rDofSet.begin();
+        IndexPartition<std::size_t>(rDofSet.size()).for_each([&](IndexType Index){
+            auto it_dof = dof_begin + Index;
+            if (it_dof->IsFixed()) {
+                rRHS[Index] = 0.0;
+            }
+        });
     }
 
     ///@}

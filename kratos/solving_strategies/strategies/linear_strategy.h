@@ -18,8 +18,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "schemes/new_scheme.h"
-#include "solving_strategies/strategies/implicit_solving_strategy.h"
+#include "solving_strategies/schemes/new_scheme.h"
 #include "utilities/builtin_timer.h"
 
 namespace Kratos
@@ -82,6 +81,9 @@ public:
     // Scheme pointer type definition
     using SchemePointerType = typename SchemeType::Pointer;
 
+    // Linear solver pointer definition
+    using LinearSolverPointerType = typename TLinearSolver::Pointer;
+
     /// DoF array type definition
     using DofsArrayType = typename SchemeType::DofsArrayType;
 
@@ -104,9 +106,7 @@ public:
     /**
      * @brief Default constructor
      */
-    explicit LinearStrategy() : BaseType()
-    {
-    }
+    explicit LinearStrategy() = default;
 
     /**
      * @brief Default constructor. (with parameters)
@@ -116,7 +116,7 @@ public:
     explicit LinearStrategy(
         ModelPart& rModelPart,
         Parameters ThisParameters)
-        : mpModelPart(rModelPart)
+        : mpModelPart(&rModelPart)
     {
         // Validate and assign defaults
         ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
@@ -126,9 +126,12 @@ public:
         mSolutionStepIsInitialized = false;
         mInitializeWasPerformed = false;
 
+        //TODO: In here we should leverage the Registry to construct the scheme from the json input settings
+
+
         // Tells to the builder and solver if the reactions have to be Calculated or not
         // FIXME:
-        // GetBuilderAndSolver()->SetCalculateReactionsFlag(mCalculateReactionsFlag);
+        // GetBuilderAndSolver()->SetComputeReactions(mComputeReactions);
 
         // Tells to the Builder And Solver if the system matrix and vectors need to
         // be reshaped at each step or not
@@ -148,17 +151,18 @@ public:
      */
     explicit LinearStrategy(
         ModelPart& rModelPart,
-        typename TSchemeType::Pointer pScheme,
-        typename TLinearSolver::Pointer pNewLinearSolver,
-        bool CalculateReactionFlag = false,
+        SchemePointerType pScheme,
+        typename TLinearSolver::Pointer pLinearSolver,
+        bool ComputeReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool CalculateNormDxFlag = false,
         bool MoveMeshFlag = false)
         : mpScheme(pScheme)
-        , mpModelPart(rModelpart)
+        , mpModelPart(&rModelPart)
+        , mpLinearSolver(&pLinearSolver)
         , mReformDofSetAtEachStep(ReformDofSetAtEachStep)
         , mCalculateNormDxFlag(CalculateNormDxFlag)
-        , mCalculateReactionsFlag(CalculateReactionFlag)
+        , mComputeReactions(ComputeReactions)
     {
         KRATOS_TRY
 
@@ -166,23 +170,25 @@ public:
         mSolutionStepIsInitialized = false;
         mInitializeWasPerformed = false;
 
-        //FIXME:
-        // Tells to the builder and solver if the reactions have to be Calculated or not
-        // GetBuilderAndSolver()->SetCalculateReactionsFlag(mCalculateReactionsFlag);
+        // Tells to the scheme if the reactions have to be calculated or not
+        mpScheme->SetComputeReactions(ComputeReactions);
 
-        //FIXME:
-        // Tells to the Builder And Solver if the system matrix and vectors need to
-        //be reshaped at each step or not
-        // GetBuilderAndSolver()->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
+        // Tells to the scheme if the DOF needs to be reformed at each time step
+        // Note that this implies reshaping (or not) the system matrix and vectors
+        mpScheme->SetReshapeMatrixFlag(ReformDofSetAtEachStep); // TODO: I think we should unify the naming
 
         // Set EchoLevel to the default value (only time is displayed)
         this->SetEchoLevel(1);
 
         // By default the matrices are rebuilt at each solution step
-        BaseType::SetRebuildLevel(1);
+        SetRebuildLevel(1);
 
         KRATOS_CATCH("")
     }
+
+    /** Copy constructor.
+     */
+    LinearStrategy(const LinearStrategy &Other) = delete;
 
     /**
      * @brief Destructor.
@@ -190,23 +196,6 @@ public:
      */
     ~LinearStrategy()
     {
-        //  If the linear solver has not been deallocated, clean it before
-        //  deallocating mpA. This prevents a memory error with the the ML
-        //  solver (which holds a reference to it).
-        mpLinearSolver->Clear();
-
-        //TODO: Update comment to current implementation
-        // Deallocating system vectors to avoid errors in MPI. Clear calls
-        // TrilinosSpace::Clear for the vectors, which preserves the Map of
-        // current vectors, performing MPI calls in the process. Due to the
-        // way Python garbage collection works, this may happen after
-        // MPI_Finalize has already been called and is an error. Resetting
-        // the pointers here prevents Clear from operating with the
-        // (now deallocated) vectors.
-        mpA.clear();
-        mpdx.clear();
-        mpb.clear();
-
         // Finally clear current class
         this->Clear();
     }
@@ -238,41 +227,57 @@ public:
     }
 
     /**
-     * @brief This method sets the flag mCalculateReactionsFlag
-     * @param CalculateReactionsFlag The flag that tells if the reactions are computed
+     * @brief Set method for the linear solver
+     * @param pLinearSolver The pointer to the linear solver
      */
-    void SetCalculateReactionsFlag(const bool CalculateReactionsFlag)
+    void SetLinearSolver(LinearSolverPointerType pLinearSolver)
     {
-        mCalculateReactionsFlag = CalculateReactionsFlag;
-        pGetScheme()->SetCalculateReactionsFlag(mCalculateReactionsFlag) //TODO: Most probably we can avoid saving the reactions flag in the scheme
+        mpLinearSolver = pLinearSolver;
+    }
 
     /**
-     * @brief This method returns the flag mCalculateReactionsFlag
+     * @brief Get method for the linear solver
+     * @return mpLinearSolver The pointer to the linear solver
+     */
+    SchemePointerType pGetLinearSolver()
+    {
+        return mpLinearSolver;
+    }
+
+    /**
+     * @brief This method sets the flag mComputeReactions
+     * @param ComputeReactions The flag that tells if the reactions are computed
+     */
+    void SetComputeReactions(const bool ComputeReactions)
+    {
+        mComputeReactions = ComputeReactions;
+    }
+
+    /**
+     * @brief This method returns the flag mComputeReactions
      * @return The flag that tells if the reactions are computed
      */
-    bool GetCalculateReactionsFlag() const
+    bool GetComputeReactions() const
     {
-        return mCalculateReactionsFlag;
+        return mComputeReactions;
     }
 
     /**
      * @brief This method sets the flag mReformDofSetAtEachStep
      * @param ReformDofSetAtEachStepFlag The flag that tells if each time step the system is rebuilt
      */
-    void SetReformDofSetAtEachStepFlag(const bool ReformDofSetAtEachStepFlag)
+    void SetReformDofSetAtEachStepFlag(const bool ReformDofSetAtEachStepFlag) // TODO: Unify the naming with the scheme
     {
-        mReformDofSetAtEachStep = ReformDofSetAtEachStepFlag;
-        // FIXME: I don't think this is required to be set at the scheme
-        // GetBuilderAndSolver()->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
+        pGetScheme()->SetReshapeMatrixFlag(ReformDofSetAtEachStepFlag);
     }
 
     /**
      * @brief This method returns the flag mReformDofSetAtEachStep
      * @return The flag that tells if each time step the system is rebuilt
      */
-    bool GetReformDofSetAtEachStepFlag() const
+    bool GetReformDofSetAtEachStepFlag() const //TODO: Unify the naming with the scheme
     {
-        return mReformDofSetAtEachStep;
+        return pGetScheme()->GetReshapeMatrixFlag();
     }
 
     /**
@@ -323,7 +328,7 @@ public:
      * - 3: Print of debug information: Echo of stiffness matrix, Dx, b...
      */
 
-    void SetEchoLevel(int EchoLevel)
+    void SetEchoLevel(const int EchoLevel) //TODO: I'd also unify the echo level with the scheme
     {
         mEchoLevel = EchoLevel;
         pGetScheme()->SetEchoLevel(EchoLevel);
@@ -439,23 +444,25 @@ public:
         KRATOS_TRY;
 
         // Clear the linear solver
-        mpLinearSolver->Clear();
+        if (mpLinearSolver != nullptr) {
+            mpLinearSolver->Clear();
+        }
 
         // Clearing the system of equations
         if (mpA != nullptr) {
-            mpA->clear();
+            mpA->Clear();
         }
         if (mpdx != nullptr) {
-            mpdx->clear();
+            mpdx->Clear();
         }
         if (mpb != nullptr) {
-            mpb->clear();
+            mpb->Clear();
         }
 
         // Clearing scheme
         // Note that this resets the DOF set
-        if (pGetScheme() != nullptr) {
-            pGetScheme()->Clear();
+        if (mpScheme != nullptr) {
+            mpScheme->Clear();
         }
 
         // Reset initialization flags
@@ -511,7 +518,7 @@ public:
             KRATOS_INFO_IF("LinearStrategy", GetEchoLevel() > 0) << "System construction time: " << system_construction_time << std::endl;
 
             // Call the scheme InitializeSolutionStep
-            p_scheme->InitializeSolutionStep(GetModelPart(), *mpA, *mpDx, *mpb);
+            p_scheme->InitializeSolutionStep(GetModelPart(), *mpA, *mpdx, *mpb);
 
             // Set the flag to avoid calling this twice
             mSolutionStepIsInitialized = true;
@@ -532,7 +539,7 @@ public:
         auto p_scheme = pGetScheme();
 
         // Finalisation of the solution step (operations to be done after achieving convergence)
-        p_scheme->FinalizeSolutionStep(BaseType::GetModelPart(), *mpA, *mpdx, *mpb);
+        p_scheme->FinalizeSolutionStep(GetModelPart(), *mpA, *mpdx, *mpb);
 
         // Cleaning memory after the solution
         p_scheme->Clean();
@@ -557,7 +564,7 @@ public:
         auto p_scheme = pGetScheme();
 
         // Initialize non-linear iteration (once as this is a linear strategy)
-	    p_scheme->InitializeNonLinIteration(GetModelPart(), *mpA, *mpdx, *mpb);
+	    p_scheme->InitializeNonLinIteration(*mpA, *mpdx, *mpb);
 
         if (mRebuildLevel > 0 || mStiffnessMatrixIsBuilt == false) {
             // Initialize values
@@ -565,37 +572,41 @@ public:
             mpdx->SetValue(0.0);
             mpb->SetValue(0.0);
 
-            p_scheme->Build(GetModelPart(), *mpA, *mpb);
-            p_scheme->ApplyDirichletConditions(GetModelPart(), *mpA, *mpb);
-            //TODO: Call the linear solver to solve in here!!!!
-
-
-            p_builder_and_solver->BuildAndSolve(p_scheme, BaseType::GetModelPart(), rA, rDx, rb);
+            // Build the local system and apply the Dirichlet conditions
+            p_scheme->Build(*mpA, *mpb);
+            p_scheme->ApplyDirichletConditions(mDofSet, *mpA, *mpb);
             mStiffnessMatrixIsBuilt = true;
         } else {
-            TSparseSpace::SetToZero(rDx);
-            TSparseSpace::SetToZero(rb);
-            p_builder_and_solver->BuildRHSAndSolve(p_scheme, BaseType::GetModelPart(), rA, rDx, rb);
+            // Initialize values
+            mpdx->SetValue(0.0);
+            mpb->SetValue(0.0);
+
+            // Build the RHS and apply the Dirichlet conditions
+            p_scheme->Build(*mpb);
+            p_scheme->ApplyDirichletConditions(mDofSet, *mpb);
         }
+
+        // Solve the system
+        pGetLinearSolver()->Solve(*mpA, *mpdx, *mpb);
 
         // Debugging info
         EchoInfo();
 
-        //update results
-        p_scheme->Update(BaseType::GetModelPart(), GetDofSet(), rA, rDx, rb);
+        // Update results
+        p_scheme->Update(mDofSet, *mpA, *mpdx, *mpb);
 
-        //move the mesh if needed
+        // Move the mesh if needed
         if (GetMoveMeshFlag()) {
             MoveMesh();
         }
 
-        p_scheme->FinalizeNonLinIteration(BaseType::GetModelPart(), rA, rDx, rb);
+        // Finalize current (unique) non linear iteration
+        p_scheme->FinalizeNonLinIteration(*mpA, *mpdx, *mpb);
 
         // Calculate reactions if required
-        if (mCalculateReactionsFlag == true)
-            p_builder_and_solver->CalculateReactions(p_scheme,
-                                                     BaseType::GetModelPart(),
-                                                     rA, rDx, rb);
+        if (mComputeReactions) {
+            p_scheme->CalculateReactions(mDofSet, *mpb);
+        }
 
         return true;
     }
@@ -655,10 +666,11 @@ public:
      */
     double GetResidualNorm()
     {
-        if (TSparseSpace::Size(*mpb) != 0)
-            return TSparseSpace::TwoNorm(*mpb);
-        else
+        if (mpb->size() != 0) {
+            return mpb->Norm();
+        } else {
             return 0.0;
+        }
     }
 
     /**
@@ -669,12 +681,20 @@ public:
     {
         KRATOS_TRY
 
-        BaseType::Check();
+        // BaseType::Check();
 
-        // FIXME:
-        // GetBuilderAndSolver()->Check(BaseType::GetModelPart());
+        pGetScheme()->Check(GetModelPart());
 
-        pGetScheme()->Check(BaseType::GetModelPart());
+        //TODO: think if we do this in debug mode only
+        // If reactions are to be calculated, we check if all the dofs have reactions defined
+        if (mComputeReactions) {
+            for (auto& r_dof : mDofSet) {
+                KRATOS_ERROR_IF_NOT(r_dof.HasReaction())
+                    << "Reaction variable not set for the following: " << std::endl
+                    << "- Node: "<< r_dof.Id() << std::endl
+                    << "- DOF: " << r_dof << std::endl;
+            }
+        }
 
         return 0;
 
@@ -693,14 +713,13 @@ public:
             "compute_norm_dx"              : false,
             "reform_dofs_at_each_step"     : false,
             "compute_reactions"            : false,
-            "builder_and_solver_settings"  : {},
             "linear_solver_settings"       : {},
             "scheme_settings"              : {}
         })");
 
         // Getting base class default parameters
-        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
-        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        // const Parameters base_default_parameters = BaseType::GetDefaultParameters(); //TODO: Once we have a base class...
+        // default_parameters.RecursivelyAddMissingParameters(base_default_parameters); //TODO: Once we have a base class...
         return default_parameters;
     }
 
@@ -766,7 +785,6 @@ public:
 
 
     ///@}
-
 protected:
     ///@name Protected static Member Variables
     ///@{
@@ -774,6 +792,8 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
+
+    typename TLinearSolver::Pointer mpLinearSystemSolver = nullptr; /// Pointer to the linear solver
 
     ///@}
     ///@name Protected Operators
@@ -789,16 +809,42 @@ protected:
      */
     void AssignSettings(const Parameters ThisParameters)
     {
-        BaseType::AssignSettings(ThisParameters);
+        // BaseType::AssignSettings(ThisParameters); // TODO: Once we have a base class
         mCalculateNormDxFlag = ThisParameters["compute_norm_dx"].GetBool();
         mReformDofSetAtEachStep = ThisParameters["reform_dofs_at_each_step"].GetBool();
-        mCalculateReactionsFlag = ThisParameters["compute_reactions"].GetBool();
+        mComputeReactions = ThisParameters["compute_reactions"].GetBool();
 
         // Saving the scheme
         if (ThisParameters["scheme_settings"].Has("name")) {
             KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
         }
 
+    }
+
+    //TODO: Move this to the future base class
+    /**
+     * @brief Set the Rebuild Level value
+     * This functions sets the rebuild level of the strategy
+     * It is only intended to be used in implicit strategies
+     * @param RebuildLevel Level of rebuild
+     */
+    virtual void SetRebuildLevel(const int RebuildLevel)
+    {
+        mRebuildLevel = RebuildLevel;
+        // KRATOS_ERROR << "Accessing the strategy base class \'GetRebuildLevel\'. Please implement it in your derived class." << std::endl;
+    }
+
+    //TODO: Move this to the future base class
+    /**
+     * @brief Get the Rebuild Level value
+     * This function returns the rebuild level of the strategy
+     * It is only intended to be used in implicit strategies
+     * @return int Rebuild Level value
+     */
+    virtual int GetRebuildLevel() const
+    {
+        return mRebuildLevel;
+        // KRATOS_ERROR << "Accessing the strategy base class \'GetRebuildLevel\'. Please implement it in your derived class." << std::endl;
     }
 
     //TODO: Move this to the future base class
@@ -810,7 +856,8 @@ protected:
     {
         KRATOS_TRY
 
-        KRATOS_ERROR_IF_NOT(GetModelPart().HasNodalSolutionStepVariable(DISPLACEMENT_X)) << "It is impossible to move the mesh since the DISPLACEMENT variable is not in the ModelPart. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables" << std::endl;
+        KRATOS_ERROR_IF_NOT(GetModelPart().HasNodalSolutionStepVariable(DISPLACEMENT_X))
+            << "It is impossible to move the mesh since the DISPLACEMENT variable is not in the ModelPart. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables" << std::endl;
 
         block_for_each(GetModelPart().Nodes(), [](Node& rNode){
             noalias(rNode.Coordinates()) = rNode.GetInitialPosition().Coordinates();
@@ -845,40 +892,35 @@ private:
     ///@name Member Variables
     ///@{
 
-    typename TSchemeType::Pointer mpScheme = nullptr; /// The pointer to the linear solver considered
+    SchemePointerType mpScheme = nullptr; /// The pointer to the scheme
+
+    typename TLinearSolver::Pointer mpLinearSolver = nullptr; /// The pointer to the linear solver
 
     DofsArrayType mDofSet; /// The set containing the DoF of the system
 
-    SystemVectorPointerType mpdx; /// The incremement in the solution
+    SystemVectorPointerType mpdx; /// The incremement in the solution //TODO: use naming convention
 
-    SystemVectorPointerType mpb; /// The RHS vector of the system of equations
+    SystemVectorPointerType mpb; /// The RHS vector of the system of equations //TODO: use naming convention (mpRHS)
 
-    SystemMatrixPointerType mpA; /// The LHS matrix of the system of equations
+    SystemMatrixPointerType mpA; /// The LHS matrix of the system of equations //TODO: use naming convention (mpLHS)
+
+    ModelPart* mpModelPart = nullptr;
 
     int mEchoLevel;
 
-    ModelPart* mpModelPart = nullptr;
+    int mRebuildLevel;
 
     bool mMoveMeshFlag;
 
     bool mDofSetIsInitialized = false;
 
-    /**
-     * @brief Flag telling if it is needed to reform the DofSet at each
-    solution step or if it is possible to form it just once
-    * @details Default = false
-        - true  : Reforme at each time step
-        - false : Form just one (more efficient)
-     */
-    bool mReformDofSetAtEachStep;
+    bool mReformDofSetAtEachStep = false;
+
+    bool mStiffnessMatrixIsBuilt = false;
 
     bool mCalculateNormDxFlag; /// Calculates if required the norm of the correction term Dx
 
-    /**
-     * @brief Flag telling if it is needed or not to compute the reactions
-     * @details default = true
-     */
-    bool mCalculateReactionsFlag;
+    bool mComputeReactions;
 
     bool mSolutionStepIsInitialized; /// Flag to set as initialized the solution step
 
@@ -899,19 +941,21 @@ private:
 
         if (GetEchoLevel() == 3) //if it is needed to print the debug info
         {
-            KRATOS_INFO("LHS") << "SystemMatrix = " << rA << std::endl;
+            KRATOS_INFO("LHS") << "LHS = " << rA << std::endl;
+            KRATOS_INFO("RHS") << "RHS = " << rb << std::endl;
             KRATOS_INFO("Dx")  << "Solution obtained = " << rDx << std::endl;
-            KRATOS_INFO("RHS") << "RHS  = " << rb << std::endl;
         }
         if (this->GetEchoLevel() == 4) //print to matrix market file
         {
-            std::stringstream matrix_market_name;
-            matrix_market_name << "A_" << BaseType::GetModelPart().GetProcessInfo()[TIME] <<  ".mm";
-            TSparseSpace::WriteMatrixMarketMatrix((char*) (matrix_market_name.str()).c_str(), rA, false);
+            //TODO: Impllement the MatrixMarket output
 
-            std::stringstream matrix_market_vectname;
-            matrix_market_vectname << "b_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << ".mm.rhs";
-            TSparseSpace::WriteMatrixMarketVector((char*) (matrix_market_vectname.str()).c_str(), rb);
+            // std::stringstream matrix_market_name;
+            // matrix_market_name << "A_" << BaseType::GetModelPart().GetProcessInfo()[TIME] <<  ".mm";
+            // TSparseSpace::WriteMatrixMarketMatrix((char*) (matrix_market_name.str()).c_str(), rA, false);
+
+            // std::stringstream matrix_market_vectname;
+            // matrix_market_vectname << "b_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << ".mm.rhs";
+            // TSparseSpace::WriteMatrixMarketVector((char*) (matrix_market_vectname.str()).c_str(), rb);
         }
     }
 
@@ -934,12 +978,8 @@ private:
     ///@name Un accessible methods */
     ///@{
 
-    /** Copy constructor.
-     */
-    LinearStrategy(const LinearStrategy& Other);
 
     ///@}
-
 }; /* Class LinearStrategy */
 
 ///@}
