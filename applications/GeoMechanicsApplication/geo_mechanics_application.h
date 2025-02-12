@@ -125,6 +125,7 @@
 #include "custom_constitutive/linear_elastic_2D_interface_law.h"
 #include "custom_constitutive/linear_elastic_3D_interface_law.h"
 #include "custom_constitutive/linear_elastic_plane_stress_2D_law.h"
+#include "custom_constitutive/mohr_coulomb_constitutive_law.hpp"
 #include "custom_constitutive/plane_strain.h"
 #include "custom_constitutive/small_strain_udsm_2D_interface_law.hpp"
 #include "custom_constitutive/small_strain_udsm_2D_plane_strain_law.hpp"
@@ -136,7 +137,6 @@
 #include "custom_constitutive/small_strain_umat_3D_law.hpp"
 #include "custom_constitutive/three_dimensional.h"
 #include "custom_constitutive/truss_backbone_constitutive_law.h"
-#include "custom_constitutive/mohr_coulomb_constitutive_law.hpp"
 
 namespace Kratos
 {
@@ -980,7 +980,7 @@ private:
 
     const GeoIncrementalLinearElasticInterfaceLaw mIncrementalLinearElasticInterfaceLaw;
 
-    const MohrCoulombConstitutiveLaw mMohrCoulombConstitutiveLaw;
+    // const MohrCoulombConstitutiveLaw mMohrCoulombConstitutiveLaw;
 
     ///@}
 

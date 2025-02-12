@@ -16,7 +16,6 @@
 
 #include "custom_constitutive/evaluate_yield_function.h"
 
-
 namespace Kratos
 {
 
@@ -34,9 +33,9 @@ public:
 
 private:
     // Member Variables
-    double mFrictionAngle = 0.0;
+    double mFrictionAngle   = 0.0;
     double mDilatationAngle = 0.0;
-    double mCohesion = 0.0;
+    double mCohesion        = 0.0;
 
 }; // Class CoulombYieldFunction
 

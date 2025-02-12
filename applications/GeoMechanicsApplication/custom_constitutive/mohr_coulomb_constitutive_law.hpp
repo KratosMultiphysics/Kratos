@@ -18,30 +18,38 @@
 #include <cmath>
 
 // Project includes
-#include "includes/constitutive_law.h"
-#include "custom_constitutive/constitutive_law_dimension.h"
-#include "includes/serializer.h"
 #include "geo_mechanics_application_variables.h"
+#include "includes/constitutive_law.h"
+#include "includes/serializer.h"
 
 namespace Kratos
 {
+
+class ConstitutiveLawDimension;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) MohrCoulombConstitutiveLaw : public ConstitutiveLaw
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(MohrCoulombConstitutiveLaw);
 
-    MohrCoulombConstitutiveLaw();
-    //explicit MohrCoulombConstitutiveLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension);
+    // MohrCoulombConstitutiveLaw();
+    explicit MohrCoulombConstitutiveLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension);
+
+    ~MohrCoulombConstitutiveLaw() override;
+
+    // Copying is not allowed. Use member `Clone` instead.
+    MohrCoulombConstitutiveLaw(const MohrCoulombConstitutiveLaw&)            = delete;
+    MohrCoulombConstitutiveLaw& operator=(const MohrCoulombConstitutiveLaw&) = delete;
+
+    // Moving is supported
+    MohrCoulombConstitutiveLaw(MohrCoulombConstitutiveLaw&&) noexcept            = default;
+    MohrCoulombConstitutiveLaw& operator=(MohrCoulombConstitutiveLaw&&) noexcept = default;
+
+    [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override;
 
     int Check(const Properties&   rMaterialProperties,
               const GeometryType& rElementGeometry,
               const ProcessInfo&  rCurrentProcessInfo) const override;
-
-    ~MohrCoulombConstitutiveLaw() override = default;
-
-    ConstitutiveLaw::Pointer Clone() const override;
-
 
     using ConstitutiveLaw::GetValue;
     double& GetValue(const Variable<double>& rThisVariable, double& rValue) override;
@@ -61,11 +69,11 @@ public:
     double mStateVariable;
 
 private:
-    //std::unique_ptr<ConstitutiveLawDimension> mpConstitutiveDimension;
-    Vector mStressVector;
-    Vector mStrainVectorFinalized;
-    Vector mStressVectorFinalized;
-    Vector mDeltaStrainVector;
+    std::unique_ptr<ConstitutiveLawDimension> mpConstitutiveDimension;
+    Vector                                    mStressVector;
+    Vector                                    mStressVectorFinalized;
+    Vector                                    mDeltaStrainVector;
+    Vector                                    mStrainVectorFinalized;
 
     // Serialization
     friend class Serializer;

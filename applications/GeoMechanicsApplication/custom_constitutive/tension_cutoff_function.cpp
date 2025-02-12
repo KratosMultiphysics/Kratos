@@ -15,24 +15,23 @@
 
 #include <boost/numeric/ublas/assignment.hpp>
 
-
 namespace Kratos
 {
-    TensionCutoffFunction::TensionCutoffFunction(double tensileStrength)
-        : mTensileStrength{tensileStrength}
-    {
-    }
+TensionCutoffFunction::TensionCutoffFunction(double tensileStrength)
+    : mTensileStrength{tensileStrength}
+{
+}
 
-    double TensionCutoffFunction::CalculateYieldFunction(const Vector& rPrincipalStress) const
-    {
-        return mTensileStrength - rPrincipalStress(2);
-    }
+double TensionCutoffFunction::CalculateYieldFunction(const Vector& rPrincipalStress) const
+{
+    return mTensileStrength - rPrincipalStress(2);
+}
 
-    Vector TensionCutoffFunction::CalculateFlowFunctionDerivate(const Vector& rPrincipalStress) const
-    {
-        Vector result(3);
-        result <<= 0.0, 0.0, -1.0;
-        return result;
-    }
+Vector TensionCutoffFunction::CalculateFlowFunctionDerivate(const Vector& rPrincipalStress) const
+{
+    Vector result(3);
+    result <<= 0.0, 0.0, -1.0;
+    return result;
+}
 
 } // Namespace Kratos

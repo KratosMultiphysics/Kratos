@@ -22,7 +22,7 @@ namespace Kratos::Testing
 KRATOS_TEST_CASE_IN_SUITE(TestCoulombYieldFunction, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     double friction_angle = 45.0 * Globals::Pi / 180.0;
-    double cohesion = 2.0;
+    double cohesion       = 2.0;
 
     Vector principal_stress(3);
     principal_stress <<= 3.0, 2.0, 1.0;
@@ -30,11 +30,10 @@ KRATOS_TEST_CASE_IN_SUITE(TestCoulombYieldFunction, KratosGeoMechanicsFastSuiteW
     constexpr double tolerance{1.0e-12};
 
     CoulombYieldFunction coulombYieldFunction(friction_angle, cohesion, 0.0);
-    double yield_value = coulombYieldFunction.CalculateYieldFunction(principal_stress);
+    double yield_value       = coulombYieldFunction.CalculateYieldFunction(principal_stress);
     double expected_solution = 1.0;
     KRATOS_EXPECT_NEAR(yield_value, expected_solution, tolerance);
 }
-
 
 KRATOS_TEST_CASE_IN_SUITE(TestTensionCutoffFunction, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
@@ -46,7 +45,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestTensionCutoffFunction, KratosGeoMechanicsFastSuite
     constexpr double tolerance{1.0e-12};
 
     TensionCutoffFunction tensionCutoffFunction(tension_cutoff);
-    double tension_value = tensionCutoffFunction.CalculateYieldFunction(principal_stress);
+    double tension_value     = tensionCutoffFunction.CalculateYieldFunction(principal_stress);
     double expected_solution = 1.0;
     KRATOS_EXPECT_NEAR(tension_value, expected_solution, tolerance);
 }

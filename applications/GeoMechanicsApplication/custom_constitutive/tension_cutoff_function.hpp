@@ -16,7 +16,6 @@
 
 #include "custom_constitutive/evaluate_yield_function.h"
 
-
 namespace Kratos
 {
 

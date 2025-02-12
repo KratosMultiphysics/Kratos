@@ -190,23 +190,22 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculateStrains, KratosGeoMechanicsFastSuiteWith
         KRATOS_EXPECT_VECTOR_NEAR(strains[i], expected_strains[i], 1.E-6)
 }
 
-
 KRATOS_TEST_CASE_IN_SUITE(CheckCalculatePrincipalStresses, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Vector cauchy_stresses = ZeroVector(6);
-    cauchy_stresses(0) = 80.0;
-    cauchy_stresses(1) = 50.0;
-    cauchy_stresses(2) = 20.0;
-    cauchy_stresses(3) = 40.0;
-    cauchy_stresses(4) = 35.0;
-    cauchy_stresses(5) = 45.0;
+    cauchy_stresses(0)     = 80.0;
+    cauchy_stresses(1)     = 50.0;
+    cauchy_stresses(2)     = 20.0;
+    cauchy_stresses(3)     = 40.0;
+    cauchy_stresses(4)     = 35.0;
+    cauchy_stresses(5)     = 45.0;
 
     Vector principal_stresses = StressStrainUtilities::CalculatePrincipalStresses(cauchy_stresses);
 
     Vector expected_solution = ZeroVector(3);
-    expected_solution(0) = 135.736961146391;
-    expected_solution(1) = 22.5224297324582;
-    expected_solution(2) = -8.25939087884923;
+    expected_solution(0)     = 135.736961146391;
+    expected_solution(1)     = 22.5224297324582;
+    expected_solution(2)     = -8.25939087884923;
 
     constexpr double tolerance{1.0e-12};
 

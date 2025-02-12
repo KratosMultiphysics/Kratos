@@ -25,7 +25,5 @@ public:
 
     virtual double CalculateYieldFunction(const Vector& rPrincipalStress) const        = 0;
     virtual Vector CalculateFlowFunctionDerivate(const Vector& rPrincipalStress) const = 0;
-
-
 };
 } // namespace Kratos.
