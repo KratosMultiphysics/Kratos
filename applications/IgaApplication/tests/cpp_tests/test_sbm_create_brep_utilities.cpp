@@ -62,6 +62,12 @@ KRATOS_TEST_CASE_IN_SUITE(TestCreateBrepsSbmUtilitiesOuter, KratosIgaFastSuite)
     surrogate_sub_model_part_outer.CreateNewCondition("LineCondition2D2N", 5, {{5, 6}}, p_prop);
     surrogate_sub_model_part_outer.CreateNewCondition("LineCondition2D2N", 6, {{6, 7}}, p_prop);
     surrogate_sub_model_part_outer.CreateNewCondition("LineCondition2D2N", 7, {{7, 8}}, p_prop);
+    surrogate_sub_model_part_outer.CreateNewCondition("LineCondition2D2N", 8, {{8, 1}}, p_prop);
+
+    for (auto &cond : surrogate_sub_model_part_outer.Conditions())
+    {
+        cond.Set(BOUNDARY, true);
+    }
 
     Kratos::Parameters parameters(R"(
         {
@@ -105,8 +111,8 @@ KRATOS_TEST_CASE_IN_SUITE(TestCreateBrepsSbmUtilitiesOuter, KratosIgaFastSuite)
         brep_curve->GlobalCoordinates(vertex_1_on_physical, local_coord_vertex_1);
         brep_curve->GlobalCoordinates(vertex_2_on_physical, local_coord_vertex_2);
 
-        KRATOS_EXPECT_NEAR(vertex_1_on_physical[0], surrogate_sub_model_part_outer.GetNode(iga_model_part.NumberOfGeometries()-current_id).X() , tolerance);
-        KRATOS_EXPECT_NEAR(vertex_1_on_physical[1], surrogate_sub_model_part_outer.GetNode(iga_model_part.NumberOfGeometries()-current_id).Y() , tolerance);
+        KRATOS_EXPECT_NEAR(vertex_2_on_physical[0], surrogate_sub_model_part_outer.GetNode(current_id-1).X() , tolerance);
+        KRATOS_EXPECT_NEAR(vertex_2_on_physical[1], surrogate_sub_model_part_outer.GetNode(current_id-1).Y() , tolerance);
     }
 
     // Ensure the number of nodes matches expectation
@@ -154,7 +160,12 @@ KRATOS_TEST_CASE_IN_SUITE(TestCreateBrepsSbmUtilitiesInner, KratosIgaFastSuite)
     surrogate_sub_model_part_inner.CreateNewCondition("LineCondition2D2N", 5, {{5, 6}}, p_prop);
     surrogate_sub_model_part_inner.CreateNewCondition("LineCondition2D2N", 6, {{6, 7}}, p_prop);
     surrogate_sub_model_part_inner.CreateNewCondition("LineCondition2D2N", 7, {{7, 8}}, p_prop);
+    surrogate_sub_model_part_inner.CreateNewCondition("LineCondition2D2N", 8, {{8,1}}, p_prop);
 
+    for (auto &cond : surrogate_sub_model_part_inner.Conditions())
+    {
+        cond.Set(BOUNDARY, false);
+    }
 
     // Create "fictituos element" to memorize starting and ending node id for each surrogate boundary loop
     std::vector<ModelPart::IndexType> elem_nodes{1, 8};
