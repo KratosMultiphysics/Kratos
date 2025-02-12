@@ -474,18 +474,28 @@ namespace Kratos
         
         KRATOS_INFO("::[SnakeSBMUtilities]::") << "Inner :: Check layers in 2D" << std::endl;
 
+        // Snake 2D works with a raycasting technique from each of the two directions
+
         const double knot_step_u = knotVectorU[1]-knotVectorU[0];
         const double knot_step_v = knotVectorV[1]-knotVectorV[0];
         
-        // Snake 2D works with a raycasting technique from each of the two directions
-        IndexType idSurrogateFirstNode = rSurrogateModelPartInner.GetRootModelPart().NumberOfNodes() + 1;
-        IndexType idSurrogateNode = idSurrogateFirstNode;
-        for (int j = 0; j < nKnotSpans[1]; j++) {
-            for (int i = 0; i < nKnotSpans[0]; i++) {
-                rSurrogateModelPartInner.CreateNewNode(idSurrogateNode, knotVectorU[i], knotVectorV[j], 0.0);
-                idSurrogateNode++;
+        
+        IndexType idSurrogateFirstNode; 
+        if (rSurrogateModelPartInner.NumberOfNodes() == 0)
+        {
+            idSurrogateFirstNode = rSurrogateModelPartInner.GetRootModelPart().NumberOfNodes() + 1;
+            IndexType idSurrogateNode = idSurrogateFirstNode;
+            for (int j = 0; j < nKnotSpans[1]; j++) {
+                for (int i = 0; i < nKnotSpans[0]; i++) {
+                    rSurrogateModelPartInner.CreateNewNode(idSurrogateNode, knotVectorU[i], knotVectorV[j], 0.0);
+                    idSurrogateNode++;
+                }
             }
+        } else 
+        {
+            idSurrogateFirstNode = rSurrogateModelPartInner.GetRootModelPart().NumberOfNodes() - nKnotSpans[1]*nKnotSpans[0] + 1;
         }
+        
         Properties::Pointer p_cond_prop = rSurrogateModelPartInner.pGetProperties(0);
         
         // Direction parallel to x
