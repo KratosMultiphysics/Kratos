@@ -91,19 +91,19 @@ class CreateBrepsSbmUtilities : public IO
      * @param rModelPart 
      * @param rSurrogateModelPartInner 
      * @param rSurrogateModelPartOuter 
-     * @param A_uvw 
-     * @param B_uvw 
+     * @param CoordsA 
+     * @param CoordsB 
      * Adds the surface geometry to the herin provided model_part and create the boundary breps for the SBM case.
      */
     void CreateSurrogateBoundary(NurbsSurfaceGeometryPointerType& pSurface, 
                                  ModelPart& rModelPart, 
                                  ModelPart& rSurrogateModelPartInner, 
                                  ModelPart& rSurrogateModelPartOuter, 
-                                 const Point& A_uvw, 
-                                 const Point& B_uvw)
+                                 const Point& CoordsA, 
+                                 const Point& CoordsB)
     {
         CreateBrepSurface(pSurface, rModelPart, rSurrogateModelPartInner, rSurrogateModelPartOuter, mEchoLevel);
-        CreateBrepCurveOnSurfaces(pSurface, rModelPart, rSurrogateModelPartInner, rSurrogateModelPartOuter, A_uvw, B_uvw, mEchoLevel);
+        CreateBrepCurveOnSurfaces(pSurface, rModelPart, rSurrogateModelPartInner, rSurrogateModelPartOuter, CoordsA, CoordsB, mEchoLevel);
     }
     
     /**
@@ -111,18 +111,18 @@ class CreateBrepsSbmUtilities : public IO
      * 
      * @param pSurface 
      * @param rModelPart 
-     * @param A_uvw 
-     * @param B_uvw 
+     * @param CoordsA 
+     * @param CoordsB 
      * Adds the surface geometry to the herin provided model_part and create the boundary breps when SBM is not needed.
      */
     void CreateSurrogateBoundary(NurbsSurfaceGeometryPointerType& pSurface, 
                                  ModelPart& rModelPart, 
-                                 const Point& A_uvw, 
-                                 const Point& B_uvw)
+                                 const Point& CoordsA, 
+                                 const Point& CoordsB)
     {
         CreateBrepSurface(pSurface, rModelPart, mEchoLevel);
         IndexType id_brep_curve_on_surface = 2; // because id 1 is the brep surface
-        CreateBrepCurvesOnRectangle(rModelPart, pSurface, A_uvw, B_uvw, id_brep_curve_on_surface);
+        CreateBrepCurvesOnRectangle(rModelPart, pSurface, CoordsA, CoordsB, id_brep_curve_on_surface);
     }
 
 
@@ -217,8 +217,8 @@ private:
      * @param rModelPart 
      * @param rSurrogateModelPartInner 
      * @param rSurrogateModelPartOuter 
-     * @param A_uvw 
-     * @param B_uvw 
+     * @param CoordsA 
+     * @param CoordsB 
      * @param EchoLevel 
      */
     static void CreateBrepCurveOnSurfaces(
@@ -226,8 +226,8 @@ private:
         ModelPart& rModelPart,
         const ModelPart& rSurrogateModelPartInner, 
         const ModelPart& rSurrogateModelPartOuter,
-        const Point& A_uvw, 
-        const Point& B_uvw,
+        const Point& CoordsA, 
+        const Point& CoordsB,
         const SizeType EchoLevel = 0) {
     
         // OUTER 
@@ -267,7 +267,7 @@ private:
                     active_range_knot_vector[1] = active_range_knot_vector[0] ;
                     active_range_knot_vector[0] = temp ;
                 }
-                NurbsCurveGeometry<2, PointerVector<Point>>::Pointer p_trimming_curve = CreateSingleBrep(firstBrepPoint, second_brep_point, active_range_knot_vector);
+                NurbsCurveGeometry<2, PointerVector<Point>>::Pointer p_trimming_curve = CreateBrepCurve(firstBrepPoint, second_brep_point, active_range_knot_vector);
                 trimming_curves_outer.push_back(p_trimming_curve);
             }
 
@@ -304,7 +304,7 @@ private:
             }
 
         } else {
-            CreateBrepCurvesOnRectangle(rModelPart, pSurface, A_uvw, B_uvw, id_brep_curve_on_surface);
+            CreateBrepCurvesOnRectangle(rModelPart, pSurface, CoordsA, CoordsB, id_brep_curve_on_surface);
         }
 
         // INNER
@@ -346,7 +346,7 @@ private:
                     active_range_knot_vector[1] = active_range_knot_vector[0] ;
                     active_range_knot_vector[0] = temp ;
                 }
-                NurbsCurveGeometry<2, PointerVector<Point>>::Pointer p_trimming_curve = CreateSingleBrep(first_brep_point, second_brep_point, active_range_knot_vector);
+                NurbsCurveGeometry<2, PointerVector<Point>>::Pointer p_trimming_curve = CreateBrepCurve(first_brep_point, second_brep_point, active_range_knot_vector);
                 trimming_curves_inner.push_back(p_trimming_curve);
             }
 
@@ -394,7 +394,7 @@ private:
      * @param activeRangeKnotVector 
      * @return NurbsCurveGeometry<2, PointerVector<Point>>::Pointer 
      */
-    static typename NurbsCurveGeometry<2, PointerVector<Point>>::Pointer CreateSingleBrep(
+    static typename NurbsCurveGeometry<2, PointerVector<Point>>::Pointer CreateBrepCurve(
         const Point::Pointer firstBrepPoint,
         const Point::Pointer secondBrepPoint, 
         const Vector activeRangeKnotVector)
@@ -423,35 +423,35 @@ private:
      * 
      * @param rModelPart 
      * @param pSurfaceGeometry 
-     * @param A_uvw 
-     * @param B_uvw 
+     * @param CoordsA 
+     * @param CoordsB 
      * @param lastGeometryId 
      */
     static void CreateBrepCurvesOnRectangle(ModelPart& rModelPart, 
                                             const NurbsSurfaceGeometryPointerType pSurfaceGeometry, 
-                                            const Point& A_uvw, 
-                                            const Point& B_uvw, 
+                                            const Point& CoordsA, 
+                                            const Point& CoordsB, 
                                             IndexType &lastGeometryId) {
         Vector knot_vector = ZeroVector(2);
         knot_vector[0] = 0.0;
-        knot_vector[1] = std::abs(B_uvw[0] - A_uvw[0]);
+        knot_vector[1] = std::abs(CoordsB[0] - CoordsA[0]);
         const int p = 1;
 
         NurbsCurveGeometry<2, PointerVector<Point>>::PointsArrayType segment1;
-        segment1.push_back(Point::Pointer(new Point(A_uvw[0], A_uvw[1])));
-        segment1.push_back(Point::Pointer(new Point(B_uvw[0], A_uvw[1])));
+        segment1.push_back(Point::Pointer(new Point(CoordsA[0], CoordsA[1])));
+        segment1.push_back(Point::Pointer(new Point(CoordsB[0], CoordsA[1])));
 
         NurbsCurveGeometry<2, PointerVector<Point>>::PointsArrayType segment2;
-        segment2.push_back(Point::Pointer(new Point(B_uvw[0], A_uvw[1])));
-        segment2.push_back(Point::Pointer(new Point(B_uvw[0], B_uvw[1])));
+        segment2.push_back(Point::Pointer(new Point(CoordsB[0], CoordsA[1])));
+        segment2.push_back(Point::Pointer(new Point(CoordsB[0], CoordsB[1])));
         
         NurbsCurveGeometry<2, PointerVector<Point>>::PointsArrayType segment3;
-        segment3.push_back(Point::Pointer(new Point(B_uvw[0], B_uvw[1])));
-        segment3.push_back(Point::Pointer(new Point(A_uvw[0], B_uvw[1])));
+        segment3.push_back(Point::Pointer(new Point(CoordsB[0], CoordsB[1])));
+        segment3.push_back(Point::Pointer(new Point(CoordsA[0], CoordsB[1])));
         
         NurbsCurveGeometry<2, PointerVector<Point>>::PointsArrayType segment4;
-        segment4.push_back(Point::Pointer(new Point(A_uvw[0], B_uvw[1])));
-        segment4.push_back(Point::Pointer(new Point(A_uvw[0], A_uvw[1])));
+        segment4.push_back(Point::Pointer(new Point(CoordsA[0], CoordsB[1])));
+        segment4.push_back(Point::Pointer(new Point(CoordsA[0], CoordsA[1])));
 
         auto p_curve_1 = Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Point>>>(segment1, p, knot_vector);
         auto p_curve_2 = Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Point>>>(segment2, p, knot_vector);
