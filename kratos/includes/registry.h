@@ -127,12 +127,42 @@ public:
      * @param args Arguments to convert to string
      * @return A comma-separated string representation of the arguments
      */
+    template<typename T>
+    struct TypeNonType;
+
+    template<typename T, std::size_t N>
+    struct TypeNonType<T[N]> {
+        static void Execute(std::string &name) {
+            name += std::to_string(N);
+        }
+    };
+
+    template<typename T>
+    struct TypeNonType {
+        static void Execute(std::string &name) {
+            std::string f_name = typeid(T).name();
+            f_name.erase(0,1);
+            name += f_name;
+        }
+    };
+
     template<typename... Types>
-    static std::string RegistryTemplateToString(Types&&... args) {
-        std::string f_name = (... += ("," + std::to_string(args)));
-        f_name.erase(0,1);
-        return f_name;
-    }
+    struct RegistryTemplateToString;
+
+    template<typename T, typename... Types>
+    struct RegistryTemplateToString<T, Types...> {
+        static void Execute(std::string &name) {
+            TypeNonType<T>::Execute(name);
+            RegistryTemplateToString<Types...>::Execute(name);   
+        }
+    };
+
+    template<typename T>
+    struct RegistryTemplateToString<T> {
+        static void Execute(std::string &name) {
+            TypeNonType<T>::Execute(name);
+        }
+    };
 
     ///@}
     ///@name Iterators

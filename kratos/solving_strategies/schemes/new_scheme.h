@@ -62,8 +62,13 @@ public:
     ///@name Type Definitions
     ///@{
 
+    typedef NewScheme<TDataType, TIndexType, TMatrixType, TVectorType> BaseType;
+
     /// Pointer definition of NewScheme
     KRATOS_CLASS_POINTER_DEFINITION(NewScheme);
+
+    KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Schemes.KratosMultiphysics", BaseType, BaseType, TDataType, TIndexType, TMatrixType, TVectorType)
+    KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Schemes.All", BaseType, BaseType, TDataType, TIndexType, TMatrixType, TVectorType)
 
     /// The definition of the current class
     using ClassType = NewScheme;
