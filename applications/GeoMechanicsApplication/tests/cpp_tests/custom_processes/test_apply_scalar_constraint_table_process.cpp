@@ -32,10 +32,10 @@ void AssertNodesHaveCorrectValueAndFixity(double                               E
     }
 }
 
-ModelPart& SetupModelPart(const Table<double>::Pointer& rTable, Model& model)
+ModelPart& SetupModelPart(const Table<double>::Pointer& rTable, Model& rModel)
 {
     const auto nodal_variables = Geo::ConstVariableRefs{std::cref(DISPLACEMENT_X)};
-    auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(model, nodal_variables);
+    auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(rModel, nodal_variables);
     r_model_part.GetProcessInfo()[TIME_UNIT_CONVERTER] = 1.0;
     r_model_part.AddTable(1, rTable);
 
