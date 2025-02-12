@@ -70,8 +70,8 @@ namespace Kratos
         if (!(mParameters.Has("skin_model_part_inner_initial_name") || mParameters.Has("skin_model_part_outer_initial_name"))){
         
             // Create the breps for the outer sbm boundary
-            CreateBrepsSBMUtilities<Node, Point> CreateBrepsSBMUtilities(mEchoLevel);
-            CreateBrepsSBMUtilities.CreateSurrogateBoundary(mpSurface, r_model_part, A_uvw, B_uvw);
+            CreateBrepsSbmUtilities<Node, Point> CreateBrepsSbmUtilities(mEchoLevel);
+            CreateBrepsSbmUtilities.CreateSurrogateBoundary(mpSurface, r_model_part, A_uvw, B_uvw);
             
             KRATOS_WARNING("None of the 'skin_model_part_name' have not been defined ") << 
                             "in the nurbs_geometry_modeler_sbm in the project paramer json" << std::endl;
@@ -116,11 +116,11 @@ namespace Kratos
         for (SizeType i_knot_insertion = 0; i_knot_insertion < NumKnotSpansV-1; i_knot_insertion++) {
             unique_knot_vector_v[i_knot_insertion+1] = mInsertKnotsV[i_knot_insertion];
         }
-        SnakeSBMUtilities::CreateTheSnakeCoordinates(iga_model_part, skin_model_part_inner_initial, skin_model_part_outer_initial, skin_model_part, mEchoLevel,
+        SnakeSbmUtilities::CreateTheSnakeCoordinates(iga_model_part, skin_model_part_inner_initial, skin_model_part_outer_initial, skin_model_part, mEchoLevel,
                                                      unique_knot_vector_u, unique_knot_vector_v, mParameters) ;
         // Create the breps for the outer sbm boundary
-        CreateBrepsSBMUtilities<Node, Point> CreateBrepsSBMUtilities(mEchoLevel);
-        CreateBrepsSBMUtilities.CreateSurrogateBoundary(mpSurface, r_model_part, surrogate_sub_model_part_inner, surrogate_sub_model_part_outer, A_uvw, B_uvw);
+        CreateBrepsSbmUtilities<Node, Point> CreateBrepsSbmUtilities(mEchoLevel);
+        CreateBrepsSbmUtilities.CreateSurrogateBoundary(mpSurface, r_model_part, surrogate_sub_model_part_inner, surrogate_sub_model_part_outer, A_uvw, B_uvw);
     }
 
 } // end namespace kratos
