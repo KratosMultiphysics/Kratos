@@ -127,7 +127,7 @@ void ControlUtils::GetIntegrationPointAreas(
 
     for (const auto& r_entity : rContainer) {
         const auto& r_geometry = r_entity.GetGeometry();
-        const Matrix& shape_function_values_list = r_geometry.ShapeFunctionsValues();
+        const Matrix& shape_function_values_list = r_geometry.ShapeFunctionsValues(r_entity.GetIntegrationMethod());
         const IndexType number_of_integration_points = shape_function_values_list.size1();
 
         const double integration_point_domain_size = r_geometry.DomainSize() / number_of_integration_points;
