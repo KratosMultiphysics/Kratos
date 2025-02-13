@@ -129,12 +129,14 @@ def GetDefaultInputParameters():
             "FinalTime"                        : 0.05,
             "ControlTime"                      : 4.0,
             "NeighbourSearchFrequency"         : 50,
-            "RVEAnalysis"                      : false,
-            "RVEEvaluationFrequency"           : 0,
-            "RVEWriteFrequency"                : 0,
-            "RVEConsolidationStopCriterion"    : "time",
-            "RVEConsolidationLimitValue"       : 0.0,
-            "RVEInnerVolumeOffset"             : 0.7,
+            "rve_analysis_settings" : {
+                "RVEAnalysis"                      : false,
+                "RVEEvaluationFrequency"           : 0,
+                "RVEWriteFrequency"                : 0,
+                "RVEConsolidationStopCriterion"    : "time",
+                "RVEConsolidationLimitValue"       : 0.0,
+                "RVEInnerVolumeOffset"             : 0.7
+            },
             "virtual_sea_surface_settings"     : {
                 "print_sea_surface"            : false,
                 "PostVirtualSeaSurfaceX1"      : 0.0,
