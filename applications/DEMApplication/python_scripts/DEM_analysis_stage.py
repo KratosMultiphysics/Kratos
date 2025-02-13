@@ -539,14 +539,11 @@ class DEMAnalysisStage(AnalysisStage):
 
     def InitializeSolutionStep(self):
         super().InitializeSolutionStep()
-        
         if self.post_normal_impact_velocity_option:
             if self.IsCountStep():
                 self.FillAnalyticSubModelPartsWithNewParticles()
-        
         if self.DEM_parameters["ContactMeshOption"].GetBool():
             self.UpdateIsTimeToPrintInModelParts(self.IsTimeToPrintPostProcess())
-        
         if self.bounding_box_servo_loading_option:
             self.UpdateIsTimeToUpdateContactElementForServo(self.IsTimeToUpdateContactElementForServo())
 
