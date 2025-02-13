@@ -352,7 +352,7 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
     def __CalculateArtificialViscosity(self):
         properties_1 = self.main_model_part.Properties[1]
         water_dynamic_viscosity_max = self.artificial_limiter_coefficient * properties_1.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)
-        KratosHydraulics.HydraulicFluidAuxiliaryUtilities.CalculateArtificialViscosity(self.main_model_part, water_dynamic_viscosity_max)
+        KratosHydraulics.HydraulicFluidAuxiliaryUtilities.CalculateNonIntersectedElementsArtificialViscosity(self.main_model_part, water_dynamic_viscosity_max)
 
     def __PerformLevelSetConvection(self):
         # Solve the levelset convection problem
