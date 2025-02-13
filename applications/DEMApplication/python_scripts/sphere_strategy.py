@@ -241,17 +241,11 @@ class ExplicitStrategy():
 
         self.SetContinuumType()
 
-        self.rve_eval_freq                        = DEM_parameters["RVEEvalFreq"].GetInt()
-        self.rve_write_freq                       = DEM_parameters["RVEWriteFreq"].GetInt()
-        self.rve_consolidation_stop_criterion     = DEM_parameters["RVEConsolidationStopCriterion"].GetString()
-        self.limit_consolidation_value            = DEM_parameters["LimitConsolidationValue"].GetDouble()
-        self.inner_consolidation_porosity_offset  = DEM_parameters["InnerConsolidationPorosityOffset"].GetDouble()
-        self.inner_consolidation_porosity         = DEM_parameters["InnerConsolidationPorosity"].GetBool()
-        self.rve_post_write_results_global        = DEM_parameters["PostWriteRVEGlobal"].GetBool()
-        self.rve_post_write_results_particles     = DEM_parameters["PostWriteRVEParticles"].GetBool()
-        self.rve_post_write_results_contacts      = DEM_parameters["PostWriteRVEContacts"].GetBool()
-        self.rve_post_write_results_tensors       = DEM_parameters["PostWriteRVETensors"].GetBool()
-        self.rve_post_write_results_rose          = DEM_parameters["PostWriteRVERose"].GetBool()
+        self.rve_evaluation_frequency         = DEM_parameters["RVEEvaluationFrequency"].GetInt()
+        self.rve_write_frequency              = DEM_parameters["RVEWriteFrequency"].GetInt()
+        self.rve_consolidation_stop_criterion = DEM_parameters["RVEConsolidationStopCriterion"].GetString()
+        self.rve_consolidation_limit_value    = DEM_parameters["RVEConsolidationLimitValue"].GetDouble()
+        self.rve_inner_volume_offset          = DEM_parameters["RVEInnerVolumeOffset"].GetDouble()
 
     def _GetRestartSettings(self, model_part_import_settings):
         restart_settings = model_part_import_settings.Clone()
@@ -389,17 +383,11 @@ class ExplicitStrategy():
         self.settings.inlet_model_part = self.inlet_model_part
         self.settings.cluster_model_part = self.cluster_model_part
 
-        self.spheres_model_part.ProcessInfo.SetValue(RVE_EVAL_FREQ,  self.rve_eval_freq)
-        self.spheres_model_part.ProcessInfo.SetValue(RVE_WRITE_FREQ, self.rve_write_freq)
+        self.spheres_model_part.ProcessInfo.SetValue(RVE_EVALUATION_FREQUENCY, self.rve_evaluation_frequency)
+        self.spheres_model_part.ProcessInfo.SetValue(RVE_WRITE_FREQUENCY, self.rve_write_frequency)
         self.spheres_model_part.ProcessInfo.SetValue(RVE_CONSOLIDATION_STOP_CRITERION, self.rve_consolidation_stop_criterion)
-        self.spheres_model_part.ProcessInfo.SetValue(LIMIT_CONSOLIDATION_VALUE, self.limit_consolidation_value)
-        self.spheres_model_part.ProcessInfo.SetValue(INNER_CONSOLIDATION_POROSITY_OFFSET, self.inner_consolidation_porosity_offset)
-        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, INNER_CONSOLIDATION_POROSITY,     self.inner_consolidation_porosity)
-        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, RVE_POST_WRITE_RESULTS_GLOBAL,    self.rve_post_write_results_global)
-        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, RVE_POST_WRITE_RESULTS_PARTICLES, self.rve_post_write_results_particles)
-        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, RVE_POST_WRITE_RESULTS_CONTACTS,  self.rve_post_write_results_contacts)
-        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, RVE_POST_WRITE_RESULTS_TENSORS,   self.rve_post_write_results_tensors)
-        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, RVE_POST_WRITE_RESULTS_ROSE,      self.rve_post_write_results_rose)
+        self.spheres_model_part.ProcessInfo.SetValue(RVE_CONSOLIDATION_LIMIT_VALUE, self.rve_consolidation_limit_value)
+        self.spheres_model_part.ProcessInfo.SetValue(RVE_INNER_VOLUME_OFFSET, self.rve_inner_volume_offset)
 
     def CheckMomentumConservation(self):
 

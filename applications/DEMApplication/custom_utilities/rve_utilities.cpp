@@ -13,16 +13,16 @@ namespace Kratos
     bool RVEUtilities::IsTimeToEvaluateRVE(void) {
         ProcessInfo& r_process_info = mDemModelPart->GetProcessInfo();
         const int time_step = r_process_info[TIME_STEPS];
-        const int eval_freq = r_process_info[RVE_EVAL_FREQ];
-        return (time_step != 0 && time_step % eval_freq == 0.0);
+        const int eval_freq = r_process_info[RVE_EVALUATION_FREQUENCY];
+        return (time_step != 0 && eval_freq != 0 && time_step % eval_freq == 0.0);
     }
 
     //------------------------------------------------------------------------------------------------------------
     bool RVEUtilities::IsTimeToPrintResults(void) {
         ProcessInfo& r_process_info = mDemModelPart->GetProcessInfo();
         const int time_step = r_process_info[TIME_STEPS];
-        const int print_freq = r_process_info[RVE_WRITE_FREQ];
-        return (time_step != 0 && time_step % print_freq == 0.0);
+        const int print_freq = r_process_info[RVE_WRITE_FREQUENCY];
+        return (time_step != 0 && print_freq != 0 && time_step % print_freq == 0.0);
     }
 
     //------------------------------------------------------------------------------------------------------------
@@ -367,7 +367,7 @@ namespace Kratos
         // Check if selected criteria for stopping boundary motion is satisfied
         ProcessInfo& r_process_info = mDemModelPart->GetProcessInfo();
         std::string criterion = r_process_info[RVE_CONSOLIDATION_STOP_CRITERION];
-        const double limit = r_process_info[LIMIT_CONSOLIDATION_VALUE];
+        const double limit = r_process_info[RVE_CONSOLIDATION_LIMIT_VALUE];
         bool check = true;
 
         if      (criterion.compare("time") == 0)     check = (limit < r_process_info[TIME]);
@@ -456,29 +456,19 @@ namespace Kratos
     //------------------------------------------------------------------------------------------------------------
     // Open files to write selected results.
     void RVEUtilities::OpenResultFiles(void) {
-        ProcessInfo& r_process_info = mDemModelPart->GetProcessInfo();
-
-        if (r_process_info[RVE_POST_WRITE_RESULTS_GLOBAL]) {
+        if (mDemModelPart->GetProcessInfo()[RVE_WRITE_FREQUENCY] != 0.0) {
             mFileGlobalResults.open("rve_global_results.txt", std::ios::out);
             KRATOS_ERROR_IF_NOT(mFileGlobalResults) << "Could not open file rve_global_results.txt!" << std::endl;
-        }
-
-        if (r_process_info[RVE_POST_WRITE_RESULTS_PARTICLES]) {
+            
             mFileParticleResults.open("rve_particles_results.txt", std::ios::out);
             KRATOS_ERROR_IF_NOT(mFileParticleResults) << "Could not open file rve_particles_results.txt!" << std::endl;
-        }
 
-        if (r_process_info[RVE_POST_WRITE_RESULTS_CONTACTS]) {
             mFileContactResults.open("rve_contacts_results.txt", std::ios::out);
             KRATOS_ERROR_IF_NOT(mFileContactResults) << "Could not open file rve_contacts_results.txt!" << std::endl;
-        }
 
-        if (r_process_info[RVE_POST_WRITE_RESULTS_TENSORS]) {
             mFileTensorResults.open("rve_tensors_results.txt", std::ios::out);
             KRATOS_ERROR_IF_NOT(mFileTensorResults) << "Could not open file rve_tensors_results.txt!" << std::endl;
-        }
 
-        if (r_process_info[RVE_POST_WRITE_RESULTS_ROSE]) {
             mFileRoseDiagram.open("rve_rose_diagram.txt", std::ios::out);
             KRATOS_ERROR_IF_NOT(mFileRoseDiagram) << "Could not open file rve_rose_diagram.txt!" << std::endl;
         }

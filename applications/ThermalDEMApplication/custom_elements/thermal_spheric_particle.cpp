@@ -247,7 +247,7 @@ namespace Kratos
       ComputeHeatFluxes(r_process_info);
 
     // Hierarchical multiscale
-    if (r_process_info[TIME_STEPS] % r_process_info[RVE_EVAL_FREQ] != 0.0)
+    if (r_process_info[TIME_STEPS] % r_process_info[RVE_EVALUATION_FREQUENCY] != 0.0)
       HierarchicalMultiscale(r_process_info);
 
     KRATOS_CATCH("")
