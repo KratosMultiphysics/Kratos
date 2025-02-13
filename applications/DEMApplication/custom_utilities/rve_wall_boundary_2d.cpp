@@ -239,7 +239,7 @@ namespace Kratos
     //           (This has been removed!)
     double RVEWallBoundary2D::ComputeVolumeInner(void) {
         // Offset with respect to walls
-        const double offset = mDemModelPart->GetProcessInfo()[RVE_INNER_VOLUME_OFFSET] * mAvgRadius;
+        const double offset = mInnerVolOffset * mAvgRadius;
 
         // Vertex coordinates
         double x1 = mVertexCoords(0,0); double y1 = mVertexCoords(1,0);
@@ -302,7 +302,7 @@ namespace Kratos
             return 0.0;
     
         // Inner boundaries and corners
-        const double offset = r_process_info[RVE_INNER_VOLUME_OFFSET] * mRVE_MeanRadius;
+        const double offset = mInnerVolOffset * mRVE_MeanRadius;
 
         const double xmin = mRVE_WallXMin[0]->GetGeometry()[0][0] + offset;
         const double xmax = mRVE_WallXMax[0]->GetGeometry()[0][0] - offset;

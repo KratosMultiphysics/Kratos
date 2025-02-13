@@ -29,6 +29,8 @@ namespace Kratos
 
             // Public methods
             RVEWallBoundary2D() {}
+            RVEWallBoundary2D(int eval_freq, int write_freq, const std::string& consolidation_criterion, double consolidation_limit, double inner_vol_offset):
+            RVEUtilities(eval_freq, write_freq, consolidation_criterion, consolidation_limit, inner_vol_offset) {}
             ~RVEWallBoundary2D() {}
 
         protected:

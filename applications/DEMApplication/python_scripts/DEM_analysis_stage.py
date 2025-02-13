@@ -101,6 +101,8 @@ class DEMAnalysisStage(AnalysisStage):
         self.parallelutils = DEM_procedures.ParallelUtils()
         self.translational_scheme = self.SetTranslationalScheme()
         self.rotational_scheme = self.SetRotationalScheme()
+
+        # RVE analysis
         self.rve_utils = self.SetRVEUtilities()
 
         # Define control variables
@@ -211,8 +213,19 @@ class DEMAnalysisStage(AnalysisStage):
         return rotational_scheme
 
     def SetRVEUtilities(self):
-        if self.DEM_parameters["Dimension"].GetInt() == 2:
-            return RVEWallBoundary2D()
+        self.rve_analysis                = self.DEM_parameters["RVEAnalysis"].GetBool()
+        rve_evaluation_frequency         = self.DEM_parameters["RVEEvaluationFrequency"].GetInt()
+        rve_write_frequency              = self.DEM_parameters["RVEWriteFrequency"].GetInt()
+        rve_consolidation_stop_criterion = self.DEM_parameters["RVEConsolidationStopCriterion"].GetString()
+        rve_consolidation_limit_value    = self.DEM_parameters["RVEConsolidationLimitValue"].GetDouble()
+        rve_inner_volume_offset          = self.DEM_parameters["RVEInnerVolumeOffset"].GetDouble()
+        
+        self.spheres_model_part.ProcessInfo.SetValue(RVE_ANALYSIS, self.rve_analysis)
+        
+        if not self.rve_analysis:
+            return None
+        elif self.DEM_parameters["Dimension"].GetInt() == 2:
+            return RVEWallBoundary2D(rve_evaluation_frequency, rve_write_frequency, rve_consolidation_stop_criterion, rve_consolidation_limit_value, rve_inner_volume_offset)
         else:
             raise Exception('Error: The selected RVE utility for 3D analysis is not yet implemented')
 
@@ -305,7 +318,8 @@ class DEMAnalysisStage(AnalysisStage):
 
         self.SetInitialNodalValues()
 
-        self.rve_utils.Initialize(self.spheres_model_part, self.rigid_face_model_part)
+        if self.rve_analysis:
+            self.rve_utils.Initialize(self.spheres_model_part, self.rigid_face_model_part)
 
         self.KratosPrintInfo(self.report.BeginReport(timer))
 
@@ -682,7 +696,8 @@ class DEMAnalysisStage(AnalysisStage):
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
 
-        self.rve_utils.FinalizeSolutionStep()
+        if self.rve_analysis:
+            self.rve_utils.FinalizeSolutionStep()
 
         #Phantom Walls
         self.RunAnalytics(self.time)
@@ -728,7 +743,8 @@ class DEMAnalysisStage(AnalysisStage):
         self.DEMFEMProcedures.FinalizeGraphs(self.rigid_face_model_part)
         self.DEMFEMProcedures.FinalizeBallsGraphs(self.spheres_model_part)
         self.DEMEnergyCalculator.FinalizeEnergyPlot()
-        self.rve_utils.Finalize()
+        if self.rve_analysis:
+            self.rve_utils.Finalize()
 
         self.CleanUpOperations()
 

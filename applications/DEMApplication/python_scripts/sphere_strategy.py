@@ -241,12 +241,6 @@ class ExplicitStrategy():
 
         self.SetContinuumType()
 
-        self.rve_evaluation_frequency         = DEM_parameters["RVEEvaluationFrequency"].GetInt()
-        self.rve_write_frequency              = DEM_parameters["RVEWriteFrequency"].GetInt()
-        self.rve_consolidation_stop_criterion = DEM_parameters["RVEConsolidationStopCriterion"].GetString()
-        self.rve_consolidation_limit_value    = DEM_parameters["RVEConsolidationLimitValue"].GetDouble()
-        self.rve_inner_volume_offset          = DEM_parameters["RVEInnerVolumeOffset"].GetDouble()
-
     def _GetRestartSettings(self, model_part_import_settings):
         restart_settings = model_part_import_settings.Clone()
         restart_settings.RemoveValue("input_type")
@@ -382,12 +376,6 @@ class ExplicitStrategy():
         self.settings.fem_model_part = self.fem_model_part
         self.settings.inlet_model_part = self.inlet_model_part
         self.settings.cluster_model_part = self.cluster_model_part
-
-        self.spheres_model_part.ProcessInfo.SetValue(RVE_EVALUATION_FREQUENCY, self.rve_evaluation_frequency)
-        self.spheres_model_part.ProcessInfo.SetValue(RVE_WRITE_FREQUENCY, self.rve_write_frequency)
-        self.spheres_model_part.ProcessInfo.SetValue(RVE_CONSOLIDATION_STOP_CRITERION, self.rve_consolidation_stop_criterion)
-        self.spheres_model_part.ProcessInfo.SetValue(RVE_CONSOLIDATION_LIMIT_VALUE, self.rve_consolidation_limit_value)
-        self.spheres_model_part.ProcessInfo.SetValue(RVE_INNER_VOLUME_OFFSET, self.rve_inner_volume_offset)
 
     def CheckMomentumConservation(self):
 

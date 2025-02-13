@@ -129,6 +129,7 @@ def GetDefaultInputParameters():
             "FinalTime"                        : 0.05,
             "ControlTime"                      : 4.0,
             "NeighbourSearchFrequency"         : 50,
+            "RVEAnalysis"                      : false,
             "RVEEvaluationFrequency"           : 0,
             "RVEWriteFrequency"                : 0,
             "RVEConsolidationStopCriterion"    : "time",

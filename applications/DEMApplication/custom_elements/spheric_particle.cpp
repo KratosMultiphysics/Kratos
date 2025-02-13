@@ -1986,7 +1986,7 @@ std::unique_ptr<DEMGlobalDampingModel> SphericParticle::pCloneGlobalDampingModel
 void SphericParticle::ComputeOtherBallToBallForces(array_1d<double, 3>& other_ball_to_ball_forces) {}
 
 void SphericParticle::StoreBallToBallContactInfo(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding) {
-    if (true) { // TODO: ONLY WHEN RVE ANALYSIS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    if (r_process_info[RVE_ANALYSIS]) {
         int neighbor_id = data_buffer.mpOtherParticle->GetId();
         mBallToBallStoredInfo[neighbor_id].indentation = data_buffer.mIndentation;
         std::memcpy(mBallToBallStoredInfo[neighbor_id].local_coord_system, data_buffer.mLocalCoordSystem, sizeof(mBallToBallStoredInfo[neighbor_id].local_coord_system));
@@ -1995,7 +1995,7 @@ void SphericParticle::StoreBallToBallContactInfo(const ProcessInfo& r_process_in
 }
 
 void SphericParticle::StoreBallToRigidFaceContactInfo(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding, double indentation) {
-    if (true) { // TODO: ONLY WHEN RVE ANALYSIS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    if (r_process_info[RVE_ANALYSIS]) {
         int neighbor_id = data_buffer.mpOtherRigidFace->GetId();
         mBallToRigidFaceStoredInfo[neighbor_id].indentation = indentation;
         std::memcpy(mBallToRigidFaceStoredInfo[neighbor_id].local_coord_system, data_buffer.mLocalCoordSystem, sizeof(mBallToRigidFaceStoredInfo[neighbor_id].local_coord_system));

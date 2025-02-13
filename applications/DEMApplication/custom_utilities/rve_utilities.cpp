@@ -11,18 +11,14 @@ namespace Kratos
 {
     //------------------------------------------------------------------------------------------------------------
     bool RVEUtilities::IsTimeToEvaluateRVE(void) {
-        ProcessInfo& r_process_info = mDemModelPart->GetProcessInfo();
-        const int time_step = r_process_info[TIME_STEPS];
-        const int eval_freq = r_process_info[RVE_EVALUATION_FREQUENCY];
-        return (time_step != 0 && eval_freq != 0 && time_step % eval_freq == 0.0);
+        const int time_step = mDemModelPart->GetProcessInfo()[TIME_STEPS];
+        return (time_step != 0 && mEvalFreq != 0 && time_step % mEvalFreq == 0.0);
     }
 
     //------------------------------------------------------------------------------------------------------------
     bool RVEUtilities::IsTimeToPrintResults(void) {
-        ProcessInfo& r_process_info = mDemModelPart->GetProcessInfo();
-        const int time_step = r_process_info[TIME_STEPS];
-        const int print_freq = r_process_info[RVE_WRITE_FREQUENCY];
-        return (time_step != 0 && print_freq != 0 && time_step % print_freq == 0.0);
+        const int time_step = mDemModelPart->GetProcessInfo()[TIME_STEPS];
+        return (time_step != 0 && mWriteFreq != 0 && time_step % mWriteFreq == 0.0);
     }
 
     //------------------------------------------------------------------------------------------------------------
@@ -365,14 +361,10 @@ namespace Kratos
             return;
 
         // Check if selected criteria for stopping boundary motion is satisfied
-        ProcessInfo& r_process_info = mDemModelPart->GetProcessInfo();
-        std::string criterion = r_process_info[RVE_CONSOLIDATION_STOP_CRITERION];
-        const double limit = r_process_info[RVE_CONSOLIDATION_LIMIT_VALUE];
         bool check = true;
-
-        if      (criterion.compare("time") == 0)     check = (limit < r_process_info[TIME]);
-        else if (criterion.compare("stress") == 0)   check = (limit < std::abs(mEffStressInner));
-        else if (criterion.compare("porosity") == 0) check = (limit > mPorosityInner);
+        if      (mConsolidationCriterion.compare("time") == 0)     check = (mConsolidationLimit < mDemModelPart->GetProcessInfo()[TIME]);
+        else if (mConsolidationCriterion.compare("stress") == 0)   check = (mConsolidationLimit < std::abs(mEffStressInner));
+        else if (mConsolidationCriterion.compare("porosity") == 0) check = (mConsolidationLimit > mPorosityInner);
 
         // Assign zero velocity to boundaries
         if (check)
@@ -456,7 +448,7 @@ namespace Kratos
     //------------------------------------------------------------------------------------------------------------
     // Open files to write selected results.
     void RVEUtilities::OpenResultFiles(void) {
-        if (mDemModelPart->GetProcessInfo()[RVE_WRITE_FREQUENCY] != 0.0) {
+        if (mWriteFreq != 0.0) {
             mFileGlobalResults.open("rve_global_results.txt", std::ios::out);
             KRATOS_ERROR_IF_NOT(mFileGlobalResults) << "Could not open file rve_global_results.txt!" << std::endl;
             
