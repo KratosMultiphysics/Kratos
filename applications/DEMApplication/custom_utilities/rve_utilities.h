@@ -97,40 +97,41 @@ namespace Kratos
             mEvalFreq(eval_freq), mWriteFreq(write_freq), mConsolidationCriterion(consolidation_criterion), mConsolidationLimit(consolidation_limit), mInnerVolOffset(inner_vol_offset) {}
             ~RVEUtilities() {}
             
-            void Initialize             (ModelPart& dem_model_part, ModelPart& fem_model_part);
-            void FinalizeSolutionStep   (void);
-            void Finalize               (void);
+            void Initialize           (ModelPart& dem_model_part, ModelPart& fem_model_part);
+            void FinalizeSolutionStep (void);
+            void Finalize             (void);
 
         protected:
             // Protected methods
             bool EqualValues(const double a, const double b) {return std::abs(a-b) < std::numeric_limits<double>::epsilon();}
-            bool IsTimeToEvaluateRVE(void);
-            bool IsTimeToPrintResults(void);
-            virtual void   InitializeVariables         (ModelPart& dem_model_part, ModelPart& fem_model_part);
-            virtual void   PreProcessGlobalResults     (void);
-            virtual void   ProcessGlobalResults        (void);
-            virtual void   PostProcessGlobalResults    (void);
-            virtual void   AssembleWallElementVectors  (void) {}
-            virtual void   SetVertexCoordinates        (void) {}
-            virtual double ComputeSurfaceArea          (void) {return 0.0;}
-            virtual double ComputeVolumeTotal          (void) {return 0.0;}
-            virtual double ComputeVolumeInner          (void) {return 0.0;}
-            virtual double ComputeVolumeParticle       (SphericParticle& particle);
-            virtual double ComputePorosity             (void);
-            virtual double ComputePorosityInner        (void);
-            virtual double ComputeFabricIndex          (Matrix fabric_tensor) {return 0.0;}
-            virtual void   Homogenize                  (void);
-            virtual void   HomogenizeFabric            (void);
-            virtual void   HomogenizeStress            (void);
-            virtual void   CheckEquilibrium            (double curr_val, double prev_val, double tol, int max_eq_steps);
-            virtual void   StopCompress                (void);
-            virtual void   StopBoundaryMotion          (void);
-            virtual void   ReadOldForces               (void);
-            virtual void   AddContactToRoseDiagram     (std::vector<int>& rose_diagram, std::vector<double>& normal) {}
-            virtual void   EvaluateRoseUniformity      (void) {}
-            virtual void   OpenResultFiles             (void);
-            virtual void   WriteFileHeaders            (void) {}
-            virtual void   WriteResultFiles            (void) {}
-            virtual void   CloseResultFiles            (void);
+            bool IsTimeToEvaluateRVE  (void);
+            bool IsTimeToPrintResults (void);
+
+            virtual void   InitializeVariables        (ModelPart& dem_model_part, ModelPart& fem_model_part);
+            virtual void   PreProcessGlobalResults    (void);
+            virtual void   ProcessGlobalResults       (void);
+            virtual void   PostProcessGlobalResults   (void);
+            virtual void   AssembleWallElementVectors (void) {}
+            virtual void   SetVertexCoordinates       (void) {}
+            virtual double ComputeSurfaceArea         (void) {return 0.0;}
+            virtual double ComputeVolumeTotal         (void) {return 0.0;}
+            virtual double ComputeVolumeInner         (void) {return 0.0;}
+            virtual double ComputeVolumeParticle      (SphericParticle& particle);
+            virtual double ComputePorosity            (void);
+            virtual double ComputePorosityInner       (void);
+            virtual double ComputeFabricIndex         (Matrix fabric_tensor) {return 0.0;}
+            virtual void   Homogenize                 (void);
+            virtual void   HomogenizeFabric           (void);
+            virtual void   HomogenizeStress           (void);
+            virtual void   CheckEquilibrium           (double curr_val, double prev_val, double tol, int max_eq_steps);
+            virtual void   StopCompress               (void);
+            virtual void   StopBoundaryMotion         (void);
+            virtual void   ReadOldForces              (void);
+            virtual void   AddContactToRoseDiagram    (std::vector<int>& rose_diagram, std::vector<double>& normal) {}
+            virtual void   EvaluateRoseUniformity     (void) {}
+            virtual void   OpenResultFiles            (void);
+            virtual void   WriteFileHeaders           (void) {}
+            virtual void   WriteResultFiles           (void) {}
+            virtual void   CloseResultFiles           (void);
   };
 }
