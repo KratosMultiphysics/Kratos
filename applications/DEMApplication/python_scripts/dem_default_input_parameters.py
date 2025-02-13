@@ -210,6 +210,6 @@ def GetDefaultInputParameters():
             "LoadingVelocityTop"               : 0.0,
             "LoadingVelocityBot"               : 0.0,
             "problem_name" : "dummy_name.Provide_a_real_one",
-            "processes" : {},
+            "processes" : {}
         }""")
     return default_settings
