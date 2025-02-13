@@ -95,43 +95,43 @@ Kratos has been used for simulation of many different problems in a wide variety
 Organizations contributing to Kratos:
 
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/CIMNE_logo.png" width="128">
-</br></br><p>International Center for Numerical Methods in Engineering</p>
+<br><br><p>International Center for Numerical Methods in Engineering</p>
 
-</br></br>
+<br><br>
 
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/TUM_Logo.png" width="128">
-</br><p>Chair of Structural Analysis</br>Technical University of Munich </p>
+<br><p>Chair of Structural Analysis<br>Technical University of Munich </p>
 
-</br></br>
+<br><br>
 
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/altair-sponsor-logo.png" width="128">
-</br><p>Altair Engineering</p>
+<br><p>Altair Engineering</p>
 
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/Deltares_logo.png" width="128">
-</br><p>Deltares</p>
+<br><p>Deltares</p>
 
-</br></br>
+<br><br>
 
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/TUBraunschweig_logo.svg" width="128">
-<p>Institute of Structural Analysis</br>Technische Universität Braunschweig</p>
+<p>Institute of Structural Analysis<br>Technische Universität Braunschweig</p>
 
-</br></br>
+<br><br>
 
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/logo_UNIPD.svg" width="128">
 <p> University of Padova, Italy </p>
 
-</br></br>
+<br><br>
 
 # Our Users
 Some users of the technologies developed in Kratos are:
 
 <span>
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/AIRBUS_logo.png" width="128">
-<p>Airbus Defence and Space</br>Stress Methods & Optimisation Department</p>
+<p>Airbus Defence and Space<br>Stress Methods & Optimisation Department</p>
 </span>
 <span>
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/siemens_logo.png" width="128">
-<p>Siemens AG</br>Corporate Technology</p>
+<p>Siemens AG<br>Corporate Technology</p>
 </span>
 <span>
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/onera_logo.png" width="128">

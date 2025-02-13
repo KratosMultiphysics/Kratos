@@ -683,16 +683,24 @@ namespace Kratos
     KRATOS_TRY
 
     // Update radius
+    const double r     = GetParticleRadius();
+    const double alpha = GetParticleExpansionCoefficient();
+    const double T     = GetParticleTemperature();
+    const double new_radius = mInitialRadius * (1.0 + alpha * (T - mInitialTemperature));  // Total (used in "Rangel et al, Comput Geotech, 176:106789, 2024")
+    //const double new_radius = r * (1.0 + alpha * (T - mPreviousTemperature)); // Incremental
     const double new_radius = GetParticleRadius() + mInitialRadius * mDeformationRate * r_process_info[DELTA_TIME];
     SetParticleRadius(new_radius);
 
-    // Update inertia
-    SetParticleMomentInertia(CalculateMomentOfInertia());
-
     // Update density
+    const double m = GetParticleMass();
+    const double V = GetParticleVolume();
     double* rho = &(GetProperties()[PARTICLE_DENSITY]);
-    *rho = GetParticleMass() / GetParticleVolume();
+    *rho = m / V;
     GetFastProperties()->SetDensityFromProperties(rho);
+
+    // Update inertia
+    const double I = CalculateMomentOfInertia();
+    SetParticleMomentInertia(I);
 
     KRATOS_CATCH("")
   }

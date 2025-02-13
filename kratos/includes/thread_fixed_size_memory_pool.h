@@ -4,24 +4,25 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
 //
 
+#pragma once
 
-#if !defined(KRATOS_THREAD_FIXED_SIZE_MEMORY_POOL_H_INCLUDED )
-#define  KRATOS_THREAD_FIXED_SIZE_MEMORY_POOL_H_INCLUDED
-
+// System includes
 #include <vector>
 #include <list>
 #include <algorithm>
 #include <atomic>
 
+// External includes
 #include "concurrentqueue/concurrentqueue.h"
 
+// Project includes
 #include "includes/chunk.h"
 
 namespace Kratos
@@ -339,5 +340,3 @@ namespace Kratos
   ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_THREAD_FIXED_SIZE_MEMORY_POOL_H_INCLUDED  defined
