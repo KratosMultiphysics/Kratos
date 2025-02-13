@@ -347,51 +347,6 @@ public:
     }
 
     /**
-     * @brief Operation to predict the solution ... if it is not called a trivial predictor is used in which the
-    values of the solution step of interest are assumed equal to the old values
-     */
-    void Predict()
-    {
-        KRATOS_TRY
-
-        // Internal solution loop check to avoid repetitions
-        KRATOS_ERROR_IF(!mInitializeWasPerformed) << "Initialize needs to be performed. Call Initialize() once before the solution loop." << std::endl;
-        KRATOS_ERROR_IF(!mSolutionStepIsInitialized) << "InitializeSolutionStep needs to be performed. Call InitializeSolutionStep() before Predict()." << std::endl;
-
-        // Call the time scheme predict
-        pGetScheme()->Predict(GetModelPart(), *mpA, *mpdx, *mpb);
-
-        //TODO: Constraints implementation
-        // // Applying constraints if needed
-        // const auto &r_comm = GetModelPart().GetCommunicator().GetDataCommunicator();
-        // auto& r_constraints_array = BaseType::GetModelPart().MasterSlaveConstraints();
-        // const int local_number_of_constraints = r_constraints_array.size();
-        // const int global_number_of_constraints = r_comm.SumAll(local_number_of_constraints);
-        // if(global_number_of_constraints != 0) {
-        //     const auto& r_process_info = BaseType::GetModelPart().GetProcessInfo();
-
-        //     block_for_each(r_constraints_array, [&r_process_info](MasterSlaveConstraint& rConstraint){
-        //         rConstraint.ResetSlaveDofs(r_process_info);
-        //     });
-        //     block_for_each(r_constraints_array, [&r_process_info](MasterSlaveConstraint& rConstraint){
-        //         rConstraint.Apply(r_process_info);
-        //     });
-
-        //     //the following is needed since we need to eventually compute time derivatives after applying
-        //     //Master slave relations
-        //     TSparseSpace::SetToZero(rDx);
-        //     this->pGetScheme()->Update(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
-        // }
-
-        // Mesh motion update
-        if (GetMoveMeshFlag()) {
-            MoveMesh();
-        }
-
-        KRATOS_CATCH("")
-    }
-
-    /**
      * @brief Initialization of member variables and prior operations
      */
     void Initialize()
@@ -421,65 +376,6 @@ public:
         }
 
         KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief The problem of interest is solved
-     * @details a double containing norm(Dx) is returned if CalculateNormDxFlag == true, else 0 is returned
-     * @return norm(Dx)
-     */
-    double Solve()
-    {
-        KRATOS_ERROR << "Solve method is no longer available. Call the solving steps one by one." << std::endl;
-
-        return 0.0;
-    }
-
-    /**
-     * @brief Clears the internal storage
-     * @note NULL could be changed to nullptr in the future (c++11)
-     */
-    void Clear()
-    {
-        KRATOS_TRY;
-
-        // Clear the linear solver
-        if (mpLinearSolver != nullptr) {
-            mpLinearSolver->Clear();
-        }
-
-        // Clearing the system of equations
-        if (mpA != nullptr) {
-            mpA->Clear();
-        }
-        if (mpdx != nullptr) {
-            mpdx->Clear();
-        }
-        if (mpb != nullptr) {
-            mpb->Clear();
-        }
-
-        // Clearing scheme
-        // Note that this resets the DOF set
-        if (mpScheme != nullptr) {
-            mpScheme->Clear();
-        }
-
-        // Reset initialization flags
-        mInitializeWasPerformed = false;
-        mSolutionStepIsInitialized = false;
-
-        KRATOS_CATCH("");
-    }
-
-    /**
-     * @brief This operations should be called before printing the results when non trivial results (e.g. stresses)
-    need to be calculated given the solution of the step
-     *@details This operations should be called only when needed, before printing as it can involve a non negligible cost
-     */
-    void CalculateOutputData()
-    {
-        pGetScheme()->CalculateOutputData(GetModelPart(), *mpA, *mpdx, *mpb);
     }
 
     /**
@@ -528,31 +424,49 @@ public:
     }
 
     /**
-     * @brief Performs all the required operations that should be done (for each step) after solving the solution step.
-     * @details A member variable should be used as a flag to make sure this function is called only once per step.
+     * @brief Operation to predict the solution
+     * This provides a prediction for the current solution step solve. If not called a trivial predictor is used
+     * in which the values of the solution step of interest are assumed equal to the old values.
      */
-    void FinalizeSolutionStep()
+    void Predict()
     {
-        KRATOS_TRY;
+        KRATOS_TRY
 
-        // Get scheme pointer
-        auto p_scheme = pGetScheme();
+        // Internal solution loop check to avoid repetitions
+        KRATOS_ERROR_IF(!mInitializeWasPerformed) << "Initialize needs to be performed. Call Initialize() once before the solution loop." << std::endl;
+        KRATOS_ERROR_IF(!mSolutionStepIsInitialized) << "InitializeSolutionStep needs to be performed. Call InitializeSolutionStep() before Predict()." << std::endl;
 
-        // Finalisation of the solution step (operations to be done after achieving convergence)
-        p_scheme->FinalizeSolutionStep(GetModelPart(), *mpA, *mpdx, *mpb);
+        // Call the time scheme predict
+        pGetScheme()->Predict(*mpA, *mpdx, *mpb);
 
-        // Cleaning memory after the solution
-        p_scheme->Clean();
+        //TODO: Constraints implementation
+        // // Applying constraints if needed
+        // const auto &r_comm = GetModelPart().GetCommunicator().GetDataCommunicator();
+        // auto& r_constraints_array = BaseType::GetModelPart().MasterSlaveConstraints();
+        // const int local_number_of_constraints = r_constraints_array.size();
+        // const int global_number_of_constraints = r_comm.SumAll(local_number_of_constraints);
+        // if(global_number_of_constraints != 0) {
+        //     const auto& r_process_info = BaseType::GetModelPart().GetProcessInfo();
 
-        // Reset flag for next step
-        mSolutionStepIsInitialized = false;
+        //     block_for_each(r_constraints_array, [&r_process_info](MasterSlaveConstraint& rConstraint){
+        //         rConstraint.ResetSlaveDofs(r_process_info);
+        //     });
+        //     block_for_each(r_constraints_array, [&r_process_info](MasterSlaveConstraint& rConstraint){
+        //         rConstraint.Apply(r_process_info);
+        //     });
 
-        // Clear if needed (note that this deallocates the system arrays)
-        if (mReformDofSetAtEachStep == true) {
-            Clear();
+        //     //the following is needed since we need to eventually compute time derivatives after applying
+        //     //Master slave relations
+        //     TSparseSpace::SetToZero(rDx);
+        //     this->pGetScheme()->Update(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
+        // }
+
+        // Mesh motion update
+        if (GetMoveMeshFlag()) {
+            MoveMesh();
         }
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     /**
@@ -609,6 +523,165 @@ public:
         }
 
         return true;
+    }
+
+    /**
+     * @brief Performs all the required operations that should be done (for each step) after solving the solution step.
+     * @details A member variable should be used as a flag to make sure this function is called only once per step.
+     */
+    void FinalizeSolutionStep()
+    {
+        KRATOS_TRY;
+
+        // Get scheme pointer
+        auto p_scheme = pGetScheme();
+
+        // Finalisation of the solution step (operations to be done after achieving convergence)
+        p_scheme->FinalizeSolutionStep(GetModelPart(), *mpA, *mpdx, *mpb);
+
+        // Cleaning memory after the solution
+        p_scheme->Clean();
+
+        // Reset flag for next step
+        mSolutionStepIsInitialized = false;
+
+        // Clear if needed (note that this deallocates the system arrays)
+        if (mReformDofSetAtEachStep == true) {
+            Clear();
+        }
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief Clears the internal storage
+     * @note NULL could be changed to nullptr in the future (c++11)
+     */
+    void Clear()
+    {
+        KRATOS_TRY;
+
+        // Clear the linear solver
+        if (mpLinearSolver != nullptr) {
+            mpLinearSolver->Clear();
+        }
+
+        // Clearing the system of equations
+        if (mpA != nullptr) {
+            mpA->Clear();
+        }
+        if (mpdx != nullptr) {
+            mpdx->Clear();
+        }
+        if (mpb != nullptr) {
+            mpb->Clear();
+        }
+
+        // Clearing scheme
+        // Note that this resets the DOF set
+        if (mpScheme != nullptr) {
+            mpScheme->Clear();
+        }
+
+        // Reset initialization flags
+        mInitializeWasPerformed = false;
+        mSolutionStepIsInitialized = false;
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief Function to perform expensive checks.
+     * @details It is designed to be called ONCE to verify that the input is correct.
+     */
+    int Check()
+    {
+        KRATOS_TRY
+
+        // BaseType::Check();
+
+        pGetScheme()->Check(GetModelPart());
+
+        //TODO: think if we do this in debug mode only
+        // If reactions are to be calculated, we check if all the dofs have reactions defined
+        if (mComputeReactions) {
+            for (auto& r_dof : mDofSet) {
+                KRATOS_ERROR_IF_NOT(r_dof.HasReaction())
+                    << "Reaction variable not set for the following: " << std::endl
+                    << "- Node: "<< r_dof.Id() << std::endl
+                    << "- DOF: " << r_dof << std::endl;
+            }
+        }
+
+        return 0;
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief This operations should be called before printing the results when non trivial results (e.g. stresses)
+    need to be calculated given the solution of the step
+     *@details This operations should be called only when needed, before printing as it can involve a non negligible cost
+     */
+    void CalculateOutputData()
+    {
+        pGetScheme()->CalculateOutputData(GetModelPart(), *mpA, *mpdx, *mpb);
+    }
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                         : "linear_strategy",
+            "compute_norm_dx"              : false,
+            "reform_dofs_at_each_step"     : false,
+            "compute_reactions"            : false,
+            "linear_solver_settings"       : {},
+            "scheme_settings"              : {}
+        })");
+
+        // Getting base class default parameters
+        // const Parameters base_default_parameters = BaseType::GetDefaultParameters(); //TODO: Once we have a base class...
+        // default_parameters.RecursivelyAddMissingParameters(base_default_parameters); //TODO: Once we have a base class...
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "linear_strategy";
+    }
+
+    ///@}
+    ///@name Access
+    ///@{
+
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    /**
+     * @brief This returns the level of echo for the solving strategy
+     * @details
+     * {
+     * 0 -> Mute... no echo at all
+     * 1 -> Printing time and basic information
+     * 2 -> Printing linear solver data
+     * 3 -> Print of debug information: Echo of stiffness matrix, Dx, b...
+     * }
+     * @return Level of echo for the solving strategy
+     */
+    int GetEchoLevel() const
+    {
+        return mEchoLevel;
     }
 
     /**
@@ -671,90 +744,6 @@ public:
         } else {
             return 0.0;
         }
-    }
-
-    /**
-     * @brief Function to perform expensive checks.
-     * @details It is designed to be called ONCE to verify that the input is correct.
-     */
-    int Check()
-    {
-        KRATOS_TRY
-
-        // BaseType::Check();
-
-        pGetScheme()->Check(GetModelPart());
-
-        //TODO: think if we do this in debug mode only
-        // If reactions are to be calculated, we check if all the dofs have reactions defined
-        if (mComputeReactions) {
-            for (auto& r_dof : mDofSet) {
-                KRATOS_ERROR_IF_NOT(r_dof.HasReaction())
-                    << "Reaction variable not set for the following: " << std::endl
-                    << "- Node: "<< r_dof.Id() << std::endl
-                    << "- DOF: " << r_dof << std::endl;
-            }
-        }
-
-        return 0;
-
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     * @return The default parameters
-     */
-    Parameters GetDefaultParameters() const
-    {
-        Parameters default_parameters = Parameters(R"(
-        {
-            "name"                         : "linear_strategy",
-            "compute_norm_dx"              : false,
-            "reform_dofs_at_each_step"     : false,
-            "compute_reactions"            : false,
-            "linear_solver_settings"       : {},
-            "scheme_settings"              : {}
-        })");
-
-        // Getting base class default parameters
-        // const Parameters base_default_parameters = BaseType::GetDefaultParameters(); //TODO: Once we have a base class...
-        // default_parameters.RecursivelyAddMissingParameters(base_default_parameters); //TODO: Once we have a base class...
-        return default_parameters;
-    }
-
-    /**
-     * @brief Returns the name of the class as used in the settings (snake_case format)
-     * @return The name of the class
-     */
-    static std::string Name()
-    {
-        return "linear_strategy";
-    }
-
-    ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    /**
-     * @brief This returns the level of echo for the solving strategy
-     * @details
-     * {
-     * 0 -> Mute... no echo at all
-     * 1 -> Printing time and basic information
-     * 2 -> Printing linear solver data
-     * 3 -> Print of debug information: Echo of stiffness matrix, Dx, b...
-     * }
-     * @return Level of echo for the solving strategy
-     */
-    int GetEchoLevel() const
-    {
-        return mEchoLevel;
     }
 
     ///@}
@@ -823,32 +812,6 @@ protected:
 
     //TODO: Move this to the future base class
     /**
-     * @brief Set the Rebuild Level value
-     * This functions sets the rebuild level of the strategy
-     * It is only intended to be used in implicit strategies
-     * @param RebuildLevel Level of rebuild
-     */
-    virtual void SetRebuildLevel(const int RebuildLevel)
-    {
-        mRebuildLevel = RebuildLevel;
-        // KRATOS_ERROR << "Accessing the strategy base class \'GetRebuildLevel\'. Please implement it in your derived class." << std::endl;
-    }
-
-    //TODO: Move this to the future base class
-    /**
-     * @brief Get the Rebuild Level value
-     * This function returns the rebuild level of the strategy
-     * It is only intended to be used in implicit strategies
-     * @return int Rebuild Level value
-     */
-    virtual int GetRebuildLevel() const
-    {
-        return mRebuildLevel;
-        // KRATOS_ERROR << "Accessing the strategy base class \'GetRebuildLevel\'. Please implement it in your derived class." << std::endl;
-    }
-
-    //TODO: Move this to the future base class
-    /**
      * @brief This function is designed to move the mesh
      * @note Be careful it just consider displacements, derive this method to adapt to your own strategies (ALE, FSI, etc...)
      */
@@ -873,9 +836,36 @@ protected:
     ///@name Protected  Access
     ///@{
 
+    //TODO: Move this to the future base class
+    /**
+     * @brief Set the Rebuild Level value
+     * This functions sets the rebuild level of the strategy
+     * It is only intended to be used in implicit strategies
+     * @param RebuildLevel Level of rebuild
+     */
+    virtual void SetRebuildLevel(const int RebuildLevel)
+    {
+        mRebuildLevel = RebuildLevel;
+        mStiffnessMatrixIsBuilt = false;
+        // KRATOS_ERROR << "Accessing the strategy base class \'GetRebuildLevel\'. Please implement it in your derived class." << std::endl;
+    }
+
     ///@}
     ///@name Protected Inquiry
     ///@{
+
+    //TODO: Move this to the future base class
+    /**
+     * @brief Get the Rebuild Level value
+     * This function returns the rebuild level of the strategy
+     * It is only intended to be used in implicit strategies
+     * @return int Rebuild Level value
+     */
+    virtual int GetRebuildLevel() const
+    {
+        return mRebuildLevel;
+        // KRATOS_ERROR << "Accessing the strategy base class \'GetRebuildLevel\'. Please implement it in your derived class." << std::endl;
+    }
 
     ///@}
     ///@name Protected LifeCycle
@@ -908,9 +898,9 @@ private:
 
     int mEchoLevel;
 
-    int mRebuildLevel;
+    int mRebuildLevel; // Flag to indicate if and when the stiffness matrix is built
 
-    bool mMoveMeshFlag;
+    bool mMoveMeshFlag; // Flag to activate the mesh motion from the DISPLACEMENT variable
 
     bool mDofSetIsInitialized = false;
 
@@ -918,16 +908,19 @@ private:
 
     bool mStiffnessMatrixIsBuilt = false;
 
-    bool mCalculateNormDxFlag; /// Calculates if required the norm of the correction term Dx
-
-    bool mComputeReactions;
+    bool mComputeReactions; // Flag to activate the reactions calculation from the residual vector
 
     bool mSolutionStepIsInitialized; /// Flag to set as initialized the solution step
 
     bool mInitializeWasPerformed; /// Flag to set as initialized the strategy
 
     ///@}
-    ///@name Private Operators*/
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
     ///@{
 
     /**
@@ -960,22 +953,17 @@ private:
     }
 
     ///@}
-    ///@name Private Operations*/
+    ///@name Private  Access
     ///@{
 
 
     ///@}
-    ///@name Private  Access */
+    ///@name Private Inquiry
     ///@{
 
 
     ///@}
-    ///@name Private Inquiry */
-    ///@{
-
-
-    ///@}
-    ///@name Un accessible methods */
+    ///@name Un accessible methods
     ///@{
 
 

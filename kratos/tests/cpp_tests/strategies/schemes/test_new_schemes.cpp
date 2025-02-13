@@ -86,9 +86,10 @@ public:
         }
         const double f = 1.0;
         const double h = r_geom.Length();
-        const double aux = f * h / 2.0;
-        rRightHandSideVector(0) = aux;
-        rRightHandSideVector(1) = aux;
+        const double aux_f = f * h / 2.0;
+        const double aux_phi =  (r_geom[0].GetSolutionStepValue(DISTANCE) - r_geom[1].GetSolutionStepValue(DISTANCE)) / h;
+        rRightHandSideVector(0) = aux_f - aux_phi;
+        rRightHandSideVector(1) = aux_f + aux_phi;
     }
 
     void EquationIdVector(
