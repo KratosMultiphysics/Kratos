@@ -1492,7 +1492,8 @@ void SphericParticle::GetDofList(DofsVectorType& ElementalDofList, const Process
     KRATOS_CATCH("")
 }
 
-void SphericParticle::InitializeSolutionStep(const ProcessInfo& r_process_info) {
+void SphericParticle::InitializeSolutionStep(const ProcessInfo& r_process_info)
+{
     KRATOS_TRY
 
     auto& central_node = GetGeometry()[0];
