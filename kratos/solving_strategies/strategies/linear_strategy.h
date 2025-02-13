@@ -161,7 +161,6 @@ public:
         , mpModelPart(&rModelPart)
         , mpLinearSolver(&pLinearSolver)
         , mReformDofSetAtEachStep(ReformDofSetAtEachStep)
-        , mCalculateNormDxFlag(CalculateNormDxFlag)
         , mComputeReactions(ComputeReactions)
     {
         KRATOS_TRY
@@ -177,7 +176,7 @@ public:
         // Note that this implies reshaping (or not) the system matrix and vectors
         mpScheme->SetReshapeMatrixFlag(ReformDofSetAtEachStep); // TODO: I think we should unify the naming
 
-        // Set EchoLevel to the default value (only time is displayed)
+        // Set EchoLevel to the default value (only time is displayed) //TODO: Get this from input settings
         this->SetEchoLevel(1);
 
         // By default the matrices are rebuilt at each solution step
@@ -194,9 +193,9 @@ public:
      * @brief Destructor.
      * @details In trilinos third party library, the linear solver's preconditioner should be freed before the system matrix. We control the deallocation order with Clear().
      */
-    ~LinearStrategy()
+    virtual ~LinearStrategy()
     {
-        // Finally clear current class
+        // Clear current class
         this->Clear();
     }
 
@@ -207,132 +206,6 @@ public:
     ///@}
     ///@name Operations
     ///@{
-
-    /**
-     * @brief Set method for the time scheme
-     * @param pScheme The pointer to the time scheme considered
-     */
-    void SetScheme(SchemePointerType pScheme)
-    {
-        mpScheme = pScheme;
-    }
-
-    /**
-     * @brief Get method for the time scheme
-     * @return mpScheme: The pointer to the time scheme considered
-     */
-    SchemePointerType pGetScheme()
-    {
-        return mpScheme;
-    }
-
-    /**
-     * @brief Set method for the linear solver
-     * @param pLinearSolver The pointer to the linear solver
-     */
-    void SetLinearSolver(LinearSolverPointerType pLinearSolver)
-    {
-        mpLinearSolver = pLinearSolver;
-    }
-
-    /**
-     * @brief Get method for the linear solver
-     * @return mpLinearSolver The pointer to the linear solver
-     */
-    SchemePointerType pGetLinearSolver()
-    {
-        return mpLinearSolver;
-    }
-
-    /**
-     * @brief This method sets the flag mComputeReactions
-     * @param ComputeReactions The flag that tells if the reactions are computed
-     */
-    void SetComputeReactions(const bool ComputeReactions)
-    {
-        mComputeReactions = ComputeReactions;
-    }
-
-    /**
-     * @brief This method returns the flag mComputeReactions
-     * @return The flag that tells if the reactions are computed
-     */
-    bool GetComputeReactions() const
-    {
-        return mComputeReactions;
-    }
-
-    /**
-     * @brief This method sets the flag mReformDofSetAtEachStep
-     * @param ReformDofSetAtEachStepFlag The flag that tells if each time step the system is rebuilt
-     */
-    void SetReformDofSetAtEachStepFlag(const bool ReformDofSetAtEachStepFlag) // TODO: Unify the naming with the scheme
-    {
-        pGetScheme()->SetReshapeMatrixFlag(ReformDofSetAtEachStepFlag);
-    }
-
-    /**
-     * @brief This method returns the flag mReformDofSetAtEachStep
-     * @return The flag that tells if each time step the system is rebuilt
-     */
-    bool GetReformDofSetAtEachStepFlag() const //TODO: Unify the naming with the scheme
-    {
-        return pGetScheme()->GetReshapeMatrixFlag();
-    }
-
-    /**
-     * @brief This method sets the flag mMoveMeshFlag
-     * @param MoveMeshFlag The flag that tells if the mesh is to be updated
-     */
-    void SetMoveMeshFlag(const bool MoveMeshFlag)
-    {
-        mMoveMeshFlag = MoveMeshFlag;
-    }
-
-    /**
-     * @brief This method returns the flag mMoveMeshFlag
-     * @return The flag that tells if the mesh is to be updated
-     */
-    bool GetMoveMeshFlag() const
-    {
-        return mMoveMeshFlag;
-    }
-
-    //TODO: Move to the future base class
-    /**
-     * @brief Operations to get the pointer to the model
-     * @return *mpModelPart: The model part member variable
-     */
-    ModelPart& GetModelPart()
-    {
-        return *mpModelPart;
-    };
-
-    //TODO: Move to the future base class
-    /**
-     * @brief Operations to get the pointer to the model
-     * @return *mpModelPart: The model part member variable
-     */
-    const ModelPart& GetModelPart() const
-    {
-        return *mpModelPart;
-    };
-
-    /**
-     * @brief It sets the level of echo for the solving strategy
-     * @param Level The level to set
-     * @details The different levels of echo are:
-     * - 0: Mute... no echo at all
-     * - 1: Printing time and basic information
-     * - 2: Printing linear solver data
-     * - 3: Print of debug information: Echo of stiffness matrix, Dx, b...
-     */
-
-    void SetEchoLevel(const int EchoLevel) //TODO: I'd also unify the echo level with the scheme
-    {
-        mEchoLevel = EchoLevel;
-        pGetScheme()->SetEchoLevel(EchoLevel);
-    }
 
     /**
      * @brief Create method
@@ -637,7 +510,6 @@ public:
         Parameters default_parameters = Parameters(R"(
         {
             "name"                         : "linear_strategy",
-            "compute_norm_dx"              : false,
             "reform_dofs_at_each_step"     : false,
             "compute_reactions"            : false,
             "linear_solver_settings"       : {},
@@ -663,6 +535,147 @@ public:
     ///@name Access
     ///@{
 
+    /**
+     * @brief It sets the level of echo for the solving strategy
+     * @param Level The level to set
+     * @details The different levels of echo are:
+     * - 0: Mute... no echo at all
+     * - 1: Printing time and basic information
+     * - 2: Printing linear solver data
+     * - 3: Print of debug information: Echo of stiffness matrix, Dx, b...
+     */
+
+     void SetEchoLevel(const int EchoLevel) //TODO: I'd also unify the echo level with the scheme
+     {
+         mEchoLevel = EchoLevel;
+         pGetScheme()->SetEchoLevel(EchoLevel);
+     }
+
+    /**
+     * @brief This method sets the flag mComputeReactions
+     * @param ComputeReactions The flag that tells if the reactions are computed
+     */
+    void SetComputeReactions(const bool ComputeReactions)
+    {
+        mComputeReactions = ComputeReactions;
+    }
+
+    /**
+     * @brief This method sets the flag mReformDofSetAtEachStep
+     * @param ReformDofSetAtEachStepFlag The flag that tells if each time step the system is rebuilt
+     */
+    void SetReformDofSetAtEachStepFlag(const bool ReformDofSetAtEachStepFlag) // TODO: Unify the naming with the scheme
+    {
+        pGetScheme()->SetReshapeMatrixFlag(ReformDofSetAtEachStepFlag);
+    }
+
+    /**
+     * @brief This method sets the flag mMoveMeshFlag
+     * @param MoveMeshFlag The flag that tells if the mesh is to be updated
+     */
+    void SetMoveMeshFlag(const bool MoveMeshFlag)
+    {
+        mMoveMeshFlag = MoveMeshFlag;
+    }
+
+    //TODO: Move to the future base class
+    /**
+     * @brief Operations to get the pointer to the model
+     * @return *mpModelPart: The model part member variable
+     */
+    ModelPart& GetModelPart()
+    {
+        return *mpModelPart;
+    };
+
+    //TODO: Move to the future base class
+    /**
+     * @brief Operations to get the pointer to the model
+     * @return *mpModelPart: The model part member variable
+     */
+    const ModelPart& GetModelPart() const
+    {
+        return *mpModelPart;
+    };
+
+    /**
+     * @brief Set method for the time scheme
+     * @param pScheme The pointer to the time scheme considered
+     */
+    void SetScheme(SchemePointerType pScheme)
+    {
+        mpScheme = pScheme;
+    }
+
+    /**
+     * @brief Get method for the time scheme
+     * @return mpScheme: The pointer to the time scheme considered
+     */
+    SchemePointerType pGetScheme()
+    {
+        return mpScheme;
+    }
+
+    /**
+     * @brief Set method for the linear solver
+     * @param pLinearSolver The pointer to the linear solver
+     */
+    void SetLinearSolver(LinearSolverPointerType pLinearSolver)
+    {
+        mpLinearSolver = pLinearSolver;
+    }
+
+    /**
+     * @brief Get method for the linear solver
+     * @return mpLinearSolver The pointer to the linear solver
+     */
+    SchemePointerType pGetLinearSolver()
+    {
+        return mpLinearSolver;
+    }
+
+    /**
+     * @brief This method returns the LHS matrix
+     * @return The LHS matrix
+     */
+    SystemMatrixType& GetSystemMatrix()
+    {
+        return *mpA;
+    }
+
+    /**
+     * @brief This method returns the RHS vector
+     * @return The RHS vector
+     */
+    SystemVectorType& GetSystemVector()
+    {
+        return *mpb;
+    }
+
+    /**
+     * @brief This method returns the solution vector
+     * @return The Dx vector
+     */
+    SystemVectorType& GetSolutionVector()
+    {
+        return *mpdx;
+    }
+
+    /**
+     * @brief It allows to get the list of Dofs from the element
+     */
+    DofsArrayType& GetDofSet()
+    {
+        return mDofSet;
+    }
+
+    /**
+     * @brief It allows to get the list of Dofs from the element
+     */
+    const DofsArrayType& GetDofSet() const
+    {
+        return mDofSet;
+    }
 
     ///@}
     ///@name Inquiry
@@ -685,52 +698,30 @@ public:
     }
 
     /**
-     * @brief This method returns the LHS matrix
-     * @return The LHS matrix
+     * @brief This method returns the flag mComputeReactions
+     * @return The flag that tells if the reactions are computed
      */
-    SystemMatrixType& GetSystemMatrix()
+    bool GetComputeReactions() const
     {
-        SystemMatrixType& mA = *mpA;
-
-        return mA;
+        return mComputeReactions;
     }
 
     /**
-     * @brief This method returns the RHS vector
-     * @return The RHS vector
+     * @brief This method returns the flag mReformDofSetAtEachStep
+     * @return The flag that tells if each time step the system is rebuilt
      */
-    SystemVectorType& GetSystemVector()
+    bool GetReformDofSetAtEachStepFlag() const //TODO: Unify the naming with the scheme
     {
-        SystemVectorType& mb = *mpb;
-
-        return mb;
+        return pGetScheme()->GetReshapeMatrixFlag();
     }
 
     /**
-     * @brief This method returns the solution vector
-     * @return The Dx vector
+     * @brief This method returns the flag mMoveMeshFlag
+     * @return The flag that tells if the mesh is to be updated
      */
-    SystemVectorType& GetSolutionVector()
+    bool GetMoveMeshFlag() const
     {
-        SystemVectorType& mDx = *mpdx;
-
-        return mDx;
-    }
-
-    /**
-     * @brief It allows to get the list of Dofs from the element
-     */
-    DofsArrayType& GetDofSet()
-    {
-        return mDofSet;
-    }
-
-    /**
-     * @brief It allows to get the list of Dofs from the element
-     */
-    const DofsArrayType& GetDofSet() const
-    {
-        return mDofSet;
+        return mMoveMeshFlag;
     }
 
     /**
@@ -799,7 +790,6 @@ protected:
     void AssignSettings(const Parameters ThisParameters)
     {
         // BaseType::AssignSettings(ThisParameters); // TODO: Once we have a base class
-        mCalculateNormDxFlag = ThisParameters["compute_norm_dx"].GetBool();
         mReformDofSetAtEachStep = ThisParameters["reform_dofs_at_each_step"].GetBool();
         mComputeReactions = ThisParameters["compute_reactions"].GetBool();
 
