@@ -170,7 +170,7 @@ PYBIND11_MODULE(Kratos, m)
     Future::Python::AddFutureToPython(future);
 #endif
 
-#ifdef KRATOS_USE_FUTURE
+#ifdef KRATOS_USE_LEGACY
     auto legacy = m.def_submodule("Legacy", "Kratos Legacy submodule containing legacy features");
     Legacy::Python::AddLegacyToPython(legacy);
 #endif
