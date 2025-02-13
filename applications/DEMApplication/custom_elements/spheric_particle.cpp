@@ -1984,10 +1984,6 @@ std::unique_ptr<DEMGlobalDampingModel> SphericParticle::pCloneGlobalDampingModel
 
 void SphericParticle::ComputeOtherBallToBallForces(array_1d<double, 3>& other_ball_to_ball_forces) {}
 
-double SphericParticle::GetInitialDeltaWithFEM(int index) {//only available in continuum_particle
-    return 0.0;
-}
-
 void SphericParticle::StoreBallToBallContactInfo(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding) {
     if (true) { // TODO: ONLY WHEN RVE ANALYSIS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         int neighbor_id = data_buffer.mpOtherParticle->GetId();
@@ -2004,6 +2000,10 @@ void SphericParticle::StoreBallToRigidFaceContactInfo(const ProcessInfo& r_proce
         std::memcpy(mBallToRigidFaceStoredInfo[neighbor_id].local_coord_system, data_buffer.mLocalCoordSystem, sizeof(mBallToRigidFaceStoredInfo[neighbor_id].local_coord_system));
         std::memcpy(mBallToRigidFaceStoredInfo[neighbor_id].global_contact_force, GlobalContactForceTotal, sizeof(mBallToRigidFaceStoredInfo[neighbor_id].global_contact_force));
     }
+}
+
+double SphericParticle::GetInitialDeltaWithFEM(int index) {//only available in continuum_particle
+    return 0.0;
 }
 
 void SphericParticle::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info) {
