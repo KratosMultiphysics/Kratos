@@ -20,7 +20,7 @@
 #ifdef KRATOS_USE_FUTURE
     #include "future/processes/future_process.h"
 #endif
-#ifdef KRATOS_USE_FUTURE
+#ifdef KRATOS_USE_LEGACY
     #include "legacy/processes/legacy_process.h"
 #endif
 
