@@ -6,17 +6,24 @@ sidebar: kratos_for_developers
 summary: 
 ---
 
-# Install 
+# **Clang-Tidy: Automatically correct your code**
 
-*Clang-Tidy* is a tool developed and maintained by the *Clang/LLVM* community. The official documentation can be found at [http://clang.llvm.org/extra/clang-tidy/](http://clang.llvm.org/extra/clang-tidy/). When running Linux, *clang-tidy* is usually easy to get via your distribution’s package manager. On Ubuntu Linux:
+## **Introduction**
 
-```console
+*Clang-Tidy* is a tool developed and maintained by the *Clang/LLVM* community. The official documentation can be found at [http://clang.llvm.org/extra/clang-tidy/](http://clang.llvm.org/extra/clang-tidy/). 
+
+*Clang-Tidy* is a powerful tool for **automated code improvements**. It helps enforce modern C++ best practices, improve performance, and maintain high-quality code. By integrating it into your workflow, you can **automate code reviews and refactor large codebases efficiently**. 🚀
+
+## **Install** 
+
+When running *GNU/Linux*, *clang-tidy* is usually easy to get via your distribution’s package manager. On **Ubuntu/Linux**, Clang-Tidy can be installed using the package manager:
+
+```sh
 sudo apt-get install clang-tidy clang-tools
 ```
- 
- Additionally you can download directly in the [project page](http://releases.llvm.org/download.html).
- 
- # Introduction
+Alternatively, you can download it directly from the [**LLVM project page**](http://releases.llvm.org/download.html).
+
+## **Using Clang-Tidy**
  
  A typical invocation of the command-line tool looks like this:
  
@@ -24,13 +31,19 @@ sudo apt-get install clang-tidy clang-tools
  clang-tidy test.cpp -- -Imy_project/include -DMY_DEFINES ...
  ```
  
- Executing it like this, the tool will print a bunch of warnings and notes (if applicable), in exactly the same way Clang/GCC provide diagnostics, too.
+Executing it like this, the tool will print a bunch of warnings and notes (if applicable), in exactly the same way **Clang/GCC diagnostics**, too.
  
-## Available checkers
+### Available checkers
 
- The avalaible checkers avaible can be found with the command `list-checks`. To correct the code we can use the command `-fix` (not all the avalaible checkers have the `-fix` function). For example for `modernize` and `performance`.
+The avalaible checkers avaible can be found with the command `list-checks`.
  
-### Modernize
+```sh
+clang-tidy --list-checks
+```
+ 
+To automatically **fix** issues, you can use the `-fix` option. However, not all checkers support automatic fixes. For example for `modernize` and `performance`.
+ 
+#### Modernize
 
 To modernize code we have the following options:
 
@@ -68,7 +81,9 @@ To modernize code we have the following options:
     modernize-use-uncaught-exceptions
     modernize-use-using
  ```
- 
+
+##### **Example: Adding `override` Specifiers**
+
 For example to add the missing overrides in the following code:
  
  ```c
@@ -86,7 +101,7 @@ struct Derived : public Base  {
  clang-tidy -checks='modernize-use-override' -fix test.cpp -- -std=c++11
  ```
  
-### Performance
+#### Performance
 
 For performance checks we have the following options:
 
@@ -111,25 +126,52 @@ clang-tidy --list-checks -checks='*' | grep "performance"
     performance-unnecessary-value-param
  ```
 
- # Using to correct a whole project
- 
- The previous example will work just with a very simple example contained in one file. To correct the whole project we will need to create a `json` file containing all the file in the project. For that we add the following line to ou configure.sh:
- 
- ```console
- -DCMAKE_EXPORT_COMPILE_COMMANDS=ON                                                       \
- ```
- 
- This will create a file named `compile_commands.json` that we will use with the following python script from the [LLVM project](https://github.com/llvm/llvm-project/blob/main/clang-tools-extra/clang-tidy/tool/run-clang-tidy.py)).
- 
- Once we have the script and the json file we can check and fix the whole project by the following way:
- 
- ```console
- run-clang-tidy.py -header-filter='.*' -checks='-*,modernize-use-override' -fix
- ```
+Some commonly used performance checkers include:
+- `performance-faster-string-find`
+- `performance-inefficient-string-concatenation`
+- `performance-move-const-arg`
+- `performance-unnecessary-copy-initialization`
 
-You can run simmultaneously all the possible modernize commands using the following [shell script](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Resources_files/Clang-tidy%20modernize/modernize.sh).
+For example, to **optimize unnecessary copy initialization**, use:
 
- ```console
+```sh
+clang-tidy -checks='performance-unnecessary-copy-initialization' -fix test.cpp
+```
+
+### **Applying fixes to an entire project**
+The previous examples work on **single files**, but for larger projects, we need **Clang-Tidy to analyze all source files**.
+
+#### **1. Generate `compile_commands.json`**
+To allow Clang-Tidy to understand the project structure, enable `CMAKE_EXPORT_COMPILE_COMMANDS` in **CMake** by adding this line to your `configure.sh`:
+
+```sh
+-DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+```
+
+This generates a file called **`compile_commands.json`**, which Clang-Tidy will use to analyze the project.
+
+#### **2. Run Clang-Tidy on the Whole Project**
+Download the **Clang-Tidy Python script** from the [LLVM project](https://github.com/llvm/llvm-project/blob/main/clang-tools-extra/clang-tidy/tool/run-clang-tidy.py).
+
+Then, run:
+
+```sh
+run-clang-tidy.py -header-filter='.*' -checks='-*,modernize-use-override' -fix
+```
+
+This command:
+✅ **Checks** all files in the project  
+✅ **Applies** `modernize-use-override` fixes  
+✅ **Uses** the compilation database (`compile_commands.json`)
+
+#### **3. Run All Modernization Fixes**
+To apply **all modernize transformations** at once, use the following **shell script**:
+
+```sh
 sh modernize.sh
- ```
+```
+
+This script is available at:  
+👉 [Modernize Shell Script](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Resources_files/Clang-tidy%20modernize/modernize.sh)
+
  
