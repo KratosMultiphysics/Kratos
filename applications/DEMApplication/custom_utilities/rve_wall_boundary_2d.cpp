@@ -236,10 +236,8 @@ namespace Kratos
     //           The optimal offset value was determined as 0.8R.
     //           This simplistic method was used in the simulations of the reference works.
     // METHOD 2: Perform a Delaunay triangulation over the center of the inner particles to obtain the convex hull.
-    //           This less efficient method was deemed not reliable (why?).
+    //           (This has been removed!)
     double RVEWallBoundary2D::ComputeVolumeInner(void) {
-        // METHOD 1:
-
         // Offset with respect to walls
         const double offset = mDemModelPart->GetProcessInfo()[INNER_CONSOLIDATION_POROSITY_OFFSET] * mAvgRadius;
 
@@ -275,74 +273,6 @@ namespace Kratos
 
         // Compute area of inner quadrilateral
         return ComputeAreaFromVertices(x1, x2, x3, x4, y1, y2, y3, y4);
-
-        // METHOD 2: A FUNCTION TO CALCULATE THE INNER VOLUME DURING PARTICLE LOOP MUST BE CREATED TO REPLACE THIS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        /*
-        const int num_particles = mParticlesInnerVol.size();
-        if (num_particles < 3) // Just in case...
-            return ComputeVolumeTotal();
-
-        // Create and clear IO
-        std::string switches = "PQ";
-        struct triangulateio in, out, vorout;
-        ClearTriangle(in);
-        ClearTriangle(out);
-        ClearTriangle(vorout);
-
-        // Build input
-        in.numberofpoints = num_particles;
-        in.pointlist = (double*)malloc(sizeof(double)*in.numberofpoints*2);
-
-        for (int i = 0; i < in.numberofpoints; i++) {
-            array_1d<double,3> coords = mParticlesInnerVol[i]->GetGeometry()[0].Coordinates();
-            in.pointlist[2*i + 0] = coords[0];
-            in.pointlist[2*i + 1] = coords[1];
-        }
-
-        // Perform triangulation over particle centers
-        int fail = 0;
-        try {
-            triangulate(&switches[0], &in, &out, &vorout);
-        }
-        catch (int error_code) {
-            fail = error_code;
-        }
-        if (fail || out.numberoftriangles == 0 || in.numberofpoints != out.numberofpoints) {
-            KRATOS_ERROR << "Fail to generate triangulation!" << std::endl;
-            FreeTriangle(in);
-            FreeTriangle(out);
-            FreeTriangle(vorout);
-            return 0.0;
-        }
-
-        // Compute area of convex hull formed by the center of inner particles
-        double total_volume = 0.0;
-        for (int i = 0; i < out.numberoftriangles; i++) {
-            // Get triangle vertex IDs
-            const int v1 = out.trianglelist[3*i + 0]-1;
-            const int v2 = out.trianglelist[3*i + 1]-1;
-            const int v3 = out.trianglelist[3*i + 2]-1;
-
-            // Get triangle vertex coordinates
-            const double x1 = out.pointlist[2*v1 + 0]; const double y1 = out.pointlist[2*v1 + 1];
-            const double x2 = out.pointlist[2*v2 + 0]; const double y2 = out.pointlist[2*v2 + 1];
-            const double x3 = out.pointlist[2*v3 + 0]; const double y3 = out.pointlist[2*v3 + 1];
-
-            // Accumulate triangle area
-            total_volume += fabs(0.5*(x1*(y2-y3)+x2*(y3-y1)+x3*(y1-y2)));
-        }
-
-        // Free memory
-        FreeTriangle(in);
-        FreeTriangle(out);
-        FreeTriangle(vorout);
-
-        ClearTriangle(in);
-        ClearTriangle(out);
-        ClearTriangle(vorout);
-
-        return total_volume;
-        */
     }
 
     //------------------------------------------------------------------------------------------------------------
@@ -841,63 +771,6 @@ namespace Kratos
             mFileRoseDiagram << std::endl;
 
             mFileRoseDiagram << std::endl;
-        }
-    }
-
-    //-----------------------------------------------------------------------------------------------------------------------
-    // Clear values of Triangle variables.
-    void RVEWallBoundary2D::ClearTriangle(struct triangulateio& rTr) {
-        rTr.pointlist                  = (REAL*)NULL;
-        rTr.pointattributelist         = (REAL*)NULL;
-        rTr.pointmarkerlist            = (int*)NULL;
-        rTr.numberofpoints             = 0;
-        rTr.numberofpointattributes    = 0;
-        rTr.trianglelist               = (int*)NULL;
-        rTr.triangleattributelist      = (REAL*)NULL;
-        rTr.trianglearealist           = (REAL*)NULL;
-        rTr.neighborlist               = (int*)NULL;
-        rTr.numberoftriangles          = 0;
-        rTr.numberofcorners            = 3; //for three node triangles
-        rTr.numberoftriangleattributes = 0;
-        rTr.segmentlist                = (int*)NULL;
-        rTr.segmentmarkerlist          = (int*)NULL;
-        rTr.numberofsegments           = 0;
-        rTr.holelist                   = (REAL*)NULL;
-        rTr.numberofholes              = 0;
-        rTr.regionlist                 = (REAL*)NULL;
-        rTr.numberofregions            = 0;
-        rTr.edgelist                   = (int*)NULL;
-        rTr.edgemarkerlist             = (int*)NULL;
-        rTr.normlist                   = (REAL*)NULL;
-        rTr.numberofedges              = 0;
-    }
-
-    //-----------------------------------------------------------------------------------------------------------------------
-    // Free allocated memory of Triangle variables.
-    void RVEWallBoundary2D::FreeTriangle(struct triangulateio& rTr) {
-        if (rTr.numberoftriangles) {
-            if (rTr.trianglelist)          trifree(rTr.trianglelist);
-            if (rTr.triangleattributelist) trifree(rTr.triangleattributelist);
-            if (rTr.trianglearealist)      trifree(rTr.trianglearealist);
-            if (rTr.neighborlist)          trifree(rTr.neighborlist);
-        }
-        if (rTr.segmentlist)       trifree(rTr.segmentlist);
-        if (rTr.segmentmarkerlist) trifree(rTr.segmentmarkerlist);
-        if (rTr.holelist) {
-            delete[] rTr.holelist;
-            rTr.numberofholes = 0;
-        }
-        if (rTr.regionlist) {
-            delete[] rTr.regionlist;
-            rTr.numberofregions = 0;
-        }
-        if (rTr.edgelist)       trifree(rTr.edgelist);
-        if (rTr.edgemarkerlist) trifree(rTr.edgemarkerlist);
-        if (rTr.normlist)       trifree(rTr.normlist);
-        if (rTr.numberofpoints) {
-            if (rTr.pointlist)          trifree(rTr.pointlist);
-            if (rTr.pointattributelist) trifree(rTr.pointattributelist);
-            if (rTr.pointmarkerlist)    trifree(rTr.pointmarkerlist);
         }
     }
 

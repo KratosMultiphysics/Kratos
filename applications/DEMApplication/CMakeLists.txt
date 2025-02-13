@@ -8,12 +8,6 @@ include(pybind11Tools)
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 include_directories( ${KRATOS_SOURCE_DIR}/applications/DEMApplication )
 
-if(NOT DEFINED ${INCLUDE_TRIANGLE})
-  set(INCLUDE_TRIANGLE ON)
-  set(TRIANGLE_INSTALL_DIR ${KRATOS_SOURCE_DIR}/external_libraries/triangle/)
-  include_directories( ${TRIANGLE_INSTALL_DIR} )
-endif(NOT DEFINED ${INCLUDE_TRIANGLE})
-
 ## generate variables with the sources
 set(KRATOS_DEM_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/DEM_application.cpp

@@ -20,25 +20,8 @@
 #pragma once
 #include "rve_utilities.h"
 
-#ifdef   SINGLE
-#define  REAL float
-#else 
-#define  REAL double
-#endif
-
-#ifndef TRILIBRARY
-#define TRILIBRARY
-#endif
-
-#include "triangle.h"
-
 namespace Kratos
 {
-    extern "C" { // To use Triangle library
-        void triangulate(char*, struct triangulateio*, struct triangulateio*, struct triangulateio*);
-        void trifree(void*);
-    }
-
     class KRATOS_API(DEM_APPLICATION) RVEWallBoundary2D : public RVEUtilities
     {
         public:
@@ -65,8 +48,6 @@ namespace Kratos
 
         private:
             // Private methods
-            void   ClearTriangle                (struct triangulateio& rTr);
-            void   FreeTriangle                 (struct triangulateio& rTr);
             void   SortVerticesCounterClockwise (double& x1, double& x2, double& x3, double& x4, double& y1, double& y2, double& y3, double& y4);
             double ComputeAreaFromVertices      (double  x1, double  x2, double  x3, double  x4, double  y1, double  y2, double  y3, double  y4);
             double ComputeRoseDiagramStdDev     (std::vector<int> rose_diagram);
