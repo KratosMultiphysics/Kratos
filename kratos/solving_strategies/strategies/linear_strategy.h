@@ -123,8 +123,8 @@ public:
         this->AssignSettings(ThisParameters);
 
         // Set flags to start the calculations correctly
-        mSolutionStepIsInitialized = false;
         mInitializeWasPerformed = false;
+        mSolutionStepIsInitialized = false;
 
         //TODO: In here we should leverage the Registry to construct the scheme from the json input settings
 
@@ -157,20 +157,17 @@ public:
         bool ReformDofSetAtEachStep = false,
         bool CalculateNormDxFlag = false,
         bool MoveMeshFlag = false)
-        : mpScheme(pScheme)
-        , mpModelPart(&rModelPart)
-        , mpLinearSolver(&pLinearSolver)
+        : mpModelPart(&rModelPart)
+        , mpScheme(pScheme)
+        , mpLinearSolver(pLinearSolver)
         , mReformDofSetAtEachStep(ReformDofSetAtEachStep)
         , mComputeReactions(ComputeReactions)
     {
         KRATOS_TRY
 
-        // Set flag to start the calculations correctly
-        mSolutionStepIsInitialized = false;
+        // Set flags to start the calculations correctly
         mInitializeWasPerformed = false;
-
-        // Tells to the scheme if the reactions have to be calculated or not
-        mpScheme->SetComputeReactions(ComputeReactions);
+        mSolutionStepIsInitialized = false;
 
         // Tells to the scheme if the DOF needs to be reformed at each time step
         // Note that this implies reshaping (or not) the system matrix and vectors
@@ -232,17 +229,17 @@ public:
 
             // Initialize scheme (this has to be done once)
             if (!p_scheme->SchemeIsInitialized()) {
-                p_scheme->Initialize(GetModelPart());
+                p_scheme->Initialize();
             }
 
             // Initialize elements (this has to be done once)
             if (!p_scheme->ElementsAreInitialized()) {
-                p_scheme->InitializeElements(GetModelPart()); //TODO: Think if this belongs to the scheme
+                p_scheme->InitializeElements(); //TODO: Think if this belongs to the scheme
             }
 
             // Initialize conditions (this has to be done once)
             if (!p_scheme->ConditionsAreInitialized()) {
-                p_scheme->InitializeConditions(GetModelPart()); //TODO: Think if this belongs to the scheme
+                p_scheme->InitializeConditions(); //TODO: Think if this belongs to the scheme
             }
 
             mInitializeWasPerformed = true;
@@ -276,18 +273,18 @@ public:
 
                 // Shaping the system
                 BuiltinTimer setup_system_time;
-                p_scheme->SetUpSystem(GetModelPart());
+                p_scheme->SetUpSystem(mDofSet);
                 KRATOS_INFO_IF("LinearStrategy", GetEchoLevel() > 0) << "Set up system time: " << setup_system_time << std::endl;
 
                 // Allocating the system vectors to their correct sizes
                 BuiltinTimer system_matrix_resize_time;
-                p_scheme->ResizeAndInitializeVectors(mpA, mpdx, mpb);
+                p_scheme->ResizeAndInitializeVectors(mDofSet, mpA, mpdx, mpb);
                 KRATOS_INFO_IF("LinearStrategy", GetEchoLevel() > 0) << "System matrix resize time: " << system_matrix_resize_time << std::endl;
             }
             KRATOS_INFO_IF("LinearStrategy", GetEchoLevel() > 0) << "System construction time: " << system_construction_time << std::endl;
 
             // Call the scheme InitializeSolutionStep
-            p_scheme->InitializeSolutionStep(GetModelPart(), *mpA, *mpdx, *mpb);
+            p_scheme->InitializeSolutionStep(*mpA, *mpdx, *mpb);
 
             // Set the flag to avoid calling this twice
             mSolutionStepIsInitialized = true;
@@ -410,7 +407,7 @@ public:
         auto p_scheme = pGetScheme();
 
         // Finalisation of the solution step (operations to be done after achieving convergence)
-        p_scheme->FinalizeSolutionStep(GetModelPart(), *mpA, *mpdx, *mpb);
+        p_scheme->FinalizeSolutionStep(*mpA, *mpdx, *mpb);
 
         // Cleaning memory after the solution
         p_scheme->Clean();
@@ -471,9 +468,9 @@ public:
     {
         KRATOS_TRY
 
-        // BaseType::Check();
+        // BaseType::Check(); //TODO: Activate when we have a base class
 
-        pGetScheme()->Check(GetModelPart());
+        pGetScheme()->Check();
 
         //TODO: think if we do this in debug mode only
         // If reactions are to be calculated, we check if all the dofs have reactions defined
@@ -629,7 +626,7 @@ public:
      * @brief Get method for the linear solver
      * @return mpLinearSolver The pointer to the linear solver
      */
-    SchemePointerType pGetLinearSolver()
+    LinearSolverPointerType pGetLinearSolver()
     {
         return mpLinearSolver;
     }
@@ -790,8 +787,8 @@ protected:
     void AssignSettings(const Parameters ThisParameters)
     {
         // BaseType::AssignSettings(ThisParameters); // TODO: Once we have a base class
-        mReformDofSetAtEachStep = ThisParameters["reform_dofs_at_each_step"].GetBool();
         mComputeReactions = ThisParameters["compute_reactions"].GetBool();
+        mReformDofSetAtEachStep = ThisParameters["reform_dofs_at_each_step"].GetBool();
 
         // Saving the scheme
         if (ThisParameters["scheme_settings"].Has("name")) {
@@ -872,6 +869,8 @@ private:
     ///@name Member Variables
     ///@{
 
+    ModelPart* mpModelPart = nullptr;
+
     SchemePointerType mpScheme = nullptr; /// The pointer to the scheme
 
     typename TLinearSolver::Pointer mpLinearSolver = nullptr; /// The pointer to the linear solver
@@ -883,8 +882,6 @@ private:
     SystemVectorPointerType mpb; /// The RHS vector of the system of equations //TODO: use naming convention (mpRHS)
 
     SystemMatrixPointerType mpA; /// The LHS matrix of the system of equations //TODO: use naming convention (mpLHS)
-
-    ModelPart* mpModelPart = nullptr;
 
     int mEchoLevel;
 
@@ -900,9 +897,9 @@ private:
 
     bool mComputeReactions; // Flag to activate the reactions calculation from the residual vector
 
-    bool mSolutionStepIsInitialized; /// Flag to set as initialized the solution step
-
     bool mInitializeWasPerformed; /// Flag to set as initialized the strategy
+
+    bool mSolutionStepIsInitialized; /// Flag to set as initialized the solution step
 
     ///@}
     ///@name Private Operators

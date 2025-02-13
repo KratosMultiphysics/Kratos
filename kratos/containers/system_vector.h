@@ -62,7 +62,12 @@ class SystemVector final
 public:
     ///@name Type Definitions
     ///@{
-    typedef TIndexType IndexType;
+
+    using DataType = TDataType;
+
+    using IndexType = TIndexType;
+
+    using value_type = TDataType;
 
     /// Pointer definition of SystemVector
     KRATOS_CLASS_POINTER_DEFINITION(SystemVector);

@@ -21,6 +21,7 @@
 #include "containers/system_vector.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
+#include "spaces/kratos_space.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/dof_utilities/assembly_helper.h" //TODO: we should move this to somewhere else
 #include "utilities/dof_utilities/dof_array_utilities.h"
@@ -28,6 +29,10 @@
 #include "utilities/openmp_utils.h" //TODO: SOME FILES INCLUDING scheme.h RELY ON THIS. LEAVING AS FUTURE TODO.
 #include "utilities/parallel_utilities.h"
 #include "utilities/timer.h"
+
+#ifdef KRATOS_USE_FUTURE
+#include "future/linear_solvers/amgcl_solver.h"
+#endif
 
 namespace Kratos
 {
@@ -73,7 +78,8 @@ public:
     struct ThreadLocalStorage
     {
         /// Dense space definition
-        using DenseSpaceType = UblasSpace<double, Matrix, Vector>; //TODO: We should eventually remove this and directly define the types
+        // using DenseSpaceType = UblasSpace<double, Matrix, Vector>; //TODO: We should eventually remove this and directly define the types
+        using DenseSpaceType = TKratosSmpDenseSpace<double>;
 
         /// Local system matrix type definition
         using LocalSystemMatrixType = DenseSpaceType::MatrixType;
@@ -116,7 +122,8 @@ public:
     using SystemVectorPointerType = typename SystemVectorType::Pointer;
 
     /// Dense space definition
-    using DenseSpaceType = UblasSpace<double, Matrix, Vector>;
+    // using DenseSpaceType = UblasSpace<double, Matrix, Vector>;
+    using DenseSpaceType = TKratosSmpDenseSpace<double>;
 
     /// Local system matrix type definition from TLS
     using LocalSystemMatrixType = typename ThreadLocalStorage::LocalSystemMatrixType;
@@ -221,78 +228,6 @@ public:
         mSchemeIsInitialized = true;
 
         KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief This method returns if the scheme is initialized
-     * @return True if initialized, false otherwise
-     */
-    bool SchemeIsInitialized() const
-    {
-        return mSchemeIsInitialized;
-    }
-
-    /**
-     * @brief This method sets if the elements have been initialized or not (true by default)
-     * @param ElementsAreInitializedFlag If the flag must be set to true or false
-     */
-    void SetSchemeIsInitialized(const bool SchemeIsInitializedFlag)
-    {
-        mSchemeIsInitialized = SchemeIsInitializedFlag;
-    }
-
-    /**
-     * @brief This method returns if the elements are initialized
-     * @return True if initialized, false otherwise
-     */
-    bool ElementsAreInitialized() const
-    {
-        return mElementsAreInitialized;
-    }
-
-    /**
-     * @brief This method sets if the elements have been initialized or not (true by default)
-     * @param ElementsAreInitializedFlag If the flag must be set to true or false
-     */
-    void SetElementsAreInitialized(const bool ElementsAreInitializedFlag)
-    {
-        mElementsAreInitialized = ElementsAreInitializedFlag;
-    }
-
-    /**
-     * @brief This method returns if the conditions are initialized
-     * @return True if initialized, false otherwise
-     */
-    bool ConditionsAreInitialized() const
-    {
-        return mConditionsAreInitialized;
-    }
-
-    /**
-     * @brief This method sets if the conditions have been initialized or not (true by default)
-     * @param ConditionsAreInitializedFlag If the flag must be set to true or false
-     */
-    void SetConditionsAreInitialized(const bool ConditionsAreInitializedFlag)
-    {
-        mConditionsAreInitialized = ConditionsAreInitializedFlag;
-    }
-
-    /**
-     * @brief This method returns the flag mReshapeMatrixFlag
-     * @return The flag that tells if we need to reshape the LHS matrix
-     */
-    bool GetReshapeMatrixFlag() const
-    {
-        return mReshapeMatrixFlag;
-    }
-
-    /**
-     * @brief This method sets the flag mReshapeMatrixFlag
-     * @param ReshapeMatrixFlag The flag that tells if we need to reshape the LHS matrix
-     */
-    void SetReshapeMatrixFlag(const bool ReshapeMatrixFlag)
-    {
-        mReshapeMatrixFlag = ReshapeMatrixFlag;
     }
 
     /**
@@ -690,9 +625,90 @@ public:
     ///@name Access
     ///@{
 
+    /**
+     * @brief This method sets the value of mEchoLevel
+     * @param EchoLevel The value to set
+     */
+    void SetEchoLevel(const bool EchoLevel)
+    {
+        mEchoLevel = EchoLevel;
+    }
+
+    /**
+     * @brief This method sets the flag mReshapeMatrixFlag
+     * @param ReshapeMatrixFlag The flag that tells if we need to reshape the LHS matrix
+     */
+    void SetReshapeMatrixFlag(const bool ReshapeMatrixFlag)
+    {
+        mReshapeMatrixFlag = ReshapeMatrixFlag;
+    }
+
+    /**
+     * @brief This method sets if the elements have been initialized or not (true by default)
+     * @param ElementsAreInitializedFlag If the flag must be set to true or false
+     */
+    void SetSchemeIsInitialized(const bool SchemeIsInitializedFlag)
+    {
+        mSchemeIsInitialized = SchemeIsInitializedFlag;
+    }
+
+    /**
+     * @brief This method sets if the elements have been initialized or not (true by default)
+     * @param ElementsAreInitializedFlag If the flag must be set to true or false
+     */
+    void SetElementsAreInitialized(const bool ElementsAreInitializedFlag)
+    {
+        mElementsAreInitialized = ElementsAreInitializedFlag;
+    }
+
+    /**
+     * @brief This method sets if the conditions have been initialized or not (true by default)
+     * @param ConditionsAreInitializedFlag If the flag must be set to true or false
+     */
+    void SetConditionsAreInitialized(const bool ConditionsAreInitializedFlag)
+    {
+        mConditionsAreInitialized = ConditionsAreInitializedFlag;
+    }
+
     ///@}
     ///@name Inquiry
     ///@{
+
+    /**
+     * @brief This method returns the flag mReshapeMatrixFlag
+     * @return The flag that tells if we need to reshape the LHS matrix
+     */
+    bool GetReshapeMatrixFlag() const
+    {
+        return mReshapeMatrixFlag;
+    }
+
+    /**
+     * @brief This method returns if the scheme is initialized
+     * @return True if initialized, false otherwise
+     */
+    bool SchemeIsInitialized() const
+    {
+        return mSchemeIsInitialized;
+    }
+
+    /**
+     * @brief This method returns if the elements are initialized
+     * @return True if initialized, false otherwise
+     */
+    bool ElementsAreInitialized() const
+    {
+        return mElementsAreInitialized;
+    }
+
+    /**
+     * @brief This method returns if the conditions are initialized
+     * @return True if initialized, false otherwise
+     */
+    bool ConditionsAreInitialized() const
+    {
+        return mConditionsAreInitialized;
+    }
 
     ///@}
     ///@name Input and output

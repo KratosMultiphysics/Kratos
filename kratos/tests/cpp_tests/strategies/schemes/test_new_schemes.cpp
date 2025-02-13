@@ -17,14 +17,20 @@
 
 // Project includes
 #include "containers/model.h"
+#include "factories/linear_solver_factory.h"
 #include "includes/define.h"
 #include "includes/element.h"
 #include "includes/model_part.h"
-#include "linear_solvers/linear_solver.h"
-#include "spaces/ublas_space.h"
+// #include "linear_solvers/linear_solver.h"
+// #include "spaces/ublas_space.h"
+#include "spaces/kratos_space.h"
 #include "testing/testing.h"
 #include "solving_strategies/schemes/new_scheme.h"
 #include "solving_strategies/strategies/linear_strategy.h"
+
+#ifdef KRATOS_USE_FUTURE
+#include "future/linear_solvers/amgcl_solver.h"
+#endif
 
 namespace Kratos::Testing
 {
@@ -197,14 +203,18 @@ KRATOS_TEST_CASE_IN_SUITE(NewScheme, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(LinearStrategy, KratosCoreFastSuite)
 {
+#ifdef KRATOS_USE_FUTURE
     // Set up the test model part
     Model test_model;
     auto& r_test_model_part = test_model.CreateModelPart("TestModelPart");
     SetUpTestSchemesModelPart(r_test_model_part);
 
     //FIXME: Temporary types to define a linear solver type and compile the test
-    using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
-    using SparseSpaceType = UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>>;
+    // using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+    // using SparseSpaceType = UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>>;
+    // using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType>;
+    using LocalSpaceType = TKratosSmpDenseSpace<double>;
+    using SparseSpaceType = TKratosSmpSparseSpace<double>;
     using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType>;
 
     // Create the scheme
@@ -214,13 +224,28 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategy, KratosCoreFastSuite)
         },
         "echo_level" : 2
     })");
-    auto p_scheme = Kratos::make_unique<NewScheme<>>(r_test_model_part, scheme_settings);
+    auto p_scheme = Kratos::make_shared<NewScheme<>>(r_test_model_part, scheme_settings);
+
+    // Create the linear solver
+    Parameters amgcl_settings = Parameters(R"({
+    })");
+    auto p_amgcl_solver = Future::AMGCLSolver<CsrMatrix<>, SystemVector<>>(amgcl_settings);
 
     // Create the strategy
     // Parameters strategy_settings = Parameters(R"({
     // })");
     // auto p_strategy = Kratos::make_unique<LinearStrategy<CsrMatrix<>, SystemVector<>,LinearSolverType>>(r_test_model_part, strategy_settings);
-    auto p_strategy = Kratos::make_unique<LinearStrategy<CsrMatrix<>, SystemVector<>,LinearSolverType>>();
+    auto p_strategy = Kratos::make_unique<LinearStrategy<CsrMatrix<>, SystemVector<>,LinearSolverType>>(r_test_model_part, p_scheme, p_amgcl_solver);
+    p_strategy->Initialize();
+    p_strategy->Check();
+    p_strategy->InitializeSolutionStep();
+    p_strategy->Predict();
+    p_strategy->SolveSolutionStep();
+    p_strategy->FinalizeSolutionStep();
+    p_strategy->Clear();
+#else
+    true;
+#endif
 }
 
 }  // namespace Kratos::Testing.
