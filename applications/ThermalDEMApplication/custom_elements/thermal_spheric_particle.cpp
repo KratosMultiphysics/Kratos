@@ -247,7 +247,7 @@ namespace Kratos
       ComputeHeatFluxes(r_process_info);
 
     // Hierarchical multiscale
-    if (mRVESolve && mWall == 0)
+    if (r_process_info[TIME_STEPS] % r_process_info[RVE_EVAL_FREQ] != 0.0)
       HierarchicalMultiscale(r_process_info);
 
     KRATOS_CATCH("")
@@ -367,7 +367,7 @@ namespace Kratos
       if (CheckAdiabaticNeighbor()) continue;
 
       // Unique contacts (each binary contact evaluated only once)
-      if (GetId() > mNeighbor_p->GetId() && mNeighbor_p->mWall == 0) continue;
+      if (GetId() > mNeighbor_p->GetId()) continue;
 
       // Compute simulated or adjusted interaction properties
       ComputeInteractionProps(r_process_info);
@@ -375,19 +375,19 @@ namespace Kratos
       array_1d<double,3> normal = mContactParamsParticleHMS[mNeighbor_p].normal;
 
       // Check inner particle
-      bool has_inner_particle = (mInner || (mNeighbor_p->mNeighbourRigidFaces.size() == 0));
+      bool has_inner_particle = (mNeighbourRigidFaces.size() == 0 || (mNeighbor_p->mNeighbourRigidFaces.size() == 0));
 
       // Compute effective conductivity
       const double keff = GetDirectConductionModel().ComputeEffectiveThermalConductivity(r_process_info, this);
       
       // Add contact contribution to thermal conductivity tensor
-      for (int j = 0; j < dim; j++) {
-        for (int k = 0; k < dim; k++) {
-          mConductivityTensor(j,k) += normal[j] * normal[k] * keff;
-          if (has_inner_particle)
-            mConductivityTensorInner(j,k) = mConductivityTensor(j,k);
-        }
-      }
+      //for (int j = 0; j < dim; j++) {
+      //  for (int k = 0; k < dim; k++) {
+      //    mConductivityTensor(j,k) += normal[j] * normal[k] * keff;
+      //    if (has_inner_particle)
+      //      mConductivityTensorInner(j,k) = mConductivityTensor(j,k);
+      //  }
+      //}
     }
 
     // Wall neighbors
@@ -410,17 +410,18 @@ namespace Kratos
       const double keff = GetDirectConductionModel().ComputeEffectiveThermalConductivity(r_process_info, this);
       
       // Add contact contribution to thermal conductivity tensor
-      for (int j = 0; j < dim; j++) {
-        for (int k = 0; k < dim; k++) {
-          mConductivityTensor(j,k) += normal[j] * normal[k] * keff;
-        }
-      }
+      //for (int j = 0; j < dim; j++) {
+      //  for (int k = 0; k < dim; k++) {
+      //    mConductivityTensor(j,k) += normal[j] * normal[k] * keff;
+      //  }
+      //}
     }
 
     KRATOS_CATCH("")
   }
 
   //------------------------------------------------------------------------------------------------------------
+  /*
   void ThermalSphericParticle::StoreContactInfoPP(SphericParticle::ParticleDataBuffer& data_buffer) {
     KRATOS_TRY
 
@@ -463,6 +464,7 @@ namespace Kratos
 
     KRATOS_CATCH("")
   }
+  */
 
   //------------------------------------------------------------------------------------------------------------
   void ThermalSphericParticle::ComputeInteractionProps(const ProcessInfo& r_process_info) {
@@ -564,10 +566,11 @@ namespace Kratos
                                                                double GlobalContactForceTotal[3],
                                                                double LocalContactForceTotal[3],
                                                                double LocalContactForceDamping[3],
-                                                               bool   sliding) {
+                                                               bool   sliding,
+                                                               double identation) {
     KRATOS_TRY
 
-    SphericParticle::StoreBallToRigidFaceContactInfo(r_process_info, data_buffer, GlobalContactForceTotal, LocalContactForceTotal, LocalContactForceDamping, sliding);
+    SphericParticle::StoreBallToRigidFaceContactInfo(r_process_info, data_buffer, GlobalContactForceTotal, LocalContactForceTotal, LocalContactForceDamping, sliding, identation);
 
     if (!mStoreContactParam)
       return;

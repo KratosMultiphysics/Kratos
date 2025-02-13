@@ -915,9 +915,6 @@ void SphericParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::Pa
             // Store contact information needed for later processes
             StoreBallToBallContactInfo(r_process_info, data_buffer, GlobalContactForce, LocalContactForce, ViscoDampingLocalContactForce, sliding);
 
-            // Hierarchical multiscale
-            HierarchicalMultiscaleComputationsPP(r_process_info, data_buffer, GlobalContactForce);
-
             DEM_SET_COMPONENTS_TO_ZERO_3(DeltDisp)
             DEM_SET_COMPONENTS_TO_ZERO_3(LocalDeltDisp)
             DEM_SET_COMPONENTS_TO_ZERO_3(RelVel)
@@ -1144,10 +1141,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(SphericParticl
             }
 
             // Store contact information needed for later processes
-            StoreBallToRigidFaceContactInfo(r_process_info, data_buffer, GlobalContactForce, LocalContactForce, ViscoDampingLocalContactForce, sliding);
-
-            // Hierarchical multiscale
-            HierarchicalMultiscaleComputationsPW(r_process_info, data_buffer, GlobalContactForce, indentation);
+            StoreBallToRigidFaceContactInfo(r_process_info, data_buffer, GlobalContactForce, LocalContactForce, ViscoDampingLocalContactForce, sliding, indentation);
 
         } //ContactType if
     } //rNeighbours.size loop
@@ -1498,8 +1492,7 @@ void SphericParticle::GetDofList(DofsVectorType& ElementalDofList, const Process
     KRATOS_CATCH("")
 }
 
-void SphericParticle::InitializeSolutionStep(const ProcessInfo& r_process_info)
-{
+void SphericParticle::InitializeSolutionStep(const ProcessInfo& r_process_info) {
     KRATOS_TRY
 
     auto& central_node = GetGeometry()[0];
@@ -1510,6 +1503,9 @@ void SphericParticle::InitializeSolutionStep(const ProcessInfo& r_process_info)
     elastic_energy = 0.0;
     double& max_normal_ball_to_ball_force_times_radius = this->GetMaxNormalBallToBallForceTimesRadius();
     max_normal_ball_to_ball_force_times_radius = 0.0;
+    mBallToBallStoredInfo.clear();
+    mBallToRigidFaceStoredInfo.clear();
+
     if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
@@ -1988,12 +1984,22 @@ std::unique_ptr<DEMGlobalDampingModel> SphericParticle::pCloneGlobalDampingModel
 
 void SphericParticle::ComputeOtherBallToBallForces(array_1d<double, 3>& other_ball_to_ball_forces) {}
 
-void SphericParticle::StoreBallToBallContactInfo(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding) {}
+void SphericParticle::StoreBallToBallContactInfo(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding) {
+    if (true) { // TODO: ONLY WHEN RVE ANALYSIS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        int neighbor_id = data_buffer.mpOtherParticle->GetId();
+        mBallToBallStoredInfo[neighbor_id].indentation = data_buffer.mIndentation;
+        std::memcpy(mBallToBallStoredInfo[neighbor_id].local_coord_system, data_buffer.mLocalCoordSystem, sizeof(mBallToBallStoredInfo[neighbor_id].local_coord_system));
+        std::memcpy(mBallToBallStoredInfo[neighbor_id].global_contact_force, GlobalContactForceTotal, sizeof(mBallToBallStoredInfo[neighbor_id].global_contact_force));
+    }
+}
 
-void SphericParticle::StoreBallToRigidFaceContactInfo(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding) {}
-
-double SphericParticle::GetInitialDeltaWithFEM(int index) {//only available in continuum_particle
-    return 0.0;
+void SphericParticle::StoreBallToRigidFaceContactInfo(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding, double indentation) {
+    if (true) { // TODO: ONLY WHEN RVE ANALYSIS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        int neighbor_id = data_buffer.mpOtherRigidFace->GetId();
+        mBallToRigidFaceStoredInfo[neighbor_id].indentation = indentation;
+        std::memcpy(mBallToRigidFaceStoredInfo[neighbor_id].local_coord_system, data_buffer.mLocalCoordSystem, sizeof(mBallToRigidFaceStoredInfo[neighbor_id].local_coord_system));
+        std::memcpy(mBallToRigidFaceStoredInfo[neighbor_id].global_contact_force, GlobalContactForceTotal, sizeof(mBallToRigidFaceStoredInfo[neighbor_id].global_contact_force));
+    }
 }
 
 void SphericParticle::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info) {
@@ -2309,219 +2315,5 @@ double SphericParticle::SlowGetYoung() const                    { return GetProp
 double SphericParticle::SlowGetPoisson() const                  { return GetProperties()[POISSON_RATIO];               }
 double SphericParticle::SlowGetDensity() const                  { return GetProperties()[PARTICLE_DENSITY];            }
 int    SphericParticle::SlowGetParticleMaterial() const         { return GetProperties()[PARTICLE_MATERIAL];           }
-
-//==========================================================================================================================================
-// HIERARCHICAL MULTISCALE RVE - START
-//==========================================================================================================================================
-
-void SphericParticle::HierarchicalMultiscaleComputationsPP(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForce[3])
-{
-  if (!mRVESolve || mWall != 0 || data_buffer.mIndentation <= 0.0)
-    return;
-
-  mCoordNum++;
-  bool is_neighbour_inner = (data_buffer.mpOtherParticle->mNeighbourRigidFaces.size() == 0);
-  bool has_inner_particle = (mInner || is_neighbour_inner);
-
-  // Check for skin particle
-  if (!mSkin)
-    mSkin = (!mInner && is_neighbour_inner);
-
-  // Branch vector
-  const double r1 = GetRadius();
-  const double r2 = data_buffer.mpOtherParticle->GetRadius();
-  const double d  = r1 + r2 - data_buffer.mIndentation;
-  const double normal[3] = { -data_buffer.mLocalCoordSystem[2][0], -data_buffer.mLocalCoordSystem[2][1], -data_buffer.mLocalCoordSystem[2][2] };
-  const double branch[3] = { d * normal[0], d * normal[1], d * normal[2] };
-
-  // Rose diagram
-  const int    num_bins   = 40;
-  const double bin_length = 360.0 / num_bins;
-  const double bin_half   = bin_length / 2.0; // to centralize bin at 0 degrees
-
-  const double rad2deg = 180.0 / Globals::Pi;
-  double angle_xy = rad2deg * atan2(normal[1], normal[0]);
-  double azimuth  = rad2deg * atan2(normal[2], sqrt(normal[0] * normal[0] + normal[1] * normal[1]));
-
-  if (angle_xy < -bin_half) angle_xy += 360.0;
-  if (azimuth < 0.0)        azimuth = 0.0;
-  if (azimuth > 180.0)      azimuth = 180.0;
-
-  const int idx_xy = std::abs((angle_xy + bin_half) / bin_length);
-  const int idx_az = std::abs(azimuth / bin_length);
-  mRoseDiagram(0,idx_xy)++;
-  mRoseDiagram(1,idx_az)++;
-
-  // Unique contacts (each binary contact evaluated only once)
-  if (GetId() < data_buffer.mpOtherParticle->GetId() || data_buffer.mpOtherParticle->mWall > 0) {
-    // Update number of contacts
-    mNumContacts++;
-    if (has_inner_particle)
-      mNumContactsInner++;
-
-    // Overlap volume
-    const int dim    = r_process_info[DOMAIN_SIZE];
-    const double r12 = r1 * r1;
-    const double r22 = r2 * r2;
-    const double d2  = d * d;
-
-    if (dim == 2)
-      mVolOverlap += r12 * std::acos((d2 + r12 - r22) / (2.0 * d * r1)) + r22 * std::acos((d2 + r22 - r12) / (2.0 * d * r2)) - 0.5 * sqrt((d + r1 + r2) * (-d + r1 + r2) * (d + r1 - r2) * (d - r1 + r2));
-    else if (dim == 3)
-      mVolOverlap += (Globals::Pi * (r1 + r2 - d) * (r1 + r2 - d) * (d2 + 2.0 * d * r1 + 2.0 * d * r2 + 6.0 * r1 * r2 - 3.0 * r12 - 3.0 * r22)) / (12.0 * d);
-
-    // Tangent direction
-    double tangent[3];
-    if (dim == 2) {
-      tangent[0] = -(data_buffer.mLocalCoordSystem[0][0] + data_buffer.mLocalCoordSystem[1][0]);
-      tangent[1] = -(data_buffer.mLocalCoordSystem[0][1] + data_buffer.mLocalCoordSystem[1][1]);
-      tangent[2] = 0.0;
-    }
-    else if (dim == 3) {
-      tangent[0] = -(data_buffer.mLocalCoordSystem[0][0] + data_buffer.mLocalCoordSystem[1][0]);
-      tangent[1] = -(data_buffer.mLocalCoordSystem[0][1] + data_buffer.mLocalCoordSystem[1][1]);
-      tangent[2] = -(data_buffer.mLocalCoordSystem[0][2] + data_buffer.mLocalCoordSystem[1][2]);
-    }
-    GeometryFunctions::normalize(tangent);
-
-    // Force chain
-    const double force = DEM_MODULUS_3(GlobalContactForce);
-    array_1d<double, 3>& coordinates_1 = this->GetGeometry()[0].Coordinates();
-    array_1d<double, 3>& coordinates_2 = data_buffer.mpOtherParticle->GetGeometry()[0].Coordinates();
-    std::vector<double> chain{ coordinates_1[0], coordinates_1[1], coordinates_1[2], coordinates_2[0], coordinates_2[1], coordinates_2[2], force };
-    mForceChain.insert(mForceChain.end(), chain.begin(), chain.end());
-
-    // Add wall forces in case of particle walls
-    if (data_buffer.mpOtherParticle->mWall > 0)
-      mWallForces += force;
-
-    // Stiffness
-    const double kn = mDiscontinuumConstitutiveLaw->mKn;
-    const double kt = mDiscontinuumConstitutiveLaw->mKt;
-
-    // Tensors: tangent operator, fabric, cauchy stress
-    for (int i = 0; i < dim; i++) {
-      for (int j = 0; j < dim; j++) {
-        for (int k = 0; k < dim; k++) {
-          for (int l = 0; l < dim; l++) {
-            const int idx_1 = 2 * i + j;
-            const int idx_2 = 2 * k + l;
-            mTangentTensor(idx_1,idx_2) += kn * normal[i]  * branch[j] * normal[k]  * branch[l] +
-                                           kt * tangent[i] * branch[j] * tangent[k] * branch[l];
-            if (has_inner_particle) {
-              mTangentTensorInner(idx_1,idx_2) = mTangentTensor(idx_1,idx_2);
-            }
-          }
-        }
-        const double nij = normal[i] * normal[j];
-        mFabricTensor(i,j) += nij;
-        mCauchyTensor(i,j) += branch[i] * GlobalContactForce[j];
-        if (has_inner_particle) {
-          mFabricTensorInner(i,j) = mFabricTensor(i,j);
-          mCauchyTensorInner(i,j) = mCauchyTensor(i,j);
-        }
-      }
-    }
-
-    // Store contact info
-    StoreContactInfoPP(data_buffer);
-  }
-}
-
-void SphericParticle::HierarchicalMultiscaleComputationsPW(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForce[3], double indentation)
-{
-  if (!mRVESolve || mWall != 0 || indentation <= 0.0)
-    return;
-
-  mInner = false;
-  mCoordNum++;
-  mNumContacts++;
-  const int dim = r_process_info[DOMAIN_SIZE];
-
-  // Branch vector
-  const double r = GetRadius();
-  const double d = r - indentation;
-  const double normal[3] = { -data_buffer.mLocalCoordSystem[2][0], -data_buffer.mLocalCoordSystem[2][1], -data_buffer.mLocalCoordSystem[2][2] };
-  const double branch[3] = { d * normal[0], d * normal[1], d * normal[2] };
-
-  // Rose diagram
-  const int num_bins      = 40;
-  const double bin_length = 360.0 / num_bins;
-  const double bin_half   = bin_length / 2.0; // to centralize bin at 0 degrees
-
-  const double rad2deg = 180.0 / Globals::Pi;
-  double angle_xy = rad2deg * atan2(normal[1], normal[0]);
-  double azimuth  = rad2deg * atan2(normal[2], sqrt(normal[0] * normal[0] + normal[1] * normal[1]));
-
-  if (angle_xy < -bin_half) angle_xy += 360.0;
-  if (azimuth < 0.0)        azimuth = 0.0;
-  if (azimuth > 180.0)      azimuth = 180.0;
-
-  const int idx_xy = std::abs((angle_xy + bin_half) / bin_length);
-  const int idx_az = std::abs(azimuth / bin_length);
-  mRoseDiagram(0,idx_xy)++;
-  mRoseDiagram(1,idx_az)++;
-
-  // Overlap volume
-  if (dim == 2)
-    mVolOverlap += r * r * acos((r - indentation) / r) - (r - indentation) * sqrt(2.0 * r * indentation - indentation * indentation);
-  else if (dim == 3)
-    mVolOverlap += Globals::Pi * indentation * indentation * (3.0 * r - indentation) / 3.0;
-
-  // Tangent direction
-  double tangent[3];
-  if (dim == 2) {
-    tangent[0] = -(data_buffer.mLocalCoordSystem[0][0] + data_buffer.mLocalCoordSystem[1][0]);
-    tangent[1] = -(data_buffer.mLocalCoordSystem[0][1] + data_buffer.mLocalCoordSystem[1][1]);
-    tangent[2] = 0.0;
-  }
-  else if (dim == 3) {
-    tangent[0] = -(data_buffer.mLocalCoordSystem[0][0] + data_buffer.mLocalCoordSystem[1][0]);
-    tangent[1] = -(data_buffer.mLocalCoordSystem[0][1] + data_buffer.mLocalCoordSystem[1][1]);
-    tangent[2] = -(data_buffer.mLocalCoordSystem[0][2] + data_buffer.mLocalCoordSystem[1][2]);
-  }
-  GeometryFunctions::normalize(tangent);
-
-  // Force chain
-  const double force = DEM_MODULUS_3(GlobalContactForce);
-  array_1d<double, 3>& coordinates_1 = this->GetGeometry()[0].Coordinates();
-  std::vector<double> chain{ coordinates_1[0], coordinates_1[1], coordinates_1[2], coordinates_1[0] + branch[0], coordinates_1[1] + branch[1], coordinates_1[2] + branch[2], force };
-  mForceChain.insert(mForceChain.end(), chain.begin(), chain.end());
-
-  // Applied force (normal component)
-  const double force_n = DEM_INNER_PRODUCT_3(GlobalContactForce, normal);
-  mWallForces += std::abs(force_n);
-
-  // Stiffness
-  const double kn = mDiscontinuumConstitutiveLaw->mKn;
-  const double kt = mDiscontinuumConstitutiveLaw->mKt;
-
-  // Tensors: tangent operator, fabric, cauchy stress
-  for (int i = 0; i < dim; i++) {
-    for (int j = 0; j < dim; j++) {
-      for (int k = 0; k < dim; k++) {
-        for (int l = 0; l < dim; l++) {
-          const int idx_1 = 2 * i + j;
-          const int idx_2 = 2 * k + l;
-          mTangentTensor(idx_1,idx_2) += kn * normal[i] * branch[j] * normal[k] * branch[l] +
-                                         kt * tangent[i] * branch[j] * tangent[k] * branch[l];
-        }
-      }
-      const double nij = normal[i] * normal[j];
-      mFabricTensor(i,j) += nij;
-      mCauchyTensor(i,j) += branch[i] * GlobalContactForce[j];
-    }
-  }
-
-  // Store contact info
-  StoreContactInfoPW(data_buffer);
-}
-
-void SphericParticle::StoreContactInfoPP(SphericParticle::ParticleDataBuffer& data_buffer) {}
-void SphericParticle::StoreContactInfoPW(SphericParticle::ParticleDataBuffer& data_buffer) {}
-
-//==========================================================================================================================================
-// HIERARCHICAL MULTISCALE RVE - FINISH
-//==========================================================================================================================================
 
 }  // namespace Kratos.

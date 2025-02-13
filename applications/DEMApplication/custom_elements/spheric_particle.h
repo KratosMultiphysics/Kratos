@@ -274,6 +274,14 @@ BoundedMatrix<double, 3, 3>* mSymmStressTensor;
 BoundedMatrix<double, 3, 3>* mStrainTensor;
 BoundedMatrix<double, 3, 3>* mDifferentialStrainTensor;
 
+struct StoredContactInfo {
+    double indentation;
+    double local_coord_system[3][3];
+    double global_contact_force[3];
+};
+std::unordered_map<int, StoredContactInfo> mBallToBallStoredInfo;
+std::unordered_map<int, StoredContactInfo> mBallToRigidFaceStoredInfo;
+
 virtual void ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force, array_1d<double, 3>& externally_applied_moment, const ProcessInfo& r_process_info, const array_1d<double,3>& gravity);
 virtual array_1d<double,3> ComputeWeight(const array_1d<double,3>& gravity, const ProcessInfo& r_process_info);
 virtual void CalculateOnContactElements(size_t i_neighbour_count, double LocalContactForce[3], double GlobalContactForce[3]);
@@ -289,42 +297,6 @@ std::unique_ptr<DEMRollingFrictionModel> pCloneRollingFrictionModelWithNeighbour
 std::unique_ptr<DEMRollingFrictionModel> pCloneRollingFrictionModelWithFEMNeighbour(Condition* neighbour);
 
 std::unique_ptr<DEMGlobalDampingModel> pCloneGlobalDampingModel(SphericParticle* element);
-
-//==========================================================================================================================================
-// HIERARCHICAL MULTISCALE RVE - START
-//==========================================================================================================================================
-
-// Properties
-bool   mRVESolve;                 // Flag for evaluating RVE in current step
-bool   mInner;                    // Flag for inner particle (only in contact with particles)
-bool   mSkin;                     // Flag for skin particle (in contact with walls and particles)
-bool   mMoving;                   // Flag for particle movement
-int    mWall;                     // Flag for wall particle (0 = No; 1 = X-; 2 = X+; 3 = Y-; 4 = Y+; 5 = Z-; 6 = Z+)
-int    mNumContacts;              // Number of unique contacts between all particles and walls (with neighbors with higher ID)
-int    mNumContactsInner;         // Number of unique contacts involving inner particles (with neighbors with higher ID)
-int    mCoordNum;                 // Number of total contacts (coordination number)
-double mVolOverlap;               // Volume of overlap with unique contacts
-double mWallForces;               // Force applied by walls (normal only)
-std::vector<double> mForceChain;  // Vector of force chains coordinates: [x1,y1,z1,x2,y2,z2,F, x1,y1,z1,x2,y2,z2,F, x1,y1,z1,x2,y2,z2,F, ...]
-Matrix mRoseDiagram;              // Rose diagram of contacts: Row 1 = angle ranges in plane XY; Row 2 = azimute ranges wrt to plane XY;
-Matrix mFabricTensor;             // Fabric tensor with unique contacts (all contacts)
-Matrix mFabricTensorInner;        // Fabric tensor with unique contacts (only contacts involving inner particles)
-Matrix mCauchyTensor;             // Cauchy stress tensor with unique contacts (all contacts)
-Matrix mCauchyTensorInner;        // Cauchy stress tensor with unique contacts (only contacts involving inner particles)
-Matrix mTangentTensor;            // Tangent operator tensor with unique contacts (all contacts)
-Matrix mTangentTensorInner;       // Tangent operator tensor with unique contacts (only contacts involving inner particles)
-Matrix mConductivityTensor;       // Effective thermal conductivity tensor with unique contacts (all contacts)
-Matrix mConductivityTensorInner;  // Effective thermal conductivity tensor with unique contacts (only contacts involving inner particles)
-
-// Methods
-void         HierarchicalMultiscaleComputationsPP (const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForce[3]);
-void         HierarchicalMultiscaleComputationsPW (const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForce[3], double indentation);
-virtual void StoreContactInfoPP(SphericParticle::ParticleDataBuffer& data_buffer);
-virtual void StoreContactInfoPW(SphericParticle::ParticleDataBuffer& data_buffer);
-
-//==========================================================================================================================================
-// HIERARCHICAL MULTISCALE RVE - FINISH
-//==========================================================================================================================================
 
 protected:
 
@@ -402,10 +374,6 @@ virtual double GetInitialDeltaWithFEM(int index);
 
 virtual void ComputeOtherBallToBallForces(array_1d<double, 3>& other_ball_to_ball_forces);
 
-virtual void StoreBallToBallContactInfo(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding);
-
-virtual void StoreBallToRigidFaceContactInfo(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding);
-
 virtual void EvaluateBallToBallForcesForPositiveIndentiations(SphericParticle::ParticleDataBuffer & data_buffer,
                                                             const ProcessInfo& r_process_info,
                                                             double LocalElasticContactForce[3],
@@ -478,6 +446,9 @@ virtual void AddWallContributionToStressTensor(const double GlobalContactForce[3
 
 virtual void RotateOldContactForces(const double LocalCoordSystem[3][3], const double OldLocalCoordSystem[3][3], array_1d<double, 3>& mNeighbourElasticContactForces) final;
 virtual void ApplyGlobalDampingToContactForcesAndMoments(array_1d<double,3>& total_forces, array_1d<double,3>& total_moment);
+
+virtual void StoreBallToBallContactInfo(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding);
+virtual void StoreBallToRigidFaceContactInfo(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding, double identation);
 
 std::unique_ptr<DEMDiscontinuumConstitutiveLaw> mDiscontinuumConstitutiveLaw;
 std::unique_ptr<DEMRollingFrictionModel> mRollingFrictionModel;

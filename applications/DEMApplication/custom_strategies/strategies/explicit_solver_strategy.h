@@ -8,18 +8,6 @@
 #if !defined(KRATOS_EXPLICIT_SOLVER_STRATEGY)
 #define KRATOS_EXPLICIT_SOLVER_STRATEGY
 
-#ifdef   SINGLE
-#define  REAL float
-#else    // not SINGLE
-#define  REAL double
-#endif   // not SINGLE
-
-#ifndef TRILIBRARY
-#define TRILIBRARY
-#endif
-
-#include "triangle.h"
-
 // Project includes
 #include "utilities/timer.h"
 #include "custom_elements/Particle_Contact_Element.h"
@@ -61,11 +49,6 @@
 #endif
 
 namespace Kratos {
-
-    extern "C" {
-      void triangulate(char*, struct triangulateio*, struct triangulateio*, struct triangulateio*);
-      void trifree(void*);
-    }
 
     class ExplicitSolverSettings {
     public:
@@ -295,137 +278,6 @@ namespace Kratos {
         virtual ElementsArrayType& GetAllElements(ModelPart& r_model_part) {
             return r_model_part.Elements();
         }
-
-        //==========================================================================================================================================
-        // HIERARCHICAL MULTISCALE RVE - START
-        //==========================================================================================================================================
-
-        // Properties
-        bool   mRVE_Solve;              // Flag for evaluating RVE in current step
-        bool   mRVE_Compress;           // Flag for compressing RVE
-        bool   mRVE_Equilibrium;        // Flag for static equilibrium of particles
-        int    mRVE_Dimension;          // RVE dimension: 2D or 3D
-        int    mRVE_EqSteps;            // Number of RVE solution steps in equilibrium
-        int    mRVE_NumParticles;       // Total number of particles inside RVE (does not consider wall particles)
-        int    mRVE_NumParticlesInner;  // Total number of inner particles (not in contact with walls)
-        int    mRVE_NumContacts;        // Total number of contacts in RVE (all contacts)
-        int    mRVE_NumContactsInner;   // Total number of inner contacts in RVE (considers only contacts involving inner particles)
-        double mRVE_MeanRadius;         // Mean radius of all particles
-        double mRVE_AvgCoordNum;        // Average coordination number per particle
-        double mRVE_AvgCoordNumInner;   // Average coordination number of inner particles (not in contact with walls)
-        double mRVE_VolSolid;           // Volume of solid (particles) in RVE discounting overlaps
-        double mRVE_VolSolidInner;      // Volume of solid (particles) in convex hull discounting overlaps
-        double mRVE_VolTotal;           // RVE total volume (volume inside flat walls)
-        double mRVE_VolInner;           // RVE inner volume (considering only inner particles)
-        double mRVE_Porosity;           // RVE porosity considering full RVE volume
-        double mRVE_PorosityInner;      // RVE porosity considering convex hull volume
-        double mRVE_VoidRatio;          // RVE void ratio considering full RVE volume
-        double mRVE_VoidRatioInner;     // RVE void ratio considering convex hull volume
-        double mRVE_Anisotropy;         // Fabric anisotropy (all particles)
-        double mRVE_AnisotropyInner;    // Fabric anisotropy (inner particles)
-        double mRVE_EffectStress;       // Mean effective stress (all particles)
-        double mRVE_EffectStressInner;  // Mean effective stress (inner particles)
-        double mRVE_DevStress;          // Deviatoric stress (all particles)
-        double mRVE_DevStressInner;     // Deviatoric stress (inner particles)
-        double mRVE_WallForces;         // Total force applied by walls (normal only)
-        double mRVE_WallStress;         // Total stress applied by walls (normal only)
-        double mRVE_StdDevRoseXYAll;    // Std dev of rose values in XY plane for all particles (divided by number of particles)
-        double mRVE_StdDevRoseAzAll;    // Std dev of rose values in Az plane for all particles (divided by number of particles)
-        double mRVE_StdDevRoseXYInn;    // Std dev of rose values in XY plane for inner particles (divided by number of particles)
-        double mRVE_StdDevRoseAzInn;    // Std dev of rose values in Az plane for inner particles (divided by number of particles)
-
-        std::vector<double> mRVE_CornerCoordsX; // X coordinates of 4 RVE corners (low-left, low-right, up-right, up-left)
-        std::vector<double> mRVE_CornerCoordsY; // X coordinates of 4 RVE corners (low-left, low-right, up-right, up-left)
-
-        std::vector<DEMWall*> mRVE_WallXMin; // Vector of RVE flat walls in negative X direction
-        std::vector<DEMWall*> mRVE_WallXMax; // Vector of RVE flat walls in positive X direction
-        std::vector<DEMWall*> mRVE_WallYMin; // Vector of RVE flat walls in negative Y direction
-        std::vector<DEMWall*> mRVE_WallYMax; // Vector of RVE flat walls in positive Y direction
-        std::vector<DEMWall*> mRVE_WallZMin; // Vector of RVE flat walls in negative Z direction
-        std::vector<DEMWall*> mRVE_WallZMax; // Vector of RVE flat walls in positive Z direction
-
-        std::vector<SphericParticle*> mRVE_InnerVolParticles; // Vector of particles composing the inner volume
-
-        std::vector<SphericParticle*> mRVE_WallParticleXMin; // Vector of RVE particle walls in negative X direction
-        std::vector<SphericParticle*> mRVE_WallParticleXMax; // Vector of RVE particle walls in positive X direction
-        std::vector<SphericParticle*> mRVE_WallParticleYMin; // Vector of RVE particle walls in negative Y direction
-        std::vector<SphericParticle*> mRVE_WallParticleYMax; // Vector of RVE particle walls in positive Y direction
-        std::vector<SphericParticle*> mRVE_WallParticleZMin; // Vector of RVE particle walls in negative Z direction
-        std::vector<SphericParticle*> mRVE_WallParticleZMax; // Vector of RVE particle walls in positive Z direction
-
-        std::vector<double> mRVE_ForceChain; // Vector of force chains coordinates: [x1,y1,z1,x2,y2,z2,F, x1,y1,z1,x2,y2,z2,F, x1,y1,z1,x2,y2,z2,F, ...]
-        Matrix mRVE_RoseDiagram;             // Rose diagram of contacts: Row 1 = angle ranges in plane XY; Row 2 = azimute ranges wrt to plane XY;
-        Matrix mRVE_RoseDiagramInner;        // Rose diagram of contacts for inner particles (not in contact with walls)
-        Matrix mRVE_FabricTensor;            // Fabric tensor (all particles)
-        Matrix mRVE_FabricTensorInner;       // Fabric tensor (inner particles)
-        Matrix mRVE_CauchyTensor;            // Cauchy stress tensor (all particles)
-        Matrix mRVE_CauchyTensorInner;       // Cauchy stress tensor (inner particles)
-        Matrix mRVE_TangentTensor;           // Tangent operator tensor (all particles)
-        Matrix mRVE_TangentTensorInner;      // Tangent operator tensor (inner particles)
-        Matrix mRVE_ConductivityTensor;      // Effective thermal conductivity tensor (all particles)
-        Matrix mRVE_ConductivityTensorInner; // Effective thermal conductivity tensor (inner particles)
-
-        std::ofstream mRVE_FileCoordinatesHistory;
-        std::ofstream mRVE_FileCoordinatesLast;
-        std::ofstream mRVE_FilePorosity;
-        std::ofstream mRVE_FileContactNumber;
-        std::ofstream mRVE_FileCoordNumber;
-        std::ofstream mRVE_FileInnerVolumeParticles;
-        std::ofstream mRVE_FileForceChain;
-        std::ofstream mRVE_FileElasticContactForces;
-        std::ofstream mRVE_FileElasticContactForcesWalls;
-        std::ofstream mRVE_FileRoseDiagram;
-        std::ofstream mRVE_FileRoseDiagramInner;
-        std::ofstream mRVE_FileRoseDiagramUniformity;
-        std::ofstream mRVE_FileAnisotropy;
-        std::ofstream mRVE_FileFabricTensor;
-        std::ofstream mRVE_FileFabricTensorInner;
-        std::ofstream mRVE_FileStress;
-        std::ofstream mRVE_FileCauchyTensor;
-        std::ofstream mRVE_FileCauchyTensorInner;
-        std::ofstream mRVE_FileTangentTensor;
-        std::ofstream mRVE_FileTangentTensorInner;
-        std::ofstream mRVE_FileConductivityTensor;
-        std::ofstream mRVE_FileConductivityTensorInner;
-        std::ofstream mRVE_FileFKS;
-
-        // Methods
-        void RVEInitialize             (void);
-        void RVEInitializeSolutionStep (void);
-        void RVEExecuteParticlePre     (SphericParticle* p_particle);
-        void RVEExecuteParticlePos     (SphericParticle* p_particle);
-        void RVEFinalizeSolutionStep   (void);
-        void Finalize                  (void);
-
-        void RVEAssembleWallVectors   (void);
-        void RVEAssembleWallVectors2D (void);
-        void RVEAssembleWallVectors3D (void);
-
-        void   RVEComputeCorners        (void);
-        double RVEComputeTotalSurface   (void);
-        double RVEComputeTotalVolume    (void);
-        double RVEComputeInnerVolume    (void);
-        double RVEComputeParticleVolume (SphericParticle* p_particle);
-        void   RVEComputePorosity       (void);
-        void   RVEComputeInnerPorosity  (void);
-        void   RVEHomogenization        (void);
-        void   RVEComputeRoseUniformity (void);
-        void   RVEStopCompression       (void);
-
-        void RVEReadOldForces       (void);
-        void RVEWriteFiles          (void);
-        void RVEWriteCoords         (void);
-        void RVEWriteForceParticles (void);
-        void RVEWriteForceContacts  (void);
-        void RVEOpenFiles           (void);
-        void RVECloseFiles          (void);
-
-        void ClearTriangle (struct triangulateio& rTr);
-        void FreeTriangle  (struct triangulateio& rTr);
-
-        //==========================================================================================================================================
-        // HIERARCHICAL MULTISCALE RVE - FINISH
-        //==========================================================================================================================================
 
     protected:
 

@@ -36,10 +36,10 @@ namespace Kratos
       typedef ParticleWeakVectorType::ptr_iterator    ParticleWeakIteratorType_ptr;
       typedef GlobalPointersVector<Element>::iterator ParticleWeakIteratorType;
 
-      typedef Node                             NodeType;
+      typedef Node                                NodeType;
       typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
       typedef std::size_t                         IndexType;
-      typedef Geometry<Node>                   GeometryType;
+      typedef Geometry<Node>                      GeometryType;
       typedef Properties                          PropertiesType;
 
       // Definitions
@@ -84,11 +84,11 @@ namespace Kratos
       void ComputeHeatFluxes               (const ProcessInfo& r_process_info);
       void ComputeHeatFluxWithNeighbor     (const ProcessInfo& r_process_info);
       void HierarchicalMultiscale          (const ProcessInfo& r_process_info);
-      void StoreContactInfoPP              (SphericParticle::ParticleDataBuffer& data_buffer) override;
-      void StoreContactInfoPW              (SphericParticle::ParticleDataBuffer& data_buffer) override;
+      //void StoreContactInfoPP              (SphericParticle::ParticleDataBuffer& data_buffer) override;
+      //void StoreContactInfoPW              (SphericParticle::ParticleDataBuffer& data_buffer) override;
       void ComputeInteractionProps         (const ProcessInfo& r_process_info);
       void StoreBallToBallContactInfo      (const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding) override;
-      void StoreBallToRigidFaceContactInfo (const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding) override;
+      void StoreBallToRigidFaceContactInfo (const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding, double identation) override;
       void Move                            (const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag) override;
 
       // Finalization methods
@@ -291,13 +291,13 @@ namespace Kratos
       double mDeformationRateStop;
 
       // Neighboring data
-      ThermalSphericParticle*                   mNeighbor_p;
-      DEMWall*                                  mNeighbor_w;
-      int                                       mNeighborType;
-      unsigned int                              mNeighborIndex;
-      unsigned int                              mNumberOfContactParticleNeighbor;
-      std::map<SphericParticle*, ContactParams> mContactParamsParticle;
-      std::map<DEMWall*, ContactParams>         mContactParamsWall;
+      ThermalSphericParticle*                      mNeighbor_p;
+      DEMWall*                                     mNeighbor_w;
+      int                                          mNeighborType;
+      unsigned int                                 mNeighborIndex;
+      unsigned int                                 mNumberOfContactParticleNeighbor;
+      std::map<SphericParticle*, ContactParams>    mContactParamsParticle;
+      std::map<DEMWall*, ContactParams>            mContactParamsWall;
       std::map<SphericParticle*, ContactParamsHMS> mContactParamsParticleHMS;
       std::map<DEMWall*, ContactParamsHMS>         mContactParamsWallHMS;
 

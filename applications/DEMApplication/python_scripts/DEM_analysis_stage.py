@@ -101,6 +101,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.parallelutils = DEM_procedures.ParallelUtils()
         self.translational_scheme = self.SetTranslationalScheme()
         self.rotational_scheme = self.SetRotationalScheme()
+        self.rve_utils = self.SetRVEUtilities()
 
         # Define control variables
         self.p_frequency = 100   # activate every 100 steps
@@ -209,6 +210,12 @@ class DEMAnalysisStage(AnalysisStage):
 
         return rotational_scheme
 
+    def SetRVEUtilities(self):
+        if self.DEM_parameters["Dimension"].GetInt() == 2:
+            return RVEWallBoundary2D()
+        else:
+            raise Exception('Error: The selected RVE utility for 3D analysis is not yet implemented')
+
     def SetSolver(self):        # TODO why is this still here. -> main_script calls retrocompatibility
         return self._CreateSolver()
 
@@ -297,6 +304,8 @@ class DEMAnalysisStage(AnalysisStage):
         self.SetInlet()
 
         self.SetInitialNodalValues()
+
+        self.rve_utils.Initialize(self.spheres_model_part, self.rigid_face_model_part)
 
         self.KratosPrintInfo(self.report.BeginReport(timer))
 
@@ -530,11 +539,14 @@ class DEMAnalysisStage(AnalysisStage):
 
     def InitializeSolutionStep(self):
         super().InitializeSolutionStep()
+        
         if self.post_normal_impact_velocity_option:
             if self.IsCountStep():
                 self.FillAnalyticSubModelPartsWithNewParticles()
+        
         if self.DEM_parameters["ContactMeshOption"].GetBool():
             self.UpdateIsTimeToPrintInModelParts(self.IsTimeToPrintPostProcess())
+        
         if self.bounding_box_servo_loading_option:
             self.UpdateIsTimeToUpdateContactElementForServo(self.IsTimeToUpdateContactElementForServo())
 
@@ -673,6 +685,8 @@ class DEMAnalysisStage(AnalysisStage):
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
 
+        self.rve_utils.FinalizeSolutionStep()
+
         #Phantom Walls
         self.RunAnalytics(self.time)
 
@@ -717,6 +731,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.DEMFEMProcedures.FinalizeGraphs(self.rigid_face_model_part)
         self.DEMFEMProcedures.FinalizeBallsGraphs(self.spheres_model_part)
         self.DEMEnergyCalculator.FinalizeEnergyPlot()
+        self.rve_utils.Finalize()
 
         self.CleanUpOperations()
 
