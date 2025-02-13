@@ -97,8 +97,10 @@ void UPwBaseElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
+
     const auto& r_properties = this->GetProperties();
     const auto& r_geometry   = this->GetGeometry();
+    KRATOS_INFO("Displacement = ") << r_geometry[0].FastGetSolutionStepValue(DISPLACEMENT) << std::endl;
     const auto number_of_integration_points = r_geometry.IntegrationPointsNumber(mThisIntegrationMethod);
 
     mConstitutiveLawVector.resize(number_of_integration_points);

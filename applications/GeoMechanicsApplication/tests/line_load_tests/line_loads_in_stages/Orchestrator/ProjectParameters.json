@@ -3,9 +3,13 @@
     "name" : "Orchestrators.KratosMultiphysics.SequentialOrchestrator",
     "settings" : {
         "echo_level" : 0,
-        "execution_list" : ["stage_1", "stage_2"],
+//        "execution_list" : ["stage_2"],
+        "execution_list" : ["stage_1","stage_2"],
+//        "load_from_checkpoint" : "auxiliar_files_for_python_unittest/orchestrators_files/checkpoints/stage_1",
         "load_from_checkpoint" : null,
-        "stage_checkpoints" : false
+        "stage_checkpoints" : true,
+        "stage_checkpoints_folder" : "auxiliar_files_for_python_unittest/orchestrators_files/checkpoints",
+        "output_validated_settings" : "test_sequential_orchestrator"
     }
 },
 "stages" : {

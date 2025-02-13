@@ -27,6 +27,7 @@
 // Application includes
 #include "custom_utilities/element_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
+#include "plane_strain_stress_state.h"
 #include "stress_state_policy.h"
 
 namespace Kratos
@@ -183,9 +184,25 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
+        rSerializer.save("mThisIntegrationMethod",static_cast<int>(mThisIntegrationMethod));
+        rSerializer.save("mConstitutiveLawVector",mConstitutiveLawVector);
+      // rSerializer.save("mRetentionLawVector",mRetentionLawVector);
+        rSerializer.save("mStressVector",mStressVector);
+      rSerializer.save("mStateVariablesFinalized",mStateVariablesFinalized);
     }
 
-    void load(Serializer& rSerializer) override{KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)}
+    void load(Serializer& rSerializer) override
+    {
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
+      int IntMethod;
+      rSerializer.load("mThisIntegrationMethod",IntMethod);
+      mThisIntegrationMethod = IntegrationMethod(IntMethod);
+        rSerializer.load("mConstitutiveLawVector",mConstitutiveLawVector);
+      // rSerializer.load("mRetentionLawVector",mRetentionLawVector);
+      rSerializer.load("mStressVector",mStressVector);
+      rSerializer.load("mStateVariablesFinalized",mStateVariablesFinalized);
+      mpStressStatePolicy = std::make_unique<PlaneStrainStressState>();
+    }
 
     std::unique_ptr<StressStatePolicy> mpStressStatePolicy;
 };
