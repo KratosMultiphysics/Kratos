@@ -35,20 +35,17 @@ public:
         double                                   RelativePermeability,
         double                                   IntegrationCoefficient)
     {
-        return CalculatePermeabilityMatrix(rGradNpT, DynamicViscosityInverse, rMaterialPermeabilityMatrix,
-                                           RelativePermeability, IntegrationCoefficient);
-    }
-
-    static inline Matrix CalculatePermeabilityMatrix(const Matrix& rGradNpT,
-                                                     double        DynamicViscosityInverse,
-                                                     const Matrix& rMaterialPermeabilityMatrix,
-                                                     double        RelativePermeability,
-                                                     double        IntegrationCoefficient)
-    {
         return -PORE_PRESSURE_SIGN_FACTOR * DynamicViscosityInverse *
-               prod(rGradNpT, Matrix(prod(rMaterialPermeabilityMatrix, trans(rGradNpT)))) *
+               prod(rGradNpT, BoundedMatrix<double, TDim, TNumNodes>(
+                                  prod(rMaterialPermeabilityMatrix, trans(rGradNpT)))) *
                RelativePermeability * IntegrationCoefficient;
     }
+
+    static Matrix CalculatePermeabilityMatrix(const Matrix& rGradNpT,
+                                              double        DynamicViscosityInverse,
+                                              const Matrix& rMaterialPermeabilityMatrix,
+                                              double        RelativePermeability,
+                                              double        IntegrationCoefficient);
 
     template <unsigned int TDim, unsigned int TNumNodes>
     static inline BoundedMatrix<double, TNumNodes * TDim, TNumNodes> CalculateCouplingMatrix(
@@ -98,20 +95,14 @@ public:
         return result;
     }
 
-    [[nodiscard]] static double CalculateFluidPressure(const Vector& rN, const Vector& rPressureVector)
+    template <typename VectorType>
+    [[nodiscard]] static double CalculateFluidPressure(const VectorType& rN, const Vector& rPressureVector)
     {
         return inner_prod(rN, rPressureVector);
     }
 
     [[nodiscard]] static std::vector<double> CalculateFluidPressures(const Matrix& rNContainer,
-                                                                     const Vector& rPressureVector)
-    {
-        auto result = std::vector<double>{};
-        for (auto i = std::size_t{0}; i < rNContainer.size1(); ++i) {
-            result.emplace_back(CalculateFluidPressure(row(rNContainer, i), rPressureVector));
-        }
-        return result;
-    }
+                                                                     const Vector& rPressureVector);
 
     [[nodiscard]] static std::vector<double> CalculateInverseBiotModuli(const std::vector<double>& rBiotCoefficients,
                                                                         const std::vector<double>& rDegreesOfSaturation,
@@ -119,6 +110,7 @@ public:
                                                                         const Properties& rProperties)
     {
         std::vector<double> result;
+        result.reserve(rBiotCoefficients.size());
         for (std::size_t i = 0; i < rBiotCoefficients.size(); ++i) {
             result.push_back(CalculateInverseBiotModulus(rBiotCoefficients[i], rDegreesOfSaturation[i],
                                                          DerivativesOfSaturation[i], rProperties));
@@ -138,6 +130,7 @@ public:
                                                                        const Properties& rProperties)
     {
         std::vector<double> result;
+        result.reserve(rConstitutiveMatrices.size());
         std::transform(rConstitutiveMatrices.begin(), rConstitutiveMatrices.end(),
                        std::back_inserter(result), [&rProperties](const Matrix& rConstitutiveMatrix) {
             return CalculateBiotCoefficient(rConstitutiveMatrix, rProperties);
@@ -150,6 +143,7 @@ public:
                                                                                 const Properties& rProperties)
     {
         auto result = std::vector<double>{};
+        result.reserve(rStrainVectors.size());
         std::transform(rStrainVectors.cbegin(), rStrainVectors.cend(), std::back_inserter(result),
                        [&rProperties](const auto& rStrainVector) {
             return CalculatePermeabilityUpdateFactor(rStrainVector, rProperties);

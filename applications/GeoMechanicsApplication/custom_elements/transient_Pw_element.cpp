@@ -140,8 +140,6 @@ void TransientPwElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrent
         r_retention_law = RetentionLawFactory::Clone(r_properties);
     }
 
-    mIsInitialised = true;
-
     KRATOS_CATCH("")
 }
 
@@ -258,9 +256,6 @@ void TransientPwElement<TDim, TNumNodes>::InitializeSolutionStep(const ProcessIn
 {
     KRATOS_TRY
 
-    if (!mIsInitialised) this->Initialize(rCurrentProcessInfo);
-
-    // reset hydraulic discharge
     this->ResetHydraulicDischarge();
 
     KRATOS_CATCH("")
@@ -531,7 +526,7 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAndAddFluidBodyFlow(VectorTyp
 {
     KRATOS_TRY
 
-    rRightHandSideVector += this->CalculateFluidBodyFlow(rVariables);
+    noalias(rRightHandSideVector) += this->CalculateFluidBodyFlow(rVariables);
 
     KRATOS_CATCH("")
 }

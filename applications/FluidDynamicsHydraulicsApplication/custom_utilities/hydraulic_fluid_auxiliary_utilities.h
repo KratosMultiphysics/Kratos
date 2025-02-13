@@ -120,19 +120,22 @@ public:
     /**
      * @brief  Artificial viscosity is calculated. The purpose of adding this artificial viscosity is to avoid non-physical spikes in velocities.
      * @param  rModelPart Fluid Model Part
-     * @param  WaterDynamicViscosityMax It is a threshold value to prevent adding excessive artificial numerical viscosity and thereby losing the real physics.
+     * @param  DynamicViscosityMax It is a threshold value to prevent adding excessive artificial numerical viscosity and thereby losing the real physics.
      */
-    static void CalculateArtificialViscosity(ModelPart &rModelPart, double WaterDynamicViscosityMax);
+    static void CalculateNonIntersectedElementsArtificialViscosity(
+        ModelPart &rModelPart,
+        double DynamicViscosityMax);
 
     /**
      * @brief  When there is inflow on a boundary considered as an outlet, this function retains only the tangential component, preventing inflows that cause instabilities.
      * @param  rModelPart Fluid Model Part
-     * @param  rVariable it possible to use the variable VELOCITY_FRACTIONAL or VELOCITY
+     * @param  rVariable it is possible to use the variable VELOCITY_FRACTIONAL or VELOCITY
+     * @param  rVariableNormal it is possible to use an auxiliar normal such as INLET_NORMAL 
      */
-
-    static void ApplyOutletInflowLimiter(ModelPart &rModelPart,const Variable<array_1d<double, 3>>& rVariable);
-
-     
+    static void ApplyOutletInflowLimiter(
+        ModelPart &rModelPart,
+        const Variable<array_1d<double,3>>& rVariable,
+        const Variable<array_1d<double, 3>>& rVariableNormal);    
 
     ///@}
 
