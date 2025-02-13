@@ -652,7 +652,6 @@ namespace Kratos {
         }
 
         ApplyPrescribedBoundaryConditions();
-
         KRATOS_CATCH("")
     }
 

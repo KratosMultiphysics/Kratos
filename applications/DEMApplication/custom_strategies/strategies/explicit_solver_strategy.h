@@ -8,6 +8,7 @@
 #if !defined(KRATOS_EXPLICIT_SOLVER_STRATEGY)
 #define KRATOS_EXPLICIT_SOLVER_STRATEGY
 
+
 // Project includes
 #include "utilities/timer.h"
 #include "custom_elements/Particle_Contact_Element.h"
