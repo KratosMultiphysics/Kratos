@@ -15,7 +15,6 @@
 
 #include "includes/kratos_export_api.h"
 #include "includes/kratos_parameters.h"
-#include "includes/model_part.h"
 #include "includes/smart_pointers.h"
 #include "includes/table.h"
 #include "processes/process.h"
@@ -25,6 +24,8 @@
 namespace Kratos
 {
 
+class ModelPart;
+
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyComponentTableProcess : public Process
 {
 public:
@@ -32,7 +33,7 @@ public:
 
     using TableType = Table<double, double>;
 
-    ApplyComponentTableProcess(ModelPart& model_part, Parameters rParameters);
+    ApplyComponentTableProcess(ModelPart& rModelPart, Parameters ProcessSettings);
     ApplyComponentTableProcess(const ApplyComponentTableProcess&)            = delete;
     ApplyComponentTableProcess& operator=(const ApplyComponentTableProcess&) = delete;
     ~ApplyComponentTableProcess() override                                   = default;

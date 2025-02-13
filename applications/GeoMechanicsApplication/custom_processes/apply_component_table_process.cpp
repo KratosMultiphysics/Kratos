@@ -12,6 +12,7 @@
 
 #include "apply_component_table_process.h"
 #include "geo_mechanics_application_variables.h"
+#include "includes/model_part.h"
 #include "utilities/variable_utils.h"
 
 #include <boost/algorithm/string.hpp>
@@ -19,8 +20,8 @@
 namespace Kratos
 {
 
-ApplyComponentTableProcess::ApplyComponentTableProcess(ModelPart& model_part, Parameters rParameters)
-    : Process(Flags()), mrModelPart(model_part)
+ApplyComponentTableProcess::ApplyComponentTableProcess(ModelPart& rModelPart, Parameters ProcessSettings)
+    : Process(Flags()), mrModelPart(rModelPart)
 {
     KRATOS_TRY
 
@@ -36,21 +37,21 @@ ApplyComponentTableProcess::ApplyComponentTableProcess(ModelPart& model_part, Pa
 
     // Some values need to be mandatorily prescribed since no meaningful default value exist.
     // For this reason try accessing to them So that an error is thrown if they don't exist
-    rParameters["table"];
-    rParameters["variable_name"];
-    rParameters["model_part_name"];
+    ProcessSettings["table"];
+    ProcessSettings["variable_name"];
+    ProcessSettings["model_part_name"];
 
-    mIsFixedProvided = rParameters.Has("is_fixed");
+    mIsFixedProvided = ProcessSettings.Has("is_fixed");
     // Now validate against defaults -- this also ensures no type mismatch
-    rParameters.ValidateAndAssignDefaults(default_parameters);
+    ProcessSettings.ValidateAndAssignDefaults(default_parameters);
 
-    mVariableName = rParameters["variable_name"].GetString();
-    mIsFixed      = rParameters["is_fixed"].GetBool();
-    mInitialValue = rParameters["value"].GetDouble();
+    mVariableName = ProcessSettings["variable_name"].GetString();
+    mIsFixed      = ProcessSettings["is_fixed"].GetBool();
+    mInitialValue = ProcessSettings["value"].GetDouble();
 
-    unsigned int TableId = rParameters["table"].GetInt();
-    mpTable              = model_part.pGetTable(TableId);
-    mTimeUnitConverter   = model_part.GetProcessInfo()[TIME_UNIT_CONVERTER];
+    unsigned int TableId = ProcessSettings["table"].GetInt();
+    mpTable              = rModelPart.pGetTable(TableId);
+    mTimeUnitConverter   = rModelPart.GetProcessInfo()[TIME_UNIT_CONVERTER];
 
     KRATOS_CATCH("")
 }
