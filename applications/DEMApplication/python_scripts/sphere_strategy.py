@@ -375,8 +375,8 @@ class ExplicitStrategy():
         self.settings.contact_model_part = self.contact_model_part
         self.settings.fem_model_part = self.fem_model_part
         self.settings.inlet_model_part = self.inlet_model_part
-        self.settings.cluster_model_part = self.cluster_model_part
-
+        self.settings.cluster_model_part = self.cluster_model_part  
+    
     def CheckMomentumConservation(self):
 
         previous_discontinuum_constitutive_law_string = ""
