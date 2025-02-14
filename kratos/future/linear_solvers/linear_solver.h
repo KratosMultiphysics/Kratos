@@ -22,8 +22,9 @@
 #include "containers/csr_matrix.h"
 #include "containers/system_vector.h"
 #include "includes/model_part.h"
+#include "future/linear_solvers/reorderer.h"
 
-namespace Kratos
+namespace Kratos::Future
 {
 ///@name Kratos Globals
 ///@{
@@ -45,7 +46,7 @@ namespace Kratos
 ///@{
 
 /**
- * @class NewLinearSolver
+ * @class LinearSolver
  * @ingroup KratosCore
  * @brief Base class for all the linear solvers in Kratos.
  * @details This class define the general interface for the linear solvers in Kratos.
@@ -59,15 +60,15 @@ namespace Kratos
  * @author Riccardo Rossi
  * @author Ruben Zorrilla
  */
-template<class TMatrixType = CsrMatrix<>, class TVectorType= SystemVector<>>
-class NewLinearSolver
+template<class TMatrixType = CsrMatrix<>, class TVectorType= SystemVector<>, class TReordererType = Future::Reorderer<TMatrixType, TVectorType>>
+class LinearSolver
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of NewLinearSolver
-    KRATOS_CLASS_POINTER_DEFINITION(NewLinearSolver);
+    /// Pointer definition of LinearSolver
+    KRATOS_CLASS_POINTER_DEFINITION(LinearSolver);
 
     /// Type definition for sparse matrix
     using SparseMatrixType = TMatrixType;
@@ -81,14 +82,8 @@ public:
     /// Type definition for pointer to vector
     using VectorPointerType = typename VectorType::Pointer;
 
-    /// Dense space definition
-    using DenseSpaceType = UblasSpace<double, Matrix, Vector>; //TODO: We should eventually remove this and directly define the types
-
-    /// Local system matrix type definition
-    using DenseMatrixType = DenseSpaceType::MatrixType;
-
-    /// Local system vector type definition
-    using DenseVectorType = DenseSpaceType::VectorType;
+    /// Type definition for data
+    using DataType = typename SparseMatrixType::DataType;
 
     /// Type definition for size
     using SizeType = typename SparseMatrixType::DataType;
@@ -96,26 +91,37 @@ public:
     /// Type definition for index
     using IndexType = typename SparseMatrixType::IndexType;
 
+    /// Local system matrix type definition
+    using DenseMatrixType = DenseMatrix<DataType>;
+
+    /// Local system vector type definition
+    using DenseVectorType = DenseVector<DataType>;
+
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    NewLinearSolver() = default;
+    LinearSolver() : mpReorderer(new TReordererType()) {}
+
+    /// Constructor with specific reorderer.
+    LinearSolver(TReordererType NewReorderer) : mpReorderer(NewReorderer) {}
 
     /// Copy constructor.
-    NewLinearSolver(const NewLinearSolver& Other) = default;
+    LinearSolver(const LinearSolver& Other) : mpReorderer(Other.mpReorderer) {}
 
     /// Destructor.
-    virtual ~NewLinearSolver() = default;
+    virtual ~LinearSolver() = default;
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    NewLinearSolver& operator=(const NewLinearSolver& Other)
+    LinearSolver& operator=(const LinearSolver& Other)
     {
+        mpReorderer = Other.mpReorderer;
+
         return *this;
     }
 
@@ -132,6 +138,7 @@ public:
      */
     virtual void Initialize(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
     {
+        mpReorderer->Initialize(rA, rX, rB);
     }
 
     /**
@@ -259,12 +266,32 @@ public:
     ///@{
 
     /**
+     * @brief Virtual function to get the reorderer.
+     * @details This function returns a pointer to the reorderer used by the linear solver.
+     * @return A pointer to the reorderer.
+     */
+    virtual typename TReordererType::Pointer GetReorderer()
+    {
+        return mpReorderer;
+    }
+
+    /**
+     * @brief Virtual function to set the reorderer.
+     * @details This function sets the reorderer used by the linear solver.
+     * @param pNewReorderer A pointer to the new reorderer.
+     */
+    virtual void SetReorderer(typename TReordererType::Pointer pNewReorderer)
+    {
+        mpReorderer = pNewReorderer;
+    }
+
+    /**
      * @brief This method allows to set the tolerance in the linear solver
      * @param NewTolerance The new tolerance set
      */
     virtual void SetTolerance(double NewTolerance)
     {
-        KRATOS_WARNING("NewLinearSolver") << "Accessed base function \"SetTolerance\". This does nothing !" << std::endl;
+        KRATOS_WARNING("LinearSolver") << "Accessed base function \"SetTolerance\". This does nothing !" << std::endl;
     }
 
     /**
@@ -273,7 +300,7 @@ public:
      */
     virtual double GetTolerance()
     {
-        KRATOS_WARNING("NewLinearSolver") << "Accessed base function \"GetTolerance\". No tolerance defined, returning 0 !" << std::endl ;
+        KRATOS_WARNING("LinearSolver") << "Accessed base function \"GetTolerance\". No tolerance defined, returning 0 !" << std::endl ;
         return 0;
     }
 
@@ -284,7 +311,7 @@ public:
      */
     virtual IndexType GetIterationsNumber()
     {
-        KRATOS_WARNING("NewLinearSolver") << "Accessed base function \"GetIterationsNumber\", returning 0 !" << std::endl;
+        KRATOS_WARNING("LinearSolver") << "Accessed base function \"GetIterationsNumber\", returning 0 !" << std::endl;
 
         return 0;
     }
@@ -433,6 +460,9 @@ private:
     ///@name Member Variables
     ///@{
 
+    /// A counted pointer to the reorderer object.
+    typename TReordererType::Pointer mpReorderer;
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -469,7 +499,7 @@ private:
 template<class TMatrixType, class TVectorType>
 inline std::istream& operator >> (
     std::istream& IStream,
-    NewLinearSolver<TMatrixType, TVectorType>& rThis)
+    LinearSolver<TMatrixType, TVectorType>& rThis)
 {
     return IStream;
 }
@@ -478,7 +508,7 @@ inline std::istream& operator >> (
 template<class TMatrixType, class TVectorType>
 inline std::ostream& operator << (
     std::ostream& rOStream,
-    const NewLinearSolver<TMatrixType, TMatrixType>& rThis)
+    const LinearSolver<TMatrixType, TMatrixType>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -488,4 +518,4 @@ inline std::ostream& operator << (
 }
 ///@}
 
-}  // namespace Kratos.
+}  // namespace Kratos::Future.

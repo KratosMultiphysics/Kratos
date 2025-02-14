@@ -60,6 +60,7 @@ public:
     ///@name Type Definitions
     ///@{
     typedef TIndexType IndexType;
+    using SizeType = IndexType;
     typedef int MpiIndexType;
     typedef CsrMatrix<TDataType,TIndexType> BlockMatrixType;
     typedef typename CsrMatrix<TDataType,TIndexType>::MatrixMapType MatrixMapType;
@@ -812,16 +813,31 @@ public:
         KRATOS_ERROR << "To be implemented." << std::endl;
     }
 
+    SizeType GraphDegree(const IndexType i) const
+    {
+        // return index1_data()[i+1] - index1_data()[i];
+        KRATOS_ERROR << "To be implemented." << std::endl;
+    }
+
+    void GraphNeighbours(
+        const IndexType I,
+        std::vector<IndexType>& rNeighbours) const
+    {
+        // IndexType i = 0;
+        // rNeighbours.clear();
+        // const IndexType row_begin = index1_data()[I];
+        // const IndexType row_end = index1_data()[I+1];
+        // rNeighbours.reserve(row_end - row_begin);
+        // for (IndexType j = row_begin; j < row_end; ++j) {
+        //     rNeighbours[i++] = index2_data()[j];
+        // }
+        KRATOS_ERROR << "To be implemented." << std::endl;
+    }
+
     //TODO
     // LeftScaling
     // RightScaling
     // SymmetricScaling
-
-    //TODO
-    //void ApplyDirichlet
-
-    //TODO
-    //NormFrobenius
 
     ///@}
     ///@name Access
