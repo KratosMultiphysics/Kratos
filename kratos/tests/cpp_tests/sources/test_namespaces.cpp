@@ -20,7 +20,7 @@
 #ifdef KRATOS_USE_FUTURE
     #include "future/processes/future_process.h"
 #endif
-#ifdef KRATOS_USE_FUTURE
+#ifdef KRATOS_USE_LEGACY
     #include "legacy/processes/legacy_process.h"
 #endif
 
@@ -37,7 +37,7 @@ KRATOS_TEST_CASE_IN_SUITE(FutureProcess, KratosCoreFastSuite)
             process.Execute(),
             "I come from the future :)"
         );
-    #else 
+    #else
         KRATOS_SUCCEED();
     #endif
 }
@@ -56,7 +56,7 @@ KRATOS_TEST_CASE_IN_SUITE(FutureProcessFromRegistry, KratosCoreFastSuite)
                 "I come from the future :)"
             );
         }
-    #else 
+    #else
         KRATOS_EXPECT_FALSE(Registry::HasItem("Processes.KratosMultiphysics.Future.Process"))
     #endif
 }
@@ -73,7 +73,7 @@ KRATOS_TEST_CASE_IN_SUITE(FutureProcessFromRegistryIsNotProcess, KratosCoreFastS
                 "Error: bad any_cast"
             );
         }
-    #else 
+    #else
         KRATOS_EXPECT_FALSE(Registry::HasItem("Processes.KratosMultiphysics.Future.Process"))
     #endif
 }
@@ -88,7 +88,7 @@ KRATOS_TEST_CASE_IN_SUITE(LegacyProcess, KratosCoreFastSuite)
             process.Execute(),
             "I... I don't feel well... My time has come, soon I will be unmade. Thank you for all the segmentation faults we lived together. :_)"
         );
-    #else 
+    #else
         KRATOS_SUCCEED();
     #endif
 }
@@ -107,7 +107,7 @@ KRATOS_TEST_CASE_IN_SUITE(LegacyProcessFromRegistry, KratosCoreFastSuite)
                 "I... I don't feel well... My time has come, soon I will be unmade. Thank you for all the segmentation faults we lived together. :_)"
             );
         }
-    #else 
+    #else
         KRATOS_EXPECT_FALSE(Registry::HasItem("Processes.KratosMultiphysics.Legacy.Process"))
     #endif
 }
@@ -115,7 +115,7 @@ KRATOS_TEST_CASE_IN_SUITE(LegacyProcessFromRegistry, KratosCoreFastSuite)
 /* Test that the class in the registry is not the same class as its future / production counterpart */
 KRATOS_TEST_CASE_IN_SUITE(LegacyProcessFromRegistryIsNotProcess, KratosCoreFastSuite)
 {
-    #ifdef KRATOS_USE_FUTURE
+    #ifdef KRATOS_USE_LEGACY
         KRATOS_EXPECT_TRUE(Registry::HasItem("Processes.KratosMultiphysics.Legacy.Process"))
 
         if (Registry::HasItem("Processes.KratosMultiphysics.Legacy")) {
@@ -124,7 +124,7 @@ KRATOS_TEST_CASE_IN_SUITE(LegacyProcessFromRegistryIsNotProcess, KratosCoreFastS
                 "Error: bad any_cast"
             );
         }
-    #else 
+    #else
         KRATOS_EXPECT_FALSE(Registry::HasItem("Processes.KratosMultiphysics.Legacy.Process"))
     #endif
 }
