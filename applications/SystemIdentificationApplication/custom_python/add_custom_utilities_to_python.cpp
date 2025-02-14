@@ -27,6 +27,7 @@
 #include "custom_utilities/distance_matrix.h"
 #include "custom_utilities/sensor_mask_status.h"
 #include "custom_utilities/sensor_mask_status_kd_tree.h"
+#include "custom_utilities/point_data_interpolation_utils.h"
 
 // Include base h
 #include "custom_python/add_custom_utilities_to_python.h"
@@ -92,9 +93,6 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     control_utils.def("GetIntegrationPoints", [](const ModelPart::ElementsContainerType& rContainer){ std::vector<Point> result; ControlUtils::GetIntegrationPoints(result, rContainer); return result; }, py::arg("container"));
     control_utils.def("GetIntegrationPointAreas", [](const ModelPart::ConditionsContainerType& rContainer){ std::vector<double> result; ControlUtils::GetIntegrationPointAreas(result, rContainer); return result; }, py::arg("container"));
     control_utils.def("GetIntegrationPointAreas", [](const ModelPart::ElementsContainerType& rContainer){ std::vector<double> result; ControlUtils::GetIntegrationPointAreas(result, rContainer); return result; }, py::arg("container"));
-    control_utils.def("EvaluateNodalNonHistoricalValuesAtPoints", [](const Variable<double>& rVariable, ModelPart& rModelPart, const std::vector<Point>& rCoordinates){ std::vector<double> result; ControlUtils::EvaluateAtPoints<Node, double>(result, rVariable, rModelPart, rCoordinates); return result; }, py::arg("variable"), py::arg("model_part"), py::arg("list_of_points"));
-    control_utils.def("EvaluateConditionValuesAtPoints", [](const Variable<double>& rVariable, ModelPart& rModelPart, const std::vector<Point>& rCoordinates){ std::vector<double> result; ControlUtils::EvaluateAtPoints<Element, double>(result, rVariable, rModelPart, rCoordinates); return result; }, py::arg("variable"), py::arg("model_part"), py::arg("list_of_points"));
-    control_utils.def("EvaluateElementValuesAtPoints", [](const Variable<double>& rVariable, ModelPart& rModelPart, const std::vector<Point>& rCoordinates){ std::vector<double> result; ControlUtils::EvaluateAtPoints<Element, double>(result, rVariable, rModelPart, rCoordinates); return result; }, py::arg("variable"), py::arg("model_part"), py::arg("list_of_points"));
 
     AddSmoothClamper<ModelPart::NodesContainerType>(m, "Node");
     AddSmoothClamper<ModelPart::ConditionsContainerType>(m, "Condition");
@@ -142,6 +140,38 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
              }, py::arg("query_point"), py::arg("radius"))
         .def("GetSensorMaskStatus", &SensorMaskStatusKDTree::GetSensorMaskStatus)
         .def("Update", &SensorMaskStatusKDTree::Update);
+
+    using element_point_data_interpolation_utils = PointDataInterpolationUtils<ModelPart::ElementType>;
+    py::class_<element_point_data_interpolation_utils, element_point_data_interpolation_utils::Pointer>(m, "ElementPointDataInterpolationUtils")
+        .def(py::init<ModelPart&>(), py::arg("model_part"))
+        .def("CalculateInterpolatedNodalValues", [](const element_point_data_interpolation_utils& rSelf, const Variable<double>& rVariable) { std::vector<double> output; rSelf.CalculateInterpolatedNodalValues(output, rVariable); return output;}, py::arg("variable"))
+        .def("CalculateInterpolatedNodalValues", [](const element_point_data_interpolation_utils& rSelf, const Variable<array_1d<double, 3>>& rVariable) { std::vector<array_1d<double, 3>> output; rSelf.CalculateInterpolatedNodalValues(output, rVariable); return output;}, py::arg("variable"))
+        .def("CalculateInterpolatedNodalValues", [](const element_point_data_interpolation_utils& rSelf, const Variable<array_1d<double, 4>>& rVariable) { std::vector<array_1d<double, 4>> output; rSelf.CalculateInterpolatedNodalValues(output, rVariable); return output;}, py::arg("variable"))
+        .def("CalculateInterpolatedNodalValues", [](const element_point_data_interpolation_utils& rSelf, const Variable<array_1d<double, 6>>& rVariable) { std::vector<array_1d<double, 6>> output; rSelf.CalculateInterpolatedNodalValues(output, rVariable); return output;}, py::arg("variable"))
+        .def("CalculateInterpolatedNodalValues", [](const element_point_data_interpolation_utils& rSelf, const Variable<array_1d<double, 9>>& rVariable) { std::vector<array_1d<double, 9>> output; rSelf.CalculateInterpolatedNodalValues(output, rVariable); return output;}, py::arg("variable"))
+        .def("CalculateInterpolatedEntityValues", [](const element_point_data_interpolation_utils& rSelf, const Variable<double>& rVariable) { std::vector<double> output; rSelf.CalculateInterpolatedEntityValues(output, rVariable); return output;}, py::arg("variable"))
+        .def("CalculateInterpolatedEntityValues", [](const element_point_data_interpolation_utils& rSelf, const Variable<array_1d<double, 3>>& rVariable) { std::vector<array_1d<double, 3>> output; rSelf.CalculateInterpolatedEntityValues(output, rVariable); return output;}, py::arg("variable"))
+        .def("CalculateInterpolatedEntityValues", [](const element_point_data_interpolation_utils& rSelf, const Variable<array_1d<double, 4>>& rVariable) { std::vector<array_1d<double, 4>> output; rSelf.CalculateInterpolatedEntityValues(output, rVariable); return output;}, py::arg("variable"))
+        .def("CalculateInterpolatedEntityValues", [](const element_point_data_interpolation_utils& rSelf, const Variable<array_1d<double, 6>>& rVariable) { std::vector<array_1d<double, 6>> output; rSelf.CalculateInterpolatedEntityValues(output, rVariable); return output;}, py::arg("variable"))
+        .def("CalculateInterpolatedEntityValues", [](const element_point_data_interpolation_utils& rSelf, const Variable<array_1d<double, 9>>& rVariable) { std::vector<array_1d<double, 9>> output; rSelf.CalculateInterpolatedEntityValues(output, rVariable); return output;}, py::arg("variable"))
+        .def("UpdatePoints", &element_point_data_interpolation_utils::UpdatePoints, py::arg("list_of_points"))
+        ;
+
+    using condition_point_data_interpolation_utils = PointDataInterpolationUtils<ModelPart::ConditionType>;
+    py::class_<condition_point_data_interpolation_utils, condition_point_data_interpolation_utils::Pointer>(m, "ConditionPointDataInterpolationUtils")
+        .def(py::init<ModelPart&>(), py::arg("model_part"))
+        .def("CalculateInterpolatedNodalValues", [](const condition_point_data_interpolation_utils& rSelf, const Variable<double>& rVariable) { std::vector<double> output; rSelf.CalculateInterpolatedNodalValues(output, rVariable); return output;}, py::arg("variable"))
+        .def("CalculateInterpolatedNodalValues", [](const condition_point_data_interpolation_utils& rSelf, const Variable<array_1d<double, 3>>& rVariable) { std::vector<array_1d<double, 3>> output; rSelf.CalculateInterpolatedNodalValues(output, rVariable); return output;}, py::arg("variable"))
+        .def("CalculateInterpolatedNodalValues", [](const condition_point_data_interpolation_utils& rSelf, const Variable<array_1d<double, 4>>& rVariable) { std::vector<array_1d<double, 4>> output; rSelf.CalculateInterpolatedNodalValues(output, rVariable); return output;}, py::arg("variable"))
+        .def("CalculateInterpolatedNodalValues", [](const condition_point_data_interpolation_utils& rSelf, const Variable<array_1d<double, 6>>& rVariable) { std::vector<array_1d<double, 6>> output; rSelf.CalculateInterpolatedNodalValues(output, rVariable); return output;}, py::arg("variable"))
+        .def("CalculateInterpolatedNodalValues", [](const condition_point_data_interpolation_utils& rSelf, const Variable<array_1d<double, 9>>& rVariable) { std::vector<array_1d<double, 9>> output; rSelf.CalculateInterpolatedNodalValues(output, rVariable); return output;}, py::arg("variable"))
+        .def("CalculateInterpolatedEntityValues", [](const condition_point_data_interpolation_utils& rSelf, const Variable<double>& rVariable) { std::vector<double> output; rSelf.CalculateInterpolatedEntityValues(output, rVariable); return output;}, py::arg("variable"))
+        .def("CalculateInterpolatedEntityValues", [](const condition_point_data_interpolation_utils& rSelf, const Variable<array_1d<double, 3>>& rVariable) { std::vector<array_1d<double, 3>> output; rSelf.CalculateInterpolatedEntityValues(output, rVariable); return output;}, py::arg("variable"))
+        .def("CalculateInterpolatedEntityValues", [](const condition_point_data_interpolation_utils& rSelf, const Variable<array_1d<double, 4>>& rVariable) { std::vector<array_1d<double, 4>> output; rSelf.CalculateInterpolatedEntityValues(output, rVariable); return output;}, py::arg("variable"))
+        .def("CalculateInterpolatedEntityValues", [](const condition_point_data_interpolation_utils& rSelf, const Variable<array_1d<double, 6>>& rVariable) { std::vector<array_1d<double, 6>> output; rSelf.CalculateInterpolatedEntityValues(output, rVariable); return output;}, py::arg("variable"))
+        .def("CalculateInterpolatedEntityValues", [](const condition_point_data_interpolation_utils& rSelf, const Variable<array_1d<double, 9>>& rVariable) { std::vector<array_1d<double, 9>> output; rSelf.CalculateInterpolatedEntityValues(output, rVariable); return output;}, py::arg("variable"))
+        .def("UpdatePoints", &condition_point_data_interpolation_utils::UpdatePoints, py::arg("list_of_points"))
+        ;
 }
 
 } // namespace Kratos::Python
