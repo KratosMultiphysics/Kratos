@@ -208,7 +208,7 @@ public:
     }
 
     ///@}
-    ///@name Mathematical Informations
+    ///@name Mathematical Information
     ///@{
 
     /// Return polynomial degree of the surface in direction 0 or 1
