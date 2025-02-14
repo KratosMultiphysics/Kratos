@@ -15,15 +15,15 @@
 #include "mapping_application.h"
 #include "testing/testing.h"
 
-namespace Kratos::Testing {
+namespace Kratos::Testing
+{
 
-class KratosMappingFastSuite : public KratosCoreFastSuite {
-public:
-  KratosMappingFastSuite();
+class KratosMappingApplicationSerialTestSuite : public KratosCoreFastSuite {
+  public:
+    KratosMappingApplicationSerialTestSuite();
 
-private:
-  KratosMappingApplication::Pointer mpMappingApp;
-  //  KratosLinearSolversApplication::Pointer mpLinearSolversApp;
+  private:
+    KratosMappingApplication::Pointer mpMappingApp;
 };
 
 } // namespace Kratos::Testing
