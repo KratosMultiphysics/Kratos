@@ -237,12 +237,12 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
         self.initialize_flaging= True
 
-        skin_parts = [self.model.GetModelPart(name) for name in self.skin_name_list]
-        for skin_part in skin_parts:
-            for node in skin_part.Nodes:
-                node.Set(KratosMultiphysics.OUTLET)
-            for condition in skin_part.Conditions:
-                condition.Set(KratosMultiphysics.OUTLET)
+        # skin_parts = [self.model.GetModelPart(name) for name in self.skin_name_list]
+        # for skin_part in skin_parts:
+        #     for node in skin_part.Nodes:
+        #         node.Set(KratosMultiphysics.OUTLET)
+        #     for condition in skin_part.Conditions:
+        #         condition.Set(KratosMultiphysics.OUTLET)
 
     def Check(self):
         super().Check()
