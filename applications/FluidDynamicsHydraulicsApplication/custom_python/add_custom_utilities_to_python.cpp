@@ -48,6 +48,10 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
                     { return HydraulicFluidAuxiliaryUtilities::ImposeOutletPressure(rModelPart, WaterDepth, rDistanceVariable); })
         .def_static("AssignInletWaterDepth", [](ModelPart &rModelPart, double InletVelocity, double DeltaTime)
                     { return HydraulicFluidAuxiliaryUtilities::AssignInletWaterDepth(rModelPart, InletVelocity, DeltaTime); })
+        .def_static("SummergedInletCheck", [](ModelPart &rModelPart, double InletVelocity, double DeltaTime)
+                    { return HydraulicFluidAuxiliaryUtilities::SummergedInletCheck(rModelPart, InletVelocity, DeltaTime); })
+        .def_static("InletFreeSurface", [](ModelPart &rModelPart)
+                    { return HydraulicFluidAuxiliaryUtilities::InletFreeSurface(rModelPart); })
         .def_static("SetBoundaryWaterDepth", [](ModelPart &rModelPart, double WaterDepth, const Variable<double> &rDistanceVariable)
                     { return HydraulicFluidAuxiliaryUtilities::SetBoundaryWaterDepth(rModelPart, WaterDepth, rDistanceVariable); });
 }

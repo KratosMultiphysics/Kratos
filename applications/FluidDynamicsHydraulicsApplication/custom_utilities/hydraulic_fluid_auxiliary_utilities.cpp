@@ -334,7 +334,7 @@ void HydraulicFluidAuxiliaryUtilities::CalculateArtificialViscosity(ModelPart &r
             }
         }
         // Calculate the artificial viscosity
-        if (neg_nodes > 0 && pos_nodes > 0) 
+        if (neg_nodes > 0 && pos_nodes > 0)
         {
             // If the element is cut, the artificial viscosity is set to zero.
             artificial_viscosity = 0.0;
@@ -396,22 +396,25 @@ void HydraulicFluidAuxiliaryUtilities::FixingInflow(
         KRATOS_ERROR << "The variable " << rVariable.Name() << " is not supported. Only VELOCITY and FRACTIONAL_VELOCITY are allowed." << std::endl;
     }
     block_for_each(rModelPart.Nodes(), [&](NodeType &rNode)
-        {
-            array_1d<double, 3>& r_velocity = rNode.FastGetSolutionStepValue(rVariable);
-            // TODO: SE TENDRIA QUE PILLAR LA NORMAL DE ARRIBA NO??
-            const array_1d<double, 3>& r_normal = rNode.FastGetSolutionStepValue(NORMAL);
-            const double norm_n = norm_2(r_normal);
-            if (norm_n > 0.0) {
-                array_1d<double, 3> n_unit = r_normal / norm_n;
-                const double aux = inner_prod(r_velocity, n_unit);
+        {   rNode.Set(OUTLET);
+            // array_1d<double, 3>& r_velocity = rNode.FastGetSolutionStepValue(rVariable);
+            // // TODO: SE TENDRIA QUE PILLAR LA NORMAL DE ARRIBA NO??
+            // const array_1d<double, 3>& r_normal = rNode.FastGetSolutionStepValue(NORMAL);
+            // const double norm_n = norm_2(r_normal);
+            // if (norm_n > 0.0) {
+            //     array_1d<double, 3> n_unit = r_normal / norm_n;
+            //     const double aux = inner_prod(r_velocity, n_unit);
 
-                if (aux < 1e-7) {
-                    for (std::size_t i_dim = 0; i_dim < (DomainSize - 1); ++i_dim) {
-                        rNode.Fix(*(*components)[i_dim]);
-                    }
-                }
-            }
+            //     if (aux < 1e-7) {
+            //         for (std::size_t i_dim = 0; i_dim < (DomainSize - 1); ++i_dim) {
+            //             rNode.Fix(*(*components)[i_dim]);
+            //         }
+            //     }
+            // }
         });
+    block_for_each(rModelPart.Conditions(), [&](Condition & rCondition){
+        rCondition.Set(OUTLET);
+    });
 }
 
 void HydraulicFluidAuxiliaryUtilities::ImposeOutletPressure(ModelPart &rModelPart, double WaterDepth, const Variable<double> &rDistanceVariable)
@@ -450,7 +453,7 @@ void HydraulicFluidAuxiliaryUtilities::SetBoundaryWaterDepth(ModelPart &rModelPa
 
 void HydraulicFluidAuxiliaryUtilities::AssignInletWaterDepth(ModelPart &rModelPart,double InletVelocity,double DeltaTime){
 
-    //  Projected Velocity 
+    //  Projected Velocity
     struct AuxTLS
     {
         array_1d<double,3> InletNorm;
@@ -466,7 +469,7 @@ void HydraulicFluidAuxiliaryUtilities::AssignInletWaterDepth(ModelPart &rModelPa
         inlet_norm = rNode.GetValue(INLET_NORMAL);
 
         const double n_norm = norm_2(inlet_norm);
-       
+
         if (n_norm > 1.0e-12)
         {
             inlet_norm /= -n_norm;
@@ -488,8 +491,123 @@ void HydraulicFluidAuxiliaryUtilities::AssignInletWaterDepth(ModelPart &rModelPa
 
             rNode.SetValue(AUX_DISTANCE,phi_new);
         };
-  
 
+
+    });
+}
+
+void HydraulicFluidAuxiliaryUtilities::SummergedInletCheck(ModelPart &rModelPart, double InletVelocity, double DeltaTime)
+
+{
+    // Promedio de aux en nodos y condiciones cortadas
+    double total_aux_nodes = 0.0;
+    int total_nodes_count = 0;
+    double total_aux_conditions = 0.0;
+    int cut_conditions_count = 0;
+
+    for (auto &rCondition : rModelPart.Conditions())
+    {
+        const int number_of_nodes = rCondition.GetGeometry().PointsNumber();
+        double neg_nodes = 0.0;
+        double pos_nodes = 0.0;
+        double condition_aux_sum = 0.0; // Para acumular aux en esta condición
+
+        for (int i_node = 0; i_node < number_of_nodes; ++i_node)
+        {
+            auto &r_node = rCondition.GetGeometry()[i_node];
+            if (r_node.GetValue(AUX_DISTANCE) > 0.0)
+            {
+                pos_nodes += 1.0;
+            }
+            else
+            {
+                neg_nodes += 1.0;
+            }
+        }
+
+        if (neg_nodes != 0.0 && pos_nodes != 0.0)
+
+        {
+             // La condición está cortada
+            for (int i_node = 0; i_node < number_of_nodes; ++i_node)
+            {
+                auto &r_node = rCondition.GetGeometry()[i_node];
+                array_1d<double, 3> inlet_norm = r_node.GetValue(INLET_NORMAL);
+                const double n_norm = norm_2(inlet_norm);
+
+                if (n_norm > 1.0e-12)
+                {
+                    inlet_norm /= -n_norm;
+                }
+                else
+                {
+                    KRATOS_WARNING("SetInletVelocity")
+                        << "Node " << r_node.Id() << " INLET_NORMAL is close to zero." << std::endl;
+                    inlet_norm = ZeroVector(3);
+                }
+
+                // Inlet velocity vector.
+                // if (r_node.GetValue(AUX_DISTANCE)>0.0){
+                //     InletVelocity =0.0;
+                // }
+                array_1d<double, 3> inlet_velocity = inlet_norm * InletVelocity;
+                const double vel_norm = norm_2(inlet_velocity);
+
+                // Corrección del operador ternario
+                array_1d<double, 3> n;
+
+                if (vel_norm > 1.0e-12)
+                {
+                    n = inlet_velocity / vel_norm;
+                }
+                else
+                {
+                    n = ZeroVector(3);
+                }
+
+                array_1d<double, 3> grad_phi = r_node.FastGetSolutionStepValue(DISTANCE_GRADIENT);
+                double aux = inner_prod(grad_phi, n);
+                condition_aux_sum += aux; // Acumular aux para esta condición
+                total_nodes_count += 1;   // Contar nodos procesados
+            }
+
+            total_aux_conditions += condition_aux_sum / number_of_nodes; // Media de aux en esta condición
+            cut_conditions_count += 1;
+        }
+    }
+
+    // Calcular la media final
+    double average_aux_conditions = (cut_conditions_count > 0) ? total_aux_conditions / cut_conditions_count : 0.0;
+
+
+
+    // Corrección en block_for_each
+    block_for_each(rModelPart.Nodes(), [&](ModelPart::NodeType &rNode)
+                   {
+        double phi_old = rNode.GetValue(AUX_DISTANCE);
+        double new_phi = phi_old +average_aux_conditions * DeltaTime;
+        rNode.SetValue(AUX_DISTANCE, new_phi); });
+}
+
+void HydraulicFluidAuxiliaryUtilities::InletFreeSurface(ModelPart &rModelPart){
+    block_for_each(rModelPart.Nodes(), [&](NodeType &rNode) {
+        double phi_c = rNode.GetValue(AUX_DISTANCE);
+        double phi_domain = rNode.FastGetSolutionStepValue(DISTANCE);
+        if (phi_c >0.0 && phi_domain>0.0){
+            if (phi_c-phi_domain>0.0){
+                    rNode.SetValue(AUX_DISTANCE,phi_domain);
+            }
+
+        }
+        else if (phi_c>0.0 && phi_domain<0.0){
+            rNode.SetValue(AUX_DISTANCE, phi_domain);
+        }
+        else if (phi_c <0.0 && phi_domain<0.0){
+            if (phi_c-phi_domain>0.0){
+                    rNode.SetValue(AUX_DISTANCE,phi_domain);
+            }
+
+        }
     });
 }
 

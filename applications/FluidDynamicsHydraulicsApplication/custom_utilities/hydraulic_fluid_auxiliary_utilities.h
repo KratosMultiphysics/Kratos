@@ -166,10 +166,15 @@ public:
     static void SetBoundaryWaterDepth(ModelPart &rModelPart,
                                       double WaterDepth,
                                       const Variable<double> &rDistanceVariable);
-    
+
     static void AssignInletWaterDepth(ModelPart &rModelPart,
                                       double InletVelocity,
                                       double DeltaTime);
+    static void SummergedInletCheck(ModelPart &rModelPart,
+                                      double InletVelocity,
+                                      double DeltaTime);
+
+    static void InletFreeSurface(ModelPart &rModelPart);
 
     ///@}
 

@@ -105,9 +105,7 @@ class ApplyHydraulicSuperCriticalOutletProcess(KratosMultiphysics.Process):
                 self.inlet_discharge = self.table.GetValue(current_time)
         # Calculate Outlet water discharge value of the previous time step.
         outlet_water_discharge_n = KratosFluidDynamics.FluidAuxiliaryUtilities.CalculateFlowRateNegativeSkin(self.outlet_model_part)
-        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-        print(outlet_water_discharge_n, "outlet")
-        print(self.inlet_discharge, "inlet")
+
 
         if abs(outlet_water_discharge_n - self.inlet_discharge) > self.continuity_tolerance:
             for node in self.outlet_model_part.Nodes:

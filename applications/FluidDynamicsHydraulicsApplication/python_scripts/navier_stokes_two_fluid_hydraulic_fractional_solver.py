@@ -278,12 +278,12 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         # self.BlockingControl(self.air_steps, self.water_steps, self.current_step,self.air_bloqued,self.water_bloqued)
         self.PreBloquedProcess()
 
-      
+
 
         # skin_parts = [self.model.GetModelPart(name) for name in self.skin_name_list]
         # for skin_part in skin_parts:
         #     KratosHydraulics.HydraulicFluidAuxiliaryUtilities.FixingInflow(skin_part, KratosCFD.FRACTIONAL_VELOCITY, self.domain_size)
-    
+
         # Inlet and outlet water discharge is calculated for current time step, first discharge and the considering the time step inlet and outlet volume is calculated
         if self.mass_source:
             self._ComputeStepInitialWaterVolume()
@@ -690,7 +690,7 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         not_boundary_nodes=any([node.Is(boundary) for node in computing_model_part.Nodes])
         if not not_boundary_nodes:
             KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, name +" condition is not defined in the model part.")
-    
+
 
 
     def FlagingPreBlock(self):
