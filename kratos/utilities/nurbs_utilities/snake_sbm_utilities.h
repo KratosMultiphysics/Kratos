@@ -72,11 +72,9 @@ public:
      * @return int 
      */
     static int GetEchoLevel();
-
-private:
-    
     static int mEchoLevel;
 
+private:
      /**
      * @brief Creates the snake coordinates for a specific loop (inner or outer).
      * @param rIgaModelPart Model part containing the IGA geometry.
