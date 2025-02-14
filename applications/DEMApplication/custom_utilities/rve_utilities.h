@@ -75,7 +75,9 @@ namespace Kratos
             std::vector<DEMWall*> mWallYMax; // Vector of RVE wall elements in positive Y direction
             std::vector<DEMWall*> mWallZMin; // Vector of RVE wall elements in negative Z direction
             std::vector<DEMWall*> mWallZMax; // Vector of RVE wall elements in positive Z direction
-            Matrix mVertexCoords; // Coordinates of RVE vertices: mVertexCoords(i,j) = coordinate i (0=x, 1=y, 2=z) of vertex j (0=Xmin-Ymin-Zmin, 1=Xmax-Ymin-Zmin, 2=Xmax-Ymax-Zmin, 3=Xmin-Ymax-Zmin, 4=Xmin-Ymin-Zmax, 5=Xmax-Ymin-Zmax, 6=Xmax-Ymax-Zmax, 7=Xmin-Ymax-Zmax)
+
+            Matrix mVertexCoords;      // Coordinates of RVE vertices: mVertexCoords(i,j) = coordinate i (0=x, 1=y, 2=z) of vertex j (0=Xmin-Ymin-Zmin, 1=Xmax-Ymin-Zmin, 2=Xmax-Ymax-Zmin, 3=Xmin-Ymax-Zmin, 4=Xmin-Ymin-Zmax, 5=Xmax-Ymin-Zmax, 6=Xmax-Ymax-Zmax, 7=Xmin-Ymax-Zmax)
+            Matrix mVertexCoordsInner; // Coordinates of RVE inner vertices with an offset wrt original wall vertices
 
             std::vector<double> mContactChain;  // Vector of contact results: Coordinates (X1,Y1,Z1,X2,Y2,Z2), Forces (Fx,Fy,Fz)... of each contact
             std::vector<int> mRoseDiagram;      // Rose diagram - Polar histogram - of contacts (all particles)

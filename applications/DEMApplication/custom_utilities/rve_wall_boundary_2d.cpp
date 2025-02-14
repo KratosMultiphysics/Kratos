@@ -137,7 +137,7 @@ namespace Kratos
 
     //------------------------------------------------------------------------------------------------------------
     // Identify and store the updated coordinates of RVE vertices in counterclockwise order.
-    // TODO: THIS FUNCTION ONLY WORKS FOR SQUARED AND SHEARED RVEs WITH INCLINED LATERAL WALLS. IT SHOULD BE GENERALIZED FOR ANY RVE SHAPE.
+    // TODO: THIS FUNCTION ONLY WORKS FOR SQUARE AND SHEARED RVEs WITH INCLINED LATERAL WALLS. IT SHOULD BE ADAPTED TO CONSIDER ANY SHAPE.
     void RVEWallBoundary2D::SetVertexCoordinates(void) {
         // Vertex coordinates
         double x1, x2, x3, x4, y1, y2, y3, y4;
@@ -197,8 +197,52 @@ namespace Kratos
     }
 
     //------------------------------------------------------------------------------------------------------------
-    // TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // Compute and store the coordinates of RVE inner vertices based on original wall vertices.
+    // Inner volume (area in 2D):
+    //    Considered as the effective area without wall boundary effects.
+    //    Applies an offset proportional to the particle radius to the RVE walls to obtain an inner quadrilateral.
+    //    The optimal offset value was determined as 0.8R.
+    //    This simplistic method was used in the simulations of the reference works.
+    // TODO: CHECK IT FOR NON-ORTHOGONAL QUADRILATERALS!
     void RVEWallBoundary2D::SetVertexCoordinatesInner(void) {
+        // Offset with respect to walls
+        const double offset = mInnerVolOffset * mAvgRadius;
+
+        // Vertex coordinates
+        double x1 = mVertexCoords(0,0); double y1 = mVertexCoords(1,0);
+        double x2 = mVertexCoords(0,1); double y2 = mVertexCoords(1,1);
+        double x3 = mVertexCoords(0,2); double y3 = mVertexCoords(1,2);
+        double x4 = mVertexCoords(0,3); double y4 = mVertexCoords(1,3);
+
+        // Wall direction vectors
+        double w1x = x2-x1; double w1y = y2-y1;
+        double w2x = x3-x2; double w2y = y3-y2;
+        double w3x = x4-x3; double w3y = y4-y3;
+        double w4x = x1-x4; double w4y = y1-y4;
+        
+        // Wall lengths
+        double len1 = std::sqrt(w1x*w1x + w1y*w1y);
+        double len2 = std::sqrt(w2x*w2x + w2y*w2y);
+        double len3 = std::sqrt(w3x*w3x + w3y*w3y);
+        double len4 = std::sqrt(w4x*w4x + w4y*w4y);
+
+        // Inward vectors perpendicular to the walls (normalized and scaled by offset)
+        double n1x = -(w1y/len1)*offset; double n1y = (w1x/len1)*offset;
+        double n2x = -(w2y/len2)*offset; double n2y = (w2x/len2)*offset;
+        double n3x = -(w3y/len3)*offset; double n3y = (w3x/len3)*offset;
+        double n4x = -(w4y/len4)*offset; double n4y = (w4x/len4)*offset;
+
+        // Vertex coordinates of inner quadrilateral
+        double x1i = x1 + n1x + n4x; double y1i = y1 + n1y + n4y;
+        double x2i = x2 + n1x + n2x; double y2i = y2 + n1y + n2y;
+        double x3i = x3 + n2x + n3x; double y3i = y3 + n2y + n3y;
+        double x4i = x4 + n3x + n4x; double y4i = y4 + n3y + n4y;
+
+        // Set inner vertex coordinates
+        mVertexCoordsInner(0,0) = x1i; mVertexCoordsInner(1,0) = y1i;
+        mVertexCoordsInner(0,1) = x2i; mVertexCoordsInner(1,1) = y2i;
+        mVertexCoordsInner(0,2) = x3i; mVertexCoordsInner(1,2) = y3i;
+        mVertexCoordsInner(0,3) = x4i; mVertexCoordsInner(1,3) = y4i;
     }
 
     //------------------------------------------------------------------------------------------------------------
@@ -336,9 +380,57 @@ namespace Kratos
     }
 
     //------------------------------------------------------------------------------------------------------------
-    // TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // Compute the length of a branch vector inside RVE inner volume.
     double RVEWallBoundary2D::ComputeBranchLengthInner(std::vector<double>& coords1, std::vector<double>& coords2) {
-        return 0.0;
+        // Branch vector end coordinates
+        double x1 = coords1[0]; double y1 = coords1[1];
+        double x2 = coords2[0]; double y2 = coords2[1];
+
+        // Inner vertex coordinates
+        double vx1 = mVertexCoordsInner(0,0); double vy1 = mVertexCoordsInner(1,0);
+        double vx2 = mVertexCoordsInner(0,1); double vy2 = mVertexCoordsInner(1,1);
+        double vx3 = mVertexCoordsInner(0,2); double vy3 = mVertexCoordsInner(1,2);
+        double vx4 = mVertexCoordsInner(0,3); double vy4 = mVertexCoordsInner(1,3);
+        double edges[4][4] = {{vx1,vy1,vx2,vy2}, {vx2,vy2,vx3,vy3}, {vx3,vy3,vx4,vy4}, {vx4,vy4,vx1,vy1}};
+
+        // Check if the endpoints of the line are inside the quadrilateral
+        std::array<std::pair<double, double>, 4> intersections;
+        int count = 0;
+        if (PointInsideQuadrilateral(x1,y1,vx1,vy1,vx2,vy2,vx3,vy3,vx4,vy4)) intersections[count++] = {x1,y1};
+        if (PointInsideQuadrilateral(x2,y2,vx1,vy1,vx2,vy2,vx3,vy3,vx4,vy4)) intersections[count++] = {x2,y2};
+
+        // Compute intersections of the line with the quadrilateral edges
+        for (int i = 0; i < 4; i++) {
+            double ex1 = edges[i][0], ey1 = edges[i][1], ex2 = edges[i][2], ey2 = edges[i][3];
+            double denom = (x1-x2) * (ey1-ey2) - (y1-y2) * (ex1-ex2);
+            if (denom == 0)
+                continue; // Parallel lines, no intersection
+            double t = ((x1-ex1) * (ey1-ey2) - (y1-ey1) * (ex1-ex2)) / denom;
+            double u = ((x1-ex1) * (y1-y2)   - (y1-ey1) * (x1-x2))   / denom;
+            if (t >= 0 && t <= 1 && u >= 0 && u <= 1) {
+                double ix = x1 + t * (x2-x1);
+                double iy = y1 + t * (y2-y1);
+                intersections[count++] = {ix,iy};
+            }
+        }
+
+        // Compute the maximum segment length inside the quadrilateral
+        if (count < 2) { // Zero length
+            return 0.0;
+        }
+        else if (count == 2) {
+            return std::hypot(intersections[1].first - intersections[0].first, intersections[1].second - intersections[0].second);
+        }
+        else {
+            double max_len = 0.0;
+            for (int i = 0; i < count; i++) {
+                for (int j = i+1; j < count; j++) {
+                    double len = std::hypot(intersections[j].first - intersections[i].first, intersections[j].second - intersections[i].second);
+                    max_len = std::max(max_len, len);
+                }
+            }
+            return max_len;
+        }  
     }
 
     //------------------------------------------------------------------------------------------------------------
@@ -349,9 +441,60 @@ namespace Kratos
 
     //------------------------------------------------------------------------------------------------------------
     // Compute particle volume inside RVE inner volume (areas in 2D).
-    // TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     double RVEWallBoundary2D::ComputeVolumeParticleInner(SphericParticle& particle) {
-        return 0.0;
+        // Particle properties
+        double r = particle.GetRadius();
+        double x = particle.GetGeometry()[0][0];
+        double y = particle.GetGeometry()[0][1];
+        
+        // Inner vertex coordinates
+        double x1 = mVertexCoordsInner(0,0); double y1 = mVertexCoordsInner(1,0);
+        double x2 = mVertexCoordsInner(0,1); double y2 = mVertexCoordsInner(1,1);
+        double x3 = mVertexCoordsInner(0,2); double y3 = mVertexCoordsInner(1,2);
+        double x4 = mVertexCoordsInner(0,3); double y4 = mVertexCoordsInner(1,3);
+
+        // Compute signed distance from circle center to each wall (positive: circle center inside quadrilateral)
+        double de1 = 0.0;
+        double de2 = 0.0;
+        double de3 = 0.0;
+        double de4 = 0.0;
+
+        // Compute particle volume for each case of interaction with quadrilateral edges/vertices
+        double vol = ComputeVolumeParticle(particle);
+
+        if (de1 < -r || de2 < -r || de3 < -r || de4 < -r) { // Circle completely outside quadrilateral
+            vol = 0.0; 
+        }
+        else if (de1 < r || de2 < r || de3 < r || de4 < r) { // Circle cut by edges/vertices
+            // Compute distance from circle center to each vertex
+            double dv1 = std::sqrt((x-x1)*(x-x1)+(y-y1)*(y-y1));
+            double dv2 = std::sqrt((x-x2)*(x-x2)+(y-y2)*(y-y2));
+            double dv3 = std::sqrt((x-x3)*(x-x3)+(y-y3)*(y-y3));
+            double dv4 = std::sqrt((x-x4)*(x-x4)+(y-y4)*(y-y4));
+
+            // Circle cut by one or more edges, but with no vertex inside
+            if (dv1 >= r && dv2 >= r && dv3 >= r && dv4 >= r) {
+                double de[] = {de1, de2, de3, de4};
+                for (int i = 0; i < 4; i++) {
+                    if (std::abs(de[i]) < r) {
+                        double segment = (r*r * acos(de[i]/r)) - (de[i] * sqrt(r*r - de[i]*de[i]));
+                        vol = (de[i] > 0.0) ? vol - segment : segment;
+                    }
+                }
+            }
+            // Circle with vertex inside (no more than 1)
+            else {
+                double dv[] = {dv1, dv2, dv3, dv4};
+                for (int i = 0; i < 4; i++) {
+                    if (dv[i] < r) {
+                        // Area covered by the edges and angle
+                        vol = 0.0;
+                        break;
+                    }
+                }
+            }
+        }
+        return vol;
     }
 
     //------------------------------------------------------------------------------------------------------------
@@ -365,311 +508,13 @@ namespace Kratos
     }
 
     //------------------------------------------------------------------------------------------------------------
-    // Compute the inner area of RVE, considered as the effective area without wall boundary effects.
-    // METHOD 1: Applies an offset proportional to the particle radius to the RVE walls to obtain an inner quadrilateral.
-    //           The optimal offset value was determined as 0.8R.
-    //           This simplistic method was used in the simulations of the reference works.
-    // METHOD 2: Perform a Delaunay triangulation over the center of the inner particles to obtain the convex hull.
-    //           (This has been removed!)
+    // Compute the inner volume (area in 2D) of RVE.
     double RVEWallBoundary2D::ComputeVolumeRVEInner(void) {
-        // Offset with respect to walls
-        const double offset = mInnerVolOffset * mAvgRadius;
-
-        // Vertex coordinates
-        double x1 = mVertexCoords(0,0); double y1 = mVertexCoords(1,0);
-        double x2 = mVertexCoords(0,1); double y2 = mVertexCoords(1,1);
-        double x3 = mVertexCoords(0,2); double y3 = mVertexCoords(1,2);
-        double x4 = mVertexCoords(0,3); double y4 = mVertexCoords(1,3);
-
-        // Wall direction vectors
-        double w1x = x2-x1; double w1y = y2-y1;
-        double w2x = x3-x2; double w2y = y3-y2;
-        double w3x = x4-x3; double w3y = y4-y3;
-        double w4x = x1-x4; double w4y = y1-y4;
-        
-        // Wall lengths
-        double len1 = std::sqrt(w1x*w1x + w1y*w1y);
-        double len2 = std::sqrt(w2x*w2x + w2y*w2y);
-        double len3 = std::sqrt(w3x*w3x + w3y*w3y);
-        double len4 = std::sqrt(w4x*w4x + w4y*w4y);
-
-        // Inward vectors perpendicular to the walls (normalized and scaled by offset)
-        double n1x = -(w1y/len1)*offset; double n1y = (w1x/len1)*offset;
-        double n2x = -(w2y/len2)*offset; double n2y = (w2x/len2)*offset;
-        double n3x = -(w3y/len3)*offset; double n3y = (w3x/len3)*offset;
-        double n4x = -(w4y/len4)*offset; double n4y = (w4x/len4)*offset;
-
-        // Vertex coordinates of inner quadrilateral
-        double x1i = x1 + n1x + n4x; double y1i = y1 + n1y + n4y;
-        double x2i = x2 + n1x + n2x; double y2i = y2 + n1y + n2y;
-        double x3i = x3 + n2x + n3x; double y3i = y3 + n2y + n3y;
-        double x4i = x4 + n3x + n4x; double y4i = y4 + n3y + n4y;
-
-        // Compute area of inner quadrilateral
+        double x1 = mVertexCoordsInner(0,0); double y1 = mVertexCoordsInner(1,0);
+        double x2 = mVertexCoordsInner(0,1); double y2 = mVertexCoordsInner(1,1);
+        double x3 = mVertexCoordsInner(0,2); double y3 = mVertexCoordsInner(1,2);
+        double x4 = mVertexCoordsInner(0,3); double y4 = mVertexCoordsInner(1,3);
         return ComputeAreaFromVertices(x1, x2, x3, x4, y1, y2, y3, y4);
-    }
-
-    //------------------------------------------------------------------------------------------------------------
-    // Compute RVE porosity considering its inner volume.
-    double RVEWallBoundary2D::ComputePorosityInner(void) {
-        return RVEUtilities::ComputePorosityInner();
-
-        // OLD ALTERNATIVE METHOD: ONLY FOR SQUARE RVEs (NEEDS TO BE CHECKED)
-        /*
-        ProcessInfo& r_process_info = mDemModelPart->GetProcessInfo();
-
-        // Vertex coordinates
-        double x1 = mVertexCoords(0,0); double y1 = mVertexCoords(1,0);
-        double x2 = mVertexCoords(0,1); double y2 = mVertexCoords(1,1);
-        double x3 = mVertexCoords(0,2); double y3 = mVertexCoords(1,2);
-        double x4 = mVertexCoords(0,3); double y4 = mVertexCoords(1,3);
-
-        // Check RVE shape
-        bool is_square = (EqualValues(y1,y2) && EqualValues(y3,y4) && EqualValues(x1,x4) && EqualValues(x2,x3));
-        if (!is_square)
-            return 0.0;
-    
-        // Inner boundaries and corners
-        const double offset = mInnerVolOffset * mRVE_MeanRadius;
-
-        const double xmin = mRVE_WallXMin[0]->GetGeometry()[0][0] + offset;
-        const double xmax = mRVE_WallXMax[0]->GetGeometry()[0][0] - offset;
-        const double ymin = mRVE_WallYMin[0]->GetGeometry()[0][1] + offset;
-        const double ymax = mRVE_WallYMax[0]->GetGeometry()[0][1] - offset;
-
-        const double corner_1[3] = { xmin, ymin, 0.0 };
-        const double corner_2[3] = { xmax, ymin, 0.0 };
-        const double corner_3[3] = { xmin, ymax, 0.0 };
-        const double corner_4[3] = { xmax, ymax, 0.0 };
-
-        // Inner volume
-        const double inner_vol = (xmax - xmin) * (ymax - ymin);
-
-        // Compute solid volume
-        mRVE_VolSolidInner = 0.0;
-
-      // Loop over all particles
-      for (int i = 0; i < mListOfSphericParticles.size(); i++) {
-        const double r = mListOfSphericParticles[i]->GetRadius();
-        auto& central_node = mListOfSphericParticles[i]->GetGeometry()[0];
-        const double x = central_node[0];
-        const double y = central_node[1];
-        const double z = central_node[2];
-        const double coords[3] = { x, y, z };
-
-        // Distances from particle center to corners
-        const double dist_corner_1 = GeometryFunctions::DistanceOfTwoPoint(coords, corner_1);
-        const double dist_corner_2 = GeometryFunctions::DistanceOfTwoPoint(coords, corner_2);
-        const double dist_corner_3 = GeometryFunctions::DistanceOfTwoPoint(coords, corner_3);
-        const double dist_corner_4 = GeometryFunctions::DistanceOfTwoPoint(coords, corner_4);
-
-        // Area inside inner region
-        double area_inside = 0.0;
-        
-        // 1 - Particle inside region
-        if (x + r <= xmax && x - r >= xmin && y + r <= ymax && y - r >= ymin) {
-          area_inside = Globals::Pi * r * r;
-        }
-
-        // 2A - Cell corner (bottom-left) inside circle
-        else if (dist_corner_1 < r) {
-          const double dx = x - xmin;
-          const double dy = y - ymin;
-          const double sx = sqrt(r * r - dy * dy);
-          const double sy = sqrt(r * r - dx * dx);
-          const double lx = sx + dx;
-          const double ly = sy + dy;
-          const double h = sqrt(lx * lx + ly * ly);
-          const double t = 2 * asin(h / (2 * r));
-          const double area_tri = lx * ly / 2;
-          const double area_seg = 0.5 * r * r * (t - sin(t));
-          area_inside = area_tri + area_seg;
-        }
-
-        // 2B - Cell corner (bottom-right) inside circle
-        else if (dist_corner_2 < r) {
-          const double dx = x - xmax;
-          const double dy = y - ymin;
-          const double sx = sqrt(r * r - dy * dy);
-          const double sy = sqrt(r * r - dx * dx);
-          const double lx = sx - dx;
-          const double ly = sy + dy;
-          const double h = sqrt(lx * lx + ly * ly);
-          const double t = 2 * asin(h / (2 * r));
-          const double area_tri = lx * ly / 2;
-          const double area_seg = 0.5 * r * r * (t - sin(t));
-          area_inside = area_tri + area_seg;
-        }
-
-        // 2C - Cell corner (top-left) inside circle
-        else if (dist_corner_3 < r) {
-          const double dx = x - xmin;
-          const double dy = y - ymax;
-          const double sx = sqrt(r * r - dy * dy);
-          const double sy = sqrt(r * r - dx * dx);
-          const double lx = sx + dx;
-          const double ly = sy - dy;
-          const double h = sqrt(lx * lx + ly * ly);
-          const double t = 2 * asin(h / (2 * r));
-          const double area_tri = lx * ly / 2;
-          const double area_seg = 0.5 * r * r * (t - sin(t));
-          area_inside = area_tri + area_seg;
-        }
-
-        // 2D - Cell corner (top-right) inside circle
-        else if (dist_corner_4 < r) {
-          const double dx = x - xmax;
-          const double dy = y - ymax;
-          const double sx = sqrt(r * r - dy * dy);
-          const double sy = sqrt(r * r - dx * dx);
-          const double lx = sx - dx;
-          const double ly = sy - dy;
-          const double h = sqrt(lx * lx + ly * ly);
-          const double t = 2 * asin(h / (2 * r));
-          const double area_tri = lx * ly / 2;
-          const double area_seg = 0.5 * r * r * (t - sin(t));
-          area_inside = area_tri + area_seg;
-        }
-
-        // Particle crossed by edges
-        else {
-          bool is_inside = false;
-
-          // Left edge
-          if (std::abs(x - xmin) < r && y > ymin && y < ymax) {
-            const double ident = r - std::abs(x - xmin);
-            const double ovlp  = r * r * acos((r - ident) / r) - (r - ident) * sqrt(2 * r * ident - ident * ident);
-            if (x > xmin) {
-              is_inside = 1;
-              area_inside = area_inside - ovlp;
-            }
-            else {
-              area_inside = ovlp;
-            }
-          }
-
-          // Right edge
-          if (std::abs(x - xmax) < r && y > ymin && y < ymax) {
-            const double ident = r - std::abs(x - xmax);
-            const double ovlp  = r * r * acos((r - ident) / r) - (r - ident) * sqrt(2 * r * ident - ident * ident);
-            if (x < xmax) {
-              is_inside = 1;
-              area_inside = area_inside - ovlp;
-            }
-            else {
-              area_inside = ovlp;
-            }
-          }
-
-          // Lower edge
-          if (std::abs(y - ymin) < r && x > xmin && x < xmax) {
-            const double ident = r - std::abs(y - ymin);
-            const double ovlp = r * r * acos((r - ident) / r) - (r - ident) * sqrt(2 * r * ident - ident * ident);
-            if (y > ymin) {
-              is_inside = 1;
-              area_inside = area_inside - ovlp;
-            }
-            else {
-              area_inside = ovlp;
-            }
-          }
-
-          // Top edge
-          if (std::abs(y - ymax) < r && x > xmin && x < xmax) {
-            const double ident = r - std::abs(y - ymax);
-            const double ovlp = r * r * acos((r - ident) / r) - (r - ident) * sqrt(2 * r * ident - ident * ident);
-            if (y < ymax) {
-              is_inside = 1;
-              area_inside = area_inside - ovlp;
-            }
-            else {
-              area_inside = ovlp;
-            }
-          }
-
-          // Add particle area if it is inside cell
-          if (is_inside)
-            area_inside = area_inside + Globals::Pi * r * r;
-        }
-
-        // Remove overlaps: loop over possible particle neighbors
-        for (int j = i+1; j < mListOfSphericParticles.size(); j++) {
-          const double rn = mListOfSphericParticles[j]->GetRadius();
-          const double xn = mListOfSphericParticles[j]->GetGeometry()[0][0];
-          const double yn = mListOfSphericParticles[j]->GetGeometry()[0][1];
-          const double zn = mListOfSphericParticles[j]->GetGeometry()[0][2];
-
-          // Identation
-          auto& neighbour_node = mListOfSphericParticles[j]->GetGeometry()[0];
-          array_1d<double, 3> v;
-          noalias(v) = central_node.Coordinates() - neighbour_node.Coordinates();
-          const double d = DEM_MODULUS_3(v);
-          const double ident = r + rn - d;
-
-          if (ident <= 0.0)
-            continue;
-
-          // Overlap area
-          double area_ovlp = r*r * std::acos((d*d + r*r - rn*rn) / (2.0 * d * r)) + rn*rn * std::acos((d*d + rn*rn - r*r) / (2.0 * d * rn)) - 0.5 * sqrt((d + r + rn) * (-d + r + rn) * (d + r - rn) * (d - r + rn));
-
-          // Unit vector
-          array_1d<double, 3> vu = v;
-          GeometryFunctions::normalize(vu);
-
-          // Contact radius
-          const double rc = sqrt(r*r - pow((r*r - rn* rn + d*d)/(2*d),2.0));
-
-          // Coordinates of overlap center
-          const double d_1O = sqrt(r*r - rc*rc);
-          array_1d<double,3> vu_d1O = vu;
-          DEM_MULTIPLY_BY_SCALAR_3(vu_d1O, d_1O);
-          array_1d<double, 3> pO;
-          noalias(pO) = central_node.Coordinates() + vu_d1O;
-
-          // Coordiantes of overlap ends
-          array_1d<double, 3> vu_OA;
-          array_1d<double, 3> vu_OB;
-          array_1d<double, 3> positive_z = ZeroVector(3);
-          positive_z[2] = 1.0;
-          GeometryFunctions::CrossProduct(positive_z, vu, vu_OA);
-          GeometryFunctions::CrossProduct(vu, positive_z, vu_OB);
-
-          array_1d<double, 3> v_OA = vu_OA;
-          array_1d<double, 3> v_OB = vu_OB;
-          DEM_MULTIPLY_BY_SCALAR_3(v_OA, rc);
-          DEM_MULTIPLY_BY_SCALAR_3(v_OB, rc);
-
-          array_1d<double, 3> pA;
-          array_1d<double, 3> pB;
-          noalias(pA) = pO + v_OA;
-          noalias(pB) = pO + v_OB;
-
-          // Check if overlap area is inside region or cut by edges
-          const double x1 = GeometryFunctions::min(pA[0], pB[0]);
-          const double x2 = GeometryFunctions::max(pA[0], pB[0]);
-          const double y1 = GeometryFunctions::min(pA[1], pB[1]);
-          const double y2 = GeometryFunctions::max(pA[1], pB[1]);
-          double ratio_in = 0.0;
-
-          if      (x1 > xmin && x2 < xmax && y1 > ymin && y2 < ymax) ratio_in = 1.0;                     // Inside
-          else if (x1 < xmin && x2 > xmin && y1 > ymin && y2 < ymax) ratio_in = (x2 - xmin) / (x2 - x1); // Left edge
-          else if (x1 < xmax && x2 > xmax && y1 > ymin && y2 < ymax) ratio_in = (xmax - x1) / (x2 - x1); // Right edge
-          else if (y1 < ymin && y2 > ymin && x1 > xmin && x2 < xmax) ratio_in = (y2 - ymin) / (y2 - y1); // Bottom edge
-          else if (y1 < ymax && y2 > ymax && x1 > xmin && x2 < xmax) ratio_in = (ymax - y1) / (y2 - y1); // Top edge
-
-          area_ovlp *= ratio_in;
-
-          // Discount overlap
-          area_inside -= area_ovlp;
-        }
-
-        // Add particle area to solid volume
-        mRVE_VolSolidInner += area_inside;
-      }
-
-      // Compute porosity
-      mRVE_PorosityInner = 1.0 - mRVE_VolSolidInner / inner_vol;
-      */
     }
 
     //------------------------------------------------------------------------------------------------------------
@@ -972,7 +817,22 @@ namespace Kratos
     double RVEWallBoundary2D::ComputeAreaFromVertices(double x1, double x2, double x3, double x4, double y1, double y2, double y3, double y4) {
         return 0.5 * std::abs(x1*y2 + x2*y3 + x3*y4 + x4*y1 - x2*y1 - x3*y2 - x4*y3 - x1*y4);
     }
-    
+
+    //------------------------------------------------------------------------------------------------------------
+    // Check if a point (x,y) is inside a convex quadrilateral with vertices (x1,y1), (x2,y2), (x3,y3), (x4,y4)
+    bool RVEWallBoundary2D::PointInsideQuadrilateral(double x, double y, double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4) {
+        int count = 0;
+        double vertices[4][2] = {{x1,y1}, {x2,y2}, {x3,y3}, {x4,y4}};
+        for (int i = 0; i < 4; i++) {
+            double xA = vertices[i][0];
+            double yA = vertices[i][1];
+            double xB = vertices[(i+1)%4][0];
+            double yB = vertices[(i+1)%4][1];
+            if (((yA>y) != (yB>y)) && ( x < (xB-xA)*(y-yA)/(yB-yA)+xA)) count++;
+        }
+        return count % 2 == 1;
+    }
+
     //------------------------------------------------------------------------------------------------------------
     // Compute the standard deviation of the bin values of a given rose diagram.
     double RVEWallBoundary2D::ComputeRoseDiagramStdDev(std::vector<int> rose_diagram) {

@@ -44,7 +44,6 @@ namespace Kratos
             double ComputeVolumeParticleInner (SphericParticle& particle) override;
             double ComputeVolumeRVE           (void) override;
             double ComputeVolumeRVEInner      (void) override;
-            double ComputePorosityInner       (void) override;
             double ComputeSurfaceArea         (void) override;
             double ComputeFabricIndex         (Matrix fabric_tensor);
             void   AddContactToRoseDiagram    (std::vector<int>& rose_diagram, std::vector<double>& normal);
@@ -56,6 +55,7 @@ namespace Kratos
             // Private methods
             void   SortVerticesCounterClockwise (double& x1, double& x2, double& x3, double& x4, double& y1, double& y2, double& y3, double& y4);
             double ComputeAreaFromVertices      (double  x1, double  x2, double  x3, double  x4, double  y1, double  y2, double  y3, double  y4);
+            bool   PointInsideQuadrilateral     (double x, double y, double vx1, double vy1, double vx2, double vy2, double vx3, double vy3, double vx4, double vy4);
             double ComputeRoseDiagramStdDev     (std::vector<int> rose_diagram);
     };
 }
