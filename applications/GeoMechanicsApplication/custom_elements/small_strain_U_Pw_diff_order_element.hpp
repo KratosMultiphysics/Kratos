@@ -243,7 +243,7 @@ protected:
                                         std::vector<Vector>& rStressVectors,
                                         std::vector<Matrix>& rConstitutiveMatrices);
 
-    Vector GetPressureSolutionVector();
+    [[nodiscard]] Vector GetPressureSolutionVector() const;
 
     [[nodiscard]] std::vector<double> CalculateDegreesOfSaturation(const std::vector<double>& rFluidPressures);
     [[nodiscard]] std::vector<double> CalculateDerivativesOfSaturation(const std::vector<double>& rFluidPressures);
