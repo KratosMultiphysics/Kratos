@@ -136,7 +136,7 @@ namespace Kratos
     }
 
     //------------------------------------------------------------------------------------------------------------
-    // Identify and store the coordinates of RVE vertices in counterclockwise order.
+    // Identify and store the updated coordinates of RVE vertices in counterclockwise order.
     // TODO: THIS FUNCTION ONLY WORKS FOR SQUARED AND SHEARED RVEs WITH INCLINED LATERAL WALLS. IT SHOULD BE GENERALIZED FOR ANY RVE SHAPE.
     void RVEWallBoundary2D::SetVertexCoordinates(void) {
         // Vertex coordinates
@@ -197,32 +197,166 @@ namespace Kratos
     }
 
     //------------------------------------------------------------------------------------------------------------
-    // Compute the boundary perimeter of RVE.
-    double RVEWallBoundary2D::ComputeSurfaceArea(void) {
-        // Vertex coordinates
-        const double x1 = mVertexCoords(0,0); const double y1 = mVertexCoords(1,0);
-        const double x2 = mVertexCoords(0,1); const double y2 = mVertexCoords(1,1);
-        const double x3 = mVertexCoords(0,2); const double y3 = mVertexCoords(1,2);
-        const double x4 = mVertexCoords(0,3); const double y4 = mVertexCoords(1,3);
+    // TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    void RVEWallBoundary2D::SetVertexCoordinatesInner(void) {
+    }
 
-        // Wall direction vectors
-        const double w1x = x2-x1; const double w1y = y2-y1;
-        const double w2x = x3-x2; const double w2y = y3-y2;
-        const double w3x = x4-x3; const double w3y = y4-y3;
-        const double w4x = x1-x4; const double w4y = y1-y4;
+    //------------------------------------------------------------------------------------------------------------
+    // Process and sum up global RVE results accumulated from individual particle and interaction contributions.
+    void RVEWallBoundary2D::ProcessGlobalResults(void) {
+        for (unsigned int i = 0; i < mNumParticles; i++) {
+            ModelPart::ElementsContainerType::iterator it = mDemModelPart->GetCommunicator().LocalMesh().Elements().ptr_begin() + i;
+            SphericParticle &particle = dynamic_cast<SphericParticle&>(*it);
 
-        // Wall lengths
-        const double len1 = std::sqrt(w1x*w1x + w1y*w1y);
-        const double len2 = std::sqrt(w2x*w2x + w2y*w2y);
-        const double len3 = std::sqrt(w3x*w3x + w3y*w3y);
-        const double len4 = std::sqrt(w4x*w4x + w4y*w4y);
+            // Particle properties
+            const int id1 = particle.GetId();
+            const double r1 = particle.GetRadius();
+            const double x1 = particle.GetGeometry()[0][0];
+            const double y1 = particle.GetGeometry()[0][1];
+            std::vector<double> coords1 = {x1, y1};
+            bool is_inner_particle = true;
 
-        return len1 + len2 + len3 + len4;
+            // Accumulate particle properties
+            mAvgRadius     += r1;
+            mVolSolid      += ComputeVolumeParticle(particle);
+            mVolSolidInner += ComputeVolumeParticleInner(particle);
+
+            // Loop over contacts with walls
+            for (unsigned int j = 0; j < particle.mNeighbourRigidFaces.size(); j++) {
+                // Neighbor properties
+                const int id2 = particle.mNeighbourRigidFaces[j]->GetId();
+                const double x2 = particle.mNeighbourRigidFaces[j]->GetGeometry()[0][0];
+                const double y2 = particle.mNeighbourRigidFaces[j]->GetGeometry()[0][1];
+                const double x3 = particle.mNeighbourRigidFaces[j]->GetGeometry()[1][0];
+                const double y3 = particle.mNeighbourRigidFaces[j]->GetGeometry()[1][1];
+
+                // Check for existing contact
+                if (particle.mBallToRigidFaceStoredInfo.find(id2) == particle.mBallToRigidFaceStoredInfo.end()) continue;
+                const double indent = particle.mBallToRigidFaceStoredInfo[id2].indentation;
+                if (indent <= 0.0) continue;
+
+                // Increment number of contacts
+                mAvgCoordNum++;
+                mNumContacts++;
+                is_inner_particle = false;
+
+                // Normal vector
+                const double d  = r1 - indent;
+                const double nx = -particle.mBallToRigidFaceStoredInfo[id2].local_coord_system[2][0];
+                const double ny = -particle.mBallToRigidFaceStoredInfo[id2].local_coord_system[2][1];
+                std::vector<double> normal = {nx, ny};
+                std::vector<double> branch = {d * nx, d * ny};
+
+                // Update rose diagram
+                AddContactToRoseDiagram(mRoseDiagram, normal);
+
+                // Applied wall force (normal component)
+                const double fx = particle.mBallToRigidFaceStoredInfo[id2].global_contact_force[0];
+                const double fy = particle.mBallToRigidFaceStoredInfo[id2].global_contact_force[1];
+                std::vector<double> global_contact_force = {fx, fy};
+                mWallForces += std::abs(fx * nx + fy * ny);
+
+                // Contact results
+                std::vector<double> chain{x1, y1, 0.0, x1+branch[0], y1+branch[1], 0.0, fx, fy, 0.0};
+                mContactChain.insert(mContactChain.end(), chain.begin(), chain.end());
+
+                // Tensors
+                for (int k = 0; k < mDim; k++) {
+                    for (int l = 0; l < mDim; l++) {
+                        mFabricTensor(k,l) += normal[k] * normal[l];
+                        mStressTensor(k,l) += branch[k] * global_contact_force[l];
+                    }
+                }
+            }
+            if (is_inner_particle) {
+                mNumParticlesInner++;
+            }
+
+            // Loop over contacts with particles
+            for (unsigned int j = 0; j < particle.mNeighbourElements.size(); j++) {
+                // Neighbor properties
+                const int id2 = particle.mNeighbourElements[j]->GetId();
+                const double r2 = particle.mNeighbourElements[j]->GetRadius();
+                const double x2 = particle.mNeighbourElements[j]->GetGeometry()[0][0];
+                const double y2 = particle.mNeighbourElements[j]->GetGeometry()[0][1];
+                std::vector<double> coords2 = {x2, y2};
+
+                // Check for existing contact
+                if (particle.mBallToBallStoredInfo.find(id2) == particle.mBallToBallStoredInfo.end()) continue;
+                const double indent = particle.mBallToBallStoredInfo[id2].indentation;
+                if (indent <= 0.0) continue;
+
+                // Increment number of contacts
+                mAvgCoordNum++;
+                if (is_inner_particle) mAvgCoordNumInner++;
+
+                // Normal vector
+                const double d  = r1 + r2 - indent;
+                const double nx = -particle.mBallToBallStoredInfo[id2].local_coord_system[2][0];
+                const double ny = -particle.mBallToBallStoredInfo[id2].local_coord_system[2][1];
+                std::vector<double> normal = {nx, ny};
+                std::vector<double> branch = {d * nx, d * ny};
+
+                // Update rose diagram
+                AddContactToRoseDiagram(mRoseDiagram, normal);
+                if (is_inner_particle) AddContactToRoseDiagram(mRoseDiagramInner, normal);
+
+                // Unique contacts (each binary contact evaluated only once)
+                if (id1 < id2) {
+                    // Check for inner contact
+                    const double inner_contact_len = ComputeBranchLengthInner(coords1, coords2);
+                    const double inner_contact_ratio = inner_contact_len / d;
+                    bool is_inner_contact = (inner_contact_len != 0.0);
+
+                    // Increment number of unique contacts
+                    mNumContacts++;
+                    if (is_inner_contact) mNumContactsInner++;
+
+                    // Contact results
+                    const double fx = particle.mBallToBallStoredInfo[id2].global_contact_force[0];
+                    const double fy = particle.mBallToBallStoredInfo[id2].global_contact_force[1];
+                    std::vector<double> global_contact_force = {fx, fy};
+                    std::vector<double> chain{x1, y1, 0.0, x2, y2, 0.0, fx, fy, 0.0};
+                    mContactChain.insert(mContactChain.end(), chain.begin(), chain.end());
+
+                    // Tensors
+                    for (unsigned int k = 0; k < mDim; k++) {
+                        for (unsigned int l = 0; l < mDim; l++) {
+                            mFabricTensor(k,l) += normal[k] * normal[l];
+                            mStressTensor(k,l) += branch[k] * global_contact_force[l];
+                            if (is_inner_contact) {
+                                mFabricTensorInner(k,l) += normal[k] * normal[l];
+                                mStressTensorInner(k,l) += branch[k] * global_contact_force[l] * inner_contact_ratio;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    //------------------------------------------------------------------------------------------------------------
+    // TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    double RVEWallBoundary2D::ComputeBranchLengthInner(std::vector<double>& coords1, std::vector<double>& coords2) {
+        return 0.0;
+    }
+
+    //------------------------------------------------------------------------------------------------------------
+    // Compute particle volume, currently considering circle area in 2D.
+    double RVEWallBoundary2D::ComputeVolumeParticle(SphericParticle& particle) {
+        return Globals::Pi * particle.GetRadius() * particle.GetRadius();
+    }
+
+    //------------------------------------------------------------------------------------------------------------
+    // Compute particle volume inside RVE inner volume (areas in 2D).
+    // TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    double RVEWallBoundary2D::ComputeVolumeParticleInner(SphericParticle& particle) {
+        return 0.0;
     }
 
     //------------------------------------------------------------------------------------------------------------
     // Compute the total area of RVE.
-    double RVEWallBoundary2D::ComputeVolumeTotal(void) {
+    double RVEWallBoundary2D::ComputeVolumeRVE(void) {
         const double x1 = mVertexCoords(0,0); const double y1 = mVertexCoords(1,0);
         const double x2 = mVertexCoords(0,1); const double y2 = mVertexCoords(1,1);
         const double x3 = mVertexCoords(0,2); const double y3 = mVertexCoords(1,2);
@@ -237,7 +371,7 @@ namespace Kratos
     //           This simplistic method was used in the simulations of the reference works.
     // METHOD 2: Perform a Delaunay triangulation over the center of the inner particles to obtain the convex hull.
     //           (This has been removed!)
-    double RVEWallBoundary2D::ComputeVolumeInner(void) {
+    double RVEWallBoundary2D::ComputeVolumeRVEInner(void) {
         // Offset with respect to walls
         const double offset = mInnerVolOffset * mAvgRadius;
 
@@ -273,12 +407,6 @@ namespace Kratos
 
         // Compute area of inner quadrilateral
         return ComputeAreaFromVertices(x1, x2, x3, x4, y1, y2, y3, y4);
-    }
-
-    //------------------------------------------------------------------------------------------------------------
-    // Compute particle volume, currently considering circle area in 2D.
-    double RVEWallBoundary2D::ComputeVolumeParticle(SphericParticle& particle) {
-        return Globals::Pi * particle.GetRadius() * particle.GetRadius();
     }
 
     //------------------------------------------------------------------------------------------------------------
@@ -545,9 +673,33 @@ namespace Kratos
     }
 
     //------------------------------------------------------------------------------------------------------------
+    // Compute the boundary perimeter of RVE.
+    double RVEWallBoundary2D::ComputeSurfaceArea(void) {
+        // Vertex coordinates
+        const double x1 = mVertexCoords(0,0); const double y1 = mVertexCoords(1,0);
+        const double x2 = mVertexCoords(0,1); const double y2 = mVertexCoords(1,1);
+        const double x3 = mVertexCoords(0,2); const double y3 = mVertexCoords(1,2);
+        const double x4 = mVertexCoords(0,3); const double y4 = mVertexCoords(1,3);
+
+        // Wall direction vectors
+        const double w1x = x2-x1; const double w1y = y2-y1;
+        const double w2x = x3-x2; const double w2y = y3-y2;
+        const double w3x = x4-x3; const double w3y = y4-y3;
+        const double w4x = x1-x4; const double w4y = y1-y4;
+
+        // Wall lengths
+        const double len1 = std::sqrt(w1x*w1x + w1y*w1y);
+        const double len2 = std::sqrt(w2x*w2x + w2y*w2y);
+        const double len3 = std::sqrt(w3x*w3x + w3y*w3y);
+        const double len4 = std::sqrt(w4x*w4x + w4y*w4y);
+
+        return len1 + len2 + len3 + len4;
+    }
+
+    //------------------------------------------------------------------------------------------------------------
     // Compute representative index of fabric tensor.
     double RVEWallBoundary2D::ComputeFabricIndex(Matrix fabric_tensor) {
-        return fabric_tensor(0,0)-fabric_tensor(1,1);
+        return fabric_tensor(0,0) - fabric_tensor(1,1);
     }
 
     //------------------------------------------------------------------------------------------------------------
@@ -562,7 +714,7 @@ namespace Kratos
     }
 
     //------------------------------------------------------------------------------------------------------------
-    // Evaluate the uniformity of the rose diagram of contacts according to selected statistical metrics (currently, the standard deviation).
+    // Evaluate the uniformity of the rose diagram according to selected statistical metrics (currently, the standard deviation).
     void RVEWallBoundary2D::EvaluateRoseUniformity(void) {
         mRoseUnif      = ComputeRoseDiagramStdDev(mRoseDiagram);
         mRoseUnifInner = ComputeRoseDiagramStdDev(mRoseDiagramInner);
@@ -606,7 +758,7 @@ namespace Kratos
     //------------------------------------------------------------------------------------------------------------
     // Write selected results to opened files.
     void RVEWallBoundary2D::WriteResultFiles(void) {
-        if (!IsTimeToPrintResults()) return;
+        if (!IsTimeToPrintResults(mDemModelPart->GetProcessInfo()[TIME_STEPS])) return;
 
         ProcessInfo& r_process_info = mDemModelPart->GetProcessInfo();
         const int time_step = r_process_info[TIME_STEPS];

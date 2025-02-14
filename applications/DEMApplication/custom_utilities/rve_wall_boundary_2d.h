@@ -37,11 +37,15 @@ namespace Kratos
             // Protected methods
             void   AssembleWallElementVectors (void) override;
             void   SetVertexCoordinates       (void) override;
-            double ComputeSurfaceArea         (void) override;
-            double ComputeVolumeTotal         (void) override;
-            double ComputeVolumeInner         (void) override;
+            void   SetVertexCoordinatesInner  (void) override;
+            void   ProcessGlobalResults       (void) override;
+            double ComputeBranchLengthInner   (std::vector<double>& coords1, std::vector<double>& coords2) override;
             double ComputeVolumeParticle      (SphericParticle& particle) override;
+            double ComputeVolumeParticleInner (SphericParticle& particle) override;
+            double ComputeVolumeRVE           (void) override;
+            double ComputeVolumeRVEInner      (void) override;
             double ComputePorosityInner       (void) override;
+            double ComputeSurfaceArea         (void) override;
             double ComputeFabricIndex         (Matrix fabric_tensor);
             void   AddContactToRoseDiagram    (std::vector<int>& rose_diagram, std::vector<double>& normal);
             void   EvaluateRoseUniformity     (void) override;

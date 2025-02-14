@@ -104,31 +104,34 @@ namespace Kratos
         protected:
             // Protected methods
             bool EqualValues(const double a, const double b) {return std::abs(a-b) < std::numeric_limits<double>::epsilon();}
-            bool IsTimeToEvaluateRVE  (void);
-            bool IsTimeToPrintResults (void);
+            bool IsTimeToEvaluateRVE  (int time_step) {return (time_step != 0 && mEvalFreq  != 0 && time_step % mEvalFreq  == 0.0);}
+            bool IsTimeToPrintResults (int time_step) {return (time_step != 0 && mWriteFreq != 0 && time_step % mWriteFreq == 0.0);}
 
             virtual void   InitializeVariables        (ModelPart& dem_model_part, ModelPart& fem_model_part);
-            virtual void   PreProcessGlobalResults    (void);
-            virtual void   ProcessGlobalResults       (void);
-            virtual void   PostProcessGlobalResults   (void);
             virtual void   AssembleWallElementVectors (void) {}
             virtual void   SetVertexCoordinates       (void) {}
-            virtual double ComputeSurfaceArea         (void) {return 0.0;}
-            virtual double ComputeVolumeTotal         (void) {return 0.0;}
-            virtual double ComputeVolumeInner         (void) {return 0.0;}
-            virtual double ComputeVolumeParticle      (SphericParticle& particle);
+            virtual void   SetVertexCoordinatesInner  (void) {}
+            virtual void   PreProcessGlobalResults    (void);
+            virtual void   ProcessGlobalResults       (void) {}
+            virtual void   PostProcessGlobalResults   (void);
+            virtual double ComputeBranchLengthInner   (std::vector<double>& coords1, std::vector<double>& coords2) {return 0.0;}
+            virtual double ComputeVolumeParticle      (SphericParticle& particle) {return 0.0;}
+            virtual double ComputeVolumeParticleInner (SphericParticle& particle) {return 0.0;}
+            virtual double ComputeVolumeRVE           (void) {return 0.0;}
+            virtual double ComputeVolumeRVEInner      (void) {return 0.0;}
             virtual double ComputePorosity            (void);
             virtual double ComputePorosityInner       (void);
+            virtual double ComputeSurfaceArea         (void) {return 0.0;}
             virtual double ComputeFabricIndex         (Matrix fabric_tensor) {return 0.0;}
             virtual void   Homogenize                 (void);
             virtual void   HomogenizeFabric           (void);
             virtual void   HomogenizeStress           (void);
+            virtual void   AddContactToRoseDiagram    (std::vector<int>& rose_diagram, std::vector<double>& normal) {}
+            virtual void   EvaluateRoseUniformity     (void) {}
             virtual void   CheckEquilibrium           (double curr_val, double prev_val, double tol, int max_eq_steps);
             virtual void   StopCompress               (void);
             virtual void   StopBoundaryMotion         (void);
             virtual void   ReadOldForces              (void);
-            virtual void   AddContactToRoseDiagram    (std::vector<int>& rose_diagram, std::vector<double>& normal) {}
-            virtual void   EvaluateRoseUniformity     (void) {}
             virtual void   OpenResultFiles            (void);
             virtual void   WriteFileHeaders           (void) {}
             virtual void   WriteResultFiles           (void) {}

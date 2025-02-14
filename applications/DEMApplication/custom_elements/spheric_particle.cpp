@@ -1987,19 +1987,23 @@ void SphericParticle::ComputeOtherBallToBallForces(array_1d<double, 3>& other_ba
 
 void SphericParticle::StoreBallToBallContactInfo(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding) {
     if (r_process_info[RVE_ANALYSIS]) {
-        int neighbor_id = data_buffer.mpOtherParticle->GetId();
-        mBallToBallStoredInfo[neighbor_id].indentation = data_buffer.mIndentation;
-        std::memcpy(mBallToBallStoredInfo[neighbor_id].local_coord_system, data_buffer.mLocalCoordSystem, sizeof(mBallToBallStoredInfo[neighbor_id].local_coord_system));
-        std::memcpy(mBallToBallStoredInfo[neighbor_id].global_contact_force, GlobalContactForceTotal, sizeof(mBallToBallStoredInfo[neighbor_id].global_contact_force));
+        if (data_buffer.mIndentation > 0.0) {
+            int neighbor_id = data_buffer.mpOtherParticle->GetId();
+            mBallToBallStoredInfo[neighbor_id].indentation = data_buffer.mIndentation;
+            std::memcpy(mBallToBallStoredInfo[neighbor_id].local_coord_system, data_buffer.mLocalCoordSystem, sizeof(mBallToBallStoredInfo[neighbor_id].local_coord_system));
+            std::memcpy(mBallToBallStoredInfo[neighbor_id].global_contact_force, GlobalContactForceTotal, sizeof(mBallToBallStoredInfo[neighbor_id].global_contact_force));
+        }
     }
 }
 
 void SphericParticle::StoreBallToRigidFaceContactInfo(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding, double indentation) {
     if (r_process_info[RVE_ANALYSIS]) {
-        int neighbor_id = data_buffer.mpOtherRigidFace->GetId();
-        mBallToRigidFaceStoredInfo[neighbor_id].indentation = indentation;
-        std::memcpy(mBallToRigidFaceStoredInfo[neighbor_id].local_coord_system, data_buffer.mLocalCoordSystem, sizeof(mBallToRigidFaceStoredInfo[neighbor_id].local_coord_system));
-        std::memcpy(mBallToRigidFaceStoredInfo[neighbor_id].global_contact_force, GlobalContactForceTotal, sizeof(mBallToRigidFaceStoredInfo[neighbor_id].global_contact_force));
+        if (indentation > 0.0) {
+            int neighbor_id = data_buffer.mpOtherRigidFace->GetId();
+            mBallToRigidFaceStoredInfo[neighbor_id].indentation = indentation;
+            std::memcpy(mBallToRigidFaceStoredInfo[neighbor_id].local_coord_system, data_buffer.mLocalCoordSystem, sizeof(mBallToRigidFaceStoredInfo[neighbor_id].local_coord_system));
+            std::memcpy(mBallToRigidFaceStoredInfo[neighbor_id].global_contact_force, GlobalContactForceTotal, sizeof(mBallToRigidFaceStoredInfo[neighbor_id].global_contact_force));
+        }
     }
 }
 

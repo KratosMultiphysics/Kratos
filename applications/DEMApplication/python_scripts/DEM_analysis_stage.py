@@ -214,16 +214,16 @@ class DEMAnalysisStage(AnalysisStage):
 
     def SetRVEUtilities(self):
         rve_settings = self.DEM_parameters["rve_analysis_settings"]
-        self.rve_analysis                = rve_settings["RVEAnalysis"].GetBool()
+        rve_analysis                     = rve_settings["RVEAnalysis"].GetBool()
         rve_evaluation_frequency         = rve_settings["RVEEvaluationFrequency"].GetInt()
         rve_write_frequency              = rve_settings["RVEWriteFrequency"].GetInt()
         rve_consolidation_stop_criterion = rve_settings["RVEConsolidationStopCriterion"].GetString()
         rve_consolidation_limit_value    = rve_settings["RVEConsolidationLimitValue"].GetDouble()
         rve_inner_volume_offset          = rve_settings["RVEInnerVolumeOffset"].GetDouble()
         
-        self.spheres_model_part.ProcessInfo.SetValue(RVE_ANALYSIS, self.rve_analysis)
+        self.spheres_model_part.ProcessInfo.SetValue(RVE_ANALYSIS, rve_analysis)
 
-        if not self.rve_analysis:
+        if not rve_analysis:
             return None
         elif self.DEM_parameters["Dimension"].GetInt() == 2:
             return RVEWallBoundary2D(rve_evaluation_frequency, rve_write_frequency, rve_consolidation_stop_criterion, rve_consolidation_limit_value, rve_inner_volume_offset)
@@ -319,7 +319,7 @@ class DEMAnalysisStage(AnalysisStage):
 
         self.SetInitialNodalValues()
 
-        if self.rve_analysis:
+        if self.rve_utils is not None:
             self.rve_utils.Initialize(self.spheres_model_part, self.rigid_face_model_part)
 
         self.KratosPrintInfo(self.report.BeginReport(timer))
@@ -697,7 +697,7 @@ class DEMAnalysisStage(AnalysisStage):
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
 
-        if self.rve_analysis:
+        if self.rve_utils is not None:
             self.rve_utils.FinalizeSolutionStep()
 
         #Phantom Walls
@@ -744,7 +744,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.DEMFEMProcedures.FinalizeGraphs(self.rigid_face_model_part)
         self.DEMFEMProcedures.FinalizeBallsGraphs(self.spheres_model_part)
         self.DEMEnergyCalculator.FinalizeEnergyPlot()
-        if self.rve_analysis:
+        if self.rve_utils is not None:
             self.rve_utils.Finalize()
 
         self.CleanUpOperations()
