@@ -106,7 +106,7 @@ public:
     typedef Kratos::Variable<double> VariableType;
 
     /// Pointer definition of MasterSlaveConstraint
-    KRATOS_CLASS_POINTER_DEFINITION(MasterSlaveConstraint);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(MasterSlaveConstraint);
 
     ///@}
     ///@name  Enum's
@@ -215,7 +215,7 @@ public:
         KRATOS_TRY
 
         KRATOS_WARNING("MasterSlaveConstraint") << " Call base class constraint Clone " << std::endl;
-        MasterSlaveConstraint::Pointer p_new_const = Kratos::make_shared<MasterSlaveConstraint>(*this);
+        MasterSlaveConstraint::Pointer p_new_const = Kratos::make_intrusive<MasterSlaveConstraint>(*this);
         p_new_const->SetId(NewId);
         p_new_const->SetData(this->GetData());
         p_new_const->Set(Flags(*this));
@@ -520,7 +520,7 @@ public:
      * @brief Check if the Data exists with Has(..) methods:
      * @param rThisVariable The variable to be check
      */
-    template<class TDataType> 
+    template<class TDataType>
     bool Has(const Variable<TDataType>& rThisVariable) const
     {
         return mData.Has(rThisVariable);
@@ -611,6 +611,28 @@ private:
     ///@{
 
     DataValueContainer mData; /// Pointer to the data related to this constraint
+
+    ///@}
+    ///@name Private operations
+    ///@{
+
+    //*********************************************
+    //this block is needed for refcounting
+    mutable std::atomic<int> mReferenceCounter{0};
+
+    friend void intrusive_ptr_add_ref(const MasterSlaveConstraint* x)
+    {
+        x->mReferenceCounter.fetch_add(1, std::memory_order_relaxed);
+    }
+
+    friend void intrusive_ptr_release(const MasterSlaveConstraint* x)
+    {
+        if (x->mReferenceCounter.fetch_sub(1, std::memory_order_release) == 1) {
+        std::atomic_thread_fence(std::memory_order_acquire);
+        delete x;
+        }
+    }
+    //*********************************************
 
     ///@}
     ///@name Serialization
