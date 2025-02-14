@@ -53,13 +53,6 @@ public:
         std::vector<double>& rOutput,
         const TContainerType& rContainer);
 
-    template<class EntityType, class TDataType>
-    static void EvaluateAtPoints(
-        std::vector<TDataType>& rOutput,
-        const Variable<TDataType>& rVariable,
-        ModelPart& rModelPart,
-        const std::vector<Point>& rCoordinates);
-
     ///@}
 };
 

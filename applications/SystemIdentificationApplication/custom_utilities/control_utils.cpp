@@ -140,45 +140,6 @@ void ControlUtils::GetIntegrationPointAreas(
     KRATOS_CATCH("");
 }
 
-template<class EntityType, class TDataType>
-void ControlUtils::EvaluateAtPoints(
-    std::vector<TDataType>& rOutput,
-    const Variable<TDataType>& rVariable,
-    ModelPart& rModelPart,
-    const std::vector<Point>& rCoordinates)
-{
-    KRATOS_TRY
-
-    if (rOutput.size() != rCoordinates.size()) {
-        rOutput.resize(rCoordinates.size());
-    }
-
-    BruteForcePointLocator point_locator(rModelPart);
-
-    IndexPartition<IndexType>(rCoordinates.size()).for_each(Vector(), [&point_locator, &rCoordinates, &rModelPart, &rVariable, &rOutput](const auto Index, auto& rTLS) {
-        if constexpr(std::is_same_v<EntityType, Node>) {
-            const auto entity_id = point_locator.FindElement(*(rCoordinates.begin() + Index), rTLS);
-            const auto& r_geometry = rModelPart.GetElement(entity_id).GetGeometry();
-
-            auto value = rVariable.Zero();
-            for (IndexType i = 0; i < r_geometry.size(); ++i) {
-                value += r_geometry[i].GetValue(rVariable) * rTLS[i];
-            }
-
-            rOutput[Index] = value;
-        } else if constexpr(std::is_same_v<EntityType, Element>) {
-            const auto entity_id = point_locator.FindElement(*(rCoordinates.begin() + Index), rTLS);
-            rOutput[Index] = rModelPart.GetElement(entity_id).GetValue(rVariable);
-        } else if constexpr(std::is_same_v<EntityType, Condition>) {
-            const auto entity_id = point_locator.FindCondition(*(rCoordinates.begin() + Index), rTLS);
-            rOutput[Index] = rModelPart.GetCondition(entity_id).GetValue(rVariable);
-        }
-    });
-
-
-    KRATOS_CATCH("");
-}
-
 // template instantiations
 template KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) void ControlUtils::AssignEquivalentProperties(ModelPart::ConditionsContainerType&, ModelPart::ConditionsContainerType&);
 template KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) void ControlUtils::AssignEquivalentProperties(ModelPart::ElementsContainerType&, ModelPart::ElementsContainerType&);
@@ -192,9 +153,5 @@ template KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) void ControlUtils::GetInt
 
 template KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) void ControlUtils::GetIntegrationPointAreas(std::vector<double>&, const ModelPart::ConditionsContainerType&);
 template KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) void ControlUtils::GetIntegrationPointAreas(std::vector<double>&, const ModelPart::ElementsContainerType&);
-
-template KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) void ControlUtils::EvaluateAtPoints<Node, double>(std::vector<double>&, const Variable<double>&, ModelPart&, const std::vector<Point>&);
-template KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) void ControlUtils::EvaluateAtPoints<Element, double>(std::vector<double>&, const Variable<double>&, ModelPart&, const std::vector<Point>&);
-template KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) void ControlUtils::EvaluateAtPoints<Condition, double>(std::vector<double>&, const Variable<double>&, ModelPart&, const std::vector<Point>&);
 
 } /* namespace Kratos.*/
