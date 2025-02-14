@@ -51,6 +51,9 @@ class TestControlUtils(UnitTest.TestCase):
         cls.list_of_points = KratosSI.ControlUtils.GetIntegrationPoints(cls.model_part.Elements)
         cls.list_of_integration_point_areas = KratosSI.ControlUtils.GetIntegrationPointAreas(cls.model_part.Elements)
 
+        cls.utils = KratosSI.ElementPointDataInterpolationUtils(cls.model_part)
+        cls.utils.UpdatePoints(cls.list_of_points)
+
         for node in cls.model_part.Nodes:
             node.SetValue(Kratos.DISTANCE, node.Id)
 
@@ -74,7 +77,7 @@ class TestControlUtils(UnitTest.TestCase):
             self.assertAlmostEqual(self.list_of_integration_point_areas[i], element.GetGeometry().DomainSize() / 4)
 
     def test_EvaluateElementValuesAtPoints(self):
-        values = KratosSI.ControlUtils.EvaluateElementValuesAtPoints(Kratos.PRESSURE, self.model_part, self.list_of_points)
+        values = self.utils.CalculateInterpolatedEntityValues(Kratos.PRESSURE)
         for i, element in enumerate(self.model_part.Elements):
             for j in range(4):
                 self.assertEqual(element.GetValue(Kratos.PRESSURE), values[i * 4 + j])
@@ -87,7 +90,7 @@ class TestControlUtils(UnitTest.TestCase):
             (0.166667,0.0446582,0.166667,0.622008)
         ])
 
-        values = KratosSI.ControlUtils.EvaluateNodalNonHistoricalValuesAtPoints(Kratos.DISTANCE, self.model_part, self.list_of_points)
+        values = self.utils.CalculateInterpolatedNodalValues(Kratos.DISTANCE)
         for i, element in enumerate(self.model_part.Elements):
             for j in range(4):
                 p = 0.0
