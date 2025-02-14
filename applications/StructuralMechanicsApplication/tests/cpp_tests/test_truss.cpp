@@ -385,6 +385,26 @@ void CreateTrussModel2N_and_CheckPK2Stress(std::string TrussElementName)
         KRATOS_EXPECT_TRUE(p_constitutive_law->IsInitialized())
     }
 
+    KRATOS_TEST_CASE_IN_SUITE(TrussElementLinearCheckWithoutInitializeDoesNotCrash, KratosStructuralMechanicsFastSuite)
+    {
+        Model current_model;
+        auto& r_model_part = CreateTestModelPart(current_model);
+        constexpr auto length = 2.0;
+        auto [p_bottom_node, p_top_node] = CreateEndNodes(r_model_part, length);
+        AddDisplacementDofsElement(r_model_part);
+        auto p_elem_prop = r_model_part.CreateNewProperties(0);
+        p_elem_prop->SetValue(CONSTITUTIVE_LAW, std::make_shared<StubBilinearLaw>());
+        p_elem_prop->SetValue(CROSS_AREA, 1.0);
+
+        const std::vector<ModelPart::IndexType> element_nodes {p_bottom_node->Id(), p_top_node->Id()};
+        auto p_element = r_model_part.CreateNewElement("LinearTrussElement2D2N", 1, element_nodes, p_elem_prop);
+
+        p_element->Set(ACTIVE, false);
+
+        std::vector<ConstitutiveLaw::Pointer> constitutive_laws;
+        KRATOS_EXPECT_EQ(0, p_element->Check(r_model_part.GetProcessInfo()));
+    }
+
     KRATOS_TEST_CASE_IN_SUITE(TrussElementLinear3D2N_CalculatesPK2Stress, KratosStructuralMechanicsFastSuite)
     {
         CreateTrussModel2N_and_CheckPK2Stress("TrussLinearElement3D2N");
