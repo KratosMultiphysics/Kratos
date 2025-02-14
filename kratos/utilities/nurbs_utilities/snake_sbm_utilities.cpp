@@ -80,7 +80,7 @@ namespace Kratos
         meshSizes_uv[0] = knot_step_uv[0]; 
         meshSizes_uv[1] = knot_step_uv[1];
         ModelPart& surrogate_model_part = iga_model_part.GetSubModelPart(surrogate_sub_model_part_name);
-        surrogate_model_part.GetProcessInfo().SetValue(MARKER_MESHES, meshSizes_uv);
+        surrogate_model_part.SetValue(MARKER_MESHES, meshSizes_uv);
 
         Vector starting_pos_uv(2);
         starting_pos_uv[0] = knot_vector_u[0];
@@ -92,7 +92,7 @@ namespace Kratos
         parameterExternalCoordinates[2] = knot_vector_u[knot_vector_u.size()-1];
         parameterExternalCoordinates[3] = knot_vector_v[knot_vector_v.size()-1];
         
-        surrogate_model_part.GetProcessInfo().SetValue(LOAD_MESHES, parameterExternalCoordinates);
+        surrogate_model_part.SetValue(LOAD_MESHES, parameterExternalCoordinates);
 
 
         // Create the matrix of active/inactive knot spans, one for inner and one for outer loop
@@ -189,7 +189,7 @@ namespace Kratos
             }
         }
         else if (is_initial_skin_nurbs) {
-            const int n_initial_points_for_side = 1000;
+            const int n_initial_points_for_side = 5000;
             int first_node_id = skin_model_part.GetRootModelPart().NumberOfNodes()+1;
             const SizeType n_boundary_curves = skin_model_part_initial.NumberOfGeometries();
             bool newInnerLoop = true;
@@ -211,10 +211,26 @@ namespace Kratos
                     // Create two nodes and two conditions for each skin condition
                     std::string layer_name = p_curve->GetValue(IDENTIFIER);
 
-                    ModelPart& skin_layer_sub_model_part = skin_model_part.HasSubModelPart(layer_name) ? 
-                                                           skin_model_part.GetSubModelPart(layer_name) : skin_model_part.CreateSubModelPart(layer_name);
+                    //needed for the call to the assign_vector_variable_to_nodes_process
+                    ModelPart& skin_layer_sub_model_part = skin_sub_model_part.HasSubModelPart(layer_name) ? 
+                                                           skin_sub_model_part.GetSubModelPart(layer_name) : skin_sub_model_part.CreateSubModelPart(layer_name);
+
+                    
+                    // compute normal at the node coords
+                    std::vector<CoordinatesArrayType> global_space_derivatives;
+                    SizeType derivative_order = 1;
+                    CoordinatesArrayType new_point_local_coord = ZeroVector(3); //first point at local coord zero
+                    p_curve->GlobalSpaceDerivatives(global_space_derivatives, new_point_local_coord, derivative_order);
+                    CoordinatesArrayType tangent_vector = global_space_derivatives[1];
+                    double tangent_magnitude = norm_2(tangent_vector);
+                    tangent_vector /= tangent_magnitude;
+                    Vector normal_vector = ZeroVector(3);
+                    normal_vector[0] = tangent_vector[1];
+                    normal_vector[1] = -tangent_vector[0];
+                    node->SetValue(NORMAL, normal_vector);
+                    node->SetValue(LOCAL_TANGENT, tangent_vector);
             
-                    skin_sub_model_part.AddNode(node);
+                    skin_layer_sub_model_part.AddNode(node);
                     newInnerLoop = false;
                 } else 
                 {
@@ -225,7 +241,7 @@ namespace Kratos
                 }
                 // add the specified number of points
                 Vector second_point_local_coord = ZeroVector(3);
-                    CoordinatesArrayType second_point_coords(3);
+                CoordinatesArrayType second_point_coords(3);
                 for (int i = 1; i < n_initial_points_for_side; i++)
                 {
                     second_point_local_coord[0] = (double) i/(n_initial_points_for_side-1);
@@ -267,24 +283,6 @@ namespace Kratos
                     
                     first_point_local_coord = second_point_local_coord;
                     first_point_coords = second_point_coords;
-                    // ********************************************************
-
-                    // // compute normal and store value to the point
-                    // std::vector<CoordinatesArrayType> global_space_derivatives;
-                    // SizeType derivative_order = 1;
-                    // p_curve->GlobalSpaceDerivatives(global_space_derivatives, local_coord, derivative_order);
-                    // CoordinatesArrayType tangent_vector = global_space_derivatives[1];
-
-                    // double tangent_magnitude = norm_2(tangent_vector);
-                    // tangent_vector /= tangent_magnitude;
-                    // Vector normal_vector = ZeroVector(3);
-                    // normal_vector[0] = tangent_vector[1];
-                    // normal_vector[1] = -tangent_vector[0];
-
-                    // // node->SetValue(NORMAL, node)
-                    // skin_model_part_initial.AddNode(node);
-
-                    //-------------------------------------------------
                 }
                 // check the last point of the curve
                 if (norm_2(second_point_coords - skin_sub_model_part.GetNode(first_node_id)) < 1e-15)
@@ -367,6 +365,9 @@ namespace Kratos
                 double y_true_boundary_split = (xy_coord_i_cond[1][0]+xy_coord_i_cond[1][1]) / 2;
                 int knot_span_u_point_split = (x_true_boundary_split-starting_pos_uv[0]) / knot_step_uv[0] ;
                 int knot_span_v_point_split = (y_true_boundary_split-starting_pos_uv[1]) / knot_step_uv[1] ;
+
+                if (knot_span_u_point_split == knot_spans_available[idMatrix][0].size()) knot_span_u_point_split--;
+                if (knot_span_v_point_split == knot_spans_available[idMatrix].size()) knot_span_v_point_split--;
 
                 // update xy_coord for the first split segment
                 std::vector<std::vector<double>> xy_coord_i_cond_split(2);
@@ -457,6 +458,9 @@ namespace Kratos
                 int knot_span_u_point_split = (xy_true_boundary_split[0]-starting_pos_uv[0]) / knot_step_uv[0] ;
                 int knot_span_v_point_split = (xy_true_boundary_split[1]-starting_pos_uv[1]) / knot_step_uv[1] ;
 
+                if (knot_span_u_point_split == knot_spans_available[idMatrix][0].size()) knot_span_u_point_split--;
+                if (knot_span_v_point_split == knot_spans_available[idMatrix].size()) knot_span_v_point_split--;
+
                 // update xy_coord for the first split segment
                 std::vector<std::vector<double>> xy_coord_i_cond_split(2);
                 xy_coord_i_cond_split[0].resize(2); xy_coord_i_cond_split[1].resize(2); 
@@ -524,12 +528,27 @@ namespace Kratos
                                                 skin_model_part.GetSubModelPart(layer_name) : skin_model_part.CreateSubModelPart(layer_name);
             
             // compute normal and tangent informations at the local coord of the point 
+            std::vector<CoordinatesArrayType> global_space_derivatives;
+            SizeType derivative_order = 1;
+            CoordinatesArrayType new_point_local_coord = ZeroVector(3);
+            new_point_local_coord[0] = local_coords[1];
+            p_curve->GlobalSpaceDerivatives(global_space_derivatives, new_point_local_coord, derivative_order);
+            CoordinatesArrayType tangent_vector = global_space_derivatives[1];
+            double tangent_magnitude = norm_2(tangent_vector);
+            tangent_vector /= tangent_magnitude;
+            Vector normal_vector = ZeroVector(3);
+            normal_vector[0] = tangent_vector[1];
+            normal_vector[1] = -tangent_vector[0];
+            node->SetValue(NORMAL, normal_vector);
+            node->SetValue(LOCAL_TANGENT, tangent_vector);
+
             skin_layer_sub_model_part.AddNode(node);
 
             Properties::Pointer p_cond_prop = skin_model_part.pGetProperties(0);
             Condition::Pointer p_cond = skin_model_part.CreateNewCondition("LineCondition2D2N", idNode1, {{idNode1, idNode2}}, p_cond_prop );
 
             p_cond->SetValue(CONDITION_NAME, condition_name);
+            p_cond->SetValue(LAYER_NAME, layer_name);
             skin_model_part.AddCondition(p_cond);
         }
     }

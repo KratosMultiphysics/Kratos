@@ -610,6 +610,16 @@ public:
         for (IndexType i = 0; i < rResultGeometries.size(); ++i) {
             rResultGeometries(i)->SetGeometryParent(this);
         }
+
+        mQuadraturePointGeometries = rResultGeometries;
+    }
+
+    void GetQuadraturePointGeometries(
+        GeometriesArrayType& rResultGeometries)
+    {
+        KRATOS_ERROR_IF(mQuadraturePointGeometries.size()==0) << ":::[BrepCurveOnSurface]::: Error, calling the GetQuadraturePointGeometries method before the" 
+                                                              <<  "CreateQuadraturePointGeometries. The size is 0" << std::endl;
+        rResultGeometries = mQuadraturePointGeometries;
     }
 
     ///@}
@@ -694,6 +704,8 @@ private:
     /** true-> brep curve and nurbs curve point in same direction.
     *  false-> brep curve and nurbs curve point in opposite directions. */
     bool mSameCurveDirection;
+
+    GeometriesArrayType mQuadraturePointGeometries;
 
     ///@}
     ///@name Serialization

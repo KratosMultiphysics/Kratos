@@ -640,6 +640,10 @@ public:
                     InternalBrepSpanV++;
                 }
             }
+            if (!is_brep_internal) {
+                InternalBrepSpanU = NurbsUtilities::GetLowerSpan(mpNurbsSurface->PolynomialDegreeU(), mpNurbsSurface->KnotsU(), first_integration_point[0][0]);
+                InternalBrepSpanV = NurbsUtilities::GetLowerSpan(mpNurbsSurface->PolynomialDegreeV(), mpNurbsSurface->KnotsV(), first_integration_point[0][1]);
+            }
         }
 
         // Loop over the integration points of the brep
@@ -657,7 +661,7 @@ public:
                     global_space_derivatives[0][0], global_space_derivatives[0][1]);
             }
             else {
-                if (is_sbm && is_brep_internal) {
+                if (is_sbm) { //TODO: push
                     // SBM case on internal brep 
                     shape_function_container.ComputeBSplineShapeFunctionValuesAtSpan(
                         mpNurbsSurface->KnotsU(),

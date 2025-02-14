@@ -104,6 +104,13 @@ namespace Kratos
             ? mParameters["integration_rule"].GetString()
             : "GAUSS";
         IntegrationInfo integration_info = mpCouplingGeometry->GetDefaultIntegrationInfo();
+
+        if (mParameters.Has("number_of_integration_points_per_span")) {
+            for (IndexType i = 0; i < integration_info.LocalSpaceDimension(); ++i) {
+                integration_info.SetNumberOfIntegrationPointsPerSpan(i, mParameters["number_of_integration_points_per_span"].GetInt());
+            }
+        }
+        
         for (IndexType i = 0; i < integration_info.LocalSpaceDimension(); ++i) {
             if (quadrature_method == "GAUSS") {
                 integration_info.SetQuadratureMethod(0, IntegrationInfo::QuadratureMethod::GAUSS);
