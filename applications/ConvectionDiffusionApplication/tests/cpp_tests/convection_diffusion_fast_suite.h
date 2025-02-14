@@ -12,8 +12,8 @@
 
 #pragma once
 
-#include "convection_diffusion_application.h"
 #include "testing/testing.h"
+#include "convection_diffusion_application.h"
 
 namespace Kratos::Testing {
 
