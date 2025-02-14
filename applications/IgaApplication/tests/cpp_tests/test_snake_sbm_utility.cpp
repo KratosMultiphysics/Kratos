@@ -61,17 +61,12 @@ KRATOS_TEST_CASE_IN_SUITE(SnakeSbmUtilitySquareOuter, KratosIgaFastSuite)
     for (std::size_t i = 0; i < list_knot_v.size(); ++i) 
         unique_knot_vector_v[i] = list_knot_v[i];
 
-    Kratos::Parameters mParameters(R"(
-        {
-            "sbm_parameters": {
-                "lambda_outer": 0.5,
-                "number_of_inner_loops": 0
-            }
-        }
-    )");
+    double lambda_inner = 0.5;
+    double lambda_outer = 0.5;
+    std::size_t number_of_inner_loops = 0;
         
     SnakeSbmUtilities::CreateTheSnakeCoordinates(iga_model_part, skin_model_part_inner_initial, skin_model_part_outer_initial, skin_model_part, 0,
-        unique_knot_vector_u, unique_knot_vector_v, mParameters) ;
+        unique_knot_vector_u, unique_knot_vector_v, number_of_inner_loops, lambda_inner, lambda_outer) ;
     
     const double tolerance = 1.0e-6;
 
@@ -183,17 +178,12 @@ KRATOS_TEST_CASE_IN_SUITE(SnakeSbmUtilityInner, KratosIgaFastSuite)
     for (std::size_t i = 0; i < list_knot_v.size(); ++i) 
         unique_knot_vector_v[i] = list_knot_v[i];
 
-    Kratos::Parameters mParameters(R"(
-        {
-            "sbm_parameters": {
-                    "lambda_inner": 0.5,
-                    "number_of_inner_loops": 2
-            }
-        }
-    )");
+    double lambda_inner = 0.5;
+    double lambda_outer = 0.5;
+    std::size_t number_of_inner_loops = 2;
 
     SnakeSbmUtilities::CreateTheSnakeCoordinates(iga_model_part, skin_model_part_inner_initial, skin_model_part_outer_initial, skin_model_part, 0,
-        unique_knot_vector_u, unique_knot_vector_v, mParameters) ;
+        unique_knot_vector_u, unique_knot_vector_v, number_of_inner_loops, lambda_inner, lambda_outer) ;
     
     const double tolerance = 1.0e-6;
 
@@ -328,19 +318,13 @@ KRATOS_TEST_CASE_IN_SUITE(SnakeSbmUtilityInnerOuter, KratosIgaFastSuite)
         unique_knot_vector_u[i] = list_knot_u[i];
     for (std::size_t i = 0; i < list_knot_v.size(); ++i) 
         unique_knot_vector_v[i] = list_knot_v[i];
+    
+    double lambda_inner = 1.0;
+    double lambda_outer = 0.5;
+    std::size_t number_of_inner_loops = 1;
 
-    Kratos::Parameters mParameters(R"(
-        {
-            "sbm_parameters": {
-                    "lambda_inner": 1.0,
-                    "lambda_outer": 0.5,
-                    "number_of_inner_loops": 1
-            }
-        }
-    )");
-        
     SnakeSbmUtilities::CreateTheSnakeCoordinates(iga_model_part, skin_model_part_inner_initial, skin_model_part_outer_initial, skin_model_part, 0,
-        unique_knot_vector_u, unique_knot_vector_v, mParameters) ;
+        unique_knot_vector_u, unique_knot_vector_v, number_of_inner_loops, lambda_inner, lambda_outer) ;
     
     const double tolerance = 1.0e-6;
 
