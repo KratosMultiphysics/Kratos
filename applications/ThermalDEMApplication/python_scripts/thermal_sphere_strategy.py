@@ -549,8 +549,8 @@ class ExplicitStrategy(BaseStrategy):
     #----------------------------------------------------------------------------------------------
     def SetThermalVariablesAndOptions(self):
         # General options
-        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, FORCES_OPTION,               self.compute_forces_option)
-        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, MOTION_OPTION,               self.compute_motion_option)
+        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, COMPUTE_FORCES_OPTION, self.compute_forces_option)
+        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, COMPUTE_MOTION_OPTION, self.compute_motion_option)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, AUTO_SOLVE_FREQUENCY_OPTION, self.auto_solve_frequency_option)
         self.spheres_model_part.ProcessInfo.SetValue(THERMAL_FREQUENCY, self.thermal_solve_frequency)
 

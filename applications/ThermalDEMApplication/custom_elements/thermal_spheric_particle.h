@@ -228,8 +228,8 @@ namespace Kratos
       double       mInitialTemperature;  // temperature from the beginning of the simulation
       double       mPreviousTemperature; // temperature from the beginning of the step
       bool         mIsTimeToSolve;       // flag to solve thermal problem in current step
-      bool         mHasForces;           // flag to solve mechanical behavior (forces)
-      bool         mHasMotion;           // flag to solve displacements
+      bool         mComputeForces;       // flag to solve mechanical behavior by computing forces
+      bool         mComputeMotion;       // flag to solve mechanical behavior by computing motion (and forces, as a pre-requisite)
       bool         mHasFixedTemperature; // flag for constant temperature
       bool         mHasVariableRadius;   // flag for temperature-dependent radius
       bool         mStoreContactParam;   // flag to store contact parameters with neighbors when solving the mechanical problem
