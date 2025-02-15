@@ -446,49 +446,96 @@ namespace Kratos
         double r = particle.GetRadius();
         double x = particle.GetGeometry()[0][0];
         double y = particle.GetGeometry()[0][1];
-        
+
         // Inner vertex coordinates
         double x1 = mVertexCoordsInner(0,0); double y1 = mVertexCoordsInner(1,0);
         double x2 = mVertexCoordsInner(0,1); double y2 = mVertexCoordsInner(1,1);
         double x3 = mVertexCoordsInner(0,2); double y3 = mVertexCoordsInner(1,2);
         double x4 = mVertexCoordsInner(0,3); double y4 = mVertexCoordsInner(1,3);
+        double xv[] = {x1,x2,x3,x4};         double yv[] = {y1,y2,y3,y4};
 
-        // Compute signed distance from circle center to each wall (positive: circle center inside quadrilateral)
-        double de1 = 0.0;
-        double de2 = 0.0;
-        double de3 = 0.0;
-        double de4 = 0.0;
+        // Distances from circle center to each wall
+        double de1 = ComputeDistancePointToSegment(x,y,x1,y1,x2,y2);
+        double de2 = ComputeDistancePointToSegment(x,y,x2,y2,x3,y3);
+        double de3 = ComputeDistancePointToSegment(x,y,x3,y3,x4,y4);
+        double de4 = ComputeDistancePointToSegment(x,y,x4,y4,x1,y1);
+
+        // Distances from circle center to each vertex
+        double dv1 = std::sqrt((x-x1)*(x-x1)+(y-y1)*(y-y1));
+        double dv2 = std::sqrt((x-x2)*(x-x2)+(y-y2)*(y-y2));
+        double dv3 = std::sqrt((x-x3)*(x-x3)+(y-y3)*(y-y3));
+        double dv4 = std::sqrt((x-x4)*(x-x4)+(y-y4)*(y-y4));
+
+        // Check is circle center is inside quadrilateral
+        bool is_inside = PointInsideQuadrilateral(x,y,x1,y1,x2,y2,x3,y3,x4,y4);
 
         // Compute particle volume for each case of interaction with quadrilateral edges/vertices
-        double vol = ComputeVolumeParticle(particle);
+        double vol = 0.0; // default: circle completely outside
 
-        if (de1 < -r || de2 < -r || de3 < -r || de4 < -r) { // Circle completely outside quadrilateral
-            vol = 0.0; 
+        if (de1 >= r && de2 >= r && de3 >= r && de4 >= r) {
+            // Circle completely inside
+            if (is_inside) vol = ComputeVolumeParticle(particle);
         }
-        else if (de1 < r || de2 < r || de3 < r || de4 < r) { // Circle cut by edges/vertices
-            // Compute distance from circle center to each vertex
-            double dv1 = std::sqrt((x-x1)*(x-x1)+(y-y1)*(y-y1));
-            double dv2 = std::sqrt((x-x2)*(x-x2)+(y-y2)*(y-y2));
-            double dv3 = std::sqrt((x-x3)*(x-x3)+(y-y3)*(y-y3));
-            double dv4 = std::sqrt((x-x4)*(x-x4)+(y-y4)*(y-y4));
-
+        else {
             // Circle cut by one or more edges, but with no vertex inside
             if (dv1 >= r && dv2 >= r && dv3 >= r && dv4 >= r) {
-                double de[] = {de1, de2, de3, de4};
-                for (int i = 0; i < 4; i++) {
-                    if (std::abs(de[i]) < r) {
-                        double segment = (r*r * acos(de[i]/r)) - (de[i] * sqrt(r*r - de[i]*de[i]));
-                        vol = (de[i] > 0.0) ? vol - segment : segment;
-                    }
-                }
+                double a1 = (de1 < r) ? ComputeAreaCircleSector(r,de1) : 0.0;
+                double a2 = (de2 < r) ? ComputeAreaCircleSector(r,de2) : 0.0;
+                double a3 = (de3 < r) ? ComputeAreaCircleSector(r,de3) : 0.0;
+                double a4 = (de4 < r) ? ComputeAreaCircleSector(r,de4) : 0.0;
+                if (is_inside)
+                    vol = ComputeVolumeParticle(particle) - (a1+a2+a3+a4);
+                else
+                    vol = std::max({a1,a2,a3,a4}) - std::max(std::min({a1,a2,a3,a4}), 0.0);
             }
             // Circle with vertex inside (no more than 1)
             else {
-                double dv[] = {dv1, dv2, dv3, dv4};
+                double dv[] = {dv1,dv2,dv3,dv4};
                 for (int i = 0; i < 4; i++) {
                     if (dv[i] < r) {
-                        // Area covered by the edges and angle
-                        vol = 0.0;
+                        // Vertex (common end to the two edges)
+                        double xa = xv[i];
+                        double ya = yv[i];
+
+                        // Other edge end coordinates
+                        double xe1, ye1;
+                        double xe2, ye2;
+                        if (i == 1) {
+                            xe1 = xv[2]; ye1 = yv[2];
+                            xe2 = xv[4]; ye2 = yv[4];
+                        }
+                        else if (i == 4) {
+                            xe1 = xv[1]; ye1 = yv[1];
+                            xe2 = xv[3]; ye2 = yv[3];
+                        }
+                        else {
+                            xe1 = xv[i-1]; ye1 = yv[i-1];
+                            xe2 = xv[i+1]; ye2 = yv[i+1];
+                        }
+
+                        // Intersection between edges and circle
+                        double xb, yb;
+                        double xc, yc;
+                        ComputeIntersectionCircleSegment(r,x,y,xa,ya,xe1,ye1,xb,yb);
+                        ComputeIntersectionCircleSegment(r,x,y,xa,ya,xe2,ye2,xc,yc);
+
+                        // Area of triangle formed by the vertex and intersection points
+                        double area_triangle = ComputeAreaTriangle(xa,xb,xc,ya,yb,yc);
+
+                        // Area of circle sector formed by the intersection points and circunference
+                        double xt = (xb+xc)/2.0, yt = (yb+yc)/2.0;            // Middle coordinates of the chord between intersection points (xb,yb)->(xc,yc)
+                        double d1 = std::sqrt((xt-x)*(xt-x) + (yt-y)*(yt-y)); // Distance: circle center - chord middle
+                        double d2 = std::sqrt((xa-x)*(xa-x) + (ya-y)*(ya-y)); // Distance: circle center - vertex
+                        double dot = (xa-x)*(xt-x) + (ya-y)*(yt-y);           // Dot product between colinear vectors (circle center)->(vertex) and (circle center)->(chord middle)
+
+                        double area_sector;
+                        if (dot > 0.0 && d2 > d1)
+                            area_sector = ComputeVolumeParticle(particle) - ComputeAreaCircleSector(r,d1);
+                        else
+                            area_sector = ComputeAreaCircleSector(r,d1);
+
+                        // Total area delimited by the edges
+                        vol = area_triangle + area_sector;
                         break;
                     }
                 }
@@ -504,7 +551,7 @@ namespace Kratos
         const double x2 = mVertexCoords(0,1); const double y2 = mVertexCoords(1,1);
         const double x3 = mVertexCoords(0,2); const double y3 = mVertexCoords(1,2);
         const double x4 = mVertexCoords(0,3); const double y4 = mVertexCoords(1,3);
-        return ComputeAreaFromVertices(x1, x2, x3, x4, y1, y2, y3, y4);
+        return ComputeAreaQuadrilateral(x1, x2, x3, x4, y1, y2, y3, y4);
     }
 
     //------------------------------------------------------------------------------------------------------------
@@ -514,7 +561,7 @@ namespace Kratos
         double x2 = mVertexCoordsInner(0,1); double y2 = mVertexCoordsInner(1,1);
         double x3 = mVertexCoordsInner(0,2); double y3 = mVertexCoordsInner(1,2);
         double x4 = mVertexCoordsInner(0,3); double y4 = mVertexCoordsInner(1,3);
-        return ComputeAreaFromVertices(x1, x2, x3, x4, y1, y2, y3, y4);
+        return ComputeAreaQuadrilateral(x1, x2, x3, x4, y1, y2, y3, y4);
     }
 
     //------------------------------------------------------------------------------------------------------------
@@ -812,23 +859,66 @@ namespace Kratos
     }
 
     //------------------------------------------------------------------------------------------------------------
-    // Uses the shoelace formula to compute the area of a quadrilateral with vertices (x1,y1), (x2,y2), (x3,y3), (x4,y4)
-    // listed in counterclockwise or clockwise order.
-    double RVEWallBoundary2D::ComputeAreaFromVertices(double x1, double x2, double x3, double x4, double y1, double y2, double y3, double y4) {
+    // Compute the area of a quadrilateral with vertices (x1,y1), (x2,y2), (x3,y3), (x4,y4)
+    // listed in counterclockwise or clockwise order, using the shoelace formula.
+    double RVEWallBoundary2D::ComputeAreaQuadrilateral(double x1, double x2, double x3, double x4, double y1, double y2, double y3, double y4) {
         return 0.5 * std::abs(x1*y2 + x2*y3 + x3*y4 + x4*y1 - x2*y1 - x3*y2 - x4*y3 - x1*y4);
     }
 
     //------------------------------------------------------------------------------------------------------------
-    // Check if a point (x,y) is inside a convex quadrilateral with vertices (x1,y1), (x2,y2), (x3,y3), (x4,y4)
+    // Compute the area of a triangle with vertices (x1,y1), (x2,y2), (x3,y3), listed in counterclockwise or clockwise order.
+    double RVEWallBoundary2D::ComputeAreaTriangle(double x1, double x2, double x3, double y1, double y2, double y3) {
+        return 0.5 * std::abs(x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2));
+    }
+
+    //------------------------------------------------------------------------------------------------------------
+    // Compute the area of a sector of a circle with radius r cut by a line whose distance from the circle center is d.
+    double RVEWallBoundary2D::ComputeAreaCircleSector(double r, double d) {
+        return (r*r * acos(d/r)) - (d * sqrt(r*r - d*d));
+    }
+
+    //------------------------------------------------------------------------------------------------------------
+    // Compute the normal distance of a point (x,y) to a line segment edge with vertices (xa,ya)-(xb,yb).
+    // If the point projection falls outside the segment, it returns the closest end point (xa,ya) or (xb,yb).
+    double RVEWallBoundary2D::ComputeDistancePointToSegment(double x, double y, double xa, double ya, double xb, double yb) {
+        // Projection parameter (relative position) of point onto segment (xa,ya)->(xb,yb)
+        double dx = xb - xa;
+        double dy = yb - ya;
+        double t = ((x-xa)*dx + (y-ya)*dy) / (dx*dx + dy*dy);
+        t = std::max(0.0, std::min(1.0, t));
+
+        // Distance to the closest point on the segment
+        double near_x = xa + t * dx;
+        double near_y = ya + t * dy;
+        return std::sqrt((x-near_x)*(x-near_x) + (y-near_x)*(y-near_x));
+    }
+
+    //------------------------------------------------------------------------------------------------------------
+    // Compute intersection coordinates of a circle with radius r and center (x,y) and a line segment with vertices (xa,ya)-(xb,yb).
+    // It assumes that (xa,ya) is inside the circle and (xb,yb) is outside.
+    void RVEWallBoundary2D::ComputeIntersectionCircleSegment(double r, double x, double y, double xa, double ya, double xb, double yb, double& xc, double& yc) {
+        double dx = xb - xa;
+        double dy = yb - ya;
+        double A = dx*dx + dy*dy;
+        double B = 2.0 * ((xa-x)*dx + (ya-y)*dy);
+        double C = (xa-x) * (xa-x) + (ya-y) * (ya-y) - r*r;
+        double t = (-B - std::sqrt(B*B-4*A*C)) / (2*A);
+        xc = xa + t * dx;
+        yc = ya + t * dy;
+    }
+
+    //------------------------------------------------------------------------------------------------------------
+    // Check if a point (x,y) is inside a quadrilateral with vertices (x1,y1), (x2,y2), (x3,y3), (x4,y4),
+    // listed in a consistent order: clockwise or counterclockwise.
     bool RVEWallBoundary2D::PointInsideQuadrilateral(double x, double y, double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4) {
         int count = 0;
-        double vertices[4][2] = {{x1,y1}, {x2,y2}, {x3,y3}, {x4,y4}};
+        double vertices[4][2] = {{x1,y1},{x2,y2},{x3,y3},{x4,y4}};
         for (int i = 0; i < 4; i++) {
-            double xA = vertices[i][0];
-            double yA = vertices[i][1];
-            double xB = vertices[(i+1)%4][0];
-            double yB = vertices[(i+1)%4][1];
-            if (((yA>y) != (yB>y)) && ( x < (xB-xA)*(y-yA)/(yB-yA)+xA)) count++;
+            double xa = vertices[i][0];
+            double ya = vertices[i][1];
+            double xb = vertices[(i+1)%4][0];
+            double yb = vertices[(i+1)%4][1];
+            if (((ya>y) != (yb>y)) && ( x < (xb-xa)*(y-ya)/(yb-ya)+xa)) count++;
         }
         return count % 2 == 1;
     }
