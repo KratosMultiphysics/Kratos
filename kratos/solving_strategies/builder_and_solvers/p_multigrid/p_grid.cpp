@@ -14,6 +14,7 @@
 #include "solving_strategies/builder_and_solvers/p_multigrid/p_grid.hpp" // PGrid
 #include "solving_strategies/builder_and_solvers/p_multigrid/p_multigrid_utilities.hpp" // MakePRestrictionOperator
 #include "solving_strategies/builder_and_solvers/p_multigrid/constraint_assembler_factory.hpp" // ConstraintAssemblerFactory
+#include "solving_strategies/builder_and_solvers/p_multigrid/sparse_utilities.hpp" // ApplyDirichletConditions
 #include "spaces/ublas_space.h" // TUblasSparseSpace, TUblasDenseSpace
 #include "factories/linear_solver_factory.h" // LinearSolverFactory
 #include "includes/kratos_components.h" // KratosComponents
@@ -92,9 +93,19 @@ PGrid<TSparse,TDense>::PGrid(Parameters Settings,
         KRATOS_ERROR_IF_NOT(LeafSolverSettings.Has("solver_type"));
         const std::string solver_name = LeafSolverSettings["solver_type"].Get<std::string>();
         using SolverFactoryRegistry = KratosComponents<LinearSolverFactory<TSparse,TDense>>;
-        KRATOS_ERROR_IF_NOT(SolverFactoryRegistry::Has(solver_name))
-            << "\"" << solver_name << "\" is not a valid linear solver name in the registry. "
-            << "Make sure you imported the application it is defined in and that the spelling is correct.";
+
+        if (not SolverFactoryRegistry::Has(solver_name)) {
+            std::stringstream message;
+            message << "PMultigridBuilderAndSolver: "
+                    << "\"" << solver_name << "\" is not a valid linear solver name in the registry. "
+                    << "Make sure you imported the application it is defined in and that the spelling is correct. "
+                    << "Registered options are:\n";
+            for ([[maybe_unused]] const auto& [r_name, r_entry] : SolverFactoryRegistry::GetComponents()) {
+                message << "\t" << r_name << "\n";
+            }
+            KRATOS_ERROR << message.str();
+        } // if not SolverFactoryRegistry::Has(solver_name)
+
         const auto& r_factory = SolverFactoryRegistry::Get(solver_name);
         mpSolver = r_factory.Create(LeafSolverSettings);
     }
@@ -131,6 +142,7 @@ void PGrid<TSparse,TDense>::MakeLhsTopology(ModelPart& rModelPart,
                                             const IndirectDofSet& rParentDofSet)
 {
     KRATOS_TRY
+
     KRATOS_PROFILE_SCOPE(KRATOS_CODE_LOCATION);
     // The restriction operator immediately constructs the linear equivalent,
     // because arbitrary-level coarsening strategies are not supported yet. The problem
@@ -139,14 +151,14 @@ void PGrid<TSparse,TDense>::MakeLhsTopology(ModelPart& rModelPart,
     // This wouldn't be a huge problem by itself, but deciding on DoF indices on the coarse
     // level would be quite painful and require keeping track of the coarse grid's topology
     // in some manner.
-    MakePRestrictionOperator<
-        std::numeric_limits<unsigned>::max(),
-        typename TSparse::DataType>(rModelPart,
-                                    rParentLhs.size1(),
-                                    rParentDofSet,
-                                    mRestrictionOperator,
-                                    mDofSet,
-                                    mIndirectDofSet);
+    MakePRestrictionOperator<std::numeric_limits<unsigned>::max(),typename TSparse::DataType>(
+        rModelPart,
+        rParentLhs.size1(),
+        rParentDofSet,
+        mRestrictionOperator,
+        mpVariableList,
+        mDofSet,
+        mIndirectDofSet);
 
     // ConstraintAssembler::Allocate is deliberately not invoked here because the relation matrix
     // and constraint gap vector are passed from the fine level in PGrid::Assemble, and mapped
@@ -176,11 +188,6 @@ void PGrid<TSparse,TDense>::Assemble(const ModelPart& rModelPart,
         SparseUtils::MatrixMultiplication(mRestrictionOperator, *pParentLhs, left_multiplied_lhs);
         SparseUtils::TransposeMatrix(mProlongationOperator, mRestrictionOperator, 1.0);
         SparseUtils::MatrixMultiplication(left_multiplied_lhs, mProlongationOperator, mLhs);
-
-        // Compute the coarse relation matrix.
-        SparseUtils::MatrixMultiplication(rParentConstraintAssembler.GetRelationMatrix(),
-                                          mProlongationOperator,
-                                          mpConstraintAssembler->GetRelationMatrix());
     } // if AssembleLHS
 
     if constexpr (AssembleRHS) {
@@ -190,14 +197,80 @@ void PGrid<TSparse,TDense>::Assemble(const ModelPart& rModelPart,
             << "expecting an RHS vector of size " << mRestrictionOperator.size2()
             << " but got " << pParentRhs->size();
 
-        // Compute the coarse constraint gaps.
-        mpConstraintAssembler->GetConstraintGapVector() = rParentConstraintAssembler.GetConstraintGapVector();
-
         // Allocate the coarse vectors.
         mSolution.resize(mRestrictionOperator.size1(), false);
         mRhs.resize(mRestrictionOperator.size1(), false);
     } // if AssembleRHS
 
+    // Compute coarse constraints.
+    // How this is actually implemented unfortunately depends on what the imposition
+    // method is. The original master-slave imposition stores a different version of
+    // the relation matrix, while the noop imposition stores nothing. Since there are
+    // two grid levels here that may use different imposition methods, all combinations
+    // must be handled separately.
+    switch (rParentConstraintAssembler.GetImposition()) {
+        // The parent does not impose constraints, so neither must the current level.
+        case ConstraintImposition::None:
+            KRATOS_ERROR_IF_NOT(mpConstraintAssembler->GetImposition() == ConstraintImposition::None)
+                << "PMultigridBuilderAndSolver: grid " << mDepth
+                << " imposes constraints (" << mpConstraintAssembler->GetValue(mpConstraintAssembler->GetImpositionVariable()) << ")"
+                << " but its parent does not";
+            break;
+
+        // The parent imposes constraints via master-slave elimination. The original
+        // implementation stores a transformation matrix instead of the relation matrix,
+        // so coarsening it is complicated and expensive => no support for it for now.
+        /// @todo implement constraint imposition when the parent on a p-grid uses
+        //        master-slave imposition but the child grid uses augmented lagrange.
+        case ConstraintImposition::MasterSlave:
+            KRATOS_ERROR << "PMultigridBuilderAndSolver: constraint imposition using master-slave elimination "
+                         << "is only supported if there is no coarse hierarchy (depth=0). Consider imposition "
+                         << "using augmented lagrange multipliers.";
+            break;
+
+        // The parent imposes constraints via augmented lagrange multipliers.
+        // The only supported imposition on the current level in this case is also
+        // augmented lagrange (for similar reasons why master-slave doesn't support anything).
+        // There's also a theoretical reason behind the choice of dropping support for
+        // master-slave elimination on this level though. Picking augmented lagrange on the
+        // parent grid probably means that the user expects that constraints may become
+        // linearly dependent at some point. If that's the case, master-slave elimination will
+        // definitely break the linear solver while augmented lagrange might provide acceptable
+        // results if configured for penalty.
+        case ConstraintImposition::AugmentedLagrange:
+            if (AssembleLHS) {
+                SparseUtils::MatrixMultiplication(rParentConstraintAssembler.GetRelationMatrix(),
+                                                  mProlongationOperator,
+                                                  mpConstraintAssembler->GetRelationMatrix());
+            }
+
+            if (AssembleRHS) {
+                mpConstraintAssembler->GetConstraintGapVector() = rParentConstraintAssembler.GetConstraintGapVector();
+            }
+            break;
+
+        // No other impositions are supported for now.
+        default:
+            KRATOS_ERROR << "PMultigridBuilderAndSolver: unsupported constraint imposition at depth " << mDepth
+                         << " (parent: " << rParentConstraintAssembler.GetValue(rParentConstraintAssembler.GetImpositionVariable())
+                         << " child: " << mpConstraintAssembler->GetValue(mpConstraintAssembler->GetImpositionVariable()) << ")";
+    } // switch rParentConstraintAssembler.GetImposition()
+
+    KRATOS_CATCH("")
+}
+
+
+template <class TSparse, class TDense>
+void PGrid<TSparse,TDense>::ApplyDirichletConditions(const DiagonalScaling& rDiagonalScaling)
+{
+    KRATOS_TRY
+    if (mIndirectDofSet.empty()) return;
+    Kratos::ApplyDirichletConditions<TSparse,TDense>(
+        mLhs,
+        mRhs,
+        mIndirectDofSet.begin(),
+        mIndirectDofSet.begin() + mIndirectDofSet.size(),
+        GetDiagonalScaleFactor<TSparse>(mLhs, rDiagonalScaling));
     KRATOS_CATCH("")
 }
 
@@ -211,13 +284,12 @@ void PGrid<TSparse,TDense>::Initialize(ModelPart& rModelPart,
 {
     KRATOS_TRY
     mpConstraintAssembler->Initialize(mLhs, mRhs);
-    if (mpSolver->AdditionalPhysicalDataIsNeeded()) {
+    if (mpSolver->AdditionalPhysicalDataIsNeeded())
         mpSolver->ProvideAdditionalData(mLhs,
                                         mSolution,
                                         mRhs,
                                         mIndirectDofSet,
                                         rModelPart);
-    }
     KRATOS_CATCH("")
 }
 
@@ -235,7 +307,7 @@ bool PGrid<TSparse,TDense>::ApplyCoarseCorrection(typename TParentSparse::Vector
     TSparse::SetToZero(mRhs);
     TSparse::SetToZero(mSolution);
     axpy_prod(mRestrictionOperator, rParentRhs, mRhs, true);
-    axpy_prod(mRestrictionOperator, rParentSolution, mSolution, true);
+    //axpy_prod(mRestrictionOperator, rParentSolution, mSolution, true);
     KRATOS_CATCH("")
 
     // Impose constraints and solve the coarse system.
@@ -273,7 +345,7 @@ bool PGrid<TSparse,TDense>::ApplyCoarseCorrection(typename TParentSparse::Vector
     axpy_prod(mProlongationOperator, mSolution, rParentSolution, true);
     KRATOS_CATCH("")
 
-    return linear_solver_status && constraint_status.converged;
+    return linear_solver_status and constraint_status.converged;
 }
 
 

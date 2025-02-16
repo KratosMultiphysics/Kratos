@@ -15,6 +15,7 @@
 // Project includes
 #include "solving_strategies/schemes/scheme.h" // Scheme
 #include "spaces/ublas_space.h" // TUblasSparseSpace
+#include "utilities/profiler.h" // KRATOS_PROFILE_SCOPE
 
 
 namespace Kratos {
@@ -358,6 +359,52 @@ void MapEntityContribution(TEntity& rEntity,
             } // if !AssembleLHS
         } // if rEntity.IsActive
     } // if AssembleLHS or AssembleRHS
+}
+
+
+template <class TSparse, class TDense, class TItDof>
+void ApplyDirichletConditions(typename TSparse::MatrixType& rLhs,
+                              typename TSparse::VectorType& rRhs,
+                              const TItDof itDofBegin,
+                              const TItDof itDofEnd,
+                              [[maybe_unused]] const typename TSparse::DataType DiagonalScaleFactor)
+{
+    // Type checks.
+    static_assert(std::is_same_v<typename std::iterator_traits<TItDof>::value_type,Dof<double>>);
+
+    KRATOS_TRY
+    KRATOS_PROFILE_SCOPE(KRATOS_CODE_LOCATION);
+
+    block_for_each(itDofBegin,
+                   itDofEnd,
+                   [&rLhs, &rRhs, itDofBegin, itDofEnd, DiagonalScaleFactor](const Dof<double>& r_dof){
+        const std::size_t i_dof = r_dof.EquationId();
+        const typename TSparse::IndexType i_entry_begin = rLhs.index1_data()[i_dof];
+        const typename TSparse::IndexType i_entry_end = rLhs.index1_data()[i_dof + 1];
+
+        if (r_dof.IsFixed()) {
+            // Zero out the whole row, except the diagonal.
+            bool found_diagonal = false;
+            for (typename TSparse::IndexType i_entry=i_entry_begin; i_entry<i_entry_end; ++i_entry) {
+                if (rLhs.index2_data()[i_entry] != i_dof ) {
+                    rLhs.value_data()[i_entry] = 0.0;
+                } else {
+                    found_diagonal = true;
+                    rLhs.value_data()[i_entry] = DiagonalScaleFactor;
+                }
+            } // for i_entry in range(i_entry_begin, i_entry_end)
+
+            KRATOS_ERROR_IF_NOT(found_diagonal) << "ApplyDirichletConditions: missing diagonal in row " << i_dof;
+            rRhs[i_dof] = 0.0;
+        } else {
+            // Zero out the column which is associated with the zero'ed row
+            for (typename TSparse::IndexType i_entry=i_entry_begin; i_entry<i_entry_end; ++i_entry) {
+                const auto it_dof = itDofBegin + rLhs.index2_data()[i_entry];
+                if (it_dof->IsFixed()) rLhs.value_data()[i_entry] = 0.0;
+            }
+        }
+    });
+    KRATOS_CATCH("")
 }
 
 

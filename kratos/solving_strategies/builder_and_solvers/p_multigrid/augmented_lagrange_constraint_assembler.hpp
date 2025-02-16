@@ -34,6 +34,8 @@ public:
 
     AugmentedLagrangeConstraintAssembler(Parameters Settings);
 
+    ~AugmentedLagrangeConstraintAssembler();
+
     /// @copydoc Base::Allocate
     void Allocate(const typename Base::ConstraintArray& rConstraints,
                   const ProcessInfo& rProcessInfo,
@@ -87,12 +89,8 @@ public:
 private:
     typename TSparse::MatrixType& GetTransposeRelationMatrix();
 
-    /// @brief A map associating slave IDs with constraint indices.
-    std::unordered_map<std::size_t,std::size_t> mSlaveToConstraintMap;
-
-    std::optional<typename TSparse::MatrixType> mMaybeTransposeRelationMatrix;
-
-    int mVerbosity;
+    struct Impl;
+    std::unique_ptr<Impl> mpImpl;
 }; // class AugmentedLagrangeConstraintAssembler
 
 
