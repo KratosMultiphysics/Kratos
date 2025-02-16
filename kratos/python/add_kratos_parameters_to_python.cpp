@@ -18,6 +18,7 @@
 #include "includes/define_python.h"
 #include "includes/kratos_parameters.h"
 #include "add_kratos_parameters_to_python.h"
+#include "includes/schema.hpp"
 
 namespace Kratos::Python {
 
@@ -80,7 +81,9 @@ void  AddKratosParametersToPython(pybind11::module& m)
     .def("AddEmptyArray", &Parameters::AddEmptyArray)
     .def("RemoveValue", &Parameters::RemoveValue)
     .def("RemoveValues", &Parameters::RemoveValues)
-    .def("ValidateAndAssignDefaults", &Parameters::ValidateAndAssignDefaults)
+    .def("Validate", &Parameters::Validate)
+    .def("ValidateAndAssignDefaults", py::overload_cast<const Schema&>(&Parameters::ValidateAndAssignDefaults))
+    .def("ValidateAndAssignDefaults", py::overload_cast<const Parameters&>(&Parameters::ValidateAndAssignDefaults))
     .def("RecursivelyValidateAndAssignDefaults", &Parameters::RecursivelyValidateAndAssignDefaults)
     .def("AddMissingParameters", &Parameters::AddMissingParameters)
     .def("RecursivelyAddMissingParameters", &Parameters::RecursivelyAddMissingParameters)
@@ -142,6 +145,15 @@ void  AddKratosParametersToPython(pybind11::module& m)
     .def("Append", Append<Parameters>) // created due to ambiguous overload int/bool...
     .def("CopyValuesFromExistingParameters", &Parameters::CopyValuesFromExistingParameters)
     ;
+
+    py::class_<Schema, Schema::Pointer>(m, "Schema")
+        .def(py::init<>())
+        .def(py::init<const Schema&>())
+        .def(py::init([](const Parameters& rDefinition){return Schema::Pointer(new Schema (Parameters(rDefinition)));}))
+        .def("GetDefinition", [](Schema& rThis){return rThis.GetDefinition();})
+        .def("__str__", &Schema::operator std::string)
+        .def_static("GetJSONSchemaStandard", &Schema::GetJSONSchemaStandard)
+        ;
 }
 
 } // namespace Kratos::Python.
