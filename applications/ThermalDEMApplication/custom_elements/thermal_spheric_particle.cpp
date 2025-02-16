@@ -146,8 +146,8 @@ namespace Kratos
     mComputeForces = r_process_info[COMPUTE_FORCES_OPTION];
     mComputeMotion = r_process_info[COMPUTE_MOTION_OPTION];
 
-    mHasVariableRadius = (r_properties.Has(THERMAL_EXPANSION_COEFFICIENT) && r_properties[THERMAL_EXPANSION_COEFFICIENT] != 0.0) ||
-                          r_properties.HasTable(TEMPERATURE, THERMAL_EXPANSION_COEFFICIENT);
+    mHasTempDependRadius = (r_properties.Has(THERMAL_EXPANSION_COEFFICIENT) && r_properties[THERMAL_EXPANSION_COEFFICIENT] != 0.0) ||
+                            r_properties.HasTable(TEMPERATURE, THERMAL_EXPANSION_COEFFICIENT);
     
     mStoreContactParam = mComputeForces &&
                         (r_process_info[HEAT_GENERATION_OPTION] ||
@@ -245,10 +245,6 @@ namespace Kratos
     // Heat flux components
     if (mIsTimeToSolve)
       ComputeHeatFluxes(r_process_info);
-
-    // Hierarchical multiscale
-    //if (r_process_info[TIME_STEPS] % r_process_info[RVE_EVALUATION_FREQUENCY] != 0.0)
-      //HierarchicalMultiscale(r_process_info);
 
     KRATOS_CATCH("")
   }
@@ -351,6 +347,7 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
+  /*
   void ThermalSphericParticle::HierarchicalMultiscale(const ProcessInfo& r_process_info) {
     KRATOS_TRY
 
@@ -421,7 +418,6 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  /*
   void ThermalSphericParticle::StoreContactInfoPP(SphericParticle::ParticleDataBuffer& data_buffer) {
     KRATOS_TRY
 
@@ -668,7 +664,7 @@ namespace Kratos
     }
 
     // Update temperature dependent radius
-    if (mIsTimeToSolve && mHasVariableRadius) {
+    if (mIsTimeToSolve && mHasTempDependRadius) {
       double added_search_distance = r_process_info[SEARCH_RADIUS_INCREMENT];
       UpdateTemperatureDependentRadius(r_process_info);
       ComputeAddedSearchDistance(r_process_info, added_search_distance);
@@ -679,6 +675,7 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
+  /*
   void ThermalSphericParticle::UpdateDeformationRateRadius(const ProcessInfo& r_process_info) {
     KRATOS_TRY
 
@@ -704,6 +701,7 @@ namespace Kratos
 
     KRATOS_CATCH("")
   }
+  */
 
   //------------------------------------------------------------------------------------------------------------
   void ThermalSphericParticle::UpdateTemperatureDependentRadius(const ProcessInfo& r_process_info) {

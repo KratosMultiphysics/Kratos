@@ -58,10 +58,10 @@ namespace Kratos
         std::vector<double> impact_velocity;
       };
 
-      struct ContactParamsHMS
-      {
-        array_1d<double,3> normal;
-      };
+      //struct ContactParamsHMS
+      //{
+      //  array_1d<double,3> normal;
+      //};
 
       // Constructor
       ThermalSphericParticle();
@@ -83,7 +83,7 @@ namespace Kratos
       void CalculateRightHandSide          (const ProcessInfo& r_process_info, double dt, const array_1d<double, 3>& gravity) override;
       void ComputeHeatFluxes               (const ProcessInfo& r_process_info);
       void ComputeHeatFluxWithNeighbor     (const ProcessInfo& r_process_info);
-      void HierarchicalMultiscale          (const ProcessInfo& r_process_info);
+      //void HierarchicalMultiscale          (const ProcessInfo& r_process_info);
       //void StoreContactInfoPP              (SphericParticle::ParticleDataBuffer& data_buffer) override;
       //void StoreContactInfoPW              (SphericParticle::ParticleDataBuffer& data_buffer) override;
       void ComputeInteractionProps         (const ProcessInfo& r_process_info);
@@ -93,7 +93,7 @@ namespace Kratos
 
       // Finalization methods
       void FinalizeSolutionStep             (const ProcessInfo& r_process_info) override;
-      void UpdateDeformationRateRadius      (const ProcessInfo& r_process_info);
+      //void UpdateDeformationRateRadius      (const ProcessInfo& r_process_info);
       void UpdateTemperatureDependentRadius (const ProcessInfo& r_process_info);
 
       // Auxiliary computations
@@ -228,7 +228,7 @@ namespace Kratos
       bool         mComputeForces;       // flag to solve mechanical behavior by computing forces
       bool         mComputeMotion;       // flag to solve mechanical behavior by computing motion (and forces, as a pre-requisite)
       bool         mHasFixedTemperature; // flag for constant temperature
-      bool         mHasVariableRadius;   // flag for temperature-dependent radius
+      bool         mHasTempDependRadius; // flag for temperature-dependent radius
       bool         mStoreContactParam;   // flag to store contact parameters with neighbors when solving the mechanical problem
 
       // Heat flux components
@@ -290,8 +290,8 @@ namespace Kratos
       unsigned int                                 mNumberOfContactParticleNeighbor;
       std::map<SphericParticle*, ContactParams>    mContactParamsParticle;
       std::map<DEMWall*, ContactParams>            mContactParamsWall;
-      std::map<SphericParticle*, ContactParamsHMS> mContactParamsParticleHMS;
-      std::map<DEMWall*, ContactParamsHMS>         mContactParamsWallHMS;
+      //std::map<SphericParticle*, ContactParamsHMS> mContactParamsParticleHMS;
+      //std::map<DEMWall*, ContactParamsHMS>         mContactParamsWallHMS;
 
       // Tesselation data
       unsigned int         mDelaunayPointListIndex;
