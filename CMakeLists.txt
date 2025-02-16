@@ -500,6 +500,12 @@ if((KRATOS_SHARED_MEMORY_PARALLELIZATION STREQUAL "C++11") AND (CMAKE_CXX_STANDA
 endif ()
 
 ##*****************************
+# JSON and JSON schema
+set(JSON_Install ON)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/json)
+
+
+##*****************************
 # Finding cuda if needed
 if(${USE_CUDA} MATCHES ON)
   find_package(CUDA QUIET REQUIRED)
