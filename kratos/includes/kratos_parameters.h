@@ -17,14 +17,26 @@
 #include <filesystem>
 
 // External includes
-#include "json/json_fwd.hpp" // Import forward declaration nlohmann json library
+#include "nlohmann/json_fwd.hpp" // Import forward declaration nlohmann json library
 
 // Project includes
 #include "includes/serializer.h"
 #include "includes/ublas_interface.h"
 
-namespace Kratos
-{
+
+// Forward-declare iterators.
+namespace nlohmann::detail {
+template <class T>
+class iter_impl;
+
+template <class T>
+class iteration_proxy;
+} // namespace nlohmann::detail
+
+namespace Kratos {
+
+class Schema;
+
 ///@addtogroup KratosCore
 ///@{
 
