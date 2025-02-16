@@ -888,6 +888,10 @@ public:
      */
     bool HasSameKeysAndTypeOfValuesAs(Parameters& rParameters);
 
+    void Validate(const Schema& rSchema) const;
+
+    void ValidateAndAssignDefaults(const Schema& rSchema);
+
     /**
      * @brief This function is designed to verify that the parameters under testing match the form prescribed by the rDefaultParameters.
      * @details If the parameters contain values that do not appear in the rDefaultParameters, an error is thrown, whereas if a parameter is found in the rDefaultParameters but not in the Parameters been tested, it is copied to the parameters.
