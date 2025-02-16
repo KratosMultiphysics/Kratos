@@ -200,9 +200,6 @@ namespace Kratos
       void               SetParticleMass                      (const double mass);
       void               SetParticleMomentInertia             (const double moment_inertia);
       void               SetParticleRealYoungRatio            (const double ratio);
-      void               SetParticleDeformationRate           (const double rate);
-      void               SetParticleDeformationRateStart      (const double start);
-      void               SetParticleDeformationRateStop       (const double stop);
 
       // DIMENSION DEPENDENT METHODS (DIFFERENT FOR 2D AND 3D)
       // ATTENTION:
@@ -284,11 +281,6 @@ namespace Kratos
       unsigned int mRadiativeNeighbors;
       double       mEnvironmentTemperature;
       double       mEnvironmentTempAux;
-
-      // Deformation rate
-      double mDeformationRate;
-      double mDeformationRateStart;
-      double mDeformationRateStop;
 
       // Neighboring data
       ThermalSphericParticle*                      mNeighbor_p;

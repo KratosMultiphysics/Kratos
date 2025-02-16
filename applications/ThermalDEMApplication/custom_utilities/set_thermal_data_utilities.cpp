@@ -84,21 +84,6 @@ namespace Kratos {
             particle->Set(DEMThermalFlags::IS_ADIABATIC, submp[ADIABATIC]);
           else
             particle->Set(DEMThermalFlags::IS_ADIABATIC, false);
-
-          if (submp.Has(DEFORMATION_RATE))
-            particle->SetParticleDeformationRate(submp[DEFORMATION_RATE]);
-          else
-            particle->SetParticleDeformationRate(0.0);
-
-          if (submp.Has(DEFORMATION_RATE_START_TIME))
-            particle->SetParticleDeformationRateStart(submp[DEFORMATION_RATE_START_TIME]);
-          else
-            particle->SetParticleDeformationRateStart(0.0);
-
-          if (submp.Has(DEFORMATION_RATE_STOP_TIME))
-            particle->SetParticleDeformationRateStop(submp[DEFORMATION_RATE_STOP_TIME]);
-          else
-            particle->SetParticleDeformationRateStop(999999999.0);
         });
       }
     }

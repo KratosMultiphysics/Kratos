@@ -658,13 +658,13 @@ namespace Kratos
         CleanContactParameters(r_process_info);
 
       // Apply deformation rate
-      const double time = r_process_info[TIME];
-      if (mDeformationRate != 0.0 && time >= mDeformationRateStart && time <= mDeformationRateStop) {
-        double added_search_distance = r_process_info[SEARCH_RADIUS_INCREMENT];
-        UpdateDeformationRateRadius(r_process_info);
-        ComputeAddedSearchDistance(r_process_info, added_search_distance);
-        SetSearchRadius(GetParticleRadius() + added_search_distance);
-      }
+      //const double time = r_process_info[TIME];
+      //if (mDeformationRate != 0.0 && time >= mDeformationRateStart && time <= mDeformationRateStop) {
+      //  double added_search_distance = r_process_info[SEARCH_RADIUS_INCREMENT];
+      //  UpdateDeformationRateRadius(r_process_info);
+      //  ComputeAddedSearchDistance(r_process_info, added_search_distance);
+      //  SetSearchRadius(GetParticleRadius() + added_search_distance);
+      //}
     }
 
     // Update temperature dependent radius
@@ -686,9 +686,9 @@ namespace Kratos
     const double r     = GetParticleRadius();
     const double alpha = GetParticleExpansionCoefficient();
     const double T     = GetParticleTemperature();
-    //const double new_radius = mInitialRadius * (1.0 + alpha * (T - mInitialTemperature));  // Total (used in "Rangel et al, Comput Geotech, 176:106789, 2024")
+    const double new_radius = mInitialRadius * (1.0 + alpha * (T - mInitialTemperature));  // Total (used in "Rangel et al, Comput Geotech, 176:106789, 2024")
     //const double new_radius = r * (1.0 + alpha * (T - mPreviousTemperature)); // Incremental
-    const double new_radius = GetParticleRadius() + mInitialRadius * mDeformationRate * r_process_info[DELTA_TIME];
+    //const double new_radius = GetParticleRadius() + mInitialRadius * mDeformationRate * r_process_info[DELTA_TIME];
     SetParticleRadius(new_radius);
 
     // Update density
@@ -1708,21 +1708,6 @@ namespace Kratos
   //------------------------------------------------------------------------------------------------------------
   void ThermalSphericParticle::SetParticleRealYoungRatio(const double ratio) {
     mRealYoungRatio = ratio;
-  }
-
-  //------------------------------------------------------------------------------------------------------------
-  void ThermalSphericParticle::SetParticleDeformationRate(const double rate) {
-    mDeformationRate = rate;
-  }
-
-  //------------------------------------------------------------------------------------------------------------
-  void ThermalSphericParticle::SetParticleDeformationRateStart(const double start) {
-    mDeformationRateStart = start;
-  }
-
-  //------------------------------------------------------------------------------------------------------------
-  void ThermalSphericParticle::SetParticleDeformationRateStop(const double stop) {
-    mDeformationRateStop = stop;
   }
 
   //=====================================================================================================================================================================================
