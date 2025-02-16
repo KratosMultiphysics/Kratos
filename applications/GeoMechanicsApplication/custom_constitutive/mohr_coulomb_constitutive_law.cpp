@@ -69,11 +69,11 @@ int MohrCoulombConstitutiveLaw::Check(const Properties&   rMaterialProperties,
 
     if (!rMaterialProperties.Has(YOUNG_MODULUS) || rMaterialProperties[YOUNG_MODULUS] <= 0.0)
         KRATOS_ERROR
-            << "YOUNG_MODULUS has Key zero, is not defined or has an invalid value for property"
+            << "YOUNG_MODULUS has Key zero, is not defined or has an invalid value for property: "
             << rMaterialProperties.Id() << std::endl;
 
     if (!rMaterialProperties.Has(POISSON_RATIO) || rMaterialProperties[POISSON_RATIO] < 0.0)
-        KRATOS_ERROR << "POISSON_RATIO is not defined or has an invalid value for property"
+        KRATOS_ERROR << "POISSON_RATIO is not defined or has an invalid value for property: "
                      << rMaterialProperties.Id() << std::endl;
 
     return 0;
