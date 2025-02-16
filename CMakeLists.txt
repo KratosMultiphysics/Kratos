@@ -334,7 +334,7 @@ if(KRATOS_BUILD_TESTING MATCHES ON)
 
   # restore the current directory's old `COMPILE_OPTIONS`
   set_directory_properties(PROPERTIES COMPILE_OPTIONS "${kratos_root_compile_options}")
-endif(KRATOS_BUILD_TESTING MATCHES ON) 
+endif(KRATOS_BUILD_TESTING MATCHES ON)
 
 # Benchmarking
 if(KRATOS_BUILD_BENCHMARK MATCHES ON)
@@ -504,6 +504,9 @@ endif ()
 set(JSON_Install ON)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/json)
 
+set(nlohmann_json_schema_validator_SHARED_LIBS ON)
+set(JSON_VALIDATOR_INSTALL ON)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/json-schema-validator)
 
 ##*****************************
 # Finding cuda if needed
