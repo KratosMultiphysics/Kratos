@@ -120,7 +120,7 @@ add_library(KratosCore SHARED
             $<TARGET_OBJECTS:KratosVersion>)
 
 # Set the shared external libraries for kratos (gidpost, tyniexpr, json, etc...)
-set(KRATOS_EXTERNAL_LIBRARIES gidpost tinyexpr clipper nlohmann_json_schema_validator::validator)
+set(KRATOS_EXTERNAL_LIBRARIES gidpost tinyexpr clipper nlohmann_json nlohmann_json_schema_validator::validator)
 
 # Set the TPL libraries if enabled (triangle, tetgen, etc...)
 if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
