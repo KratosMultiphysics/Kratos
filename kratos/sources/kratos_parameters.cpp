@@ -16,7 +16,8 @@
 #include <algorithm>
 
 // External includes
-#include "json/json.hpp" // Import nlohmann json library
+#include "nlohmann/json.hpp" // Import nlohmann json library
+#include "nlohmann/json-schema.hpp" // nlohmann::json_validator
 
 // Project includes
 #include "includes/kratos_parameters.h"
