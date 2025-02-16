@@ -54,6 +54,7 @@ def GetDefaultInputParameters():
             "RemoveBallsInEmbeddedOption"      : false,
             "RadiusExpansionOption"            : false,
             "RadiusExpansionRate"              : 0.0,
+            "RadiusMultiplierStartTime"        : 0.0,
             "RadiusMultiplierMax"              : 0.0,
             "RadiusExpansionRateChangeOption"  : false,
             "RadiusExpansionAcceleration"      : 0.0,
