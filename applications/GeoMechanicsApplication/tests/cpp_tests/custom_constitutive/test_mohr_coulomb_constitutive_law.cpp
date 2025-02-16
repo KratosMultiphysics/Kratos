@@ -72,4 +72,17 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombConstitutiveLaw_Check, KratosGeoMechanicsFa
     KRATOS_EXPECT_EQ(law.Check(properties, element_geometry, process_info), 0);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombConstitutiveLaw_SetValueAndGetValue, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto       law          = MohrCoulombConstitutiveLaw(std::make_unique<PlaneStrain>());
+    const auto process_info = ProcessInfo{};
+
+    constexpr auto set_value = 1.0;
+    law.SetValue(STATE_VARIABLE, set_value, process_info);
+    auto zero_value = 0.0;
+    KRATOS_EXPECT_DOUBLE_EQ(law.GetValue(STATE_VARIABLE, zero_value), set_value);
+    zero_value = 0.0;
+    KRATOS_EXPECT_DOUBLE_EQ(law.GetValue(DAMAGE_VARIABLE, zero_value), set_value);
+}
+
 } // namespace Kratos::Testing
