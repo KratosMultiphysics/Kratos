@@ -93,7 +93,6 @@ void MohrCoulombConstitutiveLaw::SetValue(const Variable<double>& rThisVariable,
     if (rThisVariable == STATE_VARIABLE) mStateVariable = rValue;
 }
 
-// ================================================================================================
 void MohrCoulombConstitutiveLaw::CalculateMohrCoulomb(const Properties& rProp, Vector& rCautchyStressVector)
 {
     Vector principalStress = StressStrainUtilities::CalculatePrincipalStresses(rCautchyStressVector);
@@ -112,7 +111,6 @@ void MohrCoulombConstitutiveLaw::CalculateMohrCoulomb(const Properties& rProp, V
     int region_index = this->FindRegionIndex(fme, fte);
 }
 
-// ================================================================================================
 void MohrCoulombConstitutiveLaw::CalculatePK2Stress(const Vector&                rStrainVector,
                                                     Vector&                      rStressVector,
                                                     ConstitutiveLaw::Parameters& rValues)
@@ -128,7 +126,6 @@ void MohrCoulombConstitutiveLaw::CalculatePK2Stress(const Vector&               
     rStressVector = mStressVector;
 }
 
-// ================================================================================================
 void MohrCoulombConstitutiveLaw::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
@@ -143,14 +140,12 @@ void MohrCoulombConstitutiveLaw::CalculateElasticMatrix(Matrix& C, ConstitutiveL
     // C = mpConstitutiveDimension->FillConstitutiveMatrix(c1, c2, c3);
 }
 
-// ================================================================================================
 void MohrCoulombConstitutiveLaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     mStrainVectorFinalized = rValues.GetStrainVector();
     mStressVectorFinalized = mStressVector;
 }
 
-// ================================================================================================
 int MohrCoulombConstitutiveLaw::FindRegionIndex(double fme, double fte)
 {
     if (fme <= 0.0 && fte <= 0.0) return 0;
