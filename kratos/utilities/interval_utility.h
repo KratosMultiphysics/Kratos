@@ -10,27 +10,26 @@
 //  Main authors:    Riccardo Rossi
 //
 
-#if !defined(KRATOS_INTERVAL_UTILITY_H_INCLUDED)
-#define  KRATOS_INTERVAL_UTILITY_H_INCLUDED
+#pragma once
 
-#include <cmath>
+// Project includes
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
+#include "includes/schema.hpp" // Schema
 
-namespace Kratos
-{
+namespace Kratos {
 
 /**this function manages intervals. It aims at being used within processes
 *
 */
-class KRATOS_API(KRATOS_CORE) IntervalUtility
+class KRATOS_API(KRATOS_CORE) IntervalUtility final
 {
 public:
 
     KRATOS_CLASS_POINTER_DEFINITION(IntervalUtility);
 
     /// @brief Constructor with parameters
-    /// @param Settings 
+    /// @param Settings
     IntervalUtility(Parameters Settings);
 
     /// @brief Get the initial time of the interval
@@ -52,23 +51,14 @@ public:
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const;
 
+    Schema GetSchema() const;
+
 private:
     double mIntervalBegin;
     double mIntervalEnd;
 };
 
 
-/// output stream function
-inline std::ostream& operator << (std::ostream& rOStream,
-                                  const IntervalUtility& rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << " : ";
-    rThis.PrintData(rOStream);
-    return rOStream;
-}
+std::ostream& operator << (std::ostream& rOStream, const IntervalUtility& rThis);
 
-
-}
-
-#endif // KRATOS_INTERVAL_UTILITY_H_INCLUDED
+} // namespace Kratos
