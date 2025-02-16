@@ -22,6 +22,7 @@
 #include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
 #include "includes/define_registry.h"
+#include "includes/schema.hpp" // Schema
 
 namespace Kratos
 {
@@ -180,6 +181,12 @@ public:
         const Parameters default_parameters = Parameters(R"({})" );
 
         return default_parameters;
+    }
+
+    virtual Schema GetSchema() const
+    {
+        KRATOS_ERROR << "Attempting to query the schema of a Process that does not provide one.";
+        return Schema();
     }
 
     ///@}
