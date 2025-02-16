@@ -28,7 +28,7 @@ if(${KRATOS_USE_FUTURE} MATCHES ON)
     add_definitions( -DKRATOS_USE_FUTURE )
     message(WARNING "You are using sources from Kratos::Future. This is not recommended for stability.")
     ## TODO: Change this in the future (no pun intended) and make it part of the interface target in a different folder.
-    FILE(GLOB_RECURSE KRATOS_FUTURE_PYTHON_SOURCES "future/python/*.cpp") 
+    FILE(GLOB_RECURSE KRATOS_FUTURE_PYTHON_SOURCES "future/python/*.cpp")
     kratos_add_sources(KRATOS_CORE_SOURCES SOURCE_DIRS "${LIST_FUTURE}" EXCEPTIONS "${KRATOS_FUTURE_PYTHON_SOURCES}")
 endif(${KRATOS_USE_FUTURE} MATCHES ON)
 if(${KRATOS_USE_LEGACY} MATCHES ON)
@@ -61,11 +61,11 @@ file(GLOB KRATOS_EXPRESSION_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/expression/*.cpp
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
     include(GoogleTest)
 
-    file(GLOB_RECURSE KRATOS_TEST_UTILITIES_SOURCES 
+    file(GLOB_RECURSE KRATOS_TEST_UTILITIES_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_utilities/*.cpp
     )
 
-    file(GLOB_RECURSE KRATOS_TEST_SOURCES 
+    file(GLOB_RECURSE KRATOS_TEST_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/testing/*.cpp
     )
@@ -86,7 +86,7 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ## Kratos benchmark sources. Disabled by default
 if(${KRATOS_BUILD_BENCHMARK} MATCHES ON)
-    file(GLOB_RECURSE KRATOS_BENCHMARK_SOURCES 
+    file(GLOB_RECURSE KRATOS_BENCHMARK_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/benchmarks/*.cpp
     )
 
@@ -112,10 +112,15 @@ target_compile_definitions(KratosVersion PRIVATE
 )
 
 ## Define library KratosCore to be included in all of the others
-add_library(KratosCore SHARED ${KRATOS_CORE_SOURCES} ${KRATOS_CORE_INPUT_OUTPUT_SOURCES} ${KRATOS_EXPRESSION_SOURCES} ${KRATOS_TPL_SOURCES} $<TARGET_OBJECTS:KratosVersion>)
+add_library(KratosCore SHARED
+            ${KRATOS_CORE_SOURCES}
+            ${KRATOS_CORE_INPUT_OUTPUT_SOURCES}
+            ${KRATOS_EXPRESSION_SOURCES}
+            ${KRATOS_TPL_SOURCES}
+            $<TARGET_OBJECTS:KratosVersion>)
 
 # Set the shared external libraries for kratos (gidpost, tyniexpr, json, etc...)
-set(KRATOS_EXTERNAL_LIBRARIES gidpost tinyexpr clipper)
+set(KRATOS_EXTERNAL_LIBRARIES gidpost tinyexpr clipper nlohmann_json_schema_validator::validator)
 
 # Set the TPL libraries if enabled (triangle, tetgen, etc...)
 if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
