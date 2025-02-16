@@ -619,17 +619,14 @@ namespace Kratos
             mFileGlobalResults << "R = ROW, C = COLUMN" << std::endl;
             mFileGlobalResults << "Ri -> C1: STEP | C2: TIME | C3: IS_MOVING | C4: EQUILIB_STEPS | C5-C12: [X1 Y1 X2 Y2 X3 Y3 X4 Y4] (VERTEX) | C13: #PARTICLES | C14: #PARTICLES_INN | C15: #CONTACTS | C16: #CONTACTS_INN | C17: AVG_COORD | C18: AVG_COORD_INN | C19: AVG_RADIUS_ALL | C20: VOL_TOT | C21: VOL_TOT_INN | C22: VOLD_SOLID | C23: VOLD_SOLID_INN | C24: POROSITY | C25: POROSITY_INN" << std::endl;
         }
-
         if (mFileParticleResults.is_open()) {
             mFileParticleResults << "R = ROW, C = COLUMN" << std::endl;
             mFileParticleResults << "Ri -> C1: STEP | C2: TIME | C3: ID | C4: RADIUS | C5-C6: [X Y] | C7: #CONTACTS_PARTICLE | C8: #CONTACTS_WALLS | C9-Cn: [FX FY] (EACH PARTICLE NEIGHBOR) | Cn+1-Cp: [FX FY] (EACH WALL NEIGHBOR)" << std::endl;
         }
-
         if (mFileContactResults.is_open()) {
             mFileContactResults << "R = ROW, C = COLUMN" << std::endl;
             mFileContactResults << "Ri -> C1: STEP | C2: TIME | C3-C8: X1 Y1 X2 Y2 FX FY" << std::endl;
         }
-
         if (mFileTensorResults.is_open()) {
             mFileTensorResults << "R = ROW, C = COLUMN, F = FABRIC TENSOR, S = STRESS TENSOR" << std::endl;
             mFileTensorResults << "Ri -> C1: STEP | C2: TIME" << std::endl;
@@ -638,7 +635,6 @@ namespace Kratos
             mFileTensorResults << "Rl -> C1-C4: [S11 S12 S21 S22] | C5: VOL STRESS | C6: DEV STRESS  | C7: WALL STRESS (ALL CONTACTS)" << std::endl;
             mFileTensorResults << "Rm -> C1-C4: [S11 S12 S21 S22] | C5: VOL STRESS | C6: DEV STRESS (INN CONTACTS)" << std::endl;
         }
-
         if (mFileRoseDiagram.is_open()) {
             mFileRoseDiagram << "R = ROW, C = COLUMN" << std::endl;
             mFileRoseDiagram << "Ri -> C1: STEP | C2: TIME" << std::endl;

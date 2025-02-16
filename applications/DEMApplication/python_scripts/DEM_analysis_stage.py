@@ -214,21 +214,24 @@ class DEMAnalysisStage(AnalysisStage):
 
     def SetRVEUtilities(self):
         rve_settings = self.DEM_parameters["rve_analysis_settings"]
-        rve_analysis                     = rve_settings["RVEAnalysis"].GetBool()
-        rve_evaluation_frequency         = rve_settings["RVEEvaluationFrequency"].GetInt()
-        rve_write_frequency              = rve_settings["RVEWriteFrequency"].GetInt()
-        rve_consolidation_stop_criterion = rve_settings["RVEConsolidationStopCriterion"].GetString()
-        rve_consolidation_limit_value    = rve_settings["RVEConsolidationLimitValue"].GetDouble()
-        rve_inner_volume_offset          = rve_settings["RVEInnerVolumeOffset"].GetDouble()
+        self.rve_analysis                     = rve_settings["RVEAnalysis"].GetBool()
+        self.rve_evaluation_frequency         = rve_settings["RVEEvaluationFrequency"].GetInt()
+        self.rve_write_frequency              = rve_settings["RVEWriteFrequency"].GetInt()
+        self.rve_consolidation_stop_criterion = rve_settings["RVEConsolidationStopCriterion"].GetString()
+        self.rve_consolidation_limit_value    = rve_settings["RVEConsolidationLimitValue"].GetDouble()
+        self.rve_inner_volume_offset          = rve_settings["RVEInnerVolumeOffset"].GetDouble()
+        self.spheres_model_part.ProcessInfo.SetValue(RVE_ANALYSIS, self.rve_analysis)
         
-        self.spheres_model_part.ProcessInfo.SetValue(RVE_ANALYSIS, rve_analysis)
-
-        if not rve_analysis:
+        if not self.rve_analysis:
             return None
-        elif self.DEM_parameters["Dimension"].GetInt() == 2:
-            return RVEWallBoundary2D(rve_evaluation_frequency, rve_write_frequency, rve_consolidation_stop_criterion, rve_consolidation_limit_value, rve_inner_volume_offset)
         else:
-            raise Exception('Error: The selected RVE utility for 3D analysis is not yet implemented')
+            return self.GetRVEUtility()
+
+    def GetRVEUtility(self):
+        if self.DEM_parameters["Dimension"].GetInt() == 2:
+            return RVEWallBoundary2D(self.rve_evaluation_frequency, self.rve_write_frequency, self.rve_consolidation_stop_criterion, self.rve_consolidation_limit_value, self.rve_inner_volume_offset)
+        else:
+            raise Exception('Error: The selected RVE utility is not implemented')
 
     def SetSolver(self):        # TODO why is this still here. -> main_script calls retrocompatibility
         return self._CreateSolver()

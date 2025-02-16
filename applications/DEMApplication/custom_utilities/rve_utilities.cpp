@@ -105,11 +105,11 @@ namespace Kratos
 
     //------------------------------------------------------------------------------------------------------------
     // Perform homogenization procedures on the particle assembly to obtain tensorial variables for upscaling the discrete solution.
-    void RVEUtilities::Homogenize(void) {
-        if (mNumContacts == 0 || mNumContactsInner == 0)
-            return;
+    bool RVEUtilities::Homogenize(void) {
+        if (mNumContacts == 0 || mNumContactsInner == 0) return false;
         HomogenizeFabric();
         HomogenizeStress();
+        return true;
     }
 
     //------------------------------------------------------------------------------------------------------------
