@@ -19,6 +19,7 @@
 #include "custom_utilities/tesselation_utilities_3d.h"
 #include "custom_utilities/graph_utilities.h"
 #include "custom_utilities/heat_map_utilities.h"
+#include "custom_utilities/rve_wall_boundary_thermal_2d.h"
 
 namespace Kratos
 {
@@ -66,6 +67,13 @@ namespace Kratos
         .def("ExecuteInitialize",           &HeatMapUtilities::ExecuteInitialize)
         .def("ExecuteFinalizeSolutionStep", &HeatMapUtilities::ExecuteFinalizeSolutionStep)
         .def("ExecuteFinalize",             &HeatMapUtilities::ExecuteFinalize);
+
+      py::class_<RVEWallBoundaryThermal2D, RVEWallBoundaryThermal2D::Pointer, RVEUtilities>(m, "RVEWallBoundaryThermal2D")
+        .def(py::init<>())
+        .def(py::init<int, int, std::string, double, double>())
+        .def("Initialize", &RVEWallBoundaryThermal2D::Initialize)
+        .def("FinalizeSolutionStep", &RVEWallBoundaryThermal2D::FinalizeSolutionStep)
+        .def("Finalize", &RVEWallBoundaryThermal2D::Finalize);
     }
 
   } // namespace Python
