@@ -55,6 +55,9 @@ public:
         std::string method_name;
 
         switch (Method) {
+            case ConstraintImposition::None:
+                method_name = "none";
+                break;
             case ConstraintImposition::MasterSlave:
                 method_name = "master_slave";
                 break;
@@ -191,7 +194,9 @@ public:
     ConstraintImposition GetImposition() const
     {
         const std::string method_name = this->GetValue(ConstraintAssembler::GetImpositionVariable());
-        if (method_name == "master_slave") {
+        if (method_name == "none") {
+            return ConstraintImposition::None;
+        } else if (method_name == "master_slave") {
             return ConstraintImposition::MasterSlave;
         } else if (method_name == "augmented_lagrange") {
             return ConstraintImposition::AugmentedLagrange;

@@ -12,6 +12,7 @@
 
 // Project includes
 #include "solving_strategies/builder_and_solvers/p_multigrid/constraint_assembler_factory.hpp" // ConstraintAssemblerFactory
+#include "solving_strategies/builder_and_solvers/p_multigrid/noop_constraint_assembler.hpp" // NoOpConstraintAssembler
 #include "solving_strategies/builder_and_solvers/p_multigrid/master_slave_constraint_assembler.hpp" // MasterSlaveConstraintAssembler
 #include "solving_strategies/builder_and_solvers/p_multigrid/augmented_lagrange_constraint_assembler.hpp" // AugmentedLagrangeConstraintAssembler
 #include "spaces/ublas_space.h" // TUblasSparseSpace, TUblasDenseSpace
@@ -26,15 +27,18 @@ ConstraintAssemblerFactory(Parameters Settings)
 {
     KRATOS_TRY
     const std::string imposition_name = Settings["method"].Get<std::string>();
-    if (imposition_name == "master_slave_elimination") {
+    if (imposition_name == "none") {
+        return std::make_shared<NoOpConstraintAssembler<TSparse,TDense>>(Settings);
+    } else if (imposition_name == "master_slave_elimination") {
         return std::make_shared<MasterSlaveConstraintAssembler<TSparse,TDense>>(Settings);
     } else if (imposition_name == "augmented_lagrange") {
         return std::make_shared<AugmentedLagrangeConstraintAssembler<TSparse,TDense>>(Settings);
     } else {
         std::stringstream message;
-        message << "Unsupported constraint imposition \"" << imposition_name << "\". Options are:\n";
-        message << "\t\"master_slave_elimination\"\n";
-        message << "\t\"augmented_lagrange\"";
+        message << "Unsupported constraint imposition \"" << imposition_name << "\". Options are:\n"
+                << "\t\"none\"\n"
+                << "\t\"master_slave_elimination\"\n"
+                << "\t\"augmented_lagrange\"";
         KRATOS_ERROR << message.str();
     }
     KRATOS_CATCH("")
