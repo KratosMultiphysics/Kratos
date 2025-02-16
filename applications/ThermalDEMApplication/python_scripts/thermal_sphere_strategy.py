@@ -231,8 +231,8 @@ class ExplicitStrategy(BaseStrategy):
     def CheckProjectParameters(self):
         # Forces and motion calculation
         if (self.compute_motion_option == True and self.compute_forces_option == False):
-            raise Exception('ThermalDEM', 'Activation of "compute_motion" requires "compute_forces" to be enabled.') 
-
+            Logger.PrintWarning('ThermalDEM', '\nActivation of "compute_motion" requires "compute_forces" to be enabled. The simulation will run with "compute_forces" enabled.\n')
+        
         # Time integration scheme
         if (self.thermal_integration_scheme != "forward_euler"):
             raise Exception('ThermalDEM', 'Time integration scheme \'' + self.thermal_integration_scheme + '\' is not implemented.') 
