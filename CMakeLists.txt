@@ -502,11 +502,11 @@ endif ()
 ##*****************************
 # JSON and JSON schema
 set(JSON_Install ON)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/json SYSTEM)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/json)
 
 set(nlohmann_json_schema_validator_SHARED_LIBS ON)
 set(JSON_VALIDATOR_INSTALL ON)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/json-schema-validator SYSTEM)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/json-schema-validator)
 
 ##*****************************
 # Finding cuda if needed
