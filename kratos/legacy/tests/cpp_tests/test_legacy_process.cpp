@@ -17,7 +17,7 @@
 namespace Kratos::Testing {
 
     /* This test will be added to a dedicated LegacyCore Suit and will only be compiled with -DKRATOS_USE_LEGACY flag enabled.
-     * For more info on future tests se also:
+     * For more info on legacy tests se also:
      * kratos/tests/cpp_tests/sources/test_namespaces.cpp
      */
     KRATOS_TEST_CASE_IN_SUITE(LegacyProcess, KratosCoreLegacySuite)
