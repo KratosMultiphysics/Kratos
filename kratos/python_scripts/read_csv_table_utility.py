@@ -1,5 +1,11 @@
+# Project imports
 import KratosMultiphysics as KM
+
+# System imports
 import csv
+from typing import Optional # Optional
+import pathlib # pathlib.Path
+
 
 class ReadCsvTableUtility:
     r"""This class is used to retrieve a table from the specified parameters.
@@ -29,34 +35,25 @@ class ReadCsvTableUtility:
     |--------------------|------------------------------------------------------|
     """
 
-    def __init__(self, settings):
+    def __init__(self, settings: KM.Parameters):
         """Constructor of the csv table reader: validate the parameters.
 
         Keyword arguments:
         self -- It signifies an instance of the class.
         settings -- Kratos parameters containing solver settings.
         """
-        default_settings =  KM.Parameters("""{
-            "name"             : "csv_table",
-            "filename"         : "",
-            "delimiter"        : ",",
-            "skiprows"         : 0,
-            "first_column_id"  : 0,
-            "second_column_id" : 1,
-            "table_id"         : -1,
-            "na_replace"       : 0.0
-        }""")
-        settings.ValidateAndAssignDefaults(default_settings)
+        settings.ValidateAndAssignDefaults(self.GetSchema())
 
-        self.filename = settings["filename"].GetString()
-        self.delimiter = settings["delimiter"].GetString()
-        self.skiprows = settings["skiprows"].GetInt()
-        self.first_column_id = settings["first_column_id"].GetInt()
-        self.second_column_id = settings["second_column_id"].GetInt()
-        self.table_id = settings["table_id"].GetInt()
-        self.na_replace = settings["na_replace"].GetDouble()
+        self.filename: pathlib.Path = pathlib.Path(settings["filename"].GetString())
+        self.delimiter: str = settings["delimiter"].GetString()
+        self.skiprows: int = settings["skiprows"].GetInt()
+        self.first_column_id: int = settings["first_column_id"].GetInt()
+        self.second_column_id: int = settings["second_column_id"].GetInt()
+        self.table_id: int = settings["table_id"].GetInt()
+        self.na_replace: float = settings["na_replace"].GetDouble()
 
-    def Read(self, model_part = None):
+    def Read(self,
+             model_part: Optional[KM.ModelPart] = None):
         """Read a csv table.
 
         Keyword arguments:
@@ -87,10 +84,63 @@ class ReadCsvTableUtility:
                 raise Exception(err_msg)
         return table
 
-    def _Float(self, value, row_id):
+    def _Float(self, value: float, row_id: int) -> float:
         try:
             return float(value)
         except ValueError:
             KM.Logger.PrintWarning(self.__class__.__name__, "{} replaced by {} at row {}".format(value, self.na_replace, row_id))
             return self.na_replace
+
+    @classmethod
+    def GetSchema(cls) -> KM.Schema:
+        return KM.Schema(KM.Parameters("""{
+            "title" : "ReadCsvTableUility",
+            "description" : "A utility class for reading data from a CSV file.",
+            "properties" : {
+                "name" : {
+                    "description" : "Name of the table to refer to internally.",
+                    "type" : "string",
+                    "default" : "csv_table"
+                },
+                "filename" : {
+                    "description" : "Path pointing to the CSV file.",
+                    "type" : "string"
+                },
+                "delimiter" : {
+                    "type" : "string",
+                    "pattern" : "[,;\\t|]",
+                    "default" : ","
+                },
+                "skiprows" : {
+                    "description" : "Number of rows to skip before beginning to read data.",
+                    "type" : "integer",
+                    "default" : 0
+                },
+                "first_column_id" : {
+                    "description" : "Zero-based index of the first column to read.",
+                    "type" : "integer",
+                    "minimum" : 0,
+                    "default" : 0
+                },
+                "second_column_id" : {
+                    "description" : "Zero-based index of the second column to read.",
+                    "type" : "integer",
+                    "minimum" : 0,
+                    "default" : 1
+                },
+                "table_id" : {
+                    "description" : "Identifier of the table to store by in the provided model part. If -1, it will not be stored.",
+                    "type" : "integer",
+                    "minimum" : -1,
+                    "default" : -1
+                },
+                "na_replace" : {
+                    "description" : "Value to replace NaNs by.",
+                    "type" : "number",
+                    "default" : 0.0
+                }
+            },
+            "additionalProperties" : false,
+            "required" : ["filename"]
+        }"""))
 

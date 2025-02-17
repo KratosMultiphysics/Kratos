@@ -16,13 +16,15 @@
 #include <algorithm>
 
 // External includes
-#include "json/json.hpp" // Import nlohmann json library
+#include "nlohmann/json.hpp" // Import nlohmann json library
+#include "nlohmann/json-schema.hpp" // nlohmann::json_validator
 
 // Project includes
 #include "includes/kratos_parameters.h"
 #include "includes/define.h"
 #include "includes/kratos_filesystem.h"
 #include "input_output/logger.h"
+#include "includes/schema.hpp"
 
 namespace Kratos
 {
@@ -1298,6 +1300,28 @@ bool Parameters::HasSameKeysAndTypeOfValuesAs(Parameters& rParameters)
     }
 
     return true;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void Parameters::Validate(const Schema& rSchema) const
+{
+    KRATOS_TRY
+    nlohmann::json_schema::json_validator(*rSchema.GetDefinition().GetUnderlyingStorage())
+        .validate(*this->GetUnderlyingStorage());
+    KRATOS_CATCH("")
+}
+
+void Parameters::ValidateAndAssignDefaults(const Schema& rSchema)
+{
+    KRATOS_TRY
+    mpValue->patch_inplace(
+        nlohmann::json_schema::json_validator(
+            *rSchema.GetDefinition().GetUnderlyingStorage()
+        ).validate(*this->GetUnderlyingStorage())
+    );
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/

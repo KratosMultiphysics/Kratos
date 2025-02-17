@@ -1,0 +1,281 @@
+{
+  "version": 6,
+  "include": [
+    "CMakePresets-defaults.json"
+  ],
+  "configurePresets": [
+    {
+      "name": "ci-base",
+      "hidden": true,
+      "generator": "Ninja",
+      "inherits": [
+        "default"
+      ],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": {
+          "type": "STRING",
+          "value": "Debug"
+        },
+        "JSON_VALIDATOR_BUILD_TESTS": {
+          "type": "BOOL",
+          "value": true
+        },
+        "JSON_VALIDATOR_INSTALL": {
+          "type": "BOOL",
+          "value": false
+        },
+        "JSON_BuildTests": {
+          "type": "BOOL",
+          "value": false
+        }
+      },
+      "errors": {
+        "deprecated": true
+      }
+    },
+    {
+      "name": "gcc-ci",
+      "displayName": "Configure preset for GCC toolchain",
+      "inherits": [
+        "ci-base"
+      ],
+      "binaryDir": "cmake-build-ci-gcc",
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": {
+          "type": "FILEPATH",
+          "value": "g++"
+        },
+        "CMAKE_LINKER": {
+          "type": "FILEPATH",
+          "value": "ld"
+        }
+      }
+    },
+    {
+      "name": "intel-ci",
+      "displayName": "Configure preset for Intel toolchain",
+      "inherits": [
+        "ci-base"
+      ],
+      "binaryDir": "cmake-build-ci-intel",
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": {
+          "type": "FILEPATH",
+          "value": "icpx"
+        }
+      }
+    },
+    {
+      "name": "llvm-ci",
+      "displayName": "Configure preset for LLVM toolchain",
+      "inherits": [
+        "ci-base"
+      ],
+      "binaryDir": "cmake-build-ci-llvm",
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": {
+          "type": "FILEPATH",
+          "value": "clang++"
+        },
+        "CMAKE_LINKER": {
+          "type": "FILEPATH",
+          "value": "lld"
+        }
+      }
+    },
+    {
+      "name": "ci-coverage",
+      "displayName": "Configure preset for test coverage",
+      "inherits": [
+        "gcc-ci"
+      ],
+      "binaryDir": "cmake-build-ci-coverage",
+      "errors": {
+        "deprecated": false
+      },
+      "cacheVariables": {
+        "JSON_VALIDATOR_TEST_COVERAGE": {
+          "type": "BOOL",
+          "value": true
+        }
+      }
+    },
+    {
+      "name": "pre-commit",
+      "displayName": "Configure preset for pre-commit checks",
+      "inherits": [
+        "default"
+      ],
+      "binaryDir": "cmake-build-pre-commit",
+      "cacheVariables": {
+        "JSON_VALIDATOR_TEST_COVERAGE": {
+          "type": "BOOL",
+          "value": true
+        },
+        "JSON_VALIDATOR_INSTALL": {
+          "type": "BOOL",
+          "value": false
+        }
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "ci-base",
+      "hidden": true,
+      "inherits": [
+        "default"
+      ],
+      "cleanFirst": true
+    },
+    {
+      "name": "ci-coverage",
+      "displayName": "Build preset for test coverage",
+      "inherits": [
+        "ci-base"
+      ],
+      "configurePreset": "ci-coverage"
+    },
+    {
+      "name": "gcc-ci",
+      "displayName": "Build preset for GCC toolchain",
+      "inherits": [
+        "ci-base"
+      ],
+      "configurePreset": "gcc-ci"
+    },
+    {
+      "name": "intel-ci",
+      "displayName": "Build preset for Intel toolchain",
+      "inherits": [
+        "ci-base"
+      ],
+      "configurePreset": "intel-ci"
+    },
+    {
+      "name": "llvm-ci",
+      "displayName": "Build preset for LLVM toolchain",
+      "inherits": [
+        "ci-base"
+      ],
+      "configurePreset": "llvm-ci"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "ci-base",
+      "hidden": true,
+      "inherits": [
+        "default"
+      ],
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "ci-coverage",
+      "inherits": [
+        "default"
+      ],
+      "configurePreset": "ci-coverage"
+    },
+    {
+      "name": "gcc-ci",
+      "displayName": "Test preset for GCC toolchain",
+      "inherits": [
+        "ci-base"
+      ],
+      "configurePreset": "gcc-ci"
+    },
+    {
+      "name": "intel-ci",
+      "displayName": "Test preset for Intel toolchain",
+      "inherits": [
+        "ci-base"
+      ],
+      "configurePreset": "intel-ci"
+    },
+    {
+      "name": "llvm-ci",
+      "displayName": "Test preset for LLVM toolchain",
+      "inherits": [
+        "ci-base"
+      ],
+      "configurePreset": "llvm-ci"
+    }
+  ],
+  "workflowPresets": [
+    {
+      "name": "gcc-ci",
+      "displayName": "CI test for GCC toolchain",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "gcc-ci"
+        },
+        {
+          "type": "build",
+          "name": "gcc-ci"
+        },
+        {
+          "type": "test",
+          "name": "gcc-ci"
+        }
+      ]
+    },
+    {
+      "name": "intel-ci",
+      "displayName": "CI test for Intel toolchain",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "intel-ci"
+        },
+        {
+          "type": "build",
+          "name": "intel-ci"
+        },
+        {
+          "type": "test",
+          "name": "intel-ci"
+        }
+      ]
+    },
+    {
+      "name": "llvm-ci",
+      "displayName": "CI test for LLVM toolchain",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "llvm-ci"
+        },
+        {
+          "type": "build",
+          "name": "llvm-ci"
+        },
+        {
+          "type": "test",
+          "name": "llvm-ci"
+        }
+      ]
+    },
+    {
+      "name": "ci-coverage",
+      "displayName": "Coverage tests",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "ci-coverage"
+        },
+        {
+          "type": "build",
+          "name": "ci-coverage"
+        },
+        {
+          "type": "test",
+          "name": "ci-coverage"
+        }
+      ]
+    }
+  ]
+}

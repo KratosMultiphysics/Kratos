@@ -17,14 +17,26 @@
 #include <filesystem>
 
 // External includes
-#include "json/json_fwd.hpp" // Import forward declaration nlohmann json library
+#include "nlohmann/json_fwd.hpp" // Import forward declaration nlohmann json library
 
 // Project includes
 #include "includes/serializer.h"
 #include "includes/ublas_interface.h"
 
-namespace Kratos
-{
+
+// Forward-declare iterators.
+namespace nlohmann::detail {
+template <class T>
+class iter_impl;
+
+template <class T>
+class iteration_proxy;
+} // namespace nlohmann::detail
+
+namespace Kratos {
+
+class Schema;
+
 ///@addtogroup KratosCore
 ///@{
 
@@ -875,6 +887,10 @@ public:
      * @return True if it has, false othersise
      */
     bool HasSameKeysAndTypeOfValuesAs(Parameters& rParameters);
+
+    void Validate(const Schema& rSchema) const;
+
+    void ValidateAndAssignDefaults(const Schema& rSchema);
 
     /**
      * @brief This function is designed to verify that the parameters under testing match the form prescribed by the rDefaultParameters.
