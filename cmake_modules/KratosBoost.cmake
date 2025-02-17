@@ -1,5 +1,13 @@
 # Finding and including the BOOST library (version should not matter anymore)
 
+# Check if Boost_INCLUDE_DIRS and Boost_LIBRARY_DIRS are already defined as environment variables
+if(DEFINED ENV{Boost_INCLUDE_DIRS})
+  set(Boost_INCLUDE_DIRS $ENV{Boost_INCLUDE_DIRS})
+endif(DEFINED ENV{Boost_INCLUDE_DIRS})
+if(DEFINED ENV{Boost_LIBRARY_DIRS})
+  set(Boost_LIBRARY_DIRS $ENV{Boost_LIBRARY_DIRS})
+endif(DEFINED ENV{Boost_LIBRARY_DIRS})
+
 # Check if Boost_INCLUDE_DIRS and Boost_LIBRARY_DIRS are already defined
 if(Boost_INCLUDE_DIRS AND Boost_LIBRARY_DIRS)
   message(STATUS "Using predefined Boost paths for Boost_INCLUDE_DIRS and Boost_LIBRARY_DIRS, instead of searching for Boost")
