@@ -50,6 +50,7 @@ class SensorLocalizationResponse(ResponseFunction):
         return [KratosSI.SENSOR_STATUS]
 
     def Initialize(self) -> None:
+        self.model_part = self.model_part_operation.GetModelPart()
         sensor_group_data = ComponentDataView(self.sensor_group_name, self.optimization_problem)
 
         for controller in GetMaskStatusControllers(sensor_group_data, self.sensor_mask_name):
@@ -69,7 +70,7 @@ class SensorLocalizationResponse(ResponseFunction):
 
     def GetInfluencingModelPart(self) -> Kratos.ModelPart:
         if self.model_part is None:
-            raise RuntimeError("Please call SensorCoverageResponse::Initialize first.")
+            raise RuntimeError("Please call SensorLocalizationResponse::Initialize first.")
         return self.model_part
 
     def CalculateValue(self) -> float:
