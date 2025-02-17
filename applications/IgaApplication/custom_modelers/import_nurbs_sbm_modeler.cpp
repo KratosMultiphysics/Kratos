@@ -45,7 +45,6 @@ void ImportNurbsSbmModeler::SetupGeometryModel(){
     // Get the number of boundary NURBS
     SizeType n_boundary_curves = nurbs_skin_parameters["Lines"].size();
 
-    SizeType last_node_id = 0;
     for (IndexType i_curve = 0; i_curve < n_boundary_curves; i_curve++)
     {
         // Check NURBS geometry features
