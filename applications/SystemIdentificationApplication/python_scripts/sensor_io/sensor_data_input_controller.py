@@ -52,24 +52,24 @@ class SensorModelPartController(ModelPartController):
                 sensor_id = sensor.GetNode().Id
                 sensor_name = sensor.GetName()
                 current_sensor_data_field_name = self.data_field_name.replace("<SENSOR_NAME>", sensor_name)
-                current_sensor_data_field_name = current_sensor_data_field_name.replace("<SENSOR_ID>", sensor_id)
+                current_sensor_data_field_name = current_sensor_data_field_name.replace("<SENSOR_ID>", str(sensor_id))
 
                 dataset = h5_file.get(current_sensor_data_field_name)
-                if isinstance(dataset, h5py.Dataset):
-                    raise RuntimeError(f"The sensor data not found or not a dataset at \"{current_sensor_data_field_name}\" [ sensor name = \"{sensor_name}\", sensor id = \"{sensor_id}\" ].")
+                if not isinstance(dataset, h5py.Dataset):
+                    raise RuntimeError(f"The sensor data not found or not a dataset at \"{current_sensor_data_field_name}\" [ sensor name = \"{sensor_name}\", sensor id = \"{sensor_id}\" ]. Found data = \n{dataset}")
 
                 container_type = dataset.attrs["__container_type"]
                 model_part = self.model[dataset.attrs["__model_part_name"]]
-                if container_type == "NODES":
+                if container_type == "NodalExpression":
                     expression = Kratos.Expression.NodalExpression(model_part)
-                elif container_type == "CONDITIONS":
+                elif container_type == "ConditionExpression":
                     expression = Kratos.Expression.ConditionExpression(model_part)
-                elif container_type == "ELEMENTS":
+                elif container_type == "ElementExpression":
                     expression = Kratos.Expression.ElementExpression(model_part)
                 else:
                     raise RuntimeError(f"Unsupported container type = \"{container_type}\" requested for dataset at \"{current_sensor_data_field_name}\".")
 
-                Kratos.Expression.CArrayExpressionIO.Read(expression, dataset)
+                Kratos.Expression.CArrayExpressionIO.Read(expression, dataset[:])
                 sensor.AddContainerExpression(expression_name, expression)
                 list_of_masks.append(expression.Clone())
 
