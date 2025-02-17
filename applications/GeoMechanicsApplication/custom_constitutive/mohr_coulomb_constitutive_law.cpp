@@ -100,7 +100,7 @@ void MohrCoulombConstitutiveLaw::CalculateMohrCoulomb(const Properties& rProp, V
     const auto dilation_angle = rProp[GEO_DILATION_ANGLE] * Globals::Pi / 180.0;
     const auto tension_cutoff = rProp[GEO_TENSION_CUTOFF];
 
-    Vector principalStress = StressStrainUtilities::CalculatePrincipalStresses(rCautchyStressVector);
+    Vector principalStress = StressStrainUtilities::CalculatePrincipalStresses(rCauchyStressVector);
     const auto coulombYieldFunction = CoulombYieldFunction(friction_angle, cohesion, dilation_angle);
     const auto tensionCutoffFunction = TensionCutoffFunction(tension_cutoff);
 
