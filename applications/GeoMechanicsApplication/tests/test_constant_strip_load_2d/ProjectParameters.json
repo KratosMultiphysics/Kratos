@@ -96,28 +96,12 @@
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "ApplyVectorConstraintTableProcess",
                 "Parameters": {
-                    "active": [
-                        true,
-                        true,
-                        true
-                    ],
-                    "is_fixed": [
-                        true,
-                        true,
-                        true
-                    ],
-                    "value": [
-                        0.0,
-                        0.0,
-                        0.0
-                    ],
+                    "active": [true, true, true],
+                    "is_fixed": [true, true, true],
+                    "value": [0.0, 0.0, 0.0],
                     "model_part_name": "PorousDomain.base_fixed",
                     "variable_name": "DISPLACEMENT",
-                    "table": [
-                        0,
-                        0,
-                        0
-                    ]
+                    "table": [0, 0, 0]
                 }
             },
             {
@@ -125,28 +109,12 @@
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "ApplyVectorConstraintTableProcess",
                 "Parameters": {
-                    "active": [
-                        true,
-                        false,
-                        true
-                    ],
-                    "is_fixed": [
-                        true,
-                        false,
-                        false
-                    ],
-                    "value": [
-                        0.0,
-                        0.0,
-                        0.0
-                    ],
+                    "active": [true, false, true],
+                    "is_fixed": [true, false, false],
+                    "value": [0.0, 0.0, 0.0],
                     "model_part_name": "PorousDomain.side_rollers",
                     "variable_name": "DISPLACEMENT",
-                    "table": [
-                        0,
-                        0,
-                        0
-                    ]
+                    "table": [0, 0, 0]
                 }
             }
         ],
@@ -156,23 +124,11 @@
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "ApplyVectorConstraintTableProcess",
                 "Parameters": {
-                    "active": [
-                        false,
-                        true,
-                        false
-                    ],
-                    "value": [
-                        0.0,
-                        0.0,
-                        0.0
-                    ],
+                    "active": [false, true, false],
+                    "value": [0.0, 0.0, 0.0],
                     "model_part_name": "PorousDomain.load",
                     "variable_name": "LINE_LOAD",
-                    "table": [
-                        0,
-                        1,
-                        0
-                    ]
+                    "table": [0, 1, 0]
                 }
             },
             {
@@ -188,7 +144,6 @@
                     "fluid_pressure_type": "Uniform"
                 }
             }
-        ],
-        "auxiliary_process_list": []
+        ]
     }
 }
