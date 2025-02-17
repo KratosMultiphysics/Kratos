@@ -191,4 +191,16 @@ Vector StressStrainUtilities::CalculatePrincipalStresses(Vector& rCauchyStressVe
     return result;
 }
 
+Matrix StressStrainUtilities::CalculatePrincipalEigenVectorsMatrix(Vector& rCauchyStressVector)
+{
+    auto   stress_tensor = MathUtils<double>::StressVectorToTensor(rCauchyStressVector);
+    Matrix PrincipalStressMatrix;
+    Matrix EigenVectorsMatrix;
+    MathUtils<double>::GaussSeidelEigenSystem(stress_tensor, EigenVectorsMatrix,
+                                              PrincipalStressMatrix, 1.0e-16, 20);
+    Matrix result = EigenVectorsMatrix;
+    return result;
+}
+
+
 } // namespace Kratos

@@ -65,6 +65,9 @@ public:
     void CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues);
     void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues);
 
+    Vector NormalizeVector(Vector& vector);
+    Matrix CalculateRotationMatrix(Matrix& eigenVectorsMatrix);
+
     // Member Variables
     double mStateVariable;
 
@@ -74,6 +77,7 @@ private:
     Vector                                    mStressVectorFinalized;
     Vector                                    mDeltaStrainVector;
     Vector                                    mStrainVectorFinalized;
+    bool                                      mIsCutoffActive = false;
 
     // Serialization
     friend class Serializer;

@@ -95,22 +95,67 @@ void MohrCoulombConstitutiveLaw::SetValue(const Variable<double>& rThisVariable,
 
 void MohrCoulombConstitutiveLaw::CalculateMohrCoulomb(const Properties& rProp, Vector& rCauchyStressVector)
 {
-    Vector principalStress = StressStrainUtilities::CalculatePrincipalStresses(rCauchyStressVector);
+    const auto friction_angle = rProp[GEO_FRICTION_ANGLE] * Globals::Pi / 180.0;
+    const auto cohesion       = rProp[GEO_COHESION];
+    const auto dilation_angle = rProp[GEO_DILATION_ANGLE] * Globals::Pi / 180.0;
+    const auto tension_cutoff = rProp[GEO_TENSION_CUTOFF];
 
-    double friction_angle = rProp[GEO_FRICTION_ANGLE] * Globals::Pi / 180.0;
-    double cohesion       = rProp[GEO_COHESION];
-    double dilation_angle = rProp[GEO_DILATION_ANGLE] * Globals::Pi / 180.0;
-    double tension_cutoff = rProp[GEO_TENSION_CUTOFF];
-
-    auto const coulombYieldFunction = CoulombYieldFunction(friction_angle, cohesion, dilation_angle);
-    auto const tensionCutoffFunction = TensionCutoffFunction(tension_cutoff);
+    Vector principalStress = StressStrainUtilities::CalculatePrincipalStresses(rCautchyStressVector);
+    const auto coulombYieldFunction = CoulombYieldFunction(friction_angle, cohesion, dilation_angle);
+    const auto tensionCutoffFunction = TensionCutoffFunction(tension_cutoff);
 
     double fme = coulombYieldFunction.CalculateYieldFunction(principalStress);
     double fte = tensionCutoffFunction.CalculateYieldFunction(principalStress);
+    double yieldRootValue = cohesion / std::tan(friction_angle);
+    if (fte < yieldRootValue) mIsCutoffActive = true;
 
-    int region_index = this->FindRegionIndex(fme, fte);
+    ConstitutiveLaw::Parameters rValues ;
+    //rValues.Set(ConstitutiveLaw::C)
+    //rValues.SetMaterialProperties()
+    Vector                       trailStressVector;
+    Vector                       strainVector;
+    this->CalculatePK2Stress(strainVector, trailStressVector, rValues);
+    Vector principalTrialStress = StressStrainUtilities::CalculatePrincipalStresses(trailStressVector);
+    Matrix eigenVectorsMatrix = StressStrainUtilities::CalculatePrincipalEigenVectorsMatrix(trailStressVector);
+    Matrix rotationMatrix = this->CalculateRotationMatrix(eigenVectorsMatrix);
+
+    //Check ROtation matrix to be Q * Q^T = I
+
+
+    fme                = coulombYieldFunction.CalculateYieldFunction(principalTrialStress);
+    fte                = tensionCutoffFunction.CalculateYieldFunction(principalTrialStress);
+    double trailStress = 0.5 * (principalTrialStress(0) + principalTrialStress(2));
+    double trialShear = 0.5 * (principalTrialStress(0) - principalTrialStress(2));
+
+
+    Matrix principalTrialStressMatrix = ZeroMatrix(3, 3);
+    for (int i = 0; i < 3; ++i) {
+        principalTrialStressMatrix(i, i) = principalTrialStress(i);
+    }
+
+
+
+    if (trialShear < fme && trailStress < fte) {
+        mStressVector = trailStressVector;
+    }
+
+    if (mIsCutoffActive && trailStress > fte) {
+        double shearAtIntersection = -fte * std::sin(friction_angle) + cohesion * std::cos(friction_angle);
+        if (trialShear <= shearAtIntersection) {
+            principalTrialStressMatrix(0, 0) = fte + trialShear;
+            principalTrialStressMatrix(2, 2) = fte - trialShear;
+            Matrix temp = prod(principalTrialStressMatrix, trans(rotationMatrix));
+            Matrix stressMatrix = prod(rotationMatrix, temp);
+            mStressVector = MathUtils<double>::StressTensorToVector(stressMatrix);
+        }
+    }
+
+
+
+    //int region_index = this->FindRegionIndex(fme, fte);
 }
 
+// ================================================================================================
 void MohrCoulombConstitutiveLaw::CalculatePK2Stress(const Vector&                rStrainVector,
                                                     Vector&                      rStressVector,
                                                     ConstitutiveLaw::Parameters& rValues)
@@ -121,11 +166,12 @@ void MohrCoulombConstitutiveLaw::CalculatePK2Stress(const Vector&               
     this->CalculateElasticMatrix(C, rValues);
 
     // Incremental formulation
-    noalias(mStressVector) = mStressVectorFinalized + prod(C, mDeltaStrainVector);
+    auto trialStress = mStressVectorFinalized + prod(C, mDeltaStrainVector);
 
-    rStressVector = mStressVector;
+    rStressVector = trialStress;
 }
 
+// ================================================================================================
 void MohrCoulombConstitutiveLaw::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
@@ -137,19 +183,41 @@ void MohrCoulombConstitutiveLaw::CalculateElasticMatrix(Matrix& C, ConstitutiveL
     const double c2 = c0 * NU;
     const double c3 = (0.5 - NU) * c0;
 
-    // C = mpConstitutiveDimension->FillConstitutiveMatrix(c1, c2, c3);
+    C = mpConstitutiveDimension->FillConstitutiveMatrix(c1, c2, c3);
 }
 
+// ================================================================================================
 void MohrCoulombConstitutiveLaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     mStrainVectorFinalized = rValues.GetStrainVector();
     mStressVectorFinalized = mStressVector;
 }
 
+// ================================================================================================
 int MohrCoulombConstitutiveLaw::FindRegionIndex(double fme, double fte)
 {
     if (fme <= 0.0 && fte <= 0.0) return 0;
     if (fme < 0.0 && fte <= 0.0) return 1;
     return 0;
 }
+
+// ================================================================================================
+Vector MohrCoulombConstitutiveLaw::NormalizeVector(Vector& vector)
+{ 
+    double norm1 = MathUtils<>::Norm(vector);
+    return vector / norm1;
+}
+
+// ================================================================================================
+Matrix MohrCoulombConstitutiveLaw::CalculateRotationMatrix(Matrix& eigenVectorsMatrix)
+{
+    Matrix result(eigenVectorsMatrix.size1(), eigenVectorsMatrix.size2());
+    for (int i = 0; i < eigenVectorsMatrix.size1(); ++i) {
+        Vector vec        = column(eigenVectorsMatrix, i);
+        vec               = this->NormalizeVector(vec);
+        column(result, i) = vec;
+    }
+    return result;
+}
+
 } // Namespace Kratos

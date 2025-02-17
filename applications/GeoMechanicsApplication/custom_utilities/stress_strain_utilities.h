@@ -41,6 +41,7 @@ public:
                                                 bool                       UseHenckyStrain,
                                                 std::size_t                VoigtSize);
     static Vector              CalculatePrincipalStresses(Vector& rCauchyStressVector);
+    static Matrix              CalculatePrincipalEigenVectorsMatrix(Vector& rCauchyStressVector);
 
 private:
     static double CalculateQMohrCoulomb(const Vector& rStressVector, double C, double Phi);
