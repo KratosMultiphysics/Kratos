@@ -17,6 +17,7 @@
 // Project includes
 
 // Application includes
+#include "includes/kratos_components.h"
 
 // Include base h
 #include "sensor.h"
@@ -39,16 +40,47 @@ Parameters Sensor::GetSensorParameters() const
 {
     Parameters parameters = Parameters(R"(
     {
-        "name"      : "",
-        "value"     : 0.0,
-        "location"  : [0.0, 0.0, 0.0],
-        "weight"    : 0.0
+        "name"         : "",
+        "value"        : 0.0,
+        "location"     : [0.0, 0.0, 0.0],
+        "weight"       : 0.0,
+        "variable_data": {}
     })" );
 
     parameters["name"].SetString(this->GetName());
     parameters["value"].SetDouble(this->GetSensorValue());
     parameters["location"].SetVector(this->GetNode()->Coordinates());
     parameters["weight"].SetDouble(this->GetWeight());
+
+    // Adding the data value container of the nodes
+    const auto& r_node = *(this->GetNode());
+    auto params_variable_data = parameters["variable_data"];
+    for (const auto& r_var_value_pair : r_node.GetData()) {
+        const std::string& var_name = std::get<0>(r_var_value_pair)->Name();
+        if (KratosComponents<Variable<bool>>::Has(var_name)) {
+            params_variable_data.AddBool(var_name, r_node.GetValue(KratosComponents<Variable<bool>>::Get(var_name)));
+        } else if (KratosComponents<Variable<std::string>>::Has(var_name)) {
+            params_variable_data.AddString(var_name, r_node.GetValue(KratosComponents<Variable<std::string>>::Get(var_name)));
+        } else if (KratosComponents<Variable<int>>::Has(var_name)) {
+            params_variable_data.AddInt(var_name, r_node.GetValue(KratosComponents<Variable<int>>::Get(var_name)));
+        } else if (KratosComponents<Variable<double>>::Has(var_name)) {
+            params_variable_data.AddDouble(var_name, r_node.GetValue(KratosComponents<Variable<double>>::Get(var_name)));
+        } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(var_name)) {
+            params_variable_data.AddVector(var_name, r_node.GetValue(KratosComponents<Variable<array_1d<double, 3>>>::Get(var_name)));
+        } else if (KratosComponents<Variable<array_1d<double, 4>>>::Has(var_name)) {
+            params_variable_data.AddVector(var_name, r_node.GetValue(KratosComponents<Variable<array_1d<double, 4>>>::Get(var_name)));
+        } else if (KratosComponents<Variable<array_1d<double, 6>>>::Has(var_name)) {
+            params_variable_data.AddVector(var_name, r_node.GetValue(KratosComponents<Variable<array_1d<double, 6>>>::Get(var_name)));
+        } else if (KratosComponents<Variable<array_1d<double, 9>>>::Has(var_name)) {
+            params_variable_data.AddVector(var_name, r_node.GetValue(KratosComponents<Variable<array_1d<double, 9>>>::Get(var_name)));
+        } else if (KratosComponents<Variable<Vector>>::Has(var_name)) {
+            params_variable_data.AddVector(var_name, r_node.GetValue(KratosComponents<Variable<Vector>>::Get(var_name)));
+        } else if (KratosComponents<Variable<Matrix>>::Has(var_name)) {
+            params_variable_data.AddMatrix(var_name, r_node.GetValue(KratosComponents<Variable<Matrix>>::Get(var_name)));
+        } else {
+            KRATOS_ERROR << "Unsupported variable type found under the variable name = " << var_name << ".\n";
+        }
+    }
 
     return parameters;
 }
