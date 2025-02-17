@@ -319,12 +319,13 @@ public:
         if (mWeights.size() == 0)
             mIsRational = false;
         else {
+            mIsRational = false;
             for (IndexType i = 0; i < mWeights.size(); ++i) {
-                if (std::abs(mWeights[i] - 1.0) > 1e-10) {
+                if (std::abs(mWeights[i] - 1.0) > 1e-8) {
                     mIsRational = true;
+                    break;
                 }
             }
-            mIsRational = false;
         }
     }
 
