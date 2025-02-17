@@ -102,6 +102,7 @@ class StandardizedNLOPTConstraint(ResponseRoutine):
 
             if not self.__unbuffered_data.HasValue("initial_value"):
                 self.__unbuffered_data["initial_value"] = response_value
+                self.__unbuffered_data["ref_value"] = self.GetReferenceValue() / self.__scaling
 
             if self.__buffered_data.HasValue("value"): del self.__buffered_data["value"]
             self.__buffered_data["value"] = response_value

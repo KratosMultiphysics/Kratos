@@ -205,6 +205,7 @@ class StandardizedRGPConstraint(ResponseRoutine):
 
             if not self.__unbuffered_data.HasValue("initial_value"):
                 self.__unbuffered_data["initial_value"] = response_value
+                self.__unbuffered_data["ref_value"] = self.GetReferenceValue() / self.__scaling
 
             standardized_response_value -= self.GetReferenceValue()
 
