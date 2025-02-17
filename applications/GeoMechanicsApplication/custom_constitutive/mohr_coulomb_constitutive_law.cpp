@@ -93,9 +93,9 @@ void MohrCoulombConstitutiveLaw::SetValue(const Variable<double>& rThisVariable,
     if (rThisVariable == STATE_VARIABLE) mStateVariable = rValue;
 }
 
-void MohrCoulombConstitutiveLaw::CalculateMohrCoulomb(const Properties& rProp, Vector& rCautchyStressVector)
+void MohrCoulombConstitutiveLaw::CalculateMohrCoulomb(const Properties& rProp, Vector& rCauchyStressVector)
 {
-    Vector principalStress = StressStrainUtilities::CalculatePrincipalStresses(rCautchyStressVector);
+    Vector principalStress = StressStrainUtilities::CalculatePrincipalStresses(rCauchyStressVector);
 
     double friction_angle = rProp[GEO_FRICTION_ANGLE] * Globals::Pi / 180.0;
     double cohesion       = rProp[GEO_COHESION];
