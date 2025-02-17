@@ -564,9 +564,9 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         print(linear_solver)
         fractional_splitting_settings = self.settings["fractional_splitting_settings"]
         if domain_size == 2:
-            fractional_splitting_process = KratosCFD.TwoFluidNavierStokesVectorialFractionalConvectionProcess2D(computing_model_part,linear_solver, fractional_splitting_settings)
+            fractional_splitting_process = KratosCFD.TwoFluidNavierStokesFractionalConvectionProcess2D(computing_model_part,linear_solver, fractional_splitting_settings)
         else:
-            fractional_splitting_process = KratosCFD.TwoFLuidNavierStokesVectorialFractionalConvectionProcess3D(computing_model_part, linear_solver, fractional_splitting_settings)
+            fractional_splitting_process = KratosCFD.TwoFluidNavierStokesFractionalConvectionProcess3D(computing_model_part, linear_solver, fractional_splitting_settings)
         return fractional_splitting_process
 
 
