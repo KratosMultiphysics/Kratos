@@ -28,16 +28,24 @@ class SensorStatusControl(Control):
         self.optimization_problem = optimization_problem
 
         default_settings = Kratos.Parameters("""{
-            "sensor_group_name"  : "",
-            "sensor_mask_name"   : "",
-            "output_all_fields"  : false,
-            "projection_settings": {}
+            "sensor_group_name"      : "",
+            "sensor_mask_name"       : "",
+            "output_all_fields"      : false,
+            "control_variable_bounds": [-10.0, 10.0],
+            "projection_settings"    : {}
         }""")
         parameters.ValidateAndAssignDefaults(default_settings)
 
         self.sensor_group_name = parameters["sensor_group_name"].GetString()
         self.sensor_mask_name = parameters["sensor_mask_name"].GetString()
         self.output_all_fields = parameters["output_all_fields"].GetBool()
+        self.control_variable_bounds = parameters["control_variable_bounds"].GetVector()
+
+        if len(self.control_variable_bounds) != 2:
+            raise RuntimeError(f"\"control_variable_bounds\" should only have two values representing (min, max).")
+
+        if self.control_variable_bounds[0] > self.control_variable_bounds[1]:
+            raise RuntimeError(f"\"control_variable_bounds\" should be sorted representing (min, max).")
 
         self.model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"control_{self.GetName()}", [self.sensor_group_name], False)
         self.model_part: 'typing.Optional[Kratos.ModelPart]' = None
@@ -50,7 +58,7 @@ class SensorStatusControl(Control):
         ComponentDataView(self, self.optimization_problem).SetDataBuffer(1)
         self.un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
 
-        self.projection.SetProjectionSpaces([0, 1], [0, 1])
+        self.projection.SetProjectionSpaces(self.control_variable_bounds, [0, 1])
 
         sensor_status = Kratos.Expression.NodalExpression(self.model_part)
         Kratos.Expression.VariableExpressionIO.Read(sensor_status, KratosSI.SENSOR_STATUS, False)
