@@ -63,4 +63,9 @@ private:
     }
 };
 
+KRATOS_API(GEO_MECHANICS_APPLICATION)
+void SaveStressStatePolicy(const std::unique_ptr<StressStatePolicy>& rpStressStatePolicy, Serializer& rSerializer);
+KRATOS_API(GEO_MECHANICS_APPLICATION)
+std::unique_ptr<StressStatePolicy> LoadStressStatePolicy(const Serializer& rSerializer);
+
 } // namespace Kratos
