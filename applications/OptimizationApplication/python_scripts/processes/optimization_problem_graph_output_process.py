@@ -43,11 +43,15 @@ class GraphData:
             if data[0] in ["response_function", "control", "execution_policy"]:
                 if len(data) < 3:
                     raise RuntimeError(f"\"{component_path}\" does not have the component value specified.")
-                self.graph_names.append(".".join(data[1:]))
+                current_graph_name = ".".join(data[1:])
             else:
                 if len(data) < 2:
                     raise RuntimeError(f"\"{component_path}\" does not have the component value specified.")
-                self.graph_names.append(component_path)
+                current_graph_name = component_path
+
+            if current_graph_name.endswith(":historical") or current_graph_name.endswith(":non_historical"):
+                current_graph_name = current_graph_name[:current_graph_name.rfind(":")]
+            self.graph_names.append(current_graph_name)
 
     def GetYAxisLabel(self) -> str:
         return self.y_axis_label
@@ -91,8 +95,14 @@ class GraphData:
                 value_path = "/".join(data[1:])
 
             component_data_view = ComponentDataView(component, self.optimization_problem)
-            component_buffered_data = component_data_view.GetBufferedData()
-            self.data[i].append(component_buffered_data[value_path])
+            if value_path.endswith(":historical"):
+                value = component_data_view.GetBufferedData()[value_path[:value_path.rfind(":")]]
+            elif value_path.endswith(":non_historical"):
+                value = component_data_view.GetUnBufferedData()[value_path[:value_path.rfind(":")]]
+            else:
+                value = component_data_view.GetBufferedData()[value_path]
+
+            self.data[i].append(value)
 
 class OptimizationProblemGraphOutputProcess(Kratos.OutputProcess):
     """An output process which can be used to plot buffered data in the Optimization problem
