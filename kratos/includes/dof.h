@@ -174,7 +174,7 @@ public:
     }
 
     //This default constructor is needed for serializer
-    Dof()
+    Dof() noexcept
         : mIsFixed(false),
           mVariableType(DofTrait<TDataType, Variable<TDataType> >::Id),
           mReactionType(DofTrait<TDataType, Variable<TDataType> >::Id),
@@ -184,38 +184,9 @@ public:
     {
     }
 
-    /// Copy constructor.
-    Dof(Dof const& rOther)
-        : mIsFixed(rOther.mIsFixed),
-          mVariableType(rOther.mVariableType),
-          mReactionType(rOther.mReactionType),
-          mIndex(rOther.mIndex),
-          mEquationId(rOther.mEquationId),
-          mpNodalData(rOther.mpNodalData)
-    {
-    }
-
-
-    /// Destructor.
-    ~Dof() {}
-
-
     ///@}
     ///@name Operators
     ///@{
-
-    /// Assignment operator.
-    Dof& operator=(Dof const& rOther)
-    {
-        mIsFixed = rOther.mIsFixed;
-        mEquationId = rOther.mEquationId;
-        mpNodalData = rOther.mpNodalData;
-        mIndex = rOther.mIndex;
-        mVariableType = rOther.mVariableType;
-        mReactionType = rOther.mReactionType;
-
-        return *this;
-    }
 
     template<class TVariableType>
     typename TVariableType::Type& operator()(const TVariableType& rThisVariable, IndexType SolutionStepIndex = 0)
@@ -289,12 +260,12 @@ public:
     ///@name Access
     ///@{
 
-    IndexType Id() const
+    IndexType Id() const noexcept
     {
         return mpNodalData->GetId();
     }
 
-    IndexType GetId() const
+    IndexType GetId() const noexcept
     {
         return mpNodalData->GetId();
     }
@@ -321,28 +292,28 @@ public:
 
     /** Return the Equation Id related to this degree eof freedom.
      */
-    EquationIdType EquationId() const
+    EquationIdType EquationId() const noexcept
     {
         return mEquationId;
     }
 
     /** Sets the Equation Id to the desired value
      */
-    void SetEquationId(EquationIdType NewEquationId)
+    void SetEquationId(EquationIdType NewEquationId) noexcept
     {
         mEquationId = NewEquationId;
     }
 
     /** Fixes the Dof
      */
-    void FixDof()
+    void FixDof() noexcept
     {
         mIsFixed=true;
     }
 
     /** Frees the degree of freedom
      */
-    void FreeDof()
+    void FreeDof() noexcept
     {
         mIsFixed=false;
     }
@@ -373,13 +344,13 @@ public:
     ///@name Inquiry
     ///@{
 
-    bool IsFixed() const
+    bool IsFixed() const noexcept
     {
         return mIsFixed;
     }
 
 
-    bool IsFree() const
+    bool IsFree() const noexcept
     {
         return !IsFixed();
     }
