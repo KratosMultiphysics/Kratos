@@ -339,7 +339,7 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
                 # Create interface utility
                 sbm_interface_utility = KratosMultiphysics.ShiftedBoundaryPointBasedInterfaceUtility(self.model, settings)
                 sbm_interface_utilities.append(sbm_interface_utility)
-                KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "New shifted-boundary point-based interface utility created.")
+                KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "New shifted-boundary point-based interface utility created for skin model part '" + skin_model_part_name + "'.")
 
             if len(sbm_interface_utilities) == 1:
                 sbm_interface_utilities[0].CalculateAndAddPointBasedInterface()
@@ -364,7 +364,7 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
                 # NOTE that same boundary sub model part is being used here for all skin model parts and their utilities to add conditions
                 for i_skin, sbm_interface_utility in enumerate(sbm_interface_utilities):
                     sbm_interface_utility.CalculateAndAddSkinIntegrationPointConditions()
-                    KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Integration point conditions added for skin model part " + skin_model_part_names[i_skin] + ".")
+                    KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Integration point conditions added for skin model part '" + skin_model_part_names[i_skin] + "'.")
 
                 # Search for enclosed volumes and fix the pressure of one node if it has not been fixed yet
                 #sbm_interface_utilities[0].FixEnclosedVolumesPressure()
