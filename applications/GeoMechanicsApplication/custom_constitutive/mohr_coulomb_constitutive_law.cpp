@@ -111,9 +111,10 @@ void MohrCoulombConstitutiveLaw::CalculateMohrCoulomb(const Properties& rProp, V
 
     ConstitutiveLaw::Parameters rValues ;
     //rValues.Set(ConstitutiveLaw::C)
-    //rValues.SetMaterialProperties()
+    rValues.SetMaterialProperties(rProp);
     Vector                       trailStressVector;
-    Vector                       strainVector;
+    Vector                       strainVector(mpConstitutiveDimension->GetStrainSize());
+    rValues.SetStrainVector(strainVector);
     this->CalculatePK2Stress(strainVector, trailStressVector, rValues);
     Vector principalTrialStress = StressStrainUtilities::CalculatePrincipalStresses(trailStressVector);
     Matrix eigenVectorsMatrix = StressStrainUtilities::CalculatePrincipalEigenVectorsMatrix(trailStressVector);
