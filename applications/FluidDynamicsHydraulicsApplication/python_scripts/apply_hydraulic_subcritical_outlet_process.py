@@ -33,9 +33,10 @@ class ApplyHydraulicSubCriticalOutletProcess(KratosMultiphysics.Process):
         settings.ValidateAndAssignDefaults(default_settings)
 
         # Get the inlet model part , the inlet free surface (water depth) variable name and user tolerances.
-        self.outlet_model_part = Model[settings["outlet_model_part"].GetString()]
+        self.outlet_model_part = Model[settings["outlet_model_part_name"].GetString(
+        )]
         self.inflow_detection =settings["inflow_detection"].GetBool()
-        self.water_depth = settings["water_depth"].GetString()
+        self.water_depth = settings["water_depth"].GetDouble()
 
         # Set the input vale type data
         self.discharge_value_is_constant= False
@@ -52,7 +53,8 @@ class ApplyHydraulicSubCriticalOutletProcess(KratosMultiphysics.Process):
         else:
             self.discharge_value_is_table = True
 
-            self.table = ReadCsvTableUtility(settings["value"]).Read(self.inlet_model_part)
+            self.table = ReadCsvTableUtility(settings["value"]).Read(
+                self.outlet_model_part)
 
         # Set INLET flag to all nodes and conditions belonging to inlet model part.
         for node in self.outlet_model_part.Nodes:
@@ -65,7 +67,7 @@ class ApplyHydraulicSubCriticalOutletProcess(KratosMultiphysics.Process):
         if self.domain_size not in [2,3]:
             raise ValueError(f"Wrong 'DOMAIN_SIZE' value {self.domain_size} in ProcessInfo container.")
 
-        self.outlet_model_part = None
+        # self.outlet_model_part = None
 
     @staticmethod
     def GetDefaultParameters():
@@ -88,9 +90,9 @@ class ApplyHydraulicSubCriticalOutletProcess(KratosMultiphysics.Process):
     def ExecuteInitializeSolutionStep(self):
 
         # For each time step obtain the corresponding inlet discharge value according to the external data type; table, function or value.
-        current_time = self.inlet_model_part.ProcessInfo[KratosMultiphysics.TIME]
+        current_time = self.outlet_model_part.ProcessInfo[KratosMultiphysics.TIME]
         if current_time<1e-10:
-            self.inlet_model_part.ProcessInfo[KratosMultiphysics.TIME] =0.0
+            self.outlet_model_part.ProcessInfo[KratosMultiphysics.TIME] = 0.0
 
         if self.interval.IsInInterval(current_time):
             self.step_is_active = True

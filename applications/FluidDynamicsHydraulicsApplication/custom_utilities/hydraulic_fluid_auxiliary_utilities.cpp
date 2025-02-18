@@ -437,7 +437,7 @@ void HydraulicFluidAuxiliaryUtilities::ImposeOutletPressure(ModelPart &rModelPar
             if (aux_distance < 0.0 && distance < 0.0)
             {
                 const double& density = rNode.FastGetSolutionStepValue(DENSITY);
-                double pressure_external = gravity * density * aux_distance;
+                double pressure_external = gravity * density * -aux_distance;
                 rNode.FastGetSolutionStepValue(EXTERNAL_PRESSURE) = pressure_external;
             } });
     }
