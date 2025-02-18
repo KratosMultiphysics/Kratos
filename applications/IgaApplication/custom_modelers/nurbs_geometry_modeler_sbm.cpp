@@ -123,4 +123,6 @@ namespace Kratos
         CreateBrepsSbmUtilities.CreateSurrogateBoundary(mpSurface, r_model_part, surrogate_sub_model_part_inner, surrogate_sub_model_part_outer, A_uvw, B_uvw);
     }
 
+    //TODO: add MARKER_MESHES to igaModelPart (we are not using the refinement modeler anymore)
+
 } // end namespace kratos
