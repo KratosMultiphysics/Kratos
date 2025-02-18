@@ -34,22 +34,41 @@ namespace Kratos
             ~RVEWallBoundary2D() {}
 
         protected:
+            // Column widths for printing result files
+            static const int WIDTH_DEFAULT = 10;
+            static const int WIDTH_FLOAT15 = 20;
+            static const int WIDTH_FLOAT12 = 18;
+            static const int WIDTH_FLOAT10 = 16; 
+            static const int WIDTH_FLOAT06 = 12;
+            static const int WIDTH_FLOAT05 = 10;
+            static const int WIDTH_FLOAT03 = 8;
+
             // Protected methods
-            void   AssembleWallElementVectors (void) override;
-            void   SetVertexCoordinates       (void) override;
-            void   SetVertexCoordinatesInner  (void) override;
-            void   ProcessGlobalResults       (void) override;
-            double ComputeBranchLengthInner   (std::vector<double>& coords1, std::vector<double>& coords2) override;
-            double ComputeVolumeParticle      (SphericParticle& particle) override;
-            double ComputeVolumeParticleInner (SphericParticle& particle) override;
-            double ComputeVolumeRVE           (void) override;
-            double ComputeVolumeRVEInner      (void) override;
-            double ComputeSurfaceArea         (void) override;
-            double ComputeFabricIndex         (Matrix fabric_tensor);
-            void   AddContactToRoseDiagram    (std::vector<int>& rose_diagram, std::vector<double>& normal);
-            void   EvaluateRoseUniformity     (void) override;
-            void   WriteFileHeaders           (void) override;
-            void   WriteResultFiles           (void) override;
+            void   AssembleWallElementVectors      (void) override;
+            void   SetVertexCoordinates            (void) override;
+            void   SetVertexCoordinatesInner       (void) override;
+            void   ProcessGlobalResults            (void) override;
+            double ComputeBranchLengthInner        (std::vector<double>& coords1, std::vector<double>& coords2) override;
+            double ComputeVolumeParticle           (SphericParticle& particle) override;
+            double ComputeVolumeParticleInner      (SphericParticle& particle) override;
+            double ComputeVolumeRVE                (void) override;
+            double ComputeVolumeRVEInner           (void) override;
+            double ComputeSurfaceArea              (void) override;
+            double ComputeFabricIndex              (Matrix fabric_tensor);
+            void   AddContactToRoseDiagram         (std::vector<int>& rose_diagram, std::vector<double>& normal);
+            void   EvaluateRoseUniformity          (void) override;
+            void   WriteFileHeaders                (void) override;
+            void   WriteFileHeadersGlobalResults   (void) override;
+            void   WriteFileHeadersParticleResults (void) override;
+            void   WriteFileHeadersContactResults  (void) override;
+            void   WriteFileHeadersTensorResults   (void) override;
+            void   WriteFileHeadersRoseDiagram     (void) override;
+            void   WriteResultFiles                (void) override;
+            void   WriteResultFilesGlobalResults   (void) override;
+            void   WriteResultFilesParticleResults (void) override;
+            void   WriteResultFilesContactResults  (void) override;
+            void   WriteResultFilesTensorResults   (void) override;
+            void   WriteResultFilesRoseDiagram     (void) override;
 
         private:
             // Private methods

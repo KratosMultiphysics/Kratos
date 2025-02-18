@@ -27,11 +27,11 @@ namespace Kratos
 
         protected:
             // Protected methods
-            void PreProcessGlobalResults (void) override;
-            void ProcessGlobalResults    (void) override;
-            bool Homogenize              (void) override;
-            void WriteFileHeaders        (void) override;
-            void WriteResultFiles        (void) override;
+            void PreProcessGlobalResults       (void) override;
+            void ProcessGlobalResults          (void) override;
+            bool Homogenize                    (void) override;
+            void WriteFileHeadersTensorResults (void) override;
+            void WriteResultFilesTensorResults (void) override;
 
         private:
             // Private methods
