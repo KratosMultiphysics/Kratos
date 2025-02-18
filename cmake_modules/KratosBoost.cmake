@@ -49,8 +49,25 @@ set(Boost_REALPATH           ON) # Resolve symbolic links to their real paths
 
 # Ensure Boost include and library directories are properly set
 if(BOOST_INCLUDEDIR)
-  include_directories(SYSTEM ${BOOST_INCLUDEDIR})
+  message(STATUS "Boost include directory manually defined")
+elseif(Boost_INCLUDE_DIRS)
+  message(STATUS "Boost include directory found with find_package")
+  set(BOOST_INCLUDEDIR ${Boost_INCLUDE_DIRS})
+else(BOOST_INCLUDEDIR)
+  message(STATUS "Boost include deduced from root directory")
+  set(BOOST_INCLUDEDIR ${BOOST_ROOT}/include)
 endif(BOOST_INCLUDEDIR)
+include_directories(SYSTEM ${BOOST_INCLUDEDIR})
+
+if (BOOST_LIBRARYDIR)
+  message(STATUS "Boost library directory manually defined")
+elseif(Boost_LIBRARY_DIRS)
+  message(STATUS "Boost library directory found with find_package")
+  set(BOOST_LIBRARYDIR ${Boost_LIBRARY_DIRS})
+else(BOOST_LIBRARYDIR)
+  message(STATUS "Boost library deduced from root directory")
+  set(BOOST_LIBRARYDIR ${BOOST_ROOT}/lib)
+endif(BOOST_LIBRARYDIR)
 
 # Display information about the found Boost installation
 message(STATUS "Boost include directory: ${BOOST_INCLUDEDIR}")
