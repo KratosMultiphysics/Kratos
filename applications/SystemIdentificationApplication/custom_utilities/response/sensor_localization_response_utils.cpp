@@ -83,25 +83,32 @@ double SensorLocalizationResponseUtils::CalculateValue()
     const auto& r_sensor_mask_statuses = mpSensorMaskStatusKDTree->GetSensorMaskStatus()->GetMaskStatuses();
 
     // TODO: this will calculate some repeated cluster sizes. Try to avoid them in future.
-    std::tie(mNumerator, mDenominator) = IndexPartition<IndexType>(number_of_elements).for_each<CombinedReduction<SumReduction<double>, SumReduction<double>>>([&](const auto iElement) {
-        double& cluster_size = mClusterSizes[iElement];
-        cluster_size = 0.0;
+    std::visit([&](const auto& pContainer) {
+        const auto& r_container = *pContainer;
 
-        auto& r_result = mNeighbourData[iElement];
+        std::tie(mNumerator, mDenominator) = IndexPartition<IndexType>(number_of_elements).for_each<CombinedReduction<SumReduction<double>, SumReduction<double>>>([&](const auto iElement) {
+            double& cluster_size = mClusterSizes[iElement];
+            cluster_size = 0.0;
 
-        // getting neighbours for all the elements which are within the radius mAllowedDissimilarity ("0.99999999999999999" is used to make sure that
-        // we have all the neighbours within the radius = mAllowedDissimilarity, but not the neighbours with mAllowedDissimilarity). All other elements which has distance >= mAllowedDissimilarity
-        // are not relevant since the clamper will anyways make those contribution to zero.
-        mpSensorMaskStatusKDTree->RadiusSearch(row(r_sensor_mask_statuses, iElement), mAllowedDissimilarity - std::numeric_limits<double>::epsilon(), r_result);
+            auto& r_result = mNeighbourData[iElement];
 
-        for (const auto& r_neighbour_data : r_result) {
-            const auto r_neighbour_index = r_neighbour_data.first;
-            const auto r_neighbour_squared_distance = r_neighbour_data.second;
-            cluster_size += mDomainSizeRatio[r_neighbour_index] * (mAllowedDissimilarity - clamper.ProjectForward(r_neighbour_squared_distance));
-        }
+            // getting neighbours for all the elements which are within the radius mAllowedDissimilarity ("0.99999999999999999" is used to make sure that
+            // we have all the neighbours within the radius = mAllowedDissimilarity, but not the neighbours with mAllowedDissimilarity). All other elements which has distance >= mAllowedDissimilarity
+            // are not relevant since the clamper will anyways make those contribution to zero.
+            mpSensorMaskStatusKDTree->RadiusSearch(row(r_sensor_mask_statuses, iElement), mAllowedDissimilarity - std::numeric_limits<double>::epsilon(), r_result);
 
-        return std::make_tuple(cluster_size * std::exp(mBeta * cluster_size), std::exp(mBeta * cluster_size));
-    });
+            for (const auto& r_neighbour_data : r_result) {
+                const auto r_neighbour_index = r_neighbour_data.first;
+                const auto r_neighbour_squared_distance = r_neighbour_data.second;
+                cluster_size += mDomainSizeRatio[r_neighbour_index] * (mAllowedDissimilarity - clamper.ProjectForward(r_neighbour_squared_distance));
+            }
+
+            (r_container.begin() + iElement)->SetValue(CLUSTER_SIZE, cluster_size);
+
+            return std::make_tuple(cluster_size * std::exp(mBeta * cluster_size), std::exp(mBeta * cluster_size));
+        });
+    }, mpSensorMaskStatusKDTree->GetSensorMaskStatus()->pGetMaskContainer());
+
 
     if (mDenominator > std::numeric_limits<double>::epsilon()) {
         return mNumerator / mDenominator;
