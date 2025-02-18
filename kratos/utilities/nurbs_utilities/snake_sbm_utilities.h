@@ -28,7 +28,7 @@ namespace Kratos
  * This class provides various functions to create and manipulate snake-like surrogate boundaries
  * for finite element models in Kratos.
  */
-class KRATOS_API(IGA_APPLICATION) SnakeSbmUtilities
+class KRATOS_API(KRATOS_CORE) SnakeSbmUtilities
 {
 public:
     /**
