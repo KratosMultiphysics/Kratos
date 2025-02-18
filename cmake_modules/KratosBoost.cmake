@@ -1,23 +1,29 @@
 # Finding and including the BOOST library (version should not matter anymore)
 
-# Check if Boost_INCLUDE_DIRS and Boost_LIBRARY_DIRS are already defined as environment variables
-if(DEFINED ENV{Boost_INCLUDE_DIRS})
-  set(Boost_INCLUDE_DIRS $ENV{Boost_INCLUDE_DIRS})
-endif(DEFINED ENV{Boost_INCLUDE_DIRS})
-if(DEFINED ENV{Boost_LIBRARY_DIRS})
-  set(Boost_LIBRARY_DIRS $ENV{Boost_LIBRARY_DIRS})
-endif(DEFINED ENV{Boost_LIBRARY_DIRS})
+# Check if the BOOST_ROOT environment variable is defined
+if(DEFINED ENV{BOOST_ROOT})
+  set(BOOST_ROOT $ENV{BOOST_ROOT})
+else(DEFINED ENV{BOOST_ROOT})
+  # Check if BOOST_INCLUDEDIR and BOOST_LIBRARYDIR are already defined as environment variables
+  if(DEFINED ENV{BOOST_INCLUDEDIR})
+  set(BOOST_INCLUDEDIR $ENV{BOOST_INCLUDEDIR})
+  endif(DEFINED ENV{BOOST_INCLUDEDIR})
 
-# Check if Boost_INCLUDE_DIRS and Boost_LIBRARY_DIRS are already defined
-if(Boost_INCLUDE_DIRS AND Boost_LIBRARY_DIRS)
-  message(STATUS "Using predefined Boost paths for Boost_INCLUDE_DIRS and Boost_LIBRARY_DIRS, instead of searching for Boost")
-else(Boost_INCLUDE_DIRS AND Boost_LIBRARY_DIRS)
-  # Check if the BOOST_ROOT environment variable is defined
-  # If so, use it to set the BOOST_ROOT variable in CMake
-  if(DEFINED ENV{BOOST_ROOT})
-    set(BOOST_ROOT $ENV{BOOST_ROOT})
-  endif(DEFINED ENV{BOOST_ROOT})
+  if(DEFINED ENV{BOOST_LIBRARYDIR})
+  set(BOOST_LIBRARYDIR $ENV{BOOST_LIBRARYDIR})
+  endif(DEFINED ENV{BOOST_LIBRARYDIR})
+endif(DEFINED ENV{BOOST_ROOT})
 
+# Check if BOOST_INCLUDEDIR and BOOST_LIBRARYDIR are already defined
+if(BOOST_INCLUDEDIR AND BOOST_LIBRARYDIR)
+  message(STATUS "Using predefined Boost paths for BOOST_INCLUDEDIR and BOOST_LIBRARYDIR, instead of searching for Boost")
+
+  # If BOOST_ROOT is not defined it is the parent directory of BOOST_INCLUDEDIR and BOOST_LIBRARYDIR
+  if(NOT BOOST_ROOT)
+    get_filename_component(BOOST_ROOT ${BOOST_INCLUDEDIR} DIRECTORY)
+    MESSAGE(STATUS "BOOST_ROOT not defined, setting it to ${BOOST_ROOT}")
+  endif(NOT BOOST_ROOT)
+else(BOOST_INCLUDEDIR AND BOOST_LIBRARYDIR)
   # Attempt to find the Boost library using CMake's find_package
   find_package(Boost)
 
@@ -42,13 +48,30 @@ set(Boost_USE_MULTITHREADED  ON) # Enable multithreading support in Boost
 set(Boost_REALPATH           ON) # Resolve symbolic links to their real paths
 
 # Ensure Boost include and library directories are properly set
-if(Boost_INCLUDE_DIRS)
-  include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-endif(Boost_INCLUDE_DIRS)
+if(BOOST_INCLUDEDIR)
+  message(STATUS "Boost include directory manually defined")
+elseif(Boost_INCLUDE_DIRS)
+  message(STATUS "Boost include directory found with find_package")
+  set(BOOST_INCLUDEDIR ${Boost_INCLUDE_DIRS})
+else(BOOST_INCLUDEDIR)
+  message(STATUS "Boost include deduced from root directory")
+  set(BOOST_INCLUDEDIR ${BOOST_ROOT}/include)
+endif(BOOST_INCLUDEDIR)
+include_directories(SYSTEM ${BOOST_INCLUDEDIR})
+
+if (BOOST_LIBRARYDIR)
+  message(STATUS "Boost library directory manually defined")
+elseif(Boost_LIBRARY_DIRS)
+  message(STATUS "Boost library directory found with find_package")
+  set(BOOST_LIBRARYDIR ${Boost_LIBRARY_DIRS})
+else(BOOST_LIBRARYDIR)
+  message(STATUS "Boost library deduced from root directory")
+  set(BOOST_LIBRARYDIR ${BOOST_ROOT}/lib)
+endif(BOOST_LIBRARYDIR)
 
 # Display information about the found Boost installation
-message(STATUS "Boost Include: ${Boost_INCLUDE_DIRS}")
-message(STATUS "Boost Linkdir: ${Boost_LIBRARY_DIRS}")
+message(STATUS "Boost include directory: ${BOOST_INCLUDEDIR}")
+message(STATUS "Boost library directory: ${BOOST_LIBRARYDIR}")
 
 # Check the Boost version and handle compatibility
 if(Boost_VERSION_STRING VERSION_LESS 1.70)
