@@ -70,7 +70,7 @@ class SensorModelPartController(ModelPartController):
                     raise RuntimeError(f"Unsupported container type = \"{container_type}\" requested for dataset at \"{current_sensor_data_field_name}\".")
 
                 Kratos.Expression.CArrayExpressionIO.Read(expression, dataset[:])
-                sensor.AddContainerExpression(expression_name, expression)
+                sensor.AddContainerExpression(self.sensor_mask_name, expression)
                 list_of_masks.append(expression.Clone())
 
         # now create the mask

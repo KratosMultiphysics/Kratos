@@ -11,6 +11,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities impor
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.opt_projection import CreateProjection
 from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import GetMaskStatusControllers
+from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import GetSensors
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> Control:
     if not parameters.Has("name"):
@@ -28,11 +29,12 @@ class SensorStatusControl(Control):
         self.optimization_problem = optimization_problem
 
         default_settings = Kratos.Parameters("""{
-            "sensor_group_name"      : "",
-            "sensor_mask_name"       : "",
-            "output_all_fields"      : false,
-            "control_variable_bounds": [-10.0, 10.0],
-            "projection_settings"    : {}
+            "sensor_group_name"                  : "",
+            "sensor_mask_name"                   : "",
+            "output_all_fields"                  : false,
+            "control_variable_bounds"            : [-10.0, 10.0],
+            "projection_settings"                : {},
+            "update_domain_model_parts_with_step": true
         }""")
         parameters.ValidateAndAssignDefaults(default_settings)
 
@@ -40,6 +42,7 @@ class SensorStatusControl(Control):
         self.sensor_mask_name = parameters["sensor_mask_name"].GetString()
         self.output_all_fields = parameters["output_all_fields"].GetBool()
         self.control_variable_bounds = parameters["control_variable_bounds"].GetVector()
+        self.update_domain_model_parts_with_step = parameters["update_domain_model_parts_with_step"].GetBool()
 
         if len(self.control_variable_bounds) != 2:
             raise RuntimeError(f"\"control_variable_bounds\" should only have two values representing (min, max).")
@@ -49,6 +52,8 @@ class SensorStatusControl(Control):
 
         self.model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"control_{self.GetName()}", [self.sensor_group_name], False)
         self.model_part: 'typing.Optional[Kratos.ModelPart]' = None
+
+        self.domain_model_parts: 'list[Kratos.ModelPart]' = []
 
         self.projection = CreateProjection(parameters["projection_settings"], optimization_problem)
 
@@ -65,6 +70,15 @@ class SensorStatusControl(Control):
 
         # project backward the uniform physical control field and assign it to the control field
         self.physical_phi_field = self.projection.ProjectBackward(sensor_status)
+
+        if self.update_domain_model_parts_with_step:
+            for sensor in GetSensors(ComponentDataView(self.sensor_group_name, self.optimization_problem)):
+                current_domain_model_part = sensor.GetContainerExpression(self.sensor_mask_name).GetModelPart()
+                if not current_domain_model_part in self.domain_model_parts:
+                    self.domain_model_parts.append(current_domain_model_part)
+
+        for domain_model_part in self.domain_model_parts:
+            domain_model_part.ProcessInfo[Kratos.STEP] = self.optimization_problem.GetStep()
 
         # now update the physical thickness field
         self._UpdateAndOutputFields(self.GetEmptyField())
@@ -111,6 +125,9 @@ class SensorStatusControl(Control):
 
                 self.projection.Update()
                 return True
+
+        for domain_model_part in self.domain_model_parts:
+            domain_model_part.ProcessInfo[Kratos.STEP] = self.optimization_problem.GetStep()
 
         self.projection.Update()
         return False
