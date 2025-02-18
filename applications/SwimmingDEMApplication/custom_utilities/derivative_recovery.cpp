@@ -78,7 +78,7 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeExactL2(ModelPar
         Vector L2Projection = ZeroVector(number_of_nodes * TDim);  // grad_proj_component_j
         for (unsigned int e = 0; e < number_of_elements; e++)
         {
-            std::cout << "  Computing element e = " << e << std::endl;
+            // std::cout << "  Computing element e = " << e << std::endl;
             ModelPart::ElementsContainerType::iterator it_elem = r_model_part.ElementsBegin() + e;
             Geometry<Node>& r_geometry = it_elem->GetGeometry();
             unsigned int NumNodes = r_geometry.size();

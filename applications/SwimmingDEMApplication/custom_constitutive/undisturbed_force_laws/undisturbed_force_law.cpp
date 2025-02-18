@@ -34,7 +34,7 @@ namespace Kratos {
                                                 const ProcessInfo& r_current_process_info)
     {
         const array_1d<double, 3>& fluid_acc = r_geometry[0].FastGetSolutionStepValue(FLUID_ACCEL_PROJECTED);
-        const double radius = r_geometry[0].FastGetSolutionStepValue(RADIUS);
+        // const double radius = r_geometry[0].FastGetSolutionStepValue(RADIUS);
 
         const double fluid_mass = displaced_volume * fluid_density;
 

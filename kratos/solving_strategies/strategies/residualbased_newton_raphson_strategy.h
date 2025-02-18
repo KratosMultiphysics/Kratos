@@ -883,7 +883,7 @@ class ResidualBasedNewtonRaphsonStrategy
      */
     bool SolveSolutionStep() override
     {
-        std::cout << "In SolveSolutionStep of residualbased_new....h" << std::endl;
+        std::cout << "In SolveSolutionStep of residualbased_newton_raphson_strategy.h" << std::endl;
         // Pointers needed in the solution
         ModelPart& r_model_part = BaseType::GetModelPart();
         typename TSchemeType::Pointer p_scheme = GetScheme();
@@ -903,6 +903,7 @@ class ResidualBasedNewtonRaphsonStrategy
         bool is_converged = mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, rA, rDx, rb);
 
         // Function to perform the building and the solving phase.
+        std::cout << "  Finished initializing." << std::endl;
         if (BaseType::mRebuildLevel > 0 || BaseType::mStiffnessMatrixIsBuilt == false) {
             TSparseSpace::SetToZero(rA);
             TSparseSpace::SetToZero(rDx);
@@ -919,8 +920,7 @@ class ResidualBasedNewtonRaphsonStrategy
 
             p_builder_and_solver->BuildRHSAndSolve(p_scheme, r_model_part, rA, rDx, rb);
         }
-
-        // std::cout << "Here 1" << std::endl;
+        std::cout << "  Finished building." << std::endl;
 
         // Debugging info
         EchoInfo(iteration_number);
@@ -940,6 +940,8 @@ class ResidualBasedNewtonRaphsonStrategy
 
             is_converged = mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDx, rb);
         }
+        std::cout << r_model_part << std::endl;
+        std::cout << "  Finished updating result." << std::endl;
 
         //Iteration Cycle... performed only for NonLinearProblems
         while (is_converged == false &&
@@ -988,6 +990,7 @@ class ResidualBasedNewtonRaphsonStrategy
             {
                 KRATOS_WARNING("NO DOFS") << "ATTENTION: no free DOFs!! " << std::endl;
             }
+            std::cout << "    Done..." << std::endl;
 
             // Debugging info
             EchoInfo(iteration_number);
@@ -999,6 +1002,7 @@ class ResidualBasedNewtonRaphsonStrategy
             mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
 
             residual_is_updated = false;
+            std::cout << "    Is converged: " << is_converged << std::endl;
 
             if (is_converged == true)
             {
@@ -1012,7 +1016,9 @@ class ResidualBasedNewtonRaphsonStrategy
 
                 is_converged = mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDx, rb);
             }
+            std::cout << "    Solving... (is converged = " << is_converged << ", iteration_number < mMaxIterationNumber =  " << (iteration_number < mMaxIterationNumber) << ")" << std::endl;
         }
+        std::cout << "  Finished solving." << std::endl;
 
         //plots a warning if the maximum number of iterations is exceeded
         if (iteration_number >= mMaxIterationNumber) {
@@ -1022,8 +1028,6 @@ class ResidualBasedNewtonRaphsonStrategy
                 << "Convergence achieved after " << iteration_number << " / "
                 << mMaxIterationNumber << " iterations" << std::endl;
         }
-
-        // std::cout << "Here 2"  << std::endl;
 
         //recalculate residual if needed
         //(note that some convergence criteria need it to be recalculated)
@@ -1042,8 +1046,6 @@ class ResidualBasedNewtonRaphsonStrategy
         //calculate reactions if required
         if (mCalculateReactionsFlag == true)
             p_builder_and_solver->CalculateReactions(p_scheme, r_model_part, rA, rDx, rb);
-
-        // std::cout << "Here 3" << std::endl;
 
         return is_converged;
     }
