@@ -17,20 +17,165 @@ namespace Kratos
     }
 
     //------------------------------------------------------------------------------------------------------------
-    // Compute tensor components from each element-to-element interaction.
-    void RVEWallBoundaryThermal2D::ComputeTensorComponents(SphericParticle& particle, std::vector<double>& normal, std::vector<double>& branch, std::vector<double>& force, double inner_ratio) {
+    void RVEWallBoundaryThermal2D::ProcessGlobalResults(void) {
         ProcessInfo& r_process_info = mDemModelPart->GetProcessInfo();
-        const double keff = particle.GetDirectConductionModel().ComputeEffectiveThermalConductivity(r_process_info, particle);
 
-        for (unsigned int i = 0; i < mDim; i++) {
-            for (unsigned int j = 0; j < mDim; j++) {
-                mFabricTensor(i,j)       += normal[i] * normal[j];
-                mStressTensor(i,j)       += branch[i] * force[j];
-                mConductivityTensor(i,j) += normal[i] * normal[j] * keff;
-                if (inner_ratio != 0.0) {
-                    mFabricTensorInner(i,j)       += normal[i] * normal[j];
-                    mStressTensorInner(i,j)       += branch[i] * force[j] * inner_ratio;
-                    mConductivityTensorInner(i,j) += normal[i] * normal[j] * keff * inner_ratio;
+        for (int i = 0; i < mNumParticles; i++) {
+            ModelPart::ElementsContainerType::iterator it = mDemModelPart->GetCommunicator().LocalMesh().Elements().ptr_begin() + i;
+            ThermalSphericParticle& particle = dynamic_cast<ThermalSphericParticle&>(*it);
+
+            // Particle properties
+            const int id1 = particle.GetId();
+            const double r1 = particle.GetRadius();
+            const double x1 = particle.GetGeometry()[0][0];
+            const double y1 = particle.GetGeometry()[0][1];
+            std::vector<double> coords1 = {x1, y1};
+            bool is_inner_particle = true;
+
+            // Accumulate particle properties
+            mAvgRadius     += r1;
+            mVolSolid      += ComputeVolumeParticle(particle);
+            mVolSolidInner += ComputeVolumeParticleInner(particle);
+
+            // Loop over contacts with walls
+            for (unsigned int j = 0; j < particle.mNeighbourRigidFaces.size(); j++) {
+                // Set neighbor element
+                if (particle.mNeighbourRigidFaces[j] == NULL || j > 1) continue;
+                particle.mNeighbor_w    = dynamic_cast<DEMWall*>(particle.mNeighbourRigidFaces[j]);
+                particle.mNeighborType  = WALL_NEIGHBOR_CONTACT;
+                particle.mNeighborIndex = j;
+
+                // Neighbor properties
+                const int id2 = particle.mNeighbourRigidFaces[j]->GetId();
+                const double x2 = particle.mNeighbourRigidFaces[j]->GetGeometry()[0][0];
+                const double y2 = particle.mNeighbourRigidFaces[j]->GetGeometry()[0][1];
+                const double x3 = particle.mNeighbourRigidFaces[j]->GetGeometry()[1][0];
+                const double y3 = particle.mNeighbourRigidFaces[j]->GetGeometry()[1][1];
+
+                // Compute interaction properties
+                particle.ComputeInteractionProps(r_process_info);
+
+                // Check for valid existing contact
+                if (particle.mBallToRigidFaceStoredInfo.find(id2) == particle.mBallToRigidFaceStoredInfo.end() || !particle.mNeighborInContact)
+                    continue;
+                const double indent = particle.mBallToRigidFaceStoredInfo[id2].indentation;
+                if (indent <= 0.0 || particle.CheckAdiabaticNeighbor())
+                    continue;
+
+                // Increment number of contacts
+                mAvgCoordNum++;
+                mNumContacts++;
+                is_inner_particle = false;
+
+                // Normal vector
+                const double d  = r1 - indent;
+                const double nx = -particle.mBallToRigidFaceStoredInfo[id2].local_coord_system[2][0];
+                const double ny = -particle.mBallToRigidFaceStoredInfo[id2].local_coord_system[2][1];
+                std::vector<double> normal = {nx, ny};
+                std::vector<double> branch = {d * nx, d * ny};
+
+                // Update rose diagram
+                AddContactToRoseDiagram(mRoseDiagram, normal);
+
+                // Applied wall force (normal component)
+                const double fx = particle.mBallToRigidFaceStoredInfo[id2].global_contact_force[0];
+                const double fy = particle.mBallToRigidFaceStoredInfo[id2].global_contact_force[1];
+                std::vector<double> force = {fx, fy};
+                mWallForces += std::abs(fx * nx + fy * ny);
+
+                // Contact results
+                std::vector<double> chain{x1, y1, 0.0, x1+branch[0], y1+branch[1], 0.0, fx, fy, 0.0};
+                mContactChain.insert(mContactChain.end(), chain.begin(), chain.end());
+
+                // Effective conductivity
+                const double keff = particle.GetDirectConductionModel().ComputeEffectiveThermalConductivity(r_process_info, &particle);
+
+                // Tensors
+                for (unsigned int k = 0; k < mDim; k++) {
+                    for (unsigned int l = 0; l < mDim; l++) {
+                        mFabricTensor(k,l)       += normal[k] * normal[l];
+                        mStressTensor(k,l)       += branch[k] * force[l];
+                        mConductivityTensor(k,l) += normal[k] * normal[l] * keff;
+                    }
+                }
+            }
+            if (is_inner_particle) {
+                mNumParticlesInner++;
+            }
+
+            // Loop over contacts with particles
+            for (unsigned int j = 0; j < particle.mNeighbourElements.size(); j++) {
+                // Set neighbor element  
+                particle.mNeighbor_p    = dynamic_cast<ThermalSphericParticle*>(particle.mNeighbourElements[j]);
+                particle.mNeighborType  = PARTICLE_NEIGHBOR;
+                particle.mNeighborIndex = j;
+
+                // Neighbor properties
+                const int id2 = particle.mNeighbourElements[j]->GetId();
+                const double r2 = particle.mNeighbourElements[j]->GetRadius();
+                const double x2 = particle.mNeighbourElements[j]->GetGeometry()[0][0];
+                const double y2 = particle.mNeighbourElements[j]->GetGeometry()[0][1];
+                std::vector<double> coords2 = {x2, y2};
+
+                // Compute interaction properties
+                particle.ComputeInteractionProps(r_process_info);
+
+                // Check for valid existing contact
+                if (particle.mBallToBallStoredInfo.find(id2) == particle.mBallToBallStoredInfo.end() || !particle.mNeighborInContact)
+                    continue;
+                const double indent = particle.mBallToBallStoredInfo[id2].indentation;
+                if (indent <= 0.0 || particle.CheckAdiabaticNeighbor())
+                    continue;
+
+                // Increment number of contacts
+                mAvgCoordNum++;
+                if (is_inner_particle) mAvgCoordNumInner++;
+
+                // Normal vector
+                const double d  = r1 + r2 - indent;
+                const double nx = -particle.mBallToBallStoredInfo[id2].local_coord_system[2][0];
+                const double ny = -particle.mBallToBallStoredInfo[id2].local_coord_system[2][1];
+                std::vector<double> normal = {nx, ny};
+                std::vector<double> branch = {d * nx, d * ny};
+
+                // Update rose diagram
+                AddContactToRoseDiagram(mRoseDiagram, normal);
+                if (is_inner_particle) AddContactToRoseDiagram(mRoseDiagramInner, normal);
+
+                // Unique contacts (each binary contact evaluated only once)
+                if (id1 < id2) {
+                    // Check for inner contact // TODO: DO IT ACCORDING TO CONDUCTIVITY CRITERION !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                    const double inner_contact_len = ComputeBranchLengthInner(coords1, coords2);
+                    const double inner_contact_ratio = inner_contact_len / d;
+                    bool is_inner_contact = (inner_contact_len != 0.0);
+
+                    // Increment number of unique contacts
+                    mNumContacts++;
+                    if (is_inner_contact) mNumContactsInner++;
+
+                    // Contact results
+                    const double fx = particle.mBallToBallStoredInfo[id2].global_contact_force[0];
+                    const double fy = particle.mBallToBallStoredInfo[id2].global_contact_force[1];
+                    std::vector<double> force = {fx, fy};
+                    std::vector<double> chain{x1, y1, 0.0, x2, y2, 0.0, fx, fy, 0.0};
+                    mContactChain.insert(mContactChain.end(), chain.begin(), chain.end());
+
+                    // Effective conductivity
+                    const double keff = particle.GetDirectConductionModel().ComputeEffectiveThermalConductivity(r_process_info, &particle);
+
+                    // Tensors
+                    for (unsigned int k = 0; k < mDim; k++) {
+                        for (unsigned int l = 0; l < mDim; l++) {
+                            mFabricTensor(k,l)       += normal[k] * normal[l];
+                            mStressTensor(k,l)       += branch[k] * force[l];
+                            mConductivityTensor(k,l) += normal[k] * normal[l] * keff;
+                            if (is_inner_contact) {
+                                mFabricTensorInner(k,l)       += normal[k] * normal[l];
+                                mStressTensorInner(k,l)       += branch[k] * force[l] * inner_contact_ratio;
+                                mConductivityTensorInner(k,l) += normal[k] * normal[l] * keff * inner_contact_ratio;
+                            }
+                        }
+                    }
                 }
             }
         }

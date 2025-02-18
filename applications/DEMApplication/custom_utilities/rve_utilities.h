@@ -125,7 +125,6 @@ namespace Kratos
             virtual double ComputePorosityInner            (void);
             virtual double ComputeSurfaceArea              (void) {return 0.0;}
             virtual double ComputeFabricIndex              (Matrix fabric_tensor) {return 0.0;}
-            virtual void   ComputeTensorComponents         (SphericParticle& particle, std::vector<double>& normal, std::vector<double>& branch, std::vector<double>& force, double inner_ratio);
             virtual bool   Homogenize                      (void);
             virtual void   HomogenizeFabric                (void);
             virtual void   HomogenizeStress                (void);

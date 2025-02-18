@@ -104,21 +104,6 @@ namespace Kratos
     }
 
     //------------------------------------------------------------------------------------------------------------
-    // Compute tensor components from each element-to-element interaction.
-    void RVEUtilities::ComputeTensorComponents(SphericParticle& particle, std::vector<double>& normal, std::vector<double>& branch, std::vector<double>& force, double inner_ratio) {
-        for (unsigned int i = 0; i < mDim; i++) {
-            for (unsigned int j = 0; j < mDim; j++) {
-                mFabricTensor(i,j) += normal[i] * normal[j];
-                mStressTensor(i,j) += branch[i] * force[j];
-                if (inner_ratio != 0.0) {
-                    mFabricTensorInner(i,j) += normal[i] * normal[j];
-                    mStressTensorInner(i,j) += branch[i] * force[j] * inner_ratio;
-                }
-            }
-        }
-    }
-
-    //------------------------------------------------------------------------------------------------------------
     // Perform homogenization procedures on the particle assembly to obtain tensorial variables for upscaling the discrete solution.
     bool RVEUtilities::Homogenize(void) {
         if (mNumContacts == 0 || mNumContactsInner == 0) return false;

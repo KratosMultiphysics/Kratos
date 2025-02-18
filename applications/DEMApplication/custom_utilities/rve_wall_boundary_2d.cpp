@@ -297,7 +297,7 @@ namespace Kratos
                 // Applied wall force (normal component)
                 const double fx = particle.mBallToRigidFaceStoredInfo[id2].global_contact_force[0];
                 const double fy = particle.mBallToRigidFaceStoredInfo[id2].global_contact_force[1];
-                std::vector<double> global_contact_force = {fx, fy};
+                std::vector<double> force = {fx, fy};
                 mWallForces += std::abs(fx * nx + fy * ny);
 
                 // Contact results
@@ -305,7 +305,12 @@ namespace Kratos
                 mContactChain.insert(mContactChain.end(), chain.begin(), chain.end());
 
                 // Tensors
-                ComputeTensorComponents(particle, normal, branch, global_contact_force, 0.0);
+                for (unsigned int k = 0; k < mDim; k++) {
+                    for (unsigned int l = 0; l < mDim; l++) {
+                        mFabricTensor(k,l) += normal[k] * normal[l];
+                        mStressTensor(k,l) += branch[k] * force[l];
+                    }
+                }
             }
             if (is_inner_particle) {
                 mNumParticlesInner++;
@@ -354,12 +359,21 @@ namespace Kratos
                     // Contact results
                     const double fx = particle.mBallToBallStoredInfo[id2].global_contact_force[0];
                     const double fy = particle.mBallToBallStoredInfo[id2].global_contact_force[1];
-                    std::vector<double> global_contact_force = {fx, fy};
+                    std::vector<double> force = {fx, fy};
                     std::vector<double> chain{x1, y1, 0.0, x2, y2, 0.0, fx, fy, 0.0};
                     mContactChain.insert(mContactChain.end(), chain.begin(), chain.end());
 
                     // Tensors
-                    ComputeTensorComponents(particle, normal, branch, global_contact_force, inner_contact_ratio);
+                    for (unsigned int k = 0; k < mDim; k++) {
+                        for (unsigned int l = 0; l < mDim; l++) {
+                            mFabricTensor(k,l) += normal[k] * normal[l];
+                            mStressTensor(k,l) += branch[k] * force[l];
+                            if (is_inner_contact) {
+                                mFabricTensorInner(k,l) += normal[k] * normal[l];
+                                mStressTensorInner(k,l) += branch[k] * force[l] * inner_contact_ratio;
+                            }
+                        }
+                    }
                 }
             }
         }

@@ -83,7 +83,6 @@ namespace Kratos
       void CalculateRightHandSide          (const ProcessInfo& r_process_info, double dt, const array_1d<double, 3>& gravity) override;
       void ComputeHeatFluxes               (const ProcessInfo& r_process_info);
       void ComputeHeatFluxWithNeighbor     (const ProcessInfo& r_process_info);
-      //void HierarchicalMultiscale          (const ProcessInfo& r_process_info);
       //void StoreContactInfoPP              (SphericParticle::ParticleDataBuffer& data_buffer) override;
       //void StoreContactInfoPW              (SphericParticle::ParticleDataBuffer& data_buffer) override;
       void ComputeInteractionProps         (const ProcessInfo& r_process_info);

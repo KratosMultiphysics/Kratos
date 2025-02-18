@@ -7,6 +7,7 @@
 // 
 #pragma once
 #include "custom_utilities/rve_wall_boundary_2d.h"
+#include "custom_elements/thermal_spheric_particle.h"
 
 namespace Kratos
 {
@@ -28,7 +29,7 @@ namespace Kratos
         protected:
             // Protected methods
             void PreProcessGlobalResults       (void) override;
-            void ComputeTensorComponents       (SphericParticle& particle, std::vector<double>& normal, std::vector<double>& branch, std::vector<double>& force, double inner_ratio) override;
+            void ProcessGlobalResults          (void) override;
             bool Homogenize                    (void) override;
             void WriteFileHeadersTensorResults (void) override;
             void WriteResultFilesTensorResults (void) override;
