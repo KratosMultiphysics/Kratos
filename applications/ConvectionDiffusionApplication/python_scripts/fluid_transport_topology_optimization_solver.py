@@ -84,7 +84,10 @@ class FluidTransportTopologyOptimizationSolver(PythonSolver):
         self.transport_solver.AddVariables()
         KratosMultiphysics.MergeVariableListsUtility().Merge(self.fluid_solver.main_model_part, self.transport_solver.main_model_part)
 
-    def ImportModelPart(self, fluid_mp=None, transport_mp=None):
+    def _DefineTransportProperties(self, decay, convection_coefficient):
+        self._GetTransportSolver()._DefineProperties(decay, convection_coefficient)
+
+    def ImportModelPart(self, model_parts=None):
         if (self.IsPhysics()):
             # Call the fluid solver to import the model part from the mdpa
             self.fluid_solver.ImportModelPart()
@@ -103,6 +106,8 @@ class FluidTransportTopologyOptimizationSolver(PythonSolver):
             # Set the saved convection diffusion settings to the new transport model part
             self.transport_solver.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, convection_diffusion_settings)
         else:
+            fluid_mp = model_parts[0]
+            transport_mp = model_parts[1]
             self.fluid_solver.main_model_part = fluid_mp
             self.transport_solver.main_model_part = transport_mp
 
@@ -158,10 +163,15 @@ class FluidTransportTopologyOptimizationSolver(PythonSolver):
     def SetEchoLevel(self, level):
         (self.fluid_solver).SetEchoLevel(level)
         (self.transport_solver).SetEchoLevel(level)
+        (self.transport_solver).SetEchoLevel(level)
 
     def AdvanceInTime(self, current_time):
         #NOTE: the cloning is done ONLY ONCE since the nodes are shared
         new_time = self.fluid_solver.AdvanceInTime(current_time)
+        if (self.IsPhysics()):
+            self.transport_solver.main_model_part.ProcessInfo[KratosCD.TRANSPORT_TOP_OPT_T_STEP] += 1
+        else:
+            self.transport_solver.main_model_part.ProcessInfo[KratosCD.TRANSPORT_TOP_OPT_ADJ_T_STEP] += 1
         return new_time
 
     def InitializeSolutionStep(self):
@@ -173,8 +183,15 @@ class FluidTransportTopologyOptimizationSolver(PythonSolver):
         self.transport_solver.Predict()
 
     def SolveSolutionStep(self):
-        fluid_is_converged = self.fluid_solver.SolveSolutionStep()
-        transport_is_converged = self.transport_solver.SolveSolutionStep()
+        if (self.IsPhysics()):
+            fluid_is_converged = self.fluid_solver.SolveSolutionStep()
+            transport_is_converged = self.transport_solver.SolveSolutionStep()
+        elif (self.IsAdjoint()):
+            transport_is_converged = self.transport_solver.SolveSolutionStep()
+            fluid_is_converged = self.fluid_solver.SolveSolutionStep()
+        else:
+            KratosMultiphysics.Logger.PrintError("WRONG TOPOLOGY OPTIMIZATION STAGE", "Running 'SolveSolutionStep' during the wrong topopology optimization stage.")
+            
         return (fluid_is_converged and transport_is_converged)
 
     def FinalizeSolutionStep(self):
@@ -232,12 +249,12 @@ class FluidTransportTopologyOptimizationSolver(PythonSolver):
         return not self.IsAdjoint()
     
     def _SetTopologyOptimizationStage(self, top_opt_stage):
-        self.GetComputingModelPart().ProcessInfo.SetValue(KratosCFD.TOP_OPT_PROBLEM_STAGE, top_opt_stage)
+        self.GetComputingModelPart().ProcessInfo.SetValue(KratosMultiphysics.TOP_OPT_PROBLEM_STAGE, top_opt_stage)
         self._SetFluidTopologyOptimizationStage(top_opt_stage)
         self._SetTransportTopologyOptimizationStage(top_opt_stage)
 
     def _GetTopologyOptimizationStage(self):
-        return self.GetComputingModelPart().ProcessInfo.GetValue(KratosCFD.TOP_OPT_PROBLEM_STAGE)    
+        return self.GetComputingModelPart().ProcessInfo.GetValue(KratosMultiphysics.TOP_OPT_PROBLEM_STAGE)    
     
     def _SetFluidTopologyOptimizationStage(self, top_opt_stage):
         self._GetFluidSolver()._SetTopologyOptimizationStage(top_opt_stage)

@@ -17,9 +17,9 @@ class TransportTopologyOptimizationAnalysis(ConvectionDiffusionAnalysis):
         self._DefineTransportProperties() 
         self._DefineConvectiveVelocity(constant_conv_vel)
         
-    def _DefineTransportProperties(self, decay = 0.0):
-        self._GetTransportSolver()._DefineNodalProperties(decay)
-        self._GetAdjointTransportSolver()._DefineNodalProperties(decay)
+    def _DefineTransportProperties(self, decay = 0.0, convection_coefficient = 1.0):
+        self._GetTransportSolver()._DefineProperties(decay, convection_coefficient)
+        self._GetAdjointTransportSolver()._DefineProperties(decay, convection_coefficient)
 
     def _DefineConvectiveVelocity(self, const_convective_vel, velocity=[0,0,0]):
         self._GetTransportSolver()._DefineConvectionVelocity(const_convective_vel, velocity)

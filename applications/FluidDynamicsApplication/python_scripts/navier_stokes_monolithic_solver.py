@@ -333,7 +333,6 @@ class NavierStokesMonolithicSolver(FluidSolver):
     def SolveSolutionStep(self):
         # Call the base fluid solver to solve current time step
         is_converged = super().SolveSolutionStep()
-
         # If the P2-P1 element is used, postprocess the pressure in the quadratic nodes for the visualization
         # Note that this must be done in here (not in the FinalizeSolutionStep) in case the SolveSolutionStep
         # is called in a non-linear outer loop (e.g. from the FSI or the CHT solvers)

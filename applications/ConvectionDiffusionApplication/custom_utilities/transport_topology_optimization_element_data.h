@@ -62,6 +62,7 @@ public:
     // COMMON PHYSICAL QUANTITIES
     double Conductivity;
     double Decay;
+    double ConvectionCoefficient;
     double DeltaTime;      // Time increment
     double ElementSize;    // Element Characteristic Length (size)
 
@@ -72,6 +73,7 @@ public:
     double bdf2;
 
     Vector Functional_Weights; // weigths of the functional terms
+    NodalScalarData Optimization_Temperature; // temperature in the optimization region
 
     int TopOptProblemStage;
 

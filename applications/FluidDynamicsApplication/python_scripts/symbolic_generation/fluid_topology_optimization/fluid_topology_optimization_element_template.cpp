@@ -1253,6 +1253,8 @@ void FluidTopologyOptimizationElement<FluidTopologyOptimizationElementData<2,3,t
     const BoundedMatrix<double,2,3> v_ns = rData.Velocity; // CONVECTIVE VELOCITY FOR THE ADJOINT IS THE PRIMAL NS SOLUTION
     const BoundedMatrix<double,2,3>& f_adj = rData.BodyForce_adj;
     const array_1d<double,3>& p_adj = rData.Pressure_adj;
+    const array_1d<double,3>& t = rData.Temperature;
+    const array_1d<double,3>& t_adj = rData.Temperature_adj;
     // const array_1d<double,3>& pn_adj = rData.Pressure_adj_OldStep1;
     // const array_1d<double,3>& pnn_adj = rData.Pressure_adj_OldStep2;
     const array_1d<double,3>& stress_adj = rData.ShearStress;
@@ -1302,6 +1304,8 @@ void FluidTopologyOptimizationElement<FluidTopologyOptimizationElementData<3,4,t
     const array_1d<double,4>& p_adj = rData.Pressure_adj;
     // const array_1d<double,4>& pn_adj = rData.Pressure_adj_OldStep1;
     // const array_1d<double,4>& pnn_adj = rData.Pressure_adj_OldStep2;
+    const array_1d<double,4>& t = rData.Temperature;
+    const array_1d<double,4>& t_adj = rData.Temperature_adj;
     const array_1d<double,6>& stress_adj = rData.ShearStress;
 
     // Assemble RHS contribution

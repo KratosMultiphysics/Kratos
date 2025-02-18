@@ -29,7 +29,8 @@ output_filename = "fluid_topology_optimization_element.cpp" # Output file name
 convective_term = True # Convection or Not
 stabilization   = True # Include Stabilization
 include_functionals = True # Include Functional Terms in the Adjoint Forcing Term
-n_functionals = 3 # Number of implemented functionals
+transport_coupling = True # Include Transport Coupling Terms in the Adjoint Forcing Term
+n_functionals = 20 # Number of implemented functionals
 
 # ## ARTIFICIAL COMPRESSIBILITY NOT YET IMPLEMENTED, AND POSSIBLY WILL NEVER BE
 # artificial_compressibility = False # Include Artificial Compressibility
@@ -268,16 +269,29 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
         # 0: resistance  : int_{\Omega}{alpha*||u||^2}
         # 1: strain-rate : int_{\Omega}{2*mu*||S||^2} , with S = 1/2*(grad(u)+grad(u)^T) strain-rate tensor
         # 2: vorticity   : int_{\Omega}{2*mu*||R||^2} = int_{\Omega}{mu*||curl(u)||^2} , curl(u) = vorticity vector, R = 1/2*(grad(u)-grad(u)^T) rotation-rate tensor
-        # 3: ...
+        # 3: outlet_concentration : int_{\Gamma_{out}}{c}
+        # 4: region_concentration: int_{\Omega}{c^2}
         # 4: ...
         # 5: ...
         # 5 is just a number big enough to contain the acutal database of functionals
         functional_weights = DefineVector('functional_weights', n_functionals) # Weights of the functionals terms
-        rv_funct_resistance  = -2.0*alpha*(w_adj_gauss.transpose()*v_ns_gauss)
-        rv_funct_strain_rate = -4.0*mu*(sympy.Matrix([DoubleContraction(grad_sym_v_ns, grad_w_adj)]))
-        rv_funct_vorticity   = -4.0*mu*(sympy.Matrix([DoubleContraction(grad_antisym_v_ns, grad_w_adj)]))
-        rv_adj += functional_weights[0]*rv_funct_resistance + functional_weights[1]*rv_funct_strain_rate + functional_weights[2]*rv_funct_vorticity
+        rv_funct_resistance_adj  = -2.0*alpha*(w_adj_gauss.transpose()*v_ns_gauss)
+        rv_funct_strain_rate_adj = -4.0*mu*(sympy.Matrix([DoubleContraction(grad_sym_v_ns, grad_w_adj)]))
+        rv_funct_vorticity_adj   = -4.0*mu*(sympy.Matrix([DoubleContraction(grad_antisym_v_ns, grad_w_adj)]))
+        rv_adj += functional_weights[0]*rv_funct_resistance_adj + functional_weights[1]*rv_funct_strain_rate_adj + functional_weights[2]*rv_funct_vorticity_adj
 
+    if (transport_coupling):
+        # Transport Problem Solution (if only fluid is = 0)
+        t     = DefineVector('t',nnodes) # temperature
+        t_adj = DefineVector('t_adj',nnodes) # temperature_adj
+        # Adjoint Temperature at gauss points
+        t_adj_gauss = t_adj.transpose()*N           # Forcing_adj at gauss points
+        # Temperature Gradient
+        grad_t     = DfjDxi(DN,t)      # Temperature gradient VERTICAL VECTOR
+        # Residual evaluation
+        rv_transport_coupling_adj = -(w_adj_gauss.transpose()*(grad_t*t_adj_gauss))
+        rv_adj += rv_transport_coupling_adj
+    
     ## HANDLE ADJOINT CONVECTION 
     if (convective_term):
         # CONVECTIVE ADJOINT GALERKIN FUNCTIONAL RESIDUAL
@@ -340,6 +354,14 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
         if (convective_term):
             momentum_residual_adj +=  rho*grad_v_adj*v_ns_gauss
             momentum_residual_adj += -rho*grad_v_ns*v_adj_gauss
+
+        ## Include adjoint forcing terms coming from the functional definition
+        if (include_functionals):
+            momentum_residual_adj += -functional_weights[0]*2.0*alpha*v_ns_gauss
+
+        if (transport_coupling):
+            momentum_residual_adj += -grad_t*t_adj_gauss
+
         # mass conservation residual
         mass_residual_adj = -div_v_adj
         # Velocity and Presure subscales

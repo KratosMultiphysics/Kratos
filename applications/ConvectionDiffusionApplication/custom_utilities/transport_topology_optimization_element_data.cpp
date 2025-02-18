@@ -26,6 +26,7 @@ void TransportTopologyOptimizationElementData<TDim, TNumNodes, TElementIntegrate
     // COMMON PHYSICAL QUANTITIES
     this->FillFromProperties(Conductivity,CONDUCTIVITY,r_properties);
     this->FillFromProperties(Decay,DECAY,r_properties);
+    this->FillFromProperties(ConvectionCoefficient,CONVECTION_COEFFICIENT,r_properties);
     this->FillFromProcessInfo(DeltaTime,DELTA_TIME,rProcessInfo);
     // Calculate element characteristic size
     ElementSize = ElementSizeCalculator<TDim,TNumNodes>::MinimumElementSize(r_geometry);
@@ -50,8 +51,9 @@ void TransportTopologyOptimizationElementData<TDim, TNumNodes, TElementIntegrate
     // 4: ...
     // 5: ...
     // 5 is just a number big enough to contain the acutal database of functionals
-    Functional_Weights.resize(5, false);       // Resize to length 5
-    // this->FillFromProcessInfo(Functional_Weights,FUNCTIONAL_WEIGHTS,rProcessInfo);
+    Functional_Weights.resize(20, false);       // Resize to length 5
+    this->FillFromProcessInfo(Functional_Weights,FUNCTIONAL_WEIGHTS,rProcessInfo);
+    this->FillFromHistoricalNodalData(Optimization_Temperature,OPTIMIZATION_TEMPERATURE,r_geometry);
 
     // NAVIER-STOKES VARIABLES
     this->FillFromHistoricalNodalData(Temperature,TEMPERATURE,r_geometry);

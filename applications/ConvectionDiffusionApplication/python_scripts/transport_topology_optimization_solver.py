@@ -36,9 +36,16 @@ class TransportTopologyOptimizationSolver(ConvectionDiffusionTransientSolver):
         self.decay = 0
         self.is_constant_velocity = False
         self.velocity = [0,0,0]
+
+    def _DefineProperties(self, decay, convection_coefficient):
+        self._DefineDecay(decay)
+        self._DefineConvectionCoefficient(convection_coefficient)  
     
-    def _DefineNodalProperties(self, decay):
+    def _DefineDecay(self, decay):
         self.decay = decay
+
+    def _DefineConvectionCoefficient(self, convection_coefficient):
+        self.convection_coefficient = convection_coefficient
 
     def _DefineElementsAndConditions(self,settings):
         self.element_name = "TransportTopologyOptimizationElement"
@@ -70,16 +77,16 @@ class TransportTopologyOptimizationSolver(ConvectionDiffusionTransientSolver):
 
     def AddVariables(self): 
         # Add Fluid Transport Topology Optimization Variables 
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONDUCTIVITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosCD.DECAY)
-        # if (not self.IsAdjoint()):
+        #  PHYSICS
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.HEAT_FLUX)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FACE_HEAT_FLUX)
-        # else:
-        self.main_model_part.AddNodalSolutionStepVariable(KratosCD.TEMPERATURE_ADJ)
+        # ADJOINT
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE_ADJ)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCD.HEAT_FLUX_ADJ)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCD.FACE_HEAT_FLUX_ADJ)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosCD.OPTIMIZATION_TEMPERATURE)
+        # SETTINGS
         self._DefineSettings()
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid Transport Topology Optimization T and T_ADJ solver variables added correctly.")
         
@@ -87,10 +94,12 @@ class TransportTopologyOptimizationSolver(ConvectionDiffusionTransientSolver):
         super().AddVariables()
     
     def _CheckMaterialProperties(self):
-        print("Conductivity:", self.main_model_part.Nodes[1].GetSolutionStepValue(KratosMultiphysics.CONDUCTIVITY))
-        print("Decay:", self.main_model_part.Nodes[1].GetSolutionStepValue(KratosCD.DECAY))
+        print("Conductivity:", self.main_model_part.Elements[1].Properties.GetValue(KratosMultiphysics.CONDUCTIVITY))
+        print("Convection Coefficient:", self.main_model_part.Elements[1].Properties.GetValue(KratosMultiphysics.CONVECTION_COEFFICIENT))
+        print("Decay:", self.main_model_part.Elements[1].Properties.GetValue(KratosCD.DECAY))
 
     def _CheckProperties(self):
+        print("--| Check Transport Properties")
         self._CheckMaterialProperties()
     
     def _SetTimeSchemeBufferSize(self):
@@ -100,14 +109,22 @@ class TransportTopologyOptimizationSolver(ConvectionDiffusionTransientSolver):
 
     def PrepareModelPart(self):
         self._SetDecay()
-        self._SetConvectiveVelocity()
+        self._SetConvection()
         super().PrepareModelPart()
-        # self._CheckProperties()    
         
     def _SetDecay(self):
         mp = self.GetComputingModelPart()
         for el in mp.Elements:
             el.Properties.SetValue(KratosCD.DECAY, self.decay)
+
+    def _SetConvection(self):
+        self._SetConvectiveVelocity()
+        self._SetConvectionCoefficient()
+
+    def _SetConvectionCoefficient(self):
+        mp = self.GetComputingModelPart()
+        for el in mp.Elements:
+            el.Properties.SetValue(KratosMultiphysics.CONVECTION_COEFFICIENT, self.convection_coefficient)
 
     def _SetConvectiveVelocity(self):
         if (self.IsConstantVelocity()):
@@ -152,6 +169,7 @@ class TransportTopologyOptimizationSolver(ConvectionDiffusionTransientSolver):
             problem_phase_str = "ADJ-T"
         else: 
             problem_phase_str = "ERROR|"
+        # self._CheckProperties()
         print("--|" + problem_phase_str + "| ---> Top. Opt. solution: Solve " + problem_phase_str + " solution step...")
         # Call the base fluid solver to solve current time step
         is_converged = self._GetSolutionStrategy().SolveSolutionStep()

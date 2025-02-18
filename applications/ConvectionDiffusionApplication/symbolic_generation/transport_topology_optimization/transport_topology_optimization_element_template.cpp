@@ -853,6 +853,7 @@ void TransportTopologyOptimizationElement< TransportTopologyOptimizationElementD
 {
     const double D = rData.Conductivity;
     const double k = rData.Decay;
+    const double c = rData.ConvectionCoefficient;
 
     const double h = rData.ElementSize;
     // const double dt = rData.DeltaTime;
@@ -885,6 +886,7 @@ void TransportTopologyOptimizationElement<TransportTopologyOptimizationElementDa
 {
     const double D = rData.Conductivity;
     const double k = rData.Decay;
+    const double c = rData.ConvectionCoefficient;
 
     const double h = rData.ElementSize;
     // const double dt = rData.DeltaTime;
@@ -916,6 +918,7 @@ void TransportTopologyOptimizationElement<TransportTopologyOptimizationElementDa
 {
     const double D = rData.Conductivity;
     const double k = rData.Decay;
+    const double c = rData.ConvectionCoefficient;
 
     const double h = rData.ElementSize;
     // const double dt = rData.DeltaTime;
@@ -952,6 +955,7 @@ void TransportTopologyOptimizationElement<TransportTopologyOptimizationElementDa
 {
     const double D = rData.Conductivity;
     const double k = rData.Decay;
+    const double c = rData.ConvectionCoefficient;
 
     const double h = rData.ElementSize;
     // const double dt = rData.DeltaTime;
@@ -989,6 +993,7 @@ void TransportTopologyOptimizationElement< TransportTopologyOptimizationElementD
 {
     const double D = rData.Conductivity;
     const double k = rData.Decay;
+    const double c = rData.ConvectionCoefficient;
 
     const double h = rData.ElementSize;
     // const double dt = rData.DeltaTime;
@@ -1020,6 +1025,7 @@ void TransportTopologyOptimizationElement<TransportTopologyOptimizationElementDa
 {
     const double D = rData.Conductivity;
     const double k = rData.Decay;
+    const double c = rData.ConvectionCoefficient;
 
     const double h = rData.ElementSize;
     // const double dt = rData.DeltaTime;
@@ -1051,6 +1057,7 @@ void TransportTopologyOptimizationElement<TransportTopologyOptimizationElementDa
 {
     const double D = rData.Conductivity;
     const double k = rData.Decay;
+    const double c = rData.ConvectionCoefficient;
 
     const double h = rData.ElementSize;
     // const double dt = rData.DeltaTime;
@@ -1066,12 +1073,15 @@ void TransportTopologyOptimizationElement<TransportTopologyOptimizationElementDa
     constexpr double stab_c2 = 2.0;
     constexpr double stab_c3 = 2.0;
 
+    Vector functional_weights = rData.Functional_Weights; //  functional terms weights
+
     const array_1d<double,3>& t_adj = rData.Temperature_adj;
     const array_1d<double,3>& tn_adj = rData.Temperature_adj_OldStep1;
     const array_1d<double,3>& tnn_adj = rData.Temperature_adj_OldStep2;
     const BoundedMatrix<double,2,3>& vmesh = rData.MeshVelocity;
     const BoundedMatrix<double,2,3> vconv_adj = rData.ConvectiveVelocity - rData.MeshVelocity;
     const array_1d<double,3>& source_adj = rData.SourceTerm_adj;
+    const array_1d<double,3>& opt_t = rData.Optimization_Temperature;
 
     // Assemble RHS contribution
     const double gauss_weight = rData.Weight;
@@ -1087,6 +1097,7 @@ void TransportTopologyOptimizationElement<TransportTopologyOptimizationElementDa
 {
     const double D = rData.Conductivity;
     const double k = rData.Decay;
+    const double c = rData.ConvectionCoefficient;
 
     const double h = rData.ElementSize;
     // const double dt = rData.DeltaTime;
@@ -1102,12 +1113,15 @@ void TransportTopologyOptimizationElement<TransportTopologyOptimizationElementDa
     constexpr double stab_c2 = 2.0;
     constexpr double stab_c3 = 2.0;
 
-    const array_1d<double,3>& t_adj = rData.Temperature_adj;
-    const array_1d<double,3>& tn_adj = rData.Temperature_adj_OldStep1;
-    const array_1d<double,3>& tnn_adj = rData.Temperature_adj_OldStep2;
-    const BoundedMatrix<double,2,3>& vmesh = rData.MeshVelocity;
-    const BoundedMatrix<double,2,3> vconv_adj = rData.ConvectiveVelocity - rData.MeshVelocity;
-    const array_1d<double,3>& source_adj = rData.SourceTerm_adj;
+    Vector functional_weights = rData.Functional_Weights; //  functional terms weights
+
+    const array_1d<double,4>& t_adj = rData.Temperature_adj;
+    const array_1d<double,4>& tn_adj = rData.Temperature_adj_OldStep1;
+    const array_1d<double,4>& tnn_adj = rData.Temperature_adj_OldStep2;
+    const BoundedMatrix<double,3,4>& vmesh = rData.MeshVelocity;
+    const BoundedMatrix<double,3,4> vconv_adj = rData.ConvectiveVelocity - rData.MeshVelocity;
+    const array_1d<double,4>& source_adj = rData.SourceTerm_adj;
+    const array_1d<double,4>& opt_t = rData.Optimization_Temperature;
 
     // Assemble RHS contribution
     const double gauss_weight = rData.Weight;

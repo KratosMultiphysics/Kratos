@@ -85,7 +85,7 @@ void FluidTopologyOptimizationElementData<TDim, TNumNodes, TElementIntegratesInT
     // 4: ...
     // 5: ...
     // 5 is just a number big enough to contain the acutal database of functionals
-    Functional_Weights.resize(5, false);       // Resize to length 5
+    Functional_Weights.resize(20, false);       // Resize to length 5
     this->FillFromProcessInfo(Functional_Weights,FUNCTIONAL_WEIGHTS,rProcessInfo);
 
     // NAVIER-STOKES VARIABLES
@@ -104,6 +104,8 @@ void FluidTopologyOptimizationElementData<TDim, TNumNodes, TElementIntegratesInT
     this->FillFromHistoricalNodalData(MeshVelocity_adj,MESH_VELOCITY_ADJ,r_geometry);
     this->FillFromHistoricalNodalData(BodyForce_adj,BODY_FORCE_ADJ,r_geometry);
     this->FillFromHistoricalNodalData(Pressure_adj,PRESSURE_ADJ,r_geometry);
+    this->FillFromHistoricalNodalData(Temperature,TEMPERATURE,r_geometry);
+    this->FillFromHistoricalNodalData(Temperature_adj,TEMPERATURE_ADJ,r_geometry);
     // TIME DEPENDENT PROBLEMS NOT YET IMPLEMENTED
     // this->FillFromHistoricalNodalData(Velocity_adj_OldStep1,VELOCITY_ADJ,r_geometry,1);
     // this->FillFromHistoricalNodalData(Velocity_adj_OldStep2,VELOCITY_ADJ,r_geometry,2);

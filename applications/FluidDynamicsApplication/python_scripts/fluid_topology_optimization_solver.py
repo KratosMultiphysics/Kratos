@@ -43,14 +43,17 @@ class FluidTopologyOptimizationSolver(NavierStokesMonolithicSolver):
         #Add parent class variables
         super().AddVariables()    
         # Add Adjoint-NS Variables
-        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.VELOCITY_ADJ)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.PRESSURE_ADJ)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.ACCELERATION_ADJ)
+        # self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.ACCELERATION_ADJ)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.MESH_VELOCITY_ADJ)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.BODY_FORCE_ADJ)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE_ADJ)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY_ADJ)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
+        # eventual transport coupling
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE_ADJ)
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid Topology Optimization ADJ-NS solver variables added correctly.")          
 
     def _SetTimeSchemeBufferSize(self):
@@ -191,7 +194,10 @@ class FluidTopologyOptimizationSolver(NavierStokesMonolithicSolver):
     def _GetTopologyOptimizationStage(self):
         return self.GetComputingModelPart().ProcessInfo.GetValue(KratosCFD.FLUID_TOP_OPT_PROBLEM_STAGE)
     
-    def ImportModelPart(self):
-        # we can use the default implementation in the base class
-        print(self.main_model_part)
-        self._ImportModelPart(self.main_model_part,self.settings["model_import_settings"])
+    def ImportModelPart(self, model_parts=None):
+        if (self.IsPhysics()):
+            # Call the fluid solver to import the model part from the mdpa
+            self._ImportModelPart(self.main_model_part,self.settings["model_import_settings"])
+        else:
+            fluid_mp = model_parts[0]
+            self.main_model_part = fluid_mp
