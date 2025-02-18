@@ -25,11 +25,11 @@ namespace Kratos
         for (unsigned int i = 0; i < mDim; i++) {
             for (unsigned int j = 0; j < mDim; j++) {
                 mFabricTensor(i,j)       += normal[i] * normal[j];
-                mStressTensor(i,j)       += branch[i] * global_contact_force[j];
+                mStressTensor(i,j)       += branch[i] * force[j];
                 mConductivityTensor(i,j) += normal[i] * normal[j] * keff;
                 if (inner_ratio != 0.0) {
                     mFabricTensorInner(i,j)       += normal[i] * normal[j];
-                    mStressTensorInner(i,j)       += branch[i] * global_contact_force[j] * inner_ratio;
+                    mStressTensorInner(i,j)       += branch[i] * force[j] * inner_ratio;
                     mConductivityTensorInner(i,j) += normal[i] * normal[j] * keff * inner_ratio;
                 }
             }
