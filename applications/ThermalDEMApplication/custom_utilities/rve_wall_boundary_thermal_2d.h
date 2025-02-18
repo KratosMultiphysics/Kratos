@@ -28,7 +28,7 @@ namespace Kratos
         protected:
             // Protected methods
             void PreProcessGlobalResults       (void) override;
-            void ProcessGlobalResults          (void) override;
+            void ComputeTensorComponents       (SphericParticle& particle, std::vector<double>& normal, std::vector<double>& branch, std::vector<double>& force, double inner_ratio) override;
             bool Homogenize                    (void) override;
             void WriteFileHeadersTensorResults (void) override;
             void WriteResultFilesTensorResults (void) override;

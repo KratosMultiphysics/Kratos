@@ -104,6 +104,21 @@ namespace Kratos
     }
 
     //------------------------------------------------------------------------------------------------------------
+    // Compute tensor components from each element-to-element interaction.
+    void RVEUtilities::ComputeTensorComponents(SphericParticle& particle, std::vector<double>& normal, std::vector<double>& branch, std::vector<double>& force, double inner_ratio) {
+        for (unsigned int i = 0; i < mDim; i++) {
+            for (unsigned int j = 0; j < mDim; j++) {
+                mFabricTensor(i,j) += normal[i] * normal[j];
+                mStressTensor(i,j) += branch[i] * global_contact_force[j];
+                if (inner_ratio != 0.0) {
+                    mFabricTensorInner(i,j) += normal[i] * normal[j];
+                    mStressTensorInner(i,j) += branch[i] * global_contact_force[j] * inner_ratio;
+                }
+            }
+        }
+    }
+
+    //------------------------------------------------------------------------------------------------------------
     // Perform homogenization procedures on the particle assembly to obtain tensorial variables for upscaling the discrete solution.
     bool RVEUtilities::Homogenize(void) {
         if (mNumContacts == 0 || mNumContactsInner == 0) return false;
@@ -114,7 +129,7 @@ namespace Kratos
 
     //------------------------------------------------------------------------------------------------------------
     // Compute fabric tensor and its related properties.
-    // Assumes that fabric tensor is already filled with particle-particle interaction dependent operations.
+    // Assumes that fabric tensor is already filled with element-to-element interaction dependent components.
     void RVEUtilities::HomogenizeFabric(void) {
         double deviatoric_fabric;
         double deviatoric_fabric_inner;
@@ -145,7 +160,7 @@ namespace Kratos
 
     //------------------------------------------------------------------------------------------------------------
     // Compute effective stress tensor and its related properties.
-    // Assumes that stress tensor is already filled with particle-particle interaction dependent operations.
+    // Assumes that stress tensor is already filled with element-to-element interaction dependent components.
     void RVEUtilities::HomogenizeStress(void) {
         double deviatoric_stress;
         double deviatoric_stress_inner;

@@ -17,8 +17,23 @@ namespace Kratos
     }
 
     //------------------------------------------------------------------------------------------------------------
-    void RVEWallBoundaryThermal2D::ProcessGlobalResults(void) {
-        
+    // Compute tensor components from each element-to-element interaction.
+    void RVEWallBoundaryThermal2D::ComputeTensorComponents(SphericParticle& particle, std::vector<double>& normal, std::vector<double>& branch, std::vector<double>& force, double inner_ratio) {
+        ProcessInfo& r_process_info = mDemModelPart->GetProcessInfo();
+        const double keff = particle.GetDirectConductionModel().ComputeEffectiveThermalConductivity(r_process_info, particle);
+
+        for (unsigned int i = 0; i < mDim; i++) {
+            for (unsigned int j = 0; j < mDim; j++) {
+                mFabricTensor(i,j)       += normal[i] * normal[j];
+                mStressTensor(i,j)       += branch[i] * global_contact_force[j];
+                mConductivityTensor(i,j) += normal[i] * normal[j] * keff;
+                if (inner_ratio != 0.0) {
+                    mFabricTensorInner(i,j)       += normal[i] * normal[j];
+                    mStressTensorInner(i,j)       += branch[i] * global_contact_force[j] * inner_ratio;
+                    mConductivityTensorInner(i,j) += normal[i] * normal[j] * keff * inner_ratio;
+                }
+            }
+        }
     }
 
     //------------------------------------------------------------------------------------------------------------

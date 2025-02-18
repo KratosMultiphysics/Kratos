@@ -305,12 +305,7 @@ namespace Kratos
                 mContactChain.insert(mContactChain.end(), chain.begin(), chain.end());
 
                 // Tensors
-                for (int k = 0; k < mDim; k++) {
-                    for (int l = 0; l < mDim; l++) {
-                        mFabricTensor(k,l) += normal[k] * normal[l];
-                        mStressTensor(k,l) += branch[k] * global_contact_force[l];
-                    }
-                }
+                ComputeTensorComponents(particle, normal, branch, global_contact_force, 0.0);
             }
             if (is_inner_particle) {
                 mNumParticlesInner++;
@@ -364,16 +359,7 @@ namespace Kratos
                     mContactChain.insert(mContactChain.end(), chain.begin(), chain.end());
 
                     // Tensors
-                    for (unsigned int k = 0; k < mDim; k++) {
-                        for (unsigned int l = 0; l < mDim; l++) {
-                            mFabricTensor(k,l) += normal[k] * normal[l];
-                            mStressTensor(k,l) += branch[k] * global_contact_force[l];
-                            if (is_inner_contact) {
-                                mFabricTensorInner(k,l) += normal[k] * normal[l];
-                                mStressTensorInner(k,l) += branch[k] * global_contact_force[l] * inner_contact_ratio;
-                            }
-                        }
-                    }
+                    ComputeTensorComponents(particle, normal, branch, global_contact_force, inner_contact_ratio);
                 }
             }
         }
