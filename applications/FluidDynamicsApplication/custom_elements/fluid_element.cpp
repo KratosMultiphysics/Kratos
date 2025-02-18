@@ -929,6 +929,7 @@ template class FluidElement< AxisymmetricNavierStokesData<2,4> >;
 
 template class FluidElement< QSVMSDEMCoupledData<2,3> >;
 template class FluidElement< QSVMSDEMCoupledData<3,4> >;
+template class FluidElement< QSVMSDEMCoupledData<3,10> >;
 
 template class FluidElement< QSVMSDEMCoupledData<2,4> >;
 template class FluidElement< QSVMSDEMCoupledData<2,6> >;

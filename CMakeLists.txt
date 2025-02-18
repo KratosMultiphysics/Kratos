@@ -38,6 +38,11 @@ if(POLICY CMP0135)
   cmake_policy(SET CMP0135 NEW)
 endif(POLICY CMP0135)
 
+# Path Normalization
+if(POLICY CMP0177)
+  cmake_policy(SET CMP0177 NEW)
+endif(POLICY CMP0177)
+
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 10)
 set (KratosMultiphysics_MINOR_VERSION 2)
@@ -294,6 +299,7 @@ SET(INSTALL_PYTHON_FILES ON)        # To be removed when all applications are po
 include(install_function)
 include(KratosDependencies)
 include(KratosGTest)
+include(KratosAddSources)
 include(KratosGBenchmark)
 include(FetchContent)
 
@@ -455,37 +461,8 @@ if( KRATOS_NO_TRY_CATCH MATCHES ON )
   add_definitions( -DKRATOS_NO_TRY_CATCH )
 endif( KRATOS_NO_TRY_CATCH MATCHES ON )
 
-##*****************************
-# Finding and including BOOST library (version should not matter anymore)
-if(DEFINED ENV{BOOST_ROOT})
-  set(BOOST_ROOT $ENV{BOOST_ROOT})
-endif(DEFINED ENV{BOOST_ROOT})
-
-find_package(Boost)
-
-if(NOT Boost_FOUND)
-  # Trying to find in in external libraries
-  set(BOOST_ROOT "${KRATOS_SOURCE_DIR}/external_libraries/boost")
-  find_package(Boost)
-  if(NOT Boost_FOUND)
-    message(FATAL_ERROR "It was not possible to find Boost in your machine, please define properly BOOST_ROOT if you have not")
-  endif(NOT Boost_FOUND)
-endif(NOT Boost_FOUND)
-
-set(Boost_USE_STATIC_LIBS   OFF)
-set(Boost_USE_MULTITHREADED ON)
-set(Boost_REALPATH ON)
-
-include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-
-message(STATUS "Boost Include: ${Boost_INCLUDE_DIRS}")
-message(STATUS "Boost Linkdir: ${Boost_LIBRARY_DIRS}")
-
-if(Boost_VERSION_STRING VERSION_LESS 1.70)
-  message(WARNING "Kratos requires at least boost version 1.70 to enable boost related performance improvements")
-else()
-  add_definitions( -DBOOST_UBLAS_MOVE_SEMANTICS )
-endif ()
+# Boost
+include(KratosBoost)
 
 # std::atomic_ref is part of C++20, hence using boost::atomic_ref
 # boost::atomic_ref has full support from version 1.74
