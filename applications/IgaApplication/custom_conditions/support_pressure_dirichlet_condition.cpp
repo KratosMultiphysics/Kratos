@@ -162,6 +162,12 @@ void SupportPressureDirichletCondition::CalculateAll(
     const double current_t = rCurrentProcessInfo[TIME];
     const double delta_time = rCurrentProcessInfo[DELTA_TIME];
 
+    // if (GetGeometry().Center().X() < 0.0000001) {
+
+    //     p_D = 10875.0; 
+
+    // }
+
     for (IndexType j = 0; j < number_of_nodes; j++) {
         
         //// integration by parts PRESSURE < v dot n , p >
@@ -203,19 +209,24 @@ void SupportPressureDirichletCondition::CalculateAll(
 
         // // constitutive law -> BINGHAM
         // double gamma = std::sqrt(16 * x * x + 16 * y * y);
-        double gamma = std::abs(2*sin(x)*sin(y));
-        double result = 2 * (1 + (1 - std::exp(-300 * gamma)) * 100 / gamma);
+        // double gamma = std::abs(2*sin(x)*sin(y));
+        double gamma = std::abs(2*sinh(x)*sinh(y));
+
+        double result = 2 * (1 + (1 - std::exp(-10 * gamma)) * 5 / gamma);
         // t_N[0] = ((2*x)*normal_parameter_space[0] + (-2*y)*normal_parameter_space[1]) * result; 
         // t_N[1] = ((-2*y)*normal_parameter_space[0] + (-2*x)*normal_parameter_space[1]) * result; 
 
         // t_N[0] = ((-sin(x)*sin(y))*normal_parameter_space[0] + ( 0.0 )*normal_parameter_space[1]) * result; 
         // t_N[1] = ((0.0)*normal_parameter_space[0] + (sin(x)*sin(y))*normal_parameter_space[1]) * result; 
 
+        t_N[0] = ((sinh(x)*sinh(y))*normal_parameter_space[0] + ( 0.0 )*normal_parameter_space[1]) * result; 
+        t_N[1] = ((0.0)*normal_parameter_space[0] + (-sinh(x)*sinh(y))*normal_parameter_space[1]) * result; 
+
         // CUBIC -> constitutive law
-        t_N[0] = ((6*x*x)*normal_parameter_space[0] + (-3*y*y-6*x*y)*normal_parameter_space[1]); 
-        t_N[1] = ((-3*y*y-6*x*y)*normal_parameter_space[0] + (-6*x*x)*normal_parameter_space[1]); 
-        t_N[0] = ((6*x*x)*normal_parameter_space[0] + (-3*y*y-6*x*y)*normal_parameter_space[1])*(current_t)*(current_t); 
-        t_N[1] = ((-3*y*y-6*x*y)*normal_parameter_space[0] + (-6*x*x)*normal_parameter_space[1])*(current_t)*(current_t); 
+        // t_N[0] = ((6*x*x)*normal_parameter_space[0] + (-3*y*y-6*x*y)*normal_parameter_space[1]); 
+        // t_N[1] = ((-3*y*y-6*x*y)*normal_parameter_space[0] + (-6*x*x)*normal_parameter_space[1]); 
+        // t_N[0] = ((6*x*x)*normal_parameter_space[0] + (-3*y*y-6*x*y)*normal_parameter_space[1])*(current_t)*(current_t); 
+        // t_N[1] = ((-3*y*y-6*x*y)*normal_parameter_space[0] + (-6*x*x)*normal_parameter_space[1])*(current_t)*(current_t); 
         // t_N_old[0] = ((6*x*x)*normal_parameter_space[0] + (-3*y*y-6*x*y)*normal_parameter_space[1])*(current_t-delta_time)*(current_t-delta_time); 
         // t_N_old[1] = ((-3*y*y-6*x*y)*normal_parameter_space[0] + (-6*x*x)*normal_parameter_space[1])*(current_t-delta_time)*(current_t-delta_time); 
         // cubic -> laplacian

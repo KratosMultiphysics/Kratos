@@ -1127,7 +1127,11 @@ void StokesElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 
     // double yielded_state = 0.0;
 
-    const double sigma_y = 20.0;
+    const double sigma_y = 5;
+    // const double sigma_y = 1086;
+    // const double sigma_y = 790;
+    // const double sigma_y = 987.5;
+    // const double sigma_y = 1145.5;
     Vector& StressVector = this_constitutive_variables.StressVector;
 
     // const double tau = std::sqrt(StressVector[0] * StressVector[0] + 
@@ -1161,7 +1165,7 @@ void StokesElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
         if (output_file.is_open()) {
         output_file << std::scientific << std::setprecision(14); // Set precision to 10^-14
         output_file << rOutput_vel_x << " " << rOutput_vel_y << " " << rOutput_pressure << " " 
-                    << r_geometry.Center().X() << " " << r_geometry.Center().Y() << " " << r_geometry.Center().Z() << " " << integration_points[0].Weight()  << std::endl;
+                    << r_geometry.Center().X() << " " << r_geometry.Center().Y() << " " << r_geometry.Center().Z() << " " << integration_points[0].Weight()  << " " << tau << std::endl;
         output_file.close();
         }   
 

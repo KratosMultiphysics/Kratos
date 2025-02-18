@@ -214,10 +214,10 @@ namespace Kratos
         ModelPart::NodesContainerType::ContainerType Results(numberOfResults);
         std::vector<double> list_of_distances(numberOfResults);
 
-        // TIME
-        long double searching_time = 0.0;
-        static long double basis_functions_time = 0.0;
-        long double element_pushback_time = 0.0;
+        // // TIME
+        // long double searching_time = 0.0;
+        // static long double basis_functions_time = 0.0;
+        // long double element_pushback_time = 0.0;
 
         for (SizeType i = 0; i < rGeometryList.size(); ++i)
         {
@@ -259,7 +259,7 @@ namespace Kratos
                 
                 auto end = std::chrono::high_resolution_clock::now();
                 std::chrono::duration<long double> duration = end - start;
-                basis_functions_time += duration.count();
+                // basis_functions_time += duration.count();
             }
 
             KRATOS_INFO_IF("CreateQuadraturePointGeometries", mEchoLevel > 1)
@@ -277,7 +277,7 @@ namespace Kratos
                 
                 auto end = std::chrono::high_resolution_clock::now();
                 std::chrono::duration<long double> duration = end - start;
-                element_pushback_time += duration.count();
+                // element_pushback_time += duration.count();
             }
             else if (type == "condition" || type == "Condition") {
                 SizeType id = 1;
@@ -302,8 +302,15 @@ namespace Kratos
                 
                 auto start = std::chrono::high_resolution_clock::now();
 
+                // // To be erased
+                // std::string name_temp;
+                
+                // // if (gaussPoint.X() > 49.9999999) {
+                // if (gaussPoint.X() > 11.9999999 || gaussPoint.X() < 0.0000000001) {
+                //     name_temp = "SupportPressureDirichletCondition";
+                // }
 
-                bool isOnExternalParameterSpace = false;         
+                bool isOnExternalParameterSpace = false;      
                 if (is_SBM) {isOnExternalParameterSpace = CheckIsOnExternalParameterSpace(gaussPoint, parameterExternalCoordinates); }
                 if (name.substr(0, 3) == "SBM"  && !isOnExternalParameterSpace) { 
                     for (auto j= 0; j < geometries.size() ; j++) {  
@@ -357,6 +364,20 @@ namespace Kratos
                         std::string type = name.substr(3, name.length() - 12); // Get the central part between "SBM" and "Condition"
                         nameBodyFittedCondition = "Support" + type + "Condition";
                     }
+
+                    // // to be erased
+                    // // if (gaussPoint.X() > 49.9999999) {
+                    // if (gaussPoint.X() > 11.9999999 || gaussPoint.X() < 0.0000000001) {
+                    //     this->CreateConditions(
+                    //         geometries.ptr_begin(), geometries.ptr_end(),
+                    //         rModelPart, name_temp, id, PropertiesPointerType());
+                    // }else{
+                    //     this->CreateConditions(
+                    //         geometries.ptr_begin(), geometries.ptr_end(),
+                    //         rModelPart, nameBodyFittedCondition, id, PropertiesPointerType());
+                    // }
+
+
                     this->CreateConditions(
                         geometries.ptr_begin(), geometries.ptr_end(),
                         rModelPart, nameBodyFittedCondition, id, PropertiesPointerType());
@@ -366,9 +387,9 @@ namespace Kratos
                         geometries.ptr_begin(), geometries.ptr_end(),
                         rModelPart, name, id, PropertiesPointerType());
                 }
-                auto end = std::chrono::high_resolution_clock::now();
-                std::chrono::duration<long double> duration = end - start;
-                searching_time += duration.count();
+                // auto end = std::chrono::high_resolution_clock::now();
+                // std::chrono::duration<long double> duration = end - start;
+                // searching_time += duration.count();
             }
             else {
                 KRATOS_ERROR << "\"type\" does not exist: " << type
@@ -764,7 +785,7 @@ namespace Kratos
 
     bool IgaModeler::CheckIsOnExternalParameterSpace(Point point, Vector parameters_external_coordinates) const 
     {
-        double tolerance = 1e-14;
+        double tolerance = 1e-13;
         double u_initial = parameters_external_coordinates[0];
         double v_initial = parameters_external_coordinates[1];
         double u_final   = parameters_external_coordinates[2];

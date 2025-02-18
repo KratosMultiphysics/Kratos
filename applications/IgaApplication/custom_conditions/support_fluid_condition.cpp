@@ -29,7 +29,15 @@ void SupportFluidCondition::CalculateAll(
 )
 {
     KRATOS_TRY
-    const double penalty = GetProperties()[PENALTY_FACTOR];
+    double penalty = GetProperties()[PENALTY_FACTOR];
+
+    // Collins, Lozinsky & Scovazzi innovation
+    double Guglielmo_innovation = 1.0;  // = 1 -> Penalty approach
+                                        // = -1 -> Free-penalty approach
+    if (penalty == -1.0) {
+        penalty = 0.0;
+        Guglielmo_innovation = -1.0;
+    }
 
     const auto& r_geometry = GetGeometry();
     const SizeType number_of_nodes = r_geometry.size();
@@ -168,8 +176,8 @@ void SupportFluidCondition::CalculateAll(
                     // rLeftHandSideMatrix(3*i+idim, 3*j+jdim) -= H(0,j)*(
                     //         DN_DX(i, 0) * normal_parameter_space[0] + DN_DX(i, 1) * normal_parameter_space[1] ) * integration_weight;
                 
-                    // Nitsche term --> With Constitutive law
-                    // rLeftHandSideMatrix(3*j+jdim, 3*i+idim) -= H(0, i) * traction(idim) * integration_weight;
+                    // // Nitsche term --> With Constitutive law
+                    // rLeftHandSideMatrix(3*j+jdim, 3*i+idim) -= Guglielmo_innovation * H(0, i) * traction(idim) * integration_weight;
 
                 }
 
@@ -187,6 +195,16 @@ void SupportFluidCondition::CalculateAll(
             rRightHandSideVector(3*i+idim) += H(0,i) * traction_current_iteration(idim) * integration_weight;
             // integration by parts PRESSURE
             rRightHandSideVector(3*i+idim) -= pressure_current_iteration * ( H(0,i) * normal_parameter_space[idim] ) * integration_weight;
+            
+            // // Nitsche term --> With Constitutive law
+            // Matrix sigma_block = ZeroMatrix(2, 2); // Extract the 2x2 block for the control point i from the sigma matrix.
+            // sigma_block(0, 0) = sigmaVoigt(0, 2*i+idim); 
+            // sigma_block(0, 1) = sigmaVoigt(2, 2*i+idim); 
+            // sigma_block(1, 0) = sigmaVoigt(2, 2*i+idim);
+            // sigma_block(1, 1) = sigmaVoigt(1, 2*i+idim); 
+            // // Compute the traction vector: sigma * n.
+            // Vector traction = prod(sigma_block, n_tensor); // This results in a 2x1 vector.
+            // rRightHandSideVector(3*i+idim) += Guglielmo_innovation * velocity_current_iteration[idim] * traction(idim) * integration_weight;
         }
     }
             
@@ -214,7 +232,7 @@ void SupportFluidCondition::CalculateAll(
             // // Compute the traction vector: sigma * n.
             // Vector traction = prod(sigma_block, n_tensor); // This results in a 2x1 vector.
             // // Nitsche term --> With Constitutive law
-            // rRightHandSideVector[3*i+idim] -= u_D[idim] * traction(idim) * integration_weight;
+            // rRightHandSideVector[3*i+idim] -= Guglielmo_innovation * u_D[idim] * traction(idim) * integration_weight;
 
         }
     }
