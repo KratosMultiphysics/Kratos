@@ -78,6 +78,10 @@ def CreateCoreSettings(user_settings, model):
     The core setting "io_type" cannot be overwritten by the user. It is
     automatically set depending on whether or not MPI is used.
     """
+
+    model_part_name = user_settings["model_part_name"].GetString()
+    model_part = model[model_part_name]
+
     # Configure the defaults:
     core_settings = ParametersWrapper("""
         [{
@@ -126,7 +130,7 @@ def CreateCoreSettings(user_settings, model):
         for key in user_settings["file_settings"]:
             core_settings[i]["io_settings"][key] = user_settings["file_settings"][key]
         model_part_name = user_settings["model_part_name"]
-        if model[model_part_name].IsDistributed():
+        if model_part.IsDistributed():
             model_part_output_type = "partitioned_model_part_output"
             core_settings[i]["io_settings"]["io_type"] = "parallel_hdf5_file_io"
         else:
@@ -158,4 +162,11 @@ def CreateCoreSettings(user_settings, model):
     ]
     for key in user_settings["output_time_settings"]:
         core_settings[1]["controller_settings"][key] = user_settings["output_time_settings"][key]
+
+    if model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
+        # hack as a Pop method doesn't exist yet
+        temporal_params = KratosMultiphysics.Parameters("""[]""")
+        temporal_params.Append(core_settings._parameters[1])
+        core_settings = ParametersWrapper(temporal_params)
+
     return core_settings
