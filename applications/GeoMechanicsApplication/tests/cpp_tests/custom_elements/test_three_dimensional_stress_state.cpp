@@ -14,6 +14,7 @@
 #include "custom_elements/three_dimensional_stress_state.h"
 #include "custom_utilities/registration_utilities.h"
 #include "includes/checks.h"
+#include "includes/serializer.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
 #include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
