@@ -100,55 +100,92 @@ void MohrCoulombConstitutiveLaw::CalculateMohrCoulomb(const Properties& rProp, V
     const auto dilation_angle = rProp[GEO_DILATION_ANGLE] * Globals::Pi / 180.0;
     const auto tension_cutoff = rProp[GEO_TENSION_CUTOFF];
 
-    Vector principalStress = StressStrainUtilities::CalculatePrincipalStresses(rCauchyStressVector);
     const auto coulombYieldFunction = CoulombYieldFunction(friction_angle, cohesion, dilation_angle);
     const auto tensionCutoffFunction = TensionCutoffFunction(tension_cutoff);
 
-    double fme = coulombYieldFunction.CalculateYieldFunction(principalStress);
-    double fte = tensionCutoffFunction.CalculateYieldFunction(principalStress);
-    double yieldRootValue = cohesion / std::tan(friction_angle);
-    if (fte < yieldRootValue) mIsCutoffActive = true;
-
     ConstitutiveLaw::Parameters rValues ;
-    //rValues.Set(ConstitutiveLaw::C)
     rValues.SetMaterialProperties(rProp);
     Vector                       trailStressVector;
     Vector                       strainVector(mpConstitutiveDimension->GetStrainSize());
     rValues.SetStrainVector(strainVector);
+
     this->CalculatePK2Stress(strainVector, trailStressVector, rValues);
     Vector principalTrialStress = StressStrainUtilities::CalculatePrincipalStresses(trailStressVector);
+
     Matrix eigenVectorsMatrix = StressStrainUtilities::CalculatePrincipalEigenVectorsMatrix(trailStressVector);
     Matrix rotationMatrix = this->CalculateRotationMatrix(eigenVectorsMatrix);
+    this->CheckRotationMatrix(rotationMatrix);
 
-    //Check ROtation matrix to be Q * Q^T = I
+    double fme                = coulombYieldFunction.CalculateYieldFunction(principalTrialStress);
+    double fte                = tensionCutoffFunction.CalculateYieldFunction(principalTrialStress);
 
-
-    fme                = coulombYieldFunction.CalculateYieldFunction(principalTrialStress);
-    fte                = tensionCutoffFunction.CalculateYieldFunction(principalTrialStress);
     double trailStress = 0.5 * (principalTrialStress(0) + principalTrialStress(2));
     double trialShear = 0.5 * (principalTrialStress(0) - principalTrialStress(2));
-
 
     Matrix principalTrialStressMatrix = ZeroMatrix(3, 3);
     for (int i = 0; i < 3; ++i) {
         principalTrialStressMatrix(i, i) = principalTrialStress(i);
     }
 
-
-
-    if (trialShear < fme && trailStress < fte) {
+    // Elastic region
+    if (fme <= 0.0 && fte<= 0.0) {
         mStressVector = trailStressVector;
+        return;
     }
 
-    if (mIsCutoffActive && trailStress > fte) {
-        double shearAtIntersection = -fte * std::sin(friction_angle) + cohesion * std::cos(friction_angle);
-        if (trialShear <= shearAtIntersection) {
-            principalTrialStressMatrix(0, 0) = fte + trialShear;
-            principalTrialStressMatrix(2, 2) = fte - trialShear;
+    // Zone of axial return
+    double yieldRootValue = cohesion / std::tan(friction_angle);
+    if (tension_cutoff < yieldRootValue) {
+        double shearAtIntersection = (cohesion * std::cos(friction_angle) - tension_cutoff * std::sin(friction_angle)) /
+            (1.0 + std::sin(friction_angle));
+        if (trialShear <= shearAtIntersection && fte >= 0.0) {
+            principalTrialStressMatrix(0, 0) = tension_cutoff + 2.0 * trialShear;
+            principalTrialStressMatrix(2, 2) = tension_cutoff;
             Matrix temp = prod(principalTrialStressMatrix, trans(rotationMatrix));
             Matrix stressMatrix = prod(rotationMatrix, temp);
             mStressVector = MathUtils<double>::StressTensorToVector(stressMatrix);
+            return;
         }
+    }
+
+    // Zone of tensile corner return
+    double shearAtIntersection = 0.0;
+    double stressAtIntersection = 0.0;
+    if (tension_cutoff < yieldRootValue) {
+        shearAtIntersection = (cohesion * std::cos(friction_angle) - tension_cutoff * std::sin(friction_angle)) /
+            (1.0 + std::sin(friction_angle));
+        stressAtIntersection = (tension_cutoff + cohesion * std::cos(friction_angle)) / (1.0 + std::sin(friction_angle));
+    } else {
+        shearAtIntersection = 0.0;
+        stressAtIntersection = cohesion / std::tan(friction_angle);
+    }
+
+    double flow = (trailStress - stressAtIntersection) -
+                  (trialShear - shearAtIntersection) / std::sin(dilation_angle);
+
+    if (flow <= 0.0 && trialShear > shearAtIntersection) {
+        principalTrialStressMatrix(0, 0) = stressAtIntersection + shearAtIntersection;
+        principalTrialStressMatrix(2, 2) = stressAtIntersection - shearAtIntersection;
+        Matrix temp                      = prod(principalTrialStressMatrix, trans(rotationMatrix));
+        Matrix stressMatrix              = prod(rotationMatrix, temp);
+        mStressVector                    = MathUtils<double>::StressTensorToVector(stressMatrix);
+        return;
+    }
+
+    // Regular failure region
+    if (fme >0.0 && flow > 0.0) {
+        Vector flowDerivative = coulombYieldFunction.CalculateFlowFunctionDerivate(principalTrialStress);
+        double cof1 = (1.0 + std::sin(friction_angle)) / (1.0 - std::sin(friction_angle));
+        double cof2 = 2.0 * cohesion * std::cos(friction_angle) / (1.0 - std::sin(friction_angle));
+        double det  =  cof1 * flowDerivative(0) - flowDerivative(2);
+        double lambda = principalTrialStress(2) + cof2 - principalTrialStress(0) * cof1;
+        lambda /= det;
+        principalTrialStressMatrix(0, 0) = lambda * flowDerivative(0) + principalTrialStress(0);
+        principalTrialStressMatrix(2, 2) = principalTrialStressMatrix(0, 0) * cof1 - cof2;
+        Matrix temp                      = prod(principalTrialStressMatrix, trans(rotationMatrix));
+        Matrix stressMatrix              = prod(rotationMatrix, temp);
+        mStressVector                    = MathUtils<double>::StressTensorToVector(stressMatrix);
+        return;
     }
 
 
@@ -205,8 +242,8 @@ int MohrCoulombConstitutiveLaw::FindRegionIndex(double fme, double fte)
 // ================================================================================================
 Vector MohrCoulombConstitutiveLaw::NormalizeVector(Vector& vector)
 { 
-    double norm1 = MathUtils<>::Norm(vector);
-    return vector / norm1;
+    double norm = MathUtils<>::Norm(vector);
+    return vector / norm;
 }
 
 // ================================================================================================
@@ -219,6 +256,23 @@ Matrix MohrCoulombConstitutiveLaw::CalculateRotationMatrix(Matrix& eigenVectorsM
         column(result, i) = vec;
     }
     return result;
+}
+
+// ================================================================================================
+void MohrCoulombConstitutiveLaw::CheckRotationMatrix(Matrix& rRotationMatrix)
+{
+    Matrix result = prod(rRotationMatrix, trans(rRotationMatrix));
+    for (int i = 0; i < rRotationMatrix.size1(); ++i) {
+        KRATOS_ERROR_IF_NOT(result(i, i) == 1.0) << "The rotation matrix is not orthogonal" << std::endl;
+    }
+
+    for (int i = 0; i < rRotationMatrix.size1(); ++i) {
+        for (int j = 0; j < rRotationMatrix.size2(); ++j) {
+            if (i != j)
+                KRATOS_ERROR_IF_NOT(result(i, j) == 0.0)
+                    << "The rotation matrix is not orthogonal" << std::endl;
+        }
+    }
 }
 
 } // Namespace Kratos

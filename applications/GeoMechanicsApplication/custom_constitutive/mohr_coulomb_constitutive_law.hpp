@@ -67,6 +67,7 @@ public:
 
     Vector NormalizeVector(Vector& vector);
     Matrix CalculateRotationMatrix(Matrix& eigenVectorsMatrix);
+    void CheckRotationMatrix(Matrix& rRotationMatrix);
 
     // Member Variables
     double mStateVariable;
