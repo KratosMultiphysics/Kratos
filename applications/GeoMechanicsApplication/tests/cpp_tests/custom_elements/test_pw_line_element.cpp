@@ -178,8 +178,6 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElementCheckThrowsOnFaultyInput, Kratos
     auto& model_part = model.CreateModelPart("Main");
     model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
     auto p_element = CreatePwLineElementWithoutPWDofs(model_part, p_properties);
-    // KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
-    //                                   "Error: Missing variable DT_WATER_PRESSURE on node 0")
 
     RemoveTwoNodes(model_part);
     model_part.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
