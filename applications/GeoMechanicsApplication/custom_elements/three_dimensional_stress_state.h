@@ -30,6 +30,10 @@ public:
     [[nodiscard]] const Vector&                      GetVoigtVector() const override;
     [[nodiscard]] SizeType                           GetVoigtSize() const override;
     [[nodiscard]] SizeType                           GetStressTensorSize() const override;
+
+private:
+    void save(Serializer&) const override;
+    void load(Serializer&) override;
 };
 
 } // namespace Kratos

@@ -12,6 +12,7 @@
 
 #include "containers/model.h"
 #include "custom_elements/plane_strain_stress_state.h"
+#include "custom_utilities/registration_utilities.h"
 #include "includes/checks.h"
 #include "includes/serializer.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
@@ -127,12 +128,15 @@ KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_GivesCorrectStressTensorSize, K
 
 KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_CanBeSavedAndLoadedThroughInterface, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
+    // Arrange
+    RegistrationUtilities::RegisterStressStatePolicies();
     const auto p_policy = std::unique_ptr<StressStatePolicy>{std::make_unique<PlaneStrainStressState>()};
     auto serializer = Serializer{new std::stringstream{}};
 
     // Act
-    SaveStressStatePolicy(p_policy, serializer);
-    auto p_loaded_policy = LoadStressStatePolicy(serializer);
+    serializer.save("test_tag"s, p_policy);
+    auto p_loaded_policy = std::unique_ptr<StressStatePolicy>{};
+    serializer.load("test_tag"s, p_loaded_policy);
 
     // Assert
     ASSERT_NE(p_loaded_policy, nullptr);

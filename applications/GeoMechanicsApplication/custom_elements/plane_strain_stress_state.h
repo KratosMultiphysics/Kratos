@@ -34,6 +34,9 @@ public:
 
 private:
     [[nodiscard]] static Vector ConvertStrainTensorToVector(const Matrix& rStrainTensor);
+
+    void save(Serializer&) const override;
+    void load(Serializer&) override;
 };
 
 } // namespace Kratos
