@@ -36,6 +36,7 @@ namespace Kratos
 
         private:
             // Private methods
-            void HomogenizeConductivity (void);
+            double ComputePipeAreaInner   (void);
+            void   HomogenizeConductivity (void);
     };
 }

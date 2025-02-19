@@ -144,9 +144,13 @@ namespace Kratos
 
                 // Unique contacts (each binary contact evaluated only once)
                 if (id1 < id2) {
-                    // Check for inner contact // TODO: DO IT ACCORDING TO CONDUCTIVITY CRITERION !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                    // Check for inner contact TODO: COMPLETE THIS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                     const double inner_contact_len = ComputeBranchLengthInner(coords1, coords2);
+                    const double inner_pipe_area = ComputePipeAreaInner();
+
                     const double inner_contact_ratio = inner_contact_len / d;
+                    const double inner_area_ratio = inner_pipe_area / d;
+
                     bool is_inner_contact = (inner_contact_len != 0.0);
 
                     // Increment number of unique contacts
@@ -179,6 +183,11 @@ namespace Kratos
                 }
             }
         }
+    }
+
+    //------------------------------------------------------------------------------------------------------------
+    double RVEWallBoundaryThermal2D::ComputePipeAreaInner(void) {
+        return 0.0;
     }
 
     //------------------------------------------------------------------------------------------------------------
