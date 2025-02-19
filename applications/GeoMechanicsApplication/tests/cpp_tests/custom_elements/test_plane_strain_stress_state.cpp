@@ -16,6 +16,7 @@
 #include "includes/checks.h"
 #include "includes/serializer.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/test_utilities.h"
 #include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
@@ -141,6 +142,9 @@ KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_CanBeSavedAndLoadedThroughInter
     // Assert
     ASSERT_NE(p_loaded_policy, nullptr);
     KRATOS_EXPECT_EQ(p_loaded_policy->GetVoigtSize(), VOIGT_SIZE_2D_PLANE_STRAIN);
+    auto expected_voigt_vector = Vector{4};
+    expected_voigt_vector <<= 1.0, 1.0, 1.0, 0.0;
+    KRATOS_EXPECT_VECTOR_NEAR(p_loaded_policy->GetVoigtVector(), expected_voigt_vector, Defaults::absolute_tolerance);
 }
 
 } // namespace Kratos::Testing
