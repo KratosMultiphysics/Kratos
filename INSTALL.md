@@ -107,7 +107,84 @@ Additionaly, Visual Studio is required to compile in *Windows*.
 
         Extract boost, and note the path as it will be needed in the configure stage to set the environmental variable `BOOST_ROOT`.
 
-- #### MinGW
+    - Alternative dependencies installation (Hidden by default to avoid confusion, please click the button below to show them)
+        <details>
+
+        - *VCpkg*:
+
+          VCpkg is a cross-platform package manager for C++ libraries, simplifying dependency management by handling installation and integration with different compilers. It supports *Windows*, *Linux*, and *macOS*. See [official website](https://vcpkg.io/en/index.html), [*GitHub*](https://github.com/microsoft/vcpkg) and the [Official VCpkg Documentation](https://vcpkg.io/en/index.html). 
+
+          Open PowerShell and run:
+
+          ```powershell
+          git clone https://github.com/microsoft/vcpkg.git
+          cd vcpkg
+          .\bootstrap-vcpkg.bat
+          ```
+
+          This initializes *VCpkg* and compiles it for use. To install a package, use:
+
+          ```powershell
+          vcpkg install <package-name>
+          ```
+
+          To specify a target architecture (triplet), use:
+
+          ```powershell
+          vcpkg install boost:x64-windows
+          ```
+
+          Common triplets:
+          - **x86-windows** (Static CRT)
+          - **x64-windows** (Static CRT, 64-bit)
+          - **x64-linux** (64-bit Linux)
+          - **arm64-windows** (ARM64 Windows)
+
+          To integrate VCpkg with CMake:
+          ```powershell
+          cmake -DCMAKE_TOOLCHAIN_FILE=<path-to-vcpkg>/scripts/buildsystems/vcpkg.cmake ..
+          ```
+
+          For *Visual Studio/MSBuild*, enable automatic integration:
+
+          ```powershell
+          vcpkg integrate install
+          ```
+
+          This makes installed libraries available in all *Visual Studio* projects.
+
+          To update the package manager itself:
+
+          ```powershell
+          git pull
+          ./bootstrap-vcpkg.bat
+          ```
+
+          To upgrade installed packages:
+      
+          ```powershell
+          vcpkg upgrade
+          ```
+
+          To remove a package:
+
+          ```powershell
+          vcpkg remove <package-name>
+          ```
+
+          To install some dependencies:
+
+          - *Python*:
+          ```powershell
+          vcpkg install python3:x64-windows
+          ```
+
+          - *Boost*: For example not only *Boost* header, but some precompiled libraries.
+          ```powershell
+          vcpkg install boost-chrono:x64-windows boost-date-time:x64-windows boost-filesystem:x64-windows boost-program-options:x64-windows boost-system:x64-windows boost-thread:x64-windows boost-test:x64-windows boost-ublas:x64-windows
+          ```
+        </details>
+- #### MinGW (Windows Unix like environment)
   *MingGw* compilation details are hidden by default to avoid confusion, please click the button below to show them.
   <details>
     <summary>Show MinGW compilation details</summary>
