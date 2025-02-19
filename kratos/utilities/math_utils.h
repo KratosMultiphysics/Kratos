@@ -698,9 +698,10 @@ public:
      * @param rSecondVector Second input vector
      * @return The resulting norm
      */
+    template<class TVector1, clas TVector2>
     static inline double Dot(
-        const Vector& rFirstVector,
-        const Vector& rSecondVector
+        const TVector1& rFirstVector,
+        const TVector2& rSecondVector
         )
     {
         double temp = 0.0;
