@@ -89,6 +89,60 @@ void FillMatrixWithValues(TObjectType& rObject)
     }
 }
 
+// Two dummy classes for testing (de)serialization of a derived class through
+// a pointer to an abstract base class
+class AbstractTestClass
+{
+public:
+    virtual ~AbstractTestClass() = default;
+    [[nodiscard]] virtual int foo() const = 0;
+
+private:
+    friend class Serializer;
+    virtual void save(Serializer&) const = 0;
+    virtual void load(Serializer&) = 0;
+};
+
+class DerivedTestClass : public AbstractTestClass
+{
+public:
+    ~DerivedTestClass() override = default;
+    [[nodiscard]] int foo() const override { return mMagicNumber; }
+
+private:
+    void save(Serializer& rSerializer) const override
+    {
+        rSerializer.save("mMagicNumber", mMagicNumber);
+    }
+
+    void load(Serializer& rSerializer) override {
+        rSerializer.load("mMagicNumber", mMagicNumber);
+    }
+
+    int mMagicNumber = 42;
+};
+
+class ScopedTestClassRegistration
+{
+public:
+    ScopedTestClassRegistration()
+    {
+        Serializer::Register("DerivedTestClass", DerivedTestClass{});
+    }
+
+    ~ScopedTestClassRegistration()
+    {
+        Serializer::Unregister("DerivedTestClass");
+    }
+
+    // Since the destructor has been defined, use the Rule of Five
+    ScopedTestClassRegistration(const ScopedTestClassRegistration&) = delete;
+    ScopedTestClassRegistration& operator=(const ScopedTestClassRegistration&) = delete;
+
+    ScopedTestClassRegistration(ScopedTestClassRegistration&&) noexcept = default;
+    ScopedTestClassRegistration& operator=(ScopedTestClassRegistration&&) noexcept = default;
+};
+
 /*********************************************************************/
 /* Testing the Datatypes that for which the
     "KRATOS_SERIALIZATION_DIRECT_LOAD" macro is used */
@@ -193,6 +247,22 @@ KRATOS_TEST_CASE_IN_SUITE(SerializerKratosSharedPtr, KratosCoreFastSuite)
     KRATOS_EXPECT_EQ(*p_point, *p_loaded_point);
     for (std::size_t i=0; i<(*p_array).size(); ++i)
         KRATOS_EXPECT_EQ((*p_loaded_array)[i], (*p_array)[i]);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SerializerKratosSharedPtrToAbstractBase, KratosCoreFastSuite)
+{
+    StreamSerializer serializer;
+    ScopedTestClassRegistration scoped_registration;
+
+    const auto tag_string = std::string{"TestString"};
+    const auto p_instance = Kratos::shared_ptr<AbstractTestClass>{Kratos::make_shared<DerivedTestClass>()};
+    serializer.save(tag_string, p_instance);
+
+    auto p_loaded_instance = Kratos::shared_ptr<AbstractTestClass>{};
+    serializer.load(tag_string, p_loaded_instance);
+
+    ASSERT_NE(p_loaded_instance, nullptr);
+    KRATOS_EXPECT_EQ(p_loaded_instance->foo(), 42);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SerializerStdArray, KratosCoreFastSuite)
