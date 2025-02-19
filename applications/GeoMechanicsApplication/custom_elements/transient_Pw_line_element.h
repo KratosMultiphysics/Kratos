@@ -185,7 +185,8 @@ private:
     {
         CheckProperty(DENSITY_WATER);
         CheckProperty(DENSITY_SOLID);
-        CheckProperty(POROSITY);
+        constexpr auto max_value = 1.0;
+        CheckProperty(POROSITY, max_value);
         CheckProperty(BULK_MODULUS_SOLID);
         CheckProperty(BULK_MODULUS_FLUID);
         CheckProperty(DYNAMIC_VISCOSITY);
@@ -193,11 +194,11 @@ private:
         CheckProperty(PERMEABILITY_XX);
     }
 
-    void CheckProperty(const Kratos::Variable<double>& rVariable) const
+    void CheckProperty(const Kratos::Variable<double>& rVariable, double MaxValue = 1.0e+100) const
     {
         KRATOS_ERROR_IF_NOT(GetProperties().Has(rVariable))
             << rVariable.Name() << " does not exist in the pressure element's properties" << std::endl;
-        KRATOS_ERROR_IF(GetProperties()[rVariable] < 0.0)
+        KRATOS_ERROR_IF(GetProperties()[rVariable] < 0.0 || GetProperties()[rVariable] > MaxValue)
             << rVariable.Name() << " has an invalid value at element " << Id() << std::endl;
     }
 
@@ -217,7 +218,7 @@ private:
             auto        pos        = std::find_if(r_geometry.begin(), r_geometry.end(),
                                                   [](const auto& node) { return node.Z() != 0.0; });
             KRATOS_ERROR_IF_NOT(pos == r_geometry.end())
-                << " Node with non-zero Z coordinate found. Id: " << pos->Id() << std::endl;
+                << "Node with non-zero Z coordinate found. Id: " << pos->Id() << std::endl;
         }
     }
 
