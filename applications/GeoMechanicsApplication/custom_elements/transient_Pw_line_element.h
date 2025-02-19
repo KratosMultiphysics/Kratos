@@ -135,16 +135,18 @@ public:
         }
     }
 
-    int Check(const ProcessInfo&) const override
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override
     {
         KRATOS_TRY
 
         CheckDomainSize();
         CheckHasSolutionStepsDataFor(WATER_PRESSURE);
         CheckHasSolutionStepsDataFor(DT_WATER_PRESSURE);
+        CheckHasSolutionStepsDataFor(VOLUME_ACCELERATION);
         CheckHasDofsFor(WATER_PRESSURE);
         CheckProperties();
         CheckForNonZeroZCoordinateIn2D();
+        CheckRetentionLaw(rCurrentProcessInfo);
 
         KRATOS_CATCH("")
 
@@ -162,7 +164,7 @@ private:
             << "DomainSize smaller than " << min_domain_size << " for element " << Id() << std::endl;
     }
 
-    void CheckHasSolutionStepsDataFor(const Variable<double>& rVariable) const
+    void CheckHasSolutionStepsDataFor(const VariableData& rVariable) const
     {
         for (const auto& node : GetGeometry()) {
             KRATOS_ERROR_IF_NOT(node.SolutionStepsDataHas(rVariable))
@@ -216,6 +218,13 @@ private:
                                                   [](const auto& node) { return node.Z() != 0.0; });
             KRATOS_ERROR_IF_NOT(pos == r_geometry.end())
                 << " Node with non-zero Z coordinate found. Id: " << pos->Id() << std::endl;
+        }
+    }
+
+    void CheckRetentionLaw(const ProcessInfo& rCurrentProcessInfo) const
+    {
+        if (mRetentionLawVector.size() > 0) {
+            mRetentionLawVector[0]->Check(this->GetProperties(), rCurrentProcessInfo);
         }
     }
 
