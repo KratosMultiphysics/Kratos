@@ -314,6 +314,27 @@ namespace Kratos
     }
 
     //------------------------------------------------------------------------------------------------------------
+    // Write file headers for selected results.
+    void RVEUtilities::WriteFileHeaders(void) {
+        if (mFileGlobalResults.is_open())   WriteFileHeadersGlobalResults();
+        if (mFileParticleResults.is_open()) WriteFileHeadersParticleResults();
+        if (mFileContactResults.is_open())  WriteFileHeadersContactResults();
+        if (mFileTensorResults.is_open())   WriteFileHeadersTensorResults();
+        if (mFileRoseDiagram.is_open())     WriteFileHeadersRoseDiagram();
+    }
+
+    //------------------------------------------------------------------------------------------------------------
+    // Write selected results to opened files.
+    void RVEUtilities::WriteResultFiles(void) {
+        if (!IsTimeToPrintResults(mDemModelPart->GetProcessInfo()[TIME_STEPS])) return;
+        if (mFileGlobalResults.is_open())   WriteResultFilesGlobalResults();
+        if (mFileParticleResults.is_open()) WriteResultFilesParticleResults();
+        if (mFileContactResults.is_open())  WriteResultFilesContactResults();
+        if (mFileTensorResults.is_open())   WriteResultFilesTensorResults();
+        if (mFileRoseDiagram.is_open())     WriteResultFilesRoseDiagram();
+    }
+
+    //------------------------------------------------------------------------------------------------------------
     // Close all result files
     void RVEUtilities::CloseResultFiles(void) {
         if (mFileGlobalResults.is_open())   mFileGlobalResults.close();

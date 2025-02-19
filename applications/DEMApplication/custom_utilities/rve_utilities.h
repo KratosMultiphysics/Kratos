@@ -135,13 +135,13 @@ namespace Kratos
             virtual void   StopBoundaryMotion              (void);
             virtual void   ReadOldForces                   (void);
             virtual void   OpenResultFiles                 (void);
-            virtual void   WriteFileHeaders                (void) {}
+            virtual void   WriteFileHeaders                (void);
             virtual void   WriteFileHeadersGlobalResults   (void) {}
             virtual void   WriteFileHeadersParticleResults (void) {}
             virtual void   WriteFileHeadersContactResults  (void) {}
             virtual void   WriteFileHeadersTensorResults   (void) {}
             virtual void   WriteFileHeadersRoseDiagram     (void) {}
-            virtual void   WriteResultFiles                (void) {}
+            virtual void   WriteResultFiles                (void);
             virtual void   WriteResultFilesGlobalResults   (void) {}
             virtual void   WriteResultFilesParticleResults (void) {}
             virtual void   WriteResultFilesContactResults  (void) {}

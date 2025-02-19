@@ -614,13 +614,6 @@ namespace Kratos
 
     //------------------------------------------------------------------------------------------------------------
     // Write file headers for selected results.
-    void RVEWallBoundary2D::WriteFileHeaders(void) {
-        if (mFileGlobalResults.is_open())   WriteFileHeadersGlobalResults();
-        if (mFileParticleResults.is_open()) WriteFileHeadersParticleResults();
-        if (mFileContactResults.is_open())  WriteFileHeadersContactResults();
-        if (mFileTensorResults.is_open())   WriteFileHeadersTensorResults();
-        if (mFileRoseDiagram.is_open())     WriteFileHeadersRoseDiagram();
-    }
     void RVEWallBoundary2D::WriteFileHeadersGlobalResults(void) {
         mFileGlobalResults << "R = ROW, C = COLUMN" << std::endl;
         mFileGlobalResults << "Ri -> C1: STEP | C2: TIME | C3: IS_MOVING | C4: EQUILIB_STEPS | C5-C12: [X1 Y1 X2 Y2 X3 Y3 X4 Y4] (VERTEX) | C13: #PARTICLES | C14: #PARTICLES_INN | C15: #CONTACTS | C16: #CONTACTS_INN | C17: AVG_COORD | C18: AVG_COORD_INN | C19: AVG_RADIUS_ALL | C20: VOL_TOT | C21: VOL_TOT_INN | C22: VOLD_SOLID | C23: VOLD_SOLID_INN | C24: POROSITY | C25: POROSITY_INN" << std::endl;
@@ -650,14 +643,6 @@ namespace Kratos
 
     //------------------------------------------------------------------------------------------------------------
     // Write selected results to opened files.
-    void RVEWallBoundary2D::WriteResultFiles(void) {
-        if (!IsTimeToPrintResults(mDemModelPart->GetProcessInfo()[TIME_STEPS])) return;
-        if (mFileGlobalResults.is_open())   WriteResultFilesGlobalResults();
-        if (mFileParticleResults.is_open()) WriteResultFilesParticleResults();
-        if (mFileContactResults.is_open())  WriteResultFilesContactResults();
-        if (mFileTensorResults.is_open())   WriteResultFilesTensorResults();
-        if (mFileRoseDiagram.is_open())     WriteResultFilesRoseDiagram();
-    }
     void RVEWallBoundary2D::WriteResultFilesGlobalResults(void) {
         ProcessInfo& r_process_info = mDemModelPart->GetProcessInfo();
 

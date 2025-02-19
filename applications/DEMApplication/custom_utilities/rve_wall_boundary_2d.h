@@ -57,13 +57,12 @@ namespace Kratos
             double ComputeFabricIndex              (Matrix fabric_tensor);
             void   AddContactToRoseDiagram         (std::vector<int>& rose_diagram, std::vector<double>& normal);
             void   EvaluateRoseUniformity          (void) override;
-            void   WriteFileHeaders                (void) override;
+
             void   WriteFileHeadersGlobalResults   (void) override;
             void   WriteFileHeadersParticleResults (void) override;
             void   WriteFileHeadersContactResults  (void) override;
             void   WriteFileHeadersTensorResults   (void) override;
             void   WriteFileHeadersRoseDiagram     (void) override;
-            void   WriteResultFiles                (void) override;
             void   WriteResultFilesGlobalResults   (void) override;
             void   WriteResultFilesParticleResults (void) override;
             void   WriteResultFilesContactResults  (void) override;
