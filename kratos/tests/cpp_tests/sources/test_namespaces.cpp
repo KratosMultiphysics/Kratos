@@ -27,6 +27,12 @@
 namespace Kratos::Testing
 {
 
+/* Tests in this file will be always compiled and will change behaviour based on the value of -DKRATOS_USE_FUTURE and -DKRATOS_USE_LEGACY
+ * For tests for specific codes that only exist inside one of the namespaces see:
+ * - kratos/future/tests/cpp_tests/test_future_process.cpp
+ * - kratos/legacy/tests/cpp_tests/test_legacy_process.cpp
+ */
+
 /* Test if the class exists in the namespace if the namespace has been compiled */
 KRATOS_TEST_CASE_IN_SUITE(FutureProcess, KratosCoreFastSuite)
 {
