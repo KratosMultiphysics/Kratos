@@ -34,6 +34,7 @@ public:
     [[nodiscard]] SizeType                           GetStressTensorSize() const override;
 
 private:
+    friend class Serializer;
     void save(Serializer&) const override;
     void load(Serializer&) override;
 };
