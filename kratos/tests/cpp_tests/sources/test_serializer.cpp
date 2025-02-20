@@ -101,7 +101,29 @@ private:
     friend class Serializer;
     virtual void save(Serializer&) const = 0;
     virtual void load(Serializer&) = 0;
+
+    // The following members are required to use this class with intrusive_ptr
+    friend void intrusive_ptr_add_ref(const AbstractTestClass* pInstance)
+    {
+        if (pInstance) ++(pInstance->mRefCount);
+    }
+
+    friend void intrusive_ptr_release(const AbstractTestClass* pInstance)
+    {
+        if (pInstance) {
+            --(pInstance->mRefCount);
+            if (pInstance->mRefCount < 1) delete pInstance;
+        }
+    }
+
+    mutable std::size_t mRefCount = 0; // Must be mutable, since previous two members receive a pointer-to-const
 };
+
+std::ostream& operator<<(std::ostream& rOStream, const AbstractTestClass&)
+{
+    rOStream << "AbstractTestClass instance\n";
+    return rOStream;
+}
 
 class DerivedTestClass : public AbstractTestClass
 {
@@ -275,6 +297,22 @@ KRATOS_TEST_CASE_IN_SUITE(SerializerKratosSharedPtrToAbstractBase, KratosCoreFas
     serializer.save(tag_string, p_instance);
 
     auto p_loaded_instance = Kratos::shared_ptr<AbstractTestClass>{};
+    serializer.load(tag_string, p_loaded_instance);
+
+    ASSERT_NE(p_loaded_instance, nullptr);
+    KRATOS_EXPECT_EQ(p_loaded_instance->foo(), 42);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SerializerKratosIntrusivePtrToAbstractBase, KratosCoreFastSuite)
+{
+    StreamSerializer serializer;
+    ScopedTestClassRegistration scoped_registration;
+
+    const auto tag_string = std::string{"TestString"};
+    const auto p_instance = Kratos::intrusive_ptr<AbstractTestClass>{Kratos::make_intrusive<DerivedTestClass>()};
+    serializer.save(tag_string, p_instance);
+
+    auto p_loaded_instance = Kratos::intrusive_ptr<AbstractTestClass>{};
     serializer.load(tag_string, p_loaded_instance);
 
     ASSERT_NE(p_loaded_instance, nullptr);

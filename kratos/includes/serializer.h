@@ -281,8 +281,13 @@ public:
             {
                 if(pointer_type == SP_BASE_CLASS_POINTER)
                 {
-                    if(!pValue) {
-                        pValue = Kratos::intrusive_ptr<TDataType>(new TDataType);
+                    if constexpr (!std::is_abstract_v<TDataType>) {
+                        if(!pValue) {
+                            pValue = Kratos::intrusive_ptr<TDataType>(new TDataType);
+                        }
+                    }
+                    else {
+                        KRATOS_ERROR << "Cannot instantiate an abstract class\n";
                     }
                 }
                 else if(pointer_type == SP_DERIVED_CLASS_POINTER)
