@@ -48,7 +48,7 @@
         "newmark_gamma"                      : 0.5,
         "newmark_theta"                      : 0.5,
         "problem_domain_sub_model_part_list" : ["Soil","truss"],
-        "processes_sub_model_part_list"      : ["BottomFixed"],
+        "processes_sub_model_part_list"      : ["BottomFixed", "NormalLoad"],
         "body_domain_sub_model_part_list"    : ["Soil","truss"],
         "linear_solver_settings"             : {
             "solver_type" : "skyline_lu_factorization",
@@ -105,7 +105,7 @@
                 "postprocess_parameters" : {
                     "result_file_configuration" : {
                         "gidpost_flags"               : {
-                            "GiDPostMode"           : "GiD_PostBinary",
+                            "GiDPostMode"           : "GiD_PostAscii",
                             "WriteDeformedMeshFlag" : "WriteDeformed",
                             "WriteConditionsFlag"   : "WriteConditions",
                             "MultiFileFlag"         : "SingleFile"

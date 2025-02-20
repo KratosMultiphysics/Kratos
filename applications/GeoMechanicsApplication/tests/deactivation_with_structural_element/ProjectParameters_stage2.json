@@ -90,10 +90,22 @@
             "process_name":  "ApplyExcavationProcess",
             "Parameters":    {
                 "model_part_name":      "PorousDomain.truss",
-                "deactivate_soil_part": true
+                "deactivate_soil_part": false
             }
         }],
-        "loads_process_list"       : [],
+        "loads_process_list"       : [{
+            "python_module" : "apply_normal_load_table_process",
+            "kratos_module" : "KratosMultiphysics.GeoMechanicsApplication",
+            "process_name"  : "ApplyNormalLoadTableProcess",
+            "Parameters"    : {
+                "model_part_name"      : "PorousDomain.NormalLoad",
+                "variable_name":   "NORMAL_CONTACT_STRESS",
+                "active":          [true,false],
+                "table":           [0,0],
+                "fluid_pressure_type": "Uniform",
+                "value":           [10000,0.0]
+            }
+        }],
         "list_other_processes"     : []
     },
     "output_processes" : {
@@ -106,7 +118,7 @@
                 "postprocess_parameters" : {
                     "result_file_configuration" : {
                         "gidpost_flags"               : {
-                            "GiDPostMode"           : "GiD_PostBinary",
+                            "GiDPostMode"           : "GiD_PostAscii",
                             "WriteDeformedMeshFlag" : "WriteDeformed",
                             "WriteConditionsFlag"   : "WriteConditions",
                             "MultiFileFlag"         : "SingleFile"
