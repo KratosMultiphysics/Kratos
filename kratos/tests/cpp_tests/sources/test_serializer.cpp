@@ -132,6 +132,8 @@ public:
     [[nodiscard]] int foo() const override { return mFooNumber; }
 
 private:
+    friend class Serializer;
+
     void save(Serializer& rSerializer) const override
     {
         rSerializer.save("mFooNumber", mFooNumber);
