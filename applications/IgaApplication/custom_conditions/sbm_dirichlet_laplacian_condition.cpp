@@ -181,8 +181,6 @@ void SbmDirichletLaplacianCondition::CalculateLeftHandSide(
     const ProcessInfo& rCurrentProcessInfo)
 {
     ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
-    const auto& r_unknown_var = p_settings->GetUnknownVariable();
-
     const auto& r_geometry = this->GetGeometry();
     const SizeType number_of_nodes = r_geometry.PointsNumber();
 

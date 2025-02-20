@@ -197,15 +197,12 @@ void SbmNeumannLaplacianCondition::CalculateLeftHandSide(
     const ProcessInfo& rCurrentProcessInfo)
 {
     ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
-    const auto& r_unknown_var = p_settings->GetUnknownVariable();
-
     const auto& r_geometry = this->GetGeometry();
     const SizeType number_of_nodes = r_geometry.PointsNumber();
 
     if (rLeftHandSideMatrix.size1() != number_of_nodes || rLeftHandSideMatrix.size2() != number_of_nodes) {
         rLeftHandSideMatrix.resize(number_of_nodes, number_of_nodes, false);
     }
-
     noalias(rLeftHandSideMatrix) = ZeroMatrix(number_of_nodes, number_of_nodes);
 
     // Integration
@@ -264,7 +261,6 @@ void SbmNeumannLaplacianCondition::ComputeGradientTaylorExpansionContribution(Ma
 {
     const auto& r_geometry = this->GetGeometry();
     const SizeType number_of_nodes = r_geometry.PointsNumber();
-    const Matrix& H = r_geometry.ShapeFunctionsValues();
     const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(r_geometry.GetDefaultIntegrationMethod());
 
     KRATOS_WATCH(mBasisFunctionsOrder)
