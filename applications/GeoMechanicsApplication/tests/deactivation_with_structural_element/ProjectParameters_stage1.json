@@ -23,7 +23,7 @@
             "input_filename" : "excavation_test_with_structural_elements"
         },
         "material_import_settings"           : {
-            "materials_filename" : "Stage_2_Materials.json"
+            "materials_filename" : "Materials.json"
         },
         "buffer_size"                        : 2,
         "clear_storage"                      : false,
@@ -82,9 +82,32 @@
                 "value"           : [0.0,0.0,0.0],
                 "table"           : [0,0,0]
             }
-        }],
-        "loads_process_list"       : [],
-        "list_other_processes"     : []
+        },{
+            "python_module" : "apply_scalar_constraint_table_process",
+            "kratos_module" : "KratosMultiphysics.GeoMechanicsApplication",
+            "process_name"  : "ApplyScalarConstraintTableProcess",
+            "Parameters"    : {
+                "model_part_name"        : "PorousDomain",
+                "variable_name"          : "WATER_PRESSURE",
+                "is_fixed"               : true,
+                "table"                  : [0,0],
+                "fluid_pressure_type"    : "Phreatic_Multi_Line",
+                "gravity_direction"      : 1,
+                "out_of_plane_direction" : 2,
+                "x_coordinates"          : [0.0,1.0],
+                "y_coordinates"          : [1.0,1.0],
+                "z_coordinates"          : [0.0,0.0],
+                "specific_weight"        : 10000.0
+            }
+        },{
+            "python_module": "apply_excavation_process",
+            "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+            "process_name":  "ApplyExcavationProcess",
+            "Parameters":    {
+                "model_part_name":      "PorousDomain.truss",
+                "deactivate_soil_part": true
+            }
+        }]
     },
     "output_processes" : {
         "gid_output" : [{
@@ -114,10 +137,8 @@
                     },
                     "point_data_configuration"  : []
                 },
-                "output_name"            : "gid_output/excavation_test_with_structural_elements_Stage_2"
+                "output_name"            : "gid_output/excavation_test_with_structural_elements_Stage_1"
             }
-        }],
-        "vtk_output" : []
-    },
-    "analysis_stage"   : "KratosMultiphysics.GeoMechanicsApplication.staged_geo_mechanics_analysis"
+        }]
+    }
 }

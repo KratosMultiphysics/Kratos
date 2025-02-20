@@ -1,9 +1,6 @@
-Begin ModelPartData
-//  VARIABLE_NAME value
-End ModelPartData
-
 Begin Properties 0
 End Properties
+
 Begin Nodes
     1   0.0000000000   0.0000000000   0.0000000000
     2   1.0000000000   0.0000000000   0.0000000000
@@ -16,7 +13,7 @@ Begin Elements UPwSmallStrainElement2D4N// GUI group identifier: Soil
         1          0     3     1     2     4 
 End Elements
 
-Begin Elements GeoSteadyStatePwPipingElement2D2N// GUI group identifier: truss
+Begin Elements LinearTrussElement2D2N// GUI group identifier: truss
         3          0     2     4 
 End Elements
 
