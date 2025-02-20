@@ -43,44 +43,30 @@ SmoothClamper<TContainerType>::SmoothClamper(
 template<class TContainerType>
 double SmoothClamper<TContainerType>::ProjectForward(const double X) const
 {
-    double Y;
-    if (X < 0.0) {
-        Y = mMin;
-    } else if (X > 1.0) {
-        Y = mMax;
-    } else {
-        Y = mMin + X * X * (3.0 - 2.0 * X) * mDelta;
-    }
-    return Y;
+    const double x_tilde = std::clamp((X - mMin) / mDelta, 0.0, 1.0);
+    return mMin + x_tilde * x_tilde * (3.0 - 2.0 * x_tilde) * mDelta;
 }
 
 template<class TContainerType>
 double SmoothClamper<TContainerType>::CalculateForwardProjectionGradient(const double X) const
 {
-    double dY_dX;
-    if (X < 0.0) {
-        dY_dX = 0.0;
-    } else if (X > 1.0) {
-        dY_dX = 0.0;
-    } else {
-        dY_dX = (6 * X - 6 * X * X) * mDelta;
-    }
-    return dY_dX;
+    const double x_tilde = std::clamp((X - mMin) / mDelta, 0.0, 1.0);
+    return 6 * x_tilde - 6 * x_tilde * x_tilde;
 }
 
 template<class TContainerType>
 double SmoothClamper<TContainerType>::ProjectBackward(const double Y) const
 {
-    double x;
+    double x_tilde;
     if (Y < mMin) {
-        x = 0.0;
+        x_tilde = 0;
     } else if (Y > mMax) {
-        x = 1.0;
+        x_tilde = 1.0;
     } else {
         const double y = (Y - mMin) / mDelta;
-        x = 0.5 - std::sin(std::asin(1.0 - 2.0 * y) / 3.0);
+        x_tilde = 0.5 - std::sin(std::asin(1.0 - 2.0 * y) / 3.0);
     }
-    return x;
+    return mMin + x_tilde * mDelta;
 }
 
 template<class TContainerType>
