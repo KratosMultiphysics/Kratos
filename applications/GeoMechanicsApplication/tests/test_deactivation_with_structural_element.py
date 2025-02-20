@@ -29,9 +29,9 @@ class KratosGeoMechanicsDeactivationWithStructuralTest(KratosUnittest.TestCase):
 
         # In the first stage, the truss is deactivated, so the expected y displacements are the same
         # for nodes 3 and 4. In the second stage, the truss is activated and since it's only connected to node 4,
-        # the displacement of node 4 is different from the displacement of node 3.
-        expected_y_displacements_node_3 = [0.0416418, -0.127166]
-        expected_y_displacements_node_4 = [0.0416418, 0.0]
+        # the displacement of node 4 is half that of node 3 (the stiffness is doubled due to the truss).
+        expected_y_displacements_node_3 = [0.05, -0.1]
+        expected_y_displacements_node_4 = [0.05, -0.05]
 
         for parameter_file, expected_y_displacement_node_3, expected_y_displacement_node_4 in zip(stage_files, expected_y_displacements_node_3, expected_y_displacements_node_4):
             with open(parameter_file,'r') as parameter_file:
