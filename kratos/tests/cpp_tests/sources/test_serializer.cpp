@@ -25,6 +25,8 @@
 namespace Kratos::Testing 
 {
 
+using namespace Kratos;
+
 /*********************************************************************/
 /* Helper Functions */
 /*********************************************************************/
@@ -139,7 +141,8 @@ private:
         rSerializer.save("mFooNumber", mFooNumber);
     }
 
-    void load(Serializer& rSerializer) override {
+    void load(Serializer& rSerializer) override
+    {
         rSerializer.load("mFooNumber", mFooNumber);
     }
 
