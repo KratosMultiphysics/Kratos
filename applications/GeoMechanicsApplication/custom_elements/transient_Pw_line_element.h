@@ -227,7 +227,7 @@ private:
 
     void CheckRetentionLaw(const ProcessInfo& rCurrentProcessInfo) const
     {
-        if (mRetentionLawVector.size() > 0) {
+        if (!mRetentionLawVector.empty()) {
             mRetentionLawVector[0]->Check(this->GetProperties(), rCurrentProcessInfo);
         }
     }
