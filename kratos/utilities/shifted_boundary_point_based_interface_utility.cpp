@@ -247,7 +247,7 @@ namespace Kratos
 
         // Define the minimal distance to the skin geometry
         // NOTE that a minimal distance of <5e-7 can already cause an ill-defined deactivated layer because of the tolerances of the geometrical operations (intersected elements and localization of skin points)
-        const double distance_threshold = 2e-6;
+        const double distance_threshold = 5e-6;
         // Initialize a multiplier for the the distance by which nodes should be relocated --> length/1000 for a smooth deactivated element layer
         const double relocation_multiplier = 1e-3;
 
@@ -815,9 +815,6 @@ namespace Kratos
         if (n_skin_points_not_found > 0) {
             KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility")
                 << n_skin_points_not_found << " skin points have not been found in any volume model part element." << std::endl;
-        } else {
-            KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility")
-                << "All skin points have been found." << std::endl;
         }
 
         for (std::size_t i_skin_pt = 0; i_skin_pt < skin_point_located_elements.size(); ++i_skin_pt) {
@@ -851,16 +848,21 @@ namespace Kratos
         //TODO faster than looping through the nodes of elements with skin points without parallelization?
         VariableUtils().SetVariable(DISTANCE, 0.0,mpModelPart->Nodes());
 
+        // Get the element size calculation function
+        // Note that unique geometry in the mesh is assumed
+        const auto p_element_size_func = GetElementSizeFunction(mpModelPart->ElementsBegin()->GetGeometry());
+
         LockObject mutex_1;
         LockObject mutex_2;
         //TODO is parallelization really faster here?
-        std::for_each(rSkinPointsMap.begin(), rSkinPointsMap.end(), [&rAvgSkinMap, &mutex_1, &mutex_2](const std::pair<ElementType::Pointer, SkinPointsDataVectorType>& rKeyData){
+        std::for_each(rSkinPointsMap.begin(), rSkinPointsMap.end(), [&rAvgSkinMap, &mutex_1, &mutex_2, &p_element_size_func](const std::pair<ElementType::Pointer, SkinPointsDataVectorType>& rKeyData){
             const auto p_element = rKeyData.first;
             const auto& skin_points_data_vector = rKeyData.second;
 
-            // Get access to the nodes of the element
+            // Get access to the nodes of the element and an estimate of the element's size
             auto& r_geom = p_element->GetGeometry();
             const std::size_t n_nodes = r_geom.PointsNumber();
+            const double h = p_element_size_func(r_geom);
 
             // Initialize average position and average normal of the element's skin points
             std::size_t n_skin_points = 0;
@@ -871,6 +873,7 @@ namespace Kratos
             for (const auto& skin_pt_data: skin_points_data_vector) {
                 const auto& skin_pt_position = std::get<0>(skin_pt_data);
                 const auto& skin_pt_area_normal = std::get<1>(skin_pt_data);
+                const double skin_pt_area = norm_2(skin_pt_area_normal);
 
                 // Compute the dot product for each skin point and node of the element between a vector from the skin position to the node and the skin point's normal
                 // NOTE that for a positive dot product the node is saved as being on the positive side of the boundary, negative dot product equals negative side
@@ -880,11 +883,12 @@ namespace Kratos
                     const double dot_product = inner_prod(skin_pt_to_node, skin_pt_area_normal);
                     double& side_voting = r_node.FastGetSolutionStepValue(DISTANCE);
                     {
+                        const double vote_weighting = skin_pt_area * h / norm_2(skin_pt_to_node);
                         std::scoped_lock<LockObject> lock(mutex_1);
                         if (dot_product > 0.0) {
-                            side_voting += 1.0;
+                            side_voting += vote_weighting;
                         } else {
-                            side_voting -= 1.0;
+                            side_voting -= vote_weighting;
                         }
                     }
                 }
@@ -990,6 +994,9 @@ namespace Kratos
                         const auto ext_op_key_data = std::make_pair(p_node, cloud_data_vector);
                         //TODO make this threadsafe for parallelization
                         rExtensionOperatorMap.insert(ext_op_key_data);
+                    } else {
+                        KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility")
+                        << "No enough support nodes were found for node " << p_node->Id() << ". Extension basis can not be calculated." << std::endl;
                     }
                 }
             }
@@ -1039,11 +1046,10 @@ namespace Kratos
                 }
             }
         }
-
         // Check number of first layer points
         if (aux_set.size() == 0) {
             KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility")
-                << "No nodal neighbors on the other side where found for node " << pOtherSideNode->Id() << ". Extension basis can not be calculated." << std::endl;
+                << "No nodal neighbors on the other side were found for node " << pOtherSideNode->Id() << ". Extension basis can not be calculated." << std::endl;
             return;
         }
 
@@ -1070,10 +1076,9 @@ namespace Kratos
             prev_layer_nodes = cur_layer_nodes;
             cur_layer_nodes.clear();
         }
-        //TODO still useful?
-        //if (n_extra_layers > 1) {
-        //    KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility") << n_extra_layers << " extra layers of points needed for MLS calculation." << std::endl;
-        //}
+        if (n_extra_layers > 1) {
+           KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility") << n_extra_layers << " extra layers of points needed for MLS calculation." << std::endl;
+        }
 
         // Add obtained cloud nodes to the cloud node vector and sort them by id
         //TODO sorting really necessary or helpful??
