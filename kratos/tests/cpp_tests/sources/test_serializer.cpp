@@ -127,20 +127,21 @@ std::ostream& operator<<(std::ostream& rOStream, const AbstractTestClass&)
 class DerivedTestClass : public AbstractTestClass
 {
 public:
+    explicit DerivedTestClass(int FooNumber = 0) : mFooNumber(FooNumber) {}
     ~DerivedTestClass() override = default;
-    [[nodiscard]] int foo() const override { return mMagicNumber; }
+    [[nodiscard]] int foo() const override { return mFooNumber; }
 
 private:
     void save(Serializer& rSerializer) const override
     {
-        rSerializer.save("mMagicNumber", mMagicNumber);
+        rSerializer.save("mFooNumber", mFooNumber);
     }
 
     void load(Serializer& rSerializer) override {
-        rSerializer.load("mMagicNumber", mMagicNumber);
+        rSerializer.load("mFooNumber", mFooNumber);
     }
 
-    int mMagicNumber = 42;
+    int mFooNumber;
 };
 
 class ScopedTestClassRegistration
@@ -252,7 +253,7 @@ KRATOS_TEST_CASE_IN_SUITE(SerializerRawOwningPointerToAbstractBase, KratosCoreFa
     ScopedTestClassRegistration scoped_registration;
 
     const auto tag_string = std::string{"TestString"};
-    const AbstractTestClass* p_instance = new DerivedTestClass{};
+    const AbstractTestClass* p_instance = new DerivedTestClass{42};
     serializer.save(tag_string, p_instance);
     delete p_instance;
     p_instance = nullptr; // Avoid having a dangling pointer
@@ -272,7 +273,7 @@ KRATOS_TEST_CASE_IN_SUITE(SerializerKratosUniquePtrToAbstractBase, KratosCoreFas
     ScopedTestClassRegistration scoped_registration;
 
     const auto tag_string = std::string{"TestString"};
-    const auto p_instance = Kratos::unique_ptr<AbstractTestClass>{Kratos::make_unique<DerivedTestClass>()};
+    const auto p_instance = Kratos::unique_ptr<AbstractTestClass>{Kratos::make_unique<DerivedTestClass>(42)};
     serializer.save(tag_string, p_instance);
 
     auto p_loaded_instance = Kratos::unique_ptr<AbstractTestClass>{};
@@ -312,7 +313,7 @@ KRATOS_TEST_CASE_IN_SUITE(SerializerKratosSharedPtrToAbstractBase, KratosCoreFas
     ScopedTestClassRegistration scoped_registration;
 
     const auto tag_string = std::string{"TestString"};
-    const auto p_instance = Kratos::shared_ptr<AbstractTestClass>{Kratos::make_shared<DerivedTestClass>()};
+    const auto p_instance = Kratos::shared_ptr<AbstractTestClass>{Kratos::make_shared<DerivedTestClass>(42)};
     serializer.save(tag_string, p_instance);
 
     auto p_loaded_instance = Kratos::shared_ptr<AbstractTestClass>{};
@@ -328,7 +329,7 @@ KRATOS_TEST_CASE_IN_SUITE(SerializerKratosIntrusivePtrToAbstractBase, KratosCore
     ScopedTestClassRegistration scoped_registration;
 
     const auto tag_string = std::string{"TestString"};
-    const auto p_instance = Kratos::intrusive_ptr<AbstractTestClass>{Kratos::make_intrusive<DerivedTestClass>()};
+    const auto p_instance = Kratos::intrusive_ptr<AbstractTestClass>{Kratos::make_intrusive<DerivedTestClass>(42)};
     serializer.save(tag_string, p_instance);
 
     auto p_loaded_instance = Kratos::intrusive_ptr<AbstractTestClass>{};
