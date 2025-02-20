@@ -136,15 +136,6 @@ class TestSensorLocalizationResponse(UnitTest.TestCase):
         AddMaskStatusController(cls.sensor_group_data, "mask_exp", cls.sensor_mask_status)
         AddMaskStatusController(cls.sensor_group_data, "mask_exp", cls.sensor_mask_status_kd_tree)
 
-        params = Kratos.Parameters("""{
-            "sensor_group_name": "sensors",
-            "sensor_mask_name" : "mask_exp",
-            "beta"             : 500
-        }""")
-
-        cls.response = SensorLocalizationResponse("test", cls.model, params, cls.optimization_problem)
-        cls.response.Initialize()
-
     def test_CalculateValue1(self):
         self.sensor_model_part.GetNode(1).SetValue(KratosSI.SENSOR_STATUS, 1)
         self.sensor_model_part.GetNode(2).SetValue(KratosSI.SENSOR_STATUS, 0)
@@ -171,7 +162,21 @@ class TestSensorLocalizationResponse(UnitTest.TestCase):
         c_6 = e3, e6
         """
         self.__UpdateStatusDependents()
-        self.assertAlmostEqual(0.5, self.response.CalculateValue())
+
+        params = Kratos.Parameters("""{
+            "sensor_group_name"         : "sensors",
+            "sensor_mask_name"          : "mask_exp",
+            "minimum_cluster_size_ratio": 0.32,
+            "p_coeff"                   : 2
+        }""")
+        response = SensorLocalizationResponse("test1", self.model, params, self.optimization_problem)
+        response.Initialize()
+
+        cluster_size_exp = Kratos.Expression.ElementExpression(self.domain_model_part)
+        cluster_size_clamper = KratosSI.ElementSmoothClamper(0.32, 1.0)
+
+        Kratos.Expression.CArrayExpressionIO.Read(cluster_size_exp, np.array([3, 3, 2, 1, 3, 2]) / 6.0)
+        self.assertAlmostEqual(np.sum((cluster_size_clamper.ProjectForward(cluster_size_exp).Evaluate()) ** 2 - (0.32 ** 2)), response.CalculateValue())
 
         self.sensor_model_part.GetNode(1).SetValue(KratosSI.SENSOR_STATUS, 1)
         self.sensor_model_part.GetNode(2).SetValue(KratosSI.SENSOR_STATUS, 1)
@@ -199,21 +204,31 @@ class TestSensorLocalizationResponse(UnitTest.TestCase):
         """
 
         self.__UpdateStatusDependents()
-        self.assertAlmostEqual(1 / 3, self.response.CalculateValue())
+        Kratos.Expression.CArrayExpressionIO.Read(cluster_size_exp, np.array([2, 2, 1, 1, 1, 1]) / 6.0)
+        self.assertAlmostEqual(np.sum((cluster_size_clamper.ProjectForward(cluster_size_exp).Evaluate()) ** 2 - (0.32 ** 2)), response.CalculateValue())
 
     def test_CalculateValue2(self):
+        params = Kratos.Parameters("""{
+            "sensor_group_name"         : "sensors",
+            "sensor_mask_name"          : "mask_exp",
+            "minimum_cluster_size_ratio": 0.32,
+            "p_coeff"                   : 2
+        }""")
+        response = SensorLocalizationResponse("test2", self.model, params, self.optimization_problem)
+        response.Initialize()
         for node in self.sensor_model_part.Nodes:
             node.SetValue(KratosSI.SENSOR_STATUS, (node.Id % 3) / 2)
         self.__UpdateStatusDependents()
-        self.assertAlmostEqual(self.response.CalculateValue(), 0.5)
+        self.assertAlmostEqual(response.CalculateValue(), 0.2675865806204427)
 
     def test_CalculateValue3(self):
         params = Kratos.Parameters("""{
-            "sensor_group_name": "sensors",
-            "sensor_mask_name" : "mask_exp",
-            "beta"             : 503
+            "sensor_group_name"         : "sensors",
+            "sensor_mask_name"          : "mask_exp",
+            "minimum_cluster_size_ratio": 0.5000001,
+            "p_coeff"                   : 2
         }""")
-        response = SensorLocalizationResponse("test1", self.model, params, self.optimization_problem)
+        response = SensorLocalizationResponse("test3", self.model, params, self.optimization_problem)
         response.Initialize()
 
         self.sensor_model_part.GetNode(1).SetValue(KratosSI.SENSOR_STATUS, 1)
@@ -241,26 +256,61 @@ class TestSensorLocalizationResponse(UnitTest.TestCase):
         c_6 = e3, e6
         """
         self.__UpdateStatusDependents()
-
-        # the exact max cluster size ratio is 0.5
-        self.assertAlmostEqual(response.CalculateValue(), 0.5)
+        self.assertAlmostEqual(response.CalculateValue(), 0.0)
 
     def test_CalculateGradient1(self):
+        params = Kratos.Parameters("""{
+            "sensor_group_name"         : "sensors",
+            "sensor_mask_name"          : "mask_exp",
+            "minimum_cluster_size_ratio": 0.9,
+            "p_coeff"                   : 2
+        }""")
+        response = SensorLocalizationResponse("test4", self.model, params, self.optimization_problem)
+        response.Initialize()
+
         for node in self.sensor_model_part.Nodes:
             node.SetValue(KratosSI.SENSOR_STATUS, (node.Id % 4) / 4)
         self.__UpdateStatusDependents()
 
-        ref_value = self.response.CalculateValue()
+        ref_value = response.CalculateValue()
         collective_exp = KratosOA.CollectiveExpression()
         collective_exp.Add(Kratos.Expression.NodalExpression(self.sensor_model_part))
-        self.response.CalculateGradient({KratosSI.SENSOR_STATUS: collective_exp})
+        response.CalculateGradient({KratosSI.SENSOR_STATUS: collective_exp})
         analytical_gradient = collective_exp.GetContainerExpressions()[0].Evaluate()
 
         delta = 1e-8
         for i, node in enumerate(self.sensor_model_part.Nodes):
             node.SetValue(KratosSI.SENSOR_STATUS, node.GetValue(KratosSI.SENSOR_STATUS) + delta)
             self.__UpdateStatusDependents()
-            fd_sensitivity = (self.response.CalculateValue() - ref_value) / delta
+            fd_sensitivity = (response.CalculateValue() - ref_value) / delta
+            node.SetValue(KratosSI.SENSOR_STATUS, node.GetValue(KratosSI.SENSOR_STATUS) - delta)
+            self.assertAlmostEqual(fd_sensitivity, analytical_gradient[i], 5)
+
+    def test_CalculateGradient2(self):
+        params = Kratos.Parameters("""{
+            "sensor_group_name"         : "sensors",
+            "sensor_mask_name"          : "mask_exp",
+            "minimum_cluster_size_ratio": 0.2,
+            "p_coeff"                   : 2
+        }""")
+        response = SensorLocalizationResponse("test5", self.model, params, self.optimization_problem)
+        response.Initialize()
+
+        for node in self.sensor_model_part.Nodes:
+            node.SetValue(KratosSI.SENSOR_STATUS, (node.Id % 4) / 4)
+        self.__UpdateStatusDependents()
+
+        ref_value = response.CalculateValue()
+        collective_exp = KratosOA.CollectiveExpression()
+        collective_exp.Add(Kratos.Expression.NodalExpression(self.sensor_model_part))
+        response.CalculateGradient({KratosSI.SENSOR_STATUS: collective_exp})
+        analytical_gradient = collective_exp.GetContainerExpressions()[0].Evaluate()
+
+        delta = 1e-8
+        for i, node in enumerate(self.sensor_model_part.Nodes):
+            node.SetValue(KratosSI.SENSOR_STATUS, node.GetValue(KratosSI.SENSOR_STATUS) + delta)
+            self.__UpdateStatusDependents()
+            fd_sensitivity = (response.CalculateValue() - ref_value) / delta
             node.SetValue(KratosSI.SENSOR_STATUS, node.GetValue(KratosSI.SENSOR_STATUS) - delta)
             self.assertAlmostEqual(fd_sensitivity, analytical_gradient[i], 5)
 

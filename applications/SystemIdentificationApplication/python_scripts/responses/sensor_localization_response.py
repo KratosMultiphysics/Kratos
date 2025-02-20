@@ -26,11 +26,12 @@ class SensorLocalizationResponse(ResponseFunction):
         super().__init__(name)
 
         default_settings = Kratos.Parameters("""{
-            "sensor_group_name"    : "",
-            "sensor_mask_name"     : "",
-            "echo_level"           : 0,
-            "beta"                 : 4,
-            "allowed_dissimilarity": 1.0
+            "sensor_group_name"         : "",
+            "sensor_mask_name"          : "",
+            "echo_level"                : 0,
+            "minimum_cluster_size_ratio": 0.1,
+            "p_coeff"                   : 1,
+            "allowed_dissimilarity"     : 1.0
         }""")
         parameters.ValidateAndAssignDefaults(default_settings)
 
@@ -38,7 +39,8 @@ class SensorLocalizationResponse(ResponseFunction):
         self.sensor_group_name = parameters["sensor_group_name"].GetString()
         self.sensor_mask_name = parameters["sensor_mask_name"].GetString()
         self.echo_level = parameters["echo_level"].GetInt()
-        self.beta = parameters["beta"].GetDouble()
+        self.minimum_cluster_size_ratio = parameters["minimum_cluster_size_ratio"].GetDouble()
+        self.p_coeff = parameters["p_coeff"].GetDouble()
         self.allowed_dissimilarity = parameters["allowed_dissimilarity"].GetDouble()
 
         self.model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"response_{self.GetName()}", [self.sensor_group_name], False)
@@ -60,7 +62,7 @@ class SensorLocalizationResponse(ResponseFunction):
         if self.mask_status_kd_tree == None:
             raise RuntimeError(f"SensorMaskStatusKDTree controller not found for the sensor_mask_name = \"{self.sensor_mask_name}\" in the sensor_group = \"{self.sensor_group_name}\".")
 
-        self.utils = KratosSI.Responses.SensorLocalizationResponseUtils(self.mask_status_kd_tree, self.beta, self.allowed_dissimilarity)
+        self.utils = KratosSI.Responses.SensorLocalizationResponseUtils(self.mask_status_kd_tree, self.minimum_cluster_size_ratio, self.p_coeff, self.allowed_dissimilarity)
 
     def Check(self) -> None:
         pass

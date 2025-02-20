@@ -43,7 +43,8 @@ public:
 
     SensorLocalizationResponseUtils(
         SensorMaskStatusKDTree::Pointer pSensorMaskKDTree,
-        const double Beta,
+        const double MinimumClusterSizeRatio,
+        const double P,
         const double AllowedDissimilarity);
 
     ///@}
@@ -64,15 +65,11 @@ private:
 
     SensorMaskStatusKDTree::Pointer mpSensorMaskStatusKDTree;
 
-    const double mBeta;
+    const double mMinimumClusterSizeRatio;
+
+    const double mP;
 
     const double mAllowedDissimilarity;
-
-    double mNumerator;
-
-    double mDenominator;
-
-    double mValue;
 
     std::vector<double> mDomainSizeRatio;
 
