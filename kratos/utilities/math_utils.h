@@ -699,7 +699,7 @@ public:
      * @return The resulting norm
      */
     template<class TVector1, class TVector2>
-    static inline double Dot(
+    static inline TDataType Dot(
         const TVector1& rFirstVector,
         const TVector2& rSecondVector
         )
