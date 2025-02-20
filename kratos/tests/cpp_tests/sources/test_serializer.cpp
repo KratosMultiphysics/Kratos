@@ -247,7 +247,27 @@ KRATOS_TEST_CASE_IN_SUITE(SerializerLongLong, KratosCoreFastSuite)
 /* Testing the Datatypes that have a specific save/load implementation */
 /*********************************************************************/
 
-KRATOS_TEST_CASE_IN_SUITE(SerializerKratosUniquePtrToAbstractBase, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(SerializerRawOwningPointerToAbstractBase, KratosCoreFastSuiteWithoutKernel)
+{
+    StreamSerializer serializer;
+    ScopedTestClassRegistration scoped_registration;
+
+    const auto tag_string = std::string{"TestString"};
+    const AbstractTestClass* p_instance = new DerivedTestClass{};
+    serializer.save(tag_string, p_instance);
+    delete p_instance;
+    p_instance = nullptr;
+
+    AbstractTestClass* p_loaded_instance = nullptr;
+    serializer.load(tag_string, p_loaded_instance);
+
+    ASSERT_NE(p_loaded_instance, nullptr);
+    KRATOS_EXPECT_EQ(p_loaded_instance->foo(), 42);
+
+    delete p_loaded_instance;
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SerializerKratosUniquePtrToAbstractBase, KratosCoreFastSuiteWithoutKernel)
 {
     StreamSerializer serializer;
     ScopedTestClassRegistration scoped_registration;
@@ -287,7 +307,7 @@ KRATOS_TEST_CASE_IN_SUITE(SerializerKratosSharedPtr, KratosCoreFastSuite)
         KRATOS_EXPECT_EQ((*p_loaded_array)[i], (*p_array)[i]);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SerializerKratosSharedPtrToAbstractBase, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(SerializerKratosSharedPtrToAbstractBase, KratosCoreFastSuiteWithoutKernel)
 {
     StreamSerializer serializer;
     ScopedTestClassRegistration scoped_registration;
@@ -303,7 +323,7 @@ KRATOS_TEST_CASE_IN_SUITE(SerializerKratosSharedPtrToAbstractBase, KratosCoreFas
     KRATOS_EXPECT_EQ(p_loaded_instance->foo(), 42);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SerializerKratosIntrusivePtrToAbstractBase, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(SerializerKratosIntrusivePtrToAbstractBase, KratosCoreFastSuiteWithoutKernel)
 {
     StreamSerializer serializer;
     ScopedTestClassRegistration scoped_registration;

@@ -381,8 +381,13 @@ public:
             {
                 if(pointer_type == SP_BASE_CLASS_POINTER)
                 {
-                    if(!pValue) {
-                        pValue = new TDataType;
+                    if constexpr (!std::is_abstract_v<TDataType>) {
+                        if(!pValue) {
+                            pValue = new TDataType;
+                        }
+                    }
+                    else {
+                        KRATOS_ERROR << "Cannot instantiate an abstract class\n";
                     }
                 }
                 else if(pointer_type == SP_DERIVED_CLASS_POINTER)
