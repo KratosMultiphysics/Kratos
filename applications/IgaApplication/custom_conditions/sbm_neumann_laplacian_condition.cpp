@@ -263,7 +263,6 @@ void SbmNeumannLaplacianCondition::ComputeGradientTaylorExpansionContribution(Ma
     const SizeType number_of_nodes = r_geometry.PointsNumber();
     const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(r_geometry.GetDefaultIntegrationMethod());
 
-    KRATOS_WATCH(mBasisFunctionsOrder)
     // Compute all the derivatives of the basis functions involved
     std::vector<Matrix> shape_function_derivatives(mBasisFunctionsOrder);
     for (IndexType n = 1; n <= mBasisFunctionsOrder; n++) {
@@ -284,7 +283,7 @@ void SbmNeumannLaplacianCondition::ComputeGradientTaylorExpansionContribution(Ma
         double H_taylor_term_Z = 0.0; 
 
         if (mDim == 2) {
-            for (int n = 2; n <= mBasisFunctionsOrder; n++) {
+            for (IndexType n = 2; n <= mBasisFunctionsOrder; n++) {
                 // Retrieve the appropriate derivative for the term
                 Matrix& shapeFunctionDerivatives = shape_function_derivatives[n-1];
                 for (int k = 0; k <= n-1; k++) {
@@ -302,7 +301,7 @@ void SbmNeumannLaplacianCondition::ComputeGradientTaylorExpansionContribution(Ma
             }
         } else {
             // 3D
-            for (int n = 2; n <= mBasisFunctionsOrder; n++) {
+            for (IndexType n = 2; n <= mBasisFunctionsOrder; n++) {
                 Matrix& shapeFunctionDerivatives = shape_function_derivatives[n-1];
             
                 int countDerivativeId = 0;

@@ -260,7 +260,7 @@ private:
     double mTrueDotSurrogateNormal;
     Vector mDistanceVector;
     unsigned int mDim;
-    int mBasisFunctionsOrder;
+    IndexType mBasisFunctionsOrder;
     NodeType mProjectionNode;
 
     ///@}

@@ -260,7 +260,7 @@ private:
     unsigned int mDim;
     double mPenalty;
     double mNitschePenalty;
-    int mBasisFunctionsOrder;
+    IndexType mBasisFunctionsOrder;
     NodeType mProjectionNode;
 
     ///@}
