@@ -9,10 +9,10 @@ from KratosMultiphysics.OptimizationApplication.utilities.component_data_view im
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> ModelPartController:
     if not parameters.Has("settings"):
-        raise RuntimeError(f"SensorDataModelPartController instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
-    return SensorModelPartController(model, parameters["settings"], optimization_problem)
+        raise RuntimeError(f"SensorDataInputController instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
+    return SensorDataInputController(model, parameters["settings"], optimization_problem)
 
-class SensorModelPartController(ModelPartController):
+class SensorDataInputController(ModelPartController):
     def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
         default_settings = Kratos.Parameters("""{
             "sensor_group_name": "",
