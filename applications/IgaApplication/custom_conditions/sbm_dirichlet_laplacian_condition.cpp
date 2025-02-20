@@ -1,0 +1,380 @@
+//  KRATOS  _____________
+//         /  _/ ____/   |
+//         / // / __/ /| |
+//       _/ // /_/ / ___ |
+//      /___/\____/_/  |_| Application
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Nicolò Antonelli
+//                   Andrea Gorgi
+//
+
+// System includes
+
+// External includes
+
+// Project includes
+#include "containers/model.h"
+#include "includes/convection_diffusion_settings.h"
+
+// Application includes
+#include "custom_conditions/sbm_dirichlet_laplacian_condition.h"
+
+
+namespace Kratos
+{
+
+void SbmDirichletLaplacianCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
+{
+    InitializeMemberVariables();
+    InitializeSbmMemberVariables();
+}
+
+void SbmDirichletLaplacianCondition::CalculateLocalSystem(
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+    
+    ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
+    const auto& r_unknown_var = p_settings->GetUnknownVariable();
+
+    const auto& r_geometry = this->GetGeometry();
+    const SizeType number_of_nodes = r_geometry.PointsNumber();
+    if (rRightHandSideVector.size() != number_of_nodes) {
+        rRightHandSideVector.resize(number_of_nodes, false);
+    }
+    if (rLeftHandSideMatrix.size1() != number_of_nodes || rLeftHandSideMatrix.size2() != number_of_nodes) {
+        rLeftHandSideMatrix.resize(number_of_nodes, number_of_nodes, false);
+    }
+
+    noalias(rRightHandSideVector) = ZeroVector(number_of_nodes);
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(number_of_nodes, number_of_nodes);
+
+    // Integration
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints();
+    const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(r_geometry.GetDefaultIntegrationMethod());
+    
+    // Initialize DN_DX
+    Matrix DN_DX(number_of_nodes,mDim);
+
+    // Differential area
+    double penalty_integration = mPenalty * r_integration_points[0].Weight() ; // * std::abs(DetJ0);
+
+    // Calculating the PHYSICAL SPACE derivatives (it is avoided storing them to minimize storage)
+    noalias(DN_DX) = r_DN_De[0]; // prod(r_DN_De[0],InvJ0);
+
+    Vector H_vec = ZeroVector(number_of_nodes);
+    Matrix DN_dot_n = ZeroMatrix(1, number_of_nodes);
+    Vector DN_dot_n_vec = ZeroVector(number_of_nodes);
+    
+    const Matrix& H = r_geometry.ShapeFunctionsValues();
+    for (IndexType i = 0; i < number_of_nodes; ++i)
+    {
+        H_vec(i) = H(0, i);
+        for (IndexType idim = 0; idim < mDim; idim++) {
+                DN_dot_n_vec(i)  += DN_DX(i, idim) * mNormalPhysicalSpace[idim];         
+        } 
+    }
+    noalias(row(DN_dot_n, 0)) = DN_dot_n_vec;
+
+    // compute Taylor expansion contribution: H_sum_vec
+    Vector H_sum_vec = ZeroVector(number_of_nodes);
+    ComputeTaylorExpansionContribution (H_sum_vec);
+    
+    Matrix H_sum = ZeroMatrix(1, number_of_nodes);
+    noalias(row(H_sum, 0)) = H_sum_vec;
+
+    // Assembly
+    // -(GRAD_w * n, u + GRAD_u * d + ...)
+    noalias(rLeftHandSideMatrix) -= mNitschePenalty * prod(trans(DN_dot_n), H_sum)  * r_integration_points[0].Weight() ; // * std::abs(DetJ0) ;
+    // -(w,GRAD_u * n) from integration by parts -> Fundamental !! 
+    noalias(rLeftHandSideMatrix) -= prod(trans(H), DN_dot_n)                             * r_integration_points[0].Weight() ; // * std::abs(DetJ0) ;
+    // SBM terms (Taylor Expansion) + alpha * (w + GRAD_w * d + ..., u + GRAD_u * d + ...)
+    noalias(rLeftHandSideMatrix) += prod(trans(H_sum), H_sum) * penalty_integration ;
+
+    const double u_D_scalar = mProjectionNode.GetValue(r_unknown_var);
+
+    noalias(rRightHandSideVector) += H_sum_vec * u_D_scalar * penalty_integration;
+    // Dirichlet BCs
+    noalias(rRightHandSideVector) -= mNitschePenalty * DN_dot_n_vec * u_D_scalar * r_integration_points[0].Weight() ; // * std::abs(DetJ0) ;
+
+    Vector temp(number_of_nodes);
+    // RHS = ExtForces - K*temp;
+    for (IndexType i = 0; i < number_of_nodes; i++) {
+        temp[i] = r_geometry[i].GetSolutionStepValue(r_unknown_var);
+    }
+    // RHS -= K*temp
+    noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);
+
+    KRATOS_CATCH("")
+
+}
+
+void SbmDirichletLaplacianCondition::InitializeMemberVariables()
+{
+    // Compute class memeber variables
+    const auto& r_geometry = this->GetGeometry();
+    const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(r_geometry.GetDefaultIntegrationMethod());
+    
+    // Initialize DN_DX
+    mDim = r_DN_De[0].size2();
+    
+    Vector mesh_size_uv = this->GetValue(MARKER_MESHES);
+    double h = std::min(mesh_size_uv[0], mesh_size_uv[1]);
+    if (mDim == 3) {h = std::min(h,  mesh_size_uv[2]);}
+    
+    // Compute basis function order (Note: it is not allow to use different orders in different directions)
+    if (mDim == 3) {
+        mBasisFunctionsOrder = std::cbrt(r_DN_De[0].size1()) - 1;
+    } else {
+        mBasisFunctionsOrder = std::sqrt(r_DN_De[0].size1()) - 1;
+    }
+
+    double penalty = GetProperties()[PENALTY_FACTOR];
+    // Modify the penalty factor: p^2 * penalty / h (NITSCHE APPROACH)
+    mPenalty = mBasisFunctionsOrder * mBasisFunctionsOrder * penalty / h;
+
+    // https://doi.org/10.1016/j.cma.2023.116301 (A penalty-free Shifted Boundary Method of arbitrary order)
+    mNitschePenalty = 1.0;   // = 1.0 -> Penalty approach
+                                    // = -1.0 -> Free-penalty approach
+    if (penalty == -1.0) {
+        mPenalty = 0.0;
+        mNitschePenalty = -1.0;
+    }
+    // Compute the normals
+    mNormalParameterSpace = - r_geometry.Normal(0, GetIntegrationMethod());
+    mNormalParameterSpace = mNormalParameterSpace / MathUtils<double>::Norm(mNormalParameterSpace);
+    mNormalPhysicalSpace = mNormalParameterSpace; // prod(trans(J0[0]),mNormalParameterSpace);
+}
+
+void SbmDirichletLaplacianCondition::InitializeSbmMemberVariables()
+{
+    const auto& r_geometry = this->GetGeometry();
+    // Retrieve projection
+    Condition candidate_closest_skin_segment_1 = this->GetValue(NEIGHBOUR_CONDITIONS)[0] ;
+    // Find the closest node in condition
+    int closestNodeId;
+    if (mDim > 2) {
+        double incumbent_dist = 1e16;
+        // Loop over the three nodes of the closest skin element
+        for (unsigned int i = 0; i < 3; i++) {
+            if (norm_2(candidate_closest_skin_segment_1.GetGeometry()[i]-r_geometry.Center()) < incumbent_dist) {
+                incumbent_dist = norm_2(candidate_closest_skin_segment_1.GetGeometry()[i]-r_geometry.Center());
+                closestNodeId = i;
+            }
+        }
+    } else {
+        closestNodeId = 0;
+    }
+    mProjectionNode = candidate_closest_skin_segment_1.GetGeometry()[closestNodeId] ;
+
+    mDistanceVector.resize(3);
+    noalias(mDistanceVector) = mProjectionNode - r_geometry.Center().Coordinates();
+}
+
+void SbmDirichletLaplacianCondition::CalculateLeftHandSide(
+    MatrixType& rLeftHandSideMatrix,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
+    const auto& r_unknown_var = p_settings->GetUnknownVariable();
+
+    const auto& r_geometry = this->GetGeometry();
+    const SizeType number_of_nodes = r_geometry.PointsNumber();
+
+    if (rLeftHandSideMatrix.size1() != number_of_nodes || rLeftHandSideMatrix.size2() != number_of_nodes) {
+        rLeftHandSideMatrix.resize(number_of_nodes, number_of_nodes, false);
+    }
+
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(number_of_nodes, number_of_nodes);
+
+    // Integration
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints();
+    const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(r_geometry.GetDefaultIntegrationMethod());
+    
+    // Initialize DN_DX
+    Matrix DN_DX(number_of_nodes,mDim);
+
+    // Differential area
+    double penalty_integration = mPenalty * r_integration_points[0].Weight() ; // * std::abs(DetJ0);
+
+    // Calculating the PHYSICAL SPACE derivatives (it is avoided storing them to minimize storage)
+    noalias(DN_DX) = r_DN_De[0]; // prod(r_DN_De[0],InvJ0);
+
+    Vector H_vec = ZeroVector(number_of_nodes);
+    Matrix DN_dot_n = ZeroMatrix(1, number_of_nodes);
+    Vector DN_dot_n_vec = ZeroVector(number_of_nodes);
+    
+    const Matrix& H = r_geometry.ShapeFunctionsValues();
+    for (IndexType i = 0; i < number_of_nodes; ++i)
+    {
+        H_vec(i) = H(0, i);
+        for (IndexType idim = 0; idim < mDim; idim++) {
+                DN_dot_n_vec(i)  += DN_DX(i, idim) * mNormalPhysicalSpace[idim];         
+        } 
+    }
+    noalias(row(DN_dot_n, 0)) = DN_dot_n_vec;
+
+    // compute Taylor expansion contribution: H_sum_vec
+    Vector H_sum_vec = ZeroVector(number_of_nodes);
+    ComputeTaylorExpansionContribution (H_sum_vec);
+    
+    Matrix H_sum = ZeroMatrix(1, number_of_nodes);
+    noalias(row(H_sum, 0)) = H_sum_vec;
+
+    // Assembly
+    // -(GRAD_w * n, u + GRAD_u * d + ...)
+    noalias(rLeftHandSideMatrix) -= mNitschePenalty * prod(trans(DN_dot_n), H_sum)  * r_integration_points[0].Weight() ; // * std::abs(DetJ0) ;
+    // -(w,GRAD_u * n) from integration by parts -> Fundamental !! 
+    noalias(rLeftHandSideMatrix) -= prod(trans(H), DN_dot_n)                             * r_integration_points[0].Weight() ; // * std::abs(DetJ0) ;
+    // SBM terms (Taylor Expansion) + alpha * (w + GRAD_w * d + ..., u + GRAD_u * d + ...)
+    noalias(rLeftHandSideMatrix) += prod(trans(H_sum), H_sum) * penalty_integration ;
+}
+
+
+void SbmDirichletLaplacianCondition::CalculateRightHandSide(
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    const SizeType mat_size = GetGeometry().size() * 1;
+
+    if (rRightHandSideVector.size() != mat_size)
+        rRightHandSideVector.resize(mat_size);
+    noalias(rRightHandSideVector) = ZeroVector(mat_size);
+
+    MatrixType left_hand_side_matrix = ZeroMatrix(mat_size, mat_size);
+
+    CalculateLocalSystem(left_hand_side_matrix, rRightHandSideVector,
+        rCurrentProcessInfo);
+}
+
+void SbmDirichletLaplacianCondition::ComputeTaylorExpansionContribution(Vector& H_sum_vec)
+{
+    const auto& r_geometry = this->GetGeometry();
+    const SizeType number_of_nodes = r_geometry.PointsNumber();
+    const Matrix& N = r_geometry.ShapeFunctionsValues();
+
+    if (H_sum_vec.size() != number_of_nodes)
+    {
+        H_sum_vec = ZeroVector(number_of_nodes);
+    }
+
+    // Compute all the derivatives of the basis functions involved
+    std::vector<Matrix> shape_function_derivatives(mBasisFunctionsOrder);
+    for (IndexType n = 1; n <= mBasisFunctionsOrder; n++) {
+        shape_function_derivatives[n-1] = r_geometry.ShapeFunctionDerivatives(n, 0, this->GetIntegrationMethod());
+    }
+    
+    for (IndexType i = 0; i < number_of_nodes; ++i)
+    {
+        // Reset for each node
+        double H_taylor_term = 0.0; 
+
+        if (mDim == 2) {
+            for (IndexType n = 1; n <= mBasisFunctionsOrder; n++) {
+                // Retrieve the appropriate derivative for the term
+                Matrix& r_shape_function_derivatives = shape_function_derivatives[n-1];
+                for (IndexType k = 0; k <= n; k++) {
+                    IndexType n_k = n - k;
+                    double derivative = r_shape_function_derivatives(i,k); 
+                    // Compute the Taylor term for this derivative
+                    H_taylor_term += ComputeTaylorTerm(derivative, mDistanceVector[0], n_k, mDistanceVector[1], k);
+                }
+            }
+        } else {
+            // 3D
+            for (IndexType n = 1; n <= mBasisFunctionsOrder; n++) {
+                Matrix& r_shape_function_derivatives = shape_function_derivatives[n-1];
+                
+                int countDerivativeId = 0;
+                // Loop over blocks of derivatives in x
+                for (IndexType k_x = n; k_x >= 0; k_x--) {
+                    // Loop over the possible derivatives in y
+                    for (IndexType k_y = n - k_x; k_y >= 0; k_y--) {
+                        
+                        // derivatives in z
+                        IndexType k_z = n - k_x - k_y;
+                        double derivative = r_shape_function_derivatives(i,countDerivativeId); 
+
+                        H_taylor_term += ComputeTaylorTerm3D(derivative, mDistanceVector[0], k_x, mDistanceVector[1], k_y, mDistanceVector[2], k_z);
+                        countDerivativeId++;
+                    }
+                }
+            }
+        }
+        H_sum_vec(i) = H_taylor_term + N(0,i);
+    }
+}
+
+unsigned long long SbmDirichletLaplacianCondition::factorial(IndexType n) 
+{
+    if (n == 0) return 1;
+    unsigned long long result = 1;
+    for (IndexType i = 2; i <= n; ++i) result *= i;
+    return result;
+}
+
+// Function to compute a single term in the Taylor expansion
+double SbmDirichletLaplacianCondition::ComputeTaylorTerm(double derivative, double dx, IndexType n_k, double dy, IndexType k)
+{
+    return derivative * std::pow(dx, n_k) * std::pow(dy, k) / (factorial(k) * factorial(n_k));    
+}
+
+double SbmDirichletLaplacianCondition::ComputeTaylorTerm3D(double derivative, double dx, IndexType k_x, double dy, IndexType k_y, double dz, IndexType k_z)
+{   
+    return derivative * std::pow(dx, k_x) * std::pow(dy, k_y) * std::pow(dz, k_z) / (factorial(k_x) * factorial(k_y) * factorial(k_z));    
+}
+
+
+int SbmDirichletLaplacianCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
+{
+    KRATOS_ERROR_IF_NOT(GetProperties().Has(PENALTY_FACTOR))
+        << "No penalty factor (PENALTY_FACTOR) defined in property of SbmDirichletLaplacianCondition" << std::endl;
+    return 0;
+}
+
+void SbmDirichletLaplacianCondition::EquationIdVector(
+    EquationIdVectorType& rResult,
+    const ProcessInfo& rCurrentProcessInfo
+) const
+{
+    ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
+    const auto& r_unknown_var = p_settings->GetUnknownVariable();
+
+    const auto& r_geometry = GetGeometry();
+    const SizeType number_of_nodes = r_geometry.size();
+
+    if (rResult.size() !=  number_of_nodes)
+        rResult.resize(number_of_nodes, false);
+
+    for (IndexType i = 0; i < number_of_nodes; ++i) {
+        const auto& r_node = r_geometry[i];
+        rResult[i] = r_node.GetDof(r_unknown_var).EquationId();
+    }
+}
+
+void SbmDirichletLaplacianCondition::GetDofList(
+    DofsVectorType& rElementalDofList,
+    const ProcessInfo& rCurrentProcessInfo
+) const
+{
+    ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
+    const auto& r_unknown_var = p_settings->GetUnknownVariable();
+    
+    const auto& r_geometry = GetGeometry();
+    const SizeType number_of_nodes = r_geometry.size();
+
+    rElementalDofList.resize(0);
+    rElementalDofList.reserve(number_of_nodes);
+
+    for (IndexType i = 0; i < number_of_nodes; ++i) {
+        const auto& r_node = r_geometry[i];
+        rElementalDofList.push_back(r_node.pGetDof(r_unknown_var));
+    }
+}
+
+} // Namespace Kratos
