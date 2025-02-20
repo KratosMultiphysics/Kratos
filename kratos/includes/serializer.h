@@ -203,6 +203,12 @@ public:
 	//msRegisteredObjects.insert(RegisteredObjectsContainerType::value_type(rName,&pPrototype));
     }
 
+    static void Deregister(const std::string& rName)
+    {
+        msRegisteredObjects.erase(rName);
+        msRegisteredObjectsName.erase(rName);
+    }
+
     template<class TDataType>
     void load(std::string const & rTag, TDataType& rObject)
     {
@@ -225,8 +231,13 @@ public:
             {
                 if(pointer_type == SP_BASE_CLASS_POINTER)
                 {
-                    if(!pValue) {
-                        pValue = Kratos::shared_ptr<TDataType>(new TDataType);
+                    if constexpr (!std::is_abstract_v<TDataType>) {
+                        if(!pValue) {
+                            pValue = Kratos::shared_ptr<TDataType>(new TDataType);
+                        }
+                    }
+                    else {
+                        KRATOS_ERROR << "Cannot instantiate an abstract class\n";
                     }
                 }
                 else if(pointer_type == SP_DERIVED_CLASS_POINTER)
@@ -270,8 +281,13 @@ public:
             {
                 if(pointer_type == SP_BASE_CLASS_POINTER)
                 {
-                    if(!pValue) {
-                        pValue = Kratos::intrusive_ptr<TDataType>(new TDataType);
+                    if constexpr (!std::is_abstract_v<TDataType>) {
+                        if(!pValue) {
+                            pValue = Kratos::intrusive_ptr<TDataType>(new TDataType);
+                        }
+                    }
+                    else {
+                        KRATOS_ERROR << "Cannot instantiate an abstract class\n";
                     }
                 }
                 else if(pointer_type == SP_DERIVED_CLASS_POINTER)
@@ -315,8 +331,13 @@ public:
             {
                 if(pointer_type == SP_BASE_CLASS_POINTER)
                 {
-                    if(!pValue) {
-                        pValue = Kratos::unique_ptr<TDataType>(new TDataType);
+                    if constexpr (!std::is_abstract_v<TDataType>) {
+                        if(!pValue) {
+                            pValue = Kratos::unique_ptr<TDataType>(new TDataType);
+                        }
+                    }
+                    else {
+                        KRATOS_ERROR << "Cannot instantiate an abstract class\n";
                     }
                 }
                 else if(pointer_type == SP_DERIVED_CLASS_POINTER)
@@ -360,8 +381,13 @@ public:
             {
                 if(pointer_type == SP_BASE_CLASS_POINTER)
                 {
-                    if(!pValue) {
-                        pValue = new TDataType;
+                    if constexpr (!std::is_abstract_v<TDataType>) {
+                        if(!pValue) {
+                            pValue = new TDataType;
+                        }
+                    }
+                    else {
+                        KRATOS_ERROR << "Cannot instantiate an abstract class\n";
                     }
                 }
                 else if(pointer_type == SP_DERIVED_CLASS_POINTER)
