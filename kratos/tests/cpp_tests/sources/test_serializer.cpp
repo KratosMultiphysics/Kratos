@@ -225,6 +225,22 @@ KRATOS_TEST_CASE_IN_SUITE(SerializerLongLong, KratosCoreFastSuite)
 /* Testing the Datatypes that have a specific save/load implementation */
 /*********************************************************************/
 
+KRATOS_TEST_CASE_IN_SUITE(SerializerKratosUniquePtrToAbstractBase, KratosCoreFastSuite)
+{
+    StreamSerializer serializer;
+    ScopedTestClassRegistration scoped_registration;
+
+    const auto tag_string = std::string{"TestString"};
+    const auto p_instance = Kratos::unique_ptr<AbstractTestClass>{Kratos::make_unique<DerivedTestClass>()};
+    serializer.save(tag_string, p_instance);
+
+    auto p_loaded_instance = Kratos::unique_ptr<AbstractTestClass>{};
+    serializer.load(tag_string, p_loaded_instance);
+
+    ASSERT_NE(p_loaded_instance, nullptr);
+    KRATOS_EXPECT_EQ(p_loaded_instance->foo(), 42);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(SerializerKratosSharedPtr, KratosCoreFastSuite)
 {
     StreamSerializer serializer;
