@@ -121,6 +121,11 @@ class AlgorithmBruteForceOptimalSensorPlacement(Algorithm):
                 for sensor_id_str in buffered_data["best_sensor_ids"][1:-1].split(":"):
                     self.model[self.sensor_group_name].GetNode(int(sensor_id_str)).SetValue(KratosSI.SENSOR_STATUS, 1.0)
 
+                exp = Kratos.Expression.NodalExpression(self.model[self.sensor_group_name])
+                Kratos.Expression.VariableExpressionIO.Read(exp, KratosSI.SENSOR_STATUS, False)
+
+                self.algorithm_data.GetUnBufferedData().SetValue("sensor_status", exp.Clone(), overwrite=True)
+
                 self._FinalizeIteration()
 
                 self.Output()
