@@ -139,7 +139,7 @@ public:
     {
         KRATOS_TRY
 
-        CheckDomainSize();
+        CheckElementLength();
         CheckHasSolutionStepsDataFor(WATER_PRESSURE);
         CheckHasSolutionStepsDataFor(DT_WATER_PRESSURE);
         CheckHasSolutionStepsDataFor(VOLUME_ACCELERATION);
@@ -157,11 +157,11 @@ private:
     std::vector<RetentionLaw::Pointer>   mRetentionLawVector;
     std::vector<CalculationContribution> mContributions;
 
-    void CheckDomainSize() const
+    void CheckElementLength() const
     {
         constexpr auto min_domain_size = 1.0e-15;
         KRATOS_ERROR_IF(GetGeometry().DomainSize() < min_domain_size)
-            << "DomainSize smaller than " << min_domain_size << " for element " << Id() << std::endl;
+            << "Length smaller than " << min_domain_size << " for element " << Id() << std::endl;
     }
 
     void CheckHasSolutionStepsDataFor(const VariableData& rVariable) const
