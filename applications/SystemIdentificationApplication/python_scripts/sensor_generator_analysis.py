@@ -77,11 +77,20 @@ class SensorGeneratorAnalysis:
         distance = corner_2 - corner_1
         index = 1
         for i_x in range(number_of_sensors[0]):
-            x_coord = corner_1[0] + distance[0] * (i_x + 1) / (number_of_sensors[0] + 1)
+            if distance[0] > 0.0:
+                x_coord = corner_1[0] + distance[0] * (i_x) / (number_of_sensors[0] - 1)
+            else:
+                x_coord = corner_1[0]
             for i_y in range(number_of_sensors[1]):
-                y_coord = corner_1[1] + distance[1] * (i_y + 1) / (number_of_sensors[1] + 1)
+                if distance[1] > 0.0:
+                    y_coord = corner_1[1] + distance[1] * (i_y) / (number_of_sensors[1] - 1)
+                else:
+                    y_coord = corner_1[1]
                 for i_z in range(number_of_sensors[2]):
-                    z_coord = corner_1[2] + distance[2] * (i_z + 1) / (number_of_sensors[2] + 1)
+                    if distance[2] > 0.0:
+                        z_coord = corner_1[2] + distance[2] * (i_z) / (number_of_sensors[2] - 1)
+                    else:
+                        z_coord = corner_1[2]
                     loc = Kratos.Point(x_coord, y_coord, z_coord)
                     shape_funcs = Kratos.Vector()
                     elem_id = point_locator.FindElement(loc, shape_funcs, Kratos.Configuration.Initial, 1e-8)
