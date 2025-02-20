@@ -194,7 +194,7 @@ private:
         CheckProperty(PERMEABILITY_XX);
     }
 
-    void CheckProperty(const Kratos::Variable<double>& rVariable, double MaxValue = 1.0e+100) const
+    void CheckProperty(const Kratos::Variable<double>& rVariable, double MaxValue = std::numeric_limits<double>::max()) const
     {
         KRATOS_ERROR_IF_NOT(GetProperties().Has(rVariable))
             << rVariable.Name()
