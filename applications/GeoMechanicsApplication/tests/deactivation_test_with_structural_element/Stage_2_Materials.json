@@ -1,0 +1,63 @@
+{
+    "properties" : [{
+        "model_part_name" : "PorousDomain.Soil",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "GeoLinearElasticPlaneStrain2DLaw"
+            },
+            "Variables"        : {
+                "IGNORE_UNDRAINED"              : false,
+                "DENSITY_SOLID"                 : 2650,
+                "DENSITY_WATER"                 : 1000,
+                "POROSITY"                      : 0.3,
+                "BULK_MODULUS_SOLID"            : 1000000000.0,
+                "BULK_MODULUS_FLUID"            : 2000000.0,
+                "PERMEABILITY_XX"               : 1.02e-11,
+                "PERMEABILITY_YY"               : 1.02e-11,
+                "PERMEABILITY_XY"               : 1.02e-11,
+                "DYNAMIC_VISCOSITY"             : 8.9e-7,
+                "YOUNG_MODULUS"                 : 100000.0,
+                "POISSON_RATIO"                 : 0.2,
+                "BIOT_COEFFICIENT"              : 1.0,
+                "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
+                "SATURATED_SATURATION"          : 1.0,
+                "RESIDUAL_SATURATION"           : 1e-10,
+                "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001,
+                "K0_MAIN_DIRECTION"             : 1,
+                "K0_NC"                         : 0.5
+            },
+            "Tables"           : null
+        }
+    },{
+        "model_part_name" : "PorousDomain.truss",
+        "properties_id"   : 2,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "GeoLinearElasticPlaneStrain2DLaw"
+            },
+            "Variables"        : {
+                "IGNORE_UNDRAINED"              : false,
+                "DENSITY_SOLID"                 : 2650,
+                "DENSITY_WATER"                 : 1000,
+                "POROSITY"                      : 0.3,
+                "BULK_MODULUS_SOLID"            : 1000000000.0,
+                "BULK_MODULUS_FLUID"            : 2000000.0,
+                "PERMEABILITY_XX"               : 1.02e-11,
+                "PERMEABILITY_YY"               : 1.02e-11,
+                "PERMEABILITY_XY"               : 1.02e-11,
+                "DYNAMIC_VISCOSITY"             : 8.9e-7,
+                "YOUNG_MODULUS"                 : 100000.0,
+                "POISSON_RATIO"                 : 0.2,
+                "BIOT_COEFFICIENT"              : 1.0,
+                "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
+                "SATURATED_SATURATION"          : 1.0,
+                "RESIDUAL_SATURATION"           : 1e-10,
+                "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001,
+                "K0_MAIN_DIRECTION"             : 1,
+                "K0_NC"                         : 0.5
+            },
+            "Tables"           : null
+        }
+    }]
+}
