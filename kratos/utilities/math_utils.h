@@ -704,7 +704,7 @@ public:
         const TVector2& rSecondVector
         )
     {
-        double temp = 0.0;
+        TDataType temp {};
         for (std::size_t i=0; i<rFirstVector.size(); ++i){
             temp += rFirstVector[i] * rSecondVector[i];
         }
