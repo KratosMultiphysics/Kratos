@@ -286,14 +286,14 @@ void SbmNeumannLaplacianCondition::ComputeGradientTaylorExpansionContribution(Ma
             for (IndexType n = 2; n <= mBasisFunctionsOrder; n++) {
                 // Retrieve the appropriate derivative for the term
                 Matrix& shapeFunctionDerivatives = shape_function_derivatives[n-1];
-                for (int k = 0; k <= n-1; k++) {
-                    int n_k = n - 1 - k;
+                for (IndexType k = 0; k <= n-1; k++) {
+                    IndexType n_k = n - 1 - k;
                     double derivative = shapeFunctionDerivatives(i,k); 
                     // Compute the Taylor term for this derivative
                     H_taylor_term_X += ComputeTaylorTerm(derivative, mDistanceVector[0], n_k, mDistanceVector[1], k);
                 }
-                for (int k = 0; k <= n-1; k++) {
-                    int n_k = n - 1 - k;
+                for (IndexType k = 0; k <= n-1; k++) {
+                    IndexType n_k = n - 1 - k;
                     double derivative = shapeFunctionDerivatives(i,k+1); 
                     // Compute the Taylor term for this derivative
                     H_taylor_term_Y += ComputeTaylorTerm(derivative, mDistanceVector[0], n_k, mDistanceVector[1], k);
@@ -304,14 +304,14 @@ void SbmNeumannLaplacianCondition::ComputeGradientTaylorExpansionContribution(Ma
             for (IndexType n = 2; n <= mBasisFunctionsOrder; n++) {
                 Matrix& shapeFunctionDerivatives = shape_function_derivatives[n-1];
             
-                int countDerivativeId = 0;
+                IndexType countDerivativeId = 0;
                 // Loop over blocks of derivatives in x
-                for (int k_x = n; k_x >= 0; k_x--) {
+                for (IndexType k_x = n; k_x >= 0; k_x--) {
                     // Loop over the possible derivatives in y
-                    for (int k_y = n - k_x; k_y >= 0; k_y--) {
+                    for (IndexType k_y = n - k_x; k_y >= 0; k_y--) {
 
                         // derivatives in z
-                        int k_z = n - k_x - k_y;
+                        IndexType k_z = n - k_x - k_y;
                         double derivative = shapeFunctionDerivatives(i,countDerivativeId); 
                         
                         if (k_x >= 1) {
