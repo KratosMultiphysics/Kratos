@@ -18,7 +18,7 @@ Begin Elements LinearTrussElement2D2N// GUI group identifier: truss
 End Elements
 
 Begin Conditions UPwNormalFaceLoadCondition2D2N// GUI group identifier: NormalLoad
-    1 0 4 3
+        1          0     4     3
 End Conditions
 
 Begin SubModelPart BottomFixed // Group BottomFixed // Subtree DISPLACEMENT
