@@ -197,9 +197,12 @@ private:
     void CheckProperty(const Kratos::Variable<double>& rVariable, double MaxValue = 1.0e+100) const
     {
         KRATOS_ERROR_IF_NOT(GetProperties().Has(rVariable))
-            << rVariable.Name() << " does not exist in the material properties at element " << Id() << std::endl;
+            << rVariable.Name()
+            << " does not exist in the material properties (Id = " << GetProperties().Id()
+            << ") at element " << Id() << std::endl;
         KRATOS_ERROR_IF(GetProperties()[rVariable] < 0.0 || GetProperties()[rVariable] > MaxValue)
-            << rVariable.Name() << " has an invalid value at element " << Id() << std::endl;
+            << rVariable.Name() << " of material Id = " << GetProperties().Id()
+            << " has an invalid value at element " << Id() << std::endl;
     }
 
     void CheckProperty(const Kratos::Variable<std::string>& rVariable, const std::string& rName) const
