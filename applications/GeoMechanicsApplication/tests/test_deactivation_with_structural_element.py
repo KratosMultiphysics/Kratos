@@ -27,11 +27,20 @@ class KratosGeoMechanicsDeactivationWithStructuralTest(KratosUnittest.TestCase):
         os.chdir(project_path)
         model = KratosMultiphysics.Model()
 
-        for parameter_file in stage_files:
+        # In the first stage, the truss is deactivated, so the expected y displacements are the same
+        # for nodes 3 and 4. In the second stage, the truss is activated and since it's only connected to node 4,
+        # the displacement of node 4 is different from the displacement of node 3.
+        expected_y_displacements_node_3 = [0.0416418, -0.127166]
+        expected_y_displacements_node_4 = [0.0416418, 0.0]
+
+        for parameter_file, expected_y_displacement_node_3, expected_y_displacement_node_4 in zip(stage_files, expected_y_displacements_node_3, expected_y_displacements_node_4):
             with open(parameter_file,'r') as parameter_file:
                 parameters = KratosMultiphysics.Parameters(parameter_file.read())
             simulation = GeoMechanicsAnalysis(model,parameters)
             simulation.Run()
+            displacements = test_helper.get_displacement(simulation)
+            self.assertAlmostEqual(displacements[2][1], expected_y_displacement_node_3, 4)
+            self.assertAlmostEqual(displacements[3][1], expected_y_displacement_node_4, 4)
 
         os.chdir(cwd)
 
