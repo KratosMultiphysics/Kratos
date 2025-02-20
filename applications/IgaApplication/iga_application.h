@@ -49,6 +49,7 @@
 #include "custom_conditions/load_solid_2D_condition.h"
 #include "custom_conditions/sbm_load_solid_2D_condition.h"
 #include "custom_conditions/support_contact_2D_condition.h"
+#include "custom_conditions/sbm_contact_2D_condition.h"
 
 //modelers
 #include "custom_modelers/iga_modeler.h"
@@ -161,6 +162,7 @@ private:
     const SBMSolid2DCondition mSBMSolid2DCondition;
     const SBMLoadSolid2DCondition mSBMLoadSolid2DCondition;
     const SupportContact2DCondition mSupportContact2DCondition;
+    const SbmContact2DCondition mSbmContact2DCondition;
 
     // Modelers
     const IgaModeler mIgaModeler;

@@ -13,6 +13,7 @@
 #include "iga_modeler.h"
 #include "integration/integration_point_utilities.h"
 #include "iga_application_variables.h"
+#include "includes/global_pointer_variables.h"
 
 
 namespace Kratos
@@ -296,8 +297,11 @@ namespace Kratos
                 points.push_back(PointTypePointer(new PointType(i_cond.Id(), i_cond.GetGeometry().Center().X(), i_cond.GetGeometry().Center().Y(), i_cond.GetGeometry().Center().Z())));
             }
         }
-        meshSizes_uv = surrogate_sub_model_part.GetProcessInfo().GetValue(MARKER_MESHES);
-        parameterExternalCoordinates = surrogate_sub_model_part.GetProcessInfo().GetValue(LOAD_MESHES);
+        meshSizes_uv = surrogate_sub_model_part.GetValue(MARKER_MESHES);
+        rIgaModelPart.SetValue(MARKER_MESHES, meshSizes_uv);
+        parameterExternalCoordinates = surrogate_sub_model_part.GetValue(LOAD_MESHES);
+        rIgaModelPart.SetValue(LOAD_MESHES,parameterExternalCoordinates);
+
         meshSize = meshSizes_uv[0];
         if (meshSizes_uv[1] > meshSize) {meshSize = meshSizes_uv[1];}
         if (meshSizes_uv.size() > 2) {if (meshSizes_uv[2] > meshSize) {meshSize = meshSizes_uv[2];}}
@@ -328,7 +332,6 @@ namespace Kratos
                         << " is not available. Available options are \"GAUSS\" and \"GRID\". Default quadrature method is being considered." << std::endl;
                 }
             }
-
             if (rParameters.Has("number_of_integration_points_per_span")) {
                 for (IndexType i = 0; i < integration_info.LocalSpaceDimension(); ++i) {
                     integration_info.SetNumberOfIntegrationPointsPerSpan(i, rParameters["number_of_integration_points_per_span"].GetInt());
@@ -366,9 +369,11 @@ namespace Kratos
 
                 Point gaussPoint = geometries[0].Center(); 
 
+                if (geometries.size() > 1) gaussPoint = geometries[1].Center(); 
+
                 bool isCoincidentToExternalParameterSpace = false;   
                   
-                isCoincidentToExternalParameterSpace = CheckIsOnExternalParameterSpace(gaussPoint, parameterExternalCoordinates); 
+                // isCoincidentToExternalParameterSpace = CheckIsOnExternalParameterSpace(gaussPoint, parameterExternalCoordinates); 
                 
                 if (name == "SBMCondition" && !isCoincidentToExternalParameterSpace) { 
                     for (auto j= 0; j < geometries.size() ; j++) {  
@@ -602,7 +607,6 @@ namespace Kratos
 
             // Find the condition name in bc_on_skin_projection_type
             auto it_name = std::find(bc_on_skin_projection_type.begin(), bc_on_skin_projection_type.end(), rConditionName);
-            KRATOS_WATCH(rConditionName)
             if (it_name != bc_on_skin_projection_type.end()) {
                 // Increment the count for the existing condition name
                 size_t index = std::distance(bc_on_skin_projection_type.begin(), it_name);
@@ -616,6 +620,7 @@ namespace Kratos
         }
         //--------------------
         std::string max_condition_name;
+        std::string layer_name;
         int max_count = 0; 
         for (size_t i = 0; i < count_bc_on_skin_projection_type.size(); ++i) {
             if (count_bc_on_skin_projection_type[i] > max_count) {
@@ -630,7 +635,10 @@ namespace Kratos
             int condId = listIdClosestCondition[i];
             std::string rConditionName = rSkinModelPart.GetCondition(listIdClosestCondition[i]).GetValue(CONDITION_NAME);
             if (rConditionName == max_condition_name) 
+            {
                 list_id_closest_condition_of_correct_bc.push_back(condId);
+                layer_name = rSkinModelPart.GetCondition(listIdClosestCondition[i]).GetValue(LAYER_NAME);
+            }
         }
         KRATOS_ERROR_IF(list_id_closest_condition_of_correct_bc.size() != max_count) << "ERROR in list_id_closest_condition_of_correct_bc" << std::endl;
 
@@ -663,11 +671,43 @@ namespace Kratos
             countListClosestCondition++;
         }
         
+        if (max_condition_name == "SBMContact2DCondition") {
+            ModelPart& analysis_model_part = rModelPart.GetParentModelPart();
+            // KRATOS_WATCH(analysis_model_part)
+            countListClosestCondition = 0;
+            for (auto it = rGeometriesBegin; it != rGeometriesEnd; ++it) {
+                int condId = listIdClosestCondition[countListClosestCondition];
+                Condition::Pointer cond = rSkinModelPart.pGetCondition(condId);
 
+
+                NodePointerVector empty_vector;
+                empty_vector.push_back(cond->GetGeometry()(0)); // Just it_node-plane neighbours
+                (*it)->SetValue(NEIGHBOUR_NODES, empty_vector);
+
+                countListClosestCondition++;
+            }
+
+            ModelPart& layerModelPart = analysis_model_part.HasSubModelPart(layer_name) ? 
+                            analysis_model_part.GetSubModelPart(layer_name) : 
+                            analysis_model_part.CreateSubModelPart(layer_name);
+
+            // retrieve the id of the brep
+            IndexType id = (*rGeometriesBegin)->GetGeometryParent(0).Id();
+
+            // add the brep to the SubModelPart
+            layerModelPart.AddGeometry(analysis_model_part.pGetGeometry(id));
+
+            return;
+        }
 
         //--------------------------
         const Condition& rReferenceCondition = KratosComponents<Condition>::Get(max_condition_name);
         countListClosestCondition = 0;
+        // in the Contact case the Condition is not created here
+
+        ModelPart& layerModelPart = rModelPart.HasSubModelPart(layer_name) ? 
+                            rModelPart.GetSubModelPart(layer_name) : 
+                            rModelPart.CreateSubModelPart(layer_name);
         if (is2D) {
             for (auto it = rGeometriesBegin; it != rGeometriesEnd; ++it) {
                 new_condition_list.push_back(
@@ -682,6 +722,16 @@ namespace Kratos
                 }
                 else condId2 = condId-1;
                 Condition::Pointer cond2 = &rSkinModelPart.GetCondition(condId2);
+
+                // Add closest projection node
+                NodePointerVector empty_vector;
+                PointTypePointer projection_node = cond1->GetGeometry()(0);
+                if (norm_2(projection_node->GetValue(NORMAL)) > 1e-13)
+                {
+                    empty_vector.push_back(cond1->GetGeometry()(0)); // Just it_node-plane neighbours
+                    (*it)->SetValue(NEIGHBOUR_NODES, empty_vector);
+                }
+                //---------------------------------------------
 
                 new_condition_list.GetContainer()[countListClosestCondition]->SetValue(NEIGHBOUR_CONDITIONS, GlobalPointersVector<Condition>({cond1,cond2}));
                 if (isInner) {
@@ -723,7 +773,7 @@ namespace Kratos
             //     countListClosestCondition++;
             // }
         }
-        rModelPart.AddConditions(new_condition_list.begin(), new_condition_list.end());
+        layerModelPart.AddConditions(new_condition_list.begin(), new_condition_list.end());
     }
 
     void IgaModeler::CreateConditions(
@@ -892,7 +942,7 @@ namespace Kratos
 
     bool IgaModeler::CheckIsOnExternalParameterSpace(Point point, Vector parameters_external_coordinates) const 
     {
-        double tolerance = 1e-14;
+        double tolerance = 1e-12;
         double u_initial = parameters_external_coordinates[0];
         double v_initial = parameters_external_coordinates[1];
         double u_final   = parameters_external_coordinates[2];
@@ -955,8 +1005,8 @@ namespace Kratos
             surrogate_model_part_name = mParameters["surrogate_model_part_name"].GetString();
         }
 
-        Vector meshSizes_uv_inner = analysis_model_part.GetSubModelPart("surrogate_inner").GetProcessInfo().GetValue(MARKER_MESHES);
-        Vector meshSizes_uv_outer = analysis_model_part.GetSubModelPart("surrogate_outer").GetProcessInfo().GetValue(MARKER_MESHES);
+        Vector meshSizes_uv_inner = analysis_model_part.GetSubModelPart("surrogate_inner").GetValue(MARKER_MESHES);
+        Vector meshSizes_uv_outer = analysis_model_part.GetSubModelPart("surrogate_outer").GetValue(MARKER_MESHES);
         
         // KRATOS_WATCH(meshSizes_uv_inner)
         // KRATOS_WATCH(meshSizes_uv_outer)

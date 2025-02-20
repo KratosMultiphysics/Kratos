@@ -640,6 +640,7 @@ public:
                     InternalBrepSpanV++;
                 }
             }
+            // essential when using grid integration
             if (!is_brep_internal) {
                 InternalBrepSpanU = NurbsUtilities::GetLowerSpan(mpNurbsSurface->PolynomialDegreeU(), mpNurbsSurface->KnotsU(), first_integration_point[0][0]);
                 InternalBrepSpanV = NurbsUtilities::GetLowerSpan(mpNurbsSurface->PolynomialDegreeV(), mpNurbsSurface->KnotsV(), first_integration_point[0][1]);

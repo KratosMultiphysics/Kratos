@@ -171,6 +171,16 @@ namespace Kratos
 
         }
 
+        static GeometryPointerType CreateQuadraturePointCouplingGeometry2D(
+            const typename GeometryType::Pointer& quadraturePointMaster,
+            const typename GeometryType::Pointer& quadraturePointSlave)
+        {
+
+            return Kratos::make_shared<QuadraturePointCouplingGeometry2D<TPointType>>(quadraturePointMaster,
+                                                                                      quadraturePointSlave);
+        
+        }
+
         static GeometryPointerType CreateQuadraturePointSurfaceInVolume(
             GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>& rShapeFunctionContainer,
             PointsArrayType rPoints,

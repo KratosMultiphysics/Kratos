@@ -17,6 +17,7 @@
 
 // Project includes
 #include "custom_conditions/sbm_load_solid_2D_condition.h"
+#include "includes/global_pointer_variables.h"
 
 namespace Kratos
 {
@@ -55,10 +56,6 @@ namespace Kratos
     )
     {
         KRATOS_TRY
-
-        Condition candidateClosestSkinSegment1 = this->GetValue(NEIGHBOUR_CONDITIONS)[0] ;
-        Condition candidateClosestSkinSegment2 = this->GetValue(NEIGHBOUR_CONDITIONS)[1];
-
         // loopIdentifier is inner or outer
         std::string loopIdentifier = this->GetValue(IDENTIFIER);
         
@@ -76,13 +73,79 @@ namespace Kratos
             rRightHandSideVector.resize(mat_size,false);
         noalias(rRightHandSideVector) = ZeroVector(mat_size); //resetting RHS
 
+        // compute surrogate normal and tangent
+        array_1d<double, 3> tangent_parameter_space;
+        array_1d<double, 3> normal_parameter_space;
+        r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space !!
+        double magnitude = std::sqrt(tangent_parameter_space[0] * tangent_parameter_space[0] + tangent_parameter_space[1] * tangent_parameter_space[1]);
+        
+        // NEW FOR GENERAL JACOBIAN
+        normal_parameter_space[0] = + tangent_parameter_space[1] / magnitude;
+        normal_parameter_space[1] = - tangent_parameter_space[0] / magnitude; 
+        normal_parameter_space[2] = 0; 
 
+        // retrieve projections
+        //------------------------------------------------------------------------------
+        Vector projection(2);
+        array_1d<double, 3> true_n;
+        array_1d<double, 3> true_tau;
+        double n_ntilde;
+        Vector d(2);
+        NodeType projection_node;
 
-        // Read the refinements.iga.json
-        const Parameters refinements_parameters = ReadParamatersFile("refinements.iga.json");
+        // if (this->GetGeometry().GetValue(NEIGHBOUR_NODES).size() != 0) 
+        // {
+        //     projection_node = this->GetGeometry().GetValue(NEIGHBOUR_NODES)[0];
 
-        int basisFunctionsOrder = refinements_parameters["refinements"][0]["parameters"]["increase_degree_u"].GetInt()+1;
+        //     true_n = projection_node.GetValue(NORMAL);
+        //     true_tau = projection_node.GetValue(LOCAL_TANGENT);
+        // }
+        if (this->GetValue(NEIGHBOUR_NODES).size() != 0) 
+        {
+            projection_node = this->GetValue(NEIGHBOUR_NODES)[0];
 
+            true_n = projection_node.GetValue(NORMAL);
+            true_tau = projection_node.GetValue(LOCAL_TANGENT);
+
+        } else if (this->GetValue(NEIGHBOUR_CONDITIONS).size() == 2)
+        {
+            Condition candidateClosestSkinSegment1 = this->GetValue(NEIGHBOUR_CONDITIONS)[0] ;
+            Condition candidateClosestSkinSegment2 = this->GetValue(NEIGHBOUR_CONDITIONS)[1];
+
+            projection_node = candidateClosestSkinSegment1.GetGeometry()[0];
+
+            // Neumann BC, the true normal is needed
+            array_1d<double,3> vectorSkinSegment1 = candidateClosestSkinSegment1.GetGeometry()[1] - candidateClosestSkinSegment1.GetGeometry()[0];
+            array_1d<double,3> vectorSkinSegment2 = candidateClosestSkinSegment2.GetGeometry()[1] - candidateClosestSkinSegment2.GetGeometry()[0];
+            array_1d<double,3> vectorOutOfPlane = ZeroVector(3);
+            vectorOutOfPlane[2] = 1.0;
+            
+            array_1d<double,3> crossProductSkinSegment1;
+            array_1d<double,3> crossProductSkinSegment2; 
+            MathUtils<double>::CrossProduct(crossProductSkinSegment1, vectorOutOfPlane, vectorSkinSegment1);
+            MathUtils<double>::CrossProduct(crossProductSkinSegment2, vectorOutOfPlane, vectorSkinSegment2);
+            
+            true_n = crossProductSkinSegment1 / MathUtils<double>::Norm(crossProductSkinSegment1) + crossProductSkinSegment2 / MathUtils<double>::Norm(crossProductSkinSegment2);
+            if (loopIdentifier == "inner") {
+                true_n = true_n / MathUtils<double>::Norm(true_n) ;
+            } else { // outer
+                true_n = - true_n / MathUtils<double>::Norm(true_n) ;
+            }
+            
+            // compute true tau (tangential unit vector)
+            MathUtils<double>::CrossProduct(true_tau, true_n, vectorOutOfPlane); 
+        } else
+            KRATOS_ERROR << ":::[SBMLoadSolid2DCondition]::: Error, no NEIGHBOUR NODE OR CONDITIONS SPECIFIED" << std::endl;
+        
+
+        projection[0] = projection_node.X();                     
+        projection[1] = projection_node.Y() ;
+        d[0] = projection[0] - r_geometry.Center().X();          
+        d[1] = projection[1] - r_geometry.Center().Y();
+        // Print on external file the projection coordinates (projection[0],projection[1]) -> For PostProcess
+        std::ofstream outputFile("txt_files/Projection_Coordinates.txt", std::ios::app);
+        outputFile << projection[0] << " " << projection[1] << " "  << r_geometry.Center().X() << " " << r_geometry.Center().Y() <<"\n";
+        outputFile.close();
 
         // Integration
         const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
@@ -101,24 +164,17 @@ namespace Kratos
         const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
         r_geometry.Jacobian(J0,this->GetIntegrationMethod());
         double DetJ0;
+
+        int basisFunctionsOrder;
+
+        Vector meshSize_uv = this->GetValue(MARKER_MESHES);
+        double h = std::min(meshSize_uv[0], meshSize_uv[1]);
+        if (dim == 3) {h = std::min(h,  meshSize_uv[2]);}
+
+        // Compute basis function order (Note: it is not allow to use different orders in different directions)
+        basisFunctionsOrder = std::sqrt(DN_De[0].size1()) - 1;
         
-        Vector projection(2);
-        array_1d<double, 3> true_n;
-        double n_ntilde;
-
-        projection[0] = candidateClosestSkinSegment1.GetGeometry()[0].X() ;
-        projection[1] = candidateClosestSkinSegment1.GetGeometry()[0].Y() ;
-
-        // Print on external file the projection coordinates (projection[0],projection[1]) -> For PostProcess
-        std::ofstream outputFile("txt_files/Projection_Coordinates.txt", std::ios::app);
-        outputFile << projection[0] << " " << projection[1] << " "  << r_geometry.Center().X() << " " << r_geometry.Center().Y() <<"\n";
-        outputFile.close();
-
-        Vector d(2);
-        d[0] = projection[0] - r_geometry.Center().X();
-        d[1] = projection[1] - r_geometry.Center().Y();
-        // d[0] = 0;
-        // d[1] = 0;
+        
 
         const Matrix& N = r_geometry.ShapeFunctionsValues();
 
@@ -134,41 +190,6 @@ namespace Kratos
         // Calculating the PHYSICAL SPACE derivatives (it is avoided storing them to minimize storage)
         noalias(DN_DX) = prod(DN_De[0],InvJ0);
 
-        // Compute the normals
-        array_1d<double, 3> tangent_parameter_space;
-        array_1d<double, 3> normal_parameter_space;
-
-        r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space !!
-        double magnitude = std::sqrt(tangent_parameter_space[0] * tangent_parameter_space[0] + tangent_parameter_space[1] * tangent_parameter_space[1]);
-        
-        // NEW FOR GENERAL JACOBIAN
-        normal_parameter_space[0] = + tangent_parameter_space[1] / magnitude;
-        normal_parameter_space[1] = - tangent_parameter_space[0] / magnitude; 
-        normal_parameter_space[2] = 0; 
-
-        // Neumann BC, the true normal is needed
-        array_1d<double,3> vectorSkinSegment1 = candidateClosestSkinSegment1.GetGeometry()[1] - candidateClosestSkinSegment1.GetGeometry()[0];
-        array_1d<double,3> vectorSkinSegment2 = candidateClosestSkinSegment2.GetGeometry()[1] - candidateClosestSkinSegment2.GetGeometry()[0];
-        array_1d<double,3> vectorOutOfPlane = ZeroVector(3);
-        vectorOutOfPlane[2] = 1.0;
-        
-        array_1d<double,3> crossProductSkinSegment1;
-        array_1d<double,3> crossProductSkinSegment2; 
-        MathUtils<double>::CrossProduct(crossProductSkinSegment1, vectorOutOfPlane, vectorSkinSegment1);
-        MathUtils<double>::CrossProduct(crossProductSkinSegment2, vectorOutOfPlane, vectorSkinSegment2);
-        
-        true_n = crossProductSkinSegment1 / MathUtils<double>::Norm(crossProductSkinSegment1) + crossProductSkinSegment2 / MathUtils<double>::Norm(crossProductSkinSegment2);
-        if (loopIdentifier == "inner") {
-            true_n = true_n / MathUtils<double>::Norm(true_n) ;
-        } else { // outer
-            true_n = - true_n / MathUtils<double>::Norm(true_n) ;
-        }
-        
-        // compute true tau (tangential unit vector)
-        array_1d<double, 3> true_tau ;
-        MathUtils<double>::CrossProduct(true_tau, true_n, vectorOutOfPlane); 
-
-        
         Matrix H = ZeroMatrix(1, number_of_nodes);
         Matrix H_sum = ZeroMatrix(1, number_of_nodes);
 
@@ -303,8 +324,8 @@ namespace Kratos
             // g_N[0] = this->GetValue(FORCE_X); 
             // g_N[1] = this->GetValue(FORCE_Y); 
 
-            g_N[0] = candidateClosestSkinSegment1.GetGeometry()[0].GetValue(FORCE_X);
-            g_N[1] = candidateClosestSkinSegment1.GetGeometry()[0].GetValue(FORCE_Y);
+            g_N[0] = projection_node.GetValue(FORCE_X);
+            g_N[1] = projection_node.GetValue(FORCE_Y);
             
             for (IndexType i = 0; i < number_of_nodes; i++) {
                 
@@ -318,6 +339,13 @@ namespace Kratos
             noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,old_displacement);
             
         }
+
+        for (unsigned int i = 0; i < number_of_nodes; i++) {
+
+                std::ofstream outputFile("txt_files/Id_active_control_points_condition.txt", std::ios::app);
+                outputFile << r_geometry[i].GetId() << "  " <<r_geometry[i].GetDof(DISPLACEMENT_X).EquationId() <<"\n";
+                outputFile.close();
+            }
         KRATOS_CATCH("")
     }
 

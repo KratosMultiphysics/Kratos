@@ -251,21 +251,31 @@ namespace Kratos
         void InitializeMaterial();
 
         struct ConstitutiveVariables
-        {
-            Vector StrainVector;
-            Vector StressVector;
-            Matrix ConstitutiveMatrix;
+    {
+        ConstitutiveLaw::StrainVectorType StrainVector;
+        ConstitutiveLaw::StressVectorType StressVector;
+        ConstitutiveLaw::VoigtSizeMatrixType D;
 
-            /**
-            * @param StrainSize: The size of the strain vector in Voigt notation
-            */
-            ConstitutiveVariables(SizeType StrainSize)
-            {
-                StrainVector = ZeroVector(StrainSize);
-                StressVector = ZeroVector(StrainSize);
-                ConstitutiveMatrix = ZeroMatrix(StrainSize, StrainSize);
-            }
-        };
+        /**
+         * The default constructor
+         * @param StrainSize The size of the strain vector in Voigt notation
+         */
+        ConstitutiveVariables(const SizeType StrainSize)
+        {
+            if (StrainVector.size() != StrainSize)
+                StrainVector.resize(StrainSize);
+
+            if (StressVector.size() != StrainSize)
+                StressVector.resize(StrainSize);
+
+            if (D.size1() != StrainSize || D.size2() != StrainSize)
+                D.resize(StrainSize, StrainSize);
+
+            noalias(StrainVector) = ZeroVector(StrainSize);
+            noalias(StressVector) = ZeroVector(StrainSize);
+            noalias(D)            = ZeroMatrix(StrainSize, StrainSize);
+        }
+    };
 
     private:
         ///@name Serialization

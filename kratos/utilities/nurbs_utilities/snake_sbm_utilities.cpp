@@ -227,17 +227,65 @@ namespace Kratos
                     Vector normal_vector = ZeroVector(3);
                     normal_vector[0] = tangent_vector[1];
                     normal_vector[1] = -tangent_vector[0];
-                    node->SetValue(NORMAL, normal_vector);
-                    node->SetValue(LOCAL_TANGENT, tangent_vector);
+
+                    Vector old_normal = node->GetValue(NORMAL);
+                    Vector old_tangent = node->GetValue(LOCAL_TANGENT);
+                    if (norm_2(old_normal) > 1e-12) 
+                    {
+                        node->SetValue(NORMAL, (normal_vector+old_normal)/2);
+                        node->SetValue(LOCAL_TANGENT, (tangent_vector+old_tangent)/2);
+                    }
+                    else 
+                    {
+                        node->SetValue(NORMAL, normal_vector);
+                        node->SetValue(LOCAL_TANGENT, tangent_vector);
+                    }
             
                     skin_layer_sub_model_part.AddNode(node);
                     newInnerLoop = false;
                 } else 
                 {
                     const int last_node_id = skin_model_part.GetRootModelPart().NumberOfNodes();
-                    KRATOS_ERROR_IF(norm_2(first_point_coords - skin_sub_model_part.GetNode(last_node_id)) > 1e-15)
+                    Node& last_node = skin_sub_model_part.GetNode(last_node_id);
+                    KRATOS_ERROR_IF(norm_2(first_point_coords - last_node) > 1e-15)
                                     << "ImportNurbsSbmModeler: error in the json NURBS file. The boundary curves" 
-                                    << " are not correctly ordered." << std::endl;;
+                                    << " are not correctly ordered." << std::endl;
+
+
+                    // Create two nodes and two conditions for each skin condition
+                    std::string layer_name = p_curve->GetValue(IDENTIFIER);
+
+                    //needed for the call to the assign_vector_variable_to_nodes_process
+                    ModelPart& skin_layer_sub_model_part = skin_sub_model_part.HasSubModelPart(layer_name) ? 
+                                                           skin_sub_model_part.GetSubModelPart(layer_name) : skin_sub_model_part.CreateSubModelPart(layer_name);
+
+                    
+                    // compute normal at the node coords
+                    std::vector<CoordinatesArrayType> global_space_derivatives;
+                    SizeType derivative_order = 1;
+                    CoordinatesArrayType new_point_local_coord = ZeroVector(3); //first point at local coord zero
+                    p_curve->GlobalSpaceDerivatives(global_space_derivatives, new_point_local_coord, derivative_order);
+                    CoordinatesArrayType tangent_vector = global_space_derivatives[1];
+                    double tangent_magnitude = norm_2(tangent_vector);
+                    tangent_vector /= tangent_magnitude;
+                    Vector normal_vector = ZeroVector(3);
+                    normal_vector[0] = tangent_vector[1];
+                    normal_vector[1] = -tangent_vector[0];
+
+                    Vector old_normal = last_node.GetValue(NORMAL);
+                    Vector old_tangent = last_node.GetValue(LOCAL_TANGENT);
+                    if (norm_2(old_normal) > 1e-12) 
+                    {
+                        last_node.SetValue(NORMAL, (normal_vector+old_normal)/2);
+                        last_node.SetValue(LOCAL_TANGENT, (tangent_vector+old_tangent)/2);
+                    }
+                    else 
+                    {
+                        last_node.SetValue(NORMAL, normal_vector);
+                        last_node.SetValue(LOCAL_TANGENT, tangent_vector);
+                    }
+            
+                    skin_layer_sub_model_part.AddNode(&last_node);
                 }
                 // add the specified number of points
                 Vector second_point_local_coord = ZeroVector(3);

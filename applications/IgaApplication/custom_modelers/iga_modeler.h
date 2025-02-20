@@ -68,6 +68,8 @@ public:
     using DynamicBins = BinsDynamic<3, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
     using PointerType = DynamicBins::PointerType;
 
+    using NodePointerVector = GlobalPointersVector<NodeType>;
+
     ///@}
     ///@name Life Cycle
     ///@{
