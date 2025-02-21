@@ -25,8 +25,6 @@
 namespace Kratos::Testing 
 {
 
-using namespace Kratos;
-
 /*********************************************************************/
 /* Helper Functions */
 /*********************************************************************/
@@ -100,7 +98,7 @@ public:
     [[nodiscard]] virtual int foo() const = 0;
 
 private:
-    friend class Serializer;
+    friend class Kratos::Serializer;
     virtual void save(Serializer&) const = 0;
     virtual void load(Serializer&) = 0;
 
@@ -134,7 +132,7 @@ public:
     [[nodiscard]] int foo() const override { return mFooNumber; }
 
 private:
-    friend class Serializer;
+    friend class Kratos::Serializer;
 
     void save(Serializer& rSerializer) const override
     {
