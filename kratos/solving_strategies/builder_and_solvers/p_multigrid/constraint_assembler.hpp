@@ -110,7 +110,7 @@ public:
     ///       reallocations.
     virtual void Assemble(const ConstraintArray& rConstraints,
                           const ProcessInfo& rProcessInfo,
-                          const DofSet& rDofSet,
+                          DofSet& rDofSet,
                           const bool AssembleLhs,
                           const bool AssembleRhs)
     {

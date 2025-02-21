@@ -93,7 +93,8 @@ void MasterSlaveConstraintAssembler<TSparse,TDense>::Allocate(const typename Bas
 
     MakeSparseTopology<false,typename TSparse::DataType>(indices,
                                                          indices.size(),
-                                                         this->GetRelationMatrix());
+                                                         this->GetRelationMatrix(),
+                                                         /*EnsureDiagonal=*/false);
     this->GetConstraintGapVector().resize(indices.size(), false);
 
     KRATOS_CATCH("")
@@ -107,7 +108,7 @@ void MasterSlaveConstraintAssembler<TSparse,TDense>::Allocate(const typename Bas
 template <class TSparse, class TDense>
 void MasterSlaveConstraintAssembler<TSparse,TDense>::Assemble(const typename Base::ConstraintArray& rConstraints,
                                                               const ProcessInfo& rProcessInfo,
-                                                              const typename Base::DofSet& rDofSet,
+                                                              typename Base::DofSet& rDofSet,
                                                               const bool AssembleLhs,
                                                               const bool AssembleRhs)
 {

@@ -59,12 +59,12 @@ InPlaceMatrixAdd(typename TUblasSparseSpace<TValue>::MatrixType& rLeft,
                                                                                                                                     \
                 /* Find the entry in the left matrix corresponding to the entry in the right one. */                                \
                 it_left_column = std::lower_bound(it_left_column, it_left_column_end, i_column);                                    \
-                KRATOS_ERROR_IF(it_left_column == it_left_column_end)                                                               \
+                KRATOS_ERROR_IF(it_left_column == it_left_column_end or *it_left_column != i_column)                                \
                     << "left hand matrix has no entry in row " << i_row << " at column " << i_column;                               \
                                                                                                                                     \
                 const auto i_left_entry = std::distance(rLeft.index2_data().begin(), it_left_column);                               \
                 rLeft.value_data()[i_left_entry] sum_operator rRight.value_data()[i_right_entry];                                   \
-            } /* for i_right in range(i_right_begin, i_right_end) */                                                                \
+            } /* for i_right_entry in range(i_right_begin, i_right_end) */                                                          \
         }) /*for i_row in range(rLeft.size1())*/
 
     if (Coefficient == 1.0) {
@@ -164,11 +164,18 @@ MergeMatrices(typename TUblasSparseSpace<TValue>::MatrixType& rLeft,
 template <bool SortedRows,
           class TValue,
           class TRowMapContainer>
-void MakeSparseTopology(const TRowMapContainer& rRows,
+void MakeSparseTopology(TRowMapContainer& rRows,
                         const std::size_t ColumnCount,
-                        typename TUblasSparseSpace<TValue>::MatrixType& rMatrix)
+                        typename TUblasSparseSpace<TValue>::MatrixType& rMatrix,
+                        bool EnsureDiagonal)
 {
     KRATOS_TRY
+
+    if (EnsureDiagonal) {
+        IndexPartition<std::size_t>(rRows.size()).for_each([&rRows](std::size_t i_row){
+            rRows[i_row].emplace(i_row);
+        });
+    }
 
     const std::size_t row_count = rRows.size();
     std::size_t entry_count = 0ul;
@@ -320,7 +327,7 @@ void MapEntityContribution(TEntity& rEntity,
                            typename TSparse::VectorType* pRhs,
                            LockObject* pLockBegin)
 {
-    if constexpr (AssembleLHS || AssembleRHS) {
+    if constexpr (AssembleLHS or AssembleRHS) {
         if (rEntity.IsActive()) {
             if constexpr (AssembleLHS) {
                 if constexpr (AssembleRHS) {
@@ -381,10 +388,10 @@ void ApplyDirichletConditions(typename TSparse::MatrixType& rLhs,
         const std::size_t i_dof = r_dof.EquationId();
         const typename TSparse::IndexType i_entry_begin = rLhs.index1_data()[i_dof];
         const typename TSparse::IndexType i_entry_end = rLhs.index1_data()[i_dof + 1];
+        bool found_diagonal = false;
 
         if (r_dof.IsFixed()) {
             // Zero out the whole row, except the diagonal.
-            bool found_diagonal = false;
             for (typename TSparse::IndexType i_entry=i_entry_begin; i_entry<i_entry_end; ++i_entry) {
                 if (rLhs.index2_data()[i_entry] != i_dof ) {
                     rLhs.value_data()[i_entry] = 0.0;
@@ -394,15 +401,27 @@ void ApplyDirichletConditions(typename TSparse::MatrixType& rLhs,
                 }
             } // for i_entry in range(i_entry_begin, i_entry_end)
 
-            KRATOS_ERROR_IF_NOT(found_diagonal) << "ApplyDirichletConditions: missing diagonal in row " << i_dof;
             rRhs[i_dof] = 0.0;
-        } else {
-            // Zero out the column which is associated with the zero'ed row
+        } /*if r_dof.IsFixed()*/ else {
+            // Zero out the column which is associated with the zero'ed row.
             for (typename TSparse::IndexType i_entry=i_entry_begin; i_entry<i_entry_end; ++i_entry) {
-                const auto it_dof = itDofBegin + rLhs.index2_data()[i_entry];
+                const auto i_column = rLhs.index2_data()[i_entry];
+                const auto it_dof = itDofBegin + i_column;
                 if (it_dof->IsFixed()) rLhs.value_data()[i_entry] = 0.0;
+                if (i_column == i_dof) {
+                    found_diagonal = true;
+                    KRATOS_ERROR_IF_NOT(rLhs.value_data()[i_entry])
+                        << "zero on main diagonal of row " << i_dof << " "
+                        << "related to dof " << r_dof.GetVariable().Name() << " "
+                        << "of node " << r_dof.Id();
+                }
             }
         }
+
+        KRATOS_ERROR_IF_NOT(found_diagonal)
+            << "missing diagonal in row " << i_dof << " "
+            << "related to dof " << r_dof.GetVariable().Name() << " "
+            << "of node " << r_dof.Id();
     });
     KRATOS_CATCH("")
 }

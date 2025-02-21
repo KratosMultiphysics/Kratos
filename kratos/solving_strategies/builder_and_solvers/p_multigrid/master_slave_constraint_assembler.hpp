@@ -43,7 +43,7 @@ public:
     /// @copydoc Base::Assemble
     void Assemble(const typename Base::ConstraintArray& rConstraints,
                   const ProcessInfo& rProcessInfo,
-                  const typename Base::DofSet& rDofSet,
+                  typename Base::DofSet& rDofSet,
                   const bool AssembleLhs,
                   const bool AssembleRhs) override;
 
