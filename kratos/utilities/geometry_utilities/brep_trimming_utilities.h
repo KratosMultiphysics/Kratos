@@ -75,7 +75,7 @@ namespace Kratos
         };
 
         //Triangulation 
-        static void Triangulate_OPT(const Clipper2Lib::Path64& polygon, std::vector<Matrix>& triangles, const double factor)
+        static void Triangulate_OPT(const Clipper2Lib::Path64& polygon, std::vector<Matrix>& triangles, const double factor, const double span_area)
         {
             array_1d<double, 2> p1, p2, p3, p4;
             int best_vertex;
@@ -213,11 +213,12 @@ namespace Kratos
                 triangle(2, 0) = BrepTrimmingUtilities::IntPointToDoublePoint(points[diagonal.index2], factor)[0];
                 triangle(2, 1) = BrepTrimmingUtilities::IntPointToDoublePoint(points[diagonal.index2], factor)[1];
 
-                if (BrepTrimmingUtilities::GetAreaOfTriangle(triangle) > 1e-5)
+                double span_area_norm = span_area * factor * factor;
+                if (BrepTrimmingUtilities::GetAreaOfTriangle(triangle)/span_area_norm > 1e-5)
                     triangles.push_back(triangle);
                 else
                 {
-                    std::cout << "triangle with zero area" << BrepTrimmingUtilities::GetAreaOfTriangle(triangle) << std::endl;
+                    std::cout << "triangle with realtively small area: " << BrepTrimmingUtilities::GetAreaOfTriangle(triangle) << std::endl;
                 }
                 if (best_vertex > (diagonal.index1 + 1)) {
                     new_diagonal.index1 = diagonal.index1;
