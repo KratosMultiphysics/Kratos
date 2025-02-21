@@ -20,6 +20,7 @@
 // Project includes
 #include "geo_mechanics_application_variables.h"
 #include "includes/constitutive_law.h"
+#include "custom_constitutive/coulomb_yield_function.hpp"
 #include "includes/serializer.h"
 
 namespace Kratos
@@ -59,15 +60,28 @@ public:
 
     void CalculateMohrCoulomb(const Properties& rProp, Vector& rCautchyStressVector);
 
-    int FindRegionIndex(double fme, double fte);
-
     void CalculatePK2Stress(const Vector& rStrainVector, Vector& rStressVector, ConstitutiveLaw::Parameters& rValues);
     void CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues);
-    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues);
+    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 
-    Vector NormalizeVector(Vector& vector);
+    Vector NormalizeVector(Vector& rVector);
+    Matrix ConvertVectorToDiagonalMatrix(Vector& rVector);
     Matrix CalculateRotationMatrix(Matrix& eigenVectorsMatrix);
     void CheckRotationMatrix(Matrix& rRotationMatrix);
+    Vector RotatePrincipalStresses(Matrix& rPrincipalStressMatrix, Matrix& rRotationMatrix);
+    Vector ReturnStressAtElasticZone(Vector& rTrailStressVector);
+    Vector ReturnStressAtAxialZone(Vector& rPrincipalTrialStressVector, double tensionCutoff, Matrix& rRotationMatrix);
+    Vector ReturnStressAtCornerReturnZone(Vector& rPrincipalTrialStressVector,
+                                          Matrix& rRotationMatrix,
+                                          Vector& rCornerPoint);
+    Vector ReturnStressAtRegularFailureZone(Vector&                     rPrincipalTrialStressVector,
+                                            const CoulombYieldFunction& rCoulombYieldFunction,
+                                            Matrix&                     rRotationMatrix,
+                                            double                      friction_angle,
+                                            double                      cohesion);
+
+
+    Vector CalculateCornerPoint(double rFrictionAngle, double rCohesion, double rTensionCutoff, double rApex);
 
     // Member Variables
     double mStateVariable;

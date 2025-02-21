@@ -119,20 +119,6 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombConstitutiveLaw_CalculatePK2Stress, KratosG
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(stress_vector, expected_stress_vector, Defaults::relative_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombConstitutiveLaw_FindRegionIndex, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    // Set
-    auto plane_strain = std::make_unique<PlaneStrain>();
-    auto law          = MohrCoulombConstitutiveLaw(std::make_unique<PlaneStrain>());
-
-    constexpr auto fme = 1.0;
-    constexpr auto fte = 1.0;
-
-    // Act&Assert
-    constexpr auto expected_result = 0;
-    KRATOS_EXPECT_EQ(law.FindRegionIndex(fme, fte), expected_result);
-}
-
 KRATOS_TEST_CASE_IN_SUITE(MohrCoulombConstitutiveLaw_CalculateElasticMatrix, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Set
