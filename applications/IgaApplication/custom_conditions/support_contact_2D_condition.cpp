@@ -396,7 +396,7 @@ namespace Kratos
 
                             // // PENALTY g_n = 0
                             // //*********************************************** */
-                            rLeftHandSideMatrix(iglob, jglob) += H_slave(0,i)*normal_mean[idim]
+                            rLeftHandSideMatrix(iglob, jglob) += (1-gamma)*H_slave(0,i)*normal_mean[idim]
                                                                 *H_master(0,j)*normal_mean[jdim]*penalty_integration;
 
                             // // // FLUX 
@@ -449,7 +449,7 @@ namespace Kratos
 
                             // PENALTY g_n = 0
                             //*********************************************** */
-                            rLeftHandSideMatrix(iglob, jglob) -= H_slave(0,i)*normal_mean[idim]
+                            rLeftHandSideMatrix(iglob, jglob) -= (1-gamma)*H_slave(0,i)*normal_mean[idim]
                                                                 *H_slave(0,j)*normal_mean[jdim]*penalty_integration;
 
                             // // // FLUX 
@@ -536,7 +536,7 @@ namespace Kratos
 
                          // // PENALTY TERM
                         // //*********************************************** */
-                        rRightHandSideVector[iglob] += H_slave(0,i)*gn[idim]* penalty_integration;
+                        rRightHandSideVector[iglob] += (1-gamma)*H_slave(0,i)*gn[idim]* penalty_integration;
 
                         // // PENALTY FREE g_n = 0
                         // // rhs -> [\sigma_1(w) \dot n] \dot n (-g_{n,0})
@@ -1060,6 +1060,10 @@ namespace Kratos
         this->InitializeNonLinearIteration(rCurrentProcessInfo);
 
         // #############################################################
+        SetValue(YOUNG_MODULUS_MASTER, (*mpPropMaster)[YOUNG_MODULUS]);
+        SetValue(YOUNG_MODULUS_SLAVE, (*mpPropSlave)[YOUNG_MODULUS]);
+
+
         SetValue(OLD_ACTIVATION_LEVEL, 0);  
         SetValue(ACTIVATION_LEVEL, 0);  
 

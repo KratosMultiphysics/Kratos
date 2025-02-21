@@ -24,9 +24,15 @@
 
 #include "geometries/nurbs_coupling_geometry_2d.h"
 
-#include "custom_conditions/support_contact_2D_condition.h"
+#include "custom_conditions/sbm_contact_2D_condition.h"
 
 #include "utilities/entities_utilities.h"
+
+#include "spatial_containers/bins_dynamic.h"
+
+#include <cmath>
+
+#include "spaces/ublas_space.h"
 
 namespace Kratos
 {
@@ -62,9 +68,33 @@ public:
     typedef typename ModelPart::ElementsContainerType ElementsContainerType;
     typedef typename ModelPart::ConditionsContainerType ConditionsContainerType;
 
+    // MODIFIED --------------------------------------
+    typedef PointerVector<Node> ContainerNodeType;
+    typedef PointerVector<Point> ContainerEmbeddedNodeType;
+
+    typedef BrepCurveOnSurface<ContainerNodeType, ContainerEmbeddedNodeType> BrepCurveOnSurfaceType;
+
+    typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceArrayType;
+    //--------------------------------------------------------------------------------------
+
     using PointType = Node;
 
     using ConditionsArrayType = ModelPart::ConditionsContainerType;
+
+    using NodePointerVector = GlobalPointersVector<NodeType>;
+
+    using PointTypePointer = Node::Pointer;
+    using PointVector = std::vector<PointType::Pointer>;
+    using PointIterator = std::vector<PointType::Pointer>::iterator;
+    using DistanceVector = std::vector<double>;
+    using DistanceIterator = std::vector<double>::iterator;
+    using DynamicBins = BinsDynamic<3, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
+    using PointerType = DynamicBins::PointerType;
+
+    using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
+    using SparseMatrixType = SparseSpaceType::MatrixType;
+    
+    using NurbsCurveGeometryType = NurbsCurveGeometry<2, PointerVector<Node>>;
 
 
     typedef typename Kratos::shared_ptr<Kratos::NurbsCouplingGeometry2D<PointType, PointerVector<NodeType>>> NurbsCouplingGeometryType;
@@ -153,7 +183,15 @@ private:
     Parameters mParameters;
     SizeType mEchoLevel;
 
-    NurbsCouplingGeometryType mpCouplingGeometry = nullptr;
+    ModelPart* mrSlaveModelPart = nullptr; 
+    ModelPart* mrMasterModelPart = nullptr; 
+    ModelPart* mrSlaveSkinModelPart = nullptr; 
+    ModelPart* mrMasterSkinModelPart = nullptr; 
+    ModelPart* mrContactModelPart = nullptr; 
+
+    SparseMatrixType mSparseBrepMatrixSlave;
+    SparseMatrixType mSparseBrepMatrixMaster;
+
 
     Properties::Pointer mpPropMaster;
     Properties::Pointer mpPropSlave;
@@ -184,12 +222,44 @@ private:
     Parameters ReadParamatersFile(
         const std::string& rDataFileName) const;
 
+    
+    static void GetValuesVector(
+        const Geometry<PointType>& rGeometry,
+        Vector& rValues);
+
+    
+    static void GetDeformedPosition(
+        const CoordinatesArrayType& rPointGlobalCoordinates, 
+        const ModelPart& rModelPart,
+        const SparseMatrixType& rSparseBrepMatrix,
+        CoordinatesArrayType& rPointDeformedCoordinates);
+
+    static void GetDeformedGradient(
+        const CoordinatesArrayType& rPointGlobalCoordinates, 
+        const ModelPart& rModelPart,
+        const SparseMatrixType& SparseBrepMatrix,
+        Matrix& rPointGradientDeformation,
+        Matrix& rPointHessianDeformation);
+
+    
+    bool NewtonRaphsonCurveOnDeformed(
+        CoordinatesArrayType& rProjectedPointLocalCoordinates,
+        const CoordinatesArrayType& rPointGlobalCoordinates, 
+        CoordinatesArrayType& rProjectedPointGlobalCoordinates,
+        const NurbsCurveGeometryType& rPairedGeometry, 
+        double& distance,
+        const int rNumberOfInitialGuesses,
+        const int MaxIterations = 20,
+        const double Accuracy = 1e-6
+        );
+    
+    static double ComputeTaylorTerm(double derivative, double dx, int n_k, double dy, int k);
+
+    static unsigned long long Factorial(int n); 
+
     ///@}
     ///@name Input and output
     ///@{
-
-
-   
 
     ///@}
 
