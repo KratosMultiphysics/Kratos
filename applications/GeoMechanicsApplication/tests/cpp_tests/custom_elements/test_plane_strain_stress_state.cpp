@@ -14,13 +14,12 @@
 #include "custom_elements/plane_strain_stress_state.h"
 #include "custom_utilities/registration_utilities.h"
 #include "includes/checks.h"
-#include "includes/serializer.h"
+#include "includes/stream_serializer.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
 #include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
-#include <sstream>
 #include <string>
 
 using namespace Kratos;
@@ -132,7 +131,7 @@ KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_CanBeSavedAndLoadedThroughInter
     // Arrange
     RegistrationUtilities::RegisterStressStatePolicies();
     const auto p_policy = std::unique_ptr<StressStatePolicy>{std::make_unique<PlaneStrainStressState>()};
-    auto serializer = Serializer{new std::stringstream{}};
+    auto serializer = StreamSerializer{};
 
     // Act
     serializer.save("test_tag"s, p_policy);
