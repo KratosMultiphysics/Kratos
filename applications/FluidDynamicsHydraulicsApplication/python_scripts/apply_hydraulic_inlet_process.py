@@ -99,7 +99,14 @@ class ApplyHydraulicInletProcess(KratosMultiphysics.Process):
     def ExecuteInitializeSolutionStep(self):
 
         # For each time step obtain the corresponding inlet discharge value according to the external data type; table, function or value.
+        # TODO: This should be fixed in other code. Now it is done as a fast check
         current_time = self.inlet_model_part.ProcessInfo[KratosMultiphysics.TIME]
+        if current_time <0.0:
+            self.inlet_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0.0)
+            current_time = current_time = self.inlet_model_part.ProcessInfo[
+                KratosMultiphysics.TIME]
+
+
         if self.interval.IsInInterval(current_time):
             self.step_is_active = True
             if self.discharge_value_is_function:
@@ -112,7 +119,6 @@ class ApplyHydraulicInletProcess(KratosMultiphysics.Process):
 
             elif self.discharge_value_is_table:
                 self.inlet_discharge = self.table.GetValue(current_time)
-        self.inlet_discharge = 0.094
         #Calculate the initial water depth guess.
         if not self.initial_water_depth:
             self.initial_water_depth = KratosFluidHydraulics.HydraulicFluidAuxiliaryUtilities.InitialWaterDepth(
@@ -128,54 +134,54 @@ class ApplyHydraulicInletProcess(KratosMultiphysics.Process):
         froude_number_a = 100000
         froude_number_c = 0.0
 
-        #  Bisection method.
-        iter_count = 0
-        while (abs(froude_number_c - 1) > self.critical_depth_tolerance) and iter_count < self.maximum_iterations:
-            water_depth_c = 0.5*(water_depth_a+water_depth_b)
-            froude_number_c = self.CalculateFroudeNumber(water_depth_c)
-            if (froude_number_c-1)*(froude_number_a-1)<0:
-                water_depth_b=water_depth_c
-            else:
-                water_depth_a=water_depth_c
-                froude_number_a = froude_number_c
-            iter_count +=1
-        if iter_count == self.maximum_iterations:
-            KratosMultiphysics.Logger.PrintWarning("::[KratosFluidHydraulics]::", "Maximum iteractions for calculating critical water depth have been exceeded.")
+        # #  Bisection method.
+        # iter_count = 0
+        # while (abs(froude_number_c - 1) > self.critical_depth_tolerance) and iter_count < self.maximum_iterations:
+        #     water_depth_c = 0.5*(water_depth_a+water_depth_b)
+        #     froude_number_c = self.CalculateFroudeNumber(water_depth_c)
+        #     if (froude_number_c-1)*(froude_number_a-1)<0:
+        #         water_depth_b=water_depth_c
+        #     else:
+        #         water_depth_a=water_depth_c
+        #         froude_number_a = froude_number_c
+        #     iter_count +=1
+        # if iter_count == self.maximum_iterations:
+        #     KratosMultiphysics.Logger.PrintWarning("::[KratosFluidHydraulics]::", "Maximum iteractions for calculating critical water depth have been exceeded.")
 
-        print(water_depth_c)
-        print("CRITICO")
-        # Obtain the corresponding velocity according to the wetted area and the inlet discharge value.
-        KratosFluidHydraulics.HydraulicFluidAuxiliaryUtilities.InletFreeSurface(self.inlet_model_part)
-        self.new_wetted_area = KratosFluidHydraulics.HydraulicFluidAuxiliaryUtilities.CalculateWettedArea(self.inlet_model_part, KratosMultiphysics.INLET, self.water_depth_variable, False)
-        # Critical Dis
-        inlet_velocity = self.inlet_discharge/self.wetted_area
-        KratosFluidHydraulics.HydraulicFluidAuxiliaryUtilities.SetInletFreeSurface(self.inlet_model_part, KratosMultiphysics.INLET, self.water_depth_variable)
-        self._GetDistanceGradientProcess().Execute()
-        # Assing the inlet velocity to inlet nodes and fix it.
-        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplexNonHistorical(self.inlet_model_part,self.domain_size,KratosFluidDynamics.INLET_NORMAL)
-        KratosFluidHydraulics.HydraulicFluidAuxiliaryUtilities.SummergedInletCheck(self.inlet_model_part, inlet_velocity, self.dt)
-        self.new_wetted_area = KratosFluidHydraulics.HydraulicFluidAuxiliaryUtilities.CalculateWettedArea(self.inlet_model_part, KratosMultiphysics.INLET, self.water_depth_variable, False)
-
-        inlet_velocity = self.inlet_discharge/self.new_wetted_area
-        KratosFluidHydraulics.HydraulicFluidAuxiliaryUtilities.SetInletVelocity(self.inlet_model_part, inlet_velocity, self.water_depth_variable)
-
-        # water_depth = 0.03
-        # # water_depth = 0.029
-        # for node in self.inlet_model_part.Nodes:
-        #     aux_distance = node.Z-water_depth
-        #     node.SetValue(self.water_depth_variable, aux_distance)
-        # self.wetted_area = 0.61*water_depth
+        # print(water_depth_c)
+        # print("CRITICO")
+        # # Obtain the corresponding velocity according to the wetted area and the inlet discharge value.
+        # KratosFluidHydraulics.HydraulicFluidAuxiliaryUtilities.InletFreeSurface(self.inlet_model_part)
+        # self.new_wetted_area = KratosFluidHydraulics.HydraulicFluidAuxiliaryUtilities.CalculateWettedArea(self.inlet_model_part, KratosMultiphysics.INLET, self.water_depth_variable, False)
+        # # Critical Dis
         # inlet_velocity = self.inlet_discharge/self.wetted_area
-        # # inlet_velocity = 9.76677399695991
+        # KratosFluidHydraulics.HydraulicFluidAuxiliaryUtilities.SetInletFreeSurface(self.inlet_model_part, KratosMultiphysics.INLET, self.water_depth_variable)
+        # self._GetDistanceGradientProcess().Execute()
         # # Assing the inlet velocity to inlet nodes and fix it.
+        # KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplexNonHistorical(self.inlet_model_part,self.domain_size,KratosFluidDynamics.INLET_NORMAL)
+        # KratosFluidHydraulics.HydraulicFluidAuxiliaryUtilities.SummergedInletCheck(self.inlet_model_part, inlet_velocity, self.dt)
+        # self.new_wetted_area = KratosFluidHydraulics.HydraulicFluidAuxiliaryUtilities.CalculateWettedArea(self.inlet_model_part, KratosMultiphysics.INLET, self.water_depth_variable, False)
+
+        # inlet_velocity = self.inlet_discharge/self.new_wetted_area
+        # KratosFluidHydraulics.HydraulicFluidAuxiliaryUtilities.SetInletVelocity(self.inlet_model_part, inlet_velocity, self.water_depth_variable)
+
+        water_depth = 0.03
+        # water_depth = 0.029
+        for node in self.inlet_model_part.Nodes:
+            aux_distance = node.Z-water_depth
+            node.SetValue(self.water_depth_variable, aux_distance)
+        self.wetted_area = KratosFluidHydraulics.HydraulicFluidAuxiliaryUtilities.CalculateWettedArea(self.inlet_model_part, KratosMultiphysics.INLET, self.water_depth_variable, False)
+        inlet_velocity = self.inlet_discharge/self.wetted_area
+        # # inlet_velocity = 9.76677399695991
+        # # # Assing the inlet velocity to inlet nodes and fix it.
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplexNonHistorical(
              self.inlet_model_part, self.domain_size, KratosFluidDynamics.INLET_NORMAL)
-        # KratosFluidHydraulics.HydraulicFluidAuxiliaryUtilities.SetInletVelocity(
-        #     self.inlet_model_part, inlet_velocity, self.water_depth_variable)
+        KratosFluidHydraulics.HydraulicFluidAuxiliaryUtilities.SetInletVelocity(
+            self.inlet_model_part, inlet_velocity, self.water_depth_variable)
 
         # #Assign the identical value of the inlet water depth to the DISTANCE variable (free surface) for all nodes associated with the inlet model part.
-        # KratosFluidHydraulics.HydraulicFluidAuxiliaryUtilities.SetInletFreeSurface(
-        #     self.inlet_model_part, KratosMultiphysics.INLET, self.water_depth_variable)
+        KratosFluidHydraulics.HydraulicFluidAuxiliaryUtilities.SetInletFreeSurface(
+             self.inlet_model_part, KratosMultiphysics.INLET, self.water_depth_variable)
         #Assign the identical value of the inlet water depth to the DISTANCE variable (free surface) for all nodes associated with the inlet model part.
         KratosFluidHydraulics.HydraulicFluidAuxiliaryUtilities.SetInletFreeSurface(self.inlet_model_part, KratosMultiphysics.INLET, self.water_depth_variable)
 
