@@ -529,16 +529,16 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
         const auto strain_vectors        = StressStrainUtilities::CalculateStrains(
             deformation_gradients, b_matrices, Variables.DisplacementVector,
             Variables.UseHenckyStrain, GetStressStatePolicy().GetVoigtSize());
-        const auto pressures_on_integration_points = GeoTransportEquationUtilities::CalculateFluidPressures(
+        const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
             Variables.NpContainer, Variables.PressureVector);
-        auto relative_permeability_values = CalculateRelativePermeabilityValues(pressures_on_integration_points);
+        auto relative_permeability_values = CalculateRelativePermeabilityValues(fluid_pressures);
         const auto permeability_update_factors =
             GeoTransportEquationUtilities::CalculatePermeabilityUpdateFactors(strain_vectors, GetProperties());
         std::transform(relative_permeability_values.cbegin(), relative_permeability_values.cend(),
                        permeability_update_factors.cbegin(), relative_permeability_values.begin(),
                        std::multiplies<>{});
 
-        const auto bishop_coefficients = this->CalculateBishopCoefficients(pressures_on_integration_points);
+        const auto bishop_coefficients = this->CalculateBishopCoefficients(fluid_pressures);
 
         // Loop over integration points
         const SizeType dimension = r_geometry.WorkingSpaceDimension();
@@ -1268,8 +1268,7 @@ std::vector<double> SmallStrainUPwDiffOrderElement::CalculateRelativePermeabilit
     return result;
 }
 
-template <typename PressureVectorType>
-std::vector<double> SmallStrainUPwDiffOrderElement::CalculateBishopCoefficients(const PressureVectorType& rFluidPressures) const
+std::vector<double> SmallStrainUPwDiffOrderElement::CalculateBishopCoefficients(const std::vector<double>& rFluidPressures) const
 {
     KRATOS_ERROR_IF_NOT(rFluidPressures.size() == mRetentionLawVector.size());
 
