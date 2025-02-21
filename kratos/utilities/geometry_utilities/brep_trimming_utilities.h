@@ -318,8 +318,11 @@ namespace Kratos
         {
             Clipper2Lib::Point64 int_point;
 
-            int_point.x = static_cast<cInt>(x / factor);
-            int_point.y = static_cast<cInt>(y / factor);
+            double temp_x = std::round(x / factor);
+            double temp_y = std::round(y / factor);
+
+            int_point.x = static_cast<cInt>(temp_x);
+            int_point.y = static_cast<cInt>(temp_y);
 
             return int_point;
         }
