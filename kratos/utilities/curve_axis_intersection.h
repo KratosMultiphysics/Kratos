@@ -219,7 +219,8 @@ namespace Kratos
                 rIntersectionParameters.push_back(End);
 
             // sort and delete duplicated entries
-            SortUnique(rIntersectionParameters, Tolerance);
+            double sort_tolerance = 1e-9;
+            SortUnique(rIntersectionParameters, sort_tolerance);
         }
     };
 } // namespace Kratos.
