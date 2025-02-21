@@ -154,7 +154,7 @@ public:
     }
 
     ///@}
-    ///@name Mathematical Informations
+    ///@name Mathematical Information
     ///@{
 
     /// Return polynomial degree of the background geometry
