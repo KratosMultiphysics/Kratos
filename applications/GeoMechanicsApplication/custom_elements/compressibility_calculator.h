@@ -26,38 +26,28 @@ namespace Kratos
 class CompressibilityCalculator : public ContributionCalculator
 {
 public:
-    class InputProvider
-    {
-    public:
+    struct InputProvider {
         InputProvider(std::function<const Properties&()> GetElementProperties,
                       std::function<const std::vector<RetentionLaw::Pointer>&()> GetRetentionLaws,
                       std::function<const Matrix&()>                             GetNContainer,
                       std::function<Vector()>                        GetIntegrationCoefficients,
                       std::function<double()>                        GetMatrixScalarFactor,
                       std::function<Vector(const Variable<double>&)> GetNodalValuesOf)
-            : mGetElementProperties(std::move(GetElementProperties)),
-              mGetRetentionLaws(std::move(GetRetentionLaws)),
-              mGetNContainer(std::move(GetNContainer)),
-              mGetIntegrationCoefficients(std::move(GetIntegrationCoefficients)),
-              mGetMatrixScalarFactor(std::move(GetMatrixScalarFactor)),
-              mGetNodalValues(std::move(GetNodalValuesOf))
+            : GetElementProperties(std::move(GetElementProperties)),
+              GetRetentionLaws(std::move(GetRetentionLaws)),
+              GetNContainer(std::move(GetNContainer)),
+              GetIntegrationCoefficients(std::move(GetIntegrationCoefficients)),
+              GetMatrixScalarFactor(std::move(GetMatrixScalarFactor)),
+              GetNodalValues(std::move(GetNodalValuesOf))
         {
         }
 
-        [[nodiscard]] const Properties&                         GetElementProperties() const;
-        [[nodiscard]] const std::vector<RetentionLaw::Pointer>& GetRetentionLaws() const;
-        [[nodiscard]] const Matrix&                             GetNContainer() const;
-        [[nodiscard]] Vector                                    GetIntegrationCoefficients() const;
-        [[nodiscard]] double                                    GetMatrixScalarFactor() const;
-        [[nodiscard]] Vector GetNodalValues(const Variable<double>& rVariable) const;
-
-    private:
-        std::function<const Properties&()>                         mGetElementProperties;
-        std::function<const std::vector<RetentionLaw::Pointer>&()> mGetRetentionLaws;
-        std::function<const Matrix&()>                             mGetNContainer;
-        std::function<Vector()>                                    mGetIntegrationCoefficients;
-        std::function<double()>                                    mGetMatrixScalarFactor;
-        std::function<Vector(const Variable<double>&)>             mGetNodalValues;
+        std::function<const Properties&()>                         GetElementProperties;
+        std::function<const std::vector<RetentionLaw::Pointer>&()> GetRetentionLaws;
+        std::function<const Matrix&()>                             GetNContainer;
+        std::function<Vector()>                                    GetIntegrationCoefficients;
+        std::function<double()>                                    GetMatrixScalarFactor;
+        std::function<Vector(const Variable<double>&)>             GetNodalValues;
     };
 
     explicit CompressibilityCalculator(InputProvider rInputProvider);
