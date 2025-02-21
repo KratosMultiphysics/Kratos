@@ -22,74 +22,11 @@
 #include "includes/stream_serializer.h"
 #include "geometries/point.h"
 
-namespace Kratos::Testing 
+namespace
 {
 
-/*********************************************************************/
-/* Helper Functions */
-/*********************************************************************/
-template<typename TObjectType>
-void SaveAndLoadObjects(const TObjectType& rObjectToBeSaved, TObjectType& rObjectToBeLoaded)
-{
-    StreamSerializer serializer;
+using namespace Kratos;
 
-    const std::string tag_string("TestString");
-
-    serializer.save(tag_string, rObjectToBeSaved);
-    serializer.load(tag_string, rObjectToBeLoaded);
-}
-
-template<typename TObjectType>
-void TestObjectSerialization(const TObjectType& rObjectToBeSaved, TObjectType& rObjectToBeLoaded)
-{
-    SaveAndLoadObjects(rObjectToBeSaved, rObjectToBeLoaded);
-    KRATOS_EXPECT_EQ(rObjectToBeLoaded, rObjectToBeSaved);
-}
-
-template<typename TObjectType>
-void TestObjectSerializationComponentwise1D(const TObjectType& rObjectToBeSaved, TObjectType& rObjectToBeLoaded)
-{
-    SaveAndLoadObjects(rObjectToBeSaved, rObjectToBeLoaded);
-
-    KRATOS_EXPECT_EQ(rObjectToBeLoaded.size(), rObjectToBeSaved.size());
-
-    for (std::size_t i=0; i< rObjectToBeSaved.size(); ++i)
-        KRATOS_EXPECT_EQ(rObjectToBeLoaded[i], rObjectToBeSaved[i]);
-}
-
-template<typename TObjectType>
-void TestObjectSerializationComponentwise2D(const TObjectType& rObjectToBeSaved, TObjectType& rObjectToBeLoaded)
-{
-    SaveAndLoadObjects(rObjectToBeSaved, rObjectToBeLoaded);
-
-    KRATOS_EXPECT_EQ(rObjectToBeLoaded.size1(), rObjectToBeSaved.size1());
-    KRATOS_EXPECT_EQ(rObjectToBeLoaded.size2(), rObjectToBeSaved.size2());
-
-    for (std::size_t i=0; i<rObjectToBeSaved.size1(); ++i) {
-        for (std::size_t j=0; j<rObjectToBeSaved.size2(); ++j) {
-            KRATOS_EXPECT_EQ(rObjectToBeLoaded(i,j), rObjectToBeSaved(i,j));
-        }
-    }
-}
-
-template<typename TObjectType>
-void FillVectorWithValues(TObjectType& rObject)
-{
-    for (std::size_t i = 0; i < rObject.size(); ++i)
-            rObject[i] = i*i*0.2 + 5.333;
-}
-
-template<typename TObjectType>
-void FillMatrixWithValues(TObjectType& rObject)
-{
-    for (std::size_t i=0; i<rObject.size1(); ++i) {
-        for (std::size_t j=0; j<rObject.size2(); ++j) {
-            rObject(i,j) = i*j - 51.21;
-        }
-    }
-}
-
-#if 0
 // Two dummy classes for testing (de)serialization of a derived class through
 // a pointer to an abstract base class
 class AbstractTestClass
@@ -165,7 +102,75 @@ public:
     ScopedTestClassRegistration(ScopedTestClassRegistration&&) noexcept = default;
     ScopedTestClassRegistration& operator=(ScopedTestClassRegistration&&) noexcept = default;
 };
-#endif
+
+}
+
+namespace Kratos::Testing 
+{
+
+/*********************************************************************/
+/* Helper Functions */
+/*********************************************************************/
+template<typename TObjectType>
+void SaveAndLoadObjects(const TObjectType& rObjectToBeSaved, TObjectType& rObjectToBeLoaded)
+{
+    StreamSerializer serializer;
+
+    const std::string tag_string("TestString");
+
+    serializer.save(tag_string, rObjectToBeSaved);
+    serializer.load(tag_string, rObjectToBeLoaded);
+}
+
+template<typename TObjectType>
+void TestObjectSerialization(const TObjectType& rObjectToBeSaved, TObjectType& rObjectToBeLoaded)
+{
+    SaveAndLoadObjects(rObjectToBeSaved, rObjectToBeLoaded);
+    KRATOS_EXPECT_EQ(rObjectToBeLoaded, rObjectToBeSaved);
+}
+
+template<typename TObjectType>
+void TestObjectSerializationComponentwise1D(const TObjectType& rObjectToBeSaved, TObjectType& rObjectToBeLoaded)
+{
+    SaveAndLoadObjects(rObjectToBeSaved, rObjectToBeLoaded);
+
+    KRATOS_EXPECT_EQ(rObjectToBeLoaded.size(), rObjectToBeSaved.size());
+
+    for (std::size_t i=0; i< rObjectToBeSaved.size(); ++i)
+        KRATOS_EXPECT_EQ(rObjectToBeLoaded[i], rObjectToBeSaved[i]);
+}
+
+template<typename TObjectType>
+void TestObjectSerializationComponentwise2D(const TObjectType& rObjectToBeSaved, TObjectType& rObjectToBeLoaded)
+{
+    SaveAndLoadObjects(rObjectToBeSaved, rObjectToBeLoaded);
+
+    KRATOS_EXPECT_EQ(rObjectToBeLoaded.size1(), rObjectToBeSaved.size1());
+    KRATOS_EXPECT_EQ(rObjectToBeLoaded.size2(), rObjectToBeSaved.size2());
+
+    for (std::size_t i=0; i<rObjectToBeSaved.size1(); ++i) {
+        for (std::size_t j=0; j<rObjectToBeSaved.size2(); ++j) {
+            KRATOS_EXPECT_EQ(rObjectToBeLoaded(i,j), rObjectToBeSaved(i,j));
+        }
+    }
+}
+
+template<typename TObjectType>
+void FillVectorWithValues(TObjectType& rObject)
+{
+    for (std::size_t i = 0; i < rObject.size(); ++i)
+            rObject[i] = i*i*0.2 + 5.333;
+}
+
+template<typename TObjectType>
+void FillMatrixWithValues(TObjectType& rObject)
+{
+    for (std::size_t i=0; i<rObject.size1(); ++i) {
+        for (std::size_t j=0; j<rObject.size2(); ++j) {
+            rObject(i,j) = i*j - 51.21;
+        }
+    }
+}
 
 /*********************************************************************/
 /* Testing the Datatypes that for which the
@@ -249,7 +254,6 @@ KRATOS_TEST_CASE_IN_SUITE(SerializerLongLong, KratosCoreFastSuite)
 /* Testing the Datatypes that have a specific save/load implementation */
 /*********************************************************************/
 
-#if 0
 KRATOS_TEST_CASE_IN_SUITE(SerializerRawOwningPointerToAbstractBase, KratosCoreFastSuiteWithoutKernel)
 {
     StreamSerializer serializer;
@@ -270,6 +274,7 @@ KRATOS_TEST_CASE_IN_SUITE(SerializerRawOwningPointerToAbstractBase, KratosCoreFa
     delete p_loaded_instance;
 }
 
+#if 0
 KRATOS_TEST_CASE_IN_SUITE(SerializerKratosUniquePtrToAbstractBase, KratosCoreFastSuiteWithoutKernel)
 {
     StreamSerializer serializer;
