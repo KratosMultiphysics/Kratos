@@ -147,6 +147,7 @@ protected:
     virtual void MPMShapeFunctionPointValues(Vector& rResult) const override;
 
     ///@}
+    virtual void CalculateInterfaceContactForce(const ProcessInfo& rCurrentProcessInfo );
 
 private:
     ///@name Serialization
