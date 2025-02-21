@@ -224,7 +224,8 @@ namespace Kratos
             "echo_level" : 0,
             "ns_frac_convection_model_part_name" : "",
             "element_type" : "ns_fractional_velocity_convection",
-            "element_settings" : {}
+            "element_settings" : {},
+            "maximum_iterations":15
         })");
 
             return default_parameters;
@@ -580,7 +581,8 @@ namespace Kratos
             bool CalculateNormDxFlag = false;
             auto p_conv_criteria = Kratos::make_shared<DisplacementCriteria<TSparseSpace, TDenseSpace>>(1e-9, 1e-8);
             auto p_scheme = Kratos::make_shared<ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace>>();
-            const std::size_t max_it = 15;
+            const std::size_t max_it = mNSFractionalConvectionSettings["maximum_iterations"].GetDouble();
+            KRATOS_WATCH(max_it)
             mpSolvingStrategy = Kratos::make_unique<ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>>(
                 *mpFractionalVelocityModelPart,
                 p_scheme,
