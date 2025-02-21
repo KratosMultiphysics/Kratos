@@ -1,0 +1,153 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "sloshing_tank",
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 0,
+        "start_time"    : 0.0,
+        "end_time"      : 0.1
+    },
+    "output_processes" : {
+        "gid_output" : []
+    },
+    "solver_settings"  : {
+        "model_part_name"             : "FluidModelPart",
+        "domain_size"                 : 3,
+        "solver_type"                 : "two_fluid_hydraulic_fractional",
+        "model_import_settings"       : {
+            "input_type"     : "mdpa",
+            "input_filename" : "3D_geometry"
+        },
+        "material_import_settings"    : {
+            "materials_filename" : "TwoFluidHydraulic3DTestMaterials.json"
+        },
+        "maximum_iterations"			: 5,
+        "echo_level"					: 0,
+        "compute_reactions"				: false,
+        "reform_dofs_at_each_step"		: false,
+        "relative_velocity_tolerance"	: 0.001,
+        "absolute_velocity_tolerance"	: 0.00001,
+        "relative_pressure_tolerance"	: 0.001,
+        "absolute_pressure_tolerance"	: 0.00001,
+        "volume_model_part_name"      : "FluidParts_Fluid",
+        "skin_parts"                  : ["AutomaticInlet3D_Inlet","Outlet3D_Outlet","NoSlip3D_Wall1","NoSlip3D_Wall2","NoSlip3D_Top","NoSlip3D_Floor"],
+        "no_skin_parts"              	: [],
+        "move_mesh_flag"				: false,
+        "formulation": {
+            "dynamic_tau": 1.0,
+            "mass_source": true
+        },
+        "levelset_convection_settings": {
+            "max_CFL": 1.0,
+            "eulerian_error_compensation": false,
+            "element_type": "levelset_convection_supg",
+            "element_settings": {
+                "tau_nodal": false
+            }
+        },
+        "artificial_viscosity": true,
+        "artificial_visocosity_settings": {
+            "limiter_coefficient": 1000000
+        },
+        "time_stepping"  : {
+            "automatic_time_step" 	: false,
+            "time_step"           	: 0.1
+        },
+        "linear_solver_settings": {
+            "solver_type": "amgcl"
+        }
+
+    },
+    "processes"        : {
+        "initial_conditions_process_list"  : [],
+        "boundary_conditions_process_list" : [{
+            "python_module": "assign_vector_variable_process",
+            "kratos_module": "KratosMultiphysics",
+            "process_name": "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.NoSlip3D_Wall1",
+                "variable_name"      : "VELOCITY",
+                "constrained"        : [false,false,true],
+                "value"              : [null,null,0.0]
+
+            }
+
+        },{
+            "python_module": "assign_vector_variable_process",
+            "kratos_module": "KratosMultiphysics",
+            "process_name": "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.Outlet3D_Outlet",
+                "variable_name"      : "VELOCITY",
+                "constrained"        : [true,false,false],
+                "value"              : [0.0,null,null]
+            }
+        },{
+            "python_module": "assign_vector_variable_process",
+            "kratos_module": "KratosMultiphysics",
+            "process_name": "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.AutomaticInlet3D_Inlet",
+                "variable_name"      : "VELOCITY",
+                "constrained"        : [true,false,false],
+                "value"              : [0.0,null,null]
+
+            }
+        },{
+
+
+            "python_module": "assign_scalar_variable_process",
+            "kratos_module": "KratosMultiphysics",
+            "process_name": "AssignScalarVariableProcess",
+            "Parameters": {
+                "model_part_name": "FluidModelPart.NoSlip3D_Top",
+                "variable_name": "PRESSURE",
+                "constrained": true,
+                "value": 0.0
+            }
+        },{
+            "python_module": "assign_vector_variable_process",
+            "kratos_module": "KratosMultiphysics",
+            "process_name": "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.NoSlip3D_Wall2",
+                "variable_name"      : "VELOCITY",
+                "constrained"        : [false,false,true],
+                "value"              : [null,null,0.0]
+            }
+        },{
+            "python_module": "assign_vector_variable_process",
+            "kratos_module": "KratosMultiphysics",
+            "process_name": "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.NoSlip3D_Top",
+                "variable_name"      : "VELOCITY",
+                "constrained"        : [false,true,false],
+                "value"              : [null,0.0,null]
+            }
+        },{
+            "python_module": "assign_vector_variable_process",
+            "kratos_module": "KratosMultiphysics",
+            "process_name": "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.NoSlip3D_Floor",
+                "variable_name"      : "VELOCITY",
+                "constrained"        : [false,true,false],
+                "value"              : [null,0.0,null]
+            }
+        }],
+        "gravity"                          : [{
+            "python_module" : "assign_vector_by_direction_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorByDirectionProcess",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.FluidParts_Fluid",
+                "variable_name"   : "BODY_FORCE",
+                "modulus"         : 9.81,
+                "constrained"     : false,
+                "direction"       : [0.0,-1.0,0.0]
+            }
+        }],
+        "auxiliar_process_list"            : [],
+        "json_check_process_list" : []
+    }
+}
