@@ -29,14 +29,16 @@ if(${KRATOS_USE_FUTURE} MATCHES ON)
     message(WARNING "You are using sources from Kratos::Future. This is not recommended for stability.")
     ## TODO: Change this in the future (no pun intended) and make it part of the interface target in a different folder.
     FILE(GLOB_RECURSE KRATOS_FUTURE_PYTHON_SOURCES "future/python/*.cpp")
-    kratos_add_sources(KRATOS_CORE_SOURCES SOURCE_DIRS "${LIST_FUTURE}" EXCEPTIONS "${KRATOS_FUTURE_PYTHON_SOURCES}")
+    FILE(GLOB_RECURSE KRATOS_FUTURE_TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/future/tests/cpp_tests/*.cpp)
+    kratos_add_sources(KRATOS_CORE_SOURCES SOURCE_DIRS "${LIST_FUTURE}" EXCEPTIONS "${KRATOS_FUTURE_PYTHON_SOURCES}" "${KRATOS_FUTURE_TEST_SOURCES}")
 endif(${KRATOS_USE_FUTURE} MATCHES ON)
 if(${KRATOS_USE_LEGACY} MATCHES ON)
     add_definitions( -DKRATOS_USE_LEGACY )
     message(WARNING "You are using sources from Kratos::Legacy. This will be removed soon.")
     ## TODO: Change this in the future and make it part of the interface target in a different folder.
     FILE(GLOB_RECURSE KRATOS_LEGACY_PYTHON_SOURCES "legacy/python/*.cpp")
-    kratos_add_sources(KRATOS_CORE_SOURCES SOURCE_DIRS "${LIST_LEGACY}" EXCEPTIONS "${KRATOS_LEGACY_PYTHON_SOURCES}")
+    FILE(GLOB_RECURSE KRATOS_LEGACY_TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/legacy/tests/cpp_tests/*.cpp)
+    kratos_add_sources(KRATOS_CORE_SOURCES SOURCE_DIRS "${LIST_LEGACY}" EXCEPTIONS "${KRATOS_LEGACY_PYTHON_SOURCES}" "${KRATOS_LEGACY_TEST_SOURCES}")
 endif(${KRATOS_USE_LEGACY} MATCHES ON)
 
 if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
@@ -71,7 +73,7 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
     )
 
     add_library(KratosCoreTestUtilities SHARED ${KRATOS_TEST_UTILITIES_SOURCES})
-    add_executable(KratosCoreTest ${KRATOS_TEST_SOURCES})
+    add_executable(KratosCoreTest ${KRATOS_TEST_SOURCES} ${KRATOS_FUTURE_TEST_SOURCES} ${KRATOS_LEGACY_TEST_SOURCES})
 
     target_link_libraries(KratosCoreTestUtilities KratosCore GTest::gtest GTest::gmock)
     set_target_properties(KratosCoreTestUtilities PROPERTIES COMPILE_DEFINITIONS "KRATOS_TEST_UTILS=IMPORT,API")

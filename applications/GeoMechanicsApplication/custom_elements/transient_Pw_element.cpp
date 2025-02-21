@@ -242,7 +242,7 @@ int TransientPwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProces
                          << this->Id() << std::endl;
     }
 
-    if (mRetentionLawVector.size() > 0) {
+    if (!mRetentionLawVector.empty()) {
         return mRetentionLawVector[0]->Check(r_properties, rCurrentProcessInfo);
     }
 
