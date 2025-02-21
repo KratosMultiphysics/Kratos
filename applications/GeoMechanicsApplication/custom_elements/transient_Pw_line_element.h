@@ -25,6 +25,7 @@
 #include "includes/serializer.h"
 #include "permeability_calculator.h"
 #include <numeric>
+#include <optional>
 
 namespace Kratos
 {
@@ -194,15 +195,25 @@ private:
         CheckProperty(PERMEABILITY_XX);
     }
 
-    void CheckProperty(const Kratos::Variable<double>& rVariable, double MaxValue = std::numeric_limits<double>::max()) const
+    void CheckProperty(const Kratos::Variable<double>& rVariable, std::optional<double> MaxValue = std::nullopt) const
     {
         KRATOS_ERROR_IF_NOT(GetProperties().Has(rVariable))
             << rVariable.Name()
             << " does not exist in the material properties (Id = " << GetProperties().Id()
             << ") at element " << Id() << std::endl;
-        KRATOS_ERROR_IF(GetProperties()[rVariable] < 0.0 || GetProperties()[rVariable] > MaxValue)
-            << rVariable.Name() << " of material Id = " << GetProperties().Id()
-            << " has an invalid value at element " << Id() << std::endl;
+        constexpr auto min_value = 0.0;
+        if (MaxValue.has_value()) {
+            KRATOS_ERROR_IF(GetProperties()[rVariable] < min_value ||
+                            GetProperties()[rVariable] > MaxValue.value())
+                << rVariable.Name() << " of material Id = " << GetProperties().Id() << " at element "
+                << Id() << " has an invalid value " << GetProperties()[rVariable] << " which is outside of the range [ "
+                << min_value << ", " << MaxValue.value() << "]" << std::endl;
+        } else {
+            KRATOS_ERROR_IF(GetProperties()[rVariable] < min_value)
+                << rVariable.Name() << " of material Id = " << GetProperties().Id()
+                << " at element " << Id() << " has an invalid value " << GetProperties()[rVariable]
+                << " which is below the minimum allowed value of " << min_value << std::endl;
+        }
     }
 
     void CheckProperty(const Kratos::Variable<std::string>& rVariable, const std::string& rName) const
