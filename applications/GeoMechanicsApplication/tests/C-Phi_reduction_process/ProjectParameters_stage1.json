@@ -80,7 +80,7 @@
         "water_pressure_relative_tolerance": 0.0001
     },
     "processes": {
-        "auxilliary_process_list": [
+        "auxiliary_process_list": [
             {
                 "Parameters": {
                     "model_part_name": "PorousDomain.porous_computational_model_part",
