@@ -256,7 +256,7 @@ KRATOS_TEST_CASE_IN_SUITE(SerializerLongLong, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(SerializerRawOwningPointerToAbstractBase, KratosCoreFastSuiteWithoutKernel)
 {
-    StreamSerializer serializer;
+    Serializer serializer{new std::stringstream{}};
     ScopedTestClassRegistration scoped_registration;
 
     const auto tag_string = std::string{"TestString"};
