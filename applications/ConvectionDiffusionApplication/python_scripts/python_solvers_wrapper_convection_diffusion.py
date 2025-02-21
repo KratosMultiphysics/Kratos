@@ -50,6 +50,8 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         # Coupled mechanical-thermal solver
         elif (solver_type == "thermo_mechanically_coupled" or solver_type == "ThermoMechanicallyCoupled"):
             solver_module_name = "coupled_structural_thermal_solver"
+        elif (solver_type == "thermo_mechanically_coupled_substepping" or solver_type == "ThermoMechanicallyCoupledSubstepping"):
+            solver_module_name = "coupled_structural_thermal_substepping_solver"
         # Coupled CHT solver (space thermal - CFD-thermal coupling)
         elif (solver_type == "conjugate_heat_transfer" or solver_type == "ConjugateHeatTransfer"):
             solver_module_name = "conjugate_heat_transfer_solver"
