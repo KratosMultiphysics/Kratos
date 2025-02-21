@@ -282,7 +282,7 @@ public:
             rSpans,
             *(mpNurbsCurve.get()), Start, End,
             surface_spans_u, surface_spans_v,
-            1e-6);
+            1e-11);
     }
 
     /* @brief  Provides intersections of the nurbs curve with the knots of the surface in the SBM case.

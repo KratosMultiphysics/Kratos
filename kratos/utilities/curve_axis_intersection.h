@@ -179,7 +179,7 @@ namespace Kratos
             double max_2 = std::numeric_limits<double>::lowest();
             GetSpanIndex(rAxis1, axis_index_1, min_1, max_1, std::get<1>(polygon[0])[0], ascending_1);
             GetSpanIndex(rAxis2, axis_index_2, min_2, max_2, std::get<1>(polygon[0])[1], ascending_2);
-            const double tol = 1e-10;
+            const double tol = 1e-14;
 
             // iterate through polygon and check for knot intersections
             for (IndexType i = 1; i < polygon.size(); ++i) {
@@ -219,7 +219,8 @@ namespace Kratos
                 rIntersectionParameters.push_back(End);
 
             // sort and delete duplicated entries
-            SortUnique(rIntersectionParameters, Tolerance);
+            double sort_tolerance = 1e-9;
+            SortUnique(rIntersectionParameters, sort_tolerance);
         }
     };
 } // namespace Kratos.
