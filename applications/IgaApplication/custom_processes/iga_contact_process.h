@@ -159,6 +159,8 @@ private:
     Properties::Pointer mpPropMaster;
     Properties::Pointer mpPropSlave;
 
+    ModelPart* mrContactModelPart = nullptr; 
+
 
     bool GetProjection(CoordinatesArrayType& slavePoint, GeometryType &slave_geometry, GeometryType &master_geometry, double& localProjection);
 

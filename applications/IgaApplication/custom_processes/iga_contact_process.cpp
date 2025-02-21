@@ -24,6 +24,12 @@ namespace Kratos
         
         mEchoLevel = mParameters["echo_level"].GetInt();
 
+        KRATOS_ERROR_IF_NOT(ThisParameters.Has("analysis_model_part_name")) << "::[IgaContactProcessSbm]::" 
+                            << " Missing \"analysis_model_part_name\" parameter. "<< std::endl; 
+        
+        KRATOS_ERROR_IF_NOT(ThisParameters.Has("contact_sub_model_part_name")) << "::[IgaContactProcessSbm]::" 
+                            << " Missing \"contact_sub_model_part_name\" parameter. "<< std::endl; 
+
         //-----------------------------------------------------------------------------------------------
         // Obtain SLAVE interface b_reps
         const std::string slave_model_part_name = mParameters["contact_parameters"]["slave_model_part"]["sub_model_part_name"].GetString();
@@ -52,38 +58,33 @@ namespace Kratos
         mpPropMaster = master_model_part.pGetProperties(master_property_id);
 
         mpCouplingGeometry = Kratos::make_shared<NurbsCouplingGeometry2D<PointType, PointerVector<NodeType>>>(geometry_list_slave, geometry_list_master);
+   
+   
+   
+        std::string analysis_model_part_name = mParameters["analysis_model_part_name"].GetString();
+        std::string contact_sub_model_part_name = mParameters["contact_sub_model_part_name"].GetString();
+
+
+        std::string contact_model_part_name = analysis_model_part_name + ".ContactInterface." + contact_sub_model_part_name;
+
+        mrContactModelPart = &(mpModel->CreateModelPart(contact_model_part_name));
    }
 
     void IgaContactProcess::Execute(){
 
-        std::string main_model_part_name = "IgaModelPart";
-
-        std::string contact_sub_model_part_name = "ContactInterface";
-
-        // Model& mainModel = r_model_part->GetModel();
-
-        ModelPart& main_model_part = mpModel->HasModelPart(main_model_part_name)
-                                      ? mpModel->GetModelPart(main_model_part_name)
-                                      : mpModel->CreateModelPart(main_model_part_name);
-
-        // if (main_model_part.HasSubModelPart(contact_sub_model_part_name)) main_model_part.RemoveSubModelPart(contact_sub_model_part_name);
-
         
-        ModelPart& contact_sub_model_part = main_model_part.HasSubModelPart(contact_sub_model_part_name)
-                                            ? main_model_part.GetSubModelPart(contact_sub_model_part_name)
-                                            : main_model_part.CreateSubModelPart(contact_sub_model_part_name);
 
 
         // KRATOS_WATCH(main_model_part.Conditions().size())
         // KRATOS_WATCH(contact_sub_model_part.Conditions().size())
         
-        ConditionsArrayType& r_conditions_array = contact_sub_model_part.Conditions();
+        ConditionsArrayType& r_conditions_array = mrContactModelPart->Conditions();
         KRATOS_TRACE_IF("Empty model part", r_conditions_array.size() == 0) << "YOUR CONTACT MODEL PART IS EMPTY" << std::endl;
         block_for_each(r_conditions_array, [&](Condition& rCond) {
                 rCond.Set(TO_ERASE, true);
         });
 
-        contact_sub_model_part.RemoveConditionsFromAllLevels(TO_ERASE);
+        mrContactModelPart->RemoveConditionsFromAllLevels(TO_ERASE);
 
         // KRATOS_WATCH(contact_sub_model_part.Conditions().size())
         // KRATOS_WATCH(main_model_part.Conditions().size())
@@ -132,8 +133,8 @@ namespace Kratos
         SizeType id = 1;
         // if (contact_model_part.GetRootModelPart().Conditions().size() > 0)
         //     id = contact_model_part.GetRootModelPart().Conditions().back().Id() + 1;
-        if (contact_sub_model_part.GetRootModelPart().Conditions().size() > 0)
-            id = contact_sub_model_part.GetRootModelPart().Conditions().back().Id() + 1;
+        if (mrContactModelPart->GetRootModelPart().Conditions().size() > 0)
+            id = mrContactModelPart->GetRootModelPart().Conditions().back().Id() + 1;
         
         KRATOS_ERROR_IF_NOT(mParameters.Has("name"))
             << "\"name\" need to be specified." << std::endl;
@@ -142,7 +143,7 @@ namespace Kratos
 
         this->CreateConditions(
                         geometries.ptr_begin(), geometries.ptr_end(),
-                        contact_sub_model_part, name, id, mpPropMaster, mpPropSlave);
+                        *mrContactModelPart, name, id, mpPropMaster, mpPropSlave);
 
     }
 

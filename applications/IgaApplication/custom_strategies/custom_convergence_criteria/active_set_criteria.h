@@ -270,143 +270,152 @@ public:
 
         // return true;
         if (!rModelPart.HasSubModelPart("ContactInterface")) return true;
-        // We save the current WEIGHTED_GAP in the buffer
-        // auto& r_conditions_array = rModelPart.GetSubModelPart("ContactInterface").Conditions();
-        ModelPart* contact_sub_model_part = rModelPart.pGetSubModelPart("ContactInterface");
+        ModelPart& r_contact_model_part = rModelPart.GetSubModelPart("ContactInterface");
 
-        int count_cond = 0;
-        int n_CP = (contact_sub_model_part->Conditions().begin())->GetGeometry().GetGeometryPart(0).size();
-        int p = (int) sqrt(n_CP);
-
-        int n_GP_per_segment = 2*p+1;
-        // double toll = 1e-2;
-        double toll = 1e-9;
-        int n_cond = contact_sub_model_part->Conditions().size(); 
-
-        Vector length = ZeroVector(n_cond);
-        Vector check_per_segment = ZeroVector(n_cond);
-
-        Vector check_per_segment_stress = ZeroVector(n_cond);
-        Vector check_per_segment_gap = ZeroVector(n_cond);
-        int n_changes = 0;
-
-        int n_active = 0;
-
-        for (auto i_cond(contact_sub_model_part->Conditions().begin()); i_cond != contact_sub_model_part->Conditions().end(); ++i_cond)
+        for (auto& contact_sub_model_part : r_contact_model_part.SubModelParts())
         {
-            
-            // double normal_gap = i_cond->GetValue(NORMAL_GAP);
-            Vector normal_stress_slave = i_cond->GetValue(STRESS_SLAVE);
-            Vector normal_slave = i_cond->GetValue(NORMAL_SLAVE);
-            Vector normal_stress_master = i_cond->GetValue(STRESS_MASTER);
-            Vector normal_master = i_cond->GetValue(NORMAL_MASTER);
-
-            Vector gap = i_cond->GetValue(GAP);
-            double normal_gap_master = inner_prod(gap, normal_master);
-            double normal_gap_slave = -inner_prod(gap, normal_slave);
-
-            double weight = i_cond->GetValue(INTEGRATION_WEIGHT);
-
-            double young_modulus = 200;
-            const double gamma = 1; //100/(200+100);
-
-            double true_normal_stress_master = (normal_stress_master[0]* normal_master[0] + normal_stress_master[2]* normal_master[1])*normal_master[0] +
-                                               (normal_stress_master[2]* normal_master[0] + normal_stress_master[1]* normal_master[1])*normal_master[1];
-
-            double true_normal_stress_slave = (normal_stress_slave[0]* normal_slave[0] + normal_stress_slave[2]* normal_slave[1])*normal_slave[0] +
-                                              (normal_stress_slave[2]* normal_slave[0] + normal_stress_slave[1]* normal_slave[1])*normal_slave[1];
-
-
-            int segment_index = (int) count_cond/n_GP_per_segment;
-            double check_value = -(true_normal_stress_master+young_modulus*normal_gap_master);
-
-            double check_value_gap = -weight*(gamma*normal_gap_master + (1-gamma)* normal_gap_slave);
-            double check_value_stress = -weight/young_modulus*(gamma*true_normal_stress_master + (1-gamma) *true_normal_stress_slave);
-            // double check_value = -(yound_modulus*normal_gap);
-
-            length[segment_index] += weight;
-            check_per_segment[segment_index] += weight*check_value;
-
-            check_per_segment_stress[segment_index] += check_value_stress;
-            check_per_segment_gap[segment_index] += check_value_gap;
-
-            // if (check_value_stress< -toll)
-            // {   
-            //     if (i_cond->GetValue(ACTIVATION_LEVEL) == 1)
-            //     {
-            //         i_cond->SetValue(ACTIVATION_LEVEL, 0);
-            //         n_changes++;
-            //     }
-            // } else if (check_value_gap > toll)
-            // {
-                
-            //     if (i_cond->GetValue(ACTIVATION_LEVEL) == 0)
-            //     {
-            //         i_cond->SetValue(ACTIVATION_LEVEL, 1);
-            //         n_changes++;
-            //     }
-            //     n_active ++;
-            // }
-
-            count_cond++;
-
-        }
-
-        count_cond = 0;
-        for (auto i_cond(contact_sub_model_part->Conditions().begin()); i_cond != contact_sub_model_part->Conditions().end(); ++i_cond)
-        {
-            int segment_index = (int) count_cond/n_GP_per_segment;
-
-            // // OLD VERSION 
-            // if (check_per_segment[segment_index]/length[segment_index] > toll)
-            // {
-            //     if (i_cond->GetValue(ACTIVATION_LEVEL) == 0)
-            //     {
-            //         i_cond->SetValue(ACTIVATION_LEVEL, 1);
-            //         n_changes++;
-            //     }
-            // } else {
-            //     if (i_cond->GetValue(ACTIVATION_LEVEL) == 1)
-            //     {
-            //         i_cond->SetValue(ACTIVATION_LEVEL, 0);
-            //         n_changes++;
-            //     }
-            // }
-
-            // NEW VERSION 
-            if (i_cond->GetValue(ACTIVATION_LEVEL) == 1 &&
-                check_per_segment_stress[segment_index]/length[segment_index] < -toll)
-            {
-                i_cond->SetValue(ACTIVATION_LEVEL, 0);
-                n_changes++;
-            }
-            else if (i_cond->GetValue(ACTIVATION_LEVEL) == 0 &&
-                check_per_segment_gap[segment_index]/length[segment_index] > toll)
-            {
-                i_cond->SetValue(ACTIVATION_LEVEL, 1);
-                n_changes++;
-            }
-
-            // if (i_cond->GetValue(ACTIVATION_LEVEL) == 1) n_active++;
-
-
-            count_cond++;
-
-        }
-        double min_percentage_change = 0.05; //8/n_cond;
-        double rel_change = (double) n_changes/n_active; //n_changes/n_cond;
-        if (n_active == 0) rel_change = 0;
-        if (rel_change <= min_percentage_change){
-            KRATOS_INFO_IF("ACTIVE SET CRITERION: Convergence achieved", this->GetEchoLevel()>=0)
-            << n_changes << " changes over " << n_active << " conditions active-> CHANGE: " << rel_change << std::endl;
-            return true;
-        } 
-        else{
-            KRATOS_INFO_IF("ACTIVE SET CRITERION: Convergence NOT achieved. -> ", this->GetEchoLevel()>=0) 
-            << n_changes << " changes over " << n_active << " conditions active-> CHANGE: " << rel_change*100 << "%" << std::endl;
-            return false;
-        } 
+            KRATOS_INFO_IF("::[ActiveSetCriteria]:: Starting Post Criteria of Contact sub model part ", this->GetEchoLevel() >= 1) 
+                            << contact_sub_model_part.Name();
         
+            if (contact_sub_model_part.NumberOfConditions() == 0) return true;
+
+            int count_cond = 0;
+            int n_CP = (contact_sub_model_part.Conditions().begin())->GetGeometry().GetGeometryPart(0).size();
+            int p = (int) sqrt(n_CP);
+
+            int n_GP_per_segment = 2*p+1;
+            double toll_tangent_distance = 1e-1;
+            double toll = 1e-9;
+            double toll_stress = 1e-2;
+            int n_cond = contact_sub_model_part.Conditions().size(); 
+
+            Vector length = ZeroVector(n_cond);
+            Vector check_per_segment = ZeroVector(n_cond);
+
+            Vector check_per_segment_stress = ZeroVector(n_cond);
+            Vector check_per_segment_gap = ZeroVector(n_cond);
+            int n_changes = 0;
+
+            int n_active = 0;
+
+            for (auto i_cond(contact_sub_model_part.Conditions().begin()); i_cond != contact_sub_model_part.Conditions().end(); ++i_cond)
+            {
+                
+                // double normal_gap = i_cond->GetValue(NORMAL_GAP);
+                Vector normal_stress_slave = i_cond->GetValue(STRESS_SLAVE);
+                Vector normal_slave = i_cond->GetValue(NORMAL_SLAVE);
+                Vector normal_stress_master = i_cond->GetValue(STRESS_MASTER);
+                Vector normal_master = i_cond->GetValue(NORMAL_MASTER);
+
+                Vector gap = i_cond->GetValue(GAP);
+                double normal_gap_master = inner_prod(gap, normal_master);
+                double normal_gap_slave = -inner_prod(gap, normal_slave);
+
+                double tangent_gap_master = norm_2(gap - normal_master*normal_gap_master);
+
+                double weight = i_cond->GetValue(INTEGRATION_WEIGHT);
+
+                double young_modulus = i_cond->GetValue(YOUNG_MODULUS_SLAVE); //TODO:
+                const double gamma = 1; //100/(200+100);
+
+                double true_normal_stress_master = (normal_stress_master[0]* normal_master[0] + normal_stress_master[2]* normal_master[1])*normal_master[0] +
+                                                (normal_stress_master[2]* normal_master[0] + normal_stress_master[1]* normal_master[1])*normal_master[1];
+
+                double true_normal_stress_slave = (normal_stress_slave[0]* normal_slave[0] + normal_stress_slave[2]* normal_slave[1])*normal_slave[0] +
+                                                (normal_stress_slave[2]* normal_slave[0] + normal_stress_slave[1]* normal_slave[1])*normal_slave[1];
+
+
+                int segment_index = (int) count_cond/n_GP_per_segment;
+                double check_value = -(true_normal_stress_master+young_modulus*normal_gap_master);
+
+                double check_value_gap = -weight*(gamma*normal_gap_master + (1-gamma)* normal_gap_slave);
+                double check_value_stress = -(gamma*true_normal_stress_master + (1-gamma) *true_normal_stress_slave)/young_modulus;
+                // double check_value = -(yound_modulus*normal_gap);
+
+                length[segment_index] += weight;
+                check_per_segment[segment_index] += weight*check_value;
+
+                check_per_segment_stress[segment_index] += check_value_stress;
+                check_per_segment_gap[segment_index] += check_value_gap;
+
+                if (check_value_stress< -toll_stress)
+                {   
+                    if (i_cond->GetValue(ACTIVATION_LEVEL) == 1)
+                    {
+                    i_cond->SetValue(ACTIVATION_LEVEL, 0);
+                    n_changes++;
+                    }
+
+                } else if (check_value_gap > toll && tangent_gap_master < toll_tangent_distance)
+                {
+                    
+                    if (i_cond->GetValue(ACTIVATION_LEVEL) == 0)
+                    {
+                        i_cond->SetValue(ACTIVATION_LEVEL, 1);
+                        n_changes++;
+                    }
+                    n_active ++;
+                }
+
+                count_cond++;
+
+            }
+                                                                                
+            // count_cond = 0;
+            // for (auto i_cond(contact_sub_model_part->Conditions().begin()); i_cond != contact_sub_model_part->Conditions().end(); ++i_cond)
+            // {
+            //     int segment_index = (int) count_cond/n_GP_per_segment;
+
+            //     // // OLD VERSION 
+            //     // if (check_per_segment[segment_index]/length[segment_index] > toll)
+            //     // {
+            //     //     if (i_cond->GetValue(ACTIVATION_LEVEL) == 0)
+            //     //     {
+            //     //         i_cond->SetValue(ACTIVATION_LEVEL, 1);
+            //     //         n_changes++;
+            //     //     }
+            //     // } else {
+            //     //     if (i_cond->GetValue(ACTIVATION_LEVEL) == 1)
+            //     //     {
+            //     //         i_cond->SetValue(ACTIVATION_LEVEL, 0);
+            //     //         n_changes++;
+            //     //     }
+            //     // }
+
+            //     // NEW VERSION 
+            //     if (i_cond->GetValue(ACTIVATION_LEVEL) == 1 &&
+            //         check_per_segment_stress[segment_index]/length[segment_index] < -toll)
+            //     {
+            //         i_cond->SetValue(ACTIVATION_LEVEL, 0);
+            //         n_changes++;
+            //     }
+            //     else if (i_cond->GetValue(ACTIVATION_LEVEL) == 0 &&
+            //         check_per_segment_gap[segment_index]/length[segment_index] > toll)
+            //     {
+            //         i_cond->SetValue(ACTIVATION_LEVEL, 1);
+            //         n_changes++;
+            //     }
+
+            //     // if (i_cond->GetValue(ACTIVATION_LEVEL) == 1) n_active++;
+
+
+            //     count_cond++;
+
+            // }
+            double min_percentage_change = 0.05; //8/n_cond;
+            double rel_change = (double) n_changes/n_active; //n_changes/n_cond;
+            if (n_active == 0) rel_change = 0;
+            if (rel_change <= min_percentage_change){
+                KRATOS_INFO_IF("ACTIVE SET CRITERION: Convergence achieved", this->GetEchoLevel()>=0)
+                << n_changes << " changes over " << n_active << " conditions active-> CHANGE: " << rel_change << std::endl;
+                return true;
+            } 
+            else{
+                KRATOS_INFO_IF("ACTIVE SET CRITERION: Convergence NOT achieved. -> ", this->GetEchoLevel()>=0) 
+                << n_changes << " changes over " << n_active << " conditions active-> CHANGE: " << rel_change*100 << "%" << std::endl;
+                return false;
+            } 
+        }
     }
 
     /**
