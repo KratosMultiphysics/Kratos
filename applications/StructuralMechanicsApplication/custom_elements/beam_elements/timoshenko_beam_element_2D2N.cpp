@@ -1012,7 +1012,11 @@ int LinearTimoshenkoBeamElement2D2N::Check(const ProcessInfo& rCurrentProcessInf
 {
     KRATOS_TRY;
 
-    return mConstitutiveLawVector[0]->Check(GetProperties(), GetGeometry(), rCurrentProcessInfo);
+    if (this->IsActive())
+    {
+        return mConstitutiveLawVector[0]->Check(GetProperties(), GetGeometry(), rCurrentProcessInfo);
+    }
+    return 0;
 
     KRATOS_CATCH( "" );
 }
