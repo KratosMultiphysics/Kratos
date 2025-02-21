@@ -70,6 +70,8 @@ public:
     [[nodiscard]] int foo() const override { return mMagicNumber; }
 
 private:
+    friend Serializer;
+
     void save(Serializer& rSerializer) const override
     {
         rSerializer.save("mMagicNumber", mMagicNumber);
