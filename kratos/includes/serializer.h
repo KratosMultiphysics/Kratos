@@ -203,7 +203,7 @@ public:
 	//msRegisteredObjects.insert(RegisteredObjectsContainerType::value_type(rName,&pPrototype));
     }
 
-    static void Unregister(const std::string& rName)
+    static void Deregister(const std::string& rName)
     {
         msRegisteredObjects.erase(rName);
         msRegisteredObjectsName.erase(rName);
