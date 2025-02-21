@@ -100,6 +100,13 @@ class ApplyHydraulicInletProcess(KratosMultiphysics.Process):
 
         # For each time step obtain the corresponding inlet discharge value according to the external data type; table, function or value.
         current_time = self.inlet_model_part.ProcessInfo[KratosMultiphysics.TIME]
+        print(current_time)
+        if current_time<0.0:
+            self.inlet_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME,0.0)
+            current_time = self.inlet_model_part.ProcessInfo[KratosMultiphysics.TIME]
+        
+
+        print(self.inlet_model_part.ProcessInfo[KratosMultiphysics.TIME])
         if self.interval.IsInInterval(current_time):
             self.step_is_active = True
             if self.discharge_value_is_function:
@@ -112,7 +119,7 @@ class ApplyHydraulicInletProcess(KratosMultiphysics.Process):
 
             elif self.discharge_value_is_table:
                 self.inlet_discharge = self.table.GetValue(current_time)
-        self.inlet_discharge = 0.094
+    
         #Calculate the initial water depth guess.
         if not self.initial_water_depth:
             self.initial_water_depth = KratosFluidHydraulics.HydraulicFluidAuxiliaryUtilities.InitialWaterDepth(
@@ -122,7 +129,7 @@ class ApplyHydraulicInletProcess(KratosMultiphysics.Process):
 
         # Define an interval within which the critical water depth belongs.
         # TODO: There is a more optimal way to define this interval in order to avoid iterations.
-        water_depth_a = 1e-6
+        water_depth_a = min([node.Z for node in self.inlet_model_part.Nodes])
         water_depth_b = max([node.Z for node in self.inlet_model_part.Nodes])
         # The froude number for supercritical(small water depth) flows has a big value while for subcritical(High water depth) flows the froude number is small less than one.
         froude_number_a = 100000
@@ -194,6 +201,8 @@ class ApplyHydraulicInletProcess(KratosMultiphysics.Process):
             if abs(aux_distance) < self.water_depth_tolerance:
                 aux_distance = self.water_depth_tolerance if aux_distance > 0.0 else - self.water_depth_tolerance
             node.SetValue(self.water_depth_variable, aux_distance)
+        print("ESTOS_VALORES")
+        print(water_depth)
 
         # Calculate the wetted area and perimeter
         self.wetted_area = KratosFluidHydraulics.HydraulicFluidAuxiliaryUtilities.CalculateWettedArea(
@@ -202,6 +211,10 @@ class ApplyHydraulicInletProcess(KratosMultiphysics.Process):
             self.inlet_model_part, KratosMultiphysics.INLET, self.water_depth_variable, False)
 
         # Calculate froude number.
+        print("ahhhhhh")
+        print(self.inlet_discharge)
+        print(self.wetted_area)
+        print(self.wetted_perimeter)
         froude_number = self.inlet_discharge/self.wetted_area /(sqrt(self.gravity * self.wetted_area / self.wetted_perimeter))
         return froude_number
 
