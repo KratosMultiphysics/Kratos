@@ -529,14 +529,16 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
         const auto strain_vectors        = StressStrainUtilities::CalculateStrains(
             deformation_gradients, b_matrices, Variables.DisplacementVector,
             Variables.UseHenckyStrain, GetStressStatePolicy().GetVoigtSize());
-        auto relative_permeability_values =
-            CalculateRelativePermeabilityValues(GeoTransportEquationUtilities::CalculateFluidPressures(
-                Variables.NpContainer, Variables.PressureVector));
+        const auto pressures_on_integration_points = GeoTransportEquationUtilities::CalculateFluidPressures(
+            Variables.NpContainer, Variables.PressureVector);
+        auto relative_permeability_values = CalculateRelativePermeabilityValues(pressures_on_integration_points);
         const auto permeability_update_factors =
             GeoTransportEquationUtilities::CalculatePermeabilityUpdateFactors(strain_vectors, GetProperties());
         std::transform(relative_permeability_values.cbegin(), relative_permeability_values.cend(),
                        permeability_update_factors.cbegin(), relative_permeability_values.begin(),
                        std::multiplies<>{});
+
+        const auto bishop_coefficients = this->CalculateBishopCoefficients(pressures_on_integration_points);
 
         // Loop over integration points
         const SizeType dimension = r_geometry.WorkingSpaceDimension();
@@ -564,7 +566,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
             // Compute fluid flux vector q [L/T]
             rOutput[g_point].clear();
             const auto fluid_flux = PORE_PRESSURE_SIGN_FACTOR * Variables.DynamicViscosityInverse *
-                                    relative_permeability *
+                                    relative_permeability_values[g_point] * bishop_coefficients[g_point] *
                                     prod(Variables.IntrinsicPermeability, grad_pressure_term);
             std::copy_n(fluid_flux.begin(), dimension, rOutput[g_point].begin());
         }
@@ -1266,7 +1268,8 @@ std::vector<double> SmallStrainUPwDiffOrderElement::CalculateRelativePermeabilit
     return result;
 }
 
-std::vector<double> SmallStrainUPwDiffOrderElement::CalculateBishopCoefficients(const std::vector<double>& rFluidPressures) const
+template <typename PressureVectorType>
+std::vector<double> SmallStrainUPwDiffOrderElement::CalculateBishopCoefficients(const PressureVectorType& rFluidPressures) const
 {
     KRATOS_ERROR_IF_NOT(rFluidPressures.size() == mRetentionLawVector.size());
 
