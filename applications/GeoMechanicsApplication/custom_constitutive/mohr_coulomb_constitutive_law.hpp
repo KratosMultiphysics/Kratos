@@ -68,15 +68,14 @@ public:
     Matrix ConvertVectorToDiagonalMatrix(Vector& rVector);
     Matrix CalculateRotationMatrix(Matrix& eigenVectorsMatrix);
     void CheckRotationMatrix(Matrix& rRotationMatrix);
-    Vector RotatePrincipalStresses(Matrix& rPrincipalStressMatrix, Matrix& rRotationMatrix);
+    Vector RotatePrincipalStresses(Vector& rPrincipalStressVector, Matrix& rRotationMatrix);
+    //Vector RotatePrincipalStresses(Matrix& rPrincipalStressMatrix, Matrix& rRotationMatrix);
     Vector ReturnStressAtElasticZone(Vector& rTrailStressVector);
-    Vector ReturnStressAtAxialZone(Vector& rPrincipalTrialStressVector, double tensionCutoff, Matrix& rRotationMatrix);
+    Vector ReturnStressAtAxialZone(Vector& rPrincipalTrialStressVector, double tensionCutoff);
     Vector ReturnStressAtCornerReturnZone(Vector& rPrincipalTrialStressVector,
-                                          Matrix& rRotationMatrix,
                                           Vector& rCornerPoint);
     Vector ReturnStressAtRegularFailureZone(Vector&                     rPrincipalTrialStressVector,
                                             const CoulombYieldFunction& rCoulombYieldFunction,
-                                            Matrix&                     rRotationMatrix,
                                             double                      friction_angle,
                                             double                      cohesion);
 
