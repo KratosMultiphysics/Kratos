@@ -65,22 +65,22 @@ public:
     void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 
     Vector NormalizeVector(Vector& rVector);
-    Matrix ConvertVectorToDiagonalMatrix(Vector& rVector);
-    Matrix CalculateRotationMatrix(Matrix& eigenVectorsMatrix);
-    void CheckRotationMatrix(Matrix& rRotationMatrix);
+    Matrix ConvertVectorToDiagonalMatrix(const Vector& rVector);
+    Matrix CalculateRotationMatrix(const Matrix& eigenVectorsMatrix);
+    void CheckRotationMatrix(const Matrix& rRotationMatrix);
     Vector RotatePrincipalStresses(Vector& rPrincipalStressVector, Matrix& rRotationMatrix);
     //Vector RotatePrincipalStresses(Matrix& rPrincipalStressMatrix, Matrix& rRotationMatrix);
-    Vector ReturnStressAtElasticZone(Vector& rTrailStressVector);
-    Vector ReturnStressAtAxialZone(Vector& rPrincipalTrialStressVector, double tensionCutoff);
-    Vector ReturnStressAtCornerReturnZone(Vector& rPrincipalTrialStressVector,
-                                          Vector& rCornerPoint);
-    Vector ReturnStressAtRegularFailureZone(Vector&                     rPrincipalTrialStressVector,
+    Vector ReturnStressAtElasticZone(const Vector& rTrailStressVector);
+    Vector ReturnStressAtAxialZone(const Vector& rPrincipalTrialStressVector, const double TensionCutoff);
+    Vector ReturnStressAtCornerReturnZone(const Vector& rPrincipalTrialStressVector,
+                                          const Vector& rCornerPoint);
+    Vector ReturnStressAtRegularFailureZone(const Vector&                     rPrincipalTrialStressVector,
                                             const CoulombYieldFunction& rCoulombYieldFunction,
-                                            double                      friction_angle,
-                                            double                      cohesion);
+                                            const double                      FrictionAngle,
+                                            const double                      Cohesion);
 
-
-    Vector CalculateCornerPoint(double rFrictionAngle, double rCohesion, double rTensionCutoff, double rApex);
+    double CalculateApex(const double FrictionAngle, const double Cohesion);
+    Vector CalculateCornerPoint(const double FrictionAngle, const double Cohesion, const double TensionCutoff, const double Apex);
 
     // Member Variables
     double mStateVariable;

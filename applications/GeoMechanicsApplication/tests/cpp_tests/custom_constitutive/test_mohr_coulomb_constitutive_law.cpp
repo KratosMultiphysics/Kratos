@@ -12,13 +12,17 @@
 
 #include "custom_constitutive/mohr_coulomb_constitutive_law.hpp"
 #include "custom_constitutive/plane_strain.h"
+#include "custom_constitutive/coulomb_yield_function.hpp"
 
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
 
+#include "utilities/math_utils.h"
+
 #include <boost/numeric/ublas/assignment.hpp>
 #include <sstream>
 #include <string>
+
 
 using namespace Kratos;
 using namespace std::string_literals;
@@ -196,6 +200,87 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombConstitutiveLaw_FinalizeMaterialResponseCau
     // Assert
     auto expected_stress_vector = ZeroVector(plane_strain->GetStrainSize());
     KRATOS_EXPECT_VECTOR_EQ(stress_vector, expected_stress_vector);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombConstitutiveLaw_ReturnStressAtElasticZone, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Set
+    auto plane_strain = std::make_unique<PlaneStrain>();
+    auto law          = MohrCoulombConstitutiveLaw(std::make_unique<PlaneStrain>());
+
+    Vector trial_stress_vector(plane_strain->GetStrainSize());
+    trial_stress_vector <<= 1.0, 2.0, 3.0, 4.0;
+
+    Vector stress_vector = law.ReturnStressAtElasticZone(trial_stress_vector);
+
+    Vector expected_stress_vector(plane_strain->GetStrainSize());
+    expected_stress_vector <<= 1.0, 2.0, 3.0, 4.0;
+    KRATOS_EXPECT_VECTOR_EQ(stress_vector, expected_stress_vector);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombConstitutiveLaw_ReturnStressAtAxialZone, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Set
+    auto plane_strain = std::make_unique<PlaneStrain>();
+    auto law          = MohrCoulombConstitutiveLaw(std::make_unique<PlaneStrain>());
+
+    Vector principal_stress_vector(3);
+    principal_stress_vector <<= 10.0, 7.0, 6.0;
+    double tension_cutoff = 1.0;
+    Vector modified_stress_vector = law.ReturnStressAtAxialZone(principal_stress_vector, tension_cutoff);
+    Vector expected_stress_vector(3);
+    expected_stress_vector <<= 5.0, 7.0, 1.0;
+    KRATOS_EXPECT_VECTOR_EQ(modified_stress_vector, expected_stress_vector);
+
+    principal_stress_vector <<= 12.0, 7.0, 4.0;
+    tension_cutoff = 1.0;
+    modified_stress_vector = law.ReturnStressAtAxialZone(principal_stress_vector, tension_cutoff);
+    expected_stress_vector <<= 9.0, 7.0, 1.0;
+    KRATOS_EXPECT_VECTOR_EQ(modified_stress_vector, expected_stress_vector);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombConstitutiveLaw_ReturnStressAtCornerReturnZone, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Set
+    auto plane_strain = std::make_unique<PlaneStrain>();
+    auto law          = MohrCoulombConstitutiveLaw(std::make_unique<PlaneStrain>());
+
+    double friction_angle = 35.0 * Globals::Pi / 180.0;
+    double cohesion = 10.0;
+    double tension_cutoff = 1.0;
+
+    Vector principal_stress_vector(3);
+    principal_stress_vector <<= 16.0, 10.0, 4.0;
+    double apex = law.CalculateApex(friction_angle, cohesion);
+    Vector corner_point = law.CalculateCornerPoint(friction_angle, cohesion, tension_cutoff, apex);
+    Vector modified_stress_vector = law.ReturnStressAtCornerReturnZone(principal_stress_vector, corner_point);
+    Vector expected_stress_vector(3);
+    expected_stress_vector <<= 10.68233106515508, 10.0, 1.0;
+    KRATOS_EXPECT_VECTOR_NEAR(modified_stress_vector, expected_stress_vector, 1.0e-8);
+
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombConstitutiveLaw_ReturnStressAtRegularFailureZone, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Set
+    auto plane_strain = std::make_unique<PlaneStrain>();
+    auto law          = MohrCoulombConstitutiveLaw(std::make_unique<PlaneStrain>());
+
+    double friction_angle = 35.0 * Globals::Pi / 180.0;
+    double cohesion = 10.0;
+    double tension_cutoff = 1.0;
+    double dilation_angle = 0.0;
+
+    CoulombYieldFunction coulomb_yield_function = CoulombYieldFunction(friction_angle, cohesion, dilation_angle);
+
+    Vector principal_stress_vector(3);
+    principal_stress_vector <<= 12.0, 10.0, -6.0;
+
+    Vector modified_stress_vector = law.ReturnStressAtRegularFailureZone(
+                   principal_stress_vector, coulomb_yield_function, friction_angle, cohesion);
+    Vector expected_stress_vector(3);
+    expected_stress_vector <<= 9.47079113384, 10.0, -3.47079113384;
+    KRATOS_EXPECT_VECTOR_NEAR(modified_stress_vector, expected_stress_vector, 1.0e-8);
 }
 
 } // namespace Kratos::Testing
