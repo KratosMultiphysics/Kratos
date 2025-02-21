@@ -47,7 +47,7 @@ public:
     /// @copydoc Base::Assemble
     void Assemble(const typename Base::ConstraintArray& rConstraints,
                   const ProcessInfo& rProcessInfo,
-                  const typename Base::DofSet& rDofSet,
+                  typename Base::DofSet& rDofSet,
                   const bool AssembleLhs,
                   const bool AssembleRhs) override;
 
@@ -55,11 +55,23 @@ public:
     void Initialize(typename TSparse::MatrixType& rLhs,
                     typename TSparse::VectorType& rRhs) override;
 
+    /// @copydoc Base::InitializeSolutionStep
+    void InitializeSolutionStep(typename TSparse::MatrixType& rLhs,
+                                typename TSparse::VectorType& rSolution,
+                                typename TSparse::VectorType& rRhs,
+                                const std::size_t iIteration) override;
+
     /// @copydoc Base::FinalizeSolutionStep
     typename Base::Status FinalizeSolutionStep(typename TSparse::MatrixType& rLhs,
                                                typename TSparse::VectorType& rSolution,
                                                typename TSparse::VectorType& rRhs,
                                                const std::size_t iIteration) override;
+
+    /// @copydoc Base::Finalize
+    void Finalize(typename TSparse::MatrixType& rLhs,
+                  typename TSparse::VectorType& rSolution,
+                  typename TSparse::VectorType& rRhs,
+                  typename Base::DofSet& rDofSet) override;
 
     /// @copydoc Base::Clear
     void Clear() override;

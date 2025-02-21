@@ -14,7 +14,6 @@
 
 // Project includes
 #include "includes/kratos_parameters.h" // Parameters
-#include "includes/process_info.h" // ProcessInfo
 
 
 namespace Kratos {

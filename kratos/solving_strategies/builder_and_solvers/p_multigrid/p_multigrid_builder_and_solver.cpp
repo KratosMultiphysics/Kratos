@@ -21,7 +21,6 @@
 #include "linear_solvers/linear_solver.h" // LinearSolver
 #include "factories/linear_solver_factory.h" // LinearSolverFactory
 #include "includes/kratos_components.h" // KratosComponents
-#include "utilities/dof_utilities/block_build_dof_array_utility.h" // BlockBuildDofArrayUtility
 #include "utilities/proxies.h" // MakeProxy
 #include "utilities/profiler.h" // KRATOS_PROFILE_SCOPE, KRATOS_PROFILE_SCOPE_MILLI
 
@@ -89,21 +88,134 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
     // Solution
     // --------------------------------------------------------- //
 
+
+    void ExecuteMultigridLoop(typename Interface::TSystemMatrixType& rLhs,
+                              typename Interface::TSystemVectorType& rSolution,
+                              typename Interface::TSystemVectorType& rSolutionUpdate,
+                              typename Interface::TSystemVectorType& rResidual,
+                              typename Interface::TSystemVectorType& rResidualUpdate,
+                              const typename TSparse::DataType InitialResidualNorm)
+    {
+        KRATOS_TRY
+        // Inner loop for multigrid.
+        std::size_t i_multigrid_iteration = 0ul;
+
+        while (++i_multigrid_iteration <= static_cast<std::size_t>(mMaxIterations)) {
+            // Solve the coarse grid and apply its correction.
+            if (mMaybeHierarchy.has_value()) {
+                std::visit([&rSolutionUpdate, &rResidual](auto& r_hierarchy){
+                                return r_hierarchy.template ApplyCoarseCorrection<TSparse>(
+                                    rSolutionUpdate,
+                                    rResidual);},
+                           mMaybeHierarchy.value());
+
+                TSparse::UnaliasedAdd(rSolution, 1.0, rSolutionUpdate);
+                TSparse::SetToZero(rResidualUpdate);
+                TSparse::Mult(rLhs, rSolutionUpdate, rResidualUpdate);
+                TSparse::UnaliasedAdd(rResidual, -1.0, rResidualUpdate);
+            } // if mMaybeHierarchy
+
+            // Perform smoothing on the fine grid.
+            TSparse::SetToZero(rSolutionUpdate); //< do I need this?
+            mpInterface->GetLinearSystemSolver()->InitializeSolutionStep(rLhs, rSolutionUpdate, rResidual);
+            mpInterface->GetLinearSystemSolver()->Solve(rLhs, rSolutionUpdate, rResidual);
+            mpInterface->GetLinearSystemSolver()->FinalizeSolutionStep(rLhs, rSolutionUpdate, rResidual);
+
+            // Update the fine residual.
+            TSparse::SetToZero(rResidualUpdate);
+            TSparse::Mult(rLhs, rSolutionUpdate, rResidualUpdate);
+            TSparse::UnaliasedAdd(rResidual, -1.0, rResidualUpdate);
+
+            // Update the fine solution.
+            TSparse::UnaliasedAdd(rSolution, 1.0, rSolutionUpdate);
+
+            // Emit status and check for convergence.
+            if (0 < mTolerance or 3 <= mVerbosity) {
+                const auto relative_residual_norm = TSparse::TwoNorm(rResidual) / InitialResidualNorm;
+                if (3 <= mVerbosity) {
+                    std::stringstream residual_stream;
+                    residual_stream << std::setprecision(8) << std::scientific<< relative_residual_norm;
+                    std::cout << mpInterface->Info() << ": root grid: "
+                              << "multigrid iteration " << i_multigrid_iteration
+                              << " residual " << residual_stream.str()
+                              << "\n";
+                }
+            } // 0 < mTolerance or 3 <= mVerbosity
+        } // while i_multigrid_iteration <= mMaxIterations
+        KRATOS_CATCH("")
+    }
+
+
+    struct ConstraintLoopStatus
+    {
+        typename TSparse::DataType residual_norm;
+        typename ConstraintAssembler<TSparse,TDense>::Status constraint_status;
+    }; // struct ConstraintLoopStatus
+
+
+    [[nodiscard]] ConstraintLoopStatus
+    ExecuteConstraintLoop(typename Interface::TSystemMatrixType& rLhs,
+                          typename Interface::TSystemVectorType& rSolution,
+                          typename Interface::TSystemVectorType& rRhs)
+    {
+        KRATOS_TRY
+        typename ConstraintAssembler<TSparse,TDense>::Status constraint_status {/*converged=*/false, /*finished=*/false};
+        std::size_t i_constraint_iteration = 0ul;
+
+        typename TSparse::VectorType residual(rRhs.size()),
+                                     residual_update(rRhs.size()),
+                                     solution_update(rSolution.size());
+        TSparse::SetToZero(solution_update);
+
+        // Compute the initial residual norm if it will be used.
+        typename TSparse::DataType initial_residual_norm = 1;
+        if (0 < mTolerance or 3 <= mVerbosity) {
+            initial_residual_norm = TSparse::TwoNorm(rRhs);
+            initial_residual_norm = initial_residual_norm ? initial_residual_norm : 1;
+        }
+
+        // Outer loop for constraints.
+        do {
+            ++i_constraint_iteration;
+
+            // Initialize the constraint assembler and update residuals.
+            mpConstraintAssembler->InitializeSolutionStep(rLhs, rSolution, rRhs, i_constraint_iteration);
+            TSparse::SetToZero(residual_update);
+            TSparse::Mult(rLhs, rSolution, residual_update);
+            TSparse::Copy(rRhs, residual);
+            TSparse::UnaliasedAdd(residual, -1.0, residual_update);
+
+            // Get an update on the solution with respect to the current residual.
+            this->ExecuteMultigridLoop(rLhs,
+                                       rSolution,
+                                       solution_update,
+                                       residual,
+                                       residual_update,
+                                       initial_residual_norm);
+
+            // Check for constraint convergence.
+            constraint_status = mpConstraintAssembler->FinalizeSolutionStep(rLhs, rSolution, rRhs, i_constraint_iteration);
+        } while (not constraint_status.finished);
+
+        return ConstraintLoopStatus {/*residual_norm=*/TSparse::TwoNorm(residual) / initial_residual_norm,
+                                     /*constraint_status=*/constraint_status};
+        KRATOS_CATCH("")
+    }
+
+
     /// @brief Initialize the linear solver and solve the provided system.
     bool Solve(typename Interface::TSystemMatrixType& rLhs,
                typename Interface::TSystemVectorType& rSolution,
                typename Interface::TSystemVectorType& rRhs,
-               ModelPart& rModelPart,
-               Interface& rInterface)
+               ModelPart& rModelPart)
     {
-        KRATOS_TRY
-
         // Prepare and initialize members.
-        if (rInterface.GetLinearSolver().AdditionalPhysicalDataIsNeeded()) {
-            rInterface.GetLinearSolver().ProvideAdditionalData(rLhs,
+        KRATOS_TRY
+        if (mpInterface->GetLinearSolver().AdditionalPhysicalDataIsNeeded()) {
+            mpInterface->GetLinearSolver().ProvideAdditionalData(rLhs,
                                                                rSolution,
                                                                rRhs,
-                                                               rInterface.GetDofSet(),
+                                                               mpInterface->GetDofSet(),
                                                                rModelPart);
         }
 
@@ -118,106 +230,28 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
                        mMaybeHierarchy.value());
         } // if mMaybeHierarchy
 
-        KRATOS_CATCH("")
-
-        bool linear_solver_status = false; //< Indicates whether the linear solver converged.
-        typename ConstraintAssembler<TSparse,TDense>::Status constraint_status {/*converged=*/false, /*finished=*/false};
-
-        KRATOS_TRY
-        auto& r_linear_solver = rInterface.GetLinearSolver();
-        std::size_t i_constraint_iteration = 0ul;
-
-        typename TSparse::VectorType residual = rRhs,
-                                     residual_update(rRhs.size()),
-                                     solution_update(rSolution.size());
-        TSparse::SetToZero(solution_update);
-
-        // Compute the initial residual norm if it will be used.
-        typename TSparse::DataType initial_residual_norm = 1;
-        if (0 < mTolerance or 3 <= mVerbosity) {
-            initial_residual_norm = TSparse::TwoNorm(residual);
-            initial_residual_norm = initial_residual_norm ? initial_residual_norm : 1;
-        }
-
-        // Outer loop for constraints.
-        do {
-            ++i_constraint_iteration;
-            mpConstraintAssembler->InitializeSolutionStep(rLhs, rSolution, rRhs, i_constraint_iteration);
-
-            // Inner loop for multigrid.
-            std::size_t i_multigrid_iteration = 0ul;
-
-            while (++i_multigrid_iteration <= static_cast<std::size_t>(mMaxIterations)) {
-                // Solve the coarse grid and apply its correction.
-                if (mMaybeHierarchy.has_value()) {
-                    std::visit([&solution_update, &residual](auto& r_hierarchy){
-                                    return r_hierarchy.template ApplyCoarseCorrection<TSparse>(
-                                        solution_update,
-                                        residual);},
-                               mMaybeHierarchy.value());
-
-                    TSparse::UnaliasedAdd(rSolution, 1.0, solution_update);
-                    TSparse::SetToZero(residual_update);
-                    TSparse::Mult(rLhs, solution_update, residual_update);
-                    TSparse::UnaliasedAdd(residual, -1.0, residual_update);
-                } // if mMaybeHierarchy
-
-                // Perform smoothing on the fine grid.
-                TSparse::SetToZero(solution_update); //< do I need this?
-                r_linear_solver.InitializeSolutionStep(rLhs, solution_update, residual);
-                linear_solver_status = r_linear_solver.Solve(rLhs, solution_update, residual);
-                r_linear_solver.FinalizeSolutionStep(rLhs, solution_update, residual);
-
-                // Update the fine residual.
-                TSparse::SetToZero(residual_update);
-                TSparse::Mult(rLhs, solution_update, residual_update);
-                TSparse::UnaliasedAdd(residual, -1.0, residual_update);
-
-                // Emit status and check for convergence.
-                if (0 < mTolerance or 3 <= mVerbosity) {
-                    const auto relative_residual_norm = TSparse::TwoNorm(residual) / initial_residual_norm;
-                    if (3 <= mVerbosity) {
-                        std::stringstream residual_stream;
-                        residual_stream << std::setprecision(8) << std::scientific<< relative_residual_norm;
-                        std::cout << mpInterface->Info() << ": root grid: "
-                                  << "multigrid iteration " << i_multigrid_iteration
-                                  << " residual " << residual_stream.str()
-                                  << "\n";
-                    }
-                    if (relative_residual_norm < mTolerance) break;
-                } // 0 < mTolerance or 3 <= mVerbosity
-
-                // Update the fine solution.
-                TSparse::UnaliasedAdd(rSolution, 1.0, solution_update);
-            } // while i_constraint_iteration < mMaxIterations
-
-            constraint_status = mpConstraintAssembler->FinalizeSolutionStep(rLhs, rSolution, rRhs, i_constraint_iteration);
-        } while (not constraint_status.finished);
-
-        // Compute the final residual's norm.
-        const typename TSparse::DataType final_residual_norm = TSparse::TwoNorm(residual) / initial_residual_norm;
+        const auto [residual_norm, constraint_status] = this->ExecuteConstraintLoop(
+            rLhs,
+            rSolution,
+            rRhs);
 
         // Emit status.
-        if (1 <= mVerbosity and (not linear_solver_status or not constraint_status.converged)) {
-            std::stringstream residual_stream;
-            residual_stream << std::setprecision(8) << std::scientific<< final_residual_norm;
-
-            if (2 <= mVerbosity)
-                std::cout << mpInterface->Info() << ": residual " << residual_stream.str() << "\n";
-            else if (mTolerance < final_residual_norm)
-                std::cerr << mpInterface->Info() << ": failed to converge "
-                          << "(residual " << residual_stream.str() << ")\n";
-
+        if (1 <= mVerbosity) {
             if (not constraint_status.converged)
                 std::cerr << mpInterface->Info() << ": constraints failed to converge\n";
-        }
 
-        // Cleanup.
-        mpConstraintAssembler->Finalize(rLhs,
-                                        rSolution,
-                                        rRhs,
-                                        mpInterface->GetDofSet());
+            const std::string residual_norm_string = (std::stringstream() << std::setprecision(8) << std::scientific<< residual_norm).str();
+            if (mTolerance < residual_norm) {
+                std::cerr << mpInterface->Info() << ": failed to converge "
+                          << "(residual " << residual_norm_string << ")\n";
+            } /*if mTolerance < residual_norm*/ else {
+                if (2 <= mVerbosity)
+                    std::cout << mpInterface->Info() << ": residual "
+                              << residual_norm_string << "\n";
+            }
+        } // if 1 <= mVerbosity
 
+        // Clean up.
         if (mMaybeHierarchy.has_value()) {
             std::visit([&rModelPart, &rLhs, &rSolution, &rRhs](auto& r_grid){
                             r_grid.template Finalize<TSparse>(
@@ -225,11 +259,16 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
                                 rLhs,
                                 rSolution,
                                 rRhs);
-                       },
-                       mMaybeHierarchy.value());
+                        },
+                        mMaybeHierarchy.value());
         } // if mMaybeHierarchy
 
-        return final_residual_norm <= mTolerance and constraint_status.converged;
+        mpConstraintAssembler->Finalize(rLhs,
+                                        rSolution,
+                                        rRhs,
+                                        mpInterface->GetDofSet());
+
+        return residual_norm <= mTolerance and constraint_status.converged;
         KRATOS_CATCH("")
     }
 
@@ -253,15 +292,15 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
         using TLS = Element::EquationIdVectorType;
         block_for_each(rEntities,
                        TLS(),
-                       [&rScheme, &rProcessInfo, pLockBegin, pRowSetBegin](const auto& rEntity, TLS& rTls){
-            if (rEntity.GetEntity().IsActive()) {
-                rScheme.EquationId(rEntity.GetEntity(), rTls, rProcessInfo);
-                for (const auto equation_id : rTls) {
+                       [&rScheme, &rProcessInfo, pLockBegin, pRowSetBegin](const auto& r_entity, TLS& r_tls){
+            if (r_entity.GetEntity().IsActive()) {
+                rScheme.EquationId(r_entity.GetEntity(), r_tls, rProcessInfo);
+                for (const auto equation_id : r_tls) {
                     [[maybe_unused]] std::scoped_lock<LockObject> lock(pLockBegin[equation_id]);
                     auto& r_row_indices = pRowSetBegin[equation_id];
-                    r_row_indices.insert(rTls.begin(), rTls.end());
-                } // for equation_id in rTls
-            } // if rEntity.IsActive
+                    r_row_indices.insert(r_tls.begin(), r_tls.end());
+                } // for equation_id in r_tls
+            } // if r_entity.IsActive
         });
         KRATOS_CATCH("")
     }
@@ -301,7 +340,8 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
         // Compute and allocate LHS topology.
         MakeSparseTopology<false,typename TSparse::DataType>(indices,
                                                              indices.size(),
-                                                             rLhs);
+                                                             rLhs,
+                                                             /*EnsureDiagonal=*/true);
 
         // Construct the coarse hierarhy's topology.
         if (mMaybeHierarchy.has_value()) {
@@ -474,10 +514,96 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::SetUpDofSet(typename In
                                                                      ModelPart& rModelPart)
 {
     KRATOS_TRY;
-    BlockBuildDofArrayUtility::SetUpDofArray(rModelPart,
-                                             this->GetDofSet(),
-                                             this->GetEchoLevel(),
-                                             this->GetCalculateReactionsFlag());
+
+    // Allocate auxiliary arrays
+    using DofsVectorType = ModelPart::DofsVectorType;
+    this->GetDofSet().clear();
+    const auto& r_current_process_info = rModelPart.GetProcessInfo();
+
+    std::unordered_set<Node::DofType::Pointer, DofPointerHasher> dof_global_set;
+    dof_global_set.reserve(rModelPart.NumberOfElements() * 20);
+
+    // Fill the global DOF set array
+    #pragma omp parallel
+    {
+        DofsVectorType tls_dofs, tls_constraint_dofs;
+
+        // We create the temporal set in current thread and we reserve some space on it
+        std::unordered_set<Node::DofType::Pointer, DofPointerHasher> dofs_tmp_set;
+        dofs_tmp_set.reserve(20000);
+
+        // Add the DOFs from the model part elements
+        const auto& r_elements_array = rModelPart.Elements();
+        const int number_of_elements = static_cast<int>(r_elements_array.size());
+
+        #pragma omp for schedule(guided, 512) nowait
+        for (int i = 0; i < number_of_elements; ++i) {
+            // Get current element iterator
+            const auto it_elem = r_elements_array.cbegin() + i;
+
+            // Gets list of DOF involved on every element
+            if (it_elem->IsActive()) {
+                it_elem->GetDofList(tls_dofs, r_current_process_info);
+                dofs_tmp_set.insert(tls_dofs.begin(), tls_dofs.end());
+            }
+        }
+
+//        // Add the DOFs from the model part conditions
+//        const auto& r_conditions_array = rModelPart.Conditions();
+//        const int number_of_conditions = static_cast<int>(r_conditions_array.size());
+//        KRATOS_INFO_IF("BlockBuildDofArrayUtility", this->GetEchoLevel() > 2) << "Initializing conditions loop" << std::endl;
+//
+//        #pragma omp for  schedule(guided, 512) nowait
+//        for (int i = 0; i < number_of_conditions; ++i) {
+//            // Get current condition iterator
+//            const auto it_cond = r_conditions_array.cbegin() + i;
+//
+//            // Gets list of DOF involved on every condition
+//            if (it_cond->IsActive()) {
+//                it_cond->GetDofList(tls_dofs, r_current_process_info);
+//                dofs_tmp_set.insert(tls_dofs.begin(), tls_dofs.end());
+//            }
+//        }
+
+        // Add the DOFs from the model part constraints
+        const auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
+        const int number_of_constraints = static_cast<int>(r_constraints_array.size());
+
+        #pragma omp for schedule(guided, 512) nowait
+        for (int i = 0; i < number_of_constraints; ++i) {
+            // Get current constraint iterator
+            const auto it_const = r_constraints_array.cbegin() + i;
+
+            // Gets list of DOF involved on every constraint
+            it_const->GetDofList(tls_dofs, tls_constraint_dofs, r_current_process_info);
+            dofs_tmp_set.insert(tls_dofs.begin(), tls_dofs.end());
+            dofs_tmp_set.insert(tls_constraint_dofs.begin(), tls_constraint_dofs.end());
+        }
+
+        // Merge all the sets in one thread
+        #pragma omp critical
+        {
+            dof_global_set.insert(dofs_tmp_set.begin(), dofs_tmp_set.end());
+        }
+    }
+
+    // Fill and sort the provided DOF array from the auxiliary global DOFs set
+    this->GetDofSet().reserve(dof_global_set.size());
+    for (Dof<typename TDense::DataType>* p_dof : dof_global_set) {
+        this->GetDofSet().insert(this->GetDofSet().end(), p_dof);
+    }
+
+    #ifdef KRATOS_DEBUG
+    // If reactions are to be calculated, we check if all the dofs have reactions defined
+    // This is to be done only in debug mode
+    for (const auto& r_dof : this->GetDofSet()) {
+        KRATOS_ERROR_IF_NOT(r_dof.HasReaction())
+            << "Reaction variable not set for "
+            << "DoF " << r_dof << " "
+            << "of node "<< r_dof.Id();
+    }
+    #endif
+
     KRATOS_CATCH("");
 }
 
@@ -613,7 +739,6 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::BuildRHS(typename Inter
         if (rDof.IsFixed())
             rRhs[rDof.EquationId()] = 0.0;
     });
-
     KRATOS_CATCH("")
 }
 
@@ -630,28 +755,70 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::ApplyDirichletCondition
                                                                                   [[maybe_unused]] typename Interface::TSystemVectorType& rSolution,
                                                                                   typename Interface::TSystemVectorType& rRhs)
 {
-    KRATOS_TRY
-    KRATOS_PROFILE_SCOPE(KRATOS_CODE_LOCATION);
+//    KRATOS_TRY
+//    KRATOS_PROFILE_SCOPE(KRATOS_CODE_LOCATION);
+//
+//    // Early exit on an empty system.
+//    if (this->GetDofSet().empty()) return;
+//
+//    const auto it_dof_set_begin = this->GetDofSet().begin();
+//    const auto it_dof_set_end = this->GetDofSet().begin() + this->GetDofSet().size();
+//
+//    mpImpl->mDiagonalScaleFactor = GetDiagonalScaleFactor<TSparse>(rLhs, mpImpl->mDiagonalScaling);
+//    Kratos::ApplyDirichletConditions<TSparse,TDense>(rLhs,
+//                                                     rRhs,
+//                                                     it_dof_set_begin,
+//                                                     it_dof_set_end,
+//                                                     mpImpl->mDiagonalScaleFactor);
+//    if (mpImpl->mMaybeHierarchy.has_value()) {
+//        std::visit([this](auto& r_grid){
+//                       r_grid.ApplyDirichletConditions(mpImpl->mDiagonalScaling);
+//                   },
+//                   mpImpl->mMaybeHierarchy.value());
+//    } // if mMaybeHierarchy
+//    KRATOS_CATCH("")
 
-    // Early exit on an empty system.
-    if (this->GetDofSet().empty()) return;
+    const std::size_t system_size = rLhs.size1();
+        Vector scaling_factors (system_size);
 
-    const auto it_dof_set_begin = this->GetDofSet().begin();
-    const auto it_dof_set_end = this->GetDofSet().begin() + this->GetDofSet().size();
+        const auto it_dof_iterator_begin = this->mDofSet.begin();
 
-    mpImpl->mDiagonalScaleFactor = GetDiagonalScaleFactor<TSparse>(rLhs, mpImpl->mDiagonalScaling);
-    Kratos::ApplyDirichletConditions<TSparse,TDense>(rLhs,
-                                                     rRhs,
-                                                     it_dof_set_begin,
-                                                     it_dof_set_end,
-                                                     mpImpl->mDiagonalScaleFactor);
-    if (mpImpl->mMaybeHierarchy.has_value()) {
-        std::visit([this](auto& r_grid){
-                       r_grid.ApplyDirichletConditions(mpImpl->mDiagonalScaling);
-                   },
-                   mpImpl->mMaybeHierarchy.value());
-    } // if mMaybeHierarchy
-    KRATOS_CATCH("")
+        // NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
+        IndexPartition<std::size_t>(this->mDofSet.size()).for_each([&](std::size_t Index){
+            auto it_dof_iterator = it_dof_iterator_begin + Index;
+            if (it_dof_iterator->IsFixed()) {
+                scaling_factors[Index] = 0.0;
+            } else {
+                scaling_factors[Index] = 1.0;
+            }
+        });
+
+        // Detect if there is a line of all zeros and set the diagonal to a certain number (1 if not scale, some norms values otherwise) if this happens
+        TSparse::CheckAndCorrectZeroDiagonalValues(rModelPart.GetProcessInfo(), rLhs, rRhs, SCALING_DIAGONAL::CONSIDER_MAX_DIAGONAL);
+
+        auto* Avalues = rLhs.value_data().begin();
+        std::size_t* Arow_indices = rLhs.index1_data().begin();
+        std::size_t* Acol_indices = rLhs.index2_data().begin();
+
+        IndexPartition<std::size_t>(system_size).for_each([&](std::size_t Index){
+            const std::size_t col_begin = Arow_indices[Index];
+            const std::size_t col_end = Arow_indices[Index+1];
+            const auto k_factor = scaling_factors[Index];
+            if (k_factor == 0.0) {
+                // Zero out the whole row, except the diagonal
+                for (std::size_t j = col_begin; j < col_end; ++j)
+                    if (Acol_indices[j] != Index )
+                        Avalues[j] = 0.0;
+
+                // Zero out the RHS
+                rRhs[Index] = 0.0;
+            } else {
+                // Zero out the column which is associated with the zero'ed row
+                for (std::size_t j = col_begin; j < col_end; ++j)
+                    if(scaling_factors[ Acol_indices[j] ] == 0 )
+                        Avalues[j] = 0.0;
+            }
+        });
 }
 
 
@@ -692,7 +859,7 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::BuildAndSolve(typename 
     ApplyDirichletConditions(pScheme, rModelPart, rLhs, rSolution, rRhs);
 
     // Solve constrained assembled system.
-    if (not mpImpl->Solve(rLhs, rSolution, rRhs, rModelPart, *this) and 1 <= mpImpl->mVerbosity) {
+    if (not mpImpl->Solve(rLhs, rSolution, rRhs, rModelPart) and 1 <= mpImpl->mVerbosity) {
         std::cerr << this->Info() << ": root grid: failed to solve the assembled system\n";
     }
 
