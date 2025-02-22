@@ -556,8 +556,6 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
                 }
             }
 
-            const auto relative_permeability = relative_permeability_values[g_point];
-
             Vector grad_pressure_term(dimension);
             noalias(grad_pressure_term) = prod(trans(Variables.DNp_DX), Variables.PressureVector);
             noalias(grad_pressure_term) +=

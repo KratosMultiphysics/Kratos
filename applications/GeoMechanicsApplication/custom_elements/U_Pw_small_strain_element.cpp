@@ -1071,11 +1071,10 @@ std::vector<array_1d<double, TDim>> UPwSmallStrainElement<TDim, TNumNodes>::Calc
     ElementVariables Variables;
     this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
-    const PropertiesType& r_properties = this->GetProperties();
-    const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
+    const PropertiesType& r_properties    = this->GetProperties();
+    const auto            fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
         Variables.NContainer, Variables.PressureVector);
-    auto relative_permeability_values =
-        this->CalculateRelativePermeabilityValues(fluid_pressures);
+    auto relative_permeability_values = this->CalculateRelativePermeabilityValues(fluid_pressures);
     std::transform(relative_permeability_values.cbegin(), relative_permeability_values.cend(),
                    rPermeabilityUpdateFactors.cbegin(), relative_permeability_values.begin(),
                    std::multiplies<>{});
