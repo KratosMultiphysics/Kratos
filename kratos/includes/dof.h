@@ -270,6 +270,12 @@ public:
         return mpNodalData->GetId();
     }
 
+    /// @brief Return the index of this Dof within the node that contains it.
+    int GetIndex() const noexcept
+    {
+        return mIndex;
+    }
+
     /** Returns variable assigned to this degree of freedom. */
     const VariableData& GetVariable() const
     {
