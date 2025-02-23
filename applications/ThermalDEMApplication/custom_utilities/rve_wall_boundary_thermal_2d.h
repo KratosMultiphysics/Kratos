@@ -36,7 +36,7 @@ namespace Kratos
 
         private:
             // Private methods
-            double ComputePipeAreaInner   (void);
+            double ComputePipeAreaInner   (std::vector<double>& coords_ref, std::vector<double>& normal, double length, double width, int width_disc);
             void   HomogenizeConductivity (void);
     };
 }

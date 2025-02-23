@@ -274,10 +274,10 @@ namespace Kratos
                 const double x3 = particle.mNeighbourRigidFaces[j]->GetGeometry()[1][0];
                 const double y3 = particle.mNeighbourRigidFaces[j]->GetGeometry()[1][1];
 
-                // Check for existing contact
-                if (particle.mBallToRigidFaceStoredInfo.find(id2) == particle.mBallToRigidFaceStoredInfo.end()) continue;
-                const double indent = particle.mBallToRigidFaceStoredInfo[id2].indentation;
-                if (indent <= 0.0) continue;
+                // Check for valid existing contact
+                if (particle.mBallToRigidFaceStoredInfo.find(id2) == particle.mBallToRigidFaceStoredInfo.end() ||
+                    particle.mBallToRigidFaceStoredInfo[id2].indentation <= 0.0)
+                    continue;
 
                 // Increment number of contacts
                 mAvgCoordNum++;
@@ -285,7 +285,7 @@ namespace Kratos
                 is_inner_particle = false;
 
                 // Normal vector
-                const double d  = r1 - indent;
+                const double d  = r1 - particle.mBallToRigidFaceStoredInfo[id2].indentation;
                 const double nx = -particle.mBallToRigidFaceStoredInfo[id2].local_coord_system[2][0];
                 const double ny = -particle.mBallToRigidFaceStoredInfo[id2].local_coord_system[2][1];
                 std::vector<double> normal = {nx, ny};
@@ -325,14 +325,10 @@ namespace Kratos
                 const double y2 = particle.mNeighbourElements[j]->GetGeometry()[0][1];
                 std::vector<double> coords2 = {x2, y2};
 
-                // Check for existing contact
+                // Check for valid existing contact
                 if (particle.mBallToBallStoredInfo.find(id2) == particle.mBallToBallStoredInfo.end()) continue;
                 const double indent = particle.mBallToBallStoredInfo[id2].indentation;
                 if (indent <= 0.0) continue;
-
-                // Increment number of contacts
-                mAvgCoordNum++;
-                if (is_inner_particle) mAvgCoordNumInner++;
 
                 // Normal vector
                 const double d  = r1 + r2 - indent;
@@ -341,17 +337,21 @@ namespace Kratos
                 std::vector<double> normal = {nx, ny};
                 std::vector<double> branch = {d * nx, d * ny};
 
+                // Check for inner contact
+                const double inner_contact_len = ComputeBranchLengthInner(coords1, coords2);
+                const double inner_contact_ratio = inner_contact_len / d;
+                bool is_inner_contact = (inner_contact_ratio != 0.0);
+
+                // Increment number of contacts
+                mAvgCoordNum++;
+                if (is_inner_particle) mAvgCoordNumInner++;
+
                 // Update rose diagram
                 AddContactToRoseDiagram(mRoseDiagram, normal);
-                if (is_inner_particle) AddContactToRoseDiagram(mRoseDiagramInner, normal);
+                if (is_inner_contact) AddContactToRoseDiagram(mRoseDiagramInner, normal);
 
                 // Unique contacts (each binary contact evaluated only once)
                 if (id1 < id2) {
-                    // Check for inner contact
-                    const double inner_contact_len = ComputeBranchLengthInner(coords1, coords2);
-                    const double inner_contact_ratio = inner_contact_len / d;
-                    bool is_inner_contact = (inner_contact_len != 0.0);
-
                     // Increment number of unique contacts
                     mNumContacts++;
                     if (is_inner_contact) mNumContactsInner++;

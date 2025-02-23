@@ -56,23 +56,23 @@ namespace Kratos
                 particle.ComputeInteractionProps(r_process_info);
 
                 // Check for valid existing contact
-                if (particle.mBallToRigidFaceStoredInfo.find(id2) == particle.mBallToRigidFaceStoredInfo.end() || !particle.mNeighborInContact)
+                if (particle.mBallToRigidFaceStoredInfo.find(id2) == particle.mBallToRigidFaceStoredInfo.end() ||
+                    particle.mBallToRigidFaceStoredInfo[id2].indentation <= 0.0 ||
+                    particle.mNeighborInContact == false ||
+                    particle.CheckAdiabaticNeighbor())
                     continue;
-                const double indent = particle.mBallToRigidFaceStoredInfo[id2].indentation;
-                if (indent <= 0.0 || particle.CheckAdiabaticNeighbor())
-                    continue;
-
-                // Increment number of contacts
-                mAvgCoordNum++;
-                mNumContacts++;
-                is_inner_particle = false;
 
                 // Normal vector
-                const double d  = r1 - indent;
+                const double d  = r1 - particle.mBallToRigidFaceStoredInfo[id2].indentation;
                 const double nx = -particle.mBallToRigidFaceStoredInfo[id2].local_coord_system[2][0];
                 const double ny = -particle.mBallToRigidFaceStoredInfo[id2].local_coord_system[2][1];
                 std::vector<double> normal = {nx, ny};
                 std::vector<double> branch = {d * nx, d * ny};
+
+                // Increment number of contacts
+                is_inner_particle = false;
+                mAvgCoordNum++;
+                mNumContacts++;
 
                 // Update rose diagram
                 AddContactToRoseDiagram(mRoseDiagram, normal);
@@ -121,38 +121,37 @@ namespace Kratos
                 particle.ComputeInteractionProps(r_process_info);
 
                 // Check for valid existing contact
-                if (particle.mBallToBallStoredInfo.find(id2) == particle.mBallToBallStoredInfo.end() || !particle.mNeighborInContact)
+                if (particle.mBallToBallStoredInfo.find(id2) == particle.mBallToBallStoredInfo.end() ||
+                    particle.mBallToBallStoredInfo[id2].indentation <= 0.0 ||
+                    particle.mNeighborInContact == false ||
+                    particle.CheckAdiabaticNeighbor())
                     continue;
-                const double indent = particle.mBallToBallStoredInfo[id2].indentation;
-                if (indent <= 0.0 || particle.CheckAdiabaticNeighbor())
-                    continue;
-
-                // Increment number of contacts
-                mAvgCoordNum++;
-                if (is_inner_particle) mAvgCoordNumInner++;
 
                 // Normal vector
-                const double d  = r1 + r2 - indent;
+                const double d  =  particle.mNeighborDistance;
                 const double nx = -particle.mBallToBallStoredInfo[id2].local_coord_system[2][0];
                 const double ny = -particle.mBallToBallStoredInfo[id2].local_coord_system[2][1];
                 std::vector<double> normal = {nx, ny};
                 std::vector<double> branch = {d * nx, d * ny};
 
+                // Check for inner contact (ATTENTION: THIS IS SPECIFIC FOR THERMAL PIPE MODEL OF HEAT TRANSFER)
+                const double pipe_length = d;
+                const double pipe_width = particle.mContactRadius;
+                const double total_pipe_area = pipe_length * pipe_width;
+                const double inner_pipe_area = ComputePipeAreaInner(coords1, normal, pipe_length, pipe_width, 8);
+                const double inner_contact_ratio = inner_pipe_area / total_pipe_area;
+                bool is_inner_contact = (inner_contact_ratio != 0.0);
+
+                // Increment number of contacts
+                mAvgCoordNum++;
+                if (is_inner_particle) mAvgCoordNumInner++;
+
                 // Update rose diagram
                 AddContactToRoseDiagram(mRoseDiagram, normal);
-                if (is_inner_particle) AddContactToRoseDiagram(mRoseDiagramInner, normal);
+                if (is_inner_contact) AddContactToRoseDiagram(mRoseDiagramInner, normal);
 
                 // Unique contacts (each binary contact evaluated only once)
                 if (id1 < id2) {
-                    // Check for inner contact TODO: COMPLETE THIS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                    const double inner_contact_len = ComputeBranchLengthInner(coords1, coords2);
-                    const double inner_pipe_area = ComputePipeAreaInner();
-
-                    const double inner_contact_ratio = inner_contact_len / d;
-                    const double inner_area_ratio = inner_pipe_area / d;
-
-                    bool is_inner_contact = (inner_contact_len != 0.0);
-
                     // Increment number of unique contacts
                     mNumContacts++;
                     if (is_inner_contact) mNumContactsInner++;
@@ -186,8 +185,36 @@ namespace Kratos
     }
 
     //------------------------------------------------------------------------------------------------------------
-    double RVEWallBoundaryThermal2D::ComputePipeAreaInner(void) {
-        return 0.0;
+    // Compute overlap area between given thermal pipe and inner RVE area
+    // by approximating the pipe into a set of longitudinal axes (as a simplification for calculations).
+    double RVEWallBoundaryThermal2D::ComputePipeAreaInner(std::vector<double>& coords_ref, std::vector<double>& normal, double length, double width, int width_disc) {
+        // Compute pipe corner coordinates based on the reference coordinates (at pipe center) and a tangential direction
+        const double nx =  normal[0];
+        const double ny =  normal[1];
+        const double tx = -ny;
+        const double ty =  nx;
+        const double x  =  coords_ref[0] + tx * width/2;
+        const double y  =  coords_ref[1] + ty * width/2;
+
+        // Average pipe length inside inner RVE area
+        double avg_inner_len = 0.0;
+        double width_bin = width / (width_disc-1);
+
+        for (unsigned int i = 0; i < width_disc; i++) {
+            // End coordinates of current branch
+            const double x1 = x  - tx * width_bin * i;
+            const double y1 = y  - ty * width_bin * i;
+            const double x2 = x1 + nx * length;
+            const double y2 = y1 + ny * length;
+            std::vector<double> coords1 = {x1,y1};
+            std::vector<double> coords2 = {x2,y2};
+
+            // Accumulate branch lengths inside inner RVE area
+            avg_inner_len += RVEWallBoundary2D::ComputeBranchLengthInner(coords1, coords2);
+        }
+        
+        // Approximated area inside inner RVE area
+        return width * avg_inner_len / width_disc;
     }
 
     //------------------------------------------------------------------------------------------------------------
