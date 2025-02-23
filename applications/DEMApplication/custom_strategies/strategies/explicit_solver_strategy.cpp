@@ -1370,7 +1370,14 @@ namespace Kratos {
         }
 
         IndexPartition<unsigned int>(number_of_elements).for_each([&](unsigned int i){
-            mListOfSphericParticles[i]->SetRadius(is_radius_expansion, radius_expansion_rate, radius_multiplier_max, radius_multiplier, radius_multiplier_old);
+            // Update radius and other properties
+            auto& particle = mListOfSphericParticles[i];
+            particle->SetRadius(is_radius_expansion, radius_expansion_rate, radius_multiplier_max, radius_multiplier, radius_multiplier_old);
+
+            double* rho = &(particle->GetProperties()[PARTICLE_DENSITY]);
+            *rho = particle->GetMass() / particle->CalculateVolume();
+            particle->GetFastProperties()->SetDensityFromProperties(rho);
+            particle->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = particle->CalculateMomentOfInertia();
         });
 
         KRATOS_CATCH("")
