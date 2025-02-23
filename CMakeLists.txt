@@ -207,8 +207,8 @@ endif( ${CMAKE_BUILD_TYPE} MATCHES "Release" )
 if(${CMAKE_COMPILER_IS_GNUCXX})
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -Wall -Wl,--no-as-needed -ldl -Wsuggest-override")
   if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0)
-    message( "DEPRECATED: detected compiler as GCC " ${CMAKE_CXX_COMPILER_VERSION} )
-    message( FATAL_ERROR "Please use Version 8 or greater")
+    message(STATUS "DEPRECATED: detected compiler as GCC " ${CMAKE_CXX_COMPILER_VERSION} )
+    message(FATAL_ERROR "Please use Version 8 or greater")
   endif()
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -funroll-loops -Wall -Wl,--no-as-needed -ldl")
   set(CMAKE_SHARED_LINKER_FLAGS " -Wl,--no-undefined")
@@ -240,8 +240,8 @@ if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     if(${CMAKE_CXX_COMPILER_ID} MATCHES Intel)
       if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 18.0)
         # pybind requires min. version 17, but we need at least 18:
-        message( "DEPRECATED: detected compiler as Intel " ${CMAKE_CXX_COMPILER_VERSION} )
-        message( FATAL_ERROR "Please use Version 18 or greater")
+        message(STATUS "DEPRECATED: detected compiler as Intel " ${CMAKE_CXX_COMPILER_VERSION} )
+        message(FATAL_ERROR "Please use Version 18 or greater")
       endif()
       if (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
         # "IntelLLVM": Intel's NextGen LLVM compiler (icx)
@@ -271,14 +271,14 @@ message(STATUS "CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
 # Old non-compatible versions of VS
 if(${MSVC})
   if(${MSVC_TOOLSET_VERSION} LESS 141)
-    message( "DEPRECATED: detected compiler as ${MSVC_TOOLSET_VERSION}")
-    message( FATAL_ERROR "Please use VisualStudio Toolset 141 (VisualStudio 2017) or greater")
+    message(STATUS "DEPRECATED: detected compiler as ${MSVC_TOOLSET_VERSION}")
+    message(FATAL_ERROR "Please use VisualStudio Toolset 141 (VisualStudio 2017) or greater")
   endif(${MSVC_TOOLSET_VERSION} LESS 141)
 endif(${MSVC})
 
 # Common flags for MSVC
 if(${MSVC})
-  message("Detected compiler as MSVC")
+  message(STATUS "Detected compiler as MSVC")
   SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W1 /bigobj /EHsc -DBOOST_ALL_NO_LIB -D_SCL_SECURE_NO_WARNINGS")
   SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W1 /bigobj /EHsc /Zc:__cplusplus -DBOOST_ALL_NO_LIB -D_SCL_SECURE_NO_WARNINGS")
   string( REPLACE "/W3" "" CMAKE_C_FLAGS ${CMAKE_C_FLAGS} )
@@ -461,37 +461,8 @@ if( KRATOS_NO_TRY_CATCH MATCHES ON )
   add_definitions( -DKRATOS_NO_TRY_CATCH )
 endif( KRATOS_NO_TRY_CATCH MATCHES ON )
 
-##*****************************
-# Finding and including BOOST library (version should not matter anymore)
-if(DEFINED ENV{BOOST_ROOT})
-  set(BOOST_ROOT $ENV{BOOST_ROOT})
-endif(DEFINED ENV{BOOST_ROOT})
-
-find_package(Boost)
-
-if(NOT Boost_FOUND)
-  # Trying to find in in external libraries
-  set(BOOST_ROOT "${KRATOS_SOURCE_DIR}/external_libraries/boost")
-  find_package(Boost)
-  if(NOT Boost_FOUND)
-    message(FATAL_ERROR "It was not possible to find Boost in your machine, please define properly BOOST_ROOT if you have not")
-  endif(NOT Boost_FOUND)
-endif(NOT Boost_FOUND)
-
-set(Boost_USE_STATIC_LIBS   OFF)
-set(Boost_USE_MULTITHREADED ON)
-set(Boost_REALPATH ON)
-
-include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-
-message(STATUS "Boost Include: ${Boost_INCLUDE_DIRS}")
-message(STATUS "Boost Linkdir: ${Boost_LIBRARY_DIRS}")
-
-if(Boost_VERSION_STRING VERSION_LESS 1.70)
-  message(WARNING "Kratos requires at least boost version 1.70 to enable boost related performance improvements")
-else()
-  add_definitions( -DBOOST_UBLAS_MOVE_SEMANTICS )
-endif ()
+# Boost
+include(KratosBoost)
 
 # std::atomic_ref is part of C++20, hence using boost::atomic_ref
 # boost::atomic_ref has full support from version 1.74
