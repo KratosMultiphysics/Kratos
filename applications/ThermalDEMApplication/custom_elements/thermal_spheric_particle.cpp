@@ -346,52 +346,6 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
-  /*
-  //------------------------------------------------------------------------------------------------------------
-  void ThermalSphericParticle::StoreContactInfoPP(SphericParticle::ParticleDataBuffer& data_buffer) {
-    KRATOS_TRY
-
-    // Get neighbor
-    SphericParticle* neighbor = data_buffer.mpOtherParticle;
-
-    // New contact: Add new parameters to map and initialize it
-    if (!mContactParamsParticleHMS.count(neighbor)) {
-      ContactParamsHMS params;
-      mContactParamsParticleHMS[neighbor] = params;
-      mContactParamsParticleHMS[neighbor].normal = zero_vector(3);
-    }
-
-    // Set normal direction
-    mContactParamsParticleHMS[neighbor].normal[0] = -data_buffer.mLocalCoordSystem[2][0];
-    mContactParamsParticleHMS[neighbor].normal[1] = -data_buffer.mLocalCoordSystem[2][1];
-    mContactParamsParticleHMS[neighbor].normal[2] = -data_buffer.mLocalCoordSystem[2][2];
-
-    KRATOS_CATCH("")
-  }
-
-  //------------------------------------------------------------------------------------------------------------
-  void ThermalSphericParticle::StoreContactInfoPW(SphericParticle::ParticleDataBuffer& data_buffer) {
-    KRATOS_TRY
-
-    // Get neighbor
-    DEMWall* neighbor = data_buffer.mpOtherRigidFace;
-
-    // New contact: Add new parameters to map and initialize it
-    if (!mContactParamsWallHMS.count(neighbor)) {
-      ContactParamsHMS params;
-      mContactParamsWallHMS[neighbor] = params;
-      mContactParamsWallHMS[neighbor].normal = zero_vector(3);
-    }
-
-    // Set normal direction
-    mContactParamsWallHMS[neighbor].normal[0] = -data_buffer.mLocalCoordSystem[2][0];
-    mContactParamsWallHMS[neighbor].normal[1] = -data_buffer.mLocalCoordSystem[2][1];
-    mContactParamsWallHMS[neighbor].normal[2] = -data_buffer.mLocalCoordSystem[2][2];
-
-    KRATOS_CATCH("")
-  }
-  */
-
   //------------------------------------------------------------------------------------------------------------
   void ThermalSphericParticle::ComputeInteractionProps(const ProcessInfo& r_process_info) {
     KRATOS_TRY

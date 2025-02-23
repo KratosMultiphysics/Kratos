@@ -58,11 +58,6 @@ namespace Kratos
         std::vector<double> impact_velocity;
       };
 
-      //struct ContactParamsHMS
-      //{
-      //  array_1d<double,3> normal;
-      //};
-
       // Constructor
       ThermalSphericParticle();
       ThermalSphericParticle(IndexType NewId, GeometryType::Pointer pGeometry);
@@ -83,8 +78,6 @@ namespace Kratos
       void CalculateRightHandSide          (const ProcessInfo& r_process_info, double dt, const array_1d<double, 3>& gravity) override;
       void ComputeHeatFluxes               (const ProcessInfo& r_process_info);
       void ComputeHeatFluxWithNeighbor     (const ProcessInfo& r_process_info);
-      //void StoreContactInfoPP              (SphericParticle::ParticleDataBuffer& data_buffer) override;
-      //void StoreContactInfoPW              (SphericParticle::ParticleDataBuffer& data_buffer) override;
       void ComputeInteractionProps         (const ProcessInfo& r_process_info);
       void StoreBallToBallContactInfo      (const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding) override;
       void StoreBallToRigidFaceContactInfo (const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding, double identation) override;
@@ -92,7 +85,6 @@ namespace Kratos
 
       // Finalization methods
       void FinalizeSolutionStep             (const ProcessInfo& r_process_info) override;
-      //void UpdateDeformationRateRadius      (const ProcessInfo& r_process_info);
       void UpdateTemperatureDependentRadius (const ProcessInfo& r_process_info);
 
       // Auxiliary computations
@@ -282,15 +274,13 @@ namespace Kratos
       double       mEnvironmentTempAux;
 
       // Neighboring data
-      ThermalSphericParticle*                      mNeighbor_p;
-      DEMWall*                                     mNeighbor_w;
-      int                                          mNeighborType;
-      unsigned int                                 mNeighborIndex;
-      unsigned int                                 mNumberOfContactParticleNeighbor;
-      std::map<SphericParticle*, ContactParams>    mContactParamsParticle;
-      std::map<DEMWall*, ContactParams>            mContactParamsWall;
-      //std::map<SphericParticle*, ContactParamsHMS> mContactParamsParticleHMS;
-      //std::map<DEMWall*, ContactParamsHMS>         mContactParamsWallHMS;
+      ThermalSphericParticle*                   mNeighbor_p;
+      DEMWall*                                  mNeighbor_w;
+      int                                       mNeighborType;
+      unsigned int                              mNeighborIndex;
+      unsigned int                              mNumberOfContactParticleNeighbor;
+      std::map<SphericParticle*, ContactParams> mContactParamsParticle;
+      std::map<DEMWall*, ContactParams>         mContactParamsWall;
 
       // Tesselation data
       unsigned int         mDelaunayPointListIndex;
