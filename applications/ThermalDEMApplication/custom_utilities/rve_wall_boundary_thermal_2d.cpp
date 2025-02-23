@@ -136,7 +136,7 @@ namespace Kratos
 
                 // Check for inner contact (ATTENTION: THIS IS SPECIFIC FOR THERMAL PIPE MODEL OF HEAT TRANSFER)
                 const double pipe_length = d;
-                const double pipe_width = particle.mContactRadius;
+                const double pipe_width = 2.0 * particle.mContactRadius;
                 const double total_pipe_area = pipe_length * pipe_width;
                 const double inner_pipe_area = ComputePipeAreaInner(coords1, normal, pipe_length, pipe_width, 8);
                 const double inner_contact_ratio = inner_pipe_area / total_pipe_area;
