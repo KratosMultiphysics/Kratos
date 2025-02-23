@@ -536,15 +536,6 @@ namespace Kratos
       // Remove non-contacting neighbors from maps of contact parameters
       if (mStoreContactParam)
         CleanContactParameters(r_process_info);
-
-      // Apply deformation rate
-      //const double time = r_process_info[TIME];
-      //if (mDeformationRate != 0.0 && time >= mDeformationRateStart && time <= mDeformationRateStop) {
-      //  double added_search_distance = r_process_info[SEARCH_RADIUS_INCREMENT];
-      //  UpdateDeformationRateRadius(r_process_info);
-      //  ComputeAddedSearchDistance(r_process_info, added_search_distance);
-      //  SetSearchRadius(GetParticleRadius() + added_search_distance);
-      //}
     }
 
     // Update temperature dependent radius
@@ -557,35 +548,6 @@ namespace Kratos
 
     KRATOS_CATCH("")
   }
-
-  //------------------------------------------------------------------------------------------------------------
-  /*
-  void ThermalSphericParticle::UpdateDeformationRateRadius(const ProcessInfo& r_process_info) {
-    KRATOS_TRY
-
-    // Update radius
-    const double r     = GetParticleRadius();
-    const double alpha = GetParticleExpansionCoefficient();
-    const double T     = GetParticleTemperature();
-    const double new_radius = mInitialRadius * (1.0 + alpha * (T - mInitialTemperature));  // Total (used in "Rangel et al, Comput Geotech, 176:106789, 2024")
-    //const double new_radius = r * (1.0 + alpha * (T - mPreviousTemperature)); // Incremental
-    //const double new_radius = GetParticleRadius() + mInitialRadius * mDeformationRate * r_process_info[DELTA_TIME];
-    SetParticleRadius(new_radius);
-
-    // Update density
-    const double m = GetParticleMass();
-    const double V = GetParticleVolume();
-    double* rho = &(GetProperties()[PARTICLE_DENSITY]);
-    *rho = m / V;
-    GetFastProperties()->SetDensityFromProperties(rho);
-
-    // Update inertia
-    const double I = CalculateMomentOfInertia();
-    SetParticleMomentInertia(I);
-
-    KRATOS_CATCH("")
-  }
-  */
 
   //------------------------------------------------------------------------------------------------------------
   void ThermalSphericParticle::UpdateTemperatureDependentRadius(const ProcessInfo& r_process_info) {
