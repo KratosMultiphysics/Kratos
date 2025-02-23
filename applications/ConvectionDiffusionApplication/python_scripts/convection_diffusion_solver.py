@@ -128,9 +128,14 @@ class ConvectionDiffusionSolver(PythonSolver):
             "gradient_dofs" : false,
             "line_search": false,
             "compute_reactions": true,
-            "block_builder": true,
+            "builder_and_solver_settings" : {
+                "use_block_builder" : true,
+                "use_lagrange_BS"   : false,
+                "advanced_settings" : { }
+            },
             "clear_storage": false,
             "move_mesh_flag": false,
+            "multi_point_constraints_used": true,
             "convergence_criterion": "residual_criterion",
             "solution_relative_tolerance": 1.0e-4,
             "solution_absolute_tolerance": 1.0e-9,
@@ -158,6 +163,26 @@ class ConvectionDiffusionSolver(PythonSolver):
         """)
         default_settings.AddMissingParameters(super().GetDefaultParameters())
         return default_settings
+
+    def ValidateSettings(self):
+        """This function validates the settings of the solver
+        """
+        # Remove legacy settings
+        block_builder = None
+        if self.settings.Has("block_builder"):
+            KratosMultiphysics.Logger.PrintWarning("ConvectionDiffusionSolver", "The 'block_builder' setting is deprecated, please use 'builder_and_solver_settings' -> 'use_block_builder' instead.")
+            block_builder = self.settings["block_builder"].GetBool()
+            self.settings.RemoveValue("block_builder")
+
+        # Base class validation
+        super().ValidateSettings()
+
+        # Validate some subparameters
+        self.settings["builder_and_solver_settings"].ValidateAndAssignDefaults(self.GetDefaultParameters()["builder_and_solver_settings"])
+
+        # Reassign settings
+        if block_builder is not None:
+            self.settings["builder_and_solver_settings"]["use_block_builder"].SetBool(block_builder)
 
     def AddVariables(self, target_model_part=None):
 
@@ -607,10 +632,17 @@ class ConvectionDiffusionSolver(PythonSolver):
         linear_solver = self._GetLinearSolver()
         if not self.main_model_part.IsDistributed():
             # Set the serial builder and solver
-            if self.settings["block_builder"].GetBool():
-                builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
+            if self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool():
+                bs_params = self.settings["builder_and_solver_settings"]["advanced_settings"]
+                if not self.settings["builder_and_solver_settings"]["use_lagrange_BS"].GetBool():
+                    builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver, bs_params)
+                else:
+                    builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier(linear_solver, bs_params)
             else:
-                builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
+                if self.settings["multi_point_constraints_used"].GetBool():
+                    builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolverWithConstraints(linear_solver)
+                else:
+                    builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
         else:
             # Set the Epetra vectors communicator
             epetra_communicator = self.get_epetra_communicator()
@@ -623,16 +655,17 @@ class ConvectionDiffusionSolver(PythonSolver):
                 guess_row_size = 10
 
             # Set the parallel builder and solver
-            if self.settings["block_builder"].GetBool():
-                builder_and_solver = KratosTrilinos.TrilinosBlockBuilderAndSolver(
-                    epetra_communicator,
-                    guess_row_size,
-                    linear_solver)
+            if self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool():
+                bs_params = self.settings["builder_and_solver_settings"]["advanced_settings"]
+                bs_params.AddEmptyValue("guess_row_size")
+                bs_params["guess_row_size"].SetInt(guess_row_size)
+                builder_and_solver = KratosTrilinos.TrilinosBlockBuilderAndSolver(epetra_communicator, linear_solver, bs_params)
             else:
-                builder_and_solver = KratosTrilinos.TrilinosEliminationBuilderAndSolver(
-                    epetra_communicator,
-                    guess_row_size,
-                    linear_solver)
+                if self.settings["multi_point_constraints_used"].GetBool():
+                    raise Exception("MPCs not yet implemented in MPI")
+                if self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0:
+                    KratosMultiphysics.Logger.PrintWarning("Constraints are not yet implemented in MPI and will therefore not be considered!")
+                builder_and_solver = KratosTrilinos.TrilinosEliminationBuilderAndSolver(epetra_communicator, guess_row_size, linear_solver)
 
         return builder_and_solver
 
