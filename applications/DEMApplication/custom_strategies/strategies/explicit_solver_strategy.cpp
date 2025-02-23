@@ -1337,7 +1337,7 @@ namespace Kratos {
                 mListOfSphericParticles[i]->SetRadius();
             });
         } else {
-            SetExpandedRadiiOnAllParticles(int number_of_elements);
+            SetExpandedRadiiOnAllParticles(number_of_elements);
         }
 
         KRATOS_CATCH("")
@@ -1346,16 +1346,18 @@ namespace Kratos {
     void ExplicitSolverStrategy::SetExpandedRadiiOnAllParticles(int number_of_elements) {
         KRATOS_TRY
 
+        ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
         double radius_expansion_rate = r_process_info[RADIUS_EXPANSION_RATE];
         double radius_multiplier_max = r_process_info[RADIUS_MULTIPLIER_MAX];
         double radius_multiplier;
         double radius_multiplier_old;
         
-        CalculateRadiusExpansionVariables(bool& is_radius_expansion, 
-                                        double& radius_expansion_rate, 
-                                        double& radius_multiplier_max, 
-                                        double& radius_multiplier, 
-                                        double& radius_multiplier_old);
+        bool is_radius_expansion = true;
+        CalculateRadiusExpansionVariables(is_radius_expansion, 
+                                        radius_expansion_rate, 
+                                        radius_multiplier_max, 
+                                        radius_multiplier, 
+                                        radius_multiplier_old);
 
         IndexPartition<unsigned int>(number_of_elements).for_each([&](unsigned int i){
             mListOfSphericParticles[i]->SetRadius(is_radius_expansion, radius_expansion_rate, radius_multiplier_max, radius_multiplier, radius_multiplier_old);
