@@ -565,19 +565,26 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::SetUpDofSet(typename In
 //            }
 //        }
 
-        // Add the DOFs from the model part constraints
-        const auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
-        const int number_of_constraints = static_cast<int>(r_constraints_array.size());
+        // Collect DoFs from constraints.
+        const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
 
         #pragma omp for schedule(guided, 512) nowait
         for (int i = 0; i < number_of_constraints; ++i) {
             // Get current constraint iterator
-            const auto it_const = r_constraints_array.cbegin() + i;
+            const auto it_const = rModelPart.MasterSlaveConstraints().begin() + i;
 
-            // Gets list of DOF involved on every constraint
+            // Trigger Dof index updates.
             it_const->GetDofList(tls_dofs, tls_constraint_dofs, r_current_process_info);
-            dofs_tmp_set.insert(tls_dofs.begin(), tls_dofs.end());
-            dofs_tmp_set.insert(tls_constraint_dofs.begin(), tls_constraint_dofs.end());
+
+            // Different behavior depending on whether MasterSlaveConstraint or MultifreedomConstraint.
+            if (tls_dofs.empty() and not tls_constraint_dofs.empty()) {
+                // Multifreedom constraint.
+                dofs_tmp_set.insert(tls_constraint_dofs.begin(), tls_constraint_dofs.end());
+            } else {
+                // Master-slave constraint.
+                dofs_tmp_set.insert(tls_dofs.begin(), tls_dofs.end());
+                dofs_tmp_set.insert(tls_constraint_dofs.begin(), tls_constraint_dofs.end());
+            }
         }
 
         // Merge all the sets in one thread
@@ -755,70 +762,70 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::ApplyDirichletCondition
                                                                                   [[maybe_unused]] typename Interface::TSystemVectorType& rSolution,
                                                                                   typename Interface::TSystemVectorType& rRhs)
 {
-//    KRATOS_TRY
-//    KRATOS_PROFILE_SCOPE(KRATOS_CODE_LOCATION);
+    KRATOS_TRY
+    KRATOS_PROFILE_SCOPE(KRATOS_CODE_LOCATION);
+
+    // Early exit on an empty system.
+    if (this->GetDofSet().empty()) return;
+
+    const auto it_dof_set_begin = this->GetDofSet().begin();
+    const auto it_dof_set_end = this->GetDofSet().begin() + this->GetDofSet().size();
+
+    mpImpl->mDiagonalScaleFactor = GetDiagonalScaleFactor<TSparse>(rLhs, mpImpl->mDiagonalScaling);
+    Kratos::ApplyDirichletConditions<TSparse,TDense>(rLhs,
+                                                     rRhs,
+                                                     it_dof_set_begin,
+                                                     it_dof_set_end,
+                                                     mpImpl->mDiagonalScaleFactor);
+    if (mpImpl->mMaybeHierarchy.has_value()) {
+        std::visit([this](auto& r_grid){
+                       r_grid.ApplyDirichletConditions(mpImpl->mDiagonalScaling);
+                   },
+                   mpImpl->mMaybeHierarchy.value());
+    } // if mMaybeHierarchy
+    KRATOS_CATCH("")
+
+//    const std::size_t system_size = rLhs.size1();
+//        Vector scaling_factors (system_size);
 //
-//    // Early exit on an empty system.
-//    if (this->GetDofSet().empty()) return;
+//        const auto it_dof_iterator_begin = this->mDofSet.begin();
 //
-//    const auto it_dof_set_begin = this->GetDofSet().begin();
-//    const auto it_dof_set_end = this->GetDofSet().begin() + this->GetDofSet().size();
+//        // NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
+//        IndexPartition<std::size_t>(this->mDofSet.size()).for_each([&](std::size_t Index){
+//            auto it_dof_iterator = it_dof_iterator_begin + Index;
+//            if (it_dof_iterator->IsFixed()) {
+//                scaling_factors[Index] = 0.0;
+//            } else {
+//                scaling_factors[Index] = 1.0;
+//            }
+//        });
 //
-//    mpImpl->mDiagonalScaleFactor = GetDiagonalScaleFactor<TSparse>(rLhs, mpImpl->mDiagonalScaling);
-//    Kratos::ApplyDirichletConditions<TSparse,TDense>(rLhs,
-//                                                     rRhs,
-//                                                     it_dof_set_begin,
-//                                                     it_dof_set_end,
-//                                                     mpImpl->mDiagonalScaleFactor);
-//    if (mpImpl->mMaybeHierarchy.has_value()) {
-//        std::visit([this](auto& r_grid){
-//                       r_grid.ApplyDirichletConditions(mpImpl->mDiagonalScaling);
-//                   },
-//                   mpImpl->mMaybeHierarchy.value());
-//    } // if mMaybeHierarchy
-//    KRATOS_CATCH("")
-
-    const std::size_t system_size = rLhs.size1();
-        Vector scaling_factors (system_size);
-
-        const auto it_dof_iterator_begin = this->mDofSet.begin();
-
-        // NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
-        IndexPartition<std::size_t>(this->mDofSet.size()).for_each([&](std::size_t Index){
-            auto it_dof_iterator = it_dof_iterator_begin + Index;
-            if (it_dof_iterator->IsFixed()) {
-                scaling_factors[Index] = 0.0;
-            } else {
-                scaling_factors[Index] = 1.0;
-            }
-        });
-
-        // Detect if there is a line of all zeros and set the diagonal to a certain number (1 if not scale, some norms values otherwise) if this happens
-        TSparse::CheckAndCorrectZeroDiagonalValues(rModelPart.GetProcessInfo(), rLhs, rRhs, SCALING_DIAGONAL::CONSIDER_MAX_DIAGONAL);
-
-        auto* Avalues = rLhs.value_data().begin();
-        std::size_t* Arow_indices = rLhs.index1_data().begin();
-        std::size_t* Acol_indices = rLhs.index2_data().begin();
-
-        IndexPartition<std::size_t>(system_size).for_each([&](std::size_t Index){
-            const std::size_t col_begin = Arow_indices[Index];
-            const std::size_t col_end = Arow_indices[Index+1];
-            const auto k_factor = scaling_factors[Index];
-            if (k_factor == 0.0) {
-                // Zero out the whole row, except the diagonal
-                for (std::size_t j = col_begin; j < col_end; ++j)
-                    if (Acol_indices[j] != Index )
-                        Avalues[j] = 0.0;
-
-                // Zero out the RHS
-                rRhs[Index] = 0.0;
-            } else {
-                // Zero out the column which is associated with the zero'ed row
-                for (std::size_t j = col_begin; j < col_end; ++j)
-                    if(scaling_factors[ Acol_indices[j] ] == 0 )
-                        Avalues[j] = 0.0;
-            }
-        });
+//        // Detect if there is a line of all zeros and set the diagonal to a certain number (1 if not scale, some norms values otherwise) if this happens
+//        TSparse::CheckAndCorrectZeroDiagonalValues(rModelPart.GetProcessInfo(), rLhs, rRhs, SCALING_DIAGONAL::CONSIDER_MAX_DIAGONAL);
+//
+//        auto* Avalues = rLhs.value_data().begin();
+//        std::size_t* Arow_indices = rLhs.index1_data().begin();
+//        std::size_t* Acol_indices = rLhs.index2_data().begin();
+//
+//        IndexPartition<std::size_t>(system_size).for_each([&](std::size_t Index){
+//            const std::size_t col_begin = Arow_indices[Index];
+//            const std::size_t col_end = Arow_indices[Index+1];
+//            const auto k_factor = scaling_factors[Index];
+//            if (k_factor == 0.0) {
+//                // Zero out the whole row, except the diagonal
+//                for (std::size_t j = col_begin; j < col_end; ++j)
+//                    if (Acol_indices[j] != Index )
+//                        Avalues[j] = 0.0;
+//
+//                // Zero out the RHS
+//                rRhs[Index] = 0.0;
+//            } else {
+//                // Zero out the column which is associated with the zero'ed row
+//                for (std::size_t j = col_begin; j < col_end; ++j)
+//                    if(scaling_factors[ Acol_indices[j] ] == 0 )
+//                        Avalues[j] = 0.0;
+//            }
+//        });
 }
 
 
