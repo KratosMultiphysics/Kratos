@@ -1331,17 +1331,55 @@ namespace Kratos {
         int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
         ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
         bool is_radius_expansion = r_process_info[IS_RADIUS_EXPANSION];
+        
+        if (!is_radius_expansion) {
+            IndexPartition<unsigned int>(number_of_elements).for_each([&](unsigned int i){
+                mListOfSphericParticles[i]->SetRadius();
+            });
+        } else {
+            SetExpandedRadiiOnAllParticles(number_of_elements);
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    void ExplicitSolverStrategy::SetExpandedRadiiOnAllParticles(int number_of_elements) {
+        KRATOS_TRY
+
+        ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
         double radius_expansion_rate = r_process_info[RADIUS_EXPANSION_RATE];
         double radius_multiplier_start_time = r_process_info[RADIUS_MULTIPLIER_START_TIME];
         double radius_multiplier_max = r_process_info[RADIUS_MULTIPLIER_MAX];
+        double radius_multiplier;
+        double radius_multiplier_old;
+        
+        bool is_radius_expansion = true;
+        CalculateRadiusExpansionVariables(is_radius_expansion, 
+                                        radius_expansion_rate, 
+                                        radius_multiplier_max, 
+                                        radius_multiplier, 
+                                        radius_multiplier_old);
+
+        IndexPartition<unsigned int>(number_of_elements).for_each([&](unsigned int i){
+            mListOfSphericParticles[i]->SetRadius(is_radius_expansion, radius_expansion_rate, radius_multiplier_max, radius_multiplier, radius_multiplier_old);
+        });
+
+        KRATOS_CATCH("")
+    }
+
+    void ExplicitSolverStrategy::CalculateRadiusExpansionVariables(bool& is_radius_expansion, 
+                                                                double& radius_expansion_rate, 
+                                                                double& radius_multiplier_max, 
+                                                                double& radius_multiplier, 
+                                                                double& radius_multiplier_old) {
+        KRATOS_TRY
+
+        ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
         bool is_radius_expansion_rate_change = r_process_info[IS_RADIUS_EXPANSION_RATE_CHANGE];
         const double time = r_process_info[TIME];
         const double delta_time = r_process_info[DELTA_TIME];
 
-        double radius_multiplier;
-        double radius_multiplier_old;
-
-        if (is_radius_expansion_rate_change) {
+        if (is_radius_expansion_rate_change){
             double radius_expansion_acceleration = r_process_info[RADIUS_EXPANSION_ACCELERATION];
             double radius_expansion_rate_min = r_process_info[RADIUS_EXPANSION_RATE_MIN];
             double radius_expansion_rate_ini = radius_expansion_rate;
@@ -1368,17 +1406,6 @@ namespace Kratos {
         if (time < radius_multiplier_start_time || radius_multiplier > radius_multiplier_max) {
             is_radius_expansion = false;
         }
-
-        IndexPartition<unsigned int>(number_of_elements).for_each([&](unsigned int i){
-            // Update radius and other properties
-            auto& particle = mListOfSphericParticles[i];
-            particle->SetRadius(is_radius_expansion, radius_expansion_rate, radius_multiplier_max, radius_multiplier, radius_multiplier_old);
-
-            double* rho = &(particle->GetProperties()[PARTICLE_DENSITY]);
-            *rho = particle->GetMass() / particle->CalculateVolume();
-            particle->GetFastProperties()->SetDensityFromProperties(rho);
-            particle->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = particle->CalculateMomentOfInertia();
-        });
 
         KRATOS_CATCH("")
     }
