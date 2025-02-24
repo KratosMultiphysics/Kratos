@@ -770,15 +770,14 @@ namespace Kratos
         LockObject mutex;
         block_for_each(mpSkinModelPart->Elements(), [&](ElementType& rSkinElement){
             const auto& r_skin_geom = rSkinElement.GetGeometry();
-            const std::size_t n_gp = r_skin_geom.IntegrationPointsNumber(integration_method);
             const GeometryType::IntegrationPointsArrayType& integration_points = r_skin_geom.IntegrationPoints(integration_method);
             // Get detJ for all integration points of the skin element
-            Vector integration_point_jacobians;
-            r_skin_geom.DeterminantOfJacobian(integration_point_jacobians, integration_method);
+            Vector int_pt_detJs;
+            r_skin_geom.DeterminantOfJacobian(int_pt_detJs, integration_method);
 
-            for (std::size_t i_gp = 0; i_gp < n_gp; ++i_gp) {
+            for (std::size_t i_int_pt = 0; i_int_pt < integration_points.size(); ++i_int_pt) {
                 // Get position of skin point
-                const array_1d<double,3> skin_pt_local_coords = integration_points[i_gp].Coordinates();
+                const array_1d<double,3> skin_pt_local_coords = integration_points[i_int_pt].Coordinates();
                 array_1d<double,3> skin_pt_position = ZeroVector(3);
                 r_skin_geom.GlobalCoordinates(skin_pt_position, skin_pt_local_coords);
 
@@ -787,8 +786,8 @@ namespace Kratos
                 // Normalize normal
                 skin_pt_area_normal /= std::max(norm_2(skin_pt_area_normal), 1e-10);  // tolerance = std::pow(1e-3 * h, Dim-1)
                 // Scale normal with integration weight
-                const double integration_weight = integration_point_jacobians(i_gp) * integration_points[i_gp].Weight();
-                skin_pt_area_normal *= integration_weight;
+                const double int_pt_weight = int_pt_detJs[i_int_pt] * integration_points[i_int_pt].Weight();
+                skin_pt_area_normal *= int_pt_weight;
 
                 // Search for the skin point in the volume mesh to get the element containing the point
                 Vector aux_N(TDim+1);
