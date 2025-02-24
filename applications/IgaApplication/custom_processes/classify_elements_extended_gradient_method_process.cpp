@@ -321,7 +321,7 @@ namespace Kratos
 
                                     double distance = norm_2(gp_position_intersected_elements - quadrature_point_position);
 
-                                    if (distance > 0.0){
+                                    if (distance > 0.05){
                                         compute_error_sub_model_part.AddElement(background_mesh_model_part.pGetElement(quadrature_point_id));
                                     }
                                 }

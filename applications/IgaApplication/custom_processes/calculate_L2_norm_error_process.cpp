@@ -72,6 +72,8 @@ namespace Kratos
             L2_norm_error += error * det_jacobian[0] * weight;
         }
 
+        L2_norm_error = std::sqrt(L2_norm_error);
+
         KRATOS_WATCH(L2_norm_error)
         
     }

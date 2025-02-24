@@ -330,23 +330,6 @@ public:
 
     /* Checks if shape functions are rational or not.
      * @return true if NURBS, false if B-Splines only (all weights are considered as 1) */
-    void CheckIsRationalOnlyOnce()
-    {
-        mIsRational = false;
-        if (mWeights.size() == 0)
-            mIsRational = false;
-        else {
-            for (IndexType i = 0; i < mWeights.size(); ++i) {
-                if (std::abs(mWeights[i] - 1.0) > 1e-10) {
-                    mIsRational = true;
-                    break;
-                }
-            }
-        }
-    }
-
-    /* Checks if shape functions are rational or not.
-     * @return true if NURBS, false if B-Splines only (all weights are considered as 1) */
     bool IsRational() const
     {
         if (mWeights.size() == 0)
@@ -911,8 +894,6 @@ public:
     {
     }
     ///@}
-
-    bool mIsRational;
 
 private:
     ///@name Private Static Member Variables

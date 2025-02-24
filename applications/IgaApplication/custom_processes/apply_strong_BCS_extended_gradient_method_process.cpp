@@ -259,7 +259,9 @@ namespace Kratos
             Vector interpolated_solution_gradient = ZeroVector(3);
             Vector exact_solution_gradient = ZeroVector(3);
             double interpolated_solution = 0.0;
-            InterpolateSolutionGradients(interpolated_solution_gradient, interpolated_solution, p_gauss_point_geometry->Center(), 2000);
+            if (mIterations != 0){
+                InterpolateSolutionGradients(interpolated_solution_gradient, interpolated_solution, p_gauss_point_geometry->Center(), 200);
+            } 
             
             exact_solution_gradient[0]=(M_PI*std::cos(M_PI * p_gauss_point_geometry->Center()[0])*std::cos(M_PI*p_gauss_point_geometry->Center()[1]));
             exact_solution_gradient[1] = (-M_PI*std::sin(M_PI * p_gauss_point_geometry->Center()[0])*std::sin(M_PI*p_gauss_point_geometry->Center()[1]));
@@ -321,6 +323,9 @@ namespace Kratos
             double interpolated_solution_y_gradient = RBFShapeFunctionsUtility::CalculateShapeFunctionsAndInterpolation(
                 mClosestInterpolationPointsCoordinates, quadrature_point_position, h, rN_RBF, mClosestPointsSolutionGradientY
             );
+
+            SolutionGradients[0] = interpolated_solution_x_gradient;
+            SolutionGradients[1] = interpolated_solution_y_gradient;
         }
         else if (mInterpolationScheme == "MLS")
         {

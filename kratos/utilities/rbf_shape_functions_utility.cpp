@@ -27,11 +27,17 @@ namespace Kratos
         const double h)
     {
         // Evaluate Inverse multiquadric
-        const double q = x*h;
-        return 1/std::sqrt(1+std::pow(q,2));
+        // const double q = x*h;
+        // return 1/std::sqrt(1+std::pow(q,2));
+        
+        // // Evaluate linear
+        return x;
+
+        // Evaluate cubic
+        // return std::pow(x, 3);
 
          // Evaluate multiquadric
-        //return std::sqrt(std::pow(x,2) + std::pow(h,2));
+        // return std::sqrt(std::pow(x,2) + std::pow(h,2));
 
         // // Evaluate Gaussian function
         // const double q = x/2.0;

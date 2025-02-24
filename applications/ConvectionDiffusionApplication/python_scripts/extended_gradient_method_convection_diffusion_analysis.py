@@ -10,12 +10,16 @@ import sys
 import numpy as np
 import scipy.sparse.linalg as spla
 from shapely.geometry import LineString, Polygon
-from scipy.interpolate import Rbf
 import matplotlib
 matplotlib.use('Agg')  # Use Agg for rendering plots to files
 import matplotlib.pyplot as plt
 from scipy.interpolate import griddata
 from colorama import Fore, Style, init
+from scipy.spatial import KDTree
+from itertools import product
+
+# Interpolation libraries
+from scipy.interpolate import Rbf
 
 class ExtendedGradientMethodConvectionDiffusionAnalysis(AnalysisStage):
     """
@@ -71,11 +75,11 @@ class ExtendedGradientMethodConvectionDiffusionAnalysis(AnalysisStage):
             self.maximum_iterations = 20
 
             # Initialize the old solution field
-            # if ()
-            # self.old_solution_field = np.zeros(self._GetSolver().GetComputingModelPart().NumberOfNodes())
-            # for element in self._GetSolver().GetComputingModelPart().Elements:
-            #     for node in element.GetNodes():
-            #         self.old_solution_field[node.Id - 1] = node.GetSolutionStepValue(unknown_variable) + 1e-2
+            # if ():
+            #     self.old_solution_field = np.zeros(self._GetSolver().GetComputingModelPart().NumberOfNodes())
+            #     for element in self._GetSolver().GetComputingModelPart().Elements:
+            #         for node in element.GetNodes():
+            #             self.old_solution_field[node.Id - 1] = node.GetSolutionStepValue(unknown_variable) + 1e-2
 
             self.time = self._AdvanceTime()
             self.InitializeSolutionStep()
@@ -94,8 +98,8 @@ class ExtendedGradientMethodConvectionDiffusionAnalysis(AnalysisStage):
 
                 self.iteration_number += 1
 
-                if self.iteration_number == 1:
-                    self.numerical_solution_no_iterations.append(self.model_part.GetNode(1926).GetSolutionStepValue(unknown_variable))
+                #if self.iteration_number == 1:
+                    #self.numerical_solution_no_iterations.append(self.model_part.GetNode(1926).GetSolutionStepValue(unknown_variable))
 
 
 
@@ -103,9 +107,10 @@ class ExtendedGradientMethodConvectionDiffusionAnalysis(AnalysisStage):
                 for node in element.GetNodes():
                     self.old_solution_field[node.Id - 1] = node.GetSolutionStepValue(unknown_variable) 
 
-            self.time_list.append(self.model_part.ProcessInfo[KratosMultiphysics.TIME])
-            self.numerical_solution_with_iterations.append(self.model_part.GetNode(1926).GetSolutionStepValue(unknown_variable))
-            self.exact_solution.append(self.BC_value(self.model_part.GetNode(1926).X, self.model_part.GetNode(1926).Y))
+            # Plot the solution at a specific 
+            #self.time_list.append(self.model_part.ProcessInfo[KratosMultiphysics.TIME])
+            #self.numerical_solution_with_iterations.append(self.model_part.GetNode(1926).GetSolutionStepValue(unknown_variable))
+            #self.exact_solution.append(self.BC_value(self.model_part.GetNode(1926).X, self.model_part.GetNode(1926).Y))
 
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
@@ -133,7 +138,64 @@ class ExtendedGradientMethodConvectionDiffusionAnalysis(AnalysisStage):
         # if time <= 0.01:
         #     return np.sin(np.pi * x)* np.cos(np.pi * y)*(time/0.01)
         # else:
-        return np.sin(np.pi * x)* np.cos(np.pi * y) * np.sin(np.pi * 0.5 * time/0.01)
+        return np.sin(np.pi * x)* np.cos(np.pi * y) # * np.sin(np.pi * 0.5 * time/0.01)
+    
+    # This function implements the MLS approximation
+    def mls_interpolation(self, x, y, values, x_query, k=5, scale_factor=1.5, order=2):
+        """Moving Least Squares (MLS) with selectable polynomial order."""
+
+        def weight_function(xi, xj, h):
+            """Gaussian weight function for MLS."""
+            return np.exp(-np.linalg.norm(xi - xj) ** 2 / (h ** 2))
+
+        def calculate_h(known_points, x_test, k=5, scale_factor=1.5):
+            """Estimate local h based on nearest neighbor distances."""
+            tree = KDTree(known_points)  
+            distances, _ = tree.query(x_test, k+1)  
+            return scale_factor * np.mean(distances[1:])  
+
+        def generate_basis(x, y, order):
+            """Generate polynomial basis terms dynamically based on order."""
+            terms = []
+            for i, j in product(range(order + 1), repeat=2):  
+                if i + j <= order:  
+                    terms.append(x**i * y**j)
+            return np.array(terms)
+        
+        if (len(x) < k):
+            k = len(x)
+
+        # Convert data to NumPy arrays
+        x, y, values = map(np.array, (x, y, values))
+
+        # Build KDTree for fast nearest neighbor search
+        known_points = np.vstack((x, y)).T
+        tree = KDTree(known_points)
+
+        # Find k nearest neighbors
+        distances, indices = tree.query(x_query, k=k)
+        x_k, y_k, values_k = x[indices], y[indices], values[indices]
+
+        # Compute local h dynamically
+        h_dynamic = calculate_h(known_points, x_query, k, scale_factor)
+
+        # Generate basis terms for the given order
+        basis_size = (order + 1) * (order + 2) // 2  # Compute the number of basis terms
+        A = np.zeros((basis_size, basis_size))
+        b = np.zeros(basis_size)
+
+        # Compute weighted least squares
+        for xi, yi, vi in zip(x_k, y_k, values_k):
+            phi = generate_basis(xi, yi, order)  
+            w = weight_function(np.array([xi, yi]), np.array(x_query), h_dynamic)
+            A += w * np.outer(phi, phi)
+            b += w * vi * phi
+
+        # Solve for coefficients
+        coeffs = np.linalg.solve(A, b)
+
+        # Compute the interpolated value at x_query
+        return coeffs @ generate_basis(x_query[0], x_query[1], order)
 
     def ComputeErrorAndUpdateOldSolutionField(self, iteration_number):
         # Get the unknown variable for the specific physical problem which is being solved
@@ -266,7 +328,7 @@ class ExtendedGradientMethodConvectionDiffusionAnalysis(AnalysisStage):
                     # Initialize the elemental matrix
                     LHSBoundaryContribution_elemental = np.zeros((number_of_nodes_element, number_of_nodes_element)) 
                     
-                    # Get the integration method 
+                    # Get the integration method for the line integral
                     weights = [1, 1]
                     integration_points = [-1.0/np.sqrt(3), 1.0/np.sqrt(3.0)]
 
@@ -347,7 +409,7 @@ class ExtendedGradientMethodConvectionDiffusionAnalysis(AnalysisStage):
                 epsilon = 1.0
 
                 LHSTrimmedElementsContribution_elemental +=  epsilon * (B_matrix @ normals_product @ B_matrix.T) * det_jacobian * weights[gp_index] 
-            
+                
             
             # Assemble the elemental contribution in the global matrix
             element_connectivities = []
@@ -413,7 +475,7 @@ class ExtendedGradientMethodConvectionDiffusionAnalysis(AnalysisStage):
                     # Initialize the elemental matrix
                     RHSBoundaryContribution_elemental = np.zeros((number_of_nodes_element, 1)) 
                     
-                    # Get the integration method 
+                    # Get the integration method for the line integral
                     weights = [1, 1]
                     integration_points = [-1.0/np.sqrt(3), 1.0/np.sqrt(3.0)]
 
@@ -466,7 +528,7 @@ class ExtendedGradientMethodConvectionDiffusionAnalysis(AnalysisStage):
         # Get the unknown variable for the specific physical problem which is being solved
         unknown_variable_name = self.solver_settings["convection_diffusion_variables"]["unknown_variable"].GetString()
         unknown_variable = KratosMultiphysics.KratosGlobals.GetVariable(unknown_variable_name)
-
+        
         for element in self.active_elements_sub_model_part.Elements:
             # Coordinates of the element center in physical space and local space
             element_center = element.GetGeometry().Center()
@@ -506,6 +568,7 @@ class ExtendedGradientMethodConvectionDiffusionAnalysis(AnalysisStage):
         # solution_derivative_x_rbf_interpolator = Rbf(x_coordinates, y_coordinates, solution_derivative_x, function='multiquadric') 
         # solution_derivative_y_rbf_interpolator = Rbf(x_coordinates, y_coordinates, solution_derivative_y, function='multiquadric')
 
+
         # Iterate over the elements, calculate the local contributions and assemble them to the global matrix
         for element in self.intersected_elements_sub_model_part.Elements:
             element_geometry = element.GetGeometry()
@@ -535,8 +598,17 @@ class ExtendedGradientMethodConvectionDiffusionAnalysis(AnalysisStage):
                 y = global_coordinates[1]
 
                 # Use the RBF Interpolator to obtain the gradients of the solution
-                derivative_x_interpolated = solution_derivative_x_rbf_interpolator(x, y)
-                derivative_y_interpolated = solution_derivative_y_rbf_interpolator(x, y)
+                # derivative_x_interpolated= solution_derivative_x_rbf_interpolator(x, y)
+                # derivative_y_interpolated = solution_derivative_y_rbf_interpolator(x, y)
+                # Create MLS interpolator
+                # derivative_x_interpolated = self.mls_interpolation(x_coordinates, y_coordinates, solution_derivative_x, (x, y), 200, 1.5, 2)
+                # derivative_y_interpolated = self.mls_interpolation(x_coordinates, y_coordinates, solution_derivative_y, (x, y), 200, 1.5, 2)
+                # Use the exact gradient
+                derivative_x_interpolated= np.pi*np.cos(np.pi*x)*np.cos(np.pi*y)
+                derivative_y_interpolated = -np.pi*np.sin(np.pi*x)*np.sin(np.pi*y)
+                # print(x, y)
+                # print(derivative_x_interpolated, derivative_y_interpolated)
+                # print(np.pi*np.cos(np.pi*x)*np.cos(np.pi*y), -np.pi*np.sin(np.pi*x)*np.sin(np.pi*y))
 
                 # Obtain the normal gradients in the gauss points
                 gauss_point_normal_gradient = derivative_x_interpolated * normal_vector[0] + derivative_y_interpolated * normal_vector[1]
@@ -550,9 +622,6 @@ class ExtendedGradientMethodConvectionDiffusionAnalysis(AnalysisStage):
                 shape_functions_local_gradients = element_geometry.ShapeFunctionsLocalGradients(np.zeros((2, 2)), [xi, eta, 0.0])
                 B_matrix = shape_functions_local_gradients @ inv_jacobian
                 
-                # if (self.model_part.ProcessInfo[KratosMultiphysics.TIME] <= 0.003):
-                #     epsilon = 0.001
-                # else:
                 epsilon = 1.0
                 RHSTrimmedElementsContribution_elemental +=  epsilon * ((B_matrix @ normal_vector) * gauss_point_normal_gradient * det_jacobian * weights[gp_index]).reshape(-1, 1)
 

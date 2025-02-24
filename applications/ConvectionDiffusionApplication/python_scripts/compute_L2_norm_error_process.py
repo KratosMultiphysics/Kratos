@@ -57,17 +57,21 @@ class ComputeL2NormErrorProcess(KM.Process):
 
 
         # Integration points and weights for the numerical integration - Quadrilateral element
-        # integration_points = [[-1/np.sqrt(3), -1/np.sqrt(3), 0.0], 
-        #               [-1/np.sqrt(3), 1/np.sqrt(3), 0.0], 
-        #               [1/np.sqrt(3), -1/np.sqrt(3), 0.0], 
-        #               [1/np.sqrt(3), 1/np.sqrt(3), 0.0]]
-        # weights = [1.0, 1.0, 1.0, 1.0]
+        integration_points = [[-1/np.sqrt(3), -1/np.sqrt(3), 0.0], 
+                       [-1/np.sqrt(3), 1/np.sqrt(3), 0.0], 
+                       [1/np.sqrt(3), -1/np.sqrt(3), 0.0], 
+                       [1/np.sqrt(3), 1/np.sqrt(3), 0.0]]
+        weights = [1.0, 1.0, 1.0, 1.0]
 
         # Integration points and weights for the numerical integration - Linear triangle element
-        integration_points = [[1/2, 1/2, 0.0], [1/2, 0.0, 0.0], [0.0, 1/2, 0.0]]
-        weights = [1/3, 1/3, 1/3]
+        # integration_points = [[1/2, 1/2, 0.0], [1/2, 0.0, 0.0], [0.0, 1/2, 0.0]]
+        # weights = [1/3, 1/3, 1/3]
 
         circumradius = 0.0
+
+        x_list = []
+        y_list = []
+        numerical_solution_list = []
 
         # Iterate over the elements and sum the error 
         for element in self.active_elements.Elements:
@@ -86,6 +90,8 @@ class ComputeL2NormErrorProcess(KM.Process):
                 x = global_coordinates[0]
                 y = global_coordinates[1]
                 t = self.background_model_part.ProcessInfo[KM.TIME]
+                x_list.append(x)
+                y_list.append(y)
 
                 # Calculate the jacobian and its determinant at the gauss point
                 jacobian = element_geometry.Jacobian([xi, eta, 0.0])
@@ -94,6 +100,7 @@ class ComputeL2NormErrorProcess(KM.Process):
                 # Compute the numerical solution at the integration point
                 N = element_geometry.VectorShapeFunctionsValues(np.zeros(2), [xi, eta, 0.0])
                 numerical_solution = np.dot(nodal_solution, N)
+                numerical_solution_list.append(numerical_solution)
 
                 # Compute the local error
                 error = (self.analytical_solution_evaluation(x, y, t) - numerical_solution) ** 2
@@ -101,13 +108,18 @@ class ComputeL2NormErrorProcess(KM.Process):
                 # Contribution to the L2 error 
                 L2_norm_error += error * det_jacobian * weights[gp_index]
 
-                circumradius += element_geometry.Circumradius()
+                #circumradius += element_geometry.Circumradius()
         
-        print(circumradius/self.active_elements.NumberOfElements())
+        #print(f"{Fore.BLUE}Size: {circumradius/self.active_elements.NumberOfElements()}{Style.RESET_ALL}")
         print(f"{Fore.GREEN}L2-Norm Error: {np.sqrt(L2_norm_error)}{Style.RESET_ALL}")
-        # Data (LINEAR TRIANGLE)
+
+        # Data for plotting (LINEAR TRIANGLE - RBF linear)
         sizes_emb = [0.0964, 0.0707, 0.0424, 0.0316, 0.028, 0.023, 0.022, 0.0202]
         errors_emb = [0.00614, 0.0029, 0.00094, 0.00050, 0.000425, 0.00027, 0.000219, 0.000189]
+        # Data for plotting (LINEAR TRIANGLE - MLS Order 3)
+        sizes_emb_MLS = [0.0964, 0.0707, 0.0424, 0.0316, 0.028, 0.023, 0.0202]
+        errors_emb_MLS = [0.00438, 0.00212, 0.00079, 0.000311, 0.000306, 0.00020, 0.000151]
+
 
         # Data(QUADRATIC QUADRILATERAL)
         # sizes_emb = [0.10, 0.067, 0.05, 0.033, 0.02, 0.014, 0.011, 0.0091]
