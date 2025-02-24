@@ -156,12 +156,12 @@ private:
     }
 
     /**
-     * @brief Create a Brep Surface object for the SBM case
+     * @brief Create a Brep Surface object
      * 
      * @param pSurface 
-     * @param rModelPart 
      * @param rSurrogateModelPartInner 
      * @param rSurrogateModelPartOuter 
+     * @param rModelPart 
      * @param EchoLevel 
      */
     static void CreateBrepSurface(
@@ -211,11 +211,11 @@ private:
      * @brief Create a Brep Curve On Surfaces object
      * 
      * @param pSurface 
-     * @param rModelPart 
      * @param rSurrogateModelPartInner 
      * @param rSurrogateModelPartOuter 
      * @param rCoordsA 
      * @param rCoordsB 
+     * @param rModelPart 
      * @param EchoLevel 
      */
     static void CreateBrepCurveOnSurfaces(
@@ -367,11 +367,11 @@ private:
     /**
      * @brief Create a Brep Curves On Rectangle object
      * 
-     * @param rModelPart 
      * @param pSurfaceGeometry 
      * @param rCoordsA 
      * @param rCoordsB 
      * @param rLastGeometryId 
+     * @param rModelPart 
      */
     static void CreateBrepCurvesOnRectangle(const NurbsSurfaceGeometryPointerType pSurfaceGeometry, 
                                             const Point& rCoordsA, 
