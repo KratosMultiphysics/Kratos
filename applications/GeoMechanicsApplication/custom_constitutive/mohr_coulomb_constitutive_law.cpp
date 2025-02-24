@@ -203,7 +203,7 @@ Vector MohrCoulombConstitutiveLaw::ReturnStressAtRegularFailureZone(const Vector
 // ================================================================================================
 double MohrCoulombConstitutiveLaw::CalculateApex(const double FrictionAngle, const double Cohesion)
 {
-    return Cohesion / std::tan(FrictionAngle);;
+    return Cohesion / std::tan(FrictionAngle);
 }
 
 // ================================================================================================
@@ -278,7 +278,7 @@ Vector MohrCoulombConstitutiveLaw::NormalizeVector(Vector& vector)
 Matrix MohrCoulombConstitutiveLaw::CalculateRotationMatrix(const Matrix& eigenVectorsMatrix)
 {
     Matrix result(eigenVectorsMatrix.size1(), eigenVectorsMatrix.size2());
-    for (int i = 0; i < eigenVectorsMatrix.size1(); ++i) {
+    for (std::size_t i = 0; i < eigenVectorsMatrix.size1(); ++i) {
         Vector vec        = column(eigenVectorsMatrix, i);
         vec               = this->NormalizeVector(vec);
         column(result, i) = vec;
@@ -294,8 +294,8 @@ void MohrCoulombConstitutiveLaw::CheckRotationMatrix(const Matrix& rRotationMatr
         KRATOS_ERROR_IF_NOT(result(i, i) == 1.0) << "The rotation matrix is not orthogonal" << std::endl;
     }
 
-    for (int i = 0; i < rRotationMatrix.size1(); ++i) {
-        for (int j = 0; j < rRotationMatrix.size2(); ++j) {
+    for (std::size_t i = 0; i < rRotationMatrix.size1(); ++i) {
+        for (std::size_t j = 0; j < rRotationMatrix.size2(); ++j) {
             if (i != j)
                 KRATOS_ERROR_IF_NOT(result(i, j) == 0.0)
                     << "The rotation matrix is not orthogonal" << std::endl;
@@ -307,10 +307,67 @@ void MohrCoulombConstitutiveLaw::CheckRotationMatrix(const Matrix& rRotationMatr
 Matrix MohrCoulombConstitutiveLaw::ConvertVectorToDiagonalMatrix(const Vector& rVector)
 {
     Matrix result = ZeroMatrix(rVector.size(), rVector.size());
-    for (int i = 0; i < rVector.size(); ++i) {
+    for (std::size_t i = 0; i < rVector.size(); ++i) {
         result(i, i) = rVector(i);
     }
     return result;
 }
+
+
+
+
+
+
+
+
+// ================================================================================================
+int MohrCoulombConstitutiveLaw::FindReturnRegion(const Properties& rProp, Vector& principalTrialStressVector)
+{
+    const auto friction_angle = rProp[GEO_FRICTION_ANGLE] * Globals::Pi / 180.0;
+    const auto cohesion       = rProp[GEO_COHESION];
+    const auto dilation_angle = rProp[GEO_DILATION_ANGLE] * Globals::Pi / 180.0;
+    const auto tension_cutoff = rProp[GEO_TENSION_CUTOFF];
+
+    const auto coulombYieldFunction = CoulombYieldFunction(friction_angle, cohesion, dilation_angle);
+    const auto tensionCutoffFunction = TensionCutoffFunction(tension_cutoff);
+
+    double fme = coulombYieldFunction.CalculateYieldFunction(principalTrialStressVector);
+    double fte = tensionCutoffFunction.CalculateYieldFunction(principalTrialStressVector);
+
+    double trailStress = 0.5 * (principalTrialStressVector(0) + principalTrialStressVector(2));
+    double trialShear  = 0.5 * (principalTrialStressVector(0) - principalTrialStressVector(2));
+
+    // Elastic region
+    if (fme <= 0.0 && fte <= 0.0) {
+        return 0;
+    }
+
+    // Zone of axial return
+    double apex        = this->CalculateApex(friction_angle, cohesion);
+    Vector cornerPoint = this->CalculateCornerPoint(friction_angle, cohesion, tension_cutoff, apex);
+
+    if (tension_cutoff < apex && trialShear <= cornerPoint(1) && fte >= 0.0) {
+        return 1;
+    }
+
+    // Zone of tensile corner return
+    double flow = (trailStress - cornerPoint(0)) - (trialShear - cornerPoint(1)) / std::sin(dilation_angle);
+    if (flow <= 0.0) { //&& trialShear > shearAtIntersection
+        return 2;
+    }
+
+    // Regular failure region
+    if (fme > 0.0) { //&& flow > 0.0
+        return 3;
+    }
+
+    return -1;
+}
+
+
+
+
+
+
 
 } // Namespace Kratos

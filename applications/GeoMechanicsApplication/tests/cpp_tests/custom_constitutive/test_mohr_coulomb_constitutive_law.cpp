@@ -283,4 +283,33 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombConstitutiveLaw_ReturnStressAtRegularFailur
     KRATOS_EXPECT_VECTOR_NEAR(modified_stress_vector, expected_stress_vector, 1.0e-8);
 }
 
+
+
+
+
+
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombConstitutiveLaw_ReturnRegion, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Set
+    auto plane_strain = std::make_unique<PlaneStrain>();
+    auto law          = MohrCoulombConstitutiveLaw(std::make_unique<PlaneStrain>());
+
+    ConstitutiveLaw::Parameters parameters;
+    Properties                  properties;
+    properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
+    properties.SetValue(GEO_COHESION, 10.0);
+    properties.SetValue(GEO_DILATION_ANGLE, 20.0);
+    properties.SetValue(GEO_TENSION_CUTOFF, 1.0);
+    parameters.SetMaterialProperties(properties);
+
+    // Elastic
+    Vector principal_stress_vector(3);
+    principal_stress_vector <<= -6.0, -7.0, -14.0;
+    Vector cauchy_stress_vector = ZeroVector(plane_strain->GetStrainSize());
+    int region_index = law.FindReturnRegion(properties, principal_stress_vector);
+    int expected_region_index = 0 ;
+    KRATOS_EXPECT_EQ(region_index, expected_region_index);
+
+}
+
 } // namespace Kratos::Testing

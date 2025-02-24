@@ -82,6 +82,9 @@ public:
     double CalculateApex(const double FrictionAngle, const double Cohesion);
     Vector CalculateCornerPoint(const double FrictionAngle, const double Cohesion, const double TensionCutoff, const double Apex);
 
+
+    int FindReturnRegion(const Properties& rProp, Vector& principalTrialStressVector);
+
     // Member Variables
     double mStateVariable;
 
@@ -91,7 +94,6 @@ private:
     Vector                                    mStressVectorFinalized;
     Vector                                    mDeltaStrainVector;
     Vector                                    mStrainVectorFinalized;
-    bool                                      mIsCutoffActive = false;
 
     // Serialization
     friend class Serializer;
