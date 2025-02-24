@@ -396,7 +396,7 @@ namespace Testing {
         p_surface->SpansLocalSpace(spans_local_space_u, 0);
         std::vector<double>  spans_local_space_v;
         p_surface->SpansLocalSpace(spans_local_space_v, 1);
-        int nb_per_span = 6;
+        IndexType nb_per_span = 6;
 
         std::vector<double> knots_to_insert_u;
         for (IndexType i = 0; i < spans_local_space_u.size() - 1; ++i) {
