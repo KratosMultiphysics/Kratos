@@ -100,7 +100,6 @@ public:
 
         KRATOS_ERROR_IF(rWeights.size() != rThisPoints.size())
             << "Number of control points and weights do not match!" << std::endl;
-        
         CheckIsRationalOnlyOnce();
     }
 
@@ -310,6 +309,23 @@ public:
     SizeType NumberOfKnotsV() const
     {
         return mKnotsV.size();
+    }
+
+    /* Checks if shape functions are rational or not.
+     * @mRational is true if NURBS, false if B-Splines only (all weights are considered as 1) */
+    void CheckIsRationalOnlyOnce()
+    {
+        if (mWeights.size() == 0)
+            mIsRational = false;
+        else {
+            mIsRational = false;
+            for (IndexType i = 0; i < mWeights.size(); ++i) {
+                if (std::abs(mWeights[i] - 1.0) > 1e-8) {
+                    mIsRational = true;
+                    break;
+                }
+            }
+        }
     }
 
     /* Checks if shape functions are rational or not.
@@ -858,11 +874,21 @@ public:
     ///@name Geometry Family
     ///@{
 
+    /**
+     * @brief Gets the geometry family.
+     * @details This function returns the family type of the geometry. The geometry family categorizes the geometry into a broader classification, aiding in its identification and processing.
+     * @return GeometryData::KratosGeometryFamily The geometry family.
+     */
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::KratosGeometryFamily::Kratos_Nurbs;
     }
 
+    /**
+     * @brief Gets the geometry type.
+     * @details This function returns the specific type of the geometry. The geometry type provides a more detailed classification of the geometry.
+     * @return GeometryData::KratosGeometryType The specific geometry type.
+     */
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::KratosGeometryType::Kratos_Nurbs_Surface;
@@ -905,6 +931,7 @@ private:
     Vector mKnotsU;
     Vector mKnotsV;
     Vector mWeights;
+    bool mIsRational;
 
     /// A NurbsSurface may refer to the BrepSurface as geometry parent.
     BaseType* mpGeometryParent = nullptr;

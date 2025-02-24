@@ -14,18 +14,18 @@ namespace Kratos
 {
     ///@name Kratos Classes
     ///@{
-
-    void BrepTrimmingUtilities::CreateBrepSurfaceTrimmingIntegrationPoints(
+    template<bool TShiftedBoundary>
+    void BrepTrimmingUtilities<TShiftedBoundary>::CreateBrepSurfaceTrimmingIntegrationPoints(
         IntegrationPointsArrayType& rIntegrationPoints,
-        const DenseVector<DenseVector<typename BrepCurveOnSurface<PointerVector<Node>, PointerVector<Point>>::Pointer>>& rOuterLoops,
-        const DenseVector<DenseVector<typename BrepCurveOnSurface<PointerVector<Node>, PointerVector<Point>>::Pointer>>& rInnerLoops,
+        const DenseVector<DenseVector<BrepCurveOnSurfacePointerType>>& rOuterLoops,
+        const DenseVector<DenseVector<BrepCurveOnSurfacePointerType>>& rInnerLoops,
         const std::vector<double>& rSpansU,
         const std::vector<double>& rSpansV,
         IntegrationInfo& rIntegrationInfo)
     {
         for (IndexType i_outer_loops = 0; i_outer_loops < rOuterLoops.size(); ++i_outer_loops) {
 
-            Clipper2Lib::Paths64 all_loops(1 + rInnerLoops.size()), solution, solution_inner;
+            Clipper2Lib::Paths64 all_loops(1 + rInnerLoops.size()), solution_outer, solution_inner;
             const double factor = 1e-10;
 
             Clipper2Lib::Point64 int_point;
@@ -48,7 +48,7 @@ namespace Kratos
             }
 
             for (IndexType i_inner_loops = 0; i_inner_loops < rInnerLoops.size(); ++i_inner_loops) {
-                //ClipperLib::IntPoint int_point;
+
                 int_point.x = static_cast<cInt>(std::numeric_limits<int>::min());
                 int_point.y = static_cast<cInt>(std::numeric_limits<int>::min());
                 for (IndexType j = 0; j < rInnerLoops[i_inner_loops].size(); ++j) {
@@ -70,33 +70,34 @@ namespace Kratos
 
             for (IndexType i = 0; i < rSpansU.size() - 1; ++i) {
                 for (IndexType j = 0; j < rSpansV.size() - 1; ++j) {
-                    Clipper2Lib::Clipper64 c;
-                    c.AddSubject(all_loops);
+                    Clipper2Lib::Clipper64 clipper_operation_outer;
+                    clipper_operation_outer.AddSubject(all_loops);
 
                     Clipper2Lib::Rect64 rectangle = Clipper2Lib::Rect64(
                         static_cast<cInt>(rSpansU[i] / factor), static_cast<cInt>(rSpansV[j] / factor),
                         static_cast<cInt>(rSpansU[i + 1] / factor), static_cast<cInt>(rSpansV[j + 1] / factor));
 
-                    solution = Clipper2Lib::RectClip(rectangle, all_loops);
+                    solution_outer = Clipper2Lib::RectClip(rectangle, all_loops);
 
                     const double span_area = std::abs(Clipper2Lib::Area(rectangle.AsPath()));
                     double clip_area = 0.0;
-                    if (solution.size() > 0)
+                    if (solution_outer.size() > 0)
                     {
-                        clip_area = std::abs(Clipper2Lib::Area(solution[0]));
-                        for (IndexType k = 1; k < solution.size(); ++k) {
-                            clip_area -= std::abs(Clipper2Lib::Area(solution[k]));
+                        clip_area = std::abs(Clipper2Lib::Area(solution_outer[0]));
+                        for (IndexType k = 1; k < solution_outer.size(); ++k) {
+                            clip_area -= std::abs(Clipper2Lib::Area(solution_outer[k]));
                         }
                     }
 
-                    Clipper2Lib::Clipper64 d;
-                    d.AddSubject(solution);
-                    d.Execute(Clipper2Lib::ClipType::Difference, Clipper2Lib::FillRule::NonZero, solution_inner);
+                    //operation for inner trimming
+                    Clipper2Lib::Clipper64 clipper_operation_inner;
+                    clipper_operation_inner.AddSubject(solution_outer);
+                    clipper_operation_inner.Execute(Clipper2Lib::ClipType::Difference, Clipper2Lib::FillRule::NonZero, solution_inner);
 
-                    if (solution.size() == 0 || clip_area == 0.0) {
+                    if (solution_outer.size() == 0 || clip_area/span_area < 1e-6) {
                         continue;
                     }
-                    else if (std::abs(clip_area- span_area) < 1000) {
+                    else if (std::abs(1-clip_area/span_area) < 1e-6) {
                         const IndexType number_of_integration_points = rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0) * rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(1);
 
                         IndexType initial_integration_size = rIntegrationPoints.size();
@@ -118,9 +119,8 @@ namespace Kratos
                         std::vector<Matrix> triangles;
                         for(IndexType i = 0; i < solution_inner.size(); ++i)
                         {
-                            BrepTrimmingUtilities::Triangulate_OPT(solution_inner[i], triangles, factor);    
+                            BrepTrimmingUtilities::Triangulate_OPT(solution_inner[i], triangles, factor, span_area);
                         }
-                        
 
                         const SizeType number_of_points = std::max(rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0), rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(1));
 
@@ -144,7 +144,7 @@ namespace Kratos
                                 triangles[i](0, 1), triangles[i](1, 1), triangles[i](2, 1));
                         }
                     }
-                    c.Clear();
+                    clipper_operation_outer.Clear();
                 }
             }
         }
@@ -160,4 +160,6 @@ namespace Kratos
     //    const std::vector<double>& rSpansV,
     //    IntegrationInfo& rIntegrationInfo);
 
+    template class KRATOS_API(KRATOS_CORE) BrepTrimmingUtilities<true>;
+    template class KRATOS_API(KRATOS_CORE) BrepTrimmingUtilities<false>;
 } // namespace Kratos.

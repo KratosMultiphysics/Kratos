@@ -42,12 +42,18 @@ Condition::Pointer AxisymmetricLineNormalLoad2DDiffOrderCondition::Create(IndexT
                                                                           NodesArrayType const& ThisNodes,
                                                                           PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(new AxisymmetricLineNormalLoad2DDiffOrderCondition(
-        NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Create(NewId, GetGeometry().Create(ThisNodes), pProperties);
+}
+
+Condition::Pointer AxisymmetricLineNormalLoad2DDiffOrderCondition::Create(IndexType NewId,
+                                                                          GeometryType::Pointer pGeom,
+                                                                          PropertiesType::Pointer pProperties) const
+{
+    return make_intrusive<AxisymmetricLineNormalLoad2DDiffOrderCondition>(NewId, pGeom, pProperties);
 }
 
 double AxisymmetricLineNormalLoad2DDiffOrderCondition::CalculateIntegrationCoefficient(
-    const IndexType                                 PointNumber,
+    IndexType                                       PointNumber,
     const GeometryType::JacobiansType&              JContainer,
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const
 

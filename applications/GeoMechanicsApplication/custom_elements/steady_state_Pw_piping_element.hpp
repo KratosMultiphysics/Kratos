@@ -95,6 +95,8 @@ public:
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
+    std::string Info() const override;
+
     bool InEquilibrium(const PropertiesType& Prop, const GeometryType& Geom);
 
     double CalculateHeadGradient(const PropertiesType& Prop, const GeometryType& Geom, double pipe_length);
@@ -118,8 +120,6 @@ protected:
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
                                       std::vector<double>&    rValues,
                                       const ProcessInfo&      rCurrentProcessInfo) override;
-
-    double CalculateParticleDiameter(const PropertiesType& Prop);
 
     double pipe_initialised = false;
 

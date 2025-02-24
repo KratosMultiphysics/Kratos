@@ -19,7 +19,6 @@
 #include "custom_elements/U_Pw_small_strain_element.hpp"
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/stress_strain_utilities.h"
-#include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -45,7 +44,6 @@ public:
     /// The definition of the sizetype
     using SizeType = std::size_t;
     using BaseType::mConstitutiveLawVector;
-    using BaseType::mIsInitialised;
     using BaseType::mRetentionLawVector;
 
     using ElementVariables = typename BaseType::ElementVariables;
@@ -139,7 +137,7 @@ protected:
 
     void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint) override;
 
-    void CalculateKinematics(ElementVariables& rVariables, unsigned int PointNumber) override;
+    void CalculateKinematics(ElementVariables& rVariables, unsigned int IntegrationPointIndex) override;
 
     void CalculateAndAddCompressibilityMatrix(MatrixType&             rLeftHandSideMatrix,
                                               const ElementVariables& rVariables) override;
@@ -166,8 +164,7 @@ private:
     void load(Serializer& rSerializer) override{KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)}
 
     // Assignment operator.
-    TransientPwElement&
-    operator=(TransientPwElement const& rOther);
+    TransientPwElement& operator=(TransientPwElement const& rOther);
 
     // Copy constructor.
     TransientPwElement(TransientPwElement const& rOther);
