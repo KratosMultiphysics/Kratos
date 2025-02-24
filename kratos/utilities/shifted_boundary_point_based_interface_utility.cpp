@@ -280,6 +280,11 @@ namespace Kratos
                 auto& p_element = r_elements[i_ele];
                 auto& r_geom = p_element->GetGeometry();
                 const std::size_t n_nodes = r_geom.PointsNumber();
+
+                // Calculate distance below which nodes get relocated and by which nodes get relocated
+                const double length = r_geom.Length();
+                const double relocation_distance = std::max(distance_threshold, relocation_multiplier * length);
+
                 for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
                     auto& r_node = r_geom[i_node];
                     // Check that node was not already modified from the iteration of another element
@@ -288,13 +293,11 @@ namespace Kratos
                         // NOTE that this distance value can be negative to move in negative normal direction
                         const double distance_node = CalculateSkinDistanceToNode(r_node, r_element_intersecting_objects,
                                                                                  p_point_distance_function, p_intersection_plane_constructor,
-                                                                                 distance_threshold, 0.1*distance_threshold);
+                                                                                 relocation_distance, 0.01*relocation_distance);
 
                         // Relocate node in direction of normal if the skin geometry is too close
                         //TODO do not move outer boundary elements?
-                        if (std::abs(distance_node) < distance_threshold) {
-                            // Get a measure of element size
-                            const double length = r_geom.Length();
+                        if (std::abs(distance_node) < relocation_distance) {
                             // Get normal of first intersecting object
                             const auto& r_int_obj = r_intersected_objects[i_ele][0];
                             array_1d<double,3> local_coords;
@@ -306,7 +309,6 @@ namespace Kratos
                                 unit_normal *= (-1);
                             }
 
-                            const double relocation_distance = std::max(distance_threshold, relocation_multiplier * length);
                             {
                                 std::scoped_lock<LockObject> lock(mutex);
 
@@ -719,7 +721,7 @@ namespace Kratos
             // Check that the computed distance is the minimal one so far
             if (distance < minimal_distance) {
                 minimal_distance = distance;
-                // Create plane to calculate signedness of distance if the distance value falls in
+                // Create plane to calculate signedness of distance if the distance value is
                 // below the minimal accepted distance and above the threshold at which the signedness makes a difference for resulting geometry
                 // In between these values the signedness ensures that the node moves away and not towards the skin geometry
                 if (minimal_distance < DistanceThreshold && minimal_distance > ThresholdForSignedness) {
@@ -1025,7 +1027,7 @@ namespace Kratos
         // This is the first layer of sampling/ support points
         // NOTE that the sides of the first layer of nodes at gamma_tilde already need to be defined in their flags (done by SetSidesVectorsAndSkinNormalsForSplitElements)
         // NOTE that taking the nodes of neighboring elements is the same as adding the nodal neighbors directly for triangles and tetrahedra
-        //TODO add neighboring nodes directly?
+        //TODO add neighboring nodes directly? for tetra and hex elements?
         auto& r_elem_neigh_vect = pOtherSideNode->GetValue(NEIGHBOUR_ELEMENTS);
         for (std::size_t i_neigh = 0; i_neigh < r_elem_neigh_vect.size(); ++i_neigh) {
             auto p_elem_neigh = r_elem_neigh_vect(i_neigh).get();
@@ -1034,14 +1036,8 @@ namespace Kratos
                 for (std::size_t i_neigh_node = 0; i_neigh_node < r_geom.PointsNumber(); ++i_neigh_node) {
                     NodeType::Pointer p_neigh = r_geom(i_neigh_node);
 
-                    //TODO test:  Calculate dot product of average skin normal of the element and the normalized vector between averaged skin point and the element's node
-                    // NOTE that the dot product has to be above a certain threshold to get added to support because it could be connected to the other side otherwise
-                    // array_1d<double,3> avg_skin_pt_to_node = p_neigh->Coordinates() - rAvgSkinPosition;
-                    // avg_skin_pt_to_node /= norm_2(avg_skin_pt_to_node);
-                    // const double dot_product = inner_prod(avg_skin_pt_to_node, rAvgSkinNormal);
-
                     // Add node of neighboring element to the support node set if it is active and located on the search side
-                    if (p_neigh->Is(ACTIVE) && p_neigh->Is(rSearchSideFlag)) {  // && dot_product > 0.0) {
+                    if (p_neigh->Is(ACTIVE) && p_neigh->Is(rSearchSideFlag)) {
                         aux_set.insert(p_neigh);
                         prev_layer_nodes.push_back(p_neigh);
                     }
@@ -1056,29 +1052,26 @@ namespace Kratos
         }
 
         // Add more layers of nodal neighbors of the current nodes to the cloud of nodes
-        // NOTE that we start from 1 here as the first layer already has been added
+        // Add those layers in normal direction of the boundary, so that both sides are more clearly separated at edges (3D) and tips of the skin geometry
+        // NOTE that we start from 1 here as the first layer already has been added, so only one more layer will be added for a linear MLS extension
         for (std::size_t i_layer = 1; i_layer < n_layers; ++i_layer) {
-            //TODO test
             AddLateralSupportLayer(rAvgSkinPosition, rAvgSkinNormal, prev_layer_nodes, cur_layer_nodes, aux_set);
-            //AddLateralSupportLayer(prev_layer_nodes, cur_layer_nodes, aux_set);
             prev_layer_nodes = cur_layer_nodes;
             cur_layer_nodes.clear();
         }
 
         // If there are not enough active support nodes to perform the MLS calculation add another layer of neighboring nodes
-        // Add maximal three extra layers
+        // Add maximal three extra layers, these do not have to be in normal direction away from the averaged skin geometry anymore
         std::size_t n_cloud_nodes = aux_set.size();
         std::size_t n_extra_layers = 0;
         while (n_cloud_nodes < GetRequiredNumberOfPoints()+1 && n_extra_layers < 3) {
-            //TODO test
-            //AddLateralSupportLayer(rAvgSkinPosition, rAvgSkinNormal, prev_layer_nodes, cur_layer_nodes, aux_set);
             AddLateralSupportLayer(prev_layer_nodes, cur_layer_nodes, aux_set);
             n_extra_layers++;
             n_cloud_nodes = aux_set.size();
             prev_layer_nodes = cur_layer_nodes;
             cur_layer_nodes.clear();
         }
-        if (n_extra_layers > 1) {
+        if (n_extra_layers > 0) {
            KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility") << n_extra_layers << " extra layers of points needed for MLS calculation." << std::endl;
         }
 
