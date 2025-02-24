@@ -54,10 +54,6 @@ public:
                            DofArray&& rDofs,
                            const std::vector<std::size_t>& rConstraintLabels);
 
-    void InitializeSolutionStep(const ProcessInfo& rProcessInfo) override;
-
-    void InitializeNonLinearIteration(const ProcessInfo& rProcessInfo) override;
-
     void GetDofList(DofPointerVectorType& rSlaveDofs,
                     DofPointerVectorType& rMasterDofs,
                     const ProcessInfo&) const override;
@@ -104,8 +100,6 @@ private:
     void save(Serializer& rSerializer) const override;
 
     void load(Serializer& rDeserializer) override;
-
-    void SetConstraintDofs();
 
     DofArray mDofs;
 }; // class MultifreedomConstraint

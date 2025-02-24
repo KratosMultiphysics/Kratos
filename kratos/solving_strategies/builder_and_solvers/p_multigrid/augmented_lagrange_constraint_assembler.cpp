@@ -59,6 +59,59 @@ bool HasIntersection(const TIndex* itLeftBegin,
 }
 
 
+void ProcessMasterSlaveConstraint(std::vector<std::size_t>& rConstraintIndices,
+                                  std::vector<std::size_t>& rDofIds,
+                                  MasterSlaveConstraint::MatrixType& rRelationMatrix,
+                                  const MasterSlaveConstraint& rConstraint,
+                                  const std::vector<std::size_t>& rSlaveIds,
+                                  const std::vector<std::size_t>& rMasterIds,
+                                  const std::unordered_map<std::size_t,std::size_t>& rConstraintIdToIndexMap)
+{
+    // Constraint identifiers are the slave DoFs' IDs.
+    rConstraintIndices.resize(rSlaveIds.size());
+    std::transform(rSlaveIds.begin(),
+                   rSlaveIds.end(),
+                   rConstraintIndices.begin(),
+                   [&rConstraintIdToIndexMap](std::size_t slave_id){
+                        return rConstraintIdToIndexMap.at(slave_id);
+                   });
+
+    // Comb DoFs.
+    rDofIds.resize(rMasterIds.size() + rSlaveIds.size());
+    std::copy(rMasterIds.begin(), rMasterIds.end(), rDofIds.begin());
+    std::copy(rSlaveIds.begin(), rSlaveIds.end(), rDofIds.begin() + rMasterIds.size());
+
+    // Reconstruct the constraint equations.
+    if (rRelationMatrix.size2()) {
+        rRelationMatrix.resize(rRelationMatrix.size1(),
+                               rRelationMatrix.size2() + rSlaveIds.size(),
+                               /*preserve entries=*/true);
+        for (std::size_t i_slave=0ul; i_slave<rSlaveIds.size(); ++i_slave) {
+            rRelationMatrix(i_slave, rMasterIds.size() + i_slave) = -1.0;
+        } // for i_slave in range(rSlaveIds.size())
+    } // if rRelationMatrix.size2()
+}
+
+
+void ProcessMultifreedomConstraint(std::vector<std::size_t>& rConstraintIndices,
+                                   std::vector<std::size_t>& rDofIds,
+                                   const MasterSlaveConstraint& rConstraint,
+                                   const std::vector<std::size_t>& rMasterIds,
+                                   const std::unordered_map<std::size_t,std::size_t>& rConstraintIdToIndexMap)
+{
+    const auto& r_constraint_labels = rConstraint.GetData().GetValue(CONSTRAINT_LABELS);
+    rConstraintIndices.resize(r_constraint_labels.size());
+    std::transform(r_constraint_labels.begin(),
+                   r_constraint_labels.end(),
+                   rConstraintIndices.begin(),
+                   [&rConstraintIdToIndexMap](std::size_t constraint_label){
+                        return rConstraintIdToIndexMap.at(constraint_label);
+                   });
+
+    rDofIds = rMasterIds;
+}
+
+
 } // namespace detail
 
 
@@ -110,7 +163,7 @@ struct AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Impl
                 if (r_dof.IsFixed()) {
                     KRATOS_ERROR_IF_NOT(i_entry_end - i_entry_begin == 2)
                         << "A Dirichlet condition is set on DoF " << i_dof << " belonging to node " << r_dof.Id() << ", "
-                        << "and it also appears in a multifreedom constraint with " << i_entry_end - i_entry_begin - (i_entry_begin == i_entry_end ? 0 : 1) << " other DoFs. "
+                        << "and it also appears in a multifreedom constraint with " << (i_entry_end - i_entry_begin - (i_entry_begin == i_entry_end ? 0 : 1)) << " other DoFs. "
                         << "In such cases, multifreedom constraints with only 2 DoFs are supported due to performance considerations.";
 
                     const auto i_forced_dof = i_dof == rRelationMatrix.index2_data()[i_entry_begin]
@@ -196,32 +249,58 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Allocate(const typena
 
     {
         MasterSlaveConstraint::IndexType i_constraint = 0;
+        MasterSlaveConstraint::EquationIdVectorType constraint_labels, master_ids;
+
         for (const auto& r_constraint : rConstraints) {
-            const auto& r_constraint_ids = r_constraint.GetData().GetValue(CONSTRAINT_LABELS);
-            for (const auto constraint_id : r_constraint_ids) {
-                const auto emplace_result = mpImpl->mConstraintIdToIndexMap.emplace(static_cast<std::size_t>(constraint_id),
+            r_constraint.EquationIdVector(constraint_labels, master_ids, rProcessInfo);
+
+            if (constraint_labels.empty()) {
+                // Constraint is a MultifreedomConstraint.
+                const auto& r_constraint_labels = r_constraint.GetData().GetValue(CONSTRAINT_LABELS);
+                constraint_labels.resize(r_constraint_labels.size());
+                std::copy(r_constraint_labels.begin(),
+                          r_constraint_labels.end(),
+                          constraint_labels.begin());
+            } /*if constraint_labels.empty()*/
+
+            for (const auto constraint_label : constraint_labels) {
+                const auto emplace_result = mpImpl->mConstraintIdToIndexMap.emplace(static_cast<std::size_t>(constraint_label),
                                                                                     i_constraint);
                 if (emplace_result.second) ++i_constraint;
-            } // for i_slave in slave_ids
+            } // for constraint_label in constraint_labels
         } // for r_constraint in rModelPart.MasterSlaveConstraints
     }
 
     {
         std::vector<std::unordered_set<IndexType>> indices(mpImpl->mConstraintIdToIndexMap.size());
-        std::vector<LockObject> mutexes(indices.size());
+        std::vector<LockObject> mutexes(mpImpl->mConstraintIdToIndexMap.size());
 
         struct TLS {
             MasterSlaveConstraint::EquationIdVectorType slaves, masters;
+            std::vector<std::size_t> constraint_labels;
         };
 
         block_for_each(rConstraints,
                        TLS(),
                        [&mutexes, &indices, &rProcessInfo, this](const auto& r_constraint, TLS& r_tls) {
             r_constraint.EquationIdVector(r_tls.slaves, r_tls.masters, rProcessInfo);
-            KRATOS_ERROR_IF_NOT(r_tls.slaves.empty()) << "AugmentedLagrangeConstraintAssembler supports constraints derived from MultifreedomConstraint only";
 
-            const auto& r_constraint_labels = r_constraint.GetData().GetValue(CONSTRAINT_LABELS);
-            for (const auto i_slave : r_constraint_labels) {
+            if (r_tls.slaves.empty()) {
+                // Constraint is a MultifreedomConstraint.
+                const auto& r_constraint_labels = r_constraint.GetData().GetValue(CONSTRAINT_LABELS);
+                r_tls.constraint_labels.resize(r_constraint_labels.size());
+                std::copy(r_constraint_labels.begin(),
+                          r_constraint_labels.end(),
+                          r_tls.constraint_labels.begin());
+            } /*if r_tls.slaves.empty()*/ else {
+                // Constraint is a MasterSlaveConstraint.
+                r_tls.constraint_labels = r_tls.slaves;
+                r_tls.masters.insert(r_tls.masters.end(),
+                                     r_tls.slaves.begin(),
+                                     r_tls.slaves.end());
+            }
+
+            for (const auto i_slave : r_tls.constraint_labels) {
                 const auto i_constraint = mpImpl->mConstraintIdToIndexMap[static_cast<std::size_t>(i_slave)];
                 std::scoped_lock<LockObject> lock(mutexes[i_constraint]);
                 indices[i_constraint].insert(r_tls.masters.begin(), r_tls.masters.end());
@@ -273,8 +352,7 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Assemble(const typena
 
     struct TLS {
         MasterSlaveConstraint::EquationIdVectorType slave_ids, master_ids;
-        std::vector<std::size_t> dof_index_array;
-        std::vector<std::size_t> reordered_dof_equation_ids;
+        std::vector<std::size_t> constraint_indices, dof_equation_ids, dof_index_array, reordered_dof_equation_ids;
         std::vector<MasterSlaveConstraint::MatrixType::value_type> relation_matrix_row;
         MasterSlaveConstraint::MatrixType relation_matrix;
         MasterSlaveConstraint::VectorType constraint_gaps;
@@ -285,39 +363,61 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Assemble(const typena
                    TLS(),
                    [&mutexes, &rProcessInfo, this](const MasterSlaveConstraint& r_constraint, TLS& r_tls){
         if (r_constraint.IsActive()) {
-            const auto& r_constraint_ids = r_constraint.GetData().GetValue(CONSTRAINT_LABELS);
-            const auto& r_dof_equation_ids = r_constraint.GetData().GetValue(CONSTRAINT_DOFS);
-            r_tls.relation_matrix = r_constraint.GetData().GetValue(RELATION_MATRIX);
-            const auto& r_constraint_gaps = r_constraint.GetData().GetValue(CONSTRAINT_GAPS);
+            r_constraint.EquationIdVector(r_tls.slave_ids,
+                                          r_tls.master_ids,
+                                          rProcessInfo);
+            r_constraint.CalculateLocalSystem(r_tls.relation_matrix,
+                                              r_tls.constraint_gaps,
+                                              rProcessInfo);
 
-            // Make sure that the constraints assembled are all MultifreedomConstraints
-            // and not standard MasterSlaveConstraints, since they're unsupported by
-            // constraint assemblers.
-            KRATOS_ERROR_IF(r_constraint_ids.empty()) << "AugmentedLagrangeConstraintAssembler only supports MultifreedomConstraints, not MasterSlaveConstraints.";
+            // MasterSlaveConstraints and MultifreedomConstraints have to be handled separately.
+            // MasterSlaveConstraint has both slave and master DoFs, and interprets the relation
+            // matrix as a map from master DoFs to slave DoFs. The constraint equation it belongs
+            // to is defined by the ID of the slave DoFs (MasterSlaveConstraints sharing slave DoFs
+            // belong to the same constraint equation),
+            // On the other hand, MultifreedomConstraint only fills the master DoFs, and provides a
+            // relation matrix whose rows directly represent coefficients in the constraint equation.
+            // Constraint equations are identified by the CONSTRAINT_LABELS variable stored in the
+            // DataValueConstainer of the constraint object (constraints with identical CONSTRAINT_LABELS
+            // belong to the same constraint equation).
+            if (r_tls.slave_ids.empty()) {
+                // The constraint is a MultifreedomConstraint.
+                detail::ProcessMultifreedomConstraint(r_tls.constraint_indices,
+                                                      r_tls.dof_equation_ids,
+                                                      r_constraint,
+                                                      r_tls.master_ids,
+                                                      mpImpl->mConstraintIdToIndexMap);
+            } /*if r_tls.slave_ids.empty()*/ else {
+                // The constraint is a MasterSlaveConstraint.
+                detail::ProcessMasterSlaveConstraint(r_tls.constraint_indices,
+                                                     r_tls.dof_equation_ids,
+                                                     r_tls.relation_matrix,
+                                                     r_constraint,
+                                                     r_tls.slave_ids,
+                                                     r_tls.master_ids,
+                                                     mpImpl->mConstraintIdToIndexMap);
+            } // not r_tls.slave_ids.empty()
 
             r_tls.relation_matrix_row.resize(r_tls.relation_matrix.size2());
 
             // Assemble local rows into the global relation matrix.
-            for (std::size_t i_row=0ul; i_row<r_constraint_ids.size(); ++i_row) {
-                const auto it_constraint_index = mpImpl->mConstraintIdToIndexMap.find(static_cast<std::size_t>(r_constraint_ids[i_row]));
-                KRATOS_ERROR_IF(it_constraint_index == mpImpl->mConstraintIdToIndexMap.end())
-                    << "constraint label " << i_row << " "
-                    << "of constraint ID " << r_constraint.Id() << " "
-                    << "is not associated with a constraint index.";
-
-                const std::size_t i_constraint = it_constraint_index->second;
-                KRATOS_ERROR_IF(this->GetRelationMatrix().size1() <= i_constraint);
+            for (std::size_t i_row=0ul; i_row<r_tls.constraint_indices.size(); ++i_row) {
+                const auto i_constraint = r_tls.constraint_indices[i_row];
+                KRATOS_ERROR_IF(this->GetRelationMatrix().size1() <= i_constraint)
+                    << "constraint index " << i_constraint
+                    << " is out of bounds in relation matrix of size "
+                    << "(" << this->GetRelationMatrix().size1() << "x" << this->GetRelationMatrix().size2() << ")";
 
                 // Indirect sort the local relation matrix' row based on DoF IDs.
                 // This step is required because the global relation matrix is in CSR format,
                 // and Impl::MapRowContribution expects the column indices to be sorted.
                 {
-                    r_tls.dof_index_array.resize(r_dof_equation_ids.size());
+                    r_tls.dof_index_array.resize(r_tls.dof_equation_ids.size());
                     std::iota(r_tls.dof_index_array.begin(), r_tls.dof_index_array.end(), 0ul);
                     std::sort(r_tls.dof_index_array.begin(),
                               r_tls.dof_index_array.end(),
-                              [&r_dof_equation_ids](const std::size_t i_left, const std::size_t i_right) -> bool {
-                                  return r_dof_equation_ids[i_left] < r_dof_equation_ids[i_right];
+                              [&r_tls](const std::size_t i_left, const std::size_t i_right) -> bool {
+                                  return r_tls.dof_equation_ids[i_left] < r_tls.dof_equation_ids[i_right];
                               });
 
                     // Reorder the current row in the local relation matrix.
@@ -332,12 +432,12 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Assemble(const typena
                               r_tls.relation_matrix.data().begin() + i_row * r_tls.relation_matrix.size2());
 
                     // Reorder DoF indices.
-                    r_tls.reordered_dof_equation_ids.resize(r_dof_equation_ids.size());
+                    r_tls.reordered_dof_equation_ids.resize(r_tls.dof_equation_ids.size());
                     std::transform(r_tls.dof_index_array.begin(),
                                    r_tls.dof_index_array.end(),
                                    r_tls.reordered_dof_equation_ids.begin(),
-                                   [&r_dof_equation_ids](const auto i_column){
-                                   return r_dof_equation_ids[i_column];
+                                   [&r_tls](const auto i_column){
+                                   return r_tls.dof_equation_ids[i_column];
                                    });
                 }
 
@@ -351,7 +451,7 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Assemble(const typena
                 }
 
                 AtomicAdd(this->GetConstraintGapVector()[i_constraint],
-                          static_cast<typename TSparse::DataType>(r_constraint_gaps[i_row]));
+                          static_cast<typename TSparse::DataType>(r_tls.constraint_gaps[i_row]));
             } // for i_row in range(r_tls.slave_ids.size)
         } // if r_constraint.IsActive
     }); // for r_constraint in rModelPart.MasterSlaveCosntraints

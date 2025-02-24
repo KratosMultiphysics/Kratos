@@ -12,7 +12,7 @@
 
 // Project includes
 #include "solving_strategies/builder_and_solvers/p_multigrid/linear_multifreedom_constraint.hpp" // MultifreedomConstraint
-#include "includes/variables.h" // RELATION_MATRIX, CONSTRAINT_GAPS
+#include "includes/variables.h" // GEOMETRIC_STIFFNESS_MATRIX, INTERNAL_FORCES_VECTOR
 
 
 namespace Kratos {
@@ -41,8 +41,17 @@ LinearMultifreedomConstraint::LinearMultifreedomConstraint(const IndexType Id,
         << "(" << rRelationMatrix.size1() << "x" << rRelationMatrix.size2() << ")";
 
     // Store input data.
-    this->SetValue(RELATION_MATRIX, rRelationMatrix);
-    this->SetValue(CONSTRAINT_GAPS, rConstraintGaps);
+    this->SetValue(GEOMETRIC_STIFFNESS_MATRIX, rRelationMatrix);
+    this->SetValue(INTERNAL_FORCES_VECTOR, rConstraintGaps);
+}
+
+
+void LinearMultifreedomConstraint::CalculateLocalSystem(MatrixType& rRelationMatrix,
+                                                        VectorType& rConstraintGaps,
+                                                        const ProcessInfo&) const
+{
+    rRelationMatrix = this->GetData().GetValue(GEOMETRIC_STIFFNESS_MATRIX);
+    rConstraintGaps = this->GetData().GetValue(INTERNAL_FORCES_VECTOR);
 }
 
 

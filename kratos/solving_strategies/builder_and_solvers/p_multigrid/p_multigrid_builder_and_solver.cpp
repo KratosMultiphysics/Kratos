@@ -313,7 +313,7 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
         KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
         KRATOS_TRY
 
-        std::vector<std::unordered_set<std::size_t> > indices(mpInterface->GetEquationSystemSize());
+        std::vector<std::unordered_set<std::size_t>> indices(mpInterface->GetEquationSystemSize());
 
         {
             std::vector<LockObject> mutexes(mpInterface->GetEquationSystemSize());
@@ -343,7 +343,7 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
                                                              rLhs,
                                                              /*EnsureDiagonal=*/true);
 
-        // Construct the coarse hierarhy's topology.
+        // Construct the coarse hierarchy's topology.
         if (mMaybeHierarchy.has_value()) {
             std::visit([&rModelPart, &rLhs, this](auto& r_grid){
                             r_grid.template MakeLhsTopology<TSparse>(rModelPart,
@@ -596,9 +596,11 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::SetUpDofSet(typename In
 
     // Fill and sort the provided DOF array from the auxiliary global DOFs set
     this->GetDofSet().reserve(dof_global_set.size());
-    for (Dof<typename TDense::DataType>* p_dof : dof_global_set) {
-        this->GetDofSet().insert(this->GetDofSet().end(), p_dof);
-    }
+    //this->GetDofSet().insert(dof_global_set.begin(), dof_global_set.end());
+    for (Dof<typename TDense::DataType>* p_dof : dof_global_set) {  //
+        this->GetDofSet().push_back(p_dof);                         //
+    }                                                               //
+    this->GetDofSet().Sort();                                       //< @todo get rid of this crap when PointerVectorSet gets fixed
 
     #ifdef KRATOS_DEBUG
     // If reactions are to be calculated, we check if all the dofs have reactions defined

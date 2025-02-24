@@ -56,6 +56,10 @@ public:
                                  const MatrixType& rRelationMatrix,
                                  const VectorType& rConstraintGaps);
 
+    void CalculateLocalSystem(MatrixType& rRelationMatrix,
+                              VectorType& rConstraintGaps,
+                              const ProcessInfo& rProcessInfo) const override;
+
     MasterSlaveConstraint::Pointer
     Create(IndexType,
            DofPointerVectorType&,
