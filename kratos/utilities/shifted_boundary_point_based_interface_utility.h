@@ -18,9 +18,11 @@
 
 // Project includes
 #include "containers/model.h"
+#include "geometries/plane_3d.h"
 #include "includes/define.h"
 #include "includes/key_hash.h"
 #include "modified_shape_functions/modified_shape_functions.h"
+#include <functional>
 
 namespace Kratos
 {
@@ -39,6 +41,19 @@ namespace Kratos
 ///@}
 ///@name  Functions
 ///@{
+
+namespace ShiftedBoundaryUtilityInternals {
+
+    //TODO
+    template <std::size_t TDim>
+    double CalculatePointDistance(
+        const Geometry<Node>& rObjectGeometry,
+        const Point& rPoint);
+
+    template <std::size_t TDim>
+    Plane3D CreateIntersectionPlane(const std::vector<array_1d<double,3>>& rIntPtsVector);
+
+}  // namespace ShiftedBoundaryUtilityInternals
 
 ///@}
 ///@name Kratos Classes
@@ -59,8 +74,12 @@ public:
 
     enum class ExtensionOperator
     {
-        MLS
+        MLS,
+        RBF
     };
+
+    using PointDistanceFunctionType = std::function<double(const Geometry<Node>&, const Point&)>;
+    using IntersectionPlaneConstructorType = std::function<Plane3D(const std::vector<array_1d<double,3>>&)>;
 
     using IndexType = ModelPart::IndexType;
 
@@ -128,19 +147,24 @@ public:
     void ResetFlags();
 
     /** TODO
-     * @brief Set BOUNDARY flags for elements that are intersected by the tessellated skin geometry
+     * @brief Set BOUNDARY flags for elements that are intersected by the tessellated skin geometry.
+       Calculate DISTANCE of nodes of intersected elements to the skin geometry and relocate those with a very small DISTANCE value in direction of the normal.
      * element BOUNDARY : elements in which a part of the surface is located (split/ intersected elements)
      */
-    void SetTessellatedBoundaryFlags();
+    void SetTessellatedBoundaryFlagsAndRelocateSmallDistanceNodes();
 
+    //TODO
+    // To be done after SetTessellatedBoundaryFlagsAndRelocateSmallDistanceNodes() to locate skin points after node relocation in the updated volume part element geometries.
     void LocateSkinPoints();
 
     // TODO Set the corresponding flags at the interface elements
     // element INTERFACE : elements owning the surrogate boundary nodes adjacent to an deactivated BOUNDARY element
+    // To be done after all necessary elements have been declared SBM_BOUNDARY (--> after SetTessellatedBoundaryFlagsAndRelocateSmallDistanceNodes and LocateSkinPoints)
     void SetInterfaceFlags();
 
     // TODO node ACTIVE : nodes that belong to the elements to be assembled (all nodes as the interface is discontinuous)
     // element ACTIVE : elements which are not BOUNDARY (the ones to be assembled)
+    // To be done after all necessary elements have been declared SBM_BOUNDARY (--> after SetTessellatedBoundaryFlagsAndRelocateSmallDistanceNodes and LocateSkinPoints)
     void DeactivateElementsAndNodes();
 
     //TODO
@@ -243,7 +267,16 @@ protected:
      * calculation of the MLS approximants at these points. Then, the basis is made conformant by using the meshless
      * approximants to calculate the interpolation at each one of the point conditions location.
      */
-    void CalculateMeshlessBasedConformingExtensionBasis();
+    //void CalculateMeshlessBasedConformingExtensionBasis();
+
+    // TODO
+    double CalculateSkinDistanceToNode(
+        const NodeType& rNode,
+        const PointerVector<GeometricalObject>& rIntersectingObjects,
+        PointDistanceFunctionType pPointDistanceFunction,
+        IntersectionPlaneConstructorType pIntersectionPlaneConstructor,
+        const double& DistanceThreshold,
+        const double& ThresholdForSignedness);
 
     /**
      * @brief TODO. This method requires the skin to be stored in mpSkinModelPart as a Kratos model part with elements, integration points and area normals.
@@ -345,8 +378,8 @@ protected:
     bool SetEnclosedNodesPressure(
         ElementType& rElement,
         const Vector& rSidesVector,
-        const array_1d<double, 3>& rAvgSkinPosition,
-        const array_1d<double, 3>& rAvgSkinNormal);
+        const array_1d<double,3>& rAvgSkinPosition,
+        const array_1d<double,3>& rAvgSkinNormal);
 
     /**
      * @brief Get the MLS shape functions factory object
@@ -354,6 +387,13 @@ protected:
      * @return MLSShapeFunctionsFunctionType MLS shape functions call prototype
      */
     MeshlessShapeFunctionsFunctionType GetMLSShapeFunctionsFunction() const;
+
+    /**
+     * @brief Get the RBF shape functions factory object
+     * This function returns a prototype for the RBF shape functions calculation
+     * @return RBFShapeFunctionsFunctionType RBF shape functions call prototype
+     */
+    MeshlessShapeFunctionsFunctionType GetRBFShapeFunctionsFunction() const;
 
     /**
      * @brief Get the element size function object
@@ -400,4 +440,4 @@ protected:
     ///@}
 }; // Class ShiftedBoundaryPointBasedInterfaceUtility
 
-} // namespace Kratos.
+}  // namespace Kratos.

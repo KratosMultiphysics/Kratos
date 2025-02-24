@@ -4,6 +4,7 @@
 #include "includes/kratos_flags.h"
 #include "includes/variables.h"
 #include "includes/ublas_interface.h"
+#include "input_output/logger.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/element_size_calculator.h"
 
@@ -16,6 +17,7 @@
 #include "custom_utilities/embedded_data.h"
 #include "custom_utilities/weakly_compressible_navier_stokes_data.h"
 #include <cstddef>
+#include <ostream>
 #include <string>
 #include <sys/types.h>
 
@@ -99,6 +101,13 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
 
     // Add base fluid contribution (volume integration)
     TBaseElement::CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+    // KRATOS_WATCH(this->Id());
+    // for (auto& node : this->GetGeometry()) {
+    //     KRATOS_WATCH(node.Id());
+    // }
+    // KRATOS_WATCH(rLeftHandSideMatrix);
+    // KRATOS_WATCH(rRightHandSideVector);
+
 
     // Check if the element belongs to the surrogate interface.
     // Note that the SBM_INTERFACE flag is assumed to be set in the 1st layer of elements attached to the surrogate boundary (BOUNDARY elements) e.g. by the ShiftedBoundaryMeshlessInterfaceUtility.
@@ -117,6 +126,7 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
 
             // Set integration method for surrogate boundary face
             // NOTE that second order is required here!
+            //TODO NEXT ONLY TESTING !!! GAUSS 2 SHOULD BE USED!
             const GeometryData::IntegrationMethod integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
 
             // Get the parent geometry data
@@ -189,6 +199,20 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
 
                     // Calculate the surrogate boundary traction as t_i = (tau_ij - p_h * I_ij) * n_j with tau_ij = C:delta^s u_h, taking N, DN_DX and Weight from the element's data
                     this->AddBoundaryTraction(data, normal_sur_bd, rLeftHandSideMatrix, rRightHandSideVector);
+
+                    // Matrix aux_LHS;
+                    // aux_LHS.resize(LocalSize, LocalSize, false);
+                    // aux_LHS = ZeroMatrix(LocalSize, LocalSize);
+                    // this->AddBoundaryTraction(data, normal_sur_bd, aux_LHS, rRightHandSideVector);
+                    // rLeftHandSideMatrix += aux_LHS;
+
+                    // KRATOS_WATCH(this->Id());
+                    // KRATOS_WATCH(aux_LHS);
+
+                    // KRATOS_WATCH(int_pt_weight);
+                    // KRATOS_WATCH(aux_N_parent);
+                    // KRATOS_WATCH(int_pt_DN_DX_parent);
+                    // KRATOS_WATCH(normal_sur_bd);
                 }
             }
         }
@@ -218,6 +242,8 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
         //     // NOTE that in here we are assuming constant strain kinematics (which is correct for linear shape functions)
         //     BoundedMatrix<double, StrainSize, LocalSize> B_matrix;
         //     FluidElementUtilities<NumNodes>::GetStrainMatrix(DN_DX_parent, B_matrix);
+
+        //     KRATOS_WATCH(B_matrix);
 
         //     const auto &r_boundaries = r_geom.GenerateBoundariesEntities();
         //     DenseMatrix<unsigned int> nodes_in_faces;
@@ -261,13 +287,16 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
         //             // Fill the shape functions auxiliary transpose matrix and the pressure to Voigt notation operator matrix for the surrogate boundary integration point
         //             // NOTE that the local face ids. are already taken into account in the assembly
         //             BoundedMatrix<double, LocalSize, Dim> N_aux_trans = ZeroMatrix(LocalSize, Dim);
+        //             BoundedMatrix<double, LocalSize, Dim> N_aux_p_trans = ZeroMatrix(LocalSize, Dim);
         //             BoundedMatrix<double, StrainSize, LocalSize> pres_to_voigt_matrix_op = ZeroMatrix(StrainSize, LocalSize);
         //             std::size_t i_local_id;
         //             for (std::size_t i_bd_node = 0; i_bd_node < n_bd_points; ++i_bd_node) {
         //                 i_local_id = sur_bd_local_ids[i_bd_node+1];
         //                 for (std::size_t d = 0; d < Dim; ++d) {
-        //                     N_aux_trans(i_local_id*BlockSize+d, d) = r_sur_bd_N(i_int_pt, i_bd_node);  // TODO only one integration point ?!?
-        //                     pres_to_voigt_matrix_op(d, i_local_id*BlockSize+Dim) = r_sur_bd_N(i_int_pt, i_bd_node);
+        //                     N_aux_trans(i_local_id*BlockSize+d, d)               = r_sur_bd_N(i_int_pt, i_bd_node);
+        //                     //N_aux_p_trans(i_local_id*BlockSize+d, d)             = r_sur_bd_N(i_int_pt, i_bd_node);
+        //                     N_aux_p_trans(i_local_id*BlockSize+Dim, d)           = 1.0; //r_sur_bd_N(i_int_pt, i_bd_node);
+        //                     pres_to_voigt_matrix_op(d, i_local_id*BlockSize+Dim) = 0.5;  //r_sur_bd_N(i_int_pt, i_bd_node);  //reduced integration
         //                 }
         //             }
 
@@ -277,9 +306,16 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
         //             // Contribution coming from the shear stress operator
         //             aux_LHS += int_pt_weight * prod(N_aux_trans, aux_matrix_ACB);
 
-        //             // Contribution coming from the pressure terms
+        //             // Contribution coming from the pressure term
         //             const BoundedMatrix<double, LocalSize, StrainSize> N_voigt_proj_matrix = prod(N_aux_trans, voigt_normal_projection_matrix);
         //             aux_LHS -= int_pt_weight * prod(N_voigt_proj_matrix, pres_to_voigt_matrix_op);
+
+        //             KRATOS_INFO("\n------------------------");
+        //             KRATOS_WATCH(this->Id());
+        //             //KRATOS_WATCH(-int_pt_weight * prod(N_aux_trans, aux_matrix_ACB));
+        //             KRATOS_WATCH( int_pt_weight * prod(N_voigt_proj_matrix, pres_to_voigt_matrix_op));
+        //             //KRATOS_INFO("\nLHS+=:");
+        //             //KRATOS_WATCH( int_pt_weight * prod(N_voigt_proj_matrix, pres_to_voigt_matrix_op)- int_pt_weight * prod(N_aux_trans, aux_matrix_ACB));
         //         }
         //     }
 

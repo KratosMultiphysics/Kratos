@@ -182,8 +182,9 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_WATER_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)              # Use distance variable for node relocation and voting on positive/ negative side
         if self.level_set_type == "continuous" or self.level_set_type == "discontinuous":
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)              # Distance function nodal values
+            #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)              # Distance function nodal values
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)     # Distance gradient nodal values
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.EMBEDDED_WET_PRESSURE)          # Post-process variable (stores the fluid nodes pressure and is set to 0 in the structure ones)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.EMBEDDED_WET_VELOCITY)          # Post-process variable (stores the fluid nodes velocity and is set to 0 in the structure ones)
@@ -338,7 +339,7 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
                 # Create interface utility
                 sbm_interface_utility = KratosMultiphysics.ShiftedBoundaryPointBasedInterfaceUtility(self.model, settings)
                 sbm_interface_utilities.append(sbm_interface_utility)
-                KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "New shifted-boundary point-based interface utility created.")
+                KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "New shifted-boundary point-based interface utility created for skin model part '" + skin_model_part_name + "'.")
 
             if len(sbm_interface_utilities) == 1:
                 sbm_interface_utilities[0].CalculateAndAddPointBasedInterface()
@@ -346,14 +347,15 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
                 # Interface flags should be reset for the volume/ computing model part once before skin model parts are (newly) embedded
                 sbm_interface_utilities[0].ResetFlags()
 
-                # Locate skin model part points in the volume model part elements and set flags for all skin model parts
+                # Set boundary flags and locate skin model part points in the volume model part elements for all skin model parts
                 for sbm_interface_utility in sbm_interface_utilities:
-                    sbm_interface_utility.SetTessellatedBoundaryFlags()
+                    sbm_interface_utility.SetTessellatedBoundaryFlagsAndRelocateSmallDistanceNodes()
                     # To be done after setting tessellated boundary because nodes might be relocated
                     sbm_interface_utility.LocateSkinPoints()
-                    # To be done after locating the skin points because elements in which skin points are located
-                    # might not be intersected by tessellated skin and might be marked as boundary here
-                    sbm_interface_utility.SetInterfaceFlags()
+
+                # To be done after locating the skin points because elements in which skin points are located
+                # might not be intersected by tessellated skin and might be marked as boundary here
+                sbm_interface_utility.SetInterfaceFlags()
 
                 # Deactivate BOUNDARY elements and nodes which are surrounded by deactivated elements
                 sbm_interface_utilities[0].DeactivateElementsAndNodes()
@@ -362,7 +364,7 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
                 # NOTE that same boundary sub model part is being used here for all skin model parts and their utilities to add conditions
                 for i_skin, sbm_interface_utility in enumerate(sbm_interface_utilities):
                     sbm_interface_utility.CalculateAndAddSkinIntegrationPointConditions()
-                    KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Integration point conditions added for skin model part " + skin_model_part_names[i_skin] + ".")
+                    KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Integration point conditions added for skin model part '" + skin_model_part_names[i_skin] + "'.")
 
                 # Search for enclosed volumes and fix the pressure of one node if it has not been fixed yet
                 #sbm_interface_utilities[0].FixEnclosedVolumesPressure()
