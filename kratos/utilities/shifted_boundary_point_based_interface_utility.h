@@ -74,7 +74,8 @@ public:
 
     enum class ExtensionOperator
     {
-        MLS
+        MLS,
+        RBF
     };
 
     using PointDistanceFunctionType = std::function<double(const Geometry<Node>&, const Point&)>;
@@ -380,6 +381,13 @@ protected:
      * @return MLSShapeFunctionsFunctionType MLS shape functions call prototype
      */
     MeshlessShapeFunctionsFunctionType GetMLSShapeFunctionsFunction() const;
+
+    /**
+     * @brief Get the RBF shape functions factory object
+     * This function returns a prototype for the RBF shape functions calculation
+     * @return RBFShapeFunctionsFunctionType RBF shape functions call prototype
+     */
+    MeshlessShapeFunctionsFunctionType GetRBFShapeFunctionsFunction() const;
 
     /**
      * @brief Get the element size function object

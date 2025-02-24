@@ -27,6 +27,7 @@
 #include "input_output/logger.h"
 #include "utilities/element_size_calculator.h"
 #include "utilities/mls_shape_functions_utility.h"
+#include "utilities/rbf_shape_functions_utility.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
 #include "utilities/shifted_boundary_point_based_interface_utility.h"
@@ -132,6 +133,8 @@ namespace Kratos
         const std::string ext_op_type = ThisParameters["extension_operator_type"].GetString();
         if (ext_op_type == "MLS") {
             mExtensionOperator = ExtensionOperator::MLS;
+        } else if (ext_op_type == "RBF") {
+            mExtensionOperator = ExtensionOperator::RBF;
         } else {
             KRATOS_ERROR << "Wrong 'extension_operator_type' provided. Only 'MLS' 'extension_operator_type' is supported by point based shifted boundary interface utility." << std::endl;
         }
@@ -937,8 +940,8 @@ namespace Kratos
         AverageSkinToElementsMapType& rAvgSkinMap,
         NodesCloudMapType& rExtensionOperatorMap)
     {
-        // Get the MLS shape functions function
-        auto p_meshless_sh_func = GetMLSShapeFunctionsFunction();
+        // Get the extension operator shape functions function
+        auto p_meshless_sh_func = mExtensionOperator == ExtensionOperator::MLS ? GetMLSShapeFunctionsFunction() : GetRBFShapeFunctionsFunction();
 
         // Get support node clouds for all nodes of all split elements and calculate their extension operators
         // NOTE that only extension operators are calculated and added to the map if a sufficient number of support nodes was found
@@ -1445,6 +1448,13 @@ namespace Kratos
             default:
                 KRATOS_ERROR << "Wrong domain size. MLS shape functions utility cannot be set.";
         }
+    }
+
+    ShiftedBoundaryPointBasedInterfaceUtility::MeshlessShapeFunctionsFunctionType ShiftedBoundaryPointBasedInterfaceUtility::GetRBFShapeFunctionsFunction() const
+    {
+        return [&](const Matrix& rPoints, const array_1d<double,3>& rX, const double h, Vector& rN){
+            RBFShapeFunctionsUtility::CalculateShapeFunctions(rPoints, rX, h, rN);
+        };
     }
 
     ShiftedBoundaryPointBasedInterfaceUtility::ElementSizeFunctionType ShiftedBoundaryPointBasedInterfaceUtility::GetElementSizeFunction(const GeometryType& rGeometry)
