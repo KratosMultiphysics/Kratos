@@ -442,6 +442,10 @@ public:
             if (p_scheme->ConditionsAreInitialized() == false)
                 p_scheme->InitializeConditions(BaseType::GetModelPart());
 
+            if (not p_scheme->ConstraintsAreInitialized()) {
+                p_scheme->InitializeConstraints(this->GetModelPart());
+            }
+
             mInitializeWasPerformed = true;
         }
 
