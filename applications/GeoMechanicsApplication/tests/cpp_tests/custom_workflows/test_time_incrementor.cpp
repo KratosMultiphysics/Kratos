@@ -9,6 +9,7 @@
 //
 //  Main authors:    Wijtze Pieter Kikstra
 //                   Anne van de Graaf
+//                   Richard Faasse
 //
 
 #include "custom_workflows/adaptive_time_incrementor.h"
@@ -425,6 +426,20 @@ KRATOS_TEST_CASE_IN_SUITE(ScaleIncrementToAvoidExtraSmallTimeStep, KratosGeoMech
 
     time_incrementor.PostTimeStepExecution(previous_state);
     KRATOS_EXPECT_DOUBLE_EQ(8.0, time_incrementor.GetIncrement());
+}
+
+KRATOS_TEST_CASE_IN_SUITE(IncrementIsCorrectWhenNonConvergedStepIsSameAsEndTime, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    AdaptiveTimeIncrementorSettings settings; // with EndTime = 8.0
+    settings.StartIncrement          = 8.0; // We jump to the end time right away
+    auto time_incrementor            = MakeAdaptiveTimeIncrementor(settings);
+    auto previous_state              = TimeStepEndState{};
+    previous_state.convergence_state = TimeStepEndState::ConvergenceState::non_converged; // The jumped step didn't converge
+    previous_state.time = 8.0; // The non-converged step is the same as the end time
+
+    time_incrementor.PostTimeStepExecution(previous_state);
+    // The increment should be halved, since the step didn't converge
+    KRATOS_EXPECT_DOUBLE_EQ(4.0, time_incrementor.GetIncrement());
 }
 
 } // namespace Kratos::Testing
