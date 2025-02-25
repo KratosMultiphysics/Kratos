@@ -123,7 +123,7 @@ void MohrCoulombConstitutiveLaw::CalculateMohrCoulomb(const Properties& rProp, V
     double trialShear  = 0.5 * (principalTrialStressVector(0) - principalTrialStressVector(2));
 
     // Elastic region
-    if (fme <= 0.0 && fte<= 0.0) {
+    if (fme <= 0.0 && fte >= 0.0) {
         mStressVector = this->ReturnStressAtElasticZone(trailStressVector);
         return;
     }
@@ -132,15 +132,15 @@ void MohrCoulombConstitutiveLaw::CalculateMohrCoulomb(const Properties& rProp, V
     double apex        = this->CalculateApex(friction_angle,cohesion);
     Vector cornerPoint = this->CalculateCornerPoint(friction_angle, cohesion, tension_cutoff, apex);
 
-    if (tension_cutoff < apex && trialShear <= cornerPoint(1) && fte >= 0.0) {
+    if (tension_cutoff < apex && trialShear <= cornerPoint(1) && fte <= 0.0) {
         Vector modified_principal = this->ReturnStressAtAxialZone(principalTrialStressVector, tension_cutoff);
         mStressVector = this->RotatePrincipalStresses(modified_principal, rotationMatrix);
         return;
     }
 
     // Zone of tensile corner return
-    double flow = (trailStress - cornerPoint(0)) - (trialShear - cornerPoint(1)) / std::sin(dilation_angle);
-    if (flow <= 0.0 ) {    //&& trialShear > shearAtIntersection
+    double flow = (trialShear - cornerPoint(1)) * std::sin(dilation_angle) - (trailStress - cornerPoint(0));
+    if (flow <= 0.0 ) {    //&& trialShear > cornerPoint(1)
         Vector modified_principal = this->ReturnStressAtCornerReturnZone(principalTrialStressVector, cornerPoint);
         mStressVector = this->RotatePrincipalStresses(modified_principal, rotationMatrix);
         return;
@@ -337,31 +337,33 @@ int MohrCoulombConstitutiveLaw::FindReturnRegion(const Properties& rProp, Vector
     double trailStress = 0.5 * (principalTrialStressVector(0) + principalTrialStressVector(2));
     double trialShear  = 0.5 * (principalTrialStressVector(0) - principalTrialStressVector(2));
 
+    int result = -1;
+
     // Elastic region
-    if (fme <= 0.0 && fte <= 0.0) {
-        return 0;
+    if (fme <= 0.0 && fte >= 0.0) {
+        result = 0;
     }
 
     // Zone of axial return
     double apex        = this->CalculateApex(friction_angle, cohesion);
     Vector cornerPoint = this->CalculateCornerPoint(friction_angle, cohesion, tension_cutoff, apex);
 
-    if (tension_cutoff < apex && trialShear <= cornerPoint(1) && fte >= 0.0) {
-        return 1;
+    if (tension_cutoff < apex && trialShear <= cornerPoint(1) && fte <= 0.0) {
+        result = 1;
     }
 
     // Zone of tensile corner return
-    double flow = (trailStress - cornerPoint(0)) - (trialShear - cornerPoint(1)) / std::sin(dilation_angle);
-    if (flow <= 0.0) { //&& trialShear > shearAtIntersection
-        return 2;
+    double flow = (trialShear - cornerPoint(1)) * std::sin(dilation_angle) - (trailStress - cornerPoint(0));
+    if (flow <= 0.0 && trialShear > cornerPoint(1)) {
+        result = 2;
     }
 
     // Regular failure region
-    if (fme > 0.0) { //&& flow > 0.0
-        return 3;
+    if (fme > 0.0 && flow > 0.0) {
+        result = 3;
     }
 
-    return -1;
+    return result;
 }
 
 
