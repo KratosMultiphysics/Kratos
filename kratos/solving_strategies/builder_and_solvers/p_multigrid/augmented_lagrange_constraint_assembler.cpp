@@ -62,6 +62,7 @@ bool HasIntersection(const TIndex* itLeftBegin,
 void ProcessMasterSlaveConstraint(std::vector<std::size_t>& rConstraintIndices,
                                   std::vector<std::size_t>& rDofIds,
                                   MasterSlaveConstraint::MatrixType& rRelationMatrix,
+                                  [[maybe_unused]] MasterSlaveConstraint::VectorType& rConstraintGaps,
                                   const MasterSlaveConstraint& rConstraint,
                                   const std::vector<std::size_t>& rSlaveIds,
                                   const std::vector<std::size_t>& rMasterIds,
@@ -90,6 +91,16 @@ void ProcessMasterSlaveConstraint(std::vector<std::size_t>& rConstraintIndices,
             rRelationMatrix(i_slave, rMasterIds.size() + i_slave) = -1.0;
         } // for i_slave in range(rSlaveIds.size())
     } // if rRelationMatrix.size2()
+
+    // No need to move the constraint gaps from RHS to LHS
+    // because the slaves were moved to the RHS instead:
+    // u^s = T u^m + b
+    // =>
+    // 0 = A [u^m \\ u^s] + b
+    //std::transform(rConstraintGaps.begin(),
+    //               rConstraintGaps.end(),
+    //               rConstraintGaps.begin(),
+    //               [](auto constraint_gap){return -constraint_gap;});
 }
 
 
@@ -151,12 +162,11 @@ void ApplyDirichletConditions(typename TSparse::MatrixType& rRelationMatrix,
                     // A Dirichlet condition is set on the current DoF, which also appears in
                     // a constraint equation => explicitly impose this condition on the constraint
                     // equation.
-                    const auto constraint_coefficient = rRelationMatrix.value_data()[i_entry];
-                    const auto dirichlet_condition = r_dof.GetSolutionStepValue();
-                    //std::cout << r_dof.Id() << "(" << r_dof.EquationId() << ")" << " " << r_dof.GetVariable().Name() << ": " << r_dof.GetSolutionStepValue() << "\n";
-                    rRelationMatrix.value_data()[i_entry] = static_cast<typename TSparse::DataType>(0);
+                    const typename TSparse::DataType constraint_coefficient = rRelationMatrix.value_data()[i_entry];
+                    const typename TSparse::DataType dirichlet_condition = r_dof.GetSolutionStepValue();
                     AtomicAdd(rConstraintGaps[i_constraint],
                               static_cast<typename TSparse::DataType>(constraint_coefficient * dirichlet_condition));
+                    rRelationMatrix.value_data()[i_entry] = static_cast<typename TSparse::DataType>(0);
                 } // if r_dof.IsFixed()
             } // for i_entry in range(i_entry_begin, i_entry_end)
 
@@ -169,15 +179,17 @@ void ApplyDirichletConditions(typename TSparse::MatrixType& rRelationMatrix,
                 for (auto i_entry=i_entry_begin; i_entry<i_entry_end; ++i_entry) {
                     const auto i_dof = rRelationMatrix.index2_data()[i_entry];
                     Dof<typename TDense::DataType>& r_dof = *(itDofBegin + i_dof);
-                    if (r_dof.IsFree()) {
-                        const auto constraint_coefficient = rRelationMatrix.value_data()[i_entry];
-                        KRATOS_ERROR_IF_NOT(constraint_coefficient);
-                        const auto constraint_gap = rConstraintGaps[i_dof];
-                        const auto dirichlet_condition = -constraint_gap / constraint_coefficient;
 
-                        std::scoped_lock<LockObject> lock(mutexes[i_dof]);
-                        r_dof.FixDof();
+                    std::scoped_lock<LockObject> lock(mutexes[i_dof]);
+                    if (r_dof.IsFree()) {
+                        const typename TSparse::DataType constraint_coefficient = rRelationMatrix.value_data()[i_entry];
+                        rRelationMatrix.value_data()[i_entry] = static_cast<typename TSparse::DataType>(0);
+                        KRATOS_ERROR_IF_NOT(constraint_coefficient);
+                        const typename TSparse::DataType constraint_gap = rConstraintGaps[i_constraint];
+                        rConstraintGaps[i_constraint] = static_cast<typename TSparse::DataType>(0);
+                        const auto dirichlet_condition = -constraint_gap / constraint_coefficient;
                         r_dof.GetSolutionStepValue() = dirichlet_condition;
+                        r_dof.FixDof();
                         break;
                     }
                 } // for i_entry in range(i_entry_begin, i_entry_end)
@@ -328,9 +340,10 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Allocate(const typena
                                                              rDofSet.size(),
                                                              this->GetRelationMatrix(),
                                                              /*EnsureDiagonal=*/false);
+        TSparse::SetToZero(this->GetRelationMatrix());
 
-        this->GetConstraintGapVector().resize(mpImpl->mConstraintIdToIndexMap.size(), false);
-        TSparse::SetToZero(this->GetConstraintGapVector());
+        this->GetConstraintGapVector().resize(this->GetRelationMatrix().size1(), false);
+        //TSparse::SetToZero(this->GetConstraintGapVector()); //< unnecessary
     }
 
     {
@@ -409,6 +422,7 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Assemble(const typena
                 detail::ProcessMasterSlaveConstraint(r_tls.constraint_indices,
                                                      r_tls.dof_equation_ids,
                                                      r_tls.relation_matrix,
+                                                     r_tls.constraint_gaps,
                                                      r_constraint,
                                                      r_tls.slave_ids,
                                                      r_tls.master_ids,
@@ -573,7 +587,7 @@ AugmentedLagrangeConstraintAssembler<TSparse,TDense>::FinalizeSolutionStep(typen
     typename TSparse::VectorType constraint_residual(this->GetConstraintGapVector().size());
     TSparse::SetToZero(constraint_residual);
     TSparse::Mult(this->GetRelationMatrix(), rSolution, constraint_residual);
-    TSparse::UnaliasedAdd(constraint_residual, -1.0, this->GetConstraintGapVector());
+    TSparse::UnaliasedAdd(constraint_residual, 1.0, this->GetConstraintGapVector());
 
     // Decide whether to keep looping.
     const auto constraint_norm = TSparse::TwoNorm(constraint_residual);
