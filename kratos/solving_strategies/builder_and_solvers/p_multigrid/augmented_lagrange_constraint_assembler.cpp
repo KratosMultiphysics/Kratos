@@ -112,6 +112,91 @@ void ProcessMultifreedomConstraint(std::vector<std::size_t>& rConstraintIndices,
 }
 
 
+template <class TSparse, class TDense, class TItDof>
+void ApplyDirichletConditions(typename TSparse::MatrixType& rRelationMatrix,
+                              typename TSparse::VectorType& rConstraintGaps,
+                              TItDof itDofBegin,
+                              [[maybe_unused]] TItDof itDofEnd,
+                              int Verbosity)
+{
+    KRATOS_TRY
+
+    /// @todo Make applying dirichlet conditions on penalty constraints more robust and efficient.
+
+    std::size_t forced_dirichlet_dof_count,
+                total_forced_dirichlet_dof_count = 0ul,
+                iteration_count = 0ul;
+    std::vector<LockObject> mutexes(rRelationMatrix.size2());
+
+    do {
+        forced_dirichlet_dof_count = 0ul;
+
+        IndexPartition<std::size_t>(rRelationMatrix.size1()).for_each([&rRelationMatrix,
+                                                                       &rConstraintGaps,
+                                                                       &forced_dirichlet_dof_count,
+                                                                       &mutexes,
+                                                                       itDofBegin](std::size_t i_constraint){
+            const auto i_entry_begin = rRelationMatrix.index1_data()[i_constraint];
+            const auto i_entry_end = rRelationMatrix.index1_data()[i_constraint + 1];
+            auto free_dof_count = i_entry_end - i_entry_begin;
+
+            for (auto i_entry=i_entry_begin; i_entry<i_entry_end; ++i_entry) {
+                const auto i_dof = rRelationMatrix.index2_data()[i_entry];
+                const Dof<typename TDense::DataType>& r_dof = *(itDofBegin + i_dof);
+                KRATOS_DEBUG_ERROR_IF_NOT(i_dof == r_dof.EquationId());
+
+                std::scoped_lock<LockObject> lock(mutexes[i_dof]);
+                if (r_dof.IsFixed()) {
+                    --free_dof_count;
+                    // A Dirichlet condition is set on the current DoF, which also appears in
+                    // a constraint equation => explicitly impose this condition on the constraint
+                    // equation.
+                    const auto constraint_coefficient = rRelationMatrix.value_data()[i_entry];
+                    const auto dirichlet_condition = r_dof.GetSolutionStepValue();
+                    //std::cout << r_dof.Id() << "(" << r_dof.EquationId() << ")" << " " << r_dof.GetVariable().Name() << ": " << r_dof.GetSolutionStepValue() << "\n";
+                    rRelationMatrix.value_data()[i_entry] = static_cast<typename TSparse::DataType>(0);
+                    AtomicAdd(rConstraintGaps[i_constraint],
+                              static_cast<typename TSparse::DataType>(constraint_coefficient * dirichlet_condition));
+                } // if r_dof.IsFixed()
+            } // for i_entry in range(i_entry_begin, i_entry_end)
+
+            if (free_dof_count == 1) {
+                AtomicAdd(forced_dirichlet_dof_count, static_cast<std::size_t>(1));
+
+                // If there's only 1 DoF left that does not have a Dirichlet condition
+                // set on it, the constraint itself becomes equivalent to a Dirichlet
+                // condition => find and constrain the last remaining free DoF.
+                for (auto i_entry=i_entry_begin; i_entry<i_entry_end; ++i_entry) {
+                    const auto i_dof = rRelationMatrix.index2_data()[i_entry];
+                    Dof<typename TDense::DataType>& r_dof = *(itDofBegin + i_dof);
+                    if (r_dof.IsFree()) {
+                        const auto constraint_coefficient = rRelationMatrix.value_data()[i_entry];
+                        KRATOS_ERROR_IF_NOT(constraint_coefficient);
+                        const auto constraint_gap = rConstraintGaps[i_dof];
+                        const auto dirichlet_condition = -constraint_gap / constraint_coefficient;
+
+                        std::scoped_lock<LockObject> lock(mutexes[i_dof]);
+                        r_dof.FixDof();
+                        r_dof.GetSolutionStepValue() = dirichlet_condition;
+                        break;
+                    }
+                } // for i_entry in range(i_entry_begin, i_entry_end)
+            } // if free_dof_count == 1
+        }); // for i_constraint in range(rRelationMatrix.size1())
+
+        ++iteration_count;
+        total_forced_dirichlet_dof_count += forced_dirichlet_dof_count;
+    } while (forced_dirichlet_dof_count);
+
+    if (2 <= Verbosity and total_forced_dirichlet_dof_count) {
+        std::cout << "AugmentedLagrangeConstraintAssembler: "
+                  << "propagated Dirichlet conditions to " << total_forced_dirichlet_dof_count << " DoFs "
+                  << "in " << iteration_count << " iterations\n";
+    }
+    KRATOS_CATCH("")
+}
+
+
 } // namespace detail
 
 
@@ -125,74 +210,7 @@ struct AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Impl
 
     std::optional<typename TSparse::MatrixType> mMaybeTransposeRelationMatrix;
 
-    /// @details Some models may indirectly set Dirichlet conditions on DoFs through
-    ///          multifreedom constraints. For example, if a constraint involves two
-    ///          DoFs and one of them has a Dirichlet condition set, the other one
-    ///          should theoretically also inherit a scaled version of the condition.
-    ///          This is unfortunately not exactly satisfied with penalty or augmented
-    ///          lagrange imposition, and trying to force it via penalty factors may
-    ///          unnecessarily render the system ill conditioned.
-    ///          To handle such cases, the dirichlet conditions are forced to propagate
-    ///          through constraints, and this array stores the indices of DoFs that were
-    ///          force
-    std::vector<typename Dof<typename TDense::DataType>::IndexType> mForcedDirichletDoFs;
-
     int mVerbosity;
-
-    void PropagateDirichletConditions(typename Interface::DofSet::iterator itDofBegin,
-                                      typename Interface::DofSet::iterator itDofEnd,
-                                      const typename TSparse::MatrixType& rRelationMatrix)
-    {
-        KRATOS_TRY
-
-        /// @todo Make this more robust (@matekelemen).
-
-        mForcedDirichletDoFs.clear();
-        std::unordered_set<std::size_t> forced_dirichlet_dofs;
-        LockObject mutex;
-
-        IndexPartition<std::size_t>(rRelationMatrix.size1()).for_each([&forced_dirichlet_dofs, &mutex, &rRelationMatrix, itDofBegin](const std::size_t i_constraint){
-            const auto i_entry_begin = rRelationMatrix.index1_data()[i_constraint];
-            const auto i_entry_end = rRelationMatrix.index1_data()[i_constraint +1];
-
-            for (auto i_entry=i_entry_begin; i_entry<i_entry_end; ++i_entry) {
-                const auto i_dof = rRelationMatrix.index2_data()[i_entry];
-                const Dof<typename TDense::DataType>& r_dof = *(itDofBegin + i_dof);
-                KRATOS_ERROR_IF_NOT(i_dof == r_dof.EquationId());
-
-                if (r_dof.IsFixed()) {
-                    KRATOS_ERROR_IF_NOT(i_entry_end - i_entry_begin == 2)
-                        << "A Dirichlet condition is set on DoF " << i_dof << " belonging to node " << r_dof.Id() << ", "
-                        << "and it also appears in a multifreedom constraint with " << (i_entry_end - i_entry_begin - (i_entry_begin == i_entry_end ? 0 : 1)) << " other DoFs. "
-                        << "In such cases, multifreedom constraints with only 2 DoFs are supported due to performance considerations.";
-
-                    const auto i_forced_dof = i_dof == rRelationMatrix.index2_data()[i_entry_begin]
-                        ? rRelationMatrix.index2_data()[i_entry_begin + 1]
-                        : rRelationMatrix.index2_data()[i_entry_begin];
-
-                    std::scoped_lock<LockObject> lock(mutex);
-                    forced_dirichlet_dofs.insert(i_forced_dof);
-                } // if r_dof.IsFixed()
-            } // for i_entry in range(i_entry_begin, i_entry_end)
-        }); // for i_constraint in range(rRelationMatrix.size1())
-
-        mForcedDirichletDoFs.reserve(forced_dirichlet_dofs.size());
-        std::copy(forced_dirichlet_dofs.begin(),
-                  forced_dirichlet_dofs.end(),
-                  std::back_inserter(mForcedDirichletDoFs));
-
-        KRATOS_CATCH("")
-    }
-
-    void ErasePropagatedDirichletConditions(typename Interface::DofSet::iterator itDofBegin,
-                                            [[maybe_unused]] typename Interface::DofSet::iterator itDofEnd)
-    {
-        block_for_each(mForcedDirichletDoFs, [itDofBegin](const auto i_dof){
-            const auto it_dof = itDofBegin + i_dof;
-            it_dof->FreeDof();
-        });
-        mForcedDirichletDoFs.clear();
-    }
 }; // struct AugmentedLagrangeConstraintAssembler::Impl
 
 
@@ -208,7 +226,6 @@ AugmentedLagrangeConstraintAssembler<TSparse,TDense>::AugmentedLagrangeConstrain
     : Base(ConstraintImposition::AugmentedLagrange),
       mpImpl(new Impl{/*mConstraintIdToIndexMap: */std::unordered_map<std::size_t,std::size_t>(),
                       /*mMaybeTransposeRelationMatrix: */std::optional<typename TSparse::MatrixType>(),
-                      /*mForcedDirichletDoFs: */std::vector<typename Dof<typename TDense::DataType>::IndexType>(),
                       /*mVerbosity: */1})
 {
     Settings.ValidateAndAssignDefaults(AugmentedLagrangeConstraintAssembler::GetDefaultParameters());
@@ -457,18 +474,22 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Assemble(const typena
     }); // for r_constraint in rModelPart.MasterSlaveCosntraints
 
     KRATOS_CATCH("")
-
-    KRATOS_TRY
-    mpImpl->PropagateDirichletConditions(rDofSet.begin(), rDofSet.end(), this->GetRelationMatrix());
-    KRATOS_CATCH("")
 }
 
 
 template <class TSparse, class TDense>
 void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Initialize(typename TSparse::MatrixType& rLhs,
-                                                                      typename TSparse::VectorType& rRhs)
+                                                                      typename TSparse::VectorType& rRhs,
+                                                                      typename Base::DofSet::iterator itDofBegin,
+                                                                      typename Base::DofSet::iterator itDofEnd)
 {
     KRATOS_TRY
+
+    detail::ApplyDirichletConditions<TSparse,TDense>(this->GetRelationMatrix(),
+                                                     this->GetConstraintGapVector(),
+                                                     itDofBegin,
+                                                     itDofEnd,
+                                                     mpImpl->mVerbosity);
 
     using SparseUtils = SparseMatrixMultiplicationUtility;
     const typename TSparse::DataType penalty_factor = this->GetPenaltyFactor();
@@ -495,16 +516,17 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Initialize(typename T
 
         // Add terms to the RHS vector.
         typename TSparse::VectorType rhs_term(rRhs.size()),
-                                     lagrange_multipliers(this->GetRelationMatrix().size1(), initial_lagrange_multiplier),
-                                     constraint_gaps = this->GetConstraintGapVector();
-        KRATOS_ERROR_IF_NOT(constraint_gaps.size() == lagrange_multipliers.size());
+                                     lagrange_multipliers(this->GetRelationMatrix().size1(),
+                                                          initial_lagrange_multiplier);
 
         TSparse::UnaliasedAdd(lagrange_multipliers,
                               -penalty_factor,
-                               constraint_gaps);
+                              this->GetConstraintGapVector());
+
         TSparse::Mult(r_transpose_relation_matrix,
                       lagrange_multipliers,
                       rhs_term);
+
         TSparse::UnaliasedAdd(rRhs,
                               -1.0,
                               rhs_term);
@@ -525,7 +547,7 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::InitializeSolutionSte
     typename TSparse::VectorType constraint_residual(this->GetConstraintGapVector().size());
     TSparse::SetToZero(constraint_residual);
     TSparse::Mult(this->GetRelationMatrix(), rSolution, constraint_residual);
-    TSparse::UnaliasedAdd(constraint_residual, -1.0, this->GetConstraintGapVector());
+    TSparse::UnaliasedAdd(constraint_residual, 1.0, this->GetConstraintGapVector());
 
     // Update the RHS.
     typename TSparse::VectorType rhs_update(rRhs.size());
@@ -590,9 +612,6 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Finalize(typename TSp
                                                                     typename TSparse::VectorType& rRhs,
                                                                     typename Base::DofSet& rDofSet)
 {
-    KRATOS_TRY
-    mpImpl->ErasePropagatedDirichletConditions(rDofSet.begin(), rDofSet.end());
-    KRATOS_CATCH("")
 }
 
 

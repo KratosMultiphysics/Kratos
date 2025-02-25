@@ -199,7 +199,9 @@ void MasterSlaveConstraintAssembler<TSparse,TDense>::Assemble(const typename Bas
 
 template <class TSparse, class TDense>
 void MasterSlaveConstraintAssembler<TSparse,TDense>::Initialize(typename TSparse::MatrixType& rLhs,
-                                                                typename TSparse::VectorType& rRhs)
+                                                                typename TSparse::VectorType& rRhs,
+                                                                [[maybe_unused]] typename Base::DofSet::iterator itDofBegin,
+                                                                [[maybe_unused]] typename Base::DofSet::iterator itDofEnd)
 {
     KRATOS_TRY
     // Compute the transposed matrix of the global relation matrix

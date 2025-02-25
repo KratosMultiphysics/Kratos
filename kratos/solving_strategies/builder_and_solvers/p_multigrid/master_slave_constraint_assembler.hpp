@@ -49,7 +49,9 @@ public:
 
     /// @copydoc Base::Initialize
     void Initialize(typename TSparse::MatrixType& rLhs,
-                    typename TSparse::VectorType& rRhs) override;
+                    typename TSparse::VectorType& rRhs,
+                    typename Base::DofSet::iterator itDofBegin,
+                    typename Base::DofSet::iterator itDofEnd) override;
 
     /// @copydoc Base::FinalizeSolutionStep
     typename Base::Status FinalizeSolutionStep(typename TSparse::MatrixType& rLhs,

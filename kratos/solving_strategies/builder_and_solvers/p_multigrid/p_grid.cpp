@@ -283,7 +283,10 @@ void PGrid<TSparse,TDense>::Initialize(ModelPart& rModelPart,
                                        const typename TParentSparse::VectorType& rParentRhs)
 {
     KRATOS_TRY
-    mpConstraintAssembler->Initialize(mLhs, mRhs);
+    mpConstraintAssembler->Initialize(mLhs,
+                                      mRhs,
+                                      mIndirectDofSet.begin(),
+                                      mIndirectDofSet.end());
     if (mpSolver->AdditionalPhysicalDataIsNeeded())
         mpSolver->ProvideAdditionalData(mLhs,
                                         mSolution,

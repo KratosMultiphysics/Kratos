@@ -125,8 +125,12 @@ public:
     ///          to be changed, it should also be carried out here.
     /// @param rLhs Unconstrained left hand side matrix with topology to accomodate constraint imposition.
     /// @param rRhs Unconstrained right hand side vector with space to accomodate constraint imposition.
+    /// @param itDofBegin Iterator pointing to the first @ref Dof "DoF" of the unconstrained system.
+    /// @param itDofEnd Sentinel of the unconstrained system's array of @ref Dof "DoFs".
     virtual void Initialize(typename TSparse::MatrixType& rLhs,
-                            typename TSparse::VectorType& rRhs)
+                            typename TSparse::VectorType& rRhs,
+                            typename DofSet::iterator itDofBegin,
+                            typename DofSet::iterator itDofEnd)
     {
     }
 

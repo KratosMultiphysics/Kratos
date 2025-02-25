@@ -839,7 +839,10 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::ApplyConstraints(typena
 {
     KRATOS_TRY
     KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
-    mpImpl->mpConstraintAssembler->Initialize(rLhs, rRhs);
+    mpImpl->mpConstraintAssembler->Initialize(rLhs,
+                                              rRhs,
+                                              this->GetDofSet().begin(),
+                                              this->GetDofSet().end());
     KRATOS_CATCH("")
 }
 
