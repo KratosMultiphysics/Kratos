@@ -59,6 +59,7 @@ from test_truss_backbone_mat import KratosGeoMechanicsTrussBackboneMaterialTests
 from test_line_interface_elements import KratosGeoMechanicsInterfaceElementTests
 from test_three_dimensional_piping_validation import KratosGeoMechanicsThreeDimensionalPipingValidation
 from test_master_slave_constraints import KratosGeoMechanicsMasterSlaveConstraints
+from test_deactivation_with_structural_element import KratosGeoMechanicsDeactivationWithStructuralTest
 from test_dirichlet_release import KratosGeoMechanicsDirichletReleaseTests
 
 def AssembleTestSuites():
@@ -109,6 +110,7 @@ def AssembleTestSuites():
                         KratosGeoMechanicsTrussBackboneMaterialTests,
                         KratosGeoMechanicsInterfaceElementTests,
                         KratosGeoMechanicsMasterSlaveConstraints,
+                        KratosGeoMechanicsDeactivationWithStructuralTest
                         KratosGeoMechanicsDirichletReleaseTests
     ]
 

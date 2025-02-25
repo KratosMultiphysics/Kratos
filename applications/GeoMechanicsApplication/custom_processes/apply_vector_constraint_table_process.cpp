@@ -11,7 +11,7 @@
 //                   Anne van de Graaf
 //
 #include "apply_vector_constraint_table_process.h"
-#include "apply_component_table_process.hpp"
+#include "apply_component_table_process.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 #include "processes/apply_constant_scalarvalue_process.h"
