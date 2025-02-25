@@ -887,7 +887,7 @@ namespace Kratos
                     const double dot_product = inner_prod(skin_pt_to_node, skin_pt_area_normal);
                     double& side_voting = r_node.FastGetSolutionStepValue(DISTANCE);
                     {
-                        const double vote_weighting = skin_pt_area * h / norm_2(skin_pt_to_node);
+                        const double vote_weighting = skin_pt_area * h / std::pow(norm_2(skin_pt_to_node),3);
                         std::scoped_lock<LockObject> lock(mutex_1);
                         if (dot_product > 0.0) {
                             side_voting += vote_weighting;
