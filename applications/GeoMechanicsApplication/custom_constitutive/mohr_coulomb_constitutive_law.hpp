@@ -60,8 +60,11 @@ public:
 
     void CalculateMohrCoulomb(const Properties& rProp, Vector& rCautchyStressVector);
 
-    void CalculatePK2Stress(const Vector& rStrainVector, Vector& rStressVector, ConstitutiveLaw::Parameters& rValues);
-    void CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues);
+    Vector CalculateTrialStressVector(const Vector&                rStrainVectorInitial,
+                                      const Vector&                rStrainVector,
+                                      const Vector&                rStressVectorInitial,
+                                      ConstitutiveLaw::Parameters& rValues);
+    Matrix CalculateElasticMatrix(ConstitutiveLaw::Parameters& rValues);
     void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 
     Vector NormalizeVector(Vector& rVector);
@@ -92,7 +95,6 @@ private:
     std::unique_ptr<ConstitutiveLawDimension> mpConstitutiveDimension;
     Vector                                    mStressVector;
     Vector                                    mStressVectorFinalized;
-    Vector                                    mDeltaStrainVector;
     Vector                                    mStrainVectorFinalized;
 
     // Serialization

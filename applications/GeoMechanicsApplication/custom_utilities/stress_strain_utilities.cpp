@@ -176,31 +176,21 @@ std::vector<Vector> StressStrainUtilities::CalculateStrains(const std::vector<Ma
     return result;
 }
 
-Vector StressStrainUtilities::CalculatePrincipalStresses(Vector& rCauchyStressVector)
+void StressStrainUtilities::CalculatePrincipalStresses(Vector& rCauchyStressVector,
+                                                       Vector& rPrincipalStressVector,
+                                                       Matrix& rEigenVectorsMatrix)
 {
     auto   stress_tensor = MathUtils<double>::StressVectorToTensor(rCauchyStressVector);
     Matrix PrincipalStressMatrix;
-    Matrix EigenVectorsMatrix;
-    MathUtils<double>::GaussSeidelEigenSystem(stress_tensor, EigenVectorsMatrix,
+    MathUtils<double>::GaussSeidelEigenSystem(stress_tensor, rEigenVectorsMatrix,
                                               PrincipalStressMatrix, 1.0e-16, 20);
-    Vector result = ZeroVector(3);
+    rPrincipalStressVector = ZeroVector(3);
     for (int i = 0; i < 3; ++i) {
-        result(i) = PrincipalStressMatrix(i, i);
+        rPrincipalStressVector(i) = PrincipalStressMatrix(i, i);
     }
-    std::sort(result.begin(), result.end(), std::greater<double>());
-    return result;
+    std::sort(rPrincipalStressVector.begin(), rPrincipalStressVector.end(), std::greater<double>());
 }
 
-Matrix StressStrainUtilities::CalculatePrincipalEigenVectorsMatrix(Vector& rCauchyStressVector)
-{
-    auto   stress_tensor = MathUtils<double>::StressVectorToTensor(rCauchyStressVector);
-    Matrix PrincipalStressMatrix;
-    Matrix EigenVectorsMatrix;
-    MathUtils<double>::GaussSeidelEigenSystem(stress_tensor, EigenVectorsMatrix,
-                                              PrincipalStressMatrix, 1.0e-16, 20);
-    Matrix result = EigenVectorsMatrix;
-    return result;
-}
 
 
 } // namespace Kratos
