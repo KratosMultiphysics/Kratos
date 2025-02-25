@@ -13,14 +13,15 @@
 // Project includes
 #include "containers/model.h"
 #include "testing/testing.h"
-#include "utilities/nurbs_utilities/snake_sbm_utilities.h"
+#include "custom_processes/snake_sbm_process.h"
 #include "includes/kratos_parameters.h"
+#include "iga_application_variables.h"
 
 namespace Kratos::Testing
 {
 
-// Tests the SnakeSbmUtilities with a square outer geometry
-KRATOS_TEST_CASE_IN_SUITE(SnakeSbmUtilitySquareOuter, KratosIgaFastSuite)
+// Tests the SnakeSbmUProcess with a square outer geometry
+KRATOS_TEST_CASE_IN_SUITE(SnakeSbmProcessSquareOuter, KratosIgaFastSuite)
 {
     
     Model model;
@@ -61,12 +62,25 @@ KRATOS_TEST_CASE_IN_SUITE(SnakeSbmUtilitySquareOuter, KratosIgaFastSuite)
     for (std::size_t i = 0; i < list_knot_v.size(); ++i) 
         unique_knot_vector_v[i] = list_knot_v[i];
 
-    double lambda_inner = 0.5;
-    double lambda_outer = 0.5;
-    std::size_t number_of_inner_loops = 0;
-        
-    SnakeSbmUtilities::CreateTheSnakeCoordinates(iga_model_part, skin_model_part_inner_initial, skin_model_part_outer_initial, skin_model_part, 0,
-        unique_knot_vector_u, unique_knot_vector_v, number_of_inner_loops, lambda_inner, lambda_outer) ;
+    Kratos::Parameters snake_parameters(R"(
+        {
+            "iga_model_part_name" : "iga_model_part",
+            "skin_model_part_inner_initial_name" : "skin_model_part_inner_initial",
+            "skin_model_part_outer_initial_name" : "skin_model_part_outer_initial",
+            "skin_model_part_name" : "skin_model_part",
+            "echo_level" : 4,
+            "lambda_inner" : 0.5,
+            "lambda_outer" : 0.5,
+            "number_of_inner_loops": 0
+        }
+    )");
+
+    SnakeSbmProcess snake_sbm_process(model, snake_parameters);
+
+    iga_model_part.SetValue(KNOT_VECTOR_U, unique_knot_vector_u);
+    iga_model_part.SetValue(KNOT_VECTOR_V, unique_knot_vector_v);
+    
+    snake_sbm_process.CreateTheSnakeCoordinates() ;
     
     const double tolerance = 1.0e-6;
 
@@ -110,8 +124,8 @@ KRATOS_TEST_CASE_IN_SUITE(SnakeSbmUtilitySquareOuter, KratosIgaFastSuite)
 
 }
 
-// Tests the SnakeSbmUtilities with an inner geometry
-KRATOS_TEST_CASE_IN_SUITE(SnakeSbmUtilityInner, KratosIgaFastSuite)
+// Tests the SnakeSbmProcess with an inner geometry
+KRATOS_TEST_CASE_IN_SUITE(SnakeSbmProcessInner, KratosIgaFastSuite)
 {
     
     Model model;
@@ -178,12 +192,25 @@ KRATOS_TEST_CASE_IN_SUITE(SnakeSbmUtilityInner, KratosIgaFastSuite)
     for (std::size_t i = 0; i < list_knot_v.size(); ++i) 
         unique_knot_vector_v[i] = list_knot_v[i];
 
-    double lambda_inner = 0.5;
-    double lambda_outer = 0.5;
-    std::size_t number_of_inner_loops = 2;
+    Kratos::Parameters snake_parameters(R"(
+        {
+            "iga_model_part_name" : "iga_model_part",
+            "skin_model_part_inner_initial_name" : "skin_model_part_inner_initial",
+            "skin_model_part_outer_initial_name" : "skin_model_part_outer_initial",
+            "skin_model_part_name" : "skin_model_part",
+            "echo_level" : 0,
+            "lambda_inner" : 0.5,
+            "lambda_outer" : 0.5,
+            "number_of_inner_loops": 2
+        }
+    )");
 
-    SnakeSbmUtilities::CreateTheSnakeCoordinates(iga_model_part, skin_model_part_inner_initial, skin_model_part_outer_initial, skin_model_part, 0,
-        unique_knot_vector_u, unique_knot_vector_v, number_of_inner_loops, lambda_inner, lambda_outer) ;
+    SnakeSbmProcess snake_sbm_process(model, snake_parameters);
+
+    iga_model_part.SetValue(KNOT_VECTOR_U, unique_knot_vector_u);
+    iga_model_part.SetValue(KNOT_VECTOR_V, unique_knot_vector_v);
+
+    snake_sbm_process.CreateTheSnakeCoordinates() ;
     
     const double tolerance = 1.0e-6;
 
@@ -254,8 +281,8 @@ KRATOS_TEST_CASE_IN_SUITE(SnakeSbmUtilityInner, KratosIgaFastSuite)
     }
 }
 
-// Tests the SnakeSbmUtilities with an inner and an outer geometry
-KRATOS_TEST_CASE_IN_SUITE(SnakeSbmUtilityInnerOuter, KratosIgaFastSuite)
+// Tests the SnakeSbmProcess with an inner and an outer geometry
+KRATOS_TEST_CASE_IN_SUITE(SnakeSbmProcessInnerOuter, KratosIgaFastSuite)
 {
     
     Model model;
@@ -318,14 +345,27 @@ KRATOS_TEST_CASE_IN_SUITE(SnakeSbmUtilityInnerOuter, KratosIgaFastSuite)
         unique_knot_vector_u[i] = list_knot_u[i];
     for (std::size_t i = 0; i < list_knot_v.size(); ++i) 
         unique_knot_vector_v[i] = list_knot_v[i];
-    
-    double lambda_inner = 1.0;
-    double lambda_outer = 0.5;
-    std::size_t number_of_inner_loops = 1;
 
-    SnakeSbmUtilities::CreateTheSnakeCoordinates(iga_model_part, skin_model_part_inner_initial, skin_model_part_outer_initial, skin_model_part, 0,
-        unique_knot_vector_u, unique_knot_vector_v, number_of_inner_loops, lambda_inner, lambda_outer) ;
-    
+    Kratos::Parameters snake_parameters(R"(
+        {
+            "iga_model_part_name" : "iga_model_part",
+            "skin_model_part_inner_initial_name" : "skin_model_part_inner_initial",
+            "skin_model_part_outer_initial_name" : "skin_model_part_outer_initial",
+            "skin_model_part_name" : "skin_model_part",
+            "echo_level" : 0,
+            "lambda_inner" : 1.0,
+            "lambda_outer" : 0.5,
+            "number_of_inner_loops": 1
+        }
+    )");
+
+    SnakeSbmProcess snake_sbm_process(model, snake_parameters);
+
+    iga_model_part.SetValue(KNOT_VECTOR_U, unique_knot_vector_u);
+    iga_model_part.SetValue(KNOT_VECTOR_V, unique_knot_vector_v);
+
+    snake_sbm_process.CreateTheSnakeCoordinates() ;
+
     const double tolerance = 1.0e-6;
 
     std::vector<std::array<double, 3>> expected_coordinates_outer = { 
