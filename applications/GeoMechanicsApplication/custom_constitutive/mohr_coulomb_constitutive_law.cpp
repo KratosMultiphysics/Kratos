@@ -29,7 +29,6 @@ MohrCoulombConstitutiveLaw::MohrCoulombConstitutiveLaw(std::unique_ptr<Constitut
     : mpConstitutiveDimension(std::move(pConstitutiveDimension)),
       mStressVector(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
       mStressVectorFinalized(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
-      mDeltaStrainVector(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
       mStrainVectorFinalized(ZeroVector(mpConstitutiveDimension->GetStrainSize()))
 {
 }
@@ -41,7 +40,6 @@ ConstitutiveLaw::Pointer MohrCoulombConstitutiveLaw::Clone() const
     auto p_result = std::make_shared<MohrCoulombConstitutiveLaw>(mpConstitutiveDimension->Clone());
     p_result->mStressVector          = mStressVector;
     p_result->mStressVectorFinalized = mStressVectorFinalized;
-    p_result->mDeltaStrainVector     = mDeltaStrainVector;
     p_result->mStrainVectorFinalized = mStrainVectorFinalized;
     return p_result;
 }
@@ -109,7 +107,7 @@ void MohrCoulombConstitutiveLaw::CalculateMohrCoulomb(const Properties& rProp, V
     Vector                       strainVector(mpConstitutiveDimension->GetStrainSize());
     rValues.SetStrainVector(strainVector);
 
-    this->CalculatePK2Stress(strainVector, trailStressVector, rValues);
+    this->CalculateTrialStressVector(strainVector, trailStressVector, rValues);
     Vector principalTrialStressVector;
     Matrix eigenVectorsMatrix;
     StressStrainUtilities::CalculatePrincipalStresses(trailStressVector, principalTrialStressVector, eigenVectorsMatrix);
@@ -231,23 +229,17 @@ Vector MohrCoulombConstitutiveLaw::RotatePrincipalStresses(Vector& rPrincipalStr
 }
 
 // ================================================================================================
-void MohrCoulombConstitutiveLaw::CalculatePK2Stress(const Vector&                rStrainVector,
+void MohrCoulombConstitutiveLaw::CalculateTrialStressVector(const Vector&                rStrainVector,
                                                     Vector&                      rStressVector,
                                                     ConstitutiveLaw::Parameters& rValues)
 {
-    mDeltaStrainVector = rValues.GetStrainVector() - mStrainVectorFinalized;
-
-    Matrix C;
-    this->CalculateElasticMatrix(C, rValues);
-
-    // Incremental formulation
-    auto trialStress = mStressVectorFinalized + prod(C, mDeltaStrainVector);
-
-    rStressVector = trialStress;
+    Vector deltaStrainVector = rValues.GetStrainVector() - mStrainVectorFinalized;
+    Matrix elastic_matrix = this->CalculateElasticMatrix(rValues);
+    rStressVector = mStressVectorFinalized + prod(elastic_matrix, deltaStrainVector);
 }
 
 // ================================================================================================
-void MohrCoulombConstitutiveLaw::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
+Matrix MohrCoulombConstitutiveLaw::CalculateElasticMatrix(ConstitutiveLaw::Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
     const auto E = r_material_properties[YOUNG_MODULUS];
@@ -258,7 +250,7 @@ void MohrCoulombConstitutiveLaw::CalculateElasticMatrix(Matrix& C, ConstitutiveL
     const double c2 = c0 * NU;
     const double c3 = (0.5 - NU) * c0;
 
-    C = mpConstitutiveDimension->FillConstitutiveMatrix(c1, c2, c3);
+    return mpConstitutiveDimension->FillConstitutiveMatrix(c1, c2, c3);
 }
 
 // ================================================================================================

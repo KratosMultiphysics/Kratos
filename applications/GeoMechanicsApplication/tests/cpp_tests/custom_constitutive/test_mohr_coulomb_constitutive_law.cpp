@@ -115,7 +115,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombConstitutiveLaw_CalculatePK2Stress, KratosG
     parameters.SetMaterialProperties(properties);
 
     // Act
-    law.CalculatePK2Stress(strain_vector, stress_vector, parameters);
+    law.CalculateTrialStressVector(strain_vector, stress_vector, parameters);
 
     // Assert
     Vector expected_stress_vector(plane_strain->GetStrainSize());
@@ -137,9 +137,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombConstitutiveLaw_CalculateElasticMatrix, Kra
 
     // Act
     // Matrix elastic_matrix;
-    Matrix elastic_matrix = ZeroMatrix(plane_strain->GetStrainSize(), plane_strain->GetStrainSize()); // temporarely
-
-    law.CalculateElasticMatrix(elastic_matrix, parameters);
+    Matrix elastic_matrix = law.CalculateElasticMatrix(parameters);
 
     // Assert
     Matrix expected_elastic_matrix(plane_strain->GetStrainSize(), plane_strain->GetStrainSize());
@@ -193,9 +191,9 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombConstitutiveLaw_FinalizeMaterialResponseCau
     // Act
     law.FinalizeMaterialResponseCauchy(parameters); // set mStrainVectorFinalized as strain_vector
     auto stress_vector = Vector(0.0, static_cast<int>(plane_strain->GetStrainSize()));
-    law.CalculatePK2Stress(strain_vector, stress_vector, parameters); // use mStrainVectorFinalized and update mStressVector
+    law.CalculateTrialStressVector(strain_vector, stress_vector, parameters); // use mStrainVectorFinalized and update mStressVector
     law.FinalizeMaterialResponseCauchy(parameters); // update mStrainVectorFinalized and mStressVectorFinalized
-    law.CalculatePK2Stress(strain_vector, stress_vector, parameters); // use mStrainVectorFinalized and mStressVectorFinalized
+    law.CalculateTrialStressVector(strain_vector, stress_vector, parameters); // use mStrainVectorFinalized and mStressVectorFinalized
 
     // Assert
     auto expected_stress_vector = ZeroVector(plane_strain->GetStrainSize());
