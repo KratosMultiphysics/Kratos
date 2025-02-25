@@ -187,7 +187,33 @@ void StressStrainUtilities::CalculatePrincipalStresses(Vector& rCauchyStressVect
     for (int i = 0; i < 3; ++i) {
         rPrincipalStressVector(i) = PrincipalStressMatrix(i, i);
     }
-    std::sort(rPrincipalStressVector.begin(), rPrincipalStressVector.end(), std::greater<double>());
+    KRATOS_INFO("CalculatePrincipalStresses") << "rPrincipalStressVector (1): " << rPrincipalStressVector << std::endl;
+    KRATOS_INFO("CalculatePrincipalStresses") << "rEigenVectorsMatrix (1): " << rEigenVectorsMatrix << std::endl;
+    std::vector<std::size_t> indices(rPrincipalStressVector.size());
+    std::iota(indices.begin(), indices.end(), 0);
+    KRATOS_INFO("CalculatePrincipalStresses") << "indices (1): " << indices << std::endl;
+    std::sort(indices.begin(), indices.end(), [&rPrincipalStressVector](const std::size_t i, const std::size_t j) {return rPrincipalStressVector[j] < rPrincipalStressVector[i];});
+    KRATOS_INFO("CalculatePrincipalStresses") << "rPrincipalStressVector (2): " << rPrincipalStressVector << std::endl;
+    KRATOS_INFO("CalculatePrincipalStresses") << "indices (2): " << indices << std::endl;
+
+    std::vector<double> tmp_vector;
+    tmp_vector.reserve(rPrincipalStressVector.size());
+    for (const auto index : indices) {
+        tmp_vector.push_back(rPrincipalStressVector[index]);
+    }
+
+    std::copy(tmp_vector.begin(), tmp_vector.end(), rPrincipalStressVector.begin());
+    KRATOS_INFO("CalculatePrincipalStresses") << "rPrincipalStressVector (3): " << rPrincipalStressVector << std::endl;
+
+    Matrix tmp_matrix(rEigenVectorsMatrix.size1(), rEigenVectorsMatrix.size2());
+    for (auto i = std::size_t{0}; i < rEigenVectorsMatrix.size1(); ++i) {
+        for (auto j = std::size_t{0}; j < rEigenVectorsMatrix.size2(); ++j) {
+            tmp_matrix(i, j) = rEigenVectorsMatrix(i, indices[j]);
+        }
+    }
+
+    noalias(rEigenVectorsMatrix) = tmp_matrix;
+    KRATOS_INFO("CalculatePrincipalStresses") << "rEigenVectorsMatrix (3): " << rEigenVectorsMatrix << std::endl;
 }
 
 } // namespace Kratos
