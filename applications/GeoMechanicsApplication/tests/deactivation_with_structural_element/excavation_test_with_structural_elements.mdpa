@@ -1,0 +1,59 @@
+Begin Properties 0
+End Properties
+
+Begin Nodes
+    1   0.0000000000   0.0000000000   0.0000000000
+    2   1.0000000000   0.0000000000   0.0000000000
+    3   0.0000000000   1.0000000000   0.0000000000
+    4   1.0000000000   1.0000000000   0.0000000000
+End Nodes
+
+
+Begin Elements UPwSmallStrainElement2D4N// GUI group identifier: Soil
+        1          0     3     1     2     4 
+End Elements
+
+Begin Elements LinearTrussElement2D2N// GUI group identifier: truss
+        3          0     2     4 
+End Elements
+
+Begin Conditions UPwNormalFaceLoadCondition2D2N// GUI group identifier: NormalLoad
+        1          0     4     3
+End Conditions
+
+Begin SubModelPart BottomFixed // Group BottomFixed // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+            1
+            2
+    End SubModelPartNodes
+End SubModelPart
+Begin SubModelPart Soil // Group Soil // Subtree Parts_Soil
+    Begin SubModelPartNodes
+            1
+            2
+            3
+            4
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            1
+    End SubModelPartElements
+End SubModelPart
+Begin SubModelPart truss // Group truss // Subtree Parts_Pipe
+    Begin SubModelPartNodes
+            2
+            4
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            3
+    End SubModelPartElements
+End SubModelPart
+
+Begin SubModelPart NormalLoad // Group NormalLoad // Subtree NormalLoad
+    Begin SubModelPartNodes
+            3
+            4
+    End SubModelPartNodes
+    Begin SubModelPartConditions
+            1
+    End SubModelPartConditions
+End SubModelPart
