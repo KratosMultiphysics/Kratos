@@ -17,9 +17,9 @@
 
 namespace Kratos::Testing {
 
-class KratosCompressiblePotentialFlowFastSuite : public KratosCoreFastSuite {
+class CompressiblePotentialFlowApplicationFastSuite : public KratosCoreFastSuite {
 public:
-  KratosCompressiblePotentialFlowFastSuite();
+  CompressiblePotentialFlowApplicationFastSuite();
 
 private:
   KratosCompressiblePotentialFlowApplication::Pointer mpCompressiblePotentialFlowApp;
