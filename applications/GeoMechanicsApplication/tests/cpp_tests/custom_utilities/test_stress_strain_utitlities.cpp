@@ -200,7 +200,9 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculatePrincipalStresses, KratosGeoMechanicsFas
     cauchy_stresses(4)     = 35.0;
     cauchy_stresses(5)     = 45.0;
 
-    Vector principal_stresses = StressStrainUtilities::CalculatePrincipalStresses(cauchy_stresses);
+    Vector principal_stresses;
+    Matrix eigenvectors_matrix;
+    StressStrainUtilities::CalculatePrincipalStresses(cauchy_stresses, principal_stresses, eigenvectors_matrix);
 
     Vector expected_solution = ZeroVector(3);
     expected_solution(0)     = 135.736961146391;

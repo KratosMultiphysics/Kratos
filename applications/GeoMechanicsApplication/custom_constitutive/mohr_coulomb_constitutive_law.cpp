@@ -110,9 +110,10 @@ void MohrCoulombConstitutiveLaw::CalculateMohrCoulomb(const Properties& rProp, V
     rValues.SetStrainVector(strainVector);
 
     this->CalculatePK2Stress(strainVector, trailStressVector, rValues);
-    Vector principalTrialStressVector = StressStrainUtilities::CalculatePrincipalStresses(trailStressVector);
+    Vector principalTrialStressVector;
+    Matrix eigenVectorsMatrix;
+    StressStrainUtilities::CalculatePrincipalStresses(trailStressVector, principalTrialStressVector, eigenVectorsMatrix);
 
-    Matrix eigenVectorsMatrix = StressStrainUtilities::CalculatePrincipalEigenVectorsMatrix(trailStressVector);
     Matrix rotationMatrix = this->CalculateRotationMatrix(eigenVectorsMatrix);
     this->CheckRotationMatrix(rotationMatrix);
 
