@@ -187,7 +187,7 @@ namespace Kratos
         }
 
         // Ensure that vertices are in counterclockwise order
-        SortVerticesCounterClockwise(x1, x2, x3, x4, y1, y2, y3, y4);
+        SortVerticesCCW(x1, x2, x3, x4, y1, y2, y3, y4);
 
         // Set vertex coordinates
         mVertexCoords(0,0) = x1; mVertexCoords(1,0) = y1;
@@ -804,7 +804,7 @@ namespace Kratos
     //------------------------------------------------------------------------------------------------------------
     // Sort the vertices (x1,y1), (x2,y2), (x3,y3), (x4,y4) of a quadrilateral in counterclockwise order by
     // making (x1,y1) the "lower-left" vertex, ie, with its angle closest to 45° (facing northeast).
-    void RVEWallBoundary2D::SortVerticesCounterClockwise(double& x1, double& x2, double& x3, double& x4, double& y1, double& y2, double& y3, double& y4) {
+    void RVEWallBoundary2D::SortVerticesCCW(double& x1, double& x2, double& x3, double& x4, double& y1, double& y2, double& y3, double& y4) {
         // RVE Centroid
         double cx = (x1 + x2 + x3 + x4) / 4.0;
         double cy = (y1 + y2 + y3 + y4) / 4.0;

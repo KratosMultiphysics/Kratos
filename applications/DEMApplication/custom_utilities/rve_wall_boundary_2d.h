@@ -71,7 +71,7 @@ namespace Kratos
 
         private:
             // Private methods
-            void   SortVerticesCounterClockwise     (double& x1, double& x2, double& x3, double& x4, double& y1, double& y2, double& y3, double& y4);
+            void   SortVerticesCCW                  (double& x1, double& x2, double& x3, double& x4, double& y1, double& y2, double& y3, double& y4);
             double ComputeAreaQuadrilateral         (double x1, double x2, double x3, double x4, double y1, double y2, double y3, double y4);
             double ComputeAreaTriangle              (double x1, double x2, double x3, double y1, double y2, double y3);
             double ComputeAreaCircleSector          (double r, double d);
