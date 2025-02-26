@@ -30,6 +30,7 @@ KRATOS_TEST_CASE_IN_SUITE(SnakeSbmProcessSquareOuter, KratosIgaFastSuite)
     iga_model_part.CreateSubModelPart("surrogate_inner");
     ModelPart& surrogate_sub_model_part_outer = iga_model_part.CreateSubModelPart("surrogate_outer");
 
+    model.CreateModelPart("skin_model_part_inner_initial");
     ModelPart& skin_model_part_outer_initial = model.CreateModelPart("skin_model_part_outer_initial");
 
     skin_model_part_outer_initial.CreateNewProperties(0);
@@ -134,6 +135,7 @@ KRATOS_TEST_CASE_IN_SUITE(SnakeSbmProcessInner, KratosIgaFastSuite)
     iga_model_part.CreateSubModelPart("surrogate_outer");
 
     ModelPart& skin_model_part_inner_initial = model.CreateModelPart("skin_model_part_inner_initial");
+    model.CreateModelPart("skin_model_part_outer_initial");
 
     skin_model_part_inner_initial.CreateNewProperties(0);
 
