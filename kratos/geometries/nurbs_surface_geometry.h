@@ -64,7 +64,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Conctructor for B-Spline surfaces
+    /// Constructor for B-Spline surfaces
     NurbsSurfaceGeometry(
         const PointsArrayType& rThisPoints,
         const SizeType PolynomialDegreeU,
@@ -81,7 +81,7 @@ public:
         CheckIsRationalOnlyOnce();
     }
 
-    /// Conctructor for NURBS surfaces
+    /// Constructor for NURBS surfaces
     NurbsSurfaceGeometry(
         const PointsArrayType& rThisPoints,
         const SizeType PolynomialDegreeU,
