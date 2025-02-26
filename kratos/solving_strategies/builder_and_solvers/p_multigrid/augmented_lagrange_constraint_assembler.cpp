@@ -66,15 +66,15 @@ void ProcessMasterSlaveConstraint(std::vector<std::size_t>& rConstraintIndices,
                                   const MasterSlaveConstraint& rConstraint,
                                   const std::vector<std::size_t>& rSlaveIds,
                                   const std::vector<std::size_t>& rMasterIds,
-                                  const std::unordered_map<std::size_t,std::size_t>& rConstraintIdToIndexMap)
+                                  const std::unordered_map<std::size_t,std::pair<std::size_t,std::size_t>>& rConstraintIdMap)
 {
     // Constraint identifiers are the slave DoFs' IDs.
     rConstraintIndices.resize(rSlaveIds.size());
     std::transform(rSlaveIds.begin(),
                    rSlaveIds.end(),
                    rConstraintIndices.begin(),
-                   [&rConstraintIdToIndexMap](std::size_t slave_id){
-                        return rConstraintIdToIndexMap.at(slave_id);
+                   [&rConstraintIdMap](std::size_t slave_id){
+                        return rConstraintIdMap.at(slave_id).first;
                    });
 
     // Comb DoFs.
@@ -88,7 +88,10 @@ void ProcessMasterSlaveConstraint(std::vector<std::size_t>& rConstraintIndices,
                                rRelationMatrix.size2() + rSlaveIds.size(),
                                /*preserve entries=*/true);
         for (std::size_t i_slave=0ul; i_slave<rSlaveIds.size(); ++i_slave) {
-            rRelationMatrix(i_slave, rMasterIds.size() + i_slave) = -1.0;
+            // Fetch the number of constraint objects defining this constraint equation,
+            // because the slave DoF's coefficient must add up to -1 after assembly.
+            const auto constraint_object_count = rConstraintIdMap.at(rSlaveIds[i_slave]).second;
+            rRelationMatrix(i_slave, rMasterIds.size() + i_slave) = -1.0 / constraint_object_count;
         } // for i_slave in range(rSlaveIds.size())
     } // if rRelationMatrix.size2()
 
@@ -108,15 +111,15 @@ void ProcessMultifreedomConstraint(std::vector<std::size_t>& rConstraintIndices,
                                    std::vector<std::size_t>& rDofIds,
                                    const MasterSlaveConstraint& rConstraint,
                                    const std::vector<std::size_t>& rMasterIds,
-                                   const std::unordered_map<std::size_t,std::size_t>& rConstraintIdToIndexMap)
+                                   const std::unordered_map<std::size_t,std::pair<std::size_t,std::size_t>>& rConstraintIdMap)
 {
     const auto& r_constraint_labels = rConstraint.GetData().GetValue(CONSTRAINT_LABELS);
     rConstraintIndices.resize(r_constraint_labels.size());
     std::transform(r_constraint_labels.begin(),
                    r_constraint_labels.end(),
                    rConstraintIndices.begin(),
-                   [&rConstraintIdToIndexMap](std::size_t constraint_label){
-                        return rConstraintIdToIndexMap.at(constraint_label);
+                   [&rConstraintIdMap](std::size_t constraint_label){
+                        return rConstraintIdMap.at(constraint_label).first;
                    });
 
     rDofIds = rMasterIds;
@@ -133,6 +136,7 @@ void ApplyDirichletConditions(typename TSparse::MatrixType& rRelationMatrix,
     KRATOS_TRY
 
     /// @todo Make applying dirichlet conditions on penalty constraints more robust and efficient.
+    TSparse::WriteMatrixMarketMatrix("original.mm", rRelationMatrix, false);
 
     std::size_t forced_dirichlet_dof_count,
                 total_forced_dirichlet_dof_count = 0ul,
@@ -183,13 +187,14 @@ void ApplyDirichletConditions(typename TSparse::MatrixType& rRelationMatrix,
                     std::scoped_lock<LockObject> lock(mutexes[i_dof]);
                     if (r_dof.IsFree()) {
                         const typename TSparse::DataType constraint_coefficient = rRelationMatrix.value_data()[i_entry];
-                        rRelationMatrix.value_data()[i_entry] = static_cast<typename TSparse::DataType>(0);
                         KRATOS_ERROR_IF_NOT(constraint_coefficient);
                         const typename TSparse::DataType constraint_gap = rConstraintGaps[i_constraint];
-                        rConstraintGaps[i_constraint] = static_cast<typename TSparse::DataType>(0);
                         const auto dirichlet_condition = -constraint_gap / constraint_coefficient;
+
                         r_dof.GetSolutionStepValue() = dirichlet_condition;
                         r_dof.FixDof();
+                        rRelationMatrix.value_data()[i_entry] = static_cast<typename TSparse::DataType>(0);
+                        rConstraintGaps[i_constraint] = static_cast<typename TSparse::DataType>(0);
                         break;
                     }
                 } // for i_entry in range(i_entry_begin, i_entry_end)
@@ -199,6 +204,8 @@ void ApplyDirichletConditions(typename TSparse::MatrixType& rRelationMatrix,
         ++iteration_count;
         total_forced_dirichlet_dof_count += forced_dirichlet_dof_count;
     } while (forced_dirichlet_dof_count);
+
+    TSparse::WriteMatrixMarketMatrix("modified.mm", rRelationMatrix, false);
 
     if (2 <= Verbosity and total_forced_dirichlet_dof_count) {
         std::cout << "AugmentedLagrangeConstraintAssembler: "
@@ -217,8 +224,13 @@ struct AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Impl
 {
     using Interface = AugmentedLagrangeConstraintAssembler<TSparse,TDense>;
 
-    /// @brief A map associating slave IDs with constraint indices.
-    std::unordered_map<std::size_t,std::size_t> mConstraintIdToIndexMap;
+    /// @brief A map associating slave IDs with constraint indices and the number of constraint objects referencing it.
+    std::unordered_map<std::size_t,     //< identifier of the constraint equation (slave ID for MasterSlaveConstraint, CONSTRAINT_LABEL for MultifreedomConstraint)
+                       std::pair<
+                        std::size_t,    //< row index of the constraint equation in the relation matrix
+                        std::size_t     //< number of constraint objects defining the equation
+                       >
+    > mConstraintIdMap;
 
     std::optional<typename TSparse::MatrixType> mMaybeTransposeRelationMatrix;
 
@@ -236,7 +248,7 @@ AugmentedLagrangeConstraintAssembler<TSparse,TDense>::AugmentedLagrangeConstrain
 template <class TSparse, class TDense>
 AugmentedLagrangeConstraintAssembler<TSparse,TDense>::AugmentedLagrangeConstraintAssembler(Parameters Settings)
     : Base(ConstraintImposition::AugmentedLagrange),
-      mpImpl(new Impl{/*mConstraintIdToIndexMap: */std::unordered_map<std::size_t,std::size_t>(),
+      mpImpl(new Impl{/*mConstraintIdToIndexMap: */std::unordered_map<std::size_t,std::pair<std::size_t,std::size_t>>(),
                       /*mMaybeTransposeRelationMatrix: */std::optional<typename TSparse::MatrixType>(),
                       /*mVerbosity: */1})
 {
@@ -274,7 +286,7 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Allocate(const typena
     }
 
     // Build constraint ID => index map.
-    mpImpl->mConstraintIdToIndexMap.clear();
+    mpImpl->mConstraintIdMap.clear();
 
     {
         MasterSlaveConstraint::IndexType i_constraint = 0;
@@ -293,16 +305,17 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Allocate(const typena
             } /*if constraint_labels.empty()*/
 
             for (const auto constraint_label : constraint_labels) {
-                const auto emplace_result = mpImpl->mConstraintIdToIndexMap.emplace(static_cast<std::size_t>(constraint_label),
-                                                                                    i_constraint);
+                const auto emplace_result = mpImpl->mConstraintIdMap.emplace(static_cast<std::size_t>(constraint_label),
+                                                                             std::make_pair(i_constraint, 0ul));
+                ++emplace_result.first->second.second; //< increment the number of constraint objects defining the constraint equation.
                 if (emplace_result.second) ++i_constraint;
             } // for constraint_label in constraint_labels
         } // for r_constraint in rModelPart.MasterSlaveConstraints
     }
 
     {
-        std::vector<std::unordered_set<IndexType>> indices(mpImpl->mConstraintIdToIndexMap.size());
-        std::vector<LockObject> mutexes(mpImpl->mConstraintIdToIndexMap.size());
+        std::vector<std::unordered_set<IndexType>> indices(mpImpl->mConstraintIdMap.size());
+        std::vector<LockObject> mutexes(mpImpl->mConstraintIdMap.size());
 
         struct TLS {
             MasterSlaveConstraint::EquationIdVectorType slaves, masters;
@@ -330,7 +343,7 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Allocate(const typena
             }
 
             for (const auto i_slave : r_tls.constraint_labels) {
-                const auto i_constraint = mpImpl->mConstraintIdToIndexMap[static_cast<std::size_t>(i_slave)];
+                const auto i_constraint = mpImpl->mConstraintIdMap[static_cast<std::size_t>(i_slave)].first;
                 std::scoped_lock<LockObject> lock(mutexes[i_constraint]);
                 indices[i_constraint].insert(r_tls.masters.begin(), r_tls.masters.end());
             } // for i_slave in slave_ids
@@ -374,7 +387,7 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Assemble(const typena
     ///       to be done and what can be omitted for each case. - matekelemen
 
     // Function-wide variables.
-    std::vector<LockObject> mutexes(mpImpl->mConstraintIdToIndexMap.size());
+    std::vector<LockObject> mutexes(mpImpl->mConstraintIdMap.size());
 
     // Init.
     TSparse::SetToZero(this->GetRelationMatrix());
@@ -416,7 +429,7 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Assemble(const typena
                                                       r_tls.dof_equation_ids,
                                                       r_constraint,
                                                       r_tls.master_ids,
-                                                      mpImpl->mConstraintIdToIndexMap);
+                                                      mpImpl->mConstraintIdMap);
             } /*if r_tls.slave_ids.empty()*/ else {
                 // The constraint is a MasterSlaveConstraint.
                 detail::ProcessMasterSlaveConstraint(r_tls.constraint_indices,
@@ -426,7 +439,7 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Assemble(const typena
                                                      r_constraint,
                                                      r_tls.slave_ids,
                                                      r_tls.master_ids,
-                                                     mpImpl->mConstraintIdToIndexMap);
+                                                     mpImpl->mConstraintIdMap);
             } // not r_tls.slave_ids.empty()
 
             r_tls.relation_matrix_row.resize(r_tls.relation_matrix.size2());
@@ -475,10 +488,10 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Assemble(const typena
                 {
                     std::scoped_lock<LockObject> lock(mutexes[i_constraint]);
                     MapRowContribution<TSparse,TDense>(this->GetRelationMatrix(),
-                                                        r_tls.relation_matrix,
-                                                        i_constraint,
-                                                        i_row,
-                                                        r_tls.reordered_dof_equation_ids);
+                                                       r_tls.relation_matrix,
+                                                       i_constraint,
+                                                       i_row,
+                                                       r_tls.reordered_dof_equation_ids);
                 }
 
                 AtomicAdd(this->GetConstraintGapVector()[i_constraint],
@@ -486,6 +499,13 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Assemble(const typena
             } // for i_row in range(r_tls.slave_ids.size)
         } // if r_constraint.IsActive
     }); // for r_constraint in rModelPart.MasterSlaveCosntraints
+
+    // Propagate obvious dirichlet conditions.
+    detail::ApplyDirichletConditions<TSparse,TDense>(this->GetRelationMatrix(),
+                                                     this->GetConstraintGapVector(),
+                                                     rDofSet.begin(),
+                                                     rDofSet.end(),
+                                                     mpImpl->mVerbosity);
 
     KRATOS_CATCH("")
 }
@@ -499,16 +519,23 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Initialize(typename T
 {
     KRATOS_TRY
 
-    detail::ApplyDirichletConditions<TSparse,TDense>(this->GetRelationMatrix(),
-                                                     this->GetConstraintGapVector(),
-                                                     itDofBegin,
-                                                     itDofEnd,
-                                                     mpImpl->mVerbosity);
+    // Reset the relation matrix' transpose to make sure that propagated dirichlet
+    // conditions are reflected in the transpose as well.
+    mpImpl->mMaybeTransposeRelationMatrix.reset();
 
+    //// Propagate obvious dirichlet conditions.
+    //detail::ApplyDirichletConditions<TSparse,TDense>(this->GetRelationMatrix(),
+    //                                                 this->GetConstraintGapVector(),
+    //                                                 itDofBegin,
+    //                                                 itDofEnd,
+    //                                                 mpImpl->mVerbosity);
+
+    // Fetch function-wide constants.
     using SparseUtils = SparseMatrixMultiplicationUtility;
     const typename TSparse::DataType penalty_factor = this->GetPenaltyFactor();
     const typename TSparse::DataType initial_lagrange_multiplier = this->GetInitialLagrangeMultiplier();
 
+    // Apply initial penalty- and lagrange terms to the left- and right hand sides.
     {
         const typename TSparse::MatrixType& r_transpose_relation_matrix = this->GetTransposeRelationMatrix();
         KRATOS_ERROR_IF(r_transpose_relation_matrix.size1() != this->GetRelationMatrix().size2()
@@ -633,7 +660,7 @@ template <class TSparse, class TDense>
 void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Clear()
 {
     Base::Clear();
-    mpImpl->mConstraintIdToIndexMap = decltype(mpImpl->mConstraintIdToIndexMap)();
+    mpImpl->mConstraintIdMap = decltype(mpImpl->mConstraintIdMap)();
     mpImpl->mMaybeTransposeRelationMatrix = decltype(mpImpl->mMaybeTransposeRelationMatrix)();
 }
 
