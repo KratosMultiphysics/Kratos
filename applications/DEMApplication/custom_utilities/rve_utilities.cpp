@@ -11,7 +11,7 @@ namespace Kratos
 {
     //------------------------------------------------------------------------------------------------------------
     void RVEUtilities::Initialize(ModelPart& dem_model_part, ModelPart& fem_model_part) {
-        if (!mDemModelPart->GetProcessInfo()[RVE_ANALYSIS])
+        if (!dem_model_part.GetProcessInfo()[RVE_ANALYSIS])
             return;
         InitializeVariables(dem_model_part, fem_model_part);
         AssembleWallElementVectors();
